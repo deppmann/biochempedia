@@ -6,16 +6,18 @@ courseChapter: "Neuroscience · Unit 2: Synapses and plasticity"
 order: 607
 summary: >-
   How does a neuron turn many excitatory and inhibitory inputs into one decision to fire or not?
-  This lesson treats each input as a conductance that pulls the membrane toward its own reversal
-  potential, so you can predict how inputs sum in time and along a dendrite, why an inhibitory
-  input can veto a spike without moving the voltage, and why the same GABA input can help or
-  hinder. It ends with neuromodulators, which change the rules: afterwards you can read a
-  current-clamp experiment in which dopamine changes firing to matched current steps.
-hook: "An inhibitory input can move the membrane potential by zero millivolts and still stop the cell from firing. How?"
+  This lesson treats each input as one more rope on the balance point from the action potential
+  lesson: a conductance that pulls the membrane toward its own reversal potential and adds to the
+  total conductance. Conductances add; in a passive compact cell with no injected current, the balance point is the conductance-weighted average of their reversal potentials. With that rule you can predict how inputs
+  sum in time and along a dendrite, why two inputs give less than double, why an inhibitory input
+  can veto a spike without moving a resting cell's voltage, and why the same GABA input can help
+  or hinder. It ends with neuromodulators, which change the ropes themselves: afterwards you can
+  read a current-clamp experiment in which dopamine changes firing to matched current steps.
+hook: "An inhibitory input can leave a resting cell's voltage unchanged and still stop it from firing. How?"
 
-estMinutes: 26
+estMinutes: 32
 objectives:
-  - "Predict how EPSPs and IPSPs sum in time (overlap set by the time constant) and in space (decay set by the length constant), treating synaptic inputs as conductances that add rather than as voltages."
+  - "Predict how EPSPs and IPSPs sum in time (overlap set by the time constant) and in space (decay set by the length constant), treating synaptic inputs as conductances that add rather than as voltages, so that, in a passive isopotential cell with fixed, voltage-independent conductances and no injected current, the steady voltage is the conductance-weighted average of their reversal potentials."
   - "Explain shunting inhibition, define an IPSP by its effect on firing rather than its sign, and relate E_GABA to the chloride gradient and the timing and site of the input."
   - "Explain how dopamine acting on D1 receptors (through cAMP and PKA) and acetylcholine acting on muscarinic receptors (closing KCNQ channels through loss of PIP2) change excitability over hundreds of milliseconds to minutes."
   - "Interpret a current-clamp recording in which a modulator changes the firing evoked by matched current steps, including the receptor, kinase and drift controls."
@@ -24,10 +26,52 @@ explainer:
   src: "/explainers/synaptic-integration/explainer.mp4"
   captions: "/explainers/synaptic-integration/explainer.vtt"
   poster: "/explainers/synaptic-integration/poster.jpg"
-  title: "Inhibition That Moves Nothing"
-  durationSec: 143.4
+  title: "One More Rope"
+  durationSec: 188.9
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "time-and-distance"
+    src: "/explainers/synaptic-integration/time-and-distance.mp4"
+    captions: "/explainers/synaptic-integration/time-and-distance.vtt"
+    poster: "/explainers/synaptic-integration/time-and-distance-poster.jpg"
+    title: "Adding Inputs in Time and Space"
+    durationSec: 187.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "less-than-double"
+    src: "/explainers/synaptic-integration/less-than-double.mp4"
+    captions: "/explainers/synaptic-integration/less-than-double.vtt"
+    poster: "/explainers/synaptic-integration/less-than-double-poster.jpg"
+    title: "Less Than Double"
+    durationSec: 161.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "silent-veto"
+    src: "/explainers/synaptic-integration/silent-veto.mp4"
+    captions: "/explainers/synaptic-integration/silent-veto.vtt"
+    poster: "/explainers/synaptic-integration/silent-veto-poster.jpg"
+    title: "Inhibition That Moves Nothing at Rest"
+    durationSec: 162.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "gaba-pushes-up"
+    src: "/explainers/synaptic-integration/gaba-pushes-up.mp4"
+    captions: "/explainers/synaptic-integration/gaba-pushes-up.vtt"
+    poster: "/explainers/synaptic-integration/gaba-pushes-up-poster.jpg"
+    title: "When GABA Pushes Up"
+    durationSec: 204.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "branches-and-modulators"
+    src: "/explainers/synaptic-integration/branches-and-modulators.mp4"
+    captions: "/explainers/synaptic-integration/branches-and-modulators.vtt"
+    poster: "/explainers/synaptic-integration/branches-and-modulators-poster.jpg"
+    title: "Branches and Modulators Change the Ropes"
+    durationSec: 209.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Jackie Schiller"
@@ -162,7 +206,7 @@ simulations:
     ref: "ShuntingConductanceCell"
     title: "Shunting inhibition"
     caption: >-
-      Switch on excitatory and inhibitory conductances in the lesson's passive cell and watch an inhibitory input at rest veto a threshold crossing without moving the trace, then switch to two 0.4 pC pulses and see the shunt shorten tau.
+      Switch on excitatory and inhibitory conductances in the lesson's passive cell and watch an inhibitory input that leaves the resting trace unmoved veto a threshold crossing, then switch to two 0.4 pC pulses and see the shunt shorten tau.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -204,8 +248,9 @@ practiceQuestions:
       stays put, but the added conductance lowers input resistance and pulls any depolarization
       back toward rest: a shunt. Hyperpolarization would need E_GABA below rest. Zero current at
       rest does not mean zero effect, because the shunt acts as soon as excitation moves Vm.
-      With no driving force, the net GABA_A current is zero, so there is no
-      depolarization.
+      Depolarization fails too: at Vm = E_GABA the net GABA_A current is zero. Chloride and
+      bicarbonate may still flow in opposite directions with cancelling currents, so zero net
+      channel current does not mean zero chloride flux.
   - stem: "In a long passive dendrite with a length constant of 400 µm, a steady input depolarizes its own site by 10 mV. About how large is the steady depolarization 800 µm away?"
     choices:
       - "1.4 mV, about 14% of the local value"
@@ -283,8 +328,9 @@ explainLevels:
     text: >-
       A nerve cell listens to many friends at once. Some friends say "go" and some say "stop."
       The cell only shouts its own message when enough "go" piles up at the same time. A "stop"
-      friend can work quietly, like opening a hole in a bucket so the "go" water leaks out, and
-      some helper chemicals change how easily the cell shouts for many minutes.
+      friend can work quietly, like grabbing hold of the cell so the "go" friends cannot
+      pull it as far, and some helper chemicals change how easily the cell shouts for many
+      minutes.
   - level: "highschool"
     label: "High school"
     text: >-
@@ -298,9 +344,9 @@ explainLevels:
   - level: "college"
     label: "College"
     text: >-
-      A synaptic input is a conductance with a reversal potential, passing I = g(Vm − E). In an
-      isopotential cell the steady voltage is the conductance-weighted average of the reversal
-      potentials, and the effective time constant is C divided by the total conductance. EPSPs
+      A synaptic input is a conductance with a reversal potential, passing I = g(Vm − E). In a
+      passive isopotential cell with fixed conductances and no injected current, the steady voltage
+      is the conductance-weighted average of the reversal potentials, and the effective time constant is C divided by the total conductance. EPSPs
       and IPSPs are defined by whether they raise or lower the probability of firing. Temporal
       summation depends on the membrane time constant and spatial summation on the length
       constant. A GABA_A conductance with E_GABA near rest shunts: it lowers input resistance,
@@ -342,8 +388,8 @@ anecdotes:
   - title: "Divide or subtract?"
     source: "Ulrich, European Journal of Neuroscience 18:2159–2165 (2003)."
     text: >-
-      A simple model says a shunt divides: it scales down every depolarization by the same
-      factor. Ulrich used a dynamic clamp to add a calculated shunting conductance to
+      A simple model says a shunt divides: for steady current steps, it scales down every
+      depolarization by the same factor. Ulrich used a dynamic clamp to add a calculated shunting conductance to
       layer V pyramidal neurons from juvenile rat somatosensory cortex while giving somatic
       current steps. The subthreshold voltage responses were divided, as expected. The firing
       frequency, however, behaved as if a fixed amount had been subtracted. The same
@@ -365,70 +411,214 @@ draft: false
 ---
 
 import ShuntingConductanceCell from '../../../components/ShuntingConductanceCell.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A neuron can receive an inhibitory input that moves its membrane potential by zero millivolts and still stop it from firing.** To see why, stop thinking of synaptic inputs as voltages that add and start thinking of them as conductances that compete. That picture explains how inputs sum, how inhibition works unseen, why one GABA input can help or hinder, and how neuromodulators change the rules.
+**An inhibitory input can leave a resting neuron's voltage exactly where it was and still stop the cell from firing.**
 
-## The idea: inputs add as conductances, in time and in space
+To see how, stop treating synaptic inputs as voltages that add, and start treating them as conductances that compete. Four puzzles show why the change is needed.
 
-An **excitatory postsynaptic potential (EPSP)** is a postsynaptic potential that makes the cell more likely to fire an action potential. An **inhibitory postsynaptic potential (IPSP)** makes it less likely. Both are defined by their effect on firing, not by which way the trace moves. See [synaptic transmission](/lessons/synaptic-transmission/) and [the resting membrane](/lessons/resting-membrane-passive/).
+1. **The silent veto.** How can an input that moves a resting cell by zero millivolts block a spike?
+2. **Less than double.** Why do two identical excitatory inputs, arriving together, give less than twice the depolarization of one?
+3. **The two-sided GABA input.** How can one GABA input hold back excitation at one moment and help it a few milliseconds later?
+4. **Same input, more spikes.** How can dopamine make a neuron fire more to exactly the same injected current?
 
-Each fast synapse opens channels, which adds a **conductance** (g, in nanosiemens, nS) with its own **reversal potential** (E, the voltage at which current through those channels is zero). The current it passes is
+The first three follow from the balance point you met in [the action potential](/lessons/action-potential/), with one addition. The fourth shows what that rule can and cannot tell you.
 
-> **I_syn = g_syn × (Vm − E_syn)**
+> **The one idea to carry through this lesson.** The balance point is the voltage the cell would settle at if its open channels stayed as they are. A synapse is one more rope on it. When a synapse opens, it does two things at once. It pulls the balance point toward its own reversal potential. And it adds to the total conductance, so every other rope counts for less and, in a passive cell, the voltage settles faster. Conductances add; in the compact passive model defined below, with no injected current, the balance point is their weighted average.
 
-The term (Vm − E_syn) is the **driving force**: how far the membrane sits from that channel's reversal potential. For AMPA-type glutamate receptors E is near 0 mV, so at rest the current depolarizes. The GABA_A receptor is a chloride channel (it also passes some bicarbonate), so E_GABA lies near the chloride equilibrium potential, which the Nernst equation gives from the chloride concentrations ([derived in transport across membranes](/lessons/membrane-transport/)).
+## One more rope: what a synapse does to the voltage
 
-In a compact cell modelled as **isopotential** (the same voltage everywhere), the steady voltage under several constant conductances is a weighted average of their reversal potentials:
+Picture the voltage scale from the action-potential lesson, with a marker showing the membrane potential, Vm. Every kind of open channel has a rope tied at its own **reversal potential** (E), the voltage at which current through those channels is zero. Each rope pulls the marker toward its end. How hard it pulls is its current:
+
+> **I = g × (Vm − E)**
+
+Here **g** is the **conductance**, measured in nanosiemens (nS), which mostly means how many of those channels are open. The term (Vm − E) is the **driving force**: the gap between the marker and the rope's end. A rope pulls harder the more channels are open (a thicker rope) and the farther the marker sits from its end.
+
+In the action-potential lesson the ropes belonged to ions. Here they belong to kinds of channel: the leak, and each kind of synaptic receptor. A synaptic input is a conductance, not current injected through an electrode, so it goes inside the average like any other rope.
+
+In this lesson's illustrative model, one equivalent rope, the leak, stands in for the channels open at rest. It is 10 nS, tied at −65 mV, so the marker sits at −65 mV.
+
+Now a glutamate synapse fires. Its AMPA-type receptors open and add a second rope. For AMPA receptors E is near 0 mV, so at rest their current depolarizes. The marker is pulled up toward 0 mV but held back by the leak, so it settles between the two. That rise is a **postsynaptic potential**. When the transmitter is cleared and the channels close, the new rope goes slack and the marker drifts back to rest.
+
+The GABA_A receptor passes chloride and some bicarbonate, so E_GABA is set by both ion gradients and by how readily the channel passes each. The Nernst equation gives the chloride equilibrium potential, E_Cl, from the chloride concentrations ([derived in transport across membranes](/lessons/membrane-transport/)). Under ordinary gradients bicarbonate shifts E_GABA positive of E_Cl, more so in cells with low internal chloride; the offset can exceed 10 mV. Where the GABA rope is tied therefore depends on the cell's chloride gradient.
+
+An input that makes the cell more likely to fire an action potential is an **excitatory postsynaptic potential (EPSP)**. One that makes firing less likely is an **inhibitory postsynaptic potential (IPSP)**. Both are defined by their effect on firing, not by which way the trace moves. See [synaptic transmission](/lessons/synaptic-transmission/) and [the resting membrane](/lessons/resting-membrane-passive/) for the background.
+
+**Predict.** A GABA_A synapse opens chloride channels whose reversal potential, E_GABA, is −75 mV. The cell is at rest at −65 mV. Which way does the marker move?
+
+<details>
+<summary>Check your prediction</summary>
+
+Down, toward −75 mV. The new rope is tied below the marker, so the balance point moves below rest and Vm follows. That downward bump is the textbook IPSP. Whether a GABA rope pulls down, up or not at all depends only on where E_GABA sits relative to the marker.
+
+</details>
+
+Here is the balance point written out: the same average as in the action-potential lesson, with synaptic ropes. With the leak (L), an excitatory synapse (E) and an inhibitory synapse (I) all open and steady, the steady voltage is
 
 > **V_ss = (gL × EL + gE × EE + gI × EI) / (gL + gE + gI)**
->
+
+Each rope's end is weighted by that rope's share of the total conductance; the excitatory synapse's share, for example, is gE / (gL + gE + gI). These are the two jobs in the box: a new end in the average, and a bigger bottom line, the total conductance, which shrinks every other share.
+
+The formula has a scope. It holds for a passive cell below threshold whose voltage is the same everywhere (**isopotential**), with no current injected through an electrode, and with conductances that stay fixed and do not depend on voltage. Even then it gives the balance point, not Vm at every instant: after a conductance changes, Vm takes time to catch up, as the next section shows. The later sections stretch these limits one at a time: brief inputs, injected current, dendrites, receptors whose conductance depends on voltage, and modulators.
+
+## Adding inputs in time and in space
+
+<LessonFilm film={frontmatter.films[0]} />
+
+### In time: the second EPSP rides on the first
+
+When conductances change, the marker does not jump to the new balance point. It moves there gradually, because changing the voltage means moving charge onto or off the membrane's capacitance (C). The **membrane time constant**, τ, says how long that takes: the time a passive membrane takes to get 63% of the way to a new steady voltage. It equals input resistance times capacitance: C divided by the total open conductance.
+
+Our cell has C = 200 pF and 10 nS of leak. Its input resistance is R = 1/gL = 1/(10 × 10^−9 S) = 100 MΩ, and its time constant is τ = C/gL = (200 × 10^−12 F)/(10 × 10^−9 S) = 20 ms. So in this passive model every synapse that opens shortens it:
+
 > **τ_eff = C / (gL + gE + gI)**
 
-Here gL and EL are the leak conductance and its reversal potential, C is the membrane capacitance, and τ is the **membrane time constant**, the time a passive membrane takes to get 63% of the way to a new steady voltage (input resistance times capacitance). Every open conductance pulls the voltage toward its own E.
+So an EPSP has a shape. For a brief, fast AMPA input in our compact passive cell, the voltage rises while the synaptic current flows, over a few milliseconds. Once that current has faded, the voltage decays back toward rest with the resting time constant. Other receptor types, dendrites and active channels give other shapes. If a second EPSP arrives before the first has gone, it starts from the first one's tail. Adding inputs that arrive at different times is **temporal summation**, and a longer τ gives more overlap.
 
-**Temporal summation** is adding inputs that arrive at different times: a second EPSP that lands before the first has decayed rides on its tail, so a longer τ gives more overlap. **Spatial summation** is adding inputs at different sites. In a long passive dendrite at steady state, a voltage decays with distance as V(x) = V0 × e^(−x/λ), where the **length constant** λ is the distance over which it falls to 37%. Suppose, with illustrative numbers, that λ = 500 µm and a synapse sits 250 µm from the soma: e^(−0.5) = 0.61, so 61% of its steady depolarization reaches the soma. A brief EPSP loses more, because capacitance also filters it.
+**Predict.** Give the cell two brief, idealized excitatory charge pulses of 0.4 pC, 10 ms apart. Each jumps the voltage by q/C = 0.4 pC / 200 pF = 2 mV, then decays. Cell A is our cell, with τ = 20 ms. Cell B is the same cell with τ = 10 ms. Just after the second pulse, which cell is more depolarized, and roughly by how much?
 
-## Inhibition you cannot see: shunting
+<details>
+<summary>Check your prediction</summary>
 
-All values here are illustrative. Treat the cell as isopotential and passive, with C = 200 pF, gL = 10 nS, EL = −65 mV and a fixed spike threshold of −50 mV. Real thresholds shift with channel state ([the action potential](/lessons/action-potential/)).
+Cell A. After 10 ms its first EPSP has decayed only to e^(−10/20), about 61% of its size, so just after the second pulse the depolarization is 2 + 2 × e^(−10/20) = 2 + 1.21 = 3.21 mV. Cell B's first EPSP has fallen to e^(−10/10), about 37%, giving 2 + 0.74 = 2.74 mV. A longer τ leaves a longer tail, which means more summation. Remember cell B: later in the lesson you will turn cell A into it by opening one inhibitory synapse.
 
-**Worked problem.**
+</details>
 
-*Step 1: the resting cell.* Input resistance R = 1/gL = 1/(10 × 10^−9 S) = 100 MΩ. Time constant τ = C/gL = (200 × 10^−12 F)/(10 × 10^−9 S) = 20 ms.
+### In space: an input fades on its way to the soma
 
-*Step 2: sustained excitation.* Turn on gE = 5 nS with EE = 0 mV. V_ss = (10 × −65 + 5 × 0)/(10 + 5) = −650/15 = −43.3 mV, above threshold. The voltage approaches it with τ_eff = 200/15 = 13.3 ms, so it crosses −50 mV when −50 = −43.3 − 21.7 × e^(−t/13.3). Then e^(−t/13.3) = 6.67/21.67 = 0.308, and t = 13.3 × ln(3.25) = 15.7 ms.
+Most synapses sit on dendrites, not on the cell body. Current entering a dendrite flows toward the soma, but some leaks out across the dendrite's membrane along the way, so the voltage change shrinks with distance. For a steady input in a long passive dendrite, it falls by the same fraction over each equal stretch. The **length constant**, λ, is the distance over which it falls to 37%:
 
-*Step 3: add a shunt.* Add an inhibitory conductance gI = 10 nS whose reversal potential equals rest, EI = −65 mV. V_ss = (−650 + 0 − 650)/(10 + 5 + 10) = −1300/25 = −52.0 mV. That is below threshold: no spike. τ_eff is now 200/25 = 8 ms.
+> **V(x) = V0 × e^(−x/λ)**
 
-*Step 4: the shunt alone.* With gE = 0, V_ss = (−650 − 650)/20 = −65 mV. The trace does not move, yet in step 3 it vetoed the spike.
+With illustrative numbers, λ = 500 µm and a synapse 250 µm from the soma: e^(−0.5) = 0.61, so 61% of its steady depolarization reaches the soma. A brief EPSP loses more, because the capacitance along the way also filters it. Adding inputs that arrive at different places is **spatial summation**. For the same local voltage change, an input nearer the soma, or on a dendrite with a longer λ, loses less on the way. In real dendrites, synaptic strength, branching and active channels also matter.
 
-This is **shunting inhibition**: an inhibitory conductance with a reversal potential near rest lowers the input resistance, so a given excitatory current produces a smaller voltage change. Think of excitation as water poured into a leaky bucket and the shunt as extra holes: the resting level is unchanged, but the same pouring no longer fills it as high.
+So time (τ) and distance (λ) decide how much of each input is still present when and where the cell decides whether to fire. The balance point decides what the inputs add up to, and the next section shows that they do not simply add.
+
+## Why two inputs make less than double
+
+<LessonFilm film={frontmatter.films[1]} />
+
+All values from here on are illustrative. Treat the cell as isopotential and passive, with C = 200 pF, gL = 10 nS, EL = −65 mV and a fixed spike threshold of −50 mV. Real thresholds shift with channel state ([the action potential](/lessons/action-potential/)). Voltages above −50 mV in this section are passive predictions: where the voltage would settle if the spike mechanism were switched off. A real cell with this threshold would fire on the way.
+
+Turn on a sustained excitatory conductance, gE = 5 nS with EE = 0 mV:
+
+> V_ss = (10 × −65 + 5 × 0)/(10 + 5) = −650/15 = −43.3 mV
+
+That is a 21.7 mV depolarization. The voltage approaches it with τ_eff = 200/15 = 13.3 ms, so it crosses −50 mV when −50 = −43.3 − 21.7 × e^(−t/13.3): e^(−t/13.3) = 6.67/21.67 = 0.308, and t = 13.3 × ln(3.25) = 15.7 ms.
+
+**Predict.** Now open a second, identical 5 nS input at the same time, so that gE = 10 nS. Does the depolarization double, to about 43 mV?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. V_ss = (10 × −65 + 10 × 0)/(10 + 10) = −650/20 = −32.5 mV, a 32.5 mV depolarization rather than 43.3 mV. Two inputs gave about one and a half times the depolarization of one, not twice.
+
+</details>
+
+To see why, measure the voltage from rest. Subtracting EL from both sides of the balance point gives the same average in a form where the leak drops out:
+
+> **V_ss − EL = (gE × (EE − EL) + gI × (EI − EL)) / (gL + gE + gI)**
+
+Each top-line term is a synapse's conductance times how far its rope's end sits from rest: the pull that rope would have if the marker sat at rest. The leak's term is zero because its rope is tied at rest, but the leak has not gone. It is still in the bottom line, and it carries current whenever the marker is away from rest.
+
+With one input the top line is 5 × 65 = 325 over a bottom line of 15. With two, the top line doubles to 650, but the bottom line also grows, to 20.
+
+That is one effect, seen two ways. In the formula, the second input enlarges the bottom line, so it dilutes the first. In rope terms, the marker now sits nearer 0 mV, so each AMPA rope's driving force, and its actual pull, has shrunk. This is **sublinear summation**. Inputs sharing one small patch of membrane show it most. Size matters too: each 5 nS input here is half the leak, a strong input. Inputs that are small beside the leak add almost linearly; the shortfall grows as inputs get larger.
+
+## Inhibition that moves nothing at rest: shunting
+
+<LessonFilm film={frontmatter.films[2]} />
+
+Now add a rope whose only job is the bottom line: an inhibitory conductance gI = 10 nS whose reversal potential equals rest, EI = −65 mV.
+
+**Predict.** What does this rope do to the resting cell? Then compare two trials that start at rest. In one, the 5 nS excitation switches on alone. In the other, the excitation and this rope switch on together. Which trial fires?
+
+<details>
+<summary>Check your prediction</summary>
+
+*At rest, nothing.* With gE = 0, V_ss = (−650 − 650)/20 = −65 mV. In the from-rest form its top-line term is 10 × 0 = 0, because its rope is tied exactly where the marker sits.
+
+*With the excitation, it vetoes the spike.* Alone, the excitation heads for −43.3 mV and crosses threshold on the way, after about 15.7 ms. With the shunt on as well, V_ss = (−650 + 0 − 650)/(10 + 5 + 10) = −1300/25 = −52.0 mV. The voltage rises from −65 mV toward −52 mV and never reaches threshold: no spike. In the from-rest form the top line stays at 325 while the bottom line grows from 15 to 25, so the depolarization falls from 21.7 mV to 13.0 mV.
+
+</details>
+
+This is **shunting inhibition**. Once another rope drags the marker away from rest, the shunt resists: at −52 mV it passes 10 nS × 13 mV = 130 pA back toward rest. It cut the depolarization by the factor 15/25 = 0.60. (Strictly, a shunt leaves rest unmoved only when its reversal potential equals rest. Tied near rest, it also makes a small IPSP or depolarization.)
+
+Electrically, the shunt lowers the input resistance, so excitation moves the voltage less, whether it arrives as a synaptic conductance or as current injected through an electrode. This is the lesson's one idea at work: the shunt changed only the bottom line.
 
 <ShuntingConductanceCell />
 
-*Step 5: temporal summation, with and without the shunt.* Now give the cell two brief excitatory charge pulses of 0.4 pC, 10 ms apart. Each jumps the voltage by q/C = 0.4 pC / 200 pF = 2 mV, then decays. Without the shunt (τ = 20 ms), just after the second pulse the depolarization is 2 + 2 × e^(−10/20) = 2 + 1.21 = 3.21 mV. With the shunt on (total conductance 20 nS, τ = 10 ms), it is 2 + 2 × e^(−10/10) = 2 + 0.74 = 2.74 mV. In this idealized case the shunt did not shrink each jump, because an instantaneous charge pulse sets the jump by charge and capacitance alone. It shortened the time constant, so less of the first EPSP was left for the second to ride on. A real synaptic current lasts a millisecond or more, so the shunt also drains charge while it flows, and the EPSP peak itself gets smaller.
+### The shunt also shortens τ
 
-Real cells keep the logic but not always the arithmetic. In layer V pyramidal neurons from juvenile rat somatosensory cortex, Ulrich (2003) used a dynamic clamp (a feedback system that injects the current a chosen conductance would pass) to add a shunt. It divided the subthreshold voltage responses but subtracted from the firing frequency. Do not assume either rule elsewhere.
+With the leak, the excitation and the shunt all open, τ_eff = 200/25 = 8 ms. Now switch off the excitation and let the voltage settle back to rest. Only the leak and the shunt are open: 20 nS in all, so τ = 200/20 = 10 ms, half the 20 ms of the leak alone. Your cell has just become cell B from the summation section.
 
-## Where and when inhibition lands
+Give it the same two 0.4 pC pulses, 10 ms apart: just after the second, the depolarization is cell B's 2.74 mV, not cell A's 3.21 mV. In this idealized case the shunt did not shrink each jump, because an instantaneous charge pulse sets the jump by charge and capacitance alone. It shortened the time constant, so less of the first EPSP was left for the second to ride on. A real synaptic current lasts a millisecond or more, so the shunt also drains charge while the current flows, and the EPSP peak itself gets smaller.
 
-An IPSP can depolarize. If E_GABA lies above rest but below threshold, opening GABA_A channels moves the voltage up toward E_GABA, while the added conductance pulls any larger depolarization back toward E_GABA. Which effect wins depends on what else arrives, and when and where. Gulledge and Stuart (2003) studied this in layer 5 pyramidal neurons in somatosensory cortex slices from 3- to 4-week-old rats. They used gramicidin perforated-patch recording, which leaves the cell's own chloride in place because gramicidin pores do not pass chloride. GABA responses depolarized the cells from rest and, combined with proximal excitation, could help trigger spikes, even though E_GABA was below threshold. Timing mattered: somatic GABA inhibited excitation that arrived at the same time but facilitated excitation that arrived later. A likely reading is that the conductance had closed while some depolarization remained. This does not make GABA excitatory in adult cortex in general; in that preparation, its sign depended on timing and site. The larger depolarizing GABA responses of immature neurons, which come from higher internal chloride, belong to development: see [CNS synapses](/lessons/cns-synapses/).
+So a shunt works against excitation twice: it shrinks the depolarization from sustained excitation, and it cuts the summation of brief inputs. Whether that divides or subtracts from the firing rate is a separate question; in one study it subtracted.
 
-The chloride gradient is not fixed either. When GABA_A channels let chloride in faster than transporters such as KCC2 can remove it, internal chloride rises and E_GABA creeps upward. In branched-dendrite computer models, Currin and Raimondo (2022) found that this activity-dependent chloride loading weakened inhibition, and that with chloride dynamics included the most effective placement of inhibitory synapses lay close to, but not at, a shared branch junction. These are model predictions, not measurements.
+## When GABA pushes up: timing and site
 
-## Dendrites that do not add linearly
+<LessonFilm film={frontmatter.films[3]} />
 
-The conductance equation already predicts one departure from simple addition. In the made-up cell above, one 5 nS excitatory input gives −43.3 mV, a 21.7 mV depolarization. Two such inputs together (10 nS) give −650/20 = −32.5 mV, a 32.5 mV depolarization rather than 43.3 mV. As Vm approaches EE the driving force shrinks, so each added conductance pushes less. Inputs sharing one small patch of membrane show this sublinear summation most.
+The shunt was tied exactly at rest. E_GABA need not be, and an IPSP can even depolarize. If E_GABA lies above rest but below threshold, GABA can move the voltage up yet oppose larger depolarizations; which effect wins depends on what else arrives, and when and where.
 
-Thin dendrites can also do the opposite. Polsky, Mel and Schiller (2004) used confocal imaging to find thin dendrites of rat neocortical pyramidal neurons in slices and stimulated inputs at two sites on them. Nearby inputs on the same thin branch summed sigmoidally: as the combined input grew, the response rose slowly, then steeply, then levelled off. Inputs that were widely separated, or on different branches, summed linearly. In these cells, location set the combination rule. The steep phase is generally attributed to local regenerative events in the branch, in which NMDA receptors are thought to take part; their voltage-dependent block is in [ion channels as receptors](/lessons/ion-channels-as-receptors/).
+**Predict.** In our cell, a 10 nS GABA conductance opens with E_GABA at −55 mV, between rest (−65 mV) and threshold (−50 mV).
 
-## Modulators change the rules
+1. Where does the resting cell settle?
+2. Strong excitation now drives Vm above −55 mV on its way to threshold. Which way does the GABA rope pull?
+3. The GABA conductance closes, and excitation arrives a few milliseconds later. Does it start nearer to threshold or farther from it?
 
-Fast transmitters open ion channels for milliseconds. **Neuromodulators** act mostly through G-protein-coupled receptors and change how a neuron responds to input, often by altering its ion channels.
+<details>
+<summary>Check your prediction</summary>
 
-*Dopamine on D1 receptors.* In D1 receptor-expressing striatal projection neurons, the D1 receptor couples through Gs/olf to adenylyl cyclase, which raises cAMP and activates protein kinase A, PKA ([GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/), [cAMP and PKA](/lessons/camp-and-pka/)). Lahiri and Bevan (2020) stimulated dopamine axons optogenetically in slices of dorsolateral striatum from adult mice of both sexes and recorded identified D1 neurons by perforated patch, with GABA, glutamate and acetylcholine receptors blocked. Firing to the same injected current rose within hundreds of milliseconds (a median onset of 458 ms by their criterion) and stayed raised for at least 10 minutes after one bout of stimulation. A D1 antagonist blocked the effect, and their results suggest that the persistence required PKA. Conventional whole-cell recording showed little or no modulation, possibly because it dialyzes the cell interior.
+1. At −60 mV, halfway between −65 and −55 mV, because the leak and the GABA rope are equally strong. The GABA input depolarized the cell.
+2. Down. Above −55 mV the GABA rope pulls back toward −55 mV, and its conductance enlarges the bottom line, so it opposes further depolarization.
+3. Nearer. The conductance has gone, but the depolarization it left decays with τ, so the later input starts from higher up.
 
-*Acetylcholine on muscarinic receptors.* KCNQ2/KCNQ3 channels carry the M-current, a slowly activating potassium current that opposes repetitive firing, named for its suppression by muscarinic agonists. Gq-coupled muscarinic receptors activate phospholipase C, which hydrolyzes the membrane lipid PIP2 into IP3 and DAG ([PLC, IP3, DAG and PKC](/lessons/plc-ip3-dag-pkc/)). Which event closes the channel? Suh, Inoue, Meyer and Hille (2006) depleted PIP2 directly, without PLC, in tsA-201 cells expressing KCNQ2/KCNQ3, and the current fell: loss of PIP2 was enough. Closing KCNQ channels increases excitability, so the neuron fires more to the same input.
+</details>
+
+So the GABA current depolarizes while Vm is below E_GABA and hyperpolarizes once Vm is above it, and its conductance shunts in both cases. The direction of the current at one moment does not by itself say whether GABA makes a spike more or less likely; for that, compare the whole response with and without GABA. Steady inputs give one clear answer. If the cell sits below threshold, a steady GABA conductance can never carry it past threshold: the new balance point lies between the old one and E_GABA, and both are below threshold.
+
+Brief inputs can give the opposite answer. In a model of this lesson's cell, a fast EPSP sized to fall just short of threshold on its own crossed it, by a fraction of a millivolt, when the GABA conductance had opened beforehand and stayed open. The open conductance made the EPSP itself smaller, but its 5 mV head start, from −60 mV, won (the model is in Going deeper). So "inhibitory whenever E_GABA is below threshold" is a rule for steady inputs, not for every input.
+
+Gulledge and Stuart (2003) studied this in layer 5 pyramidal neurons in somatosensory cortex slices from 3- to 4-week-old rats, with a recording method that leaves the cell's own chloride in place. GABA responses depolarized the cells from rest and, combined with proximal excitation (near the cell body), could help trigger spikes, even though E_GABA was below threshold. Timing mattered: somatic GABA, applied at the cell body, inhibited excitation that arrived at the same time but facilitated excitation that arrived later, making it more likely to fire the cell. Site mattered too: dendritic GABA responses were excitatory whatever their timing. The balance point offers a reading of the somatic timing pattern: likely, the conductance had closed while some depolarization remained. The compact-cell picture here does not address the dendritic result.
+
+This does not make GABA excitatory in adult cortex in general; in that preparation, its sign depended on timing and site. The larger depolarizing GABA responses of immature neurons, which come from higher internal chloride, belong to development: see [CNS synapses](/lessons/cns-synapses/).
+
+The rope's end can also move during activity. When GABA_A channels let chloride in faster than transporters such as KCC2, a potassium-chloride cotransporter, can remove it, internal chloride rises and E_GABA creeps upward.
+
+## Dendrites that do not simply add
+
+<LessonFilm film={frontmatter.films[4]} />
+
+A real neuron is not one compact patch. Each patch of dendrite has its own ropes and capacitance, and it also passes current along the dendrite to its neighbours. So the patches set each other's voltages and must be solved together; the balance point of one isolated patch is only a first guide. Passive cable theory, with λ and the membrane capacitance, describes how a local change spreads and is filtered on its way to the soma. Sublinear summation is what the rule predicts for two inputs in one small patch. Thin dendrites can also do the opposite.
+
+Polsky, Mel and Schiller (2004) used confocal imaging to find thin dendrites of rat neocortical pyramidal neurons in slices. They stimulated inputs at two sites on them, first each alone and then both together.
+
+Picture the graph that comparison gives. Along the bottom is the response you would expect if the two inputs simply added: the sum of the two separate responses. Up the side is the response actually measured when both were given together. A point on the 45-degree line means the inputs added linearly.
+
+- Inputs that were widely separated, or on different branches, fell on that line: they summed linearly.
+- Nearby inputs on the same thin branch summed **sigmoidally**: as the combined input grew, the response rose slowly, then steeply, then levelled off.
+
+In these cells, location set the combination rule. The result supports the idea that thin branches act as separate integrating subunits, so where a synapse lands helps decide what the neuron computes.
+
+The steep phase is generally attributed to local regenerative events in the branch, in which NMDA receptors are thought to take part; their voltage-dependent block is in [ion channels as receptors](/lessons/ion-channels-as-receptors/). In rope terms, once glutamate and a co-agonist have bound, an NMDA receptor is a rope that gets thicker as the marker rises, because depolarization relieves its block by magnesium ions (Mg²⁺). Over the voltage range where it thickens faster than its driving force shrinks, its pull grows, which is one way a local response can turn steep.
+
+## Modulators change the ropes
+
+A fast synapse adds a rope for milliseconds. A modulator can instead change ropes the cell already has. **Neuromodulators** act mostly through G-protein-coupled receptors and change how a neuron responds to input, often by altering its ion channels, over hundreds of milliseconds to minutes. Modulators can also change synaptic transmission; this section follows their effects on the cell's own channels.
+
+### Acetylcholine removes a potassium rope
+
+KCNQ2/KCNQ3 channels carry the **M-current**, a slowly activating potassium current that opposes repetitive firing, named for its suppression by muscarinic agonists. Gq-coupled muscarinic receptors activate phospholipase C, which hydrolyzes the membrane lipid PIP2 into IP3 and DAG ([PLC, IP3, DAG and PKC](/lessons/plc-ip3-dag-pkc/)). Which event closes the channel? Suh, Inoue, Meyer and Hille (2006) depleted PIP2 directly, without PLC, in tsA-201 cells expressing KCNQ2/KCNQ3, and the current fell: loss of PIP2 was enough. The lipid itself could act as the channel's regulator, without its breakdown products or calcium.
+
+The rule predicts the direction. In a passive picture, treat the KCNQ channels open near rest as a rope tied near E_K. Closing them lets the balance point rise a little and shrinks the bottom line. A sustained current step injected through an electrode then gives a larger steady change (ΔV = I / total conductance) and takes longer to reach a given fraction of it (τ = C / total conductance). Closing KCNQ channels increases excitability, so the neuron fires more to the same input. A synaptic EPSP need not grow, though, because the depolarized cell has less driving force for excitation.
+
+### Dopamine on D1 receptors
+
+Here the rule gives the logic of the experiment, but not the channel. If the same injected current drives more spikes, and synaptic drive and recording drift are controlled, the cell's own conductances or active currents have changed. A spike count cannot say which.
+
+In D1 receptor-expressing striatal projection neurons, the D1 receptor couples through Gs/olf to adenylyl cyclase, which raises cAMP and activates protein kinase A, PKA ([GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/), [cAMP and PKA](/lessons/camp-and-pka/)). Lahiri and Bevan (2020) stimulated dopamine axons optogenetically in slices of dorsolateral striatum from adult mice of both sexes. They recorded identified D1 neurons by perforated patch, with GABA, glutamate and acetylcholine receptors blocked. Firing to the same injected current rose within hundreds of milliseconds and stayed raised for at least 10 minutes after one bout of stimulation. A D1 antagonist blocked the effect, and their results suggest that the persistence required PKA. Conventional whole-cell recording showed little or no modulation, possibly because it dialyzes the cell interior.
 
 Cascade timing is in [the shape of a signal](/lessons/shape-of-a-signal/); lasting changes lead to [synaptic plasticity](/lessons/synaptic-plasticity/), and dopamine returns in [the basal ganglia](/lessons/basal-ganglia/) and [motivation and reward](/lessons/motivation-and-reward/).
 
@@ -443,7 +633,37 @@ In a made-up perforated-patch recording from a D1 striatal projection neuron in 
 2. The antagonist abolished the change, so D1 receptors are required, assuming the drug is selective at the dose used.
 3. With PKA inhibited, the early increase (13 spikes) remained but did not last, so in these data PKA is needed for persistence, not onset. The data cannot say what carries the onset.
 4. Missing: current-only trials, the same steps given over the same time with no light. Subtract drift: the dopamine effect is (after minus before, with light) minus (late minus early, without light). Lahiri and Bevan corrected with matched current-only trials.
-5. Keep perforated patch. Whole-cell dialysis can wash out intracellular messengers and hide the effect.
-6. Limit: a spike count names no channel. To find the target, test whether selective channel blockers mimic or occlude the dopamine effect, as Lahiri and Bevan did. Voltage clamp is harder here: perforated patch gives poor voltage control, and whole-cell recording can lose the effect.
+5. Keep perforated patch, since whole-cell dialysis can wash out the messengers and hide the effect.
+6. Limit: a spike count names no channel. To find the target, test whether selective channel blockers mimic or occlude the dopamine effect, as Lahiri and Bevan did. Voltage clamp is harder here, because perforated patch gives poor voltage control.
 
 </details>
+
+## Going deeper
+
+### The balance point with injected current
+
+If an electrode injects a steady current I_inj, counted as positive when it depolarizes, the balance point becomes
+
+> **V_ss = (gL × EL + gE × EE + gI × EI + I_inj) / (gL + gE + gI)**
+
+At steady state, a sustained current then changes the voltage by ΔV = I_inj / (total conductance), the current times the input resistance. The same bottom line appears, so a shunt that doubles the total conductance, as the 10 nS shunt does in the resting cell, halves the steady response. During a step the voltage approaches that value with τ_eff: ΔV(t) = (I_inj / total conductance) × (1 − e^(−t/τ_eff)). So a brief response is cut far less: 1 ms into a step, the shunted response is about 98% of the unshunted one.
+
+### Divide or subtract?
+
+For steady current steps the passive model's shunt divides, as above, by the total conductance before over the total conductance after. For synaptic excitation the factor depends on the excitation too: 15/25 = 0.60 with 5 nS, but 20/30 = 0.67 with 10 nS. Real cells keep the logic but not always the arithmetic. In layer V pyramidal neurons from juvenile rat somatosensory cortex, Ulrich (2003) used a dynamic clamp (a feedback system that injects the current a chosen conductance would pass) to add a shunt. It divided the subthreshold voltage responses but subtracted from the firing frequency. Do not assume either rule in other cells.
+
+### The model behind the fast-EPSP warning
+
+The model used this lesson's cell (C = 200 pF, gL = 10 nS, EL = −65 mV, threshold −50 mV) with a fast, alpha-shaped excitatory conductance (E = 0 mV, time constant 1 ms, peak 19 nS, a size chosen to sit near threshold) and a steady 10 nS GABA conductance with E_GABA = −55 mV. The excitatory conductance peaked at 1 ms; the voltage peaked later, at about 4 to 5 ms, and then decayed slowly. Alone, the EPSP rose about 12.3 mV and peaked at about −52.7 mV, short of threshold. With the GABA conductance open beforehand and still open, it rose only about 10.1 mV but peaked at about −49.9 mV, just past threshold: the head start outweighed the 2.2 mV loss in EPSP size. With E_GABA at rest instead, a true shunt, the same open conductance made the EPSP smaller (peak about −54.1 mV).
+
+### Keeping the cell's own chloride
+
+Gulledge and Stuart used gramicidin perforated-patch recording, which leaves the cell's own chloride in place because gramicidin pores do not pass chloride. A conventional whole-cell pipette replaces the cell's chloride with the pipette solution, so E_GABA then reflects the pipette recipe rather than the cell.
+
+### Chloride loading and where inhibition works best
+
+In branched-dendrite computer models, Currin and Raimondo (2022) found that activity-dependent chloride loading weakened inhibition, and that with chloride dynamics included the most effective placement of inhibitory synapses lay close to, but not at, a shared branch junction. These are model predictions, not measurements.
+
+### When dopamine's effect begins
+
+In Lahiri and Bevan's recordings, the rise in firing had a median onset of 458 ms by their criterion.
