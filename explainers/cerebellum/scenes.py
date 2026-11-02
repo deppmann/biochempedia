@@ -1,456 +1,305 @@
-"""How the cerebellum learns from error (Biochemistrypedia neuroscience explainer)
-
-Timed to the SPOKEN words (self.at cues read audio/words.json). Circuits are drawn as labelled boxes
-and simple neurons; no brain section is drawn. The recording and the prism bars are computed from the
-lesson's own numbers (130 simple spikes and 2 complex spikes in 2 s; E0 = 20 cm, k = 0.30).
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = mossy fibres, granule cells, parallel fibres (the context input)
-  ORANGE = climbing fibre, inferior olive, complex spike, and the landing error (the error/teacher signal)
-  GREEN  = Purkinje cell and its simple spikes
-  TEAL   = deep nuclei and their output
-  RED    = a weakened (depressed) synapse, and "no" in the evidence
-  YELLOW = the movement itself: hand path, target, learned correction after the prisms
-  GREY   = frames, axes, labels, ghost neighbours
-Arrow styles: arrowhead = excites; flat bar = inhibits.
+"""Chapter 1: A Predictor That Learns from Error.
+COLOR MAP: BLUE=context, mossy/granule/parallel fibres; ORANGE=climbing
+fibre/error; GREEN=Purkinje/inhibition; GOLD=nuclear output; RED=weakened
+synapse; YELLOW=movement/target; GREY=anatomy/time. All reach curves use
+the reference smoothstep/sinusoidal model; spike trains are schematic.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
+ORANGE='#F29E4C'
+CTX,ERR,PUR,NUC,WEAK,MOVE=BLUE,ORANGE,GREEN,GOLD,RED,YELLOW
 
-ORANGE = "#F29E4C"
-CTX, ERR, PUR, NUC, WEAK, MOVE = BLUE, ORANGE, GREEN, TEAL, RED, YELLOW
+def P(x,y): return np.array([x,y,0.])
+def poly(pts,c,w=4):
+    v=VMobject(stroke_color=c,stroke_width=w)
+    v.set_points_as_corners([P(*p) for p in pts]);return v
 
+def label(s,x,y,c=TEXT,size=30): return T(s,size=size,color=c).move_to(P(x,y))
+def heading(s,c=TEXT): return label(s,0,3.25,c,34)
+def arrow(a,b,c=GREY,w=4): return Arrow(P(*a),P(*b),buff=0,color=c,stroke_width=w,tip_length=.18)
+def smooth(q): return 3*q*q-2*q*q*q
 
-# ---------------------------------------------------------------- generic helpers
-def P(x, y):
-    return np.array([x, y, 0.0])
-
-
-def exc(a, b, color, w=5):
-    return Arrow(P(*a), P(*b), buff=0, color=color, stroke_width=w, tip_length=0.2,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=14)
-
-
-def inh(a, b, color, w=5, bar=0.22):
-    """inhibitory arrow: a line ending in a flat bar across its end (works for any direction)."""
-    a, b = P(*a), P(*b)
-    d = (b - a) / np.linalg.norm(b - a)
-    n = np.array([-d[1], d[0], 0.0])
-    return VGroup(Line(a, b, color=color, stroke_width=w), Line(b - n * bar, b + n * bar, color=color, stroke_width=w + 1))
-
-
-def box(text, color, cx, cy, w, size=24, op=0.16):
-    r = RoundedRectangle(corner_radius=0.14, width=w, height=0.62, stroke_color=color, stroke_width=2.5,
-                         fill_color=color, fill_opacity=op).move_to(P(cx, cy))
-    t = T(text, size, color).move_to(r)
-    return VGroup(r, t)
-
-
-def poly(pts, color, w=4, op=1.0):
-    m = VMobject(stroke_color=color, stroke_width=w, stroke_opacity=op)
-    m.set_points_as_corners([P(*p) for p in pts])
-    return m
-
-
-def legend(cx, cy):
-    a = exc((cx - 1.55, cy), (cx - 1.0, cy), GREY, 4)
-    ta = T("excites", 22, GREY).next_to(a, RIGHT, buff=0.12)
-    b = inh((cx + 0.35, cy), (cx + 0.9, cy), GREY, 4, 0.15)
-    tb = T("inhibits", 22, GREY).next_to(b, RIGHT, buff=0.12)
-    return VGroup(a, ta, b, tb)
-
-
-# ---------------------------------------------------------------- the circuit (one standard layout, rebuilt per scene)
-GX = [-3.8, -2.8, -1.8]            # granule cell x
-PFY = [2.55, 2.15, 1.75]           # parallel fibre y, one per granule cell
-GY = -0.95
-AX = 0.35                          # Purkinje cell (main) x
-BX = 5.3                           # faint neighbour x
-SY = 0.35
-NUC_Y = -3.0
-
-
-def fan(x, color, op=1.0):
-    pts = [[(x, SY + 0.3), (x, 1.2)], [(x, 1.2), (x - 0.85, 2.7)], [(x, 1.2), (x - 0.3, 2.75)],
-           [(x, 1.2), (x + 0.3, 2.75)], [(x, 1.2), (x + 0.85, 2.7)]]
-    return VGroup(*[poly(p, color, 4, op) for p in pts])
-
-
-def build_circuit():
-    C = {}
-    C["mossy_box"] = box("mossy fibres", CTX, -3.4, -3.0, 3.5)
-    C["mossy_arrows"] = VGroup(*[exc((x, -2.68), (x, GY - 0.25), CTX) for x in GX])
-    C["granule"] = VGroup(*[Circle(radius=0.2, color=CTX, fill_color=CTX, fill_opacity=0.5, stroke_width=3).move_to(P(x, GY)) for x in GX])
-    C["glabel"] = T("granule cells", 22, CTX).move_to(P(-5.3, GY))
-    C["pf"] = VGroup(*[poly([(x, GY + 0.2), (x, y), (6.2, y)], CTX, 4) for x, y in zip(GX, PFY)])
-    C["pflabel"] = T("parallel fibres", 22, CTX).move_to(P(-1.7, 3.1))
-    C["pur"] = VGroup(fan(AX, PUR), Circle(radius=0.3, color=PUR, fill_color=PUR, fill_opacity=0.45, stroke_width=3).move_to(P(AX, SY)))
-    C["ghost"] = VGroup(fan(BX, GREY, 0.45), Circle(radius=0.3, color=GREY, fill_color=GREY, fill_opacity=0.2, stroke_width=3).move_to(P(BX, SY)).set_stroke(opacity=0.5))
-    C["plabel"] = T("Purkinje\ncell", 22, PUR, line_spacing=0.8).move_to(P(1.85, SY))
-    C["nuc_box"] = box("deep nuclei", NUC, 1.5, NUC_Y, 3.0)
-    C["pur_axon"] = inh((AX, SY - 0.3), (AX, NUC_Y + 0.31), PUR)
-    # climbing fibres: one per Purkinje cell
-    C["olive"] = box("inferior olive", ERR, 5.0, NUC_Y, 2.5, size=22)
-    C["cf"] = poly([(4.5, NUC_Y + 0.31), (4.5, -1.6), (2.9, -1.6), (2.9, 1.0), (AX + 0.05, 1.0)], ERR, 5)
-    C["cf_ghost"] = poly([(5.75, NUC_Y + 0.31), (5.75, 1.0), (BX + 0.05, 1.0)], ERR, 4, 0.45)
-    C["cflabel"] = T("climbing fibre", 22, ERR).move_to(P(4.35, -0.7))
-    # synapses: where the first two parallel fibres cross the dendrites
-    C["syn"] = VGroup(*[Dot(P(AX + dx, y), radius=0.1, color=CTX) for (dx, y) in [(-0.54, 2.55), (-0.27, 2.15), (0.15, 1.75)]])
-    return C
-
-
-def add_all(scene, C, keys):
-    scene.add(*[C[k] for k in keys])
-
-
-def pulse(scene, path_mob, color, run=1.0, r=0.11):
-    d = Dot(path_mob.get_start(), radius=r, color=color)
-    scene.play(MoveAlongPath(d, path_mob), run_time=run, rate_func=linear)
-    scene.remove(d)
-
-
-# ================================================================ s00
-class S00Title(TitleCard):
-    LESSON = "The Cerebellum"
-    TITLE = "How the Cerebellum Learns from Error"
-
-
-# ================================================================ s01 the miss
-NPT = 200
-
-
-def smooth(x):
-    return 3 * x * x - 2 * x ** 3
-
-
-def reach_path():
-    start, target = P(-5.0, -2.0), P(3.0, 1.0)
-    d = target - start
-    L = np.linalg.norm(d)
-    u = d / L
-    nrm = np.array([-u[1], u[0], 0.0])
-    pts = []
-    for t in np.linspace(0, 1, NPT):
-        if t < 0.55:
-            q = t / 0.55
-            along, lat = 1.25 * smooth(q), 0.45 * np.sin(np.pi * q)
+def reach(q,cx,bad=False):
+    start,target=P(cx-1.25,-1.3),P(cx+.12,.9)
+    d=target-start;u=d/np.linalg.norm(d);n=P(-u[1],u[0])
+    if bad:
+        if q<.55:
+            t=q/.55;along,lat=1.25*smooth(t),.45*np.sin(np.pi*t)
         else:
-            q = (t - 0.55) / 0.45
-            along, lat = 1.25 - 0.25 * q, 0.55 * np.sin(2 * np.pi * 3 * q) * (0.15 + 0.85 * q)
-        pts.append(start + u * L * along + nrm * lat)
-    return pts, start, target
+            t=(q-.55)/.45;along,lat=1.25-.25*t,.55*np.sin(6*np.pi*t)*(.15+.85*t)
+    else: along,lat=smooth(min(1,q*1.8)),0
+    return start+d*along+n*lat
 
+def cup(cx):
+    return VGroup(poly([(cx+.3,1.35),(cx+.4,.5),(cx+1,.5),(cx+1.1,1.35)],MOVE),Line(P(cx+.3,1.35),P(cx+1.1,1.35),color=MOVE),Arc(radius=.27,start_angle=-PI/2,angle=PI,color=MOVE).move_to(P(cx+1.2,.9)))
+def arm(cx,q,bad=False):
+    h=reach(q,cx,bad);shoulder=P(cx-.7,-3.05);elbow=P(cx-1.1,-2.3)
+    return VGroup(poly([shoulder[:2],elbow[:2],h[:2]],MOVE,16),Dot(h,radius=.18,color=MOVE))
+def reaches(q=.35):
+    return VGroup(label('healthy',-3.2,2.95,MOVE),label('cerebellar damage',3.2,2.95,MOVE),cup(-3.2),cup(3.2),arm(-3.2,q),arm(3.2,q,True),DashedLine(P(0,-3.2),P(0,1.5),color=GREY,stroke_opacity=.35))
+def questions():
+    return VGroup(label('Weak, or clumsy?',0,2.25,size=32),label('Where does it go most wrong?',0,1.7,size=28))
 
-class S01Miss(SpokenScene):
+def fan(x,y=0,scale=1):
+    paths=[[(0,0),(0,.7)],[(0,.7),(-1,2.25)],[(0,.7),(-.4,2.4)],[(0,.7),(.4,2.4)],[(0,.7),(1,2.25)]]
+    return VGroup(*[poly([(x+a*scale,y+b*scale) for a,b in pts],PUR,4) for pts in paths],Circle(radius=.24*scale,color=PUR,fill_color=PUR,fill_opacity=.45).move_to(P(x,y)))
+
+def slots(context=False,error=False):
+    g=VGroup()
+    for x,s,c,filled in [(-4.65,'Context',CTX,context),(-1.45,'Error',ERR,error)]:
+        box=RoundedRectangle(width=2.7,height=.65,corner_radius=.12,color=c,fill_color=c,fill_opacity=.28 if filled else .02).move_to(P(x,3.05))
+        g.add(box,label(s+(' ✓' if filled else ''),x,3.05,c,28))
+    return g
+
+def sources():
+    return VGroup(chip('pons',CTX,28).move_to(P(-4.8,-2.7)),chip('spinal / vestibular',CTX,28).move_to(P(2.6,-2.7)))
+def mossy():
+    # Both source populations converge on all four granule-cell positions.
+    g=VGroup()
+    for start in (-4.8,2.6):
+        for end in (-4.6,-2.7,1.1,5.2):
+            g.add(poly([(start,-2.32),(start,-1.8),(end,-1.05)],CTX,3))
+    return g
+
+def circuit():
+    cells=VGroup(fan(-.9,-.45,.9),fan(3.45,-.45,.9))
+    gran=VGroup(*[Dot(P(x,-1.05),radius=.16,color=CTX) for x in (-4.6,-2.7,1.1,5.2)])
+    pf=VGroup(*[Line(P(-5.8,y),P(5.8,y),color=CTX,stroke_width=2.5) for y in np.linspace(.65,1.65,6)],*[poly([(x,-.9),(x,.65)],CTX,3) for x in (-4.6,-2.7,1.1,5.2)])
+    return cells,pf,gran
+
+def nucleus(x,y): return Circle(radius=.4,color=GREY,fill_color=GREY,fill_opacity=.3).move_to(P(x,y))
+def pedal(x,y,eased=False):
+    # A pivot, lever and broad tread, offset from the cell body.
+    end=P(x+.6,y+(.32 if eased else -.12))
+    tread=RoundedRectangle(width=.48,height=.18,corner_radius=.04,color=PUR,fill_color=PUR,fill_opacity=.7).move_to(end).rotate(.45 if eased else -.2)
+    return VGroup(Dot(P(x,y),radius=.08,color=PUR),Line(P(x,y),end,color=PUR,stroke_width=7),tread)
+
+def inhibition(x,soma_y,nucleus_y,eased=False):
+    terminal_y=nucleus_y+.6
+    return VGroup(Line(P(x,soma_y-.25),P(x,terminal_y),color=PUR,stroke_width=4 if eased else 8),
+                  Line(P(x-.3,terminal_y),P(x+.3,terminal_y),color=PUR,stroke_width=6),
+                  label('−',x+.48,terminal_y,PUR,32),
+                  Circle(radius=.52,color=GREY,fill_color=GREY,fill_opacity=.3).move_to(P(x,nucleus_y)),
+                  pedal(x,(soma_y+terminal_y)/2,eased))
+def train(x0,x1,y,dense=False,burst=False):
+    xs=np.arange(x0,x1,.28 if dense else .65)
+    if burst: xs=np.unique(np.r_[np.arange(x0,x1,.65),np.arange((x0+x1)/2-.5,(x0+x1)/2+.6,.16)])
+    return VGroup(Line(P(x0,y),P(x1,y),color=NUC,stroke_width=2),*[Line(P(x,y),P(x,y+.5),color=NUC,stroke_width=3) for x in xs])
+
+def brake_stage(eased=False):
+    pur=fan(-2.65,-.5,1.45)
+    parts=inhibition(-2.65,-.5,-2.55,eased)
+    terminal=VGroup(parts[1],parts[2])
+    axon=Line(P(-2.13,-2.55),P(.1,-2.55),color=NUC,stroke_width=4)
+    return VGroup(pur,parts[0],terminal,parts[3],axon,parts[4],label('Purkinje cell',2.2,2.2,PUR,34),label('inhibits (−)',.1,-.55,PUR,30),label('deep / vestibular\nnucleus cell',-5,-2.45,GREY,28),label('brake eased' if eased else 'brake on',-.1,-1.4,PUR,30),label('deep nucleus output',2.7,-1.85,NUC,30),train(.1,5.8,-2.55,eased))
+
+RULES=[('The cerebellum learns\nto predict, and it learns\nfrom error.',TEXT),('Timed error can weaken\neligible parallel-fibre synapses.',ERR),('Weaker input to the brake:\nmore output at that point,\nnext time.',NUC),('Unpaired activity can\nstrengthen the same synapses.',CTX)]
+def rule_row(i):
+    s,c=RULES[i];t=T(s,size=30 if i else 32,color=c,line_spacing=.7)
+    return t.move_to(P(-3.25,[1.95,.35,-1.15,-2.65][i])).align_to(P(-6.1,0),LEFT)
+def rules(n):
+    bottom=[.95,-.35,-2.05,-3.35][max(0,n-1)];top=2.9
+    box=RoundedRectangle(width=6.4,height=top-bottom,corner_radius=.12,color=GREY,stroke_width=2).move_to(P(-3.2,(top+bottom)/2))
+    return VGroup(box,*[rule_row(i) for i in range(n)])
+def synapse_stage(weak=False):
+    pf=Line(P(.5,1.85),P(6,1.85),color=CTX,stroke_width=6)
+    cell=fan(3.3,-.7,1.05)
+    dots=VGroup(*[Dot(P(x,1.85),radius=.16,color=WEAK if weak and i>0 else CTX).set_opacity(.4 if weak and i>0 else 1) for i,x in enumerate((2.25,3.3,4.35))])
+    return VGroup(pf,cell,dots,label('parallel fibre',3.3,2.55,CTX,28),label('Purkinje cell',5,-.7,PUR,28))
+
+def rule_title(): return heading('The learning rule',PUR)
+
+class S00Title(TitleCard):
+    LESSON='The Cerebellum'
+    TITLE='A Predictor That Learns from Error'
     def construct(self):
-        pts, start, target = reach_path()
-        cup = VGroup(Circle(radius=0.42, color=MOVE, stroke_width=4), Circle(radius=0.16, color=MOVE, stroke_width=4)).move_to(target)
-        tl = T("the cup", 24, MOVE).next_to(cup, DOWN, buff=0.45)
-        sd = Dot(start, radius=0.14, color=GREY)
-        sl = T("start", 22, GREY).next_to(sd, DOWN, buff=0.2)
-        schem = T("schematic, hand seen from above", 22, GREY).move_to(P(4.0, -3.4))
-        self.play(FadeIn(sd), FadeIn(sl), FadeIn(cup), FadeIn(tl), FadeIn(schem), run_time=self.beat(0.08))
-        self.at("a person is not")
-        n1 = chip("not paralysed", GREEN, 28).move_to(P(-3.7, 3.0))
-        self.play(FadeIn(n1, shift=DOWN * 0.1), run_time=0.5)
-        self.at("move badly")
-        n2 = chip("moves badly", RED, 28).next_to(n1, RIGHT, buff=0.4)
-        self.play(FadeIn(n2, shift=DOWN * 0.1), run_time=0.5)
-        self.at("Reaches overshoot")
-        ov = int(NPT * 0.55)
-        full = poly([(p[0], p[1]) for p in pts], MOVE, 5)
-        hand = Dot(pts[0], radius=0.14, color=MOVE)
-        self.add(hand)
-        tr = ValueTracker(0)
-        path_part = lambda k: poly([(p[0], p[1]) for p in pts[:max(2, int(k))]], MOVE, 5)
-        trail = always_redraw(lambda: path_part(tr.get_value()))
-        hd = always_redraw(lambda: Dot(pts[min(len(pts) - 1, max(0, int(tr.get_value())))], radius=0.14, color=MOVE))
-        self.remove(hand)
-        self.add(trail, hd)
-        self.play(tr.animate.set_value(ov + 6), run_time=1.6, rate_func=linear)
-        peak = max(range(ov - 12, ov + 12), key=lambda i: np.dot(pts[i] - start, target - start))
-        olab = T("overshoot", 24, MOVE).move_to(pts[peak] + P(0.3, -0.75))
-        self.play(FadeIn(olab), run_time=0.4)
-        self.at("The hand shakes")
-        self.play(tr.animate.set_value(NPT - 1), run_time=2.6, rate_func=linear)
-        shk = T("shakes near the cup", 24, MOVE).move_to(P(4.3, -0.7))
-        self.play(FadeIn(shk), run_time=0.4)
-        self.at("makes movements accurate")
-        self.play(FadeOut(n1), FadeOut(n2), FadeOut(olab), FadeOut(shk), run_time=0.5)
-        acc = chip("cerebellum: accurate movements", PUR, 28).move_to(P(-1.0, 3.0))
-        self.play(FadeIn(acc, shift=DOWN * 0.1), run_time=0.5)
-        self.at("learns to keep them accurate")
-        acc2 = chip("learns to keep them accurate", PUR, 28).next_to(acc, DOWN, buff=0.3)
-        self.play(FadeIn(acc2, shift=DOWN * 0.1), run_time=0.5)
-        self.at("How does it learn")
-        q = T("How does it learn?", 44, TEXT, font=TITLE_FONT).move_to(P(-0.2, -2.7))
-        self.play(FadeIn(q, shift=UP * 0.15), run_time=0.6)
-        self.finish()
+        self.add(label('BIOCHEMISTRYPEDIA',0,2.2,TEAL,28),label(self.LESSON,0,1.4,GREY,30))
+        title=label('A Predictor That\nLearns from Error',0,-.1,size=53)
+        self.play(FadeIn(title),Create(Line(P(-4.8,-1.6),P(4.8,-1.6),color=GOLD,stroke_width=4)),run_time=.6)
+        self.wait(2.2);self.play(FadeOut(Group(*self.mobjects)),run_time=.2);self.finish()
 
-
-# ================================================================ s02 the circuit
-class S02Circuit(SpokenScene):
+class S01(SpokenScene):
     def construct(self):
-        C = build_circuit()
-        lg = legend(4.7, 3.3)
-        self.play(FadeIn(lg), run_time=0.2)
-        self.at("Here is the circuit")
-        self.wait(0.3)
-        self.at("Mossy")
-        self.play(FadeIn(C["mossy_box"]), run_time=0.5)
-        self.play(*[GrowArrow(a) for a in C["mossy_arrows"]], run_time=0.7)
-        self.play(FadeIn(C["granule"]), FadeIn(C["glabel"]), run_time=0.6)
-        self.at("Each granule cell sends")
-        axons = [poly([(x, GY + 0.2), (x, y)], CTX, 4) for x, y in zip(GX, PFY)]
-        self.play(*[Create(a) for a in axons], run_time=1.2)
-        self.at("along the fold")
-        self.remove(*axons)
-        self.play(*[Create(p) for p in C["pf"]], FadeIn(C["pflabel"]), run_time=1.6)
-        self.at("pass through the dendrites")
-        self.play(FadeIn(C["pur"]), FadeIn(C["plabel"]), run_time=0.7)
-        self.play(FadeIn(C["ghost"]), run_time=0.6)
-        self.at("only output")
-        self.play(Indicate(C["pur"][1], color=PUR, scale_factor=1.35), run_time=0.9)
-        self.at("They release GABA")
-        gl = chip("GABA", PUR, 24).move_to(P(1.55, -1.5))
-        self.play(FadeIn(C["nuc_box"]), run_time=0.4)
-        self.play(Create(C["pur_axon"]), FadeIn(gl), run_time=1.0)
-        self.at("inhibit the deep")
-        self.play(Indicate(C["nuc_box"], color=NUC, scale_factor=1.06), run_time=0.9)
-        self.finish()
+        # Lateral profile: frontal pole left, occipital pole above cerebellum right.
+        outline=[(-6.1,.1),(-6.25,1),(-5.8,2),(-4.7,2.65),(-3,2.85),(-1.1,2.55),(.65,1.8),(1.3,.8),(1.1,.05),(.35,-.25),(-.8,-.3),(-1.9,-.8),(-3.5,-.65),(-4.4,-.3),(-5.4,-.5),(-6.1,.1)]
+        hemi=poly(outline,GREY,5).make_smooth().set_fill(GREY,opacity=.12)
+        gyri=VGroup(*[poly(p,GREY,2).make_smooth() for p in [[(-5.5,.1),(-5.6,1),(-4.8,1.8),(-4.5,.8),(-3.8,1.8)],[(-4.1,2.5),(-3.4,1.7),(-3.9,.8),(-3.1,-.1)],[(-2.7,2.55),(-1.9,1.8),(-2.5,.9),(-1.6,.2)],[(-1,2.1),(-.25,1.3),(-.7,.3)]]])
+        cb=poly([(-1.35,-.6),(-.65,-.35),(.35,-.45),(1,-.95),(.95,-1.65),(.3,-2.05),(-.65,-1.95),(-1.25,-1.4),(-1.35,-.6)],PUR,5).make_smooth().set_fill(PUR,opacity=.18)
+        glow=VGroup(*[cb.copy().set_fill(opacity=0).set_stroke(PUR,width=w,opacity=o) for w,o in [(28,.05),(18,.1),(10,.18)]])
+        folia=VGroup(*[poly([(-1,y),(-.3,y-.12),(.55,y-.05)],PUR,2).make_smooth() for y in (-.75,-1.05,-1.35,-1.65)])
+        stem=poly([(-2,-.65),(-1.9,-1.3),(-1.5,-2.65),(-.95,-2.85),(-1.15,-1.5),(-1,-1)],GREY,4).make_smooth().set_fill(GREY,opacity=.25)
+        VGroup(hemi,gyri,stem,glow,cb,folia).scale(1.1,about_point=P(-6,0))
+        self.at('damage the cerebellum');self.add(hemi,gyri,stem,glow,cb,folia,label('Damage the cerebellum',0,3.5,PUR,32),label('front',-5.25,-1.25,GREY,32),label('back',.65,-2.65,GREY,32),label('cerebellum',3.7,-1.3,PUR,32),Line(P(1.9,-1.3),P(2.3,-1.3),color=PUR))
+        self.play(glow.animate.set_stroke(opacity=.2),Indicate(cb,color=PUR,scale_factor=1.08),run_time=.8)
+        self.at('can still move');self.play(FadeIn(label('Still able to move',3.7,1.1,MOVE,30)),run_time=.35)
+        self.at('so what is lost');self.play(FadeIn(label('What is lost?',3.7,0,size=38)),run_time=.35);self.finish()
 
-
-# ================================================================ s03 two kinds of spike
-SIMPLE_T = None
-
-
-def simple_times():
-    rng = np.random.default_rng(7)
-    base = (np.arange(130) + 0.5) * (2.0 / 130)
-    return np.clip(base + rng.normal(0, 0.004, 130), 0.003, 1.997)
-
-
-COMPLEX_T = [0.62, 1.41]
-RX0, RX1 = -5.2, 5.2
-
-
-def tx(t):
-    return RX0 + (t / 2.0) * (RX1 - RX0)
-
-
-class S03TwoSpikes(SpokenScene):
+class S02(SpokenScene):
     def construct(self):
-        C = build_circuit()
-        keys = ["mossy_box", "mossy_arrows", "granule", "glabel", "pf", "pflabel", "pur", "ghost", "plabel", "nuc_box", "pur_axon"]
-        add_all(self, C, keys)
-        self.wait(0.2)
-        self.at("The second input")
-        self.play(FadeIn(C["olive"]), run_time=0.5)
-        self.play(Create(C["cf"]), Create(C["cf_ghost"]), FadeIn(C["cflabel"]), run_time=1.4)
-        self.at("receives one")
-        self.play(Indicate(C["cf"], color=ERR, scale_factor=1.0), run_time=0.9)
-        self.at("Simple spikes are")
-        grp = VGroup(*[C[k] for k in keys + ["olive", "cf", "cf_ghost", "cflabel"]])
-        self.play(FadeOut(grp), run_time=0.6)
-        # recording panel
-        y1, y2 = 1.3, -0.5
-        ax = VGroup(Line(P(RX0, -1.35), P(RX1, -1.35), color=GREY, stroke_width=3))
-        ticks = VGroup(*[VGroup(Line(P(tx(t), -1.35), P(tx(t), -1.45), color=GREY, stroke_width=3), M(f"{t} s", 22, GREY).move_to(P(tx(t), -1.8)))
-                         for t in (0, 1, 2)])
-        for t in (0, 1, 2):
-            pass
-        cap = T("made-up recording, 2 s", 24, GREY).move_to(P(0, 3.15))
-        l1 = T("simple spikes", 24, PUR).move_to(P(-4.4, y1 + 0.85))
-        l2 = T("complex spikes", 24, ERR).move_to(P(-4.2, y2 + 1.1))
-        self.play(FadeIn(ax), FadeIn(ticks), FadeIn(cap), run_time=0.5)
-        st = simple_times()
-        sticks = VGroup(*[Line(P(tx(t), y1 - 0.25), P(tx(t), y1 + 0.25), color=PUR, stroke_width=3) for t in st])
-        base1 = Line(P(RX0, y1 - 0.25), P(RX1, y1 - 0.25), color=GREY, stroke_width=1.5, stroke_opacity=0.5)
-        base2 = Line(P(RX0, y2 - 0.7), P(RX1, y2 - 0.7), color=GREY, stroke_width=1.5, stroke_opacity=0.5)
-        self.add(base1, base2)
-        self.play(FadeIn(l1), LaggedStart(*[Create(s) for s in sticks], lag_ratio=0.012), run_time=2.4)
-        self.at("A complex spike")
-        cticks = VGroup(*[Line(P(tx(t), y2 - 0.7), P(tx(t), y2 + 0.65), color=ERR, stroke_width=7) for t in COMPLEX_T])
-        self.play(FadeIn(l2), *[Create(c) for c in cticks], run_time=1.0)
-        self.at("In a made up recording")
-        c1 = VGroup(M("130 / 2 s = 65 Hz", 30, PUR)).move_to(P(-2.6, -2.75))
-        self.play(Write(c1), run_time=1.2)
-        self.at("Two complex spikes")
-        c2 = M("2 / 2 s = 1 Hz", 30, ERR).move_to(P(2.8, -2.75))
-        self.play(Write(c2), run_time=1.0)
-        self.finish()
-
-
-# ================================================================ s04 the teacher
-class S04Teacher(SpokenScene):
+        g=reaches(0);self.at('watch someone');self.add(g)
+        self.at('reach for');self.play(Transform(g[4],arm(-3.2,.35)),Transform(g[5],arm(3.2,.35,True)),run_time=.8);self.finish()
+class S03(SpokenScene):
     def construct(self):
-        C = build_circuit()
-        keys = ["mossy_box", "mossy_arrows", "granule", "glabel", "pf", "pur", "ghost", "plabel", "nuc_box",
-                "pur_axon", "olive", "cf", "cf_ghost", "cflabel"]
-        add_all(self, C, keys)
-        self.add(C["syn"])
-        self.wait(0.2)
-        self.at("Mar")
-        teach = chip("teacher", ERR, 26).move_to(P(3.95, 0.8))
-        self.play(FadeIn(teach, shift=DOWN * 0.1), run_time=0.5)
-        self.at("fires together")
-        glow = [Line(P(x, y), P(6.2, y), color=YELLOW, stroke_width=6) for x, y in list(zip(GX, PFY))[:2]]
-        cfglow = C["cf"].copy().set_color(YELLOW).set_stroke(width=9)
-        self.play(*[Create(g) for g in glow], Create(cfglow), Indicate(C["olive"], color=YELLOW, scale_factor=1.08), run_time=0.9)
-        self.play(*[Flash(s, color=YELLOW, line_length=0.18, flash_radius=0.3) for s in C["syn"][:2]], run_time=0.8)
-        self.remove(cfglow)
-        self.remove(*glow)
-        self.at("those synapses change")
-        self.play(*[s.animate.set_color(YELLOW).scale(1.7) for s in C["syn"][:2]], run_time=0.7)
-        self.at("Ito and Kano")
-        rab = T("in rabbits: pairing both inputs", 24, GREY).move_to(P(-3.3, 3.4))
-        self.play(FadeIn(rab), run_time=0.5)
-        self.at("depressed for a long time")
-        self.play(*[s.animate.set_color(WEAK).scale(0.5) for s in C["syn"][:2]], run_time=1.0)
-        self.at("long term depression")
-        ltd = chip("long-term depression (LTD)", WEAK, 26).move_to(P(2.2, 3.35))
-        self.play(FadeIn(ltd, shift=DOWN * 0.1), run_time=0.6)
-        self.at("A weaker synapse")
-        self.play(C["pur"][1].animate.set_fill(PUR, opacity=0.12), run_time=0.7)
-        fl = T("fires less", 22, PUR).move_to(P(1.6, SY))
-        self.play(FadeOut(C["plabel"]), FadeIn(fl), run_time=0.4)
-        self.at("inhibits its nuclear target less")
-        thin = inh((AX, SY - 0.3), (AX, NUC_Y + 0.31), PUR, w=1.5, bar=0.12)
-        self.play(Transform(C["pur_axon"], thin), run_time=0.8)
-        self.at("so the nuclear output")
-        self.play(C["nuc_box"][0].animate.set_fill(NUC, opacity=0.6), run_time=0.8)
-        up = T("output rises", 22, NUC).move_to(P(1.95, -2.15))
-        self.play(FadeIn(up), run_time=0.4)
-        self.finish()
-
-
-# ================================================================ s05 prisms
-E0, K = 20.0, 0.30
-ZY, SC = 0.2, 0.15       # zero line y; scene units per cm
-BX0, BDX = -4.2, 0.95
-
-
-def bx(n):
-    return BX0 + BDX * n
-
-
-def errv(n):
-    return E0 * (1 - K) ** n
-
-
-class S05Prisms(SpokenScene):
+        self.add(reaches());q=questions()
+        self.at('is the movement');self.play(FadeIn(q[0]),run_time=.3)
+        self.at('where does it');self.play(FadeIn(q[1]),run_time=.3);self.finish()
+class S04Pause(Scene):
     def construct(self):
-        axis = Line(P(-5.0, ZY), P(5.6, ZY), color=GREY, stroke_width=3)
-        yl = T("landing error, cm: up is right of the target (thrower's right)", 22, GREY).move_to(P(1.3, 3.45))
-        up = VGroup()
-        dn = T("down is left of the target", 22, GREY).move_to(P(-3.6, -1.5))
-        self.at("Try it with prism")
-        self.play(FadeIn(axis), FadeIn(yl), FadeIn(up), FadeIn(dn), run_time=0.7)
-        tk = VGroup(*[M(str(n), 22, GREY).move_to(P(bx(n), ZY - 0.3)) for n in range(8)])
-        # tick labels for corrections sit on the zero line's upper side, bars hang up
-        def bar(n, val, color):
-            h = abs(val) * SC
-            r = Rectangle(width=0.55, height=h, stroke_color=color, stroke_width=2, fill_color=color, fill_opacity=0.55)
-            r.move_to(P(bx(n), ZY + (h / 2 if val >= 0 else -h / 2)))
-            return r
-        bars = [bar(n, errv(n), ERR) for n in range(8)]
-        self.at("first throw lands")
-        lab0 = M("20", 24, ERR).next_to(bars[0], UP, buff=0.1)
-        self.play(GrowFromEdge(bars[0], DOWN), FadeIn(lab0), run_time=0.8)
-        nlab = T("corrections", 22, GREY).move_to(P(bx(3.5), ZY - 0.7))
-        self.at("Each throw corrects")
-        kl = M("k = 0.30", 30, TEXT).move_to(P(3.9, 2.3))
-        self.play(FadeIn(kl), run_time=0.5)
-        self.at("The error falls")
-        labs = {1: "14.0", 2: "9.8", 3: "6.86"}
-        for n in (1, 2, 3):
-            self.play(Transform(bars[0].copy(), bars[n]) if False else GrowFromEdge(bars[n], DOWN), FadeIn(M(labs[n], 22, ERR).next_to(bars[n], UP, buff=0.1)), run_time=0.7)
-            self.wait(0.15)
-        self.play(*[GrowFromEdge(bars[n], DOWN) for n in (4, 5, 6)], run_time=0.9)
-        self.at("After seven corrections")
-        lab7 = M("1.65", 24, ERR).next_to(bars[7], UP, buff=0.1)
-        self.play(GrowFromEdge(bars[7], DOWN), FadeIn(lab7), run_time=0.7)
-        self.play(FadeIn(tk), FadeIn(nlab), run_time=0.4)
-        self.at("Now remove the prisms")
-        off = chip("prisms removed", TEXT, 26).move_to(P(4.5, 1.05))
-        self.play(FadeIn(off, shift=DOWN * 0.1), run_time=0.6)
-        self.at("lands about")
-        val = -(E0 - errv(7))
-        ab = bar(8, val, MOVE).move_to(P(5.0, ZY - abs(val) * SC / 2))
-        lab8 = M("18.4 cm left", 24, MOVE).next_to(ab, DOWN, buff=0.1)
-        self.play(GrowFromEdge(ab, UP), run_time=1.0)
-        self.play(FadeIn(lab8), run_time=0.4)
-        self.at("recalibrated")
-        rc = T("eye-hand mapping was recalibrated", 28, MOVE).move_to(P(-1.0, -3.3))
-        self.play(FadeIn(rc, shift=UP * 0.1), run_time=0.6)
-        self.finish()
-
-
-# ================================================================ s06 limits and the rule
-def tick(c, color=GREEN, s=0.2):
-    return VGroup(Line(c + P(-s, 0), c + P(-s * 0.3, -s * 0.8), color=color, stroke_width=6),
-                  Line(c + P(-s * 0.3, -s * 0.8), c + P(s, s * 0.9), color=color, stroke_width=6))
-
-
-def crossm(c, color=RED, s=0.17):
-    return VGroup(Line(c + P(-s, -s), c + P(s, s), color=color, stroke_width=6),
-                  Line(c + P(-s, s), c + P(s, -s), color=color, stroke_width=6))
-
-
-class S06Limits(SpokenScene):
+        self.camera.background_color=BG;self.add(reaches(),questions());self.wait(5)
+class S05(SpokenScene):
     def construct(self):
-        # left card: monkeys
-        c1 = RoundedRectangle(corner_radius=0.2, width=5.9, height=3.4, stroke_color=GREY, stroke_width=2.5).move_to(P(-3.2, 1.65))
-        h1 = T("in two monkeys", 26, TEXT).move_to(P(-3.2, 2.95))
-        r1 = T("gain-increase learning:", 22, TEXT).move_to(P(-3.2, 2.4))
-        r1b = T("complex spike predicted", 22, TEXT).move_to(P(-3.2, 2.0))
-        r1c = T("the next trial's output change", 22, TEXT).move_to(P(-3.2, 1.6))
-        r2 = T("gain-decrease learning:", 22, TEXT).move_to(P(-3.2, 0.95))
-        r2b = T("it did not", 22, TEXT).move_to(P(-3.2, 0.55))
-        # right card: mice
-        c2 = RoundedRectangle(corner_radius=0.2, width=5.9, height=3.4, stroke_color=GREY, stroke_width=2.5).move_to(P(3.2, 1.65))
-        h2 = VGroup(T("in three mouse lines", 26, TEXT), T("no LTD in standard slice tests", 22, GREY)).arrange(DOWN, buff=0.08).move_to(P(3.2, 2.85))
-        m = [T("vestibulo-ocular reflex", 24, TEXT).move_to(P(2.6, 1.95)),
-             T("eyeblink conditioning", 24, TEXT).move_to(P(2.6, 1.4)),
-             T("stepping task", 24, TEXT).move_to(P(2.6, 0.85))]
-        # model strip
-        s1 = box("climbing fibre", ERR, -3.9, -2.1, 2.9)
-        s2 = box("weakened synapse", WEAK, 0.0, -2.1, 3.4)
-        s3 = box("Purkinje cell", PUR, 3.9, -2.1, 2.8)
-        a1 = exc((-2.4, -2.1), (-1.8, -2.1), TEXT, 5)
-        a2 = exc((1.8, -2.1), (2.4, -2.1), TEXT, 5)
-        ml = T("in the model", 24, GREY).move_to(P(0, -3.15))
-        self.wait(0.3)
-        self.at("The teacher idea has limits")
-        self.play(Create(c1), Create(c2), run_time=0.7)
-        self.at("In two monkeys")
-        self.play(FadeIn(h1), run_time=0.4)
-        self.at("complex spike predicted")
-        self.play(FadeIn(r1), FadeIn(r1b), FadeIn(r1c), run_time=0.8)
-        self.at("but not during")
-        self.play(FadeIn(r2), FadeIn(r2b), run_time=0.8)
-        self.at("Three mouse lines")
-        self.play(FadeIn(h2), run_time=0.4)
-        self.play(*[FadeIn(x) for x in m], run_time=0.8)
-        self.at("learned all three")
-        tk = [tick(P(5.5, y)) for y in (1.95, 1.4, 0.85)]
-        self.play(*[FadeIn(x) for x in tk], run_time=0.8)
-        lt = T("learned normally", 24, GREEN).move_to(P(3.2, 0.3))
-        self.play(FadeIn(lt), run_time=0.4)
-        self.at("is gated")
-        g = chip("the effect is gated", ERR, 26).move_to(P(-3.2, -0.55))
-        self.play(FadeIn(g, shift=UP * 0.1), run_time=0.5)
-        self.at("remains a model")
-        mdl = chip("Marr-Albus-Ito: a model", TEXT, 26).move_to(P(3.2, -0.55))
-        self.play(FadeIn(mdl, shift=UP * 0.1), run_time=0.5)
-        self.at("Keep this rule")
-        self.play(FadeIn(s1), FadeIn(s2), FadeIn(s3), FadeIn(ml), run_time=0.8)
-        self.at("teaches")
-        self.play(GrowArrow(a1), run_time=0.5)
-        self.at("by weakening")
-        self.play(GrowArrow(a2), run_time=0.5)
+        g=reaches();self.add(g)
+        self.at('clumsy');self.add(label('Clumsy, not weak',0,2.15,MOVE,34))
+        self.at('the reach overshoots');tr=ValueTracker(.35)
+        a=always_redraw(lambda:arm(-3.2,tr.get_value()))
+        b=always_redraw(lambda:arm(3.2,tr.get_value(),True))
+        self.remove(g[4],g[5]);self.add(a,b);self.play(tr.animate.set_value(.55),run_time=.8,rate_func=linear)
+        self.at('the hand shakes')
+        # Magnified lateral component of exactly the same sinusoidal reach model.
+        pts=[(4+.75*np.sin(6*np.pi*t)*(.15+.85*t),.9-2.5*t) for t in np.linspace(0,1,160)]
+        path=poly(pts,WEAK,5)
+        self.add(label('overshoot,\nshaking near\nthe target',5.7,-1.1,WEAK,26),DashedLine(P(3.95,.9),P(4,.9),color=WEAK))
+        self.play(Create(path),tr.animate.set_value(1),run_time=1.5,rate_func=linear);self.finish()
+class S06(SpokenScene):
+    def construct(self):
+        axis=arrow((-5.7,-.6),(5.7,-.6));self.at('feedback is slow');self.add(heading('Feedback is slow',ERR),axis,label('time',5.4,-1.2,GREY,28),label('0',-5.2,-1.2,GREY,28))
+        events=[VGroup(chip('command',MOVE,30).move_to(P(-5,1.8)),Line(P(-5,1.45),P(-5,-.6),color=MOVE)),VGroup(chip('arm moves',MOVE,30).move_to(P(-1.8,.6)),Line(P(-1.8,.25),P(-1.8,-.6),color=MOVE))]
+        self.play(FadeIn(events[0]),run_time=.3);self.play(FadeIn(events[1]),run_time=.3)
+        wrong=VGroup(label('arm goes wrong',-1.8,2.35,WEAK,28),arrow((-1.8,2),(-1.8,1.1),WEAK))
+        self.play(FadeIn(wrong),run_time=.3)
+        self.at('a visual error');dot=Dot(P(-1.8,-.6),color=ERR,radius=.15);self.add(dot)
+        self.play(dot.animate.move_to(P(4.3,-.6)),run_time=.8)
+        self.at('arrives a tenth');report=VGroup(chip('report arrives',ERR,30).move_to(P(4.3,1.65)),Line(P(4.3,1.3),P(4.3,-.6),color=ERR))
+        bracket=VGroup(Line(P(-1.8,-2),P(4.3,-2),color=ERR),Line(P(-1.8,-1.8),P(-1.8,-2.2),color=ERR),Line(P(4.3,-1.8),P(4.3,-2.2),color=ERR),label('0.1 s or more',1.25,-2.65,ERR,36))
+        self.play(FadeIn(report),Create(bracket),run_time=.4);self.finish()
+class S07(SpokenScene):
+    def construct(self):
+        self.at('in one model');self.add(heading('Late feedback + strong corrections',MOVE),label('One model; one proposed contributor',0,-3.25,GREY,28))
+        # Magnify the reference reach's final oscillation and spread it along time.
+        def point(t):
+            q=.55+.45*t;p=reach(q,0,True);target=reach(1,0)
+            d=target-reach(0,0);u=d/np.linalg.norm(d);n=P(-u[1],u[0])
+            return P(-5.3+10.6*t,4.8*np.dot(p-target,n))
+        pts=[point(t) for t in np.linspace(0,1,300)]
+        self.add(DashedLine(P(-5.6,0),P(5.8,0),color=MOVE),label('target',-5.55,1.75,MOVE,28),Line(P(-5.55,1.4),P(-5.55,0),color=MOVE,stroke_width=2),label('time →',4.8,-2.6,GREY,28))
+        t=ValueTracker(0);hand=always_redraw(lambda:Dot(point(t.get_value()),radius=.17,color=MOVE))
+        lag=always_redraw(lambda:Circle(radius=.2,color=ERR,stroke_width=4).move_to(point(max(0,t.get_value()-.13))))
+        correction=always_redraw(lambda:arrow(tuple(point(max(0,t.get_value()-.13))[:2]),(point(max(0,t.get_value()-.13))[0],0),ERR) if abs(point(max(0,t.get_value()-.13))[1])>.15 else VGroup())
+        hand_label=always_redraw(lambda:label('hand',point(t.get_value())[0],point(t.get_value())[1]+.5,MOVE,26))
+        ghost_label=always_redraw(lambda:label('late report',point(max(0,t.get_value()-.13))[0],point(max(0,t.get_value()-.13))[1]-.5,ERR,26))
+        trail=always_redraw(lambda:poly([point(q)[:2] for q in np.linspace(max(0,t.get_value()-.13),t.get_value(),25)],ERR,7).set_opacity(.45))
+        self.at('a hand steered');self.add(trail,hand,lag,correction,hand_label,ghost_label)
+        path=poly([p[:2] for p in pts],MOVE,4)
+        self.play(Create(path),t.animate.set_value(1),run_time=4.3,rate_func=linear)
+        self.add(*[arrow(tuple(point(q)[:2]),(point(q)[0],0),ERR,w=6) for q in (.42,.59,.75)])
         self.finish()
+class S08(SpokenScene):
+    def construct(self):
+        self.at('so the cerebellum');self.add(heading('Prediction',PUR))
+        frame=RoundedRectangle(width=11.8,height=3.9,corner_radius=.2,color=PUR).move_to(P(0,0))
+        a=chip('command',MOVE,34).move_to(P(-3.4,1));b=chip('estimated result',PUR,34).move_to(P(2.6,1))
+        self.play(Create(frame),FadeIn(a),run_time=.4)
+        self.at('it estimates');self.play(GrowArrow(arrow((-1.8,1),(.6,1),PUR)),FadeIn(b),run_time=.4)
+        self.at('before the senses');self.play(FadeIn(label('An estimate made before\nthe senses report the result.',0,-1.3,size=36)),run_time=.4);self.finish()
+class S09(SpokenScene):
+    def construct(self):
+        self.at('to learn a prediction');self.add(heading('Learning a prediction',PUR))
+        boxes=VGroup(*[RoundedRectangle(width=5,height=3.1,corner_radius=.16,color=c).move_to(P(x,-.3)) for x,c in [(-3.1,CTX),(3.1,ERR)]])
+        self.at('you need two things');self.play(Create(boxes),run_time=.4);self.add(label('Context',-3.1,.6,CTX,34),label('Error',3.1,.6,ERR,34))
+        self.at('a description');self.play(FadeIn(label('What is happening?',-3.1,-.6,CTX,30)),run_time=.3)
+        self.at('a signal');self.play(FadeIn(label('What is wrong?',3.1,-.6,ERR,30)),run_time=.3);self.finish()
+class S10(SpokenScene):
+    def construct(self):
+        self.at('mossy');self.add(slots(),sources(),label('mossy fibres',0,2.25,CTX,36))
+        paths=VGroup(*[poly([(start,-2.3),(start,.4),(end,1)],CTX,4) for start,ends in [(-4.8,(-5.15,-4.45)),(2.6,(2.25,2.95))] for end in ends])
+        self.play(Create(paths),run_time=.55)
+        self.add(DashedLine(P(-5.8,1),P(5.8,1),color=GREY),label('granule-cell layer',0,1.5,GREY,28))
+        self.at('including a copy');self.play(FadeIn(label('copy of command\nfrom cortex',-2.65,-.2,CTX,28)),FadeIn(label('what the\nbody senses',4.65,-.2,CTX,28)),run_time=.4);self.finish()
+class S11(SpokenScene):
+    def construct(self):
+        cells,pf,gran=circuit();header=slots();self.add(header,sources(),mossy())
+        self.at('granule cells');self.play(FadeIn(gran),FadeIn(label('granule cells',-4.1,-.55,CTX,28)),run_time=.3)
+        self.at('relay it as');self.play(Create(pf),run_time=.5)
+        self.at('which run');self.play(FadeIn(cells),FadeIn(label('Purkinje cells',3.4,2.35,PUR,30)),FadeIn(label('parallel fibres',-3.9,2.15,CTX,28)),run_time=.35)
+        self.remove(header);self.add(slots(True));pulses=VGroup(*[Dot(P(-5.6,y),radius=.08,color=CTX) for y in np.linspace(.65,1.65,6)])
+        self.add(pulses);self.play(pulses.animate.shift(RIGHT*11),run_time=1,rate_func=linear);self.remove(pulses);self.finish()
+class S12(SpokenScene):
+    def construct(self):
+        cells,pf,gran=circuit();header=slots(True);self.add(header,cells,pf,gran,label('parallel fibres',-3.9,2.15,CTX,28),label('Purkinje cells',3.4,2.35,PUR,30))
+        self.at('in the classical model');self.add(label('classical model',4.3,3.05,GREY,28))
+        olive=chip('inferior olive',ERR,28).move_to(P(-3.7,-2.5))
+        def cf(x):return poly([(-3.7,-2.13),(-3.7,-1.75),(x-1.15,-1.75),(x-1.15,.05),(x-.5,.65),(x-.25,1),(x-.45,1.4),(x-.3,1.7)],ERR,5)
+        self.at('one climbing');self.play(FadeIn(olive),Create(cf(-.9)),run_time=.65)
+        self.at('carries the error');self.remove(header);self.add(slots(True,True),label('climbing fibre: teaching signal',2,-2.5,ERR,28))
+        self.at('each adult');self.play(Create(cf(3.45)),FadeIn(label('One climbing fibre per adult Purkinje cell',0,-3.25,ERR,28)),run_time=.5);self.finish()
+class S13(SpokenScene):
+    def construct(self):
+        g=brake_stage();self.add(g,label('Only output of the cerebellar cortex',0,3.4,PUR,30))
+        self.at('are the only output');self.play(Indicate(g[0],color=PUR,scale_factor=1.02),run_time=.4)
+        self.at('they inhibit');self.play(Indicate(g[2],color=PUR,scale_factor=1.15),run_time=.4)
+        self.at('they press');self.play(Indicate(g[5],color=PUR,scale_factor=1.15),run_time=.4);self.finish()
 
+class S14(SpokenScene):
+    def construct(self):
+        g=brake_stage();self.add(g,heading('A brake on a firing cell',PUR))
+        self.at('many nuclear cells');self.play(ShowPassingFlash(g[11].copy().set_color(TEXT)),run_time=.6)
+        self.at('ease off');self.play(Transform(g,brake_stage(True)),run_time=.6)
+        self.add(label('other inputs unchanged',2.7,-3.05,GREY,28));self.finish()
+class S15(SpokenScene):
+    def construct(self):
+        self.at('here is the rule');self.add(rule_title(),synapse_stage(),inhibition(3.3,-.7,-2.55),label('nucleus',5,-2.55,GREY,28))
+        self.at('the cerebellum learns');self.play(FadeIn(rules(1)),run_time=.35)
+        self.at('it learns from error');self.play(Indicate(rule_row(0),color=ERR,scale_factor=1),run_time=.4);self.finish()
+class S16(SpokenScene):
+    def construct(self):
+        s=synapse_stage();s[4].set_opacity(0);r=rules(1);self.add(r,s,rule_title(),label('Purkinje cell',1.7,-.65,PUR,28))
+        axis=arrow((.8,-1.5),(5.9,-1.5));self.add(axis,label('time (ms)',5.05,-2,GREY,26),label('timing varies by region',3.2,-3.15,GREY,28))
+        self.at('in this model')
+        marks=VGroup(*[Line(P(x,-1.7),P(x,-1.25),color=CTX,stroke_width=5) for x in (1.2,2.6,3.2)])
+        window=Rectangle(width=1.4,height=.65,color=ERR,fill_color=ERR,fill_opacity=.12).move_to(P(2.9,-1.45))
+        self.add(window,label('−120 ms (mouse flocculus)',2.7,-2.6,ERR,26))
+        for i in range(3):
+            self.play(Flash(s[2][i],color=CTX,flash_radius=.32),s[2][i].animate.scale(1.5).set_color(TEXT),Create(marks[i]),run_time=.25)
+            self.play(s[2][i].animate.scale(1/1.5).set_color(CTX),run_time=.15)
+        self.at('error signal');self.play(GrowArrow(arrow((5.9,.15),(3.55,-.5),ERR)),FadeIn(label('climbing fibre\n(error)',5.1,-.9,ERR,26)),Create(Line(P(5,-1.7),P(5,-1.25),color=ERR,stroke_width=6)),run_time=.4)
+        self.at('can weaken');self.remove(r);r=rules(2);self.add(r)
+        weakened=synapse_stage(True);weakened[4].set_opacity(0)
+        self.play(Transform(s,weakened),run_time=.4)
+        self.at('active at the right moment');self.play(Indicate(window,color=ERR,scale_factor=1),run_time=.4);self.finish()
+class S17(SpokenScene):
+    def construct(self):
+        s=synapse_stage(True);s[3].set_opacity(0);s[4].set_opacity(0);r=rules(2);self.add(r,s,rule_title())
+        parts=inhibition(3.3,-.7,-2.35)
+        ax=Line(P(3.82,-2.35),P(4.05,-2.35),color=NUC,stroke_width=4);out=train(4.05,6,-2.35)
+        self.add(label('Purkinje cell',1.55,-.65,PUR,26),parts,ax,out,label('nucleus',1.8,-2.35,GREY,26),label('before',5.1,-.85,NUC,26),train(4.05,6,-1.65))
+        self.at('with other inputs unchanged');self.add(label('other inputs unchanged',3.35,-3.4,GREY,27))
+        self.at('weaker input');self.remove(r);r=rules(3);self.add(r)
+        self.add(label('next time: same context',3.3,2.65,CTX,28))
+        self.at('more output');self.play(Transform(out,train(4.05,6,-2.35,burst=True)),Transform(parts,inhibition(3.3,-.7,-2.35,True)),run_time=.45)
+        self.add(label('brake eased',1.55,-1.35,PUR,26),Line(P(4.45,-2.7),P(5.55,-2.7),color=NUC),label('this moment',5,-3,NUC,26));self.finish()
 
-class S07End(EndCard):
-    LINE = "In the model, the climbing fibre teaches by weakening synapses."
+class S18(SpokenScene):
+    def construct(self):
+        s=synapse_stage(True);r=rules(3);self.add(s,r,rule_title())
+        self.at('parallel');self.play(Indicate(s[0],color=CTX,scale_factor=1),run_time=.4)
+        self.at('without a paired');unpaired=label('No paired climbing fibre',3.3,-1.5,GREY,28);self.add(unpaired)
+        self.at('can strengthen');self.remove(r);r=rules(4);self.add(r);self.remove(s[3]);s[3].set_opacity(0);self.add(label('parallel fibre',2.1,2.55,CTX,28))
+        up=VGroup(arrow((4.35,2),(4.35,2.45),CTX),label('strengthen',5.35,2.65,CTX,26))
+        self.play(*[d.animate.set_color(CTX).set_opacity(1).scale(1.3) for d in s[2][1:]],FadeIn(up),run_time=.5)
+        self.at('corrections can run');self.remove(unpaired,up)
+        paired=VGroup(arrow((5.9,.15),(3.55,-.5),ERR),label('Paired climbing fibre',3.3,-1.5,ERR,28),label('weaken',5.35,2.65,WEAK,26),arrow((4.35,2.45),(4.35,2),WEAK))
+        weakened=synapse_stage(True);weakened[3].set_opacity(0)
+        self.play(Transform(s,weakened),FadeIn(paired),FadeIn(label('Corrections can run both ways.',3.2,-2.5,size=29)),run_time=.4);self.finish()
+
+class S19(SpokenScene):
+    def construct(self):
+        self.add(rules(4),synapse_stage(),rule_title())
+        # The complete caveat holds throughout this beat, with equal weight.
+        self.at('this is the classical');self.add(label('Marr–Albus–Ito\nclassical model',3.3,-1.6,size=30),label('Supported for some tasks',3.3,-2.3,size=29),label('Not the whole story',3.3,-3.05,size=29));self.finish()
+class S20(SpokenScene):
+    def construct(self):
+        self.at('the takeaway');self.add(heading('The cerebellum',PUR))
+        self.play(FadeIn(label('A predictor',0,1.05,PUR,64)),FadeIn(label('that learns from error.',0,-.25,ERR,56)),run_time=.55)
+        self.add(label('Next: following the sign',0,-2.4,GREY,30));self.finish()
+class S21End(EndCard):
+    LINE='The cerebellum is a predictor that learns from error.'

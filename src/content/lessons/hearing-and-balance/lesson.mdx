@@ -6,14 +6,14 @@ courseChapter: "Neuroscience · Unit 3: Sensory systems"
 order: 612
 summary: >-
   How does a bundle of stiff hairs turn a vibration far smaller than a cell into a current, and
-  how does the brain use that current to tell pitch, place and head motion apart? This lesson
+  how does the brain use that current to tell pitch, direction and head motion apart? This lesson
   follows the hair cell from force to transmitter, the cochlea as a frequency map with an
   amplifier, the brainstem circuits that compare the two ears, and the canals and otoliths that
   steady the eyes. Afterwards you can place a frequency on the cochlea, compute an interaural
   time difference, and trace the horizontal vestibulo-ocular reflex.
 hook: "The same kind of cell tells you that a violin is playing an A and that your head is turning left. How does one cell type do both jobs?"
 
-estMinutes: 26
+estMinutes: 32
 objectives:
   - "Explain hair-cell transduction: deflection toward the tallest stereocilia tensions tip links and opens cation channels, letting K+ in from endolymph, the opposite deflection hyperpolarizes the cell, and the graded receptor potential drives Ca2+-dependent transmitter release."
   - "Explain tonotopy along the basilar membrane (base high, apex low) from its stiffness gradient and the travelling wave, describe outer-hair-cell amplification by prestin, and use the Greenwood frequency-place map."
@@ -24,10 +24,28 @@ explainer:
   src: "/explainers/hearing-and-balance/explainer.mp4"
   captions: "/explainers/hearing-and-balance/explainer.vtt"
   poster: "/explainers/hearing-and-balance/poster.jpg"
-  title: "Pitch Becomes a Place Along the Cochlea"
-  durationSec: 132.1
+  title: "One Cell, One Switch"
+  durationSec: 140.7
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "pitch-to-place"
+    src: "/explainers/hearing-and-balance/pitch-to-place.mp4"
+    captions: "/explainers/hearing-and-balance/pitch-to-place.vtt"
+    poster: "/explainers/hearing-and-balance/pitch-to-place-poster.jpg"
+    title: "Pitch Becomes Place"
+    durationSec: 150.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "turning-heads"
+    src: "/explainers/hearing-and-balance/turning-heads.mp4"
+    captions: "/explainers/hearing-and-balance/turning-heads.vtt"
+    poster: "/explainers/hearing-and-balance/turning-heads-poster.jpg"
+    title: "Turning Heads, Steady Eyes"
+    durationSec: 143.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "A. James Hudspeth and David Corey"
@@ -369,28 +387,101 @@ draft: false
 ---
 
 import CochlearPlaceMap from '../../../components/CochlearPlaceMap.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **One kind of cell, the hair cell, tells you that a violin is playing an A, that the violin is to your left, and that your head has just turned toward it.**
 
-The inner ear has two parts that share this cell. The **cochlea**, a coiled tube, analyses sound. The **vestibular organs**, three semicircular canals and two otolith organs, sense head motion and gravity. In both, a hair cell turns a tiny movement into a graded voltage; what differs is the mechanics around the cell and the circuits that read it. [Sensory coding](/lessons/sensory-coding/) covers transduction and receptive fields in general.
+## One cell, four puzzles
+
+The inner ear has two parts that share this cell. The **cochlea**, a coiled tube, analyses sound. The **vestibular organs**, three semicircular canals and two otolith organs, sense head motion and gravity. [Sensory coding](/lessons/sensory-coding/) covers transduction and receptive fields in general.
+
+That raises four puzzles.
+
+1. **Force to current.** How does a push far smaller than a cell become an electrical signal?
+2. **Pitch.** How does the ear know which frequency it is hearing?
+3. **Direction.** How does the brain know where a sound came from?
+4. **Motion.** How does it know which way the head is turning or tilting?
+
+One rule answers all four.
+
+> **The one idea to carry through this lesson.** A hair cell reports which way, and how far, its bundle is pushed. Pitch, direction, head turns and tilt differ mainly because of the mechanics in front of the cell, which decide what pushes which bundle, and the circuits behind it, which read where the active cells are, when their nerve fibres fire, and how the two sides compare.
+
+The next section builds the cell; the rest of the lesson supplies the mechanics and the circuits.
 
 ## The hair bundle: force to current
 
-On top of each hair cell sits a **hair bundle**, rows of stiff **stereocilia** graded in height like a staircase. Many vestibular hair cells also have a true cilium, the **kinocilium**, beside the tallest row; mammalian cochlear hair cells lose it as they mature. Fine **tip links** run from the tip of each shorter stereocilium to the side of its taller neighbour. Each link is made of cadherin 23 and protocadherin 15, whose ends overlap in a handshake (Sotomayor and colleagues, 2012, crystal structures).
+On top of each hair cell sits a **hair bundle**, rows of stiff **stereocilia** graded in height like a staircase. Many vestibular hair cells also have a true cilium, the **kinocilium**, beside the tallest row; mammalian cochlear hair cells lose it as they mature. Fine **tip links** run from the tip of each shorter stereocilium to the side of its taller neighbour. Each link is made of two proteins, cadherin 23 and protocadherin 15.
 
-Push the bundle toward its tallest stereocilia and the tip links tighten and pull open **mechanically gated cation channels**. Calcium imaging in neonatal rat cochlear hair cells implies that the working channels sit at the lower end of each link (Beurg and colleagues, 2009). Push the other way and the links slacken, the channels that were open at rest close, and the cell hyperpolarizes. The gating machinery belongs to [ion channels as receptors](/lessons/ion-channels-as-receptors/); in short, mutating a protein called TMC1 in mouse hair cells changed how ions pass, making TMC1 part of the pore (Pan and colleagues, 2018), though the full native complex is not solved.
+### At rest, then pushed both ways
 
-Hudspeth and Corey (1977) measured this relation in hair cells of the bullfrog sacculus in vitro, recording intracellularly while moving single bundles. Deflection toward the kinocilium gave the depolarizing response. Voltages were graded, up to about 15 mV, with a peak slope near 20 mV per micrometre. Those numbers belong to that frog preparation, not to the human cochlea.
+Start with the bundle at rest, with nothing pushing it. The tip links already carry some tension, enough to hold some of the bundle's **mechanically gated cation channels** open. That resting current is what lets one cell signal in two directions. How many are open depends on the cell type and conditions: in many hair cells only a small fraction, while outer hair cells, met below, can sit nearer half open.
 
-What carries the current? The top of the hair cell faces **endolymph**, a fluid rich in K+ that, in the cochlea, is held positive (by roughly +80 mV in mammals) by the **endocochlear potential** (vestibular endolymph is only slightly positive); making it is a transport problem ([membrane transport](/lessons/membrane-transport/)). The **driving force** on an ion is the membrane potential minus that ion's equilibrium potential ([the resting membrane](/lessons/resting-membrane-passive/)). In round illustrative numbers, suppose the cell sits at −50 mV and the endolymph at +80 mV, with K+ about equally concentrated on both sides of the top membrane. Equal concentrations mean K+ would be at equilibrium only with no voltage across that membrane, so the whole 130 mV pushes K+ inward. Opening channels lets K+ in, and the cell depolarizes, the reverse of most neurons, where K+ leaves.
+- **Push the bundle toward its tallest stereocilia.** The tip links tighten and pull more channels open. More current flows in, and the cell depolarizes.
+- **Push it the other way.** The links slacken and the channels that were open at rest close. Less current flows in, and the cell hyperpolarizes.
 
-The depolarization opens voltage-gated Ca2+ channels at the base. Mouse inner hair cells lacking the L-type channel CaV1.3 showed only marginal depolarization-evoked exocytosis (Brandt, Striessnig and Moser, 2003), so Ca2+ entry drives release, as at other synapses ([synaptic transmission](/lessons/synaptic-transmission/)). The release site is a **ribbon synapse**. Mature mammalian cochlear hair cells, once lost, are not replaced ([injury and regeneration](/lessons/injury-and-regeneration/)).
+The gating machinery belongs to [ion channels as receptors](/lessons/ion-channels-as-receptors/). One fact is enough here: a protein called TMC1 forms part of the channel's pore, though the full native complex is not solved.
+
+**Predict.** Suppose only a small fraction of channels is open at rest. Is there more room to increase the transduction conductance or to decrease it?
+
+<details>
+<summary>Check your prediction</summary>
+
+To increase it. If 10% are open, conductance can rise by 90% of its maximum but fall by only 10%, so at a fixed voltage the current has nine times as much room to grow as to shrink. Channel opening follows an S-shaped curve against bundle position: it saturates both ways, but much sooner on the closing side. How large the depolarization and hyperpolarization become also depends on the driving force and the cell's other channels; in the frog recordings below, the receptor voltage was lopsided in the same way.
+
+</details>
+
+Hudspeth and Corey (1977) measured this relation directly, in hair cells of the bullfrog sacculus in vitro. With a fine probe they moved single bundles by known distances while recording the voltage inside with an intracellular electrode. Deflection toward the kinocilium, the tall side, depolarized the cell; deflection the other way hyperpolarized it. The voltage was graded: it grew smoothly with distance, up to about 15 mV, at its steepest about 20 mV per micrometre. Those numbers belong to that frog preparation, not to the human cochlea. In the same frog organ a steady push gives a response that sags as the transducer adapts (Eatock, Corey and Hudspeth, 1987). How much adaptation and filtering there is varies among hair cells and pathways, and many keep a sustained response; the rule in this lesson describes the initial response and sets adaptation aside.
+
+### What carries the current: one cell, two fluids
+
+Here the hair cell differs from every neuron you have met, because its two ends sit in two different fluids.
+
+Picture the cell set into a wall. Its top, with the bundle, faces **endolymph**. Its base and sides face **perilymph**, which is like ordinary extracellular fluid: low in K+ and high in Na+. Endolymph is the odd one. It is rich in K+, about as rich as the cell's own cytoplasm, and in the cochlea it is held positive to perilymph, by roughly +80 mV in mammals. That voltage is the **endocochlear potential**. Making it is a transport problem, solved by the cochlea's wall ([membrane transport](/lessons/membrane-transport/)).
+
+In short: the endolymph is a +80 mV battery above the cell, so K+ is pulled in at the top even though its concentration is about the same on both sides of that membrane.
+
+Use the rule from [the resting membrane](/lessons/resting-membrane-passive/): the **driving force** on an ion is the voltage across the membrane minus that ion's equilibrium potential across it, and the current is g × (V − E). Take round, illustrative numbers, both measured against perilymph: the cell's inside at −50 mV and the endolymph at +80 mV.
+
+1. **Across the top membrane** the inside is 130 mV negative to the endolymph, so V is about −130 mV. K+ is about equally concentrated on the two sides, so its equilibrium potential across this membrane is close to 0 mV. The driving force is about −130 mV: negative, so K+ is pushed in, hard. Opening channels lets K+ in, and the cell depolarizes: the reverse of most neurons, where K+ leaves.
+2. **Across the base** the inside, at −50 mV, faces perilymph with little K+, so here E_K is about −90 mV. The driving force is about +40 mV: positive, so K+ leaves, through potassium channels in the basal membrane.
+
+So K+ runs downhill the whole way, in at the top and out at the bottom, and the hair cell does not have to pump this K+ back out itself; the cochlea's wall recycles it. The battery is in the wall, not in the cell. At steady state as much K+ leaves as enters, so the base needs about three times the top's open conductance to pass the same current with about a third of the push (40 mV against 130 mV).
+
+This is the balance point from [the action potential](/lessons/action-potential/), under the same conditions: steady state, with no injected or other current. Open transduction channels pull the cell's voltage toward the endolymph's +80 mV. Basal potassium channels pull it toward about −90 mV. The voltage settles where the two currents balance, closer to the reversal potential of whichever path has the greater total open conductance, which depends on how many channels are open and on each channel's conductance. Moving the bundle changes the top pull directly: open more channels and the balance point slides up; close them and it slides down. The real basal channels are voltage-gated and change as the voltage moves, so treat the picture as qualitative and read no voltages from it.
+
+**Predict.** A drug abolishes the endocochlear potential but leaves the hair cells unharmed. What happens to the current that a given push produces?
+
+<details>
+<summary>Check your prediction</summary>
+
+It shrinks. If the cell's inside stayed near −50 mV, then with endolymph at 0 mV instead of +80 mV the driving force across the top membrane would fall from about 130 mV to about 50 mV. The same opening of channels would carry well under half the current, and hearing would become much less sensitive.
+
+</details>
+
+### From voltage to transmitter
+
+Depolarization opens voltage-gated Ca2+ channels at the base, and Ca2+ entry drives transmitter release, as at other synapses ([synaptic transmission](/lessons/synaptic-transmission/)). The release site is a **ribbon synapse**, built for steady, graded release, onto an **afferent fibre**, a nerve fibre that carries signals toward the brain. In the mature cochlea the hair cell does not fire action potentials: a graded voltage sets a graded rate of release. Mature mammalian cochlear hair cells, once lost, are not replaced ([injury and regeneration](/lessons/injury-and-regeneration/)).
 
 ## The cochlea as a frequency map, and its amplifier
 
-Cochlear hair cells sit on the **basilar membrane**, which runs the length of the coil. Near the **base**, where sound enters, the membrane is narrow and stiff; toward the **apex** it is wider and more compliant. Sound sets up a **travelling wave** that moves from base to apex, grows until it reaches the place whose stiffness suits its frequency, peaks, and dies away. High frequencies peak near the base, low frequencies near the apex. This map of frequency onto position is **tonotopy**, and it is kept, at least as a coarse gradient, through the main relays up to primary auditory cortex. Georg von Békésy measured these waves, many in human cadaver cochleas, and received the 1961 Nobel Prize. His peaks were far broader than a living ear's tuning.
+<LessonFilm film={frontmatter.films[0]} />
 
-The difference is an amplifier. One row of **inner hair cells** supplies most of the auditory nerve's afferent fibres. Three rows of **outer hair cells** receive few afferents but change length when their voltage changes, **electromotility**, reported in isolated guinea-pig outer hair cells by Brownell and colleagues (1985). The motor is the membrane protein **prestin**, driven by voltage, not by ATP. On each cycle of a sound the outer hair cells push on the membrane in step, adding energy at the peak, which sharpens tuning and raises sensitivity.
+Cochlear hair cells sit on the **basilar membrane**, which runs the length of the coil. Near the **base**, where sound enters, the membrane is narrow and stiff; toward the **apex** it is wider and more compliant, or floppy. So each place along it has a **natural frequency**, high where the membrane is stiff and low where it is floppy.
+
+Sound sets up a **travelling wave** that moves from base to apex. A tone's wave slows and grows as it nears the place whose natural frequency matches it, peaks there, and cannot travel much beyond it, so it dies away. Georg von Békésy measured these waves, many in human cadaver cochleas, and received the 1961 Nobel Prize.
+
+**Predict.** A high tone's wave peaks near the base. A low tone enters at the same base. Where does its wave peak?
+
+<details>
+<summary>Check your prediction</summary>
+
+Near the apex. The low tone's wave travels past the stiff base and peaks far along the coil, where the wide, floppy membrane has a low natural frequency.
+
+</details>
+
+High near the base, low near the apex: frequency becomes position. This map is **tonotopy**, and it is kept, at least as a coarse gradient, through the main relays up to primary auditory cortex. The wave decides which bundles are pushed, and the brain reads pitch from where the active cells are. That is the main code for pitch, but at low frequencies the timing of spikes also carries it.
+
+### Putting numbers on the map
 
 Greenwood's function (1990) gives the frequency that peaks at each place in the human cochlea:
 
@@ -400,41 +491,85 @@ Greenwood's function (1990) gives the frequency that peaks at each place in the 
 
 *Step 1: rearrange.* x = log10(f / 165.4 + 0.88) / 2.1.
 
-*Step 2: 1,000 Hz.* 1000 / 165.4 = 6.046; plus 0.88 is 6.926; log10 is 0.840; divided by 2.1, x = 0.400. That is 0.400 x 35 mm = 14.0 mm from the apex, 21.0 mm from the base.
+*Step 2: 1,000 Hz.* 1000 / 165.4 = 6.046; plus 0.88 is 6.926; log10 is 0.840; divided by 2.1, x = 0.400. That is 0.400 × 35 mm = 14.0 mm from the apex, 21.0 mm from the base.
 
 *Step 3: 4,000 Hz.* 4000 / 165.4 = 24.18; plus 0.88 is 25.06; log10 is 1.399; divided by 2.1, x = 0.666. That is 23.3 mm from the apex, 11.7 mm from the base.
 
-*Step 4: compare.* Two octaves span 23.3 − 14.0 = 9.3 mm, and the higher tone sits nearer the base.
+*Step 4: compare.* Two octaves (an octave is a doubling of frequency) span 23.3 − 14.0 = 9.3 mm, and the higher tone sits nearer the base.
+
+*Step 5: the shape of the map.* Those two octaves took about the same length each. Above about 1 kHz, each doubling of frequency takes nearly the same length of membrane, about 5 mm. Below that the octaves shorten steadily toward the apex: about 4 mm from 500 to 1,000 Hz, under 3 mm below 250 Hz.
 
 <CochlearPlaceMap />
 
+In the simulation, set one tone to 1,000 Hz and the other to 2,000 Hz, then to 4,000 Hz, and watch each doubling move the peak by nearly the same distance.
+
+### The amplifier
+
+Von Békésy's peaks were far broader than a living ear's tuning. Something in a living ear adds energy.
+
+That something is a second kind of hair cell. One row of **inner hair cells** supplies most of the auditory nerve's afferent fibres. Three rows of **outer hair cells** receive few afferents. They transduce with the same switch as any hair cell, but they use their voltage mainly to push back on the membrane, not to report to the brain. They change length when their voltage changes, which is **electromotility**. The motor is the membrane protein **prestin**, driven by voltage, not by ATP. Each outer hair cell is braced between the basilar membrane and the structures above it, so when it shortens and lengthens it pulls and pushes on the membrane.
+
+Follow the loop:
+
+1. The basilar membrane moves near the peak of the wave.
+2. An outer hair cell's bundle is pushed, and its voltage swings.
+3. Prestin shortens and lengthens the cell as the voltage swings.
+4. The cell's push is timed to go with the membrane's motion, like pushing a swing in the direction it is already moving, so on each cycle it adds energy near the peak.
+
+It is the same switch, used as a motor. The added energy sharpens tuning and raises sensitivity. The boost is largest for quiet sounds and small for loud ones.
+
+**Predict.** Suppose the outer hair cells are lost while the inner hair cells and their nerve fibres keep working. What happens to quiet sounds, to loud sounds, and to tuning?
+
+<details>
+<summary>Check your prediction</summary>
+
+Hearing thresholds rise by tens of decibels, because quiet sounds relied most on the boost: sounds below the new threshold are no longer heard. Tuning blurs, because the peak is no longer sharpened. Sounds loud enough are still heard: the inner hair cells still report, and loud sounds were boosted little anyway.
+
+</details>
+
+Whether the ear needs prestin's motor action, and not just prestin, is the design problem near the end.
+
 ## Two ears, two cues
 
-The auditory nerve ends in the **cochlear nucleus** on the same side (ipsilateral; the other side is contralateral). Above that, the pathway is bilateral. Cochlear-nucleus neurons project to the **superior olivary complex** on both sides; fibres ascend to the **inferior colliculus** in the midbrain, which supplies most of the input to the **medial geniculate nucleus** of the thalamus, which relays to auditory cortex in the temporal lobe ([the map of the nervous system](/lessons/nervous-system-map/) places these levels). So deafness in one ear points to the ear, the auditory nerve or the cochlear nucleus: a lesion higher up leaves each ear represented on both sides.
+The auditory nerve ends in the **cochlear nucleus** on the same side (ipsilateral; the other side is contralateral). Above that, the pathway is bilateral. Picture three levels, each with a main job.
+
+| Level | Where | Its job here |
+| --- | --- | --- |
+| Cochlear nucleus | brainstem, same side as the ear | first stop; its nerve input comes from one ear only |
+| Superior olivary complex | brainstem, both sides | first major stage comparing the two ears: when and how loud |
+| Inferior colliculus, medial geniculate nucleus, auditory cortex | midbrain, then thalamus, then temporal lobe | integrate the cues and carry them upward |
+
+Cochlear-nucleus neurons project to the **superior olivary complex** on both sides. Fibres ascend to the **inferior colliculus**, which supplies most of the input to the **medial geniculate nucleus**, which relays to auditory cortex ([the map of the nervous system](/lessons/nervous-system-map/) places these levels). Because every level above the cochlear nucleus receives both ears, deafness in one ear points to the ear, the auditory nerve or the cochlear nucleus: a lesion higher up leaves each ear represented on both sides.
 
 The two sides meet to locate sounds. An **interaural time difference (ITD)** is the difference in arrival time between the ears. An **interaural level difference (ILD)** is the difference in sound level (intensity) between the ears, made because the head casts a sound shadow.
 
-**Worked problem: how large is an ITD?** Treat the ears as two points 0.20 m apart, take sound speed as 343 m/s, and put a distant source at angle theta from straight ahead. The extra path to the far ear is d x sin(theta), so
+**Worked problem: how large is an ITD?** Treat the ears as two points 0.20 m apart, a round number a little wider than a real head, take sound speed as 343 m/s, and put a distant source at angle theta from straight ahead. The extra path to the far ear is d × sin(theta), so
 
-> **ITD = d x sin(theta) / c**
+> **ITD = d × sin(theta) / c**
 
-*At 30 degrees:* 0.20 m x 0.5 / 343 m/s = 0.000292 s, or 292 microseconds.
+*At 30 degrees:* 0.20 m × 0.5 / 343 m/s = 0.000292 s, or 292 microseconds.
 
-*At 90 degrees:* 0.20 m x 1.0 / 343 m/s = 583 microseconds.
+*At 90 degrees:* 0.20 m × 1.0 / 343 m/s = 583 microseconds.
 
-The model ignores the path around the head, so it underestimates real ITDs; the point is the scale.
+The model ignores the path around the head. Woodworth's ray model for a spherical head gives about 260 microseconds at 30 degrees and about 660 at 90, so these numbers are right in scale, which is the point. The largest ITD is well under a millisecond.
 
-Neurons in the **medial superior olive (MSO)** are excited by both cochlear nuclei and fire most when the two inputs arrive together. They handle ITDs, mainly at low frequencies, where spikes can lock to the phase of the wave, firing near the same point in the cycle, though not on every cycle. Jeffress (1948) proposed that axons of graded length act as delay lines, so each coincidence detector is tuned to one ITD. Bird brainstem circuits, such as the barn owl's, are commonly cited as fitting that scheme; in the guinea pig, McAlpine, Jiang and Palmer (2001) recorded inferior-colliculus neurons and argued for a population code compared across the two hemispheres. In the gerbil MSO itself, Brand and colleagues (2002) found no sign of a delay-line map and argued that precisely timed inhibition shapes ITD tuning. How mammals compute ITDs is still debated.
+Neurons in the **medial superior olive (MSO)** are excited by both cochlear nuclei and fire most when the two inputs arrive together: they are coincidence detectors. They handle ITDs, mainly at low frequencies, where the nerve fibres' spikes can lock to the phase of the wave, firing near the same point in the cycle, though not on every cycle. Jeffress (1948) proposed that axons of graded length act as delay lines, so that each coincidence detector is tuned to one ITD. A sound from the left reaches the left ear first, so the detector that fires most is the one whose left-ear input travels the longer path, by just enough to cancel the head start. Bird brainstem circuits, such as the barn owl's, are commonly cited as fitting that scheme. How mammals compute ITDs is still debated (Going deeper).
 
-Neurons in the **lateral superior olive (LSO)** are excited by the ear on their own side and inhibited, through a relay in the trapezoid body, by the other ear, so their rate reports which ear is louder. They handle ILDs, mainly at high frequencies, where the head shadow is large. Time at low frequencies and level at high frequencies is a tendency, not a wall.
+Neurons in the **lateral superior olive (LSO)** are excited by the ear on their own side and inhibited, through a relay in the trapezoid body, by the other ear, so their rate reports which ear is louder: the left LSO fires more when the sound is louder on the left. They handle ILDs, mainly at high frequencies, where the head shadow is large. Time at low frequencies and level at high frequencies is a tendency, not a wall.
 
-Neither cue tells above from below. The folds of the **pinna** filter sound differently by elevation, and the brain learns those spectral cues: when Hofman and colleagues (1998) reshaped adults' pinnae with moulds, elevation judgments were poor at first and then progressively recovered with the moulds in place.
+Neither cue tells above from below. The folds of the **pinna** filter sound differently by elevation, changing its mix of frequencies, and the brain learns those spectral cues: when Hofman and colleagues (1998) reshaped adults' pinnae with moulds, elevation judgments were poor at first and then progressively recovered with the moulds in place.
 
 ## Canals, otoliths and the VOR
 
-Vestibular hair cells use the same transduction with different mechanics. Each **semicircular canal** is a fluid-filled ring whose swelling, the ampulla, holds hair bundles in a gelatinous flap, the **cupula**. When the head rotates, endolymph lags by inertia, bends the cupula and deflects the bundles, so canals report rotation. Canals on opposite sides pair in one plane, and a turn excites one partner while inhibiting the other.
+<LessonFilm film={frontmatter.films[1]} />
 
-The **otolith organs** sense linear acceleration and gravity. In the **utricle**, roughly horizontal when you stand, and the **saccule**, roughly vertical, the bundles are capped by a membrane loaded with calcium carbonate crystals. Tilting or accelerating the head shears that heavier membrane across the hair cells, and the two can give the same shear, so otolith afferents alone are ambiguous. In rhesus monkeys, Angelaki and colleagues (1999) found that after canal inactivation, eye responses to translation followed the ambiguous otolith signal, supporting the view that the brain combines canal and otolith signals to tell tilt from translation.
+### Canals: a ring of fluid
+
+Each **semicircular canal** is a fluid-filled ring whose swelling, the ampulla, holds hair bundles in a gelatinous flap, the **cupula**. When the head rotates, endolymph lags by inertia, bends the cupula and deflects the bundles, so canals report rotation. Drag in the narrow canal makes the cupula's bend track the head's rotational velocity rather than its acceleration, so during ordinary, changing head movements canal afferents signal roughly velocity. In a long turn at steady speed the signal fades.
+
+Canals on opposite sides pair in one plane, and a turn excites one partner while inhibiting the other. This push-pull works because each side's afferents already fire at rest, just as some transduction channels are open at rest: a turn raises one side's rate and lowers the other's.
+
+### The vestibulo-ocular reflex
 
 One of the canals' main jobs is driving the **vestibulo-ocular reflex (VOR)**, which keeps the eyes still in the world while the head moves. For a head turn to the left:
 
@@ -442,9 +577,36 @@ One of the canals' main jobs is driving the **vestibulo-ocular reflex (VOR)**, w
 2. The left vestibular nucleus excites the **right abducens nucleus**, whose motor neurons drive the right lateral rectus and turn the right eye rightward.
 3. Abducens interneurons cross and run up the **medial longitudinal fasciculus (MLF)** to the **left oculomotor nucleus**, which drives the left medial rectus and turns the left eye rightward.
 
-Both eyes move right as the head turns left. The reflex's **gain** is eye velocity divided by head velocity. In a made-up case, a head turning at 100 degrees per second with eyes counter-rotating at 80 degrees per second gives a gain of 0.80, and the image slips across the retina at 20 degrees per second. The [cerebellum](/lessons/cerebellum/) corrects a wrong gain. Damage to one labyrinth (the vestibular organs of one inner ear) unbalances the pair: the healthy side's resting firing is no longer matched, and the brain reads the imbalance as rotation, one mechanism of vertigo.
+Both eyes move right as the head turns left. The reflex's **gain** is eye speed divided by head speed, with the eyes turning the opposite way. In a made-up case, a head turning at 100 degrees per second with eyes counter-rotating at 80 degrees per second gives a gain of 0.80, and the image slips across the retina at 20 degrees per second. The [cerebellum](/lessons/cerebellum/) corrects a wrong gain.
 
-### Design problem
+**Predict.** The left labyrinth, the vestibular organs of the left inner ear, is suddenly destroyed. The head is still. What does the brain think is happening?
+
+<details>
+<summary>Check your prediction</summary>
+
+It thinks the head is turning to the right. Damage to one labyrinth unbalances the pair: the healthy right side's resting firing is no longer matched by the left, and that is the pattern a rightward turn produces. The reflex moves the eyes as it would for a rightward turn: they drift slowly left, with quick jerks back to the right (nystagmus), although the head is still, and the room seems to spin. This is one mechanism of vertigo.
+
+</details>
+
+### Otoliths: a heavy membrane
+
+The **otolith organs** sense linear (straight-line) acceleration and gravity. In the **utricle**, roughly horizontal when you stand, and the **saccule**, roughly vertical, the bundles are capped by a membrane loaded with calcium carbonate crystals. Tilting or accelerating the head shears that heavier membrane across the hair cells, and the two can give the same shear. Sustained forward acceleration, as in an aircraft's takeoff run, can make you feel tipped back, especially without a view outside: it shears the otolith membrane backward, as a backward tilt would.
+
+So otolith afferents alone are ambiguous, and the comparison the brain needs widens from left against right to canal against otolith. A tilt rotates the head, which the canals feel; a straight-line acceleration does not. In rhesus monkeys, Angelaki and colleagues (1999) found that after canal inactivation, eye responses to translation followed the ambiguous otolith signal, supporting the view that the brain combines canal and otolith signals to tell tilt from translation.
+
+## Back to the opening question
+
+How does one cell type tell you the pitch of a violin, where it is, and that your head has turned? | Organ | What pushes the bundle | What the brain reads |
+| --- | --- | --- |
+| Cochlea, inner hair cells | a travelling wave that peaks at one place for each frequency | where the active cells are (pitch), how strongly their nerve fibres fire (loudness), and, at low frequencies, the timing of the nerve fibres' spikes |
+| Cochlea, outer hair cells | the same wave | little; they push back on the membrane and amplify quiet sounds |
+| The two cochleas together | the same waves, in two ears | arrival-time difference (MSO, mainly low frequencies) and level difference (LSO, mainly high) |
+| Semicircular canals | endolymph lagging during rotation bends the cupula | head rotation, close to velocity over normal movements, compared left against right |
+| Otolith organs | a crystal-loaded membrane shearing under tilt or linear acceleration | tilt or translation, told apart with help from the canals |
+
+One switch. A wave, a ring of fluid, a heavy membrane. And circuits that read where, when, and which side.
+
+## Design problem
 
 Mice lacking prestin lose sensitivity and sharp cochlear tuning. A reviewer says this does not show that outer-hair-cell electromotility is the cochlear amplifier. Why is the reviewer right, and what experiment answers the objection?
 
@@ -458,3 +620,37 @@ Remove the motor and keep the rest. Dallos and colleagues (2008) made knock-in m
 Controls to ask for: outer-hair-cell transduction currents; counts of surviving hair cells at the ages tested; thresholds across frequencies, not one tone. Limits: this is the mouse, and the result does not exclude an additional active process in the hair bundle.
 
 </details>
+
+## Going deeper
+
+### Tip links and the channel
+
+The ends of cadherin 23 and protocadherin 15 overlap in a handshake, seen in crystal structures (Sotomayor and colleagues, 2012); the joint sits in the middle of the tip link. Calcium imaging in neonatal rat cochlear hair cells implies that the working channels sit at the lower end of each tip link (Beurg and colleagues, 2009). Mutating TMC1 in mouse hair cells changed how ions pass through the channel, the evidence that it forms part of the pore (Pan and colleagues, 2018).
+
+### What the lopsided response buys
+
+In a cell with few channels open at rest, the resting point sits on the lower, curved part of the S-shaped curve. There a symmetric back-and-forth vibration opens more channels on one half-cycle than it closes on the other, so the average inward current rises and the cell stays depolarized while the sound lasts. At high frequencies the membrane's time constant filters out most of the cycle-by-cycle swing, but this steady part survives, so inner hair cells keep driving release. Russell and Sellick (1978) recorded both parts, the cycle-by-cycle swing and the steady depolarization, in guinea-pig inner hair cells.
+
+### Vestibular endolymph
+
+Vestibular endolymph is only slightly positive, so vestibular hair cells run on a smaller driving force than cochlear ones. The logic is the same: K+ is still driven in at the top, because the cell's inside is negative.
+
+### Which calcium channel drives release
+
+Mouse inner hair cells lacking the L-type channel CaV1.3 showed only marginal depolarization-evoked exocytosis (Brandt, Striessnig and Moser, 2003).
+
+### What sets each place's natural frequency
+
+The natural frequency of each place depends on the membrane's stiffness and also on the effective mass of the fluid it moves. "High where stiff" is accurate enough at this level.
+
+### The amplifier: who first saw it, and where it acts
+
+Electromotility was reported in isolated guinea-pig outer hair cells by Brownell and colleagues (1985). The amplification is concentrated near the peak, in the region just on the basal side of it.
+
+### How mammals compute ITDs
+
+In the guinea pig, McAlpine, Jiang and Palmer (2001) recorded inferior-colliculus neurons and argued for a population code compared across the two hemispheres, not a delay-line map. In the gerbil MSO itself, Brand and colleagues (2002) found ITD tuning that did not fit a topographic delay-line map of space, and argued that precisely timed inhibition shapes it: blocking glycinergic inhibition shifted the neurons' best ITDs toward zero, which a pure delay-line scheme does not predict.
+
+### The head's shape, and why time works low and level works high
+
+Relative to Woodworth's ray model for a sphere of radius 8.75 cm, the worked problem's point-ear model errs both ways: it overestimates small-angle ITDs and underestimates large ones. In the ray model the largest ITD is about 656 microseconds. For low-frequency tones the sound bends around the head, and real ITDs run larger than the ray model gives. Above about 760 Hz a wave's half-period is shorter than 656 microseconds, so for sources well off to the side the ongoing phase becomes ambiguous; near 2 kHz the wavelength equals the head's width, and the head shadow becomes large. Both scales are model-based.

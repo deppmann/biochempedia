@@ -1,524 +1,410 @@
-"""Attention and decisions: a correlate is not a requirement  (Biochemistrypedia explainer)
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = the coherent dots / motion evidence in the display
-  BLUE   = area MT (evidence)
-  PINK   = area LIP and its firing (the ramp)
-  GOLD   = the level / bound / threshold line, and the "in this sketch" tags
-  GREEN  = the monkey's choice and eye movement; an intact result
-  PURPLE = the experimenter's manipulation (weak current, muscimol, a silenced area)
-  RED    = an impaired result
-  GREY   = structure, random dots, de-emphasized
+"""Adding Up Noisy Evidence — chapter 1.
+COLOR MAP: YELLOW coherent motion / signal; BLUE evidence pooling;
+PINK LIP / parietal firing; GOLD bounds / annotations; GREEN choices;
+PURPLE manipulation; RED impairment; GREY random motion / structure.
+All curves are model calculations, not recorded data. Behaviour uses the
+lesson's symmetric DDM: a=40, mu=7.8125*c, sigma²=8000/log(9).
+Tally: independent N(.65,.8²) increments, mean=.65n, SD=.8sqrt(n).
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-PINK = "#E58AC0"
-
-# plot frame shared by scenes 3 and 4 (time 0 to 2000 ms, rate 20 to 80 spikes/s)
-PX0, PW, PY0, PH = -5.2, 10.8, -2.3, 3.6
+from bp_style import *
+PINK = '#E58AC0'
+PURPLE = '#B58CD9'
 
 
-def px(t):
-    return PX0 + t / 2000.0 * PW
+def poly(pts, color=GREY, w=4):
+    return VMobject().set_points_as_corners([np.array([x,y,0.]) for x,y in pts]).set_stroke(color,w).set_fill(opacity=0)
 
 
-def py(r):
-    return PY0 + (r - 20) / 60.0 * PH
+def label(s,x,y,size=28,color=TEXT):
+    return T(s,size,color).move_to([x,y,0])
 
 
-def tag(text, color=GOLD, size=22):
-    return T(text, size, color)
+def axes(x0,x1,y0,y1):
+    return VGroup(Line([x0,y0,0],[x1,y0,0],color=GREY),Line([x0,y0,0],[x0,y1,0],color=GREY))
 
 
-def poly(pts, color, w=5):
-    m = VMobject()
-    m.set_points_as_corners([np.array([x, y, 0.0]) for x, y in pts])
-    m.set_stroke(color, w).set_fill(opacity=0)
-    return m
+def arrow(a,b,color=YELLOW):
+    return Arrow([*a,0],[*b,0],buff=0,color=color,stroke_width=4,tip_length=.14)
 
 
-def dotfield(cx, cy, w, h, coh, n=52, seed=0, speed=0.8, r=0.055):
-    rng = np.random.RandomState(seed)
-    box = Rectangle(width=w, height=h, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([cx, cy, 0])
-    nc = int(round(coh * n))
-    dots, vel = VGroup(), []
+def dotfield(coh=.032, white=False):
+    # Identical 70%-height aperture and position in every dot scene.
+    cx,cy,w,h,n=-2.,0.,7.,5.6,94
+    rng=np.random.RandomState(3)
+    box=Rectangle(width=w,height=h,color=GREY,stroke_width=2).move_to([cx,cy,0])
+    dots=VGroup(); velocities=[]
     for i in range(n):
-        p = [cx + rng.uniform(-w / 2 + .12, w / 2 - .12), cy + rng.uniform(-h / 2 + .12, h / 2 - .12), 0]
-        if i < nc:
-            v = np.array([speed, 0.0, 0.0]); col = YELLOW
-        else:
-            a = rng.uniform(0, 2 * np.pi); v = speed * np.array([np.cos(a), np.sin(a), 0.0]); col = GREY
-        dots.add(Dot(p, radius=r, color=col)); vel.append(v)
-
-    def upd(m, dt):
-        c = box.get_center()
-        for d, v in zip(m, vel):
-            d.shift(v * dt)
-            p = d.get_center()
-            if p[0] > c[0] + w / 2 - .1: d.shift(LEFT * (w - .2))
-            if p[0] < c[0] - w / 2 + .1: d.shift(RIGHT * (w - .2))
-            if p[1] > c[1] + h / 2 - .1: d.shift(DOWN * (h - .2))
-            if p[1] < c[1] - h / 2 + .1: d.shift(UP * (h - .2))
-    dots.add_updater(upd)
-    g = VGroup(box, dots)
-    g.dots = dots
+        a=0 if i<round(coh*n) else rng.uniform(0,TAU)
+        d=Dot([cx+rng.uniform(-w/2+.2,w/2-.2),rng.uniform(-h/2+.2,h/2-.2),0],radius=.055,
+              color=TEXT if white else (YELLOW if i<round(coh*n) else GREY))
+        dots.add(d); velocities.append(.7*np.array([np.cos(a),np.sin(a),0]))
+    def update(m,dt):
+        for d,v in zip(m,velocities):
+            d.shift(v*dt); p=d.get_center()
+            if p[0]>cx+w/2-.1: d.shift(LEFT*(w-.2))
+            if p[0]<cx-w/2+.1: d.shift(RIGHT*(w-.2))
+            if p[1]>h/2-.1: d.shift(DOWN*(h-.2))
+            if p[1]<-h/2+.1: d.shift(UP*(h-.2))
+    dots.add_updater(update)
+    g=VGroup(box,dots); g.velocities=velocities
     return g
 
 
-def neuron(c, color, s=1.0):
-    c = np.array([c[0], c[1], 0.0])
-    soma = Circle(radius=0.26 * s, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.35).move_to(c)
-    parts = VGroup(soma)
-    for a in (110, 160, 210, 250):
-        d = np.array([np.cos(np.radians(a)), np.sin(np.radians(a)), 0])
-        parts.add(Line(c + d * 0.26 * s, c + d * 0.78 * s, color=color, stroke_width=3.5))
-    parts.add(Line(c + RIGHT * 0.26 * s, c + RIGHT * 1.0 * s, color=color, stroke_width=3.5))
-    parts.add(Dot(c + RIGHT * 1.05 * s, radius=0.07 * s, color=color))
-    return parts
+def motion_key(white=False):
+    return VGroup(arrow((2.3,1.4),(4.7,1.4),TEXT if white else YELLOW),
+                  label('coherent motion',3.8,2.,26,TEXT if white else YELLOW))
 
 
-def arrow(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=0.22,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def slider(value=3.2):
+    x=lambda v:-4.8+5.6*(v-3.2)/48
+    return VGroup(Line([-4.8,-3.15,0],[.8,-3.15,0],color=GREY),
+                  Dot([x(value),-3.15,0],radius=.12,color=YELLOW),
+                  label('3.2%',-4.8,-3.6,26,YELLOW),label('51.2%',.8,-3.6,26,YELLOW),
+                  label(f'{value:.1f}%',3.8,-2.5,34,YELLOW))
 
 
-def axes_lines(x0=1.0, x1=6.0, y0=-2.2, y1=1.0):
-    return VGroup(Line([x0, y0, 0], [x1, y0, 0], color=GREY, stroke_width=3.5),
-                  Line([x0, y0, 0], [x0, y1, 0], color=GREY, stroke_width=3.5))
+def behavior():
+    c=np.linspace(0,51.2,240); mu=7.8125*c; a=40; sig2=8000/np.log(9)
+    p=1/(1+np.exp(-2*mu*a/sig2))
+    rt=np.empty_like(mu); rt[0]=.270+a*a/sig2
+    rt[1:]=.270+a/mu[1:]*np.tanh(a*mu[1:]/sig2)
+    panels=[]
+    for x0,x1,title,vals,lo,hi in [(-5.,-.8,'accuracy (% correct)',p,.5,1.),(1.8,6.,'reaction time (ms)',rt,.3,.75)]:
+        y0,y1=-2.8,2.8
+        ax=axes(x0,x1,y0,y1)
+        curve=poly([(x0+(x1-x0)*cc/51.2,y0+(v-lo)/(hi-lo)*(y1-y0)) for cc,v in zip(c,vals)],GREEN,6)
+        texts=VGroup(label(title,(x0+x1)/2,3.3,28,GREEN),label('coherence (%)',(x0+x1)/2,-3.6,26,GREY),
+                      label('0%',x0,-3.15,26,GREY),label('51.2%',x1,-3.15,26,GREY))
+        ticks=VGroup(*[label(s,x0-.6,y,26,GREY) for s,y in zip(('50','100') if lo==.5 else ('300','750'),(y0,y1))])
+        panels.append(VGroup(ax,curve,texts,ticks))
+    return VGroup(*panels)
 
 
-def ramp_pts(slope, base=30, bound=70, lat=200):
-    return [(px(0), py(base)), (px(lat), py(base)), (px(lat + (bound - base) / slope * 1000.0), py(bound))]
+FX=lambda n:-4.9+8.4*n/40
+FY=lambda v:-2.1+.12*v
 
 
-SLOPES = {"strong": 400.0, "mid": 100.0, "weak": 25.0}
-RT = {"strong": 370, "mid": 670, "weak": 1870}
+def bracket(x,lo,hi,color=GREY):
+    return VGroup(Line([x,lo,0],[x,hi,0],color=color,stroke_width=4),
+                  Line([x-.12,lo,0],[x+.12,lo,0],color=color),Line([x-.12,hi,0],[x+.12,hi,0],color=color))
 
 
-def plot_frame():
-    return axes_lines(PX0, PX0 + PW, PY0, PY0 + PH)
+def fan():
+    rng=np.random.RandomState(20)
+    # Independent traces: do not manufacture cancellation by pairing opposite noise.
+    paths=np.c_[np.zeros(12),np.cumsum(rng.normal(.65,.8,(12,40)),axis=1)]
+    traces=VGroup(*[poly([(FX(i),FY(v)) for i,v in enumerate(row)],GREY,1.8).set_stroke(opacity=.55) for row in paths])
+    mean=poly([(FX(i),FY(.65*i)) for i in range(41)],YELLOW,6)
+    n=np.linspace(0,40,200)
+    band=Polygon(*[np.array([FX(v),FY(.65*v+.8*np.sqrt(v)),0]) for v in n],
+                 *[np.array([FX(v),FY(.65*v-.8*np.sqrt(v)),0]) for v in n[::-1]],stroke_width=0,fill_color=GREY,fill_opacity=.12)
+    labs=VGroup(label('samples added',-.7,-2.95,28,GREY),label('running total',-3.7,3.15,28,GREY))
+    return VGroup(axes(-4.9,3.5,-2.1,2.6),traces,mean,labs,band)
+
+
+def spreads():
+    return VGroup(*[bracket(FX(n),FY(.65*n-.8*np.sqrt(n)),FY(.65*n+.8*np.sqrt(n))) for n in (10,40)])
+
+
+def question():
+    return VGroup(label('Watch 4 times as long.',0,1.65,40),
+                  label('Is the total 4 times as reliable?',0,.45,36,GOLD),
+                  label('reliable = signal ÷ noise',0,-.75,30,YELLOW))
 
 
 class S00Title(TitleCard):
-    LESSON = "Attention, executive control and decisions"
-    TITLE = "A correlate is not a requirement"
+    LESSON='Attention, Executive Control and Decisions'
+    TITLE='Adding Up Noisy Evidence'
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(SpokenScene):
+class S01Question(SpokenScene):
     def construct(self):
-        field = dotfield(0.0, 0.65, 5.4, 3.6, 0.35, n=56, seed=3)
-        self.play(FadeIn(field), run_time=0.8)
-        self.at("moving together")
-        l1 = tag("some move together", YELLOW, 26).move_to([0.0, -1.7, 0])
-        self.play(FadeIn(l1, shift=UP * 0.1), run_time=0.5)
-        self.at("at random")
-        l2 = tag("the rest move at random", GREY, 26).move_to([0.0, -2.15, 0])
-        self.play(FadeIn(l2, shift=UP * 0.1), run_time=0.5)
+        f=dotfield(coh=.128,white=True)
+        self.add(f,label('How does noise become a choice?',0,3.3,32,GOLD))
+        self.at('A monkey watches'); self.finish()
 
-        n = neuron([1.9, 2.45], PINK, 1.0)
-        nl = T("parietal neuron", 26, PINK).move_to([4.6, 2.45, 0])
-        self.at("parietal cortex")
-        self.play(field.animate.shift(LEFT * 3.5), l1.animate.shift(LEFT * 3.5), l2.animate.shift(LEFT * 3.5),
-                  FadeIn(n), FadeIn(nl), run_time=0.9)
 
-        ax = axes_lines(1.0, 6.0, -2.2, 1.0)
-        yl = T("firing", 24, GREY).move_to([0.1, 0.1, 0])
-        base, lev = -1.5, 0.5
-        t0, t1 = 2.1, 4.3
-        ramp = poly([(1.0, base), (t0, base), (t1, lev)], PINK, 6)
-        xl = tag("time, in this sketch", GOLD, 22).move_to([3.5, -2.6, 0])
-        self.at("faster and faster")
-        self.play(FadeIn(ax), FadeIn(yl), FadeIn(xl), run_time=0.4)
-        self.play(Create(ramp, rate_func=linear), run_time=2.0)
-        self.at("certain level")
-        levl = DashedLine([1.0, lev, 0], [6.0, lev, 0], color=GOLD, stroke_width=4)
-        levt = T("certain level", 24, GOLD).move_to([5.0, lev + 0.38, 0])
-        self.play(Create(levl), FadeIn(levt), run_time=0.6)
+class S02Coherence(SpokenScene):
+    def construct(self):
+        f=dotfield(coh=.512); key=motion_key(); s=slider(51.2)
+        self.add(f,key,s,label('coherence = % moving together',0,3.3,30,YELLOW),
+                 label('Gold: viewer guide only',3.8,-.2,26,GREY),label('Monkey sees no colours',3.8,-.7,26,GREY))
+        self.at('Some dots move together'); self.play(Indicate(key,scale_factor=1.05),run_time=.4)
+        self.at('The share moving together')
+        v=ValueTracker(51.2)
+        read=always_redraw(lambda: label(f'{v.get_value():.1f}%',3.8,-2.5,34,YELLOW))
+        self.remove(s[4]); self.add(read)
+        # Readout, slider and gold-dot count follow the same coherence value.
+        angles=np.random.RandomState(81).uniform(0,TAU,len(f[1]))
+        def tint(m):
+            for i,d in enumerate(m):
+                coherent=i<round(v.get_value()/100*len(m))
+                d.set_color(YELLOW if coherent else GREY)
+                a=0 if coherent else angles[i]
+                f.velocities[i]=.7*np.array([np.cos(a),np.sin(a),0])
+        f[1].add_updater(tint)
+        self.play(v.animate.set_value(3.2),s[1].animate.move_to([-4.8,-3.15,0]),run_time=1.1)
+        self.at('is called coherence'); self.finish()
 
-        chip_eye = chip("eyes move to answer", GREEN, 28).move_to([-3.5, -2.95, 0])
-        self.at("moves its eyes")
-        self.play(FadeIn(chip_eye, shift=UP * 0.15), run_time=0.6)
-        self.at("Is that neuron")
-        q = T("?", 44, GOLD, weight=BOLD)
-        q.next_to(n, LEFT, buff=0.35)
-        self.play(FadeIn(q, scale=1.4), Indicate(n, color=GOLD, scale_factor=1.15), run_time=0.8)
-        self.at("Silence the area")
-        sil = T("silenced", 26, PURPLE).move_to([4.6, 2.45, 0])
-        self.play(FadeOut(ramp), FadeOut(levl), FadeOut(levt), FadeOut(q), run_time=0.5)
-        self.play(n.animate.set_color(PURPLE), ReplacementTransform(nl, sil), run_time=0.6)
-        self.at("decides just as well")
-        chip2 = chip("one study: no deficit", GREEN, 28).move_to([-3.5, -2.95, 0])
-        qq = T("?", 110, GOLD, weight=BOLD).move_to([3.5, -0.5, 0])
-        self.play(ReplacementTransform(chip_eye, chip2), FadeIn(qq, scale=1.3), run_time=0.9)
+
+class S03Answer(SpokenScene):
+    def construct(self):
+        f=dotfield(); self.add(f,slider(),motion_key(),label('Choose a target',0,3.3,32,GREEN))
+        targets=VGroup(Dot([-6.1,0,0],radius=.15,color=GREEN),Dot([6.,0,0],radius=.15,color=GREEN))
+        eye=Ellipse(width=2.,height=.9,color=GREEN).move_to([3.7,-.6,0])
+        pupil=Dot([3.7,-.6,0],radius=.2,color=GREEN)
+        self.at('The monkey answers'); self.play(FadeIn(targets),FadeIn(eye),FadeIn(pupil),run_time=.3)
+        self.at('quick eye movement'); self.play(pupil.animate.shift(RIGHT*.55),run_time=.15)
+        self.play(FadeIn(label('saccade',3.8,-1.5,30,GREEN)),run_time=.2)
+        self.at('one of two targets'); self.play(Indicate(targets[1],scale_factor=1.6),run_time=.4); self.finish()
+
+
+class S04Curves(SpokenScene):
+    def construct(self):
+        g=behavior()
+        self.at('Stronger motion gives')
+        self.play(FadeIn(g[1][0]),FadeIn(g[1][2]),FadeIn(g[1][3]),run_time=.25)
+        self.at('faster and'); self.play(Create(g[1][1]),run_time=.45)
+        self.at('more accurate choices'); self.play(FadeIn(g[0][0]),FadeIn(g[0][2]),FadeIn(g[0][3]),Create(g[0][1]),run_time=.55)
+        self.at('With no net motion')
+        chance=VGroup(Dot([-5,-2.8,0],color=GOLD),Line([-5,-2.8,0],[-4.1,-1.1,0],color=GOLD),label('chance',-3.35,-.85,28,GOLD))
+        self.play(FadeIn(chance),run_time=.3); self.finish()
+
+
+class S05Neuron(SpokenScene):
+    def construct(self):
+        # Lateral schematic: frontal pole left, occipital pole right, cerebellum below.
+        outline=poly([(-5.9,-.4),(-6, .7),(-5.6,1.65),(-4.8,2.25),(-3.6,2.5),(-2.4,2.2),(-1.7,1.4),(-1.65,.4),(-2.2,-.35),(-3.,-.6),(-3.7,-1.1),(-4.8,-.9),(-5.9,-.4)],GREY,4)
+        outline.set_points_smoothly([np.array([x,y,0.]) for x,y in [(-5.9,-.4),(-6,.7),(-5.6,1.65),(-4.8,2.25),(-3.6,2.5),(-2.4,2.2),(-1.7,1.4),(-1.65,.4),(-2.2,-.35),(-3.,-.6),(-3.7,-1.1),(-4.8,-.9),(-5.9,-.4)]])
+        cb=Ellipse(width=1.5,height=1.1,color=GREY,fill_opacity=.15).move_to([-2.5,-.9,0])
+        folds=VGroup(*[Arc(radius=.5,start_angle=.1,angle=2.5,color=GREY).stretch(.5,1).move_to([-2.75+i*.3,-.9,0]) for i in range(3)])
+        sulci=VGroup(poly([(-4.1,2.25),(-4.3,1.6),(-3.95,.8)],GREY,2),poly([(-2.5,1.9),(-2.9,1.2),(-2.5,.4)],GREY,2),poly([(-5.5,.25),(-4.5,.45),(-3.6,.2)],GREY,2))
+        patch=Ellipse(width=1.,height=.65,color=PINK,fill_opacity=.4).move_to([-2.95,1.6,0])
+        lobes=VGroup(label('frontal',-5.1,1.05,22,GREY),label('parietal',-3.25,2.35,22,GREY),label('occipital',-2.35,.1,22,GREY))
+        self.add(outline,cb,folds,sulci,lobes,label('monkey brain · side view',-3.8,-1.95,26,GREY))
+        self.at('Meanwhile')
+        ax=axes(1.3,6.2,-1.9,1.95)
+        labs=VGroup(label('firing rate (spikes/s)',.1,.1,26,PINK).rotate(PI/2),label('average of many trials',3.75,2.65,26,PINK),label('time (s)',3.75,-2.9,28,GREY),
+                    label('30',.8,-1.4,26,GREY),label('65',.8,1.6,26,GREY),label('0',1.3,-2.3,26,GREY),label('1.6',6.2,-2.3,26,GREY))
+        self.at('averaged over many trials'); self.play(FadeIn(ax),FadeIn(labs),run_time=.3)
+        self.at('parietal cortex')
+        lip=VGroup(label('LIP · parietal',-1.8,3.25,28,PINK),Line([-1.8,2.9,0],[-2.75,1.9,0],color=PINK),Line([-2.45,1.6,0],[1.3,1.95,0],color=PINK,stroke_width=2))
+        self.play(FadeIn(patch),FadeIn(lip),run_time=.3)
+        self.at('fires faster and faster')
+        ramp=poly([(1.3+4.9*t/1.6,-1.4+(25*max(0,t-.2))*3/35) for t in np.linspace(0,1.6,120)],PINK,6)
+        onset=VGroup(Line([1.3,-1.9,0],[1.3,-2.05,0],color=GOLD),label('motion onset',1.5,-3.4,26,GOLD),Line([1.5,-3.1,0],[1.3,-2.5,0],color=GOLD))
+        self.play(Create(ramp),FadeIn(onset),run_time=.7)
+        self.at('Is it making'); self.play(FadeIn(label('Is this neuron deciding?',-2.6,-2.7,30,GOLD)),run_time=.3); self.finish()
+
+
+class S06Glimpse(SpokenScene):
+    def construct(self):
+        f=dotfield(); self.add(f,label('One glimpse: 3.2% coherence',0,3.3,32,YELLOW),label('Gold: viewer guide only',3.8,-2.5,26,GREY),label('Monkey sees no colours',3.8,-3.,26,GREY))
+        self.at('Any single moment'); self.wait(.25); f[1].clear_updaters()
+        trails=VGroup(*[Line(d.get_center()-v*.3,d.get_center(),color=d.get_color(),stroke_width=2) for d,v in zip(f[1],f.velocities)])
+        self.play(Create(trails),run_time=.25)
+        self.at('a weak hint')
+        # Unequal arrows at scattered positions: no symmetric compass glyph.
+        rng=np.random.RandomState(61)
+        directions=VGroup()
+        for x,y in ((2.7,1.1),(4.15,.9),(5.1,.7),(2.65,-.05),(4.2,-.15),(5.2,-.45)):
+            a=rng.uniform(0,TAU); length=rng.uniform(.65,1.1)
+            directions.add(arrow((x,y),(x+length*np.cos(a),y+length*np.sin(a)),GREY))
+        self.play(GrowArrow(arrow((2.8,2.2),(3.2,2.2))),FadeIn(label('signal',4.25,2.2,28,YELLOW)),
+                  FadeIn(directions),FadeIn(label('noise',3.8,-1.35,30,GREY)),run_time=.35)
+        self.at('buried in noise'); self.finish()
+
+
+class S07Tally(SpokenScene):
+    def construct(self):
+        f=dotfield(); self.add(f,label('Add each glimpse',0,3.3,32,YELLOW),motion_key())
+        x=3.9; rail=Line([2.,-.4,0],[5.8,-.4,0],color=GREY)
+        ticks=VGroup(*[Line([v,-.52,0],[v,-.28,0],color=GREY) for v in np.linspace(2.,5.8,9)])
+        texts=VGroup(label('left',2.,-1.,28,GREY),label('right',5.6,-1.,28,GREY),label('0',x,-1.,26,GREY),label('running total',3.9,-2.15,30,YELLOW))
+        marker=Triangle(color=YELLOW,fill_opacity=1).scale(.12).rotate(PI).move_to([x,.05,0])
+        self.at('keep a running total'); self.play(Create(rail),FadeIn(ticks),FadeIn(texts),FadeIn(marker),run_time=.3)
+        self.at('Count each glimpse')
+        # Seven Gaussian glimpses: two left steps and five right, with a net drift.
+        for dx in np.random.RandomState(55).normal(.65,.8,7)*.45:
+            nx=x+dx; step=Line([x,-.4,0],[nx,-.4,0],color=YELLOW,stroke_width=6)
+            tick=Line([nx,-.62,0],[nx,-.18,0],color=YELLOW)
+            self.play(Create(step),Create(tick),marker.animate.move_to([nx,.05,0]),run_time=.22); x=nx
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Evidence(SpokenScene):
+class S08Cancel(SpokenScene):
     def construct(self):
-        # --- coherence ---
-        xs = [-4.2, 0.0, 4.2]
-        cohs = [0.032, 0.128, 0.512]
-        fields = [dotfield(x, 0.6, 3.5, 2.8, c, n=60, seed=5 + i) for i, (x, c) in enumerate(zip(xs, cohs))]
-        self.play(*[FadeIn(f) for f in fields], run_time=0.8)
-        self.at("percentage of dots")
-        pl = [M(s, 32, YELLOW).move_to([x, -1.2, 0]) for x, s in zip(xs, ["3.2%", "12.8%", "51.2%"])]
-        self.play(*[FadeIn(p, shift=UP * 0.1) for p in pl], run_time=0.6)
-        self.at("move together")
-        cap = T("coherence: the share of dots moving together", 30, TEXT).move_to([0, -2.3, 0])
-        self.play(FadeIn(cap, shift=UP * 0.1), run_time=0.6)
-
-        # --- tuning ---
-        self.at("Neurons in area")
-        self.play(*[FadeOut(f) for f in fields], *[FadeOut(p) for p in pl], FadeOut(cap), run_time=0.6)
-        n = neuron([-5.0, 2.6], BLUE, 1.0)
-        nl = T("MT neuron", 28, BLUE).move_to([-2.55, 2.6, 0])
-        self.play(FadeIn(n), FadeIn(nl), run_time=0.5)
-        ax = axes_lines(-4.6, 4.6, -1.8, 1.9)
-        xl = T("direction of motion", 26, GREY).move_to([0, -2.35, 0])
-        yl = T("response", 24, GREY).move_to([-5.3, 0.4, 0])
-        xs_ = np.linspace(-4.5, 4.5, 80)
-        curve = poly([(x, -1.8 + 3.3 * np.exp(-(x / 1.5) ** 2 / 2)) for x in xs_], BLUE, 6)
-        sk = tag("relative, in this sketch", GOLD, 22).move_to([3.3, 2.6, 0])
-        self.at("tuned to the direction")
-        self.play(FadeIn(ax), FadeIn(xl), FadeIn(yl), FadeIn(sk), run_time=0.5)
-        self.play(Create(curve, rate_func=linear), run_time=1.6)
-        pk = DashedLine([0, -1.8, 0], [0, 1.5, 0], color=YELLOW, stroke_width=3)
-        pt = T("preferred direction", 26, YELLOW).move_to([0, 2.1, 0])
-        self.play(Create(pk), FadeIn(pt), run_time=0.6)
-
-        # --- neurons vs monkey ---
-        self.at("In monkeys")
-        self.play(*[FadeOut(m) for m in (n, nl, ax, xl, yl, sk, curve, pk, pt)], run_time=0.5)
-        c1 = chip("each neuron tested on a matched task", BLUE, 34).move_to([0, 2.4, 0])
-        t1 = T("most discriminated motion about as well as", 32, TEXT).move_to([0, 0.85, 0])
-        c2 = chip("the monkey", GREEN, 36).move_to([0, -0.6, 0])
-        t2 = T("or better", 32, TEXT).move_to([0, -1.7, 0])
-        self.play(FadeIn(c1, shift=DOWN * 0.1), run_time=0.5)
-        self.at("Most of the")
-        self.play(FadeIn(t1), run_time=0.5)
-        self.at("as the monkey")
-        self.play(FadeIn(c2, shift=UP * 0.1), run_time=0.5)
-        self.at("or better")
-        self.play(FadeIn(t2), run_time=0.5)
-
-        # --- microstimulation ---
-        self.at("Weak current")
-        self.play(*[FadeOut(m) for m in (c1, t1, c2, t2)], run_time=0.5)
-        cl = VGroup(*[Circle(radius=0.42, stroke_color=BLUE, stroke_width=3.5, fill_color=BLUE, fill_opacity=0.35)
-                      .move_to([-4.0 + dx, 0.9 + dy, 0]) for dx, dy in
-                      [(-0.8, 0.4), (0.0, 0.9), (0.8, 0.35), (-0.35, -0.35), (0.5, -0.6), (-1.05, -0.65)]])
-        elec = Line([-4.0, 3.2, 0], [-4.0, 2.0, 0], color=GREY, stroke_width=5)
-        cur = T("weak current", 30, PURPLE).move_to([-2.2, 3.0, 0])
-        self.play(Create(elec), FadeIn(cur), run_time=0.6)
-        self.at("small cluster")
-        cll = T("small cluster of MT neurons", 26, BLUE).move_to([-3.6, -1.0, 0])
-        self.play(FadeIn(cl, lag_ratio=0.15), FadeIn(cll), run_time=0.8)
-        self.at("one preferred direction")
-        pa = arrow([-5.2, -1.75, 0], [-2.8, -1.75, 0], YELLOW)
-        pal = T("one preferred direction", 26, YELLOW).move_to([-4.0, -2.35, 0])
-        self.play(GrowArrow(pa), FadeIn(pal), run_time=0.7)
-        base = -1.6
-        b0 = Rectangle(width=1.3, height=1.5, stroke_width=0, fill_color=GREY, fill_opacity=0.8).move_to([2.2, base + 0.75, 0])
-        b1 = Rectangle(width=1.3, height=3.0, stroke_width=0, fill_color=GREEN, fill_opacity=0.85).move_to([4.1, base + 1.5, 0])
-        bl = Line([1.3, base, 0], [5.0, base, 0], color=GREY, stroke_width=3)
-        bt = T("choices toward that direction", 26, GREEN).move_to([3.2, 3.0, 0])
-        bn0 = T("no current", 24, GREY).move_to([2.2, base - 0.4, 0])
-        bn1 = T("current", 24, PURPLE).move_to([4.1, base - 0.4, 0])
-        sk2 = tag("relative heights, in this sketch", GOLD, 22).move_to([3.2, base - 1.0, 0])
-        self.at("biased")
-        self.play(FadeIn(bl), FadeIn(bt), FadeIn(bn0), FadeIn(bn1), FadeIn(sk2),
-                  GrowFromEdge(b0, DOWN), run_time=0.7)
-        self.play(GrowFromEdge(b1, DOWN), run_time=0.8)
-
-        # --- MT supplies evidence ---
-        self.at("supplies evidence")
-        self.play(*[FadeOut(m) for m in (cl, elec, cur, cll, pa, pal, b0, b1, bl, bt, bn0, bn1, sk2)], run_time=0.5)
-        mt = chip("MT", BLUE, 48).move_to([-3.6, 0.3, 0])
-        ch = chip("choice", GREEN, 48).move_to([3.6, 0.3, 0])
-        ar = arrow([-2.2, 0.3, 0], [2.0, 0.3, 0], YELLOW, 7)
-        al = T("evidence", 32, YELLOW).move_to([-0.1, 0.95, 0])
-        self.play(FadeIn(mt), FadeIn(ch), run_time=0.5)
-        self.play(GrowArrow(ar), FadeIn(al), run_time=0.7)
-        self.at("sway the choice")
-        self.play(Indicate(ch, color=GREEN, scale_factor=1.18), run_time=0.8)
-        self.finish()
+        g=fan(); self.add(g[0],g[3])
+        self.at('Hints toward the true direction')
+        self.play(Create(g[2]),FadeIn(label('mean signal',4.95,.55,28,YELLOW)),run_time=.8)
+        self.at('The random jiggle'); self.play(Create(g[1]),FadeIn(g[4]),run_time=.8)
+        self.at('so it partly cancels')
+        self.play(FadeIn(spreads()),FadeIn(label('spread',4.6,1.5,28,GREY)),
+                  FadeIn(label('t',FX(10),-2.55,26)),FadeIn(label('4t',FX(40),-2.55,26)),run_time=.35); self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def row_swap(scene, old, new, rt=0.5):
-    scene.play(FadeOut(old), FadeIn(new, shift=UP * 0.1), run_time=rt)
-    return new
-
-
-class S03Ramp(SpokenScene):
+class S09Question(SpokenScene):
     def construct(self):
-        frame = plot_frame()
-        big = neuron([-4.0, 0.9], PINK, 1.7)
-        bigl = T("LIP neuron", 34, PINK).move_to([-4.0, -0.7, 0])
-        xl = tag("time, in this sketch", GOLD, 22).move_to([3.7, -2.75, 0])
-        self.at("lateral intraparietal")
-        self.play(FadeIn(big), FadeIn(bigl), run_time=0.8)
-        # spikes, then an eye movement into the response field
-        fix = Dot([0.9, -0.2, 0], radius=0.1, color=GREY)
-        tgt = Dot([4.7, -0.2, 0], radius=0.1, color=GREY)
-        rf = DashedVMobject(Circle(radius=1.25, color=PINK, stroke_width=4).move_to([4.7, -0.2, 0]), num_dashes=24)
-        rfl = T("response field", 26, PINK).move_to([4.7, -1.85, 0])
-        sp = VGroup(*[Line([x, 1.9, 0], [x, 2.5, 0], color=PINK, stroke_width=4) for x in (0.7, 1.4, 1.9, 2.3, 2.65, 2.95, 3.2, 3.42)])
-        spl = T("spikes", 26, PINK).move_to([-0.3, 2.2, 0])
-        self.at("fire before")
-        self.play(FadeIn(fix), FadeIn(tgt), FadeIn(spl), LaggedStart(*[Create(x) for x in sp], lag_ratio=0.2), run_time=1.0)
-        self.at("eye movements")
-        ar = arrow([1.1, -0.2, 0], [4.45, -0.2, 0], GREEN, 7)
-        arl = T("eye movement", 26, GREEN).move_to([2.2, 0.4, 0])
-        self.play(GrowArrow(ar), FadeIn(arl), run_time=0.5)
-        self.at("response field")
-        self.play(Create(rf), FadeIn(rfl), run_time=0.7)
-        tg = tag("rhesus monkeys answer whenever they are ready", GOLD, 24).move_to([0.6, -3.0, 0])
-        self.at("rhesus monkeys")
-        self.play(FadeIn(tg, shift=UP * 0.1), run_time=0.6)
-        n = neuron([-5.6, 2.7], PINK, 0.9)
-        nl = T("LIP neuron", 26, PINK).move_to([-3.4, 2.7, 0])
-        row = T("one line for each motion strength", 24, TEXT).move_to([2.0, 2.7, 0])
-        self.at("Stronger motion")
-        self.play(*[FadeOut(m) for m in (fix, tgt, rf, rfl, sp, spl, ar, arl, tg)], ReplacementTransform(big, n),
-                  ReplacementTransform(bigl, nl), FadeIn(frame), FadeIn(xl), FadeIn(row), run_time=0.8)
-        ramps = {k: poly(ramp_pts(s), PINK, 6) for k, s in SLOPES.items()}
-        ends = {k: ramp_pts(s)[-1] for k, s in SLOPES.items()}
-        names = {"strong": "strong", "mid": "medium", "weak": "weak"}
-        lbl = {k: T(names[k], 22, PINK).move_to([ends[k][0], ends[k][1] + 0.42, 0]) for k in SLOPES}
-        for k in ("weak", "mid", "strong"):
-            self.play(Create(ramps[k], rate_func=linear), FadeIn(lbl[k]), run_time=0.7)
-        self.at("more steeply")
-        self.play(Indicate(ramps["strong"], color=YELLOW, scale_factor=1.0), run_time=0.9)
-        self.at("similar level")
-        lev = DashedLine([PX0, py(70), 0], [PX0 + PW, py(70), 0], color=GOLD, stroke_width=4)
-        self.play(Create(lev), run_time=0.7)
-        self.at("before the eye movement")
-        mk = VGroup(*[DashedLine([px(RT[k]), PY0, 0], [px(RT[k]), py(70), 0], color=GREEN, stroke_width=4) for k in SLOPES])
-        self.play(LaggedStart(*[Create(m) for m in mk], lag_ratio=0.3), run_time=1.0)
-        self.at("read as a threshold")
-        row = row_swap(self, row, T("the authors read this level as a threshold", 24, GOLD).move_to([2.0, 2.7, 0]))
-        self.at("averages across trials")
-        row = row_swap(self, row, T("each ramp is an average across trials", 24, TEXT).move_to([2.0, 2.7, 0]))
-        self.at("ramp or step")
-        ic1 = poly([(0, 0), (0.4, 0), (1.2, 0.55)], PINK, 5)
-        ic2 = poly([(0, 0), (0.6, 0), (0.6, 0.55), (1.2, 0.55)], PINK, 5)
-        g = VGroup(T("single trials:", 24, TEXT), ic1, T("or", 24, GREY), ic2, T("debated", 24, GOLD)).arrange(RIGHT, buff=0.3)
-        g.move_to([2.0, 2.7, 0])
-        row = row_swap(self, row, g)
-        self.finish()
+        g=fan(); q=question(); self.add(g)
+        self.at('Here is a question')
+        # Crossfade the complete chart away; no masked lines behind the quiz.
+        self.play(FadeOut(g),FadeIn(q[0]),FadeIn(q[2]),run_time=.2)
+        self.at('You watch four times'); self.play(Indicate(q[0],scale_factor=1.02),run_time=.3)
+        self.at('Is your running total'); self.play(FadeIn(q[1]),run_time=.3); self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Model(SpokenScene):
+class S10Pause(Scene):
     def construct(self):
-        frame = plot_frame()
-        ramps = {k: poly(ramp_pts(s), PINK, 6) for k, s in SLOPES.items()}
-        lev = DashedLine([PX0, py(70), 0], [PX0 + PW, py(70), 0], color=GOLD, stroke_width=4)
-        xl = T("time (ms)", 24, GREY).move_to([4.6, -3.2, 0])
-        self.play(FadeIn(frame), *[FadeIn(r) for r in ramps.values()], FadeIn(lev), run_time=0.7)
-        ticks = VGroup()
-        for t in (0, 500, 1000, 1500, 2000):
-            ticks.add(Line([px(t), PY0, 0], [px(t), PY0 - 0.12, 0], color=GREY, stroke_width=3))
-            ticks.add(M(str(t), 22, GREY).move_to([px(t), PY0 - 0.42, 0]))
-        self.at("adds up evidence")
-        form = M("rise time = (bound − baseline) / slope", 28, TEXT).move_to([0, 3.3, 0])
-        self.play(FadeIn(form, shift=DOWN * 0.1), FadeIn(ticks), FadeIn(xl), run_time=0.7)
-        self.at("hits a bound")
-        bl = T("bound", 24, GOLD).move_to([PX0 + 0.55, py(70) - 0.32, 0])
-        self.play(FadeIn(bl), Indicate(lev, color=GOLD, scale_factor=1.0), run_time=0.6)
-        self.at("with no noise")
-        note = T("invented numbers, no noise · rates in spikes/s, slope in (spikes/s)/s", 22, GOLD).move_to([0, 2.75, 0])
-        self.play(FadeIn(note), run_time=0.5)
-        self.at("starts at")
-        b0 = DashedLine([PX0, py(30), 0], [PX0 + PW, py(30), 0], color=GREY, stroke_width=2.5)
-        v30 = M("30", 24, GREY).move_to([PX0 - 0.35, py(30), 0])
-        v70 = M("70", 24, GOLD).move_to([PX0 - 0.35, py(70), 0])
-        bll = T("baseline", 22, GREY).move_to([PX0 + 0.65, py(30) - 0.33, 0])
-        self.play(Create(b0), FadeIn(v30), FadeIn(bll), run_time=0.6)
-        self.at("climbs to")
-        self.play(FadeIn(v70, scale=1.3), run_time=0.5)
-        self.at("latency")
-        br = VGroup(Line([px(0), -3.25, 0], [px(200), -3.25, 0], color=YELLOW, stroke_width=4),
-                    Line([px(0), -3.15, 0], [px(0), -3.35, 0], color=YELLOW, stroke_width=4),
-                    Line([px(200), -3.15, 0], [px(200), -3.35, 0], color=YELLOW, stroke_width=4))
-        brl = T("latency 200 ms", 22, YELLOW).move_to([px(200) + 1.45, -3.25, 0])
-        self.play(Create(br), FadeIn(brl), run_time=0.7)
-
-        marks, rts, pcts, slps = {}, {}, {}, {}
-        for k, pc, sl in (("strong", "51.2%", "400"), ("mid", "12.8%", "100"), ("weak", "3.2%", "25")):
-            ex, ey = ramp_pts(SLOPES[k])[-1]
-            pcts[k] = M(pc, 22, PINK).move_to([ex, ey + 0.4, 0])
-            slps[k] = T("slope " + sl, 22, PINK).move_to([ex, ey + 0.82, 0])
-            marks[k] = DashedLine([px(RT[k]), PY0, 0], [px(RT[k]), py(70), 0], color=GREEN, stroke_width=4)
-        self.at("eye moves")
-        m70 = T("+70 ms", 22, GREEN).move_to([px(RT["strong"]) + 0.55, -1.98, 0])
-        self.play(Create(marks["strong"]), FadeIn(m70), run_time=0.7)
-        self.at("the slope is")
-        self.play(FadeIn(pcts["strong"]), FadeIn(slps["strong"]), run_time=0.6)
-        self.at("reaction time is")
-        rt = {k: M(f"{RT[k]:,} ms", 22, GREEN) for k in RT}
-        rt["strong"].move_to([px(RT["strong"]) + 0.6, -1.98, 0])
-        self.play(ReplacementTransform(m70, rt["strong"]), run_time=0.6)
-        self.at("it is", nth=0)
-        self.play(FadeIn(pcts["mid"]), FadeIn(slps["mid"]), run_time=0.5)
-        rt["mid"].move_to([px(RT["mid"]) + 0.7, -1.98, 0])
-        self.play(Create(marks["mid"]), FadeIn(rt["mid"]), run_time=0.7)
-        self.at("it is", nth=1)
-        self.play(FadeIn(pcts["weak"]), FadeIn(slps["weak"]), run_time=0.5)
-        rt["weak"].move_to([px(RT["weak"]) - 0.95, -1.98, 0])
-        self.play(Create(marks["weak"]), FadeIn(rt["weak"]), run_time=0.7)
-        self.finish()
+        self.camera.background_color=BG; self.add(question())
+        ring=Circle(radius=.5,color=GREY,stroke_width=3).move_to([0,-2.35,0])
+        remaining=ValueTracker(1.)
+        arc=always_redraw(lambda: Arc(radius=.5,start_angle=PI/2,angle=-TAU*max(.001,remaining.get_value()),color=GOLD,stroke_width=7).move_arc_center_to([0,-2.35,0]))
+        self.add(ring,arc); self.play(remaining.animate.set_value(0),run_time=5,rate_func=linear)
 
 
-# ---------------------------------------------------------------------------------------------
-def meter(x, y, w=3.8):
-    back = Rectangle(width=w, height=0.5, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([x, y, 0])
-    fill = Rectangle(width=w, height=0.5, stroke_width=0, fill_color=GREEN, fill_opacity=0.85).move_to([x, y, 0])
-    return back, fill
-
-
-class S05Silence(SpokenScene):
+class S11Reveal(SpokenScene):
     def construct(self):
-        h1 = T("correlation", 36, GREY, weight=BOLD).move_to([-3.4, 2.7, 0])
-        d1 = T("activity that goes with a choice", 26, GREY).move_to([-3.4, 2.15, 0])
-        pa = axes_lines(-5.6, -1.2, -1.7, 1.4)
-        ra = poly([(-5.6, -1.2), (-4.7, -1.2), (-2.2, 1.0)], PINK, 6)
-        mk = DashedLine([-1.9, -1.7, 0], [-1.9, 1.0, 0], color=GREEN, stroke_width=4)
-        mkl = T("choice", 26, GREEN).move_to([-1.9, -2.15, 0])
-        self.at("Correlation shows")
-        self.play(FadeIn(h1), FadeIn(d1), FadeIn(pa), run_time=0.6)
-        self.play(Create(ra, rate_func=linear), run_time=1.4)
-        self.play(Create(mk), FadeIn(mkl), run_time=0.6)
-        h2 = T("manipulation", 36, PURPLE, weight=BOLD).move_to([3.4, 2.7, 0])
-        d2 = T("change the area, test the choice", 26, PURPLE).move_to([3.4, 2.15, 0])
-        ca = chip("area", GREY, 40).move_to([3.4, 0.7, 0])
-        cc = chip("choice", GREEN, 40).move_to([3.4, -1.3, 0])
-        ar = arrow([3.4, 0.1, 0], [3.4, -0.7, 0], GREY, 6)
-        self.at("only a manipulation")
-        self.play(FadeIn(h2), FadeIn(d2), FadeIn(ca), run_time=0.6)
-        self.play(GrowArrow(ar), FadeIn(cc), run_time=0.6)
-        self.at("needs it")
-        qm = T("?", 60, GOLD, weight=BOLD).move_to([4.9, -0.3, 0])
-        self.play(ca.animate.set_color(PURPLE), FadeIn(qm, scale=1.3), run_time=0.7)
-        self.at("silenced each area")
-        self.play(*[FadeOut(m) for m in (h1, d1, pa, ra, mk, mkl, h2, d2, ca, cc, ar, qm)], run_time=0.6)
-
-        mt = chip("MT", BLUE, 44).move_to([-3.4, 1.4, 0])
-        lip = chip("LIP", PINK, 44).move_to([3.4, 1.4, 0])
-        mb, mf = meter(-3.4, -0.9)
-        lb, lf = meter(3.4, -0.9)
-        c1 = T("motion discrimination", 24, TEXT).move_to([-3.4, -0.3, 0])
-        c2 = T("motion discrimination", 24, TEXT).move_to([3.4, -0.3, 0])
-        self.at("in turn")
-        self.play(FadeIn(mt), FadeIn(lip), FadeIn(mb), FadeIn(mf), FadeIn(lb), FadeIn(lf), FadeIn(c1), FadeIn(c2), run_time=0.8)
-        self.at("rhesus monkeys")
-        rh = VGroup(tag("rhesus monkeys", GOLD, 24), tag("bars: relative, in this sketch", GOLD, 22)).arrange(RIGHT, buff=0.8).move_to([0, -3.2, 0])
-        self.play(FadeIn(rh), run_time=0.4)
-        drug = chip("muscimol", PURPLE, 28).move_to([0, 1.4, 0])
-        dl = T("activates GABA-A receptors", 24, PURPLE).move_to([0, 0.65, 0])
-        self.at("muscimol")
-        self.play(FadeIn(drug, scale=0.9), FadeIn(dl), run_time=0.7)
-        self.at("Silencing", nth=0)
-        dar = arrow([-0.9, 1.4, 0], [-2.2, 1.4, 0], PURPLE, 6)
-        self.play(GrowArrow(dar), mt.animate.set_color(PURPLE), run_time=0.5)
-        sm = T("silenced", 24, PURPLE).move_to([-3.4, 2.3, 0])
-        self.play(FadeIn(sm), run_time=0.3)
-        self.at("impaired motion")
-        mf2 = Rectangle(width=1.5, height=0.5, stroke_width=0, fill_color=RED, fill_opacity=0.9)
-        mf2.move_to(mb.get_left() + RIGHT * 0.75)
-        rl = T("impaired", 28, RED, weight=BOLD).move_to([-3.4, -1.75, 0])
-        self.play(Transform(mf, mf2), FadeIn(rl), run_time=0.8)
-        self.at("Silencing", nth=1)
-        dar2 = arrow([0.9, 1.4, 0], [2.2, 1.4, 0], PURPLE, 6)
-        self.play(FadeOut(dar), FadeOut(sm), mt.animate.set_color(BLUE), GrowArrow(dar2), lip.animate.set_color(PURPLE), run_time=0.6)
-        sl = T("silenced", 24, PURPLE).move_to([3.4, 2.3, 0])
-        self.play(FadeIn(sl), run_time=0.3)
-        self.at("no measurable impairment")
-        gl = VGroup(T("no measurable impairment", 26, GREEN), T("in the tasks tested", 26, GREEN)).arrange(DOWN, buff=0.12).move_to([3.4, -1.9, 0])
-        self.play(Indicate(lf, color=GREEN, scale_factor=1.04), FadeIn(gl), run_time=0.9)
-        self.finish()
+        q=question(); self.add(q)
+        self.at('it is only twice')
+        answer=VGroup(label('Twice as reliable.',0,1.3,48,YELLOW),label('reliable = signal ÷ noise',0,-.25,30),label('4 ÷ 2 = 2',0,-1.6,38,YELLOW))
+        self.play(FadeOut(q),FadeIn(answer),run_time=.3); self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Control(SpokenScene):
+class S12Why(SpokenScene):
     def construct(self):
-        lc = chip("LIP", PURPLE, 44).move_to([3.4, 1.4, 0])
-        lcl = T("silenced", 24, PURPLE).move_to([3.4, 2.3, 0])
-        lb, lf = meter(3.4, -0.9)
-        lcap = T("motion discrimination", 24, TEXT).move_to([3.4, -0.3, 0])
-        lres = VGroup(T("no measurable impairment", 26, GREEN), T("in the tasks tested", 26, GREEN)).arrange(DOWN, buff=0.12).move_to([3.4, -1.9, 0])
-        self.play(FadeIn(lc), FadeIn(lcl), FadeIn(lb), FadeIn(lf), FadeIn(lcap), FadeIn(lres), run_time=0.3)
-        self.at("missed injection")
-        miss = VGroup(T("did the injection miss?", 40, GOLD), T("could explain a null result", 28, GREY)).arrange(DOWN, buff=0.25).move_to([-3.2, 0.5, 0])
-        self.play(FadeIn(miss, shift=RIGHT * 0.2), run_time=0.8)
-        self.at("choice task")
-        self.play(*[FadeOut(m) for m in (lc, lcl, lb, lf, lcap, lres, miss)], run_time=0.5)
-        fcx, fcy = -2.4, 0.5
-        box = Rectangle(width=7.0, height=3.6, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([fcx, fcy, 0])
-        aff = Rectangle(width=3.5, height=3.6, stroke_width=0, fill_color=PURPLE, fill_opacity=0.2).move_to([fcx + 1.75, fcy, 0])
-        pos = [(-4.2, 1.5), (-4.2, -0.5), (-0.6, 1.5), (-0.6, -0.5)]
-        tg = VGroup(*[Circle(radius=0.25, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.25).move_to([x, y, 0]) for x, y in pos])
-        tt = T("free choice: targets, no right answer", 26, TEXT).move_to([fcx, 2.8, 0])
-        self.play(Create(box), FadeIn(tg), FadeIn(tt), run_time=0.9)
-        self.at("inactivation")
-        al = VGroup(T("part of space the silenced LIP covers", 22, PURPLE), T("(side not specified here)", 22, PURPLE)).arrange(DOWN, buff=0.08).move_to([fcx + 0.4, -1.9, 0])
-        lip = chip("LIP silenced", PURPLE, 26).move_to([4.2, 2.8, 0])
-        self.play(FadeIn(aff), FadeIn(al), FadeIn(lip), run_time=0.7)
-        base = -1.3
-        b0 = Rectangle(width=1.1, height=2.3, stroke_width=0, fill_color=GREEN, fill_opacity=0.85).move_to([3.3, base + 1.15, 0])
-        b1 = Rectangle(width=1.1, height=1.2, stroke_width=0, fill_color=GREEN, fill_opacity=0.85).move_to([5.0, base + 0.6, 0])
-        bl = Line([2.5, base, 0], [5.8, base, 0], color=GREY, stroke_width=3)
-        bn0 = T("before", 24, TEXT).move_to([3.3, base - 0.4, 0])
-        bn1 = T("after", 24, TEXT).move_to([5.0, base - 0.4, 0])
-        bt = VGroup(T("targets chosen in the", 24, GREEN), T("affected part of space", 24, GREEN)).arrange(DOWN, buff=0.08).move_to([4.2, 1.6, 0])
-        sk = tag("relative, in this sketch", GOLD, 22).move_to([4.2, base - 1.0, 0])
-        self.at("chose targets")
-        self.play(FadeIn(bl), FadeIn(bt), FadeIn(bn0), FadeIn(bn1), FadeIn(sk), GrowFromEdge(b0, DOWN), run_time=0.7)
-        self.at("less often")
-        self.play(GrowFromEdge(b1, DOWN), run_time=0.9)
-
-        # saccade landing scatter at one target in the affected part of space
-        rng = np.random.RandomState(4)
-        tgt = np.array([-0.6, 1.5, 0])
-        tight = VGroup(*[Dot(tgt + np.array([rng.normal(0, .1), rng.normal(0, .1), 0]), radius=0.09, color=GREEN) for _ in range(12)])
-        wide = VGroup(*[Dot(tgt + np.array([rng.normal(0, .5), rng.normal(0, .5), 0]), radius=0.09, color=GREEN) for _ in range(12)])
-        for d in wide:  # keep inside the field
-            c = d.get_center(); d.move_to([min(max(c[0], -2.1), 0.95), min(max(c[1], -1.1), 2.1), 0])
-        ll = T("eye landing points: before", 24, GREEN).move_to([fcx - 1.2, -2.3, 0])
-        self.at("eye movements")
-        self.play(FadeOut(al), FadeIn(ll), FadeIn(tight), run_time=0.6)
-        self.at("landed less accurately")
-        ll2 = T("eye landing points: after", 24, GREEN).move_to(ll)
-        self.play(Transform(tight, wide), ReplacementTransform(ll, ll2), run_time=1.0)
-
-        self.at("The drug had acted")
-        self.play(*[FadeOut(m) for m in (box, aff, tg, tt, ll2, tight, lip, b0, b1, bl, bn0, bn1, bt, sk)], run_time=0.6)
-        ca = chip("the drug had acted", PURPLE, 40)
-        ta = T("free-choice behaviour changed", 36, TEXT)
-        rowa = VGroup(ca, ta).arrange(RIGHT, buff=0.6)
-        fit(rowa, max_w=12.2)
-        rowa.move_to([0, 1.5, 0])
-        self.play(FadeIn(ca, shift=RIGHT * 0.1), FadeIn(ta), run_time=0.7)
-        self.at("no deficit")
-        cb = chip("no detected deficit", GREY, 40)
-        tb = T("for this discrimination, in the tasks tested", 36, TEXT)
-        rowb = VGroup(cb, tb).arrange(RIGHT, buff=0.6)
-        fit(rowb, max_w=12.2)
-        rowb.move_to([0, -0.5, 0])
-        self.play(FadeIn(cb, shift=RIGHT * 0.1), FadeIn(tb), run_time=0.7)
-        self.at("Keep this rule")
-        self.play(FadeOut(rowa), FadeOut(rowb), run_time=0.5)
-        g = VGroup(chip("tracks the choice", PINK, 46), T("is not always", 40, TEXT), chip("needed for it", GREY, 46)).arrange(DOWN, buff=0.55)
-        g.move_to([0, 0.1, 0])
-        self.play(FadeIn(g[0], shift=DOWN * 0.2), run_time=0.6)
-        self.play(FadeIn(g[1]), FadeIn(g[2], shift=UP * 0.2), run_time=0.8)
-        self.finish()
+        g=fan(); g[3][0].move_to([-3.5,-2.95,0]); self.add(g)
+        times=VGroup(*[VGroup(DashedLine([FX(n),-2.1,0],[FX(n),FY(.65*n),0],color=GOLD),Dot([FX(n),FY(.65*n),0],color=YELLOW),label(s,FX(n),-2.55,28,GOLD)) for n,s in ((10,'t'),(40,'4t'))])
+        self.add(times)
+        self.at('The signal grows')
+        sig=VGroup(bracket(FX(10)-.25,FY(0),FY(6.5),YELLOW),bracket(4.05,FY(0),FY(26),YELLOW),label('signal ×4',5.15,-.5,28,YELLOW))
+        self.play(FadeIn(sig),run_time=.35)
+        self.at('The noise grows too')
+        noise=VGroup(spreads(),label('1 spread',-4.05,FY(6.5+.8*np.sqrt(10)),26,GREY),Line([FX(10)-.45,FY(6.5+.8*np.sqrt(10)),0],[FX(10)-.13,FY(6.5+.8*np.sqrt(10)),0],color=GREY),
+                     label('2 spreads',4.95,1.5,26,GREY),Line([3.65,1.5,0],[3.95,1.5,0],color=GREY),label('noise ×2',4.95,2.15,28,GREY))
+        self.play(FadeIn(noise),run_time=.35)
+        self.at('square root of time'); self.play(FadeIn(label('signal ÷ noise: 4 ÷ 2 = 2',2.15,-3.5,28,YELLOW)),run_time=.3); self.finish()
 
 
-class S07End(EndCard):
-    LINE = "A neuron that tracks a choice is not always needed for it."
+class S13Rule(SpokenScene):
+    def construct(self):
+        # Parameterize by sqrt(n): smooth origin, all points exactly y=sqrt(n).
+        ax=axes(-4.9,0.,-2.1,2.45)
+        root=poly([(-4.9+4.9*u*u/4,-2.1+2.1*u) for u in np.linspace(0,2,300)],YELLOW,6)
+        self.add(ax,root,label('reliability',-3.8,3.15,30,YELLOW),label('samples added (n)',-2.45,-3.2,28,GREY))
+        self.at('Assume each glimpse')
+        cond=VGroup(label('same mean signal',3.35,2.6,28),label('independent noise',3.35,2.,28),label('same spread',3.35,1.4,28),label('(finite variance)',3.35,.9,26,GREY))
+        self.play(FadeIn(cond),run_time=.35)
+        self.at('Reliability here means')
+        self.play(FadeIn(label('signal ÷ noise',3.35,-.1,32,YELLOW)),FadeIn(label('noise = standard deviation',3.35,-.75,26,GREY)),
+                  FadeIn(label('Not percent correct',3.35,-1.55,28,GOLD)),run_time=.35)
+        self.at('It grows as')
+        marks=VGroup()
+        for n in (1,4):
+            x=-4.9+4.9*n/4; y=-2.1+2.1*np.sqrt(n)
+            marks.add(DashedLine([x,-2.1,0],[x,y,0],color=GREY),Dot([x,y,0],color=YELLOW),label(str(n),x,-2.55,28),label(str(int(np.sqrt(n))),-5.5,y,28,YELLOW),DashedLine([-4.9,y,0],[x,y,0],color=GREY))
+        self.play(FadeIn(marks),FadeIn(label('reliability ∝ √n',3.35,-2.75,34,YELLOW)),run_time=.4); self.finish()
+
+
+class S14Behaviour(SpokenScene):
+    def construct(self):
+        c=np.linspace(0,51.2,240); mu=7.8125*c; a=40; sig2=8000/np.log(9)
+        rt=np.empty_like(mu); rt[0]=.270+a*a/sig2
+        rt[1:]=.270+a/mu[1:]*np.tanh(a*mu[1:]/sig2)
+        curve=poly([(-4.4+8.8*cc/51.2,-2.6+(v-.3)/.45*1.5) for cc,v in zip(c,rt)],GREEN,5)
+        self.add(axes(-4.4,4.4,-2.6,-1.1),curve,
+                 label('reaction time (ms)',-6.05,-1.85,25,GREEN).rotate(PI/2),
+                 label('750',-5.05,-1.1,26,GREY),label('300',-5.05,-2.6,26,GREY),
+                 label('0%',-4.4,-3.,26,GREY),label('51.2%',4.4,-3.,26,GREY),
+                 label('coherence (%)',0,-3.,26,GREY),label('Running total: weak vs strong motion',0,3.55,30,YELLOW))
+        panels=VGroup()
+        # Deterministic mean accumulation, equal level, mu proportional to coherence.
+        for cx,mu,name in ((-3.4,1.,'weak motion'),(3.4,4.,'strong motion')):
+            x0,x1=cx-2.4,cx+2.4; y0,y1=.3,2.25
+            t_hit=4/mu
+            line=poly([(x0+4.8*t/4,y0+1.95*mu*t/4) for t in np.linspace(0,t_hit,80)],YELLOW,5)
+            panels.add(axes(x0,x1,y0,y1),line,DashedLine([x0,2.25,0],[x1,2.25,0],color=GOLD),
+                       label(name,cx,2.95,26,YELLOW),label('time →',cx,.05,26,GREY),
+                       label('longer' if mu==1 else 'sooner',x0+4.8*t_hit/4+(-.65 if mu==1 else .75),.85,26,GOLD),
+                       DashedLine([x0+4.8*t_hit/4,y0,0],[x0+4.8*t_hit/4,2.25,0],color=GOLD))
+        self.add(panels)
+        self.at('Weak motion gives'); self.play(Indicate(panels[1],scale_factor=1.03),run_time=.35)
+        self.at('takes longer')
+        # Highlight low-coherence region on the transformed, computed RT curve.
+        highlight=SurroundingRectangle(VGroup(*[Dot(curve.point_from_proportion(v),radius=.03) for v in np.linspace(0,.14,12)]),color=YELLOW,buff=.15)
+        self.play(Create(highlight),FadeIn(label('weak motion → longer wait',0,-3.45,28,YELLOW)),run_time=.35); self.finish()
+
+
+class S15Trade(SpokenScene):
+    def construct(self):
+        pivot=np.array([0,.3,0]); angle=ValueTracker(.13)
+        fulcrum=Polygon([-1,-2.6,0],[1,-2.6,0],pivot,color=GREY,fill_opacity=.2)
+        def scale_group():
+            a=angle.get_value(); left=pivot+np.array([-4.1*np.cos(a),-4.1*np.sin(a),0]); right=pivot+np.array([4.1*np.cos(a),4.1*np.sin(a),0])
+            beam=Line(left,right,color=GREY,stroke_width=7)
+            pans=VGroup()
+            for p,name,col in ((left,'time',GREY),(right,'accuracy',GREEN)):
+                pans.add(Line(p,p+DOWN*1.3,color=col),Line(p+DOWN*1.3+LEFT*.9,p+DOWN*1.3+RIGHT*.9,color=col,stroke_width=4),label(name,p[0],p[1]-1.75,30,col))
+                if name=='time':
+                    c=p+DOWN*.7; pans.add(Circle(radius=.43,color=col).move_to(c),Line(c,c+UP*.3,color=col),Line(c,c+RIGHT*.22,color=col))
+                else:
+                    pans.add(*[Circle(radius=r,color=col).move_to(p+DOWN*.7) for r in (.43,.27,.08)])
+            return VGroup(beam,pans)
+        scale=always_redraw(scale_group)
+        title=label('Waiting longer',0,3.1,38,GOLD)
+        self.add(fulcrum,scale,title)
+        self.at('Waiting longer'); self.at('buys accuracy'); self.play(angle.animate.set_value(-.19),run_time=.65)
+        self.at('costs time'); self.wait(.2)
+        self.at('a brain that adds')
+        scale.clear_updaters(); g=fan()
+        self.play(FadeOut(fulcrum),FadeOut(scale),FadeOut(title),FadeIn(g),run_time=.2)
+        self.at('when to stop')
+        # The bound is above every plotted sample and the mean (not a crossed bound).
+        self.play(Create(DashedLine([-4.9,2.65,0],[3.5,2.65,0],color=GOLD,stroke_width=4)),FadeIn(label('When to stop?',4.8,3.15,30,GOLD)),run_time=.3); self.finish()
+
+
+def vertical_neuron(x,y,s=1):
+    c=np.array([x,y,0])
+    g=VGroup(Circle(radius=.3*s,color=BLUE,fill_opacity=.3).move_to(c))
+    for dx,dy in ((-.9,.7),(-.3,.9),(.35,.85),(.9,.6)):
+        g.add(Line(c+np.array([dx*.3,dy*.3,0])*s,c+np.array([dx,dy,0])*s,color=BLUE,stroke_width=3))
+    g.add(Line(c+DOWN*.3*s,c+DOWN*1.15*s,color=BLUE,stroke_width=4))
+    return g
+
+
+class S16Neurons(SpokenScene):
+    def construct(self):
+        g=fan(); self.add(g)
+        self.at('across neurons')
+        xs=(-4.8,-1.6,1.6,4.8)
+        cells=VGroup(*[vertical_neuron(x,1.65,1.05) for x in xs])
+        dest=vertical_neuron(0,-1.9,1.)
+        # Separate axons meet a pooling junction; one small arrow reaches the soma.
+        connections=VGroup(*[poly([(x,.44),(x,-.45),(0,-.85)],BLUE,2) for x in xs],Line([0,-.85,0],[0,-1.05,0],color=BLUE),arrow((0,-1.05),(0,-1.59),BLUE))
+        rng=np.random.RandomState(45); t=np.linspace(0,1,90)
+        # Sixteen independent samples per input are represented by their mean;
+        # four such inputs pool downstream. The common evoked bump is preserved.
+        raw=rng.normal(0,1,(4,16,90))
+        signal=.55*np.exp(-.5*((t-.55)/.17)**2)
+        inputs=signal+raw.mean(axis=1)
+        traces=VGroup()
+        for x,row in zip(xs,inputs):
+            # Traces sit to the right of their vertical axons, with a visible gap.
+            traces.add(poly([(x+.18+1.4*u,-.05+.55*r) for u,r in zip(t,row)],YELLOW,2.5))
+        pooled=signal+raw.mean(axis=(0,1))
+        output=poly([(.35+2*u,-2.9+.55*r) for u,r in zip(t,pooled)],YELLOW,3)
+        self.play(FadeOut(g),FadeIn(cells),FadeIn(dest),Create(connections),run_time=.45)
+        self.play(Create(traces),Create(output),FadeIn(label('if the noise is independent',0,3.35,30,GOLD)),run_time=.5)
+        self.at('effects of attention matter'); self.play(FadeIn(label('signals combine',4.,-1.75,30,BLUE)),FadeIn(label('cleaner pooled signal',4.6,-2.9,26,YELLOW)),run_time=.3); self.finish()
+
+
+class S17Takeaway(SpokenScene):
+    def construct(self):
+        g=fan(); g[3][1].move_to([-3.3,2.85,0]); self.add(g)
+        self.at('Adding up noisy evidence'); self.play(FadeIn(label('Add up noisy evidence',0,3.4,34,YELLOW)),run_time=.3)
+        self.at('the signal adds in step'); self.play(g[2].animate.set_stroke(width=8),FadeIn(label('signal adds in step',4.8,-1.1,28,YELLOW)),run_time=.3)
+        self.at('the noise partly cancels'); self.play(g[1].animate.set_stroke(opacity=.3),FadeIn(label('The signal adds in step; the noise partly cancels.',0,-3.5,28)),run_time=.3); self.finish()
+
+
+class S18End(EndCard):
+    LINE='Adding up noisy evidence makes it more reliable.'
