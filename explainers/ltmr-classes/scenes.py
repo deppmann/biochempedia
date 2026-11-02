@@ -1,388 +1,467 @@
-"""One hair, three kinds of touch neuron  (Biochemistrypedia explainer, Sensory Systems: the LTMR classes)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = Abeta RA-LTMR endings and label
-  YELLOW = Adelta-LTMR endings and label
-  ORANGE = C-LTMR endings and label
-  TEAL   = Abeta SA1 (Merkel-associated) endings in the touch dome
-  PURPLE = terminal Schwann cell (non-neuronal)
-  GREEN  = field-LTMR ring and the one neuron with an arbor
-  RED    = "no" (not a neuron count)
-  GREY   = hair, follicle sheath, skin line, axis, neutral labels
-  GOLD   = the rule to keep
+"""Chapter 1, reviewed fix round.
+COLOR MAP: TEAL SA I/Merkel; BLUE RA/Aβ; GREY PC/skin/probe;
+YELLOW Aδ; ORANGE C; PURPLE Schwann; GOLD takeaway/highlight.
+All stimulus curves are sampled equations. Rasters are deterministic schematic
+response models (sustained drive versus change detection), not measured counts.
+Sensitivity curves are illustrative filters, not fitted physiological data.
 """
+import os
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
+BLUE = '#659BFF'  # More distinct from SA I teal, same RA concept.
+ORANGE = '#F29A57'
+PURPLE = '#B68CDB'
+COL = [TEAL, BLUE, GREY]
+NAMES = ['SA I', 'RA', 'PC']
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-CLS = {"RA": BLUE, "AD": YELLOW, "C": ORANGE, "SA1": TEAL}
-CNAME = {"RA": "Aβ RA", "AD": "Aδ", "C": "C", "SA1": "Aβ SA1"}
+_style_text = T
+
+def T(text, size=30, color=TEXT, **kw):
+    # Manim Text keeps multiline strings left aligned; centre each line explicitly.
+    kw.pop('should_center', None)
+    spacing = kw.pop('line_spacing', 1)
+    if '\n' in text:
+        return VGroup(*[_style_text(line, size, color, **kw) for line in text.split('\n')]).arrange(DOWN, buff=.18*spacing)
+    return _style_text(text, size, color, **kw)
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def follicle(s=1.0, kind="awl", tails=False, dome=False):
-    """Schematic hair follicle (side view): sheath, shaft, skin line, lanceolate pickets along the shaft.
-    Built about the origin; caller moves the group."""
-    top = {"guard": 2.5, "awl": 2.2, "zig": 1.9}[kind]
-    pat = {"guard": ["RA"], "awl": ["RA", "AD", "C"], "zig": ["AD", "C"]}[kind]
-    sw = max(2.0, 4 * s)
-    sheath = RoundedRectangle(corner_radius=0.3 * s, width=1.5 * s, height=2.6 * s, stroke_color=GREY,
-                              stroke_width=3, fill_color=GREY, fill_opacity=0.12)
-    if kind == "zig":
-        pts = [(0, -1.0), (0, 1.3), (0.2, 1.45), (-0.2, 1.6), (0.0, top)]
-        shaft = VMobject(stroke_color=GREY, stroke_width=3 + 4 * s, stroke_opacity=0.85)
-        shaft.set_points_as_corners([np.array([x * s, y * s, 0]) for x, y in pts])
+
+def exact_finish(self):
+    # No default 0.4-s tail on every clip. Quantize to nearest output frame.
+    target = round(self.narration_s * config.frame_rate) / config.frame_rate
+    if target > self.renderer.time + .001:
+        self.wait(target - self.renderer.time)
+
+
+class SpokenScene(SpokenScene):
+    def at(self, phrase, lead=.12, nth=0):
+        target = self.t_of(phrase, nth) - lead
+        if target > self.elapsed() + .02:
+            self.wait(target-self.elapsed())
+    finish = exact_finish
+
+
+def heading(s):
+    return T(s, 32, font=TITLE_FONT).move_to([0,3.25,0])
+
+
+def curve(points, color=GREY, width=4):
+    return VMobject(stroke_color=color,stroke_width=width).set_points_as_corners(points)
+
+
+def ramp(t):
+    return np.interp(t,[0,.2,.4,1.4,1.6,1.8],[0,0,1,1,0,0])
+
+
+def events(mode):
+    # Fixed-step toy response to sustained indentation or its temporal derivative.
+    t=np.arange(0,1.8,.002)
+    p=ramp(t); change=np.abs(np.gradient(p,t))
+    if mode=='steady': drive=np.where(p>.05,12.,0.)
+    elif mode=='burst': drive=np.where(change>1,18.,0.)
+    elif mode=='brief': drive=np.where(change>1,5.,0.)
+    elif mode=='vibration':
+        # A 250-Hz carrier, growing envelope, sampled in a 64-ms window.
+        t=np.arange(0,.064,.00002)
+        drive=np.where(t>.009,250.,0.)
+    else: return []
+    phase=0.; out=[]; dt=t[1]-t[0]
+    for ti,d in zip(t,drive):
+        phase+=d*dt
+        if phase>=1:
+            out.append(ti/(.064 if mode=='vibration' else 1.8)); phase-=1
+    return out
+
+
+def position():
+    return curve([[-4.5+10.1*t/1.8,1.3+.62*ramp(t),0] for t in np.linspace(0,1.8,300)],TEXT)
+
+
+def phase_labels():
+    return VGroup(*[T(s,26,GREY).move_to([x,2.3,0]) for s,x in [('press',-2.8),('hold',.55),('lift',4.05)]])
+
+
+def raster(i,mode=None):
+    y=.65-i*1.35
+    base=Line([-4.5,y,0],[5.6,y,0],color=COL[i],stroke_opacity=.5)
+    lab=T(NAMES[i],30,COL[i]).move_to([-5.5,y+.15,0])
+    spikes=VGroup(*[Line([-4.5+10.1*t,y,0],[-4.5+10.1*t,y+.55,0],color=COL[i],stroke_width=3) for t in events(mode)])
+    return VGroup(base,lab,spikes)
+
+
+def timebar(vib=False):
+    return VGroup(Line([-4.5,-2.65,0],[5.6,-2.65,0],color=GREY),
+        *[VGroup(Line([x,-2.58,0],[x,-2.73,0],color=GREY),T(s,26,GREY).move_to([x,-3,0])) for x,s in [(-4.5,'0'),(.55,'32 ms' if vib else '0.9 s'),(5.6,'64 ms' if vib else '1.8 s')]],
+        T('Illustrative firing records',26,GREY).move_to([0,-3.5,0]))
+
+
+def record(modes=(None,None,None)):
+    return VGroup(position(),phase_labels(),*[raster(i,m) for i,m in enumerate(modes)],timebar())
+
+
+def hold_band():
+    return Rectangle(width=10.1/1.8,height=4.65,stroke_width=0,fill_color=GOLD,fill_opacity=.10).move_to([.55,.025,0]).set_z_index(-1)
+
+
+def predict():
+    return VGroup(record(),hold_band(),heading('Which one keeps firing?'))
+
+
+def vibration():
+    return curve([[-4.5+10.1*t/.064,1.6+.28*t/.064*np.sin(2*PI*250*t),0] for t in np.linspace(0,.064,1000)],TEXT,3)
+
+
+def vib_record(answer=False):
+    return VGroup(vibration(),T('250 Hz • growing vibration',26,TEXT).move_to([0,2.3,0]),
+        *[raster(i,'vibration' if answer and i==2 else None) for i in range(3)],timebar(True))
+
+
+def vib_question():
+    return VGroup(vib_record(),heading('Who detects the smallest vibration?'))
+
+
+def table():
+    cells=VGroup()
+    for j,y in enumerate((1.1,-1.65)):
+        for i,x in enumerate((-1.8,3.15)):
+            box=RoundedRectangle(width=4.65,height=2.35,corner_radius=.15,color=GREY,fill_color=GREY,fill_opacity=.07).move_to([x,y,0])
+            cells.add(VGroup(box,T(('SA I','SA II','RA','PC')[j*2+i],34).move_to(box)))
+    labels=VGroup(T('Small field',28,GREY).move_to([-1.8,2.7,0]),T('Large field',28,GREY).move_to([3.15,2.7,0]),
+        T('Slowly\nadapting',26,GREY,line_spacing=1).move_to([-5.3,1.1,0]),T('Rapidly\nadapting',26,GREY,line_spacing=1).move_to([-5.3,-1.65,0]))
+    return VGroup(cells,labels).shift(RIGHT*.2+DOWN*.1)
+
+
+def skin_probe():
+    skin=RoundedRectangle(width=9,height=2,corner_radius=.9,color=GREY,fill_color=GREY,fill_opacity=.15).move_to([0,-.8,0])
+    probe=RoundedRectangle(width=2.2,height=2.7,corner_radius=.2,color=TEXT,fill_color=TEXT,fill_opacity=.12).move_to([0,1.5,0])
+    labels=VGroup(T('probe',28).move_to([2.7,1.6,0]),Line([1.2,1.6,0],[2,1.6,0],color=GREY),
+        T('fingertip',28,GREY).move_to([0,-2.3,0]))
+    return VGroup(skin,probe,labels)
+
+
+def sensitivity(i,f):
+    if i==0: return 1/(1+(f/8)**1.3)
+    return np.exp(-.5*(np.log10(np.maximum(f,.01)/(25 if i==1 else 250))/(.6 if i==1 else .42))**2)
+
+
+def bands():
+    ax=Axes(x_range=[-1,3,1],y_range=[0,1.15,.5],x_length=9.9,y_length=4.6,tips=False,axis_config={'color':GREY,'include_ticks':False}).move_to([.75,-.15,0])
+    labs=VGroup(T('relative sensitivity',26,GREY).rotate(PI/2).move_to([-5.65,-.05,0]),
+        T('static\n0 Hz',26,GREY).move_to(ax.c2p(-1,0)+DOWN*.55),
+        T('increasing vibration frequency →',26,GREY).move_to([1.8,-2.95,0]),
+        T('Schematic • peaks and widths not to scale',26,GREY).move_to([0,-3.5,0]))
+    lines=VGroup(*[curve([ax.c2p(x,sensitivity(i,10**x)) for x in np.linspace(-1,3,400)],COL[i]) for i in range(3)])
+    labels=VGroup(*[T(s,28,c).move_to(ax.c2p(x,1.08)) for s,c,x in [('SA I',TEAL,-.75),('RA',BLUE,1.4),('PC',GREY,2.4)]])
+    # Break between static indentation and the logarithmic vibration axis.
+    labs.add(T('//',26,GREY).move_to(ax.c2p(-.48,0)))
+    axes=VGroup(Line(ax.c2p(-1,0),ax.c2p(3,0),color=GREY),Line(ax.c2p(-1,0),ax.c2p(-1,1.15),color=GREY))
+    return VGroup(axes,labs,lines,labels)
+
+
+class S00Title(TitleCard):
+    TITLE='One Press, Several Reports'
+    LESSON='The Low-Threshold Mechanoreceptors: One Touch, Several Signals'
+    finish=exact_finish
+    def construct(self):
+        self.add(T('BIOCHEMISTRYPEDIA',26,TEAL).move_to([0,2.1,0]),
+            T('The Low-Threshold Mechanoreceptors:\nOne Touch, Several Signals',26,GREY,line_spacing=1,should_center=True).move_to([0,.85,0]))
+        self.play(FadeIn(T(self.TITLE,44,font=TITLE_FONT).move_to([0,-.65,0])),run_time=.45)
+        self.finish()
+
+
+class S01Question(SpokenScene):
+    def construct(self):
+        g=skin_probe(); self.add(g,heading('One press, several reports'))
+        self.at('Press a fingertip'); self.play(g[1].animate.shift(DOWN*.4),run_time=.6)
+        self.at('Is that one signal'); self.play(FadeIn(T('One signal — or several?',32,GOLD).move_to([0,-3.2,0])),run_time=.4); self.finish()
+
+
+class S02Recall(SpokenScene):
+    def construct(self):
+        self.add(table(),heading('What you already know: firing'))
+        self.at('You used firing alone'); self.play(Indicate(self.mobjects[0],color=GOLD,scale_factor=1.015),run_time=.5); self.finish()
+
+
+class S03Ask(SpokenScene):
+    def construct(self):
+        g=table(); self.add(g,heading('What lies behind each box?'))
+        self.at('So what lies'); self.play(*[Transform(c[1],T('?',46,GOLD).move_to(c[0])) for c in g[0]],run_time=.4)
+        self.at('And why split'); self.play(Transform(self.mobjects[1],heading('Why several signals for one touch?')),run_time=.4); self.finish()
+
+
+class S04Setup(SpokenScene):
+    def construct(self):
+        # The time trace begins directly below the enlarged physical probe.
+        skin=RoundedRectangle(width=5.2,height=1.65,corner_radius=.7,color=GREY,
+            fill_color=GREY,fill_opacity=.15).move_to([-3.8,0,0])
+        probe=RoundedRectangle(width=2.2,height=1.9,corner_radius=.2,color=TEXT,
+            fill_color=TEXT,fill_opacity=.12).move_to([-3.8,1.8,0])
+        self.add(skin,probe,heading('Press → hold → lift'),
+            T('probe',30).move_to([-.9,1.8,0]),
+            Line([-2.6,1.8,0],[-1.8,1.8,0],color=GREY),
+            T('fingertip',30,GREY).move_to([-3.8,-1.25,0]),
+            DashedLine([-3.8,-1.55,0],[-3.8,-2.2,0],color=GREY))
+        def part(a,b):
+            return curve([[-3.8+9.4*t/1.8,-2.25+1.1*ramp(t),0]
+                for t in np.linspace(a,b,100)],TEXT,6)
+        self.at('presses into'); self.play(probe.animate.shift(DOWN*.45),
+            Create(part(0,.4)),FadeIn(T('press',30,GREY).move_to([-2.7,-3.05,0])),run_time=.65)
+        self.at('holds still'); self.play(Create(part(.4,1.4)),
+            FadeIn(T('hold • 1 s',30,GREY).move_to([.9,-3.05,0])),run_time=.6)
+        self.at('then lifts'); self.play(probe.animate.shift(UP*.45),
+            Create(part(1.4,1.8)),FadeIn(T('lift',30,GREY).move_to([4.6,-3.05,0])),run_time=.45)
+        self.wait(2)
+        self.finish()
+
+
+class S05Record(SpokenScene):
+    def construct(self):
+        g=record(); self.add(g[0],g[1],g[5],heading('One probe • three records'))
+        self.at('Record from each kind'); self.play(LaggedStart(*[FadeIn(r) for r in g[2:5]],lag_ratio=.2),run_time=.8); self.finish()
+
+
+class S06Predict(SpokenScene):
+    def construct(self):
+        self.add(predict()); self.at('while the probe'); self.play(Indicate(hold_band(),scale_factor=1),run_time=.5); self.finish()
+
+
+def countdown(scene,g):
+    scene.camera.background_color=BG; scene.add(g)
+    track=Line([-1.6,-3.78,0],[1.6,-3.78,0],color=GREY,stroke_width=5)
+    bar=Line(track.get_start(),track.get_end(),color=GOLD,stroke_width=5)
+    scene.add(track,bar); scene.play(bar.animate.put_start_and_end_on(track.get_start(),track.get_start()+RIGHT*.005),run_time=5,rate_func=linear)
+
+
+class S07Pause(Scene):
+    def construct(self): countdown(self,predict())
+
+
+class S08Sa(SpokenScene):
+    def construct(self):
+        self.add(record(),heading('Slowly adapting • Merkel cells'))
+        r=raster(0,'steady')[2]
+        self.at('It fires going in'); self.play(Create(r[:2]),run_time=.4)
+        self.at('keeps firing through'); self.play(Create(r[2:]),run_time=.7); self.finish()
+
+
+class S09Sa2(SpokenScene):
+    def construct(self):
+        self.add(heading('Presence and edges'))
+        disc=Circle(radius=2.1,color=TEAL,stroke_width=5).move_to([-2,0,0])
+        dots=VGroup(*[Dot(disc.point_at_angle(a),radius=.09,color=GOLD) for a in np.linspace(0,TAU,12,endpoint=False)])
+        self.add(disc,T('Contact disc',28,TEAL).move_to([-2,-2.8,0]))
+        r=raster(0,'steady'); r.remove(r[1]); r.scale(.5).move_to([3,-.1,0]); self.add(r,T('SA I • held press',28,TEAL).move_to([3,1,0]))
+        self.at('where its edges'); self.play(FadeIn(dots),FadeIn(T('edges',30,GOLD).move_to([-4.7,1.8,0])),Create(Line([-4.05,1.65,0],[-3.2,1.05,0],color=GOLD)),run_time=.4); self.finish()
+
+
+class S10Ra(SpokenScene):
+    def construct(self):
+        self.add(record(('steady',None,None)),heading('Rapidly adapting • Meissner corpuscle'))
+        r=raster(1,'burst')[2]; half=len(r)//2
+        self.at('fires going in'); self.play(Create(r[:half]),run_time=.4)
+        self.at('and again on'); self.play(Create(r[half:]),run_time=.4)
+        self.at('During the hold'); self.play(FadeIn(hold_band()),run_time=.3); self.finish()
+
+
+class S11Pc(SpokenScene):
+    def construct(self):
+        self.add(record(('steady','burst',None)),heading('Pacinian'))
+        self.at('is silent during'); self.play(FadeIn(hold_band()),run_time=.3)
+        self.at('a brief burst'); self.play(Create(raster(2,'brief')[2]),run_time=.5); self.finish()
+
+
+class S12Predict2(SpokenScene):
+    def construct(self):
+        self.add(vib_record(),heading('Tiny, fast probe movements'))
+        self.at('which afferent detects'); self.play(Transform(self.mobjects[1],heading('Who detects the smallest vibration?')),run_time=.3); self.finish()
+
+
+class S13Pause(Scene):
+    def construct(self): countdown(self,vib_question())
+
+
+class S14PcReveal(SpokenScene):
+    def construct(self):
+        self.add(vib_record(),heading('Pacinian • best near 100–300 Hz'))
+        self.at('The'); self.play(Create(raster(2,'vibration')[2]),run_time=.55)
+        self.at('The slowly adapting'); self.play(Indicate(raster(0)[0],color=TEAL,scale_factor=1.01),run_time=.5); self.finish()
+
+
+class S15Bands(SpokenScene):
+    def construct(self):
+        g=bands(); self.add(g[0],g[1],heading('Bands overlap'))
+        self.at('Each class has'); self.play(LaggedStart(*[AnimationGroup(Create(g[2][i]),FadeIn(g[3][i])) for i in range(3)],lag_ratio=.3),run_time=1.5)
+        self.at('not a cutoff'); self.play(Indicate(g[2],color=GOLD,scale_factor=1.01),run_time=.5); self.finish()
+
+
+class S16Same(SpokenScene):
+    def construct(self):
+        self.add(record(('steady','burst','brief')),heading('One probe • three records'))
+        self.at('different records'); self.play(*[Indicate(raster(i,m)[2],color=COL[i],scale_factor=1.02) for i,m in enumerate(('steady','burst','brief'))],run_time=.6); self.finish()
+
+
+class S17Idea(SpokenScene):
+    def construct(self):
+        card=RoundedRectangle(width=11.8,height=5.9,corner_radius=.3,color=GOLD,fill_color=GOLD,fill_opacity=.06)
+        self.add(card,T('The one idea',32,GOLD).move_to([0,2,0]),T('Each LTMR class is\nmost sensitive to a different\npart of a touch.',57,line_spacing=1.3,should_center=True).move_to([0,-.1,0]))
+        self.at('is most sensitive'); self.play(card.animate.set_stroke(width=5),run_time=.4); self.finish()
+
+
+def stimulus(i):
+    # Large individual beat; the whole panel is replaced on each named stimulus.
+    c=[TEAL,BLUE,GREY,YELLOW,ORANGE][i]
+    box=RoundedRectangle(width=10.8,height=5.5,corner_radius=.25,color=c,fill_color=c,fill_opacity=.04).move_to([0,-.25,0])
+    skin=Line([-4,-1.2,0],[4,-1.2,0],color=GREY,stroke_width=5)
+    if i in (0,1):
+        icon=RoundedRectangle(width=1.6,height=2,corner_radius=.18,color=c,fill_color=c,fill_opacity=.2).move_to([0,-.1,0])
+        action=Arrow([0,1.7,0],[0,.9,0],color=c,buff=0) if i==0 else Arrow([-2,1.4,0],[2,1.4,0],color=c,buff=0)
+    elif i==2:
+        icon=curve([[-4+8*t,.1+.5*np.sin(2*PI*8*t),0] for t in np.linspace(0,1,500)],c)
+        action=T('fast oscillation',28,c).move_to([0,1.5,0])
+    elif i==3:
+        icon=curve([[0,-1.2,0],[0,0,0],[.3,1,0],[1,1.8,0]],c,7)
+        action=Arrow([-.8,1.3,0],[.4,1.3,0],color=c,buff=0)
     else:
-        shaft = Line([0, -1.0 * s, 0], [0, top * s, 0], color=GREY, stroke_width=3 + 4 * s, stroke_opacity=0.85)
-    half = (2.2 if dome else 1.3) * s
-    skin = Line([-1.3 * s, 1.3 * s, 0], [half, 1.3 * s, 0], color=GREY, stroke_width=3)
-    n = len(pat)
-    pk, tl = [], []
-    for i, c in enumerate(pat):
-        x = (i - (n - 1) / 2) * 0.32 * s if n > 1 else -0.3 * s
-        p = RoundedRectangle(corner_radius=0.05 * s, width=0.16 * s, height=2.0 * s, stroke_width=0,
-                             fill_color=CLS[c], fill_opacity=0.95).move_to([x, 0.0, 0])
-        pk.append((c, p))
-        if tails:
-            tl.append((c, Line([x, -1.0 * s, 0], [x, -1.75 * s, 0], color=CLS[c], stroke_width=4)))
-    parts = [skin, sheath, shaft] + [p for _, p in pk] + [t for _, t in tl]
-    extra = []
-    if dome:
-        cx = 1.45 * s
-        d = Sector(radius=0.5 * s, angle=PI, start_angle=0, stroke_color=TEAL, stroke_width=3,
-                   fill_color=TEAL, fill_opacity=0.28).move_to([cx, 1.3 * s + 0.25 * s, 0])
-        e = RoundedRectangle(corner_radius=0.05 * s, width=0.12 * s, height=1.0 * s, stroke_width=0,
-                             fill_color=TEAL, fill_opacity=0.95).move_to([cx, 1.3 * s - 0.5 * s, 0])
-        extra = [d, e]
-        parts += extra
-    g = VGroup(*parts)
-    g.pk, g.tl, g.sheath, g.shaft, g.skin, g.s, g.extra = pk, tl, sheath, shaft, skin, s, extra
-    g.pickets = VGroup(*[p for _, p in pk])
+        icon=VGroup(Rectangle(width=2.7,height=.6,color=c,fill_color=c,fill_opacity=.2).move_to([0,.2,0]),*[Line([x,-.1,0],[x,-1.05,0],color=c,stroke_width=4) for x in np.linspace(-1.2,1.2,7)])
+        action=Arrow([-2.5,1.4,0],[2.5,1.4,0],color=c,buff=0)
+    label=T(['held press','skin motion','fast vibration','hair bend','slow stroke'][i],34,c).move_to([0,-2.25,0])
+    return VGroup(box,skin,icon,action,label)
+
+
+class S18Filter(SpokenScene):
+    def construct(self):
+        self.add(heading('Overlapping filters'))
+        intro=bands(); self.add(intro)
+        # Preview the first stimulus as the general filter sentence ends.
+        self.at('each class favors',lead=.05)
+        self.remove(intro); preview=stimulus(0); self.add(preview)
+        for i,cue in enumerate(('A held press','skin motion','fast vibration','the slightest bend','A slow stroke')):
+            self.at(cue); g=stimulus(i)
+            self.remove(preview if i==0 else prev); self.add(g)
+            if i in (1,4): self.play(g[2].animate.shift(RIGHT*.7),run_time=.5)
+            elif i==0: self.play(g[2].animate.shift(DOWN*.18),run_time=.5)
+            elif i==3: self.play(Rotate(g[2],-.12,about_point=[0,-1.2,0]),run_time=.5)
+            else: self.play(Indicate(g[2],scale_factor=1.04),run_time=.5)
+            prev=g
+        self.finish()
+
+
+def neuron(c,x,y):
+    # Branched sensory ending, continuous axon and a large cell body.
+    return VGroup(*[Line([x+d,y+.6,0],[x,y+.1,0],color=c,stroke_width=3) for d in (-.4,0,.4)],
+        Line([x,y+.1,0],[x,y-.45,0],color=c,stroke_width=4),Circle(radius=.24,color=c,fill_color=c,fill_opacity=.25).move_to([x,y-.65,0]))
+
+
+def axons():
+    g=VGroup()
+    for y,c,n,w,length,tag in ((1.45,BLUE,'Aβ',11,3.1,'faster'),(-.15,YELLOW,'Aδ',6,1.9,'intermediate'),(-1.75,ORANGE,'C',3,.65,'slower')):
+        line=Line([-3.9,y,0],[.8,y,0],color=c,stroke_width=w)
+        sheaths=VGroup(*[RoundedRectangle(width=.65,height=.43 if n=='Aβ' else .27,corner_radius=.08,color=c,fill_color=c,fill_opacity=.3).move_to([x,y,0]) for x in np.arange(-3.4,.8,1)]) if n!='C' else VGroup()
+        g.add(VGroup(T(n,30,c).move_to([-5,y,0]),line,sheaths,Arrow([1.3,y,0],[1.3+length,y,0],color=c,buff=0),T(tag,26,c).move_to([3,y-.45,0])))
     return g
 
 
-def place(f, x, y):
-    """move a follicle so the centre of its SHEATH (not the whole group) sits at (x, y)."""
-    f.shift(np.array([x, y, 0.0]) - f.sheath.get_center())
-    return f
-
-
-def schwann(f, s):
-    b = Ellipse(width=1.7 * s, height=1.1 * s, stroke_color=PURPLE, stroke_width=3,
-                fill_color=PURPLE, fill_opacity=0.3)
-    b.move_to(f.sheath.get_center() + UP * 0.2 * s)
-    b.set_z_index(-1)
-    return b
-
-
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
-
-def label_line(a, b, color=GREY, w=2.5):
-    return Line(a, b, color=color, stroke_width=w)
-
-
-def cls_text(c, size=30):
-    return T(CNAME[c], size, CLS[c], weight=BOLD)
-
-
-# ---------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
-    LESSON = "The low-threshold mechanoreceptors"
-    TITLE = "One touch, several signals"
-
-
-def mini_fol(x, y):
-    sheath = RoundedRectangle(corner_radius=0.22, width=0.8, height=1.6, stroke_color=GREY, stroke_width=3,
-                              fill_color=GREY, fill_opacity=0.12).move_to([x, y, 0])
-    shaft = Line([x, y - 0.65, 0], [x, y + 1.3, 0], color=GREY, stroke_width=6, stroke_opacity=0.85)
-    skin = Line([x - 0.7, y + 0.8, 0], [x + 0.7, y + 0.8, 0], color=GREY, stroke_width=3)
-    r = Ellipse(width=1.2, height=0.5, stroke_color=GREEN, stroke_width=4).move_to([x, y - 0.05, 0])
-    return VGroup(skin, sheath, shaft), r
-
-
-# Schematic traces throughout; spike counts are illustrative, not recordings.
-def trace(x, y, color, mode='burst', width=2.4):
-    pts = [[x, y, 0]]
-    positions = {'burst': [0.18, 0.3, 2.08, 2.2], 'steady': list(np.arange(.2, 2.2, .23)),
-                 'vibration': list(np.arange(.15, 2.3, .14)), 'hair': [.2, .33, .46],
-                 'slow': [.45, 1.15, 1.85]}[mode]
-    for t in positions:
-        t = t * width / 2.4
-        pts.extend([[x+t-.035,y,0], [x+t,y+.32,0], [x+t+.035,y,0]])
-    pts.append([x+width,y,0])
-    return VMobject(stroke_color=color, stroke_width=3).set_points_as_corners(pts)
-
-
-def finger(x, y):
-    return RoundedRectangle(width=.65, height=1.5, corner_radius=.3, stroke_color=TEXT,
-                            stroke_width=4, fill_color=BG, fill_opacity=1).move_to([x,y,0])
-
-
-def forearm():
-    outline = RoundedRectangle(width=10.8, height=1.75, corner_radius=.65,
-                               stroke_color=GREY, stroke_width=4).move_to([0,.35,0])
-    hairs = VGroup(*[Line([x,1.23,0], [x+.12,1.57,0], color=GREY, stroke_width=2)
-                     for x in (-3.8,-2.5,-1.2,.1,1.4,2.7,4)])
-    return VGroup(outline, hairs)
-
-
-class S01Split(SpokenScene):
+class S19Ending(SpokenScene):
     def construct(self):
-        skin=Line([-5.8,1.3,0],[5.8,1.3,0],color=GREY,stroke_width=4)
-        tip=finger(0,2.45)
-        self.at('A light touch')
-        self.play(Create(skin),FadeIn(tip),run_time=.6)
-        self.play(tip.animate.shift(DOWN*.4),run_time=.5)
-        specs=[('motion',BLUE,'burst'),('steady press\nand edges',TEAL,'steady'),
-               ('vibration',GREY,'vibration'),('hair bend',YELLOW,'hair'),('gentle stroke',ORANGE,'slow')]
-        branches=[]
-        for i,(name,col,mode) in enumerate(specs):
-            x=-5.05+i*2.52
-            path=VMobject(stroke_color=col,stroke_width=3).set_points_as_corners([[0,1.2,0],[0,.8,0],[x,.1,0],[x,-.5,0]])
-            wave=trace(x-1.02,-1.0,col,mode,2.04)
-            lab=T(name,24,col).move_to([x,-1.85,0])
-            branches.append(VGroup(path,wave,lab))
-        self.at('Several kinds')
-        self.play(*[Create(g[0]) for g in branches],run_time=.9)
-        for i,cue in enumerate(('Some fire','Some keep firing','Some are most','Some catch','And some')):
-            self.at(cue)
-            self.play(Create(branches[i][1]),FadeIn(branches[i][2]),run_time=.7)
-            dot=Dot([0,1.2,0],radius=.07,color=specs[i][1])
-            self.play(MoveAlongPath(dot,branches[i][0]),run_time=.65,rate_func=linear)
-            self.remove(dot)
-        self.at('Each kind is')
-        tag=chip('LTMR',GOLD,30).move_to([0,-3,0])
-        self.play(FadeIn(tag),run_time=.6)
+        self.add(heading('Ending + neuron shape the response'))
+        labels=VGroup(*[T(s,26,c,should_center=True).move_to([x,2.2,0]) for x,s,c in zip((-5,-2.5,0,2.5,5),('held\npress','skin\nmotion','fast\nvibration','hair\nbend','slow\nstroke'),(TEAL,BLUE,GREY,YELLOW,ORANGE))])
+        icons=VGroup(*[stimulus(i)[2].copy().scale(.22).move_to([-5+2.5*i,1.25,0]) for i in range(5)])
+        cells=VGroup(*[neuron(c,-5+2.5*i,-.2) for i,c in enumerate((TEAL,BLUE,GREY,YELLOW,ORANGE))])
+        tag=T("Ending + neuron's own properties\nshape the response",30,GOLD,should_center=True).move_to([0,-2.2,0])
+        self.add(labels,icons,cells,tag)
+        self.at('with the'); self.play(*[Indicate(n,scale_factor=1.08) for n in cells],run_time=.65)
+        self.at('Axon size and myelin'); self.remove(labels,icons,cells,tag,self.mobjects[0]); self.add(heading('Axon size + myelin → travel speed'),axons(),T('Relative speed, schematic',26,GREY).move_to([0,-3.4,0])); self.finish()
+
+
+def comparison_panel(x,pc=False):
+    c=GREY if pc else TEAL
+    panel=RoundedRectangle(width=5.8,height=5.9,corner_radius=.2,color=c).move_to([x,-.2,0])
+    label=T('PC • tiny vibration' if pc else 'SA I • held press',29,c).move_to([x,2.1,0])
+    # Both rows share a normalized time axis, including stimulus onset/offset.
+    ts=np.linspace(0,1,700)
+    onset,offset=.16,.84
+    def drive(t):
+        if pc:
+            return .11*np.sin(2*PI*18*(t-onset)) if onset<=t<=offset else 0
+        return .65*np.interp(t,[0,onset,onset+.10,offset-.10,offset,1],[0,0,1,1,0,0])
+    stim=curve([[x-2.35+4.7*t,.7+drive(t),0] for t in ts],TEXT,3)
+    base=Line([x-2.35,-1.1,0],[x+2.35,-1.1,0],color=c)
+    # SA I begins at the press edge, then adapts to a lower sustained rate.
+    times=onset+np.arange(1,13)/18 if pc else np.r_[onset,onset+.035,onset+.08,np.arange(onset+.17,offset-.07,.085)]
+    spikes=VGroup(*[Line([x-2.35+4.7*t,-1.1,0],[x-2.35+4.7*t,-.5,0],color=c,stroke_width=3) for t in times])
+    edge=DashedLine([x-2.35+4.7*onset,1.4,0],[x-2.35+4.7*onset,-1.4,0],color=c,stroke_opacity=.45)
+    return VGroup(panel,label,stim,base,spikes,edge,T('Response • schematic',26,GREY).move_to([x,-2.2,0]))
+
+
+class S20Why(SpokenScene):
+    def construct(self):
+        a,b=comparison_panel(-3.15),comparison_panel(3.15,True)
+        self.add(heading('Complementary reports'),a,b)
+        self.at('One keeps reporting'); self.play(Indicate(a[4],color=TEAL,scale_factor=1.03),run_time=.6)
+        self.at('Another catches fast'); self.play(Indicate(b[2:5],color=GREY,scale_factor=1.03),run_time=.6); self.finish()
+
+
+class S21Pattern(SpokenScene):
+    def construct(self):
+        g=record(('steady','burst','brief')).stretch(.76,0).shift(LEFT*.9)
+        self.add(g,heading('No class reports the whole touch'))
+        self.at('reads the pattern')
+        brace=Brace(VGroup(*g[2:5]),RIGHT,buff=.12,color=GOLD)
+        label=T('pattern\nacross\nclasses',28,GOLD,should_center=True).next_to(brace,RIGHT,buff=.2)
+        self.play(Create(brace),FadeIn(label),*[Indicate(r[2],color=COL[i],scale_factor=1.04) for i,r in enumerate(g[2:5])],run_time=1)
         self.finish()
 
 
-class S02Classes(SpokenScene):
+class S22Rule(SpokenScene):
     def construct(self):
-        head=T('Ending • response • speed',34,font=TITLE_FONT).move_to([0,3,0])
-        self.at('Each class has')
-        self.play(FadeIn(head),run_time=.6)
-        # Two schematic end organs and their responses to the same held step.
-        rows=[]
-        for y,name,col,mode in ((1.3,'Merkel',TEAL,'steady'),(-1.3,'Pacinian',GREY,'burst')):
-            if name=='Merkel':
-                icon=VGroup(Line([-5.3,y-.2,0],[-4.2,y-.2,0],color=col,stroke_width=5),
-                            *[Dot([x,y+.1,0],radius=.13,color=col) for x in (-5.1,-4.75,-4.4)])
-            else:
-                icon=VGroup(*[Ellipse(width=w,height=w*.6,color=col,stroke_width=3).move_to([-4.75,y,0]) for w in (1.15,.78,.4)])
-            label=T(name,28,col).move_to([-2.6,y,0])
-            step=VMobject(stroke_color=GREY,stroke_width=2).set_points_as_corners([[.3,y+.7,0],[.6,y+.7,0],[.6,y+1,0],[3.7,y+1,0],[3.7,y+.7,0],[4,y+.7,0]])
-            wave=trace(.3,y-.2,col,mode,3.7)
-            rows.append(VGroup(icon,label,step,wave))
-        self.at('endings serve the steady')
-        self.play(FadeIn(rows[0][:3]),Create(rows[0][3]),run_time=.9)
-        self.at('corpuscles serve vibration')
-        self.play(FadeIn(rows[1][:3]),Create(rows[1][3]),run_time=.9)
-        self.at('At mouse hairs')
-        self.play(FadeOut(VGroup(*rows)),Transform(head,T('Mouse hair afferents • mean speed',32,font=TITLE_FONT).move_to(head)),run_time=.5)
-        x0,k=-2.5,.47
-        axis=VGroup(Line([x0,-2.25,0],[x0+15*k,-2.25,0],color=GREY),
-                    *[M(str(v),22,GREY).move_to([x0+v*k,-2.65,0]) for v in (0,5,10,15)],
-                    T('m/s',24,GREY).move_to([5.5,-2.65,0]))
-        self.play(FadeIn(axis),run_time=.4)
-        bars=[]
-        for c,v,y,cue in [('RA',13.6,1.45,'neurons conduct'),('AD',5.8,.1,'a delta neurons'),('C',.58,-1.25,'and C neurons')]:
-            w=v*k
-            bar=Rectangle(width=w,height=.55,stroke_width=0,fill_color=CLS[c],fill_opacity=.9).move_to([x0+w/2,y,0])
-            lab=cls_text(c,30).move_to([-4.4,y,0])
-            val=M(str(v),26,CLS[c]).next_to(bar,RIGHT,buff=.18)
-            self.at(cue)
-            self.play(FadeIn(lab),GrowFromEdge(bar,LEFT),FadeIn(val),run_time=.7)
-            bars.append(VGroup(bar,lab,val))
-        self.at('by far the slowest')
-        self.play(Indicate(bars[2],color=ORANGE,scale_factor=1.04),run_time=.6)
-        self.at('So one touch')
-        self.play(FadeOut(VGroup(head,axis,*bars)),run_time=.35)
-        target=chip('spinal cord',GREY,28).move_to([4.6,0,0])
-        lanes=VGroup(*[Line([-3.8,y,0],[2.9,y,0],color=CLS[c],stroke_width=3) for c,y in [('RA',1.4),('AD',0),('C',-1.4)]])
-        labs=VGroup(*[cls_text(c,26).move_to([-5.1,y,0]) for c,y in [('RA',1.4),('AD',0),('C',-1.4)]])
-        note=T('Same distance • different arrival times',26,GREY).move_to([0,-2.8,0])
-        self.play(FadeIn(target),Create(lanes),FadeIn(labs),FadeIn(note),run_time=.4)
-        spikes=[Dot(l.get_start(),radius=.11,color=CLS[c]) for c,l in zip(('RA','AD','C'),lanes)]
-        self.add(*spikes)
-        # Duration is inversely proportional to the measured velocity.
-        self.play(AnimationGroup(*[d.animate(run_time=2.8*.58/v,rate_func=linear).move_to(l.get_end()) for d,l,v in zip(spikes,lanes,(13.6,5.8,.58))]))
-        self.finish()
+        g=table(); self.add(g,heading('Endings help shape the report'))
+        self.at('Endings help decide'); endings=VGroup()
+        for i,(cell,name,c) in enumerate(zip(g[0],('Merkel cells','ending not settled','Meissner','Pacinian'),(TEAL,GREY,BLUE,GREY))):
+            center=cell[0].get_center(); cell[1].shift(UP*.65)
+            lab=T(name,26,c).move_to(center+DOWN*.65)
+            if i==0: glyph=VGroup(*[Dot(center+np.array([d,0,0]),radius=.12,color=c) for d in (-.45,0,.45)])
+            elif i==1: glyph=T('?',32,c).move_to(center)
+            elif i==2:
+                glyph=VGroup(*[Ellipse(width=1.1,height=.17,color=c,stroke_width=4).move_to(center+UP*d) for d in (-.28,-.14,0,.14,.28)])
+            else: glyph=VGroup(*[Ellipse(width=w,height=w*.45,color=c,stroke_width=4).move_to(center) for w in (.65,1,1.4)])
+            endings.add(VGroup(glyph,lab))
+        self.play(FadeIn(endings),run_time=.5); self.finish()
 
 
-class S03Fence(SpokenScene):
+def hair_scene():
+    skin=Line([-5.3,.9,0],[5.3,.9,0],color=GREY,stroke_width=4)
+    sheath=RoundedRectangle(width=1.8,height=3.8,corner_radius=.7,color=GREY,stroke_width=6,fill_color=GREY,fill_opacity=.12).move_to([0,-.9,0])
+    hair=curve([[0,-2.6,0],[0,.8,0],[.15,2,0],[.5,2.7,0]],GREY,10)
+    return VGroup(skin,sheath,hair)
+
+
+def hair_ending(i):
+    c=[BLUE,YELLOW,ORANGE][i]; x=-.65+i*.65
+    # Offset longitudinal terminals beside a common shaft, with separate axons.
+    terminals=VGroup(*[Line([x+d,-1.6,0],[x+d,.45,0],color=c,stroke_width=6) for d in (-.12,0,.12)])
+    side=-1 if i<2 else 1; y=(-1.3,-2.2,-2.8)[i]
+    axon=curve([[x,-1.6,0],[x,y,0],[side*2.5,y,0],[side*3.3,y+.25,0]],c,6)
+    lab=T(['Aβ RA','Aδ','C'][i],30,c).next_to(axon,LEFT if side<0 else RIGHT,buff=.18).set_y(y+.25)
+    return VGroup(terminals,axon,lab)
+
+
+class S23Takeaway(SpokenScene):
     def construct(self):
-        s=1.2; f=place(follicle(s,'awl',tails=True),-2.8,-.2)
-        title=T('One hair • several classes',32,font=TITLE_FONT).move_to([0,3.25,0])
-        self.at('These classes can share')
-        self.play(FadeIn(title),FadeIn(VGroup(f.skin,f.sheath,f.shaft)),run_time=.8)
-        name=T('mouse awl/auchene hair',26,GREY).move_to([3.2,2.2,0])
-        self.at("On a mouse's back")
-        self.play(FadeIn(name),run_time=.6)
-        self.at('from three classes')
-        labels=VGroup(*[chip(CNAME[c],CLS[c],26) for c in ('RA','AD','C')]).arrange(RIGHT,buff=.3).move_to([2.8,1,0])
-        self.play(LaggedStart(*[FadeIn(p) for _,p in f.pk],lag_ratio=.15),FadeIn(labels),run_time=.8)
-        self.at('an axon branch')
-        self.play(*[Create(t) for _,t in f.tl],run_time=.6)
-        end=T('lanceolate endings',28,TEXT).move_to([3,.0,0])
-        leader=label_line(end.get_left()+LEFT*.15,f.pk[-1][1].get_right()+RIGHT*.1)
-        self.play(FadeIn(end),Create(leader),run_time=.6)
-        self.at('like a picket')
-        self.play(LaggedStart(*[Indicate(p,color=CLS[c],scale_factor=1.2) for c,p in f.pk],lag_ratio=.2),run_time=.9)
-        self.at('with terminal Schwann cells')
-        # Reuse the old Schwann-cell blob motif, positioned in the gaps between pickets.
-        sch=VGroup(*[schwann(f,.19).stretch_to_fit_width(.18).stretch_to_fit_height(1.6).move_to([-2.8+dx,-.2,0]) for dx in (-.192,.192)])
-        sl=T('terminal Schwann cells',26,PURPLE).move_to([3,-1,0])
-        self.play(FadeIn(sch),FadeIn(sl),run_time=.7)
-        self.at('Most hairs are also wrapped')
-        ring=Ellipse(width=2.35,height=.75,stroke_color=GREEN,stroke_width=5).move_to([-2.8,-.75,0])
-        field=chip('field-LTMR',GREEN,28).move_to([3,-2.3,0])
-        self.play(Create(ring),FadeIn(field),run_time=1)
-        self.finish()
+        self.add(hair_scene(),heading('Next: mouse hairy skin'))
+        self.at('Next'); self.play(FadeIn(hair_ending(0)),run_time=.35)
+        self.at('where three classes'); self.play(FadeIn(hair_ending(1)),run_time=.35)
+        self.at('can share'); self.play(FadeIn(hair_ending(2)),run_time=.35); self.finish()
 
 
-class S04Map(SpokenScene):
+class S24End(EndCard):
+    LINE='Each class favours a different part of a touch.'
     def construct(self):
-        q=T('Which ending belongs to which neuron?',34,font=TITLE_FONT).move_to([0,2.6,0])
-        self.at('How did anyone learn')
-        self.play(FadeIn(q),run_time=.7)
-        steps=VGroup(*[chip(t,GREY,28) for t in ('label','record','image')]).arrange(RIGHT,buff=2).move_to([0,.4,0])
-        links=VGroup(*[arr(steps[i].get_right(),steps[i+1].get_left()) for i in (0,1)])
-        self.at('and colleagues labeled')
-        self.play(FadeIn(steps[0]),run_time=.6)
-        self.at('checked each label')
-        self.play(GrowArrow(links[0]),FadeIn(steps[1]),run_time=.6)
-        wave=trace(-1.2,-1.3,BLUE,'burst')
-        self.play(Create(wave),run_time=.6)
-        self.at('until physiology confirms it')
-        self.play(Indicate(steps[1],color=GOLD,scale_factor=1.08),run_time=.7)
-        self.at('Then they imaged')
-        self.play(GrowArrow(links[1]),FadeIn(steps[2]),run_time=.6)
-        self.at('Guard hairs carry')
-        self.play(FadeOut(VGroup(q,steps,links,wave)),run_time=.35)
-        xs=(-4.4,0,4.3); fs=[]; groups=[]
-        for x,kind,name in zip(xs,('guard','awl','zig'),('guard','awl/auchene','zigzag')):
-            f=place(follicle(.83,kind,dome=(kind=='guard')),x,.25)
-            name=T(name,28,TEXT).move_to([x,-1.3,0])
-            desc={'guard':[('RA','Aβ RA'),('SA1','SA1 • touch dome')], 'awl':[('RA','Aβ RA'),('AD','Aδ'),('C','C')], 'zig':[('AD','Aδ'),('C','C')]}[kind]
-            labs=VGroup(*[T(t,24,CLS[c]) for c,t in desc]).arrange(DOWN,buff=.16).move_to([x,-2.3,0])
-            fs.append(f); groups.append(VGroup(f,name,labs))
-        f=fs[0]
-        self.play(FadeIn(VGroup(f.skin,f.sheath,f.shaft,f.pickets)),FadeIn(groups[0][1]),FadeIn(groups[0][2][0]),run_time=.7)
-        self.at('in a touch dome')
-        self.play(FadeIn(VGroup(*f.extra)),FadeIn(groups[0][2][1]),run_time=.6)
-        self.at('aukine hairs carry')
-        self.play(FadeIn(groups[1]),run_time=.8)
-        self.at('Zigzag hairs carry')
-        self.play(FadeIn(groups[2]),run_time=.8)
-        self.at('The same combinations repeat')
-        # Three repeated composite units keep the patch readable.
-        trio=VGroup(*[f.copy() for f in fs])
-        trio.scale_to_fit_width(3.6).move_to([-4.2,0,0])
-        tiles=VGroup(trio,*[trio.copy().shift(RIGHT*d) for d in (4.2,8.4)])
-        patch=RoundedRectangle(width=12.6,height=3.4,corner_radius=.25,stroke_color=GREY,stroke_width=2).move_to([0,0,0])
-        head=T('Repeated combinations across mouse skin',30,font=TITLE_FONT).move_to([0,2.8,0])
-        self.play(FadeOut(VGroup(*groups)),FadeIn(tiles),Create(patch),FadeIn(head),run_time=.8)
+        # Direct crossfade from the final hair diagram, then 3.6 s reading time.
+        previous=VGroup(hair_scene(),heading('Next: mouse hairy skin'),*[hair_ending(i) for i in range(3)])
+        card=VGroup(T('Each class favours\na different part of a touch.',42,font=TITLE_FONT,should_center=True,line_spacing=1.2),
+            T('No class reports the whole touch.',28,GREY).move_to([0,-1.65,0]),T('biochemistrypedia.com',26,TEAL).move_to([0,-2.6,0]))
+        self.add(previous)
+        self.play(FadeOut(previous),FadeIn(card),run_time=.4)
         self.finish()
-
-
-class S05Human(SpokenScene):
-    def construct(self):
-        arm=forearm()
-        head=T('Human hairy skin',32,font=TITLE_FONT).move_to([0,3.2,0])
-        self.at('Your own skin')
-        self.play(FadeIn(arm),FadeIn(head),run_time=.8)
-        nerve=Line([-4,-.05,0],[4,-.05,0],color=ORANGE,stroke_width=5)
-        electrode=Line([2.8,2.7,0],[1.2,1.5,0],color=TEXT,stroke_width=4)
-        self.at('Recording single nerve fibers')
-        self.play(Create(nerve),Create(electrode),run_time=.7)
-        self.play(electrode.animate.shift(DOWN*1.55),run_time=.7)
-        method=T('microneurography',28,TEXT).move_to([-2.4,2.2,0])
-        self.at('a method called')
-        self.play(FadeIn(method),run_time=.6)
-        self.at('by how they fire')
-        wave=trace(-4,-1.8,ORANGE,'slow',8)
-        self.play(Create(wave),run_time=.8)
-        self.at('In hairy skin')
-        hand=finger(-3,2.15).rotate(-PI/3)
-        self.play(FadeOut(method),FadeIn(hand),run_time=.4)
-        self.at('respond to gentle stroking')
-        self.play(hand.animate.shift(RIGHT*5.4),ShowPassingFlash(wave.copy().set_stroke(WHITE,5),time_width=.25),run_time=1.7)
-        ct=T('Human C-tactile  ≈  mouse C-LTMR',28,ORANGE).move_to([0,-2.75,0])
-        self.at('afferents behave like mouse')
-        self.play(FadeIn(ct),run_time=.7)
-        self.at('Reviews conclude')
-        tag=chip('C-tactile: affective touch',ORANGE,28).move_to([0,2.6,0])
-        self.play(FadeOut(head),FadeOut(hand),FadeOut(electrode),FadeIn(tag),run_time=.7)
-        self.at('But not every')
-        note=T('not the only route',28,GOLD).move_to([0,1.75,0])
-        self.play(FadeIn(note),run_time=.6)
-        self.finish()
-
-
-class S06Why(SpokenScene):
-    def construct(self):
-        title=T('No single class reports a whole touch',32,font=TITLE_FONT).move_to([0,3.1,0])
-        self.at('So why build')
-        self.play(FadeIn(title),run_time=.6)
-        poke=place(follicle(.65,'guard',dome=True),-4,-.1)
-        stroke=place(follicle(.65,'awl'),.5,-.1)
-        p=finger(-3.05,2.4).scale(.7); h=finger(-.2,2.1).scale(.7).rotate(-PI/3)
-        self.at('In one model')
-        model=T('Schematic model',24,GREY).move_to([0,-3.2,0])
-        self.play(FadeIn(model),FadeIn(poke),FadeIn(stroke),run_time=.7)
-        self.at('a poke at one spot')
-        pl=T('poke',26,TEAL).move_to([-4,2.25,0])
-        self.play(FadeIn(p),FadeIn(pl),run_time=.3)
-        self.play(p.animate.shift(DOWN*.7),run_time=.4)
-        self.at('mostly the Merkel endings')
-        self.play(Indicate(VGroup(*poke.extra),color=TEAL,scale_factor=1.2),run_time=.7)
-        pt=trace(-5,-1.5,TEAL,'steady',2)
-        self.play(Create(pt),run_time=.5)
-        self.at('a stroke across the fur')
-        st=T('stroke',26,BLUE).move_to([.5,2.5,0])
-        self.play(FadeIn(h),FadeIn(st),run_time=.3)
-        self.play(h.animate.shift(RIGHT*1.4),run_time=.6)
-        waves=VGroup(*[trace(-.5,-1.3-i*.48,CLS[c],mode,2) for i,(c,mode) in enumerate((('RA','burst'),('AD','hair'),('C','slow')))])
-        self.at('a different mix')
-        self.play(Create(waves),run_time=.6)
-        self.at('The nervous system reads')
-        cord=RoundedRectangle(width=1.7,height=3.4,corner_radius=.25,stroke_color=GREY,fill_color=GREY,fill_opacity=.12).move_to([5,0,0])
-        cl=T('dorsal horn',24,GREY).move_to([5,-2.25,0])
-        paths=VGroup(*[arr([1.7,-1.3-i*.48,0],[4.1,.7-i*.6,0],CLS[c],w=3) for i,c in enumerate(('RA','AD','C'))])
-        merkel_path=VMobject(stroke_color=TEAL,stroke_width=3).set_points_as_corners([[-2.85,-1.5,0],[-2.5,-2.75,0],[3.6,-2.75,0],[4.1,-1.2,0]])
-        self.play(Create(cord),FadeIn(cl),Create(paths),Create(merkel_path),run_time=.6)
-        self.at('as the signals arrive')
-        dots=[Dot(path.get_start(),radius=.08,color=CLS[c]) for path,c in zip(paths,('RA','AD','C'))]
-        md=Dot(merkel_path.get_start(),radius=.08,color=TEAL)
-        self.add(*dots,md)
-        self.play(AnimationGroup(MoveAlongPath(md,merkel_path,run_time=.4,rate_func=linear),*[MoveAlongPath(d,path,run_time=t,rate_func=linear) for d,path,t in zip(dots,paths,(.25,.6,1.5))]))
-        self.at('One caution when')
-        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
-        warning=T('One neuron • many hairs',34,font=TITLE_FONT).move_to([0,2.9,0])
-        soma=Circle(radius=.4,color=GREEN,fill_color=GREEN,fill_opacity=.3).move_to([-5.4,-1.8,0])
-        xs=(-2.2,.3,2.8,5.1)
-        bodies=[]; rings=[]; brs=[]
-        for x in xs:
-            body,ring=mini_fol(x,.2); bodies.append(body); rings.append(ring)
-            brs.append(Line([x,-1.8,0],[x,-.6,0],color=GREEN,stroke_width=4))
-        bus=Line([-5,-1.8,0],[5.1,-1.8,0],color=GREEN,stroke_width=4)
-        self.play(FadeIn(warning),FadeIn(VGroup(*bodies)),run_time=.6)
-        self.at('A single neuron branches')
-        self.play(FadeIn(soma),Create(bus),LaggedStart(*[Create(b) for b in brs],lag_ratio=.15),
-                  LaggedStart(*[Create(r) for r in rings],lag_ratio=.15),run_time=1.1)
-        self.at('So endings at a hair')
-        rule=T('Endings at a hair ≠ neuron count',32,GOLD).move_to([0,-3,0])
-        self.play(FadeIn(rule),run_time=.6)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "One touch reaches the spinal cord as several signals, at several speeds."
+    def finish(self):
+        self.wait(3.6)

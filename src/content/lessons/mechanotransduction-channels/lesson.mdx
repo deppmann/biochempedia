@@ -4,13 +4,19 @@ slug: "mechanotransduction-channels"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 1: Transduction and sensory cell types"
 order: 802
-summary: "Piezo1 and Piezo2 are mechanically activated cation channels, and Piezo2 is a principal channel for touch and limb position in mice; two people lacking working Piezo2 had selective deficits in touch and especially limb position. This lesson asks how force opens them: what cryo-EM shows about a curved trimer, how membrane tension can do the gating work on its own, what a cytoskeletal tether would add, and which variants change inactivation in people. It also shows how the 2010 screen identified the channels and what that experiment left open. Afterwards you can convert a patch pressure into a tension and read a predicted current off a published fit."
-hook: "Piezo channels turn force into current, and Piezo2 is a principal channel for touch and limb position. How? In the leading, still debated model, the channel is a shallow dome about 28 nm across in the purified structure, force favours flattening it, and flattening is thought to help open the pore."
+summary: >-
+  Piezo2 is a principal channel for touch and limb position. How does force open it? One idea carries
+  the lesson: tension pays for area. A channel that takes up more membrane when open is pushed open by
+  membrane tension, and in a two-state model that idea gives both numbers in a current-tension fit a
+  physical meaning, an area and a resting energy. You then use it to read a patch, to measure the
+  sixty-fold gap between that area and the structural one, and to weigh the lipid and tether routes.
+hook: "Mouse PIEZO2 threads 114 transmembrane helices through the membrane to build one ion channel, and its pore sits at the centre. Why would a channel need so much protein around one pore?"
 
-estMinutes: 24
+estMinutes: 32
 objectives:
   - "State that Piezo1 and Piezo2 convert force into cation current, that Piezo2 is a principal channel for touch and limb position, and what the 2010 identification experiment left open."
-  - "Describe the cryo-EM architecture of a Piezo trimer, keeping the helix counts per protomer and per channel distinct."
+  - "Describe the cryo-EM architecture of a Piezo trimer, keeping the helix counts per protomer and per channel distinct, and calculate how much projected area an idealized dome gains when it flattens."
+  - "Derive from the energy ΔG = ΔG₀ − T·ΔA what the half-activation tension and slope factor of a two-state current-tension fit mean, estimate the effective area change a fit implies, and explain when that estimate is an underestimate and why it sits far below the structural area change."
   - "Compare the force-from-lipid and force-from-filament arguments by preparation, and say why both can hold at once."
   - "Convert a patch pressure into a membrane tension, read a Boltzmann fit, and relate inactivation changes to human PIEZO variants."
 
@@ -18,10 +24,52 @@ explainer:
   src: "/explainers/mechanotransduction-channels/explainer.mp4"
   captions: "/explainers/mechanotransduction-channels/explainer.vtt"
   poster: "/explainers/mechanotransduction-channels/poster.jpg"
-  title: "Flatten the Dome, Open the Pore"
-  durationSec: 143.0
+  title: "Which Protein Carries the Poke?"
+  durationSec: 163.8
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "dome"
+    src: "/explainers/mechanotransduction-channels/dome.mp4"
+    captions: "/explainers/mechanotransduction-channels/dome.vtt"
+    poster: "/explainers/mechanotransduction-channels/dome-poster.jpg"
+    title: "A Channel Shaped Like a Dome"
+    durationSec: 158.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "tension-pays"
+    src: "/explainers/mechanotransduction-channels/tension-pays.mp4"
+    captions: "/explainers/mechanotransduction-channels/tension-pays.vtt"
+    poster: "/explainers/mechanotransduction-channels/tension-pays-poster.jpg"
+    title: "Tension Pays for Area"
+    durationSec: 168.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "reading-a-patch"
+    src: "/explainers/mechanotransduction-channels/reading-a-patch.mp4"
+    captions: "/explainers/mechanotransduction-channels/reading-a-patch.vtt"
+    poster: "/explainers/mechanotransduction-channels/reading-a-patch-poster.jpg"
+    title: "Reading a Patch"
+    durationSec: 173.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "sixty-fold-gap"
+    src: "/explainers/mechanotransduction-channels/sixty-fold-gap.mp4"
+    captions: "/explainers/mechanotransduction-channels/sixty-fold-gap.vtt"
+    poster: "/explainers/mechanotransduction-channels/sixty-fold-gap-poster.jpg"
+    title: "The Sixty-Fold Gap"
+    durationSec: 175.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "lipid-tether-people"
+    src: "/explainers/mechanotransduction-channels/lipid-tether-people.mp4"
+    captions: "/explainers/mechanotransduction-channels/lipid-tether-people.vtt"
+    poster: "/explainers/mechanotransduction-channels/lipid-tether-people-poster.jpg"
+    title: "Lipid, Tether and People"
+    durationSec: 188.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Bertrand Coste"
@@ -154,8 +202,8 @@ structures:
     note: "Cryo-EM structure of mouse PIEZO1 in liposome vesicles; Yang et al., Nature 2022."
     caption: >-
       The flattened class projects about 300 square nanometres more area onto the membrane plane than
-      the curved one. Patch recordings imply a much smaller area change on opening, about 6 to 20
-      square nanometres, and that gap is not resolved.
+      the curved one. Read as a two-state switch, patch recordings imply a much smaller area change
+      on opening, about 6 to 20 square nanometres, and that gap is not resolved.
   - label: "Human TRAAK — a mechanically gated channel that needs no tether"
     source: "rcsb"
     id: "4WFE"
@@ -219,6 +267,20 @@ practiceQuestions:
       inactivation during the pulse, so a blanket claim about slowed inactivation fits only one of
       them. Saying neither altered inactivation contradicts both measurements. Abolished current would
       be a loss-of-function result; these variants changed kinetics rather than removing the current.
+  - stem: "Read as an equilibrium two-state switch, a current-tension fit with slope factor k = 0.8 mN/m implies an effective area change of about 5 nm². Under the same assumptions, a second fit gives k = 0.4 mN/m. What effective area change does it imply?"
+    choices:
+      - "About 2.5 nm², because a smaller slope factor means less area"
+      - "About 10 nm², because the slope factor is thermal energy divided by the area"
+      - "About 5 nm², because the slope factor does not depend on area"
+      - "About 20 nm², because the area scales with the square of the slope factor"
+    answer: 1
+    rationale: >-
+      The slope factor is thermal energy divided by the area, so the area is thermal energy divided by
+      the slope factor: (4.1 × 10⁻²¹ J)/(0.4 × 10⁻³ N/m), about 1.0 × 10⁻¹⁷ m² or 10 nm². Halving the slope factor doubles the area and makes the curve steeper. Reading a
+      smaller slope factor as less area inverts the relation and gives 2.5 nm². Keeping 5 nm² ignores
+      that the slope factor carries the area. Squaring the ratio gives 20 nm², but the relation is
+      inverse, not inverse-square. Either way the answer is an effective two-state area, not a
+      structural measurement.
   - stem: "Which comparison keeps each mechanotransduction channel inside the preparation it was tested in?"
     choices:
       - "NOMPC is the proven transduction channel of human touch endings"
@@ -311,7 +373,7 @@ explainLevels:
     label: "Graduate"
     text: >-
       The quantitative core is an area-tension energy. For a state with larger projected area, the
-      tension-dependent contribution is minus gamma times delta-A, so tension biases the ensemble
+      tension-dependent contribution is minus T times ΔA, with T the tension, so tension biases the ensemble
       toward the flatter, larger-footprint state. Yang and colleagues (2022) resolved curved and
       flattened mouse PIEZO1 in liposome vesicles, reported roughly 300 square nanometres of in-plane
       expansion, and calculated a half-maximal activation tension near 1.9 pN/nm using a previously
@@ -323,6 +385,12 @@ explainLevels:
       Empirically, Lewis and Grandl (2015) measured patch geometry during pressure clamp in mouse
       Piezo1-expressing HEK293t cells and fitted T50 = 2.7 ± 0.1 mN/m with a slope of 0.8 ± 0.1 mN/m,
       and in a separate prepulse protocol measured 1.4 ± 0.1 mN/m after a five-second +5 mmHg prepulse against 2.2 ± 0.1 mN/m without one.
+      Read through an equilibrium two-state Boltzmann, where the slope factor is thermal energy over ΔA, that
+      0.8 mN/m slope factor implies an effective area of about 5 square nanometres, the same order as the 6 to 20 estimated for human PIEZO1 against MscL
+      (Bae and colleagues, 2013) and some sixty-fold below the structural area. If the channels are
+      independent two-state switches that differ only in half-activation tension, spread among them can
+      only make the population curve shallower, and the slope-derived area then underestimates their
+      common area; outside those assumptions it is an effective area, not a guaranteed bound.
 
       What is open: whether a tether is required for gating at a sensory ending in vivo, and what besides tension licenses opening. In 2026 Vaisey and MacKinnon reported that Piezo1 does not conduct in the kind of lipids used for the vesicle structures, but in cell-derived membranes it flattens further, with changes around the pore; they propose that force is necessary but not sufficient. Purified
       Piezo1 is sufficient in droplet bilayers but does not reproduce rapid whole-cell inactivation,
@@ -374,67 +442,181 @@ draft: false
 
 import PatchTensionBoltzmann from '../../../components/PatchTensionBoltzmann.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Piezo channels turn mechanical force directly into ionic current, and Piezo2 is a principal channel for touch and limb position.** In adult mice with Piezo2 deleted from sensory neurons and Merkel cells, light-touch behaviour is almost entirely lost. Two people with inactivating PIEZO2 variants had impaired discriminative touch and profound proprioceptive impairment, which worsened without visual cues. The open question is how a protein converts force into current. The leading structural model, still debated, answers with a shape: flatten a shallow dome 28 nanometres across and a pore in its centre opens. [Touch and pain](/lessons/touch-and-pain/) names Piezo2 as the channel mice need for gentle touch, and [transduction strategies](/lessons/transduction-strategies/) places direct mechanical gating among the ways a stimulus becomes a current. This lesson asks the mechanical question those lessons leave alone. What is the shape, what does force do to it, and how would you tell whether the force arrives through lipid or through protein?
+**Mouse PIEZO2 threads 114 transmembrane helices through the membrane to build a single ion channel. The pore it opens sits at the centre.**
 
-## A knockdown screen, and the claim it refused to make
+Why would a channel need so much membrane-spanning protein around one pore? Piezo channels turn mechanical force directly into ionic current, and Piezo2 is a principal channel for touch and limb position: mice lacking it in sensory neurons lose almost all light-touch behaviour, and two people lacking working PIEZO2 had selective deficits in touch and especially limb position. [Touch and pain](/lessons/touch-and-pain/) names Piezo2 as the channel mice need for gentle touch, and [transduction strategies](/lessons/transduction-strategies/) places direct mechanical gating among the ways a stimulus becomes a current. This lesson asks the mechanical question those lessons leave alone.
 
-The 2010 experiment was built around a cultured mouse neuroblastoma line, Neuro2A, that gave a reliable current when a separate glass probe indented the cell while a patch pipette recorded whole-cell current. Coste and colleagues silenced candidate genes one at a time with short interfering RNA and asked which loss reduced the current. Knocking down Fam38A, renamed Piezo1, reduced it sharply. Expressing mouse Piezo1, or the related Piezo2, in heterologous cultured cells produced mechanically activated currents whose kinetics differed between the two. Ion-substitution experiments pointed to a non-selective cation conductance for Piezo2, and its current inactivated quickly.
+## Three questions and one idea
 
-Notice the shape of the logic, because it recurs across this unit. The screen showed that one gene is required in one cell line, and expression showed that the gene suffices to confer a current in another. Neither shows that the protein lines the pore, and the authors said so: Piezo proteins might have been non-conducting subunits of a channel made of something else. Necessity, sufficiency and pore identity are three separate claims with three separate experiments, and the 2010 paper earned two of them.
+Three questions run through the lesson. Which protein carries the current when a cell is poked? What shape is it? And how does force open it: through the lipid around it, through a protein tether, or both?
+
+The leading structural model, still debated, answers with a shape. The channel is a shallow dome, force favours flattening it, and flattening is thought to help open the pore. One idea turns that picture into numbers you can compute yourself.
+
+> **The one idea to carry through this lesson. Tension pays for area.** If a channel takes up more membrane area when it is open than when it is closed, membrane tension pushes it open. The push is an energy: tension times the area gained, T·ΔA. In a two-state model, that energy gives both numbers in a current-tension fit a meaning, and more area means a steeper switch. Piezo's curved dome is a way to gain a lot of area when it flattens; in the leading model, that is what the 114 helices are for.
+
+## Which protein? A screen, and the claim it refused to make
+
+The 2010 experiment was built around a cultured mouse neuroblastoma line, Neuro2A, that gave a reliable current when a separate glass probe indented the cell while a patch pipette recorded whole-cell current, the current across the entire cell membrane. Coste and colleagues silenced candidate genes one at a time with short interfering RNA and asked which loss reduced the current.
+
+**Predict.** Knocking down one candidate, Fam38A, sharply reduces the indentation current. What have you shown, and what have you not?
+
+<details>
+<summary>Check your prediction</summary>
+
+You have shown that Fam38A, renamed Piezo1, is required for that current in that cell line. You have not shown that its protein is the channel. A protein required for a current could still be an accessory subunit of a channel made of something else.
+
+</details>
+
+Coste and colleagues then expressed mouse Piezo1, or the related Piezo2, in heterologous cultured cells, meaning other cultured cells given an introduced copy of the gene. Each produced mechanically activated currents, and their kinetics differed between the two. Ion-substitution experiments pointed to a non-selective cation conductance for Piezo2, and its current inactivated quickly. **Inactivation** is the decay of a mechanically activated current while the stimulus is held; human variants change it.
+
+This logic recurs across the unit. The screen showed necessity in one cell line; expression showed sufficiency to confer a current in another. Neither shows that the protein lines the pore, and the authors said so. Necessity, sufficiency and pore identity are three separate claims, and the 2010 paper earned two.
 
 <LessonFigure src="/figures/mechanotransduction-channels/three-claims-three-experiments.webp" width={1200} height={491} alt="AI-generated illustration: three labelled schematic panels. Necessity: knockdown in Neuro2A, a cultured cell with an indenting probe and a patch pipette touching its surface, three siRNA strands inside, and three channel blocks in the membrane. Sufficiency: expression in another cell, with a transfected Piezo gene (a small circle) inside and five channel blocks in the membrane, labelled more channels. Pore identity: later work (2012), a gold-framed panel showing a ring-shaped liposome with one purified Piezo1 channel block in its wall and no cell." caption="The 2010 experiments showed that Piezo1 knockdown sharply reduced mechanically evoked current in mouse Neuro2A cells, and that expressing the Piezo1 or Piezo2 gene conferred such currents in other cultured cells (the gene was expressed, not protein added). These establish necessity and sufficiency in those preparations, not pore identity, and the channel blocks are schematic. Purified mouse Piezo1 formed ion channels in artificial bilayers and liposomes in 2012; later structures located the central pore." />
 
-Later work earned the third. Purified mouse Piezo1 reconstituted into lipid bilayers and liposomes formed ruthenium-red-sensitive ion channels (Coste and colleagues, 2012), and structural work then placed the pore: in the purified mouse Piezo1 reconstruction of Saotome and colleagues, the carboxy-terminal domains line the central ion pore. Zhao and colleagues resolved the arms into repeating four-helix units assembled into curved blades, and found that mutating single residues of the long intracellular beam impaired mechanical activation, which ties a specific part of the architecture to gating rather than to assembly.
+Later work earned the third. Purified mouse Piezo1 reconstituted into lipid bilayers and liposomes formed ion channels sensitive to ruthenium red, a broad blocker of cation channels (Coste and colleagues, 2012). Structural work then placed the pore: in the purified mouse Piezo1 reconstruction of Saotome and colleagues, the carboxy-terminal domains line the central ion pore.
 
 ## Blades, beam and dome
 
-The first map, from Ge and colleagues in 2015, was a trimer with three propeller-like arms at 4.8 angstroms. By 2019 the picture was sharp enough to count. Mouse PIEZO2, reconstructed by Wang L and colleagues (Nature, 2019), holds 38 transmembrane helices per protomer, which means 114 in the trimer. Keep those two numbers apart: "38 helices" describes one subunit, not one channel, and the trimer total is the more remarkable figure for a single ion channel.
+<LessonFilm film={frontmatter.films[0]} />
 
-Those helices do something unusual. Rather than sitting in a flat membrane, the curved blades bow the bilayer into a dome, reported as about 28 nm in diameter and 10 nm deep for purified mouse PIEZO2. A dome has a geometric consequence that turns out to be the whole argument. A curved cap of fixed surface area projects less area onto the plane of the membrane than the same cap flattened. So flattening increases projected area, and anything that favours more projected area favours the flat state.
+The first map, from Ge and colleagues in 2015, was a trimer (three identical subunits, or protomers) with three propeller-like arms at 4.8 angstroms. Zhao and colleagues then resolved the arms into repeating four-helix units assembled into curved blades around the central pore. They also found that mutating single residues of the long intracellular beam impaired mechanical activation, which ties a specific part of the architecture to gating rather than to assembly.
+
+By 2019 the picture was sharp enough to count. Mouse PIEZO2, reconstructed by Wang L and colleagues (Nature, 2019), holds 38 transmembrane helices per protomer, which means 114 in the trimer. Keep them apart: 38 describes one subunit, 114 the whole channel.
+
+The curved blades bow the bilayer into a dome, reported as about 28 nm in diameter and 10 nm deep for purified mouse PIEZO2.
+
+A dome has two areas, and the difference between them is the whole argument. Its **surface area** is the membrane actually in it. Its **projected area** is its shadow on the flat plane of the surrounding membrane: the area it occupies seen from above. A curved cap projects less area than its surface area. Flatten the same cap and the two become equal.
+
+**Predict.** Treat the PIEZO2 dome as an idealized spherical cap, 28 nm across and 10 nm deep. Flatten it without stretching it. Does its projected area grow or shrink, and by roughly how much?
+
+<details>
+<summary>Check your prediction</summary>
+
+It grows, by about 310 nm². A spherical cap whose rim has radius a and whose depth is h has a surface area of π(a² + h²). Here a = 14 nm and h = 10 nm, so the surface is π(196 + 100) nm² ≈ 930 nm². Its shadow is the disc under the rim, πa² = π × 196 nm² ≈ 616 nm². Flattened, all 930 nm² lies in the plane, so the projected area rises by about 930 − 616 ≈ 310 nm².
+
+The gain is simply πh² (π × 10² ≈ 314 nm²). It depends on how deep the dome is, not on how wide. This is idealized geometry, not a measurement: the real dome is protein blades and bent lipid, not a smooth cap of membrane.
+
+</details>
+
+So anything that favours more projected area favours the flat state.
 
 <LessonFigure src="/figures/mechanotransduction-channels/dome-flattens-pore-opens.webp" width={1200} height={790} alt="AI-generated illustration: two side-on membrane cross-sections of the same channel in a debated model. On the left, the membrane bows into a curved dome with a closed central pore and a bracket marking its projected width. On the right, the dome is flattened, the pore is drawn open as a schematic of the proposal, and a longer bracket marks the larger projected width; outward arrows show tension. A small inset shows the membrane skirt around a dome." caption="In the leading, still debated model, Piezo's curved blades bow the membrane into a dome; flattening increases the projected area, so membrane tension favours the flat state. Flattening is thought to help the pore open, but does not by itself establish an open pore, and the drawn open pore is a schematic of that proposal. In the elasticity model, the bilayer bending away from the dome forms a footprint, so tension does work on more than the protein itself." />
 
-Haselwandter and MacKinnon took that further with a continuum-elasticity calculation. A bilayer cannot stay flat where a curved protein ends; it bends away in a skirt, a membrane footprint reaching well past the dome. Their closed-dome inputs were a cap surface area of about 390 square nanometres and a radius of curvature of 10.2 nanometres. Those are model parameters, and the paper is a calculation rather than a recording. What it provides is a reason the energetics are larger than the protein's own dimensions suggest, because tension does work on the footprint too.
+## Tension pays for area: from an energy to a curve
 
-## Tension flattens the dome: the lipid argument
+<LessonFilm film={frontmatter.films[1]} />
 
-Write the energy. If a state has a larger projected area, in-plane tension lowers its free energy in proportion:
+Take the simplest picture: the channel is either closed or open, and the open state has a larger projected area, by an amount ΔA. Membrane **tension**, T, is an in-plane stretch: force per unit length of membrane. Stretching a membrane does work on anything in it that gets wider, and that work is the tension times the area gained. So tension lowers the free energy of the open state relative to the closed one:
 
-> tension-dependent energy change = −(tension) × (change in projected area), so a larger-area state is favoured as tension rises
+> **ΔG = ΔG₀ − T × ΔA**
 
-Three lines of evidence fill that expression in. Purified mouse Piezo1, reconstituted into artificial droplet bilayers with no other cellular components, remained mechanically activatable: protein plus lipid is sufficient in that preparation. Yang and colleagues then put purified mouse PIEZO1 into liposome vesicles and resolved curved and flattened classes from the same sample, reporting roughly 300 square nanometres of in-plane areal expansion between them, and calculating a half-maximal activation tension of about 1.9 pN/nm from that area together with a previously measured stiffness. Their abstract hedges whether the rearrangements they see are the gating transition itself, and that hedge belongs in any summary of the work. Later work in cell-derived membranes suggests lipid composition matters too, not tension alone. Do not mix their 300 square nanometres with the 390 of the elasticity model: one is a structural comparison, the other a model input. Neither matches the area change inferred from patch recordings. Calibrated against the bacterial channel MscL in the same patch, human PIEZO1's Boltzmann slope implies only about 6 to 20 square nanometres on opening (Bae and colleagues, 2013). Why the structural and electrical numbers differ so much is still open.
+Here ΔG is the free energy of the open state minus that of the closed state. ΔG₀ is how strongly the channel prefers to be closed in a slack membrane. As tension rises, that preference shrinks. At one particular tension it disappears, and above it the open state wins.
 
-The third line is electrophysiological, and it is where you can do the arithmetic yourself. Lewis and Grandl expressed mouse Piezo1 in human HEK293t cells and recorded cell-attached patches at −80 mV and room temperature while pressurising the patch and imaging it with differential interference contrast optics, so the patch radius was measured rather than assumed. That converts pressure into tension by the Young-Laplace relation.
+**Predict.** Two channels are each open half the time at the same tension. One gains 5 nm² on opening and the other 300 nm². Which one goes from mostly closed to mostly open over the narrower range of tension?
 
-### Worked problem: from patch pressure to predicted current
+<details>
+<summary>Check your prediction</summary>
 
-Assume an illustrative spherical patch of radius R = 2.0 micrometres under a pressure difference of magnitude 2000 Pa. The radius and pressure are invented round numbers; the fit parameters below are from the paper.
+The 300 nm² channel. Each small increase in tension gives its open state 60 times as much of an energy advantage as it gives the 5 nm² channel, so a small change in tension swings it all the way from closed to open.
 
-> T = R × (pressure difference) / 2
+</details>
 
-1. Tension: T = (2.0 × 10⁻⁶ m)(2000 N/m²)/2 = 0.002 N/m = 2.0 mN/m. Dimension check: metres times newtons per square metre gives newtons per metre.
-2. The Figure 3B fit for these recordings gave a half-activation tension T50 = 2.7 ± 0.1 mN/m and a Boltzmann slope factor k = 0.8 ± 0.1 mN/m.
-3. Predicted normalized current: I/Imax = 1 / [1 + exp((T50 − T)/k)] = 1 / [1 + exp((2.7 − 2.0)/0.8)] = 1 / (1 + e^0.875).
-4. e^0.875 is about 2.40, so I/Imax = 1/3.40 = 0.294, about 29 percent of the fitted plateau.
+To turn the energy into a curve, use the Boltzmann relation from statistical physics. For a channel with two states at equilibrium, the ratio of open to closed is exp(−ΔG/k<sub>B</sub>T<sub>abs</sub>), where k<sub>B</sub>T<sub>abs</sub> is thermal energy, about 4.1 × 10⁻²¹ J at room temperature (k<sub>B</sub> is Boltzmann's constant and T<sub>abs</sub> absolute temperature; T stays tension, and neither is the fitted slope factor k). The fraction of channels open is then
 
-Three cautions travel with that answer. It is a normalized current, not the fraction of channels or of neurons doing anything. It belongs to mouse Piezo1 in a human cell line at room temperature in the cell-attached configuration. And the same paper reports a different half-activation, 1.4 ± 0.1 mN/m, after a five-second recovery prepulse at +5 mmHg; substituting that T50 into this protocol's fit mixes two protocols. The shift is itself the paper's finding: resting tension inactivates some channels, so Piezo1's apparent sensitivity is not a fixed property.
+> **P(open) = 1 / [1 + exp((ΔG₀ − T·ΔA)/k<sub>B</sub>T<sub>abs</sub>)] = 1 / [1 + exp((T50 − T)/k)]**
+
+To get the second form, divide the top and bottom of the exponent by ΔA. At T = T50 the exponent is zero, so ΔG is zero and half the channels are open.
+
+The second form is the one fitted to patch data, usually as a normalized current. Reading a current fit this way assumes that normalized current tracks the fraction of channels open: constant conductance and availability, and a plateau where the available channels are open. With that assumption, matching the two forms gives each fitted number a physical meaning:
+
+- **T50 = ΔG₀ / ΔA.** The half-activation tension is the channel's resting preference for closed, divided by the area it gains on opening.
+- **k = k<sub>B</sub>T<sub>abs</sub> / ΔA.** The slope factor is thermal energy divided by that area. A larger area gives a smaller k and a steeper switch.
+
+One unit note before the numbers. Tension is force per length, so 1 pN/nm and 1 mN/m are the same quantity. Structural papers tend to use the first and patch papers the second.
+
+## Reading a patch: from pressure to current, and back to an area
+
+<LessonFilm film={frontmatter.films[2]} />
+
+Lewis and Grandl expressed mouse Piezo1 in human HEK293t cells and recorded cell-attached patches, in which the pipette seals onto an intact cell and records the channels in the membrane under its tip. They recorded at −80 mV and room temperature while pressurising the patch and imaging it with differential interference contrast optics, so the patch radius was measured rather than assumed. For a patch shaped like part of a sphere, with uniform tension, the Young–Laplace relation converts pressure into tension, with R the patch's radius of curvature:
+
+> **T = R × (pressure difference) / 2**
+
+### Worked problem: from patch pressure to predicted current, and back to an area
+
+Take an illustrative spherical patch of radius R = 2.0 micrometres under a pressure difference of magnitude 2000 Pa. The radius and pressure are invented round numbers. The fit parameters are from the paper's pressure-clamp fit for these recordings: a half-activation tension T50 = 2.7 ± 0.1 mN/m and a Boltzmann slope factor k = 0.8 ± 0.1 mN/m.
+
+1. Tension: T = (2.0 × 10⁻⁶ m)(2000 N/m²)/2 = 0.002 N/m = 2.0 mN/m. Units: metres times newtons per square metre gives newtons per metre.
+2. Predicted normalized current: I/Imax = 1 / [1 + exp((T50 − T)/k)] = 1 / [1 + exp((2.7 − 2.0)/0.8)] = 1 / (1 + e^0.875). e^0.875 is about 2.40, so I/Imax = 1/3.40 = 0.294, about 29 percent of the fitted plateau.
+
+The fit also hides an area. Before you read on, use k = k<sub>B</sub>T<sub>abs</sub>/ΔA to find it.
+
+3. Run the fit backwards, reading it as a two-state switch: ΔA = k<sub>B</sub>T<sub>abs</sub> / k = (4.1 × 10⁻²¹ J) / (0.8 × 10⁻³ N/m) = 5.1 × 10⁻¹⁸ m², an effective area of about **5 nm²**. Units: joules divided by newtons per metre gives square metres, and 1 nm² is 10⁻¹⁸ m².
+4. Under the same reading, the effective resting preference for closed is ΔG₀ = T50 × ΔA = (2.7 × 10⁻³ N/m)(5.1 × 10⁻¹⁸ m²) = 1.4 × 10⁻²⁰ J, about 3.4 k<sub>B</sub>T<sub>abs</sub>. This number is only as good as the two-state reading: it is computed from the fitted area, so it is not an independent measurement of how strongly the channel prefers closed.
+
+An independent route gives the same order. Calibrated against the bacterial channel MscL in the same patch, human PIEZO1's Boltzmann slope implies about 6 to 20 nm² on opening (Bae and colleagues, 2013). Both estimates assume a two-state switch, and the next section shows why the area actually coupled to opening could be larger.
+
+Two cautions travel with the answer to step 2. It is a normalized current for mouse Piezo1 in a human cell line at room temperature in the cell-attached configuration, not the fraction of channels or of neurons doing anything. And protocol matters. The same paper ran a separate prepulse protocol. Within it, T50 was 2.2 ± 0.1 mN/m without a prepulse and 1.4 ± 0.1 mN/m after a five-second +5 mmHg prepulse. Compare those two with each other, not with 2.7, which belongs to the other protocol. The authors' reading is that resting tension inactivates some channels; the prepulse relieves it, they recover, and less added tension is needed. That shift is the finding: Piezo1's apparent sensitivity is not a fixed property; it depends on the tension the channel was already under.
 
 <PatchTensionBoltzmann />
 
-## The tether argument, and why the field has not chosen
+## The gap between structure and current
+
+<LessonFilm film={frontmatter.films[3]} />
+
+Yang and colleagues (2022) put purified mouse PIEZO1 into liposome vesicles and resolved curved and flattened classes from the same sample. Between them they reported roughly 300 nm² of in-plane areal expansion. From that area together with a previously measured stiffness, they calculated a half-maximal activation tension of about 1.9 pN/nm, which is 1.9 mN/m. Their abstract hedges whether the rearrangements are the gating transition itself.
+
+**Predict.** Using k = k<sub>B</sub>T<sub>abs</sub>/ΔA, how steep would the current-tension curve be if all 300 nm² were coupled to opening? Compare it with the measured k of 0.8 mN/m.
+
+<details>
+<summary>Check your prediction</summary>
+
+k = (4.1 × 10⁻²¹ J)/(300 × 10⁻¹⁸ m²) ≈ 0.014 mN/m. The channel would go from 10 to 90 percent open over about 0.06 mN/m of tension. The measured fit takes about 3.5 mN/m. The half-activation tensions are of the same order (1.9 mN/m calculated from structure and a stiffness, 2.7 from a patch fit), but the slope factors differ about sixty-fold.
+
+</details>
+
+Geometry alone makes a change of that order plausible. The idealized PIEZO2 cap you flattened earlier gained about 310 nm², the same order as Yang's 300 nm², although that was a different paralog (Piezo2, not Piezo1) and a calculation rather than a measurement. So why is the measured switch so shallow? The question is open; each candidate answer is testable:
+
+- **The dome may not be a two-state switch.** If it flattens gradually, like a spring, only the part of the flattening coupled to the pore sets the slope, and a single two-state ΔA no longer describes the channel.
+- **A patch curve is a population curve.** It sums many channels, the published fit also pools different patches, and uneven tension across a patch could spread their T50s. If the channels are independent two-state switches that differ only in T50, spread can only make the population curve shallower. As an illustration, identical 300 nm² switches whose T50s follow a normal spread with a standard deviation of about 1.4 mN/m give a curve that a single Boltzmann fits with k ≈ 0.8 mN/m. That spread is wider than the 0.8 mN/m prepulse shift, so whether real patches are that uneven is open.
+- **The flattened class may not be the open channel,** which is the hedge Yang and colleagues make.
+
+What the patch number means depends on the answer. Under the second, the slope-derived area underestimates the common area of the switches. Under the first and third, the area actually coupled to opening could be far smaller than 300 nm², near the patch number. Either way it is an effective area, not a measurement: "Piezo1 gains 5 nm² on opening" is not something anyone has shown, and neither is "hundreds of nm²".
+
+The membrane around the channel adds to the puzzle. Haselwandter and MacKinnon (2018) worked out the elasticity with a continuum calculation. A bilayer cannot stay flat where a curved protein ends; it bends away in a skirt, a membrane footprint reaching well past the dome, so tension does work on the footprint as well as on the protein. Their closed-dome inputs were a cap surface area of about 390 nm² and a radius of curvature of 10.2 nm. Those are model parameters. By now you have met five area numbers. Keep them apart:
+
+| Area | Source | What it is |
+| --- | --- | --- |
+| About 310 nm² gained | Idealized PIEZO2 cap, flattened | A geometry calculation from the reported dome size |
+| About 300 nm² gained | Yang and colleagues, mouse PIEZO1 | A structural comparison of curved and flattened classes |
+| About 390 nm² | Haselwandter and MacKinnon, mouse Piezo1 | A model input: the closed cap's surface area, not a change |
+| About 5 nm² | Lewis and Grandl fit, mouse Piezo1 | An effective two-state area from a current slope factor |
+| 6 to 20 nm² | Bae and colleagues, human PIEZO1 | A two-state estimate calibrated against MscL |
+
+## Lipid or tether?
+
+<LessonFilm film={frontmatter.films[4]} />
+
+The guiding idea is an energy budget for membrane tension, not a delivery route. The −T·ΔA term is the work done by membrane tension. A tether could change the local tension, or it could pull on the channel directly, which would add its own work term, force times distance.
+
+The lipid route has a clean test: take everything else away. Purified mouse Piezo1, reconstituted into artificial droplet bilayers with no other cellular components, remained mechanically activatable (Syeda and colleagues, 2016). A droplet bilayer forms where two lipid-coated droplets of salt solution touch, so nothing from a cell is present.
+
+**Predict.** Suppose a tether to the cytoskeleton were strictly required for Piezo1 to open. What should the purified channel have done in a droplet bilayer? And since it did open, what can you conclude about an intact cell?
+
+<details>
+<summary>Check your prediction</summary>
+
+It should have stayed silent. Because it opened, protein plus lipid is sufficient in that preparation, and no tether is required there. That says nothing about whether an intact cell also uses a second route.
+
+</details>
 
 Force could also arrive through protein. Wang J and colleagues (Cell Reports, 2022) proposed a cadherin-beta-catenin-actin route, complementary to force-from-lipid, and reported that disrupting Piezo1-E-cadherin interactions prevented cytoskeleton-dependent gating in their cultured-cell assays. How widely that route operates beyond those cells is not yet known.
 
-It is tempting to treat the two accounts as rivals where one must lose. They are not, for a reason worth stating plainly: sufficiency in a reconstituted bilayer cannot exclude an additional coupling route in an intact cell, and a tether requirement in a cultured cell cannot abolish the lipid energetics that the structures measure. There is even a hint that the bilayer is missing something, since the purified droplet-bilayer recordings did not reproduce the rapid inactivation seen in whole cells.
+The two accounts need not be rivals. Bilayer sufficiency cannot exclude a second route in an intact cell, and a tether requirement in a cultured cell cannot abolish the lipid energetics the structures measure. The bilayer may even be missing something: the purified droplet-bilayer recordings did not reproduce the rapid inactivation seen in whole cells. That is why the field has not chosen.
 
-Other mechanotransducers fall on both sides, and each belongs to its preparation. Drosophila NOMPC required microtubule association for mechanogating in S2 cells: a tether in a fly. A mec-4 null eliminated mechanically evoked receptor currents in C. elegans touch receptor neurons, where the current is carried mostly by sodium, unlike the non-selective Piezo current. In mouse hair cells, cysteine modification of rescued TMC1 rapidly changed permeation, which supports TMC1 as a pore-forming component of the transduction channel without showing that it alone constitutes the native complex; [the hair-cell transduction channel](/lessons/hair-cell-transduction-channel/) takes that story up. Purified Arabidopsis OSCA1.2 was mechanically activated in proteoliposomes, while mouse TMEM63C gave no stretch-activated current in the same expression assays that detected currents for other family members. Purified human TRAAK and zebrafish TREK1 were mechanically gated in lipid membranes with no cellular tethers, extending a force-from-lipid principle first established for the bacterial channels MscL and MscS, and TRAAK could electrically oppose Piezo1 activation in cultured cells, which makes the point that mechanosensitivity is not one mechanism with one protein.
-
-## Variants that change inactivation, and what people report
-
-Inactivation is the decay of mechanically activated current during a sustained stimulus, in this recording context, and it is where human genetics meets the biophysics. Coste and colleagues expressed human PIEZO2 variants from distal arthrogryposis families in HEK293T cells. Both I802F and E2727del accelerated recovery from inactivation; only E2727del slowed inactivation during the pulse. Piezo2's own tension sensitivity has also been measured with the same imaged pressure-clamp method, and it differs between splice variants. The two kinetic descriptions are not interchangeable, and "gain-of-function variants inactivate more slowly" is wrong for one of these two. On the Piezo1 side, the xerocytosis-associated human variants M2225R and R2456H slowed inactivation in heterologous recordings, and in mouse red blood cells the chemical agonist Yoda1 produced calcium influx followed by Gardos-channel-dependent dehydration, which connects a kinetic change to a cell-volume phenotype in that species.
-
-Loss of function in people is narrower than the mouse headline. Two individuals with compound inactivating PIEZO2 variants had impaired discriminative touch and profound proprioceptive impairment that worsened without visual cues, while retaining other abilities. In a later study using experimental skin inflammation, PIEZO2-deficient participants did not develop the painful responses to gentle touch the protocol produces. Adult mice with Piezo2 deleted from sensory neurons and Merkel cells show an almost complete light-touch deficit across behavioural assays, and most rapidly adapting mechanically activated currents disappear from their cultured dorsal-root-ganglion neurons. Those are mouse sentences. The human sentences are selective deficits with residual abilities, and the two should never be merged. [Merkel cells](/lessons/merkel-cells/) and [the LTMR classes](/lessons/ltmr-classes/) carry the cell-biological half of this story, and [proprioception](/lessons/proprioception/) the limb-position half.
+Other channels show each route in its own preparation, from tether-free gating of purified TRAAK and TREK1 in lipid to a microtubule requirement for fly NOMPC; the table in Going deeper keeps each result with its preparation.
 
 ### Design problem
 
@@ -443,7 +625,7 @@ Purified mouse Piezo1 is mechanically active in droplet bilayers but does not re
 <details>
 <summary>One way to do it</summary>
 
-Separate the two logical claims before designing anything. The bilayer result is about sufficiency of protein plus lipid; the cadherin result is about necessity of a coupling in one cultured cell type. Neither addresses a sensory ending, so the experiment has to go there.
+The bilayer result is sufficiency of protein plus lipid; the cadherin result is necessity of a coupling in one cultured cell type. Neither addresses a sensory ending, so the experiment has to go there.
 
 Measure tension, not pressure or displacement. Use cell-attached or excised pressure clamp with the patch imaged so its radius of curvature is measured, and convert with T = R(pressure difference)/2. Indentation with a probe delivers an unknown mixture of membrane tension, cytoskeletal strain and cell deformation, so a tether result from indentation alone is hard to interpret; a dose-response in tension is comparable across preparations and against the published fits.
 
@@ -457,17 +639,54 @@ A human answer needs different tools. Microneurography can record single afferen
 
 </details>
 
+## Variants that change inactivation, and what people report
+
+Inactivation is where human genetics meets the biophysics. Coste and colleagues expressed human PIEZO2 variants from families with distal arthrogryposis, an inherited condition in which joints of the hands and feet are fixed in bent positions from birth, in HEK293T cells. Both I802F and E2727del accelerated recovery from inactivation; only E2727del slowed inactivation during the pulse. So "gain-of-function variants inactivate more slowly" is wrong for I802F.
+
+Loss of function in people is narrower than the mouse headline. Two individuals with compound inactivating PIEZO2 variants, meaning both copies of the gene carried inactivating variants, had impaired discriminative touch and profound proprioceptive impairment that worsened without visual cues, while retaining other abilities. In a later study using experimental skin inflammation, PIEZO2-deficient participants did not develop the painful responses to gentle touch the protocol produces. Adult mice with Piezo2 deleted from sensory neurons and Merkel cells show an almost complete light-touch deficit across behavioural assays, and most rapidly adapting mechanically activated currents disappear from their cultured dorsal-root-ganglion neurons. Those are mouse results; the human ones are selective deficits with residual abilities, and the two should not be merged. [Merkel cells](/lessons/merkel-cells/) and [the LTMR classes](/lessons/ltmr-classes/) carry the cell-biological half of this story, and [proprioception](/lessons/proprioception/) the limb-position half.
+
+### Back to the opening question
+
+Why would a channel need 114 transmembrane helices around one pore? In the leading, still debated model, to collect area. A curved structure that flattens gains hundreds of square nanometres, and tension pays for whatever part of that area is coupled to the pore. Which part that is, and how the flattening opens the pore, is the open problem in this field.
+
+### Where the idea stops
+
+- **Two states is an assumption.** A dome that flattens gradually is a spring, not a switch, and then a single ΔA is not well defined.
+- **A patch slope gives an effective area.** It underestimates the coupled area only if the channels are identical two-state switches that differ in T50 alone; otherwise it is not a bound.
+- **The rule is the work of membrane tension, not a delivery route.** A tether that pulls on the channel directly would add its own work term.
+- **Inactivation is outside it.** The two-state model has no inactivated state, so it covers neither inactivation nor recovery from it, the kinetics the human PIEZO2 variants change.
+- **Tension may not be the only requirement.** Later work in cell-derived membranes suggests lipid composition matters too, not tension alone (see Going deeper).
+
 ## Going deeper
 
 ### Numbers from the 2010 paper
 
 In the 2010 experiments, Piezo2 showed a reported inactivation time constant of 7.3 ± 0.7 ms at −80 mV in HEK293T cells (n = 11).
 
-### Which Drosophila preparation
+### Mechanotransducers in other preparations
 
-Drosophila NOMPC has 29 ankyrin repeats. The microtubule requirement for mechanogating was shown in S2 cells, and the behavioural work was done in third-instar larval class III dendritic-arborization neurons.
+Mechanosensitivity is not one mechanism with one protein. Each of these results belongs to its preparation.
 
-### A splice variant and Piezo2 tension sensitivity
+| Protein | Organism and preparation | What was shown |
+| --- | --- | --- |
+| MscL and MscS | Bacteria | Where the force-from-lipid principle was first established |
+| TRAAK and TREK1 | Human TRAAK and zebrafish TREK1, purified, in lipid membranes | Mechanically gated with no cellular tethers. TRAAK could also electrically oppose Piezo1 activation in cultured cells |
+| OSCA1.2 | Arabidopsis, purified, in proteoliposomes | Mechanically activated |
+| TMEM63C | Mouse, expression assays | No stretch-activated current in the same assays that detected currents for other family members |
+| NOMPC | Drosophila S2 cells | Required microtubule association for mechanogating: a tether in a fly |
+| MEC-4 | C. elegans touch receptor neurons | A mec-4 null eliminated mechanically evoked receptor currents, which are carried mostly by sodium, unlike the non-selective Piezo current |
+| TMC1 | Mouse hair cells, rescued TMC1 | Cysteine modification rapidly changed permeation, supporting TMC1 as a pore-forming component of the transduction channel without showing that it alone constitutes the native complex |
 
-An alternatively spliced exon, exon 35, was enough to confer high tension sensitivity on Piezo2 in the tested splice variants (Sindoni and colleagues, 2026). This is one recent study, so treat it as an example that splice context can tune sensitivity, not as a field-wide rule.
+Drosophila NOMPC has 29 ankyrin repeats. The microtubule requirement for mechanogating was shown in S2 cells, and the behavioural work was done in third-instar larval class III dendritic-arborization neurons. [The hair-cell transduction channel](/lessons/hair-cell-transduction-channel/) takes up the TMC1 story.
 
+### Piezo1 variants and red blood cells
+
+The xerocytosis-associated human PIEZO1 variants M2225R and R2456H slowed inactivation in heterologous recordings. (Hereditary xerocytosis is an inherited condition in which red blood cells lose water.) In mouse red blood cells the chemical agonist Yoda1 produced calcium influx followed by dehydration that depended on the Gardos channel, a calcium-activated potassium channel. That connects a kinetic change to a cell-volume phenotype in that species.
+
+### Piezo2 tension sensitivity and splice variants
+
+Piezo2's own tension sensitivity has also been measured with the same imaged pressure-clamp method, and it differs between splice variants. An alternatively spliced exon, exon 35, was enough to confer high tension sensitivity on Piezo2 in the tested splice variants (Sindoni and colleagues, 2026). This is one recent study, so treat it as an example that splice context can tune sensitivity, not as a field-wide rule.
+
+### Piezo1 in cell-derived membranes
+
+In 2026 Vaisey and MacKinnon reported that Piezo1 does not conduct in the kind of lipids used for the vesicle structures, but in cell-derived membranes it flattens further, with changes around the pore. They propose that force is necessary but not sufficient. This is one recent study.
