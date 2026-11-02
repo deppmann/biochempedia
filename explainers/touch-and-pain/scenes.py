@@ -1,443 +1,461 @@
-"""Touch and pain: two pathways, two crossings (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-One flat box-and-lane schematic, no body outline and no cord cross-section: the patient's RIGHT side is
-the upper half, the patient's LEFT side the lower half, the midline is the dashed line between them, and
-the lanes run left to right from the dorsal root toward the brain. Facts are the lesson's own: fine touch
-crosses in the caudal medulla, pain and temperature cross in the cord within a segment or two; a right
-hemisection at T10 takes fine touch, vibration, position sense and strength on the right below T10 and
-pain and temperature on the left from about T11 to T12 down.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the fine touch / vibration / position sense pathway (dorsal column - medial lemniscus)
-  ORANGE = the pain and temperature pathway (spinothalamic)
-  YELLOW = the moving signal and the point where a pathway crosses the midline
-  RED    = the cut, and the words "right half" that name it
-  GREEN  = weakness (corticospinal tract)
-  GREY   = structure: midline, side tags, dorsal root and thalamus boxes
+"""Why Capsaicin Feels Hot — reviewer fix round.
+COLOR MAP: BLUE/cyan = cold/TRPM8; ORANGE = pain/heat/TRPV1;
+YELLOW = signal/calcium; RED = knockout; GREEN = weakness; GREY = structure.
+Calcium curves are computed categorical observations, R(t)=P*1[t>=stimulus],
+P=0/1 for negative/positive pools. They are schematic, not measured kinetics.
+The heat experiment uses the same rule with P=1[T>43] and a rising bath temperature.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-ORANGE = "#F29E4C"
-TOUCH, PAIN, CUT, SIG, STRUCT, WEAK = BLUE, ORANGE, RED, YELLOW, GREY, GREEN
-
-YT, YP = 1.95, 1.0        # lane heights on the patient's right side (negated for the left side)
-XS = -4.35                # where the two lanes leave the dorsal root
-CUT_X = -0.85             # the cut sits here in the right half
-CROSS_P = (-1.6, 0.0)     # pain lane crosses the midline here (in the cord)
-CROSS_T = (2.25, 0.0)     # touch lane crosses the midline here (in the medulla)
+from bp_style import *
+ORANGE = '#F29E4C'
+PAIN, COLD, SIG = ORANGE, BLUE, YELLOW
 
 
-def bchip(text, color=BLUE, size=22, pad=0.2):
-    """chip with an opaque backing; '\\n' makes a centred two-line label."""
-    label = VGroup(*[T(l, size, color) for l in text.split("\n")]).arrange(DOWN, buff=0.07)
-    box = RoundedRectangle(corner_radius=0.14, width=label.width + 2 * pad, height=label.height + 2 * pad,
-                           stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.16)
-    back = RoundedRectangle(corner_radius=0.14, width=box.width, height=box.height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1)
-    g = VGroup(back, box, label.move_to(box))
-    g.set_z_index(6)
+def label(s, x=0, y=0, size=30, color=TEXT):
+    return T(s, size=size, color=color, line_spacing=.8).move_to([x,y,0])
+
+
+def block(s,x,y,color=GREY,size=28):
+    g=chip(s,color=color,size=size).move_to([x,y,0])
+    g[0].set_fill(BG,opacity=1)
     return g
 
 
-def btext(text, size=22, color=GREY, **kw):
-    t = T(text, size, color, **kw)
-    back = Rectangle(width=t.width + 0.2, height=t.height + 0.12, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(t)
-    g = VGroup(back, t)
-    g.set_z_index(6)
+def arr(a,b,color=GREY):
+    return Arrow([*a,0],[*b,0],buff=0,tip_length=.18,
+                 max_tip_length_to_length_ratio=.16,color=color,stroke_width=4)
+
+
+def gate(x=0,y=0,color=PAIN,opened=False,scale=1):
+    membrane=VGroup(Line([-2.1,0,0],[-.62,0,0],color=GREY,stroke_width=10),
+                    Line([.62,0,0],[2.1,0,0],color=GREY,stroke_width=10)).set_z_index(1)
+    # Opening is a lateral separation of the two channel walls, never a sliding bar.
+    walls=VGroup(*[RoundedRectangle(width=.48,height=2.6,corner_radius=.2,
+                    color=color,fill_color=interpolate_color(ManimColor(BG),ManimColor(color),.35),
+                    fill_opacity=1).move_to([s*(.65 if opened else .23),0,0]) for s in [-1,1]]).set_z_index(2)
+    return VGroup(membrane,walls).scale(scale).shift([x,y,0])
+
+
+def neuron(color=PAIN):
+    soma=Circle(.8,color=color,fill_color=color,fill_opacity=.16).move_to([-4,.1,0])
+    nucleus=Circle(.22,color=color).move_to(soma)
+    axon=VGroup(Line([-3.2,.27,0],[.1,.27,0],color=color,stroke_width=5),
+                Line([-3.2,-.07,0],[.1,-.07,0],color=color,stroke_width=5))
+    ending=Ellipse(width=3.5,height=2.8,color=color,fill_color=color,fill_opacity=.06).move_to([1.7,.1,0])
+    branches=VGroup(*[Line([-4.5,yy,0],[xx,yy+dy,0],color=color,stroke_width=4)
+        for yy,xx,dy in [(.7,-5.7,1.1),(.1,-5.9,-.2),(-.5,-5.6,-1.3)]])
+    # Channel is embedded in the upper terminal membrane; background masks the rim.
+    mask=Rectangle(width=1.25,height=.45,stroke_width=0,fill_color=BG,fill_opacity=1).move_to([1.7,1.5,0])
+    ch=gate(1.7,1.5,color,scale=.65)
+    return VGroup(branches,soma,nucleus,axon,ending,mask,ch)
+
+
+def neuron_labels():
+    return VGroup(label('sensory neuron',-3.2,-2.25,30),
+        label('ending membrane',2,-2.25,28,GREY),arr((2,-1.95),(2,-1.3)))
+
+
+def thermometer(x=3,y=0,cold=False):
+    col=COLD if cold else PAIN
+    return VGroup(RoundedRectangle(width=.5,height=3.3,corner_radius=.24,color=GREY).move_to([x,y,0]),
+        Circle(.43,color=col,fill_color=col,fill_opacity=1).move_to([x,y-1.4,0]),
+        Line([x,y-1.4,0],[x,y+.7,0],color=col,stroke_width=10),
+        label('skin temperature',x,y-2.2,28),label('unchanged',x,y+2.2,30,col))
+
+
+def pepper():
+    body=VMobject(color=RED,fill_color=RED,fill_opacity=.85)
+    body.set_points_smoothly([[-.7,1.55,0],[.3,1.45,0],[.85,.4,0],[.5,-.9,0],[-.6,-1.8,0],[-2,-2.1,0],[-1,-.9,0],[-.9,.4,0],[-.7,1.55,0]])
+    stem=VMobject(color=GREEN,stroke_width=12).set_points_smoothly([[-.3,1.5,0],[-.25,2,0],[.2,2.3,0]])
+    return VGroup(body,stem).shift(LEFT*1.8+UP*.3)
+
+
+def leaf(x=-2.8,y=.1):
+    outline=VMobject(color=COLD,fill_color=COLD,fill_opacity=.2,stroke_width=4)
+    outline.set_points_smoothly([[0,-1.65,0],[-1.1,-.6,0],[-.95,.7,0],[0,1.9,0],[.95,.7,0],[1.1,-.6,0],[0,-1.65,0]])
+    veins=VGroup(Line([0,-1.9,0],[0,1.65,0],color=COLD,stroke_width=4))
+    for yy in [-.9,-.2,.5,1.05]:
+        for sign in [-1,1]:
+            veins.add(Line([0,yy,0],[sign*(.75 if yy<.8 else .4),yy+.45,0],color=COLD,stroke_width=2))
+    return VGroup(outline,veins).shift([x,y,0])
+
+
+def flame(x,y):
+    # Separate Bezier curves preserve a sharp tip and an asymmetric flame lick.
+    m=VMobject(color=PAIN,fill_color=PAIN,fill_opacity=.8)
+    m.start_new_path([.1,1.35,0])
+    m.add_cubic_bezier_curve_to([.15,.45,0],[.95,.05,0],[.6,-.6,0])
+    m.add_cubic_bezier_curve_to([.25,-1.15,0],[-.65,-.9,0],[-.65,-.35,0])
+    m.add_cubic_bezier_curve_to([-.7,.1,0],[-.25,.45,0],[.1,1.35,0])
+    flick=VMobject(color=SIG,fill_color=SIG,fill_opacity=1,stroke_width=1)
+    flick.start_new_path([.06,.35,0])
+    flick.add_cubic_bezier_curve_to([.05,-.05,0],[.45,-.3,0],[.2,-.65,0])
+    flick.add_cubic_bezier_curve_to([-.3,-.9,0],[-.4,-.25,0],[.06,.35,0])
+    return VGroup(m,flick).scale(.55).shift([x,y,0])
+
+
+def snow(x,y,r=.65):
+    g=VGroup()
+    for a in np.arange(6)*np.pi/3:
+        v=np.array([np.cos(a),np.sin(a),0]);p=np.array([-v[1],v[0],0])
+        g.add(Line(ORIGIN,r*v,color=COLD,stroke_width=4))
+        for sign in [-1,1]:
+            g.add(Line(.62*r*v,.43*r*v+sign*.22*r*p,color=COLD,stroke_width=3))
+    return g.shift([x,y,0])
+
+
+def dish(x=-3.6,y=0,scale=1):
+    bowl=Ellipse(width=3,height=2,color=GREY,fill_color=GREY,fill_opacity=.1)
+    cells=VGroup(*[Circle(.25,color=GREY,fill_color=GREY,fill_opacity=.2).move_to([dx,dy,0])
+        for dx,dy in [(-.65,.25),(.25,.4),(.7,-.25),(-.4,-.4)]])
+    return VGroup(bowl,cells).scale(scale).shift([x,y,0])
+
+
+def trace(x=.3,y=-2,w=5.1,h=4.3,positive=False,stimulus='capsaicin',mini=False):
+    # Explicit categorical response model. A doubled stimulus coordinate gives a true step.
+    def point(t,v): return np.array([x+w*t/4,y+.14+h*.8*v,0])
+    axis=VGroup(Line([x,y,0],[x+w,y,0],color=GREY),Line([x,y,0],[x,y+h,0],color=GREY))
+    ts=np.array([0,1.4-1e-7,1.4,4.]);rs=int(positive)*(ts>=1.4)
+    curve=VMobject(color=SIG,stroke_width=4).set_points_as_corners([point(t,v) for t,v in zip(ts,rs)])
+    mark=DashedLine([x+w*.35,y,0],[x+w*.35,y+h,0],color=PAIN,stroke_width=2)
+    words=VGroup(label('time',x+w-.35,y-.38,26),label('calcium',x+.7,y+h+.4,26,SIG),
+                 label(stimulus,x+w*.55,y+h+.4,26,PAIN)) if not mini else VGroup()
+    return VGroup(axis,curve,mark,words)
+
+
+def experiment(positive=False):
+    return VGroup(dish(-3.5,0,1.35),label('HEK293 cells',-3.5,2.6,32),
+                  trace(positive=positive),label('schematic calcium response',1,-3.15,26,GREY))
+
+
+def pool_screen():
+    g=VGroup(label('HEK293 cells: pool screen',0,3.15,34))
+    for i,yy in enumerate([1.8,0,-1.8]):
+        g.add(dish(-4.4,yy,.8),trace(-1.3,yy-.5,6.7,1,mini=True),
+              label('capsaicin',1.05,yy+.72,26,PAIN),label('time',5.9,yy-.82,26))
+    g.add(label('calcium',-1.85,1.8,26,SIG).rotate(PI/2))
+    g.add(label('cDNA: copies of sensory neuron genes',0,-3.25,28))
     return g
 
 
-class Track(VGroup):
-    """A lane: a polyline with an arrow tip and a background-coloured halo so crossings read as bridges."""
-
-    def __init__(self, pts, color, z, tip=True, w=6):
-        super().__init__()
-        self.pts = [np.array([x, y, 0.0]) for x, y in pts]
-        self.halo = VMobject(stroke_color=BG, stroke_width=w + 12).set_points_as_corners(self.pts)
-        self.line = VMobject(stroke_color=color, stroke_width=w).set_points_as_corners(self.pts)
-        d = self.pts[-1] - self.pts[-2]
-        ang = np.arctan2(d[1], d[0])
-        L, W = 0.24, 0.15
-        tri = Polygon([0, 0, 0], [-L, W, 0], [-L, -W, 0], stroke_width=0, fill_color=color, fill_opacity=1)
-        tri.rotate(ang, about_point=ORIGIN).shift(self.pts[-1])
-        self.tip = tri if tip else VMobject()
-        self.halo.set_z_index(z - 1)
-        self.line.set_z_index(z)
-        self.tip.set_z_index(z)
-        self.add(self.halo, self.line, self.tip)
-
-    def split(self, xc):
-        """(before, after) as point lists, cut at x = xc."""
-        pts = [(p[0], p[1]) for p in self.pts]
-        for i in range(len(pts) - 1):
-            (x0, y0), (x1, y1) = pts[i], pts[i + 1]
-            if x0 <= xc <= x1 and x1 > x0:
-                y = y0 + (y1 - y0) * (xc - x0) / (x1 - x0)
-                return pts[:i + 1] + [(xc, y)], [(xc, y)] + pts[i + 1:]
-        raise ValueError("no crossing")
+def question():
+    return VGroup(gate(1.2,0,COLD,True,1.65),block('chemical',-4,1.7,COLD,32),
+        VGroup(snow(-4,-.8,.85),label('cool',-4,-2.1,32,COLD)),
+        VGroup(arr((-2.65,1.7),(-.33,1.0),COLD),arr((-2.9,-.8),(-.33,-.6),COLD)),
+        label('How will it feel on the skin?',0,-3.2,36))
 
 
-def lane_path(*tracks):
-    pts = []
-    for t in tracks:
-        pts += [tuple(p[:2]) for p in t.pts]
-    m = VMobject().set_points_as_corners([np.array([x, y, 0.0]) for x, y in pts])
-    return m
+def overview():
+    boxes=VGroup(*[RoundedRectangle(width=3.8,height=4.8,corner_radius=.18,color=GREY,
+        fill_color=GREY,fill_opacity=.06).move_to([x,-.25,0]) for x in [-4.1,0,4.1]])
+    names=VGroup(*[label(s,x,1.5,34,SIG if i==0 else TEXT) for i,(s,x) in enumerate(zip(['report','route','volume'],[-4.1,0,4.1]))])
+    # Visual placeholders echo line, destination, and gain without claiming a mechanism.
+    marks=VGroup(arr((-5.25,.25),(-2.95,.25),SIG),
+        VGroup(arr((-.95,.25),(.8,.25)),Dot([1,.25,0],radius=.13,color=GREY)),
+        VGroup(*[Line([xx,-.2,0],[xx,hh,0],color=GREY,stroke_width=6) for xx,hh in [(3.4,.1),(4.1,.45),(4.8,.8)]]))
+    return VGroup(label('Follow the line',0,3.1,46),boxes,names,marks)
 
 
-class Net:
-    """Every piece of the schematic, built once per scene; the scene adds what it needs."""
-
-    def __init__(self):
-        self.mid = DashedLine([-6.25, 0, 0], [6.25, 0, 0], color=GREY, stroke_width=2.5, dash_length=0.15)
-        self.mid.set_z_index(0)
-        self.mid_lbl = btext("midline", 22, GREY).move_to([5.55, 0, 0])
-        self.tag = {1: T("PATIENT'S RIGHT SIDE", 22, GREY).move_to([-6.2, 2.5, 0], aligned_edge=LEFT),
-                    -1: T("PATIENT'S LEFT SIDE", 22, GREY).move_to([-6.2, -2.5, 0], aligned_edge=LEFT)}
-        self.root, self.dh, self.nuc, self.thal, self.ctx = {}, {}, {}, {}, {}
-        self.tA, self.tB, self.tC, self.pA, self.pB = {}, {}, {}, {}, {}
-        for s in (1, -1):
-            r = bchip("skin nerve,\ndorsal root", STRUCT)
-            r.next_to(np.array([XS, s * 1.475, 0]), LEFT, buff=0)
-            self.root[s] = r
-            self.dh[s] = bchip("dorsal horn", PAIN).move_to([-2.9, s * YP, 0])
-            self.nuc[s] = bchip("gracile or\ncuneate nucleus", TOUCH).move_to([0.75, s * YT, 0])
-            box = RoundedRectangle(corner_radius=0.14, width=1.5, height=1.95, stroke_color=STRUCT, stroke_width=2.5,
-                                   fill_color=STRUCT, fill_opacity=0.12).move_to([3.75, s * 1.475, 0])
-            lab = T("thalamus", 22, STRUCT).move_to(box)
-            self.thal[s] = VGroup(box, lab)
-            self.ctx[s] = bchip("cortex", TOUCH).move_to([5.6, s * YT, 0])
-        TH_L, TH_R = 3.0, 4.5
-        for s in (1, -1):
-            nl, nr = self.nuc[s][1].get_left()[0], self.nuc[s][1].get_right()[0]
-            dl, dr = self.dh[s][1].get_left()[0], self.dh[s][1].get_right()[0]
-            cl = self.ctx[-s][1].get_left()[0]
-            self.tA[s] = Track([(XS, s * YT), (nl, s * YT)], TOUCH, 2)
-            self.tB[s] = Track([(nr, s * YT), (2.55, -s * YT), (TH_L, -s * YT)], TOUCH, 2)
-            self.tC[s] = Track([(TH_R, -s * YT), (cl, -s * YT)], TOUCH, 2)
-            self.pA[s] = Track([(XS, s * YP), (dl, s * YP)], PAIN, 4)
-            self.pB[s] = Track([(dr, s * YP), (-1.2, -s * YP), (TH_L, -s * YP)], PAIN, 4)
-
-    def base(self):
-        return [self.mid, self.mid_lbl, self.tag[1], self.tag[-1]]
+def mouse(x=0,color=GREY,scale=1):
+    body=Ellipse(width=2.5,height=1.5,color=color,fill_color=color,fill_opacity=.15)
+    head=Circle(.55,color=color,fill_color=BG,fill_opacity=1).move_to([1.1,.4,0])
+    ear=Circle(.3,color=color).move_to([1,1,0])
+    eye=Dot([1.32,.52,0],radius=.05,color=TEXT)
+    tail=VMobject(color=color,stroke_width=4).set_points_smoothly([[-1.25,0,0],[-1.75,.1,0],[-1.9,.6,0],[-1.5,.75,0]])
+    feet=VGroup(*[Line([xx,-.5,0],[xx+.2,-.95,0],color=color,stroke_width=4) for xx in [-.7,.6]])
+    return VGroup(body,head,ear,eye,tail,feet).scale(scale).shift([x,0,0])
 
 
-def _cache(m):
-    if not hasattr(m, "_o0"):
-        m._o0 = (m.get_fill_opacity(), m.get_stroke_opacity())
-
-
-def op(mob, f):
-    """set overall opacity to f x the original, leaving unfilled shapes unfilled."""
-    for m in mob.family_members_with_points():
-        _cache(m)
-        m.set_fill(opacity=m._o0[0] * f)
-        m.set_stroke(opacity=m._o0[1] * f)
-    return mob
-
-
-def fade_to(mob, f0, f1, rt=0.5):
-    return UpdateFromAlphaFunc(mob, lambda m, a: op(m, f0 + (f1 - f0) * a), run_time=rt)
-
-
-def pulse(scene, mob, k=1.08, rt=0.5):
-    scene.play(mob.animate.scale(k), run_time=rt / 2, rate_func=smooth)
-    scene.play(mob.animate.scale(1 / k), run_time=rt / 2, rate_func=smooth)
-
-
-def ring(p, r=0.26):
-    c = Circle(radius=r, stroke_color=SIG, stroke_width=5, fill_opacity=0).move_to([p[0], p[1], 0])
-    c.set_z_index(9)
-    return c
-
-
-def dot():
-    d = Dot(radius=0.13, color=SIG)
-    d.set_z_index(9)
-    return d
-
-
-def fly(d, path, rt):
-    return MoveAlongPath(d, path, rate_func=linear, run_time=rt)
-
-
-def draw(scene, tr, rt=0.7):
-    scene.play(Create(tr.halo, rate_func=linear), Create(tr.line, rate_func=linear), run_time=rt)
-    scene.play(FadeIn(tr.tip), run_time=0.12)
+def results(n=2):
+    head=VGroup(label('TRPV1 knockout',1.5,3.1,38,PAIN),mouse(-4.5,scale=.52).shift(UP*2.7),
+        mouse(-2.3,RED,.52).shift(UP*2.7),label('control / no TRPV1',-3.5,1.65,26))
+    rows=VGroup()
+    for yy,(s,v,c) in zip([.7,-.7,-2.1],[('Capsaicin pain behaviour','gone',RED),('Hot-plate heat response','partly impaired',PAIN),('Filament poke','normal',TEXT)][:n]):
+        rows.add(VGroup(label(s,-2.65,yy,30),arr((.65,yy),(1.35,yy)),block(v,3.9,yy,c,30)))
+    return VGroup(head,rows)
 
 
 class S00Title(TitleCard):
-    LESSON = "Touch and Pain"
-    TITLE = "Two Pathways, Two Crossings"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Cut(SpokenScene):
-    """the question, then the side tags and midline, then one dorsal root with touch and pain leaving it."""
-
+    LESSON='Touch and Pain'
+    TITLE='Why Capsaicin Feels Hot'
     def construct(self):
-        n = Net()
-        q1 = T("Cut the right half of the spinal cord at T10.", 38, font=TITLE_FONT, t2c={"right half": RED})
-        q2 = T("What is lost, and on which side?", 38, font=TITLE_FONT)
-        q = VGroup(q1, q2).arrange(DOWN, buff=0.45)
-        fit(q, max_w=12.0)
-        q1.move_to(q.get_center())
-        self.play(Write(q1), run_time=self.beat(0.16))
-        self.at("What is lost")
-        q2.next_to(q1, DOWN, buff=0.45)
-        self.play(FadeIn(q2, shift=UP * 0.15), run_time=0.7)
-        self.at("The answer depends")
-        self.play(FadeOut(q1), FadeOut(q2), FadeIn(n.mid), FadeIn(n.mid_lbl), run_time=0.8)
-        self.play(FadeIn(n.tag[1]), FadeIn(n.tag[-1]), run_time=0.6)
-        self.at("two pathways")
-        q1m, q2m = ring(CROSS_P), ring(CROSS_T)
-        qm1 = T("?", 26, SIG, weight=BOLD).move_to(q1m)
-        qm2 = T("?", 26, SIG, weight=BOLD).move_to(q2m)
-        self.play(Create(q1m), Create(q2m), FadeIn(qm1), FadeIn(qm2), run_time=0.8)
-        self.at("same dorsal root")
-        self.play(FadeIn(n.root[1], shift=RIGHT * 0.2), run_time=0.6)
-        lt = btext("touch", 24, TOUCH).move_to([-2.0, 2.4, 0])
-        lp = btext("pain", 24, PAIN).move_to([-2.0, 0.55, 0])
-        self.at("part company")
-        t, p = n.tA[1], n.pA[1]
-        stub_t = Track([(XS, YT), (-2.2, YT)], TOUCH, 2)
-        stub_p = Track([(XS, YP), (-2.2, YP)], PAIN, 4)
-        self.play(Create(stub_t.halo), Create(stub_t.line), Create(stub_p.halo), Create(stub_p.line), run_time=0.9)
-        self.play(FadeIn(stub_t.tip), FadeIn(stub_p.tip), FadeIn(lt), FadeIn(lp), run_time=0.4)
+        self.add(label('TOUCH AND PAIN',0,1.5,28,GREY),label(self.TITLE,0,0,48),label('BIOCHEMISTRYPEDIA',0,-1.3,26,TEAL))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Touch(SpokenScene):
-    """the dorsal column - medial lemniscus lane: same side up the cord, synapse in the medulla, cross, thalamus, cortex."""
-
+class S01Q(SpokenScene):
     def construct(self):
-        n = Net()
-        self.add(*n.base(), n.root[1])
-        lbl = VGroup(*[T(s, 22, TOUCH) for s in ("fine touch, vibration,", "position sense")]).arrange(DOWN, buff=0.05)
-        lbl.move_to([-2.75, 1.45, 0])
-        stub = Track([(XS, YT), (-3.2, YT)], TOUCH, 2)
-        self.add(stub)
-        self.play(FadeIn(lbl), run_time=0.6)
-        d = dot().move_to([XS, YT, 0])
-        a = n.tA[1]
-        # --- up the cord on the same side, no synapse ---------------------------------
-        self.at("sends a branch")
-        self.play(FadeOut(stub), run_time=0.01)
-        self.play(Create(a.halo), Create(a.line), FadeIn(d), run_time=0.9)
-        self.play(FadeIn(a.tip), run_time=0.1)
-        self.at("does not synapse")
-        ns = btext("no synapse", 22, GREY).move_to([-2.0, 2.4, 0])
-        self.play(FadeIn(ns), run_time=0.5)
-        self.play(d.animate.move_to([-0.6, YT, 0]), run_time=0.9, rate_func=linear)
-        # --- synapse in the nucleus -----------------------------------------------------
-        self.at("gracil")
-        self.play(FadeOut(ns), FadeIn(n.nuc[1], scale=0.9), run_time=0.6)
-        pulse(self, n.nuc[1], 1.08, 0.5)
-        # --- cross the midline --------------------------------------------------------------
-        self.at("cross the midline")
-        self.play(FadeIn(n.thal[-1]), run_time=0.4)
-        b = n.tB[1]
-        self.play(Create(b.halo, rate_func=linear), Create(b.line, rate_func=linear), fly(d, lane_path(b), 0.9), run_time=0.9)
-        self.play(FadeIn(b.tip), run_time=0.12)
-        cr = ring(CROSS_T)
-        self.play(Create(cr), run_time=0.3)
-        # --- thalamus and cortex ----------------------------------------------------------------
-        self.at("climb to the thalamus")
-        pulse(self, n.thal[-1], 1.05, 0.4)
-        self.at("relays to the cortex")
-        c = n.tC[1]
-        self.play(Create(c.halo, rate_func=linear), Create(c.line, rate_func=linear), fly(d, lane_path(c), 0.7), run_time=0.7)
-        self.play(FadeIn(c.tip), FadeIn(n.ctx[-1], scale=0.9), FadeOut(d), run_time=0.5)
-        self.at("crosses in the medulla")
-        xl = btext("crosses in the medulla", 24, SIG).move_to([-0.05, 0, 0])
-        self.play(FadeIn(xl), Indicate(cr, color=SIG, scale_factor=1.5), run_time=0.8)
+        self.add(pepper(),thermometer(3.4,.1))
+        self.at('carries no heat');self.play(Indicate(self.mobjects[1],color=SIG),run_time=.45)
+        self.at('So why does',lead=.6);self.add(label('Why does it burn?',0,-3.25,42))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Pain(SpokenScene):
-    """the spinothalamic lane: synapse in the dorsal horn, cross in the cord, climb the opposite side to the thalamus."""
-
+class S02Hunt(SpokenScene):
     def construct(self):
-        n = Net()
-        touch = VGroup(n.tA[1], n.nuc[1], n.tB[1], n.tC[1], n.ctx[-1])
-        self.add(*n.base(), n.root[1], n.thal[-1], touch)
-        op(touch, 0.2)
-        op(n.thal[-1], 0.5)
-        lp = VGroup(*[T(s, 22, PAIN) for s in ("pain, temperature",)])
-        lp.move_to([-5.1, 0.42, 0])
-        d = dot().move_to([XS, YP, 0])
-        self.play(FadeIn(lp), run_time=0.6)
-        a = n.pA[1]
-        self.at("first axon synapses")
-        self.play(Create(a.halo), Create(a.line), FadeIn(d), run_time=0.8)
-        self.play(FadeIn(a.tip), FadeIn(n.dh[1], scale=0.9), run_time=0.4)
-        pulse(self, n.dh[1], 1.08, 0.5)
-        self.at("second axon crosses")
-        b = n.pB[1]
-        self.play(Create(b.halo, rate_func=linear), Create(b.line, rate_func=linear), fly(d, lane_path(b), 1.3), run_time=1.3)
-        cr = ring(CROSS_P)
-        xl = btext("crosses in the spinal cord", 24, SIG).move_to([-3.6, -0.05, 0])
-        self.play(Create(cr), FadeIn(xl), run_time=0.6)
-        self.at("anterior white commissure")
-        self.play(Indicate(cr, color=SIG, scale_factor=1.5), run_time=0.8)
-        self.at("opposite side")
-        self.play(FadeIn(b.tip), run_time=0.12)
-        self.play(fade_to(n.thal[-1], 0.5, 1.0, 0.4), FadeOut(d))
-        pulse(self, n.thal[-1], 1.05, 0.4)
-        self.at("crosses in the spinal cord")
-        self.play(Indicate(cr, color=SIG, scale_factor=1.5), xl.animate.scale(1.1), run_time=0.8)
+        self.add(neuron(),neuron_labels(),label('Caterina, Julius and colleagues · 1997',0,3.1,30))
+        self.at('looked for the protein')
+        self.play(FadeIn(label('?',3.8,1.9,54,SIG)),Create(Line([3.45,1.8,0],[2.2,1.5,0],color=SIG)),run_time=.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Hemi(SpokenScene):
-    """the cut across the right half: the right touch lane and the left pain lane both run into it."""
-
+class S03Cells(SpokenScene):
     def construct(self):
-        n = Net()
-        self.add(*n.base(), n.root[1])
-        tb, ta_after = n.tA[1].split(CUT_X)
-        t1 = Track(tb, TOUCH, 2, tip=False)
-        t2 = Track(ta_after, TOUCH, 2)
-        beyond_t = VGroup(t2, n.nuc[1], n.tB[1], n.thal[-1], n.tC[1], n.ctx[-1])
-        self.add(t1, beyond_t)
-        pb1p, pb2p = n.pB[-1].split(CUT_X)
-        p1 = Track(pb1p, PAIN, 4, tip=False)
-        p2 = Track(pb2p, PAIN, 4)
-        beyond_p = VGroup(p2, n.thal[1])
-        cut = Line([CUT_X, 2.7, 0], [CUT_X, 0.45, 0], color=CUT, stroke_width=11)
-        cut.set_z_index(8)
-        cut_lbl = T("cut: right half, T10", 24, CUT).move_to([CUT_X, 3.05, 0])
-        self.at("Now make the cut")
-        self.play(Create(cut), run_time=0.7)
-        self.play(FadeIn(cut_lbl), run_time=0.4)
-        # --- touch from the right side ------------------------------------------------------------
-        self.at("right side of the body")
-        nc = T("not yet crossed", 24, TOUCH).move_to([-2.2, 1.5, 0])
-        d = dot().move_to([XS, YT, 0])
-        self.play(FadeIn(nc), FadeIn(d), run_time=0.4)
-        self.play(fly(d, lane_path(t1), 1.8), run_time=1.8)
-        self.at("so the cut severs")
-        self.play(Flash(Dot([CUT_X, YT, 0]), color=CUT, flash_radius=0.45, line_length=0.18), FadeOut(d),
-                  fade_to(beyond_t, 1.0, 0.18, 0.8), run_time=0.8)
-        # --- pain from the left side -------------------------------------------------------------------
-        self.at("left side of the body")
-        self.play(FadeIn(n.root[-1]), FadeIn(n.pA[-1]), FadeIn(n.dh[-1]), run_time=0.6)
-        op(beyond_p, 0.18)
-        self.play(FadeIn(p1), FadeIn(beyond_p), run_time=0.01)
-        d2 = dot().move_to([XS, -YP, 0])
-        self.play(FadeIn(d2), run_time=0.2)
-        self.at("already crossed")
-        pc = btext("already crossed", 24, PAIN).move_to([-3.6, 0.0, 0])
-        self.play(FadeIn(pc), fly(d2, lane_path(n.pA[-1], p1), 2.0), run_time=2.0)
-        self.at("severs those")
-        self.play(Flash(Dot([CUT_X, YP, 0]), color=CUT, flash_radius=0.45, line_length=0.18), FadeOut(d2), run_time=0.8)
+        self.add(dish(0,0,2),label('HEK293 cells',0,2.7,38))
+        self.at('do not normally respond');self.play(FadeIn(label('capsaicin → no response',0,-2.8,34,PAIN)),run_time=.35)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Lost(SpokenScene):
-    """what is lost on each side, and where the left loss begins (a head-to-feet level strip under each block)."""
-
+class S04Pools(SpokenScene):
     def construct(self):
-        n = Net()
-        self.add(n.mid, n.mid_lbl)
-        x0 = -5.9
-        SX0, SX1 = -4.9, 5.0       # level strip: head at the left end, feet at the right end
-        XT10, XT11 = -0.6, 0.5     # schematic positions of T10 and of "about T11 to T12"
-
-        def line(txt, color, size=28, weight=NORMAL):
-            return T(txt, size, color, weight=weight).move_to([0, 0, 0])
-
-        def put(m, y):
-            m.align_to([x0, 0, 0], LEFT).set_y(y)
-            return m
-
-        def strip(y):
-            frame = RoundedRectangle(corner_radius=0.1, width=SX1 - SX0, height=0.5, stroke_color=GREY, stroke_width=2.5)
-            frame.move_to([(SX0 + SX1) / 2, y, 0])
-            hd = T("head", 22, GREY).next_to(frame, LEFT, buff=0.15)
-            ft = T("feet", 22, GREY).next_to(frame, RIGHT, buff=0.15)
-            return VGroup(frame, hd, ft)
-
-        def lost(x_from, x_to, y, a=0.6):
-            r = Rectangle(width=x_to - x_from, height=0.5, stroke_width=0, fill_color=CUT, fill_opacity=a)
-            return r.move_to([(x_from + x_to) / 2, y, 0])
-
-        h1 = put(line("Patient's right side, below T10", TEXT, 28, BOLD), 3.0)
-        r1 = put(line("Fine touch, vibration, position sense: lost", TOUCH), 2.45)
-        r2 = put(line("Weakness (corticospinal tract)", WEAK), 1.9)
-        su = strip(1.2)
-        lu = lost(XT10, SX1, 1.2)
-        tu = T("T10", 22, TEXT).move_to([XT10, 0.7, 0])
-        h2 = put(line("Patient's left side, from about T11 to T12 down", TEXT, 28, BOLD), -0.6)
-        l1 = put(line("Pain and temperature: lost", PAIN), -1.15)
-        l2 = put(line("Some fibres cross above the cut and escape it", GREY, 24), -1.65)
-        sl = strip(-2.4)
-        ramp = lost(XT11, XT11 + 0.8, -2.4, 0.25)
-        ll = lost(XT11 + 0.8, SX1, -2.4)
-        tl = T("about T11 to T12", 22, TEXT).move_to([XT11 + 0.4, -2.9, 0])
-        t10l = DashedLine([XT10, -2.15, 0], [XT10, -2.65, 0], color=GREY, stroke_width=2.5)
-        t10u = Line([XT10, 0.95, 0], [XT10, 1.45, 0], color=CUT, stroke_width=5)
-
-        self.play(FadeIn(h1, shift=RIGHT * 0.2), FadeIn(su), run_time=0.7)
-        self.at("fine touch")
-        self.play(FadeIn(r1, shift=RIGHT * 0.2), Create(t10u), FadeIn(tu), run_time=0.6)
-        self.play(GrowFromEdge(lu, LEFT), run_time=0.8)
-        self.at("lost on the left")
-        self.play(FadeIn(h2, shift=RIGHT * 0.2), FadeIn(sl), run_time=0.6)
-        self.play(FadeIn(l1, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("a little lower")
-        self.play(FadeIn(t10l), FadeIn(ramp), GrowFromEdge(ll, LEFT), FadeIn(tl), run_time=1.0)
-        self.at("cross above the cut")
-        self.play(FadeIn(l2, shift=RIGHT * 0.2), run_time=0.7)
-        self.at("Weakness is")
-        self.play(FadeIn(r2, shift=RIGHT * 0.2), run_time=0.7)
+        s=pool_screen();self.add(s)
+        self.at('They added pools')
+        for yy in [1.8,0,-1.8]:
+            p=block('cDNA pool',-3.1,yy+.65,SIG,22)
+            self.play(FadeIn(p),run_time=.18)
+            self.play(p.animate.move_to([-4.4,yy,0]),run_time=.38)
+            self.play(FadeOut(p,scale=.6),s[1+[1.8,0,-1.8].index(yy)*4][1].animate.set_color(SIG),run_time=.2)
+        self.at('copies of sensory');self.play(Indicate(s[-1],scale_factor=1.02),run_time=.4)
+        self.at('and watched calcium');self.play(Indicate(s[-2]),run_time=.35)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """touch and strength on one side, pain on the other; the rule of the two crossings."""
-
+class S05Flat(SpokenScene):
     def construct(self):
-        head = T("Brown-Séquard pattern", 42, font=TITLE_FONT)
-        sub = T("touch and strength lost on one side, pain on the other", 30, TEXT)
-        hs = VGroup(head, sub).arrange(DOWN, buff=0.3).move_to([0, 2.5, 0])
-        self.play(FadeIn(sub, shift=UP * 0.1), run_time=0.9)
-        self.at("pattern")
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.7)
-        note = T("major routes, not the whole of touch or pain processing", 26, GREY).move_to([0, -3.0, 0])
-        self.at("major routes")
-        self.play(FadeIn(note), run_time=0.7)
-        ct = bchip("fine touch, vibration,\nposition sense", TOUCH, 28)
-        cp = bchip("pain, temperature", PAIN, 28)
-        xt = bchip("crosses in\nthe medulla", SIG, 30)
-        xp = bchip("crosses in the\nspinal cord", SIG, 30)
-        YA, YB = 0.55, -1.2
-        ct.move_to([0, YA, 0]).align_to([-0.3, 0, 0], RIGHT).set_y(YA)
-        cp.align_to([-0.3, 0, 0], RIGHT).set_y(YB)
-        at_ = Arrow([-0.1, YA, 0], [0.9, YA, 0], color=GREY, buff=0, stroke_width=5)
-        ap_ = Arrow([-0.1, YB, 0], [0.9, YB, 0], color=GREY, buff=0, stroke_width=5)
-        xt.align_to([1.1, 0, 0], LEFT).set_y(YA)
-        xp.align_to([1.1, 0, 0], LEFT).set_y(YB)
-        d1, d2 = dot().move_to(ct.get_right()), dot().move_to(cp.get_right())
-        self.at("Where each one crosses")
-        self.play(FadeIn(ct, shift=RIGHT * 0.2), FadeIn(cp, shift=RIGHT * 0.2), run_time=0.8)
-        self.at("crosses in the medulla")
-        self.play(GrowArrow(at_), FadeIn(d1), run_time=0.4)
-        self.play(d1.animate.move_to(xt.get_left()), FadeIn(xt, shift=RIGHT * 0.3), run_time=0.5)
-        self.play(FadeOut(d1), run_time=0.2)
-        self.at("crosses in the spinal cord")
-        self.play(GrowArrow(ap_), FadeIn(d2), run_time=0.4)
-        self.play(d2.animate.move_to(xp.get_left()), FadeIn(xp, shift=RIGHT * 0.3), run_time=0.5)
-        self.play(FadeOut(d2), run_time=0.2)
+        e=experiment();self.add(e,label('most pools',-3.5,-2.3,32,GREY))
+        self.at('capsaicin did nothing');self.play(Indicate(e[2][1],scale_factor=1.01),run_time=.5)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Fine touch crosses in the medulla; pain crosses in the spinal cord."
+class S06Jump(SpokenScene):
+    def construct(self):
+        e=experiment();self.add(e)
+        self.at('A positive pool');self.play(ReplacementTransform(e[2][1],trace(positive=True)[1]),run_time=.6)
+        self.at('Splitting that pool');self.clear()
+        levels=[2.65,.85,-.95,-2.75]
+        root=block('positive pool',-2.5,levels[0],SIG,28);self.add(root)
+        parent=root
+        self.add(label('repeat the positive test',2.4,3.3,28),trace(1,2.3,4.7,.65,True,mini=True))
+        for j,yy in enumerate(levels[1:]):
+            if j==1:self.at('again and again')
+            if j==2:self.at('left a single')
+            prev=levels[j]
+            winner=block(['½ pool','½ again','one cDNA'][j],-2.5,yy,SIG,28)
+            loser=block('negative',-5.15,yy,GREY,26)
+            self.play(GrowArrow(arr(parent.get_bottom()[:2],winner.get_top()[:2],SIG)),
+                GrowArrow(arr(parent.get_left()[:2],loser.get_top()[:2])),FadeIn(winner),FadeIn(loser),
+                Create(trace(1,yy-.35,4.7,.65,True,mini=True)),run_time=.45)
+            parent=winner
+        self.add(label('calcium · schematic positive tests',2.7,-3.5,26,SIG))
+        self.finish()
+
+
+class S07Named(SpokenScene):
+    def construct(self):
+        self.add(gate(scale=1.85))
+        name=label('VR1',0,3,44,PAIN);self.add(name)
+        self.at('now called');self.play(ReplacementTransform(name,label('TRPV1',0,3,44,PAIN)),run_time=.35)
+        self.add(label('nonselective cation channel',0,-3,30,GREY));self.finish()
+
+
+def heat_frame(hot=True):
+    g=gate(-2,.1,PAIN,hot,1.05)
+    t=trace(.55,-2.05,5.3,4.25,hot,'heat')
+    temp=44 if hot else 37
+    ty=lambda value:-1.75+(value-37)*.49
+    meter=VGroup(RoundedRectangle(width=.42,height=3.8,corner_radius=.2,color=GREY).move_to([-5.35,.1,0]),
+        Circle(.34,color=PAIN,fill_color=PAIN,fill_opacity=1).move_to([-5.35,-1.75,0]),
+        Line([-5.35,-1.75,0],[-5.35,ty(temp),0],color=PAIN,stroke_width=9),
+        DashedLine([-5.85,ty(43),0],[-4.75,ty(43),0],color=TEXT),label('43 °C',-4.2,ty(43),26),
+        label(f'{temp} °C',-5.1,2.75,32,PAIN),label('bath\ntemperature',-5,-2.65,26))
+    ions=VGroup(arr((-2,.9),(-2,-1.2),SIG),label('Ca2+ in',-2,-1.8,28,SIG)) if hot else VGroup()
+    note=VGroup(label('cloned rat channel',-1.65,-3.5,28,GREY),
+                label('foreign cell',2.1,-3.5,28,GREY))
+    return VGroup(g,label('TRPV1',-2,2.75,34,PAIN),t,meter,ions,note)
+
+
+class S08Heat(SpokenScene):
+    def construct(self):
+        h=heat_frame(False);self.add(h)
+        self.at('Here is the surprise');self.play(Indicate(h[1]),run_time=.4)
+        self.at('also opens with heat')
+        ty=lambda value:-1.75+(value-37)*.49
+        for value in [39,41,42,43]:
+            h[3][5].become(label(f'{value} °C',-5.1,2.75,32,PAIN))
+            self.play(h[3][2].animate.put_start_and_end_on([-5.35,-1.75,0],[-5.35,ty(value),0]),run_time=.3)
+        self.at('above about')
+        h[3][5].become(label('44 °C',-5.1,2.75,32,PAIN))
+        self.play(h[3][2].animate.put_start_and_end_on([-5.35,-1.75,0],[-5.35,ty(44),0]),run_time=.35)
+        hot=heat_frame(True)
+        self.play(Transform(h[0],hot[0]),Create(hot[4]),ReplacementTransform(h[2][1],hot[2][1]),run_time=.45)
+        self.finish()
+
+
+class S08Beat(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(heat_frame());self.wait(1)
+
+
+class S09Hedge(SpokenScene):
+    def construct(self):
+        h=heat_frame();self.add(h)
+        note=h[-1]
+        self.at('That was the cloned rat channel')
+        self.play(*[FadeOut(m) for m in h[:-1]],
+            Transform(note,VGroup(label('cloned rat channel',0,.9,40,PAIN),
+                                  label('foreign cell',0,0,40,TEXT))),run_time=.6)
+        self.at('in a foreign cell');self.play(Indicate(note[1],scale_factor=1.03),run_time=.3)
+        self.at('not human perception')
+        self.add(label('not human perception',0,-.9,40,TEXT))
+        self.wait(1.6)
+        self.finish()
+
+
+class S10Report(SpokenScene):
+    def construct(self):
+        n=neuron();self.add(n,label('TRPV1',1.7,3.05,36,PAIN),label('same sensory neuron',-3.3,-1.6,28))
+        self.at('So capsaicin burns')
+        self.play(FadeIn(block('capsaicin',-3,2.8,PAIN,30)),GrowArrow(arr((-1.65,2.8),(1.08,2.1),PAIN)),run_time=.4)
+        self.at('noxious heat also')
+        self.play(FadeIn(flame(5,2.05)),FadeIn(label('heat',5,3.2,30,PAIN)),GrowArrow(arr((4.4,2.25),(2.32,2.1),PAIN)),run_time=.35)
+        self.play(Transform(n[-1],gate(1.7,1.5,PAIN,True,.65)),
+            GrowArrow(arr((-1.4,.1),(-3.2,.1),SIG)),FadeIn(label('heat-sensitive neuron activity',1,-3.2,32,SIG)),run_time=.4)
+        self.finish()
+
+
+class S11Predict(SpokenScene):
+    def construct(self):
+        q=question();g=gate(1.2,0,COLD,False,1.65);self.add(label('Predict',0,3.1,40),g)
+        self.at('A chemical opens');self.play(FadeIn(q[1]),GrowArrow(q[3][0]),Transform(g,q[0]),run_time=.4)
+        self.at('cool temperatures also');self.play(FadeIn(q[2]),GrowArrow(q[3][1]),run_time=.4)
+        self.at('How will it feel');self.add(q[4]);self.finish()
+
+
+class S12Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(label('Predict',0,3.1,40),question());self.wait(5)
+
+
+class S13Cool(SpokenScene):
+    def construct(self):
+        n=neuron(COLD).center().shift(DOWN*.1);nl=label('cold-sensitive neurons',0,-2.8,32,COLD)
+        self.add(n,label('Most likely cool',0,3.1,42,COLD))
+        self.at('mainly drives');self.play(FadeIn(nl),run_time=.3)
+        self.at('That chemical is menthol');self.play(FadeOut(n),FadeOut(nl),FadeIn(leaf(y=-.35)),FadeIn(label('menthol · mint',-2.8,2.05,32,COLD)),run_time=.4)
+        self.at('Mint can feel cool');self.play(FadeIn(thermometer(3,.1,True)),run_time=.4)
+        self.add(label('cooling feeling ≠ cooler skin',0,-3.25,32,COLD));self.finish()
+
+
+class S14Trpm8(SpokenScene):
+    def construct(self):
+        g=gate(1.25,0,COLD,False,1.65);self.add(g,label('McKemy and colleagues · 2002',0,-3.2,28,GREY))
+        self.at('Its receptor is called');self.play(FadeIn(label('TRPM8',0,3.1,44,COLD)),run_time=.3)
+        self.add(block('menthol',-4,1.5,COLD,30),arr((-2.8,1.5),(-.3,.8),COLD))
+        self.at('Cool temperatures open');self.play(FadeIn(snow(-4,-.8,.6)),FadeIn(label('cool / cold',-4,-2,30,COLD)),
+            GrowArrow(arr((-2.8,-.8),(-.3,-.6),COLD)),Transform(g,gate(1.25,0,COLD,True,1.65)),run_time=.5)
+        self.finish()
+
+
+class S15Need(SpokenScene):
+    def construct(self):
+        panels=VGroup(*[RoundedRectangle(width=5.3,height=5.6,corner_radius=.2,color=GREY).move_to([x,0,0]) for x in [-3.1,3.1]])
+        self.add(panels,label('foreign cell',-3.1,2.1,36),label('animal',3.1,2.1,36),dish(-3.1,.3,1.1),mouse(3.1,scale=1.1))
+        self.at('what is enough');self.play(FadeIn(label('SUFFICIENT',-3.1,-2,36,SIG)),run_time=.3)
+        self.at('Does the animal need it');self.play(FadeIn(label('NECESSARY?',3.1,-2,36,SIG)),run_time=.3)
+        self.finish()
+
+
+class S16Ko(SpokenScene):
+    def construct(self):
+        self.add(label('TRPV1',0,3.2,42,PAIN),mouse(-3,scale=1.65),mouse(3,scale=1.65),
+            label('littermate control',-3,-2.2,30),label('VR1-null',3,-2.2,32,RED))
+        self.at('and colleagues');self.add(label('Caterina and colleagues · 2000',0,-3.2,28,GREY))
+        self.at('that gene out')
+        gene=block('TRPV1 gene',3,2.65,PAIN,28);self.add(gene)
+        self.play(gene[1].animate.set_opacity(.4),gene[0].animate.set_stroke(RED),
+            FadeIn(block('no TRPV1',2.7,0,RED,28)),run_time=.4)
+        self.finish()
+
+
+class S17Result1(SpokenScene):
+    def construct(self):
+        r=results();self.add(r[0])
+        self.at('The mice showed');self.add(r[1][0][0])
+        self.at('no pain');self.play(GrowArrow(r[1][0][1]),FadeIn(r[1][0][2]),run_time=.3)
+        self.at('Their detection');self.play(FadeIn(r[1][1][0]),run_time=.3)
+        self.at('only partly impaired');self.play(GrowArrow(r[1][1][1]),FadeIn(r[1][1][2]),run_time=.3)
+        self.finish()
+
+
+class S18Result2(SpokenScene):
+    def construct(self):
+        r=results(3);self.add(r[0],r[1][0],r[1][1])
+        self.at('Mechanical responses');self.add(r[1][2][0])
+        self.at('were normal');self.play(GrowArrow(r[1][2][1]),FadeIn(r[1][2][2]),run_time=.3)
+        self.at('the heat loss');self.play(Indicate(r[1][1][2][1],color=SIG,scale_factor=1.03),run_time=.4)
+        self.at('So other sensors exist');self.add(label('Other sensors exist',0,-2.9,30,SIG))
+        self.at('is not the pain receptor');self.add(label('TRPV1 ≠ the pain receptor',0,-3.5,30,PAIN));self.finish()
+
+
+class S19Idea(SpokenScene):
+    def construct(self):
+        o=overview();self.add(o)
+        self.at('Follow the line');self.play(Indicate(o[0]),run_time=.4);self.finish()
+
+
+class S20Idea1(SpokenScene):
+    def construct(self):
+        o=overview();self.add(o)
+        self.at('A sensory');self.play(o[1][0].animate.set_stroke(SIG,width=4),run_time=.3)
+        active=label('active line',-4.1,-.65,28,SIG)
+        strength=label('how strongly',-4.1,-1.5,28,SIG)
+        self.at('which line is active');self.add(active)
+        self.at('how strongly');self.play(o[3][0].animate.set_stroke(width=9),FadeIn(strength),run_time=.3)
+        self.at('But it does not')
+        # Expand the report slot, giving the complete statement its own readable space.
+        self.play(FadeOut(VGroup(o[1],o[2],o[3],active,strength)),run_time=.25)
+        self.clear();self.add(o[0])
+        card=RoundedRectangle(width=11.5,height=4.6,corner_radius=.2,color=SIG).move_to([0,-.3,0])
+        self.add(card,label('report',0,1.25,34,SIG),
+            label('Firing identifies the active line\nand reports how strongly it fires;\nit need not uniquely identify\nwhat activated it.',0,-.65,32))
+        self.finish()
+
+
+class S21Idea2(SpokenScene):
+    def construct(self):
+        # Reuse the neuron ending and its embedded channel from the discovery scene.
+        a=neuron(PAIN).scale(.62).center().move_to([-3.2,0,0])
+        b=neuron(COLD).scale(.62).center().move_to([3.2,0,0])
+        self.add(a,b,label('TRPV1',-3.2,-2.6,34,PAIN),label('TRPM8',3.2,-2.6,34,COLD))
+        self.at('decide what can activate')
+        self.play(FadeIn(label('capsaicin · heat · protons',-3.2,2.8,27,PAIN)),FadeIn(label('cool · menthol',3.2,2.8,30,COLD)),
+            GrowArrow(arr((-3.2,2.4),a[-1].get_top()[:2]+UP[:2]*.1,PAIN)),
+            GrowArrow(arr((3.2,2.4),b[-1].get_top()[:2]+UP[:2]*.1,COLD)),run_time=.35)
+        self.add(snow(5.55,2.8,.36),label('protons lower the heat threshold',0,-3.25,30,TEXT));self.finish()
+
+
+class S22Idea3(SpokenScene):
+    def construct(self):
+        o=overview();self.add(o,label('active line',-4.1,-.65,28,SIG),label('how strongly',-4.1,-1.5,28,SIG))
+        self.at('The next two films');self.add(label('next films',0,-3.25,30,TEAL))
+        self.at('where each line goes');self.add(label('where it goes',0,-1.3,28,SIG));self.play(o[1][1].animate.set_stroke(SIG,width=4),run_time=.25)
+        self.at('who turns it up');self.add(label('who turns it up',4.1,-1.3,28,SIG));self.play(o[1][2].animate.set_stroke(SIG,width=4),run_time=.25)
+        self.finish()
+
+
+class S24Takeaway(SpokenScene):
+    def construct(self):
+        self.add(label('Firing identifies the active line;\nit need not uniquely identify what activated it.',0,2.7,32,SIG),
+                 neuron().scale(.78).shift(DOWN*.15))
+        q1=label('Which neurons were driven?',0,-2.35,34)
+        q2=label('What can drive them?',0,-3.2,34)
+        self.at('which neurons were driven');self.add(q1)
+        self.at('what can drive them');self.add(q2);self.finish()
+
+
+class S25End(EndCard):
+    LINE='Ask which neurons were driven and what can drive them.'
+    def construct(self):
+        self.add(label('Ask which neurons were driven\nand what can drive them.',0,.5,42),
+            label('biochemistrypedia.com',0,-1.6,32,TEAL))
+        self.finish()

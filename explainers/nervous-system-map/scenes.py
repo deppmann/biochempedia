@@ -1,445 +1,321 @@
-"""A map is not a verdict: the nervous-system map and what each kind of evidence licenses
-(Biochemistrypedia explainer, Neuroscience course).
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-The brain is drawn ONLY as regions in ONE standard view: the lateral view of the left side of the brain,
-front at the viewer's left. No section of the brain is drawn. The lesion, recording, imaging and
-stimulation panels are boxes, labelled chips and a firing sketch (labelled "in this sketch"); the only
-numbers on screen are the lesson's own: 180 areas per hemisphere, 139 / 89 / 86 experiments, 1957.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the map: brain regions (lobes, brainstem, cerebellum), plain structures
-  TEAL   = the region being talked about (the two gyri)
-  RED    = lesion / damage / deficit
-  YELLOW = recording: electrode, firing
-  GREEN  = imaging: the BOLD signal
-  ORANGE = stimulation: current pulses
-  GREY   = labels, axes, de-emphasized, "not shown by this evidence"
+"""Chapter 1 repair: schematic anatomy, continuous developmental geometry.
+COLOR MAP: PURPLE forebrain; GREEN midbrain; ORANGE hindbrain; TAN cord/tube
+wall; BLUE canal and sensory; RED motor; YELLOW directions; PINK section
+planes; GREY body. Anatomical contours are schematics, not quantitative traces.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
+from bp_style import SpokenScene as _SpokenScene
+PURPLE='#AC8CDE'
+ORANGE='#F29E4C'
+TAN='#CCA982'
+PINK='#EE8FBE'
 
-ORANGE = "#F29E4C"
-MAP, HIL, LES, REC, IMG, STIM = BLUE, TEAL, RED, YELLOW, GREEN, ORANGE
+class SpokenScene(_SpokenScene):
+    # The standard sync log's negative 'late' is time WAITED, not early display.
+    # Use zero lead and record actual reveal times after waiting for the transcript.
+    def at(self, phrase, lead=0, nth=0):
+        target=self.t_of(phrase,nth)
+        if target>self.elapsed(): self.wait(np.ceil((target-self.elapsed())*config.frame_rate)/config.frame_rate)
+        with open('/tmp/nervous-map-cue-audit.txt','a') as f:
+            f.write(f'{os.environ["KX_SCENE_ID"]} {phrase!r}: target={target:.3f} actual={self.elapsed():.3f}\n')
 
-# ---------------------------------------------------------------------------------------------
-# The brain: lateral view, left side of the brain, front at the viewer's left (regions only)
-# ---------------------------------------------------------------------------------------------
-S_, OX, OY = 1.0, 0.2, 0.5
+def pt(x,y): return np.array([x,y,0.])
+def label(s,x,y,color=TEXT,size=28):
+    return T(s,size=size,color=color,line_spacing=1.2).move_to(pt(x,y))
+def heading(s): return label(s,0,3.35,size=30)
+def path(ps,c,w=5): return VMobject().set_points_as_corners([pt(*p) for p in ps]).set_stroke(c,w)
+def blob(ps,c,opacity=.3):
+    return VMobject().set_points_smoothly([pt(*p) for p in ps+[ps[0]]]).set_stroke(c,2.5).set_fill(c,opacity)
+def callout(s,x,y,target,color=TEXT,size=28):
+    t=label(s,x,y,color,size)
+    edge=t.get_right() if x<target[0] else t.get_left()
+    elbow=pt(edge[0]+(.18 if x<target[0] else -.18),y)
+    return VGroup(path([tuple(edge[:2]),tuple(elbow[:2]),target],color,2),Dot(pt(*target),radius=.035,color=color),t)
+def arrow(a,b,c=YELLOW): return Arrow(pt(*a),pt(*b),buff=0,color=c,stroke_width=5,max_tip_length_to_length_ratio=.18)
 
+def tube(bent=True):
+    ps=[(-3.7,1.45),(.55,1.45),(.55,-2.8)] if bent else [(-4.5,0),(4.5,0)]
+    return VGroup(path(ps,TAN,85),path(ps,BLUE,22))
+def rule(): return label('A working picture: one hollow tube, bent once',0,3.3,size=28)
 
-def A(x, y):
-    return np.array([S_ * x + OX, S_ * (y - 0.275) + OY, 0.0])
+def vesicles(five=False):
+    # One continuous wall follows the same bent centreline; bulges never cross it.
+    g=VGroup(path([(-4.7,1.45),(.55,1.45),(.55,-2.8)],TAN,55))
+    specs=[(-3.7,1.45,2.0,2.3,PURPLE),(-1.25,1.45,1.5,1.7,GREEN),(.55,.65,1.9,2.4,ORANGE)]
+    if five: specs=[(-4.2,1.45,1.25,2.3,PURPLE),(-2.8,1.45,1.25,1.9,PURPLE),(-1.25,1.45,1.15,1.6,GREEN),(.55,1.25,1.8,1.55,ORANGE),(.55,-.45,1.55,1.55,ORANGE)]
+    for x,y,w,h,c in specs:g.add(Ellipse(width=w,height=h,color=c,fill_opacity=.94).move_to(pt(x,y)))
+    g.add(path([(-4.7,1.45),(.55,1.45),(.55,-2.8)],BLUE,12).set_z_index(2))
+    return g
 
+def adult(level=0):
+    # Same lateral hemisphere contour throughout opening and developmental scenes.
+    hemi=blob([(-3.5,.1),(-3.7,1.1),(-3,2.2),(-1.7,2.85),(.1,2.8),(1.7,2.2),(2.1,1.2),(1.7,.25),(.6,-.25),(-.4,-.8),(-1.8,-.7),(-2.6,-.4)],PURPLE)
+    far=hemi.copy().scale(.96).shift(UP*.32+RIGHT*.3).set_fill(PURPLE,.12).set_stroke(PURPLE,2)
+    th=Ellipse(width=1.3,height=.6,color=PURPLE,fill_opacity=.8).move_to(pt(-.35,.35))
+    hy=blob([(-1,-.15),(-.35,-.05),(.1,-.4),(-.5,-.65),(-1,-.4)],PURPLE,.85)
+    mid=blob([(-.15,-.4),(.65,-.25),(.9,-1.05),(.25,-1.25)],GREEN,.6)
+    hind=blob([(.25,-1.1),(.8,-1),(.95,-1.8),(.85,-2.7),(.4,-2.95),(.15,-2),(-.2,-1.65)],ORANGE,.4)
+    pons=blob([(.2,-1.2),(-.2,-1.3),(-.35,-1.7),(.1,-2),(.7,-1.9),(.8,-1.35)],ORANGE,.65)
+    med=blob([(.25,-2),(.85,-1.9),(.9,-2.7),(.4,-3)],ORANGE,.65)
+    cord=path([(.6,-2.85),(.6,-3.25)],TAN,30)
+    cb=blob([(.8,-1.2),(1,-.65),(1.65,-.55),(2.45,-.95),(2.5,-1.8),(1.95,-2.25),(1.15,-2.1),(1.35,-1.65)],ORANGE,.65)
+    wall=VGroup(far,hemi,th,hy,mid,hind,pons,med,cord)
+    water=VGroup()
+    if level>=1:
+        water.add(blob([(-2.8,1.25),(-2.35,1.65),(-1.25,1.45),(-.5,.7),(-1.35,1.15),(-2.3,1.3)],BLUE,.75),blob([(-2.65,1.9),(-2.1,2.25),(-1.05,1.95),(-.5,.7),(-1.25,1.65),(-2.05,1.92)],BLUE,.55))
+    if level>=2:water.add(path([(-.5,.7),(-.5,-.4)],BLUE,9))
+    if level>=3:water.add(path([(-.5,-.4),(.4,-.8),(.6,-1.25)],BLUE,7))
+    if level>=4:water.add(Polygon(pt(.6,-1.25),pt(1.35,-1.65),pt(.65,-2.25),color=BLUE,fill_opacity=.75,stroke_width=2))
+    return wall,water,cb
 
-_P = dict(
-    A=(-4.0, 0.2), B=(-3.7, 1.2), C=(-2.8, 2.0), D=(-1.4, 2.5), E=(0.4, 2.62), F=(2.0, 2.35),
-    G=(3.0, 1.6), H=(3.6, 0.6), I=(3.5, -0.4), J=(2.8, -1.0), K=(1.4, -1.5), L=(-0.3, -1.8),
-    M=(-1.8, -1.6), N=(-2.3, -0.9), O=(-3.2, -0.5), Cb=(-0.7, -0.25), Pp=(1.2, 0.4), R=(2.3, -0.3),
-)
-_LOBES = dict(
-    frontal=list("ABCDE") + ["Cb", "N", "O"],
-    parietal=["E", "F", "R", "Pp", "Cb"],
-    occipital=["F", "G", "H", "I", "J", "R"],
-    temporal=["N", "Cb", "Pp", "R", "J", "K", "L", "M"],
-)
+def adult_scene(s,level=0,cb=False):
+    w,a,c=adult(level);s.add(w)
+    if cb:s.add(c)
+    s.add(a)
+    return w,a,c
 
+def section():
+    outer=Circle(radius=2.85,color=TAN,fill_opacity=.12)
+    canal=Circle(radius=.25,color=BLUE,fill_opacity=.7)
+    d=AnnularSector(inner_radius=.45,outer_radius=2.65,angle=PI,start_angle=0,color=BLUE,fill_opacity=.38,stroke_width=0)
+    v=AnnularSector(inner_radius=.45,outer_radius=2.65,angle=PI,start_angle=PI,color=RED,fill_opacity=.38,stroke_width=0)
+    return VGroup(outer,canal),d,v
 
-def _poly(keys, rc=0.12, **style):
-    pts = [A(*_P[k]) for k in keys]
-    p = Polygon(*pts, **style)
-    return p.round_corners(rc) if rc else p
+def human(bent=True):
+    # Rounded skull, brow, short nose, lips and chin in one human profile.
+    head=blob([(-1.3,1.3),(-1.9,1.45),(-2.16,1.7),(-2.2,1.98),(-2.34,2.04),(-2.25,2.13),(-2.36,2.2),(-2.28,2.33),(-2.52,2.37),(-2.32,2.61),(-2.28,2.84),(-1.97,3.08),(-1.45,3.15),(-.97,2.88),(-.78,2.45),(-.82,1.9)],GREY,.12)
+    nose=VMobject()  # Preserve the shared figure's subobject indices.
+    torso=blob([(-1.65,1.3),(-.7,1.3),(0,.6),(.15,-1.3),(-.55,-1.8),(-1.8,-1.6),(-2.15,-.7)],GREY,.12)
+    legs=VGroup(path([(-1.6,-1.6),(-1.8,-3.1)],GREY,13),path([(-.5,-1.7),(-.1,-3.1)],GREY,13))
+    fore=path([(-2.25,2.25),(-1.2,2.25)],PURPLE,28) if bent else path([(-1.2,2.25),(-1.2,2.9)],PURPLE,28)
+    brainstem=VGroup(path([(-1.2,2.25),(-1.1,1.75)],GREEN,28),path([(-1.1,1.75),(-1,1.25)],ORANGE,28))
+    cord=path([(-1,1.25),(-1,-1.6)],TAN,25)
+    return VGroup(head,nose,torso,legs,fore,brainstem,cord)
 
+def rat():
+    body=blob([(-2.9,.25),(-2,1.3),(.3,1.55),(2.7,1),(3,.1),(2.3,-.9),(-1.8,-1),(-2.9,-.5)],GREY,.13)
+    head=blob([(-2.9,.6),(-3.65,.85),(-4.9,.1),(-4.4,-.5),(-3,-.6)],GREY,.13)
+    ear=Circle(radius=.4,color=GREY,fill_opacity=.15).move_to(pt(-3.15,.8))
+    feet=VGroup(*[path([(x,-.7),(x-.3,-2.25),(x-.9,-2.25)],GREY,8) for x in [-2,-.8,1.4,2.3]])
+    tail=path([(2.8,.1),(4.2,-.4),(5.6,-1.4)],GREY,7)
+    return VGroup(body,head,ear,feet,tail,path([(-4,.15),(-2.8,.15)],PURPLE,30),path([(-2.8,.15),(-1.5,.15)],ORANGE,30),path([(-1.5,.15),(2.6,.15)],TAN,30))
 
-def _raw(keys):
-    return Polygon(*[A(*_P[k]) for k in keys], stroke_width=0)
+def q1():return VGroup(human(),label('Spinal cord:\nwhich way is dorsal?',3,2.45,size=30),label('?',.2,-.4,YELLOW,70))
+def slab(kind):
+    ps={'s':[(-2.7,1.2),(-.6,1.45),(-.6,3.15),(-2.7,2.9)],'c':[(-1.5,1),(-.55,1.5),(-.55,3.1),(-1.5,2.6)],'h':[(-3.1,1.65),(.2,1.65),(.9,2.25),(-2.4,2.25)]}[kind]
+    top=Polygon(*[pt(*p) for p in ps],color=PINK,fill_opacity=.2,stroke_width=3)
+    face=Polygon(pt(*ps[0]),pt(*ps[1]),pt(*ps[1])+DOWN*.12,pt(*ps[0])+DOWN*.12,color=PINK,fill_opacity=.5,stroke_width=1)
+    return VGroup(top,face)
+def horizontal():
+    # A finite-thickness horizontal slab crosses the upper brainstem below the bend.
+    return VGroup(human(),slab('h'),arrow((-1.2,2.05),(-2.45,2.05)),label('Horizontal',3,2.8,PINK,30))
+def q2():return VGroup(horizontal(),label('Through the brainstem?',2.6,.7,size=28),label('?',-.4,1.5,YELLOW,60))
 
-
-def brain_parts():
-    """dict of VMobjects: frontal, parietal, occipital, temporal, cerebellum, brainstem, pre, post."""
-    d = {}
-    for n, ks in _LOBES.items():
-        d[n] = _poly(ks, fill_color=MAP, fill_opacity=0.30, stroke_color=BG, stroke_width=4)
-    cb = Ellipse(width=2.1 * S_, height=1.2 * S_, fill_color=MAP, fill_opacity=0.30, stroke_color=BG,
-                 stroke_width=4).move_to(A(2.5, -1.75))
-    bs = Polygon(A(-0.3, -1.8), A(1.0, -1.57), A(1.3, -3.0), A(0.4, -3.1), fill_color=MAP, fill_opacity=0.30,
-                 stroke_color=BG, stroke_width=4).round_corners(0.1)
-    d["cerebellum"], d["brainstem"] = cb, bs
-    # the two gyri: strips either side of the central sulcus (top E to the lateral fissure at Cb)
-    d["pre"] = Polygon(A(0.4, 2.55), A(-0.7, -0.25), A(-1.2, -0.3), A(-0.1, 2.5), fill_color=HIL, fill_opacity=0.5,
-                       stroke_width=0).round_corners(0.08)
-    d["post"] = Polygon(A(0.45, 2.55), A(-0.65, -0.2), A(-0.25, -0.05), A(0.95, 2.5), fill_color=HIL, fill_opacity=0.5,
-                        stroke_width=0).round_corners(0.08)
-    return d
-
-
-def mosaic():
-    """schematic patches over the cerebrum (NOT the atlas): hexagon cells cut to the four lobes."""
-    rng = np.random.default_rng(3)
-    out = VGroup()
-    raws = {n: _raw(ks) for n, ks in _LOBES.items()}
-    r = 0.38
-    dx, dy = 1.5 * r, np.sqrt(3) * r
-    for i in range(-14, 14):
-        for j in range(-12, 12):
-            c = A(-0.2, 0.9) + np.array([i * dx, j * dy + (dy / 2 if i % 2 else 0), 0])
-            if not (-4.4 < (c[0] - OX) / S_ < 3.9 and -2.2 < (c[1] - OY) / S_ + 0.275 < 2.9):
-                continue
-            hexa = RegularPolygon(6, radius=r * 0.98, start_angle=0).move_to(c)
-            for lob in raws.values():
-                try:
-                    m = Intersection(hexa, lob, fill_color=MAP, fill_opacity=float(rng.uniform(0.12, 0.62)),
-                                     stroke_color=BG, stroke_width=2.5)
-                except Exception:
-                    continue
-                if len(m.points) > 6 and m.width > 0.06:
-                    out.add(m)
-    return out
-
-
-def lab_in(text, pt, size=24, color=TEXT):
-    return T(text, size=size, color=color).move_to(A(*pt))
-
-
-def leader(text, label_pos, target, size=24, color=TEXT, anchor=LEFT, sub=None):
-    """label with a leader line; `anchor` is the side of the label the line leaves from."""
-    t = T(text, size=size, color=color)
-    if sub:
-        t = VGroup(t, T(sub, size=22, color=GREY)).arrange(DOWN, buff=0.08)
-    t.move_to(np.array([*label_pos, 0.0]))
-    tgt = np.array([*target, 0.0]) if len(target) == 2 else target
-    start = t.get_edge_center(anchor) + anchor * 0.1
-    ln = Line(start, tgt, color=GREY, stroke_width=2.5)
-    dot = Dot(tgt, radius=0.05, color=GREY)
-    return VGroup(ln, dot, t)
-
-
-def view_label():
-    a = T("Lateral view · left side of the brain", size=22, color=GREY)
-    b = T("front is at the viewer's left", size=22, color=GREY)
-    g = VGroup(a, b).arrange(DOWN, aligned_edge=LEFT, buff=0.08)
-    return g.move_to(np.array([-6.2, -3.0, 0]), aligned_edge=LEFT)
-
-
-def arrow(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, color=color, stroke_width=w, buff=0, max_tip_length_to_length_ratio=0.35,
-                 max_stroke_width_to_length_ratio=12)
-
-
-def neuron(color=MAP, scale=1.0):
-    soma = Circle(radius=0.3, fill_color=color, fill_opacity=0.35, stroke_color=color, stroke_width=3)
-    dens = VGroup(*[Line(soma.get_center() + 0.28 * np.array([np.cos(a), np.sin(a), 0]),
-                         soma.get_center() + 0.62 * np.array([np.cos(a), np.sin(a), 0]), color=color, stroke_width=3)
-                    for a in (np.pi * 0.75, np.pi * 0.5, np.pi * 0.25)])
-    ax = Line(soma.get_center() + DOWN * 0.3, soma.get_center() + DOWN * 0.95, color=color, stroke_width=3)
-    return VGroup(soma, dens, ax).scale(scale)
-
-
-# =============================================================================================
 class S00Title(TitleCard):
-    LESSON = "The Map: How the Nervous System Is Organized"
-    TITLE = "A Map Is Not a Verdict"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Map(SpokenScene):
+    LESSON='The Map: How the Nervous System Is Organized'
+    TITLE='One Tube, Bent Once'
     def construct(self):
-        d = brain_parts()
-        self.add(d["brainstem"], d["cerebellum"])
-        d["brainstem"].set_opacity(0); d["cerebellum"].set_opacity(0)
-        q = T("Where in the brain does a function live?", size=34).move_to(np.array([0, 3.2, 0]))
-        lab = view_label()
-        self.add(lab)
-        self.at("Where in the brain")
-        self.play(Write(q), run_time=1.2)
-        self.at("Start with the map")
-        self.play(*[FadeIn(d[k], scale=0.97) for k in ("frontal", "parietal", "temporal", "occipital")],
-                  run_time=1.2)
-        names = {}
-        names["frontal"] = lab_in("Frontal", (-2.4, 0.9))
-        names["parietal"] = lab_in("Parietal", (1.3, 1.1))
-        names["temporal"] = lab_in("Temporal", (0.4, -1.0))
-        names["occipital"] = leader("Occipital", (5.4, 1.2), A(3.1, 0.5))
-        self.at("four lobes")
-        self.play(FadeIn(names["frontal"]), run_time=0.4)
-        self.at("parietal")
-        self.play(FadeIn(names["parietal"]), run_time=0.4)
-        self.at("temporal")
-        self.play(FadeIn(names["temporal"]), run_time=0.4)
-        self.at("occipital")
-        self.play(FadeIn(names["occipital"]), run_time=0.4)
-        self.at("The brainstem")
-        names["brainstem"] = leader("Brainstem", (-2.4, -2.1), A(0.5, -2.4), anchor=RIGHT)
-        self.play(d["brainstem"].animate.set_fill(MAP, 0.30).set_stroke(BG, 4, 1), FadeIn(names["brainstem"]), run_time=0.6)
-        self.at("the cerebellum")
-        names["cerebellum"] = leader("Cerebellum", (5.4, -1.9), A(3.2, -1.8))
-        self.play(d["cerebellum"].animate.set_fill(MAP, 0.30).set_stroke(BG, 4, 1), FadeIn(names["cerebellum"]), run_time=0.6)
-        self.at("A map names places")
-        self.play(*[names[k].animate.set_opacity(0.0) for k in names], q.animate.set_opacity(0.0), run_time=0.7)
-        qs = T("what lives in each one?", size=34, color=HIL).move_to(np.array([0, 3.2, 0]))
-        marks = VGroup(*[T("?", size=64, color=HIL).move_to(A(*p)) for p in
-                         [(-2.4, 0.9), (1.2, 1.1), (0.4, -1.0), (3.0, 0.5)]])
-        self.at("It does not tell")
-        self.play(FadeIn(qs), LaggedStart(*[FadeIn(m, scale=0.7) for m in marks], lag_ratio=0.15), run_time=1.2)
-        self.finish()
+        self.add(label('BIOCHEMISTRYPEDIA',0,1.7,TEAL,26),label(self.LESSON,0,.8,GREY,26))
+        self.play(FadeIn(label(self.TITLE,0,-.3,size=48)),run_time=.8);self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S02Literal(SpokenScene):
+class S01Question(SpokenScene):
     def construct(self):
-        d = brain_parts()
-        lab = view_label()
-        g = VGroup(*[d[k] for k in ("brainstem", "cerebellum", "frontal", "parietal", "temporal", "occipital")])
-        self.add(lab, g)
-        pre = leader("Precentral gyrus", (-5.0, 2.3), A(-0.75, 1.7), color=HIL, anchor=RIGHT, sub="primary motor cortex")
-        post = leader("Postcentral gyrus", (4.85, 2.3), A(0.05, 1.7), color=HIL, anchor=LEFT, sub="primary somatosensory\ncortex")
-        self.at("Read the map literally")
-        self.wait(0.1)
-        self.at("gyrus contains primary motor", lead=1.0)
-        self.play(FadeIn(d["pre"]), FadeIn(pre), run_time=0.7)
-        self.at("gyrus contains primary somatosensory", lead=1.0)
-        self.play(FadeIn(d["post"]), FadeIn(post), run_time=0.7)
-        self.at("No region here")
-        one_a = chip("one region = one function", color=RED, size=24)
-        one_b = chip("one function = one region", color=RED, size=24)
-        row = VGroup(one_a, one_b).arrange(RIGHT, buff=0.5).move_to(np.array([0, 3.2, 0]))
-        sa = Line(one_a.get_left(), one_a.get_right(), color=RED, stroke_width=5)
-        sb = Line(one_b.get_left(), one_b.get_right(), color=RED, stroke_width=5)
-        self.play(FadeIn(row), run_time=0.5)
-        self.at("single function")
-        self.play(Create(sa), run_time=0.4)
-        self.at("single region")
-        self.play(Create(sb), run_time=0.4)
-        self.at("The cortex is a mosaic")
-        mo = mosaic()
-        self.play(FadeOut(pre), FadeOut(post), d["pre"].animate.set_opacity(0), d["post"].animate.set_opacity(0),
-                  FadeOut(row), FadeOut(sa), FadeOut(sb), run_time=0.5)
-        self.play(LaggedStart(*[FadeIn(m) for m in mo], lag_ratio=0.004), run_time=1.3)
-        self.at("One atlas")
-        cap = VGroup(M("180", size=36, color=MAP), T("areas per hemisphere, one atlas", size=28)).arrange(RIGHT, buff=0.2)
-        sub = T("healthy young adults · these patches are schematic, not the atlas", size=22, color=GREY)
-        sub = VGroup(T("healthy young adults", size=22, color=GREY),
-                     T("patches here are schematic, not the atlas", size=22, color=GREY)).arrange(DOWN, aligned_edge=RIGHT, buff=0.06)
-        sub.move_to(np.array([6.2, 3.25, 0]), aligned_edge=RIGHT)
-        cap.move_to(np.array([-6.2, 3.2, 0]), aligned_edge=LEFT)
-        self.play(FadeIn(cap), FadeIn(sub), run_time=0.5)
-        self.at("borders vary")
-        self.play(mo.animate.shift(RIGHT * 0.1 + UP * 0.04), run_time=0.5)
-        self.play(mo.animate.shift(LEFT * 0.2), run_time=0.5)
-        self.play(mo.animate.shift(RIGHT * 0.1 + DOWN * 0.04), run_time=0.4)
-        self.finish()
+        w,a,c=adult();VGroup(w,c).scale(1.06).move_to(pt(-.35,0));self.add(w,c)
+        # Explicitly an inventory of names, rather than a regional map.
+        left=['Frontal','Temporal','Insula','Thalamus','Hypothalamus','Amygdala']
+        right=['Parietal','Occipital','Cerebellum','Midbrain','Pons','Medulla']
+        names=VGroup(*[label(n,x,2.6-i*.92,TEXT,28) for ns,x in [(left,-5.25),(right,4.9)] for i,n in enumerate(ns)])
+        inventory=label('A list of names',0,3.55,GREY,26)
+        self.at('Your brain');self.play(FadeIn(names),FadeIn(inventory),run_time=.3)
+        self.at('is one shape');self.play(FadeOut(names),FadeOut(inventory),FadeIn(label('?',-.8,.9,YELLOW,85)),run_time=.4);self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S03Lesion(SpokenScene):
+class S02Tube(SpokenScene):
     def construct(self):
-        tag = T("LESION", size=34, color=LES, weight=BOLD).move_to(np.array([-5.2, 3.1, 0]))
-        before = chip("baseline or controls", color=GREY, size=32)
-        after = chip("behaviour after", color=GREY, size=32)
-        row = VGroup(before, arrow(LEFT * 0.8, RIGHT * 0.8), after).arrange(RIGHT, buff=0.3)
-        row.move_to(np.array([0, 2.05, 0]))
-        boxes = VGroup(*[chip("structure", color=MAP, size=34, pad=0.38) for _ in range(3)]).arrange(RIGHT, buff=1.0)
-        boxes.move_to(np.array([0, -0.2, 0]))
-        cloud_small = Ellipse(width=boxes[1].width + 0.7, height=boxes[1].height + 0.9, color=LES, fill_opacity=0.28,
-                              stroke_width=3).move_to(boxes[1])
-        cloud_big = Ellipse(width=boxes.width + 1.4, height=boxes.height + 1.2, color=LES, fill_opacity=0.28,
-                            stroke_width=3).move_to(boxes)
-        dmg = T("damage", size=30, color=LES).next_to(cloud_big, UP, buff=0.12)
-        self.at("So what kind")
-        self.play(FadeIn(tag), run_time=0.5)
-        self.at("The first is a lesion")
-        self.play(FadeIn(boxes, lag_ratio=0.2), run_time=0.8)
-        self.at("compare")
-        self.play(FadeIn(before), run_time=0.4)
-        self.play(FadeIn(row[1]), FadeIn(after), run_time=0.5)
-        self.at("after damage")
-        self.play(FadeIn(cloud_small), boxes[1][0].animate.set_stroke(LES), run_time=0.6)
-        self.at("A deficit")
-        self.play(after[0].animate.set_stroke(LES).set_fill(LES, 0.2), after[1].animate.set_color(LES), run_time=0.6)
-        self.at("contributes to the task")
-        self.play(Indicate(cloud_small, color=LES, scale_factor=1.05), run_time=0.8)
-        self.at("But damage spreads")
-        self.play(Transform(cloud_small, cloud_big), FadeIn(dmg), run_time=1.0)
-        self.at("In a 1957 report")
-        yr = VGroup(M("1957", size=32, color=LES), T("report, human patients", size=30)).arrange(RIGHT, buff=0.25)
-        yr.move_to(np.array([0, -2.0, 0]))
-        self.play(FadeIn(yr), run_time=0.5)
-        self.at("several medial temporal structures")
-        sev = T("several medial temporal structures removed at once", size=30, color=LES).move_to(np.array([0, -2.85, 0]))
-        self.play(FadeIn(sev), run_time=0.6)
-        self.at("pinned to one")
-        qs = VGroup(*[T("?", size=56, color=TEXT).move_to(b.get_center()) for b in boxes])
-        self.play(*[b[1].animate.set_opacity(0.0) for b in boxes], FadeIn(qs, lag_ratio=0.2), run_time=0.8)
-        self.finish()
+        # Identical 101 points throughout: sheet edges lift and close without a swap.
+        def fold(theta):
+            u=np.linspace(-theta,theta,101);r=3
+            return VMobject().set_points_as_corners([pt(-2.8+r*np.sin(v),-2.8+r*(1-np.cos(v))) for v in u]).set_stroke(TAN,25)
+        sheet=Line(pt(-5.8,-2.8),pt(.2,-2.8),color=TAN,stroke_width=25);self.add(sheet)
+        self.at('Most neurons');self.play(Transform(sheet,fold(PI*.52)),run_time=1.2)
+        self.at('brain and spinal');self.play(Transform(sheet,fold(PI*.82)),run_time=.8)
+        self.at('come from the wall');self.play(Transform(sheet,Circle(radius=3,color=TAN,stroke_width=25).move_to(pt(-2.8,.2))),run_time=.8)
+        self.at('one tube');self.play(FadeIn(Circle(radius=2.7,color=BLUE,fill_opacity=.15).move_to(pt(-2.8,.2))),FadeIn(VGroup(path([(1,-.4),(5.3,-.4)],TAN,75),path([(1,-.4),(5.3,-.4)],BLUE,22))),run_time=.4)
+        self.at('It forms');self.play(FadeIn(label('Along the embryo’s back',2.8,-1.55,size=26)),FadeIn(label('Open ends close: about 4 weeks\nafter fertilization\n(about 6 weeks of pregnancy)',3.2,2.05,GREY,26)),run_time=.35);self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S04Record(SpokenScene):
+class S03Rule1(SpokenScene):
     def construct(self):
-        rng = np.random.default_rng(7)
-        ln = Line(UP * 3.4, DOWN * 3.4, color=GREY, stroke_width=1.5, stroke_opacity=0.5)
-        t_rec = T("RECORDING", size=34, color=REC, weight=BOLD).move_to(np.array([-3.2, 3.1, 0]))
-        t_img = T("IMAGING", size=34, color=IMG, weight=BOLD).move_to(np.array([3.4, 3.1, 0]))
-        x1, w0, w1 = -0.8, -3.8, -2.2
-        lab_s = T("stimulus", size=24, color=GREY).move_to(np.array([-5.2, 2.0, 0]))
-        base_s = Line(np.array([-4.3, 2.0, 0]), np.array([x1, 2.0, 0]), color=GREY, stroke_width=3)
-        on = Rectangle(width=w1 - w0, height=0.45, fill_color=GREY, fill_opacity=0.6, stroke_width=0).move_to(
-            np.array([(w0 + w1) / 2, 2.0, 0]))
-        lab_f = T("firing", size=24, color=REC).move_to(np.array([-5.2, 0.8, 0]))
-        base_f = Line(np.array([-4.3, 0.45, 0]), np.array([x1, 0.45, 0]), color=GREY, stroke_width=2)
-        ticks = VGroup()
-        xs = list(rng.uniform(-4.2, w0, 3)) + list(np.linspace(w0 + 0.05, w1 - 0.05, 15) + rng.uniform(-0.04, 0.04, 15)) \
-            + list(rng.uniform(w1, x1, 2))
-        for x in sorted(xs):
-            ticks.add(Line(np.array([x, 0.45, 0]), np.array([x, 1.2, 0]), color=REC, stroke_width=4))
-        sk = T("in this sketch", size=22, color=GREY).move_to(np.array([-1.7, 0.0, 0]))
-        nrn = neuron(REC, 1.0).move_to(np.array([-5.3, -1.0, 0]))
-        elec = Line(np.array([-4.4, -0.3, 0]), nrn[0].get_center() + np.array([0.28, 0.12, 0]), color=REC, stroke_width=3)
-        elab = T("electrode", size=24, color=REC).move_to(np.array([-3.3, -0.4, 0]))
-        goes = T("firing goes with the stimulus", size=26, color=REC).move_to(np.array([-2.2, -1.5, 0]))
-        used = chip("used by the brain?", color=GREY, size=30).move_to(np.array([-2.9, -2.8, 0]))
-        c_spk = chip("spiking", color=GREY, size=28).move_to(np.array([1.65, 1.8, 0]))
-        c_lfp = chip("local field potential", color=IMG, size=28).move_to(np.array([4.55, 1.8, 0]))
-        c_bold = chip("BOLD signal", color=IMG, size=32).move_to(np.array([3.3, -0.4, 0]))
-        a_lfp = Arrow(c_lfp.get_bottom() + DOWN * 0.05, c_bold.get_top() + np.array([0.6, 0.05, 0]), color=IMG,
-                      stroke_width=9, buff=0)
-        a_spk = DashedLine(c_spk.get_bottom() + DOWN * 0.05, c_bold.get_top() + np.array([-0.6, 0.05, 0]),
-                           color=GREY, stroke_width=3, dash_length=0.12)
-        l_spk = T("less well", size=24, color=GREY).move_to(np.array([1.25, 0.65, 0]))
-        l_lfp = T("better", size=26, color=IMG).move_to(np.array([5.35, 0.65, 0]))
-        where = T("anaesthetized macaque · visual cortex", size=24, color=GREY).move_to(np.array([3.3, -1.4, 0]))
-        seat = chip("an activation does not mark a seat", color=GREY, size=24).move_to(np.array([3.3, -2.6, 0]))
-        self.add(ln)
-        self.at("The second kind")
-        self.play(FadeIn(t_rec), run_time=0.4)
-        self.play(FadeIn(lab_s), Create(base_s), FadeIn(on), run_time=0.6)
-        self.at("Firing goes")
-        self.play(FadeIn(lab_f), Create(base_f), LaggedStart(*[Create(k) for k in ticks], lag_ratio=0.05),
-                  FadeIn(sk), run_time=1.4)
-        self.play(FadeIn(goes), run_time=0.4)
-        self.at("does not show")
-        self.play(FadeIn(nrn), Create(elec), FadeIn(elab), run_time=0.4)
-        self.play(FadeIn(used), run_time=0.4)
-        self.at("The third kind")
-        self.play(FadeIn(t_img), run_time=0.4)
-        self.at("oxygenation")
-        self.play(FadeIn(c_bold), run_time=0.5)
-        self.at("macaque visual cortex")
-        self.play(FadeIn(where), run_time=0.4)
-        self.at("local field potentials")
-        self.play(FadeIn(c_lfp), run_time=0.4)
-        self.at("better than spiking")
-        self.play(FadeIn(c_spk), Create(a_spk), GrowArrow(a_lfp), FadeIn(l_spk), FadeIn(l_lfp), run_time=0.9)
-        self.at("An activation")
-        self.play(FadeIn(seat), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Stim(SpokenScene):
+        t=tube(False);self.add(t)
+        self.at('The one idea');self.play(FadeIn(label('A working picture',0,3.3,size=28)),run_time=.3)
+        self.at('one hollow tube');self.play(Indicate(t[1],color=BLUE),run_time=.4)
+        self.at('bent once');self.play(Transform(t,tube()),FadeOut(self.mobjects[1]),FadeIn(rule()),run_time=.4);self.finish()
+class S04Rule2(SpokenScene):
     def construct(self):
-        tag = T("STIMULATION", size=34, color=STIM, weight=BOLD).move_to(np.array([-4.7, 3.2, 0]))
-        box = RoundedRectangle(corner_radius=0.2, width=5.6, height=2.6, stroke_color=MAP, stroke_width=3,
-                               fill_color=MAP, fill_opacity=0.08).move_to(np.array([-3.2, 1.35, 0]))
-        cells = VGroup()
-        for i in range(3):
-            n = neuron(MAP, 0.9).move_to(box.get_center() + np.array([-1.6 + 1.6 * i, 0.2, 0]))
-            cells.add(n)
-        mt = T("area MT", size=26, color=TEXT).move_to(box.get_corner(UL) + np.array([0.85, -0.3, 0]))
-        pref = VGroup(*[Arrow(c[0].get_center() + np.array([0.0, -0.12, 0]), c[0].get_center() + np.array([0.0, 0.14, 0]),
-                              buff=0, color=HIL, stroke_width=4, max_tip_length_to_length_ratio=0.9) for c in cells])
-        key = VGroup(Arrow(ORIGIN, UP * 0.5, buff=0, color=HIL, stroke_width=6), T("preferred direction", size=26, color=HIL)
-                     ).arrange(RIGHT, buff=0.15).move_to(np.array([-3.2, -0.45, 0]))
-        elec = Line(np.array([-1.5, 3.2, 0]), cells[2][0].get_center() + np.array([0.12, 0.25, 0]), color=STIM, stroke_width=3)
-        pl = T("current pulses", size=26, color=STIM).move_to(np.array([0.05, 2.95, 0]))
-        sc = Line(np.array([1.0, 1.3, 0]), np.array([6.1, 1.3, 0]), color=GREY, stroke_width=4)
-        l1 = T("other direction", size=24, color=GREY).move_to(np.array([1.0, 0.7, 0]), aligned_edge=LEFT)
-        l2 = T("preferred direction", size=24, color=HIL).move_to(np.array([6.1, 0.15, 0]), aligned_edge=RIGHT)
-        cap = T("the monkey's choice", size=32).move_to(np.array([3.55, 2.3, 0]))
-        dot = Dot(np.array([3.55, 1.3, 0]), radius=0.2, color=TEXT)
-        tr = Arrow(np.array([3.55, 1.75, 0]), np.array([5.5, 1.75, 0]), buff=0, color=STIM, stroke_width=7)
-        wmax = 7.6
-        x0 = -6.0
-        rows = [("139 experiments", 139, GREY, -1.4), ("89 significant effect", 89, STIM, -2.15), ("86 toward preferred", 86, HIL, -2.9)]
-        bars = VGroup()
-        for text, n, col, y in rows:
-            wd = wmax * n / 139
-            r = Rectangle(width=wd, height=0.6, fill_color=col, fill_opacity=0.35, stroke_color=col, stroke_width=2.5)
-            r.move_to(np.array([x0 + wd / 2, y, 0]))
-            tx = M(str(n), size=28, color=TEXT)
-            tt = T(text.split(" ", 1)[1], size=26, color=TEXT)
-            lab = VGroup(tx, tt).arrange(RIGHT, buff=0.15).move_to(r)
-            bars.add(VGroup(r, lab))
-        concl = T("a contribution, in that task,\nfrom the stimulated neurons,\nnot from one cell type", size=26, color=TEXT, line_spacing=0.9).move_to(np.array([4.0, -2.55, 0]))
-        self.at("The fourth kind")
-        self.play(FadeIn(tag), run_time=0.4)
-        self.at("adds activity")
-        self.play(FadeIn(sc), FadeIn(dot), FadeIn(cap), run_time=0.5)
-        self.at("monkeys")
-        self.play(FadeIn(l1), FadeIn(l2), run_time=0.5)
-        self.at("current")
-        self.play(FadeIn(box), FadeIn(cells, lag_ratio=0.2), run_time=0.7)
-        self.play(Create(elec), FadeIn(pl), run_time=0.5)
-        self.at("area")
-        self.play(FadeIn(mt), run_time=0.4)
-        self.at("shared a preferred")
-        self.play(FadeIn(pref), FadeIn(key), run_time=0.6)
-        self.at("experiments")
-        self.play(FadeIn(bars[0]), run_time=0.4)
-        self.at("significant effect")
-        self.play(FadeIn(bars[1]), run_time=0.4)
-        self.at("moved toward")
-        self.play(FadeIn(bars[2]), run_time=0.3)
-        self.play(dot.animate.move_to(np.array([5.3, 1.3, 0])), FadeIn(tr), run_time=0.8)
-        self.at("That shows a contribution")
-        self.play(FadeIn(concl), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+        t=tube();self.add(t,rule())
+        self.at('Its walls');self.play(FadeIn(callout('Walls → brain parts\nand spinal cord',3.8,1.2,(.55,-.2),TAN,28)),run_time=.35)
+        self.at('Its canal');self.play(FadeIn(callout('Canal → ventricles',3.8,-1.8,(.55,-2),BLUE,28)),run_time=.35);self.finish()
+class S05Rule3(SpokenScene):
     def construct(self):
-        hdr_can = T("can show", size=26, color=GREY, weight=BOLD)
-        hdr_not = T("cannot show alone", size=26, color=GREY, weight=BOLD)
-        data = [
-            ("Lesion", LES, "damaged tissue\ncontributes", "which part of the\ndamage mattered"),
-            ("Recording", REC, "activity covaries with\na task or stimulus", "that the activity\nis used"),
-            ("Imaging", IMG, "where a blood signal\ngoes with a task", "which neural signal,\nor necessity"),
-            ("Stimulation", STIM, "adding activity\nchanges behaviour", "that the region\nis required"),
-        ]
-        xc, xn = -0.4, 4.1
-        hdr_can.move_to(np.array([xc, 3.05, 0])); hdr_not.move_to(np.array([xn, 3.05, 0]))
-        rows = []
-        for i, (k, col, can, notc) in enumerate(data):
-            y = 1.85 - i * 1.4
-            kc = chip(k, color=col, size=30).move_to(np.array([-4.9, y, 0]))
-            kc.align_to(np.array([-6.2, 0, 0]), LEFT)
-            c1 = T(can, size=26, color=TEXT, line_spacing=0.9).move_to(np.array([xc, y, 0]))
-            c2 = T(notc, size=26, color=GREY, line_spacing=0.9).move_to(np.array([xn, y, 0]))
-            rows.append((kc, c1, c2))
-        rule = T("Claim only what the evidence licenses.", size=36, color=GOLD, font=TITLE_FONT).move_to(np.array([0, -3.15, 0]))
-        self.at("Here is the rule")
-        self.play(FadeIn(hdr_can), FadeIn(hdr_not), run_time=0.5)
-        self.at("A lesion shows")
-        self.play(FadeIn(rows[0][0]), FadeIn(rows[0][1]), run_time=0.5)
-        self.at("not which part")
-        self.play(FadeIn(rows[0][2]), run_time=0.5)
-        self.at("A recording shows")
-        self.play(FadeIn(rows[1][0]), FadeIn(rows[1][1]), run_time=0.5)
-        self.at("not use")
-        self.play(FadeIn(rows[1][2]), run_time=0.5)
-        self.at("Imaging shows")
-        self.play(FadeIn(rows[2][0]), FadeIn(rows[2][1]), run_time=0.5)
-        self.at("not which neural signal")
-        self.play(FadeIn(rows[2][2]), run_time=0.5)
-        self.at("Stimulation shows")
-        self.play(FadeIn(rows[3][0]), FadeIn(rows[3][1]), run_time=0.5)
-        self.at("not that the region")
-        self.play(FadeIn(rows[3][2]), run_time=0.5)
-        self.at("Claim only")
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.7)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "Claim only what the evidence licenses."
+        self.add(tube(),rule())
+        axis=VGroup(path([(.55,-2.65),(.55,1.45),(-3.2,1.45)],YELLOW,8),arrow((-3.2,1.45),(-3.9,1.45))).set_z_index(4)
+        self.at('own long axis');self.play(Create(axis),run_time=.4)
+        dirs=VGroup(label('Rostral',-4.9,1.45,YELLOW,26),label('Caudal',1.8,-2.9,YELLOW,26),arrow((-2,1.95),(-2,2.65)),label('Dorsal',-3.5,2.65,YELLOW,26),arrow((-2,.95),(-2,.15)),label('Ventral',-3.5,.15,YELLOW,26),arrow((1.05,-.4),(2.2,-.4)),label('Dorsal',3.1,-.4,YELLOW,26),arrow((.05,-1.8),(-1.05,-1.8)),label('Ventral',-2.1,-1.8,YELLOW,26))
+        self.at('direction words');self.play(FadeIn(dirs),run_time=.3);self.finish()
+class S06Swell3(SpokenScene):
+    def construct(self):
+        t=tube();t[1].set_z_index(2);self.add(t)
+        self.at('the front end');v=vesicles();self.play(Transform(t[0],v[0]),Transform(t[1],v[-1]),*[GrowFromCenter(m) for m in v[1:-1]],run_time=1)
+        self.at('brain');self.play(FadeIn(label('Forebrain',-3.7,3,PURPLE)),run_time=.2)
+        self.at('midbrain');self.play(FadeIn(label('Midbrain',-1.2,2.7,GREEN)),run_time=.2)
+        self.at('hindbrain');self.play(FadeIn(callout('Hindbrain',3.2,.6,(1.35,.6),ORANGE)),run_time=.2);self.finish();self.wait(.8)
+class S07Swell5(SpokenScene):
+    def construct(self):
+        v=vesicles();self.add(v,label('Forebrain',-3.7,3,PURPLE),label('Midbrain',-1.2,2.7,GREEN),callout('Hindbrain',3.2,.6,(1.35,.6),ORANGE))
+        self.at('each divide');new=vesicles(True);self.play(FadeOut(VGroup(*v[1:-1])),*[GrowFromCenter(m) for m in new[1:-1]],run_time=.6)
+        self.at('The rest becomes');self.play(FadeIn(callout('Spinal cord',3.4,-2.5,(.55,-2.5),TAN)),run_time=.3);self.finish()
+class S08Cerebrum(SpokenScene):
+    def construct(self):
+        v=vesicles(True);self.add(v);w,a,c=adult(1)
+        self.at('buds out');self.play(FadeOut(v),*[GrowFromPoint(m,pt(-2.8,1.45)) for m in w],run_time=.65)
+        inset=VGroup(Ellipse(width=1.1,height=1.5,color=PURPLE,fill_opacity=.3).move_to(pt(3.7,1.3)),Ellipse(width=1.1,height=1.5,color=PURPLE,fill_opacity=.3).move_to(pt(4.95,1.3)))
+        both=VGroup(label('Two cerebral hemispheres',4.25,2.7,PURPLE,26),path([(4.25,2.4),(4.25,2.2),(3.7,2.05)],PURPLE,2),path([(4.25,2.2),(4.95,2.05)],PURPLE,2),label('Front view',4.3,.25,GREY,24))
+        self.at('cerebral hemispheres');self.play(FadeIn(inset),FadeIn(both),run_time=.3)
+        self.at('Their canals');self.play(Create(a),run_time=.4)
+        self.at('lateral ventricles');self.play(FadeIn(callout('Two lateral\nventricles',-5.1,1,(-2.3,1.6),BLUE)),run_time=.25);self.finish()
+class S09Dien(SpokenScene):
+    def construct(self):
+        w,a,c=adult_scene(self,1)
+        self.at('thalamus');self.play(Indicate(w[2]),FadeIn(callout('Thalamus',4.5,1,(.1,.4),PURPLE)),run_time=.25)
+        self.at('hypothalamus');self.play(Indicate(w[3]),FadeIn(callout('Hypothalamus',-4.8,-1.3,(-.5,-.4),PURPLE)),run_time=.25)
+        self.at('third ventricle');self.play(FadeIn(adult(2)[1][-1]),FadeIn(callout('Third ventricle',4.6,-.4,(-.5,.1),BLUE)),run_time=.25);self.finish()
+class S10Aqueduct(SpokenScene):
+    def construct(self):
+        w,a,c=adult_scene(self,2)
+        self.at('The midbrain');self.play(FadeIn(callout('Midbrain',4.6,.7,(.5,-.65),GREEN)),run_time=.25)
+        self.at('a narrow canal');self.play(Create(adult(3)[1][-1]),run_time=.3)
+        self.at('cerebral aqueduct');self.play(FadeIn(callout('Cerebral\naqueduct',4.7,-1.6,(.3,-.75),BLUE)),run_time=.25);self.finish()
+class S11Hind(SpokenScene):
+    def construct(self):
+        w,a,c=adult_scene(self,3)
+        self.at('pons and medulla');self.play(FadeIn(callout('Pons',-4.8,-1.35,(0,-1.6),ORANGE)),FadeIn(callout('Medulla',-4.8,-2.6,(.5,-2.5),ORANGE)),run_time=.3)
+        self.at('fourth ventricle');self.play(FadeIn(adult(4)[1][-1]),FadeIn(callout('Fourth ventricle',4.7,-2.3,(1,-1.7),BLUE)),run_time=.25);self.finish()
+class S12Cerebellum(SpokenScene):
+    def construct(self):
+        w,a,c=adult_scene(self,4);self.add(callout('Fourth ventricle',4.7,-2.3,(1,-1.7),BLUE))
+        self.at('cerebellum grows');self.play(GrowFromPoint(c,pt(1.1,-1.55)),run_time=.6);self.bring_to_front(a)
+        self.at('dorsal side');self.play(FadeIn(callout('Cerebellum',4.8,-.4,(2,-1.3),ORANGE)),GrowArrow(arrow((.9,-1.55),(1.9,-.95))),FadeIn(label('Dorsal',2.2,.35,YELLOW,26)),run_time=.3)
+        self.at('fourth ventricle');self.play(Indicate(a[-1]),run_time=.4);self.finish()
+class S13Plan(SpokenScene):
+    def construct(self):
+        r,d,v=section();self.add(r,heading('Embryonic spinal cord · cross-section'))
+        self.add(arrow((3.5,-1),(3.5,1)),label('Dorsal',4.6,1,YELLOW,26),label('Ventral',4.6,-1,YELLOW,26))
+        self.at('receive sensory signals');self.play(FadeIn(d),FadeIn(callout('Receives sensory\nsignals',-4.8,1.3,(-2,1.2),BLUE,26)),run_time=.35)
+        self.at('motor neurons');self.play(FadeIn(v),FadeIn(callout('Motor neurons',-4.8,-1.5,(-2,-1.2),RED,26)),run_time=.35)
+        self.at('Sensory fibers');self.play(GrowArrow(arrow((.8,1.6),(.8,-1.6),BLUE)),FadeIn(label('Sensory fibres also reach ventral neurons',0,-3.35,BLUE,26)),run_time=.4);self.finish()
+class S14Roots(SpokenScene):
+    def construct(self):
+        r,d,v=section();self.add(r,d,v,heading('Spinal roots'),label('Dorsal',0,2.35,BLUE,26),label('Ventral',0,-2.35,RED,26))
+        fibre=path([(-5.6,1.5),(-3.6,1.5),(-2.5,1.2),(-1.3,.9)],BLUE,9)
+        gang=Ellipse(width=1,height=.6,color=BLUE,fill_opacity=.45).move_to(pt(-3.8,1.5));cell=Dot(pt(-3.8,1.5),radius=.13,color=YELLOW)
+        self.at('sensory fibers');self.play(Create(fibre),FadeIn(gang),FadeIn(cell),run_time=.4)
+        self.at('dorsal roots');self.play(FadeIn(callout('Dorsal root',-4.8,2.55,(-5,1.5),BLUE,26)),FadeIn(callout('Ganglion\n(cell body)',-4.7,-.2,(-3.8,1.5),BLUE,26)),MoveAlongPath(Dot(radius=.09,color=TEXT),fibre),run_time=.5)
+        out=path([(1.1,-1),(2.5,-1.25),(4,-1.5),(5.6,-1.5)],RED,9)
+        self.at('motor axons');self.play(Create(out),run_time=.35)
+        self.at('ventral roots');self.play(FadeIn(callout('Ventral root',4.8,-2.4,(4,-1.5),RED,26)),MoveAlongPath(Dot(radius=.09,color=TEXT),out),run_time=.5);self.finish()
+class S15Scope(SpokenScene):
+    def construct(self):
+        bowl=Polygon(pt(-5.3,1.5),pt(-3.5,.5),pt(-1.7,1.5),pt(-2,-2.5),pt(-5,-2.5),color=TAN,fill_opacity=.16)
+        cavity=Polygon(pt(-5.3,1.5),pt(-3.5,.5),pt(-1.7,1.5),color=BLUE,fill_opacity=.3)
+        m=VGroup(*[RoundedRectangle(width=.4,height=2.2,corner_radius=.15,color=RED,fill_opacity=.6).move_to(pt(x,-.8)) for x in [-3.9,-3.1]])
+        s=VGroup(*[RoundedRectangle(width=.55,height=2.2,corner_radius=.15,color=BLUE,fill_opacity=.6).move_to(pt(x,-.8)) for x in [-4.65,-2.35]])
+        self.add(bowl,cavity,m,heading('A plan for where neurons develop'),label('Brainstem',-3.5,2.6,size=30),label('Dorsal',-3.5,1.95,YELLOW,26),label('Ventral',-3.5,-2.9,YELLOW,26))
+        self.at('keeps this plan');self.play(FadeIn(label('Motor: medial',.1,-1.1,RED,26)),run_time=.25)
+        self.at('sensory nuclei');self.play(FadeIn(s),run_time=.25)
+        self.at('to the side');self.play(FadeIn(label('Sensory: lateral',.1,0,BLUE,26)),FadeIn(label('✓',-1.3,2.4,GREEN,48)),run_time=.25)
+        w,a,c=adult();fore=VGroup(w[0],w[1]).scale(.48).move_to(pt(4,.5))
+        self.at('forebrain does not');self.play(FadeIn(fore),FadeIn(Cross(fore,stroke_color=RED,stroke_width=7)),FadeIn(label('Forebrain',4,2.4,PURPLE,30)),run_time=.35);self.finish()
+class S16Rat(SpokenScene):
+    def construct(self):
+        self.add(rat())
+        self.at('nearly straight');self.play(GrowArrow(arrow((-2,.4),(-4.3,.4))),GrowArrow(arrow((1,.4),(3.1,.4))),FadeIn(label('Rostral',-4.2,1.65,YELLOW,26)),FadeIn(label('Caudal',3.2,1.65,YELLOW,26)),run_time=.35)
+        self.at('Dorsal is');self.play(GrowArrow(arrow((0,1.55),(0,2.6))),FadeIn(label('Dorsal → back',0,3,YELLOW,28)),GrowArrow(arrow((0,-1),(0,-2.3))),FadeIn(label('Ventral',0,-2.85,YELLOW,26)),run_time=.3);self.finish()
+class S17Stand(SpokenScene):
+    def construct(self):
+        r=rat();ba=arrow((1,1.4),(1,2.4));fa=arrow((-3.7,.5),(-3.7,1.5))
+        bl=label('Dorsal',1,2.85,YELLOW,26);fl=label('Dorsal',-3.7,2,YELLOW,26)
+        self.add(r,ba,fa,bl,fl)
+        self.at('Stand the rat up');self.play(FadeOut(bl),FadeOut(fl),run_time=.2)
+        target=r.copy().scale(.78).rotate(-PI/6)
+        x,y=target[5].get_center()[:2]
+        self.play(Transform(r,target),ba.animate.rotate(-PI/6,about_point=ORIGIN),Transform(fa,arrow((x,y+.25),(x,y+1.25))),run_time=.45)
+        self.at('face pointing forward')
+        # Transform one figure into the next: no overlapping transparent silhouettes.
+        h=human(False)
+        self.play(Transform(r,h),Transform(ba,arrow((-.8,.2),(.7,.2))),Transform(fa,arrow((-1.2,2.9),(-1.2,3.5))),run_time=.6)
+        self.at('body cord and brainstem');self.play(FadeIn(label('Dorsal · cord / brainstem',3,.2,YELLOW,26)),run_time=.3)
+        self.at('only the forebrain');self.play(FadeIn(label('Dorsal · forebrain',3,3.1,YELLOW,26)),run_time=.3);self.finish()
+class S18Bend(SpokenScene):
+    def construct(self):
+        def enlarged(bent=True):return human(bent).scale(1.07,about_point=ORIGIN).shift(RIGHT*1.3+DOWN*.1)
+        h=enlarged(False);self.add(h)
+        self.at('tube bends');self.play(Transform(h,enlarged()),run_time=.5)
+        mark=path([(-.42,2.31),(-.42,1.88),(.02,1.88)],YELLOW,4)
+        self.at('a right angle');self.play(Create(mark),FadeIn(label('Roughly a right angle',3.8,3.25,YELLOW,26)),run_time=.3)
+        self.at('midbrain meets');self.play(FadeIn(callout('Midbrain',-4.5,1.1,(.1,1.95),GREEN,26)),FadeIn(callout('Diencephalon',-4.5,2.8,(-.55,2.31),PURPLE,26)),run_time=.3)
+        inset=path([(3.1,-2.3),(3.1,-1.1),(3.85,-.35),(4.6,-1.1),(5.55,-.15)],TAN,18)
+        self.at('embryo bends');self.play(Create(inset),FadeIn(label('Embryo · three bends',4.4,1.2,size=26)),run_time=.35)
+        self.at('three places');self.play(FadeIn(VGroup(Dot(pt(3.1,-1.1),color=GREY),Dot(pt(3.85,-.35),color=GREY),Dot(pt(4.6,-1.1),color=GREEN))),FadeIn(callout('Cervical',2.9,-2.85,(3.1,-1.1),GREY,24)),FadeIn(VGroup(label('Pontine',3.7,.35,GREY,24),path([(3.7,.12),(3.85,-.35)],GREY,2))),FadeIn(callout('Midbrain',5.6,-2,(4.6,-1.1),GREEN,24)),Create(path([(4.39,-.89),(4.6,-.68),(4.81,-.89)],YELLOW,3)),run_time=.35)
+        self.at('This one matters');self.play(Indicate(inset,color=YELLOW),FadeIn(label('This bend sets the naming frame',3.5,-3.45,YELLOW,24)),run_time=.3);self.finish()
+class S19Predict2(SpokenScene):
+    def construct(self):
+        q=q1();self.add(q[0]);self.at('In your spinal cord');self.play(FadeIn(q[1]),run_time=.25);self.at('which way');self.play(FadeIn(q[2]),run_time=.25);self.finish()
+class S20Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(q1())
+        for n in range(5,0,-1):
+            t=label(f'Think · {n}',3,-2,YELLOW,30);self.add(t);self.wait(1);self.remove(t)
+class S21Reveal2(SpokenScene):
+    def construct(self):
+        q=q1();self.add(q)
+        self.at('your back');self.play(FadeOut(q[1]),FadeOut(q[2]),GrowArrow(arrow((-.8,-.5),(1,-.5))),FadeIn(label('Cord · dorsal: back',3.4,-.5,YELLOW,26)),run_time=.3)
+        self.at('brainstem uses');self.play(GrowArrow(arrow((-1.02,1.7),(.55,2.014))),FadeIn(label('Brainstem · dorsal: back',3.5,1.45,YELLOW,26)),run_time=.3)
+        self.at('dorsal points');self.play(GrowArrow(arrow((-1.8,2.39),(-1.8,3.5))),FadeIn(label('Forebrain · dorsal: top',2.9,3.15,YELLOW,26)),run_time=.3);self.finish()
+class S22Planes(SpokenScene):
+    def construct(self):
+        self.add(human())
+        for cue,k,txt,y in [('sagittal','s','Sagittal · left / right',2.7),('coronal','c','Coronal · front / back',1),('horizontal','h','Horizontal · top / bottom',-.7)]:
+            self.at(cue);self.play(FadeIn(slab(k),shift=RIGHT*.5),FadeIn(label(txt,3.1,y,PINK,28)),run_time=.25)
+        self.finish();self.wait(1)
+class S23Predict3(SpokenScene):
+    def construct(self):
+        q=q2();self.add(q[0][0]);self.at('A horizontal cut');self.play(FadeIn(q[0][1]),FadeIn(q[0][3]),run_time=.3)
+        self.at('along the');self.play(GrowArrow(q[0][2]),run_time=.25)
+        self.at('How does it');self.play(FadeIn(q[1]),FadeIn(q[2]),run_time=.25);self.finish()
+class S24Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(q2())
+        for n in range(5,0,-1):
+            t=label(f'Think · {n}',3,-2,YELLOW,30);self.add(t);self.wait(1);self.remove(t)
+class S25Reveal3(SpokenScene):
+    def construct(self):
+        q=q2();self.add(q)
+        self.at('roughly across it');self.play(FadeOut(q[1]),FadeOut(q[2]),FadeIn(label('Roughly transverse',3,.7,PINK,28)),Create(path([(-1.1,1.68),(-.75,1.68),(-.75,2.03)],YELLOW,4)),run_time=.3)
+        self.at('axis runs');self.play(GrowArrow(arrow((-1.05,1),(-1.05,2.45))),FadeIn(label('≈ 90°',.5,1.5,YELLOW,28)),run_time=.3);self.finish()
+class S26Close(SpokenScene):
+    def construct(self):
+        # Turn the same bent tube so its tail points away from the mapping lanes.
+        t=vesicles(True).rotate(-PI/2).scale(.78).move_to(pt(-3.5,0))
+        w,a,c=adult(4);b=VGroup(w,c,a).scale(.78).move_to(pt(2.5,-.1));self.add(t,b)
+        fore=t[2].get_right();mid=t[3].get_right();hind=t[4].get_right()
+        fore_target=w[1].get_left()
+        mid_target=w[4].get_center()+LEFT*.22+DOWN*.12
+        hind_target=w[7].get_left()
+        ties=VGroup(path([tuple(fore[:2]),(-.2,fore[1]),(-.2,fore_target[1]),tuple(fore_target[:2])],PURPLE,3),path([tuple(mid[:2]),(-.4,mid[1]),(-.4,mid_target[1]),tuple(mid_target[:2])],GREEN,3),path([tuple(hind[:2]),(-.6,hind[1]),(-.6,hind_target[1]),tuple(hind_target[:2])],ORANGE,3))
+        names=VGroup(callout('Forebrain',-4.8,2.75,tuple(t[1].get_left()[:2]),PURPLE,24),callout('Midbrain',-4.8,-.35,tuple(t[3].get_left()[:2]),GREEN,24),callout('Hindbrain',-4.8,-2.85,tuple(t[5].get_bottom()[:2]),ORANGE,24))
+        self.at('tube tells you');self.play(FadeIn(heading('The tube tells you where things are.')),Create(ties),FadeIn(names),run_time=.4)
+        self.at('What each place does');self.play(FadeIn(label('What each place does?',0,-3.35,TEAL,32)),run_time=.3);self.finish()
+class S27End(EndCard):
+    LINE='The tube tells you where things are.'
+    def construct(self):
+        self.play(FadeIn(label(self.LINE,0,.35,size=40)),run_time=.6)
+        self.play(FadeIn(label('biochemistrypedia.com',0,-.6,TEAL,26)),run_time=.3);self.finish()

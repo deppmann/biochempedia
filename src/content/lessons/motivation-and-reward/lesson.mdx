@@ -6,17 +6,20 @@ courseChapter: "Neuroscience · Unit 5: Homeostasis and affect"
 order: 619
 summary: >-
   How does the brain decide that you are hungry, and how does it learn which cues lead to food?
-  This lesson follows the evidence from hypothalamic lesions and joined-circulation mice to the
-  hormone leptin and to two opposed groups of arcuate neurons, then turns to midbrain dopamine
-  neurons, whose firing in monkeys behaves like a reward prediction error. Afterwards you can
-  compute a prediction error with a simple learning rule, tell wanting from liking in the data,
-  and say what a recording, a stimulation and a silencing experiment can each show.
+  One idea carries the lesson: a midbrain dopamine neuron's quick burst or pause reports a
+  reward prediction error, whether things turned out better or worse than predicted, and hunger
+  changes how much the reward is worth.
+  You follow the evidence from joined-circulation mice to the hormone leptin and to two opposed
+  groups of arcuate neurons, then read the monkey dopamine recordings and see why the burst
+  moves from the juice to a cue that predicts it. Afterwards you can compute a
+  prediction error with a simple learning rule, tell wanting from liking in the data, and say
+  what a recording, a stimulation and a silencing experiment can each show.
 hook: "A well-fed mouse starts eating within minutes when one small group of hypothalamic neurons is switched on with light. What are those neurons for?"
 
-estMinutes: 24
+estMinutes: 30
 objectives:
-  - "Describe the hypothalamic feeding circuit (leptin from fat, arcuate AgRP/NPY neurons that promote feeding, POMC neurons whose alpha-MSH acts on MC4R to oppose it) and trace the evidence from lesions and parabiosis to leptin cloning and cell-specific manipulation."
-  - "Explain reward prediction error from monkey dopamine-neuron recordings and compute it with a Rescorla-Wagner or temporal-difference rule."
+  - "Describe the hypothalamic feeding circuit (leptin from fat, arcuate AgRP/NPY neurons that promote feeding, POMC neurons whose alpha-MSH acts on MC4R to oppose it) and trace the evidence from parabiosis to leptin cloning and cell-specific manipulation."
+  - "Explain reward prediction error from monkey dopamine-neuron recordings, compute it with a Rescorla-Wagner or temporal-difference rule, and explain why the burst moves to the earliest cue that predicts reward without itself being predicted."
   - "Distinguish wanting (incentive salience) from liking (hedonic impact) using dopamine-depletion and DAT-knockdown evidence, and relate both to addiction through incentive-sensitization theory."
   - "Separate what a recording shows (correlation) from what stimulation shows (sufficiency) and what silencing or ablation shows (necessity)."
 
@@ -24,10 +27,28 @@ explainer:
   src: "/explainers/motivation-and-reward/explainer.mp4"
   captions: "/explainers/motivation-and-reward/explainer.vtt"
   poster: "/explainers/motivation-and-reward/poster.jpg"
-  title: "Dopamine Neurons Signal Prediction Errors"
-  durationSec: 129.4
+  title: "Received Minus Predicted"
+  durationSec: 143.5
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "tone-and-juice"
+    src: "/explainers/motivation-and-reward/tone-and-juice.mp4"
+    captions: "/explainers/motivation-and-reward/tone-and-juice.vtt"
+    poster: "/explainers/motivation-and-reward/tone-and-juice-poster.jpg"
+    title: "The Tone and the Juice"
+    durationSec: 189.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "wanting-not-liking"
+    src: "/explainers/motivation-and-reward/wanting-not-liking.mp4"
+    captions: "/explainers/motivation-and-reward/wanting-not-liking.vtt"
+    poster: "/explainers/motivation-and-reward/wanting-not-liking-poster.jpg"
+    title: "Wanting Is Not Liking"
+    durationSec: 143.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Douglas Coleman"
@@ -183,7 +204,7 @@ practiceQuestions:
       satiety-promoting action of alpha-MSH. Activating the receptor is what alpha-MSH does, not
       AgRP. JAK-STAT signalling belongs to the leptin receptor, which is a different receptor.
       Being cleaved from POMC describes alpha-MSH, not AgRP, which has its own gene.
-  - stem: "In a Rescorla-Wagner model with learning rate alpha = 0.5, a cue has value V = 0.4 and is followed by a reward r = 1. What is the cue's value after this trial?"
+  - stem: "In a Rescorla-Wagner model with learning rate α = 0.5, a cue has value V = 0.4 and is followed by a reward r = 1. What is the cue's value after this trial?"
     choices:
       - "0.60"
       - "0.70"
@@ -191,9 +212,9 @@ practiceQuestions:
       - "0.90"
     answer: 1
     rationale: >-
-      The error is delta = r - V = 1 - 0.4 = 0.6, and the update is V + alpha x delta = 0.4 + 0.5 x
-      0.6 = 0.70. The value 0.60 is the prediction error, not the new value. The value 0.90 comes
-      from adding alpha to V instead of multiplying it by the error. The value 0.50 is the
+      The error is δ = r − V = 1 − 0.4 = 0.6, and the update is V + α × δ = 0.4 + 0.5 × 0.6 =
+      0.70. The value 0.60 is the prediction error, not the new value. The value 0.90 comes
+      from adding α to V instead of multiplying it by the error. The value 0.50 is the
       learning rate itself.
   - stem: "Mice with dopamine transporter expression at about 10% of normal were compared with wild-type mice on a runway for sweet food and on taste-reactivity tests. Which result separates wanting from liking?"
     choices:
@@ -224,7 +245,7 @@ practiceQuestions:
       mice.
 
 mcatQuestions:
-  - stem: "A monkey is trained until a tone reliably predicts a drop of juice 1 s later. A researcher records a midbrain dopamine neuron. On occasional probe trials the tone sounds but no juice is delivered. Which firing pattern on probe trials fits a reward prediction error signal?"
+  - stem: "A monkey is trained until a tone, which comes at unpredictable times, reliably predicts a drop of juice 1 s later. A researcher records a midbrain dopamine neuron. On occasional probe trials the tone sounds but no juice is delivered. Which firing pattern on probe trials fits a reward prediction error signal?"
     choices:
       - "No change at the tone, a burst at the juice time"
       - "A burst at the tone, a burst at the juice time"
@@ -232,10 +253,10 @@ mcatQuestions:
       - "No change at the tone, a dip at the juice time"
     answer: 2
     rationale: >-
-      After learning, the tone itself is an unpredicted predictor of reward, so the neuron bursts
-      at the tone, and when the expected juice fails to arrive the error is negative, so firing
-      dips below baseline at the expected time (Mirenowicz and Schultz 1994; Hollerman and Schultz
-      1998). A burst at the juice time with nothing at the tone is the pattern on rewarded trials before learning; on these probe trials no juice arrives, so there is nothing to burst for.
+      After learning, the tone is the earliest event that predicts reward and its own timing is
+      unpredictable, so the neuron bursts at the tone, and when the expected juice fails to arrive
+      the error is negative, so firing dips below baseline at the expected time (Mirenowicz and
+      Schultz 1994; Hollerman and Schultz 1998). A burst at the juice time with nothing at the tone is the pattern on rewarded trials before learning; on these probe trials no juice arrives, so there is nothing to burst for.
       A burst at both times would mean the reward was still unpredicted, and there is no reward.
       No change at the tone ignores the transfer of the response to the predictive cue.
   - stem: "Well-fed mice expressing channelrhodopsin in AgRP neurons received 1 minute of light stimulation, which then ended before food was offered for 1 hour. They ate 0.34 ± 0.03 g, while unstimulated mice ate 0.14 ± 0.03 g (mean ± SEM). Which statement best describes the result?"
@@ -292,7 +313,7 @@ explainLevels:
       through alpha-MSH, an MC4R agonist. Leptin depolarizes POMC neurons and inhibits AgRP
       neurons. Optogenetic excitation of AgRP neurons is sufficient to evoke feeding in well-fed
       mice, and their ablation in adults causes starvation. Midbrain dopamine neurons in monkeys
-      respond to rewards according to a prediction error, delta = r - V: a burst for an
+      respond to rewards according to a prediction error (at the reward, δ = r − V): a burst for an
       unpredicted reward, a transfer of the burst to a predictive cue, and a dip when a predicted
       reward is omitted. Dopamine manipulations in rodents change incentive salience (wanting)
       more than hedonic impact (liking).
@@ -307,8 +328,8 @@ explainLevels:
       begins, and brief stimulation can leave a persistent drive after it ends (Chen and
       colleagues 2016), and the valence of AgRP activity depends on the paradigm used to test it.
 
-      The dopamine prediction error in monkeys fits the temporal-difference error delta(t) = r(t) +
-      gamma V(t+1) - V(t) (Schultz, Dayan and Montague 1997), and optogenetic unblocking
+      The dopamine prediction error in monkeys fits the temporal-difference error δ(t) = r(t) +
+      γV(t+1) − V(t) (Schultz, Dayan and Montague 1997), and optogenetic unblocking
       experiments in rats suggest that an imposed burst at reward is sufficient to drive learning.
       Open questions remain: not all dopamine neurons code a reward prediction error, and in rats
       nucleus accumbens dopamine release can track reward expectation without matching changes in
@@ -350,67 +371,190 @@ draft: false
 ---
 
 import RewardPredictionErrorTrials from '../../../components/RewardPredictionErrorTrials.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Switch on one small group of hypothalamic neurons with repeated pulses of light, and a well-fed mouse starts eating within minutes.** Aponte, Atasoy and Sternson reported this in 2011, in well-fed mice whose arcuate AgRP neurons carried a light-gated channel. That one experiment raises the two questions of this lesson. How does the brain register the need for food? And how does it learn which cues and actions lead to food, or to any reward?
+**Researchers put a light-sensitive switch into one small group of neurons at the base of a mouse's brain. When they shone light on those neurons, a well-fed mouse began eating within minutes.**
 
-## The idea: from feeding centres to a hormone from fat
+Aponte, Atasoy and Sternson reported this in 2011. The neurons are the arcuate AgRP neurons, and the switch was a light-gated channel. That one experiment raises the two questions of this lesson. How does the brain register the need for food? And how does it learn which cues and actions lead to food, or to any reward?
 
-For decades feeding was explained by two "centres". In rats, Hetherington and Ranson (1940) found that lesions of the ventromedial hypothalamus produced overeating and obesity, and Anand and Brobeck (1951) found that lesions of the lateral hypothalamus stopped animals eating. These early lesions destroyed everything in one place, including fibres passing through, so the labels described where damage changed feeding, not what the cells there compute. The idea of single centres has been superseded, although both regions still contain neurons that matter for feeding and body weight.
+## Two questions, one idea
 
-The better clue came from genetics. Two mouse strains, obese (ob) and diabetes (db), were both obese. Douglas Coleman used **parabiosis**, surgically joining two animals so they exchange some blood. His 1973 reading of the results: an ob/ob mouse lacks a circulating factor that limits eating, and a db/db mouse makes the factor but cannot respond to it. A normal mouse joined to a db/db mouse ate little and starved (Coleman and Hummel, 1969).
+The first question is about **worth**. A hungry animal values food more than a full one: a food loses value once an animal has eaten its fill of it. Hypothalamic circuits, including the AgRP neurons, are thought to help set that value from the body's fuel state. The second question is about **learning**. An animal has to find out which sounds, places and actions come before food. Midbrain dopamine neurons carry a signal suited to that job, and it is not the signal most people expect.
 
-Jeffrey Friedman's laboratory found the ob gene by positional cloning (Zhang and colleagues, 1994; the method is in [linkage and mapping](/lessons/linkage-and-mapping/)). Its product, named **leptin**, is a protein of about 16 kDa made by fat and present in mouse and human plasma. Daily injections of recombinant leptin reduced the body weight of ob/ob mice by 30% after two weeks, and did not reduce the weight of db/db mice (Halaas and colleagues, 1995). The db gene turned out to encode the leptin receptor, which signals through the pathway taught in [JAK-STAT signalling](/lessons/jak-stat/).
+Three terms first. A **prediction**, here, is how much reward the animal has learned to expect from this moment on. A **burst** is a brief jump in a neuron's firing rate (spikes per second) above its resting rate, and a **pause** is a brief drop below it.
 
-Think of leptin as a fuel gauge rather than a brake. It reports stored energy. Most people with common obesity have high leptin, not too little, so the simple replacement that worked in ob/ob mice, and in rare people born unable to make leptin, does not reliably treat common obesity.
+> **The one idea to carry through this lesson.** A midbrain dopamine neuron's quick burst or pause reports a **reward prediction error**: whether things just turned out better or worse than the animal predicted, counting both reward that arrives and news of reward to come. At the reward itself, that is the reward received minus the reward predicted. When the same reward follows the same cue trial after trial, the prediction catches up, the error at the reward shrinks toward zero, and the burst moves to the earliest cue that predicts the reward without itself being predicted. Hunger and satiety change how much the reward is worth in the first place.
 
-## The idea: two arcuate populations push feeding in opposite directions
+The last sentence is a modelling statement: in the rules below, the body's state changes the size of the reward, r. Behaviour supports it, not the recordings in this lesson.
 
-The **arcuate nucleus** is a cluster of neurons at the base of the hypothalamus, next to the median eminence, where circulating hormones reach neurons easily (a **nucleus**, in the brain, is a cluster of cell bodies with a shared role; [the hypothalamus lesson](/lessons/hypothalamus-autonomic/) maps the region). Two intermingled populations there are the best studied. They act on downstream targets such as the paraventricular nucleus and work alongside other hypothalamic and brainstem neurons.
+Both halves of the lesson use three kinds of experiment, and each answers a different question.
 
-- **AgRP neurons** make agouti-related peptide, coexpress neuropeptide Y (NPY), and release GABA. AgRP is an antagonist of the melanocortin-4 receptor (MC4R).
-- **POMC neurons** make pro-opiomelanocortin, which is cleaved into alpha-MSH, an agonist at MC4R (a G-protein-coupled receptor; see [GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/)). Alpha-MSH acting on MC4R reduces feeding.
+| Experiment | What it does | What it can show |
+| --- | --- | --- |
+| Recording | measures the cells' activity while the animal behaves | **correlation**: the activity goes with an event |
+| Stimulation | switches the cells on, here with light | **sufficiency**: imposed activity is enough to produce a behaviour |
+| Silencing or ablation | switches the cells off, or kills them | **necessity**: the cells are needed for the behaviour |
+## Hunger: a fuel gauge and two opposed groups of neurons
 
-Leptin acts on both. In recordings from identified POMC neurons in mouse brain slices, leptin depolarized the cells through a nonspecific cation conductance and reduced their inhibitory input from local NPY/GABA neurons (Cowley and colleagues, 2001). Neither population carries leptin's effect alone: deleting leptin receptors from POMC neurons causes only mild obesity, and deleting them from both AgRP and POMC neurons still leaves part of the response, so other leptin-sensitive neurons share the work (Balthasar and colleagues, 2004; van de Wall and colleagues, 2008).
+### The picture first: what a fast does
 
-Now read the manipulations by what each can show. Exciting AgRP neurons with channelrhodopsin (20 Hz, 10 ms light pulses) was **sufficient** to evoke feeding in well-fed mice. It still evoked feeding in Ay mice, whose melanocortin receptors are already blocked, so AgRP neurons do not act only by opposing alpha-MSH. Prolonged POMC stimulation reduced intake, and that effect required melanocortin signalling (Aponte and colleagues, 2011). For **necessity**, Luquet and colleagues (2005) killed AgRP neurons with diphtheria toxin: adult mice rapidly starved, while ablation in newborn mice had minimal effects on feeding, which suggests that developing circuits compensate.
+Start with what happens when an animal goes without food; the evidence for each step comes after.
 
-Calcium recordings (fibre photometry) add timing. In awake mice, nutrients infused into the stomach inhibited AgRP neurons rapidly, scaling with calories, while leptin changed their activity over hours (Beutler and colleagues, 2017). Brief AgRP stimulation that ended before food arrived still increased later eating (Chen and colleagues, 2016). Whether AgRP activity feels unpleasant or rewarding to the mouse depends on the test used, so that question stays open.
+1. Fat cells make a hormone, **leptin**, roughly in proportion to how much fat is stored. During a fast, leptin in the blood falls.
+2. In the **arcuate nucleus**, at the base of the hypothalamus, leptin normally inhibits **AgRP neurons** and excites **POMC neurons**. Falling leptin, together with other signals of energy deficit, shifts AgRP neurons toward more activity and POMC neurons toward less.
+3. Their shared target, the **melanocortin-4 receptor (MC4R)**, now receives less of an activating peptide (alpha-MSH, from POMC neurons) and more of a blocking one (AgRP). Think of MC4R as a stop button: POMC neurons press it, AgRP covers it.
+4. The drive to seek and eat food rises.
 
-## The idea: dopamine neurons signal an error in prediction
+In an animal that responds to leptin, higher leptin pushes the other way, toward stop. High fat does not guarantee that response.
 
-Hunger makes food valuable. Something must also learn which cues predict it. Dopamine neurons in the **ventral tegmental area (VTA)** and **substantia nigra** of the midbrain project to the striatum, including the nucleus accumbens, and to frontal cortex ([transmitter systems](/lessons/transmitter-systems/) covers their release and reuptake).
+The arcuate nucleus (in the brain, a **nucleus** is a cluster of cell bodies with a shared role) sits next to the median eminence, where circulating hormones reach neurons easily; [the hypothalamus lesson](/lessons/hypothalamus-autonomic/) maps the region. Its two best-studied populations are intermingled. They act on downstream targets such as the paraventricular nucleus and work alongside other hypothalamic and brainstem neurons.
 
-Wolfram Schultz's group recorded single dopamine neurons in behaving monkeys. About three quarters of recorded neurons in two monkeys fired a brief burst when juice arrived without warning. After the monkeys learned that a sound predicted the juice, the burst came at the sound rather than at the juice (Mirenowicz and Schultz, 1994). When an expected reward was left out, firing dipped below baseline at the time it should have come; a reward at an unexpected time evoked a burst (Hollerman and Schultz, 1998).
+- **AgRP neurons** make agouti-related peptide, coexpress neuropeptide Y (NPY, another peptide that promotes feeding), and release GABA, the main inhibitory transmitter. AgRP is an MC4R antagonist.
+- **POMC neurons** make pro-opiomelanocortin, which is cleaved into alpha-MSH, an MC4R agonist that reduces feeding (MC4R is a G-protein-coupled receptor; see [GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/)).
 
-That pattern is a **reward prediction error**: the difference between the reward received and the reward predicted. The simplest learning rule built on it is the Rescorla-Wagner rule.
+MC4R matters in people too: mutations in its gene are the most common single-gene cause of severe early-onset obesity in humans (Farooqi and colleagues, 2003).
 
-> **delta(n) = r - V(n);  V(n+1) = V(n) + alpha x delta(n)**
+Think of leptin as a fuel gauge rather than a brake. It reports stored energy. Its strongest role is probably signalling starvation when it falls: in fasting mice, the drop in leptin helps set off the body's neuroendocrine starvation response (Ahima and colleagues, 1996). Most people with common obesity have high leptin, not too little, so the simple replacement that worked in ob/ob mice, and in rare people born unable to make leptin, does not reliably treat common obesity.
 
-Here V is the cue's learned value, r the reward, and alpha (between 0 and 1) the learning rate. The temporal-difference rule, delta(t) = r(t) + gamma V(t+1) - V(t), gives the same answer at the end of a trial, where nothing follows and V(t+1) = 0 (Schultz, Dayan and Montague, 1997).
+### Evidence for a hormone: joined mice
 
-**Worked problem.** Take alpha = 0.30, a reward of r = 1 unit on every trial, and V = 0 at the start. These are model units, not spikes per second.
+Two mouse strains, obese (ob) and diabetes (db), were both obese and both ate too much. Douglas Coleman asked whether either lacked something carried in the blood. He used **parabiosis**: surgically joining two animals so they exchange some blood.
 
-1. Trial 1: delta = 1 - 0 = 1.00. New V = 0 + 0.30 x 1.00 = 0.30.
-2. Trial 2: delta = 1 - 0.30 = 0.70. New V = 0.30 + 0.30 x 0.70 = 0.51.
-3. Trial 3: delta = 1 - 0.51 = 0.49. New V = 0.51 + 0.30 x 0.49 = 0.657.
-4. The error left after n trials is 0.7 to the power n, so V = 1 - 0.7^n. After nine trials, V = 1 - 0.040 = 0.96.
+| Pair joined | What happened |
+| --- | --- |
+| db/db with normal | The db/db mouse kept eating. The normal partner ate little and starved (Coleman and Hummel, 1969). |
+| ob/ob with normal | The ob/ob partner ate less and gained less weight than an ob/ob mouse joined to another ob/ob mouse. |
+| ob/ob with db/db | The ob/ob mouse stopped eating, lost weight and eventually starved. |
 
-The error at the reward shrinks as the cue's value grows. The Rescorla-Wagner rule works trial by trial and has no time within a trial, so it cannot move the error to the cue. In the temporal-difference reading, the cue itself arrives unpredicted, so the error at the cue grows toward V: the burst moves from reward to cue, as in the monkeys. Now omit the reward after long training, with V about 0.95: delta = 0 - 0.95 = -0.95, the dip at the expected time. An unpredicted reward (V = 0) gives +1.
+**Predict.** Take two hypotheses. A strain could lack a circulating factor that limits eating, or it could make the factor but be unable to respond to it. Which strain fits which hypothesis?
+
+<details>
+<summary>Check your prediction</summary>
+
+The db/db mouse makes the factor, and a lot of it: its normal partner starved, as if strongly signalled to stop eating. Yet the db/db mouse itself kept eating, so it cannot respond. The ob/ob mouse is helped by a normal partner, so it lacks the factor but can respond to it. Joined to a db/db mouse, it receives a strong dose and stops eating. That was Coleman's reading in his 1973 paper, and it told the gene hunters what to look for: a hormone and its receptor.
+
+</details>
+
+### Evidence for a hormone: leptin
+
+Jeffrey Friedman's laboratory found the ob gene by positional cloning (Zhang and colleagues, 1994; the method is in [linkage and mapping](/lessons/linkage-and-mapping/)). Its product, named leptin, is a protein of about 16 kDa made by fat and present in mouse and human plasma.
+
+**Predict.** Halaas and colleagues gave daily injections of recombinant leptin to ob/ob mice and to db/db mice. If Coleman was right, which strain should lose weight?
+
+<details>
+<summary>Check your prediction</summary>
+
+The ob/ob mice, which lack the hormone. Leptin reduced their body weight by 30% after two weeks, and did not reduce the weight of db/db mice (Halaas and colleagues, 1995). The db gene turned out to encode the leptin receptor, which signals through the pathway taught in [JAK-STAT signalling](/lessons/jak-stat/).
+
+</details>
+
+### Testing the circuit: enough, needed, and when
+
+**Stimulation asks whether activity in these cells is enough.** Aponte and colleagues (2011) put channelrhodopsin, a light-gated cation channel, into AgRP neurons and excited them with 20 Hz trains of 10 ms light pulses. This was **sufficient** to evoke feeding in well-fed mice, at least for that pattern. Prolonged POMC stimulation reduced intake, and that effect required melanocortin signalling.
+
+**Predict.** Ay mice overexpress agouti protein, which, like AgRP, blocks melanocortin receptors, so theirs are already blocked. If AgRP neurons drove feeding only by blocking MC4R, what would stimulating them do in these mice?
+
+<details>
+<summary>Check your prediction</summary>
+
+If blocking MC4R were their only route, stimulation should add nothing, because the receptors are already blocked. In fact it still evoked feeding in Ay mice (Aponte and colleagues, 2011). So AgRP neurons do not act only by opposing alpha-MSH. They also release GABA and NPY.
+
+</details>
+
+**Ablation asks whether the cells are needed.** Luquet and colleagues (2005) killed AgRP neurons with diphtheria toxin. Adult mice rapidly starved, so the cells are **necessary** for feeding in adults. Ablation in newborn mice had minimal effects on feeding, which suggests that developing circuits compensate.
+
+**Recording adds timing.** In **fibre photometry**, a fluorescent calcium indicator in the cells brightens when they are active, and an optical fibre reads that light from a population of neurons in an awake mouse.
+
+AgRP activity, high in a hungry mouse, falls within seconds when food or a food cue appears, before eating begins (Chen and colleagues, 2015; Betley and colleagues, 2015). Signals from the gut and from fat act more slowly. Nutrients infused into the stomach inhibited AgRP neurons within minutes, scaling with calories, while leptin changed their activity over hours (Beutler and colleagues, 2017). Brief AgRP stimulation that ended before food arrived still increased later eating (Chen and colleagues, 2016). Whether AgRP activity feels unpleasant or rewarding to the mouse depends on the test used, so that question stays open.
+
+Notice what the drop means: the hunger circuit reacts to signs of food before any is eaten. How an animal learns which signs predict reward is the rest of the lesson.
+
+## Dopamine neurons report prediction errors
+
+<LessonFilm film={frontmatter.films[0]} />
+
+Dopamine neurons in the **ventral tegmental area (VTA)** and **substantia nigra** of the midbrain project to the **striatum** (a large region deep in the forebrain that includes the nucleus accumbens) and to frontal cortex ([transmitter systems](/lessons/transmitter-systems/) covers their release and reuptake).
+
+### The recordings
+
+Wolfram Schultz's group recorded single dopamine neurons in behaving monkeys, with a fine electrode beside each neuron. Picture the record as a **raster**: each row is one trial, each tick one spike, and the rows are lined up on the moment of an event, with a histogram of all the trials underneath. A column of extra ticks is a burst. A gap is a pause. Read three records before interpreting them.
+
+1. **Juice with no warning.** About three quarters of recorded neurons in two monkeys fired a brief burst when juice arrived.
+2. **After learning.** Once the monkeys learned that a sound predicted the juice, the burst came at the sound rather than at the juice (Mirenowicz and Schultz, 1994).
+3. **A reward left out, or moved.** When an expected reward was left out, firing dipped below baseline at the time it should have come. A reward at an unexpected time evoked a burst (Hollerman and Schultz, 1998).
+
+That pattern is a **reward prediction error**: at the reward, the difference between the reward received and the reward predicted.
+
+**Scope.** The rule covers the quick (sub-second) responses of many, not all, midbrain dopamine neurons, recorded in trained monkeys and rodents in tasks where reward timing is predictable. It describes a signal: a recording alone does not show that the signal teaches, and the rule says nothing about pleasure. The error at the reward shrinks to zero only when the reward is the same each time; an uncertain reward leaves some error even after learning. Striatal dopamine release can also depart from firing (Going deeper). How dopamine changes striatal synapses is in [synaptic plasticity](/lessons/synaptic-plasticity/) and [the basal ganglia](/lessons/basal-ganglia/).
+
+### A rule for learning from errors
+
+Picture two bars over a cup of juice. One shows the reward predicted. The other shows the reward received. The gap between them is the error. If the same juice comes on every trial, the predicted bar grows by a fixed fraction of the gap each time, so the gap shrinks. That is the **Rescorla-Wagner rule**, the simplest learning rule built on a prediction error. In symbols:
+
+> **δ = r − V    V(next trial) = V + α × δ**
+
+Here V is the cue's learned value, r the reward that arrives (1 for juice, 0 for none), δ the error, and α, between 0 and 1, the learning rate: that fixed fraction. These are model units, not spikes per second.
+
+**Worked problem.** Take α = 0.30, a reward of r = 1 unit on every trial, and V = 0 at the start.
+
+1. Trial 1: δ = 1 − 0 = 1.00. New V = 0 + 0.30 × 1.00 = 0.30.
+2. Trial 2: δ = 1 − 0.30 = 0.70. New V = 0.30 + 0.30 × 0.70 = 0.51.
+3. Trial 3: δ = 1 − 0.51 = 0.49. New V = 0.51 + 0.30 × 0.49 = 0.657.
+4. The error shrinks by the same factor, 1 − α = 0.7, on every trial. So the error left after n trials is 0.7 to the power n, and V = 1 − 0.7ⁿ. After nine trials, V = 1 − 0.040 = 0.96.
+
+Run it the other way: after long training, with V about 0.95, omit the reward, and δ = 0 − 0.95 = −0.95, a negative error at the expected time. An unpredicted reward (V = 0) gives +1.
+
+### From the reward to the cue
+
+The worked problem explains one result from the monkeys: as the tone comes to predict the juice, the burst at the juice fades. It does not explain the new burst at the tone. The Rescorla-Wagner rule updates the cue's value from trial to trial but has no time within a trial, so it cannot produce an error at the moment of the cue. For that, the prediction has to run in time *within* a trial.
+
+Picture one trained trial as a strip of moments: waiting, then the tone, a one-second delay, then the juice. Give each moment its own prediction, V, of the reward still to come from that moment on. After training:
+
+- **Before the tone, set V to 0.** This is a simplification. The tone comes at unpredictable times, so the model treats the waiting period as a fixed baseline and counts predictions from there. A model that also learns a value for waiting gives it some value, so the jump at the tone, and the burst, are smaller.
+- **From the tone until the juice, V is 1.** Once the tone has sounded, juice is coming.
+- **After the juice, V is 0 again.** The trial is over.
+
+The **temporal-difference (TD) rule**, which Schultz, Dayan and Montague (1997) applied to these recordings, computes an error at each step from one moment to the next: the reward that arrived in that step, plus the change in the prediction.
+
+> **δ = r + V(next moment) − V(this moment)**
+
+The full rule multiplies V(next moment) by a discount factor, up to 1, so that distant rewards can count less (Going deeper); here it is 1.
+
+Walk along the strip.
+
+1. **Into the tone.** On the step from waiting into the tone, no reward arrives, but the prediction jumps from 0 to 1. δ = 0 + 1 − 0 = +1: a burst, at the tone.
+2. **During the delay.** No reward, and the prediction stays at 1. δ = 0 + 1 − 1 = 0: nothing.
+3. **At the juice.** The juice arrives (r = 1), but the prediction falls by the same amount, from 1 to 0, because the trial is over. They cancel: δ = 1 + 0 − 1 = 0. Nothing at the juice, because it was fully predicted.
+
+At the moment of reward, the TD error is the Rescorla-Wagner error, r − V. What step 1 adds is that unexpected good news about the future produces an error just as reward itself does. That is why, with learning, the burst moves to the **earliest cue that predicts the reward without itself being predicted**. In the model, if a light came on at unpredictable times, always two seconds before the tone, the burst would move to the light, and the tone would add no error, because by the time it sounds it is already expected. The monkey data show the first step of this, from juice to tone.
+
+**Predict.** In a trained monkey, the tone sounds but the juice is withheld. Walk the strip. What happens to δ at the tone, and at the moment the juice should have come?
+
+<details>
+<summary>Check your prediction</summary>
+
+At the tone nothing has changed: δ = +1, a burst. At the juice time no reward arrives, yet the prediction still drops from 1 to 0, so δ = 0 + 0 − 1 = −1. The negative error comes at exactly the time the juice was due. This is the dip Hollerman and Schultz recorded. In a real neuron the dip is a brief pause in firing. A dopamine neuron fires only a few spikes per second at rest, so a pause has less room than a burst (numbers in Going deeper).
+
+</details>
+
+The rule makes one more prediction. Suppose the tone predicts juice on only half the trials. The prediction after the tone then averages about 0.5. In model units the error is +0.5 at the tone, +0.5 when juice comes (1 + 0 − 0.5), and −0.5 when it does not (0 + 0 − 0.5). Real bursts and pauses need not scale by the same fractions, because firing does not map one to one onto model units. In monkeys, Fiorillo, Tobler and Schultz (2003) found the same direction: responses to the cue grew with the probability of reward, and responses to the reward itself shrank.
+
+### Watch it in the model
+
+The simulation trains the Rescorla-Wagner rule trial by trial, so it shows the error at the reward, not the strip of moments. Watch that error shrink while the cue's value grows. Then omit the reward to see the dip, or give the reward with no cue to see the +1 burst.
 
 <RewardPredictionErrorTrials />
 
-Two cautions. A recording shows that firing goes with an error; it does not show that the burst teaches. And the code is not uniform: not every dopamine neuron fits it, and in rats, accumbens dopamine release tracked reward expectation without matching changes in VTA firing (Mohebi and colleagues, 2019). How dopamine changes striatal synapses is in [synaptic plasticity](/lessons/synaptic-plasticity/) and [the basal ganglia](/lessons/basal-ganglia/).
-
 ### Design problem
 
-Recordings cannot show that a dopamine burst causes learning. Design an experiment that tests whether an imposed burst is sufficient to make an animal learn about a cue it would otherwise ignore.
+Recordings cannot show that a dopamine burst causes learning. Design an experiment that tests whether an imposed burst is sufficient to make an animal learn about a cue it would otherwise ignore. One known effect helps, **blocking**: a new cue added alongside one that already predicts reward is learned poorly, because the reward brings no error.
 
 <details>
 <summary>One way to do it</summary>
 
-Use **blocking**. Train cue A until it fully predicts reward. Then reward the compound A plus a new cue X. Because A already predicts the reward, delta at reward is about 0, so X is normally learned poorly.
+Train cue A until it fully predicts reward. Then reward the compound A plus a new cue X. δ at reward is about 0, so X is normally blocked.
 
-Express channelrhodopsin in VTA dopamine neurons of rats carrying Cre under the tyrosine hydroxylase promoter (TH-Cre rats), and deliver light at the time of reward on the A plus X trials. If the burst is a teaching error, X should now gain value: test X alone and measure approach or responding. A 2013 rat study by Steinberg and colleagues reported unblocking of this kind.
+Use TH-Cre rats, which make the DNA-recombining enzyme Cre under the control of the gene for tyrosine hydroxylase, an enzyme of dopamine synthesis. A Cre-dependent channelrhodopsin construct injected into the VTA is then expressed mainly in dopamine neurons; that specificity has to be checked, because tyrosine hydroxylase is also made by noradrenaline cells. Deliver light at the time of reward on the A plus X trials. If the burst is a teaching error, X should now gain value: test X alone and measure approach or responding. A 2013 rat study by Steinberg and colleagues reported unblocking of this kind.
 
 Controls: rats without the opsin given the same light; opsin rats stimulated at times unpaired with reward; and the probe test of X alone, without stimulation.
 
@@ -418,14 +562,66 @@ Limits: this shows that an imposed burst is enough in these rats under this patt
 
 </details>
 
-## The idea: wanting is not liking
+## Wanting is not liking
+
+<LessonFilm film={frontmatter.films[1]} />
 
 A common shortcut treats dopamine as the brain's signal for pleasure. The evidence separates two things. **Wanting**, or incentive salience, is the motivational pull of a reward and its cues. **Liking** is the hedonic impact of the reward itself (Berridge and Robinson, 1998).
 
-Liking can be measured in animals through **taste reactivity**: tongue protrusions to sweet, gapes to bitter, scored from video. Rats whose forebrain dopamine was depleted with a neurotoxin stopped seeking food yet kept normal positive reactions to sugar in the mouth. In the other direction, mice with dopamine transporter (DAT) expression at about 10% of normal, and about 70% more extracellular striatal dopamine, reached sweet food sooner in a runway, because they paused less (their running speed itself did not differ), but showed no increase in liking reactions to sucrose (Peciña and colleagues, 2003). In these tests, excess dopamine raised wanting, not liking. A lifelong mutation is not an acute drug, and a mouse's facial reaction is not a human report, so keep the scope. The wanting reading is also debated: other researchers explain the same dopamine results as changes in willingness to work or in learning. In Berridge's account, liking depends instead on small opioid and endocannabinoid hotspots in the nucleus accumbens and ventral pallidum (Berridge and Kringelbach, 2015).
+Liking can be measured in animals without asking, through **taste reactivity**: tongue protrusions to sweet, gapes to bitter, scored from video.
 
-## The idea: in addiction, wanting can grow while liking does not
+**Predict.** Rats whose forebrain dopamine was depleted with a neurotoxin stopped seeking food. If dopamine carried pleasure, what should their faces do when sugar is placed in the mouth?
 
-Addictive drugs raise dopamine signalling by different routes, such as blocking DAT or reversing it (see [transmitter systems](/lessons/transmitter-systems/)). **Incentive-sensitization theory** (Robinson and Berridge) proposes that in susceptible individuals, repeated drug use makes the circuits that assign incentive salience hypersensitive, so drug wanting, especially when triggered by cues, can grow out of proportion to drug liking. It explains why craving can persist after the drug has stopped being enjoyable.
+<details>
+<summary>Check your prediction</summary>
+
+Their positive reactions did not weaken. The rats kept normal reactions to sugar in the mouth, though they would not seek or eat food on their own: liking intact, seeking gone.
+
+</details>
+
+Now the other direction. The dopamine transporter (DAT) pumps released dopamine back into the cell. Mice with DAT expression at about 10% of normal have about 70% more extracellular striatal dopamine. They reached sweet food sooner in a runway because they paused less on the way; their running speed itself did not differ. They showed no increase in liking reactions to sucrose (Peciña and colleagues, 2003).
+
+| Manipulation | Seeking food | Liking reactions to sugar |
+| --- | --- | --- |
+| Dopamine down (neurotoxin, rats) | falls: no seeking or eating on their own | normal |
+| Dopamine up (DAT at about 10%, mice) | rises: sweet food reached sooner, with fewer pauses | not higher |
+
+In these tests dopamine moved wanting, not liking. Both manipulations change dopamine for hours or a lifetime, not only its quick bursts, so they show that dopamine matters for wanting, not that the burst is wanting. The burst moves to cues that predict reward, which is compatible with cues gaining pull, which is how wanting is described, but how the error signal relates to incentive salience is an open question.
+
+**Keep the scope.** A lifelong mutation is not an acute drug, and an animal's facial reaction is not a human report. The wanting reading is also debated: other researchers explain the same dopamine results as changes in willingness to work or in learning. In Berridge's account, liking depends instead on small opioid and endocannabinoid hotspots in the nucleus accumbens and ventral pallidum (Berridge and Kringelbach, 2015).
+
+## In addiction, wanting can grow while liking does not
+
+Addictive drugs raise dopamine signalling by different routes, such as blocking DAT or making it run in reverse, pushing dopamine out (see [transmitter systems](/lessons/transmitter-systems/)). **Incentive-sensitization theory** (Robinson and Berridge) proposes that in susceptible individuals, repeated drug use makes the circuits that assign incentive salience hypersensitive, so drug wanting, especially when triggered by cues, can grow out of proportion to drug liking. It offers an explanation for why craving can persist after the drug has stopped being enjoyable.
 
 It is a theory, and addiction is not only dopamine. Other accounts stress habit learning in the dorsal striatum, weakened prefrontal control, and withdrawal and stress systems, and genes, environment and drug history all shape who becomes addicted. Forward, [attention and decisions](/lessons/attention-and-decisions/) shows how learned values guide choice.
+
+## Going deeper
+
+### Feeding centres before the hormone
+
+For decades feeding was explained by two "centres". In rats, Hetherington and Ranson (1940) found that lesions of the ventromedial hypothalamus produced overeating and obesity, and Anand and Brobeck (1951) found that lesions of the lateral hypothalamus stopped animals eating. These early lesions destroyed everything in one place, including fibres passing through, so the labels described where damage changed feeding, not what the cells there compute. The idea of single centres has been superseded, although both regions still contain neurons that matter for feeding and body weight.
+
+### How leptin acts on POMC neurons, and on others
+
+In recordings from identified POMC neurons in mouse brain slices, leptin depolarized the cells through a nonspecific cation conductance and reduced their inhibitory input from local NPY/GABA neurons (Cowley and colleagues, 2001). Neither population carries leptin's effect alone: deleting leptin receptors from POMC neurons causes only mild obesity, and deleting them from both AgRP and POMC neurons still leaves part of the response, so other leptin-sensitive neurons share the work (Balthasar and colleagues, 2004; van de Wall and colleagues, 2008).
+
+### The full temporal-difference rule
+
+With a discount factor γ, a number from 0 to 1 chosen by the modeller, the TD error at time t is
+
+> **δ(t) = r(t) + γ × V(t+1) − V(t)**
+
+At the end of a trial V(t+1) = 0, so the error at the reward is still r − V. Discounting shrinks the cue burst when the reward is far off. In the model, with γ = 0.95 per time step and ten time steps between cue and reward, the burst at the cue is 0.95¹⁰, about 0.60 of a full burst. So the model predicts smaller cue responses for longer cue-reward delays.
+
+### An error that travels backward
+
+During learning, the simplest TD model, with one state for each moment of the delay, also predicts small errors at moments between the cue and the reward. Over trials, the error appears to travel backward from the reward toward the cue. Early monkey recordings did not clearly show this. A 2022 mouse study (Amo and colleagues) reported a gradual backward shift of dopamine responses during learning. How general it is depends on the task and on how the brain represents time, so treat it as an open question, not a settled failure or success of the model.
+
+### Why a pause has less room than a burst
+
+Take illustrative numbers: a resting rate of 5 spikes per second, and a gain of 20 spikes per second for each unit of error. A δ of +1 gives 25 spikes per second. A δ of −0.5 would need 5 − 10 = −5 spikes per second, and a δ of −0.95 would need −14. A firing rate cannot go below zero, so in this mapping every error of −0.25 or below gives the same zero firing: the pause saturates while a burst of the same size keeps growing. The floor limits how deep a pause can be; it does not by itself set how long the pause lasts. In monkey recordings, Bayer and Glimcher (2005) found that positive errors were coded roughly in proportion to firing rate, while negative errors had a compressed range.
+
+### Release is not the same as firing
+
+In rats, dopamine release in the nucleus accumbens tracked reward expectation without matching changes in VTA firing (Mohebi and colleagues, 2019). How local control of release combines with spike timing to set what striatal synapses learn is unresolved.
