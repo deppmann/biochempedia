@@ -1,523 +1,341 @@
-"""Netrin and DCC: one cue, two answers  (Biochemistrypedia explainer, developmental neuroscience)
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = netrin, the cue (source dot and its fading contours)
-  BLUE   = the growth cone and its axon
-  TEAL   = DCC receptor (cups on the growth cone surface)
-  PURPLE = UNC5 receptor (cups)
-  ORANGE = cyclic AMP inside the growth cone (dots)
-  PINK   = antibody to DCC (caps that fill the DCC cups)
-  GREEN  = attraction, the turn toward the source
-  RED    = repulsion, the turn away; also a blocked signal
-  GREY   = pipette, ghost arrows, outlines
+"""Chapter 1: The Map and the Puzzle.
+COLOR MAP: YELLOW netrin/UNC-6; BLUE axon/growth cone; TEAL DCC;
+PURPLE UNC5; ORANGE cAMP and extracellular matrix; GREEN attraction;
+RED repulsion; GREY anatomy. Migrating worm cells use TEAL.
+All paths are anatomical schematics, not quantitative model traces.
+The current lesson (map glossary and 1995 Colamarino paragraph) supports trochlear axons.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-PINK = "#E58BD0"
+PURPLE='#B58CD9'
+ORANGE='#F29E4C'
 
-START = np.array([-1.0, -1.5, 0.0])
-SRC = np.array([5.4, 0.4, 0.0])
-R = 1.0  # growth cone radius
+class Timed(SpokenScene):
+    # Exact anchors, no anticipatory lead. Avoid writing the pipeline's diagnostic log.
+    def at(self, phrase, lead=0, nth=0):
+        rest=self.t_of(phrase,nth)-self.elapsed()
+        if rest>.001:self.wait(rest)
+    def finish(self):
+        # Match each audio segment exactly; no accumulating 0.4-second scene padding.
+        rest=self.narration_s-self.elapsed()
+        if rest>.001:self.wait(rest)
 
+def label(s,x,y,color=TEXT,size=28):
+    return T(s,size=size,color=color).move_to([x,y,0])
 
-def bchip(text, color=BLUE, size=24, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def heading(s):return label(s,0,3.25,size=32)
 
+def smooth(points,color=BLUE,width=6):
+    return VMobject().set_points_smoothly([np.array(p,float) for p in points]).set_stroke(color,width)
 
-def smooth(points):
-    m = VMobject()
-    m.set_points_smoothly([np.array(p, float) for p in points])
-    return m
+def callout(s,pos,target,color=TEXT,size=28):
+    t=label(s,*pos,color,size)
+    edge=t.get_left() if target[0]<pos[0] else t.get_right()
+    return VGroup(Line(edge+(.12*LEFT if target[0]<pos[0] else .12*RIGHT),target,color=color,stroke_width=2),t)
 
+def cord(center=(0,0,0),scale=1.36,level=0,crossed=False,axes=True):
+    c=np.array(center,float)
+    def p(x,y):return c+scale*np.array([x,y,0])
+    outline=Ellipse(width=4.5*scale,height=4.5*scale,color=GREY,stroke_width=3).move_to(c)
+    canal=Ellipse(width=.45*scale,height=1.15*scale,color=GREY,fill_color=BG,fill_opacity=1).move_to(p(0,.4))
+    fp=VGroup(*[Polygon(p(x-.17,-2.12),p(x+.17,-2.12),p(x+.12,-1.78),p(x-.12,-1.78),color=ORANGE,fill_color=ORANGE,fill_opacity=.8,stroke_width=2) for x in [-.32,0,.32]])
+    vz=VGroup(Ellipse(width=1.2*scale,height=1.95*scale,stroke_width=0,fill_color=TEAL,fill_opacity=.12).move_to(p(0,.4)))
+    for a in np.linspace(0,TAU,16,endpoint=False):
+        cell=Ellipse(width=.18*scale,height=.36*scale,color=TEAL,fill_color=TEAL,fill_opacity=.35,stroke_width=2)
+        cell.rotate(-a).move_to(p(.45*np.sin(a),.4+.8*np.cos(a)));vz.add(cell)
+    fibres=VGroup(*[Line(p(.5*np.sin(a),.4+.82*np.cos(a)),p(2.15*np.sin(a),2.15*np.cos(a)),color=GREY,stroke_width=2) for a in np.linspace(0,TAU,10,endpoint=False)])
+    rim=outline.copy().scale(1.025).set_stroke(ORANGE,5)
+    soma=Dot(p(-.95,1.45),radius=.15*scale,color=BLUE)
+    route=smooth([p(x,y) for x,y in [(-.95,1.45),(-1.6,.85),(-1.92,.0),(-1.55,-1.05),(-.85,-1.55)]])
+    crossing=smooth([p(x,y) for x,y in [(-.85,-1.55),(-.4,-1.9),(0,-1.96),(.65,-1.8),(1.6,-.85)]])
+    ticks=VGroup(label('dorsal',c[0],c[1]+2.48*scale,size=26),label('ventral',c[0],c[1]-2.48*scale,size=26)) if axes else VGroup()
+    g=VGroup(outline,canal)
+    if level>=1:g.add(fp)
+    if level>=2:g.add(vz)
+    if level>=3:g.add(fibres.set_opacity(.25 if level>=5 else .7))
+    if level>=4:g.add(rim)
+    if level>=5:g.add(soma,route)
+    if crossed:g.add(crossing)
+    if axes:g.add(ticks)
+    return g,dict(outline=outline,canal=canal,fp=fp,vz=vz,fibres=fibres,rim=rim,soma=soma,route=route,crossing=crossing,p=p)
 
-PATH_TOWARD = [START, [0.6, -1.25, 0], [2.2, -0.3, 0], [3.25, 0.3, 0]]
-PATH_AWAY = [START, [-0.15, -1.1, 0], [-1.4, 0.1, 0], [-2.9, 0.9, 0], [-3.9, 1.3, 0]]
-PATH_STRAIGHT = [START, [0.0, -1.5, 0], [1.0, -1.5, 0]]
+def growth(center=(0,0,0),scale=1):
+    c=np.array(center,float)
+    fan=Polygon(*[c+scale*np.array(p) for p in [(-.8,0,0),(.2,.8,0),(.65,.55,0),(.85,0,0),(.65,-.55,0),(.2,-.8,0)]],color=BLUE,fill_color=BLUE,fill_opacity=.2,stroke_width=4)
+    fil=VGroup(*[Line(c+scale*np.array([.55,y,0]),c+scale*np.array([1.25,y*1.65,0]),color=BLUE,stroke_width=3) for y in [-.6,-.3,0,.3,.6]])
+    return VGroup(fan,fil)
 
-
-def axon_in():
-    return Line([-6.3, -1.5, 0], START, color=BLUE, stroke_width=11).set_z_index(-1)
-
-
-def cups(center, angles, color, scale=1.0):
-    out = VGroup()
+def cups(center,angles,color,scale=1):
+    c=np.array(center,float);g=VGroup()
     for deg in angles:
-        phi = np.radians(deg)
-        u = np.array([np.cos(phi), np.sin(phi), 0])
-        c = center + (R * scale + 0.45 * scale) * u
-        sw = 8 * max(scale, 0.6)
-        out.add(Arc(radius=0.27 * scale, start_angle=phi + PI / 2, angle=PI, arc_center=c,
-                    stroke_color=color, stroke_width=sw))
-        out.add(Line(center + R * scale * u, center + (R + 0.18) * scale * u, color=color, stroke_width=sw * 0.8))
-    return out
-
-
-def caps(center, angles, scale=1.0):
-    out = VGroup()
-    for deg in angles:
-        phi = np.radians(deg)
-        u = np.array([np.cos(phi), np.sin(phi), 0])
-        c = center + (R * scale + 0.45 * scale) * u
-        out.add(Circle(radius=0.21 * scale, stroke_color=PINK, stroke_width=3, fill_color=PINK,
-                       fill_opacity=0.95).move_to(c))
-    return out
-
-
-DCC_A = [30, 70, 110]
-UNC_A = [-30, -70, -110]
-
-
-def body(center, scale=1.0):
-    bg = Circle(radius=R * scale, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(center)
-    disc = Circle(radius=R * scale, stroke_color=BLUE, stroke_width=5, fill_color=BLUE, fill_opacity=0.25)
-    disc.move_to(center)
-    fil = VGroup()
-    for deg in [0, 150, 180, 210]:
-        phi = np.radians(deg)
-        u = np.array([np.cos(phi), np.sin(phi), 0])
-        fil.add(Line(center + R * scale * u, center + (R + 0.3) * scale * u, color=BLUE, stroke_width=4))
-    return VGroup(bg, disc, fil)
-
-
-DOT_OFFS = [(-0.3, 0.2), (0.0, 0.35), (0.25, 0.15), (-0.1, -0.1), (0.3, -0.2), (-0.35, -0.3), (0.05, -0.4)]
-
-
-def dots(center, scale=1.0, live=True):
-    g = VGroup()
-    for dx, dy in DOT_OFFS:
-        d = Circle(radius=0.095 * scale, stroke_color=ORANGE, stroke_width=2)
-        if live:
-            d.set_fill(ORANGE, 1)
-        else:
-            d.set_fill(ORANGE, 0).set_stroke(GREY, opacity=0.5)
-        d.move_to(center + np.array([dx, dy, 0]) * 1.25 * scale)
-        g.add(d)
+        phi=np.radians(deg);q=c+scale*np.array([np.cos(phi),np.sin(phi),0])
+        g.add(Arc(radius=.25*scale,start_angle=phi+PI/2,angle=PI,arc_center=q,stroke_color=color,stroke_width=6))
     return g
 
+def boxes(filled=0):
+    names=['What crosses?','Two answers?','Gradient or path?']
+    g=VGroup()
+    for i,x in enumerate([-4.25,0,4.25]):
+        g.add(VGroup(RoundedRectangle(width=4.05,height=.85,corner_radius=.12,color=YELLOW if i<filled else GREY,fill_color=YELLOW,fill_opacity=.07 if i<filled else 0).move_to([x,-3.12,0]),label(f'{i+1}  '+(names[i] if i<filled else '?'),x,-3.12,YELLOW if i<filled else TEXT,26)))
+    return g
 
-def stage():
-    """the netrin source and its fading contours"""
-    arcs = VGroup()
-    radii = [1.1, 2.3, 3.7, 5.2, 6.9, 8.7]
-    ops = [0.95, 0.75, 0.58, 0.42, 0.3, 0.2]
-    for r, o in zip(radii, ops):
-        a = min(0.6, np.arcsin(min(1.0, 2.2 / r)))
-        arc = Arc(radius=r, start_angle=PI - a, angle=2 * a, arc_center=SRC, stroke_color=YELLOW,
-                  stroke_width=4, stroke_opacity=o).set_z_index(-2)
-        arcs.add(arc)
-    src = Circle(radius=0.3, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.95).move_to(SRC)
-    lbl = T("netrin source", 24, YELLOW).move_to(SRC + DOWN * 0.8)
-    return arcs, src, lbl
+def dual(y=.15,scale=1.17):
+    left,dl=cord((-3.45,y,0),scale,5,True,axes=False)
+    right,dr=cord((3.45,y,0),scale,4,axes=False)
+    p=dr['p'];path=smooth([p(x,z) for x,z in [(.5,-1.55),(1.5,-1.05),(1.9,.1),(1.25,1.65)]],RED)
+    soma=Dot(p(.5,-1.55),radius=.16,color=RED)
+    labs=VGroup(label('spinal cord',-3.45,3.25,size=28),label('midbrain–hindbrain',3.45,3.25,size=28),callout('floor plate',(-3.4,-2.87),dl['p'](0,-1.96),ORANGE,26),callout('floor plate',(3.45,-2.87),dr['p'](0,-1.96),ORANGE,26))
+    return VGroup(left,right),path,soma,labs,dl,dr
 
+def worm():
+    cuticle=VGroup(Ellipse(width=8.7,height=6.25,color=GREY,stroke_width=5),Ellipse(width=8.35,height=5.9,color=GREY,stroke_width=2))
+    gut=Dot([0,.15,0],radius=.34,color=GREY,fill_opacity=.6)
+    nerve=Ellipse(width=1.0,height=.42,color=GREY,fill_color=GREY,fill_opacity=.8,stroke_width=2).move_to([0,-2.35,0])
+    return VGroup(cuticle,gut,nerve,label('C. elegans · cross-section',0,3.45,size=28),label('dorsal',0,2.6,size=26),label('ventral',0,-2.85,size=26))
 
-def pipette():
-    p = Polygon([6.3, 2.5, 0], [6.05, 2.3, 0], [5.5, 0.62, 0], stroke_color=GREY, stroke_width=3,
-                fill_color=GREY, fill_opacity=0.5)
-    return p
+def pause_track():
+    return Line([-5.9,-1.85,0],[5.9,-1.85,0],color=GREY,stroke_width=12)
 
+def choices():
+    return VGroup(*[VGroup(RoundedRectangle(width=5.3,height=3.3,color=GREY).move_to([x,.25,0]),label(s,x,.25,size=28)) for x,s in [(-3.25,'direction in the cue'),(3.25,'direction in the reader')]],label('?',0,.25,size=40),label('Pause and guess',0,2.75,size=30))
 
-def btext(text, size=26, color=GREY):
-    t = T(text, size, color)
-    back = Rectangle(width=t.width + 0.2, height=t.height + 0.14, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(t)
-    return VGroup(back, t)
+def rule():
+    return VGroup(label('Netrin marks a place.',0,1.2,YELLOW,40),label('The growth cone decides',0,-.1,BLUE,38),label('what to do there.',0,-1.15,BLUE,38))
 
-
-def banner(text, color):
-    return T(text, 30, color, weight=BOLD).move_to([-1.6, 3.15, 0])
-
-
-def run(self, mobs, path, t, rate=linear):
-    """move a list of mobjects along a path while drawing the axon trail."""
-    full = smooth(path).set_stroke(BLUE, 11).set_fill(opacity=0).set_z_index(-1)
-    trail = full.copy()
-    trail.pointwise_become_partial(full, 0, 0.001)
-    self.add(trail)
-    g = VGroup(*mobs)
-    last = [np.array(path[0], float)]
-
-    def step(m, a):
-        a = max(a, 0.001)
-        p = full.point_from_proportion(a)
-        m.shift(p - last[0])
-        last[0] = p
-        trail.pointwise_become_partial(full, 0, a)
-
-    self.play(UpdateFromAlphaFunc(g, step, rate_func=rate), run_time=t)
-    return trail
-
+def rulecard(n, where='source · slope · surface', sign='receptors'):
+    rows=[('WHERE',where,YELLOW),('SIGN',sign,BLUE),('STATE','internal state\n(in some cells)',ORANGE)]
+    g=VGroup(RoundedRectangle(width=12.4,height=1.85,corner_radius=.15,color=GREY,fill_color=BG,fill_opacity=1).move_to([0,-2.65,0]))
+    for i,(a,b,col) in enumerate(rows[:n]):
+        x=-4.1+i*4.1
+        g.add(label(a,x,-2.15,col,28),label(b,x,-2.85,TEXT,26 if i<2 else 26))
+    return g
 
 class S00Title(TitleCard):
-    LESSON = "Netrin and DCC"
-    TITLE = "Netrin Guides Growing Axons"
+    LESSON='Netrin and DCC: One Cue, Two Answers'
+    TITLE='The Map and the Puzzle'
 
-
-def base_stage(self, with_axon=True):
-    arcs, src, lbl = stage()
-    self.add(arcs, src, lbl)
-    axon = axon_in()
-    self.add(axon)
-    return arcs, src, lbl, axon
-
-def mini(center, receptors, live=None):
-    s = 0.65
-    parts = VGroup(body(center, s))
-    if "d" in receptors:
-        parts.add(cups(center, DCC_A, TEAL, s))
-    if "u" in receptors:
-        parts.add(cups(center, UNC_A, PURPLE, s))
-    if live is not None:
-        parts.add(dots(center, s, live=live))
-    return parts
-
-def row(cx, y, receptors, live, toward, label, color):
-    ic = mini(np.array([cx, y, 0]), receptors, live)
-    if toward:
-        ar = Arrow([cx + 1.05, y, 0], [cx + 2.5, y, 0], buff=0, color=GREEN, stroke_width=8)
-    else:
-        ar = Arrow([cx - 1.05, y, 0], [cx - 2.5, y, 0], buff=0, color=RED, stroke_width=8)
-    tx = T(label, 26, color).move_to([cx, y - 1.3, 0])
-    return VGroup(ic, ar, tx)
-
-smooth_rate = rate_functions.ease_in_out_sine
-
-
-# Tissue drawings are schematic cross-sections, not molecular structures.
-def heading(text, color=TEXT):
-    return T(text, 32, color, weight=BOLD).move_to([0, 3.2, 0])
-
-
-def label(text, x, y, color=TEXT, size=24):
-    return T(text, size, color).move_to([x, y, 0])
-
-
-def cord(center, scale=1.0, wrong=False, progenitor=True, floor=True):
-    c = np.array(center, float)
-    def pt(x, y):
-        return c + np.array([x, y, 0]) * scale
-    outline = Ellipse(width=4.6*scale, height=4.5*scale, color=GREY, stroke_width=3).move_to(c)
-    mid = DashedLine(pt(0, 2.15), pt(0, -2.15), color=GREY, stroke_width=2)
-    canal = Ellipse(width=.55*scale, height=1.5*scale, color=GREY, stroke_width=3).move_to(pt(0, .55))
-    fp = RoundedRectangle(width=.65*scale, height=.28*scale, corner_radius=.06,
-                          color=GREY, fill_color=GREY, fill_opacity=.3).move_to(pt(0, -2.05))
-    progenitors = VGroup(*[Dot(pt(x, y), radius=.10*scale, color=GREY)
-                           for x in [-.48, .48] for y in [.2, .65, 1.1]])
-    deposits = VGroup(*[Dot(pt(x,y), radius=.075*scale, color=YELLOW)
-                        for x,y in [(-2.02,.8),(-2.12,.25),(-2.0,-.4),(-1.7,-1.05),(-1.2,-1.62),(-.65,-1.9)]])
-    fcue = VGroup(*[Dot(pt(x,-1.96), radius=.07*scale, color=YELLOW) for x in [-.2,0,.2]])
-    points = [(-1.55,1.4),(-1.9,.55),(-1.7,-.65),(-.85,-1.62),(.4,-1.65),(1.55,-1.0)]
-    if wrong:
-        points = [(-1.55,1.4),(-1.65,.6),(-.7,.1),(-.95,.8),(-.25,1.35)]
-    route = smooth([pt(x,y) for x,y in points]).set_stroke(BLUE, 6)
-    tip = body(pt(*points[-1]), .15*scale)
-    anatomy = VGroup(outline, mid, canal, fp, progenitors)
-    cues = VGroup()
-    if progenitor:
-        cues.add(deposits)
-    if floor:
-        cues.add(fcue)
-    return VGroup(anatomy, cues, route, tip)
-
-
-def explant(pos, color=BLUE):
-    return RoundedRectangle(width=.8, height=.9, corner_radius=.2, color=color,
-                            fill_color=color, fill_opacity=.25).move_to(pos)
-
-
-def bundles(x0, x1, y=0):
-    return VGroup(*[smooth([[x0,y+d,0],[(x0+x1)/2,y+d*.75,0],[x1,y+d*.5,0]])
-                   .set_stroke(BLUE, 5) for d in [-.26,0,.26]])
-
-
-def dish(cx):
-    return RoundedRectangle(width=5.8, height=3.6, corner_radius=.3, color=GREY,
-                            fill_color=GREY, fill_opacity=.04).move_to([cx,0,0])
-
-
-def clear(scene):
-    scene.play(FadeOut(Group(*scene.mobjects)), run_time=.35)
-
-
-class S01Question(SpokenScene):
+class S01Question(Timed):
     def construct(self):
-        h = heading('Netrin guides growing axons')
-        cue = bchip('netrin', YELLOW, 28).move_to([4.4,1.3,0])
-        normal = cord([-2.3,0,0], .94, progenitor=False, floor=False)
-        self.at('Netrin is a')
-        self.play(FadeIn(h), FadeIn(cue), FadeIn(normal[0]), run_time=.7)
-        self.at('developing spinal cord')
-        nlabel = label('spinal cord · normal', -2.3,-2.7,BLUE)
-        mid = label('ventral midline', 3.7,-1.7,GREY)
-        self.play(FadeIn(nlabel), FadeIn(mid), run_time=.5)
-        self.at('grow toward the midline')
-        self.play(Create(normal[2]), FadeIn(normal[3]), run_time=2.0)
-        self.at('Netrin helps guide')
-        self.play(Indicate(normal[2], color=BLUE), run_time=.7)
-        self.at('In mice lacking netrin')
-        mutant = cord([3,0,0], .94, wrong=True, progenitor=False, floor=False)
-        ml = label('mouse lacking netrin-1',3,-2.7,RED)
-        self.play(FadeOut(cue), FadeOut(mid), FadeIn(mutant[0]), FadeIn(ml), run_time=.6)
-        self.at('take wrong routes')
-        self.play(Create(mutant[2]), FadeIn(mutant[3]), run_time=.8)
-        self.at('several forebrain crossings')
-        clear(self)
-        h = heading('Forebrain · a separate comparison')
-        normal_brain = VGroup(Ellipse(width=2,height=2.7,color=GREY).move_to([-4,.4,0]),
-                              Ellipse(width=2,height=2.7,color=GREY).move_to([-1.8,.4,0]))
-        missing = normal_brain.copy().shift(RIGHT*6)
-        bridges = VGroup(*[Line([-3.3,y,0],[-2.5,y,0],color=BLUE,stroke_width=7) for y in [-.1,.5,1.1]])
-        gaps = VGroup(*[Line([2.7,y,0],[2.9,y,0],color=BLUE,stroke_width=7) for y in [-.1,.5,1.1]],
-                      *[Line([3.3,y,0],[3.5,y,0],color=BLUE,stroke_width=7) for y in [-.1,.5,1.1]])
-        self.play(FadeIn(h),FadeIn(normal_brain),FadeIn(missing),FadeIn(bridges),FadeIn(gaps),
-                  FadeIn(label('normal crossings',-2.9,-1.5,BLUE)),
-                  FadeIn(label('crossings missing',3.1,-1.5,RED)),run_time=.6)
-        self.at('How does this cue')
-        clear(self)
-        cone = body(np.array([0,0,0]),1.25)
-        ax = Line([-5.8,0,0],[-1.25,0,0],color=BLUE,stroke_width=11)
-        self.play(FadeIn(cone),Create(ax),FadeIn(heading('How does netrin guide the moving tip?')),
-                  FadeIn(label('growth cone',0,-2,BLUE,30)),run_time=.7)
-        self.finish()
+        mid=Line([2.6,-2.25,0],[2.6,2.7,0],color=YELLOW,stroke_width=9)
+        self.add(mid,label('netrin · midline',3.9,-2.7,YELLOW,28),Dot([-1.5,0,0],radius=.16,color=BLUE))
+        toward=smooth([[-1.5,0,0],[-.5,1,0],[1,1.6,0],[2.35,1.5,0]],BLUE,9)
+        away=smooth([[-1.5,0,0],[-2.4,-.5,0],[-3.8,-1.3,0],[-5.4,-1,0]],BLUE,9)
+        self.at('pulls some');self.play(Create(toward),run_time=1.3)
+        self.add(Arrow([.1,2.3,0],[2.1,2.3,0],color=GREEN,buff=0),label('pull',1.1,2.8,GREEN,28))
+        self.at('it pushes');self.play(Create(away),run_time=.8)
+        self.add(Arrow([-3,-2.1,0],[-5,-2.1,0],color=RED,buff=0),label('push',-4,-2.6,RED,28))
+        self.at('what decides');self.play(FadeIn(label('What decides?',0,3.4,size=38)),run_time=.3);self.finish()
 
-
-class S01Evidence(SpokenScene):
+class S02Growthcone(Timed):
     def construct(self):
-        h = heading('Embryonic rat spinal cord · collagen gel')
-        left, right = dish(-3.2), dish(3.2)
-        lone = explant([-4.4,0,0])
-        paired = explant([1.6,0,0])
-        self.at('The first clue')
-        self.play(FadeIn(h),Create(left),Create(right),run_time=.7)
-        self.at('dorsal spinal cord alone')
-        self.play(FadeIn(lone),FadeIn(paired),
-                  FadeIn(label('dorsal explant',-4.4,1.2,BLUE)),
-                  FadeIn(label('dorsal explant',1.7,1.2,BLUE)),run_time=.5)
-        self.at('few or no axons')
-        alone_result = label('few or no axons',-3.2,-2.3,GREY)
-        self.play(FadeIn(alone_result),run_time=.5)
-        self.at('floor plate nearby')
-        fp = explant([5.1,0,0],GREY)
-        fl = label('floor plate',5.1,1.2,GREY)
-        self.play(FadeIn(fp),FadeIn(fl),run_time=.5)
-        self.at('axon bundles grew toward')
-        ax = bundles(2.05,4.15)
-        self.play(Create(ax),run_time=1.15)
-        self.at('pieces never touched')
-        gap = VGroup(Line([4.2,-.8,0],[4.65,-.8,0],color=TEXT,stroke_width=3),
-                     label('gap',4.4,-1.2,TEXT,22))
-        self.play(FadeIn(gap),run_time=.45)
-        self.at('Something crossed the gel')
-        moving = Dot([4.6,.65,0],color=YELLOW,radius=.1)
-        self.play(FadeIn(moving),run_time=.2)
-        self.play(moving.animate.move_to([2.1,.65,0]),run_time=.8)
-        self.play(FadeOut(moving),run_time=.2)
-        self.at('cells made to secrete')
-        cells = VGroup(*[Circle(radius=.2,color=GREY,fill_color=GREY,fill_opacity=.4)
-                       .move_to([5.1+dx,dy,0]) for dx,dy in [(-.16,0),(.15,.2),(.15,-.2)]])
-        self.play(ReplacementTransform(fp,cells),ReplacementTransform(fl,label('netrin cells',5,1.2,YELLOW)),
-                  FadeOut(gap),run_time=.6)
-        self.at('at a distance')
-        self.play(FadeIn(label('Culture: attraction at a distance',0,-3.1,GREEN,28)),run_time=.5)
-        self.finish()
+        ax=Line([-5.8,0,0],[-1.6,0,0],color=BLUE,stroke_width=12);g=growth(scale=2.25)
+        self.add(ax,g)
+        self.at('its growth');self.play(FadeIn(callout('growth cone',(3.9,2.9),[1.2,1.3,0],BLUE,32)),run_time=.3)
+        self.at('the moving');self.play(g.animate.shift(RIGHT*.45),ax.animate.put_start_and_end_on([-5.8,0,0],[-1.15,0,0]),run_time=.7);self.finish()
 
-
-class S01Local(SpokenScene):
+class S03Slice(Timed):
     def construct(self):
-        tissue = cord([-1,0,0],1.05)
-        self.at('But in the mouse embryo')
-        self.play(FadeIn(heading('Mouse embryo · local presentation')),
-                  FadeIn(tissue[0]),run_time=.65)
-        fp_label = label('floor plate',-.9,-2.85,GREY)
-        self.play(FadeIn(fp_label),run_time=.4)
-        self.at('ventricular zone progenitors')
-        pl = label('ventricular-zone\nprogenitors',3.9,1.6,GREY,26)
-        ptr = Arrow([2.25,1.45,0],[-.4,.85,0],color=GREY,buff=.12)
-        self.play(FadeIn(pl),GrowArrow(ptr),Indicate(tissue[0][4],color=GREY),run_time=.65)
-        self.at('make netrin')
-        packet = Dot([-.5,.8,0],color=YELLOW,radius=.13)
-        self.play(FadeIn(packet),run_time=.3)
-        self.at('lay it down')
-        self.play(packet.animate.move_to([-3.12,.25,0]),run_time=.7)
-        self.play(FadeOut(packet),FadeIn(tissue[1][0]),run_time=.4)
-        pial = label('pial surface',-4.8,-2.3,GREY)
-        pointer = Arrow([-4.35,-1.9,0],[-3,-.7,0],color=GREY,buff=.1)
-        self.play(FadeIn(pial),GrowArrow(pointer),run_time=.45)
-        self.at('along the')
-        self.play(Create(tissue[2]),FadeIn(tissue[3]),run_time=1.0)
-        self.at('The growth cone')
-        self.play(FadeOut(ptr),FadeOut(pl),FadeIn(label('netrin beside the axon route',3.5,.7,YELLOW,24)),run_time=.4)
-        self.play(Indicate(tissue[1][0],color=YELLOW,scale_factor=1.08),run_time=.8)
-        self.finish()
+        back=Ellipse(width=2.6,height=5.8,color=GREY).move_to([-2,0,0]);front=back.copy().shift(RIGHT*4)
+        tube=VGroup(back,front,Line([-2,2.9,0],[2,2.9,0],color=GREY),Line([-2,-2.9,0],[2,-2.9,0],color=GREY));self.add(tube)
+        plane=Polygon([-.65,-3,0],[.65,-2.5,0],[.65,3,0],[-.65,2.5,0],color=TEXT,fill_opacity=.2)
+        self.at('cut crosswise');self.play(FadeIn(plane),run_time=.35)
+        self.at('like a slice');self.play(FadeOut(tube),plane.animate.stretch(.18,0),run_time=.3)
+        section,d=cord(axes=False)
+        self.play(ReplacementTransform(plane,section),FadeIn(callout('transverse section',(4.5,1.8),[2.8,1.4,0])),FadeIn(callout('central canal',(4.4,.2),[.32,.5,0],size=26)),run_time=.55);self.finish()
 
-
-class S01Sources(SpokenScene):
+class S04Floorplate(Timed):
     def construct(self):
-        self.at('Deleting netrin only')
-        h = heading('Mouse · netrin source deletions')
-        control = cord([-4.3,0,0],.68)
-        no_floor = cord([0,0,0],.68,floor=False)
-        no_prog = cord([4.3,0,0],.68,progenitor=False,wrong=True)
-        self.play(FadeIn(h),FadeIn(control),FadeIn(no_floor[0]),FadeIn(no_floor[1]),
-                  FadeIn(label('control',-4.3,2.1)),
-                  FadeIn(label('floor plate deletion',0,2.1,RED)),run_time=.6)
-        self.at('left most')
-        self.play(Create(no_floor[2]),FadeIn(no_floor[3]),
-                  FadeIn(label('most on course',0,-2,GREEN)),run_time=.9)
-        self.at('Deleting it from those')
-        self.play(FadeIn(no_prog[0]),FadeIn(no_prog[1]),
-                  FadeIn(label('progenitor deletion',4.3,2.1,RED)),run_time=.55)
-        self.at('caused errors')
-        self.play(Create(no_prog[2]),FadeIn(no_prog[3]),FadeIn(label('routing errors',4.3,-2,RED)),run_time=.65)
-        self.at('Later studies found')
-        clear(self)
-        tissue = cord([-2.8,0,0],.95)
-        self.play(FadeIn(heading('Both netrin sources contribute')),FadeIn(tissue),run_time=.55)
-        fl = label('floor plate netrin',3,1.3,YELLOW,28)
-        pr = label('progenitor netrin',3,-1.1,YELLOW,28)
-        self.at('still contributes')
-        self.play(FadeIn(fl),Indicate(tissue[1][1],color=YELLOW),run_time=.6)
-        self.at('working with progenitor')
-        self.play(FadeIn(pr),Indicate(tissue[1][0],color=YELLOW),run_time=.6)
-        self.at('So the dish shows')
-        clear(self)
-        self.play(FadeIn(heading('Two settings · complementary evidence')),
-                  FadeIn(dish(-3.3)),FadeIn(explant([-4.7,0,0])),FadeIn(explant([-1.6,0,0],YELLOW)),
-                  Create(bundles(-4.25,-2.45)),run_time=.65)
-        self.play(FadeIn(label('Culture',-3.3,2.3)),
-                  FadeIn(label('attraction at a distance',-3.3,-2.3,GREEN)),run_time=.4)
-        self.at('The mouse shows')
-        self.play(FadeIn(cord([3.4,0,0],.8)),FadeIn(label('Mouse embryo',3.4,2.3)),
-                  FadeIn(label('local cue · cooperating sources',3.4,-2.3,YELLOW,22)),run_time=.7)
-        self.finish()
+        g,d=cord();self.add(g)
+        self.at('floor plate');self.play(FadeIn(d['fp']),FadeIn(callout('floor plate',(4.5,-1.8),d['p'](0,-1.96),ORANGE)),run_time=.4)
+        self.play(Indicate(d['fp'],color=ORANGE,scale_factor=1.18),run_time=.6)
+        self.at('ventral midline');self.play(FadeIn(callout('ventral midline',(-4.6,-2.4),d['p'](0,-2.12),size=26)),run_time=.3);self.finish()
 
-
-class S02Attract(SpokenScene):
+class S05Vz(Timed):
     def construct(self):
-        center = np.array([-2.4,-.4,0])
-        cone = body(center)
-        receptors = cups(center,DCC_A,TEAL)
-        src = Dot([4.8,.9,0],radius=.25,color=YELLOW)
-        self.at('Now ask how')
-        self.play(FadeIn(heading('How the growth cone reads netrin')),FadeIn(cone),
-                  Create(Line([-6,-.4,0],[-3.4,-.4,0],color=BLUE,stroke_width=11)),
-                  FadeIn(src),FadeIn(label('netrin',4.8,.1,YELLOW)),run_time=.7)
-        self.at('Receptors on its surface')
-        self.play(LaggedStart(*[GrowFromCenter(c) for c in receptors],lag_ratio=.1),run_time=.7)
-        self.at('One receptor is called')
-        tag = label('DCC',-2.4,1.7,TEAL,30)
-        self.play(FadeIn(tag),run_time=.5)
-        self.at('usually mediates attraction')
-        path = [center,[-1,-.3,0],[.6,.3,0],[2.1,.8,0]]
-        self.play(FadeOut(tag),run_time=.2)
-        run(self,[cone,receptors],path,1.25,rate=rate_functions.ease_in_out_sine)
-        self.play(FadeIn(label('DCC: usually attraction',0,-2.3,GREEN,28)),run_time=.4)
-        self.at('Netrin binds cells')
-        clear(self)
-        self.play(FadeIn(heading('Separate assays: binding and outgrowth')),run_time=.35)
-        cell_c = np.array([-3.6,.4,0])
-        cell = VGroup(body(cell_c,.65),cups(cell_c,DCC_A,TEAL,.65))
-        bound = Dot([-2.1,1.4,0],color=YELLOW,radius=.15)
-        self.play(FadeIn(cell),FadeIn(label('DCC-displaying cells',-3.6,2.1,TEAL)),FadeIn(bound),run_time=.45)
-        self.play(bound.animate.move_to(cell_c + np.array([.32,.88,0])),run_time=.7)
-        self.play(FadeIn(label('netrin binding',-3.6,-1.4,YELLOW)),run_time=.4)
-        self.at('an antibody to')
-        tissue = explant([3,.35,0])
-        ab = bchip('anti-DCC',PINK,26).move_to([3,1.9,0])
-        netrin = bchip('netrin',YELLOW,24).move_to([5,.35,0])
-        self.play(FadeIn(tissue),FadeIn(ab),FadeIn(netrin),run_time=.6)
-        self.at('blocks')
-        stop = Line([3.7,-.15,0],[3.7,.85,0],color=PINK,stroke_width=7)
-        self.play(Create(stop),run_time=.4)
-        self.at('outgrowth from spinal')
-        self.play(FadeIn(label('outgrowth blocked',3.4,-1.4,PINK)),
-                  FadeIn(label('spinal-cord explant',3.4,-2.2,BLUE)),run_time=.5)
-        self.finish()
+        g,d=cord(level=1);self.add(g)
+        self.at('ventricular zone');self.play(FadeIn(d['vz']),FadeIn(callout('ventricular zone',(-4.65,1.4),d['p'](-.5,.8),TEAL,26)),run_time=.4)
+        self.at('central canal');self.play(FadeIn(callout('central canal',(4.7,1.0),d['p'](.22,.4),size=26)),run_time=.3)
+        self.at('progenitors');self.play(FadeIn(callout('progenitors',(4.6,-.3),d['p'](.5,-.1),TEAL,28)),run_time=.3)
+        neuron=VGroup(Dot([3.85,-1.5,0],color=BLUE,radius=.18),Line([3.85,-1.5,0],[4.3,-1.5,0],color=BLUE,stroke_width=4))
+        glia=Ellipse(width=.42,height=.56,color=GREY,fill_color=GREY,fill_opacity=.65).move_to([3.85,-2.35,0])
+        # Explicit daughter objects persist after the division animation.
+        split=VGroup(Line(d['p'](.5,-.1),[3.25,-1.9,0],color=TEAL,stroke_width=2),Line([3.25,-1.9,0],[3.6,-1.5,0],color=BLUE,stroke_width=2))
+        self.at('make neurons');self.play(Create(split),FadeIn(neuron),FadeIn(label('neuron',5.15,-1.5,BLUE,26)),run_time=.3)
+        self.at('and glia');self.play(Create(Line([3.25,-1.9,0],[3.6,-2.35,0],color=GREY,stroke_width=2)),FadeIn(glia),FadeIn(label('glia',5,-2.35,size=26)),run_time=.3);self.finish()
 
-
-class S03Repel(SpokenScene):
+class S06Fibres(Timed):
     def construct(self):
-        self.at('UNC5 receptors')
-        h = heading('Worm touch neurons · add UNC5',PURPLE)
-        before = body(np.array([-3.3,-.4,0]),.65)
-        after_c = np.array([3.3,-.4,0])
-        after = body(after_c,.65)
-        unc = cups(after_c,UNC_A,PURPLE,.65)
-        cue = VGroup(Line([-5.9,-2.2,0],[5.9,-2.2,0],color=YELLOW,stroke_width=5),
-                     label('ventral UNC-6 = worm netrin',0,-2.85,YELLOW,26))
-        # The untreated touch axon runs longitudinally, not dorsally toward/away from UNC-6.
-        old_axon = Line([-5.8,-.4,0],[-3.95,-.4,0],color=BLUE,stroke_width=7)
-        self.play(FadeIn(h),FadeIn(cue),run_time=.6)
-        self.at('In worms')
-        self.play(FadeIn(before),Create(old_axon),FadeIn(after),
-                  FadeIn(label('before UNC5 expression',-3.4,2.1,GREY)),
-                  FadeIn(label('after UNC5 expression',3.3,2.1,PURPLE)),run_time=.6)
-        self.at('forcing this receptor')
-        self.play(FadeIn(unc),run_time=.6)
-        self.at('axons away from the cue')
-        path = [after_c,[3.45,-.1,0],[3.6,.45,0],[3.6,1.05,0]]
-        run(self,[after,unc],path,.85)
-        self.at('The cue stayed the same')
-        self.play(Indicate(cue,color=YELLOW,scale_factor=1.02),run_time=.65)
-        self.at('Changing the receptor')
-        self.play(Indicate(unc,color=PURPLE,scale_factor=1.12),run_time=.65)
-        self.at('Treat this as a starting')
-        clear(self)
-        self.play(FadeIn(heading('A starting point')),
-                  FadeIn(bchip('DCC: usually attraction',TEAL,30).move_to([0,1.5,0])),
-                  FadeIn(bchip('UNC5: repulsion',PURPLE,30).move_to([0,.1,0])),run_time=.6)
-        self.at('can also take part')
-        self.play(FadeIn(label('Repulsion can also involve DCC',0,-1.3,TEAL,28)),run_time=.6)
-        self.at('other receptors and partners')
-        self.play(FadeIn(label('Other receptors and partners also matter',0,-2.6,GREY,26)),run_time=.6)
-        self.finish()
+        g,d=cord(level=2);self.add(g,callout('progenitors',(4.6,1.2),d['p'](.5,.9),TEAL))
+        self.at('sends a long');self.play(Create(d['fibres']),run_time=1.2)
+        self.at('to the edge');self.play(FadeIn(callout('radial fibre',(4.7,-.9),d['p'](1.8,-.6),size=26)),run_time=.3);self.finish()
 
-
-class S04Inside(SpokenScene):
+class S07Pia(Timed):
     def construct(self):
-        center = START.copy()
-        cone,dcc,ds = body(center),cups(center,DCC_A,TEAL),dots(center)
-        _,src,nl = stage()
-        self.at('One smaller point')
-        h = heading('Smaller point: cultured frog spinal growth cones')
-        self.play(FadeIn(h),FadeIn(cone),FadeIn(dcc),FadeIn(ds),Create(axon_in()),
-                  FadeIn(pipette()),FadeIn(src),FadeIn(nl),run_time=.7)
-        self.at('frog spinal growth cones')
-        trail = run(self,[cone,dcc,ds],PATH_TOWARD,1.4,rate=rate_functions.ease_in_out_sine)
-        on = label('cAMP signalling · attraction',0,-3.1,GREEN,26)
-        self.play(FadeIn(on),run_time=.4)
-        self.at('Blocking cyclic')
-        # Reset the prior turn and its result together before the blocked case.
-        self.play(FadeOut(cone),FadeOut(dcc),FadeOut(ds),FadeOut(trail),FadeOut(on),run_time=.25)
-        cone,dcc,ds = body(center),cups(center,DCC_A,TEAL),dots(center,live=False)
-        blocked = bchip('cAMP signalling blocked',ORANGE,26).move_to([-1,1.2,0])
-        self.play(FadeIn(cone),FadeIn(dcc),FadeIn(ds),FadeIn(blocked),run_time=.4)
-        self.at('into repulsion')
-        self.play(FadeOut(blocked), run_time=.2)
-        run(self,[cone,dcc,ds],PATH_AWAY,1.05,rate=rate_functions.ease_in_out_sine)
-        self.play(FadeIn(label('repulsion',0,-3.1,RED,28)),run_time=.25)
-        self.at('An antibody to')
-        clear(self)
-        self.play(FadeIn(heading('Anti-DCC blocks both turns',PINK)),run_time=.3)
-        groups = []
-        for y,live,txt in [(1.1,True,'cAMP signalling'),(-1.35,False,'cAMP blocked')]:
-            p = np.array([-.8,y,0])
-            g = VGroup(body(p,.62),cups(p,DCC_A,TEAL,.62),dots(p,.62,live=live),caps(p,DCC_A,.62))
-            groups.append(g)
-            self.play(FadeIn(g),FadeIn(label(txt,-4.3,y,ORANGE,26)),run_time=.3)
-        self.at('stopped both turns')
-        self.play(*[g.animate.shift(RIGHT*1.1) for g in groups],
-                  FadeIn(label('no turn',3,1.1,PINK,28)),FadeIn(label('no turn',3,-1.35,PINK,28)),run_time=.8)
-        self.at('This is a worked example')
-        self.play(FadeIn(label('Worked example in this assay',0,-2.6,TEXT,27)),run_time=.5)
-        self.at('not a rule for every axon')
-        self.play(FadeIn(label('Not a universal prediction rule',0,-3.3,GREY,24)),run_time=.5)
-        self.finish()
+        g,d=cord(level=3);self.add(g)
+        self.at('outer edge');self.play(Create(d['rim']),run_time=.5)
+        self.at('is the');self.play(FadeIn(callout('pial surface',(4.7,1.7),d['p'](1.85,1.3),ORANGE)),run_time=.3)
+        self.at('basement membrane');self.play(FadeIn(callout('basement\nmembrane',(-4.8,-1.5),d['p'](-2.1,-.85),ORANGE,26)),run_time=.3)
+        self.at('thin sheet');self.play(FadeIn(callout('extracellular\nmatrix sheet',(-4.8,-2.5),d['p'](-1.9,-1.3),ORANGE,26)),run_time=.3);self.finish()
 
+class S08Commissural(Timed):
+    def construct(self):
+        g,d=cord(level=4);d['fibres'].set_opacity(.2);self.add(g)
+        self.at('dorsal cord');self.play(FadeIn(d['soma']),FadeIn(callout('commissural neuron',(-4.6,2.0),d['p'](-.95,1.45),BLUE,26)),run_time=.4)
+        self.at('their axons');self.play(Create(d['route']),run_time=1.2)
+        self.at('close to');self.play(FadeIn(callout('near the pia',(-4.7,-1.4),d['p'](-1.7,-.8),BLUE,26)),run_time=.3);self.finish()
 
-class S07End(EndCard):
-    LINE = "Netrin guides axons; local presentation and receptor context shape the response."
+class S09Cross(Timed):
+    def construct(self):
+        g,d=cord(level=5);self.add(g,callout('floor plate',(4.6,-2.1),d['p'](0,-1.96),ORANGE))
+        self.at('they turn inward');self.play(Create(d['crossing']),run_time=1.5)
+        self.at('other side');self.play(FadeIn(callout('cross the midline',(4.7,-.7),d['p'](.8,-1.6),BLUE,26)),run_time=.3);self.finish()
+
+class S10Trochlear(Timed):
+    def construct(self):
+        old,_=cord(level=5,crossed=True);self.add(old)
+        maps,path,soma,labs,dl,dr=dual()
+        self.at('on its own');self.play(ReplacementTransform(old,maps[0]),run_time=.5)
+        self.at('neural tube');self.play(FadeIn(maps[1]),FadeIn(labs),run_time=.5)
+        self.at('trochlear motor');self.play(FadeIn(soma),FadeIn(label('trochlear motor axon',3.5,-3.4,RED,26)),FadeIn(label('commissural axon',-3.5,-3.4,BLUE,26)),run_time=.3)
+        self.at('grow dorsally');self.play(Create(path),run_time=1.0)
+        self.add(label('dorsal ↑',3.6,2.6,size=26));self.finish()
+
+class S11Worm(Timed):
+    def construct(self):
+        self.add(worm())
+        cell=Dot([-1.8,1.1,0],radius=.25,color=TEAL)
+        ax=smooth([[1.8,-1.2,0],[2,-.3,0],[1.5,1.25,0]],BLUE,7)
+        cell_label=callout('migrating cell',(-4.6,1.5),[-1.8,1.1,0],TEAL,26)
+        self.at('cells and');self.play(FadeIn(cell),FadeIn(cell_label),run_time=.3)
+        self.at('pioneer axons');self.play(FadeIn(VGroup(label('pioneer axon',4.6,1.85,BLUE,26),Line([3.25,1.6,0],[1.7,.65,0],color=BLUE,stroke_width=2))),run_time=.3)
+        self.at('migrate between');self.play(cell.animate.shift(DOWN*2.3),Transform(cell_label,callout('migrating cell',(-4.8,-1.4),[-1.8,-1.2,0],TEAL,26)),Create(ax),GrowArrow(Arrow([-2.5,.8,0],[-2.5,-1.3,0],color=TEAL,buff=0)),GrowArrow(Arrow([2.6,-1.1,0],[2.6,1.2,0],color=BLUE,buff=0)),run_time=1.1);self.finish()
+
+class S12Unc6(Timed):
+    def construct(self):
+        self.add(worm(),Dot([-1.8,-1.2,0],radius=.25,color=TEAL),smooth([[1.8,-1.2,0],[2,-.3,0],[1.5,1.25,0]],BLUE,7))
+        band=Arc(radius=3.1,start_angle=225*DEGREES,angle=90*DEGREES,color=YELLOW,stroke_width=13).stretch(1.4,0)
+        self.at("the worm's netrin");self.play(Create(band),run_time=.4)
+        self.at('called');self.play(FadeIn(callout('UNC-6',(-4.9,-2.2),[-2.1,-2.6,0],YELLOW,28)),run_time=.3)
+        self.at('is made');self.play(FadeIn(callout('made ventrally',(1.2,-3.55),[1.25,-2.96,0],YELLOW,26)),run_time=.3);self.finish()
+
+class S13P1(Timed):
+    def construct(self):
+        slots=boxes();initial,_=cord((0,.3,0),1.1,5,True,axes=False)
+        self.add(slots,heading('Three puzzles'),initial)
+        dish=RoundedRectangle(width=11.8,height=4.8,corner_radius=.3,color=GREY,fill_color=GREY,fill_opacity=.06).move_to([0,.2,0])
+        a=RoundedRectangle(width=1.4,height=2.4,corner_radius=.2,color=GREY,fill_opacity=.3).move_to([-4,.1,0]);b=a.copy().move_to([4,.1,0])
+        self.at('a floor plate');self.play(FadeOut(initial),FadeIn(dish),FadeIn(a),FadeIn(b),FadeIn(label('collagen gel',0,2.2,size=28)),FadeIn(label('floor plate',4,-1.6,ORANGE,28)),run_time=.4)
+        dots=VGroup(*[Dot([x,y,0],radius=.035,color=YELLOW).set_opacity(.08+.08*(x+2)) for x in np.linspace(-1.6,3.1,15) for y in [-.8,-.3,.3,.8]])
+        paths=VGroup(*[smooth([[-3.3,y,0],[-2,y*.9+.2,0],[-.3,y*.4+.1,0],[1.7,y*.25,0]]) for y in [-.65,0,.65]])
+        self.at('draws axons');self.play(Create(paths),FadeIn(dots),FadeIn(label('dorsal cord',-4,-1.6,BLUE,28)),run_time=.8)
+        self.at('without touching');self.play(FadeIn(label('no contact',2.35,-1.08,size=26)),run_time=.3)
+        self.at('what crosses');self.play(FadeIn(label('?',2.5,.55,YELLOW,44)),run_time=.2)
+        stamp=slots[0][0].copy();self.play(TransformFromCopy(VGroup(dish,a,b,paths),stamp),Transform(slots,boxes(1)),run_time=.5);self.remove(stamp);self.finish()
+
+class S14P2(Timed):
+    def construct(self):
+        slots=boxes(1);self.add(slots)
+        maps,path,soma,labs,dl,dr=dual(y=.45,scale=1.02)
+        # Same anatomical parts on both maps; glow behind, never over, floor plate.
+        self.add(maps,labs[:2])
+        self.at('one cue');self.play(FadeIn(VGroup(*[Dot(d['p'](0,-1.96),radius=.75,color=YELLOW,fill_opacity=.12).set_z_index(-1) for d in [dl,dr]])),run_time=.3)
+        self.at('pull commissural');self.play(Indicate(dl['crossing'],color=GREEN),FadeIn(label('toward',-3.45,-2.25,GREEN,28)),run_time=.6)
+        self.at('push trochlear');self.play(FadeIn(soma),Create(path),FadeIn(label('away',3.45,-2.25,RED,28)),run_time=.6)
+        stamp=slots[1][0].copy();self.play(TransformFromCopy(VGroup(maps,path,soma),stamp),Transform(slots,boxes(2)),run_time=.45);self.remove(stamp);self.finish()
+
+class S15P3(Timed):
+    def construct(self):
+        slots=boxes(2);self.add(slots)
+        a,da=cord((-3.45,.35,0),1.12,4,axes=False);b,db=cord((3.45,.35,0),1.12,4,axes=False);self.add(a,b)
+        self.add(label('dorsal',-3.45,3.3,size=26),label('dorsal',3.45,3.3,size=26),label('ventral',-3.45,-2.4,size=26),label('ventral',3.45,-2.4,size=26))
+        # Hypothesis diagram: opacity decreases with distance from the ventral source.
+        shading=VGroup(*[Line(da['p'](-1.35,y),da['p'](1.35,y),color=YELLOW,stroke_width=16).set_opacity(.4*np.exp(-(y+1.8)/1.1)) for y in np.linspace(-1.8,1.5,14)])
+        self.at('a gradient');self.play(FadeIn(shading),run_time=.4)
+        deposits=VGroup(*[Dot(db['outline'].point_from_proportion(t),radius=.07,color=YELLOW) for t in np.linspace(.05,.95,35)])
+        self.at('or laid along');self.play(FadeIn(deposits),run_time=.4)
+        stamp=slots[2][0].copy();self.play(TransformFromCopy(VGroup(a,b,shading,deposits),stamp),Transform(slots,boxes(3)),run_time=.45);self.remove(stamp);self.finish()
+
+class S16Predict(Timed):
+    def construct(self):
+        cards=choices();self.add(cards[0][0],cards[1][0],cards[2],cards[3],pause_track())
+        self.at('direction written');self.play(FadeIn(cards[0][1]),run_time=.4)
+        self.at('or does');self.play(FadeIn(cards[1][1]),run_time=.4);self.finish()
+
+class S17Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(choices())
+        self.add(pause_track())
+        bar=Line([-5.9,-1.85,0],[-5.88,-1.85,0],color=BLUE,stroke_width=14);self.add(bar)
+        self.play(bar.animate.put_start_and_end_on([-5.9,-1.85,0],[5.9,-1.85,0]),run_time=5,rate_func=linear)
+
+class S18Reveal(Timed):
+    def construct(self):
+        cards=choices();self.add(cards)
+        self.at('the second');self.play(cards[1][0].animate.set_stroke(BLUE,width=5),run_time=.4)
+        r=rule();self.at('marks a place');self.play(FadeOut(cards),FadeIn(r[0]),run_time=.4)
+        self.at('the growth cone');self.play(FadeIn(r[1:]),run_time=.4);self.finish()
+
+class S19Beat(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(rule());self.wait(2.5)
+
+class S20Where(Timed):
+    def construct(self):
+        card=rulecard(0);g,d=cord((0,1,0),1.03,4,axes=False);self.add(card,g)
+        # Build each text object once. Never morph between overlapping glyph layers.
+        self.at('supplies the');self.play(FadeIn(label('WHERE',-4.1,-2.15,YELLOW,28)),run_time=.3)
+        terms=VGroup(*[label(t,0,0,size=26) for t in ['source',' · slope',' · surface']]).arrange(RIGHT,buff=.02).move_to([-4.1,-2.85,0])
+        self.at('its source');self.play(FadeIn(terms[0]),FadeIn(Dot(d['p'](0,-1.95),radius=.7,color=YELLOW,fill_opacity=.16).set_z_index(-1)),FadeIn(callout('source',(4,-.8),d['p'](0,-1.95),YELLOW)),run_time=.3)
+        gradient=VGroup(*[Line(d['p'](-.7,y),d['p'](.7,y),color=YELLOW,stroke_width=16).set_opacity(.4*np.exp(-(y+1.7)/1.0)) for y in np.linspace(-1.7,1.3,12)])
+        self.at('its slope');self.play(FadeIn(terms[1]),FadeIn(gradient),FadeIn(callout('slope',(-4.1,1.5),d['p'](-.6,.5),YELLOW)),run_time=.3)
+        self.at('the surface');self.play(FadeIn(terms[2]),d['rim'].animate.set_color(YELLOW),FadeIn(callout('surface',(4,2.3),d['p'](1.8,1.3),YELLOW)),run_time=.3);self.finish()
+
+class S21Sign(Timed):
+    def construct(self):
+        card=rulecard(1);self.add(card)
+        l=growth((-3.8,.9,0),2.1);r=growth((3.8,.9,0),2.1).rotate(PI,about_point=[3.8,.9,0])
+        self.add(l,r,Dot([0,1.3,0],radius=.38,color=YELLOW),label('netrin',0,2.05,YELLOW,28))
+        self.at('supplies the sign');self.play(FadeIn(label('SIGN',0,-2.15,BLUE,28)),run_time=.3)
+        lc=cups((-3.8,.9,0),[0,45,-45],TEAL,1.8);rc=cups((3.8,.9,0),[140,180,220],PURPLE,1.8)
+        self.at('its receptors');self.play(FadeIn(label('receptors',0,-2.85,TEXT,26)),FadeIn(lc),FadeIn(rc),run_time=.4)
+        self.at('usually draws');self.play(FadeIn(label('DCC · usually',-3.8,3.25,TEAL,28)),Create(CurvedArrow([-4.4,-1.3,0],[-1.2,-.1,0],angle=PI/3,color=GREEN)),VGroup(l,lc).animate.rotate(.12,about_point=[-3.8,.9,0]),run_time=.7)
+        self.at('receptors add');self.play(FadeIn(label('UNC5',3.8,3.25,PURPLE,28)),Create(CurvedArrow([3,-.3,0],[5.8,-1.2,0],angle=-PI/3,color=RED)),VGroup(r,rc).animate.rotate(.18,about_point=[3.8,.9,0]),run_time=.7)
+        self.at('sometimes with');self.play(FadeIn(cups((3.8,.9,0),[120],TEAL,1.8)),FadeIn(label('+ DCC sometimes',3.8,2.65,TEAL,26)),run_time=.4);self.finish()
+
+class S22State(Timed):
+    def construct(self):
+        card=rulecard(2);g=growth((0,1,0),2.6);self.add(card,g)
+        self.at('its internal');self.play(FadeIn(VGroup(*list(rulecard(3))[5:])),run_time=.4)
+        inside=VGroup(label('cAMP',.35,1.45,ORANGE,30),label('calcium',.35,.65,size=28))
+        self.at('such as');self.play(FadeIn(inside[0]),run_time=.3)
+        self.at('or calcium');self.play(FadeIn(inside[1]),run_time=.3)
+        surface=Line([-4.8,-1.08,0],[4.8,-1.08,0],color=ORANGE,stroke_width=6)
+        self.at('a matrix protein');self.play(Create(surface),FadeIn(label('laminin',-3.8,-1.48,ORANGE,28)),run_time=.4)
+        self.at('can change');self.play(GrowArrow(Arrow([0,-1.08,0],[0,-.1,0],color=ORANGE,buff=0)),inside[0].animate.set_opacity(.35),FadeIn(label('can change state',4.65,-.6,ORANGE,26)),FadeIn(label('Example: frog retinal growth cone',-1.7,3.5,size=26)),run_time=.5);self.finish()
+
+class S23Limits(Timed):
+    def construct(self):
+        self.add(rulecard(3),label('The rule has limits',0,2.8,size=34))
+        self.at('not always');self.play(FadeIn(chip('not always a long-range gradient',YELLOW,size=32).move_to([0,1.2,0])),run_time=.4)
+        self.at('does more');self.play(FadeIn(chip('does more than steer',BLUE,size=32).move_to([0,-.45,0])),run_time=.2)
+        # A three-second hold also captures both tags in the review sampling.
+        self.wait(3);self.finish()
+
+class S24Takeaway(Timed):
+    def construct(self):
+        g,d=cord((-2.65,.5,0),1.0,5,True,axes=False)
+        inset,e=cord((3.8,.5,0),.84,1,axes=False)
+        p=e['p'];path=smooth([p(x,y) for x,y in [(.5,-1.55),(1.5,-1.05),(1.9,.1),(1.25,1.65)]],RED)
+        slots=boxes(3)
+        self.add(g,inset,path,Dot(p(.5,-1.55),radius=.13,color=RED),slots,
+                 label('spinal cord',-2.65,3.3,size=28),label('midbrain–hindbrain',3.8,3.3,size=26),
+                 callout('dorsal neuron',(-5.15,2.65),d['p'](-.95,1.45),BLUE,26),
+                 callout('floor plate',(-2.65,-2.25),d['p'](0,-1.96),ORANGE,26),
+                 callout('ventricular zone',(.25,1.65),d['p'](.5,.9),TEAL,26),
+                 callout('pial surface',(-5.15,-1.5),d['p'](-2.1,-.6),ORANGE,26),
+                 label('trochlear axon',3.8,-1.9,RED,26))
+        self.at('each chapter');self.play(Indicate(slots,scale_factor=1.02,color=YELLOW),run_time=.5);self.finish()
+
+class S25End(EndCard):
+    LINE='Netrin marks a place;\nthe growth cone decides what to do there.'

@@ -1,382 +1,473 @@
-"""Topographic maps: axons find their place among neighbours  (Biochemistrypedia explainer)
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = retinal axon / retinal cell / EphA receptor (brighter = more EphA)
-  ORANGE = ephrin-A ligand in the tectum (more opaque = more ephrin)
-  PURPLE = retinal cells given extra EphA (the knock-in mouse)
-  YELLOW = the lure, and "compare with neighbours" highlights
-  RED    = repelled / stop / wrong turn / cut
-  GREEN  = the ordered result
-  GREY   = eye, tectum and other structure
+"""Chapter 1, reviewer polish round.
+COLOR MAP: BLUE = retinal axons / EphA; ORANGE = ephrin-A repellent;
+YELLOW = lure / comparison; RED = cut / missed prey; GREY = anatomy;
+GOLD = temporal identity; slate = nasal identity. Opaque cyan, gold,
+slate, mint and lavender identify individual axons (not receptor amounts).
+Gradient amount is computed as 0.08 + 0.82*f, as in scenes.old.py.
+Rank positions are computed by sorting receptor levels, not traced by hand.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
+from bp_style import SpokenScene as BaseSpokenScene
+ORANGE = '#F29E4C'
+SLATE = '#BAC6DB'
+IDS = [GOLD, BLUE, '#9CE0BB', '#C8B5F2', SLATE]
+LESSON = "Topographic Maps: Sperry's Eye and Eph Gradients"
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+class SpokenScene(BaseSpokenScene):
+    # The old log recorded lateness BEFORE waiting. Audit AFTER waiting instead,
+    # without modifying sync.log (the fix task restricts output files).
+    def at(self, phrase, lead=0, nth=0):
+        target = self.t_of(phrase, nth) - lead
+        rest = target - self.elapsed()
+        if rest > .02:
+            self.wait(rest)
+        error = self.elapsed() - target
+        assert abs(error) < .14, (phrase, target, self.elapsed())
+        print(f'CUE {self.__class__.__name__}: {phrase!r}, error={error:+.3f}s')
 
+def label(s,x,y,size=28,color=TEXT):
+    return T(s,size,color).move_to([x,y,0])
 
-def bar(x, y, h, w=0.6, color=GREY):
-    return RoundedRectangle(corner_radius=0.12, width=w, height=h, stroke_color=color, stroke_width=3,
-                            fill_color=color, fill_opacity=0.15).move_to([x, y, 0])
+def line(a,b,c=BLUE,w=5):
+    return Line(a,b,color=c,stroke_width=w)
 
+def cell(x,y,c=BLUE,r=.16):
+    # Opaque dark underlay prevents loss against a bright gradient.
+    return VGroup(Circle(radius=r+.055,stroke_width=0,fill_color=BG,fill_opacity=1),
+        Circle(radius=r,stroke_color=c,stroke_width=3,fill_color=c,fill_opacity=1)).move_to([x,y,0])
 
-def grad_bar(x, y, h, color, w=0.6, n=20, top_high=True, lo=0.08, hi=0.9):
-    """vertical bar made of n slices whose opacity runs low to high."""
-    sh = h / n
-    g = VGroup()
-    for i in range(n):
-        f = i / (n - 1)
-        op = hi - (hi - lo) * f if top_high else lo + (hi - lo) * f
-        g.add(Rectangle(width=w, height=sh + 0.005, stroke_width=0, fill_color=color, fill_opacity=op)
-              .move_to([x, y + h / 2 - sh * (i + 0.5), 0]))
-    g.add(RoundedRectangle(corner_radius=0.12, width=w, height=h, stroke_color=color, stroke_width=3,
-                           fill_opacity=0).move_to([x, y, 0]))
+def gradient(x,y,length=8,height=1.3,color=ORANGE,vertical=False):
+    g=VGroup()
+    for i in range(48):
+        f=i/47
+        g.add(Rectangle(width=height if vertical else length/48+.008,
+            height=length/48+.008 if vertical else height,stroke_width=0,
+            fill_color=color,fill_opacity=.08+.82*f).move_to([
+                x if vertical else x-length/2+length*(i+.5)/48,
+                y+length/2-length*(i+.5)/48 if vertical else y,0]))
+    g.add(Rectangle(width=height if vertical else length,height=length if vertical else height,
+        stroke_color=color,stroke_width=2).move_to([x,y,0]))
+    return g
+
+def tuft(x,y,c=BLUE):
+    segs=[([x,y+.42,0],[x+dx,y+dy,0]) for dx,dy in [(-.25,-.18),(0,-.36),(.25,-.18)]]
+    return VGroup(*[line(a,b,BG,10) for a,b in segs],*[line(a,b,c,5) for a,b in segs])
+
+def newt(rotated=True):
+    body=Ellipse(width=6.2,height=2.1,stroke_color=GREY,fill_color=GREY,fill_opacity=.4).move_to([.6,-.3,0])
+    tail=Polygon([3,-.1,0],[6,-1.1,0],[2.9,-1.05,0],color=GREY,fill_opacity=.4)
+    legs=VGroup()
+    for x,dx,y in [(-.9,-.7,-2.1),(-.9,.45,1.4),(2,.8,-2.1),(2,-.35,1.4)]:
+        knee=np.array([x+dx,-.3+(y+.3)*.65,0]); end=np.array([x+dx*1.35,y,0])
+        legs.add(VMobject(stroke_color=GREY,stroke_width=14).set_points_as_corners([[x,-.3,0],knee,end]))
+        for d in [-.18,0,.18]:
+            legs.add(line(end,end+np.array([d,.22 if y>0 else -.22,0]),GREY,5))
+    spots=VGroup(*[Dot([x,-.1,0],radius=.12,color=RED) for x in [-.8,.2,1.2,2.2]])
+    eye=VGroup(Circle(radius=.36,color=TEXT,fill_color=TEXT,fill_opacity=1),
+        line([0,0,0],[0,.27,0],BG,8)).move_to([-3.65,.43,0])
+    if rotated: eye.rotate(PI)
+    head=VGroup(Ellipse(width=2.9,height=1.9,stroke_color=GREY,fill_color=GREY,fill_opacity=.55).move_to([-3.1,-.05,0]),eye,
+        line([-4.35,-.35,0],[-3.5,-.35,0],GREY,3))
+    return VGroup(tail,legs,body,spots,head)
+
+PIVOT=np.array([-1.9,-.05,0])
+def lure():
+    return VGroup(line([-3.65,2.75,0],[-3.65,2.05,0],YELLOW,3),
+        Ellipse(width=.55,height=.23,color=YELLOW,fill_opacity=1).move_to([-3.65,1.95,0]))
+
+def wrong():
+    return VGroup(CurvedArrow([-4.65,.25,0],[-3.4,-1.9,0],angle=1.1,color=RED),
+        label('miss',-4.6,-2.45,28,RED),
+        line([-3.55,-2,0],[-3.15,-2.4,0],RED,6),line([-3.55,-2.4,0],[-3.15,-2,0],RED,6))
+
+def calendar(week):
+    return VGroup(RoundedRectangle(width=1.9,height=1.55,corner_radius=.12,color=SLATE),
+        label('WEEK',0,.4,26,SLATE),label(str(week),0,-.25,42)).move_to([4.9,1.95,0])
+
+def experiment(week=3,down=False):
+    n=newt()
+    if down: n[-1].rotate(.85,about_point=PIVOT)
+    return VGroup(n,lure(),calendar(week),wrong() if down else VGroup())
+
+def strike(scene,n,c,week,keep=False):
+    miss=wrong()
+    # Replace the entire counter atomically: morphing numeral glyphs left debris.
+    scene.remove(c)
+    c.become(calendar(week))
+    scene.add(c)
+    scene.play(Rotate(n[-1],.85,about_point=PIVOT),FadeIn(miss),run_time=.25)
+    scene.wait(.42)
+    if not keep:
+        scene.play(Rotate(n[-1],-.85,about_point=PIVOT),FadeOut(miss),run_time=.22)
+
+def map_base(grad=False):
+    r=gradient(-5,0,4.4,.7,BLUE,True) if grad else RoundedRectangle(width=.7,height=4.4,corner_radius=.1,color=GREY).move_to([-5,0,0])
+    t=gradient(1.3,-2,8.8,1.25) if grad else RoundedRectangle(width=8.8,height=1.25,corner_radius=.1,color=GREY).move_to([1.3,-2,0])
+    names=VGroup(label('retina',-5,2.85),label('sending side',-5,2.42,26,SLATE),
+        label('nasal',-6.1,1.8,26,SLATE),label('temporal',-5,-2.65,26,GOLD),
+        label('target',1.3,-3.35,28),label('anterior / front',-1.65,-2.95,26,SLATE),
+        label('posterior / back',4.25,-2.95,26,SLATE))
+    return VGroup(r,t,names)
+
+def fibre(i,branch=False):
+    f=i/4; y=-1.65+3.3*f; x=-2.35+7.3*f; c=IDS[i]
+    path=VMobject(stroke_color=c,stroke_width=4).set_points_as_corners([[-4.6,y,0],[x,-.9,0],[x,-1.58 if branch else -2,0]])
+    return VGroup(path,cell(-5,y,c),tuft(x,-2,c) if branch else cell(x,-2,c))
+
+def map_fibres(branch=False):
+    return VGroup(*[fibre(i,branch) for i in range(5)])
+
+def molecule_labels():
+    return VGroup(label('EphA: receptor',-2,2.6,28,BLUE),label('ephrin-A: repellent',1.9,.65,28,ORANGE),
+        label('brighter = more',2.5,2.6,26,SLATE),
+        label('low',-5.9,1.1,26,BLUE),label('high',-5.9,-1.3,26,BLUE),
+        label('low',-2.4,-.4,26,ORANGE),label('high',4.95,-.4,26,ORANGE))
+
+QUESTION='How does an axon know where to stop?'
+def panels(stage=0):
+    g=VGroup()
+    for i in range(3):
+        x=-4.35+i*4.35; c=[BLUE,ORANGE,YELLOW][i]
+        p=VGroup(RoundedRectangle(width=4.05,height=4.7,corner_radius=.15,color=GREY).move_to([x,.1,0]),
+            label(f'{i+1}. '+['Labels','Gradients','Neighbours'][i],x,2,28,c))
+        if stage>=i+1:
+            if i==0:
+                p.add(label('cell    target site',x,1.15,26,SLATE))
+                for j in range(3):
+                    yy=.4-j*.8
+                    p.add(chip(str(j+1),BLUE,26).move_to([x-1.05,yy,0]),
+                        Arrow([x-.52,yy,0],[x+.5,yy,0],color=BLUE,buff=.05),
+                        chip(str(j+1),BLUE,26).move_to([x+1.05,yy,0]))
+                p.add(label('one tag ↔ one site',x,-1.95,26,SLATE))
+            elif i==1:
+                p.add(label('amount of a',x,1.15,26),label('molecule',x,.7,26),gradient(x,-.15,3.35,.95),
+                    label('low',x-1.1,-.95,26,ORANGE),label('high',x+1.1,-.95,26,ORANGE))
+                for f in [0,.5,1]:
+                    xx=x-1.5+3*f
+                    p.add(line([xx,-1.25,0],[xx,-1.4,0],SLATE,2),label(str(f).rstrip('0').rstrip('.') if f else '0',xx,-1.65,26))
+                p.add(label('position → value',x,-1.95,26,SLATE))
+            else:
+                p.add(label('other retinal axons',x,1.15,26),label('arriving in the target',x,.7,26))
+                for j in range(3):
+                    xx=x-1.05+j*1.05; yy=-.25-j*.5
+                    p.add(line([xx,-1.5,0],[xx,yy,0],YELLOW,5),tuft(xx,yy,YELLOW))
+                p.add(label('relative positions',x,-1.95,26,SLATE))
+        g.add(p)
     return g
 
 
-def cell(x, y, op=1.0, color=BLUE, r=0.17):
-    return Circle(radius=r, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=op).move_to([x, y, 0])
+def reveal_panel(scene,p,i,stage,duration=.65):
+    # Keep the border and heading stable; never morph text into new diagram parts.
+    content=VGroup(*panels(stage)[i][2:])
+    scene.play(FadeIn(content),run_time=duration)
+    scene.remove(content)
+    p[i].add(*content)
 
+# Rank model: descending receptor amount occupies successive low-to-high ligand slots.
+LEVELS=np.array([1,.75,.5,.3,.15])
+ORDER=np.argsort(-LEVELS)
+RANK=np.argsort(ORDER)
+SLOTS=np.linspace(-1.7,5.2,5)
+def rank_token(i,x,y):
+    return VGroup(cell(x,y,IDS[i]),line([x+.35,y,0],[x+.35+LEVELS[i]*1.5,y,0],BLUE,9))
 
-def axline(a, b, color=BLUE, w=4, op=1.0):
-    return Line(a, b, color=color, stroke_width=w, stroke_opacity=op)
+def rank_base():
+    return VGroup(label('Rank the axons by EphA level',0,3.05,34),
+        label('most',-5.55,1.95,26,BLUE),label('least',-5.55,-1.4,26,BLUE),
+        gradient(1.75,-2.25,8.4,1.15),
+        VGroup(*[Rectangle(width=.8,height=.9,stroke_color=SLATE,stroke_width=1,stroke_opacity=.5).move_to([x,-2.25,0]) for x in SLOTS]),
+        label('low repellent / front',-.7,-3.1,26,ORANGE),
+        label('high / back',4.7,-3.1,26,ORANGE),
+        label('Coarse map • chick and mouse • simplified model',0,-3.6,26,SLATE))
 
-
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
-
-def tag(text, size=24, color=GREY):
-    return T(text, size, color)
-
+def rank_result():
+    b=rank_base()
+    tokens=VGroup(*[rank_token(i,-4.7,1.8-.78*int(RANK[i])) for i in range(5)])
+    tips=VGroup(*[tuft(SLOTS[int(RANK[i])],-2.25,IDS[i]) for i in range(5)])
+    return VGroup(b,tokens,tips,label('place = rank among axons, against the slope',1.1,.55,28,YELLOW))
 
 class S00Title(TitleCard):
-    LESSON = "Topographic maps"
-    TITLE = "Axons find place among neighbours"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Newt(SpokenScene):
+    LESSON=LESSON
+    TITLE='A Rank Against a Slope'
     def construct(self):
-        EX, TX = -3.2, 4.4
-        ys = [0.9, 0.0, -0.9]
-        ops = [1.0, 0.6, 0.3]
-        eye = Circle(radius=1.55, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.12).move_to([EX, 0, 0])
-        pupil = Circle(radius=0.38, stroke_width=0, fill_color=GREY, fill_opacity=0.7).move_to([EX - 1.0, 0, 0])
-        dots = VGroup(*[cell(EX + 0.95, y, o, r=0.2) for y, o in zip(ys, ops)])
-        eye_lbl = tag("newt eye", 24).move_to([EX, -2.15, 0])
-        tect = bar(TX, 0, 3.4, 0.6)
-        marks = VGroup(*[Circle(radius=0.1, stroke_width=0, fill_color=GREY, fill_opacity=0.9).move_to([TX, y, 0]) for y in ys])
-        tect_lbl = tag("tectum", 24).move_to([TX, -2.15, 0])
-        start = lambda y: [EX + 1.15, y, 0]
-        end = lambda y: [TX - 0.35, y, 0]
-        lines = VGroup(*[axline(start(y), end(y), BLUE, 4, o) for y, o in zip(ys, ops)])
-        self.play(FadeIn(eye), FadeIn(pupil), FadeIn(dots), FadeIn(eye_lbl), FadeIn(tect), FadeIn(marks),
-                  FadeIn(tect_lbl), Create(lines), run_time=0.9)
-        # flip the eye (dots swap top and bottom through an arc)
-        self.at("upside down")
-        self.play(FadeOut(lines),
-                  dots[0].animate(path_arc=PI).move_to([EX + 0.95, ys[2], 0]),
-                  dots[2].animate(path_arc=PI).move_to([EX + 0.95, ys[0], 0]),
-                  run_time=1.0)
-        # cut
-        self.at("cut the optic nerve")
-        x1 = Line([0.1, 0.5, 0], [0.9, -0.5, 0], color=RED, stroke_width=7)
-        x2 = Line([0.1, -0.5, 0], [0.9, 0.5, 0], color=RED, stroke_width=7)
-        cut = VGroup(x1, x2)
-        cut_lbl = tag("cut", 26, RED).move_to([0.5, 1.0, 0])
-        self.play(Create(cut), FadeIn(cut_lbl), run_time=0.5)
-        # regrow: the bright cell is now at the bottom but still reaches the top spot
-        self.at("let it regrow")
-        new = VGroup(axline(start(ys[2]), end(ys[0]), BLUE, 5, 1.0),
-                     axline(start(ys[1]), end(ys[1]), BLUE, 5, 0.6),
-                     axline(start(ys[0]), end(ys[2]), BLUE, 5, 0.3))
-        self.play(FadeOut(cut), FadeOut(cut_lbl), Create(new), run_time=1.1)
-        # lure and wrong head turn
-        self.at("Hold a lure")
-        lure = Circle(radius=0.2, stroke_width=0, fill_color=YELLOW, fill_opacity=1).move_to([EX, 3.0, 0])
-        lure_lbl = tag("lure", 24, YELLOW).next_to(lure, RIGHT, buff=0.2)
-        self.play(FadeIn(lure, scale=0.5), FadeIn(lure_lbl), run_time=0.5)
-        self.at("turns its head down")
-        arrow = arr([-5.6, 0.9, 0], [-5.6, -1.0, 0], RED, 7)
-        a_lbl = tag("turns down", 24, RED).move_to([-5.2, -1.55, 0])
-        self.play(GrowArrow(arrow), FadeIn(a_lbl), run_time=0.7)
-        self.at("anyone watched")
-        self.play(Indicate(arrow, color=RED, scale_factor=1.1), run_time=0.8)
-        self.at("went back to the place")
-        self.play(*[Indicate(l, color=YELLOW, scale_factor=1.0) for l in new], run_time=1.0)
-        self.at("know where to go")
-        qs = VGroup(*[T("?", 40, YELLOW, weight=BOLD).move_to([TX + 0.75, y, 0]) for y in ys])
-        self.play(LaggedStart(*[FadeIn(q, scale=0.5) for q in qs], lag_ratio=0.25), run_time=0.9)
+        self.add(label('BIOCHEMISTRYPEDIA',0,2,26,TEAL),
+            label('Topographic Maps: Sperry’s Eye and Eph Gradients',0,1.2,28,SLATE),
+            label(self.TITLE,0,-.1,48),line([-1.2,-.9,0],[1.2,-.9,0],GOLD))
+        self.wait(3)
+
+def anatomy():
+    # 4.7 units tall: roughly 60% of the frame, shared across both views.
+    n=newt(False).stretch(1.27,1).shift(DOWN*.25)
+    eye=n[-1][1].get_center()
+    brain=cell(-1.8,.05,SLATE,.24)
+    nerve=line(eye+RIGHT*.32,brain.get_center(),BLUE,8)
+    return n,brain,nerve
+
+class S01Question(SpokenScene):
+    def construct(self):
+        n,brain,nerve=anatomy()
+        question=label('Why does it never learn to aim again?',0,3.25,34)
+        self.add(n,brain,nerve,question,label('eye',-5.55,1.5,28),
+            line([-5,1.2,0],n[-1][1].get_center(),TEXT,2),
+            label('brain',-1.3,1.5,28),line([-1.4,1.2,0],brain.get_center(),TEXT,2))
+        self.at('upside down')
+        arrow=CurvedArrow([-4.3,.6,0],[-3,.6,0],angle=-PI,color=YELLOW)
+        self.play(Create(arrow),Rotate(n[-1][1],PI),run_time=.7)
+        self.at('let its nerve regrow')
+        self.remove(nerve)
+        self.play(Create(nerve),run_time=.9)
+        self.at('Why does it'); self.play(Indicate(question,scale_factor=1.03),run_time=.4)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-RX, TX2 = -3.0, 3.0
-
-
-def map_ys(n=7, top=2.4):
-    return np.linspace(top, -top, n)
-
-
-class S02Map(SpokenScene):
+class S02Sperry(SpokenScene):
     def construct(self):
-        ys = map_ys()
-        ops = np.linspace(1.0, 0.25, len(ys))
-        rbar, tbar = bar(RX, 0, 5.7), bar(TX2, 0, 5.7)
-        r_lbl = tag("retina", 26).move_to([RX, 3.3, 0])
-        t_lbl = tag("tectum", 26).move_to([TX2, 3.3, 0])
-        self.play(FadeIn(rbar), FadeIn(tbar), FadeIn(r_lbl), FadeIn(t_lbl), run_time=0.8)
-        cells = VGroup(*[cell(RX, y, o) for y, o in zip(ys, ops)])
-        slots = VGroup(*[Circle(radius=0.11, stroke_width=0, fill_color=GREY, fill_opacity=0.9).move_to([TX2, y, 0]) for y in ys])
-        lines = VGroup(*[axline([RX + 0.2, y, 0], [TX2 - 0.2, y, 0], BLUE, 4, o) for y, o in zip(ys, ops)])
-        self.at("The retina sends")
-        self.play(FadeIn(cells), run_time=0.5)
-        self.at("target in the midbrain")
-        self.play(FadeIn(slots), LaggedStart(*[Create(l) for l in lines], lag_ratio=0.12), run_time=1.6)
-        self.at("The map is orderly")
-        self.wait(0.3)
-        self.at("Neighbors in the retina")
-        box_r = SurroundingRectangle(VGroup(cells[2], cells[3]), color=YELLOW, buff=0.15, corner_radius=0.1)
-        box_t = SurroundingRectangle(VGroup(slots[2], slots[3]), color=YELLOW, buff=0.15, corner_radius=0.1)
-        self.play(Create(box_r), run_time=0.6)
-        self.at("neighbors in the tectum")
-        self.play(Create(box_t), run_time=0.6)
-        self.at("In the chick")
-        self.play(FadeOut(box_r), FadeOut(box_t), run_time=0.4)
-        tl = [tag("temporal", 26).move_to([-5.2, ys[0], 0]), tag("nasal", 26).move_to([-5.2, ys[-1], 0]),
-              tag("front", 26).move_to([5.0, ys[0], 0]), tag("back", 26).move_to([5.0, ys[-1], 0])]
-        self.play(*[FadeIn(t) for t in tl], run_time=0.6)
-        self.at("temporal retina")
-        hot = lines[0].copy().set_color(YELLOW).set_stroke(width=8, opacity=1)
-        self.play(Create(hot), run_time=0.6)
-        self.at("Nasal axons end")
-        hot2 = lines[-1].copy().set_color(YELLOW).set_stroke(width=8, opacity=1)
-        self.play(FadeOut(hot), Create(hot2), run_time=0.6)
+        n,brain,nerve=anatomy()
+        self.add(n,brain,nerve,label('Sperry, 1943',0,3.25,36),label('eye',-5.55,1.5,28),
+            line([-5,1.2,0],n[-1][1].get_center(),TEXT,2),label('brain',-1.3,1.5,28),
+            line([-1.4,1.2,0],brain.get_center(),TEXT,2))
+        self.at('rotated the eyes')
+        a=CurvedArrow([-4.3,.6,0],[-3,.6,0],angle=-PI,color=YELLOW)
+        self.play(Create(a),Rotate(n[-1][1],PI),FadeIn(label('180°',-3.65,-1.5,28,YELLOW)),run_time=1)
+        self.at('He cut')
+        cut=VGroup(line([-2.8,.6,0],[-2.45,-.2,0],RED,6),line([-2.8,-.2,0],[-2.45,.6,0],RED,6))
+        txt=label('optic nerve cut',-.6,-.85,28,RED)
+        # Retain the two stumps so the nerve remains anatomically anchored.
+        stumps=VGroup(line(nerve.get_start(),[-2.95,.18,0],BLUE,8),
+            line([-2.3,.1,0],nerve.get_end(),BLUE,8))
+        self.remove(nerve); self.add(stumps)
+        self.play(Create(cut),FadeIn(txt),run_time=.35)
+        self.at('let it regrow')
+        self.remove(txt)
+        self.play(FadeOut(cut),FadeIn(label('optic nerve regrows',-.3,-.85,28,BLUE)),
+            Create(nerve),run_time=1.1)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S03Slopes(SpokenScene):
+class S03Lure(SpokenScene):
     def construct(self):
-        TXx = 3.4
-        tect = bar(TXx, 0, 5.7)
-        t_lbl = tag("tectum", 26).move_to([TXx, 3.3, 0])
-        self.play(FadeIn(tect), FadeIn(t_lbl), run_time=0.7)
-        # the growth cone: a tip with a small circle of what it can sense
-        trail = axline([-5.5, 0.4, 0], [1.4, 0.4, 0], BLUE, 5)
-        cone = Triangle(color=BLUE, fill_opacity=1, stroke_width=0).scale(0.28).rotate(-PI / 2).move_to([1.55, 0.4, 0])
-        self.at("A growth cone")
-        self.play(Create(trail), FadeIn(cone), run_time=1.0)
-        ring = DashedVMobject(Circle(radius=0.8, color=YELLOW, stroke_width=4)).move_to(cone)
-        ring_lbl = tag("senses only what is close", 24, YELLOW).move_to([0.0, -1.0, 0])
-        self.at("senses only what is close")
-        self.play(Create(ring), FadeIn(ring_lbl), run_time=0.8)
-        self.at("spans the whole target")
-        span = DoubleArrow([4.5, 2.7, 0], [4.5, -2.7, 0], color=GREY, stroke_width=5, buff=0)
-        span_lbl = tag("whole target", 24).move_to([5.5, 0, 0]).rotate(PI / 2)
-        self.play(GrowFromCenter(span), FadeIn(span_lbl), run_time=0.8)
-        self.at("pair of opposite slopes")
-        self.play(*[FadeOut(m) for m in (trail, cone, ring, ring_lbl, span, span_lbl, t_lbl)], run_time=0.6)
-        # retina gradient (EphA, high at top = temporal)
-        rg = grad_bar(-3.4, 0, 5.4, BLUE)
-        r_title = tag("retina: EphA", 26, BLUE).move_to([-3.4, 3.3, 0])
-        self.at("In the retina")
-        self.play(FadeIn(rg), FadeIn(r_title), run_time=0.7)
-        hi = tag("temporal: high", 24, BLUE).move_to([-5.35, 2.3, 0])
-        lo = tag("nasal: low", 24, BLUE).move_to([-5.45, -2.3, 0])
-        self.at("high on the temporal")
-        self.play(FadeIn(hi), run_time=0.4)
-        self.at("low on the nasal")
-        self.play(FadeIn(lo), run_time=0.4)
-        # ephrin gradient (low at top = front, high at bottom = back)
-        tg = grad_bar(TXx, 0, 5.4, ORANGE, top_high=False)
-        t_title = tag("tectum: ephrin-A", 26, ORANGE).move_to([TXx, 3.3, 0])
-        self.at("In the tectum")
-        self.play(FadeOut(tect), FadeIn(tg), FadeIn(t_title), run_time=0.7)
-        f = tag("front: low", 24, ORANGE).move_to([5.45, 2.3, 0])
-        b = tag("back: high", 24, ORANGE).move_to([5.45, -2.3, 0])
-        self.at("rises from front")
-        self.play(FadeIn(f), run_time=0.4)
-        self.at("to back")
-        self.play(FadeIn(b), run_time=0.4)
+        n=newt(); self.add(n,label('Sperry, 1943',2.5,3.15,30,SLATE))
+        self.at('a lure held'); self.play(FadeIn(lure()),FadeIn(label('lure',-2.1,2.15,28,YELLOW)),run_time=.4)
+        self.at('turn its head'); self.play(Rotate(n[-1],.85,about_point=PIVOT),FadeIn(wrong()),run_time=.65)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S04Stop(SpokenScene):
+class S04Predict(SpokenScene):
     def construct(self):
-        LY_T, LY_N, BY = 2.0, 0.55, -1.15
-        X0, X1 = -5.4, 5.4
-        n = 24
-        w = (X1 - X0) / n
-        tect = VGroup()
-        for i in range(n):
-            tect.add(Rectangle(width=w + 0.005, height=0.9, stroke_width=0, fill_color=ORANGE,
-                               fill_opacity=0.08 + 0.82 * i / (n - 1)).move_to([X0 + w * (i + 0.5), BY, 0]))
-        tect.add(RoundedRectangle(corner_radius=0.12, width=X1 - X0, height=0.9, stroke_color=ORANGE, stroke_width=3,
-                                  fill_opacity=0).move_to([0, BY, 0]))
-        front = tag("front", 24).move_to([X0 + 0.5, BY - 0.9, 0])
-        back = tag("back", 24).move_to([X1 - 0.5, BY - 0.9, 0])
-        eph = tag("ephrin-A: low to high", 24, ORANGE).move_to([0, BY - 0.9, 0])
-        self.play(FadeIn(tect), FadeIn(front), FadeIn(back), FadeIn(eph), run_time=0.8)
-
-        def runner(y, op, label, lx):
-            x = ValueTracker(X0)
-            trail = always_redraw(lambda: axline([X0 - 0.4, y, 0], [x.get_value() - 0.05, y, 0], BLUE, 5, op))
-            cone = always_redraw(lambda: Triangle(color=BLUE, fill_opacity=op, stroke_width=0).scale(0.3)
-                                 .rotate(-PI / 2).move_to([x.get_value() + 0.15, y, 0]))
-            lbl = tag(label, 24, BLUE).move_to([lx, y + 0.55, 0])
-            return x, trail, cone, lbl
-
-        xt, trail_t, cone_t, lbl_t = runner(LY_T, 1.0, "temporal axon: much EphA", -3.9)
-        xn, trail_n, cone_n, lbl_n = runner(LY_N, 0.45, "nasal axon: little EphA", 1.2)
-        self.at("Temporal axons carry")
-        self.add(trail_t, cone_t)
-        self.play(FadeIn(lbl_t), run_time=0.5)
-        self.at("repels them")
-        self.play(xt.animate.set_value(4.8), run_time=1.3, rate_func=linear)
-        drop_t = DashedLine([-2.6, LY_T - 0.35, 0], [-2.6, BY + 0.45, 0], color=GREY, stroke_width=3)
-        self.at("endings form")
-        self.play(Create(drop_t), run_time=0.6)
-        self.at("Nasal axons carry")
-        self.add(trail_n, cone_n)
-        self.play(FadeIn(lbl_n), run_time=0.5)
-        self.at("tolerate more")
-        self.play(xn.animate.set_value(4.8), run_time=2.0, rate_func=linear)
-        drop_n = DashedLine([3.8, LY_N - 0.3, 0], [3.8, BY + 0.45, 0], color=GREY, stroke_width=3)
-        self.at("farther back")
-        self.play(Create(drop_n), run_time=0.6)
-        self.at("axons first overshoot")
-        self.play(Indicate(cone_t, color=YELLOW), Indicate(cone_n, color=YELLOW), run_time=0.7)
-        self.at("then branch")
-        branch_t = axline([-2.6, LY_T, 0], [-2.6, LY_T - 0.65, 0], BLUE, 5)
-        branch_n = axline([3.8, LY_N, 0], [3.8, LY_N - 0.65, 0], BLUE, 5, 0.45)
-        endings = VGroup(cell(-2.6, LY_T - 0.65, color=BLUE, r=0.12),
-                         cell(3.8, LY_N - 0.65, op=0.45, color=BLUE, r=0.12))
-        self.play(FadeOut(cone_t), FadeOut(cone_n), Create(branch_t), Create(branch_n), FadeIn(endings), run_time=0.8)
-        self.at("blocks branches")
-        blocked = VGroup()
-        for x, y in ((0.6, LY_T), (4.5, LY_N)):
-            blocked.add(axline([x, y, 0], [x, y - 0.35, 0], RED, 4),
-                        Line([x - 0.13, y - 0.22, 0], [x + 0.13, y - 0.48, 0], color=RED, stroke_width=4),
-                        Line([x - 0.13, y - 0.48, 0], [x + 0.13, y - 0.22, 0], color=RED, stroke_width=4))
-        self.play(Create(blocked), run_time=0.6)
-        rule = chip("branches form near the right zone", YELLOW, size=26)
-        rule.move_to([0, -3.05, 0])
-        self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.7)
+        n=newt(); c=calendar(0)
+        self.add(n,lure(),c,label('Random wiring, matched by use?',0,3.25,34))
+        self.at('If the'); strike(self,n,c,1)
+        self.at('at random'); strike(self,n,c,2)
+        self.at('then'); strike(self,n,c,3)
+        self.at('weeks of missed prey'); strike(self,n,c,4,keep=True)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-RXX, TXX = -3.0, 3.0
-N8 = 8
-YS8 = np.linspace(2.2, -2.2, N8)
-KNOCK = [1, 2, 5, 7]           # cells given extra EphA (scattered across the retina)
-NORM = [0, 3, 4, 6]
-Y_PURPLE = np.linspace(2.2, 0.35, 4)
-Y_BLUE = np.linspace(-0.35, -2.2, 4)
-
-
-def map_base(scene, knock=False):
-    rbar, tbar = bar(RXX, 0, 5.4), bar(TXX, 0, 5.4)
-    rl = tag("retina", 24).move_to([RXX, -3.2, 0])
-    tl = tag("tectum", 24).move_to([TXX, -3.2, 0])
-    cells = VGroup(*[cell(RXX, y, 0.85, PURPLE if (knock and i in KNOCK) else BLUE) for i, y in enumerate(YS8)])
-    return rbar, tbar, rl, tl, cells
-
-
-def numbered_ends():
-    return VGroup(*[M(str(k + 1), 22, PURPLE, weight=BOLD).move_to([TXX, y, 0]) for k, y in enumerate(Y_PURPLE)],
-                  *[M(str(k + 1), 22, BLUE, weight=BOLD).move_to([TXX, y, 0]) for k, y in enumerate(Y_BLUE)])
-
-
-class S05Test(SpokenScene):
+class S05Pause(Scene):
     def construct(self):
-        rbar, tbar, rl, tl, cells = map_base(self)
-        lines = VGroup(*[axline([RXX + 0.2, y, 0], [TXX - 0.2, y, 0], BLUE, 4, 0.85) for y in YS8])
-        q1 = chip("absolute level?", BLUE, size=26).move_to([-3.0, 3.3, 0])
-        q2 = chip("vs neighbours?", YELLOW, size=26).move_to([3.0, 3.3, 0])
-        self.play(FadeIn(rbar), FadeIn(tbar), FadeIn(rl), FadeIn(tl), FadeIn(cells), Create(lines), run_time=1.0)
-        self.at("absolute level")
-        self.play(FadeIn(q1), run_time=0.5)
-        self.at("compare itself")
-        self.play(FadeIn(q2), run_time=0.5)
-        self.at("In mouse")
-        self.play(FadeOut(q1), FadeOut(q2), run_time=0.4)
-        self.at("half of the")
-        anims = []
-        for i in KNOCK:
-            anims += [cells[i].animate.set_color(PURPLE).set_fill(PURPLE, 0.85), lines[i].animate.set_color(PURPLE)]
-        lab = chip("extra EphA", PURPLE, size=24).move_to([-5.3, 0.0, 0])
-        self.play(*anims, FadeIn(lab), run_time=0.8)
-        self.at("absolute levels")
-        ghosts = VGroup()
-        for i in KNOCK:
-            y = YS8[i]
-            ghosts.add(DashedLine([RXX + 0.2, y, 0], [TXX - 0.2, y + 0.5, 0], color=PURPLE, stroke_width=4))
-            ghosts.add(Circle(radius=0.12, stroke_color=PURPLE, stroke_width=3).move_to([TXX, y + 0.5, 0]))
-        pred = tag("predicted", 24, PURPLE).move_to([5.4, 0.0, 0])
-        self.play(Create(ghosts), FadeIn(pred), run_time=0.9)
-        # clear the old answer before the new one
-        self.at("Instead")
-        self.play(FadeOut(ghosts), FadeOut(pred), run_time=0.4)
-        self.at("took the front")
-        self.play(*[lines[i].animate.put_start_and_end_on([RXX + 0.2, YS8[i], 0], [TXX - 0.2, Y_PURPLE[k], 0])
-                    for k, i in enumerate(KNOCK)], run_time=1.3)
-        self.at("pushed to the back")
-        self.play(*[lines[i].animate.put_start_and_end_on([RXX + 0.2, YS8[i], 0], [TXX - 0.2, Y_BLUE[k], 0])
-                    for k, i in enumerate(NORM)], run_time=1.3)
-        self.at("Two orderly maps")
-        br1 = Brace(Line([TXX + 0.4, Y_PURPLE[0], 0], [TXX + 0.4, Y_PURPLE[-1], 0]), RIGHT, color=PURPLE)
-        br2 = Brace(Line([TXX + 0.4, Y_BLUE[0], 0], [TXX + 0.4, Y_BLUE[-1], 0]), RIGHT, color=BLUE)
-        l1 = tag("extra EphA", 24, PURPLE).next_to(br1, RIGHT, buff=0.12)
-        l2 = tag("normal", 24, BLUE).next_to(br2, RIGHT, buff=0.12)
-        ends = numbered_ends()
-        self.play(GrowFromCenter(br1), GrowFromCenter(br2), FadeIn(l1), FadeIn(l2), FadeIn(ends), run_time=0.8)
+        self.camera.background_color=BG
+        self.add(experiment(4,True),label('Pause: what should missed prey teach?',0,3.25,32))
+        for i in range(5,0,-1):
+            t=VGroup(label('reveal in',4.9,.6,26,YELLOW),label(str(i),4.9,-.1,38,YELLOW)); self.add(t); self.wait(1); self.remove(t)
+
+class S06Reveal(SpokenScene):
+    def construct(self):
+        n=newt(); c=calendar(4); self.add(n,lure(),c)
+        self.at('To aim correctly'); prompt=label('Would practice correct its aim?',0,3.25,34); self.add(prompt)
+        self.at('it never learned')
+        answer=label('The newt never learned to aim correctly',0,3.25,32,TEXT)
+        self.play(ReplacementTransform(prompt,answer),FadeIn(label('Never corrected',1.3,-2.95,36,RED)),run_time=.4)
+        self.at('It kept making'); strike(self,n,c,5)
+        self.at('as long as'); strike(self,n,c,6,keep=True)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S07Beat(Scene):
     def construct(self):
-        rbar, tbar, rl, tl, cells = map_base(self, knock=True)
-        lines = VGroup()
-        for i, y in enumerate(YS8):
-            if i in KNOCK:
-                ty, col = Y_PURPLE[KNOCK.index(i)], PURPLE
-            else:
-                ty, col = Y_BLUE[NORM.index(i)], BLUE
-            lines.add(axline([RXX + 0.2, y, 0], [TXX - 0.2, ty, 0], col, 4, 0.85))
-        br1 = Brace(Line([TXX + 0.4, Y_PURPLE[0], 0], [TXX + 0.4, Y_PURPLE[-1], 0]), RIGHT, color=PURPLE)
-        br2 = Brace(Line([TXX + 0.4, Y_BLUE[0], 0], [TXX + 0.4, Y_BLUE[-1], 0]), RIGHT, color=BLUE)
-        l1 = tag("extra EphA", 24, PURPLE).next_to(br1, RIGHT, buff=0.12)
-        l2 = tag("normal", 24, BLUE).next_to(br2, RIGHT, buff=0.12)
-        ends = numbered_ends()
-        self.add(rbar, tbar, rl, tl, cells, lines, br1, br2, l1, l2, ends)
-        self.wait(0.3)
-        self.at("judged against the others")
-        box = SurroundingRectangle(VGroup(cells[2], cells[3], cells[4]), color=YELLOW, buff=0.15, corner_radius=0.1)
-        nb = tag("neighbours", 24, YELLOW).move_to([-5.0, (YS8[2] + YS8[4]) / 2, 0])
-        self.play(Create(box), FadeIn(nb), run_time=0.7)
-        self.at("relative to its")
-        rule = chip("EphA signal compared with neighbours", YELLOW, size=26).move_to([0, 3.3, 0])
-        self.play(FadeIn(rule, shift=DOWN * 0.15), run_time=0.7)
-        self.at("compete for space")
-        a1 = VGroup(arr([5.9, 0.12, 0], [5.9, 1.0, 0], PURPLE, 6), tag("to front", 24, PURPLE).move_to([4.85, 0.58, 0]))
-        a2 = VGroup(arr([5.9, -0.12, 0], [5.9, -1.0, 0], BLUE, 6), tag("to back", 24, BLUE).move_to([4.9, -0.58, 0]))
-        self.play(FadeOut(box), FadeOut(nb), FadeIn(a1), FadeIn(a2), run_time=0.8)
-        self.at("short distance")
-        ring = DashedVMobject(Circle(radius=0.55, color=YELLOW, stroke_width=4)).move_to([TXX, Y_PURPLE[1], 0])
-        self.play(FadeOut(a1), FadeOut(a2), Create(ring), run_time=0.7)
-        self.at("global order")
-        glow = SurroundingRectangle(tbar, color=GREEN, buff=0.12, corner_radius=0.15, stroke_width=5)
-        order = chip("local rules, global order", GREEN, size=26).move_to([0, 3.3, 0])
-        self.play(FadeOut(ring), FadeOut(rule), Create(glow), FadeIn(order), run_time=0.8)
+        self.camera.background_color=BG
+        self.add(experiment(6,True),label('Never corrected',1,-2.95,36,RED),label('Same wrong turn, week after week',0,3.25,34))
+        for i in [2,1]:
+            t=VGroup(label('next in',4.9,.6,26,YELLOW),label(str(i),4.9,-.1,38,YELLOW))
+            self.add(t); self.wait(1); self.remove(t)
+
+class S08Reading(SpokenScene):
+    def construct(self):
+        eye=Circle(radius=2.1,color=GREY,fill_color=GREY,fill_opacity=.15).move_to([-4.1,0,0])
+        cols=[GOLD,BLUE,'#C8B5F2']; ys=[-1.4,0,1.4]
+        self.add(eye,label('rotated eye',-4.1,2.85,32),label('original brain sites',3.9,2.85,32),
+            RoundedRectangle(width=.8,height=4.6,corner_radius=.1,color=GREY).move_to([4.4,0,0]),
+            Arrow([-5.5,1,0],[-5.5,-1,0],color=YELLOW,buff=0),label('original up ↓',-4,-2.9,28,YELLOW),
+            label('Fibres return to matching sites',1,-3.5,28,SLATE))
+        dots=VGroup(*[cell(-3.25,y,c) for y,c in zip(ys,cols)])
+        sites=VGroup(*[cell(4.4,-y,c) for y,c in zip(ys,cols)])
+        self.add(dots,sites)
+        self.at('Each regrown fiber')
+        paths=VGroup(*[line([-3,y,0],[4.15,-y,0],c,5) for y,c in zip(ys,cols)])
+        self.play(LaggedStart(*[Create(p) for p in paths],lag_ratio=.15),run_time=1.35)
+        self.at('its old place'); self.play(Indicate(sites,scale_factor=1.08),run_time=.5)
         self.finish()
 
+class S09Map(SpokenScene):
+    def construct(self):
+        self.add(map_base(),label('An ordered map',0,3.45,34),
+            label('optic tectum: fish, amphibians, birds',1.1,2.05,26,SLATE),
+            label('superior colliculus: mammals',1.1,1.5,26,SLATE))
+        self.at('Neighboring cells'); self.play(LaggedStart(*[Create(f) for f in map_fibres()],lag_ratio=.12),run_time=1.8)
+        self.at('neighboring places'); self.play(Indicate(self.mobjects[0][1],scale_factor=1.02),run_time=.4)
+        self.finish()
 
-class S07End(EndCard):
-    LINE = "Axons place themselves relative to their neighbours."
+class S10Axis(SpokenScene):
+    def construct(self):
+        f=map_fibres(); self.add(map_base(),f)
+        self.at('Temporal retina'); a=label('temporal → anterior',1,2.7,32,GOLD)
+        self.play(FadeIn(a),Indicate(f[0],color=GOLD),run_time=.6)
+        self.at('maps to the front'); self.play(Indicate(f[0][-1],color=GOLD),run_time=.5)
+        self.at('Nasal retina')
+        self.play(FadeOut(a),f[0][0].animate.set_stroke(opacity=.3),
+            f[0][1].animate.set_opacity(.3),f[0][2].animate.set_opacity(.3),
+            FadeIn(label('nasal → posterior',1,2.7,32,SLATE)),
+            f[4].animate.set_color(SLATE).set_stroke(width=7),run_time=.5)
+        self.at('maps to the back'); self.play(Indicate(f[4][-1],color=SLATE),run_time=.4)
+        self.finish()
+
+def growth_cone():
+    fan=VMobject(stroke_color=BLUE,fill_color=BLUE,fill_opacity=.45,stroke_width=4)
+    fan.set_points_smoothly([[-.7,0,0],[.2,.75,0],[1,.9,0],[1.35,.35,0],[1.3,-.4,0],[.8,-.85,0],[0,-.55,0],[-.7,0,0]])
+    fingers=VGroup(*[line(a,b,BLUE,5) for a,b in [([.2,.7,0],[.3,1.3,0]),([.9,.85,0],[1.35,1.35,0]),([1.3,.35,0],[1.95,.6,0]),([1.25,-.3,0],[1.95,-.5,0]),([.8,-.8,0],[1.2,-1.35,0])]])
+    return VGroup(line([-5,0,0],[-.7,0,0],BLUE,10),fan,fingers)
+
+class S11Growthcone(SpokenScene):
+    def construct(self):
+        cone=growth_cone(); title=label('growth cone',.6,2.2,34,BLUE)
+        self.add(cone,title,label('axon',-3.5,.65,28,BLUE))
+        self.at('the moving tip'); self.play(cone.animate.shift(RIGHT*.35),run_time=.5)
+        self.at('senses only what is close')
+        ring=DashedVMobject(Circle(radius=1.9,color=YELLOW)).move_to([.85,0,0])
+        reach=label('local reach',1,-2.5,30,YELLOW)
+        self.play(Create(ring),FadeIn(reach),run_time=.6)
+        self.at('Yet the map')
+        self.play(VGroup(cone,ring).animate.scale(.5).move_to([-.6,.2,0]),Transform(title,label('growth cone',1.35,1.55,30,BLUE)),FadeOut(reach),
+            FadeIn(gradient(1,-2.1,10,1.25)),FadeIn(label('retina',-5,2.1,30)),
+            FadeIn(RoundedRectangle(width=.7,height=3.1,corner_radius=.1,color=GREY).move_to([-5,.2,0])),run_time=.65)
+        self.add(line([-4.65,.2,0],cone[0].get_start(),BLUE,5),
+            cell(-5,.2,BLUE),label('local reach',1.35,-1.05,26,YELLOW),
+            label('whole target, front to back →',1,-3.2,30))
+        self.finish()
+
+class S12Three(SpokenScene):
+    def construct(self):
+        p=panels(1); self.add(label(QUESTION,0,3.15,34))
+        self.at('Three ways'); self.play(FadeIn(p),run_time=.6)
+        self.finish()
+
+class S13Labels(SpokenScene):
+    def construct(self):
+        p=panels(1); self.add(p,label(QUESTION,0,3.15,34))
+        self.at('Labels'); self.play(Indicate(p[0][1],scale_factor=1.05),run_time=.5)
+        self.at('one matching tag'); self.play(Indicate(VGroup(*p[0][3:]),scale_factor=1.02),run_time=.7)
+        self.finish()
+
+class S14Gradients(SpokenScene):
+    def construct(self):
+        p=panels(1); self.add(p,label(QUESTION,0,3.15,34))
+        self.at('Gradients'); reveal_panel(self,p,1,2)
+        self.at('gives each position'); self.play(Indicate(VGroup(*p[1][-7:]),scale_factor=1.02),run_time=.6)
+        self.finish()
+
+class S15Neighbours(SpokenScene):
+    def construct(self):
+        p=panels(2); self.add(p,label(QUESTION,0,3.15,34))
+        self.at('Neighbors'); reveal_panel(self,p,2,3)
+        self.at('relative to the axons'); self.play(Indicate(VGroup(*p[2][4:-1]),color=YELLOW,scale_factor=1.02),run_time=.65)
+        self.finish()
+
+class S16Both(SpokenScene):
+    def construct(self):
+        p=panels(3)
+        p[2].remove(p[2][2],p[2][3])
+        p[2].add(label('axon tips',4.35,.9,28,YELLOW))
+        self.add(p,label('Chick and mouse',0,3.15,34),label('gradient + neighbours: both are used',0,-3.5,30,YELLOW))
+        self.at('uses gradients'); self.play(FadeOut(p[0]),p[1].animate.move_to([-2.4,-.25,0]),p[2].animate.move_to([2.4,-.25,0]),run_time=.5)
+        self.at('and neighbors together'); self.play(FadeIn(label('+',0,-.25,42,YELLOW)),run_time=.4)
+        self.finish()
+
+def slope_base(grad=False):
+    r=gradient(-4,.2,4.4,.7,BLUE,True) if grad else RoundedRectangle(width=.7,height=4.4,corner_radius=.1,color=GREY).move_to([-4,.2,0])
+    t=gradient(1.3,-.6,7.2,1.25) if grad else RoundedRectangle(width=7.2,height=1.25,corner_radius=.1,color=GREY).move_to([1.3,-.6,0])
+    names=VGroup(label('retina',-4,3.15,28),label('sending side',-4,2.72,26,SLATE),
+        label('nasal',-5.15,1.95,26,SLATE),label('temporal',-4,-2.55,26,GOLD),
+        label('target',1.3,-2.15,28),label('anterior / front',-1.1,-1.6,26,SLATE),
+        label('posterior / back',3.65,-1.6,26,SLATE))
+    return VGroup(r,t,names)
+
+def retinal_slope():
+    return VGroup(gradient(-4,.2,4.4,.7,BLUE,True),
+        Rectangle(width=.7,height=1.1,stroke_color=SLATE,stroke_width=1.5,stroke_opacity=.5).move_to([-4,1.85,0]))
+
+def slope_labels():
+    return VGroup(label('EphA: receptor',-.8,2.35,28,BLUE),
+        label('ephrin-A: repellent',1.3,.85,28,ORANGE),
+        label('brighter = more',2.8,3.1,26,SLATE),
+        label('low',-5.15,1.1,26,BLUE),label('high',-5.15,-1.2,26,BLUE),
+        label('low',-1.8,.3,26,ORANGE),label('high',4.4,.3,26,ORANGE))
+
+class S17Slopes(SpokenScene):
+    def construct(self):
+        b=slope_base(); r,t=b[0],b[1]; ml=slope_labels(); self.add(b,ml[2])
+        self.at('Each axon carries'); self.play(FadeOut(r),FadeIn(retinal_slope()),run_time=.7)
+        self.at('called'); self.play(FadeIn(ml[0]),FadeIn(ml[3]),FadeIn(ml[4]),run_time=.4)
+        self.at('The target carries'); self.play(FadeOut(t),FadeIn(gradient(1.3,-.6,7.2,1.25)),run_time=.7)
+        self.at('a repellent'); self.play(FadeIn(ml[1]),FadeIn(ml[5]),FadeIn(ml[6]),run_time=.45)
+        self.finish()
+
+class S18Rule(SpokenScene):
+    def construct(self):
+        b=slope_base(True); b[0].become(retinal_slope())
+        self.add(b,slope_labels())
+        self.at('low at the front'); self.play(Indicate(self.mobjects[1][5],scale_factor=1.1),run_time=.4)
+        self.at('high at the back'); self.play(Indicate(self.mobjects[1][6],scale_factor=1.1),run_time=.4)
+        self.at('The axon with the most receptor')
+        branch=tuft(-1.65,-.6,GOLD).scale(1.4)
+        path=VMobject(stroke_color=GOLD,stroke_width=5).set_points_as_corners([
+            [-3.65,-1.45,0],[-2.8,-1.45,0],[-2.8,.15,0],branch.get_top()])
+        axon=VGroup(path,cell(-4,-1.45,GOLD),branch)
+        self.play(FadeIn(axon),run_time=.6)
+        self.at('ends where it is lowest'); self.play(FadeIn(label('More receptor, less ligand',1.3,1.65,32)),run_time=.4)
+        self.finish()
+
+class S19Rank(SpokenScene):
+    def construct(self):
+        self.add(rank_base())
+        tokens=VGroup(*[rank_token(i,-4.7,1.8-.78*[2,0,4,1,3][i]) for i in range(5)])
+        self.add(tokens,label('More receptor, less ligand',1.5,1.8,30))
+        self.at('More receptor'); self.play(*[tokens[i].animate.move_to(rank_token(i,-4.7,1.8-.78*int(RANK[i])).get_center()) for i in range(5)],run_time=1.15)
+        self.at('but where each axon lands')
+        for i in ORDER[:3]:
+            tip=tuft(-3.1,1.8-.78*int(RANK[i]),IDS[i]); self.add(tip)
+            self.play(tip.animate.move_to(tuft(SLOTS[int(RANK[i])],-2.25,IDS[i]).get_center()),run_time=.5)
+        self.at('depends on the other axons')
+        for i in ORDER[3:]:
+            tip=tuft(-3.1,1.8-.78*int(RANK[i]),IDS[i]); self.add(tip)
+            self.play(tip.animate.move_to(tuft(SLOTS[int(RANK[i])],-2.25,IDS[i]).get_center()),run_time=.4)
+        self.play(FadeIn(label('place = rank among axons, against the slope',1.1,.55,28,YELLOW)),run_time=.3)
+        self.finish()
+
+class S20Beat(Scene):
+    def construct(self):
+        self.camera.background_color=BG; self.add(rank_result()); self.wait(3)
+
+class S21Takeaway(SpokenScene):
+    def construct(self):
+        bar=gradient(0,-2.6,10,.7)
+        for segment in bar[:-1]:
+            segment.set_fill(opacity=segment.get_fill_opacity()*.35)
+        bar[-1].set_stroke(opacity=.3)
+        bg=VGroup(bar,
+            *[tuft(x,-2.6,IDS[i]).scale(1.25).set_opacity(.65) for i,x in enumerate(np.linspace(-4.4,4.4,5))])
+        self.add(bg,label('The takeaway',0,2.85,32,SLATE),label('Coarse front-to-back map • chick and mouse',0,-3.35,26,SLATE))
+        self.at("an axon's place")
+        first=VGroup(label("An axon's place is not an address",0,1.45,44),label('in its own receptor level.',0,.55,44))
+        self.play(FadeIn(first),run_time=.5)
+        self.at('It is a rank')
+        second=VGroup(label('It is a rank,',0,-.65,48,YELLOW),label('set against a slope.',0,-1.55,48,YELLOW))
+        self.play(FadeIn(second),run_time=.5)
+        self.finish()
+
+class S22End(EndCard):
+    LINE="An axon's place is a rank, set against a slope."
