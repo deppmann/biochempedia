@@ -22,14 +22,14 @@ ORANGE = "#F29E4C"
 OUTLINE = "#AEB6C4"
 
 BASE = -1.5      # underside of the growth cone (side view)
-SUBY = -1.95     # the substrate
+SUBY = -1.54     # the substrate
 H = 3.6          # height of the flat fan in the side view
 HS = 0.9         # height of the axon shaft
 XL = -6.1        # left end of the drawn axon
 LMAX = 4.2       # how far behind the edge the actin network reaches
 A_RATE = 0.30    # actin addition at the edge
 F_OFF = 0.30     # retrograde flow with the clutch off
-F_ON = 0.20      # retrograde flow with the clutch on
+F_ON = 0.10      # retrograde flow with the clutch on
 
 
 def prof(x, edge, sh, H=H, ramp=1.4, w=1.3):
@@ -125,10 +125,10 @@ class Cone:
             v = np.array([math.cos(self.ang[i]), math.sin(self.ang[i]), 0]) * 0.18
             dash.set_points_as_corners([P(x, y) - v, P(x, y) + v])
             col = interpolate_color(ManimColor(TEAL), ManimColor(BLUE), min(1.0, d / 1.2))
-            op = min(1.0, d / 0.25) * min(1.0, (LMAX - d) / 0.7) * dop
+            op = min(1.0, (d + 0.12) / 0.25) * min(1.0, (LMAX - d) / 0.7) * dop
             dash.set_stroke(col, width=5.5, opacity=op)
         fop = self.flow_op.get_value()
-        L = max(0.45, self.Fv * 4.5)
+        L = max(0.25, self.Fv * 6.0)
         for k, a in enumerate(self.flow):
             x0 = edge - 1.3 - 0.35 * k
             y = BASE + self.h * (0.25 + 0.25 * k)
@@ -150,356 +150,478 @@ class Cone:
             m.set_stroke(PURPLE, width=5, opacity=mop)
 
 
-def marker(x, color=GREY, h=H):
-    return DashedLine(P(x, SUBY), P(x, BASE + h + 0.25), color=color, stroke_width=3, dash_length=0.15)
+# All track curves below are integrated from the reference kinematic equations.
+# They illustrate a population, and are explicitly labelled schematic, not data.
+
+def tag(s, x=0, y=3.15, c=TEXT, size=30):
+    return T(s, size=size, color=c, line_spacing=.9).move_to(P(x,y))
 
 
-def label(text, color, size=26, **kw):
-    return T(text, size, color, **kw)
+def leader(s, xy, dest, color=TEXT, size=28):
+    t=tag(s,*xy,c=color,size=size)
+    start=t.get_right() if dest[0]>xy[0] else t.get_left()
+    return VGroup(Line(start,dest,color=color,stroke_width=2),t)
 
 
-class Turner:
-    """Top view of a growth cone that turns when its two sides advance at different rates."""
-    R = 1.5
+def fan_at(x=0,y=0,scale=1,theta=0,tubules=False,bulge=0):
+    # Top view: a continuous lamellipodial sheet between radial filopodia.
+    # Index 0=sheet, 1=filopodia, 2=tubules, 3=peripheral actin bundles.
+    angles=np.linspace(-1.03,1.03,45)
+    arc=[P((1.65+bulge*max(0,np.sin(a)))*np.sin(a),
+           (1.65+bulge*max(0,np.sin(a)))*np.cos(a)) for a in angles]
+    sheet=VMobject(color=BLUE,stroke_width=3,fill_color=BLUE,fill_opacity=.18)
+    sheet.set_points_as_corners([P(-.38,-1.65),P(.38,-1.65)]+list(reversed(arc))+[P(-.38,-1.65)])
+    fil=VGroup(); bundles=VGroup()
+    for a in np.linspace(-.98,.98,9):
+        r=1.65+bulge*max(0,np.sin(a))
+        fil.add(Line(P(r*np.sin(a),r*np.cos(a)),P((r+.48)*np.sin(a),(r+.48)*np.cos(a)),color=BLUE,stroke_width=4))
+        bundles.add(Line(P(.65*np.sin(a),.65*np.cos(a)),P(r*np.sin(a),r*np.cos(a)),color=BLUE,stroke_width=2,stroke_opacity=.45))
+    mts=VGroup(*[Line(P(j*.13,-1.6),P(j*.36,.45),color=PURPLE,stroke_width=5) for j in range(-2,3)])
+    if not tubules: mts.set_opacity(0)
+    return VGroup(sheet,fil,mts,bundles).scale(scale,about_point=ORIGIN).rotate(theta,about_point=ORIGIN).shift(P(x,y))
 
-    def __init__(self, pos, theta, vL, vR):
-        self.pos = np.array(pos, float)
-        self.th = theta
-        self.vL, self.vR = ValueTracker(vL), ValueTracker(vR)
-        self.trail_pts = [self.pos.copy()]
-        self.trail = VMobject(stroke_color=OUTLINE, stroke_width=22, stroke_opacity=0.35)
-        self.fan = VMobject(stroke_color=OUTLINE, stroke_width=4, fill_color=BLUE, fill_opacity=0.14)
-        self.fil = VGroup(*[Line(ORIGIN, RIGHT, color=BLUE, stroke_width=4) for _ in range(9)])
-        self.aL = arrow(P(0, 0), P(1, 0), GREEN, w=10, tip=0.28)
-        self.aR = arrow(P(0, 0), P(1, 0), GREEN, w=10, tip=0.28)
-        self.driver = Mobject()
-        self.driver.add_updater(lambda m, dt: self.step(dt))
-        self.running = True
-        self.draw()
 
-    def step(self, dt):
-        if self.running:
-            vl, vr = self.vL.get_value(), self.vR.get_value()
-            self.th += 0.3 * (vl - vr) * dt
-            self.pos = self.pos + (vl + vr) / 2 * np.array([math.cos(self.th), math.sin(self.th), 0]) * dt
-            self.trail_pts.append(self.pos.copy())
-        self.draw()
+def top(tubules=False):
+    return fan_at(0,-.25,1.35,tubules=tubules)
 
-    def unit(self, a):
-        return np.array([math.cos(a), math.sin(a), 0])
 
-    def draw(self):
-        th, R, p = self.th, self.R, self.pos
-        apex = p - self.unit(th) * 1.5
-        arc = [p + R * self.unit(th + a) * 1.0 for a in np.linspace(-1.0, 1.0, 30)]
-        self.fan.set_points_as_corners([apex] + arc + [apex])
-        for line, a in zip(self.fil, np.linspace(-0.9, 0.9, 9)):
-            line.put_start_and_end_on(p + R * self.unit(th + a), p + (R + 0.5) * self.unit(th + a))
-        if len(self.trail_pts) > 1:
-            self.trail.set_points_as_corners(self.trail_pts[:: max(1, len(self.trail_pts) // 400)] + [apex])
-        for ar, a, v in ((self.aL, 0.62, self.vL), (self.aR, -0.62, self.vR)):
-            s = p + (R + 0.75) * self.unit(th + a)
-            ln = max(0.12, v.get_value() * 2.4)
-            ar.become(arrow(s, s + self.unit(th) * ln, GREEN, w=10, tip=min(0.28, ln * 0.9)))
+def dish():
+    return RoundedRectangle(width=12.4,height=5.5,corner_radius=.45,color=GREY,stroke_width=2).move_to(P(0,-.1))
 
-    def side_point(self, a, extra=0.0):
-        return self.pos + (self.R + 1.15 + extra) * self.unit(self.th + a)
 
-    def attach(self, scene):
-        scene.add(self.trail, self.fan, self.fil, self.aL, self.aR, self.driver)
+def neuron(end=-1.2):
+    body=Circle(radius=1.05,color=OUTLINE,fill_color=BLUE,fill_opacity=.18).move_to(P(-4.8,-.4))
+    branches=VGroup(*[Line(P(-4.8,-.4),P(-4.8+1.5*np.cos(a),-.4+1.5*np.sin(a)),color=OUTLINE,stroke_width=5) for a in (1.7,2.5,3.8,4.5)])
+    ax=Line(P(-3.75,-.4),P(end-1.32,-.4),color=OUTLINE,stroke_width=17)
+    f=fan_at(end,-.4,.8,theta=-PI/2)
+    partner=Circle(radius=.9,color=OUTLINE,fill_color=BLUE,fill_opacity=.15).move_to(P(5.1,.4))
+    return VGroup(dish(),branches,body,ax,f,partner)
 
-    @property
-    def group(self):
-        return VGroup(self.trail, self.fan, self.fil, self.aL, self.aR)
+
+def pipette(x=3.7,y=1.6):
+    return Polygon(P(x,y),P(x+.55,y+.9),P(x+1.15,y+.9),color=ORANGE,stroke_width=3,fill_color=ORANGE,fill_opacity=.2)
+
+
+def field():
+    # Continuous raster of c~1/r: the alpha channel is sampled directly from
+    # the point-source model, with no tile boundaries or decorative dot grid.
+    xx,yy=np.meshgrid(np.linspace(-5.6,5.1,640),np.linspace(2.65,-2.5,320))
+    r=np.maximum(.25,np.hypot(xx-3.7,yy-1.6))
+    rgba=np.zeros((320,640,4),dtype=np.uint8)
+    rgba[:,:,:3]=[242,158,76]
+    rgba[:,:,3]=np.uint8(255*(.015+.38/(1+r)))
+    image=ImageMobject(rgba).stretch_to_fit_width(10.7).stretch_to_fit_height(5.15)
+    return image.move_to(P(-.25,.075))
+
+
+def assay():
+    f=fan_at(-1,-.35,1.2,tubules=True)
+    shaft=Line(P(-1,-2.9),P(-1,-2.2),color=OUTLINE,stroke_width=17)
+    return Group(field(),shaft,f,pipette(),tag('pipette',4.5,2.95,ORANGE,28),tag('enlarged cone · distance compressed',y=-3.2,c=GREY,size=26))
+
+
+def edges(equal=False,x=-1,y=-.35,scale=1.2,near_right=True):
+    # Exaggerate the small concentration contrast so it survives a draft render.
+    bars=VGroup()
+    for right in (False,True):
+        near=right == near_right
+        height=.8 if equal or near else .46
+        opacity=.95 if equal or near else .42
+        xx=x+(1 if right else -1)*1.35*scale
+        bars.add(Line(P(xx,y+.7-height/2),P(xx,y+.7+height/2),
+                      color=ORANGE,stroke_width=16,stroke_opacity=opacity))
+    return bars
+
+
+def bath(question=True):
+    dots=VGroup(*[Dot(P(x,y),radius=.035,color=ORANGE,fill_opacity=.5) for x in np.linspace(-5.8,5.8,40) for y in np.linspace(-2.5,2.25,18)])
+    cones=VGroup(*[fan_at(x,-.25,1.12) for x in (-4,0,4)])
+    q=VGroup(*[tag('?',x,2.4,ORANGE,32) for x in (-4,0,4)])
+    return VGroup(dish(),dots,cones,tag('10× cue · equal on both sides',y=3.15,c=ORANGE,size=30),q,
+                  tag('Do growth cones turn harder?',y=-3.25,size=34))
+
+
+def tracks(bias=0,width=1):
+    if bias:
+        # Retain the already reviewed gradient population unchanged.
+        paths=VGroup()
+        for i in range(7):
+            for sign in (-1,1):
+                p=P(sign*(i%3)*.10,-2.2); th=PI/2; pts=[p.copy()]
+                for step in range(int((8.2+.30*i)/.06)):
+                    t=step*.06
+                    delta=bias+sign*(.13+.025*i+.13*np.sin(.9*t+i*.7))
+                    th+=.3*delta*.06
+                    p+=.45*P(np.cos(th),np.sin(th))*.06
+                    pts.append(p.copy())
+                paths.add(VMobject(color=ORANGE,stroke_width=3,stroke_opacity=.8).set_points_as_corners(pts))
+        return paths.stretch(width,0)
+    # Independently seeded rate fluctuations, integrated from the reference
+    # dtheta/dt=.3*(vL-vR), dp/dt=mean(vL,vR)*heading equations.
+    rng=np.random.default_rng(29)
+    samples=[]
+    for i in range(14):
+        p=P(rng.uniform(-.35,.35),-2.2); th=PI/2; pts=[p.copy()]
+        duration=rng.uniform(5.0,11.0)
+        drift=rng.uniform(-.6,.6) if i>3 else rng.uniform(-.06,.06)
+        phase=rng.uniform(0,2*PI)
+        for step in range(int(duration/.06)):
+            t=step*.06
+            delta=bias+drift+.32*np.sin(.95*t+phase)
+            th+=.3*delta*.06
+            p+=.45*P(np.cos(th),np.sin(th))*.06
+            pts.append(p.copy())
+        samples.append(np.array(pts))
+    # Remove population drift without pairing/mirroring individual paths.
+    # A constant heading rotation retains every integrated path's geometry.
+    if not bias:
+        displacement=np.mean([p[-1]-p[0] for p in samples],axis=0)
+        angle=PI/2-math.atan2(displacement[1],displacement[0])
+        rot=np.array([[np.cos(angle),-np.sin(angle),0],
+                      [np.sin(angle),np.cos(angle),0],[0,0,1]])
+        samples=[(p-p[0])@rot.T+p[0] for p in samples]
+    paths=VGroup(*[VMobject(color=ORANGE if bias else BLUE,stroke_width=3,
+                           stroke_opacity=.85).set_points_as_corners(p) for p in samples])
+    return paths.stretch(width,0)
+
+
+def compare(amount=False):
+    left=tracks(-.26).shift(LEFT*3.25)
+    right=tracks().shift(RIGHT*3.15)
+    source=VGroup(pipette(-.95,1.95).scale(.7,about_point=P(-.95,1.95)),tag('attractant',-1.3,3.2,ORANGE,26))
+    dots=VGroup(*[Dot(P(x,y),radius=.035,color=ORANGE,fill_opacity=.32) for x in np.linspace(1,5.8,23) for y in np.linspace(-2.25,2.35,19)])
+    leftcap=tag('difference → direction',-3.25,-2.85,size=28)
+    rightcap=tag('amount: how strongly\nit responds' if amount else 'no preferred direction',3.15,-2.95,size=28)
+    return VGroup(dots,left,right,source,tag('gradient',-4.1,3.2,ORANGE,30),tag('10× cue · uniform',3.4,3.2,ORANGE,30),leftcap,rightcap,
+                  tag('schematic tracks',-3.25,-3.5,c=GREY,size=26),
+                  arrow(P(3.15,-2.2),P(3.15,2.25),GREY,w=3,tip=.2))
+
+
+def formula():
+    return VGroup(T('advance',size=34,color=GREEN),T('=',size=34),T('added',size=34,color=TEAL),T('−',size=34),T('slides back',size=34,color=RED)).arrange(RIGHT,buff=.25).move_to(P(0,3.1))
+
+
+def rule_labels(c=None):
+    labels=VGroup(tag('simplified culture model',y=-3.3,c=GREY,size=26),
+                  leader('front edge',(4.6,1.6),P(1.3,-.1),BLUE),
+                  tag('dish surface',4.3,-2.1,GREY,26))
+    if c is not None:
+        labels[1][0].add_updater(lambda m: m.put_start_and_end_on(labels[1][1].get_left(),P(c.edge.get_value(),-.1)))
+    return labels
 
 
 class S00Title(TitleCard):
-    LESSON = "Harrison's Living Axon and the Growth Cone"
-    TITLE = "The Tip That Steers the Axon"
-
-
-class S07End(EndCard):
-    LINE = "Advance is addition minus flow. Turning is the difference between sides."
-
-
-# Top-down fan reuses Turner's outline and filopodia. Transforming a whole fan
-# keeps the shaft continuous while a deliberately bounded path shows the turn.
-def fan_at(x=0, y=0, theta=0, scale=1, actin=True, tubules=False):
-    t = Turner(P(0, 0), 0, 0, 0)
-    t.running = False
-    fan = VGroup(t.fan.copy(), t.fil.copy())
-    if not actin:
-        fan[1].set_opacity(0.12)
-    if tubules:
-        fan.add(VGroup(*[Line(P(-1.5, j * .16), P(.65, j * .32),
-                             color=PURPLE, stroke_width=5) for j in range(-1, 2)]))
-    return fan.scale(scale).rotate(theta).shift(P(x, y))
-
-
-def cloud(x, y, color):
-    return VGroup(*[Circle(radius=r, stroke_width=0, fill_color=color, fill_opacity=o)
-                    for r, o in ((1.05, .07), (.75, .12), (.4, .22))]).move_to(P(x, y))
-
-
-def pipette(x, y, color=ORANGE):
-    return Polygon(P(x, y), P(x + .7, y + .85), P(x + 1.15, y + .85),
-                   stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=.12)
-
-
-def route(points):
-    return VMobject(stroke_color=OUTLINE, stroke_width=17, stroke_opacity=.4).set_points_smoothly(
-        [P(*p) for p in points])
-
-
-class S01Steer(SpokenScene):
+    LESSON='The Growth Cone: The Tip That Steers the Axon'
+    TITLE='The Tip That Reads a Difference'
     def construct(self):
-        cone = fan_at(-3.5, -.3, scale=.65)
-        shaft = route([(-6, -.3), (-4.5, -.3)])
-        cells = VGroup(*[Circle(radius=.45, color=GREY, fill_opacity=.08).move_to(P(x, y))
-                        for x, y in [(-1.8, 2.3), (3, -1.4), (3, 2.4), (5, .8)]])
-        target = cells[-1]
-        self.at('A growing axon')
-        self.play(FadeIn(cells), Create(shaft), FadeIn(cone), run_time=.8)
-        ax = label('axon', GREY).move_to(P(-5, -1.1))
-        self.at('at its tip')
-        tag = label('growth cone', BLUE, 30).move_to(P(-2.5, -2.1))
-        self.play(FadeIn(ax), FadeIn(tag), run_time=.5)
-        self.at('feels its way')
-        self.play(Transform(cone, fan_at(-2.7, -.3, scale=.65)),
-                  Transform(shaft, route([(-6, -.3), (-3.7, -.3)])), run_time=1)
-        attract = cloud(.7, 1.2, GREEN)
-        repel = cloud(.7, -1.0, RED)
-        cues = VGroup(label('attract', GREEN).move_to(P(.7, 2.65)),
-                      label('repel', RED).move_to(P(.7, -2.65)))
-        self.at('guidance cues')
-        self.play(FadeOut(ax), FadeOut(tag), FadeIn(attract), FadeIn(repel), FadeIn(cues), run_time=.6)
-        self.at('one side more strongly')
-        self.play(Transform(cone, fan_at(-1.4, .25, .4, .65)),
-                  Transform(shaft, route([(-6, -.3), (-3, -.3), (-2.3, -.15)])), run_time=1.1)
-        self.at('the growth cone turns')
-        self.play(Transform(cone, fan_at(.1, .85, .3, .65)),
-                  Transform(shaft, route([(-6, -.3), (-3, -.3), (-1.8, .3), (-.85, .55)])), run_time=1.2)
-        self.at('to its target')
-        self.play(FadeOut(attract), FadeOut(repel), FadeOut(cues),
-                  Transform(cone, fan_at(3.4, .8, 0, .65)),
-                  Transform(shaft, route([(-6, -.3), (-3, -.3), (-1.5, .7), (1, 1), (2.4, .8)])),
-                  target.animate.set_stroke(GREEN, 5), run_time=1.3)
-        self.at('So how does')
-        q = label('How does the tip move and turn?', TEXT, 34).move_to(P(0, -2.6))
-        self.play(FadeIn(q), run_time=.6)
+        lesson=VGroup(T('The Growth Cone:',26,color=GREY),T('The Tip That Steers the Axon',26,color=GREY)).arrange(DOWN,buff=.14)
+        title=VGroup(T('The Tip That Reads',48,font=TITLE_FONT),T('a Difference',48,font=TITLE_FONT)).arrange(DOWN,buff=.2)
+        self.add(VGroup(T('BIOCHEMISTRYPEDIA',26,color=TEAL),lesson,title,Line(LEFT*1.2,RIGHT*1.2,color=GOLD)).arrange(DOWN,buff=.4))
         self.finish()
 
 
-class S02Assay(SpokenScene):
+class S01Question(SpokenScene):
     def construct(self):
-        cone = fan_at(-1, -.5)
-        shaft = route([(-6, -.5), (-2.5, -.5)])
-        title = label('Gundersen and Barrett', GREY, 30).move_to(P(0, 3.1))
-        self.at('First the evidence')
-        self.play(FadeIn(cone), Create(shaft), FadeIn(title), run_time=.7)
-        pip = pipette(2, 1.3)
-        cue = cloud(2, 1.3, ORANGE)
-        name = label('nerve growth factor', ORANGE).move_to(P(3.2, -.2))
-        source = label('chick sensory neuron', GREY).move_to(P(-3, -2.8))
-        self.at('a pipette releasing')
-        self.play(FadeIn(pip), FadeIn(cue), FadeIn(name), FadeIn(source), run_time=.7)
-        self.at('met more of it')
-        gradient = VGroup(*[Dot(P(.25, y), radius=.09, color=ORANGE).set_opacity(o)
-                            for y, o in [(-1.3, .2), (-.6, .4), (.1, .7), (.8, 1)]])
-        self.play(FadeIn(gradient), run_time=.6)
-        self.at('turned toward it')
-        self.play(Transform(cone, fan_at(.2, .1, .5)),
-                  Transform(shaft, route([(-6, -.5), (-2.5, -.5), (-1.1, -.6)])), run_time=1.2)
-        self.at('then cut growth cones')
-        cut = DashedLine(P(-3, -1.4), P(-3, .6), color=RED, stroke_width=5)
-        newtitle = label('Campbell and Holt', GREY, 30).move_to(title)
-        newsource = label('frog retinal neuron', GREY).move_to(source)
-        self.play(FadeOut(gradient), FadeOut(name), FadeOut(pip), FadeOut(cue),
-                  Transform(cone, fan_at(-1, -.5)),
-                  Transform(shaft, route([(-6, -.5), (-2.5, -.5)])),
-                  Transform(title, newtitle), Transform(source, newsource), Create(cut), run_time=.7)
-        self.at('away from their cell bodies')
-        short = route([(-2.9, -.5), (-2.5, -.5)])
-        self.play(Transform(shaft, short), run_time=.6)
-        self.at('The isolated tips')
-        self.play(FadeOut(cut), FadeIn(pip), FadeIn(cue), run_time=.6)
-        self.at('to guidance cues')
-        self.play(Transform(cone, fan_at(.2, .1, .5)),
-                  Transform(shaft, route([(-2.9, -.5), (-2, -.5), (-1.1, -.6)])), run_time=1.2)
-        self.at('The decision is made')
-        result = label('the decision is at the tip', BLUE, 32).move_to(P(0, -2.8))
-        self.play(FadeOut(source), FadeIn(result), run_time=.6)
+        self.add(neuron(),tag('The tip that reads a difference',y=3.2,size=36),tag('Which way?',.5,1.6,size=36))
+        self.at('tip of a growing axon')
+        self.play(Indicate(self.mobjects[0][4],color=BLUE,scale_factor=1.08),run_time=.6)
         self.finish()
 
 
-class S03Flow(SpokenScene):
+class S02Axon(SpokenScene):
     def construct(self):
-        top = fan_at(0, 0, scale=1.35, tubules=True)
-        top[2].set_opacity(0)
-        self.at('Now open the fan')
-        self.play(FadeIn(top), run_time=.6)
+        n=neuron(); self.add(n)
+        axlabel=leader('axon',(-2.4,-2.4),P(-3.2,-.4),GREY)
+        cone_label=leader('growth cone',(.4,1.9),P(-.05,.15),BLUE)
+        self.at('An axon')
+        self.play(FadeIn(axlabel),FadeIn(cone_label),run_time=.3)
+        self.at('sends out')
+        self.play(Transform(n,neuron(2.3)),Transform(cone_label,leader('growth cone',(2.4,2),P(3.2,.4),BLUE)),run_time=.9)
+        self.at('reach its partner')
+        self.play(Indicate(n[5],scale_factor=1.08),run_time=.5)
+        self.finish()
+
+
+class S03Fan(SpokenScene):
+    def construct(self):
+        n=neuron(2.3); self.add(n)
+        self.at('a flat')
+        self.play(ReplacementTransform(n,top()),run_time=.65)
+        self.at('the growth cone')
+        self.play(FadeIn(tag('growth cone',y=3.2,c=BLUE,size=32)),run_time=.3)
+        self.finish()
+
+
+class S04Parts(SpokenScene):
+    def construct(self):
+        f=top(); self.add(f)
+        central=Ellipse(width=1.7,height=2.9,color=PURPLE,stroke_width=2).move_to(P(0,-.85))
+        peripheral=Arc(radius=2.18,start_angle=.4,angle=PI-.8,color=BLUE,stroke_width=5).shift(DOWN*.25)
         self.at('Microtubules fill')
-        mt = label('microtubules', PURPLE, 30).move_to(P(-3.4, -2.8))
-        self.play(top[2].animate.set_opacity(1), FadeIn(mt), run_time=.6)
-        self.at('Actin fills the edge')
-        act = label('actin', BLUE, 30).move_to(P(2.6, -2.8))
-        self.play(FadeIn(act), Indicate(top[1], color=TEAL), run_time=.8)
-        self.at('New actin joins')
-        cut = DashedLine(P(-2, 0), P(2.7, 0), color=GREY)
-        self.play(Create(cut), run_time=.3)
-        self.remove(top, mt, act, cut)
-        cone = Cone(edge=1.6, dash_op=0, flow_op=0)
-        cone.attach(self)
-        new = label('addition at the front', TEAL, 30).move_to(P(2.6, 3.05))
-        self.play(cone.dash_op.animate.set_value(1), FadeIn(new), run_time=.7)
-        self.at('Motor proteins')
-        my = label('myosin II pulls back', RED, 30).move_to(P(-3.2, 3.05))
-        self.play(cone.flow_op.animate.set_value(1), FadeIn(my), run_time=.7)
-        self.at('That backward movement')
-        rf = label('retrograde flow', RED, 30).move_to(my)
-        self.play(Transform(my, rf), run_time=.6)
-        self.at('at the same rate')
-        same = VGroup(label('addition', TEAL, 32), label('=', TEXT, 32), label('flow', RED, 32))
-        same.arrange(RIGHT, buff=.3).move_to(P(0, 3.05))
-        self.play(FadeOut(new), FadeOut(my), FadeIn(same), run_time=.5)
-        self.at('the edge goes nowhere')
-        mk = marker(1.6)
-        stay = label('edge stays here', GREY, 28).move_to(P(3.9, -.3))
-        self.play(Create(mk), FadeIn(stay), run_time=.6)
-        self.at('The engine runs')
-        self.play(Indicate(cone.dashes, color=BLUE, scale_factor=1.02), run_time=.6)
-        self.at('the car stays put')
-        self.play(Indicate(stay, color=TEXT), run_time=.6)
+        self.play(f[2].animate.set_opacity(1),Create(central),run_time=.4)
+        self.at('center of the fan')
+        self.play(FadeIn(leader('microtubules\ncentral domain',(-4,-1.35),P(-.8,-1),PURPLE)),run_time=.35)
+        self.at('fills its edge')
+        self.play(Create(peripheral),FadeIn(leader('actin\nperipheral domain',(4.25,1.65),P(1.65,1.2),BLUE)),run_time=.4)
+        self.at('thin spikes')
+        self.play(FadeIn(leader('filopodia',(-4.3,2.65),P(-1.8,1.8),BLUE)),run_time=.25)
+        self.at('flat sheets')
+        self.play(f[0].animate.set_fill(opacity=.32),FadeIn(leader('lamellipodia',(4.25,-1.4),P(1.3,.1),BLUE)),run_time=.3)
         self.finish()
 
 
-class S04Clutch(SpokenScene):
+class S05Filopodia(SpokenScene):
     def construct(self):
-        cone = Cone(edge=1.6, h=2)
-        cone.attach(self)
-        mk = marker(1.6, h=2)
-        self.add(mk)
-        header = label('the clutch', YELLOW, 34).move_to(P(0, 3.1))
-        self.at('Now add a clutch')
-        self.play(FadeIn(header), run_time=.6)
-        adh = label('adhesion links', YELLOW, 28).move_to(P(-1, -2.65))
-        self.at('adhesion molecules link')
-        self.play(cone.links.animate.set_value(1), FadeIn(adh), run_time=1)
-        self.at('retrograde flow slows')
-        self.play(cone.clutch.animate.set_value(1), run_time=.8)
-        self.at('pushes the edge forward')
-        self.play(cone.adv_op.animate.set_value(1), run_time=.7)
-        self.at('proposed this')
-        who = label('Mitchison and Kirschner · 1988', GREY, 28).move_to(P(0, 2.15))
-        self.play(FadeIn(who), run_time=.6)
-        words = [label('advance', GREEN, 34), label('=', TEXT, 34), label('addition', TEAL, 34),
-                 label('−', TEXT, 34), label('flow', RED, 34)]
-        eq = VGroup(*words).arrange(RIGHT, buff=.28).move_to(P(0, 3.1))
-        self.at('Put it as a rule')
-        self.play(FadeOut(header), FadeOut(who), run_time=.5)
-        bars = VGroup()
-        for n, c, y, value in [('addition', TEAL, 2.25, .30), ('flow', RED, 1.65, .20),
-                               ('advance', GREEN, 1.05, .10)]:
-            name = label(n, c, 24).move_to(P(-3, y)).align_to(P(-2.1, y), RIGHT)
-            bar = Rectangle(width=value * 10, height=.25, stroke_width=0, fill_color=c, fill_opacity=.9)
-            bar.move_to(P(-1.7 + value * 5, y))
-            bars.add(VGroup(name, bar))
-        self.at('The rate of advance')
-        self.play(FadeIn(words[0]), FadeIn(bars[2]), run_time=.4)
-        self.at('equals')
-        self.play(FadeIn(words[1]), run_time=.25)
-        self.at('rate of actin addition')
-        self.play(FadeIn(words[2]), FadeIn(bars[0]), run_time=.4)
-        self.at('minus')
-        self.play(FadeIn(words[3]), run_time=.25)
-        self.at('rate of retrograde flow')
-        self.play(FadeIn(words[4]), FadeIn(bars[1]), run_time=.4)
+        f=top(True)
+        sheet_label=leader('lamellipodia',(4.4,.2),P(1.45,1.4),BLUE)
+        self.add(f,tag('filopodia',y=3.2,c=BLUE,size=32),sheet_label)
+        # Oblique contact view: the substrate is beneath the probing tips.
+        surface=Line(P(-5.7,-2.35),P(5.7,-2.35),color=GREY,stroke_width=5)
+        self.at('feelers and feet')
+        oblique=fan_at(0,.3,1.4,theta=-PI/2,tubules=True).stretch(.8,1,about_point=P(0,.3))
+        self.play(Transform(f,oblique),Create(surface),
+                  Transform(sheet_label,leader('lamellipodia',(-3.8,1.6),P(1.9,.95),BLUE)),
+                  FadeIn(tag('surface contact · oblique view',y=-3.2,c=GREY,size=28)),run_time=.45)
+        self.at('sampling the ground')
+        sample=f[1][5]
+        self.play(sample.animate.put_start_and_end_on(sample.get_start(),P(2.8,-2.35)),run_time=.35)
+        self.play(sample.animate.put_start_and_end_on(sample.get_start(),P(2.8,-1.7)),run_time=.3)
+        self.add(leader('sampling',(4.5,-.4),P(2.8,-1.7),BLUE))
+        self.at('gripping it')
+        attach=f[1][7]; attach2=f[1][8]
+        self.play(attach2.animate.put_start_and_end_on(attach2.get_start(),P(.9,-2.35)),
+                  FadeIn(Dot(P(.9,-2.35),radius=.12,color=YELLOW)),
+                  attach.animate.put_start_and_end_on(attach.get_start(),P(1.8,-2.35)),
+                  FadeIn(Dot(P(1.8,-2.35),radius=.12,color=YELLOW)),
+                  FadeIn(leader('grip',(4.5,-1.65),P(1.8,-2.35),YELLOW)),run_time=.3)
         self.finish()
 
 
-class S05Turn(SpokenScene):
+class S06Cues(SpokenScene):
     def construct(self):
-        cone = fan_at(0, -.1, PI/2)
-        shaft = route([(0, -3.1), (0, -1.6)])
-        arrows = VGroup(arrow(P(-1.05, 1.7), P(-1.05, 2.4), GREEN),
-                        arrow(P(1.05, 1.7), P(1.05, 2.4), GREEN))
-        self.at('Turning is that rule')
-        self.play(FadeIn(cone), Create(shaft), FadeIn(arrows), run_time=.7)
-        cue = cloud(-3, 1.1, ORANGE)
-        cue_label = label('cue', ORANGE).move_to(P(-3, 2.5))
-        self.at('A cue on one side')
-        self.play(FadeIn(cue), FadeIn(cue_label), run_time=.5)
-        self.at('one side advances more')
-        self.play(Transform(arrows[0], arrow(P(-1.05, 1.7), P(-1.05, 3.1), GREEN)),
-                  Transform(cone, fan_at(-.65, .2, PI/2+.35)),
-                  Transform(shaft, route([(0, -3.1), (0, -1.8), (-.15, -1.3)])), run_time=1)
-        self.at('Drugs released onto')
-        pip = pipette(-3, 1.1, RED)
-        # Reset both the shape and the old result before the drug experiment.
-        self.play(FadeOut(cue), FadeOut(cue_label), FadeOut(arrows), FadeIn(pip),
-                  Transform(cone, fan_at(0, -.1, PI/2)),
-                  Transform(shaft, route([(0, -3.1), (0, -1.6)])), run_time=.6)
-        self.at('Remove actin on one side')
-        # In the upward-facing fan, indices 5..8 are the screen-left edge.
-        removed = label('actin removed', RED, 28).move_to(P(-3.5, -.6))
-        self.play(*[cone[1][i].animate.set_opacity(.03) for i in range(5, 9)], FadeIn(removed), run_time=.7)
-        self.at('turns away from that side')
-        dest = fan_at(.9, .2, PI/2-.5)
-        for i in range(5, 9):
-            dest[1][i].set_opacity(.03)
-        self.play(Transform(cone, dest),
-                  Transform(shaft, route([(0, -3.1), (0, -1.7), (.2, -1.1)])), run_time=1.1)
+        f=top(True); self.add(f,tag('guidance cues',y=3.2,c=ORANGE,size=32))
+        left=cloud_cue(-4,1.25); right=cloud_cue(4,1.25)
+        self.at('Molecules outside')
+        self.play(FadeIn(left),FadeIn(right),run_time=.3)
+        left.add_updater(lambda m,dt:m.rotate(.15*dt,about_point=P(-4,1.25)))
+        right.add_updater(lambda m,dt:m.rotate(-.15*dt,about_point=P(4,1.25)))
+        self.at('attract')
+        self.play(GrowArrow(arrow(P(-2,.8),P(-3.4,1.2),GREEN)),FadeIn(tag('attract',-4,-.1,GREEN,30)),run_time=.25)
+        self.at('repel')
+        self.play(GrowArrow(arrow(P(3.4,1.2),P(2,.8),RED)),FadeIn(tag('repel',4,-.1,RED,30)),run_time=.25)
         self.finish()
 
 
-class S06Tubules(SpokenScene):
+def cloud_cue(x,y):
+    return VGroup(*[Dot(P(x+.5*np.cos(a),y+.5*np.sin(a)),radius=.09,color=ORANGE) for a in np.linspace(0,2*PI,7,endpoint=False)])
+
+
+class S07Pipette(SpokenScene):
     def construct(self):
-        cone = fan_at(0, -.1, PI/2, tubules=True)
-        shaft = route([(0, -3.1), (0, -1.6)])
-        self.at('Microtubules steer too')
-        self.play(FadeIn(cone), Create(shaft), run_time=.6)
-        pip = pipette(-3, 1.1, PURPLE)
-        taxol = label('taxol', PURPLE, 28).move_to(P(-3.2, 2.6))
-        self.at('Stabilize them on one side')
-        dest = fan_at(-.6, .2, PI/2+.35, tubules=True)
-        dest[2][2].set_stroke(width=9)
-        self.play(FadeIn(pip), FadeIn(taxol), cone[2][2].animate.set_stroke(width=9), run_time=.6)
-        self.at('turns toward that side')
-        self.play(Transform(cone, dest), Transform(shaft, route([(0, -3.1), (0, -1.8), (-.1, -1.3)])), run_time=.9)
-        self.at('Break them down on one side')
-        neutral = fan_at(0, -.1, PI/2, tubules=True)
-        neutral[2][2].set_opacity(.05)
-        loss = label('microtubules lost', RED, 28).move_to(P(-3.5, 2.6))
-        self.play(FadeOut(taxol), FadeIn(loss),
-                  Transform(cone, neutral), Transform(shaft, route([(0, -3.1), (0, -1.6)])), run_time=.7)
-        self.at('it turns away')
-        away = fan_at(.8, .1, PI/2-.45, tubules=True)
-        away[2][2].set_opacity(.05)
-        self.play(Transform(cone, away),
-                  Transform(shaft, route([(0, -3.1), (0, -1.8), (.15, -1.3)])), run_time=.8)
-        self.at('As the edge moves')
-        self.play(FadeOut(pip), FadeOut(loss),
-                  Transform(cone, fan_at(0, -.1, PI/2, tubules=True)),
-                  Transform(shaft, route([(0, -3.1), (0, -1.6)])), run_time=.6)
-        self.at('microtubules extend into the new territory')
-        tubes = VGroup(*[Line(P(j*.18, -2.9), P(j*.3, 1.2), color=PURPLE, stroke_width=5)
-                         for j in range(-1, 2)])
-        self.play(Transform(cone[2], tubes), run_time=1.1)
-        self.at('the fan behind them narrows')
-        narrow = fan_at(0, 1.1, PI/2, scale=.65, tubules=True)
-        self.play(Transform(cone, narrow),
-                  Transform(shaft, route([(0, -3.1), (0, .1)])), run_time=.9)
-        self.at('becomes axon shaft')
-        shaft_label = label('axon shaft', GREY, 28).move_to(P(2, -.9))
-        consolidated = VGroup(*[Line(P(j*.13, -2.9), P(j*.13, .2), color=PURPLE, stroke_width=4)
-                               for j in range(-1, 2)])
-        self.play(FadeIn(shaft_label), Create(consolidated), run_time=.6)
-        self.at('Keep the rule')
-        self.play(FadeOut(shaft_label), run_time=.4)
-        sense = label('senses a cue', ORANGE, 32).move_to(P(-3.5, 2.9))
-        self.at('The tip senses a cue')
-        self.play(FadeIn(sense), run_time=.5)
-        self.at('turning is the difference')
-        rule = label('turns by the difference\nbetween its two sides', GREEN, 30).move_to(P(3.3, -1.8))
-        self.play(FadeIn(rule), run_time=.7)
+        g=assay(); self.add(g[1:3],g[5])
+        self.at('a fine pipette')
+        self.play(FadeIn(g[3:5]),run_time=.3)
+        self.at('releases a cue')
+        self.play(FadeIn(g[0]),run_time=.5)
+        self.bring_to_front(g[1:5]); self.finish()
+
+
+class S08Thins(SpokenScene):
+    def construct(self):
+        self.add(assay(),edges(),tag('far',-3.25,1.15,ORANGE,28),
+                 tag('near',.9,1.25,ORANGE,28))
+        self.at('thins with distance')
+        self.add(tag('cue fades with distance',y=3.2,c=ORANGE,size=30))
+        self.at('the near side')
+        self.play(FadeIn(leader('a little more',(3.35,-.75),P(.62,.4),ORANGE)),run_time=.3)
+        self.at('the far side')
+        self.play(FadeIn(leader('a little less',(-4.6,-.75),P(-2.62,.4),ORANGE)),run_time=.3)
+        self.finish()
+
+
+class S09Tenth(SpokenScene):
+    def construct(self):
+        f=fan_at(-3,-.15,1.3,tubules=True)
+        self.add(f,tag('Standard pipette assay',x=2.7,y=3.25,size=26),pipette(3.7,1.5),tag('pipette',4.65,2.75,ORANGE,28))
+        # Bracket spans the sheet's true lateral diameter, not the shaft.
+        a,b=P(-4.84,2.7),P(-1.16,2.7)
+        bracket=VGroup(Line(a,b,color=GREY),Line(a+UP*.14,a+DOWN*.14,color=GREY),Line(b+UP*.14,b+DOWN*.14,color=GREY),tag('10 µm',-3,3.25,GREY,30))
+        dist=VGroup(Line(P(-1.16,.95),P(.7,1.05),color=GREY),Line(P(1.25,1.2),P(3.7,1.5),color=GREY),
+                    Line(P(.78,.9),P(.95,1.25),color=GREY),Line(P(1.02,.97),P(1.19,1.32),color=GREY),tag('100 µm',1.6,1.95,GREY,30))
+        self.at('the standard assay')
+        self.play(FadeIn(bracket),FadeIn(dist),run_time=.3)
+        self.at('only about')
+        self.play(FadeIn(chip('near side\n5–10% more',ORANGE,size=38).move_to(P(3,-1.05))),run_time=.35)
+        self.add(tag('enlarged cone · broken distance',y=-3.15,c=GREY,size=26)); self.finish()
+
+
+class S10Q(SpokenScene):
+    def construct(self):
+        g=bath(); self.add(g[0],g[2:])
+        self.at('flood the whole dish')
+        self.play(FadeIn(g[1]),run_time=.7)
+        self.bring_to_front(g[2:]); self.finish()
+
+
+class S11Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG
+        self.add(bath())
+        track=Circle(radius=.32,color=GREY,stroke_width=3).move_to(P(5.9,3.15))
+        arc=Arc(radius=.32,start_angle=PI/2,angle=2*PI-.001,color=YELLOW,stroke_width=6).move_arc_center_to(P(5.9,3.15))
+        self.add(track,arc)
+        self.play(Uncreate(arc),run_time=5,rate_func=linear)
+
+
+class S12Reveal(SpokenScene):
+    def construct(self):
+        g=bath(); self.add(g[0],g[1],g[3],g[2])
+        self.at('across many cones')
+        population=tracks().stretch_to_fit_width(10.3).stretch_to_fit_height(4.15).move_to(P(0,-.1))
+        self.play(FadeOut(g[2]),Create(population),run_time=.7)
+        self.at('no net turn')
+        self.play(FadeIn(tag('no net turn · mean ≈ 0–1°',y=-3.2,size=34)),GrowArrow(arrow(P(0,-2.25),P(0,2.5),GREY,w=4)),run_time=.35)
+        self.add(tag('schematic tracks',-4.55,-2.5,GREY,26))
+        self.at('no difference between')
+        bars=edges(True,x=4.7,y=-.5,scale=.55)
+        self.play(FadeIn(bars),FadeIn(tag('equal edges',4.6,1.5,ORANGE,26)),run_time=.3)
+        self.finish()
+
+
+class S13Beat(Scene):
+    def construct(self):
+        self.camera.background_color=BG; self.add(compare()); self.wait(3)
+
+
+class S14Difference(SpokenScene):
+    def construct(self):
+        g=compare(); self.add(g)
+        self.at('gives the direction')
+        self.play(Indicate(g[1],scale_factor=1.025),run_time=.4)
+        self.at('The overall amount')
+        self.play(Transform(g[7],tag('amount: how strongly\nit responds',3.15,-2.95,size=28)),g[0].animate.set_opacity(.85),run_time=.4)
+        self.finish()
+
+
+class S15Rule1(SpokenScene):
+    def construct(self):
+        c=Cone(edge=1.3,flow_op=0); c.attach(self)
+        self.add(rule_labels(c))
+        eq=formula(); self.add(eq[:2])
+        self.at('The edge moves forward')
+        self.play(Indicate(c.outline,scale_factor=1.01),run_time=.4)
+        self.at('actin added there')
+        self.play(FadeIn(eq[2]),FadeIn(leader('new actin',(4.5,.5),P(1.0,-.4),TEAL)),run_time=.3)
+        self.at('minus the actin')
+        self.play(FadeIn(eq[3:]),c.flow_op.animate.set_value(1),run_time=.3)
+        self.finish()
+
+
+class S16Rule2(SpokenScene):
+    def construct(self):
+        c=Cone(edge=1.3); c.attach(self)
+        self.add(rule_labels(c),formula())
+        for link in c.linkset:
+            link[1].scale(1.6); link[2].scale(1.6)
+        self.at('Grip on the ground')
+        self.play(c.links.animate.set_value(1),FadeIn(leader('grip · clutch',(-2,-2.25),P(-.8,-1.6),YELLOW)),run_time=.3)
+        self.at('holds back part')
+        self.play(c.clutch.animate.set_value(1),c.adv_op.animate.set_value(1),FadeIn(tag('advance',4.4,-.8,GREEN,28)),run_time=.4)
+        self.finish()
+
+
+def remodel_inset(stage=0):
+    # Two explicit panels preserve the order; the alternative reverses it.
+    panels=VGroup()
+    for i,x in enumerate((2.25,4.85)):
+        box=RoundedRectangle(width=2.4,height=3.1,color=GREY,
+                             corner_radius=.12).move_to(P(x,-.35))
+        mt_first=stage==2
+        bulge=.9 if not mt_first or i else 0
+        f=fan_at(x,-.45,.55,tubules=True,bulge=bulge)
+        if (not mt_first and i==0):
+            f[2].set_opacity(.2)
+        else:
+            for line in f[2]:
+                line.put_start_and_end_on(line.get_start(),line.get_end()+P(.46,.4))
+        label=('microtubules' if i==0 else 'edge follows') if mt_first else ('edge bulges' if i==0 else 'tubules enter')
+        panels.add(VGroup(box,f,tag(label,x,-2.25,PURPLE if mt_first or i else BLUE,22)))
+    return VGroup(panels,arrow(P(3.48,-.25),P(3.62,-.25),GREY,w=3,tip=.1),
+                  tag('or microtubules first' if stage==2 else 'actin → microtubules',3.55,1.65,
+                      PURPLE if stage==2 else TEXT,24))
+
+
+class S17Rule3(SpokenScene):
+    def construct(self):
+        # The entire remodelling scene is seen from above.
+        view_label=tag('top view',y=3.2,c=GREY,size=28)
+        self.add(view_label,tag('simplified culture model',y=-3.35,c=GREY,size=26))
+        side=Ellipse(width=5.2,height=1.3,color=BLUE,fill_color=BLUE,fill_opacity=.18).move_to(P(-2.5,-.5))
+        self.add(side)
+        self.at('A turn sticks')
+        f=fan_at(-2.7,-.2,1.3,tubules=True,bulge=.5)
+        inset=remodel_inset(0)
+        self.play(ReplacementTransform(side,f),FadeIn(leader('near',(.5,2.1),P(-.7,1.1),ORANGE)),FadeIn(inset),FadeIn(pipette(-.5,1.45).scale(.55,about_point=P(-.5,1.45))),run_time=.5)
+        self.at('microtubules move in')
+        targets=VGroup(*[Line(P(-2.7+j*.14,-2.25),P(-1.45+j*.19,1.3+j*.12),color=PURPLE,stroke_width=5) for j in range(-2,3)])
+        self.play(Transform(f[2],targets),run_time=.5)
+        self.at('build new axon')
+        # Keep the front arc attached to its filopodia while the rear narrows.
+        angles=np.linspace(1.03,-1.03,45)
+        front=[P(-2.7+1.3*(1.65+.5*max(0,np.sin(a)))*np.sin(a),
+                 -.2+1.3*(1.65+.5*max(0,np.sin(a)))*np.cos(a)) for a in angles]
+        consolidated=f[0].copy().set_points_as_corners(
+            [P(-3,-2.7),P(-2.4,-2.7),P(-2.4,-.8)]+front+[P(-3,-.8),P(-3,-2.7)])
+        shaft=Line(P(-2.7,-2.7),P(-2.7,-1.25),color=OUTLINE,stroke_width=18,stroke_opacity=.45)
+        new_mts=VGroup(*[VMobject(color=PURPLE,stroke_width=5).set_points_smoothly(
+            [P(-2.7+j*.09,-2.65),P(-2.65+j*.11,-.7),P(-1.45+j*.19,1.3+j*.12)]) for j in range(-2,3)])
+        self.play(Create(shaft),Transform(f[0],consolidated),Transform(f[2],new_mts),run_time=.45)
+        self.play(Transform(inset,remodel_inset(1)),run_time=.3)
+        self.at('can also start')
+        self.play(Transform(view_label,tag('Microtubules can also start a turn',y=3.2,c=PURPLE,size=28)),run_time=.3)
+        self.at('the turn themselves')
+        self.play(Transform(inset,remodel_inset(2)),run_time=.45)
+        self.finish()
+
+
+class S18Next1(SpokenScene):
+    def construct(self):
+        c=Cone(edge=1.3,clutch=1,links=1,adv_op=1); c.attach(self)
+        self.add(tag('1 / 3',-5.5,3.2,c=GREY,size=36),tag('Actin slides back.\nHow does the edge advance?',y=-2.65,size=32),
+                  tag('simplified culture model',y=-3.5,c=GREY,size=26))
+        self.at('move forward')
+        self.play(Indicate(c.adv,scale_factor=1.08),run_time=.4); self.finish()
+
+
+class S19Next2(SpokenScene):
+    def construct(self):
+        self.add(top(True),tag('2 / 3',-5.5,3.2,c=GREY,size=36),tag('A small difference. A whole turn?',y=-3.15,size=34),edges(x=0,y=-.3,scale=1.35),pipette(4.6,1.7),
+                  leader('far',(-4.4,.4),P(-1.82,.4),ORANGE,size=28),
+                  leader('near: 5–10%\ndifference',(4.4,.4),P(1.82,.4),ORANGE,size=28))
+        self.at('a turn of')
+        self.play(Indicate(self.mobjects[0][0],scale_factor=1.04),run_time=.4); self.finish()
+
+
+class S20Next3(SpokenScene):
+    def construct(self):
+        f=top(True)
+        self.add(f,tag('3 / 3',-5.5,3.2,c=GREY,size=36),tag('Can the tip decide alone?',y=-3.15,size=36))
+        self.at('make that decision')
+        self.play(Indicate(f[0],scale_factor=1.04),run_time=.5); self.finish()
+
+
+class S21Takeaway(SpokenScene):
+    def construct(self):
+        f=fan_at(0,-.2,1.12,tubules=True)
+        self.add(f,tag('Carry one idea',y=3.25,size=34),edges(x=0,y=-.2,scale=1.12),
+                 leader('far',(-4,.7),P(-1.5,.5),ORANGE),leader('near',(4,.7),P(1.5,.5),ORANGE),pipette(4.6,1.7))
+        self.at('A cue gives')
+        self.play(FadeIn(tag('A cue gives a direction\nby making the two sides differ.',y=-3.0,size=32)),run_time=.3)
+        self.finish()
+
+
+class S22End(EndCard):
+    LINE='A cue gives a direction by making the two sides differ.'
+    def construct(self):
+        self.add(VGroup(T('A cue gives a direction',40,font=TITLE_FONT),T('by making the two sides differ.',40,font=TITLE_FONT),T('biochemistrypedia.com',26,color=TEAL)).arrange(DOWN,buff=.4))
         self.finish()
