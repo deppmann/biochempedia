@@ -1,426 +1,504 @@
-"""A skin cell that feels force  (Biochemistrypedia explainer, Sensory Systems: Merkel cells)
+"""Chapter 1: Two Receptors, One Nerve.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  ORANGE = the Merkel cell (epidermal cell)
-  PURPLE = the SA1 afferent ending and its fibre
-  BLUE   = Piezo2, the force-gated channel, and the Merkel-cell current
-  YELLOW = afferent spikes
-  GREEN  = light that depolarizes; an unchanged / similar result
-  RED    = light that hyperpolarizes; a loss, a deletion, a crossed-out claim
-  TEAL   = a candidate transmitter
-  GOLD   = a caution or the rule to keep
-  GREY   = epidermal neighbours, axes, held touch, neutral labels
+COLOR MAP, shared with scenes.old.py (CHAPTERS.md is outside the edit scope):
+ORANGE #F29E4C: Merkel cells; PURPLE #B58CD9: afferent ending/axon;
+BLUE: Piezo2; YELLOW: spikes; GREEN: preserved responses;
+RED: excluded lineage; TEAL: synaptic signal; GOLD: phases/cautions;
+GREY: skin, stimulus, neutral labels. Rasters are schematic, not recordings.
+The deterministic spike_times model and pair/ticks geometry are reused from
+scenes.old.py. No fitted or invented experimental curves are drawn.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+PURPLE = '#B58CD9'
+ORANGE = '#F29E4C'
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def pair(cx=0.0, cy=0.0, s=1.0, cell_color=ORANGE, fibre=2.0):
-    """A Merkel cell sitting on the disc-like contact of one afferent ending (schematic, side view)."""
-    body = RoundedRectangle(corner_radius=0.55 * s, width=2.0 * s, height=1.7 * s, stroke_color=cell_color,
-                            stroke_width=4, fill_color=cell_color, fill_opacity=0.22).move_to([cx, cy, 0])
-    disc = RoundedRectangle(corner_radius=0.08 * s, width=1.5 * s, height=0.22 * s, stroke_width=0,
-                            fill_color=PURPLE, fill_opacity=1).move_to([cx, cy - 0.85 * s - 0.13 * s, 0])
-    line = Line(disc.get_bottom(), disc.get_bottom() + DOWN * fibre * s, color=PURPLE, stroke_width=7 * max(s, 0.6))
+def pair(cx=0, cy=0, s=1, cell_color=ORANGE, fibre=2):
+    body = RoundedRectangle(corner_radius=.55*s, width=2*s, height=1.7*s,
+        stroke_color=cell_color, stroke_width=4, fill_color=cell_color,
+        fill_opacity=.22).move_to([cx, cy, 0])
+    disc = RoundedRectangle(corner_radius=.08*s, width=1.5*s, height=.22*s,
+        stroke_width=0, fill_color=PURPLE, fill_opacity=1).move_to([cx, cy-1.15*s, 0])
+    line = Line(disc.get_bottom(), disc.get_bottom()+DOWN*fibre*s,
+        color=PURPLE, stroke_width=7)
     g = VGroup(body, line, disc)
     g.body, g.line, g.disc = body, line, disc
     return g
 
 
-def neighbours(cx=0.0, cy=0.0, s=1.0):
-    """Grey epidermal cells either side of the Merkel cell (centre at cx, cy)."""
-    cells = VGroup()
-    for dx in (-4.05, -2.05, 2.05, 4.05):
-        cells.add(RoundedRectangle(corner_radius=0.45 * s, width=1.8 * s, height=1.5 * s, stroke_color=GREY,
-                                   stroke_width=3, fill_color=GREY, fill_opacity=0.12).move_to([cx + dx * s, cy, 0]))
-    return cells
-
-
-def spike_run(pr, n=3, dt=0.45, run=0.55):
-    """yellow impulses running up the fibre of a pair, as one animation."""
-    anims = []
-    for i in range(n):
-        d = Dot(radius=0.11, color=YELLOW).move_to(pr.disc.get_bottom())
-        anims.append(Succession(FadeIn(d, run_time=0.05),
-                                d.animate(run_time=run, rate_func=linear).move_to(pr.line.get_end()),
-                                FadeOut(d, run_time=0.05)))
-    return LaggedStart(*anims, lag_ratio=dt / (run + 0.1))
-
-
-def ticks(xs, y, h=0.55, color=YELLOW, w=4):
-    return VGroup(*[Line([x, y - h / 2, 0], [x, y + h / 2, 0], color=color, stroke_width=w) for x in xs])
-
-
-def bchip(text, color=BLUE, size=26, **kw):
-    """chip with an opaque backing so shapes behind it do not show through its label."""
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
-
-
-def cross(mob, color=RED, w=7, pad=0.0):
-    r = mob.get_width() / 2 + pad
-    h = mob.get_height() / 2 + pad
-    c = mob.get_center()
-    return VGroup(Line(c + np.array([-r, h, 0]), c + np.array([r, -h, 0]), color=color, stroke_width=w),
-                  Line(c + np.array([-r, -h, 0]), c + np.array([r, h, 0]), color=color, stroke_width=w))
+def ticks(xs, y, h=.8, color=YELLOW, w=4):
+    return VGroup(*[Line([x, y-h/2, 0], [x, y+h/2, 0], color=color,
+                        stroke_width=w) for x in xs])
 
 
 def spike_times():
-    """One afferent sketch: dense at onset (dynamic), sparse and irregular after (static). In this sketch."""
     rng = np.random.default_rng(7)
-    ts, t = [], 0.15
+    ts, t = [], .15
     for i in range(9):
         ts.append(t)
-        t += 0.11 + 0.025 * i
-    t = ts[-1] + 0.55
+        t += .11 + .025*i
+    t = ts[-1] + .55
     while t < 8.8:
         ts.append(t)
-        t += float(rng.gamma(1.2, 0.5)) + 0.12
+        t += float(rng.gamma(1.2, .5)) + .12
     return ts
 
 
+def channel_label(pos):
+    g = chip('Piezo2',BLUE,26).move_to(pos)
+    g[0].set_fill(BG,1)
+    g.set_z_index(3)
+    return g
+
+
+def heading(text, color=TEXT):
+    return T(text, 32, color, weight=BOLD).move_to([0, 3.05, 0])
+
+
+def raster(y=0, ra=False, x0=-4.5, x1=5.7, h=1.05):
+    fx = lambda t: x0+(x1-x0)*t/10
+    ts = [.15, .35, .6, 9.3, 9.55, 9.8] if ra else spike_times()
+    base = Line([x0, y, 0], [x1, y, 0], color=GREY, stroke_opacity=.4)
+    tk = ticks([fx(t) for t in ts], y, h)
+    return VGroup(base, tk)
+
+
+def stimulus(y=-2.25, x0=-4.5, x1=5.7):
+    bounds = [x0, x0+(x1-x0)*.19, x0+(x1-x0)*.91, x1]
+    g = VGroup()
+    for a,b,name in zip(bounds[:-1], bounds[1:], ['press','hold','lift']):
+        g.add(Rectangle(width=b-a-.06, height=.19, stroke_width=0,
+                       fill_color=GREY, fill_opacity=.7).move_to([(a+b)/2,y,0]))
+        g.add(T(name,26,GREY).move_to([(a+b)/2,y-.48,0]))
+    return g
+
+
+def phase_view():
+    r = raster(.5)
+    st = stimulus(-1.3)
+    title = heading('SA1 afferent')
+    note = T('schematic · time →',26,GREY).move_to([0,-3.15,0])
+    return VGroup(title,r,st,note)
+
+
+def phase_box(dynamic=True, y=.5):
+    a,b = (-4.65,-2.45) if dynamic else (-2.3,4.65)
+    return RoundedRectangle(width=b-a,height=1.65,corner_radius=.12,
+        stroke_color=GOLD,stroke_width=3).move_to([(a+b)/2,y,0])
+
+
+def skin():
+    # Piecewise straight section: a touch dome beside a guard hair, no data curve.
+    epidermis = Polygon([-5.9,.5,0],[-3,.5,0],[-2.3,1.8,0],[2.6,1.8,0],
+        [3.3,.5,0],[5.9,.5,0],[5.9,-1.3,0],[-5.9,-1.3,0],
+        color=GREY,fill_color=GREY,fill_opacity=.13,stroke_width=3)
+    cells = VGroup(*[RoundedRectangle(width=.95,height=.78,corner_radius=.3,
+        color=ORANGE,fill_color=ORANGE,fill_opacity=.25).move_to([x,-.65,0])
+        for x in [-1.5,0,1.5]])
+    hair = Polygon([3.7,-1.5,0],[4,-1.5,0],[3.5,2.65,0],[3.3,2.65,0],
+                   color=GREY,fill_color=GREY,fill_opacity=.8)
+    follicle=Ellipse(width=.85,height=2.3,color=GREY).move_to([3.75,-.45,0])
+    dermis=Rectangle(width=11.8,height=1.35,color=GREY,stroke_width=2,
+        fill_color=GREY,fill_opacity=.07).move_to([0,-1.975,0])
+    return VGroup(VGroup(epidermis,dermis),cells,VGroup(follicle,hair))
+
+
+def branches():
+    ax = VGroup(Line([0,-3,0],[0,-2.1,0],color=PURPLE,stroke_width=8))
+    for x in [-1.5,0,1.5]:
+        ax.add(Line([0,-2.1,0],[x,-1.25,0],color=PURPLE,stroke_width=6))
+        ax.add(RoundedRectangle(width=.85,height=.16,corner_radius=.06,
+            stroke_width=0,fill_color=PURPLE,fill_opacity=1).move_to([x,-1.17,0]))
+    return ax
+
+
+def routes(labels=False):
+    p = pair(0,.65,1.65,fibre=1.25)
+    a = Arrow([-5.5,-1.25,0],p.disc.get_left(),buff=.12,color=PURPLE,stroke_width=7)
+    b = Arrow([5.5,.9,0],p.body.get_right(),buff=.12,color=ORANGE,stroke_width=7)
+    g = VGroup(p,a,b)
+    if labels:
+        g.add(route_label(a),route_label(b,False))
+    return g
+
+
+def route_label(arrow, ending=True):
+    text=T('ending’s own\ntransduction' if ending else 'the Merkel cell,\nthrough a synapse',28,PURPLE if ending else ORANGE)
+    text.move_to([-4,-2.1,0] if ending else [4.2,1.85,0])
+    start=text.get_top()+UP*.12 if ending else text.get_bottom()+DOWN*.12
+    end=arrow.get_center()+(DOWN*.12 if ending else UP*.12)
+    return VGroup(text,Line(start,end,color=PURPLE if ending else ORANGE))
+
+
+def prediction(question=True):
+    p = pair(-4.65,.25,1.18,fibre=1.3)
+    a = Arrow([-6.35,-1.1,0],p.disc.get_left(),buff=.07,color=PURPLE,stroke_width=7)
+    b = Arrow([-2.2,1.1,0],p.body.get_right(),buff=.07,color=ORANGE,stroke_width=7)
+    ending=T('ending',28,PURPLE).move_to([-5.65,-2.25,0])
+    cell=T('Merkel cell',28,ORANGE).move_to([-4.6,1.95,0])
+    labs = VGroup(ending,cell,
+        Line(ending.get_top(),a.get_center()+DOWN*.12,color=PURPLE),
+        Line(cell.get_right(),b.get_center()+UP*.12,color=ORANGE))
+    r = raster(-.35,x0=-1.75,x1=6.1,h=1.9)
+    boxes = VGroup(RoundedRectangle(width=1.65,height=2.35,corner_radius=.1,color=GOLD).move_to([-.95,-.35,0]),
+                   RoundedRectangle(width=6.15,height=2.35,corner_radius=.1,color=GOLD).move_to([3.05,-.35,0]))
+    phase = VGroup(T('dynamic',26,GOLD).move_to([-.95,-1.8,0]),T('static',26,GOLD).move_to([3.25,-1.8,0]))
+    tags = VGroup(*[RoundedRectangle(width=w,height=.72,corner_radius=.1,color=GREY).move_to([x,1.65,0]) for x,w in [(-.85,2.5),(3.55,4.1)]])
+    q = T('Which route makes which phase?',32,YELLOW).move_to([0,-3.2,0])
+    note = T('schematic SA1 firing · time →',26,GREY).move_to([2.2,2.65,0])
+    g = VGroup(p,a,b,labs,r,boxes,phase,tags,note,stimulus(-2.25,x0=-1.75,x1=6.1))
+    if question: g.add(q)
+    g.tags, g.q = tags,q
+    return g
+
+
+def answer():
+    g=prediction(False)
+    g.tags[0].set_color(PURPLE); g.tags[1].set_color(ORANGE)
+    g.add(T('mainly ending',26,PURPLE).move_to(g.tags[0]),
+          T('mainly Merkel cell',26,ORANGE).move_to(g.tags[1]),
+          T('mouse touch domes; onset source still argued',26,GREY).move_to([0,-3.15,0]))
+    return g
+
+
+def idea():
+    return VGroup(T('The ending mainly feels the change.',36,PURPLE).move_to([0,1.1,0]),
+                  T('The Merkel cell mainly holds the press.',36,ORANGE).move_to([0,-.65,0]),
+                  T('in mouse touch domes',28,GREY).move_to([0,-2.25,0]))
+
+
 class S00Title(TitleCard):
-    LESSON = "Merkel cells"
-    TITLE = "A skin cell that feels force"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """The puzzle: neuron or skin cell? Then named, placed, and traced to the epidermis."""
+    TITLE = 'Two Receptors, One Nerve'
+    LESSON = 'Merkel Cells: Touch Receptors That Are Not Neurons'
 
     def construct(self):
-        nb = neighbours(0, 0.9)
-        pr = pair(0, 0.9, 1.0, cell_color=GREY, fibre=3.0)
-        q = T("?", 64, YELLOW, weight=BOLD).move_to(pr.body)
-        self.play(FadeIn(nb), FadeIn(pr), run_time=0.8)
-        self.at("not a neuron")
-        asku = chip("neuron or skin cell?", YELLOW, size=28).move_to([0, 2.95, 0])
-        self.play(FadeIn(q, scale=0.7), FadeIn(asku, shift=DOWN * 0.15), run_time=0.6)
-        self.at("keep firing")
-        self.play(spike_run(pr, 4, 0.5), run_time=2.4)
-        self.at("This is the")
-        mk = T("Merkel cell", 30, ORANGE, weight=BOLD).move_to([0, 2.95, 0])
-        self.play(pr.body.animate.set_stroke(ORANGE).set_fill(ORANGE, 0.22), FadeOut(q), ReplacementTransform(asku, mk),
-                  run_time=0.8)
-        self.at("In mouse skin")
-        ms = T("in mouse skin", 26, GREY).to_corner(UL, buff=0.5)
-        self.play(FadeIn(ms), run_time=0.4)
-        self.at("basal epidermis")
-        be = T("basal epidermis", 26, GREY).move_to([-4.0, 2.05, 0])
-        brk = Line([-5.0, 1.82, 0], [-3.1, 1.82, 0], color=GREY, stroke_width=3)
-        self.play(FadeIn(be), Create(brk), run_time=0.5)
-        self.at("slowly adapting")
-        sa1 = T("SA1 afferent", 26, PURPLE).move_to([2.0, -1.3, 0])
-        self.play(FadeIn(sa1), Indicate(pr.disc, color=PURPLE, scale_factor=1.15), run_time=0.8)
-        self.at("Lineage tracing")
-        prog = chip("epidermal progenitor", GREY, size=24).move_to([-4.0, -1.9, 0])
-        neu = chip("neuron", GREY, size=24).move_to([4.6, -1.9, 0])
-        self.play(FadeIn(prog), FadeIn(neu), run_time=0.6)
-        self.at("epidermal progenitors")
-        arrow = Arrow(prog.get_top() + UP * 0.05, [-0.95, 0.35, 0], buff=0.08, color=ORANGE, stroke_width=5,
-                      max_tip_length_to_length_ratio=0.2)
-        self.play(GrowArrow(arrow), run_time=0.8)
-        self.at("not from neurons")
-        self.play(Create(cross(neu, RED, 6, 0.05)), neu[0].animate.set_stroke(RED), run_time=0.6)
+        # Full lesson title stays >=22 pt by wrapping rather than scaling.
+        self.add(T('BIOCHEMISTRYPEDIA',22,TEAL).move_to([0,2.4,0]),
+                 VGroup(T('Merkel Cells: Touch Receptors',26,GREY),T('That Are Not Neurons',26,GREY)).arrange(DOWN,buff=.25).move_to([0,1.2,0]))
+        self.play(FadeIn(T(self.TITLE,48,font=TITLE_FONT).move_to([0,-.4,0])),run_time=.8)
+        self.add(Line([-1.2,-1.5,0],[1.2,-1.5,0],color=GOLD,stroke_width=4))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Channel(SpokenScene):
-    """Pressed cultured cell: Piezo2 current peaks then falls to steady state; without Piezo2, 0 of 13 respond."""
-
+class S01Q(SpokenScene):
     def construct(self):
-        cell = pair(-4.0, 0.0, 1.55, ORANGE, fibre=0.0)
-        body = cell.body
-        mem = RoundedRectangle(corner_radius=0.1, width=body.width * 0.9, height=0.26, stroke_color=GREY, stroke_width=3,
-                               fill_color=GREY, fill_opacity=0.4).move_to(body.get_top() + DOWN * 0.1)
-        pz = bchip("Piezo2", BLUE, size=26).move_to(mem)
-        lab = T("Merkel cell", 26, ORANGE).next_to(body, DOWN, buff=0.35)
-        cult = T("cultured, young mice", 22, GREY).next_to(lab, DOWN, buff=0.15)
-        self.play(FadeIn(body), FadeIn(mem), FadeIn(pz), FadeIn(lab), FadeIn(cult), run_time=0.8)
+        # Side view: nail above, fleshy pad flattened against a narrow coin rim.
+        finger=VMobject(color=GREY,fill_color=GREY,fill_opacity=.25,stroke_width=4)
+        finger.set_points_smoothly([[-5.7,2.25,0],[-2.5,2.2,0],[.1,1.95,0],
+            [2.2,1.25,0],[2.7,.35,0],[2.25,-.25,0],[1.15,-.55,0],
+            [.4,-.55,0],[-.3,-.2,0],[-2.8,-.1,0],[-5.7,-.2,0]])
+        finger.close_path()
+        nail=RoundedRectangle(width=2.5,height=.72,corner_radius=.28,color=GREY,
+            fill_color=BG,fill_opacity=.7).rotate(-.2).move_to([.3,1.5,0])
+        creases=VGroup(*[Arc(radius=.65,start_angle=-.7,angle=1.4,color=GREY).move_to([x,.65,0]) for x in [-3.4,-2.95]])
+        coin=RoundedRectangle(width=.8,height=2.55,corner_radius=.13,color=GOLD,
+            fill_color=GOLD,fill_opacity=.24).move_to([.8,-2.05,0])
+        rim=VGroup(*[Line([.47,y,0],[1.13,y,0],color=GOLD,stroke_width=2) for y in np.arange(-3.12,-.85,.2)])
+        self.add(heading('What keeps reporting the edge?',YELLOW),finger,nail,creases,coin,rim,
+                 T('fingertip',28,GREY).move_to([-4,-1.1,0]),
+                 T('coin edge',28,GOLD).move_to([3.4,-1.8,0]),
+                 Line([2.45,-1.8,0],[1.2,-1.8,0],color=GOLD))
+        self.at('Press a fingertip')
+        self.play(VGroup(finger,nail,creases).animate.shift(DOWN*.22),run_time=.8)
+        self.at('hold it still')
+        self.play(FadeIn(T('press and hold',28,TEXT).move_to([-3.5,-2.5,0])),run_time=.3)
+        self.finish()
 
-        # axes: t 0..40 ms -> x 1.4..6.2 ; I 0..400 pA -> y -2.0..2.4
-        X0, X1, Y0, Y1 = 1.4, 6.2, -2.0, 2.4
-        fx = lambda t: X0 + (X1 - X0) * t / 40.0
-        fy = lambda i: Y0 + (Y1 - Y0) * i / 400.0
-        xa = Line([X0, Y0, 0], [X1 + 0.1, Y0, 0], color=GREY, stroke_width=3)
-        ya = Line([X0, Y0, 0], [X0, Y1 + 0.2, 0], color=GREY, stroke_width=3)
-        xt = VGroup(*[T(str(v), 22, GREY).move_to([fx(v), Y0 - 0.32, 0]) for v in (0, 20, 40)])
-        yt = VGroup(*[T(str(v), 22, GREY).move_to([X0 - 0.4, fy(v), 0]) for v in (0, 200, 400)])
-        xu = T("ms", 22, GREY).move_to([X1 + 0.1, Y0 - 0.65, 0])
-        yu = T("pA", 22, GREY).move_to([X0 - 0.1, Y1 + 0.55, 0])
-        axes = VGroup(xa, ya, xt, yt, xu, yu)
-        title = T("group means, in this sketch", 22, GREY).move_to([3.9, 3.35, 0])
-        pts = [np.array([fx(t), fy(20 + 350 * np.exp(-t / 8.0)), 0]) for t in np.linspace(0, 40, 80)]
-        curve = VMobject(color=BLUE, stroke_width=6).set_points_smoothly(pts)
-
-        self.at("pressing")
-        press = Arrow([-4.0, 3.5, 0], mem.get_top() + UP * 0.05, buff=0.02, color=TEXT, stroke_width=7, max_tip_length_to_length_ratio=0.35)
-        pl = T("press", 24, TEXT).next_to(press, RIGHT, buff=0.15)
-        self.play(GrowArrow(press), FadeIn(pl), FadeIn(axes), FadeIn(title), run_time=0.7)
-        self.play(Create(curve, run_time=1.8, rate_func=linear), pz[1].animate.set_stroke(BLUE, 5), pz[2].animate.set_color(BLUE),
-                  Flash(pz, color=BLUE, line_length=0.2, flash_radius=0.7), run_time=1.8)
-        self.at("at its peak")
-        pk = Dot(pts[0], radius=0.1, color=YELLOW)
-        pkl = T("peak 370 pA", 24, BLUE).move_to([3.7, 2.35, 0])
-        self.play(FadeIn(pk, scale=2), FadeIn(pkl), run_time=0.5)
-        self.at("At steady state")
-        dash = DashedLine([X0, fy(20), 0], [X1, fy(20), 0], color=BLUE, stroke_width=3, dash_length=0.12)
-        stl = T("steady 20 pA", 24, BLUE).move_to([5.0, fy(20) + 0.45, 0])
-        self.play(Create(dash), FadeIn(stl), run_time=0.7)
-        self.at("of the peak")
-        ratio = T("20/370 = 5.4% of the peak", 24, TEXT).move_to([4.5, 0.6, 0])
-        self.play(FadeIn(ratio, shift=UP * 0.1), run_time=0.5)
-        self.at("skin epithelium")
-        self.play(FadeOut(VGroup(axes, curve, pk, pkl, dash, stl, ratio, title)), FadeOut(press), FadeOut(pl), run_time=0.5)
-        x = cross(pz, RED, 7, 0.0)
-        self.play(Create(x), pz[1].animate.set_stroke(RED), pz[2].animate.set_color(RED), run_time=0.5)
-        dots = VGroup(*[Circle(radius=0.2, stroke_color=RED, stroke_width=3, fill_opacity=0) for _ in range(13)])
-        dots.arrange_in_grid(rows=2, cols=7, buff=0.28).move_to([3.0, 0.3, 0])
-        hd = T("Piezo2 deleted from epithelium", 24, RED).move_to([3.0, 2.5, 0])
-        hd2 = T("cultured Merkel cells", 22, GREY).move_to([3.0, 1.9, 0])
-        self.play(FadeIn(hd), FadeIn(hd2), LaggedStart(*[FadeIn(d, scale=0.6) for d in dots], lag_ratio=0.12), run_time=1.4)
-        self.at("detectable current")
-        none = T("0 of 13 with a current", 30, TEXT, weight=BOLD).move_to([3.0, -1.5, 0])
-        self.play(FadeIn(none, shift=UP * 0.1), run_time=0.5)
+class S02Rafast(SpokenScene):
+    def construct(self):
+        r = raster(1.2,ra=True)
+        self.add(r[0],stimulus(-2.1),T('schematic · time →',26,GREY).move_to([0,-3.2,0]))
+        self.at('Some nerve fibers')
+        self.play(FadeIn(T('rapidly adapting (RA)',30,PURPLE).move_to([0,2.6,0])),run_time=.4)
+        self.at('fire only while')
+        self.play(LaggedStart(*[Create(t) for t in r[1]],lag_ratio=.12),run_time=1.4)
+        self.at('they go quiet')
+        self.play(FadeIn(T('quiet during the hold',28,GREY).move_to([0,-.3,0])),run_time=.35)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Phases(SpokenScene):
-    """In this sketch: a brief cell current under a held touch drives sustained, irregular spikes. Dynamic vs static."""
-
+class S03Sa1(SpokenScene):
     def construct(self):
-        XL, XR = -2.9, 6.1
-        fx = lambda t: XL + (XR - XL) * t / 9.0
-        rows = {"touch": 2.5, "cur": 0.7, "spk": -1.35}
-        labs = [("touch held", GREY, rows["touch"]), ("Merkel-cell current", BLUE, rows["cur"]),
-                ("afferent spikes", YELLOW, rows["spk"])]
-        lab_m = VGroup(*[T(t, 26, c).move_to([-5.0, y, 0]) for t, c, y in labs])
-        lab_m[0].align_to([-6.2, 0, 0], LEFT); lab_m[1].align_to([-6.2, 0, 0], LEFT); lab_m[2].align_to([-6.2, 0, 0], LEFT)
-        base = {k: Line([XL, y - 0.5, 0], [XR, y - 0.5, 0], color=GREY, stroke_width=2, stroke_opacity=0.5) for k, y in rows.items()}
-        note = T("in this sketch", 22, GREY).move_to([0.6, -3.65, 0])
-        self.play(FadeIn(lab_m[0]), FadeIn(note), run_time=0.5)
-        # held touch: a step
-        step = VMobject(color=TEXT, stroke_width=5).set_points_as_corners(
-            [[XL, rows["touch"] - 0.4, 0], [fx(0.0), rows["touch"] - 0.4, 0], [fx(0.0), rows["touch"] + 0.4, 0],
-             [fx(9.0), rows["touch"] + 0.4, 0]])
-        self.at("mostly brief")
-        self.play(Create(step), FadeIn(lab_m[1]), run_time=0.8)
-        ts = np.linspace(0, 9, 90)
-        cp = [np.array([fx(t), rows["cur"] - 0.5 + 1.0 * (0.054 + 0.946 * np.exp(-t / 0.35)), 0]) for t in ts]
-        cur = VMobject(color=BLUE, stroke_width=6).set_points_smoothly(cp)
-        self.play(Create(cur), run_time=1.0)
-        self.at("fires for as long")
-        st = spike_times()
-        tk = ticks([fx(t) for t in st], rows["spk"], 0.8, YELLOW, 4)
-        self.play(FadeIn(lab_m[2]), LaggedStart(*[Create(k) for k in tk], lag_ratio=0.12), run_time=3.2)
-        self.at("dynamic phase")
-        d_end = fx(st[8] + 0.2)
-        by = rows["spk"] - 0.6
-        b1 = Line([fx(0.0), by, 0], [d_end, by, 0], color=TEAL, stroke_width=6)
-        l1 = T("dynamic", 26, TEAL).next_to(b1, DOWN, buff=0.12).align_to(b1, LEFT)
-        self.play(Create(b1), FadeIn(l1), tk[:9].animate.set_stroke(width=7), run_time=0.7)
-        self.at("static phase")
-        b2 = Line([d_end + 0.15, by, 0], [fx(9.0), by, 0], color=GOLD, stroke_width=6)
-        l2 = T("static", 26, GOLD).next_to(b2, DOWN, buff=0.12)
-        self.play(Create(b2), FadeIn(l2), tk[9:].animate.set_stroke(width=7), run_time=0.7)
-        self.at("irregular intervals")
-        self.play(Indicate(tk[9:], color=YELLOW, scale_factor=1.3), run_time=1.0)
-        self.at("How a brief")
-        qa = DashedLine([5.0, rows["cur"] - 0.3, 0], [5.0, rows["spk"] + 0.55, 0], color=GREY, stroke_width=4)
-        qm = bchip("how?", YELLOW, size=30).move_to([5.0, -0.3, 0])
-        self.play(Create(qa), FadeIn(qm, scale=0.8), run_time=0.6)
+        ra = raster(1.3,ra=True)
+        sa = raster(-.7)
+        self.add(ra, T('RA',26,PURPLE).move_to([-5.45,1.3,0]),sa[0],stimulus(-2.4),T('schematic · time →',26,GREY).move_to([0,3.1,0]))
+        self.at('Others keep firing')
+        self.play(LaggedStart(*[Create(t) for t in sa[1]],lag_ratio=.05),run_time=2)
+        self.at('One such class')
+        self.play(FadeIn(T('slowly adapting type I (SA1)',28,PURPLE).move_to([0,.35,0])),run_time=.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Light(SpokenScene):
-    """Optogenetics, ex vivo: light that depolarizes Merkel cells drives spikes; light that hyperpolarizes thins them tenfold."""
-
+class S04Macaque(SpokenScene):
     def construct(self):
-        pr = pair(-4.2, 0.6, 1.35, ORANGE, fibre=1.5)
-        lab = T("Merkel cell", 24, ORANGE).move_to([-1.75, 0.6, 0])
-        pre = T("ex vivo mouse skin-nerve", 24, GREY).move_to([0.5, 3.45, 0])
-        self.play(FadeIn(pr), FadeIn(lab), run_time=0.6)
-        self.at("ex vivo")
-        self.play(FadeIn(pre), run_time=0.5)
+        finger=RoundedRectangle(width=5.2,height=2.0,corner_radius=.8,color=GREY,fill_opacity=.15).move_to([-3.35,1.35,0])
+        strip=Rectangle(width=5.3,height=.18,color=GREY,fill_opacity=.3).move_to([-3.35,-1.8,0])
+        positions=[(-1,0),(0,0),(1,0),(-1,1),(1,1),(-1,2),(0,2),(1,2)]
+        dots=VGroup(*[Dot([-3.35+x*.8,-1.5+y*.65,0],radius=.16,color=GREY) for x,y in positions])
+        grid=VGroup(*[Square(side_length=1.15,color=GREY).move_to([3.2+x*1.25,-1.2+y*1.25,0]) for y in range(3) for x in [-1,0,1]])
+        active=VGroup(*[Square(side_length=.98,stroke_width=0,fill_color=YELLOW,fill_opacity=.7).move_to([3.2+x*1.25,-1.2+y*1.25,0]) for x,y in positions])
+        self.add(finger,strip,dots,grid,heading('macaque fingertip recordings'),T('raised pattern',28,GREY).move_to([-3.35,-2.8,0]),T('SA1 spatial firing',28,YELLOW).move_to([3.2,-2.8,0]))
+        self.at('In macaque fingertips')
+        self.play(finger.animate.shift(DOWN*.25),run_time=.5)
+        self.at('its firing carried')
+        self.play(LaggedStart(*[FadeIn(a) for a in active],lag_ratio=.2),run_time=2)
+        self.at('such as raised')
+        self.play(Indicate(dots,color=YELLOW),Indicate(active,color=YELLOW),run_time=.7)
+        self.finish()
 
-        LX0, LX1 = -0.4, 6.2
-        fx = lambda t: LX0 + (LX1 - LX0) * t / 10.0
-        # lane A: light depolarizes, spikes
-        self.at("depolarizes only")
-        la = T("light depolarizes Merkel cells", 24, GREEN).move_to([2.9, 2.55, 0])
-        lbar = Rectangle(width=fx(9.0) - fx(0.5), height=0.16, stroke_width=0, fill_color=GREEN, fill_opacity=0.9)
-        lbar.move_to([(fx(0.5) + fx(9.0)) / 2, 2.1, 0])
-        beam = Arrow([-4.2, 3.5, 0], pr.body.get_top() + UP * 0.08, buff=0.02, color=GREEN, stroke_width=6, max_tip_length_to_length_ratio=0.35)
-        bl = T("light", 22, GREEN).next_to(beam, RIGHT, buff=0.15)
-        self.play(FadeIn(la), GrowArrow(beam), FadeIn(bl), FadeIn(lbar), pr.body.animate.set_stroke(GREEN), run_time=0.7)
-        ra = np.random.default_rng(11)
-        tA = np.cumsum(0.4 + ra.gamma(1.5, 0.3, 9)) - 0.2
-        tkA = ticks([fx(t) for t in tA if t < 9.0], 1.4, 0.6, YELLOW, 4)
-        self.play(spike_run(pr, 3, 0.45), LaggedStart(*[Create(k) for k in tkA], lag_ratio=0.2), run_time=2.4)
-
-        # lane B: touch held, light hyperpolarizes
-        self.at("hyperpolarizes them")
-        lb = T("touch held, cells silenced by light", 24, RED).move_to([2.9, 0.4, 0])
-        tbar = Rectangle(width=fx(10.0) - fx(0.0), height=0.16, stroke_width=0, fill_color=TEXT, fill_opacity=0.7)
-        tbar.move_to([(fx(0.0) + fx(10.0)) / 2, -0.05, 0])
-        tl = T("touch", 22, TEXT).move_to([fx(0.0) - 0.0, -0.4, 0]).align_to([LX0, 0, 0], LEFT)
-        rbar = Rectangle(width=fx(10.0) - fx(5.2), height=0.16, stroke_width=0, fill_color=RED, fill_opacity=0.9)
-        rbar.move_to([(fx(5.2) + fx(10.0)) / 2, -0.8, 0])
-        rl = T("light", 22, RED).move_to([fx(7.6), -1.2, 0])
-        tB1 = [0.3 + 0.5 * i for i in range(10)]
-        note = T("in this sketch", 22, GREY).move_to([2.9, -3.5, 0])
-        tkB = ticks([fx(t) for t in tB1], -2.0, 0.6, YELLOW, 4)
-        tkB2 = ticks([fx(8.0)], -2.0, 0.6, YELLOW, 4)
-        self.add(note)
-        self.play(FadeOut(beam), FadeOut(bl), pr.body.animate.set_stroke(ORANGE), VGroup(la, lbar, tkA).animate.set_opacity(0.3), FadeIn(lb), FadeIn(tbar), FadeIn(tl),
-                  LaggedStart(*[Create(k) for k in tkB], lag_ratio=0.1), run_time=1.5)
-        self.at("suppressed the sustained")
-        self.play(FadeIn(rbar), FadeIn(rl), pr.body.animate.set_stroke(RED), run_time=0.5)
-        self.play(Create(tkB2), run_time=0.3)
-        self.at("reported experiment")
-        rep = T("reported experiment, 3 units", 24, GREY).move_to([2.9, -2.95, 0])
-        self.play(FadeIn(rep), run_time=0.4)
-        self.at("tenfold")
-        self.play(FadeOut(rep), run_time=0.2)
-        res = T("median firing fell tenfold (3 units)", 26, TEXT, weight=BOLD).move_to([2.9, -2.95, 0])
-        self.play(FadeIn(res, shift=UP * 0.1), run_time=0.5)
+class S05Dynamic(SpokenScene):
+    def construct(self):
+        self.add(phase_view())
+        self.at('Its firing has')
+        self.wait(.4)
+        self.at('a fast burst')
+        self.play(Create(phase_box()),run_time=.5)
+        self.at('dynamic phase')
+        self.play(FadeIn(T('dynamic phase',28,GOLD).move_to([-3.55,2,0])),run_time=.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Split(SpokenScene):
-    """Two-receptor model, with its two deletion results and the limit of the developmental one."""
-
+class S06Static(SpokenScene):
     def construct(self):
-        pr = pair(-4.2, 1.2, 1.35, ORANGE, fibre=1.6)
-        mem = RoundedRectangle(corner_radius=0.1, width=pr.body.width * 0.9, height=0.22, stroke_color=GREY, stroke_width=3,
-                               fill_color=GREY, fill_opacity=0.4).move_to(pr.body.get_top() + DOWN * 0.08)
-        pz = bchip("Piezo2", BLUE, size=24).move_to(mem)
-        own = chip("ending's own sensor", PURPLE, size=24).move_to([-1.9, -1.0, 0])
-        join = Line(pr.line.get_center() + RIGHT * 0.05, own.get_left(), color=PURPLE, stroke_width=3)
-        cl = T("Merkel cell", 24, ORANGE).move_to([-4.2, 3.45, 0])
-        self.play(FadeIn(pr), FadeIn(mem), FadeIn(pz), FadeIn(cl), run_time=0.4)
-        self.at("-2 receptor model")
-        self.wait(0.1)
-        self.at("shapes the sustained")
-        sus = T("sustained firing", 24, GOLD).move_to([-1.0, 1.2, 0])
-        sarr = Arrow(sus.get_left() + LEFT * 0.05, pr.body.get_right() + RIGHT * 0.05, buff=0.05, color=GOLD, stroke_width=4, max_tip_length_to_length_ratio=0.3)
-        self.play(FadeIn(sus), GrowArrow(sarr), run_time=0.7)
-        self.at("keeps its own")
-        self.play(FadeIn(own), Create(join), Indicate(pr.disc, color=PURPLE, scale_factor=1.2), run_time=0.8)
-
-        # epithelial Piezo2 deletion result
-        self.at("deleted from epithelium")
-        hd = T("Piezo2 deleted from epithelium", 24, RED).move_to([3.3, 2.9, 0])
-        x = cross(pz, RED, 6, 0.0)
-        self.play(Create(x), pz[1].animate.set_stroke(RED), pz[2].animate.set_color(RED), FadeIn(hd), run_time=0.6)
-        self.at("dynamic responses")
-        r1 = chip("dynamic: similar to controls", GREEN, size=24).move_to([3.3, 1.7, 0])
-        self.play(FadeIn(r1, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("sustained firing was lost")
-        r2 = chip("normal sustained firing: lost", RED, size=24).move_to([3.3, 0.4, 0])
-        self.play(FadeIn(r2, shift=RIGHT * 0.15), run_time=0.5)
-
-        # developmental deletion
-        self.at("mice without")
-        tbl = VGroup(hd, r1, r2)
-        self.play(FadeOut(tbl), FadeOut(x), FadeOut(sus), FadeOut(sarr), FadeOut(pr.body), FadeOut(mem), FadeOut(pz),
-                  FadeOut(cl), run_time=0.7)
-        gone = T("no Merkel cells", 24, RED).move_to([-4.2, 2.3, 0])
-        self.play(FadeIn(gone), run_time=0.3)
-        self.at("still respond to touch")
-        self.play(spike_run(pr, 2, 0.5), run_time=1.4)
-        # bars
-        BX, BY = 1.7, -1.9
-        sc = 0.0105
-        ax = Line([BX, BY, 0], [6.3, BY, 0], color=GREY, stroke_width=3)
-        ay = Line([BX, BY, 0], [BX, BY + 3.0, 0], color=GREY, stroke_width=3)
-        yt = VGroup(*[T(str(v), 22, GREY).move_to([BX - 0.42, BY + v * sc, 0]) for v in (0, 100, 200)])
-        yu = T("Hz", 22, GREY).move_to([BX - 0.1, BY + 3.35, 0])
-        b1 = Rectangle(width=1.3, height=238 * sc, stroke_width=0, fill_color=GREY, fill_opacity=0.8).move_to([3.1, BY + 238 * sc / 2, 0])
-        b2 = Rectangle(width=1.3, height=79 * sc, stroke_width=0, fill_color=PURPLE, fill_opacity=0.9).move_to([5.2, BY + 79 * sc / 2, 0])
-        v1 = T("238", 26, TEXT, weight=BOLD).next_to(b1, UP, buff=0.1)
-        v2 = T("79", 26, TEXT, weight=BOLD).next_to(b2, UP, buff=0.1)
-        x1 = T("control", 22, GREY).move_to([3.1, BY - 0.35, 0])
-        x2 = T("no cells", 22, GREY).move_to([5.2, BY - 0.35, 0])
-        ttl = T("peak SA1 firing, group means", 22, GREY).move_to([3.9, 3.35, 0])
-        self.at("peak firing")
-        self.play(FadeIn(VGroup(ax, ay, yt, yu, x1, x2, ttl)), GrowFromEdge(b1, DOWN), FadeIn(v1), run_time=0.8)
-        self.at("Hz")
-        self.play(GrowFromEdge(b2, DOWN), FadeIn(v2), run_time=0.6)
-        self.at("group means")
-        fall = T("66.8% fall", 28, GOLD, weight=BOLD).move_to([4.1, 2.2, 0])
-        fa = Arrow([3.5, BY + 238 * sc + 0.75, 0], [4.8, BY + 79 * sc + 0.85, 0], buff=0.0, color=GOLD, stroke_width=4, max_tip_length_to_length_ratio=0.2)
-        self.play(FadeIn(fall), GrowArrow(fa), run_time=0.6)
-        self.at("cannot say through")
-        cav = chip("developmental: mechanism unknown", GOLD, size=24).move_to([-2.4, -3.1, 0])
-        self.play(FadeIn(cav, shift=UP * 0.1), run_time=0.6)
+        v = phase_view()
+        self.add(v,phase_box(),T('dynamic phase',28,GOLD).move_to([-3.55,2,0]))
+        self.at('then firing through')
+        self.play(Create(phase_box(False)),run_time=.6)
+        self.at('irregular gaps')
+        self.play(Indicate(v[1][1][9:],color=YELLOW,scale_factor=1.08),run_time=.6)
+        self.at('static phase')
+        self.play(FadeIn(T('static phase: irregular intervals',26,GOLD).move_to([1.4,2,0])),run_time=.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Synapse(SpokenScene):
-    """Three candidate transmitters, each in its own preparation; none settled; the rule to keep."""
-
-    def column(self, cx, name, prep):
-        cell = RoundedRectangle(corner_radius=0.5, width=2.0, height=1.35, stroke_color=ORANGE, stroke_width=4,
-                                fill_color=ORANGE, fill_opacity=0.22).move_to([cx, 1.7, 0])
-        disc = RoundedRectangle(corner_radius=0.08, width=1.5, height=0.24, stroke_width=0, fill_color=PURPLE,
-                                fill_opacity=1).move_to([cx, 0.15, 0])
-        line = Line(disc.get_bottom(), [cx, -0.85, 0], color=PURPLE, stroke_width=7)
-        nm = T(name, 28, TEAL, weight=BOLD)
-        pp = T(prep, 22, GREY)
-        txt = VGroup(nm, pp).arrange(DOWN, buff=0.12).move_to([cx, -1.75, 0])
-        dots = VGroup(*[Dot(radius=0.12, color=TEAL).move_to([cx + dx, 0.95, 0]) for dx in (-0.4, 0.0, 0.4)])
-        col = VGroup(cell, disc, line)
-        return col, dots, txt
-
+class S07Surprise(SpokenScene):
     def construct(self):
-        qm = chip("what crosses the gap?", YELLOW, size=28).move_to([0, 3.25, 0])
-        self.play(FadeIn(qm), run_time=0.5)
-        specs = [(-4.2, "noradrenaline", "mouse touch domes"), (0.0, "serotonin", "mouse whisker\nMerkel cells"),
-                 (4.2, "protons on\nASIC channels", "rodent whisker\nfollicles")]
-        cols = [self.column(*s) for s in specs]
-        self.at("Three accounts")
-        self.play(*[FadeIn(c[0]) for c in cols], run_time=0.7)
-        shown = []
-        for key, (col, dots, txt) in zip(("Noradrenaline in", "Serotonin", "Protons acting"), cols):
-            self.at(key)
-            self.play(FadeIn(txt, shift=UP * 0.1),
-                      LaggedStart(*[Succession(FadeIn(d, run_time=0.05), d.animate(run_time=0.6, rate_func=linear).shift(DOWN * 0.6),
-                                               FadeOut(d, run_time=0.05)) for d in dots], lag_ratio=0.3), run_time=1.4)
-            shown.append(txt)
-        self.at("adrenergic account")
-        self.play(Indicate(shown[0], color=TEAL, scale_factor=1.15), run_time=0.8)
-        self.at("settled")
-        st = chip("settled", GREY, size=26).move_to([-1.6, -3.1, 0])
-        rf = chip("refuted", GREY, size=26).move_to([1.6, -3.1, 0])
-        self.play(FadeIn(st), FadeIn(rf), run_time=0.4)
-        cs = cross(st, RED, 6, 0.05)
-        self.play(Create(cs), st[0].animate.set_stroke(RED), run_time=0.4)
-        self.at("refuted")
-        cr = cross(rf, RED, 6, 0.05)
-        self.play(Create(cr), rf[0].animate.set_stroke(RED), run_time=0.4)
-        self.at("Keep this")
-        a = chip("in mouse skin: senses force", GREEN, size=26).move_to([-3.0, -3.1, 0])
-        b = chip("transmitter: still open", GOLD, size=26).move_to([3.0, -3.1, 0])
-        self.play(FadeOut(st), FadeOut(rf), FadeOut(cs), FadeOut(cr), run_time=0.4)
-        self.play(FadeIn(a, shift=UP * 0.1), FadeIn(b, shift=UP * 0.1), run_time=0.7)
+        outline=RoundedRectangle(width=11,height=4.5,corner_radius=1.6,color=GREY,fill_opacity=.1).move_to([0,.2,0])
+        band=Rectangle(width=9.3,height=1.4,color=GREY,fill_opacity=.12).move_to([0,-.8,0])
+        cells=VGroup(*[RoundedRectangle(width=1.5,height=1.2,corner_radius=.4,color=GREY).move_to([x,-.85,0]) for x in [-3.4,-1.7,0,1.7,3.4]])
+        cells[2].set_color(ORANGE).set_fill(ORANGE,.3)
+        q=T('?',42,YELLOW).move_to(cells[2])
+        drawing=VGroup(outline,band,cells,q)
+        self.add(drawing,heading('not a neuron?',YELLOW),T('fingertip skin: base of the epidermis',28,GREY).move_to([0,-3,0]))
+        self.at('Now the surprise')
+        self.play(drawing.animate.scale(1.12),run_time=.7)
+        self.at('The cell that')
+        self.play(Indicate(cells[2],color=ORANGE),run_time=.7)
+        self.finish()
+
+class S08Lineage(SpokenScene):
+    def construct(self):
+        cell=pair(0,-1.1,1.45).body
+        self.add(cell)
+        self.at('It is the')
+        self.play(FadeIn(heading('Merkel cell',ORANGE)),run_time=.3)
+        self.at('In mice')
+        self.add(T('mouse lineage tracing',28,GREY).move_to([0,2.15,0]))
+        self.at('comes from')
+        prog=chip('epidermal\nprogenitors',GREY,34).move_to([-4,1.1,0])
+        arrow=Arrow([-2.7,.8,0],[-1.1,-.4,0],color=ORANGE,buff=.1)
+        self.play(FadeIn(prog),GrowArrow(arrow),run_time=.4)
+        self.at('not from neural')
+        neural=chip('neural\ncrest',GREY,34).move_to([4,1.1,0])
+        no=Arrow([2.9,.8,0],[1.1,-.4,0],color=GREY,buff=.1)
+        mid=no.get_center()
+        cross=VGroup(Line(mid+[-.28,.32,0],mid+[.28,-.32,0],color=RED,stroke_width=6),Line(mid+[-.28,-.32,0],mid+[.28,.32,0],color=RED,stroke_width=6))
+        self.play(FadeIn(neural),GrowArrow(no),Create(cross),run_time=.5)
+        self.finish()
+
+def dome_labels():
+    return VGroup(T('touch dome',28,GREY).move_to([0,2.35,0]),Line([0,2.05,0],[0,1.8,0],color=GREY),
+        T('Merkel cells (basal layer)',28,ORANGE).move_to([-2.9,-3.15,0]),Line([-2.2,-2.85,0],[-1.5,-1,0],color=ORANGE),
+        T('guard hair',26,GREY).move_to([5,2.7,0]),Line([4.3,2.7,0],[3.5,2.45,0],color=GREY))
+
+
+class S09Dome(SpokenScene):
+    def construct(self):
+        sk=skin(); labs=dome_labels()
+        self.add(sk[0],heading('hairy mouse skin'))
+        self.at('cells cluster')
+        self.play(FadeIn(sk[1]),FadeIn(VGroup(labs[2],labs[3])),run_time=.4)
+        self.at('touch domes')
+        self.play(FadeIn(VGroup(labs[0],labs[1])),run_time=.3)
+        self.at('guard hairs')
+        self.play(FadeIn(sk[2]),FadeIn(VGroup(labs[4],labs[5])),run_time=.3)
+        self.finish()
+
+class S10Ending(SpokenScene):
+    def construct(self):
+        self.add(skin(),heading('hairy mouse skin'),dome_labels())
+        ax=branches()
+        self.at('An afferents branched ending')
+        self.play(Create(ax[0]),*[Create(ax[i]) for i in [1,3,5]],run_time=.65)
+        self.at('makes disc')
+        self.play(*[FadeIn(ax[i]) for i in [2,4,6]],run_time=.3)
+        self.add(T('one afferent, usually',28,PURPLE).move_to([2.5,-3.15,0]))
+        self.finish()
+
+class S11Routes(SpokenScene):
+    def construct(self):
+        old=VGroup(skin(),branches(),dome_labels())
+        g=routes()
+        self.add(old)
+        self.at('So force can')
+        self.play(ReplacementTransform(old,g[0]),run_time=.5)
+        self.add(heading('Two routes, one fibre'))
+        self.play(GrowArrow(g[1]),GrowArrow(g[2]),run_time=.35)
+        self.at('by two roots')
+        self.play(Indicate(VGroup(g[1],g[2]),scale_factor=1.04),run_time=.3)
+        self.finish()
+
+def disc_channel(g):
+    icon=Rectangle(width=.22,height=.4,color=BLUE,fill_color=BLUE,fill_opacity=1).move_to(g[0].disc.get_left()+RIGHT*.25)
+    label=T('makes Piezo2',28,BLUE).move_to([3,-2.15,0])
+    lead=Line(label.get_left()+LEFT*.12,icon.get_bottom(),color=BLUE)
+    return VGroup(icon,label,lead)
+
+
+class S12Route1(SpokenScene):
+    def construct(self):
+        g=routes(); self.add(g,heading('Two routes, one fibre'))
+        self.at('The ending makes')
+        self.play(FadeIn(disc_channel(g)),FadeIn(route_label(g[1])),run_time=.4)
+        self.at('Even without')
+        self.remove(g[0].body,g[2]); g[0].remove(g[0].body); g.remove(g[2])
+        self.add(T('no Merkel cell',30,GREY).move_to([0,.65,0]))
+        self.at('it still responds')
+        d=Dot(g[0].disc.get_center(),radius=.12,color=YELLOW)
+        self.play(FadeIn(d),run_time=.1)
+        self.play(d.animate.move_to(g[0].line.get_end()),run_time=.6)
+        self.play(FadeOut(d),FadeIn(T('touch response remains',28,GREEN).move_to([3.2,-3.0,0])),run_time=.2)
+        self.finish()
+
+class S13Route2(SpokenScene):
+    def construct(self):
+        g=routes(labels=True)
+        self.add(g[0].line,g[0].disc,g[1],g[3],heading('Two routes, one fibre'),disc_channel(g))
+        self.at('or the merkle cell')
+        self.play(FadeIn(g[0].body),GrowArrow(g[2]),FadeIn(g[4]),run_time=.5)
+        self.at('through its own')
+        self.play(FadeIn(channel_label([0,.95,0])),run_time=.3)
+        self.at('passes the signal')
+        ves=VGroup(*[Dot([x,-.95,0],radius=.075,color=TEAL) for x in [-.75,-.38,0,.38,.75]])
+        self.play(FadeIn(ves),run_time=.2)
+        self.at('across a synapse')
+        self.play(FadeIn(T('synapse',28,TEAL).move_to([3,-.7,0])),Create(Line([2.1,-.7,0],[.85,-.95,0],color=TEAL)),run_time=.3)
+        self.finish()
+
+class S14Predict(SpokenScene):
+    def construct(self):
+        g = prediction()
+        self.add(g)
+        self.at('Predict')
+        self.wait(.3)
+        self.at('One route reports')
+        self.play(Indicate(g[5][0],color=GOLD,scale_factor=1.04),run_time=.6)
+        self.at('One route holds')
+        self.play(Indicate(g[5][1],color=GOLD,scale_factor=1.04),run_time=.6)
+        self.at('Which would you')
+        self.play(Indicate(g.q,color=YELLOW,scale_factor=1.03),run_time=.4)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "In mouse skin, a skin cell senses force; its transmitter is open."
+class S15Pause(Scene):
+    def construct(self):
+        self.camera.background_color = BG
+        self.add(prediction(),T('pause and guess',22,GREY).move_to([-4.85,-3.15,0]))
+        self.wait(5)
+
+
+class S16Reveal(SpokenScene):
+    def construct(self):
+        g=prediction(); self.add(g)
+        self.at('In mouse touch domes')
+        self.play(ReplacementTransform(g.q,T('mouse touch domes; onset source still argued',26,GREY).move_to([0,-3.15,0])),run_time=.3)
+        self.at('the ending mainly')
+        self.play(FadeIn(T('mainly ending',26,PURPLE).move_to(g.tags[0])),g.tags[0].animate.set_color(PURPLE),run_time=.35)
+        self.at('mainly holds')
+        self.play(FadeIn(T('mainly Merkel cell',26,ORANGE).move_to(g.tags[1])),g.tags[1].animate.set_color(ORANGE),run_time=.35)
+        self.finish()
+
+class S17Idea(SpokenScene):
+    def construct(self):
+        g = idea()
+        prior = answer()
+        self.add(prior)
+        self.at('That is the idea')
+        self.wait(.4)
+        self.at('The ending mainly')
+        self.play(FadeOut(prior),FadeIn(heading('The idea')),FadeIn(g[0]),FadeIn(g[2]),run_time=.5)
+        self.at('and the Merkel')
+        self.play(FadeIn(g[1]),run_time=.5)
+        self.finish()
+
+
+class S18Hold(Scene):
+    def construct(self):
+        self.camera.background_color = BG
+        self.add(heading('The idea'),idea())
+        self.wait(3)
+
+
+class S19Scope(SpokenScene):
+    def construct(self):
+        # Separate word objects make the hedge the only underlined text.
+        rows=VGroup(*[VGroup(T(prefix,26,color),T('mainly',26,color),T(phase,26,color)).arrange(RIGHT,buff=.12)
+            for prefix,phase,color in [('ending:', 'change',PURPLE),('Merkel cell:', 'hold',ORANGE)]])
+        rows.arrange(DOWN,buff=.22,aligned_edge=LEFT).move_to([-3.2,2.8,0])
+        sk=skin().stretch(.95,1).shift(DOWN*1.1)
+        self.add(sk,rows,T('mouse touch domes',28,GREY).move_to([3.5,3.15,0]))
+        self.at('This is mouse')
+        self.wait(.2)
+        self.at('the word mainly')
+        self.play(*[Create(Underline(row[1],color=GOLD)) for row in rows],run_time=.4)
+        self.at('may help with')
+        self.play(FadeIn(T('Merkel cell may also help onset',26,ORANGE).move_to([-2.8,1.75,0])),run_time=.4)
+        self.finish()
+
+class S20Rat(SpokenScene):
+    def construct(self):
+        dome=VGroup(skin(),branches()).scale(.56).move_to([-3.4,1.05,0])
+        follicle=Ellipse(width=2.3,height=3.2,color=GREY).move_to([3.3,1.15,0])
+        whisker=Line([3.3,.7,0],[2.8,2.8,0],color=GREY,stroke_width=7)
+        cells=VGroup(*[RoundedRectangle(width=.58,height=.48,corner_radius=.15,color=ORANGE,fill_color=ORANGE,fill_opacity=.25).move_to([3.3+dx,.1,0]) for dx in [-.65,0,.65]])
+        nerve=VGroup(Line([3.3,-.55,0],[3.3,-.2,0],color=PURPLE,stroke_width=5),*[Line([3.3,-.2,0],[3.3+dx,-.18,0],color=PURPLE,stroke_width=4) for dx in [-.65,0,.65]])
+        self.add(dome,T('mouse touch dome',28,GREY).move_to([-3.6,3.2,0]))
+        self.at('Rat whiskers')
+        self.play(FadeIn(VGroup(follicle,whisker,cells,nerve)),FadeIn(T('rat whisker follicle',28,GREY).move_to([3.2,3.2,0])),run_time=.4)
+        self.at('another laboratory argues')
+        self.add(T('another laboratory’s reading',22,GOLD).move_to([0,3.65,0]))
+        self.at('merkle cells drive')
+        r=raster(-1.85,h=.8)
+        boxes=VGroup(phase_box(True,y=-1.85),phase_box(False,y=-1.85)).stretch(.7,1).set_color(ORANGE)
+        self.play(FadeIn(r),Create(boxes),FadeIn(stimulus(-2.65)),run_time=.4)
+        self.at('both phases')
+        self.add(T('rat whisker follicles: Merkel cells drive both phases',26,ORANGE).move_to([0,-3.5,0]))
+        # Both arrows leave the basal Merkel-cell cluster and go straight down to the boxes.
+        self.play(*[GrowArrow(Arrow(cells.get_bottom(),box.get_top(),color=ORANGE,buff=.06,stroke_width=5)) for box in boxes],run_time=.4)
+        self.finish()
+
+class S21Take(SpokenScene):
+    def construct(self):
+        g=answer(); self.add(g)
+        # Explicitly connect each coloured route to the phase it mainly supplies.
+        title=VGroup(T('Two receptors feed one nerve;',30,TEXT),T('each mainly makes one phase (mouse touch domes)',28,TEXT)).arrange(DOWN,buff=.12).move_to([0,3.25,0])
+        self.remove(g[8]); g.remove(g[8])
+        self.add(title)
+        self.at('Keep this')
+        self.wait(.15)
+        self.at('two receptors feed')
+        self.play(Indicate(VGroup(g[1],g[2]),scale_factor=1.08),run_time=.4)
+        self.at('each mainly makes')
+        # Strong phase-specific outputs, with thin secondary contributions.
+        purple=Arrow(g[0].disc.get_right(),g[5][0].get_left(),color=PURPLE,stroke_width=13,buff=.08)
+        orange=VGroup(Line(g[0].body.get_right(),[-2.3,1.05,0],color=ORANGE,stroke_width=7),
+            Line([-2.3,1.05,0],[3.25,1.05,0],color=ORANGE,stroke_width=7),
+            Arrow([3.25,1.05,0],g[5][1].get_top(),color=ORANGE,stroke_width=7,buff=0,max_tip_length_to_length_ratio=.55))
+        secondary=Arrow(g[0].body.get_right(),g[5][0].get_corner(UL),color=ORANGE,stroke_width=2,buff=.08)
+        self.play(FadeOut(g[2]),GrowArrow(purple),Create(orange),GrowArrow(secondary),run_time=.5)
+        self.finish()
+
+class S22End(EndCard):
+    LINE = 'The Merkel cell mainly holds the press.'

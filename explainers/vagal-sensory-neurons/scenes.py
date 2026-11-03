@@ -1,345 +1,529 @@
-"""Vagal sensory neurons: a label is not a type  (Biochemistrypedia explainer)
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = (periwinkle) the P2ry1-labelled set (airway protection afferents)
-  YELLOW = the Npy2r-labelled set
-  GREEN  = the Piezo2-positive stretch neurons, and "function" once tied
-  RED    = breathing / inspiration halted
-  TEAL   = light (optogenetic drive)
-  ORANGE = the light-gated channel
-  PINK   = an open question, candidate or hypothesis
-  GREY   = nerve, structure, unlabelled cells, de-emphasized
+"""Chapter 1: Three Questions, Not One.
+COLOR MAP: RED = P2ry1-labelled subset / stopped breathing;
+YELLOW = Npy2r-labelled subset / fast shallow breathing;
+TEAL = optogenetic drive; BLUE = necessity test; PINK = unanswered question;
+GREY = anatomy / unlabelled fibres; TEXT = GPR65-labelled cells;
+GOLD = transient GPR65 response, never a breathing subset.
+All plotted traces are computed qualitative models, never experimental data.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-BLUE = "#7C9CFF"   # P2ry1 set (distinct from the teal of light)
-PURPLE = "#E58BC4"
-ORANGE = "#F29E4C"
+from bp_style import *
+PINK = "#E58BC4"
+LESSON = "Vagal Sensory Neurons: The Body Reports to the Brain"
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def label(s, x, y, size=28, color=TEXT):
+    # Explicitly centre separate lines, with generous consistent leading.
+    lines = VGroup(*[T(t, size=size, color=color) for t in s.split('\n')])
+    return lines.arrange(DOWN, buff=.14).move_to([x,y,0])
 
 
-def cell(color=GREY, r=0.36, pos=(0, 0)):
-    return Circle(radius=r, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.28).move_to([pos[0], pos[1], 0])
+def arr(a,b,color=GREY):
+    return Arrow(a,b,buff=.08,color=color,stroke_width=5,tip_length=.23)
 
 
-def membrane(cx, cy, w=4.0, h=0.3):
-    return RoundedRectangle(corner_radius=0.1, width=w, height=h, stroke_color=GREY, stroke_width=3,
-                            fill_color=GREY, fill_opacity=0.35).move_to([cx, cy, 0])
+def cell(x,y,color=TEXT,r=.23):
+    return VGroup(Circle(r,color=color,fill_opacity=.18).move_to([x,y,0]),
+                  Line([x+r,y,0],[x+r+.48,y,0],color=color,stroke_width=3))
 
 
-def tube(x0, x1, y, h=1.0):
-    return RoundedRectangle(corner_radius=0.3, width=x1 - x0, height=h, stroke_color=GREY, stroke_width=4,
-                            fill_color=GREY, fill_opacity=0.15).move_to([(x0 + x1) / 2, y, 0])
+def mouse(x=0,y=0,s=1):
+    # A geometric mouse silhouette, no anatomical or molecular detail implied.
+    g=VGroup(Ellipse(width=2.4,height=1.25,color=GREY,fill_opacity=.12),
+             Circle(.48,color=GREY,fill_opacity=.12).move_to([1.1,.3,0]),
+             Circle(.26,color=GREY,fill_opacity=.12).move_to([.95,.85,0]),
+             Dot([1.3,.4,0],radius=.045,color=TEXT),
+             Line([-1.15,-.1,0],[-1.9,.4,0],color=GREY),
+             Line([-.6,-.58,0],[-.75,-.8,0],color=GREY),
+             Line([.65,-.58,0],[.85,-.8,0],color=GREY))
+    return g.scale(s).move_to([x,y,0])
 
 
-def strand(x0, x1, y, color, w=9):
-    return Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=w)
+def hopper(x,y):
+    return VGroup(Polygon([x-.5,y+.7,0],[x+.5,y+.7,0],[x+.3,y-.5,0],
+                          [x-.3,y-.5,0],color=GREY,fill_opacity=.12),
+                  VGroup(*[Dot([x+d,y+.2,0],radius=.07,color=TEXT) for d in [-.22,0,.22]]))
 
 
-def breathing(x0, w, yc, t_light, amp0, per0, amp1, per1, t_end=8.5, color=BLUE, sx=None):
-    pts = []
-    n = 500
-    phase = 0.0
-    prev_t = 0.0
-    for i in range(n + 1):
-        t = t_end * i / n
-        if t < t_light:
-            amp, per = amp0, per0
-        else:
-            amp, per = amp1, per1
-        phase += 2 * np.pi * (t - prev_t) / per
-        prev_t = t
-        pts.append([x0 + w * t / t_end, yc + amp * np.sin(phase), 0])
-    m = VMobject(stroke_color=color, stroke_width=5)
-    m.set_points_smoothly([np.array(p) for p in pts[::5]])
-    return m
 
-
-# Additional colours keep new gut populations distinct from the airway sets.
-# ORANGE = Oxtr intestinal afferents; GOLD = Glp1r gastric afferents;
-# TEXT = GPR65 afferents and chemical-route labels; PURPLE = uncertainty.
-
-
-def heading(text):
-    return T(text, 30).move_to([0, 3.15, 0])
-
-
-def organ(name, pos, compact=False):
-    x, y = pos
-    if name == "lung":
-        shape = VGroup(*[Ellipse(width=0.7, height=1.15, color=GREY,
-                                  fill_opacity=0.12).move_to([x+d, y, 0]) for d in [-0.4, 0.4]])
-        shape.add(Line([x,y+0.9,0],[x,y+0.3,0],color=GREY))
-    elif name == "artery" and compact:
-        shape = VGroup(
-            Line([x-0.75,y+0.28,0],[x+0.65,y+0.28,0],color=GREY,stroke_width=4),
-            Line([x-0.75,y-0.28,0],[x+0.65,y-0.28,0],color=GREY,stroke_width=4),
-            Ellipse(width=0.3,height=0.56,color=GREY,stroke_width=4).move_to([x+0.65,y,0]))
-    elif name == "gut" and compact:
-        shape = VMobject(stroke_color=GREY,stroke_width=5)
-        shape.set_points_smoothly([np.array([x+dx,y+dy,0]) for dx,dy in
-            [(-0.7,0.38),(0.55,0.38),(0.7,0.16),(-0.55,0.1),
-             (-0.7,-0.15),(0.55,-0.22),(0.7,-0.4)]])
-    elif name == "artery":
-        shape = tube(x-0.85,x+0.85,y,0.65)
+def body_route(fibres=False):
+    m=mouse(.8,-2.05,1.3)
+    brain=RoundedRectangle(width=1.7,height=.8,corner_radius=.24,color=GREY,fill_opacity=.15).move_to([.3,2.55,0])
+    bl=label('brainstem',2.5,2.55,28)
+    # The stub starts inside the torso and joins the ascending nerve.
+    stub=Line([.3,-2.05,0],[.3,-.9,0],color=GREY,stroke_width=10)
+    if fibres:
+        cable=VGroup(stub,*[arr([.3+d,-.9,0],[.3+d,2.1,0],GREY) for d in [-.27,0,.27]])
     else:
-        shape = VGroup(*[ArcBetweenPoints([x-0.85,y+d,0],[x+0.85,y+d,0],
-                             angle=(-1 if i%2 else 1)*PI/2, color=GREY, stroke_width=4)
-                         for i,d in enumerate([-0.35,0.1,0.55])])
-    if compact and name == "lung":
-        shape.scale(0.65,about_point=np.array([x,y,0]))
-    return VGroup(shape,T(name,24,GREY).move_to([x,y-(0.8 if compact else 1.05),0]))
+        cable=VGroup(stub,Line([.3,-.9,0],[.3,2.1,0],color=GREY,stroke_width=20))
+    return VGroup(m,brain,bl,cable)
 
 
-def overview(y=0):
-    a=chip("organs",GREY,26).move_to([-4.9,y,0])
-    b=chip("sensory populations",GREEN,26).move_to([-0.2,y,0])
-    c=chip("brainstem",GREY,26).move_to([4.7,y,0])
-    return VGroup(a,b,c,arr(a.get_right(),b.get_left(),GREEN),arr(b.get_right(),c.get_left(),GREEN))
+def breathing(x0,w,y,t_light=4,amp1=.02,per1=2,color=TEXT,amp0=.8):
+    # Reference oscillator: phase += 2*pi*dt/period; displacement=A*sin(phase).
+    pts=[]; phase=0.; prev=0.
+    for t in np.linspace(0,8.5,501):
+        amp,per=(amp0,2.) if t<t_light else (amp1,per1)
+        phase+=2*np.pi*(t-prev)/per; prev=t
+        pts.append([x0+w*t/8.5,y+amp*np.sin(phase),0])
+    return VMobject(color=color,stroke_width=4).set_points_as_corners(pts)
+
+
+def nerve(active=None):
+    tube=RoundedRectangle(width=11.6,height=1.6,corner_radius=.35,color=GREY,fill_opacity=.08).move_to([0,1.5,0])
+    fibres=VGroup(*[Line([-5.5,1.5+d,0],[5.5,1.5+d,0],color=GREY,stroke_width=7) for d in [-.5,0,.5]])
+    if active is not None: fibres[active].set_color(RED if active==0 else YELLOW)
+    light=VGroup(Line([-1,3.2,0],[-1,2.5,0],color=TEAL,stroke_width=7),
+                 Polygon([-1,2.5,0],[-1.8,.7,0],[-.2,.7,0],stroke_width=0,fill_color=TEAL,fill_opacity=.18),
+                 label('light on',.45,2.95,28,TEAL))
+    return VGroup(tube,fibres,light)
+
+
+def light_frame(second=False):
+    return VGroup(nerve(2 if second else 0),
+        breathing(-5.7,11.4,-1.15,amp1=.23 if second else .02,per1=.8 if second else 2,color=YELLOW if second else RED),
+        label('breathing • schematic model',0,-2.5,28),
+        label('fast and shallow' if second else 'stops',3.7,-.05,28,YELLOW if second else RED))
+
+
+def channel(x=0,y=0):
+    return VGroup(Line([x-.8,y,0],[x-.28,y,0],color=GREY,stroke_width=10),
+                  Line([x+.28,y,0],[x+.8,y,0],color=GREY,stroke_width=10),
+                  RoundedRectangle(width=.23,height=.95,corner_radius=.07,color=GREY).move_to([x-.22,y,0]),
+                  RoundedRectangle(width=.23,height=.95,corner_radius=.07,color=GREY).move_to([x+.22,y,0]))
+
+
+def columns(stage=3, compact=False, answered=False):
+    g=VGroup()
+    for i,x in enumerate([-4.3,0,4.3]):
+        box=RoundedRectangle(width=3.8,height=2.7 if compact else 4.65,corner_radius=.15,color=GREY,stroke_width=2).move_to([x,1.45 if compact else .65,0])
+        title=['Stimulus','Channel','Output'][i]+('' if answered else '?') if i<stage else '?'
+        head=label(title,x,2.35,32,PINK)
+        head.align_to(label('Stimulus?',x,2.35,32,PINK),UP)
+        g.add(VGroup(box,head))
+    return g
+
+
+def col_icons(stage=3):
+    g=VGroup()
+    if stage>=2: g.add(channel(0,.7))
+    if stage>=3:
+        g.add(breathing(2.85,2.9,1.05,t_light=10,amp0=.3),hopper(4.3,-.5).scale(.65))
+    return g
+
+
+def grip_cloud(attached=True):
+    # Solid handgrip with four finger loops and straps attached to the cell cloud.
+    grip=VGroup(RoundedRectangle(width=2.8,height=.3,corner_radius=.14,color=TEXT,
+                                fill_color=TEXT,fill_opacity=1).move_to([-3.35,2.12,0]),
+                *[Circle(.22,color=TEXT,stroke_width=5).move_to([x,1.78,0])
+                  for x in [-4.1,-3.6,-3.1,-2.6]],
+                Line([-4.6,2.05,0],[-4.6,.65,0],color=TEXT,stroke_width=5),
+                Line([-2.1,2.05,0],[-2.1,.65,0],color=TEXT,stroke_width=5))
+    cloud=VGroup(Ellipse(width=5,height=3.5,color=TEXT,fill_opacity=.035).move_to([-3.35,-.85,0]))
+    for x,y in [(-4.8,-.45),(-3.4,-.1),(-2.05,-.45),(-4.5,-1.5),(-3.1,-1.25),(-1.8,-1.55)]:
+        cloud.add(cell(x,y,r=.27))
+    cloud.add(label('labelled cells',-3.35,-2.15,28))
+    if not attached: grip.shift(UP*.45)
+    return VGroup(grip,cloud)
+
+
+def question_rows():
+    rows=VGroup()
+    for y,t in zip([2.05,0,-2.05],['Stimulus?','Channel?','Output?']):
+        rows.add(VGroup(RoundedRectangle(width=5,height=1.65,corner_radius=.15,color=GREY).move_to([3.65,y,0]),
+                        label(t,3.65,y+.4,30,PINK)))
+    return rows
+
+
+def handle_frame(name=False, marks=0):
+    g=VGroup(grip_cloud(),question_rows(),label('Cre line • genetic label',-3.35,3.15,28))
+    if name: g.add(chip('receptor / channel name',color=TEXT,size=26).move_to([-3.35,-3.05,0]))
+    for y in [2.05,0,-2.05][:marks]: g.add(label('not established',3.65,y-.3,28,PINK))
+    return g
+
+
+def unasked_channel(c):
+    # This case tests food response and outputs; channel causality is left open.
+    c[1][0]=DashedVMobject(c[1][0],num_dashes=32).set_opacity(.35)
+    c[1][1].set_color(GREY).set_opacity(.5)
+    return c
+
+
+def channel_status(y=.6):
+    return label('Route not\nestablished',0,y,26,GREY).set_opacity(.65)
+
+
+def case_board(output=False,compact=False):
+    g=unasked_channel(columns(compact=compact,answered=True))
+    g.add(label('GPR65-labelled afferents',0,3.3,30))
+    g.add(label('Food in the\nintestine',-4.3,1.15 if compact else .8,28),
+          channel_status(1.15 if compact else .6))
+    if output:
+        g.add(label('Gastric contractions\nsuppressed',4.3,1.6 if compact else 1.15,26),
+              label('anaesthetized mouse',4.3,.8 if compact else .3,26))
+    return g
+
+
+def feeding_mouse():
+    return VGroup(mouse(-1.7,-1.65,1.2),hopper(1.1,-1.65).scale(1.3),
+                  label('?',1.1,-.3,44,PINK),label('awake mouse',-1.7,-3.05,28))
+
+
+def prediction():
+    return VGroup(case_board(True,True),feeding_mouse(),label('Satiety?',-4.6,-.65,32,PINK),
+                  label('Feeding: ?',4.3,-.65,30,PINK),label('How much will it eat?',3.9,-2.3,28,PINK))
+
+
+def summary_base():
+    g=unasked_channel(columns(answered=True))
+    g.add(label('GPR65-labelled cells • three measurements',0,3.3,30),
+          channel_status())
+    return g
+
+
+def summary_results():
+    return VGroup(label('Food response\nYES',-4.3,.65,30),
+        label('Gastric suppression\nYES',4.3,1.3,27),
+        Line([2.7,.55,0],[5.9,.55,0],color=GREY),
+        label('Feeding\nno measurable\nchange\n(assays tested)',4.3,-.45,26))
+
+
+def summary():
+    return VGroup(summary_base(),summary_results())
+
+
+def evidence_base():
+    c=columns(); c[1][0].set_color(PINK)
+    return VGroup(c,label('stimulus evidence',-4.3,.6,26),label('still open',0,.6,30,PINK),label('output evidence',4.3,.6,26))
+
+
+def evidence_links():
+    return VGroup(*[VGroup(arr([x,-1.75,0],[x,-2.45,0],TEXT),label('own evidence',x,-2.75,26)) for x in [-4.3,0,4.3]])
 
 
 class S00Title(TitleCard):
-    LESSON = "Vagal sensory neurons"
-    TITLE = "One Nerve, Many Sensory Lines"
-
-
-class S01Question(SpokenScene):
+    LESSON=LESSON
+    TITLE='Three Questions, Not One'
     def construct(self):
-        self.at("the vagus carries")
-        title=heading("Many specialised sensory lines")
-        nerve=tube(-1.4,2.0,0,5.8)
-        nerve_label=T("vagus nerve",24,GREY).move_to([0.3,2.6,0])
-        target=chip("brainstem",GREY,26).move_to([4.9,0,0])
-        self.play(FadeIn(title),FadeIn(nerve),FadeIn(nerve_label),FadeIn(target),run_time=0.6)
-        routes=VGroup()
-        for name,y,col,cue,desc in [
-            ("lung",2.0,BLUE,"some report","inflation / irritants"),
-            ("artery",-0.1,GREEN,"others report","arterial stretch"),
-            ("gut",-2.2,ORANGE,"gut stretch","stretch / food")]:
+        self.add(label('BIOCHEMISTRYPEDIA',0,2.25,26,TEAL),label('Vagal Sensory Neurons:\nThe Body Reports to the Brain',0,.9,28))
+        self.play(FadeIn(label(self.TITLE,0,-.65,46)),run_time=.65)
+        self.add(Line([-1.2,-1.5,0],[1.2,-1.5,0],color=GOLD,stroke_width=4))
+        self.finish()
+
+
+class S01Q(SpokenScene):
+    def construct(self):
+        route=body_route(); self.add(route)
+        self.at('running from the body')
+        self.play(ShowPassingFlash(route[3].copy().set_stroke(color=TEXT,width=22)),run_time=.8)
+        self.at('Does it carry')
+        self.play(FadeIn(label('One message,\nor many?',-3.8,.8,36,PINK)),run_time=.45)
+        self.finish()
+
+
+class S02Afferent(SpokenScene):
+    def construct(self):
+        r=body_route(); self.add(r)
+        self.at('carries signals')
+        f=body_route(True)[3]
+        self.play(ReplacementTransform(r[3],f),run_time=.55)
+        self.at('toward the brain')
+        self.play(ShowPassingFlash(f.copy().set_color(TEXT)),run_time=.6)
+        self.at('is called an')
+        self.play(FadeIn(label('afferent',-3.7,.9,40)),FadeIn(label('body → brain',-3.7,0,28)),run_time=.4)
+        self.finish()
+
+
+class S03Intero(SpokenScene):
+    def construct(self):
+        r=body_route(True).shift(LEFT*2.9); self.add(r)
+        # Three pre-drawn organ cartoons have separate label lanes.
+        lung=VGroup(*[Ellipse(width=.65,height=1.15,color=GREY).move_to([1.5+d,1.55,0]) for d in [-.4,.4]],Line([1.5,2.45,0],[1.5,1.65,0],color=GREY))
+        artery=VGroup(RoundedRectangle(width=1.9,height=.65,corner_radius=.2,color=GREY).move_to([1.5,-.05,0]),
+                      VMobject(color=TEXT).set_points_as_corners([[.75,-.05,0],[1.1,-.05,0],[1.3,.18,0],[1.5,-.25,0],[1.7,-.05,0],[2.25,-.05,0]]))
+        gut=VMobject(color=GREY,fill_opacity=.12).set_points_smoothly([[1.25,-1.2,0],[1.25,-1.65,0],[.85,-2,0],[1,-2.6,0],[2,-2.65,0],[2.35,-2.1,0],[2.2,-1.6,0],[1.7,-1.7,0],[1.65,-1.2,0]])
+        organs=VGroup(VGroup(lung,label('lung volume',4.25,1.6,28)),VGroup(artery,label('blood pressure',4.25,-.05,28)),VGroup(gut,label('gut fullness',4.25,-2.05,28))).set_opacity(.3)
+        self.add(organs)
+        self.at('internal state')
+        self.play(FadeIn(label('interoception',0,3.15,34)),run_time=.35)
+        for cue,i in [('Lung volume',0),('blood pressure',1),('how full',2)]:
+            self.at(cue); self.play(organs[i].animate.set_opacity(1).set_color(TEXT),run_time=.3)
+        self.finish()
+
+
+class S04Light1(SpokenScene):
+    def construct(self):
+        n=nerve(); tr=breathing(-5.7,11.4,-1.15,t_light=10)
+        self.add(n[:2],tr,label('breathing • schematic model',0,-2.5,28))
+        self.at('Light on one set')
+        self.play(FadeIn(n[2]),n[1][0].animate.set_color(RED),run_time=.45)
+        self.at('stops an')
+        self.play(Transform(tr,breathing(-5.7,11.4,-1.15,color=RED)),FadeIn(label('stops',3.7,-.05,28,RED)),run_time=.5)
+        self.at('mouse breathing')
+        self.play(FadeIn(label('anaesthetized mouse',0,-3.2,28)),run_time=.25)
+        self.finish()
+
+
+class S05Light2(SpokenScene):
+    def construct(self):
+        f=light_frame(); self.add(f,label('anaesthetized mouse',0,-3.2,28))
+        self.at('Light on another set')
+        self.play(f[0][1][0].animate.set_color(GREY),f[0][1][2].animate.set_color(YELLOW),
+                  Transform(f[1],breathing(-5.7,11.4,-1.15,t_light=10,color=GREY)),FadeOut(f[3]),run_time=.4)
+        self.at('makes it breathe')
+        self.play(Transform(f[1],breathing(-5.7,11.4,-1.15,amp1=.23,per1=.8,color=YELLOW)),FadeIn(label('fast and shallow',3.7,-.05,28,YELLOW)),run_time=.6)
+        self.finish()
+
+
+class S06Notone(SpokenScene):
+    def construct(self):
+        cable=Line([-5.7,2,0],[5.7,2,0],color=GREY,stroke_width=24)
+        a=breathing(-5.8,5.1,-.8,color=RED); b=breathing(.7,5.1,-.8,amp1=.23,per1=.8,color=YELLOW)
+        self.add(cable,a,b,label('stops',-3.25,-2.1,30,RED),label('fast and shallow',3.25,-2.1,30,YELLOW),label('schematic models • anaesthetized mouse',0,-3.2,26))
+        fibres=VGroup(Line([-5.7,2.3,0],[5.7,2.3,0],color=YELLOW,stroke_width=7),Line([-5.7,2,0],[5.7,2,0],color=GREY,stroke_width=5),Line([-5.7,1.7,0],[5.7,1.7,0],color=RED,stroke_width=7))
+        self.at('two subsets')
+        self.play(ReplacementTransform(cable,fibres),run_time=.6)
+        self.at('separate lines')
+        self.play(GrowArrow(arr([-3.25,1.65,0],[-3.25,.2,0],RED)),GrowArrow(arr([3.25,2.35,0],[3.25,.2,0],YELLOW)),run_time=.5)
+        self.finish()
+
+
+class S08Col1(SpokenScene):
+    def construct(self):
+        c=columns(0); self.add(c)
+        self.at('three questions')
+        self.play(LaggedStart(*[Indicate(x[0],color=PINK) for x in c],lag_ratio=.12),run_time=.8)
+        self.at('what stimulus')
+        self.play(Transform(c[0][1],label('Stimulus?',-4.3,2.35,32,PINK)),run_time=.4)
+        self.finish()
+
+
+class S09Col2(SpokenScene):
+    def construct(self):
+        c=columns(1); self.add(c)
+        self.at('Second')
+        self.play(FadeIn(channel(0,.7)),run_time=.45)
+        self.at('electrical current')
+        self.play(Transform(c[1][1],label('Channel?',0,2.35,32,PINK)),GrowArrow(arr([0,1.6,0],[0,-.45,0],TEXT)),run_time=.45)
+        self.finish()
+
+
+class S10Col3(SpokenScene):
+    def construct(self):
+        c=columns(2); self.add(c,col_icons(2))
+        self.at('Third')
+        self.play(FadeIn(col_icons(3)[1:]),run_time=.4)
+        self.at('what changes')
+        self.play(Transform(c[2][1],label('Output?',4.3,2.35,32,PINK).align_to(label('Stimulus?',4.3,2.35,32,PINK),UP)),run_time=.4)
+        self.finish()
+
+
+class S11Suff(SpokenScene):
+    def construct(self):
+        c=columns(); icons=col_icons(); c[1][0].set_stroke(opacity=.22); c[1][1].set_opacity(.22); icons[0].set_stroke(opacity=.22)
+        self.add(c,icons); c[2][0].set_color(TEXT)
+        drive=VGroup(label('sufficiency • drive it',3.6,-2.65,28,TEAL),
+                     arr([4.3,-2.22,0],[4.3,-.55,0],TEAL))
+        remove=VGroup(label('necessity • remove it',3.65,3.35,28,BLUE),
+                      arr([6.55,2.9,0],[5.35,1.05,0],BLUE))
+        self.at('driving a population'); self.play(FadeIn(drive),run_time=.55)
+        self.at('removing it'); self.play(FadeIn(remove),run_time=.55)
+        self.finish()
+
+
+class S12Rule(SpokenScene):
+    def construct(self):
+        b=evidence_base(); self.add(b)
+        links=evidence_links()
+        self.at('Each question')
+        self.play(LaggedStart(*[FadeIn(x) for x in links],lag_ratio=.35),run_time=1.7)
+        self.at('Some stay open')
+        self.play(b[0][1][0].animate.set_stroke(width=5),Indicate(b[2],color=PINK,scale_factor=1.06),run_time=.6)
+        self.at('An answer to one')
+        self.play(FadeIn(label('Separate evidence • no answer transfers across',0,3.35,28,PINK)),run_time=.4)
+        self.finish()
+
+
+class S13Beat1(Scene):
+    def construct(self):
+        self.camera.background_color=BG
+        self.add(evidence_base(),evidence_links(),label('Separate evidence • no answer transfers across',0,3.35,28,PINK))
+        self.wait(3)
+
+
+class S14Handle(SpokenScene):
+    def construct(self):
+        h=grip_cloud(False); rows=question_rows()
+        self.add(h[1],rows)
+        self.at('How do researchers')
+        self.play(FadeIn(h[0]),run_time=.6)
+        self.at('With a genetic label')
+        self.play(h[0].animate.shift(DOWN*.45),h[1].animate.set_color(TEXT),run_time=.6)
+        self.at('usually a')
+        self.play(FadeIn(label('Cre line • genetic label',-3.35,3.15,28)),run_time=.35)
+        self.finish()
+
+
+class S16Handle3(SpokenScene):
+    def construct(self):
+        f=handle_frame()
+        for row in f[1]:
+            row[0].set_stroke(opacity=.35); row[1].set_opacity(.35)
+        self.add(f)
+        self.at('A label is a handle')
+        self.play(f[0].animate.shift(UP*.5),run_time=1.25)
+        self.at('on a population')
+        self.play(Indicate(f[0][0],color=TEXT,scale_factor=1.06),run_time=.55)
+        self.at('it answers none')
+        self.play(*[row[1].animate.set_opacity(.5) for row in f[1]],run_time=.5)
+        self.finish()
+
+
+class S17Handle4(SpokenScene):
+    def construct(self):
+        f=handle_frame(); self.add(f)
+        self.at('a receptor or channel')
+        self.play(FadeIn(chip('receptor / channel name',color=TEXT,size=26).move_to([-3.35,-3.05,0])),run_time=.45)
+        # Arrows start outside the cloud; the name remains beside its cells.
+        for cue,y in [('the natural stimulus',2.05),("the protein's causal role",0),('or the output',-2.05)]:
             self.at(cue)
-            o=organ(name,(-5.2,y+0.3),compact=True)
-            label=T(desc,22,col).move_to([0.3,y*0.57+0.5,0])
-            path=arr([-4.1,y,0],[3.6,y*0.25,0],col)
-            routes.add(VGroup(o,label,path))
-            self.play(FadeIn(o),FadeIn(label),GrowArrow(path),run_time=0.65)
-            self.play(ShowPassingFlash(path.copy().set_stroke(width=10)),run_time=0.5)
-        self.at("these signals help")
-        jobs=T("breathing     •     blood pressure     •     feeding",26).move_to([0,-3.3,0])
-        self.play(FadeIn(jobs),run_time=0.5)
-        self.at("so the question")
-        self.play(FadeOut(routes),FadeOut(nerve),FadeOut(nerve_label),FadeOut(target),FadeOut(jobs),run_time=0.4)
-        qs=VGroup(*[chip(t,PURPLE,26).move_to([x,0.8,0]) for t,x in
-                    [("what is reported?",-4.5),("which force sensor?",0),("where does it land?",4.5)]])
-        self.play(FadeIn(qs),run_time=0.6)
-        self.at("we follow the mouse evidence")
-        route=overview(-1.6)
-        self.play(FadeIn(T("mouse evidence",24,GREY).move_to([0,2.2,0])),FadeIn(route),run_time=0.6)
+            self.play(GrowArrow(arr([-.55,y,0],[1.05,y,0],PINK)),FadeIn(label('not established',3.65,y-.3,28,PINK)),run_time=.4)
         self.finish()
 
 
-class S02Gut(SpokenScene):
+class S18Beat2(Scene):
     def construct(self):
-        self.at("start in the gut")
-        h=heading("Gut sensory populations • awake mice")
-        wall=tube(-5.8,-1.8,0.2,2.4)
-        end=VGroup(Line([-5.3,-0.55,0],[-2.3,-0.55,0],color=ORANGE,stroke_width=6),
-                   Arc(radius=0.55,start_angle=0,angle=PI,color=ORANGE).move_to([-3.8,-0.2,0]))
-        label=T("intestinal stretch endings • Oxtr",24,ORANGE).move_to([-3.8,1.9,0])
-        self.play(FadeIn(h),FadeIn(wall),run_time=0.5)
-        self.at("activating intestinal stretch")
-        self.play(Create(end),FadeIn(label),wall.animate.stretch(1.12,1),run_time=0.8)
-        result=chip("feeding: strong suppression",ORANGE,25).move_to([3.1,0.2,0])
-        link=arr([-1.5,0.2,0],result.get_left(),ORANGE)
-        self.at("strongly suppressed feeding")
-        self.play(GrowArrow(link),FadeIn(result),Indicate(end,color=ORANGE),run_time=0.7)
-        self.at("activating gastric afferents")
-        self.play(Transform(label,T("gastric stretch endings • Glp1r",24,GOLD).move_to(label)),
-                  end.animate.set_color(GOLD),FadeOut(result),FadeOut(link),run_time=0.6)
-        self.at("suppressed it more")
-        result=chip("feeding: weaker suppression",GOLD,25).move_to([3.1,0.2,0])
-        link=arr([-1.5,0.2,0],result.get_left(),GOLD)
-        self.play(FadeIn(result),GrowArrow(link),run_time=0.6)
-        self.at("gpr65 afferents")
-        self.play(FadeOut(result),FadeOut(link),FadeOut(end),
-                  Transform(label,T("intestinal villous endings • GPR65",24,TEXT).move_to(label)),run_time=0.5)
-        villi=VGroup(*[Arc(radius=0.28,start_angle=0,angle=PI,color=TEXT).move_to([x,0.2,0])
-                      for x in [-4.8,-3.8,-2.8]])
-        self.play(Create(villi),run_time=0.5)
-        self.at("responded to intestinal food")
-        food=chip("intestinal food",TEXT,24).move_to([-3.8,-1.7,0])
-        response=T("sensory response",28,TEXT).move_to([3.1,0.6,0])
-        self.play(FadeIn(food),GrowArrow(arr([-3.8,-1.3,0],[-3.8,-0.2,0],TEXT)),
-                  FadeIn(response),Indicate(villi,color=TEXT),run_time=0.7)
-        self.at("but activating them")
-        outcome=VGroup(T("activation → feeding:",28,TEXT),
-                       T("no measurable change",28,TEXT,weight=BOLD),
-                       T("in tested assays",28,TEXT,weight=BOLD)).arrange(DOWN,buff=0.22).move_to([3.1,-1.2,0])
-        self.play(FadeIn(outcome),run_time=0.6)
-        self.at("chemical signals also")
-        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not h],run_time=0.5)
-        lining=membrane(-4.6,0,2.8)
-        secretor=cell(TEXT,0.4,(-4.6,0))
-        a=VGroup(T("gut lining",28,TEXT),
-                 T("enteroendocrine cell",28,TEXT)).arrange(DOWN,buff=0.24).move_to([-4.6,-1.3,0])
-        hormone=chip("gut hormone",TEXT,26).move_to([0,0,0])
-        terminal=chip("vagal terminal",GREEN,26).move_to([4.6,0,0])
-        self.play(FadeIn(lining),FadeIn(secretor),FadeIn(a),run_time=0.5)
-        self.at("hormones released")
-        self.play(FadeIn(hormone),GrowArrow(arr([-3,0,0],hormone.get_left(),TEXT)),run_time=0.6)
-        self.play(FadeIn(terminal),GrowArrow(arr(hormone.get_right(),terminal.get_left(),TEXT)),run_time=0.6)
-        self.at("including cholecystokinin")
-        self.play(Transform(hormone,chip("cholecystokinin",TEXT,26).move_to(hormone)),run_time=0.5)
-        self.play(ShowPassingFlash(Line([-3,0,0],[3.2,0,0],color=TEXT,stroke_width=8)),run_time=0.8)
-        self.finish()
+        self.camera.background_color=BG
+        self.add(handle_frame(True,3),*[arr([-.55,y,0],[1.05,y,0],PINK) for y in [2.05,0,-2.05]])
+        self.wait(3)
 
 
-class S03Light(SpokenScene):
+class S19Case(SpokenScene):
     def construct(self):
-        self.at("airway populations")
-        h=heading("Airway populations • anaesthetized mice")
-        self.play(FadeIn(h),run_time=0.5)
-        panels=[]
-        for cx,col,name in [(-3.4,BLUE,"P2ry1"),(3.4,YELLOW,"Npy2r")]:
-            lab=chip(name+" afferents",col,26).move_to([cx,2.1,0])
-            baseline=Line([cx-2.7,0.6,0],[cx+2.7,0.6,0],color=GREY,stroke_width=1)
-            light=VGroup(Rectangle(width=2.86,height=0.16,stroke_width=0,fill_color=TEAL,fill_opacity=1).move_to([cx+1.27,-0.5,0]),
-                         T("light on",22,TEAL).move_to([cx+1.27,-0.95,0]))
-            panels.append((lab,baseline,light))
-        self.at("light on p2ry1")
-        self.play(FadeIn(panels[0][0]),Create(panels[0][1]),FadeIn(panels[0][2]),run_time=0.6)
-        self.at("suppressed breathing")
-        tr1=breathing(-6.1,5.4,0.6,4,0.55,2,0.03,2,color=BLUE)
-        out1=T("breathing suppressed",25,BLUE).move_to([-3.4,-1.7,0])
-        self.play(Create(tr1),FadeIn(out1),run_time=0.8)
-        self.at("light on npy2r")
-        self.play(FadeIn(panels[1][0]),Create(panels[1][1]),FadeIn(panels[1][2]),run_time=0.6)
-        self.at("rapid shallow breathing")
-        tr2=breathing(0.7,5.4,0.6,4,0.55,2,0.2,0.8,color=YELLOW)
-        out2=T("rapid shallow breathing",25,YELLOW).move_to([3.4,-1.7,0])
-        sketch=T("schematic breathing traces",22,GREY).move_to([0,-2.6,0])
-        self.play(Create(tr2),FadeIn(out2),FadeIn(sketch),run_time=0.8)
-        self.at("driving p2ry1")
-        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not h],run_time=0.5)
-        driver=chip("P2ry1 activation",BLUE,28).move_to([0,1.8,0])
-        self.play(FadeIn(driver),run_time=0.5)
-        # Vocal folds are two bars that close; swallowing moves a bolus downward;
-        # expiration moves an arrow outward. All are schematic outputs.
-        folds=VGroup(Line([-4.9,0.3,0],[-4.9,-0.6,0],color=BLUE,stroke_width=8),
-                      Line([-4.1,0.3,0],[-4.1,-0.6,0],color=BLUE,stroke_width=8))
-        self.at("closed vocal folds")
-        self.play(Create(folds),FadeIn(T("vocal folds close",24,BLUE).move_to([-4.5,-1.4,0])),run_time=0.4)
-        self.play(folds[0].animate.shift(RIGHT*0.3),folds[1].animate.shift(LEFT*0.3),run_time=0.5)
-        self.at("swallowing")
-        bolus=Dot([0,0.3,0],radius=0.16,color=BLUE)
-        self.play(FadeIn(bolus),FadeIn(T("swallowing",24,BLUE).move_to([0,-1.4,0])),run_time=0.3)
-        self.play(bolus.animate.shift(DOWN*1.1),run_time=0.5)
-        self.at("expiratory reflexes")
-        self.play(GrowArrow(arr([3.5,-0.2,0],[5.4,-0.2,0],BLUE)),
-                  FadeIn(T("expiration",24,BLUE).move_to([4.5,-1.4,0])),run_time=0.6)
-        self.at("light shows")
-        tag=chip("activation: sufficiency",TEAL,26).move_to([0,-2.5,0])
-        self.play(FadeIn(tag),run_time=0.5)
-        self.at("it does not identify")
-        self.play(Transform(tag,chip("natural stimulus?",PURPLE,26).move_to(tag)),run_time=0.6)
+        # Continuous epithelial boundary: villi project into the labelled lumen.
+        pts=[[-5.9,-2.1,0]]
+        for x in [-4.7,-2.3,.1]:
+            pts += [[x-.65,-2.1,0],[x-.65,.95,0]]
+            pts += [[x+.65*np.cos(t),.95+.65*np.sin(t),0] for t in np.linspace(PI,0,30)]
+            pts += [[x+.65,-2.1,0]]
+        pts += [[1.5,-2.1,0]]
+        wall=VMobject(color=GREY,stroke_width=5).set_points_as_corners(pts)
+        self.add(wall,label('intestinal lumen',-2.3,2.9,30),label('villus',-4.7,-2.85,28),
+                 Line([-4.7,-2.55,0],[-4.7,-1.5,0],color=GREY))
+        box=VGroup(RoundedRectangle(width=3.8,height=4.8,corner_radius=.15,color=GREY).move_to([4.3,.25,0]),label('Stimulus',4.3,2.1,32,PINK))
+        self.add(box)
+        terminal=VGroup(Line([-2.3,-2.8,0],[-2.3,1,0],color=TEXT,stroke_width=6),Dot([-2.3,1,0],radius=.2,color=TEXT))
+        self.at('afferents')
+        self.play(Create(terminal),FadeIn(label('GPR65-labelled terminal',-2.2,-3.25,28)),run_time=.5)
+        food=VGroup(*[Dot([x,.8,0],radius=.15,color=GOLD) for x in [-3.5,-1.1,1.3]])
+        self.at('answer food')
+        self.play(FadeIn(food),run_time=.2)
+        self.play(food.animate.shift(DOWN*.45),terminal.animate.set_color(GOLD).set_stroke(width=10),
+                  Flash([-2.3,1,0],color=GOLD,line_length=.25,flash_radius=.38),
+                  run_time=.65)
+        self.at('in the intestine')
+        self.play(FadeIn(label('Food in the\nintestine',4.3,.45,30)),run_time=.35)
         self.finish()
 
 
-class S04Stop(SpokenScene):
+class S20Case2(SpokenScene):
     def construct(self):
-        self.at("lung inflation")
-        h=heading("Lung inflation reflex")
-        lung=organ("lung",(-4.8,0.5))
-        halt=chip("inspiration halts",RED,28).move_to([4.3,0.5,0])
-        link=arr([-3.4,0.5,0],halt.get_left(),GREEN)
-        self.play(FadeIn(h),FadeIn(lung),run_time=0.5)
-        self.at("halt inspiration")
-        self.play(lung[0].animate.scale(1.2),GrowArrow(link),FadeIn(halt),run_time=0.7)
-        self.at("deleting piezo 2")
-        deletion=chip("adult sensory neurons: Piezo2 deletion",GREEN,26).move_to([0,-1.7,0])
-        self.play(FadeIn(deletion),run_time=0.5)
-        self.at("impaired this inflation reflex")
-        self.play(Transform(halt,chip("reflex impaired",RED,28).move_to(halt)),link.animate.set_opacity(0.3),run_time=0.7)
-        self.at("arterial pressure sensing")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.5)
-        h=heading("Baroreflex • anaesthetized mice")
-        source=chip("pressure rises",GREY,26).move_to([-4.4,1.9,0])
-        heart=chip("heart slows",GREEN,26).move_to([4.4,1.9,0])
-        reflex=arr(source.get_right(),heart.get_left(),GREEN)
-        context=T("nodose + petrosal neurons",24,GREY).move_to([0,0.8,0])
-        normal=T("intact reflex",22,GREY).move_to([0,2.35,0])
-        self.play(FadeIn(h),FadeIn(source),FadeIn(heart),GrowArrow(reflex),FadeIn(context),FadeIn(normal),run_time=0.7)
-        self.at("deleting both")
-        double=chip("Piezo1 + Piezo2 deletion",GREEN,25).move_to([-3.5,-0.5,0])
-        self.play(FadeIn(double),run_time=0.5)
-        self.at("abolished the")
-        loss=T("baroreflex abolished",26,RED).move_to([3.6,-0.5,0])
-        self.play(FadeIn(loss),run_time=0.5)
-        self.at("neither single deletion")
-        singles=VGroup(T("Piezo1 deletion",25,GREEN).move_to([-3.5,-1.4,0]),
-                       T("Piezo2 deletion",25,GREEN).move_to([-3.5,-2.2,0]),
-                       T("no detectable change",24,GREY).move_to([3.6,-1.4,0]),
-                       T("no detectable change",24,GREY).move_to([3.6,-2.2,0]))
-        self.play(FadeIn(singles),run_time=0.7)
-        self.at("this shows a collective")
-        caveat=T("Population requirement ≠ both channels in every neuron",24,PURPLE).move_to([0,-3.2,0])
-        self.play(FadeIn(caveat),run_time=0.6)
+        self.add(case_board())
+        tr=breathing(2.7,3.2,-.65,t_light=10,amp0=.35)
+        self.add(tr,label('gastric contractions\nschematic model',4.3,-2.6,26))
+        self.at('with light')
+        self.play(FadeIn(label('light drive',4.3,-1.35,26,TEAL)),run_time=.3)
+        self.at('suppressed stomach contractions')
+        self.play(Transform(tr,breathing(2.7,3.2,-.65,amp0=.35,color=TEAL)),FadeIn(label('Gastric contractions\nsuppressed',4.3,1.15,26)),run_time=.5)
+        self.at('in an')
+        self.play(FadeIn(label('anaesthetized mouse',4.3,.3,26)),run_time=.25)
         self.finish()
 
 
-class S05Brainstem(SpokenScene):
+class S21Predict(SpokenScene):
     def construct(self):
-        self.at("where do these signals")
-        h=heading("Sensory routes into the brainstem")
-        medulla=RoundedRectangle(width=7.0,height=5.3,corner_radius=0.45,
-                                  color=GREY,fill_opacity=0.1).move_to([2.8,-0.25,0])
-        self.play(FadeIn(h),FadeIn(medulla),run_time=0.5)
-        organs=T("organ sensory\nstrands",24,GREY).move_to([-5.2,1.6,0])
-        self.at("vagal sensory axons")
-        self.play(FadeIn(organs),run_time=0.5)
-        nts=chip("NTS",GREEN,30).move_to([2.5,1.4,0])
-        strands=VGroup(*[arr([-3.8,1.3+d,0],[1.4,1.4+d*0.2,0],col)
-                        for d,col in [(-0.5,BLUE),(0,GREEN),(0.5,ORANGE)]])
-        self.at("nucleus of the solitary tract")
-        fullname=T("nucleus of the solitary tract\nprimary target",22,GREEN).move_to([2.5,0.35,0])
-        self.play(FadeIn(nts),Create(strands),FadeIn(fullname),run_time=0.7)
-        self.at("in the medulla")
-        self.play(FadeIn(T("medulla",24,GREY).move_to([4.9,1.9,0])),run_time=0.5)
-        self.at("processes the input")
-        self.play(ShowPassingFlash(strands.copy().set_stroke(width=9)),Indicate(nts,color=GREEN),run_time=0.8)
-        self.at("take a different route")
-        j=T("jugular afferents",24,BLUE).move_to([-4.9,-1.0,0])
-        pt=chip("paratrigeminal nucleus",BLUE,24).move_to([2.5,-1.1,0])
-        self.play(FadeIn(j),GrowArrow(arr([-3.3,-1.1,0],pt.get_left(),BLUE)),FadeIn(pt),run_time=0.7)
-        self.at("some gut afferents")
-        gut=T("some gut afferents",24,ORANGE).move_to([-4.9,-2.3,0])
-        ap=chip("area postrema",ORANGE,25).move_to([2.5,-2.3,0])
-        self.play(FadeIn(gut),GrowArrow(arr([-3.2,-2.3,0],ap.get_left(),ORANGE)),FadeIn(ap),run_time=0.7)
+        self.add(case_board(True,True))
+        self.at('This looks like')
+        self.play(FadeIn(label('Satiety?',-4.6,-.65,32,PINK)),run_time=.35)
+        self.at('In an awake mouse')
+        self.play(FadeIn(feeding_mouse()),run_time=.5)
+        self.at('what should driving')
+        self.play(FadeIn(label('Feeding: ?',4.3,-.65,30,PINK)),FadeIn(label('How much will it eat?',3.9,-2.3,28,PINK)),run_time=.4)
         self.finish()
 
 
-class S06Rule(SpokenScene):
+class S22Pause(Scene):
     def construct(self):
-        self.at("a smaller closing point")
-        h=heading("A smaller point")
-        neuron=cell(GREY,0.65,(-2.3,0.8))
-        axon=strand(-1.65,1.4,0.8,GREY,5)
-        self.play(FadeIn(h),FadeIn(neuron),Create(axon),run_time=0.5)
-        self.at("a genetic label")
-        label=chip("genetic label: a handle",BLUE,26).move_to([-3.4,2.0,0])
-        self.play(FadeIn(label),neuron.animate.set_stroke(BLUE),run_time=0.5)
-        self.at("it does not by itself")
-        sensor=chip("sensing molecule?",PURPLE,26).move_to([4.0,0.8,0])
-        self.play(FadeIn(sensor),run_time=0.5)
-        self.at("senses stretch or food")
-        route=overview(-2.0)
-        self.play(FadeIn(route),run_time=0.6)
+        self.camera.background_color=BG
+        self.add(prediction()); self.wait(5)
+
+
+class S23Reveal(SpokenScene):
+    def construct(self):
+        # Equal model I(t)=r*t, r=1 arbitrary unit. Dashed control is wider
+        # than the teal centre stroke, so both identical model traces remain visible.
+        axes=VGroup(Line([-4.8,-2.05,0],[4.8,-2.05,0],color=GREY),Line([-4.8,-2.05,0],[-4.8,2.65,0],color=GREY))
+        yl=label('cumulative food eaten (schematic)',0,0,26).rotate(PI/2).move_to([-5.55,.3,0])
+        self.add(axes,yl,label('time',4.6,-2.4,26),label('no numerical scale',-2.9,-2.4,26,GREY))
+        p=np.array([[-4.8+8.4*t,-2.05+3.7*t,0] for t in np.linspace(0,1,160)])
+        control=DashedVMobject(VMobject(color=GREY,stroke_width=13).set_points_as_corners(p),num_dashes=23,dashed_ratio=.65)
+        driven=VMobject(color=TEAL,stroke_width=4).set_points_as_corners(p)
+        self.at('In the assays tested',lead=0)
+        self.play(Create(control),Create(driven),run_time=1.2,rate_func=linear)
+        self.add(label('control',5.1,1.98,26,GREY),label('light drive',5.1,1.3,26,TEAL),
+                 Line([3.6,1.98,0],[4.05,1.98,0],color=GREY),Line([3.6,1.3,0],[4.05,1.3,0],color=TEAL))
+        self.at('driving them')
+        self.play(FadeIn(VGroup(mouse(-3.1,3,.36),label('control',-1.45,3,26,GREY),mouse(.65,3,.36),label('light drive',2.55,3,26,TEAL))),run_time=.3)
+        self.at('did not measurably')
+        self.play(FadeIn(label('No measurable change in intake in these assays',0,-3.15,28)),run_time=.35)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "In mice, the vagus carries many specialised sensory lines."
+class S24Reveal2(SpokenScene):
+    def construct(self):
+        self.add(summary_base())
+        results=summary_results()
+        self.at('Yes to the stimulus'); self.play(FadeIn(results[0]),run_time=.4)
+        self.at('yes to one output'); self.play(FadeIn(results[1]),Create(results[2]),run_time=.4)
+        self.at('no to another'); self.play(FadeIn(results[3]),run_time=.4)
+        self.finish()
+
+
+class S26Scope(SpokenScene):
+    def construct(self):
+        self.add(summary())
+        band=RoundedRectangle(width=12.4,height=1.1,corner_radius=.15,color=GREY,fill_opacity=.09).move_to([0,-2.75,0])
+        words=VGroup()
+        for t,x in zip(['organ','age','assay','anaesthetic state'],[-4.5,-1.5,1.5,4.5]):
+            # An invisible common descender fixes all four labels to one baseline.
+            word=T(t+' g',size=24)
+            word[-1].set_opacity(0)
+            word.shift(RIGHT*(x-word[:-1].get_center()[0]))
+            word.shift(UP*(-2.9-word[-1].get_bottom()[1]))
+            words.add(word)
+        dim_words=words.copy().set_opacity(.4)
+        for word in dim_words: word[-1].set_opacity(0)
+        self.add(band,dim_words)
+        for cue,i in [('the organ',0),('age',1),('assay',2),('anesthetic state',3)]:
+            self.at(cue); self.play(FadeIn(words[i]),run_time=.22)
+        self.finish()
+
+
+class S27Take(SpokenScene):
+    def construct(self):
+        f=handle_frame(); self.add(f)
+        # Small question icons keep the unknowns concrete without filling an answer.
+        icons=VGroup(VGroup(*[Dot([3.65+dx,1.73+dy,0],radius=.1,color=GOLD) for dx,dy in [(-.28,0),(0,.16),(.28,0),(-.14,-.23),(.17,-.24)]]),channel(3.65,-.35).scale(.45),breathing(2.6,2.1,-2.4,t_light=10,amp0=.15,color=GREY))
+        self.add(icons)
+        for y in [2.05,0,-2.05]:
+            self.add(arr([-.55,y,0],[1.23,y,0],PINK),label('?',.35,y+.35,26,PINK))
+        for cue,i in [('Stimulus',0),('channel',1),('output',2)]:
+            self.at(cue,lead=0); self.play(Indicate(f[1][i][1],color=TEXT,scale_factor=1.22),run_time=.28)
+        self.at('A handle alone')
+        self.play(FadeIn(label('Three questions. Separate evidence.',0,-3.2,30)),run_time=.4)
+        self.finish()
+
+
+class S28End(EndCard):
+    LINE='A handle alone answers none of the three questions.'

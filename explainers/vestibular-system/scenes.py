@@ -1,433 +1,436 @@
-"""Vestibular system: two channels and conditional central cancellation  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = regular afferents; peripheral afferent input in the cancellation sketch
-  PURPLE = irregular afferents / calyx ending
-  YELLOW = the central vestibular-only neuron and its response
-  GREEN  = self-generated (active) turn: the motor command, the expected feedback, cancellation
-  ORANGE = passive turn (pushed from outside)
-  TEAL   = neck proprioceptive feedback (the actual feedback)
-  RED    = mismatch / cancellation failing
-  GREY   = outlines, axes, de-emphasised
-Traces and response heights are qualitative schematics, not measured data.
+"""Report It Twice — review fix round.
+COLOR MAP: BLUE #58C4DD regular afferents; PURPLE #B58CD9 irregular afferents;
+TEXT neutral head motion and central neurons; GREY axes, feedback and scope.
+All curves are sampled equations. Gamma renewal intervals: k=1/CV²,
+scale=CV²/100. Thresholds are the lesson's exact random-window count data.
+Fourier replay / peak-locked spikes are computed teaching models, not recordings.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-TEALN = "#3FB8C0"  # neck feedback (same value as TEAL, kept as its own concept)
+from bp_style import *
+PURPLE = '#B58CD9'
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=26, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def label(s,x,y,c=TEXT,size=28):
+    return T(s,size,c).move_to([x,y,0])
 
+def title(s): return label(s,0,3.15,size=36)
+def foot(s): return label(s,0,-3.28,GREY,26)
+def badge(y=-2.65): return chip('Pause and predict',TEXT,28).move_to([0,y,0])
 
-def lines2(a, b, color, size=24):
-    """a two-line label chip."""
-    label = VGroup(T(a, size, color), T(b, size, color)).arrange(DOWN, buff=0.08)
-    box = RoundedRectangle(corner_radius=0.14, width=label.width + 0.44, height=label.height + 0.4,
-                           stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.16)
-    back = RoundedRectangle(corner_radius=0.14, width=box.width, height=box.height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1)
-    g = VGroup(back, box, label)
-    label.move_to(box)
+def head_icon(scale=1):
+    face=Circle(radius=.62,color=TEXT,fill_opacity=.12,stroke_width=4)
+    nose=Triangle(stroke_width=0,fill_color=TEXT,fill_opacity=1).scale(.17).move_to([0,.7,0])
+    return VGroup(face,nose).scale(scale)
+
+def turn_arrow(center,r=1):
+    a=Arc(radius=r,start_angle=PI*.15,angle=PI*.7,color=TEXT,stroke_width=5)
+    a.add_tip(tip_length=.2)
+    return a.move_arc_center_to(center)
+
+def trace(fn,y,color=TEXT,height=1,width=10.5):
+    return VMobject(color=color,stroke_width=4).set_points_as_corners([
+        [-width/2+width*t,y+height*fn(t),0] for t in np.linspace(0,1,601)])
+
+def spike_train(x0,x1,y,positions,color,h=.75):
+    return VGroup(Line([x0,y,0],[x1,y,0],color=GREY,stroke_width=2),
+        VGroup(*[Line([x0+(x1-x0)*t,y,0],[x0+(x1-x0)*t,y+h,0],color=color,stroke_width=3)
+                 for t in positions if 0<=t<=1]))
+
+def gamma_spikes(cv,seed=4,n=24):
+    rng=np.random.default_rng(seed)
+    ts=np.cumsum(rng.gamma(1/cv**2,cv**2/100,n*3))
+    return ts[ts<n/100]/(n/100)
+
+def canal():
+    # Three semicircular loops, a schematic organ, never a molecular structure.
+    return VGroup(*[Ellipse(width=w,height=h,color=TEXT,stroke_width=6).rotate(a)
+                   for w,h,a in [(2,2.6,0),(1,2.7,.8),(1,2.7,-.8)]],
+                  Dot([0,-1.15,0],radius=.2,color=TEXT))
+
+def organ_panel(x,is_canal=True):
+    icon=canal() if is_canal else VGroup(
+        Ellipse(width=2.6,height=1.5,color=TEXT,fill_opacity=.12,stroke_width=5),
+        DoubleArrow(LEFT*1.6,RIGHT*1.6,color=TEXT).shift(UP*1.2))
+    icon.scale(.85).move_to([x,.6,0])
+    wires=VGroup()
+    for dx,c,n in [(-1.1,BLUE,'regular'),(1.1,PURPLE,'irregular')]:
+        wires.add(Line([x,-.45,0],[x+dx,-1.4,0],color=c,stroke_width=8),
+                  Line([x+dx,-1.4,0],[x+dx,-2.05,0],color=c,stroke_width=8),
+                  label(n,x+dx,-2.45,c,26))
+    return VGroup(icon,label('Canals' if is_canal else 'Otoliths',x,2.65,size=34),
+        label('rotation' if is_canal else 'linear acceleration + tilt',x,2.17,GREY,26),wires)
+
+def prediction_cards():
+    g=VGroup(title('Which detects a small, slow turn first?'))
+    for x,n,c,gain,cv in [(-3.15,'Regular',BLUE,'0.5','0.05'),(3.15,'Irregular',PURPLE,'1.5','0.5')]:
+        b=RoundedRectangle(width=5.6,height=3.7,corner_radius=.2,color=c,fill_opacity=.08).move_to([x,.45,0])
+        g.add(VGroup(b,label(n,x,1.8,c,34),label('gain  '+gain,x,.8,c,32),label('CV  '+cv,x,-.1,c,32)))
+    g.add(label('×3 gain     ·     ×10 CV',3.15,-.95,PURPLE,26),
+          label('Both near 100 spikes/s at rest',0,-1.85,GREY,28),badge(-2.5),foot('Made-up model fibres'))
     return g
 
+def threshold_cards(short=False):
+    g=VGroup()
+    for x,n,c,v,division in [(-3.15,'Regular',BLUE,7.1 if short else 1.3,'0.65 / 0.5'),
+                            (3.15,'Irregular',PURPLE,10.9 if short else 3.3,'5.0 / 1.5')]:
+        box=RoundedRectangle(width=5.6,height=3.8,corner_radius=.2,color=c,fill_color=c,fill_opacity=.14).move_to([x,0,0])
+        g.add(VGroup(box,label(n,x,1.25,c,34),label(f'{v:.1f}°/s',x,.25,c,54),
+            label('1 s: '+('1.3°/s' if x<0 else '3.3°/s') if short else division+(' ≈ 1.3' if x<0 else ' ≈ 3.3'),x,-.9,GREY if short else c,30)))
+    return g
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+_rng=np.random.default_rng(19)
+_PHASES=_rng.uniform(0,2*np.pi,6)
+def motion(t,variant=0):
+    return sum(np.sin(2*np.pi*[1,3,7,13,23,37][k]*t+_PHASES[k]+variant*(k+1)*.6)/np.sqrt(k+1) for k in range(6))*.25
 
+def event_times(variant=0):
+    ts=np.linspace(.02,.98,1000)
+    ys=np.array([motion(t,variant) for t in ts])
+    # Prominent positive peaks select the strongest model events.
+    return ts[1:-1][(ys[1:-1]>ys[:-2]) & (ys[1:-1]>ys[2:]) & (ys[1:-1]>.25)]
 
-def head_icon(color, scale=1.0):
-    """a head seen from above: circle with a nose triangle pointing up (forward)."""
-    face = Circle(radius=0.62, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.18)
-    nose = Triangle(stroke_width=0, fill_color=color, fill_opacity=0.9).scale(0.17)
-    nose.move_to(face.get_top() + UP * 0.1)
-    g = VGroup(face, nose)
-    return g.scale(scale)
+def replay_stack():
+    return VGroup(*[trace(motion,y,TEXT,.65,10.8) for y in [2.1,1.15,.2,-.75,-1.7]])
 
+def timing_question():
+    return VGroup(title('Can spike timing tell motions apart?'),
+        replay_stack().stretch(.85,1).shift(UP*.2),
+        badge(-2.65),label('Five replays of the same head motion',0,-3.4,GREY,24))
 
-def turn_arrow(center, color, flip=False, r=0.98):
-    arc = Arc(radius=r, start_angle=PI * 0.15, angle=PI * 0.7, color=color, stroke_width=5)
-    arc.add_tip(tip_length=0.2)
-    arc.move_arc_center_to(center)
-    if flip:
-        arc.flip(UP, about_point=center)
-    return arc
+def callout(level=0):
+    g=VGroup(title('Two overlapping channels'),
+        RoundedRectangle(width=12.3,height=5.25,corner_radius=.2,color=GREY).move_to([0,.05,0]))
+    for y in [1.0,-.65]:
+        g.add(Line([-5.9,y,0],[5.9,y,0],color=GREY,stroke_width=1))
+    # Consistent two-column rows. Earlier rows persist in every following scene.
+    g.add(label('CANALS · Regular',-3.6,1.85,BLUE,28),label('CANALS · Irregular',-3.6,.2,PURPLE,28),
+          label('Tested central neurons',-3.6,-1.5,size=26))
+    if level>=1:
+        g.add(label('Steady rate follows turn speed',2.05,2.15,BLUE,27),
+              trace(lambda t:.45*np.sin(2*PI*t),1.5,BLUE,.5,5.5).shift(RIGHT*2.1))
+    if level>=2:
+        g.add(label('Higher gain · response to change',2.05,.62,PURPLE,24),
+              label('Precise spike timing',2.05,.05,PURPLE,24),
+              spike_train(-.7,4.85,-.48,event_times(),PURPLE,.22))
+    if level>=3:
+        g.add(label('Self-made response largely canceled',2.05,-1.25,size=26),
+              label('Needs matching neck feedback',2.05,-1.95,GREY,26))
+    return g
 
-
-def ticks(x0, x1, y, n, color, seed, h=0.32):
-    """irregular spike ticks along a baseline."""
-    rng = np.random.RandomState(seed)
-    xs = np.sort(rng.uniform(x0 + 0.1, x1 - 0.1, n))
-    base = Line([x0, y - h / 2, 0], [x1, y - h / 2, 0], color=GREY, stroke_width=2)
-    tk = VGroup(*[Line([x, y - h / 2, 0], [x, y + h / 2, 0], color=color, stroke_width=4) for x in xs])
-    return base, tk
-
-
-def bell(t, peak, mid=0.5, wid=0.17):
-    return peak * np.exp(-(((t - mid) / wid) ** 2))
-
-
-def make_axes(w, h, ymax, ytick_vals, xlabel, color=GREY):
-    ax = Axes(x_range=[0, 1, 0.5], y_range=[0, ymax, ymax], x_length=w, y_length=h,
-              axis_config={"color": color, "stroke_width": 3, "include_ticks": False, "include_tip": False},
-              tips=False)
-    labels = VGroup()
-    for v in ytick_vals:
-        p = ax.c2p(0, v)
-        tk = Line(p + LEFT * 0.08, p + RIGHT * 0.08, color=color, stroke_width=3)
-        lb = M(f"{v:g}", 22, GREY).next_to(tk, LEFT, buff=0.1)
-        labels.add(tk, lb)
-    xl = T(xlabel, 22, GREY).next_to(ax, DOWN, buff=0.15)
-    return ax, labels, xl
-
-
-def spike_train(x0, x1, y, positions, color, h=0.45):
-    base = Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=3)
-    marks = VGroup(*[Line([x0 + (x1-x0)*t, y, 0],
-                             [x0 + (x1-x0)*t, y+h, 0], color=color, stroke_width=4)
-                     for t in positions])
-    return VGroup(base, marks)
-
-
-def hair_cell(kind=1):
-    """Anatomical schematic; grey hair cell, coloured afferent ending."""
-    if kind == 2:
-        body = RoundedRectangle(width=1.15, height=2.0, corner_radius=0.35,
-                                stroke_color=GREY, fill_color=GREY, fill_opacity=0.16)
-        ending = VGroup(*[Circle(radius=0.17, color=BLUE, fill_opacity=0.5)
-                           .move_to([x, y, 0]) for x, y in [(-0.65,-0.45),(0.65,-0.45),(0,-1.08)]])
-        ending.add(*[Line([x,y,0], [x, -1.65,0], color=BLUE, stroke_width=4)
-                     for x,y in [(-0.65,-0.45),(0.65,-0.45),(0,-1.08)]])
-    else:
-        body = VMobject(stroke_color=GREY, fill_color=GREY, fill_opacity=0.16)
-        body.set_points_smoothly([[-0.25,1,0],[-0.28,0.45,0],[-0.65,-0.15,0],
-                                  [-0.55,-0.8,0],[0,-1,0],[0.55,-0.8,0],
-                                  [0.65,-0.15,0],[0.28,0.45,0],[0.25,1,0]])
-        body.close_path()
-        cup = VMobject(stroke_color=PURPLE, stroke_width=9)
-        cup.set_points_smoothly([[-0.75,0.65,0],[-0.9,-0.25,0],[-0.7,-1.1,0],
-                                 [0,-1.3,0],[0.7,-1.1,0],[0.9,-0.25,0],[0.75,0.65,0]])
-        ending = VGroup(cup, Line([0,-1.3,0],[0,-1.85,0],color=PURPLE,stroke_width=5))
-    hairs = VGroup(*[Line([x,1,0],[x,1.45-abs(x)*0.8,0],color=GREY,stroke_width=3)
-                     for x in [-0.22,-0.11,0,0.11,0.22]])
-    return VGroup(body, hairs, ending)
-
-
-def vesicles(x, y):
-    ribbon = RoundedRectangle(width=0.13, height=0.38, corner_radius=0.04,
-                              color=GREY, fill_opacity=0.6).move_to([x,y,0])
-    packets = VGroup(*[Circle(radius=0.065, color=TEXT, fill_opacity=0.7)
-                      .move_to([x+dx,y+dy,0]) for dx,dy in [(-0.19,-0.15),(-0.19,0.08),(0.19,-0.15),(0.19,0.08)]])
-    return VGroup(ribbon, packets)
-
-
-def eye_neck():
-    eye = VGroup(Ellipse(width=1.15,height=0.55,color=TEXT),Circle(radius=0.18,color=TEXT))
-    neck = VGroup(head_icon(TEXT,0.55).move_to([0,-1.0,0]),
-                  Line([-0.2,-1.35,0],[-0.2,-1.8,0],color=TEXT),
-                  Line([0.2,-1.35,0],[0.2,-1.8,0],color=TEXT))
-    return VGroup(eye, neck)
-
+def closing():
+    return VGroup(title('Report It Twice'),label('Regular',-4.7,2.25,BLUE,28),
+        spike_train(-5.7,5.7,1.2,gamma_spikes(.05),BLUE,.65),
+        label('Irregular',-4.6,.65,PURPLE,28),spike_train(-5.7,5.7,-.4,gamma_spikes(.5,seed=19),PURPLE,.65),
+        label('Two overlapping channels report every head turn.',0,-1.25,size=30),
+        label('Fast reports are thought to help hold the world still.',0,-1.95,size=28),
+        label('Matching neck feedback: mainly the surprise passes on.',0,-2.6,size=26),
+        foot('Tested neurons · may help spare intended turns · reflex role still open'))
 
 class S00Title(TitleCard):
-    LESSON = "Balance: vestibular hair cells and self-motion"
-    TITLE = "Two Channels for One Head Turn"
-
-
-class S01TwoChannels(SpokenScene):
+    LESSON='Balance: Two Codes for Every Head Movement'
+    TITLE='Report It Twice'
     def construct(self):
-        head = head_icon(TEXT,1.3).move_to([-4.8,2.15,0])
-        turn = turn_arrow(head.get_center(),TEXT,r=1.08)
-        ax = Axes(x_range=[0,1,1],y_range=[0,1.2,1],x_length=6.5,y_length=1.25,
-                  tips=False,axis_config={"include_ticks":False,"stroke_color":GREY})
-        ax.move_to([0.7,2.1,0])
-        vel = ax.plot(lambda t: 0.5*(np.tanh((t-0.2)*25)-np.tanh((t-0.8)*25)),
-                      x_range=[0,1,0.01],color=TEXT,stroke_width=4)
-        vl = T("head velocity · schematic",24,GREY).move_to([0.7,3.25,0])
-        self.at("Every head movement")
-        self.play(FadeIn(head),Create(turn),Create(ax),FadeIn(vl),run_time=0.7)
-        self.play(Rotate(head,-PI/3),Create(vel),run_time=1.2)
-        split = VGroup(arr([-2.7,1.55,0],[-3.1,0.2,0],BLUE),
-                       arr([-2.7,1.55,0],[-3.1,-1.45,0],PURPLE))
-        self.at("two kinds")
-        self.play(*[GrowArrow(a) for a in split],run_time=0.7)
-        reg = spike_train(-2.6,2.8,0.1,np.linspace(0.02,0.98,14),BLUE)
-        rl = lines2("regular","rate",BLUE).move_to([-4.9,-0.1,0])
-        self.at("Regular afferents")
-        self.play(FadeIn(rl),Create(reg),run_time=1.0)
-        # A smooth density change follows the sustained velocity plateau.
-        dense = np.array([0.02,0.15,0.24,0.30,0.36,0.42,0.48,0.54,0.60,0.66,0.72,0.80,0.90,0.98])
-        self.at("sustained motion")
-        self.play(Transform(reg,spike_train(-2.6,2.8,0.1,dense,BLUE)),run_time=1.0)
-        irr = spike_train(-2.6,2.8,-1.55,[0.03,0.12,0.24,0.28,0.49,0.68,0.73,0.92],PURPLE)
-        il = lines2("irregular","timing",PURPLE).move_to([-4.9,-1.8,0])
-        self.at("Irregular afferents")
-        self.play(FadeIn(il),Create(irr),run_time=0.8)
-        self.at("rapid changes")
-        self.play(Transform(irr,spike_train(-2.6,2.8,-1.55,
-                   [0.03,0.19,0.20,0.215,0.24,0.47,0.73,0.78,0.79,0.815,0.83,0.98],PURPLE)),run_time=1.0)
-        self.at("Two channels")
-        self.play(Indicate(reg,color=BLUE),Indicate(irr,color=PURPLE),run_time=0.8)
-        outputs = eye_neck().move_to([5.15,-0.5,0])
-        links = VGroup(arr([3.0,0.2,0],[3.85,-0.45,0],BLUE),
-                       arr([3.0,-1.4,0],[3.85,-0.45,0],PURPLE),
-                       arr([3.85,-0.45,0],[4.5,0.15,0],GREY),
-                       arr([3.85,-0.45,0],[4.5,-1.2,0],GREY))
-        ol = T("gaze + posture",24,TEXT).move_to([4.95,-2.35,0])
-        self.at("Together they feed")
-        self.play(FadeIn(outputs),FadeIn(ol),*[GrowArrow(a) for a in links],run_time=0.9)
+        self.add(VGroup(T('BIOCHEMISTRYPEDIA',26,GREY),T(self.LESSON,28),
+            T(self.TITLE,54,font=TITLE_FONT)).arrange(DOWN,buff=.5))
         self.finish()
 
-
-class S02Map(SpokenScene):
+class S01Q(SpokenScene):
     def construct(self):
-        title = T("Where do the channels start?",36,font=TITLE_FONT).move_to([0,3.15,0])
-        outer = Ellipse(width=7,height=3.8,color=GREY,fill_opacity=0.12)
-        centre = Ellipse(width=3,height=2.6,color=PURPLE,fill_opacity=0.15)
-        zones = VGroup(outer,centre,T("outer zone",24,BLUE).move_to([-2.35,0.7,0]),
-                       T("central zone",24,PURPLE).move_to([0,0.45,0]))
-        self.at("Where does each")
-        self.play(FadeIn(title),FadeIn(zones),run_time=0.7)
-        f1 = VMobject(color=BLUE,stroke_width=6).set_points_as_corners([[-5,-2,0],[-3.5,-1.7,0],[-2,-0.3,0]])
-        f2 = VMobject(color=PURPLE,stroke_width=6).set_points_as_corners([[5,-2,0],[2.5,-1.7,0],[0,-0.3,0]])
-        self.at("Recordings from single")
-        self.play(Create(f1),Create(f2),run_time=1.0)
-        self.at("traced back with dye")
-        self.play(ShowPassingFlash(f1.copy().set_stroke(width=12)),
-                  ShowPassingFlash(f2.copy().set_stroke(width=12)),run_time=1.0)
-        c2 = hair_cell(2).move_to([-3,0,0])
-        c1 = hair_cell(1).move_to([3,0,0])
-        lab2 = lines2("outer zone · mostly regular","type II + boutons",BLUE,24).move_to([-3,2.45,0])
-        lab1 = lines2("central zone · mostly irregular","type I + calyx",PURPLE,24).move_to([3,2.45,0])
-        self.at("Regular fibers mostly")
-        self.play(FadeOut(VGroup(zones,f1,f2,title)),FadeIn(lab2),run_time=0.6)
-        self.at("type 2 hair cells")
-        self.play(FadeIn(c2),run_time=0.7)
-        self.at("bouton endings")
-        self.play(Indicate(c2[2],color=BLUE),run_time=0.7)
-        self.at("Irregular fibers mostly")
-        self.play(FadeIn(lab1),run_time=0.6)
-        self.at("type 1 cells")
-        self.play(FadeIn(c1[:2]),run_time=0.7)
-        self.at("ending called a calyx")
-        self.play(Create(c1[2]),run_time=0.8)
-        note = bchip("populations, not rules",GREY,26).move_to([0,-2.8,0])
-        self.at("map holds for populations")
-        self.play(FadeIn(note),run_time=0.7)
+        world=VGroup(*[Rectangle(width=1.5,height=h,color=GREY,fill_opacity=.12).move_to([x,-1.5+h/2,0])
+                      for x,h in [(-4.9,3.3),(-3.1,2.4),(3.1,2.7),(4.9,3.5)]])
+        torso=VGroup(Circle(radius=.45,color=TEXT).move_to([0,1.55,0]),
+            Line([0,1.1,0],[0,-.75,0],color=TEXT,stroke_width=7),
+            Line([0,.6,0],[-.8,-.15,0],color=TEXT,stroke_width=6),
+            Line([0,.6,0],[.8,-.15,0],color=TEXT,stroke_width=6))
+        def legs(sign):
+            return VGroup(
+                VMobject(color=TEXT,stroke_width=7).set_points_as_corners(
+                    [[0,-.75,0],[sign*.6,-1.35,0],[sign*1.1,-2.25,0]]),
+                VMobject(color=TEXT,stroke_width=7).set_points_as_corners(
+                    [[0,-.75,0],[-sign*.65,-1.65,0],[-sign*.2,-2.0,0]]))
+        leg=legs(1)
+        self.add(world,torso,leg,label('Severe loss in both balance organs',0,3.15,size=32),
+                 label('How does a healthy balance nerve prevent this?',0,-3.15,size=28))
+        self.at('world bounce')
+        for sign in [-1,1,-1,1,-1,1]:
+            self.play(world.animate.shift(UP*(1.1*sign)),Transform(leg,legs(sign)),
+                      torso.animate.shift(UP*(.12*sign)),run_time=.33)
         self.finish()
 
-
-class S03Calyx(SpokenScene):
+class S04Organs(SpokenScene):
     def construct(self):
-        c2 = hair_cell(2).move_to([-3,0,0])
-        c1 = hair_cell(1).move_to([3,0,0])
-        lab2 = T("type II",28,BLUE).move_to([-3,2.45,0])
-        lab1 = T("type I + calyx",28,PURPLE).move_to([3,2.45,0])
-        self.at("The calyx is built")
-        self.play(FadeIn(c2),FadeIn(c1),FadeIn(lab2),FadeIn(lab1),run_time=0.6)
-        v2,v1 = vesicles(-3,-0.55),vesicles(3,-0.55)
-        quantal = T("both release glutamate",26,TEXT).move_to([0,-2.75,0])
-        self.at("Both hair cell types")
-        self.play(FadeIn(v2),FadeIn(v1),FadeIn(quantal),run_time=0.6)
-        self.at("release glutamate")
-        self.play(v2[1].animate.shift(DOWN*0.35),v1[1].animate.shift(DOWN*0.35),run_time=0.7)
-        mouse = T("mature mouse · release machinery missing",26,GREY).move_to([0,3.3,0])
-        self.at("Yet a mature mouse")
-        self.play(FadeIn(mouse),v1.animate.set_opacity(0.15),FadeOut(quantal),run_time=0.6)
-        spikes = spike_train(1.3,4.7,-2.35,[0.05,0.3,0.36,0.62,0.9],PURPLE)
-        self.at("still made its calyx fire")
-        self.play(Create(spikes),Indicate(c1[2],color=PURPLE),run_time=0.8)
-        missing = bchip("either release protein absent",GREY,24).move_to([0,-3.15,0])
-        self.at("either of two proteins")
-        self.play(FadeIn(missing),run_time=0.6)
-        turtle = T("turtle · paired recordings · possible route",28,GREY).move_to([0,3.25,0])
-        pair = hair_cell(1).move_to([-3.8,0.1,0])
-        pips = VGroup(Polygon([-6,2.1,0],[-5.8,2.3,0],[-3.9,0.6,0],color=GREY,fill_opacity=0.2),
-                      Polygon([-2.5,2.35,0],[-2.2,2.25,0],[-3.0,-0.2,0],color=GREY,fill_opacity=0.2))
-        membranes = VGroup(Line([0,-1.7,0],[0,1.5,0],color=GREY,stroke_width=8),
-                           Line([4,-1.7,0],[4,1.5,0],color=PURPLE,stroke_width=8))
-        labels = VGroup(T("hair cell",24,GREY).move_to([0,2,0]),T("calyx",24,PURPLE).move_to([4,2,0]),
-                        T("cleft · enlarged",24,GREY).move_to([2,-2.1,0]))
-        self.at("Recordings in turtles")
-        self.play(FadeOut(VGroup(c1,c2,lab1,lab2,v1,v2,mouse,missing,spikes)),
-                  run_time=0.3)
-        self.play(FadeIn(turtle),FadeIn(pair),FadeIn(pips),FadeIn(membranes),FadeIn(labels),run_time=0.5)
-        fast = DoubleArrow([0.2,0.85,0],[3.8,0.85,0],buff=0,color=PURPLE,stroke_width=5)
-        fl = T("current · fast",24,PURPLE).move_to([2,1.3,0])
-        slow = DoubleArrow([0.2,-0.8,0],[3.8,-0.8,0],buff=0,color=PURPLE,stroke_width=4)
-        sl = T("potassium · slower",24,PURPLE).move_to([2,-1.3,0])
-        cloud = VGroup(*[Dot([0.4+i*0.35,-0.35+0.08*(i%2),0],radius=0.055,color=PURPLE) for i in range(8)])
-        self.at("Current and potassium")
-        self.play(GrowArrow(fast),FadeIn(fl),run_time=0.35)
-        self.play(GrowArrow(slow),FadeIn(sl),FadeIn(cloud),run_time=0.7)
-        self.play(cloud.animate.shift(RIGHT*0.6),run_time=0.8)
-        no = T("no vesicles · no gap junctions",26,TEXT).move_to([0,-3.05,0])
-        self.at("with no vesicles")
-        self.play(FadeIn(no),run_time=0.6)
-        self.at("little synaptic delay")
-        self.play(Indicate(fast,color=PURPLE),run_time=0.65)
+        a,b=organ_panel(-3.15),organ_panel(3.15,False)
+        self.add(a,b,foot('Every organ sends both kinds'))
+        self.at('Each organ')
+        self.play(Indicate(a[3],color=BLUE),Indicate(b[3],color=PURPLE),run_time=.7)
         self.finish()
 
-
-class S04Built(SpokenScene):
+class S05Canal(SpokenScene):
     def construct(self):
-        hypothesis = lines2("short delay → fast reflexes","proposed in reviews",PURPLE,28).move_to([0,0.5,0])
-        self.at("Reviews propose")
-        self.play(FadeIn(hypothesis),run_time=0.7)
-        timeline = VGroup(arr([-5.6,2.2,0],[5.5,2.2,0],GREY),
-                          T("young mouse",26,GREY).move_to([-4.8,2.8,0]),
-                          T("maturing",26,TEXT).move_to([4.8,2.8,0]))
-        self.at("channels form as")
-        self.play(FadeOut(hypothesis),FadeIn(timeline),run_time=0.6)
-        mem = Line([-4.8,-1.6,0],[-4.8,0.8,0],color=GREY,stroke_width=8)
-        ml = T("K+ channels",24,TEXT).move_to([-4.8,1.25,0])
-        chans = VGroup(*[RoundedRectangle(width=0.35,height=0.28,corner_radius=0.05,
-                                         color=TEXT,fill_opacity=0.5).move_to([-4.8,y,0]) for y in [-1,-0.4,0.2]])
-        ax = Axes(x_range=[0,1,1],y_range=[0,1,1],x_length=2,y_length=1.65,tips=False,
-                  axis_config={"include_ticks":False,"color":GREY}).move_to([-1.6,-0.3,0])
-        curve = ax.plot(lambda t:1-np.exp(-2*t),x_range=[0,1,0.02],color=TEXT)
-        cl = T("hair-cell signal",24,TEXT).move_to([-1.6,1.25,0])
-        cal = hair_cell(1).scale(0.65).move_to([1.55,-0.45,0])
-        calab = T("type I → calyx",24,PURPLE).move_to([1.55,1.25,0])
-        fibre = spike_train(3.6,5.9,-0.7,np.linspace(0,1,9),PURPLE)
-        fl = T("fibre spikes",24,PURPLE).move_to([4.8,1.25,0])
-        self.at("In young mice")
-        self.play(Create(mem),Create(ax),Create(curve),FadeIn(cal),Create(fibre),FadeIn(VGroup(ml,cl,calab,fl)),run_time=0.6)
-        self.at("new potassium channels")
-        self.play(FadeIn(chans),run_time=0.6)
-        self.at("speed up hair cell signals")
-        self.play(Transform(curve,ax.plot(lambda t:1-np.exp(-9*t),x_range=[0,1,0.02],color=TEXT)),run_time=0.7)
-        direct = arr([0.8,-1.65,0],[2.3,-1.65,0],PURPLE)
-        self.at("make type 1 transmission")
-        self.play(GrowArrow(direct),Indicate(cal[2],color=PURPLE),run_time=0.6)
-        self.at("make afferent firing")
-        self.play(Transform(fibre,spike_train(3.6,5.9,-0.7,[0.01,0.05,0.22,0.49,0.53,0.55,0.8,0.98],PURPLE)),run_time=0.7)
-        h = head_icon(TEXT,1.3).move_to([-3.7,0,0])
-        conductor = RoundedRectangle(width=0.5,height=0.8,corner_radius=0.1,color=TEXT,fill_opacity=0.3).move_to([-4.65,0,0])
-        name = T("sound + bone vibration",30,TEXT).move_to([0,2.7,0])
-        reg = spike_train(-0.8,4.7,0.5,np.linspace(0,1,12),BLUE).set_opacity(0.4)
-        irr = spike_train(-0.8,4.7,-1,[0.02,0.18,0.2,0.21,0.5,0.7,0.73,0.77,0.98],PURPLE).set_opacity(0.4)
-        labels = VGroup(T("regular",24,BLUE).move_to([1.8,1.2,0]),T("irregular",24,PURPLE).move_to([1.8,-1.7,0]))
-        self.at("Clinicians use")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.3)
-        self.play(FadeIn(h),FadeIn(conductor),FadeIn(name),FadeIn(reg),FadeIn(irr),FadeIn(labels),run_time=0.4)
-        self.at("Sound and vibration tests")
-        self.play(Wiggle(conductor,rotation_angle=0.08),run_time=0.8)
-        self.at("mostly drive")
-        self.play(irr.animate.set_opacity(1),run_time=0.35)
-        self.play(Indicate(irr,color=PURPLE),run_time=0.35)
-        mostly = bchip("mostly irregular fibres",PURPLE,28).move_to([0,-2.9,0])
-        self.play(FadeIn(mostly),run_time=0.4)
+        g=organ_panel(0).scale(1.12).shift(DOWN*.15)
+        self.add(g,title('Canal fibres · head rotation'))
+        # Remove panel headings to make room for the large chapter-focus title.
+        self.remove(g); g.remove(g[1],g[2]); self.add(g)
+        self.at('head rotation')
+        self.play(Rotate(g[0],PI/9),run_time=.6)
         self.finish()
 
-
-class S05Cancel(SpokenScene):
+class S06Rest(SpokenScene):
     def construct(self):
-        xl,xr = -3.3,3.3
-        hl = head_icon(GREEN,1.25).move_to([xl,1.6,0])
-        hr = head_icon(ORANGE,1.25).move_to([xr,1.6,0])
-        al = turn_arrow(hl.get_center(),GREEN,r=1.0)
-        ar = turn_arrow(hr.get_center(),ORANGE,r=1.0)
-        tl = T("own turn",28,GREEN).move_to([xl,3.2,0])
-        tr = T("passive turn",28,ORANGE).move_to([xr,3.2,0])
-        bl,tkl = ticks(-5.4,-1.2,0,12,BLUE,3,h=0.4)
-        br,tkr = ticks(1.2,5.4,0,12,BLUE,5,h=0.4)
-        firing = T("afferents: both keep firing",26,BLUE).move_to([0,-0.6,0])
-        self.at("Afferents fire")
-        self.play(FadeIn(hl),FadeIn(tl),Create(al),Create(bl),Create(tkl),run_time=0.6)
-        self.at("turn your head")
-        self.play(Rotate(hl,-PI/4),run_time=0.5)
-        self.at("something turns it")
-        self.play(FadeIn(hr),FadeIn(tr),Create(ar),Create(br),Create(tkr),FadeIn(firing),run_time=0.3)
-        self.play(Rotate(hr,-PI/4),run_time=0.3)
-        base = Line([-5.6,-2.25,0],[5.6,-2.25,0],color=GREY)
-        def response(x,height,color):
-            return Rectangle(width=1.0,height=height,color=color,fill_opacity=0.4).move_to([x,-2.25+height/2,0])
-        active = response(xl,0.18,YELLOW)
-        passive = response(xr,1.05,YELLOW)
-        tag = T("alert monkeys · Roy & Cullen",24,GREY).move_to([0,2.65,0])
-        nl = T("vestibular-only neuron response · schematic",24,YELLOW).move_to([0,-2.75,0])
-        self.at("In Alert Monkeys")
-        self.play(FadeIn(tag),Create(base),FadeIn(nl),run_time=0.6)
-        # Show the observed low active response only when it is spoken.
-        self.at("responded much less")
-        self.play(GrowFromEdge(passive,DOWN),FadeIn(active),run_time=0.8)
-        match = bchip("match?",GREY,26).move_to([0,0.8,0])
-        expected = bchip("prediction",GREEN,24).move_to([-1.65,1.65,0])
-        actual = bchip("neck feedback",TEALN,24).move_to([1.65,1.65,0])
-        links = VGroup(arr(expected.get_bottom(),match.get_top()+LEFT*0.25,GREEN),
-                       arr(actual.get_bottom(),match.get_top()+RIGHT*0.25,TEALN))
-        self.at("held only when")
-        self.play(FadeOut(tag),FadeIn(match),
-                  VGroup(hl,al,tl).animate.shift(LEFT*1.0),
-                  VGroup(hr,ar,tr).animate.shift(RIGHT*1.0),run_time=0.5)
-        self.at("neck feedback matched")
-        self.play(FadeIn(actual),run_time=0.5)
-        self.at("motor command predicted")
-        self.play(FadeIn(expected),*[GrowArrow(a) for a in links],
-                  Transform(match,bchip("match",GREEN,26).move_to(match)),run_time=0.65)
-        self.at("When the match failed")
-        self.play(Transform(match,bchip("mismatch",RED,26).move_to(match)),
-                  FadeOut(active),run_time=0.4)
-        self.at("response came back")
-        restored = response(xl,1.05,YELLOW)
-        self.play(GrowFromEdge(restored,DOWN),run_time=0.6)
+        self.add(title('Head still · both near 100 spikes/s'),
+            label('Regular',-4.6,2.1,BLUE,32),label('Irregular',-4.5,-.25,PURPLE,32),
+            spike_train(-5.7,5.7,.6,gamma_spikes(.05),BLUE,1.05),
+            spike_train(-5.7,5.7,-1.8,gamma_spikes(.5),PURPLE,1.05),
+            foot('Made-up gamma spike trains · 0.24 s shown'))
+        self.at('ticks like a clock')
+        self.play(Indicate(self.mobjects[3],color=BLUE),run_time=.6)
         self.finish()
 
-
-class S06Rule(SpokenScene):
+class S08Slow(SpokenScene):
     def construct(self):
-        title = T("Three ideas in order",34,font=TITLE_FONT).move_to([0,2.7,0])
-        self.at("Keep three ideas")
-        self.play(FadeIn(title),run_time=0.6)
-        def row(n,text,y,color):
-            badge = VGroup(Circle(radius=0.27,color=color,fill_opacity=0.16),M(str(n),24,color)).move_to([-5.9,y,0])
-            badge[1].move_to(badge[0])
-            label = T(text,28,color).next_to(badge,RIGHT,buff=0.35)
-            return VGroup(badge,label)
-        r1 = row(1,"Two channels",1.85,TEXT)
-        reg = spike_train(-0.8,4.9,1.7,np.linspace(0,1,14),BLUE)
-        irr = spike_train(-0.8,4.9,0.95,[0.02,0.17,0.2,0.21,0.5,0.7,0.73,0.77,0.98],PURPLE)
-        r2 = row(2,"Calyx without vesicles",-0.4,PURPLE)
-        calyx = hair_cell(1).scale(0.4).move_to([0.65,-0.4,0])
-        direct = arr([1.45,-0.4,0],[4.9,-0.4,0],PURPLE)
-        r3 = row(3,"Central cancelling",-1.9,YELLOW)
-        match = bchip("neck feedback = prediction",GREEN,24).move_to([2.4,-1.9,0])
-        self.at("ear splits head motion")
-        rate = T("rate",24,BLUE).move_to([5.65,1.85,0])
-        timing = T("timing",24,PURPLE).move_to([5.65,1.1,0])
-        self.play(FadeIn(r1),Create(reg),FadeIn(rate),run_time=0.7)
-        self.at("a fast channel")
-        self.play(Create(irr),FadeIn(timing),run_time=0.6)
-        self.at("calyx can drive")
-        self.play(FadeIn(r2),FadeIn(calyx),run_time=0.6)
-        self.at("without vesicles")
-        self.play(GrowArrow(direct),run_time=0.6)
-        self.at("thought to keep")
-        self.play(ShowPassingFlash(direct.copy()),run_time=0.6)
-        self.at("neurons tested")
-        self.play(FadeIn(r3),run_time=0.6)
-        self.at("neck feedback matched")
-        self.play(FadeIn(match),run_time=0.6)
-        last = T("You still feel your own turns",32,TEXT,font=TITLE_FONT).move_to([0,-3.1,0])
-        self.at("You still feel")
-        self.play(FadeIn(last),run_time=0.6)
-        self.at("What changes is the reflex")
-        self.play(Indicate(r3,color=YELLOW),run_time=0.7)
+        sine=lambda t:np.sin(2*PI*t)
+        axes=VGroup(Line([-5.4,1.25,0],[5.4,1.25,0],color=GREY),
+            Line([-5.4,-1.45,0],[5.4,-1.45,0],color=GREY))
+        v=trace(sine,1.25,TEXT,.7)
+        r=trace(sine,-1.45,BLUE,.7)
+        self.add(title('A slow head turn'),axes,v,
+            label('Head velocity · degrees per second',0,2.45,size=28),
+            label('Regular rate · spikes per second',0,-.05,BLUE,28),
+            label('0',-5.85,1.25,GREY,26),label('100',-5.95,-1.45,GREY,26),
+            foot('Sine teaching model · rate = 100 + 0.5 × velocity · time →'))
+        self.at('regular')
+        self.play(Create(r),run_time=.7)
+        self.at('rate rises')
+        ts=np.linspace(0,1,4001)
+        # Four seconds of 100 + 10 sin(2πt) spikes/s; display every twentieth spike.
+        cum=np.cumsum(4*(100+10*np.sin(2*PI*ts)))/4000
+        events=np.interp(np.arange(10,cum[-1],20),cum,ts)
+        ticks=VGroup(*[Line([-5.25+10.5*t,-1.45+.7*sine(t),0],
+                           [-5.25+10.5*t,-1.1+.7*sine(t),0],color=BLUE) for t in events])
+        self.play(Create(ticks),run_time=.7)
         self.finish()
 
+class S09Fast(SpokenScene):
+    def construct(self):
+        pulse=lambda t:np.exp(-((t-.5)/.045)**2)
+        reg=trace(pulse,-.25,BLUE,.55)
+        irr=trace(pulse,-1.85,PURPLE,1.05)
+        self.add(title('A sudden change'),trace(pulse,1.45,TEXT,.65),
+            label('Head velocity',-3.7,2.45,size=28),
+            label('Regular · lower gain',-3.5,.45,BLUE,28),reg,
+            label('event',1.05,1.85,GREY,26),
+            Line([0,1.0,0],[0,1.45,0],color=GREY),
+            foot('Teaching model · sharp velocity pulse · time →'))
+        t=np.linspace(0,1,2000); rate=3+100*np.exp(-((t-.5)/.045)**2)
+        cum=np.cumsum(rate)/2000
+        ev=np.interp(np.arange(.5,cum[-1],1),cum,t)
+        self.at('irregular fiber')
+        self.play(Create(irr),FadeIn(label('Irregular · higher gain',-3.5,-1.0,PURPLE,28)),
+                  Create(spike_train(-5.25,5.25,-2.7,ev,PURPLE,.5)),run_time=.7)
+        self.at('spikes lock')
+        self.play(Indicate(irr,color=PURPLE,scale_factor=1.02),run_time=.5)
+        self.finish()
 
-class S07End(EndCard):
-    LINE = "The ear splits head motion into a sustained and a fast channel."
+class S11Paradox(SpokenScene):
+    def construct(self):
+        g=prediction_cards()
+        g.remove(g[0],*g[3:])
+        self.add(title('Lower gain, better detection?'),g,
+            label('Small, slow turns',0,-2.1,size=32),foot('Gain alone does not set the detection threshold'))
+        self.at('lower gain')
+        self.play(Indicate(g[0],color=BLUE),run_time=.6)
+        self.finish()
+
+class S12Predict(SpokenScene):
+    def construct(self):
+        g=prediction_cards(); self.add(g)
+        self.at('three times the gain')
+        self.play(Indicate(g[3],color=PURPLE),run_time=.6)
+        self.finish()
+
+class S13Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG
+        self.add(prediction_cards()); self.wait(5)
+
+class S14Rule(SpokenScene):
+    def construct(self):
+        self.add(title('A rate change must stand out'),
+            label('threshold = rate noise / gain',0,1.85,size=42),
+            label('One standard deviation shift · 1 s window',0,.9,GREY,28),
+            label('Regular gain: 0.5',-3.15,-.05,BLUE,30),
+            label('Irregular gain: 1.5',3.15,-.05,PURPLE,30),
+            foot('Made-up gamma counting decoder · random window'))
+        self.at('stands out')
+        self.play(FadeIn(label('Rate noise',0,-.9,size=28)),run_time=.35)
+        self.at('made up counting')
+        self.play(FadeIn(label('0.65 spikes/s',-3.15,-1.9,BLUE,36)),
+                  FadeIn(label('5.0 spikes/s',3.15,-1.9,PURPLE,36)),run_time=.6)
+        self.finish()
+
+class S15Answer(SpokenScene):
+    def construct(self):
+        g=threshold_cards()
+        self.add(title('Threshold for a small turn · 1 s'),g,
+            label('Lower threshold detects a smaller turn',0,-2.55,GREY,28),foot('Made-up gamma-process model · not measured thresholds'))
+        self.at('fiber wins')
+        self.play(g[0][0].animate.set_fill(BLUE,opacity=.3).set_stroke(BLUE,width=7),
+                  FadeIn(label('Lower threshold',-3.15,-1.48,BLUE,26)),run_time=.5)
+        self.finish()
+
+class S16Window(SpokenScene):
+    def construct(self):
+        g=threshold_cards()
+        bar=Rectangle(width=10,height=.4,color=TEXT,fill_opacity=.7).move_to([0,2.25,0])
+        track=Rectangle(width=10,height=.4,color=GREY,stroke_width=2).move_to(bar)
+        wlabel=label('1 s window',0,2.77,GREY,26)
+        ratio=label('Regular advantage: about 2.6-fold',0,-2.5,BLUE,28)
+        self.add(title('Less time to count spikes'),g,track,bar,wlabel,ratio,
+                 foot('Made-up model · not measured thresholds'))
+        self.at('tenth of a second')
+        newbar=Rectangle(width=1,height=.4,color=TEXT,fill_opacity=.7).move_to([-4.5,2.25,0])
+        self.play(Transform(bar,newbar),
+                  Transform(wlabel,label('0.1 s window',0,2.77,GREY,26)),run_time=.6)
+        self.at('both thresholds rise')
+        new=threshold_cards(True)
+        self.play(FadeOut(g),FadeIn(new),
+                  Transform(ratio,label('Regular advantage: about 1.5-fold',0,-2.5,BLUE,28)),run_time=.5)
+        self.at('lead shrinks')
+        self.play(Indicate(ratio,color=BLUE,scale_factor=1.03),run_time=.5)
+        self.finish()
+
+class S17Repeat(SpokenScene):
+    def construct(self):
+        stack=replay_stack()
+        self.add(title('Same jittery head motion, replayed'),stack,
+            foot('Computed motion · five schematic replays'))
+        self.at('Replay the same')
+        self.play(LaggedStart(*[Indicate(x,color=TEXT,scale_factor=1.01) for x in stack],lag_ratio=.15),run_time=1.4)
+        self.finish()
+
+class S18Predict(SpokenScene):
+    def construct(self):
+        g=timing_question(); self.add(g)
+        self.at('could their timing')
+        self.play(Indicate(g[0],color=PURPLE),run_time=.6)
+        self.finish()
+
+class S19Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG
+        self.add(timing_question()); self.wait(5)
+
+class S20Reveal(SpokenScene):
+    def construct(self):
+        self.add(title('Different motion, different timing'),
+            label('A',-6,1.85,size=42),label('B',-6,-.65,size=42),
+            trace(motion,1.9,TEXT,.65),trace(lambda t:motion(t,1),-.6,TEXT,.65),
+            foot('Lacquaniti et al., 2023 · computed illustration, not recordings'))
+        def repeats(v,y):
+            return VGroup(*[spike_train(-5.25,5.25,y-j*.28,event_times(v),PURPLE,.22) for j in range(3)])
+        self.at('precisely timed spikes')
+        self.play(Create(repeats(0,1.0)),run_time=.6)
+        self.at('different motions apart')
+        self.play(Create(repeats(1,-1.5)),run_time=.6)
+        self.at('Irregular at rest')
+        self.play(FadeIn(label('Irregular at rest, precise when it matters',0,-2.65,PURPLE,28)),run_time=.5)
+        self.finish()
+
+class S22Fade(SpokenScene):
+    def construct(self):
+        self.add(title('A long turn at constant speed'),
+            label('Head velocity',-3.9,2.55,size=28),label('Regular',0,.65,BLUE,28),
+            label('Irregular',0,-1.15,PURPLE,28),
+            foot('Teaching model · exponential canal adaptation · time →'))
+        for y,c in [(1.45,TEXT),(-.15,BLUE),(-2,PURPLE)]:
+            self.add(Line([-5.25,y,0],[5.25,y,0],color=GREY,stroke_width=1))
+        self.add(label('rest',5.85,-.15,BLUE,26),label('rest',5.85,-2,PURPLE,26))
+        self.at('long turn')
+        self.play(Create(trace(lambda t:.65 if t>=.08 else 0,1.45,TEXT)),run_time=.8)
+        self.at('signal fades')
+        self.play(Create(trace(lambda t:0 if t<.08 else .95*np.exp(-(t-.08)/.22),-.15,BLUE)),
+                  Create(trace(lambda t:0 if t<.08 else 1.25*np.exp(-(t-.08)/.075),-2,PURPLE)),run_time=1.6)
+        self.finish()
+
+class S24Idea(SpokenScene):
+    def construct(self):
+        self.add(callout())
+        h=head_icon(.43).move_to([5.65,3.1,0]); self.add(h)
+        self.at('head motion')
+        self.play(Rotate(h,-PI/6),run_time=.4)
+        self.at('two overlapping channels')
+        self.play(Indicate(self.mobjects[0][4],color=BLUE),
+                  Indicate(self.mobjects[0][5],color=PURPLE),run_time=.6)
+        self.at('whoever caused it')
+        self.play(FadeIn(foot('The peripheral nerve reports motion, whoever caused it')),run_time=.4)
+        self.finish()
+
+class S25Regular(SpokenScene):
+    def construct(self):
+        self.add(callout())
+        self.at('regular fibers')
+        full=callout(1)
+        self.play(FadeIn(VGroup(*full[7:])),run_time=.7)
+        self.finish()
+
+class S26Irregular(SpokenScene):
+    def construct(self):
+        self.add(callout(1))
+        self.at('Irregular fibers')
+        full=callout(2)
+        self.at('higher gain')
+        self.play(FadeIn(full[9]),run_time=.4)
+        self.at('more response')
+        self.play(Indicate(full[9],color=PURPLE,scale_factor=1.02),run_time=.4)
+        self.at('well timed spikes')
+        self.play(FadeIn(full[10]),Create(full[11]),run_time=.5)
+        self.play(FadeIn(label('Otoliths: same contrast for acceleration and tilt',0,-2.85,GREY,26)),
+                  FadeIn(foot('Regularity is a continuum')),run_time=.5)
+        self.finish()
+
+class S27Central(SpokenScene):
+    def construct(self):
+        summary=callout(2); self.add(summary)
+        self.at('head posture neurons')
+        summary3=callout(3)
+        self.play(FadeIn(VGroup(*summary3[12:])),run_time=.4)
+        self.at('your own turn')
+        # Zoom from the completed summary into the central comparison.
+        self.play(FadeOut(summary),FadeOut(VGroup(*summary3[12:])),run_time=.25)
+        self.add(title('Tested head-posture neurons'),
+            head_icon(1.25).move_to([-4.55,1.4,0]),turn_arrow([-4.55,1.4,0],1.05),
+            chip('Vestibular-only neuron',TEXT,28).move_to([1.5,2.2,0]),
+            Line([-.75,1.55,0],[3.8,1.55,0],color=GREY),
+            Line([1.5,1.9,0],[1.5,1.55,0],color=GREY),
+            Line([-.75,1.55,0],[-.75,1.1,0],color=GREY),
+            Line([3.8,1.55,0],[3.8,1.1,0],color=GREY),
+            label('Needs matching neck feedback',1.5,.85,GREY,26),
+            label('Same turn size',-4.4,-.1,GREY,26),
+            label('Passive',-.75,.2,size=28),label('Self-made',3.8,.2,size=28),
+            label('40 spikes/s',-.75,-.4,size=28),
+            Rectangle(width=1.5,height=1.8,color=GREY,fill_opacity=.5).move_to([-.75,-1.65,0]),
+            foot('Made-up response modulation · same 20°/s turn'))
+        self.at('largely canceled')
+        self.play(GrowFromEdge(Rectangle(width=1.5,height=.18,color=GREY,fill_opacity=.5).move_to([3.8,-2.46,0]),DOWN),
+                  FadeIn(label('4 spikes/s',3.8,-1.85,size=28)),run_time=.5)
+        self.at('neck feedback matches')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.25)
+        self.play(FadeIn(callout(3)),FadeIn(foot('Needs matching neck feedback · tested neurons')),run_time=.5)
+        self.finish()
+
+class S29Takeaway(SpokenScene):
+    def construct(self):
+        g=closing(); self.add(g)
+        self.at('are thought to help')
+        self.play(Indicate(g[6],color=TEXT,scale_factor=1.02),run_time=.6)
+        self.at('Muting matched')
+        self.play(Indicate(g[7],color=TEXT,scale_factor=1.02),run_time=.6)
+        self.at('may help')
+        self.play(Indicate(g[8],color=GREY,scale_factor=1.02),run_time=.6)
+        self.finish()
+
+class S23End(EndCard):
+    LINE='Two overlapping channels report every head turn.'
+    def construct(self):
+        self.add(closing())
+        self.finish()
