@@ -1,0 +1,267 @@
+---
+/**
+ * The curiosity router: "What are you curious about?" A visitor types a few words and gets
+ * three lessons from this site, each with a one-sentence reason it fits and a marker for
+ * where to start. It recommends lessons only. It never answers the question, it is not a
+ * chat, and it keeps no conversation (worker/curious.js is the other half).
+ *
+ * The box is OFF until the Worker says it is on. It starts hidden, asks GET /api/curious,
+ * and stays hidden on anything but a 200: the switch is off, no key is set, the page is
+ * served without the Worker (astro dev), or JavaScript is disabled. So it can sit on a page
+ * today and appear only when the feature is switched on.
+ *
+ * Every word of a card except the one-sentence reason is the site's own: the title, the
+ * course and the link come from the real catalog, not from the model.
+ *
+ * Usage: <CuriosityRouter />   (see src/pages/curious.astro)
+ * Props: `idBase` if two boxes share a page; `endpoint` to point somewhere else in tests.
+ */
+interface Props {
+  idBase?: string;
+  endpoint?: string;
+}
+const { idBase = 'cr', endpoint = '/api/curious' } = Astro.props;
+---
+
+<section class="cr" data-curiosity-router data-endpoint={endpoint} aria-labelledby={`${idBase}-h`} hidden>
+  <h2 class="cr-title" id={`${idBase}-h`}>What are you curious about?</h2>
+
+  <form class="cr-form" novalidate>
+    <label class="cr-label" for={`${idBase}-q`}>Say it in your own words and we will suggest three lessons.</label>
+    <textarea
+      class="cr-input" id={`${idBase}-q`} name="q" rows="2" maxlength="300" enterkeyhint="go"
+      autocomplete="off" spellcheck="true" placeholder="For example: why do leaves change color"
+      aria-describedby={`${idBase}-note`}></textarea>
+    <div class="cr-row">
+      <button class="cr-go" type="submit">Suggest lessons</button>
+      <span class="cr-count" aria-hidden="true"><span data-cr-count>0</span> / 300</span>
+    </div>
+  </form>
+
+  <div class="cr-try" role="group" aria-label="Example questions">
+    <span class="cr-try-label">Or try:</span>
+    <button class="cr-chip" type="button">why do leaves change color</button>
+    <button class="cr-chip" type="button">how vaccines work</button>
+    <button class="cr-chip" type="button">MCAT kinetics</button>
+  </div>
+
+  <p class="cr-status" role="status" aria-live="polite"></p>
+  <ol class="cr-cards" aria-label="Suggested lessons"></ol>
+  <p class="cr-more" hidden>
+    Not quite right? <a href="/search/">Search every lesson</a> or <a href="/paths/">choose a path</a>.
+  </p>
+
+  <p class="cr-note" id={`${idBase}-note`}>
+    <span data-cr-note>Uses an AI model to suggest lessons. Your question is not stored.</span>
+  </p>
+</section>
+
+<script>
+  interface Pick {
+    slug: string; title: string; courseTitle: string; level: string;
+    href: string; reason: string; order: 'start' | 'next' | 'deeper';
+  }
+  interface Reply { ok?: boolean; kind?: 'lessons' | 'general'; results?: Pick[]; error?: string; off?: boolean; capped?: boolean; limited?: boolean }
+
+  const BADGE = { start: 'Start here', next: 'Then', deeper: 'Go deeper' } as const;
+  const STORED = 'Uses an AI model to suggest lessons. Your question may be saved, without your name, to improve the suggestions.';
+
+  document.querySelectorAll<HTMLElement>('[data-curiosity-router]').forEach((root) => {
+    const endpoint = root.dataset.endpoint || '/api/curious';
+    const form = root.querySelector<HTMLFormElement>('.cr-form')!;
+    const input = root.querySelector<HTMLTextAreaElement>('.cr-input')!;
+    const go = root.querySelector<HTMLButtonElement>('.cr-go')!;
+    const count = root.querySelector<HTMLElement>('[data-cr-count]')!;
+    const status = root.querySelector<HTMLElement>('.cr-status')!;
+    const cards = root.querySelector<HTMLOListElement>('.cr-cards')!;
+    const more = root.querySelector<HTMLElement>('.cr-more')!;
+    const note = root.querySelector<HTMLElement>('[data-cr-note]')!;
+    let busy = false;
+
+    // Show the box only if the Worker says the feature is on. Any failure leaves it hidden.
+    (async () => {
+      try {
+        const r = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+        if (!r.ok) return;
+        const d = (await r.json()) as { on?: boolean; storesQuestions?: boolean };
+        if (!d.on) return;
+        if (d.storesQuestions) note.textContent = STORED;
+        root.hidden = false;
+      } catch { /* stays hidden */ }
+    })();
+
+    const say = (s: string) => { status.textContent = s; };
+    const clear = () => { cards.replaceChildren(); more.hidden = true; };
+
+    input.addEventListener('input', () => { count.textContent = String(input.value.length); });
+    // Enter sends; Shift+Enter is not needed for a one-line question.
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); }
+    });
+    root.querySelectorAll<HTMLButtonElement>('.cr-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        input.value = chip.textContent || '';
+        count.textContent = String(input.value.length);
+        input.focus();
+      });
+    });
+
+    const render = (picks: Pick[]) => {
+      cards.replaceChildren(...picks.map((p) => {
+        const li = document.createElement('li');
+        li.className = 'cr-card';
+        li.dataset.order = p.order;
+        const badge = document.createElement('span');
+        badge.className = 'cr-badge';
+        badge.textContent = BADGE[p.order] ?? BADGE.next;
+        const meta = document.createElement('span');
+        meta.className = 'cr-meta';
+        meta.textContent = `${p.courseTitle} · ${p.level}`;
+        const h = document.createElement('h3');
+        h.className = 'cr-card-title';
+        const a = document.createElement('a');
+        // Only ever a lesson on this site, whatever came back.
+        a.href = /^\/lessons\/[a-z0-9-]+\/$/.test(p.href) ? p.href : '/search/';
+        a.textContent = p.title;
+        h.append(a);
+        const why = document.createElement('p');
+        why.className = 'cr-why';
+        why.textContent = p.reason;
+        li.append(badge, meta, h, why);
+        return li;
+      }));
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (busy) return;
+      const q = input.value.replace(/\s+/g, ' ').trim();
+      if (q.length < 3) { say('Type a few words about what you are curious about.'); input.focus(); return; }
+      busy = true;
+      go.disabled = true;
+      root.setAttribute('aria-busy', 'true');
+      root.classList.add('is-loading');
+      clear();
+      say('Looking through the lessons…');
+      try {
+        const r = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ q }),
+        });
+        const d = (await r.json().catch(() => ({}))) as Reply;
+        if (r.status === 503 && d.off) { root.hidden = true; return; }   // switched off while the page was open
+        if (!r.ok) {
+          say(d.error || 'Could not get suggestions just now. Try again, or use search.');
+          more.hidden = false;
+          return;
+        }
+        const picks = (d.results || []).slice(0, 3);
+        if (d.kind === 'lessons' && picks.length) {
+          render(picks);
+          say(picks.length === 1 ? 'One lesson fits:' : `${picks.length} lessons to try:`);
+        } else {
+          say('We could not match that to a lesson. These are two good ways in:');
+        }
+        more.hidden = false;
+      } catch {
+        say('Could not reach the suggester. Check your connection, or use search.');
+        more.hidden = false;
+      } finally {
+        busy = false;
+        go.disabled = false;
+        root.removeAttribute('aria-busy');
+        root.classList.remove('is-loading');
+      }
+    });
+  });
+</script>
+
+<style is:global>
+  .cr {
+    max-width: 44rem;
+    margin: 0;
+    padding: var(--ddp-space-4);
+    background: var(--ddp-color-surface);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: var(--ddp-radius);
+    color: var(--ddp-color-ink);
+  }
+  .cr[hidden] { display: none; }
+  .cr-title { font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.15; color: var(--ddp-color-primary); margin: 0 0 var(--ddp-space-2); }
+  .cr-label { display: block; font-size: var(--ddp-text-base); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-2); }
+  .cr-input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 4.2rem;
+    padding: 0.7rem 0.9rem;
+    font: inherit;
+    font-size: 1rem;               /* 16px: stops iOS zooming in on focus */
+    line-height: 1.4;
+    color: var(--ddp-color-ink);
+    background: var(--ddp-color-bg);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: var(--ddp-radius-sm);
+    resize: vertical;
+  }
+  .cr-input::placeholder { color: var(--ddp-color-muted); }
+  .cr-input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; border-color: var(--ddp-color-accent); }
+  .cr-row { display: flex; align-items: center; gap: var(--ddp-space-3); margin-top: var(--ddp-space-2); }
+  .cr-go {
+    font: inherit; font-weight: 700; font-size: var(--ddp-text-base);
+    min-height: 48px; padding: 0.55rem 1.3rem; cursor: pointer;
+    color: var(--ddp-color-surface); background: var(--ddp-color-primary);
+    border: 2px solid var(--ddp-color-primary); border-radius: 999px;
+  }
+  .cr-go:hover { background: var(--ddp-color-primary-soft); border-color: var(--ddp-color-primary-soft); }
+  .cr-go:disabled { opacity: 0.6; cursor: progress; }
+  .cr-count { margin-left: auto; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cr-try { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); margin-top: var(--ddp-space-3); }
+  .cr-try-label { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .cr-chip {
+    font: inherit; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft);
+    background: transparent; border: 1px solid var(--ddp-color-line); border-radius: 999px;
+    padding: 0.3em 0.85em; min-height: 36px; cursor: pointer; text-align: left;
+  }
+  .cr-chip:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .cr-status { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-base); color: var(--ddp-color-ink-soft); min-height: 1.4em; }
+  .cr-status:empty { display: none; }
+  .cr.is-loading .cr-status::before {
+    content: ''; display: inline-block; width: 0.9em; height: 0.9em; margin-right: 0.5em; vertical-align: -0.1em;
+    border: 2px solid var(--ddp-color-line); border-top-color: var(--ddp-color-accent); border-radius: 50%;
+    animation: cr-spin 0.8s linear infinite;
+  }
+  @keyframes cr-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .cr.is-loading .cr-status::before { animation: none; border-top-color: var(--ddp-color-line); } }
+  .cr-cards { list-style: none; margin: var(--ddp-space-3) 0 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  .cr-cards:empty { display: none; }
+  .cr-card {
+    position: relative;               /* the title link stretches over the whole card */
+    display: flex; flex-direction: column; gap: 0.3rem; min-width: 0;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    background: var(--ddp-color-bg); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius);
+  }
+  .cr-card:hover, .cr-card:focus-within { border-color: var(--ddp-color-accent); }
+  .cr-card[data-order='start'] { border-left: 4px solid var(--ddp-color-accent); }
+  .cr-badge { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; color: var(--ddp-color-accent); }
+  .cr-card[data-order='start'] .cr-badge { color: var(--ddp-color-primary); }
+  .cr-meta { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cr-card-title { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); line-height: 1.2; margin: 0; }
+  .cr-card-title a { color: var(--ddp-color-primary); text-decoration: none; overflow-wrap: anywhere; }
+  .cr-card-title a::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+  .cr-card-title a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .cr-card-title a:focus-visible { outline: none; }
+  .cr-card:has(a:focus-visible) { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cr-why { margin: 0; font-size: var(--ddp-text-base); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .cr-more { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-base); color: var(--ddp-color-ink-soft); }
+  .cr-more[hidden] { display: none; }
+  .cr-more a { color: var(--ddp-color-primary); font-weight: 600; text-underline-offset: 3px; }
+  .cr-note { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  @media (min-width: 720px) { .cr-cards { grid-template-columns: repeat(3, 1fr); } .cr { max-width: 60rem; } }
+  @media (max-width: 480px) {
+    .cr { padding: var(--ddp-space-3); }
+    .cr-row { flex-wrap: wrap; }
+    .cr-go { flex: 1 1 auto; }
+  }
+</style>
