@@ -1,361 +1,360 @@
-"""Sensory Systems: Five Ways to Turn a Stimulus into a Current
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one colour per concept, whole film)
-  YELLOW = tissue latency (the 40 microsecond delay across the sheet of hair cells)
-  BLUE   = channel (the transduction channel, CALHM channels) and channel time constant
-  PURPLE = molecular gain
-  ORANGE = behavioural latency
-  TEAL   = the 3 ms depolarizing pulse
-  GREEN  = activation fraction reached (gauges)
-  RED    = crossed out: not this, does not identify
-  GREY   = cells, membranes, axes, de-emphasized
-  TEXT   = labels
-  New narration: YELLOW also marks stimuli; TEAL electrical excitation;
-  GREEN current/output; PURPLE cascade enzymes/gain. Original palette retained.
+"""Chapter 1, reviewed redraw.
+COLOR MAP: YELLOW stimuli; BLUE channels / channel time constant;
+PURPLE (#B58CD9) cascade enzymes / molecular gain; ORANGE (#F29E4C)
+behavioural latency; TEAL electrical excitation; GREEN current / output;
+GREY cells / membranes / axes; TEXT labels; RED exclusion.
+Hair current: a=1-exp(-t/tau), tau=50 us (lesson teaching model).
+Rod: illustrative three-stage low-pass cascade impulse response,
+r(t)=(t/tp)^3 exp(3*(1-t/tp)), tp=100 ms. The lesson supplies only
+the approximate peak time, not a waveform: all rod plots say schematic.
+Voltage is -r(t), normalized (no invented mV data).
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
+from importlib.util import spec_from_file_location, module_from_spec
+_spec=spec_from_file_location('reference_film',Path(__file__).with_name('scenes.old.py'))
+_ref=module_from_spec(_spec); _spec.loader.exec_module(_ref)
+mapper,trace,span,bchip,arrow=_ref.mapper,_ref.trace,_ref.span,_ref.bchip,_ref.arrow
+PURPLE='#B58CD9'
+ORANGE='#F29E4C'
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+
+def label(s,x=0,y=3.1,size=30,color=TEXT):
+    return T(s,size,color).move_to([x,y,0])
 
 
-def hair_cell(s=1.0, chan=True):
-    """A simple hair cell: body, three stereocilia in a staircase, two tip links, a channel chip on each link."""
-    body = RoundedRectangle(corner_radius=0.3 * s, width=1.5 * s, height=1.7 * s, stroke_color=GREY,
-                            stroke_width=3, fill_color=GREY, fill_opacity=0.2)
-    top = body.get_top()
-    xs, hs = [-0.4, 0.0, 0.4], [0.7, 1.1, 1.5]
-    cil = VGroup(*[Line(top + RIGHT * x * s, top + RIGHT * x * s + UP * h * s, color=TEXT, stroke_width=5)
-                   for x, h in zip(xs, hs)])
-    links = VGroup(*[Line(top + RIGHT * xs[i] * s + UP * hs[i] * s,
-                          top + RIGHT * xs[i + 1] * s + UP * (hs[i] + 0.22) * s, color=GREY, stroke_width=3)
-                     for i in range(2)])
-    chans = VGroup(*[RoundedRectangle(corner_radius=0.04, width=max(0.16, 0.24 * s), height=max(0.12, 0.17 * s),
-                                      stroke_color=BLUE, stroke_width=2, fill_color=BLUE, fill_opacity=0.9
-                                      ).move_to(l.get_center()) for l in links]) if chan else VGroup()
-    bundle = VGroup(cil, links, chans)
-    g = VGroup(body, bundle)
-    g.body, g.bundle, g.chans, g.base = body, bundle, chans, top
+def response(t):
+    z=np.asarray(t)/.1
+    return z**3*np.exp(3*(1-z))
+
+
+def rod(x=0,y=0,height=5.6):
+    body=RoundedRectangle(width=1.65,height=height,corner_radius=.5,color=GREY,fill_opacity=.12).move_to([x,y,0])
+    discs=VGroup(*[Line([x-.62,y+d,0],[x+.62,y+d,0],color=GREY,stroke_width=4) for d in np.linspace(-height/2+.5,height/2-.5,11)])
+    return VGroup(body,discs)
+
+
+def channel(x,y,opened=False):
+    walls=VGroup(*[RoundedRectangle(width=.18,height=.7,corner_radius=.04,color=BLUE,fill_opacity=.5).move_to([x+d,y,0]) for d in (-.28,.28)])
+    gate=Rectangle(width=.48,height=.22,color=BLUE,fill_opacity=1,stroke_width=0).move_to([x,y,0])
+    if opened: gate.set_opacity(0)
+    g=VGroup(walls,gate); g.gate=gate
     return g
 
 
-def bchip(text, color=BLUE, size=26, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def bundle(x=-2.8,base=-.4,tilt=0,scale=1,rows=1):
+    # Each stereocilium rotates about its own fixed base, never the cell centre.
+    xs=[-.85,0,.85]; hs=[2,2.7,3.4]
+    offsets=[0] if rows==1 else [-.34,.34]
+    vec=np.array([np.sin(tilt),np.cos(tilt),0])
+    stems,links,pores=VGroup(),VGroup(),VGroup()
+    for offset in offsets:
+        bases=[np.array([x+a*scale+offset,base,0]) for a in xs]
+        tops=[b+h*scale*vec for b,h in zip(bases,hs)]
+        stems.add(*[Line(b,t,color=TEXT,stroke_width=(13 if rows==1 else 8)*scale) for b,t in zip(bases,tops)])
+        links.add(*[Line(tops[i],bases[i+1]+(hs[i]+.28)*scale*vec,color=YELLOW,stroke_width=4) for i in range(2)])
+        pores.add(*[channel(*tops[i][:2],opened=False).scale(.8,about_point=tops[i]) for i in range(2)])
+    body=RoundedRectangle(width=3*scale,height=2.1*scale,corner_radius=.3,color=GREY,fill_opacity=.12).move_to([x,base-1.05*scale,0])
+    return VGroup(body,stems,links,pores)
 
 
-def mapper(ox, oy, w, h, xmax, ymax):
-    return lambda t, v: np.array([ox + w * t / xmax, oy + h * v / ymax, 0.0])
-
-
-def trace(f, t0, t1, mp, color, n=140, width=5, dashed=False):
-    pts = [mp(t, f(t)) for t in np.linspace(t0, t1, n)]
-    m = VMobject(stroke_color=color, stroke_width=width)
-    m.set_points_as_corners(pts)
-    return DashedVMobject(m, num_dashes=40) if dashed else m
-
-
-def span(x0, x1, y, color, tick=0.12, w=4):
-    """a horizontal bracket from x0 to x1 at height y, with end ticks"""
-    return VGroup(Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=w),
-                  Line([x0, y - tick, 0], [x0, y + tick, 0], color=color, stroke_width=w),
-                  Line([x1, y - tick, 0], [x1, y + tick, 0], color=color, stroke_width=w))
-
-
-def card(title, body, color, icon):
-    box = RoundedRectangle(corner_radius=0.2, width=6.1, height=2.45, stroke_color=color, stroke_width=3,
-                           fill_color=color, fill_opacity=0.08)
-    icon.move_to(box.get_left() + RIGHT * 1.15)
-    t = T(title, 27, color, weight=BOLD, line_spacing=0.9)
-    b = T(body, 23, TEXT, line_spacing=0.9)
-    txt = VGroup(t, b).arrange(DOWN, aligned_edge=LEFT, buff=0.18)
-    txt.move_to(box.get_center() + RIGHT * 0.95)
-    g = VGroup(box, icon, txt)
-    g.box = box
-    return g
-
-
-# Shared schematic pore: two blue walls and a movable gate, never a molecular structure.
-def pore(x, y, name):
-    walls = VGroup(*[RoundedRectangle(width=.26, height=1.0, corner_radius=.06,
-                    color=BLUE, fill_opacity=.35).move_to([x+d,y,0]) for d in (-.42,.42)])
-    gate = Line([x-.3,y,0], [x+.3,y,0], color=BLUE, stroke_width=7)
-    label = T(name, 22, BLUE).move_to([x,y-1.0,0])
-    g = VGroup(walls, gate, label)
-    g.gate = gate
-    return g
-
-
-def flow(x, y):
-    return Arrow([x,y+.8,0], [x,y-.65,0], color=GREEN, buff=0, stroke_width=5)
-
-
-def arrow(a, b, color=GREY):
-    return Arrow(a, b, color=color, buff=.12, stroke_width=4, tip_length=.18)
-
-
-def heading(text):
-    return T(text, 34, font=TITLE_FONT).move_to([0,3.15,0])
-
-
-def chain(names, colors, y=1.0, size=24):
-    nodes = VGroup(*[bchip(n,c,size) for n,c in zip(names,colors)]).arrange(RIGHT,buff=.65)
-    nodes.move_to([0,y,0])
-    links = VGroup(*[arrow(a.get_right(),b.get_left()) for a,b in zip(nodes,nodes[1:])])
+def ladder(x=-3.3,spacing=2.45):
+    nodes=VGroup(*[bchip(s,c,30).move_to([x,y,0]) for s,c,y in [('rhodopsin',BLUE,spacing),('transducin',PURPLE,0),('PDE6',PURPLE,-spacing)]])
+    links=VGroup(*[arrow(a.get_bottom(),b.get_top(),PURPLE) for a,b in zip(nodes,nodes[1:])])
     return VGroup(nodes,links)
 
 
+def prediction():
+    return VGroup(ladder(),label('What does slowness buy?',1.7,2.7,32),label('?',2,.5,100,PURPLE),label('Pause and predict',2,-1.4,34,TEAL),label('Think through the ladder',2,-2.5,28))
+
+
+def log_plot():
+    xx=lambda t:-5.2+10.4*(np.log10(t)+5)/5
+    mp=lambda t,v:np.array([xx(t),-1.65+3.5*v,0])
+    axes=VGroup(Line([-5.2,-1.65,0],[5.2,-1.65,0],color=GREY),Line([-5.2,-1.65,0],[-5.2,2.1,0],color=GREY))
+    ticks=VGroup(*[VGroup(Line([xx(t),-1.8,0],[xx(t),-1.5,0],color=GREY),label(s,xx(t),-2.15,28)) for t,s in [(1e-5,'10 μs'),(1e-4,'100 μs'),(.001,'1 ms'),(.01,'10 ms'),(.1,'100 ms'),(1,'1 s')]])
+    curves=VGroup(trace(lambda t:1-np.exp(-t/50e-6),1e-5,250e-6,mp,BLUE),trace(response,1e-5,1,mp,GREEN,n=1000))
+    marks=VGroup(Dot(mp(50e-6,1-np.exp(-1)),color=BLUE),Dot(mp(.1,1),color=GREEN),span(xx(50e-6),xx(.1),-2.65,PURPLE))
+    tags=VGroup(label('Hair channel',-3.25,2.45,28,BLUE),label('Rod (schematic)',3.15,2.45,28,GREEN))
+    return VGroup(axes,ticks,curves,marks,tags)
+
+
+def table(compact=False):
+    # The same column boundary is carried into the rod/cone caveat.
+    ys=(.95,-.7) if compact else (.55,-1.85)
+    height=1.65 if compact else 2.4
+    boxes=VGroup(*[Rectangle(width=4.7,height=height,color=GREY).move_to([x,y,0]) for y in ys for x in (-1.25,3.45)])
+    rowlabels=VGroup(*[label(txt,0,y,32,c).align_to([-3.85,y,0],RIGHT) for txt,y,c in [('Stimulus\ngates the\npore',ys[0],BLUE),('Enzymes\nin between',ys[1],PURPLE)]])
+    q1=label('Q1: stimulus → pore',-6.4,sum(ys)/2,32,BLUE).rotate(PI/2)
+    headers=VGroup(label('Q2: how does the signal leave?',.8,3.35,32,TEAL),label('Own axon\nPrimary',-1.25,2.35 if not compact else 2.25,32,TEAL),label('Separate afferent\nSecondary',3.45,2.35 if not compact else 2.25,32,TEAL),*rowlabels,q1)
+    items=VGroup(label('TRPV1 nerve ending\nInsect olfactory\nneuron',-1.25,ys[0],32),label('Hair cell',3.45,ys[0],36),label('Vertebrate\nolfactory neuron',-1.25,ys[1],32),label('Type II taste cell',3.45,ys[1],32))
+    return VGroup(boxes,headers,items)
+
+
 class S00Title(TitleCard):
-    LESSON = "Sensory systems"
-    TITLE = "Five Ways to Turn a Stimulus\ninto a Current"
-
-
-class S01Current(SpokenScene):
+    LESSON='Five Ways to Turn a Stimulus into a Current'
+    TITLE='Nothing in Between, or Enzymes in Between'
     def construct(self):
-        main = chain(["stimulus", "channel current", "electrical signal"], [YELLOW,BLUE,TEAL], 1.7, 28)
-        self.at("every sensory cell")
-        self.play(FadeIn(main[0][0]), run_time=.5)
-        self.at("ion channel current")
-        self.play(GrowArrow(main[1][0]), FadeIn(main[0][1]), run_time=.6)
-        self.at("electrical signal")
-        self.play(GrowArrow(main[1][1]), FadeIn(main[0][2]), run_time=.6)
-        self.at("but the machinery")
-        puzzle=bchip("What connects stimulus to current?",TEXT,30).move_to([0,-.1,0])
-        self.play(FadeIn(puzzle), run_time=.5)
-        self.at("some roots couple")
-        self.play(FadeOut(puzzle), main.animate.shift(UP*.6), run_time=.4)
-        direct=chain(["stimulus", "pore opens"],[YELLOW,BLUE],.55)
-        self.play(FadeIn(direct), run_time=.6)
-        self.at("others insert enzymes")
-        enzymes=chain(["receptor", "enzymes", "pore"],[BLUE,PURPLE,BLUE],-.8)
-        self.play(ReplacementTransform(direct,enzymes), run_time=.7)
-        self.at("or add an output channel")
-        output=chain(["detection", "excitation", "output channel"],[YELLOW,TEAL,BLUE],-2.2)
-        self.play(FadeIn(output), run_time=.7)
-        self.at("comparing those roots")
-        self.play(Indicate(output[0][0],color=YELLOW),Indicate(output[0][2],color=BLUE),run_time=.8)
+        self.add(label(self.LESSON,0,2.7,28))
+        self.play(FadeIn(T('Nothing in Between,\nor Enzymes in Between',44,font=TITLE_FONT)),run_time=.6)
         self.finish()
 
 
-class S02Routes(SpokenScene):
+class S01Q(SpokenScene):
     def construct(self):
-        titles=[T(n,26,TEXT).move_to([x,2.9,0]) for x,n in zip((-4.35,0,4.35),('Hair cell','Insect smell','Free nerve ending'))]
-        separators=VGroup(*[Line([x,-2.9,0],[x,2.5,0],color=GREY,stroke_opacity=.3) for x in (-2.2,2.2)])
-        cell=hair_cell(.95).move_to([-4.35,.2,0])
-        self.at("in a hair cell")
-        self.play(FadeIn(titles[0]),FadeIn(cell),Create(separators),run_time=.6)
-        self.at("bundle movement")
-        pull=arrow([-5.3,1.7,0],[-3.5,1.7,0],YELLOW)
-        self.play(GrowArrow(pull),cell.bundle.animate.rotate(-.22,about_point=cell.body.get_top()),run_time=.6)
-        self.at("opens transduction channels")
-        cur=flow(-4.35,-.2)
-        self.play(Indicate(cell.chans,color=BLUE),GrowArrow(cur),run_time=.5)
-        self.at("insect odorant receptors")
-        insect=pore(0,.2,"OR / Orco complex")
-        ligand=Dot([-.9,1.65,0],radius=.15,color=YELLOW)
-        odor=T('odorant',22,YELLOW).move_to([0,2.0,0])
-        self.play(FadeIn(titles[1]),FadeIn(insect),FadeIn(ligand),FadeIn(odor),run_time=.5)
-        self.at("ligand gated channels")
-        self.play(ligand.animate.move_to([-.55,.65,0]),insect.gate.animate.shift(RIGHT*.85),GrowArrow(flow(0,.2)),run_time=.6)
-        self.at("in a free nerve ending")
-        trp=pore(4.35,.2,'TRPV1')
-        nerve=Line([3.3,-1.65,0],[5.5,-1.65,0],color=GREY,stroke_width=7)
-        self.play(FadeIn(titles[2]),FadeIn(trp),Create(nerve),run_time=.5)
-        self.at("senses heat")
-        heat=T('heat',28,YELLOW).move_to([4.35,1.8,0])
-        self.play(FadeIn(heat),trp.gate.animate.shift(RIGHT*.85),GrowArrow(flow(4.35,.2)),run_time=.6)
-        self.at("same protein")
-        self.play(Indicate(trp[0],color=BLUE),run_time=.6)
+        h=bundle(-2.3,-.6,scale=.9); r=rod(2.3,-.3,5.2)
+        self.add(h,r,label('Why accept being slow?',0,3.35,34),label('?',0,2,76,YELLOW))
+        self.at('a hair cell',lead=.4); self.play(FadeIn(label('Hair cell',-2.3,-3.25,36)),run_time=.2)
+        self.at('a rod hold',lead=.4); self.play(FadeIn(label('Rod',2.3,-3.25,36)),run_time=.2)
         self.finish()
 
 
-class S03Cascade(SpokenScene):
+class S02Q1(SpokenScene):
     def construct(self):
-        h=heading('Enzymes between receptor and pore')
-        generic=chain(['receptor','enzymes','pore'],[BLUE,PURPLE,BLUE],.6,30)
-        self.at("a g protein")
-        self.play(FadeIn(h),FadeIn(generic),run_time=.7)
-        self.at("in a rod")
-        rod=chain(['light','rhodopsin','transducin','PDE6'],[YELLOW,BLUE,PURPLE,PURPLE],1.4,24)
-        rodname=T('Rod',28,TEXT).move_to([0,2.35,0])
-        self.play(FadeOut(generic),FadeIn(rod),FadeIn(rodname),run_time=.7)
-        self.at("falling cyclic gmp")
-        cg=bchip('cGMP ↓',PURPLE,28).move_to([-3.6,-.35,0])
-        channel=pore(0,-.4,'CNG channels')
-        channel.gate.shift(RIGHT*.85)
-        current=flow(0,-.4)
-        self.play(FadeIn(cg),FadeIn(channel),GrowArrow(current),run_time=.4)
-        self.at("closes channels")
-        self.play(channel.gate.animate.shift(LEFT*.85),FadeOut(current),run_time=.5)
-        self.at("hyperpolarizes the cell")
-        result=bchip('hyperpolarization',TEAL,26).move_to([3.9,-.4,0])
-        self.play(FadeIn(result),run_time=.5)
-        rodview=VGroup(rod,rodname,cg,channel,result)
-        self.at("in a vertebrate olfactory neuron")
-        olf=chain(['receptor','Golf','adenylyl cyclase III'],[BLUE,PURPLE,PURPLE],1.4,24)
-        olfname=T('Vertebrate olfactory neuron',28,TEXT).move_to([0,2.35,0])
-        newchannel=pore(0,-.4,'CNG channels')
-        self.play(FadeOut(rodview),run_time=.3)
-        self.play(FadeIn(olf),FadeIn(olfname),FadeIn(newchannel),run_time=.3)
-        self.at("rising cyclic amp")
-        ca=bchip('cAMP ↑',PURPLE,28).move_to([-3.6,-.35,0])
-        self.play(FadeIn(ca),run_time=.4)
-        self.at("opens channels")
-        self.play(newchannel.gate.animate.shift(RIGHT*.85),GrowArrow(flow(0,-.4)),run_time=.5)
-        self.at("depolarizes the cell")
-        dep=bchip('depolarization',TEAL,26).move_to([3.9,-.4,0])
-        self.play(FadeIn(dep),run_time=.4)
-        self.at("cascades can amplify")
-        self.play(FadeOut(Group(*[m for m in self.mobjects if m is not h])),run_time=.4)
-        gain=VGroup(bchip('input',PURPLE,28),bchip('larger output',PURPLE,38)).arrange(RIGHT,buff=2).move_to([0,.8,0])
-        link=arrow(gain[0].get_right(),gain[1].get_left(),PURPLE)
-        self.play(FadeIn(gain),GrowArrow(link),run_time=.6)
-        self.at("but gain varies")
-        varies=T('Gain varies',28,PURPLE).move_to([0,-.4,0])
-        self.play(FadeIn(varies),run_time=.4)
-        self.at("amplification takes time")
-        time=bchip('takes time',GREY,28).move_to([-2.7,-2,0])
-        self.play(FadeIn(time),run_time=.4)
-        self.at("also amplify noise")
-        noise=bchip('noise grows too',PURPLE,28).move_to([2.5,-2,0])
-        self.play(FadeIn(noise),run_time=.5)
+        xs=[-4.8,-1.6,1.6,4.8]
+        self.add(label('Question 1',0,3.2,34,BLUE))
+        for x,s in zip(xs,['force','odorant','heat','light']):
+            self.add(label(s,x,2.3,32,YELLOW),arrow([x,1.9,0],[x,1.1,0],YELLOW),label('?',x,.3,48),channel(x,-1.3).scale(1.8),Line([x-1.35,-1.3,0],[x-.7,-1.3,0],color=GREY,stroke_width=7),Line([x+.7,-1.3,0],[x+1.35,-1.3,0],color=GREY,stroke_width=7))
+        self.add(label('Ion channels',0,-2.45,30,BLUE))
+        self.at('what sits between'); self.play(FadeIn(label('What sits between stimulus and pore?',0,-3.2,32)),run_time=.3)
         self.finish()
 
 
-class S06Rule(SpokenScene):
+class S03Hair(SpokenScene):
     def construct(self):
-        h=heading('What identifies the pore?')
-        speed=bchip('Speed alone = proof?',GREY,32).move_to([0,.7,0])
-        self.at("how do we identify")
-        self.play(FadeIn(h),FadeIn(speed),run_time=.6)
-        self.at("speed alone is not proof")
-        cross=Cross(speed,stroke_color=RED,stroke_width=6)
-        self.play(Create(cross),run_time=.5)
-        self.at("look for the right location")
-        self.play(FadeOut(speed),FadeOut(cross),run_time=.3)
-        specs=[('location',[-4.3,1.2,0]),('loss of native current',[0,1.2,0]),('altered permeation',[4.3,1.2,0]),('sufficiency',[-2.4,-.5,0]),('compatible kinetics',[2.4,-.5,0])]
-        cards=[bchip(n,BLUE,24).move_to(p) for n,p in specs]
-        self.play(FadeIn(cards[0]),run_time=.4)
-        self.at("loss of the native current")
-        self.play(FadeIn(cards[1]),run_time=.4)
-        self.at("mutations that change permeation")
-        self.play(FadeIn(cards[2]),run_time=.4)
-        self.at("sensitivity in a new system")
-        self.play(FadeIn(cards[3]),run_time=.4)
-        self.at("kinetics must fit")
-        self.play(FadeIn(cards[4]),run_time=.4)
-        converge=VGroup(*[arrow(c.get_bottom(),[0,-2.15,0],BLUE) for c in cards[3:]])
-        conclusion=T('Converging evidence',28,TEXT).move_to([0,-2.6,0])
-        self.play(Create(converge),FadeIn(conclusion),run_time=.5)
-        self.at("in mouse hair cells")
-        self.play(FadeOut(VGroup(*cards,converge,conclusion)),run_time=.3)
-        cell=hair_cell(.85,chan=False).move_to([-4.6,-.2,0])
-        native=T('Mouse hair cells\nTmc1 / Tmc2 absent',24,GREY).move_to([-4.6,-2.55,0])
-        status=bchip('native current absent',GREY,26).move_to([.5,1.55,0])
-        self.play(FadeIn(cell),FadeIn(native),FadeIn(status),run_time=.5)
-        self.at("restoring altered tmc1")
-        restored=bchip('cysteine-substituted TMC1',BLUE,24).move_to([.7,.2,0])
-        self.play(FadeIn(restored),run_time=.4)
-        self.play(restored.animate.move_to([.7,.8,0]),ReplacementTransform(status,bchip('native current restored',GREEN,26).move_to([.5,1.8,0])),run_time=.4)
-        self.at("chemically modifying it")
-        reagent=bchip('modifying reagent',YELLOW,24).move_to([.7,-.7,0])
-        self.play(FadeIn(reagent),run_time=.4)
-        self.at("changed permeation rapidly")
-        altered=bchip('rapid, irreversible\npermeation change',BLUE,28).move_to([2,-2.1,0])
-        self.play(reagent.animate.shift(UP*.5),FadeIn(altered),run_time=.6)
-        self.at("strengthening the poor argument")
-        self.play(Indicate(altered,color=BLUE),run_time=.6)
+        h=bundle(-2.6,-.75,scale=1.05); self.add(h,label('Hair cell',0,3.4,34))
+        self.at('no enzyme'); self.play(FadeIn(label('No enzyme\nin between',3,1.9,34,BLUE)),run_time=.3)
+        self.at('bending the bundle')
+        push=Arrow([-5.8,2.65,0],[-1,2.65,0],color=YELLOW,buff=0,stroke_width=5)
+        self.play(GrowArrow(push),Transform(h,bundle(-2.6,-.75,.23,1.05)),run_time=.65)
+        self.at('pulls on tip links')
+        self.play(Indicate(h[2],color=YELLOW),FadeIn(label('Direct mechanical link',3,.5,32,BLUE)),Create(arrow([.7,.5,0],h[2][1].get_center(),BLUE)),run_time=.5)
+        self.at('opens transduction channels')
+        ions=VGroup(*[arrow(p.get_center()+UP*.75,p.get_center()+DOWN*.7,GREEN) for p in h[3]])
+        self.play(*[p.gate.animate.set_opacity(0) for p in h[3]],Create(ions),FadeIn(label('Ions enter',-4.9,.6,34,GREEN)),run_time=.4)
+        self.play(*[Flash(p,color=BLUE,flash_radius=.5) for p in h[3]],run_time=.35)
         self.finish()
 
 
-class S04Channel(SpokenScene):
+class S04Hairfast(SpokenScene):
     def construct(self):
-        h=heading('Detection → excitation → output')
-        cell=RoundedRectangle(width=6.2,height=3.8,corner_radius=.4,color=GREY,fill_opacity=.12).move_to([-1.6,-.15,0])
-        # Leave an opening in the membrane for the output-channel schematic.
-        cell.add(Line([1.5,-.95,0],[1.5,.85,0],color=BG,stroke_width=7))
-        name=T('Mouse type II taste cell',26,GREY).move_to([-1.6,-2.65,0])
-        detection=bchip('sweet / bitter / umami',YELLOW,24).move_to([-2,1.05,0])
-        gpcr=bchip('GPCR pathway',BLUE,24).move_to([-3,-.3,0])
-        exc=bchip('excitable',TEAL,26).move_to([-.5,-.3,0])
-        p=pore(1.5,-.3,'CALHM1/3')
-        VGroup(p[0],p.gate).rotate(PI/2,about_point=[1.5,-.3,0])
-        p[2].move_to([2.8,-1.15,0])
-        aff=bchip('gustatory\nafferent',GREY,26).move_to([5,-.3,0])
-        self.at("now separate detection from output")
-        self.play(FadeIn(h),FadeIn(cell),FadeIn(name),run_time=.6)
-        self.at("mouse type 2 taste cells")
-        self.play(FadeIn(detection),run_time=.5)
-        self.at("protein coupled receptors")
-        self.play(FadeIn(gpcr),GrowArrow(arrow(detection.get_bottom(),gpcr.get_top())),FadeIn(exc),run_time=.6)
-        self.at("they release")
-        atp=bchip('ATP',GREEN,24).move_to([1.5,-.3,0])
-        self.play(FadeIn(p),FadeIn(aff),p.gate.animate.shift(UP*.75),run_time=.5)
-        self.play(FadeIn(atp),run_time=.3)
-        self.play(atp.animate.move_to([3.25,-.3,0]),run_time=.9)
-        self.at("instead of vesicles")
-        channelnote=T('channel-mediated release',24,BLUE).move_to([3.8,-2.1,0])
-        self.play(FadeIn(channelnote),run_time=.4)
-        self.at("deleting")
-        deletion=bchip('Calhm3 deletion',RED,28).move_to([0,2.25,0])
-        self.play(FadeIn(deletion),FadeOut(atp),FadeOut(channelnote),
-                  p[0].animate.set_opacity(.25),p.gate.animate.shift(DOWN*.75).set_opacity(.25),run_time=.5)
-        self.at("abolished taste evoked")
-        noout=T('no taste-evoked\nATP release',26,RED).move_to([3.9,-2.1,0])
-        block=Cross(Square(side_length=.58).move_to([1.5,-.3,0]),stroke_color=RED,stroke_width=5)
-        self.play(FadeIn(noout),Create(block),run_time=.5)
-        self.at("leaving the cells excitable")
-        self.play(Indicate(exc[1:],color=TEAL,scale_factor=1.03),run_time=.7)
-        self.at("the cell could respond")
-        self.play(Indicate(gpcr[1:],color=BLUE,scale_factor=1.03),Indicate(exc[1:],color=TEAL,scale_factor=1.03),run_time=.6)
-        self.at("could not send the message")
-        self.play(Indicate(noout,color=RED),run_time=.6)
+        mp=mapper(-4.9,-2.1,10,4.3,250,1)
+        self.add(label('Turtle hair cells'),label('Transducer current',-2.8,2.55,30,BLUE),Line(mp(0,0),mp(250,0),color=GREY),Line(mp(0,0),mp(0,1.05),color=GREY))
+        for t in [0,100,250]: self.add(Line(mp(t,-.03),mp(t,.03),color=GREY),label(f'{t} μs',mp(t,0)[0],-2.55,28))
+        self.at('these channels can activate'); self.play(Create(trace(lambda t:1-np.exp(-t/50),0,250,mp,BLUE)),run_time=.8)
+        self.at('a time constant')
+        pt=mp(50,1-np.exp(-1)); self.play(FadeIn(Dot(pt,color=BLUE)),Create(DashedLine(mp(50,0),pt,color=BLUE)),FadeIn(label('63% of final',-.5,.5,30,BLUE)),run_time=.4)
+        self.at('as short as'); self.play(FadeIn(label('Time constant as short as about 50 μs',0,-3.25,32,BLUE)),run_time=.3)
         self.finish()
 
 
-class S05Architecture(SpokenScene):
+class S05Rod(SpokenScene):
     def construct(self):
-        h=heading('Which cell carries the signal?')
-        self.at("finally ask")
-        self.play(FadeIn(h),run_time=.5)
-        neuron=Circle(radius=.5,color=GREY,fill_opacity=.2).move_to([-4.9,1.35,0])
-        axon=Line([-4.4,1.35,0],[3.4,1.35,0],color=GREY,stroke_width=7)
-        bulb=bchip('bulb',GREY,26).move_to([4.7,1.35,0])
-        primary=T('Primary: olfactory neuron',26,GREY).move_to([-2,2.35,0])
-        self.at("an olfactory neuron")
-        self.play(FadeIn(neuron),FadeIn(primary),run_time=.4)
-        self.at("its own axon")
-        self.play(Create(axon),FadeIn(bulb),run_time=.6)
-        pulse=Dot([-4.9,1.35,0],color=TEAL,radius=.13)
-        self.play(FadeIn(pulse),run_time=.2)
-        self.play(pulse.animate.move_to([3.4,1.35,0]),run_time=.8)
-        self.at("hair cells and type 2 taste cells")
-        hair=hair_cell(.48).move_to([-4.9,-1.2,0])
-        hairname=T('hair cell',24,GREY).next_to(hair,UP,buff=.2)
-        taste=bchip('type II\ntaste cell',GREY,24).move_to([-2.7,-1.2,0])
-        secondary=T('Secondary receptor cells',26,GREY).move_to([0,-3.05,0])
-        aff=bchip('separate afferent',GREY,26).move_to([3.7,-1.2,0])
-        self.play(FadeIn(hair),FadeIn(hairname),FadeIn(taste),FadeIn(secondary),run_time=.5)
-        self.at("pass the message")
-        paths=VGroup(
-            Arrow(hair.body.get_bottom(),aff.get_bottom(),path_arc=.5,
-                  color=TEAL,buff=.12,stroke_width=4,tip_length=.18),
-            arrow(taste.get_right(),aff.get_left(),TEAL))
-        self.play(Create(paths),FadeIn(aff),run_time=.7)
-        self.at("this is cell architecture")
-        self.play(Indicate(primary,color=TEXT),Indicate(secondary,color=TEXT),run_time=.6)
-        self.at("it is a different question")
-        self.play(FadeOut(Group(*[m for m in self.mobjects if m is not h])),run_time=.4)
-        q1=bchip('How does the stimulus change current?',BLUE,28).move_to([0,.9,0])
-        q2=bchip('Which cell carries the signal?',TEAL,28).move_to([0,-1.3,0])
-        self.play(FadeIn(q1),FadeIn(q2),run_time=.6)
+        r=rod(-4.4,0); l=ladder(.4)
+        self.add(r,l,label('Rod: enzymes in between'),label('Rod disc\nmembranes',-4.4,-3.15,28),Line([-3.55,1.5,0],[-1,2.45,0],color=GREY))
+        self.at('light activates')
+        ph=Dot([-5.7,3,0],radius=.2,color=YELLOW); self.add(ph)
+        self.play(ph.animate.move_to([-4.4,1.5,0]),run_time=.45)
+        self.at('rhodopsin'); self.play(Indicate(l[0][0],color=YELLOW,scale_factor=1.03),run_time=.4)
+        self.at('then transducin'); self.play(Indicate(l[0][1],color=PURPLE),run_time=.4)
+        self.at('then pde6'); self.play(Indicate(l[0][2],color=PURPLE),run_time=.4)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Five Ways to Turn a Stimulus\ninto a Current"
+class S06Rod2(SpokenScene):
+    def construct(self):
+        r=rod(-3.8,0,5.8).stretch_to_fit_width(3.6); enzyme=bchip('PDE6',PURPLE,34).move_to([.3,2,0])
+        # Pores interrupt the right membrane; cGMP stays on the cytoplasmic side.
+        ps=VGroup(*[channel(-2.1,y,True).rotate(PI/2) for y in (1.6,0,-1.6)])
+        masks=VGroup(*[Rectangle(width=.32,height=.9,stroke_width=0,fill_color=BG,fill_opacity=1).move_to(p) for p in ps])
+        cg=VGroup(*[bchip('cGMP',PURPLE,32).move_to([-4.15,y,0]) for y in (1.6,0,-1.6)])
+        breakdown=arrow(enzyme.get_left(),cg[0].get_right(),PURPLE)
+        flows=VGroup(*[arrow([-1,y,0],[-2.55,y,0],GREEN) for y in (1.6,0,-1.6)])
+        entry=label('Positive charge enters',2.8,-1.3,32,GREEN)
+        state=label('CNG channels open',1.2,.75,32,BLUE)
+        pore_label=arrow([-1,.75,0],[-2,.3,0],BLUE)
+        self.add(r,masks,ps,enzyme,cg,flows,entry,state,pore_label,breakdown,label('Rod outer segment',0,3.4,34))
+        self.at('breaks down'); self.play(Indicate(enzyme),Indicate(breakdown),LaggedStart(*[FadeOut(c) for c in cg],lag_ratio=.2),run_time=.65)
+        self.at('channels close')
+        self.play(*[p.gate.animate.set_opacity(1) for p in ps],FadeOut(flows),Transform(state,label('Channels close',1.2,.75,34,BLUE)),Transform(entry,label('Less positive\ncharge enters',2.8,-1.3,34,GREEN)),run_time=.5)
+        self.at('less positive charge'); self.play(Indicate(entry,scale_factor=1.03),run_time=.3)
+        self.at('the rod hyperpolarizes')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.2)
+        mp=mapper(-4.9,1.8,10,3.9,.25,1)
+        # negative normalized voltage: plotted down from baseline
+        vm=lambda t,v:mp(t,v)
+        axes=VGroup(Line(mp(0,0),mp(.25,0),color=GREY),Line(mp(0,0),mp(0,-1.1),color=GREY))
+        # mapper's positive height is upward; negative v goes down.
+        self.add(label('0',-5.4,1.8,28),label('−1',-5.4,-2.1,28),label('Rod hyperpolarizes — schematic',0,3.1,32,TEAL),axes,label('Membrane voltage\n(relative change)',-3,2.45,28,TEAL),label('Time after photon (ms)',0,-3.2,28))
+        for t in [0,.1,.2]:self.add(label(str(int(t*1000)),mp(t,0)[0],-2.7,28),Line(mp(t,-1.13),mp(t,-1.17),color=GREY))
+        self.play(Create(trace(lambda t:-response(t),0,.25,vm,TEAL)),run_time=.8)
+        self.finish()
+
+
+class S07Rodslow(SpokenScene):
+    def construct(self):
+        mp=mapper(-4.9,-2.15,10,4.1,.25,1)
+        self.add(label('Mouse rod, near body temperature',0,3.2,32),label('Response (relative) • schematic',-1.8,2.6,28,GREEN),Line(mp(0,0),mp(.25,0),color=GREY),Line(mp(0,0),mp(0,1.05),color=GREY),label('Time after photon (ms)',0,-3.2,28))
+        for t in [0,.05,.1,.2]:self.add(Line(mp(t,-.03),mp(t,.03),color=GREY),label(str(int(t*1000)),mp(t,0)[0],-2.65,28))
+        self.at('response to a single photon'); self.play(Create(trace(response,0,.25,mp,GREEN)),run_time=1)
+        self.at('a tenth of a second');self.play(Create(DashedLine(mp(.1,0),mp(.1,1),color=GREEN)),FadeIn(label('~100 ms or more\nto peak',3.5,1.7,30,GREEN)),run_time=.4)
+        self.finish()
+
+
+class S08Axis(SpokenScene):
+    def construct(self):
+        self.add(log_plot(),label('One logarithmic time axis',0,3.25,32))
+        self.at('more than three orders');self.play(FadeIn(label('More than 3 orders of magnitude',0,-3.25,32,PURPLE)),run_time=.4)
+        self.finish()
+
+
+class S09Caution(SpokenScene):
+    def construct(self):
+        self.add(log_plot(),label('Different kinds of timing number',0,3.25,32))
+        self.at('a channel time constant');self.play(FadeIn(label('Channel time\nconstant',-1.6,.25,28,BLUE)),Create(arrow([-2.8,.4,0],[-3.746,.56,0],BLUE)),run_time=.35)
+        self.at('and the other');self.play(FadeIn(label('Whole-cell\ntime to peak',.6,1.15,28,GREEN)),Create(arrow([1.8,1.5,0],[3.12,1.85,0],GREEN)),run_time=.35)
+        self.at('read the gap');self.play(FadeIn(label('A picture of scale, not a measured cost',0,-3.25,32)),run_time=.35)
+        self.finish()
+
+
+class S10Predict(SpokenScene):
+    def construct(self):
+        p=prediction();self.add(p)
+        self.at('predict');self.play(Indicate(p[1],color=TEAL),run_time=.4)
+        self.finish()
+
+
+class S11Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(prediction());bar=Line([.1,-3.2,0],[4,-3.2,0],color=TEAL,stroke_width=5);self.play(Create(bar),run_time=5,rate_func=linear)
+
+
+class S12Reveal(SpokenScene):
+    def construct(self):
+        l=ladder();ph=Dot([-3.3,3.35,0],radius=.22,color=YELLOW)
+        tokens=VGroup(*[bchip('cGMP',PURPLE,32).move_to([x,y,0]) for y in (1.5,.5,-.5) for x in (.6,2.5,4.4)])
+        v=ValueTracker(0)
+        count=always_redraw(lambda:label(f'{int(v.get_value()):,}',2.5,-1.7,58,PURPLE))
+        turnover=arrow(l[0][2].get_right(),[-.35,.5,0],PURPLE)
+        self.add(l,ph,tokens,count,turnover,label('Gain',2.5,3.1,38,PURPLE))
+        self.at('enzymes keep working');self.play(Indicate(ph,color=YELLOW),Indicate(l[0][2],color=PURPLE),run_time=.7)
+        # Repeat turnovers throughout the explanation; chips are representative, not one-to-one.
+        self.play(Indicate(l[0][2]),Indicate(turnover),v.animate.set_value(800),LaggedStart(*[FadeOut(t) for t in tokens[:4]],lag_ratio=.2),run_time=1.5)
+        self.at('in mouse rods');self.play(FadeIn(label('Mouse rod',2.5,2.35,30)),v.animate.set_value(1200),FadeOut(tokens[4]),Indicate(turnover),run_time=.5)
+        self.at('one absorbed photon');self.play(v.animate.set_value(1600),FadeOut(tokens[5:7]),Indicate(l[0][2]),Indicate(turnover),run_time=.6)
+        self.at('removes about');self.play(v.animate.set_value(2000),FadeOut(tokens[7:]),Indicate(l[0][2]),Indicate(turnover),run_time=1)
+        self.play(FadeIn(label('about 2,000 cGMP per photon',2,-2.6,30,PURPLE)),FadeIn(label('Arshavsky and Burns 2014',2,-3.25,34)),run_time=.3)
+        self.finish()
+
+
+class S13Reveal2(SpokenScene):
+    def construct(self):
+        gain=bchip('Gain',PURPLE,34).move_to([-3.6,1.7,0]); target=bchip('Single photon\nsignalled',GREEN,36).move_to([3,0,0])
+        noise=bchip('Low dark noise',PURPLE,30).move_to([-3.6,0,0]); rep=bchip('Reproducible\nresponse',PURPLE,30).move_to([-3.6,-1.9,0])
+        q1=bchip('?',PURPLE,34).move_to([-3.6,0,0]);q2=bchip('?',PURPLE,34).move_to([-3.6,-1.9,0]);self.add(label('Gain is one reason',0,3.15,36),gain,target,arrow(gain.get_right(),target.get_left(),PURPLE),q1,q2)
+        self.at('a rod can signal');self.play(Indicate(target,color=GREEN),run_time=.5)
+        self.at('low dark noise');self.play(ReplacementTransform(q1,noise),GrowArrow(arrow(noise.get_right(),target.get_left(),PURPLE)),run_time=.4)
+        self.at('a reproducible response');self.play(ReplacementTransform(q2,rep),GrowArrow(arrow(rep.get_right(),target.get_left(),PURPLE)),run_time=.4)
+        self.finish()
+
+
+class S14Cost(SpokenScene):
+    def construct(self):
+        h=bundle(-3.5,-.8,scale=1,rows=2);l=ladder(3,2.05)
+        self.add(h,l,Line([0,-3.5,0],[0,3.5,0],color=GREY),label('Hair cell: force on\nthe channel complex',-3.4,3.2,32,BLUE),label('Rod: molecules must meet,\nenzymes must turn over',3.3,3.2,32,PURPLE))
+        self.at('no enzyme cascade');self.play(FadeIn(label('One deflection: many channels\nNo enzyme cascade',-3.5,-3.35,32,BLUE)),run_time=.3)
+        self.at('force acts');self.play(Transform(h,bundle(-3.5,-.8,.22,1,rows=2)),GrowArrow(Arrow([-6,2.3,0],[-2.1,2.3,0],color=YELLOW,buff=0,stroke_width=5)),run_time=.5)
+        self.at('the channel complex itself')
+        ions=VGroup(*[arrow(p.get_center()+UP*.6,p.get_center()+DOWN*.55,GREEN) for p in h[3]])
+        self.play(*[p.gate.animate.set_opacity(0) for p in h[3]],Create(ions),run_time=.25)
+        self.play(*[p.gate.animate.set_opacity(1) for p in h[3]],FadeOut(ions),run_time=.2)
+        self.play(*[p.gate.animate.set_opacity(0) for p in h[3]],FadeIn(ions),run_time=.25)
+        self.at("the rod's price");self.play(Indicate(l[1],color=PURPLE),run_time=.4)
+        self.at('molecules must meet')
+        clocks=[]
+        for y in (2.15,0,-2.15):
+            face=Circle(radius=.28,color=TEXT).move_to([5.6,y,0]);hand=Line(face.get_center(),face.get_center()+UP*.2,color=TEXT);clocks.append(VGroup(face,hand))
+        self.add(clocks[0]);self.play(Rotate(clocks[0][1],TAU,about_point=clocks[0][0].get_center()),Indicate(l[0][0]),run_time=.6)
+        self.at('enzymes must turn over')
+        for i in (1,2):
+            self.add(clocks[i]);self.play(Rotate(clocks[i][1],TAU,about_point=clocks[i][0].get_center()),Indicate(l[0][i]),run_time=.4)
+        self.at('before any channel changes');self.play(FadeIn(label('Step times depend on\nthe cell and conditions',3.3,-3.15,32)),run_time=.3)
+        self.finish()
+
+
+class S15Idea(SpokenScene):
+    def construct(self):
+        self.add(label('What sits between the stimulus and the pore\nsets what a sensory cell can do.',0,2.8,34))
+        left=VGroup(bchip('No enzyme',BLUE,34),T('No enzyme cascade\nbefore the current',30),T('Can be fast',34,BLUE)).arrange(DOWN,buff=.7).move_to([-3.3,-.3,0])
+        right=VGroup(bchip('Enzymes',PURPLE,34),T('e.g. about 2,000 cGMP\nper photon (mouse rod)',30),T('Usually slower',34,PURPLE)).arrange(DOWN,buff=.7).move_to([3.3,-.3,0])
+        self.add(left,right,label('A tendency, not a law',0,-3.2,32,TEAL))
+        self.at('the one idea');self.play(Indicate(left[0]),Indicate(right[0]),run_time=.5)
+        self.finish()
+
+
+class S16Q2(SpokenScene):
+    def construct(self):
+        soma=Ellipse(width=2,height=2.1,color=GREY,fill_opacity=.15).move_to([-1.5,-.5,0])
+        dend=Line([-2.4,0,0],[-4.1,1.5,0],color=GREY,stroke_width=9)
+        cilia=VGroup(*[Line([-4.1,1.5,0],[-5.5,y,0],color=GREY,stroke_width=5) for y in (.5,1.2,1.9,2.6)])
+        axon=Line([-.5,-.5,0],[4.5,-.5,0],color=GREY,stroke_width=9)
+        self.add(soma,dend,cilia,axon,label('Q2: how does the signal leave the cell?',0,3.2,32),label('Olfactory neuron',-2,-2,32),bchip('Bulb',GREY,30).move_to([5.2,-.5,0]))
+        self.at('an olfactory neuron');self.play(FadeIn(label('Primary sensory neuron',0,-2.8,32,TEAL)),run_time=.3)
+        self.at('carries it on');p=Dot([-.5,-.5,0],color=TEAL,radius=.18);self.add(p)
+        self.play(p.animate.move_to([4.5,-.5,0]),FadeIn(label('Its own axon',2,.4,30,TEAL)),run_time=.7)
+        self.finish()
+
+
+class S17Secondary(SpokenScene):
+    def construct(self):
+        h=bundle(-3.35,-.6,scale=.98)
+        taste=RoundedRectangle(width=2.94,height=4.7,corner_radius=.5,color=GREY,fill_opacity=.12).move_to([3.2,-.1,0])
+        micro=VGroup(*[Line([x,2.25,0],[x,2.8,0],color=TEXT,stroke_width=9) for x in (2.65,3.2,3.75)])
+        # Separate paths and arrowheads make ownership visible without crossings.
+        hairf=VGroup(Line([-3.35,-2.66,0],[-3.35,-3.1,0],color=TEAL,stroke_width=5),arrow([-3.35,-3.1,0],[-.5,-3.1,0],TEAL))
+        tastef=arrow([3.2,-2.5,0],[3.2,-3.55,0],TEAL)
+        self.add(h,taste,micro,label('Secondary receptor cells',0,3.4,34,TEAL),label('Hair cell',-3.35,-1.65,32),label('Type II\ntaste cell',3.2,-.1,32))
+        self.at('hands it to');self.play(Create(hairf),GrowArrow(tastef),run_time=.35)
+        self.at('a separate afferent');self.play(FadeIn(label('Separate afferent fibres',-.1,-3.65,32,TEAL)),run_time=.4)
+        self.finish()
+
+
+class S18Table(SpokenScene):
+    def construct(self):
+        t=table();self.add(t[1])
+        self.at('together the two questions');self.play(LaggedStart(*[Create(b) for b in t[0]],lag_ratio=.12),run_time=.7)
+        self.at('five examples fill it');self.play(LaggedStart(*[FadeIn(e) for e in t[2]],lag_ratio=.12),run_time=.7)
+        self.finish()
+
+
+class S19Rods(SpokenScene):
+    def construct(self):
+        t=table(compact=True);self.add(t[0],t[1],t[2][0],t[2][1])
+        self.add(label('Vertebrate\nolfactory neuron',-1.5,-.7,32),label('Type II\ntaste cell',3.9,-.7,32))
+        self.at('rods and cones')
+        icon=rod(1.1,-.8,2.6).scale(.4)
+        self.play(FadeIn(icon),run_time=.25)
+        self.at('do not fit neatly')
+        self.play(FadeIn(label('Rods / cones: column disputed',1.1,-2.1,34,YELLOW)),FadeIn(label('?',1.8,-.75,54,YELLOW)),run_time=.3)
+        self.at('they synapse inside');self.play(FadeIn(label('Synapse inside the retina',0,-2.75,32,TEAL)),run_time=.3)
+        self.at('send no axon');self.play(FadeIn(label('No axon to the brain',0,-3.4,32)),run_time=.3)
+        self.finish()
+
+
+class S20Take(SpokenScene):
+    def construct(self):
+        first=bchip('1. What sits between\nstimulus and pore?',BLUE,38).move_to([0,1,0])
+        second=bchip('2. How does the signal\nleave the cell?',TEAL,38).move_to([0,-1.8,0])
+        q1=bchip('1. ?',BLUE,48).move_to([0,1,0]);q2=bchip('2. ?',TEAL,48).move_to([0,-1.8,0])
+        for c in (first,second,q1,q2):
+            for box in c[:2]:box.stretch_to_fit_width(10).stretch_to_fit_height(2.15)
+        self.add(label('Ask two questions of every sensory cell',0,3.1,34),q1,q2)
+        self.at('what sits between');self.remove(q1[2]);self.play(FadeIn(first[2]),run_time=.3)
+        self.at('and how does');self.remove(q2[2]);self.play(FadeIn(second[2]),run_time=.3)
+        self.finish()
+
+
+class S21End(EndCard):
+    LINE='Ask two questions of every sensory cell.'
+    def construct(self):
+        self.add(T(self.LINE,40,font=TITLE_FONT),label('biochemistrypedia.com',0,-1.2,30,TEAL));self.finish()
