@@ -7,27 +7,70 @@ order: 216
 summary: >-
   In the mammalian neocortex, the day a neuron is born predicts the layer it ends up in, and in
   the fly the order in which a stem cell makes its daughters helps set what each daughter becomes.
-  This lesson follows the evidence from labeled thymidine, fly neuroblast lineages and ferret
-  transplants, then counts the production schedule. Afterwards you can read a birth-dating
+  One idea carries the lesson: a birthday marks a time; the progenitor's state at that time sets the
+  neuron's temporal identity, and in the cortex that includes its layer. You follow the evidence from labeled thymidine, ferret transplants and fly
+  neuroblast lineages, then count the production schedule. Afterwards you can read a birth-dating
   experiment, predict the result of a heterochronic transplant, and explain why a progenitor's
   choices narrow with time.
 hook: "In the mouse cortex, the first cortical-plate neurons born end up deepest. Why do the latecomers climb past them?"
 
-estMinutes: 22
+estMinutes: 32
 objectives:
   - "Explain how a pulse of labeled thymidine dates a neuron's birth, and describe the inside-out order of the mammalian neocortex, including the preplate and its split into marginal zone and subplate."
-  - "Describe how Drosophila neuroblasts express Hunchback, Krüppel, Pdm and Castor in sequence, and predict the effect of removing or prolonging Hunchback."
   - "Interpret the ferret transplant experiments to show that a progenitor's laminar fate is set late in its final cell cycle and that its competence narrows with age."
+  - "Describe how Drosophila neuroblasts express Hunchback, Krüppel, Pdm and Castor in sequence, and predict the effect of removing or prolonging Hunchback."
   - "Use the leaving fraction Q to calculate how a progenitor pool grows or shrinks, and name markers and birthplaces of deep-layer, upper-layer and inhibitory neurons."
 
 explainer:
   src: "/explainers/birth-order-and-layers/explainer.mp4"
   captions: "/explainers/birth-order-and-layers/explainer.vtt"
   poster: "/explainers/birth-order-and-layers/poster.jpg"
-  title: "The Day You Are Born Sets Your Layer"
-  durationSec: 194.9
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "The Wall of the Brain"
+  durationSec: 180.5
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "dating-a-birthday"
+    src: "/explainers/birth-order-and-layers/dating-a-birthday.mp4"
+    captions: "/explainers/birth-order-and-layers/dating-a-birthday.vtt"
+    poster: "/explainers/birth-order-and-layers/dating-a-birthday-poster.jpg"
+    title: "Dating a Birthday"
+    durationSec: 199.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "moving-a-birthday"
+    src: "/explainers/birth-order-and-layers/moving-a-birthday.mp4"
+    captions: "/explainers/birth-order-and-layers/moving-a-birthday.vtt"
+    poster: "/explainers/birth-order-and-layers/moving-a-birthday-poster.jpg"
+    title: "Moving a Birthday"
+    durationSec: 186.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "clock-in-the-fly"
+    src: "/explainers/birth-order-and-layers/clock-in-the-fly.mp4"
+    captions: "/explainers/birth-order-and-layers/clock-in-the-fly.vtt"
+    poster: "/explainers/birth-order-and-layers/clock-in-the-fly-poster.jpg"
+    title: "A Clock in the Fly"
+    durationSec: 176.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "grow-the-pool"
+    src: "/explainers/birth-order-and-layers/grow-the-pool.mp4"
+    captions: "/explainers/birth-order-and-layers/grow-the-pool.vtt"
+    poster: "/explainers/birth-order-and-layers/grow-the-pool-poster.jpg"
+    title: "Grow the Pool, Then Spend It"
+    durationSec: 194.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "what-a-birthday-leaves"
+    src: "/explainers/birth-order-and-layers/what-a-birthday-leaves.mp4"
+    captions: "/explainers/birth-order-and-layers/what-a-birthday-leaves.vtt"
+    poster: "/explainers/birth-order-and-layers/what-a-birthday-leaves-poster.jpg"
+    title: "What a Birthday Leaves Behind"
+    durationSec: 171.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Jay B. Angevine Jr."
@@ -91,7 +134,8 @@ techniques:
     blurb: >-
       Give one pulse of a labeled DNA precursor, wait until the animal is older, and find the
       heavily labeled cells. Each later division halves the label, so a heavily labeled neuron is
-      one whose last S phase overlapped the pulse.
+      one whose last S phase overlapped the pulse. The exact labeling window depends on the label
+      and the dose.
   - name: "Cumulative and paired labeling to measure the leaving fraction"
     blurb: >-
       Label cells in S phase with one marker, then add a second marker shortly afterward and keep
@@ -356,80 +400,245 @@ draft: false
 
 import LeavingFractionPool from '../../../components/LeavingFractionPool.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In the mouse cortex, a neuron born early in cortical neurogenesis ends up deepest, beside the white matter. A neuron born days later ends up near the surface, after climbing past the cortical-plate neurons made before it.**
+**In the mouse cortex, among the excitatory neurons of the cortical plate, the deepest are made first and those nearest the surface are made last. All of them are born below the plate, in the proliferative zones beside the ventricle. So the late neurons must travel past the early ones to reach the top.**
 
-You have seen how Notch and Numb make two sister cells different (see [asymmetric division](/lessons/asymmetric-division/)). That gives a yes or no. The question it leaves open: if Numb only makes daughter cells different, how does a daughter cell decide which fate to choose? A fly neuroblast and a mammalian cortex give the same answer from opposite ends. Part of a neuron's identity is set by when it is born.
+That raises two questions, and this lesson answers both. How do you know when a neuron was born? And does its birthday decide what it becomes, or only record when it happened?
 
-## The idea: a neuron's birthday predicts its layer
+You have met one way to make two sisters different: Notch and Numb (see [asymmetric division](/lessons/asymmetric-division/)). They can give one daughter one fate and her sister another at a single division. But a yes or no alone does not say which division it was. A stem cell that makes ten different daughters needs more information. Something must tell the tenth daughter that she is not the first.
 
-The neocortex is the six-layered outer sheet of the mammalian forebrain. Its excitatory neurons come from progenitors in the ventricular zone, the layer of dividing cells that lines the fluid-filled ventricle (see [the ventricular zone](/lessons/radial-glia-progenitors/)). Some neurons are made there directly. Many more come from intermediate progenitors, daughters that move into the subventricular zone just above and divide there to make neurons. The new neurons then travel outward. "Cerebral Cortex Histogenesis: 3 main steps" runs like this:
+## The layout
 
-1. **Preplate.** The first neurons to leave the ventricular zone form a thin sheet under the outer surface, the preplate.
-2. **Split.** The next wave of neurons settles inside the preplate and splits it in two. The outer part becomes the marginal zone (future layer 1), home of the Cajal-Retzius cells. The inner part becomes the subplate. The sheet of neurons between them is the cortical plate.
-3. **Inside-out.** Each later wave passes the neurons already in the cortical plate and settles above them. Layer 6 is made first, layer 2 last.
+Most of the lesson happens on one map, which the first film draws. Picture a thin slice through the wall of the embryonic mouse forebrain, from the fluid-filled ventricle at the bottom to the outer surface, the pia, at the top.
 
-<LessonFigure src="/figures/birth-order-and-layers/radial-column-inside-out.webp" width={1200} height={828} alt="AI-generated illustration: a simplified vertical slice of developing cortex, with the surface above and the ventricle below. The marginal zone lies above the cortical plate, whose layers are numbered 2 through 6 from top to bottom; the subplate lies below it. Clay neurons occupy layer 6 and the subplate, sage neurons occupy upper layers, and a gold neuron moves upward past older cortical-plate neurons. The ventricular zone is shown at the base; intervening developmental zones are omitted. Two insets show the preplate and its separation into marginal zone and subplate by the emerging cortical plate." caption="Excitatory cortical neurons arise from ventricular-zone progenitors, either directly or through intermediate progenitors in the subventricular zone, and migrate outward. The earliest neurons form the preplate; the next wave splits it into marginal zone and subplate, with the cortical plate between them. Within the cortical plate, later-born neurons pass earlier-born neurons: layer 6 forms first and layer 2 last. The schematic omits intervening developmental zones." />
+- **The ventricular zone** lines the ventricle. Many of its progenitors are radial glia, which divide and send a long fibre up to the pia (see [the ventricular zone](/lessons/radial-glia-progenitors/)). Some neurons are made there directly.
+- **The subventricular zone** sits just above it. Here **intermediate progenitors**, daughters of radial glia, divide, usually to make neurons. Many cortical projection neurons arise this way; mouse studies suggest this route may make most of them.
+- **The cortical plate** is where the neurons settle, and it becomes layers 2 to 6. Above it lies the **marginal zone** (future layer 1, home of the Cajal-Retzius cells) and below it the **subplate**. Both come from an earlier sheet, the **preplate**, met again in the next section.
+- Each new neuron climbs from the ventricular or subventricular zone up to the cortical plate (that trip is [radial migration](/lessons/radial-migration/)).
 
-How do you know when a neuron was born? You date its last S phase, the part of the cell cycle when DNA is copied. Give a pregnant mouse one dose of thymidine carrying tritium, a radioactive form of hydrogen. Cells take up thymidine by the salvage pathway, in which thymidine kinase adds the first phosphate (see [nucleotide metabolism](/lessons/nucleotide-metabolism/)), and only DNA uses it, so only cells copying DNA in the next hour or so are marked. A cell that divides again halves its label. A neuron that stays heavily labeled weeks later made its last DNA copy while the label was available. The label marks that S phase. It does not tell the cell anything.
+These are the excitatory neurons of the **neocortex**, the six-layered outer sheet of the mammalian forebrain. Layers are numbered from the surface down: layer 1 on top, layer 6 at the bottom. Keep that in mind, because within the cortical plate layers 6 to 2 are made in the reverse order of their numbers. Layer 1 comes from the early preplate.
 
-In 1961 Jay Angevine and Richard Sidman injected pregnant mice with tritiated thymidine on different embryonic days and looked at where the labeled cells lay in the cortex of the offspring. Cells labeled earliest lay deepest, and cells labeled on later days lay progressively nearer the surface. The rule is a strong tendency, with overlap between days. The order also ruled out a simple alternative. If new cells just shoved older ones outward, the earliest cells would end up on top. They ended up on the bottom: later cells passed them.
+The map raises three puzzles.
 
-The same order was found, in 1974, by Pasko Rakic in the visual cortex of rhesus monkeys. In the mouse, the neurons of layers 2 to 6 are made over about six embryonic days, E11 to E17, with subplate and layer 6 neurons first and the upper-layer neurons last. These are mouse numbers, and the classes overlap.
+1. **Who came first, and how do you know?** Every excitatory cortical-plate neuron starts at the bottom, in the ventricular or subventricular zone. How can you tell, weeks later, which layer was made first?
+2. **Record or cause?** If a birthday predicts a layer, does the progenitor carry its own schedule, or do the surroundings at the time tell the daughter where to go?
+3. **How many of each?** How does one pool of progenitors make a few early neurons, then many later ones, as the pool first grows and then shrinks?
 
-Inside-out is a rule of the mammalian neocortex, not of the whole nervous system. In the retina, birth order biases which cell types progenitors make, and the layers are not built by later cells passing earlier ones. One line marks the contrast: "Different strategy In the CNS...precursors tend to migrate to more superficial layers." How neurons make the climb belongs to [radial migration](/lessons/radial-migration/), and what goes wrong in the reeler mouse to [Reelin and the reeler mouse](/lessons/reelin-and-reeler/).
+> **The one idea to carry through this lesson.** A birthday marks a time; the progenitor's state at that time sets the neuron's temporal identity, and in the cortex that includes its layer. Temporal identity is the part of what a neuron becomes that depends on when it is born. The birthday instructs nothing; it is a timestamp. The state has two parts: what the progenitor can still make (its *competence*) and the cues it reads. Each system has its own timing: in the ferret cortex, laminar fate becomes fixed late in the progenitor's final cell cycle; in the fly, a ganglion mother cell inherits the neuroblast's temporal factors when it buds off, before it divides to make neurons. In the cortical plate, the earlier the birthday, the deeper the layer. The neuron keeps maturing after it is born, so other features are refined later. And in normal development the progenitor's menu gets shorter with time.
 
-## How do 30 neuroblasts make hundreds of cell types?
+**What the rule covers.** Excitatory neurons of the mammalian neocortex (mouse, ferret, monkey) and neuroblast lineages of the embryonic fly nerve cord, with interneurons from the medial ganglionic eminence, a ventral birthplace met later, as a partial case. Four limits are flagged where they come up: the preplate sits outside the "earlier, deeper" order; place sets the class of neuron before time acts; cues count as part of the state; and a shrinking menu is the normal course, not a law.
 
-The fly asks the question in its cleanest form. In each half-segment of the Drosophila embryo's nerve cord there are about 30 neuroblasts, the fly's neural stem cells. Each one buds off a series of smaller cells called ganglion mother cells, and each of those divides to make neurons or glia. "Numb versus notch is a yes or no? This still doesn't address diversification." Something else must tell the third daughter of a lineage that it is not the first.
+## Dating a birthday
 
-The answer is a clock of transcription factors. "Importance of birth order in diversification: start the transcriptional clock." In 2001 Takako Isshiki, Bret Pearson, Scott Holbrook and Chris Doe reported that most neuroblasts express four factors in turn: Hunchback, then Krüppel, then Pdm, then Castor. A ganglion mother cell keeps the factor that was on when it budded off, and so do its neurons. The windows overlap, so the sequence is an outline rather than a set of sharp steps. Later work found that another factor, Seven-up, is needed to switch Hunchback off on time (Kanai and colleagues, 2005).
+<LessonFilm film={frontmatter.films[0]} />
 
-<LessonFigure src="/figures/birth-order-and-layers/neuroblast-temporal-clock.webp" width={1200} height={800} alt="AI-generated illustration: four separated snapshots of the same Drosophila neuroblast progress left to right through Hunchback, Krüppel, Pdm and Castor expression windows. Overlapping colored bands beneath the snapshots indicate that these windows are not exclusive steps. A small lineage inset shows a neuroblast division producing a retained neuroblast and a smaller ganglion mother cell; that ganglion mother cell then branches to two daughter cells. There is no chain of ganglion mother cells and no experimental-results inset." caption="Most embryonic Drosophila neuroblasts express Hunchback, then Krüppel, then Pdm, then Castor in overlapping windows. Their progeny retain the transcription-factor profile present at birth. The snapshots summarize successive states of one self-renewing neuroblast; each ganglion mother cell is produced by the neuroblast and typically divides into two daughters." />
+To date a neuron's birth, you date its last S phase, the part of the cell cycle when DNA is copied. A neuron never copies DNA again, so its "last S phase" is the final S phase of the cell that divides to make it. Give a pregnant mouse one dose of thymidine carrying tritium, a radioactive form of hydrogen. Only DNA uses thymidine, so only cells copying DNA in the next hour or so are marked. A labeled cell still divides once to make a neuron. A daughter that leaves the cycle at that division keeps the most label, and each extra division halves it.
 
-Think of a bakery whose recipe card changes through the day. Which oven the loaf comes from (the neuroblast's position in the embryo) sets the kind of bread; which hour it comes out (the factor present) sets which loaf in the day's series it is.
+| Extra divisions before leaving the cycle | Label left in the neuron |
+| --- | --- |
+| 0 (left at the first division after the pulse) | full |
+| 1 | half |
+| 2 | a quarter |
+| 3 | an eighth |
 
-Expression alone could be a clock face with no hands. The test was genetic. Hunchback and Krüppel also pattern the early embryo, which complicates tests in the nervous system. Without Hunchback in the nervous system, first-born identities were lost in the lineages they examined. With Hunchback kept on, lineages made extra cells with first-born features: in the NB7-1 lineage, which normally makes the motor neurons U1 to U5 in that order, extra cells resembling U1 or U2. Prolonged Krüppel made extra second-born cells. Hunchback did not make every first-born cell the same; each lineage made its own first-born type. Time and place work together. In 2006 the same laboratory showed that Pdm and Castor specify the later U4 and U5 identities in NB7-1.
+The table is idealized: it assumes no label is left for later S phases. A neuron that is heavily labeled weeks later made its last DNA copy while the label was available: the pulse dates its birth and tells the cell nothing. Because the pulse is short, heavy label marks a cohort born around the pulse, not every neuron born that day.
 
-## Moving a birthday: competence narrows
-
-A mammalian birthday predicts a layer, but the cortex offers two explanations. The progenitor might carry its own schedule. Or the surroundings at the time of birth might tell its daughter where to go. Susan McConnell set the two calendars against each other in ferrets, whose visual cortex keeps making neurons after birth, so a newborn kit is a host cortex at the upper-layer stage.
-
-In 1991 McConnell and Christine Kaznowski labeled ferret progenitors with tritiated thymidine, took them from embryos at a stage that makes deep-layer neurons, and put them into older hosts making layers 2 and 3. What mattered was where each cell was in its cycle when it was moved. Cells moved while in S phase mostly settled in layers 2 and 3, like the host's own neurons. Cells moved later in the cycle mostly settled in the deep layers. Their fate had been fixed before the move.
-
-Could an old progenitor go back? In 1996 Gretchen Frantz and McConnell put late progenitors into a young host making deep layers. They still made upper-layer neurons. In 2000 A. R. Desai and McConnell found that progenitors at an intermediate stage, making layer 4, could be pushed forward to upper layers but not back to layer 6. In these ferret experiments, competence narrowed one way, though a 2019 mouse study found that some progenitors moved into a younger host can return to earlier states.
-
-Three limits apply. These experiments read only the cells that reached the cortex, the cues in the host are only partly known, and a layer position is not a whole identity.
-
-### Design problem
-
-Progenitors that normally make deep-layer neurons are moved into an older ferret cortex whose own progenitors make upper-layer neurons. Predict where their daughters settle if they are moved (a) in S phase, and (b) late in the cell cycle. Then predict (c) the reverse experiment: late progenitors moved into a young host.
+**Predict.** Two models. (1) Each new neuron is added at the bottom, beneath the ones already made, and shoves them outward. (2) Each new neuron climbs past the ones already made and settles above them. Pulse one litter on embryonic day 12 (E12) and another on E16, and look at postnatal day 21 (P21). Where does each model put the heavily labeled E12 cells?
 
 <details>
-<summary>One way to do it</summary>
+<summary>Check your prediction</summary>
 
-Treat commitment as an event that happens once in the final cycle, somewhere after S phase and before mitosis, and treat competence, as the ferret grafts suggest, as a menu that only gets shorter.
-
-(a) Moved in S phase, the cell has not yet committed. Its daughter is born in the older host and reads the host's cues, so it settles in the upper layers, like the host's own neurons.
-
-(b) Moved late in the cycle, the cell has already committed. The daughter keeps its donor fate and settles in the deep layers, out of step with the host.
-
-(c) A late progenitor has lost deep-layer fates from its menu. A young host offers deep-layer cues, but the cell cannot answer them, so it still makes upper-layer neurons. In these ferret experiments narrowing did not reverse, though some mouse progenitors can return to earlier states.
+Model 1 puts the E12 cells nearest the surface, shoved there by everything added beneath them. Model 2 puts them deepest. In 1961 Jay Angevine and Richard Sidman ran this experiment, pulsing on different embryonic days. Cells labeled earliest lay deepest, beside the white matter, and cells labeled on later days lay progressively nearer the surface. Later cells had passed earlier ones. The rule is a strong tendency, with overlap between days.
 
 </details>
 
-Does a mammalian progenitor run a clock like the fly's? That is not settled. When the laboratory of Sally Temple grew single mouse cortical progenitors alone in culture (Shen and colleagues, 2006), clones made neurons with early, deep-layer markers before neurons with later markers. That points to a schedule within the lineage. Homologs of the fly factors do have temporal jobs in mouse: Ikaros, a relative of Hunchback, in the retina, and the COUP-TF genes, relatives of the fly's Seven-up, in the switch from making neurons to making glia. A full cascade like the fly's has not been shown in cortex.
+This is the signature evidence for "inside-out." In idealized form, for heavily labeled cells only:
 
-## The production schedule and the identity it leaves
+| Layer (surface at top) | Pulse on E12 | Pulse on E16 |
+| --- | --- | --- |
+| 2 and 3 | few | most |
+| 4 | few | few |
+| 5 | many | few |
+| 6 and subplate | most | few |
 
-How many neurons come out at each stage? Every division gives two daughters. Each daughter either divides again (the proliferative fraction, P) or leaves the cycle to become a neuron (the leaving fraction, Q).
+Lightly labeled cells, diluted by extra divisions (the lower rows of the first table), are scattered through many layers: they were born later than the pulse, at many times.
+
+The same order was found, in 1974, by Pasko Rakic in the visual cortex of rhesus monkeys. In the mouse, the neurons of layers 2 to 6 are made over about six embryonic days, E11 to E17, and the classes overlap.
+
+Here is what the data look like in the tissue, in three steps.
+
+1. **Preplate.** The first neurons to leave the ventricular zone form a thin sheet under the outer surface.
+2. **Split.** The next neurons arrive in the middle of the preplate and wedge it apart. The top half stays under the pia as the marginal zone; the bottom half is pushed down as the subplate. The cortical plate forms between them.
+3. **Inside-out.** Each later wave passes the neurons already in the cortical plate and settles above them.
+
+<LessonFigure src="/figures/birth-order-and-layers/radial-column-inside-out.webp" width={1200} height={828} alt="AI-generated illustration: a simplified vertical slice of developing cortex, with the surface above and the ventricle below. The marginal zone lies above the cortical plate, whose layers are numbered 2 through 6 from top to bottom; the subplate lies below it. Clay neurons occupy layer 6 and the subplate, sage neurons occupy upper layers, and a gold neuron moves upward past older cortical-plate neurons. The ventricular zone is shown at the base; intervening developmental zones are omitted. Two insets show the preplate and its separation into marginal zone and subplate by the emerging cortical plate." caption="Excitatory cortical neurons arise from ventricular-zone progenitors, either directly or through intermediate progenitors in the subventricular zone, and migrate outward. The earliest neurons form the preplate; the next wave splits it into marginal zone and subplate, with the cortical plate between them. Within the cortical plate, later-born neurons pass earlier-born neurons: layer 6 forms first and layer 2 last. The schematic omits intervening developmental zones." />
+
+Notice the exception the split creates. The preplate's cells are born first, yet they end up both at the top, in the marginal zone, and at the bottom, in the subplate. "Earlier, deeper" holds inside the cortical plate.
+
+Inside-out is a rule of the mammalian neocortex, not of the whole nervous system. The retina also uses birth order to bias which cell types its progenitors make, but it does not build its layers by later cells passing earlier ones. How neurons make the climb belongs to [radial migration](/lessons/radial-migration/), and what goes wrong in the reeler mouse to [Reelin and the reeler mouse](/lessons/reelin-and-reeler/). That answers the first puzzle.
+
+## Cause or record? Moving a birthday
+
+<LessonFilm film={frontmatter.films[1]} />
+
+Susan McConnell set the second puzzle's two answers, the progenitor's own schedule and the surroundings at birth, against each other in ferrets. Their visual cortex keeps making neurons after birth, so a newborn kit is a host cortex at the upper-layer stage, and it can be reached directly.
+
+In 1991 McConnell and Christine Kaznowski ran the experiment in four steps.
+
+| Step | What happens |
+| --- | --- |
+| 1. Pulse | Label a donor embryo's progenitors with tritiated thymidine, at a stage that makes deep-layer neurons. Only cells in S phase take it up. |
+| 2. Harvest | Take the cells out either soon after the pulse (most labeled cells still in S phase) or later (labeled cells past S phase, in G2, near division). |
+| 3. Graft | Put them into the cortex of an older host, a newborn kit making layers 2 and 3. |
+| 4. Read | Later, find the heavily labeled neurons and note their layer. |
+
+The step that matters is the harvest. A cell grafted in S phase finishes its cycle in the host, so its daughter is born there.
+
+**Predict.** Where do most of the daughters settle if the cells were moved (a) in S phase, and (b) late in the cell cycle?
+
+<details>
+<summary>Check your prediction</summary>
+
+(a) Cells moved while in S phase mostly settled in layers 2 and 3, like the host's own neurons: the host's cues acted on them before they divided.
+
+(b) Cells moved later in the cycle mostly settled in the deep layers, out of step with the host. Their fate had been fixed before the move.
+
+So the grafts bracket the commitment of laminar fate: not yet made during S phase, made by the later stage, before division. The grafts do not show a single switch, so treat "after S phase, before mitosis" as a working model. A rule that said "the lineage's own clock decides" would fail result (a).
+
+</details>
+
+Could an old progenitor go back? Run the graft the other way.
+
+**Predict.** Late progenitors, from a stage making upper layers, are moved into a young host making deep layers. A young host offers deep-layer cues. What do the late progenitors make?
+
+<details>
+<summary>Check your prediction</summary>
+
+In 1996 Gretchen Frantz and McConnell did this. The late progenitors still made upper-layer neurons. They had lost deep-layer fates from their menu, so they could not answer the young host's cues. In these ferret experiments competence narrowed one way; some mouse progenitors can go back (Going deeper).
+
+</details>
+
+These grafts have limits: they read only the cells that reached the cortex, the cues in the host are only partly known, and a layer position is not a whole identity.
+
+That answers the second puzzle. The birthday is a record, not a cause. And schedule or surroundings? Both: the host's cues count until the cell commits, and what the progenitor can still make narrows with age.
+
+## What a clock is made of: the fly
+
+<LessonFilm film={frontmatter.films[2]} />
+
+The ferret shows that a progenitor's menu changes with time. It does not show what changes. The fly asks the question in its cleanest form. In each half-segment of a *Drosophila* embryo's nerve cord there are about 30 neural stem cells, **neuroblasts**. Each buds off a series of smaller cells, **ganglion mother cells**, and each of those divides to make neurons or glia. Each neuroblast can be named and found again in every embryo. How do so few make hundreds of neurons and glia of many identities? (Cell number and number of cell types are different counts.)
+
+The answer is a clock of transcription factors. In 2001 Takako Isshiki, Bret Pearson, Scott Holbrook and Chris Doe reported that most neuroblasts express four factors in turn: Hunchback, then Krüppel, then Pdm, then Castor. A ganglion mother cell keeps the factor that was on when it budded off, and so do its neurons. The windows overlap, so the sequence is an outline rather than a set of sharp steps.
+
+<LessonFigure src="/figures/birth-order-and-layers/neuroblast-temporal-clock.webp" width={1200} height={800} alt="AI-generated illustration: four separated snapshots of the same Drosophila neuroblast progress left to right through Hunchback, Krüppel, Pdm and Castor expression windows. Overlapping colored bands beneath the snapshots indicate that these windows are not exclusive steps. A small lineage inset shows a neuroblast division producing a retained neuroblast and a smaller ganglion mother cell; that ganglion mother cell then branches to two daughter cells. There is no chain of ganglion mother cells and no experimental-results inset." caption="Most embryonic Drosophila neuroblasts express Hunchback, then Krüppel, then Pdm, then Castor in overlapping windows. Their progeny retain the transcription-factor profile present at birth. The snapshots summarize successive states of one self-renewing neuroblast; each ganglion mother cell is produced by the neuroblast and typically divides into two daughters." />
+
+One lineage makes the clock concrete. The neuroblast NB7-1 makes its first five motor neurons, U1 to U5, in that order. Read the row as one place (one neuroblast) and the columns as time (which factors are on); the grid is idealized.
+
+| Neuroblast (place) | Hunchback window | Krüppel window | Pdm, no Castor | Pdm + Castor |
+| --- | --- | --- | --- | --- |
+| NB7-1 | U1, U2 | U3 | U4 | U5 |
+
+U5 needs the overlap: Pdm alone goes with U4, Pdm together with Castor with U5. Another neuroblast runs the same windows but makes different neurons in each. Place sets the class; time picks the member.
+
+Expression in sequence is a correlation. To show the factors set identity, take one away or keep it on too long. Hunchback and Krüppel also pattern the early embryo, which complicates tests in the nervous system, so the Doe laboratory changed them in the nervous system itself.
+
+| Hunchback in the nervous system | What the lineages make |
+| --- | --- |
+| normal | first-born identities, then later ones, in order |
+| removed | first-born identities lost, in the lineages they examined |
+| kept on long after it would switch off | ? |
+
+**Predict.** Fill in the last row. Do the extra cells look like early-born or late-born neurons, and of which lineage?
+
+<details>
+<summary>Check your prediction</summary>
+
+With Hunchback kept on, lineages made extra cells with first-born features: in NB7-1, extra cells resembling U1 or U2. Prolonged Krüppel made extra second-born cells. Hunchback did not make every first-born cell the same; each lineage made its own first-born type.
+
+</details>
+
+In 2006 the same laboratory showed that Pdm and Castor specify the later U4 and U5 identities in NB7-1. The work turned birth order from a correlation into a genetic program that could be broken and rewired.
+
+## How many of each: the Q schedule
+
+<LessonFilm film={frontmatter.films[3]} />
+
+The third puzzle is about numbers. In this simple model, every division gives two daughters. Each daughter either divides again (the proliferative fraction, P) or leaves the cycle to become a neuron (the leaving fraction, Q).
 
 > **P + Q = 1. Progenitors after one cycle = 2 × P × progenitors before. Neurons made in that cycle = 2 × Q × progenitors before.**
 
-When Q is below 0.5 the pool grows; above 0.5 it shrinks. In 1996 Takao Takahashi, Richard Nowakowski and Verne Caviness measured Q in mouse dorsomedial cortex in the ventricular epithelium. Q was low early, crossed 0.5 on E14, in the eighth cycle, and rose to about 0.8 by E16. Their model spanned eleven cell cycles over E11 to E17. It describes the ventricular zone only; intermediate progenitors in the subventricular zone add divisions of their own that the model does not follow. The cycle also lengthens over the same days. So the cortex first builds its progenitor pool and then spends it, and the order in which it spends it is the order of the layers.
+Walk 100 progenitors through three cycles, with Q rising each time. Assume no cell death and that every progenitor divides once per cycle.
+
+| Cycle | Q | Progenitors at start | Daughters | Progenitors after | Neurons made |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 0.3 | 100 | 200 | 140 | 60 |
+| 2 | 0.5 | 140 | 280 | 140 | 140 |
+| 3 | 0.7 | 140 | 280 | 84 | 196 |
+
+When Q is below 0.5 the pool grows; at 0.5 it holds; above 0.5 it shrinks.
+
+In 1996 Takao Takahashi, Richard Nowakowski and Verne Caviness measured Q in the ventricular epithelium of mouse dorsomedial cortex. Q was low early, crossed 0.5 on E14, in the eighth cycle, and rose to about 0.8 by E16. Their model spanned eleven cell cycles over E11 to E17. It describes the ventricular zone only; intermediate progenitors in the subventricular zone add divisions of their own that the model does not follow.
+
+**Predict.** The pool stops growing in the cycle where Q reaches 0.5. Is that the cycle in which the most neurons are made?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. In the table, the cycle at Q = 0.5 makes 140 neurons, and the next, at Q = 0.7, makes 196 from the same pool of 140. From one cycle to the next, output rises only if 2 × (1 − Q now) × Q next is larger than Q now. Here, just past 0.5 the pool shrinks slowly while Q climbs, so output rises (0.5 to 0.7 gives 1.4 times as many). Later the shrinking pool wins (0.7 to 0.8 gives about 0.69 times as many).
+
+</details>
+
+So the cortex first builds its progenitor pool and then spends much of it, and neurons spent later go to more superficial layers. The model counts how many daughters leave, not which identity they take, so do not read its output as the sizes of the layers.
 
 <LeavingFractionPool />
 
-Each layer's neurons carry identity genes that serve as markers. In mouse, Tbr1 is high in subplate and layer 6 neurons; Ctip2 and Fezf2 are high in layer 5 neurons that project below the cortex; Satb2 marks callosal neurons, which send axons to the other hemisphere and are mostly in the upper layers. Expression overlaps, and position alone does not define a class.
+Try the "Q rising" preset, a sketch with Q of 0.5 in the eighth cycle and 0.8 late, not Takahashi's fitted curve. Output peaks in cycle 9, and about 70 percent of the eleven cycles' output comes from cycle 8 on. Now lower only cycle 9's Q to 0.6: the peak moves to cycle 10, because the peak, like that share, depends on the shape of the curve. Then set every cycle to 0.5 and watch the pool hold still. The sketch ends at cycle 11 with progenitors still left; it does not model how neurogenesis ends. In this two-outcome model the pool would empty only in a cycle with Q = 1, and real progenitors also switch to making glia.
 
-One more caution. The schedule above describes the excitatory, glutamate-releasing neurons made by dorsal progenitors. Most cortical interneurons, which release GABA, are born in rodents in the ganglionic eminences of the ventral telencephalon and travel into the cortex (see [tangential migration](/lessons/tangential-migration/)). Interneurons from the medial ganglionic eminence also settle inside-out by birthdate, and in transplants they take their layer from cues met in their last division, as projection neurons do (Valcanis and Tan, 2003). Two birthplaces and two transmitters, but a shared layering rule.
+## What a birthday leaves behind
+
+<LessonFilm film={frontmatter.films[4]} />
+
+Each layer's neurons carry identity genes that serve as markers, so identity can be read without knowing position, as the dish experiment below does. In mouse, Tbr1 is high in subplate and layer 6 neurons; Ctip2 and Fezf2 are high in layer 5 neurons that project below the cortex; Satb2 marks callosal neurons, which send axons to the other hemisphere and are mostly in the upper layers. Expression overlaps, and position alone does not define a class.
+
+The schedule in this lesson describes the excitatory, glutamate-releasing neurons made by dorsal progenitors. Most cortical interneurons, which release GABA, are born in rodents in the **ganglionic eminences**, bulges in the floor of the forebrain (the ventral telencephalon), and travel into the cortex (see [tangential migration](/lessons/tangential-migration/)). This is the other half of "place sets the class": for most cortical neurons in rodents, a dorsal birthplace goes with excitatory neurons, a ventral one with inhibitory interneurons. Interneurons from the medial ganglionic eminence follow a similar birthdate rule, settling inside-out. Not every interneuron does (Going deeper).
+
+### Does a mammal run a clock like the fly's?
+
+When the laboratory of Sally Temple grew single mouse cortical progenitors alone in culture (Shen and colleagues, 2006), clones made neurons with early, deep-layer markers before neurons with later markers. That points to a schedule within the lineage, which fits the ferret result. Homologs of the fly factors do have temporal jobs in mouse. A full cascade like the fly's has not been shown in cortex. Whether vertebrate progenitors run a transcription factor cascade, or a gradual change in competence shaped by feedback from the neurons they have already made, is open.
+
+## Putting it together
+
+The three puzzles share one answer: the birthday is a timestamp, and the progenitor's state then sets temporal identity. The thymidine pulse dated the birthdays and showed that later cells pass earlier ones. The ferret grafts showed that laminar fate is set late in the final cycle, cues included, and that the menu shortens. The fly showed what a temporal state can be made of: a cascade of transcription factors you can break or prolong. And Q counted how one pool is built and then spent.
+
+How each new neuron makes its climb past the older ones is the subject of [radial migration](/lessons/radial-migration/).
+
+## Going deeper
+
+### Why only DNA takes up the label
+
+Cells take up thymidine by the salvage pathway, in which thymidine kinase adds the first phosphate (see [nucleotide metabolism](/lessons/nucleotide-metabolism/)). Its deoxyribose sugar is why it goes into DNA and not RNA. BrdU and EdU are thymidine stand-ins read by an antibody or by click chemistry; the exact labeling window depends on the label and the dose.
+
+### Seven-up times the switch
+
+Another factor, Seven-up, is needed to switch Hunchback off on time (Kanai and colleagues, 2005).
+
+### Intermediate-stage grafts
+
+In 2000 A. R. Desai and McConnell found that ferret progenitors at an intermediate stage, making layer 4, could be pushed forward to upper layers but not back to layer 6. Together with Frantz and McConnell's result, this is the ferret evidence that competence narrows one way.
+
+### How some mouse progenitors go back
+
+In mouse, late apical progenitors moved into younger hosts can return to earlier states by sensing Wnt, while intermediate progenitors cannot (Oberst and colleagues, 2019). That is why this lesson calls the shrinking menu the normal course, not a law.
+
+### Fly-factor relatives in the mouse
+
+Ikaros, a relative of Hunchback, has a temporal job in the mouse retina. The COUP-TF genes, relatives of the fly's Seven-up, act in the switch from making neurons to making glia.
+
+### Timing the Q schedule
+
+The cell cycle lengthens over the same days, from about 8 hours early to about 18 hours late. That lengthening is how eleven cycles fit the six days from E11 to E17, with the eighth near E14.
+
+### Interneurons in transplants, and those that do not follow the rule
+
+In transplants, interneurons from the medial ganglionic eminence take their layer from cues met in their last division, as projection neurons do (Valcanis and Tan, 2003). Interneurons from the caudal ganglionic eminence go mainly to superficial layers, and their layer follows birth date less closely (Miyoshi and colleagues, 2010).
