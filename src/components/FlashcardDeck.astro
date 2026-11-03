@@ -1,0 +1,390 @@
+---
+/* Flashcard pop-out for one lesson. A docked panel, not a modal, so the lesson
+   stays readable beside it: each card names the passage it came from, and
+   "Show in lesson" (or "Highlight the source as I go") scrolls there and
+   highlights it.
+
+   The deck is static data (src/data/flashcards/<slug>.json, written ahead of
+   time by scripts/flashcards/). Two filters shape a session: the goal (understand
+   the lesson, course exam, MCAT) and the levels of abstraction, from Recall to
+   Integrate. Study state is kept in this browser only (src/lib/flashcards.ts).
+
+   Open it with any element carrying data-fc-open. */
+import { LEVELS, GOALS, type Deck, type Goal } from '../lib/flashcards';
+
+interface Props { deck: Deck }
+const { deck } = Astro.props;
+const byGoal = (g: Goal) => deck.cards.filter((c) => c.goals.includes(g)).length;
+const byLevel = (l: number) => deck.cards.filter((c) => c.level === l).length;
+// Only what the page needs (the deck file also carries its generation record and section hashes).
+const json = JSON.stringify({
+  slug: deck.slug, title: deck.title,
+  cards: deck.cards.map(({ id, type, level, goals, front, back, why, quote, section }) => ({ id, type, level, goals, front, back, why, quote, section })),
+}).replace(/</g, '\\u003c');
+---
+
+<aside class="fc-panel" id="fc-panel" data-fc data-slug={deck.slug} hidden aria-label="Flashcards" data-pagefind-ignore tabindex="-1">
+  <div class="fc-head">
+    <p class="fc-title"><strong>Flashcards</strong> <span class="fc-stats" data-fc-stats></span></p>
+    <button type="button" class="fc-x" data-fc-close aria-label="Close flashcards">✕</button>
+  </div>
+
+  <div class="fc-controls">
+    <fieldset class="fc-set">
+      <legend>I'm studying to</legend>
+      <div class="fc-seg">
+        {(Object.keys(GOALS) as Goal[]).map((g, i) => (
+          <label class="fc-opt" title={GOALS[g].hint}>
+            <input type="radio" name="fc-goal" value={g} checked={i === 0} data-fc-goal />
+            <span>{g === 'lesson' ? 'Understand it' : GOALS[g].name} <em>{byGoal(g)}</em></span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+    <fieldset class="fc-set">
+      <legend>Levels, from recall to integration</legend>
+      <div class="fc-seg">
+        {[1, 2, 3, 4].map((l) => (
+          <label class="fc-opt" title={LEVELS[l].hint}>
+            <input type="checkbox" value={l} checked data-fc-level disabled={byLevel(l) === 0} />
+            <span>{l} {LEVELS[l].name} <em>{byLevel(l)}</em></span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="fc-stage" aria-live="polite">
+    <div class="fc-card" data-fc-card hidden>
+      <p class="fc-meta"><span class="fc-lv" data-fc-lv></span><span data-fc-kind></span><span data-fc-left></span></p>
+      <div class="fc-front" data-fc-front></div>
+      <div class="fc-back" data-fc-back hidden>
+        <div class="fc-answer" data-fc-answer></div>
+        <p class="fc-why" data-fc-why hidden></p>
+        <p class="fc-src">
+          <button type="button" class="fc-link" data-fc-show>Show in lesson</button>
+          <span class="fc-sec" data-fc-sec></span>
+        </p>
+      </div>
+    </div>
+    <button type="button" class="fc-flip" data-fc-flip hidden>Show answer <kbd>Space</kbd></button>
+    <div class="fc-rate" data-fc-rate hidden>
+      {['Again', 'Hard', 'Good', 'Easy'].map((r, i) => (
+        <button type="button" class={`fc-r fc-r${i + 1}`} data-fc-r={i + 1}>
+          <span>{r}</span><small data-fc-wait></small><kbd>{i + 1}</kbd>
+        </button>
+      ))}
+    </div>
+    <div class="fc-done" data-fc-done hidden>
+      <p data-fc-done-msg></p>
+      <p><button type="button" class="fc-flip" data-fc-ahead>Study these ahead of schedule</button></p>
+    </div>
+  </div>
+
+  <div class="fc-foot">
+    <label class="fc-follow"><input type="checkbox" data-fc-follow checked /> Highlight the source in the lesson as I go</label>
+    <p class="fc-actions">
+      <button type="button" class="fc-link" data-fc-export>Export these to Anki</button>
+      <button type="button" class="fc-link" data-fc-reset>Reset this deck</button>
+    </p>
+    <p class="fc-note" data-fc-note>
+      Written from this lesson's text by AI (Claude), checked against it, and linked to the passage each card tests.
+      MCAT cards are original practice, not official material. Your progress stays in this browser.
+      <span data-fc-held></span>
+    </p>
+  </div>
+  <script type="application/json" data-fc-data is:inline set:html={json} />
+</aside>
+
+<style is:global>
+  .fc-panel {
+    position: fixed; z-index: 60; right: 0; top: 0; bottom: 0; width: min(420px, 100vw);
+    display: flex; flex-direction: column; gap: 0.5rem; padding: 0.75rem 1rem 1rem;
+    background: var(--ddp-color-surface); color: var(--ddp-color-ink);
+    border-left: 1px solid var(--ddp-color-line); box-shadow: -8px 0 24px rgb(0 0 0 / 0.12);
+    overflow-y: auto; font-size: var(--ddp-text-sm);
+  }
+  .fc-panel[hidden] { display: none; }
+  /* Wide enough to keep the lesson readable beside the panel: push the page over. */
+  @media (min-width: 1000px) {
+    .fc-panel { width: min(420px, 36vw); }
+    body.fc-open { padding-right: min(420px, 36vw); }
+  }
+  @media (max-width: 760px) {
+    .fc-panel { top: auto; height: 62vh; width: 100vw; border-left: 0; border-top: 1px solid var(--ddp-color-line); border-radius: 14px 14px 0 0; box-shadow: 0 -8px 24px rgb(0 0 0 / 0.18); }
+  }
+  .fc-head { display: flex; align-items: center; justify-content: space-between; }
+  .fc-title { margin: 0; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
+  .fc-stats { color: var(--ddp-color-muted); font-size: var(--ddp-text-xs); margin-left: 0.4rem; }
+  .fc-x { background: none; border: 0; font-size: 1.1rem; cursor: pointer; color: var(--ddp-color-ink-soft); padding: 0.25rem 0.5rem; }
+  .fc-set { border: 0; margin: 0 0 0.4rem; padding: 0; }
+  .fc-set legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem; }
+  .fc-seg { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .fc-opt { cursor: pointer; }
+  .fc-opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .fc-opt span { display: inline-block; padding: 0.25rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 999px; font-size: var(--ddp-text-xs); }
+  .fc-opt em { font-style: normal; color: var(--ddp-color-muted); margin-left: 0.15rem; }
+  .fc-opt input:checked + span { background: var(--ddp-color-accent-soft); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 600; }
+  .fc-opt input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .fc-opt input:disabled + span { opacity: 0.45; cursor: default; }
+  .fc-panel > * { flex-shrink: 0; }
+  .fc-stage { flex: 1 0 auto; display: flex; flex-direction: column; gap: 0.6rem; min-height: 12rem; }
+  .fc-card { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); padding: 0.9rem 1rem; background: var(--ddp-color-bg); }
+  .fc-meta { display: flex; gap: 0.6rem; margin: 0 0 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fc-meta span:last-child { margin-left: auto; }
+  .fc-lv { font-weight: 600; color: var(--ddp-color-secondary-ink); }
+  .fc-front, .fc-answer { font-size: var(--ddp-text-base); line-height: 1.5; }
+  .fc-front p, .fc-answer p { margin: 0; }
+  .fc-gap { display: inline-block; min-width: 3.5em; border-bottom: 2px solid var(--ddp-color-accent); color: var(--ddp-color-muted); text-align: center; }
+  .fc-fill { background: var(--ddp-color-accent-soft); border-radius: 3px; padding: 0 0.15em; font-weight: 600; }
+  .fc-back { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px dashed var(--ddp-color-line); }
+  .fc-why { margin: 0.5rem 0 0; color: var(--ddp-color-ink-soft); }
+  .fc-src { margin: 0.6rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fc-link { background: none; border: 0; padding: 0; color: var(--ddp-color-accent); text-decoration: underline; cursor: pointer; font: inherit; }
+  .fc-flip { align-self: center; padding: 0.5rem 1.2rem; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font-weight: 600; cursor: pointer; }
+  .fc-flip kbd, .fc-r kbd { font-size: 0.7em; opacity: 0.7; margin-left: 0.3rem; }
+  .fc-rate { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; }
+  .fc-r { display: flex; flex-direction: column; align-items: center; padding: 0.4rem 0.2rem; border-radius: 8px; border: 1px solid var(--ddp-color-line); background: var(--ddp-color-surface); color: var(--ddp-color-ink); cursor: pointer; font-weight: 600; }
+  .fc-r small { font-weight: 400; color: var(--ddp-color-muted); }
+  .fc-r1 { border-color: #c0392b; } .fc-r4 { border-color: var(--ddp-color-verified); }
+  .fc-done { text-align: center; color: var(--ddp-color-ink-soft); }
+  .fc-foot { border-top: 1px solid var(--ddp-color-line); padding-top: 0.5rem; }
+  .fc-follow { display: flex; gap: 0.4rem; align-items: center; font-size: var(--ddp-text-xs); }
+  .fc-actions { display: flex; gap: 1rem; margin: 0.4rem 0; font-size: var(--ddp-text-xs); }
+  .fc-note { margin: 0; font-size: 0.72rem; color: var(--ddp-color-muted); line-height: 1.4; }
+  ::highlight(fc-src) { background-color: color-mix(in srgb, var(--color-gold, #d4a843) 45%, transparent); }
+  .fc-flash { outline: 3px solid color-mix(in srgb, var(--color-gold, #d4a843) 70%, transparent); outline-offset: 4px; border-radius: 4px; }
+</style>
+
+<script>
+  import { LEVELS, next, rate, resetDeck, loadStore, stateOf, wait, clozeParts, ankiText, type Card, type Deck, type Goal, type Rating } from '../lib/flashcards';
+
+  const panel = document.querySelector<HTMLElement>('[data-fc]');
+  if (panel) init(panel);
+
+  function init(root: HTMLElement) {
+    const deck: Deck = JSON.parse(root.querySelector('[data-fc-data]')!.textContent!);
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const prose = document.querySelector<HTMLElement>('.prose-col[data-lesson-title]');
+    const KIND: Record<string, string> = { cloze: 'Fill the gap', qa: 'Question', predict: 'Predict', experiment: 'Experiment', calc: 'Calculate' };
+    const NEW_PER_SESSION = 20;
+
+    // ---- Find each card's quote in the rendered lesson text --------------------
+    // Text nodes are flattened into one normalised string (curly quotes straightened,
+    // whitespace collapsed) with a map back to node + offset, so a quote can become a Range.
+    let flat = '';
+    let map: [Text, number][] = [];
+    const nch = (c: string) => (/\s/.test(c) ? ' ' : c === '“' || c === '”' ? '"' : c === '‘' || c === '’' ? "'" : c === '…' ? '...' : c);
+    const normQ = (t: string) => [...t].map(nch).join('').replace(/\s+/g, ' ').trim();
+    function index() {
+      flat = ''; map = [];
+      if (!prose) return;
+      const w = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode() as Text | null; n; n = w.nextNode() as Text | null) {
+        if (n.parentElement?.closest('script, style, .visually-hidden, figure figcaption ~ *')) continue;
+        const s = n.data;
+        for (let i = 0; i < s.length; i++) {
+          const c = nch(s[i]);
+          if (c === ' ' && (flat.endsWith(' ') || flat === '')) continue;
+          for (const ch of c) { flat += ch; map.push([n, i]); }
+        }
+      }
+    }
+    function rangeFor(quote: string): Range | null {
+      const q = normQ(quote);
+      const at = flat.indexOf(q);
+      if (at < 0) return null;
+      const [sn, so] = map[at];
+      const [en, eo] = map[at + q.length - 1];
+      const r = document.createRange();
+      r.setStart(sn, so);
+      r.setEnd(en, Math.min(eo + 1, en.data.length));
+      return r;
+    }
+
+    index();
+    // A card whose passage has changed since the deck was written is held back
+    // until the deck is regenerated, rather than shown against text it no longer matches.
+    const live = deck.cards.filter((c) => !prose || rangeFor(c.quote));
+    const held = deck.cards.length - live.length;
+
+    // ---- Filters and session queue ---------------------------------------------
+    const goal = () => (root.querySelector<HTMLInputElement>('[data-fc-goal]:checked')?.value ?? 'lesson') as Goal;
+    const levels = () => new Set([...root.querySelectorAll<HTMLInputElement>('[data-fc-level]:checked')].map((i) => Number(i.value)));
+    const PREF = 'biochempedia:cards:prefs';
+    try {
+      const p = JSON.parse(localStorage.getItem(PREF) ?? '{}');
+      if (p.goal) root.querySelectorAll<HTMLInputElement>('[data-fc-goal]').forEach((i) => { i.checked = i.value === p.goal; });
+      if (Array.isArray(p.levels)) root.querySelectorAll<HTMLInputElement>('[data-fc-level]').forEach((i) => { i.checked = !i.disabled && p.levels.includes(Number(i.value)); });
+      if (p.follow === false) $<HTMLInputElement>('[data-fc-follow]').checked = false;
+    } catch { /* defaults */ }
+    const savePrefs = () => {
+      try { localStorage.setItem(PREF, JSON.stringify({ goal: goal(), levels: [...levels()], follow: $<HTMLInputElement>('[data-fc-follow]').checked })); } catch { /* not remembered */ }
+    };
+
+    const selected = () => { const g = goal(); const ls = levels(); return live.filter((c) => c.goals.includes(g) && ls.has(c.level)); };
+    let queue: Card[] = [];
+    let cur: Card | null = null;
+
+    function build(ahead = false) {
+      const st = loadStore();
+      const now = Date.now();
+      const cards = selected();
+      const seen = cards.filter((c) => stateOf(st, deck.slug, c.id));
+      const due = seen.filter((c) => ahead || stateOf(st, deck.slug, c.id)!.due <= now)
+        .sort((a, b) => stateOf(st, deck.slug, a.id)!.due - stateOf(st, deck.slug, b.id)!.due);
+      // New cards come in lesson order, so a definition sits next to the mechanism it serves.
+      // (Pilot A/B: a reader preferred this, 8/8 vs 6/6, to sorting by level, which split such pairs.)
+      const fresh = cards.filter((c) => !stateOf(st, deck.slug, c.id)).slice(0, NEW_PER_SESSION);
+      queue = [...due, ...fresh];
+      stats();
+      show();
+    }
+
+    function stats() {
+      const st = loadStore();
+      const cards = selected();
+      const now = Date.now();
+      const nNew = cards.filter((c) => !stateOf(st, deck.slug, c.id)).length;
+      const nDue = cards.filter((c) => { const s = stateOf(st, deck.slug, c.id); return s && s.due <= now; }).length;
+      $('[data-fc-stats]').textContent = `${cards.length} cards · ${nNew} new · ${nDue} due`;
+      // Level chips count within the chosen goal.
+      const g = goal();
+      root.querySelectorAll<HTMLInputElement>('[data-fc-level]').forEach((i) => {
+        const em = i.parentElement?.querySelector('em');
+        if (em) em.textContent = String(live.filter((c) => c.goals.includes(g) && c.level === Number(i.value)).length);
+      });
+      if (held) $('[data-fc-held]').textContent = `${held} card${held === 1 ? ' is' : 's are'} held back until the deck catches up with a revised passage.`;
+    }
+
+    // ---- Rendering --------------------------------------------------------------
+    const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    function frontHtml(c: Card, revealed: boolean) {
+      const z = c.type === 'cloze' ? clozeParts(c.front) : null;
+      if (!z) return `<p>${esc(c.front)}</p>`;
+      const mid = revealed ? `<span class="fc-fill">${esc(z.answer)}</span>` : `<span class="fc-gap">${z.hint ? esc(z.hint) : '…'}</span>`;
+      return `<p>${esc(z.before)}${mid}${esc(z.after)}</p>`;
+    }
+
+    function show() {
+      const card = $('[data-fc-card]');
+      const done = $('[data-fc-done]');
+      $('[data-fc-rate]').hidden = true;
+      cur = queue[0] ?? null;
+      if (!cur) {
+        card.hidden = true; $('[data-fc-flip]').hidden = true; done.hidden = false;
+        const total = selected().length;
+        $('[data-fc-done-msg]').textContent = total === 0
+          ? 'No cards match these settings. Try another goal or level.'
+          : 'Done for now. Cards you know come back on their schedule.';
+        $('[data-fc-ahead]').hidden = total === 0;
+        clearHighlight();
+        return;
+      }
+      done.hidden = true; card.hidden = false;
+      $('[data-fc-lv]').textContent = `L${cur.level} ${LEVELS[cur.level].name}`;
+      $('[data-fc-kind]').textContent = KIND[cur.type] ?? '';
+      $('[data-fc-left]').textContent = `${queue.length} left`;
+      $('[data-fc-front]').innerHTML = frontHtml(cur, false);
+      $('[data-fc-back]').hidden = true;
+      $('[data-fc-flip]').hidden = false;
+    }
+
+    function flip() {
+      if (!cur) return;
+      $('[data-fc-front]').innerHTML = frontHtml(cur, true);
+      const back = cur.back?.trim();
+      $('[data-fc-answer]').innerHTML = back ? `<p>${esc(back)}</p>` : '';
+      const why = $('[data-fc-why]');
+      why.hidden = !cur.why; why.textContent = cur.why ?? '';
+      $('[data-fc-sec]').textContent = cur.section ? `· ${cur.section}` : '';
+      $('[data-fc-back]').hidden = false;
+      $('[data-fc-flip]').hidden = true;
+      const st = stateOf(loadStore(), deck.slug, cur.id);
+      root.querySelectorAll<HTMLElement>('[data-fc-r]').forEach((b) => {
+        b.querySelector('small')!.textContent = wait(next(st, Number(b.dataset.fcR) as Rating));
+      });
+      $('[data-fc-rate]').hidden = false;
+      if ($<HTMLInputElement>('[data-fc-follow]').checked) highlight(cur, false);
+      $<HTMLButtonElement>('[data-fc-r="3"]').focus({ preventScroll: true });
+    }
+
+    function answer(r: Rating) {
+      if (!cur || $('[data-fc-rate]').hidden) return;
+      const s = rate(deck.slug, cur.id, r);
+      queue.shift();
+      // Still learning today: back into this session, a few cards later.
+      if (s.i === 0) queue.splice(Math.min(r === 1 ? 3 : 5, queue.length), 0, cur);
+      stats();
+      show();
+    }
+
+    // ---- Highlight the source passage in the lesson ----------------------------
+    let flashEl: HTMLElement | null = null;
+    function clearHighlight() {
+      // @ts-ignore CSS Custom Highlight API (not in every lib.dom yet)
+      if (window.CSS?.highlights) CSS.highlights.delete('fc-src');
+      flashEl?.classList.remove('fc-flash'); flashEl = null;
+    }
+    function highlight(c: Card, focusIt: boolean) {
+      clearHighlight();
+      let r = rangeFor(c.quote);
+      if (!r) return;
+      const host = (r.startContainer.parentElement as HTMLElement | null);
+      // A Predict answer lives in a closed <details>: open it first, which changes nothing in the text index.
+      const det = host?.closest('details');
+      if (det && !det.open) { det.open = true; r = rangeFor(c.quote) ?? r; }
+      // @ts-ignore CSS Custom Highlight API
+      if (window.CSS?.highlights && typeof Highlight !== 'undefined') CSS.highlights.set('fc-src', new Highlight(r));
+      else { flashEl = host?.closest('p, li, blockquote, td, div') ?? host; flashEl?.classList.add('fc-flash'); }
+      // On a phone the sheet covers the page, so following along only marks the
+      // passage; "Show in lesson" lowers the sheet and takes the reader there.
+      const narrow = window.matchMedia('(max-width: 760px)').matches;
+      if (narrow && !focusIt) return;
+      if (narrow) close(false);
+      const rect = r.getBoundingClientRect();
+      const target = window.scrollY + rect.top - window.innerHeight * (narrow ? 0.4 : 0.3);
+      window.scrollTo({ top: Math.max(0, target), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }
+
+    // ---- Open, close, keys --------------------------------------------------------
+    let built = false;
+    function open() {
+      root.hidden = false; document.body.classList.add('fc-open');
+      if (!built) { built = true; build(); }
+      root.focus({ preventScroll: true });
+    }
+    function close(clear = true) { root.hidden = true; document.body.classList.remove('fc-open'); if (clear) clearHighlight(); }
+    document.querySelectorAll<HTMLElement>('[data-fc-open]').forEach((b) => b.addEventListener('click', () => (root.hidden ? open() : close())));
+    $('[data-fc-close]').addEventListener('click', () => close());
+    $('[data-fc-flip]').addEventListener('click', flip);
+    root.querySelectorAll<HTMLElement>('[data-fc-r]').forEach((b) => b.addEventListener('click', () => answer(Number(b.dataset.fcR) as Rating)));
+    $('[data-fc-show]').addEventListener('click', () => cur && highlight(cur, true));
+    $('[data-fc-ahead]').addEventListener('click', () => build(true));
+    root.querySelectorAll('[data-fc-goal], [data-fc-level]').forEach((i) => i.addEventListener('change', () => { savePrefs(); build(); }));
+    $('[data-fc-follow]').addEventListener('change', () => { savePrefs(); if (!$<HTMLInputElement>('[data-fc-follow]').checked) clearHighlight(); });
+    $('[data-fc-reset]').addEventListener('click', () => {
+      if (!confirm('Forget your progress on this deck in this browser?')) return;
+      resetDeck(deck.slug); build();
+    });
+    $('[data-fc-export]').addEventListener('click', () => {
+      const cards = selected();
+      const blob = new Blob([ankiText(deck, cards)], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `biochempedia-${deck.slug}-${goal()}.txt`;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (root.hidden || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement;
+      if (t.closest('input, textarea, select') && !t.closest('[data-fc]')) return;
+      if (e.key === 'Escape') { close(); return; }
+      if (!root.contains(document.activeElement) && document.activeElement !== document.body) return;
+      if ((e.key === ' ' || e.key === 'Enter') && !$('[data-fc-flip]').hidden) { e.preventDefault(); flip(); }
+      else if (/^[1-4]$/.test(e.key)) { e.preventDefault(); answer(Number(e.key) as Rating); }
+    });
+    if (location.hash === '#flashcards') open();
+  }
+</script>

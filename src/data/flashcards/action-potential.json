@@ -1,0 +1,709 @@
+{
+ "slug": "action-potential",
+ "title": "The Action Potential and Conduction",
+ "generated": {
+  "date": "2026-11-03",
+  "pipeline": "extract → Opus draft → Codex accuracy gate → fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "OpenAI via Codex"
+  },
+  "tokens": {
+   "draft": 114026,
+   "gate": 73156
+  },
+  "pilot": "docs: flashcards pilot 2026-11-03"
+ },
+ "lessonHash": "55bccba28ec2",
+ "sectionHashes": {
+  "The spike and its puzzles": "c00d88ee24c6",
+  "The tug of war: where the voltage goes": "212290b3b3ba",
+  "Holding the voltage still: the voltage clamp": "fd4ff4752684",
+  "What the record looks like": "899adff84130",
+  "Which ions carry the two currents?": "fc73f5714027",
+  "How three gates make one spike": "ab0c09a58890",
+  "Four moments of one spike": "6e4c1ad7946f",
+  "Threshold: sodium feedback that sustains itself": "7c90bab21b97",
+  "Refractoriness comes from inactivation": "e4cd7249c976",
+  "Spread ahead, refractory behind": "d7c69ac84296",
+  "Diameter: a wider pipe": "2ba6e4e7a288",
+  "Myelin: a hose wrapped in tape": "2f2d1e198e3d",
+  "Demyelination": "0cf2ad91022c",
+  "Predict, then check: tetrodotoxin, TEA and demyelination": "283453433df6",
+  "Design problem": "754040385cb4",
+  "Not every axon needs potassium channels to repolarize": "89ec7aea0fed"
+ },
+ "cards": [
+  {
+   "id": "action-potential-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Hodgkin-Huxley squid giant axon model, the spike rises from a resting potential of about −65 mV to a peak of about {{c1::+40 mV}}.",
+   "back": "Going past zero is the overshoot.",
+   "quote": "At the peak the inside is positive, about +40 mV in the model.",
+   "section": "The spike and its puzzles"
+  },
+  {
+   "id": "action-potential-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "State the balance-point rule for the membrane potential of a patch with no current injected.",
+   "back": "Vm moves toward a balance point: the average of the ions' equilibrium potentials weighted by their conductances, Vm = (g_K E_K + g_Na E_Na + g_leak E_leak) / (g_K + g_Na + g_leak).",
+   "why": "When it gets there the currents cancel and the voltage holds still. When the conductances change, the balance point moves and Vm chases it.",
+   "quote": "the voltage at each moment moves toward a balance point: the average of the ions' equilibrium potentials, weighted by their conductances",
+   "section": "The spike and its puzzles"
+  },
+  {
+   "id": "action-potential-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In I = g × (Vm − E), with outward current taken as positive, an inward current has a {{c1::negative}} sign.",
+   "back": "",
+   "quote": "This lesson takes outward current as positive, so inward current is negative.",
+   "section": "The tug of war: where the voltage goes"
+  },
+  {
+   "id": "action-potential-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the Hodgkin-Huxley squid model, E_Na is +50 mV and E_K is {{c1::−77 mV}}.",
+   "back": "",
+   "quote": "In the squid model E_Na is +50 mV and E_K is −77 mV.",
+   "section": "The tug of war: where the voltage goes"
+  },
+  {
+   "id": "action-potential-c05",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Ignoring leak, a patch of squid model membrane (E_Na = +50 mV, E_K = −77 mV) has g_K = 2 mS/cm² and g_Na = 8 mS/cm². Where is the balance point?",
+   "back": "Vm = (2 × −77 + 8 × 50) / (2 + 8) = (−154 + 400) / 10 ≈ +25 mV (24.6 mV). Sodium dominates, so the point sits on the positive side.",
+   "quote": "It comes out as an average of the equilibrium potentials, each weighted by its conductance",
+   "section": "The tug of war: where the voltage goes"
+  },
+  {
+   "id": "action-potential-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Ignoring leak, in the squid model (E_Na = +50 mV, E_K = −77 mV), g_K is 4 mS/cm². What minimum g_Na puts the balance point above 0 mV?",
+   "back": "The point passes zero when 50 × g_Na > 77 × g_K, so g_Na > 77 × 4 / 50 ≈ 6.2 mS/cm², about 1.5 times g_K.",
+   "quote": "To pass zero, sodium must outweigh potassium: ignoring leak, g_Na must exceed about 1.5 times g_K",
+   "section": "The tug of war: where the voltage goes"
+  },
+  {
+   "id": "action-potential-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can conductances not be measured properly during a free-running spike?",
+   "back": "Depolarization opens sodium channels, whose current depolarizes further and opens more. Voltage and channel opening change together, so their effects cannot be separated. The voltage clamp breaks this loop.",
+   "quote": "During a free spike, voltage and channel opening change together, so their effects are hard to separate.",
+   "section": "Holding the voltage still: the voltage clamp"
+  },
+  {
+   "id": "action-potential-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Under voltage clamp at a fixed voltage, why does the amplifier's current equal the ionic current through the membrane?",
+   "back": "Capacitive current is Cm × dV/dt. At a fixed voltage dV/dt = 0, so no current goes into the capacitance and all the supplied current must pass through the channels.",
+   "quote": "At a fixed voltage dV/dt is zero, so no current goes into the capacitance, and the amplifier's current must match the current through the channels.",
+   "section": "Holding the voltage still: the voltage clamp"
+  },
+  {
+   "id": "action-potential-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A squid giant axon is clamped from rest to a depolarized level. Name the three parts of the current record in order.",
+   "back": "A brief capacitive blip at the step; an early inward current that grows fast then dies away; a delayed outward current that rises slowly and lasts as long as the step.",
+   "quote": "An early inward current. It grows fast, then dies away, even though the voltage is still held.",
+   "section": "What the record looks like"
+  },
+  {
+   "id": "action-potential-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Under voltage clamp, a current grows and then shrinks while the voltage is held at one value. What must be changing, and why?",
+   "back": "The conductance. With Vm fixed, the driving force (Vm − E) is fixed, so in I = g × (Vm − E) only g can change.",
+   "quote": "In I = g × (Vm − E), the only thing left that can change is g.",
+   "section": "What the record looks like"
+  },
+  {
+   "id": "action-potential-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For a current carried by a single ion, the reversal potential sits at {{c1::that ion's equilibrium potential}}.",
+   "back": "The reversal potential is the voltage at which a current changes sign.",
+   "quote": "For a current carried by one ion, it sits at that ion's equilibrium potential.",
+   "section": "Which ions carry the two currents?"
+  },
+  {
+   "id": "action-potential-c12",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A model squid axon (E_Na = +50 mV, outward positive) is clamped at +60 mV, and g_Na is 5 mS/cm². What is I_Na, and which way does it flow?",
+   "back": "I_Na = 5 mS/cm² × (60 − 50) mV = +50 µA/cm², outward. Above E_Na the sodium current reverses.",
+   "quote": "It shrinks as the step nears +50 mV and turns outward above it.",
+   "section": "Which ions carry the two currents?"
+  },
+  {
+   "id": "action-potential-c13",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a voltage-clamped squid axon, most external Na+ is replaced by choline. Predict what happens to the early current's reversal potential and to the delayed outward current, and say what each result establishes.",
+   "back": "The early current's reversal potential moves with external sodium, so it is carried by Na+. The delayed outward current is little affected. Sodium independence alone cannot name its carrier; it was assigned to K+ on other evidence, including tracer measurements of potassium leaving stimulated axons.",
+   "quote": "It was assigned to K+ on other evidence, including tracer measurements of potassium leaving stimulated axons.",
+   "section": "Which ions carry the two currents?"
+  },
+  {
+   "id": "action-potential-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the cold squid preparation, external Na+ is cut to 10% with choline, so E_Na falls from +50 mV to about −5 mV. Assuming g_Na is unchanged at 20 mS/cm², what is I_Na at a clamp of −20 mV (outward positive)?",
+   "back": "I_Na = 20 × (−20 − (−5)) = 20 × (−15) = −300 µA/cm², still inward, because −20 mV lies below the new E_Na.",
+   "why": "A tenfold concentration change shifts E by about 55 mV in the cold preparation, so the reversal point moves negative.",
+   "quote": "A tenfold change in concentration shifts an equilibrium potential by about 58 mV near 20 °C and about 55 mV in the cold squid preparation",
+   "section": "Which ions carry the two currents?"
+  },
+  {
+   "id": "action-potential-c15",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Name the three gating processes behind the squid action potential, with their relative speeds.",
+   "back": "Fast sodium activation, slower sodium inactivation and slow potassium activation.",
+   "quote": "That takes three processes: fast sodium activation, slower sodium inactivation and slow potassium activation.",
+   "section": "How three gates make one spike"
+  },
+  {
+   "id": "action-potential-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the two-gate cartoon of a sodium channel, why does a depolarization open only a brief window for sodium flow?",
+   "back": "Sodium passes only while both gates are open. The activation gate opens within a fraction of a millisecond; the inactivation gate, open at rest, shuts several times more slowly.",
+   "quote": "So after a depolarization there is a brief window: the fast gate has opened and the slow gate has not yet shut.",
+   "section": "How three gates make one spike"
+  },
+  {
+   "id": "action-potential-c17",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Hodgkin-Huxley equations, m tracks sodium activation, n tracks potassium activation, and h tracks {{c1::the fraction of sodium channels not inactivated}}.",
+   "back": "Each variable runs from 0 to 1.",
+   "quote": "m tracks sodium activation, h the fraction of sodium channels not inactivated, and n potassium activation.",
+   "section": "How three gates make one spike"
+  },
+  {
+   "id": "action-potential-c18",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Hodgkin-Huxley model, sodium conductance follows m³h and potassium conductance follows {{c1::n⁴}}.",
+   "back": "",
+   "quote": "Sodium conductance follows m³h and potassium conductance n⁴.",
+   "section": "How three gates make one spike"
+  },
+  {
+   "id": "action-potential-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why do the 1952 Hodgkin-Huxley equations describe, rather than prove, a molecular mechanism?",
+   "back": "The variables track processes, not physical gates, and the exponents were fitted to the S-shaped onset of the currents, not counted gates or subunits. Channel structure was then unknown.",
+   "quote": "The exponents were fitted to the S-shaped onset of the currents; they are not counts of gates or subunits.",
+   "section": "How three gates make one spike"
+  },
+  {
+   "id": "action-potential-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does a deactivated sodium channel differ from an inactivated one?",
+   "back": "Deactivated: the fast activation gate has shut as the voltage fell; if the channel has not also inactivated, it is closed but ready to open again. Inactivated: the slow gate is shut; the channel is not ready until that gate reopens at negative voltage.",
+   "quote": "The channel is closed and not ready until that gate reopens at negative voltage.",
+   "section": "How three gates make one spike"
+  },
+  {
+   "id": "action-potential-c21",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A squid axon is clamped to a depolarized level and repolarized very early in the step, before much inactivation has developed. What happens to the sodium current, and can the channels open again at once?",
+   "back": "The sodium current shuts off within a fraction of a millisecond as m falls (deactivation), leaving the channels ready to reopen, since few have inactivated yet. Any that had inactivated stay unavailable until h recovers.",
+   "quote": "Repolarize early in a clamp step, before much inactivation, and the sodium current shuts off within a fraction of a millisecond as m falls",
+   "section": "How three gates make one spike"
+  },
+  {
+   "id": "action-potential-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is the rising phase of the action potential so steep?",
+   "back": "Positive feedback: sodium entry depolarizes the membrane, which opens more activation gates and lets in more sodium. g_Na soon dwarfs g_K, so the balance point leaps toward E_Na and Vm races after it.",
+   "quote": "This is positive feedback: each step makes the next one bigger, and it is why the rise is so steep.",
+   "section": "Four moments of one spike"
+  },
+  {
+   "id": "action-potential-c23",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At the peak of the model squid spike (about +40 mV; E_Na = +50 mV, E_K = −77 mV), g_Na is about 12 times g_K, yet the currents balance. Use the driving forces to show how.",
+   "back": "Na driving force = 40 − 50 = −10 mV; K driving force = 40 − (−77) = +117 mV. Per unit conductance potassium pushes about 12 times harder, so 12 g_K × 10 ≈ g_K × 117; leak adds a little outward current.",
+   "quote": "Sodium's large conductance can be balanced at the peak because Vm is close to E_Na, so each open sodium channel pushes only weakly, while potassium, far from E_K, pushes hard.",
+   "section": "Four moments of one spike"
+  },
+  {
+   "id": "action-potential-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the squid model, why is the falling phase of the spike called negative feedback?",
+   "back": "The same depolarization that opened the sodium activation gates also drives slower inactivation and potassium activation. g_Na collapses and g_K rises, so the balance point drops below Vm and sinks toward E_K.",
+   "quote": "This is negative feedback: the same depolarization that started the spike also ends it, a little later.",
+   "section": "Four moments of one spike"
+  },
+  {
+   "id": "action-potential-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What causes the undershoot after a spike in the squid model?",
+   "back": "Potassium gates close slowly, so for several milliseconds g_K stays above its resting level while g_Na is near zero. The balance point sits below rest, near E_K, and Vm dips toward it.",
+   "quote": "For several milliseconds potassium conductance stays higher than at rest, while sodium conductance is close to zero.",
+   "section": "Four moments of one spike"
+  },
+  {
+   "id": "action-potential-c26",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The Na+/K+ pump of a squid giant axon is blocked, and one action potential is triggered. Does it rise and repolarize normally? Why?",
+   "back": "Yes. The spike comes from the gated conductances, not the pump; the Hodgkin-Huxley model has no pump yet repolarizes. One spike moves so few ions that the gradients barely change.",
+   "why": "The pump restores the gradients over many spikes, not within one.",
+   "quote": "In a large axon like the squid's, one spike moves so few ions that the concentrations barely change.",
+   "section": "Four moments of one spike"
+  },
+  {
+   "id": "action-potential-c27",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a squid-like axon, a mutant sodium channel inactivates much more slowly than normal, with activation unchanged. Predict the effect on the peak and on the width of the spike.",
+   "back": "The peak rises a little nearer E_Na and the spike broadens. g_Na stays large for longer, so the balance point stays high until potassium activation overcomes it.",
+   "why": "Rests on the balance-point rule: inactivation lowering g_Na helps hold the peak below E_Na and collapses g_Na in the fall.",
+   "quote": "And during the rise, inactivation lowers g_Na while potassium activation raises g_K, which pulls the balance point down toward the rising Vm.",
+   "section": "Four moments of one spike"
+  },
+  {
+   "id": "action-potential-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is threshold, in terms of the currents?",
+   "back": "The voltage past which extra sodium current from newly opened channels grows faster than potassium and leak current can oppose it, so depolarization sustains itself.",
+   "quote": "Threshold is the voltage past which the extra sodium current from newly opened sodium channels grows faster than potassium and leak current can oppose it",
+   "section": "Threshold: sodium feedback that sustains itself"
+  },
+  {
+   "id": "action-potential-c29",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A brief depolarization of a model axon produces a moment of net inward current, but as the voltage rises, potassium and leak current grow faster than sodium current. Does a spike fire?",
+   "back": "No. The voltage turns back. Threshold requires the inward excess to keep growing, not merely to exist for a moment.",
+   "quote": "A momentary excess of inward current is not enough on its own: if the opposing currents grow faster, the voltage still turns back.",
+   "section": "Threshold: sodium feedback that sustains itself"
+  },
+  {
+   "id": "action-potential-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why are spikes from a resting membrane all-or-none, whether the brief stimulus was just enough or far more?",
+   "back": "Once depolarization is self-sustaining the spike runs its course, and its size is set by the channels and equilibrium potentials. A bigger push only gets there sooner.",
+   "quote": "Its size is set by the channels and the equilibrium potentials, not by the stimulus.",
+   "section": "Threshold: sodium feedback that sustains itself"
+  },
+  {
+   "id": "action-potential-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "One axon receives a fast depolarizing step; an identical axon receives a slow ramp. Which shows the higher threshold, and why?",
+   "back": "The slow ramp. As the depolarization creeps up, sodium channels inactivate and potassium channels open, so more depolarization is needed before sodium feedback sustains itself.",
+   "quote": "If a depolarization creeps up slowly, sodium channels inactivate along the way and potassium channels open, so threshold moves higher.",
+   "section": "Threshold: sodium feedback that sustains itself"
+  },
+  {
+   "id": "action-potential-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Distinguish the absolute from the relative refractory period, with the cause of each.",
+   "back": "Absolute: no stimulus fires a spike, because too few sodium channels are available. Relative: a stronger stimulus can fire one, often smaller, because some sodium channels are still inactivated and g_K is still raised.",
+   "quote": "A spike needs a stronger stimulus than at rest, because some sodium channels are still inactivated and g_K is still raised.",
+   "section": "Refractoriness comes from inactivation"
+  },
+  {
+   "id": "action-potential-c33",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A drug slows recovery of sodium channels from inactivation without other effects. Predict how a paired-pulse curve (second-spike height against interval) and the maximum firing rate change.",
+   "back": "Both refractory periods lengthen, so the curve shifts to longer intervals and the maximum firing rate falls.",
+   "why": "Rests on the rule that refractoriness comes from inactivated sodium channels that recover only with time at negative voltage.",
+   "quote": "Their inactivation gates reopen only once the membrane is back at negative voltage, and that takes time.",
+   "section": "Refractoriness comes from inactivation"
+  },
+  {
+   "id": "action-potential-c34",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The length constant is the distance over which a steady voltage change along an axon decays to about {{c1::37%}} of its starting size.",
+   "back": "A longer length constant lets spreading current bring membrane farther ahead toward threshold.",
+   "quote": "the distance over which a steady voltage change decays to about 37% of its starting size",
+   "section": "Spread ahead, refractory behind"
+  },
+  {
+   "id": "action-potential-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does an action potential travelling along an axon not turn back?",
+   "back": "The membrane just behind it has just fired and its sodium channels are inactivated, so it is refractory. The spike can only move into fresh membrane ahead.",
+   "quote": "The membrane just behind it has just fired, and its sodium channels are inactivated.",
+   "section": "Spread ahead, refractory behind"
+  },
+  {
+   "id": "action-potential-c36",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An axon is stimulated at both ends at the same moment, launching two spikes toward each other. What happens when they meet?",
+   "back": "Both stop. Each spike runs into membrane the other has just left refractory, and no fresh membrane remains between them.",
+   "why": "Rests on the rule that membrane behind a spike is refractory and the axon has no preferred direction.",
+   "quote": "The spike can only move into fresh membrane ahead.",
+   "section": "Spread ahead, refractory behind"
+  },
+  {
+   "id": "action-potential-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a wider unmyelinated axon conduct faster?",
+   "back": "Lower internal resistance lets current spread farther before leaking away, so membrane farther ahead is brought to threshold.",
+   "quote": "A wider axon has lower internal resistance, so current spreads farther along it before leaking away.",
+   "section": "Diameter: a wider pipe"
+  },
+  {
+   "id": "action-potential-c38",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The diameter of an unmyelinated axon and of a myelinated axon is each tripled. Roughly how does each conduction velocity change?",
+   "back": "Unmyelinated: velocity scales roughly with √diameter, so about √3 ≈ 1.7 times. Myelinated: roughly proportional to diameter, so about 3 times.",
+   "quote": "In unmyelinated axons velocity rises roughly with the square root of diameter.",
+   "section": "Diameter: a wider pipe"
+  },
+  {
+   "id": "action-potential-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Name the two electrical changes myelin makes to an internode, and how they speed conduction.",
+   "back": "It raises membrane resistance, so less current leaks out, and lowers capacitance, so less charge is needed. Current from one active node reaches the next fast and still strong.",
+   "quote": "Myelin raises the resistance of each internode, the wrapped stretch between gaps, so less current leaks out.",
+   "section": "Myelin: a hose wrapped in tape"
+  },
+  {
+   "id": "action-potential-c40",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a myelinated axon, sodium channels at the {{c1::nodes of Ranvier}} regenerate the spike.",
+   "back": "Conduction jumping from node to node is saltatory conduction.",
+   "quote": "Sodium channels there regenerate the spike, so the nodes act as boost stations.",
+   "section": "Myelin: a hose wrapped in tape"
+  },
+  {
+   "id": "action-potential-c41",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In saltatory conduction, what skips the internode and what does not?",
+   "back": "Excitation skips it: only the nodes regenerate the spike. Current does not: it flows continuously through the axon from each firing node to the next.",
+   "quote": "Excitation skips the internode, but current does not: it flows continuously through the axon",
+   "section": "Myelin: a hose wrapped in tape"
+  },
+  {
+   "id": "action-potential-c42",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "One internode of a myelinated fibre is demyelinated. Predict the spike recorded beyond the lesion, and why.",
+   "back": "It arrives late or not at all; in some fibres it conducts continuously and slowly across the bare stretch. The bare axon has more membrane to charge and leaks more current, so current reaches the next node late or too weak.",
+   "quote": "So current reaches the next node late or too weak: conduction slows or blocks.",
+   "section": "Demyelination"
+  },
+  {
+   "id": "action-potential-c43",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Tetrodotoxin (TTX) blocks the sodium current of an axon. Is there a spike, and what happens to the resting potential?",
+   "back": "No spike, only a small graded depolarization: nothing can pull the balance point toward E_Na. The resting potential survives, because it is set mainly by potassium and leak.",
+   "quote": "The resting potential survives, because it is set mainly by potassium and leak.",
+   "section": "Predict, then check: tetrodotoxin, TEA and demyelination"
+  },
+  {
+   "id": "action-potential-c44",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A squid axon is voltage-clamped and stepped to a depolarized level after tetrodotoxin is applied. Predict which parts of the current record remain.",
+   "back": "The capacitive blip and the delayed outward current remain; the early inward current is gone.",
+   "why": "TTX blocks the sodium current, which carries the early inward current; the delayed current is carried by K+ and the blip is capacitive.",
+   "quote": "Tetrodotoxin (TTX), a toxin found in pufferfish, blocks the sodium current.",
+   "section": "Predict, then check: tetrodotoxin, TEA and demyelination"
+  },
+  {
+   "id": "action-potential-c45",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "TEA is applied to a squid axon, blocking the delayed potassium current. What happens to the undershoot, and why?",
+   "back": "It becomes shallower, because the undershoot comes from raised potassium conductance. The fall is also slower, so the spike broadens; from the same starting voltage, the rise is little changed.",
+   "quote": "The undershoot is shallower, because it comes from raised potassium conductance.",
+   "section": "Predict, then check: tetrodotoxin, TEA and demyelination"
+  },
+  {
+   "id": "action-potential-c46",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In rabbit nodes at 14 °C, potassium current is almost absent. Predict the effect of TEA on repolarization there, and say what repolarizes the node.",
+   "back": "Little effect. Once sodium channels inactivate, leak is the largest conductance left, so the balance point falls toward leak's equilibrium potential and Vm follows.",
+   "why": "Rests on the balance-point rule applied to a membrane whose only large remaining conductance is leak.",
+   "quote": "In rabbit nodes recorded at 14 °C, potassium current is almost entirely absent and leak accounts for repolarization after the brief sodium current",
+   "section": "Not every axon needs potassium channels to repolarize"
+  },
+  {
+   "id": "action-potential-c47",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a compound action potential recorded from a nerve, the earliest part comes from {{c1::the fastest fibres}}.",
+   "back": "Their spikes arrive first.",
+   "quote": "its earliest part comes from the fastest fibres because their spikes arrive first",
+   "section": "Design problem"
+  },
+  {
+   "id": "action-potential-c48",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A mammalian nerve is stimulated at two sites 8 cm apart. Latencies to the start of the compound action potential are 1.2 ms (near site) and 2.0 ms (far site). Find the conduction velocity of the fastest fibres.",
+   "back": "v = 0.08 m / (2.0 − 1.2) ms = 0.08 m / 0.0008 s = 100 m/s, within the range of the largest myelinated fibres (about 70 to 120 m/s).",
+   "quote": "Before injury, velocity = 0.10 m / 0.0020 s = 50 m/s for the fastest fibres.",
+   "section": "Design problem"
+  },
+  {
+   "id": "action-potential-c49",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two stimulation sites 10 cm apart give a latency difference of 2.0 ms. After a 2 cm demyelinating lesion between them, the difference is 10.0 ms. Assuming intact nerve is unchanged, find the velocity within the lesion.",
+   "back": "Before: 0.10 m / 0.0020 s = 50 m/s. Intact 8 cm takes 0.08 / 50 = 1.6 ms. Lesion takes 10.0 − 1.6 = 8.4 ms, so v = 0.02 m / 0.0084 s ≈ 2.4 m/s.",
+   "quote": "Assume the 9 cm of intact nerve is unchanged: it takes 0.09 m / 50 m/s = 1.8 ms.",
+   "section": "Design problem"
+  },
+  {
+   "id": "action-potential-c50",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Demyelinated fibres conduct slowly across a lesion. Design a test of continuous conduction in the bare internode against slowed saltation between the old nodes.",
+   "back": "Record longitudinal action currents at closely spaced points: continuous conduction shows inward current moving smoothly along the bare internode, slowed saltation shows it only at the old nodes. Then apply TTX to one bare internode only, keeping its flanking nodes in normal solution: continuous conduction that depends on sodium channels in the bare membrane should fail, while slowed saltation, which relies on the nodes, should survive.",
+   "quote": "continuous conduction that depends on sodium channels in the bare membrane should fail, while slowed saltation, which relies on the nodes, should survive.",
+   "section": "Design problem"
+  }
+ ]
+}

@@ -18,6 +18,8 @@ import LessonLadder from '../../components/LessonLadder.astro';
 import SupportsSwitch from '../../components/SupportsSwitch.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
 import FilmTranscript from '../../components/FilmTranscript.astro';
+import FlashcardDeck from '../../components/FlashcardDeck.astro';
+import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
 import { courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
@@ -54,6 +56,9 @@ const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
 const { Content, headings } = await render(entry);
 const lesson = entry.data;
+// Flashcards: a static deck per lesson, written ahead of time by scripts/flashcards/ (no model at runtime).
+const DECKS = import.meta.glob<{ default: Deck }>('../../data/flashcards/*.json', { eager: true });
+const deck = Object.values(DECKS).map((m) => m.default).find((d) => d.slug === entry.data.slug && d.cards?.length);
 const lessonFigures = [...(entry.body ?? '').matchAll(/<(?:LessonFigure|ScaffoldFigure)\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
 const course = courseOf(lesson.course);
 // Method films from the shared library that this lesson teaches or relies on.
@@ -201,6 +206,9 @@ const lessonLd = {
         )}
         {hasQuiz && (
           <li><button type="button" data-open="lb-quiz">📝 Self-test <em>{qCount}</em></button></li>
+        )}
+        {deck && (
+          <li><button type="button" data-fc-open>🗂 Flashcards <em>{deck.cards.length}</em></button></li>
         )}
         {games.length > 0 && (
           <li><a href={gameHref(games[0], entry.data.slug)}>Play <em>{games[0].minutes} min</em></a></li>
@@ -400,13 +408,21 @@ const lessonLd = {
           </div>
         )}
 
-        {hasQuiz && (
+        {(hasQuiz || deck) && (
           <div class="rail-group">
             <h3>Test yourself</h3>
-            <button type="button" class="rail-thumb" data-open="lb-quiz">
-              <span class="rail-ico" aria-hidden="true">📝</span>
-              <span class="rail-label">Self-test <em>{qCount} questions</em></span>
-            </button>
+            {hasQuiz && (
+              <button type="button" class="rail-thumb" data-open="lb-quiz">
+                <span class="rail-ico" aria-hidden="true">📝</span>
+                <span class="rail-label">Self-test <em>{qCount} questions</em></span>
+              </button>
+            )}
+            {deck && (
+              <button type="button" class="rail-thumb" data-fc-open>
+                <span class="rail-ico" aria-hidden="true">🗂</span>
+                <span class="rail-label">Flashcards <em>{deck.cards.length} cards · recall to integration</em></span>
+              </button>
+            )}
           </div>
         )}
 
@@ -512,6 +528,8 @@ const lessonLd = {
         <div class="lightbox-body"><QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} slug={lesson.slug} anchors={quizAnchors} /></div>
       </dialog>
     )}
+
+    {deck && <FlashcardDeck deck={deck} />}
 
     <dialog id="lb-sources" class="lightbox lock-scroll">
       <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
