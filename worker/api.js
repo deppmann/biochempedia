@@ -20,6 +20,7 @@ import {
 import { DAY, JOIN_MODES, SLUG, json, fail, clean, body, sameOrigin, clientKey, allow, mailOn, sendMail } from './util.js';
 import { handleGroups } from './groups.js';
 import { handleAi, handleClassAi, briefAi, studentAiOn, PROVIDERS, MODEL_RE } from './feedback.js';
+import { handleCurious } from './curious.js';
 
 const KINDS = ['quiz', 'idea', 'cer', 'done', 'stuck'];
 const MAX_STUDENTS = 200;
@@ -153,6 +154,13 @@ async function buildBrief(db, cls) {
 
 // ---- router -----------------------------------------------------------------------
 export async function handleApi(request, env) {
+  // The curiosity router (worker/curious.js) is off unless ROUTER_ENABLED=1 and answers its own 503.
+  if (new URL(request.url).pathname.replace(/\/+$/, '') === '/api/curious') {
+    try { return await handleCurious(request, env); } catch (e) {
+      console.error('curious error', e && e.message);
+      return fail(500, 'Something went wrong. Please try again.');
+    }
+  }
   const db = env.CLASSES;
   if (!db) return fail(503, 'Teacher classes are not switched on yet.');
   const url = new URL(request.url);
