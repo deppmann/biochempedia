@@ -1,332 +1,508 @@
-"""Birth order and layers: the day a neuron is born sets the layer it settles in.
-
-COLOR MAP (one color per concept, whole video)
-  ORANGE = earliest-born cohort / deep-layer fate (layer 6)
-  YELLOW = second cohort, and the thing that is moved or highlighted
-  GREEN  = third cohort
-  BLUE   = latest-born cohort / upper-layer fate (layer 2)
-  PURPLE = progenitors and the cell cycle
-  PINK   = preplate, marginal zone, subplate
-  TEAL   = the labeled thymidine pulse and its label
-  RED    = the rejected prediction (cells shoving outward)
-  GREY   = tissue outlines, axes, de-emphasized
+"""The Wall of the Brain: reviewer fix round.
+COLOR MAP: PURPLE progenitors/cycle; PINK preplate/MZ/layer 1;
+LAVENDER subplate; ORANGE layer 6/early cohort; GOLDEN layer 5;
+YELLOW layer 4; GREEN layer 3; BLUE layer 2/later cohort;
+TEAL generic neuron/timestamp; GREY surrounding tissue; RED rejected cause.
+All anatomy and cell counts are qualitative schematics, not data traces.
 """
+from bp_style import *
+
+ORANGE = '#F29E4C'
+PURPLE = '#B58CD9'
+PINK = '#E58FB4'
+LAVENDER = '#8B82BC'
+GOLDEN = '#DAB976'
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+SH = 1.5                      # wall shift: the wall is now centred-left with a wide annotation column
+WL, WR, WC = -4.0, 1.0, -1.5  # wall left edge, right edge, centre x
+GUT = -4.5                    # left gutter for layer numbers and VZ/SVZ
+LX = 1.95                     # left edge of the annotation column
+RC = 4.45                     # centre of the annotation column
+YT, YB = 3.0, -3.0
+def S(x): return x+SH
+# Stable anatomy: layer 1 above cortical plate; subplate below it; SVZ and VZ below.
+LAYERS = [(1,2.65,PINK),(2,2.0,BLUE),(3,1.35,GREEN),
+          (4,.7,YELLOW),(5,.05,GOLDEN),(6,-.6,ORANGE)]
 
-ORANGE = "#F29E4C"
-PURPLE = "#B58CD9"
-PINK = "#E58FB4"
-COH = [ORANGE, YELLOW, GREEN, BLUE]
+def txt(s,x,y,size=28,color=TEXT,**kw):
+    return T(s,size,color,**kw).move_to([x,y,0])
 
-X0, X1 = -6.0, -0.5          # slice edges
-Y_BOT, Y_TOP = -3.3, 3.1
-Y_VENT = -2.95
-ROWS = [-1.4, -0.4, 0.6, 1.6]
-LX = -0.2                     # left edge of right-hand labels
-R = 0.18
+def nd(c,x,y,r=.28):
+    return Circle(radius=r,stroke_color=c,stroke_width=3,fill_color=c,fill_opacity=.85).move_to([x,y,0])
 
+def neuron(c,x,y,r=.28):
+    soma=nd(c,x,y,r)
+    branches=VGroup(*[Line([x+dx*r,y+dy*r,0],[x+dx*r*1.65,y+dy*r*1.65,0],color=c,stroke_width=3)
+                       for dx,dy in [(-1,0),(1,0),(0,1),(0,-1)]])
+    return VGroup(branches,soma)
 
-def col_x(k, i):
-    return -5.4 + i * 1.75 + k * 0.36
+def arr(a,b,c=TEXT):
+    return Arrow(a,b,buff=.1,color=c,stroke_width=3,tip_length=.18)
 
+def label(s,y,c=TEXT,x=None,lead=True,size=30):
+    t=T(s,size,c); x=LX if x is None else x
+    t.move_to([x+t.width/2,y,0])
+    if lead:
+        return VGroup(Line([WR+.06,y,0],[x-.1,y,0],color=c,stroke_width=2,stroke_opacity=.75),t)
+    return t
 
-def slice_frame(vent_label=True):
-    box = Rectangle(width=X1 - X0, height=Y_TOP - Y_BOT, stroke_color=GREY, stroke_width=2.5,
-                    fill_opacity=0).move_to([(X0 + X1) / 2, (Y_TOP + Y_BOT) / 2, 0])
-    surf = Line([X0, Y_TOP, 0], [X1, Y_TOP, 0], color=GREY, stroke_width=6)
-    vent = Rectangle(width=X1 - X0, height=0.7, stroke_width=0, fill_color=PURPLE, fill_opacity=0.28
-                     ).move_to([(X0 + X1) / 2, Y_BOT + 0.35, 0])
-    return VGroup(box, vent, surf)
+def band(y,h,c,opacity=.22):
+    return Rectangle(width=5,height=h,stroke_color=c,stroke_width=2,
+                     fill_color=c,fill_opacity=opacity).move_to([WC,y,0])
 
+def edge_labels():
+    return VGroup(txt('pia',WC,3.4),Line([WC,3.2,0],[WC,3.02,0],color=TEXT),
+                  txt('ventricle',WC,-3.4),Line([WC,-3.2,0],[WC,-3.02,0],color=TEXT))
 
-def lab(text, y, color=TEXT, size=22):
-    t = T(text, size, color)
-    return t.move_to([LX + t.width / 2, y, 0])
+def wall(zones=True,split=False,plate=False,edges=True):
+    g=VGroup(Rectangle(width=5,height=6,stroke_color=GREY,stroke_width=2).move_to([WC,0,0]))
+    if edges: g.add(edge_labels())
+    if zones:
+        g.add(band(-2.65,.65,PURPLE),band(-1.92,.65,PURPLE),
+              txt('VZ',GUT,-2.65,26),txt('SVZ',GUT,-1.92,26))
+    if split: g.add(band(2.65,.45,PINK),band(-1.18,.35,LAVENDER))
+    if plate: g.add(band(.7,3.25,GREY))
+    return g
 
+def fibre():
+    return Line([S(-3.8),-2.65,0],[S(-3.8),2.98,0],color=PURPLE,stroke_width=5)
 
-def nd(color, x, y, r=R):
-    return Circle(radius=r, stroke_color=color, stroke_width=2, fill_color=color, fill_opacity=0.9).move_to([x, y, 0])
+def preplate():
+    return VGroup(band(2.55,.6,PINK),*[nd(PINK,x,2.55,.16) for x in [S(-4.6),S(-3.55),S(-2.5),S(-1.45)]])
 
+def sheets():
+    return VGroup(band(2.65,.45,PINK),band(-1.18,.35,LAVENDER))
 
-def cohort_at_vent(k):
-    return VGroup(*[nd(COH[k], col_x(k, i), Y_VENT) for i in range(3)])
+def cp_bracket(text='cortical plate\nlayers 2–6'):
+    b=VGroup(Line([S(-.25),-.92,0],[S(-.05),-.92,0]),Line([S(-.05),-.92,0],[S(-.05),2.32,0]),Line([S(-.25),2.32,0],[S(-.05),2.32,0])).set_color(TEXT)
+    return VGroup(b,label(text,.8,lead=False,x=LX))
 
+def layer_wall(fill=True):
+    g=wall(True,True)
+    for n,y,c in LAYERS:
+        if n!=1: g.add(band(y,.62,c,.26 if fill else .02))
+        g.add(txt(str(n),GUT,y,28,c))
+    g.add(label('subplate',-1.18,LAVENDER))
+    return g
 
-def cohort_final(k):
-    return VGroup(*[nd(COH[k], col_x(k, i), ROWS[k]) for i in range(3)])
+def menu(x=0,y=0):
+    box=RoundedRectangle(width=5.0,height=4.6,corner_radius=.18,stroke_color=PURPLE,fill_color=PURPLE,fill_opacity=.07).move_to([x,y,0])
+    rows=VGroup()
+    for i,(s,c) in enumerate([('deep: layer 6',ORANGE),('deep: layer 5',GOLDEN),('layer 4',YELLOW),('upper: layers 3, 2',BLUE)]):
+        yy=y+1.55-i*1.02
+        rows.add(VGroup(Line([x-2.1,yy,0],[x-1.65,yy,0],color=c,stroke_width=7),txt(s,x+.1,yy,28,c)))
+    return VGroup(box,rows)
 
+def strike(row):
+    return Line(row.get_left()+LEFT*.05,row.get_right()+RIGHT*.05,color=TEXT,stroke_width=4)
 
-def rise(g, y, rt=1.2, lag=0.12):
-    return LaggedStart(*[d.animate.set_y(y) for d in g], lag_ratio=lag, run_time=rt)
-
-
-def arr(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=0.22,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
-
+def menu_final():
+    m=menu(-2.8,0)
+    m[1][0].set_opacity(.55); m[1][1].set_opacity(.55)
+    return VGroup(m,strike(m[1][0]),strike(m[1][1]),txt('progenitor’s menu',-2.8,2.9,32,PURPLE),
+                  txt('in normal\ndevelopment',3.2,1.3,30),txt('fewer choices\nwith time',3.2,-.6,30),
+                  arr([-5.3,-2.85,0],[-.3,-2.85,0]),txt('time',-2.8,-3.3))
 
 class S00Title(TitleCard):
-    LESSON = "Birth order and fate"
-    TITLE = "The day you are born sets your layer"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Climb(SpokenScene):
+    LESSON='Birth Order and Fate: Temporal Identity and the Inside-Out Cortex'
+    TITLE='The Wall of the Brain'
     def construct(self):
-        sl = slice_frame()
-        vl = lab("ventricle", Y_VENT, PURPLE)
-        self.play(FadeIn(sl), FadeIn(vl), run_time=0.7)
-        a = nd(ORANGE, -4.4, Y_VENT, 0.3)
-        b = nd(BLUE, -2.4, Y_VENT, 0.3)
-        self.at("first cortical plate")
-        self.play(FadeIn(a, scale=0.5), run_time=0.4)
-        self.play(a.animate.set_y(ROWS[0]), FadeIn(lab("first plate neurons: deepest", ROWS[0], ORANGE)), run_time=1.6)
-        self.at("days later")
-        self.play(FadeIn(b, scale=0.5), run_time=0.4)
-        ghost = DashedLine([-2.4, Y_VENT + 0.35, 0], [-2.4, ROWS[3] - 0.35, 0], color=GREY, stroke_width=3)
-        self.at("near the ventricle")
-        self.play(Indicate(sl[1], color=PURPLE, scale_factor=1.0), run_time=0.8)
-        self.at("climb past")
-        self.play(Create(ghost), b.animate.set_y(ROWS[3]), FadeIn(lab("born later: near the surface", ROWS[3], BLUE)),
-                  run_time=2.0)
-        q = T("?", 120, YELLOW, weight=BOLD).move_to([3.3, 0.1, 0])
-        self.at("birthday decide")
-        self.play(FadeIn(q, scale=0.6), run_time=0.5)
-        self.play(Indicate(q, color=YELLOW, scale_factor=1.2), run_time=0.8)
+        self.add(txt('BIOCHEMISTRYPEDIA',0,2,28,TEAL),txt('Birth Order and Fate: Temporal Identity\nand the Inside-Out Cortex',0,.8,28))
+        self.play(FadeIn(txt(self.TITLE,0,-.9,48)),run_time=.7)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S02Build(SpokenScene):
+class S01Q(SpokenScene):
     def construct(self):
-        sl = slice_frame()
-        self.add(sl)
-        progs = VGroup(*[Circle(radius=0.17, stroke_color=PURPLE, stroke_width=2, fill_color=PURPLE, fill_opacity=0.6
-                                ).move_to([-5.3 + i * 0.9, Y_VENT, 0]) for i in range(6)])
-        plab = lab("progenitors", Y_VENT, PURPLE)
-        self.at("Progenitors line the ventricle")
-        self.play(FadeIn(progs), FadeIn(plab), run_time=0.8)
-        self.at("travel outward")
-        pre_d = VGroup(*[nd(PINK, -5.2 + 0.85 * j, Y_VENT, 0.12) for j in range(6)])
-        self.play(FadeIn(pre_d), run_time=0.3)
-        self.play(pre_d.animate.set_y(2.55), run_time=1.6)
-        self.at("thin sheet")
-        band = RoundedRectangle(corner_radius=0.12, width=5.2, height=0.5, stroke_color=PINK, stroke_width=2.5,
-                                fill_color=PINK, fill_opacity=0.4).move_to([(X0 + X1) / 2, 2.55, 0])
-        pre_l = lab("preplate", 2.55, PINK)
-        self.play(FadeIn(band), FadeOut(pre_d), FadeIn(pre_l), FadeOut(plab), run_time=0.8)
-        self.at("splits it in two")
-        mz = RoundedRectangle(corner_radius=0.1, width=5.2, height=0.3, stroke_color=PINK, stroke_width=2.5,
-                              fill_color=PINK, fill_opacity=0.4).move_to([(X0 + X1) / 2, 2.8, 0])
-        sp = mz.copy().move_to([(X0 + X1) / 2, -2.2, 0])
-        c0 = cohort_at_vent(0)
-        self.play(FadeIn(c0), run_time=0.3)
-        self.play(Transform(band, mz), TransformFromCopy(band, sp), FadeOut(pre_l), rise(c0, ROWS[0], 1.6), run_time=1.6)
-        self.at("marginal zone")
-        l_mz = lab("marginal zone (layer 1)", 2.8, PINK)
-        self.play(FadeIn(l_mz), run_time=0.4)
-        self.at("subplate")
-        l_sp = lab("subplate", -2.2, PINK)
-        self.play(FadeIn(l_sp), run_time=0.4)
-        self.at("Each later wave")
-        groups = [cohort_at_vent(k) for k in (1, 2, 3)]
-        self.play(*[FadeIn(g) for g in groups], run_time=0.3)
-        self.play(LaggedStart(*[rise(g, ROWS[k], 2.2) for g, k in zip(groups, (1, 2, 3))], lag_ratio=0.35), run_time=3.2)
-        self.at("made first")
-        l6 = lab("layer 6: made first", ROWS[0], ORANGE)
-        self.play(FadeIn(l6), run_time=0.4)
-        self.at("made last")
-        l2 = lab("layer 2: made last", ROWS[3], BLUE)
-        self.play(FadeIn(l2), run_time=0.4)
+        self.add(wall(False,edges=False),neuron(TEAL,S(-3.8),-2.65,.38),
+                 txt('excitatory\nneuron',-5.0,-2.65,28,TEAL),Line([-4.15,-2.65,0],[S(-3.8)-.65,-2.65,0],color=TEAL,stroke_width=2))
+        path=DashedLine([S(-3.8),-1.9,0],[S(-3.8),2.55,0],color=TEAL,dash_length=.13)
+        self.add(path,txt('?',S(-3.8)+.5,.5,52))
+        self.at('is born at the bottom')
+        brk=VGroup(Line([S(-.25),-2.97,0],[S(-.05),-2.97,0]),Line([S(-.05),-2.97,0],[S(-.05),-1.6,0]),Line([S(-.25),-1.6,0],[S(-.05),-1.6,0])).set_color(PURPLE)
+        self.play(FadeIn(band(-2.65,.65,PURPLE)),FadeIn(band(-1.92,.65,PURPLE)),FadeIn(brk),FadeIn(label('birth zones',-2.28,PURPLE,lead=False)),run_time=.5)
+        self.at('ventricle',lead=.15)
+        self.play(FadeIn(txt('ventricle',WC,-3.4)),run_time=.3)
+        self.at('so how do')
+        self.play(FadeIn(txt('How do the layers\nget in order?',RC,1,34)),run_time=.5)
         self.finish()
 
+def two_lobes(d,R,color=PURPLE,y0=.3):
+    xs=np.linspace(-(d+R),d+R,180)
+    h=np.maximum(np.sqrt(np.clip(R**2-(xs-d)**2,0,None)),np.sqrt(np.clip(R**2-(xs+d)**2,0,None)))
+    pts=[[x,y0+v,0] for x,v in zip(xs,h)]+[[x,y0-v,0] for x,v in zip(xs[::-1],h[::-1])]
+    m=VMobject(stroke_color=color,stroke_width=3,fill_color=color,fill_opacity=.85)
+    m.set_points_as_corners(pts+[pts[0]])
+    return m
 
-# ---------------------------------------------------------------------------------------------
-def cell(color, r=0.55, op=0.35):
-    return Circle(radius=r, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=op)
-
-
-class S03Date(SpokenScene):
+class S02Notch(SpokenScene):
     def construct(self):
-        yA, yB = 1.5, -1.5
-        a = cell(PURPLE, 0.7).move_to([-1.0, yA, 0])
-        b = cell(PURPLE, 0.7).move_to([-1.0, yB, 0])
-        self.at("how do you know")
-        self.play(FadeIn(a, scale=0.7), FadeIn(b, scale=0.7), run_time=0.8)
-        self.at("last S phase")
-        s_lab = T("copying DNA", 24, PURPLE).next_to(a, UP, buff=0.25)
-        s_lab2 = T("copying DNA", 24, PURPLE).next_to(b, DOWN, buff=0.25)
-        self.play(FadeIn(s_lab), FadeIn(s_lab2), run_time=0.5)
-        self.at("one dose of thymidine")
-        pulse = chip("labeled thymidine", TEAL, size=26).move_to([-4.3, (yA + yB) / 2, 0])
-        self.play(FadeIn(pulse, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("next hour or so")
-        dotsA = VGroup(*[Dot(pulse.get_right() + [0.1, 0.1 * j, 0], radius=0.09, color=TEAL) for j in range(-1, 2)])
-        dotsB = dotsA.copy()
-        self.add(dotsA, dotsB)
-        self.play(*[d.animate.move_to(a.get_center() + [-0.3 + 0.3 * i, -0.15 + 0.15 * (i % 2), 0]) for i, d in enumerate(dotsA)],
-                  *[d.animate.move_to(b.get_center() + [-0.3 + 0.3 * i, -0.15 + 0.15 * (i % 2), 0]) for i, d in enumerate(dotsB)],
-                  run_time=1.2)
-        self.play(a.animate.set_stroke(TEAL).set_fill(TEAL, 0.9), b.animate.set_stroke(TEAL).set_fill(TEAL, 0.9),
-                  FadeOut(dotsA), FadeOut(dotsB), FadeOut(s_lab), FadeOut(s_lab2), run_time=0.6)
-        self.at("divides again halves")
-        b1 = b.copy(); b2 = b.copy()
-        self.remove(b)
-        self.add(b1, b2)
-        self.play(b1.animate.move_to([2.6, yB + 0.0, 0]).scale(0.75), b2.animate.move_to([4.2, yB, 0]).scale(0.75),
-                  run_time=1.2)
-        self.play(b1.animate.set_fill(TEAL, 0.45), b2.animate.set_fill(TEAL, 0.45), run_time=0.8)
-        lightlab = T("half the label each", 24, TEAL).move_to([3.4, yB - 1.0, 0])
-        self.play(FadeIn(lightlab), run_time=0.4)
-        self.at("heavily labeled")
-        self.play(a.animate.move_to([3.4, yA, 0]), run_time=1.2)
-        heavy = T("heavy label: left the cycle", 24, TEAL).move_to([3.4, yA + 1.1, 0])
-        self.play(FadeIn(heavy), run_time=0.4)
-        self.at("label was there")
-        self.play(Indicate(a, color=TEAL, scale_factor=1.12), run_time=0.8)
-        self.at("marks that moment")
-        stamp = T("a date stamp, not an instruction", 26, TEXT).move_to([1.5, -3.1, 0])
-        self.play(FadeIn(stamp, shift=UP * 0.1), run_time=0.6)
+        a=two_lobes(0,1.45); self.add(a,txt('one division',0,3.0,34))
+        self.at('can make two sisters')
+        # A real pinch: the cell elongates and the waist narrows until two sisters touch.
+        self.play(UpdateFromAlphaFunc(a,lambda m,al: m.become(two_lobes(1.1*al,1.45-.35*al))),run_time=1.0,rate_func=smooth)
+        left=nd(PURPLE,-1.1,.3,1.1); right=nd(PURPLE,1.1,.3,1.1)
+        self.remove(a); self.add(left,right)
+        self.at('different')
+        lab_l=txt('Notch on',-1.1,-1.55,32,GREEN); lab_r=txt('Notch off\n(Numb)',1.1,-1.75,32,YELLOW)
+        self.play(left.animate.set_color(GREEN),right.animate.set_color(YELLOW),FadeIn(lab_l),FadeIn(lab_r),run_time=.4)
+        self.at('a division',lead=.1)
+        gl=VGroup(left,lab_l); gr=VGroup(right,lab_r)
+        self.play(gl.animate.shift(LEFT*1.9),gr.animate.shift(RIGHT*1.9),run_time=.8)
+        self.at('yes or no alone')
+        self.play(FadeIn(txt('a yes or no, alone',0,1.9,32)),run_time=.4)
+        self.at('cannot say which division')
+        self.play(FadeIn(txt('Which division was it?',0,-3,34)),run_time=.4)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S04Order(SpokenScene):
+class S03Tenth(SpokenScene):
     def construct(self):
-        sl = slice_frame()
-        self.add(sl)
-        cs = [cohort_final(k) for k in range(4)]
-        labs = [lab("labeled earliest: deepest", ROWS[0], ORANGE), lab("labeled later: nearer the surface", ROWS[3], BLUE)]
-        pul = chip("one pulse per embryonic day", TEAL, size=24).move_to([LX + 2.5, 0.1, 0])
-        self.at("pulses on different")
-        self.play(FadeIn(pul, shift=LEFT * 0.2), run_time=0.6)
-        self.at("Cells labeled earliest")
-        self.play(FadeIn(cs[0], scale=0.5), FadeIn(labs[0]), run_time=0.7)
-        self.at("later days")
-        self.play(LaggedStart(*[FadeIn(cs[k], scale=0.5) for k in (1, 2, 3)], lag_ratio=0.5), FadeIn(labs[1]), run_time=1.8)
-        self.at("ruled out")
-        self.play(FadeOut(labs[0]), FadeOut(labs[1]), FadeOut(pul), run_time=0.5)
-        head = T("if new cells shoved old ones outward", 24, RED).move_to([3.0, 3.0, 0])
-        col = VGroup(*[nd(COH[j], 3.0, 1.8 - j * 1.0) for j in range(4)])
-        ctop = T("earliest", 22, ORANGE).next_to(col[0], RIGHT, buff=0.3)
-        cbot = T("latest", 22, BLUE).next_to(col[3], RIGHT, buff=0.3)
-        self.play(FadeIn(head), FadeIn(col), FadeIn(ctop), FadeIn(cbot), run_time=0.8)
-        self.at("earliest cells would end up on top")
-        self.play(Indicate(col[0], color=ORANGE, scale_factor=1.4), run_time=0.8)
-        self.at("on the bottom")
-        cross = VGroup(Line([1.45, 0.4, 0], [2.15, -0.3, 0], color=RED, stroke_width=9),
-                       Line([1.45, -0.3, 0], [2.15, 0.4, 0], color=RED, stroke_width=9))
-        nolab = T("not what is seen", 24, RED).move_to([3.4, -2.2, 0])
-        self.play(Create(cross), FadeIn(nolab), Indicate(cs[0], color=ORANGE, scale_factor=1.3), run_time=0.9)
-        self.at("Later cells passed them")
-        runner = nd(BLUE, -4.55, Y_VENT, 0.2)
-        self.play(FadeIn(runner), run_time=0.3)
-        self.play(runner.animate.set_y(ROWS[3] + 0.0), run_time=1.8)
+        stem=nd(PURPLE,-5.2,2.55,.55)
+        self.add(stem,txt('stem cell',-3.4,2.55,28,PURPLE))
+        self.at('that makes ten different daughters')
+        daughters=VGroup()
+        for i in range(10):
+            x=-4.8+(i%5)*2.4; y=.65-(i//5)*2.6
+            c=TEAL if i in [0,9] else GREY
+            d=VGroup(nd(c,x,y,.57),txt(str(i+1),x,y,32))
+            # Each daughter appears only after the preceding copy has finished.
+            self.play(TransformFromCopy(stem,d),run_time=.22)
+            daughters.add(d)
+        self.at('what tells the tenth daughter')
+        self.play(FadeIn(txt('?',5.65,-1.95,44,TEAL)),FadeIn(txt('Ten daughters, ten types?',1.6,2.55,32)),run_time=.4)
+        self.at('she is not the first')
+        self.play(Indicate(daughters[0]),Indicate(daughters[9]),run_time=.7)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S05Move(SpokenScene):
+class S04Slice(SpokenScene):
     def construct(self):
-        sl = slice_frame(vent_label=False)
-        bands = VGroup(*[RoundedRectangle(corner_radius=0.1, width=5.2, height=0.7, stroke_width=0, fill_color=COH[k],
-                                          fill_opacity=0.18).move_to([(X0 + X1) / 2, ROWS[k], 0]) for k in range(4)])
-        # older host: its deep layers are already made (host neurons, dimmed); young host has none
-        host = VGroup(*[nd(COH[k], col_x(k, i), ROWS[k], 0.16).set_opacity(0.5) for k in range(3) for i in (0, 2)])
-        self.add(sl, bands, host)
-        head = T("older host: makes upper layers", 24, TEXT).move_to([LX + 2.9, 3.05, 0])
-        seg1 = Rectangle(width=2.2, height=0.7, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.25
-                         ).move_to([LX + 1.2, 0.5, 0])
-        seg2 = Rectangle(width=3.4, height=0.7, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.55
-                         ).move_to([LX + 3.9, 0.5, 0])
-        t1 = T("S phase", 22, TEXT).move_to(seg1)
-        t2 = T("later in the cycle", 22, TEXT).move_to(seg2)
-        donor = nd(ORANGE, -3.4, Y_VENT, 0.24)
-        dl = T("deep-layer progenitor", 22, ORANGE).move_to([LX + 1.9, Y_VENT, 0])
-        self.at("own schedule")
-        self.play(FadeIn(head), FadeIn(seg1), FadeIn(seg2), FadeIn(t1), FadeIn(t2), run_time=0.8)
-        self.at("McConnell moved ferret")
-        self.play(FadeIn(donor, scale=0.5), FadeIn(dl), run_time=0.6)
-        mk = Triangle(color=YELLOW, fill_opacity=1, stroke_width=0).scale(0.22).rotate(PI).move_to(seg1.get_top() + UP * 0.35)
-        self.at("while copying DNA")
-        self.play(FadeIn(mk, shift=DOWN * 0.2), run_time=0.4)
-        dau = nd(ORANGE, -3.4, Y_VENT, 0.2)
-        self.add(dau)
-        self.at("upper layers")
-        self.play(dau.animate.set_y(ROWS[3]), run_time=1.6)
-        self.play(dau.animate.set_color(BLUE).set_fill(BLUE, 0.9), run_time=0.4)
-        res = lab("upper layers, like the host", ROWS[3], BLUE)
-        self.play(FadeIn(res), run_time=0.4)
-        self.at("moved later in the cycle")
-        # reset the old answer in the same beat as the new case
-        self.play(FadeOut(dau), FadeOut(res), mk.animate.move_to(seg2.get_top() + UP * 0.35), run_time=0.7)
-        dau = nd(ORANGE, -3.4, Y_VENT, 0.2)
-        self.add(dau)
-        self.at("settled in the deep layers")
-        self.play(dau.animate.set_y(ROWS[0]), run_time=1.4)
-        res = lab("deep layers, as their birthday said", ROWS[0], ORANGE)
-        self.play(FadeIn(res), run_time=0.4)
-        self.at("fate was already fixed")
-        fixed = T("fate fixed", 24, YELLOW).next_to(seg2, DOWN, buff=0.25)
-        self.play(FadeIn(fixed), run_time=0.5)
-        self.at("Late progenitors")
-        late = nd(BLUE, -3.4, Y_VENT, 0.24)
-        late_l = T("late progenitor", 22, BLUE).move_to([LX + 1.9, Y_VENT, 0])
-        head2 = T("young host: makes deep layers", 24, TEXT).move_to([LX + 2.9, 3.05, 0])
-        self.play(FadeOut(dau), FadeOut(res), FadeOut(fixed), FadeOut(mk), FadeOut(seg1), FadeOut(seg2), FadeOut(t1),
-                  FadeOut(t2), FadeOut(donor), FadeOut(dl), FadeOut(host), Transform(head, head2), FadeIn(late), FadeIn(late_l), run_time=0.8)
-        dau = nd(BLUE, -3.4, Y_VENT, 0.2)
-        self.add(dau)
-        self.at("still made")
-        self.play(dau.animate.set_y(ROWS[3]), run_time=1.6)
-        res = lab("still upper layers", ROWS[3], BLUE)
-        self.play(FadeIn(res), run_time=0.4)
+        # Curved side-view embryo head, snout and neck; forebrain is the dorsal rostral bulge.
+        head=VMobject(color=GREY,stroke_width=4).set_points_smoothly([
+            [-4,-2,0],[-4.9,-.6,0],[-4.6,1.4,0],[-3.3,2.5,0],[-1.8,2.25,0],
+            [-.7,1.3,0],[-.5,.45,0],[.25,-.1,0],[-.2,-.65,0],[-1.2,-.8,0],[-1.6,-2,0]])
+        brain=Ellipse(width=2.5,height=2.0,color=PURPLE,stroke_width=4).move_to([-2.8,1.2,0])
+        eye=nd(GREY,-1.15,.1,.2)
+        strip=Rectangle(width=.45,height=1.5,color=YELLOW,stroke_width=4).move_to([-2.1,1.4,0])
+        group=VGroup(head,brain,eye,strip,txt('mouse embryo head',-2.8,-2.7,30),txt('forebrain',2,1.8,32,PURPLE),arr([.5,1.7,0],[-1.55,1.4,0],PURPLE))
+        self.add(group)
+        self.at('embryonic mouse forebrain')
+        tissue=VGroup(*[Circle(radius=.13,color=GREY,stroke_opacity=.4).move_to([S(x),y,0]) for x in [-4.9,-4.1,-3.3,-2.5,-1.7,-.9] for y in [-2.6,-1.8,-1,-.2,.6,1.4,2.2]])
+        self.play(FadeOut(group),TransformFromCopy(strip,wall(False,edges=False)),FadeIn(tissue),FadeIn(label('forebrain wall',.4,lead=False)),run_time=.9)
+        self.at('the ventricle is')
+        self.play(FadeIn(txt('ventricle (bottom)',4.4,-2.7)),GrowArrow(arr([2.6,-2.7,0],[1.1,-3.0,0])),run_time=.4)
+        self.at('bottom',lead=-.5)
+        # Unambiguous cue just before pia (mis-transcribed as 'pyre').
+        self.play(FadeIn(txt('pia (top)',4.4,2.8)),GrowArrow(arr([3.0,2.8,0],[1.1,3.0,0])),run_time=.35)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S05Vz(SpokenScene):
     def construct(self):
-        sl = slice_frame(vent_label=False)
-        self.add(sl)
-        cs = [cohort_final(k) for k in range(4)]
-        self.add(*cs)
-        l0 = lab("early: deep", ROWS[0], ORANGE)
-        l3 = lab("later: above", ROWS[3], BLUE)
-        up = arr([X1 + 0.1, ROWS[0] + 0.3, 0], [X1 + 0.1, ROWS[3] - 0.3, 0], GREY)
-        self.at("birthday predicts its layer")
-        self.play(FadeIn(l0), FadeIn(l3), run_time=0.6)
-        self.at("pass them")
-        runner = nd(BLUE, -4.3, Y_VENT, 0.2)
-        self.add(runner)
-        self.play(runner.animate.set_y(ROWS[3] - 0.0), run_time=1.5)
-        self.play(FadeOut(runner), run_time=0.2)
-        self.at("choices narrow")
-        self.play(FadeOut(l0), FadeOut(l3), run_time=0.4)
-        head = T("what a progenitor can still make", 24, TEXT).move_to([LX + 3.0, 3.05, 0])
-        rows = []
-        specs = [("young", [0, 1, 2, 3], 1.9), ("older", [1, 2, 3], 0.6), ("late", [2, 3], -0.7)]
-        note = T("schematic: fewer choices with age", 22, GREY).move_to([LX + 3.0, 2.55, 0])
-        self.play(FadeIn(head), FadeIn(note), run_time=0.4)
-        for name, ks, y in specs:
-            t = T(name + " progenitor", 24, PURPLE).move_to([LX + 1.3, y, 0])
-            t.set_x(LX + t.width / 2)
-            sw = VGroup(*[nd(COH[k], LX + 4.0 + 0.6 * k, y, 0.2) for k in ks])
-            rows.append((t, sw))
-        self.play(*[FadeIn(m) for r in rows for m in r], run_time=0.5)
-        self.at("do not reverse")
-        ar = arr([LX + 3.2, -0.5, 0], [LX + 3.2, 1.5, 0], GREY)
-        xx = VGroup(Line([LX + 3.05, 0.35, 0], [LX + 3.35, 0.65, 0], color=RED, stroke_width=8),
-                    Line([LX + 3.05, 0.65, 0], [LX + 3.35, 0.35, 0], color=RED, stroke_width=8))
-        ar = VGroup(ar, xx)
-        self.play(FadeIn(ar), run_time=0.6)
-        self.at("Keep the rule")
-        self.play(FadeOut(head), FadeOut(note), FadeOut(ar), *[FadeOut(m) for r in rows for m in r], run_time=0.5)
-        rule = T("birthday predicts layer", 36, TEXT, font=TITLE_FONT).move_to([LX + 2.9, 0.4, 0])
-        self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.7)
+        self.add(wall(False))
+        self.at('the ventricular zone')
+        self.play(FadeIn(band(-2.65,.65,PURPLE)),FadeIn(label('ventricular zone',-2.65,PURPLE)),run_time=.5)
+        cells=VGroup(*[nd(PURPLE,S(x),-2.65,.24) for x in [-4.7,-3.8,-2.1]])
+        self.at('many of its progenitors')
+        self.play(FadeIn(cells),run_time=.5)
+        self.at('are radial glia')
+        self.play(Create(fibre()),FadeIn(label('radial glia',-.5,PURPLE,lead=False)),Create(Line([S(-3.7),-2.45,0],[LX-.1,-.5,0],color=PURPLE,stroke_width=2)),run_time=1)
+        self.at('they divide')
+        daughter=nd(PURPLE,S(-3.2),-2.65,.24)
+        self.play(TransformFromCopy(cells[1],daughter),run_time=.8)
+        self.at('send a long')
+        self.play(Indicate(cells[1]),run_time=.6)
         self.finish()
 
+class S06Svz(SpokenScene):
+    def construct(self):
+        self.add(wall(False),band(-2.65,.65,PURPLE),txt('VZ',GUT,-2.65,26),nd(PURPLE,S(-3.8),-2.65))
+        self.at('just above sits')
+        self.play(FadeIn(band(-1.92,.65,PURPLE)),FadeIn(label('subventricular zone',-1.92,PURPLE)),run_time=.6)
+        self.add(txt('SVZ',GUT,-1.92,26))
+        d=nd(PURPLE,S(-3.8),-2.65,.28)
+        self.at('intermediate progenitors')
+        self.add(d)
+        self.play(d.animate.move_to([S(-3.2),-1.92,0]),run_time=.7)
+        tag=label('intermediate\nprogenitor',-.1,PURPLE,lead=False)
+        leader=Line([S(-2.9),-1.8,0],[LX-.1,-.1,0],color=PURPLE,stroke_width=2)
+        self.at('daughters of radial glia')
+        self.play(FadeIn(tag),Create(leader),run_time=.4)
+        self.at('divide there')
+        d2=nd(PURPLE,S(-3.2),-1.92,.28)
+        spindle=Line([S(-3.9),-1.92,0],[S(-2.5),-1.92,0],color=TEXT,stroke_width=3)
+        self.add(d2,spindle)
+        self.play(d.animate.set_x(S(-3.8)),d2.animate.set_x(S(-2.6)),run_time=1.5)
+        self.at('to make neurons')
+        ntag=VGroup(txt('neurons',S(-3.2),-1.1,28,TEAL),Line([S(-3.2),-1.2+.0,0],[S(-3.2),-1.43,0],color=TEAL,stroke_width=2))
+        self.play(ReplacementTransform(d,neuron(TEAL,S(-3.8),-1.92)),ReplacementTransform(d2,neuron(TEAL,S(-2.6),-1.92)),FadeOut(spindle),FadeOut(tag),FadeOut(leader),FadeIn(ntag),run_time=.5)
+        self.wait(.8)
+        self.finish()
 
-class S07End(EndCard):
-    LINE = "When a neuron is born predicts where it settles."
+class S07Preplate(SpokenScene):
+    def construct(self):
+        self.add(wall())
+        old=VGroup(neuron(TEAL,S(-3.8),-1.92),neuron(TEAL,S(-2.6),-1.92),txt('neurons',S(-3.2),-1.1,28,TEAL),Line([S(-3.2),-1.2,0],[S(-3.2),-1.43,0],color=TEAL,stroke_width=2))
+        self.add(old)
+        self.at('the first neurons')
+        self.play(FadeIn(preplate()),FadeOut(old),run_time=.8)
+        self.at('this is the preplate')
+        self.play(FadeIn(label('preplate',2.55,PINK)),run_time=.4)
+        self.finish()
+
+class S08Split(SpokenScene):
+    def construct(self):
+        upper=VGroup(band(2.7,.3,PINK),nd(PINK,S(-4.6),2.7,.13),nd(PINK,S(-2.5),2.7,.13))
+        lower=VGroup(band(2.4,.3,PINK),nd(PINK,S(-3.55),2.4,.13),nd(PINK,S(-1.45),2.4,.13))
+        p=VGroup(upper,lower)
+        pre_label=label('preplate',2.55,PINK)
+        self.add(wall(),p,pre_label)
+        n=VGroup(*[neuron(TEAL,S(x),.9,.24) for x in [-4,-2.8,-1.6]])
+        nlab=label('next neurons',.9,TEAL)
+        self.at('the next neurons arrive')
+        self.add(n,nlab); self.play(n.animate.set_y(2.55),nlab.animate.set_y(1.95),run_time=1.3)
+        self.at('in the middle')
+        self.play(Indicate(n,color=TEAL,scale_factor=1.3),run_time=.55)
+        self.at('wedge it apart')
+        # Play the split on the main wall; the arriving neurons stay teal and named.
+        self.play(upper.animate.shift(DOWN*.05),lower.animate.shift(DOWN*3.58).set_color(LAVENDER),
+                  n.animate.set_y(.7),nlab.animate.set_y(.7),FadeOut(pre_label),run_time=1.4)
+        self.play(FadeIn(label('sheet pushed apart',1.5,TEAL,lead=False)),run_time=.3)
+        self.wait(.5)
+        self.finish()
+
+class S09Split2(SpokenScene):
+    def construct(self):
+        self.add(wall(True,True))
+        self.at('the top half becomes')
+        self.play(FadeIn(label('marginal zone',2.65,PINK)),run_time=.4)
+        self.at('future layer')
+        self.play(FadeIn(label('future layer 1',2.05,PINK,lead=False)),run_time=.4)
+        self.at('home of the')
+        cells=VGroup(*[nd(PINK,S(x),2.65,.16) for x in [-4.4,-3.2,-2]])
+        self.play(FadeIn(cells),FadeIn(label('Cajal–Retzius cells',1.4,PINK,lead=False)),Create(Line([S(-1.8),2.55,0],[LX-.1,1.4,0],color=PINK)),run_time=.4)
+        self.at('the bottom half')
+        self.play(FadeIn(label('subplate',-1.18,LAVENDER)),run_time=.4)
+        self.finish()
+
+class S10Cp(SpokenScene):
+    def construct(self):
+        self.add(wall(True,True),label('marginal zone',2.65,PINK),label('subplate',-1.18,LAVENDER))
+        self.at('between them')
+        self.play(FadeIn(band(.7,3.25,GREY)),run_time=.5)
+        self.at('the cortical plate')
+        b=cp_bracket('cortical plate'); self.play(FadeIn(b),run_time=.4)
+        self.at('becomes layers')
+        self.play(FadeIn(label('layers 2–6',.1,lead=False)),run_time=.4)
+        n=neuron(TEAL,S(-3.8),-2.65,.3)
+        self.at('each new neuron')
+        self.add(n); self.play(Create(fibre()),run_time=.4)
+        self.at('climbs up from below')
+        self.play(n.animate.set_y(.1),run_time=1.5)
+        self.finish()
+
+class S11Number(SpokenScene):
+    def construct(self):
+        self.add(wall(True,True))
+        self.at('layers are numbered')
+        self.play(LaggedStart(*[FadeIn(txt(str(n),GUT,y,28,c)) for n,y,c in LAYERS],lag_ratio=.2),run_time=1.7)
+        self.at('layer 1 on top')
+        self.play(FadeIn(label('1: from the early preplate',2.65,PINK)),run_time=.4)
+        self.at('in the cortical plate')
+        self.play(FadeIn(cp_bracket()),FadeIn(label('subplate',-1.18,LAVENDER)),run_time=.4)
+        self.at('made the other way')
+        curve=CurvedArrow([S(-4.6),-.6,0],[S(-4.6),2.0,0],angle=-PI/3,color=TEXT,stroke_width=4)
+        self.play(Create(curve),FadeIn(nd(TEXT,S(-4.6),-.6,.07)),run_time=.6)
+        self.at('from six up to two')
+        for n,y,c in reversed(LAYERS[1:]):
+            self.play(FadeIn(band(y,.62,c)),FadeIn(neuron(c,S(-2.7),y,.2)),run_time=.35)
+            self.wait(.65)
+        self.play(FadeIn(label('6 first → 2 last',-2.45,YELLOW,lead=False)),run_time=.3)
+        self.wait(2)
+        self.finish()
+
+class S14P1(SpokenScene):
+    def construct(self):
+        self.add(layer_wall())
+        for x,y in [(-4.2,-.6),(-2.8,.7),(-1.4,2)]:
+            self.add(neuron(TEAL,S(x),y,.27),txt('?',S(x)+.52,y+.62,52,TEXT))
+        self.at('the map raises three puzzles')
+        self.play(FadeIn(txt('Three puzzles',RC,2.65,34)),run_time=.4)
+        self.at('first who came first')
+        self.play(FadeIn(txt('1  Who was\nborn first?',RC,.5,34)),run_time=.4)
+        self.at('how can you tell')
+        self.play(FadeIn(txt('How can you tell?',RC,-2.5,30)),run_time=.4)
+        self.finish()
+
+class S15P2(SpokenScene):
+    def construct(self):
+        p=nd(PURPLE,-1.6,-.25,1.6); self.add(p,txt('progenitor',-1.6,-2.2,30,PURPLE))
+        self.at('second record or cause')
+        self.play(FadeIn(txt('2  Record or cause?',0,3,36)),run_time=.4)
+        cal=VGroup(Rectangle(width=1.65,height=1.55,color=TEXT),Rectangle(width=1.65,height=.35,color=TEXT,fill_color=TEXT,fill_opacity=.3).shift(UP*.6),
+                   *[Line([x,-.75,0],[x,.4,0],color=TEXT,stroke_width=2) for x in [-.3,.3]],
+                   *[Line([-.8,y,0],[.8,y,0],color=TEXT,stroke_width=2) for y in [-.35,.05]]).move_to([-1.6,-.25,0])
+        self.at('carry its own schedule')
+        self.play(FadeIn(cal),FadeIn(txt('its own calendar?',-3.8,1.8,30)),Create(Line([-3.1,1.5,0],[-2.2,.55,0],color=TEXT)),run_time=.5)
+        cells=VGroup(*[nd(GREY,x,y,.5) for x,y in [(3.8,1.2),(4.4,-.3),(3.8,-1.8)]])
+        arrows=VGroup(*[arr([3.1,y,0],[.2,-.25,0]) for y in [1.2,-.3,-1.8]])
+        self.at('do its surroundings decide')
+        self.play(FadeIn(cells),Create(arrows),FadeIn(txt('surroundings?',3.6,-2.8,30)),run_time=.7)
+        self.finish()
+
+class S16P3(SpokenScene):
+    def construct(self):
+        def pool(n):
+            positions=[(-4.3,1.1),(-3.05,-.45),(-4.3,-2)] if n==3 else [(-4.3+(i%2)*1.3,1.1-(i//2)*1.55) for i in range(n)]
+            return VGroup(*[nd(PURPLE,x,y,.52) for x,y in positions])
+        def output(n):
+            return VGroup(*[neuron(TEAL,2+(i%3)*1.25,1.1-(i//3)*1.1,.34) for i in range(n)])
+        CAPY=-3.45
+        p=pool(3); self.add(p,txt('progenitor pool',-3.7,2.3,30,PURPLE),txt('neurons made',3.2,2.3,30,TEAL),arr([-.9,0,0],[1,0,0]))
+        self.at('third how many of each')
+        self.play(FadeIn(txt('3  How many of each?',0,3.3,34)),run_time=.35)
+        self.at('how does one pool')
+        a=output(1); cap=txt('a few',3.2,CAPY,30,TEAL)
+        self.play(TransformFromCopy(p[0],a),FadeIn(cap),run_time=.65)
+        self.at('then many')
+        b=output(4); grown=pool(6)
+        self.play(ReplacementTransform(a,b),ReplacementTransform(p,grown),
+                  Transform(cap,txt('more',3.2,CAPY,30,TEAL)),run_time=.65)
+        self.at('first grows')
+        pool_cap=txt('grows',-3.7,CAPY,34,'#D9B8F5',weight=BOLD)
+        self.play(grown.animate.scale(1.06),FadeIn(pool_cap),run_time=.3)
+        self.play(grown.animate.scale(1/1.06),run_time=.3)
+        self.at('then shrinks')
+        self.play(ReplacementTransform(grown,pool(3)),ReplacementTransform(b,output(10)),
+                  Transform(pool_cap,txt('shrinks',-3.7,CAPY,34,'#D9B8F5',weight=BOLD)),
+                  Transform(cap,txt('many leaving a shrinking pool',1,CAPY,28,TEAL)),run_time=1.2)
+        self.wait(2)
+        self.finish()
+
+class S17Idea(SpokenScene):
+    def construct(self):
+        title=txt('A birthday marks a time',0,3.5,34)
+        # Build the diagram in its own coordinates, then enlarge it to fill the frame.
+        birthday=chip('birthday',TEAL,30).move_to([-3.5,1.8,0])
+        p=nd(PURPLE,-3.5,-.8,1.0); plab=txt('progenitor state',-3.5,-2.3,30,PURPLE)
+        time_arrow=arr([-1.9,1.8,0],[1,1.8,0],TEAL); time_lab=txt('time',2,1.8,34,TEAL)
+        state_arrow=arr([1,1.4,0],[-2.7,-.1,0],TEAL); at_that=txt('at that time',1.6,.7,30,TEAL)
+        n=neuron(BLUE,2,-.8,.65)
+        set_arrow=arr([-2.3,-.8,0],[.9,-.8,0],PURPLE)
+        stack=VGroup(*[Rectangle(width=1.5,height=.36,color=c,fill_color=c,fill_opacity=.55).move_to([4.5,-.8+1.08-.18-i*.36,0]) for i,c in enumerate([PINK,BLUE,GREEN,YELLOW,GOLDEN,ORANGE])])
+        brace=Brace(stack,LEFT,buff=.06,color=BLUE)
+        link=Line([2.7,-.8,0],brace.get_tip(),color=BLUE,stroke_width=3)
+        tid=txt('temporal identity',2.4,-2.2,30,BLUE); inc=txt('(its layer included)',2.4,-2.75,28)
+        grp=VGroup(birthday,p,plab,time_arrow,time_lab,state_arrow,at_that,n,set_arrow,stack,brace,link,tid,inc)
+        grp.scale(1.2).move_to([0,-.2,0])
+        self.add(title,birthday,p,plab)
+        self.at('a birthday marks a time')
+        self.play(GrowArrow(time_arrow),FadeIn(time_lab),run_time=.6)
+        self.at("the progenitor's state")
+        self.play(Create(state_arrow),FadeIn(at_that),run_time=.6)
+        self.at('sets the')
+        self.play(TransformFromCopy(p,n),Create(set_arrow),run_time=.6)
+        self.at("neuron's temporal identity")
+        self.play(FadeIn(tid),FadeIn(inc),FadeIn(stack),FadeIn(brace),Create(link),run_time=.5)
+        self.finish()
+
+class S18Idea2(SpokenScene):
+    def construct(self):
+        n=neuron(TEAL,-4,1.4,.75)
+        clock=VGroup(Circle(radius=.35,color=TEXT),Line(ORIGIN,UP*.25,color=TEXT),Line(ORIGIN,RIGHT*.2,color=TEXT)).move_to([-4,1.4,0])
+        layer=Rectangle(width=2,height=.6,color=BLUE,fill_color=BLUE,fill_opacity=.3).move_to([-3,-2.1,0])
+        cause=arr([-4,.3,0],[-3,-1.7,0],TEAL)
+        self.add(n,clock,layer,txt('layer',-3,-2.7,28,BLUE))
+        self.at('the birthday instructs nothing')
+        cross=VGroup(Line([-4.1,-.8,0],[-3.3,-.1,0],color=RED,stroke_width=5),Line([-4.1,-.1,0],[-3.3,-.8,0],color=RED,stroke_width=5))
+        self.play(Create(cause),Create(cross),FadeIn(txt('instructs nothing',-3.8,3,30)),run_time=.5)
+        self.at('it is a time stamp')
+        self.play(FadeIn(txt('just a timestamp',-4,-.3,28,TEAL)),FadeOut(cause),FadeOut(cross),run_time=.4)
+        ring=Circle(radius=1.3,color=PURPLE,stroke_width=10).move_to([2.4,.9,0])
+        start=Line([2.4,2.05,0],[2.4,2.5,0],color=TEXT,stroke_width=3)
+        clockwise=CurvedArrow([2.7,2.5,0],[3.9,1.3,0],angle=-PI/2,color=TEXT)
+        self.at('in ferret')
+        self.play(Create(ring),Create(start),Create(clockwise),FadeIn(txt('start / division',2.3,3.05,28)),FadeIn(txt('final\ncell cycle',2.4,.9,28,PURPLE)),run_time=.6)
+        self.at('laminar fate becomes fixed')
+        late=Arc(radius=1.3,start_angle=PI,angle=-PI/2,color=YELLOW,stroke_width=15).move_arc_center_to([2.4,.9,0])
+        self.play(Create(late),FadeIn(txt('layer fate fixed here\n(ferret grafts)',2.7,-1.2,28,YELLOW)),Create(Line([1.3,1.6,0],[.8,-.6,0],color=YELLOW)),run_time=.6)
+        self.at('late in the final cell cycle')
+        self.play(FadeIn(txt('last quarter before division',2.7,-2.2,27)),run_time=.4)
+        self.at('migration and later programs')
+        route=CurvedArrow([-2.7,1.1,0],[-1.95,-2.1,0],angle=-PI/3,color=TEAL,stroke_width=3)
+        self.play(Create(route),FadeIn(txt('migration + later programs',0,-3.35,28)),run_time=.7)
+        self.finish()
+
+class S19Idea3(SpokenScene):
+    def construct(self):
+        p=nd(PURPLE,0,0,1.0); self.add(p,txt('progenitor state',0,3,34,PURPLE))
+        m=menu(-3.7,-.1)
+        # Keep the labelled menu adjacent to, and connected to, the progenitor.
+        self.at('that state has two parts')
+        self.play(FadeIn(txt('competence',-3.7,2.6,30,PURPLE)),run_time=.4)
+        self.at('what the progenitor can still make')
+        self.play(FadeIn(m),Create(Line([-1.2,0,0],[-1,0,0],color=PURPLE)),run_time=.5)
+        self.at('its competence')
+        self.play(Indicate(m[0]),run_time=.4)
+        neighbors=VGroup(*[nd(GREY,x,y,.5) for x,y in [(3.8,1.4),(4.5,0),(3.8,-1.4)]])
+        arrows=VGroup(*[arr([3,y,0],[1.15,0,0]) for y in [1.4,0,-1.4]])
+        self.at('the cues it reads')
+        self.play(FadeIn(neighbors),Create(arrows),FadeIn(txt('cues',3.8,-2.6,32)),run_time=.5)
+        self.wait(2)
+        self.finish()
+
+class S20Idea4(SpokenScene):
+    def construct(self):
+        self.add(layer_wall())
+        early=neuron(ORANGE,S(-4.2),-2.65,.25); late=neuron(BLUE,S(-2),-2.65,.25)
+        self.add(early)
+        self.at('the earlier the birthday')
+        self.play(early.animate.set_y(-.6),run_time=1.1)
+        self.at('the deeper the layer')
+        self.add(late)
+        self.play(late.animate.set_y(2),run_time=1.2)
+        self.play(FadeIn(txt('earlier birthday,\ndeeper layer',RC,-2.3,30)),run_time=.4)
+        self.at('the neuron keeps maturing')
+        halo=DashedVMobject(Circle(radius=.5,color=BLUE).move_to([S(-2),2,0]),num_dashes=16)
+        self.play(Create(halo),FadeIn(label('maturation continues',2,BLUE)),run_time=.5)
+        self.finish()
+
+class S21Idea5(SpokenScene):
+    def construct(self):
+        m=menu(-2.8,0)
+        self.add(m,txt('progenitor’s menu',-2.8,2.9,32,PURPLE))
+        self.at('in normal development')
+        self.play(FadeIn(txt('in normal\ndevelopment',3.2,1.3,30)),run_time=.4)
+        self.at("the progenitor's menu gets shorter")
+        self.play(Create(strike(m[1][0])),m[1][0].animate.set_opacity(.55),run_time=.4)
+        self.wait(1)
+        self.play(Create(strike(m[1][1])),m[1][1].animate.set_opacity(.55),run_time=.4)
+        self.wait(1)
+        self.at('with time')
+        self.play(Create(arr([-5.3,-2.85,0],[-.3,-2.85,0])),FadeIn(txt('time',-2.8,-3.3)),FadeIn(txt('fewer choices\nwith time',3.2,-.6,30)),run_time=.4)
+        self.finish()
+
+class S22Hold(Scene):
+    def construct(self):
+        self.camera.background_color=BG
+        self.add(menu_final())
+        self.wait(5)
+
+class S23Take(SpokenScene):
+    def construct(self):
+        self.add(layer_wall(),txt('The takeaway',RC,3,34))
+        self.add(txt('Cortical-plate neurons\nare born near the ventricle\nand climb.',RC,1.1,28,TEAL))
+        n=neuron(TEAL,S(-3.8),-2.65,.28)
+        self.at('cortical plate neurons')
+        self.add(n,fibre())
+        self.at('and climb')
+        self.play(n.animate.set_y(-.6),run_time=.9)
+        self.at('layers six to two')
+        self.play(Create(CurvedArrow([S(-4.8),-.6,0],[S(-4.8),2,0],angle=-PI/3,color=TEXT)),run_time=.6)
+        self.at('are made in that order')
+        self.play(FadeIn(txt('Mouse cortical plate:\nlayers 6 to 2 are made\nin that order.',RC,-2.7,28,YELLOW)),run_time=.5)
+        self.wait(2.5)
+        self.finish()
+
+class S24End(EndCard):
+    LINE='Mouse cortical-plate neurons climb; layers form 6 first, 2 last.'
+    def construct(self):
+        self.add(txt('Mouse cortical-plate neurons climb;\nlayers form 6 first, 2 last.',0,.5,38),txt('biochemistrypedia.com',0,-1.2,28,TEAL))
+        self.finish()
