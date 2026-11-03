@@ -1,440 +1,395 @@
-"""Direction is computed branch by branch  (Biochemistrypedia explainer, Sensory Systems)
-
-COLOR MAP (one color per concept, whole film)
-  YELLOW = the moving or flashed stimulus (spot, flashes); also the open question
-  BLUE   = the direction selective ganglion cell and its spikes
-  PURPLE = the starburst amacrine cell and its dendrites
-  ORANGE = calcium signal in a starburst dendrite
-  GREEN  = preferred direction (and outward, for a dendrite)
-  RED    = null direction, suppression, inhibition
-  TEAL   = transmitters released by starburst cells (acetylcholine, GABA)
-  GREY   = receptive field, baselines, unknowns, de-emphasized
-Left and right are the viewer's. Preferred is always drawn to the right, null to the left.
+"""Chapter 1: A Veto From the Null Side — review redraw.
+COLOR MAP: YELLOW stimulus/questions; BLUE ganglion/excitation/spikes;
+PURPLE starburst/dendrites; GREEN preferred/outward; RED inhibition/null;
+GREY receptive field/axes; GOLD contacts; TEAL brand. No molecular structures.
+Bars are computed from 4+4=8, 2-8=-6, 14-8=6 (illustrative).
+Timing model: E(t)=max(0,1-|t-4|/1.5), I(t)=E(t-delay).
+Spike strip samples positive E-I above .25; schematic, not a recording.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+from bp_style import *
+PURPLE='#B58CD9'
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def label(s,x=0,y=3.1,size=32,color=TEXT):
+    return T(s,size,color,line_spacing=1.0).move_to([x,y,0])
 
 
-def inhib(a, b, color=RED, w=5):
-    a, b = np.array(a, float), np.array(b, float)
-    d = (b - a) / np.linalg.norm(b - a)
-    perp = np.array([-d[1], d[0], 0])
-    return VGroup(Line(a, b, color=color, stroke_width=w),
-                  Line(b + perp * 0.26, b - perp * 0.26, color=color, stroke_width=w + 2))
+def arr(a,b,color=GREY,w=5,tip=.26):
+    return Arrow(a,b,buff=0,color=color,stroke_width=w,tip_length=tip,
+                 max_tip_length_to_length_ratio=.45,max_stroke_width_to_length_ratio=12)
 
 
-def bar(x, base, h, w=0.85, color=BLUE, op=0.75):
-    return Rectangle(width=w, height=h, stroke_color=color, stroke_width=2.5, fill_color=color,
-                     fill_opacity=op).move_to([x, base + h / 2, 0])
+def ganglion(c,scale=1):
+    # An oval soma with a short fork and descending axon: never a starburst.
+    g=VGroup(Ellipse(width=.9,height=.65,color=BLUE,fill_opacity=.35),
+        Line([-.4,.1,0],[-.8,.45,0],color=BLUE),
+        Line([-.8,.45,0],[-1.05,.65,0],color=BLUE),
+        Line([-.8,.45,0],[-1.1,.3,0],color=BLUE),
+        Line([.4,.1,0],[.9,.5,0],color=BLUE),
+        Line([.9,.5,0],[1.15,.7,0],color=BLUE),
+        Line([.9,.5,0],[1.2,.35,0],color=BLUE),
+        Line([0,-.32,0],[0,-1,0],color=BLUE))
+    return g.scale(scale).shift(np.array(c))
 
 
-def sac(center, R=2.5, w=3.5, n=8):
-    """a starburst cell: soma and n radiating dendrites, each with two side branches."""
-    c = np.array(center, float)
-    soma = Circle(radius=0.3 * R / 2.5, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.9).move_to(c)
-    prims = []
-    for k in range(n):
-        th = k * TAU / n
-        d = np.array([np.cos(th), np.sin(th), 0])
-        parts = [Line(c + d * 0.3 * R / 2.5, c + d * R)]
-        for fr, sgn in ((0.42, 1), (0.7, -1)):
-            p = c + d * fr * R
-            a = th + sgn * 0.6
-            parts.append(Line(p, p + 0.3 * R * np.array([np.cos(a), np.sin(a), 0])))
-        g = VGroup(*parts).set_stroke(PURPLE, w, opacity=0.9)
-        prims.append(g)
-    return soma, prims
+def sac(center,R=2.5,w=3.5):
+    c=np.array(center,float); soma=Circle(radius=.23,color=PURPLE,fill_opacity=.85).move_to(c)
+    branches=[]
+    for th in np.arange(4)*TAU/4:
+        d=np.array([np.cos(th),np.sin(th),0]); parts=[Line(c+.23*d,c+R*d)]
+        for f,s in ((.42,1),(.7,-1)):
+            p=c+d*f*R; a=th+s*.6
+            parts.append(Line(p,p+.25*R*np.array([np.cos(a),np.sin(a),0])))
+        branches.append(VGroup(*parts).set_stroke(PURPLE,w))
+    return soma,branches
 
 
-def mini_star(c, key_deg, key_len, other_len=0.9):
-    c = np.array(c, float)
-    soma = Circle(radius=0.26, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.9).move_to(c)
-    others = VGroup()
-    for k in range(1, 6):
-        a = np.radians(key_deg + 60 * k)
-        others.add(Line(c, c + other_len * np.array([np.cos(a), np.sin(a), 0]), color=PURPLE, stroke_width=3, stroke_opacity=0.55))
-    a = np.radians(key_deg)
-    tip = c + key_len * np.array([np.cos(a), np.sin(a), 0])
-    key = arr(c, tip, PURPLE, w=6, tip=0.26)
-    return VGroup(soma, others, key), key, tip
+def raster(y,dense=True,x0=-1.2,x1=5.6,h=.8):
+    times=np.linspace(.06,.95,17) if dense else [.35]
+    return VGroup(Line([x0,y,0],[x1,y,0],color=GREY),
+        *[Line([x0+(x1-x0)*t,y,0],[x0+(x1-x0)*t,y+h,0],color=BLUE,stroke_width=4) for t in times])
 
 
-def mchip(text, color, size=24, pad=0.2):
-    lab = T(text, size, color, line_spacing=0.9)
-    box = RoundedRectangle(corner_radius=0.14, width=lab.width + 2 * pad, height=lab.height + 2 * pad,
-                           stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.16)
-    return VGroup(box, lab.move_to(box))
+def intro(terms=False):
+    g=VGroup(ganglion([-4.5,.3,0],1.15),label('ganglion\ncell',-4.5,-1.6,32,BLUE),
+        raster(.65),raster(-2.0,False),
+        arr([-1.2,2.05,0],[5.6,2.05,0],GREEN),
+        arr([5.6,-.65,0],[-1.2,-.65,0],RED),
+        label('illustrative spikes',2.2,-2.65,30,GREY))
+    if terms:g.add(label('preferred direction',2.2,2.65,32,GREEN),label('null direction',2.2,-.05,32,RED))
+    return g
 
 
-def sweep(spot, ticks, tas, x0, x1, run):
-    def f(m, a):
-        m.move_to([x0 + (x1 - x0) * a, spot.get_y(), 0])
-        for t, ta in zip(ticks, tas):
-            t.set_stroke(opacity=1.0 if a >= ta else 0.0)
-    return UpdateFromAlphaFunc(spot, f, run_time=run, rate_func=linear)
+def field():
+    return VGroup(Ellipse(width=10.8,height=5.2,color=GREY),
+        Circle(radius=.75,color=YELLOW,fill_opacity=.15).move_to([-2.5,0,0]),
+        Circle(radius=.75,color=YELLOW,fill_opacity=.15).move_to([2.5,0,0]),
+        label('A',-2.5,-1.15,36,YELLOW),label('B',2.5,-1.15,36,YELLOW),
+        arr([-2,1.7,0],[2,1.7,0],GREEN,7,.35),label('preferred →',0,3.15,32,GREEN),
+        label('receptive field',0,-3.1,32,GREY))
 
+BASE=-2.55
+UNIT=.335
+SUM=4+4
+PX=-2.0
+NX=2.3
+
+
+def bar(x,n,color=BLUE):
+    return Rectangle(width=1.2,height=n*UNIT,stroke_color=color,fill_color=color,fill_opacity=.65).move_to([x,BASE+n*UNIT/2,0])
+
+
+def chart(sumline=True):
+    axis=VGroup(Line([-5.25,BASE,0],[-5.25,BASE+16*UNIT,0],color=GREY),Line([-5.25,BASE,0],[5.5,BASE,0],color=GREY))
+    for n in (0,4,8,12,16):
+        y=BASE+n*UNIT
+        axis.add(Line([-5.35,y,0],[-5.15,y,0],color=GREY),label(str(n),-5.8,y,30,GREY))
+    g=VGroup(axis,label('spikes',-5.1,3.35,32,BLUE),label('Illustrative, not Barlow and Levick’s data',0,-3.45,30,GREY))
+    if sumline:g.add(DashedLine([-5.2,BASE+SUM*UNIT,0],[5.4,BASE+SUM*UNIT,0],color=GREY),label('simple sum',4.0,BASE+SUM*UNIT+.35,30,GREY))
+    return g
+
+
+def pair_slots(outlines=True):
+    return VGroup(*([Rectangle(width=1.2,height=SUM*UNIT,color=GREY,stroke_opacity=.4).move_to([x,BASE+SUM*UNIT/2,0]) for x in (PX,NX)] if outlines else []),
+        label('A then B',PX,-2.95,30,GREEN),label('B then A',NX,-2.95,30,RED))
+
+
+def prediction():
+    return VGroup(chart(),pair_slots(),label('Veto: which falls below 8?',.6,2.65,32,YELLOW),label('Boost: which rises above 8?',.6,1.95,32,YELLOW))
+
+
+def deficit():
+    return VGroup(label('2 · deficit −6',NX,-1.25,30,RED))
+
+
+def found(title=True):
+    g=VGroup(chart(),pair_slots(False),bar(PX,8,GREEN),bar(NX,2,RED),deficit())
+    if title:g.add(label('The pattern Barlow and Levick found',.5,3.25,30))
+    return g
+
+
+def veto_frame():
+    g=found(False);g[4].move_to([4.5,-2.2,0])
+    return VGroup(g,label('veto',3.7,-.65,36,RED),arr([3.4,-.95,0],[2.85,-1.85,0],RED,4))
+
+
+def bump(t,c):return max(0.,1-abs(t-c)/1.5)
+
+
+def timing_panel(late=False,x=0,compact=False):
+    # Fixed sample coordinates, with a 0.06 vertical display offset for coincidence.
+    width=10 if compact else 5.1
+    left=x-width/2; bottom=-1.85 if compact else -1.2; height=1.9 if compact else 2.3
+    def p(t,v):return np.array([left+t/10*width,bottom+v*height,0])
+    axes=VGroup(Line(p(0,0),p(10,0),color=GREY),Line(p(0,0),p(0,1.12),color=GREY))
+    e=VMobject().set_points_as_corners([p(t,bump(t,4)) for t in np.linspace(0,10,201)]).set_stroke(BLUE,7)
+    i=VMobject().set_points_as_corners([p(t,bump(t,6 if late else 4)) + (UP*.065 if not late else 0) for t in np.linspace(0,10,201)]).set_stroke(RED,3.5)
+    labs=VGroup(label('excitation',x-1.3,bottom+height+.42,30,BLUE),label('inhibition',x+1.35,bottom+height+.42,30,RED),
+        Line([x-1.3,bottom+height+.2,0],p(3.2,bump(3.2,4)),color=BLUE,stroke_width=1.5),
+        Line([x+1.35,bottom+height+.2,0],p(6 if late else 4,1)+UP*.065,color=RED,stroke_width=1.5))
+    if compact:
+        labs=VGroup(DashedLine([-.4,.35,0],p(3.2,bump(3.2,4)),color=BLUE,stroke_width=1.5),
+            DashedLine([5.4,-.6,0],p(6 if late else 4,1)+UP*.065,color=RED,stroke_width=1.5))
+    sy=-2.65 if compact else -2.05
+    spikes=VGroup(Line([left,sy,0],[left+width,sy,0],color=GREY))
+    for t in np.arange(0,10,.28):
+        if bump(t,4)-bump(t,6 if late else 4)>.25:
+            spikes.add(Line([p(t,0)[0],sy,0],[p(t,0)[0],sy+.45,0],color=BLUE,stroke_width=4))
+    return VGroup(axes,e,i,labs,spikes)
+
+
+def timing_pair():
+    return VGroup(timing_panel(False,-3.2),timing_panel(True,3.2),
+        label('Simple circuit sketch · input strength, illustrative',0,3.25,30,GREY),
+        label('overlap',-3.2,2.45,34,RED),label('lag',3.2,2.45,34,GREEN),
+        label('spikes cancelled',-3.2,-2.65,30,RED),label('early spikes survive',3.2,-2.65,30,BLUE),
+        label('time →',0,-3.3,30,GREY))
+
+
+def motion_stage():
+    return VGroup(Rectangle(width=4.2,height=2.1,color=RED,fill_opacity=.1).move_to([3.3,1.8,0]),
+        ganglion([-.4,1.65,0],.65),label('excitation',-.8,.55,30,BLUE),
+        label('inhibition',3.5,.55,30,RED),label('null side',3.4,2.55,30,RED),
+        Dot([-.4,1.65,0],color=BLUE,radius=.13),Dot([3.2,1.65,0],color=RED,radius=.13),
+        DashedLine([5.4,1.7,0],[5.4,-.6,0],color=RED,stroke_width=1.5),
+        label('ganglion cell',-3.7,2.45,30,BLUE),Line([-2.25,2.25,0],[-.85,1.9,0],color=BLUE,stroke_width=1.5))
+
+
+def wiring(active=False):
+    shade=VGroup(Rectangle(width=3.5,height=4.55,color=RED,fill_opacity=.07,stroke_opacity=.35).move_to([3.1,.45,0]),label('null side',3.1,2.95,30,RED))
+    cells=VGroup(); keys=VGroup(); dots=VGroup()
+    for y in (1.35,-.5):
+        s,b=sac([2.65,y,0],R=1.25)
+        # The connected spoke is the original left spoke, not an extended line.
+        cells.add(VGroup(s,*[b[j] for j in (0,1,3)]))
+        keys.add(b[2].set_stroke(width=10 if active else 5))
+        dots.add(Dot([1.4,y,0],radius=.115,color=GOLD))
+    s,b=sac([-4.85,.4,0],R=1.1)
+    weak=VGroup(s,*b,Dot([-3.75,.4,0],radius=.06,color=GOLD)).set_opacity(.28)
+    gc=VGroup(Ellipse(width=5.8,height=3.6,color=GOLD,fill_opacity=.035).move_to([-1.15,.4,0]),ganglion([-1.15,.4,0],.8))
+    labs=VGroup(label('ganglion cell',-1.15,-1.65,30,BLUE),
+        label('dendrites of the\nganglion cell',-3.6,2.5,30,GOLD),Line([-2.4,2.2,0],[-1.65,2.15,0],color=GOLD),
+        label('illustrative sketch',4.1,-3.45,30,GREY))
+    return VGroup(shade,cells,weak,gc,keys,dots,labs)
+
+
+def circuit_result(dense):
+    return VGroup(raster(-2.6,dense,-3.7,1.4,.55),label('ganglion cell spikes, illustrative',-1.15,-3.05,30,BLUE))
+
+
+def branch_arrows():
+    return VGroup(*[arr([2.3,y+.2,0],[1.5,y+.2,0],PURPLE,6,.32) for y in (1.35,-.5)])
+
+RULE='The strongest inhibition comes from dendrites\nthat prefer roughly the direction\nthe ganglion cell ignores.'
+SCOPE='One ingredient; tuned excitation and timing\nalso contribute in some cells.'
 
 class S00Title(TitleCard):
-    LESSON = "Computing motion in the retina"
-    TITLE = "Direction is computed branch by branch"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
+    TITLE='A Veto From the Null Side'
+    LESSON='Computing Motion in the Retina'
     def construct(self):
-        head = T("One ganglion cell, rabbit retina", 28, GREY).to_edge(UP, buff=0.5)
-        field = DashedVMobject(Ellipse(width=8, height=2.8, color=GREY, stroke_width=3), num_dashes=44).move_to([0, 1.1, 0])
-        fl = T("receptive field", 22, GREY).move_to([0, 0.15, 0])
-        spot = Circle(radius=0.28, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.95).move_to([-3.2, 1.2, 0])
-        self.at("ganglion cell")
-        self.play(FadeIn(head), Create(field), FadeIn(fl), FadeIn(spot), run_time=1.0)
+        self.add(label('BIOCHEMISTRYPEDIA',0,2,30,TEAL),label(self.LESSON,0,1.1,34,GREY))
+        self.play(FadeIn(label(self.TITLE,0,0,46)),Create(Line([-1.2,-1,0],[1.2,-1,0],color=GOLD)),run_time=.6);self.finish()
 
-        def row(y, name):
-            base = Line([-4.4, y, 0], [3.0, y, 0], color=GREY, stroke_width=2.5)
-            lab = T(name, 22, GREY).move_to([-5.4, y + 0.25, 0])
-            return base, lab
-
-        b1, l1 = row(-1.2, "spikes")
-        b2, l2 = row(-2.5, "spikes")
-        t1 = np.linspace(0.1, 0.95, 14)
-        ticks1 = VGroup(*[Line([-4.2 + a * 7.2, -1.2 + 0.08, 0], [-4.2 + a * 7.2, -1.2 + 0.75, 0], color=BLUE, stroke_width=4, stroke_opacity=0) for a in t1])
-        t2 = [0.12]
-        ticks2 = VGroup(*[Line([-4.2 + a * 7.2, -2.5 + 0.08, 0], [-4.2 + a * 7.2, -2.5 + 0.75, 0], color=BLUE, stroke_width=4, stroke_opacity=0) for a in t2])
-        self.add(ticks1, ticks2)
-
-        self.at("fires hard")
-        self.play(Create(b1), FadeIn(l1), run_time=0.4)
-        self.play(sweep(spot, ticks1, t1, -3.2, 3.2, 2.2))
-        self.at("hardly fires")
-        self.play(Create(b2), FadeIn(l2), run_time=0.4)
-        self.play(sweep(spot, ticks2, t2, 3.2, -3.2, 2.2))
-
-        pa = arr([3.5, -0.85, 0], [4.5, -0.85, 0], GREEN, w=6)
-        pt = T("preferred", 24, GREEN).move_to([5.5, -0.85, 0])
-        na = arr([4.5, -2.15, 0], [3.5, -2.15, 0], RED, w=6)
-        nt = T("null", 24, RED).move_to([5.4, -2.15, 0])
-        self.at("preferred direction")
-        self.play(GrowArrow(pa), FadeIn(pt), run_time=0.6)
-        self.at("null direction")
-        self.play(GrowArrow(na), FadeIn(nt), run_time=0.6)
-
-        self.at("Where in the retina")
-        q = chip("?", YELLOW, size=64, pad=0.3).move_to([0, 1.1, 0])
-        ask = T("where is the difference computed?", 28).move_to([0, 2.65, 0])
-        self.play(FadeOut(VGroup(field, fl, spot)), FadeIn(q, scale=0.8), FadeIn(ask), run_time=0.8)
-        self.at("which cells")
-        wc = T("by which cells?", 28, YELLOW).next_to(q, RIGHT, buff=0.4)
-        self.play(FadeIn(wc, shift=RIGHT * 0.2), Indicate(q, color=YELLOW, scale_factor=1.1), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Twoflash(SpokenScene):
+class S01Q(SpokenScene):
     def construct(self):
-        head = T("Rabbit, in vivo", 26, GREY).to_edge(UP, buff=0.5)
-        field = DashedVMobject(Ellipse(width=5.2, height=2.8, color=GREY, stroke_width=3), num_dashes=36).move_to([-3.5, 1.6, 0])
-        fl = T("one receptive field", 22, GREY).move_to([-3.5, 0.75, 0])
-        A = Circle(radius=0.4, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.15).move_to([-4.6, 2.05, 0])
-        B = Circle(radius=0.4, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.15).move_to([-2.4, 2.05, 0])
-        An = T("A", 26, YELLOW).move_to([-4.6, 1.4, 0])
-        Bn = T("B", 26, YELLOW).move_to([-2.4, 1.4, 0])
-        self.at("recorded from")
-        self.play(FadeIn(head), Create(field), FadeIn(fl), run_time=0.9)
-        self.at("flashed two")
-        self.play(FadeIn(A), FadeIn(B), FadeIn(An), FadeIn(Bn), run_time=0.7)
+        g=intro();self.add(g[0],g[1],g[6],label('A Veto From the Null Side',0,3.25,36),g[2][0],g[3][0])
+        dot=Dot([-1.2,2.05,0],radius=.18,color=YELLOW)
+        self.at('fires hard');self.play(FadeIn(dot),GrowArrow(g[4]),run_time=.25)
+        self.play(dot.animate.move_to([5.6,2.05,0]),Create(VGroup(*g[2][1:])),run_time=1.65,rate_func=linear)
+        self.at('Moving left');self.play(dot.animate.move_to([5.6,-.65,0]),GrowArrow(g[5]),run_time=.2)
+        self.play(dot.animate.move_to([-1.2,-.65,0]),Create(g[3][1]),run_time=1.4,rate_func=linear)
+        self.at('How does it');self.play(FadeOut(dot),FadeIn(label('How does it know?',-3.8,-3.0,34,YELLOW)),run_time=.3);self.finish()
 
-        base_y = -2.9
-        xs = [1.75, 3.1, 4.45, 5.8]
-        u = 1.8
-        axis = Line([1.2, base_y, 0], [6.3, base_y, 0], color=GREY, stroke_width=2.5)
-        labs = [T(s, 22, GREY).move_to([x, base_y - 0.38, 0]) for s, x in zip(["A alone", "B alone", "A + B", "pair"], xs)]
-        ytitle = T("spikes, in this sketch", 22, GREY).move_to([3.75, 2.6, 0])
-
-        def flash(s):
-            return [s.animate.set_fill(YELLOW, 0.95)], [s.animate.set_fill(YELLOW, 0.15)]
-
-        self.at("one after the other")
-        self.play(FadeIn(axis), FadeIn(ytitle), *[FadeIn(l) for l in labs], run_time=0.5)
-        on, off = flash(A)
-        self.play(*on, run_time=0.25)
-        barA = bar(xs[0], base_y, u)
-        self.play(*off, GrowFromEdge(barA, DOWN), run_time=0.5)
-        on, off = flash(B)
-        self.play(*on, run_time=0.25)
-        barB = bar(xs[1], base_y, u)
-        self.play(*off, GrowFromEdge(barB, DOWN), run_time=0.5)
-
-        order = T("preferred order: A then B", 24, GREEN).move_to([-3.5, -0.55, 0])
-        self.at("preferred order")
-        on, off = flash(A)
-        self.play(FadeIn(order), *on, run_time=0.3)
-        self.play(*off, run_time=0.2)
-        on, off = flash(B)
-        self.play(*on, run_time=0.25)
-        self.play(*off, run_time=0.2)
-
-        pair_p = bar(xs[3], base_y, 2.0 * u + 0.15, color=GREEN)
-        self.at("pair gave")
-        self.play(GrowFromEdge(pair_p, DOWN), run_time=0.7)
-        sA = Rectangle(width=0.85, height=u, stroke_color=BLUE, stroke_width=2.5).move_to([xs[2], base_y + u / 2, 0])
-        sB = Rectangle(width=0.85, height=u, stroke_color=BLUE, stroke_width=2.5).move_to([xs[2], base_y + 1.5 * u, 0])
-        sumb = VGroup(DashedVMobject(sA, num_dashes=20), DashedVMobject(sB, num_dashes=20))
-        sum_y = base_y + 2 * u
-        sline = DashedLine([1.2, sum_y, 0], [6.3, sum_y, 0], color=GREY, stroke_width=2.5)
-        note_p = T("about the sum", 24, GREEN).move_to([4.7, 1.55, 0])
-        self.at("about the sum")
-        self.play(FadeIn(sumb), Create(sline), FadeIn(note_p), run_time=0.8)
-        self.at("single responses")
-        self.play(Indicate(barA, color=BLUE, scale_factor=1.08), Indicate(barB, color=BLUE, scale_factor=1.08), run_time=0.8)
-
-        # null order: clear the old answer in the same beat as the new label
-        order_n = T("null order: B then A", 24, RED).move_to([-3.5, -0.55, 0])
-        self.at("null order")
-        on, off = flash(B)
-        self.play(FadeOut(pair_p), FadeOut(note_p), ReplacementTransform(order, order_n), *on, run_time=0.4)
-        self.play(*off, run_time=0.2)
-        on, off = flash(A)
-        self.play(*on, run_time=0.25)
-        self.play(*off, run_time=0.2)
-        pair_n = bar(xs[3], base_y, 1.0, color=RED)
-        gap = DoubleArrow([5.8, sum_y - 0.05, 0], [5.8, base_y + 1.05, 0], buff=0, color=RED, stroke_width=4,
-                          tip_length=0.16)
-        note_n = T("far fewer than the sum", 24, RED).move_to([4.2, 1.55, 0])
-        self.at("far fewer")
-        self.play(GrowFromEdge(pair_n, DOWN), FadeIn(gap), FadeIn(note_n), run_time=0.8)
-
-        sup = mchip("small subunits suppress\nnull-direction sequences", RED, 24).move_to([-3.5, -1.85, 0])
-        self.at("small subunits")
-        self.play(FadeIn(sup, shift=UP * 0.15), run_time=0.7)
-        ten = mchip("which cells? left open", GREY, 24).move_to([-3.5, -3.2, 0])
-        self.at("tentative")
-        self.play(FadeIn(ten, shift=UP * 0.15), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Dendrite(SpokenScene):
+class S02Terms(SpokenScene):
     def construct(self):
-        C = [-3.4, -0.2, 0]
-        soma, prims = sac(C)
-        lab = T("starburst amacrine cell", 24, PURPLE).move_to([-3.4, 2.85, 0])
-        self.at("Later work")
-        self.play(FadeIn(soma, scale=0.5), FadeIn(lab), run_time=0.7)
-        self.at("radiate")
-        self.play(LaggedStart(*[Create(p) for p in prims], lag_ratio=0.15), run_time=1.6)
+        self.add(intro())
+        self.at('preferred direction');self.play(FadeIn(label('preferred direction',2.2,2.65,32,GREEN)),run_time=.35)
+        self.at('null direction');self.play(FadeIn(label('null direction',2.2,-.05,32,RED)),run_time=.35);self.finish()
 
-        head = T("isolated rabbit retina, ON starburst cell", 24, GREY).to_edge(UP, buff=0.5)
-        ptitle = T("dendrite calcium\nin this sketch", 24, ORANGE, line_spacing=0.9).move_to([3.9, 2.5, 0])
-        self.at("imaged calcium")
-        self.play(FadeIn(ptitle), run_time=0.6)
-        self.at("single dendrites")
-        self.play(prims[0].animate.set_stroke(ORANGE, 6, opacity=1),
-                  *[prims[k].animate.set_stroke(opacity=0.45) for k in range(1, 8)], run_time=0.8)
-        self.at("isolated rabbit")
-        self.play(FadeIn(head), run_time=0.6)
-
-        base = -1.0
-        ax = Line([2.6, base, 0], [5.6, base, 0], color=GREY, stroke_width=2.5)
-        lo = T("outward", 22, GREEN).move_to([3.4, base - 0.35, 0])
-        li = T("inward", 22, RED).move_to([4.9, base - 0.35, 0])
-        dot = Circle(radius=0.2, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.95).move_to([-2.9, -0.2, 0])
-        self.add(dot)
-        dot.set_opacity(0)
-        self.play(FadeIn(ax), run_time=0.3)
-        self.at("motion outward")
-        self.play(dot.animate.set_opacity(1), run_time=0.2)
-        self.play(dot.animate.move_to([-1.0, -0.2, 0]), run_time=1.0, rate_func=linear)
-        b_out = bar(3.4, base, 2.9, 1.1, ORANGE)
-        self.play(GrowFromEdge(b_out, DOWN), FadeIn(lo), run_time=0.5)
-        self.at("than inward")
-        self.play(dot.animate.move_to([-2.9, -0.2, 0]), run_time=1.0, rate_func=linear)
-        b_in = bar(4.9, base, 1.1, 1.1, ORANGE)
-        self.play(GrowFromEdge(b_in, DOWN), FadeIn(li), run_time=0.5)
-        self.play(FadeOut(dot), run_time=0.2)
-
-        sv = mchip("soma voltage:\nnot the same preference", GREY, 22).move_to([4.1, -2.75, 0])
-        self.at("The voltage")
-        self.play(Indicate(soma, color=PURPLE, scale_factor=1.4), FadeIn(sv, shift=UP * 0.15), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Wiring(SpokenScene):
+class S03Bh(SpokenScene):
     def construct(self):
-        C = [-3.4, -0.2, 0]
-        soma, prims = sac(C)
-        for k in range(1, 8):
-            prims[k].set_stroke(opacity=0.9)
-        cell = VGroup(soma, *prims)
-        self.add(cell)
-        outs = VGroup()
-        for deg in (0, 90, 180, 270):
-            d = np.array([np.cos(np.radians(deg)), np.sin(np.radians(deg)), 0])
-            outs.add(arr(np.array(C) + d * 0.55, np.array(C) + d * 1.3, GREEN, w=6, tip=0.2))
-        side = mchip("each branch has its own\npreferred direction", GREEN, 24).move_to([3.0, 0.3, 0])
-        self.at("its own preferred direction")
-        self.play(LaggedStart(*[GrowArrow(o) for o in outs], lag_ratio=0.2), FadeIn(side), run_time=1.2)
-        self.at("set by where")
-        self.play(LaggedStart(*[Indicate(o, color=GREEN, scale_factor=1.25) for o in outs], lag_ratio=0.25), run_time=1.6)
+        self.add(intro(True))
+        self.at('Barlow and Hill');self.play(FadeIn(label('Barlow and Hill · 1963 · rabbit retina',0,3.4,30)),run_time=.35);self.finish()
 
-        # ---- to the wiring diagram -----------------------------------------------------------
-        head = T("mouse retina", 24, GREY).move_to([-5.3, 3.3, 0])
-        D = np.array([0.0, 0.1, 0.0])
-        fieldc = Circle(radius=1.8, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.1).move_to(D)
-        gsoma = Circle(radius=0.45, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.8).move_to(D)
-        glab = T("ganglion cell", 24, BLUE).move_to([0, -2.3, 0])
-        self.at("tested the wiring")
-        self.play(FadeOut(VGroup(cell, outs, side)), run_time=0.5)
-        self.play(FadeIn(head), FadeIn(fieldc), FadeIn(gsoma), FadeIn(glab), run_time=0.6)
-
-        pa = arr([0.4, 2.9, 0], [2.4, 2.9, 0], GREEN, w=6)
-        pt = T("preferred direction", 24, GREEN).move_to([4.3, 2.9, 0])
-        na = arr([-0.4, 2.9, 0], [-2.4, 2.9, 0], RED, w=6)
-        nt = T("null direction", 24, RED).move_to([-4.2, 2.9, 0])
-        self.at("imaged each")
-        self.play(GrowArrow(pa), FadeIn(pt), GrowArrow(na), FadeIn(nt), run_time=0.9)
-
-        s1, k1, tip1 = mini_star([4.1, 1.6, 0], 200, 2.7, 1.2)
-        s2, k2, tip2 = mini_star([4.1, -1.2, 0], 160, 2.7, 1.2)
-        self.at("reconstructed")
-        self.play(LaggedStart(FadeIn(s1), FadeIn(s2), lag_ratio=0.5), run_time=1.5)
-        sk = T("schematic: branch direction,\nnot soma position", 22, GREY, line_spacing=0.9).move_to([-4.0, -1.4, 0])
-        self.add(sk)
-        sk.set_opacity(0)
-        d1 = Dot(tip1, radius=0.13, color=TEXT)
-        d2 = Dot(tip2, radius=0.13, color=TEXT)
-        self.at("Most starburst input")
-        self.play(FadeIn(d1, scale=2), FadeIn(d2, scale=2), sk.animate.set_opacity(1), run_time=0.7)
-        self.play(Indicate(k1, color=PURPLE, scale_factor=1.1), Indicate(k2, color=PURPLE, scale_factor=1.1), run_time=0.8)
-
-        c1 = mchip("branch direction", PURPLE, 24).move_to([-3.2, -3.1, 0])
-        mid = T("predicted better than", 24, TEXT).move_to([0.3, -3.1, 0])
-        c2 = mchip("line between bodies", GREY, 24).move_to([4.2, -3.1, 0])
-        self.at("Branch direction predicted")
-        self.play(FadeOut(sk), FadeIn(c1), FadeIn(mid), run_time=0.6)
-        line = DashedLine(np.array([4.1, 1.6, 0]), D, color=GREY, stroke_width=3)
-        self.at("line between")
-        self.play(FadeIn(c2), Create(line), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Develop(SpokenScene):
+class S04Bl(SpokenScene):
     def construct(self):
-        head = T("developing mouse retina, paired recordings", 24, GREY).move_to([0, 3.4, 0])
-        dsgc = mchip("ganglion cell\nnasal-preferring ON-OFF", BLUE, 24).move_to([3.5, 0, 0])
-        sn = mchip("starburst input,\nnull-direction branches\n(stronger later)", PURPLE, 22).move_to([-4.0, 1.5, 0])
-        sp = mchip("starburst input,\npreferred-direction branches\n(about the same)", PURPLE, 22).move_to([-4.0, -1.5, 0])
-        cap = T("line thickness: inhibition strength, in this sketch", 22, GREY).move_to([0, -3.2, 0])
+        self.add(label('How does it work?',0,.5,52,YELLOW),label('Barlow and Levick · 1965',0,-1,36))
+        self.at('Two years later');self.play(Create(Line([-3,-2,0],[3,-2,0],color=GOLD)),run_time=.6);self.finish()
 
-        def conn(src, dst, w, color=RED):
-            return inhib(src, dst, color, w)
-
-        def pair(wn, wp, dashed_p=False):
-            n = conn([-1.5, 1.5, 0], [1.2, 0.3, 0], wn)
-            p = conn([-1.5, -1.5, 0], [1.2, -0.3, 0], wp)
-            return n, p
-
-        n0, p0 = pair(14, 5)
-        self.play(FadeIn(head), FadeIn(dsgc), FadeIn(sn), FadeIn(sp), FadeIn(n0), FadeIn(p0), FadeIn(cap), run_time=1.0)
-        self.at("asymmetry")
-        self.play(Indicate(n0, color=RED, scale_factor=1.05), run_time=0.8)
-
-        ghost = DashedVMobject(Line([-1.5, -1.5, 0], [1.2, -0.3, 0], color=GREY, stroke_width=4), num_dashes=14)
-        prune = T("pruning: delete these branches", 22, GREY).move_to([0, -2.65, 0])
-        self.at("Pruning would delete")
-        self.play(FadeOut(p0), FadeIn(ghost), FadeIn(prune), run_time=0.8)
-
-        stage1 = T("postnatal days 4 and 7", 30, TEXT, weight=BOLD).move_to([0, 2.85, 0])
-        n1, p1 = pair(8, 8)
-        self.at("recorded pairs")
-        self.play(FadeOut(ghost), FadeOut(prune), FadeOut(n0), run_time=0.6)
-        self.at("At postnatal days")
-        self.play(FadeIn(stage1), FadeIn(n1), FadeIn(p1), run_time=0.8)
-
-        stage2 = T("later", 30, TEXT, weight=BOLD).move_to([0, 2.85, 0])
-        n2, p2 = pair(14, 8)
-        self.at("Later")
-        self.play(ReplacementTransform(stage1, stage2), ReplacementTransform(n1, n2), run_time=1.0)
-        self.at("stayed about the same")
-        self.play(Indicate(p1, color=RED, scale_factor=1.08), run_time=0.8)
-        still = T("still present in adults", 24, GREEN).move_to([0, -2.3, 0])
-        self.at("still there")
-        self.play(FadeIn(still, shift=UP * 0.15), Indicate(p1, color=GREEN, scale_factor=1.08), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S05Flash(SpokenScene):
     def construct(self):
-        head = T("adult mouse", 24, GREY).to_edge(UP, buff=0.5)
-        pop = mchip("starburst cells\nwhole population", PURPLE, 24).move_to([-3.4, 2.3, 0])
-        self.at("Removing the whole")
-        self.play(FadeIn(head), FadeIn(pop), run_time=0.7)
-        cross = Line(pop.get_corner(UR) + np.array([-0.25, 0.25, 0]), pop.get_corner(UR) + np.array([0.25, -0.25, 0]), color=RED, stroke_width=6)
-        ab = T("selectivity abolished", 22, RED).move_to([-1.3, -2.15, 0])
-        base = -1.2
-        gI = bar(-5.25, base, 2.2, 0.7, GREEN)
-        rI = bar(-4.35, base, 0.5, 0.7, RED)
-        gR = bar(-1.75, base, 1.2, 0.7, GREEN)
-        rR = bar(-0.85, base, 1.2, 0.7, RED)
-        ax1 = Line([-5.9, base, 0], [-3.7, base, 0], color=GREY, stroke_width=2.5)
-        ax2 = Line([-2.4, base, 0], [-0.2, base, 0], color=GREY, stroke_width=2.5)
-        t1 = T("intact", 22, GREY).move_to([-4.8, base - 0.35, 0])
-        t2 = T("cells removed", 22, GREY).move_to([-1.3, base - 0.35, 0])
-        lg = VGroup(T("preferred", 22, GREEN), T("null", 22, RED), T("in this sketch", 22, GREY)).arrange(RIGHT, buff=0.45).move_to([-3.0, -2.95, 0])
-        self.add(gI, rI, ax1, ax2, t1, t2, lg)
-        for m in (gI, rI, ax1, ax2, t1, t2, lg):
-            m.set_opacity(0)
-        self.play(*[m.animate.set_opacity(1) for m in (gI, rI, ax1, t1, lg)], run_time=0.4)
-        self.at("-abolish")
-        self.play(Create(cross), FadeIn(ab), *[m.animate.set_opacity(1) for m in (ax2, t2)], run_time=0.5)
-        gR.set_opacity(0); rR.set_opacity(0)
-        self.add(gR, rR)
-        self.play(gR.animate.set_opacity(0.75), rR.animate.set_opacity(0.75), run_time=0.6)
+        f=field();self.add(f)
+        self.at('two neighboring spots');self.play(Indicate(f[1]),Indicate(f[2]),run_time=.5)
+        self.at('spot I');self.play(f[1].animate.set_fill(opacity=.95),run_time=.2);self.wait(.8)
+        self.at('spot B');self.play(f[1].animate.set_fill(opacity=.15),f[2].animate.set_fill(opacity=.95),run_time=.2);self.wait(.8)
+        self.at('one after the other');self.play(f[2].animate.set_fill(opacity=.15),run_time=.2);self.finish()
 
-        self.at("needed in that assay")
-        self.play(Indicate(pop, color=PURPLE, scale_factor=1.08), run_time=0.8)
+class S06Orders(SpokenScene):
+    def construct(self):
+        f=field();self.add(f)
+        a=arr([-1.6,0,0],[1.6,0,0],GREEN,8,.4);p=label('A then B · preferred order',0,-2,32,GREEN)
+        self.at('I then B');self.add(p);self.play(f[1].animate.set_fill(opacity=.95),GrowArrow(a),run_time=.3);self.wait(.55)
+        self.play(f[1].animate.set_fill(opacity=.15),f[2].animate.set_fill(opacity=.95),run_time=.25)
+        self.at('B then I');self.remove(p,a);self.add(label('B then A · null order',0,-2,32,RED))
+        self.play(f[2].animate.set_fill(opacity=.95),GrowArrow(arr([1.6,0,0],[-1.6,0,0],RED,8,.4)),run_time=.3);self.wait(.55)
+        self.play(f[2].animate.set_fill(opacity=.15),f[1].animate.set_fill(opacity=.95),run_time=.25);self.finish()
 
-        ach = mchip("acetylcholine", TEAL, 24).move_to([4.0, 1.7, 0])
-        gab = mchip("GABA", TEAL, 24).move_to([4.0, 0.5, 0])
-        self.at("acetylcholine")
-        self.play(FadeIn(ach, shift=LEFT * 0.2), run_time=0.5)
-        self.at("GABA")
-        self.play(FadeIn(gab, shift=LEFT * 0.2), run_time=0.5)
-        q = mchip("this assay\ncan't say which", YELLOW, 24).move_to([4.0, -1.1, 0])
-        self.at("carries the asymmetry")
-        self.play(FadeIn(q, shift=UP * 0.15), run_time=0.6)
+class S07Sum(SpokenScene):
+    def construct(self):
+        c=chart(False);a=bar(-2.6,4);b=bar(2.6,4)
+        self.add(c,label('4 + 4 = 8',.4,2.7,40),a,b,label('A alone · 4',-2.6,-2.95,30),label('B alone · 4',2.6,-2.95,30))
+        self.at('simply added');self.play(TransformFromCopy(a,bar(0,4)),TransformFromCopy(b,bar(0,4).shift(UP*4*UNIT)),FadeIn(label('A + B added',0,-2.95,30)),run_time=.8)
+        self.at('dashed line');s=chart();self.play(Create(s[3]),FadeIn(s[4]),run_time=.4);self.finish()
 
-        self.at("keep this rule")
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.7)
-        soma, prims = sac([-3.5, 0.6, 0], R=2.2, w=4, n=6)
-        outs = VGroup(*[arr(np.array([-3.5, 0.6, 0]) + 0.6 * np.array([np.cos(i * TAU / 6), np.sin(i * TAU / 6), 0]),
-                            np.array([-3.5, 0.6, 0]) + 1.5 * np.array([np.cos(i * TAU / 6), np.sin(i * TAU / 6), 0]),
-                            GREEN, w=6, tip=0.2) for i in range(6)])
-        l1 = T("branch by branch", 32).move_to([-3.5, -2.2, 0])
-        self.at("branch by branch")
-        self.play(FadeIn(soma), *[Create(p) for p in prims], run_time=0.8)
-        self.play(*[GrowArrow(o) for o in outs], FadeIn(l1), run_time=0.7)
+class S08Predict(SpokenScene):
+    def construct(self):
+        g=prediction();self.add(g[0],g[1])
+        self.at('Under a veto');self.play(FadeIn(g[2]),run_time=.3)
+        self.at('Under a boost');self.play(FadeIn(g[3]),run_time=.3);self.finish()
 
-        g = Circle(radius=0.55, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.8).move_to([4.9, 0.6, 0])
-        ln = inhib([1.9, 1.5, 0], [4.25, 0.85, 0], RED, 14)
-        lp = inhib([1.9, -0.3, 0], [4.25, 0.35, 0], RED, 5)
-        tn = T("null-direction branches", 24, RED).move_to([1.3, 2.0, 0])
-        tp = T("preferred-direction branches", 24, GREY).move_to([1.3, -0.9, 0])
-        l2 = T("inhibition from null-direction\nbranches strengthens", 32, line_spacing=0.9).move_to([3.4, -2.2, 0])
-        self.at("inhibition strengthens")
-        self.play(FadeIn(g), GrowFromEdge(ln, LEFT), GrowFromEdge(lp, LEFT), FadeIn(tn), FadeIn(tp), FadeIn(l2), run_time=1.4)
-        self.finish()
+class S09Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(prediction(),label('Pause. Decide before you go on.',0,-.7,30,YELLOW))
+        self.add(Line([-3,-1.65,0],[3,-1.65,0],color=GREY,stroke_width=3))
+        self.play(Create(Line([-3,-1.65,0],[3,-1.65,0],color=YELLOW,stroke_width=7)),run_time=5,rate_func=linear)
+
+class S10Reveal(SpokenScene):
+    def construct(self):
+        self.add(chart(),pair_slots(False),label('remainder = paired − sum',.7,3.25,30))
+        self.at('A veto leaves');self.add(label('veto',NX,-1.45,32,RED));self.play(GrowFromEdge(bar(NX,2,RED),DOWN),run_time=.35)
+        self.add(label('2 − 8 = −6',4.65,-1.3,30,RED),DoubleArrow([3.2,BASE+2*UNIT,0],[3.2,BASE+8*UNIT,0],buff=0,color=RED,tip_length=.16))
+        self.at('A boost leaves');self.add(label('boost',PX,2.7,32,GREEN),bar(PX,14,GREEN))
+        self.play(FadeIn(label('14 − 8 = +6',1.0,1.75,30,GREEN)),Create(DoubleArrow([-.9,BASE+8*UNIT,0],[-.9,BASE+14*UNIT,0],buff=0,color=GREEN,tip_length=.16)),run_time=.3);self.finish()
+
+class S11Found(SpokenScene):
+    def construct(self):
+        b=bar(PX,14,GREEN);self.add(chart(),pair_slots(False),b,bar(NX,2,RED),deficit(),label('The pattern Barlow and Levick found',.6,3.25,30))
+        self.at('found a big deficit');self.play(Indicate(self.mobjects[3]),run_time=.4)
+        self.at('preferred order');self.play(Transform(b,bar(PX,8,GREEN)),run_time=.75);self.finish()
+
+class S12Veto(SpokenScene):
+    def construct(self):
+        g=found();self.add(g)
+        self.at('is a veto');v=veto_frame();self.play(FadeOut(g[-1]),g[4].animate.move_to([4.5,-2.2,0]),FadeIn(v[1]),GrowArrow(v[2]),run_time=.4);self.finish()
+
+class S13Beat(Scene):
+    def construct(self):
+        self.camera.background_color=BG;self.add(veto_frame());self.wait(2)
+
+class S14Local(SpokenScene):
+    def construct(self):
+        self.add(field()[0],label('local veto',0,3.15,34,RED),label('small subunits',0,2.25,32),label('flat-ended line = veto',0,-3.15,30,RED))
+        patches=[]
+        for x in (-2.7,0,2.7):
+            for y in (-.95,.95):
+                patches.append(VGroup(RoundedRectangle(width=2.3,height=1.55,corner_radius=.15,color=GREY).move_to([x,y,0]),Line([x-.65,y,0],[x+.45,y,0],color=RED,stroke_width=5),Line([x+.45,y-.35,0],[x+.45,y+.35,0],color=RED,stroke_width=6)))
+        self.at('They also inferred');self.play(LaggedStart(*[FadeIn(p) for p in patches],lag_ratio=.4),run_time=2.8);self.finish()
+
+class S15Timing(SpokenScene):
+    def construct(self):
+        g=timing_pair();self.add(g[2],g[3],g[4],g[7],g[0][0],g[1][0],g[0][4][0],g[1][4][0])
+        self.at('simple sketch');self.play(Create(g[0][1]),Create(g[1][1]),FadeIn(g[0][3]),FadeIn(g[1][3]),run_time=.65)
+        self.at('To cancel excitation');self.play(Create(g[0][2]),Create(g[1][2]),run_time=.7)
+        self.at('inhibition must overlap');self.play(FadeIn(g[5]),FadeIn(g[6]),*[Create(s) for s in g[1][4][1:]],run_time=.7);self.finish()
+
+class S16Side(SpokenScene):
+    def construct(self):
+        self.add(motion_stage(),timing_panel(False,compact=True),label('input strength · illustrative',-2.8,-3.3,30,GREY),label('time →',4.6,-3.3,30,GREY))
+        dot=Dot([5.1,1.65,0],radius=.18,color=YELLOW);self.add(dot)
+        self.at('Null motion');self.add(arr([.5,3.3,0],[-3.8,3.3,0],RED));self.wait(.45)
+        self.play(dot.animate.move_to([-4.7,1.65,0]),run_time=4.1,rate_func=linear)
+        self.at('Call that');self.play(Indicate(self.mobjects[0][0],color=RED),run_time=.5);self.finish()
+
+class S17Late(SpokenScene):
+    def construct(self):
+        g=timing_panel(False,compact=True);late=timing_panel(True,compact=True)
+        self.add(motion_stage(),g,label('input strength · illustrative',-2.8,-3.3,30,GREY),label('time →',4.6,-3.3,30,GREY))
+        dot=Dot([-4.7,1.65,0],radius=.18,color=YELLOW);self.add(dot)
+        self.at('Preferred motion');self.add(arr([-3.8,3.3,0],[.5,3.3,0],GREEN),label('excitation leads',-3.9,.8,30,BLUE))
+        self.play(Transform(g,late),run_time=.6)
+        self.play(dot.animate.move_to([6.0,1.65,0]),run_time=4.1,rate_func=linear)
+        self.at('a head start');self.play(Indicate(g[4],color=BLUE),run_time=.4);self.finish()
+
+class S18Who(SpokenScene):
+    def construct(self):
+        box=Rectangle(width=6.4,height=5.1,color=RED,fill_opacity=.08).move_to([2.4,0,0]);self.add(box,label('null side',2.4,2.95,32,RED),ganglion([-3.3,.2,0],1.3),label('ganglion cell',-3.5,-2,32,BLUE))
+        s,b=sac([2.4,0,0],R=1.8);q=label('?',2.4,0,64,YELLOW)
+        self.at('were tentative');self.play(FadeIn(q),run_time=.2)
+        self.at('Most of it');self.play(FadeOut(q),FadeIn(s),*[Create(v) for v in b],run_time=1.3)
+        self.at('starburst amacrine cells');self.play(FadeIn(VGroup(label('starburst amacrine cell',2.4,-2.15,30,PURPLE),Line([3.7,-1.85,0],[3.1,-.65,0],color=PURPLE,stroke_width=1.5))),run_time=.3);self.finish()
+
+class S19Sac(SpokenScene):
+    def construct(self):
+        s,b=sac([0,0,0],R=2.6);self.add(s,label('starburst amacrine cell',0,-3.3,32,PURPLE))
+        self.at('dendrites radiate');self.play(*[Create(v) for v in b],run_time=1.2);self.finish()
+
+class S20Branch(SpokenScene):
+    def construct(self):
+        s,b=sac([0,0,0],R=2.6);self.add(s,*b,label('starburst amacrine cell',0,-3.3,32,PURPLE));dot=Dot([2.6,0,0],radius=.18,color=YELLOW)
+        inward=label('inward: little release',0,3.2,34,GREY)
+        self.at('Each dendrite');self.add(inward,dot);self.play(*[v.animate.set_opacity(.35) for v in b],run_time=.25)
+        self.play(dot.animate.move_to([.3,0,0]),run_time=2.0,rate_func=linear)
+        self.at('most active');self.play(FadeOut(inward),FadeIn(label('outward: most active',0,3.2,34,GREEN)),run_time=.3)
+        self.at('motion runs outward');self.play(dot.animate.move_to([2.6,0,0]),b[0].animate.set_stroke(width=12,opacity=1),run_time=2.1,rate_func=linear);self.finish()
+
+class S21Wire(SpokenScene):
+    def construct(self):
+        w=wiring();self.add(w[0],w[1],w[2])
+        self.at('a ganglion cell');self.play(FadeIn(w[3]),FadeIn(w[6]),run_time=.4)
+        self.at('prefers rightward motion');self.play(GrowArrow(arr([-1.3,3.25,0],[.7,3.25,0],GREEN)),run_time=.3)
+        self.at('wired mainly');self.play(Create(w[4]),FadeIn(w[5]),run_time=.65)
+        self.at('point left');self.play(*[GrowArrow(a) for a in branch_arrows()],run_time=.4);self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Direction is computed branch by branch; inhibition strengthens on the null side."
+def run_branch_case(scene,dense):
+    w=wiring();scene.add(w,circuit_result(dense)[0][0],circuit_result(dense)[1])
+    direction=GREEN if dense else RED
+    arrow=arr([-1.4,3.25,0],[.8,3.25,0],direction) if dense else arr([.8,3.25,0],[-1.4,3.25,0],direction)
+    starts=[np.array([1.4 if dense else 2.42,y,0]) for y in (1.35,-.5)]
+    ends=[np.array([2.42 if dense else 1.4,y,0]) for y in (1.35,-.5)]
+    spots=VGroup(*[Dot(p,radius=.17,color=YELLOW,fill_opacity=1) for p in starts])
+    scene.at('Rightward motion' if dense else 'Leftward motion');scene.add(arrow,spots)
+    scene.at('runs inward' if dense else 'runs outward')
+    state=label('weaker inhibition' if dense else 'stronger inhibition',3.9,-2.05,30,RED)
+    response=circuit_result(dense)[0]
+    scene.add(state)
+    scene.play(*[d.animate.move_to(p) for d,p in zip(spots,ends)],w[4].animate.set_stroke(width=3 if dense else 13,opacity=.23 if dense else 1),
+        Create(VGroup(*response[1:])),run_time=3.0,rate_func=linear)
+    scene.play(FadeOut(spots),run_time=.2)
+    if dense:
+        scene.at('excitation wins');scene.play(FadeIn(label(SCOPE,0,3.15,30,GREY)),FadeOut(arrow),FadeOut(w[6][1]),FadeOut(w[6][2]),w[0][1].animate.move_to([4.0,2.35,0]),run_time=.3)
+    else:
+        scene.at('stays quiet');scene.play(Indicate(response,color=BLUE),run_time=.4)
+    scene.finish()
+
+class S22Null(SpokenScene):
+    def construct(self):run_branch_case(self,False)
+
+class S23Pref(SpokenScene):
+    def construct(self):run_branch_case(self,True)
+
+class S24Beat(Scene):
+    def construct(self):
+        self.camera.background_color=BG;w=wiring();w[4].set_stroke(width=3,opacity=.23)
+        w[6].remove(w[6][1],w[6][2]);w[0][1].move_to([4.0,2.35,0])
+        self.add(w,circuit_result(True),label('weaker inhibition',3.9,-2.05,30,RED),label(SCOPE,0,3.15,30,GREY));self.wait(2)
+
+class S25Rule(SpokenScene):
+    def construct(self):
+        w=wiring();w[6].remove(w[6][-1])
+        # Reserve a separate lower band for the rule; keep preference keys above the circuit.
+        preferences=branch_arrows()
+        diagram=VGroup(w,preferences).scale(.75,about_point=ORIGIN).shift(UP*.3)
+        self.add(w)
+        self.at('remember the sign');self.play(GrowArrow(arr([-4,3.0,0],[-2,3.0,0],GREEN)),FadeIn(label('ganglion cell prefers',-3,3.5,30,GREEN)),run_time=.3)
+        self.at('strongest inhibition');self.play(w[4].animate.set_stroke(width=12),Indicate(w[5],color=GOLD),run_time=.5)
+        self.at('dendrites that prefer roughly');self.play(FadeIn(label(RULE,0,-2.75,30)),*[GrowArrow(a) for a in preferences],GrowArrow(arr([4,3.0,0],[2,3.0,0],PURPLE)),FadeIn(label('dendrite preference',3,3.5,30,PURPLE)),run_time=.5);self.finish()
+
+class S26End(EndCard):
+    # TASK.md explicitly asks for the full shared rule on this card.
+    LINE=RULE.replace('\n',' ')
+    def construct(self):
+        self.add(label('Remember the sign',0,2.2,34,GREEN))
+        self.play(FadeIn(label('The strongest inhibition comes from\ndendrites that prefer roughly the direction\nthe ganglion cell ignores.',0,0,38)),run_time=.6)
+        self.play(FadeIn(label('biochemistrypedia.com',0,-2,30,TEAL)),run_time=.3);self.finish()
