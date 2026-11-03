@@ -5,13 +5,24 @@ slug: "hearing-loss-and-repair"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 6: Hearing and balance"
 order: 824
-summary: "A hearing test can come back normal while a cochlea has lost many of its synapses, and one rare form of deafness, caused by loss of otoferlin, has now been treated in children by replacing a gene too large for a single vector. Hair cells themselves regrow in birds and fish but barely in adult mice. This lesson follows the inner hair cell ribbon synapse from its calcium sensor to the noise experiment that damaged it, to the early gene therapy trials, to the reasons birds and fish regenerate hair cells and to the candidate barriers in the mature mouse cochlea. Afterwards you can read a censored trial number correctly and design a study that separates a complaint, a lesion and a test."
+summary: >-
+  A hearing test can come back normal while a cochlea has lost many of its synapses. One idea
+  carries the lesson: hearing runs through a chain of hair cell, ribbon synapse and nerve fibre,
+  and a threshold asks when the response to a quiet sound first stands out from background firing,
+  which depends mostly on the most sensitive fibres and does not count synapses.
+  You start with the mouse noise experiment that left thresholds normal and ribbons halved, see
+  with a small fibre model why a threshold can miss that loss, and weigh the human evidence. Then
+  comes otoferlin, whose loss in severe OTOF deafness stops release from inner hair cells that survive, and its
+  replacement in children with a gene too large for one vector. Last comes the case where the
+  hair cell itself is gone: birds and fish regrow hair cells, but the adult mammalian cochlea does
+  not. Afterwards you can read a censored trial number correctly and design a study that
+  separates a complaint, a lesion and a test.
 
 hook: "A mouse can pass its hearing test after loud noise and still have lost about half the ribbon synapses at one place in the cochlea. What does a normal threshold actually tell you?"
 
-estMinutes: 24
+estMinutes: 28
 objectives:
-  - "Describe the noise experiment that defined cochlear synaptopathy in mice and contrast the two human studies that tried to find it with physiological proxies."
+  - "Describe the noise experiment that defined cochlear synaptopathy in mice, explain why a threshold can stay near normal while many synapses are lost, since it depends mostly on the most sensitive fibres, and contrast the two human studies that tried to find the lesion with physiological proxies."
   - "Explain what the otoferlin knockout and the C2C-domain knock-in showed about calcium-triggered release at the inner hair cell ribbon synapse, and what each did not show."
   - "Explain why a roughly 6 kb coding sequence does not fit one conventional AAV vector and how a dual-vector design addresses it."
   - "Read early-phase OTOF trial numbers with their denominators, endpoints and limits, and contrast hair-cell regeneration in birds, fish and mice."
@@ -20,10 +31,28 @@ explainer:
   src: "/explainers/hearing-loss-and-repair/explainer.mp4"
   captions: "/explainers/hearing-loss-and-repair/explainer.vtt"
   poster: "/explainers/hearing-loss-and-repair/poster.jpg"
-  title: "A Normal Threshold Can Hide Damage"
-  durationSec: 181.7
+  title: "A Threshold Is Not a Count"
+  durationSec: 178.9
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "the-link-that-must-fire"
+    src: "/explainers/hearing-loss-and-repair/the-link-that-must-fire.mp4"
+    captions: "/explainers/hearing-loss-and-repair/the-link-that-must-fire.vtt"
+    poster: "/explainers/hearing-loss-and-repair/the-link-that-must-fire-poster.jpg"
+    title: "The Link That Must Fire, and How to Put It Back"
+    durationSec: 168.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "when-the-cell-is-gone"
+    src: "/explainers/hearing-loss-and-repair/when-the-cell-is-gone.mp4"
+    captions: "/explainers/hearing-loss-and-repair/when-the-cell-is-gone.vtt"
+    poster: "/explainers/hearing-loss-and-repair/when-the-cell-is-gone-poster.jpg"
+    title: "Reading the Trial, and When the Cell Is Gone"
+    durationSec: 155.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Sharon Kujawa and M. Charles Liberman"
@@ -45,7 +74,7 @@ scientists:
       possible was a precise question for human studies: if thresholds can hide synapse loss,
       what else could reveal it?
 
-  - name: "Saaid Safieddine and colleagues"
+  - name: "I. Roux, Saaid Safieddine, Christine Petit and colleagues"
     contribution: >-
       With first author I. Roux, last author Christine Petit and colleagues, reported that inner hair cells of Otof-null mice
       showed almost no exocytosis although calcium current and ribbon morphogenesis were preserved,
@@ -207,13 +236,14 @@ mcatQuestions:
     answer: 2
     rationale: >-
       The loss is (16 minus 8.5) divided by 16, which is 7.5 over 16, about 47 percent, so 53
-      percent remain. A threshold needs only a small number of responsive fibres to reach the
-      criterion, so it can look normal while many synapses are gone, as in the mouse experiment.
+      percent remain. A threshold depends mostly on whether the most sensitive fibres still
+      respond above background firing, so it can look normal while many synapses are gone, as in
+      the mouse experiment.
       Reading a normal threshold as proof of intact nerve is the error the mouse experiment exposed.
       Blaming only outer cells invents an explanation that does not follow from ribbon counts.
       Quoting 53 percent confuses the fraction remaining with the fraction lost, and calling the
       survivors normal has no evidence behind it.
-  - stem: "In a made-up experiment, each of two half-gene vectors independently transduces 70 percent of inner hair cells, and a cell expresses the full-length protein only if it receives both. What fraction of cells would be expected to express it, and why?"
+  - stem: "In a made-up experiment, each of two half-gene vectors independently transduces 70 percent of inner hair cells, and every cell that receives both, and only those, rebuilds and expresses the full-length protein. What fraction of cells would be expected to express it, and why?"
     choices:
       - "About 49 percent, because only cells receiving both halves assemble the full protein"
       - "About 70 percent, because either vector alone can express the full-length protein"
@@ -333,67 +363,184 @@ corpusTags:
   - "sensory-systems"
 draft: false
 ---
-
 import DualVectorCoincidence from '../../../components/DualVectorCoincidence.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A normal hearing test does not mean the cochlea is intact.** In mice, noise that left thresholds back to normal still cut the ribbon synapses at one cochlear place by about half. A threshold is a statement about the quietest sound that gets through, and it says little about how many synapses carry the rest. The same synapse is the target of gene therapy trials in children: in early trials, replacing the otoferlin gene, which is too large for a single vector, improved hearing in most treated children, though not always to normal, and the trials are small. Hair cells themselves are replaced in birds and fish but barely in adult mice. This lesson asks what the ribbon synapse needs in order to fire, what noise does to it, how the gene was delivered anyway, and why the reasons birds regrow hair cells do not simply transfer to us.
+**A mouse can pass its hearing test after loud noise and still have lost about half the ribbon synapses at one place in its cochlea. What does a normal threshold actually tell you?**
 
-[Hearing and balance](/lessons/hearing-and-balance/) covered transduction, the amplifier and the ribbon synapse in one paragraph, and said that the mature mammalian cochlea does not replace its hair cells. We start at the synapse's molecules and at what noise does to it. For quantal release and calcium sensors in general, see [synaptic transmission](/lessons/synaptic-transmission/) and [vesicle traffic](/lessons/vesicle-traffic/).
+Three terms first.
 
-## The synapse that must fire for a lifetime
+- A **threshold** is the quietest sound that evokes a response. The response can be behavioural, or electrical, recorded from the nerve and brainstem.
+- An **audiogram** plots behavioural threshold against frequency. It is the standard hearing test.
+- A **ribbon synapse** is the contact where an inner hair cell passes sound to auditory nerve fibres. The cell releases transmitter continuously, graded with its receptor potential (its voltage change in response to sound). The ribbon, an electron-dense structure at the presynaptic active zone, helps by holding a ready supply of vesicles.
 
-An inner hair cell releases transmitter continuously, graded with its receptor potential, onto auditory nerve fibres. The release site is a ribbon, an electron-dense structure at the presynaptic active zone. What the ribbon contributes was tested by Becker and colleagues (2018) in mouse by deleting its main protein, RIBEYE. The ribbon supported transmission by keeping a larger resident pool of vesicles, and removing RIBEYE did not stop inner hair cell synapses from forming. So the ribbon tunes the supply of vesicles. In these mice, synapses still formed without it.
+[Hearing and balance](/lessons/hearing-and-balance/) covered transduction, the amplifier and the ribbon synapse in one paragraph. Here we start with what noise does to the synapse, then ask which molecule makes it fire and how that molecule can be put back. For quantal release and calcium sensors in general, see [synaptic transmission](/lessons/synaptic-transmission/) and [vesicle traffic](/lessons/vesicle-traffic/).
 
-Which molecule senses calcium and triggers fusion? Roux and colleagues (2006) recorded from inner hair cells of Otof-null mice. Calcium current and ribbon morphogenesis were preserved at the age recorded, but exocytosis was almost abolished. They proposed that otoferlin, a protein with several C2 domains (modules that often bind calcium), **may** be the major calcium sensor for fusion. A knockout shows that a protein is needed, not that it is the sensor, because a protein could be needed to dock or prime vesicles without sensing anything.
+## A hearing test passed by a damaged cochlea
 
-A subtler perturbation addresses that. Michalski and colleagues (2017) made a knock-in mouse in which a change in the C2C domain reduced calcium binding. In inner hair cells, the calcium sensitivity of both fast and sustained exocytosis dropped. The protein was present, so its absence could not explain the change. That fits a calcium-sensing role, and it does not show that otoferlin is the only sensor.
+For decades, a threshold that came back to normal after noise was read as recovery. Kujawa and Liberman (2009) tested that assumption. They exposed male CBA/CaJ mice in vivo, at 16 weeks of age, to 8 to 16 kHz octave-band noise at 100 dB SPL for two hours. Response thresholds rose after the noise and returned to their pre-exposure values by two weeks, and the hair cells remained intact.
 
-<LessonFigure src="/figures/hearing-loss-and-repair/ribbon-synapse-otoferlin-evidence.webp" width={1200} height={800} alt="AI-generated illustration: an inner hair cell ribbon synapse with vesicles beside a ribbon, inward calcium entry through a membrane channel, transmitter release into the cleft, and an auditory nerve ending below. A dashed gold otoferlin symbol and question mark mark its proposed calcium-sensing role. An Otof-null mouse inset labelled ‘Calcium current and ribbon kept’ shows calcium entry and a ribbon still present but release blocked with a red cross; the label gives no age, and the caption limits it to the young age Roux recorded. A C2C knock-in mouse inset shows otoferlin present with reduced calcium sensitivity of exocytosis." caption="At the inner hair cell ribbon synapse, the ribbon supports a resident pool of vesicles. In the Otof-null mice studied by Roux and colleagues, calcium current and ribbon morphogenesis were preserved at the age recorded, but exocytosis was almost abolished. The inset label applies only to that age: by postnatal days 14 to 18, Otof-null inner hair cells studied by Al-Moyed and colleagues had lost about 40 percent of their ribbons. In the C2C knock-in mice studied by Michalski and colleagues, otoferlin was present but the calcium sensitivity of fast and sustained exocytosis was reduced. These results support a calcium-sensing role without establishing otoferlin as the only sensor." />
+**Predict.** By the usual reading, this ear has recovered. Eight weeks after the noise, what would you predict for the number of ribbon synapses at the 32 kHz place along the cochlea?
 
-## A normal audiogram over a damaged cochlea
+<details>
+<summary>Check your prediction</summary>
 
-An **audiogram** plots behavioural threshold against frequency. Neither it nor a physiological threshold counts synapses. Kujawa and Liberman (2009) asked what happens to them after noise that does not leave a threshold shift. In male CBA/CaJ mice exposed in vivo at 16 weeks to 8 to 16 kHz octave-band noise at 100 dB SPL for two hours, response thresholds returned to pre-exposure values by two weeks. Hair cells remained intact. Afferent terminals were lost acutely, ribbon counts in the 32 kHz region were about 50 percent below control at eight weeks, and the cochlear nerve degenerated later. This shows that recovered sensitivity can conceal injury in this strain, sex, age and exposure. It does not give a prevalence or a perceptual consequence in people.
+About half were gone. Afferent nerve terminals were lost acutely, right after the noise. At eight weeks the ribbon count in the 32 kHz region was about 50 percent below control, and synaptic loss extended through the basal half of the cochlea. The cochlear nerve degenerated later, over about one to two years.
 
-<LessonFigure src="/figures/hearing-loss-and-repair/noise-synapse-loss-timeline.webp" width={1200} height={672} alt="AI-generated illustration: three numbered panels separate recovery of thresholds from persistent synaptic injury in noise-exposed male CBA/CaJ mice. Panel 1, Noise, shows a male CBA/CaJ mouse, 16 weeks old, in a clear chamber beside a speaker, labelled 8 to 16 kHz noise, 100 dB SPL, 2 hours. Panel 2, Two weeks later, is labelled thresholds back to normal and hair cells intact; it shows an inner hair cell with gold ribbons, some of them replaced by empty dashed outlines, and afferent terminals lost, drawn as empty dashed circles between the surviving solid terminals. Panel 3, Eight weeks, is labelled ribbons about half of control and shows the same cell with about half as many gold ribbons and the missing ones as faint outlines, with surviving nerve fibres drawn solid. A separate label with an arrow pointing past the last panel says neurons are lost later, over 1 to 2 years; no panel depicts that stage." caption="In male CBA/CaJ mice exposed at 16 weeks to 8–16 kHz octave-band noise at 100 dB SPL for two hours, thresholds returned to pre-exposure values by two weeks and hair cells remained intact despite acute afferent-terminal loss. At eight weeks, ribbon counts in the 32 kHz region were about half those of controls; synaptic loss extended through the basal half of the cochlea. Cochlear neuronal loss developed much later, over about one to two years. Ribbon symbols illustrate the relative count, not the measured number in an individual cell. This mouse experiment gives neither a prevalence nor a perceptual consequence in people." />
+</details>
 
-Human temporal bones can be counted directly, and they show the lesion: in 52 cochleas from people with a noise history, auditory nerve fibre loss was substantial at every cochlear frequency and worse with noise, while hair cell loss and strial atrophy were not, and that neural loss tracked poor word discrimination among people with matched thresholds (Wu and colleagues, 2021). What no one can do is count synapses in a living ear, so two studies tried to find the same lesion with physiological proxies instead. Liberman and colleagues (2016) studied 34 young adults, mean age about 24 to 25, grouped by self-reported noise exposure and use of hearing protection. The higher-risk group had a higher **SP/AP ratio** on electrocochleography (the ratio of the summating potential, which is mainly pre-neural and comes largely from hair cells but has some neural contribution, to the compound action potential of the auditory nerve), which the authors said was consistent with selective neural loss. The same group also had raised thresholds at 10 to 16 kHz despite normal conventional audiograms. Guest and colleagues (2018) studied adults aged 18 to 40 with normal audiograms from 0.25 to 8 kHz: 16 with verified difficulty understanding speech in noise and 16 closely matched controls, matched on thresholds up to 14 kHz. They found no association between the impairment and ABR (auditory brainstem response) or EFR (envelope-following response, a measure of neural phase locking to a sound's slow amplitude changes) markers of synaptopathy. The authors allowed that these measures might not be sensitive enough.
+Losing the synapses between hair cells and nerve fibres while the hair cells survive is called **cochlear synaptopathy**. Later you will meet a second kind, congenital and molecular rather than caused by noise, in otoferlin deafness.
 
-Read the pair without choosing a side. In the first study the higher ratio was driven mainly by a larger SP, with no significant fall in AP, so it is not specific to neural loss. It also could not separate synapse loss from the high-frequency threshold difference, since a raised 10 to 16 kHz threshold is itself a cochlear difference. The second matched on that, which is a stronger comparison, but it used proxies whose sensitivity in people is unknown. A complaint, a proposed lesion and a validated test are three different things.
+<LessonFigure src="/figures/hearing-loss-and-repair/noise-synapse-loss-timeline.webp" width={1200} height={672} alt="AI-generated illustration: three numbered panels separate recovery of thresholds from persistent synaptic injury in noise-exposed male CBA/CaJ mice. Panel 1, Noise, shows a male CBA/CaJ mouse, 16 weeks old, in a clear chamber beside a speaker, labelled 8 to 16 kHz noise, 100 dB SPL, 2 hours. Panel 2, Two weeks later, is labelled thresholds back to normal and hair cells intact; it shows an inner hair cell with gold ribbons, some of them replaced by empty dashed outlines, and afferent terminals lost, drawn as empty dashed circles between the surviving solid terminals. Panel 3, Eight weeks, is labelled ribbons about half of control and shows the same cell with about half as many gold ribbons and the missing ones as faint outlines, with surviving nerve fibres drawn solid. A separate label with an arrow pointing past the last panel says neurons are lost later, over 1 to 2 years; no panel depicts that stage." caption="After the noise, thresholds recovered by two weeks and hair cells stayed intact despite acute afferent-terminal loss. At eight weeks, ribbons in the 32 kHz region were about half of control, and neurons were lost much later, over about one to two years. Ribbon symbols illustrate the relative count, not the measured number in an individual cell." />
 
-## Replacing a gene too big for its vector
+This is one mouse strain, sex, age and exposure. It shows that recovered sensitivity can conceal injury, not how common that is in people or what it does to their hearing.
 
-Loss of otoferlin function is a recessive deafness, and it is an auditory synaptopathy: the outer hair cells still amplify, so otoacoustic emissions are present while the auditory brainstem response is absent or grossly abnormal. That is why the gene is a good target for replacement, since the missing activity sits in cells that survive, and it is why the approved indication asks for preserved outer hair cell function. There is a size problem. A conventional adeno-associated virus (AAV) vector carries about 4.7 to 5 kb, and the otoferlin coding sequence is about 6 kb, before a promoter is added.
+## Why a threshold can miss half the synapses
 
-Al-Moyed and colleagues (2019) split the cDNA between two AAV2/6 vectors, so that a cell receiving both could reconstitute the full-length cassette. They tested two designs that rebuild it by different routes, trans-splicing and a hybrid strategy. Otof-null mice were injected in vivo through the round window (a membrane at the base of the cochlea) at postnatal days 6 and 7, and cells were recorded at days 14 to 18. Full-length otoferlin appeared in up to 50 percent of inner hair cells. Fast exocytosis was restored in transduced cells, measured as a rise in membrane capacitance, but vesicle replenishment reached only 35 to 50 percent of wild-type values. The Otof-null cells had also lost about 40 percent of their ribbons, which re-expression from day 6 did not prevent, so otoferlin is needed for synapse maturation as well as for release. Click-evoked ABR thresholds in treated mice were 40 to 60 dB SPL.
+Why would losing half the synapses at one place leave the threshold where it was? A threshold asks when the response to a quiet sound first stands out from background firing. The nerve fibres at one cochlear place differ in sensitivity. Some respond to very quiet sounds and fire a lot even in silence (a high spontaneous rate). Others need louder sound and fire little at rest (a low spontaneous rate). So the quietest sounds are detected through the most sensitive fibres.
 
-Receiving both vectors is one limit on coverage; gene reassembly, expression level and the synapse loss already present also held this rescue back. Suppose, in a made-up case, each vector independently reaches 70 percent of inner hair cells. A cell needs both, so the expected fraction is 0.7 times 0.7, or 0.49, close to the reported maximum. Real transduction is not independent, so this is a way to see why coverage is capped, and it is not a prediction. The result is partial rescue in neonatal mice. It does not show normal speech perception in anyone.
+A small population model tests the idea; it is illustrative and passive, not fitted to mouse data. It has 16 fibres at one place, on a relative level scale: 10 sensitive fibres whose rate curves sit at 0 to 10 dB, with a spontaneous rate of 60 spikes a second, and 6 less sensitive fibres whose curves sit at 15 to 40 dB, with 2 spikes a second. (These positions are rate-curve parameters, not measured fibre thresholds.) Each fibre's sound-driven firing grows over about 20 dB to the same ceiling, and spike counts are random. The population's threshold is the quietest level at which the summed sound-driven count stands out from the spontaneous background by a fixed criterion (the full specification is in Going deeper). That is why spontaneous firing matters: it is the noise the signal has to beat.
+
+**Predict.** Remove half the fibres in three ways: at random, the less sensitive half, or the most sensitive half. Which removal moves the threshold most? And what happens to the summed response to a loud, 80 dB sound?
+
+<details>
+<summary>Check your prediction</summary>
+
+Averaged over 400 random populations:
+
+| Which half of the fibres is removed | Threshold shift | Sound-driven response at 80 dB, relative to intact |
+|---|---|---|
+| none (intact) | 0 dB | 1.00 |
+| a random half | about +2 dB | 0.50 |
+| the less sensitive half | about 0 dB | 0.50 |
+| the most sensitive half | about +8 dB | 0.50 |
+
+A typical hearing test moves in 5 dB steps. Losing a random half or the less sensitive half moves the threshold by less than one step. Losing the most sensitive half moves it by more than one step, so a test could pick it up. The loud-sound response halves in every case, because at 80 dB every fibre is near the same ceiling.
+
+</details>
+
+In the model, then, the threshold stays near normal while most of the sensitive fibres survive, and moves if they are the ones lost. So which fibres noise removes matters. In guinea pigs it took mainly the less sensitive fibres (Furman and colleagues, 2013); in noise-exposed mice it took both kinds (Suthakar and Liberman, 2021). Neither is a selective loss of the most sensitive fibres, the case that moves the threshold most.
+
+The loud-sound response is different: it falls with every lost fibre. The **auditory brainstem response (ABR)** is a series of electrical waves recorded from the scalp after a sound, and its earliest peak, **wave I**, comes from the auditory nerve. That is the reasoning behind proposing wave I amplitude as a sign of synapse loss. The model counts firing and does not compute wave I, which also depends on how synchronously the fibres fire.
+
+> **The one idea to carry through this lesson.** Hearing runs through a chain: hair cell, ribbon synapse, nerve fibre. A threshold asks when the response to a quiet sound first stands out from background firing. That depends mostly on the most sensitive fibres, and it does not count synapses. So a cochlea can lose many synapses and still pass a hearing test. And a repair has to put back the link that is actually missing: a molecule in a cell that survives, or the cell itself when it is gone.
+
+The idea covers three cases. Noise synaptopathy is the first. In severe otoferlin deafness, the inner hair cells survive but a molecule their synapses need for release does not work, so putting back the gene can work, even if some synapses have already been lost. When the hair cell itself is gone, replacing its gene cannot help. A new hair cell has to be made, for example by giving surviving supporting cells genes that push them toward a hair-cell fate, and then wired to a fibre.
+
+## Finding the lesion in people
+
+In a human ear you can count nerve fibres only after death, in the temporal bone, the part of the skull that holds the cochlea. These counts show nerve fibre loss directly, though they do not count synapses. Wu and colleagues (2021) compared 52 cochleas from people with a noise history with age-matched controls. Nerve fibre loss was substantial at every cochlear frequency and worse with noise. Noise history also made outer hair cell loss worse at 2 kHz and above, but not inner hair cell loss or strial atrophy. Among people with matched thresholds, the neural loss tracked poor word discrimination.
+
+In a living ear no one can count synapses, so studies look for a proxy: an electrical signal that should shrink when fibres are lost. Electrocochleography, recorded near the cochlea, gives two signals.
+
+- The **summating potential (SP)** is mainly pre-neural. It comes largely from the hair cells, with some neural contribution.
+- The **action potential (AP)** here is the compound action potential of the auditory nerve, the summed, synchronized firing of many fibres at once.
+
+**Predict.** If noise removes nerve fibres but leaves hair cells intact, what should happen to SP, to AP, and to their ratio, SP/AP?
+
+<details>
+<summary>Check your prediction</summary>
+
+If SP stays about the same and the lost fibres were contributing to AP, AP gets smaller and the ratio rises. That is the logic behind the proxy, and it says what to check in a result: a higher ratio should come from a smaller AP.
+
+</details>
+
+Two studies used proxies like these, with different comparisons, and came out differently.
+
+| | Liberman and colleagues (2016) | Guest and colleagues (2018) |
+|---|---|---|
+| Who | 34 young adults, mean age about 24 to 25, grouped by self-reported noise exposure and use of hearing protection | Adults aged 18 to 40 with normal audiograms from 0.25 to 8 kHz: 16 with verified difficulty understanding speech in noise and 16 closely matched controls |
+| Proxy | SP/AP ratio | ABR markers, and the EFR (envelope-following response, a measure of neural phase locking to a sound's slow amplitude changes) |
+| Result | Higher SP/AP in the higher-risk group, which the authors said was consistent with selective neural loss | No association between the impairment and either marker of synaptopathy; the authors allowed that these measures might not be sensitive enough |
+| Main limit | The ratio rose mainly because SP was larger, with no significant fall in AP, so it is not specific to neural loss. The same group also had raised thresholds at 10 to 16 kHz despite normal conventional audiograms, itself a cochlear difference, so synapse loss cannot be separated from it | Groups were matched on thresholds up to 14 kHz, a stronger comparison, but the proxies' sensitivity to synapse loss in people is unknown |
+
+Go back to the prediction. In the first study the ratio rose, but not for the reason the proxy assumes. In the second, the match was better, but a negative result from a test of unknown sensitivity cannot rule the lesion out. A listening complaint, a proposed lesion and a validated test are three different things, and a good study has to establish each one.
+
+## The link that has to fire: what makes the synapse release
+
+<LessonFilm film={frontmatter.films[0]} />
+
+If repair means putting back what is missing, which molecule makes that link fire? When an inner hair cell depolarizes, calcium enters, and something must turn that calcium signal into vesicle fusion. The ribbon is not that something; it holds the vesicle supply.
+
+The candidate came from human genetics. Mutations in the gene *OTOF* cause a form of deafness, and its product is otoferlin, a protein with several **C2 domains**, modules that often bind calcium. Roux and colleagues (2006) recorded from inner hair cells of *Otof*-null mice by whole-cell patch clamp. The rise in membrane capacitance tracks how much vesicle membrane fuses, so it measures release.
+
+**Predict.** Suppose otoferlin were needed for calcium entry, or for forming ribbons. What would you see? Now suppose it acts after calcium enters, at fusion itself. What would you see then?
+
+<details>
+<summary>Check your prediction</summary>
+
+If otoferlin were needed for calcium entry, the recorded calcium current would fall. If it were needed specifically to form ribbons, imaging would show defective or missing ribbons (other defects in synapse assembly could leave ribbons in place). If it acts at fusion, calcium current and ribbons would look normal and the capacitance rise would be missing. Roux and colleagues found the last: at the age recorded, calcium current and ribbon morphogenesis were preserved, but exocytosis was almost abolished. That places the defect downstream of calcium entry, without naming the exact step. They proposed that otoferlin **may** be the major calcium sensor for fusion.
+
+</details>
+
+The word *may* mattered. A knockout shows that a protein is needed, not that it is the sensor, because a protein could be needed to dock or prime vesicles without sensing anything. Michalski and colleagues (2017) made a sharper test. In a knock-in mouse, a change in the C2C domain reduced calcium binding. The protein was present, so its absence could not explain any change, and in inner hair cells the calcium sensitivity of both fast and sustained exocytosis dropped. That fits a calcium-sensing role, and it does not show that otoferlin is the only sensor.
+
+<LessonFigure src="/figures/hearing-loss-and-repair/ribbon-synapse-otoferlin-evidence.webp" width={1200} height={800} alt="AI-generated illustration: an inner hair cell ribbon synapse with vesicles beside a ribbon, inward calcium entry through a membrane channel, transmitter release into the cleft, and an auditory nerve ending below. A dashed gold otoferlin symbol and question mark mark its proposed calcium-sensing role. An Otof-null mouse inset labelled ‘Calcium current and ribbon kept’ shows calcium entry and a ribbon still present but release blocked with a red cross; the label gives no age, and the caption limits it to the young age Roux recorded. A C2C knock-in mouse inset shows otoferlin present with reduced calcium sensitivity of exocytosis." caption="In the Otof-null mice studied by Roux and colleagues, calcium current and ribbon morphogenesis were preserved at the age recorded, but exocytosis was almost abolished. The inset label applies only to that age: by postnatal days 26 to 29, Otof-null inner hair cells studied by Al-Moyed and colleagues had about 40 percent fewer ribbons than wild-type cells. In the C2C knock-in mice studied by Michalski and colleagues, otoferlin was present but the calcium sensitivity of fast and sustained exocytosis was reduced." />
+
+## Putting the link back: a gene too big for its vector
+
+Loss of otoferlin function causes a recessive deafness, the second kind of synaptopathy. **Otoacoustic emissions (OAEs)** are faint sounds the ear itself makes when the outer hair cells amplify. In otoferlin deafness they are present, at least early in life, while the auditory brainstem response is absent or grossly abnormal.
+
+That pattern makes the gene a good target, and it is why the approved indication asks for preserved outer hair cell function.
+
+There is a size problem. A conventional adeno-associated virus (AAV) vector carries about 4.7 to 5 kb. The otoferlin coding sequence is about 6 kb, before a promoter is even added, so it cannot ride in one vector. Al-Moyed and colleagues (2019) split the cDNA between two AAV2/6 vectors. Each carries part of the gene, and a cell that receives both can join the parts back into the full-length cassette.
+
+**Predict.** In a made-up case, each vector independently reaches 70 percent of inner hair cells. What fraction of cells can make full-length otoferlin?
+
+<details>
+<summary>Check your prediction</summary>
+
+A cell needs both, so the expected fraction is 0.7 × 0.7 = 0.49, about half. The chance of receiving at least one vector is 1 − 0.3 × 0.3 = 0.91, but a cell with only one has only part of the gene. Real transduction need not be independent, so this only shows why coverage is capped.
+
+</details>
 
 <DualVectorCoincidence />
 
+The mouse result was a partial rescue. Al-Moyed and colleagues injected neonatal *Otof*-null mice through the round window, a membrane at the base of the cochlea. Full-length otoferlin appeared in up to 50 percent of inner hair cells. That is of the same order as the made-up figure, which is not an estimate for this experiment. In transduced cells, fast exocytosis was restored, but vesicle replenishment reached only 35 to 50 percent of wild-type values. Click-evoked ABR thresholds in treated mice were 40 to 60 dB SPL, in mice that were deaf without treatment: better, but not normal hearing.
+
+At postnatal days 26 to 29, *Otof*-null inner hair cells also had about 40 percent fewer ribbons than wild-type cells, and delivery at days 6 to 7 did not restore the count. (The release recordings were made earlier, at days 14 to 18.) That suggests otoferlin matters for keeping or maturing synapses as well as for release, and that timing may limit rescue (the study did not test timing). Receiving both vectors is one limit on coverage; gene reassembly, expression level and the synapse loss already present also held this rescue back.
+
 ## Reading an early-phase trial without inflating it
 
-The human trials use OTOF replacement, which regenerates no hair cells and treats no other form of deafness. In the first small, single-arm reports from several centres, most or all of the treated children recovered hearing, with improvements in threshold and in sound localization and no dose-limiting toxicity or serious adverse event in the earliest report. Later reports followed some participants for up to about two and a half years, which is evidence of persistence over those years and not proof of lifelong durability. The reports are listed one by one under Going deeper.
+<LessonFilm film={frontmatter.films[1]} />
 
-The DB-OTO trial (New England Journal of Medicine) treated twelve children with OTOF-related profound deafness in an open-label single-group design. Nine of twelve met the week-24 primary endpoint, an average of 70 dB HL or better, and three of twelve reached average normal sensitivity. It recorded 67 adverse events. The United States Food and Drug Administration is reported to have granted accelerated approval on 23 April 2026, for patients with severe-to-profound or profound sensorineural hearing loss, any frequency above 90 dB HL, with confirmed biallelic OTOF variants, preserved outer hair cell function and no prior implant in the treated ear, with a larger analysis in which 16 of 20 efficacy-evaluable participants met the endpoint. Regulatory status changes, and none of this supports a claim about lifelong benefit.
+The human trials use otoferlin gene replacement. It regenerates no hair cells and treats no other form of deafness.
+
+The DB-OTO trial (New England Journal of Medicine) treated twelve children with OTOF-related profound deafness in an open-label single-group design. Nine of twelve met the week-24 primary endpoint, an average of 70 dB HL or better, and three of twelve reached average normal sensitivity. (dB HL is measured against average normal hearing, so 0 dB HL is average normal; the mouse studies use dB SPL, measured against a fixed sound pressure.) It recorded 67 adverse events. The United States Food and Drug Administration is reported to have granted accelerated approval on 23 April 2026, with a larger analysis in which 16 of 20 efficacy-evaluable participants met the endpoint.
+
+In the other small, single-arm reports from several centres, most or all of the treated children heard better, by margins that varied. Thresholds and sound localization improved, and the earliest report, from Lv and colleagues, had no dose-limiting toxicity or serious adverse event. Later reports followed some participants for up to about two and a half years, which is evidence of persistence over those years and not proof of lifelong durability.
 
 ### Worked problem: reading a censored number
 
-In the Wang trial (Nature Medicine, 2024; see Going deeper), patient 1 had baseline average ABR thresholds above 95 dB in each ear and 58 dB at week 26. A student writes: "the treatment improved hearing by exactly 37 dB, so it restored 39 percent of hearing."
+In the Wang trial (Nature Medicine, 2024), patient 1 had baseline average ABR thresholds above 95 dB in each ear and 58 dB at week 26. A student writes: "the treatment improved hearing by exactly 37 dB, so it restored 39 percent of hearing."
 
 *Step 1, the bound.* Let the true baseline be B, with B above 95. The improvement is B minus 58, which exceeds 95 minus 58, or 37 dB. So 37 dB is a strict lower bound, because the baseline was above the test ceiling and was not measured.
 
 *Step 2, the percentage.* The student's 39 percent is 37 divided by 95. It divides a bound by the ceiling and calls it a fraction of hearing. These censored values do not identify a percentage of hearing restored.
 
-*Step 3, a different kind of fraction.* In the DB-OTO report in the New England Journal of Medicine, 9 of 12 is 75 percent. That is the share of children meeting a stated endpoint (70 dB HL or better), not 75 percent of normal hearing. The later label analysis of 16 of 20 (80 percent) is a different analysis set and must not be pooled with it.
+*Step 3, a different kind of fraction.* In DB-OTO, 9 of 12 is 75 percent: the share of children meeting a stated endpoint (70 dB HL or better), not 75 percent of normal hearing. The later label analysis of 16 of 20 (80 percent) is a different analysis set and must not be pooled with it.
 
-## Birds and fish regrow hair cells, and adult mice barely do
+## When the cell itself is gone: regeneration
 
-Birds and fish show that hair-cell loss need not be permanent. Corwin and Cotanche (Science, 1988) reported replacement of damaged hair cells in the chicken cochlea after acoustic trauma. In a separate Science paper that year, Ryals and Rubel studied adult Coturnix quail: hair-cell counts recovered to within 5 percent of the original count, and thymidine incorporation appeared over hair-cell and supporting-cell nuclei within ten days of the trauma. Those are different species and different experiments, and neither is a cochlear result in a mammal. Mammals do have one exception, and it is vestibular: after gentamicin damage, hair cells reappeared in guinea-pig utricles (Forge and colleagues, 1993). The cochlea does not do this. In the zebrafish lateral line, a surface mechanosensory organ built of neuromasts, Pinto-Teixeira and colleagues (2015) found regeneration after repeated severe injury and in adult animals, with hair cells restored within 72 hours in animals aged three months, one year and two years. That is not a cochlea.
+When noise, drugs or age kill the hair cells, there is no cell to put a gene back into, and a new hair cell has to come from somewhere. Some animals simply make new ones. Corwin and Cotanche (Science, 1988) reported replacement of damaged hair cells in the chicken cochlea after acoustic trauma. In a separate Science paper that year, Ryals and Rubel found that in adult Coturnix quail, hair-cell counts recovered to within 5 percent of the original count. Fish regrow hair cells too, in the zebrafish lateral line, a surface mechanosensory organ built of neuromasts rather than a cochlea.
 
-In mice the question became which barriers stop supporting cells from converting. Iyer and colleagues (eLife, 2022) used Cre-inducible mice to express ATOH1 alone and with GFI1 and POU4F3 in cochlear nonsensory cells, inducing at postnatal day 1 or day 8. At day 1 every ATOH1-containing combination tested gave cells with hair-cell morphology and rudimentary mechanotransduction, measured partly by rapid uptake of the dye FM1-43. At day 8 the three-factor combination gave many new hair cells where ATOH1 alone or with GFI1 gave very few, and hair-cell gene loci were less accessible by that age, so closing chromatin and cell-to-cell signalling, including [Notch signaling](/lessons/notch-signaling/), are candidate barriers.
+The adult mammalian cochlea does not do this. Mammals do have one exception, and it is vestibular: after gentamicin damage, hair cells reappeared in guinea-pig utricles (Forge and colleagues, 1993).
 
-McGovern and colleagues (PNAS Nexus, 2024) pushed the age further. Using Lfng-CreERT2 lineage tracing in mature mouse organ of Corti, they induced at three weeks and collected at four to six weeks, and found that three factors could reprogram some supporting cells into hair-cell-like cells with rudimentary stereociliary bundles, more of them when the native hair cells had been killed around the time of induction. The new cells were reported to be innervated and to carry ribbon-synapse proteins. A cell with a rudimentary bundle is not a restored hearing organ. The unsettled step is whether such cells form working synapses with spiral ganglion neurons, which would be tested by recording from them and by measuring auditory responses in deafened mature animals. For the biology of regeneration in general, see [injury and regeneration](/lessons/injury-and-regeneration/) and [stem cells](/lessons/stem-cells/); for the devices that substitute for what is lost, see [sensory prostheses](/lessons/sensory-prostheses/).
+In mice the question became which barriers stop supporting cells from converting into hair cells. Iyer and colleagues (eLife, 2022) used Cre-inducible mice to express the transcription factor ATOH1 alone, or with GFI1 and POU4F3, in cochlear nonsensory cells, starting at postnatal day 1 or day 8.
+
+**Predict.** If the barrier to conversion were only the absence of the right transcription factors, the same factors should work at any age. Would you expect day 1 and day 8 to behave alike?
+
+<details>
+<summary>Check your prediction</summary>
+
+They did not. At day 1, every ATOH1-containing combination tested gave cells with hair-cell morphology and rudimentary mechanotransduction, measured partly by rapid uptake of the dye FM1-43. At day 8, the three-factor combination gave about 50 to 60 new hair cells per 200 micrometres, counted at day 15, against fewer than 5 for ATOH1 alone or with GFI1. Joint RNA and chromatin profiling of untreated mice showed hair-cell gene loci becoming less accessible between the two ages, so closing chromatin, and hair-cell-to-supporting-cell signalling including [Notch signaling](/lessons/notch-signaling/), are candidate barriers.
+
+</details>
+
+McGovern and colleagues (PNAS Nexus, 2024) pushed the age further. Using lineage tracing in mature mouse organ of Corti, they found that three factors could reprogram some supporting cells into hair-cell-like cells with rudimentary stereociliary bundles, more of them when the native hair cells had been killed around the time of induction. The new cells were reported to be innervated and to carry ribbon-synapse proteins, but functional transmission through those contacts and restored hearing were not demonstrated.
+
+Back to the one idea: a cell with a rudimentary bundle is not a restored hearing organ, because the chain has one more link. The unsettled step is whether such cells form working synapses with spiral ganglion neurons, which would be tested by recording from them and by measuring auditory responses in deafened mature animals. Replacing a molecule in a cell that survives is now being done in children; rebuilding the cell itself is still being tested in animals. For the biology of regeneration in general, see [injury and regeneration](/lessons/injury-and-regeneration/) and [stem cells](/lessons/stem-cells/); for the devices that substitute for what is lost, see [sensory prostheses](/lessons/sensory-prostheses/).
 
 ### Design problem
 
@@ -404,19 +551,42 @@ Design a study that could show whether noise-induced synapse loss explains troub
 
 No living human synapse count exists, so the design must name its physiological proxy in advance (for example ABR wave I amplitude or an envelope-following measure) and set the sample size from that proxy's repeatability and variability and a prespecified effect size, not from hope, while stating plainly that its sensitivity to human synapse loss is unknown. Match groups on extended high-frequency thresholds through 14 kHz, as Guest and colleagues did, so a raw cochlear threshold difference cannot masquerade as synapse loss. Measure noise exposure prospectively, because recalled history is biased. Fix the speech-in-noise test and its endpoint before looking at the proxy.
 
-What the published work supports: in male CBA/CaJ mice a defined exposure left thresholds recovered and ribbons halved at one place. It supplies the lesion and its timing. It does not supply the prevalence in people, a diagnostic criterion, or proof that the lesion causes a listening complaint.
+What the published work supports: the mouse noise experiment supplies the lesion and its timing, but not its prevalence in people, a diagnostic criterion, or proof that it causes a listening complaint. The otoferlin rescue in mice was partial and neonatal and shows normal speech perception in no one. The trial reports cannot be pooled, and none supports lifelong benefit. The reprogramming work shows nerve contacts on new hair-cell-like cells in mature mouse cochleas, not yet a working synapse or restored hearing.
 
 </details>
 
 ## Going deeper
 
+### Which fibres does noise take?
+
+Single-fibre recordings in guinea pig (Furman and colleagues, 2013) have been read as showing that noise preferentially removes low-spontaneous-rate, high-threshold fibres. In noise-exposed mice, Suthakar and Liberman (2021) found that both low- and high-rate fibres were lost, which they judged not consistent with a selective loss of the low-rate group. This also bears on the proxies: wave I is weighted toward fibres that fire in synchrony at sound onset, so if the lost fibres contribute little to that onset, wave I could under-report the loss.
+
+### The fibre model in full
+
+Each fibre has a level parameter t (uniform over 0 to 10 dB for the 10 sensitive fibres, 15 to 40 dB for the other 6) and a spontaneous rate b (60 or 2 spikes a second). Its driven rate is r(L) = 200 / (1 + exp(−0.22 (L − t − 10))) spikes a second, so even at L = t it fires about 20 spikes a second above background; there is no hard onset. Counts are independent Poisson counts over T = 0.05 s. With S = T × Σr and B = T × Σb, the threshold is the first level on a 0.1 dB grid where S / √(B + S) ≥ 1. The three removals (a random 8, the 8 with the highest t, the 8 with the lowest t; random seed 1) give +2.0, −0.1 and +8.4 dB. At 80 dB every fibre is near the 200 spikes a second ceiling, so removing 8 of 16 halves the expected driven response: (8 × 200) / (16 × 200) = 0.50.
+
+### What the ribbon itself contributes
+
+Becker and colleagues (2018) tested what the ribbon adds by deleting its main protein, RIBEYE, in mouse. The ribbon supported transmission by keeping a larger resident pool of vesicles, so it tunes the supply, but inner hair cell synapses still formed without it.
+
+### The two dual-vector designs
+
+Al-Moyed and colleagues tested two designs that rebuild the cassette by different routes, a trans-splicing design and a hybrid design, both injected in vivo.
+
 ### The early gene therapy reports, one by one
 
-Lv and colleagues (Lancet, 2024) reported a single-centre, single-arm study of six children with biallelic OTOF variants, treated in one ear with an AAV1-hOTOF vector and followed for 26 weeks. Five showed hearing recovery, with average ABR threshold reductions of 40 to 57 dB among the five. No dose-limiting toxicity or serious adverse event was reported in that six-child, 26-week report. Wang and colleagues (Nature Medicine, 2024) reported an interim analysis of five children, aged 1.2 to 11.0 years, treated in both ears. All five improved, and all five localized sound better, with 13 or 26 weeks of observation and 36 adverse events, none dose-limiting or serious. Qi and colleagues (Advanced Science, 2024) reported two children, one treated in one ear and one in both, and a click-ABR threshold of 30 dB in the treated ear of the five-year-old one month after injection, with frequency-specific thresholds still raised at that point and improving over three months. (A separate Qi trial of ten participants appeared in Nature Medicine in 2025, and a 2026 Nature report of 42 participants followed some for up to 2.5 years. That is evidence of persistence over those years, and it is not proof of lifelong durability.)
+Lv and colleagues (Lancet, 2024) reported a single-centre, single-arm study of six children with biallelic OTOF variants, treated in one ear with an AAV1-hOTOF vector and followed for 26 weeks. Five showed hearing recovery, with average ABR threshold reductions of 40 to 57 dB among the five. Wang and colleagues (Nature Medicine, 2024) reported an interim analysis of five children, aged 1.2 to 11.0 years, treated in both ears. All five improved, and all five localized sound better, with 13 or 26 weeks of observation and 36 adverse events, none dose-limiting or serious. Qi and colleagues (Advanced Science, 2024) reported two children, one treated in one ear and one in both, and a click-ABR threshold of 30 dB in the treated ear of the five-year-old one month after injection, with frequency-specific thresholds still raised at that point and improving over three months. (A separate Qi trial of ten participants appeared in Nature Medicine in 2025, and the 2026 Nature report of 42 participants is the one that followed some for up to 2.5 years.)
 
-### The C2C knock-in and the reprogramming counts
+### What the label asks for
 
-Michalski and colleagues (2017) made a knock-in mouse in which two alanines (Ala515 and Ala517) replaced residues in the C2C domain, reducing calcium binding. They recorded in inner hair cells ex vivo at postnatal days 14 to 18, with patch clamp and calcium uncaging.
+The reported accelerated approval covers patients with severe-to-profound or profound sensorineural hearing loss, any frequency above 90 dB HL, with confirmed biallelic OTOF variants, preserved outer hair cell function and no prior implant in the treated ear. Regulatory status changes.
 
-At day 8 the three-factor combination gave about 50 to 60 new hair cells per 200 micrometres at day 15, against fewer than 5 for ATOH1 alone or with GFI1. Joint single-nucleus RNA and ATAC sequencing (ATAC reads which stretches of chromatin are open) of untreated mice found that hair-cell gene loci were less accessible at day 8, and hair-cell-to-supporting-cell signalling, including Notch, could act as a further barrier.
+### The C2C knock-in and the reprogramming methods
 
+In the Michalski knock-in, two alanines (Ala515 and Ala517) replaced residues in the C2C domain. Inner hair cells were recorded ex vivo at postnatal days 14 to 18, with patch clamp and calcium uncaging.
+
+Iyer's joint profiling was single-nucleus RNA and ATAC sequencing (ATAC reads which stretches of chromatin are open). McGovern and colleagues traced lineage with Lfng-CreERT2, inducing at three weeks and collecting at four to six weeks.
+
+### Regeneration in birds and fish, in detail
+
+Ryals and Rubel found thymidine incorporation over hair-cell and supporting-cell nuclei within ten days of the trauma in adult quail. In the zebrafish lateral line, Pinto-Teixeira and colleagues (2015) found regeneration after repeated severe injury and in adult animals, with hair cells restored within 72 hours in animals aged three months, one year and two years.

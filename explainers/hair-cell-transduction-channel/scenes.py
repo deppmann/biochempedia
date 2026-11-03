@@ -1,505 +1,438 @@
-"""What counts as proof of a channel  (Biochemistrypedia explainer, Sensory Systems)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the candidate protein, TMC1 (a labelled schematic block, never a structure)
-  TEAL   = partner proteins (TMIE, LHFPL5, CIB2) and "a partner"
-  PURPLE = the other things that could be needed (trafficking factor, anchor, enzyme)
-  YELLOW = ions and the current they carry (the meter fill, the calcium dots)
-  TEXT   = other ions, and what the experimenter does (chips: gene removed, gene back)
-  ORANGE = the cysteine-reactive reagent
-  PINK   = an engineered or altered residue (a small badge on the channel block)
-  GREEN  = what an experiment shows
-  RED    = what an experiment cannot show / leaves open
-  GREY   = membranes, outlines, rods, the ladder when not in use
-  GOLD   = title rule only
-Everything is a labelled schematic; the meters are "in this sketch" and carry no numbers.
+"""One Current, Three Factors — reviewed redraw.
+COLOR MAP: BLUE candidate protein; GOLD mechanical channel highlight (s04 only);
+TEAL partners (overridden to a distinct green-teal); PURPLE required factors;
+YELLOW ions/current; PINK reachable residue; GREEN evidence; RED uncertainty;
+GREY membrane/stereocilia; TEXT labels and force.
+All plotted currents are calculated from I = N*i*P or binary/binomial open counts.
+Logistic activation and latency are illustrative models, not measured kinetics.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-PINK = "#F2789F"
-
-LX = -4.3                     # ladder centre x
-RUNGS = ["Localization", "Requirement", "Rescue", "Permeation", "Accessibility", "Purified"]
-RUNG_Y = [-2.75 + 1.1 * i for i in range(6)]
-STX = 2.65                    # stage centre x (right of the ladder)
-MX = 2.6                      # channel x in the membrane scenes
+from bp_style import *
+TEAL = '#29C790'
+PURPLE = '#B58CD9'
+PINK = '#F2789F'
+I_UNIT = -15.0
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def rung(name, w=2.7, size=22):
-    lab = T(name, size, GREY)
-    h = lab.height + 0.34
-    box = RoundedRectangle(corner_radius=0.14, width=w, height=h, stroke_color=GREY, stroke_width=2.5,
-                           fill_color=GREY, fill_opacity=0.16)
-    back = RoundedRectangle(corner_radius=0.14, width=w, height=h, stroke_width=0, fill_color=BG, fill_opacity=1)
-    return VGroup(back, box, lab.move_to(box))
+class Timed(SpokenScene):
+    # Same word alignment as SpokenScene, without modifying the existing sync.log.
+    def at(self, phrase, lead=.2, nth=0):
+        rest = self.t_of(phrase, nth) - lead - self.elapsed()
+        if rest > .02:
+            self.wait(rest)
 
 
-def rstate(r, st):
-    """animations that set a rung to 'dim', 'seen' or 'on'."""
-    if st == "dim":
-        return [r[1].animate.set_stroke(GREY, opacity=0.35).set_fill(GREY, 0.05), r[2].animate.set_color(GREY).set_opacity(0.45)]
-    if st == "seen":
-        return [r[1].animate.set_stroke(GREY, opacity=1).set_fill(GREY, 0.16), r[2].animate.set_color(TEXT).set_opacity(0.9)]
-    return [r[1].animate.set_stroke(BLUE, opacity=1).set_fill(BLUE, 0.3), r[2].animate.set_color(BLUE).set_opacity(1)]
+def txt(s, x=0, y=0, size=32, color=TEXT):
+    return T(s, size, color).move_to([x, y, 0])
 
 
-def make_ladder():
-    rails = VGroup(*[Line([LX + sx * 1.6, -3.3, 0], [LX + sx * 1.6, 3.3, 0], color=GREY, stroke_width=6) for sx in (-1, 1)])
-    rs = [rung(n).move_to([LX, y, 0]) for n, y in zip(RUNGS, RUNG_Y)]
-    return rails, rs
+def equation(y=2.95, active=None):
+    parts = [('N', -4.4), ('×', -2.85), ('i', -1.5), ('×', -.1),
+             ('P_open', 1.8), ('→', 4.2), ('I', 5.5)]
+    return VGroup(*[(M(s,44,YELLOW if active is None or s == active else TEXT).move_to([x,y,0])
+                    if s == 'I' else txt(s,x,y,42,YELLOW if active is None or s == active else TEXT)) for s,x in parts])
 
 
-def static_ladder(states):
-    """the ladder drawn in place at the start of a scene; states = list of 'dim'/'seen'/'on'."""
-    rails, rs = make_ladder()
-    for r, st in zip(rs, states):
-        if st == "dim":
-            r[1].set_stroke(GREY, opacity=0.35).set_fill(GREY, 0.05); r[2].set_color(GREY).set_opacity(0.45)
-        elif st == "seen":
-            r[2].set_color(TEXT).set_opacity(0.9)
-        else:
-            r[1].set_stroke(BLUE).set_fill(BLUE, 0.3); r[2].set_color(BLUE)
-    return rails, rs
+def bundle(links=False, pushed=False):
+    rods = VGroup(); tips = []
+    for x, h in zip((-3, 0, 3), (2.6, 3.8, 5.0)):
+        r = RoundedRectangle(width=.6, height=h, corner_radius=.18,
+             color=GREY, fill_color=GREY, fill_opacity=.24, stroke_width=4)
+        r.move_to([x, -2.7+h/2, 0])
+        if pushed:
+            r.rotate(-.18, about_point=np.array([x, -2.7, 0]))
+        rods.add(r); tips.append(r.get_top())
+    base = Rectangle(width=10.5, height=.4, color=GREY, fill_opacity=.22).move_to([0,-2.95,0])
+    ls = VGroup(*[Line(tips[j], tips[j+1]+DOWN*(.35 if pushed else .9), color=TEXT, stroke_width=5)
+                  for j in (0,1)]) if links else VGroup()
+    return VGroup(rods, base, ls)
 
 
-def header(text, y=3.15, x=STX):
-    return T(text, 22, GREY).move_to([x, y, 0])
+def gate(opened=True, color=BLUE):
+    d = .64 if opened else .32
+    return VGroup(*[RoundedRectangle(width=.48, height=1.65, corner_radius=.12,
+       color=color, fill_color=color, fill_opacity=.55, stroke_width=4)
+       .move_to([s*d,0,0]) for s in (-1,1)])
 
 
-def sc_lines(shows, cannot, y=-2.85, x0=-0.95):
-    a = T("shows: " + shows, 22, GREEN)
-    b = T("cannot show: " + cannot, 22, RED)
-    a.move_to([x0, y, 0], aligned_edge=LEFT)
-    b.move_to([x0, y - 0.5, 0], aligned_edge=LEFT)
-    return a, b
+def linked_gate(opened=True):
+    g = gate(opened)
+    mem = VGroup(*[Line([s*1.0,0,0],[s*2.0,0,0],color=GREY,stroke_width=14) for s in (-1,1)])
+    link = Line([-.64,.83,0],[.5,2.05,0], color=TEXT, stroke_width=5)
+    return VGroup(mem,g,link)
 
 
-def fchip(text, color=TEXT, size=24, pad=0.2):
-    c = chip(text, color, size=size, pad=pad)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def ion(x,y,blocked=False):
+    shape = Square(side_length=.43,color=TEXT,fill_color=BG,fill_opacity=1) if blocked else Circle(radius=.22,color=YELLOW,fill_color=BG,fill_opacity=1)
+    return VGroup(shape, T('+',30,TEXT if blocked else YELLOW).move_to(shape)).move_to([x,y,0])
 
 
-def hair_cell(c, s):
-    """a labelled hair-cell sketch: cell body, three rods (stereocilia), one tip link, the candidate dot at
-    the lower end of the tip link.  c = centre of the body, s = scale."""
-    P = lambda dx, dy: np.array([c[0] + s * dx, c[1] + s * dy, 0.0])
-    body = RoundedRectangle(corner_radius=0.35 * s, width=3.4 * s, height=1.4 * s, stroke_color=GREY, stroke_width=4,
-                            fill_color=GREY, fill_opacity=0.15).move_to(c)
-    rods = []
-    for x, h in zip((-0.9, 0.0, 0.9), (1.3, 2.0, 2.7)):
-        rods.append(RoundedRectangle(corner_radius=0.1 * s, width=0.26 * s, height=h * s, stroke_color=GREY, stroke_width=4,
-                                     fill_color=GREY, fill_opacity=0.15).move_to(P(x, 0.7 + h / 2)))
-    link = Line(P(-0.9, 2.0), P(-0.13, 2.62), color=TEXT, stroke_width=3)
-    dot = Circle(radius=0.14 * s, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=1).move_to(P(-0.9, 1.97))
-    cell = VGroup(*rods, body)
-    return cell, link, dot, P
+def icon_row(n=10, open_indices=(), inactive=()):
+    icons = VGroup()
+    for j in range(n):
+        g=linked_gate(j in open_indices).scale(.35)
+        if j in inactive: g.set_opacity(.25)
+        g.move_to([(j-(n-1)/2)*1.16,0,0]); icons.add(g)
+    return icons
 
 
-def meter(label, cx, cy, frac=1.0, w=4.0, size=24):
-    lab = T(label, size, TEXT).move_to([cx, cy + 0.5, 0])
-    out = Rectangle(width=w, height=0.46, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([cx, cy, 0])
-    fill = meter_fill(cx, cy, frac, w)
-    return VGroup(lab, out, fill)
+def trace(n=100,i=-15,p=.2,w=10,h=3.7,center=(0,0,0),seed=8,max_current=450,mean_label=True):
+    rng=np.random.default_rng(seed)
+    vals=rng.binomial(n,p,161)*i
+    top=h/2
+    pts=[[-w/2+w*k/160,top+np.clip(v,-max_current,0)/max_current*h,0] for k,v in enumerate(vals)]
+    line=VMobject(color=YELLOW,stroke_width=2.5).set_points_as_corners(pts)
+    zero=Line([-w/2,top,0],[w/2,top,0],color=GREY,stroke_width=2)
+    axis=Line([-w/2,top,0],[-w/2,-h/2,0],color=GREY)
+    mean_y=top+n*i*p/max_current*h
+    mean=DashedLine([-w/2,mean_y,0],[w/2,mean_y,0],color=GREEN,stroke_width=7,dash_length=.18,dashed_ratio=.75).set_z_index(2)
+    labels=VGroup(txt('0 pA',-w/2+.55,top+.3,30))
+    if mean_label: labels.add(txt(f'mean −{abs(n*i*p):.0f} pA',w/2-1.6,mean_y+.36,28,GREEN))
+    return VGroup(zero,axis,mean,line,labels).shift(np.array(center))
 
 
-def meter_fill(cx, cy, frac, w=4.0):
-    ww = max(w * frac - 0.1, 0.02)
-    r = Rectangle(width=ww, height=0.36, stroke_width=0, fill_color=YELLOW, fill_opacity=0.9 if frac > 0 else 0.0)
-    r.move_to([cx - w / 2 + 0.05 + ww / 2, cy, 0])
-    return r
+def single_event(x=0,y=0,w=5,h=2.6):
+    # One binary opening, multiplied by unitary current. Downward is inward.
+    ts=np.array([0,.3,.3,.7,.7,1.0])
+    opened=np.array([0,0,1,1,0,0])
+    vals=I_UNIT*opened
+    path=VMobject(color=YELLOW,stroke_width=5).set_points_as_corners(
+        [[x-w/2+t*w,y+v/15*h,0] for t,v in zip(ts,vals)])
+    base=Line([x-w/2,y,0],[x+w/2,y,0],color=GREY)
+    arrow=DoubleArrow([x+w*.34,y,0],[x+w*.34,y-h,0],buff=0,color=YELLOW)
+    return VGroup(base,path,arrow,txt('i',x+w*.34+.4,y-h/2,42,YELLOW),
+        txt('closed · 0 pA',x-w*.2,y+.4,30),txt('open',x,y-h-.4,30,YELLOW))
 
 
-def membrane(y=0.0, x0=-1.0, x1=6.2, mx=MX, gap=0.9, h=0.7):
-    left = Rectangle(width=(mx - gap) - x0, height=h, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.35)
-    left.move_to([(x0 + mx - gap) / 2, y, 0])
-    right = Rectangle(width=x1 - (mx + gap), height=h, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.35)
-    right.move_to([(x1 + mx + gap) / 2, y, 0])
-    return VGroup(left, right)
+def prediction():
+    title=txt('Which factor changed?',0,3.05,44)
+    zero=Line([-5.7,1.6,0],[5.7,1.6,0],color=GREY)
+    bars=VGroup()
+    for x,n,cap in [(-3,-300,'average current now'),(3,-150,'after mutation')]:
+        height=abs(n)/300*3.5
+        bars.add(Rectangle(width=2.1,height=height,color=YELLOW,fill_color=YELLOW,fill_opacity=.4)
+                 .move_to([x,1.6-height/2,0]))
+        bars.add(txt(cap,x,2.15,30),txt(f'−{abs(n)} pA',x,1.6-height-.4,32,YELLOW))
+    factors=VGroup(*[chip(s,YELLOW,32).move_to([x,-3.05,0]) for s,x in [('N ?',-3.6),('i ?',0),('P_open ?',3.6)]])
+    return VGroup(title,zero,bars,factors,txt('0',-6.05,1.6,30),txt('inward ↓',0,-1.15,30,YELLOW))
 
 
-def channel_block(y=0.0, mx=MX, color=BLUE, hh=1.3):
-    l = RoundedRectangle(corner_radius=0.08, width=0.55, height=hh, stroke_color=color, stroke_width=4,
-                         fill_color=color, fill_opacity=0.4).move_to([mx - 0.65, y, 0])
-    r = RoundedRectangle(corner_radius=0.08, width=0.55, height=hh, stroke_color=color, stroke_width=4,
-                         fill_color=color, fill_opacity=0.4).move_to([mx + 0.65, y, 0])
-    return VGroup(l, r)
+def rule():
+    return txt('A lost current cannot say\nwhich factor you removed.',0,1.2,50)
 
 
-def ion(kind, x, y):
-    if kind == "ca":
-        return Circle(radius=0.2, stroke_width=0, fill_color=YELLOW, fill_opacity=1).move_to([x, y, 0])
-    return Circle(radius=0.14, stroke_width=0, fill_color=TEXT, fill_opacity=0.9).move_to([x, y, 0])
-
-
-def ion_path(d, passes, k, mx=MX, y=0.0):
-    p0 = d.get_center()
-    if passes:
-        pts = [p0, np.array([mx, y + 0.95, 0]), np.array([mx, y, 0]),
-               np.array([mx + (p0[0] - mx) * 0.8, y - 1.3 - 0.22 * (k % 3), 0])]
-    else:
-        pts = [p0, np.array([mx + (p0[0] - mx) * 0.35, y + 0.95, 0]), p0 + UP * 0.45]
-    return VMobject().set_points_as_corners(pts)
-
-
-def flow(sc, specs, rt=2.2, y=0.0, y_top=1.5):
-    """specs = list of (kind, x_offset, passes).  Dots appear above the membrane, then run (or are turned back)."""
-    dots = []
-    for i, (k, dx, ok) in enumerate(specs):
-        dots.append(ion(k, MX + dx, y_top + 0.3 * (i % 3)))
-    sc.play(*[FadeIn(d, scale=0.6) for d in dots], run_time=0.3)
-    sc.play(LaggedStart(*[MoveAlongPath(d, ion_path(d, s[2], i, y=y), rate_func=linear)
-                          for i, (d, s) in enumerate(zip(dots, specs))], lag_ratio=0.2), run_time=rt)
-    sc.play(*[FadeOut(d) for d in dots], run_time=0.3)
-
-
-def legend(y=-2.4, x0=-0.95, cys=False):
-    a = ion("ca", x0 + 0.14, y); la = T("calcium", 22, YELLOW).next_to(a, RIGHT, buff=0.2)
-    b = ion("o", x0 + 2.2, y); lb = T("other ions", 22, TEXT).next_to(b, RIGHT, buff=0.2)
-    g = VGroup(a, la, b, lb)
-    if cys:
-        c = Circle(radius=0.17, stroke_width=0, fill_color=PINK, fill_opacity=1).move_to([x0 + 4.9, y, 0])
-        cl = T("C", 20, BG, weight=BOLD).move_to(c)
-        lc = T("cysteine", 22, PINK).next_to(c, RIGHT, buff=0.2)
-        g.add(c, cl, lc)
-    return g
-
-
-NORMAL = [("ca", -0.8, True), ("o", -0.4, True), ("ca", 0.0, True), ("o", 0.4, True), ("ca", 0.8, True), ("o", 0.0, True)]
-REDUCED = [("ca", -0.8, False), ("o", -0.4, True), ("ca", 0.0, True), ("o", 0.4, True), ("ca", 0.8, False), ("o", 0.0, True)]
-FEW = [("ca", -0.8, False), ("o", -0.4, True), ("ca", 0.0, False), ("o", 0.4, False), ("ca", 0.8, False), ("o", 0.0, False)]
+def factor_paths():
+    factors=VGroup(*[txt(label,x,-.75,42,YELLOW) for label,x in [('N ↓',-4),('i ↓',0),('P_open ↓',4)]])
+    result=txt('I lower',0,-2.9,44,YELLOW)
+    arrows=VGroup(*[Arrow(f.get_bottom()+DOWN*.15,result.get_top()+np.array([dx,.12,0]),buff=0,color=YELLOW)
+        for f,dx in zip(factors,(-.7,0,.7))])
+    return VGroup(factors,arrows,result)
 
 
 class S00Title(TitleCard):
-    LESSON = "The Hair Cell's Transduction Channel"
-    TITLE = "What Counts as Proof of a Channel"
+    LESSON="The Hair Cell's Transduction Channel"
+    TITLE='One Current, Three Factors'
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Gene(SpokenScene):
-    """gene missing -> current meter empties; the protein is in the right place; the question; three other things."""
-
+class S01Q(Timed):
     def construct(self):
-        s = 1.3
-        cell, link, dot, P = hair_cell(np.array([-2.7, -1.75, 0]), s)
-        lab_cell = T("hair cell", 26, GREY).move_to(cell[-1])
-        lab_link = T("tip link", 24, TEXT).move_to(P(-1.95, 2.6))
-        lead_link = Line(lab_link.get_right() + RIGHT * 0.05, P(-0.55, 2.33), color=GREY, stroke_width=2)
-        lab_prot = T("protein", 24, BLUE).move_to(P(-2.0, 1.35))
-        lead_prot = Line(lab_prot.get_right() + RIGHT * 0.05, dot.get_center() + LEFT * 0.17, color=GREY, stroke_width=2)
+        b=bundle().scale(.88).move_to([.3,-.45,0]); self.add(b)
+        # A generic gene badge, not a molecular structure.
+        dna=VGroup(RoundedRectangle(width=2.15,height=1.15,corner_radius=.15,color=TEXT),
+            Line([-.8,.2,0],[.8,.2,0],color=GREY,stroke_width=5),
+            Rectangle(width=.55,height=.3,color=TEXT,fill_color=TEXT,fill_opacity=.6).move_to([0,.2,0]),
+            txt('GENE',0,-.27,30))
+        dna.move_to([-4.6,1.7,0])
+        self.at('A gene'); self.play(FadeIn(dna),run_time=.35)
+        pt=b[0][0].get_top()
+        protein=RoundedRectangle(width=.75,height=.55,corner_radius=.2,color=BLUE,fill_color=BLUE,fill_opacity=.65).move_to(pt)
+        name=txt('protein',-4.65,.25,34,BLUE)
+        leader=Line(name.get_right()+RIGHT*.15,pt+LEFT*.5,color=BLUE)
+        arrow=Arrow(dna.get_bottom(),name.get_top(),buff=.12,color=BLUE)
+        self.at('its protein'); self.play(FadeIn(protein),FadeIn(name),Create(leader),GrowArrow(arrow),run_time=.4)
+        self.at('Is that enough'); self.play(FadeIn(txt('Enough to call it the channel?',0,3.05,40)),run_time=.3)
+        self.at('Start with'); self.play(Indicate(protein,color=YELLOW),run_time=.4); self.finish()
 
-        m = meter("conventional current", 3.3, 1.8, 1.0)
-        sk = T("in this sketch", 22, GREY).move_to([3.3, 1.1, 0])
-        self.at("hair cell")
-        self.play(FadeIn(cell), FadeIn(lab_cell), run_time=0.4)
-        self.play(Create(link), FadeIn(lab_link), Create(lead_link), run_time=0.4)
-        self.play(FadeIn(m), FadeIn(sk), run_time=0.3)
 
-        gone = fchip("gene removed", TEXT, 24).move_to([3.3, 0.4, 0])
-        self.at("gene is missing")
-        self.play(FadeIn(gone, shift=DOWN * 0.1), Transform(m[2], meter_fill(3.3, 1.8, 0.0)), run_time=0.8)
+class S02Bundle(Timed):
+    def construct(self):
+        b=bundle(); self.add(b)
+        self.at('A hair bundle'); self.play(Indicate(b[0],color=TEXT),run_time=.65)
+        name=txt('stereocilia',-3.6,2.6,36)
+        lead=Line(name.get_bottom()+DOWN*.15,b[0][1].get_top()+LEFT*.3,color=TEXT)
+        self.at('stereocilia'); self.play(FadeIn(name),Create(lead),run_time=.4); self.finish()
 
-        self.at("right place")
-        self.play(FadeIn(dot, scale=0.5), FadeIn(lab_prot), Create(lead_prot), run_time=0.4)
-        self.play(Indicate(dot, color=BLUE, scale_factor=1.6), run_time=0.5)
 
-        q = T("Is the protein the channel?", 36, font=TITLE_FONT).move_to([0, 3.25, 0])
-        self.at("Is that enough")
-        self.play(Write(q), run_time=1.0)
+class S03Links(Timed):
+    def construct(self):
+        b=bundle(); full=bundle(True); self.add(b)
+        self.at('Tip links connect'); self.play(Create(full[2][0]),Create(full[2][1]),run_time=.7)
+        name=txt('tip link',-3.7,2.55,36)
+        target=full[2][0].get_center()
+        self.at('each shorter'); self.play(FadeIn(name),Create(Line(name.get_bottom()+DOWN*.15,target,color=TEXT)),run_time=.4)
+        self.at('to the side'); self.play(Indicate(full[2],color=YELLOW),run_time=.4); self.finish()
 
-        self.at("required for a current")
-        self.play(Indicate(m[1], color=YELLOW, scale_factor=1.06), run_time=0.8)
-        self.at("forming the pore")
-        self.play(Indicate(dot, color=BLUE, scale_factor=1.6), run_time=0.7)
 
-        s1 = fchip("trafficking factor", PURPLE, 24).move_to([3.4, -0.5, 0])
-        s2 = fchip("anchor", PURPLE, 24).move_to([3.4, -1.4, 0])
-        s3 = fchip("lipid-modifying enzyme", PURPLE, 24).move_to([3.4, -2.3, 0])
-        need = T("could all be needed", 22, PURPLE).move_to([3.4, -3.1, 0])
-        self.at("trafficking factor")
-        self.play(FadeIn(s1, shift=LEFT * 0.2), run_time=0.5)
-        self.at("anchor")
-        self.play(FadeIn(s2, shift=LEFT * 0.2), run_time=0.5)
-        self.at("lipid")
-        self.play(FadeIn(s3, shift=LEFT * 0.2), run_time=0.5)
-        self.play(FadeIn(need), run_time=0.4)
-
-        any1 = fchip("any one removed", TEXT, 24).move_to([3.3, 0.4, 0])
-        self.at("Deleting any")
-        self.play(Transform(gone, any1), run_time=0.6)
-        self.at("silence the cell")
-        self.play(Indicate(VGroup(s1, s2, s3), color=PURPLE, scale_factor=1.05), run_time=1.0)
+class S04Push(Timed):
+    def construct(self):
+        b=bundle(True); self.add(b)
+        pos=b[0][0].get_top()
+        ch=gate(False,GOLD).scale(1.05).move_to(pos+RIGHT*.67+DOWN*.86)
+        self.add(ch)
+        ar=Arrow([-1.2,-1.5,0],[1.2,-1.5,0],buff=0,color=TEXT)
+        pushed=bundle(True,True)
+        newpos=pushed[0][0].get_top()
+        closed=gate(False,GOLD).scale(1.05).move_to(newpos+RIGHT*.67+DOWN*.86)
+        pushed[2][0].put_start_and_end_on(closed[0].get_top(),pushed[2][0].get_end())
+        self.at('Deflect the bundle'); self.play(GrowArrow(ar),Transform(b,pushed),Transform(ch,closed),run_time=.9)
+        note=txt('thought to\nsit here',-4.8,.85,32,GOLD)
+        leader=Line(note.get_bottom()+DOWN*.15,ch[0].get_left()+LEFT*.15,color=GOLD)
+        self.at('The tip links'); self.play(FadeIn(note),Create(leader),Indicate(b[2],color=GOLD),run_time=.5)
+        opened=gate(True,GOLD).scale(1.05).move_to(newpos+RIGHT*.67+DOWN*.86)
+        link=Line(opened[0].get_top(),b[2][0].get_end(),color=TEXT,stroke_width=5)
+        self.at('pull channels open'); self.play(Transform(ch,opened),Transform(b[2][0],link),run_time=.5)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S02Ladder(SpokenScene):
-    """the ladder of evidence; localization; requirement and rescue on the current meter."""
-
+class S05In(Timed):
     def construct(self):
-        rails, rs = make_ladder()
-        for r in rs:
-            r[1].set_stroke(GREY, opacity=0.35).set_fill(GREY, 0.05); r[2].set_color(GREY).set_opacity(0.45)
-        self.play(Create(rails), run_time=0.6)
-        self.at("ladder of evidence")
-        self.play(LaggedStart(*[FadeIn(r, shift=RIGHT * 0.15) for r in rs], lag_ratio=0.15), run_time=1.0)
-
-        self.at("rules out")
-        self.play(LaggedStart(*[Indicate(r[1], color=TEXT, scale_factor=1.05) for r in rs], lag_ratio=0.2), run_time=1.3)
-        hd = header("in neonatal mouse hair cells", y=3.4)
-        cell, link, dot, P = hair_cell(np.array([0.5, -1.15, 0]), 1.0)
-        lab_prot = T("protein", 22, BLUE).move_to(P(-2.0, 1.4))
-        lead_prot = Line(lab_prot.get_right() + RIGHT * 0.05, dot.get_center() + LEFT * 0.15, color=GREY, stroke_width=2)
-        lab_link = T("tip link", 22, TEXT).move_to(P(-0.1, 3.55))
-        lead_link = Line(lab_link.get_bottom() + DOWN * 0.03, P(-0.5, 2.3), color=GREY, stroke_width=2)
-
-        self.at("first rung")
-        self.play(*rstate(rs[0], "on"), FadeIn(cell), Create(link), FadeIn(dot), run_time=0.7)
-        self.at("lower end")
-        self.play(FadeIn(lab_prot), Create(lead_prot), FadeIn(lab_link), Create(lead_link), run_time=0.5)
-        self.play(Indicate(dot, color=BLUE, scale_factor=1.8), run_time=0.7)
-
-        m = meter("conventional current", 4.5, 1.7, 1.0, w=3.4, size=22)
-        sk = T("in this sketch", 22, GREY).move_to([4.5, 0.15, 0])
-        self.at("requirement")
-        self.play(*rstate(rs[0], "seen"), *rstate(rs[1], "on"), FadeIn(hd), FadeIn(m), FadeIn(sk), run_time=0.6)
-        self.at("rescue")
-        self.play(*rstate(rs[1], "seen"), *rstate(rs[2], "on"), run_time=0.4)
-        gone = fchip("both genes removed", TEXT, 22).move_to([4.5, 0.75, 0])
-        self.at("lacking both")
-        self.play(FadeIn(gone, shift=DOWN * 0.1), Transform(m[2], meter_fill(4.5, 1.7, 0.0, w=3.4)), run_time=0.5)
-        self.at("is gone")
-        self.play(Indicate(m[1], color=GREY, scale_factor=1.05), run_time=0.6)
-        back = fchip("either gene back", TEXT, 22).move_to([4.5, 0.75, 0])
-        self.at("either gene back")
-        self.play(Transform(gone, back), Transform(m[2], meter_fill(4.5, 1.7, 1.0, w=3.4)), run_time=0.9)
-
-        a, b = sc_lines("the proteins are in the pathway", "pore versus a needed factor", y=-2.95)
-        self.at("pathway")
-        self.play(FadeIn(a), run_time=0.5)
-        self.at("does not separate")
-        self.play(FadeIn(b), run_time=0.6)
+        stage=linked_gate().scale(1.15).move_to([-3.5,.05,0]); self.add(stage)
+        self.add(txt('outside',-5.5,1.35,30),txt('inside',-5.5,-1.7,30))
+        self.add(txt('Holding voltage negative · below reversal potential',0,3.12,32))
+        self.add(txt('channel: thought at the lower end of a tip link',0,-3.35,30,BLUE))
+        event=single_event(x=2.75,y=.9,w=5.1,h=2.05)
+        # The trace is present from the outset; i is introduced only in s10.
+        event.remove(event[2],event[3]); self.add(event)
+        self.add(txt('tip link',-2,2.15,30),Line([-2.55,1.9,0],stage[2].get_center(),color=TEXT))
+        cx=stage[1].get_x()
+        ions=VGroup(*[ion(cx,y) for y in (-1.9,-.95,0,.95,1.9)])
+        clock=ValueTracker(0)
+        def flow(m):
+            for j,c in enumerate(m): c.move_to([cx,2.0-((j*.85+clock.get_value()*1.7)%4.1),0])
+        ions.add_updater(flow)
+        self.at('With the cell'); self.play(Indicate(stage[0],color=TEXT),run_time=.3)
+        self.at('cations flow in'); self.add(ions); clock.add_updater(lambda m,dt:m.increment_value(dt)); self.add(clock)
+        self.at('current is inward'); self.play(Indicate(event[1]),FadeIn(txt('inward current',2.8,-2.1,34,YELLOW)),run_time=.5)
+        self.at('This is the'); self.play(FadeIn(txt('Opened toward the tallest row',2.65,-2.7,30)),run_time=.3)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S03Permeation(SpokenScene):
-    """a changed residue: calcium crosses less; single-channel current is smaller; a partner could do the same."""
-
+class S06Fast(Timed):
     def construct(self):
-        rails, rs = static_ladder(["seen", "seen", "seen", "dim", "dim", "dim"])
-        self.add(rails, *rs)
-        hd = header("excised neonatal mouse inner hair cells", y=3.4)
-        mem = membrane()
-        ch = channel_block()
-        lab = T("TMC1", 22, BLUE).move_to([0.2, -1.0, 0])
-        lead = Line([0.75, -0.92, 0], [MX - 0.75, -0.66, 0], color=GREY, stroke_width=2)
-        leg = legend(y=-2.4)
-        self.at("changes the protein")
-        self.play(*rstate(rs[2], "seen"), *rstate(rs[3], "on"), FadeIn(hd), FadeIn(mem), FadeIn(ch), FadeIn(lab), Create(lead),
-                  run_time=0.7)
-        comp = T("comparison cells", 22, GREY).move_to([-1.0, 1.1, 0], aligned_edge=LEFT)
-        self.play(FadeIn(leg), FadeIn(comp), run_time=0.4)
-        flow(self, NORMAL, rt=1.6)
-
-        badge = Circle(radius=0.2, stroke_width=0, fill_color=PINK, fill_opacity=1).move_to([MX - 0.65, 0.78, 0])
-        blab = T("one residue\nchanged", 22, PINK).move_to([-1.0, 1.15, 0], aligned_edge=LEFT)
-        blead = Line([0.95, 1.0, 0], [MX - 0.85, 0.82, 0], color=GREY, stroke_width=2)
-        self.at("altered residue")
-        self.play(FadeOut(comp), FadeIn(badge, scale=0.4), FadeIn(blab), Create(blead), run_time=0.5)
-
-        self.at("inner hair cells")
-        self.play(Indicate(badge, color=PINK, scale_factor=1.5), run_time=0.8)
-        self.at("calcium permeability")
-        flow(self, REDUCED, rt=1.6)
-
-        bar = meter("single channel\ncurrent (disputed)", 5.0, 1.55, 1.0, w=2.4, size=22)
-        bar[0].move_to([5.0, 2.45, 0])
-        inside = T("comparison", 22, BG, weight=BOLD).move_to([5.0, 1.55, 0])
-        sk = T("in this sketch", 22, GREY).move_to([5.0, 0.95, 0])
-        self.at("Single channel")
-        self.play(FadeIn(bar), FadeIn(inside), FadeIn(sk), run_time=0.5)
-        inside2 = T("altered", 22, BG, weight=BOLD).move_to([3.8 + 0.05 + (2.4 * 0.55 - 0.1) / 2, 1.55, 0])
-        self.at("disputed")
-        self.play(Transform(bar[2], meter_fill(5.0, 1.55, 0.55, w=2.4)), Transform(inside, inside2), run_time=0.8)
-
-        a, b = sc_lines("the sequence changes which ions pass", "a partner could do the same", y=-2.95)
-        self.at("which ions pass")
-        self.play(FadeIn(a), run_time=0.5)
-        partner = fchip("partner", TEAL, 22).move_to([5.0, -1.0, 0])
-        pl = Line([MX + 0.95, -0.55, 0], partner.get_left(), color=GREY, stroke_width=2)
-        self.at("a partner")
-        self.play(FadeIn(partner, shift=UP * 0.2), Create(pl), run_time=0.5)
-        self.play(Indicate(partner[1:], color=TEAL), run_time=0.6)
-        self.play(FadeIn(b), run_time=0.6)
+        ax=Axes(x_range=[0,.5,.1],y_range=[0,1,.5],x_length=5.4,y_length=2.6,tips=False).move_to([-2.75,1.3,0])
+        curve=ax.plot(lambda t:1/(1+np.exp(-(t-.17)/.03)),x_range=[0,.5,.002],color=YELLOW)
+        ylabel=txt('Current magnitude',-6.05,1.35,27,YELLOW).rotate(PI/2)
+        self.add(ax,ylabel,txt('Magnified rise · fraction of 1 ms',-2.65,3.2,32,YELLOW),
+            txt('0',-5.45,-.3,26),txt('0.5 ms',-.05,-.3,26))
+        self.at('The current rises'); self.play(Create(curve),run_time=.65)
+        # Both latency bars use this one linear millisecond scale.
+        x0=-5.5; unit=3.65
+        axis=Line([x0,-3,0],[5.65,-3,0],color=GREY)
+        ticks=VGroup(*[VGroup(Line([x0+k*unit,-2.9,0],[x0+k*unit,-3.1,0],color=TEXT),
+            txt(f'{k} ms',x0+k*unit,-3.4,26)) for k in range(4)])
+        rise=Line([x0,-1.1,0],[x0+.13*unit,-1.1,0],color=YELLOW,stroke_width=16)
+        self.at('within a fraction'); self.play(Create(axis),FadeIn(ticks),Create(rise),
+            FadeIn(txt('current rise',-3.5,-1.1,30,YELLOW)),run_time=.4)
+        cascade=VGroup(Line([x0,-2.25,0],[x0+2.7*unit,-2.25,0],color=RED,stroke_width=16),
+            txt('enzyme → messenger → channel',0,-1.75,30),txt('too slow',5.45,-2.25,28,RED))
+        self.at('too fast for'); self.play(FadeIn(cascade),run_time=.4)
+        comparison=txt('Illustrative latency comparison',3,2.7,28)
+        self.at('second messengers'); self.add(comparison)
+        mech=linked_gate().scale(.9).move_to([3.6,1.25,0])
+        force=Arrow(mech[2].get_end()+UP*.65+RIGHT*.5,mech[2].get_end(),color=TEXT,buff=0)
+        self.at('So force'); self.play(FadeOut(comparison),FadeIn(mech),GrowArrow(force),run_time=.4)
+        self.at('open the channel directly'); self.play(FadeIn(txt('Direct gating (thought)',3.6,-.25,30,GREEN)),run_time=.35)
         self.finish()
 
+class S07Curve(Timed):
+    def construct(self):
+        ax=Axes(x_range=[-3,3,1],y_range=[0,1,.5],x_length=10.2,y_length=4.5,tips=False,
+                axis_config={'include_ticks':False}).move_to([.1,-.05,0])
+        # Keep coordinate geometry intact; display a separate left-boundary y axis.
+        display=VGroup(ax.x_axis,Line(ax.c2p(-3,0),ax.c2p(-3,1),color=GREY),
+                       Line(ax.c2p(0,0),ax.c2p(0,0)+DOWN*.15,color=TEXT))
+        curve=ax.plot(lambda x:1/(1+np.exp(-2*x)),x_range=[-3,3,.02],color=YELLOW)
+        self.add(display,txt('Size of peak inward current',0,3.5,36,YELLOW),
+                 txt('Bundle displacement → toward tallest row',0,-3.5,32),
+                 txt('0 (no deflection)',.1,-2.9,30),
+                 txt('0',-5.45,-2.3,30),txt('maximum',-5.4,2.25,30))
+        self.at('Plot the size'); self.play(Indicate(display),run_time=.4)
+        self.at('The S'); self.play(Create(curve),run_time=.65)
+        cap=txt('Nearly all open: saturation',1.8,2.85,32,GREEN)
+        self.at('saturates when'); self.play(FadeIn(cap),Create(Line(cap.get_bottom()+DOWN*.1,ax.c2p(2.2,.99)+UP*.1,color=GREEN)),run_time=.4); self.finish()
 
-# ---------------------------------------------------------------------------------------------
-class S04Access(SpokenScene):
-    """current already flowing; the reagent arrives outside and reacts with the engineered cysteine."""
+
+class S08Many(Timed):
+    def construct(self):
+        icons=icon_row(open_indices=(0,3,5,7)); icons.move_to([0,1.6,0])
+        tr=trace(w=10,h=2.8,center=(0,-1.1,0),mean_label=False)
+        self.add(icons,tr,txt('current from many channels',0,3.05,36,YELLOW))
+        connector=Arrow([0,.9,0],[0,.45,0],buff=0,color=YELLOW)
+        self.at('many channels'); self.play(GrowArrow(connector),Indicate(icons,color=YELLOW),run_time=.4)
+        self.at('Three things'); self.play(FadeOut(Group(*self.mobjects)),FadeIn(equation()),run_time=.4)
+        self.add(icon_row(open_indices=(0,3)).move_to([0,.7,0]),txt('Three factors set the ensemble current',0,-1.5,38)); self.finish()
+
+
+class S09N(Timed):
+    def construct(self):
+        self.add(equation(active='N'))
+        top=icon_row(5,open_indices=(0,2)).scale(1.3).move_to([-.7,1.1,0])
+        bottom=icon_row(5,open_indices=(1,),inactive=(3,4)).scale(1.3).move_to([-.7,-1.2,0])
+        self.add(top,bottom,txt('Before: all working',0,2.1,30),txt('After: 3 working',-1,-.2,30),
+            txt('not working',4.7,-1.2,28),Line([3.65,-1.2,0],bottom[4].get_right()+RIGHT*.1,color=TEXT))
+        cap=txt('N: number of working channels at tip links',0,-2.9,36,YELLOW)
+        self.at('how many working'); self.play(Indicate(bottom[:3],color=YELLOW),FadeIn(cap),run_time=.45)
+        self.at('Call that'); self.play(Indicate(cap),run_time=.35); self.finish()
+
+class S10I(Timed):
+    def construct(self):
+        self.add(equation(active='i'),linked_gate().scale(1.2).move_to([-3.5,-.2,0]))
+        event=single_event(2.55,.8,5.4,2.8); self.add(event)
+        cap=txt('i: current through one open channel',0,-3.2,36,YELLOW)
+        self.at('one open channel'); self.play(Indicate(self.mobjects[1],color=YELLOW),FadeIn(cap),run_time=.4)
+        self.at('unitary current'); self.play(Indicate(event[1],color=YELLOW),run_time=.4)
+        self.at('small i'); self.play(Indicate(cap),run_time=.35); self.finish()
+
+
+class S11P(Timed):
+    def construct(self):
+        self.add(equation(active='P_open'))
+        row=icon_row(5,open_indices=(2,)).scale(1.8).move_to([0,.2,0]); self.add(row)
+        brace=Brace(row[2],DOWN,color=YELLOW)
+        self.at('chance that each'); self.play(FadeIn(brace),FadeIn(txt('open',0,-1.55,34,YELLOW)),run_time=.4)
+        self.at('open probability'); self.play(FadeIn(txt('P_open: chance a channel is open',0,-2.6,36,YELLOW)),run_time=.35)
+        self.add(txt('Illustration: 1 in 5 open',0,-3.35,32)); self.finish()
+
+
+class S12Eq(Timed):
+    def construct(self):
+        self.add(equation(),txt('Channels alike · fixed voltage and ions',0,3.6,30))
+        nums=VGroup(*[txt(s,x,1.95,30) for s,x in [('N = 100',-4.3),('i = −15 pA',-.8),('P_open = 0.20',3.5)]])
+        tr=trace(w=10.3,h=2.65,center=(0,-.35,0),max_current=600); self.add(nums,tr)
+        self.at('For channels'); self.play(Indicate(nums),run_time=.4)
+        self.at('multiply the three'); self.play(Indicate(self.mobjects[0],color=YELLOW),run_time=.4)
+        self.at('That gives'); self.play(FadeIn(txt('100 × (−15 pA) × 0.20 = −300 pA',0,-2.55,34,YELLOW)),run_time=.35)
+        self.at('whole bundle'); self.play(FadeIn(txt('Made-up ensemble: N and P_open are teaching assumptions',0,-3.35,30)),run_time=.35); self.finish()
+
+
+class S13Predict(Timed):
+    def construct(self):
+        p=prediction(); self.add(p[0],p[1],p[2][0],p[2][1],p[2][2],p[4],p[5])
+        self.at('Predict'); self.play(Indicate(p[0]),run_time=.35)
+        self.at('A mutation'); self.play(FadeIn(VGroup(*list(p[2])[3:])),run_time=.4)
+        self.at('Which of the'); self.play(FadeIn(p[3]),run_time=.35); self.finish()
+
+
+class S14Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG; self.add(prediction())
+        cue=txt('Predict · 5',0,.4,32,GREEN); self.add(cue)
+        for n in (5,4,3,2,1):
+            cue.become(txt(f'Predict · {n}',0,.4,32,GREEN)); self.wait(1)
+
+
+class S15Reveal(Timed):
+    def construct(self):
+        self.add(txt('The average alone cannot tell',0,3.2,40))
+        cases=[(50,-15,.2,'N halved'),(100,-7.5,.2,'i halved'),(100,-15,.1,'P_open halved')]
+        cards=[]
+        for j,(n,i,p,name) in enumerate(cases):
+            x=(j-1)*4.25
+            # All panels share 0..−300 pA, and the same binomial model.
+            panel=VGroup(RoundedRectangle(width=4.05,height=5.25,corner_radius=.15,color=GREY).move_to([x,0,0]),
+                txt(name,x,2.12,32,YELLOW),trace(n,i,p,w=3.5,h=3.65,center=(x,-.3,0),seed=10+j,max_current=300,mean_label=False),
+                txt('mean −150 pA',x,-2.32,30,GREEN))
+            panel[2][4][0].shift(DOWN*.12)
+            cards.append(panel)
+        self.add(cards[0])
+        self.at('From the average alone'); self.play(Indicate(cards[0][1]),run_time=.4)
+        self.at('the channels'); self.play(Indicate(cards[0][2][3]),run_time=.35)
+        self.at('the unitary current'); self.play(FadeIn(cards[1]),run_time=.35)
+        self.at('the open probability'); self.play(FadeIn(cards[2]),run_time=.35)
+        self.at('Each gives'); self.play(FadeIn(txt('Same mean −150 pA · the flicker can differ',0,-3.12,34,GREEN)),run_time=.35)
+        self.add(txt('Shared scale: 0 to −300 pA · equal time windows',0,-3.65,30)); self.finish()
+
+
+class S16Suspects(Timed):
+    def construct(self):
+        self.add(txt('Different required proteins',0,3.15,40,PURPLE))
+        cards=VGroup()
+        for name,x in [('trafficking\nfactor',-4.2),('anchor',0),('lipid-modifying\nenzyme',4.2)]:
+            cards.add(chip(name,PURPLE,32).move_to([x,1.5,0]))
+        self.at('trafficking factor'); self.play(FadeIn(cards[0]),run_time=.3)
+        self.at('an anchor'); self.play(FadeIn(cards[1]),run_time=.3)
+        self.at('enzyme'); self.play(FadeIn(cards[2]),run_time=.3)
+        self.at('could all be needed',lead=.55); self.play(FadeIn(txt('Could all be needed',0,2.55,32,WHITE)),run_time=.2)
+        self.at('Deleting'); self.play(*[c[0].animate.set_stroke(opacity=.4) for c in cards],run_time=.3)
+        flats=VGroup(*[VGroup(Arrow([x,.7,0],[x,.15,0],color=GREY,buff=0),
+            Line([x-1.65,-.25,0],[x+1.65,-.25,0],color=YELLOW,stroke_width=5),txt('0 pA',x,-.8,32,YELLOW)) for x in (-4.2,0,4.2)])
+        self.at('silence the cell'); self.play(FadeIn(flats),FadeIn(txt('Each deletion would silence the cell',0,-1.45,30,RED)),run_time=.3)
+        # Shared alternatives, not an assignment of suspects to factors.
+        alternatives=VGroup()
+        for j,parts in enumerate([['0','i','P_open'],['N','0','P_open'],['N','i','0']]):
+            tokens=['I','=',parts[0],'×',parts[1],'×',parts[2]]
+            row=VGroup(*[M(t,28,YELLOW) if t=='I' else T(t,28,RED if t=='0' else YELLOW) for t in tokens]).arrange(RIGHT,buff=.17)
+            alternatives.add(row.move_to([0,-2.05-j*.55,0]))
+        self.add(alternatives,txt('Alternative causes · current alone cannot decide',0,-3.65,27)); self.finish()
+
+
+class S17Rule(Timed):
+    def construct(self):
+        r=rule(); paths=factor_paths(); self.add(equation(),r,paths)
+        self.at('a lost current'); self.play(Indicate(r,color=RED),run_time=.4)
+        self.at('which factor'); self.play(Indicate(paths[0],color=YELLOW),run_time=.35); self.finish()
+
+class S18Pore(Timed):
+    def construct(self):
+        eq=equation(); r=rule(); paths=factor_paths(); self.add(eq,r,paths)
+        stage=linked_gate().scale(1.5).move_to([-2.9,-.15,0])
+        self.at('Evidence about permeation'); self.play(FadeOut(r),FadeOut(paths),FadeIn(stage),run_time=.35)
+        self.at('speaks more directly'); self.play(FadeIn(txt('Permeation → pore',2.8,1.9,36,GREEN)),run_time=.3)
+        cx=stage[1].get_x(); mouth=stage[1].get_top()[1]
+        a=ion(cx,mouth+.55).scale(1.75)
+        b=VGroup(RegularPolygon(n=6,radius=.43,color=TEXT,fill_color=BG,fill_opacity=1),T('−',32,TEXT)).move_to([cx-1.55,mouth+.55,0])
+        sel=txt('selectivity',-5.25,-1.8,30,YELLOW)
+        lead=Line(sel.get_top()+UP*.12,stage[1][0].get_left()+LEFT*.1,color=YELLOW)
+        self.at('which ions pass'); self.play(FadeIn(a),FadeIn(b),FadeIn(sel),Create(lead),run_time=.25)
+        self.play(a.animate.move_to([cx,stage[1].get_bottom()[1]-.55,0]),
+            b.animate.move_to([cx,mouth+.42,0]),run_time=.9)
+        stop=Line([cx-.45,mouth-.04,0],[cx+.45,mouth-.04,0],color=RED,stroke_width=6)
+        self.add(stop,T('blocked',28,TEXT).next_to(b,RIGHT,buff=.22),T('passes',30,YELLOW).next_to(a,RIGHT,buff=.22))
+        self.at('how much current'); self.play(FadeIn(single_event(3.1,.65,4.6,2.35)),run_time=.4)
+        self.add(txt('one open channel',3.1,-2.6,32,YELLOW),txt('Illustrative ion discrimination',0,-3.45,30)); self.finish()
+
+class S19Limit(Timed):
+    def construct(self):
+        stage=linked_gate().scale(1.55).move_to([3.5,-.15,0]); self.add(stage)
+        self.add(txt('Evidence ladder',-3.35,3.05,40,GREEN))
+        spine=Line([-5.75,-1.6,0],[-5.75,2.45,0],color=GREEN,stroke_width=5)
+        self.add(spine)
+        def rung(s,y,color=GREEN):
+            return VGroup(Line([-5.75,y,0],[-5.25,y,0],color=color,stroke_width=5),txt(s,-2.8,y,34,color))
+        self.add(rung('Permeation',2.05))
+        badge=Square(side_length=.25,color=PINK,fill_color=PINK,fill_opacity=1).move_to([2.5,-.5,0])
+        residue_leader=Line([-.8,.7,0],badge.get_left()+LEFT*.1,color=PINK)
+        self.at('a residue reached'); self.play(FadeIn(rung('Reachable residue',.7,PINK)),FadeIn(badge),Create(residue_leader),run_time=.4)
+        self.at('activity of the protein'); self.play(FadeIn(rung('Protein alone',-.65)),run_time=.4)
+        partners=VGroup(*[RoundedRectangle(width=.7,height=1.05,corner_radius=.16,color=TEAL,fill_color=TEAL,fill_opacity=.6).move_to([x,-.5,0]) for x in (1.78,5.22)])
+        self.at('But partners'); self.play(FadeOut(residue_leader),FadeIn(partners),FadeIn(txt('partners',3.5,2.65,34,TEAL)),
+            Create(Line([2.7,2.35,0],partners[0].get_top()+UP*.1,color=TEAL)),
+            Create(Line([4.3,2.35,0],partners[1].get_top()+UP*.1,color=TEAL)),run_time=.4)
+        caveat=txt('Partners can change permeation too',0,-2.95,32,TEAL)
+        self.at('change permeation too'); self.play(FadeIn(caveat),run_time=.35)
+        self.at('several rungs together'); self.play(FadeOut(caveat),FadeIn(txt('Several rungs together',0,-3.05,46,GREEN)),run_time=.35); self.finish()
+
+
+class S20Take(Timed):
+    def construct(self):
+        self.add(equation(),txt('Through every experiment',0,1.65,38))
+        questions=VGroup(txt('Which factor did it test?',0,.1,52,YELLOW),txt('What did it rule out?',0,-1.85,52,GREEN))
+        self.at('Carry one question'); self.play(FadeIn(questions),run_time=.8)
+        self.at('which factor did'); self.play(Indicate(questions[0]),run_time=.4)
+        self.at('what did it'); self.play(Indicate(questions[1]),run_time=.4); self.finish()
+
+
+class S21End(EndCard):
+    LINE='Which factor did it test,\nand what did it rule out?'
 
     def construct(self):
-        YM = -0.3
-        rails, rs = static_ladder(["seen", "seen", "seen", "seen", "dim", "dim"])
-        self.add(rails, *rs)
-        hd = header("mouse hair cells lacking both TMC1 and TMC2", y=3.4)
-        mem = membrane(y=YM)
-        tl = T("TMC1", 22, BLUE).move_to([3.55, YM - 1.05, 0])
-        tll = Line([3.45, YM - 0.9, 0], [MX + 0.75, YM - 0.68, 0], color=GREY, stroke_width=2)
-        ch = channel_block(y=YM)
-        badge = Circle(radius=0.22, stroke_width=0, fill_color=PINK, fill_opacity=1).move_to([MX + 0.65, YM + 0.82, 0])
-        blab = T("C", 22, BG, weight=BOLD).move_to(badge)
-        cys = VGroup(badge, blab)
-        leg = legend(y=-2.4, cys=True)
-
-        self.at("accessibility test")
-        self.play(*rstate(rs[3], "seen"), *rstate(rs[4], "on"), FadeIn(hd), run_time=0.5)
-        self.play(FadeIn(mem), FadeIn(ch), FadeIn(tl), Create(tll), run_time=0.5)
-
-        st1 = fchip("1  current present", GREEN, 22).move_to([0.6, 2.7, 0])
-        st2 = fchip("2  reagent added", ORANGE, 22).move_to([4.6, 2.7, 0])
-        stp = Arrow(st1.get_right(), st2.get_left(), buff=0.12, color=GREY, stroke_width=4, tip_length=0.2)
-        self.at("already carry current")
-        self.play(FadeIn(st1), FadeIn(leg), run_time=0.4)
-        flow(self, NORMAL, rt=1.5, y=YM, y_top=1.15)
-
-        while self.t_of("substitution") - 0.2 - self.elapsed() > 2.6:
-            flow(self, NORMAL, rt=1.5, y=YM, y_top=1.15)
-        self.at("substitution")
-        self.play(FadeIn(cys, scale=0.4), run_time=0.4)
-
-        rg = fchip("reagent", ORANGE, 24).move_to([5.0, 1.65, 0])
-        rg_note = T("cannot cross the membrane", 22, ORANGE).move_to([4.9, 1.15, 0])
-        self.at("cannot cross the membrane")
-        self.play(FadeIn(st2), GrowArrow(stp), FadeIn(rg, shift=DOWN * 0.2), FadeIn(rg_note), run_time=0.8)
-
-        self.at("reacts")
-        self.play(FadeOut(rg_note), rg.animate.move_to([5.0, 0.95, 0]), run_time=0.6)
-        link = Line([5.0 - rg[1].width / 2, 0.95, 0], badge.get_center() + RIGHT * 0.22 + UP * 0.1, color=ORANGE, stroke_width=4)
-        self.play(Create(link), Indicate(badge, color=ORANGE, scale_factor=1.6), run_time=0.6)
-
-        self.at("changed the permeation")
-        flow(self, FEW, rt=1.4, y=YM, y_top=1.15)
-        chg = T("permeation\nchanged", 22, ORANGE).move_to([0.2, YM - 1.0, 0])
-        self.play(FadeIn(chg), run_time=0.3)
-
-        a, b = sc_lines("not altered synthesis or delivery", "the protein without its partners", y=-2.95)
-        self.at("existed before")
-        self.play(Indicate(st1[1:], color=GREEN, scale_factor=1.08), run_time=0.6)
-        self.at("synthesis or delivery")
-        self.play(FadeIn(a), run_time=0.4)
-        part = fchip("native partners", TEAL, 22).move_to([5.0, YM - 1.0, 0])
-        pl = Line(part.get_left(), [MX + 0.95, YM - 0.5, 0], color=GREY, stroke_width=2)
-        self.at("native partners")
-        self.play(FadeIn(part, shift=UP * 0.2), Create(pl), run_time=0.5)
-        self.play(FadeIn(b), run_time=0.6)
+        self.add(txt(self.LINE,0,.3,48),txt('biochemistrypedia.com',0,-1.5,30,TEAL))
         self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Complex(SpokenScene):
-    """purified protein in a liposome responds to pressure; then the complex, and transduction without TMIE."""
-
-    def construct(self):
-        rails, rs = static_ladder(["seen", "seen", "seen", "seen", "seen", "dim"])
-        self.add(rails, *rs)
-        hd = header("purified and reconstituted: no hair cell", y=3.4)
-        cx, cy, R = 0.9, -0.2, 1.7
-        ring = Circle(radius=R, stroke_color=GREY, stroke_width=8, fill_color=GREY, fill_opacity=0.08).move_to([cx, cy, 0])
-        ch = channel_block(y=cy + R, mx=cx, hh=1.2)
-        lab_l = T("liposome", 26, GREY).move_to([cx, cy, 0])
-        lab_p = T("truncated turtle TMC1", 22, BLUE).move_to([2.45, 2.15, 0], aligned_edge=LEFT)
-        lead_p = Line([2.4, 2.1, 0], [cx + 0.95, cy + R + 0.2, 0], color=GREY, stroke_width=2)
-        self.at("Purified truncated")
-        self.play(*rstate(rs[4], "seen"), *rstate(rs[5], "on"), FadeIn(hd), run_time=0.5)
-        self.play(Create(ring), FadeIn(lab_l), run_time=0.7)
-        self.at("liposomes")
-        self.play(FadeIn(ch, scale=0.5), run_time=0.5)
-        self.play(FadeIn(lab_p), Create(lead_p), run_time=0.4)
-        m = meter("channel activity", 4.55, 0.6, 0.0, w=3.0, size=22)
-        angs = (np.pi * 0.8, np.pi, np.pi * 1.2, np.pi * 1.4, np.pi * 1.6)
-        arrs = VGroup(*[Arrow(np.array([cx + (R + 0.75) * np.cos(a), cy + (R + 0.75) * np.sin(a), 0]),
-                              np.array([cx + (R + 0.3) * np.cos(a), cy + (R + 0.3) * np.sin(a), 0]),
-                              buff=0, color=TEXT, stroke_width=5, tip_length=0.2) for a in angs])
-        pr = T("applied pressure", 22, TEXT).move_to([cx, cy - R - 1.0, 0])
-        self.at("applied pressure")
-        self.play(FadeIn(m), FadeIn(arrs), FadeIn(pr), run_time=0.5)
-        self.play(Transform(m[2], meter_fill(4.55, 0.6, 0.8, w=3.0)), ring.animate.scale(0.94), run_time=0.8)
-        self.play(ring.animate.scale(1 / 0.94), run_time=0.3)
-        nm = T("not mammalian,\nnot a native complex", 22, RED).move_to([4.55, -1.5, 0])
-        self.at("not mammalian")
-        self.play(FadeIn(nm), run_time=0.5)
-
-        # --- the complex ------------------------------------------------------------------
-        self.at("complex of proteins")
-        self.play(FadeOut(VGroup(ring, ch, lab_l, lab_p, lead_p, m, arrs, pr, nm)), run_time=0.5)
-        row = [fchip("TMIE", TEAL, 26), fchip("TMC1", BLUE, 26), fchip("LHFPL5", TEAL, 26), fchip("CIB2", TEAL, 26)]
-        grp = VGroup(*row).arrange(RIGHT, buff=0.3).move_to([STX + 0.1, 1.0, 0])
-        box = DashedVMobject(RoundedRectangle(corner_radius=0.3, width=grp.width + 0.6, height=grp.height + 0.7, stroke_color=GREY,
-                                              stroke_width=3).move_to(grp), num_dashes=50)
-        cl = T("proposed partners", 24, GREY).next_to(box, DOWN, buff=0.15)
-        hd2 = header("mouse cochlear outer hair cells", y=3.4)
-        self.play(Transform(hd, hd2), run_time=0.01)
-        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.15) for c in row], lag_ratio=0.25), Create(box), FadeIn(cl), run_time=1.2)
-
-        m2 = meter("transduction", STX + 0.1, -1.5, 1.0, w=4.0, size=24)
-        sk = T("in this sketch", 22, GREY).move_to([STX + 0.1, -2.3, 0])
-        self.at("support transduction")
-        self.play(FadeIn(m2), FadeIn(sk), run_time=0.4)
-        self.play(row[0].animate.shift(UP * 1.5), run_time=0.7)
-        wo = T("without TMIE", 22, TEAL).next_to(row[0], RIGHT, buff=0.3)
-        self.play(FadeIn(wo), Transform(m2[2], meter_fill(STX + 0.1, -1.5, 0.0, w=4.0)), run_time=0.6)
-        self.at("partners")
-        self.play(Indicate(VGroup(row[2][1:], row[3][1:]), color=TEAL, scale_factor=1.1), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """the whole ladder, each rung with what it leaves open; force coupling is still a question."""
-
-    OPEN = ["that it conducts", "that it is the pore", "pore identity", "a partner could change it",
-            "the protein without partners", "the native complex, force coupling"]
-
-    def construct(self):
-        rails, rs = static_ladder(["seen", "seen", "seen", "seen", "seen", "on"])
-        self.add(rails, *rs)
-        self.at("No single paper")
-        self.play(*rstate(rs[5], "seen"), run_time=0.3)
-
-        lo = T("what each rung leaves open", 24, RED).move_to([-2.45, 3.3, 0], aligned_edge=LEFT)
-        ro = [T(self.OPEN[i], 24, RED).move_to([-2.45, RUNG_Y[i], 0], aligned_edge=LEFT) for i in range(6)]
-        self.at("every rung")
-        self.play(FadeOut(rails), FadeIn(lo), LaggedStart(*[FadeIn(ro[i], shift=RIGHT * 0.15) for i in range(5, -1, -1)],
-                                                         lag_ratio=0.2), run_time=1.8)
-
-        tl = fchip("tip link", TEXT, 24).move_to([5.1, 1.2, 0])
-        pore = fchip("pore", BLUE, 24).move_to([5.1, -0.9, 0])
-        ar = Arrow(tl.get_bottom(), pore.get_top(), buff=0.1, color=GREY, stroke_width=4, tip_length=0.2)
-        qm = T("?", 40, RED, weight=BOLD).next_to(ar, RIGHT, buff=0.15)
-        qt = T("how does force\nreach it?", 22, RED).move_to([5.1, -2.1, 0])
-        self.at("complete ladder")
-        self.play(LaggedStart(*[Indicate(ro[i], color=RED, scale_factor=1.05) for i in range(5, -1, -1)], lag_ratio=0.2), run_time=1.6)
-        self.at("tip link reaches")
-        self.play(FadeIn(tl), GrowArrow(ar), FadeIn(pore), FadeIn(qm), run_time=0.8)
-        self.play(FadeIn(qt), run_time=0.4)
-
-        self.at("ruled out")
-        self.play(LaggedStart(*[Indicate(rs[i][1], color=BLUE, scale_factor=1.06) for i in range(6)], lag_ratio=0.15), run_time=1.4)
-        self.at("leaves open")
-        self.play(Indicate(lo, color=RED, scale_factor=1.1), run_time=0.9)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "Ask what each experiment ruled out, and what it left open."

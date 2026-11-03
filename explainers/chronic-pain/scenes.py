@@ -1,398 +1,343 @@
-"""A reflex is not the pain  (Biochemistrypedia explainer for 'When Pain Persists')
-
-COLOR MAP (one color per concept, whole video)
-  PURPLE = the basolateral amygdala ensemble (outline = identified, filled = active)
-  BLUE   = withdrawal reflex (the measured endpoint)
-  ORANGE = escape and avoidance (the affective-motivational endpoint)
-  YELLOW = noxious stimulus
-  TEAL   = innocuous stimulus
-  GOLD   = the genetic tag
-  RED    = silenced / not shown
-  GREY   = other cells, frames, labels and neutral pathway schematics
-  TEXT   = neuronal signals / processing (new scenes); old endpoint colours retained
+"""A Touch That Hurts — reviewed redraw.
+COLOR MAP: BLUE withdrawal/reflex/threshold; TEAL innocuous touch;
+ORANGE #F29E4C unpleasantness; PURPLE #B58CD9 BLA; YELLOW noxious;
+GOLD tag/immune highlight; RED cuts; GREY neutral anatomy; TEXT signals.
+Threshold trajectories interpolate the lesson's qualitative signature table,
+not measurements. The inhibition plot solves its passive conductance equation.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
+from bp_style import SpokenScene as BaseSpokenScene
+ORANGE='#F29E4C'
+PURPLE='#B58CD9'
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-
-# cells are a schematic; positions are unit-box layout, not data
-POS = [(-3.2, 1.4), (-1.6, 1.2), (0.0, 1.5), (1.6, 1.3), (3.2, 1.4),
-       (-3.1, 0.0), (-1.7, -0.2), (0.0, 0.1), (1.7, -0.1), (3.0, 0.2),
-       (-3.2, -1.4), (-1.5, -1.5), (0.1, -1.3), (1.5, -1.5), (3.1, -1.4)]
-ENS = [1, 4, 6, 9, 12, 14]
-BOXW, BOXH = 8.0, 4.8
-
-
-def cell(p):
-    soma = Circle(radius=0.3, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.12)
-    stubs = VGroup(*[Line(ORIGIN, 0.26 * np.array([np.cos(a), np.sin(a), 0]), color=GREY, stroke_width=3)
-                     .shift(0.3 * np.array([np.cos(a), np.sin(a), 0])) for a in (0.5, 2.4, 4.2)])
-    g = VGroup(soma, stubs)
-    g.move_to([p[0], p[1] - 0.3, 0])
-    return g
+class SpokenScene(BaseSpokenScene):
+    def at(self, phrase, lead=0, nth=0):
+        # Cue at actual word onset; do not modify the existing pipeline sync log.
+        rest=self.t_of(phrase,nth)-self.elapsed()-lead
+        if rest>.02: self.wait(rest)
 
 
-def make_box(center, scale=1.0):
-    frame = RoundedRectangle(corner_radius=0.3, width=BOXW, height=BOXH, stroke_color=GREY, stroke_width=3,
-                             fill_color=GREY, fill_opacity=0.05).move_to([0, -0.3, 0])
-    cells = [cell(p) for p in POS]
-    g = VGroup(frame, *cells)
-    g.scale(scale).move_to(center)
-    g.frame, g.cells = frame, cells
-    return g
+def label(s,x=0,y=3.15,size=32,color=TEXT):
+    return T(s,size,color).move_to([x,y,0])
 
+def centered_lines(text,x=0,y=0,size=30,color=TEXT):
+    return VGroup(*[T(line,size,color) for line in text.split('\n')]).arrange(DOWN,buff=.14).move_to([x,y,0])
 
-def style(c, state):
-    """state: grey | ident | lit | silent"""
-    soma, stubs = c[0], c[1]
-    if state == "grey":
-        return [soma.animate.set_stroke(GREY).set_fill(GREY, 0.12), stubs.animate.set_color(GREY)]
-    if state == "ident":
-        return [soma.animate.set_stroke(PURPLE).set_fill(PURPLE, 0.1), stubs.animate.set_color(PURPLE)]
-    if state == "lit":
-        return [soma.animate.set_stroke(PURPLE).set_fill(PURPLE, 0.95), stubs.animate.set_color(PURPLE)]
-    if state == "silent":
-        return [soma.animate.set_stroke(PURPLE, opacity=0.5).set_fill(PURPLE, 0.0), stubs.animate.set_color(PURPLE).set_opacity(0.4)]
+def arr(a,b,color=GREY,w=4):
+    return Arrow(a,b,buff=.08,color=color,stroke_width=w,tip_length=.2)
 
+def foot():
+    ankle=Polygon([-1,1.8,0],[-.1,1.8,0],[.05,.05,0],[1.25,-.1,0],[1.25,-.48,0],[-1,-.48,0],color=BLUE,fill_color=BLUE,fill_opacity=.38)
+    toes=VGroup(*[Line([x,-.15,0],[x+.08,-.43,0],color=BLUE) for x in (.65,.9)])
+    return VGroup(ankle,toes)
 
-def setstyle(c, state):
-    soma, stubs = c[0], c[1]
-    if state == "grey":
-        soma.set_stroke(GREY).set_fill(GREY, 0.12); stubs.set_color(GREY)
-    elif state == "ident":
-        soma.set_stroke(PURPLE).set_fill(PURPLE, 0.1); stubs.set_color(PURPLE)
-    elif state == "lit":
-        soma.set_stroke(PURPLE).set_fill(PURPLE, 0.95); stubs.set_color(PURPLE)
+def assay():
+    # Macro view: the leg enters from above; the whole foot can lift freely.
+    paw=foot().shift(UP*.25)
+    mesh=VGroup(*[Line([-5.7,y,0],[5.7,y,0],color=GREY,stroke_width=2) for y in (-.3,-.55,-.8)],
+                *[Line([x,-.3,0],[x+.45,-.8,0],color=GREY,stroke_width=2) for x in np.arange(-5.7,5.3,.4)])
+    fil=VMobject(color=TEAL,stroke_width=4).set_points_as_corners([[.6,-2.8,0],[.6,-1.2,0],[.4,-.25,0]])
+    return paw,mesh,fil
 
+def bend(fil):
+    return fil.copy().set_points_as_corners([[.6,-2.8,0],[.85,-1.25,0],[.4,-.25,0]])
 
-def ring(c, color=GOLD):
-    return Circle(radius=c[0].width / 2 + 0.12, stroke_color=color, stroke_width=4).move_to(c[0])
+def neuron():
+    soma=Circle(.7,color=TEXT,fill_color=TEXT,fill_opacity=.12).move_to([-1.8,0,0])
+    dend=VGroup(*[Line([-2.4,0,0],[-3.6,y,0],color=GREY,stroke_width=5) for y in (-.9,0,.9)])
+    ax=Line([-1.1,0,0],[5,0,0],color=TEXT,stroke_width=5)
+    return VGroup(soma,dend,ax)
 
+def spikes(scene,line,count=3,seconds=1.1):
+    # A persistent train: no sampled firing frame becomes a silent axon.
+    if not hasattr(line,'train'):
+        dots=VGroup(*[Dot(radius=.13,color=TEXT) for _ in range(count)])
+        for i,dot in enumerate(dots):
+            dot.phase=i/count
+            dot.move_to(line.point_from_proportion(dot.phase))
+            def advance(m,dt):
+                m.phase=(m.phase+dt*.65)%1
+                m.move_to(line.point_from_proportion(m.phase))
+            dot.add_updater(advance)
+        line.train=dots
+        scene.add(dots)
+    scene.wait(seconds)
 
-def arr(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=0.22,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def levels(lit=False):
+    nodes=VGroup(*[chip(s,TEXT if lit else GREY,size=28,pad=.28).move_to([x,.1,0]) for x,s in [(-4.2,'Dorsal root\nganglion'),(0,'Dorsal horn\nspinal cord'),(4.2,'Brain')]])
+    links=VGroup(arr(nodes[0].get_right(),nodes[1].get_left()),arr(nodes[1].get_right(),nodes[2].get_left()))
+    return VGroup(links,nodes)
 
+def large_levels(lit=False):
+    c=GOLD if lit else GREY
+    nodes=VGroup(*[VGroup(RoundedRectangle(width=3.5,height=2.5,corner_radius=.18,color=c,fill_color=c,fill_opacity=.22 if lit else .06).move_to([x,-.2,0]),centered_lines(name,x,-.2,32,c)) for x,name in [(-4.2,'Dorsal root\nganglion'),(0,'Dorsal horn\nspinal cord'),(4.2,'Brain')]])
+    links=VGroup(*[arr(nodes[i].get_right(),nodes[i+1].get_left(),c) for i in (0,1)])
+    return VGroup(links,nodes)
 
-MY0 = -2.2  # meter bottom
-MH = 3.3
+def question():
+    h=label('Which would you pick?',size=38)
+    doors=VGroup()
+    for x,s in [(-3.3,'Alarm stuck on'),(3.3,'Nervous system\nchanged')]:
+        box=RoundedRectangle(width=5.3,height=4.9,corner_radius=.15,color=GREY,fill_color=BG,fill_opacity=1).move_to([x,-.2,0])
+        title=label(s,x,-1.55,30)
+        if x<0:
+            icon=VGroup(Arc(radius=.75,start_angle=0,angle=PI,color=ORANGE).move_to([x,.8,0]),Line([x-.8,.4,0],[x+.8,.4,0],color=ORANGE),Dot([x,.15,0],color=ORANGE),
+                        *[Line([x+dx,1,0],[x+dx*1.2,1.4,0],color=ORANGE) for dx in (-1,1)])
+        else:
+            pts=[np.array([x+dx,y,0]) for dx,y in [(-1,.4),(0,1.3),(1,.3),(0,-.25)]]
+            icon=VGroup(*[Line(pts[a],pts[b],color=TEXT,stroke_width=4) for a,b in [(0,1),(1,2),(0,3),(3,2),(1,3)]],*[Dot(p,radius=.13,color=TEXT) for p in pts])
+        doors.add(VGroup(box,title,icon))
+    return h,doors,label('?',y=-.2,size=60)
 
-
-def meter_fill(x, color, level, w=1.1):
-    r = Rectangle(width=w - 0.1, height=max(0.02, MH * level), stroke_width=0, fill_color=color, fill_opacity=0.85)
-    r.move_to([x, MY0 + max(0.02, MH * level) / 2, 0])
-    return r
-
-
-def meter(x, color, label, level, w=1.1):
-    frame = Rectangle(width=w, height=MH + 0.1, stroke_color=color, stroke_width=3).move_to([x, MY0 + MH / 2 - 0.0 + 0.0, 0])
-    frame.move_to([x, MY0 + (MH + 0.1) / 2 - 0.05, 0])
-    fill = meter_fill(x, color, level, w)
-    lab = T(label, 24, color).next_to(frame, DOWN, buff=0.18)
-    return VGroup(frame, fill, lab)
-
+def threshold_plot():
+    ax=Axes(x_range=[-1,5,1],y_range=[0,1.2,.2],x_length=10.2,y_length=5.3,tips=False,axis_config={'color':GREY,'include_ticks':False}).move_to([.65,.05,0])
+    words=VGroup(label('Withdrawal threshold',y=3.5,size=30,color=BLUE),label('Higher = needs more force',y=2.96,size=26),
+        label('high',-5.5,2.15,26),label('low',-5.5,-2.1,26),label('Before',-4.45,-2.95,26),label('Days',-1.05,-2.95,26),label('Weeks',4.05,-2.95,26),label('Time after surgery',1.3,-3.48,26),label('Illustrative shape, not data',-3.8,-3.48,26,GREY))
+    surgery=VGroup(DashedLine(ax.c2p(0,0),ax.c2p(0,1.08),color=GREY),label('surgery',-2.75,2.3,26))
+    # Piecewise linear interpolation of the lesson's before/days/weeks states.
+    def graph(points,color):
+        p=np.array(points); t=np.linspace(p[0,0],p[-1,0],240)
+        return VMobject(color=color,stroke_width=5).set_points_as_corners([ax.c2p(x,y) for x,y in zip(t,np.interp(t,p[:,0],p[:,1]))])
+    sham=graph([(-1,1),(5,1)],GREY)
+    inj=graph([(-1,1),(0,1),(1,.22),(5,.22)],BLUE)
+    return ax,words,surgery,sham,inj,graph
 
 class S00Title(TitleCard):
-    LESSON = "When pain persists"
-    TITLE = "Why pain persists after nerve injury"
+    LESSON='When Pain Persists'
+    TITLE='A Touch That Hurts'
 
-
-DASH_X = 4.7
-BM_X = 1.9
-CL_C = [-3.2, -0.2, 0]
-CL_S = 0.75
-
-
-def dashed_q():
-    box = RoundedRectangle(corner_radius=0.25, width=1.7, height=MH + 0.1, stroke_color=ORANGE, stroke_width=3)
-    box = DashedVMobject(box, num_dashes=36)
-    qm = T("?", 90, ORANGE, weight=BOLD)
-    cy = MY0 + (MH + 0.1) / 2 - 0.05
-    box.move_to([DASH_X, cy, 0])
-    qm.move_to(box.get_center())
-    lab = T("unpleasant\nexperience", 24, ORANGE).next_to(box, DOWN, buff=0.18)
-    return VGroup(box, qm, lab)
-
-
-# New narration: neutral schematics preserve the original endpoint colour map.
-# All pulse positions and event counts illustrate mechanisms, never measured data.
-def neuron(center, scale=1.0):
-    c = cell((0, 0)).scale(2.0).move_to(ORIGIN)
-    axon = Line([0.6, 0, 0], [2.8, 0, 0], color=GREY, stroke_width=4)
-    return VGroup(c, axon).scale(scale).move_to(center)
-
-
-def pulse_along(scene, start, end, color=TEXT, seconds=0.8):
-    d = Dot(start, radius=0.10, color=color)
-    scene.add(d)
-    scene.play(d.animate.move_to(end), run_time=seconds, rate_func=linear)
-    scene.remove(d)
-
-
-def heading(text, y=3.15, color=TEXT):
-    return T(text, 30, color, font=TITLE_FONT).move_to([0, y, 0])
-
-
-def panel(text, x):
-    frame = RoundedRectangle(width=4.05, height=4.05, corner_radius=0.25,
-                             stroke_color=GREY, fill_color=GREY, fill_opacity=0.05)
-    label = T(text, 30).move_to([0, 1.2, 0])
-    return VGroup(frame, label).move_to([x, -0.15, 0])
-
-
-def event_row(dense=False):
-    # Schematic event marks, without numerical axes or a fabricated recording.
-    xs = [-2.7, -0.6, 1.7] if not dense else [-2.7, -2.0, -1.2, -0.6, 0.2, 1.0, 1.7, 2.5]
-    base = Line([-3.2, -0.7, 0], [3.2, -0.7, 0], color=GREY)
-    marks = VGroup(*[Line([x, -0.7, 0], [x, 0.0, 0], color=TEXT, stroke_width=4) for x in xs])
-    return VGroup(base, marks)
-
-
-def processing_map():
-    labels = [('sensory\nneuron', [-4.5, 0.8, 0]), ('spinal\ncord', [0, 0.8, 0]),
-              ('immune\ncells', [0, -1.1, 0]), ('brain\ncircuits', [4.5, 0.8, 0])]
-    nodes = [chip(name, GREY, size=36, pad=0.3).move_to(pos) for name, pos in labels]
-    links = VGroup(arr(nodes[0].get_right(), nodes[1].get_left()),
-                   arr(nodes[1].get_right(), nodes[3].get_left()),
-                   arr(nodes[2].get_top(), nodes[1].get_bottom()))
-    return VGroup(links, *nodes)
-
-
-class S01Processing(SpokenScene):
+class S01Q(SpokenScene):
     def construct(self):
-        scope = chip('after nerve injury', GREY, size=24).move_to([0, 3.15, 0])
-        self.at('After a nerve injury')
-        self.play(FadeIn(scope), run_time=0.6)
-        head = heading('The nervous system itself can change', 2.25)
-        self.at('the nervous system')
-        self.play(FadeIn(head), run_time=0.7)
-        p1, p2, p3 = [panel(t, x) for t, x in [('sensory neuron', -4.25), ('spinal cord', 0), ('immune cells', 4.25)]]
-        n = neuron([-4.25, 0.05, 0], 0.8)
-        no = T('no applied\nstimulus', 35, GREY).move_to([-4.25, -1.3, 0])
-        self.at('Sensory neurons can fire')
-        self.play(FadeIn(p1), FadeIn(n), FadeIn(no), run_time=0.6)
-        pulse_along(self, n[1].get_start(), n[1].get_end())
-        self.at('The spinal cord')
-        target = cell((0, 0)).scale(1.5).move_to([0.8, -0.05, 0])
-        inputs = VGroup(*[arr([-1.4, y, 0], [0.25, -0.05, 0], TEXT, 3) for y in (0.55, -0.05, -0.65)])
-        cord = VGroup(p2, target, inputs, T('more\nexcitation', 35).move_to([0, -1.35, 0]))
-        self.play(FadeIn(cord), run_time=0.6)
-        self.play(LaggedStart(*[ShowPassingFlash(a.copy().set_color(TEXT), time_width=0.4) for a in inputs], lag_ratio=0.2), run_time=1)
-        self.at('Immune cells can')
-        immune = cell((0, 0)).scale(1.5).move_to([3.5, 0, 0])
-        recipient = cell((0, 0)).move_to([5.2, 0, 0])
-        signal = arr([4.0, 0, 0], [4.85, 0, 0], TEXT, 3)
-        im = VGroup(p3, immune, recipient, signal, T('sustain\nsensitivity', 35).move_to([4.25, -1.35, 0]))
-        self.play(FadeIn(im), run_time=0.6)
-        pulse_along(self, signal.get_start(), signal.get_end(), seconds=0.6)
-        self.at('persistent pain can reflect')
-        new = heading('Persistent pain can reflect changed processing', 2.25)
-        self.play(Transform(head, new), run_time=0.7)
-        self.at('at several levels')
-        self.play(*[Indicate(p[0], color=TEXT, scale_factor=1.02) for p in (p1, p2, p3)], run_time=0.8)
-        self.at('more than an acute warning')
-        note = T('more than a continuing acute warning', 24, GREY).move_to([0, -2.5, 0])
-        self.play(FadeIn(note), run_time=0.6)
-        self.at('Each experiment measures')
-        self.play(Transform(note, T('Each preparation measures a particular change', 26).move_to(note)), run_time=0.7)
-        self.finish()
+        self.add(label('Why does the same touch now make it pull away?',size=33))
+        groups=[]
+        for x,s in [(-3.3,'Before injury'),(3.3,'Days after injury')]:
+            p,m,f=assay(); g=VGroup(p,m,f).scale(.48).move_to([x,-.15,0]); groups.append((p,m,f,g))
+            self.add(g,label(s,x,2,30))
+        self.add(label('Hind-paw close-up',y=-3.1,size=28,color=GREY))
+        self.at('a light touch'); self.play(Indicate(groups[0][2],color=TEAL),run_time=.4)
+        self.add(label('ignores',-3.3,-2.35,32,BLUE))
+        self.at('makes it pull away'); self.play(groups[1][0].animate.shift(UP*.8),run_time=.4)
+        self.add(label('pulls away',3.3,-2.35,32,BLUE)); self.finish()
 
-
-class S02Periphery(SpokenScene):
+class S02Floor(SpokenScene):
     def construct(self):
-        h = heading('Start with the first neuron')
-        n = neuron([-1.8, 0, 0], 1.3)
-        self.at('Start with the first neuron')
-        self.play(FadeIn(h), FadeIn(n), run_time=0.7)
-        prep = T('Human DRG neurons in culture\nfrom tumour-surgery donors', 27, GREY).move_to([0, 2.05, 0])
-        dish = Ellipse(width=6.2, height=2.8, color=GREY).move_to(n)
-        self.at('Cultured human sensory neurons')
-        self.play(Transform(h, heading('Human sensory neurons')), FadeIn(prep), Create(dish), run_time=0.7)
-        note = T('sometimes: spontaneous firing\nwithout an applied stimulus', 24).move_to([3.8, -0.2, 0])
-        self.at('sometimes fired spontaneously')
-        self.play(FadeIn(note), run_time=0.5)
-        pulse_along(self, n[1].get_start(), n[1].get_end())
-        assoc = T('Associated with donor radicular / neuropathic pain', 26).move_to([0, -2.1, 0])
-        self.at('was associated with')
-        self.play(FadeIn(assoc), run_time=0.7)
-        caveat = chip('association in culture', GREY, size=25).move_to([0, -3.05, 0])
-        self.at('This is an association')
-        self.play(FadeIn(caveat), run_time=0.6)
-        self.at('Rat studies also show')
-        ratprep = T('Rat afferents after nerve injury\nuninjured neighbouring neurons', 27, GREY).move_to([0, 2.05, 0])
-        self.play(FadeOut(dish), FadeOut(assoc), FadeOut(caveat),
-                  Transform(h, heading('A separate rat preparation')), Transform(prep, ratprep),
-                  Transform(note, T('spontaneous firing\nwithout an applied stimulus', 24).move_to(note)), run_time=0.6)
-        self.at('spontaneous firing')
-        pulse_along(self, n[1].get_start(), n[1].get_end())
-        self.at('In other rat recordings')
-        events = event_row()
-        recording = T('Spinal recordings in anaesthetized rats', 27, GREY).move_to([0, 2.05, 0])
-        schema = T('qualitative schematic — not a recording', 22, GREY).move_to([0, -1.5, 0])
-        self.play(FadeOut(n), FadeOut(note), Transform(h, heading('Another rat preparation')),
-                  Transform(prep, recording), FadeIn(events), FadeIn(schema), run_time=0.7)
-        self.at('more frequent excitatory synaptic events')
-        self.play(Transform(events, event_row(True)), run_time=1.0)
-        self.at('That measures input')
-        inp = T('excitatory synaptic input', 27).move_to([0, 0.9, 0])
-        self.play(FadeIn(inp), run_time=0.6)
-        self.at('It does not measure')
-        distinction = T('Synaptic input ≠ unpleasantness', 32, font=TITLE_FONT).move_to([0, -2.65, 0])
-        self.play(FadeIn(distinction), run_time=0.7)
-        self.finish()
+        p,m,f=assay(); self.add(p,m,label('Rat hind paw · close-up'),label('Before surgery',-3.5,.7,30),label('Wire-mesh floor',-3.5,-1.35,28,GREY))
+        self.at('A thin filament'); self.play(Create(f),run_time=.5)
+        self.add(label('filament',2.4,-2,28,TEAL),Line([1.55,-2,0],[.7,-2,0],color=TEAL))
+        self.at('presses up against'); self.play(Transform(f,bend(f)),run_time=.5)
+        self.at('The paw stays down'); self.play(FadeIn(label('Paw stays down',3.7,1,30,BLUE)),run_time=.3); self.finish()
 
-
-class S03Immune(SpokenScene):
+class S03Sni(SpokenScene):
     def construct(self):
-        head = heading('Immune cells can change neuronal signalling')
-        self.at('immune cells can change')
-        self.play(FadeIn(head), run_time=0.6)
-        scope = chip('Study 1 · nerve-injured rats', GREY, size=25).move_to([0, 2.1, 0])
-        micro = cell((0, 0)).scale(3).move_to([-3.5, 0, 0])
-        ml = T('reactive spinal\nmicroglia', 26, GREY).move_to([-3.5, -1.65, 0])
-        receptor = chip('P2X4 ↑', GREY, size=26).move_to([-1.2, 0.65, 0])
-        self.at('In nerve')
-        self.play(FadeIn(scope), FadeIn(micro), FadeIn(ml), FadeIn(receptor), run_time=0.6)
-        result = chip('touch hypersensitivity', GREY, size=26).move_to([3, 0.4, 0])
-        self.at('lowering P2X4 receptors')
-        self.play(Transform(receptor, chip('P2X4 ↓', GREY, size=26).move_to(receptor)), FadeIn(result), run_time=0.6)
-        self.at('reduced touch hypersensitivity')
-        reduction = T('reduced', 30).move_to([3, -0.75, 0])
-        self.play(FadeIn(reduction, shift=DOWN * 0.3), run_time=0.6)
-        self.at('A separate rat study')
-        self.play(FadeOut(VGroup(micro, ml, receptor, result, reduction)),
-                  Transform(scope, chip('Study 2 · rats', GREY, size=25).move_to(scope)),
-                  Transform(head, heading('A separate study links microglia to neurons')), run_time=0.6)
-        mg = VGroup(cell((0, 0)).scale(2).move_to([-4.7, 0.5, 0]),
-                    T('microglia', 25, GREY).move_to([-4.7, -0.55, 0])).scale(1.3, about_point=[-4.7, 0.5, 0])
-        atp = chip('ATP', GREY, size=33).move_to([-4.7, 2.3, 0])
-        bdnf = chip('BDNF', GREY, size=35).move_to([-0.8, 0.5, 0])
-        release = arr([-3.5, 0.5, 0], bdnf.get_left(), TEXT)
-        self.at('stimulated with')
-        self.play(FadeIn(mg), FadeIn(atp), run_time=0.5)
-        self.at('released BDNF')
-        self.play(FadeIn(bdnf, shift=RIGHT * 0.3), GrowArrow(release), run_time=0.7)
-        neuron_group = VGroup(cell((0, 0)).scale(2.6).move_to([4.6, 0.5, 0]),
-                             T('lamina I neuron', 33, GREY).move_to([4.6, -0.95, 0]),
-                             chip('TrkB', GREY, size=31).move_to([2.4, 0.5, 0]))
-        link = arr(bdnf.get_right(), neuron_group[2].get_left(), TEXT)
-        axis = Line([-1.5, -1.55, 0], [4.6, -1.55, 0], color=GREY)
-        dot = Dot([-0.7, -1.55, 0], color=TEXT, radius=0.13)
-        shiftlabel = T('anion reversal potential\nshift in depolarizing direction →', 33).move_to([1.5, -2.65, 0])
-        potential = VGroup(axis, dot, shiftlabel)
-        self.at('That shifted the anion reversal potential')
-        self.play(FadeIn(neuron_group), GrowArrow(link), FadeIn(potential), run_time=0.6)
-        self.play(dot.animate.move_to([3.5, -1.55, 0]), run_time=0.8)
-        self.at('Blocking BDNF')
-        cross = Cross(link, stroke_color=RED, stroke_width=6)
-        self.play(Create(cross), run_time=0.6)
-        self.at('reversed both the shift')
-        self.play(dot.animate.move_to([-0.7, -1.55, 0]),
-                  Transform(shiftlabel, T('shift reversed\nhypersensitivity reversed', 33).move_to(shiftlabel)), run_time=0.8)
-        self.at('These are links')
-        self.play(Indicate(scope[0], color=TEXT, scale_factor=1.05), run_time=0.7)
-        self.finish()
+        self.add(label('Spared nerve injury'),label('nerve to the paw',2.6,2,28),Line([0,2.5,0],[0,1,0],color=GREY,stroke_width=12))
+        branches=VGroup(*[Line([0,1,0],[x,-1.9,0],color=GREY,stroke_width=9) for x in (-3.6,0,3.6)])
+        self.add(branches,*[chip('paw skin',GREY,28).move_to([x,-2.7,0]) for x in (-3.6,0,3.6)])
+        self.at('are cut')
+        for i in (0,1):
+            a,b=branches[i].get_start(),branches[i].get_end()
+            gap=VGroup(Line(a,a+.45*(b-a),color=GREY,stroke_width=9),Line(a+.62*(b-a),b,color=GREY,stroke_width=9))
+            self.remove(branches[i]); self.add(gap,label('cut',(-3.6 if i==0 else 0),-.7,28,RED))
+        self.at('one is spared'); self.play(branches[2].animate.set_color(TEAL),FadeIn(label('SPARED',4.5,-.5,32,TEAL)),run_time=.4); self.finish()
 
-
-class S01Reflex(SpokenScene):
+class S04Lift(SpokenScene):
     def construct(self):
-        brain = chip('brain circuits', GREY, size=30).move_to([0, 1.7, 0])
-        cord = chip('spinal cord', GREY, size=30).move_to([0, -1.4, 0])
-        self.at('Now the brain')
-        self.play(FadeIn(brain), run_time=0.6)
-        affect = chip('unpleasant side\nof pain', ORANGE, size=26).move_to([-4.3, 1.7, 0])
-        self.at('Brain circuits shape')
-        self.play(FadeIn(affect), run_time=0.6)
-        down = arr([1.1, 1.15, 0], [1.1, -0.85, 0], TEXT)
-        self.at('send signals back down')
-        self.play(FadeIn(cord), GrowArrow(down), run_time=0.7)
-        scope = chip('rodent experiments', GREY, size=24).move_to([0, 3.15, 0])
-        self.at('In rodent experiments')
-        self.play(FadeIn(scope), run_time=0.6)
-        acc = chip('anterior cingulate\ncortex', GREY, size=27).move_to(brain)
-        self.at('stimulating the anterior cingulate cortex')
-        self.play(Transform(brain, acc), run_time=0.6)
-        self.at('strengthened spinal excitatory transmission')
-        self.play(ShowPassingFlash(down.copy().set_color(TEXT), time_width=0.7), run_time=0.6)
-        excitation = T('stronger excitatory\ntransmission', 25).move_to([4.1, -1.4, 0])
-        self.play(FadeIn(excitation), Indicate(cord, color=TEXT, scale_factor=1.08), run_time=0.6)
-        self.at('Descending control can facilitate')
-        self.play(ShowPassingFlash(down.copy().set_color(TEXT), time_width=0.7), run_time=0.8)
-        self.at('Keep the measurements apart')
-        self.play(FadeOut(VGroup(brain, cord, affect, down, excitation, scope)), run_time=0.5)
-        # Reuse the original meter frame and dashed question; no heights equate endpoints.
-        m = meter(-3.2, BLUE, 'withdrawal\nreflex', 0.0, w=2.3)
-        m.remove(m[1])
-        m.shift(UP * 0.6)
-        paw = T('paw pulls\naway', 26, BLUE).move_to(m[0])
-        q = dashed_q().shift(LEFT * 1.8 + UP * 0.6)
-        self.at('A withdrawal reflex')
-        self.play(FadeIn(m), FadeIn(paw), FadeIn(q), run_time=0.7)
-        distinct = T('separate measurements', 28, font=TITLE_FONT).move_to([0, 2.6, 0])
-        self.play(FadeIn(distinct), run_time=0.5)
-        self.at('More synaptic events cannot tell us')
-        note = T('Synaptic input ≠ unpleasantness', 30).move_to([0, -3.3, 0])
-        self.play(FadeIn(note), run_time=0.7)
-        self.finish()
+        self.add(label('Days after injury · same filament',size=32))
+        # Before/after comparison remains visible throughout the short payoff.
+        for x,s,lift in [(-3.2,'Touch',False),(3.2,'Lift',True)]:
+            p,m,f=assay(); g=VGroup(p,m,f).scale(.5).move_to([x,-.2,0]); self.add(g,label(s,x,-2.2,30,BLUE))
+            if lift: p.shift(UP*.8); self.add(arr([4.5,-.1,0],[4.5,1,0],BLUE))
+        self.at('the paw lift'); self.wait(.2); self.finish(); self.wait(.9)
 
-
-class S06Scope(SpokenScene):
+class S05Allodynia(SpokenScene):
     def construct(self):
-        head = heading('The immune route depends on context')
-        self.at('the immune route depends')
-        self.play(FadeIn(head), run_time=0.6)
-        male = chip('male mice', GREY, size=27).move_to([-3.3, 1.6, 0])
-        female = chip('female mice', GREY, size=27).move_to([3.3, 1.6, 0])
-        tested = T('tested conditions after nerve injury', 23, GREY).move_to([0, 2.5, 0])
-        self.at('In the tested mice')
-        self.play(FadeIn(male), FadeIn(female), FadeIn(tested), run_time=0.5)
-        inhibitor = chip('microglial inhibitor', GREY, size=26).move_to([0, 0.4, 0])
-        self.at('a microglial inhibitor')
-        self.play(FadeIn(inhibitor), run_time=0.5)
-        mr = T('hypersensitivity\nreversed', 27).move_to([-3.3, -0.9, 0])
-        fr = T('hypersensitivity\nnot reversed', 27).move_to([3.3, -0.9, 0])
-        self.at('in males')
-        self.play(FadeIn(mr, shift=DOWN * 0.2), run_time=0.4)
-        self.at('but not females')
-        self.play(FadeIn(fr), run_time=0.5)
-        adaptive = T('females: adaptive immune cells appeared to contribute', 24, GREY).move_to([0, -2.3, 0])
-        self.at('Females appeared to use')
-        self.play(FadeIn(adaptive), run_time=0.6)
-        self.at('Without those cells')
-        # Reset the result during the condition change, before revealing the new result.
-        self.play(FadeOut(VGroup(male, mr, fr, adaptive)),
-                  Transform(female, chip('female mice\nwithout adaptive immune cells', GREY, size=26).move_to([0, 1.6, 0])), run_time=0.6)
-        worked = T('hypersensitivity reversed', 29).move_to([0, -0.9, 0])
-        self.at('the inhibitor worked')
-        self.play(FadeIn(worked, shift=DOWN * 0.2), run_time=0.5)
-        conditional = T('conditional route — it can switch', 28, font=TITLE_FONT).move_to([0, -2.3, 0])
-        self.at('The route could switch')
-        self.play(FadeIn(conditional), run_time=0.6)
-        self.at('Compartment matters too')
-        self.play(FadeOut(VGroup(female, inhibitor, worked, tested, conditional)),
-                  Transform(head, heading('Compartment matters too · mice')), run_time=0.6)
-        macrophages = chip('systemic macrophage depletion', GREY, size=28).move_to([0, 1.7, 0])
-        both = T('hypersensitivity reduced\nin both sexes', 29).move_to([0, 0.35, 0])
-        self.at('Depleting macrophages')
-        self.play(FadeIn(macrophages), run_time=0.5)
-        self.at('reduced hypersensitivity in both sexes')
-        self.play(FadeIn(both, shift=DOWN * 0.2), run_time=0.6)
-        ganglion = chip('ganglion macrophages\nfavoured by the authors', GREY, size=34, pad=0.32).move_to([-3.3, -1.4, 0])
-        skin = chip('skin dendritic cells\ncould not be excluded', GREY, size=34, pad=0.32).move_to([3.3, -1.4, 0])
-        self.at('The authors favored')
-        self.play(FadeIn(ganglion), run_time=0.6)
-        self.at('but could not exclude')
-        self.play(FadeIn(skin), run_time=0.6)
-        self.at('These animal findings')
-        mapping = processing_map()
-        caveat = T('Animal findings do not establish\na fixed human sex rule', 30, font=TITLE_FONT).move_to([0, -2.8, 0])
-        self.play(FadeOut(VGroup(macrophages, both, ganglion, skin)),
-                  Transform(head, heading('After nerve injury · preparation-specific findings')),
-                  FadeIn(mapping), FadeIn(caveat), run_time=0.8)
-        self.finish()
+        self.add(label('Allodynia',y=3.15,size=46,color=TEAL))
+        self.add(RoundedRectangle(width=5.6,height=4.8,corner_radius=.2,color=TEAL).move_to([-3.15,0,0]),
+                 RoundedRectangle(width=5.6,height=4.8,corner_radius=.2,color=BLUE).move_to([3.15,0,0]))
+        p=foot().scale(.7).move_to([3.15,.8,0])
+        floor=VGroup(Line([1.4,0,0],[4.9,0,0],color=GREY),*[Line([x,0,0],[x+.2,-.2,0],color=GREY) for x in np.arange(1.4,4.8,.3)])
+        filament=VMobject(color=TEAL,stroke_width=3).set_points_as_corners([[3.6,-1.35,0],[3.6,-.5,0],[3.35,0,0]])
+        self.add(p,floor,filament)
+        self.at('pain from a stimulus'); self.play(FadeIn(label('Pain from a stimulus\nthat normally\ndoes not hurt',-3.15,.2,34)),run_time=.4)
+        self.at('A rat cannot tell us'); self.play(FadeIn(label('A rat cannot tell us',3.15,-1.9,28)),run_time=.3)
+        self.at('the paw lift stands in'); self.play(p.animate.shift(UP*.55),FadeOut(filament),GrowArrow(arr([5.15,.2,0],[5.15,1.1,0],BLUE)),FadeIn(label('Paw lift: the rodent stand-in',y=-3.1,size=32,color=BLUE)),run_time=.4); self.finish()
+
+class S06Threshold(SpokenScene):
+    def construct(self):
+        self.add(label('Increasing filament stiffness',size=34),label('✓ lift     × no lift',y=-3.3,size=28,color=BLUE))
+        xs=(-4.5,-1.5,1.5,4.5); cols=VGroup()
+        for j,x in enumerate(xs):
+            cols.add(VGroup(Line([x,-.1,0],[x,2,0],color=TEAL,stroke_width=2+j*2),RoundedRectangle(width=1.4,height=.35,corner_radius=.13,color=BLUE).move_to([x,2.2,0])))
+        self.at('The touches come'); self.play(LaggedStart(*[FadeIn(c) for c in cols],lag_ratio=.15),run_time=1)
+        self.at('pressed over repeated trials')
+        patterns=['××××','✓×××','✓×✓×','✓✓✓✓']
+        for k in range(4):
+            self.play(*[c[0].animate.shift(UP*.15) for c in cols],run_time=.12)
+            self.play(*[c[0].animate.shift(DOWN*.15) for c in cols],*[FadeIn(label(patterns[j][k],x+(k-1.5)*.46,-1.05,34,BLUE)) for j,x in enumerate(xs)],run_time=.22)
+        self.add(label('% lifts',-5.8,-1.95,26),*[label(s,x,-1.95,30,BLUE) for x,s in zip(xs,['0','25','50','100'])])
+        self.at('half the time'); self.play(Create(RoundedRectangle(width=2.5,height=4.7,corner_radius=.15,color=BLUE).move_to([1.5,.15,0])),run_time=.4)
+        self.at('That is the withdrawal threshold'); self.play(FadeIn(label('Withdrawal threshold · repeated trials',y=-2.65,size=28,color=BLUE)),run_time=.3); self.finish()
+
+class S07Curve(SpokenScene):
+    def construct(self):
+        ax,w,s,sham,inj,g=threshold_plot(); self.add(ax,w,s)
+        self.at('it stays flat'); self.play(Create(sham),FadeIn(label('Sham',5,2.15,28,GREY)),run_time=.6)
+        self.at('In injured rats it falls'); self.play(Create(inj),FadeIn(label('Injured',4.7,-1.15,28,BLUE)),run_time=1.3); self.finish()
+
+class S08Reverse(SpokenScene):
+    def construct(self):
+        ax,w,s,sham,inj,g=threshold_plot(); self.add(ax,w,s,sham,inj,label('Sham',5,2.15,28,GREY),label('Injured',5.2,-.4,26,BLUE))
+        self.at('a treatment'); marker=VGroup(arr(ax.c2p(2,0),ax.c2p(2,.4),TEXT),label('Treatment',-1.2,-2.25,26),Line([-.15,-2.25,0],[.5,-2.25,0],color=TEXT)); self.play(FadeIn(marker),run_time=.3)
+        # Keep the exact original curve and add a response after treatment.
+        self.at('it pushes that curve back up'); self.remove(inj); self.add(g([(-1,1),(0,1),(1,.22),(2,.22)],BLUE)); rise=g([(2,.22),(2.8,.88)],BLUE)
+        self.play(Create(rise),run_time=.65)
+        peak=ax.c2p(2.8,.88)
+        self.play(FadeIn(centered_lines('reversed the\nallodynia',4.6,.9,27,BLUE)),Create(Line([3.15,.9,0],peak,color=BLUE)),run_time=.25)
+        self.at('often only for a while'); sag=g([(2.8,.88),(3.1,.88),(4.3,.28),(5,.22)],BLUE)
+        # Erase only the future untreated segment; the pre-treatment curve is unchanged.
+        self.play(Create(sag),FadeIn(label('often only for a while',3.45,-2.25,27,BLUE)),Create(Line([4.3,-2.02,0],ax.c2p(4.6,.25),color=BLUE)),run_time=.65); self.finish(); self.wait(.6)
+
+class S09Others(SpokenScene):
+    def construct(self):
+        cards=[]
+        data=[('Allodynia','Pain from a stimulus\nthat normally\ndoes not hurt',TEAL),('Hyperalgesia','More pain from\na stimulus that\nalready hurts',YELLOW),('Spontaneous pain','Pain with no\napplied stimulus',TEXT)]
+        for x,(name,desc,c) in zip((-4.3,0,4.3),data):
+            box=RoundedRectangle(width=4,height=5.5,corner_radius=.15,color=c).move_to([x,0,0])
+            title=label(name,x,2,28,c); desc=label(desc,x,-.25,28)
+            icon=VGroup(Ellipse(width=1.3,height=.25,color=GREY).move_to([x,.8,0]),Line([x,1.65,0],[x,1,0],color=c,stroke_width=3 if x<0 else 8))
+            if x==0: icon.add(Polygon([x-.15,1.15,0],[x,1,0],[x+.15,1.15,0],color=YELLOW,fill_color=YELLOW,fill_opacity=1))
+            if x==4.3: icon=VGroup(Ellipse(width=1.3,height=.25,color=GREY).move_to([x,.8,0]),label('no touch',x,1.5,26))
+            cards.append(VGroup(box,title,desc,icon))
+        self.add(cards[0]); self.at('Hyperalgesia'); self.play(FadeIn(cards[1]),run_time=.4)
+        self.at('Spontaneous pain'); self.play(FadeIn(cards[2]),FadeIn(label('Hard to measure\nin animals',4.3,-1.85,26,GREY)),run_time=.4); self.finish()
+
+class S10Reflex(SpokenScene):
+    def construct(self):
+        p,m,f=assay(); p.scale(.8,about_edge=DOWN)
+        self.add(p,m,f,label('What is measured?',size=36))
+        self.at('report a withdrawal threshold'); self.play(p.animate.shift(UP*.55),FadeOut(f),run_time=.4)
+        tag=label('Withdrawal threshold',3.5,1.5,29,BLUE); self.add(tag,Line([1.35,.8,0],[1.75,1.3,0],color=BLUE))
+        pin=VGroup(Polygon([5.3,-.6,0],[5.9,-.6,0],[5.75,-.9,0],[5.95,-1.05,0],[5.25,-1.05,0],[5.45,-.9,0],color=GOLD,fill_color=GOLD,fill_opacity=1),Line([5.6,-1.05,0],[5.3,-1.65,0],color=GOLD,stroke_width=6))
+        self.at('which is a reflex'); self.play(FadeIn(label('A withdrawal reflex',3.5,.65,29,BLUE)),FadeIn(pin),run_time=.3)
+        self.at('Hold on to that'); self.play(Indicate(pin,color=GOLD),FadeIn(label('Hold on to this',3.4,-1.2,30,GOLD)),run_time=.4); self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Persistent pain after nerve injury can reflect altered processing at several levels."
+class S11Predict(SpokenScene):
+    def construct(self):
+        h,d,q=question(); self.add(h,d,q)
+        self.at('an alarm that never switched off'); self.play(Indicate(d[0][2],color=ORANGE),run_time=.4)
+        self.at('a changed nervous system'); self.play(Indicate(d[1][2],color=TEXT),run_time=.4); self.finish()
+
+class S12Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG; self.add(*question(),label('Pause and decide',y=-3.15,size=28))
+        ring=Circle(.32,color=GREY).move_to([0,-2.2,0]); progress=Arc(radius=.32,start_angle=PI/2,angle=-TAU,color=GOLD).move_to(ring)
+        self.add(ring); self.play(Create(progress),run_time=5,rate_func=linear)
+
+class S13Reveal(SpokenScene):
+    def construct(self):
+        h,d,q=question(); n=neuron().scale(1.25).move_to([0,-.1,0]); self.add(h,d,q)
+        self.at('The answer is both'); both=label('Both',size=42); self.add(n); self.bring_to_back(n)
+        self.play(Succession(FadeOut(h,run_time=.15),FadeIn(both,run_time=.15)),FadeOut(q),FadeIn(n),d[0].animate.shift(LEFT*8),d[1].animate.shift(RIGHT*8),run_time=.65); self.remove(d); h=both
+        silent=label('Before: silent',y=-2.2,size=32,color=GREY); self.add(silent)
+        self.at('After injury'); after=label('After injury',size=38)
+        self.play(Succession(FadeOut(h,run_time=.15),FadeIn(after,run_time=.15)),FadeOut(silent),run_time=.35); h=after
+        self.at('sensory neurons fire'); self.play(n[0].animate.set_fill(TEXT,.65),run_time=.2); spikes(self,n[2],seconds=.7)
+        self.at('with no stimulus'); self.add(label('No applied stimulus',y=-1.4,size=32,color=TEAL)); spikes(self,n[2],seconds=1)
+        self.at('the alarm wiring itself has changed'); changed=label('The alarm wiring has changed',size=36)
+        self.play(Succession(FadeOut(h,run_time=.15),FadeIn(changed,run_time=.15)),n[2].animate.set_color(GOLD),n[1].animate.set_color(GOLD),run_time=.3); spikes(self,n[2],seconds=.9); self.finish()
+
+class S14Idea(SpokenScene):
+    def construct(self):
+        m=large_levels(); self.add(m,label('The one idea',size=38))
+        self.at('the one idea'); self.play(Indicate(m[0],color=GREY,scale_factor=1.03),run_time=.8)
+        self.at('After a nerve injury'); self.play(FadeIn(label('After nerve injury, pain persists:',y=2,size=32)),run_time=.3)
+        self.at('the rules of the system have changed'); self.add(label('The rules of the system have changed.',y=-2.3,size=36))
+        self.play(LaggedStart(*[Indicate(n,color=GREY,scale_factor=1.04) for n in m[1]],lag_ratio=.3),run_time=1.3); self.finish()
+
+
+class S15Ganglion(SpokenScene):
+    def construct(self):
+        n=neuron().stretch(1.4,1); self.add(n,chip('Dorsal root ganglion',TEXT,28).move_to([-1.8,2,0]),Line([-1.8,1.6,0],[-1.8,.75,0],color=TEXT),chip('Cord',GREY,28).move_to([5,1.8,0]),Line([5,1.4,0],[5,.1,0],color=GREY),label('Skin: no touch',-4,-1.7,30,TEAL),Line([-4,-1,0],[-4,1,0],color=GREY),Line([-4,0,0],[-3.6,0,0],color=GREY))
+        self.at('sensory neurons'); self.play(n[0].animate.set_color(GOLD).set_fill(GOLD,.3),run_time=.3)
+        self.at('make signals'); self.play(n[0].animate.set_fill(TEXT,.6),run_time=.2); spikes(self,n[2],seconds=.6)
+        self.at('with no stimulus'); spikes(self,n[2],seconds=.9); self.finish()
+
+class S16Cord(SpokenScene):
+    def construct(self):
+        self.add(label('Dorsal horn · in rats',size=36))
+        # At Vth=-50, gE=(gL*(EL-Vth)+gI*(EI-Vth))/(Vth-EE).
+        needed=lambda ei:((-65+50)+(ei+50))/-50
+        y=lambda g:-2+5*g
+        axis=VGroup(Line([-3.9,-2,0],[-3.9,1.9,0],color=GREY),Line([-3.9,-2,0],[.4,-2,0],color=GREY))
+        threshold=DashedLine([-3.8,y(needed(-70)),0],[.4,y(needed(-70)),0],color=TEXT)
+        tl=label('Needed input: 0.7',-1.6,2.4,28)
+        newtl=label('Needed input: 0.3',-1.6,2.4,28)
+        bar=Rectangle(width=1.1,height=2,color=TEAL,fill_color=TEAL,fill_opacity=.65).move_to([-2,-1,0])
+        inhibition=Rectangle(width=.65,height=3.5,color=TEXT,fill_color=TEXT,fill_opacity=.85).move_to([-5.4,-.25,0])
+        reduced=inhibition.copy().stretch(.3,1,about_edge=DOWN)
+        below=label('Below threshold',3.5,-2.4,28,GREY)
+        n=neuron().scale(.57).move_to([3.5,-.3,0])
+        self.add(axis,threshold,tl,bar,inhibition,n,below,label('Inhibition',-5.3,2.4,26),label('Same touch: 0.4',-1.7,-2.65,28,TEAL),label('Pain-signalling\nneuron',3.5,1.7,30),label('Illustrative model, not a recording',y=-3.4,size=26,color=GREY))
+        self.at('loses inhibition'); self.play(Transform(inhibition,reduced),threshold.animate.shift(DOWN*(y(.7)-y(needed(-50)))),FadeOut(tl),FadeIn(newtl),FadeOut(below),run_time=.8)
+        self.at('In a simple model'); self.play(Indicate(inhibition,color=TEXT,scale_factor=1.04),run_time=.4)
+        self.at('a light touch'); self.play(Indicate(bar,color=TEAL,scale_factor=1.04),run_time=.4)
+        self.at('used to fall short'); self.play(Indicate(threshold,color=TEXT,scale_factor=1.02),run_time=.4)
+        self.at('can then fire'); self.add(label('fires',3.5,-2.4,32)); self.play(n[0].animate.set_fill(TEXT,.8),run_time=.2); spikes(self,n[2],seconds=.7); self.finish()
+
+
+class S17Immune(SpokenScene):
+    def construct(self):
+        self.add(label('In rodents',size=36))
+        boxes=VGroup(*[chip(name,TEXT,34,pad=.45).move_to([x,.1,0]) for x,name in [(-3.2,'Dorsal root ganglion'),(3.2,'Dorsal horn')]])
+        self.add(boxes,label('Ganglion compartment',-3.2,-1.1,28),label('Cord compartment',3.2,-1.1,28))
+        cells=VGroup(*[Circle(.32,color=GOLD,fill_color=GOLD,fill_opacity=.5).move_to([x+dx,1.45,0]) for x in (-3.2,3.2) for dx in (-.7,.7)])
+        stems=VGroup(*[Line([x+dx,1.12,0],[x+dx,.65,0],color=GOLD) for x in (-3.2,3.2) for dx in (-.7,.7)])
+        self.at('immune cells'); self.play(FadeIn(cells),Create(stems),FadeIn(label('Immune cells',y=2.4,size=30,color=GOLD)),run_time=.4)
+        self.at('help hold that change'); self.play(*[b[0].animate.set_color(GOLD).set_fill(GOLD,.2) for b in boxes],FadeIn(label('Help hold the change',y=-2,size=32)),run_time=.4)
+        self.at('differ with sex and compartment'); self.play(FadeIn(label('Routes differ with sex and compartment',y=-3,size=30)),Indicate(cells,color=GOLD,scale_factor=1.06),run_time=.6); self.finish()
+
+
+class S18Brain(SpokenScene):
+    def construct(self):
+        cord=chip('Spinal cord',GREY,30).move_to([-1,-1.4,0]); brain=chip('Brain',GREY,32).move_to([-1,1.9,0])
+        touch=chip('Touch in',TEAL,28).move_to([-5,-1.4,0]); p=foot().scale(.5).move_to([3.5,-1.3,0])
+        loop=VGroup(arr(touch.get_right(),cord.get_left(),BLUE),arr(cord.get_right(),[2.7,-1.4,0],BLUE),label('reflex: paw lifts',3.5,-2.8,30,BLUE))
+        up=arr([-1.6,-.9,0],[-1.6,1.4,0],ORANGE); down=arr([-.4,1.4,0],[-.4,-.9,0],GREY,w=3)
+        needle=Line([3.9,1.5,0],[3.45,1.95,0],color=ORANGE,stroke_width=5)
+        dial=VGroup(Arc(radius=.8,start_angle=0,angle=PI,color=ORANGE).move_to([3.9,1.9,0]),needle,label('low',2.9,1.25,26,ORANGE),label('high',5,1.25,26,ORANGE),label('Unpleasantness',3.9,3.05,30,ORANGE),arr(brain.get_right(),[3,2,0],ORANGE))
+        self.add(cord,brain,touch,p,loop)
+        self.at('separate brain circuits'); self.play(brain[0].animate.set_color(TEXT).set_fill(TEXT,.4),brain[1].animate.set_color(TEXT),p.animate.shift(UP*.5),FadeIn(dial),GrowArrow(up),GrowArrow(down),FadeIn(label('to brain',-3,.4,28,ORANGE)),FadeIn(label('descending',1.25,.4,28)),run_time=.5)
+        self.at('how unpleasant'); self.play(Transform(needle,Line([3.9,1.5,0],[4.4,2.05,0],color=ORANGE,stroke_width=5)),run_time=.7)
+        self.at('apart from the reflex'); self.play(Indicate(loop,color=BLUE,scale_factor=1.02),run_time=.5)
+        pulse=Dot(radius=.1,color=BLUE); pulse.phase=0
+        def travel(m,dt):
+            m.phase=(m.phase+dt*.65)%1
+            m.move_to(loop[1].point_from_proportion(m.phase))
+        pulse.add_updater(travel); self.add(pulse)
+        self.finish(); self.wait(max(0,9-self.elapsed()))
+
+
+class S19Scope(SpokenScene):
+    def construct(self):
+        self.add(label('Where the evidence comes from',size=36))
+        for x in (-3.1,3.1): self.add(RoundedRectangle(width=5.6,height=3.9,corner_radius=.2,color=GREY).move_to([x,.35,0]))
+        self.add(label('Rodents',-3.1,1.6,38),label('People',3.1,1.6,38))
+        self.at('rodent nerve injury models'); self.play(FadeIn(centered_lines('Nerve-injury models\nLink-by-link in rats\nAcross different experiments',-3.1,-.1,27)),run_time=.4)
+        self.at('In people'); self.play(Indicate(self.mobjects[4],color=GREY,scale_factor=1.02),run_time=.3)
+        self.at('the evidence is association'); self.play(FadeIn(centered_lines('Association\nCausation not established',3.1,-.1,28)),run_time=.3)
+        self.add(centered_lines('Not established here for nociplastic pain or arthritis.\nOngoing input and changed processing can coexist.',y=-2.6,size=28,color=GREY)); self.finish(); self.wait(1)
+
+class S20Take(SpokenScene):
+    def construct(self):
+        m=large_levels(); self.add(m,label('The takeaway',size=36))
+        cells=VGroup(*[Circle(.22,color=GOLD,fill_color=GOLD,fill_opacity=.6).move_to([x+dx,1.5,0]) for x in (-4.2,0) for dx in (-.55,.55)])
+        dial=VGroup(Arc(radius=.48,start_angle=0,angle=PI,color=GOLD).move_to([4.2,1.5,0]),Line([4.2,1.25,0],[4.5,1.65,0],color=GOLD,stroke_width=4))
+        stems=VGroup(*[Line([x+dx,1.27,0],[x+dx,1.05,0],color=GOLD) for x in (-4.2,0) for dx in (-.55,.55)])
+        self.at('the alarm wiring changed'); self.play(Transform(m,large_levels(True)),FadeIn(cells),Create(stems),FadeIn(dial),run_time=.6)
+        self.at('and so did the rules'); self.play(FadeIn(label('The wiring changed, and so did the rules.',y=-2.1,size=34)),run_time=.4)
+        self.play(Indicate(m[0],color=GOLD,scale_factor=1.04),run_time=.7); self.finish()
+
+
+class S21End(EndCard):
+    LINE='The wiring changed, and so did the rules.'
