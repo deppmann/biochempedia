@@ -188,7 +188,7 @@ def main():
     a.engine = a.engine or "eleven"
     cost = {"eleven": "ElevenLabs quota", "gemini": f"Gemini, about ${tts_chars * GEMINI_USD_PER_CHAR:.2f}", "kokoro": "free local voice", "say": "free draft voice"}[a.engine]
     print(f"narration characters this video: {tts_chars} (cap {TTS_CHAR_CAP}; {cost})")
-    if tts_chars > TTS_CHAR_CAP:
+    if tts_chars > TTS_CHAR_CAP and a.engine in ("eleven", "gemini"):   # the cap guards paid voices only
         sys.exit("over the character cap; shorten the tts text")
     if a.dry_run:
         return
