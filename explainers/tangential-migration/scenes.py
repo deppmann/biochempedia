@@ -1,13 +1,14 @@
-"""Tangential migration: interneurons take the long way round (Biochemistrypedia explainer)
+"""Chapter 1 (Born Outside) of the chaptered film for "Tangential Migration: Interneurons and the Long Way Round"
 
-COLOR MAP (one color per concept, whole video)
-  ORANGE = inhibitory interneuron (the travelling cell)
-  BLUE   = excitatory pyramidal neuron and its dividing precursors, made in the cortex's own wall
-  TEAL   = the chemokine CXCL12
-  PURPLE = its receptor CXCR4 (the little tab on the cell)
-  YELLOW = the dye (the label that marks cells)
-  RED    = missing / blocked (Dlx1 and Dlx2 gone, no CXCR4)
-  GREY   = tissue: cortical wall, meninges, ganglionic eminence, radial glial fibre
+COLOR MAP (one color per concept, whole film series; taken from scenes.old.py)
+  ORANGE = inhibitory interneuron (the travelling cell), and the subpallium that makes them
+  BLUE   = excitatory pyramidal neuron, and the pallium (cortex's own wall) that makes them
+  TEAL   = the cue on the road (chemokine)
+  PURPLE = the receptor on the travelling cell (the little tab), and "what the cell can read"
+  RED    = broken / missing (receptor that cannot answer, cue that is absent)
+  GREY   = tissue and structure: wall, fibres, eminences, progenitors, labels
+  (script.json's visual notes say green/magenta; the series map above is used instead so that
+   chapters 2 and 3 match the earlier film.)
 """
 import random
 import numpy as np
@@ -15,412 +16,847 @@ from bp_style import *  # noqa: F401,F403
 
 ORANGE = "#F29E4C"
 PURPLE = "#B58CD9"
+LUMEN = "#171a23"
 
-WALL_X0, WALL_X1 = -2.6, 6.2
-WALL_Y0, WALL_Y1 = -2.6, 2.5
-LANE_TOP, LANE_DEEP = 2.15, -1.75
-X0, X1 = -2.3, 2.8            # where streams run
-EMI = np.array([-4.5, -1.0, 0])
-
-
-def wall():
-    w = Rectangle(width=WALL_X1 - WALL_X0, height=WALL_Y1 - WALL_Y0, stroke_color=GREY, stroke_width=3,
-                  fill_color=GREY, fill_opacity=0.10).move_to([(WALL_X0 + WALL_X1) / 2, (WALL_Y0 + WALL_Y1) / 2, 0])
-    men = RoundedRectangle(corner_radius=0.08, width=WALL_X1 - WALL_X0, height=0.2, stroke_color=GREY, stroke_width=2,
-                           fill_color=GREY, fill_opacity=0.5).move_to([(WALL_X0 + WALL_X1) / 2, 2.75, 0])
-    lab = T("meninges", 22, GREY).move_to([4.6, 3.2, 0])
-    return VGroup(w, men, lab)
+CX, CY = 0.0, 0.1
+R_OUT, R_IN = 2.7, 1.75
+A_LGE, A_CGE, A_MGE = 205, 255, 305
 
 
-def eminence(with_label=True):
-    e = Ellipse(width=3.0, height=2.8, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.22).move_to(EMI)
-    rnd = random.Random(4)
-    prog = VGroup(*[Circle(radius=0.1, stroke_color=GREY, stroke_width=2, fill_color=GREY, fill_opacity=0.7)
-                    .move_to(EMI + [rnd.uniform(-1.0, 1.0), rnd.uniform(-0.8, 0.8), 0]) for _ in range(7)])
-    g = VGroup(e, prog)
-    g.e, g.prog = e, prog
-    if with_label:
-        g.lab = T("ganglionic eminences", 22, GREY).move_to([-4.5, -2.75, 0])
+def lab(text, color=TEXT, size=24, **kw):
+    return T(text, max(26, size), color, **kw)
+
+
+def pol(r, deg, c=(CX, CY)):
+    return np.array([c[0] + r * np.cos(np.radians(deg)), c[1] + r * np.sin(np.radians(deg)), 0.0])
+
+
+def unit(v):
+    return v / np.linalg.norm(v)
+
+
+# --------------------------------------------------------------------------- cell shapes
+def tri(size=0.46, color=BLUE, op=0.9):
+    return Triangle(stroke_color=color, stroke_width=2, fill_color=color, fill_opacity=op).scale(size / 1.73)
+
+
+def dot(r=0.2, color=ORANGE, op=0.9):
+    return Circle(radius=r, stroke_color=color, stroke_width=2, fill_color=color, fill_opacity=op)
+
+
+def tabbed(r=0.26, direction=RIGHT, color=ORANGE):
+    """Travelling cell (orange) with its receptor tab (purple) on the leading side."""
+    c = dot(r, color)
+    ang = np.arctan2(direction[1], direction[0])
+    t = RoundedRectangle(corner_radius=0.03, width=r * 0.4, height=r * 0.95, stroke_color=PURPLE, stroke_width=1.5,
+                         fill_color=PURPLE, fill_opacity=1)
+    t.rotate(ang).move_to(c.get_center() + unit(np.array([np.cos(ang), np.sin(ang), 0])) * (r + r * 0.12))
+    g = VGroup(c, t)
+    g.c, g.tab = c, t
     return g
 
 
-def legend():
-    a = chip("inhibitory", ORANGE, 24).move_to([-4.5, 2.45, 0])
-    b = chip("excitatory", BLUE, 24).move_to([-4.5, 1.7, 0])
-    return VGroup(a, b)
-
-
-def lanes(op=0.12):
-    ls = []
-    for y in (LANE_TOP, LANE_DEEP):
-        ls.append(RoundedRectangle(corner_radius=0.3, width=X1 - X0 + 0.5, height=0.62, stroke_color=ORANGE, stroke_width=1.5,
-                                   stroke_opacity=0.5, fill_color=ORANGE, fill_opacity=op).move_to([(X0 + X1) / 2, y, 0]))
-    return VGroup(*ls)
-
-
-def cell(color=ORANGE, r=0.17, tab=False, stroke=None):
-    c = Circle(radius=r, stroke_color=stroke or color, stroke_width=2 if not stroke else 4, fill_color=color, fill_opacity=0.9)
-    g = VGroup(c)
-    g.c = c
-    g.tab = None
-    if tab:
-        t = RoundedRectangle(corner_radius=0.03, width=0.09, height=0.2, stroke_color=PURPLE, stroke_width=1,
-                             fill_color=PURPLE, fill_opacity=1).move_to(c.get_right() + RIGHT * 0.04)
-        g.tab = t
-        g.add(t)
-    g.vis = 1.0
-    g.tabvis = 1.0
+# --------------------------------------------------------------------------- cortex strip (s01, s02)
+def cortex_strip():
+    strip = RoundedRectangle(corner_radius=0.3, width=11.8, height=5.6, stroke_color=GREY, stroke_width=2.5,
+                             fill_color=GREY, fill_opacity=0.08).move_to([0, -0.3, 0])
+    rnd = random.Random(7)
+    tris, dots = VGroup(), VGroup()
+    for r in range(5):
+        for c in range(8):
+            x = -5.0 + c * 1.43 + rnd.uniform(-0.18, 0.18)
+            y = -0.3 + 2.2 - r * 1.1 + rnd.uniform(-0.1, 0.1)
+            if r == (c * 3 + 1) % 5:
+                dots.add(dot(0.28).move_to([x, y, 0]))
+            else:
+                tris.add(tri(0.64).move_to([x, y, 0]))
+    g = VGroup(strip, tris, dots)
+    g.strip, g.tris, g.dots = strip, tris, dots
     return g
 
 
-def set_vis(g, o):
-    g.c.set_fill(opacity=0.9 * o).set_stroke(opacity=o)
-    if g.tab is not None:
-        g.tab.set_fill(opacity=o * g.tabvis).set_stroke(opacity=o * g.tabvis)
+def nearest(p, group, n):
+    return sorted(group, key=lambda m: np.linalg.norm(m.get_center() - p))[:n]
 
 
-def streamer(g, speed):
-    g.speed = speed
-
-    def up(m, dt):
-        m.shift(RIGHT * m.speed * dt)
-        x = m.get_center()[0]
-        if x > X1:
-            m.shift(LEFT * (X1 - X0))
-            x = m.get_center()[0]
-        set_vis(m, max(0.0, min(1.0, (x - X0) / 0.5, (X1 - x) / 0.5)))
-    g.add_updater(up)
-    return g
+def excite_links(g):
+    src = g.tris[19]
+    tg = nearest(src.get_center(), [t for t in g.tris if t is not src], 3)
+    return VGroup(*[Arrow(src.get_center(), t.get_center(), buff=0.3, color=BLUE, stroke_width=5,
+                          max_tip_length_to_length_ratio=0.3) for t in tg])
 
 
-def stream_cells(tab=False):
-    """steady stream cells in both lanes; positions staggered, as when the story continues."""
-    out = []
-    for y, xs, sp in ((LANE_TOP, (-1.9, -0.6, 0.7, 2.0), 1.0), (LANE_DEEP, (-1.5, -0.2, 1.1, 2.4), 0.9)):
-        for x in xs:
-            g = cell(tab=tab).move_to([x, y, 0])
-            streamer(g, sp)
-            out.append(g)
+def inhib_links(g):
+    src = g.dots[3]
+    tg = nearest(src.get_center(), list(g.tris), 3)
+    out = VGroup()
+    for t in tg:
+        a, b = src.get_center(), t.get_center()
+        u = unit(b - a)
+        end = b - u * 0.32
+        ln = Line(a + u * 0.26, end, color=ORANGE, stroke_width=5)
+        perp = np.array([-u[1], u[0], 0]) * 0.17
+        out.add(VGroup(ln, Line(end + perp, end - perp, color=ORANGE, stroke_width=6)))
     return out
 
 
-def teal_dots(seed=2):
-    rnd = random.Random(seed)
-    ds = []
-    for y in (LANE_TOP, LANE_DEEP):
-        for i in range(14):
-            ds.append(Dot([rnd.uniform(X0 - 0.2, X1 + 0.1), y + rnd.uniform(-0.38, 0.38), 0], radius=0.06, color=TEAL))
-    return VGroup(*ds)
+def legend_chips():
+    a = chip("excitatory", BLUE, 24).move_to([2.3, 2.75, 0])
+    b = chip("inhibitory", ORANGE, 24).move_to([5.0, 2.75, 0])
+    return a, b
 
 
-def stop_updaters(cells):
-    for c in cells:
-        c.clear_updaters()
+# --------------------------------------------------------------------------- cortical wall (s03, s04, s12)
+WX0, WX1 = -3.6, 3.6
+FIBX = [-2.7, -1.35, 0.0, 1.35, 2.7]
 
 
+def wall():
+    rect = Rectangle(width=8.0, height=5.9, stroke_color=GREY, stroke_width=3, fill_color=GREY,
+                     fill_opacity=0.08).move_to([0, -0.05, 0])
+    surf = RoundedRectangle(corner_radius=0.06, width=8.0, height=0.16, stroke_width=0, fill_color=GREY,
+                            fill_opacity=0.6).move_to([0, 3.0, 0])
+    vent = Rectangle(width=8.0, height=0.5, stroke_width=0, fill_color=GREY, fill_opacity=0.25).move_to([0, -2.75, 0])
+    ls = lab("surface", GREY, 22).move_to([5.0, 3.0, 0])
+    lv = lab("ventricle", GREY, 22).move_to([5.1, -2.75, 0])
+    g = VGroup(rect, vent, surf, ls, lv)
+    g.surf = surf
+    return g
+
+
+def fibres():
+    return VGroup(*[Line([x, -2.5, 0], [x, 2.9, 0], color=GREY, stroke_width=3, stroke_opacity=0.85) for x in FIBX])
+
+
+# --------------------------------------------------------------------------- hemisphere section (s06 - s11, s22)
+def sector(a0, a1, col, op, sw=2.5):
+    return AnnularSector(inner_radius=R_IN, outer_radius=R_OUT, angle=np.radians(a1 - a0), start_angle=np.radians(a0),
+                         arc_center=np.array([CX, CY, 0]), stroke_color=col, stroke_width=sw, fill_color=col,
+                         fill_opacity=op)
+
+
+def swell(ang, op=0.55):
+    e = Ellipse(width=1.15, height=0.95, stroke_color=ORANGE, stroke_width=2.5, fill_color=ORANGE, fill_opacity=op)
+    e.rotate(np.radians(ang - 270)).move_to(pol(R_IN - 0.3, ang))
+    return e
+
+
+def section(stage="plain"):
+    """stage: plain (all grey), pal (pallium blue), both (pallium blue, subpallium orange)."""
+    lum = Circle(radius=R_IN, stroke_color=GREY, stroke_width=1.5, stroke_opacity=0.5, fill_color=LUMEN,
+                 fill_opacity=1).move_to([CX, CY, 0])
+    pal = sector(20, 160, BLUE if stage in ("pal", "both") else GREY, 0.5 if stage in ("pal", "both") else 0.15)
+    sub = sector(160, 380, ORANGE if stage == "both" else GREY, 0.35 if stage == "both" else 0.15)
+    g = VGroup(lum, pal, sub)
+    g.lum, g.pal, g.sub = lum, pal, sub
+    return g
+
+
+def chip_at(text, color, pos, size=24):
+    return chip(text, color, size).move_to(pos)
+
+
+def leader(a, b, col=GREY, frm=0.0, trim=0.0):
+    u = unit(b - a)
+    return Line(a + u * frm, b - u * trim, color=col, stroke_width=2, stroke_opacity=0.75)
+
+
+MK_X0, MK_X1, MK_Y = -6.2, -3.0, -3.05
+
+
+def marker(f=0.0):
+    ln = Line([MK_X0, MK_Y, 0], [MK_X1, MK_Y, 0], color=GREY, stroke_width=3)
+    r = lab("rostral", GREY, 22).move_to([MK_X0 + 0.45, MK_Y - 0.42, 0])
+    c = lab("caudal", GREY, 22).move_to([MK_X1 - 0.4, MK_Y - 0.42, 0])
+    pl = Line([0, -0.3, 0], [0, 0.3, 0], color=TEXT, stroke_width=7).move_to([plane_x(f), MK_Y, 0])
+    g = VGroup(ln, r, c, pl)
+    g.plane = pl
+    return g
+
+
+def plane_x(f):
+    return MK_X0 + 0.3 + f * (MK_X1 - MK_X0 - 0.6)
+
+
+# --------------------------------------------------------------------------- rule card (s14 - s16, s20, s24)
+def lag(seconds, anim):
+    return Succession(Wait(seconds), anim) if seconds > 0.01 else anim
+
+
+def top_labels():
+    pl = lab("pallium", BLUE, 30).move_to([0, 3.3, 0])
+    co = lab("= cortex", BLUE, 30).next_to(pl, RIGHT, buff=0.2)
+    return pl, co
+
+
+def rule_badge():
+    r = rule_text().move_to([0, -0.2, 0])
+    fit(r, max_w=10.8)
+    r.scale(0.6).move_to([-3.5, 3.05, 0])
+    bd = SurroundingRectangle(r, buff=0.15, corner_radius=0.15, color=GOLD, stroke_width=2.5)
+    return r, bd
+
+
+def card():
+    return RoundedRectangle(corner_radius=0.3, width=11.6, height=4.6, stroke_color=GOLD, stroke_width=3,
+                            fill_color=BG, fill_opacity=1)
+
+
+def rule_text(size=38):
+    """Two lines of the rule; returns (group, [word groups])."""
+    texts = ["Born outside the cortex,", "steered by what the cell can read."]
+    lines, words = [], []
+    for tx in texts:
+        t = T(tx, size, TEXT, font=TITLE_FONT)
+        idx = 0
+        for w in tx.split():
+            words.append(VGroup(*t[idx: idx + len(w)]))
+            idx += len(w)
+        lines.append(t)
+    g = VGroup(*lines).arrange(DOWN, buff=0.4)
+    g.words = words   # born outside the cortex, | steered by what the cell can read.
+    return g
+
+
+
+
+def question_cortex():
+    g=cortex_strip().scale(0.86).move_to([0,-0.9,0])
+    q=T("Where do the inhibitory\nneurons come from?",44,TEXT,font=TITLE_FONT,line_spacing=1.25).move_to([0,2.65,0])
+    return g,q
+
+
+def coronal(caudal=False, stage="both"):
+    lobes=VGroup()
+    for side in (-1,1):
+        outer=Ellipse(width=4.1 if not caudal else 3.7,height=5.3,stroke_color=GREY,stroke_width=3,
+                      fill_color=BLUE if stage!="plain" else GREY,fill_opacity=0.2).move_to([side*2.05,0,0])
+        # Tapered ventricular slit gives the schematic a medial indentation.
+        vent=VMobject(stroke_color=GREY,stroke_width=2,fill_color=LUMEN,fill_opacity=1)
+        w=1.0 if not caudal else 0.78
+        vp=[[-0.25,1.45,0],[-w,0.65,0],[-w*0.9,-0.45,0],[-0.25,-1.45,0],
+            [w*0.48,-0.85,0],[w*0.24,-0.05,0],[w*0.5,0.85,0],[-0.25,1.45,0]]
+        vent.set_points_smoothly([np.array(v) for v in vp])
+        vent.rotate(side*0.25).move_to([side*2.1,-0.05,0])
+        if stage == "both":
+            lower=Intersection(outer,Rectangle(width=4.5,height=2.8).move_to([side*2.05,-1.35,0]),
+                               stroke_width=0,fill_color=ORANGE,fill_opacity=0.22)
+            lobes.add(outer,lower,vent)
+        else:
+            lobes.add(outer,vent)
+    mid=DashedLine([0,-2.8,0],[0,2.8,0],color=GREY,stroke_width=2)
+    lobes.add(mid)
+    return lobes
+
+
+def eminences(caudal=False):
+    positions=([[-2.55,-1.35,0]] if caudal else [[-2.75,-1.1,0],[-1.05,-1.65,0]])
+    return VGroup(*[Ellipse(width=1.15,height=0.9,stroke_color=ORANGE,fill_color=ORANGE,fill_opacity=0.5).move_to(p) for p in positions])
+
+
+def plane_tag(caudal=False):
+    return lab("caudal section plane" if caudal else "rostral section plane",TEXT,30).move_to([0,3.25,0])
+
+
+def paired_sections():
+    out=VGroup()
+    for x,caud in ((-3.2,False),(3.2,True)):
+        tissue=coronal(caud).scale(0.62).move_to([x,0.5,0])
+        es=eminences(caud).scale(0.62,about_point=ORIGIN).shift([x,0.5,0])
+        title=lab("caudal section" if caud else "rostral section",TEXT,28).move_to([x,2.85,0])
+        out.add(VGroup(tissue,es,title))
+    return out
+
+
+def source_names():
+    a=lab("lateral ganglionic\neminence (LGE)",ORANGE,26).move_to([-4.65,-2.0,0])
+    b=lab("medial ganglionic\neminence (MGE)",ORANGE,26).move_to([-1.45,-2.0,0])
+    c=lab("caudal ganglionic\neminence (CGE)",ORANGE,26).move_to([3.2,-2.0,0])
+    return VGroup(a,b,c)
+
+
+def nursery():
+    g=paired_sections(); ns=source_names()
+    dots=VGroup()
+    for panel in g:
+        for e in panel[1]:
+            dots.add(dot(0.19,TEXT).move_to(e))
+    return g,ns,dots
+
+
+
+
+def fault_panels(tall=False):
+    stage=VGroup()
+    cells=VGroup();cues=VGroup()
+    for x in (-3.5,3.5):
+        box=RoundedRectangle(width=5.8 if tall else 5.5,height=6.7 if tall else 5.7,corner_radius=0.25,color=GREY,fill_color=GREY,fill_opacity=0.05).move_to([x,0.2,0])
+        road=DashedLine([x-1.6,-1.4,0],[x+1.6,1.0,0],color=GREY,stroke_width=5)
+        cl=tabbed(0.6,RIGHT).shift([x-0.55,-0.6,0])
+        cue=diamond(0.55).move_to([x+1.1,0.65,0])
+        stage.add(box,road);cells.add(cl);cues.add(cue)
+    return stage,cells,cues
+
+
+def embryo(x,scale=1):
+    body=VMobject(stroke_color=TEXT,stroke_width=4,fill_color=GREY,fill_opacity=0.22)
+    pts=[[-0.2,1.7,0],[-1.4,1.15,0],[-1.55,-0.3,0],[-0.7,-1.6,0],[0.65,-1.5,0],
+         [1.1,-0.55,0],[0.5,-0.1,0],[0.15,-0.9,0],[-0.6,-0.65,0],[-0.7,0.2,0],[0.3,0.35,0],[0.8,1.1,0],[-0.2,1.7,0]]
+    body.set_points_smoothly([np.array(p) for p in pts])
+    eye=dot(0.1,TEXT).move_to([-0.3,0.95,0])
+    return VGroup(body,eye).scale(scale).move_to([x,-0.45,0])
+
+
+def takeaway():
+    lines=["Most cortical interneurons", "start outside the cortex;", "what they read helps steer them."]
+    return VGroup(*[T(t,40,TEXT,font=TITLE_FONT) for t in lines]).arrange(DOWN,buff=0.42).move_to([0,0.25,0])
+
+
+# =========================================================================== scenes
 class S00Title(TitleCard):
-    LESSON = "Tangential migration"
-    TITLE = "Interneurons take the long way round"
+    LESSON = "Tangential Migration: Interneurons and the Long Way Round"
+    TITLE = "Born Outside"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Where(SpokenScene):
+class S01Two(SpokenScene):
+    def construct(self):
+        g = cortex_strip()
+        title = lab("cerebral cortex", TEXT, 30).move_to([0, 3.15, 0])
+        self.add(g, title)
+        self.at("Some excite", lead=0)
+        a = Arrow(g.tris[0].get_center(), g.tris[1].get_center(), buff=0.43, color=BLUE, stroke_width=6, max_tip_length_to_length_ratio=0.3)
+        ca = lab("excitatory →", BLUE, 30).move_to([-3.0, -3.45, 0])
+        self.play(GrowArrow(a), FadeIn(ca), run_time=0.4)
+        self.at("Others inhibit", lead=0)
+        src=g.dots[0].get_center()
+        target=nearest(src,list(g.tris),1)[0].get_center()
+        u=unit(target-src); end=target-u*0.43; perp=np.array([-u[1],u[0],0])*0.23
+        bar=VGroup(Line(src+u*0.3,end,color=ORANGE,stroke_width=6),
+                   Line(end+perp,end-perp,color=ORANGE,stroke_width=6))
+        cb = lab("inhibitory ⊣", ORANGE, 30).move_to([3.0,-3.45,0])
+        self.play(Create(bar), FadeIn(cb), run_time=0.4)
+        self.finish()
+
+
+class S02Fifth(SpokenScene):
+    def construct(self):
+        g = cortex_strip()
+        g.scale(0.85).move_to([0,-0.5,0])
+        self.add(g)
+        big = T("in rodents: about 1 in 5", 44, TEXT, font=TITLE_FONT).move_to([0,3.15,0])
+        row = VGroup(*[dot(0.34, GREY, 0.35) for _ in range(5)]).arrange(RIGHT,buff=0.6).move_to([0,2.35,0])
+        self.add(row)
+        self.at("roughly a fifth",lead=0)
+        self.play(FadeIn(big),row[4].animate.set_color(ORANGE).set_fill(ORANGE,0.95),run_time=0.45)
+        self.at("inhibitory interneurons",lead=0)
+        sub=lab("inhibitory interneurons",ORANGE,30).move_to([0,-3.25,0])
+        self.play(FadeIn(sub),*[Indicate(d,scale_factor=1.25) for d in g.dots],run_time=0.5)
+        self.finish()
+
+
+class S03Wall(SpokenScene):
     def construct(self):
         w = wall()
-        leg = legend()
-        inh = VGroup(*[cell().move_to(p) for p in ([-1.4, 0.5, 0], [0.2, -0.3, 0], [1.4, 0.9, 0], [2.7, -0.5, 0],
-                                                   [4.0, 0.3, 0], [4.9, 1.1, 0], [3.6, -1.2, 0])])
-        self.play(FadeIn(w), FadeIn(leg[0]), LaggedStart(*[FadeIn(c, scale=0.5) for c in inh], lag_ratio=0.15), run_time=1.2)
-        self.at("The excitatory neurons are")
-        xs = [-0.9, 0.6, 2.1, 3.1]
-        pyr = VGroup(*[cell(BLUE).move_to([x, -2.3, 0]) for x in xs])
-        self.play(FadeIn(leg[1]), LaggedStart(*[FadeIn(p, scale=0.5) for p in pyr], lag_ratio=0.2), run_time=0.9)
-        self.at("They are made in the wall")
-        self.wait(0.3)
+        lw = lab("cortical wall", GREY, 24).move_to([-5.4, 1.9, 0])
+        self.play(FadeIn(w), FadeIn(lw), run_time=1.0)
+        self.at("excitatory kind")
+        starts = [[x, -2.4, 0] for x in FIBX]
+        pyr = VGroup(*[tri(0.5).move_to(p) for p in starts])
+        self.play(LaggedStart(*[FadeIn(p, scale=0.5) for p in pyr], lag_ratio=0.15), run_time=0.9)
+        self.at("pyramidal neurons")
+        lp = lab("pyramidal\nneurons\n(excitatory)", BLUE, 26).move_to([-5.25, -1.9, 0])
+        self.play(FadeIn(lp), run_time=0.5)
         self.at("climb straight out")
-        self.play(LaggedStart(*[p.animate.move_to([p.get_center()[0], 1.6, 0]) for p in pyr], lag_ratio=0.15), run_time=2.0)
-        q = T("?", 80, YELLOW, weight=BOLD).move_to(EMI)
-        qa = DashedLine([-3.6, -1.0, 0], [-2.7, -1.0, 0], color=YELLOW, stroke_width=4)
-        self.at("So where do")
-        self.play(FadeIn(q, scale=0.6), Create(qa), Indicate(inh, color=ORANGE, scale_factor=1.25), run_time=1.0)
+        fb = fibres()
+        lr = lab("radial glial\nfibre", GREY, 24).move_to([5.1, 0.3, 0])
+        ar = Arrow(lr.get_left() + LEFT * 0.05, [2.75, 0.3, 0], buff=0.05, color=GREY, stroke_width=3)
+        span = DoubleArrow([-4.0, -2.7, 0], [-4.0, 2.9, 0], buff=0, color=GREY, stroke_width=4)
+        self.add(fb)
+        self.bring_to_back(fb)
+        fb.set_opacity(0)
+        anims = [fb.animate(run_time=0.6).set_opacity(0.85)]
+        for i, p in enumerate(pyr):
+            anims.append(lag(0.6 + 0.2 * i, p.animate(run_time=3.0, rate_func=linear).move_to([p.get_center()[0], 2.35, 0])))
+        anims.append(lag(1.2, AnimationGroup(FadeIn(lr), GrowArrow(ar))))
+        anims.append(lag(3.8, GrowArrow(span)))
+        self.play(AnimationGroup(*anims), run_time=4.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Origin(SpokenScene):
+def question_group():
+    q = T("Where do the inhibitory\nneurons come from?", 48, TEXT, font=TITLE_FONT, line_spacing=0.8).move_to([0, 1.2, 0])
+    ds = VGroup(*[dot(0.4, ORANGE, 0.0) for _ in range(6)]).arrange(RIGHT, buff=0.7).move_to([0, -1.6, 0])
+    qs = VGroup(*[lab("?", ORANGE, 30).move_to(d) for d in ds])
+    return q, ds, qs
+
+
+class S04Q(SpokenScene):
     def construct(self):
-        w, leg = wall(), legend()
-        inh = VGroup(*[cell().move_to(p) for p in ([-1.4, 0.5, 0], [0.2, -0.3, 0], [1.4, 0.9, 0], [2.7, -0.5, 0],
-                                                   [4.0, 0.3, 0], [4.9, 1.1, 0], [3.6, -1.2, 0])])
-        q = T("?", 80, YELLOW, weight=BOLD).move_to(EMI)
-        qa = DashedLine([-3.6, -1.0, 0], [-2.7, -1.0, 0], color=YELLOW, stroke_width=4)
-        pyr = VGroup(*[cell(BLUE).move_to([x, 1.6, 0]) for x in (-0.9, 0.6, 2.1, 3.1)])
-        self.add(w, leg, inh, pyr, q, qa)
-        em = eminence()
-        self.at("swellings called")
-        self.play(ReplacementTransform(q, em.e), FadeOut(qa), FadeIn(em.lab), run_time=0.9)
-        self.at("temporary zones")
-        self.play(FadeIn(em.prog, scale=0.5), run_time=0.7)
-        self.at("packed with dividing")
-        self.play(Indicate(em.prog, color=GREY, scale_factor=1.3), run_time=0.9)
-        # dye
-        patch = Circle(radius=0.5, stroke_width=0, fill_color=YELLOW, fill_opacity=0.5).move_to(EMI + [0.2, 0, 0])
-        dye_l = T("dye", 24, YELLOW).move_to([-4.5, 0.85, 0])
-        self.at("dye placed their")
-        self.play(FadeIn(patch, scale=0.4), FadeIn(dye_l), run_time=0.6)
-        starts = [[-4.4, -0.7, 0], [-4.2, -1.0, 0], [-4.4, -1.3, 0]]
-        lab = VGroup(*[cell(stroke=YELLOW).move_to(p) for p in starts])
-        self.at("labels some cells")
-        self.play(LaggedStart(*[FadeIn(c, scale=0.4) for c in lab], lag_ratio=0.2), run_time=0.8)
-        ends = [[-1.0, -1.25, 0], [-1.7, -1.5, 0], [-2.2, -1.75, 0]]
-        self.at("run sideways")
-        self.play(LaggedStart(*[c.animate.move_to(e) for c, e in zip(lab, ends)], lag_ratio=0.2), run_time=2.4)
-        # mutant case: reset, then show
-        chipm = T("no Dlx1, no Dlx2", 24, RED).move_to([-4.5, 0.95, 0])
-        mut = VGroup(*[cell().move_to(p) for p in ([-4.1, -0.7, 0], [-3.9, -1.1, 0], [-4.1, -1.5, 0])])
-        self.at("lacking both")
-        ghosts = VGroup(*[DashedVMobject(Circle(radius=0.17, color=RED, stroke_width=2.5), num_dashes=10).move_to(c)
-                          for c in inh])
-        miss = T("missing interneurons", 22, RED).move_to([4.4, -2.2, 0])
-        self.play(FadeOut(VGroup(patch, dye_l, lab, inh)), FadeIn(chipm), FadeIn(mut), run_time=0.9)
-        xmark = VGroup(Line([-3.0, -0.8, 0], [-2.6, -1.2, 0], color=RED, stroke_width=6),
-                       Line([-3.0, -1.2, 0], [-2.6, -0.8, 0], color=RED, stroke_width=6)).move_to([-2.75, -1.0, 0])
-        self.at("make no such trip")
-        self.play(*[c.animate.move_to([-3.4, y, 0]) for c, y in zip(mut, (-0.6, -1.0, -1.4))], FadeIn(xmark), run_time=1.0)
-        self.play(FadeIn(ghosts), FadeIn(miss), Indicate(pyr, color=BLUE, scale_factor=1.2), run_time=0.9)
-        few = VGroup(cell().move_to([0.2, -0.3, 0]), cell().move_to([2.7, -0.5, 0]))
-        self.at("few inhibitory neurons")
-        self.play(FadeIn(few, scale=0.5), run_time=0.8)
+        g,q=question_cortex()
+        self.add(g,q)
+        self.at("inhibitory neurons",lead=0)
+        self.play(*[d.animate.set_fill(ORANGE,0) for d in g.dots],run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Streams(SpokenScene):
+class S05Pause(NarratedScene):
     def construct(self):
-        w, leg, em = wall(), legend(), eminence()
-        self.add(w, leg, em, em.lab)
-        fibre = Line([2.3, WALL_Y0, 0], [2.3, WALL_Y1, 0], color=GREY, stroke_width=3)
-        flab = T("radial glial fibre", 22, GREY).move_to([4.6, -0.6, 0])
-        pyr = cell(BLUE).move_to([2.3, -2.3, 0])
-        self.at("A pyramidal neuron")
-        self.play(FadeIn(fibre), FadeIn(flab), FadeIn(pyr, scale=0.5), run_time=0.8)
-        self.at("right angles")
-        self.play(pyr.animate.move_to([2.3, 1.3, 0]), run_time=2.0)
-        inter = cell().move_to([X0, 0.2, 0])
-        harrow = Arrow([-1.9, -0.2, 0], [1.4, -0.2, 0], buff=0, color=ORANGE, stroke_width=4, tip_length=0.2)
-        self.at("An interneuron moves parallel")
-        self.play(FadeOut(pyr), FadeIn(inter, scale=0.5), run_time=0.6)
-        self.play(inter.animate.move_to([1.6, 0.2, 0]), GrowArrow(harrow), run_time=2.0)
-        self.at("with no")
-        self.play(FadeOut(fibre), FadeOut(flab), run_time=0.6)
-        harrow2 = Arrow([-1.9, -0.2, 0], [4.6, -0.2, 0], buff=0, color=ORANGE, stroke_width=4, tip_length=0.2)
-        self.at("to follow")
-        self.play(inter.animate.move_to([4.8, 0.2, 0]), Transform(harrow, harrow2), run_time=2.2, rate_func=linear)
-        ls = lanes()
-        cells = stream_cells()
-        for c in cells:
-            set_vis(c, 0)
-        self.at("in the cortex")
-        self.play(FadeOut(harrow), FadeOut(inter), FadeIn(ls), run_time=0.8)
-        self.add(*cells)
-        sup = T("superficial stream", 22, ORANGE).move_to([4.6, LANE_TOP, 0])
-        deep = T("deep stream", 22, ORANGE).move_to([4.6, LANE_DEEP, 0])
-        self.at("One runs just beneath")
-        self.play(FadeIn(sup), Indicate(ls[0], color=ORANGE, scale_factor=1.06), run_time=0.9)
-        self.at("The other runs deep")
-        self.play(FadeIn(deep), Indicate(ls[1], color=ORANGE, scale_factor=1.06), run_time=0.9)
-        plate = T("cortical plate", 22, GREY).move_to([4.6, 0.2, 0])
-        one = cell().move_to([-0.3, 0.1, 0])
-        self.at("Between them")
-        self.play(FadeIn(plate), run_time=0.6)
-        self.at("holds few")
-        self.play(FadeIn(one, scale=0.5), run_time=0.6)
+        g,q=question_cortex()
+        for d in g.dots: d.set_fill(ORANGE,0)
+        self.add(g,q)
+        for _ in range(2):
+            self.play(*[d.animate.set_stroke(width=5) for d in g.dots],run_time=1.2)
+            self.play(*[d.animate.set_stroke(width=2) for d in g.dots],run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Chemokine(SpokenScene):
+# ---- hemisphere scenes
+class S06Map(SpokenScene):
     def construct(self):
-        w, em = wall(), eminence()
-        ls = lanes()
-        cells = stream_cells()
-        self.add(w, em, ls, *cells)
-        c12 = chip("CXCL12", TEAL, 24).move_to([-4.5, 2.45, 0])
-        c4 = chip("CXCR4", PURPLE, 24).move_to([-4.5, 1.7, 0])
-        dots = teal_dots()
-        dive = DashedLine([0.0, LANE_TOP - 0.35, 0], [0.0, 0.4, 0], color=GREY, stroke_width=4).add_tip(tip_length=0.2)
-        self.at("Why do cells stay")
-        self.play(Create(dive), run_time=0.7)
-        self.at("at once")
-        self.wait(0.4)
-        gen = chip("chemokine", TEAL, 24).move_to([-4.5, 2.45, 0])
-        self.at("Chemokines are small")
-        self.play(FadeOut(dive), FadeIn(gen), run_time=0.7)
-        self.at("One chemokine")
-        self.play(ReplacementTransform(gen, c12), run_time=0.7)
-        self.at("lines both streams")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in dots], lag_ratio=0.03), run_time=1.6)
-        # meninges source
-        men_dots = VGroup(*[Dot([x, 2.75, 0], radius=0.06, color=TEAL) for x in np.linspace(-2.3, 3.0, 12)])
-        self.at("The meninges make it")
-        self.play(FadeIn(men_dots, scale=0.3), Indicate(w[1], color=TEAL, scale_factor=1.02), run_time=0.9)
-        prec = VGroup()
-        for x in (-1.6, -0.2, 1.2, 2.6):
-            prec.add(VGroup(cell(BLUE, 0.13).move_to([x - 0.16, -2.32, 0]), cell(BLUE, 0.13).move_to([x + 0.16, -2.32, 0])))
-        self.at("dividing precursors")
-        self.play(LaggedStart(*[FadeIn(p, scale=0.5) for p in prec], lag_ratio=0.2), run_time=1.0)
-        # receptor tabs on the stream cells
-        for c in cells:
-            c.tabvis = 0.0
-        tabs = []
-        for c in cells:
-            t = cell(tab=True)
-            c.tab = t.tab
-            c.add(t.tab)
-            c.tab.set_fill(opacity=0).set_stroke(opacity=0)
-            c.tab.move_to(c.c.get_right() + RIGHT * 0.04)
-            tabs.append(c.tab)
-        self.at("its receptor")
-        for c in cells:
-            c.tabvis = 1.0
-        self.play(FadeIn(c4), run_time=0.8)
-        self.wait(0.6)
-        # chamber assay
-        self.at("In a chamber assay")
-        main = VGroup(w, em, em.lab, ls, dots, men_dots, prec, c12, c4, *cells)
-        stop_updaters(cells)
-        self.play(FadeOut(main), run_time=0.7)
-        self.remove(*cells)
-
-        def chamber(cx):
-            up = Rectangle(width=4.6, height=2.3, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.08).move_to([cx, 1.3, 0])
-            lo = Rectangle(width=4.6, height=2.3, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.08).move_to([cx, -1.0, 0])
-            mem = DashedLine([cx - 2.3, 0.15, 0], [cx + 2.3, 0.15, 0], color=GREY, stroke_width=4)
-            return VGroup(up, lo, mem)
-        rnd = random.Random(8)
-
-        def cells_up(cx):
-            return VGroup(*[cell().move_to([cx + dx, 1.3 + dy, 0]) for dx, dy in
-                            ((-1.5, 0.4), (-0.7, -0.4), (0.1, 0.5), (0.9, -0.3), (1.6, 0.35))])
-
-        def dots_in(cx, y0, y1, n):
-            return VGroup(*[Dot([cx + rnd.uniform(-2.1, 2.1), rnd.uniform(y0, y1), 0], radius=0.06, color=TEAL) for _ in range(n)])
-        chA = chamber(-3.3)
-        cA = cells_up(-3.3)
-        dA = dots_in(-3.3, -2.0, -0.2, 16)
-        lA = T("chemokine below", 24, TEAL).move_to([-3.3, -2.75, 0])
-        self.play(FadeIn(chA), FadeIn(cA), FadeIn(dA, scale=0.3), FadeIn(lA), run_time=0.9)
-        self.at("move toward it")
-        self.play(LaggedStart(*[c.animate.move_to([c.get_center()[0], -0.6 - 0.25 * i, 0]) for i, c in enumerate(cA)],
-                              lag_ratio=0.12), run_time=1.0)
-        chB = chamber(3.3)
-        cB = cells_up(3.3)
-        dB = VGroup(dots_in(3.3, 0.5, 2.3, 8), dots_in(3.3, -2.0, -0.2, 8))
-        lB = T("equal on both sides", 24, TEAL).move_to([3.3, -2.75, 0])
-        self.at("but not when")
-        self.play(FadeIn(chB), FadeIn(cB), run_time=0.6)
-        self.at("equally on both sides")
-        self.play(FadeIn(dB, scale=0.3), FadeIn(lB), run_time=0.7)
-        self.play(Indicate(cB, color=ORANGE, scale_factor=1.15), run_time=0.8)
+        g=coronal(stage="plain"); tag=plane_tag()
+        dl=lab("dorsal",TEXT,28).move_to([0,2.75,0])
+        vl=lab("ventral",TEXT,28).move_to([0,-2.95,0])
+        lateral=lab("lateral",GREY,26).move_to([5.0,0,0])
+        mid=lab("midline",GREY,26).move_to([0,-3.5,0])
+        self.add(g,tag,dl,vl,lateral,mid,marker(0))
+        self.at("dorsal part",lead=0)
+        caps=VGroup(*[Arc(radius=2.0,start_angle=0.15,angle=PI-0.3,color=BLUE,stroke_width=24).stretch(1.2,1).move_to([x,1.55,0]) for x in (-2.05,2.05)])
+        self.play(Create(caps),run_time=0.45)
+        self.at("the pallium",lead=0)
+        pl=lab("pallium",BLUE,32).move_to([-5.05,1.8,0])
+        ln=leader(pl.get_right(),np.array([-3.3,2.0,0]))
+        self.play(FadeIn(pl),Create(ln),run_time=0.4)
+        self.at("forms the cortex",lead=0)
+        co=lab("forms cortex",BLUE,28).move_to([5.0,1.8,0])
+        self.play(FadeIn(co),run_time=0.35)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Leave(SpokenScene):
+def sec_state(stage="both", swells=(A_LGE, A_MGE)):
+    sec = section(stage)
+    sw = {a: swell(a) for a in swells}
+    return sec, sw
+
+
+class S07Sub(SpokenScene):
     def construct(self):
-        w, em = wall(), eminence()
-        ls, dots = lanes(), teal_dots()
-        cells = stream_cells(tab=True)
-        self.add(w, em, ls, dots, *cells)
-        nochip = T("no CXCR4", 24, RED).move_to([-4.5, 1.7, 0])
-        self.at("Take away the receptor")
-        # the stream updater rewrites tab opacity every frame from tabvis, so fade tabvis itself
-        tr = ValueTracker(1.0)
-        for c in cells:
-            c.add_updater(lambda m, tr=tr: (setattr(m, "tabvis", tr.get_value()), set_vis(m, m.c.get_stroke_opacity())))
-        self.play(FadeIn(nochip), tr.animate.set_value(0.0), run_time=0.8)
-        # reset to the mutant starting state: new cells entering at the left edge
-        stop_updaters(cells)
-        mut = []
-        for y, tgt in ((LANE_TOP, 0.6), (LANE_DEEP, -0.5)):
-            for k in range(3):
-                mut.append((cell().move_to([X0 - 0.1 - 0.0 * k, y, 0]), y, tgt, k))
-        self.play(FadeOut(VGroup(*cells)), *[FadeIn(m[0], scale=0.5) for m in mut], run_time=0.7)
-        self.remove(*cells)
-        self.at("leave their streams")
-        self.play(*[m[0].animate(rate_func=linear).move_to([-1.2 + 0.0, m[1], 0]) for m in mut], run_time=1.2)
-        self.at("enter the cortical plate")
-        self.play(*[m[0].animate.move_to([-1.2 + 0.55 * m[3], m[2] + (0.3 if m[1] > 0 else -0.3) * m[3] * 0.3, 0]) for m in mut], run_time=1.4)
-        ref = DoubleArrow([X0, -2.95, 0], [X1, -2.95, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.15)
-        short = DoubleArrow([X0, -3.35, 0], [-0.1, -3.35, 0], buff=0, color=ORANGE, stroke_width=4, tip_length=0.15)
-        l1 = T("normal spread", 22, GREY).move_to([4.6, -2.95, 0])
-        l2 = T("less spread", 22, ORANGE).move_to([4.6, -3.35, 0])
-        self.at("spread less widely")
-        self.play(GrowFromCenter(ref), FadeIn(l1), run_time=0.6)
-        self.play(GrowFromCenter(short), FadeIn(l2), run_time=0.7)
-        # normal case
-        norm = stream_cells(tab=True)
-        self.at("Normally")
-        self.play(FadeOut(VGroup(*[m[0] for m in mut], ref, short, l1, l2, nochip)), run_time=0.7)
-        for c in norm:
-            set_vis(c, 0)
-        self.add(*norm)
-        self.at("stop answering")
-        # the hero is one of the stream cells: it keeps pace with its lane, so nothing overlaps
-        top = [c for c in norm[:4] if c.get_center()[0] > -1.8]
-        hero = min(top, key=lambda c: abs(c.get_center()[0] + 1.2))
-        hero.clear_updaters()
-        hero.t, hero.turn = 0.0, False
-
-        def hero_up(m, dt):
-            m.t += dt
-            if not m.turn:
-                m.shift(RIGHT * 1.0 * dt)
-            elif m.get_center()[1] > 0.4:
-                m.shift((RIGHT * 0.45 + DOWN * 0.9) * dt)
-            m.tabvis = max(0.0, 1.0 - m.t / 0.8)
-            set_vis(m, 1.0)
-        hero.add_updater(hero_up)
-        ring = Circle(radius=0.32, stroke_color=ORANGE, stroke_width=3).move_to(hero)
-        ring.add_updater(lambda r: r.move_to(hero))
-        self.play(Create(ring), run_time=0.6)
-        self.at("to leave a stream")
-        self.wait(0.3)
-        self.at("turns into the plate")
-        hero.turn = True
-        self.wait(1.7)
-        ring.clear_updaters()
-        hero.clear_updaters()
-        self.play(FadeOut(ring), run_time=0.4)
+        g=coronal(); tag=plane_tag(); mk=marker(0)
+        self.add(g,tag,mk)
+        self.at("ventral part",lead=0)
+        sl=lab("subpallium",ORANGE,32).move_to([4.8,-2.3,0])
+        self.play(FadeIn(sl),run_time=0.3)
+        self.at("bulges into",lead=0)
+        es=eminences()
+        self.play(GrowFromCenter(es),run_time=0.45)
+        vl=lab("ventricle",TEXT,26).move_to([2.1,0.25,0])
+        self.add(vl)
+        self.at("as three",lead=0)
+        self.remove(vl,sl)
+        ng=coronal(True); ne=eminences(True); nt=plane_tag(True)
+        self.play(ReplacementTransform(g,ng),ReplacementTransform(es,ne),Transform(tag,nt),
+                  mk.plane.animate.move_to([plane_x(1),MK_Y,0]),run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S08Ge(SpokenScene):
     def construct(self):
-        w, em = wall(), eminence(with_label=False)
-        ls, dots = lanes(), teal_dots()
-        self.add(w, em, ls, dots)
-        hero = cell(tab=True).move_to(EMI + [0.2, 0, 0])
-        c1 = chip("born outside", GREY, 24).move_to([-4.5, -3.15, 0])
-        c2 = chip("held by CXCL12", TEAL, 24).move_to([0.2, -3.15, 0])
-        c3 = chip("stops answering", ORANGE, 24).move_to([4.2, -3.15, 0])
-        self.at("series of decisions")
-        self.play(FadeIn(hero, scale=0.5), run_time=0.6)
-        self.at("born outside")
-        self.play(FadeIn(c1), hero.animate.move_to([-3.2, -1.3, 0]), run_time=1.0)
-        self.at("travel sideways")
-        self.play(hero.animate.move_to([-2.3, LANE_DEEP, 0]), run_time=0.5)
-        self.play(hero.animate.move_to([0.3, LANE_DEEP, 0]), run_time=1.5, rate_func=linear)
-        self.at("keeps them in")
-        self.play(FadeIn(c2), *[Indicate(d, color=TEAL, scale_factor=1.8) for d in dots], run_time=1.0)
-        self.at("Keep this rule")
-        self.wait(0.2)
-        self.at("stop answering")
-        self.play(FadeIn(c3), hero.tab.animate.set_opacity(0), Indicate(hero.c, color=ORANGE, scale_factor=1.4), run_time=0.8)
-        self.play(hero.animate.move_to([2.0, 0.3, 0]), run_time=1.3)
+        g=paired_sections(); ns=source_names()
+        self.add(g)
+        # Labels connect to the two actual section planes, never a combined ring.
+        targets=[g[0][1][0],g[0][1][1],g[1][1][0]]
+        for cue,n,e in zip(("lateral","medial","and caudal"),ns,targets):
+            self.at(cue,lead=0)
+            ln=leader(n.get_top(),e.get_bottom())
+            self.play(FadeIn(n),Create(ln),Indicate(e),run_time=0.3)
+        self.at("not ganglia",lead=0)
+        ng=chip("germinal zones, not ganglia",TEXT,30).move_to([0,-3.2,0])
+        self.play(FadeIn(ng),run_time=0.3)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "A chemokine keeps interneurons in their lanes until they stop answering."
+def eminence_dots(color=TEXT, op=0.9, r=0.09):
+    out = {}
+    offs = [(-0.27, 0.0), (0.27, 0.0), (0.0, 0.2), (0.0, -0.2), (0.0, 0.0)]
+    for a in (A_LGE, A_CGE, A_MGE):
+        cen = pol(R_IN - 0.3, a)
+        th = np.radians(a - 270)
+        ds = VGroup()
+        for ox, oy in offs:
+            rx, ry = ox * np.cos(th) - oy * np.sin(th), ox * np.sin(th) + oy * np.cos(th)
+            ds.add(dot(r, color, op).move_to(cen + np.array([rx, ry, 0])))
+        out[a] = ds
+    return out
+
+
+class S09Nursery(SpokenScene):
+    def construct(self):
+        g,ns,ds=nursery(); self.add(g,ns)
+        self.at("germinal zones",lead=0)
+        gz=lab("temporary germinal zones",TEXT,30).move_to([0,3.45,0])
+        self.play(FadeIn(gz),run_time=0.3)
+        self.at("packed with",lead=0)
+        self.play(FadeIn(ds),run_time=0.25)
+        self.at("dividing progenitors",lead=0)
+        title=lab("dividing progenitors",TEXT,30).move_to([0,-3.25,0])
+        twins=ds.copy();self.add(twins)
+        self.play(FadeIn(title),*[d.animate.shift(LEFT*0.24) for d in ds],
+                  *[d.animate.shift(RIGHT*0.24) for d in twins],run_time=0.6)
+        self.finish()
+
+
+class S10Transmit(SpokenScene):
+    def construct(self):
+        g,ns,ds=nursery();self.add(g,ns,ds)
+        pp=VGroup(*[dot(0.19,TEXT).move_to([x,1.65,0]) for x in (-4.47,-1.93,1.93,4.47)])
+        self.add(pp)
+        self.at("release glutamate",lead=0)
+        trs=VGroup(*[tri(0.55).move_to(p) for p in pp])
+        gl=lab("pallium: glutamate neurons",BLUE,30).move_to([0,3.45,0])
+        self.play(*[ReplacementTransform(p,t) for p,t in zip(pp,trs)],FadeIn(gl),run_time=0.4)
+        self.at("GABA",lead=0)
+        ga=lab("subpallium: GABA neurons",ORANGE,30).move_to([0,-2.85,0])
+        self.play(*[d.animate.set_color(ORANGE).set_fill(ORANGE,0.95) for d in ds],FadeIn(ga),run_time=0.35)
+        self.at("main inhibitory transmitter",lead=0)
+        cap=lab("the main inhibitory transmitter",TEXT,28).move_to([0,-3.5,0])
+        self.play(FadeIn(cap),run_time=0.3)
+        self.finish()
+
+
+def route_points():
+    main = [pol(R_IN - 0.3, A_MGE), np.array([0.45, -0.2, 0]), np.array([-0.2, 0.55, 0]), np.array([-0.9, 1.0, 0]),
+            np.array([-1.5, 1.25, 0]), pol(2.25, 148)]
+    branch = [pol(R_IN - 0.3, A_CGE), np.array([-0.35, -0.4, 0]), np.array([-0.2, 0.55, 0])]
+    return main, branch
+
+
+class S11Reveal(SpokenScene):
+    def construct(self):
+        g=paired_sections(); self.add(g)
+        title=lab("rodents: most cortical interneurons",TEXT,30).move_to([0,3.5,0]);self.add(title)
+        dest=lab("pallial wall → cortex",BLUE,28).move_to([0,-3.4,0])
+        starts=[[-3.851,-0.523,0],[1.62,-0.34,0]]
+        cells=VGroup(*[dot(0.12).move_to(p) for p in starts],
+                     dot(0.12).move_to([-3.80,-0.68,0]))
+        names=VGroup(lab("MGE",ORANGE,28).move_to([-2.0,-1.7,0]),lab("CGE",ORANGE,28).move_to([3.2,-1.7,0]))
+        paths=[]; roads=VGroup()
+        for pts in ([starts[0],[-4.9,-0.85,0],[-5.35,0.1,0],[-5.32,0.8,0],[-4.95,1.55,0],[-4.3,1.78,0]],
+                    [starts[1],[1.35,-0.55,0],[1.12,0.2,0],[1.25,1.1,0],[1.7,1.85,0],[1.9,1.85,0]],
+                    [[-3.80,-0.68,0],[-4.9,-1.05,0],[-5.53,0.1,0],[-5.5,0.8,0],[-5.03,1.72,0],[-4.3,1.94,0]]):
+            path=VMobject().set_points_smoothly([np.array(p) for p in pts]);paths.append(path)
+            roads.add(DashedVMobject(path,num_dashes=26).set_color(ORANGE).set_stroke(width=3,opacity=0.65))
+        # The route and source cells are visible from the first narrated frame.
+        self.add(roads,cells)
+        self.at("medial",lead=0)
+        self.play(FadeIn(names[0]),Create(leader(names[0].get_top(),g[0][1][1].get_bottom())),run_time=0.3)
+        self.at("caudal",lead=0)
+        self.play(FadeIn(names[1]),Create(leader(names[1].get_top(),g[1][1][0].get_bottom())),run_time=0.3)
+        st=lab("striatum (from the LGE)",GREY,28).move_to([-3.4,-2.65,0])
+        ln=leader(st.get_top(),g[0][1][0].get_bottom())
+        self.play(g[0][1][0].animate.set_opacity(0.3),FadeIn(st),Create(ln),run_time=0.3)
+        self.at("they travel",lead=0)
+        self.play(FadeIn(dest),*[MoveAlongPath(c,p,rate_func=linear) for c,p in zip(cells,paths)],run_time=1.8)
+
+        self.finish()
+
+
+def RADIAL():
+    t = lab("radial", GREY, 22).move_to([-4.9, -1.2, 0])
+    ar = Arrow(t.get_right() + RIGHT * 0.05, [-2.8, -1.2, 0], buff=0.0, color=GREY, stroke_width=2.5,
+               max_tip_length_to_length_ratio=0.15)
+    return VGroup(t, ar)
+
+
+def wall_frame(dot_x=None, tri_y=None, tri_op=0.4):
+    """Wall with surface, a dotted tangential path, the orange cell and a faint radial climber."""
+    w = wall()
+    fb = fibres()
+    path = DashedLine([-3.2, 0.9, 0], [3.2, 0.9, 0], color=ORANGE, stroke_width=4, dash_length=0.2)
+    head = Triangle(fill_color=ORANGE, fill_opacity=1, stroke_width=0).scale(0.14).rotate(-PI / 2).move_to([3.3, 0.9, 0])
+    c = dot(0.36, ORANGE).move_to([-3.0 if dot_x is None else dot_x, 0.9, 0])
+    t = tri(0.75, BLUE, tri_op).move_to([-2.7, -2.4 if tri_y is None else tri_y, 0])
+    g = VGroup(w, fb, path, head, c, t)
+    g.c, g.t, g.path, g.head = c, t, path, head
+    return g
+
+
+class S12Name(SpokenScene):
+    def construct(self):
+        g = wall_frame()
+        w, fb = g.submobjects[0], g.submobjects[1]
+        self.add(w, fb)
+        lr = RADIAL()
+        pa = lab("parallel to\nthe surface", TEXT, 28).move_to([5.25, -0.4, 0])
+        self.play(Create(g.path), FadeIn(g.head), FadeIn(g.c, scale=0.5), FadeIn(g.t), FadeIn(lr), run_time=0.5)
+        self.play(g.c.animate(run_time=2.2, rate_func=linear).move_to([2.7, 0.9, 0]),
+                  g.t.animate(run_time=2.2, rate_func=linear).move_to([-2.7, 2.35, 0]),
+                  lag(0.4, FadeIn(pa)), run_time=2.2)
+        self.at("tangential migration")
+        tm = lab("tangential\nmigration", ORANGE, 32, weight=BOLD).move_to([5.25, 0.9, 0])
+        self.play(FadeIn(tm, shift=LEFT * 0.1), run_time=0.8)
+        self.finish()
+
+
+class S13Beat(NarratedScene):
+    def construct(self):
+        g = wall_frame(dot_x=2.7, tri_y=2.35, tri_op=0.45)
+        lr = RADIAL()
+        tm = lab("tangential\nmigration", ORANGE, 32, weight=BOLD).move_to([5.25, 0.9, 0])
+        pa = lab("parallel to\nthe surface", TEXT, 28).move_to([5.25, -0.4, 0])
+        self.add(g, lr, tm, pa)
+        self.finish()
+
+
+def card_with_header():
+    c = card()
+    h = T("THE ONE IDEA", 26, GOLD, weight=BOLD).move_to([0, 1.65, 0])
+    return c, h
+
+
+class S14Idea(SpokenScene):
+    def construct(self):
+        g = wall_frame(dot_x=2.7, tri_y=2.35, tri_op=0.45)
+        lr = RADIAL()
+        tm = lab("tangential\nmigration", ORANGE, 32, weight=BOLD).move_to([5.25, 0.9, 0])
+        pa = lab("parallel to\nthe surface", TEXT, 28).move_to([5.25, -0.4, 0])
+        old = VGroup(g, lr, tm, pa)
+        self.add(old)
+        c = card().shift(RIGHT * 14)
+        t = T("The one idea", 60, TEXT, font=TITLE_FONT).shift(RIGHT * 14)
+        self.at("Here is", lead=0.0)
+        self.play(FadeOut(old), c.animate.shift(LEFT * 14), t.animate.shift(LEFT * 14), run_time=0.9)
+        self.finish()
+
+
+class S15Rule(SpokenScene):
+    def construct(self):
+        c, h = card_with_header()
+        r = rule_text().move_to([0, -0.2, 0])
+        fit(r, max_w=10.8)
+        r.set_opacity(0)
+        t = T("The one idea", 60, TEXT, font=TITLE_FONT)
+        self.add(c, t)
+        self.add(r)
+        self.play(Transform(t, h), r.words[0].animate.set_opacity(1), run_time=0.45)
+        W = r.words
+        seq = [("outside", [1]), ("the cortex", [2, 3]), ("steered by", [4, 5]), ("what", [6]),
+               ("the cell", [7, 8]), ("can read", [9, 10])]
+        for cue, gi in seq:
+            self.at(cue, lead=0.05)
+            self.play(*[W[i].animate.set_opacity(1) for i in gi], run_time=0.3)
+        self.finish()
+
+
+class S16Beat(NarratedScene):
+    def construct(self):
+        c, h = card_with_header()
+        r = rule_text().move_to([0, -0.2, 0])
+        fit(r, max_w=10.8)
+        self.add(c, h, r)
+        self.finish()
+
+
+# ---- the road
+ROAD = [[-5.0, -1.3, 0], [-4.6, 0.2, 0], [-3.0, 1.0, 0], [-1.4, 0.4, 0], [-0.2, 0.0, 0], [0.6, 0.7, 0],
+        [1.5, 2.2, 0], [3.5, 2.2, 0], [6.0, 2.2, 0]]
+
+
+def road_scene():
+    mge = Ellipse(width=1.7, height=1.4, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE,
+                  fill_opacity=0.3).move_to([-5.4, -1.9, 0])
+    ml = lab("MGE", ORANGE, 24).move_to(mge)
+    st = Ellipse(width=3.8, height=2.0, stroke_color=GREY, stroke_width=3, fill_color=GREY,
+                 fill_opacity=0.22).move_to([-3.0, -1.5, 0])
+    sl = lab("striatum", GREY, 24).move_to(st)
+    cx = Rectangle(width=5.9, height=4.0, stroke_color=BLUE, stroke_width=3, fill_color=BLUE,
+                   fill_opacity=0.08).move_to([3.65, 1.3, 0])
+    cl = lab("cortex", BLUE, 24).move_to([5.5, -0.4, 0])
+    lane = RoundedRectangle(corner_radius=0.3, width=5.0, height=0.9, stroke_color=ORANGE, stroke_width=1.5,
+                            stroke_opacity=0.5, fill_color=ORANGE, fill_opacity=0.15).move_to([3.9, 2.2, 0])
+    path = VMobject().set_points_smoothly([np.array(p, dtype=float) for p in ROAD])
+    road = DashedVMobject(path, num_dashes=60).set_color(TEXT).set_stroke(width=4)
+    return VGroup(mge, ml, st, sl, cx, cl, lane), road, path
+
+
+def prop_near(path, target):
+    best, bp = 9, 0
+    for i in range(0, 1001):
+        p = i / 1000
+        d = np.linalg.norm(path.point_from_proportion(p) - np.array(target, dtype=float))
+        if d < best:
+            best, bp = d, p
+    return bp
+
+
+def diamond(size=0.3, color=TEAL, filled=True):
+    d = Square(side_length=size * 1.4, stroke_color=color, stroke_width=3, fill_color=color,
+               fill_opacity=0.9 if filled else 0.0).rotate(PI / 4)
+    return d
+
+
+class S17Cue(SpokenScene):
+    def construct(self):
+        title=lab("two turns along the route",TEXT,34).move_to([0,3.3,0])
+        st=Ellipse(width=3.0,height=1.8,color=GREY,fill_color=GREY,fill_opacity=0.25).move_to([-3.4,-0.5,0])
+        sl=lab("striatum",TEXT,28).move_to(st)
+        cx=RoundedRectangle(width=5.3,height=4.3,corner_radius=0.2,color=BLUE,fill_color=BLUE,fill_opacity=0.08).move_to([3.4,0.1,0])
+        lane=RoundedRectangle(width=4.6,height=0.95,corner_radius=0.3,color=ORANGE,fill_color=ORANGE,fill_opacity=0.15).move_to([3.4,1.2,0])
+        labels=VGroup(lab("turn 1: round the striatum",TEXT,28).move_to([-3.4,2.55,0]),
+                      lab("turn 2: into a lane",TEXT,28).move_to([3.4,2.55,0]),lab("cortex",BLUE,28).move_to([4.9,-1.6,0]))
+        p1=VMobject().set_points_smoothly([np.array(p) for p in [[-5.3,-2.1,0],[-5.4,0.1,0],[-4.5,1.2,0],[-2.5,1.5,0],[-1.2,1.5,0]]])
+        p2=VMobject().set_points_smoothly([np.array(p) for p in [[1.35,-1.5,0],[1.4,0.1,0],[2.2,1.2,0],[4.8,1.2,0]]])
+        roads=VGroup(*[DashedVMobject(p,num_dashes=25).set_stroke(TEXT,4) for p in (p1,p2)])
+        self.add(title,st,sl,cx,lane,labels,roads)
+        c1=tabbed(0.32,RIGHT).shift([-4.4,1.5,0]);c2=tabbed(0.32,RIGHT).shift([2.5,1.2,0])
+        c1.tab.set_opacity(0);c2.tab.set_opacity(0);self.add(c1,c2)
+        self.at("road holds a cue",lead=0)
+        repel=Triangle(color=TEAL,fill_color=TEAL,fill_opacity=1).scale(0.20).rotate(-PI/2)
+        hold=diamond(0.25)
+        # Contact is edge-to-edge with each leading receptor, above the path.
+        repel.next_to(c1.tab,RIGHT,buff=0)
+        hold.next_to(c2.tab,RIGHT,buff=0)
+        tags=VGroup(lab("repel",TEAL,28).move_to([-1.4,0.8,0]),lab("hold",TEAL,28).move_to([3.3,0.15,0]),
+                    lab("cue on the road",TEAL,30).move_to([-3.2,-2.9,0]))
+        self.play(FadeIn(repel),FadeIn(hold),FadeIn(tags),run_time=0.4)
+        self.at("cell carries",lead=0)
+        rl=lab("receptor on the cell",PURPLE,30).move_to([3.1,-2.9,0])
+        self.play(c1.tab.animate.set_opacity(1),c2.tab.animate.set_opacity(1),FadeIn(rl),run_time=0.35)
+        self.play(Indicate(c1.tab,color=PURPLE),Indicate(c2.tab,color=PURPLE),run_time=0.7)
+        self.finish()
+
+
+class S18Either(SpokenScene):
+    def construct(self):
+        stage,cells,cues=fault_panels(tall=True)
+        cues[1].set_fill(opacity=0).set_stroke(RED,opacity=0.45)
+        self.add(stage,cells,cues)
+        self.at("a fault can sit",lead=0)
+        hl=lab("a fault in the cell",TEXT,30).move_to([-3.5,2.5,0])
+        self.play(FadeIn(hl),cells[0].animate.shift(RIGHT*0.35+UP*0.25),run_time=0.4)
+        self.at("cannot answer",lead=0)
+        mark=lab("×",RED,60).move_to(cells[0].tab)
+        stuck=lab("stalled: cannot answer",RED,28).move_to([-3.5,-2.05,0])
+        trail=VGroup(*[dot(0.6,ORANGE).set_opacity(op).move_to([-5.35+i*0.4,-1.3+i*0.28,0])
+                       for i,op in enumerate((0.07,0.13,0.22))])
+        stop=Line(cells[0].get_right()+RIGHT*0.12+DOWN*0.5,
+                  cells[0].get_right()+RIGHT*0.12+UP*0.5,color=RED,stroke_width=7)
+        self.add(trail)
+        self.play(FadeIn(mark),Create(stop),FadeIn(stuck),run_time=0.3)
+        self.at("Or it can sit",lead=0)
+        hr=lab("a fault in the road",TEXT,30).move_to([3.5,2.5,0])
+        self.play(FadeIn(hr),cells[1].animate.shift(RIGHT*0.35+UP*0.25),run_time=0.35)
+        self.at("lacks the cue",lead=0)
+        ghost=diamond(0.55,RED,False).move_to(cues[1])
+        nr=lab("stalled: cue missing",RED,28).move_to([3.5,-2.05,0])
+        sr=stop.copy().shift(RIGHT*7)
+        trail_r=trail.copy().shift(RIGHT*7)
+        self.add(trail_r)
+        self.play(ReplacementTransform(cues[1],ghost),FadeIn(nr),Create(sr),run_time=0.3)
+        self.finish()
+
+
+class S18bSwap(SpokenScene):
+    def construct(self):
+        stage,cells,cues=fault_panels();self.add(stage,cells,cues)
+        labels=VGroup(lab("cell?",TEXT,32).move_to([-3.5,2.5,0]),lab("road?",TEXT,32).move_to([3.5,2.5,0]))
+        self.add(labels)
+        self.at("Swapping tissue",lead=0)
+        # The open central gutter has no divider, titles or cells beneath the arrows.
+        a=CurvedArrow([-0.65,1.2,0],[0.65,1.2,0],angle=-PI/2,color=TEXT,stroke_width=5)
+        b=CurvedArrow([0.65,-0.2,0],[-0.65,-0.2,0],angle=-PI/2,color=TEXT,stroke_width=5)
+        self.play(Create(a),Create(b),run_time=0.4)
+        self.at("tells you which",lead=0)
+        tag=lab("which one?",YELLOW,34).move_to([0,-2.95,0])
+        ch=lab("answered in chapter two",TEXT,30).move_to([0,-3.55,0])
+        self.play(FadeIn(tag),FadeIn(ch),run_time=0.35)
+        self.finish()
+
+
+class S19Lane(SpokenScene):
+    def construct(self):
+        cx=RoundedRectangle(width=12.4,height=6.5,corner_radius=0.2,color=BLUE,fill_color=BLUE,fill_opacity=0.06)
+        lanes=VGroup(*[RoundedRectangle(width=11.3,height=1.4,corner_radius=0.35,color=ORANGE,fill_color=ORANGE,fill_opacity=0.15).move_to([0,y,0]) for y in (1.45,-1.1)])
+        labels=VGroup(lab("cortex",BLUE,30).move_to([-5.3,2.9,0]),
+                      lab("superficial stream",TEXT,28).move_to([0,2.5,0]),lab("deep stream",TEXT,28).move_to([0,-0.1,0]))
+        cells=VGroup(*[tabbed(0.35,RIGHT).shift([x,y,0]) for y in (1.45,-1.1) for x in (-4,-1.4,1.2,3.8)])
+        self.add(cx,lanes,labels,cells)
+        self.at("chemokine signal",lead=0)
+        cues=VGroup(*[diamond(0.16).move_to([x,y+0.38,0]) for y in (1.45,-1.1) for x in (-3,-0.4,2.2,4.8)])
+        sg=lab("chemokine signal",TEAL,28).move_to([0,-2.25,0])
+        self.play(FadeIn(cues),FadeIn(sg),run_time=0.3)
+        self.at("helps keep",lead=0)
+        lb=lab("needed to help hold cells in the lane",TEXT,28).move_to([0,-2.95,0])
+        more=lab("one of several cues",TEXT,28).move_to([0,-3.55,0])
+        self.play(*[c.animate.shift(RIGHT*0.6) for c in cells],FadeIn(lb),FadeIn(more),run_time=0.7)
+        self.finish()
+
+
+class S20Test(SpokenScene):
+    def construct(self):
+        c,h=card_with_header();r=rule_text().move_to([0,-0.2,0]);self.add(c,h,r)
+        # The full rule remains readable through the final spoken word.
+        self.at("hold on",lead=0)
+        self.wait(max(0.05,self.narration_s-self.elapsed()))
+        badge=lab("Born outside; steered by what the cell can read.",TEXT,28).move_to([0,3.15,0])
+        self.play(FadeOut(c),FadeOut(h),Transform(r,badge),run_time=0.4)
+        self.finish()
+
+
+class S21Scope(SpokenScene):
+    def construct(self):
+        badge=lab("Born outside; steered by what the cell can read.",TEXT,28).move_to([0,3.15,0])
+        a=embryo(0,1.3)
+        title=lab("One limit: embryonic rodents",TEXT,36).move_to([0,2.25,0])
+        label=lab("mouse and rat embryos",ORANGE,34).move_to([0,-3.1,0])
+        self.add(badge,title,a,label)
+
+        self.finish()
+
+
+class S22Human(SpokenScene):
+    def construct(self):
+        top=lab("HUMAN · fetal forebrain",TEXT,34).move_to([0,3.2,0])
+        # A distinct hemisphere profile. The folds are schematic, not a fetal age claim.
+        brain=VMobject(stroke_color=BLUE,stroke_width=4,fill_color=BLUE,fill_opacity=0.16)
+        pts=[[-4,-1.8,0],[-4.6,-0.3,0],[-4.0,1.4,0],[-2.4,2.3,0],[0.1,2.45,0],[2.2,1.65,0],[3,0.1,0],[2.5,-1.6,0],[0.4,-2.1,0],[-1.4,-1.6,0],[-4,-1.8,0]]
+        brain.set_points_smoothly([np.array(p) for p in pts])
+        vent=Ellipse(width=3.9,height=1.3,color=GREY,fill_color=LUMEN,fill_opacity=1).rotate(0.15).move_to([-0.7,-0.4,0])
+        ge=Ellipse(width=1.7,height=0.8,color=ORANGE,fill_color=ORANGE,fill_opacity=0.3).move_to([-1.0,-1.2,0])
+        folds=VGroup()
+        for fp in ([[-3.8,0.2,0],[-3.25,0.75,0],[-3.3,1.2,0],[-2.7,1.65,0]],
+                   [[-2.35,2.12,0],[-2.0,1.55,0],[-2.25,1.1,0],[-1.7,0.65,0]],
+                   [[-0.8,2.25,0],[-1.0,1.6,0],[-0.45,1.25,0],[-0.6,0.65,0]],
+                   [[0.5,2.1,0],[0.2,1.6,0],[0.75,1.2,0],[0.65,0.6,0]],
+                   [[1.8,1.5,0],[1.3,1.0,0],[1.8,0.45,0],[2.4,0.25,0]],
+                   [[-3.65,-0.8,0],[-3.0,-1.15,0],[-2.5,-0.85,0]],
+                   [[1.0,-1.75,0],[1.55,-1.1,0],[2.15,-1.05,0]]):
+            folds.add(VMobject(stroke_color=BLUE,stroke_width=3).set_points_smoothly([np.array(v) for v in fp]))
+        self.add(top,brain,folds,vent,ge)
+        self.at("eminences are seen",lead=0)
+        main=lab("eminences:\nmain source",ORANGE,30).move_to([-2.2,-2.85,0])
+        l1=leader(main.get_top(),ge.get_left())
+        self.play(FadeIn(main),Create(l1),run_time=0.35)
+        self.at("cortical progenitors",lead=0)
+        region=Arc(radius=2.1,start_angle=0.5,angle=1.5,color=ORANGE,stroke_width=10).move_to([-0.8,1.65,0])
+        lc=lab("cortical wall:\nalso some\n(share under study)",ORANGE,26).move_to([4.8,0.15,0])
+        l2=leader(lc.get_left(),region.get_start())
+        self.play(Create(region),FadeIn(lc),Create(l2),run_time=0.3)
+        self.finish()
+
+
+class S24Take(SpokenScene):
+    def construct(self):
+        t=takeaway();self.add(t)
+        self.at("outside the cortex",lead=0)
+        self.play(t[1].animate.set_color(ORANGE),run_time=0.35)
+        self.at("what they can read",lead=0)
+        self.play(t[2].animate.set_color(PURPLE),run_time=0.35)
+        self.finish()
+
+
+class S25End(EndCard):
+    LINE = "Most cortical interneurons start outside cortex; what they read helps steer them."
+    def construct(self):
+        t=takeaway();t[1].set_color(ORANGE);t[2].set_color(PURPLE)
+        sub=lab("biochemistrypedia.com",TEAL,26).move_to([0,-2.4,0])
+        self.add(t,sub);self.finish()
+

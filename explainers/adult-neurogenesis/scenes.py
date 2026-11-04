@@ -1,14 +1,15 @@
-"""Reading a neuron's birth year  (Developmental Neuroscience explainer, adult neurogenesis)
+"""Two Facts in One Cell  (adult neurogenesis, chapter 1)
 
-COLOR MAP (one color per concept, whole film)
-  ORANGE = carbon-14 (the atmospheric curve, the level written into DNA, the carbon-14 estimate)
-  BLUE   = neurons (cells, nuclei)
-  GREY   = structure, axes, other (non-neuronal) cells, cards
-  YELLOW = the birth year marker
-  PURPLE = the hippocampus (dentate gyrus outline)
-  GREEN  = young neurons seen by a stain
-  RED    = a lost marker / missing signal
-  TEXT   = the rule and the average
+COLOR MAP (one color per concept, shared by all chapters)
+  BLUE   = neurons (cells known to be neurons)
+  GREY   = structure, other / dividing / unidentified cells, axes, cards
+  YELLOW = the DNA label (thymidine, BrdU, grains) = the birth record
+  GREEN  = neuron identity (NeuN stain)
+  ORANGE = young-neuron marker (doublecortin): a state
+  PURPLE = the hippocampus / dentate gyrus
+  TEAL   = antibody
+  RED    = unknown / missing (question marks)
+  TEXT   = DNA (chromosomes), rule text
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -16,47 +17,28 @@ from bp_style import *  # noqa: F401,F403
 ORANGE = "#F29E4C"
 PURPLE = "#B58CD9"
 
+# ---------------------------------------------------------------- helpers
 
-def level(y):
-    if y < 1955:
-        return 1.0
-    if y <= 1963:
-        return 1.0 + 0.9 * ((y - 1955) / 8.0) ** 1.6
-    return 1.9 - 0.6 * (y - 1963) / 52.0   # schematic: a plain declining line
+def chromo(h=0.6, color=TEXT, w=0.17):
+    return RoundedRectangle(corner_radius=w / 2, width=w, height=h, stroke_width=0,
+                            fill_color=color, fill_opacity=1)
 
 
-def make_axes(center, w, h):
-    ax = Axes(x_range=[1935, 2015, 10], y_range=[0.0, 2.2, 0.5], x_length=w, y_length=h,
-              axis_config={"include_tip": False, "include_numbers": False, "include_ticks": False,
-                           "stroke_color": GREY, "stroke_width": 3})
-    ax.move_to([center[0], center[1], 0])
-    return ax
+def body(r, color=GREY, op=0.2):
+    return Circle(radius=r, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=op)
 
 
-def year_label(ax, yr, color=GREY, size=22, drop=0.3):
-    return M(str(yr), size, color).move_to(ax.c2p(yr, 0.0) + DOWN * drop)
-
-
-def curve_pieces(ax):
-    a = ax.plot(level, x_range=[1935, 1955], color=ORANGE, stroke_width=6)
-    b = ax.plot(level, x_range=[1955, 1963], color=ORANGE, stroke_width=6)
-    c = ax.plot(level, x_range=[1963, 2015], color=ORANGE, stroke_width=6)
-    return a, b, c
-
-
-def cell(r=0.8, color=BLUE, nuc=0.4):
-    body = Circle(radius=r, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.22)
-    n = Circle(radius=r * nuc, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.5)
-    return VGroup(body, n)
-
-
-def dna_bar(frac, w=1.8, h=0.3):
-    out = RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=GREY, stroke_width=3,
-                           fill_color=BG, fill_opacity=1)
-    fill = Rectangle(width=max(0.001, (w - 0.1) * frac), height=h - 0.1, stroke_width=0,
-                     fill_color=ORANGE, fill_opacity=0.95)
-    fill.move_to(out.get_left() + RIGHT * (0.05 + fill.width / 2))
-    return VGroup(out, fill)
+def neuron(r=0.55, color=BLUE):
+    """soma + dendrites + axon; returns VGroup(soma, dendrites_and_axon)"""
+    soma = body(r, color, 0.22)
+    br = VGroup()
+    for angle in (0.3, 1.2, 2.2, 3.0):
+        d = np.array([np.cos(angle), np.sin(angle), 0])
+        tip = d * (r * 1.75)
+        br.add(Line(d * r, tip, color=color, stroke_width=4))
+        br.add(Line(tip, tip + 0.35 * r * np.array([np.cos(angle + 0.6), np.sin(angle + 0.6), 0]), color=color, stroke_width=3))
+    br.add(Line(DOWN * r, DOWN * (r * 1.85), color=color, stroke_width=4))
+    return VGroup(soma, br)
 
 
 def arrow(a, b, color=GREY, w=5):
@@ -64,343 +46,469 @@ def arrow(a, b, color=GREY, w=5):
                  max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
 
 
-def bchip(text, color=BLUE, size=26, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
-
-
-def dg_arc(r=1.9, color=PURPLE, n=14, scale_dots=0.13):
-    """Dentate gyrus as a thick C-shaped arc with neurons (dots) along it. Returns (group, dots)."""
-    arc = Arc(radius=r, start_angle=-0.2 * PI, angle=1.4 * PI, stroke_color=color, stroke_width=26)
-    arc.set_stroke(opacity=0.35)
-    dots = VGroup()
+def grains(center, r, n=9, rad=0.07, color=YELLOW):
+    pts = []
     for k in range(n):
-        t = (k + 0.5) / n
-        ang = -0.2 * PI + 1.4 * PI * t
-        p = arc.get_arc_center() + r * np.array([np.cos(ang), np.sin(ang), 0])
-        dots.add(Dot(p, radius=scale_dots, color=BLUE))
-    return VGroup(arc, dots), dots
+        a = k * 2.399963
+        rr = r * 0.8 * np.sqrt((k + 0.5) / n)
+        pts.append(Dot(np.array([center[0] + rr * np.cos(a), center[1] + rr * np.sin(a), 0]), radius=rad, color=color))
+    return VGroup(*pts)
+
+
+
+def dg_arc(r, center, n=13, dot_color=GREY, dot_r=0.13, sw=26):
+    arc = Arc(radius=r, start_angle=-0.2*PI, angle=1.4*PI,
+              stroke_color=PURPLE, stroke_width=sw).set_stroke(opacity=0.45)
+    arc.move_arc_center_to(np.array([*center, 0]))
+    dots = VGroup(*[Dot(arc.get_arc_center()+r*np.array([np.cos(a),np.sin(a),0]),
+                       radius=dot_r,color=dot_color)
+                    for a in np.linspace(-0.2*PI,1.2*PI,n)])
+    return VGroup(arc,dots)
+
+
+def dna(c, h=0.7, gap=0.48):
+    return VGroup(*[chromo(h,w=0.15).move_to([c[0]+x,c[1],0]) for x in (-gap,0,gap)])
+
+
+def mature():
+    n=neuron(1.2).move_to([3.4,0.05,0])
+    return VGroup(n,dna(n[0].get_center(),0.65,0.4))
+
+
+def daughters():
+    return VGroup(*[VGroup(body(1.03).move_to([-3.5,y,0]),dna((-3.5,y),0.65,0.4))
+                    for y in (1.2,-1.2)])
+
+
+def copy_labels():
+    return VGroup(T("dividing cell",28,TEXT).move_to([-3.5,-2.75,0]),
+                  T("finished neuron",28,BLUE).move_to([3.4,-2.75,0]))
+
+
+def squares(c, size=0.16):
+    return VGroup(*[Square(side_length=size,stroke_width=0,fill_color=YELLOW,fill_opacity=1)
+                    .move_to([c[0]+x,c[1]+y,0]) for x,y in [(-0.4,0.16),(0,-0.12),(0.4,0.17)]])
+
+
+def pair():
+    nuc=body(2.45,GREY,0.23).move_to([-0.7,-0.35,0])
+    glia=Ellipse(width=1.9,height=4.5,stroke_color=GREY,stroke_width=4,
+                 fill_color=GREY,fill_opacity=0.23).move_to([2.45,-0.35,0])
+    return VGroup(nuc,glia,grains(nuc.get_center(),1.85,11,0.13))
+
+
+def prediction():
+    pr=pair()
+    title=T("Pause and predict",30,TEAL).move_to([0,3.25,0])
+    q=T("Is the labelled cell a neuron?",36).move_to([0,2.55,0])
+    lab=T("labelled",28,YELLOW).move_to([-4.9,0.5,0])
+    lead=arrow(lab.get_right(),[-2.2,0.2,0],YELLOW,3)
+    return VGroup(pr,title,q,lab,lead)
+
+
+def box(x,color,w=5.6,h=4.7):
+    return RoundedRectangle(corner_radius=0.2,width=w,height=h,
+        stroke_color=color,stroke_width=3,fill_color=color,fill_opacity=0.07).move_to([x,0.15,0])
+
+
+def evidence_card():
+    left=box(-3.05,YELLOW); right=box(3.05,GREEN)
+    a=T("birth record",36,YELLOW).move_to([-3.05,1.85,0])
+    b=T("neuron identity",36,GREEN).move_to([3.05,1.85,0])
+    gr=grains([-3.05,0],1.5,9,0.12)
+    tick=VGroup(Line([-1.7,-1.4,0],[-1.4,-1.7,0]),Line([-1.4,-1.7,0],[-0.9,-1.1,0])).set_color(TEXT).set_stroke(width=6)
+    return VGroup(left,a,gr,tick),VGroup(right,b)
+
+
+def rule_base():
+    head=T("A neuron counts as new only when",34).move_to([0,3.1,0])
+    boxes=VGroup(box(-3.05,GREY),box(3.05,GREY))
+    bracket=VGroup(Line([-5.8,-2.5,0],[5.8,-2.5,0]),
+                   Line([-5.8,-2.5,0],[-5.8,-2.25,0]),Line([5.8,-2.5,0],[5.8,-2.25,0])).set_stroke(TEXT,3)
+    same=T("two facts in the same cells",34).move_to([0,-3.1,0])
+    return VGroup(head,boxes,bracket,same)
+
+
+def birth_content():
+    title=T("birth record",36,YELLOW).move_to([-3.05,1.85,0])
+    timeline=VGroup(arrow([-5,0.7,0],[-1.1,0.7,0],YELLOW,4),
+                   Line([-4.6,0.4,0],[-4.6,1,0],color=YELLOW,stroke_width=5),
+                   T("DNA copied at a known time",26,YELLOW).move_to([-3.05,0.05,0]))
+    born=T("most likely born\nthen or later",30,YELLOW).move_to([-3.05,-1.2,0])
+    return VGroup(title,timeline,born)
+
+
+def identity_content():
+    title=T("neuron identity",36,GREEN).move_to([3.05,1.85,0])
+    n=neuron(0.66,GREEN).move_to([3.05,0.1,0])
+    caption=T("neuron protein (NeuN)",28,GREEN).move_to([3.05,-1.55,0])
+    return VGroup(title,n,caption)
+
+
+def full_rule():
+    base=rule_base(); base[1][0].set_stroke(YELLOW);base[1][1].set_stroke(GREEN)
+    return VGroup(base,birth_content(),identity_content())
+
+
+def stain_card():
+    c=np.array([1.4,0,0])
+    soma=body(2.65,GREEN,0.12).move_to(c)
+    nuc=body(1.45,YELLOW,0.1).move_to(c).set_fill(GREEN,0.45)
+    dots=grains(c,1.4,14,0.11)
+    bl=T("BrdU",34,YELLOW).move_to([-4.55,1.15,0])
+    nl=T("NeuN",34,GREEN).move_to([-4.55,-0.7,0])
+    cap=T("neuron protein",28,GREEN).move_to([-4.55,-1.35,0])
+    l1=Line(bl.get_right()+RIGHT*0.1,[0.1,0.7,0],color=YELLOW,stroke_width=3)
+    l2=Line(nl.get_right()+RIGHT*0.1,[-1.25,-0.5,0],color=GREEN,stroke_width=3)
+    return VGroup(soma,nuc,dots,bl,nl,cap,l1,l2)
 
 
 class S00Title(TitleCard):
-    LESSON = "New neurons in the adult brain"
-    TITLE = "New Neurons for Adult Circuits"
+    LESSON="Two Places the Adult Brain Still Makes Neurons"
+    TITLE="Two Facts in One Cell"
 
 
-# Additional schematic helpers; original drawing helpers above are retained.
-def neuron(r=0.55):
-    c = cell(r)
-    branches = VGroup()
-    for angle in (0.3, 1.2, 2.2, 3.0):
-        d = np.array([np.cos(angle), np.sin(angle), 0])
-        tip = d * (r + 0.75)
-        branches.add(Line(d * r, tip, color=BLUE, stroke_width=4))
-        branches.add(Line(tip, tip + 0.4 * np.array([np.cos(angle + 0.6), np.sin(angle + 0.6), 0]), color=BLUE, stroke_width=3))
-    axon = Line(DOWN * r, DOWN * (r + 1.0), color=BLUE, stroke_width=4)
-    return VGroup(c, branches, axon)
-
-
-def astro():
-    rays = VGroup(*[Line(0.25 * np.array([np.cos(a), np.sin(a), 0]),
-                         0.95 * np.array([np.cos(a), np.sin(a), 0]), color=GREY, stroke_width=5)
-                    for a in np.linspace(0, TAU, 7, endpoint=False)])
-    return VGroup(rays, cell(0.4, GREY))
-
-
-def brain_outline():
-    # Side view: olfactory bulb is anterior (left); small cerebellar lobe is posterior.
-    return VGroup(Ellipse(width=8.4, height=4.4, color=GREY, stroke_width=4,
-                         fill_color=GREY, fill_opacity=0.12),
-                  Ellipse(width=1.35, height=1.0, color=GREY, fill_color=GREY,
-                          fill_opacity=0.12).move_to([-4.4, -0.3, 0]),
-                  Ellipse(width=1.6, height=1.3, color=GREY, fill_color=GREY,
-                          fill_opacity=0.12).move_to([3.5, -1.25, 0]))
-
-
-def mouse():
-    return VGroup(Ellipse(width=1.2, height=0.6, color=GREY, fill_color=GREY, fill_opacity=0.3),
-                  Circle(radius=0.28, color=GREY).move_to([0.6, 0.13, 0]),
-                  Circle(radius=0.16, color=GREY).move_to([0.53, 0.43, 0]),
-                  Dot([0.72, 0.18, 0], radius=0.04, color=TEXT),
-                  Arc(radius=0.5, start_angle=PI / 2, angle=PI, color=GREY).move_to([-0.95, 0, 0]))
-
-
-class S01TwoNiches(SpokenScene):
+class S01Q(SpokenScene):
     def construct(self):
-        brain = brain_outline().move_to([0, -0.2, 0])
-        rule = T('Born with them. Keep them.', 34).move_to([0, 3.1, 0])
-        self.at('For most of the last century')
-        self.play(FadeIn(brain), FadeIn(rule), run_time=0.7)
-        cross = Line(rule.get_left() + LEFT * 0.15, rule.get_right() + RIGHT * 0.15, color=RED, stroke_width=6)
-        self.at('Adult rodents break')
-        self.play(Create(cross), run_time=0.6)
-        label = T('adult rodent · schematic', 24, GREY).move_to([0, -3.25, 0])
-        self.at('All their lives')
-        self.play(FadeOut(rule), FadeOut(cross), FadeIn(label), run_time=0.5)
-        vent = Ellipse(width=1.6, height=0.8, color=GREY).move_to([-0.8, 0.6, 0])
-        svz = Arc(radius=0.8, start_angle=0.1 * PI, angle=0.8 * PI, color=BLUE, stroke_width=9).stretch(0.5, 1).move_to(vent.get_top())
-        sl = T('ventricle wall / SVZ', 26, BLUE).move_to([-2.6, 2.55, 0])
-        self.at('One is a thin layer')
-        self.play(Create(vent), Create(svz), FadeIn(sl), run_time=0.8)
-        bulb = Circle(radius=0.4, color=BLUE).move_to([-4.25, -0.35, 0])
-        bl = T('olfactory bulb', 26, BLUE).move_to([-4.3, -1.7, 0])
-        path = CubicBezier([-1.3, 0.8, 0], [-2.0, 0.3, 0], [-3.0, -0.4, 0], bulb.get_center())
-        dots = VGroup(*[Dot(path.point_from_proportion(t), radius=0.11, color=BLUE) for t in (0, 0.14, 0.28)])
-        self.at('Its young neurons travel')
-        self.play(FadeIn(bulb), FadeIn(bl), FadeIn(dots), run_time=0.4)
-        self.play(*[MoveAlongPath(d, path.get_subcurve(t, t + 0.72), rate_func=linear) for d, t in zip(dots, (0, 0.14, 0.28))], run_time=1.8)
-        self.remove(dots)
-        self.add(VGroup(*[Dot(bulb.get_center() + [dx, dy, 0], radius=0.09, color=BLUE) for dx, dy in [(-0.15, 0), (0.1, 0.15), (0.1, -0.15)]]))
-        dg, dd = dg_arc(0.85, n=3, scale_dots=0.12)
-        dg.move_to([1.8, -0.45, 0])
-        dl = T('dentate gyrus', 26, PURPLE).move_to([3.5, 2.55, 0])
-        self.at('The other is the dentate gyrus')
-        self.play(FadeIn(dg[0]), FadeIn(dl), run_time=0.6)
-        self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in dd], lag_ratio=0.3), run_time=0.9)
-        wires = VGroup(Line(bulb.get_center(), [-3.45, -0.75, 0], color=BLUE),
-                       Line(dd[0].get_center(), [2.9, -1.3, 0], color=BLUE))
-        self.at('In both places')
-        self.play(Create(wires), Indicate(VGroup(bulb, dd), color=BLUE, scale_factor=1.12), run_time=0.9)
+        brain=Ellipse(width=11.8,height=5.6,color=GREY,fill_color=GREY,fill_opacity=0.08)
+        dg=dg_arc(2.4,[0,0]); dg[1][8].set_color(YELLOW)
+        label=T("hippocampus",30,PURPLE).move_to([0,-3.3,0])
+        self.add(brain,dg,label)
+        self.at("adult brain")
+        self.play(FadeIn(T("adult rat brain · schematic",28,TEXT).move_to([0,3.35,0])),run_time=0.4)
+        self.at("how would you")
+        q=T("?",80,RED).move_to([4.4,0.5,0])
+        self.play(FadeIn(q),Indicate(dg[1][8],color=YELLOW),run_time=0.7)
         self.finish()
 
 
-class S02StemCells(SpokenScene):
+class S02Rule(SpokenScene):
     def construct(self):
-        wall = Line([-6.1, -2.3, 0], [-6.1, 2.3, 0], color=GREY, stroke_width=12)
-        head = T('subventricular zone · mouse', 30).move_to([0, 3.1, 0])
-        b = astro().move_to([-3.7, 0.3, 0])
-        c = cell(0.65, GREY).move_to([0, 0.3, 0])
-        a = neuron(0.4).move_to([3.6, 0.3, 0])
-        labels = VGroup(T('B · astrocyte-like', 25, GREY).move_to([-3.7, -1.9, 0]),
-                        T('C · precursor', 25, GREY).move_to([0, -1.9, 0]),
-                        T('A · young neuron', 25, BLUE).move_to([3.6, -1.9, 0]))
-        self.at('Which cell makes them')
-        self.play(FadeIn(head), Create(wall), FadeIn(b), FadeIn(c), FadeIn(a), FadeIn(labels), run_time=0.7)
-        drug = bchip('drug', RED, 28).move_to([1.8, 1.95, 0])
-        self.at('a drug killed')
-        self.play(FadeIn(drug), c.animate.set_color(RED), a.animate.set_color(RED), run_time=0.45)
-        self.play(FadeOut(c), FadeOut(a), run_time=0.65)
-        self.at('Cells that look like astrocytes survived')
-        self.play(Indicate(b, color=TEXT, scale_factor=1.1), FadeOut(drug), run_time=0.8)
-        daughter = b.copy().scale(0.7).move_to([-2.1, 1.35, 0])
-        self.at('They began dividing')
-        self.play(TransformFromCopy(b, daughter), run_time=0.7)
-        self.at('rebuilt the zone')
-        c.set_color(GREY)
-        a.set_color(BLUE)
-        self.play(TransformFromCopy(daughter, c), FadeIn(a), FadeOut(daughter), run_time=0.7)
-        self.at('So the stem cell')
-        self.play(Indicate(b, color=GREY, scale_factor=1.1), run_time=0.6)
-        bc = arrow([-2.55, 0.3, 0], [-0.85, 0.3, 0])
-        ca = arrow([0.85, 0.3, 0], [2.3, 0.3, 0], BLUE)
-        self.at('It makes fast dividing precursors')
-        self.play(GrowArrow(bc), run_time=0.6)
-        self.at('which make young neurons')
-        self.play(GrowArrow(ca), run_time=0.6)
-        self.at('that migrate')
-        self.play(a.animate.shift(RIGHT * 0.65), run_time=0.6)
-        dest = T('→ olfactory bulb interneuron', 25, BLUE).move_to([2.4, -3.05, 0])
-        self.play(FadeIn(dest), run_time=0.3)
-        foot = T('dentate stem cells: astrocyte-like too', 26, PURPLE).move_to([0, 2.25, 0])
-        self.at('The dentate gyrus has')
-        self.play(FadeIn(foot), run_time=0.6)
+        head=T("The old rule",30,TEXT).move_to([0,3.25,0])
+        clause=T("the neurons you are born with",36).move_to([0,2.55,0])
+        row=VGroup(*[neuron(0.45).move_to([x,1.15,0]) for x in (-5,-3,-1,1,3,5)])
+        self.add(head,row)
+        self.at("neurons you are born")
+        self.play(FadeIn(clause),run_time=0.4)
+        later=row.copy().shift(DOWN*3.0)
+        time=arrow([-5.8,-0.5,0],[5.8,-0.5,0],TEXT,4)
+        age=T("age",28,TEXT).move_to([0,-0.1,0])
+        keep=T("are the neurons you keep",36).move_to([0,-3.25,0])
+        self.at("are the ones")
+        # Fade in a clean second row; moving copies briefly doubled the outlines.
+        self.play(Create(time),FadeIn(age),FadeIn(later),FadeIn(keep),run_time=0.35)
         self.finish()
 
 
-class S03HowWeKnow(SpokenScene):
+class S03Copy(SpokenScene):
     def construct(self):
-        left = cell(1.05).move_to([-3.3, 0.3, 0])
-        right = neuron(0.7).move_to([3.1, 0.4, 0])
-        labs = VGroup(T('copying DNA', 28, BLUE).move_to([-3.3, 2.65, 0]),
-                      T('resting neuron', 28, BLUE).move_to([3.1, 2.65, 0]))
-        self.at('How can anyone tell')
-        self.play(FadeIn(left), FadeIn(right), FadeIn(labs), run_time=0.7)
-        dose = bchip('labelled DNA building block', YELLOW, 28).move_to([0, -2.9, 0])
-        self.at('Give a labeled DNA building block')
-        self.play(FadeIn(dose), run_time=0.5)
-        badge = Dot(dose.get_center(), radius=0.17, color=YELLOW)
-        self.at('Only cells copying')
-        self.add(badge)
-        self.play(badge.animate.move_to(left[1]), left[1].animate.set_fill(YELLOW, 0.85).set_stroke(YELLOW), run_time=1.0)
-        self.remove(badge)
-        self.at('A neuron that has stopped dividing')
-        self.play(Indicate(right, color=BLUE, scale_factor=1.07), run_time=0.6)
-        no = T('no label incorporated', 26, GREY).move_to([3.1, -1.9, 0])
-        self.at('does not copy its DNA again')
-        self.play(FadeIn(no), run_time=0.6)
-        later = neuron(0.8).move_to([-2.0, 0.2, 0])
-        later[0][1].set_fill(YELLOW, 0.85).set_stroke(YELLOW)
-        weeks = T('weeks later', 30).move_to([0, 3.0, 0])
-        self.at('So a labeled neuron found weeks later')
-        self.play(FadeOut(right), FadeOut(labs), FadeOut(no), FadeOut(dose),
-                  ReplacementTransform(left, later), FadeIn(weeks), run_time=0.9)
-        inference = T('likely descended from\na dividing cell', 30, YELLOW).move_to([3.1, 0.5, 0])
-        self.at('most likely came from')
-        self.play(FadeIn(inference), run_time=0.6)
-        stain = Circle(radius=0.86, color=GREEN, stroke_width=8).move_to(later[0])
-        key = T('second stain: neuron', 28, GREEN).move_to([1.9, -2.5, 0])
-        self.at('A second stain')
-        self.play(Create(stain), FadeIn(key), run_time=0.8)
+        b=body(2.15).move_to([-3.5,0,0]); ch=dna((-3.5,0),1.1,0.85)
+        n=mature(); labels=copy_labels()
+        self.add(b,ch,n,labels)
+        twin=ch.copy().shift(RIGHT*0.25)
+        self.at("copies its")
+        self.play(TransformFromCopy(ch,twin),run_time=0.55)
+        self.at("before it divides")
+        ds=daughters()
+        # Each of the three original bars and three copied bars enters one daughter.
+        self.play(Transform(b,VGroup(ds[0][0],ds[1][0])),
+                  Transform(ch,ds[0][1]),Transform(twin,ds[1][1]),run_time=0.9)
+        self.at("does not copy")
+        note=T("no new copy of DNA",28,TEXT).move_to([3.4,3.15,0])
+        self.play(FadeIn(note),Indicate(n[1],scale_factor=1.15,color=TEXT),run_time=0.6)
         self.finish()
 
 
-class S04WiringIn(SpokenScene):
+class S04Label(SpokenScene):
     def construct(self):
-        dg, dots = dg_arc(1.6, n=3)
-        dg.move_to([-3.3, -0.1, 0])
-        soma = cell(0.45).move_to([-2.5, -0.5, 0])
-        title = T('dentate gyrus', 28, PURPLE).move_to([-3.3, 3.0, 0])
-        self.at('A new neuron matters')
-        self.play(FadeIn(dg), FadeIn(soma), FadeIn(title), run_time=0.6)
-        clock = VGroup(Circle(radius=0.45, color=GREY), Line(ORIGIN, UP * 0.35, color=TEXT)).move_to([0.3, 2.3, 0])
-        weeks = T('weeks', 26, GREY).move_to([1.55, 2.3, 0])
-        self.at('Over several weeks')
-        self.play(FadeIn(clock), FadeIn(weeks), run_time=0.3)
-        self.play(Rotate(clock[1], angle=TAU, about_point=clock[0].get_center()), run_time=0.7)
-        dendrites = VGroup(*[Line(soma.get_top(), soma.get_top() + [dx, 1.4, 0], color=BLUE, stroke_width=4) for dx in (-0.9, 0, 0.9)])
-        self.at('grow dendrites')
-        self.play(Create(dendrites), run_time=0.8)
-        target = neuron(0.55).move_to([4.0, 0.2, 0])
-        axon = CubicBezier(soma.get_bottom(), [-1.4, -2.4, 0], [1.5, -2.4, 0], target[0].get_left(), color=BLUE, stroke_width=5)
-        tl = T('hippocampal circuit', 27, BLUE).move_to([3.8, -2.6, 0])
-        self.at('send axons')
-        self.play(Create(axon), FadeIn(target), FadeIn(tl), run_time=1.1)
-        bird = VGroup(Ellipse(width=1.7, height=1.1, color=YELLOW),
-                      Circle(radius=0.45, color=YELLOW).move_to([0.65, 0.55, 0]),
-                      Polygon([1.05, 0.65, 0], [1.45, 0.5, 0], [1.05, 0.4, 0], color=YELLOW),
-                      Dot([0.75, 0.68, 0], radius=0.05, color=TEXT),
-                      Line([-0.9, 0, 0], [-1.45, -0.45, 0], color=YELLOW)).move_to([-4.2, -0.2, 0])
-        soundcell = neuron(0.65).move_to([3.3, 0.1, 0])
-        self.at('In adult canaries')
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(bird),
-                  FadeIn(T('adult canary', 30).move_to([-4, 2.8, 0])), run_time=0.6)
-        self.at('new neurons in a song nucleus')
-        self.play(FadeIn(soundcell), FadeIn(T('new neuron · song nucleus', 26, BLUE).move_to([3, 2.8, 0])), run_time=0.7)
-        waves = VGroup(*[Arc(radius=r, start_angle=-PI/4, angle=PI/2, color=TEXT).move_to([-0.7 + 0.5*i, 0.1, 0]) for i, r in enumerate((0.5, 0.8, 1.1))])
-        self.at('respond to sound')
-        self.play(Create(waves), Indicate(soundcell, color=BLUE, scale_factor=1.15), run_time=0.9)
+        ds=daughters(); n=mature()
+        self.add(ds,n,copy_labels(),T("no new copy of DNA",28,TEXT).move_to([3.4,3.15,0]))
+        tag=chip("tagged thymidine",YELLOW,30).move_to([-3.5,3.2,0])
+        sub=T("a DNA building block",28,TEXT).move_to([0,-3.4,0])
+        self.at("tagged thymidine")
+        self.play(FadeIn(tag),run_time=0.4)
+        self.at("building block")
+        self.play(FadeIn(sub),run_time=0.35)
+        # Reuse the two daughters without resetting the preceding division.
+        targets=VGroup(squares((-3.5,1.2),size=0.23),squares((-3.5,-1.2),size=0.23))
+        self.at("cells copying")
+        blocks=[b for group in targets for b in group]
+        for b in blocks:
+            target=b.get_center(); b.move_to(tag.get_bottom()+DOWN*0.2)
+            self.add(b);self.play(b.animate.move_to(target),run_time=0.15)
+        self.at("build it in")
+        self.play(FadeOut(sub),run_time=0.2)
+        self.play(FadeIn(T("no label",28,TEXT).move_to([3.4,-3.35,0])),run_time=0.35)
         self.finish()
 
 
-class S05WhatFor(SpokenScene):
+class S05Halve(SpokenScene):
     def construct(self):
-        head = T('What might new neurons do?', 34).move_to([0, 3.1, 0])
-        self.at('What are they for')
-        self.play(FadeIn(head), run_time=0.6)
-        rooms = VGroup()
-        for x in (-2.0, 2.0):
-            room = VGroup(Rectangle(width=2.8, height=2.5, color=GREY),
-                          Square(side_length=0.55, color=TEXT).move_to([0.65, 0.45, 0]),
-                          Dot([-0.6, -0.5, 0], color=BLUE, radius=0.17))
-            rooms.add(room.move_to([x, 0.6, 0]))
-        rooms[1][2].shift(RIGHT * 0.3)
-        self.at('In mice young dentate neurons')
-        self.play(FadeIn(rooms), run_time=0.7)
-        hyp = T('thought to help: pattern separation', 28, PURPLE).move_to([0, -2.5, 0])
-        self.at('pattern separation')
-        self.play(FadeIn(hyp), run_time=0.6)
-        animal = mouse().move_to([0, -1.45, 0])
-        self.at('telling apart similar places')
-        self.play(rooms[0].animate.shift(LEFT * 1.5), rooms[1].animate.shift(RIGHT * 1.5), FadeIn(animal), run_time=0.8)
-        self.play(animal.animate.shift(LEFT * 2.8), run_time=0.6)
-        blocked = T('adult neurogenesis blocked', 30, RED).move_to([0, 3.1, 0])
-        self.at('Mice in which adult neurogenesis was blocked')
-        self.play(ReplacementTransform(head, blocked), FadeOut(animal), FadeOut(hyp), run_time=0.7)
-        self.at('did worse at telling apart')
-        unsure = T('nearby locations: harder to distinguish', 28, TEXT).move_to([0, -2.5, 0])
-        self.play(rooms[0].animate.shift(RIGHT * 1.5), rooms[1].animate.shift(LEFT * 1.5), FadeIn(unsure), run_time=0.7)
-        bulb = Circle(radius=1.6, color=GREY).move_to([2.8, 0, 0])
-        new = VGroup(*[cell(0.3).move_to([2.2 + i*0.6, 0.2 if i%2 else -0.3, 0]) for i in range(3)])
-        cloud = VGroup(*[Circle(radius=r, color=GREY, fill_color=GREY, fill_opacity=0.15).move_to([-3.6+dx, dy, 0]) for r, dx, dy in [(0.6,0,0),(0.5,0.7,0.4),(0.55,0.7,-0.4)]])
-        ol = T('olfactory bulb', 30, BLUE).move_to([2.8, 2.5, 0])
-        self.at('In the olfactory bulb')
-        self.play(FadeOut(rooms), FadeOut(blocked), FadeOut(unsure), FadeIn(bulb), FadeIn(ol), run_time=0.6)
-        self.at('new interneurons')
-        self.play(FadeIn(new), run_time=0.5)
-        self.at('linked to odor learning')
-        link = DashedLine([-2,0,0], [0.8,0,0], color=GREY)
-        self.play(FadeIn(cloud), Create(link), run_time=0.7)
-        output = T('niche signals + experience → output', 30).move_to([0, -2.9, 0])
-        self.at('Signals in the niche')
-        self.play(FadeIn(output), run_time=0.6)
-        wheel = VGroup(Circle(radius=1.65, color=GREY), *[Line(ORIGIN, 1.65*np.array([np.cos(a), np.sin(a), 0]), color=GREY) for a in np.linspace(0, TAU, 6, endpoint=False)]).move_to([-3.3, 0.2, 0])
-        runner = mouse().move_to([-3.3, -0.5, 0])
-        dg, dots = dg_arc(1.55, n=3)
-        dg.move_to([3.2, 0.1, 0])
-        self.at('Mice with a running wheel')
-        self.play(*[FadeOut(m) for m in (bulb, ol, new, cloud, link, output)], FadeIn(wheel), FadeIn(runner), FadeIn(dg), run_time=0.6)
-        self.play(Rotate(wheel, PI/3), run_time=0.6)
-        extra = VGroup(*[Dot(dg[0].get_arc_center() + 1.55*np.array([np.cos(a),np.sin(a),0]), radius=0.14, color=BLUE) for a in (-0.3,0.6,1.6)])
-        self.at('had more new dentate neurons')
-        self.play(FadeIn(extra, scale=0.4), FadeIn(T('more new dentate neurons', 28, BLUE).move_to([2.9, -2.6, 0])), run_time=0.7)
+        def cell(x,y,f):
+            c=body(0.65).move_to([x,y,0])
+            gauge=Rectangle(width=1.05,height=0.2,color=GREY,stroke_width=2).move_to([x,y-0.16,0])
+            fill=Rectangle(width=1.01*f,height=0.14,stroke_width=0,fill_color=YELLOW,fill_opacity=1)
+            fill.move_to(gauge.get_left()+RIGHT*(0.02+fill.width/2))
+            return VGroup(c,gauge,fill)
+        top=cell(0,2.55,1)
+        key=T("yellow bar = label in the DNA",28,YELLOW).move_to([0,3.5,0])
+        self.add(top,key,T("full",28,YELLOW).move_to([-4.8,2.55,0]))
+        halves=VGroup(*[cell(x,0.3,0.5) for x in (-2.4,2.4)])
+        links=VGroup(*[Line([0,1.9,0],[x,0.95,0],color=GREY) for x in (-2.4,2.4)])
+        self.at("divide again")
+        self.play(Create(links),TransformFromCopy(top,halves),run_time=0.7)
+        self.at("each daughter")
+        self.play(FadeIn(T("about half",28,YELLOW).move_to([-4.8,0.3,0])),run_time=0.3)
+        quarters=VGroup(*[cell(x,-2.15,0.25) for x in (-3.6,-1.2,1.2,3.6)])
+        lines=VGroup(*[Line([px,-0.35,0],[x,-1.5,0],color=GREY) for px,xs in [(-2.4,(-3.6,-1.2)),(2.4,(1.2,3.6))] for x in xs])
+        self.at("about half")
+        self.play(Create(lines),TransformFromCopy(halves,quarters),run_time=0.7)
+        self.play(FadeIn(T("about a quarter",28,YELLOW).move_to([0,-3.25,0])),run_time=0.3)
         self.finish()
 
 
-class S06Humans(SpokenScene):
+class S06Later(SpokenScene):
     def construct(self):
-        head = T('What about people?', 34).move_to([0, 3.1, 0])
-        self.at('What about people')
-        self.play(FadeIn(head), run_time=0.6)
-        ax = make_axes([-2.2, 0], 6.5, 3.5)
-        curves = VGroup(*curve_pieces(ax))
-        al = T('air carbon-14 · schematic', 25, ORANGE).move_to([-2.2, 2.3, 0])
-        yrs = VGroup(year_label(ax, 1955), year_label(ax, 1963, drop=0.8), year_label(ax, 2015))
-        self.at('Bomb tests')
-        self.play(Create(ax), FadeIn(al), FadeIn(yrs), run_time=0.6)
-        self.at('put extra carbon')
-        self.play(Create(curves), run_time=1.3)
-        c = cell(0.8).move_to([4.4, 0.8, 0])
-        dna = dna_bar(0.0, 2.0, 0.4).move_to([4.4, -0.6, 0])
-        dl = T('DNA · year made', 25, ORANGE).move_to([4.3, -1.5, 0])
-        mark = Dot(ax.c2p(1975, level(1975)), radius=0.12, color=YELLOW)
-        self.at('and into the DNA')
-        self.play(FadeIn(c), FadeIn(dna), FadeIn(dl), FadeIn(mark), run_time=0.5)
-        self.play(Transform(dna, dna_bar(0.7, 2.0, 0.4).move_to(dna)), run_time=0.7)
-        brain = brain_outline().scale(0.7).move_to([-2.4, 0, 0])
-        birth = VGroup(bchip('cortex: birth year', YELLOW, 26).move_to([3.1, 1.4, 0]),
-                       bchip('olfactory bulb:\nbirth year', YELLOW, 26).move_to([-4.6, 1.95, 0]))
-        cortex = Arc(radius=1.0, start_angle=-PI/3, angle=2*PI/3, color=BLUE, stroke_width=9).move_to([-0.1, 0.3, 0])
-        cortex_leader = Line(birth[0].get_left(), cortex.get_right(), buff=0.12,
-                             color=YELLOW, stroke_width=3)
-        self.at('Neurons at the back of the cortex')
-        self.play(*[FadeOut(m) for m in (head, ax, curves, al, yrs, c, dna, dl, mark)], FadeIn(brain), Create(cortex), FadeIn(birth[0]), Create(cortex_leader), run_time=0.7)
-        bulb = Dot([-5.35, -0.2, 0], radius=0.2, color=BLUE)
-        bulb_leader = Line(birth[1].get_bottom(), bulb.get_top(), buff=0.12,
-                           color=YELLOW, stroke_width=3)
-        self.at('and in the olfactory bulb')
-        self.play(FadeIn(bulb), FadeIn(birth[1]), Create(bulb_leader), run_time=0.6)
-        hip, _ = dg_arc(0.65, n=3, scale_dots=0.1)
-        hip.move_to([-1.7, -0.4, 0])
-        later = bchip('hippocampus: some later', PURPLE, 26).move_to([-1.7, -2.6, 0])
-        hip_leader = Line(later.get_top(), hip[0].point_from_proportion(0.95), buff=0.12,
-                          color=PURPLE, stroke_width=3)
-        self.at('Some hippocampal neurons are younger')
-        self.play(FadeIn(hip), FadeIn(later), Create(hip_leader), run_time=0.7)
-        panels = VGroup()
-        signals = []
-        for x in (-3.3, 3.3):
-            box = RoundedRectangle(width=4.5, height=3.5, corner_radius=0.2, color=GREY).move_to([x, 0, 0])
-            d = VGroup(*[Dot([x + dx, dy, 0], radius=0.2, color=GREEN) for dx, dy in [(-1,0.6),(0,0),(1,0.6),(-0.5,-0.7),(0.7,-0.7)]])
-            panels.add(VGroup(box, d)); signals.append(d)
-        self.at('Stains for young neurons disagree')
-        self.play(*[FadeOut(m) for m in (brain, cortex, birth, bulb, hip, later, cortex_leader, bulb_leader, hip_leader)], FadeIn(panels),
-                  FadeIn(T('young-neuron stains · schematic', 30, GREEN).move_to([0, 2.8, 0])), run_time=0.7)
-        fade = T('time after death', 28, GREY).move_to([3.3, -2.5, 0])
-        self.at('partly because the stain fades')
-        self.play(signals[1].animate.set_opacity(0.12), FadeIn(fade), run_time=1.2)
-        dg, _ = dg_arc(1.65, n=4)
-        dg.move_to([-3.0, 0.2, 0])
-        conclusion = T('several methods favour\nsome new neurons', 32).move_to([2.5, 1.0, 0])
-        self.at('Recent reviews')
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(dg), FadeIn(conclusion), run_time=0.7)
-        self.at('How many and what they do')
-        q = T('?', 110, YELLOW).move_to([2.5, -0.8, 0])
-        openq = T('number and function: still open', 28, YELLOW).move_to([0, -2.9, 0])
-        self.play(FadeIn(q), FadeIn(openq), run_time=0.7)
+        axis=arrow([-6,-1.3,0],[6,-1.3,0],TEXT,6)
+        given=chip("label given",YELLOW,32).move_to([-3.9,-0.3,0])
+        tick=Line([-3.9,-0.95,0],[-3.9,-1.65,0],color=YELLOW,stroke_width=7)
+        n=neuron(1.15).move_to([1.6,1,0]);sq=squares(n[0].get_center())
+        self.add(axis,tick,given,n,sq,T("time",28,TEXT).move_to([5.6,-1.85,0]))
+        self.at("strongly labeled")
+        lab=T("strongly labelled\nneuron",30,BLUE).move_to([4.9,-0.15,0])
+        self.play(FadeIn(lab),Create(DashedLine(n[0].get_bottom(),[1.6,-1.3,0],color=GREY)),run_time=0.55)
+        self.at("most likely")
+        self.play(Create(arrow([-3.9,-2.4,0],[6,-2.4,0],YELLOW,6)),
+                  FadeIn(T("most likely born: that day, or later",30,YELLOW).move_to([0,-3.15,0])),run_time=0.6)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Adult rodents make new neurons that join working circuits."
+class S06bRepair(SpokenScene):
+    def construct(self):
+        n=neuron(1.25).move_to([-3.3,0.1,0]);ch=dna(n[0].get_center(),0.8,0.5)
+        dc=body(2.15).move_to([3.3,0.1,0]);dch=dna((3.3,0.1),0.8,0.5)
+        self.add(n,ch,dc,dch)
+        spot=ch[0].get_center()+UP*0.2
+        pale="#F5E89A"
+        dot=Dot(spot,radius=0.07,color=pale)
+        rep=T("repair",30,TEXT).move_to([-3.3,2.95,0])
+        lead=Line(rep.get_bottom(),spot+UP*0.12,color=pale,stroke_width=2)
+        self.at("dna repair")
+        self.play(FadeIn(rep),Create(lead),FadeIn(dot),run_time=0.4)
+        self.at("a dying cell")
+        self.play(dc.animate.set_stroke(opacity=0.5),dch.animate.set_opacity(0.5),
+                  FadeIn(T("dying cell",30,TEXT).move_to([3.3,2.95,0])),run_time=0.4)
+        self.at("can add label")
+        self.play(FadeIn(Dot(dch[0].get_center()+UP*0.2,radius=0.07,color=pale)),run_time=0.3)
+        self.add(T("non-dividing neuron",28,BLUE).move_to([-3.3,-2.65,0]))
+        self.at("studies need")
+        self.play(FadeIn(T("faint label, no division · controls needed",30).move_to([0,-3.35,0])),run_time=0.4)
+        self.finish()
+
+
+class S07Altman(SpokenScene):
+    def construct(self):
+        dg=dg_arc(2.25,[-3.6,0.2]);dg[1][8].set_color(YELLOW)
+        pr=pair().scale(0.78).move_to([3.1,0.15,0])
+        circle=Ellipse(width=6.3,height=5.6,color=GREY,stroke_width=2).move_to([3.1,0.15,0])
+        link=DashedLine(dg[1][8].get_center(),circle.get_left(),color=YELLOW)
+        self.add(dg,pr,circle,link)
+        self.at("joseph altman")
+        self.play(FadeIn(T("Altman, 1960s · tritiated thymidine",28,TEXT).move_to([0,-3.4,0])),run_time=0.4)
+        self.at("found labeled")
+        self.play(FadeIn(T("grains = label",28,YELLOW).move_to([3.3,-2.95,0])),run_time=0.35)
+        self.at("dentate gyrus")
+        self.play(FadeIn(T("dentate gyrus",30,PURPLE).move_to([-3.6,3.15,0])),
+                  FadeIn(T("section, magnified",28,TEXT).move_to([3.3,3.15,0])),run_time=0.4)
+        self.finish()
+
+
+class S08Pred(SpokenScene):
+    def construct(self):
+        self.add(prediction());self.at("pause and predict");self.finish()
+
+
+class S09Pause(NarratedScene):
+    def construct(self):
+        self.add(prediction());self.finish()
+
+
+class S10Rev1(SpokenScene):
+    def construct(self):
+        pr=pair();self.add(pr)
+        self.at("the light microscope")
+        self.play(FadeIn(T("light microscope",30,TEXT).move_to([0,3.45,0])),run_time=0.3)
+        self.at("could not tell")
+        bracket=VGroup(Line([-2.95,2.15,0],[3.4,2.15,0]),Line([-2.95,2.15,0],[-2.95,1.95,0]),Line([3.4,2.15,0],[3.4,1.95,0])).set_stroke(RED,3)
+        self.play(Create(bracket),FadeIn(T("?  Which one holds the grains?",30,RED).move_to([0,2.75,0])),run_time=0.4)
+        self.at("a glial cell")
+        self.play(FadeIn(T("glial cell",30,TEXT).move_to([2.45,-3.15,0])),run_time=0.3)
+        self.at("a neuron")
+        self.play(FadeIn(T("neuron",30,BLUE).move_to([-0.7,-3.15,0])),run_time=0.3)
+        self.finish()
+
+
+class S11Rev2(SpokenScene):
+    def construct(self):
+        a,b=evidence_card();self.add(a)
+        self.at("no identity")
+        self.play(FadeIn(b),run_time=0.5)
+        self.at("set aside")
+        # Lower fill and stroke separately: never turn a translucent fill opaque.
+        self.play(a[0].animate.set_fill(opacity=0.025).set_stroke(opacity=0.35),
+                  b[0].animate.set_fill(opacity=0.025).set_stroke(opacity=0.35),
+                  *[m.animate.set_opacity(0.4) for m in [*a[1:],*b[1:]]],
+                  FadeIn(T("claims largely set aside for years",32,TEXT).move_to([0,-3.15,0])),run_time=0.6)
+        self.finish()
+
+
+class S12Beat(NarratedScene):
+    def construct(self):
+        a,b=evidence_card()
+        for group in (a,b):
+            group[0].set_fill(opacity=0.025).set_stroke(opacity=0.35)
+            for m in group[1:]:m.set_opacity(0.4)
+        self.add(a,b,T("claims largely set aside for years",32,TEXT).move_to([0,-3.15,0]));self.finish()
+
+
+class S13Em(SpokenScene):
+    def construct(self):
+        n=neuron(1.5,GREY).move_to([0,-0.05,0])
+        gr=grains(n[0].get_center(),1.15,12,0.1)
+        em=chip("electron microscope view",TEXT,30).move_to([0,3.35,0])
+        cred=T("Kaplan and Hinds, 1977 · rat",28,TEXT).move_to([0,-3.4,0])
+        self.add(n,gr,em,cred)
+        self.at("showed that")
+        self.play(Indicate(gr,color=YELLOW,scale_factor=1.1),run_time=0.4)
+        self.at("were neurons")
+        label=T("labelled cell\n= neuron",32,YELLOW).move_to([-4.7,-1.25,0])
+        leader=Line(label.get_right()+RIGHT*0.1,n[0].get_left()+DOWN*0.5,color=YELLOW,stroke_width=3)
+        attachment=n[1][0].point_from_proportion(0.6)
+        spine_tip=attachment+UP*0.55
+        spine=VGroup(Line(attachment,spine_tip),Circle(radius=0.13).move_to(spine_tip)).set_color(BLUE)
+        feat=T("neuron features",28,BLUE).move_to([4.5,2.1,0])
+        pointer=Line(feat.get_left(),spine_tip+RIGHT*0.18,color=BLUE,stroke_width=3)
+        self.play(n.animate.set_color(BLUE),FadeIn(label),Create(leader),FadeIn(spine),FadeIn(feat),Create(pointer),run_time=0.7)
+        self.finish()
+
+
+class S14Brdu(SpokenScene):
+    def construct(self):
+        def block(x,name,tag):
+            bd=RoundedRectangle(width=4.6,height=4.2,corner_radius=0.25,color=YELLOW,
+                fill_color=YELLOW,fill_opacity=0.12).move_to([x,-0.5,0])
+            nm=T(name,36,YELLOW).move_to([x,-1.3,0])
+            tab=chip(tag,TEXT,28).move_to([x,0.6,0])
+            return VGroup(bd,nm,tab)
+        th=block(-3.5,"thymidine","methyl");br=block(3.5,"BrdU","bromine")
+        self.add(th)
+        self.at("then came")
+        self.play(FadeIn(br),Create(arrow([-1.15,-0.5,0],[1.15,-0.5,0],YELLOW,4)),run_time=0.5)
+        self.at("a thymidine")
+        self.play(FadeIn(T("same shape · bromine in place of methyl",30,TEXT).move_to([0,3.1,0])),run_time=0.5)
+        ab=VGroup(Line([0,0,0],[0.7,0,0]),Line([0,0,0],[-0.4,0.4,0]),Line([0,0,0],[-0.4,-0.4,0])).set_color(TEAL).set_stroke(width=6).move_to([5.85,0.6,0])
+        self.at("antibody")
+        self.play(FadeIn(ab),FadeIn(T("antibody",28,TEAL).move_to([4.8,2.05,0])),run_time=0.4)
+        self.play(ab.animate.shift(LEFT*0.7),run_time=0.5)
+        self.finish()
+
+
+class S15Two(SpokenScene):
+    def construct(self):
+        card=stain_card();card[0].set_stroke(GREY).set_fill(GREY,0.12);card[1].set_fill(GREY,0.15).set_stroke(GREY)
+        self.add(card[0],card[1])
+        self.at("stained twice")
+        self.play(FadeIn(card[2]),FadeIn(card[3]),Create(card[6]),card[1].animate.set_stroke(YELLOW),run_time=0.6)
+        self.at("neuron protein")
+        self.play(card[0].animate.set_stroke(GREEN).set_fill(GREEN,0.12),card[1].animate.set_fill(GREEN,0.45),
+                  FadeIn(card[4]),FadeIn(card[5]),Create(card[7]),run_time=0.6)
+        self.finish()
+
+
+class S16Beat(NarratedScene):
+    def construct(self):
+        self.add(stain_card());self.finish()
+
+
+class S17R1(SpokenScene):
+    def construct(self):
+        base=rule_base()
+        placeholders=VGroup(birth_content()[0],identity_content()[0]).set_color(GREY).set_opacity(0.55)
+        self.add(base[1],placeholders)
+        self.at("a neuron counts")
+        self.play(FadeIn(base[0]),run_time=0.4)
+        self.at("same cells")
+        self.play(Create(base[2]),FadeIn(base[3]),run_time=0.5)
+        self.finish()
+
+
+class S18R2(SpokenScene):
+    def construct(self):
+        base=rule_base();bc=birth_content();ic=identity_content()
+        placeholders=VGroup(bc[0].copy(),ic[0].copy()).set_color(GREY).set_opacity(0.55)
+        self.add(base,placeholders)
+        self.at("birth record")
+        self.play(base[1][0].animate.set_stroke(YELLOW),ReplacementTransform(placeholders[0],bc[0]),run_time=0.4)
+        self.at("copied at")
+        self.play(FadeIn(bc[1]),run_time=0.5)
+        self.at("most likely")
+        self.play(FadeIn(bc[2]),run_time=0.5)
+        self.at("neuron identity")
+        self.play(base[1][1].animate.set_stroke(GREEN),
+                  ReplacementTransform(placeholders[1],ic[0]),FadeIn(ic[1:]),run_time=0.5)
+        self.finish()
+
+
+class S19R3(SpokenScene):
+    def construct(self):
+        rule=full_rule();self.add(rule)
+        # Reflow at the third fact: keep the two established facts together on the left.
+        self.at("a young neuron marker")
+        left=VGroup(
+            T("A neuron counts as new only when",34).move_to([0,3.1,0]),
+            box(-4.25,YELLOW,w=3.8),box(0,GREEN,w=3.8),
+            T("birth record",30,YELLOW).move_to([-4.25,1.85,0]),
+            T("DNA copied at\na known time",28,YELLOW).move_to([-4.25,0.6,0]),
+            arrow([-5.6,-0.25,0],[-2.9,-0.25,0],YELLOW,4),
+            T("most likely born\nthen or later",26,YELLOW).move_to([-4.25,-1.25,0]),
+            T("neuron identity",28,GREEN).move_to([0,1.85,0]),
+            neuron(0.65,GREEN).move_to([0,0.1,0]),
+            T("neuron protein\n(NeuN)",26,GREEN).move_to([0,-1.6,0]),
+            T("two facts in the same cells",30).move_to([-2.1,-3.1,0]),
+            Line([-6.1,-2.5,0],[1.9,-2.5,0],color=TEXT,stroke_width=3),
+            Line([-6.1,-2.5,0],[-6.1,-2.3,0],color=TEXT,stroke_width=3),
+            Line([1.9,-2.5,0],[1.9,-2.3,0],color=TEXT,stroke_width=3))
+        self.play(Transform(rule,left),run_time=0.6)
+        bx=RoundedRectangle(width=3.8,height=4.7,corner_radius=0.2,color=ORANGE,
+            fill_color=ORANGE,fill_opacity=0.07).move_to([4.25,0.15,0])
+        title=T("young-neuron\nmarker",28,ORANGE).move_to([4.25,1.65,0])
+        self.play(FadeIn(bx),FadeIn(title),run_time=0.35)
+        self.at("such as")
+        self.play(FadeIn(T("doublecortin",30,ORANGE).move_to([4.25,0.15,0])),run_time=0.35)
+        self.at("tells you")
+        self.play(FadeIn(T("a state",28).move_to([4.25,-0.75,0])),run_time=0.3)
+        self.at("not when")
+        self.play(FadeIn(T("not a birth date",28).move_to([4.25,-1.6,0])),run_time=0.3)
+        self.finish()
+
+
+class S20Take(SpokenScene):
+    def construct(self):
+        card=stain_card()
+        cap=T("two facts in the same cells",36).move_to([0,-3.3,0])
+        # The closing evidence is already visible when the first spoken word starts.
+        self.add(card,cap)
+        self.at("two facts")
+        self.play(Indicate(card[2],color=YELLOW,scale_factor=1.05),run_time=0.4)
+        self.finish()
+
+
+class S21End(EndCard):
+    LINE="New neuron: a birth record and neuron identity in the same cells."
+    def construct(self):
+        line=VGroup(*[T(text,36) for text in ("New neuron:","a birth record and neuron identity","in the same cells.")]).arrange(DOWN,buff=0.2)
+        rule=Line(LEFT*1.2,RIGHT*1.2,color=TEAL,stroke_width=3)
+        site=T("biochemistrypedia.com",26,TEAL)
+        card=VGroup(line,rule,site).arrange(DOWN,buff=0.45).move_to(ORIGIN)
+        self.add(card)
+        self.finish()

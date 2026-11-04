@@ -1,22 +1,21 @@
-"""Injury and regeneration  (Biochemistrypedia explainer, Developmental Neuroscience)
+"""Injury and regeneration, chapter 1: One Cut, Two Fates  (Biochemistrypedia chaptered film)
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the neuron: cell body, axon, stump
-  TEAL   = NMNAT2 (the short-lived supply) and the Wlds protein that stands in for it
-  ORANGE = NMN
-  GREEN  = NAD+ and ATP (the axon's energy)
-  RED    = SARM1 and the cut/destruction
-  YELLOW = calcium
-  PURPLE = calpain
-  GOLD   = growth cones and the program bracket
-  SAGE   = repair glia (Schwann cells and astrocytes)
-  GREY   = labels, outlines, de-emphasized
+COLOR MAP (one color per concept, shared by all chapters of this lesson)
+  BLUE   = the neuron: cell body, axon, the attached (proximal) piece, the attached piece's question
+  RED    = the cut-off (distal) piece and its destruction; also the tissue's resistance
+  GOLD   = growth cones, regrowth, the program bracket, the neuron's drive to grow
+  SAGE   = repair glia and the nerve's surrounding tissue (Schwann cells); debris clearing
+  GREY   = labels, outlines, the spinal cord's surrounding tissue, the time axis, de-emphasized
+  TEXT   = cut marks, ticks, question marks, headings
+  (kept from the earlier film for the later chapters: TEAL = NMNAT2/Wlds, ORANGE = NMN,
+   GREEN = NAD+/ATP, YELLOW = calcium, PURPLE = calpain)
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
 PURPLE = "#B58CD9"
 ORANGE = "#F29E4C"
+SAGE = "#9BB99B"
 
 
 # ---------------------------------------------------------------------------------------------
@@ -34,419 +33,979 @@ def arr(a, b, color=GREY, w=5, tip=0.22):
                  max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
 
 
-def inhib(a, b, color=RED, w=5):
-    a, b = np.array(a, float), np.array(b, float)
-    d = (b - a) / np.linalg.norm(b - a)
-    b = b - d * 0.08
-    perp = np.array([-d[1], d[0], 0])
-    return VGroup(Line(a, b, color=color, stroke_width=w),
-                  Line(b + perp * 0.26, b - perp * 0.26, color=color, stroke_width=w + 1))
+def seg(p0, p1, w=0.5, color=BLUE, op=0.3, sw=3.5):
+    """A thick rounded tube between two points (an axon piece)."""
+    p0 = np.array([p0[0], p0[1], 0.0])
+    p1 = np.array([p1[0], p1[1], 0.0])
+    length = np.linalg.norm(p1 - p0)
+    r = RoundedRectangle(corner_radius=min(w / 2, length / 2 - 0.001), width=length, height=w,
+                         stroke_color=color, stroke_width=sw, fill_color=color, fill_opacity=op)
+    ang = np.arctan2(p1[1] - p0[1], p1[0] - p0[0])
+    if abs(ang) > 1e-6:
+        r.rotate(ang)
+    return r.move_to((p0 + p1) / 2)
 
 
-def dim(c, o=0.3):
-    return [c[1].animate.set_stroke(opacity=o).set_fill(opacity=0.16 * o), c[2].animate.set_opacity(o)]
-
-
-def undim(c):
-    return [c[1].animate.set_stroke(opacity=1).set_fill(opacity=0.16), c[2].animate.set_opacity(1)]
-
-
-def tube(x0, x1, y, h=0.4, color=BLUE, op=0.3):
-    return RoundedRectangle(corner_radius=h / 2, width=x1 - x0, height=h, stroke_color=color, stroke_width=3.5,
-                            fill_color=color, fill_opacity=op).move_to([(x0 + x1) / 2, y, 0])
-
-
-def beads(x0, x1, y, h=0.4, n=7, color=BLUE, op=0.3):
+def beads(x0, x1, y, h=0.5, n=7, color=RED, op=0.25):
     pitch = (x1 - x0) / n
     g = VGroup()
     for i in range(n):
         w = pitch * 0.62
-        g.add(RoundedRectangle(corner_radius=min(h, w) / 2, width=w, height=h * 0.9, stroke_color=color, stroke_width=3.5,
-                               fill_color=color, fill_opacity=op).move_to([x0 + pitch * (i + 0.5), y + (0.05 if i % 2 else -0.05), 0]))
+        g.add(RoundedRectangle(corner_radius=min(h, w) / 2, width=w, height=h * 0.9, stroke_color=color,
+                               stroke_width=3.5, fill_color=color, fill_opacity=op)
+              .move_to([x0 + pitch * (i + 0.5), y + (0.05 if i % 2 else -0.05), 0]))
     return g
 
 
-def neuron(y, xs=-5.4, xe=6.0, xc=-0.8, h=0.4, r=0.65):
-    prox = tube(xs, xc, y, h)
-    dist = tube(xc, xe, y, h)
-    soma = Circle(radius=r, stroke_color=BLUE, stroke_width=4, fill_color=BG, fill_opacity=1).move_to([xs, y, 0])
-    soma_f = Circle(radius=r, stroke_width=0, fill_color=BLUE, fill_opacity=0.3).move_to([xs, y, 0])
-    nuc = Circle(radius=r * 0.36, stroke_color=GREY, stroke_width=2.5, fill_color=GREY, fill_opacity=0.35).move_to([xs, y, 0])
-    n = VGroup(prox, dist, soma, soma_f, nuc)
-    n.prox, n.dist, n.soma, n.nuc, n.y, n.xc, n.xe = prox, dist, VGroup(soma, soma_f), nuc, y, xc, xe
-    return n
-
-
-def cutmark(x, y, h=0.9):
-    return VGroup(*[Line([x + dx - 0.12, y - h / 2, 0], [x + dx + 0.12, y + h / 2, 0], color=TEXT, stroke_width=5)
-                    for dx in (-0.2, 0.2)])
-
-
-def do_cut(n, gap=0.18):
-    """animations that open a gap in the axon."""
-    return [n.prox.animate.shift(LEFT * gap), n.dist.animate.shift(RIGHT * gap)]
-
-
-def padlock(color=RED, opened=False, scale=1.0):
-    body = RoundedRectangle(corner_radius=0.18, width=1.5, height=1.1, stroke_color=color, stroke_width=4,
-                            fill_color=color, fill_opacity=0.3)
-    sh = Arc(radius=0.46, start_angle=0, angle=PI, stroke_color=color, stroke_width=7).move_to(body.get_top() + UP * 0.38)
-    if opened:
-        sh.rotate(-0.55, about_point=sh.get_corner(DR)).shift(UP * 0.05)
-    g = VGroup(sh, body)
-    g.body, g.sh = body, sh
-    g.scale(scale)
+def soma(x, y, r=1.0):
+    back = Circle(radius=r, stroke_color=BLUE, stroke_width=4, fill_color=BG, fill_opacity=1)
+    fill = Circle(radius=r, stroke_width=0, fill_color=BLUE, fill_opacity=0.3)
+    nuc = Circle(radius=r * 0.38, stroke_color=GREY, stroke_width=2.5, fill_color=GREY, fill_opacity=0.35)
+    g = VGroup(back, fill, nuc).move_to([x, y, 0])
+    g.nuc = nuc
     return g
 
 
-def gauge(w, h, color):
-    return RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=color, stroke_width=3)
+def cutmark(x, y, h=0.9, ang=0.0):
+    g = VGroup(*[Line([dx - 0.12, -h / 2, 0], [dx + 0.12, h / 2, 0], color=TEXT, stroke_width=5)
+                 for dx in (-0.2, 0.2)])
+    if ang:
+        g.rotate(ang)
+    return g.move_to([x, y, 0])
 
 
-SAGE = "#9BB99B"
+def cone(x, y, color=GOLD, s=1.0, ang=0.0):
+    """A broad, fingered growth tip (a schematic cell shape, not a molecule). Points along +x at ang=0."""
+    p = Polygon([-0.45, -0.16, 0], [0.03, -0.37, 0], [0.48, -0.33, 0],
+                [0.25, -0.10, 0], [0.58, 0, 0], [0.25, 0.10, 0],
+                [0.48, 0.33, 0], [0.03, 0.37, 0], [-0.45, 0.16, 0],
+                stroke_color=color, fill_color=color, fill_opacity=0.45, stroke_width=3)
+    p.scale(s)
+    if ang:
+        p.rotate(ang)
+    return p.shift([x, y, 0])
 
 
-def cone(x, y, color=GOLD):
-    # A broad, fingered growth tip; a schematic cell shape, not a molecule.
-    return Polygon([-0.45, -0.16, 0], [0.03, -0.37, 0], [0.48, -0.33, 0],
-                   [0.25, -0.10, 0], [0.58, 0, 0], [0.25, 0.10, 0],
-                   [0.48, 0.33, 0], [0.03, 0.37, 0], [-0.45, 0.16, 0],
-                   stroke_color=color, fill_color=color, fill_opacity=0.45,
-                   stroke_width=3).shift([x, y, 0])
+def glia(x, y, color=SAGE, ang=0.0):
+    e = Ellipse(width=1.25, height=0.55, color=color, fill_opacity=0.25, stroke_width=3)
+    if ang:
+        e.rotate(ang)
+    return e.move_to([x, y, 0])
 
 
-def glia(x, y, color=SAGE):
-    return Ellipse(width=1.25, height=0.55, color=color, fill_opacity=0.25,
-                   stroke_width=3).move_to([x, y, 0])
+def target(x, y, s=1.0):
+    body = RoundedRectangle(width=0.85, height=1.55, corner_radius=0.35, color=GREY, fill_opacity=0.2)
+    lines = VGroup(*[Line([-0.25, z, 0], [0.25, z, 0], color=GREY) for z in (-0.42, 0, 0.42)])
+    return VGroup(body, lines).scale(s).move_to([x, y, 0])
 
 
-def target(x, y):
-    body = RoundedRectangle(width=0.85, height=1.55, corner_radius=0.35,
-                            color=GREY, fill_opacity=0.2)
-    lines = VGroup(*[Line([-0.25, z, 0], [0.25, z, 0], color=GREY)
-                    for z in (-0.42, 0, 0.42)])
-    return VGroup(body, lines).move_to([x, y, 0])
+def qm(x, y, size=54):
+    return T("?", size, TEXT, weight=BOLD).move_to([x, y, 0])
 
 
-def heading(text):
-    return T(text, 32, TEXT).move_to([0, 3.1, 0])
+def tick(x, y, r=0.3, color=TEXT):
+    c = Circle(radius=r, stroke_color=color, stroke_width=3.5, fill_color=BG, fill_opacity=1)
+    ck = VMobject(stroke_color=color, stroke_width=5)
+    ck.set_points_as_corners([[-0.45 * r, -0.02 * r, 0], [-0.1 * r, -0.4 * r, 0], [0.5 * r, 0.42 * r, 0]])
+    return VGroup(c, ck).move_to([x, y, 0])
 
 
+def bracket(x0, x1, y, color=GOLD, d=0.2, w=5):
+    m = VMobject(stroke_color=color, stroke_width=w, fill_opacity=0)
+    m.set_points_as_corners([[x0, y - d, 0], [x0, y, 0], [x1, y, 0], [x1, y - d, 0]])
+    return m
+
+
+def chip_to(c, o):
+    """Animations that set a bchip (back, box, label) to opacity o (1.0 = normal)."""
+    return [c[1].animate.set_stroke(opacity=o).set_fill(opacity=0.16 * o), c[2].animate.set_opacity(o)]
+
+
+def dim(m, f):
+    """Scale the stroke and fill opacity of every part (a bracket keeps no fill)."""
+    for sm in m.family_members_with_points():
+        sm.set_stroke(opacity=sm.get_stroke_opacity() * f)
+        sm.set_fill(opacity=sm.get_fill_opacity() * f)
+    return m
+
+
+def veil(o=0.5, w=14.3, h=8.1, at=(0, 0)):
+    return Rectangle(width=w, height=h, stroke_width=0, fill_color=BG, fill_opacity=o).move_to([at[0], at[1], 0])
+
+
+def dimmed(m, f):
+    return dim(m.copy(), f)
+
+
+def beads_line(p0, p1, n=7, h=0.8, color=RED, op=0.28, jitter=0.05):
+    """Separate rounded fragments along the straight line p0 -> p1 (any angle)."""
+    p0 = np.array([p0[0], p0[1], 0.0])
+    p1 = np.array([p1[0], p1[1], 0.0])
+    d = p1 - p0
+    L = np.linalg.norm(d)
+    u = d / L
+    perp = np.array([-u[1], u[0], 0.0])
+    ang = np.arctan2(u[1], u[0])
+    pitch = L / n
+    g = VGroup()
+    for i in range(n):
+        w = pitch * 0.64
+        r = RoundedRectangle(corner_radius=min(h, w) / 2 - 0.001, width=w, height=h * 0.9, stroke_color=color,
+                             stroke_width=3.5, fill_color=color, fill_opacity=op)
+        r.rotate(ang)
+        r.move_to(p0 + u * pitch * (i + 0.5) + perp * (jitter if i % 2 else -jitter))
+        g.add(r)
+    return g
+
+
+# ---- the long diagonal neuron used in s02-s04 ---------------------------------------------------
+SO = np.array([-5.3, 2.3, 0.0])      # cell body centre
+BE = np.array([5.15, -2.5, 0.0])      # far end of the axon (at the muscle)
+UN = (BE - SO) / np.linalg.norm(BE - SO)
+PN = np.array([-UN[1], UN[0], 0.0])  # perpendicular, pointing up and to the right
+ANG = float(np.arctan2(UN[1], UN[0]))
+CUTP = SO + 0.55 * (BE - SO)
+SR = 1.2
+AXW = 1.0
+GAPH = 0.7                           # half-gap between the two pieces after the cut
+
+
+def hn_soma():
+    s = soma(SO[0], SO[1], SR)
+    st = VGroup(*[Line(s.get_center() + SR * np.array([np.cos(a), np.sin(a), 0]),
+                       s.get_center() + (SR + 0.42) * np.array([np.cos(a), np.sin(a), 0]),
+                       color=BLUE, stroke_width=5) for a in (PI / 2 + 0.55, PI / 2 + 0.1, PI - 0.25, -PI / 2 - 0.45)])
+    return VGroup(st, s)
+
+
+def hn_muscle():
+    m = target(6.1, BE[1] - 0.05, 1.3)
+    lab = T("muscle", 26, GREY).move_to([6.1, BE[1] + 1.2, 0])
+    return VGroup(m, lab)
+
+
+def hn_whole():
+    return seg(SO + UN * SR * 0.95, BE, AXW, BLUE)
+
+
+def hn_prox(g=0.0):
+    return seg(SO + UN * SR * 0.95, CUTP - UN * g, AXW, BLUE)
+
+
+def hn_dist(g=0.0, color=RED):
+    return seg(CUTP + UN * g, BE, AXW, color)
+
+
+def hn_dist_beads(g=GAPH, op=0.28):
+    return beads_line(CUTP + UN * (g + 0.0), BE, 7, AXW * 0.95, RED, op)
+
+
+def hn_cutmark():
+    return cutmark(CUTP[0], CUTP[1], 2.1, ANG)
+
+
+def lbl_dist():
+    c = bchip("distal: cut off", RED, 28).move_to([4.4, 1.15, 0])
+    pt = CUTP + UN * (GAPH + 3.2) + PN * 0.55
+    a = arr([4.2, 0.78, 0], [pt[0], pt[1] + 0.15, 0], RED, 4, 0.2)
+    return VGroup(c, a)
+
+
+def lbl_prox():
+    c = bchip("proximal: attached", BLUE, 28).move_to([-3.3, -1.05, 0])
+    pt = SO + UN * 2.3 - PN * 0.55
+    a = arr([-3.3, -0.68, 0], [pt[0], pt[1] - 0.15, 0], BLUE, 4, 0.2)
+    return VGroup(c, a)
+
+
+# ---- the timeline scenes (s05-s07) --------------------------------------------------------------
+XT0, XN = -6.0, -2.6
+TBH = 0.72
+ROW_A, ROW_B1, ROW_B2, ROW_C, TAX = 0.2, -0.55, -1.3, -2.05, -2.75
+
+
+def t_axis(y, ticks=True):
+    ax = arr([-6.4, y, 0], [6.55, y, 0], GREY, 4)
+    t0 = Line([XT0, y - 0.15, 0], [XT0, y + 0.15, 0], color=GREY, stroke_width=4)
+    t1 = Line([XN, y - 0.15, 0], [XN, y + 0.15, 0], color=GREY, stroke_width=4)
+    l0 = T("0", 26, GREY).move_to([XT0, y - 0.5, 0])
+    l1 = T("1.5 to 2 days", 26, GREY).move_to([XN, y - 0.5, 0])
+    tt = T("time after the cut (schematic)", 26, GREY).move_to([3.6, y - 0.5, 0])
+    return VGroup(ax, t0, t1, l0, l1, tt)
+
+
+def band(x0, x1, y, color, op=0.3, h=TBH):
+    return RoundedRectangle(corner_radius=0.12, width=x1 - x0, height=h, stroke_color=color, stroke_width=3,
+                            fill_color=color, fill_opacity=op).move_to([(x0 + x1) / 2, y, 0])
+
+
+def inside(text, b, color=TEXT, size=26):
+    t = T(text, size, color)
+    return t.move_to(b.get_center()).align_to(b, LEFT).shift(RIGHT * 0.2)
+
+
+def row_label(text, y, x_right=-2.35, color=SAGE, size=26):
+    t = T(text, size, color)
+    return t.move_to([x_right - t.width / 2, y, 0])
+
+
+def rowA(y, h):
+    b = band(XT0, XN, y, RED, 0.3, h)
+    return VGroup(b, inside("normal", b), beads(XN, XN + 2.0, y, h, 3, RED, 0.3))
+
+
+def band_b1():
+    return band(-2.2, 0.4, ROW_B1, SAGE)
+
+
+def band_b2():
+    return band(-2.2, 2.2, ROW_B2, SAGE)
+
+
+def b2_open():
+    d = DashedVMobject(RoundedRectangle(corner_radius=0.12, width=2.4, height=TBH, stroke_color=SAGE,
+                                        stroke_width=3).move_to([3.4, ROW_B2, 0]), num_dashes=28)
+    return VGroup(d, T("incomplete", 26, SAGE).move_to([3.4, ROW_B2, 0]))
+
+
+def band_c():
+    return band(-1.0, 5.8, ROW_C, GOLD)
+
+
+def timeline_ab():
+    """The s06 end state: axis, row A, rows B1 and B2 with their labels."""
+    b1, b2 = band_b1(), band_b2()
+    return VGroup(t_axis(TAX), rowA(ROW_A, TBH), b1, inside("fast", b1), row_label("nerve", ROW_B1),
+                  b2, inside("slow", b2), b2_open(), row_label("brain and cord", ROW_B2))
+
+
+# ---- the sensory (dorsal root ganglion) neuron: one nucleus, two branches ----------------------
+class DGR:
+    """A ganglion neuron drawn upright: the nerve branch runs down, the cord branch runs up, the soma sits to the
+    right on a short stem at the junction."""
+
+    def __init__(self, cx, cy=0.15, half=2.75, drop=1.9, r=0.8):
+        self.cx, self.r, self.w = cx, r, 0.5
+        self.L, self.R = cy - half, cy + half
+        self.jy = cy - 0.2
+        self.sx = cx + drop
+        n0, n1 = self.L - 0.1, self.jy - 0.9
+        c0, c1 = self.jy + 0.9, self.R + 0.1
+        self.nbox, self.cbox = (n0, n1, 1.6), (c0, c1, 1.8)
+        self.yp = n1 - 0.6
+        self.yc = c0 + 0.6
+
+    def ctx(self):
+        n0, n1, nw = self.nbox
+        c0, c1, cw = self.cbox
+        nerve = RoundedRectangle(corner_radius=0.3, width=nw, height=n1 - n0, stroke_color=SAGE, stroke_width=2.5,
+                                 fill_color=SAGE, fill_opacity=0.08).move_to([self.cx, (n0 + n1) / 2, 0])
+        cord = RoundedRectangle(corner_radius=0.3, width=cw, height=c1 - c0, stroke_color=GREY, stroke_width=2.5,
+                                fill_color=GREY, fill_opacity=0.08).move_to([self.cx, (c0 + c1) / 2, 0])
+        return nerve, cord
+
+    def cell(self):
+        stem = seg((self.cx, self.jy), (self.sx - self.r * 0.6, self.jy), self.w * 0.85, BLUE)
+        return VGroup(stem, soma(self.sx, self.jy, self.r))
+
+    def peri_whole(self):
+        return seg((self.cx, self.L), (self.cx, self.jy), self.w, BLUE)
+
+    def cent_whole(self):
+        return seg((self.cx, self.jy), (self.cx, self.R), self.w, BLUE)
+
+    def peri_pieces(self, gap=0.0):
+        prox = seg((self.cx, self.yp + gap), (self.cx, self.jy), self.w, BLUE)
+        dist = seg((self.cx, self.L - gap), (self.cx, self.yp - gap), self.w, RED)
+        return prox, dist
+
+    def cent_pieces(self, gap=0.0):
+        prox = seg((self.cx, self.jy), (self.cx, self.yc - gap), self.w, BLUE)
+        dist = seg((self.cx, self.yc + gap), (self.cx, self.R + gap), self.w, RED)
+        return prox, dist
+
+    def mark_p(self, h=1.0):
+        return cutmark(self.cx, self.yp, h, PI / 2)
+
+    def mark_c(self, h=1.0):
+        return cutmark(self.cx, self.yc, h, PI / 2)
+
+
+def lleft(text, x0, y, size=26, color=TEXT):
+    """Text whose left edge sits at x0."""
+    t = T(text, size, color)
+    return t.move_to([x0 + t.width / 2, y, 0])
+
+
+def lright(text, x1, y, size=26, color=TEXT):
+    """Text whose right edge sits at x1."""
+    t = T(text, size, color)
+    return t.move_to([x1 - t.width / 2, y, 0])
+
+
+def heading(text, y=3.25, size=44):
+    return T(text, size, TEXT, font=TITLE_FONT).move_to([0, y, 0])
+
+
+def candidates(y=-3.4):
+    """The two open candidates, as a neutral pair of equal weight."""
+    c1 = bchip("the tissue?", TEXT, 26)
+    o = T("or", 26, GREY)
+    c2 = bchip("the signal to the cell body?", TEXT, 26)
+    # Match both the backing and outline dimensions, preserving equal label weight.
+    for c in (c1, c2):
+        for box in (c[0], c[1]):
+            box.stretch_to_fit_width(5.1)
+            box.stretch_to_fit_height(0.7)
+    return VGroup(c1, o, c2).arrange(RIGHT, buff=0.35).move_to([0, y, 0])
+
+
+# ---- the closing idea scenes (s14, s15, s17) ----------------------------------------------------
+def idea_body(y, s):
+    """cell body, attached piece, cut-off fragments and the gold bracket; s scales the thickness."""
+    sm = soma(-5.6, y, 0.95 * s)
+    prox = seg((-5.6 + 0.95 * s * 0.9, y), (-0.3, y), 0.8 * s, BLUE)
+    bd = beads(0.3, 5.6, y, 0.75 * s, 7, RED, 0.25)
+    br = bracket(0.3, 5.6, y - 0.75 * s * 0.5 - 0.3 * s, GOLD, -0.2 * s, 5)
+    return VGroup(sm, prox, bd, br)
+
+
+IDEA_Y, IDEA_S = 1.15, 1.25
+
+
+def idea_line1():
+    a = T("The cut-off piece destroys itself,", 40)
+    b = T("by a program it carries.", 40, t2c={"program": GOLD})
+    return VGroup(a, b).arrange(DOWN, buff=0.2).move_to([0, -1.55, 0])
+
+
+def idea_line1_small():
+    g = VGroup(T("The cut-off piece", 28), T("destroys itself,", 28),
+               T("by a program it carries.", 28, t2c={"program": GOLD})).arrange(DOWN, buff=0.1, aligned_edge=LEFT)
+    return g.move_to([3.4, 1.75, 0])
+
+
+def beam_frame(cx, cy, half, tip):
+    pv = np.array([cx, cy, 0.0])
+    post = Line([cx, cy - 1.3, 0], [cx, cy, 0], color=GREY, stroke_width=6)
+    base = Line([cx - 0.6, cy - 1.3, 0], [cx + 0.6, cy - 1.3, 0], color=GREY, stroke_width=6)
+    beam = Line(pv + LEFT * half, pv + RIGHT * half, color=GREY, stroke_width=7)
+    if tip:
+        beam.rotate(tip, about_point=pv)
+    pivot = Dot(pv, radius=0.1, color=GREY)
+    return VGroup(post, base, beam, pivot), beam.get_start(), beam.get_end()
+
+
+def pan(end, text, color, size=26, drop=1.0):
+    c = chip(text, color, size=size)
+    c.move_to(np.array(end) + DOWN * drop)
+    s = Line(end, c.get_top(), color=GREY, stroke_width=3)
+    return VGroup(s, c)
+
+
+def idea_bal(tip, withpans=True):
+    fr, le, re = beam_frame(0.0, -0.2, 3.4, tip)
+    if not withpans:
+        return fr, None, None
+    return fr, pan(le, "the neuron's\ndrive to grow", GOLD, drop=0.65), pan(re, "resistance of the\nsurrounding tissue", RED, drop=0.65)
+
+
+def idea_line2():
+    g = VGroup(T("The attached piece tends to regrow", 30), T("where drive outweighs resistance.", 30)
+               ).arrange(DOWN, buff=0.12)
+    return g.move_to([0, -2.55, 0])
+
+
+def rule_note():
+    return T("a rule of thumb, not a measured quantity", 26, GREY).move_to([0, -3.3, 0])
+
+
+def link_arrow(tip):
+    y_end = -0.2 - (0.55 + 0.68 * (1 if tip else 0)) * 0 - (0.7 if tip else 0.0)
+    return arr([-4.55, 2.55, 0], [-4.55, y_end, 0], BLUE, 4, 0.2)
+
+
+# ---------------------------------------------------------------------------------------------
+# scenes
+# ---------------------------------------------------------------------------------------------
 class S00Title(TitleCard):
-    LESSON = "Injury and regeneration"
-    TITLE = "Why the Spinal Cord Does Not Regrow"
+    LESSON = "Injury and Regeneration: Why the Brain Does Not Regrow"
+    TITLE = "One Cut, Two Fates"
 
 
-class S01Contrast(SpokenScene):
+class S01Q(SpokenScene):
     def construct(self):
-        divider = Line([0, -2.8, 0], [0, 2.6, 0], color=GREY, stroke_opacity=0.35)
-        left = T("Nerve in the arm", 30).move_to([-3.4, 2.8, 0])
-        right = T("Spinal cord", 30).move_to([3.4, 2.8, 0])
-        a = neuron(0.7, xs=-5.8, xe=-0.8, xc=-4.0, r=0.45)
-        b = neuron(0.7, xs=1.1, xe=6.0, xc=2.9, r=0.45)
-        guide = VGroup(*[glia(x, 0.18) for x in (-3.5, -2.25, -1.0)],
-                       *[glia(x, 1.22) for x in (-3.5, -2.25, -1.0)])
-        tip = cone(-4.05, 0.7)
-        self.at("Cut a nerve")
-        self.play(FadeIn(left), FadeIn(a), Create(divider), run_time=0.5)
-        cm = cutmark(-4, 0.7)
-        self.play(*do_cut(a), FadeIn(cm), run_time=0.4)
+        XA, XB = -3.4, 3.4
+        YC, YE = -0.3, -3.2
+
+        def panel(cx, ctx_color, label):
+            ctx = RoundedRectangle(corner_radius=0.5, width=2.0, height=5.5, stroke_color=ctx_color, stroke_width=2.5,
+                                   fill_color=ctx_color, fill_opacity=0.1).move_to([cx, -0.75, 0])
+            whole = seg((cx, 1.95), (cx, YE), 0.6, BLUE)
+            sm = soma(cx, 2.6, 0.65)
+            lab = T(label, 30).move_to([cx, 3.55, 0])
+            return ctx, whole, sm, lab
+
+        ca, wa, sa, la = panel(XA, SAGE, "Arm nerve")
+        cb, wb, sb, lb = panel(XB, GREY, "Spinal cord")
+        vb = veil(0.55, 3.0, 8.1, (XB, 0.0))
+        qd = qm(0, 0.3, 150)
+        dim(qd, 0.6)
+        self.play(FadeIn(VGroup(ca, wa, sa, la)), FadeIn(VGroup(cb, wb, sb, lb)), FadeIn(qd), FadeIn(vb), run_time=0.6)
+        self.at("in your arm")
+        prox_a = seg((XA, 1.95), (XA, YC + 0.15), 0.6, BLUE)
+        dist_a = seg((XA, YC - 0.15), (XA, YE), 0.6, RED)
+        self.remove(wa)
+        self.add(prox_a, dist_a, sa)
+        cm_a = cutmark(XA, YC, 1.3, PI / 2)
+        self.play(prox_a.animate.shift(UP * 0.15), dist_a.animate.shift(DOWN * 0.15), FadeIn(cm_a), run_time=0.5)
         self.at("can grow back")
-        self.play(FadeOut(a.dist), FadeIn(guide), FadeIn(tip), run_time=0.4)
-        grown = tube(-4.2, -1.0, 0.7)
-        self.play(GrowFromEdge(grown, LEFT), FadeOut(cm), tip.animate.move_to([-1.0, 0.7, 0]), run_time=1.1)
+        tip = cone(XA, YC + 0.2, s=0.9, ang=-PI / 2)
+        new = seg((XA, YC + 0.3), (XA, YC + 0.2), 0.6, BLUE)
+        self.add(new, tip)
+        self.play(FadeOut(dist_a), FadeOut(cm_a), run_time=0.3)
+        self.play(Transform(new, seg((XA, YC + 0.3), (XA, YE + 0.25), 0.6, BLUE)), tip.animate.move_to([XA, YE + 0.1, 0]),
+                  run_time=1.3, rate_func=linear)
+        ga = lright("grows back", XA - 1.25, -1.8, 28, SAGE)
+        self.play(FadeIn(ga), run_time=0.3)
         self.at("your spinal cord")
-        self.play(FadeIn(right), FadeIn(b), run_time=0.5)
-        self.play(*do_cut(b), FadeIn(cutmark(2.9, 0.7)), run_time=0.4)
+        self.play(FadeOut(vb), run_time=0.6)
+        self.at("and they mostly")
+        prox_b = seg((XB, 1.95), (XB, YC + 0.15), 0.6, BLUE)
+        dist_b = seg((XB, YC - 0.15), (XB, YE), 0.6, RED)
+        self.remove(wb)
+        self.add(prox_b, dist_b, sb)
+        cm_b = cutmark(XB, YC, 1.3, PI / 2)
+        self.play(prox_b.animate.shift(UP * 0.15), dist_b.animate.shift(DOWN * 0.15), FadeIn(cm_b), run_time=0.5)
         self.at("mostly do not")
-        self.play(b.prox.animate.set_stroke(width=7), b.dist.animate.set_opacity(0.25), run_time=0.6)
-        block = bchip("surroundings block", RED, 26).move_to([3.4, -0.9, 0])
-        low = bchip("growth program turned down", BLUE, 24).move_to([3.4, -2.0, 0])
-        self.at("Two things hold")
-        self.play(Indicate(b.prox, color=BLUE), run_time=0.7)
-        self.at("The tissue around")
-        self.play(FadeIn(block), run_time=0.6)
-        self.at("growth program down")
-        self.play(FadeIn(low), run_time=0.6)
-        ready = T("ready to grow", 26, BLUE).move_to([-3.4, -0.9, 0])
-        help_ = T("cells help", 26, SAGE).move_to([-3.4, -2.0, 0])
-        self.at("ready to grow")
-        self.play(FadeIn(ready), Indicate(a.soma, color=BLUE), run_time=0.7)
-        self.at("the cells around")
-        self.play(FadeIn(help_), Indicate(guide, color=SAGE, scale_factor=1.03), run_time=0.7)
+        bulb = Circle(radius=0.27, stroke_color=BLUE, stroke_width=3.5, fill_color=BLUE, fill_opacity=0.6).move_to([XB, YC + 0.05, 0])
+        self.play(FadeOut(dist_b), FadeIn(bulb), run_time=0.4)
+        gb = VGroup(T("mostly", 28, GREY), T("stalls", 28, GREY)).arrange(DOWN, buff=0.1).move_to([XB + 2.3, -1.4, 0])
+        self.play(FadeIn(gb), run_time=0.3)
+        self.at("Why")
+        self.play(Transform(qd, qm(0, 0.3, 160)), run_time=0.5)
         self.finish()
 
 
-class S02Test(SpokenScene):
+class S02Cut(SpokenScene):
     def construct(self):
-        q = heading("Surroundings and the neuron: two tests")
-        self.at("How do we know")
-        self.play(FadeIn(q), run_time=0.5)
-        # Schematic brainstem and cord with a curved peripheral graft between them.
-        med = RoundedRectangle(width=1.7, height=2.1, corner_radius=0.55,
-                               color=BLUE, fill_opacity=0.18).move_to([-4.6, 0.4, 0])
-        cord = tube(2.8, 6.0, 0.4, 1.5, BLUE, 0.18)
-        labels = VGroup(T("medulla", 26, BLUE).move_to([-4.6, -1.2, 0]),
-                        T("spinal cord", 26, BLUE).move_to([4.4, -1.2, 0]),
-                        T("rat", 26, GREY).move_to([-5.7, 2.3, 0]))
-        path = CubicBezier([-4.0, 0.4, 0], [-1.7, 2.0, 0], [1.0, 2.0, 0], [3.5, 0.4, 0])
-        bridge = path.copy().set_stroke(SAGE, width=35, opacity=0.35)
-        bl = T("peripheral nerve graft", 26, SAGE).move_to([0, 2.25, 0])
-        self.at("In rats")
-        self.play(FadeIn(med), FadeIn(cord), FadeIn(labels), run_time=0.5)
-        self.at("a peripheral nerve graft")
-        self.play(Create(bridge), FadeIn(bl), run_time=0.8)
-        ax = path.copy().set_stroke(BLUE, width=6)
-        tip = cone(-4, 0.4)
-        dist = T("about 30 mm", 28, GOLD).move_to([0, -0.5, 0])
-        self.at("central axons grow")
-        self.add(tip)
-        self.play(Create(ax), MoveAlongPath(tip, path), FadeIn(dist), run_time=2.0)
-        stop = T("stops in central tissue", 26, RED).move_to([2.9, -2.3, 0])
-        self.at("central tissue again")
-        self.play(FadeIn(stop), Indicate(tip, color=RED), run_time=0.7)
-        self.at("In mice")
-        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not q], run_time=0.45)
-        eye = Circle(radius=1.1, color=BLUE, fill_opacity=0.12).move_to([-4.8, 0, 0])
-        retinal = Dot([-4.15, 0, 0], radius=0.22, color=BLUE)
-        nerve = tube(-4.0, 5.8, 0, 0.65)
-        crush = cutmark(0.8, 0, 1.2)
-        pten = bchip("PTEN", GREY, 30).move_to([-4.8, 1.75, 0])
-        el = VGroup(T("mouse eye", 26, BLUE).move_to([-4.8, -1.7, 0]),
-                    T("crushed optic nerve", 26, GREY).move_to([2.2, -1.2, 0]))
-        self.play(FadeIn(eye), FadeIn(nerve), FadeIn(retinal), FadeIn(crush), FadeIn(el), run_time=0.5)
-        self.at("deleting a gene")
-        cross = Cross(stroke_color=RED, stroke_width=5).scale(0.2).next_to(pten, RIGHT, buff=0.2)
-        self.play(FadeIn(pten), Create(cross), run_time=0.6)
-        self.at("many axons regrow")
-        growth = VGroup(*[Line([-4.0, y, 0], [4.7, y, 0], color=BLUE, stroke_width=3)
-                          for y in (-0.17, 0, 0.17)])
-        gc = cone(-3.7, 0)
-        self.add(gc)
-        self.play(GrowFromEdge(growth, LEFT), gc.animate.move_to([4.7, 0, 0]), run_time=2.1)
+        whole = hn_whole()
+        sm, mus = hn_soma(), hn_muscle()
+        self.add(whole, sm, mus)
+        self.wait(0.3)
+        self.at("splits each")
+        prox, dist = hn_prox(0.0), hn_dist(0.0, BLUE)
+        self.remove(whole)
+        self.add(prox, dist, sm)
+        cm = hn_cutmark()
+        self.play(Transform(prox, hn_prox(GAPH)), Transform(dist, hn_dist(GAPH, BLUE)), FadeIn(cm), run_time=0.6)
+        self.at("in two")
+        self.play(dist.animate.set_color(RED).set_fill(RED, 0.3), run_time=0.6)
+        self.at("different fates")
+        self.play(Indicate(prox, color=BLUE, scale_factor=1.04), run_time=0.7)
+        self.play(Indicate(dist, color=RED, scale_factor=1.04), run_time=0.7)
         self.finish()
 
 
-class S03TwoParts(SpokenScene):
+class S03Distal(SpokenScene):
     def construct(self):
-        n = neuron(1.0, xc=-0.8)
-        cm = cutmark(-0.8, 1.0)
-        self.at("A cut splits")
-        self.play(FadeIn(n), run_time=0.4)
-        self.play(*do_cut(n), Create(cm), run_time=0.5)
-        cell = T("joined to the cell body", 26, BLUE).move_to([-3.5, 2.4, 0])
-        tip = cone(-1.5, 1.0)
-        self.at("The part joined")
-        self.play(FadeIn(cell), run_time=0.4)
-        self.at("can grow a new tip")
-        self.play(FadeIn(tip, scale=0.3), run_time=0.7)
-        dl = T("part beyond the cut", 26, BLUE).move_to([3.0, 2.4, 0])
-        self.at("The part beyond")
-        self.play(FadeIn(dl), run_time=0.4)
-        # The narrated time delay is represented by the clock label, not real-time waiting.
-        self.at("falls to pieces")
-        bd = beads(-0.62, 6.18, 1.0, n=7)
-        self.play(ReplacementTransform(n.dist, bd), run_time=0.7)
-        time = T("about 1½ days", 26, GREY).move_to([3.0, 0.0, 0])
-        self.at("a day and a half")
-        self.play(FadeIn(time), run_time=0.4)
-        nb = neuron(-1.8, xc=-0.8)
-        gene = bchip("Sarm1 deleted", RED, 26).move_to([-3.5, -0.6, 0])
-        self.at("In mice that lack")
-        self.play(FadeIn(nb), FadeIn(gene), run_time=0.6)
-        self.play(*do_cut(nb), Create(cutmark(-0.8, -1.8)), run_time=0.4)
-        self.at("stay whole for weeks")
-        weeks = T("weeks: stump stays whole", 26, BLUE).move_to([2.8, -2.8, 0])
-        self.play(FadeIn(weeks), Indicate(nb.dist, color=BLUE, scale_factor=1.04), run_time=0.7)
+        prox, dist = hn_prox(GAPH), hn_dist(GAPH)
+        sm, mus, cm = hn_soma(), hn_muscle(), hn_cutmark()
+        self.add(prox, dist, sm, mus, cm)
+        self.at("the piece cut off")
+        lab = lbl_dist()
+        self.play(FadeIn(lab, shift=DOWN * 0.1), run_time=0.5)
+        self.at("breaks down")
+        bd = hn_dist_beads(GAPH, 0.3)
+        self.play(ReplacementTransform(dist, bd), run_time=0.9)
+        # shrink the neuron to the top, then two tissue boxes with the same breakdown
+        neuron = VGroup(prox, bd, sm, mus[0], cm)
+        c_old = neuron.get_center()
+        sc, c_new = 0.5, np.array([0.0, 1.95, 0.0])
+        f = lambda p: c_new + sc * (np.array([p[0], p[1], 0.0]) - c_old)
+        lab_new_c = f(CUTP + UN * 4.0) + np.array([0.4, 0.95, 0.0])
+        tgt = f(CUTP + UN * 3.2) + PN * 0.3
+        self.at("in a limb nerve")
+        self.play(neuron.animate.scale(sc, about_point=c_old).move_to(c_new), FadeOut(mus[1]),
+                  lab.animate.scale(0.0001).move_to(lab_new_c).set_opacity(0), run_time=0.6)
+        self.remove(lab)
+        lab2 = bchip("distal: cut off", RED, 26).move_to([4.6, 2.05, 0])
+        ar2 = arr([3.75, 1.72, 0], tgt, RED, 4, 0.18)
+
+        def box(x, col, name):
+            b = RoundedRectangle(corner_radius=0.35, width=5.9, height=2.3, stroke_color=col, stroke_width=3,
+                                 fill_color=col, fill_opacity=0.1).move_to([x, -2.35, 0])
+            fr = beads(x - 2.4, x + 2.4, -2.75, 0.8, 6, RED, 0.3)
+            lb = T(name, 30, col).move_to([x - 0.45, -1.6, 0])
+            tk = tick(x + lb.width / 2 - 0.45 + 0.55, -1.6, 0.27)
+            return VGroup(b, fr), VGroup(lb, tk)
+        b1, l1 = box(-3.4, SAGE, "limb nerve")
+        b2, l2 = box(3.4, GREY, "spinal cord")
+        self.play(FadeIn(b1), FadeIn(VGroup(lab2, ar2)), FadeIn(l1), run_time=0.5)
+        self.at("in the spinal cord")
+        self.play(FadeIn(b2), FadeIn(l2), run_time=0.6)
         self.finish()
 
 
-class S04Program(SpokenScene):
+class S04Proximal(SpokenScene):
     def construct(self):
-        n = neuron(1.1, xc=-0.8, h=0.65)
-        head = bchip("NMNAT2", TEAL, 30).move_to([-3.8, 2.8, 0])
-        note = T("short-lived supply", 26, TEAL).move_to([1.2, 2.8, 0])
-        packets = VGroup(*[Dot([-4.7, 1.1, 0], radius=0.14, color=TEAL) for _ in range(3)])
-        self.at("An enzyme called")
-        self.play(FadeIn(n), FadeIn(head), run_time=0.5)
-        self.at("short")
-        self.play(FadeIn(note), run_time=0.4)
-        self.at("must keep sending it")
-        self.add(packets)
-        self.play(*[p.animate.move_to([x, 1.1, 0]) for p, x in zip(packets, (1.8, 3.3, 4.8))], run_time=1.3)
-        self.at("A cut stops")
-        self.play(*do_cut(n), Create(cutmark(-0.8, 1.1)), FadeOut(packets), run_time=0.6)
-        late = Dot([-4.7, 1.1, 0], radius=0.14, color=TEAL)
-        self.add(late)
-        self.play(late.animate.move_to([-1.2, 1.1, 0]), run_time=0.7)
-        self.play(Indicate(late, color=RED), run_time=0.3)
-        self.at("Its raw material")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
-        # Enlarge the local sequence in the stump.
-        bar = Rectangle(width=0.9, height=0.3, color=ORANGE, fill_opacity=0.5).move_to([-4.6, -1.6, 0])
-        label = T("NMN", 28, ORANGE).move_to([-4.6, -2.25, 0])
-        lock = padlock(RED).move_to([-0.6, 0.8, 0])
-        sl = T("SARM1", 30, RED).move_to([-0.6, -0.65, 0])
-        model = T("leading model", 24, GREY).move_to([-2.2, 2.8, 0])
-        self.play(FadeIn(bar), FadeIn(label), run_time=0.4)
-        self.at("builds up")
-        tall = Rectangle(width=0.9, height=2.8, color=ORANGE, fill_opacity=0.5).move_to([-4.6, -0.35, 0])
-        self.play(Transform(bar, tall), run_time=0.65)
-        self.at("in the leading model")
-        self.play(FadeIn(model), FadeIn(lock), FadeIn(sl), run_time=0.4)
-        self.at("switches")
-        opened = padlock(RED, opened=True).move_to(lock)
-        self.play(Transform(lock, opened), GrowArrow(arr([-3.8, 0.3, 0], [-1.8, 0.3, 0], ORANGE)), run_time=0.7)
-        nad = bchip("NAD+", GREEN, 30).move_to([3.8, 0.8, 0])
-        self.at("cleaves")
-        slash = Line([3.0, 0.3, 0], [4.6, 1.3, 0], color=RED, stroke_width=6)
-        self.play(FadeIn(nad), Create(slash), run_time=0.55)
-        self.at("Energy")
-        energy = T("energy falls", 26, GREEN).move_to([3.8, -0.65, 0])
-        self.play(FadeIn(energy), nad.animate.set_opacity(0.25), run_time=0.6)
-        self.at("calcium rises")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.3)
-        tb = tube(-5.8, 5.8, -0.2, 1.1)
-        scaffold = VGroup(*[Line([-5.6, y, 0], [5.6, y, 0], color=GREY, stroke_width=3) for y in (-0.45, 0.05)])
-        ca = VGroup(*[Dot([x, y, 0], radius=0.10, color=YELLOW)
-                      for x, y in ((-4.8,-0.1),(-3,-0.4),(-1,0.1),(1,-0.3),(3,0.05),(5,-0.4))])
-        cal = T("calcium rises", 28, YELLOW).move_to([-3.6, 2.5, 0])
-        cp = bchip("calpain", PURPLE, 28).move_to([2.6, 0.7, 0])
-        self.play(FadeIn(tb), FadeIn(scaffold), FadeIn(ca), FadeIn(cal), run_time=0.4)
-        self.at("and calcanes")
-        self.play(FadeIn(cp, shift=DOWN * 0.2), run_time=0.4)
-        self.at("cut the axon apart")
-        cuts = VGroup(*[Line([x, -0.85, 0], [x, 0.45, 0], color=PURPLE, stroke_width=5) for x in (-2, 0, 2)])
-        self.play(Create(cuts), run_time=0.25)
-        self.play(ReplacementTransform(tb, beads(-5.8, 5.8, -0.2, 1.0, 7)),
-                  FadeOut(scaffold), FadeOut(cuts), FadeOut(ca), FadeOut(cp), run_time=0.55)
+        prox = hn_prox(GAPH)
+        sm, mus, cm = hn_soma(), hn_muscle(), hn_cutmark()
+        debris = hn_dist_beads(GAPH, 0.12)
+        dim(debris, 0.8)
+        ld = lbl_dist()
+        dim(ld, 0.6)
+        self.add(prox, sm, mus, cm, debris, ld)
+        self.at("the attached piece")
+        lp = lbl_prox()
+        self.play(FadeIn(lp, shift=DOWN * 0.1), run_time=0.5)
+        self.at("grow a new tip")
+        tip_c = CUTP - UN * GAPH + UN * 0.42
+        tip = cone(tip_c[0], tip_c[1], s=1.15, ang=ANG)
+        self.play(FadeOut(cm), FadeIn(tip, scale=0.4), run_time=0.7)
+        self.at("depending on")
+        q = qm(tip_c[0] + 0.85, tip_c[1] + 0.8, 82)
+        self.play(FadeIn(q, scale=0.6), run_time=0.4)
+        self.at("on the neuron")
+        nl = bchip("the neuron", BLUE, 28).move_to([SO[0] + 0.1, SO[1] - 2.0, 0])
+        self.play(Indicate(sm, color=BLUE, scale_factor=1.06), FadeIn(nl), run_time=0.8)
+        self.at("what surrounds")
+        lw = bchip("what surrounds it", SAGE, 28).move_to([CUTP[0] + 0.6, CUTP[1] - 2.5, 0])
+        leader = arr(lw.get_top(), [tip_c[0] + 0.5, tip_c[1] - 0.65, 0], SAGE, 4, 0.2)
+        self.play(FadeIn(lw), GrowArrow(leader), run_time=0.55)
         self.finish()
 
 
-class S05Schwann(SpokenScene):
+def t1_state():
+    ax = t_axis(-2.5)
+    a = band(XT0, XN, -0.8, RED, 0.3, 1.5)
+    normal = inside("looks normal", a)
+    frag = beads(XN + 0.15, 5.7, -0.8, 1.3, 8, RED, 0.3)
+    debris = seg((XT0, 1.15), (XN, 1.15), 1.1, RED)
+    title = T("cut-off piece · mouse sciatic nerve", 32, TEXT).move_to([0, 3.0, 0])
+    link = DashedLine([XN, 2.0, 0], [XN, -2.5, 0], color=GREY, stroke_width=2)
+    return VGroup(ax, a, normal, frag, debris, title, link)
+
+
+class S05T1(SpokenScene):
     def construct(self):
-        title = heading("Peripheral nerve: cells help regrowth")
-        ax = tube(-5.7, -3.7, -0.4, 0.45)
-        cells = VGroup(*[glia(x, y, GREY) for x, y in ((-2.5,0.3),(0,-1.1),(2.5,0.4))])
-        debris = beads(-2.8, 3.7, -0.4, 0.5, 4, GREY)
-        scl = T("Schwann cells", 28, SAGE).move_to([-3.8, 1.8, 0])
-        self.at("In a nerve")
-        self.play(FadeIn(title), FadeIn(ax), FadeIn(cells), FadeIn(debris), run_time=0.5)
-        self.at("Schwann cells")
-        self.play(FadeIn(scl), run_time=0.4)
-        self.at("turn into repair cells")
-        repair = T("repair Schwann cells", 28, SAGE).move_to(scl)
-        self.play(cells.animate.set_color(SAGE), ReplacementTransform(scl, repair), run_time=0.8)
-        self.at("help clear")
-        self.play(debris[0].animate.scale(0.05).move_to(cells[0]), run_time=0.6)
-        self.remove(debris[0])
-        vessel = tube(0.3, 5.8, 2.0, 0.5, RED, 0.15)
-        blood = T("blood", 24, RED).move_to([5.2, 2.7, 0])
-        macrophage = Circle(radius=0.47, color=GREY, fill_opacity=0.35).move_to([2.3, 2.0, 0])
-        ml = T("macrophage", 26, GREY).move_to([2.3, 1.0, 0])
-        self.at("call in macrophages")
-        self.play(FadeIn(vessel), FadeIn(blood), FadeIn(macrophage), FadeIn(ml), run_time=0.4)
-        self.play(macrophage.animate.move_to([2.3, -0.4, 0]), FadeOut(ml),
-                  *[d.animate.scale(0.05).move_to([2.3, -0.4, 0]) for d in list(debris)[1:]], run_time=0.8)
-        self.at("line up into tubes")
-        guide = VGroup(*[glia(x,y) for x in (-2.5,0,2.5) for y in (-1.0,0.2)])
-        self.play(ReplacementTransform(cells, guide), FadeOut(debris), FadeOut(macrophage),
-                  FadeOut(vessel), FadeOut(blood), run_time=0.7)
-        muscle = target(5.5, -0.4)
-        tl = T("muscle", 26, GREY).move_to([5.5, -1.7, 0])
-        tip = cone(-3.7, -0.4)
-        growth = tube(-3.7, 5.0, -0.4, 0.45)
-        self.at("guide the regrowing axon")
-        self.play(FadeIn(tip), FadeIn(muscle), FadeIn(tl), run_time=0.4)
-        self.play(GrowFromEdge(growth, LEFT), tip.animate.move_to([4.95, -0.4, 0]), run_time=1.5)
-        rate = T("around 1 mm / day", 30, GOLD).move_to([0, -2.5, 0])
-        self.at("often at around")
-        self.play(FadeIn(rate), run_time=0.6)
+        state = t1_state()
+        ax, a, normal, frag, debris, title, link = state
+        piece = seg((XT0, 1.15), (XN, 1.15), 1.1, RED)
+        self.add(ax, piece, title, link)
+        self.at("looks normal")
+        self.play(GrowFromEdge(a, LEFT), FadeIn(normal), run_time=0.7)
+        self.at("half to two days")
+        self.play(Indicate(ax[4], color=TEXT, scale_factor=1.08), run_time=0.5)
+        self.at("falls apart")
+        self.play(FadeOut(piece), FadeIn(frag), run_time=0.65)
         self.finish()
 
 
-class S06Cord(SpokenScene):
+def clearing_row(y, name, slow=False):
+    label = lleft(name, -6.1, y + 0.9, 30, SAGE if not slow else TEXT)
+    debris = beads(-1.8, 5.6, y + 0.9, 0.65, 7, RED, 0.28)
+    bar = band(-2.0, 2.2 if slow else 0.5, y, SAGE, 0.3, 0.85)
+    text = inside("slow" if slow else "fast", bar, size=28)
+    result = VGroup(bar, text)
+    if slow:
+        # An open continuation, rather than a closed ghost box.
+        result.add(DashedLine([2.2, y+0.425, 0], [5.9, y+0.425, 0], color=SAGE),
+                   DashedLine([2.2, y-0.425, 0], [5.9, y-0.425, 0], color=SAGE),
+                   T("incomplete", 28, SAGE).move_to([4.1, y, 0]))
+    return label, debris, result
+
+
+class S06T2(SpokenScene):
     def construct(self):
-        title = heading("Central tissue: several barriers")
-        ax = tube(-6.0, -2.8, 0, 0.45)
-        tip = cone(-2.8, 0)
-        debris = beads(-1.5, 4.5, -1.1, 0.45, 4, GREY)
-        dl = T("myelin debris lingers", 26, GREY).move_to([2.2, -2.2, 0])
-        self.at("In the spinal cord")
-        self.play(FadeIn(title), FadeIn(ax), FadeIn(tip), FadeIn(debris), run_time=0.5)
-        self.at("debris clears slowly")
-        self.play(FadeIn(dl), run_time=0.6)
-        nogo = bchip("Nogo", GREY, 28).move_to([0, 1.3, 0])
-        self.at("such as NOGO")
-        self.play(FadeIn(nogo), run_time=0.4)
-        self.play(nogo.animate.move_to([-1.8, 0.55, 0]), run_time=0.45)
-        self.at("collapse growth cones")
-        blunt = Ellipse(width=0.25, height=0.45, color=BLUE, fill_opacity=0.4).move_to([-2.8,0,0])
-        self.play(Transform(tip, blunt), run_time=0.6)
-        self.at("removing them alone")
-        small = T("removal alone: little regrowth", 26, GREY).move_to([0, 2.2, 0])
-        self.play(FadeOut(nogo), FadeIn(small), run_time=0.6)
-        self.at("The lesion also fills")
-        self.play(FadeOut(small), FadeOut(dl), FadeOut(debris), run_time=0.4)
-        lesion = Circle(radius=1.7, color=RED, fill_opacity=0.12, stroke_opacity=0.3).move_to([1.3,0,0])
-        blocks = VGroup(*[Dot([x,y,0], radius=0.12, color=RED) for x,y in
-                         ((0.3,-0.7),(0.5,0.5),(1.1,0.9),(1.8,-0.6),(2.2,0.5),(1.3,-0.1))])
-        bl = T("growth-blocking molecules", 26, RED).move_to([1.3,-2.6,0])
-        self.play(FadeIn(lesion), FadeIn(blocks), FadeIn(bl), run_time=0.7)
-        border = VGroup(*[glia(1.3+1.85*np.cos(a), 1.85*np.sin(a)).rotate(a+PI/2)
-                         for a in np.linspace(0,TAU,7,endpoint=False)])
-        al = T("astrocyte border", 26, SAGE).move_to([4.7,2.2,0])
-        self.at("Astrocytes form a border")
-        self.play(FadeIn(border), FadeIn(al), run_time=0.7)
-        self.at("limits the spread")
-        damage = Circle(radius=0.5, color=RED, fill_opacity=0.28).move_to([1.3,0,0])
-        self.play(GrowFromCenter(damage), run_time=0.4)
-        self.play(damage.animate.scale(3.0), border.animate.set_stroke(width=5), run_time=0.8)
-        self.at("change the scar")
-        rule = T("Change the scar; keep its protective border", 28, SAGE).move_to([0,-3.3,0])
-        self.play(FadeIn(rule), run_time=0.7)
+        hd = heading("Debris clearing", 3.15, 42)
+        axis = t_axis(-2.8)
+        l1, d1, r1 = clearing_row(1.25, "nerve")
+        l2, d2, r2 = clearing_row(-1.1, "brain and cord", True)
+        self.add(hd, axis, l1, d1, l2, d2)
+        self.at("cleared quickly")
+        self.play(FadeIn(r1), LaggedStart(*[FadeOut(m) for m in d1], lag_ratio=0.08), run_time=0.75)
+        self.at("slowly in")
+        self.play(FadeIn(r2), run_time=0.45)
+        self.play(*[FadeOut(d2[i]) for i in range(3)], run_time=0.65)
         self.finish()
 
 
-class S07Fix(SpokenScene):
+class S07T3(SpokenScene):
     def construct(self):
-        divider = Line([0,-1.8,0],[0,2.5,0],color=GREY,stroke_opacity=0.4)
-        labels = VGroup(T("Preserve",32,BLUE).move_to([-3.4,2.8,0]),
-                        T("Regrow and reconnect",30,GOLD).move_to([3.4,2.8,0]))
-        a = neuron(0.4,xs=-5.8,xe=-0.7,xc=-3.8,r=0.45)
-        b = neuron(0.4,xs=1,xe=5.1,xc=2.3,r=0.45)
-        muscle = target(5.9,0.4)
-        self.at("there are two problems")
-        self.play(FadeIn(labels),Create(divider),FadeIn(a),run_time=0.5)
-        self.play(*do_cut(a,0.28),Create(cutmark(-3.8,0.4)),run_time=0.4)
-        blocker = bchip("SARM1 blocked",RED,26).move_to([-3.4,1.7,0])
-        self.at("Blocking")
-        self.play(FadeIn(blocker),run_time=0.6)
-        self.at("keep axons from breaking")
-        self.play(Indicate(a.dist,color=BLUE,scale_factor=1.03),run_time=0.7)
-        gap = T("whole stump, gap remains",24,GREY).move_to([-3.4,-0.9,0])
-        self.at("cannot rejoin")
-        self.play(FadeIn(gap),run_time=0.6)
-        self.at("Function returns only")
-        self.add(b.prox,b.soma,b.nuc)
-        self.play(FadeIn(muscle),run_time=0.5)
-        gc = cone(2.3,0.4)
-        growth = tube(2.3,5.45,0.4)
-        self.at("the attached part regrows")
-        self.add(gc)
-        self.play(GrowFromEdge(growth,LEFT),gc.animate.move_to([5.35,0.4,0]),run_time=1.3)
-        contact = Dot([5.45,0.4,0],radius=0.17,color=GOLD)
-        right = T("contact with the right target",24,GREY).move_to([3.4,-0.9,0])
-        self.at("connects with the right target")
-        self.play(FadeOut(gc),FadeIn(contact),FadeIn(right),run_time=0.7)
-        rod = bchip("rodents: partly",GREY,28).move_to([-3.1,-2.5,0])
-        human = bchip("people: not yet",GREY,28).move_to([3.1,-2.5,0])
-        self.at("In rodents")
-        self.play(FadeIn(rod),run_time=0.6)
-        self.at("None yet restores")
-        self.play(FadeIn(human),run_time=0.6)
+        base = timeline_ab().scale(0.85, about_point=ORIGIN).shift(DOWN * 0.5)
+        self.add(base)
+
+        def track(y):
+            return VGroup(seg((-4.95, y), (-2.5, y), 0.95, BLUE), soma(-5.65, y, 0.9))
+        T1Y, T2Y = 2.8, 0.95
+        RY = 2.1
+        # Lower summary leaves room for two separate, enlarged neurons.
+        cy = ROW_C * 0.85 - 0.5
+        # reserve the delay mark first
+        self.at("after a delay")
+        dl1 = DashedLine([XT0, cy, 0], [-4.15, cy, 0], color=GREY, stroke_width=4)
+        dl2 = DashedLine([-2.85, cy, 0], [-1.0, cy, 0], color=GREY, stroke_width=4)
+        dtxt = T("delay", 26, GREY).move_to([-3.5, cy, 0])
+        c = band_c().scale(0.85, about_point=ORIGIN).shift(DOWN * 0.5)
+        self.play(Create(dl1), FadeIn(dtxt), Create(dl2), GrowFromEdge(c, LEFT),
+                  FadeIn(inside("weeks to months or longer", c, size=24)), run_time=0.7)
+        self.at("attached piece")
+        t1 = track(T1Y)
+        self.play(FadeIn(t1), run_time=0.4)
+        self.at("may regrow")
+        tip = cone(-2.3, T1Y, s=1.15)
+        grow = seg((-4.95, T1Y), (-2.3, T1Y), 0.6, BLUE)
+        self.add(grow, tip)
+        self.remove(t1[0])
+        self.play(Transform(grow, seg((-4.95, T1Y), (-2.0, T1Y), 0.6, BLUE)),
+                  tip.animate.move_to([-1.9, T1Y, 0]), run_time=0.8, rate_func=linear)
+
+        # ruler: 1 tick = 1 mm
+        ruler = VGroup(Line([-2.5, RY, 0], [2.5, RY, 0], color=GREY, stroke_width=3),
+                       *[Line([x, RY, 0], [x, RY - 0.2, 0], color=GREY, stroke_width=3) for x in np.arange(-2.5, 2.6, 1.0)],
+                       *[T(str(i), 26, GREY).move_to([-2.5 + i, RY - 0.5, 0]) for i in range(6)],
+                       T("mm", 26, GREY).move_to([3.15, RY - 0.5, 0]))
+        rl = VGroup(T("in people, often about", 26, GREY), T("1 mm a day", 26, TEXT)).arrange(DOWN, buff=0.08)
+        rl.move_to([4.65, 2.95, 0])
+        self.at("in people that is")
+        self.play(FadeIn(ruler), FadeIn(rl), run_time=0.5)
+        self.at("often about")
+        for i in range(1, 4):
+            x = -2.5 + i
+            self.play(Transform(grow, seg((-4.95, T1Y), (x, T1Y), 0.6, BLUE)), tip.animate.move_to([x + 0.4, T1Y, 0]),
+                      run_time=0.55, rate_func=linear)
+            self.wait(0.2)
+        self.at("or it stalls")
+        t2 = track(T2Y)
+        tip2 = cone(-2.3, T2Y, s=1.15)
+        grow2 = seg((-4.95, T2Y), (-2.3, T2Y), 0.6, BLUE)
+        self.remove(t2[0])
+        self.play(FadeIn(t2[1]), FadeIn(grow2), run_time=0.3)
+        self.add(tip2)
+        self.play(Transform(grow2, seg((-4.95, T2Y), (-1.7, T2Y), 0.6, BLUE)), tip2.animate.move_to([-1.3, T2Y, 0]),
+                  run_time=1.0, rate_func=linear)
+        self.at("as many central")
+        stop = Line([-0.65, T2Y - 0.45, 0], [-0.65, T2Y + 0.45, 0], color=RED, stroke_width=14)
+        st = T("stalls", 34, RED, weight=BOLD).move_to([0.4, T2Y, 0])
+        self.add(stop, st)
+        self.play(tip2.animate.set_stroke(opacity=0.6).set_fill(opacity=0.25), run_time=0.3)
         self.finish()
 
 
-class S08End(EndCard):
-    LINE = "Central axons mostly don't regrow: blocking tissue and a turned-down growth program."
+class S08Branch(SpokenScene):
+    def construct(self):
+        d = DGR(-0.9)
+        nerve, cord = d.ctx()
+        peri, cent, cell = d.peri_whole(), d.cent_whole(), d.cell()
+        PALE = "#D5DAE3"
+        ln = T("nerve", 28, SAGE).move_to([d.cx, -3.3, 0])
+        lc = T("spinal cord", 28, GREY).move_to([d.cx, 3.5, 0])
+        self.add(nerve, cord, peri, cent, cell, ln, lc)
+        self.at("sensory neuron")
+        sensory = lleft("sensory neuron", 3.2, 0.0, 30, BLUE)
+        self.play(FadeIn(sensory), run_time=0.35)
+        self.at("spinal ganglion")
+        gang = Circle(radius=1.35, stroke_color=PALE, stroke_width=4.5, fill_opacity=0).move_to([d.sx, d.jy, 0])
+        gl = lleft("spinal ganglion", 3.2, d.jy + 1.45, 28, PALE)
+        ga = arr([3.2, d.jy + 1.3, 0], [d.sx + 1.0, d.jy + 0.95, 0], PALE, 4, 0.18)
+        self.play(Create(gang), FadeIn(gl), GrowArrow(ga), run_time=0.8)
+        self.at("one nucleus")
+        nl = lleft("one nucleus", 3.2, d.jy - 1.3, 28, TEXT)
+        na = arr([3.2, d.jy - 1.15, 0], [d.sx + 0.35, d.jy - 0.2, 0], TEXT, 4, 0.18)
+        self.play(FadeIn(nl), GrowArrow(na), Indicate(cell[1].nuc, color=TEXT, scale_factor=1.3), run_time=0.8)
+        self.at("two branches")
+        bl = lright("branch in the nerve", -2.6, -1.75, 28, BLUE)
+        ba = arr([-2.5, -1.75, 0], [d.cx - 0.3, -1.75, 0], BLUE, 4, 0.18)
+        br = lright("branch in the cord", -2.6, 1.9, 28, BLUE)
+        bb = arr([-2.5, 1.9, 0], [d.cx - 0.3, 1.9, 0], BLUE, 4, 0.18)
+        self.play(FadeIn(bl), GrowArrow(ba), Indicate(peri, color=BLUE, scale_factor=1.05), run_time=0.6)
+        self.play(FadeIn(br), GrowArrow(bb), Indicate(cent, color=BLUE, scale_factor=1.05), run_time=0.6)
+        self.finish()
+
+
+def two_panels():
+    return DGR(-4.3), DGR(2.6)
+
+
+def exp_labels():
+    return (T("experiment 1", 28, GREY).move_to([-3.4, 3.45, 0]), T("experiment 2", 28, GREY).move_to([3.5, 3.45, 0]))
+
+
+def prompt_which():
+    return T("Which branch regrows?", 38, TEXT).move_to([0, -3.45, 0])
+
+
+class S09Branchq(SpokenScene):
+    def construct(self):
+        d1, d2 = two_panels()
+        n1, c1 = d1.ctx()
+        n2, c2 = d2.ctx()
+        p1, e1 = d1.peri_whole(), d1.cent_whole()
+        p2, e2 = d2.peri_whole(), d2.cent_whole()
+        t1, t2 = exp_labels()
+        self.play(FadeIn(VGroup(n1, c1, p1, e1, d1.cell(), n2, c2, p2, e2, d2.cell())), FadeIn(t1), FadeIn(t2), run_time=0.5)
+        self.at("each branch")
+        pp, pd = d1.peri_pieces(0.0)
+        self.remove(p1)
+        self.add(pp, pd)
+        m1 = d1.mark_p()
+        self.play(pp.animate.shift(UP * 0.2), pd.animate.shift(DOWN * 0.2), FadeIn(m1), run_time=0.5)
+        self.at("separate experiments")
+        cp, cd = d2.cent_pieces(0.0)
+        self.remove(e2)
+        self.add(cp, cd)
+        m2 = d2.mark_c()
+        self.play(cp.animate.shift(DOWN * 0.2), cd.animate.shift(UP * 0.2), FadeIn(m2), run_time=0.5)
+        self.at("which one regrows")
+        self.play(FadeIn(qm(d1.cx + 1.4, d1.yp, 66), scale=0.6), FadeIn(qm(d2.cx + 1.4, d2.yc, 66), scale=0.6),
+                  FadeIn(prompt_which()), run_time=0.5)
+        self.finish()
+
+
+def final_s09():
+    """Both injuries made, question marks up. Returns the pieces by name so s11 can act on them."""
+    d1, d2 = two_panels()
+    n1, c1 = d1.ctx()
+    n2, c2 = d2.ctx()
+    pp, pd = d1.peri_pieces(0.2)
+    cp, cd = d2.cent_pieces(0.2)
+    P = dict(n1=n1, c1=c1, n2=n2, c2=c2, pp=pp, pd=pd, cp=cp, cd=cd, e1=d1.cent_whole(), p2=d2.peri_whole(),
+             cell1=d1.cell(), cell2=d2.cell(), m1=d1.mark_p(), m2=d2.mark_c(),
+             q1=qm(d1.cx + 1.4, d1.yp, 66), q2=qm(d2.cx + 1.4, d2.yc, 66), pr=prompt_which())
+    P["t1"], P["t2"] = exp_labels()
+    return d1, d2, P
+
+
+class S10Pause(NarratedScene):
+    def construct(self):
+        d1, d2, P = final_s09()
+        self.add(*P.values())
+        self.finish()
+
+
+def end_s11(d1, d2, P):
+    """The s11 end state, as a dict of mobjects."""
+    new = seg((d1.cx, d1.yp + 0.2), (d1.cx, d1.L + 0.3), d1.w, BLUE)
+    tip = cone(d1.cx, d1.L + 0.3, s=0.8, ang=-PI / 2)
+    stub = seg((d2.cx, d2.yc - 0.2), (d2.cx, d2.yc + 0.2), d2.w * 1.15, BLUE)
+    bulb = Circle(radius=0.32, stroke_color=BLUE, stroke_width=3.5, fill_color=BLUE, fill_opacity=0.6).move_to([d2.cx, d2.yc + 0.12, 0])
+    ban = T("same kind of neuron, different outcome", 32).move_to([0, 3.55, 0])
+    brk = bracket(-4.9, 5.0, 3.18, GREY, 0.14, 4)
+    return dict(n1=P["n1"], c1=P["c1"], n2=P["n2"], c2=P["c2"], pp=P["pp"], e1=P["e1"], p2=P["p2"], cp=P["cp"],
+                cell1=P["cell1"], cell2=P["cell2"], new=new, tip=tip, stub=stub, bulb=bulb, ban=ban, brk=brk,
+                cand=candidates())
+
+
+class S11Branchr(SpokenScene):
+    def construct(self):
+        d1, d2, P = final_s09()
+        self.add(*P.values())
+        self.play(*[FadeOut(P[k]) for k in ("q1", "q2", "pr")], run_time=0.3)
+        self.at("the branch in the nerve")
+        self.play(Indicate(P["pp"], color=BLUE, scale_factor=1.05), run_time=0.7)
+        self.at("regrows")
+        new = seg((d1.cx, d1.yp + 0.2), (d1.cx, d1.yp + 0.1), d1.w, BLUE)
+        tip = cone(d1.cx, d1.yp + 0.1, s=0.8, ang=-PI / 2)
+        self.add(new, tip)
+        self.play(FadeOut(P["pd"]), FadeOut(P["m1"]),
+                  Transform(new, seg((d1.cx, d1.yp + 0.2), (d1.cx, d1.L + 0.3), d1.w, BLUE)),
+                  tip.animate.move_to([d1.cx, d1.L + 0.3, 0]), run_time=1.3, rate_func=linear)
+        self.at("the branch in the cord")
+        self.play(Indicate(P["cp"], color=BLUE, scale_factor=1.05), run_time=0.7)
+        self.at("mostly does not")
+        stub = seg((d2.cx, d2.yc - 0.2), (d2.cx, d2.yc - 0.1), d2.w, BLUE)
+        bulb = Circle(radius=0.32, stroke_color=BLUE, stroke_width=3.5, fill_color=BLUE, fill_opacity=0.6).move_to([d2.cx, d2.yc - 0.1, 0])
+        self.add(stub, bulb)
+        self.play(FadeOut(P["cd"]), FadeOut(P["m2"]), Transform(stub, seg((d2.cx, d2.yc - 0.2), (d2.cx, d2.yc + 0.2), d2.w * 1.15, BLUE)),
+                  bulb.animate.move_to([d2.cx, d2.yc + 0.12, 0]), run_time=0.8)
+        ban = T("same kind of neuron, different outcome", 32).move_to([0, 3.55, 0])
+        brk = bracket(-4.9, 5.0, 3.18, GREY, 0.14, 4)
+        self.at("same kind of neuron")
+        self.play(FadeOut(P["t1"]), FadeOut(P["t2"]), run_time=0.2)
+        self.play(FadeIn(ban, shift=DOWN * 0.1), Create(brk), run_time=0.7)
+        cand = candidates()
+        self.at("is it the tissue")
+        self.play(FadeIn(cand), run_time=0.5)
+        self.at("what each injury")
+        self.wait(0.35)
+        self.finish()
+
+
+class S12Beat(NarratedScene):
+    def construct(self):
+        d1, d2, P = final_s09()
+        E = end_s11(d1, d2, P)
+        self.add(*E.values())
+        self.add(veil(0.5))
+        self.finish()
+
+
+class S13Cond(SpokenScene):
+    def construct(self):
+        d = DGR(-1.0, cy=0.15, half=3.1, drop=2.2, r=1.0)
+        nerve, cord = d.ctx()
+        cand = candidates()
+        ln = T("nerve", 28, SAGE).move_to([1.6, -2.2, 0])
+        lc = T("spinal cord", 28, GREY).move_to([d.cx, 3.5, 0])
+        peri, cent, cell = d.peri_whole(), d.cent_whole(), d.cell()
+        self.add(nerve, cord, peri, cent, cell, ln, lc)
+        self.at("nerve branch first")
+        pp, pd = d.peri_pieces(0.0)
+        self.remove(peri)
+        self.add(pp, pd)
+        m1 = d.mark_p(1.2)
+        first = lright("first", -2.25, d.yp, 28, TEXT)
+        self.play(pp.animate.shift(UP * 0.2), pd.animate.shift(DOWN * 0.2), FadeIn(m1), FadeIn(first), run_time=0.6)
+        self.play(FadeOut(pd), run_time=0.2)
+        # a visible gap in time, then the central cut
+        arrow = arr([3.9, d.yp, 0], [3.9, d.yc, 0], GREY, 5)
+        tlab = T("time passes", 28, GREY).move_to([5.25, (d.yp + d.yc) / 2, 0])
+        self.play(GrowArrow(arrow), FadeIn(tlab), run_time=0.3)
+        self.at("and the cord branch")
+        cp, cd = d.cent_pieces(0.0)
+        self.remove(cent)
+        self.add(cp, cd)
+        m2 = d.mark_c(1.2)
+        later = lright("later", -2.25, d.yc, 28, TEXT)
+        uy = d.yc
+        usual = DashedLine([d.cx - 0.95, uy, 0], [d.cx + 0.95, uy, 0], color=GREY, stroke_width=3)
+        ul = lleft("usual stub", 0.65, uy, 26, GREY)
+        self.play(cp.animate.shift(DOWN * 0.2), cd.animate.shift(UP * 0.2), FadeIn(m2), FadeIn(later),
+                  FadeIn(usual), FadeIn(ul), run_time=0.4)
+        self.at("regrows better")
+        newc = seg((d.cx, d.yc - 0.2), (d.cx, d.yc - 0.1), d.w, BLUE)
+        tip = cone(d.cx, d.yc - 0.1, s=0.8, ang=PI / 2)
+        self.add(newc, tip)
+        self.play(FadeOut(cd),
+                  Transform(newc, seg((d.cx, d.yc - 0.2), (d.cx, d.yc + 0.45), d.w, BLUE)),
+                  tip.animate.move_to([d.cx, d.yc + 0.5, 0]), run_time=1.0, rate_func=linear)
+        self.bring_to_front(m2)
+        gl = VGroup(T("grows further than usual", 26, GOLD), T("(but still limited)", 26, GOLD)
+                    ).arrange(DOWN, buff=0.08, aligned_edge=LEFT)
+        gl.move_to([1.0 + gl.width / 2, 2.55, 0])
+        self.play(FadeIn(gl), run_time=0.4)
+        self.at("conditioning lesion")
+        cl = lright("conditioning lesion", -2.25, d.yp, 28, TEXT)
+        self.play(FadeOut(first), FadeIn(cl), run_time=0.3)
+        self.at("neuron's own state")
+        self.play(Indicate(cell[1], color=BLUE, scale_factor=1.15), FadeIn(T("state matters", 34, TEXT).move_to([-3.3, -3.35, 0])), run_time=0.9)
+        self.at("the tissue may too", lead=0.1)
+        self.play(FadeIn(T("tissue may too", 34, TEXT).move_to([3.0, -3.35, 0])), Indicate(VGroup(nerve, cord), color=GREY, scale_factor=1.02), run_time=0.9)
+        self.finish()
+
+
+def s14_final():
+    return heading("One cut, two fates"), idea_body(IDEA_Y, IDEA_S), idea_line1()
+
+
+class S14Idea1(SpokenScene):
+    def construct(self):
+        s = IDEA_S
+        sm = soma(-5.6, IDEA_Y, 0.95 * s)
+        whole = seg((-5.6 + 0.95 * s * 0.9, IDEA_Y), (5.6, IDEA_Y), 0.8 * s, BLUE)
+        intro = T("The cut-off piece", 40, TEXT).move_to([0, -2.65, 0])
+        self.add(whole, sm, intro)
+        self.at("the one idea")
+        oi = T("the one idea", 52, TEXT, font=TITLE_FONT).move_to([0, -1.5, 0])
+        self.play(FadeIn(oi, shift=UP * 0.1), run_time=0.6)
+        hd = heading("One cut, two fates")
+        self.at("one cut")
+        cmk = cutmark(0.0, IDEA_Y, 1.9)
+        self.play(FadeIn(hd, shift=DOWN * 0.1), FadeIn(cmk), run_time=0.6)
+        self.at("two fates")
+        a0 = seg((-5.6 + 0.95 * s * 0.9, IDEA_Y), (-0.0, IDEA_Y), 0.8 * s, BLUE)
+        b0 = seg((0.0, IDEA_Y), (5.6, IDEA_Y), 0.8 * s, BLUE)
+        self.remove(whole)
+        self.add(a0, b0, sm)
+        body = idea_body(IDEA_Y, s)
+        self.play(Transform(a0, body[1]), Transform(b0, seg((0.3, IDEA_Y), (5.6, IDEA_Y), 0.8 * s, RED)), run_time=0.8)
+        ln = idea_line1()
+        self.at("cut off piece")
+        self.play(FadeOut(oi), FadeOut(intro), run_time=0.15)
+        self.play(FadeIn(ln[0], shift=UP * 0.1), run_time=0.6)
+        self.at("destroys itself")
+        self.play(ReplacementTransform(b0, body[2]), FadeOut(cmk), run_time=0.8)
+        self.at("by a program")
+        self.play(Create(body[3]), FadeIn(ln[1], shift=UP * 0.1), run_time=0.8)
+        self.finish()
+
+
+def s15_small():
+    return idea_body(2.9, 0.6), idea_line1_small()
+
+
+class S15Idea2(SpokenScene):
+    def construct(self):
+        hd, body, line1 = s14_final()
+        self.add(hd, body, line1)
+        self.at("attached piece")
+        sbody, sline = s15_small()
+        self.play(FadeOut(hd), ReplacementTransform(body, sbody), ReplacementTransform(line1, sline), run_time=0.6)
+        body = sbody
+        self.play(Indicate(body[1], color=BLUE, scale_factor=1.15), run_time=0.3)
+        fr0, _, _ = idea_bal(0.0, False)
+        self.at("tends to regrow")
+        l2 = idea_line2()
+        self.play(FadeIn(fr0), FadeIn(l2), run_time=0.7)
+        fr, pl, pr = idea_bal(0.0)
+        self.at("neurons drive")
+        link0 = arr([-4.1, 2.55, 0], [-4.1, 0.1, 0], BLUE, 4, 0.2)
+        self.play(FadeIn(pl), GrowArrow(link0), run_time=0.7)
+        self.at("outweighs")
+        self.play(Indicate(pl[1], color=GOLD, scale_factor=1.08), run_time=0.6)
+        self.at("resistance of the")
+        self.play(FadeIn(pr), run_time=0.3)
+        frt, plt_, prt = idea_bal(0.16)
+        link1 = arr([-4.1, 2.55, 0], [-4.1, -0.45, 0], BLUE, 4, 0.2)
+        self.play(Transform(fr0, frt), Transform(pl, plt_), Transform(pr, prt), Transform(link0, link1),
+                  run_time=0.6)
+        self.at("tissue around")
+        self.play(FadeIn(rule_note()), run_time=0.6)
+        self.finish()
+
+
+class S16Beat(NarratedScene):
+    def construct(self):
+        sbody, sline = s15_small()
+        frt, plt_, prt = idea_bal(0.16)
+        link1 = arr([-4.1, 2.55, 0], [-4.1, -0.45, 0], BLUE, 4, 0.2)
+        g = VGroup(sbody, sline, frt, plt_, prt, link1, idea_line2(), rule_note())
+        self.add(g, veil(0.5))
+        self.finish()
+
+
+class S17Take(SpokenScene):
+    def construct(self):
+        hd = heading("Two things to ask of any cut", 3.3, 40)
+
+        def card(x):
+            return RoundedRectangle(corner_radius=0.3, width=6.4, height=6.0, stroke_color=GREY, stroke_width=2.5,
+                                    fill_color=GREY, fill_opacity=0.06).move_to([x, -0.35, 0])
+        c1, c2 = card(-3.5), card(3.5)
+        # left icon: the cut-off piece and its program
+        i1 = VGroup(T("cut-off piece", 28, RED).move_to([-3.5, 2.1, 0]),
+                    beads(-6.2, -0.8, 1.2, 0.9, 7, RED, 0.25), bracket(-6.2, -0.8, 0.55, GOLD, -0.2, 5))
+        # right icon: the attached piece and the balance
+        fr, le, re = beam_frame(3.5, 0.05, 1.8, 0.0)
+        pl, pr = pan(le, "neuron’s\ndrive", GOLD, 26, 1.25), pan(re, "tissue’s\nresistance", RED, 26, 1.25)
+        i2 = VGroup(T("attached piece", 28, BLUE).move_to([3.5, 2.1, 0]),
+                    seg((0.9, 1.5), (6.1, 1.5), 0.7, BLUE), fr, pl, pr)
+        self.add(hd, c1, c2, i1, i2)
+        self.at("two things")
+        self.wait(0.25)
+        q1 = VGroup(T("What does the", 36), T("cut-off piece do?", 36)).arrange(DOWN, buff=0.12).move_to([-3.5, -2.65, 0])
+        a1 = bchip("a program", GOLD, 36).move_to([-3.5, -0.45, 0])
+        q2 = VGroup(T("At the attached piece,", 36), T("which side wins?", 36)).arrange(DOWN, buff=0.12).move_to([3.5, -2.65, 0])
+        self.at("What does the cut off piece")
+        self.play(FadeIn(q1, shift=UP * 0.1), FadeIn(a1), run_time=0.7)
+        self.at("And at the attached piece")
+        self.play(FadeIn(q2, shift=UP * 0.1), run_time=0.6)
+        self.at("which side wins")
+        # The closing question stays open: neither side is selected.
+        self.wait(0.3)
+        self.finish()
+
+
+class S18End(EndCard):
+    LINE = "Ask what the cut-off piece does, and which side wins."
