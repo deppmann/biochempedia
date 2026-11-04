@@ -38,7 +38,7 @@ export function plain(md) {
     .replace(/^\s*>\s?/gm, '')
     .replace(/^\s*(?:[-*+]|\d+\.)\s+/gm, '')
     .replace(/\*\*|`/g, '')
-    .replace(/(^|[\s(])\*([^*\n]+)\*/g, '$1$2')
+    .replace(/\*([^*\n]+)\*/g, '$1')
     .replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
     .replace(/\s+/g, ' ')
     .trim();

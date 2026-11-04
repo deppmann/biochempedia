@@ -1,0 +1,603 @@
+{
+ "slug": "direction-selectivity",
+ "title": "Computing Motion in the Retina",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "8f918ee4758d",
+ "sectionHashes": {
+  "What the mechanism must do: a veto on the null direction": "6efd6452f4f0",
+  "The circuit in one picture": "e7059b8227c6",
+  "Each branch is its own detector (2002)": "5abd410b3ea7",
+  "Reading the wiring (2002, 2011)": "f8f7ca9844e0",
+  "Built by strengthening, not pruning (2011)": "449f028a5b0a",
+  "Where the idea stops": "1b056d6d6222",
+  "Worked problem (a): a direction index from a published ratio": "d85eed518ced",
+  "Worked problem (b): when does a spike threshold sharpen the signal?": "90564f60d3c2",
+  "Design problem": "63be5013cfe7",
+  "Veto, boost, and what the two-flash test measures": "98c37631da3d",
+  "How selective must the wiring be?": "c2653f8ce49c",
+  "Input kinetics onto the starburst dendrite": "cc89bcd5ebb2",
+  "Worked problem: a delay-line speed, and why it misleads": "0c44053d1a86",
+  "Tuned excitation: the debate": "861e1ee4bd46",
+  "Downstream: what the cortex inherits": "dd603cd78886"
+ },
+ "cards": [
+  {
+   "id": "direction-selectivity-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What distinguishes the preferred and null directions of a direction-selective retinal ganglion cell (DSGC)?",
+   "back": "Preferred motion evokes a strong response; motion in the opposite, null direction evokes little or no response.",
+   "quote": "fires strongly to motion in one direction, its preferred direction, and little or not at all to motion the opposite way, its null direction.",
+   "section": "What the mechanism must do: a veto on the null direction"
+  },
+  {
+   "id": "direction-selectivity-c02",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In Barlow and Hill's rabbit recordings, did replacing a light spot with a black spot change the preferred motion direction, and what did this establish?",
+   "back": "No. The preferred direction did not depend on whether the spot was lighter or darker than its background.",
+   "quote": "Replacing a light spot with a black spot kept the same preferred direction,",
+   "section": "What the mechanism must do: a veto on the null direction"
+  },
+  {
+   "id": "direction-selectivity-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An ON-OFF direction-selective retinal unit responds to light {{c1::onset and offset}}.",
+   "back": "",
+   "quote": "ON-OFF direction-selective units, which respond both when light comes on and when it goes off,",
+   "section": "What the mechanism must do: a veto on the null direction"
+  },
+  {
+   "id": "direction-selectivity-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a retinal two-flash test using baseline-subtracted responses in matched windows, the response remainder equals the paired response minus {{c1::the sum of the single-flash responses}}.",
+   "back": "A negative remainder indicates net suppression; a positive remainder indicates net enhancement.",
+   "quote": "The useful number is the remainder, the paired response minus the sum of the singles:",
+   "section": "What the mechanism must do: a veto on the null direction"
+  },
+  {
+   "id": "direction-selectivity-c05",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What operation did Barlow and Levick infer from rabbit ON-OFF cells responding far below the single-flash sum in the null order, but near it in the preferred order?",
+   "back": "A local veto of null-direction sequences, operating in small subunits across the receptive field.",
+   "quote": "They also inferred that the veto works in small subunits spread across the receptive field, not once for the whole cell.",
+   "section": "What the mechanism must do: a veto on the null direction"
+  },
+  {
+   "id": "direction-selectivity-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A retinal ganglion cell prefers upward motion. In the simple offset model, which side should supply inhibition that vetoes null motion, and why?",
+   "back": "The upper side: null motion travels downward and approaches from above, recruiting inhibition early enough to overlap excitation.",
+   "quote": "the inhibition should come from the side that null-direction motion approaches from.",
+   "section": "What the mechanism must do: a veto on the null direction"
+  },
+  {
+   "id": "direction-selectivity-c07",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical retinal two-flash test, baseline-subtracted singles give 4 spikes each. Matched-window pairs give 14 spikes in one order and 2 in the reverse. Calculate both remainders and interpret them.",
+   "back": "Additive prediction = 4 + 4 = 8 spikes. Remainders: 14 − 8 = +6 spikes, net enhancement; 2 − 8 = −6 spikes, net suppression.",
+   "quote": "2 − 8 = −6 for the veto and 14 − 8 = +6 for the boost.",
+   "section": "What the mechanism must do: a veto on the null direction"
+  },
+  {
+   "id": "direction-selectivity-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can sufficiently early inhibition veto excitation during null-direction motion in a retinal offset model?",
+   "back": "Inhibition cancels excitation while they overlap in time. Preferred motion reaches excitation first, giving it a head start.",
+   "quote": "Inhibition cancels excitation only while the two overlap in time.",
+   "section": "What the mechanism must do: a veto on the null direction"
+  },
+  {
+   "id": "direction-selectivity-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which two transmitters do starburst amacrine cells release, and what effects do they have in the retinal circuit?",
+   "back": "GABA inhibits; acetylcholine excites.",
+   "quote": "an interneuron that releases both GABA, which inhibits, and acetylcholine, which excites.",
+   "section": "The circuit in one picture"
+  },
+  {
+   "id": "direction-selectivity-c10",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the basic retinal direction-selectivity circuit, a ganglion cell receives its excitation mainly from {{c1::bipolar cells}}.",
+   "back": "In this simplified picture, excitation is about the same for either direction.",
+   "quote": "The DSGC's excitation comes mainly from bipolar cells, and in this picture it is about the same for either direction.",
+   "section": "The circuit in one picture"
+  },
+  {
+   "id": "direction-selectivity-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A starburst amacrine dendrite is most active and releases most GABA during {{c1::outward motion, from soma toward tip}}.",
+   "back": "",
+   "quote": "when motion runs outward, from the cell body to its tip.",
+   "section": "The circuit in one picture"
+  },
+  {
+   "id": "direction-selectivity-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How do starburst branch tuning and selective wiring together suppress a retinal ganglion cell's null response?",
+   "back": "The strongest inhibitory branches point roughly in the ganglion cell's null direction. Null motion runs outward along them, maximizing inhibition that overlaps and vetoes excitation.",
+   "quote": "A direction-selective ganglion cell is wired mainly to the starburst dendrites that point in its null direction.",
+   "section": "The circuit in one picture"
+  },
+  {
+   "id": "direction-selectivity-c13",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A retinal ganglion cell prefers upward motion. A starburst soma lies above it, with a branch pointing downward over its dendrites. Which motion should evoke stronger inhibition, and why?",
+   "back": "Downward motion: it runs outward along the downward-pointing branch, which points in the ganglion cell's null direction and is expected to connect strongly.",
+   "quote": "Remember the sign: the dendrites that give a DSGC its strongest inhibition prefer roughly the direction the DSGC ignores.",
+   "section": "The circuit in one picture"
+  },
+  {
+   "id": "direction-selectivity-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Suppose a starburst soma simply sums equal signals from opposite dendrites, each preferring outward motion. What directional preference should the soma show, and why?",
+   "back": "Little or none: motion outward along one branch is inward along its opposite, so their preferences cancel under equal summation.",
+   "quote": "motion that runs outward along one branch runs inward along the branch opposite it, so the preferences cancel.",
+   "section": "Each branch is its own detector (2002)"
+  },
+  {
+   "id": "direction-selectivity-c15",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What contrast between dendritic calcium and somatic voltage did Euler and colleagues find in ON starburst cells in isolated rabbit retina?",
+   "back": "Dendritic calcium preferred outward motion; somatic voltage lacked that preference under the tested conditions. This supports branch-level computation, without proving summation caused the somatic result.",
+   "quote": "Euler and colleagues found that the somatic voltage did not show the dendrites' directional preference under the conditions tested;",
+   "section": "Each branch is its own detector (2002)"
+  },
+  {
+   "id": "direction-selectivity-c16",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A simplified retinal circuit keeps its null-aligned starburst synapses, but branch release becomes identical for inward and outward motion. Excitation and input timing are equal across directions. Can selective wiring alone preserve direction selectivity?",
+   "back": "No. The circuit rule requires both branch tuning and selective wiring. With direction-independent release and no directional difference in excitation or timing, null-aligned contacts alone cannot create different responses to opposite motion.",
+   "quote": "Each branch has its own, set by where the branch points.",
+   "section": "Each branch is its own detector (2002)"
+  },
+  {
+   "id": "direction-selectivity-c17",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a retinal ablation assay, removing a neuron population eliminates direction selectivity and the tested eye-following reflex. What causal conclusion follows?",
+   "back": "The population is necessary in that assay. Ablation does not establish sufficiency or identify which of the population's transmitters mediates the effect.",
+   "quote": "This is necessity in that assay, and taking the whole population away removes both of its transmitters together.",
+   "section": "Each branch is its own detector (2002)"
+  },
+  {
+   "id": "direction-selectivity-c18",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What functional evidence linked starburst output to the null-direction veto in Fried and colleagues' rabbit paired recordings?",
+   "back": "Null-pointing starburst processes delivered inhibition; preferred-pointing processes did not. Starburst inhibition was stronger during null-direction motion.",
+   "quote": "SAC processes pointing in a DSGC's null direction delivered inhibition and those pointing in its preferred direction did not,",
+   "section": "Reading the wiring (2002, 2011)"
+  },
+  {
+   "id": "direction-selectivity-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why did Briggman and colleagues measure mouse ganglion cells' preferred directions before reconstructing the same tissue by electron microscopy?",
+   "back": "Function supplied each cell's preferred and null directions, allowing branch orientation and reconstructed contacts to be related to its direction preference.",
+   "quote": "A wiring diagram alone does not say which way a ganglion cell prefers, so they read function first.",
+   "section": "Reading the wiring (2002, 2011)"
+  },
+  {
+   "id": "direction-selectivity-c20",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An adult retinal reconstruction shows more inhibitory contacts of one orientation. Can this alone establish stronger inhibitory conductance or developmental pruning? What evidence is missing?",
+   "back": "Neither conclusion follows. The anatomy rule treats contacts as indirect connectivity measures, not conductance; the snapshot rule cannot establish development. Functional measurements and recordings across developmental stages would address those gaps.",
+   "quote": "Anatomy does not measure the strength of a synapse, so a contact count or area is an indirect sign of connectivity, not a conductance.",
+   "section": "Reading the wiring (2002, 2011)"
+  },
+  {
+   "id": "direction-selectivity-c21",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How did Wei and colleagues' mouse paired recordings distinguish strengthening from pruning during development of starburst-to-ganglion inhibition?",
+   "back": "Initially similar inhibition became asymmetric as null-side inhibition grew. Preferred-side inhibition stayed about constant and persisted in adults, supporting strengthening rather than deletion.",
+   "quote": "Development strengthened one side and did not delete the other.",
+   "section": "Built by strengthening, not pruning (2011)"
+  },
+  {
+   "id": "direction-selectivity-c22",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Mouse direction selectivity developed despite muscimol or gabazine treatment during formation of inhibitory asymmetry. Does this show that neural activity never matters for wiring?",
+   "back": "No. It supports activity-independent null-side strengthening within the tested treatment window; it does not establish independence from every activity pattern at every developmental stage.",
+   "quote": "does not depend on neural activity, at least within that treatment window.",
+   "section": "Built by strengthening, not pruning (2011)"
+  },
+  {
+   "id": "direction-selectivity-c23",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "During mouse null-side connection growth, quantal inhibitory events became more frequent without becoming larger. Why does this alone fail to prove that synapse number increased?",
+   "back": "By the quantal interpretation rule, frequency can increase through more release sites or higher release probability. Unchanged size argues against larger single events; additional tests are needed to distinguish the frequency mechanisms.",
+   "quote": "More frequent events can mean more release sites or a higher release probability, so frequency alone does not settle it.",
+   "section": "Built by strengthening, not pruning (2011)"
+  },
+  {
+   "id": "direction-selectivity-c24",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "After SAC-specific reduction of GABA release in mouse retina, inhibition lost direction tuning, yet some ON-OFF ganglion cells remained direction selective. What limits the conclusion?",
+   "back": "Tuned inhibition is not indispensable in every tested cell: tuned excitation and relative timing can support residual selectivity. The manipulation did not eliminate all starburst GABA.",
+   "quote": "So direction tuning of inhibition is important but not indispensable for selectivity in every tested cell.",
+   "section": "Where the idea stops"
+  },
+  {
+   "id": "direction-selectivity-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How can inhibition of equal size in both motion directions still help produce a direction-selective retinal response?",
+   "back": "Its timing relative to excitation can differ by direction, changing how much excitation it cancels even when inhibitory amplitude is untuned.",
+   "quote": "which can change how much it cancels even when its size is the same in both directions.",
+   "section": "Where the idea stops"
+  },
+  {
+   "id": "direction-selectivity-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does similar preferred-direction enhancement and null-direction suppression in fly and mouse vision support convergent computation rather than homology?",
+   "back": "Different cell types implement a similar algorithm: fly T4 and T5 cells versus the mammalian starburst circuit. Algorithmic similarity alone does not establish homology.",
+   "quote": "The fly and the mouse reach a similar algorithm with different cells, so this is convergent computation, not homology,",
+   "section": "Where the idea stops"
+  },
+  {
+   "id": "direction-selectivity-c27",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What is the evidence limit for the candidate human counterpart of the macaque direction-selective cell described in the retinal studies?",
+   "back": "The human cell was identified as a candidate homolog, without a human motion recording.",
+   "quote": "The 2023 human cell was identified as a candidate homolog without a human motion recording.",
+   "section": "Where the idea stops"
+  },
+  {
+   "id": "direction-selectivity-c28",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For a retinal dendritic response, normalize outward response Rout to 1 and set inward response Rin to 0.32. Calculate D = (Rout − Rin)/(Rout + Rin) and interpret its sign.",
+   "back": "D = (1 − 0.32)/(1 + 0.32) = 0.68/1.32 ≈ 0.515. The positive sign indicates an outward preference.",
+   "quote": "For this exercise only, normalise the outward response to 1 and define D = (Rout - Rin) / (Rout + Rin).",
+   "section": "Worked problem (a): a direction index from a published ratio"
+  },
+  {
+   "id": "direction-selectivity-c29",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An imaging report averages inward/outward ratios from 36 dendritic regions on one cell. Can transforming that mean ratio yield a mean per-region direction index or evidence from 36 independent cells?",
+   "back": "Neither. By the nonlinear-transformation rule, the index of the mean ratio need not equal the mean of individual indices. By the sampling rule, regions on one cell are not separate cells or animals.",
+   "quote": "because the formula is non-linear it is not the mean of per-region indices, which would need each region's own ratio.",
+   "section": "Worked problem (a): a direction index from a published ratio"
+  },
+  {
+   "id": "direction-selectivity-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "When can a threefold ratio of inhibitory current amplitudes be interpreted as a threefold inhibitory conductance ratio?",
+   "back": "When inhibitory reversal potential is the same and adequate voltage clamp holds both measurements at one voltage away from that reversal, giving the same driving force.",
+   "quote": "the driving force is then the same, so the threefold current ratio is a threefold conductance ratio,",
+   "section": "Worked problem (b): when does a spike threshold sharpen the signal?"
+  },
+  {
+   "id": "direction-selectivity-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a passive steady-state neuron with no injected current, voltage is the average of reversal potentials weighted by {{c1::their conductances}}.",
+   "back": "V = (g_E E_E + g_I E_I + g_L E_L)/(g_E + g_I + g_L).",
+   "quote": "when the voltage is steady and no current is injected, it sits at the average of the reversal potentials, weighted by each conductance.",
+   "section": "Worked problem (b): when does a spike threshold sharpen the signal?"
+  },
+  {
+   "id": "direction-selectivity-c32",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a passive steady-state retinal model, E_E = 0 mV, E_I = −70 mV, E_L = −60 mV; g_E = 2 and g_L = 1. With no injected current, calculate V for g_I = 1 (preferred) and 3 (null).",
+   "back": "V = Σ(gE)/Σg. Preferred: (2×0 − 70 − 60)/(2+1+1) = −32.5 mV. Null: (2×0 − 210 − 60)/(2+3+1) = −45 mV.",
+   "quote": "Preferred: (2 × 0 + 1 × −70 + 1 × −60) / (2 + 1 + 1) = −130 / 4 = −32.5 mV.",
+   "section": "Worked problem (b): when does a spike threshold sharpen the signal?"
+  },
+  {
+   "id": "direction-selectivity-c33",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A passive retinal model gives preferred V = −32.5 mV, null V = −45 mV and leak reversal −60 mV. Calculate (P − N)/(P + N) for depolarizations from leak. Why use depolarizations?",
+   "back": "P = −32.5 − (−60) = 27.5 mV; N = −45 − (−60) = 15 mV. Index = 12.5/42.5 ≈ 0.29. The index is intended for nonnegative quantities, not raw negative membrane potentials.",
+   "quote": "The depolarizations from the leak potential, 27.5 and 15 mV, give (27.5 − 15) / (27.5 + 15) = 12.5 / 42.5 = 0.29.",
+   "section": "Worked problem (b): when does a spike threshold sharpen the signal?"
+  },
+  {
+   "id": "direction-selectivity-c34",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a retinal threshold model, rate is proportional to max(V − T, 0). Preferred V is −32.5 mV and null V is −45 mV. Which thresholds T give preferred firing but a silent null response, and why?",
+   "back": "−45 mV ≤ T < −32.5 mV. Null voltage is then at or below threshold while preferred voltage remains above it. At or above −32.5 mV both rates vanish and their direction index is undefined.",
+   "quote": "only for thresholds from −45 mV up to just below −32.5 mV.",
+   "section": "Worked problem (b): when does a spike threshold sharpen the signal?"
+  },
+  {
+   "id": "direction-selectivity-c35",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Let rate = max(V − T, 0) in arbitrary units, with preferred V = −32.5 mV and null V = −45 mV. At T = −55 mV, calculate the spike index (P − N)/(P + N). Does it exceed an inhibitory index magnitude of 0.50?",
+   "back": "Rates: P = 22.5, N = 10. Spike index = (22.5 − 10)/(22.5 + 10) = 12.5/32.5 ≈ 0.38, below 0.50. A low threshold need not sharpen selectivity relative to inhibition.",
+   "quote": "With a low threshold, the spike output (0.38 at −55 mV) is less selective than the inhibition (0.50).",
+   "section": "Worked problem (b): when does a spike threshold sharpen the signal?"
+  },
+  {
+   "id": "direction-selectivity-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Removing retinal neurons that release both GABA and acetylcholine eliminates direction selectivity. Design a more specific test of the GABA contribution and state what a reduced but nonzero direction preference would mean.",
+   "back": "Reduce only their GABA release while preserving cells and acetylcholine, and compare with acute reversible cell silencing. By the transmitter-specific necessity rule, reduced preference implicates GABA; residual preference permits other contributions. Loss-of-function alone does not establish sufficiency.",
+   "quote": "Remove or reduce GABA release from SACs while leaving the cells and their cholinergic output in place,",
+   "section": "Design problem"
+  },
+  {
+   "id": "direction-selectivity-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A genetic manipulation begun before retinal circuit maturation weakens adult direction selectivity. How would you distinguish a developmental wiring effect from an adult signalling requirement?",
+   "back": "Compare an early manipulation with one begun in adulthood. The developmental-versus-adult rule separates altered wiring from disrupted signalling; acute reversible silencing provides a comparison less entangled with development.",
+   "quote": "a manipulation in the adult changes signalling. The two answer different questions.",
+   "section": "Design problem"
+  },
+  {
+   "id": "direction-selectivity-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Does a negative baseline-subtracted remainder in a retinal two-flash test uniquely identify an inhibitory veto mechanism?",
+   "back": "No. It measures net suppression, not a unique cellular mechanism. An opponent multiplicative detector with a linear term can also produce a deficit.",
+   "quote": "It does not, on its own, assign a cell to one scheme or identify a cellular mechanism.",
+   "section": "Veto, boost, and what the two-flash test measures"
+  },
+  {
+   "id": "direction-selectivity-c39",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the linear, otherwise symmetric starburst model, contacts broaden from a single null-pointing orientation to a half-circle centred on null (±90°). Must directional inhibition disappear, and why?",
+   "back": "No. The model retains stronger null inhibition with loose null-centred wiring. A half-circle still favours null-pointing branches; cancellation occurs when every branch direction is sampled equally.",
+   "quote": "In this linear, otherwise symmetric model the last row carries no direction signal, as for a summing soma,",
+   "section": "How selective must the wiring be?"
+  },
+  {
+   "id": "direction-selectivity-c40",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What proximal-versus-distal excitatory response pattern did Fransen and Borghuis measure in mouse ON and OFF starburst cells?",
+   "back": "Distal excitation was faster and more transient than proximal excitation in both cell types.",
+   "quote": "Distal excitation was faster and more transient than proximal excitation in both types.",
+   "section": "Input kinetics onto the starburst dendrite"
+  },
+  {
+   "id": "direction-selectivity-c41",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "For a pure-delay exercise in mouse starburst cells, take 26 ms per 100 micrometres for OFF cells and 8 ms per 100 micrometres for ON cells. Calculate matching speeds in micrometres per second and, using 31 micrometres per degree, degrees per second.",
+   "back": "Speed = distance/delay. OFF: 100/0.026 ≈ 3,800 micrometres/s, or roughly 120°/s after dividing by 31. ON: 100/0.008 = 12,500 micrometres/s, roughly 400°/s. These are exercise estimates, not measured preferred speeds.",
+   "quote": "A pure delay line makes the signals coincide when the stimulus crosses 100 micrometres in the delay time.",
+   "section": "Worked problem: a delay-line speed, and why it misleads"
+  },
+  {
+   "id": "direction-selectivity-c42",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Treating starburst input time-to-peak gradients as pure delays predicts much faster motion than a sustained/transient input model's low-speed regime. Does this refute a contribution from input kinetics?",
+   "back": "No. By the response-shape rule, a time-to-peak gradient need not be a pure delay. Sustained proximal and transient distal responses can contribute differently. The mismatch tests the pure-delay assumption, not all kinetic mechanisms.",
+   "quote": "The mismatch comes from the pure-delay assumption, which ignores the difference in response shape (sustained proximal, transient distal),",
+   "section": "Worked problem: a delay-line speed, and why it misleads"
+  },
+  {
+   "id": "direction-selectivity-c43",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is it premature to assume that glutamatergic input to mouse direction-selective ganglion cells is always direction tuned?",
+   "back": "Studies disagree: some report tuned and untuned input; direct glutamate imaging found no tuning, whose authors argued that apparent voltage-clamp tuning came from poor voltage control during null inhibition.",
+   "quote": "Park and colleagues (2014) imaged glutamate arriving on ON-OFF DSGC dendrites in mouse and found no direction tuning,",
+   "section": "Tuned excitation: the debate"
+  },
+  {
+   "id": "direction-selectivity-c44",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Which cortical motion bias was lost after disruption of retinal direction selectivity in the mouse study by Hillier and colleagues?",
+   "back": "The over-representation of posterior-motion-preferring layer 2/3 cells in V1; other cortical motion computations persisted.",
+   "quote": "disrupting retinal direction selectivity abolished the over-representation of posterior-motion-preferring layer 2/3 cells in primary visual cortex (V1), while other cortical motion computations persisted.",
+   "section": "Downstream: what the cortex inherits"
+  }
+ ]
+}
