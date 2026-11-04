@@ -6,14 +6,16 @@ courseChapter: "Developmental Neuroscience · Unit 3: Coordinates: patterning th
 order: 210
 summary: >-
   How does a dividing cell in the neural tube know how far it sits from the bottom, and so whether
-  its daughters become motor neurons or relay neurons for body sensation? This lesson follows
-  Sonic hedgehog from the notochord and floor plate below, and BMPs from the epidermis and roof
-  plate above, and shows how progenitors read the level and the duration of the ventral signal and
-  sharpen a smooth slope into sharp domains. Afterwards you can predict the result of grafting,
-  removing or blocking each source, and of breaking one of the transcription factors that read it.
+  its daughters become motor neurons or relay neurons for body sensation? One idea carries the
+  lesson: the neighbours supply a slope; the progenitors draw the lines. Sonic hedgehog from the
+  notochord and floor plate below, and BMPs from the epidermis and roof plate above, set how much
+  signal each cell receives. Progenitors read the level and the duration of the ventral signal,
+  answer with a combination of transcription factors, and sharpen a smooth slope into sharp
+  domains. Afterwards you can predict the result of grafting, removing or blocking each source,
+  and of breaking one of the transcription factors that read it.
 hook: "Graft a second notochord beside a chick neural tube, and the tube grows a second floor."
 
-estMinutes: 22
+estMinutes: 32
 objectives:
   - "Explain how the notochord induces the floor plate, why both then make Sonic hedgehog, and how BMPs from the epidermis and roof plate, with Wnts, pattern the dorsal tube."
   - "Describe Sonic hedgehog as a morphogen whose concentration and duration progenitors read through class I and class II homeodomain factors."
@@ -24,10 +26,52 @@ explainer:
   src: "/explainers/shh-bmp-neural-tube/explainer.mp4"
   captions: "/explainers/shh-bmp-neural-tube/explainer.vtt"
   poster: "/explainers/shh-bmp-neural-tube/poster.jpg"
-  title: "A Slope Becomes Stripes"
-  durationSec: 163.7
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "The Tube Gains a Second Floor"
+  durationSec: 175.4
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "naming-the-signal"
+    src: "/explainers/shh-bmp-neural-tube/naming-the-signal.mp4"
+    captions: "/explainers/shh-bmp-neural-tube/naming-the-signal.vtt"
+    poster: "/explainers/shh-bmp-neural-tube/naming-the-signal-poster.jpg"
+    title: "Naming the Signal"
+    durationSec: 192.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "code-in-two-classes"
+    src: "/explainers/shh-bmp-neural-tube/code-in-two-classes.mp4"
+    captions: "/explainers/shh-bmp-neural-tube/code-in-two-classes.vtt"
+    poster: "/explainers/shh-bmp-neural-tube/code-in-two-classes-poster.jpg"
+    title: "A Code in Two Classes"
+    durationSec: 187.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "level-and-time"
+    src: "/explainers/shh-bmp-neural-tube/level-and-time.mp4"
+    captions: "/explainers/shh-bmp-neural-tube/level-and-time.vtt"
+    poster: "/explainers/shh-bmp-neural-tube/level-and-time-poster.jpg"
+    title: "Level and Time"
+    durationSec: 162.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "drawing-the-lines"
+    src: "/explainers/shh-bmp-neural-tube/drawing-the-lines.mp4"
+    captions: "/explainers/shh-bmp-neural-tube/drawing-the-lines.vtt"
+    poster: "/explainers/shh-bmp-neural-tube/drawing-the-lines-poster.jpg"
+    title: "Drawing the Lines"
+    durationSec: 181.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "top-of-the-tube"
+    src: "/explainers/shh-bmp-neural-tube/top-of-the-tube.mp4"
+    captions: "/explainers/shh-bmp-neural-tube/top-of-the-tube.vtt"
+    poster: "/explainers/shh-bmp-neural-tube/top-of-the-tube-poster.jpg"
+    title: "The Top of the Tube"
+    durationSec: 172.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Marysia Placzek"
@@ -380,60 +424,200 @@ draft: false
 
 import ShhGradientReadout from '../../../components/ShhGradientReadout.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Graft a second notochord against the side of a chick embryo's neural tube, and the neural cells beside it start to behave like floor plate. The tube gains a second bottom.**
 
-The neural tube is the hollow rod that rolls up from the neural plate, a sheet of ectoderm (the embryo's outer cell layer), and becomes the brain and spinal cord. Its bottom strip is the floor plate, a narrow line of specialized cells. Its top strip is the roof plate. Under the tube runs the notochord, a rod of mesoderm. In the wall between floor and roof, dividing cells called progenitors will make motor neurons near the bottom and relay neurons for body sensation near the top.
+So how does a dividing cell in the wall of the tube know how far it sits from the bottom, and so whether its daughters become motor neurons or relay neurons for body sensation? Its neighbours tell it. The notochord below and the skin above both send signals into the tube, and a cell's position is written in how much of each it receives. This lesson follows those signals, Sonic hedgehog from below and BMPs from above, and asks how the cells turn a smooth slope of signal into sharp stripes of different neurons.
 
-So each progenitor needs to know how far it sits from the bottom. The answer starts with one sentence: differentiation in the neural tube depends on factors from adjacent, non-neural tissues.
+## The layout
 
-## The idea: the tube learns its bottom and top from its neighbours
+Most of this lesson happens on one picture, which the first film draws. Picture the embryonic spinal cord cut crosswise, like a slice through a hollow tube, with dorsal (the back) at the top.
 
-Notochord and floor plate lie against each other and share features. That likeness could mean a common history, or it could mean the notochord tells the neural cells what to become. A static embryo cannot tell the two apart. Moving tissue can.
+- **The neural tube** is the hollow rod that rolls up from the neural plate, a sheet of ectoderm (the embryo's outer cell layer), and becomes the brain and spinal cord.
+- **The notochord** is a rod of mesoderm (the embryo's middle cell layer) running under the tube.
+- **The floor plate** is the tube's bottom strip, a narrow line of specialized cells just above the notochord.
+- **The roof plate** is the tube's top strip.
+- **The epidermis**, the non-neural ectoderm on either side of the closing neural plate, ends up over the top of the tube.
+- **The ventricular zone** lines the central canal, in the wall between floor and roof. Its cells are **progenitors**, dividing cells that will make motor neurons near the bottom and relay neurons for body sensation near the top.
 
-An earlier group had seen an extra floor plate after implanting a notochord in chick embryos in 1985. In 1990 Marysia Placzek, Marc Tessier-Lavigne, Toshiya Yamada, Thomas Jessell and Jane Dodd ran the test in both directions in chick. A notochord grafted beside the lateral wall of the tube induced floor-plate properties in the neural cells it touched. Removing the normal notochord early prevented floor-plate properties at the midline. The first result shows sufficiency, the second necessity.
+The ventral half of the wall will hold five stripes of progenitors, called **domains**, each making one class of neuron. From dorsal to ventral they are named p0, p1, p2, pMN and p3. For now treat them as five empty slots; the code section fills them in.
 
-The floor plate then passes the message on. In a 1993 culture assay, Placzek, Jessell and Dodd found that floor plate induced floor-plate markers in neural plate explants as well as notochord did, and that the signals acted by contact. They called this homeogenetic induction: an induced tissue recruits its neighbours to the same identity.
+The map raises four puzzles.
 
-The top of the tube has its own neighbours. The epidermis, the non-neural ectoderm on either side of the closing neural plate, and later the roof plate send dorsalizing signals. The summary of the axis is short. BMPs (bone morphogenetic proteins) act in neural induction and in dorsal identity, and dorsal BMP and ventral Sonic hedgehog work against each other.
+1. **Who marks the bottom?** Is the floor plate born different from its neighbours, or is it told?
+2. **What is the signal**, and how does a cell receive it?
+3. **How is a slope read?** A cell can sense only the signal that reaches it. How does it turn that into "which neuron"?
+4. **How does a slope become lines?** A smooth slope should give a blur, yet the domains have sharp borders.
+
+The top of the tube, with its own signals, BMPs and Wnts, comes at the end.
 
 <LessonFigure src="/figures/shh-bmp-neural-tube/neural-tube-section-shh-bmp.webp" width={1200} height={888} alt="AI-generated illustration: a cross-section of the neural tube, dorsal up. The notochord sits below the floor plate at the bottom of the tube and the roof plate lies at the top with the epidermis above it. Gold Sonic hedgehog fades upward from the notochord and floor plate, while BMPs fade downward from the epidermis and roof plate, the two gradients opposing each other." caption="A transverse section of the neural tube. Sonic hedgehog comes from the notochord and floor plate below, BMPs from the epidermis and roof plate above, and the two systems work against each other across the wall where progenitors sit." />
 
-## Hedgehog arrives: "Shh protein is sufficient to turn an explant ventral"
+> **The one idea to carry through this lesson.** The neighbours supply a slope; the progenitors draw the lines. The notochord and epidermis, and the floor plate and roof plate they induce, are the sources of the slope (Sonic hedgehog below, BMPs and Wnts above); they set, to a first approximation, *how much* signal each cell receives. The cells decide *how sharp the lines are* and help decide *where they fall*: they read the level and how long it lasts, answer with a combination of transcription factors, and pairs of neighbouring factors repress each other, which pushes each cell toward one identity and helps hold it there.
 
-The signal got a name in the December 1993 issue of *Cell*. Three papers described vertebrate relatives of *hedgehog*, a fly gene for a secreted signal: Yann Echelard, Andrew McMahon and colleagues in mouse; Stefan Krauss, Jean-Paul Concordet and Philip Ingham in zebrafish; and Robert Riddle, Randy Johnson, Ed Laufer and Cliff Tabin in chick. The gene they called *Sonic hedgehog* (*Shh*) was expressed in notochord and floor plate, and in the mouse paper, forcing it on where it is normally absent in the central nervous system switched on floor-plate genes.
+**What the rule covers.** Dorsal-ventral patterning of spinal cord progenitors during early neurogenesis in chick and mouse, where the evidence is strongest: the ventral Sonic hedgehog system in full, and the dorsal BMP and Wnt system in outline. It has the same shape as the rule in [the netrin lesson](/lessons/netrin-and-dcc/) (netrin marks a place; the growth cone decides what to do there): a signal supplies position, and the receiving cell supplies the interpretation. It has three limits, each met where it arises: **sharp is not the same as accurate**, **the signal shapes its own slope**, and **not every fate is a line on this slope**.
 
-Jessell's laboratory then put the protein back into the assay. An explant is a small piece of tissue cut out and grown in a dish. In 1994 Henk Roelink and colleagues showed that cultured cells engineered to make a vertebrate Hedgehog induced floor-plate and motor-neuron markers in neural plate explants. In 1995 they used the purified amino-terminal fragment, the part of the protein that signals, and found that higher concentrations induced floor plate and lower ones induced motor neurons. One protein, at different doses, gave different ventral fates.
+## Who marks the bottom?
+
+Notochord and floor plate lie against each other and share features. That likeness could mean a common history, or it could mean the notochord tells the neural cells what to become. A static embryo cannot tell the two apart. Moving tissue can.
+
+In 1990 Marysia Placzek, Marc Tessier-Lavigne, Toshiya Yamada, Thomas Jessell and Jane Dodd ran the test in both directions in chick. In one direction, a notochord grafted beside the lateral wall of the tube induced floor-plate properties in the neural cells it touched: the second floor of the opening.
+
+**Predict.** Now the other direction. Remove the normal notochord early, before the floor plate forms. What happens at the midline? And what does each experiment, the graft and the removal, prove on its own?
+
+<details>
+<summary>Check your prediction</summary>
+
+Removing the normal notochord early prevented floor-plate properties at the midline. The graft shows **sufficiency**: the notochord is enough to give floor-plate properties in a new place. The removal shows **necessity**: without it, the normal floor plate does not form. Together they point to an instruction passed from notochord to neural cells, at least in these assays (Going deeper qualifies this).
+
+</details>
+
+The floor plate then passes the message on. An **explant** is a small piece of tissue cut out and grown in a dish. In a 1993 culture assay, Placzek, Jessell and Dodd found that floor plate induced floor-plate markers in neural plate explants as well as notochord did, and that the signals acted by contact. They called this **homeogenetic induction**: an induced tissue recruits its neighbours to the same identity. Needing contact in this assay did not settle how far the signal itself travels; the next sections treat it as a graded protein whose level falls with distance from the source.
+
+That answers the first puzzle. The bottom is told, and once told, it recruits. Something passes from the notochord, and then from the floor plate. What is it?
+
+## Naming the signal
+
+<LessonFilm film={frontmatter.films[0]} />
+
+The signal got a name in the December 1993 issue of *Cell*. Three papers described vertebrate relatives of *hedgehog*, a fly gene for a secreted signal: Yann Echelard, Andrew McMahon and colleagues in mouse; Stefan Krauss, Jean-Paul Concordet and Philip Ingham in zebrafish; and Robert Riddle, Randy Johnson, Ed Laufer and Cliff Tabin in chick. The gene they called *Sonic hedgehog* (*Shh*) was expressed in notochord and floor plate, the tissues the grafts had pointed to, and in the mouse paper, forcing it on where it is normally absent in the central nervous system switched on floor-plate genes.
+
+Jessell's laboratory then put the protein back into the assay. In 1994 Henk Roelink and colleagues showed that cultured cells engineered to make a vertebrate Hedgehog induced floor-plate and motor-neuron markers in neural plate explants. In 1995 they used the purified amino-terminal fragment, the part of the protein that signals, and found that higher concentrations induced floor plate and lower ones induced motor neurons. One protein, at different doses, gave different ventral fates.
 
 <LessonFigure src="/figures/shh-bmp-neural-tube/shh-explant-dose-assay.webp" width={1200} height={600} alt="AI-generated illustration: neural plate tissue is cut out as explants and placed in two culture dishes. In the dish with higher Shh, floor-plate markers are induced; in the dish with lower Shh, motor-neuron markers are induced. The coloured rows are a qualitative schematic, not conversion percentages." caption="An explant is a small piece of tissue grown in a dish. Given purified Shh amino-terminal fragment, separate neural plate explants showed floor-plate markers at higher concentrations and motor-neuron markers at lower ones. The coloured rows are a qualitative schematic of marker induction, not a conversion of every cell." />
 
-Necessity came from a knockout, a mouse with a gene deliberately disrupted. In 1996 Chin Chiang, Philip Beachy and colleagues reported that mice lacking *Shh* have no floor plate and lack most ventral cell types of the neural tube. Later, Chiang's group found that also removing *Gli3* restores motor neurons and several ventral interneuron classes, so much of what Shh does in the spinal cord is to block Gli3 repressor (Litingtung and Chiang, 2000).
+### How a cell receives it: lifting a brake
 
-Inside the cell, Shh binds its receptor Patched, which then stops inhibiting Smoothened, and less Gli2 and Gli3 is cut into repressors, a proteasome step that depends on the primary cilium (see [that lesson](/lessons/hedgehog-and-cilium/)). What a progenitor reads, in this model, is the balance of Gli activator against Gli repressor. Two links to people make the pathway's weight clear. Heterozygous mutations in human *SHH* can cause holoprosencephaly, in which the forebrain fails to divide into two halves. And cyclopamine, an alkaloid from the plant *Veratrum* that causes cyclopic lambs when pregnant ewes graze on it, blocks Smoothened.
+Shh's receptor, **Patched**, is a brake: on its own it holds a second membrane protein, **Smoothened**, off. Shh binds Patched, Patched stops inhibiting Smoothened, and the pathway turns on.
 
-## Reading a gradient by level and by time
+What the pathway changes is a family of transcription factors, the **Gli** proteins. Without the signal, Gli2 and Gli3 are cut into short repressors, a proteasome step that depends on the primary cilium (see [that lesson](/lessons/hedgehog-and-cilium/)). Gli3 is the main repressor; Gli2 is processed poorly and acts mainly as the activator. With the signal, less repressor is made and full-length Gli acts as an activator. What a progenitor reads, in this model, is the balance of Gli activator against Gli repressor.
 
-A morphogen is a signal that spreads from a source and gives different instructions at different concentrations. Shh from the floor plate falls off with distance, so progenitors at different heights receive different amounts. Their answer is written in homeodomain transcription factors.
+**Cyclopamine**, an alkaloid from the plant *Veratrum* that causes cyclopic lambs when pregnant ewes graze on it, blocks Smoothened and so switches the pathway off.
 
-In 2000 James Briscoe, Alessandra Pierani, Jessell and Johan Ericson grouped these factors in chick into two classes. Class I proteins, including Pax7, Dbx1, Dbx2, Irx3 and Pax6, are repressed by Shh, so each is expressed above a border and lost below it. Class II proteins, Nkx6.1 and Nkx2.2, need Shh, so each is expressed below a border. Pax7 is switched off by low levels and so marks the dorsal half; Nkx2.2 needs high levels and sits next to the floor plate. Their staggered borders define five ventral progenitor domains. From dorsal to ventral these are p0, p1, p2, pMN and p3, which make V0, V1 and V2 interneurons, motor neurons and V3 interneurons. Olig2, a basic helix-loop-helix (bHLH) repressor rather than a homeodomain protein, marks pMN and acts with these factors (Novitch et al. 2001). Three markers, Pax7, Olig2 and Nkx2.2, read the axis from top to bottom.
+### Is Shh needed, and what does it do?
 
-Concentration turned out to be only half of the reading. In 2007 Eric Dessaud, Briscoe and colleagues reported that chick neural cells adapt: Shh switches on its own receptor Patched1, which makes cells less sensitive, so signaling inside the cell fades. Higher concentrations keep signaling going longer. A 2010 study from the same laboratory held the dose fixed in chick explants and varied exposure time, and longer exposure gave progressively more ventral identities. Duration carries information in many pathways (see [that lesson](/lessons/shape-of-a-signal/)). Here, in this model, a cell's identity tracks something like the total signaling it has received over time.
+Necessity came from a **knockout**, a mouse with a gene deliberately disrupted. In 1996 Chin Chiang, Philip Beachy and colleagues reported that mice lacking *Shh* have no floor plate and lack most ventral cell types of the neural tube.
+
+A second knockout can ask what the missing signal normally does. If removing a second gene restores what the first loss took away, the second mutation **suppresses** the first defect. That is a **double-mutant rescue**. It shows the two genes interact, not how; the mechanism needs other evidence.
+
+**Predict.** Suppose Shh's main job in the spinal cord is to stop Gli3 repressor forming. Then a mouse lacking *Shh* has Gli3 repressor where the signal should have stopped it. What should happen to its ventral cells if you remove *Gli3* as well?
+
+<details>
+<summary>Check your prediction</summary>
+
+Some ventral cells should come back. Chiang's group found that also removing *Gli3* restores motor neurons and several ventral interneuron classes (Litingtung and Chiang, 2000). Read with the known pathway, from Patched to Gli, this says that much of what Shh does in the spinal cord is to block Gli3 repressor.
+
+</details>
+
+That answers the second puzzle: the signal is Sonic hedgehog, received by lifting a brake.
+
+## Reading the slope: a code written in two classes
+
+<LessonFilm film={frontmatter.films[1]} />
+
+A **morphogen** is a signal that spreads from a source and gives different instructions at different concentrations. Shh from the floor plate falls off with distance, so a progenitor near the bottom receives a lot and one halfway up receives little. The question is how a cell turns "how much" into "which neuron".
+
+The answer is written in transcription factors that Shh switches on or off through the Gli balance, mostly **homeodomain** proteins (a family of DNA-binding proteins that set cell identity across the body). In 2000 James Briscoe, Alessandra Pierani, Thomas Jessell and Johan Ericson sorted them in chick by one question: does Shh switch the factor off, or does it switch it on?
+
+- **Class I: Shh switches them off.** Examples are Pax7, Dbx1, Dbx2, Irx3 and Pax6. Each is expressed *above* a certain height and lost below it, where Shh is stronger. The more sensitive the factor, the higher its border sits. Pax7 is switched off by low levels, so it is confined to the dorsal half.
+- **Class II: Shh switches them on.** Nkx6.1 and Nkx2.2 need Shh and are expressed only *below* a certain height. Nkx2.2 needs the most signal, so it sits right next to the floor plate.
+Because the borders are staggered, every stretch of the wall between two borders carries a different combination of factors. That combination is the cell's address. One more factor completes it: **Olig2**, a basic helix-loop-helix (bHLH) repressor rather than a homeodomain protein, which Shh also induces, marks the motor-neuron progenitors and acts with these factors (Novitch et al. 2001).
+
+Each row of the table is a domain, and each column shows where one factor is on.
+
+**Predict.** Read the table from the bottom row up. Compare the p3 row with the pMN row above it: which factors differ? Then compare pMN with p2.
+
+| Domain (dorsal to ventral) | Dbx1 | Dbx2 | Irx3 | Pax6 | Nkx6.1 | Olig2 | Nkx2.2 | Neurons made |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| p0 | + | + | + | + | – | – | – | V0 interneurons |
+| p1 | – | + | + | + | – | – | – | V1 interneurons |
+| p2 | – | – | + | + | + | – | – | V2 interneurons |
+| pMN | – | – | – | low | + | + | – | motor neurons |
+| p3 | – | – | – | – | + | – | + | V3 interneurons |
+
+(Simplified. Other factors, such as Nkx6.2, refine these borders.)
+
+<details>
+<summary>Check your prediction</summary>
+
+Compared with p3, pMN lacks Nkx2.2 (the factor that needs the most Shh) and has Olig2 and a low level of Pax6: that is the motor-neuron progenitor domain. Compared with pMN, p2 lacks Olig2 and has Irx3, with Pax6 back at full level. These are neighbouring domains compared side by side, not one cell moving up: a progenitor's identity also depends on its signaling history, as the next section shows. Notice that at each border a *pair* of factors trades places, Nkx2.2 for Pax6 at the bottom border of pMN and Olig2 for Irx3 at the top. That pairing is the clue to how the borders become sharp, which comes two sections on.
+
+</details>
+
+So the five slots are filled (the table's last column). You do not need every name. Three markers serve as landmarks, though they do not tell every domain apart: **Pax7** for the dorsal half, **Olig2** for motor-neuron progenitors and **Nkx2.2** for the domain beside the floor plate.
+
+## Level and time
+
+<LessonFilm film={frontmatter.films[2]} />
+
+Concentration turned out to be only half of the reading, and part of the reason lies in the brake. *Patched1* is also one of the genes Shh turns on. That sounds backwards, since more receptor ought to mean more sensitivity, but Patched is a brake. In chick neural cells, that extra brake contributes to adaptation: it then takes more Shh to keep signaling.
+
+**Predict.** Two cells start signaling at once, one at a low dose of Shh and one at a high dose. Both cells make Patched as they go, the high-dose cell somewhat more. Which cell's signaling falls below its working level first?
+
+<details>
+<summary>Check your prediction</summary>
+
+The low-dose cell, because less Shh is left to overcome the rising brake. In 2007 Eric Dessaud, Briscoe and colleagues reported this adaptation in chick neural cells: signaling inside the cell fades, and higher concentrations keep it going longer. A cell can turn a level into a length of time.
+
+</details>
+
+If time is the variable, it should matter even at one dose. A 2010 study from the same laboratory held the dose fixed in chick explants and varied exposure time, and longer exposure gave progressively more ventral identities. Duration carries information in many pathways (see [that lesson](/lessons/shape-of-a-signal/)). Here, roughly, a cell's identity tracks how much signaling it has had so far, and it needs the signal to continue for a while to keep that identity: in chick explants, ending Shh signaling with cyclopamine after a period of exposure let cells fall back to more dorsal identities than continued exposure gave (Dessaud and colleagues, 2010). The second MCAT-style question below uses simplified, illustrative numbers.
 
 <ShhGradientReadout />
 
-## Turning a slope into stripes: cross-repression
+## Drawing the lines: cross-repression
 
-A smooth gradient should give a blur, yet the domains have sharp borders. The reason is that factors on either side of a border repress each other. Briscoe and colleagues showed in chick by electroporation that Pax6 and Nkx2.2 repress each other at the border between pMN and p3, and that Dbx2 and Nkx6.1 do the same at the border between p1 and p2. Novitch, Chen and Jessell showed in 2001 that Irx3 and Olig2 repress each other at the dorsal edge of pMN, and a 2011 study found a microRNA that tunes this loop by lowering Olig2. Forcing Nkx2.2 into pMN suppresses motor neurons and gives V3 neurons.
+<LessonFilm film={frontmatter.films[3]} />
 
-Two factors that repress each other can form a switch with two stable states, the bistable circuit from [that lesson](/lessons/signaling-circuits/). A cell near a border cannot hold both for long. It falls to one side, and the loop helps hold it there, though a lasting change in signal can still move it.
+Why should a smooth slope give a blur? Picture a cell whose output simply rises with Shh, the gentle curve of simple binding (a **Hill coefficient** of 1; the Hill coefficient measures how steeply a response rises with concentration). Such a cell goes from 10 percent to 90 percent of its maximum over an 81-fold change in concentration: 9-fold to reach half, and another 9-fold to reach 90 percent. Now take an illustrative slope on which Shh falls by a factor of e (about 2.7) every 20 micrometres, the order measured for Shh protein in mouse (Cohen and colleagues, 2015), and assume progenitors 5 micrometres wide. An 81-fold change is 4.4 such steps (the natural log of 81), so it spans about 90 micrometres, roughly 18 cells of in-between answers. That is a blur.
 
-The network also shapes where the border falls. In 2012 Nikolaos Balaskas, Vanessa Ribes, Briscoe and colleagues studied the mouse neural tube with a fluorescent reporter of Gli activity. In mice lacking both Pax6 and Olig2, Nkx2.2 spread dorsally although the reporter range did not. When embryos in culture received a short pulse of a drug that activates Smoothened, the borders stayed close to their normal positions; continuous treatment shifted them. The network buffers a passing change and remembers enough of its past to keep a border. Whether the gradient is read directly or mainly through such feedback is still argued.
+| How steeply the cell responds | Cells spanned from 10% to 90% of the response |
+| --- | --- |
+| Hill coefficient 1 (graded) | about 18 |
+| Hill coefficient 2 | about 9 |
+| Hill coefficient 4 | about 4 |
+| Hill coefficient 8 (switch-like) | about 2 |
 
-## The dorsal half: BMPs from the roof plate
+(Illustrative values on that slope, not measurements for the neural tube.) In this model, where cells stay put, a border one or two cells wide needs a much steeper, switch-like response. A steep response does not remove cells; it leaves fewer of them giving in-between answers. Steepness alone does not prove a switch, and cells need not stay put: in zebrafish, progenitors are at first specified in a mixed, salt-and-pepper way and then sort into sharp domains (Xiong and colleagues, 2013). In the chick and mouse neural tube, the domains get their switch from the factors themselves: factors on either side of a border repress each other.
 
-The top of the tube runs a parallel system with different signals. In 1995 Karel Liem, Gabi Tremml, Henk Roelink and Jessell found that BMP4 and BMP7 could mimic the dorsalizing effect of epidermis on chick neural plate explants. In 1997 Liem, Tremml and Jessell proposed that BMPs from the epidermis induce the roof plate, which becomes a second source of related signals. BMPs are members of the TGF-beta family and act through receptor kinases and Smad proteins (see [that lesson](/lessons/tgf-beta-and-smads/)). The roof plate also makes Wnts, including Wnt1 and Wnt3a.
+Briscoe and colleagues showed this in chick by **electroporation**, in which DNA is pushed into cells on one side of the tube with brief electric pulses and the other side serves as a control in the same embryo. Pax6 and Nkx2.2 repress each other at the border between pMN and p3. Novitch, Chen and Jessell showed in 2001 that Irx3 and Olig2 repress each other at the dorsal edge of pMN. These are the pairs you saw trading places in the table.
 
-The dorsal tube makes six early classes of interneurons, named dI1 to dI6 from the top down. In 2000 Kevin Lee, Paula Dietrich and Jessell removed the roof plate genetically in mice, and the three dorsal-most classes later failed to form. The two systems also oppose each other: BMP signaling alters the response to Shh, and BMP inhibitors such as follistatin, made by the notochord and somites, help shift cells toward ventral fates (Liem, Jessell and Briscoe, 2000).
+**Predict.** Force Nkx2.2 on by electroporation in the pMN domain, where cells normally carry Olig2 and a low level of Pax6. What happens to those cells, and which neurons do they make?
+
+<details>
+<summary>Check your prediction</summary>
+
+Nkx2.2 represses Pax6 and Olig2, so the motor-neuron program goes and the cells take the p3 identity just below: motor neurons are suppressed and V3 neurons made. One factor in the wrong place moved the line for those cells, without any change to the Shh source.
+
+</details>
+
+Two factors that repress each other can form a switch with two stable states, the bistable circuit from [that lesson](/lessons/signaling-circuits/). In simple models they do so only when the repression is strong and cooperative; a weak loop has a single steady state and no switch. In a strongly cross-repressive circuit a cell near a border is pushed toward one state or the other and cannot hold both for long. The loop then helps hold it there, though a lasting change in signal can still move it. That gives the network some memory.
+
+In 2012 Nikolaos Balaskas, Vanessa Ribes, Briscoe and colleagues found in mouse embryos in culture that a short pulse of a drug that activates Smoothened left the borders close to their normal positions; continuous treatment shifted them.
+
+**Sharp is not the same as accurate.** Cross-repression makes a border sharp, not necessarily *accurately placed*. A large or lasting misreading of the Shh level can tip a cell to the wrong side, and the switch may then hold the error; a brief fluctuation may be filtered out, as the pulse experiment suggests. Accurate placement is a separate problem; in models, reading the signal over time and reading the two opposing slopes together can help, by amounts still debated (Going deeper). This is the first limit of the rule.
+
+## The top of the tube: BMPs from the epidermis and roof plate
+
+<LessonFilm film={frontmatter.films[4]} />
+
+Earlier, in [neural induction](/lessons/neural-induction/), blocking BMP signaling let frog animal-cap cells become neural, though in chick BMP inhibition alone does not. Now, inside the tube, BMP comes back from the skin and the roof plate and tells the top of the tube it is the top. BMPs (bone morphogenetic proteins) are members of the TGF-beta family and act through receptor kinases and Smad proteins (see [that lesson](/lessons/tgf-beta-and-smads/)).
+
+In 1995 Karel Liem, Gabi Tremml, Henk Roelink and Jessell found that BMP4 and BMP7 could mimic the dorsalizing effect of epidermis on chick neural plate explants. In 1997 Liem, Tremml and Jessell proposed that BMPs from the epidermis induce the roof plate, which becomes a second source of related signals. The roof plate also makes Wnts, including Wnt1 and Wnt3a.
+
+The dorsal tube makes six early classes of interneurons, named dI1 to dI6 from the top down.
+
+**Predict.** Remove the roof plate early in a mouse embryo, leaving the floor plate and notochord untouched. Which interneuron classes should be lost?
+
+<details>
+<summary>Check your prediction</summary>
+
+In 2000 Kevin Lee, Paula Dietrich and Jessell removed the roof plate genetically in mice, and the three dorsal-most classes later failed to form. The classes nearest the roof plate needed it; dI4 to dI6, further away, did not depend on it in that experiment, and the ventral classes still had Shh from below.
+
+</details>
+
+The two systems also oppose each other: BMP signaling alters the response to Shh (Liem, Jessell and Briscoe, 2000), so cells in the middle of the wall can be shaped by both.
 
 ### Design problem
 
@@ -451,3 +635,43 @@ In the duration series, hold one intermediate dose fixed and add cyclopamine at 
 The expected answer from chick explant studies is that both matter. At a fixed time, higher doses push cells ventrally; at a fixed dose, longer exposure does too. Add one more test: measure a Gli reporter over time at each dose. Signaling should fade as cells adapt, faster at low dose, which is how one variable becomes two.
 
 </details>
+
+## Putting it together
+
+The four puzzles share one answer: the neighbours supply a slope; the progenitors draw the lines. Grafts showed that, in these chick assays, the notochord instructs the floor plate, and the floor plate recruits its neighbours. Sonic hedgehog is the signal, received by lifting a brake. Progenitors read its level and how long it lasts, and answer in class I and class II factors. Pairs of those factors repress each other, which helps make each line sharp and lets it resist brief changes. From above, BMPs and Wnts run a matching system for the dorsal half.
+
+The floor plate has a second job. Later the same strip of cells becomes a target for growing commissural axons, the subject of [netrin and DCC](/lessons/netrin-and-dcc/).
+
+## Going deeper
+
+### Where the floor plate comes from
+
+An earlier group had seen an extra floor plate after implanting a notochord in chick embryos in 1985; the 1990 paper added the test of necessity. Even so, the grafts did not close the "shared history or instruction?" question entirely. Later work showed that in chick part of the medial floor plate comes from cells that arise from Hensen's node (the chick's organizer) alongside notochord precursors, and that its induction involves early signals besides Shh (reviewed by Placzek and Briscoe, 2005). So both answers are partly true.
+
+Nor is the floor plate simply the top step of the same dose ladder that the 1995 explants suggest. In the mouse, floor plate needs Gli2 and an early period of high signaling, while motor neurons form without Gli2 (Ribes and colleagues, 2010). That is the third limit of the rule: not every fate is a line on the slope.
+
+### Holoprosencephaly
+
+Heterozygous mutations in human *SHH* can cause holoprosencephaly, in which the forebrain fails to divide into two halves. Together with the cyclopic lambs of cyclopamine, the two make the pathway's weight clear, though both concern the head rather than the spinal cord this lesson follows.
+
+### A third pair, and a microRNA
+
+Briscoe and colleagues also showed by electroporation in chick that Dbx2 and Nkx6.1 repress each other at the border between p1 and p2. A 2011 study found a microRNA that tunes the Irx3 and Olig2 loop by lowering Olig2.
+
+### The network moves the border
+
+The 2012 Balaskas study also used a fluorescent reporter of Gli activity. In mice lacking both Pax6 and Olig2, Nkx2.2 spread dorsally although the measured Gli-reporter domain did not: losing the network moved the border, without a matching shift in the reporter. Whether the gradient is read directly or mainly through such feedback is still argued.
+
+### The cells shape the slope they read
+
+Patched1, which Shh induces, also binds Shh and limits how far it spreads. So the signal partly shapes its own slope, and "the neighbours supply the slope" is a first approximation. That is the second limit of the rule.
+
+### How precise is a border?
+
+On a steady exponential slope with fixed source level and decay length, each threshold falls at a height set by the logarithm of its concentration. On the illustrative slope used above, thresholds 2-fold apart give a domain about 3 cells wide and thresholds 10-fold apart one about 9 cells wide, so domains several cells wide need thresholds 2-fold or more apart.
+
+A switch does not remove noise. Take an illustrative model in which each cell's reading of Shh has a random error, independent of its neighbours, with a standard deviation of 20 percent of the concentration. The border's position is then uncertain by about 0.8 cell (one standard deviation), so even with a sharp switch about 3 cells near it each have more than a 5 percent chance of landing on either side (a 90 percent interval 2.6 cells wide). Averaging about 10 independent readings over time cuts that to about 1; averaging does not remove an error shared by every reading. The noise level is an assumption, not a measurement. Models also suggest that reading the two opposing slopes together improves precision, though how much, and how precise one slope is alone, are debated.
+
+### BMP inhibitors from below
+
+BMP inhibitors such as follistatin, made by the notochord and somites, help shift cells toward ventral fates (Liem, Jessell and Briscoe, 2000).
