@@ -90,6 +90,7 @@ export function checkDeck(deck, body) {
     if ((c.front ?? '').length > 400) warnings.push(`${where}: front is ${c.front.length} characters (aim for under 300)`);
     if ((c.back ?? '').length > 600) warnings.push(`${where}: back is ${c.back.length} characters (aim for under 400)`);
     if (!c.quote) errors.push(`${where}: no source quote`);
+    else if (/^\s*\||\|.*\|/.test(c.quote)) errors.push(`${where}: quote spans table markup (|); quote one cell or a sentence instead`);
     else if (!sectionOf(secs, c.quote)) errors.push(`${where}: quote not found in the lesson body: "${c.quote.slice(0, 70)}…"`);
   }
   // Staleness: a section the deck's cards came from has changed since generation.

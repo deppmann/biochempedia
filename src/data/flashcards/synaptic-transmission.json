@@ -1,0 +1,638 @@
+{
+ "slug": "synaptic-transmission",
+ "title": "Synaptic Transmission and Quantal Release",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Opus draft → Codex accuracy gate → fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "OpenAI via Codex",
+   "fix": "claude-sonnet-5-5"
+  },
+  "tokens": {
+   "draft": 107748,
+   "gate": 29110
+  }
+ },
+ "lessonHash": "60cc3591957c",
+ "sectionHashes": {
+  "The relay and the blips": "b4a4a3a60afd",
+  "Packets: turning release down": "8cb6ce1f47ba",
+  "Counting quanta you cannot see": "69e37523d23d",
+  "The direct way: divide the average response by one packet": "8e28af78849e",
+  "The failure way: let the zeros tell you the average": "a17575b9ca08",
+  "Where the count comes from: calcium": "88378f6ddf38",
+  "Where the size comes from: receptors and the balance point": "a6c82d00e746",
+  "Why big responses fall short of count × size": "294353746cf2",
+  "The safety factor": "d5dcb4c098bd",
+  "Myasthenia gravis: the size falls": "c12b344b6f3c",
+  "Lambert-Eaton syndrome: the count falls": "1b40955ccf8d",
+  "Design problem": "4f2f810433e8",
+  "The contrast: a synapse with no packets": "eb0c5f364071",
+  "Correcting for nonlinear summation": "c57e8d07cf29",
+  "Central synapses depart from the frog picture": "52f8c11f04c8"
+ },
+ "cards": [
+  {
+   "id": "synaptic-transmission-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "List, in order, the five steps of chemical transmission at the vertebrate neuromuscular junction.",
+   "back": "1) An action potential arrives at the nerve terminal. 2) Calcium flows in. 3) Vesicles fuse and release acetylcholine. 4) Acetylcholine crosses the cleft. 5) It opens receptor channels and the muscle fibre depolarizes.",
+   "why": "That depolarization is the endplate potential (EPP), the muscle's version of an EPSP.",
+   "quote": "An action potential arrives at the nerve terminal. Calcium flows into the terminal.",
+   "section": "The relay and the blips"
+  },
+  {
+   "id": "synaptic-transmission-c02",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An electrode inside a resting frog muscle fibre at the endplate records small, similar-sized depolarizations at random times with no nerve stimulus. They shrink and fade when the electrode moves away from the endplate. What do these events show?",
+   "back": "They are miniature endplate potentials: spontaneous release of acetylcholine from the nerve terminal. They look like scaled-down copies of the evoked endplate potential.",
+   "why": "Their fading away from the endplate places their source at the junction.",
+   "quote": "so Fatt and Katz attributed them to spontaneous release of acetylcholine from the terminal",
+   "section": "The relay and the blips"
+  },
+  {
+   "id": "synaptic-transmission-c03",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "To test whether the evoked endplate potential is built from miniature-sized units, the frog junction was bathed in low calcium and high magnesium. Why?",
+   "back": "In normal calcium one impulse releases dozens of units that merge into one smooth response. Low calcium and high magnesium cut release to a trickle, so single units and failures can be seen and counted.",
+   "quote": "So they bathed the frog junction in a solution with less calcium and more magnesium, which cut release to a trickle.",
+   "section": "Packets: turning release down"
+  },
+  {
+   "id": "synaptic-transmission-c04",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In low calcium, a histogram of nerve-evoked endplate potential amplitudes at the frog junction shows a tall bar at zero and broad bumps near 1, 2 and 3 times the mean miniature amplitude. What does this record show about release?",
+   "back": "Release comes in packets (quanta), each producing a postsynaptic response near the miniature amplitude, not as a smooth flow. The zero bar is failures. Bumps are broad because unit responses vary a little and the recording has noise.",
+   "quote": "But the amplitudes cluster near whole-number multiples of the miniature.",
+   "section": "Packets: turning release down"
+  },
+  {
+   "id": "synaptic-transmission-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At the frog neuromuscular junction, what is one quantum physically: one acetylcholine molecule, or something else?",
+   "back": "A multimolecular packet of thousands of acetylcholine molecules, later identified with the contents of one synaptic vesicle. It is not one molecule.",
+   "quote": "A quantum is a multimolecular packet, thousands of acetylcholine molecules, later identified with the contents of one vesicle.",
+   "section": "Packets: turning release down"
+  },
+  {
+   "id": "synaptic-transmission-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At the neuromuscular junction, the postsynaptic effect of one quantum, the miniature amplitude, is called the {{c1::quantal size}}, q.",
+   "back": "",
+   "quote": "Each packet is a quantum, and its postsynaptic effect, the miniature amplitude, is the quantal size, q.",
+   "section": "Packets: turning release down"
+  },
+  {
+   "id": "synaptic-transmission-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At the frog neuromuscular junction, on average EPP ≈ {{c1::m × q}}, where m is the average number of quanta released (the count) and q is the quantal size.",
+   "back": "Each response ≈ count × size.",
+   "quote": "on average EPP ≈ m × q, where m is the average count.",
+   "section": "Packets: turning release down"
+  },
+  {
+   "id": "synaptic-transmission-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At the neuromuscular junction, what sets the count (m) and what sets the size (q) of the endplate potential?",
+   "back": "The nerve terminal sets the count, and calcium sets it steeply. The size is set by one vesicle's transmitter acting on the postsynaptic receptors.",
+   "why": "So any change in transmission can first be asked: did the count change, the size, or both?",
+   "quote": "The nerve terminal sets the count, and calcium sets it steeply.",
+   "section": "Packets: turning release down"
+  },
+  {
+   "id": "synaptic-transmission-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "The direct method estimates mean quantal content as m = mean EPP (failures counted as zero) / mean miniature. What three assumptions does it need?",
+   "back": "Evoked packets are, on average, the same size as spontaneous miniatures; that average is stable; and packets add linearly.",
+   "why": "Linear adding is safe in low calcium, where responses are only a millivolt or two.",
+   "quote": "Evoked packets must be the same size, on average, as the spontaneous miniatures, that average must be stable, and packets must add linearly.",
+   "section": "The direct way: divide the average response by one packet"
+  },
+  {
+   "id": "synaptic-transmission-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Model a nerve terminal as N independent release sites, each with a small chance p of releasing one packet. Why is the chance of a failure about e^(−m)?",
+   "back": "A failure needs every site to release nothing: (1 − p)^N. For small p, 1 − p ≈ e^(−p), so the failure chance ≈ e^(−N × p) = e^(−m).",
+   "quote": "So the chance of a failure is about (e^(−p))^N = e^(−N × p) = e^(−m).",
+   "section": "The failure way: let the zeros tell you the average"
+  },
+  {
+   "id": "synaptic-transmission-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Failure method for mean quantal content: m = {{c1::−ln(number of failures / number of trials)}}",
+   "back": "",
+   "quote": "Failure method: m = −ln(number of failures / number of trials)",
+   "section": "The failure way: let the zeros tell you the average"
+  },
+  {
+   "id": "synaptic-transmission-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What assumptions does the failure method for mean quantal content need?",
+   "back": "Release sites act independently; each site's chance of release is small (not necessarily equal); conditions stay the same across pooled trials; and failures can be reliably told apart from noise.",
+   "quote": "Sites must act independently (step 2), and each chance must be small (step 3).",
+   "section": "The failure way: let the zeros tell you the average"
+  },
+  {
+   "id": "synaptic-transmission-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why estimate quantal content by both the direct method and the failure method? What does agreement between them show?",
+   "back": "The failure method never uses q. Agreement supports two things at once: evoked and spontaneous packets are the same units, and release behaves like many independent small chances.",
+   "quote": "So when the two estimates agree, that agreement supports two things at once: the evoked and spontaneous packets are the same units",
+   "section": "The failure way: let the zeros tell you the average"
+  },
+  {
+   "id": "synaptic-transmission-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Suppose nerve-evoked packets at a frog junction were twice the size of spontaneous miniatures. What would the direct and failure estimates of quantal content report, and why?",
+   "back": "The direct method would report twice the true m; the failure method would be unaffected.",
+   "why": "The direct method divides by the miniature size, which would understate the evoked packet. The failure method uses only the fraction of failures, never q.",
+   "quote": "The direct method would then report twice the true m, and the failure method would not.",
+   "section": "The failure way: let the zeros tell you the average"
+  },
+  {
+   "id": "synaptic-transmission-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A frog junction is returned to normal calcium, where one impulse releases about 40 quanta on average. What happens if you try to estimate m by the failure method?",
+   "back": "It cannot be used: e^(−40) is effectively zero, so there are no failures to count.",
+   "why": "Whether each release chance is still small would also have to be checked rather than assumed.",
+   "quote": "Restore normal calcium and failures vanish: with m in the tens, e^(−m) is effectively zero, and there is nothing to count.",
+   "section": "The failure way: let the zeros tell you the average"
+  },
+  {
+   "id": "synaptic-transmission-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A made-up frog junction in low calcium and high magnesium is stimulated 400 times; 54 stimuli give no response. Mean miniature q = 0.45 mV; mean EPP, failures counted as zero, = 0.92 mV. Estimate m both ways. Do they agree?",
+   "back": "Direct: m = 0.92 / 0.45 = 2.04. Failure: P(0) = 54/400 = 0.135, m = −ln(0.135) = 2.00. They agree within sampling error, supporting the Poisson model for this recording.",
+   "quote": "They rest on different assumptions, so if the model is right, the two estimates should agree within sampling error.",
+   "section": "Counting quanta you cannot see"
+  },
+  {
+   "id": "synaptic-transmission-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At the nerve terminal, what protein does entering calcium bind to trigger the last step of vesicle fusion?",
+   "back": "A synaptotagmin, the calcium sensor.",
+   "why": "Synaptotagmin-1 at many central synapses; at the mammalian neuromuscular junction, synaptotagmin-2 together with synaptotagmin-1.",
+   "quote": "Calcium binds a sensor protein, a synaptotagmin, and that triggers the last step of fusion.",
+   "section": "Where the count comes from: calcium"
+  },
+  {
+   "id": "synaptic-transmission-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Name the three SNARE proteins that drive synaptic vesicle fusion, and say which membrane each sits on.",
+   "back": "Synaptobrevin on the vesicle; syntaxin-1 and SNAP-25 on the plasma membrane.",
+   "why": "Partly zipped during priming, they finish zipping when calcium arrives and pull the two membranes into one.",
+   "quote": "Three SNARE proteins (synaptobrevin on the vesicle, syntaxin-1 and SNAP-25 on the plasma membrane)",
+   "section": "Where the count comes from: calcium"
+  },
+  {
+   "id": "synaptic-transmission-c19",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At the frog neuromuscular junction, EPP amplitude is plotted against external calcium on log-log axes. At low calcium the points lie on a straight line of slope near 4. What does that slope mean?",
+   "back": "Over that range, release rises roughly as the fourth power of calcium. Near normal calcium the line bends over and becomes shallower.",
+   "quote": "A slope of about 4 means that release rises roughly as the fourth power of calcium over that range.",
+   "section": "Where the count comes from: calcium"
+  },
+  {
+   "id": "synaptic-transmission-c20",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On the steep low-calcium part of the frog junction's log-log release curve (slope 3.78), external calcium is raised 1.5-fold. Roughly how much larger should release become?",
+   "back": "Release scales as calcium^3.78, so 1.5^3.78 ≈ 4.6-fold.",
+   "why": "A linear relation would predict only 1.5-fold.",
+   "quote": "With the measured slope of 3.78, it gives 2^3.78, about 14 times.",
+   "section": "Where the count comes from: calcium"
+  },
+  {
+   "id": "synaptic-transmission-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the lesson's illustrative model where release at a site needs four calcium ions bound at once, why is release steep at low calcium and why does the curve bend over at higher calcium?",
+   "back": "At low calcium each seat is rarely filled, so the chance all four are filled grows as calcium to the fourth power. Once most seats are full, more calcium helps little, so the curve bends over.",
+   "quote": "Suppose release at a site needs four calcium ions bound at once, like four seats that must all be filled.",
+   "section": "Where the count comes from: calcium"
+  },
+  {
+   "id": "synaptic-transmission-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Does a log-log slope of 3.78 for release versus calcium at the frog junction show that the calcium sensor has about four binding sites? Why or why not?",
+   "back": "No. Even a four-site model gives a slope below 4 that falls as calcium rises, and a fitted slope is also shaped by how calcium spreads in the terminal.",
+   "why": "The slope fits cooperative action of several calcium ions but is a reading of one curve, not a molecular fact.",
+   "quote": "A slope of 3.78 is a reading of one curve in one preparation, not a molecular fact.",
+   "section": "Where the count comes from: calcium"
+  },
+  {
+   "id": "synaptic-transmission-c23",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At the frog junction, adding magnesium lowers the EPP at every calcium level but leaves the slope of the log-log release-versus-calcium line unchanged. What does this suggest about how magnesium acts?",
+   "back": "Magnesium competes with calcium for the same sites that trigger release, shifting the curve without changing its steepness.",
+   "quote": "adding magnesium lowered the EPP without changing the slope, as expected if magnesium competes with calcium for the same seats",
+   "section": "Where the count comes from: calcium"
+  },
+  {
+   "id": "synaptic-transmission-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why is the reversal potential of the muscle nicotinic acetylcholine receptor near 0 mV?",
+   "back": "The channel passes both sodium and potassium, so its reversal potential sits between the two ions' equilibrium potentials.",
+   "quote": "The channel passes both sodium and potassium, so its reversal potential, the voltage at which its current changes direction, sits near 0 mV",
+   "section": "Where the size comes from: receptors and the balance point"
+  },
+  {
+   "id": "synaptic-transmission-c25",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a steady-state balance-point model, a muscle fibre rests at −90 mV (conductance G_rest). Open acetylcholine channels add g_ACh = 0.25 × G_rest, reversing at 0 mV. Where is the balance point, and how large is the depolarization?",
+   "back": "V_balance = (G_rest × (−90) + 0.25 G_rest × 0) / 1.25 G_rest = −72 mV, a depolarization of 18 mV.",
+   "why": "A real EPP is brief and never fully settles at the balance point.",
+   "quote": "V_balance = (G_rest × V_rest + g_ACh × 0 mV) / (G_rest + g_ACh)",
+   "section": "Where the size comes from: receptors and the balance point"
+  },
+  {
+   "id": "synaptic-transmission-c26",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What ends the action of each quantum of acetylcholine at the neuromuscular junction?",
+   "back": "Acetylcholinesterase in the synaptic cleft hydrolyzes the acetylcholine.",
+   "quote": "Acetylcholinesterase in the cleft hydrolyzes acetylcholine and ends each quantum's action.",
+   "section": "Where the size comes from: receptors and the balance point"
+  },
+  {
+   "id": "synaptic-transmission-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At the endplate, why does each additional quantum depolarize the fibre less than the one before, so large EPPs fall short of count × size?",
+   "back": "As Vm climbs toward the receptor's reversal potential near 0 mV, the driving force shrinks, so each newly opened channel pushes less current.",
+   "why": "In a steady-state model, 60 packets of 0.40 mV give about 19 mV, not 24 mV.",
+   "quote": "As Vm climbs toward 0 mV, the driving force shrinks, so each newly opened channel pushes less hard.",
+   "section": "Why big responses fall short of count × size"
+  },
+  {
+   "id": "synaptic-transmission-c28",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a made-up endplate, one impulse releases 50 quanta of 0.40 mV and the fibre fires when the EPP reaches 10 mV. Assuming linear summation, what is the safety factor?",
+   "back": "EPP = 50 × 0.40 = 20 mV. Safety factor = EPP / depolarization needed = 20 / 10 = 2.0.",
+   "why": "The steady-state balance-point model gives about 16.4 mV, a safety factor nearer 1.6: smaller, still above 1.",
+   "quote": "The safety factor is the ratio of the EPP to the depolarization needed to fire.",
+   "section": "The safety factor"
+  },
+  {
+   "id": "synaptic-transmission-c29",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Antibodies remove some of the acetylcholine receptors at a neuromuscular junction. Which factor in count × size changes, and which stays the same?",
+   "back": "The size, q, falls, because each packet's acetylcholine finds fewer receptors. The count, m, set by the terminal and calcium, stays the same in the simple picture.",
+   "why": "A real terminal can partly compensate by releasing more.",
+   "quote": "The size, q, falls: each packet's acetylcholine finds fewer receptors to open.",
+   "section": "The safety factor"
+  },
+  {
+   "id": "synaptic-transmission-c30",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In myasthenia gravis, what do the antibodies target?",
+   "back": "In most patients, the muscle's acetylcholine receptors. Others have antibodies against MuSK, a protein needed at the junction.",
+   "quote": "In myasthenia gravis, antibodies in most patients target the muscle's acetylcholine receptors; others have antibodies against MuSK",
+   "section": "Myasthenia gravis: the size falls"
+  },
+  {
+   "id": "synaptic-transmission-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Give three ways antibodies to the acetylcholine receptor reduce the number of working receptors in myasthenia gravis.",
+   "back": "They cross-link receptors and speed their removal, block them, or recruit complement that damages the postsynaptic membrane.",
+   "quote": "Antibodies to the receptor can cross-link receptors and speed their removal, block them, or recruit complement that damages the postsynaptic membrane.",
+   "section": "Myasthenia gravis: the size falls"
+  },
+  {
+   "id": "synaptic-transmission-c32",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a steady-state model with a 12 mV firing threshold, a normal endplate (q = 0.40 mV) still fires after release runs down from 60 to 45 packets, but a myasthenic one (q = 0.24 mV) fails. Explain the fatigable weakness this produces.",
+   "back": "Lower q shrinks the myasthenic safety factor to barely above 1 (about 12.4 mV on the first impulse). Run-down of the count with repeated impulses then drops it to about 9.6 mV, below threshold. Muscles work at first and weaken with use.",
+   "why": "Rests on EPP ≈ count × size, the safety factor, and depletion of ready vesicles during repeated impulses.",
+   "quote": "Only the myasthenic fibre fails after run-down. This is the fatigable weakness of myasthenia: muscles that work at first and weaken with use.",
+   "section": "Myasthenia gravis: the size falls"
+  },
+  {
+   "id": "synaptic-transmission-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An acetylcholinesterase inhibitor is given at a myasthenic neuromuscular junction. Which factor in count × size changes, in which direction, and why?",
+   "back": "The size, q, rises partway back toward normal. Each quantum's acetylcholine lasts longer, so it reaches more of the remaining receptors.",
+   "quote": "Acetylcholinesterase inhibitors act by letting each quantum's acetylcholine last longer, so it survives long enough to reach more of the remaining receptors.",
+   "section": "Myasthenia gravis: the size falls"
+  },
+  {
+   "id": "synaptic-transmission-c34",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Intracellular recording from a weak muscle shows small miniature endplate potentials with normal quantal content. Before concluding that receptors are lost, what else must be measured, and why?",
+   "back": "A receptor count. Poorly filled vesicles would also shrink q, so a small miniature alone does not say which side of the synapse is at fault.",
+   "quote": "Pair the recording with a receptor count before you blame the receptors.",
+   "section": "Myasthenia gravis: the size falls"
+  },
+  {
+   "id": "synaptic-transmission-c35",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A model myasthenic endplate (q = 0.24 mV, threshold 12 mV) releases on average 60 packets, which on average gives an EPP just above threshold. Why can it still fail on some first impulses?",
+   "back": "The count is random from impulse to impulse. The model needs at least 58 packets to reach 12 mV, and a Poisson count averaging 60 reaches that on only about 62% of impulses.",
+   "why": "Rests on the Poisson count and the balance-point formula; an average above threshold is not every impulse above threshold.",
+   "quote": "But an average above threshold does not mean every impulse fires.",
+   "section": "Correcting for nonlinear summation"
+  },
+  {
+   "id": "synaptic-transmission-c36",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In Lambert-Eaton syndrome, what do the antibodies target, and which of m and q falls?",
+   "back": "The nerve terminal's voltage-gated calcium channels. Calcium entry falls, so m is low while q is normal.",
+   "quote": "Antibodies against the terminal's voltage-gated calcium channels reduce calcium entry, so m is low while q is normal.",
+   "section": "Lambert-Eaton syndrome: the count falls"
+  },
+  {
+   "id": "synaptic-transmission-c37",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "During 20 Hz stimulation of a Lambert-Eaton junction, leftover calcium builds up in the terminal. If release follows the steep low-calcium power law (slope about 3.78), what would a 20% rise in calcium do to the count, and why?",
+   "back": "The count would roughly double: 1.2^3.78 ≈ 2.0. A small calcium build-up gives a large rise in m, so the response can climb back toward threshold during the train.",
+   "why": "Rests on the steep calcium dependence of release and on residual calcium adding between closely spaced impulses.",
+   "quote": "Because release rises steeply with calcium, a little extra calcium brings a large rise in m.",
+   "section": "Lambert-Eaton syndrome: the count falls"
+  },
+  {
+   "id": "synaptic-transmission-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A Lambert-Eaton junction is stimulated slowly and repeatedly instead of at 20 Hz. What happens to the response, and why?",
+   "back": "It can show a decrement, a response that shrinks with successive impulses: calcium clears between slow impulses, so run-down of release can win.",
+   "quote": "Slow repeated stimulation can instead give a decrement, a response that shrinks with each impulse: calcium clears between slow impulses, so run-down wins.",
+   "section": "Lambert-Eaton syndrome: the count falls"
+  },
+  {
+   "id": "synaptic-transmission-c39",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A neuromuscular recording shows a normal miniature amplitude but a quantal content one third of control, with resting potential and recording site unchanged. Which side of the synapse is at fault?",
+   "back": "The count side: release from the presynaptic terminal.",
+   "why": "q normal with m down is the Lambert-Eaton fingerprint; q down with m normal points to the size side.",
+   "quote": "So the two diseases leave opposite fingerprints, provided resting potential, membrane properties and recording site are unchanged",
+   "section": "Lambert-Eaton syndrome: the count falls"
+  },
+  {
+   "id": "synaptic-transmission-c40",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A muscle biopsy shows normal miniature amplitude and low quantal content that rises during 20 Hz trains. Propose two experiments to test reduced calcium entry caused by an antibody.",
+   "back": "Measure m across a range of external calcium: more calcium should raise release toward control. Transfer the patient's immunoglobulins into mice: m should fall with q unchanged.",
+   "why": "Rests on calcium setting the count steeply and on passive transfer as used for myasthenia gravis.",
+   "quote": "Test it by measuring m across a range of external calcium: if calcium entry is reduced, more calcium should raise release toward control levels",
+   "section": "Design problem"
+  },
+  {
+   "id": "synaptic-transmission-c41",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does transmission at an electrical synapse differ from quantal transmission at the neuromuscular junction?",
+   "back": "Gap junctions join the cells' cytoplasm and current passes directly. No vesicles, so no quantal count or size and no release failures. Usually very fast and bidirectional.",
+   "why": "The coupled response still has a size and can be too small to fire the next cell.",
+   "quote": "There are no vesicles, so there is no quantal count or size and no release failures.",
+   "section": "The contrast: a synapse with no packets"
+  },
+  {
+   "id": "synaptic-transmission-c42",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An electrical synapse that passes current more easily in one direction than the other is said to {{c1::rectify}}.",
+   "back": "",
+   "quote": "Some rectify, passing current more easily one way.",
+   "section": "The contrast: a synapse with no packets"
+  },
+  {
+   "id": "synaptic-transmission-c43",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two coupled neurons might be joined by a chemical or an electrical synapse. Design tests that tell the two apart.",
+   "back": "Remove external calcium: chemical release stops, junctional current persists. Look for failures and quantal fluctuation, absent electrically. Step each cell in turn: electrical coupling is very fast and usually two-way, and may rectify.",
+   "why": "Rests on release needing external calcium and on gap junctions passing current directly with no vesicles.",
+   "quote": "Most electrical synapses are very fast and pass current both ways, which helps them synchronize cells.",
+   "section": "The contrast: a synapse with no packets"
+  },
+  {
+   "id": "synaptic-transmission-c44",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "At some central synapses, receptors can saturate and one site can release more than one vesicle. How would this affect a direct estimate m = mean EPP / q?",
+   "back": "It could make mean EPP / q underestimate m, but only where receptors actually saturate, so extra vesicles add less than one q each. The direct method assumes packets add linearly; the possibility of saturation alone does not show the bias.",
+   "why": "Rests on the direct method's assumption that packets add linearly.",
+   "quote": "At central synapses a release site can release more than one vesicle, receptors can saturate, and q varies a lot from site to site.",
+   "section": "Central synapses depart from the frog picture"
+  }
+ ]
+}

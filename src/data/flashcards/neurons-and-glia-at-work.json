@@ -1,0 +1,684 @@
+{
+ "slug": "neurons-and-glia-at-work",
+ "title": "Neurons and Glia at Work",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Opus draft → Codex accuracy gate → fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "OpenAI via Codex",
+   "fix": "claude-sonnet-5-5"
+  },
+  "tokens": {
+   "draft": 114950,
+   "gate": 28303
+  }
+ },
+ "lessonHash": "52921a1bb0ef",
+ "sectionHashes": {
+  "(opening)": "cfe934efaec5",
+  "The puzzle: a small space outside": "b7584a53f10b",
+  "A map of the neuron": "f8c0d5365fc1",
+  "Where the spike starts": "c373952314fe",
+  "How far E_K moves": "f60469acdc51",
+  "The evidence: glia that read potassium": "5ba5d99c1be0",
+  "The mechanism: a current loop through the astrocyte network": "33119b44c66c",
+  "Glutamate: the same rule, more sharply": "06ca6cf72eb7",
+  "The axon's other partners: myelin, fuel and microglia": "05fcf8ca6f23",
+  "What is still argued: gliotransmission": "f7c8ff9a1f12",
+  "Design problem": "4135609c94d8",
+  "How much the outside wins": "a19942ab9af4",
+  "Any fourfold rise": "39d3194ac7bf",
+  "A clearance time constant": "db1a20e59d3d"
+ },
+ "cards": [
+  {
+   "id": "neurons-and-glia-at-work-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "When a small patch of brain fires very hard, as in a seizure, potassium piling up outside its neurons can shift E_K by {{c1::tens of millivolts}}.",
+   "back": "Astrocytes do a large share of the work of clearing it.",
+   "quote": "potassium leaking from its neurons can pile up outside them fast enough to shift E_K, the voltage potassium pulls the cell toward, by tens of millivolts"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the adult brain the extracellular space is about {{c1::a fifth}} of the tissue volume, a web of gaps tens of nanometres wide.",
+   "back": "One part outside for every four parts inside.",
+   "quote": "In the adult brain it is about a fifth of the tissue volume, a web of gaps tens of nanometres wide.",
+   "section": "The puzzle: a small space outside"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "When firing neurons lose potassium into the extracellular space of the brain, why does the outside concentration change far more in proportion than the inside one?",
+   "back": "The outside starts low (about 3 mM) and the inside high (about 140 mM). In the illustrative model, 1 mM added outside raises it by a third, while the 0.75 mM lost inside is about half a percent.",
+   "why": "E_K depends on the ratio [K+]o/[K+]i, so the proportional change is what matters for the voltage.",
+   "quote": "Adding 1 mM outside raises it by a third; losing 0.75 mM inside changes it by about half a percent.",
+   "section": "The puzzle: a small space outside"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c04",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a model of brain tissue with fixed, well-mixed volumes, the extracellular space is 0.2 of the tissue and the firing neurons fill a third of the 0.8 inside cells. For each 1 mM of potassium added outside, how much do the firing neurons lose?",
+   "back": "About 0.75 mM. Inside-to-outside volume ratio = (0.8/3)/0.2 = 1.33, so the inside loss = 1 mM / 1.33 = 0.75 mM.",
+   "quote": "The inside-to-outside volume ratio is (0.8/3)/0.2 = 1.33, so for each 1 mM added outside the firing neurons lose about 0.75 mM.",
+   "section": "The puzzle: a small space outside"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c05",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the same well-mixed model ([K+]o about 3 mM, [K+]i about 140 mM, participating inside-to-outside volume ratio 1.33), about how many times larger is the outside contribution to the shift in E_K than the inside contribution?",
+   "back": "About 62 times: (140/3) × 1.33 = 62. Per millimolar, the outside changes 140/3 times more in proportion, and it gains 1.33 mM for each 1 mM the inside loses.",
+   "quote": "Since E_K depends on the ratio, the outside contribution to its shift is about (140/3) × 1.33 = 62 times the inside one.",
+   "section": "The puzzle: a small space outside"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "\"Small space outside, big change outside\": what does the rule say about brain tissue, and what does it imply for a neuron's resting potential?",
+   "back": "The extracellular space is small and holds little potassium, so activity can change extracellular potassium strongly, and the E_K shift usually comes mostly from outside, with the balance depending on the volumes participating. So the resting potential depends on cells that keep clearing that space.",
+   "quote": "A neuron's resting potential therefore depends on cells that keep clearing that space.",
+   "section": "The puzzle: a small space outside"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A postsynaptic potential is {{c1::graded}}: bigger input, bigger potential, with no threshold.",
+   "back": "An excitatory one (EPSP) is a depolarization that moves the cell toward firing.",
+   "quote": "It is graded: bigger input, bigger potential, with no threshold.",
+   "section": "A map of the neuron"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c08",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two EPSPs arrive at one dendritic synapse 2 ms apart; each alone is below threshold, but together they bring the soma to threshold. A third case pairs simultaneous EPSPs at two different synapses. Name the summation in each case.",
+   "back": "The first is temporal summation (one synapse, quick succession). The second is spatial summation (different synapses, about the same time).",
+   "quote": "Spatial summation adds potentials arriving at different synapses at about the same time; temporal summation adds potentials arriving at one synapse in quick succession.",
+   "section": "A map of the neuron"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In a mature neuron, what does the axon leave in the extracellular space, what does an excitatory terminal leave, and which glial cell handles both?",
+   "back": "The axon (and initial segment) leaves potassium as each spike ends; the terminal leaves glutamate. Astrocytes clear both, glutamate through GLT-1.",
+   "why": "What a compartment leaves outside tells you which glial cell to look for.",
+   "quote": "Read the last column: what a compartment leaves tells you which glial cell to look for.",
+   "section": "A map of the neuron"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c10",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A toxin blocks voltage-gated calcium channels in presynaptic terminals but spares axonal sodium channels. What happens to the spike's arrival at the terminal and to transmitter release, and why?",
+   "back": "The spike still arrives, but release fails. Depolarization normally opens voltage-gated calcium channels, and calcium entry is what triggers vesicle fusion.",
+   "quote": "Depolarization opens voltage-gated calcium channels, and calcium entry triggers fusion of transmitter-filled vesicles with the membrane.",
+   "section": "A map of the neuron"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does the action potential usually start in the axon initial segment rather than the soma?",
+   "back": "The initial segment is packed with voltage-gated sodium channels a little way out from the large cell body.",
+   "why": "Density is only part of it: the sodium-channel subtype there opens at less depolarized voltages, and the segment is electrically distant from the soma's large membrane.",
+   "quote": "Packed with voltage-gated sodium channels a little way out from the large cell body, it is where the action potential usually starts",
+   "section": "A map of the neuron"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Name two exceptions to the canonical picture of a mammalian neuron's compartments.",
+   "back": "Some mammalian neurons fire spikes in their dendrites, and the trigger zone is not always at the axon hillock where textbooks put it.",
+   "quote": "some mammalian neurons fire spikes in their dendrites, and the trigger zone is not always where textbooks put it.",
+   "section": "A map of the neuron"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c13",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why can a somatic recording not test whether a cortical neuron's spike starts at the axon hillock, and how was the question answered in rat layer 5 pyramidal neurons?",
+   "back": "A spike starting tens of micrometres away reaches the soma almost at once. Palmer and Stuart imaged the axon at several points at once with a voltage-sensitive dye and looked for the earliest trace.",
+   "quote": "A somatic recording cannot test this, since a spike starting tens of micrometres away arrives almost at once.",
+   "section": "Where the spike starts"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In layer 5 pyramidal neurons in slices of rat somatosensory cortex, where did voltage-dye imaging place the start of the action potential?",
+   "back": "About 35 µm from the hillock, in the distal part of an initial segment about 40 µm long. A measurement in one cell type, not a rule for every neuron.",
+   "quote": "That earliest signal appeared about 35 µm from the hillock, in the distal part of an initial segment about 40 µm long.",
+   "section": "Where the spike starts"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c15",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An ion's {{c1::equilibrium potential}} is the voltage at which its concentration gradient and the electrical force on it balance.",
+   "back": "",
+   "quote": "An ion's equilibrium potential is the voltage at which its concentration gradient and the electrical force on it balance.",
+   "section": "How far E_K moves"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c16",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For potassium at 37 °C, every tenfold change in the ratio [K+]o/[K+]i moves E_K by about {{c1::61.5 mV}}.",
+   "back": "E_K = 61.5 mV × log10([K+]o / [K+]i).",
+   "quote": "every tenfold change in the ratio moves E_K by about 61.5 mV",
+   "section": "How far E_K moves"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c17",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Hold [K+]i at 140 mM and treat potassium on its own at 37 °C. Extracellular potassium rises from 3 mM at rest to 10 mM after intense firing. Find E_K before and after.",
+   "back": "Before: 61.5 × log10(3/140) = −102.6 mV. After: 61.5 × log10(10/140) = −70.5 mV. E_K becomes about 32 mV more positive.",
+   "quote": "At 10 mM, E_K = 61.5 × log10(10/140) = −70.5 mV, about 32 mV more positive.",
+   "section": "How far E_K moves"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c18",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In cat cortex, even strong repetitive stimulation and seizure-like afterdischarges raised extracellular potassium only to a ceiling of about {{c1::10 mM}}.",
+   "back": "Ordinary activity raises it much less.",
+   "quote": "raised extracellular potassium only to a ceiling of about 10 mM, and ordinary activity raises it much less",
+   "section": "How far E_K moves"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c19",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "[K+]i stays constant while [K+]o doubles from 3 to 6 mM. Using 61.5 mV per tenfold change, how far and in which direction does E_K move?",
+   "back": "About 18.5 mV more positive: 61.5 × log10(2) = 18.5 mV.",
+   "why": "E_K depends on the log of the ratio, so any fixed fold-change in [K+]o gives the same shift whatever the fixed [K+]i.",
+   "quote": "a fourfold rise in [K+]o shifts E_K by 61.5 × log10(4) = 37.0 mV, whatever that fixed [K+]i is",
+   "section": "Any fourfold rise"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Extracellular potassium rises and E_K moves 32 mV more positive. Does the neuron's resting potential move 32 mV, more, or less, and why?",
+   "back": "Less, in the same direction: about half as far in a simple model (about 16 mV; roughly 10 to 21 mV across plausible sodium permeabilities).",
+   "why": "A resting neuron is mostly but not only permeable to potassium; sodium and other ions also pull on its voltage.",
+   "quote": "A neuron at rest is mostly but not only permeable to potassium; sodium and other ions also pull on its voltage.",
+   "section": "How far E_K moves"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a simplified model of a resting membrane with fixed conductances and no other net current, what sets the resting voltage, and where does it lie with two permeant ions?",
+   "back": "A conductance-weighted average of the ions' equilibrium potentials; it lies closer to the equilibrium potential of the ion with the larger conductance.",
+   "quote": "with two ions it lies closer to the one with the larger conductance",
+   "section": "How far E_K moves"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c22",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Predict how a neuron's firing changes with a modest rise in extracellular potassium, and with a large, sustained rise.",
+   "back": "Modest: the neuron moves closer to threshold and fires more easily. Large and sustained: held depolarized, sodium channels inactivate, threshold moves up, and the neuron can stop firing.",
+   "quote": "Held depolarized, sodium channels inactivate, threshold moves up, and the neuron can stop firing altogether",
+   "section": "How far E_K moves"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c23",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Combining the small extracellular space with what a modest potassium rise does to excitability, explain why impaired astrocytic potassium clearance tends to promote seizures.",
+   "back": "Firing raises extracellular potassium strongly in the small space; neurons depolarize toward threshold and fire more, releasing more potassium. Clearance normally breaks this loop; without it, the loop can feed a seizure.",
+   "why": "Rests on two stated rules: small space, big change outside; a modest rise brings neurons closer to threshold.",
+   "quote": "A modest rise brings it closer to threshold, so it fires more easily, and more firing releases more potassium: a loop that can feed a seizure.",
+   "section": "How far E_K moves"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c24",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Glial cells in the amphibian (Necturus) optic nerve were recorded during trains of impulses in the neighbouring axons. What did the glial membrane potential do, and what did it show?",
+   "back": "It slowly depolarized, more for longer and faster trains, and recovered over seconds. Because bath potassium moved glial voltage like a potassium electrode, the glia were sensing potassium released by the axons.",
+   "quote": "During the train the glial cell slowly depolarizes, more for longer and faster trains, and it recovers over seconds once the axons stop.",
+   "section": "The evidence: glia that read potassium"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which two properties of astrocytes make spatial buffering of potassium possible?",
+   "back": "They are joined to one another by gap junctions, and their membranes are almost purely permeable to potassium.",
+   "quote": "Astrocytes are joined to one another by gap junctions, channels that link the insides of neighbouring cells, and their membranes are almost purely permeable to potassium.",
+   "section": "The mechanism: a current loop through the astrocyte network"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does spatial buffering move potassium from a hot spot to a distant low-potassium region without the entering ions travelling the whole way?",
+   "back": "At the hot spot, local E_K is above the coupled network's voltage, so potassium enters (in the model through Kir4.1) and depolarizes the network; where potassium is low, the network is above local E_K, so potassium leaves.",
+   "why": "Entry and exit happen at the same time, as one loop of current.",
+   "quote": "Entry and exit happen at the same time, as one loop of current, so potassium can leave far away without waiting for the ions that entered to travel there.",
+   "section": "The mechanism: a current loop through the astrocyte network"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Gap junctions between astrocytes are blocked, and one small patch of cortex fires hard. Predict the effect on spatial buffering of the local potassium rise, and on pump uptake.",
+   "back": "Spatial buffering should be impaired, because entry at the hot spot can no longer depolarize a connected network and drive exit far away. Pump uptake into cells does not rely on that coupling; the lesson does not quantify how much clearance remains.",
+   "why": "Rests on the loop: entry at the hot spot depolarizes the connected network, which drives exit where potassium is low.",
+   "quote": "That entry depolarizes the connected network slightly.",
+   "section": "The mechanism: a current loop through the astrocyte network"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Compare spatial buffering by astrocytes with pump uptake: where does the excess extracellular potassium end up in each?",
+   "back": "Spatial buffering leaves it outside, spread thinner to low-potassium areas. Sodium-potassium ATPases in astrocytes and neurons put it back inside cells. How much each contributes is still debated.",
+   "quote": "Pumps instead put it back inside cells: sodium-potassium ATPases in astrocytes and in neurons take potassium up.",
+   "section": "The mechanism: a current loop through the astrocyte network"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Astrocytes lacking the potassium channel Kir4.1 take up glutamate poorly, although Kir4.1 does not carry glutamate. Why?",
+   "back": "Glutamate transport is driven by ion gradients and carries net positive charge in, so it depends on a negative astrocyte voltage, which Kir4.1 helps hold.",
+   "quote": "Glutamate transport is driven by ion gradients and carries net positive charge into the cell, so it depends on the astrocyte's voltage, which Kir4.1 helps hold negative.",
+   "section": "The mechanism: a current loop through the astrocyte network"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c30",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A drug blocks the potassium channels of astrocytes and depolarizes them. During intense neuronal firing, predict what happens to extracellular potassium, extracellular glutamate and neuronal excitability.",
+   "back": "Spatial buffering should be impaired, and glutamate uptake slows because electrogenic transport needs a negative astrocyte voltage, so extracellular potassium and glutamate accumulate. A modest potassium rise brings neurons closer to threshold and promotes firing, but a large, sustained rise inactivates sodium channels, raises threshold and can stop firing altogether.",
+   "why": "Rests on the Kir4.1 knockout result and the rule that transport depends on astrocyte voltage; no new facts.",
+   "quote": "CA1 astrocytes without Kir4.1 took up potassium poorly, and glutamate poorly too",
+   "section": "The mechanism: a current loop through the astrocyte network"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c31",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A glial Kir4.1 deletion, begun in development and also reaching oligodendrocytes, impaired potassium uptake by CA1 astrocytes in slices from mice 15 to 20 days old. Design a follow-up to ask whether Kir4.1 in mature astrocytes sets potassium handling in adults.",
+   "back": "Delete Kir4.1 only in adults with a tamoxifen-inducible Cre driven by an astrocyte promoter, confirm that oligodendrocytes did not recombine, and measure potassium handling in adult tissue against littermate controls.",
+   "why": "Each change removes one stated limit: developmental timing, off-target cells, juvenile age.",
+   "quote": "the deletion began in development and also reached oligodendrocytes, so the result cannot be pinned on mature astrocytes alone",
+   "section": "The mechanism: a current loop through the astrocyte network"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does each release of glutamate make a large, brief rise in its concentration near the synapse?",
+   "back": "Transporters keep glutamate outside cells very low between releases, so each release is large relative to that low baseline: the small-space rule, more sharply.",
+   "quote": "transporters keep glutamate outside cells very low between releases, so each release makes a large, brief rise near the synapse",
+   "section": "Glutamate: the same rule, more sharply"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c33",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "The glutamate transporter GLT-1 (also called EAAT2) is mostly {{c1::astrocytic}}, with a smaller pool in excitatory terminals.",
+   "back": "",
+   "quote": "The transporter GLT-1 (also called EAAT2) is mostly astrocytic, with a smaller pool in excitatory terminals.",
+   "section": "Glutamate: the same rule, more sharply"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c34",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Conclusion: the astrocytic pool of GLT-1 is what clears glutamate in the intact mouse brain. What experiment supports it?",
+   "back": "An inducible astrocytic deletion of GLT-1 removed about 80 percent of GLT-1 protein, and the mice had seizures and early death.",
+   "quote": "it removed about 80 percent of GLT-1 protein, and the mice had seizures and early death",
+   "section": "Glutamate: the same rule, more sharply"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c35",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why would a glutamate uptake assay in crude forebrain synaptosomes exaggerate the contribution of neuronal GLT-1?",
+   "back": "Synaptosomes are pinched-off nerve terminals, so the assay over-samples the small neuronal pool of GLT-1 and under-samples the larger astrocytic pool.",
+   "quote": "The two fit once you see what the assay samples: made from terminals, it over-samples the small neuronal pool of GLT-1.",
+   "section": "Glutamate: the same rule, more sharply"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does myelin let current spread farther along an axon, and where is the spike regenerated in a myelinated axon?",
+   "back": "Myelin is a high-resistance, low-capacitance sheath. The spike is regenerated only at the nodes of Ranvier.",
+   "why": "Excitation skips the internode, but current does not: it flows through the axon from node to node.",
+   "quote": "It gives the axon a high-resistance, low-capacitance sheath, so current spreads farther between the gaps called nodes of Ranvier.",
+   "section": "The axon's other partners: myelin, fuel and microglia"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c37",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the peripheral nervous system a myelinating Schwann cell makes exactly {{c1::one}} internode.",
+   "back": "",
+   "quote": "In the peripheral nervous system a myelinating Schwann cell makes exactly one internode.",
+   "section": "The axon's other partners: myelin, fuel and microglia"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A peripheral myelinated fibre and a CNS myelinated axon each have 30 internodes. How many myelinating cells form each sheath?",
+   "back": "Peripheral: 30 Schwann cells, one per internode. CNS: it cannot be stated, since one oligodendrocyte can make several internodes, often on different axons, with no fixed count.",
+   "quote": "In the CNS one oligodendrocyte can make several, often on different axons, with no fixed count.",
+   "section": "The axon's other partners: myelin, fuel and microglia"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c39",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What evidence suggests that oligodendrocytes fuel axons with lactate through MCT1, and what limits that conclusion?",
+   "back": "MCT1 knockdown in optic nerve oligodendrocytes damaged axons, and in slice culture added lactate prevented injury when MCT1 was blocked and glucose withheld. But in mouse corpus callosum slices oligodendrocytes supported axons mainly with glucose, so lactate through MCT1 is one proposed route.",
+   "quote": "Lee and colleagues knocked down the lactate transporter MCT1 in oligodendrocytes of the optic nerve, and the axons were damaged",
+   "section": "The axon's other partners: myelin, fuel and microglia"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c40",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Microglia}} are the brain's resident immune cells.",
+   "back": "In healthy adult mouse neocortex their processes extend and retract continually while their cell bodies stay in place.",
+   "quote": "Microglia are the brain's resident immune cells.",
+   "section": "The axon's other partners: myelin, fuel and microglia"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c41",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Microglial process surveillance is imaged in awake mice, before and after a drug that blocks β2-adrenergic receptors. Predict the change.",
+   "back": "Surveillance should increase. In awake mice, noradrenaline acting on β2-adrenergic receptors on microglia reduces process surveillance, so blocking those receptors should remove that brake.",
+   "quote": "in awake mice, Stowell and colleagues found less process surveillance, because noradrenaline acts on β2-adrenergic receptors on microglia",
+   "section": "The axon's other partners: myelin, fuel and microglia"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c42",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "{{c1::Gliotransmission}} is the proposal that astrocytes release transmitters, such as glutamate, that act quickly on synapses.",
+   "back": "Still argued; the evidence conflicts.",
+   "quote": "Gliotransmission is the proposal that astrocytes release transmitters, such as glutamate, that act quickly on synapses.",
+   "section": "What is still argued: gliotransmission"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c43",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Deleting the IP3 receptor type 2 from mouse astrocytes left hippocampal excitatory transmission and plasticity unchanged. Before concluding that astrocytes release no transmitter, what must you check?",
+   "back": "Whether the deletion really removed astrocyte calcium. It did not fully: adult astrocytes lacking the receptor still show calcium fluctuations, mostly in their processes.",
+   "why": "A null result covers only what the manipulation removed, under the conditions tested.",
+   "quote": "A null result can speak only to what the manipulation actually removed, under the conditions tested",
+   "section": "What is still argued: gliotransmission"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c44",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What positive evidence supports glutamate release by adult mouse hippocampal astrocytes, and how far does it reach?",
+   "back": "A specialized astrocyte subgroup expresses synaptic-like release machinery including VGLUT1, and deleting astrocytic VGLUT1 suppressed the glutamate hotspots linked to it. It is restricted to one subgroup, in one species.",
+   "quote": "That is positive evidence, restricted to one subgroup, in one species.",
+   "section": "What is still argued: gliotransmission"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c45",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which glial functions in the mature brain are well supported, and which is still argued?",
+   "back": "Supported: potassium buffering and uptake, glutamate clearance by GLT-1, myelin, and microglial surveillance. Argued: gliotransmission, whether astrocytes send signals of their own.",
+   "why": "Also debated: how much buffering versus pumps contribute, and which fuel oligodendrocytes deliver.",
+   "quote": "it says nothing about whether astrocytes also send signals of their own, which is still argued",
+   "section": "The puzzle: a small space outside"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c46",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "To test whether VGLUT1-dependent release from adult hippocampal astrocytes changes transmission, why delete VGLUT1 with a tamoxifen-inducible astrocyte Cre in adults, and why check neurons for recombination?",
+   "back": "Adult-only deletion avoids a developmental confound and targets the release machinery rather than one calcium pathway. Many excitatory neurons are full of VGLUT1, so even sparse neuronal recombination could confound the result.",
+   "quote": "Many excitatory neurons in hippocampus and cortex are full of VGLUT1, so even sparse neuronal recombination could confound the interpretation.",
+   "section": "Design problem"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c47",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "After astrocytic VGLUT1 deletion in adult mice, an astrocyte glutamate signal disappears. What alternative must you exclude, and how would you test sufficiency?",
+   "back": "Exclude a change in glutamate uptake or ion handling, which could remove the signal without vesicular release. For sufficiency, drive only astrocytes (light- or chemically gated receptor) and ask whether glutamate signals and synaptic changes appear, then vanish after deletion.",
+   "quote": "Check that the deletion did not change glutamate uptake or ion handling, which could explain a loss of signal without any vesicular release.",
+   "section": "Design problem"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c48",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a shared-pool model with [K+]o 3 mM, [K+]i 140 mM and the extracellular space 0.2 of the tissue, below what fraction of the intracellular volume must the participating cells fall before the inside contributes more to the E_K shift than the outside?",
+   "back": "About 0.5 percent. Outside lead ≈ (140/3) × (0.8f / 0.2) = 187f, which drops below 1 when f < 1/187 ≈ 0.005.",
+   "why": "This is a conditional, small-change comparison in the stated shared-pool model. Separately, in very thin axons during long, high-frequency trains, intracellular potassium loss and sodium gain can become non-negligible, so the actual changes on both sides must be compared; the lesson does not connect that case to this numerical volume threshold.",
+   "quote": "its contribution to E_K is the larger one unless they fill less than about 0.5 percent of it",
+   "section": "How much the outside wins"
+  },
+  {
+   "id": "neurons-and-glia-at-work-c49",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Suppose astrocytes remove excess extracellular potassium with a single-exponential time constant of 2 s (an illustrative value). How long until the excess falls to half?",
+   "back": "About 1.4 s: e^(−t/2 s) = 0.5, so t = 2 s × ln 2 = 1.39 s.",
+   "quote": "Suppose astrocytes remove the excess potassium with a single-exponential time constant of 2 s (an illustrative value, not a measured one).",
+   "section": "A clearance time constant"
+  }
+ ]
+}
