@@ -143,14 +143,6 @@ practiceQuestions:
       - "Because NADPH is product-inhibited by NADP+"
     answer: 2
     rationale: "6-phosphogluconate dehydrogenase performs an oxidative decarboxylation, releasing one carbon as CO2 (G6P, C6 → ribulose-5-P, C5). A lost CO2 is not re-added under cellular conditions, and together with the strongly favorable oxidations this makes the phase one-way. The oxidative phase consumes no ATP; transketolase belongs to the reversible non-oxidative phase; and G6PD is inhibited by NADPH, not the reverse."
-  - stem: "A cell keeps its free cytosolic NAD+/NADH near 1000:1 (oxidized) and its NADP+/NADPH pool strongly reduced, with NADPH far in excess. What is the functional reason for maintaining two separate pools?"
-    choices:
-      - "Because NAD+ and NADPH have different absorption spectra at 340 nm"
-      - "To allow catabolism (needing NAD+) and reductive biosynthesis (needing NADPH) to run simultaneously without one draining the other"
-      - "To double the cell's total store of nicotinamide cofactor"
-      - "Because NADP+ cannot be reduced inside mitochondria"
-    answer: 1
-    rationale: "Abundant oxidized NAD+ serves catabolic dehydrogenations; abundant reduced NADPH serves reductive biosynthesis and antioxidant defense. Keeping the pools separate (distinguished by one phosphate) prevents the high-capacity NAD+ pool from oxidizing away the NADPH the cell built, avoiding a futile cycle. The other options are not the functional rationale — total store, mitochondrial reduction, and absorbance are not why the couples are kept apart."
   - stem: "The non-oxidative phase converts three five-carbon sugars into which set of products?"
     choices:
       - "One sedoheptulose-7-phosphate and two erythrose-4-phosphate"
@@ -167,6 +159,14 @@ practiceQuestions:
       - "ATP allosterically inhibits transaldolase to slow carbon flux"
     answer: 2
     rationale: "The primary control is NADP+ availability: glucose-6-phosphate dehydrogenase is product-inhibited by NADPH, so when NADPH is spent and NADP+ rises, the inhibition lifts and oxidative flux speeds up. PFK-1, citrate, and ATP-on-transaldolase describe glycolytic regulation or invented controls, not the PPP's NADP+-driven feedback."
+  - stem: "A cell keeps its free cytosolic NAD+/NADH near 1000:1 (oxidized) and its NADP+/NADPH pool strongly reduced, with NADPH far in excess. What is the functional reason for maintaining two separate pools?"
+    choices:
+      - "Because NAD+ and NADPH have different absorption spectra at 340 nm"
+      - "To allow catabolism (needing NAD+) and reductive biosynthesis (needing NADPH) to run simultaneously without one draining the other"
+      - "To double the cell's total store of nicotinamide cofactor"
+      - "Because NADP+ cannot be reduced inside mitochondria"
+    answer: 1
+    rationale: "Abundant oxidized NAD+ serves catabolic dehydrogenations; abundant reduced NADPH serves reductive biosynthesis and antioxidant defense. Keeping the pools separate (distinguished by one phosphate) prevents the high-capacity NAD+ pool from oxidizing away the NADPH the cell built, avoiding a futile cycle. The other options are not the functional rationale — total store, mitochondrial reduction, and absorbance are not why the couples are kept apart."
 mcatQuestions:
   - stem: "A red blood cell from a patient with G6PD deficiency is exposed to an oxidizing drug. Compared with a normal red cell, which change best explains why the deficient cell undergoes hemolysis?"
     choices:
@@ -184,14 +184,14 @@ mcatQuestions:
       - "Run the oxidative phase repeatedly to maximize NADPH and ribose together"
     answer: 0
     rationale: "This is Mode 1, the 'ribose builder': when NADPH is already high, the cell skips the NADPH-generating oxidative phase and runs the reversible non-oxidative reactions backward, assembling ribose-5-P from glycolytic intermediates. Running the oxidative phase would overproduce unneeded NADPH; recycling ribose to G6P (Mode 3) is for maximizing NADPH, the opposite need; inhibiting transketolase would not build net ribose."
-  - stem: "A tumor sample shows markedly increased flux through the pentose phosphate pathway. Sequencing reveals a loss-of-function mutation in TP53 (p53). What is the most direct mechanistic link between p53 loss and elevated PPP flux?"
+  - stem: "A cell sends one molecule of glucose-6-phosphate through the oxidative phase of the pentose phosphate pathway and no further. Which set of products best describes the net result?"
     choices:
-      - "p53 loss increases citrate, which activates G6PD"
-      - "p53 normally blocks G6PD from forming its active dimer, so losing p53 de-represses G6PD"
-      - "p53 loss raises the NADPH/NADP+ ratio, which stimulates G6PD"
-      - "p53 normally phosphorylates transketolase to keep it active"
-    answer: 1
-    rationale: "Wild-type p53 can restrain the pathway by preventing G6PD from assembling into its active dimer; losing p53 removes that brake and increases G6PD activity and PPP flux. Citrate activating G6PD is invented; a higher NADPH/NADP+ ratio would inhibit G6PD (product inhibition), not stimulate it; and p53 does not phosphorylate transketolase to activate it."
+      - "Ribulose-5-phosphate, two NADPH and one CO2, with no ATP made"
+      - "Pyruvate, two NADH and two CO2, with net ATP made"
+      - "Ribose-5-phosphate and one NADPH, with no CO2 released"
+      - "Fructose-6-phosphate, two FADH2 and one CO2, with no ATP made"
+    answer: 0
+    rationale: "The oxidative phase nets G6P + 2 NADP+ + H2O → ribulose-5-P + 2 NADPH + 2 H+ + CO2, and makes no ATP. The pyruvate option describes glycolysis, which uses NAD+ and makes ATP. One NADPH and no CO2 ignores the second dehydrogenase, which makes the second NADPH and releases the carbon as CO2. The PPP uses NADP+, not FAD, and fructose-6-phosphate is a product of the non-oxidative phase."
 images: []
 corpusTags:
   - "pentose-phosphate-pathway"
@@ -330,7 +330,7 @@ The two oxidations are strongly downhill, and the lost carbon helps lock the pha
 
 > **G6P + 2 NADP+ + H2O → ribulose-5-P + 2 NADPH + 2 H+ + CO2**
 
-Two NADPH, one CO2, no ATP. The oxidative phase itself uses no O2, but that does not by itself raise the body's ratio of CO2 exhaled to O2 consumed (the respiratory quotient), because the NADPH it makes is later spent on reactions that use oxygen or on building fat. An RQ above 1 signals net fat synthesis, which spends PPP NADPH (see Techniques).
+Two NADPH, one CO2, no ATP.
 
 ## The non-oxidative phase: carbon, shuffled
 
@@ -339,7 +339,7 @@ Now the cell faces a logistics problem. It often needs *more NADPH than ribose*,
 Two routing enzymes set up the sugars. **Phosphopentose isomerase** turns ribulose-5-phosphate into ribose-5-phosphate, the aldose that exits toward nucleotide synthesis. **Phosphopentose epimerase** turns ribulose-5-phosphate into xylulose-5-phosphate, its epimer, differing at a single stereocenter. Then three transfer reactions reshuffle the carbons:
 
 - **Transketolase** (the "molecular scissors") snips a two-carbon unit off xylulose-5-P and welds it onto ribose-5-P: C5 + C5 → C3 (glyceraldehyde-3-P) + C7 (sedoheptulose-7-P). It runs on thiamine pyrophosphate, the same cofactor pyruvate dehydrogenase uses.
-- **Transaldolase** moves a three-carbon unit: C7 + C3 → C6 (fructose-6-P) + C4 (erythrose-4-P). It needs no external cofactor — it uses an active-site lysine to form a Schiff base, exactly the mechanism aldolase uses in glycolysis.
+- **Transaldolase** moves a three-carbon unit: C7 + C3 → C6 (fructose-6-P) + C4 (erythrose-4-P).
 - **Transketolase again**: C4 (erythrose-4-P) + C5 (a second xylulose-5-P) → C6 (fructose-6-P) + C3 (glyceraldehyde-3-P).
 
 Stand back and the whole phase reduces to one tidy equation: **three C5 sugars become two fructose-6-P and one glyceraldehyde-3-P.** Check the carbons — 3 × 5 = 15, and 2 × 6 + 3 = 15. Both products are glycolytic intermediates, so the carbon can flow straight back into the energy pathway.
@@ -361,7 +361,7 @@ The four modes, by nickname:
 - **Mode 3, the "NADPH baron" (the name is about reducing power, not ATP).** A cell wants maximum NADPH and little ribose — think liver or fat tissue making fatty acids. Run the oxidative phase, then use the non-oxidative phase forward, plus gluconeogenic enzymes, to recycle the ribose carbons back to glucose-6-phosphate, which loops through again. Many NADPH, almost no leftover ribose.
 - **Mode 4, the "resourceful alchemist."** A cell wants NADPH *and* ATP. Run the oxidative phase for NADPH, then feed the fructose-6-P and glyceraldehyde-3-P straight into glycolysis. No net ribose.
 
-The main throttle on the oxidative phase is **NADP+ concentration.** G6PD is product-inhibited by NADPH. When the cell spends NADPH on biosynthesis or on fighting oxidative damage, NADP+ rises, the inhibition lifts, and the oxidative phase accelerates. The pathway answers moment-to-moment demand directly, through feedback written into the active site. Over longer times, signals such as NRF2 and modifications such as SIRT2 deacetylation also change how much G6PD the cell has and how active it is.
+The main throttle on the oxidative phase is **NADP+ concentration.** G6PD is product-inhibited by NADPH. When the cell spends NADPH on biosynthesis or on fighting oxidative damage, NADP+ rises, the inhibition lifts, and the oxidative phase accelerates. The pathway answers moment-to-moment demand directly, through feedback written into the active site.
 
 ## Why a fava bean can be dangerous
 
@@ -375,4 +375,18 @@ NADPH from the PPP is what keeps **glutathione** reduced. Glutathione is a small
 
 Then the evolutionary plot twist. The deficiency is thought to persist because it offers some protection against *Plasmodium falciparum*, the malaria parasite: deficient red cells seem to be a poorer home for it. How strong that protection is, and in whom (males with one deficient X, or heterozygous females), still differs between studies. Map the allele's prevalence and it broadly overlaps the historical range of malaria. The same trait that risks hemolysis bought survival against a deadlier threat — a balanced polymorphism, the textbook companion to sickle-cell trait. The practical lesson: screen for G6PD before prescribing certain oxidant drugs.
 
-The PPP also closes a loop back to cancer. Many dividing tumor cells run glycolysis hard (the Warburg effect) *and* the PPP hard, because they need NADPH for lipid and nucleotide synthesis and for surviving their own oxidative stress. The tumor suppressor p53 can restrain G6PD by binding it and blocking its assembly into the active dimer; lose p53 function (TP53 is the most frequently mutated gene in human cancer) and that brake comes off. p53 touches the pathway in other ways too (it induces TIGAR, which can push glucose into the PPP), so its net effect depends on the cell. Carry that pairing forward: the same NADPH economy you just learned is the one the most dangerous cells exploit. Next we turn to fats: first how cells take fatty acids apart, then how they build them, spending the NADPH this pathway makes.
+The PPP also closes a loop back to cancer. Many dividing tumor cells run glycolysis hard (the Warburg effect) *and* the PPP hard, because they need NADPH for lipid and nucleotide synthesis and for surviving their own oxidative stress. Lose p53 function (TP53 is the most frequently mutated gene in human cancer) and a brake on this NADPH economy can come off. How p53 acts on the pathway, and why its net effect depends on the cell, is covered in Going deeper. Carry that pairing forward: the same NADPH economy you just learned is the one the most dangerous cells exploit. Next we turn to fats: first how cells take fatty acids apart, then how they build them, spending the NADPH this pathway makes.
+
+## Going deeper
+
+### Why the oxidative phase does not raise the respiratory quotient
+
+The oxidative phase itself uses no O2, but that does not by itself raise the body's ratio of CO2 exhaled to O2 consumed (the respiratory quotient), because the NADPH it makes is later spent on reactions that use oxygen or on building fat. An RQ above 1 signals net fat synthesis, which spends PPP NADPH (see Techniques).
+
+### Transaldolase chemistry
+
+Transaldolase needs no external cofactor. It uses an active-site lysine to form a Schiff base, exactly the mechanism aldolase uses in glycolysis.
+
+### Long-term control of G6PD, and how p53 acts
+
+Over longer times, signals such as NRF2 and modifications such as SIRT2 deacetylation also change how much G6PD the cell has and how active it is. The tumor suppressor p53 can restrain G6PD by binding it and blocking its assembly into the active dimer. p53 touches the pathway in other ways too (it induces TIGAR, which can push glucose into the PPP), so its net effect depends on the cell.

@@ -312,22 +312,14 @@ mcatQuestions:
       need a positive ΔG°′; Keq ≈ 1 needs ΔG°′ near zero; Keq ≈ 10¹⁷ needs a far more
       negative ΔG°′.
 
-  - stem: "Statins competitively inhibit HMG-CoA reductase, the rate-limiting enzyme of cholesterol synthesis, binding it far more tightly than the natural substrate does. A small subset of patients develops muscle pain with elevated creatine kinase. Which proposed mechanistic chain, still debated, best fits the biochemistry of this pathway?"
+  - stem: An enzyme speeds a reaction a millionfold. A student measures the equilibrium constant of the reaction with and without the enzyme. What should the student find, and why?
     choices:
-      - "Statins covalently modify actin, degrading muscle filaments independent of the mevalonate pathway"
-      - "By blocking the mevalonate pathway, statins reduce CoQ10 and isoprenoid synthesis, impairing mitochondrial electron transport and muscle protein function, leading to myocyte breakdown"
-      - "Statins raise the equilibrium constant for cholesterol synthesis, causing toxic cholesterol accumulation in muscle"
-      - "Statins increase HMG-CoA reductase activity in muscle, overproducing ATP and rupturing myocytes"
+    - Keq is a millionfold larger with the enzyme, because the products are stabilized
+    - Keq is unchanged, because the enzyme lowers the activation barrier but not ΔG°′
+    - Keq is a millionfold smaller with the enzyme, because the reverse reaction is also sped up
+    - Keq cannot be measured with an enzyme present, because it is consumed
     answer: 1
-    rationale: >-
-      HMG-CoA reductase sits at the head of the mevalonate pathway, so inhibiting it
-      reduces not only cholesterol but also downstream CoQ10 (needed for the
-      mitochondrial electron transport chain) and isoprenoids (needed for muscle
-      protein function) — proposed to lead to mitochondrial dysfunction, ATP depletion, and
-      myocyte breakdown with elevated creatine kinase. The actin choice invents a
-      covalent mechanism; the Keq choice wrongly has an inhibitor raising an
-      equilibrium constant; the ATP-overproduction choice has statins activating,
-      not inhibiting, the enzyme.
+    rationale: An enzyme lowers the activation barrier by stabilizing the transition state. It does not change the free energy of the substrate or product, so ΔG, ΔG°′ and Keq are the same. It speeds the forward and reverse reactions equally and so reaches the same equilibrium faster. The other choices wrongly let the enzyme change the destination, or invent an effect on measurement.
 
 images: []
 
@@ -627,10 +619,7 @@ import ReactionCoordinatePlot from '../../../components/ReactionCoordinatePlot.a
 import EnzymeClassClassifier from '../../../components/EnzymeClassClassifier.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A patient starts a cholesterol drug and within weeks their muscles ache and a
-blood marker called creatine kinase (CK) climbs.** Is the drug's main action to blame? To think it through, you need to understand
-what an enzyme can and cannot do. By the end of this chapter you will know the
-leading idea, and why it is still debated.
+**An enzyme cannot make an impossible reaction happen. It can only make a possible one fast, by lowering the energy barrier the reaction has to cross.** To see how, you first need to separate what a reaction *will* do from how *fast* it does it. By the end of this chapter you will also see why a drug can act by binding an enzyme more tightly than its substrate does.
 
 OMP decarboxylase, the enzyme that finishes making UMP (a building block of RNA),
 speeds its reaction by a factor of about 10¹⁷. Without it, that single step has a half-life of 78 million
@@ -747,18 +736,7 @@ to and from the substrate (acid-base catalysis), forms brief covalent bonds with
 it (covalent catalysis), and uses metal ions. Each of these makes the transition
 state easier to reach.
 
-Emil Fischer had an earlier picture in 1894: his "lock and key" — enzyme and
-substrate fitting like a key in a lock. It explained why an enzyme acts on one
-sugar and ignores its near-twin. Fischer called it a hypothesis that could only
-be tested once someone could hold a pure enzyme and see its shape. But a rigid
-lock built to fit the substrate would bind the substrate most tightly, and
-enzymes don't. The idea that the active site fits the transition state best
-came later, from Haldane and Pauling. In 1958 Daniel Koshland
-proposed **induced fit**: substrate binding changes the enzyme's shape and brings
-its catalytic groups into line. Later work showed that many enzymes also shift
-between shapes before the substrate arrives, and the substrate picks the one that
-fits (conformational selection). Real enzymes often use a mix of both. After the
-chemistry, further shape changes help the product leave.
+Emil Fischer's 1894 lock-and-key picture explained why an enzyme acts on one sugar and ignores its near-twin. But a rigid lock built to fit the substrate would bind the substrate most tightly, and enzymes don't. The active site fits the transition state best. In 1958 Daniel Koshland proposed **induced fit**: substrate binding changes the enzyme's shape and brings its catalytic groups into line. Later work showed that many enzymes also shift between shapes before the substrate arrives, and the substrate picks the one that fits (conformational selection). Real enzymes often use a mix of both. After the chemistry, further shape changes help the product leave.
 
 <LessonFigure src="/figures/enzyme-action-basics/lock-and-key-vs-induced-fit.webp" width={1200} height={550} alt="AI-generated illustration: a three-step schematic of induced fit shows substrate binding to an open enzyme, the enzyme closing around the bound substrate, and the enzyme reopening as product leaves. A small inset shows the rigid substrate fit of the lock-and-key model. The strip illustrates one pathway; enzymes can also use conformational selection." caption="Fischer’s lock-and-key model illustrates substrate specificity. In this schematic induced-fit pathway, substrate binding changes the enzyme’s shape, and later opening helps product release. Transition-state stabilization is distinct from that rearrangement. Many enzymes also use conformational selection, often together with induced fit." />
 
@@ -771,20 +749,20 @@ shaped like the planar transition state the enzyme passes through. The enzyme
 binds *that* with a Kd of 0.022 mM — 160 times tighter than the substrate it
 actually works on. The enzyme grips the shape it is built to stabilize.
 
-Tight binding is also a drug-design strategy, which brings us back to the case we
-opened with. Statins block HMG-CoA reductase, the rate-limiting enzyme of
-cholesterol synthesis. They are competitive inhibitors, not true transition-state
-analogs: part of each statin mimics the HMG part of the substrate and fills its
-pocket, and extra contacts nearby let the drug bind with nanomolar affinity, far
-more tightly than the substrate. They slow the pathway, and the liver responds
-by pulling more LDL cholesterol out of the blood, which lowers cholesterol as
-intended. However, that same pathway also makes CoQ10 for
-mitochondrial energy and the isoprenoids muscle cells need. One proposed
-explanation for statin muscle symptoms is that blocking the pathway lowers CoQ10
-and isoprenoids in muscle and harms its mitochondria. It is not proven. Other
-mechanisms are being studied, CoQ10 supplements have not reliably helped, and in
-blinded trials most muscle aches reported on statins also occur on placebo. True
-statin muscle damage with a large CK rise is rare.
+A patient starts a cholesterol drug and within weeks their muscles ache and a
+blood marker called creatine kinase (CK) climbs.
+
+Tight binding is also a drug-design strategy, which brings us back to the statin case. Statins block HMG-CoA reductase, the rate-limiting enzyme of cholesterol synthesis. They are competitive inhibitors, not true transition-state analogs: part of each statin mimics the HMG part of the substrate and fills its pocket, and extra contacts nearby let the drug bind with nanomolar affinity, far more tightly than the substrate. They slow the pathway, and the liver responds by pulling more LDL cholesterol out of the blood, which lowers cholesterol as intended. The same pathway also makes CoQ10 and isoprenoids, which is one proposed, unproven reason some patients report muscle symptoms (see Going deeper).
 
 
 <LessonFigure src="/figures/enzyme-action-basics/statin-blocks-the-pathway.webp" width={1200} height={800} alt="AI-generated illustration: a statin occupies the substrate-binding pocket of HMG-CoA reductase while HMG-CoA remains outside. A slower shared pathway branches toward cholesterol synthesis and CoQ10 and isoprenoids. A dashed connection to a muscle-cell inset marks proposed lower availability and possible mitochondrial effects as an unproven mechanism." caption="Statins competitively inhibit HMG-CoA reductase and slow the shared biosynthetic pathway. Reduced cholesterol synthesis prompts the liver to clear more LDL from blood. Reduced CoQ10 and isoprenoid availability with possible mitochondrial effects is one proposed, unproven explanation for muscle symptoms; true muscle damage with a large CK rise is rare." />
+
+## Going deeper
+
+### Fischer, Haldane, Pauling and testability
+
+Fischer called lock-and-key a hypothesis that could only be tested once someone could hold a pure enzyme and see its shape. The idea that the active site fits the transition state best came later, from Haldane and Pauling.
+
+### Statins and muscle symptoms
+
+That same pathway also makes CoQ10 for mitochondrial energy and the isoprenoids muscle cells need. One proposed explanation for statin muscle symptoms is that blocking the pathway lowers CoQ10 and isoprenoids in muscle and harms its mitochondria. It is not proven. Other mechanisms are being studied, CoQ10 supplements have not reliably helped, and in blinded trials most muscle aches reported on statins also occur on placebo. True statin muscle damage with a large CK rise is rare.
