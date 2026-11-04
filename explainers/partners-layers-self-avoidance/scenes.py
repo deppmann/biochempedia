@@ -1,324 +1,535 @@
-"""Choosing a partner: one match, two opposite outcomes  (Biochemistrypedia explainer)
+"""Choosing a Partner, chapter 1: Same Means Stick.
 
-COLOR MAP (one color per concept, whole video)
-  YELLOW = Sidekick-1 label (its layer, its cells, its knobs)
-  BLUE   = Sidekick-2 label (its layer, its cells, its knobs)
-  PURPLE = the Dscam1 neuron (its identity, its branches and knobs)
-  ORANGE = a neighbouring neuron with a different Dscam1 subset
-  TEAL   = a gradient (continuous order)
-  GREEN  = pulled together
-  RED    = pushed apart / Dscam1 missing
-  GREY   = neutral cells, layers with no label named, structure
+COLOR MAP: YELLOW Sidekick-1; BLUE Sidekick-2; PURPLE Dscam;
+PINK DscamL; ORANGE bipolar cells; TEAL amacrine cells / gradient;
+GREEN adhesion / ganglion cells; RED wrong partners / missing protein;
+GREY neutral anatomy; TEXT explanations. All proteins are schematic chips.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-
-BY = [0.9, -0.4, -1.7]      # centres of the three sublaminae
-BX0, BX1 = -4.0, 6.0        # layer stack spans these x values
-LABX = -5.2                 # left column for layer names
-
-
-def arr(a, b, color=GREY, w=5, tip=0.2):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=12)
+PURPLE = '#A78BFA'
+PINK = '#FF8CBA'
+ORANGE = '#F29E4C'
+BX0, BX1 = -6.0, 6.0
+BH = 1.2
+BY = [2.4, 1.2, 0, -1.2, -2.4]
+TOPY, BOTY, CR = 3.0, -3.0, .29
 
 
-def bchip(text, color=BLUE, size=26, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def label(text, x=0, y=3.55, color=TEXT, size=30):
+    return T(text, size, color).move_to([x, y, 0])
 
 
-def band(i, color=GREY, op=0.12):
-    return Rectangle(width=BX1 - BX0, height=1.2, stroke_color=color, stroke_width=2.5,
-                     fill_color=color, fill_opacity=op).move_to([(BX0 + BX1) / 2, BY[i], 0])
+def plate(m):
+    bg = Rectangle(width=m.width+.25, height=m.height+.12,
+                   fill_color=BG, fill_opacity=1, stroke_width=0).move_to(m)
+    return VGroup(bg, m)
 
 
-def band_knobs(i, color, op=0.9):
-    return VGroup(*[Circle(0.09, stroke_width=0, fill_color=color, fill_opacity=op).move_to([x, BY[i] - 0.3, 0])
-                    for x in np.arange(-3.8, 5.81, 0.4)])
+def band(i, color=GREY, op=.09):
+    return Rectangle(width=12, height=BH, stroke_color=color, stroke_width=1.5,
+                     fill_color=color, fill_opacity=op).move_to([0, BY[i], 0])
 
 
-def cell(x, color=GREY):
-    return Circle(0.36, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.35).move_to([x, 3.0, 0])
+def stack(colored=False):
+    cols = [TEAL, YELLOW, PURPLE, BLUE, PINK] if colored else [GREY]*5
+    return VGroup(*[band(i, c) for i, c in enumerate(cols)])
 
 
-def proc(x, i, color=GREY, kop=1.0, w=0.7, y=None):
-    y = BY[i] + 0.3 if y is None else y
-    stem = Line([x, 2.64, 0], [x, y, 0], color=color, stroke_width=5)
-    arbor = Line([x - w, y, 0], [x + w, y, 0], color=color, stroke_width=5)
-    kn = VGroup(*[Circle(0.09, stroke_width=0, fill_color=color, fill_opacity=kop).move_to([x + dx, y - 0.17, 0])
-                  for dx in (-0.6, -0.2, 0.2, 0.6)])
-    return VGroup(stem, arbor, kn)
+def lab(name, color, i):
+    return plate(label(name, -4.65, BY[i], color, 28))
 
 
-def bonds(x, i, color):
-    return VGroup(*[Line([x + dx, BY[i] + 0.13 - 0.1, 0], [x + dx, BY[i] - 0.3 + 0.1, 0], color=color, stroke_width=3)
-                    for dx in (-0.6, -0.2, 0.2, 0.6)])
+def cell(x, color=TEXT, y=TOPY):
+    return Circle(CR, stroke_color=color, stroke_width=4,
+                  fill_color=color, fill_opacity=.28).move_to([x, y, 0])
 
 
-def paint(p, color):
-    """animations that recolour a proc (stem, arbor, knobs)."""
-    return [p[0].animate.set_color(color), p[1].animate.set_color(color), p[2].animate.set_fill(color, 1)]
+def proc(x, indices, color=TEXT, w=.65, up=False, soma_y=None):
+    start = (BOTY+CR if up else TOPY-CR) if soma_y is None else soma_y
+    ys = [BY[i]+(.12 if not up else -.12) for i in indices]
+    stem = Line([x,start,0], [x,ys[-1],0], color=color, stroke_width=5)
+    arbor = VGroup(*[Line([x-w,y,0],[x+w,y,0],color=color,stroke_width=6) for y in ys])
+    ticks = VGroup(*[Line([x+dx,y,0],[x+dx,y+(.22 if up else -.22),0],color=color,stroke_width=4)
+                      for y in ys for dx in np.linspace(-w*.8,w*.8,4)])
+    return VGroup(stem, arbor, ticks)
 
 
-def tint(b, color, op=0.14):
-    return b.animate.set_stroke(color).set_fill(color, op)
+def cross(x,y,s=.4):
+    return VGroup(*[Line([x-s,y+q*s,0],[x+s,y-q*s,0], color=RED,stroke_width=8) for q in [-1,1]])
 
 
-def lab(text, color, i):
-    return T(text, 26, color).move_to([LABX, BY[i], 0])
+def arrow(a,b,color=TEXT):
+    return Arrow(a,b,buff=.05,color=color,stroke_width=5,tip_length=.18)
 
 
-def path(pts, color, w=6):
-    m = VMobject(stroke_color=color, stroke_width=w, fill_opacity=0)
-    m.set_points_smoothly([np.array([x, y, 0.0]) for x, y in pts])
-    return m
-
-
-def tip(pts, color, w=6):
-    return VGroup(path(pts, color, w), Circle(0.14, stroke_width=0, fill_color=color, fill_opacity=1).move_to([*pts[-1], 0]))
-
-
-def note(text, color=GREY, size=24, y=-3.15):
-    return T(text, size, color).move_to([1.0, y, 0])
+def recolor(c,p,col):
+    return [c.animate.set_stroke(col).set_fill(col,.3), p.animate.set_color(col)]
 
 
 class S00Title(TitleCard):
-    LESSON = "Choosing a partner"
-    TITLE = "One match, two opposite outcomes"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Gradient(SpokenScene):
+    LESSON = 'Choosing a Partner: Layers, Self-Avoidance and Smell'
+    TITLE = 'Same Means Stick'
     def construct(self):
-        strips = VGroup(*[Rectangle(width=10 / 12, height=3.8, stroke_width=0, fill_color=TEAL,
-                                    fill_opacity=0.04 + 0.4 * k / 11).move_to([BX0 + 10 / 24 + 10 / 12 * k, -0.4, 0])
-                          for k in range(12)])
-        tag = T("a gradient", 28, TEAL).move_to([1.0, -2.85, 0])
-        cA, pA = cell(-1.2), proc(-1.2, 0, kop=0)
-        self.at("bring an axon")
-        self.play(FadeIn(strips), FadeIn(tag), FadeIn(cA), run_time=0.8)
-        self.play(Create(pA[0]), run_time=1.6)
-        self.at("thin layer")
-        bands = VGroup(*[band(i) for i in range(3)])
-        self.play(FadeOut(strips), FadeOut(tag), FadeIn(bands), run_time=0.9)
-        self.play(Create(pA[1]), run_time=0.5)
-        cB, pB = cell(2.4), proc(2.4, 1, kop=0)
-        self.at("each cell type")
-        self.play(FadeIn(cB), Create(pB[0]), run_time=1.0)
-        self.play(Create(pB[1]), run_time=0.5)
-        qs = VGroup(T("?", 44, YELLOW if False else GREY).move_to([-1.2 + 1.35, BY[0] + 0.3, 0]),
-                    T("?", 44, GREY).move_to([2.4 + 1.35, BY[1] + 0.3, 0]),
-                    T("?", 44, GREY).move_to([-1.2 - 1.35, BY[0] + 0.3, 0]),
-                    T("?", 44, GREY).move_to([2.4 - 1.35, BY[1] + 0.3, 0]))
-        self.at("does a process choose")
-        self.play(FadeIn(qs, lag_ratio=0.2), run_time=0.8)
-        self.play(*[Indicate(q, color=TEXT, scale_factor=1.3) for q in qs], run_time=1.0)
-        self.at("discrete labels")
-        k1, k2 = band_knobs(0, YELLOW), band_knobs(1, BLUE)
-        self.play(FadeOut(qs), tint(bands[0], YELLOW), tint(bands[1], BLUE), FadeIn(k1), FadeIn(k2), run_time=1.0)
+        self.add(label('BIOCHEMISTRYPEDIA', y=2.65, color=TEAL, size=28),
+                 label('Choosing a Partner', y=1.5, size=36),
+                 T(self.TITLE, font=TITLE_FONT, size=68).move_to([0,0,0]),
+                 Line([-2,-1,0],[2,-1,0],color=GOLD,stroke_width=5),
+                 label('Layers, Self-Avoidance and Smell',y=-2.15,size=30))
         self.finish()
 
 
-class S02Like(SpokenScene):
+class S01Q(SpokenScene):
     def construct(self):
-        b = VGroup(band(0, YELLOW), band(1, BLUE), band(2))
-        k1, k2 = band_knobs(0, YELLOW), band_knobs(1, BLUE)
-        cA, pA = cell(-1.2), proc(-1.2, 0, kop=0)
-        cB, pB = cell(2.4), proc(2.4, 1, kop=0)
-        self.add(b, k1, k2, cA, pA, cB, pB)
-        self.at("two proteins")
-        where = note("chick retina")
-        self.play(FadeIn(where), run_time=0.5)
-        self.at("Sidekick1")
-        l1 = lab("Sidekick-1", YELLOW, 0)
-        self.play(FadeIn(l1, shift=RIGHT * 0.2), cA.animate.set_stroke(YELLOW).set_fill(YELLOW, 0.35),
-                  *paint(pA, YELLOW), run_time=0.8)
-        self.at("are made")
-        l2 = lab("Sidekick-2", BLUE, 1)
-        self.play(FadeIn(l2, shift=RIGHT * 0.2), cB.animate.set_stroke(BLUE).set_fill(BLUE, 0.35),
-                  *paint(pB, BLUE), run_time=0.8)
-        self.at("end in different")
-        self.play(Indicate(pA[1:], color=TEXT, scale_factor=1.15), Indicate(pB[1:], color=TEXT, scale_factor=1.15),
-                  run_time=1.2)
-        self.at("binds its own kind")
-        bA, bB = bonds(-1.2, 0, YELLOW), bonds(2.4, 1, BLUE)
-        self.play(Create(bA), Create(bB), run_time=0.9)
-        hom = T("homophilic binding: like binds like", 26, TEXT).move_to([1.0, -3.15, 0])
-        self.at("homophilic binding")
-        self.play(ReplacementTransform(where, hom), run_time=0.7)
-        self.at("stick to other cells")
-        self.play(Indicate(bA, color=TEXT), Indicate(bB, color=TEXT), run_time=1.2)
+        bs=stack(True)
+        q=label('Which thin layer should a branch stop in?',size=38)
+        cs=VGroup(*[cell(x) for x in [-2.4,.6,3.6]])
+        ps=[proc(x,[i]) for x,i in zip([-2.4,.6,3.6],[1,3,4])]
+        self.add(bs,q,cs,label('retina cross-section',y=-3.55,size=28))
+        self.at('growing branch')
+        self.play(*[Create(p) for p in ps],run_time=1.1)
+        self.at('which thin layer')
+        self.play(*[FadeIn(label('?',x+.95,BY[i],size=42)) for x,i in zip([-2.4,.6,3.6],[1,3,4])],run_time=.4)
         self.finish()
 
 
-class S03Shift(SpokenScene):
+class S02Gradient(SpokenScene):
     def construct(self):
-        b = VGroup(band(0, YELLOW), band(1, BLUE))
-        k1, k2 = band_knobs(0, YELLOW), band_knobs(1, BLUE)
-        cA, pA, bA = cell(-1.2, YELLOW), proc(-1.2, 0, YELLOW), bonds(-1.2, 0, YELLOW)
-        cB, pB, bB = cell(2.4, BLUE), proc(2.4, 1, BLUE), bonds(2.4, 1, BLUE)
-        cC, pC = cell(5.2), proc(5.2, 2, GREY, kop=0, y=0.25)
-        l1, l2 = lab("Sidekick-1", YELLOW, 0), lab("Sidekick-2", BLUE, 1)
-        self.add(b, k1, k2, l1, l2, cA, pA, bA, cB, pB, bB)
-        self.at("key test")
-        self.play(FadeIn(cC), FadeIn(pC), run_time=0.8)
-        mis = note("misexpression: a protein made where it is normally absent")
-        self.at("making a protein")
-        self.play(FadeIn(mis), Indicate(cC, color=TEXT, scale_factor=1.3), run_time=1.2)
-        self.at("produce a sidekick")
-        plus = T("+ Sidekick-1", 22, YELLOW).move_to([4.15, 2.3, 0])
-        self.play(cC.animate.set_stroke(YELLOW).set_fill(YELLOW, 0.35), *paint(pC, YELLOW), FadeIn(plus), run_time=0.9)
-        self.at("shifted toward")
-        tgt = proc(5.2, 0, YELLOW, y=0.75)
-        self.play(Transform(pC, tgt), run_time=2.0)
-        self.at("label biases")
-        self.play(Indicate(pC[2], color=TEXT, scale_factor=1.4), run_time=0.8)
-        self.at("one part of how")
-        one = note("one part of how layers form")
-        self.play(ReplacementTransform(mis, one), FadeOut(plus), run_time=0.8)
+        strips=VGroup(*[Rectangle(width=11.5,height=.29,stroke_width=0,fill_color=TEAL,
+                       fill_opacity=.04+.5*k/19).move_to([0,2.6-.29*k,0]) for k in range(20)])
+        cs=VGroup(*[cell(x) for x in [-2.5,0,2.5]])
+        ps=VGroup(*[Line([x,TOPY-CR,0],[x,-.5,0],color=TEXT,stroke_width=5) for x in [-2.5,0,2.5]])
+        head=label('a gradient brings axons near a target',color=TEAL,size=32)
+        self.add(strips,cs,head)
+        self.at('bring an axon')
+        self.play(Create(ps),run_time=.7)
+        region=Rectangle(width=8.8,height=1.0,color=TEXT,stroke_width=3).move_to([0,-.5,0])
+        self.at('near its target')
+        self.play(Create(region),run_time=.35)
+        self.at('but a thin layer')
+        bs=stack()
+        mini=bs.copy().scale(.16).move_to(region)
+        self.play(FadeOut(strips),FadeOut(cs),FadeOut(ps),FadeIn(mini),run_time=.2)
+        self.play(ReplacementTransform(mini,bs),FadeOut(region),
+                  Transform(head,label('a thin layer is a discrete choice',size=36)),run_time=.5)
+        self.at('either the right')
+        self.play(bs[1].animate.set_stroke(YELLOW,width=5).set_fill(YELLOW,.35),
+                  FadeIn(lab('right layer',YELLOW,1)),run_time=.3)
         self.finish()
 
 
-class S04Apart(SpokenScene):
+class S03Discrete(SpokenScene):
     def construct(self):
-        soma = Circle(0.5, stroke_color=PURPLE, stroke_width=4, fill_color=PURPLE, fill_opacity=0.35).move_to([-5.3, 0, 0])
-        main = [(-4.8, 0.3), (-3.4, 1.3), (-1.8, 1.6), (0.2, 1.2)]
-        mir = lambda pts: [(x, -y) for x, y in pts]
-        up0 = main + [(1.0, 1.1), (1.8, 0.7), (2.3, 0.15)]
-        up_apart = main + [(1.0, 1.3), (2.0, 1.9), (3.2, 2.4)]
-        up_cross = main + [(1.2, 0.9), (2.6, -0.3), (4.0, -1.7)]
-        up_bun = main + [(1.5, 0.5), (2.8, 0.15), (4.4, 0.1)]
-        def pair(pts):
-            return tip(pts, PURPLE), tip(mir(pts), PURPLE)
-        u0, d0 = pair(main)
-        u0[1].set_opacity(0)
-        d0[1].set_opacity(0)
-        U, D = pair(up0)
-        # the first stretch of each branch, drawn alone; the tip is added by Transform later
-        head = T("self-avoidance", 34, PURPLE, font=TITLE_FONT).move_to([-2.4, 3.0, 0])
-        key = bchip("same Dscam1 forms", PURPLE, 26).move_to([3.6, 3.0, 0])
-        no = bchip("no Dscam1", RED, 26).move_to([3.6, 3.0, 0])
-        self.at("keep its own branches")
-        self.play(FadeIn(soma), Create(u0[0]), Create(d0[0]), run_time=1.4)
-        self.add(u0[1], d0[1])
-        self.at("avoidance")
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.6)
-        self.at("protein")
-        self.play(FadeIn(key), run_time=0.5)
-        self.at("identical forms")
-        self.play(Transform(u0, U), Transform(d0, D), run_time=1.5)
-        self.at("outcome is repulsion")
-        r1, r2 = arr([2.6, 0.55, 0], [2.6, 1.15, 0], RED), arr([2.6, -0.55, 0], [2.6, -1.15, 0], RED)
-        self.play(Indicate(VGroup(u0[1], d0[1]), color=RED, scale_factor=1.5), GrowArrow(r1), GrowArrow(r2), run_time=0.8)
-        self.at("pull apart")
-        ua, da = pair(up_apart)
-        self.play(Transform(u0, ua), Transform(d0, da), FadeOut(r1), FadeOut(r2), run_time=1.5)
-        self.at("without")
-        self.play(ReplacementTransform(key, no), Transform(u0, U), Transform(d0, D), run_time=0.8)
-        self.at("cross")
-        uc, dc = pair(up_cross)
-        self.play(Transform(u0, uc), Transform(d0, dc), run_time=0.9)
-        self.at("bundle")
-        ub, db = pair(up_bun)
-        self.play(Transform(u0, ub), Transform(d0, db), run_time=1.2)
+        bs=stack(True)
+        self.add(bs,label('discrete choices',size=40))
+        tags=VGroup(*[RoundedRectangle(width=.6,height=.45,corner_radius=.08,
+                     color=c,fill_color=c,fill_opacity=.6).move_to([-4.9,BY[i],0])
+                     for i,c in enumerate([TEAL,YELLOW,PURPLE,BLUE,PINK])])
+        self.at('discrete labels')
+        self.play(FadeIn(tags),FadeIn(label('discrete labels',y=-3.55,size=36)),run_time=.3)
         self.finish()
 
 
-class S05Identity(SpokenScene):
+# Shared anatomy: separate horizontal territories keep arbors legible.
+def anatomy():
+    xs=[-3.1,0,3.1]; colors=[ORANGE,TEAL,GREEN]
+    cs=VGroup(cell(xs[0],colors[0]),cell(xs[1],colors[1]),cell(xs[2],colors[2],BOTY))
+    ps=VGroup(proc(xs[0],[1],colors[0],w=1.0),proc(xs[1],[1,3],colors[1],w=1.0),
+              proc(xs[2],[3],colors[2],w=1.0,up=True))
+    names=VGroup(label('bipolar',xs[0],3.55,colors[0],28),
+                 label('amacrine',xs[1],3.55,colors[1],28),
+                 label('retinal ganglion',xs[2],-3.55,colors[2],28))
+    return cs,ps,names
+
+
+class S04Ipl(SpokenScene):
     def construct(self):
-        # two neurons; A (purple) from the left, B (orange) from the right, branches overlap in the middle
-        sA = Circle(0.45, stroke_color=PURPLE, stroke_width=4, fill_color=PURPLE, fill_opacity=0.35).move_to([-5.4, -0.9, 0])
-        sB = Circle(0.45, stroke_color=ORANGE, stroke_width=4, fill_color=ORANGE, fill_opacity=0.35).move_to([5.4, -0.9, 0])
-        A1 = path([(-5.0, -0.6), (-3.0, 0.2), (0.0, 0.7), (2.8, 0.6)], PURPLE)
-        A2 = path([(-5.0, -0.9), (-2.0, -0.7), (1.0, -0.65), (3.4, -0.7)], PURPLE)
-        A3 = path([(-5.0, -1.2), (-3.0, -2.0), (0.0, -2.4), (2.8, -2.2)], PURPLE)
-        B1 = path([(5.0, -0.6), (3.0, 0.3), (0.0, 0.0), (-2.8, 0.2)], ORANGE)
-        B2 = path([(5.0, -0.9), (2.0, 0.3), (-1.0, -0.65), (-2.6, -2.2)], ORANGE)
-        B3 = path([(5.0, -1.2), (3.0, -1.8), (0.5, -1.6), (-3.0, -1.4)], ORANGE)
-        neuA, neuB = VGroup(sA, A1, A2, A3), VGroup(sB, B1, B2, B3)
-        self.at("tell itself")
-        self.play(FadeIn(sA), FadeIn(sB), Create(A1), Create(A2), Create(A3), Create(B1), Create(B2), Create(B3),
-                  run_time=1.8)
-        # menu of forms
-        dots = VGroup(*[Circle(0.07, stroke_width=0, fill_color=GREY, fill_opacity=0.8).move_to([-2.55 + 0.34 * c, 3.3 - 0.3 * r, 0])
-                        for r in range(4) for c in range(16)])
-        mlab = VGroup(T("Dscam1", 24, TEXT), T("38,016 forms", 24, GREY)).arrange(DOWN, buff=0.08).move_to([-4.8, 2.85, 0])
-        self.at("can be spliced")
-        self.play(FadeIn(dots, lag_ratio=0.02), FadeIn(mlab), run_time=1.6)
-        a_idx, b_idx = [3, 41, 61], [17, 38, 14]
-        tagA = VGroup(*[Circle(0.1, stroke_width=0, fill_color=PURPLE, fill_opacity=1) for _ in range(3)]).arrange(RIGHT, buff=0.2).move_to([-5.4, -1.8, 0])
-        tagB = VGroup(*[Circle(0.1, stroke_width=0, fill_color=ORANGE, fill_opacity=1) for _ in range(3)]).arrange(RIGHT, buff=0.2).move_to([5.4, -1.8, 0])
-        self.at("express a small")
-        self.play(*[dots[i].animate.set_fill(PURPLE, 1).scale(1.8) for i in a_idx], run_time=0.3)
-        self.play(*[ReplacementTransform(dots[i].copy(), tagA[k]) for k, i in enumerate(a_idx)], run_time=0.5)
-        self.at("partly random")
-        self.play(*[dots[i].animate.set_fill(ORANGE, 1).scale(1.8) for i in b_idx], run_time=0.5)
-        self.play(*[ReplacementTransform(dots[i].copy(), tagB[k]) for k, i in enumerate(b_idx)], run_time=0.9)
-        self.at("large menu")
-        self.play(Indicate(dots, color=TEXT, scale_factor=1.05), run_time=1.0)
-        self.at("own branches match")
-        r1 = arr([2.9, 0.85, 0], [2.9, 1.45, 0], RED)
-        r2 = arr([3.5, -0.95, 0], [3.5, -1.35, 0], RED)
-        self.play(Indicate(tagA, color=TEXT, scale_factor=1.4), GrowArrow(r1), GrowArrow(r2), run_time=1.0)
-        self.at("other neurons")
-        ring = Circle(0.4, stroke_color=TEXT, stroke_width=3).move_to([-1.0, -0.65, 0])
-        ov = T("overlap", 26, TEXT)
-        ov = VGroup(Rectangle(width=ov.width + 0.2, height=ov.height + 0.12, stroke_width=0, fill_color=BG, fill_opacity=1), ov)
-        ov.next_to(ring, DOWN, buff=0.1)
-        self.play(FadeOut(r1), FadeOut(r2), Indicate(tagB, color=TEXT, scale_factor=1.4), Create(ring), FadeIn(ov), run_time=1.0)
+        blk=Rectangle(width=12,height=6.0,color=GREY,fill_color=GREY,fill_opacity=.09)
+        cs,ps,names=anatomy()
+        self.add(blk,cs,ps,names,plate(label('inner plexiform layer',0,-2.5,size=30)))
+        self.at('three kinds of cell')
+        self.play(*[Indicate(c,color=col,scale_factor=1.15) for c,col in zip(cs,[ORANGE,TEAL,GREEN])],run_time=.5)
+        self.at('make synapses')
+        # All three coloured arbors meet in one common IPL band.
+        green=proc(3.1,[2],GREEN,w=1.9,up=True)
+        green[0].put_start_and_end_on([3.1,BOTY+CR,0],[3.1,.12,0])
+        green[1:].shift(UP*.24)
+        target=VGroup(proc(-3.1,[2],ORANGE,w=1.9),
+                      proc(0,[2],TEAL,w=1.2),green)
+        self.play(Transform(ps,target),run_time=.4)
+        contacts=VGroup(*[Circle(.17,color=GOLD,stroke_width=5).move_to([x,.12,0])
+                         for x in [-1.2,1.2]])
+        self.play(FadeIn(contacts),run_time=.15)
         self.finish()
 
 
-def disc(x, y, color, r=0.4):
-    return Circle(r, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.5).move_to([x, y, 0])
-
-
-class S06Rule(SpokenScene):
+class S05Subl(SpokenScene):
     def construct(self):
-        ramp = VGroup(*[Rectangle(width=0.4, height=1.6, stroke_width=0, fill_color=TEAL,
-                                  fill_opacity=0.08 + 0.8 * k / 11).move_to([-5.4 + 0.2 + 0.4 * k, 0.9, 0]) for k in range(12)])
-        steps = VGroup(*[Rectangle(width=1.4, height=1.6, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=0.35)
-                         .move_to([1.5 + 1.55 * k + 0.7, 0.9, 0]) for k, c in enumerate([YELLOW, BLUE, PURPLE])])
-        t1 = T("gradient:\ncontinuous order", 28, TEAL, line_spacing=0.8).move_to([-3.0, -0.8, 0])
-        t2 = T("labels:\ndiscrete membership", 28, TEXT, line_spacing=0.8).move_to([3.9, -0.8, 0])
-        self.at("continuous order")
-        self.play(FadeIn(ramp, lag_ratio=0.08), FadeIn(t1), run_time=1.2)
-        self.at("discrete membership")
-        self.play(FadeIn(steps, lag_ratio=0.3), FadeIn(t2), run_time=1.2)
-        # --- the bond ---
-        d1, d2 = disc(-0.55, 2.4, GREY, 0.55), disc(0.55, 2.4, GREY, 0.55)
-        link = Line([-0.1, 2.4, 0], [0.1, 2.4, 0], color=TEXT, stroke_width=10)
-        bondlab = T("like binds like", 30, TEXT).move_to([0, 1.55, 0])
-        self.at("same chemistry")
-        self.play(FadeOut(VGroup(ramp, steps, t1, t2)), FadeIn(d1), FadeIn(d2), FadeIn(link), FadeIn(bondlab), run_time=0.9)
-        yl = T("Sidekick", 30, YELLOW).move_to([-3.6, 0.5, 0])
-        pr = T("Dscam1", 30, PURPLE).move_to([3.6, 0.5, 0])
-        L1, L2 = disc(-5.1, -0.9, YELLOW, 0.5), disc(-2.1, -0.9, YELLOW, 0.5)
-        R1, R2 = disc(3.1, -0.9, PURPLE, 0.5), disc(4.1, -0.9, PURPLE, 0.5)
-        self.at("opposite ends")
-        self.play(FadeIn(yl), FadeIn(pr), FadeIn(L1), FadeIn(L2), FadeIn(R1), FadeIn(R2), run_time=0.9)
-        self.at("draws processes together")
-        ga = arr([-5.1, -1.9, 0], [-4.2, -1.9, 0], GREEN)
-        gb = arr([-2.1, -1.9, 0], [-3.0, -1.9, 0], GREEN)
-        gt = T("together", 28, GREEN).move_to([-3.6, -2.6, 0])
-        self.play(L1.animate.move_to([-4.1, -0.9, 0]), L2.animate.move_to([-3.1, -0.9, 0]), GrowArrow(ga), GrowArrow(gb),
-                  FadeIn(gt), run_time=1.2)
-        self.at("drives branches apart")
-        ra = arr([2.95, -1.9, 0], [2.0, -1.9, 0], RED)
-        rb = arr([4.25, -1.9, 0], [5.2, -1.9, 0], RED)
-        rt = T("apart", 28, RED).move_to([3.6, -2.6, 0])
-        self.play(R1.animate.move_to([2.3, -0.9, 0]), R2.animate.move_to([4.9, -0.9, 0]), GrowArrow(ra), GrowArrow(rb),
-                  FadeIn(rt), run_time=1.2)
-        self.at("decides which")
-        self.play(Indicate(VGroup(d1, d2, link), color=TEXT, scale_factor=1.25), run_time=1.0)
+        bs=stack(True);cs,ps,names=anatomy()
+        self.add(bs,cs,ps,names)
+        self.at('divided into thinner')
+        self.play(Indicate(bs,color=TEXT,scale_factor=1.02),run_time=.5)
+        self.at('each cell type')
+        self.play(*[Indicate(p[1],color=c,scale_factor=1.1) for p,c in zip(ps,[ORANGE,TEAL,GREEN])],run_time=.7)
+        # A distinct wrong-band example stays in the bipolar cell's territory.
+        ghost=VGroup(DashedLine([-3.1,BY[1],0],[-3.1,BY[4]+.12,0],color=ORANGE,stroke_width=4),
+                     DashedLine([-4.1,BY[4]+.12,0],[-2.1,BY[4]+.12,0],color=ORANGE,stroke_width=4))
+        partner=Line([-2.1,BY[4]+.12,0],[-1.3,BY[4]+.12,0],color=PINK,stroke_width=7)
+        self.at('one or a few')
+        self.play(Create(ghost),Create(partner),FadeIn(cross(-2.1,BY[4]+.12)),
+                  FadeIn(plate(label('wrong band: wrong partners',-2.7,-3.55,RED,28))),run_time=.6)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "What the cell does after the bond forms decides which."
+def groups(colored=True):
+    xs=[-2.8,-1.5,1.5,2.8]
+    cols=[YELLOW,YELLOW,BLUE,BLUE] if colored else [TEXT]*4
+    cs=VGroup(*[cell(x,c) for x,c in zip(xs,cols)])
+    ps=VGroup(*[proc(x,[1 if i<2 else 3],c,w=.5) for i,(x,c) in enumerate(zip(xs,cols))])
+    return cs,ps
+
+
+class S06Sdk(SpokenScene):
+    def construct(self):
+        cs,ps=groups(False)
+        self.add(stack(),cs,ps,label('chick retina',y=-3.55,size=30))
+        self.at('two related proteins')
+        self.play(FadeIn(label('two related cell-surface proteins',y=3.55,size=28)),run_time=.3)
+        self.at('sidekick1')
+        self.play(FadeIn(lab('Sidekick-1',YELLOW,1)),*[a for c,p in zip(cs[:2],ps[:2]) for a in recolor(c,p,YELLOW)],run_time=.35)
+        self.at('sidekick2')
+        self.play(FadeIn(lab('Sidekick-2',BLUE,3)),*[a for c,p in zip(cs[2:],ps[2:]) for a in recolor(c,p,BLUE)],run_time=.35)
+        self.finish()
+
+
+class S07Groups(SpokenScene):
+    def construct(self):
+        bs=stack();cs,ps=groups()
+        self.add(bs,cs,ps,lab('Sidekick-1',YELLOW,1),lab('Sidekick-2',BLUE,3),label('chick retina',y=3.55))
+        self.at('largely separate groups')
+        self.play(Indicate(cs[:2],color=YELLOW),Indicate(cs[2:],color=BLUE),run_time=.7)
+        self.at('end in different')
+        self.play(bs[1].animate.set_stroke(YELLOW).set_fill(YELLOW,.2),
+                  bs[3].animate.set_stroke(BLUE).set_fill(BLUE,.2),run_time=.6)
+        self.finish()
+
+
+# Schematic membrane-bound receptors: labelled blocks, never molecular structures.
+def facing_membranes(gap):
+    return VGroup(*[RoundedRectangle(width=11,height=.65,corner_radius=.18,color=GREY,
+                fill_color=GREY,fill_opacity=.25).move_to([0,s*gap,0]) for s in [1,-1]])
+
+
+def receptor(x,y,col,down=True):
+    d=-1 if down else 1
+    stem=Line([x,y,0],[x,y+d*1.3,0],color=col,stroke_width=8)
+    head=RoundedRectangle(width=.8,height=.42,corner_radius=.12,color=col,
+                          fill_color=col,fill_opacity=.6).move_to([x,y+d*1.4,0])
+    return VGroup(stem,head)
+
+
+class S08Homo(SpokenScene):
+    def construct(self):
+        mem=facing_membranes(2.35)
+        r1=receptor(-1.5,2.03,YELLOW);r2=receptor(-1.5,-2.03,YELLOW,False)
+        blue=receptor(3,-2.03,BLUE,False)
+        self.add(mem,r1,r2,blue,label('homophilic binding',size=42),
+                 label('Sidekick-1',-2.8,-3.2,YELLOW,30),label('Sidekick-2',3,-3.2,BLUE,30),
+                 label('cell membrane',3.4,2.9,GREY,28))
+        self.at('binds its own kind')
+        self.play(mem[0].animate.shift(DOWN*.4),mem[1].animate.shift(UP*.4),
+                  r1.animate.shift(DOWN*.4),r2.animate.shift(UP*.4),blue.animate.shift(UP*.4),run_time=.7)
+        lock=RoundedRectangle(width=1.2,height=.8,corner_radius=.15,color=GREEN,stroke_width=6).move_to([-1.5,0,0])
+        self.play(Create(lock),run_time=.25)
+        self.at('which is called')
+        self.play(blue.animate.shift(LEFT*1.5),run_time=.6)
+        self.add(label('match → hold',-2.2,-2.65,GREEN,30), label('no matching contact',2.7,-2.65,BLUE,28))
+        self.finish()
+
+
+class S09Stick(SpokenScene):
+    def construct(self):
+        # Reuse the preceding membrane/receptor close-up, now on cell processes.
+        mem=facing_membranes(2.25).set_stroke(YELLOW).set_fill(YELLOW,.18)
+        r1=receptor(-1.5,1.93,YELLOW)
+        r2=receptor(-1.5,-1.93,YELLOW,False)
+        upper=VGroup(mem[0],r1)
+        lower=VGroup(mem[1],r2)
+        # Continuations and small branches identify the membranes as processes.
+        branches=VGroup(*[Line([x,y,0],[x+.5,y+d*.55,0],color=YELLOW,stroke_width=5)
+                         for x,y,d in [(-4.7,2.575,1),(4.4,2.575,1),(-4.7,-2.575,-1)]])
+        upper.add(*branches[:2]);lower.add(branches[2])
+        blue_mem=RoundedRectangle(width=2.8,height=.5,corner_radius=.18,color=BLUE,
+                                 fill_color=BLUE,fill_opacity=.25).move_to([3.5,-1,0])
+        blue_rec=receptor(3.5,-.75,BLUE,False).scale(.45,about_point=[3.5,-.75,0])
+        passing=VGroup(blue_mem,blue_rec,label('Sidekick-2',3.5,.25,BLUE,28))
+        self.add(upper,lower,passing,
+                 label('Sidekick-1',0,3.55,YELLOW,34),
+                 label('Sidekick-1',0,-3.55,YELLOW,34),
+                 plate(label('cell processes',3.5,2.25,GREY,28)))
+        self.at('sidekick 1')
+        self.play(upper.animate.shift(DOWN*.32),lower.animate.shift(UP*.32),run_time=.5)
+        lock=RoundedRectangle(width=1.2,height=.85,corner_radius=.15,color=GREEN,
+                              fill_color=GREEN,fill_opacity=.18,stroke_width=7).move_to([-1.5,0,0])
+        self.at('sticks to')
+        self.play(FadeIn(lock),passing.animate.shift(LEFT*1.5),run_time=.3)
+        self.add(label('hold together',-4,0,GREEN,30),
+                 label('no contact',3.7,.8,BLUE,28))
+        self.finish()
+
+
+NX=3.7
+
+def mis_state(added=False,shifted=False):
+    bs=stack();bs[1].set_stroke(YELLOW).set_fill(YELLOW,.18);bs[3].set_stroke(BLUE).set_fill(BLUE,.15)
+    cs=VGroup(cell(-2.3,YELLOW),cell(.6,BLUE),cell(NX,YELLOW if added else TEXT))
+    ps=VGroup(proc(-2.3,[1],YELLOW),proc(.6,[3],BLUE),proc(NX,[4],YELLOW if added else TEXT))
+    if shifted:
+        # Shift in distribution: a new branch approaches the matching band;
+        # some of the old arbor remains. No travel through an unrelated band.
+        ps[2]=VGroup(proc(NX,[4],YELLOW).set_opacity(.35),proc(NX,[1],YELLOW,w=.9))
+    return VGroup(bs,cs,ps,lab('Sidekick-1',YELLOW,1),lab('Sidekick-2',BLUE,3))
+
+
+def prediction():
+    return VGroup(label('Predict',-4.7,3.55,GOLD,36),label('+ Sidekick-1',NX,3.55,YELLOW,28),
+                  label('Where should their processes end?',y=-3.55,size=34),label('?',5.1,BY[4],size=44))
+
+
+class S10Mark(SpokenScene):
+    def construct(self):
+        d=mis_state()
+        self.add(d,label('Marks the band, or helps choose it?',y=-3.55,size=36),label('What does the label do?',size=36))
+        self.at('mark the band')
+        self.play(Indicate(d[0][1],color=YELLOW),run_time=.6)
+        self.at('help choose it')
+        self.play(Indicate(d[2][2],color=TEXT),run_time=.6)
+        self.finish()
+
+
+class S11Predict(SpokenScene):
+    def construct(self):
+        d=mis_state();bits=prediction()
+        no=label('no Sidekick',NX,3.55,TEXT,28)
+        self.add(d,bits[0],no)
+        self.at('make neurons produce')
+        self.play(Indicate(d[1][2],color=TEXT),run_time=.4)
+        self.at('a sidekick')
+        self.play(ReplacementTransform(no,bits[1]),*recolor(d[1][2],d[2][2],YELLOW),run_time=.5)
+        self.at('where should')
+        self.add(bits[2],bits[3])
+        self.finish()
+
+
+class S12Pause(NarratedScene):
+    def construct(self):
+        self.add(mis_state(True),prediction())
+        n=label('Think: 5',0,3.55,GOLD,28)
+        self.add(n)
+        for i in range(5,0,-1):
+            n.become(label(f'Think: {i}',0,3.55,GOLD,28))
+            self.wait(1)
+        self.finish()
+
+
+class S13Reveal(SpokenScene):
+    def construct(self):
+        d=mis_state(True)
+        self.add(d,label('misexpression: + Sidekick-1',y=3.55,size=32),
+                 label('Yamagata, Weiner and Sanes, 2002',y=-3.55,size=28))
+        old=d[2][2]
+        ghost=proc(NX,[4],GREY).set_opacity(.5)
+        self.add(ghost)
+        self.at('shifted toward')
+        # Crossfade distributions; do not animate an arbor crossing the blue band.
+        new=proc(NX,[1],YELLOW,w=.9)
+        self.play(old.animate.set_opacity(.35),FadeIn(new),run_time=.65)
+        self.add(plate(label('shift toward the matching band',0,-2.65,YELLOW,28)))
+        self.at('already concentrated')
+        self.play(Indicate(d[0][1],color=YELLOW,scale_factor=1.02),run_time=.6)
+        self.finish()
+
+
+def moved():
+    return VGroup(mis_state(True,True),label('+ Sidekick-1',NX,3.55,YELLOW,28),
+                  label('add the label → shift the arbor',y=-3.55,size=36))
+
+
+class S14Moved(SpokenScene):
+    def construct(self):
+        d=moved();self.add(d)
+        self.at('adding the label')
+        self.play(Indicate(d[1],color=YELLOW),run_time=.4)
+        self.at('shifted the arbor')
+        self.play(Indicate(d[0][2][2][1][1],color=YELLOW),run_time=.4)
+        self.finish()
+
+
+class S15Beat(NarratedScene):
+    def construct(self):
+        self.add(moved());self.finish()
+
+
+# Four independent mini-panels avoid asserting an anatomical layer order.
+def family_panel(x,y,name,col):
+    box=RoundedRectangle(width=5.6,height=2.6,corner_radius=.16,color=GREY,stroke_width=1.5).move_to([x,y,0])
+    zone=Rectangle(width=4.8,height=.55,color=col,fill_color=col,fill_opacity=.18).move_to([x,y-.55,0])
+    c=cell(x,col,y+.25)
+    stem=Line([x,y-.04,0],[x,y-.55,0],color=col,stroke_width=5)
+    arb=Line([x-1.2,y-.55,0],[x+1.2,y-.55,0],color=col,stroke_width=6)
+    return VGroup(box,zone,c,stem,arb,label(name,x,y+.95,col,30))
+
+
+class S16Four(SpokenScene):
+    def construct(self):
+        a=family_panel(-3,1.55,'Sidekick-1',YELLOW);b=family_panel(3,1.55,'Sidekick-2',BLUE)
+        c=family_panel(-3,-1.3,'Dscam',PURPLE);d=family_panel(3,-1.3,'DscamL',PINK)
+        self.add(a,b,label('schematic groups; no anatomical layer order',y=-3.55,size=28))
+        self.at('yamagata')
+        self.add(label('Yamagata and Sanes, 2008',y=3.55,size=28))
+        self.at('added')
+        self.play(FadeIn(c),run_time=.35)
+        # Transcript joins the second protein's spelling; cue its plain conjunction.
+        self.at('and dscam')
+        self.play(FadeIn(d),run_time=.35)
+        self.at('making four labels')
+        self.play(Indicate(VGroup(a[5],b[5],c[5],d[5]),color=TEXT,scale_factor=1.03),run_time=.5)
+        self.finish()
+
+
+class S17Scope(SpokenScene):
+    def construct(self):
+        bs=stack();bs[1].set_stroke(YELLOW).set_fill(YELLOW,.2)
+        c=cell(.4);p=proc(.4,[1],YELLOW,w=1.2)
+        pull=arrow([2.8,2.4,0],[1.1,BY[1]+.12,0],YELLOW)
+        self.add(bs,c,lab('Sidekick-1',YELLOW,1),label('one part of how layers form',size=34),
+                 label('not an address book',y=-3.55,size=32))
+        self.at('a choice')
+        self.add(plate(label('a bias',3.8,2.4,YELLOW,38)))
+        self.play(Create(p),Create(pull),run_time=.5)
+        self.at('one part')
+        cues=VGroup(arrow([-3.5,2.4,0],[-.9,BY[1]+.12,0],TEAL),
+                    plate(label('other cues',-3.8,2.4,TEAL,28)))
+        self.play(FadeIn(cues),run_time=.4)
+        self.finish()
+
+
+class S18Mouse(SpokenScene):
+    def construct(self):
+        bs=stack()
+        self.add(bs,label('mouse retina',-4.7,3.55,size=28),
+                 label('still reach the right sublaminae',y=-3.55,size=34))
+        ca=cell(-1.8,RED);cb=cell(2.5,RED)
+        # Neutral outlines establish the normal target before either arbor arrives.
+        targets=VGroup(*[DashedVMobject(Rectangle(width=2.8,height=BH*.8,color=TEXT,
+                              stroke_width=3).move_to([x,BY[i],0]),num_dashes=24)
+                        for x,i in [(-1.8,2),(2.5,0)]])
+        self.add(targets,plate(label('normal band',-4.5,BY[2],size=28)),
+                 plate(label('normal band',4.8,BY[0],size=28)))
+        self.at('cells lacking')
+        self.add(ca,cb,label('no DSCAM',-1.8,3.55,RED,28),label('no DSCAML1',2.5,3.55,RED,28))
+        pa=proc(-1.8,[2],TEXT,w=1.1);pb=proc(2.5,[0],TEXT,w=1.1)
+        self.at('still reach')
+        self.play(Create(pa),Create(pb),run_time=.55)
+        self.finish()
+
+
+# Idea card: one consistent font size; future lines are absent until spoken.
+def idea_lines():
+    return [label('A match says only: we are the same.',y=2.95,size=32),
+            label('The cell decides what same means.',y=2.2,size=32),
+            label('A shared sticky label draws like processes together.',y=1.45,size=32)]
+
+
+def match_picture(joined=False):
+    cs=VGroup(*[Circle(1.25,color=GREY,fill_color=GREY,fill_opacity=.2).move_to([x,-.8,0]) for x in [-4.7,4.7]])
+    r=.3 if joined else 1.4
+    arms=VGroup(Line([-3.45,-.8,0],[-r,-.8,0],color=TEXT,stroke_width=9),
+                Line([3.45,-.8,0],[r,-.8,0],color=TEXT,stroke_width=9))
+    heads=VGroup(*[RoundedRectangle(width=.6,height=.8,corner_radius=.1,color=TEXT,fill_color=TEXT,
+                  fill_opacity=.35).move_to([x,-.8,0]) for x in [-r,r]])
+    return VGroup(cs,arms,heads)
+
+
+class S19Idea2(SpokenScene):
+    def construct(self):
+        lines=idea_lines();pic=match_picture()
+        self.add(lines[0],pic,label('the idea to carry through this lesson',y=-3.55,color=GOLD,size=30))
+        self.at('match between identical')
+        self.play(Transform(pic,match_picture(True)),run_time=.8)
+        self.at('we are the same')
+        self.play(Indicate(pic[2],color=TEXT,scale_factor=1.1),run_time=.5)
+        self.finish()
+
+
+class S20Idea3(SpokenScene):
+    def construct(self):
+        lines=idea_lines();pic=match_picture(True)
+        self.add(lines[0],pic)
+        self.at('the cell decides')
+        self.add(lines[1])
+        self.play(Indicate(pic[0],color=TEXT),run_time=.5)
+        self.finish()
+
+
+def convergence(spread=True,by=-2.15,cy=.65):
+    xs=[-3.8,0,3.8]; ends=[-4.4,0,4.4] if spread else [-.9,0,.9]
+    cs=VGroup(*[cell(x,YELLOW,cy) for x in xs])
+    ps=VGroup()
+    for x,end in zip(xs,ends):
+        stem=Line([x,cy-CR,0],[end,by,0],color=YELLOW,stroke_width=5)
+        arb=Line([end-1.0,by,0],[end+1.0,by,0],color=YELLOW,stroke_width=7)
+        ps.add(VGroup(stem,arb))
+    zone=Rectangle(width=12,height=.85,color=YELLOW,fill_color=YELLOW,fill_opacity=.13).move_to([0,by,0])
+    return VGroup(zone,cs,ps)
+
+
+class S21Idea4(SpokenScene):
+    def construct(self):
+        ls=idea_lines();pic=convergence()
+        self.add(ls[0],ls[1],pic)
+        self.at('shares a sticky label')
+        self.add(label('shared sticky label',y=-3.55,color=YELLOW,size=30))
+        self.at('their processes')
+        self.add(ls[2])
+        self.at('drawn together')
+        self.play(Transform(pic,convergence(False)),run_time=.85)
+        self.finish()
+
+
+class S22Next(SpokenScene):
+    def construct(self):
+        sm=label('same means',-2.7,.6,size=54)
+        st=label('stick',2,.6,size=54)
+        ring=Ellipse(width=st.width+.7,height=st.height+.7,color=GOLD,stroke_width=5).move_to(st)
+        self.add(sm)
+        self.at('stick')
+        self.add(st,ring,label('retreat',y=-1.5,color=GREY,size=40),
+                 label('(the next lesson)',y=-2.4,color=GREY,size=28))
+        self.finish()
+
+
+TAKE='In chick retina, shared sticky labels help\nlike processes settle in matching sublaminae,\nalongside other cues.'
+
+
+class S23Take(SpokenScene):
+    def construct(self):
+        pic=convergence(True,by=.5,cy=2.25)
+        self.add(pic,label('Takeaway',y=3.55,color=GOLD,size=36))
+        # The full scoped claim is readable before the narration ends.
+        text=T(TAKE,size=32,line_spacing=1.25).move_to([0,-2,0])
+        self.at('in chick retina')
+        self.add(text)
+        self.at('like processes')
+        self.play(Transform(pic,convergence(False,by=.5,cy=2.25)),run_time=.8)
+        self.finish()
+
+
+class S24End(EndCard):
+    LINE=TAKE
+    def construct(self):
+        line=T(self.LINE,font=TITLE_FONT,size=38,line_spacing=1.5).move_to([0,.5,0])
+        self.add(line,label('biochemistrypedia.com',y=-2.6,color=TEAL,size=28),
+                 Line([-2,2.5,0],[2,2.5,0],color=GOLD,stroke_width=4))
+        self.finish()
