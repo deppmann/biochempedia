@@ -1,0 +1,540 @@
+{
+ "slug": "competition-for-targets",
+ "title": "Competition: How Neurons Win a Target",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "fb94c913603b",
+ "sectionHashes": {
+  "(opening)": "2844f0d8fbc9",
+  "The contest and its open questions": "5cb2ac2e4f26",
+  "Why a limited supply is not enough": "22819b8bb218",
+  "Who needs NGF? The *Bax* trick": "3adbc62e9597",
+  "NGF lengthens its own signal": "534e97ef5747",
+  "Punishment: winners push losers": "c58abf541f17",
+  "Design problem": "4b8fbb5a8ed8",
+  "Systems matching: NGF also sets how much a target gets": "010e8a28d781",
+  "Activity: a different variable in a different system": "d732da9b2e3b",
+  "The caricature, written out": "3854a258bb4e",
+  "Activity, muscle factors and axon pruning": "51639b7f96c7"
+ },
+ "cards": [
+  {
+   "id": "competition-for-targets-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Developing neurons compete for a {{c1::limiting}} amount of target-derived trophic factor for survival.",
+   "back": "Neurons receiving enough support survive; those receiving too little die.",
+   "quote": "Neurons compete for a limiting amount of neurotrophic factor for survival."
+  },
+  {
+   "id": "competition-for-targets-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Which pro-death gene mediates death of developing sympathetic neurons that receive insufficient NGF?",
+   "back": "Bax.",
+   "quote": "Neurons that get enough NGF live; those that do not die through the pro-death gene Bax."
+  },
+  {
+   "id": "competition-for-targets-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a limited target-derived trophic supply explain competition without identifying the surviving neurons?",
+   "back": "Supply constrains roughly how many neurons can survive; it does not explain how initially similar neurons become winners and losers.",
+   "quote": "A limited supply makes a contest, but it does not pick the winners.",
+   "section": "The contest and its open questions"
+  },
+  {
+   "id": "competition-for-targets-c04",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A developing target supplies more of a limiting survival factor, while neuronal requirements remain unchanged. What happens to the number it can support, and why?",
+   "back": "It can support more neurons, because the enlarged supply can meet more neurons’ survival requirements. This predicts capacity, not which individual neurons survive.",
+   "quote": "A limited supply of NGF makes a contest, and its size sets roughly how many neurons can win.",
+   "section": "The contest and its open questions"
+  },
+  {
+   "id": "competition-for-targets-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the sympathetic NGF competition model, what must feedback do to amplify a small lead between otherwise similar neurons?",
+   "back": "The NGF signal must rise faster than in proportion to the lead, and that extra gain must overcome equal basal TrkA synthesis.",
+   "quote": "the extra gain also has to beat basal synthesis, TrkA made at a steady rate whatever NGF does",
+   "section": "The contest and its open questions"
+  },
+  {
+   "id": "competition-for-targets-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Two neurons initially capture 52% and 48% of a shared NGF supply. Capture is proportional to TrkA; new TrkA is proportional to capture, with no basal synthesis. After repeated rounds, what happens and why?",
+   "back": "The shares remain 52% and 48%. Both neurons increase TrkA by the same fraction, so proportional feedback preserves their ratio rather than amplifying the lead.",
+   "quote": "Both neurons now make more TrkA, but B grows by the same fraction as A.",
+   "section": "Why a limited supply is not enough"
+  },
+  {
+   "id": "competition-for-targets-c07",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the teaching model of two neurons sharing NGF, A starts with 52% and B with 48%. One update squares their ratio. What is A’s share after that update?",
+   "back": "A’s new share = 0.52²/(0.52² + 0.48²) = 0.539936, or about 54%. This is an assumed toy update, not a measured biological rate.",
+   "quote": "The squaring is an assumed update and the \"rounds\" are a teaching device, not a measured law, a measured time or the published equations.",
+   "section": "Why a limited supply is not enough"
+  },
+  {
+   "id": "competition-for-targets-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Two neurons differ only in TrkA, capture NGF in proportion to TrkA, and make new TrkA in proportion to capture. Equal basal TrkA synthesis is added to both. What happens to their shares, and why?",
+   "back": "Their shares drift toward equality: the same absolute receptor top-up is a larger fractional gain for the neuron with fewer receptors.",
+   "quote": "Add basal synthesis and both neurons get the same top-up, so the shares drift back toward even.",
+   "section": "Why a limited supply is not enough"
+  },
+  {
+   "id": "competition-for-targets-c09",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two neurons retain a small difference in trophic support without amplifying it. One remains just above its survival threshold and the other just below. What happens and why?",
+   "back": "They can have different fates: the supported neuron survives and the other dies. Crossing a survival threshold does not require the initial support difference to grow.",
+   "quote": "Whether each lives still depends on whether its absolute support clears the survival threshold",
+   "section": "Why a limited supply is not enough"
+  },
+  {
+   "id": "competition-for-targets-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why can early arrival contribute to sympathetic NGF competition without fully explaining winner selection?",
+   "back": "Arrival can provide a head start; feedback must explain how that small lead grows while the target continues releasing NGF.",
+   "quote": "Arrival order alone cannot explain how a small lead grows instead of fading.",
+   "section": "Why a limited supply is not enough"
+  },
+  {
+   "id": "competition-for-targets-c11",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why compare sympathetic ganglia from Bax-null mice with Bax/NGF double-null mice when identifying NGF-dependent genes?",
+   "back": "Both retain neurons, letting researchers compare gene expression with and without NGF while avoiding neuron loss as a confound.",
+   "quote": "Without NGF the neurons die, so they used mice lacking Bax, whose sympathetic neurons survive with or without NGF.",
+   "section": "Who needs NGF? The *Bax* trick"
+  },
+  {
+   "id": "competition-for-targets-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the studied rodent sympathetic neurons, NGF raises and maintains {{c1::TrkA}}, the receptor that binds NGF.",
+   "back": "This creates feedback from receiving NGF to capturing more NGF.",
+   "quote": "NGF raises and maintains TrkA: in newborn ganglia and in cultured neurons, TrkA fell without NGF and rose with it.",
+   "section": "Who needs NGF? The *Bax* trick"
+  },
+  {
+   "id": "competition-for-targets-c13",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical neuron culture, a trophic-factor receptor falls from 70% of its starting abundance at 12 hours after factor withdrawal to 20% at 48 hours. What is the average loss rate?",
+   "back": "Average loss = (70 − 20)/(48 − 12) = 50/36 ≈ 1.39 percentage points per hour. This interval average does not establish a constant instantaneous rate.",
+   "quote": "So a neuron that catches NGF makes more of the receptor that catches it.",
+   "section": "Who needs NGF? The *Bax* trick"
+  },
+  {
+   "id": "competition-for-targets-c14",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Cultured sympathetic neurons can sustain signaling when NGF returns after 12 hours of deprivation, but downstream signaling is greatly reduced after 24 or 48 hours. What does this imply about responsiveness?",
+   "back": "Responsiveness depends on deprivation history: prolonged NGF loss weakens later signaling. Survival alone does not establish that a neuron retains normal NGF sensitivity.",
+   "quote": "while neurons deprived for only 12 hours could still sustain signaling when NGF returned.",
+   "section": "Who needs NGF? The *Bax* trick"
+  },
+  {
+   "id": "competition-for-targets-c15",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What intracellular structures carry much NGF signaling from a sympathetic axon tip to its cell body?",
+   "back": "Signaling endosomes.",
+   "quote": "Much NGF signaling travels from axon tip to cell body inside endosomes",
+   "section": "NGF lengthens its own signal"
+  },
+  {
+   "id": "competition-for-targets-c16",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Which NGF-induced protein is associated with prolonged signaling by NGF endosomes in the mouse competition work?",
+   "back": "Coronin-1; it is one mechanism, and there may be others.",
+   "quote": "NGF induces Coronin-1, a protein that associates with these signaling endosomes, prolongs their signaling",
+   "section": "NGF lengthens its own signal"
+  },
+  {
+   "id": "competition-for-targets-c17",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the published NGF competition simulations, what distinguished the feedback condition that separated winners from losers from the unsuccessful conditions?",
+   "back": "Feedback increased both TrkA level and signal duration. Neither alone, nor no feedback, separated winning and losing groups.",
+   "quote": "Only feedback on both; with either one alone, competition failed.",
+   "section": "NGF lengthens its own signal"
+  },
+  {
+   "id": "competition-for-targets-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does feedback on NGF signal duration alone fail to amplify capture shares in the two-neuron teaching model?",
+   "back": "It boosts the leader’s signal once, but without feedback to receptor level it cannot increase the next NGF catch.",
+   "quote": "Duration alone makes the leader's signal larger once, but nothing feeds that back into the next catch, so the shares stay put.",
+   "section": "NGF lengthens its own signal"
+  },
+  {
+   "id": "competition-for-targets-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What is the order of the four stages in the sympathetic NGF competition model?",
+   "back": "Naive → sensitization → competitive advantage → selection.",
+   "quote": "The lab described the sequence as four stages.",
+   "section": "NGF lengthens its own signal"
+  },
+  {
+   "id": "competition-for-targets-c20",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A modified sympathetic competition model makes NGF signal increase faster than in proportion to a small initial lead, yet neurons remain similar. What additional mechanism should you examine, and why?",
+   "back": "Examine equal basal TrkA synthesis. The faster-than-proportional rule is necessary but insufficient: the added feedback gain must beat basal synthesis, which pulls neurons together.",
+   "quote": "Only together do they close a loop with a step that rises faster than the lead.",
+   "section": "NGF lengthens its own signal"
+  },
+  {
+   "id": "competition-for-targets-c21",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the proposed sympathetic punishment model, which signals come from strong neurons, and through which receptor can they promote death in weak neighbours?",
+   "back": "BDNF and NT-4 from strongly supported neurons act through p75 on weakly supported neighbours.",
+   "quote": "Strongly supported sympathetic neurons make BDNF and NT-4, two other neurotrophins",
+   "section": "Punishment: winners push losers"
+  },
+  {
+   "id": "competition-for-targets-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why can BDNF/NT-4 punishment spare strongly supported sympathetic neurons even when the signals reach them?",
+   "back": "Strong NGF-TrkA signaling protects them. A likely explanation is that survival signaling, including AKT, outweighs p75 death signaling.",
+   "quote": "A neuron with strong NGF-TrkA signaling is protected; one with weak signaling is not.",
+   "section": "Punishment: winners push losers"
+  },
+  {
+   "id": "competition-for-targets-c23",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "BDNF and NT-4 expression depends on NGF in sympathetic neurons. Does that establish that punishment begins only after TrkA has risen?",
+   "back": "No. It supports production by well-supported neurons but does not establish temporal order. Testing that requirement needs measurements of TrkA and punishment-signal onset over time.",
+   "quote": "though it does not by itself show that they appear only after TrkA has risen.",
+   "section": "Punishment: winners push losers"
+  },
+  {
+   "id": "competition-for-targets-c24",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the mouse sympathetic competition experiments, what readout indicated high p75 death signaling in low-TrkA neurons?",
+   "back": "Phosphorylated c-Jun.",
+   "quote": "Neurons with low TrkA show high p75 death signaling, read out by phosphorylated c-Jun",
+   "section": "Punishment: winners push losers"
+  },
+  {
+   "id": "competition-for-targets-c25",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the proposed sympathetic competition model, p75 is removed while limited NGF and Bax-dependent deprivation death remain. What happens to neuron loss, and why?",
+   "back": "Loss is delayed rather than prevented. Removing punishment slows the loss of weak neurons, but trophic deprivation can still kill them; the final count requires later measurements.",
+   "quote": "So remove p75 and the winners still take the limited NGF, and the losers still die of trophic deprivation, only more slowly.",
+   "section": "Punishment: winners push losers"
+  },
+  {
+   "id": "competition-for-targets-c26",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Two p75-null sympathetic-neuron studies both report delayed loss but differ in adult counts. Why does agreement on delayed loss fail to settle the endpoint, and how could it be resolved?",
+   "back": "Death timing and final number are separate outcomes. The punishment rule predicts faster loss, not a unique endpoint. Serial counts extending to later ages are needed to distinguish persistent excess from a longer delay.",
+   "quote": "So both found the loss delayed; they differ at the latest ages counted.",
+   "section": "Punishment: winners push losers"
+  },
+  {
+   "id": "competition-for-targets-c27",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A hypothetical deletion of a neuronal death-signaling receptor leaves more neurons than controls at one early age. Design a count-based test of whether the receptor speeds loss or is required for it.",
+   "back": "Count both genotypes before loss and repeatedly through later ages. By the time-course rule, slower decline supports delayed death; no decline supports a requirement for the receptor during the observed period. Convergence helps distinguish delay from a lasting excess.",
+   "quote": "following the curve to later ages tells a lasting change from a longer delay.",
+   "section": "Design problem"
+  },
+  {
+   "id": "competition-for-targets-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical developmental-neuron experiment, deleting a death-signaling receptor leaves neuron counts falling at the same rate as controls. What happens to support for its proposed death-accelerating role, and why?",
+   "back": "Support weakens: the predicted slowing is absent. Equal decline rates fail to support an accelerating role for that receptor under the tested conditions.",
+   "quote": "A curve that falls just as fast would fail to support a role for punishment through p75.",
+   "section": "Design problem"
+  },
+  {
+   "id": "competition-for-targets-c29",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Matching a developing target with appropriate neuron number, innervation, synapses and dendrite shapes is called {{c1::systems matching}}.",
+   "back": "Survival is only one component.",
+   "quote": "The broader task is systems matching: each target gets a fitting number of neurons, amount of innervation, synapses and dendrite shapes.",
+   "section": "Systems matching: NGF also sets how much a target gets"
+  },
+  {
+   "id": "competition-for-targets-c30",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Bax/NGF double-null sympathetic neurons survive, yet some targets have little or no innervation at birth. What distinction does this establish?",
+   "back": "Survival and target innervation are separable. Preventing death does not replace NGF’s contribution to final innervation of some targets.",
+   "quote": "With Bax gone, neurons survive without NGF, yet innervation at birth ranges from missing to near normal depending on the target.",
+   "section": "Systems matching: NGF also sets how much a target gets"
+  },
+  {
+   "id": "competition-for-targets-c31",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A researcher finds near-normal tracheal innervation in Bax/NGF double-null mice and concludes that preventing death restores sympathetic development everywhere. What comparison would test that claim?",
+   "back": "Compare neuron survival and target innervation with Bax-null controls across trachea, salivary glands and heart. By the systems-matching rule, preserved survival can coexist with target-specific innervation deficits; one spared target cannot establish a general rescue.",
+   "quote": "NGF is needed for final innervation of some targets, such as the salivary glands and, in part, the heart, but not all, such as the trachea.",
+   "section": "Systems matching: NGF also sets how much a target gets"
+  },
+  {
+   "id": "competition-for-targets-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How can a target-derived trophic factor influence innervation density as well as neuron survival?",
+   "back": "By promoting axon growth and branching, it can change how much target each surviving neuron covers, as well as how many neurons survive.",
+   "quote": "Within a target, NGF promotes axon growth and branching",
+   "section": "Systems matching: NGF also sets how much a target gets"
+  },
+  {
+   "id": "competition-for-targets-c33",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Curare blocks {{c1::acetylcholine receptors}} on muscle, preventing the muscle from responding to its nerves.",
+   "back": "",
+   "quote": "curare, a drug that blocks the acetylcholine receptors of muscle",
+   "section": "Activity: a different variable in a different system"
+  },
+  {
+   "id": "competition-for-targets-c34",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why did chick motor-neuron survival after curare treatment initially look inconsistent with the idea that activity helps an axon win?",
+   "back": "Silencing muscle responses reduced motor-neuron death, whereas an activity-promotes-winning view suggested that silencing should increase death.",
+   "quote": "That is why the result looked like a contradiction: silencing the connection saved neurons.",
+   "section": "Activity: a different variable in a different system"
+  },
+  {
+   "id": "competition-for-targets-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What common interpretation reconciles curare-mediated chick motor-neuron rescue with trophic competition?",
+   "back": "Paralysed muscle may permit more nerve branching and synapses, increasing access to trophic support. This is an interpretation, not an established mechanism.",
+   "quote": "paralysed muscle may allow more nerve branching and more synapses, giving each motor neuron more access to trophic support.",
+   "section": "Activity: a different variable in a different system"
+  },
+  {
+   "id": "competition-for-targets-c36",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical developing circuit, reducing muscle activity improves neuron survival, while increasing neuronal activity favors active connections. What distinction could reconcile these effects?",
+   "back": "Muscle activity and activity in competing neurons are different variables. By the target-access and activity-dependent-refinement rules, target inactivity may improve access to support while neuronal activity favors particular connections. The findings need not conflict.",
+   "quote": "activity in the muscle and activity in the competing neurons are different variables.",
+   "section": "Activity: a different variable in a different system"
+  },
+  {
+   "id": "competition-for-targets-c37",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A researcher expects NGF addition alone to reproduce curare rescue of chick motor neurons because NGF supports mouse sympathetic neurons. Is that prediction justified, and why?",
+   "back": "No. The trophic-competition principle does not make trophic-factor identity universal: chick motor neurons depend on several factors rather than NGF, and muscle activity is a separate variable. The sympathetic mechanism cannot justify that treatment prediction.",
+   "quote": "Chick motor neurons do not depend on NGF; they draw on several factors at once",
+   "section": "Activity: a different variable in a different system"
+  },
+  {
+   "id": "competition-for-targets-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical neuron culture, each neuron is independently supplied with a fixed trophic-factor concentration. One neuron’s uptake cannot reduce another’s supply. What happens to resource competition, and why?",
+   "back": "Resource competition is removed: one neuron’s gain no longer deprives another. Feedback within individual neurons can remain, but their fates are not coupled by a finite shared supply.",
+   "quote": "With NGF held fixed outside every cell, nothing links one neuron's fate to another's",
+   "section": "The caricature, written out"
+  },
+  {
+   "id": "competition-for-targets-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In rodent sympathetic neurons, what structure is targeted by the BDNF/p75 punishment logic during pruning?",
+   "back": "A losing axon.",
+   "quote": "acting on losing axons rather than on cell bodies",
+   "section": "Activity, muscle factors and axon pruning"
+  },
+  {
+   "id": "competition-for-targets-c40",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical test, inactive muscle rescues developing neurons, but extracts of inactive muscle show little support for increased trophic-factor production. What explanation remains plausible?",
+   "back": "Improved neuronal access to existing support remains plausible, for example through more branching or synapses. Rescue alone does not establish increased factor production, and extract tests provide little support for that explanation.",
+   "quote": "inactive muscle makes more of the factors motor neurons need, has had little support from tests with extracts of paralysed muscle.",
+   "section": "Activity, muscle factors and axon pruning"
+  }
+ ]
+}

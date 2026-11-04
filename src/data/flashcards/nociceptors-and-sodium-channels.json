@@ -1,0 +1,597 @@
+{
+ "slug": "nociceptors-and-sodium-channels",
+ "title": "Nociceptors and the Sodium Channels of Pain",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "7fe4debbd9dc",
+ "sectionHashes": {
+  "What a sodium-channel result can and cannot predict": "30effc0881f9",
+  "Three channels, one spike": "7d0c5fa311d6",
+  "People who cannot feel pain, and people who feel too much": "9aebc82fe978",
+  "The same gene, too much pain": "653a2ac019cc",
+  "Where more current breaks: Nav1.9": "615701eada37",
+  "Blocking Nav1.8: from a fitted curve to a spike": "00648f196e61",
+  "Which nociceptors? Labels, classes and states": "265aedbc64c9",
+  "Ablate one population, lesion another": "2045b13078ef",
+  "Design problem": "d77fa6d3106f",
+  "Resting potential and spike threshold": "d1f52d5a3a95",
+  "The suzetrigine trial numbers": "f16f92011b44",
+  "Suzetrigine's selectivity panel": "6fd48b64d98a",
+  "Numbers behind the nociceptor axes": "287a8a5bc0b7",
+  "The Mrgprd ablation in numbers": "d721842f5314"
+ },
+ "cards": [
+  {
+   "id": "nociceptors-and-sodium-channels-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does a mouse withdrawal assay measure directly?",
+   "back": "A reflex response, rather than a report of pain.",
+   "quote": "a mouse withdrawal measures a reflex, and the human studies and clinical phenotypes include reports of pain",
+   "section": "What a sodium-channel result can and cannot predict"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What causal steps connect a sodium-channel alteration to a change in spike initiation?",
+   "back": "Identify the channel change, then its effects on resting potential and channel availability, then the effect on firing.",
+   "quote": "what did that do to the resting potential and to channel availability, and only then what did that do to firing.",
+   "section": "What a sodium-channel result can and cannot predict"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which genes encode Nav1.7, Nav1.8 and Nav1.9 in nociceptors?",
+   "back": "SCN9A, SCN10A and SCN11A, respectively.",
+   "quote": "Nav1.7 (gene SCN9A), Nav1.8 (SCN10A) and Nav1.9 (SCN11A)",
+   "section": "Three channels, one spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does persistent sodium current differ from transient sodium current?",
+   "back": "Transient current rapidly inactivates after depolarization. Persistent population current remains appreciable because inactivation is slow or incomplete; individual channels still change states.",
+   "quote": "A persistent current stays appreciable while the membrane sits still, because its inactivation is slow or incomplete rather than absent.",
+   "section": "Three channels, one spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Sodium-channel {{c1::availability}} is the fraction of channels not inactivated and therefore free to open on depolarization.",
+   "back": "It depends on the voltage at which the membrane has been resting.",
+   "quote": "Availability is the fraction of voltage-gated sodium channels not sitting in the inactivated state, and so free to open when the membrane depolarizes.",
+   "section": "Three channels, one spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can sustained depolarization both help and hinder spike initiation?",
+   "back": "It brings the membrane closer to threshold but reduces sodium-channel availability, removing current needed for a spike.",
+   "quote": "It moves the membrane closer to threshold, which helps a neuron fire, and it costs availability, which removes the current the spike is built from.",
+   "section": "Three channels, one spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does a Nav1.7-like availability curve fail to describe all sodium current in a nociceptor?",
+   "back": "Nav1.8 half-inactivates at much more depolarized voltages. The Nav1.7-like curve describes a subtype that loses availability earlier, rather than the entire channel mixture.",
+   "quote": "Nav1.8 half-inactivates at far more depolarized voltages than Nav1.7",
+   "section": "Three channels, one spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Use the illustrative Nav1.7-like steady-state curve h(V) = 1/(1 + exp[(V − V½)/k]), with V½ = −65 mV and k = 7 mV. Calculate h(final)/h(start) for held steps from −70 to −65 mV and from −55 to −50 mV.",
+   "back": "For −70 to −65 mV: h changes from 0.6713 to 0.5000, so retention = 0.5000/0.6713 = 0.7448, about 74%. For −55 to −50 mV: h changes from 0.1933 to 0.1050, so retention = 0.1050/0.1933 = 0.5431, about 54%. The initially more negative cell retains a larger fraction of this subtype’s availability.",
+   "quote": "The neuron starting at −70 mV keeps about three-quarters of the availability it had; the one starting at −55 mV keeps about half.",
+   "section": "Three channels, one spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c09",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A steady-state sodium-channel calculation shows that neuron A retains a larger fraction of its initial availability than neuron B after depolarization. Is that enough to rank their firing responses? What measurement would resolve the claim?",
+   "back": "No. Measure evoked firing in both cells with a matched stimulation protocol. Availability gives one cost, while depolarization also changes the distance to a movable threshold and firing depends on other conductances. That rule prevents an availability ratio alone from ranking firing.",
+   "quote": "both steps also close the gap to a threshold that can itself move, and firing draws on the rest of the neuron's conductances.",
+   "section": "Three channels, one spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What SCN9A genotype was linked to congenital inability to experience pain in the three Pakistani families?",
+   "back": "Homozygous nonsense mutations: each affected person carried two broken copies of SCN9A.",
+   "quote": "found three different homozygous nonsense mutations in SCN9A.",
+   "section": "People who cannot feel pain, and people who feel too much"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c11",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An inherited sodium-channel nonsense variant segregates with a phenotype. Design a functional test of whether the mutant construct produces measurable channel current.",
+   "back": "Express mutant and wild-type constructs in the same cell system and compare currents with control-transfected background. Mutant current no greater than background supports loss of measurable conduction; segregation alone does not establish that.",
+   "quote": "wild-type and mutant constructs are compared against the recording background in control-transfected cells",
+   "section": "People who cannot feel pain, and people who feel too much"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A mutant sodium-channel construct produces no current above background in an expression assay. Does that prove the protein is absent?",
+   "back": "No. It establishes no measurable conduction; an absent, truncated, mislocalized or non-conducting protein could produce that result.",
+   "quote": "No current above background means no measurable conduction; it does not distinguish an absent protein from a truncated, mislocalized or non-conducting one.",
+   "section": "People who cannot feel pain, and people who feel too much"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c13",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "People with biallelic SCN9A loss of function causing congenital pain insensitivity also show complete {{c1::anosmia}}.",
+   "back": "Loss of the sense of smell.",
+   "quote": "people with the same loss of function are also completely anosmic.",
+   "section": "People who cannot feel pain, and people who feel too much"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which two gating changes were measured for the primary erythermalgia Nav1.7 variants I848T and L858H in HEK293 cells?",
+   "back": "Activation shifted to more negative voltages, and deactivation slowed.",
+   "quote": "found activation shifted toward more negative voltages and slowed deactivation.",
+   "section": "The same gene, too much pain"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How did the Nav1.7 channels tested in paroxysmal extreme pain disorder generate persistent current?",
+   "back": "They had impaired fast inactivation, allowing sodium current to persist.",
+   "quote": "tested three mutant Nav1.7 channels in vitro and found impaired fast inactivation with persistent sodium current.",
+   "section": "The same gene, too much pain"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c16",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "The overlap of Nav1.9 activation and steady-state availability curves near rest is its {{c1::window}}.",
+   "back": "Some channels are open at any moment, producing a standing inward current.",
+   "quote": "the window — some channels are open at any moment, so the population carries a standing inward current.",
+   "section": "Where more current breaks: Nav1.9"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How can the pain-insensitivity-associated Nav1.9 L1302F variant gain channel function while impairing firing in transfected rat neurons?",
+   "back": "Increased current near rest depolarizes the cell. The proposed account is that this reduces other sodium channels’ availability enough to impair action-potential generation.",
+   "quote": "different amounts of depolarization, acting on subtype-specific availability and on the rest of the conductance system, can either raise or impair excitability.",
+   "section": "Where more current breaks: Nav1.9"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A neuron gains persistent inward sodium current near rest. A researcher predicts that it must fire more. What happens to that prediction, and why?",
+   "back": "It remains undetermined. Depolarization can help reach threshold or impair firing by inactivating other sodium channels. The starting availability and other conductances must be considered before predicting the firing response.",
+   "quote": "You cannot answer from the current alone. You need to know how many of the neuron's other sodium channels are still available.",
+   "section": "Where more current breaks: Nav1.9"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c19",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "An illustrative nociceptor starts at −60 mV and depolarizes by 11.5 mV; both voltages are held to steady state. For Nav1.7-like channels, h(V) = 1/(1 + exp[(V − V½)/k]), V½ = −65 mV and k = 7 mV. Calculate the final h and the fold decrease in availability.",
+   "back": "Final voltage = −60 + 11.5 = −48.5 mV. Initially h = 1/(1 + exp[5/7]) = 0.3287; finally h = 1/(1 + exp[16.5/7]) = 0.08650. The decrease is 0.3287/0.08650 = 3.80-fold. This illustrates a cost for one subtype, rather than predicting whether the neuron fires.",
+   "quote": "It is also a cost in one subtype only — Nav1.8 is not on this curve",
+   "section": "Where more current breaks: Nav1.9"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c20",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Nav1.9 R222S increased evoked firing in knock-in mouse neurons, whereas human L1302F impaired firing in transfected rat neurons. Does this demonstrate that availability alone caused the difference? What comparison is needed?",
+   "back": "No. Compare the variants in a matched preparation while measuring resting potential, subtype-specific availability and firing. The rule is that a channel’s effect depends on the neuron’s operating point and other conductances; these original preparations were not matched for availability.",
+   "quote": "These preparations were not matched for availability, so the calculation below illustrates one possible cost rather than the measured cause of their difference.",
+   "section": "Where more current breaks: Nav1.9"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c21",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A blocker’s preference for one channel conformation over another is its {{c1::state dependence}}.",
+   "back": "Comparing subtypes instead tests selectivity.",
+   "quote": "how strongly the drug prefers one channel conformation over another, measured on one channel at two voltages.",
+   "section": "Blocking Nav1.8: from a fitted curve to a spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c22",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A drug inhibits the same sodium-channel subtype with IC50 = 11 nM when many channels are inactivated and about 10 μM at rest. A researcher calls this subtype selectivity. What happens to that interpretation, and why?",
+   "back": "The interpretation fails. The experiment varies channel state within one subtype, so it shows state dependence. Testing subtype selectivity requires comparing different channel subtypes.",
+   "quote": "State dependence is not selectivity. Selectivity would mean comparing subtypes",
+   "section": "Blocking Nav1.8: from a fitted curve to a spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Where does suzetrigine bind Nav1.8, and which channel state does it stabilize?",
+   "back": "It binds voltage-sensing domain 2 allosterically, away from the pore, and stabilizes the closed state.",
+   "quote": "Suzetrigine binds the Nav1.8 voltage-sensing domain 2 allosterically, at a site away from the pore, and stabilizes the closed state;",
+   "section": "Blocking Nav1.8: from a fitted curve to a spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c24",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does the clinical pain outcome SPID48 summarize?",
+   "back": "Repeated patient pain ratings: baseline-relative improvement summed over 48 hours after surgery, expressed in point-hours.",
+   "quote": "the baseline-relative improvement is summed over that window to give one number per patient, in point-hours.",
+   "section": "Blocking Nav1.8: from a fitted curve to a spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c25",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A postoperative analgesic beats placebo, but a superiority test against an active comparator fails. A hospital labels the two treatments equivalent. Is that conclusion supported?",
+   "back": "No. Failure to demonstrate superiority does not establish equivalence or non-inferiority. Those are separate hypotheses requiring their own margins and tests.",
+   "quote": "Superiority, non-inferiority and equivalence are three separate hypotheses with separate margins, so a failed superiority test is not equivalence",
+   "section": "Blocking Nav1.8: from a fitted curve to a spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c26",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For recombinant human Nav1.8 at 37 °C, suzetrigine follows the fitted model I(C) = Imax/(1 + C/Kd), Kd = 0.38 nM. Find the percent of fitted maximal current remaining at 10 nM, then solve for the concentration leaving 1%.",
+   "back": "Let f = I/Imax = 1/(1 + C/0.38). At 10 nM, f = 0.38/(0.38 + 10) = 0.03661, so 3.66% remains. For f = 0.01, C = 0.38(1/0.01 − 1) = 37.62 nM. These are fitted recombinant-current predictions.",
+   "quote": "Both answers are ratios to the fitted maximum, so the fitted amplitude cancels.",
+   "section": "Blocking Nav1.8: from a fitted curve to a spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c27",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A recombinant Nav1.8 fit predicts only 3.66% residual current at 10 nM suzetrigine. What direct test checks the claim that human nociceptors must therefore be silent, and how do the reported recordings constrain it?",
+   "back": "Record current-evoked spikes in human dorsal root ganglion neurons under the drug. The reported adult human recordings generally retained repetitive firing. Rule: a recombinant current fraction does not establish neuronal silence; large residual Nav1.8 current and contributions from Nav1.7 were proposed explanations.",
+   "quote": "suzetrigine generally reduced but did not eliminate repetitive firing",
+   "section": "Blocking Nav1.8: from a fitted curve to a spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does genetic necessity of Nav1.7 fail to guarantee analgesia from a Nav1.7 inhibitor?",
+   "back": "A drug must sufficiently occupy channels in the relevant conformation and tissue. Genetic necessity alone does not establish those pharmacological conditions.",
+   "why": "The Nav1.7 and Nav1.8 trials involved different pain conditions. Their different outcomes do not establish a head-to-head target comparison, and the causes remain unresolved.",
+   "quote": "Human genetics names a channel the behaviour requires.",
+   "section": "Blocking Nav1.8: from a fitted curve to a spike"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c29",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A gene whose expression marks a cell population and gives genetic access to it is a {{c1::molecular label}}.",
+   "back": "The label alone does not establish the population’s function.",
+   "quote": "A molecular label is a gene whose expression marks a population and gives genetic access to it.",
+   "section": "Which nociceptors? Labels, classes and states"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why should peptidergic, Aδ and mechanoinsensitive not be treated as mutually exclusive nociceptor categories?",
+   "back": "These descriptions use different axes: molecular label, conduction class and functional state. They can overlap, and the functional state can change.",
+   "quote": "the categories come from three unrelated kinds of measurement.",
+   "section": "Which nociceptors? Labels, classes and states"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A mouse nociceptor carries the peptidergic Calca label. A researcher predicts it cannot be a mechanonociceptor. What happens to this prediction, and why?",
+   "back": "It fails. Mouse Calca-labelled Aδ high-threshold mechanonociceptors were identified around hair follicles. A molecular label does not fix sensory function.",
+   "quote": "So a mechanonociceptor carries a peptidergic label, and the two axes cross.",
+   "section": "Which nociceptors? Labels, classes and states"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c32",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Cultured mouse CHRNA3-positive neurons almost never show soma indentation currents untreated, gain them after nerve growth factor, and fail to gain them when PIEZO2 is knocked down with the growth factor present. What does the comparison show?",
+   "back": "Mechanoinsensitivity can change state in this culture assay, and PIEZO2 is required for the induced currents. The measurement concerns cultured somata, rather than intact sensory endings.",
+   "quote": "in a dish, and in the soma rather than an intact ending, silence was a state rather than a property, and PIEZO2 was required for the change.",
+   "section": "Which nociceptors? Labels, classes and states"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "After verified adult ablation of mouse Mrgprd-positive neurons, how did mechanical, heat and cold withdrawal responses change?",
+   "back": "Mechanical withdrawal threshold rose; heat and cold responses were spared within the tested stimulus ranges.",
+   "quote": "Mechanical withdrawal threshold, measured with calibrated von Frey filaments, rose, while responses to heat and cold were spared within the tested stimulus ranges.",
+   "section": "Ablate one population, lesion another"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does lesioning TRPV1-positive central afferent branches fail to isolate heat transduction at the skin?",
+   "back": "The lesion interrupts central branches that transmit afferent signals, rather than directly testing heat transduction at peripheral endings.",
+   "quote": "placed at the central branches, which transmit the afferent signal rather than transduce heat at the skin.",
+   "section": "Ablate one population, lesion another"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c35",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Adult mouse Mrgprd-positive cell ablation raises mechanical withdrawal thresholds while sparing heat responses. A TRPV1-positive central-branch lesion abolishes noxious heat sensitivity while sparing baseline mechanical thresholds. What joint conclusion is justified?",
+   "back": "The manipulations support a functional dissociation in mice over the tested ranges. Rule: population lesions measure consequences of removing those populations or branches. They do not show every fibre is unimodal, and withdrawal assays do not report human pain.",
+   "quote": "a functional dissociation in mice, in those stimulus ranges — not evidence that every individual fibre is unimodal, nor that mouse withdrawal reports human pain.",
+   "section": "Ablate one population, lesion another"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c36",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Removing a sensory-neuron population from birth produces no detectable deficit, but removing it in adulthood raises a withdrawal threshold. What happens to the claim that the population is dispensable, and why?",
+   "back": "That claim fails for the adult circuit. Early loss may allow compensation; developmental deletion and adult ablation ask different questions, so the birth-deletion result cannot replace the adult experiment.",
+   "quote": "a germline deletion is a developmental experiment, while adult manipulations — induced gene deletion, cell ablation, reversible silencing, acute pharmacology — ask what the adult circuit needs",
+   "section": "Ablate one population, lesion another"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Nav1.7-null mouse studies disagree on opioid dependence but use different deletion drivers and timings. How would you make a naloxone comparison interpretable?",
+   "back": "Match deletion timing and measured recombination patterns before comparing antagonist responses. Include genotype-by-antagonist controls, blinding and a positive control for naloxone action. Rule: developmental history and targeted populations can change a deletion’s outcome, so driver names alone do not establish equivalent preparations.",
+   "quote": "Their deletion patterns have to be measured rather than assumed equivalent.",
+   "section": "Design problem"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How could an adult-induced, nociceptor-restricted Nav1.7 deletion with the enkephalin increase blocked distinguish failed spike initiation from impaired central transmission?",
+   "back": "Test analgesia and record in vivo C-fibre initiation together with dorsal horn synaptic transmission in the same animals. Rule: peripheral spike initiation and central-terminal release are separate routes to behaviour. Comparing both recording sites can locate a defect that behaviour alone cannot distinguish.",
+   "quote": "Behaviour cannot distinguish a failure to initiate a spike from a failure to release at the terminal.",
+   "section": "Design problem"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c39",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Naloxone enhanced pain sensitivity in two Nav1.7-null people but had no apparent effect in a third. What does that permit you to conclude about an opioid mechanism in people?",
+   "back": "It supports an opioid contribution in some observed individuals, but does not establish a universal or decisive human mechanism. A larger cohort with measured opioid manipulation is needed.",
+   "quote": "Naloxone enhanced pain sensitivity in the woman and in one of the two men, and had no apparent effect in the other",
+   "section": "Design problem"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c40",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In non-transfected rat dorsal root ganglion neurons, what happened to the minimum injected current required for a spike as held membrane potential became more depolarized?",
+   "back": "It first fell, then rose with further depolarization. This measures injected-current requirement in that preparation, rather than a universal relationship with voltage threshold.",
+   "quote": "the minimum injected current needed to evoke a spike varied non-monotonically: it fell with a few millivolts of depolarization and rose again with more.",
+   "section": "Resting potential and spike threshold"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c41",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a postoperative trial, the SPID48 difference (hydrocodone/acetaminophen minus suzetrigine) was 20.2 point-hours (95% CI 7.7 to 32.7). How should this comparator result be interpreted?",
+   "back": "A directional difference favouring hydrocodone/acetaminophen: the entire reported interval is positive in that direction. This result does not support calling the treatments equivalent.",
+   "quote": "SPID48 favoured hydrocodone with acetaminophen by 20.2 point-hours (95% CI 7.7 to 32.7).",
+   "section": "The suzetrigine trial numbers"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does suzetrigine’s reported at least 31,000-fold selectivity over tested human Nav subtypes fail to establish tissue selectivity in a patient?",
+   "back": "It compares channel subtypes in a recombinant panel. Tissue selectivity in a patient is a different measurement.",
+   "quote": "at least 31,000-fold selectivity over the other tested human Nav subtypes, measured in a recombinant panel.",
+   "section": "Suzetrigine's selectivity panel"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c43",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "CHRNA3-positive neurons were about 7.8 ± 1.6% of cells in cultured mouse L2–L5 preparations and about half of traced peptidergic afferents innervating examined visceral and deep somatic tissues. Can either estimate give the human cutaneous mechanoinsensitive fraction?",
+   "back": "No. Rule: a molecular label differs from a functional state, and each proportion retains its sampled tissue and species. Neither denominator counts human cutaneous nociceptors; functional mechanoinsensitivity would also need measurement in that target population.",
+   "quote": "Denominators travel with their tissue: neither is a count of cutaneous nociceptors, and neither is a human proportion.",
+   "section": "Numbers behind the nociceptor axes"
+  },
+  {
+   "id": "nociceptors-and-sodium-channels-c44",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "After adult Mrgprd-positive neuron ablation in mice, mean mechanical withdrawal threshold rose from 0.41 ± 0.04 g to 0.99 ± 0.15 g (mean ± SEM). Calculate the ratio of the reported means; do not infer an uncertainty for the ratio.",
+   "back": "Ratio = 0.99 g / 0.41 g = 2.4146, about a 2.41-fold threshold increase. This is a ratio of group means, rather than an individual animal’s change or a direct measure of reported pain.",
+   "quote": "mechanical withdrawal threshold rose from 0.41 ± 0.04 g to 0.99 ± 0.15 g (mean ± SEM).",
+   "section": "The Mrgprd ablation in numbers"
+  }
+ ]
+}

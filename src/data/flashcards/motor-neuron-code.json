@@ -1,0 +1,592 @@
+{
+ "slug": "motor-neuron-code",
+ "title": "Transcription Factor Codes: Building a Motor Neuron",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "59da4d3d496d",
+ "sectionHashes": {
+  "(opening)": "884de6783328",
+  "One protein, two cell types": "534b593682b1",
+  "Why the ratio matters": "e08cb9f11ff7",
+  "Before the code: a stripe of progenitors": "e1b540a90478",
+  "Enough, needed, and kept": "dd20f22bffed",
+  "Which motor neuron: Hox proteins and FoxP1 along the cord": "93d508d3223d",
+  "Which half of the limb: the LIM code sets the first axon choice": "e1bbb8d021e7",
+  "Making motor neurons in a dish": "244e16d66e2d",
+  "A fused Isl1-Lhx3 protein": "65dcfd006451",
+  "Programming limb motor neurons": "04301abc7de2",
+  "Is the code big enough?": "3a327b0a8c3c"
+ },
+ "cards": [
+  {
+   "id": "motor-neuron-code-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How can a combination of transcription factors specify motor-neuron identity when no factor is unique to motor neurons?",
+   "back": "The factors form complexes whose output depends on the available partners and their ratios; a factor need not specify one cell type alone.",
+   "quote": "The cell expresses a combination of transcription factors, none of which is specific to motor neurons on its own."
+  },
+  {
+   "id": "motor-neuron-code-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A transcription factor's homeodomain binds {{c1::DNA}}.",
+   "back": "",
+   "quote": "Each has a homeodomain, which binds DNA, and two LIM domains, which bind other proteins, not DNA.",
+   "section": "One protein, two cell types"
+  },
+  {
+   "id": "motor-neuron-code-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What do the LIM domains of Lhx3 and Isl1 bind?",
+   "back": "Other proteins, rather than DNA.",
+   "quote": "Each has a homeodomain, which binds DNA, and two LIM domains, which bind other proteins, not DNA.",
+   "section": "One protein, two cell types"
+  },
+  {
+   "id": "motor-neuron-code-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does NLI help assemble paired transcription-factor complexes without binding DNA itself?",
+   "back": "It binds LIM domains and pairs with another NLI molecule, joining two transcription-factor units.",
+   "quote": "It grips LIM domains, and it pairs with itself, so the complexes it builds come in pairs.",
+   "section": "One protein, two cell types"
+  },
+  {
+   "id": "motor-neuron-code-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does Isl1 change the connection between NLI and Lhx3 in the spinal motor-neuron complex?",
+   "back": "Isl1 bridges NLI to Lhx3: its LIM domains bind NLI, and its C-terminal segment binds Lhx3. Without Isl1, NLI binds Lhx3 directly in the V2 complex.",
+   "quote": "What differs is whether Isl1 bridges NLI to Lhx3.",
+   "section": "One protein, two cell types"
+  },
+  {
+   "id": "motor-neuron-code-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Chick spinal cells lacking Isl1 express ectopic Lhx3. Isl1 is then coexpressed at an appropriate ratio. What happens to their gene programme, and why?",
+   "back": "Motor-neuron genes rise and V2 genes are largely suppressed: Isl1 redirects Lhx3 into the NLI·Isl1·Lhx3 complex instead of the NLI·Lhx3 complex.",
+   "quote": "B gives motor-neuron genes, and V2 genes are largely suppressed",
+   "section": "One protein, two cell types"
+  },
+  {
+   "id": "motor-neuron-code-c07",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In chick spinal cells, a mutant Isl1 still binds NLI but cannot bind Lhx3. With Lhx3 present, what would you predict for motor-neuron complex assembly, and what remains uncertain?",
+   "back": "Assembly should be impaired: the bridge rule requires Isl1 to bind both partners. Residual NLI·Lhx3 could support V2 genes, but its abundance and the final fate cannot be fixed from this defect alone.",
+   "quote": "It holds NLI with its own LIM domains and holds Lhx3 with a short tail, so Lhx3 hangs off Isl1 instead of off NLI.",
+   "section": "One protein, two cell types"
+  },
+  {
+   "id": "motor-neuron-code-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does equal Isl1 and Lhx3 abundance fail to give a pure motor-neuron complex population in the ideal binding model?",
+   "back": "Binding still distributes Lhx3 among competing partners; about a quarter remains in V2 units. Equal abundance is not an all-or-none switch.",
+   "quote": "even with equal amounts of Isl1 and Lhx3, binding alone leaves some Lhx3 in the V2 complex.",
+   "section": "Why the ratio matters"
+  },
+  {
+   "id": "motor-neuron-code-c09",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "At equal Isl1 and Lhx3 in the ideal binding model, 24% of Lhx3 is in V2 units and 37% in motor-neuron units. Among these two bound populations only, what percentage is in motor-neuron units?",
+   "back": "37 / (24 + 37) × 100 = 60.66%, or about 61%. The denominator excludes free Lhx3 and Lhx3 bound to Isl1 without NLI.",
+   "quote": "Of the Lhx3 in either complex, the motor-neuron complex holds about 61 percent.",
+   "section": "Why the ratio matters"
+  },
+  {
+   "id": "motor-neuron-code-c10",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the ideal binding model, Isl1 is increased far beyond Lhx3 while Lhx3 and NLI stay fixed. What happens to motor-neuron units, and why?",
+   "back": "They eventually decrease: spare Isl1 binds Lhx3 or NLI separately, reducing complete NLI·Isl1·Lhx3 units. This is a model prediction, not a reported cell experiment.",
+   "quote": "Too much Isl1 lowers the motor-neuron complex too, because spare Isl1 pairs with Lhx3 or with NLI on its own.",
+   "section": "Why the ratio matters"
+  },
+  {
+   "id": "motor-neuron-code-c11",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "An ideal binding model puts 37% of Lhx3 in motor-neuron units. Can that be read as 37% of cells becoming motor neurons?",
+   "back": "No. The rule is that complex occupancy is not cell fate: the model omits DNA, NLI pairing and other partners, while cells also use downstream regulators such as Mnx1 to stabilize identity.",
+   "quote": "The model says nothing about cell fate; real cells add DNA, other partners and downstream regulators.",
+   "section": "Why the ratio matters"
+  },
+  {
+   "id": "motor-neuron-code-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A newly differentiated neuron is postmitotic, meaning it is {{c1::no longer dividing}}.",
+   "back": "",
+   "quote": "as it becomes postmitotic (no longer dividing), a motor neuron turns on a new set:",
+   "section": "Before the code: a stripe of progenitors"
+  },
+  {
+   "id": "motor-neuron-code-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do opposed ventral and dorsal signals organize progenitors across the embryonic spinal neural tube?",
+   "back": "Progenitors read their position in the gradients and express distinct transcription-factor profiles, forming stacked domains that produce different neuronal classes.",
+   "quote": "The read-out is a set of stacked domains, each with its own transcription-factor profile.",
+   "section": "Before the code: a stripe of progenitors"
+  },
+  {
+   "id": "motor-neuron-code-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What cell-cycle state and transcription-factor profile mark a pMN progenitor in the spinal cord?",
+   "back": "It is still dividing and expresses Olig2 together with Nkx6.1 and Pax6.",
+   "quote": "It carries the bHLH repressor Olig2 along with Nkx6.1 and Pax6, and Olig2 is its tag.",
+   "section": "Before the code: a stripe of progenitors"
+  },
+  {
+   "id": "motor-neuron-code-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How do Olig2 and Neurogenin2 link motor-neuron specification to becoming a neuron?",
+   "back": "Olig2 works with Neurogenin2, which promotes cell-cycle exit and neuronal differentiation, linking motor-neuron character to the transition out of the progenitor state.",
+   "quote": "Together they tie motor-neuron character to the step of becoming a neuron.",
+   "section": "Before the code: a stripe of progenitors"
+  },
+  {
+   "id": "motor-neuron-code-c16",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which transcription factors mark a newly postmitotic spinal motor neuron?",
+   "back": "Isl1 or Isl2, Lhx3, and Mnx1 (Hb9). Lhx3 is transient outside the medial motor column.",
+   "quote": "Isl1 or its relative Isl2, Lhx3, and Mnx1, the gene also called Hb9.",
+   "section": "Before the code: a stripe of progenitors"
+  },
+  {
+   "id": "motor-neuron-code-c17",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A spinal pMN lineage produces motor neurons early but oligodendrocytes later. Does the later glial output by itself show that the domain was incorrectly specified, and why?",
+   "back": "No. That temporal change is expected: the same pMN domain later switches from making motor neurons to making oligodendrocytes.",
+   "quote": "The same pMN domain later turns to making oligodendrocytes, which the glia lesson takes up.",
+   "section": "Before the code: a stripe of progenitors"
+  },
+  {
+   "id": "motor-neuron-code-c18",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A factor is {{c1::sufficient}} for an effect if adding it produces that effect in the cells and stage tested.",
+   "back": "",
+   "quote": "is sufficient if adding it produces the effect in the cells and stage tested, using the rest of their machinery",
+   "section": "Enough, needed, and kept"
+  },
+  {
+   "id": "motor-neuron-code-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A factor is {{c1::necessary}} for an effect in a tested context if the effect fails without it.",
+   "back": "",
+   "quote": "It is necessary there if the effect does not happen without it.",
+   "section": "Enough, needed, and kept"
+  },
+  {
+   "id": "motor-neuron-code-c20",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Adding a transcription factor to normally negative neural cells induces a neuronal programme, but deleting it in another tested context leaves that programme intact. What do these results establish?",
+   "back": "The factor is sufficient in the addition experiment and is not necessary in the deletion context. Sufficiency and necessity are separate claims, each limited to its tested cells and stage.",
+   "quote": "A factor can be sufficient in one test without being necessary in another.",
+   "section": "Enough, needed, and kept"
+  },
+  {
+   "id": "motor-neuron-code-c21",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After deleting a neural regulator, neuron counts and birth timing are normal, but the cells transiently express an alternative neuronal programme. Does counting neurons alone establish that differentiation is normal?",
+   "back": "No. Normal production can coexist with unstable identity. Follow identity markers over time and inspect column organization and axon projections to test whether the assigned fate is maintained.",
+   "quote": "Being needed to make a cell and being needed to keep it are different jobs.",
+   "section": "Enough, needed, and kept"
+  },
+  {
+   "id": "motor-neuron-code-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why is Mnx1 described as maintaining spinal motor-neuron identity rather than being required to generate motor neurons in mouse?",
+   "back": "Motor neurons form on schedule in normal numbers without it, but transient V2 features and disordered columns and axons show that their identity is not stably maintained.",
+   "quote": "It is needed to keep one: a motor neuron has to keep suppressing the interneuron programme.",
+   "section": "Enough, needed, and kept"
+  },
+  {
+   "id": "motor-neuron-code-c23",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In an Isl1-null mouse, motor neurons fail to form while much of the remaining neural tube differentiates normally. What claim about Isl1 does this support, and what does it not test?",
+   "back": "Isl1 is necessary for motor-neuron generation in this context. The deletion does not test whether adding Isl1 alone is sufficient to generate motor neurons.",
+   "quote": "Gene deletion in mouse tests necessity. Delete the gene and see what fails to form.",
+   "section": "Enough, needed, and kept"
+  },
+  {
+   "id": "motor-neuron-code-c24",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Isl1 plus Lhx3 induces motor-neuron genes in chick, yet motor neurons form in mice lacking Lhx3 and Lhx4. Does the complex model require rejecting either result?",
+   "back": "No. The sufficiency-versus-necessity rule allows a combination to impose a programme without being indispensable in another context. The mouse result changes subclass and axon exit; it does not identify the mechanism permitting motor-neuron generation.",
+   "quote": "These results do not show what lets the cells become motor neurons without Lhx3 and Lhx4.",
+   "section": "Enough, needed, and kept"
+  },
+  {
+   "id": "motor-neuron-code-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What two anatomical features define a motor column?",
+   "back": "Where the motor-neuron cell bodies sit and where their axons go.",
+   "quote": "A motor column is defined by where the cell bodies sit and where the axons go.",
+   "section": "Which motor neuron: Hox proteins and FoxP1 along the cord"
+  },
+  {
+   "id": "motor-neuron-code-c26",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Within muscle-innervating motor columns, a {{c1::pool}} is the set of neurons that innervates one muscle.",
+   "back": "",
+   "quote": "Among the muscle-innervating columns, a pool is the set of neurons that innervates one muscle, such as the biceps.",
+   "section": "Which motor neuron: Hox proteins and FoxP1 along the cord"
+  },
+  {
+   "id": "motor-neuron-code-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does the spinal Hox network organize motor-neuron diversity at two spatial scales?",
+   "back": "One set of interactions fixes rostrocaudal position and column identity; another diversifies motor pools within a segment, reflected in connections to target muscles.",
+   "quote": "one set of Hox interactions fixes position along the cord, and another generates diversity among pools within a single segment",
+   "section": "Which motor neuron: Hox proteins and FoxP1 along the cord"
+  },
+  {
+   "id": "motor-neuron-code-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Chick brachial cells receive Hoxc9 only after their final division, rather than in progenitors as well. What happens to column identity, and why?",
+   "back": "LMC identity is suppressed, but preganglionic identity is not imposed. That thoracic identity requires Hoxc9 already in progenitors; late expression cannot reproduce the early manipulation.",
+   "quote": "Hoxc9 given only to motor neurons after their last division suppresses LMC identity but does not impose the preganglionic one",
+   "section": "Which motor neuron: Hox proteins and FoxP1 along the cord"
+  },
+  {
+   "id": "motor-neuron-code-c29",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "How does FoxP1 abundance differ between the Hox-dependent lateral motor and preganglionic columns?",
+   "back": "It is high in the lateral motor column (LMC) and low in the preganglionic column (PGC).",
+   "quote": "acting in a dose-dependent way, high in the LMC and low in the PGC.",
+   "section": "Which motor neuron: Hox proteins and FoxP1 along the cord"
+  },
+  {
+   "id": "motor-neuron-code-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does losing Foxp1 in mouse distinguish making a motor neuron from assigning its subtype?",
+   "back": "Motor neurons still form, but prospective limb and autonomic neurons take on a hypaxial-like molecular identity; limb axons appear to choose trajectories and targets at random.",
+   "quote": "FoxP1 sorts cells that are already motor neurons. It does not make them.",
+   "section": "Which motor neuron: Hox proteins and FoxP1 along the cord"
+  },
+  {
+   "id": "motor-neuron-code-c31",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A spinal neuron has the expected column identity, yet its axon chooses the wrong limb trajectory. Does this alone show that column identity cannot influence targeting?",
+   "back": "No. The ordering rule links column identity to axonal receptors, then receptors to external guidance cues. An error in either step could disrupt targeting; examine the axonal response and the limb environment before rejecting the identity-to-targeting link.",
+   "quote": "The column sets which receptors the axon carries. Only then does the axon meet the cues that steer it.",
+   "section": "Which half of the limb: the LIM code sets the first axon choice"
+  },
+  {
+   "id": "motor-neuron-code-c32",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the lateral motor column, which division expresses Lim1/Lhx1 and which expresses Isl1, and where do their axons normally travel in the limb?",
+   "back": "Lateral LMC: Lim1/Lhx1, dorsal limb. Medial LMC: Isl1, ventral limb.",
+   "quote": "Lateral LMC neurons express Lim1 (Lhx1); medial ones retain Isl1.",
+   "section": "Which half of the limb: the LIM code sets the first axon choice"
+  },
+  {
+   "id": "motor-neuron-code-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A mouse lateral LMC neuron loses Lim1. Must its axon now follow the medial division into the ventral limb, and why?",
+   "back": "No. Lateral axons lose their dorsal preference and choose paths at random. Losing a directional preference does not impose the opposite preference.",
+   "quote": "They lose their dorsal preference and select paths at random.",
+   "section": "Which half of the limb: the LIM code sets the first axon choice"
+  },
+  {
+   "id": "motor-neuron-code-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can early-born LMC neurons influence which division later-born LMC neurons join?",
+   "back": "They make a retinoid that helps later-born neurons acquire lateral LMC identity, supplying part of the subtype information from within the column.",
+   "quote": "a retinoid made by early-born LMC neurons helps later-born neurons become lateral LMC",
+   "section": "Which half of the limb: the LIM code sets the first axon choice"
+  },
+  {
+   "id": "motor-neuron-code-c35",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical limb-guidance experiment, neuronal division markers are unchanged, but altering the limb mesenchyme disrupts axon trajectories from both divisions. What does this show about where guidance information resides?",
+   "back": "The limb environment contributes guidance information. Correct neuronal markers alone do not guarantee normal trajectories; axons must also encounter appropriate external cues.",
+   "quote": "without mesenchymal Lmx1b the choices of both divisions are disturbed.",
+   "section": "Which half of the limb: the LIM code sets the first axon choice"
+  },
+  {
+   "id": "motor-neuron-code-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does successful motor-axon targeting not by itself guarantee neuron survival during developmental cell death?",
+   "back": "Survival also depends partly on target support and other cells such as glia. NGF is not the general survival signal for motor neurons.",
+   "quote": "survival during the period of developmental cell death depends partly on support from the target, along with other cells such as glia",
+   "section": "Which half of the limb: the LIM code sets the first axon choice"
+  },
+  {
+   "id": "motor-neuron-code-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What are the distinct patterning roles of retinoic acid and a Hedgehog agonist in the basic mouse embryonic-stem-cell motor-neuron protocol?",
+   "back": "Retinoic acid promotes caudal, spinal character; a Hedgehog agonist ventralises toward pMN. The cells then progress to Mnx1-positive motor neurons.",
+   "quote": "Retinoic acid pushes the cells to a caudal, spinal character rather than a forebrain one.",
+   "section": "Making motor neurons in a dish"
+  },
+  {
+   "id": "motor-neuron-code-c38",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A hypothetical stem-cell experiment yields 420 neuron-marker-positive cells per 1,000 with two patterning signals and 30 per 1,000 with one signal. What are the percentage yields and their fold difference?",
+   "back": "Two signals: 420 / 1,000 × 100 = 42%. One signal: 30 / 1,000 × 100 = 3%. Yield ratio: 420 / 30 = 14-fold. This supports improved yield, not mature function.",
+   "quote": "Two added molecules do most of the patterning work, roughly one for each axis.",
+   "section": "Making motor neurons in a dish"
+  },
+  {
+   "id": "motor-neuron-code-c39",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A stem-cell protocol produces cells carrying motor-neuron identity markers. What additional test would support the claim that they can connect with muscle?",
+   "back": "Transplant them into an embryonic spinal cord and assess axon extension and synapses with target muscles. The rule is that identity and connectivity are separate outcomes; markers alone establish neither axon targeting nor muscle synapses.",
+   "quote": "The cells populated an embryonic spinal cord after transplantation, extended axons and formed synapses with target muscles.",
+   "section": "Making motor neurons in a dish"
+  },
+  {
+   "id": "motor-neuron-code-c40",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A mouse stem-cell protocol uses retinoic acid plus a Hedgehog agonist. The investigator proposes retinoic acid alone as the way to specify a much more caudal spinal level. What is missing, and why?",
+   "back": "Earlier fibroblast growth factor, Wnt and growth differentiation factor signals are needed before the retinoid. Retinoic acid alone reaches only hindbrain and cervical Hox profiles; it is not an axial-level dial.",
+   "quote": "On its own it carries cells only as far as hindbrain and cervical Hox profiles",
+   "section": "Making motor neurons in a dish"
+  },
+  {
+   "id": "motor-neuron-code-c41",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A stem-cell culture made by retinoic acid and a Hedgehog agonist is mostly medial motor column cells. How could you bias it toward limb-innervating identity, and what target-specific claim would still be unsupported?",
+   "back": "Manipulate Foxp1 to bias toward LMC identity. This applies the Hox-and-FoxP1 subtype layer. Column bias does not establish a named pool or innervation of one particular muscle; the code for that finer choice remains incomplete.",
+   "quote": "manipulating Foxp1 can bias stem-cell-derived motor neurons toward limb-innervating LMC identity",
+   "section": "Making motor neurons in a dish"
+  },
+  {
+   "id": "motor-neuron-code-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is a fused Isl1-Lhx3 protein expected to induce motor-neuron genes more reliably than separate Isl1 and Lhx3 constructs?",
+   "back": "The fusion fixes a one-to-one ratio and tethers Lhx3 to its Isl1 segment, preventing the ratio drift possible with separate constructs.",
+   "quote": "Expect the same outcome as Isl1 plus Lhx3 given as separate constructs, and more reliably, since the ratio cannot drift.",
+   "section": "A fused Isl1-Lhx3 protein"
+  },
+  {
+   "id": "motor-neuron-code-c43",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Foxp1 manipulation produces LMC markers in human stem-cell-derived neurons; mouse-derived cells also preferentially project toward limb muscle. Can the mouse result establish the same projection behavior for the human cells?",
+   "back": "No. Apply the rule that evidence is limited to the tested system and outcome: the human result establishes markers, while preferential limb projection was tested with mouse-derived cells. Human projection behavior requires a corresponding assay.",
+   "quote": "The mouse-derived cells preferentially projected toward limb muscle in explant and transplant assays; the human result was at the marker level.",
+   "section": "Programming limb motor neurons"
+  },
+  {
+   "id": "motor-neuron-code-c44",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "If six transcription factors can each independently be on or off, how many distinct binary patterns are possible? Is that enough in principle to label 50 motor pools, and does it prove those pools are specified this way?",
+   "back": "2^6 = 64 patterns; 64 − 50 = 14 more than required. Capacity is sufficient in principle, but this does not show which patterns cells use or how they specify pool identity.",
+   "quote": "Which combinations cells actually use, and how they are read into pool identity, is open",
+   "section": "Is the code big enough?"
+  }
+ ]
+}

@@ -1,0 +1,548 @@
+{
+ "slug": "multisensory-and-prediction",
+ "title": "Combining Senses and Predicting Them",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "3c1e4d0246ab",
+ "sectionHashes": {
+  "Two wobbly rulers, one bar": "5447d6eb4057",
+  "The test in people": "5f1f721e60fa",
+  "Where is the weighting?": "9b7e303c4634",
+  "A single-neuron measure that is not the reliability rule": "530b53ef35f0",
+  "The receptors report your own movement": "39d2a95c42e1",
+  "A fish that learns to cancel its own pulse": "29d222e0e88b",
+  "Only when the feedback matches: the monkey": "bbc31230113a",
+  "What a person feels: the tickle": "f32ff71530b6",
+  "Mouse cortex: a movement signal and a mismatch signal": "6b155a230a4c",
+  "Design problem": "d0b312893d50",
+  "When two cues may not share a cause": "53667aff75ea",
+  "Why \"independent\" matters": "59fe428d4958",
+  "Collicular details": "1c37f0eee34b"
+ },
+ "cards": [
+  {
+   "id": "multisensory-and-prediction-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A sensory estimate with a small standard deviation is {{c1::reliable}}.",
+   "back": "Its repeated estimates scatter little.",
+   "quote": "A sense with a small SD is reliable.",
+   "section": "Two wobbly rulers, one bar"
+  },
+  {
+   "id": "multisensory-and-prediction-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What assumptions about bias, cue errors and prior expectation underlie the basic inverse-variance cue-combination model?",
+   "back": "Each cue is unbiased, their errors are independent, and the prior is uniform.",
+   "quote": "Each sense is right on average (its estimate is unbiased). The errors of the two senses are unrelated (independent).",
+   "section": "Two wobbly rulers, one bar"
+  },
+  {
+   "id": "multisensory-and-prediction-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "For independent visual and haptic cues, visual weight is visual precision divided by {{c1::the sum of both precisions}}.",
+   "back": "Precision is one divided by variance; the haptic weight is one minus the visual weight.",
+   "quote": "Then give each sense a weight equal to its precision, one over its variance, divided by the sum of the precisions:",
+   "section": "Two wobbly rulers, one bar"
+  },
+  {
+   "id": "multisensory-and-prediction-c04",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Hypothetical bar judgements give visual SD 2 mm and haptic SD 4 mm, with readings of 48 mm and 56 mm respectively. Assuming independent, unbiased Gaussian errors and a uniform prior, calculate the combined estimate.",
+   "back": "Variances are 4 and 16 mm². Visual weight = (1/4)/(1/4 + 1/16) = 0.8; haptic weight = 0.2. The estimate is 0.8 × 48 + 0.2 × 56 = 49.6 mm.",
+   "quote": "combined estimate = w_V × estimate_V + w_H × estimate_H",
+   "section": "Two wobbly rulers, one bar"
+  },
+  {
+   "id": "multisensory-and-prediction-c05",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two unbiased cues with independent Gaussian errors have SDs of 2 mm and 4 mm. With a uniform prior and inverse-variance weighting, calculate the combined SD.",
+   "back": "Variances are 4 and 16 mm². Combined variance = (4 × 16)/(4 + 16) = 3.2 mm²; combined SD = √3.2 ≈ 1.789 mm.",
+   "quote": "Combined variance: (4 × 16)/(4 + 16) = 3.2 mm², so SD = 1.789 mm.",
+   "section": "Two wobbly rulers, one bar"
+  },
+  {
+   "id": "multisensory-and-prediction-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can averaging a reliable cue and a noisy cue with equal weights be worse than using the reliable cue alone?",
+   "back": "Equal weighting gives the noisy cue too much influence. Reliability weighting limits its noise contribution, allowing the weaker independent cue to help.",
+   "quote": "An equal-weight average has variance 0.5² × 4 + 0.5² × 16 = 5 mm², worse even than vision alone at 4 mm².",
+   "section": "Two wobbly rulers, one bar"
+  },
+  {
+   "id": "multisensory-and-prediction-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Independent visual and touch cues are treated as one event. Vision initially has lower variance. Blur makes its variance exceed touch variance without changing either reading. What happens to the combined estimate, and why?",
+   "back": "It shifts toward touch because touch now has greater precision and receives more weight. Sensory dominance follows reliability rather than a fixed preference for vision.",
+   "quote": "So \"vision wins\" is a statement about typical reliability, not a law.",
+   "section": "Two wobbly rulers, one bar"
+  },
+  {
+   "id": "multisensory-and-prediction-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What does assuming Gaussian errors add to the minimum-variance interpretation of inverse-variance cue combination?",
+   "back": "The combined estimate is also the maximum-likelihood estimate: the value that makes both cue readings most probable.",
+   "quote": "With Gaussian (bell-shaped) errors, this combination is also the maximum-likelihood estimate, the height that makes both readings most probable,",
+   "section": "Two wobbly rulers, one bar"
+  },
+  {
+   "id": "multisensory-and-prediction-c09",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the human bar-height experiment, a model built from single-sense performance closely matched combined judgements. What conclusion is supported, and what remains unresolved?",
+   "back": "It supports the weighting model for that task and sample. It neither locates the computation in the brain nor establishes universal cue combination.",
+   "quote": "Agreement supports the model as a description of what observers do; it does not locate the weighting in the brain",
+   "section": "The test in people"
+  },
+  {
+   "id": "multisensory-and-prediction-c10",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "When visual heading cues became less reliable in monkeys, behaviour and weights decoded from MSTd both shifted toward vestibular cues. What does this establish about MSTd?",
+   "back": "MSTd population activity tracks reliability-dependent weighting. The result does not establish that MSTd computes the weights.",
+   "quote": "That links the reliability rule to a population of neurons, without showing that this area is where the rule is computed.",
+   "section": "Where is the weighting?"
+  },
+  {
+   "id": "multisensory-and-prediction-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The {{c1::superior colliculus}} is a midbrain structure receiving visual, auditory and somatosensory input.",
+   "back": "",
+   "quote": "The superior colliculus, a midbrain structure that receives visual, auditory and somatosensory input,",
+   "section": "A single-neuron measure that is not the reliability rule"
+  },
+  {
+   "id": "multisensory-and-prediction-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How is percentage enhancement of a multisensory response calculated?",
+   "back": "(Combined response − larger single-cue response) / larger single-cue response × 100%.",
+   "quote": "percentage enhancement = (combined − best single-cue response) / best single-cue response × 100",
+   "section": "A single-neuron measure that is not the reliability rule"
+  },
+  {
+   "id": "multisensory-and-prediction-c13",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In cat superior-colliculus recordings, generally greater percentage enhancement for weak single-cue responses is called {{c1::inverse effectiveness}}.",
+   "back": "It is a tendency whose interpretation depends on the response metric.",
+   "quote": "Percentage enhancement was generally largest when the single-cue responses were weakest, which is what inverse effectiveness means.",
+   "section": "A single-neuron measure that is not the reliability rule"
+  },
+  {
+   "id": "multisensory-and-prediction-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Hypothetical multisensory neurons A and B respond to two cues alone and together with means of (3, 2, 9) and (12, 8, 24) spikes. Compare percentage enhancement and absolute gain above each best single-cue response.",
+   "back": "A: gain = 9 − 3 = 6 spikes; enhancement = 6/3 × 100% = 200%. B: gain = 24 − 12 = 12 spikes; enhancement = 12/12 × 100% = 100%. A has greater percentage enhancement, B greater absolute gain.",
+   "quote": "Note the metric: the weak neuron gains more in percent and less in spikes.",
+   "section": "A single-neuron measure that is not the reliability rule"
+  },
+  {
+   "id": "multisensory-and-prediction-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A superior-colliculus neuron has a later peak discharge to sound than to light. The cues initially start together. What timing adjustment would favour enhancement, and why?",
+   "back": "Present sound earlier so the peak discharge periods overlap. Enhancement was greatest for overlapping response peaks, which need not require simultaneous stimulus onsets.",
+   "quote": "enhancement was greatest when the peak discharge periods of the two responses overlapped, which need not coincide with simultaneous stimulus onsets,",
+   "section": "A single-neuron measure that is not the reliability rule"
+  },
+  {
+   "id": "multisensory-and-prediction-c16",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a superior-colliculus experiment, a sound is moved while a light stays fixed. Why could the combined response change even if cue strengths and onset times stay fixed?",
+   "back": "The response could change because multisensory effects depend on cue locations relative to the neuron’s receptive fields. Strength and timing alone do not determine the interaction.",
+   "quote": "Effects depended on where the stimuli fell relative to the neuron's receptive fields",
+   "section": "A single-neuron measure that is not the reliability rule"
+  },
+  {
+   "id": "multisensory-and-prediction-c17",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "An investigator treats greater percentage enhancement at weak cue strengths as proof that a neuron implements inverse-variance weighting. Why does that conclusion not follow?",
+   "back": "Reliability weighting describes estimates, whereas percentage enhancement describes firing gain. For independent cues with Gaussian noise whose variance is unchanged by signal presence, an optimal detector gives combined d′ = √(d′1² + d′2²): scaling both cues equally preserves their relative detectability benefit. Thus the reliability rule alone does not predict inverse effectiveness.",
+   "quote": "So the reliability rule by itself does not predict inverse effectiveness in neuronal firing.",
+   "section": "A single-neuron measure that is not the reliability rule"
+  },
+  {
+   "id": "multisensory-and-prediction-c18",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Sensory input caused by an animal’s own action is called {{c1::reafference}}.",
+   "back": "",
+   "quote": "Sensory input that results from the animal's own action is called reafference.",
+   "section": "The receptors report your own movement"
+  },
+  {
+   "id": "multisensory-and-prediction-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is exafference?",
+   "back": "Sensory input caused by events outside the animal.",
+   "quote": "Input from events outside is exafference.",
+   "section": "The receptors report your own movement"
+  },
+  {
+   "id": "multisensory-and-prediction-c20",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Monkey canal afferents encode active and passive head turns similarly, but central vestibular-only neurons are weakly modulated by active turns. Where does this place the suppression?",
+   "back": "Beyond the receptors, centrally: the afferents still transmit self-generated motion, but the central response is reduced.",
+   "quote": "In the monkey, comparing active and passive turns places the suppression that was found beyond the receptors.",
+   "section": "The receptors report your own movement"
+  },
+  {
+   "id": "multisensory-and-prediction-c21",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A copy of a motor command sent to sensory circuits is an {{c1::efference copy}}.",
+   "back": "Also called corollary discharge.",
+   "quote": "A copy of a motor command sent to sensory circuits is called an efference copy or corollary discharge.",
+   "section": "A fish that learns to cancel its own pulse"
+  },
+  {
+   "id": "multisensory-and-prediction-c22",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the mormyrid electrosensory lobe, what is a negative image?",
+   "back": "A learned response that mirrors expected sensory input so that adding the two cancels the predictable input.",
+   "quote": "a negative image: a response that mirrors the expected input and, added to it, cancels it.",
+   "section": "A fish that learns to cancel its own pulse"
+  },
+  {
+   "id": "multisensory-and-prediction-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does neuromuscular paralysis separate motor-command effects from sensory feedback in a mormyrid electric fish?",
+   "back": "The brain still issues the command, but the electric organ no longer fires. Command-related activity can be measured without the discharge’s sensory input.",
+   "quote": "The brain still issues the command, but the electric organ, which is modified muscle, no longer fires.",
+   "section": "A fish that learns to cancel its own pulse"
+  },
+  {
+   "id": "multisensory-and-prediction-c24",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A paralysed mormyrid first learns a command-paired stimulus that excites lobe cells. The paired stimulus is then changed to inhibit those cells. After relearning, how should the command-alone response change?",
+   "back": "It should change from an inhibitory mirror to an excitatory mirror of the paired input. The negative image is learned and follows the sensory pattern paired with the command.",
+   "quote": "The image was learned, because it followed whatever stimulus had been paired with the command.",
+   "section": "A fish that learns to cancel its own pulse"
+  },
+  {
+   "id": "multisensory-and-prediction-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can one motor command generate a prediction with a detailed time course in the mormyrid electrosensory lobe?",
+   "back": "Granule cells respond at different delays, with delayed contributions from unipolar brush cells. Learning adjusts these timed inputs to medium ganglion cells.",
+   "quote": "Together they give the medium ganglion cells a temporal basis: a set of signals, each peaking at a different moment after the command.",
+   "section": "A fish that learns to cancel its own pulse"
+  },
+  {
+   "id": "multisensory-and-prediction-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What determines whether an input synapse onto a mormyrid electrosensory-lobe medium ganglion cell weakens or strengthens during negative-image learning?",
+   "back": "Broad dendritic spikes shortly after input trigger depression; each input also gives a small boost. Their balance determines net change. Narrow output spikes do not teach depression.",
+   "why": "The depression is anti-Hebbian and timing-dependent; the boost is non-associative potentiation.",
+   "quote": "A synapse is weakened when its input is followed shortly by a broad spike in the medium ganglion cell's dendrites;",
+   "section": "A fish that learns to cancel its own pulse"
+  },
+  {
+   "id": "multisensory-and-prediction-c27",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a simplified linear fish model, command drive is 10 arbitrary units in each time bin. A pulse adds 6 units only in the middle bin. What middle-bin command drive cancels the pulse, and what change constitutes the negative image?",
+   "back": "Required drive = 10 − 6 = 4 arbitrary units. With the pulse, 4 + 6 = 10. The command-only change is 4 − 10 = −6 units; remaining excitatory drive can therefore encode a negative image.",
+   "quote": "Every synapse is still excitatory; the negative image is the change from the cell's response before learning.",
+   "section": "A fish that learns to cancel its own pulse"
+  },
+  {
+   "id": "multisensory-and-prediction-c28",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Touch from actively gripping a bar can improve a height estimate, yet a fish cancels input from its own electric pulse. What rule explains why self-generated signals need not receive the same treatment?",
+   "back": "The rule is informational value: reliable touch tells the animal about bar height, whereas the predictable pulse can mask outside signals. Reliability weighting retains useful evidence; learned subtraction discounts predictable input. Self-generation alone does not require cancellation.",
+   "quote": "With enough differently timed inputs, learning shrinks the part of the response that the command predicts.",
+   "section": "A fish that learns to cancel its own pulse"
+  },
+  {
+   "id": "multisensory-and-prediction-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What condition permits cancellation of self-generated motion in the tested monkey vestibular-only neurons?",
+   "back": "Neck or axial proprioceptive feedback must match the feedback predicted from the motor command.",
+   "quote": "Roy and Cullen (2004) found that this cancellation occurred only when neck proprioceptive activation matched what the motor command predicted.",
+   "section": "Only when the feedback matches: the monkey"
+  },
+  {
+   "id": "multisensory-and-prediction-c30",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "During an active monkey head turn, added passive motion activates the same proprioceptors and breaks the predicted feedback match. What happens to vestibular-only neuron encoding, and why?",
+   "back": "The neurons encode total active-plus-passive vestibular input. Cancellation fails because actual proprioceptive feedback no longer matches the motor-based prediction.",
+   "quote": "They robustly encoded the total vestibular input, active and passive parts together.",
+   "section": "Only when the feedback matches: the monkey"
+  },
+  {
+   "id": "multisensory-and-prediction-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a robotic self-touch setup, a hand movement initially produces corresponding touch on the other palm. The touch is then delayed while its path stays fixed. What happens to ticklishness, and why?",
+   "back": "Ticklishness increases: attenuation weakens as touch timing departs from the movement. This supports a prediction-error account but does not settle the mechanism of self-tickle.",
+   "quote": "Attenuation was weaker the less the touch corresponded to the movement in time and space.",
+   "section": "What a person feels: the tickle"
+  },
+  {
+   "id": "multisensory-and-prediction-c32",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An imaging study finds activity changes in a brain region during self-produced touch. Can that result establish that the region is necessary for sensory attenuation?",
+   "back": "No. Imaging associates regional activity with the condition; it cannot show that the region is required.",
+   "quote": "Imaging cannot show that a region is needed, so the cerebellar account is suggestive.",
+   "section": "What a person feels: the tickle"
+  },
+  {
+   "id": "multisensory-and-prediction-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does increased visually evoked firing during running in mouse visual cortex fail to identify an efference-copy pathway?",
+   "back": "A motor-command copy, movement-generated sensory feedback or a correlated state change could each alter firing. Movement-related modulation alone does not distinguish them.",
+   "quote": "A copy of the motor command, reafference from the movement or a correlated change of state could each produce it,",
+   "section": "Mouse cortex: a movement signal and a mismatch signal"
+  },
+  {
+   "id": "multisensory-and-prediction-c34",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A mouse visual-cortex neuron responds when visual flow fails to correspond to running. What interpretation does this support, and what circuit conclusion remains unsupported?",
+   "back": "It is consistent with a failed sensory prediction, but does not identify the circuit making that prediction. A mismatch response is stronger evidence than a general running-related change alone.",
+   "quote": "The second is consistent with a failed prediction: the input did not match what the movement should have caused.",
+   "section": "Mouse cortex: a movement signal and a mismatch signal"
+  },
+  {
+   "id": "multisensory-and-prediction-c35",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A vibration-sensitive afferent fires during voluntary movement. Design a comparison that would locate attenuation downstream of that afferent rather than at the receptor.",
+   "back": "Record the identified afferent class and a downstream station in the same animal during self-generated and matched external vibration. A smaller downstream response with equal afferent drive supports central attenuation. This uses the rule that equal incoming drive isolates a downstream difference; it does not identify the mechanism.",
+   "quote": "Attenuation would appear as a smaller downstream response to the self-generated vibration for the same afferent drive.",
+   "section": "Design problem"
+  },
+  {
+   "id": "multisensory-and-prediction-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A recorded vibration waveform is replayed passively and elicits a larger central response than during the movement that originally produced it. Can this isolate an efference-copy mechanism?",
+   "back": "No. Matched replay holds the stimulus constant, implicating something associated with movement, but motor command, movement feedback and state still differ. The active-versus-passive rule separates stimulus effects from movement-associated effects without separating those mechanisms.",
+   "quote": "A difference points to the motor command, movement-related feedback or a change of state that goes with moving, rather than the stimulus,",
+   "section": "Design problem"
+  },
+  {
+   "id": "multisensory-and-prediction-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Unexpected vibration during a voluntary movement abolishes sensory attenuation. What additional control helps distinguish conditional predictive cancellation from a state effect?",
+   "back": "Control for attention or arousal, comparing mismatch and matched conditions with comparable state. The match rule predicts attenuation depends on sensory agreement with movement; a state change could also restore responses. Loss of attenuation alone cannot separate them.",
+   "quote": "This supports a prediction mechanism in the tested circuit and condition, but a mismatch could also change attention or arousal, so a control for state is needed.",
+   "section": "Design problem"
+  },
+  {
+   "id": "multisensory-and-prediction-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A flash and sound have equally reliable location estimates but are far apart and judged to have separate causes. Should equal reliability force a halfway location estimate, and why?",
+   "back": "No. Reliability weighting presumes a shared cause. If the cues represent separate events, averaging their locations can be a mistake.",
+   "quote": "A sound and a flash far apart may have two causes, and then averaging them would be a mistake.",
+   "section": "When two cues may not share a cause"
+  },
+  {
+   "id": "multisensory-and-prediction-c39",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Assume unbiased cues and a uniform prior. Visual and haptic bar estimates have SDs of 2 mm and 4 mm. Compare optimal weights and combined variance for independent errors versus correlation 0.5. Use c = correlation × SD_V × SD_H and w_V = (σH² − c)/(σV² + σH² − 2c).",
+   "back": "Independent: c = 0, w_V = 16/20 = 0.8, w_H = 0.2, variance = 0.8² × 4 + 0.2² × 16 = 3.2 mm². Correlated: c = 0.5 × 2 × 4 = 4 mm², w_V = (16 − 4)/(4 + 16 − 8) = 1, w_H = 0, variance = 4 mm². The independence rule guarantees a benefit; here covariance makes touch add nothing.",
+   "quote": "With independent errors a second cue always lowers the variance. With correlated errors the best weights depend on the covariance,",
+   "section": "Why \"independent\" matters"
+  },
+  {
+   "id": "multisensory-and-prediction-c40",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can grouping neurons by weak measured single-cue responses inflate apparent percentage enhancement?",
+   "back": "Selecting weak responses invites regression toward the mean, which can inflate the weak group’s percentage enhancement.",
+   "quote": "When neurons or trials are sorted by how weak their single-cue responses were, regression toward the mean can inflate the percentage for the weak group.",
+   "section": "Collicular details"
+  }
+ ]
+}
