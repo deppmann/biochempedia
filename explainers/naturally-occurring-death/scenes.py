@@ -1,16 +1,27 @@
-"""Naturally occurring neuron death: count across time  (Biochemistrypedia explainer)
+"""Too Many, Then Fewer: chapter 1 of "Too Many Neurons: Naturally Occurring Cell Death" (Biochemistrypedia).
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = motor neurons that are present / healthy, and the control (intact) side
+COLOR MAP (one color per concept, whole film series; taken from the lesson's earlier single film)
+  BLUE   = motor neurons that are present / healthy (dots, the column outline, "kept" counts)
   RED    = dying or lost neurons, the loss
-  YELLOW = the manipulated limb side (operated side, grafted extra leg) and the limb itself
-  GREY   = axes, outlines, hypotheses, de-emphasized
+  YELLOW = the limb and the target (the leg block, its support glow, the legs of the chick)
+  GREY   = axes, outlines, axons, phagocytes, de-emphasized things and the questions
+  TEXT   = headings and the rule itself
+One dot = about 500 neurons (40 dots = the peak count, 24 dots = what is left).
 """
+import math
 import random
 import numpy as np
 from bp_style import *  # noqa: F401,F403
+
+GHOST = 0.30          # opacity of a lost neuron that is still shown as a trace
+RX = 4.3              # x of the right-hand column of count cards
+CAPC = "#BCC3CF"      # brighter grey for captions (readable at phone width)
+
+
+def cap(text, size=28, color=CAPC, **kw):
+    return T(text, size, color, **kw)
 
 
 def arr(a, b, color=GREY, w=5, tip=0.22):
@@ -18,404 +29,804 @@ def arr(a, b, color=GREY, w=5, tip=0.22):
                  max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
 
 
-def bchip(text, color=BLUE, size=26, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def chip2(text, color, size=32, pad=0.2, fill_opacity=0.16, text_color=TEXT):
+    """chip with a coloured box and bright text."""
+    label = T(text, size=size, color=text_color)
+    box = RoundedRectangle(corner_radius=0.14, width=label.width + 2 * pad, height=label.height + 2 * pad,
+                           stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=fill_opacity)
+    return VGroup(box, label.move_to(box))
 
 
-def smooth(t):
-    t = min(1.0, max(0.0, t))
-    return t * t * (3 - 2 * t)
+# ---- the 40 dots (the leg column at its peak) and which 16 are lost -------------------------------
+def _unit_pts(n=40):
+    ga = math.pi * (3 - math.sqrt(5))
+    out = []
+    for i in range(n):
+        r = 0.88 * math.sqrt((i + 0.5) / n)
+        out.append((r * math.cos(i * ga), r * math.sin(i * ga)))
+    return out
 
 
+UNIT = _unit_pts()
+DYING = sorted(random.Random(11).sample(range(40), 16))
+KEPT = [i for i in range(40) if i not in DYING]
+
+
+def make_field(cx, cy, A, B, r):
+    outline = Ellipse(width=2 * A, height=2 * B, stroke_color=BLUE, stroke_width=3, fill_color=BLUE,
+                      fill_opacity=0.07).move_to([cx, cy, 0])
+    dots = VGroup(*[Dot([cx + A * u, cy + B * v, 0], radius=r, color=BLUE) for u, v in UNIT])
+    return outline, dots
+
+
+# ---- count cards on the right ----------------------------------------------------------------------
+C1Y, C2Y = 1.7, -0.95
+FX, FY, FA, FB, FR = -3.2, 0.1, 2.8, 3.0, 0.25     # the field in the counting scenes
+
+
+def card(y, label, color=BLUE):
+    box = RoundedRectangle(corner_radius=0.2, width=3.9, height=2.5, stroke_color=color, stroke_width=3,
+                           fill_color=color, fill_opacity=0.08).move_to([RX, y, 0])
+    lab = cap(label, 28).move_to([RX, y + 0.88, 0])
+    return VGroup(box, lab)
+
+
+def qmark(y, color=TEXT):
+    return T("?", 80, color, weight=BOLD).move_to([RX, y - 0.2, 0])
+
+
+def numval(y, top, num):
+    a = cap(top, 28).move_to([RX, y + 0.2, 0])
+    b = T(num, 60, BLUE, weight=BOLD).move_to([RX, y - 0.5, 0])
+    return VGroup(a, b)
+
+
+def day_counter(vt):
+    return always_redraw(lambda: T(f"day {int(round(vt.get_value()))}", 48, TEXT, weight=BOLD).move_to([RX, 3.4, 0]))
+
+
+def key_label():
+    return cap("1 dot = about 500 neurons", 28).move_to([FX, -3.45, 0])
+
+
+def credit():
+    return T("Viktor Hamburger, 1975", 30, TEXT).move_to([RX, -2.68, 0])
+
+
+def raw_chip():
+    return chip2("raw counts, approximate", BLUE, size=28, pad=0.13).move_to([RX, -3.38, 0])
+
+
+# ---- the spinal cord cross-section (schematic) ---------------------------------------------------------
+CORD_C, CORD_S = (-3.0, 0.0), 1.05
+
+
+def cord(cx, cy, s):
+    outer = Ellipse(width=6.6 * s, height=5.8 * s, stroke_color=GREY, stroke_width=3, fill_color=GREY,
+                    fill_opacity=0.08).move_to([cx, cy, 0])
+    R = [(0, .45), (.45, .7), (.65, 1.5), (1.0, 1.85), (1.3, 1.5), (1.2, .8), (1.7, .55), (2.4, .45), (2.6, -.2),
+         (2.5, -1.0), (1.9, -1.7), (1.1, -1.55), (.6, -.9), (0, -.7)]
+    pts = R + [(-x, y) for x, y in reversed(R[1:-1])]
+    P = [[cx + x * s, cy + y * s, 0] for x, y in pts]
+    gray = VMobject(stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.28)
+    gray.set_points_smoothly(P + [P[0]])
+    # the leg column sits fully inside the right ventral horn
+    lmc = Ellipse(width=1.05 * s, height=1.2 * s, stroke_color=BLUE, stroke_width=4, fill_color=BLUE,
+                  fill_opacity=0.18).move_to([cx + 1.85 * s, cy - 0.85 * s, 0])
+    return outer, gray, lmc
+
+
+def cord_set():
+    outer, gray, lmc = cord(*CORD_C, CORD_S)
+    cp = cap("lumbar spinal cord, cross-section", 28).move_to([CORD_C[0], -3.5, 0])
+    lab = T("leg column", 34, BLUE, weight=BOLD).move_to([1.9, -2.85, 0])
+    la = arr(lab.get_left(), lmc.get_center() + RIGHT * 0.3 + DOWN * 0.3, BLUE, 4)
+    return outer, gray, lmc, cp, lab, la
+
+
+# ---- schematic plot frame ---------------------------------------------------------------------------
 class Plot:
-    """a plot frame: origin lower left, u and v run 0..1 across the frame."""
-
     def __init__(self, x0, y0, w, h):
         self.x0, self.y0, self.w, self.h = x0, y0, w, h
 
     def P(self, u, v):
         return np.array([self.x0 + u * self.w, self.y0 + v * self.h, 0.0])
 
-    def axes(self):
-        return VGroup(Line(self.P(0, 0), self.P(1.0, 0), color=GREY, stroke_width=3),
-                      Line(self.P(0, 0), self.P(0, 1.08), color=GREY, stroke_width=3))
-
     def curve(self, fn, u0, u1, color, w=6, n=70):
         pts = [self.P(u, fn(u)) for u in np.linspace(u0, u1, n)]
         return VMobject(stroke_color=color, stroke_width=w, fill_opacity=0).set_points_as_corners(pts)
 
 
-# ---- the two schematic histories used in scenes 3 and 6 ----------------------------------------
-def hyp_panel(cx, lost, labels=True):
-    pl = Plot(cx - 2.8, -2.35, 5.6, 3.4)
-    axes = pl.axes()
-    xlab = T("time after the operation", 22, GREY).move_to([cx, -2.95, 0])
-    ylab = T("healthy motor neurons", 22, GREY).move_to([pl.x0 + 1.55, pl.y0 + pl.h * 1.08 + 0.3, 0])
-    ticks = VGroup(*[Line(pl.P(u, 0), pl.P(u, 0) + DOWN * 0.16, color=GREY, stroke_width=3)
-                     for u in np.linspace(0.06, 0.94, 9)])
-    if lost:
-        f_op = lambda u: 0.85 - 0.5 * smooth((u - 0.4) / 0.28)
-    else:
-        f_op = lambda u: 0.4
-    f_in = lambda u: 0.85
-    blue = pl.curve(f_in, 0.02, 1.0, BLUE, 8)
-    if lost:
-        blue_a = pl.curve(f_in, 0.02, 0.4, BLUE, 8)
-        blue_b = pl.curve(f_in, 0.4, 1.0, BLUE, 8)
-        yel_a = pl.curve(f_op, 0.02, 0.4, YELLOW, 4)
-        yel_b = pl.curve(f_op, 0.4, 1.0, YELLOW, 5)
-    else:
-        blue_a = blue_b = None
-        yel_a = yel_b = pl.curve(f_op, 0.02, 1.0, YELLOW, 5)
-    sch = T("schematic", 22, GREY).move_to(pl.P(1.0, 1.08) + [-0.65, 0.3, 0])
-    dots = VGroup()
-    if lost:
-        rnd = random.Random(4)
-        for i in range(9):
-            u = 0.42 + 0.26 * (i / 8) + rnd.uniform(-0.01, 0.01)
-            v = 0.1 + 0.22 * rnd.random()
-            dots.add(Dot(pl.P(u, v), radius=0.09, color=RED))
-    return dict(pl=pl, axes=axes, xlab=xlab, ylab=ylab, ticks=ticks, blue=blue, blue_a=blue_a, blue_b=blue_b,
-                yel_a=yel_a, yel_b=yel_b, dots=dots, sch=sch)
+# ---- phagocyte blob ---------------------------------------------------------------------------------
+def blob(cx, cy, R, seed):
+    rnd = random.Random(seed)
+    ph = [rnd.uniform(0, 6.28) for _ in range(2)]
+    pts = []
+    for k in range(24):
+        th = 2 * math.pi * k / 24
+        rr = R * (1 + 0.12 * math.sin(3 * th + ph[0]) + 0.08 * math.sin(5 * th + ph[1]))
+        pts.append([cx + rr * math.cos(th), cy + rr * math.sin(th), 0])
+    m = VMobject(stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.4)
+    m.set_points_smoothly(pts + [pts[0]])
+    return m
 
 
-def legend():
-    c1 = bchip("operated side", YELLOW, 24)
-    c2 = bchip("intact side", BLUE, 24)
-    c3 = bchip("dying cells", RED, 24)
-    VGroup(c1, c2, c3).arrange(RIGHT, buff=0.5).move_to([0, 3.15, 0])
-    return c1, c2, c3
+# ---- the chick ----------------------------------------------------------------------------------------
+def chick(x, y, t=0.0, walk=False, s=1.0):
+    body = Ellipse(width=2.3 * s, height=1.8 * s, stroke_color=GREY, stroke_width=4, fill_color=GREY,
+                   fill_opacity=0.28).move_to([x, y, 0])
+    head = Circle(radius=0.55 * s, stroke_color=GREY, stroke_width=4, fill_color=GREY,
+                  fill_opacity=0.28).move_to([x + 0.95 * s, y + 0.85 * s, 0])
+    beak = Polygon([x + 1.45 * s, y + 0.95 * s, 0], [x + 1.95 * s, y + 0.8 * s, 0], [x + 1.45 * s, y + 0.65 * s, 0],
+                   stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.6)
+    eye = Dot([x + 1.12 * s, y + 0.98 * s, 0], radius=0.07 * s, color=TEXT)
+    legs = VGroup()
+    for hx, ph in ((x - 0.15 * s, 0.0), (x + 0.3 * s, math.pi)):
+        ang = 2 * math.pi * t + ph
+        sw = 0.38 * s * math.sin(ang) if walk else 0.0
+        lift = 0.2 * s * max(0.0, math.cos(ang)) if walk else 0.0
+        hip = [hx, y - 0.8 * s, 0]
+        foot = [hx + sw, y - 1.65 * s + lift, 0]
+        legs.add(Line(hip, foot, color=YELLOW, stroke_width=9))
+        for dx, dy in ((0.32, 0.0), (0.26, 0.12), (0.26, -0.1)):
+            legs.add(Line(foot, [foot[0] + dx * s, foot[1] + dy * s, 0], color=YELLOW, stroke_width=7))
+    return VGroup(VGroup(body, head, beak, eye), legs)
 
 
-# ---------------------------------------------------------------------------------------------
+def egg_parts(cx, cy):
+    """whole egg, and the two shell halves cut along one zigzag crack."""
+    W, H = 5.4, 6.5
+    egg = Ellipse(width=W, height=H, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.06).move_to([cx, cy, 0])
+    zig = []
+    xs = np.linspace(-3.0, 3.0, 12)
+    for k, xx in enumerate(xs):
+        zig.append([cx + xx, cy + 0.9 + (0.28 if k % 2 else -0.28), 0])
+    top_poly = Polygon(*(zig + [[cx + 3.0, cy + 4, 0], [cx - 3.0, cy + 4, 0]]), stroke_width=0, fill_opacity=1)
+    bot_poly = Polygon(*(zig + [[cx + 3.0, cy - 4, 0], [cx - 3.0, cy - 4, 0]]), stroke_width=0, fill_opacity=1)
+    top = Intersection(egg, top_poly, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.06)
+    bot = Intersection(egg, bot_poly, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.06)
+    return egg, top, bot
+
+
+# ---- the target block (s11) ---------------------------------------------------------------------------
+BX, BW, BH = 4.4, 2.8, 5.8
+
+
+def glow_rings():
+    g = VGroup()
+    for k, op in ((1, 0.16), (2, 0.10), (3, 0.05)):
+        g.add(RoundedRectangle(corner_radius=0.3, width=BW + 0.22 * k, height=BH + 0.22 * k, stroke_width=0,
+                               fill_color=YELLOW, fill_opacity=op).move_to([BX, 0, 0]))
+    return g
+
+
+def make_axons(dots):
+    order = sorted(range(40), key=lambda i: -dots[i].get_center()[1])
+    ty = {i: 2.4 - 4.8 * k / 39 for k, i in enumerate(order)}
+    axons = []
+    for i in range(40):
+        p0 = dots[i].get_center()
+        p3 = np.array([BX - BW / 2, ty[i], 0.0])
+        p1 = p0 + np.array([1.9, 0, 0])
+        p2 = p3 + np.array([-1.9, 0, 0])
+        axons.append(CubicBezier(p0, p1, p2, p3, stroke_color=GREY, stroke_width=2.5, stroke_opacity=0.65))
+    contacts = VGroup(*[Dot([BX - BW / 2, ty[i], 0], radius=0.07, color=YELLOW) for i in range(40)])
+    return axons, contacts
+
+
+def headline(text, y=3.25, size=44):
+    return T(text, size, TEXT, font=TITLE_FONT).move_to([0, y, 0])
+
+
+# =====================================================================================================
 class S00Title(TitleCard):
-    LESSON = "Naturally occurring neuron death"
-    TITLE = "Count the neurons across time"
+    LESSON = "Too Many Neurons: Naturally Occurring Cell Death"
+    TITLE = "Too Many, Then Fewer"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Gone(SpokenScene):
     def construct(self):
-        # lattice of neuron dots inside an ellipse
-        rnd = random.Random(7)
-        cx, cy, a, b = -2.7, -0.1, 2.9, 2.2
-        pts = []
-        sp = 0.66
-        for r, yy in enumerate(np.arange(-b, b + 0.01, sp * 0.866)):
-            for xx in np.arange(-a, a + 0.01, sp):
-                xo = xx + (sp / 2 if r % 2 else 0)
-                if (xo / (a - 0.2)) ** 2 + (yy / (b - 0.2)) ** 2 <= 1:
-                    pts.append([cx + xo + rnd.uniform(-0.07, 0.07), cy + yy + rnd.uniform(-0.07, 0.07), 0])
-        dots = VGroup(*[Dot(p, radius=0.17, color=BLUE) for p in pts])
-        frame = Ellipse(width=2 * a + 0.4, height=2 * b + 0.4, color=GREY, stroke_width=3).move_to([cx, cy, 0])
-        cap = T("raw counts for the leg", 26, BLUE).move_to([cx, cy - b - 0.62, 0])
-        leg = Ellipse(width=2.4, height=3.4, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW,
-                      fill_opacity=0.22).move_to([4.5, cy, 0])
-        leg_l = T("leg", 30, YELLOW).move_to(leg)
-        bundle = arr([cx + a + 0.3, cy, 0], [3.2, cy, 0], GREY, 6)
-        count = T("20,000", 56, BLUE, weight=BOLD).move_to([cx, cy + b + 0.78, 0])
+        brand = T("BIOCHEMISTRYPEDIA", size=24, color=TEAL, weight=BOLD).set_opacity(0.9)
+        lesson = T(self.LESSON.upper(), size=26, color=CAPC)
+        title = T(self.TITLE, size=66, font=TITLE_FONT)
+        fit(title, max_w=11.8)
+        rule = Line(LEFT * 1.6, RIGHT * 1.6, color=GOLD, stroke_width=5)
+        g = VGroup(brand, lesson, title, rule).arrange(DOWN, buff=0.4)
+        self.play(FadeIn(brand, shift=UP * 0.1), FadeIn(lesson, shift=UP * 0.1), run_time=0.4)
+        self.play(FadeIn(title, shift=UP * 0.15), GrowFromCenter(rule), run_time=0.7)
+        self.wait(1.6)                      # the full title and rule are held for 1.6 s
+        self.play(FadeOut(g), run_time=0.3)
+        self.finish()
 
-        self.at("chick embryo")
-        self.play(Create(frame), FadeIn(leg), FadeIn(leg_l), run_time=0.8)
+
+# -----------------------------------------------------------------------------------------------------
+class S01Q(SpokenScene):
+    def construct(self):
+        outer, gray, lmc, cp, lab, la = cord_set()
+        c1, q1 = card(C1Y, "at the peak"), qmark(C1Y)
+        c2, q2 = card(C2Y, "left afterwards"), qmark(C2Y)
+
+        self.play(Create(outer), FadeIn(cp), FadeIn(c1), FadeIn(c2), run_time=0.45)
         self.at("motor neurons")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in dots], lag_ratio=0.02), FadeIn(cap),
-                  FadeIn(count), run_time=1.5)
-        self.play(GrowArrow(bundle), run_time=0.5)
-        self.at("By about day")
-        idx = list(range(len(dots)))
-        rnd.shuffle(idx)
-        gone = [dots[i] for i in idx[:round(0.4 * len(dots))]]
-        ghosts = VGroup(*[DashedVMobject(Circle(radius=0.17, color=GREY, stroke_width=2).move_to(d.get_center()),
-                                         num_dashes=8) for d in gone])
-        self.play(*[d.animate.set_color(RED) for d in gone], run_time=0.5)
-        count2 = T("12,000", 56, BLUE, weight=BOLD).move_to(count)
+        self.play(FadeIn(gray), run_time=0.8)
+        self.at("leg column")
+        self.play(Create(lmc), FadeIn(lab), run_time=0.6)
+        self.play(GrowArrow(la), run_time=0.3)
+        self.at("at the peak")
+        self.play(FadeIn(q1, scale=0.6), Indicate(c1, color=BLUE, scale_factor=1.04), run_time=0.7)
+        self.at("and how many")
+        self.play(FadeIn(q2, scale=0.6), Indicate(c2, color=BLUE, scale_factor=1.04), run_time=0.7)
+        self.finish()
+
+
+# -----------------------------------------------------------------------------------------------------
+class S02Peak(SpokenScene):
+    def construct(self):
+        outer, gray, lmc, cp, lab, la = cord_set()
+        c1, q1 = card(C1Y, "at the peak"), qmark(C1Y)
+        c2, q2 = card(C2Y, "left afterwards"), qmark(C2Y)
+        self.add(outer, gray, lmc, cp, lab, la, c1, q1, c2, q2)
+
+        outline, dots = make_field(FX, FY, FA, FB, FR)
+        vt = ValueTracker(4)
+        ctr = day_counter(vt)
+        key = key_label()
+        val = numval(C1Y, "just over", "20,000")
+
+        # zoom into the outlined column: the cord swells past the frame while the column becomes the field of dots
+        c = lmc.get_center()
+        self.play(outer.animate.scale(4, about_point=c).set_opacity(0),
+                  gray.animate.scale(4, about_point=c).set_opacity(0),
+                  FadeOut(VGroup(cp, lab, la)), ReplacementTransform(lmc, outline),
+                  FadeIn(ctr), run_time=0.9)
+        self.at("the column")
+        self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in dots], lag_ratio=0.05),
+                  vt.animate(rate_func=linear).set_value(6), run_time=2.0)
+        self.at("just over")
+        self.play(FadeOut(q1), FadeIn(val, scale=0.9), run_time=0.6)
+        self.at("motor neurons")
+        self.play(FadeIn(key), Indicate(dots, color=BLUE, scale_factor=1.03), run_time=0.9)
+        self.finish()
+
+
+def stage_a(day, kept_only=False, c2_val=False, cred=False):
+    outline, dots = make_field(FX, FY, FA, FB, FR)
+    if kept_only:
+        for i in DYING:
+            dots[i].set_opacity(0)
+    vt = ValueTracker(day)
+    ctr = day_counter(vt)
+    c1, c2 = card(C1Y, "at the peak"), card(C2Y, "left afterwards")
+    v1 = numval(C1Y, "just over", "20,000")
+    v2 = numval(C2Y, "about", "12,000") if c2_val else qmark(C2Y)
+    key = key_label()
+    objs = [outline, dots, ctr, c1, c2, v1, v2, key]
+    cr = rw = None
+    if cred:
+        cr, rw = credit(), raw_chip()
+        objs += [cr, rw]
+    return dict(outline=outline, dots=dots, vt=vt, ctr=ctr, c1=c1, c2=c2, v1=v1, v2=v2, objs=objs)
+
+
+class S03Raw(SpokenScene):
+    def construct(self):
+        st = stage_a(6)
+        self.add(*st["objs"])
+        dots = st["dots"]
+        cr, raw = credit(), raw_chip()
+        self.at("Hamburger's")
+        self.play(FadeIn(cr, shift=UP * 0.15), run_time=0.6)
+        self.at("raw counts")
+        # the dots shimmer to say "approximate"
+        self.play(FadeIn(raw, shift=UP * 0.15), Indicate(st["v1"], color=BLUE, scale_factor=1.08),
+                  LaggedStart(*[Indicate(d, color=BLUE, scale_factor=1.45) for d in dots], lag_ratio=0.02),
+                  run_time=0.8)
+        self.at("from 1975")
+        self.play(Indicate(cr, color=TEXT, scale_factor=1.08), run_time=0.8)
+        self.finish()
+
+
+class S04Fall(SpokenScene):
+    def construct(self):
+        st = stage_a(6, cred=True)
+        self.add(*st["objs"])
+        dots, vt = st["dots"], st["vt"]
+        dying = [dots[i] for i in DYING]
+        centers = [d.get_center().copy() for d in dying]
+        blobs = [blob(c[0], c[1], 0.48, k).set_z_index(2) for k, c in enumerate(centers)]
+        for d in dying:
+            d.set_z_index(3)  # keep the shrinking neuron visible inside its engulfing cell
+        # label one phagocyte (the one furthest right)
+        j = max(range(len(centers)), key=lambda k: centers[k][0])
+        ph_lab = cap("phagocyte", 30).move_to([1.0, centers[j][1], 0])
+        ph_arr = arr(ph_lab.get_left() + LEFT * 0.02, centers[j] + RIGHT * 0.6, GREY, 4)
+        # 1) the dying dots darken and shrink while the days run to 10
+        self.play(vt.animate(rate_func=linear).set_value(8),
+                  LaggedStart(*[d.animate.set_color(RED).scale(0.6) for d in dying], lag_ratio=0.03), run_time=0.8)
+        # 2) phagocytes engulf them
+        self.play(LaggedStart(*[GrowFromCenter(b) for b in blobs], lag_ratio=0.05), FadeIn(ph_lab), GrowArrow(ph_arr),
+                  *[d.animate.scale(0.55) for d in dying], vt.animate.set_value(10), run_time=0.8)
+        self.wait(0.4)
+        # 3) the engulfed neurons are cleared
+        self.play(*[FadeOut(d, scale=0.3) for d in dying], *[FadeOut(b, scale=0.6) for b in blobs],
+                  FadeOut(ph_lab), FadeOut(ph_arr), run_time=0.6)
+        self.at("roughly")
+        self.play(FadeOut(st["v2"]), FadeIn(numval(C2Y, "about", "12,000"), scale=0.9), run_time=0.7)
         self.at("are left")
-        self.play(*[FadeOut(d, scale=0.3) for d in gone], FadeIn(ghosts), ReplacementTransform(count, count2),
-                  run_time=1.0)
-        self.at("Nothing is wrong")
-        ok = T("it has both legs\nand will hatch and walk", 24, GREY, line_spacing=0.9).move_to([4.5, cy - 2.4, 0])
-        self.play(Indicate(leg, color=YELLOW, scale_factor=1.05), run_time=0.8)
+        self.play(Indicate(VGroup(*[dots[i] for i in KEPT]), color=BLUE, scale_factor=1.06), run_time=0.7)
+        self.finish()
+
+
+class S05Beat(SpokenScene):
+    def construct(self):
+        st = stage_a(10, kept_only=True, c2_val=True, cred=True)
+        self.add(*st["objs"])
+        self.finish()
+
+
+# -----------------------------------------------------------------------------------------------------
+GROUND_Y = -2.53
+
+
+class S06Fine(SpokenScene):
+    def construct(self):
+        cx, cy = 0.0, 0.0
+        bx, by = -0.7, -0.5
+        egg, top, bot = egg_parts(cx, cy)
+        ch = chick(bx, by, s=1.2)
+        both = T("both legs", 36, YELLOW, weight=BOLD).move_to([4.7, -1.6, 0])
+        ba = arr(both.get_left() + LEFT * 0.05, [bx + 0.95, by - 1.75, 0], YELLOW, 5)
+        ground = Line([-6.6, GROUND_Y, 0], [6.6, GROUND_Y, 0], color=GREY, stroke_width=3)
+
+        self.play(Create(egg), run_time=0.6)
+        self.play(FadeIn(ch[0], scale=0.9), FadeIn(ch[1], scale=0.9), run_time=0.6)
+        self.at("embryo")
+        self.play(Indicate(ch[0], color=GREY, scale_factor=1.04), run_time=0.7)
         self.at("both legs")
-        self.play(FadeIn(ok), run_time=0.5)
-        q = T("?", 80, RED, weight=BOLD).move_to([cx + 2.55, cy + b + 0.78, 0])
-        self.at("where did the neurons go")
-        self.play(FadeIn(q, scale=0.5), run_time=0.7)
+        self.add(both.set_opacity(1))
+        self.play(GrowArrow(ba), Indicate(ch[1], color=YELLOW, scale_factor=1.15), run_time=0.9)
+        self.at("hatch")
+        self.remove(egg)
+        # Discard the upper shell at the crack; no disconnected floating cap.
+        self.add(bot)
+        self.play(FadeOut(bot),
+                  Create(ground), run_time=0.8)
+        self.at("will walk")
+        self.remove(ch[0], ch[1], bot, top, both, ba)
+        xv, sv = ValueTracker(bx), ValueTracker(0)
+        walker = always_redraw(lambda: chick(xv.get_value(), by, t=sv.get_value(), walk=True, s=1.2))
+        self.add(walker)
+        # the walk crosses the frame and is held for 3 s (the scene is padded past the narration)
+        self.play(xv.animate(rate_func=linear).set_value(3.9), sv.animate(rate_func=linear).set_value(3.2),
+                  run_time=3.0)
+        self.wait(0.3)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Shelf(SpokenScene):
+# -----------------------------------------------------------------------------------------------------
+FORK_Y_TOP, FORK_Y_BOT = 1.8, -2.3
+
+
+def fork_pieces():
+    left = chip2("those neurons", GREY, size=58, pad=0.3).move_to([0, FORK_Y_TOP, 0])
+    q = T("?", 140, TEXT, weight=BOLD).move_to([0, -0.25, 0])
+    top = chip2("made, then died", RED, size=58, pad=0.3).move_to([-3.35, FORK_Y_BOT, 0])
+    bot = chip2("never made", GREY, size=58, pad=0.3).move_to([3.85, FORK_Y_BOT, 0])
+    a_top = arr([-0.9, FORK_Y_TOP - 0.7, 0], [-3.0, FORK_Y_BOT + 0.75, 0], GREY, 6)
+    a_bot = arr([0.9, FORK_Y_TOP - 0.7, 0], [3.5, FORK_Y_BOT + 0.75, 0], GREY, 6)
+    return left, q, top, bot, a_top, a_bot
+
+
+def ghost_of(m):
+    box = m[0]
+    d = DashedVMobject(RoundedRectangle(corner_radius=0.14, width=box.width, height=box.height,
+                                        stroke_color=GREY, stroke_width=3).move_to(m.get_center()), num_dashes=40)
+    return VGroup(d, m[1].copy().set_opacity(0.55))
+
+
+class S07Q1(SpokenScene):
     def construct(self):
-        head = T("Count only at the end", 36, font=TITLE_FONT).move_to([0, 3.0, 0])
-        self.at("Suppose you count only")
-        self.play(Write(head), run_time=1.0)
-        yb = -2.3
-        base = Line([3.3, yb, 0], [6.1, yb, 0], color=GREY, stroke_width=3)
-        bar = Rectangle(width=1.5, height=2.0, stroke_color=BLUE, stroke_width=3, fill_color=BLUE,
-                        fill_opacity=0.5).move_to([4.7, yb + 1.0, 0])
-        blab = T("count at the end", 24, BLUE).move_to([4.7, yb - 0.45, 0])
-        self.at("and the number is low")
-        self.play(Create(base), FadeIn(bar, shift=UP * 0.3), FadeIn(blab), run_time=0.9)
-        texts = [("divided too few times", GREY, "divided too few"),
-                 ("sent too few to the place counted", GREY, "sent too few"),
-                 ("too few became that cell type", GREY, "too few became"),
-                 ("made, then lost", RED, "the cells were made")]
-        ys = [1.7, 0.45, -0.8, -2.05]
-        chips, arrows = [], []
-        ends = [-0.55, -0.85, -1.15, -1.45]
-        for i, ((txt, col, cue), y) in enumerate(zip(texts, ys)):
-            c = bchip(txt, col, 28).move_to([0, y, 0])
-            c.align_to([-0.4, 0, 0], RIGHT)
-            a = arr(c.get_right(), [3.85, ends[i], 0], col, 4)
-            chips.append(c); arrows.append(a)
-        for i, (txt, col, cue) in enumerate(texts):
-            self.at(cue)
-            self.play(FadeIn(chips[i], shift=RIGHT * 0.3), run_time=0.5)
-            self.play(GrowArrow(arrows[i]), Indicate(bar, color=BLUE, scale_factor=1.06), run_time=0.7)
-        same = T("the same low number", 28, TEXT).move_to([4.7, 0.9, 0])
-        self.at("looks the same")
-        self.play(*[Indicate(a, color=TEXT, scale_factor=1.0) for a in arrows], FadeIn(same, shift=DOWN * 0.2),
+        left, q, top, bot, a_top, a_bot = fork_pieces()
+        g_top, g_bot = ghost_of(top), ghost_of(bot)
+        head = headline("Question 1")
+        self.play(FadeIn(head, shift=DOWN * 0.15), FadeIn(left, shift=DOWN * 0.2), run_time=0.5)
+        self.at("questions")
+        self.play(GrowArrow(a_top), GrowArrow(a_bot), FadeIn(q, scale=0.5), FadeIn(g_top), FadeIn(g_bot), run_time=0.8)
+        self.at("how could anyone")
+        self.play(Indicate(q, color=TEXT, scale_factor=1.2), run_time=0.7)
+        self.at("made and then died")
+        self.play(FadeOut(g_top), FadeIn(top), a_top.animate.set_color(RED), run_time=0.5)
+        self.at("never made")
+        self.play(FadeOut(g_bot), FadeIn(bot), a_bot.animate.set_color(TEXT), run_time=0.5)
+        self.wait(1.0)
+        self.finish()
+
+
+class S08Q2(SpokenScene):
+    def construct(self):
+        left, q, top, bot, a_top, a_bot = fork_pieces()
+        a_top.set_color(RED)
+        head = headline("Question 1")
+        self.add(head, left, q, top, bot, a_top, a_bot)
+        head2 = headline("Question 2")
+        outline, dots = make_field(-3.5, -0.1, 2.5, 2.7, 0.24)
+        box = RoundedRectangle(corner_radius=0.25, width=5.6, height=3.1, stroke_color=TEXT, stroke_width=3,
+                               fill_color=TEXT, fill_opacity=0.07).move_to([3.7, -0.1, 0])
+        txt = T("what decides\nhow many stay?", 46, TEXT, line_spacing=0.9).move_to(box)
+        card2 = VGroup(box, txt)
+        qa = arr(box.get_left(), [-0.85, -0.1, 0], GREY, 6)
+        lab = T("how many stay", 34, BLUE, weight=BOLD).move_to([-3.5, -3.5, 0])
+        self.play(FadeOut(VGroup(left, q, top, bot, a_top, a_bot)), Transform(head, head2),
+                  FadeIn(outline), FadeIn(dots), run_time=0.4)
+        self.at("what decides")
+        self.play(FadeIn(card2, scale=0.9), GrowArrow(qa), run_time=0.4)
+        self.at("how many stay")
+        self.play(*[dots[i].animate.scale(0.25).set_color(RED).set_opacity(GHOST) for i in DYING], FadeIn(lab),
+                  run_time=0.8)
+        self.wait(1.3)       # hold the full question at least 3 s (the scene is padded past the narration)
+        self.finish()
+
+
+# -----------------------------------------------------------------------------------------------------
+def rule_lines():
+    head = T("One idea", 44, TEAL, weight=BOLD).move_to([0, 3.35, 0])
+    l1 = T("Make too many,", 58, TEXT, font=TITLE_FONT, t2c={"too many": BLUE}).move_to([0, 2.4, 0])
+    l2 = T("then let the target", 58, TEXT, font=TITLE_FONT, t2c={"target": YELLOW}).move_to([0, 1.3, 0])
+    l3 = T("keep what it can support.", 58, TEXT, font=TITLE_FONT).move_to([0, 0.2, 0])
+    row = VGroup(*[Dot([-5.4 + 1.2 * k, -2.0, 0], radius=0.46, color=BLUE) for k in range(10)])
+    return head, l1, l2, l3, row
+
+
+LOST_ROW = (1, 4, 6, 8)
+
+
+class S09Rule(SpokenScene):
+    def construct(self):
+        head, l1, l2, l3, row = rule_lines()
+        head.move_to([0, 0.2, 0]).scale(2.0)          # "One idea" holds the whole frame while it is announced
+        self.play(FadeIn(head, scale=0.9), run_time=0.7)
+        self.at("make too many")
+        self.play(head.animate.scale(0.5).move_to([0, 3.35, 0]), FadeIn(l1, shift=UP * 0.15), LaggedStart(*[FadeIn(d, scale=0.4) for d in row], lag_ratio=0.1),
                   run_time=1.0)
+        self.at("then let the target")
+        self.play(FadeIn(l2, shift=UP * 0.15), run_time=0.6)
+        self.at("keep what it can support")
+        self.play(FadeIn(l3, shift=UP * 0.15), run_time=0.5)
+        self.play(LaggedStart(*[row[i].animate.set_color(RED).set_opacity(GHOST) for i in LOST_ROW], lag_ratio=0.35),
+                  run_time=1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Series(SpokenScene):
+class S10Beat(SpokenScene):
     def construct(self):
-        L = hyp_panel(-3.4, False)
-        R = hyp_panel(3.4, True)
-        c_op, c_in, c_dy = legend()
-
-        self.at("count at many times")
-        self.play(Create(L["axes"]), Create(R["axes"]), FadeIn(L["xlab"]), FadeIn(R["xlab"]),
-                  FadeIn(L["sch"]), FadeIn(R["sch"]), run_time=1.0)
-        wb = bchip("wing bud removed on one side", YELLOW, 26).move_to([0, 3.15, 0])
-        self.at("Remove a wing bud")
-        self.play(FadeIn(wb, shift=DOWN * 0.15), run_time=0.5)
-        self.at("closely spaced stages")
-        self.play(LaggedStart(*[GrowFromCenter(t) for t in list(L["ticks"]) + list(R["ticks"])],
-                              lag_ratio=0.04), run_time=1.3)
-        self.at("operated side with")
-        self.play(FadeOut(wb), FadeIn(c_op, shift=DOWN * 0.15), run_time=0.4)
-        self.at("the intact side")
-        self.play(FadeIn(c_in, shift=DOWN * 0.15), run_time=0.4)
-        self.at("Count the healthy")
-        self.play(FadeIn(L["ylab"]), FadeIn(R["ylab"]), run_time=0.5)
-        self.at("and count the dying")
-        self.play(FadeIn(c_dy, shift=DOWN * 0.15), run_time=0.5)
-        self.at("dark condensed nuclei")
-        self.play(Indicate(c_dy, color=RED, scale_factor=1.12), run_time=0.7)
-
-        tl = T("never made", 32, TEXT, weight=BOLD).move_to([-3.4, 2.15, 0])
-        self.at("were never made")
-        self.play(FadeIn(tl, shift=DOWN * 0.1), run_time=0.5)
-        self.at("is low from the first")
-        self.play(Create(L["blue"]), Create(L["yel_a"]), run_time=1.0)
-        none = T("no burst of dying cells", 24, RED).move_to(L["pl"].P(0.5, 0.2))
-        self.at("with no burst")
-        self.play(FadeIn(none), run_time=0.5)
-
-        tr = T("made, then lost", 32, TEXT, weight=BOLD).move_to([3.4, 2.15, 0])
-        self.at("made and then lost")
-        self.play(FadeIn(tr, shift=DOWN * 0.1), run_time=0.5)
-        self.at("start equal")
-        self.play(Create(R["blue_a"]), Create(R["yel_a"]), run_time=0.9)
-        self.at("Then dying cells appear")
-        self.play(LaggedStart(*[FadeIn(d, scale=2) for d in R["dots"]], lag_ratio=0.1), run_time=1.0)
-        self.at("falls behind")
-        self.play(Create(R["blue_b"]), Create(R["yel_b"]), run_time=1.2)
+        head, l1, l2, l3, row = rule_lines()
+        for i in LOST_ROW:
+            row[i].set_color(RED).set_opacity(GHOST)
+        self.add(head, l1, l2, l3, row)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Curve(SpokenScene):
+# -----------------------------------------------------------------------------------------------------
+def target_stage():
+    """column on the left, leg block on the right, 40 axons between."""
+    outline, dots = make_field(-4.6, 0.0, 1.7, 2.8, 0.2)
+    axons, contacts = make_axons(dots)
+    block = RoundedRectangle(corner_radius=0.25, width=BW, height=BH, stroke_color=YELLOW, stroke_width=4,
+                             fill_color=YELLOW, fill_opacity=0.2).move_to([BX, 0, 0])
+    label = T("target", 36, YELLOW, weight=BOLD).move_to([BX, 3.45, 0])
+    leg = T("leg\nmuscles", 32, YELLOW, line_spacing=0.9).move_to([BX, 0.8, 0])
+    glow = glow_rings()
+    sup = T("support", 32, YELLOW, weight=BOLD).move_to([BX, -1.4, 0])
+    glow.set_z_index(-2)
+    outline.set_z_index(-1)
+    for a in axons:
+        a.set_z_index(0)
+    block.set_z_index(1)
+    contacts.set_z_index(2)
+    dots.set_z_index(3)
+    for m in (label, leg, sup):
+        m.set_z_index(4)
+    return dict(outline=outline, dots=dots, axons=axons, contacts=contacts, block=block, label=label, leg=leg,
+                glow=glow, sup=sup)
+
+
+class S11Target(SpokenScene):
     def construct(self):
-        d2u = lambda d: (d - 5.0) / 6.0
-        pl = Plot(-4.6, -2.55, 10.0, 4.5)
-        top = 22000.0
-        n2v = lambda n: n / top
-
-        def fn(u):
-            d = u * 6.0 + 5.0
-            if d <= 6.5:
-                return n2v(20000)
-            return n2v(20000 - 8000 * smooth((d - 6.5) / 3.0))
-
-        head = T("Chick motor neurons for the leg, counted in normal embryos", 30, font=TITLE_FONT).move_to([0, 3.25, 0])
-        axes = pl.axes()
-        ylabs = VGroup(*[T(s, 22, GREY).move_to(pl.P(0, n2v(n)) + LEFT * 0.7) for s, n in
-                         (("0", 0), ("12,000", 12000), ("20,000", 20000))])
-        xt = VGroup(*[VGroup(Line(pl.P(d2u(d), 0), pl.P(d2u(d), 0) + DOWN * 0.15, color=GREY, stroke_width=3),
-                             T(str(d), 22, GREY).move_to(pl.P(d2u(d), 0) + DOWN * 0.45)) for d in (6, 8, 10)])
-        xl = T("days of incubation", 22, GREY).move_to(pl.P(0.5, 0) + DOWN * 0.95)
-        h20 = DashedLine(pl.P(0, n2v(20000)), pl.P(1.0, n2v(20000)), color=GREY, stroke_width=2)
-        h12 = DashedLine(pl.P(0, n2v(12000)), pl.P(1.0, n2v(12000)), color=GREY, stroke_width=2)
-        peak = Rectangle(width=pl.w / 6.0, height=pl.h * 1.0, stroke_width=0, fill_color=BLUE, fill_opacity=0.14).move_to(
-            (pl.P(d2u(5.5), 0) + pl.P(d2u(6.5), 1.0)) / 2)
-        peak_l = T("peak", 24, BLUE).move_to(pl.P(d2u(6.0), 1.0) + UP * 0.3)
-        loss = Rectangle(width=pl.w / 2.0, height=pl.h * 1.0, stroke_width=0, fill_color=RED, fill_opacity=0.14).move_to(
-            (pl.P(d2u(6.5), 0) + pl.P(d2u(9.5), 1.0)) / 2)
-        loss_l = T("most of the loss", 24, RED).move_to(pl.P(d2u(8.0), 1.0) + UP * 0.3)
-        c1 = pl.curve(fn, d2u(5.5), d2u(6.5), BLUE, 8, 20)
-        c2 = pl.curve(fn, d2u(6.5), 1.0, BLUE, 8, 80)
-        br_x = pl.P(0.97, 0)[0]
-        y20, y12 = pl.P(0, n2v(20000))[1], pl.P(0, n2v(12000))[1]
-        br = VGroup(Line([br_x, y20, 0], [br_x, y12, 0], color=RED, stroke_width=6),
-                    Line([br_x - 0.15, y20, 0], [br_x + 0.15, y20, 0], color=RED, stroke_width=6),
-                    Line([br_x - 0.15, y12, 0], [br_x + 0.15, y12, 0], color=RED, stroke_width=6))
-        br_l = T("about 40% lost", 28, RED, weight=BOLD).move_to([br_x - 1.6, (y20 + y12) / 2 + 0.3, 0])
-        note = T("uncorrected counts", 22, GREY).move_to([br_x - 1.6, (y20 + y12) / 2 - 0.2, 0])
-
-        sub = T("curve drawn between the reported counts", 22, GREY).move_to([0, 2.7, 0])
-        self.at("counted the death")
-        self.play(FadeIn(sub), FadeIn(head), Create(axes), FadeIn(ylabs), FadeIn(xt), FadeIn(xl), run_time=1.3)
-        self.at("peaked at just")
-        self.play(FadeIn(peak), FadeIn(peak_l), FadeIn(h20), Create(c1), run_time=1.0)
-        self.at("settled near")
-        self.play(FadeIn(h12), Create(c2), run_time=1.6)
-        self.at("a loss of about")
-        self.play(Create(br), FadeIn(br_l), FadeIn(note), run_time=0.9)
-        self.at("Most of it came")
-        self.play(FadeIn(loss), FadeIn(loss_l), run_time=0.9)
+        st = target_stage()
+        outline, dots, axons, contacts = st["outline"], st["dots"], st["axons"], st["contacts"]
+        mid_i = sorted(range(40), key=lambda i: dots[i].get_center()[1])[20]
+        grow = cap("axons grow", 32).move_to([-0.4, 3.15, 0])
+        conn = cap("axons connect", 32).move_to([-0.4, 3.15, 0])
+        self.play(FadeIn(outline), FadeIn(dots), run_time=0.3)
+        self.at("target")
+        self.play(FadeIn(st["block"], scale=0.9), FadeIn(st["label"], shift=DOWN * 0.1), FadeIn(st["glow"]),
+                  FadeIn(st["sup"]), run_time=0.5)
+        self.at("tissue")
+        self.play(Indicate(st["block"], color=YELLOW, scale_factor=1.03), run_time=0.6)
+        self.at("axon")
+        self.play(Create(axons[mid_i]), FadeIn(grow), run_time=0.4)
+        self.at("grows to")
+        self.play(LaggedStart(*[Create(a) for i, a in enumerate(axons) if i != mid_i], lag_ratio=0.02), run_time=0.85)
+        self.at("connects with")
+        self.play(LaggedStart(*[FadeIn(c, scale=2.5) for c in contacts], lag_ratio=0.02),
+                  ReplacementTransform(grow, conn), run_time=0.7)
+        self.at("muscles of")
+        self.play(FadeIn(st["leg"], shift=UP * 0.1), run_time=0.5)
+        self.at("the leg")
+        self.play(Indicate(st["block"], color=YELLOW, scale_factor=1.03), Indicate(st["leg"], color=YELLOW),
+                  run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Graft(SpokenScene):
+# ---- s12, s13: three states of the experiment ----------------------------------------------------------
+PX = [-4.7, 0.0, 4.7]
+PSCALE = [0.55, 1.0, 1.4]
+PGLOW = [0.35, 1.0, 1.6]
+PNAME = ["less target", "normal target", "extra target"]
+PSURV = ["survivors: fewer", "survivors: 24 of 40", "survivors: a few more"]
+BLK_Y = 2.25
+DOT_Y = -0.95
+
+
+def lost_for(k):
+    if k == 1:
+        return list(DYING)
+    if k == 0:
+        return sorted(DYING + KEPT[:8])
+    return DYING[:12]
+
+
+def panel(k):
+    cx = PX[k]
+    s = PSCALE[k]
+    bw, bh = 2.4 * s, 1.1 * s
+    block = RoundedRectangle(corner_radius=0.2, width=bw, height=bh, stroke_color=YELLOW, stroke_width=4,
+                             fill_color=YELLOW, fill_opacity=0.2).move_to([cx, BLK_Y, 0])
+    glow = VGroup()
+    for gk, op in ((1, 0.20), (2, 0.12), (3, 0.06)):
+        glow.add(RoundedRectangle(corner_radius=0.3, width=bw + 0.2 * gk * PGLOW[k] + 0.1,
+                                  height=bh + 0.14 * gk * PGLOW[k] + 0.1, stroke_width=0, fill_color=YELLOW,
+                                  fill_opacity=min(0.55, op * PGLOW[k])).move_to([cx, BLK_Y, 0]))
+    label = T(PNAME[k], 30, YELLOW, weight=BOLD).move_to([cx, 0.98, 0])
+    outline, dots = make_field(cx, DOT_Y, 1.9, 1.65, 0.18)
+    glow.set_z_index(-1)
+    return dict(block=block, glow=glow, label=label, outline=outline, dots=dots)
+
+
+def lose(p, k):
+    for i in lost_for(k):
+        p["dots"][i].set_color(RED).set_opacity(GHOST)
+
+
+def panel_mobs(p):
+    return [p["glow"], p["block"], p["label"], p["outline"], p["dots"]]
+
+
+def lost_anims(ps):
+    anims = []
+    for k, p in enumerate(ps):
+        for i in lost_for(k):
+            anims.append(p["dots"][i].animate.set_color(RED).set_opacity(GHOST))
+    return anims
+
+
+def tag_chip(text):
+    return chip2(text, GREY, size=27, pad=0.1).move_to([0, 3.55, 0])
+
+
+def surv_lines():
+    return [cap(PSURV[k], 28, TEXT).move_to([PX[k], -3.3, 0]) for k in range(3)]
+
+
+def made_lines():
+    return [cap("made: same", 28, BLUE).move_to([PX[k], -3.3, 0]) for k in range(3)]
+
+
+class S12Scope1(SpokenScene):
     def construct(self):
-        # cord and legs
-        cord = RoundedRectangle(corner_radius=0.2, width=0.45, height=3.4, stroke_color=BLUE, stroke_width=3,
-                                fill_color=BLUE, fill_opacity=0.3).move_to([-5.8, 0.15, 0])
-        cord_l = T("cord", 24, BLUE).move_to([-5.8, -1.85, 0])
-        leg = Ellipse(width=1.8, height=1.1, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW,
-                      fill_opacity=0.22).move_to([-4.25, 1.2, 0])
-        leg_l = T("leg", 26, YELLOW).move_to(leg)
-        x_leg = DashedVMobject(Ellipse(width=1.8, height=1.1, stroke_color=YELLOW, stroke_width=4).move_to([-4.25, -0.9, 0]),
-                               num_dashes=24)
-        x_leg_f = Ellipse(width=1.8, height=1.1, stroke_width=0, fill_color=YELLOW, fill_opacity=0.1).move_to([-4.25, -0.9, 0])
-        x_leg_l = T("extra leg", 24, YELLOW).move_to([-4.25, -1.75, 0])
-        ax1 = Line([-5.55, 0.9, 0], [-5.15, 1.2, 0], color=GREY, stroke_width=4)
-        ax2 = Line([-5.55, -0.4, 0], [-5.15, -0.9, 0], color=GREY, stroke_width=4)
-
-        d2u = lambda d: (d - 5.0) / 6.0
-        pl = Plot(-2.3, -2.4, 8.0, 4.0)
-        f_c = lambda u: 0.78 if u * 6 + 5 <= 6.5 else 0.78 - 0.31 * smooth((u * 6 + 5 - 6.5) / 3.0)
-        f_g = lambda u: 0.78 if u * 6 + 5 <= 6.5 else 0.78 - 0.31 * smooth((u * 6 + 5 - 6.5) / 3.0) + 0.12 * smooth((u * 6 + 5 - 6.5) / 3.0)
-        axes = pl.axes()
-        yl = T("motor neurons", 22, GREY).move_to(pl.P(0, 1.08) + [1.0, 0.3, 0])
-        xl = T("days of incubation", 22, GREY).move_to(pl.P(0.5, 0) + DOWN * 0.6)
-        ctrl = pl.curve(f_c, d2u(5.5), 1.0, BLUE, 8, 80)
-        ctrl_a = pl.curve(f_c, d2u(5.5), d2u(6.8), BLUE, 8, 30)
-        ctrl_b = pl.curve(f_c, d2u(6.8), 1.0, BLUE, 8, 60)
-        gr_b = pl.curve(f_g, d2u(6.8), 1.0, YELLOW, 6, 60)
-        c_c = bchip("control side", BLUE, 24).move_to(pl.P(0.55, 0.2))
-        c_g = bchip("grafted side", YELLOW, 24).move_to(pl.P(0.62, 1.0) + UP * 0.35)
-        d6x = pl.P(d2u(6.0), 0)[0]
-        d6 = DashedLine(pl.P(d2u(6.0), 0), pl.P(d2u(6.0), 1.0), color=GREY, stroke_width=2)
-        d6l = T("day 6", 24, GREY).move_to(pl.P(d2u(6.0), 0) + DOWN * 0.25)
-        dotc = Dot(pl.P(d2u(6.0), f_c(d2u(6.0))), radius=0.16, color=BLUE)
-        ring = Circle(radius=0.26, color=YELLOW, stroke_width=4).move_to(dotc)
-        eq = T("equal", 26, TEXT).move_to(pl.P(d2u(6.0), 0.96) + UP * 0.0)
-        p_end = pl.P(1.0, f_c(1.0)); g_end = pl.P(1.0, f_g(1.0))
-        gap = VGroup(Line(p_end + RIGHT * 0.25, g_end + RIGHT * 0.25, color=TEXT, stroke_width=5),
-                     Line(p_end + RIGHT * 0.15, p_end + RIGHT * 0.35, color=TEXT, stroke_width=5),
-                     Line(g_end + RIGHT * 0.15, g_end + RIGHT * 0.35, color=TEXT, stroke_width=5))
-        gap_l = T("11% to 28% more", 24, YELLOW).next_to(g_end, DOWN, buff=0.0).shift(LEFT * 1.35 + UP * 0.6)
-        gap_l.move_to(pl.P(0.8, 0.8))
-
-        self.at("tested the logic")
-        self.play(Create(cord), FadeIn(cord_l), FadeIn(leg), FadeIn(leg_l), Create(ax1), run_time=0.9)
-        self.at("grafted an extra leg")
-        self.play(Create(x_leg), FadeIn(x_leg_f), FadeIn(x_leg_l), Create(ax2), run_time=1.0)
-        sch5 = T("schematic", 22, GREY).move_to(pl.P(1.0, 1.08) + [-0.65, 0.3, 0])
-        self.play(Create(axes), FadeIn(yl), FadeIn(xl), FadeIn(sch5), run_time=0.8)
-        self.at("At day six")
-        self.play(Create(d6), FadeIn(d6l), Create(ctrl_a), FadeIn(c_c), run_time=1.0)
-        self.at("no more motor neurons")
-        self.play(FadeIn(dotc), Create(ring), FadeIn(eq), run_time=0.7)
-        self.at("Later")
-        self.play(FadeOut(eq), FadeOut(ring), FadeOut(dotc), Create(ctrl_b), run_time=1.2)
-        gr_a = pl.curve(f_g, d2u(5.5), d2u(6.8), YELLOW, 4, 30)
-        self.at("whose grafts moved")
-        self.play(Create(gr_b), FadeIn(c_g), run_time=1.3)
-        self.at("it had more")
-        self.play(Create(gap), Indicate(c_g, color=YELLOW, scale_factor=1.05), run_time=0.8)
-        self.at("About")
-        self.play(FadeIn(gap_l), run_time=0.6)
+        ps = [panel(k) for k in range(3)]
+        tag = tag_chip("chick limb experiments")
+        sv = surv_lines()
+        self.play(FadeIn(tag, shift=DOWN * 0.1), run_time=0.5)
+        self.play(*[FadeIn(m) for m in panel_mobs(ps[1])], run_time=0.8)
+        self.at("changing the target")
+        self.play(*[FadeIn(m) for k in (0, 2) for m in panel_mobs(ps[k])], run_time=0.6)
+        self.at("changed how many")
+        self.play(LaggedStart(*lost_anims(ps), lag_ratio=0.02), run_time=1.3)
+        self.at("survived")
+        self.play(*[FadeIn(t, shift=UP * 0.1) for t in sv], run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S13Scope1b(SpokenScene):
     def construct(self):
-        yb, H, W = -2.6, 4.0, 1.7
-        xs = [-2.6, 0.8]
-        keep = [0.6, 0.6]
-
-        def bar(x, kf):
-            kept = Rectangle(width=W, height=H * kf, stroke_color=BLUE, stroke_width=3, fill_color=BLUE,
-                             fill_opacity=0.5).move_to([x, yb + H * kf / 2, 0])
-            lost = Rectangle(width=W, height=H * (1 - kf), stroke_color=RED, stroke_width=3, fill_color=RED,
-                             fill_opacity=0.5).move_to([x, yb + H * kf + H * (1 - kf) / 2, 0])
-            return kept, lost
-
-        k1, l1 = bar(xs[0], 0.6)
-        k2, l2 = bar(xs[1], 0.6)
-        made = DashedLine([-4.2, yb + H, 0], [2.3, yb + H, 0], color=GREY, stroke_width=3)
-        made_l = T("same number made", 26, GREY).move_to([-0.9, yb + H + 0.42, 0])
-        n1 = T("normal", 26, TEXT).move_to([xs[0], yb - 0.4, 0])
-        n2 = T("extra leg", 26, YELLOW).move_to([xs[1], yb - 0.4, 0])
-        base = Line([-4.2, yb, 0], [2.3, yb, 0], color=GREY, stroke_width=3)
-        lab_l = T("lost", 26, RED).move_to([-3.6, yb + H * 0.8, 0]).shift(LEFT * 0.05)
-        lab_k = T("kept", 26, BLUE).move_to([-3.6, yb + H * 0.3, 0]).shift(LEFT * 0.05)
-        lab_l.move_to([-4.9, yb + H * 0.8, 0]); lab_k.move_to([-4.9, yb + H * 0.3, 0])
-
-        self.at("More target did not")
-        self.play(Create(base), FadeIn(k1), FadeIn(l1), FadeIn(k2), FadeIn(l2), FadeIn(n1), FadeIn(n2),
-                  FadeIn(lab_l), FadeIn(lab_k), run_time=1.0)
-        self.at("more births")
-        self.play(Create(made), FadeIn(made_l), run_time=0.8)
-        k2n, l2n = bar(xs[1], 0.78)
-        self.at("It meant fewer deaths")
-        self.play(Transform(k2, k2n), Transform(l2, l2n), run_time=1.2)
-        chip_t = bchip("something limited", YELLOW, 28).move_to([4.4, -0.6, 0])
-        ar = arr(chip_t.get_left(), [1.8, -0.6, 0], YELLOW, 5)
-        self.at("supplies something limited")
-        self.play(FadeIn(chip_t, shift=LEFT * 0.3), GrowArrow(ar), run_time=0.8)
-        self.at("need to survive")
-        self.play(Indicate(k2, color=BLUE, scale_factor=1.04), run_time=0.8)
-
-        covers = VGroup()
-        for lost, x in ((l1, xs[0]), (l2, xs[1])):
-            r = Rectangle(width=W + 0.04, height=lost.height + 0.04, stroke_width=0, fill_color=GREY,
-                          fill_opacity=1).move_to(lost)
-            q = T("?", 44, BG, weight=BOLD).move_to(r)
-            covers.add(VGroup(r, q))
-        self.at("hides its own history")
-        self.play(FadeIn(covers), FadeOut(VGroup(chip_t, ar)), run_time=0.8)
-
-        L = hyp_panel(-3.4, False)
-        R = hyp_panel(3.4, True)
-        c_op, c_in, c_dy = legend()
-        tl = T("never made", 32, TEXT, weight=BOLD).move_to([-3.4, 2.15, 0])
-        tr = T("made, then lost", 32, TEXT, weight=BOLD).move_to([3.4, 2.15, 0])
-        self.at("Count across time")
-        old = VGroup(base, k1, l1, k2, l2, made, made_l, n1, n2, lab_l, lab_k, covers)
-        self.play(FadeOut(old),
-                  FadeIn(L["axes"]), FadeIn(R["axes"]), FadeIn(L["xlab"]), FadeIn(R["xlab"]),
-                  FadeIn(L["ylab"]), FadeIn(R["ylab"]), FadeIn(L["ticks"]), FadeIn(R["ticks"]),
-                  FadeIn(c_op), FadeIn(c_in), FadeIn(c_dy), FadeIn(L["sch"]), FadeIn(R["sch"]), run_time=1.0)
-        self.at("never made from")
-        self.play(FadeIn(tl), Create(L["blue"]), Create(L["yel_a"]), run_time=1.0)
-        self.at("made and lost")
-        self.play(FadeIn(tr), Create(R["blue_a"]), Create(R["yel_a"]), run_time=0.6)
-        self.play(FadeIn(R["dots"]), Create(R["blue_b"]), Create(R["yel_b"]), run_time=1.0)
+        ps = [panel(k) for k in range(3)]
+        for k, p in enumerate(ps):
+            lose(p, k)
+            self.add(*panel_mobs(p))
+        tag = tag_chip("chick limb experiments")
+        tag2 = tag_chip("chick limb: survival, not production")
+        sv, ml = surv_lines(), made_lines()
+        self.add(tag, *sv)
+        self.at("detectably")
+        self.play(ReplacementTransform(tag, tag2), run_time=0.6)
+        self.at("how many were made")
+        # rewind: every state starts from the same 40 dots
+        self.play(*[p["dots"][i].animate.set_color(BLUE).set_opacity(1) for k, p in enumerate(ps)
+                    for i in lost_for(k)], *[FadeOut(t) for t in sv], run_time=0.7)
+        self.at("made")
+        self.play(*[FadeIn(t, shift=UP * 0.1) for t in ml], run_time=0.5)
+        self.play(*[Indicate(p["dots"], color=BLUE, scale_factor=1.04) for p in ps], run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S07End(EndCard):
-    LINE = "Count across time to tell never made from lost."
+# -----------------------------------------------------------------------------------------------------
+KC = -math.log(0.4) / 0.5        # f(0.5) = 0.6 of the peak, i.e. 12,000 of 20,000 at "normal"
+
+
+def fsurv(u):
+    """survivors as a fraction of the peak (schematic saturating curve through normal = 12,000)."""
+    return 1 - math.exp(-KC * u)
+
+
+def dial_parts(cx, cy, R, ud):
+    arc = Arc(radius=R, start_angle=math.radians(-30), angle=math.radians(240), color=GREY,
+              stroke_width=5).move_arc_center_to([cx, cy, 0])
+    ticks = VGroup()
+    for k in range(9):
+        th = math.radians(210 - 240 * k / 8)
+        ticks.add(Line([cx + 0.82 * R * math.cos(th), cy + 0.82 * R * math.sin(th), 0],
+                       [cx + 0.98 * R * math.cos(th), cy + 0.98 * R * math.sin(th), 0], color=GREY, stroke_width=4))
+    d = lambda: min(max((ud.get_value() - 0.25) / 0.75, 0), 1)
+    needle = always_redraw(lambda: Line([cx, cy, 0],
+                                        [cx + 0.8 * R * math.cos(math.radians(210 - 240 * d())),
+                                         cy + 0.8 * R * math.sin(math.radians(210 - 240 * d())), 0],
+                                        color=TEXT, stroke_width=7))
+    hub = Dot([cx, cy, 0], radius=0.09, color=TEXT)
+    glow = always_redraw(lambda: Circle(radius=0.2 + 0.7 * d(), stroke_width=0, fill_color=YELLOW,
+                                        fill_opacity=0.3).move_to([cx, cy, 0]))
+    lab = T("target", 30, YELLOW, weight=BOLD).move_to([cx, cy - R - 0.45, 0])
+    return arc, ticks, needle, hub, glow, lab
+
+
+class S14Dial(SpokenScene):
+    def construct(self):
+        pl = Plot(-3.0, -2.9, 7.0, 5.6)
+        U_N, U_X, U_END, U0 = 0.5, 0.72, 0.88, 0.25
+        u = ValueTracker(U_N)
+        axes = VGroup(Line(pl.P(0, 0), pl.P(1.0, 0), color=GREY, stroke_width=4),
+                      Line(pl.P(0, 0), pl.P(0, 1.04), color=GREY, stroke_width=4))
+        yl = T("neurons that survive", 28, BLUE).rotate(PI / 2).move_to([-5.75, 0.0, 0])
+        xl = T("amount of target", 28, YELLOW).move_to([pl.P(0.5, 0)[0], -3.5, 0])
+        t12 = VGroup(Line(pl.P(0, 0.6) + LEFT * 0.15, pl.P(0, 0.6), color=GREY, stroke_width=4),
+                     T("12,000", 28, BLUE, weight=BOLD).next_to(pl.P(0, 0.6) + LEFT * 0.15, LEFT, buff=0.12))
+        t20 = VGroup(Line(pl.P(0, 1.0) + LEFT * 0.15, pl.P(0, 1.0), color=GREY, stroke_width=4),
+                     T("20,000", 28, TEXT, weight=BOLD).next_to(pl.P(0, 1.0) + LEFT * 0.15, LEFT, buff=0.12))
+        ceil = DashedLine(pl.P(0, 1.0), pl.P(1.0, 1.0), color=GREY, stroke_width=4)
+        clab = T("all present at the peak", 32, TEXT, weight=BOLD).set_opacity(1).move_to([pl.P(0, 1.0)[0] + 0.2, 3.25, 0], aligned_edge=LEFT)
+        clab.align_to(pl.P(0, 0), LEFT).shift(RIGHT * 0.15)
+        sch = cap("schematic:\nshape not measured", 28, CAPC, line_spacing=0.9).move_to([pl.P(0.78, 0)[0], -2.0, 0])
+        arc, ticks, needle, hub, glow, dlab = dial_parts(5.85, 0.3, 0.85, u)
+
+        solid0 = pl.curve(fsurv, U0, U_N, BLUE, 8, 40)
+        solid1 = pl.curve(fsurv, U_N, U_X, BLUE, 8, 40)
+        dashed = DashedVMobject(pl.curve(fsurv, U_X, U_END, BLUE, 8, 40), num_dashes=14)
+        normal_dot = Dot(pl.P(U_N, 0.6), radius=0.12, color=BLUE)
+        marker = always_redraw(lambda: Dot(pl.P(u.get_value(), fsurv(u.get_value())), radius=0.15, color=BLUE))
+
+        def bracket():
+            ux = u.get_value()
+            xx = pl.P(ux, 0)[0] + 0.0
+            y0 = pl.P(0, fsurv(ux))[1]
+            y1 = pl.P(0, 1.0)[1]
+            return VGroup(Line([xx, y0, 0], [xx, y1, 0], color=RED, stroke_width=6),
+                          Line([xx - 0.14, y0, 0], [xx + 0.14, y0, 0], color=RED, stroke_width=6),
+                          Line([xx - 0.14, y1, 0], [xx + 0.14, y1, 0], color=RED, stroke_width=6))
+        brk = always_redraw(bracket)
+        dlabel = always_redraw(lambda: T("deaths", 28, RED, weight=BOLD).move_to(
+            [pl.P(u.get_value(), 0)[0] + 0.95, (pl.P(0, fsurv(u.get_value()))[1] + pl.P(0, 1.0)[1]) / 2 + 0.1, 0]))
+        nlab = cap("normal", 28, BLUE).move_to(pl.P(U_N, fsurv(U_N)) + np.array([0.85, -0.45, 0]))
+        xlab = cap("extra leg:\na small rise", 28, BLUE, line_spacing=0.9).move_to(
+            pl.P(U_X, fsurv(U_X)) + np.array([1.15, -0.7, 0]))
+        ring = Circle(radius=0.25, stroke_color=BLUE, stroke_width=4).move_to(pl.P(U_X, fsurv(U_X)))
+        ghost = DashedVMobject(Circle(radius=0.3, color=GREY, stroke_width=4).move_to([4.0, 3.25, 0]), num_dashes=12)
+        glab = cap("not there", 28).move_to([5.4, 3.25, 0])
+
+        self.play(FadeIn(VGroup(arc, ticks, hub, dlab)), FadeIn(glow), Create(axes), FadeIn(yl), FadeIn(xl), FadeIn(t12),
+                  FadeIn(t20), Create(ceil), Create(solid0), FadeIn(needle), FadeIn(nlab), FadeIn(sch),
+                  FadeIn(normal_dot), FadeIn(marker), FadeIn(brk), FadeIn(dlabel), FadeIn(clab), run_time=0.6)
+        self.play(Create(solid1, rate_func=linear), u.animate(rate_func=linear).set_value(U_X),
+                  Succession(Wait(0.7), AnimationGroup(FadeIn(xlab), Create(ring), run_time=0.2)), run_time=0.9)
+        self.at("up to a ceiling")
+        self.play(Create(dashed, rate_func=linear), u.animate(rate_func=linear).set_value(U_END),
+                  run_time=1.0)
+        self.at("rescue")
+        self.play(Indicate(ceil, color=TEXT), Indicate(clab, color=TEXT, scale_factor=1.04), run_time=0.5)
+        self.at("a neuron")
+        self.play(FadeIn(ghost, scale=0.6), FadeIn(glab), run_time=0.7)
+        self.finish()
+
+
+# -----------------------------------------------------------------------------------------------------
+def clock_parts(cx, cy, R, ang):
+    face = Circle(radius=R, stroke_color=TEXT, stroke_width=5, fill_color=BG, fill_opacity=1).move_to([cx, cy, 0])
+    ticks = VGroup(*[Line([cx + 0.82 * R * math.sin(k * math.pi / 6), cy + 0.82 * R * math.cos(k * math.pi / 6), 0],
+                          [cx + 0.98 * R * math.sin(k * math.pi / 6), cy + 0.98 * R * math.cos(k * math.pi / 6), 0],
+                          color=GREY, stroke_width=4) for k in range(12)])
+    hand = always_redraw(lambda: Line([cx, cy, 0], [cx + 0.72 * R * math.sin(ang.get_value()),
+                                                    cy + 0.72 * R * math.cos(ang.get_value()), 0],
+                                      color=TEXT, stroke_width=7))
+    hub = Dot([cx, cy, 0], radius=0.08, color=TEXT)
+    return VGroup(face, ticks, hub), hand
+
+
+class S15Own(SpokenScene):
+    def construct(self):
+        cx, cy = 1.4, 0.1
+        A, B = 2.5, 2.85
+        outline = Ellipse(width=2 * A, height=2 * B, stroke_color=BLUE, stroke_width=3, fill_color=BLUE,
+                          fill_opacity=0.07).move_to([cx, cy, 0])
+        n = 18
+        ga = math.pi * (3 - math.sqrt(5))
+        pts = [(0.88 * math.sqrt((i + 0.5) / n) * math.cos(i * ga), 0.88 * math.sqrt((i + 0.5) / n) * math.sin(i * ga))
+               for i in range(n)]
+        dots = VGroup(*[Dot([cx + A * a, cy + B * b, 0], radius=0.27, color=BLUE) for a, b in pts])
+        lost = random.Random(5).sample(range(n), 8)
+        ang = ValueTracker(0.0)
+        face, hand = clock_parts(5.55, 1.9, 0.95, ang)
+        poplab = cap("e.g. early chick cervical motor neurons", 28).move_to([cx, -3.5, 0])
+        blk = RoundedRectangle(corner_radius=0.25, width=2.3, height=3.6, stroke_color=YELLOW, stroke_width=4,
+                               fill_color=YELLOW, fill_opacity=0.2).move_to([-5.0, 0.1, 0])
+        blab = T("target", 34, YELLOW, weight=BOLD).move_to(blk)
+        ar = Arrow([-3.75, 0.1, 0], [-1.3, 0.1, 0], buff=0, color=GREY, stroke_width=6, tip_length=0.25,
+                   stroke_opacity=0.5)
+        xmark = VGroup(Line([-2.95, 0.55, 0], [-2.15, -0.35, 0], color=RED, stroke_width=10),
+                       Line([-2.95, -0.35, 0], [-2.15, 0.55, 0], color=RED, stroke_width=10))
+        tag = chip2("not every\npopulation", GREY, size=30, pad=0.2).move_to([5.45, -0.55, 0])
+
+        self.play(FadeIn(outline), FadeIn(face), LaggedStart(*[FadeIn(d, scale=0.4) for d in dots], lag_ratio=0.03),
+                  FadeIn(poplab), run_time=0.8)
+        self.add(ang, hand)
+        ang.add_updater(lambda m, dt: m.increment_value(dt * 1.3))   # the clock keeps running on its own
+        self.at("die")
+        self.play(AnimationGroup(
+            LaggedStart(*[dots[i].animate.set_color(RED).set_opacity(GHOST) for i in lost], lag_ratio=0.22),
+            Succession(Wait(1.4), AnimationGroup(FadeIn(blk), FadeIn(blab), FadeIn(ar), FadeIn(xmark, scale=1.3),
+                                                 run_time=0.8)),
+            run_time=3.0))
+        self.at("the lesson ends")
+        self.play(FadeIn(tag, shift=UP * 0.15), run_time=0.7)
+        self.finish()
+
+
+# -----------------------------------------------------------------------------------------------------
+class S16Take(SpokenScene):
+    def construct(self):
+        head = T("Takeaway", 36, TEAL, weight=BOLD).move_to([0, 3.35, 0])
+        l1 = T("The embryo makes too many,", 52, TEXT, font=TITLE_FONT, t2c={"too many": BLUE}).move_to([0, 2.4, 0])
+        l2 = T("and in the limb, the target", 52, TEXT, font=TITLE_FONT, t2c={"target": YELLOW}).move_to([0, 1.4, 0])
+        l3 = T("helps set how many survive.", 52, TEXT, font=TITLE_FONT).move_to([0, 0.4, 0])
+        t1 = chip2("survival, not production (chick limb)", BLUE, size=34, pad=0.22).move_to([0, -1.0, 0])
+        t2 = chip2("a dial with a ceiling", YELLOW, size=34, pad=0.22).move_to([0, -2.1, 0])
+        t3 = chip2("not every population", GREY, size=34, pad=0.22).move_to([0, -3.2, 0])
+        self.play(FadeIn(head), run_time=0.4)
+        self.at("the embryo makes")
+        self.play(FadeIn(l1, shift=UP * 0.15), run_time=0.6)
+        self.at("in the limb")
+        self.play(FadeIn(l2, shift=UP * 0.15), FadeIn(t1, shift=UP * 0.1), run_time=0.6)
+        self.at("helps set")
+        self.play(FadeIn(l3, shift=UP * 0.15), FadeIn(t2, shift=UP * 0.1), run_time=0.6)
+        self.at("survive")
+        self.play(FadeIn(t3, shift=UP * 0.1), run_time=0.6)
+        self.finish()
+
+
+class S17End(EndCard):
+    LINE = "Too many are made; the limb target helps set survival."
+
+    def construct(self):
+        line = T("Too many are made;\nthe limb target helps set survival.", size=56, font=TITLE_FONT, line_spacing=0.9)
+        fit(line, max_w=12.2)
+        sub = T("biochemistrypedia.com", size=30, color=TEAL)
+        g = VGroup(line, sub).arrange(DOWN, buff=0.5)
+        self.play(FadeIn(line, shift=UP * 0.15), run_time=self.beat(0.3))
+        self.play(FadeIn(sub), run_time=self.beat(0.15))
+        self.finish()

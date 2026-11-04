@@ -4,11 +4,12 @@ slug: "axon-pruning"
 course: "developmental-neuroscience"
 courseChapter: "Developmental Neuroscience · Unit 7: Survival and competition"
 order: 234
-summary: "Developing neurons build more axon branches than they keep, then remove the extras while the neuron itself survives, and that pruning refines the circuit. This lesson separates stereotyped pruning, set by a hormone-driven program in flies and by a repulsive cue in the mouse hippocampus, from pruning by competition, then shows how some neurons run their death machinery in one branch without dying. Afterwards you can predict which axons degenerate, and which neurons die, when trophic support is removed from part of a cell or from all of it."
-hook: "How does a neuron cut off a whole axon branch with the same enzymes that could kill it?"
+summary: "Developing neurons build more axon branches than they keep, then remove the extras while the neuron itself survives, and that pruning refines the circuit. One idea carries the lesson: where support is lost decides what is lost. Remove NGF from a sympathetic neuron's axons alone and they degenerate while the cell lives; remove it everywhere and the neuron dies, by a caspase route wired differently. The lesson then follows competition between axons and the phases of axon breakdown, and ends with stereotyped pruning, set by a hormone-driven program in flies and by a repulsive cue in the mouse hippocampus, as the contrast. Afterwards you can predict which axons degenerate, and which neurons die, when trophic support is removed from part of a cell or from all of it."
+hook: "How does a neuron cut off one branch with caspases, the enzymes of cell death, and still live?"
 
-estMinutes: 24
+estMinutes: 26
 objectives:
+  - "State the guiding idea, where support is lost decides what is lost, and say which neurons and which kinds of pruning it covers."
   - "Distinguish the progressive events that build a draft nervous system from the regressive events that sculpt it, and define pruning as removal of an axon branch or dendrite from a neuron that survives."
   - "Compare stereotyped pruning (fly mushroom body gamma neurons; Sema3F and neuropilin-2 in the mouse hippocampus) with pruning by competition (BDNF acting through p75 on losing sympathetic axons)."
   - "Explain how a neuron confines caspase activity to one branch, using fly dendrite pruning and mouse sympathetic neurons, where caspase-9, -3 and -6 act in the axon without Apaf-1 while XIAP and the proteasome protect the cell body."
@@ -18,10 +19,28 @@ explainer:
   src: "/explainers/axon-pruning/explainer.mp4"
   captions: "/explainers/axon-pruning/explainer.vtt"
   poster: "/explainers/axon-pruning/poster.jpg"
-  title: "One Neuron, Two Ways to Lose Axons"
-  durationSec: 141.0
+  title: "Where Support Is Lost"
+  durationSec: 136.3
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "two-routes"
+    src: "/explainers/axon-pruning/two-routes.mp4"
+    captions: "/explainers/axon-pruning/two-routes.vtt"
+    poster: "/explainers/axon-pruning/two-routes-poster.jpg"
+    title: "Same Knives, Two Routes"
+    durationSec: 209.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "who-loses"
+    src: "/explainers/axon-pruning/who-loses.mp4"
+    captions: "/explainers/axon-pruning/who-loses.vtt"
+    poster: "/explainers/axon-pruning/who-loses-poster.jpg"
+    title: "Who Loses, and When It Commits"
+    durationSec: 148.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Liqun Luo"
@@ -100,9 +119,8 @@ scientists:
       long latent phase with little visible change, then a transition in which swellings called
       spheroids form, gather calcium, expose phosphatidylserine and rupture, then catastrophic
       breakdown. p75 was needed for spheroids to form, through Rho, and DR6 for the catastrophic
-      degeneration that medium from deprived axons speeds up. Gamage and colleagues also found
-      that DR6 promotes degeneration after injury, though a 2026 study did not reproduce this. The work treats spheroids as a gate between
-      latency and catastrophe rather than as debris.
+      degeneration that medium from deprived axons speeds up. The laboratory's model treats
+      spheroids as a gate between latency and catastrophe rather than as debris.
 
 techniques:
   - name: "MARCM mosaic labelling"
@@ -272,8 +290,10 @@ explainLevels:
     label: "High school"
     text: >-
       The nervous system is first built roughly, with extra branches, and then trimmed. Pruning
-      removes an axon branch or a dendrite while the neuron survives. Some pruning is
-      programmed: a hormone or a repellent signal tells a set branch to go. Other pruning is a
+      removes an axon branch or a dendrite while the neuron survives. In a dish, take growth
+      factor away from the branches while the cell body still has it and only the branches go;
+      take it from the whole cell and the cell dies.
+      Some pruning is programmed: a hormone or a repellent signal tells a set branch to go. Other pruning is a
       contest, where branches with too little growth factor lose and the winners send a signal
       that helps remove them. The cell keeps its "self-destruct" enzymes switched off everywhere
       except the doomed branch.
@@ -328,7 +348,7 @@ anecdotes:
       Santiago Ramón y Cajal drew swollen beads and bulbs along damaged axons in his studies of
       degeneration and regeneration. Such swellings are easy to read as a mere sign that an axon
       is failing, like rust on a bridge. Look at the drawings again and ask, "So, what's the deal
-      with these spheroids?" The Deppmann laboratory's answer is that the swellings regulate when
+      with these spheroids?" The Deppmann laboratory's model is that the swellings regulate when
       an axon commits to catastrophe. Spheroids, in other words, are not just decorative.
 
 corpusTags:
@@ -344,54 +364,148 @@ corpusTags:
 draft: false
 ---
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**When a fruit fly turns from larva into adult, each gamma neuron in its mushroom body loses two whole axon branches within about eighteen hours, and the neuron survives.**
+**Grow sympathetic neurons in a dish divided into compartments, so that one neuron's branches reach into separate compartments. Take NGF away from one compartment, and the branches there degenerate. Branches of the same neuron next door, still in NGF, stay.**
 
-Development builds more connections than the adult circuit keeps, and pruning is how neurons cut the excess back. Later in metamorphosis the same neuron grows a new adult branch. In that interval it took apart a large piece of itself and stopped at the right place. This lesson asks what chooses the branch that goes (a genetic program or a competition), how the branch is removed, and how a neuron cuts back an axon without dying.
+That experiment, from Campenot's compartmented cultures (1977, 1982), is pruning in miniature. Development builds more connections than the adult circuit keeps, and pruning is how neurons cut the excess back. This lesson asks three questions. What chooses the branch that goes? How is it removed? And how does a neuron cut off one branch with caspases, the enzymes of cell death, and still live?
 
-## Progressive events build the "draft" of the nervous system; regressive events sculpt it
+## Lose support here, lose the branch here
 
-Development can be divided into two kinds of events. "Progressive events build the 'draft' of the nervous system": neurons are born, migrate, form layers, and send out axons that find their targets. "Regressive events sculpt neural circuits": whole neurons die, synapses are removed, and axons and dendrites are pruned. Think of a sculptor who first piles up more clay than the figure needs, then carves.
+NGF, nerve growth factor, is a trophic factor: a growth factor, supplied by the target, that a neuron needs to survive. Developing sympathetic neurons depend on it, and [the lesson on the neurotrophic hypothesis](/lessons/neurotrophic-hypothesis/) shows how strictly. A compartmented culture lets you give or withhold NGF at one part of a neuron while the rest stays in it. The cell bodies sit in one compartment, and their neurites, the growing branches, cross into side compartments whose fluids stay apart.
 
-Pruning has a narrow meaning here: removal of an axon branch or a dendrite from a neuron that survives. That separates it from the neuron death of [that lesson](/lessons/death-machinery-in-neurons/), where the whole cell goes. The word covers two physical processes. In **retraction**, a branch pulls back toward the cell body. Much of its material returns to the cell, though some retracting branches also shed small pieces that glia engulf. In **local degeneration**, the branch breaks into pieces in place, and other cells engulf the pieces. A good description of any pruning event says which one happened.
+**Predict.** Remove NGF from one side compartment only. Which branches degenerate? Then remove NGF from every compartment. What happens to the neuron?
+
+<details>
+<summary>Check your prediction</summary>
+
+Only the branches in the deprived compartment degenerate; branches of the same neuron still in NGF survive. That does not mean every part of a neurite must be bathed in NGF: Campenot found that the cell bodies and the near ends of the neurites could do without it, as long as the far ends reached NGF. Remove NGF from every compartment and the neurons themselves die, as the experiments below show.
+
+</details>
+
+> **The one idea to carry through this lesson.** Where support is lost decides what is lost. During a neuron's window of dependence on NGF, in culture, take the trophic signal away from its axons, or some of them, while the cell body still has enough support, and the deprived axons degenerate while the neuron lives. Take it away from the whole neuron, and the neuron dies. Pruning and death follow the same rule, but run on caspase routes that are wired differently, as the sections below show.
+
+**What the rule covers.**
+
+- **Which neurons.** NGF-dependent sympathetic neurons, and NGF-dependent sensory neurons, during their window of dependence. The experiments in this lesson were done in sympathetic neurons.
+- **Which pruning.** Pruning by local degeneration after a branch loses trophic support, including the losing branch in a competition. It does not cover stereotyped pruning, where a developmental program picks the branch.
+
+## Building, then sculpting
+
+Development can be divided into two kinds of events. Progressive events build a rough draft of the nervous system: neurons are born, migrate, form layers, and send out axons that find their targets. Regressive events then sculpt the circuits: whole neurons die, synapses are removed, and axons and dendrites are pruned. Think of a sculptor who first piles up more clay than the figure needs, then carves.
+
+Pruning has a narrow meaning here: removal of an axon branch or a dendrite from a neuron that survives. That separates it from the neuron death of [the lesson on death machinery in neurons](/lessons/death-machinery-in-neurons/), where the whole cell goes. The word covers two physical processes. In **retraction**, a branch pulls back toward the cell body. Much of its material returns to the cell, though some retracting branches also shed small pieces that glia engulf. In **local degeneration**, the branch breaks into pieces in place, and other cells engulf the pieces. A good description of any pruning event says which one happened.
 
 <LessonFigure src="/figures/axon-pruning/retraction-vs-local-degeneration.webp" width={1200} height={640} alt="AI-generated illustration: two numbered sequences compare removal of a side branch while the neuron and main axon survive. In retraction, the connected branch shortens toward its base and much of its material returns to the cell; some retracting branches also shed small pieces that glia engulf. In local degeneration, the branch fragments in place and other cells engulf the fragments." caption="Pruning removes a branch from a neuron that survives. In retraction the branch pulls back toward the cell body, much of its material returning to the cell, though some retracting branches also shed pieces that glia engulf. In local degeneration it breaks into pieces in place and other cells engulf them." />
 
-Pruning has two broad triggers. In **stereotyped pruning** the branch to be removed is set by a genetic program, so the same branch goes in every animal. In **competitive pruning** the outcome depends on competition between axons, for example for trophic support, a growth factor supplied by the target, or through differences in activity. Both appear below.
+Pruning has two broad triggers in the animal. In **competitive pruning** the outcome depends on competition between axons, for example for trophic support, or through differences in activity. In **stereotyped pruning** the branch to be removed is set by a genetic program, so the same branch goes in every animal. The stereotyped cases come at the end, as the contrast; the last of them is pruned by retraction.
 
-## Stereotyped pruning follows a program, and some tracts use a repulsive cue
+## One neuron, two ways to lose an axon
 
-Start with the fly. Liqun Luo's group used MARCM, a genetic method that labels one or a few neurons in an otherwise unlabelled brain and can make only those neurons mutant. In 2000 Tzumin Lee, Luo and colleagues showed that a gamma neuron needs the steroid receptor EcR-B1, working with its partner USP, inside itself to remodel. The ecdysone receptor is a nuclear receptor, a ligand-activated transcription factor of the kind covered in [that lesson](/lessons/nuclear-receptors/). The hormone 20-hydroxyecdysone rises at metamorphosis, and within the mushroom body EcR-B1 is made in the gamma neurons, which need it to prune. The hormone gives the timing; the receptor helps decide which neurons respond.
+<LessonFilm film={frontmatter.films[0]} />
 
-In fixed fly brains followed from the start of metamorphosis (Watts, Hoopfer and Luo, 2003) the branches blebbed, then appeared as separate fragments, then were gone, while the main axon shaft stayed continuous. Separated pieces are what local degeneration predicts, since a retracting branch would stay connected to the cell. Blocking ubiquitin tagging, or the proteasome that destroys tagged proteins, kept the larval branches in place. The requirement was inside the pruning neuron. In the same study, blocking the fly's main apoptosis activators or expressing the caspase inhibitor p35 did not stop this axon pruning, so the fly mushroom body does not appear to rely on the usual apoptosis machinery. The proteasome is covered in [that lesson](/lessons/ubiquitin-and-proteolysis/).
+Caspases are proteases that dismantle a cell during apoptosis, a built-in program of cell death; the Cell Signaling course covers how they are activated in [the lesson on death receptors, Bcl-2 proteins and caspases](/lessons/death-receptors-bcl2-caspases/). Initiator caspases, such as caspase-9, start a cascade that switches on executioner caspases, such as caspase-3 and caspase-6, which do the cutting. A sympathetic neuron's cell body and its axon share one cytoplasm, and both contain caspases. To ask how the neuron uses them in one place and not the other, you need to deprive one place and not the other.
 
-Mammals use guidance cues as well. "Repulsive cues are essential in sculpting the CNS (same repulsive cues that participate in the initial assembly)." In the mouse hippocampus, the axons of dentate granule cells, the mossy fibres, form a main bundle and a short infrapyramidal tract. After birth the infrapyramidal tract is cut back. In 2003 Anil Bagri, Marc Tessier-Lavigne and colleagues found that in mice lacking neuropilin-2 or Plexin-A3, parts of the Sema3F receptor, the tract stayed long, and later work showed that Sema3F itself is required. Cultured hippocampal neurons retracted axon branches when exposed to semaphorins. Later electron microscopy of the mouse tract found the branches removed without breaking up or being engulfed by glia, so this example is pruning by retraction. The cue that repels axons during assembly is used again to trim them; [that lesson](/lessons/semaphorins/) covers semaphorins and their receptors. Hence the rule for the mammalian case: stereotyped pruning of long axon branches requires repulsive cues.
+In 2013 Corey Cusack, Mohanish Deshmukh and colleagues grew mouse sympathetic neurons in a microfluidic chamber, a modern compartmented culture: cell bodies on one side, axons grown through narrow grooves into the other, fluids kept apart. Both sides started with NGF. That setup allows two experiments:
 
-## Winners and losers: pruning by competition
+- **Local deprivation:** remove NGF from the axon compartment only.
+- **Global deprivation:** remove NGF from both compartments.
 
-Many sympathetic neurons send branches toward targets that make the trophic factor NGF. As [that lesson](/lessons/competition-for-targets/) shows, the neurons compete, and the result is a "zero sum" contest: a branch that gets more support is stabilized, and one that gets less is weakened and removed.
+In normal neurons, after local deprivation, the deprived axons degenerated and the cell bodies, still bathed in NGF, lived. That is pruning in a dish. After global deprivation, the neurons died, and their axons went with them. That is developmental cell death in a dish.
 
-What removes the loser? In 2008 Singh, David Kaplan, Freda Miller and colleagues studied sympathetic neurons in compartmented cultures and in mice. Axons with strong signalling through TrkA, the NGF receptor tyrosine kinase, were protected. Winning neurons made BDNF, a neurotrophin that binds p75, a receptor of the TNF-receptor family. On axons with weak TrkA signalling, BDNF acting through p75 caused degeneration. In one model, winning axons release BDNF in an activity-dependent way. A winner therefore does more than take the NGF. It also sends a signal that removes the loser, and its own TrkA signalling makes it resistant to that signal. The pairing of TrkA with p75 is the subject of [that lesson](/lessons/trk-and-p75/).
+Both outcomes involve caspases. Are they one program run at two strengths, or two programs? Mutant neurons answer that.
+
+**Predict.** Delete caspase-6. Do the axons still break down after local deprivation? After global deprivation?
+
+<details>
+<summary>Check your prediction</summary>
+
+Caspase-6 mattered in only one. Without it, locally deprived axons were spared. After global deprivation, deleting caspase-6 no longer saved the axons: they degenerated as the neurons died, since axon breakdown during whole-cell death rides on apoptosis. On its own, that does not rule out one program at two strengths, since a stronger signal might simply not need caspase-6. The second mutant gives much stronger evidence.
+
+</details>
+
+The second mutant tests the other end of the pathway. During apoptosis the usual activator of caspase-9 is the apoptosome, a complex built by the protein Apaf-1; caspase-9 then switches on caspase-3. Local pruning needed caspase-9, caspase-3 and caspase-6.
+
+**Predict.** Does local pruning also need Apaf-1? Predict both experiments in neurons lacking Apaf-1.
+
+<details>
+<summary>Check your prediction</summary>
+
+| Neurons | NGF removed from axons only | NGF removed everywhere |
+| --- | --- | --- |
+| Normal | axons degenerate; cell bodies live | neurons die, axons too |
+| Lacking caspase-6 | **axons protected** | neurons die, axons with them |
+| Lacking Apaf-1 | axons still degenerate; cell bodies live | **neurons resist death** |
+
+In this study, local pruning did not need Apaf-1, and death of the whole neuron did. Each route needs something the other does not, which points to two differently wired routes that share enzymes, rather than one program at two strengths.
+
+What about the axons of Apaf-1-null neurons after global deprivation? Cusack and colleagues summarize Apaf-1 as required only for axon degeneration during apoptosis, which implies those axons are spared too: an inference from their model rather than a result described here.
+
+</details>
+
+## Guarding the part that must live
+
+During local deprivation, caspases become active in the axon. What keeps caspase activity low in the cell body? The same study found that XIAP, a protein that binds and blocks active caspase-9 and caspase-3, and the proteasome kept caspases switched off in the cell bodies. The proteasome is the cell's machine for destroying proteins tagged with ubiquitin, covered in [the lesson on ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/). After local deprivation, neurons lacking XIAP built up active caspase-3 in their cell bodies. An inhibitor guards the part of the cell that must live.
+
+Fly sensory neurons that prune their dendrites at metamorphosis suggest a similar idea. In 2006 Darren Williams, James Truman and colleagues used a genetically encoded reporter to find caspase activity. It appeared only in the dendrites being removed. Suppressing caspases kept the dendrites; activating caspases throughout the neuron killed it.
+
+In the same year Chay Kuo, working with Lily Jan and Yuh-Nung Jan, found evidence on how the caspase is let loose. The ubiquitin-conjugating enzyme UbcD1 helps send DIAP1, an inhibitor that holds the fly caspase Dronc in check, to the proteasome. Their model: lose the minder and the caspase can run. Where that removal happens, and how caspase activity stays in the dendrites and out of the cell body, is not fully worked out. In the mouse, by contrast, XIAP was shown to protect the cell body.
+
+## Winners and losers: who loses a contest
+
+<LessonFilm film={frontmatter.films[1]} />
+
+In the dish, the experimenter decides where support is lost. In the animal, target-derived NGF normally reaches a sympathetic neuron at its axon terminals and signals back to the cell body. So the whole neuron dies when too little of that signal reaches the cell body overall, not after some fixed number of branches lose it. Which branches lose support depends on competition for limited target-derived NGF. As [the lesson on competition for targets](/lessons/competition-for-targets/) shows, a branch that wins enough support is stabilized, and one left with too little is weakened and removed.
+
+What removes the loser? In 2008 Singh, David Kaplan, Freda Miller and colleagues studied sympathetic neurons in compartmented cultures and in mice. Two receptors matter. TrkA is the NGF receptor tyrosine kinase. p75 is a receptor of the TNF-receptor family that binds all neurotrophins, including BDNF.
+
+**Predict.** Two axons compete, one with strong and one with weak TrkA signalling. BDNF is present. Which axon degenerates, and through which receptor?
+
+<details>
+<summary>Check your prediction</summary>
+
+The weak one, through p75. On axons with weak TrkA signalling, BDNF acting through p75 caused degeneration, while axons with strong TrkA signalling were protected. And the winning neurons made the BDNF. In one model, winning axons release BDNF in an activity-dependent way. A winner therefore does more than take the NGF. It also sends a signal that removes the loser, and its own TrkA signalling makes it resistant to that signal.
+
+</details>
 
 <LessonFigure src="/figures/axon-pruning/winner-loser-ngf-bdnf.webp" width={1200} height={790} alt="AI-generated illustration: two sympathetic axon tips compete for NGF released by a target cell. The winner has TrkA receptors that catch many NGF dots and sends BDNF dots toward the other axon; the loser has weak TrkA signalling, p75 receives the BDNF, and its tip is drawn thinning. A shield symbol on the winner stands for strong TrkA signalling, not a physical barrier; dot counts are schematic." caption="Sympathetic axons compete for target-derived NGF. A winning axon takes more NGF through TrkA and also releases BDNF; on an axon with weak TrkA signalling, BDNF acting through p75 causes degeneration. The shield symbolizes strong TrkA signalling, not a physical barrier, and particle counts are schematic." />
 
-## Using the death machine locally
+This is the axon-scale version of a whole-neuron model in [the lesson on the neurotrophic hypothesis](/lessons/neurotrophic-hypothesis/), whose rule is make too many, then let the target keep what it can feed. There, neurons with strong NGF signalling release BDNF and NT-4, which act through p75 on weak neighbours and push them toward death (Deppmann and colleagues, 2008). Singh and colleagues' 2008 work is the evidence for axons: the same winner-removes-loser idea at the smaller scale. The pairing of TrkA with p75 is the subject of [the lesson on Trk and p75 receptors](/lessons/trk-and-p75/).
 
-Caspases are proteases that dismantle a cell during apoptosis, and the Cell Signaling course covers how they are activated in [that lesson](/lessons/death-receptors-bcl2-caspases/). How can a neuron run them in one branch and not in its cell body, which shares the same cytoplasm?
+## When a deprived axon commits
 
-Fly sensory neurons that prune their dendrites at metamorphosis gave the first answer. In 2006 Darren Williams, James Truman and colleagues used a genetically encoded reporter to find caspase activity. It appeared only in the dendrites being removed. Suppressing caspases kept the dendrites; activating caspases throughout the neuron killed it. In the same year Chay Kuo, working with Lily Jan and Yuh-Nung Jan, found evidence that the ubiquitin-conjugating enzyme UbcD1 helps send DIAP1, an inhibitor that holds the caspase Dronc in check, to the proteasome. Their model: lose the minder and the caspase can run. How that loss, and the caspase activity, stays in the dendrites and out of the cell body is not fully worked out.
+A deprived axon does not come apart at once. Following axons deprived of NGF over time, Yong, Gamage and colleagues in the Deppmann laboratory (J Neurosci 2019) divided the process into three phases.
 
-Mammalian axons separate the two programs in another way. In 2013 Corey Cusack, Mohanish Deshmukh and colleagues built a microfluidic chamber in which the cell bodies of mouse sympathetic neurons sat in one compartment and their axons grew through narrow grooves into another. When NGF was removed from the axons alone, the axons degenerated and the cell bodies lived. This pruning needed caspase-9, caspase-3 and caspase-6, but it did not need Apaf-1, the protein that builds the apoptosome, the usual activator of caspase-9 in apoptosis. When NGF was removed from the whole dish, the neurons died, death needed Apaf-1, and loss of caspase-6 no longer protected the axons. The two routes share enzymes but are wired differently. The same study also showed how the cell body is protected during local deprivation. XIAP, a protein that binds and blocks active caspase-9 and caspase-3, and the proteasome kept caspases switched off in the cell bodies. Neurons lacking XIAP built up active caspase-3 in their cell bodies. Like DIAP1 in the fly, an inhibitor guards the part of the cell that must live.
+1. **Latent phase.** A long period in which the axon looks nearly normal.
+2. **Transition.** Late in latency, swellings called axonal spheroids appear.
+3. **Catastrophic phase.** The axon fragments.
 
-## Latency to catastrophe: what spheroids do
+Live imaging showed calcium rising in axons before catastrophic degeneration and gathering in spheroids; calcium signalling is covered in [the lesson on calcium signaling](/lessons/calcium-signaling/). Spheroids, but not the rest of the axon, exposed phosphatidylserine, a membrane lipid that phagocytes recognize. Then they ruptured, letting in dextran tracers, sugar chains that cannot cross an intact membrane, of 3 and 10 kilodaltons but not of 70; the calcium signal was lost as the dextran entered. Medium from axons already deprived of NGF, called conditioned medium, sped fresh deprived axons into catastrophe, so deprived axons release something that does this.
 
-The Deppmann laboratory asked what happens over time in an axon deprived of NGF. Their answer, from Yong, Gamage and colleagues (J Neurosci 2019), divides the process into phases. In a **latent phase** the axon looks nearly normal. In a **transition**, late in latency, swellings called axonal spheroids appear. In a **catastrophic phase** the axon fragments. "Local Versus Global NGF Deprivation have Different Latent Phases", so how the axon was deprived changes how long it waits.
+Two members of the TNF-receptor family, a receptor family that includes the death receptors, split the work. p75 was needed for spheroids to form, and DR6 was not. DR6, not p75, was needed for the catastrophic degeneration that conditioned medium speeds up. p75 acted through Rho, a small GTPase that reorganizes actin, covered in [the lesson on integrins and Rho GTPases](/lessons/integrins-and-rho-gtpases/); blocking Rho or actin dynamics prevented spheroids.
 
-"So, what's the deal with these spheroids?" Live imaging showed calcium rising in axons before catastrophic degeneration and gathering in spheroids; calcium signalling is covered in [that lesson](/lessons/calcium-signaling/). Spheroids, but not the rest of the axon, exposed phosphatidylserine, a membrane lipid that phagocytes recognize. Then they ruptured, letting in small dextrans but not a large one. Medium collected from deprived axons sped up entry into catastrophe in fresh deprived axons.
+Are spheroids just a sign that the axon is failing, or a step that sets the timing? The laboratory's model is that spheroids gate the transition from latency to catastrophic degeneration: they set when the axon commits. The evidence here is one rescue: forcing Rho on in p75-null axons restored both spheroids and degeneration. That fits a gate but does not prove one; the gate is the authors' interpretation, not a settled mechanism.
 
-Two TNF-receptor family members split the work. "p75NTR but not DR6 is Required for Spheroid Formation." p75 acted through Rho, a small GTPase that reorganizes actin, covered in [that lesson](/lessons/integrins-and-rho-gtpases/); blocking Rho or actin dynamics prevented spheroids, and forcing Rho on restored spheroids and degeneration in p75-null axons. DR6, in turn, was needed for the catastrophic degeneration that conditioned medium drives, and p75 was not. The take-home: "Spheroids gate the transition from latency to catastrophic degeneration."
+Development and injury differ. For sympathetic axons deprived of NGF, caspases are required for developmental degeneration but not for degeneration after injury. After a nerve is cut, the detached part of the axon undergoes Wallerian degeneration, which uses a partly different program; [the lesson on injury and regeneration](/lessons/injury-and-regeneration/) covers it.
 
-Development and injury differ. "Caspases required for developmental degeneration but not injury." That holds for sympathetic axons deprived of NGF; fly mushroom body pruning, as above, does not need them. After a nerve is cut, the detached part of the axon undergoes Wallerian degeneration, and WldS and loss of SARM1 protect strongly against it. Whether SARM1 contributes to degeneration after trophic deprivation is still debated. The injury pathway itself belongs to [that lesson](/lessons/injury-and-regeneration/).
+## When a program, not support, picks the branch
+
+So far, lost support picked the branch. In stereotyped pruning a developmental program does: in the examples below a hormone or a repulsive cue triggers the pruning, and no loss of trophic support is needed to explain it.
+
+Start with the fly. When a fruit fly turns from larva into adult, each gamma neuron in its mushroom body, a learning centre of the fly brain, loses both of its larval axon branches within about eighteen hours, and the neuron survives. Later in metamorphosis the same neuron grows a new adult branch.
+
+Liqun Luo's group used MARCM, a genetic method that labels one or a few neurons in an otherwise unlabelled brain and can make only those neurons mutant. In 2000 Tzumin Lee, Luo and colleagues showed that a gamma neuron needs the steroid receptor EcR-B1, working with its partner USP (Ultraspiracle), inside itself to remodel. The ecdysone receptor is a nuclear receptor, a ligand-activated transcription factor of the kind covered in [the lesson on nuclear receptors](/lessons/nuclear-receptors/). The hormone 20-hydroxyecdysone rises at metamorphosis, and within the mushroom body EcR-B1 is made in the gamma neurons. The hormone gives the timing; the receptor helps decide which neurons respond.
+
+**Predict.** Gamma neuron branches break into pieces in place, like a locally deprived mouse axon, which needs caspases to do it. Would blocking the fly's main apoptosis activators, or expressing the caspase inhibitor p35, stop this pruning?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. In fly brains fixed at two-hour intervals over the first eighteen hours of metamorphosis (Watts, Hoopfer and Luo, 2003), the branches blebbed, then appeared as separate fragments, then were gone, while the main axon shaft stayed continuous. Separated pieces are what local degeneration predicts, since a retracting branch would stay connected to the cell. In the same study, blocking the fly's main apoptosis activators or expressing p35 did not stop this axon pruning, so the fly mushroom body does not appear to rely on the usual apoptosis machinery. What it did need was the ubiquitin-proteasome system: blocking ubiquitin tagging, or the proteasome, kept the larval branches in place. The requirement was inside the pruning neuron.
+
+</details>
+
+Mammals use guidance cues as well. In the mouse hippocampus, the axons of dentate granule cells, the mossy fibres, form a main bundle and a short infrapyramidal tract. After birth the infrapyramidal tract is cut back. In 2003 Anil Bagri, Marc Tessier-Lavigne and colleagues found that in mice lacking neuropilin-2 or Plexin-A3, parts of the receptor for the repulsive cue Sema3F, the tract stayed long, and later work showed that Sema3F itself is required. Cultured hippocampal neurons retracted axon branches when exposed to semaphorins, and later electron microscopy found the tract's branches removed without breaking up or being engulfed by glia: pruning by retraction. Sema3F, best known for repelling growing axons, here acts later to trim the infrapyramidal tract; [the lesson on semaphorins](/lessons/semaphorins/) covers these cues and their receptors. In this tract, then, a repulsive cue is required for the pruning, and nothing in the evidence points to lost trophic support as the trigger.
 
 ### Design problem
 
@@ -400,23 +514,23 @@ You have a two-compartment chamber and sympathetic neurons from wild-type mice a
 <details>
 <summary>One way to do it</summary>
 
-Local deprivation: in both genotypes the deprived axons degenerate and the cell bodies survive, because the cell bodies still have NGF and pruning uses caspase-9, -3 and -6. Global deprivation: wild-type neurons die, with their axons, through the apoptosome. Apaf-1-null neurons resist that death. The experiment shows that the same caspases can be reached by two routes, one local and one global: the whole-cell route needs Apaf-1 to build the apoptosome and activate caspase-9; the local route does not.
+Local deprivation: in both genotypes the deprived axons degenerate and the cell bodies survive, because the cell bodies still have NGF and pruning uses caspase-9, -3 and -6 without Apaf-1. Global deprivation: wild-type neurons die, with their axons, through the apoptosome. Apaf-1-null neurons resist that death, and Cusack and colleagues' model predicts their axons are spared too. The same caspases are reached by two routes: the whole-cell route needs Apaf-1 to build the apoptosome and activate caspase-9; the local route does not.
 
 </details>
 
 ## Going deeper
 
-### Timing and sampling in the fly mushroom body
+### Bax in both routes
 
-In 2003 Ryan Watts, Eric Hoopfer and Luo fixed fly brains at two-hour intervals from the start of metamorphosis to eighteen hours after it.
+Bax is a Bcl-2 family protein that, in apoptosis, triggers the release of cytochrome c from mitochondria. In Cusack and colleagues' chambers, axons lacking Bax were protected after local deprivation, and earlier work had shown that apoptosis needs Bax. So both routes need Bax as well as caspase-9 and caspase-3. How Bax acts in the local route, which does not need Apaf-1, is not settled.
 
-### Spheroid rupture, Rho and the APP and DR6 history
+### Latent phases differ with the kind of deprivation
 
-Dextrans of 3 and 10 kilodaltons entered, but 70-kilodalton dextran did not, and the calcium signal was lost as the dextran entered.
+Yong, Gamage and colleagues found that local and global NGF deprivation give different latent phases, so how the axon was deprived changes how long it waits before catastrophe.
+
+### Spheroids after injury
 
 A later study from the laboratory (Yong and colleagues, Sci Rep 2020) found that, after injury, adding NAD+ or expressing WldS suppresses Rho-dependent spheroid formation.
-
-DR6 has a separate history. A 2009 model, since retracted, proposed that a fragment of APP binds DR6 to trigger pruning; in 2014 Olsen and colleagues revised it, finding that APP and DR6 act in one pathway that does not need the beta-secretase cut.
 
 ### Wallerian degeneration, WldS, SARM1 and DR6 after injury
 
