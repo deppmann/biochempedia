@@ -2,7 +2,7 @@
 /**
  * HomeFilm: a film on the splash page. Poster first; the player loads only when the
  * reader presses play (DESIGN.md: "Never load a player up front"). Never autoplays.
- * Captions are on by default. Without JavaScript the poster is a plain link to the
+ * Captions are available from the player's CC control and off by default (Chris, 2026-11-05). Without JavaScript the poster is a plain link to the
  * mp4, so the film is still reachable.
  */
 interface Props {
@@ -53,11 +53,8 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
       t.src = fig.dataset.captions ?? '';
       t.srclang = 'en';
       t.label = 'English';
-      t.default = true;
       v.append(s, t);
       frame.replaceChildren(v);
-      /* default="true" is honoured by most browsers; force it for the rest. */
-      v.addEventListener('loadedmetadata', () => { if (v.textTracks[0]) v.textTracks[0].mode = 'showing'; });
       v.play().catch(() => { /* the reader can press play on the controls */ });
       v.focus();
     };
