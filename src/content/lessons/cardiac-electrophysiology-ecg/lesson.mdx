@@ -354,12 +354,13 @@ draft: false
 ---
 
 import EcgIntervalReader from '../../../components/EcgIntervalReader.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Once excited, a ventricular muscle cell stays depolarised for a few hundred milliseconds, roughly a hundred times as long as a nerve spike.** That plateau sets how much calcium enters, keeps beats from fusing, and shows on the skin as the stretch between the QRS complex and the T wave. This lesson goes further than [circulation and the heart](/lessons/circulation-and-heart/), from currents to the tracing.
 
 ## A long plateau keeps the ventricle from summing its twitches
 
-Teaching values for a human or other large-mammal ventricular cell, from recent reviews (mouse and rat ventricular action potentials are much shorter, with little plateau): **phase 4**, rest, sits near -90 mV, held close to the potassium equilibrium potential (EK) by the inward-rectifier current **IK1**. In **phase 0**, sodium channels (Nav1.5) open once the membrane is depolarised to threshold. Sources differ on the peak: one review gives about +30 mV, another an overshoot of +40 to +60 mV with a maximum rate of rise near 400 V per s. How the spike is made is in [the action potential](/lessons/action-potential/). **Phase 1** is a small notch as sodium channels inactivate and a transient outward potassium current, **Ito**, flows.
+Teaching values for a human or other large-mammal ventricular cell, from recent reviews (mouse and rat ventricular action potentials are much shorter, with little plateau): **phase 4**, rest, sits near -90 mV, held close to the potassium equilibrium potential (E_K, said “E sub K”) by the inward-rectifier current **IK1**. In **phase 0**, sodium channels (Nav1.5) open once the membrane is depolarised to threshold. Sources differ on the peak: one review gives about +30 mV, another an overshoot of +40 to +60 mV with a maximum rate of rise near 400 V per s. How the spike is made is in [the action potential](/lessons/action-potential/). **Phase 1** is a small notch as sodium channels inactivate and a transient outward potassium current, **Ito**, flows.
 
 **Phase 2**, the plateau, lasts about 200 ms and is a balance. The **L-type calcium current** (ICaL, through Cav1.2) flows in; the delayed-rectifier potassium currents **IKr** (the hERG channel) and **IKs** flow out, like a tug of war with the rope held near the middle. In **phase 3** the L-type channels close and the potassium currents win. Several potassium currents can repolarise the cell, so losing one to a gene variant or a drug is partly covered, a margin called the **repolarisation reserve**. In isolated cells and some cut wedge preparations, mid-wall (M) cells have the longest action potentials, then endocardial, then epicardial; whether this ordering holds in the intact, well-coupled heart is debated.
 
@@ -381,11 +382,28 @@ Several currents drive the drift; two are best known. The **funny current (If)**
 
 Intrinsic rates form a hierarchy: the SA node is fastest; in a standard textbook account, AV node cells fire about 40 to 60 per min and His-Purkinje cells about 15 to 40. The resting sinus rate is usually below the node's intrinsic rate because vagal tone slows it. The fastest site leads, exciting each slower one before its own ramp reaches threshold.
 
-Autonomic nerves act on the ramp. Noradrenaline at beta-adrenergic receptors raises cyclic AMP, which increases If and steepens phase 4. Acetylcholine at muscarinic M2 receptors lowers cyclic AMP and If, and also opens a G-protein-gated potassium channel that makes the maximal diastolic potential more negative ([GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/); reflex control is in [regulating arterial pressure](/lessons/blood-pressure-regulation/)). A simple description of the timing:
+Autonomic nerves act on the ramp. Noradrenaline at beta-adrenergic receptors raises cyclic AMP, which increases If and steepens phase 4. Acetylcholine at muscarinic M2 receptors lowers cyclic AMP and If, and also opens a G-protein-gated potassium channel that makes the maximal diastolic potential more negative ([GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/); reflex control is in [regulating arterial pressure](/lessons/blood-pressure-regulation/)). A simple description of the timing shows why a steeper ramp means a faster heart. One beat is two pieces added together: the time the ramp takes to climb to threshold, then the action potential itself.
 
-> **cycle length = (threshold - maximal diastolic potential) / slope of phase 4 + action potential duration**
-
-In a made-up example, a ramp from -60 to -40 mV at 0.05 mV per ms takes 400 ms; with a 200 ms action potential the cycle is 600 ms, 100 per min. Double the slope: 400 ms, 150 per min.
+<EquationCard
+  purpose="How long one pacemaker cycle lasts, and so the heart rate, from the ramp and the action potential."
+  eq="cycle length = (threshold − maximal diastolic potential) / slope of phase 4 + action potential duration"
+  say="Cycle length equals the voltage gap the ramp must climb, divided by how fast it climbs, plus the length of the action potential."
+  symbols={[
+    ["cycle length", "cycle length", "time from one beat to the next. Heart rate per minute = 60,000 ms / cycle length in ms.", "ms"],
+    ["threshold", "threshold", "the voltage at which the upstroke fires", "mV"],
+    ["maximal diastolic potential", "maximal diastolic potential", "the most negative point of the cycle, where the ramp starts", "mV"],
+    ["slope of phase 4", "slope of phase 4", "how fast the diastolic ramp climbs", "mV per ms"],
+    ["action potential duration", "action potential duration", "how long the action potential itself lasts", "ms"],
+  ]}
+  toolkit={["units", "ratios"]}
+  check="Units: mV divided by mV per ms leaves ms, so the first part is a time, and it adds to another time. If the ramp is flat (slope zero), the cell never reaches threshold and does not fire. A steeper ramp shortens only the climb; the action potential still takes its own time."
+>
+  <Fragment slot="example">
+    <p>A made-up example: a ramp from −60 to −40 mV at 0.05 mV per ms.</p>
+    <p>Climb: (−40 − (−60)) / 0.05 = 20 / 0.05 = 400 ms. Add a 200 ms action potential: the cycle is 600 ms, and 60,000 / 600 = 100 per min.</p>
+    <p>Double the slope to 0.10 mV per ms: the climb is 20 / 0.10 = 200 ms, the cycle 400 ms, and the rate 60,000 / 400 = 150 per min.</p>
+  </Fragment>
+</EquationCard>
 
 <EcgIntervalReader />
 
@@ -423,9 +441,25 @@ Illustrative numbers, adult human resting ECG at 25 mm per s: 1 small square = 1
 
 1. *Rate.* R-R = 4 large squares = 0.80 s. Rate = 60 s per min / 0.80 s = 75 per min (check: 300 / 4 = 75).
 2. *Intervals.* PR = 4 small squares = 0.16 s; QRS = 2 small squares = 0.08 s.
-3. *QT corrected for rate.* QT = 9 small squares = 0.36 s. QT shortens as rate rises, so it is corrected to a 1 s cycle:
+3. *QT corrected for rate.* QT = 9 small squares = 0.36 s. QT shortens as rate rises, so it is corrected to a 1 s cycle. Two formulas do this; they differ only in which root of RR they divide by:
 
-> **Bazett: QTc = QT / square root of RR. Fridericia: QTc = QT / cube root of RR (RR in s)**
+<EquationCard
+  purpose="Correct a measured QT interval to what it would be at a 1 s cycle (60 per min), so QT can be compared across heart rates."
+  eq="Bazett: QTc = QT / √RR    Fridericia: QTc = QT / ∛RR"
+  say="QT c equals QT divided by the square root of R R (Bazett), or by the cube root of R R (Fridericia)."
+  symbols={[
+    ["QTc", "Q T c, corrected QT", "the QT interval corrected for rate", "s"],
+    ["QT", "Q T", "the measured QT interval, from the start of QRS to the end of the T wave", "s"],
+    ["RR", "R R", "the R-R interval, one cardiac cycle. It must be in seconds for these formulas.", "s"],
+  ]}
+  toolkit={["powers"]}
+  check="At RR = 1 s both roots equal 1, so QTc = QT: no correction at 60 per min. At faster rates RR is below 1 s, its root is below 1, and dividing by it makes QTc larger than QT."
+>
+  <Fragment slot="example">
+    <p>What the roots mean, for RR = 0.80 s. The square root of 0.80 is the number that times itself gives 0.80: 0.894 × 0.894 = 0.80 (0.799 before rounding). The cube root is the number that, used three times, gives 0.80: 0.928 × 0.928 × 0.928 = 0.80 (0.799 before rounding).</p>
+    <p>A calculator gives both (on many, the cube root is RR^(1/3)). The worked problem below uses them.</p>
+  </Fragment>
+</EquationCard>
 
 Bazett: 0.36 / 0.894 = 0.40 s. Fridericia: 0.36 / 0.928 = 0.39 s. At 120 per min (R-R 0.50 s) with QT 0.30 s: Bazett 0.30 / 0.707 = 0.42 s; Fridericia 0.30 / 0.794 = 0.38 s. Both leave QT unchanged at R-R = 1 s and drift apart as rate rises. Bazett's is widely described as overcorrecting at fast rates; his 1920 formula came from a small group of healthy people.
 
@@ -435,11 +469,28 @@ Answer: 75 per min, PR 0.16 s, QRS 0.08 s, QTc 0.40 s (Bazett) or 0.39 s (Frider
 
 ## Potassium moves the resting potential and reshapes the ECG
 
-Because IK1 dominates the resting ventricular membrane, the resting potential follows EK. The Nernst equation ([membrane transport](/lessons/membrane-transport/)) at 37 C gives 61.5 mV per tenfold ratio. With intracellular potassium at 140 mmol per L:
+Because IK1 dominates the resting ventricular membrane, the resting potential follows E_K. So to predict what a change in blood potassium does to the resting potential, compute E_K. The Nernst equation ([membrane transport](/lessons/membrane-transport/)) does this; at 37 C it gives 61.5 mV per tenfold ratio. With intracellular potassium at 140 mmol per L:
 
-> **EK = 61.5 mV x log10([K]outside / [K]inside)**
+<EquationCard
+  purpose="The potassium equilibrium potential, which the resting ventricular membrane follows, from the potassium concentrations on the two sides."
+  eq="E_K = 61.5 mV × log10([K]outside / [K]inside)"
+  say="E sub K equals 61.5 millivolts times the base-10 log of outside potassium over inside potassium."
+  symbols={[
+    ["E_K", "E sub K", "the potassium equilibrium potential: the voltage at which potassium has no net push in or out", "mV"],
+    ["log10", "log ten", "the base-10 logarithm: how many factors of ten the ratio is. log10(10) = 1, log10(1) = 0, log10(0.1) = −1."],
+    ["[K]outside", "K outside", "extracellular potassium concentration", "mmol per L"],
+    ["[K]inside", "K inside", "intracellular potassium concentration, here 140", "mmol per L"],
+  ]}
+  toolkit={["log-scales", "ratios"]}
+  check="If outside equals inside, the ratio is 1, its log is 0, and E_K = 0 mV. Each tenfold fall in the ratio makes E_K 61.5 mV more negative. A rise in outside potassium shrinks the gap between the two concentrations, so E_K moves toward zero."
+>
+  <Fragment slot="example">
+    <p>At 4 mmol per L outside: the ratio is 4 / 140 = 0.0286, and log10(0.0286) = −1.544 (between one and two factors of ten below 1: 0.1 would give −1, 0.01 would give −2). E_K = 61.5 × (−1.544) = −95 mV.</p>
+    <p>At 7 mmol per L: 7 / 140 = 0.05, log10(0.05) = −1.301. E_K = 61.5 × (−1.301) = −80 mV.</p>
+  </Fragment>
+</EquationCard>
 
-At 4 mmol per L outside, EK = 61.5 x (-1.544) = -95 mV. At 7 mmol per L, EK = 61.5 x (-1.301) = -80 mV, assuming the resting potential tracks EK, an approximation.
+So raising outside potassium from 4 to 7 mmol per L moves E_K from −95 to −80 mV, and the resting potential with it, assuming the resting potential tracks E_K, an approximation.
 
 Predictions, from models, isolated hearts and animal preparations: a modest depolarisation brings cells nearer threshold, so conduction first speeds. With larger rises, more sodium channels sit inactivated, phase 0 slows and conduction slows; propagation fails only far higher. Raised potassium also increases potassium conductance, so action potentials shorten and repolarisation becomes more synchronous: the classic early ECG change is tall, peaked T waves, although in people the potassium level at which ECG changes appear varies widely. Slower conduction then broadens and flattens the P wave and widens the QRS. Low extracellular potassium does the reverse to duration, lengthening the action potential by reducing outward current through potassium channels and the sodium-potassium pump. Regulation of plasma potassium is in [water, sodium and potassium](/lessons/water-sodium-potassium/).
 

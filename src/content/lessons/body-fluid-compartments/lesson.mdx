@@ -336,6 +336,7 @@ draft: false
 ---
 
 import FluidShiftCompartments from '../../../components/FluidShiftCompartments.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **In the textbook model of an adult man, retain one litre of solute-free water and about two-thirds of it ends up inside cells. Retain one litre of isotonic saline and, once it has spread, none of it does.**
 
@@ -358,7 +359,26 @@ People differ, mostly because of fat: lean tissue is roughly 73 percent water, a
 
 To size a tank you cannot see into, add a known amount of dye, let it mix and measure its concentration. **Indicator dilution** does this in a person:
 
-> **V = (amount given - amount lost) / (equilibrated concentration - baseline concentration)**
+<EquationCard
+  purpose="The volume of a fluid space you cannot see into, from how much marker you gave and how dilute it became."
+  eq="V = (amount given − amount lost) / (equilibrated concentration − baseline concentration)"
+  say="The volume equals the marker that stayed in the body, divided by the rise in its concentration once it has mixed."
+  symbols={[
+    ["V", "V", "the volume of the space the marker spreads through", "L"],
+    ["amount given", "amount given", "the dose of marker injected", "mg (or g)"],
+    ["amount lost", "amount lost", "marker that left the space before sampling, such as marker in the urine", "mg (or g)"],
+    ["equilibrated concentration", "equilibrated concentration", "the marker’s concentration once it has mixed evenly", "mg (or g) per L"],
+    ["baseline concentration", "baseline concentration", "any marker already present before the dose (often zero)", "mg (or g) per L"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="Double the volume and the same dose ends up half as concentrated. Forget the marker that was lost and the numerator is too big, so the volume comes out too large. Units: g divided by g per L leaves L."
+>
+  <Fragment slot="example">
+    <p>Round values to keep the arithmetic easy: 100 mg of dye, none lost, no dye before the dose, and a mixed concentration of 10 mg per L.</p>
+    <p>V = (100 − 0) / (10 − 0) = 10 L.</p>
+    <p>Check by counting back: 10 L at 10 mg per L holds 100 mg, the whole dose.</p>
+  </Fragment>
+</EquationCard>
 
 This assumes the marker mixes evenly through its space and no further, is not metabolized, and its urinary loss is measured. Each marker reports the space bounded by barriers it cannot cross. **Heavy water** (deuterium oxide) crosses capillary walls and cell membranes: TBW. **Inulin** or **bromide** crosses capillary walls but mostly not cell membranes: ECF. **Evans blue**, a dye that binds albumin, or labelled albumin stays mostly in the vessels: plasma. ICF and ISF have no marker of their own: ICF = TBW - ECF and ISF = ECF - plasma, and each subtraction inherits both errors.
 
@@ -370,13 +390,29 @@ These spaces are operational, not anatomical. Deuterium exchanges with hydrogen 
 
 [Osmoregulation](/lessons/osmoregulation/) defined **osmolality**: osmoles of dissolved particles per kilogram of water. **Osmolarity** is osmoles per litre of solution; plasma is about 93 percent water, so the two differ slightly. Laboratories measure osmolality by **freezing-point depression**. Each osmole per kilogram lowers the freezing point about 1.86 degrees C, so plasma at 290 mOsm per kg freezes near -0.54 degrees C. Adult plasma osmolality is typically about 275 to 295 mOsm per kg.
 
-A common estimate is
+When no osmometer reading is at hand, a common estimate adds up the main particles in plasma from three routine blood values:
 
-> **Estimated osmolality (mOsm per kg) = 2 x [Na+] + glucose / 18 + BUN / 2.8**
+<EquationCard
+  purpose="An estimate of plasma osmolality from sodium, glucose and urea, the solutes that make up most of plasma’s particles."
+  eq="Estimated osmolality = 2 × [Na+] + glucose / 18 + BUN / 2.8"
+  say="Estimated osmolality equals twice the sodium concentration, plus glucose divided by 18, plus blood urea nitrogen divided by 2.8."
+  symbols={[
+    ["Estimated osmolality", "estimated osmolality", "the calculated particle count of plasma", "mOsm per kg"],
+    ["[Na+]", "sodium concentration", "plasma sodium. Doubling it counts its accompanying anions.", "mmol per L"],
+    ["glucose", "glucose", "plasma glucose. Dividing by 18 converts mg/dL to mmol per L (molar mass 180).", "mg/dL"],
+    ["BUN", "B U N, blood urea nitrogen", "counts only urea’s nitrogen, 28 g per mol, hence 2.8. For whole urea in mg/dL divide by 6.", "mg/dL"],
+  ]}
+  toolkit={["units"]}
+  check="Sodium dominates: with the ordinary glucose and BUN of the example below, the last two terms add only 10, so the estimate is close to twice the sodium. If glucose climbs very high, its term grows and the estimate rises with it. The inputs use different units; the divisors make every term come out in mOsm per kg. In mmol per L the estimate is simply 2[Na+] + glucose + urea."
+>
+  <Fragment slot="example">
+    <p>Sodium 140 mmol per L, glucose 90 mg/dL and BUN 14 mg/dL.</p>
+    <p>2 × 140 = 280; 90 / 18 = 5; 14 / 2.8 = 5.</p>
+    <p>280 + 5 + 5 = 290 mOsm per kg.</p>
+  </Fragment>
+</EquationCard>
 
-with sodium in mmol per L and glucose and **blood urea nitrogen (BUN)** in mg/dL. Doubling sodium counts its accompanying anions. Glucose / 18 converts mg/dL to mmol per L (molar mass 180). BUN counts only urea's nitrogen, 28 g per mol, hence 2.8; for whole urea in mg/dL divide by 6. In mmol per L the estimate is 2[Na+] + glucose + urea. For sodium 140 mmol per L, glucose 90 mg/dL and BUN 14 mg/dL: 280 + 5 + 5 = 290 mOsm per kg.
-
-**Tonicity**, or effective osmolality, counts only solutes that cannot cross the membrane in question over the time considered, because only those hold water on one side. Urea crosses most cell membranes and equilibrates, so it raises osmolality without moving water out of cells. Estimated tonicity is 2[Na+] + glucose / 18, here 285 mOsm per kg. Glucose is counted because, when insulin action is low, it enters cells such as muscle slowly.
+**Tonicity**, or effective osmolality, counts only solutes that cannot cross the membrane in question over the time considered, because only those hold water on one side. Urea crosses most cell membranes and equilibrates, so it raises osmolality without moving water out of cells. Estimated tonicity is 2[Na+] + glucose / 18: for the example above, 280 + 5 = 285 mOsm per kg. Glucose is counted because, when insulin action is low, it enters cells such as muscle slowly.
 
 The **osmolal gap** is measured osmolality minus estimated osmolality; a wide gap points to an unmeasured solute, such as an alcohol (not the anion gap of [acid-base balance](/lessons/acid-base-balance/)).
 
@@ -390,9 +426,11 @@ Across most capillaries outside the brain, small solutes cross freely and do not
 
 If water follows effective solute, plasma sodium should report solute per water, not the body's sodium stock. Isidore Edelman and colleagues tested this in San Francisco (1958) in 98 chronically ill adults chosen for variety (heart, liver, kidney, lung, gut, neurological and endocrine disease; 66 had edema), on an analyzed low-sodium diet. In most they measured exchangeable sodium (sodium-24 dilution), exchangeable potassium (potassium-42), TBW (heavy water, six-hour equilibration) and sodium per litre of serum water.
 
-Earlier studies, including Moore's, had found that body sodium did not predict serum sodium. Here too, serum sodium correlated poorly with exchangeable sodium, potassium or water per kilogram, or with sodium/water or potassium/water alone, and closely with the sum:
+Earlier studies, including Moore's, had found that body sodium did not predict serum sodium. Here too, serum sodium correlated poorly with exchangeable sodium, potassium or water per kilogram, or with sodium/water or potassium/water alone, and closely with the sum. Their fitted line predicts sodium from the body's exchangeable cations per litre of body water. Na_e and K_e are exchangeable sodium and potassium (mEq), and TBW is total body water (L):
 
 > **Serum-water [Na+] (mEq per L) = 1.11 x (Na_e + K_e) / TBW - 25.6, with r = 0.83**
+
+Read it as a straight line: the more exchangeable cation per litre of water, the higher the serum sodium; 1.11 is the slope and -25.6 the intercept.
 
 That fit passive water distribution in proportion to osmotically active solute, with cell potassium counting about as much as extracellular sodium. It confirmed that serum sodium is not a measure of body sodium: edematous patients with excess body sodium could be hyponatremic. Limits: it is a correlation in sick patients, not an intervention; exchangeable cation is not total cation (much bone sodium does not exchange); and the line is for serum-water sodium.
 
@@ -402,8 +440,10 @@ That fit passive water distribution in proportion to osmotically active solute, 
 
 These numbers are made up. A 70-kg reference man has ICF 28 L and ECF 14 L, both at an effective osmolality of 300 mOsm per kg (rounded; measured adult values are about 275 to 295). Assume a closed system (no urine, sweat or breath losses), free water movement across cell membranes, no solute gain or loss by cells, added sodium chloride staying outside cells, ideal behaviour, and 1 kg of water = 1 L. In separate trials he retains 1 L of (A) isotonic saline, 300 mOsm; (B) solute-free water, the model for 5% dextrose after its glucose is metabolized; or (C) sodium chloride at 900 mOsm per L (a model value).
 
-1. *Count osmoles.* ICF = 28 x 300 = 8,400 mOsm; ECF = 14 x 300 = 4,200 mOsm. Total water after each trial is 43 L.
-2. *Final osmolality.* C = (12,600 + added osmoles) / 43; then ICF = 8,400 / C and ECF = 43 - ICF.
+The method in one line: count the osmoles, share them over all the water to get one final osmolality, then give each compartment the water its own osmoles hold at that osmolality.
+
+1. *Count osmoles.* Osmoles = volume x osmolality. ICF = 28 x 300 = 8,400 mOsm; ECF = 14 x 300 = 4,200 mOsm; together 12,600 mOsm. Total water after each trial is 28 + 14 + 1 = 43 L.
+2. *Final osmolality.* Water moves until both compartments share one osmolality, C: all the osmoles over all the water. C = (12,600 + added osmoles) / 43. Cells keep their 8,400 mOsm, so ICF = 8,400 / C; the ECF gets the rest of the water, ECF = 43 - ICF.
 3. *Trial A.* C = 12,900 / 43 = 300 mOsm per kg. ICF stays 28.0 L; ECF becomes 15.0 L. With a 3:1 ISF-to-plasma split, plasma gains 0.25 L and ISF 0.75 L.
 4. *Trial B.* C = 12,600 / 43 = 293.0 mOsm per kg. ICF = 28.67 L (+0.67 L, two-thirds of the litre); ECF = 14.33 L (+0.33 L, of which plasma gains only about 0.08 L). Plasma sodium falls about in proportion: 140 x 42/43 = 136.7 mmol per L.
 5. *Trial C.* C = 13,500 / 43 = 313.95 mOsm per kg. ICF = 8,400 / 313.95 = 26.76 L (-1.24 L); ECF = 5,100 / 313.95 = 16.24 L (+2.24 L, more than the litre given). Plasma sodium follows sodium balance, (140 x 14 + 450 added) / 16.24, to about 148.4 mmol per L; scaling by osmolality would give 146.5, but the added salt raises sodium's share of the particles. Splitting this gain between plasma and ISF needs an added assumption.

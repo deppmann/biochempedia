@@ -382,6 +382,7 @@ draft: false
 
 import CableLengthConstant from '../../../components/CableLengthConstant.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **In a made-up neuron resting at −71 mV, about 200 picoamperes of potassium current leave the cell all the time, and about 200 picoamperes of sodium current come in. Neither ion is at equilibrium (the voltage at which it would feel no net push), yet the membrane potential does not move.**
 
@@ -393,26 +394,45 @@ Each ion has an **equilibrium potential**, E_ion, the voltage at which the elect
 
 Picture a voltage scale. For our cell, E_K = −95 mV sits near the left end and E_Na = +60.6 mV near the right. A marker on the scale shows Vm. The **driving force** on an ion is the gap between the marker and that ion's own mark: Vm − E_ion. Its size says how hard the ion is pushed; its sign gives the direction.
 
-Now tie a rope from the marker to each ion's mark. If that ion's channels are open and behave like a resistor (ohmic), the rope's pull is the ion's current:
+Now tie a rope from the marker to each ion's mark. If that ion's channels are open and behave like a resistor (ohmic, meaning current rises in proportion to the driving force), the rope's pull is the ion's current:
 
-> **I_ion = g_ion × (Vm − E_ion)**
+<EquationCard
+  purpose="How much current one kind of ion carries across the membrane, and which way it flows."
+  eq="I_ion = g_ion × (Vm − E_ion)"
+  say="An ion's current equals how open its channels are, times the gap between the voltage and that ion's own equilibrium potential."
+  symbols={[
+    ["I_ion", "I sub ion", "the current that ion carries. By convention outward current (positive charge leaving) is positive and inward current is negative.", "pA (picoamperes)"],
+    ["g_ion", "g sub ion", "the ion's conductance: how open its path is, mostly how many of its channels are open. In the rope picture, the rope's thickness. For a small cell it is measured in nanosiemens.", "nS"],
+    ["Vm", "V m", "the membrane potential, inside minus outside: the marker on the scale", "mV"],
+    ["E_ion", "E sub ion", "the ion's equilibrium potential: its own mark on the scale", "mV"],
+  ]}
+  toolkit={["subscripts", "units"]}
+  check="The bracket, Vm − E_ion, is the driving force. If no channels are open (g_ion = 0) there is no current. If the marker sits exactly on the ion's mark, the driving force is zero and there is no current either, however many channels are open."
+>
+  <Fragment slot="example">
+    <p>Take 2 nS of open channels for some cation, with the marker 10 mV below that ion's mark (round values to keep the arithmetic easy).</p>
+    <p>Driving force: Vm − E_ion = −10 mV.</p>
+    <p>Current: 2 nS × (−10 mV) = −20 pA. It is negative, so it is inward: the ion enters.</p>
+    <p>Units: nano times milli is pico (10^-9 × 10^-3 = 10^-12), so nS × mV = pA.</p>
+  </Fragment>
+</EquationCard>
 
-Here g is the **conductance**: how open the ion's path is, mostly how many of its channels are open. For a small cell it is measured in nanosiemens (nS), and nS times mV gives picoamperes (pA). A thicker rope (more conductance) or a longer stretch (more driving force) pulls harder. By convention, outward current (positive charge leaving) is positive and inward current negative, so a positive driving force on a cation gives outward current: the ion leaves. (For an anion such as chloride, outward current means the ion moves in.) That is how the rope pulls the marker: potassium flowing out removes positive charge and pulls Vm down toward E_K, while sodium flowing in adds positive charge and pulls Vm up toward E_Na.
+A thicker rope (more conductance) or a longer stretch (more driving force) pulls harder. With the sign convention above, a positive driving force on a cation gives outward current: the ion leaves. (For an anion such as chloride the direction flips: outward current means the ion moves in, because a negative ion moving in carries charge the same way a positive ion moving out does.) That is how the rope pulls the marker: potassium flowing out removes positive charge and pulls Vm down toward E_K, while sodium flowing in adds positive charge and pulls Vm up toward E_Na.
 
-**Worked problem, part 1.** A cell at 37 °C has [K+] of 140 mM inside and 4 mM outside, and [Na+] of 15 mM inside and 145 mM outside. You are given EK = −95 mV and ENa = +60.6 mV. It rests at −71.2 mV; the next section shows why.
+**Worked problem, part 1.** A cell at 37 °C has [K+] of 140 mM inside and 4 mM outside, and [Na+] of 15 mM inside and 145 mM outside. You are given E_K = −95 mV and E_Na = +60.6 mV. It rests at −71.2 mV; the next section shows why.
 
 **Predict.** The marker sits at −71.2 mV and E_K is −95 mV. Which way does potassium current flow through open K+ channels?
 
 <details>
 <summary>Check your prediction</summary>
 
-Outward. The marker sits above potassium's mark, so the driving force is positive: Vm − EK = −71.2 − (−95) = +23.8 mV, and positive charge leaves.
+Outward. The marker sits above potassium's mark, so the driving force is positive: Vm − E_K = −71.2 − (−95) = +23.8 mV, and positive charge leaves.
 
-Sodium is the opposite case. Vm − ENa = −71.2 − 60.6 = −131.8 mV, negative and large, so sodium current is inward.
+Sodium is the opposite case. Vm − E_Na = −71.2 − 60.6 = −131.8 mV, negative and large, so sodium current is inward.
 
 </details>
 
-*The currents:* this cell's open leak channels give it gK = 8.47 nS and gNa = 1.53 nS. Throughout, we treat these leaks as ohmic: fixed conductances that do not change with voltage. Their ratio matches the cell's permeabilities at this voltage (next section); their absolute size is chosen for the example. Then IK = 8.47 nS × 23.8 mV = +202 pA, and INa = 1.53 nS × (−131.8 mV) = −202 pA. They cancel. That is what rest means: zero net current, not zero current for each ion.
+*The currents:* this cell's open leak channels give it g_K = 8.47 nS and g_Na = 1.53 nS. Throughout, we treat these leaks as ohmic: fixed conductances that do not change with voltage. Their ratio matches the cell's permeabilities at this voltage (next section); their absolute size is chosen for the example. Then I_K = 8.47 nS × 23.8 mV = +202 pA, and I_Na = 1.53 nS × (−131.8 mV) = −202 pA. They cancel. That is what rest means: zero net current, not zero current for each ion.
 
 The standoff raises two puzzles.
 
@@ -421,7 +441,13 @@ The standoff raises two puzzles.
 
 One rule answers both.
 
-> **The one idea to carry through this lesson.** Each open channel pulls the voltage toward its own reversal potential (for a channel that passes one ion, that ion's equilibrium potential), harder the more conductance it has and the farther the voltage sits from that potential. The voltage heads for the **balance point**, where the pulls cancel and the net current is zero: the average of the reversal potentials, weighted by their conductances. With only leak channels open, no current injected and the pump's small direct current set aside, the balance point is the resting potential. Inject a small steady current and the balance point shifts by I / g_total, where g_total is the total leak conductance. In a compact cell, that total leak sets how big the shift is and, with the capacitance, how fast the voltage gets there. Along a dendrite, the leak per unit length, set against the core's resistance, sets how far the shift reaches. In short: rest is where the leaks balance, and the leak (with capacitance, and in a dendrite the core) decides how big, how fast and how far a nudge goes.
+> **The one idea to carry through this lesson.** Each open channel pulls the voltage toward its own reversal potential (for a channel that passes one ion, that ion's equilibrium potential), harder the more conductance it has and the farther the voltage sits from that potential. Three things follow, and each gets its own section below.
+>
+> - **Where it rests.** The voltage heads for the **balance point**, where the pulls cancel and the net current is zero: the average of the reversal potentials, weighted by their conductances. With only leak channels open, no current injected and the pump's small direct current set aside, the balance point is the resting potential.
+> - **How big and how fast.** Inject a small steady current, I, and the balance point shifts by I / g_total, where g_total is the total leak conductance. In a compact cell, that total leak sets how big the shift is and, with the capacitance, how fast the voltage gets there.
+> - **How far.** Along a dendrite, the leak per unit length, set against the core's resistance, sets how far the shift reaches.
+>
+> In short: rest is where the leaks balance, and the leak (with capacitance, and in a dendrite the core) decides how big, how fast and how far a nudge goes.
 
 The second half of the rule is for small nudges in a passive membrane. Each section below says where its part stops working.
 
@@ -440,15 +466,34 @@ Nearer E_K. At the balance point the pulls are equal, so the weaker rope must be
 
 </details>
 
-In algebra, set the currents to sum to zero and solve for Vm:
+The same answer in algebra is a weighted average, and it works for any conductances, not only this cell's:
 
-> g_K (Vm − E_K) + g_Na (Vm − E_Na) = 0
+<EquationCard
+  purpose="Where the voltage settles when the currents cancel: the balance point."
+  eq="Vm = (g_K × E_K + g_Na × E_Na) / (g_K + g_Na)"
+  say="The balance point is the average of the two equilibrium potentials, each counted in proportion to its conductance."
+  symbols={[
+    ["Vm", "V m", "the membrane potential at the balance point, where the net current is zero", "mV"],
+    ["g_K", "g sub K", "potassium conductance (rope thickness)", "nS"],
+    ["E_K", "E sub K", "potassium's equilibrium potential, −95 mV in our cell", "mV"],
+    ["g_Na", "g sub Na", "sodium conductance", "nS"],
+    ["E_Na", "E sub Na", "sodium's equilibrium potential, +60.6 mV in our cell", "mV"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="If sodium's conductance were zero, the g_Na terms drop out and Vm = E_K. If the two conductances were equal, Vm would sit exactly halfway between E_K and E_Na. The bigger a conductance, the closer Vm sits to that ion's mark."
 >
-> Vm (g_K + g_Na) = g_K E_K + g_Na E_Na
->
-> **Vm = (g_K E_K + g_Na E_Na) / (g_K + g_Na)**
-
-With this cell's numbers, (8.47 × −95 + 1.53 × 60.6) / 10 = −71.2 mV.
+  <Fragment slot="example">
+    <p>Our cell: g_K = 8.47 nS, g_Na = 1.53 nS.</p>
+    <p>Top: 8.47 × (−95) = −804.65, and 1.53 × 60.6 = +92.72. Their sum is −711.93 (units nS × mV).</p>
+    <p>Bottom: 8.47 + 1.53 = 10 nS.</p>
+    <p>Vm = −711.93 / 10 = −71.19, about −71.2 mV, the same rest the rope picture gave.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, set the net current to zero: g_K × (Vm − E_K) + g_Na × (Vm − E_Na) = 0.</p>
+    <p>Step 2, multiply out the brackets and move the E terms to the right: Vm × (g_K + g_Na) = g_K × E_K + g_Na × E_Na.</p>
+    <p>Step 3, divide both sides by the total conductance, g_K + g_Na.</p>
+  </Fragment>
+</EquationCard>
 
 More ions just add more terms, above and below the line. Do not shorten it to "rest sits nearest the ion with the biggest conductance": with three or more conductances that shortcut can fail (Going deeper has an example), so use the average. The formula assumes no injected current and sets aside the pump's small direct current, which Going deeper adds as one more term.
 
@@ -464,27 +509,51 @@ Keep one more number: this cell's total leak, g_K + g_Na = 10 nS.
 
 ### The calculating tool: the GHK equation
 
-The average needs conductances. Usually what you know instead are the concentrations and the **relative permeabilities**, P, of the ions: how easily each passes through the membrane. The Goldman-Hodgkin-Katz (GHK) voltage equation writes the same zero-net-current condition in those terms:
+The average needs conductances. Usually what you know instead are the concentrations and the **relative permeabilities**, P, of the ions: how easily each passes through the membrane. The Goldman-Hodgkin-Katz (GHK) voltage equation writes the same zero-net-current condition in those terms.
 
-> **Vm = (RT/F) × ln[(PK[K]o + PNa[Na]o + PCl[Cl]i) / (PK[K]i + PNa[Na]i + PCl[Cl]o)]**
+Read it as the balance point again: each ion counts in proportion to its permeability, and the equation does the weighting for you. You will use it with a calculator, so the aim is to know what each piece does.
 
-Read it as the balance point again: each ion counts in proportion to its permeability, and the equation does the weighting for you. It comes from Goldman's 1943 constant-field theory (its assumptions are in Going deeper). Chloride's concentrations sit the other way round from the cations' because a negative ion flowing in carries current the way a positive ion flowing out does.
+<EquationCard
+  purpose="The resting potential from concentrations and permeabilities, when you do not know the conductances."
+  eq="Vm = (RT/F) × ln[(P_K[K]o + P_Na[Na]o + P_Cl[Cl]i) / (P_K[K]i + P_Na[Na]i + P_Cl[Cl]o)]"
+  say="The voltage is RT over F times the natural log of a ratio. On top, each ion's permeability times its concentration outside (inside, for chloride); on the bottom, the same with inside and outside swapped."
+  symbols={[
+    ["Vm", "V m", "the membrane potential where the net current is zero", "mV"],
+    ["RT/F", "R T over F", "R is the gas constant, T the absolute temperature in kelvin, F Faraday's constant. Together they make one voltage: 26.72 mV at 37 °C.", "mV"],
+    ["ln", "natural log", "answers “e raised to what power gives this number?” A ratio below 1 has a negative log, which is why this cell’s rest comes out negative.", ""],
+    ["P_K", "P sub K", "relative permeability to potassium: how easily it passes. Only the ratios matter, so this lesson sets P_K = 1.", ""],
+    ["[K]o", "K outside", "potassium concentration outside the cell; [K]i is inside. The square brackets mean concentration.", "mM"],
+    ["P_Na", "P sub Na", "relative permeability to sodium", ""],
+    ["P_Cl", "P sub Cl", "relative permeability to chloride", ""],
+  ]}
+  toolkit={["e-and-ln", "log-scales", "subscripts"]}
+  check="If only potassium could pass (P_Na = P_Cl = 0), P_K cancels, the ratio is just [K]o / [K]i, and the equation becomes the Nernst equation for potassium: Vm = E_K. Adding a little sodium permeability raises the top more than the bottom and pulls Vm up toward E_Na."
+>
+  <Fragment slot="example">
+    <p>Try the potassium-only case with this cell’s concentrations, 4 mM outside and 140 mM inside.</p>
+    <p>Ratio: 4 / 140 = 0.0286.</p>
+    <p>Natural log: ln(0.0286) = −3.555 (a calculator’s ln button).</p>
+    <p>Vm = 26.72 × (−3.555) = −95.0 mV, exactly the E_K this cell was given.</p>
+  </Fragment>
+</EquationCard>
 
-**Worked problem, part 2.** Take RT/F = 26.72 mV (37 °C), PK = 1, PNa = 0.04, PCl = 0 (chloride is left out here), and the concentrations from part 1.
+It comes from Goldman's 1943 constant-field theory (its assumptions are in Going deeper). Chloride's concentrations sit the other way round from the cations' because a negative ion flowing in carries current the way a positive ion flowing out does.
+
+**Worked problem, part 2.** Take RT/F = 26.72 mV (37 °C), P_K = 1, P_Na = 0.04, P_Cl = 0 (chloride is left out here), and the concentrations from part 1.
 
 *Top:* 4 + 0.04 × 145 = 4 + 5.8 = 9.8 mM.
 
 *Bottom:* 140 + 0.04 × 15 = 140 + 0.6 = 140.6 mM.
 
-*Vm* = 26.72 × ln(9.8 / 140.6) = 26.72 × ln(0.0697) = 26.72 × (−2.664) = −71.2 mV, the same rest as the conductance average.
+*Vm* = 26.72 × ln(9.8 / 140.6) = 26.72 × ln(0.0697) = 26.72 × (−2.664) = −71.2 mV, the same rest as the conductance average. (A ratio below 1 has a negative log. Check: e^−2.664 ≈ 0.0697; see [e and ln](/math-toolkit/#e-and-ln).)
 
-Now double PNa to 0.08. The top becomes 4 + 11.6 = 15.6 and the bottom 140 + 1.2 = 141.2, so Vm = 26.72 × ln(0.1105) = 26.72 × (−2.203) = −58.9 mV, 12 mV toward ENa. That is a smaller shift than the −53.7 mV from doubling gNa in the ohmic average, for the reason that follows.
+Now double P_Na to 0.08. The top becomes 4 + 11.6 = 15.6 and the bottom 140 + 1.2 = 141.2, so Vm = 26.72 × ln(0.1105) = 26.72 × (−2.203) = −58.9 mV, 12 mV toward E_Na. That is a smaller shift than the −53.7 mV from doubling g_Na in the ohmic average, for the reason that follows.
 
-**Why 0.04 and not 0.18?** The permeability ratio is 1 : 0.04. The conductance ratio is 8.47 : 1.53, about 1 : 0.18. Both describe the same cell. Permeability is a property of the pathway: how easily an ion gets through. Conductance is the current the pathway actually carries per millivolt of driving force, and that also depends on how many ions sit on each side and on the voltage. Sodium is plentiful outside, and at −71 mV the negative inside draws it in. Potassium is plentiful inside, and the same negative inside holds it back. So each unit of sodium permeability carries more current than each unit of potassium permeability. It also means real GHK leaks are not quite ohmic: their conductances shift as the voltage moves. Doubling PNa raises gNa only about 1.9 times and also raises gK about 1.14 times, so sodium gains less ground (Going deeper).
+**Why 0.04 and not 0.18?** The permeability ratio is 1 : 0.04. The conductance ratio is 8.47 : 1.53, about 1 : 0.18. Both describe the same cell. Permeability is a property of the pathway: how easily an ion gets through. Conductance is the current the pathway actually carries per millivolt of driving force, and that also depends on how many ions sit on each side and on the voltage. Sodium is plentiful outside, and at −71 mV the negative inside draws it in. Potassium is plentiful inside, and the same negative inside holds it back. So each unit of sodium permeability carries more current than each unit of potassium permeability. It also means real GHK leaks are not quite ohmic: their conductances shift as the voltage moves. Doubling P_Na raises g_Na only about 1.9 times and also raises g_K about 1.14 times, so sodium gains less ground (Going deeper).
 
 > **Which to use.** Reason with the balance point: which way rest moves, and why. Calculate with GHK when you are given concentrations and permeabilities.
 
-Hodgkin and Katz used PK : PNa : PCl of about 1 : 0.04 : 0.45 for the resting squid giant axon in 1949. Other cells differ, so there is no universal resting potential.
+Hodgkin and Katz used P_K : P_Na : P_Cl of about 1 : 0.04 : 0.45 for the resting squid giant axon in 1949. Other cells differ, so there is no universal resting potential.
 
 ### What keeps the balance point there: the pump
 
@@ -519,15 +588,36 @@ Now the same thing with the balance point. From here on, keep two things apart: 
 
 > **Rin = ΔV / I = 1 / g_total**
 
-For our ohmic cell, 1 / 10 nS = 100 MΩ (a cell whose leaks follow the GHK equation would differ; see Going deeper). The balance point moves the instant the current starts. The voltage follows it, at a pace set by capacitance and leak:
+For our ohmic cell, 1 / 10 nS = 100 MΩ (a siemens is one over an ohm, so 1 / (10 × 10^-9 S) = 10^8 Ω; a cell whose leaks follow the GHK equation would differ; see Going deeper). The balance point moves the instant the current starts. The voltage follows it, at a pace set by capacitance and leak:
 
-> **ΔV(t) = I × Rin × (1 − e^(−t/τ)), with τ = Rin × C = C / g_total**
+<EquationCard
+  purpose="How far the voltage has moved at any moment after a small steady current is switched on."
+  eq="ΔV(t) = I × Rin × (1 − e^(−t/τ))"
+  say="The change so far equals the final change, I times Rin, times a fraction that starts at zero and climbs toward one."
+  symbols={[
+    ["ΔV(t)", "delta V of t", "the change in voltage from rest at time t after the current starts", "mV"],
+    ["I", "I", "the injected current (positive into the cell)", "pA"],
+    ["Rin", "R in", "the input resistance, 1 / g_total. I × Rin is the final change, the plateau.", "MΩ"],
+    ["e^(−t/τ)", "e to the minus t over tau", "the share of the final change still to come at time t. e is about 2.718; t is the time since the current started.", ""],
+    ["τ", "tau", "the membrane time constant, found inside the exponent above: τ = Rin × C = C / g_total, where C is the membrane capacitance", "ms"],
+  ]}
+  toolkit={["e-and-ln", "units"]}
+  check="At t = 0, e^0 = 1, so the bracket is 0: nothing has changed yet. As t grows, e^(−t/τ) shrinks toward 0, the bracket climbs toward 1, and ΔV approaches I × Rin. More capacitance or less leak makes τ longer, so the climb is slower."
+>
+  <Fragment slot="example">
+    <p>The bracket, 1 − e^(−t/τ), at whole numbers of τ:</p>
+    <p>t = τ: e^−1 = 1 / 2.718 = 0.368, so the bracket is 1 − 0.368 = 0.632.</p>
+    <p>t = 2τ: e^−2 = 0.135, so the bracket is 0.865.</p>
+    <p>t = 3τ: e^−3 = 0.050, so the bracket is 0.950.</p>
+    <p>Multiply by the final change, I × Rin, to get the voltage change at each time. Part 3 below does it for our cell.</p>
+  </Fragment>
+</EquationCard>
 
 The **membrane time constant** τ is the time to reach 63% of the final change, since 1 − e^−1 = 0.632. It is not the time to finish: 2τ gives 86% and 3τ 95%. When the current stops, the deflection decays toward rest with the same τ. These formulas are exact for a compact cell with fixed capacitance and fixed ohmic conductances. In a real membrane they hold approximately for small steps that open or close no gated channels; the last section shows how to spot a step that does.
 
 **Worked problem, part 3.** The same cell: Rin = 100 MΩ (from its 10 nS of leak) and C = 200 pF. Inject −100 pA from 0 to 60 ms.
 
-*τ* = (100 × 10^6 Ω) × (200 × 10^−12 F) = 0.020 s = 20 ms. Equivalently, 200 pF / 10 nS = 20 ms.
+*τ* = (100 × 10^6 Ω) × (200 × 10^−12 F) = 0.020 s = 20 ms. (Mega, M, is 10^6 and pico, p, is 10^−12; ohms times farads give seconds.) Equivalently, 200 pF / 10 nS = 20 ms, since pico over nano is 10^−12 / 10^−9 = 10^−3, milli.
 
 *Final deflection:* −100 pA × 100 MΩ = −10 mV. The balance point moves from −71.2 to −81.2 mV.
 
@@ -551,11 +641,11 @@ A dendrite or axon is a thin tube of salty cytoplasm in leaky membrane. Current 
 
 How far the current gets depends on which path is easier. A wide core carries it farther. A tight wall loses less on the way. The **length constant**, λ, puts that contest into one number. Take a stretch of cable one λ long: the resistance along its core equals the resistance out through its wall over that same stretch.
 
-For a uniform, effectively infinite passive cable with a steady current at one point, the voltage falls exponentially with distance:
+The next formula gives the steady voltage at any distance, x, from the source. Two resistances set λ, each for a unit length of cable: rm, the membrane resistance (the wall), and ri, the core (axial) resistance. For a uniform, effectively infinite passive cable with a steady current at one point, the voltage falls exponentially with distance:
 
 > **V(x) = V0 × e^(−x/λ), with λ = √(rm / ri)**
 
-Here rm is the membrane resistance and ri the core (axial) resistance, each for a unit length of cable.
+Read it as: the voltage at distance x equals the voltage at the source, V0 (“V zero”), times a factor that shrinks as x grows. λ is read “lambda”. A tighter wall (bigger rm) or a less resistive core (smaller ri) makes λ longer.
 
 **Predict.** One length constant away from the source, is the steady signal gone?
 
@@ -574,13 +664,13 @@ In the simulation, a steady −10 mV is held at one end of a passive cable. Make
 
 **Worked problem, part 4.** An infinite uniform passive cable with λ = 0.5 mm is held at a steady −10 mV deflection at one point.
 
-*At 0.5 mm:* −10 × e^−1 = −3.68 mV.
+*At 0.5 mm:* −10 × e^−1 = −10 × 0.368 = −3.68 mV.
 
 *At 1 mm (2λ):* −10 × e^−2 = −10 × 0.135 = −1.35 mV.
 
 ### More leak: smaller, faster, more local
 
-**Worked problem, part 5.** Instead of changing PNa, double the uniform leak conductance, so membrane resistance halves, with C and geometry unchanged. For the compact cell of part 3, Rin falls to 50 MΩ, so τ = 50 MΩ × 200 pF = 10 ms, and the −100 pA step now gives only −5 mV. Because λ scales with √rm, the cable's λ = 0.5 / √2 = 0.354 mm. (A long cable's input resistance falls only by a factor of √2.) Whether rest moves depends on the added leak's reversal potential. If every leak doubles in proportion, the passive balance point stays put (the pump's small direct shift halves; Going deeper).
+**Worked problem, part 5.** Instead of changing P_Na, double the uniform leak conductance, so membrane resistance halves, with C and geometry unchanged. For the compact cell of part 3, Rin falls to 50 MΩ, so τ = 50 MΩ × 200 pF = 10 ms, and the −100 pA step now gives only −5 mV. Because λ scales with √rm, halving rm divides λ by √2, about 1.414: the cable's λ = 0.5 / 1.414 = 0.354 mm. (A long cable's input resistance falls only by a factor of √2.) Whether rest moves depends on the added leak's reversal potential. If every leak doubles in proportion, the passive balance point stays put (the pump's small direct shift halves; Going deeper).
 
 | | Before | Leak doubled |
 | --- | --- | --- |
@@ -605,11 +695,11 @@ To predict what a drug does, ask two questions. Which ion's conductance changed,
 <details>
 <summary>Check your prediction</summary>
 
-Rest moves toward EK, so the cell hyperpolarizes: potassium's rope got thicker. The total conductance rose, so Rin falls and τ = Rin × C shortens. A test step now gives a smaller, faster response.
+Rest moves toward E_K, so the cell hyperpolarizes: potassium's rope got thicker. The total conductance rose, so Rin falls and τ = Rin × C shortens. A test step now gives a smaller, faster response.
 
 </details>
 
-The other cases follow the same way. More Na+ conductance depolarizes toward ENa and also lowers Rin. Closing a leak raises Rin and τ and moves rest away from that leak's reversal potential.
+The other cases follow the same way. More Na+ conductance depolarizes toward E_Na and also lowers Rin. Closing a leak raises Rin and τ and moves rest away from that leak's reversal potential.
 
 ### Shunting: more conductance, same rest
 
@@ -624,9 +714,9 @@ In a made-up current-clamp recording from a different neuron, in a brain slice, 
 
 Before the drug, Rin = 5 mV / 50 pA = 100 MΩ and C = 20 ms / 100 MΩ = 200 pF. After it, Rin = 8 mV / 50 pA = 160 MΩ and C = 32 ms / 160 MΩ = 200 pF.
 
-Capacitance did not change, consistent with unchanged membrane area under fixed specific capacitance; τ rose only because Rin did. Total leak fell from 10 nS to 6.25 nS, a loss of 3.75 nS. Closing a conductance moves rest away from its reversal potential, and rest depolarized, so the closed conductance reversed below rest: a K+ leak is the likeliest candidate. The shift also says where it reversed: 8 mV × 6.25 / 3.75 ≈ 13 mV below the starting rest. If that leak was uniform over the dendrites, λ would rise by √1.6, about 1.26 times. All of this holds only within the stated model.
+Capacitance did not change, consistent with unchanged membrane area under fixed specific capacitance; τ rose only because Rin did. Total leak fell from 10 nS to 6.25 nS, a loss of 3.75 nS. Closing a conductance moves rest away from its reversal potential, and rest depolarized, so the closed conductance reversed below rest: a K+ leak is the likeliest candidate. The shift also says where it reversed, in three steps. First, the 6.25 nS of leak that remains balances 8 mV above the starting rest, so at the starting rest it carried 6.25 nS × 8 mV = 50 pA of net inward current. Second, the net current at rest was zero, so the closed 3.75 nS must have carried 50 pA outward. Third, 50 pA / 3.75 nS ≈ 13 mV of driving force, so it reversed about 13 mV below the starting rest (in one line, 8 mV × 6.25 / 3.75). If that leak was uniform over the dendrites, rm rose 1.6 times (10 / 6.25), so λ would rise by √1.6, about 1.26 times. All of this holds only within the stated model.
 
-To test it, voltage-clamp the cell and subtract currents recorded at several voltages with and without the drug. A K+ leak should give a drug-sensitive current that reverses near EK, shifts its reversal when external K+ is raised, and appears without delay after each voltage step. Its current-voltage curve need not be straight: with far more K+ inside than outside, even a passive K+ pore passes outward current more easily than inward current (GHK rectification). If instead the drug-sensitive current turns on slowly after a voltage step, the target is a voltage-gated conductance. A lost sag would point to HCN channels, but HCN current reverses above rest, so blocking it alone would hyperpolarize the cell rather than depolarize it.
+To test it, voltage-clamp the cell and subtract currents recorded at several voltages with and without the drug. A K+ leak should give a drug-sensitive current that reverses near E_K, shifts its reversal when external K+ is raised, and appears without delay after each voltage step. Its current-voltage curve need not be straight: with far more K+ inside than outside, even a passive K+ pore passes outward current more easily than inward current (GHK rectification). If instead the drug-sensitive current turns on slowly after a voltage step, the target is a voltage-gated conductance. A lost sag would point to HCN channels, but HCN current reverses above rest, so blocking it alone would hyperpolarize the cell rather than depolarize it.
 
 </details>
 
@@ -634,11 +724,11 @@ To test it, voltage-clamp the cell and subtract currents recorded at several vol
 
 ### Rest with three conductances
 
-The shortcut "rest sits nearest the equilibrium potential of the largest conductance" fails with three conductances. In the squid model used in [the action potential](/lessons/action-potential/), the resting conductances are about 0.367 mS/cm² for potassium, 0.3 for leak and 0.011 for sodium, with E_K = −77 mV, E_leak = −54.4 mV and E_Na = +50 mV. Here "leak" is a lumped conductance for other ions together, with an effective reversal potential, not a single ion. The balance point is (0.367 × −77 + 0.3 × −54.4 + 0.011 × 50) / 0.678 = −64.9 mV. That is 12.1 mV from E_K but 10.5 mV from E_leak, so rest sits nearer E_leak even though potassium has the largest conductance.
+The shortcut "rest sits nearest the equilibrium potential of the largest conductance" fails with three conductances. In the squid model used in [the action potential](/lessons/action-potential/), the resting conductances are about 0.367 mS/cm² for potassium, 0.3 for leak and 0.011 for sodium, with E_K = −77 mV, E_leak = −54.4 mV and E_Na = +50 mV. Here "leak" is a lumped conductance for other ions together, with an effective reversal potential, not a single ion. The balance point is (0.367 × −77 + 0.3 × −54.4 + 0.011 × 50) / 0.678 = (−28.26 − 16.32 + 0.55) / 0.678 = −44.03 / 0.678 = −64.9 mV. That is 12.1 mV from E_K but 10.5 mV from E_leak, so rest sits nearer E_leak even though potassium has the largest conductance.
 
 ### Why doubling PNa is not doubling gNa
 
-For leaks that obey the GHK current equation, conductance changes with voltage. The conductances 8.47 and 1.53 nS match this cell's GHK **chord conductances** at −71.2 mV (each current divided by its driving force), once the overall scale is set so that each current is 202 pA. Recompute the chord conductances at the new rest after PNa doubles, put them into the weighted average, and it returns −58.9 mV, the same as GHK, so the balance point holds at every steady state. Only the naive move, doubling gNa while holding gK, gives −53.7 mV.
+For leaks that obey the GHK current equation, conductance changes with voltage. The conductances 8.47 and 1.53 nS match this cell's GHK **chord conductances** at −71.2 mV (each current divided by its driving force), once the overall scale is set so that each current is 202 pA. Recompute the chord conductances at the new rest after P_Na doubles, put them into the weighted average, and it returns −58.9 mV, the same as GHK, so the balance point holds at every steady state. Only the naive move, doubling g_Na while holding g_K, gives −53.7 mV.
 
 A small nudge depends on a different quantity, the **slope conductance**: how much the current changes per millivolt. For these GHK leaks it is about 12.9 nS at rest, not 10 nS, so a GHK version of this cell would have Rin near 78 MΩ and τ near 16 ms. That is why the RC section uses the ohmic model, whose conductances are fixed. The same voltage dependence produces the GHK rectification in the design problem.
 
@@ -648,7 +738,7 @@ Goldman's 1943 theory assumes a constant field, the same at every depth in the m
 
 ### The pump's own current
 
-Add the pump's net outward current, I_pump, and any injected current, I_inj (positive into the cell), to the leak currents and set the total to zero. The steady voltage is then Vm = (Σ g × E + I_inj − I_pump) / g_total. The pump shifts rest by −I_pump / g_total, so scaling every leak together leaves the passive balance point where it is but shrinks the pump's shift in proportion: doubling every leak halves it.
+Add the pump's net outward current, I_pump, and any injected current, I_inj (positive into the cell), to the leak currents and set the total to zero. The steady voltage is then Vm = (Σ g × E + I_inj − I_pump) / g_total, where Σ (“sigma”) means “add up”: Σ g × E is one g × E term for each leak, summed. The pump shifts rest by −I_pump / g_total, so scaling every leak together leaves the passive balance point where it is but shrinks the pump's shift in proportion: doubling every leak halves it.
 
 ### Units of rm and ri
 

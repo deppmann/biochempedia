@@ -367,6 +367,7 @@ draft: false
 
 import LifeTableBuilder from '../../../components/LifeTableBuilder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Of 100 adult birds banded at a colony, 60 are seen there the next year. Does that mean 40 died?** Not necessarily. Some may be alive and unseen, and some may be breeding at another colony. Before you can say how fast a population grows, you need to know who survives and who reproduces at each age, and you need to know how good your counts are. This lesson builds that bookkeeping, the life table, and then asks where its numbers come from.
 
@@ -374,11 +375,14 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 A **cohort** is a group of individuals born together. Follow one from birth and record, at each exact age x, how many are still alive. That count is **n_x**. The survival columns of a **life table**, a summary of how survival and reproduction change with age, are arithmetic on those counts. The reproduction column needs a second record: the births to females at each age.
 
-Think of a ledger for a club whose members never join late: you start with a membership, you strike out names as they leave, and you note what each remaining member contributes each year. For a closed, completely observed cohort the columns are:
+Think of a ledger for a club whose members never join late: you start with a membership, you strike out names as they leave, and you note what each remaining member contributes each year. For a closed, completely observed cohort, each survival column answers one question about the counts. Read the subscript x as "at age x" (so n_x is said "n sub x"):
 
-> **l_x = n_x / n_0      d_x = n_x - n_(x+1)      q_x = d_x / n_x      p_x = 1 - q_x**
+- **Survivorship, l_x** ("ell sub x"): what fraction of the original cohort is alive at age x? Divide the count by the starting count: **l_x = n_x / n_0**.
+- **d_x**: how many die between age x and age x + 1? Subtract the next count from this one: **d_x = n_x − n_(x+1)**.
+- **q_x**: what is the chance of dying in that interval *given that you reached its start*? Divide the deaths by the number alive at the start: **q_x = d_x / n_x**. Here q is a death probability, not an allele frequency as in population genetics.
+- **p_x**: what is the chance of surviving the interval? Whatever does not die survives: **p_x = 1 − q_x**.
 
-**Survivorship, l_x**, is the fraction of the original cohort alive at age x. **d_x** is the number dying between x and x + 1. **q_x** is the probability of dying in that interval *given that you reached its start*, and **p_x** is the probability of surviving it. Because surviving to age 3 means surviving year 0, then year 1, then year 2, l_x is a product: l_3 = p_0 x p_1 x p_2. That is the product rule for successive stages, each conditional on the one before, from [probability and crosses](/lessons/probability-and-crosses/), applied to survival.
+Because surviving to age 3 means surviving year 0, then year 1, then year 2, l_x is a product: l_3 = p_0 x p_1 x p_2. That is the product rule for successive stages, each conditional on the one before, from [probability and crosses](/lessons/probability-and-crosses/), applied to survival.
 
 Tables of this kind are usually built for females only, so the birth column, **m_x**, is the expected number of *daughters* born per female at age x. How births are divided among ages and offspring is the business of [life histories](/lessons/life-histories/); here you take m_x as measured.
 
@@ -397,23 +401,77 @@ Tables of this kind are usually built for females only, so the birth column, **m
 1. *Survivorship.* Divide each n_x by 100: l_x = 1.0, 0.8, 0.4, 0.1, 0.
 2. *Deaths.* Subtract each count from the one before: d_x = 20, 40, 30, 10. They add to 100, so every death is accounted for.
 3. *Death and survival probabilities.* Divide each d_x by the number alive at the *start* of its interval, not by the original 100. q_0 = 20/100 = 0.20, q_1 = 40/80 = 0.50, q_2 = 30/40 = 0.75, q_3 = 10/10 = 1.00. Then p_x = 0.80, 0.50, 0.25, 0. Check: l_2 = 0.8 x 0.5 = 0.4.
-4. *Net reproductive rate.* Multiply each l_x by m_x: 0, 0.8, 0.8, 0.1. Add them:
+4. *Net reproductive rate.* The question is how many daughters an average newborn female leaves over her whole life. At each age, the daughters she can expect are the chance she is alive then times the daughters a live female has then, l_x × m_x. Multiply each l_x by m_x: 0, 0.8, 0.8, 0.1. Then add across ages.
 
-> **R0 = sum of l_x m_x = 0.8 + 0.8 + 0.1 = 1.7 daughters per newborn female**
+<EquationCard
+  purpose="How many daughters an average newborn female leaves over her whole life: does the cohort replace itself?"
+  eq="R0 = sum of l_x m_x"
+  say="R-zero is the sum, over every age, of the chance of being alive at that age times the daughters born at that age."
+  symbols={[
+    ["R0", "R zero (or R naught)", "the net reproductive rate: daughters per newborn female, per generation", "daughters per female"],
+    ["sum of", "sum over all ages", "add the term for age 0, age 1, age 2 and so on", ""],
+    ["l_x", "ell sub x", "survivorship: the fraction of the cohort still alive at age x", ""],
+    ["m_x", "m sub x", "daughters born per live female at age x", "daughters per female"],
+  ]}
+  toolkit={["subscripts"]}
+  check="If no female lives to an age with births, every l_x m_x is 0 and R0 = 0. R0 = 1 means each newborn female leaves exactly one daughter, so the cohort just replaces itself."
+>
+  <Fragment slot="example">
+    <p>From the table: 0 + 0.8 + 0.8 + 0.1 = 1.7 daughters per newborn female.</p>
+    <p>Check it by counting: 80 females have 1 daughter each, 40 have 2, and 10 have 1, which is 80 + 80 + 10 = 170 daughters from 100 founders, or 1.7.</p>
+  </Fragment>
+</EquationCard>
 
-Check it by counting: 80 females have 1 daughter each, 40 have 2, and 10 have 1, which is 80 + 80 + 10 = 170 daughters from 100 founders, or 1.7. R0 is per **generation**, not per year.
+R0 is per **generation**, not per year.
 
-5. *Generation time.* Weight each age by its contribution to R0: x l_x m_x = 0.8, 1.6, 0.3, which sum to 2.7 daughter-years per newborn female.
+5. *Generation time.* The question is how old mothers are, on average, when their daughters are born. Weight each age by the daughters born at it: x l_x m_x = 0.8, 1.6, 0.3, which sum to 2.7. The unit "daughter-years" just means daughters counted with the mother's age attached.
 
-> **T = sum of x l_x m_x / R0 = 2.7 / 1.7 = 1.59 years**
+<EquationCard
+  purpose="The average age of mothers when their daughters are born: how long one generation takes."
+  eq="T = sum of x l_x m_x / R0"
+  say="T is each age times the daughters born at that age, added up, then divided by all the daughters."
+  symbols={[
+    ["T", "T", "the cohort generation time", "years"],
+    ["sum of", "sum over all ages", "add the term for every age", ""],
+    ["x", "x", "age, here in years", "years"],
+    ["l_x", "ell sub x", "fraction of the cohort alive at age x", ""],
+    ["m_x", "m sub x", "daughters per live female at age x", "daughters per female"],
+    ["R0", "R zero", "the total daughters per newborn female, from the sum of l_x m_x", ""],
+  ]}
+  toolkit={["subscripts"]}
+  check="It is a weighted average of ages. If every daughter were born at age 2, the top would be 2 times R0 and T would be exactly 2 years. T always lands between the youngest and oldest ages that give births."
+>
+  <Fragment slot="example">
+    <p>Top: 0.8 + 1.6 + 0.3 = 2.7. Bottom: R0 = 1.7.</p>
+    <p>T = 2.7 / 1.7 = 1.59 years: a weighted average of ages 1, 2 and 3, pulled above 1.5 by the few daughters born at age 3.</p>
+  </Fragment>
+</EquationCard>
 
 T is the mean age of mothers when their daughters are born, in this cohort.
 
-6. *A rate per year.* Growth per year needs the intrinsic rate of increase, r:
+6. *A rate per year.* R0 is a multiplier per generation, but growth per year needs the intrinsic rate of increase, r. Two steps get there. First, the natural log, ln, turns the multiplier 1.7 into a rate per generation. Second, dividing by T, the years in one generation, turns that into a rate per year.
 
-> **r is approximately ln(R0) / T = ln(1.7) / 1.59 = 0.530 / 1.59 = 0.334 per year**
+<EquationCard
+  purpose="Turn growth per generation (R0) into an approximate growth rate per year (r)."
+  eq="r ≈ ln(R0) / T"
+  say="r is roughly the natural log of R-zero, divided by the generation time."
+  symbols={[
+    ["r", "r", "the intrinsic rate of increase, a continuous growth rate", "per year"],
+    ["ln", "natural log", "the power you raise e (about 2.718) to in order to get the number inside", ""],
+    ["R0", "R zero", "daughters per newborn female per generation", ""],
+    ["T", "T", "generation time", "years"],
+  ]}
+  toolkit={["e-and-ln"]}
+  check="If R0 = 1, ln(1) = 0 and r = 0: no growth. If R0 is below 1, its log is negative, so r is negative and the population shrinks. For the same R0, a shorter T gives a larger r, because the generations come round faster."
+>
+  <Fragment slot="example">
+    <p>ln(1.7) = 0.530 (check: e^(0.53) is about 1.7).</p>
+    <p>r = 0.530 / 1.59 = 0.334 per year.</p>
+    <p>The yearly multiplier is lambda = e^r = e^(0.334), about 1.40: roughly 40% more each year. Check a second way: 1.40 per year for 1.59 years is 1.40^(1.59), about 1.7, which is R0 again.</p>
+  </Fragment>
+</EquationCard>
 
-The yearly multiplier is lambda = e^r, about 1.40 per year. Both are approximations. The exact r in a model with fixed rates comes from a different calculation, and T is not in general exactly ln(R0)/r. [Population growth](/lessons/population-growth/) takes r and lambda from here.
+Both r and lambda here are approximations. The exact r in a model with fixed rates comes from a different calculation, and T is not in general exactly ln(R0)/r. [Population growth](/lessons/population-growth/) takes r and lambda from here.
 
 7. *Shape.* q_x rises with age (0.20, 0.50, 0.75, 1.00), so this cohort is not Type II. Mortality concentrated at older ages puts it nearer Type I.
 
@@ -426,12 +484,12 @@ The model's verdict, if these rates stayed fixed, is that R0 above 1 means the p
 Plot l_x against age and you have a **survivorship curve**. Ecologists plot it on a logarithmic y-axis to compare curve shapes. On a log scale, equal vertical drops mean equal *proportional* losses, which is what q_x measures.
 
 - **Type I**: high survival through early and middle life, then heavy losses at old ages. The curve stays flat, then plunges.
-- **Type II**: a roughly constant probability of death per interval. Because l_x = (1 - q)^x, log l_x falls in a straight line.
+- **Type II**: a roughly constant probability of death per interval. Each year multiplies the survivors by the same factor, 1 − q, so l_x = (1 − q)^x. A log turns each repeated multiplication into an equal step down, so log l_x falls in a straight line (see [log scales](/math-toolkit/#log-scales)).
 - **Type III**: very high mortality early, then better survival for the few that get through. The curve drops steeply, then flattens.
 
 The commonest error is to read Type II as "the same number die each year." It means the same *fraction*. Suppose 1,000 individuals face q = 0.5 every year: survivors go 1,000, 500, 250, 125, and deaths go 500, 250, 125. The number dying halves each year, while the log curve is a straight line. The three types are idealizations: real species mix them, often with Type III juvenile losses followed by Type I adult survival.
 
-Low average life expectancy can mislead in the same way. Life expectancy at birth is a mean over everyone born, so heavy infant mortality drags it far down. In an invented population where 30% of newborns die within days of birth and the rest all live to exactly 50, life expectancy at birth is about 35 years, yet no adult dies at 35.
+Low average life expectancy can mislead in the same way. Life expectancy at birth is a mean over everyone born, so heavy infant mortality drags it far down. In an invented population where 30% of newborns die within days of birth and the rest all live to exactly 50, life expectancy at birth is about 35 years (0.3 × about 0 years + 0.7 × 50 years), yet no adult dies at 35.
 
 An **age-structure diagram** (an age pyramid) is a different object. It shows the proportion of a population in each age class *now*. Its shape depends on survival, but also on how many were born in each past year. A pyramid with a broad base is not a Type III curve; it may be a growing population with good juvenile survival. Even a population with fixed rates that grows exponentially can keep an unchanging age distribution, and the share in each class then depends on both l_x and the growth rate.
 

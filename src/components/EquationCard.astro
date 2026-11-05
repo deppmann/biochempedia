@@ -54,12 +54,17 @@ function nota(s: string): string {
 const order = symbols.map((s, i) => ({ sym: s[0], i })).sort((a, b) => b.sym.length - a.sym.length);
 let eqHtml = '';
 {
-  let rest = eq;
+  // Walk the equation: known symbols become buttons; everything between them is rendered as one
+  // chunk, so notation that spans characters (e^(−t/τ), (1 − p)^(n − k)) converts whole.
+  let rest = eq, plain = '';
+  const flush = () => { if (plain) { eqHtml += nota(plain); plain = ''; } };
   while (rest.length) {
-    const hit = order.find((o) => rest.startsWith(o.sym) && !/[\p{L}\p{N}_]/u.test(rest[o.sym.length] ?? ''));
-    if (hit) { eqHtml += `<button type="button" class="eqc-sym" data-sym="${hit.i}" aria-label="${esc(symbols[hit.i][1])}: ${esc(symbols[hit.i][2])}">${nota(hit.sym)}</button>`; rest = rest.slice(hit.sym.length); }
-    else { const m = rest.match(/^[\p{L}\p{N}_^]+|^./u)!; eqHtml += nota(m[0]); rest = rest.slice(m[0].length); }
+    const prev = plain.slice(-1);
+    const hit = !/[\p{L}\p{N}_^]/u.test(prev) && order.find((o) => rest.startsWith(o.sym) && !/[\p{L}\p{N}_]/u.test(rest[o.sym.length] ?? '') && !(rest[o.sym.length] === '^' && !o.sym.includes('^')));
+    if (hit) { flush(); eqHtml += `<button type="button" class="eqc-sym" data-sym="${hit.i}" aria-label="${esc(symbols[hit.i][1])}: ${esc(symbols[hit.i][2])}">${nota(hit.sym)}</button>`; rest = rest.slice(hit.sym.length); }
+    else { plain += rest[0]; rest = rest.slice(1); }
   }
+  flush();
 }
 const id = 'eqc-' + Math.abs([...eq].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)).toString(36);
 ---

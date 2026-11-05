@@ -389,6 +389,7 @@ draft: false
 
 import VisualPathwayLesionMap from '../../../components/VisualPathwayLesionMap.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Cut one optic nerve and one eye goes blind. Cut one optic tract, a few centimetres further back, and both eyes lose the same half of the world.**
 
@@ -403,7 +404,11 @@ The signals end in **primary visual cortex**, called **V1** or **striate cortex*
 
 The rule needs two terms. A neuron's **receptive field** is the patch of the visual field where a stimulus changes its firing. In an **ON region** of the field light excites the cell, and in an **OFF region** light inhibits it.
 
-> **The one idea to carry through this lesson.** For many cells early on the path (retinal ganglion cells, LGN cells and V1 simple cells), a good first approximation is that the cell adds up the light falling on its receptive field: plus on ON regions, minus on OFF regions. A bigger sum means stronger drive, and the cell turns drive into firing. A sum near zero leaves the spontaneous rate; a positive sum raises firing once it clears the cell's threshold, and a negative sum lowers whatever firing there is, down to zero. *Where* the patch sits tells you which part of the world the cell reports. *How the plus and minus regions are laid out* tells you which stimulus it reports best.
+> **The one idea to carry through this lesson.** For many cells early on the path (retinal ganglion cells, LGN cells and V1 simple cells), a good first approximation is that the cell adds up the light falling on its receptive field: plus on ON regions, minus on OFF regions.
+>
+> - A bigger sum means stronger drive, and the cell turns drive into firing.
+> - A sum near zero leaves the spontaneous rate; a positive sum raises firing once it clears the cell's threshold, and a negative sum lowers whatever firing there is, down to zero.
+> - *Where* the patch sits tells you which part of the world the cell reports. *How the plus and minus regions are laid out* tells you which stimulus it reports best.
 
 The rule has a scope, and the lesson marks where it stops.
 
@@ -536,23 +541,59 @@ A **tuning curve** plots a cell's firing against the orientation of the bar. A n
 | 120 | 22 |
 | 150 | 5 |
 
-Sketch it before you calculate: the points rise to a single peak at 90 degrees and fall away on both sides, back to the spontaneous rate at 0 degrees. Assume the response varies linearly between sampled orientations. Then, to find where the curve crosses a rate R that lies between two samples (θ1, R1) and (θ2, R2):
+Sketch it before you calculate: the points rise to a single peak at 90 degrees and fall away on both sides, back to the spontaneous rate at 0 degrees. Assume the response varies linearly between sampled orientations. Then you can find where the curve crosses any rate that lies between two samples:
 
-> **θ = θ1 + (θ2 − θ1) × (R − R1) / (R2 − R1)**
+<EquationCard
+  purpose="Finds the orientation at which a straight line drawn between two sampled points reaches a chosen rate."
+  eq="θ = θ1 + (θ2 − θ1) × (R − R1) / (R2 − R1)"
+  say="Start at the first sampled angle, and add the gap between the two angles times the fraction of the way the target rate lies from the first rate to the second."
+  symbols={[
+    ["θ", "theta", "the orientation where the line reaches the target rate", "degrees"],
+    ["θ1", "theta one", "the first sampled orientation", "degrees"],
+    ["θ2", "theta two", "the second sampled orientation", "degrees"],
+    ["R", "R", "the target rate you want to locate", "spikes/s"],
+    ["R1", "R one", "the rate measured at θ1", "spikes/s"],
+    ["R2", "R two", "the rate measured at θ2", "spikes/s"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="If R equals R1 the fraction is 0 and θ = θ1; if R equals R2 the fraction is 1 and θ = θ2. A target rate halfway between R1 and R2 lands halfway between the two angles."
+>
+  <Fragment slot="example">
+    <p>Where does this recording’s curve cross 15 spikes/s on its rising side? Use the samples at 30 degrees (6 spikes/s) and 60 degrees (24 spikes/s).</p>
+    <p>Fraction of the way: (15 − 6)/(24 − 6) = 9/18 = 0.5.</p>
+    <p>θ = 30 + 30 × 0.5 = 45 degrees. 15 is halfway from 6 to 24, so the crossing is halfway from 30 to 60 degrees.</p>
+  </Fragment>
+</EquationCard>
 
 *Step 1: preferred orientation.* 90 degrees (40 spikes/s).
 
-*Step 2: half height.* Measure from the spontaneous rate: 2 + (40 − 2)/2 = 2 + 19 = 21 spikes/s.
+*Step 2: half height.* Measure from the spontaneous rate: halfway from 2 up to 40 is 2 + (40 − 2)/2 = 2 + 19 = 21 spikes/s.
 
-*Step 3: where the curve crosses 21.* On the rising side, between 30 degrees (6) and 60 degrees (24): 30 + 30 × (21 − 6)/(24 − 6) = 30 + 30 × 15/18 = 30 + 25 = 55 degrees. On the falling side, between 120 degrees (22) and 150 degrees (5): 120 + 30 × (21 − 22)/(5 − 22) = 120 + 30 × 1/17 = 121.8 degrees.
+*Step 3: where the curve crosses 21.* Use the interpolation formula from the card. On the rising side, between 30 degrees (6) and 60 degrees (24): 30 + 30 × (21 − 6)/(24 − 6) = 30 + 30 × 15/18 = 30 + 25 = 55 degrees. On the falling side, between 120 degrees (22) and 150 degrees (5): 120 + 30 × (21 − 22)/(5 − 22) = 120 + 30 × 1/17 = 121.8 degrees.
 
 *Step 4: width.* 121.8 − 55 = 66.8, about 67 degrees full width at half height.
 
-*Step 5: orientation index.* Take 0 degrees, 90 degrees from the preferred, as orthogonal, and use the raw rates, as the index is defined:
+*Step 5: orientation index.* Take 0 degrees, 90 degrees from the preferred, as orthogonal, and use the raw rates, as the index is defined.
 
-> **orientation index = (R_pref − R_orth) / (R_pref + R_orth) = (40 − 2)/(40 + 2) = 38/42 = 0.90**
+<EquationCard
+  purpose="One number for how strongly a cell prefers its best orientation over the orientation at right angles to it."
+  eq="orientation index = (R_pref − R_orth) / (R_pref + R_orth)"
+  say="The rate at the preferred orientation minus the rate at the orthogonal one, divided by their sum."
+  symbols={[
+    ["R_pref", "R sub pref", "the firing rate at the preferred orientation", "spikes/s"],
+    ["R_orth", "R sub orth", "the firing rate at the orthogonal orientation, 90 degrees from the preferred", "spikes/s"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="Equal rates give 0: no preference. No firing at the orthogonal orientation gives 1. The units cancel, so the index has none."
+>
+  <Fragment slot="example">
+    <p>This recording, with raw rates: R_pref = 40 spikes/s at 90 degrees and R_orth = 2 spikes/s at 0 degrees.</p>
+    <p>Difference: 40 − 2 = 38. Sum: 40 + 2 = 42.</p>
+    <p>Index: 38/42 = 0.90, close to 1, so the cell strongly prefers its best orientation.</p>
+  </Fragment>
+</EquationCard>
 
-An index near 1 means the cell strongly prefers its best orientation over the orthogonal one; it does not by itself give the tuning width. With samples every 30 degrees, the width is only an interpolated estimate. Note the two baselines: Step 2 measured from the spontaneous rate, so the width describes the stimulus-driven response, while Step 5 uses raw rates. With the spontaneous rate subtracted from both rates, the index here would be 1.00, because the orthogonal response equals the spontaneous rate. Neither convention is wrong, but say which one you use; the MCAT-style question below uses raw rates.
+For this cell the index is 0.90 (the card's worked number shows the arithmetic). An index near 1 means the cell strongly prefers its best orientation over the orthogonal one; it does not by itself give the tuning width. With samples every 30 degrees, the width is only an interpolated estimate. Note the two baselines: Step 2 measured from the spontaneous rate, so the width describes the stimulus-driven response, while Step 5 uses raw rates. With the spontaneous rate subtracted from both rates, the index here would be 1.00, because the orthogonal response equals the spontaneous rate. Neither convention is wrong, but say which one you use; the MCAT-style question below uses raw rates.
 
 ## Beyond one sum: complex cells
 
@@ -579,11 +620,25 @@ V1 is **retinotopic**: neighbouring points in the visual field excite neighbouri
 
 The map is distorted. **Cortical magnification** is the length of cortex, in millimetres, given to one degree of visual field. It is largest at the fovea, largely because more ganglion cells serve each degree there, so more cortex is needed to map them. It falls steeply with **eccentricity**, the distance from the centre of gaze. In macaque, Tootell and colleagues (1988) mapped V1 with 2-deoxyglucose, a glucose analogue that marks active cells, while the animals viewed patterns of known position, and reported a maximum near the foveal representation of about 15 mm per degree. Estimates depend on the animal, the location, the direction measured and the method, so 15 is a reported macaque value, not a universal constant.
 
-**Worked problem: a cortical distance.** Assume a locally constant magnification of 15 mm per degree near the macaque fovea. Two points 0.20 degrees apart lie
+<EquationCard
+  purpose="Converts a separation in the visual field into a distance on the cortex, where the magnification is roughly constant."
+  eq="distance on cortex = M × separation"
+  say="Distance on the cortex equals the cortical magnification times the separation in the visual field."
+  symbols={[
+    ["distance on cortex", "distance on cortex", "how far apart the two points are represented in V1", "mm"],
+    ["M", "M", "the cortical magnification: millimetres of cortex per degree of visual field. It falls steeply with eccentricity.", "mm/degree"],
+    ["separation", "separation", "how far apart the two points are in the visual field", "degrees"],
+  ]}
+  toolkit={["units", "ratios"]}
+  check="Units: millimetres per degree times degrees leaves millimetres. Twice the separation gives twice the cortical distance, but only while M stays the same, which is true only over a small region."
+>
+  <Fragment slot="example">
+    <p>Near the macaque fovea, with the reported 15 mm per degree, take two points 0.10 degrees apart.</p>
+    <p>15 mm/degree × 0.10 degrees = 1.5 mm of cortex.</p>
+  </Fragment>
+</EquationCard>
 
-> **distance on cortex = M × separation = 15 mm/degree × 0.20 degrees = 3.0 mm**
-
-apart. Check: 3.0 mm ÷ 15 mm/degree = 0.20 degrees. Because magnification falls steeply with eccentricity, this holds only near the fovea; never apply one value across the field.
+**Worked problem: a cortical distance.** Assume a locally constant magnification of 15 mm per degree near the macaque fovea. Two points 0.20 degrees apart lie 15 mm/degree × 0.20 degrees = 3.0 mm apart. Check: 3.0 mm ÷ 15 mm/degree = 0.20 degrees. Because magnification falls steeply with eccentricity, this holds only near the fovea; never apply one value across the field.
 
 On top of the map sit **columns**: groups of cells, running through the thickness of the cortex, that share a property. Picture an electrode going down at right angles to the surface. In cat, Hubel and Wiesel (1962) found that cells along such a penetration tended to share an orientation preference, and that most of the cells they sampled were influenced by both eyes. In lightly anaesthetized macaque and spider monkeys (1968) they mapped orientation columns and **ocular-dominance columns**, groups of cells preferring one eye, along the same penetrations. They reported boundaries that seemed to be independent of each other; later work found the two maps related (see Going deeper). How eye closure in young animals reshapes ocular dominance belongs to [ocular dominance](/lessons/ocular-dominance/) and [critical periods](/lessons/critical-period-control/), and prenatal activity to [spontaneous activity](/lessons/spontaneous-activity/).
 
@@ -618,7 +673,7 @@ The four defects are described for human anatomy by Patel and colleagues (2021).
 
 ### Complex cells as pooled pairs
 
-One modern form of the pooling idea is the energy model. Two linear filters share an orientation, a spatial frequency and an envelope, but their stripes are offset by a quarter of a cycle (in quadrature). Square each filter's signed output and add: E = u² + v². For a matched grating at phase φ, u = A cos φ and v = A sin φ, so E = A² wherever the stripes fall. Reversing the contrast flips the sign of u and v and leaves E unchanged. Adding the two outputs without squaring would give just another single sum, still sensitive to position. The energy model is not a demonstrated circuit for every complex cell, and responses to finite bars depend on the filters chosen.
+One modern form of the pooling idea is the energy model. Two linear filters share an orientation, a spatial frequency and an envelope, but their stripes are offset by a quarter of a cycle (in quadrature). Square each filter's signed output and add: E = u² + v². For a matched grating at phase φ ("phi", where the stripes fall), u = A cos φ and v = A sin φ. Then E = A² cos² φ + A² sin² φ = A² (cos² φ + sin² φ) = A², because cos² φ + sin² φ = 1 for any angle. So E = A² wherever the stripes fall. Reversing the contrast flips the sign of u and v and leaves E unchanged. Adding the two outputs without squaring would give just another single sum, still sensitive to position. The energy model is not a demonstrated circuit for every complex cell, and responses to finite bars depend on the filters chosen.
 
 ### Columns in cat and monkey
 

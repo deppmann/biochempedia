@@ -468,18 +468,43 @@ Notice what that current did: it pulled Vm toward E_Na. The same holds for every
 
 Picture a voltage scale running from E_K at −77 mV on the left to E_Na at +50 mV on the right. A marker on the scale shows Vm. A rope for each ion pulls the marker toward that ion's end. How hard a rope pulls is that ion's current, g × (Vm − E): its conductance times the marker's distance from the ion's own end. So a rope pulls harder the more open its channels are and the farther the marker sits from its end.
 
-The marker settles where the pulls balance. Write I = g × (Vm − E) for each ion, set the sum to zero, and solve for Vm. It comes out as an average of the equilibrium potentials, each weighted by its conductance:
+The marker settles where the pulls balance. Write I = g × (Vm − E) for each ion, set the sum to zero, and solve for Vm (open “Where it comes from” on the card for the three steps). It comes out as an average of the equilibrium potentials, each weighted by its conductance:
 
-> **Vm = (g_K × E_K + g_Na × E_Na + g_leak × E_leak) / (g_K + g_Na + g_leak)**
-
-A quick example, ignoring leak: with g_K = 10 and g_Na = 1 mS/cm², the balance point is (10 × −77 + 1 × 50) / 11, about −65 mV. It sits close to E_K because potassium has ten times the conductance.
+<EquationCard
+  purpose="Where the voltage is heading at any moment: the balance point, where the ionic currents cancel."
+  eq="Vm = (g_K × E_K + g_Na × E_Na + g_leak × E_leak) / (g_K + g_Na + g_leak)"
+  say="The balance point is the average of the ions' equilibrium potentials, each counted in proportion to its conductance."
+  symbols={[
+    ["Vm", "V m", "the membrane potential at the balance point, where the net ionic current is zero", "mV"],
+    ["g_K", "g sub K", "potassium conductance", "mS/cm²"],
+    ["E_K", "E sub K", "potassium's equilibrium potential, −77 mV in the squid model", "mV"],
+    ["g_Na", "g sub Na", "sodium conductance", "mS/cm²"],
+    ["E_Na", "E sub Na", "sodium's equilibrium potential, +50 mV in the squid model", "mV"],
+    ["g_leak", "g sub leak", "leak conductance, always open (described just below)", "mS/cm²"],
+    ["E_leak", "E sub leak", "leak's effective equilibrium potential, about −54 mV in the squid model", "mV"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="If one conductance is far larger than the others, the balance point sits near that ion's equilibrium potential. If sodium and potassium had equal conductances and leak were ignored, it would sit exactly halfway between E_K and E_Na. Scaling every conductance up or down together does not move it."
+>
+  <Fragment slot="example">
+    <p>Ignore leak, with g_K = 10 and g_Na = 1 mS/cm².</p>
+    <p>Top: 10 × (−77) = −770, and 1 × 50 = +50. Their sum is −720.</p>
+    <p>Bottom: 10 + 1 = 11.</p>
+    <p>Vm = −720 / 11 = −65.5, about −65 mV. It sits close to E_K because potassium has ten times the conductance.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, set the net current to zero: g_K × (Vm − E_K) + g_Na × (Vm − E_Na) + g_leak × (Vm − E_leak) = 0.</p>
+    <p>Step 2, multiply out the brackets and move the E terms to the right: Vm × (g_K + g_Na + g_leak) = g_K × E_K + g_Na × E_Na + g_leak × E_leak.</p>
+    <p>Step 3, divide both sides by the total conductance, g_K + g_Na + g_leak.</p>
+  </Fragment>
+</EquationCard>
 
 Here **leak** is a conductance that is always open, with an effective equilibrium potential, E_leak, of about −54 mV in the squid model. The formula holds for a patch of membrane with no current injected and none flowing along the axon. It is a conductance-model formula, not the Goldman-Hodgkin-Katz permeability equation.
 
 When the conductances change, the balance point moves, and Vm chases it. That is the rule: **with no stimulus or other current injected, Vm moves toward the balance point, and when it gets there the currents cancel and the voltage holds still.** Apply it to three cases.
 
 - **At rest**, potassium has the largest conductance, so the balance point sits near E_K. It sits about 12 mV above E_K, at about −65 mV, mainly because of leak. In the squid model the leak conductance, 0.3 mS/cm², is nearly as large as the resting potassium conductance, about 0.37 mS/cm², and E_leak lies well above E_K. A very few open sodium channels add a little more. At rest the leak current is inward: with the small sodium current, it balances the outward potassium current.
-- **If sodium conductance rose far enough**, the balance point would slide toward E_Na. To pass zero, sodium must outweigh potassium: ignoring leak, g_Na must exceed about 1.5 times g_K, because 50 × g_Na must beat 77 × g_K. If sodium conductance stayed that high long enough, the inside would turn positive.
+- **If sodium conductance rose far enough**, the balance point would slide toward E_Na. For the balance point to pass 0 mV, sodium must outweigh potassium. Ignoring leak, the top of the average, g_K × (−77) + g_Na × 50, must turn positive, so 50 × g_Na must beat 77 × g_K. Divide both sides by 50: g_Na must exceed 77 / 50, about 1.5 times g_K. If sodium conductance stayed that high long enough, the inside would turn positive.
 - **If potassium conductance rose above its resting level**, the balance point would move closer to E_K at −77 mV, and Vm would drop below rest.
 
 Now return to the opening puzzle. In this squid model, a large, brief rise in sodium conductance produces the overshoot, and potassium conductance staying above its resting level produces the undershoot. So the conductances change, fast and only for a moment. Two questions follow. What makes them change? And why only for a moment? To answer, Hodgkin and Huxley had to watch conductances change. That took a trick.
@@ -494,7 +519,7 @@ The **voltage clamp** breaks the loop. It pins the membrane at a voltage you cho
 
 An analogy shows how it also measures current. Suppose you must keep the water in a leaky bathtub at exactly one level. You watch the level and open the tap just enough to hold it steady. If the drain opens wider, you must run the tap faster. If water starts pouring in through a crack instead, your tap must run backwards, like a pump, and remove it just as fast. Either way, the flow through your tap is a direct readout of how fast water is leaving or entering.
 
-In the clamp, a feedback amplifier plays your part. It holds the membrane at a commanded voltage and supplies whatever current that takes. Why does that current equal the current crossing the membrane? The bilayer is a capacitor (see [membrane structure and function](/lessons/membrane-structure-function/)). Current goes into charging it only while the voltage changes, as **capacitive current**, Cm × dV/dt. At a fixed voltage dV/dt is zero, so no current goes into the capacitance, and the amplifier's current must match the current through the channels. When the net ionic current is outward, the amplifier supplies charge to replace what leaves. When it is inward, as during the early sodium current, the amplifier withdraws the charge that enters.
+In the clamp, a feedback amplifier plays your part. It holds the membrane at a commanded voltage and supplies whatever current that takes. Why does that current equal the current crossing the membrane? The bilayer is a capacitor (see [membrane structure and function](/lessons/membrane-structure-function/)). Current goes into charging it only while the voltage changes, as **capacitive current**, Cm × dV/dt. Here Cm is the membrane capacitance, and dV/dt (“d V by d t”) means how fast the voltage is changing, for example in mV per ms. At a fixed voltage dV/dt is zero, so no current goes into the capacitance, and the amplifier's current must match the current through the channels. When the net ionic current is outward, the amplifier supplies charge to replace what leaves. When it is inward, as during the early sodium current, the amplifier withdraws the charge that enters.
 
 Hodgkin, Huxley and Bernard Katz built a clamp for the squid giant axon and published their records in the Journal of Physiology in 1952.
 
@@ -550,7 +575,7 @@ Sodium independence alone could not name the carrier of the delayed current. It 
 
 > I_K = 15 mS/cm² × 77 mV = +1155 µA/cm², outward
 
-*Step 3: the choline prediction in numbers.* Cut external Na+ to 10% with choline, at 6.3 °C. A tenfold change in concentration shifts an equilibrium potential by about 58 mV near 20 °C and about 55 mV in the cold squid preparation, so E_Na drops from +50 mV to about −5 mV. Assume, as a simplification, that g_Na is unchanged. Then
+*Step 3: the choline prediction in numbers.* Cut external Na+ to 10% with choline, at 6.3 °C: a tenfold fall. Less sodium outside means less push inward, so E_Na falls. By how much? The Nernst equation makes E depend on the log of the concentration ratio, so every tenfold change moves E by the same step ([log scales](/math-toolkit/#log-scales)). That step is about 58 mV near 20 °C and about 55 mV in the cold squid preparation, so E_Na drops from +50 mV to about 50 − 55 = −5 mV. Assume, as a simplification, that g_Na is unchanged. Then
 
 > I_Na ≈ 20 mS/cm² × (0 − (−5) mV) ≈ +100 µA/cm²
 
@@ -590,7 +615,7 @@ Now take the clamp away and let the axon run free. Remember the rule: Vm moves t
 
 1. **Rising phase.** Sodium activation gates open, sodium flows in, and the inside becomes more positive. That opens more activation gates, which lets in more sodium. This is **positive feedback**: each step makes the next one bigger, and it is why the rise is so steep. Within a fraction of a millisecond sodium conductance dwarfs potassium conductance, so the balance point leaps toward E_Na at +50 mV and Vm races after it. Even during the rise, the slow processes have begun: inactivation is already developing, and potassium gates are starting to open.
 
-2. **Peak.** Vm stops short of +50 mV, at about +40 mV in the model. It stops where it meets the balance point: there the inward sodium current equals the outward potassium and leak current, and the voltage holds still for an instant. Sodium still has much the larger conductance at the peak, about 12 times g_K in the model. Two things hold the balance point below E_Na. Potassium and leak conductances stay open, so the average is never pure sodium. And during the rise, inactivation lowers g_Na while potassium activation raises g_K, which pulls the balance point down toward the rising Vm. In the model, the risen potassium conductance does the most to keep the peak short of E_Na. Sodium's large conductance can be balanced at the peak because Vm is close to E_Na, so each open sodium channel pushes only weakly, while potassium, far from E_K, pushes hard.
+2. **Peak.** Vm stops short of +50 mV, at about +40 mV in the model. It stops where it meets the balance point: there the inward sodium current equals the outward potassium and leak current, and the voltage holds still for an instant. Sodium still has much the larger conductance at the peak, about 12 times g_K in the model. Two things hold the balance point below E_Na. Potassium and leak conductances stay open, so the average is never pure sodium. And during the rise, inactivation lowers g_Na while potassium activation raises g_K, which pulls the balance point down toward the rising Vm. In the model, the risen potassium conductance does the most to keep the peak short of E_Na. Sodium's large conductance can be balanced at the peak because Vm is close to E_Na, so each open sodium channel pushes only weakly, while potassium, far from E_K, pushes hard. In rope terms: sodium's rope is about 12 times thicker, but at +40 mV it is stretched only about 10 mV, while potassium's is stretched about 117 mV.
 
 3. **Falling phase.** Inactivation now closes more and more sodium channels, so sodium conductance collapses, while potassium conductance keeps rising. The balance point drops below Vm, so Vm starts to fall. At first sodium may still have the larger conductance, but, as at the peak, its pull is weak and potassium's is strong. Soon potassium becomes the largest conductance, and the balance point sinks toward E_K. This is **negative feedback**: the same depolarization that started the spike also ends it, a little later.
 
@@ -620,7 +645,7 @@ The equations passed tests they were not fitted to. They reproduced the squid ac
 
 **Threshold** is the voltage past which the extra sodium current from newly opened sodium channels grows faster than potassium and leak current can oppose it, so depolarization becomes self-sustaining. The test is whether the inward excess keeps growing. A tally makes this concrete; the numbers are illustrative, made up for teaching, in arbitrary units.
 
-- **Nudge the membrane 5 mV, from −65 to −60 mV.** A few sodium channels open: say 2 units of inward current. Potassium current is outward. Leak current is still inward at −60 mV, because that is below E_leak. Say potassium and leak together give 3 units outward. Outward wins, so there is no inward excess to grow: the voltage drifts back and nothing happens.
+- **Nudge the membrane 5 mV, from −65 to −60 mV.** A few sodium channels open: say 2 units of inward current. Potassium current is outward. Leak current is still inward at −60 mV, because that is below E_leak. Say potassium's outward current outweighs leak's small inward current, so together they give 3 units outward. Outward wins, so there is no inward excess to grow: the voltage drifts back and nothing happens.
 - **Nudge it 12 mV, to −53 mV.** Now say 6 units in and 4 out. The voltage rises, and each millivolt opens more sodium channels, so the inward excess grows faster than potassium and leak can add outward current. The rise feeds itself and runs away.
 - **Threshold lies between the two**, where the sodium feedback first sustains itself. A momentary excess of inward current is not enough on its own: if the opposing currents grow faster, the voltage still turns back.
 
@@ -725,7 +750,7 @@ A nerve holds many fibres, so stimulating it gives a **compound action potential
 <details>
 <summary>One way to do it</summary>
 
-Before injury, velocity = 0.10 m / 0.0020 s = 50 m/s for the fastest fibres.
+Put everything in metres and seconds first: 10 cm = 0.10 m and 2.0 ms = 0.0020 s. Before injury, velocity = 0.10 m / 0.0020 s = 50 m/s for the fastest fibres.
 
 Assume the 9 cm of intact nerve is unchanged: it takes 0.09 m / 50 m/s = 1.8 ms. The lesion takes 7.0 − 1.8 = 5.2 ms, so its velocity is 0.01 m / 0.0052 s, about 1.9 m/s.
 
@@ -745,17 +770,36 @@ Kenneth Cole, working with George Marmont, developed the method in the late 1940
 
 ### The exact shift in Step 3
 
-A tenfold fall in external sodium shifts E_Na by 2.303RT/F, which at 279.45 K (6.3 °C) is 55.4 mV, so E_Na moves to −5.4 mV. With g_Na assumed unchanged,
+A tenfold fall in external sodium shifts E_Na by 2.303RT/F, which at 279.45 K (6.3 °C + 273.15) is 55.4 mV. (R is the gas constant, T the temperature in kelvin and F Faraday's constant; 2.303 is ln 10, which converts the natural log to tenfold steps. See [e and ln](/math-toolkit/#e-and-ln).) So E_Na moves to 50 − 55.4 = −5.4 mV. With g_Na assumed unchanged,
 
 > I_Na = 20 mS/cm² × (0 − (−5.4) mV) = +108 µA/cm²
 
 ### The 1952 equations
 
-Hodgkin and Huxley drew the membrane as a capacitor in parallel with sodium, potassium and leak conductances:
+Optional: you can skip this the first time. Hodgkin and Huxley drew the membrane as a capacitor in parallel with sodium, potassium and leak conductances, and wrote each conductance as a maximum times gating variables:
 
-> **g_Na = g_Na,max × m³ × h and g_K = g_K,max × n⁴**
+<EquationCard
+  purpose="How open the sodium pathway is at a given moment, built from the three gating processes."
+  eq="g_Na = g_{Na,max} × m^3 × h"
+  say="Sodium conductance equals its maximum, times the activation variable cubed, times the inactivation variable."
+  symbols={[
+    ["g_Na", "g sub Na", "the sodium conductance at this moment", "mS/cm²"],
+    ["g_{Na,max}", "g sub Na max", "the largest sodium conductance possible, with every channel open: 120 mS/cm² in the 1952 model", "mS/cm²"],
+    ["m^3", "m cubed", "m tracks sodium activation and runs from 0 to 1; the cube was fitted to the S-shaped onset of the current", ""],
+    ["h", "h", "the fraction of sodium channels not inactivated, from 0 to 1", ""],
+  ]}
+  toolkit={["powers"]}
+  check="If h = 0 (every channel inactivated), g_Na is zero however large m is. If m = h = 1, g_Na reaches its maximum. Potassium follows the same pattern with one variable: g_K = g_K,max × n⁴."
+>
+  <Fragment slot="example">
+    <p>Take m = 0.5 and h = 1, round values to keep the arithmetic easy.</p>
+    <p>m^3 = 0.5 × 0.5 × 0.5 = 0.125.</p>
+    <p>g_Na = 120 × 0.125 × 1 = 15 mS/cm².</p>
+    <p>Half-way activation gives only an eighth of the maximum conductance, which is why the cube makes the onset slow at first and then steep.</p>
+  </Fragment>
+</EquationCard>
 
-Each of m, h and n relaxes toward a voltage-dependent value with first-order kinetics. The 1952 model used g_Na,max = 120 mS/cm², g_K,max = 36 mS/cm², leak 0.3 mS/cm² and Cm = 1 µF/cm², with rates for 6.3 °C scaled by 3 per 10 °C.
+Each of m, h and n relaxes toward a voltage-dependent value with first-order kinetics: at a fixed voltage, each approaches its target along an exponential curve. The 1952 model used g_Na,max = 120 mS/cm², g_K,max = 36 mS/cm², leak 0.3 mS/cm² and Cm = 1 µF/cm², with rates for 6.3 °C scaled by 3 per 10 °C.
 
 Why a fourth power? After a depolarizing step, current through the potassium channels already open changes at once, but the extra potassium conductance rises slowly, then faster. Raising n to the fourth power reproduces that S-shaped onset.
 

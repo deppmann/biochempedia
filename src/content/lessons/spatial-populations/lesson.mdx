@@ -337,6 +337,7 @@ draft: false
 
 import LevinsOccupancy from '../../../components/LevinsOccupancy.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Visit a pond three times, hear no toads, and you still cannot say the pond is empty.** Walk into a meadow full of butterflies and you still cannot say that population replaces itself. Both problems come from the same fact: many species live in patches, move between them, and are hard to see. This lesson asks how a species persists across patches that keep losing their populations, and how you count animals you mostly do not observe.
 
@@ -354,13 +355,50 @@ This lesson builds on [demography](/lessons/demography/), where survival estimat
 
 ## Levins: persistence as colonization balancing extinction
 
-Richard Levins (1969) answered by ignoring how many animals each patch holds. Each patch is simply occupied or empty. Let p be the fraction of patches occupied.
+Richard Levins (1969) answered by ignoring how many animals each patch holds. Each patch is simply occupied or empty. Let p be the fraction of patches occupied. His equation is a ledger for p: patches gained by colonization minus patches lost to extinction.
 
-> **dp/dt = c p (1 - p) - e p**
+<EquationCard
+  purpose="How fast the fraction of occupied patches changes: colonization adds patches, extinction removes them."
+  eq="dp/dt = c p (1 − p) − e p"
+  say="The rate of change of occupancy is c times p times one minus p, minus e times p."
+  symbols={[
+    ["dp/dt", "d p d t", "the rate at which the occupied fraction changes", "per year"],
+    ["c", "c", "the colonization rate", "per year"],
+    ["p", "p", "the fraction of patches occupied. Colonists come from these patches.", ""],
+    ["1 − p", "one minus p", "the fraction of patches empty. Colonists succeed only here.", ""],
+    ["e", "e", "the local extinction rate: each occupied patch loses its population at this rate. Here e is a rate, not the number e ≈ 2.718.", "per year"],
+  ]}
+  check="If p = 0 there are no colonists and no populations to lose, so nothing changes. If p = 1 there is no empty patch to colonize, so only the extinction term is left and occupancy can only fall."
+>
+  <Fragment slot="example">
+    <p>Take the rates of worked problem 1 below, c = 0.4 and e = 0.1 per year, with half the patches occupied, p = 0.5.</p>
+    <p>Colonization: 0.4 × 0.5 × 0.5 = 0.1. Extinction: 0.1 × 0.5 = 0.05.</p>
+    <p>dp/dt = 0.1 − 0.05 = +0.05 per year, so occupancy is still rising.</p>
+  </Fragment>
+</EquationCard>
 
-The first term is colonization. Colonists come from occupied patches (p) and succeed only where a patch is empty (1 - p), at a rate c per year. The second term is local extinction: each occupied patch loses its population at rate e per year. Set dp/dt to zero and divide by p:
+Occupancy stops changing when the two terms balance. Find that level in three steps:
 
-> **p* = 1 - e/c, which is positive only when c is greater than e**
+1. Set dp/dt to zero: c p (1 − p) = e p.
+2. Divide both sides by p (for any network that has occupied patches): c (1 − p) = e.
+3. Divide by c and move p to one side: 1 − p = e/c, so p = 1 − e/c.
+
+<EquationCard
+  purpose="The fraction of patches occupied once colonization and extinction balance."
+  eq="p* = 1 − e/c"
+  say="p star, the equilibrium occupancy, is one minus the ratio of extinction rate to colonization rate."
+  symbols={[
+    ["p*", "p star", "the equilibrium fraction of patches occupied", ""],
+    ["e", "e", "the local extinction rate", "per year"],
+    ["c", "c", "the colonization rate", "per year"],
+  ]}
+  toolkit={["ratios"]}
+  check="With no extinction (e = 0), every patch ends up occupied, p* = 1. When e equals c, p* = 0. So p* is positive only when c is greater than e."
+>
+  <Fragment slot="example">
+    <p>An invented middle case: c = 0.4 and e = 0.2 per year. e/c = 0.5, so p* = 1 − 0.5 = 0.5: half the patches occupied at any time.</p>
+  </Fragment>
+</EquationCard>
 
 The analogy is a row of lamps that fail at random and get relit from lamps still burning. Lamps are always going out, yet the row stays partly lit as long as relighting outpaces failure. The model's assumptions are strong: many identical patches, all equally reachable from every other, and constant rates. Real networks have big and small patches, near and far ones.
 
@@ -368,7 +406,7 @@ The analogy is a row of lamps that fail at random and get relit from lamps still
 
 1. *Equilibrium.* p* = 1 - 0.1/0.4 = 1 - 0.25 = **0.75**. Three patches in four are occupied at any time, though which ones keeps changing.
 2. *Raise extinction.* Now let e rise to 0.4 per year, equal to c. Then p* = 1 - 0.4/0.4 = **0**, and the network is lost.
-3. *It is lost slowly.* With c = e = 0.4, the equation becomes dp/dt = -0.4 p^2. Starting from 0.75, occupancy falls at 0.4 x 0.75^2 = 0.225 per year at first, and the solution 1/p = 1/0.75 + 0.4t gives p = 0.19 after 10 years.
+3. *It is lost slowly.* With c = e = 0.4, the colonization term 0.4 p (1 − p) = 0.4 p − 0.4 p^2, and subtracting the extinction term 0.4 p leaves dp/dt = -0.4 p^2. Starting from 0.75, occupancy falls at 0.4 x 0.75^2 = 0.4 x 0.5625 = 0.225 per year at first. The solution of that equation is 1/p = 1/0.75 + 0.4t. After 10 years: 1/p = 1.333 + 4 = 5.333, so p = 1/5.333, about 0.19.
 
 That third step is the practical warning. A network at or just past its threshold can keep occupied patches for years, because decline is slowest near the threshold. Seeing animals in some patches does not show the region is persisting.
 
@@ -392,15 +430,39 @@ If connection rescues populations, linking patches with **corridors**, strips of
 
 Every quantity above (c, e, births, deaths) has to be measured on animals that hide. Births and deaths need data on individuals; c and e need reliable records of which patches are occupied.
 
+The simplest count of hidden animals uses a marked sample. The idea is a proportion: the share of marked animals in a second catch should match the share of the whole population you marked.
+
+<EquationCard
+  purpose="Estimate the size of a population you cannot count, from one marking and one recapture."
+  eq="N = n1 × n2 / m2"
+  say="N, the population size, is the first catch times the second catch, divided by the marked animals in the second catch."
+  symbols={[
+    ["N", "N", "the estimated number of animals in the population", "animals"],
+    ["n1", "n one", "animals caught, marked and released on the first occasion", "animals"],
+    ["n2", "n two", "animals caught on the second occasion", "animals"],
+    ["m2", "m two", "animals in the second catch that already carry a mark", "animals"],
+  ]}
+  toolkit={["ratios"]}
+  check="If every animal in the second catch is marked (m2 = n2), N = n1: you had already marked everyone. The fewer marked animals you recatch, the larger the estimate. If you recatch none, m2 = 0 and the formula breaks down."
+>
+  <Fragment slot="example">
+    <p>Round invented numbers: mark 10, later catch 10, and 2 of them are marked.</p>
+    <p>N = 10 × 10 / 2 = 50. Check: 2 of 10 is one fifth, and 10 marked animals are one fifth of 50.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Set the two marked fractions equal: m2 / n2 = n1 / N. Multiply both sides by N and by n2: m2 × N = n1 × n2. Divide by m2: N = n1 × n2 / m2.</p>
+  </Fragment>
+</EquationCard>
+
 **Worked problem 2 (invented data).** You catch and mark 50 animals on the first occasion (n1 = 50), release them, and later catch 90 (n2 = 90), of which 20 are marked (m2 = 20). Assume the population is **closed** (no births, deaths or movement between occasions), every animal is **equally catchable**, and marks are neither lost nor misread.
 
 1. *The logic.* The marked fraction in the second sample, 20/90, estimates the marked fraction of the population, 50/N.
 2. *Lincoln-Petersen.* N = n1 x n2 / m2 = 50 x 90 / 20 = 4,500 / 20 = **225 animals**.
-3. *Chapman.* The plain estimator runs high when samples are small, so Chapman's version adds one to each count:
+3. *Chapman.* The plain estimator runs high when samples are small, so Chapman's version adds one to each count (which also keeps it from dividing by zero if no marked animals are recaught):
 
 > **N = (n1 + 1)(n2 + 1) / (m2 + 1) - 1**
 
-N = (51 x 91) / 21 - 1 = 4,641 / 21 - 1 = 221 - 1 = **220 animals**.
+Add one to each count: 50 + 1 = 51, 90 + 1 = 91 and 20 + 1 = 21. Then N = (51 x 91) / 21 - 1 = 4,641 / 21 - 1 = 221 - 1 = **220 animals**.
 
 The overlap is 20, not 90. Using the whole second catch in the denominator is an easy slip to make. And 220 is an estimate, not a head count. Each assumption can fail. Trap-happy animals inflate m2 and shrink N; trap-shy ones do the reverse. Photo identification, as in a 2018 survey of free-roaming dogs in Quito, Ecuador, avoids handling but can mismatch individuals.
 
@@ -408,7 +470,7 @@ For many species you cannot even mark individuals, only record whether a site ha
 
 **Worked problem 3 (illustrative numbers).** A pond is occupied, and each visit detects the species with probability 0.5, independently.
 
-1. *Three misses.* P(000) = 0.5 x 0.5 x 0.5 = 0.5^3 = **0.125**. One occupied pond in eight looks empty.
+1. *Three misses.* Each visit misses with probability 1 − 0.5 = 0.5, and independent misses multiply: P(000) = 0.5 x 0.5 x 0.5 = 0.5^3 = **0.125**. One occupied pond in eight looks empty. Each extra visit would halve that chance again.
 2. *Harder to detect.* At 0.3 per visit, each miss has probability 0.7, so P(000) = 0.7^3 = **0.343**. One in three.
 3. *The meaning.* A 000 history is consistent with an empty pond or an occupied one missed three times. The pattern of histories across many sites lets the model estimate both probabilities. In their Maryland data from 2000, MacKenzie and colleagues estimated that American toads occupied 0.49 of the 29 wetlands analysed, out of 32 surveyed. Across seasons, treating 000 as absence also distorts turnover: a missed population is scored as a local extinction, and finding it again later is scored as a colonization, so both e and c are biased. Dynamic occupancy models correct for this.
 

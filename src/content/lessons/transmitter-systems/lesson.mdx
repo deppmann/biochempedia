@@ -423,6 +423,7 @@ draft: false
 
 import TransporterOccupancyCurve from '../../../components/TransporterOccupancyCurve.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **In 1921 Otto Loewi reported an experiment with two isolated frog hearts. He stimulated the vagus nerve of one, which slows its beat, and then moved fluid that had bathed that heart onto the second. The second heart slowed too, although its own vagus had not been touched.**
 
@@ -553,7 +554,7 @@ A neuron can release more than one transmitter. In adult mouse slices, some dopa
 
 The quantitative side of binding is in [binding and dose-response](/lessons/binding-and-dose-response/). Here is the version you need, starting with three pictures.
 
-1. **The occupancy curve.** Drug concentration runs along the bottom on a log scale, and the share of targets filled runs up the side. The curve rises steeply through the middle and flattens near the top.
+1. **The occupancy curve.** Drug concentration runs along the bottom on a log scale (each equal step multiplies the concentration by the same factor; see [log scales](/math-toolkit/#log-scales)), and the share of targets filled runs up the side. The curve rises steeply through the middle and flattens near the top.
 2. **A signal that lingers.** Serotonin in the space around a synapse is plotted against time after one release. It falls as transporters clear it. Block more of the transporters and the fall stretches out.
 3. **Two drugs at a receptor.** GABA concentration runs along the bottom on a log scale, and current up the side. The control curve rises from no current to a maximum. With bicuculline, the same curve slides to the right and still reaches the same top. With diazepam, it slides to the left.
 
@@ -568,19 +569,58 @@ A lot. Each transporter still working clears serotonin, so blocking most of the 
 
 **Worked problem: how much transporter does a drug occupy, and what does that do?** Coleman, Green and Gouaux (2016) reported paroxetine binding to wild-type human SERT in HEK293 cell membranes and reported a dissociation constant, KD, of 0.08 nM. The **dissociation constant** is the free drug concentration at which half the binding sites are filled. Assume one class of site, equilibrium, and so little binding that free drug equals added drug.
 
-> **f = L / (KD + L)**
+The first equation turns a drug concentration into the share of targets it fills:
 
-Here f is the fraction of transporters occupied and L the free drug concentration.
+<EquationCard
+  purpose="What fraction of its targets a drug fills at a given concentration."
+  eq="f = L / (KD + L)"
+  say="The fraction occupied is the drug concentration divided by the dissociation constant plus the drug concentration."
+  symbols={[
+    ["f", "f", "the fraction of transporters occupied, from 0 to 1", ""],
+    ["L", "L", "the free drug concentration", "nM"],
+    ["KD", "K D", "the dissociation constant: the concentration that fills half the sites, 0.08 nM for paroxetine at SERT", "nM"],
+  ]}
+  toolkit={["ratios"]}
+  check="With no drug (L = 0), f = 0. When L equals KD, f = 1/2. When L is far above KD, f creeps toward 1 but never reaches it, which is why the last few sites are so costly (see Step 3)."
+>
+  <Fragment slot="example">
+    <p>Take L = 3 × KD, whatever KD is.</p>
+    <p>f = 3KD / (KD + 3KD) = 3KD / 4KD = 0.75.</p>
+    <p>Three times the dissociation constant fills three quarters of the sites.</p>
+  </Fragment>
+</EquationCard>
 
 *Step 1.* At L = 0.08 nM: f = 0.08 / (0.08 + 0.08) = 0.50. Half the transporters are occupied.
 
-*Step 2.* What L gives 90%? Rearranging, L = f × KD / (1 − f) = 0.90 × 0.08 nM / 0.10 = 0.72 nM, nine times KD. Check: 0.72 / (0.08 + 0.72) = 0.72 / 0.80 = 0.90.
+*Step 2.* What L gives 90%? Rearrange the equation to solve for L: multiply both sides by (KD + L) to get f × KD + f × L = L; gather the L terms, f × KD = L × (1 − f); divide by (1 − f): L = f × KD / (1 − f). So L = 0.90 × 0.08 nM / 0.10 = 0.72 nM, nine times KD. Check: 0.72 / (0.08 + 0.72) = 0.72 / 0.80 = 0.90.
 
 *Step 3.* For 99%: L = 0.99 × 0.08 nM / 0.01 = 7.92 nM. That is 11 times the concentration needed for 90%, all to fill the last 9% of sites.
 
 *Step 4.* What does blocking do to how long serotonin lingers? Build a toy model. Suppose the transporter is the only route out and works far below saturation, so serotonin is too scarce to keep the free carriers busy. Suppose too that paroxetine binding stays at equilibrium, a filled transporter cannot transport, and the KD measured in membranes also describes the block. Then only the free transporters clear serotonin, and the free share is 1 − f = KD / (KD + L). Uptake runs slower, and serotonin lingers longer, by the factor
 
-> **1 / (1 − f) = (KD + L) / KD = 1 + L / KD**
+<EquationCard
+  purpose="How many times longer the signal lasts when a blocker fills a share of the transporters, in this toy model."
+  eq="1 / (1 − f) = 1 + L / KD"
+  say="The stretch is one over the free share of transporters, which works out to one plus the drug concentration over the dissociation constant."
+  symbols={[
+    ["f", "f", "the fraction of transporters occupied by the drug", ""],
+    ["L", "L", "the free drug concentration", "nM"],
+    ["KD", "K D", "the drug's dissociation constant", "nM"],
+  ]}
+  toolkit={["ratios"]}
+  check="With no drug, f = 0 and the factor is 1: no stretch. At half occupancy (L = KD) the signal lasts twice as long. In this model the factor keeps growing as L rises; Going deeper shows how other routes out put a ceiling on it."
+>
+  <Fragment slot="example">
+    <p>Continue with L = 3 × KD, which fills f = 0.75.</p>
+    <p>Free share: 1 − 0.75 = 0.25, so clearance runs at a quarter speed.</p>
+    <p>Stretch: 1 / 0.25 = 4, and the other side agrees: 1 + 3 = 4.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, the free share is 1 − f = 1 − L / (KD + L) = KD / (KD + L).</p>
+    <p>Step 2, take the reciprocal: 1 / (1 − f) = (KD + L) / KD.</p>
+    <p>Step 3, split the fraction: KD / KD + L / KD = 1 + L / KD.</p>
+  </Fragment>
+</EquationCard>
 
 At 0.08 nM, half occupancy, it is 1 + 0.08/0.08 = 2: the signal lasts twice as long. At 0.72 nM it is 1 + 0.72/0.08 = 10. At 7.92 nM it is 1 + 7.92/0.08 = 100. So the costly last 9% of sites stretch the signal from ten times to a hundred times its normal length. In this model, the flat top of the occupancy curve is where the action is for a blocker.
 
@@ -588,7 +628,23 @@ This is the factor 1 + L/K from the one idea.
 
 *Step 5.* The same factor appears at a receptor. Contrast two drugs, using made-up round numbers. Suppose GABA gives half its maximal current at a GABA-A receptor at 10 µM. That concentration is its **EC50**. A competitive antagonist with a dissociation constant KB = 1 µM, present at [B] = 3 µM, shifts the curve right by the **dose ratio**:
 
-> **dose ratio = 1 + [B] / KB = 1 + 3/1 = 4**
+<EquationCard
+  purpose="How many times more agonist is needed to get the same response when a competitive antagonist is present."
+  eq="dose ratio = 1 + [B] / KB"
+  say="The dose ratio is one plus the antagonist concentration divided by its dissociation constant."
+  symbols={[
+    ["dose ratio", "dose ratio", "the agonist concentration needed with the antagonist, divided by that needed without it, for the same response", ""],
+    ["[B]", "B concentration", "the antagonist concentration (square brackets mean concentration)", "µM"],
+    ["KB", "K B", "the antagonist's dissociation constant", "µM"],
+  ]}
+  toolkit={["ratios"]}
+  check="With no antagonist, the dose ratio is 1: no shift. With [B] equal to KB, the agonist needs twice its usual concentration."
+>
+  <Fragment slot="example">
+    <p>[B] = 3 µM and KB = 1 µM: dose ratio = 1 + 3/1 = 4.</p>
+    <p>GABA's EC50 of 10 µM becomes 4 × 10 = 40 µM.</p>
+  </Fragment>
+</EquationCard>
 
 Why that factor? The antagonist makes each GABA site 1 + [B]/KB times harder to fill, so GABA must be that many times more concentrated to fill the same share. It is the transporter factor again: on its own, this antagonist would fill 3 / (1 + 3) = 75% of the sites, and 1 / (1 − 0.75) = 4.
 

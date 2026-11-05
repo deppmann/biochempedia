@@ -323,6 +323,7 @@ draft: false
 
 import MetabolicPowerLaw from '../../../components/MetabolicPowerLaw.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **A widely used fit predicts that a 30 g mouse at rest burns roughly 5 kilocalories a day, and a 70 kg adult human about 1,700. The human is more than 2,000 times heavier but burns only about 340 times as much.** Each kilogram of mouse spends about seven times more energy than each kilogram of human. Why that happens is still debated, and the lesson comes back to it near the end. To see why the mouse has lungs and a heart while a flatworm needs neither, you have to look at what happens to surfaces when bodies get bigger.
 
@@ -330,11 +331,27 @@ Everything a cell or a body takes in or gives out crosses a surface. Oxygen ente
 
 ## A bigger cube has less skin per unit of inside
 
-The **surface-area-to-volume ratio** is a body's outer area divided by the volume it encloses. Model a cell as an ideal cube of side s. Its surface area is 6s² (six square faces) and its volume is s³, so
+The **surface-area-to-volume ratio** is a body's outer area divided by the volume it encloses. It measures how much skin each bit of inside has to be supplied through. Model a cell as an ideal cube of side s. Its surface area is 6s² (six square faces) and its volume is s³.
 
-> **surface area / volume = 6s² / s³ = 6/s**
+<EquationCard
+  purpose="How much outer surface a cube has for each unit of volume inside it, and how that changes with size."
+  eq="surface area / volume = 6s² / s³ = 6/s"
+  say="Surface area over volume is six s squared over s cubed, which simplifies to six over s."
+  symbols={[
+    ["6s²", "six s squared", "the area of the cube’s six square faces, each s × s", "um²"],
+    ["s³", "s cubed", "the cube’s volume, s × s × s", "um³"],
+    ["6/s", "six over s", "the ratio: surface per unit of volume. Area divided by volume leaves one length on the bottom, so the unit is per length.", "per um"],
+  ]}
+  toolkit={["powers", "ratios"]}
+  check="s sits on the bottom, so the ratio falls as the cube grows: double s and the ratio halves. A very small cube has a huge ratio, which is why single cells can manage by diffusion alone."
+>
+  <Fragment slot="example">
+    <p>Cancel step by step: s² / s³ = (s × s) / (s × s × s). Two s’s cancel top and bottom, leaving 1/s, so 6s² / s³ = 6/s.</p>
+    <p>For a cube of side 10 um: 6/10 = 0.6 per um. Part 1 below gets the same answer the long way.</p>
+  </Fragment>
+</EquationCard>
 
-For a sphere of radius r the same reasoning gives 4πr² / (4/3 πr³) = 3/r. Either way, the ratio falls as size rises. It also has units: area divided by volume is per unit length.
+For a sphere of radius r the same reasoning gives 4πr² / (4/3 πr³) = 3/r. Here π ("pi") is about 3.14, and it cancels: π over π is 1, 4 divided by 4/3 is 3, and r² over r³ leaves 1/r. Either way, the ratio falls as size rises.
 
 **Worked problem, part 1.** These cubes are illustrative, not measured cells.
 
@@ -350,15 +367,31 @@ The bigger cube has more surface in total and less surface for each cubic microm
 
 **Diffusion** is the net spread of molecules from where they are more concentrated to where they are less, driven by their random motion. How fast it spreads is set by the **diffusion coefficient**, D. For a small molecule in water, D is about 1,000 um² per s. How molecules cross membranes is covered in [membrane transport](/lessons/membrane-transport/); here the question is distance.
 
-In a simple model of free diffusion along one direction, the mean squared distance a molecule travels is 2Dt. Rearranged, the typical time to cover a distance L is
+Each molecule takes random steps, as likely backward as forward, so it wanders rather than marches. Its typical distance grows only with the square root of time, which means the time needed grows with the square of the distance. In a simple model of free diffusion along one direction, the mean squared distance a molecule travels in time t is 2Dt. To get the time to cover a distance L, set L² = 2Dt and divide both sides by 2D:
 
-> **t = L² / 2D**
+<EquationCard
+  purpose="Roughly how long diffusion takes to spread a molecule a given distance."
+  eq="t = L² / (2 × D)"
+  say="The time is the distance squared, divided by two times the diffusion coefficient."
+  symbols={[
+    ["t", "t", "the typical time to spread a distance L along one direction", "s"],
+    ["L²", "L squared", "the distance, multiplied by itself", "um²"],
+    ["D", "D", "the diffusion coefficient: how fast this molecule spreads in this medium. About 1,000 um² per s for a small molecule in water.", "um² per s"],
+  ]}
+  toolkit={["powers", "units"]}
+  check="Double the distance and the time goes up four times, because L is squared. A larger D, a faster-spreading molecule, means a shorter time."
+>
+  <Fragment slot="example">
+    <p>L = 5 um and D = 1,000 um² per s. L² = 25 um², and 2D = 2,000 um² per s.</p>
+    <p>t = 25 / 2,000 = 0.0125 s. Units: um² divided by um² per s leaves seconds.</p>
+  </Fragment>
+</EquationCard>
 
 **Worked problem, part 2.** Take D = 1,000 um² per s, a small solute in water.
 
 1. *L = 5 um* (half the 10 um cube). t = 25 / 2,000 = 0.0125 s.
 2. *L = 10 um* (half the 20 um cube). t = 100 / 2,000 = 0.05 s, four times as long for twice the distance.
-3. *L = 1 cm = 10,000 um.* t = 100,000,000 / 2,000 = 50,000 s, about 14 hours.
+3. *L = 1 cm = 10,000 um.* L² = 10,000 × 10,000 = 100,000,000 um² (10^8). t = 100,000,000 / 2,000 = 50,000 s. Divide by 3,600 seconds in an hour: about 14 hours.
 
 Because time grows with distance squared, diffusion that is effectively instant across a cell becomes useless across a finger's width. Treat these as rough estimates: the formula gives a typical spread along one coordinate, not the time to fill a cell or the first moment a molecule arrives.
 
@@ -388,18 +421,38 @@ These limits are conditional, not absolute. Volland and colleagues (2022) descri
 
 In 1883 Max Rubner asked whether every gram costs the same. He studied resting dogs of different sizes and estimated each dog's heat production. If cost were proportional to mass, a dog ten times heavier would make ten times the heat. It did not. Total heat rose less steeply than mass, and small dogs produced more heat per kilogram. Heat per unit of body surface came out roughly constant across his dogs, the "surface law", with an exponent near 2/3. That ruled out simple proportionality in these dogs. It did not show that surface heat loss is the cause in other animals.
 
-In 1932 Max Kleiber fitted resting rates for animals from rats to steers and found an exponent near 3/4. Both are written as a power law:
+In 1932 Max Kleiber fitted resting rates for animals from rats to steers and found an exponent near 3/4. Both are written as a power law, which says how total metabolic rate grows as mass grows:
 
-> **metabolic rate = a x M^b**   and   **rate per kg = a x M^(b - 1)**
+<EquationCard
+  purpose="How an animal’s total metabolic rate changes with its body mass."
+  eq="metabolic rate = a × M^b"
+  say="Metabolic rate equals a constant times body mass raised to the power b."
+  symbols={[
+    ["a", "a", "a constant for the group of animals: the rate of a 1 kg animal, since 1 to any power is 1", "kcal per day"],
+    ["M^b", "M to the power b", "body mass M, in kilograms, raised to the power b, the exponent. Plot log rate against log mass and the power law becomes a straight line, log rate = log a + b × log M, whose slope is b.", ""],
+  ]}
+  toolkit={["powers", "log-scales"]}
+  check="If b were 1, rate would be proportional to mass: ten times the mass, ten times the rate, and the same rate per kilogram. If b is below 1, rate rises more slowly than mass, so rate per kilogram falls as animals get bigger."
+>
+  <Fragment slot="example">
+    <p>Take Kleiber’s b = 0.75 and compare two animals, one ten times heavier than the other, the same kind of comparison Rubner made with his dogs.</p>
+    <p>The rate goes up by 10^(0.75), about 5.6 (a calculator job: type 10, press the power key, type 0.75).</p>
+    <p>So ten times the mass gives about 5.6 times the rate, not ten times.</p>
+  </Fragment>
+</EquationCard>
 
-Here M is body mass, a is a constant for the group, and b is the exponent, the slope of log rate against log mass. If b is below 1, rate per kilogram falls as animals get bigger.
+Rate per kilogram follows in two steps. Divide the total by M: rate per kg = a × M^b / M. Dividing powers of the same thing subtracts exponents, M^b / M^1 = M^(b − 1), so
 
-**Worked problem, part 3.** Use the widely quoted mammal fit, basal metabolic rate of about 70 x M^0.75 kilocalories per day with M in kilograms. It is an empirical fit, and the exponent is debated.
+> **rate per kg = a × M^(b − 1)**
 
-1. *30 g mouse, M = 0.03 kg.* 0.03^0.75 = 0.072, so rate = 70 x 0.072, about 5.0 kcal per day, or about 168 kcal per kg per day.
-2. *70 kg adult human.* 70^0.75 = 24.2, so rate = 70 x 24.2, about 1,690 kcal per day, or about 24 kcal per kg per day.
+With b = 0.75 the exponent is −0.25, a negative power, so rate per kilogram falls as M rises.
+
+**Worked problem, part 3.** Use the widely quoted mammal fit, basal metabolic rate of about 70 x M^(0.75) kilocalories per day with M in kilograms. It is an empirical fit, and the exponent is debated.
+
+1. *30 g mouse, M = 0.03 kg.* 0.03^(0.75) = 0.072 (a calculator step, as in the card), so rate = 70 x 0.072, about 5.0 kcal per day. Per kilogram: 5.04 / 0.03, about 168 kcal per kg per day.
+2. *70 kg adult human.* 70^(0.75) = 24.2, so rate = 70 x 24.2, about 1,690 kcal per day. Per kilogram: 1,690 / 70, about 24 kcal per kg per day.
 3. *Compare.* The human's total is about 1,690 / 5.0, roughly 336 times the mouse's, and the mouse's rate per kilogram is about 168 / 24, roughly 7 times the human's.
-4. *Change b.* With b = 2/3, the ratio of rates per kilogram becomes (70 / 0.03)^(1/3) = 2,333^(1/3), about 13. The exponent alone nearly doubles the predicted difference.
+4. *Change b.* Rate per kg goes as M^(b − 1), so the mouse's rate per kilogram divided by the human's is the mass ratio, 70 / 0.03 = 2,333, raised to the power 1 − b. With b = 3/4 that is 2,333^(1/4), about 7, as in step 3. With b = 2/3, the power is 1/3, a cube root: 2,333^(1/3), about 13 (check: 13 × 13 × 13 = 2,197). The exponent alone nearly doubles the predicted difference.
 
 Treat 3/4 as a fit, not a law. White and Seymour (2003) found a mammalian exponent near 2/3 once body temperature and digestive state were controlled. Griebeler and Werner (2016), comparing ordinary and phylogenetic regression across 17 mammalian orders, found no single exponent for all the groups. The exponent depends on the group, the state (basal, field or maximal), temperature and method, and no explanation of it is settled. How metabolic rate connects to body temperature comes next, in [thermoregulation](/lessons/thermoregulation/).
 
@@ -412,7 +465,7 @@ You are given illustrative data. Plotting log basal metabolic rate against log b
 <details>
 <summary>One way to do it</summary>
 
-Each slope is an estimate of b for that set of animals. Within rodents, a 100-fold rise in mass predicts about 100^0.70, roughly 25 times the total rate; within birds, about 100^0.68, roughly 23 times. The pooled slope is a different quantity. Adding shrews and whales stretches the mass range, and if the groups differ in their constant a, the line through all of them can be steeper or shallower than the line within any one group. At 0.76, a 100-fold rise predicts about 33 times the rate.
+Each slope is an estimate of b for that set of animals. Within rodents, a 100-fold rise in mass predicts about 100^(0.70), roughly 25 times the total rate (100 is 10², so 100^(0.70) = 10^(1.4)); within birds, about 100^(0.68), roughly 23 times. The pooled slope is a different quantity. Adding shrews and whales stretches the mass range, and if the groups differ in their constant a, the line through all of them can be steeper or shallower than the line within any one group. At 0.76, a 100-fold rise predicts about 33 times the rate.
 
 Before trusting any of the three, ask how the rates were measured (basal, field or maximal), at what temperature, and with what regression. Related species are not independent points, so a phylogenetic regression may give a different slope from an ordinary one; see [reading phylogenetic trees](/lessons/reading-phylogenetic-trees/).
 

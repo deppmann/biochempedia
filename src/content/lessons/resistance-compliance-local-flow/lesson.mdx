@@ -368,20 +368,39 @@ draft: false
 ---
 
 import ResistanceNetwork from '../../../components/ResistanceNetwork.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **In the skeletal muscle of an anesthetized cat, only about 15 percent of arterial pressure is spent crossing the capillary bed, although capillaries are its narrowest vessels.** So where does the pressure go, and how does each tissue set its share of the cardiac output? Poiseuille's law and a first resistance calculation are in [blood and vessels](/lessons/blood-and-vessels/).
 
 ## Pressure falls most where the arterioles are
 
-Flow through any segment equals the pressure difference across it divided by its resistance. For the whole systemic circuit, aorta to right atrium:
+Flow through any segment equals the pressure difference across it divided by its resistance. Turn that around and you can work out a resistance from a pressure drop and a flow. For the whole systemic circuit, aorta to right atrium:
 
-> **TPR = (MAP - Pra) / CO**
+<EquationCard
+  purpose="One number for how hard the whole systemic circulation resists flow, from the pressure drop across it and the flow through it."
+  eq="TPR = (MAP − Pra) / CO"
+  say="Total peripheral resistance equals mean arterial pressure minus right atrial pressure, divided by cardiac output."
+  symbols={[
+    ["TPR", "T P R, total peripheral resistance", "every systemic vessel lumped into one resistance. A steady-state number that reflects arteriolar tone.", "mmHg min per L"],
+    ["MAP", "M A P", "mean arterial pressure, the upstream end", "mmHg"],
+    ["Pra", "P r a", "right atrial pressure, the downstream end", "mmHg"],
+    ["CO", "C O", "cardiac output, the flow through the whole circuit", "L per min"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="For the same pressure drop, twice the flow means half the resistance. Rearranged, MAP = TPR × CO + Pra: if resistance falls and output does not rise, mean pressure falls."
+>
+  <Fragment slot="example">
+    <p>Round values to keep the arithmetic easy (not the worked problem’s numbers): MAP 93 mmHg, Pra 3 mmHg, cardiac output 5 L per min.</p>
+    <p>Pressure drop: 93 − 3 = 90 mmHg. TPR = 90 / 5 = 18 mmHg min per L.</p>
+    <p>In the other common unit: 18 × 80 = 1,440 dyn s cm^-5.</p>
+  </Fragment>
+</EquationCard>
 
-**Total peripheral resistance (TPR)** lumps every systemic vessel into one resistance; MAP is mean arterial pressure and Pra right atrial pressure. Its unit, mmHg min per L, is the Wood unit; multiplying by 80 gives dyn s cm^-5, because 1 mmHg is 1,333 dyn per cm^2 and 1 L per min is 16.7 cm^3 per s. It is a steady-state number that reflects arteriolar tone.
+TPR's unit, mmHg min per L, is the Wood unit; multiplying by 80 gives dyn s cm^-5, because 1 mmHg is 1,333 dyn per cm^2 and 1 L per min is 16.7 cm^3 per s (1,333 / 16.7 ≈ 80).
 
 Resistances **in series** add (R = R1 + R2 + R3). The same flow passes each, so a segment's share of the pressure drop equals its share of the resistance.
 
-Poiseuille's law, R = 8 x viscosity x length / (pi x r^4), assumes steady laminar flow of a Newtonian fluid in a rigid tube, which blood in vessels only approximates: in rat mesentery, 10-micrometre microvessels at normal hematocrit had about four times the resistance of a glass tube of the same bore (Pries and colleagues 1994). By **continuity**, flow equals mean velocity times cross-sectional area, so blood moves slowest in the capillary bed, whose combined area dwarfs the aorta's. Flow stays **laminar**, in smooth layers, while the **Reynolds number** (density x velocity x diameter / viscosity) is low; in a straight pipe it tends to turn **turbulent** above roughly 2,000. Fast flow in a wide vessel (the ascending aorta at peak ejection) or a jet past a narrowing favours turbulence, which costs extra pressure and makes noise.
+Poiseuille's law, R = 8 x viscosity x length / (pi x r^4), where r is the vessel's radius, says why arterioles can set resistance: radius enters to the fourth power ([powers](/math-toolkit/#powers)), so a small change in radius makes a large change in resistance. It assumes steady laminar flow of a Newtonian fluid in a rigid tube, which blood in vessels only approximates: in rat mesentery, 10-micrometre microvessels at normal hematocrit had about four times the resistance of a glass tube of the same bore (Pries and colleagues 1994). By **continuity**, flow equals mean velocity times cross-sectional area, so blood moves slowest in the capillary bed, whose combined area dwarfs the aorta's. Flow stays **laminar**, in smooth layers, while the **Reynolds number** (density x velocity x diameter / viscosity) is low; in a straight pipe it tends to turn **turbulent** above roughly 2,000. Fast flow in a wide vessel (the ascending aorta at peak ejection) or a jet past a narrowing favours turbulence, which costs extra pressure and makes noise.
 
 Where does the drop happen? Fronek and Zweifach (1975) measured pressure inside single microvessels of the tenuissimus, a thin thigh muscle, in cats under pentobarbital anesthesia. Arterioles 35 to 20 micrometres across were the principal source of resistance setting the pressure downstream; the capillary bed proper took only about 15 percent of arterial pressure, and the smallest venules (8 to 15 micrometres) averaged about 24 mmHg. Capillaries are narrow but short, and very many lie in parallel. In the heart, too, small arteries and arterioles hold most resistance. The brain may differ: the authors of a 2021 mouse study state that its capillary bed has the highest resistance in the cerebral tree.
 
@@ -391,7 +410,25 @@ Where does the drop happen? Fronek and Zweifach (1975) measured pressure inside 
 
 The organs are fed side by side from the aorta and drain side by side into the venae cavae, so each sees nearly the same driving pressure, MAP - Pra. Resistances **in parallel** add as reciprocals:
 
-> **1/R = 1/R1 + 1/R2 + 1/R3 ...**
+<EquationCard
+  purpose="The total resistance of several beds fed side by side from the same pressure."
+  eq="1/R = 1/R1 + 1/R2 + 1/R3 ..."
+  say="One over the total resistance equals one over the first resistance, plus one over the second, plus one over the third, and so on."
+  symbols={[
+    ["R", "R", "the total resistance of the parallel beds", "mmHg min per L"],
+    ["R1", "R one", "the resistance of the first bed", "mmHg min per L"],
+    ["R2", "R two", "the second bed", "mmHg min per L"],
+    ["R3", "R three", "the third bed", "mmHg min per L"],
+  ]}
+  toolkit={["ratios"]}
+  check="Read 1/R as how easily blood gets through: each bed adds its own ease. So the total is always smaller than the smallest single resistance, and every added path lowers it."
+>
+  <Fragment slot="example">
+    <p>Two equal beds, each a round 10 mmHg min per L.</p>
+    <p>Step 1, add the reciprocals: 1/10 + 1/10 = 0.1 + 0.1 = 0.2.</p>
+    <p>Step 2, take the reciprocal of the sum: R = 1 / 0.2 = 5 mmHg min per L. Two equal paths halve the resistance (n equal paths divide it by n).</p>
+  </Fragment>
+</EquationCard>
 
 Every added or widened parallel path lowers the total. So if a large muscle mass dilates and nothing constricts elsewhere, TPR falls and, unless cardiac output rises enough, so does MAP. When sympathetic restraint is lost, as in autonomic failure, pressure falls during large-muscle [exercise](/lessons/exercise-physiology/). The reflexes that normally prevent this are in [regulating arterial pressure](/lessons/blood-pressure-regulation/).
 
@@ -402,23 +439,42 @@ Every added or widened parallel path lowers the total. So if a large muscle mass
 Made-up round numbers, adult human at rest, steady state: heart rate 75 per min, stroke volume 80 mL, pressure 120/80 mmHg, right atrial pressure 3 mmHg. Assume lumped resistances, Poiseuille scaling and the one-third rule for MAP at this heart rate.
 
 1. *Whole circuit.* CO = 75 per min x 0.080 L = 6.0 L per min. Pulse pressure (PP) = 120 - 80 = 40 mmHg. MAP = 80 + 40/3 = 93.3 mmHg. TPR = (93.3 - 3) / 6.0 = 15.05, about 15 mmHg min per L or 1,200 dyn s cm^-5.
-2. *Series.* Muscle bed: arteries 4, arterioles 24, capillaries 6, venules and veins 6 mmHg min per L, total 40. All other beds together: 24. Check: 1/40 + 1/24 = 0.0250 + 0.0417 = 0.0667, so R = 15.0. (The split suits the arithmetic; resting human muscle takes a smaller share of output.)
+2. *Series.* Muscle bed: arteries 4, arterioles 24, capillaries 6, venules and veins 6 mmHg min per L, total 40. All other beds together: 24. Check, in parallel: 1/40 + 1/24 = 0.0250 + 0.0417 = 0.0667, and the reciprocal, 1 / 0.0667, gives R = 15.0. (The split suits the arithmetic; resting human muscle takes a smaller share of output.)
 3. *Drops.* With 90 mmHg of driving pressure (rounded), muscle flow = 90 / 40 = 2.25 L per min and the rest 90 / 24 = 3.75; sum 6.0. In muscle: arteries 2.25 x 4 = 9 mmHg, arterioles 54 mmHg (60 percent), capillaries 13.5 mmHg (15 percent, close to the cat value), veins 13.5 mmHg. Total 90.
-4. *Radius.* Halving arteriolar resistance (24 to 12) needs the radius up by the fourth root of 2, 1.19, about 19 percent. Halving the radius would raise resistance 16-fold.
-5. *Exercise.* Dilation of arterioles and feeding arteries lowers the muscle bed to 8. Then 1/8 + 1/24 = 0.1667, so TPR = 6.0. At unchanged output, MAP = 6.0 x 6.0 + 3 = 39 mmHg; to hold 93 mmHg, output must reach 90 / 6.0 = 15 L per min, or other beds must constrict (exercise puts the two together).
+4. *Radius.* Resistance goes as 1/r^4. Halving arteriolar resistance (24 to 12) needs r^4 to double, so the radius goes up by the fourth root of 2, 1.19, about 19 percent (check: 1.19 x 1.19 = 1.42, and 1.42 x 1.42 = 2.0). Halving the radius would raise resistance 2^4 = 16-fold.
+5. *Exercise.* Dilation of arterioles and feeding arteries lowers the muscle bed to 8. Then 1/8 + 1/24 = 0.1667, and 1 / 0.1667 gives TPR = 6.0. Rearrange the TPR equation to MAP = TPR x CO + Pra: at unchanged output, MAP = 6.0 x 6.0 + 3 = 39 mmHg; to hold 93 mmHg, output must reach 90 / 6.0 = 15 L per min, or other beds must constrict (exercise puts the two together).
 6. *Compliance.* C = SV / PP = 80 mL / 40 mmHg = 2.0 mL per mmHg (next section), treating 120/80 as aortic pressure; a cuff reading on the arm usually has a wider pulse than the aorta. Halve it at the same stroke volume and MAP: PP = 80 mmHg, DBP = 93.3 - 80/3 = 66.7 mmHg, SBP = 66.7 + 80 = 146.7 mmHg. So 120/80 becomes about 147/67: systolic and pulse pressure up, diastolic down, mean unchanged. Real stiffening also changes how the pulse wave travels and reflects. Its main effect is a wider pulse; mean pressure depends on cardiac output and resistance.
 
 ## Compliance turns a pulsing pump into steadier flow
 
-**Compliance** is the change in volume per change in pressure, in mL per mmHg; its inverse, **elastance**, measures stiffness.
+**Compliance** says how much a vessel stretches: how much volume it takes up for each step in pressure.
 
-> **C = delta V / delta P**
+<EquationCard
+  purpose="How much extra volume a vessel takes up for each extra unit of pressure: how stretchy it is."
+  eq="C = ΔV / ΔP"
+  say="Compliance equals the change in volume divided by the change in pressure."
+  symbols={[
+    ["C", "C", "compliance. Its inverse, elastance, measures stiffness.", "mL per mmHg"],
+    ["ΔV", "delta V", "the change in volume", "mL"],
+    ["ΔP", "delta P", "the change in pressure that goes with it", "mmHg"],
+  ]}
+  toolkit={["ratios"]}
+  check="A stretchy vessel (large C) takes up a given volume with only a small rise in pressure; a stiff one (small C) needs a large rise for the same volume."
+>
+  <Fragment slot="example">
+    <p>The worked problem’s arteries: a stroke volume of 80 mL raises aortic pressure by a pulse pressure of 40 mmHg.</p>
+    <p>C = 80 / 40 = 2.0 mL per mmHg.</p>
+    <p>Arteries half as compliant, 1.0 mL per mmHg, would need 80 / 1.0 = 80 mmHg of pulse to take the same 80 mL.</p>
+  </Fragment>
+</EquationCard>
 
 During ejection the arteries fill faster than they drain, so their walls stretch, then recoil in diastole and keep capillary flow going. Otto Frank's two-element **Windkessel** (a compliance feeding a resistance), popularized in 1899, explains the smooth diastolic fall of aortic pressure but fits systole poorly; Frank's other work is in [circulation and the heart](/lessons/circulation-and-heart/). In 31 adults at rest during cardiac catheterization, 7 of them controls and the rest patients with heart disease (Chemla and colleagues 1998), stroke volume divided by aortic pulse pressure gave a reliable estimate of total arterial compliance, a resting rule of thumb.
 
-**Mean arterial pressure** is the time average of the pressure curve, the area under it divided by the cycle length, not the average of systolic and diastolic. At resting heart rates diastole fills roughly two thirds of the cycle, which gives the standard estimate, attributed to Gauer (1960):
+**Mean arterial pressure** is the time average of the pressure curve, the area under it divided by the cycle length, not the average of systolic and diastolic. At resting heart rates diastole fills roughly two thirds of the cycle, so the pressure spends most of its time near diastolic. That gives the standard estimate, attributed to Gauer (1960): start at diastolic pressure (DBP) and add one third of the pulse pressure (PP).
 
 > **MAP ≈ DBP + PP/3**
+
+For 120/80 mmHg: PP = 40, so MAP ≈ 80 + 40/3 = 93.3 mmHg, below the simple average of 100. With no pulse at all, MAP would equal DBP.
 
 Invasive studies suggest one third underestimates the mean, perhaps nearer 0.4, and the error grows with heart rate because diastole shortens more than systole; a heart-rate-corrected formula, checked against aortic catheter recordings at paced rates in 12 patients (Razminia and colleagues 2004), adds a heart-rate term.
 

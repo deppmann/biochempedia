@@ -412,6 +412,7 @@ draft: false
 
 import ShuntingConductanceCell from '../../../components/ShuntingConductanceCell.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **An inhibitory input can leave a resting neuron's voltage exactly where it was and still stop the cell from firing.**
 
@@ -455,7 +456,29 @@ Down, toward −75 mV. The new rope is tied below the marker, so the balance poi
 
 Here is the balance point written out: the same average as in the action-potential lesson, with synaptic ropes. With the leak (L), an excitatory synapse (E) and an inhibitory synapse (I) all open and steady, the steady voltage is
 
-> **V_ss = (gL × EL + gE × EE + gI × EI) / (gL + gE + gI)**
+<EquationCard
+  purpose="Where the voltage settles when the leak and synapses are open and steady: the balance point."
+  eq="V_ss = (gL × EL + gE × EE + gI × EI) / (gL + gE + gI)"
+  say="The steady voltage is the average of the ropes' ends, each counted in proportion to its conductance."
+  symbols={[
+    ["V_ss", "V sub s s", "the steady-state voltage, the balance point", "mV"],
+    ["gL", "g L", "the leak conductance, 10 nS in this lesson's cell", "nS"],
+    ["EL", "E L", "the leak's reversal potential, −65 mV here (rest)", "mV"],
+    ["gE", "g E", "the excitatory synaptic conductance, for example AMPA", "nS"],
+    ["EE", "E E", "the excitatory reversal potential, near 0 mV for AMPA", "mV"],
+    ["gI", "g I", "the inhibitory synaptic conductance, for example GABA_A", "nS"],
+    ["EI", "E I", "the inhibitory reversal potential, E_GABA", "mV"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="With no synapse open (gE = gI = 0), V_ss = EL: the cell sits at rest. A synapse can pull the balance point toward its own E, never past it. Opening any synapse makes the denominator (the bottom of the fraction) bigger, which shrinks every other rope's share."
+>
+  <Fragment slot="example">
+    <p>Open a small GABA conductance, gI = 2.5 nS with EI = −75 mV, and no excitation (round values to keep the arithmetic easy).</p>
+    <p>Top: 10 × (−65) + 2.5 × (−75) = −650 − 187.5 = −837.5.</p>
+    <p>Bottom: 10 + 2.5 = 12.5 nS.</p>
+    <p>V_ss = −837.5 / 12.5 = −67.0 mV: 2 mV below rest, a small IPSP, since this rope holds only a fifth of the total conductance.</p>
+  </Fragment>
+</EquationCard>
 
 Each rope's end is weighted by that rope's share of the total conductance; the excitatory synapse's share, for example, is gE / (gL + gE + gI). These are the two jobs in the box: a new end in the average, and a bigger bottom line, the total conductance, which shrinks every other share.
 
@@ -469,9 +492,28 @@ The formula has a scope. It holds for a passive cell below threshold whose volta
 
 When conductances change, the marker does not jump to the new balance point. It moves there gradually, because changing the voltage means moving charge onto or off the membrane's capacitance (C). The **membrane time constant**, τ, says how long that takes: the time a passive membrane takes to get 63% of the way to a new steady voltage. It equals input resistance times capacitance: C divided by the total open conductance.
 
-Our cell has C = 200 pF and 10 nS of leak. Its input resistance is R = 1/gL = 1/(10 × 10^−9 S) = 100 MΩ, and its time constant is τ = C/gL = (200 × 10^−12 F)/(10 × 10^−9 S) = 20 ms. So in this passive model every synapse that opens shortens it:
+Our cell has C = 200 pF and 10 nS of leak. Its input resistance is R = 1/gL = 1/(10 × 10^−9 S) = 100 MΩ, and its time constant is τ = C/gL = (200 × 10^−12 F)/(10 × 10^−9 S) = 20 ms. Synaptic conductances go in the same bottom line as the leak, so in this passive model every synapse that opens shortens it:
 
-> **τ_eff = C / (gL + gE + gI)**
+<EquationCard
+  purpose="How fast the voltage approaches the balance point while synapses are open."
+  eq="τ_eff = C / (gL + gE + gI)"
+  say="The effective time constant is the capacitance divided by the total open conductance."
+  symbols={[
+    ["τ_eff", "tau sub eff", "the effective membrane time constant: the time to get 63% of the way to the balance point", "ms"],
+    ["C", "C", "the membrane capacitance, 200 pF in this lesson's cell", "pF"],
+    ["gL", "g L", "the leak conductance", "nS"],
+    ["gE", "g E", "the excitatory synaptic conductance", "nS"],
+    ["gI", "g I", "the inhibitory synaptic conductance", "nS"],
+  ]}
+  toolkit={["units", "ratios"]}
+  check="With no synapse open, τ_eff = C / gL, the resting 20 ms. Any open synapse, excitatory or inhibitory, adds to the denominator, so τ_eff gets shorter. Units: pico over nano is 10^−12 / 10^−9 = 10^−3, so pF / nS gives ms."
+>
+  <Fragment slot="example">
+    <p>Open a 5 nS excitatory conductance alongside the 10 nS leak.</p>
+    <p>Total conductance: 10 + 5 = 15 nS.</p>
+    <p>τ_eff = 200 pF / 15 nS = 13.3 ms, shorter than the resting 20 ms.</p>
+  </Fragment>
+</EquationCard>
 
 So an EPSP has a shape. For a brief, fast AMPA input in our compact passive cell, the voltage rises while the synaptic current flows, over a few milliseconds. Once that current has faded, the voltage decays back toward rest with the resting time constant. Other receptor types, dendrites and active channels give other shapes. If a second EPSP arrives before the first has gone, it starts from the first one's tail. Adding inputs that arrive at different times is **temporal summation**, and a longer τ gives more overlap.
 
@@ -486,11 +528,11 @@ Cell A. After 10 ms its first EPSP has decayed only to e^(−10/20), about 61% o
 
 ### In space: an input fades on its way to the soma
 
-Most synapses sit on dendrites, not on the cell body. Current entering a dendrite flows toward the soma, but some leaks out across the dendrite's membrane along the way, so the voltage change shrinks with distance. For a steady input in a long passive dendrite, it falls by the same fraction over each equal stretch. The **length constant**, λ, is the distance over which it falls to 37%:
+Most synapses sit on dendrites, not on the cell body. Current entering a dendrite flows toward the soma, but some leaks out across the dendrite's membrane along the way, so the voltage change shrinks with distance. For a steady input in a long passive dendrite, it falls by the same fraction over each equal stretch. The **length constant**, λ (“lambda”), is the distance over which it falls to 37%:
 
 > **V(x) = V0 × e^(−x/λ)**
 
-With illustrative numbers, λ = 500 µm and a synapse 250 µm from the soma: e^(−0.5) = 0.61, so 61% of its steady depolarization reaches the soma. A brief EPSP loses more, because the capacitance along the way also filters it. Adding inputs that arrive at different places is **spatial summation**. For the same local voltage change, an input nearer the soma, or on a dendrite with a longer λ, loses less on the way. In real dendrites, synaptic strength, branching and active channels also matter.
+Here V0 (“V zero”) is the steady change at the synapse and V(x) what is left a distance x away. With illustrative numbers, λ = 500 µm and a synapse 250 µm from the soma: x/λ = 250/500 = 0.5, and e^(−0.5) = 0.61 ([e and ln](/math-toolkit/#e-and-ln)), so 61% of its steady depolarization reaches the soma. A brief EPSP loses more, because the capacitance along the way also filters it. Adding inputs that arrive at different places is **spatial summation**. For the same local voltage change, an input nearer the soma, or on a dendrite with a longer λ, loses less on the way. In real dendrites, synaptic strength, branching and active channels also matter.
 
 So time (τ) and distance (λ) decide how much of each input is still present when and where the cell decides whether to fire. The balance point decides what the inputs add up to, and the next section shows that they do not simply add.
 
@@ -504,7 +546,10 @@ Turn on a sustained excitatory conductance, gE = 5 nS with EE = 0 mV:
 
 > V_ss = (10 × −65 + 5 × 0)/(10 + 5) = −650/15 = −43.3 mV
 
-That is a 21.7 mV depolarization. The voltage approaches it with τ_eff = 200/15 = 13.3 ms, so it crosses −50 mV when −50 = −43.3 − 21.7 × e^(−t/13.3): e^(−t/13.3) = 6.67/21.67 = 0.308, and t = 13.3 × ln(3.25) = 15.7 ms.
+That is a 21.7 mV depolarization. The voltage approaches it with τ_eff = 200/15 = 13.3 ms. When does it cross −50 mV? The gap still left to close at time t is 21.7 × e^(−t/13.3) mV, so solve −50 = −43.3 − 21.7 × e^(−t/13.3) in two steps.
+
+- *Isolate the exponential:* the gap left at threshold is 50 − 43.33 = 6.67 mV, so e^(−t/13.3) = 6.67/21.67 = 0.308.
+- *Undo the e with a natural log:* t/13.3 = ln(1/0.308) = ln(3.25) = 1.18, so t = 13.3 × 1.18 = 15.7 ms ([e and ln](/math-toolkit/#e-and-ln)).
 
 **Predict.** Now open a second, identical 5 nS input at the same time, so that gE = 10 nS. Does the depolarization double, to about 43 mV?
 
@@ -515,9 +560,36 @@ No. V_ss = (10 × −65 + 10 × 0)/(10 + 10) = −650/20 = −32.5 mV, a 32.5 mV
 
 </details>
 
-To see why, measure the voltage from rest. Subtracting EL from both sides of the balance point gives the same average in a form where the leak drops out:
+To see why, measure the voltage from rest. Subtracting EL from both sides of the balance point gives the same average in a form where the leak drops out of the top line:
 
-> **V_ss − EL = (gE × (EE − EL) + gI × (EI − EL)) / (gL + gE + gI)**
+<EquationCard
+  purpose="How far from rest the balance point sits, so you can see what each synapse adds."
+  eq="V_ss − EL = (gE × (EE − EL) + gI × (EI − EL)) / (gL + gE + gI)"
+  say="The change from rest is each synapse's conductance times how far its end sits from rest, added up, divided by the total conductance."
+  symbols={[
+    ["V_ss", "V sub s s", "the steady-state voltage, the balance point", "mV"],
+    ["EL", "E L", "the leak's reversal potential, which is rest", "mV"],
+    ["gE", "g E", "the excitatory conductance", "nS"],
+    ["EE", "E E", "the excitatory reversal potential", "mV"],
+    ["gI", "g I", "the inhibitory conductance", "nS"],
+    ["EI", "E I", "the inhibitory reversal potential", "mV"],
+    ["gL", "g L", "the leak conductance, still in the denominator", "nS"],
+  ]}
+  toolkit={["ratios"]}
+  check="With no synapse open, the numerator is zero and V_ss = EL, rest. A synapse that is small beside gL barely changes the denominator, so its effect is close to its numerator term divided by gL."
+>
+  <Fragment slot="example">
+    <p>Take the small GABA input from the first card: gI = 2.5 nS, EI = −75 mV, no excitation.</p>
+    <p>Numerator: 2.5 × (−75 − (−65)) = 2.5 × (−10) = −25.</p>
+    <p>Denominator: 10 + 2.5 = 12.5.</p>
+    <p>Change from rest: −25 / 12.5 = −2.0 mV, so V_ss = −65 − 2.0 = −67.0 mV, the same as the full average gave.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, subtract EL from the balance point, writing EL as EL × (gL + gE + gI) / (gL + gE + gI) so both share one denominator.</p>
+    <p>Step 2, in the numerator, gL × EL − gL × EL = 0, so the leak's term vanishes.</p>
+    <p>Step 3, what remains pairs each synapse with its own gap: gE × (EE − EL) + gI × (EI − EL).</p>
+  </Fragment>
+</EquationCard>
 
 Each top-line term is a synapse's conductance times how far its rope's end sits from rest: the pull that rope would have if the marker sat at rest. The leak's term is zero because its rope is tied at rest, but the leak has not gone. It is still in the bottom line, and it carries current whenever the marker is away from rest.
 

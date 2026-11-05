@@ -367,6 +367,7 @@ draft: false
 
 import VariancePartitionExplorer from '../../../components/VariancePartitionExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Adult height in a well-fed population forms a smooth bell curve, yet each allele that affects it is passed on by Mendel's rules. A 2022 study of up to 5.4 million people listed 12,111 independent variants associated with height.**
 
@@ -379,7 +380,7 @@ A **locus** is a position on a chromosome, and the alternative versions at a loc
 **Worked problem 1.** Suppose three unlinked loci (A, B, C) each have one allele that adds 2 cm to height and one that adds nothing, with no dominance, so effects simply add. Cross two people heterozygous at all three loci (AaBbCc x AaBbCc). Assume independent assortment and no environmental effect.
 
 1. Each offspring receives six alleles, each a "plus" allele with probability 1/2, independently.
-2. The number of plus alleles, k, is binomial with n = 6 and p = 1/2, so P(k) = C(6,k)/64.
+2. The number of plus alleles, k, is binomial with n = 6 and p = 1/2, so P(k) = C(6,k)/64. Here C(6,k) is the number of ways to choose which k of the six alleles are plus, and 64 is 2^6, because each particular set of six draws has chance (1/2)^6 = 1/64.
 3. For k = 0 to 6 the counts are 1, 6, 15, 20, 15, 6, 1 (sum 64).
 4. So 20/64, about 31%, of offspring sit in the middle class (6 cm above baseline), and 1/64 at each extreme.
 
@@ -389,13 +390,46 @@ Real traits are less tidy: effect sizes are unequal, and many alleles show **pen
 
 ## Heritability: a ratio of variances in one population
 
-Variance is the average squared distance of values from the mean. If the components are uncorrelated, the variance of a trait in a population (VP) splits like this:
+Variance is the average squared distance of values from the mean, so it carries squared units (cm^2 for height). The plan is to split the variation among people into a part that tracks genes and a part that tracks environment, then ask what share is genetic. If the components are uncorrelated, the variance of a trait in a population splits like this:
 
-> **VP = VG + VE, with VG = VA + VD + VI**
+<EquationCard
+  purpose="Split the variation in a trait among people into genetic and environmental parts."
+  eq="VP = VG + VE, with VG = VA + VD + VI"
+  say="Total variance is genetic variance plus environmental variance, and genetic variance is additive plus dominance plus interaction variance."
+  symbols={[
+    ["VP", "V sub P", "phenotypic variance: the total variance of the trait in the population", "cm² for height"],
+    ["VG", "V sub G", "genetic variance: the part that tracks differences in genotype"],
+    ["VE", "V sub E", "environmental variance"],
+    ["VA", "V sub A", "additive variance, from the average effects of alleles: the part that makes children resemble parents"],
+    ["VD", "V sub D", "dominance variance, from interactions between the two alleles at a locus"],
+    ["VI", "V sub I", "interaction (epistatic) variance, from interactions between loci"],
+  ]}
+  toolkit={["subscripts", "units"]}
+  check="If everyone shared one environment, VE = 0 and all the variation would be genetic. If everyone had the same genotype, VG = 0 and VP = VE. The sum assumes the parts are uncorrelated; real data can add gene-environment covariance and interaction, which it leaves out."
+/>
 
-VA is **additive** variance, from the average effects of alleles, the part that makes children resemble parents. VD is **dominance** variance, from interactions between the two alleles at a locus. VI is **interaction** (epistatic) variance, from interactions between loci. VE is environmental variance. Real data can add gene-environment covariance and interaction, which this sum leaves out.
+Heritability is then a share of that total, written as a fraction:
 
-> **broad-sense heritability H^2 = VG / VP; narrow-sense heritability h^2 = VA / VP**
+<EquationCard
+  purpose="What share of the variation in a trait, in one population, goes with genetic differences."
+  eq="H^2 = VG / VP   and   h^2 = VA / VP"
+  say="Broad-sense heritability is genetic variance over total variance; narrow-sense heritability is additive variance over total variance."
+  symbols={[
+    ["H^2", "H squared, broad-sense heritability", "the share of the variance, in this population, that is genetic of any kind. The ^2 is part of the name by convention; read H^2 as one symbol."],
+    ["VG", "V sub G", "genetic variance"],
+    ["VP", "V sub P", "total phenotypic variance"],
+    ["h^2", "h squared, narrow-sense heritability", "the share that is additive, the part that predicts resemblance between parents and children"],
+    ["VA", "V sub A", "additive variance"],
+  ]}
+  toolkit={["ratios"]}
+  check="Both lie between 0 and 1, and h^2 can never exceed H^2, because VA is part of VG. The units cancel, so heritability has none. A change in VE alone changes both, with no change in DNA."
+>
+  <Fragment slot="example">
+    <p>Round values to keep the arithmetic easy (not data): VA = 30, VD = 0, VI = 0 and VE = 70, all in cm².</p>
+    <p>VG = 30 + 0 + 0 = 30 and VP = 30 + 70 = 100.</p>
+    <p>H^2 = 30/100 = 0.30 and h^2 = 30/100 = 0.30. With no dominance or interaction variance, the two heritabilities are equal.</p>
+  </Fragment>
+</EquationCard>
 
 **Worked problem 2.** In a hypothetical height population, VA = 40 cm^2, VD = 10 cm^2, VI = 0 and VE = 50 cm^2. Then VP = 100 cm^2, h^2 = 40/100 = 0.40 and H^2 = 50/100 = 0.50. Now improve nutrition so that VE falls to 20 cm^2, with genetic variance unchanged: VP = 70 cm^2 and h^2 = 40/70, about 0.57. Heritability rose though no DNA changed. The units cancel, so heritability has none.
 
@@ -411,9 +445,33 @@ Three common errors follow.
 
 Monozygotic (MZ) twins are genetically identical at conception. Dizygotic (DZ) twins share on average half of their segregating genetic variation, like ordinary siblings. If both kinds of pair share environments equally, extra MZ similarity reflects genes. The **ACE model** splits variance into additive genetic (A), shared environment (C) and unique environment plus measurement error (E).
 
-**Worked problem 3.** For a trait in one population, the MZ correlation is rMZ = 0.80 and the DZ correlation is rDZ = 0.50.
+The twin correlations, rMZ and rDZ, measure how alike the two members of a pair are, from 0 (no more alike than strangers) to 1 (identical). MZ pairs share all their genes and DZ pairs about half, so the gap between the two correlations reflects half the additive variance. Doubling the gap estimates it:
 
-> **h^2 = 2(rMZ - rDZ); c^2 = 2rDZ - rMZ; e^2 = 1 - rMZ**
+<EquationCard
+  purpose="Estimate the shares of variance from genes, shared environment and unique environment, from two twin correlations (Falconer's estimates)."
+  eq="h^2 = 2 × (rMZ − rDZ);   c^2 = 2 × rDZ − rMZ;   e^2 = 1 − rMZ"
+  say="Heritability is twice the gap between the identical-twin and fraternal-twin correlations; shared environment is twice the fraternal correlation minus the identical one; unique environment is whatever the identical twins do not share."
+  symbols={[
+    ["h^2", "h squared", "additive genetic share of variance (A in the ACE model)"],
+    ["rMZ", "r M Z", "the correlation between monozygotic (identical) twins for the trait"],
+    ["rDZ", "r D Z", "the correlation between dizygotic (fraternal) twins"],
+    ["c^2", "c squared", "shared-environment share (C)"],
+    ["e^2", "e squared", "unique environment plus measurement error (E). Here e is a label, not the number e ≈ 2.718."],
+  ]}
+  toolkit={["ratios"]}
+  check="If MZ and DZ twins are equally alike (rMZ = rDZ), h^2 = 0: genes add nothing to the resemblance. The three shares always add to 1. These estimates assume equal MZ and DZ environments, additive effects and random mating."
+>
+  <Fragment slot="example">
+    <p>Round values to keep the arithmetic easy (not data): rMZ = 0.60 and rDZ = 0.30.</p>
+    <p>h^2 = 2 × (0.60 − 0.30) = 0.60. c^2 = 2 × 0.30 − 0.60 = 0. e^2 = 1 − 0.60 = 0.40.</p>
+    <p>When DZ twins are exactly half as alike as MZ twins, the model finds no shared-environment effect. Check: 0.60 + 0 + 0.40 = 1.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Optional: where it comes from. Under the model, MZ similarity is all of A plus C, so rMZ = h^2 + c^2. DZ pairs share half of A plus all of C, so rDZ = h^2/2 + c^2. Subtract: rMZ − rDZ = h^2/2, so h^2 = 2 × (rMZ − rDZ). Put that back into the first line: c^2 = rMZ − h^2 = 2 × rDZ − rMZ. Whatever MZ twins do not share is E: e^2 = 1 − rMZ.</p>
+  </Fragment>
+</EquationCard>
+
+**Worked problem 3.** For a trait in one population, the MZ correlation is rMZ = 0.80 and the DZ correlation is rDZ = 0.50.
 
 1. h^2 = 2(0.80 - 0.50) = 2(0.30) = 0.60.
 2. c^2 = 2(0.50) - 0.80 = 0.20.
@@ -432,7 +490,7 @@ The key to reading the result is **linkage disequilibrium (LD)**, the nonrandom 
 
 In 2005 Klein and colleagues, with 96 cases of age-related macular degeneration and 50 controls, found a strong association with a common intronic SNP in CFH, then proposed a coding change in LD with it as a candidate cause.
 
-**Worked problem 4.** Why 5 x 10^-8? Pe'er and colleagues estimated about one million independent common-variant tests across the genome in European-ancestry HapMap data. A Bonferroni correction divides the acceptable chance of any false positive, 0.05, by the number of tests: 0.05 / 1,000,000 = 5 x 10^-8. The same study estimated about twice as many independent tests in African-ancestry HapMap data, where LD blocks are shorter. The threshold is a convention tied to those LD patterns.
+**Worked problem 4.** Why 5 x 10^-8? Pe'er and colleagues estimated about one million independent common-variant tests across the genome in European-ancestry HapMap data. A Bonferroni correction divides the acceptable chance of any false positive, 0.05, by the number of tests: 0.05 / 1,000,000 = 5 x 10^-8. In powers of ten, 0.05 is 5 x 10^-2 and a million is 10^6, and dividing subtracts the exponents: −2 − 6 = −8. Written out, that is 0.00000005 (see [powers](/math-toolkit/#powers)). The same study estimated about twice as many independent tests in African-ancestry HapMap data, where LD blocks are shorter. The threshold is a convention tied to those LD patterns.
 
 A false hit can also come from **population stratification**. If cases and controls differ in ancestry, SNPs whose frequencies differ between the source populations can look associated even when they do not affect the trait. Price and colleagues showed in 2006 that principal components of genome-wide genotypes (a few summary axes of genetic variation that track ancestry) can model these differences; they are now standard covariates that reduce confounding without guaranteeing its absence.
 
@@ -448,7 +506,23 @@ The FTO region shows why such evidence matters, though the work there relied on 
 
 A **polygenic score** adds up a person's allele counts, each weighted by its GWAS effect estimate:
 
-> **PGS = sum over SNPs of (effect estimate x allele count)**
+<EquationCard
+  purpose="Combine thousands of small GWAS effects into one predicted value for a person."
+  eq="PGS = sum over SNPs of (effect estimate × allele count)"
+  say="The polygenic score is, for every SNP in the panel, the effect estimate times how many copies of the effect allele the person carries, all added up."
+  symbols={[
+    ["PGS", "P G S, polygenic score", "the person's score, in the trait's units (cm for height)"],
+    ["effect estimate", "effect estimate", "the GWAS estimate of how much one copy of the allele shifts the trait, on average, in the study population"],
+    ["allele count", "allele count", "how many copies of that allele the person carries: 0, 1 or 2"],
+  ]}
+  check="Someone carrying no copies of any effect allele scores 0, and each extra copy adds its effect once. The effect estimates come from one study population, so the score is only as accurate as those estimates are for the person being scored."
+>
+  <Fragment slot="example">
+    <p>A made-up panel of three SNPs, to show the arithmetic: effects +0.5, +0.2 and −0.3 cm per copy; the person carries 2, 1 and 0 copies.</p>
+    <p>PGS = 0.5 × 2 + 0.2 × 1 + (−0.3) × 0 = 1.0 + 0.2 + 0 = 1.2 cm.</p>
+    <p>A real height panel sums thousands of such terms, each tiny.</p>
+  </Fragment>
+</EquationCard>
 
 Scores must be tested in people outside the GWAS, and accuracy depends on who they are. Yengo and colleagues reported in 2022 that their 12,111-SNP height panel captured about 40% of variance out of sample in European-ancestry analyses but around 10 to 20% in the other ancestry groups examined; they judged differences in LD and allele frequency likely explanations. Martin and colleagues reported in 2019 that the scores of that time were several times more accurate in European-ancestry individuals, and warned that clinical use could widen health disparities. Accuracy also varied with age, sex and socioeconomic characteristics within one ancestry group in UK Biobank, as Mostafavi and colleagues found in 2020. Allele frequencies are the subject of [population genetics](/lessons/population-genetics/).
 

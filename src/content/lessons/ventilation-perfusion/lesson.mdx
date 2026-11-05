@@ -342,6 +342,7 @@ draft: false
 ---
 
 import VentilationPerfusionMatch from '../../../components/VentilationPerfusionMatch.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **A resting adult moves roughly 6 litres of air and 5 litres of blood through the lungs every minute, and neither number tells you what the blood leaves with.** What settles that is whether air and blood arrive at the same places in the same proportion. [Gas exchange and breathing](/lessons/gas-exchange/) gave partial pressure, Fick's law and minute against alveolar ventilation; [lung mechanics and surfactant](/lessons/lung-mechanics-surfactant/) gave the pressures that move the air. Here you put numbers on the matching.
 
@@ -349,11 +350,28 @@ import VentilationPerfusionMatch from '../../../components/VentilationPerfusionM
 
 **Dead space** is lung that is ventilated and not perfused: air arrives, no flowing blood meets it, and the gas comes back out unchanged. Christian Bohr (1855 to 1911) described it in 1891 as the part of the tidal volume that does not undergo gas exchange.
 
-His argument is mass balance. All the carbon dioxide in an expired breath came from units that exchanged, and dead-space gas contributes none, so mixed expired partial pressure is a dilution of the alveolar one:
+His argument is mass balance. All the carbon dioxide in an expired breath came from units that exchanged, and dead-space gas contributes none, so mixed expired partial pressure is a dilution of the alveolar one. How much it is diluted tells you what fraction of the breath was dead space:
 
-> **VD/VT = (PACO2 - PECO2) / PACO2**
+<EquationCard
+  purpose="What fraction of each breath is dead space, from how much the dead-space gas dilutes the carbon dioxide in the breath."
+  eq="VD/VT = (PACO2 − PECO2) / PACO2"
+  say="The dead-space fraction equals the alveolar carbon dioxide pressure minus the mixed expired pressure, as a share of the alveolar pressure."
+  symbols={[
+    ["VD", "V D", "dead-space volume: the part of the breath that does not exchange gas", "mL"],
+    ["VT", "V T", "tidal volume, the whole breath", "mL"],
+    ["PACO2", "P capital A C O 2", "mean alveolar partial pressure of carbon dioxide. Capital A means alveolar.", "mmHg"],
+    ["PECO2", "P E C O 2", "partial pressure of carbon dioxide in the mixed expired breath", "mmHg"],
+  ]}
+  toolkit={["ratios"]}
+  check="With no dead space the expired gas is pure alveolar gas, PECO2 equals PACO2, and the fraction is zero. If the whole breath were dead space, PECO2 would be zero (air carries almost none) and the fraction would be 1."
+>
+  <Fragment slot="example">
+    <p>Count first, with round values to keep the arithmetic easy (not the worked problem’s numbers). Alveolar gas holds carbon dioxide at 40 mmHg. If one quarter of a breath is dead space carrying none, the mixed breath holds three-quarters of 40 = 30 mmHg.</p>
+    <p>Now run the equation backwards from those pressures: (40 − 30) / 40 = 10 / 40 = 0.25. One quarter, as built in.</p>
+  </Fragment>
+</EquationCard>
 
-The problem is PACO2, the mean alveolar partial pressure, which no sample gives you. In 1938 Enghoff proposed replacing it with arterial PCO2, which a blood sample does give:
+The problem is PACO2, the mean alveolar partial pressure, which no sample gives you. In 1938 Enghoff proposed replacing it with arterial PCO2, which a blood sample does give. Watch the letter case from here on: capital A (PACO2) is alveolar, small a (PaCO2) is arterial.
 
 > **VD/VT = (PaCO2 - PECO2) / PaCO2**
 
@@ -365,11 +383,32 @@ A raised physiologic dead space is easy to misread. Across the conditions one 20
 
 ## Alveolar PO2 is calculated, not measured
 
-No sample of alveolar gas serves as the mean, so alveolar PO2 is computed. Oxygen is removed from inspired gas and carbon dioxide added, in the ratio R, the **respiratory quotient** (carbon dioxide produced per oxygen consumed, about 0.8 at steady state on a mixed diet). Inspired gas is humidified to 47 mmHg of water vapour at 37 C, so that pressure comes off barometric pressure first:
+No sample of alveolar gas serves as the mean, so alveolar PO2 is computed. Oxygen is removed from inspired gas and carbon dioxide added, in the ratio R, the **respiratory quotient** (carbon dioxide produced per oxygen consumed, about 0.8 at steady state on a mixed diet). Inspired gas is humidified to 47 mmHg of water vapour at 37 C, so that pressure comes off barometric pressure first. The **alveolar gas equation** puts the two steps together: the oxygen you breathe in, minus the room that carbon dioxide takes up.
 
-> **PAO2 = FiO2 x (PB - PH2O) - PaCO2 / R**
+<EquationCard
+  purpose="The mean alveolar oxygen pressure, which no sample gives you, calculated from the inspired gas and arterial carbon dioxide."
+  eq="PAO2 = FiO2 × (PB − PH2O) − PaCO2 / R"
+  say="Alveolar oxygen pressure equals the oxygen fraction of the humidified inspired gas, minus the arterial carbon dioxide pressure divided by the respiratory quotient."
+  symbols={[
+    ["PAO2", "P capital A O 2", "mean alveolar partial pressure of oxygen", "mmHg"],
+    ["FiO2", "F i O 2", "fraction of inspired oxygen, 0.21 in air", "no unit"],
+    ["PB", "P B", "barometric pressure, 760 mmHg at sea level", "mmHg"],
+    ["PH2O", "P H 2 O", "water vapour pressure, 47 mmHg at 37 C", "mmHg"],
+    ["PaCO2", "P small a C O 2", "arterial partial pressure of carbon dioxide, standing in for alveolar", "mmHg"],
+    ["R", "R", "respiratory quotient, carbon dioxide produced per oxygen consumed, about 0.8", "no unit"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="The first term is the oxygen you breathe in; the second is what the carbon dioxide displaces. Hold everything else fixed: a higher PaCO2 lowers PAO2, and a higher FiO2 raises it."
+>
+  <Fragment slot="example">
+    <p>At sea level on air, with PB 760 mmHg and arterial PCO2 40 mmHg:</p>
+    <p>Humidified inspired oxygen: 0.21 × (760 − 47) = 0.21 × 713 = 149.7 mmHg.</p>
+    <p>Carbon dioxide term: 40 / 0.8 = 50 mmHg.</p>
+    <p>PAO2 = 149.7 − 50 = 99.7, about 100 mmHg.</p>
+  </Fragment>
+</EquationCard>
 
-Each term carries an assumption: a steady state, a value for R assumed rather than measured, an inspired oxygen fraction near that of air, and arterial PCO2 standing in for alveolar PCO2. At sea level on air, with PB 760 mmHg and arterial PCO2 40 mmHg, it returns about 100 mmHg. Comparing arterial blood with a calculated "ideal" alveolar value goes back to Riley and Cournand's 1949 analysis.
+Each term carries an assumption: a steady state, a value for R assumed rather than measured, an inspired oxygen fraction near that of air, and arterial PCO2 standing in for alveolar PCO2. Comparing arterial blood with a calculated "ideal" alveolar value goes back to Riley and Cournand's 1949 analysis.
 
 <VentilationPerfusionMatch />
 
@@ -402,12 +441,12 @@ A 2015 review lists six mechanisms that lower arterial PO2: a low inspired oxyge
 1. *Minute ventilation.* 500 mL x 12 per min = 6,000 mL per min.
 2. *Dead-space fraction.* (40 - 28) / 40 = 0.30, inside the healthy 0.20 to 0.40, so dead space is 0.30 x 500 = 150 mL.
 3. *Alveolar ventilation.* (500 - 150) x 12 = 4,200 mL per min, or 4.2 L per min.
-4. *Carbon dioxide output.* The alveolar ventilation relation PaCO2 = 0.863 x VCO2 / VA (VCO2 in mL per min at standard temperature and pressure, dry; VA in L per min at body temperature and pressure, saturated; 0.863 carries that conversion) rearranges to VCO2 = 40 x 4.2 / 0.863 = 195 mL per min.
+4. *Carbon dioxide output.* The alveolar ventilation relation PaCO2 = 0.863 x VCO2 / VA (VCO2 in mL per min at standard temperature and pressure, dry; VA in L per min at body temperature and pressure, saturated; 0.863 carries that conversion) rearranges in two steps: multiply both sides by VA, then divide by 0.863, giving VCO2 = PaCO2 x VA / 0.863 = 40 x 4.2 / 0.863 = 195 mL per min.
 5. *Alveolar PO2.* 0.21 x (760 - 47) - 40 / 0.8 = 149.7 - 50.0 = 99.7 mmHg.
 6. *A-a difference.* 99.7 - 92 = 7.7 mmHg, under the roughly 10 mmHg expected in a young adult. It rises with age and with inspired oxygen fraction, and it is a difference, not a diffusion gradient.
-7. *Halve alveolar ventilation* to 2.1 L per min at unchanged carbon dioxide output: PaCO2 = 0.863 x 195 / 2.1 = 80 mmHg and PAO2 = 149.7 - 100 = 49.7 mmHg, so with the difference still 7.7 mmHg, PaO2 is 42 mmHg. Low PO2, high PCO2, normal difference: hypoventilation, since mismatch, shunt and diffusion limitation all widen the difference. At FiO2 0.30, PAO2 = 0.30 x 713 - 100 = 113.9 mmHg and PaO2 rises to about 106 mmHg while PaCO2 stays at 80 mmHg. These use the simplified equation. The full form subtracts PaCO2 x [FiO2 + (1 - FiO2)/R], which at R 0.8 adds FiO2 x PaCO2 x (1 - R)/R: about 4 mmHg on air at a PaCO2 of 80 mmHg (2 mmHg at 40), and about 6 mmHg at FiO2 0.30 with PaCO2 80 mmHg.
+7. *Halve alveolar ventilation* to 2.1 L per min at unchanged carbon dioxide output: PaCO2 = 0.863 x 195 / 2.1 = 80 mmHg (halve the ventilation and PaCO2 doubles, from 40 to 80) and PAO2 = 149.7 - 100 = 49.7 mmHg, so with the difference still 7.7 mmHg, PaO2 is 42 mmHg. Low PO2, high PCO2, normal difference: hypoventilation, since mismatch, shunt and diffusion limitation all widen the difference. At FiO2 0.30, PAO2 = 0.30 x 713 - 100 = 113.9 mmHg and PaO2 rises to about 106 mmHg while PaCO2 stays at 80 mmHg. These use the simplified equation. The full form subtracts PaCO2 x [FiO2 + (1 - FiO2)/R], which at R 0.8 adds FiO2 x PaCO2 x (1 - R)/R: about 4 mmHg on air at a PaCO2 of 80 mmHg (2 mmHg at 40), and about 6 mmHg at FiO2 0.30 with PaCO2 80 mmHg.
 8. *A contrast.* PaO2 55 mmHg with PaCO2 40 mmHg gives a difference of 99.7 - 55 = 44.7 mmHg. Hypoventilation alone cannot produce that.
-9. *Shunt arithmetic.* Take the illustrative contents from [oxygen transport](/lessons/oxygen-transport/): hemoglobin 15 g per dL, end-capillary content on air 20.00 mL O2 per dL, mixed venous 15.20. If one fifth of the flow bypasses ventilated units, arterial content is 0.80 x 20.00 + 0.20 x 15.20 = 19.04 mL per dL. On pure oxygen, once nitrogen has washed out, the full equation reduces to inspired PO2 minus PaCO2, so PAO2 = 760 - 47 - 40 = 673 mmHg (the simplified form above would give 663 mmHg), and end-capillary content is 1.34 x 15 x 1.00 + 0.003 x 673 = 22.12 mL per dL. Holding mixed venous content at 15.20 (it would rise a little), arterial content becomes 0.80 x 22.12 + 0.20 x 15.20 = 20.74 mL per dL: a gain of 1.70 mL per dL, about 9 percent, for a nearly sevenfold rise in alveolar PO2 (99.7 to 673 mmHg). Recover the fraction: (22.12 - 20.74) / (22.12 - 15.20) = 1.38 / 6.92 = 0.20.
+9. *Shunt arithmetic.* Take the illustrative contents from [oxygen transport](/lessons/oxygen-transport/): hemoglobin 15 g per dL, end-capillary content on air 20.00 mL O2 per dL, mixed venous 15.20. If one fifth of the flow bypasses ventilated units, arterial content is 0.80 x 20.00 + 0.20 x 15.20 = 19.04 mL per dL. On pure oxygen, once nitrogen has washed out, the full equation reduces to inspired PO2 minus PaCO2, so PAO2 = 760 - 47 - 40 = 673 mmHg (the simplified form above would give 663 mmHg), and end-capillary content is 1.34 x 15 x 1.00 + 0.003 x 673 = 22.12 mL per dL. Holding mixed venous content at 15.20 (it would rise a little), arterial content becomes 0.80 x 22.12 + 0.20 x 15.20 = 20.74 mL per dL: a gain of 1.70 mL per dL, about 9 percent, for a nearly sevenfold rise in alveolar PO2 (99.7 to 673 mmHg). Recover the fraction from the contents alone, as the arterial shortfall over the largest possible shortfall (end-capillary minus arterial, over end-capillary minus mixed venous): (22.12 - 20.74) / (22.12 - 15.20) = 1.38 / 6.92 = 0.20.
 
 Step 9 shows that shunted blood still holds arterial oxygen content down on pure oxygen. The percentage gain is small mostly because hemoglobin is nearly saturated either way, so compare arterial PO2 against what no shunt would predict. A low-ratio unit is still ventilated, so filling it with oxygen usually saturates its blood, though at very low ratios the correction is incomplete and high oxygen can collapse the unit by absorption atelectasis; an unventilated unit never sees the gas, and its blood dilutes whatever the rest achieves.
 

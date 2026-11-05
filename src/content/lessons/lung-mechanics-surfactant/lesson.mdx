@@ -348,6 +348,7 @@ draft: false
 ---
 
 import LungComplianceSurfactant from '../../../components/LungComplianceSurfactant.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Fill an excised lung with saline instead of air and it takes far less pressure to inflate it to the same volume.** The tissue is the same both times; the saline removes the air-liquid surface lining every alveolus. [Gas exchange and breathing](/lessons/gas-exchange/) gave the first look at surfactant and compliance; here they get numbers.
 
@@ -361,7 +362,27 @@ Three pressures, each relative to atmospheric and in cmH2O (1 mmHg = 1.36 cmH2O)
 
 In a healthy adult at rest, pleural pressure is about -5 cmH2O at FRC (about -3.7 mmHg). As the diaphragm contracts it falls to about -8 cmH2O, pulling alveolar pressure about 1 cmH2O below atmospheric while air flows in. In expiration alveolar pressure rises about 1 cmH2O above atmospheric and pleural pressure returns to -5. When flow stops, alveolar pressure is zero. So pleural pressure is not a constant "-4 mmHg": it swings about 3 cmH2O each quiet breath, is higher (less negative) in dependent regions, and rises above atmospheric in forced expiration. An esophageal balloon estimates it near the esophagus. The inspiratory fall also aids venous return ([cardiac output and venous return](/lessons/cardiac-output-venous-return/)). If air enters the pleural space, a **pneumothorax**, the lung recoils toward collapse.
 
-**Compliance** is the change in volume per change in distending pressure, measured at zero flow so that only elastic forces act; **elastance** is its inverse. Lung and chest wall are in series, so their elastances add: 1/Crs = 1/CL + 1/Ccw, where Crs is the whole respiratory system's compliance.
+How stretchy is a lung? The number that answers this is **compliance**.
+
+<EquationCard
+  purpose="How much volume a lung takes in for each unit rise in the pressure that distends it: how stretchy it is."
+  eq="C = ΔV / ΔP"
+  say="Compliance equals the change in volume divided by the change in distending pressure."
+  symbols={[
+    ["C", "C, compliance", "the stretchiness. It is measured at zero flow, so that only elastic forces act. For the lung alone it is written CL.", "L per cmH2O"],
+    ["ΔV", "delta V", "the change in volume (Δ, “delta”, means “change in”)", "L"],
+    ["ΔP", "delta P", "the change in distending pressure; for the lung, the change in transpulmonary pressure", "cmH2O"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="A stiff lung needs a big pressure change for a small volume change, so its compliance is small; a floppy lung is the reverse. Elastance, the stiffness, is the inverse: 1 / C."
+>
+  <Fragment slot="example">
+    <p>Worked problem part 1 below finds that a 0.50 L breath raises transpulmonary pressure by 3 cmH2O: compliance = 0.50 / 3 = 0.17 L per cmH2O.</p>
+    <p>The elastance of the same lung is the flip, 3 / 0.50 = 6 cmH2O per L: it takes 6 cmH2O to add each litre.</p>
+  </Fragment>
+</EquationCard>
+
+Lung and chest wall are in series: one breath must stretch both. So their stiffnesses, the elastances, add. Written with compliances, each elastance is 1 over a compliance: 1/Crs = 1/CL + 1/Ccw, where Crs is the whole respiratory system's compliance, CL the lung's and Ccw the chest wall's. Check: adding a positive number on the right makes 1/Crs bigger than either part, so the whole system is less compliant than the lung or the chest wall alone.
 
 **Worked problem, part 1: compliance and elastic work.** Resting values above, tidal volume 0.50 L, zero flow at FRC and end-inspiration, a straight pressure-volume line, lung only.
 
@@ -374,7 +395,7 @@ In a healthy adult at rest, pleural pressure is about -5 cmH2O at FRC (about -3.
 
 A spirometer records volume against time. Four **volumes** do not overlap: tidal volume, inspiratory reserve volume (the extra that can be inhaled after a tidal breath), expiratory reserve volume (the extra that can be exhaled) and **residual volume** (RV, what stays after a maximal expiration). **Capacities** are sums: inspiratory capacity (tidal plus inspiratory reserve), FRC (expiratory reserve plus RV), vital capacity (all but RV) and **total lung capacity** (TLC, all four).
 
-A spirometer sees only gas moving through the mouth, so it cannot measure RV, FRC or TLC. These need **helium dilution** (rebreathe helium in a closed circuit and solve C1 x V1 = C2 x (V1 + V lung)), **nitrogen washout** (collect the nitrogen washed out by pure oxygen) or **body plethysmography** (Boyle's law in a sealed box). In obstructive disease the first two reach only gas that communicates with the airways and can underestimate RV, FRC and TLC.
+A spirometer sees only gas moving through the mouth, so it cannot measure RV, FRC or TLC. These need **helium dilution** (rebreathe helium in a closed circuit: the helium is not absorbed, so the amount before, C1 x V1 in the spirometer, equals the amount after, spread through spirometer and lung, C2 x (V1 + V lung); divide both sides by C2 and subtract V1 to get V lung = C1 x V1 / C2 - V1), **nitrogen washout** (collect the nitrogen washed out by pure oxygen) or **body plethysmography** (Boyle's law in a sealed box). In obstructive disease the first two reach only gas that communicates with the airways and can underestimate RV, FRC and TLC.
 
 One open textbook gives a tidal volume of about 500 mL and a TLC of about 6,000 mL in adult men and 4,200 mL in adult women: rough averages. Volumes vary with height, age and sex, so one person's value is judged against reference equations from healthy populations, which give a lower limit of normal.
 
@@ -386,15 +407,31 @@ In 1929 Kurt von Neergaard compared pressure-volume curves of an isolated pig lu
 
 The static curves also show **hysteresis**: at the same pressure the lung holds more volume on deflation than on inflation. It comes mainly from the air-liquid interface, both through the surfactant film and through collapsed airspaces and small airways reopening, with a smaller share from the tissue, and it is larger for breaths starting near RV.
 
-An air-water surface acts like a stretched sheet; its **surface tension**, T, is force per length, in mN per m (equal to dynes per cm). Laplace's relation gives the pressure that holds a curved surface open:
+An air-water surface acts like a stretched sheet; its **surface tension**, T, is force per length, in mN per m (equal to dynes per cm). How much pressure does it take to hold a curved, wet surface open against that tension? Laplace's relation answers it:
 
-> **P = 2T / r** (one spherical air-liquid surface of radius r)
+<EquationCard
+  purpose="The pressure needed to keep a curved air-liquid surface, such as an alveolus, from collapsing."
+  eq="P = 2T / r"
+  say="The pressure equals two times the surface tension, divided by the radius."
+  symbols={[
+    ["P", "P", "the pressure across one spherical air-liquid surface that holds it open", "Pa (1 cmH2O = 98.07 Pa)"],
+    ["T", "T, surface tension", "force per length along the surface", "N per m (1 mN per m = 1 dyne per cm)"],
+    ["r", "r", "the radius of the sphere", "m"],
+  ]}
+  toolkit={["ratios", "units", "powers"]}
+  check="No tension, no pressure needed. Double the tension and the pressure doubles. Halve the radius and the pressure doubles: a small bubble is harder to hold open than a big one at the same tension."
+>
+  <Fragment slot="example">
+    <p>Units first: N per m divided by m is N per m², which is a pascal (Pa).</p>
+    <p>Sizes: 100 micrometres = 0.1 mm = 1.0 x 10^-4 m, that is 0.0001 m. Dividing by such a small number gives a large result, which is why tiny alveoli need sizeable pressures. Worked problem part 2 below puts in the numbers.</p>
+  </Fragment>
+</EquationCard>
 
-A soap bubble has two surfaces and needs 4T/r; an alveolus has one. The sphere simplifies polyhedral alveoli.
+This is for one surface. A soap bubble has two surfaces and needs 4T/r; an alveolus has one. The sphere simplifies polyhedral alveoli.
 
 **Worked problem, part 2: how hard is it to keep an alveolus open?** Illustrative values; one spherical surface, static, 1 cmH2O = 98.07 Pa.
 
-1. r = 100 micrometres = 1.0 x 10^-4 m. No surfactant, T = 0.070 N per m: P = 2 x 0.070 / 1.0 x 10^-4 = 1,400 Pa = 14.3 cmH2O.
+1. r = 100 micrometres = 1.0 x 10^-4 m. No surfactant, T = 0.070 N per m: 2 x 0.070 = 0.14 N per m, and 0.14 / (1.0 x 10^-4 m) = 1,400 Pa. Divide by 98.07 Pa per cmH2O: 14.3 cmH2O.
 2. With surfactant, T = 0.020 N per m: P = 400 Pa = 4.1 cmH2O, 3.5 times smaller. Compare the quiet swings of about 1 cmH2O alveolar and 3 cmH2O pleural.
 3. Halve r to 50 micrometres at 0.070 N per m: P = 2,800 Pa = 28.6 cmH2O. At equal tension the small alveolus would empty into the large one.
 4. Let tension fall with area (made-up): at 50 micrometres, T = 0.005 N per m, so P = 2 x 0.005 / 5.0 x 10^-5 = 200 Pa = 2.0 cmH2O, below the large alveolus's 400 Pa. The small one no longer empties.

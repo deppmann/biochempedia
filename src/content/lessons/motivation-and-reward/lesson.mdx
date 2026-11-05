@@ -372,6 +372,7 @@ draft: false
 
 import RewardPredictionErrorTrials from '../../../components/RewardPredictionErrorTrials.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Researchers put a light-sensitive switch into one small group of neurons at the base of a mouse's brain. When they shone light on those neurons, a well-fed mouse began eating within minutes.**
 
@@ -489,18 +490,37 @@ That pattern is a **reward prediction error**: at the reward, the difference bet
 
 ### A rule for learning from errors
 
-Picture two bars over a cup of juice. One shows the reward predicted. The other shows the reward received. The gap between them is the error. If the same juice comes on every trial, the predicted bar grows by a fixed fraction of the gap each time, so the gap shrinks. That is the **Rescorla-Wagner rule**, the simplest learning rule built on a prediction error. In symbols:
+Picture two bars over a cup of juice. One shows the reward predicted. The other shows the reward received. The gap between them is the error. If the same juice comes on every trial, the predicted bar grows by a fixed fraction of the gap each time, so the gap shrinks. That is the **Rescorla-Wagner rule**, the simplest learning rule built on a prediction error. It has two lines: first measure the gap, then close a fixed fraction of it.
 
-> **δ = r − V    V(next trial) = V + α × δ**
+<EquationCard
+  purpose="How a cue’s predicted value changes after one trial: measure the error, then move the prediction part of the way toward the reward."
+  eq="δ = r − V    V(next trial) = V + α × δ"
+  say="The error, delta, is the reward received minus the value predicted. Next trial’s value is the old value plus the learning rate times the error."
+  symbols={[
+    ["δ", "delta", "the prediction error: positive when the reward beats the prediction, negative when it falls short"],
+    ["r", "r", "the reward that arrives: 1 for juice, 0 for none"],
+    ["V(next trial)", "V next trial", "the cue’s value after this trial’s update"],
+    ["V", "V", "the cue’s learned value: the reward it currently predicts"],
+    ["α", "alpha", "the learning rate, between 0 and 1: the fraction of the gap closed on each trial"],
+  ]}
+  check="If the prediction already matches the reward (V = r), the error is zero and V stops changing. With α = 0 nothing is ever learned; with α = 1 the value jumps all the way to the reward in one trial."
+>
+  <Fragment slot="example">
+    <p>Take α = 0.5, a round value to keep the arithmetic easy, with V = 0 and juice (r = 1) on each trial.</p>
+    <p>Trial 1: δ = 1 − 0 = 1. New V = 0 + 0.5 × 1 = 0.5.</p>
+    <p>Trial 2: δ = 1 − 0.5 = 0.5. New V = 0.5 + 0.5 × 0.5 = 0.75.</p>
+    <p>Each trial closes half of the remaining gap, so the error halves: 1, then 0.5, then 0.25 on trial 3.</p>
+  </Fragment>
+</EquationCard>
 
-Here V is the cue's learned value, r the reward that arrives (1 for juice, 0 for none), δ the error, and α, between 0 and 1, the learning rate: that fixed fraction. These are model units, not spikes per second.
+These are model units, not spikes per second.
 
 **Worked problem.** Take α = 0.30, a reward of r = 1 unit on every trial, and V = 0 at the start.
 
 1. Trial 1: δ = 1 − 0 = 1.00. New V = 0 + 0.30 × 1.00 = 0.30.
 2. Trial 2: δ = 1 − 0.30 = 0.70. New V = 0.30 + 0.30 × 0.70 = 0.51.
 3. Trial 3: δ = 1 − 0.51 = 0.49. New V = 0.51 + 0.30 × 0.49 = 0.657.
-4. The error shrinks by the same factor, 1 − α = 0.7, on every trial. So the error left after n trials is 0.7 to the power n, and V = 1 − 0.7ⁿ. After nine trials, V = 1 − 0.040 = 0.96.
+4. The error shrinks by the same factor, 1 − α = 0.7, on every trial: 1.00, 0.70, 0.49 and so on. So the error left after n trials is 0.7 multiplied by itself n times, 0.7ⁿ (see [powers](/math-toolkit/#powers)). The error is also 1 − V, so V = 1 − 0.7ⁿ. After nine trials, 0.7⁹ is about 0.040, so V = 1 − 0.040 = 0.96.
 
 Run it the other way: after long training, with V about 0.95, omit the reward, and δ = 0 − 0.95 = −0.95, a negative error at the expected time. An unpredicted reward (V = 0) gives +1.
 
@@ -516,7 +536,23 @@ Picture one trained trial as a strip of moments: waiting, then the tone, a one-s
 
 The **temporal-difference (TD) rule**, which Schultz, Dayan and Montague (1997) applied to these recordings, computes an error at each step from one moment to the next: the reward that arrived in that step, plus the change in the prediction.
 
-> **δ = r + V(next moment) − V(this moment)**
+<EquationCard
+  purpose="The prediction error at each step within a trial: did this step bring reward, or better or worse news about reward to come?"
+  eq="δ = r + V(next moment) − V(this moment)"
+  say="The error is the reward that arrived in this step, plus the prediction at the next moment, minus the prediction at this moment."
+  symbols={[
+    ["δ", "delta", "the TD prediction error for one step"],
+    ["r", "r", "the reward that arrives during this step (1 for juice, 0 for none)"],
+    ["V(next moment)", "V of the next moment", "the prediction of reward still to come, made at the next moment"],
+    ["V(this moment)", "V of this moment", "the prediction of reward still to come, made at this moment"],
+  ]}
+  check="If no reward arrives and the prediction does not change, δ = 0. A rise in the prediction adds to δ just as a reward does."
+>
+  <Fragment slot="example">
+    <p>Juice arrives with no warning. Before and after it the prediction is 0, because nothing signalled it.</p>
+    <p>δ = 1 + 0 − 0 = +1: a full burst at the juice, the same answer the Rescorla-Wagner rule gives for an unpredicted reward.</p>
+  </Fragment>
+</EquationCard>
 
 The full rule multiplies V(next moment) by a discount factor, up to 1, so that distant rewards can count less (Going deeper); here it is 1.
 
@@ -608,11 +644,11 @@ In recordings from identified POMC neurons in mouse brain slices, leptin depolar
 
 ### The full temporal-difference rule
 
-With a discount factor γ, a number from 0 to 1 chosen by the modeller, the TD error at time t is
+With a discount factor γ ("gamma"), a number from 0 to 1 chosen by the modeller, the TD error at time t is
 
 > **δ(t) = r(t) + γ × V(t+1) − V(t)**
 
-At the end of a trial V(t+1) = 0, so the error at the reward is still r − V. Discounting shrinks the cue burst when the reward is far off. In the model, with γ = 0.95 per time step and ten time steps between cue and reward, the burst at the cue is 0.95¹⁰, about 0.60 of a full burst. So the model predicts smaller cue responses for longer cue-reward delays.
+Here t counts time steps, and V(t+1) is the prediction one step later. With γ = 1 this is the rule in the lesson; with γ = 0 only the reward in the current step counts. At the end of a trial V(t+1) = 0, so the error at the reward is still r − V. Discounting shrinks the cue burst when the reward is far off, because each step of delay multiplies the reward's worth by γ once more. In the model, with γ = 0.95 per time step and ten time steps between cue and reward, the burst at the cue is 0.95 multiplied by itself ten times, 0.95¹⁰, about 0.60 of a full burst. So the model predicts smaller cue responses for longer cue-reward delays.
 
 ### An error that travels backward
 
@@ -620,7 +656,7 @@ During learning, the simplest TD model, with one state for each moment of the de
 
 ### Why a pause has less room than a burst
 
-Take illustrative numbers: a resting rate of 5 spikes per second, and a gain of 20 spikes per second for each unit of error. A δ of +1 gives 25 spikes per second. A δ of −0.5 would need 5 − 10 = −5 spikes per second, and a δ of −0.95 would need −14. A firing rate cannot go below zero, so in this mapping every error of −0.25 or below gives the same zero firing: the pause saturates while a burst of the same size keeps growing. The floor limits how deep a pause can be; it does not by itself set how long the pause lasts. In monkey recordings, Bayer and Glimcher (2005) found that positive errors were coded roughly in proportion to firing rate, while negative errors had a compressed range.
+Take illustrative numbers: a resting rate of 5 spikes per second, and a gain of 20 spikes per second for each unit of error. In this mapping, rate = 5 + 20 × δ. A δ of +1 gives 25 spikes per second. A δ of −0.5 would need 5 − 10 = −5 spikes per second, and a δ of −0.95 would need −14. A firing rate cannot go below zero. Setting 5 + 20 × δ = 0 gives δ = −5 ÷ 20 = −0.25, so every error of −0.25 or below gives the same zero firing: the pause saturates while a burst of the same size keeps growing. The floor limits how deep a pause can be; it does not by itself set how long the pause lasts. In monkey recordings, Bayer and Glimcher (2005) found that positive errors were coded roughly in proportion to firing rate, while negative errors had a compressed range.
 
 ### Release is not the same as firing
 

@@ -417,6 +417,7 @@ draft: false
 
 import QuantalFailureCounter from '../../../components/QuantalFailureCounter.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Put an electrode inside a resting frog muscle fibre at the point where the nerve ends, stimulate nothing, and you still see small depolarizations arriving at random, each about the same size and each far too small to fire the fibre.**
 
@@ -489,9 +490,26 @@ The histogram shows packets, but in most recordings the bumps blur together. Wha
 
 ### The direct way: divide the average response by one packet
 
-Rearrange the rule EPP ≈ m × q, counting each failure as a response of zero when you take the average:
+If every response is count × size, then dividing the average response by the size of one packet gives the average count. Rearrange the rule EPP ≈ m × q (divide both sides by q), counting each failure as a response of zero when you take the average:
 
-> **Direct method: m = mean EPP (failures included) / mean miniature**
+<EquationCard
+  title="Direct method"
+  purpose="The average number of packets per impulse, from two averages you can measure."
+  eq="m = mean EPP / mean miniature"
+  say="The mean quantal content is the average evoked response, failures counted as zero, divided by the average size of one spontaneous packet."
+  symbols={[
+    ["m", "m", "the mean quantal content: the average number of packets released per impulse", "packets"],
+    ["mean EPP", "mean E P P", "the average endplate potential over all stimuli, with each failure counted as 0", "mV"],
+    ["mean miniature", "mean miniature", "the average size of one spontaneous miniature, the quantal size q", "mV"],
+  ]}
+  toolkit={["ratios"]}
+  check="The millivolts cancel, so m is a pure count. If the average response equals one miniature, m = 1. If evoked packets were bigger than spontaneous ones, this method would overcount, which is why a second method is useful."
+>
+  <Fragment slot="example">
+    <p>Suppose the mean EPP is 1.2 mV and the mean miniature is 0.3 mV (round values to keep the arithmetic easy).</p>
+    <p>m = 1.2 mV / 0.3 mV = 4 packets per impulse, on average.</p>
+  </Fragment>
+</EquationCard>
 
 This needs three things to be true. Evoked packets must be the same size, on average, as the spontaneous miniatures, that average must be stable, and packets must add linearly. In low calcium, where responses are only a millivolt or two, linear adding is a safe bet.
 
@@ -503,19 +521,60 @@ This one sounds like a trick, so build it step by step. Picture the terminal as 
 2. A failure means *every* site released nothing. The sites are independent, so multiply: the chance of a failure is (1 − p) × (1 − p) × ..., N times, which is (1 − p)^N.
 3. We want an answer that depends on N and p only through their product, m, and an exponential does that. When p is small, 1 − p is almost exactly e^(−p). Try p = 0.01: 1 − p = 0.99000, and e^(−0.01) = 0.99005.
 4. So the chance of a failure is about (e^(−p))^N = e^(−N × p) = e^(−m).
-5. Take the natural log of both sides and flip the sign:
+5. Take the natural log of both sides (ln undoes e: ln of e^(−m) is −m), then flip the sign. The share of trials that fail, number of failures / number of trials, is your estimate of the failure chance:
 
-> **Failure method: m = −ln(number of failures / number of trials)**
+<EquationCard
+  title="Failure method"
+  purpose="The average number of packets per impulse, counted from the trials that release nothing."
+  eq="m = −ln(number of failures / number of trials)"
+  say="The mean quantal content is minus the natural log of the fraction of trials that failed."
+  symbols={[
+    ["m", "m", "the mean quantal content: the average number of packets per impulse", "packets"],
+    ["ln", "natural log", "the undo button for e^x: ln(x) answers “e to what power gives x?” Fractions below 1 have negative logs, so the minus sign makes m positive.", ""],
+    ["number of failures", "number of failures", "trials with no response at all", ""],
+    ["number of trials", "number of trials", "all stimuli given", ""],
+  ]}
+  toolkit={["e-and-ln"]}
+  check="If every trial failed, the fraction is 1, ln 1 = 0, and m = 0. As failures get rarer, the fraction shrinks toward 0, its log becomes a large negative number, and m grows. With no failures at all there is nothing to count, so the method needs low calcium."
+>
+  <Fragment slot="example">
+    <p>Suppose half of 100 trials fail (round values to keep the arithmetic easy).</p>
+    <p>Fraction failing: 50 / 100 = 0.5.</p>
+    <p>ln(0.5) = −0.69, so m = 0.69 packets per impulse.</p>
+    <p>So an average below one packet still leaves half the impulses releasing at least one.</p>
+  </Fragment>
+</EquationCard>
 
 The main assumptions are visible in those five lines. Sites must act independently (step 2), and each chance must be small (step 3). Small, not equal: sites with different small chances still give an approximately Poisson count, with m the sum of their chances (the exact failure chance is the product of the separate 1 − p values). Conditions must also stay the same across all the trials you pool, and you need failures that you can reliably tell apart from noise.
 
 **Why bother with two methods?** The failure method never uses q. Suppose evoked packets were twice the size of spontaneous ones. The direct method would then report twice the true m, and the failure method would not. So when the two estimates agree, that agreement supports two things at once: the evoked and spontaneous packets are the same units, and release behaves like many independent small chances. This is the check del Castillo and Katz made.
 
-The same reasoning gives the chance of releasing exactly k packets:
+The same reasoning gives the chance of releasing exactly k packets, which predicts every bump of the histogram, not just the bar at zero:
 
-> **P(k) = e^(−m) × m^k / k!**
+<EquationCard
+  title="The Poisson distribution"
+  purpose="The chance that one impulse releases exactly k packets, when the average is m."
+  eq="P(k) = e^(−m) × m^k / k!"
+  say="The chance of exactly k packets is e to the minus m, times m to the k, divided by k factorial."
+  symbols={[
+    ["P(k)", "P of k", "the probability of exactly k packets on one impulse; k is a whole number, 0, 1, 2 and so on", ""],
+    ["e^(−m)", "e to the minus m", "the chance of a failure (k = 0); e is about 2.718", ""],
+    ["m^k", "m to the k", "m multiplied by itself k times (m^0 = 1)", ""],
+    ["k!", "k factorial", "k × (k − 1) × … × 1; it counts the orders the k packets could come in. 0! = 1, 2! = 2, 3! = 6.", ""],
+  ]}
+  toolkit={["e-and-ln", "powers"]}
+  check="For k = 0, m^0 = 1 and 0! = 1, so P(0) = e^(−m), the failure chance from step 4. Adding P(k) over every k gives 1, as the chances of all possible outcomes must."
+>
+  <Fragment slot="example">
+    <p>Take m = 2 (a round value to keep the arithmetic easy). e^−2 = 0.135.</p>
+    <p>P(0) = 0.135.</p>
+    <p>P(1) = 0.135 × 2 / 1 = 0.271.</p>
+    <p>P(2) = 0.135 × 4 / 2 = 0.271.</p>
+    <p>With an average of two, one and two packets are equally likely, and about one impulse in seven still fails.</p>
+  </Fragment>
+</EquationCard>
 
-This is the **Poisson distribution**. For k = 0 it gives back P(0) = e^(−m), and it predicts how many trials fall in every bump of the histogram, not just the bar at zero.
+This is the **Poisson distribution**.
 
 **Where it stops working.** Restore normal calcium and failures vanish: with m in the tens, e^(−m) is effectively zero, and there is nothing to count. Whether each chance is still small (step 3) then has to be checked rather than assumed, because it depends on what counts as a release site and how likely each is to release. At the frog junction, low calcium and high magnesium are how you make release chances small and failures common, which is what the method needs.
 
@@ -525,7 +584,7 @@ In this made-up recording, a frog junction sits in low calcium and high magnesiu
 
 *Step 1: direct method.* m = 0.40 mV / 0.40 mV = 1.00 quantum per stimulus.
 
-*Step 2: failure method.* P(0) = 74 / 200 = 0.37. m = −ln(0.37) = 0.99. The two estimates agree, which supports the Poisson model for this recording. Notice that more than a third of impulses fail even though the average is a whole packet: e^(−1) = 0.37, and the average is pulled up by the trials that release two or three.
+*Step 2: failure method.* P(0) = 74 / 200 = 0.37. m = −ln(0.37) = 0.99 (since e^−1 ≈ 0.37, ln 0.37 is close to −1). The two estimates agree, which supports the Poisson model for this recording. Notice that more than a third of impulses fail even though the average is a whole packet: e^(−1) = 0.37, and the average is pulled up by the trials that release two or three.
 
 *Step 3: predict the rest.* With m = 1.0, P(1) = e^(−1) × 1 = 0.368, so about 200 × 0.368 = 74 trials should show one quantum. P(2) = 0.368 / 2 = 0.184, so about 37 trials should show two. If the amplitude histogram has peaks near 0.40 and 0.80 mV with roughly those counts, the data are consistent with the model.
 
@@ -541,7 +600,7 @@ The count, m, is set in the terminal, by step 2 and step 3 of the relay.
 
 The action potential invades the terminal and opens voltage-gated calcium channels. Calcium flows in down a steep gradient. Synaptic vesicles near the membrane have already been docked and primed, made ready to fuse. Calcium binds a sensor protein, a synaptotagmin, and that triggers the last step of fusion. Three SNARE proteins (synaptobrevin on the vesicle, syntaxin-1 and SNAP-25 on the plasma membrane), already partly zipped during priming, finish zipping and pull the two membranes into one. The sensor is synaptotagmin-1 at many central synapses; at the mammalian neuromuscular junction it is synaptotagmin-2 together with synaptotagmin-1. The molecular mechanics of fusion are taught in [vesicle traffic](/lessons/vesicle-traffic/), and calcium handling in [calcium signaling](/lessons/calcium-signaling/).
 
-Release needs external calcium, and magnesium opposes it. F. A. Dodge and Rami Rahamimoff (1967) measured how strongly. At the frog neuromuscular junction they varied calcium step by step and plotted EPP amplitude against calcium concentration, both on logarithmic axes.
+Release needs external calcium, and magnesium opposes it. F. A. Dodge and Rami Rahamimoff (1967) measured how strongly. At the frog neuromuscular junction they varied calcium step by step and plotted EPP amplitude against calcium concentration, both on logarithmic axes, where each equal step along an axis multiplies the value by the same factor ([log scales](/math-toolkit/#log-scales)).
 
 Picture their plot. At low calcium the points fall on a steep straight line with a slope near 4 (3.78, with a standard deviation of 0.2, across 28 experiments). As calcium approaches its normal level, the line bends over and becomes shallower.
 
@@ -552,7 +611,7 @@ A slope of about 4 means that release rises roughly as the fourth power of calci
 <details>
 <summary>Check your prediction</summary>
 
-Far more. If release rose exactly as the fourth power, doubling calcium would give 2^4 = 16 times more. With the measured slope of 3.78, it gives 2^3.78, about 14 times.
+Far more. If release rose exactly as the fourth power, doubling calcium would give 2^4 = 16 times more. With the measured slope of 3.78, it gives 2^3.78 (a calculator's power key), about 14 times.
 
 </details>
 
@@ -576,9 +635,11 @@ Acetylcholine diffuses across the cleft and opens nicotinic acetylcholine recept
 
 Now use the rule from the [action potential](/lessons/action-potential/) lesson. With no current injected through an electrode, the voltage moves toward a balance point: the average of the channels' reversal potentials, weighted by their conductances (how open each set of channels is). Opening nicotinic channels adds a conductance whose reversal potential sits near 0 mV. The balance point moves from rest toward 0 mV, and Vm follows: the endplate depolarizes. At a frog muscle fibre's resting potential, far more negative than the reversal potential, the **driving force** (Vm minus the reversal potential) is large, and the current it drives is inward.
 
-Treat the resting fibre as one conductance, G_rest, pulling toward the resting potential, and the open acetylcholine channels as a second conductance, g_ACh, pulling toward about 0 mV:
+To see how far the endplate can move, treat the resting fibre as one conductance, G_rest, pulling toward the resting potential, V_rest, and the open acetylcholine channels as a second conductance, g_ACh, pulling toward about 0 mV. The weighted average gives the target:
 
 > **V_balance = (G_rest × V_rest + g_ACh × 0 mV) / (G_rest + g_ACh)**
+
+Check the ends: with no channels open (g_ACh = 0) the target is V_rest; with g_ACh far larger than G_rest it approaches 0 mV, never beyond.
 
 Vm chases this target and reaches it only if the channels stay open long enough. An EPP is brief, so it never fully settles.
 
@@ -595,7 +656,30 @@ Put numbers on it in a simple steady-state model. Take the fibre's resting poten
 | 4 (low calcium) | 1.6 mV | 1.6 mV (about 2% less) |
 | 60 (normal calcium) | 24 mV | about 19 mV (about 20% less) |
 
-The balance-point column comes from **EPP ≈ (k × q) / (1 + k × q / 90 mV)** for k packets (derived in Going deeper). So the direct method needs no correction at low-calcium sizes, while at normal-calcium sizes the model comes out about a fifth below count × size.
+The balance-point column comes from one formula (derived in Going deeper):
+
+<EquationCard
+  purpose="How big an EPP k packets really make, once the shrinking driving force is counted."
+  eq="EPP ≈ (k × q) / (1 + k × q / DF)"
+  say="The EPP is count times size, divided by one plus count times size as a fraction of the driving force."
+  symbols={[
+    ["EPP", "E P P", "the endplate potential: the depolarization from rest, in this steady-state model", "mV"],
+    ["k", "k", "the number of packets released on this impulse", ""],
+    ["q", "q", "the quantal size, one miniature: 0.40 mV here", "mV"],
+    ["DF", "D F", "the size of the driving force at rest: the gap between the resting potential and the reversal potential, about 90 mV here. The lesson writes driving force as Vm minus the reversal potential, which is about −90 mV at rest; the formula uses its size.", "mV"],
+  ]}
+  toolkit={["ratios"]}
+  check="When k × q is small against DF, the bottom is close to 1 and EPP ≈ k × q. When k × q is huge, the EPP approaches DF: Vm can approach the reversal potential, never pass it."
+>
+  <Fragment slot="example">
+    <p>Take the normal-calcium row: k = 60, q = 0.40 mV, DF = 90 mV.</p>
+    <p>Count × size: 60 × 0.40 = 24 mV.</p>
+    <p>Bottom: 1 + 24 / 90 = 1 + 0.267 = 1.267.</p>
+    <p>EPP ≈ 24 / 1.267 = 18.9 mV, about a fifth below 24 mV.</p>
+  </Fragment>
+</EquationCard>
+
+So the direct method needs no correction at low-calcium sizes, while at normal-calcium sizes the model comes out about a fifth below count × size.
 
 ### The safety factor
 

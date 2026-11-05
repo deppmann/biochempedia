@@ -394,6 +394,7 @@ draft: false
 
 import MachBandEdgeRow from '../../../components/MachBandEdgeRow.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **In 1926 Edgar Adrian and Yngve Zotterman cut a frog muscle down until one stretch receptor was left, hung weights on it, and recorded what that single ending sent along its nerve fibre.**
 
@@ -427,7 +428,11 @@ The first puzzle has a different answer: **which** fibre is firing tells you **w
 
 To put "which" and "how much" into one rule, you need two terms. A neuron's **tuning curve** plots its mean firing rate against one property of the stimulus, such as the orientation of a bar or the frequency of a tone. Present the same stimulus many times and the spike count in a fixed time window fluctuates from trial to trial. The standard deviation of that fluctuation is the neuron's **noise**.
 
-> **The one idea to carry through this lesson.** A spike means nothing by itself. It means what its neuron is tuned to. Count a sensory neuron's spikes over a fixed stretch of time, and on each trial its firing rate is its tuning curve read at the stimulus, plus a fluctuation that averages to zero: **rate = tuning curve(stimulus) + fluctuation**. *Which* neurons fire and their *relative rates* together tell you what, where and how much, and, for otherwise similar responses, a small change is easiest to detect where it moves the mean rate a lot compared with the noise.
+> **The one idea to carry through this lesson.** A spike means nothing by itself. It means what its neuron is tuned to.
+>
+> - Count a sensory neuron's spikes over a fixed stretch of time. On each trial its firing rate is its tuning curve read at the stimulus, plus a fluctuation that averages to zero: **rate = tuning curve(stimulus) + fluctuation**.
+> - *Which* neurons fire and their *relative rates* together tell you what, where and how much.
+> - For otherwise similar responses, a small change is easiest to detect where it moves the mean rate a lot compared with the noise.
 
 The rule has two limits. Some senses also carry information in spike timing, such as the latency of the first spike in touch and phase locking to the sound wave in hearing. And the rule says what information a neuron *carries*, not how the brain reads it out.
 
@@ -439,10 +444,14 @@ The machinery differs by sense. In touch, force opens mechanically activated cha
 
 ### Why the receptor potential is graded
 
-Use the rule from [the action potential](/lessons/action-potential/): with no current injected, the voltage moves toward a balance point, the average of the equilibrium potentials weighted by their conductances, and settles there. Take a simple passive model: the resting membrane's channels, which together reverse at −65 mV, plus **transduction channels**, cation channels whose current reverses near 0 mV.
+Use the rule from [the action potential](/lessons/action-potential/): with no current injected, the voltage moves toward a balance point, the average of the equilibrium potentials weighted by their conductances, and settles there. Take a simple passive model: the resting membrane's channels, which together reverse at −65 mV, plus **transduction channels**, cation channels whose current reverses near 0 mV. With two kinds of channel, the balance point is
+
+> **Vm = (g_rest × −65 mV + g_trans × 0 mV) ÷ (g_rest + g_trans)**
+
+where g_rest is the resting conductance and g_trans the transduction conductance. Check the ends: with no transduction channels open (g_trans = 0) it gives −65 mV; with g_trans huge it approaches 0 mV.
 
 - Each extra open transduction channel pulls the balance point toward 0 mV. A stronger stimulus opens more channels, so the voltage moves further. The response is graded.
-- Put numbers on it (made-up units). With the resting conductance at 1 and the transduction conductance at 1, the balance point is (1 × −65 + 1 × 0) ÷ (1 + 1) = −32.5 mV. Raise the transduction conductance to 2, 3 and 4 and it moves to about −22, −16 and −13 mV. Each equal increase moves it less, by about 11, 5 and 3 mV, because the voltage can approach 0 mV but never pass it. The response saturates. The model shows only this driving-force limit; real receptors also have channel kinetics, adaptation and voltage-gated currents.
+- Put numbers on it (made-up units). With g_rest = 1 and g_trans = 1, the balance point is (1 × −65 + 1 × 0) ÷ (1 + 1) = −32.5 mV. Raise the transduction conductance to 2, 3 and 4 and it moves to about −22, −16 and −13 mV. Each equal increase moves it less, by about 11, 5 and 3 mV, because the voltage can approach 0 mV but never pass it. The response saturates. The model shows only this driving-force limit; real receptors also have channel kinetics, adaptation and voltage-gated currents.
 - In a rod, cGMP-gated cation channels are open in the dark, and light closes them. That moves the balance point the other way, which is why light hyperpolarizes the rod.
 
 ### Why it must become spikes
@@ -487,9 +496,27 @@ The evidence comes from the lateral eye of the horseshoe crab Limulus, a compoun
 
 The inhibition ran through connections among the units, and it exaggerated the difference in response between brightly and dimly lit regions of the eye. Think of each unit as reporting its own light minus a share of its neighbours'.
 
-**Worked problem, an edge.** Six receptors in a row receive excitation 10, 10, 10, 20, 20, 20 (made-up units), and the row continues beyond both ends. Each output is
+<EquationCard
+  purpose="What one unit reports when each of its neighbours takes away a fixed share of its signal."
+  eq="output = own excitation − 0.2 × (left neighbour + right neighbour)"
+  say="A unit’s output is its own excitation, minus one fifth of the excitation its two neighbours receive."
+  symbols={[
+    ["output", "output", "what the unit sends on (made-up units)"],
+    ["own excitation", "own excitation", "how strongly the unit’s own light drives it"],
+    ["0.2", "point two", "the inhibition weight: each neighbour takes away 0.2 of its own excitation. It is a chosen value for this simple model."],
+    ["left neighbour", "left neighbour", "the excitation of the unit to the left"],
+    ["right neighbour", "right neighbour", "the excitation of the unit to the right"],
+  ]}
+  check="If the neighbours are dark (zero), nothing is subtracted and the output equals the unit’s own excitation. The brighter the neighbours, the more is taken away."
+>
+  <Fragment slot="example">
+    <p>Try a uniform patch where every unit, and so both neighbours, has the same excitation, call it L.</p>
+    <p>Output = L − 0.2 × (L + L) = L − 0.4 × L = 0.6 × L.</p>
+    <p>So any evenly lit region reports 60% of its input: an input of 10 gives 6 and an input of 20 gives 12. Uniform regions are turned down by the same fraction everywhere.</p>
+  </Fragment>
+</EquationCard>
 
-> **output = own excitation − 0.2 × (left neighbour + right neighbour)**
+**Worked problem, an edge.** Six receptors in a row receive excitation 10, 10, 10, 20, 20, 20 (made-up units), and the row continues beyond both ends. Apply the rule to each unit.
 
 *Interior dim:* 10 − 0.2 × (10 + 10) = 6.
 
@@ -510,7 +537,13 @@ The dim unit beside the edge gets extra inhibition from its bright neighbour. Th
 
 Now compare input and output. Across the edge, the output still steps by 10 (14 against 4), the same as the input step. What shrank are the uniform regions: the two plateaus now differ by 6 (12 against 6), not 10. So lateral inhibition **discounts uniform regions, and the edge stands out against them**.
 
-Contrast, (bright − dim) ÷ (bright + dim), puts a number on standing out: 0.33 for the input, 0.33 between the output plateaus, and 0.56 across the edge. The step at the edge keeps its size while the levels around it fall, so its contrast rises.
+Contrast, (bright − dim) ÷ (bright + dim), puts a number on standing out. It is 0 when the two sides are equal and approaches 1 when the dim side is near zero.
+
+- Input: (20 − 10) ÷ (20 + 10) = 10 ÷ 30 = 0.33.
+- Output plateaus: (12 − 6) ÷ (12 + 6) = 6 ÷ 18 = 0.33.
+- Across the edge: (14 − 4) ÷ (14 + 4) = 10 ÷ 18 = 0.56.
+
+The step at the edge keeps its size while the levels around it fall, so its contrast rises.
 
 This rule is a feedforward simplification. The Hartline-Ratliff model of the real eye uses each neighbour's output, not its input, and has thresholds; the result still holds (numbers in Going deeper). The model predicts bands at a step. People see the light and dark **Mach bands** mainly where a luminance ramp meets a plateau, and an abrupt step does not ordinarily show them, so the band pattern here is an analogy, and lateral inhibition is thought to be part of that story, not all of it. Limulus is not the vertebrate retina, whose surrounds are built by other cells; see [the retina](/lessons/retina/).
 
@@ -524,9 +557,28 @@ Now the fourth puzzle: how fine a change can one neuron report? A tuning curve t
 
 Picture one neuron shown a bar at 20 degrees on many trials, and at 24 degrees on many more. Count the spikes on each trial and draw two histograms, one for each angle. Each histogram has a centre, the mean rate that the tuning curve gives, and a width, the trial-to-trial noise. If the two histograms sit far apart, one trial's count tells you which bar was shown. If they overlap, often it cannot.
 
-What matters is the gap between the two means in units of noise, called **d′** ("d-prime"):
+What matters is the gap between the two means in units of noise, called **d′** ("d-prime").
 
-> **d′ = change in mean rate ÷ noise**, and for a small change, **d′ ≈ (slope of the tuning curve × change in stimulus) ÷ noise**
+<EquationCard
+  purpose="How far apart two stimuli’s spike-count histograms sit, measured in units of the neuron’s noise."
+  eq="d′ = change in mean rate ÷ noise ≈ (slope × change in stimulus) ÷ noise"
+  say="d-prime is how much the mean firing rate moves, divided by the trial-to-trial noise. For a small change, the move in mean rate is the tuning curve’s slope times the change in stimulus."
+  symbols={[
+    ["d′", "d prime", "the separation of the two histograms in noise units. It has no unit, because spikes per second divide out."],
+    ["change in mean rate", "change in mean rate", "the difference between the two histograms’ centres, read off the tuning curve", "spikes/s"],
+    ["noise", "noise", "the standard deviation of the spike rate from trial to trial: the width of each histogram", "spikes/s"],
+    ["slope", "slope", "how steeply the tuning curve rises or falls at that point", "spikes/s per degree"],
+    ["change in stimulus", "change in stimulus", "the difference between the two stimuli, here in degrees", "degrees"],
+  ]}
+  toolkit={["ratios"]}
+  check="If the slope is zero, a small change does not move the mean, so d′ is zero. Doubling the noise halves d′ whatever the slope."
+>
+  <Fragment slot="example">
+    <p>Take round values to keep the arithmetic easy (not the lesson’s neuron): a slope of 2 spikes/s per degree, a change of 3 degrees, and noise of 6 spikes/s.</p>
+    <p>Change in mean rate: 2 × 3 = 6 spikes/s.</p>
+    <p>d′ = 6 ÷ 6 = 1. The two centres sit one noise width apart: the histograms overlap a fair amount, but an ideal observer comparing two such counts would be right on about 76% of trials.</p>
+  </Fragment>
+</EquationCard>
 
 **Predict.** In this made-up recording, a neuron fires 50, 40, 20 and 8 spikes/s at 0, 15, 30 and 45 degrees, changing in a straight line between those angles, with noise of 5 spikes/s at every angle. Will it tell 2° from 6° better, or 20° from 24°?
 
@@ -551,9 +603,32 @@ That makes 50% chance, not threshold. An observer who scores 50% gives no eviden
 
 The neuron's curve and the animal's curve can share one scale. Imagine an ideal observer that sees one neuron's spike count from each interval and picks the interval whose count better fits the stimulus. Suppose the counts are bell-shaped (Gaussian), independent from one interval to the next, and equally noisy for both stimuli. Then its proportion correct depends on d′ alone:
 
-> **proportion correct = Φ(d′ ÷ √2)**, where Φ is the standard normal cumulative distribution
+<EquationCard
+  purpose="Turns a neuron’s d′ into the proportion of 2AFC trials an ideal observer reading that neuron would get right."
+  eq="proportion correct = Φ(d′ ÷ √2)"
+  say="The proportion correct is phi of d-prime divided by the square root of two."
+  symbols={[
+    ["proportion correct", "proportion correct", "the fraction of trials the ideal observer gets right: 0.5 is chance, 1 is perfect"],
+    ["Φ", "phi", "the standard normal cumulative distribution: Φ(z) is the fraction of a standard bell curve lying below z. Φ(0) = 0.5 and Φ(1) = 0.841."],
+    ["d′", "d prime", "the separation of the two spike-count histograms in noise units"],
+    ["√2", "root two", "about 1.41. The observer compares two noisy counts, and their difference is √2 times as noisy as either one."],
+  ]}
+  toolkit={["powers"]}
+  check="With d′ = 0 the histograms coincide and Φ(0) = 0.5: chance. As d′ grows, Φ climbs toward 1: perfect."
+>
+  <Fragment slot="example">
+    <p>Take d′ = √2, about 1.41, a value chosen so the arithmetic lands on a number the lesson gives.</p>
+    <p>d′ ÷ √2 = 1.</p>
+    <p>Φ(1) = 0.841, so the observer is right on about 84% of trials, above the 75% threshold.</p>
+  </Fragment>
+</EquationCard>
 
-The √2 is there because the observer compares two noisy counts, and their difference is √2 times as noisy as either one. Reaching 75% correct takes a d′ of about 0.95. So a neuron's threshold is roughly the stimulus change that moves its mean rate by one noise unit. For the made-up neuron that is about 3.6 degrees on the flank and about 7 degrees near the peak. A curve built this way from one neuron's spike counts is a **neurometric function**, and you can draw it on the same axes as the animal's psychometric function.
+Now find the d′ that gives threshold, in two steps.
+
+1. Φ(z) = 0.75 when z is about 0.67 (a quarter of the bell curve lies between 0 and 0.67).
+2. d′ ÷ √2 = 0.67, so d′ = 0.67 × 1.41, about 0.95.
+
+So a neuron's threshold is roughly the stimulus change that moves its mean rate by one noise unit. To get it in degrees, rearrange d′ ≈ slope × change ÷ noise into change ≈ d′ × noise ÷ slope. For the made-up neuron, the slope is 20/15 = 1.33 spikes/s per degree on the flank and 10/15 = 0.67 near the peak. So 0.95 × 5 ÷ 1.33 is about 3.6 degrees on the flank, and 0.95 × 5 ÷ 0.67 is about 7 degrees near the peak. A curve built this way from one neuron's spike counts is a **neurometric function**, and you can draw it on the same axes as the animal's psychometric function.
 
 ### One neuron against one monkey
 
@@ -623,9 +698,9 @@ Take a model 2AFC observer judging an angular difference x, with chosen, not mea
 
 > **p(x) = 0.5 + 0.5 × Φ((x − 2°) / 1°)**
 
-Φ is the standard normal cumulative distribution. The shape is a fit over positive differences, so at x = 0 it gives about 51% rather than exactly 50%.
+Read it in pieces. p(x) is the proportion correct at difference x. Φ, "phi", is the standard normal cumulative distribution. The bracket, z = (x − 2°) / 1°, says how many spreads x sits above the midpoint. The 0.5 + 0.5 × makes the curve run from chance (0.5) up to perfect (1). The shape is a fit over positive differences, so at x = 0 it gives about 51% rather than exactly 50%.
 
-*Step 1: threshold.* Set p = 0.75. Then Φ(z) = (0.75 − 0.5)/0.5 = 0.5, so z = 0 and x = 2 degrees.
+*Step 1: threshold.* Set p = 0.75. Subtract 0.5 and divide by 0.5: Φ(z) = (0.75 − 0.5)/0.5 = 0.5, so z = 0 and x = 2 degrees.
 
 *Step 2: 90% correct.* Φ(z) = (0.90 − 0.5)/0.5 = 0.8, so z = 0.84 and x = 2.84 degrees.
 

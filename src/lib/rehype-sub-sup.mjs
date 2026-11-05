@@ -20,7 +20,7 @@ const GREEK = { pi: 'π', Pi: 'Π', psi: 'ψ', Psi: 'Ψ', tau: 'τ', Delta: 'Δ'
 const SKIP = new Set(['code', 'pre', 'kbd', 'script', 'style', 'math', 'a', 'sub', 'sup', 'textarea']);
 
 // One combined pattern: group 1 base, 2 op (_ or ^), 3 braced, 4 parenthesised, 5 plain.
-const RE = /(?<![\p{L}\p{N}_/.\\`-])((?:pi|Pi|psi|Psi|tau|Delta|delta|lambda|mu|sigma|Sigma|alpha|beta|gamma|theta|omega)|[\p{L}\p{N}][\p{L}\p{N}]{0,4}|\))([_^])(?:\{([^{}]{1,24})\}|\(([^()]{1,24})\)|([−\-]?[\p{L}\p{N}+−]{1,8}))(?![\p{L}\p{N}_/])/gu;
+const RE = /((?<![\p{L}\p{N}_.\\`-])(?:pi|Pi|psi|Psi|tau|Delta|delta|lambda|mu|sigma|Sigma|alpha|beta|gamma|theta|omega|\d+\.\d+|[\p{L}\p{N}][\p{L}\p{N}]{0,4})|\))([_^])(?:\{([^{}]{1,24})\}|\(([^()]{1,24})\)|([−\-]?\d+\.\d+|[−\-]?[\p{L}\p{N}+−]{1,8}(?:\/[\p{L}\p{N}]{1,6})?))(?![\p{L}\p{N}_])/gu;
 
 const el = (tagName, children) => ({ type: 'element', tagName, properties: {}, children });
 const txt = (value) => ({ type: 'text', value });
@@ -33,15 +33,18 @@ function convert(value) {
   let last = 0;
   for (const m of value.matchAll(RE)) {
     const [whole, base, op, braced, paren, plain] = m;
-    const script = braced ?? paren ?? plain;
-    if (op === '_' && /^\d+$/.test(base) && /^\d+$/.test(script)) continue;      // 2_3 is not notation
+    let script = braced ?? paren ?? plain;
+    let used = whole;
+    if (plain && plain.includes('/') && (op === '_' || /^[−-]?[\d.]+$/.test(plain.split('/')[0]))) { script = plain.split('/')[0]; used = whole.slice(0, whole.length - (plain.length - script.length)); }
+    if (op === '_' && /^\d+$/.test(base) && /^\d+$/.test(script)) continue;
+    if (op === '_' && /\./.test(base)) continue;                                    // a decimal only takes powers      // 2_3 is not notation
     if (op === '^' && script.length > 6 && !braced && !paren) continue;
     if (plain && /^[−-]$/.test(plain)) continue;                                   // a lone minus is not a script
     if (/\.(mp4|vtt|webp|png|jpg|pdf|html|js|mjs|ts)$/i.test(whole)) continue;
     out.push(txt(value.slice(last, m.index)));
     out.push(txt(GREEK[base] ?? base));
     out.push(el(op === '_' ? 'sub' : 'sup', [txt(script.replace(/-/g, '−'))]));
-    last = m.index + whole.length;
+    last = m.index + used.length;
   }
   if (!out.length) return null;
   out.push(txt(value.slice(last)));

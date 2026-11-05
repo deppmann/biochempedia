@@ -387,6 +387,7 @@ draft: false
 
 import DriftToBoundTrials from '../../../components/DriftToBoundTrials.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **A monkey watches a cloud of dots, some moving together and the rest at random, and must decide which way the coherent dots are going. As it watches, a neuron in its parietal cortex, toward the top and back of the brain, on average fires faster and faster and reaches a similar level just before the monkey moves its eyes to give its answer.**
 
@@ -405,7 +406,14 @@ Picture the behaviour as two graphs, each with coherence along the bottom.
 
 That is the behaviour to explain, and it poses a puzzle. At any one moment the dots give only a weak, noisy hint about the direction. How does a brain turn a stream of unreliable hints into a choice, and why does that take longer when the motion is weak?
 
-> **The one idea to carry through this lesson.** Adding up noisy signals makes them more reliable, because the signal adds in step while independent noise partly cancels. Add n samples that each carry the same average push, with independent noise of the same size, and the signal grows n-fold but the noise (its spread) grows only √n-fold, so reliability (signal divided by noise) grows as √n. In the drift-to-bound model this lesson uses, a decision is this sum taken over time and stopped at a bound. It is a model of behaviour and of trial-averaged firing; it does not say where in the brain any adding happens, and that gap is the puzzle this lesson ends on.
+> **The one idea to carry through this lesson.** Adding up noisy signals makes them more reliable, because the signal adds in step while independent noise partly cancels.
+>
+> - Add n samples that each carry the same average push, with independent noise of the same size.
+> - The signal grows n-fold.
+> - The noise (its spread) grows only √n-fold, “root n”, the square root of n (see [powers](/math-toolkit/#powers)).
+> - So reliability, signal divided by noise, grows as n / √n = √n.
+>
+> In the drift-to-bound model this lesson uses, a decision is this sum taken over time and stopped at a bound. It is a model of behaviour and of trial-averaged firing; it does not say where in the brain any adding happens, and that gap is the puzzle this lesson ends on.
 
 ### Why adding up helps
 
@@ -444,12 +452,32 @@ The simplest rule is a **bound**: keep adding until the total reaches a set leve
 
 For a choice between two directions, draw a second bound below the starting point for the other answer. The total drifts toward the correct bound, but on weak-motion trials the wobble sometimes carries it to the wrong one. That is an error.
 
-This is a **drift-to-bound model** (also called bounded accumulation, or drift-diffusion). For the noiseless average, the timing comes out of two lines:
+This is a **drift-to-bound model** (also called bounded accumulation, or drift-diffusion). For the noiseless average, the timing comes out of two lines. The first says how long the climb takes: distance divided by speed.
 
-> **time to bound = (bound − starting level) / drift**
+<EquationCard
+  purpose="How long the noiseless running total takes to reach the bound."
+  eq="time to bound = (bound − starting level) / drift"
+  say="The time to reach the bound equals the distance from the starting level up to the bound, divided by the drift."
+  symbols={[
+    ["time to bound", "time to bound", "how long the total takes to climb from its start to the bound", "s"],
+    ["bound", "bound", "the level of the total at which the model commits to a choice", "units of the total"],
+    ["starting level", "starting level", "where the total sits when it starts to move", "units of the total"],
+    ["drift", "drift", "the average slope of the total", "units per second"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="Units: units of the total divided by units per second leaves seconds. Double the drift and the time to bound halves; raise the bound and it lengthens. With zero drift the noiseless total never arrives."
+>
+  <Fragment slot="example">
+    <p>Round values to keep the arithmetic easy: a bound 10 units above the start and a drift of 50 units per second. Time to bound = 10 / 50 = 0.2 s.</p>
+    <p>Double the drift to 100 units per second: 10 / 100 = 0.1 s.</p>
+  </Fragment>
+</EquationCard>
+
+The second line adds the fixed delays on either side of the climb:
+
 > **reaction time = latency + time to bound + motor delay**
 
-The **latency** is the time before the total starts to move, and the **motor delay** is the time from reaching the bound to the eye moving.
+The **latency** is the time before the total starts to move, and the **motor delay** is the time from reaching the bound to the eye moving. In the model those two are fixed, so only the middle term depends on the drift.
 
 **Predict.** If some neuron held this running total, what would its firing look like on strong-motion and weak-motion trials? Where would it be just before the eye moved?
 
@@ -523,11 +551,33 @@ Attention also changes how neurons vary together. Show the same stimulus many ti
 
 > **ρ = Cov(n1, n2) / √(Var(n1) × Var(n2))**
 
-Now average N similarly tuned neurons, each with noise of size σ and pairwise noise correlation ρ. The guiding rule gives the result:
+Read it as: ρ (“rho”) is how much the two counts move together (their covariance, Cov), scaled by the two counts' own variability (the square root of the product of their variances, Var), so that it runs from −1 to +1. Here n1 and n2 are the two neurons' spike counts; this n is a count, not the number of samples from the one idea above.
 
-> **variance of the average = σ² × [1 + (N − 1)ρ] / N**
+How much does that shared noise matter when a downstream cell averages many neurons? The guiding rule gives the answer:
 
-With ρ = 0, the noise of the average shrinks as 1/√N. With ρ above zero, the private part still shrinks, but the shared part stays. As N grows, the noise falls toward a floor of σ√ρ, so pooling can improve on one neuron at most 1/√ρ-fold.
+<EquationCard
+  purpose="How noisy the average of many similar neurons is, once their noise is partly shared."
+  eq="variance of the average = σ² × [1 + (N − 1)ρ] / N"
+  say="The variance of the average equals sigma squared, times one plus N minus one times rho, all divided by N."
+  symbols={[
+    ["variance of the average", "variance of the average", "the spread of the pooled signal across repeats; its square root is the pooled noise", "spikes²"],
+    ["σ²", "sigma squared", "one neuron's noise variance. σ (sigma) is the noise size, its square root.", "spikes²"],
+    ["N", "N", "the number of similarly tuned neurons averaged", "no unit"],
+    ["ρ", "rho", "the pairwise noise correlation between neurons", "no unit"],
+  ]}
+  toolkit={["powers", "ratios"]}
+  check="With ρ = 0 the bracket is 1, the variance is σ²/N, and the noise of the average shrinks as 1/√N. With ρ above zero, the private part still shrinks, but the shared part stays. As N grows, the bracket over N approaches ρ, so the noise falls toward a floor of σ√ρ, and pooling can improve on one neuron at most 1/√ρ-fold."
+>
+  <Fragment slot="example">
+    <p>Round values, chosen only to keep the arithmetic easy: N = 4 neurons with ρ = 0.5.</p>
+    <p>Bracket: 1 + (4 − 1) × 0.5 = 2.5. Variance: σ² × 2.5 / 4 = 0.625σ². Noise (the square root): √0.625 ≈ 0.79σ.</p>
+    <p>With ρ = 0 the variance would be σ²/4 and the noise σ/2. With ρ = 0.5 the pooled noise is 0.79σ, not 0.5σ: shared noise cannot be averaged away.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Optional: where it comes from. The variance of a sum of N counts is the sum of their N variances, σ² each, plus all N × (N − 1) covariances (one for each ordered pair of different neurons), ρσ² each. That gives σ² × [N + N(N − 1)ρ].</p>
+    <p>An average is the sum divided by N, which divides the variance by N². So the variance of the average is σ² × [N + N(N − 1)ρ] / N² = σ² × [1 + (N − 1)ρ] / N.</p>
+  </Fragment>
+</EquationCard>
 
 **Predict.** Average 100 neurons whose noise correlation is 0.065. How much less noisy is the average than one neuron? What if the correlation were zero?
 
