@@ -4,6 +4,7 @@ import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeMethodLinks from './src/lib/rehype-method-links.mjs';
 import rehypeDesignAnswer from './src/lib/rehype-design-answer.mjs';
+import rehypeTableCards from './src/lib/rehype-table-cards.mjs';
 import { METHODS } from './src/data/methods.ts';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -66,7 +67,7 @@ const devPagefind = () => ({
 export default defineConfig({
   site: 'https://biochemistrypedia.com',
   // Method names in lesson prose link to the methods library (first mention per section).
-  integrations: [mdx({ rehypePlugins: [[rehypeMethodLinks, { methods: METHODS }], rehypeDesignAnswer] }), pagefindIndex()],
+  integrations: [mdx({ rehypePlugins: [[rehypeMethodLinks, { methods: METHODS }], rehypeDesignAnswer, rehypeTableCards] }), pagefindIndex()],
   vite: {
     plugins: [tailwindcss(), devPagefind()],
   },
