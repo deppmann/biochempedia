@@ -10,7 +10,10 @@
  *     row header (<th scope="row">) when the table's top-left header cell is empty, as in a
  *     "| | A | B |" comparison table;
  *   - adds "tc-stack" to the wrapper when the table has five or more columns: those are cards at
- *     every width, because six columns in the reading column make tall, narrow rows.
+ *     every width, because six columns in the reading column make tall, narrow rows;
+ *   - adds "tc-compact" when the table is two columns, or a two-way comparison (an empty top-left
+ *     header and two value columns): those stay real tables on a phone, because one-value cards look
+ *     heavy and a comparison loses its point when its columns are split apart (Chris, 2026-11-05).
  * Plain HTML, no JavaScript. A screen reader still gets a real table.
  */
 
@@ -53,7 +56,10 @@ export default function rehypeTableCards() {
       }
       node.properties = node.properties || {};
       node.properties.dataCols = String(labels.length || 0);
-      parent.children[index] = { type: 'element', tagName: 'div', properties: { className: labels.length >= 5 ? ['table-cards', 'tc-stack'] : ['table-cards'] }, children: [node] };
+      const cls = ['table-cards'];
+      if (labels.length >= 5) cls.push('tc-stack');
+      else if (labels.length <= 2 || (rowHeads && labels.length === 3)) cls.push('tc-compact');
+      parent.children[index] = { type: 'element', tagName: 'div', properties: { className: cls }, children: [node] };
     }
   };
 }
