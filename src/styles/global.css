@@ -255,25 +255,28 @@ h4 {
 .table-cards tbody tr:last-child td, .table-cards tbody tr:last-child th { border-bottom: 0; }
 
 @media (max-width: 640px) {
-  .table-cards { overflow: visible; }
-  .table-cards table, .table-cards tbody, .table-cards tr { display: block; width: 100%; }
-  .table-cards thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .table-cards tbody tr {
+  .table-cards:not(.tc-compact) { overflow: visible; }
+  .table-cards:not(.tc-compact) table, .table-cards:not(.tc-compact) tbody, .table-cards:not(.tc-compact) tr { display: block; width: 100%; }
+  .table-cards:not(.tc-compact) thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .table-cards:not(.tc-compact) tbody tr {
     margin: 0 0 0.75rem; padding: 0.55rem 0.85rem 0.35rem; border: 1px solid var(--ddp-color-line);
     border-radius: 10px; background: var(--ddp-color-surface, transparent);
   }
-  .table-cards tbody tr:nth-child(even) { background: var(--ddp-color-surface, transparent); }
-  .table-cards tbody td, .table-cards tbody th { display: block; padding: 0.35rem 0; border: 0; }
-  .table-cards tbody td + td, .table-cards tbody th + td { border-top: 1px dashed var(--ddp-color-line); }
-  .table-cards tbody .tc-title { font-size: 1.02em; padding-bottom: 0.4rem; }
-  .table-cards tbody [data-label]::before {
+  .table-cards:not(.tc-compact) tbody tr:nth-child(even) { background: var(--ddp-color-surface, transparent); }
+  .table-cards:not(.tc-compact) tbody td, .table-cards:not(.tc-compact) tbody th { display: block; padding: 0.35rem 0; border: 0; }
+  .table-cards:not(.tc-compact) tbody td + td, .table-cards:not(.tc-compact) tbody th + td { border-top: 1px dashed var(--ddp-color-line); }
+  .table-cards:not(.tc-compact) tbody .tc-title { font-size: 1.02em; padding-bottom: 0.4rem; }
+  .table-cards:not(.tc-compact) tbody [data-label]::before {
     content: attr(data-label); display: block; margin-bottom: 0.1rem;
     font-family: var(--ddp-font-mono); font-size: 0.72em; font-weight: 500; letter-spacing: 0.05em;
     text-transform: uppercase; color: var(--ddp-color-muted);
   }
   /* The title's column name would repeat on every card, so the title stands alone. */
-  .table-cards tbody .tc-title::before { display: none; }
-  .table-cards tbody td:empty { display: none; }
+  .table-cards:not(.tc-compact) tbody .tc-title::before { display: none; }
+  .table-cards:not(.tc-compact) tbody td:empty { display: none; }
+  /* Compact tables stay tables on a phone, a little tighter. */
+  .table-cards.tc-compact table { font-size: 0.9em; }
+  .table-cards.tc-compact thead th, .table-cards.tc-compact tbody td, .table-cards.tc-compact tbody th { padding: 0.5em 0.55em; }
 }
 
 /* Five or more columns: cards at every width (rehype-table-cards adds .tc-stack). */
