@@ -327,6 +327,7 @@ draft: false
 import BodyAxisDirectionIndex from '../../../components/BodyAxisDirectionIndex.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Bend one awl/auchene hair on a mouse's back and three classes of touch neuron can answer, because all three have endings along its follicle. Each class is most sensitive to a different part of the movement, and their reports travel at different speeds.**
 
@@ -421,7 +422,23 @@ Three classes can answer, because three classes' lanceolate endings fence that f
 
 **Worked problem: the arrival race.** The bottom line: the C report arrives about ten times later than the Aδ report, and the two fast reports about 2 ms apart. Take an illustrative 2.0 cm path, Li's mean velocities, constant speed and conduction alone.
 
-> **t = L / v**
+<EquationCard
+  purpose="How long a spike takes to travel a given length of axon at a steady speed."
+  eq="t = L / v"
+  say="The travel time is the path length divided by the conduction velocity."
+  symbols={[
+    ["t", "t", "the conduction time", "s"],
+    ["L", "L", "the length of the path along the axon", "m"],
+    ["v", "v", "the conduction velocity", "m/s"],
+  ]}
+  toolkit={["units", "ratios"]}
+  check="Double the path and the time doubles; double the speed and it halves. Units: metres divided by metres per second leaves seconds."
+>
+  <Fragment slot="example">
+    <p>A shortcut for the units: 1 m/s is the same as 1 mm/ms, because metres and seconds both shrink by a factor of 1000.</p>
+    <p>So 2.0 cm = 20 mm at 13.6 mm/ms takes 20 ÷ 13.6 ≈ 1.5 ms. Step 1 below does the same in SI units.</p>
+  </Fragment>
+</EquationCard>
 
 1. Aβ RA at 13.6 m/s: 0.020 m ÷ 13.6 m/s = 0.0015 s, about 1.5 ms.
 2. Aδ at 5.8 m/s: 0.020 m ÷ 5.8 m/s = 0.0034 s, about 3.4 ms.
@@ -487,7 +504,27 @@ The caudal polarity of the endings was disrupted, and the neurons' preferred dir
 
 </details>
 
-A **direction index** puts a number on the preference. For spike counts H toward the head and T toward the tail, with H + T > 0, it is (H − T) / (H + T). If both counts are zero the index is undefined and the trial is unresponsive; an index of 0 means equal nonzero counts along this axis. The simulation below lets you compute it.
+A **direction index** puts a number on the preference, on a scale from −1 to +1.
+
+<EquationCard
+  purpose="One number for how strongly a neuron prefers deflection toward the head over deflection toward the tail."
+  eq="direction index = (H − T) / (H + T), for H + T > 0"
+  say="The difference between the two spike counts, divided by their sum."
+  symbols={[
+    ["H", "H", "the spike count for deflection toward the head"],
+    ["T", "T", "the spike count for an equal deflection toward the tail"],
+  ]}
+  toolkit={["ratios"]}
+  check="Equal nonzero counts give 0: no preference along this axis. No spikes toward the tail gives +1; no spikes toward the head gives −1. If both counts are zero the index is undefined and the trial is unresponsive."
+>
+  <Fragment slot="example">
+    <p>Take round illustrative counts: 6 spikes toward the head (H = 6) and 2 toward the tail (T = 2).</p>
+    <p>Difference: 6 − 2 = 4. Sum: 6 + 2 = 8.</p>
+    <p>Index: 4 ÷ 8 = 0.50. A threefold preference for the head gives an index of one half.</p>
+  </Fragment>
+</EquationCard>
+
+The simulation below lets you compute it.
 
 <BodyAxisDirectionIndex />
 

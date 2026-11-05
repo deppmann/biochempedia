@@ -12,7 +12,7 @@
 ---
 <script>
   const GREEK: Record<string, string> = { pi: 'π', Pi: 'Π', psi: 'ψ', Psi: 'Ψ', tau: 'τ', Delta: 'Δ', delta: 'δ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', alpha: 'α', beta: 'β', gamma: 'γ', theta: 'θ', omega: 'ω' };
-  const RE = /(?<![\p{L}\p{N}_/.\\`-])((?:pi|Pi|psi|Psi|tau|Delta|delta|lambda|mu|sigma|Sigma|alpha|beta|gamma|theta|omega)|[\p{L}\p{N}][\p{L}\p{N}]{0,4}|\))([_^])(?:\{([^{}]{1,24})\}|\(([^()]{1,24})\)|([−\-]?[\p{L}\p{N}+−]{1,8}))(?![\p{L}\p{N}_/])/gu;
+  const RE = /((?<![\p{L}\p{N}_.\\`-])(?:pi|Pi|psi|Psi|tau|Delta|delta|lambda|mu|sigma|Sigma|alpha|beta|gamma|theta|omega|\d+\.\d+|[\p{L}\p{N}][\p{L}\p{N}]{0,4})|\))([_^])(?:\{([^{}]{1,24})\}|\(([^()]{1,24})\)|([−\-]?\d+\.\d+|[−\-]?[\p{L}\p{N}+−]{1,8}(?:\/[\p{L}\p{N}]{1,6})?))(?![\p{L}\p{N}_])/gu;
   const SKIP = new Set(['CODE', 'PRE', 'KBD', 'SCRIPT', 'STYLE', 'A', 'SUB', 'SUP', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION', 'tspan']);
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -21,14 +21,17 @@
     let last = 0, hit = false;
     for (const m of value.matchAll(RE)) {
       const [whole, base, op, braced, paren, plain] = m;
-      const script = braced ?? paren ?? plain;
+      let script = braced ?? paren ?? plain;
+      let used = whole;
+      if (plain && plain.includes('/') && (op === '_' || /^[−-]?[\d.]+$/.test(plain.split('/')[0]))) { script = plain.split('/')[0]; used = whole.slice(0, whole.length - (plain.length - script.length)); }
       if (op === '_' && /^\d+$/.test(base) && /^\d+$/.test(script)) continue;
+      if (op === '_' && /\./.test(base)) continue;                                    // a decimal only takes powers
       if (op === '^' && script.length > 6 && !braced && !paren) continue;
       if (plain && /^[−-]$/.test(plain)) continue;
       if (/\.(mp4|vtt|webp|png|jpg|pdf|html|js|mjs|ts)$/i.test(whole)) continue;
       out.push(value.slice(last, m.index));
       out.push({ op, base: GREEK[base] ?? base, script: script.replace(/-/g, '−') });
-      last = (m.index ?? 0) + whole.length; hit = true;
+      last = (m.index ?? 0) + used.length; hit = true;
     }
     if (!hit) return null;
     out.push(value.slice(last));

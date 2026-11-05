@@ -383,6 +383,7 @@ draft: false
 
 import RecombinationDistanceSampler from '../../../components/RecombinationDistanceSampler.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Test-cross fruit flies that carry two mutations and score 1,000 offspring. Mendel's law of independent assortment predicts that 500 will show one grandparent's combination of traits or the other's. You count 830.**
 
@@ -417,11 +418,24 @@ Was crossing over a real swap of chromosome parts? In 1931 Harriet Creighton and
 
 ## Sturtevant's map: frequency as distance
 
-Morgan's idea implied a ruler. Alfred Sturtevant, an undergraduate in Morgan's laboratory, proposed using the proportion of crossover progeny as an index of distance and built a map of six X-linked factors, published in 1913. Distances measured over short intervals added up along a single line.
+Morgan's idea implied a ruler. Alfred Sturtevant, an undergraduate in Morgan's laboratory, proposed using the proportion of crossover progeny as an index of distance and built a map of six X-linked factors, published in 1913. Distances measured over short intervals added up along a single line. Two numbers do the work: the share of offspring that are recombinant, and that share written as a distance.
 
-> **recombination frequency (RF) = recombinant progeny / total progeny**
+<EquationCard
+  purpose="Turn a count of recombinant offspring into a distance on the genetic map."
+  eq="cM = 100 × RF, where RF = recombinant progeny / total progeny"
+  say="The map distance in centimorgans is a hundred times the recombination frequency, and the recombination frequency is the recombinant offspring divided by all the offspring."
+  symbols={[
+    ["cM", "centimorgans", "map distance between the two loci. Use this conversion for short intervals only."],
+    ["RF", "R F, recombination frequency", "the fraction of offspring in the recombinant classes, between 0 and 0.5"],
+  ]}
+  toolkit={["ratios"]}
+  check="If no offspring are recombinant, RF = 0 and the loci map to the same spot. RF cannot rise past 0.5, so a test cross never reads more than 50 cM directly; the section on the 50% ceiling explains why."
 >
-> **map distance (cM) = 100 x RF, for short intervals**
+  <Fragment slot="example">
+    <p>Round numbers to keep the arithmetic easy (not from a real cross): 50 recombinant flies out of 500.</p>
+    <p>RF = 50 / 500 = 0.10, or 10%. Map distance = 100 × 0.10 = 10 cM.</p>
+  </Fragment>
+</EquationCard>
 
 One map unit, or **centimorgan** (cM), named for Morgan, corresponds to 1% recombinant progeny over a short interval. It measures distance on a genetic map, not a physical length of DNA. Sturtevant warned that his distances need not match physical spacing, and the ratio of DNA to centimorgans varies along chromosomes and between species. It also varies between the sexes. Drosophila melanogaster males normally make no crossover gametes, and in humans and many other species the two sexes give different maps.
 
@@ -436,8 +450,8 @@ One map unit, or **centimorgan** (cM), named for Morgan, corresponds to 1% recom
 
 1. *Name the classes from the phase.* She received A B and a b, so those are parental: 420 + 410 = 830. A b and a B are recombinant: 85 + 85 = 170. Here they are also the smallest classes, as expected for linked loci.
 2. *Calculate RF.* RF = 170 / 1,000 = 0.17, or 17%. The map distance is about 17 cM.
-3. *Test for linkage.* Independent assortment predicts 250 in each class. Chi-square = (420 - 250)^2/250 + (410 - 250)^2/250 + 2 x (85 - 250)^2/250 = 115.6 + 102.4 + 108.9 + 108.9 = 435.8, with 3 degrees of freedom. The 5% critical value is 7.81. The excess of parentals is far beyond chance.
-4. *Predict the other phase.* A female carrying the same loci in repulsion, A b / a B, would still give 17% recombinants, but now A B and a b are the recombinant classes: 8.5% each, with 41.5% each of A b and a B. 
+3. *Test for linkage* with the chi-square score from [probability and crosses](/lessons/probability-and-crosses/). Independent assortment predicts 250 in each class. Chi-square = (420 - 250)^2/250 + (410 - 250)^2/250 + 2 x (85 - 250)^2/250 = 115.6 + 102.4 + 108.9 + 108.9 = 435.8, with 3 degrees of freedom. The 5% critical value, from a chi-square table, is 7.81. The excess of parentals is far beyond chance.
+4. *Predict the other phase.* A female carrying the same loci in repulsion, A b / a B, would still give 17% recombinants, but now A B and a b are the recombinant classes: 8.5% each (half of 17%), with 41.5% each of A b and a B (half of the remaining 83%). 
 
 Step 4 is where students go wrong. "Recombinants are the two smallest classes" is a habit, not a rule. It fails when you must predict the classes before any flies hatch, and it fails when a mutant class survives poorly enough to shrink below a recombinant class. The phase of the heterozygote, which you know from its parents, is what defines the classes.
 
@@ -447,13 +461,38 @@ However far apart two loci are, RF does not climb past 50%. The reason is the fo
 
 Long intervals are underestimated, because double crossovers between distant markers restore the parental combination. Sturtevant saw this in 1913. Adding his short intervals put factors B and M 57.6 units apart, but a direct B by M cross gave 37.6% recombinants. The map distances add; the raw frequencies over long intervals do not.
 
-In 1919 J. B. S. Haldane gave a correction. If crossovers form independently of one another along the chromosome, then
+In 1919 J. B. S. Haldane gave a correction: a formula that turns a true map distance into the recombination frequency you would observe, assuming crossovers form independently of one another along the chromosome.
 
-> **RF = (1 - e^(-2d)) / 2, with d in morgans (1 morgan = 100 cM)**
+<EquationCard
+  purpose="What recombination frequency a given map distance should produce if crossovers fall independently (Haldane's mapping function)."
+  eq="RF = (1 − e^(−2d)) / 2, with d in morgans"
+  say="The recombination frequency is one half of one minus e to the minus two d."
+  symbols={[
+    ["RF", "R F", "the recombination frequency you would observe in a test cross"],
+    ["e^(−2d)", "e to the minus two d", "under Haldane's assumption, the chance that a meiosis has no crossover at all between the two loci. e is about 2.718."],
+    ["d", "d", "the true map distance in morgans (1 morgan = 100 cM)"],
+  ]}
+  toolkit={["e-and-ln", "powers"]}
+  check="At d = 0, e^0 = 1 and RF = 0: loci in the same place never recombine. As d grows, e^(−2d) shrinks toward 0 and RF climbs toward 1/2, the 50% ceiling. For small d, RF is close to d, which is why short intervals can be read directly."
 >
-> **d = -1/2 x ln(1 - 2 RF)**
+  <Fragment slot="example">
+    <p>A 50 cM interval is d = 0.5 morgans, so 2d = 1.</p>
+    <p>e^(−1) is about 0.368 (see e and ln). 1 − 0.368 = 0.632, and half of that is 0.316.</p>
+    <p>So a 50 cM interval gives only about 31.6% recombinants: read directly, it would look like 31.6 cM.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Optional: where it comes from. A distance of d morgans means d crossovers per chromatid on average, so 2d per meiosis, because each crossover involves two of the four chromatids. If crossovers fall at random, the chance that a meiosis has none in the interval is e^(−2d). A meiosis with at least one crossover gives, on average, half recombinant products, as the four-chromatid argument above showed. So RF = 1/2 × (1 − e^(−2d)).</p>
+  </Fragment>
+</EquationCard>
 
-Apply it to the worked problem: d = -1/2 x ln(1 - 0.34) = -1/2 x ln(0.66) = 0.208 morgans, about 20.8 cM, a little more than the 17 cM read directly. But Haldane assumed no interference, and fly crossovers interfere strongly over short intervals, so for this cross the direct 17 cM is likely nearer the truth. Kosambi's function, which allows for interference, gives about 17.7 cM. Over longer intervals the gap grows. Under Haldane's model a 50 cM interval gives only about 31.6% recombinants. Two adjacent intervals of 20 and 40 cM add to 60 cM, yet their own frequencies, 16.5% and 27.5%, would add to 44%, while the whole 60 cM span gives 34.9%.
+To go the other way, from an observed RF to a distance, rearrange in four steps:
+
+1. Multiply both sides by 2: 2 RF = 1 − e^(−2d).
+2. Swap terms: e^(−2d) = 1 − 2 RF.
+3. Take the natural log of both sides (ln undoes e): −2d = ln(1 − 2 RF).
+4. Divide by −2: **d = -1/2 x ln(1 - 2 RF)**.
+
+Apply it to the worked problem: d = -1/2 x ln(1 - 0.34) = -1/2 x ln(0.66) = 0.208 morgans (ln(0.66) is about −0.416, from a calculator's ln key), about 20.8 cM, a little more than the 17 cM read directly. But Haldane assumed no interference, and fly crossovers interfere strongly over short intervals, so for this cross the direct 17 cM is likely nearer the truth. Kosambi's function, which allows for interference, gives about 17.7 cM. Over longer intervals the gap grows. Under Haldane's model a 50 cM interval gives only about 31.6% recombinants. Two adjacent intervals of 20 and 40 cM add to 60 cM, yet their own frequencies, 16.5% and 27.5%, would add to 44%, while the whole 60 cM span gives 34.9%.
 
 <RecombinationDistanceSampler />
 

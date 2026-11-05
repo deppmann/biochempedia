@@ -474,6 +474,7 @@ corpusTags:
 ---
 
 import MiniPlot from '../../../components/MiniPlot.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 import InhibitionExplorer from '../../../components/InhibitionExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
@@ -510,18 +511,31 @@ maximum velocity.
 
 Plot initial velocity (V₀) against substrate concentration [S] and you get a
 **hyperbola**: steep at first, then bending over toward the Vmax asymptote. In
-1913 Leonor Michaelis and Maud Menten captured that whole curve in one equation:
+1913 Leonor Michaelis and Maud Menten captured that whole curve in one equation.
+It answers one question: at a given substrate concentration, how fast does the enzyme run?
 
-> **v = Vmax · [S] / (Km + [S])**
+<EquationCard
+  purpose="How fast an enzyme runs at a given substrate concentration, and why it levels off."
+  eq="v = Vmax · [S] / (Km + [S])"
+  say="v equals Vmax times [S], divided by the sum Km plus [S]. Put another way: the speed is a fraction of top speed, and that fraction is [S] over (Km + [S])."
+  symbols={[
+    ["v", "v (velocity)", "the initial velocity, the same quantity as V₀: product formed per unit time, measured in the first moments of the reaction", "e.g. µmol/min"],
+    ["Vmax", "V max", "the top speed, reached only when the enzyme is saturated. It is an asymptote: the curve approaches it but never quite reaches it.", "same units as v"],
+    ["[S]", "S in square brackets: the concentration of S", "the substrate concentration. Square brackets mean “concentration of”.", "e.g. mM"],
+    ["Km", "K m, the Michaelis constant", "the substrate concentration at which the enzyme runs at half its maximum speed", "same units as [S]"],
+  ]}
+  toolkit={["read", "ratios", "units"]}
+  check="If [S] is tiny compared with Km, the bottom is about Km, so v ≈ (Vmax/Km) × [S]: a straight line rising from zero. If [S] is huge compared with Km, the bottom is about [S], the two cancel, and v ≈ Vmax: the plateau. Exactly at [S] = Km the bottom is 2 × [S], so v = ½Vmax. That is why Km is the half-speed concentration."
+>
+  <Fragment slot="example">
+    <p>Take round values to keep the arithmetic easy: Vmax = 100 µmol/min and Km = 2 mM.</p>
+    <p>At [S] = 2 mM (equal to Km): v = 100 × 2 / (2 + 2) = 200 / 4 = 50 µmol/min, exactly half of Vmax.</p>
+    <p>At [S] = 18 mM (nine times Km): v = 100 × 18 / (2 + 18) = 1800 / 20 = 90 µmol/min.</p>
+    <p>Going from 2 to 18 mM is nine times the substrate, yet the speed did not even double (50 to 90). That is saturation.</p>
+  </Fragment>
+</EquationCard>
 
-Two numbers describe any such enzyme:
-
-- **Vmax** — the top speed, reached only when the enzyme is saturated.
-- **Km** (the Michaelis constant) — the substrate concentration at which the
-  enzyme runs at *half* its maximum speed. A **small Km** means the enzyme
-  reaches half-speed at low [S]: it gets going on very little substrate. Under
-  fixed conditions (pH, temperature), Km is a constant for a given
-  enzyme–substrate pair.
+A **small Km** means the enzyme reaches half-speed at low [S]: it gets going on very little substrate. Under fixed conditions (pH, temperature), Km is a constant for a given enzyme–substrate pair.
 
 One subtlety worth keeping straight: Km is *not* the same as binding affinity. It
 only approximates the dissociation constant of the ES complex when catalysis is
@@ -530,8 +544,8 @@ much substrate you need to get this enzyme going."**
 
 Finally, Vmax depends on how much enzyme you put in the tube — double the enzyme,
 double Vmax. To get a property of the enzyme *molecule* itself, divide it out:
-**kcat = Vmax / [E]ₜ**, the *turnover number* — how many reactions one molecule
-runs per second when saturated. The ratio **kcat/Km** measures catalytic
+**kcat = Vmax / [E]ₜ**, where [E]ₜ is the total enzyme concentration. kcat is the *turnover number* — how many reactions one molecule
+runs per second when saturated, so its unit is per second (s⁻¹). The ratio **kcat/Km** measures catalytic
 efficiency, and the best enzymes push it right up against the diffusion limit, the rate at which enzyme and substrate can meet at all.
 
 **Try the plotter at the top of this section** — drag Vmax up and down, slide
@@ -544,10 +558,35 @@ Km left and right, and watch where the half-max point lands.
 There's a practical problem with the hyperbola: Vmax is an asymptote you never
 actually reach, so reading it off a curve by eye is error-prone. Before computers
 could fit hyperbolae, biochemists needed a *straight line* they could analyze
-with a ruler. Take the reciprocal of both sides of the Michaelis–Menten equation
-and you get one:
+with a ruler. Flipping both sides of the Michaelis–Menten equation (taking the
+reciprocal, 1 divided by each side) gives one:
 
-> **1/v = (Km/Vmax) · (1/[S]) + 1/Vmax**
+<EquationCard
+  purpose="Turn the saturation curve into a straight line, so Vmax and Km can be read from intercepts."
+  eq="1/v = (Km/Vmax) · (1/[S]) + 1/Vmax"
+  say="One over v equals Km over Vmax, times one over [S], plus one over Vmax."
+  symbols={[
+    ["1/v", "one over v", "the reciprocal of the velocity: the y-axis of the plot", "e.g. min/µmol"],
+    ["Km/Vmax", "K m over V max", "the slope of the line", "mM·min per µmol"],
+    ["1/[S]", "one over S", "the reciprocal of the substrate concentration: the x-axis of the plot", "e.g. per mM"],
+    ["1/Vmax", "one over V max", "the y-intercept, where the line crosses the y-axis (1/[S] = 0)", "min per µmol"],
+  ]}
+  toolkit={["ratios"]}
+  check="Line it up with y = mx + b: y is 1/v, x is 1/[S], the slope m is Km/Vmax, and b is 1/Vmax. A faster enzyme (bigger Vmax) gives a lower intercept; a bigger Km gives a steeper line."
+>
+  <Fragment slot="example">
+    <p>Use the same round values as above: Vmax = 100 µmol/min and Km = 2 mM.</p>
+    <p>y-intercept: 1/Vmax = 1/100 = 0.01 min/µmol. Slope: Km/Vmax = 2/100 = 0.02. x-intercept: −1/Km = −1/2 = −0.5 per mM.</p>
+    <p>Check one point: at [S] = 2 mM, 1/[S] = 0.5, so 1/v = 0.02 × 0.5 + 0.01 = 0.02, and v = 1/0.02 = 50 µmol/min. That matches the curve: half of Vmax at [S] = Km.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Optional: where the line comes from, in three steps.</p>
+    <p>1. Flip both sides of v = Vmax · [S] / (Km + [S]): 1/v = (Km + [S]) / (Vmax · [S]).</p>
+    <p>2. Split the top into its two parts: 1/v = Km / (Vmax · [S]) + [S] / (Vmax · [S]).</p>
+    <p>3. In the second part the [S] cancels, leaving 1/Vmax. The first part is (Km/Vmax) × (1/[S]). So 1/v = (Km/Vmax) · (1/[S]) + 1/Vmax.</p>
+    <p>The x-intercept: set 1/v = 0. Then (Km/Vmax) × (1/[S]) = −1/Vmax; multiply both sides by Vmax/Km and 1/[S] = −1/Km.</p>
+  </Fragment>
+</EquationCard>
 
 That's just `y = mx + b`. Plotting 1/v against 1/[S] — the **double-reciprocal**
 or **Lineweaver–Burk** plot — gives a line whose **y-intercept is 1/Vmax**, whose

@@ -376,6 +376,7 @@ draft: false
 
 import CoverageAndRepeatsSampler from '../../../components/CoverageAndRepeatsSampler.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Two drafts of the human genome were published in February 2001. The first assembly in which every human chromosome but one ran from end to end without a gap was published in 2022.**
 
@@ -405,21 +406,60 @@ Long-read methods read single molecules. In PacBio instruments one polymerase si
 
 ## Coverage and assembly: the repeat problem
 
-A **read** is the sequence reported from one fragment. **Coverage** (depth) is how many reads, on average, lie over each base:
+A **read** is the sequence reported from one fragment. **Coverage** (depth) is how many reads, on average, lie over each base. To find it, add up all the bases you read and spread them over the genome:
 
-> **C = N x L / G**, where N is the number of reads, L the read length and G the haploid genome length
+<EquationCard
+  purpose="How many times, on average, each base of a genome is read."
+  eq="C = N × L / G"
+  say="Coverage is the number of reads times the read length, divided by the genome length."
+  symbols={[
+    ["C", "C, coverage", "the mean number of reads over each base, written as a fold (30-fold, 30x)"],
+    ["N", "N", "the number of reads"],
+    ["L", "L", "the read length", "bases"],
+    ["G", "G", "the haploid genome length", "bases"],
+  ]}
+  toolkit={["powers", "units"]}
+  check="Bases on top and bases below cancel, so coverage is a plain number. Double the reads or the read length and coverage doubles; sequence a genome twice as big with the same reads and it halves."
+>
+  <Fragment slot="example">
+    <p>Round numbers to keep the arithmetic easy (not from a real project): 1,000 reads of 100 bases on a 10,000-base piece of DNA.</p>
+    <p>Total bases read: 1,000 × 100 = 100,000. Spread over 10,000 bases: 100,000 / 10,000 = 10.</p>
+    <p>Each base is covered 10 times on average, 10-fold coverage.</p>
+  </Fragment>
+</EquationCard>
 
 Reads are then either **aligned** to a reference genome, or assembled **de novo**, without one, by their overlaps. A de novo assembly yields **contigs**, continuous consensus sequences, and **scaffolds**, contigs placed in order and orientation with estimated gaps between them.
 
 **Worked problem.** Assume reads start at random positions, all reads are usable, and the haploid human genome is G = 3.1 x 10^9 bases (an estimate rounded for the calculation).
 
-(a) How many 150-base reads give 30-fold mean coverage?
+(a) How many 150-base reads give 30-fold mean coverage? Rearrange the coverage formula for N in two steps: multiply both sides by G (C x G = N x L), then divide both sides by L.
 
 > **N = C x G / L = 30 x 3.1 x 10^9 / 150 = 9.3 x 10^10 / 150 = 6.2 x 10^8 reads**
 
+The powers of ten: 30 x 3.1 = 93, so 30 x 3.1 x 10^9 = 93 x 10^9 = 9.3 x 10^10. Then 9.3 / 150 = 0.062, and 0.062 x 10^10 = 6.2 x 10^8 (see [powers](/math-toolkit/#powers)).
+
 That is 620 million reads, or 310 million read pairs of 2 x 150 bases, and 93 billion bases. Check: 6.2 x 10^8 x 150 = 9.3 x 10^10, and dividing by 3.1 x 10^9 gives 30.
 
-(b) How much of the genome gets no read at all? With random starts, the number of reads over a base follows a Poisson distribution with mean C, so the fraction with zero reads is e^-C.
+(b) How much of the genome gets no read at all? With random starts, the number of reads over a base follows a Poisson distribution with mean C, the coverage. That model gives one short answer for the fraction with zero reads:
+
+<EquationCard
+  purpose="What fraction of the genome gets no read at all at a given mean coverage, if reads start at random."
+  eq="fraction unread = e^-C, where C is the mean coverage"
+  say="The fraction of bases with no read is e to the minus C."
+  symbols={[
+    ["e^-C", "e to the minus C", "the Poisson chance of zero reads at a base. e is about 2.718, and e^-C means 1 divided by e^C; for C = 3 that is 1 divided by e × e × e."],
+    ["C", "C", "the mean coverage (fold)"],
+  ]}
+  toolkit={["e-and-ln", "powers"]}
+  check="At C = 0, e^0 = 1: with no reads, every base is unread. Each extra fold of coverage multiplies the unread fraction by e^-1, about 0.37, so it falls fast but never reaches exactly zero."
+>
+  <Fragment slot="example">
+    <p>At C = 3: e^-3 is about 0.37 × 0.37 × 0.37, about 0.05 (0.0498 on a calculator).</p>
+    <p>So at 3-fold coverage about 5% of the genome would get no read at all.</p>
+  </Fragment>
+</EquationCard>
+
+Apply it at three depths:
 
 > **C = 1: e^-1 = 0.37, so 37% unread**
 >

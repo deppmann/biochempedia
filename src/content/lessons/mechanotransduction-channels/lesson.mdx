@@ -443,6 +443,7 @@ draft: false
 import PatchTensionBoltzmann from '../../../components/PatchTensionBoltzmann.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Mouse PIEZO2 threads 114 transmembrane helices through the membrane to build a single ion channel. The pore it opens sits at the centre.**
 
@@ -510,9 +511,25 @@ So anything that favours more projected area favours the flat state.
 
 Take the simplest picture: the channel is either closed or open, and the open state has a larger projected area, by an amount ΔA. Membrane **tension**, T, is an in-plane stretch: force per unit length of membrane. Stretching a membrane does work on anything in it that gets wider, and that work is the tension times the area gained. So tension lowers the free energy of the open state relative to the closed one:
 
-> **ΔG = ΔG₀ − T × ΔA**
-
-Here ΔG is the free energy of the open state minus that of the closed state. ΔG₀ is how strongly the channel prefers to be closed in a slack membrane. As tension rises, that preference shrinks. At one particular tension it disappears, and above it the open state wins.
+<EquationCard
+  purpose="How much membrane tension tips a two-state channel’s energy balance toward open."
+  eq="ΔG = ΔG₀ − T × ΔA"
+  say="The energy cost of opening is the cost in a slack membrane, minus the work tension does as the channel widens: tension times the area gained."
+  symbols={[
+    ["ΔG", "delta G", "the free energy of the open state minus that of the closed state. Positive means closed is favoured.", "J"],
+    ["ΔG₀", "delta G nought", "how strongly the channel prefers to be closed in a slack membrane, with no tension", "J"],
+    ["T", "T", "membrane tension: in-plane stretch, force per unit length of membrane. Here T is tension, not temperature.", "N/m (1 mN/m = 1 pN/nm)"],
+    ["ΔA", "delta A", "the extra projected area of the open state compared with the closed state", "m² (1 nm² = 10^-18 m²)"],
+  ]}
+  toolkit={["subscripts", "units", "powers"]}
+  check="With no tension (T = 0), ΔG = ΔG₀ and the channel keeps its resting preference for closed. When T × ΔA grows equal to ΔG₀, ΔG = 0 and open and closed are equally likely. Above that tension, ΔG is negative and the open state wins."
+>
+  <Fragment slot="example">
+    <p>Take a round channel that gains 10 nm² (10^-17 m²) on opening, in a membrane at 1 mN/m (10^-3 N/m). Both are round values to keep the arithmetic easy.</p>
+    <p>Work done by tension: T × ΔA = 10^-3 N/m × 10^-17 m² = 10^-20 J.</p>
+    <p>Units: newtons per metre times square metres is newton-metres, which are joules. So each 1 mN/m of tension lowers this channel’s ΔG by 10^-20 J.</p>
+  </Fragment>
+</EquationCard>
 
 **Predict.** Two channels are each open half the time at the same tension. One gains 5 nm² on opening and the other 300 nm². Which one goes from mostly closed to mostly open over the narrower range of tension?
 
@@ -523,13 +540,37 @@ The 300 nm² channel. Each small increase in tension gives its open state 60 tim
 
 </details>
 
-To turn the energy into a curve, use the Boltzmann relation from statistical physics. For a channel with two states at equilibrium, the ratio of open to closed is exp(−ΔG/k<sub>B</sub>T<sub>abs</sub>), where k<sub>B</sub>T<sub>abs</sub> is thermal energy, about 4.1 × 10⁻²¹ J at room temperature (k<sub>B</sub> is Boltzmann's constant and T<sub>abs</sub> absolute temperature; T stays tension, and neither is the fitted slope factor k). The fraction of channels open is then
+To turn the energy into a curve, use the Boltzmann relation from statistical physics. For a channel with two states at equilibrium, the ratio of open to closed is exp(−ΔG/k<sub>B</sub>T<sub>abs</sub>), where k<sub>B</sub>T<sub>abs</sub> is thermal energy, about 4.1 × 10⁻²¹ J at room temperature (k<sub>B</sub> is Boltzmann's constant and T<sub>abs</sub> absolute temperature; T stays tension, and neither is the fitted slope factor k). The fraction of channels open then follows a curve that rises from 0 to 1 as tension rises, written here in the form fitted to patch data:
 
-> **P(open) = 1 / [1 + exp((ΔG₀ − T·ΔA)/k<sub>B</sub>T<sub>abs</sub>)] = 1 / [1 + exp((T50 − T)/k)]**
+<EquationCard
+  purpose="The fraction of channels open at a given membrane tension, for a two-state switch at equilibrium."
+  eq="P(open) = 1 / [1 + exp((T50 − T)/k)]"
+  say="The open fraction is one over one plus e raised to the power of the half-activation tension minus the tension, divided by the slope factor."
+  symbols={[
+    ["P(open)", "P open", "the fraction of channels open, from 0 to 1"],
+    ["exp", "exp, or e to the power", "e raised to the power in the brackets; e ≈ 2.718"],
+    ["T50", "T fifty", "the half-activation tension: the tension at which half the channels are open", "mN/m"],
+    ["T", "T", "membrane tension", "mN/m"],
+    ["k", "k", "the slope factor: each rise of k in tension multiplies the ratio of open to closed channels by e. A smaller k gives a steeper switch. It is not Boltzmann’s constant k_B.", "mN/m"],
+  ]}
+  toolkit={["e-and-ln", "subscripts"]}
+  check="At T = T50 the exponent is zero, exp(0) = 1, and P(open) = 1/2. Far above T50 the exponent is very negative, exp is near 0, and P(open) approaches 1. Far below T50, exp is huge and P(open) approaches 0."
+>
+  <Fragment slot="example">
+    <p>Use the patch fit given below for Piezo1, T50 = 2.7 mN/m and k = 0.8 mN/m, and set the tension one slope factor above half-activation: T = 2.7 + 0.8 = 3.5 mN/m (a tension, not a range of tensions).</p>
+    <p>Exponent: (2.7 − 3.5)/0.8 = −1. And e^-1 ≈ 0.37.</p>
+    <p>P(open) = 1/(1 + 0.37) = 1/1.37 ≈ 0.73. One slope factor above T50, about 73% of channels are open; one slope factor below (T = 1.9 mN/m), the exponent is +1, e^1 ≈ 2.72, and about 1/3.72 ≈ 27% are open.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, the Boltzmann relation: open ÷ closed = exp(−ΔG/k_B T_abs), with ΔG = ΔG₀ − T × ΔA.</p>
+    <p>Step 2, from a ratio to a fraction: P(open) = open ÷ (open + closed) = 1 / [1 + closed ÷ open] = 1 / [1 + exp((ΔG₀ − T × ΔA)/k_B T_abs)].</p>
+    <p>Step 3, divide the top and bottom of the exponent by ΔA: (ΔG₀/ΔA − T) / (k_B T_abs/ΔA). Name ΔG₀/ΔA as T50 and k_B T_abs/ΔA as k, and the exponent becomes (T50 − T)/k.</p>
+  </Fragment>
+</EquationCard>
 
-To get the second form, divide the top and bottom of the exponent by ΔA. At T = T50 the exponent is zero, so ΔG is zero and half the channels are open.
+Written with energies, the same curve is P(open) = 1 / [1 + exp((ΔG₀ − T·ΔA)/k<sub>B</sub>T<sub>abs</sub>)] (the card's optional fold shows the steps). At T = T50 the energy difference ΔG is zero, so half the channels are open.
 
-The second form is the one fitted to patch data, usually as a normalized current. Reading a current fit this way assumes that normalized current tracks the fraction of channels open: constant conductance and availability, and a plateau where the available channels are open. With that assumption, matching the two forms gives each fitted number a physical meaning:
+The tension form is the one fitted to patch data, usually as a normalized current. Reading a current fit this way assumes that normalized current tracks the fraction of channels open: constant conductance and availability, and a plateau where the available channels are open. With that assumption, matching the tension form with the energy form gives each fitted number a physical meaning:
 
 - **T50 = ΔG₀ / ΔA.** The half-activation tension is the channel's resting preference for closed, divided by the area it gains on opening.
 - **k = k<sub>B</sub>T<sub>abs</sub> / ΔA.** The slope factor is thermal energy divided by that area. A larger area gives a smaller k and a steeper switch.
@@ -540,20 +581,37 @@ One unit note before the numbers. Tension is force per length, so 1 pN/nm and 1 
 
 <LessonFilm film={frontmatter.films[2]} />
 
-Lewis and Grandl expressed mouse Piezo1 in human HEK293t cells and recorded cell-attached patches, in which the pipette seals onto an intact cell and records the channels in the membrane under its tip. They recorded at −80 mV and room temperature while pressurising the patch and imaging it with differential interference contrast optics, so the patch radius was measured rather than assumed. For a patch shaped like part of a sphere, with uniform tension, the Young–Laplace relation converts pressure into tension, with R the patch's radius of curvature:
+Lewis and Grandl expressed mouse Piezo1 in human HEK293t cells and recorded cell-attached patches, in which the pipette seals onto an intact cell and records the channels in the membrane under its tip. They recorded at −80 mV and room temperature while pressurising the patch and imaging it with differential interference contrast optics, so the patch radius was measured rather than assumed. For a patch shaped like part of a sphere, with uniform tension, the Young–Laplace relation converts pressure into tension:
 
-> **T = R × (pressure difference) / 2**
+<EquationCard
+  purpose="Converts the pressure applied to a curved patch into the membrane tension the channels feel."
+  eq="T = R × (pressure difference) / 2"
+  say="Tension equals the patch’s radius of curvature times the pressure difference across it, divided by two."
+  symbols={[
+    ["T", "T", "membrane tension in the patch", "N/m"],
+    ["R", "R", "the patch’s radius of curvature, measured by imaging", "m"],
+    ["pressure difference", "pressure difference", "the pressure across the patch, inside the pipette compared with outside; its magnitude is used", "Pa = N/m²"],
+  ]}
+  toolkit={["units", "powers"]}
+  check="With no pressure difference there is no tension. At the same pressure, a patch with a larger radius, a flatter dome, carries more tension."
+>
+  <Fragment slot="example">
+    <p>Take a patch of radius 1.0 micrometre (1.0 × 10^-6 m) under 2000 Pa, a round radius chosen to keep the arithmetic easy.</p>
+    <p>T = (1.0 × 10^-6 m)(2000 N/m²)/2 = 1.0 × 10^-3 N/m = 1.0 mN/m.</p>
+    <p>Units: metres times newtons per square metre gives newtons per metre, a force per length, as tension should be.</p>
+  </Fragment>
+</EquationCard>
 
 ### Worked problem: from patch pressure to predicted current, and back to an area
 
 Take an illustrative spherical patch of radius R = 2.0 micrometres under a pressure difference of magnitude 2000 Pa. The radius and pressure are invented round numbers. The fit parameters are from the paper's pressure-clamp fit for these recordings: a half-activation tension T50 = 2.7 ± 0.1 mN/m and a Boltzmann slope factor k = 0.8 ± 0.1 mN/m.
 
 1. Tension: T = (2.0 × 10⁻⁶ m)(2000 N/m²)/2 = 0.002 N/m = 2.0 mN/m. Units: metres times newtons per square metre gives newtons per metre.
-2. Predicted normalized current: I/Imax = 1 / [1 + exp((T50 − T)/k)] = 1 / [1 + exp((2.7 − 2.0)/0.8)] = 1 / (1 + e^0.875). e^0.875 is about 2.40, so I/Imax = 1/3.40 = 0.294, about 29 percent of the fitted plateau.
+2. Predicted normalized current: I/Imax = 1 / [1 + exp((T50 − T)/k)] = 1 / [1 + exp((2.7 − 2.0)/0.8)] = 1 / (1 + e^0.875). e^0.875 is about 2.40 (between e^0 = 1 and e^1 ≈ 2.72; see [e and ln](/math-toolkit/#e-and-ln)), so I/Imax = 1/3.40 = 0.294, about 29 percent of the fitted plateau.
 
 The fit also hides an area. Before you read on, use k = k<sub>B</sub>T<sub>abs</sub>/ΔA to find it.
 
-3. Run the fit backwards, reading it as a two-state switch: ΔA = k<sub>B</sub>T<sub>abs</sub> / k = (4.1 × 10⁻²¹ J) / (0.8 × 10⁻³ N/m) = 5.1 × 10⁻¹⁸ m², an effective area of about **5 nm²**. Units: joules divided by newtons per metre gives square metres, and 1 nm² is 10⁻¹⁸ m².
+3. Run the fit backwards, reading it as a two-state switch. Rearrange k = k<sub>B</sub>T<sub>abs</sub>/ΔA by multiplying both sides by ΔA and dividing both by k: ΔA = k<sub>B</sub>T<sub>abs</sub> / k = (4.1 × 10⁻²¹ J) / (0.8 × 10⁻³ N/m) = 5.1 × 10⁻¹⁸ m², an effective area of about **5 nm²**. Units: joules divided by newtons per metre gives square metres, and 1 nm² is 10⁻¹⁸ m².
 4. Under the same reading, the effective resting preference for closed is ΔG₀ = T50 × ΔA = (2.7 × 10⁻³ N/m)(5.1 × 10⁻¹⁸ m²) = 1.4 × 10⁻²⁰ J, about 3.4 k<sub>B</sub>T<sub>abs</sub>. This number is only as good as the two-state reading: it is computed from the fitted area, so it is not an independent measurement of how strongly the channel prefers closed.
 
 An independent route gives the same order. Calibrated against the bacterial channel MscL in the same patch, human PIEZO1's Boltzmann slope implies about 6 to 20 nm² on opening (Bae and colleagues, 2013). Both estimates assume a two-state switch, and the next section shows why the area actually coupled to opening could be larger.
@@ -573,7 +631,7 @@ Yang and colleagues (2022) put purified mouse PIEZO1 into liposome vesicles and 
 <details>
 <summary>Check your prediction</summary>
 
-k = (4.1 × 10⁻²¹ J)/(300 × 10⁻¹⁸ m²) ≈ 0.014 mN/m. The channel would go from 10 to 90 percent open over about 0.06 mN/m of tension. The measured fit takes about 3.5 mN/m. The half-activation tensions are of the same order (1.9 mN/m calculated from structure and a stiffness, 2.7 from a patch fit), but the slope factors differ about sixty-fold.
+k = (4.1 × 10⁻²¹ J)/(300 × 10⁻¹⁸ m²) ≈ 0.014 mN/m. The channel would go from 10 to 90 percent open over about 0.06 mN/m of tension (in this curve the 10-to-90 span is about 4.4 slope factors, 2 × ln 9). The measured fit takes about 3.5 mN/m. The half-activation tensions are of the same order (1.9 mN/m calculated from structure and a stiffness, 2.7 from a patch fit), but the slope factors differ about sixty-fold.
 
 </details>
 

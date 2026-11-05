@@ -375,6 +375,7 @@ draft: false
 
 import SingleChannelRecord from '../../../components/SingleChannelRecord.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Hold a cell at −70 millivolts with 140 mM potassium inside and 5 mM outside, open potassium channels, and potassium leaves. Hold it at −100 millivolts and potassium comes in, against a 28-fold concentration difference.**
 
@@ -408,21 +409,59 @@ Two cautions. A protein's family does not tell you its mechanism: CFTR, the chlo
 
 An ion feels two pushes: its concentration difference, and the voltage across the membrane. Membrane potential, Vm, is defined as the inside minus the outside. A negative Vm pulls cations in and pushes anions out.
 
-For each ion there is one voltage at which the two pushes balance. That is its equilibrium potential, given by the Nernst equation:
+For each ion there is one voltage at which the two pushes balance. That is its equilibrium potential, given by the Nernst equation. The log in it turns a concentration ratio into a voltage.
 
-> **E_X = (RT / zF) × ln([X]out / [X]in)**
+<EquationCard
+  purpose="The voltage at which an ion’s concentration push and electrical push cancel: its equilibrium potential."
+  eq="E_X = (RT / zF) × ln([X]out / [X]in)"
+  say="E sub X equals R T over z F, times the natural log of the outside concentration over the inside concentration."
+  symbols={[
+    ["E_X", "E sub X", "the equilibrium potential of ion X", "V or mV"],
+    ["R", "R, the gas constant", "8.314 J per mol per K", "J/(mol·K)"],
+    ["T", "T", "the absolute temperature, in kelvin (37 °C = 310.15 K)", "K"],
+    ["z", "z", "the ion’s charge, with its sign: +1 for K+, −1 for Cl−", "no unit"],
+    ["F", "F, the Faraday constant", "the charge on one mole of +1 ions, 96 485 C per mol", "C/mol"],
+    ["ln", "natural log", "the logarithm to base e. ln(1) = 0; a ratio below 1 gives a negative ln, above 1 a positive one.", "no unit"],
+    ["[X]out", "X out", "the ion’s concentration outside the cell", "mM"],
+    ["[X]in", "X in", "the ion’s concentration inside the cell", "mM"],
+  ]}
+  toolkit={["subscripts", "e-and-ln", "log-scales"]}
+  check="If the concentrations are equal, the ratio is 1, ln(1) = 0, and E_X = 0: with no concentration push, no voltage is needed to balance it. For a cation that is more concentrated inside, like K+, the ratio is below 1, the ln is negative, and E_X is negative. Flip the sign of z (an anion) and E_X flips sign too."
+>
+  <Fragment slot="example">
+    <p>Where the “61.5 mV per tenfold” shortcut comes from. At 37 °C, RT/F = (8.314 × 310.15) / 96 485 = 26.73 mV (the worked problem below does this division).</p>
+    <p>A tenfold ratio has ln(10) = 2.303. So for a +1 ion, a tenfold ratio gives 26.73 mV × 2.303 = about 61.5 mV. That is why E = 61.5 mV × log10(ratio) gives the same answer as the ln form.</p>
+  </Fragment>
+</EquationCard>
 
-R is the gas constant, T the absolute temperature, F the Faraday constant, and z the ion's charge with its sign (+1 for K+, −1 for Cl−). At E_X the ion's net passive flux is zero. Ions still cross; equal numbers cross each way.
+At E_X the ion's net passive flux is zero. Ions still cross; equal numbers cross each way.
 
-To predict direction, compare Vm with E_X. The free energy change for moving one mole of the ion from outside to inside is:
+To predict direction, compare Vm with E_X. The gap between them, Vm − E_X, is the driving force; multiplying it by the charge turns it into a free energy change for moving one mole of the ion from outside to inside:
 
-> **ΔG_in = zF × (Vm − E_X)**
-
-If ΔG_in is negative, net passive flow is inward; if positive, outward. Keep z's sign: because z is negative for an anion, the same Vm − E_X gives ΔG_in the opposite sign it would give a cation.
+<EquationCard
+  purpose="Which way an ion will flow on its own: in, out, or neither."
+  eq="ΔG_in = zF × (Vm − E_X)"
+  say="Delta G in equals z F times the gap between the membrane potential and the ion’s equilibrium potential."
+  symbols={[
+    ["ΔG_in", "delta G in", "the free energy change for moving one mole of the ion from outside to inside. Negative means downhill.", "J/mol"],
+    ["z", "z", "the ion’s charge, with its sign", "no unit"],
+    ["F", "F, the Faraday constant", "96 485 C per mol", "C/mol"],
+    ["Vm", "V m", "the membrane potential, inside minus outside", "V"],
+    ["E_X", "E sub X", "the ion’s equilibrium potential, from the Nernst equation", "V"],
+  ]}
+  toolkit={["subscripts", "units"]}
+  check="If Vm equals E_X, ΔG_in is zero: no net flow, which is what equilibrium potential means. If ΔG_in is negative, net passive flow is inward; if positive, outward. Units: coulombs per mole times volts gives joules per mole."
+>
+  <Fragment slot="example">
+    <p>Keep z’s sign. Take chloride (z = −1) with Vm − E_Cl = +10 mV, a round value to keep the arithmetic easy.</p>
+    <p>ΔG_in = (−1) × 96 485 × 0.010 = −965 J/mol, about −0.96 kJ/mol. It is negative, so net chloride flow is inward.</p>
+    <p>A cation with the same +10 mV gap would get +0.96 kJ/mol and flow outward. Because z is negative for an anion, the same Vm − E_X gives ΔG_in the opposite sign.</p>
+  </Fragment>
+</EquationCard>
 
 **Worked problem.** Take a membrane permeable only to K+, at 37 °C (310.15 K), with [K+]in = 140 mM and [K+]out = 5 mM. These are teaching values close to those of a typical mammalian cell, and you may use concentrations in place of activities.
 
-*Step 1: find E_K.* RT/F = (8.314 × 310.15) / 96 485 = 0.02673 V = 26.73 mV. The ratio 5/140 = 0.0357, and ln(0.0357) = −3.332. So
+*Step 1: find E_K.* RT/F = (8.314 × 310.15) / 96 485 = 0.02673 V = 26.73 mV. The ratio 5/140 = 0.0357, and ln(0.0357) = −3.332 (a calculator’s ln key; see [e and ln](/math-toolkit/#e-and-ln)). Here z = +1, so RT/zF = RT/F. So
 
 > E_K = 26.73 mV × (−3.332) = −89.1 mV
 
@@ -446,7 +485,26 @@ Do not conclude that a cell rests at E_K. A real membrane is permeable to severa
 
 In 1976 Erwin Neher and Bert Sakmann recorded current from a small patch of membrane on denervated frog muscle and saw it switch between levels in square steps of a few picoamperes. Each step is a current through one open channel: a flow of millions of ions per second, not one ion. The 1981 gigaseal methods of Hamill, Neher, Sakmann and colleagues made such records clean enough to use routinely.
 
-From a one-channel record you read two numbers. The **unitary current**, i, is the height of the step, set by the channel's conductance and the driving force. The **open probability**, P_o, is the fraction of time the channel is open. A drug that changes P_o without changing i alters gating; one that changes i alters conduction or driving force. Across many identical channels, the mean current is I = N × i × P_o, so a whole-cell current alone cannot separate these three.
+From a one-channel record you read two numbers. The **unitary current**, i, is the height of the step, set by the channel's conductance and the driving force. The **open probability**, P_o, is the fraction of time the channel is open. A drug that changes P_o without changing i alters gating; one that changes i alters conduction or driving force. Across many identical channels, the mean current adds up those three things:
+
+<EquationCard
+  purpose="The current from a whole population of identical channels, built from what one channel does."
+  eq="I = N × i × P_o"
+  say="The total current equals the number of channels, times the current through one open channel, times the fraction of time each is open."
+  symbols={[
+    ["I", "capital I", "the mean current through all the channels", "pA"],
+    ["N", "N", "the number of channels", "no unit"],
+    ["i", "small i", "the unitary current: the step height through one open channel", "pA"],
+    ["P_o", "P sub o", "the open probability: the fraction of time a channel is open, from 0 to 1", "no unit"],
+  ]}
+  toolkit={["subscripts"]}
+  check="If P_o is 0, there is no current however many channels there are. I is proportional to each of N, i and P_o, so the same whole-cell current can come from many different mixes."
+>
+  <Fragment slot="example">
+    <p>Round values to keep the arithmetic easy: 100 channels, a 1 pA unitary current, and P_o = 0.5. I = 100 × 1 pA × 0.5 = 50 pA.</p>
+    <p>Fifty channels that are always open (P_o = 1) give the same 50 pA: 50 × 1 × 1 = 50. That is why a whole-cell current alone cannot separate N, i and P_o.</p>
+  </Fragment>
+</EquationCard>
 
 <SingleChannelRecord />
 

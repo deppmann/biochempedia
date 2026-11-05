@@ -333,6 +333,7 @@ draft: false
 ---
 
 import PressureVolumeLoop from '../../../components/PressureVolumeLoop.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Plot the pressure inside your left ventricle against its volume, and each heartbeat draws a closed loop: four corners, four valve events, and an enclosed area equal to the work of the beat.** Filling, arterial load and contraction strength each change its shape in a predictable way, and the predictions show why ejection fraction is a poor measure of contractility. The four phases and the stroke-volume arithmetic are in [circulation and the heart](/lessons/circulation-and-heart/); here they get numbers.
 
@@ -361,9 +362,12 @@ The ECG's P wave comes just before atrial contraction, the QRS complex just befo
 
 Now drop the time axis: plot LV pressure against LV volume, and one beat runs counterclockwise. Bottom right is mitral closure at end-diastolic volume (EDV); the right side is isovolumic contraction; top right is aortic opening; the top is ejection. Top left is aortic closure at end-systolic volume (ESV) and pressure (Pes); the left side is isovolumic relaxation; the bottom, after mitral opening, is filling.
 
-The width is the stroke volume; the area is **stroke work**, approximately stroke volume times mean ejection pressure.
+The width is the stroke volume; the area is **stroke work**, approximately stroke volume times mean ejection pressure. Four short formulas read the loop, each answering one question:
 
-> **SV = EDV - ESV**   **EF = SV / EDV**   **CO = SV x HR**   **SW ≈ SV x mean ejection pressure**
+- *How much does one beat eject?* Stroke volume, **SV = EDV - ESV**: the loop's width.
+- *What fraction of the filled ventricle is that?* Ejection fraction, **EF = SV / EDV**.
+- *How much flows per minute?* Cardiac output, **CO = SV x HR**, with HR the heart rate in beats per min.
+- *How much work does one beat do?* Stroke work, **SW ≈ SV x mean ejection pressure**: the loop's area, approximated as a rectangle.
 
 EDV 125 mL and ESV 45 mL is a common teaching example, not a reference value. Biplane echocardiography in healthy adults gave mean EDV of 106 mL in men and 76 mL in women, mean ESV of 41 and 28 mL, and mean EF of 62 percent (2-SD range 52 to 72) in men and 64 percent (54 to 74) in women.
 
@@ -374,25 +378,45 @@ In this made-up example, a model adult left ventricle at rest has EDV 125 mL, ES
 1. *Stroke volume.* 125 - 45 = 80 mL.
 2. *Ejection fraction.* 80 / 125 = 64 percent.
 3. *Cardiac output.* 80 mL x 70 per min = 5.6 L per min.
-4. *Stroke work.* Mean ejection pressure (80 + 120) / 2 = 100 mmHg; 80 mL x 100 mmHg = 8,000 mmHg mL. Since 1 mmHg = 133.3 Pa and 1 mL = 10^-6 m^3, 1 mmHg mL = 1.333 x 10^-4 J, so this is 1.07 J per beat.
+4. *Stroke work.* Mean ejection pressure (80 + 120) / 2 = 100 mmHg; 80 mL x 100 mmHg = 8,000 mmHg mL. To turn that into joules: 1 mmHg = 133.3 Pa and 1 mL = 10^-6 m^3 (a millionth of a cubic metre), and a pascal times a cubic metre is a joule, so 1 mmHg mL = 133.3 x 10^-6 J = 1.333 x 10^-4 J. Then 8,000 x 1.333 x 10^-4 J = 1.07 J per beat ([powers of ten](/math-toolkit/#powers)).
 5. *Power.* 1.07 J x 70 / 60 beats per s = 1.24 W, the external work rate of this one ventricle.
 
 ## Two boundaries: a stiff line at end-systole, a soft curve at end-diastole
 
-The loop's top left corner lies on the **end-systolic pressure-volume relation (ESPVR)**:
+The loop's top left corner lies on the **end-systolic pressure-volume relation (ESPVR)**, a line that says how much pressure the fully contracted ventricle holds at each volume:
 
-> **Pes = Ees x (ESV - V0)**
+<EquationCard
+  purpose="The pressure the ventricle can hold at the end of systole, for any end-systolic volume: the line every end-systolic corner sits on."
+  eq="Pes = Ees × (ESV − V0)"
+  say="End-systolic pressure equals the end-systolic elastance times how far the end-systolic volume sits above the volume intercept."
+  symbols={[
+    ["Pes", "P e s", "end-systolic pressure, at the loop’s top left corner", "mmHg"],
+    ["Ees", "E e s, end-systolic elastance", "the slope of the line: how many mmHg each extra mL adds at end-systole. A relatively load-independent index of contractility.", "mmHg per mL"],
+    ["ESV", "E S V", "end-systolic volume", "mL"],
+    ["V0", "V zero", "the volume intercept, where the line meets zero pressure", "mL"],
+  ]}
+  toolkit={["read"]}
+  check="At ESV = V0 the pressure is zero. A steeper line (larger Ees) means more pressure at the same volume, or a smaller volume at the same pressure: a stronger contraction. Over the physiological range the line is approximately linear."
+>
+  <Fragment slot="example">
+    <p>Use the model ventricle of the worked problems, with V0 = 5 mL and Ees = 3.0 mmHg per mL (the values part 3 will give; they fit part 1, where 120 mmHg sits at ESV 45 mL).</p>
+    <p>At ESV 45 mL: 3.0 × (45 − 5) = 3.0 × 40 = 120 mmHg, the part 1 corner.</p>
+    <p>Run it backwards to find the volume for a given pressure: ESV = V0 + Pes / Ees = 5 + 120 / 3.0 = 45 mL.</p>
+  </Fragment>
+</EquationCard>
 
-**Ees**, the end-systolic elastance, is the slope (mmHg per mL) and **V0** the volume intercept; over the physiological range the line is approximately linear. Ees is a relatively load-independent index of **contractility**, the strength of contraction at a given fibre length. It rises with positive inotropes and sympathetic activation and falls with ischaemia and infarction, but geometry and passive stiffness affect it too.
+Ees is a relatively load-independent index of **contractility**, the strength of contraction at a given fibre length. It rises with positive inotropes and sympathetic activation and falls with ischaemia and infarction, but geometry and passive stiffness affect it too.
 Once relaxation is complete, the bottom of the loop lies on the **end-diastolic pressure-volume relation (EDPVR)**, the passive filling curve. It is non-linear; its slope indexes chamber stiffness, and the inverse is **compliance**, volume change per unit pressure. Relaxation speed is summarized by **tau**, the time constant of the isovolumic pressure fall: about 20 to 40 ms in invasive human recordings and about 60 to 100 ms when relaxation is impaired, depending on how tau is fitted.
 
 Suga, Sagawa and Shoukas reported in 1973 that the instantaneous pressure-volume ratio of the canine left ventricle did not depend on load, and by 1977 Sagawa and colleagues described the end-systolic ratio in isolated canine ventricles as relatively insensitive to loading, so that end-systolic points of differently loaded beats fall on one near-linear line. In a living heart, a brief **inferior vena caval occlusion** lowers filling over a few beats, and the corners of the shrinking loops trace both lines. That needs volume beat by beat, which the **conductance catheter** supplies: an eight-electrode catheter that Baan and colleagues had used for stroke volume in dogs and, in 1984, calibrated for absolute volume in dogs and patients. Tissue around the cavity adds a **parallel conductance**, found by briefly changing blood conductivity with a bolus (hypertonic saline in modern practice; Baan used cold glucose solution in patients).
 
 **The classic experiment.** What sets the oxygen cost of a beat? Khalafbeigui, Suga and Sagawa (American Journal of Physiology, 1979) used 13 excised dog hearts, each cross-circulated by a support dog that supplied the coronary blood. A volume servo pump set the load, beats were isovolumic or ejecting, and oxygen consumption per beat was measured.
 
-They tested the **pressure-volume area (PVA)**, stroke work plus the end-systolic **potential energy**, the roughly triangular region between the ESPVR, the EDPVR and the loop's left side. Oxygen use per beat correlated linearly with PVA (mean r = 0.92):
+They tested the **pressure-volume area (PVA)**, stroke work plus the end-systolic **potential energy**, the roughly triangular region between the ESPVR, the EDPVR and the loop's left side. Oxygen use per beat correlated linearly with PVA (mean r = 0.92). The fit is a straight line, oxygen cost = slope x PVA + intercept, where MVO2 is myocardial oxygen consumption per beat:
 
 > **MVO2 (mL O2 per beat) ≈ 1.5 x 10^-5 x PVA (mmHg mL per beat) + 0.019**
+
+Read the slope as a plain number: 1.5 x 10^-5 is 0.000015, so every 10,000 mmHg mL of PVA costs about 0.15 mL O2, on top of a fixed 0.019 mL O2 per beat.
 
 The intercept is oxygen use that does not depend on PVA. It includes basal metabolism and the cost of exciting and activating the muscle: in later canine experiments, epinephrine or calcium raised it by more than 50 percent while basal metabolism stayed unchanged. Ruled in: an isovolumic beat, which does no external work, still costs oxygen in proportion to its PVA. Ruled out: stroke work alone as the cost. Not shown: that the line holds when contractility changes (the authors noted a new inotropic state shifts it), or anything in intact humans.
 
@@ -402,9 +426,33 @@ The intercept is oxygen use that does not depend on PVA. It includes basal metab
 
 ## Preload, afterload and contractility each change the loop in a different way
 
-**Preload** is end-diastolic stretch, read as EDV: the bottom right corner. **Afterload** is the load the ventricle ejects against, summarized here as **effective arterial elastance**, Ea = Pes / SV, a lumped ratio set mainly by peripheral resistance and heart rate ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)). Ea is the steepness of a line from EDV on the volume axis to the end-systolic corner, and **contractility** is summarized by Ees, a chamber-level index that also reflects wall geometry and passive stiffness. The corner sits where the two lines meet:
+**Preload** is end-diastolic stretch, read as EDV: the bottom right corner. **Afterload** is the load the ventricle ejects against, summarized here as **effective arterial elastance**, Ea = Pes / SV, a lumped ratio set mainly by peripheral resistance and heart rate ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)). Ea is the steepness of a line from EDV on the volume axis to the end-systolic corner, and **contractility** is summarized by Ees, a chamber-level index that also reflects wall geometry and passive stiffness. The corner sits where the two lines meet, and that fixes the stroke volume:
 
-> **Ees x (EDV - SV - V0) = Ea x SV, so SV = (EDV - V0) / (1 + Ea / Ees)**
+<EquationCard
+  purpose="How much the ventricle ejects, given its filling, its load and its contractility."
+  eq="SV = (EDV − V0) / (1 + Ea / Ees)"
+  say="Stroke volume equals the filled volume above the intercept, divided by one plus the ratio of arterial to ventricular elastance."
+  symbols={[
+    ["SV", "S V", "stroke volume", "mL"],
+    ["EDV", "E D V", "end-diastolic volume, the preload", "mL"],
+    ["V0", "V zero", "the ESPVR’s volume intercept", "mL"],
+    ["Ea", "E a, effective arterial elastance", "Pes / SV, a lumped measure of afterload", "mmHg per mL"],
+    ["Ees", "E e s", "end-systolic elastance, the ESPVR’s slope; the contractility index", "mmHg per mL"],
+  ]}
+  toolkit={["ratios"]}
+  check="With no load (Ea near zero) the bracket is 1 and the ventricle empties all the way to V0. With a huge load (Ea far above Ees) SV shrinks toward zero, an isovolumic beat. Raising EDV or Ees raises SV; raising Ea lowers it."
+>
+  <Fragment slot="example">
+    <p>Take the part 1 ventricle, EDV 125 mL and V0 5 mL, and suppose Ea equalled Ees, so Ea / Ees = 1.</p>
+    <p>SV = (125 − 5) / (1 + 1) = 120 / 2 = 60 mL. When the two elastances match, the ventricle ejects half the volume it holds above V0.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>1. The end-systolic corner lies on the ESPVR: Pes = Ees × (ESV − V0), and ESV = EDV − SV, so Pes = Ees × (EDV − SV − V0).</p>
+    <p>2. It also lies on the Ea line: Pes = Ea × SV.</p>
+    <p>3. Set the two equal: Ees × (EDV − SV − V0) = Ea × SV. Move the SV terms to one side: Ees × (EDV − V0) = SV × (Ea + Ees).</p>
+    <p>4. Divide both sides by Ees, then by (1 + Ea / Ees): SV = (EDV − V0) / (1 + Ea / Ees).</p>
+  </Fragment>
+</EquationCard>
 
 The ratio **Ea/Ees** is the ventricular-arterial coupling. In humans at rest it is reported near 0.6; a review places mechanical efficiency at its best near 0.5 and stroke work at its maximum near 1, but in isolated blood-perfused dog hearts the measured peaks were nearer 0.7 and 0.8, and both stayed within 10 percent of their best from about 0.3 to 1.3.
 

@@ -337,6 +337,7 @@ draft: false
 ---
 
 import VenousReturnOperatingPoint from '../../../components/VenousReturnOperatingPoint.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **At rest, each side of an adult human heart pumps about 5 litres of blood a minute, and over any few minutes it cannot pump out more than flows back in.** So which sets cardiac output: the heart, or the veins that fill it?
 
@@ -344,17 +345,37 @@ Cardiac output is heart rate times stroke volume, and a ventricle that fills mor
 
 ## Two ways to count the flow: Fick and dilution
 
-The **Fick principle** is bookkeeping for oxygen. At steady state, the oxygen the lungs take up each minute leaves in the blood flowing through them:
+The **Fick principle** is bookkeeping for oxygen. At steady state, the oxygen the lungs take up each minute leaves in the blood flowing through them. So if you know how much oxygen the body takes up each minute, and how much each litre of blood picks up on its way through the lungs, you can count the litres:
 
-> **Q = VO2 / (CaO2 - CvO2)**, where Q is pulmonary blood flow, VO2 is oxygen uptake, and CaO2 and CvO2 are arterial and mixed-venous oxygen contents
+<EquationCard
+  purpose="How many litres of blood flow through the lungs each minute, worked out from oxygen bookkeeping."
+  eq="Q = VO2 / (CaO2 − CvO2)"
+  say="Blood flow equals the oxygen taken up each minute, divided by the oxygen each litre of blood picks up in the lungs."
+  symbols={[
+    ["Q", "Q", "pulmonary blood flow. With no shunt between the two sides of the heart, this is the cardiac output.", "L per min"],
+    ["VO2", "V dot O 2, or oxygen uptake", "the oxygen the body takes up each minute, measured by respirometry in the direct method", "mL O2 per min"],
+    ["CaO2", "C a O 2", "arterial oxygen content: bound plus dissolved oxygen in a litre of arterial blood", "mL O2 per L"],
+    ["CvO2", "C v O 2", "mixed-venous oxygen content, sampled in the pulmonary artery", "mL O2 per L"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="The bracket is what each litre picks up. For the same uptake, if each litre picks up only half as much oxygen, twice as many litres must flow. Units: (mL O2 per min) / (mL O2 per L) leaves L per min."
+>
+  <Fragment slot="example">
+    <p>Round values chosen to keep the arithmetic easy: the body takes up 200 mL O2 per min, and each litre of blood leaves the lungs carrying 40 mL O2 more than it arrived with.</p>
+    <p>Flow: 200 / 40 = 5 L per min.</p>
+    <p>Read it as counting: 5 litres, each carrying 40 mL away, carry 200 mL a minute, which is the uptake.</p>
+  </Fragment>
+</EquationCard>
 
 **Oxygen content** (mL O2 per L of blood) is bound plus dissolved oxygen ([oxygen transport](/lessons/oxygen-transport/)). A saturation will not do: it is a percentage and holds no volume of oxygen.
 
 **Mixed-venous blood** is venous blood from the whole body after it has mixed, sampled in the pulmonary artery through the distal lumen of a pulmonary artery catheter. An arm vein reports only what the arm extracted. The **direct** Fick method measures uptake by respirometry; the **estimated** method assumes it, which makes it a different measurement. The direct method assumes steady state, no intracardiac shunt (so pulmonary and systemic flow are equal) and a true mixed-venous sample. It gives right-ventricular output; averaged over time the left ventricle pumps the same blood, so the outputs are never added.
 
-**Indicator dilution** applies the same mass balance to something you inject. Put a known amount of dye into a central vein and record its concentration downstream. Faster flow dilutes the dye more and clears it sooner, so the area is smaller.
+**Indicator dilution** applies the same mass balance to something you inject. Put a known amount of dye into a central vein and record its concentration downstream. Faster flow dilutes the dye more and clears it sooner, so the area is smaller. Flow is therefore the amount divided by that area:
 
 > **Q = amount injected / area under the first-pass concentration-time curve**
+
+Units: the area is concentration times time (mg s per L), so mg divided by mg s per L leaves L per s. Multiply by 60 for L per min.
 
 It assumes complete mixing, no indicator lost from the blood, and recirculation excluded (the downslope is extrapolated before the second pass). **Pulmonary artery thermodilution** injects a cold crystalloid bolus into the central venous circulation and reads temperature in the pulmonary artery; transpulmonary thermodilution reads it in a systemic artery instead. The result depends on injectate volume, injection rate and temperature, and shunts and leaky valves such as tricuspid regurgitation make it less reliable.
 
@@ -376,7 +397,23 @@ Stop the heart and blood moves from the stretched arteries into the veins until 
 
 Picture a rubber tank with an outlet partway up its side: fluid below the rim fills it without stretching it, and fluid above the rim stretches the wall, which pushes back. **Unstressed volume** fills the vessels without stretching their walls. **Stressed volume** stretches the walls and generates recoil pressure. **Compliance** is the change in volume per change in pressure, in L per mmHg ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)). Treating the systemic circulation as one compliant reservoir:
 
-> **Pms = stressed volume / compliance**
+<EquationCard
+  purpose="The pressure the blood stored in the systemic vessels exerts when flow stops: the upstream pressure that drives blood back to the heart."
+  eq="Pms = stressed volume / compliance"
+  say="Mean systemic filling pressure equals the volume that stretches the vessel walls, divided by how much volume the vessels take per millimetre of mercury."
+  symbols={[
+    ["Pms", "P m s, mean systemic filling pressure", "the zero-flow pressure of the systemic circulation, treated here as one compliant reservoir", "mmHg"],
+    ["stressed volume", "stressed volume", "the blood above the ‘rim’ that stretches the walls; unstressed volume fills the vessels without stretching them and adds no pressure", "L"],
+    ["compliance", "compliance", "the change in volume per change in pressure: a stretchier store has a larger compliance", "L per mmHg"],
+  ]}
+  toolkit={["ratios"]}
+  check="With no stressed volume, Pms is zero however much unstressed blood fills the veins. For the same stressed volume, stiffer vessels (lower compliance) give a higher Pms."
+>
+  <Fragment slot="example">
+    <p>In this lesson’s model, compliance is 0.2 L per mmHg and stressed volume is 1.4 L: Pms = 1.4 / 0.2 = 7 mmHg.</p>
+    <p>Transfuse 0.4 L, all of it stressed: 1.4 + 0.4 = 1.8 L, and Pms = 1.8 / 0.2 = 9 mmHg. Each 0.2 L of stressed blood adds 1 mmHg.</p>
+  </Fragment>
+</EquationCard>
 
 The veins hold most of the blood and most of the compliance. Adding blood raises Pms. So does **venoconstriction**, sympathetic tightening of venous smooth muscle ([hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/)): it lowers **capacitance**, the volume held at a given pressure, and turns unstressed into stressed volume without adding blood. The direction is easy to reverse (one review figure's legend did, until a 2017 correction): decreased capacitance recruits stressed volume; increased capacitance stores blood and lowers Pms.
 
@@ -390,11 +427,29 @@ In an intact circulation, cardiac output and right atrial pressure (Pra) change 
 
 How does that flow depend on Pra? A naive guess: lowering Pra sucks blood back without limit.
 
-As Pra was lowered, return rose along a roughly straight line, and in these open-chest dogs it stopped rising once Pra reached about -2 to -4 mmHg. Veins collapse when the pressure inside falls below the pressure around them, and a collapsed vein limits flow however low the downstream pressure goes. Raising Pra reduced return, which reached zero where Pra equalled Pms. Their 1957 paper in the American Journal of Physiology gave the **venous return curve**:
+As Pra was lowered, return rose along a roughly straight line, and in these open-chest dogs it stopped rising once Pra reached about -2 to -4 mmHg. Veins collapse when the pressure inside falls below the pressure around them, and a collapsed vein limits flow however low the downstream pressure goes. Raising Pra reduced return, which reached zero where Pra equalled Pms. Their 1957 paper in the American Journal of Physiology gave the **venous return curve**, which says how much blood comes back for each right atrial pressure:
 
-> **Qvr = (Pms - Pra) / Rvr**
-
-The **resistance to venous return (Rvr)** lies between the elastic store and the right atrium (mmHg min per L). Plotted against Pra, the line meets zero flow at Pms with slope -1/Rvr. Pms is the upstream driving pressure; Pra is the back-pressure.
+<EquationCard
+  purpose="How much blood returns to the right atrium each minute, for a given right atrial pressure."
+  eq="Qvr = (Pms − Pra) / Rvr"
+  say="Venous return equals the filling pressure minus the right atrial pressure, divided by the resistance between them."
+  symbols={[
+    ["Qvr", "Q v r, venous return", "the flow coming back from the body to the right atrium", "L per min"],
+    ["Pms", "P m s", "mean systemic filling pressure, the upstream driving pressure of the elastic store", "mmHg"],
+    ["Pra", "P r a", "right atrial pressure, the back-pressure at the downstream end", "mmHg"],
+    ["Rvr", "R v r", "resistance to venous return, lying between the elastic store and the right atrium", "mmHg min per L"],
+  ]}
+  toolkit={["ratios"]}
+  check="When Pra equals Pms, the push is zero and so is return. Each 1 mmHg fall in Pra adds 1/Rvr to the flow, so plotted against Pra the line meets zero flow at Pms with slope −1/Rvr. The line holds only down to the collapse point: below it, return stops rising."
+>
+  <Fragment slot="example">
+    <p>Use the round values of this lesson’s model, Pms = 7 mmHg and Rvr = 1 mmHg min per L.</p>
+    <p>At Pra = 7 mmHg: (7 − 7) / 1 = 0 L per min.</p>
+    <p>At Pra = 0 mmHg: (7 − 0) / 1 = 7 L per min.</p>
+    <p>Between them the line is straight: each 1 mmHg fall in Pra adds 1 L per min of return. At the lesson’s operating point, Pra = 2 mmHg, the line gives (7 − 2) / 1 = 5 L per min.</p>
+    <p>The dogs’ collapse point was about −2 to −4 mmHg, so these points all sit on the straight part.</p>
+  </Fragment>
+</EquationCard>
 
 {/* DIAGRAM: generic right-heart bypass, venae cavae to pump to pulmonary artery, reservoir height sets Pra, flowmeter */}
 
@@ -408,21 +463,32 @@ Contracting leg muscles squeeze deep veins against their valves ([skeletal muscl
 
 The **cardiac function curve** plots output against Pra: as Pra rises, **preload** (end-diastolic stretch) usually rises, and by the Frank-Starling relation output rises. Pra is only a stand-in for preload: stretch depends on the pressure across the heart wall (Pra minus the pressure around the heart) and on how stiff the ventricle is, so raising chest pressure can raise Pra while filling falls. The curve also describes the whole heart, not one ventricle. **Contractility**, the strength of contraction at a given preload, and **afterload**, the load the ventricle ejects against, set how high the curve sits ([pressure-volume loops](/lessons/pressure-volume-loops/)). Averaged over time at steady state, output equals venous return, so the circulation settles where the lines cross: the **operating point**, which fixes both flow and Pra.
 
+Picture both lines on one graph, with Pra across the bottom and flow up the side. The heart's line rises to the right: more filling, more output. The veins' line falls to the right: more back-pressure, less return. Only one Pra gives the same flow on both lines, and that is where they cross.
+
 ### Worked problem, part B: find the operating point
 
 An illustrative model, not fitted to data: Qc = b + k x Pra, with b = 3 L per min and k = 1 L per min per mmHg (valid only at the positive Pra used), and venous return with Pms = 7 mmHg and Rvr = 1 mmHg min per L.
 
-1. *Set them equal.* 3 + Pra = (7 - Pra) / 1.
-2. *Solve.* 2 x Pra = 4, so Pra = 2 mmHg.
+1. *Set them equal* (at the crossing, the heart pumps what the veins return). 3 + Pra = (7 - Pra) / 1.
+2. *Solve.* Add Pra to both sides: 3 + 2 x Pra = 7. Subtract 3: 2 x Pra = 4, so Pra = 2 mmHg.
 3. *Flow.* Q = 3 + 2 = 5 L per min.
 4. *Check.* (7 - 2) / 1 = 5 L per min.
-5. *In general,* Pra = (Pms - Rvr x b) / (1 + Rvr x k), and Q = b + k x Pra.
+5. *In general,* Pra = (Pms - Rvr x b) / (1 + Rvr x k), and Q = b + k x Pra. Key point: a stronger pump (bigger b or k) lowers Pra; a higher Pms raises it.
+
+<details>
+<summary>Optional: where the general formula comes from</summary>
+
+Set b + k x Pra = (Pms - Pra) / Rvr. Multiply both sides by Rvr: Rvr x b + Rvr x k x Pra = Pms - Pra. Collect the Pra terms on one side: Pra x (1 + Rvr x k) = Pms - Rvr x b. Divide by (1 + Rvr x k). With the numbers above: (7 - 1 x 3) / (1 + 1 x 1) = 4 / 2 = 2 mmHg, as before.
+
+</details>
 
 <VenousReturnOperatingPoint />
 
 ## Moving the operating point
 
 Change one thing at a time. Volume and venous tone shift the venous curve sideways (Pms); Rvr rotates it about its intercept; the heart moves the cardiac curve. Blood added or lost is all stressed volume, at 0.2 L per mmHg.
+
+How to read the table: each row changes one number from the baseline model (Pms, b or Rvr) and re-solves the crossing with the general formula. Find what moved in the first two columns, then read the new Pra and Q. The worked inotrope row comes after the table.
 
 | Change from baseline | Curve moved | Pms (mmHg) | Pra (mmHg) | Q (L per min) |
 |---|---|---|---|---|

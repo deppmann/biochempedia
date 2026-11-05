@@ -340,6 +340,7 @@ draft: false
 
 import OveryieldingPartition from '../../../components/OveryieldingPartition.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Across grassland experiments in which researchers assigned the number of plant species at random, plots with more species generally grew more aboveground biomass, and their total production varied proportionally less from year to year.** At Cedar Creek, Minnesota, the richer plots had the steadier total even though the individual species inside them varied proportionally more. So when species are lost, what an ecosystem does can change. This lesson asks how we know, and why: first two explanations for the extra yield (complementarity and selection), then the several meanings of stability, then the Cedar Creek and BIODEPTH experiments that assigned richness and the field evidence.
 
@@ -355,11 +356,52 @@ So ecologists built communities instead of finding them.
 
 A mixture can outyield the average of its monocultures for two quite different reasons, and both can act at once. Think of a relay team. It can win because each runner covers the leg they are good at (**complementarity**), or because a random team of four is more likely to include one superb runner who carries the race (**selection**; a positive selection effect is what the sampling-effect hypothesis predicts). In plants, complementarity covers resource partitioning, the niche differences you met in [competition](/lessons/competition/), and positive interactions such as legumes adding nitrogen. Selection covers dominance by species with particular traits, though the term itself tracks which species gain relative yield, so a species can dominate a mixture while selection is negative, as in the worked problem below.
 
-Loreau and Hector's 2001 partition measures both. For each species, the **relative yield** RY is its yield in mixture, Y, divided by its monoculture yield, M. The expected relative yield is usually its sown proportion. The change, ΔRY, is observed minus expected. With N species:
+Loreau and Hector's 2001 partition measures both. It needs one number per species first:
+
+- The **relative yield**, RY, is the species' yield in mixture, Y, divided by its monoculture yield, M. It says how well the species did in mixture compared with growing alone.
+- The expected relative yield is usually its sown proportion: a species sown at half the seed is expected to reach half its monoculture yield.
+- The change, ΔRY ("delta R Y"), is observed minus expected. Positive means the species did better in mixture than expected.
+
+The **net effect**, observed mixture yield minus expected, then splits into two parts:
 
 > **net effect = complementarity + selection**
-> **complementarity = N x mean(ΔRY) x mean(M)**
-> **selection = N x cov(M, ΔRY), using the population covariance (divide by N)**
+
+<EquationCard
+  title="Complementarity: what it is for"
+  purpose="How much of the extra yield comes from species doing better on average in mixture."
+  eq="complementarity = N × mean(ΔRY) × mean(M)"
+  say="Complementarity is the number of species, times the average change in relative yield, times the average monoculture yield."
+  symbols={[
+    ["N", "N", "the number of species in the mixture", ""],
+    ["ΔRY", "delta R Y", "each species’ change in relative yield: observed minus expected", ""],
+    ["M", "M", "each species’ yield in monoculture", "g per square metre"],
+  ]}
+  toolkit={["ratios"]}
+  check="If every species did exactly as expected, every ΔRY is 0 and complementarity is 0. If species do better on average in mixture, it is positive."
+>
+  <Fragment slot="example">
+    <p>An invented variant of the worked problem below: two species with monocultures of 400 and 100 g per square metre, and each with ΔRY = 0.25.</p>
+    <p>Mean ΔRY = 0.25 and mean M = (400 + 100) / 2 = 250. Complementarity = 2 × 0.25 × 250 = 125 g per square metre. (The worked problem below changes B’s result, so its numbers differ.)</p>
+  </Fragment>
+</EquationCard>
+
+<EquationCard
+  title="Selection: what it is for"
+  purpose="Whether the gains in mixture go mainly to the high-yielding species or to the low-yielding ones."
+  eq="selection = N × cov(M, ΔRY)"
+  say="Selection is the number of species times the covariance between monoculture yield and change in relative yield."
+  symbols={[
+    ["N", "N", "the number of species in the mixture", ""],
+    ["cov", "covariance", "for each species, multiply (M minus mean M) by (ΔRY minus mean ΔRY), then average the products, dividing by N (the population covariance)", ""],
+    ["M", "M", "each species’ monoculture yield", "g per square metre"],
+    ["ΔRY", "delta R Y", "each species’ change in relative yield", ""],
+  ]}
+  check="If every species gains the same ΔRY, nothing varies with M and selection is 0. It is positive when the species with big monocultures gain most, negative when the small ones gain most."
+>
+  <Fragment slot="example">
+    <p>In the invented variant above, both ΔRY values are 0.25, so every deviation from mean ΔRY is 0 and selection = 0. The whole net effect, 125 g per square metre, is complementarity.</p>
+  </Fragment>
+</EquationCard>
 
 **Worked problem.** In this constructed data set, two species are sown in equal proportions. Monoculture yields are M_A = 400 and M_B = 100 g of dry biomass per square metre. In the mixture, Y_A = 300 and Y_B = 100 g per square metre. Assume the yields are measured on plots of the same area in the same year.
 
@@ -380,9 +422,25 @@ A positive complementarity term does not prove resource partitioning. The partit
 
 "Stable" has several meanings, and they need not agree.
 
-- **Temporal stability** is the mean of total community biomass across years divided by its standard deviation (μ/σ).
+- **Temporal stability** is the mean of total community biomass across years divided by its standard deviation (μ/σ, said "mu over sigma"; see the card below).
 - **Resistance** is how little a function changes during a disturbance such as a drought.
 - **Resilience** is how fully or quickly it returns afterwards.
+
+<EquationCard
+  purpose="How steady a community’s total biomass is from year to year."
+  eq="temporal stability = μ / σ"
+  say="Temporal stability is the mean total biomass divided by its standard deviation."
+  symbols={[
+    ["μ", "mu", "the mean of total community biomass across years", "g per square metre"],
+    ["σ", "sigma", "the standard deviation of that total across years: how much it typically swings", "g per square metre"],
+  ]}
+  toolkit={["ratios"]}
+  check="The units cancel, so stability has none. A total that never changes has σ = 0 and is perfectly stable. With the same swings, a larger mean gives a larger μ/σ, which is why overyielding alone can raise stability."
+>
+  <Fragment slot="example">
+    <p>From the made-up numbers under Going deeper: one species with a mean of 50 g per square metre and a standard deviation of 25 has μ/σ = 50/25 = 2.</p>
+  </Fragment>
+</EquationCard>
 
 Why might richness raise temporal stability? Think of an investment portfolio. If species fluctuate independently, their ups and downs partly cancel in the total; this is **statistical averaging**. If species fluctuate in opposite directions, one rising as another falls (negative covariances), the cancelling is stronger; that is **compensatory dynamics**.
 
@@ -400,7 +458,7 @@ At Cedar Creek, Tilman and colleagues seeded plots in spring 1994, each sown wit
 
 Random composition is the key move. If you hand-picked the species for each richness level, any richness effect might be the effect of the species you picked. Drawing many random compositions at each level means a consistent difference between levels is not the result of the species you picked. It can still come partly through identity: a richer random draw is more likely to include a very productive species, such as a legume. That is the selection effect, which the Loreau-Hector partition in the complementarity section above measures.
 
-BIODEPTH repeated the logic at eight European grassland sites, each using local species. Hector and colleagues reported in 1999 that, across sites, losing plant species gave an overall log-linear decline in average aboveground biomass. Composition still mattered: at a fixed species number, communities with fewer functional groups (such as grasses, legumes and other herbs) were less productive.
+BIODEPTH repeated the logic at eight European grassland sites, each using local species. Hector and colleagues reported in 1999 that, across sites, losing plant species gave an overall log-linear decline in average aboveground biomass: each halving of species number lowered biomass by a similar step (see [log scales](/math-toolkit/#log-scales)). Composition still mattered: at a fixed species number, communities with fewer functional groups (such as grasses, legumes and other herbs) were less productive.
 
 The approach has since been taken to trees. In the BEF-China experiment, a planted subtropical forest, Huang and colleagues reported in 2018 that 16-species mixtures had accumulated more than twice the carbon of the average monoculture after eight years, and an amount similar to two commercial monocultures. The benchmark matters, as the worked problem above shows.
 
@@ -437,7 +495,7 @@ Start with the confounder: soil fertility or moisture could raise both richness 
 
 ### Statistical averaging with made-up numbers, and the mechanism debate
 
-To see averaging in made-up numbers, suppose each species has a mean of 50 g per square metre and a standard deviation of 25, and fluctuations are independent. One species gives μ/σ = 50/25 = 2. Four species give a mean of 200 and a standard deviation of the square root of 4 x 25^2, which is 50, so μ/σ = 4. Under these assumptions, stability rises with the square root of species number, with no species becoming any steadier.
+To see averaging in made-up numbers, suppose each species has a mean of 50 g per square metre and a standard deviation of 25, and fluctuations are independent. One species gives μ/σ = 50/25 = 2. Four species give a mean of 4 x 50 = 200. For independent fluctuations the variances add, not the standard deviations: 4 x 25^2 = 2,500, and the square root of 2,500 is 50. So μ/σ = 200/50 = 4. Under these assumptions, stability rises with the square root of species number (the square root of 4 is 2, and 2 x 2 = 4), with no species becoming any steadier.
 
 Zhao and colleagues (2022) found statistical averaging was the principal mediator in their North American grassland analysis. Luo and colleagues (2025) showed that synchrony patterns can reverse with the length of the time series, so the inferred mechanism depends on how long you watch.
 

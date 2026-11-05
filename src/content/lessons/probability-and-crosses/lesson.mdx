@@ -345,6 +345,7 @@ draft: false
 
 import ChiSquareCrossTester from '../../../components/ChiSquareCrossTester.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Mendel crossed peas that differed in seed shape and seed colour and counted 556 seeds from the hybrids: 315 round yellow, 108 round green, 101 wrinkled yellow and 32 wrinkled green. A 9:3:3:1 ratio predicts 312.75, 104.25, 104.25 and 34.75. None of his counts matches.**
 
@@ -354,15 +355,15 @@ That is normal. A ratio is a probability, and counts drawn from a probability sc
 
 A **gene** sits at a place on a chromosome called its **locus**, and its versions are **alleles**. An organism with two copies of the same allele is **homozygous**; with two different alleles, **heterozygous**. When a heterozygote (Aa) makes gametes, half carry A and half carry a, as you saw in [Mendel's peas](/lessons/mendels-peas/).
 
-Two events are **independent** when the outcome of one does not change the chance of the other. For independent events, the chance of both is the product:
+Two events are **independent** when the outcome of one does not change the chance of the other. For independent events X and Y (any two events, not alleles), the chance of both is the product:
 
-> P(A and B) = P(A) x P(B)
+> P(X and Y) = P(X) x P(Y)
 
 Two events are **mutually exclusive** when they cannot both happen. For those, the chance of either is the sum:
 
-> P(A or B) = P(A) + P(B)
+> P(X or Y) = P(X) + P(Y)
 
-Apply them to Aa x Aa. An offspring is AA when the egg carries A and the sperm carries A: 1/2 x 1/2 = 1/4. It is Aa in two exclusive ways (A from the egg and a from the sperm, or the reverse): 1/4 + 1/4 = 1/2. It shows the dominant phenotype, written A_, if it is AA or Aa: 1/4 + 1/2 = 3/4.
+Apply them to Aa x Aa (between genotypes, the x means "crossed with"; between fractions, it means "times"). An offspring is AA when the egg carries A and the sperm carries A: 1/2 x 1/2 = 1/4. It is Aa in two exclusive ways (A from the egg and a from the sperm, or the reverse): 1/4 + 1/4 = 1/2. It shows the dominant phenotype, written A_ (the blank stands for either allele), if it is AA or Aa: 1/4 + 1/2 = 3/4.
 
 Independence is an assumption, and you must earn it. Genes on different chromosomes, or far apart on one chromosome, assort independently: those on different chromosomes because of how chromosomes line up and separate in meiosis and those far apart on one chromosome because crossing over shuffles them about as often as not (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). Genes close together on one chromosome tend to be inherited together, and the product rule then fails (see [linkage and mapping](/lessons/linkage-and-mapping/)). So every calculation below says **unlinked**, and means it.
 
@@ -376,42 +377,82 @@ A Punnett square for three genes has 64 boxes. You do not need it. Treat each ge
 
 1. *What fraction is A_ bb C_?* One path: 3/4 x 1/4 x 3/4 = 9/64.
 2. *What fraction is fully recessive, aabbcc?* 1/4 x 1/4 x 1/4 = 1/64.
-3. *What fraction shows the dominant phenotype for exactly two of the three traits?* There are three paths: recessive at A only, at B only, or at C only. Each has probability (3/4)(3/4)(1/4) = 9/64. The paths are mutually exclusive, so add them: 3 x 9/64 = 27/64.
+3. *What fraction shows the dominant phenotype for exactly two of the three traits?* There are three paths: recessive at A only, at B only, or at C only. Each has probability (3/4)(3/4)(1/4) = 9/64 (parentheses side by side mean multiply: 3 x 3 x 1 = 9 on top, 4 x 4 x 4 = 64 below). The paths are mutually exclusive, so add them: 3 x 9/64 = 27/64.
 
-The third question is where students go wrong. "Exactly two" is an *or* question built from *and* pieces. Multiply along each path, then add the paths. Check by a different route: the eight paths fall into four groups with probabilities 27/64 (all dominant), 27/64 (exactly two), 9/64 (exactly one) and 1/64 (none), which sum to 64/64.
+The third question is where students go wrong. "Exactly two" is an *or* question built from *and* pieces. Multiply along each path, then add the paths. Check by a different route: the eight paths fall into four groups with probabilities 27/64 (all dominant, (3/4)^3), 27/64 (exactly two), 9/64 (exactly one: three paths of 3/64 each) and 1/64 (none), which sum to 64/64.
 
 ## Families: the binomial counts the birth orders
 
 A different question: two parents are both carriers (Aa) of a recessive allele, and they have four children. How many of the four will be aa? This is a probability exercise, not a forecast for any real family. Assume complete **penetrance** (every aa child shows the trait) and that each child is an independent event with probability 1/4.
 
-The **binomial distribution** handles any fixed number of independent trials, each with the same probability p of a given outcome:
+Count first; the formula comes after.
 
-> P(exactly k of n) = [n! / (k! (n - k)!)] x p^k x (1 - p)^(n - k)
+**Worked problem, part 2.** n = 4 children, each with probability p = 1/4 of being aa.
 
-The bracket counts the number of different orders in which k outcomes can fall among n trials.
-
-**Worked problem, part 2.** n = 4, p = 1/4.
-
-1. *Exactly one affected child.* One particular order, say the first child affected and the other three not, has probability (1/4)(3/4)(3/4)(3/4) = 27/256. The affected child could be first, second, third or fourth: four orders. So P = 4 x 27/256 = 108/256 = 27/64, about 0.42.
-2. *At least one affected child.* Use the complement. P(none affected) = (3/4)^4 = 81/256. So P(at least one) = 1 - 81/256 = 175/256, about 0.68.
+1. *Exactly one affected child.* One particular order, say the first child affected and the other three not, has probability (1/4)(3/4)(3/4)(3/4) = 27/256. The affected child could be first, second, third or fourth: four orders. So P = 4 x 27/256 = 108/256. Divide top and bottom by 4: 27/64, about 0.42.
+2. *At least one affected child.* Use the complement: "at least one" is everything except "none". P(none affected) = (3/4)^4 = 81/256. So P(at least one) = 1 - 81/256 = 175/256, about 0.68.
 
 The factor of 4 is the step students forget. And note what independence means here. If the first child is affected, the chance for the second is still 1/4. Believing that the family has "used up" its affected child is the gambler's fallacy; segregation has no memory.
+
+Step 1 had two parts: the chance of one particular order, then the number of orders. The **binomial distribution** packs both into one formula, for any fixed number of independent trials, each with the same probability p of a given outcome:
+
+<EquationCard
+  purpose="The chance of exactly k outcomes of one kind in n independent trials, such as exactly k affected children in a family of n."
+  eq="P(exactly k of n) = [n! / (k! (n − k)!)] × p^k × (1 − p)^(n − k)"
+  say="The chance of exactly k out of n is the number of different orders, times the chance of k hits, times the chance of the n minus k misses."
+  symbols={[
+    ["k", "k", "how many of the trials have the outcome you are asking about (here, affected children)"],
+    ["n", "n", "the number of trials (here, children)"],
+    ["n!", "n factorial", "n × (n − 1) × … × 1, for example 4! = 4 × 3 × 2 × 1 = 24. The whole bracket counts the different orders in which k outcomes can fall among n trials."],
+    ["p^k", "p to the k", "p, the chance of the outcome in one trial, multiplied by itself k times: the k hits"],
+    ["(1 − p)^(n − k)", "one minus p, to the n minus k", "the chance of missing in one trial, multiplied once for each of the n − k misses"],
+  ]}
+  toolkit={["powers"]}
+  check="Add the chances for every possible k and you must get 1. For four children with p = 1/4: 0, 1, 2, 3 or 4 affected have chances 81, 108, 54, 12 and 1 out of 256, and 81 + 108 + 54 + 12 + 1 = 256."
+>
+  <Fragment slot="example">
+    <p>Exactly two affected children out of four, p = 1/4.</p>
+    <p>Orders: 4! / (2! × 2!) = 24 / (2 × 2) = 6 (DDuu, DuDu, DuuD, uDDu, uDuD, uuDD, where D marks an affected child and u an unaffected one).</p>
+    <p>One order: (1/4)^2 × (3/4)^2 = 1/16 × 9/16 = 9/256.</p>
+    <p>Total: 6 × 9/256 = 54/256 = 27/128, about 0.21.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Optional: the bracket for one affected child of four is 4! / (1! × 3!) = 24 / 6 = 4, the four orders counted by hand in step 1. Across k = 0 to 4 the order counts are 1, 4, 6, 4, 1. For small n you can list the orders; the factorials are a shortcut for when the list gets long.</p>
+  </Fragment>
+</EquationCard>
 
 ## Is the deviation chance? The chi-square test
 
 Now the opening question. Suppose a dihybrid F2 of 160 plants gives 98, 28, 26 and 8 in the four phenotype classes. Does it fit 9:3:3:1?
 
-Karl Pearson's **chi-square** statistic, introduced in 1900, measures the distance between observed (O) and expected (E) counts:
+You need a single score for how far a set of counts sits from what you expected: small when the counts are close, bigger the more surprising they are. Karl Pearson's **chi-square** statistic, introduced in 1900, is that score:
 
-> chi-square = sum over classes of (O - E)^2 / E
+<EquationCard
+  purpose="One number for how far observed counts are from expected counts."
+  eq="χ^2 = sum over classes of (O − E)² / E"
+  say="Chi-square: for each class, take observed minus expected, square it, divide by expected, then add up the classes."
+  symbols={[
+    ["χ^2", "chi-square", "the test statistic: 0 when every count matches expectation, larger as the counts stray"],
+    ["O", "O", "the observed count in one class (counts, never percentages)"],
+    ["E", "E", "the expected count in that class: the total times the predicted probability"],
+  ]}
+  toolkit={["powers"]}
+  check="If every observed count equals its expected count, each term is 0 and so is chi-square. Squaring makes shortfalls and excesses both count. Dividing by E means a miss of 10 matters more in a class expecting 50 than in one expecting 5,000."
+>
+  <Fragment slot="example">
+    <p>A made-up example to keep the arithmetic easy: 100 coin tosses give 60 heads and 40 tails, against 50 and 50 expected.</p>
+    <p>Heads: (60 − 50)² / 50 = 100 / 50 = 2. Tails: (40 − 50)² / 50 = 100 / 50 = 2. Chi-square = 4.</p>
+    <p>Now 10 tosses giving 6 heads and 4 tails, the same 60:40 split: (6 − 5)² / 5 + (4 − 5)² / 5 = 0.2 + 0.2 = 0.4. Same proportions, a tenth of the score, because a small sample strays easily by chance.</p>
+  </Fragment>
+</EquationCard>
 
 **Worked problem, part 3.** Assume independent plants, correct scoring and equal survival of all genotypes.
 
 1. *Expected counts.* Multiply the total by each probability: 160 x 9/16 = 90, 160 x 3/16 = 30, 30, and 160 x 1/16 = 10.
 2. *Each class.* (98 - 90)^2/90 = 64/90 = 0.711. (28 - 30)^2/30 = 4/30 = 0.133. (26 - 30)^2/30 = 16/30 = 0.533. (8 - 10)^2/10 = 4/10 = 0.400.
 3. *Sum.* chi-square = 1.78.
-4. *Degrees of freedom.* With four classes and a ratio fixed in advance, df = 4 - 1 = 3: once three counts and the total are known, the fourth is set. If you had estimated a parameter from the data, you would subtract one more, the point Ronald Fisher made for contingency tables in 1922 and for the general case in 1924.
-5. *Compare.* The critical value for 3 df at the 0.05 level is 7.81. 1.78 is well below it; the p-value is about 0.62. The data are consistent with 9:3:3:1.
+4. *Degrees of freedom.* With four classes and a ratio fixed in advance, df = 4 - 1 = 3: once three counts and the total are known, the fourth is set. (Optional aside: if you had estimated a parameter from the data, you would subtract one more, the point Ronald Fisher made for contingency tables in 1922 and for the general case in 1924.)
+5. *Compare.* The critical value for 3 df at the 0.05 level, read from a chi-square table or software, is 7.81. You only compare two numbers. 1.78 is well below it; the p-value is about 0.62. The data are consistent with 9:3:3:1.
 
 Three rules keep the test honest. Use **counts**, never percentages or ratios, because the size of the sample is what makes a deviation surprising. Keep expected counts above about five in every class, or the chi-square approximation becomes poor; small families are a bad fit for this test. And keep the two kinds of test apart: a goodness-of-fit test against four classes has 3 df, while a 2 x 2 test of whether two traits are associated has 1 df.
 
