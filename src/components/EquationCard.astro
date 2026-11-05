@@ -11,7 +11,8 @@
  *   4. the key: every symbol with how to say it, what it means and its unit (always visible, so a
  *      phone or a screen reader gets it without hovering);
  *   5. a sanity check: what the equation says in a limiting case;
- *   6. folded: one worked number to try, and (optional) where the equation comes from.
+ *   6. folded: one worked number to try, and (optional) where the equation comes from;
+ *   7. optional refresher links into /math-toolkit/ (toolkit={["e-and-ln", "units"]}).
  *
  * Usage in a lesson:
  *   <EquationCard
@@ -35,8 +36,10 @@ interface Props {
   symbols: [string, string, string, string?][];   // [symbol, spoken name, meaning, unit]
   check?: string;
   title?: string;
+  toolkit?: string[];   // anchors in /math-toolkit/: read, subscripts, units, powers, e-and-ln, log-scales, ratios
 }
-const { purpose, eq, say, symbols, check, title } = Astro.props;
+const { purpose, eq, say, symbols, check, title, toolkit } = Astro.props;
+const TOOLKIT: Record<string, string> = { read: 'reading an equation', subscripts: 'subscripts and Greek letters', units: 'units and prefixes', powers: 'powers and roots', 'e-and-ln': 'e and ln', 'log-scales': 'log scales', ratios: 'rates and “per”' };
 const hasExample = Astro.slots.has('example');
 const hasDerivation = Astro.slots.has('derivation');
 
@@ -88,6 +91,11 @@ const id = 'eqc-' + Math.abs([...eq].reduce((h, c) => (h * 31 + c.charCodeAt(0))
       <div class="eqc-fold-body"><slot name="derivation" /></div>
     </details>
   )}
+  {toolkit && toolkit.length > 0 && (
+    <p class="eqc-toolkit"><span class="eqc-kicker">Need a refresher?</span>{' '}
+      {toolkit.map((k, i) => <>{i > 0 && ' · '}<a href={`/math-toolkit/#${k}`}>{TOOLKIT[k] ?? k}</a></>)}
+    </p>
+  )}
 </figure>
 
 <style>
@@ -117,6 +125,8 @@ const id = 'eqc-' + Math.abs([...eq].reduce((h, c) => (h * 31 + c.charCodeAt(0))
   .eqc-fold-body { padding: 0.3rem 0 0.2rem; }
   .eqc-fold-body :global(p) { margin: 0.4rem 0; }
   .eqc-badge { font: 500 0.68rem var(--ddp-font-mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ddp-color-muted); border: 1px solid var(--ddp-color-line); border-radius: 999px; padding: 0.05em 0.5em; margin-left: 0.35em; vertical-align: 0.1em; }
+  .eqc-toolkit { margin: 0.55rem 0 0; font-size: 0.88rem; }
+  .eqc-toolkit a { color: var(--ddp-color-primary); }
   @media (max-width: 640px) { .eqc-row { grid-template-columns: 1fr; gap: 0.15rem; } }
 </style>
 
