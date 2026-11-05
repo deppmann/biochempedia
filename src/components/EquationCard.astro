@@ -1,0 +1,150 @@
+---
+/**
+ * EquationCard — one equation, made approachable without being made smaller (2026-11-05).
+ *
+ * Built from a math empathy audit (three student readers and a teacher's review): equations felt
+ * intimidating when they arrived before their purpose, when symbols had no spoken name, and when
+ * there was no number to try. A card puts things in that order:
+ *   1. what it is for (one line, before the symbols);
+ *   2. the equation, with each symbol a button that lights up its row in the key;
+ *   3. the equation read aloud in plain words (with a free Read aloud button: the browser's voice);
+ *   4. the key: every symbol with how to say it, what it means and its unit (always visible, so a
+ *      phone or a screen reader gets it without hovering);
+ *   5. a sanity check: what the equation says in a limiting case;
+ *   6. folded: one worked number to try, and (optional) where the equation comes from.
+ *
+ * Usage in a lesson:
+ *   <EquationCard
+ *     purpose="How much current one kind of ion carries, and which way it flows."
+ *     eq="I_ion = g_ion × (V_m − E_ion)"
+ *     say="An ion's current equals how open its channels are, times how far the voltage sits from that ion's balance point."
+ *     symbols={[["I_ion", "I sub ion", "the current carried by that ion", "µA/cm²"], …]}
+ *     check="If no channels are open (g_ion = 0), no current flows."
+ *   >
+ *     <Fragment slot="example">…one worked number…</Fragment>
+ *     <Fragment slot="derivation">…optional…</Fragment>
+ *   </EquationCard>
+ * Symbols and text may use the site's keyboard notation (E_K, 10^-6); it renders as sub/superscript.
+ */
+import { _convertForTest as convert } from '../lib/rehype-sub-sup.mjs';
+
+interface Props {
+  purpose: string;
+  eq: string;
+  say: string;
+  symbols: [string, string, string, string?][];   // [symbol, spoken name, meaning, unit]
+  check?: string;
+  title?: string;
+}
+const { purpose, eq, say, symbols, check, title } = Astro.props;
+const hasExample = Astro.slots.has('example');
+const hasDerivation = Astro.slots.has('derivation');
+
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+// Keyboard notation -> HTML with <sub>/<sup>, reusing the build step's rules.
+function nota(s: string): string {
+  const parts = convert(s);
+  if (!parts) return esc(s);
+  return parts.map((p: any) => (p.type === 'text' ? esc(p.value) : `<${p.tagName}>${esc(p.children[0].value)}</${p.tagName}>`)).join('');
+}
+// The equation with each known symbol wrapped as a button (longest symbols first, so V_m wins over V).
+const order = symbols.map((s, i) => ({ sym: s[0], i })).sort((a, b) => b.sym.length - a.sym.length);
+let eqHtml = '';
+{
+  let rest = eq;
+  while (rest.length) {
+    const hit = order.find((o) => rest.startsWith(o.sym) && !/[\p{L}\p{N}_]/u.test(rest[o.sym.length] ?? ''));
+    if (hit) { eqHtml += `<button type="button" class="eqc-sym" data-sym="${hit.i}" aria-label="${esc(symbols[hit.i][1])}: ${esc(symbols[hit.i][2])}">${nota(hit.sym)}</button>`; rest = rest.slice(hit.sym.length); }
+    else { const m = rest.match(/^[\p{L}\p{N}_^]+|^./u)!; eqHtml += nota(m[0]); rest = rest.slice(m[0].length); }
+  }
+}
+const id = 'eqc-' + Math.abs([...eq].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)).toString(36);
+---
+<figure class="eqc" id={id} data-eqc>
+  <div class="eqc-purpose"><span class="eqc-kicker">{title ?? 'What it is for'}</span> <span set:html={nota(purpose)} /></div>
+  <div class="eqc-eq" set:html={eqHtml} />
+  <p class="eqc-say">
+    <span class="eqc-kicker">In words</span> <span class="eqc-say-text" set:html={nota(say)} />
+    <button type="button" class="eqc-listen" data-say={say} hidden>▶ Read aloud</button>
+  </p>
+  <dl class="eqc-key">
+    {symbols.map(([sym, spoken, meaning, unit], i) => (
+      <div class="eqc-row" data-row={i}>
+        <dt><span class="eqc-symtxt" set:html={nota(sym)} /><span class="eqc-spoken">“{spoken}”</span></dt>
+        <dd><span set:html={nota(meaning)} />{unit && <span class="eqc-unit" set:html={nota(unit)} />}</dd>
+      </div>
+    ))}
+  </dl>
+  {check && <p class="eqc-check"><span class="eqc-kicker">Sanity check</span> <span set:html={nota(check)} /></p>}
+  {hasExample && (
+    <details class="eqc-fold">
+      <summary>Try one number</summary>
+      <div class="eqc-fold-body"><slot name="example" /></div>
+    </details>
+  )}
+  {hasDerivation && (
+    <details class="eqc-fold eqc-optional">
+      <summary>Where it comes from <span class="eqc-badge">optional</span></summary>
+      <div class="eqc-fold-body"><slot name="derivation" /></div>
+    </details>
+  )}
+</figure>
+
+<style>
+  .eqc { margin: 1.6rem 0 1.8rem; padding: 1rem 1.15rem 0.9rem; border: 1px solid var(--ddp-color-line); border-radius: 14px; background: var(--ddp-color-surface); }
+  .eqc-kicker { font-family: var(--ddp-font-mono); font-size: 0.72em; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); margin-right: 0.35em; }
+  .eqc-purpose { font-size: 1rem; line-height: 1.45; }
+  .eqc-eq { margin: 0.85rem 0 0.75rem; text-align: center; font-family: var(--ddp-font-serif, Georgia, serif); font-size: clamp(1.25rem, 4.2vw, 1.6rem); line-height: 1.5; color: var(--ddp-color-primary); overflow-x: auto; white-space: nowrap; }
+  .eqc-sym { font: inherit; color: inherit; background: none; border: 0; border-bottom: 2px dotted color-mix(in srgb, var(--ddp-color-primary) 45%, transparent); padding: 0 0.06em; cursor: pointer; border-radius: 3px; }
+  .eqc-sym:hover, .eqc-sym.on { background: color-mix(in srgb, #c9a227 26%, transparent); border-bottom-color: #c9a227; }
+  .eqc-sym:focus-visible { outline: 2px solid var(--ddp-color-primary); outline-offset: 2px; }
+  .eqc :global(sub), .eqc :global(sup) { font-size: 0.68em; line-height: 0; position: relative; vertical-align: baseline; }
+  .eqc :global(sub) { bottom: -0.3em; }
+  .eqc :global(sup) { top: -0.5em; }
+  .eqc-say { margin: 0 0 0.8rem; line-height: 1.5; }
+  .eqc-listen { margin-left: 0.4em; font: 500 0.78rem var(--ddp-font-mono); border: 1px solid var(--ddp-color-line); background: transparent; color: var(--ddp-color-primary); border-radius: 999px; padding: 0.15em 0.7em; cursor: pointer; }
+  .eqc-key { margin: 0; display: grid; gap: 0.1rem; border-top: 1px solid var(--ddp-color-line); }
+  .eqc-row { display: grid; grid-template-columns: minmax(7.5rem, 30%) 1fr; gap: 0.75rem; padding: 0.45rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); border-radius: 6px; transition: background 0.15s; }
+  .eqc-row.on { background: color-mix(in srgb, #c9a227 20%, transparent); }
+  .eqc-row dt { display: flex; flex-direction: column; gap: 0.05rem; }
+  .eqc-symtxt { font-family: var(--ddp-font-serif, Georgia, serif); font-size: 1.12em; color: var(--ddp-color-primary); }
+  .eqc-spoken { font-size: 0.78em; color: var(--ddp-color-muted); }
+  .eqc-row dd { margin: 0; line-height: 1.4; }
+  .eqc-unit { display: inline-block; margin-left: 0.5em; font-family: var(--ddp-font-mono); font-size: 0.78em; color: var(--ddp-color-muted); }
+  .eqc-check { margin: 0.75rem 0 0.4rem; padding: 0.55rem 0.75rem; border-left: 3px solid #c9a227; background: color-mix(in srgb, #c9a227 9%, transparent); border-radius: 0 8px 8px 0; line-height: 1.45; }
+  .eqc-fold { margin-top: 0.45rem; border-top: 1px dashed var(--ddp-color-line); padding-top: 0.4rem; }
+  .eqc-fold summary { cursor: pointer; font-weight: 600; color: var(--ddp-color-primary); padding: 0.2rem 0; }
+  .eqc-fold-body { padding: 0.3rem 0 0.2rem; }
+  .eqc-fold-body :global(p) { margin: 0.4rem 0; }
+  .eqc-badge { font: 500 0.68rem var(--ddp-font-mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ddp-color-muted); border: 1px solid var(--ddp-color-line); border-radius: 999px; padding: 0.05em 0.5em; margin-left: 0.35em; vertical-align: 0.1em; }
+  @media (max-width: 640px) { .eqc-row { grid-template-columns: 1fr; gap: 0.15rem; } }
+</style>
+
+<script>
+  for (const card of document.querySelectorAll<HTMLElement>('[data-eqc]')) {
+    const rows = [...card.querySelectorAll<HTMLElement>('.eqc-row')];
+    const syms = [...card.querySelectorAll<HTMLElement>('.eqc-sym')];
+    const light = (i: string | null) => {
+      syms.forEach((s) => s.classList.toggle('on', s.dataset.sym === i));
+      rows.forEach((r) => r.classList.toggle('on', r.dataset.row === i));
+    };
+    syms.forEach((s) => {
+      s.addEventListener('mouseenter', () => light(s.dataset.sym!));
+      s.addEventListener('mouseleave', () => light(null));
+      s.addEventListener('focus', () => light(s.dataset.sym!));
+      s.addEventListener('blur', () => light(null));
+      s.addEventListener('click', () => { light(s.dataset.sym!); rows.find((r) => r.dataset.row === s.dataset.sym)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); });
+    });
+    // Read aloud with the browser's own voice: free, nothing leaves the device.
+    const btn = card.querySelector<HTMLButtonElement>('.eqc-listen');
+    if (btn && 'speechSynthesis' in window) {
+      btn.hidden = false;
+      btn.addEventListener('click', () => {
+        if (speechSynthesis.speaking) { speechSynthesis.cancel(); btn.textContent = '▶ Read aloud'; return; }
+        const u = new SpeechSynthesisUtterance(btn.dataset.say!.replace(/_/g, ' sub ').replace(/×/g, ' times ').replace(/−/g, ' minus '));
+        u.rate = 0.95; u.onend = () => (btn.textContent = '▶ Read aloud');
+        btn.textContent = '❚❚ Stop'; speechSynthesis.speak(u);
+      });
+    }
+  }
+</script>

@@ -395,6 +395,7 @@ draft: false
 
 import SquidSpikeConductances from '../../../components/SquidSpikeConductances.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **In 1939 Alan Hodgkin and Andrew Huxley pushed a fine electrode down the inside of a squid giant axon and found that, at the peak of the action potential, the inside became positive.**
 
@@ -433,13 +434,25 @@ One rule, three gates and a little cable theory answer all five. The rule comes 
 
 You met the rule for ionic current in [the resting membrane and passive signals](/lessons/resting-membrane-passive/):
 
-> **I_ion = g_ion × (Vm − E_ion)**
-
-- **E_ion** is the ion's equilibrium potential, defined above. It comes from the Nernst equation, derived in [transport across membranes](/lessons/membrane-transport/). In the squid model E_Na is +50 mV and E_K is −77 mV.
-- The **driving force**, Vm − E_ion, is the gap between the membrane potential and the ion's equilibrium potential. It says which way the ion is pushed and how hard.
-- **g_ion** is the ion's conductance, defined above.
-
-With g in mS/cm² and the driving force in mV, the current comes out in µA/cm², because a millisiemens times a millivolt is a microampere (mS × mV = µA). This lesson takes outward current as positive, so inward current is negative. The 1952 papers flipped the signs of both voltage and current; the anecdote "Read the signs before the traces" gives the conversion.
+<EquationCard
+  purpose="How much current one kind of ion carries across the membrane, and which way it flows."
+  eq="I_ion = g_ion × (Vm − E_ion)"
+  say="An ion's current equals how open its channels are, times how far the voltage sits from that ion's own balance point."
+  symbols={[
+    ["I_ion", "I sub ion", "the current carried by that ion. In this lesson outward current is positive and inward current is negative.", "µA/cm²"],
+    ["g_ion", "g sub ion", "the ion's conductance: how open its path through the membrane is, mostly how many of its channels are open", "mS/cm²"],
+    ["Vm", "V m", "the membrane potential, the voltage inside the cell relative to outside", "mV"],
+    ["E_ion", "E sub ion", "the ion's equilibrium potential, where it has no net push in or out (from the Nernst equation). In the squid model E_Na is +50 mV and E_K is −77 mV.", "mV"],
+  ]}
+  check="The part in brackets, Vm − E_ion, is the driving force. If no channels are open (g_ion = 0) there is no current. If Vm sits exactly at E_ion the driving force is zero, so there is no current either, however many channels are open."
+>
+  <Fragment slot="example">
+    <p>Take potassium in the squid model at a resting voltage of −65 mV, with a round conductance of 1 mS/cm² to keep the arithmetic easy.</p>
+    <p>Driving force: Vm − E_K = −65 − (−77) = +12 mV.</p>
+    <p>Current: 1 mS/cm² × 12 mV = 12 µA/cm². It is positive, so it is outward: potassium leaves the cell, and that pulls the voltage down toward E_K.</p>
+    <p>Units: a millisiemens times a millivolt is a microampere (mS × mV = µA). The 1952 papers flipped the signs of both voltage and current; the anecdote "Read the signs before the traces" gives the conversion.</p>
+  </Fragment>
+</EquationCard>
 
 **Predict.** The membrane sits at 0 mV and sodium channels are open. Which way does sodium move, and what does that do to the voltage?
 
