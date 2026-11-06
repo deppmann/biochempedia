@@ -21,6 +21,7 @@ import { DAY, JOIN_MODES, SLUG, json, fail, clean, body, sameOrigin, clientKey, 
 import { handleGroups } from './groups.js';
 import { handleAi, handleClassAi, briefAi, studentAiOn, PROVIDERS, MODEL_RE } from './feedback.js';
 import { handleCurious } from './curious.js';
+import { handleLearner } from './learner.js';
 
 const KINDS = ['quiz', 'idea', 'cer', 'done', 'stuck'];
 const MAX_STUDENTS = 200;
@@ -172,6 +173,8 @@ export async function handleApi(request, env) {
     // Groups: /api/g/<slug> (public) and /api/groups/* (worker/groups.js).
     const grouped = await handleGroups(request, env, db, path, method, url);
     if (grouped) return grouped;
+    // Learner accounts: /api/learner/* (worker/learner.js).
+    const learner = await handleLearner(request, env, db, path, method, url); if (learner) return learner;
     // AI feedback: teacher keys and student feedback (worker/feedback.js).
     const aiRes = await handleAi(request, env, db, path, method, url);
     if (aiRes) return aiRes;

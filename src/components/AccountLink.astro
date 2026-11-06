@@ -1,0 +1,46 @@
+---
+/* Header link to /account/: "Sign in" when signed out, the learner's first name when
+   signed in. Also starts auto-sync (src/lib/learner.ts), which does nothing at all
+   for signed-out visitors. On a phone it shrinks to a person icon. */
+---
+
+<a href="/account/" class="nav-account" data-nav-account aria-label="Sign in" title="Sign in">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20c1.2-3.9 4-5.8 7.5-5.8s6.3 1.9 7.5 5.8" /></svg>
+  <span class="nav-account-label" data-nav-account-label>Sign in</span>
+</a>
+
+<style>
+  .nav-account {
+    display: inline-flex; align-items: center; gap: 0.35em; flex: none; align-self: center;
+    min-height: 36px; padding: 0 0.6em; border-radius: 999px; color: var(--ddp-color-accent); text-decoration: none;
+    font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  /* The search icon already takes the free space; keep the menu snug to this link. */
+  :global(.nav-account + .sitemenu) { margin-left: 0; }
+  .nav-account:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
+  .nav-account-label { max-width: 10ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-account[data-signed-in] .nav-account-label { text-transform: none; letter-spacing: 0; }
+  @media (max-width: 700px) {
+    .nav-account { width: 30px; height: 30px; min-height: 30px; padding: 0; justify-content: center; }
+    .nav-account-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  }
+</style>
+
+<script>
+  import { signedInHint, cachedName, startAutoSync, LEARNER_EVENT } from '../lib/learner';
+  const link = document.querySelector<HTMLAnchorElement>('[data-nav-account]');
+  const label = document.querySelector<HTMLElement>('[data-nav-account-label]');
+  function paint() {
+    if (!link || !label) return;
+    const on = signedInHint();
+    const first = on ? (cachedName() || '').trim().split(/\s+/)[0] : '';
+    const text = on ? first || 'Account' : 'Sign in';
+    label.textContent = text;
+    link.title = on ? 'Your account' : 'Sign in';
+    link.setAttribute('aria-label', on ? `Your account${first ? ` (${first})` : ''}` : 'Sign in');
+    link.toggleAttribute('data-signed-in', on);
+  }
+  paint();
+  window.addEventListener(LEARNER_EVENT, paint);
+  startAutoSync();
+</script>
