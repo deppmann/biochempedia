@@ -3,14 +3,15 @@ title: "Glycolysis: The Investment-and-Payoff Pathway"
 slug: "glycolysis"
 courseChapter: "Glycolysis"
 order: 16
-summary: "Why does a cell spend ATP to make ATP? Because the first steps of glycolysis are a deliberate investment. This lesson tracks one glucose through all ten steps, splitting it into two pyruvate with two ATP spent up front, four earned at the end and two NADH banked. It shows why the three irreversible steps are where the cell installs its main throttles, and how glycolysis also supplies carbon building blocks for the cell."
+summary: "Why does a cell spend ATP to make ATP? Because the first steps of glycolysis are a deliberate investment. This lesson tracks one glucose through all ten steps, splitting it into two pyruvate with two ATP spent up front, four earned at the end and two NADH banked. It shows where the profit comes from (two phosphates per half built above ATP, one paid for by an oxidation), why the three steps that are far downhill in the cell are where the cell installs its main throttles, and how glycolysis also supplies carbon building blocks for the cell."
 hook: "Why does a cell spend ATP to make ATP? The first steps are a deliberate investment."
 
-estMinutes: 22
+estMinutes: 28
 objectives:
   - "Trace one glucose through all ten steps and explain the two-phase logic: why the cell spends 2 ATP (steps 1, 3) before it earns 4 ATP (steps 7, 10) and 2 NADH (step 6)."
   - "Account for the net yield, +2 ATP and +2 NADH per glucose, and explain why every product from step 6 onward is doubled, beginning at the aldolase cleavage."
-  - "Identify the three irreversible, regulated steps (hexokinase, PFK-1, pyruvate kinase) by their large negative ΔG, and explain why steps held far from equilibrium make good control points."
+  - "Use the phosphoryl-transfer ladder to explain why steps 7 and 10 can make ATP and why, for one glucose, the net gain equals the new phosphate captured by the step 6 oxidation."
+  - "Identify the three irreversible, regulated steps (hexokinase, PFK-1, pyruvate kinase) by their large negative ΔG under the conditions in the cell (standard ΔG°′ alone does not identify them), and explain why steps held far from equilibrium make good control points."
   - "Explain why pyruvate's fate matters as much as glucose supply: how fermentation regenerates NAD+ so the pathway can keep running."
 
 explainer:
@@ -325,7 +326,7 @@ practiceQuestions:
       - "Hexokinase, PFK-1, and GAPDH; the committed step is GAPDH"
     answer: 1
     rationale: >-
-      The three steps with large negative ΔG that are effectively irreversible and serve
+      The three steps with large negative ΔG in the cell that are effectively irreversible and serve
       as control points are hexokinase (step 1), PFK-1 (step 3), and pyruvate kinase
       (step 10). PFK-1 is the committed step because its product, fructose-1,6-bisphosphate,
       is dedicated to glycolysis, and PFK-1 is the primary regulatory enzyme (inhibited by
@@ -453,7 +454,7 @@ explainLevels:
       to NADH and generating a high-energy acyl-phosphate; phosphoglycerate kinase (step
       7) and pyruvate kinase (step 10) then make ATP by substrate-level phosphorylation.
       Each of these three steps fires twice, for +4 ATP and +2 NADH. Three steps are effectively irreversible
-      (large −ΔG) and are the main regulatory sites: hexokinase, PFK-1 (the committed
+      (large −ΔG under cellular conditions; standard ΔG°′ values alone do not identify them, since PGK's is more negative than hexokinase's or PFK-1's) and are the main regulatory sites: hexokinase, PFK-1 (the committed
       step), and pyruvate kinase. PFK-1 is allosterically inhibited by ATP and citrate
       and activated by AMP and fructose-2,6-bisphosphate, so the throttle responds to
       energy charge, not just to how much substrate is present.
@@ -547,137 +548,185 @@ import PathwayMap from '../../../components/PathwayMap.astro';
 import PyruvateFates from '../../../components/PyruvateFates.astro';
 import LedgerWarmup from '../../../components/LedgerWarmup.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**When Usain Bolt runs 100 meters in under ten seconds, his leg muscles need ATP
-faster than oxygen-based metabolism can ramp up to make it.** So his cells lean on fast
-routes that need no oxygen: stored phosphocreatine, and the breakdown of sugar from
-muscle glycogen. That second pathway is glycolysis, and it is found in most living
-things — in your neurons, in brewer's yeast, in bacteria that have never met oxygen.
+**When Usain Bolt runs 100 meters in under ten seconds, his leg muscles need ATP faster than oxygen-based metabolism can ramp up to make it.** So his cells lean on fast routes that need no oxygen: stored phosphocreatine, and glycolysis, the breakdown of sugar from muscle glycogen. Most living things run glycolysis or a variant of it, from your neurons to brewer's yeast to bacteria that have never met oxygen. It splits one glucose into two three-carbon pyruvate molecules, earns a little ATP, banks electrons as NADH, and hands carbon building blocks to the rest of the cell.
 
-Glycolysis splits one glucose into two three-carbon pyruvate molecules. Along the way it earns a little ATP, banks electrons as NADH, and hands carbon building blocks to the rest of the cell.
+The puzzle: the cell's whole point is to *make* ATP, yet glycolysis starts by *spending* two. Why pay a toll to enter a pathway whose job is to earn, and where does the profit come from?
 
-The puzzle that makes glycolysis worth studying is hiding in plain sight. The
-cell's whole point is to *make* ATP. Yet the first thing glycolysis does is *spend*
-it. Two ATP go in before a single one comes out. Why would a starving cell pay a
-toll to enter a pathway whose job is to earn?
+> **The one idea to carry through this lesson. Follow the phosphate.** A kinase, an enzyme that moves a phosphate group, can load ADP favorably only from a phosphate more eager to leave than ATP's own, on the standard ladder below. Glycolysis first turns glucose into two identical phosphorylated halves, then builds two such phosphates in each half, at steps 6 and 9, and a kinase cashes each one. Two consequences follow later: the step 6 oxidation needs NAD⁺, so the payoff runs only while NAD⁺ comes back; and the cell steers at the three steps that fall far downhill in the cell, which standard ΔG°′ values alone do not pick out.
 
-## The idea: invest first, then collect
+The rule covers one glucose going to two pyruvate in the cytosol by the standard (Embden–Meyerhof–Parnas) route. It counts phosphate groups, not individual atoms (Going deeper), and the throttles' details differ by tissue.
 
-Think of glycolysis as a small business that has to spend money to make money. The
-ten steps fall into two phases.
+## A ladder of phosphates
 
-The **investment phase** (steps 1–5) primes and splits the glucose molecule. Hexokinase spends
-one ATP to phosphorylate glucose, and phosphofructokinase-1 spends a second. By the
-end of step 5 the ledger reads **−2 ATP, nothing earned**. The cell has put down a
-deposit and seen no return.
+How eager a phosphate is to leave is measured by its **standard free energy of hydrolysis**, ΔG°′: the free-energy change when water takes it off, under standard conditions. The more negative the value, the higher the phosphate sits on the ladder (its *phosphoryl-transfer potential*). In the cell, concentrations shift each step's ΔG (ΔG = ΔG°′ + RT ln Q, where Q is the ratio of products to reactants), enough to let a near-balanced step such as PGK's run either way.
 
-The deposit buys two things. The first phosphate traps glucose inside the cell:
-glucose-6-phosphate carries a negative charge, and the glucose transporters will not
-carry it back out. The second phosphate sets up the split. With a phosphate on each
-end, fructose-1,6-bisphosphate can be cut into two three-carbon halves that each
-carry a phosphate of their own.
+| Phosphate on | ΔG°′ of hydrolysis (kJ/mol) | |
+| --- | --- | --- |
+| Phosphoenolpyruvate (PEP) | −61.9 | made at step 9 |
+| 1,3-Bisphosphoglycerate (1,3-BPG) | −49.3 | made at step 6 |
+| Phosphocreatine | −43.0 | the sprinter's reserve |
+| ATP (to ADP) | −30.5 | the cell's currency |
+| Glucose-6-phosphate | −13.8 | an ordinary phosphate ester |
+
+<EquationCard
+  purpose="Whether a phosphate can move from one molecule to another, under standard conditions."
+  eq="ΔG°′(move) = ΔG°′(start) − ΔG°′(end)"
+  say="The free-energy change for the move equals the ladder value where the phosphate starts, minus the ladder value where it ends up."
+  symbols={[
+    ["ΔG°′(move)", "delta G naught prime of the move", "standard free-energy change for the transfer; negative means favorable", "kJ/mol"],
+    ["ΔG°′(start)", "delta G naught prime at the start", "hydrolysis value of the phosphate on the donor", "kJ/mol"],
+    ["ΔG°′(end)", "delta G naught prime at the end", "hydrolysis value of the phosphate on the acceptor", "kJ/mol"],
+  ]}
+  toolkit={["units"]}
+  check="Under standard conditions a phosphate moves favorably only down the ladder, so it can load ADP only from above ATP."
+>
+  <Fragment slot="example">
+    <p>PEP to ADP (step 10): −61.9 − (−30.5) = −31.4 kJ/mol, strongly favorable.</p>
+    <p>ATP to glucose (step 1): −30.5 − (−13.8) = −16.7 kJ/mol, favorable. Run backward, glucose-6-phosphate to ADP, it is +16.7: an ordinary phosphate ester cannot make ATP.</p>
+  </Fragment>
+</EquationCard>
+
+Phosphocreatine sits above ATP, which is why creatine kinase can refill ATP from it in a sprint's first seconds. Glycolysis must *build* phosphates above ATP.
+
+## Investment, steps 1–5: trap, reshape, commit, split
+
+**Step 1: trap.** Hexokinase moves a phosphate from ATP onto carbon 6 of glucose. It closes around glucose by induced fit, which keeps water out, so ATP's phosphate goes to glucose and not to water. Its negative charge traps it in the cell. PET scans exploit this: an ¹⁸F-labeled glucose analog is trapped after step 1, so tissues that take up glucose fast, including many tumors, light up.
 
 <LessonFigure src="/figures/glycolysis/phosphate-traps-glucose.webp" width={1200} height={779} alt="AI-generated illustration: glucose enters a cell through a transporter in the membrane, hexokinase adds a phosphate tag carrying a negative charge, and the transporter will not carry the tagged glucose back out." caption="The first phosphate traps glucose: glucose-6-phosphate carries a negative charge, and the glucose transporters will not carry it back out." />
 
-Then the molecule is cut in half. Aldolase splits the six-carbon sugar into two
-three-carbon fragments, and triose phosphate isomerase converts one of them into a
-second copy of the other — so two identical three-carbon molecules now head down the
-rest of the path. From here, everything happens twice, so every yield from step 6
-onward counts double. That doubling is the one students most often forget when they
-tally the ledger.
+**Step 2: reshape.** Phosphoglucose isomerase turns glucose-6-phosphate, an aldose (carbonyl on carbon 1), into fructose-6-phosphate, a ketose (carbonyl on carbon 2).
 
-The **payoff phase** (steps 6–10) collects. One oxidation step (GAPDH) banks the
-energy as NADH and primes a high-energy phosphate. Two later steps — phosphoglycerate
-kinase and pyruvate kinase — hand high-energy phosphates directly to ADP, making ATP by what's
-called *substrate-level phosphorylation*: no mitochondrion, no oxygen, no membrane
-gradient, just one enzyme moving a phosphate from substrate to ADP. Each of those two
-steps fires twice, so the payoff phase earns **+4 ATP and +2 NADH**.
+**Predict.** Step 4's enzyme, aldolase, cuts the bond between the carbon next to the carbonyl and the one after it. Why move the carbonyl from carbon 1 to carbon 2 first?
 
-Subtract the deposit from the return and the books balance:
+<details>
+<summary>Check your prediction</summary>
+
+With the carbonyl at carbon 2, the cut falls between carbons 3 and 4, giving two three-carbon halves. With it at carbon 1, the cut would fall between carbons 2 and 3: a two-carbon and a four-carbon piece. The move also frees carbon 1 for the second phosphate.
+
+</details>
+
+**Step 3: commit.** Phosphofructokinase-1 (PFK-1) moves a second phosphate from ATP onto carbon 1, making fructose-1,6-bisphosphate. This is the **committed step**: its product is dedicated to glycolysis. The ledger reads **−2 ATP, nothing earned**.
+
+**Step 4: split.** Aldolase cuts it into two three-carbon pieces, each with one phosphate: dihydroxyacetone phosphate (DHAP) and glyceraldehyde-3-phosphate (GAP).
+
+**Step 5: make the halves identical.** Triose phosphate isomerase (TPI) turns DHAP into GAP. Only GAP has the aldehyde that step 6 oxidizes, so without TPI half the carbon would be stranded. Both halves now run the same steps, so every yield from step 6 onward counts double, a doubling students often forget.
+
+## Payoff, steps 6–10: make a phosphate worth more than ATP's, then cash it
+
+Each GAP's phosphate, on carbon 3, is an ordinary phosphate ester like glucose-6-phosphate's: below ATP on the ladder. The payoff phase does one job, twice in each half: **build a phosphate above ATP, then let a kinase hand it to ADP.**
+
+**Step 6: an oxidation pays for a new phosphate.** GAPDH oxidizes GAP's aldehyde carbon (carbon 1), and NAD⁺ takes the electrons to become NADH. Oxidizing an aldehyde to an acid is strongly downhill; done in one go, the energy would be lost as heat. GAPDH saves it: an active-site cysteine first bonds to the aldehyde, so the oxidation leaves a thioester, an activated bond, on the enzyme. Then inorganic phosphate (Pi, from the cell's pool, not from ATP) attacks the thioester and carries the carbon away as an acyl phosphate: **1,3-BPG**. Its new carbon-1 phosphate sits at −49.3 kJ/mol, well above ATP's −30.5.
+
+**Step 7: cash the first one.** Phosphoglycerate kinase (PGK) moves that phosphate onto ADP, making ATP and 3-phosphoglycerate. This is **substrate-level phosphorylation**: one enzyme passes a phosphate from a substrate to ADP, with no mitochondrion, oxygen or membrane gradient. Both halves do it: 2 ATP per glucose.
+
+**Steps 8 and 9: rearrange to make a better one.** The remaining carbon-3 phosphate is still too low on the ladder to make ATP, so the cell raises it. Phosphoglycerate mutase shifts it from carbon 3 to carbon 2. Enolase then removes water, making a carbon–carbon double bond next to the phosphate: **phosphoenolpyruvate (PEP)**. That step changes the free energy only slightly (ΔG°′ about +2 to +7.5 kJ/mol, by source), yet the phosphate it leaves behind sits at the top of the ladder, −61.9. A phosphate's place on the ladder includes what happens to the rest of the molecule *after* it leaves: here the leftover enolpyruvate is an unstable enol that quickly turns into its much more stable form, pyruvate, so the phosphate leaves very readily.
+
+**Step 10: cash the second one.** Pyruvate kinase hands PEP's phosphate to ADP, making ATP and pyruvate: 2 more ATP per glucose.
+
+## The two ledgers
+
+Steps 7 and 10 make 4 ATP per glucose; steps 1 and 3 spent 2. Counting phosphate groups shows where the profit comes from. Four phosphates leave to ADP: two repay the ATP lent at steps 1 and 3, and two are new, captured from inorganic phosphate at step 6 and paid for by the oxidation. So, **for glucose, the net gain equals the new phosphate captured by oxidation.** (Enter later, say as fructose-1,6-bisphosphate, and phosphates already on the substrate also reach ADP.) The oxidation also turned 2 NAD⁺ into 2 NADH, the second ledger.
 
 > **Net per glucose: +2 ATP, +2 NADH.**
 
-It is a thin margin. Two ATP is a rounding error next to the roughly thirty that full
-respiration extracts later. But glycolysis is fast, it needs no oxygen, and for some
-cells it is the *only* option. A red blood cell has no mitochondria at all; glycolysis
-is its entire energy economy. Walk through all ten steps below and watch the ledger
-build.
+It is a thin margin, about a fifteenth of the 30 or so ATP that full respiration yields per glucose, about 28 more beyond glycolysis's own 2. But glycolysis is fast, needs no oxygen, and for some cells is the *only* option: a red blood cell has no mitochondria, so glycolysis is its entire energy economy.
+
+Check each step on the map against its reason, then run the ledger.
 
 <PathwayMap />
 
 <LedgerWarmup />
 
-## The three locks: where the cell installs its throttle
+**Predict.** Suppose arsenate, which looks like phosphate, replaces it completely at step 6: GAPDH uses it, but the product then breaks down on its own to 3-phosphoglycerate, passing nothing to ADP. What happens to the yields per glucose?
 
-Most of the ten steps are reversible — they sit near equilibrium and run in whichever
-direction the cell needs. Three do not. Hexokinase (step 1), PFK-1 (step 3), and
-pyruvate kinase (step 10) each release a large amount of free energy, which makes them effectively one-way doors.
+<details>
+<summary>Check your prediction</summary>
 
-That irreversibility is not a flaw. It is a big part of the point. **A reaction near
-equilibrium mostly follows the levels of its substrates and products — nudge it and it
-slides right back. A reaction far from equilibrium can be throttled, because the cell can
-hold the door shut.** So the three irreversible steps are the cell's main control points.
-They are not the only ones: glucose transport and some reversible enzymes are regulated
-too, and control of the overall flow is shared among several steps.
+NADH is unchanged at 2, because the oxidation still happens. But no new phosphate is captured, so step 7 makes nothing, and step 10's 2 ATP only repay the 2 spent. Net ATP: 0. Glycolysis runs but earns nothing, as the rule predicts.
 
-The committed step, the one whose product is dedicated to glycolysis, is PFK-1, and it carries a beautiful paradox. ATP is its substrate
-— and also its inhibitor. When ATP is high, the cell doesn't need more, so ATP binds a
-second site and shuts PFK-1 down. When ATP runs low, its breakdown product AMP rises
-and switches the enzyme back on. The enzyme isn't asking "is there glucose?" It's
-asking "does this cell need energy right now?" That is feedback control written in
-protein.
-
-<LessonFigure src="/figures/glycolysis/pfk1-two-sites.webp" width={1200} height={541} alt="AI-generated illustration: two schematic views of the enzyme PFK-1. With plenty of ATP, ATP sits in the substrate site and an inhibitory site and the output is shut. With little ATP and more AMP, AMP binds an activating site and the output is open." caption="ATP is PFK-1's substrate and, at high levels, also an allosteric inhibitor. When ATP falls and AMP rises, AMP binding at an activating site relieves the inhibition; ATP is still needed as a substrate." />
-
-The same step is wired differently in different tissues, which is the deeper lesson.
-Muscle PFK-1 listens to the muscle's own energy charge — local, immediate, "I need ATP
-now." Liver PFK-1 also listens to hormones from the pancreas: insulin says store
-glucose, glucagon says release it. The hormones reach the enzyme through a regulator
-called fructose-2,6-bisphosphate: insulin raises its level and switches PFK-1 on, and
-glucagon lowers it and slows PFK-1 down. Same step, opposite job, because the tissue's
-purpose differs. Muscle and liver even make different forms of PFK-1, suited to these jobs.
+</details>
 
 ## Why pyruvate's fate matters: the NAD+ bottleneck
 
-Here is the part that surprises people. Glycolysis can stall even with plenty of
-glucose, if the cell runs out of **NAD+**.
+Glycolysis can stall with plenty of glucose, if the cell runs out of **NAD⁺**. Step 6 uses 2 NAD⁺ per glucose from a small, fixed pool, so NAD⁺ must be recycled. With plenty of oxygen, shuttles pass NADH's electrons into the mitochondria, and NAD⁺ comes back. When oxygen runs short, or in a cell with no mitochondria, the electrons go to pyruvate or to a molecule made from it. A sprinting muscle hands them to pyruvate itself: lactate dehydrogenase (LDH) makes lactate and returns 2 NAD⁺ per glucose, so the electron ledger balances at zero. Yeast makes ethanol instead, which is convenient for brewers but incidental to the yeast, who care only about their NAD⁺.
 
-Step 6 consumes NAD+ and produces NADH. But the cell holds only a small, fixed pool of
-NAD+, and it must be recycled or the pathway stalls. With
-plenty of oxygen, shuttles pass NADH's electrons into the mitochondria, and NAD+ comes back. When oxygen runs short, or in a cell
-with no mitochondria at all, the electrons go to pyruvate or to a molecule made from it. So
-pyruvate's fate is really about regenerating that NAD+. A sprinting muscle does it by
-handing the electrons to pyruvate itself, making lactate and recovering NAD+ in one
-step. Yeast does the same thing by making ethanol — which is convenient for brewers but
-incidental to the yeast, who care only about their NAD+.
-
-Pick a route in the widget below and follow the electrons: each fate ends with NADH
-handing them off and NAD⁺ coming back to step 6.
+Pick a route below and follow the electrons until NAD⁺ comes back to step 6.
 
 <PyruvateFates />
 
-This is also why lactate gets a bad reputation it doesn't deserve. It is not a fatigue
-toxin. It regenerates NAD+ so you can keep running, it travels to the liver to be
-rebuilt into glucose (the Cori cycle), and it even acts as a signal. The burn in your
-legs is not the lactate alone. The lactate is the rescue.
+**Predict.** Block LDH in a red blood cell and give it plenty of glucose. What happens to its ATP production?
 
-Glycolysis is not only an ATP pathway. Its intermediates are also carbon building blocks: the cell can draw them off to make other molecules instead of passing them on to pyruvate. Citrate, a signal of biosynthetic status, feeds back on PFK-1, so PFK-1 helps set how much carbon continues down the pathway.
+<details>
+<summary>Check your prediction</summary>
 
-## Proving the pathway: isotope tracing and enzyme assays
+It stops. With no mitochondria, LDH is the red cell's way to turn NADH back into NAD⁺. Without it the small NAD⁺ pool is used up at step 6, GAPDH stalls, and no payoff step runs.
 
-The pathway was *mapped*, not assumed. One tool was labeling a single carbon of
-glucose with a heavy or radioactive isotope and tracing where it lands. Enzyme studies and the chemical identification of each
-intermediate built the map, and tracing confirmed that both three-carbon halves run the
-payoff phase. A related idea, scaled up to a PET scanner, reads glucose uptake in a
-living tumor: many cancers run glycolysis hard even when oxygen is plentiful, and an
-¹⁸F-labeled glucose analog, taken up and trapped after step 1, lights them up. To find the throttles, you assay the
-regulated enzymes directly — add ATP, AMP, or citrate to purified PFK-1 one at a time
-and watch the velocity climb or fall. That is how the committed step gave up its
-secrets: the same initial-velocity discipline from enzyme kinetics, turned on one
-enzyme at a time.
+</details>
+
+Lactate is not a fatigue toxin. It regenerates NAD⁺ so you can keep running, it travels to the liver to be rebuilt into glucose (the Cori cycle), and it even acts as a signal. The burn in your legs is not lactate alone: it comes from several changes in hard-working muscle acting together, including rising acidity, and its exact causes are still debated.
+
+## Control: where the cell can turn the flow
+
+Here is each step's standard ΔG°′ beside its actual ΔG in a human red blood cell at 37 °C, worked out from measured concentrations.
+
+| Step | Enzyme | ΔG°′ (kJ/mol) | ΔG in the cell (kJ/mol) |
+| --- | --- | --- | --- |
+| 1 | Hexokinase | −16.7 | **−33.4** |
+| 2 | Phosphoglucose isomerase | +1.7 | −2.5 |
+| 3 | PFK-1 | −14.2 | **−22.2** |
+| 4 | Aldolase | +23.8 | −1.3 |
+| 5 | Triose phosphate isomerase | +7.5 | +2.5 |
+| 6 | GAPDH | +6.3 | −1.3 (steps 6 and 7 together) |
+| 7 | Phosphoglycerate kinase | −18.5 | (in the row above) |
+| 8 | Phosphoglycerate mutase | +4.4 | +0.8 |
+| 9 | Enolase | +7.5 | −3.3 |
+| 10 | Pyruvate kinase | −31.4 | **−16.7** |
+
+Values as tabulated in Lehninger; other texts give slightly different numbers.
+
+In the cell, three steps fall far downhill. Hexokinase, for example, goes from −16.7 to −33.4 because the cell keeps its products, glucose-6-phosphate and ADP, scarce relative to glucose and ATP. Every other step sits near equilibrium (within a few kJ/mol of zero in this table, though for values that small the sign depends on the standard value and concentrations used).
+
+**Predict.** PGK's standard value, −18.5, is more negative than PFK-1's, −14.2. Is PGK a control point?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. In the cell PGK, paired with GAPDH, sits near zero and runs freely in both directions. Aldolase is the mirror case: standard value +23.8, yet in the cell it sits near zero and carries the flow forward. **Only the cellular values show which steps are one-way.**
+
+</details>
+
+Why only the one-way steps? Near equilibrium, an enzyme runs forward and backward almost equally fast, usually with far more enzyme than the net flow needs, so halving it barely changes the flow. Far from equilibrium, almost nothing runs backward, so the net flow is the forward rate, and changing the enzyme's activity changes it. These three are the main control points, not the only ones: glucose transport and some reversible enzymes are regulated too, and control of the overall flow is shared among several steps. (So of the explainer film's two pictures, keep its later line, that cells regulate mainly at the one-way steps, not the valve you can partly close at a reversible step.)
+
+**Hexokinase** is inhibited by its product, glucose-6-phosphate, so it slows when the trap is full. The liver's form, glucokinase, is not.
+
+**PFK-1**, the master throttle, carries a paradox: ATP is its substrate and also its inhibitor. When ATP is high, ATP binds a second site and shuts PFK-1 down. When ATP runs low, AMP rises and switches it back on (AMP is the alarm because adenylate kinase keeps 2 ADP ⇌ ATP + AMP close to balance and AMP is normally scarce, so a small fall in ATP raises AMP by a large fraction). Fructose-2,6-bisphosphate, below, is a second activator. The enzyme asks not "is there glucose?" but "does this cell need energy now?" Citrate, which builds up when the citric acid cycle is full, also inhibits it: carbon is backing up.
+
+<LessonFigure src="/figures/glycolysis/pfk1-two-sites.webp" width={1200} height={541} alt="AI-generated illustration: two schematic views of the enzyme PFK-1. With plenty of ATP, ATP sits in the substrate site and an inhibitory site and the output is shut. With little ATP and more AMP, AMP binds an activating site and the output is open." caption="ATP is PFK-1's substrate and, at high levels, also an allosteric inhibitor. When ATP falls and AMP rises, AMP binding at an activating site relieves the inhibition; ATP is still needed as a substrate." />
+
+**Pyruvate kinase** in liver (and in red cells) is inhibited by ATP and alanine and activated ahead of time (feed-forward) by fructose-1,6-bisphosphate from step 3; the main muscle form lacks this feed-forward control. In the liver, glucagon also switches it off through phosphorylation by protein kinase A (PKA).
+
+### Tissue wiring and carbon supply
+
+Tissues wire these steps differently, and make different forms of PFK-1. Muscle PFK-1 listens to the muscle's own energy charge. Liver PFK-1 also hears pancreatic hormones through fructose-2,6-bisphosphate: insulin raises it and switches PFK-1 on; glucagon lowers it and slows PFK-1. Muscle burns glucose for itself. Liver keeps blood glucose up for everyone else, so when glucagon signals a shortage, liver turns glycolysis down and makes glucose instead (gluconeogenesis).
+
+Glycolysis also supplies carbon building blocks: glucose-6-phosphate to the pentose phosphate pathway, DHAP to glycerol-3-phosphate for lipids, 3-phosphoglycerate to serine, pyruvate to alanine.
 
 ## Going deeper
 
-### Free-energy values of the three irreversible steps
+### Proving the pathway: isotope tracing and enzyme assays
 
-Standard free-energy changes for the three irreversible steps are roughly −33 kJ/mol (hexokinase, step 1), −22 kJ/mol (PFK-1, step 3) and −17 kJ/mol (pyruvate kinase, step 10).
+The pathway was *mapped*, not assumed. One tool: label a single glucose carbon with a heavy or radioactive isotope and trace where it lands. Enzyme studies and the chemical identification of each intermediate built the map, and tracing confirmed that both three-carbon halves run the payoff phase. The step 1 PET scan scales the idea up: many cancers run glycolysis hard even when oxygen is plentiful. To find the throttles, you assay the regulated enzymes directly: add ATP, AMP or citrate to purified PFK-1 one at a time and watch the velocity climb or fall, the same initial-velocity discipline from enzyme kinetics.
+
+### About the free-energy table
+
+Some standard values differ by source (enolase is given as anything from about +2 to +7.5 kJ/mol), which is also why the ladder arithmetic gives −18.8 for step 7 against the table's −18.5. The enolase pair is the least self-consistent: with the same red-cell concentrations the +7.5 standard value would give a positive ΔG (about +7), so the −3.3 reflects a different standard value or different concentrations; enolase is better described as near equilibrium in the cell than assigned a sign. Recomputing from approximate red-cell concentrations gives about −34 kJ/mol for hexokinase, −18.8 for PFK-1, +0.5 for PGK and −22.7 for pyruvate kinase: the same pattern. The standard and cellular columns rank hexokinase and pyruvate kinase in opposite orders, and the two cellular estimates rank PFK-1 and pyruvate kinase in opposite orders, so check which values a source quotes.
+
+### Counting phosphates, not atoms
+
+The ledger counts phosphate groups, which is not quite the same as following atoms. In mammals, phosphoglycerate mutase passes the phosphate through a phosphorylated histidine on the enzyme and a 2,3-bisphosphoglycerate intermediate, so the phosphate on 2-phosphoglycerate is not the same atom that sat on carbon 3. The count still balances.
+
+### Fructose in the liver
+
+Fructose takes its own route into liver glycolysis. Fructokinase makes fructose-1-phosphate, aldolase B cleaves it to DHAP and glyceraldehyde, and triose kinase phosphorylates the glyceraldehyde to GAP. The carbon enters below PFK-1, bypassing that checkpoint, though other controls remain. This is what the explainer film means by fructose sneaking in downstream.

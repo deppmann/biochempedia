@@ -8,7 +8,7 @@ hook: "Nucleotides are costly to build — Lesch-Nyhan lives where recycling bre
 estMinutes: 20
 
 objectives:
-  - "Contrast de novo purine synthesis (build the ring on PRPP, ~6 ATP) with salvage (recycle a free base in one step), and explain why many tissues lean heavily on salvage."
+  - "Contrast de novo purine synthesis (build the ring on PRPP, ~6 ATP equivalents counting PRPP) with salvage (recycle a free base in one step), and explain why many tissues lean heavily on salvage: it is cheaper, and it turns building down."
   - "Trace purine catabolism to its human end product, uric acid, and explain why humans — lacking uricase — are prone to gout."
   - "Explain how allopurinol lowers urate by inhibiting xanthine oxidase, and connect Lesch-Nyhan syndrome to a broken salvage enzyme."
   - "Describe how antimetabolite drugs (methotrexate, 5-fluorouracil, 6-mercaptopurine) kill dividing cells by starving nucleotide synthesis."
@@ -55,7 +55,7 @@ techniques:
   - name: "Salvage (phosphoribosyltransfer)"
     blurb: "Recycling a free base by attaching it to PRPP in a single step — HGPRT for hypoxanthine and guanine, APRT for adenine. The cheap route, and a major purine source in many tissues."
   - name: "Antimetabolite drug design"
-    blurb: "Building a molecule that mimics a real metabolite closely enough to fool an enzyme, then jams it. Allopurinol (xanthine oxidase), methotrexate (DHFR), 5-FU (thymidylate synthase), 6-MP (purine synthesis)."
+    blurb: "Building a molecule that mimics a real metabolite closely enough to fool an enzyme, then jams it. Allopurinol (xanthine oxidase), methotrexate (DHFR), 5-FU (thymidylate synthase), 6-MP (activated by HGPRT; its nucleotides block purine synthesis and are built into DNA)."
   - name: "Enzyme inhibition"
     blurb: "Blocking a single committed step to choke an entire pathway. For anticancer antimetabolites, the faster a cell divides, the harder the block bites, which is part of the therapeutic window; fast-dividing normal tissues feel it too."
 
@@ -144,14 +144,14 @@ structures:
     source: "rcsb"
     id: "2WGH"
     note: "PDB 2WGH"
-    caption: "Converts ribonucleotides to deoxyribonucleotides — the single gateway from RNA precursors to DNA."
+    caption: "Converts ribonucleotides to deoxyribonucleotides — the main gateway from RNA precursors to DNA."
 
 videos: []
 
 simulations:
   - type: "local"
     ref: "PurineSalvageVsDeNovo"
-    title: "Build or recycle (toggle de novo vs salvage and watch the ATP cost — ~6 to build a purine, ~1 to recycle one — plus what breaks in Lesch-Nyhan)"
+    title: "Build or recycle (toggle de novo vs salvage and watch the ATP cost, plus what breaks in Lesch-Nyhan; the meter shows recycling as about 1 ATP-eq, but counted the same way as building it is about 2, against about 6 to build an IMP)"
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
   - type: "local"
     ref: "GoutUricAcidExplorer"
@@ -163,10 +163,10 @@ practiceQuestions:
     choices:
       - "Salvage produces a different, more stable nucleotide than de novo synthesis."
       - "De novo synthesis cannot make guanine nucleotides at all."
-      - "Salvage attaches the base to PRPP in a single step, while de novo synthesis spends several ATP over more than ten steps."
+      - "Salvage attaches the base to PRPP in a single step, while de novo synthesis spends several ATP over about ten steps."
       - "Salvage works only in dividing cells, which most cells are."
     answer: 2
-    rationale: "Both routes yield the same nucleotide (GMP), so it is not about the product. De novo synthesis builds the purine ring atom-by-atom on PRPP — about ten enzymatic steps and roughly six ATP just to reach IMP, plus more to turn IMP into GMP — whereas salvage simply reattaches an intact free base to PRPP in one phosphoribosyltransferase step. Recycling is far cheaper, which is why many cells recover a large share of their free purines rather than rebuilding them."
+    rationale: "Both routes yield the same nucleotide (GMP), so it is not about the product. De novo synthesis builds the purine ring atom-by-atom on PRPP — about ten enzymatic steps and about six ATP equivalents (counting the PRPP) just to reach IMP, plus more to turn IMP into GMP — whereas salvage simply reattaches an intact free base to PRPP in one phosphoribosyltransferase step. Recycling is far cheaper, which is why many cells recover a large share of their free purines rather than rebuilding them."
   - stem: "Why are humans, unlike most other mammals, prone to gout?"
     choices:
       - "Humans make far more purines than other mammals."
@@ -174,7 +174,7 @@ practiceQuestions:
       - "Humans cannot salvage purines, forcing constant de novo synthesis."
       - "Humans lack a functional uricase, so purine catabolism stops at poorly soluble uric acid instead of continuing to soluble allantoin."
     answer: 3
-    rationale: "Purine catabolism in all mammals runs to uric acid via xanthine oxidase. Most mammals then convert uric acid to highly soluble allantoin using the enzyme uricase. Humans (and other apes) lost a functional uricase during evolution, so uric acid is our end product. Because it is poorly soluble, it can crystallize as monosodium urate once serum levels exceed ~6.8 mg/dL, and the inflammation those crystals trigger is gout. Who develops gout also depends on how well the kidneys and gut excrete urate."
+    rationale: "Purine catabolism in all mammals runs to uric acid via xanthine oxidase. Most mammals then use the enzyme uricase to start converting uric acid to highly soluble allantoin. Humans (and other apes) lost a functional uricase during evolution, so uric acid is our end product. Because it is poorly soluble, it can crystallize as monosodium urate once serum levels exceed ~6.8 mg/dL, and the inflammation those crystals trigger is gout. Who develops gout also depends on how well the kidneys and gut excrete urate."
   - stem: "Allopurinol treats gout. What does it actually do?"
     choices:
       - "It dissolves existing urate crystals directly."
@@ -190,7 +190,7 @@ practiceQuestions:
       - "They block the cell membrane so nutrients cannot enter."
       - "They activate the immune system to attack tumor cells."
     answer: 0
-    rationale: "Both are antimetabolites — counterfeits of real building blocks. Methotrexate mimics folate and blocks dihydrofolate reductase; 5-fluorouracil mimics uracil and traps thymidylate synthase. Both starve the cell of the nucleotides needed to replicate DNA. A rapidly dividing cell, such as a tumor cell, needs nucleotides fastest, so the block bites it hardest. That is part of the therapeutic window, though fast-dividing normal tissues are hit too."
+    rationale: "Both are antimetabolites — counterfeits of real building blocks. Methotrexate mimics folate and blocks dihydrofolate reductase, which starves both thymidylate synthesis and the two folate-dependent steps of purine synthesis; 5-fluorouracil mimics uracil and traps thymidylate synthase. Both starve the cell of the nucleotides needed to replicate DNA. A rapidly dividing cell, such as a tumor cell, needs nucleotides fastest, so the block bites it hardest. That is part of the therapeutic window, though fast-dividing normal tissues are hit too."
   - stem: "In Lesch-Nyhan syndrome, the salvage enzyme HGPRT is missing. Why does this cause uric-acid overproduction?"
     choices:
       - "HGPRT normally degrades uric acid."
@@ -216,11 +216,11 @@ mcatQuestions:
       - "CPS-II works only in the kidney."
       - "There is no difference; it is the same enzyme."
     answer: 1
-    rationale: "Two separate enzymes make carbamoyl phosphate for two separate purposes. CPS-I (urea cycle) is mitochondrial, uses free ammonia, and requires N-acetylglutamate. CPS-II (pyrimidine synthesis) is cytosolic, draws its nitrogen from the amide of glutamine, and is the regulated entry to pyrimidine synthesis in mammals. Keeping them apart lets nitrogen disposal and nucleotide synthesis run independently."
+    rationale: "Two separate enzymes make carbamoyl phosphate for two separate purposes. CPS-I (urea cycle) is mitochondrial, uses free ammonia, and requires N-acetylglutamate. CPS-II (pyrimidine synthesis) is cytosolic, draws its nitrogen from the amide of glutamine, and is the regulated entry to pyrimidine synthesis in mammals. Because they sit in different compartments and answer to different signals (N-acetylglutamate for CPS-I, UTP feedback for CPS-II), nitrogen disposal and nucleotide synthesis are controlled independently."
   - stem: "Why does ribonucleotide reductase sit at a uniquely strategic control point for a dividing cell?"
     choices:
       - "It is the only enzyme that makes ribonucleotides."
-      - "It is the single committed gateway converting ribonucleotides to the deoxyribonucleotides required for DNA synthesis."
+      - "It is the main gateway converting ribonucleotides to the deoxyribonucleotides required for DNA synthesis."
       - "It degrades excess nucleotides to uric acid."
       - "It attaches bases to PRPP during salvage."
     answer: 1
@@ -232,10 +232,10 @@ explainLevels:
     text: "Your cells use little building blocks called nucleotides to make DNA, RNA, and energy (ATP). Building one from scratch is expensive, so the cell usually grabs old ones and reuses them, like returning bottles for the deposit. When the recycling breaks, or when old blocks pile up as a waste called uric acid, you can get gout — sharp crystals in a joint. Some cancer drugs work by handing the cell fake building blocks so it can't copy its DNA and divide."
   - level: "highschool"
     label: "High-school"
-    text: "Nucleotides (the units of DNA and RNA; ATP is one too) can be made two ways: de novo, building the base ring from scratch (costly, ~6 ATP for a purine), or salvage, recycling a free base in one step (cheap). Many cells rely heavily on salvage. Old purines are broken down to uric acid; humans can't break uric acid down further, so if it builds up it crystallizes and causes gout. Allopurinol blocks the enzyme (xanthine oxidase) that makes uric acid. Several cancer drugs are 'antimetabolites' — look-alikes of nucleotides or their helpers (like folate) that jam the machinery of fast-dividing cells."
+    text: "Nucleotides (the units of DNA and RNA; ATP is one too) can be made two ways: de novo, building the base ring from scratch (costly, ~6 ATP equivalents for a purine, counting the PRPP), or salvage, recycling a free base in one step (cheap). Many cells rely heavily on salvage. Old purines are broken down to uric acid; humans can't break uric acid down further, so if it builds up it crystallizes and causes gout. Allopurinol blocks the enzyme (xanthine oxidase) that makes uric acid. Several cancer drugs are 'antimetabolites' — look-alikes of nucleotides or their helpers (like folate) that jam the machinery of fast-dividing cells."
   - level: "college"
     label: "College"
-    text: "Purine synthesis builds the ring directly on PRPP (committed step: glutamine-PRPP amidotransferase) to make IMP, which branches to AMP and GMP — ~6 ATP. Salvage (HGPRT, APRT) reclaims free bases in one PRPP-dependent step and is a major source in many tissues; losing HGPRT causes Lesch-Nyhan (hyperuricemia + neurological disease). Catabolism runs to uric acid via xanthine oxidase; humans lack uricase, so urate accumulates and can crystallize (gout, treated with the xanthine-oxidase inhibitor allopurinol). Pyrimidines build the ring first (carbamoyl phosphate + aspartate; CPS-II) then add ribose-phosphate. Antimetabolites (methotrexate→DHFR, 5-FU→thymidylate synthase, 6-MP→purine synthesis) exploit the dividing cell's nucleotide demand."
+    text: "Purine synthesis builds the ring directly on PRPP (committed step: glutamine-PRPP amidotransferase) to make IMP, which branches to AMP and GMP — ~6 ATP equivalents counting PRPP. Salvage (HGPRT, APRT) reclaims free bases in one PRPP-dependent step and is a major source in many tissues; losing HGPRT causes Lesch-Nyhan (hyperuricemia + neurological disease). Catabolism runs to uric acid via xanthine oxidase; humans lack uricase, so urate accumulates and can crystallize (gout, treated with the xanthine-oxidase inhibitor allopurinol). Pyrimidines build the ring first (carbamoyl phosphate + aspartate; CPS-II) then add ribose-phosphate. Antimetabolites (methotrexate→DHFR, 5-FU→thymidylate synthase, 6-MP activated by HGPRT; its nucleotides block purine synthesis and are built into DNA) exploit the dividing cell's nucleotide demand."
   - level: "grad"
     label: "Grad"
     text: "The architecture is an economy under allosteric control. De novo purine flux is gated at PRPP amidotransferase (feedback-inhibited by IMP/AMP/GMP and activated by PRPP), with IMP partitioned to AMP (GTP-dependent) and GMP (ATP-dependent) — a reciprocal energy requirement that helps balance the pools. Salvage is not a backup but a major, tissue-dependent source, and the PRPP node couples salvage, de novo, and the pyrimidine and NAD pathways, which is why HGPRT loss raises PRPP and de novo flux (Lesch-Nyhan). De novo dNTP supply funnels through ribonucleotide reductase, allosterically tuned at specificity and activity sites to keep the four dNTPs balanced — mis-tuning is mutagenic. The therapeutic surface is broad precisely because the network is shared: DHFR/thymidylate-synthase inhibition (methotrexate, 5-FU) and purine-analog incorporation (6-MP, thiopurines) hit nodes whose load scales with proliferation, while xanthine-oxidase inhibition (allopurinol) acts on catabolism to lower urate."
@@ -265,40 +265,175 @@ import PurineSalvageVsDeNovo from '../../../components/PurineSalvageVsDeNovo.ast
 import GoutUricAcidExplorer from '../../../components/GoutUricAcidExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A nucleotide is costly for a cell to build, so the cell recycles much of what it has.** Nucleotides are the letters of DNA and RNA, the carriers of energy (ATP, GTP), the cores of signaling molecules (cyclic AMP), and the backbones of key cofactors (NAD⁺, FAD, coenzyme A). Building their ring systems from scratch costs a small fortune in ATP. The result is a metabolism organized around thrift — and the places where that thrift fails, or where a drug imitates a building block, are where this chapter pays off in the clinic.
+**Lose one enzyme that recycles purines, and the body builds purines far faster than normal and makes several times more uric acid.**
 
-## Two ways to make a purine
+That is Lesch-Nyhan syndrome; a classic early sign is orange, sand-like urate crystals in a baby's diaper. A broken recycling enzyme ought to leave the cell short of purines. Why does it make a flood instead, and why does the flood leave as uric acid?
 
-There are two routes to a purine nucleotide, and the difference is mostly about cost.
+*About the film above:* it covers purines only; its "roughly six ATP" counts making the PRPP (in ATP equivalents, explained below); and uricase, which it says converts uric acid to allantoin, does only the first of three steps.
 
-**De novo synthesis** builds the purine ring atom by atom directly onto an activated ribose called **PRPP**. It runs about ten enzymatic steps and spends roughly six ATP to produce the first finished purine nucleotide, **IMP**, from which both AMP and GMP branch. The committed, regulated step is **glutamine-PRPP amidotransferase** — the cell's decision to spend.
+Nucleotides are the letters of DNA and RNA, the energy carriers ATP and GTP and the core of cyclic AMP, and NAD⁺, FAD and coenzyme A each contain one. Their rings cost a small fortune in ATP, so the cell recycles much of what it has.
 
-**Salvage** does the opposite of expensive. It takes a free base that already exists — hypoxanthine, guanine, adenine — and reattaches it to PRPP in a *single* step. **HGPRT** salvages hypoxanthine and guanine; **APRT** salvages adenine. Recycling is so much cheaper that many cells recover a large share of their free purines rather than rebuilding them. In many tissues salvage is not a backup plan but a major source; how much a cell relies on it depends on the tissue and on how fast it is growing.
+## Three words first: base, nucleoside, nucleotide
+
+A purine **base** is a two-ring molecule on its own (a pyrimidine base has one ring). Add a ribose and it is a **nucleoside**; add a phosphate to that ribose and it is a **nucleotide**.
+
+| Base | + ribose = nucleoside | + phosphate = nucleotide |
+| --- | --- | --- |
+| hypoxanthine | inosine | IMP |
+| guanine | guanosine | GMP |
+| adenine | adenosine | AMP |
+
+IMP is the first purine nucleotide the cell builds, and the parent of both AMP and GMP.
+
+## Two doors in, one way out
+
+Nucleotides do not last: RNA is made and broken down all day, and nucleotides are turned over constantly, so a cell is always releasing free bases.
+
+> **The one idea to carry through this lesson.** A cell's purine nucleotides are a pool on a loop, with two doors in (build and recycle) and one way out. Salvage puts a large share of freed bases straight back (how large depends on the tissue); whatever it misses leaves the loop, almost all of it as uric acid. De novo synthesis refills the pool through a gate that PRPP pushes open and finished nucleotides push shut. So, at steady state, the cell builds what it fails to recycle, and the uric acid the body makes equals what it builds plus the purine it absorbs from food.
+
+Two exceptions: a growing tissue builds extra to grow, and a sudden loss of many cells sends their nucleic acids and nucleotides into the exit (the last prediction). Food purine is mostly broken down in the gut wall and liver rather than reused, so it adds to the exit, not the pool. Pyrimidines have their own build and recycle routes (recycling runs through different enzymes) and a harmless exit, covered below.
+
+### The molecule both doors use: PRPP
+
+Both doors start from **PRPP**, 5-phosphoribosyl-1-pyrophosphate: ribose-5-phosphate (from the pentose phosphate pathway) carrying a **pyrophosphate**, two linked phosphates, on carbon 1. PRPP synthetase takes that pyrophosphate from ATP, leaving AMP. PRPP is "activated": when something attaches to carbon 1 the pyrophosphate leaves, and its rapid breakdown makes the attachment effectively one-way. Costs here are counted in **ATP equivalents**: one high-energy phosphate bond spent, as when ATP becomes ADP (a GTP becoming GDP counts the same). PRPP uses one ATP *molecule*, but turning it into AMP spends two bonds, and the AMP must be recharged twice to become ATP again. So one PRPP costs **2 ATP equivalents**.
+
+### Door 1, build: de novo synthesis
+
+The cell assembles the purine ring atom by atom directly on carbon 1 of PRPP, and about ten enzymatic steps later **IMP** appears. The ring's nine atoms come from glycine (three), glutamine (two), aspartate (one), CO₂ (one) and two one-carbon (formyl) groups carried by **tetrahydrofolate (THF)**, the working form of the folate vitamin. Remember those two folate carbons.
+
+| What building spends | ATP equivalents |
+| --- | --- |
+| Making the PRPP | 2 |
+| Four steps that each turn ATP into ADP (adding glycine, adding the second glutamine nitrogen, closing the first ring, adding aspartate) | 4 |
+| **IMP, total** | **6** |
+| IMP → AMP (a GTP → GDP, +1) | 7 for AMP |
+| IMP → GMP (an ATP → AMP, +2) | 8 for GMP |
+
+### Door 2, recycle: salvage
+
+Salvage attaches an existing base to PRPP in a *single* step, by **phosphoribosyltransferases**, which move the phosphoribose from PRPP onto the base. **HGPRT** (hypoxanthine-guanine phosphoribosyltransferase) turns hypoxanthine into IMP and guanine into GMP; **APRT** (adenine phosphoribosyltransferase) turns adenine into AMP.
+
+The only cost is the PRPP, 2 ATP equivalents, with no amino acids or folate: three to four times cheaper than building. In many tissues salvage is a major source, not a backup; how much a cell relies on it also depends on how fast it is growing.
 
 <PurineSalvageVsDeNovo />
 
-The cost difference is not academic. When the salvage enzyme HGPRT is missing — an X-linked defect called **Lesch-Nyhan syndrome** — two bad things happen at once. Free bases that should have been reclaimed are instead dumped into the catabolic pathway and turned into uric acid, and the PRPP that salvage would have consumed piles up and pushes de novo synthesis even higher, making still more purines to degrade. The consequence is severe hyperuricemia alongside profound neurological disease. Losing the recycling program is both wasteful and toxic.
+The sandbox's "≈ 1 ATP-eq" for recycling (a sixth of building) counts PRPP's one ATP *molecule*, not its two bonds: in ATP equivalents it is 6 against 2 (in molecules, 5 against 1).
 
-## The human endgame: uric acid
+### The gate: where the cell decides to build
 
-When a purine is finally retired, it is broken down in a few steps: AMP and adenosine funnel through inosine to **hypoxanthine** (guanine joins the route one step later, at xanthine), and then the enzyme **xanthine oxidase** oxidizes hypoxanthine to **xanthine** and xanthine to **uric acid**. For most mammals that is not the end — they carry an enzyme called **uricase** that converts uric acid into highly soluble allantoin. Humans and the other apes lost a working uricase during evolution. So for us, uric acid *is* the end product, and it is only sparingly soluble.
+PRPP itself can still go to salvage, to pyrimidines or to NAD⁺. The first step that sends it to purines *only* is **glutamine-PRPP amidotransferase**, which swaps PRPP's pyrophosphate for an amino group from glutamine. That makes it the **committed step**, and so the place for control.
 
-That missing enzyme is why humans are prone to **gout**, though who actually gets it depends mostly on how well the kidneys and gut excrete urate. Once serum urate climbs past roughly 6.8 mg/dL, it is supersaturated and can slowly crystallize as monosodium urate in and around joints. A flare is the body's inflammatory attack on those needle-sharp crystals. One fix is to make less of it: **allopurinol**, a hypoxanthine look-alike, inhibits xanthine oxidase, so urate production falls and, over months, the crystals can dissolve. Other drugs instead help the kidneys excrete more urate. It came out of Gertrude Elion and George Hitchings's lab: they first tested it as a xanthine oxidase blocker to slow the breakdown of their leukemia drug 6-mercaptopurine, and its urate-lowering effect led to its use in gout.
+- **Is there PRPP to spend?** PRPP is the gate's substrate and also switches it on. More PRPP, more building.
+- **Are the shelves full?** IMP, AMP and GMP bind the enzyme away from its active site and switch it off (**feedback inhibition**). AMP and GMP together shut it down more than either alone.
+
+**Predict.** A cell already has plenty of AMP and GMP, and it is handed free hypoxanthine. What happens to its rate of building?
+
+<details>
+<summary>Check your prediction</summary>
+
+It falls, for two reasons. Salvaging the hypoxanthine uses up PRPP, so the gate has less to spend, and it makes IMP, which adds to the feedback. Recycling does more than save ATP: it turns building down.
+
+</details>
+
+## The way out: uric acid
+
+A purine that is not recycled is taken apart in three moves.
+
+1. **Strip the phosphate and the amino group:** AMP and adenosine funnel through to inosine (losing adenine's amino group is what turns the adenosine into inosine, whose base is hypoxanthine).
+2. **Remove the ribose:** inosine becomes the free base **hypoxanthine**, which salvage can still catch.
+3. **Oxidize twice:** **xanthine oxidase** turns hypoxanthine into **xanthine**, and xanthine into **uric acid**. Guanine joins at xanthine, by losing its amino group.
+
+Most mammals go further: their **uricase** oxidizes uric acid, the first of three steps to highly soluble allantoin. Humans and the other apes lost a working uricase during evolution, so for us sparingly soluble uric acid *is* the end product.
+
+That missing enzyme is why humans are prone to **gout**, though who gets it depends mostly on how well the kidneys and gut excrete urate. Once serum urate (uric acid's ionized form, the one in blood) climbs past roughly 6.8 mg/dL, it is supersaturated and can slowly crystallize as monosodium urate in and around joints. A flare is the body's inflammatory attack on those needle-sharp crystals.
+
+One fix is to make less urate. **Allopurinol**, a hypoxanthine look-alike, inhibits xanthine oxidase, so urate production falls and, over months, the crystals can dissolve. It came out of Gertrude Elion and George Hitchings's lab, but not as a gout drug: they first tested it as a xanthine oxidase blocker to slow the breakdown of their leukemia drug 6-mercaptopurine, and its urate-lowering effect led to its use in gout. Other drugs instead help the kidneys excrete more urate.
 
 <GoutUricAcidExplorer />
 
-## Pyrimidines: the ring comes first
+## When recycling breaks: Lesch-Nyhan syndrome
 
-Pyrimidine synthesis is worth one contrast. Where purines are assembled directly on the ribose-phosphate scaffold, pyrimidines build the **ring first** — from carbamoyl phosphate and aspartate — and only attach ribose-phosphate afterward. The carbamoyl phosphate here is made by **CPS-II**, a cytosolic enzyme that draws its nitrogen from glutamine, and it is deliberately a different enzyme from the mitochondrial CPS-I of the urea cycle. Keeping the two apart lets the cell dispose of nitrogen and build nucleotides without the two jobs interfering.
+Back to the opening puzzle. In Lesch-Nyhan syndrome the HGPRT gene, on the X chromosome, does not work, so nearly all patients are boys.
 
-One more enzyme deserves a name. DNA needs *deoxy*ribonucleotides, and in a dividing cell most of them are made by reducing ribonucleotides through a single gateway, **ribonucleotide reductase**. Cells can also salvage ready-made deoxynucleosides. Because most new dNTPs for DNA pass through that one enzyme, its activity is tied tightly to cell division — which makes it, like the rest of this pathway, a target.
+**Predict.** HGPRT is gone. Follow the freed hypoxanthine and guanine. Then ask what happens to PRPP, to the gate and to uric acid.
 
-## Where the chemistry meets the clinic
+<details>
+<summary>Check your prediction</summary>
 
-Nucleotide metabolism is unusually rich in drugs, and they all run on Fischer's old principle: a molecule's *shape* decides what an enzyme will accept. Make a counterfeit that fits the lock well enough to turn it, or to jam it, and you have a medicine.
+The freed bases cannot go back into the pool, so they are oxidized to uric acid. The PRPP that salvage would have spent piles up and pushes the gate open, so building speeds up. Almost all of that extra purine leaves as uric acid too: the cell still builds what it fails to recycle, and now it fails to recycle far more. The result is severe hyperuricemia (too much urate in the blood): urate crystals in the diaper, then kidney stones and, later, gout.
 
-The dividing cell is the most exposed, because it needs nucleotides fastest. **Methotrexate** mimics folate and blocks dihydrofolate reductase, the enzyme that regenerates tetrahydrofolate, the one-carbon carrier that thymidylate synthase needs to make thymidylate (dTMP). **5-fluorouracil** mimics uracil; inside the cell it becomes FdUMP, which traps thymidylate synthase itself. Both starve a cell of the thymidylate it needs to copy its DNA. **6-mercaptopurine**, a fake purine, is picked up by the salvage enzyme HGPRT and turned into counterfeit nucleotides. These shut down purine synthesis and, once built into DNA, damage the leukemia cells that swallowed it.
+</details>
+
+**Predict.** Allopurinol brings these boys' urate down. Will it also prevent the syndrome's profound neurological disease, with severe movement problems and compulsive self-injury?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Allopurinol protects the kidneys and joints, but the neurological disease is not caused by urate, and its mechanism is still not fully understood. Losing HGPRT does two separate kinds of harm, and allopurinol treats only the urate flood.
+
+</details>
+
+## Pyrimidines: ring first
+
+Pyrimidines (cytosine, uracil, thymine) mirror the purine build door: they build the **ring first**, from carbamoyl phosphate and aspartate, and take the ribose-phosphate from PRPP only afterward. The carbamoyl phosphate comes from **CPS-II**, not the urea cycle's **CPS-I**. CPS-I is mitochondrial, takes free ammonia and needs N-acetylglutamate; CPS-II is cytosolic, takes glutamine's nitrogen and is shut off by UTP, a finished pyrimidine. Different places and signals let nitrogen disposal and nucleotide building run independently.
+
+The exit differs too: pyrimidines break down to soluble products (β-alanine, β-aminoisobutyrate, CO₂ and ammonia), so they have no gout.
+
+## DNA's building blocks
+
+DNA needs *deoxy*ribonucleotides, a branch off the pool outside the loop's balance. In a dividing cell most new dNTPs (deoxynucleoside triphosphates) come through one gateway, **ribonucleotide reductase**, which reduces ribonucleotides; cells can also salvage ready-made deoxynucleosides. Its activity is therefore tied tightly to cell division, and **hydroxyurea** inhibits it (used in sickle-cell disease and some leukemias).
+
+Thymine needs one more step. **Thymidylate synthase** adds a carbon, carried by a folate, to dUMP (uracil's deoxynucleotide) to make thymidylate (**dTMP**), leaving the folate as dihydrofolate (DHF). **Dihydrofolate reductase (DHFR)** must turn DHF back into THF before it can carry another carbon, to thymidylate or to the purine ring.
+
+## Counterfeits at each door
+
+The drugs here run on Emil Fischer's old principle: a molecule's *shape* decides what an enzyme will accept. A counterfeit that fits the lock well enough to turn it, or jam it, is a medicine: an **antimetabolite**. The dividing cell is the most exposed, because it needs nucleotides fastest, though fast-dividing normal tissues are hit too.
+
+- **Methotrexate** mimics folate and jams DHFR, so THF is not regenerated, starving both the purine ring's two folate carbons and the carbon that makes dTMP.
+- **5-fluorouracil** mimics uracil. Inside the cell it becomes FdUMP, which traps thymidylate synthase itself, so it too starves the cell of the dTMP it needs to copy its DNA.
+- **6-mercaptopurine** (6-MP), a fake purine, enters through the *recycle* door: HGPRT turns it into counterfeit nucleotides. These shut down purine synthesis and, once built into DNA, damage the leukemia cells that took it up.
 
 <LessonFigure src="/figures/nucleotide-metabolism/antimetabolites-starve-thymidine.webp" width={1200} height={535} alt="AI-generated illustration: a left-to-right flow of five blocks: dihydrofolate reductase, tetrahydrofolate (THF, the one-carbon carrier), thymidylate synthase, an empty dashed dTMP block labelled dTMP starved, and DNA copying. A methotrexate tag marks dihydrofolate reductase and a 5-fluorouracil tag marks thymidylate synthase; the drawing is a simplified summary of the two drug targets." caption="Methotrexate blocks dihydrofolate reductase, reducing folate availability for thymidylate synthesis. Inside the cell, 5-fluorouracil is converted to FdUMP, which traps thymidylate synthase. Both reduce dTMP supply and impair DNA copying." />
 
-These are the **antimetabolites**, and the thread runs straight from Emil Fischer naming the purine ring, to Hitchings and Elion turning that ring into leukemia therapy, transplant drugs, the gout drug above, and the antiviral acyclovir. Understand how the cell builds and recycles its nucleotides, and you understand why these drugs work — and why the anticancer ones hit the fastest-dividing cells hardest of all.
+**Predict.** A leukemia cell loses its HGPRT to a mutation. What happens when it meets 6-MP?
+
+<details>
+<summary>Check your prediction</summary>
+
+It is resistant. Without HGPRT, 6-MP is never made into nucleotides, and the cell can still build its purines de novo. That is why the related drug 6-thioguanine selects HGPRT-mutant cells in culture.
+
+</details>
+
+**Predict.** A treatment kills a large, fast-growing tumor within days. What happens to urate, and what would you give before treatment starts?
+
+<details>
+<summary>Check your prediction</summary>
+
+Urate surges. This is the exception set aside earlier: dying cells release their DNA, RNA and nucleotides at once, their purines go down the exit to uric acid (**tumor lysis**), and the urate can crystallize in the kidneys. Allopurinol given beforehand blocks the exit's last two steps, so less urate is made. Urate already in the blood needs rasburicase, a uricase made as a drug, which breaks it down.
+
+</details>
+
+The thread runs from Fischer naming the purine ring to Hitchings and Elion turning it into leukemia therapy, transplant drugs, the gout drug above and the antiviral acyclovir. Most aim at the doors, the exit or the DNA branch of one loop; acyclovir, a guanosine look-alike, instead jams the herpes virus's own DNA polymerase.
+
+## Going deeper
+
+### The fine print of the tally
+
+PRPP to IMP is ten steps in vertebrates (eleven counting PRPP synthetase). The CO₂ step uses no ATP in vertebrates; bacteria spend one there. IMP dehydrogenase, on the way to GMP, uses an NAD⁺ and is the target of the transplant drug mycophenolate. That AMP needs GTP and GMP needs ATP helps balance the two pools.
+
+### Variations on the loop
+
+- An overactive **PRPP synthetase** pushes the gate open even with working HGPRT: urate overproduction and gout by the same logic.
+- **Partial HGPRT deficiency** still causes urate overproduction, with gout and kidney stones, but milder or no neurological disease.
+- In Lesch-Nyhan the established driver is the rise in PRPP. Weaker feedback from lower IMP and GMP may add to it, but that is secondary and debated.
+- With working HGPRT, allopurinol tends to lower total purine output, not just urate, because the hypoxanthine it leaves behind is salvaged. In Lesch-Nyhan it only swaps urate for hypoxanthine and xanthine, with a risk of xanthine stones.
+
+### Pyrimidine and dNTP control
+
+Besides UTP feedback, CPS-II is switched on by PRPP and ATP. In mammals it sits in one large protein, CAD, with the next two steps; a later enzyme, DHODH, makes orotate. In orotic aciduria, an inherited block after orotate, orotate spills into the urine. Mammalian ribonucleotide reductase works on ribonucleoside *di*phosphates; one allosteric site sets its overall activity and another sets which substrate it reduces, keeping the four dNTPs balanced (mis-tuning is mutagenic).
+
+### More on the drugs
+
+- Inside cells methotrexate gains a chain of glutamates, and these forms also inhibit the purine formyl-adding enzymes directly, most strongly AICAR transformylase.
+- **The leucovorin paradox.** Leucovorin, a ready-made reduced folate, bypasses DHFR and rescues normal cells from methotrexate. With 5-FU it does the opposite: it supplies the folate partner that locks FdUMP onto thymidylate synthase.
+- TPMT (thiopurine methyltransferase) inactivates 6-MP, so people with low TPMT build up toxic amounts of its nucleotides. Xanthine oxidase also breaks 6-MP down, so giving allopurinol with 6-MP means cutting the 6-MP dose.
