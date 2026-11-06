@@ -5,7 +5,9 @@
  * the cell DRIVES them by coupling to ATP hydrolysis, and its spending is gated by
  * energy charge. Three benches:
  *   1. Couple it      — add an uphill reaction's ΔG°' to ATP's −30.5 and watch the
- *                       sum (and K'eq) flip from "won't go" to spontaneous.
+ *                       sum (and K'eq) flip from "won't go" to spontaneous — but only
+ *                       when one enzyme joins them (a separate-site mode shows the sum
+ *                       still adds while nothing happens).
  *   2. Rank the donors — drag a phosphoryl group down the transfer-potential ladder;
  *                        the cell can only push phosphate downhill (PEP→ADP→glucose).
  *   3. Read the battery — an energy-charge gauge: EC = (ATP + ½ADP)/(ATP+ADP+AMP).
@@ -26,32 +28,33 @@
       <svg class="eeb-svg eeb-svg-hill" viewBox="0 0 260 150" role="img" data-svg="hill" aria-label="Two wagons on a hill showing reaction coupling"></svg>
 
       <div class="eeb-ctl">
-      <label class="eeb-slabel"><span>Uphill reaction A → B: ΔG°' = <em data-out="targetdg">+12</em> kJ/mol</span>
-        <input type="range" data-in="targetdg" min="5" max="25" step="1" value="12" />
+      <label class="eeb-slabel"><span>Uphill reaction A → B: ΔG°' = <em data-out="targetdg">+13.8</em> kJ/mol (glucose + Pi → G6P is 13.8)</span>
+        <input type="range" data-in="targetdg" min="5" max="25" step="0.1" value="13.8" />
       </label>
-      <label class="eeb-check">
-        <input type="checkbox" data-in="couple" />
-        Couple to ATP hydrolysis (−30.5 kJ/mol)
-      </label>
+      <div class="eeb-radios" role="radiogroup" aria-label="How A → B meets ATP hydrolysis (−30.5 kJ/mol)">
+        <label class="eeb-check"><input type="radio" name="eeb-couple-mode" data-in="mode" value="alone" checked /> Alone</label>
+        <label class="eeb-check"><input type="radio" name="eeb-couple-mode" data-in="mode" value="joined" /> Joined in one enzyme (hexokinase)</label>
+        <label class="eeb-check"><input type="radio" name="eeb-couple-mode" data-in="mode" value="separate" /> ATP hydrolyzed at a separate site</label>
+      </div>
 
       <dl class="eeb-readout">
-        <div><dt>ΔG°' of target</dt><dd data-out="dg-target">+12.0 kJ/mol</dd></div>
-        <div><dt>ΔG°' summed</dt><dd data-out="dg-sum">+12.0 kJ/mol</dd></div>
-        <div><dt>K'eq (310 K)</dt><dd data-out="keq">9.5e-3</dd></div>
+        <div><dt>ΔG°' of target</dt><dd data-out="dg-target">+13.8 kJ/mol</dd></div>
+        <div><dt>ΔG°' summed</dt><dd data-out="dg-sum">+13.8 kJ/mol</dd></div>
+        <div><dt>K'eq (310 K)</dt><dd data-out="keq">4.7 × 10⁻³</dd></div>
       </dl>
       <p class="eeb-verdict" data-out="verdict" role="status"></p>
-      <p class="eeb-tip">The two reactions are linked through a shared intermediate, so their ΔG°' values simply add.</p>
+      <p class="eeb-tip">The sum is real only because one enzyme joins the two: ATP's phosphoryl group goes straight to the substrate (hexokinase) or through a short-lived covalent intermediate (glutamine synthetase).</p>
       </div>
     </section>
 
     <!-- MODULE 2 — Rank the donors -->
     <section class="eeb-mod">
-      <h3 class="eeb-modh">Rank the donors: phosphate only rolls downhill</h3>
-      <svg class="eeb-svg eeb-svg-ladder" viewBox="0 0 200 300" role="img" data-svg="ladder" aria-label="Phosphoryl-transfer potential ladder with a draggable phosphate token"></svg>
+      <h3 class="eeb-modh">Rank the donors: under standard conditions, phosphoryl groups go downhill</h3>
+      <svg class="eeb-svg eeb-svg-ladder" viewBox="0 0 200 300" role="img" data-svg="ladder" aria-label="Phosphoryl-transfer potential ladder with a draggable phosphoryl group token"></svg>
       <div class="eeb-ctl">
-      <p class="eeb-laddermsg" data-out="laddermsg" role="status">The phosphate (orange token) starts on ATP. Drag it to another rung, or focus it and press ↓ / ↑. Which moves does the cell allow?</p>
-      <div class="eeb-start" role="group" aria-label="Put the phosphate back on a starting rung">
-        <span>Start the phosphate on:</span>
+      <p class="eeb-laddermsg" data-out="laddermsg" role="status">The phosphoryl group (orange token) starts on ATP. Drag it to another rung, or focus it and press ↓ / ↑. Which moves does the cell allow?</p>
+      <div class="eeb-start" role="group" aria-label="Put the phosphoryl group back on a starting rung">
+        <span>Start the phosphoryl group on:</span>
         <button type="button" data-start="0">PEP</button>
         <button type="button" data-start="3">ATP</button>
       </div>
@@ -64,22 +67,23 @@
       <h3 class="eeb-modh">Read the battery: energy charge gates spending</h3>
       <svg class="eeb-svg eeb-svg-gauge" viewBox="0 0 200 130" role="img" data-svg="gauge" aria-label="Energy charge gauge from 0 to 1"></svg>
       <div class="eeb-ctl">
-      <div class="eeb-ec">Energy charge <strong data-out="ec">0.91</strong></div>
-      <div class="eeb-ampk" data-out="ampk" role="status">High charge — STORE mode</div>
+      <div class="eeb-ec">Energy charge <strong data-out="ec">0.95</strong></div>
+      <div class="eeb-ampk" data-out="ampk" role="status">High charge: spend on building (anabolic)</div>
       <div class="eeb-modes">
         <span class="eeb-mode" data-mode="cata">🔥 catabolic · burn fuel</span>
         <span class="eeb-mode" data-mode="ana">🧱 anabolic · build</span>
       </div>
-      <label class="eeb-slabel"><span>[ATP] <em data-out="atp">85</em></span><input type="range" data-in="atp" min="0" max="100" step="1" value="85" /></label>
-      <label class="eeb-slabel"><span>[ADP] <em data-out="adp">12</em></span><input type="range" data-in="adp" min="0" max="100" step="1" value="12" /></label>
-      <label class="eeb-slabel"><span>[AMP] <em data-out="amp">3</em></span><input type="range" data-in="amp" min="0" max="100" step="1" value="3" /></label>
+      <label class="eeb-slabel"><span>[ATP] <em data-out="atp">90</em></span><input type="range" data-in="atp" min="0" max="100" step="1" value="90" /></label>
+      <label class="eeb-slabel"><span>[ADP] <em data-out="adp">9.0</em></span><input type="range" data-in="adp" min="0" max="100" step="0.1" value="9" /></label>
+      <label class="eeb-slabel"><span>[AMP] <em data-out="amp">1.0</em></span><input type="range" data-in="amp" min="0" max="100" step="0.1" value="1" /></label>
       <p class="eeb-akrow" data-out="akrow" aria-live="polite"></p>
       <p class="eeb-tip">Drag ATP down and watch AMP. Adenylate kinase (2 ADP ⇌ ATP + AMP) stays near equilibrium, so as ATP is spent the leftover ADP is partly converted to AMP: AMP rises far faster, in relative terms, than ATP falls. That makes AMP the cell's sensitive alarm (it is what AMPK reads). Concentrations are relative, total adenylate = 100.</p>
+      <p class="eeb-tip">Try the lesson's case: drag ATP from 90 to 81.</p>
       </div>
     </section>
   </div>
 
-  <p class="eeb-foot">Run the first bench and the whole chapter collapses into one sentence: alone, A → B (+12 kJ/mol) has a K'eq near 0.01, so at equilibrium there is about one B for every hundred A; bolt it to ATP hydrolysis and the summed ΔG°' goes to −18.5 — K'eq jumps past 1,000, and the reaction runs. That is all coupling is: arithmetic on ΔG, paid in ATP. The third bench tells you when the cell is willing to pay. It does not spend its last dollar; it holds energy charge near 0.85–0.92, throttling fuel-burning and fuel-building against the same gauge, the way you'd manage a checking account you can never let hit zero.</p>
+  <p class="eeb-foot">Run the first bench and the whole chapter collapses into one sentence: alone, glucose + Pi → glucose-6-P (+13.8 kJ/mol) has a K'eq near 0.0047 at 37 °C, about one product for every 200 glucose; join it to ATP hydrolysis in hexokinase and the summed ΔG°' goes to −16.7 — K'eq jumps to about 650, and the reaction runs. (At 25 °C, as in the text above, the same numbers are 0.0038 and 840.) The arithmetic holds only because one enzyme joins the two reactions; hydrolyze ATP somewhere else and its free energy is just heat. The third bench tells you when the cell is willing to pay. It does not spend its last dollar; it holds energy charge near 0.85–0.90, throttling fuel-burning and fuel-building against the same gauge, the way you'd manage a checking account you can never let hit zero.</p>
 </figure>
 
 <script>
@@ -99,8 +103,8 @@
   type Rung = { name: string; dg: number; currency: boolean };
   const LADDER: Rung[] = [
     { name: 'PEP', dg: -61.9, currency: false },
-    { name: '1,3-BPG', dg: -49.3, currency: false },
-    { name: 'creatine-P', dg: -43.0, currency: false },
+    { name: '1,3-BPG', dg: -49.4, currency: false },
+    { name: 'creatine-P', dg: -43.1, currency: false },
     { name: 'ATP → ADP', dg: -30.5, currency: true },
     { name: 'glucose-6-P', dg: -13.8, currency: false },
     { name: 'glycerol-3-P', dg: -9.2, currency: false },
@@ -127,7 +131,10 @@
     const t = el('text', { x: 0, y: -5.5, 'text-anchor': 'middle', fill: labelFill, 'font-size': 8, 'font-weight': 700 }); t.textContent = label; g.appendChild(t);
     return g;
   }
-  function drawHill(svg: SVGSVGElement, targetDG: number, coupled: boolean): void {
+  type CoupleMode = 'alone' | 'joined' | 'separate';
+  function drawHill(svg: SVGSVGElement, targetDG: number, mode: CoupleMode): void {
+    const coupled = mode === 'joined';
+    const spent = mode !== 'alone'; // ATP is hydrolyzed in both the joined and separate-site cases
     let layer = svg.querySelector<SVGGElement>('[data-layer]');
     let tw = svg.querySelector<SVGGElement>('[data-target-wagon]');
     if (!layer || !tw) {
@@ -142,24 +149,29 @@
     const cy = hillPeak(targetDG);
     layer.appendChild(el('line', { x1: 8, y1: GROUND, x2: 252, y2: GROUND, stroke: FAINT, 'stroke-width': 1 }));
     layer.appendChild(el('path', { d: `M${HX0} ${GROUND} Q${HCX} ${cy} ${HX1} ${GROUND}`, fill: 'rgba(35,45,75,0.05)', stroke: INK, 'stroke-width': 1.4, 'stroke-opacity': 0.6 }));
-    const hl = el('text', { x: HCX, y: GROUND - 8, 'text-anchor': 'middle', fill: INK, 'font-size': 8 }); hl.textContent = `uphill: +${targetDG} kJ/mol`; layer.appendChild(hl);
+    const hl = el('text', { x: HCX, y: GROUND - 8, 'text-anchor': 'middle', fill: INK, 'font-size': 8 }); hl.textContent = `uphill: +${targetDG.toFixed(1)} kJ/mol`; layer.appendChild(hl);
 
     // ATP's own, steeper slope on the right: ATP → ADP + Pi runs downhill by 30.5 kJ/mol
-    layer.appendChild(el('path', { d: 'M196 34 L250 130', stroke: ACCENT, 'stroke-width': 1.4, 'stroke-opacity': coupled ? 0.8 : 0.35, fill: 'none' }));
-    const sl = el('text', { x: 254, y: 145, 'text-anchor': 'end', fill: ACCENT, 'font-size': 9, opacity: coupled ? 1 : 0.6 }); sl.textContent = 'ATP → ADP + Pi: −30.5'; layer.appendChild(sl);
-    // ATP wagon: parked at the top when unlinked, partway down its slope when it is pulling
-    const ap = coupled ? { x: 226, y: 88 } : { x: 199, y: 40 };
+    layer.appendChild(el('path', { d: 'M196 34 L250 130', stroke: ACCENT, 'stroke-width': 1.4, 'stroke-opacity': spent ? 0.8 : 0.35, fill: 'none' }));
+    const sl = el('text', { x: 254, y: 145, 'text-anchor': 'end', fill: ACCENT, 'font-size': 9, opacity: spent ? 1 : 0.6 }); sl.textContent = 'ATP → ADP + Pi: −30.5'; layer.appendChild(sl);
+    // ATP wagon: parked at the top when alone, partway down its slope when it is pulling,
+    // and at the bottom (its energy given off as heat) when it is hydrolyzed at a separate site
+    const ap = coupled ? { x: 226, y: 88 } : spent ? { x: 243, y: 118 } : { x: 199, y: 40 };
     const aw = wagon(ACCENT, 'ATP', '#fff', 26);
-    aw.setAttribute('transform', `translate(${ap.x} ${ap.y}) rotate(${coupled ? 60.6 : 0})`);
-    if (!coupled) aw.setAttribute('opacity', '0.55');
+    aw.setAttribute('transform', `translate(${ap.x} ${ap.y}) rotate(${spent ? 60.6 : 0})`);
+    if (!spent) aw.setAttribute('opacity', '0.55');
     layer.appendChild(aw);
+    if (mode === 'separate') {
+      [200, 208, 216].forEach((x) => layer!.appendChild(el('path', { d: `M${x} 110 q 3 -4 0 -8 q -3 -4 0 -8 q 3 -4 0 -8`, fill: 'none', stroke: ORANGE, 'stroke-width': 1.3, 'stroke-linecap': 'round', opacity: 0.8 })));
+      const ht = el('text', { x: 208, y: 80, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 9, 'font-weight': 700 }); ht.textContent = 'heat'; layer.appendChild(ht);
+    }
 
     const pos = hillAt(coupled ? 0.62 : 0.2, cy);
     tw!.style.transform = `translate(${pos.x}px, ${pos.y}px) rotate(${pos.deg}deg)`;
     if (coupled) {
-      // the coupling: a rope over the crest, i.e. the shared intermediate
+      // the coupling: a rope over the crest, i.e. the one enzyme that joins the two reactions
       layer.appendChild(el('path', { d: `M${pos.x + 10} ${pos.y - 12} Q${(pos.x + ap.x) / 2} ${Math.min(pos.y, ap.y) - 22} ${ap.x - 6} ${ap.y - 10}`, fill: 'none', stroke: GOLD, 'stroke-width': 2 }));
-      const bl = el('text', { x: (pos.x + ap.x) / 2 + 4, y: Math.min(pos.y, ap.y) - 20, 'text-anchor': 'middle', fill: '#7f6315', 'font-size': 9, 'font-weight': 700 }); bl.textContent = 'shared intermediate'; layer.appendChild(bl);
+      const bl = el('text', { x: (pos.x + ap.x) / 2 + 4, y: Math.min(pos.y, ap.y) - 20, 'text-anchor': 'middle', fill: '#7f6315', 'font-size': 9, 'font-weight': 700 }); bl.textContent = 'one enzyme joins them'; layer.appendChild(bl);
     } else {
       const nl = el('text', { x: pos.x, y: Math.max(12, pos.y - 54), 'text-anchor': 'middle', fill: ORANGE, 'font-size': 9, 'font-weight': 700 }); nl.textContent = 'stalls'; layer.appendChild(nl);
     }
@@ -190,13 +202,15 @@
       if (r.currency) { const tag = el('text', { x: LAD_X - 16, y: y + 17, 'text-anchor': 'end', fill: '#7f6315', 'font-size': 7.5, 'font-weight': 700 }); tag.textContent = '◆ the currency'; svg.appendChild(tag); }
     }
     // draggable Pi token at the source rung
-    const tok = el('circle', { cx: LAD_X + 30, cy: rungY(tokenIdx), r: 11, fill: ORANGE, stroke: '#fff', 'stroke-width': 2, cursor: 'grab', tabindex: 0, role: 'button', 'aria-label': 'Phosphate token — drag to a rung, or press the down arrow to transfer it to the next lower (spontaneous) rung', 'data-token': '1' }) as SVGCircleElement;
+    const tok = el('circle', { cx: LAD_X + 30, cy: rungY(tokenIdx), r: 11, fill: ORANGE, stroke: '#fff', 'stroke-width': 2, cursor: 'grab', tabindex: 0, role: 'button', 'aria-label': 'Phosphoryl group token — drag to a rung, or press the down arrow to transfer it to the next lower (spontaneous) rung', 'data-token': '1' }) as SVGCircleElement;
     svg.appendChild(tok);
-    const pl = el('text', { x: LAD_X + 30, y: rungY(tokenIdx) + 3, 'text-anchor': 'middle', fill: '#fff', 'font-size': 8, 'font-weight': 700, 'pointer-events': 'none', 'data-tokenlabel': '1' }); pl.textContent = 'Pi'; svg.appendChild(pl);
+    const pl = el('text', { x: LAD_X + 30, y: rungY(tokenIdx) + 3, 'text-anchor': 'middle', fill: '#fff', 'font-size': 8, 'font-weight': 700, 'pointer-events': 'none', 'data-tokenlabel': '1' }); pl.textContent = 'P'; svg.appendChild(pl);
     return tok;
   }
 
   // ---------- MODULE 3: gauge ----------
+  // round half up (0.945 → 0.95, as the lesson rounds it), not toFixed's binary-float rounding
+  const fmtEC = (ec: number): string => (ec + 1e-9).toFixed(2);
   function ecAngle(ec: number): number { return Math.PI - clamp(ec, 0, 1) * Math.PI; } // 0->left(π), 1->right(0)
   function gaugePt(ec: number, rad: number): { x: number; y: number } {
     const a = ecAngle(ec);
@@ -208,8 +222,8 @@
     // base arc
     const a0 = gaugePt(0, Rr), a1 = gaugePt(1, Rr);
     svg.appendChild(el('path', { d: `M${a0.x.toFixed(1)} ${a0.y.toFixed(1)} A ${Rr} ${Rr} 0 0 1 ${a1.x.toFixed(1)} ${a1.y.toFixed(1)}`, fill: 'none', stroke: FAINT, 'stroke-width': 8, 'stroke-linecap': 'round' }));
-    // green healthy band 0.80–0.95
-    const g0 = gaugePt(0.80, Rr), g1 = gaugePt(0.95, Rr);
+    // green healthy band 0.85–0.90 (the normal range the lesson gives)
+    const g0 = gaugePt(0.85, Rr), g1 = gaugePt(0.90, Rr);
     svg.appendChild(el('path', { d: `M${g0.x.toFixed(1)} ${g0.y.toFixed(1)} A ${Rr} ${Rr} 0 0 1 ${g1.x.toFixed(1)} ${g1.y.toFixed(1)}`, fill: 'none', stroke: '#2e8b57', 'stroke-width': 8, 'stroke-linecap': 'round', opacity: 0.85 }));
     // tick labels
     [0, 0.5, 1].forEach((v) => { const p = gaugePt(v, Rr + 14); const tt = el('text', { x: p.x, y: p.y + 3, 'text-anchor': 'middle', fill: INK, 'font-size': 8 }); tt.textContent = v.toFixed(1); svg.appendChild(tt); });
@@ -217,7 +231,7 @@
     const np = gaugePt(ec, Rr - 6);
     svg.appendChild(el('line', { x1: 100, y1: 110, x2: np.x.toFixed(1), y2: np.y.toFixed(1), stroke: ec < 0.70 ? ORANGE : NAVY, 'stroke-width': 3, 'stroke-linecap': 'round' }));
     svg.appendChild(el('circle', { cx: 100, cy: 110, r: 5, fill: NAVY }));
-    const ecl = el('text', { x: 100, y: 126, 'text-anchor': 'middle', fill: ec < 0.70 ? ORANGE : NAVY, 'font-size': 13, 'font-weight': 700, 'font-family': 'monospace' }); ecl.textContent = ec.toFixed(2); svg.appendChild(ecl);
+    const ecl = el('text', { x: 100, y: 126, 'text-anchor': 'middle', fill: ec < 0.70 ? ORANGE : NAVY, 'font-size': 13, 'font-weight': 700, 'font-family': 'monospace' }); ecl.textContent = fmtEC(ec); svg.appendChild(ecl);
   }
 
   // ---------- init ----------
@@ -225,7 +239,7 @@
     // MODULE 1
     const hillSvg = root.querySelector<SVGSVGElement>('[data-svg="hill"]')!;
     const dgIn = root.querySelector<HTMLInputElement>('[data-in="targetdg"]')!;
-    const coupleIn = root.querySelector<HTMLInputElement>('[data-in="couple"]')!;
+    const modeIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="mode"]'));
     const dgOut = root.querySelector<HTMLElement>('[data-out="targetdg"]')!;
     const dgTargetOut = root.querySelector<HTMLElement>('[data-out="dg-target"]')!;
     const dgSumOut = root.querySelector<HTMLElement>('[data-out="dg-sum"]')!;
@@ -239,22 +253,27 @@
 
     function renderCouple(): void {
       const targetDG = Number.parseFloat(dgIn.value);
-      const coupled = coupleIn.checked;
-      const sum = coupled ? targetDG + ATP_DG : targetDG;
-      const keq = Math.exp(-sum / (R * T));
-      dgOut.textContent = `+${targetDG.toFixed(0)}`;
+      const mode = (modeIns.find((m) => m.checked)?.value ?? 'alone') as CoupleMode;
+      // The ΔG°' values add on paper in both coupled modes, but only joined chemistry
+      // changes what A → B actually does: K'eq and the verdict come from the effective ΔG°'.
+      const sumShown = mode === 'alone' ? targetDG : targetDG + ATP_DG;
+      const effective = mode === 'joined' ? sumShown : targetDG;
+      const keq = Math.exp(-effective / (R * T));
+      dgOut.textContent = `+${targetDG.toFixed(1)}`;
       dgTargetOut.textContent = `+${targetDG.toFixed(1)} kJ/mol`;
-      dgSumOut.textContent = `${sum >= 0 ? '+' : ''}${sum.toFixed(1)} kJ/mol`;
-      dgSumOut.style.color = sum > 0 ? 'var(--ddp-color-caution)' : 'var(--ddp-color-verified)';
+      dgSumOut.textContent = `${sumShown >= 0 ? '+' : ''}${sumShown.toFixed(1)} kJ/mol`;
+      dgSumOut.style.color = sumShown > 0 ? 'var(--ddp-color-caution)' : 'var(--ddp-color-verified)';
       keqOut.textContent = sci(keq);
-      verdictOut.dataset.state = sum > 0 ? 'bad' : 'ok';
-      verdictOut.textContent = sum > 0
-        ? `Won't go: K'eq < 1, so at equilibrium there is only about 1 B for every ${Math.round(1 / keq).toLocaleString('en-US')} A. Tick the box to couple it to ATP.`
+      verdictOut.dataset.state = effective > 0 ? 'bad' : 'ok';
+      verdictOut.textContent = mode === 'separate'
+        ? `The numbers still add to ${sumShown.toFixed(1)} kJ/mol, but nothing joins the chemistry: ATP's −30.5 kJ/mol leaves as heat and A → B still has K'eq ≈ ${sci(keq)}. Free energies add only when the chemistry is joined.`
+        : effective > 0
+        ? `Won't go: K'eq < 1, so at equilibrium there is only about 1 B for every ${Math.round(1 / keq).toLocaleString('en-US')} A. Join it to ATP in one enzyme to couple it.`
         : `Runs: K'eq ≫ 1, so at equilibrium B outnumbers A about ${Math.round(keq).toLocaleString('en-US')} to 1. Coupling multiplied K'eq by ${sci(Math.exp(-ATP_DG / (R * T)))}.`;
-      drawHill(hillSvg, targetDG, coupled);
+      drawHill(hillSvg, targetDG, mode);
     }
     dgIn.addEventListener('input', renderCouple);
-    coupleIn.addEventListener('change', renderCouple);
+    modeIns.forEach((m) => m.addEventListener('change', renderCouple));
 
     // MODULE 2
     const ladderSvg = root.querySelector<SVGSVGElement>('[data-svg="ladder"]')!;
@@ -294,12 +313,17 @@
         ladderMsg.dataset.state = 'neutral';
       } else if (LADDER[target].dg > LADDER[sourceIdx].dg) {
         moveToken(rungY(target));
-        ladderMsg.textContent = `✓ ${nm(sourceIdx)} → ${nm(target)}: spontaneous (ΔG°' = −${Math.abs(LADDER[sourceIdx].dg - LADDER[target].dg).toFixed(1)} kJ/mol). Phosphate moved downhill to a weaker donor.`;
+        ladderMsg.textContent = `✓ ${nm(sourceIdx)} → ${nm(target)}: spontaneous under standard conditions (ΔG°' = −${Math.abs(LADDER[sourceIdx].dg - LADDER[target].dg).toFixed(1)} kJ/mol). The phosphoryl group moved downhill to a weaker donor.`;
         ladderMsg.dataset.state = 'ok';
         sourceIdx = target;
+      } else if (LADDER[sourceIdx].currency && LADDER[target].name === 'creatine-P') {
+        // The ladder is a standard-state ranking; creatine kinase runs this way in recovery.
+        moveToken(rungY(sourceIdx));
+        ladderMsg.textContent = `✕ ATP → creatine-P is uphill under standard conditions (+${(LADDER[sourceIdx].dg - LADDER[target].dg).toFixed(1)} kJ/mol). But creatine kinase sits near equilibrium: in a resting muscle with ADP scarce, its actual ΔG turns slightly negative this way, which is how muscle rebuilds creatine-P after a sprint.`;
+        ladderMsg.dataset.state = 'bad';
       } else {
         moveToken(rungY(sourceIdx));
-        ladderMsg.textContent = `✕ ${nm(sourceIdx)} → ${nm(target)} is uphill (ΔG°' = +${(LADDER[sourceIdx].dg - LADDER[target].dg).toFixed(1)} kJ/mol): not spontaneous, so the phosphate stays put.`;
+        ladderMsg.textContent = `✕ ${nm(sourceIdx)} → ${nm(target)} is uphill (ΔG°' = +${(LADDER[sourceIdx].dg - LADDER[target].dg).toFixed(1)} kJ/mol): not spontaneous under standard conditions, so the phosphoryl group stays put.`;
         ladderMsg.dataset.state = 'bad';
       }
     }
@@ -323,8 +347,8 @@
     function startAt(i: number): void {
       sourceIdx = i; moveToken(rungY(i));
       ladderMsg.textContent = i === 0
-        ? 'The phosphate is on PEP, the strongest donor. Now try moving it down to ATP, as glycolysis does.'
-        : 'The phosphate is back on ATP. Try moving it down to glucose-6-P, or up to PEP.';
+        ? 'The phosphoryl group is on PEP, the strongest donor. Now try moving it down to ATP, as glycolysis does.'
+        : 'The phosphoryl group is back on ATP. Try moving it down to glucose-6-P, or up to PEP.';
       ladderMsg.dataset.state = 'neutral';
     }
     root.querySelectorAll<HTMLButtonElement>('[data-start]').forEach((b) => b.addEventListener('click', () => startAt(parseInt(b.dataset.start!, 10))));
@@ -346,9 +370,10 @@
 
     const akrowOut = root.querySelector<HTMLElement>('[data-out="akrow"]')!;
     // Adenylate kinase (2 ADP ⇌ ATP + AMP) is modeled as staying at equilibrium,
-    // K = [ATP][AMP]/[ADP]², with K fixed by the starting state (85/12/3) and the total
+    // K = [ATP][AMP]/[ADP]², with K fixed by the starting state (90/9/1, the lesson's
+    // Predict pool scaled to 100) and the total
     // adenylate pool held at 100. Dragging ATP re-splits the remainder between ADP and AMP.
-    const ATP0 = 85, ADP0 = 12, AMP0 = 3, POOL = ATP0 + ADP0 + AMP0;
+    const ATP0 = 90, ADP0 = 9, AMP0 = 1, POOL = ATP0 + ADP0 + AMP0;
     const K_AK = (ATP0 * AMP0) / (ADP0 * ADP0);
     function akSplit(atp: number): { adp: number; amp: number } {
       const rest = POOL - atp;
@@ -360,10 +385,10 @@
       const atp = Number.parseFloat(atpIn.value);
       if (fromAtp) {
         const sp = akSplit(atp);
-        adpIn.value = String(Math.round(sp.adp));
-        ampIn.value = String(Math.round(sp.amp));
+        adpIn.value = sp.adp.toFixed(1);
+        ampIn.value = sp.amp.toFixed(1);
         akrowOut.textContent = atp < ATP0
-          ? `ATP down ${Math.round((1 - atp / ATP0) * 100)}% → AMP up ${(Number(ampIn.value) / AMP0).toFixed(1)}×`
+          ? `ATP down ${Math.round((1 - atp / ATP0) * 100)}% → AMP up ${(sp.amp / AMP0).toFixed(1)}×`
           : '';
       } else {
         akrowOut.textContent = '';
@@ -373,9 +398,9 @@
       const total = atp + adp + amp;
       const ec = total > 0 ? (atp + 0.5 * adp) / total : 0;
       atpOut.textContent = String(Math.round(atp));
-      adpOut.textContent = String(Math.round(adp));
-      ampOut.textContent = String(Math.round(amp));
-      ecOut.textContent = ec.toFixed(2);
+      adpOut.textContent = adp.toFixed(1);
+      ampOut.textContent = amp.toFixed(1);
+      ecOut.textContent = fmtEC(ec);
       drawGauge(gaugeSvg, ec);
       const low = ec < 0.70;
       ampkOut.textContent = low
@@ -432,6 +457,7 @@
   .eeb-slabel input { accent-color: var(--ddp-color-accent); }
   .eeb-check { display: flex; align-items: flex-start; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.3; }
   .eeb-check input { accent-color: var(--ddp-color-accent); margin-top: 0.1rem; }
+  .eeb-radios { display: flex; flex-direction: column; gap: 0.2rem; }
 
   .eeb-readout { margin: 0; display: grid; grid-template-columns: 1fr; gap: 0.25rem; padding: var(--ddp-space-2); background: var(--ddp-color-accent-soft); border-radius: var(--ddp-radius-sm); }
   .eeb-readout div { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }

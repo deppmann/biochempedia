@@ -1,10 +1,11 @@
 ---
 /**
  * ReactionCoordinatePlot — the thermodynamics/transition-state analog of MiniPlot.
- * An interactive Gibbs free-energy reaction-coordinate diagram: drag ΔG, the
- * uncatalyzed activation energy, and an enzyme "catalysis %" and watch the
- * energy landscape redraw. The load-bearing lesson: the enzyme lowers ONLY the
- * activation barrier (the catalyzed peak); ΔG and the valley levels never move.
+ * An interactive Gibbs free-energy reaction-coordinate diagram: drag ΔG°′, the
+ * uncatalyzed barrier ΔG‡, and how many kJ/mol the enzyme takes off the barrier,
+ * and watch the energy landscape redraw. The load-bearing lesson: the enzyme
+ * lowers ONLY the barrier (the catalyzed peak), forward and reverse by the same
+ * amount; ΔG°′, K_eq and the valley levels never move.
  * Self-contained Astro island — inline style + vanilla TS script, no props.
  */
 ---
@@ -19,14 +20,14 @@
 
   <div class="rcp-body">
     <div class="rcp-controls">
-      <label><span class="rcp-lbl">ΔG, product minus substrate <b data-out="dg">−30</b> kJ/mol</span>
+      <label><span class="rcp-lbl">ΔG°′, product minus substrate (standard) <b data-out="dg">−30</b> kJ/mol</span>
         <input type="range" data-in="dg" min="-60" max="60" step="5" value="-30" />
       </label>
-      <label><span class="rcp-lbl">Activation energy E<sub>a</sub> without enzyme <b data-out="ea">80</b> kJ/mol</span>
+      <label><span class="rcp-lbl">Barrier ΔG‡ without enzyme <b data-out="ea">80</b> kJ/mol</span>
         <input type="range" data-in="ea" min="20" max="120" step="5" value="80" />
       </label>
-      <label><span class="rcp-lbl">How much of the barrier the enzyme removes <b data-out="cat">60</b>%</span>
-        <input type="range" data-in="cat" min="0" max="90" step="5" value="60" />
+      <label><span class="rcp-lbl">Barrier lowered by the enzyme <b data-out="drop">47</b> kJ/mol</span>
+        <input type="range" data-in="drop" min="0" max="115" step="1" value="47" />
       </label>
       <div class="rcp-btns">
         <button type="button" data-toggle aria-pressed="true">Hide uncatalyzed</button>
@@ -36,7 +37,7 @@
 
     <div class="rcp-side">
       <dl class="rcp-readout" data-readout aria-live="polite"></dl>
-      <p class="rcp-note">An enzyme lowers E<sub>a</sub>. It never changes ΔG or K<sub>eq</sub>.</p>
+      <p class="rcp-note">An enzyme lowers ΔG‡. It never changes ΔG, ΔG°′ or K<sub>eq</sub>.</p>
     </div>
   </div>
 </figure>
@@ -64,6 +65,14 @@
     const ms = m.toFixed(1).replace(/\.0$/, '');
     return `${ms === '1' ? '' : ms + ' × '}10${String(e).split('').map((c) => SUP[c]).join('')}`;
   }
+  // one significant figure for the speed-up, so 47 kJ/mol reads ≈ 2 × 10⁸ (the lesson's 1.9 × 10⁸, rounded)
+  function sci1(x: number): string {
+    if (x < 1000) return sci(x);
+    let e = Math.floor(Math.log10(x));
+    let m = Math.round(x / Math.pow(10, e));
+    if (m === 10) { m = 1; e += 1; }
+    return `${m === 1 ? '' : m + ' × '}10${String(e).split('').map((c) => SUP[c]).join('')}`;
+  }
 
   document.querySelectorAll<HTMLElement>('[data-rcp]').forEach((root) => {
     const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
@@ -73,7 +82,7 @@
     const inputs = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-in]'));
     const inp = (k: string) => inputs.find((i) => i.getAttribute('data-in') === k)!;
     const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
-    const state = { dg: -30, ea: 80, cat: 60, showUncat: true };
+    const state = { dg: -30, ea: 80, drop: 47, showUncat: true };
     let bumped = false; // true when Ea had to be raised to stay above an uphill product
     let fs = (n: number) => n;
 
@@ -84,7 +93,7 @@
     // can never be lower than ΔG itself, so the enzyme shrinks only the hump ABOVE the higher valley.
     const top = () => Math.max(0, state.dg);
     function peakUncat() { return state.ea; }
-    function peakCat() { return top() + (state.ea - top()) * (1 - state.cat / 100); }
+    function peakCat() { return state.ea - state.drop; }
 
     function enforceBarrier() {
       const floor = top() + MIN_HUMP;
@@ -93,6 +102,12 @@
         state.ea = Math.ceil(floor / 5) * 5;
         inp('ea').value = String(state.ea);
         bumped = true;
+      }
+      // the enzyme can take off only the hump above the higher valley
+      const maxDrop = state.ea - top() - MIN_HUMP;
+      if (state.drop > maxDrop) {
+        state.drop = Math.max(0, Math.floor(maxDrop));
+        inp('drop').value = String(state.drop);
       }
     }
 
@@ -147,27 +162,29 @@
       svg.appendChild(el('line', { x1: px(0.1), y1: gToY(0), x2: R, y2: gToY(0), stroke: PURPLE, 'stroke-width': 1, 'stroke-dasharray': '4 3', opacity: 0.65 }));
       svg.appendChild(el('line', { x1: L, y1: gToY(dg), x2: px(0.9), y2: gToY(dg), stroke: GREEN, 'stroke-width': 1, 'stroke-dasharray': '4 3', opacity: 0.7 }));
 
-      // ΔG measure (reactant level → product level), at the far right
+      // ΔG°′ measure (reactant level → product level), at the far right
       svg.appendChild(arrow(R - 12, gToY(0), gToY(dg), NAVY));
-      svg.appendChild(label(R - 8, (gToY(0) + gToY(dg)) / 2 + 4, 'ΔG', NAVY, 'start', 11));
+      svg.appendChild(label(R - 8, (gToY(0) + gToY(dg)) / 2 + 4, 'ΔG°′', NAVY, 'start', 11));
 
-      // uncatalyzed barrier (gray dashed) + its Ea measure, tied to its peak by a dotted guide
+      // uncatalyzed barrier (gray dashed) + its ΔG‡ measure, tied to its peak by a dotted guide
       if (showUncat) {
         svg.appendChild(el('path', { d: barrierPath(pkU, gToY), fill: 'none', stroke: GRAY, 'stroke-width': 2, 'stroke-dasharray': '6 4' }));
         svg.appendChild(guide(px(0.265), px(0.5), gToY(pkU), GRAY));
         svg.appendChild(arrow(px(0.265), gToY(0), gToY(pkU), GRAY));
-        svg.appendChild(label(px(0.265) - 5, gToY(pkU) - 6, 'Ea without enzyme', GRAY, 'end', 10));
+        svg.appendChild(label(px(0.265) - 5, gToY(pkU) - 6, 'ΔG‡ without enzyme', GRAY, 'end', 10));
         svg.appendChild(el('circle', { cx: px(0.5), cy: gToY(pkU), r: 4.2, fill: ORANGE }));
         svg.appendChild(label(px(0.5), gToY(pkU) - 8, '‡', NAVY, 'middle', 13));
       }
 
-      // catalyzed barrier (teal solid) + its Ea measure
+      // catalyzed barrier (teal solid) + its ΔG‡ measure
       svg.appendChild(el('path', { d: barrierPath(pkC, gToY), fill: 'none', stroke: TEAL, 'stroke-width': 2.6 }));
       svg.appendChild(guide(px(0.5), px(0.735), gToY(pkC), TEAL));
       svg.appendChild(arrow(px(0.735), gToY(0), gToY(pkC), TEAL));
-      svg.appendChild(label(px(0.735) + 5, gToY(pkC) - 6, 'Ea with enzyme', TEAL, 'start', 10));
+      svg.appendChild(label(px(0.735) + 5, gToY(pkC) - 6, 'ΔG‡ with enzyme', TEAL, 'start', 10));
       svg.appendChild(el('circle', { cx: px(0.5), cy: gToY(pkC), r: 4.2, fill: ORANGE }));
       if (!showUncat) svg.appendChild(label(px(0.5), gToY(pkC) - 8, '‡', NAVY, 'middle', 13));
+      // reverse barrier with enzyme (product level → catalyzed peak): thin teal measure
+      svg.appendChild(arrow(px(0.9), gToY(dg), gToY(pkC), TEAL));
 
       // endpoint dots + labels
       svg.appendChild(el('circle', { cx: px(0.1), cy: gToY(0), r: 3.5, fill: NAVY }));
@@ -176,27 +193,31 @@
       // below the dot in every case: above it would collide with the barrier labels on an uphill reaction
       svg.appendChild(label(px(0.9), gToY(dg) + 16, 'Product', NAVY, 'middle', 10));
 
-      // readouts — Keq from ΔG°′ = −RT ln Keq (treating the ΔG shown as the standard ΔG°′, 25 °C)
+      // readouts — Keq from ΔG°′ = −RT ln Keq, 25 °C
       const keqN = Math.exp(-dg / RT);
       const keq = Math.abs(dg) <= 3 ? 'near 1: substrate and product balanced'
         : dg < 0 ? 'products favored' : 'substrate favored';
       const speedup = Math.exp((pkU - pkC) / RT);
       out('dg').textContent = String(dg).replace('-', '−');
       out('ea').textContent = String(state.ea);
-      out('cat').textContent = String(state.cat);
+      out('drop').textContent = String(state.drop);
+      const drop = state.drop;
       readout.innerHTML =
-        `<div><dt>K<sub>eq</sub> <span>(taking this ΔG as ΔG°′, 25 °C)</span></dt><dd><b>${sci(keqN)}</b> · ${keq}</dd></div>`
-        + `<div><dt>E<sub>a</sub> without → with enzyme</dt><dd><b>${pkU.toFixed(0)} → ${pkC.toFixed(0)}</b> kJ/mol</dd></div>`
-        + `<div><dt>Enzyme speeds the reaction</dt><dd><b>${state.cat === 0 ? 'not at all' : '≈ ' + sci(speedup) + '-fold'}</b>${state.cat === 0 ? '' : ', forward and reverse alike'}</dd></div>`
-        + (bumped ? `<div class="rcp-warn">E<sub>a</sub> raised to ${state.ea}: for an uphill reaction the barrier has to sit above the product.</div>` : '');
+        `<div><dt>K<sub>eq</sub> = e<sup>−ΔG°′/RT</sup>, 25 °C</dt><dd><b>${sci(keqN)}</b> · ${keq}</dd></div>`
+        + `<div><dt>K<sub>eq</sub> with enzyme</dt><dd><b>same, ${sci(keqN)}</b></dd></div>`
+        + `<div><dt>ΔG‡ without → with enzyme</dt><dd><b>${pkU.toFixed(0)} → ${pkC.toFixed(0)}</b> kJ/mol</dd></div>`
+        + `<div><dt>Reverse barrier (from product)</dt><dd><b>${(pkU - dg).toFixed(0)} → ${(pkC - dg).toFixed(0)}</b> kJ/mol, the same drop</dd></div>`
+        + `<div><dt>Lowered ${drop} kJ/mol</dt><dd><b>${(drop / 5.7).toFixed(1)}</b> factors of ten (5.7 kJ/mol each)</dd></div>`
+        + `<div><dt>Enzyme speeds the reaction</dt><dd><b>${drop === 0 ? 'not at all' : '≈ ' + sci1(speedup) + '-fold'}</b>${drop === 0 ? '' : ', forward and reverse alike'}</dd></div>`
+        + (bumped ? `<div class="rcp-warn">ΔG‡ raised to ${state.ea}: for an uphill reaction the barrier has to sit above the product.</div>` : '');
       svg.setAttribute('aria-label',
-        `Reaction coordinate: ΔG ${dg} kJ/mol; activation energy ${pkU.toFixed(0)} kJ/mol without enzyme, `
-        + `${pkC.toFixed(0)} with enzyme; Keq about ${sci(keqN)}, ${keq}.`);
+        `Reaction coordinate: ΔG°′ ${dg} kJ/mol; barrier ΔG‡ ${pkU.toFixed(0)} kJ/mol without enzyme, `
+        + `${pkC.toFixed(0)} with enzyme; reverse barrier ${(pkU - dg).toFixed(0)} → ${(pkC - dg).toFixed(0)} kJ/mol; Keq about ${sci(keqN)}, ${keq}, unchanged by the enzyme.`);
     }
 
     inputs.forEach((i) => {
       i.addEventListener('input', () => {
-        const k = i.getAttribute('data-in') as 'dg' | 'ea' | 'cat';
+        const k = i.getAttribute('data-in') as 'dg' | 'ea' | 'drop';
         state[k] = parseFloat(i.value);
         enforceBarrier();
         render();
@@ -209,10 +230,10 @@
       render();
     });
     resetBtn.addEventListener('click', () => {
-      state.dg = -30; state.ea = 80; state.cat = 60; state.showUncat = true;
+      state.dg = -30; state.ea = 80; state.drop = 47; state.showUncat = true;
       toggleBtn.textContent = 'Hide uncatalyzed';
       toggleBtn.setAttribute('aria-pressed', 'true');
-      inp('dg').value = '-30'; inp('ea').value = '80'; inp('cat').value = '60';
+      inp('dg').value = '-30'; inp('ea').value = '80'; inp('drop').value = '47';
       enforceBarrier();
       render();
     });

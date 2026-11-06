@@ -20,18 +20,22 @@
 
   <div class="mwc-eff" role="group" aria-label="Allosteric effector">
     <span class="mwc-eff-label">Effector:</span>
-    <button type="button" data-eff="inh" aria-pressed="false">Inhibitor (BPG, low pH)</button>
+    <button type="button" data-eff="inh" aria-pressed="false">T-favoring effector (BPG, H⁺, CO₂)</button>
     <button type="button" data-eff="none" aria-pressed="true">None</button>
-    <button type="button" data-eff="act" aria-pressed="false">Activator</button>
+    <button type="button" data-eff="act" aria-pressed="false">R-favoring effector</button>
+  </div>
+  <div class="mwc-eff" role="group" aria-label="T-state affinity">
+    <button type="button" data-equal aria-pressed="false">T binds like R (c = 1)</button>
   </div>
 
   <div class="mwc-meters">
     <div class="mwc-meter"><span class="mwc-m-name">In R (high-affinity) state</span><span class="mwc-m-v" data-rstate>0%</span></div>
     <div class="mwc-meter"><span class="mwc-m-name">Sites occupied (saturation)</span><span class="mwc-m-v" data-sat>0%</span></div>
   </div>
+  <p class="mwc-avg"><span class="mwc-m-name">fraction R × how full R is + fraction T × how full T is</span><span data-avg></span></p>
   <p class="mwc-why" data-why role="status"></p>
 
-  <p class="mwc-foot">Cooperativity needs no new physics — just a population. Each binding event makes the R state a little more favorable, which raises affinity for the next ligand, which favors R still more. An inhibitor like 2,3-BPG stabilizes T and shifts the whole curve right (releasing more O₂ to hungry tissue); an activator stabilizes R and shifts it left. The single-subunit reference, myoglobin, has no T⇌R conversation at all, so its curve is a plain hyperbola.</p>
+  <p class="mwc-foot">Cooperativity needs no new physics, just a population. Each O₂ bound multiplies the odds of R by the same factor, how much more tightly R holds O₂ than T does (100 in this simulator, about 300 in the lesson's hemoglobin fit), so the more O₂, the more R, the more easily the next O₂ binds. An inhibitor like 2,3-BPG stabilizes T and shifts the whole curve right (releasing more O₂ to hungry tissue); an activator stabilizes R and shifts it left. The single-subunit reference, myoglobin, has no T⇌R conversation at all, so its curve is a plain hyperbola.</p>
 </figure>
 
 <script>
@@ -42,15 +46,21 @@
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
     return e;
   }
-  const N_SITES = 4, C_RATIO = 0.01, ALPHA_MAX = 25;
+  const N_SITES = 4, C_DEFAULT = 0.01, ALPHA_MAX = 25;
+  // c = how well T binds O₂ relative to R. Mutable: the "T binds like R" button sets it to 1.
+  let c = C_DEFAULT;
   const EFF_L: Record<string, number> = { inh: 20000, none: 1000, act: 20 };
 
-  function mwc(alpha: number, L: number) {
+  function mwc(alpha: number, L: number, cc: number = c) {
     const r = Math.pow(1 + alpha, N_SITES);
-    const t = L * Math.pow(1 + C_RATIO * alpha, N_SITES);
+    const t = L * Math.pow(1 + cc * alpha, N_SITES);
     const Rbar = r / (r + t);
-    const Y = (alpha * Math.pow(1 + alpha, N_SITES - 1) + L * C_RATIO * alpha * Math.pow(1 + C_RATIO * alpha, N_SITES - 1)) / (r + t);
+    const Y = (alpha * Math.pow(1 + alpha, N_SITES - 1) + L * cc * alpha * Math.pow(1 + cc * alpha, N_SITES - 1)) / (r + t);
     return { Rbar, Y };
+  }
+  // How full an R site and a T site would be at this ligand level. Y = Rbar·fR + (1 − Rbar)·fT exactly.
+  function fill(alpha: number) {
+    return { fR: alpha / (1 + alpha), fT: (c * alpha) / (1 + c * alpha) };
   }
 
   const MUTED = '#6b6b6b', GRID = '#e6e3db', GHOST = '#b9b6ad';
@@ -58,9 +68,9 @@
   const PL = 58, PR = 444, PT = 118, PB = 226;
   const xOf = (a: number) => PL + (a / ALPHA_MAX) * (PR - PL);
   const yOf = (f: number) => PB - f * (PB - PT);
-  function curve(L: number, key: 'Y' | 'Rbar') {
+  function curve(L: number, key: 'Y' | 'Rbar', cc: number = c) {
     let d = '';
-    for (let i = 0; i <= 100; i++) { const a = (i / 100) * ALPHA_MAX; d += (i ? 'L' : 'M') + xOf(a).toFixed(1) + ' ' + yOf(mwc(a, L)[key]).toFixed(1) + ' '; }
+    for (let i = 0; i <= 100; i++) { const a = (i / 100) * ALPHA_MAX; d += (i ? 'L' : 'M') + xOf(a).toFixed(1) + ' ' + yOf(mwc(a, L, cc)[key]).toFixed(1) + ' '; }
     return d.trim();
   }
 
@@ -73,7 +83,7 @@
     const { Rbar, Y } = mwc(alpha, L);
     // --- the population: 12 molecules, each wholly T or wholly R, with its 4 O₂ sites.
     // Sites fill at each state's own affinity: R binds O₂ well, T (c = 0.01) barely.
-    const fR = alpha / (1 + alpha), fT = (C_RATIO * alpha) / (1 + C_RATIO * alpha);
+    const { fR, fT } = fill(alpha);
     const N = 12, w = 460 / N, cy = 52;
     const nR = Math.round(Rbar * N);
     txt(8, 16, '12 molecules, each all-T or all-R · dots = O₂ bound', 9.5, MUTED);
@@ -97,10 +107,11 @@
     }
     svg.appendChild(el('line', { x1: PL, y1: PB, x2: PR, y2: PB, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
     txt((PL + PR) / 2, PB + 6 + fs(9.5), 'ligand (O₂) concentration →', 9.5, NAVY, { 'text-anchor': 'middle' });
-    if (eff !== 'none') {
-      svg.appendChild(el('path', { d: curve(EFF_L.none, 'Y'), fill: 'none', stroke: GHOST, 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
+    if (eff !== 'none' || c !== C_DEFAULT) {
+      // Ghost: the default sigmoid (no effector, T and R differ).
+      svg.appendChild(el('path', { d: curve(EFF_L.none, 'Y', C_DEFAULT), fill: 'none', stroke: GHOST, 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
       const gx = xOf(ALPHA_MAX * 0.2);
-      txt(gx + 4, yOf(mwc(ALPHA_MAX * 0.2, EFF_L.none).Y) - 4, 'no effector', 8.5, '#8a877f');
+      txt(gx + 4, yOf(mwc(ALPHA_MAX * 0.2, EFF_L.none, C_DEFAULT).Y) - 4, c !== C_DEFAULT ? 'T and R differ' : 'no effector', 8.5, '#8a877f');
     }
     svg.appendChild(el('path', { d: curve(L, 'Rbar'), fill: 'none', stroke: ACCENT, 'stroke-width': 1.6, 'stroke-dasharray': '5 3' }));
     svg.appendChild(el('path', { d: curve(L, 'Y'), fill: 'none', stroke: NAVY, 'stroke-width': 2.6 }));
@@ -124,7 +135,10 @@
     const rStateEl = root.querySelector<HTMLElement>('[data-rstate]')!;
     const satEl = root.querySelector<HTMLElement>('[data-sat]')!;
     const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    const avgEl = root.querySelector<HTMLElement>('[data-avg]')!;
+    const equalBtn = root.querySelector<HTMLButtonElement>('[data-equal]')!;
     let eff = 'none';
+    const pct = (f: number) => Math.round(f * 100) + '%';
     function render() {
       const v = parseInt(ligIn.value, 10);
       const alpha = (v / 100) * ALPHA_MAX;
@@ -133,8 +147,12 @@
       ligOut.textContent = v > 66 ? 'high (lungs)' : v > 33 ? 'moderate' : v > 5 ? 'low (tissue)' : 'near zero';
       rStateEl.textContent = Math.round(Rbar * 100) + '%';
       satEl.textContent = Math.round(Y * 100) + '%';
+      const { fR, fT } = fill(alpha);
+      avgEl.textContent = `Y = ${pct(Rbar)} × ${pct(fR)} + ${pct(1 - Rbar)} × ${pct(fT)} ≈ ${pct(Y)}`;
       draw(svg, alpha, L, eff, k);
-      whyEl.textContent = Rbar > 0.6
+      whyEl.textContent = c === 1
+        ? 'With equal grips, oxygen favors neither shape, the mix never shifts, and the curve is a plain hyperbola (Hill coefficient 1).'
+        : Rbar > 0.6
         ? 'Ligand has pulled most of the population into the R (relaxed, high-affinity) state. Once flipped, R grabs O₂ readily — the upper, easy-loading shoulder of the sigmoid.'
         : Rbar > 0.15
           ? 'Right in the switch: T and R are close to balanced, so a small rise in O₂ flips many molecules to R at once. This steep middle is the cooperative transition — the sigmoid’s rise.'
@@ -144,6 +162,11 @@
     const fit = () => { const w = (svg as unknown as Element).getBoundingClientRect().width || 460; const nk = Math.min(1.6, Math.max(1, 520 / w)); if (Math.abs(nk - k) > 0.02) { k = nk; render(); } };
     if ('ResizeObserver' in window) new ResizeObserver(fit).observe(svg as unknown as Element);
     ligIn.addEventListener('input', render);
+    equalBtn.addEventListener('click', () => {
+      c = c === 1 ? C_DEFAULT : 1;
+      equalBtn.setAttribute('aria-pressed', String(c === 1));
+      render();
+    });
     root.querySelectorAll<HTMLButtonElement>('[data-eff]').forEach((b) =>
       b.addEventListener('click', () => {
         eff = b.getAttribute('data-eff')!;
@@ -175,6 +198,8 @@
   .mwc-meter { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
   .mwc-m-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .mwc-m-v { font-size: var(--ddp-text-lg); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-accent); }
+  .mwc-avg { margin: 0 0 var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); }
+  .mwc-avg [data-avg] { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
   .mwc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .mwc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

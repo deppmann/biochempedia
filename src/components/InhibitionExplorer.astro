@@ -6,6 +6,8 @@
  * plot respond, so the diagnostic signatures become obvious: competitive lines
  * pivot on the y-axis (Vmax unchanged, Km↑), noncompetitive lines pivot on the
  * x-axis (Km unchanged, Vmax↓), uncompetitive lines stay parallel (both ↓).
+ * A pool bar shows which forms the enzyme is in at [S] = baseline Km
+ * (E : ES : EI : ESI = 1 : 1 : [I]/Ki : [I]/Ki for the forms each type allows).
  * Self-contained vanilla-TS Astro island, no deps. Original, computed live.
  */
 ---
@@ -16,7 +18,7 @@
   <div class="inh-controls" role="group" aria-label="Inhibitor type">
     <button type="button" data-type="none" aria-pressed="true">No inhibitor</button>
     <button type="button" data-type="competitive" aria-pressed="false">Competitive</button>
-    <button type="button" data-type="noncompetitive" aria-pressed="false">Noncompetitive</button>
+    <button type="button" data-type="noncompetitive" aria-pressed="false">Pure noncompetitive</button>
     <button type="button" data-type="uncompetitive" aria-pressed="false">Uncompetitive</button>
   </div>
 
@@ -41,6 +43,8 @@
     <div><dt>Apparent K<sub>m</sub></dt><dd data-r-km>2.0</dd></div>
     <div><dt>Apparent V<sub>max</sub></dt><dd data-r-vmax>100</dd></div>
   </dl>
+  <div class="inh-pool" aria-hidden="true" data-pool></div>
+  <p class="inh-poolcap" data-poolcap></p>
   <p class="inh-why" data-why role="status">No inhibitor: the baseline curve. Add one and watch which intercept moves.</p>
 
   <p class="inh-foot">The double-reciprocal plot turns each inhibitor into a straight-line fingerprint: where the lines cross tells you the mechanism.</p>
@@ -65,6 +69,31 @@
     const rKm = root.querySelector<HTMLElement>('[data-r-km]')!;
     const rVmax = root.querySelector<HTMLElement>('[data-r-vmax]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const pool = root.querySelector<HTMLElement>('[data-pool]')!;
+    const poolCap = root.querySelector<HTMLElement>('[data-poolcap]')!;
+    // Enzyme forms at [S] = baseline Km (s = 1 in units of Km): E = 1, ES = 1,
+    // EI = [I]/Ki where the type allows it, ESI = [I]/Ki where the type allows it.
+    function drawPool(r: number) {
+      const parts: Array<[string, number, string]> = [['E', 1, 'inh-seg-e'], ['ES', 1, 'inh-seg-es']];
+      if (type === 'competitive' || type === 'noncompetitive') parts.push(['EI', r, 'inh-seg-i']);
+      if (type === 'uncompetitive' || type === 'noncompetitive') parts.push(['ESI', r, 'inh-seg-i']);
+      const live = parts.filter((p) => p[1] > 0);
+      const total = live.reduce((a, p) => a + p[1], 0);
+      pool.replaceChildren();
+      for (const [name, n, cls] of live) {
+        const seg = document.createElement('span');
+        seg.className = `inh-seg ${cls}`;
+        const pct = (100 * n) / total;
+        seg.style.width = `${pct}%`;
+        seg.textContent = pct >= 12 ? `${name} ${Math.round(pct)}%` : '';
+        pool.appendChild(seg);
+      }
+      const pctES = Math.round((100 * 1) / total);
+      poolCap.innerHTML =
+        `Enzyme at [S] = K<sub>m</sub> (no-inhibitor value): ` +
+        live.map(([name, n]) => `${name} ${Math.round((100 * n) / total)}%`).join(' · ') +
+        `. Only ES makes product, so v = ${pctES}% of V<sub>max</sub>.`;
+    }
     let type: 'none' | 'competitive' | 'noncompetitive' | 'uncompetitive' = 'none';
     // SVG text never below ~9.5 px on screen (the plots render ~300 px wide on phones)
     let fs = (n: number) => n;
@@ -171,7 +200,7 @@
 
     function render() {
       const r = parseFloat(slider.value);
-      iOut.textContent = r.toFixed(1);
+      iOut.textContent = `${r.toFixed(1)} (factor 1 + [I]/Ki = ${(1 + r).toFixed(1)})`;
       hint.hidden = type !== 'none';
       const { km, vmax } = apparent();
       const active = type !== 'none' && r > 0;
@@ -180,13 +209,14 @@
       drawMM(km, vmax, active); drawLB(km, vmax);
       rKm.innerHTML = `${km.toFixed(1)} <small>${fold(km, KM)}</small>`;
       rVmax.innerHTML = `${Math.round(vmax)} <small>${fold(vmax, VMAX)}</small>`;
+      drawPool(active ? r : 0);
       why.textContent = !active
         ? 'No inhibitor: the current curve (solid) sits on top of the baseline (dashed). Pick an inhibitor type, then drag [I]/Ki and watch which intercept moves.'
         : type === 'competitive'
-          ? 'Competitive: the inhibitor competes for the active site, so enough substrate overcomes it. Vmax is unchanged but the apparent Km rises. On the double-reciprocal plot the lines share a y-intercept (1/Vmax) and pivot there.'
+          ? 'Competitive: ties up free enzyme (E). Substrate and inhibitor cannot bind at once, so enough substrate leaves almost no free enzyme for the inhibitor. Vmax is unchanged but the apparent Km rises. On the double-reciprocal plot the lines share a y-intercept (1/Vmax) and pivot there.'
         : type === 'noncompetitive'
-          ? 'Noncompetitive: the inhibitor binds away from the active site, so substrate cannot outcompete it. Vmax falls while Km is unchanged. The lines share an x-intercept (−1/Km) and pivot there.'
-          : 'Uncompetitive: the inhibitor binds only the enzyme–substrate complex, lowering Vmax and Km by the same factor. The slope (Km/Vmax) is unchanged, so the lines stay parallel, shifted up.';
+          ? 'Pure noncompetitive: ties up E and ES equally (it binds a separate site with the same grip either way). That is like having less enzyme: Vmax falls while Km is unchanged, and the lines share an x-intercept (−1/Km). If it bound E and ES unequally (mixed), Km would also shift.'
+          : 'Uncompetitive: ties up busy enzyme (ES), forming ESI. Vmax and Km fall by the same factor. The slope (Km/Vmax) is unchanged, so the lines stay parallel, shifted up.';
     }
 
     root.querySelectorAll<HTMLButtonElement>('[data-type]').forEach((b) =>
@@ -229,6 +259,12 @@
   .inh-key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; justify-content: center; margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .inh-key-solid, .inh-key-dash { display: inline-block; width: 1.4rem; height: 0; border-top: 2.5px solid #0e7c86; }
   .inh-key-dash { border-top: 2px dashed #b9b9c2; margin-left: 0.6rem; }
+  .inh-pool { display: flex; height: 1.35rem; margin: var(--ddp-space-2) 0 0.2rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; overflow: hidden; background: #fff; }
+  .inh-pool :global(.inh-seg) { display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; font-size: var(--ddp-text-xs); font-weight: 700; transition: width 0.2s ease; }
+  .inh-pool :global(.inh-seg-e) { background: #dcdce2; color: #4b4b55; }
+  .inh-pool :global(.inh-seg-es) { background: #0e7c86; color: #fff; }
+  .inh-pool :global(.inh-seg-i) { background: repeating-linear-gradient(45deg, #e57200 0 5px, #c96400 5px 10px); color: #fff; border-left: 1px solid #fff; }
+  .inh-poolcap { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
   .inh-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); line-height: 1.5; min-height: 4.5em; }
   .inh-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

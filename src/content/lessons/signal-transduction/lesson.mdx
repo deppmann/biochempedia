@@ -515,7 +515,7 @@ Epinephrine's receptor here is the **beta-adrenergic receptor**, a **GPCR** (G-p
 
 The **heterotrimeric G protein** has three subunits: alpha, beta, gamma. At rest, alpha holds GDP and the trimer is intact. The activated receptor pries GDP off alpha and lets GTP take its place. That makes the receptor alpha's **GEF** (guanine-nucleotide exchange factor): it pushes the switch ON. Alpha-GTP moves away from, or rearranges relative to, beta-gamma and carries the signal to its target enzyme (for Gs, adenylate cyclase). Alpha is itself a **GTPase**, an enzyme that slowly cuts its own GTP back to GDP: a built-in timer. Once it has, alpha rejoins beta-gamma and goes quiet. That pulls the switch OFF.
 
-<LessonFigure src="/figures/signal-transduction/g-protein-switch-on.webp" width={1200} height={534} alt="AI-generated illustration: resting and active states of a Gs signaling example. At rest, GDP-bound alpha is joined to beta-gamma beneath the membrane receptor. With an extracellular ligand bound, GTP-bound alpha is drawn apart from beta-gamma with an arrow toward adenylate cyclase. This separation is schematic; activation can also involve rearrangement." caption="Gs signaling is illustrated here. At rest, alpha holds GDP and associates with beta-gamma. An activated receptor catalyzes GDP release and GTP binding; alpha-GTP stimulates adenylate cyclase. Subunit separation is schematic: activation can involve separation or rearrangement, and beta-gamma can also signal to its own targets." />
+<LessonFigure src="/figures/signal-transduction/g-protein-switch-on.webp" width={1200} height={676} alt="AI-generated illustration: three frames of a Gs signaling cycle. At rest, GDP-bound alpha is joined to beta-gamma beneath an empty seven-transmembrane receptor. ON: with a ligand bound outside, the receptor swaps GDP for GTP, and GTP-bound alpha, drawn apart from beta-gamma, stimulates adenylate cyclase. OFF again: alpha's own GTPase has cut GTP to GDP, releasing phosphate, and alpha rejoins beta-gamma; a return arrow closes the cycle." caption="The G-protein switch, ON and OFF. The activated receptor is alpha's GEF: it swaps GDP for GTP, and alpha-GTP stimulates adenylate cyclase. Alpha's own GTPase is the timer: it cuts GTP back to GDP, and alpha rejoins beta-gamma. Subunit separation is schematic; activation can involve separation or rearrangement." />
 
 There are three logics, one per type of alpha. **Gs** stimulates adenylate cyclase and raises cAMP. **Gi** inhibits it and lowers cAMP. **Gq** activates phospholipase C and launches the calcium branch. So the same epinephrine can speed your heart, mobilize glucose and constrict a vessel, because the response is written into the *receptor, its G protein and the machinery of that cell*, not into the ligand.
 
@@ -536,6 +536,8 @@ The whole relay, epinephrine to glucose, is a row of switches. Each one has its 
 | Phosphorylase kinase, phosphorylase | phosphorylation | **protein phosphatases** | glycogen, cut into glucose 1-phosphate |
 
 PKA sits as an **R2C2 tetramer**: two regulatory subunits clamping two catalytic subunits silent. cAMP binds the regulatory subunits, they let go, and the catalytic subunits come free and active.
+
+<LessonFigure src="/figures/signal-transduction/pka-clamp-and-release.webp" width={1200} height={800} alt="AI-generated illustration: on the left, two regulatory subunits of PKA clamp two catalytic subunits silent. On the right, four cAMP molecules sit on the regulatory subunits and the two catalytic subunits come free, one heading toward phosphorylase kinase. A return arrow shows the regulatory subunits clamping again as cAMP falls. An inset shows a mutant catalytic subunit that cannot bind its regulatory subunit and is active with no cAMP." caption="PKA as a switch. Two regulatory subunits clamp two catalytic subunits silent. Four cAMP bind the regulatory subunits and release the catalytic subunits, which go on to phosphorylate their targets. As PDE clears cAMP, the regulatory subunits clamp again. Inset: in some cases of Cushing's syndrome the catalytic subunit cannot bind its regulatory subunit, so PKA is ON with no cAMP at all." />
 
 Free PKA then uses the cell's universal toggle: reversible phosphorylation. Kinases add a phosphate using ATP; phosphatases take it off. The phosphate brings two negative charges and some bulk, which can change the protein's shape or create a docking site for a partner, activating or inhibiting depending on where it lands. PKA uses both signs at once. It switches on breakdown (phosphorylase kinase, then phosphorylase) and switches off synthesis (glycogen synthase), so stored glucose is released and not rebuilt. Glucagon uses the same Gs → cAMP → PKA route in liver. The film also names lipolysis, the breakdown of stored fat, as a cAMP output; this lesson follows the glycogen branch.
 
@@ -576,10 +578,10 @@ Multiply down the column: 10 × 1 × 100 × ½ × 10 × 10 × 1,000 = 50,000,000
 
 The product rule has a limit. It holds while each step has plenty of the next enzyme waiting to be switched on. Push in a big enough signal and the downstream enzyme is all ON already, so the output stops rising. The ceiling is set by whichever step runs out of enzyme first (Going deeper, "When the product rule stops working").
 
-The widget below uses its own illustrative gains, and it lets every step vary, including the two this lesson treats as fixed-ratio binding steps (Gs → cyclase, cAMP → PKA). Treat it as a demonstrator of the product rule, not a calibrated model; its caffeine preset is a simple ×3 on cAMP. Set the gains and watch the tally climb a log-scale bar, then knock out one step (it becomes ×1) and check that the total falls by exactly that step's gain (every widget gain is at least 1).
+The widget below starts from the table above; its caffeine preset is ×2 on cAMP, as halving PDE would give. Set the gains, then knock out one step (it becomes ×1) and check the total moves by exactly that step's factor. The cyclase row is split into its two factors; drag the GTPase-set ON time and watch the gain, and everything below it, follow.
 
 {/* ISLAND */}
-<CascadeAmplifier />
+<CascadeAmplifier gains={[10, 1, 100, 0.5, 10, 10, 1000]} gainMin={[1, 1, 1, 0.5, 1, 1, 10]} gainMax={[40, 4, 300, 2, 100, 80, 3000]} gainStep={[1, 1, 1, 0.5, 1, 1, 10]} pdeFactor={2} splitCyclase />
 
 ## How long: the slowest OFF step
 
@@ -627,6 +629,8 @@ Up. Ask three questions for each toxin:
 
 </details>
 
+<LessonFigure src="/figures/signal-transduction/cholera-pertussis-cyclase.webp" width={1200} height={800} alt="AI-generated illustration: adenylate cyclase in the membrane is pushed ON by Gs-alpha and held back by Gi-alpha. In a cholera inset, ADP-ribosylated Gs-alpha keeps its GTP and stays on the cyclase because its GTP-cutting step is blocked. In a pertussis inset, ADP-ribosylated Gi-alpha stays GDP-bound with beta-gamma and never reaches the cyclase. Both insets read cAMP up." caption="One chemical trick, two jammed switches. Cyclase sits between an accelerator (Gs) and a brake (Gi). Cholera toxin ADP-ribosylates Gs so it cannot cut its GTP and stays ON. Pertussis toxin ADP-ribosylates Gi so it cannot be switched ON and the brake is lost. Both raise cAMP." />
+
 ## Same template, new parts
 
 The rest of the chapter is the same rule with new parts: for each pathway, find the switch, its ON arm and its OFF arm. Learn the names in bold; the rest you only need to recognize.
@@ -647,6 +651,8 @@ Not every receptor talks to a G protein. Growth hormone binds both chains of a r
 
 **Receptor tyrosine kinases (RTKs)** *are* kinases. EGFR dimerizes on ligand binding, the two halves cross-phosphorylate, and the phospho-tyrosines become docking sites for the adaptor Grb2, which brings in SOS. SOS is **Ras**'s GEF: it pushes Ras ON. Ras is a monomeric small GTPase, a tiny version of G-alpha: GDP-off, GTP-on. Its OFF arm is its own GTPase, sped up by **GAPs** (GTPase-activating proteins). Active Ras drives the Raf-MEK-ERK cascade toward proliferation.
 
+<LessonFigure src="/figures/signal-transduction/egfr-grb2-sos-ras.webp" width={1200} height={800} alt="AI-generated illustration: EGF binds two EGFR halves in the membrane, which pair up and phosphorylate each other's tails. Grb2 docks on a phosphorylated tail and brings SOS, which loads Ras with GTP; active Ras signals onward to the Raf-MEK-ERK cascade. An inset shows the Ras switch: SOS swaps GDP for GTP to turn Ras ON, and Ras's GTPase, sped up by a GAP, turns it OFF." caption="A receptor that is a kinase. EGF dimerizes EGFR, the halves cross-phosphorylate, and Grb2 brings SOS to the membrane. SOS is Ras's GEF and pushes it ON; active Ras drives Raf-MEK-ERK. Inset: Ras is a small version of G-alpha, pushed ON by SOS and pulled OFF by its own GTPase, which GAPs speed up." />
+
 **Predict.** An oncogenic Ras mutation blocks the GAP-assisted GTPase but leaves SOS free to load GTP. Which switch earlier in this lesson does this mutant Ras resemble?
 
 <details>
@@ -666,7 +672,7 @@ Insulin's receptor is also an RTK, but it routes mainly through a lipid switch, 
 4. **Akt.** PIP3 recruits the kinase **Akt** to the membrane, along with PDK1, which phosphorylates it; a second kinase, mTORC2, completes its activation. Protein phosphatases strip the activating phosphates.
 5. **Output.** Akt drives the two outcomes that define the fed state: **GLUT4 translocation** to the membrane for glucose uptake in muscle and fat, and glycogen synthesis in muscle and liver.
 
-<LessonFigure src="/figures/signal-transduction/insulin-receptor-to-akt.webp" width={1200} height={737} alt="AI-generated illustration: a main panel shows insulin bound to a pre-formed receptor dimer, signaling through IRS and PI3K to convert membrane PIP2 into PIP3 on the cytosolic leaflet. One inset shows PIP3 recruiting Akt and PDK1, with PDK1 and mTORC2 activating Akt. A second inset shows a GLUT4-containing vesicle fusing with the plasma membrane in muscle or fat, placing GLUT4 in the membrane for glucose uptake." caption="Insulin activates its pre-formed receptor dimer, triggering cross-phosphorylation and IRS phosphorylation. IRS recruits PI3K, which phosphorylates PIP2 to form PIP3 on the cytosolic membrane leaflet. PIP3 recruits Akt and PDK1; PDK1 and mTORC2 phosphorylate Akt to activate it. Akt promotes GLUT4 translocation and glucose uptake in muscle and fat, and glycogen synthesis in muscle and liver." />
+<LessonFigure src="/figures/signal-transduction/insulin-receptor-to-akt.webp" width={1200} height={800} alt="AI-generated illustration: insulin binds a pre-formed receptor dimer whose kinase domains cross-phosphorylate. Phosphorylated IRS recruits PI3K, which converts PIP2 to PIP3 in the cytosolic leaflet; PTEN converts PIP3 back to PIP2. Akt is recruited to PIP3, and PDK1 and mTORC2 activate it. An inset for muscle and fat shows a GLUT4 vesicle fusing with the plasma membrane so glucose can enter." caption="Insulin's lipid switch. The pre-formed receptor dimer cross-phosphorylates and phosphorylates IRS, which recruits PI3K. PI3K turns PIP2 into PIP3 on the cytosolic leaflet (the ON arm); PTEN turns PIP3 back into PIP2 (the OFF arm). PIP3 recruits Akt, which PDK1 and mTORC2 activate. Inset: in muscle and fat, Akt drives GLUT4 to the membrane for glucose uptake." />
 
 Hold the two PIP2 stories side by side. In the Gq branch, PLC **cleaves** PIP2 into IP3 and DAG. In insulin signaling, PI3K **phosphorylates** PIP2 into PIP3. Same substrate, different chemistry, different messengers.
 
