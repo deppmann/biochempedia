@@ -37,11 +37,11 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
     </div>
     <dl class="obc-readout">
       <div><dt>Saturation at lungs (100 torr)</dt><dd data-r="lungs">—</dd></div>
-      <div><dt>Saturation at resting tissue (20 torr)</dt><dd data-r="tissue">—</dd></div>
+      <div><dt>Saturation at working muscle (20 torr)</dt><dd data-r="tissue">—</dd></div>
       <div><dt>O₂ delivered (lungs − tissue)</dt><dd data-r="delivered" class="obc-big">—</dd></div>
     </dl>
   </div>
-  <p class="obc-caption" data-caption role="status">At n<sub>H</sub> 2.8 and P<sub>50</sub> 26, hemoglobin delivers about two-thirds of its O₂ between lungs (100 torr) and resting tissue (20 torr). Hit "Myoglobin" to see a non-cooperative, high-affinity carrier give up only ~7%.</p>
+  <p class="obc-caption" data-caption role="status">At n<sub>H</sub> 2.8 and P<sub>50</sub> 26, hemoglobin delivers about two-thirds of its O₂ between lungs (100 torr) and hard-working muscle (20 torr). Hit "Myoglobin" to see a non-cooperative, high-affinity carrier give up only ~7%.</p>
 </figure>
 
 <script>
@@ -50,7 +50,7 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
   // Text-weight inks: the line colours darkened enough to pass contrast as small type on white.
   const ACCENT_INK = '#0a5f67', ORANGE_INK = '#b35900', GHOST_INK = '#8a877f';
   const L = 56, R = 444, T = 16, B = 280, PMAX = 120;
-  const LUNGS = 100, TISSUE = 20; // lungs ~100 torr, resting tissue ~20 torr
+  const LUNGS = 100, TISSUE = 20; // lungs ~100 torr, hard-working muscle ~20 torr
 
   // Hill equation — treated as a black box (not derived).
   function hill(p: number, n: number, p50: number): number {
@@ -176,7 +176,7 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
           : state.p50 > 40
             ? ' A high P50 unloads generously, but watch the lungs point: push it further and hemoglobin stops filling up.'
             : '';
-      caption.textContent = `Your curve: nH ${state.n.toFixed(1)}, P50 ${state.p50} torr, delivers ${pct}% of its O₂ between lungs and resting tissue, ${cmp} normal HbA (≈${base}%).${why}`;
+      caption.textContent = `Your curve: nH ${state.n.toFixed(1)}, P50 ${state.p50} torr, delivers ${pct}% of its O₂ between lungs and working muscle, ${cmp} normal HbA (≈${base}%).${why}`;
     }
 
     nIn.addEventListener('input', () => { state.n = parseFloat(nIn.value); onDrag(); });

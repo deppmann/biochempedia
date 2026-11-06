@@ -3,15 +3,16 @@ title: "Membranes: The Impermeable Sheet That Builds Itself"
 slug: "membrane-structure-function"
 courseChapter: "Membranes & Transport"
 order: 12
-summary: "A cell membrane is a lipid bilayer that assembles itself in water and blocks almost everything charged. Proteins in it turn that barrier into a selective gate. This lesson builds the membrane from its physics up: a self-assembling bilayer powered by the hydrophobic effect, a permeability range spanning twelve orders of magnitude, fluidity tuned by chain saturation and cholesterol, and the proteins that move things across on purpose. It ends where biology gets electrical, with the pumps, channels, and the potassium selectivity filter that rejects the smaller sodium ion on thermodynamic grounds. Cystic fibrosis, a disease of one channel protein that mostly never reaches the membrane, shows what is at stake."
+summary: "A cell membrane is a lipid bilayer that assembles itself in water and blocks almost everything charged. Proteins in it turn that barrier into a selective gate. This lesson builds the membrane from its physics up around two questions every crossing answers: how fast, set by the toll a solute pays for leaving water, and which way, set by the electrochemical gradient unless a pump or coupled transporter pays for an uphill move. It covers a self-assembling bilayer powered by the hydrophobic effect, a permeability range spanning twelve orders of magnitude, fluidity tuned by chain saturation and cholesterol, channels, carriers and pumps, and the potassium selectivity filter that rejects the smaller sodium ion on thermodynamic grounds. It ends with cystic fibrosis, a disease of one channel protein that mostly never reaches the membrane."
 hook: "Lipids assemble on their own into a sealed, nearly impermeable sheet, and proteins in that sheet decide what crosses."
 
-estMinutes: 24
+estMinutes: 32
 objectives:
   - "Explain why a lipid bilayer assembles itself and self-seals, with no ATP and no covalent bonds holding it together."
   - "Predict whether a molecule crosses a membrane from its charge and polarity, and locate the desolvation cliff between small nonpolar species and ions."
   - "Relate membrane fluidity to fatty-acid chain length, cis-unsaturation, and cholesterol's two-way buffering."
-  - "Classify membrane transport using rate and energy source — channels, carriers, and pumps — and trace sodium-coupled secondary active transport back to the Na⁺-K⁺ ATPase."
+  - "Calculate the free-energy change for moving an ion across a membrane from its concentration and voltage terms, and find the equilibrium potential where that change is zero."
+  - "Classify membrane transport on two axes, mechanism (open pore or alternating access) and energy (downhill or uphill), and trace sodium-coupled secondary active transport back to the Na⁺-K⁺ ATPase."
   - "Explain how the K⁺ channel selectivity filter rejects Na⁺ thermodynamically while passing K⁺ at near-diffusion-limited speed."
 
 explainer:
@@ -104,7 +105,8 @@ structures:
     note: "PDB 1K4C · K⁺ ions in the selectivity filter"
     caption: >-
       A higher-resolution KcsA with potassium ions sitting in the filter — the picture
-      behind the knock-on mechanism, where one ion electrostatically shoves out the next.
+      behind the proposed knock-on mechanism, where repulsion between ions helps the
+      leading ion leave.
   - label: "Aquaporin-1 — the single-file water pore"
     source: "rcsb"
     id: "1J4N"
@@ -166,8 +168,9 @@ structures:
     id: "2244"
     note: "CID 2244 · irreversible COX inhibitor"
     caption: >-
-      Acetylsalicylic acid reaches into the membrane enzyme COX and permanently
-      acetylates its active site — the basis of low-dose aspirin's lasting antiplatelet effect.
+      Acetylsalicylic acid reaches into the substrate channel of the membrane enzyme COX
+      and permanently acetylates a serine there, blocking arachidonic acid from the
+      catalytic site — the basis of low-dose aspirin's lasting antiplatelet effect.
 
 videos:
   - title: "Fluid mosaic model of cell membranes"
@@ -258,6 +261,20 @@ practiceQuestions:
       digitalis exert their effects. Aquaporins pass water down its own gradient, the
       bilayer self-assembles without ATP, and O₂ diffuses passively, so none of those
       depend on the pump.
+  - stem: "A cell has K⁺ at 4 mM outside and 140 mM inside, at 37 °C, so E_K is about −95 mV. An experimenter holds the membrane at −100 mV and K⁺ channels open. Which way does K⁺ flow?"
+    choices:
+      - "outward, because K⁺ is far more concentrated inside"
+      - "inward, because −100 mV is more negative than E_K, so the voltage term outweighs the concentration term"
+      - "no net flow, because the concentration and voltage pushes always cancel when channels are open"
+      - "outward, because a negative inside pushes positive ions out"
+    answer: 1
+    rationale: >-
+      The concentration term for moving K⁺ in is 2.58 × ln(140 / 4) = +9.17 kJ/mol, and the
+      voltage term is 96.5 × (−0.100) = −9.65 kJ/mol, so ΔG for moving K⁺ in is about −0.5
+      kJ/mol: inward. Any voltage more negative than E_K pulls K⁺ in. The concentration
+      gradient alone points outward, but it is not the whole story; the pushes cancel only
+      at E_K itself, not whenever channels open; and a negative inside pulls positive ions
+      in, not out.
 
 mcatQuestions:
   - stem: "A potassium channel selects K⁺ over the smaller Na⁺ ion by more than 1,000 to 1. The selectivity filter presents 8 oxygens, mostly backbone carbonyls, at each coordination site. The most accurate explanation for why Na⁺ is rejected is that:"
@@ -342,8 +359,9 @@ explainLevels:
       size and why permeability spans about 12 orders of magnitude (water crosses ~10^10
       times faster than Na⁺). Fluidity is tuned by chain length, cis-unsaturation (a
       ~30-degree kink lowering Tm), and cholesterol, which buffers fluidity bidirectionally.
-      Transport sorts by rate and energetics: channels (~10^6–10^8/s, passive), carriers
-      (regulated, conformational), pumps (~10^2/s, ATP-driven). The Na⁺-K⁺ ATPase is a
+      Transport sorts on two axes, mechanism and energy: channels (open pores, ~10^6–10^8/s,
+      passive), carriers (alternating access, slower), and pumps (carriers that spend ATP,
+      ~10^2/s); a solute moving on its own goes down its electrochemical gradient, and goes uphill only when coupled to ATP or to another solute's downhill run. The Na⁺-K⁺ ATPase is a
       P-type pump (3 Na⁺ out, 2 K⁺ in per ATP, via a phosphoaspartate intermediate) whose
       gradient powers secondary active transport through symporters and antiporters. CFTR
       is an ABC transporter that uniquely acts as a channel; ΔF508 sends most of the protein to ER-associated
@@ -426,93 +444,319 @@ corpusTags:
 import PermeabilityCliff from '../../../components/PermeabilityCliff.astro';
 import NernstCalculator from '../../../components/NernstCalculator.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-## A membrane that builds itself
+**A sodium ion is smaller than a water molecule, yet water crosses a bare lipid bilayer about ten billion times faster.**
 
-A cell membrane is a lipid bilayer that assembles itself in water, seals into closed compartments, and blocks almost everything charged. That barrier is what makes cells possible. It is also why every cell needs proteins in the membrane to move things across on purpose.
+A sodium ion is about 1.0 Å in radius. A water molecule is about 1.4 Å. If a membrane worked like a sieve, sodium would win. It loses by ten orders of magnitude, and the reason explains most of what a membrane does. In most cystic fibrosis, one chloride channel, CFTR, mostly never reaches the cell surface, and salt and water stop moving as they should.
 
-Physically, a membrane is thin and self-organizing. It runs about 7 nanometers thick: two leaflets, one lipid thick in each, with the tails meeting in the middle and the heads facing the water on both sides. It always forms closed compartments with no free edges, and if you puncture it, it reseals, because noncovalent forces hold it together rather than covalent bonds.
+## The membrane and its puzzles
 
-Functionally, four properties matter. The membrane is asymmetric: the outer leaflet differs from the inner one. Phosphatidylserine, for instance, stays on the inside of a resting cell; when a cell dies, flipping it outward becomes an "eat me" signal for the immune system. The membrane is fluid, its lipids drifting laterally. It is selectively permeable, letting oxygen through while blocking sodium. And it is electrically polarized: in a typical neuron the inside sits around 60 to 70 millivolts negative relative to the outside, and most cells fall between about 35 and 80. A sheet of plastic would have none of these.
+A cell membrane is a **lipid bilayer**: two sheets of lipid molecules, back to back. Each lipid has a polar **head** that sits comfortably in water and two greasy hydrocarbon **tails** that do not. The two sheets are called **leaflets**. Their tails meet in the middle of the bilayer, and their heads face the water on both sides. Proteins sit in this sheet and do most of the membrane's work.
 
-The membrane's proteins matter as much as its lipids. In most cystic fibrosis, one chloride channel, CFTR, mostly fails to reach the membranes of cells lining the lungs and gut. In the most common mutation, ΔF508, one phenylalanine is deleted, the protein misfolds, and most of it is destroyed in the endoplasmic reticulum before it reaches the surface. The main defect is not a broken channel at the membrane. Most of it never arrives, and the little that does opens poorly. Everything downstream, the thick mucus, the chronic infections, the shortened life, follows from that one missing protein. We return to CFTR once the machinery of transport is in place.
+That simple sheet raises five puzzles.
 
-Phospholipids form bilayers spontaneously, and the energy comes from water, not ATP. Each lipid has a polar head and two greasy tails. Drop them in water and the tails cluster to escape it, the heads face out, and a bilayer (or a sealed sphere, a liposome) forms on its own. The driving force is the hydrophobic effect, and it is entropic: when the tails huddle together, the water that had been caging them is released into disorder. Once the lipids are made, the cell spends no ATP to assemble them into a bilayer, though making the lipids and inserting proteins does cost energy.
+1. **Self-assembly.** Why does the sheet build itself, with no ATP and no covalent bonds holding it together? And why does it reseal when you puncture it?
+2. **The blocked ion.** Why does the small sodium ion barely cross, while the larger water molecule crosses easily?
+3. **Moving ions anyway.** How do cells move ions across at all, and what decides which way they go?
+4. **The picky channel.** How does a potassium channel reject sodium, the smaller ion?
+5. **The missing channel.** What goes wrong in cystic fibrosis, and how do drugs repair part of it?
 
-This self-assembly is also useful. Liposomes carry drugs. Load a water-soluble drug in the aqueous core, a fat-soluble one in the bilayer, and you have a delivery vehicle. Doxil packages the chemotherapy drug doxorubicin in liposomes and spares the heart much of its toxicity. The COVID-19 mRNA vaccines used lipid nanoparticles to protect fragile mRNA long enough to deliver it.
+One idea answers puzzles 2 to 4 and frames puzzle 5. It needs one term. A solute's **electrochemical gradient** is the combined push it feels from two differences across the membrane: a difference in its concentration and, if it is charged, a difference in voltage.
 
-The same physics that builds the membrane makes it nearly impermeable to ions, and the reason is desolvation. An ion in water wears a tight shell of water molecules. To cross the oily membrane core it would have to shed that shell, and stripping water off an ion costs hundreds of kJ/mol (about 330 for K⁺ and 400 for Na⁺). What blocks the ion is its charge, not its size: it travels wrapped in water it must leave behind. Consider indole and tryptophan: nearly the same aromatic ring, but tryptophan carries charged groups and crosses orders of magnitude more slowly. The ring crosses fine; the charge is the toll.
+> **The one idea to carry through this lesson.** Every crossing answers two separate questions. **How fast?** Across a bare bilayer, that is set by the toll for leaving water. An ion or polar group that enters the oily core must give up the water that held it, and that costs energy, so ions barely leak through. A protein speeds the crossing by offering a cheaper route, a path lined with polar groups that stand in for the lost water. **Which way?** For a solute moving on its own, that is set only by its electrochemical gradient. A protein that only offers a path can only speed the move toward equilibrium. To go uphill, the move must be coupled to something more downhill: ATP, or another solute running down its own gradient.
+The film at the top of the page previews the toll for leaving water and the transport sections. The terms it uses (gradient, pump, and the binding sites S1 to S4) are explained below. On two points the text is the more careful account: the film puts channels at up to about ten million ions per second, while the fastest potassium channels reach about 10⁸, and its Newton's cradle is only an image.
 
-Stack everything up and permeability spans about twelve orders of magnitude. Water crosses a membrane roughly 10 billion times faster than sodium does. The order runs gases, then water, then small polar molecules, then ions far at the bottom.
+## A sheet that builds itself
 
-Water also has a dedicated channel: aquaporins pass water in a torrent while excluding protons, and when the kidney cannot insert aquaporin-2 under vasopressin control, it cannot concentrate urine.
+Phospholipids form bilayers on their own. Drop lipids in water and the tails cluster to escape it, the heads face out, and a bilayer forms. Closed vesicles form on their own as well.
 
-Test the permeability ranking yourself below. Send different molecules at the bilayer and watch each one land on a log-scale plot; the gap that opens between small neutral molecules and ions is the desolvation toll.
+The driving force is the **hydrophobic effect**, and it is entropic. Water molecules next to an oily tail are held in an ordered cage around it. When the tails huddle together, that caged water is released into disorder, and the entropy of the system rises. The energy comes from water: once the lipids are made, the cell spends no ATP to assemble them, though making the lipids and inserting proteins does cost energy.
+
+The same force sets the sheet's shape. A bilayer always forms closed compartments with no free edges, because an edge would leave tails exposed to water. Noncovalent forces hold it together, not covalent bonds. The lipid bilayer itself is about 5 nanometers (50 Å) thick overall (about 4 nm between the phosphate groups of the two leaflets), with an oily core near 3 nm. A plasma membrane looks thicker in electron micrographs, around 7 to 8 nm, partly because the stain and its proteins and attached sugars add to its apparent width. For scale, a ribosome is about 25 nm across, so a membrane as it appears in micrographs is roughly a quarter of that.
+
+**Predict.** Push a fine glass needle through a cell membrane, then pull it out. What happens to the hole, and why? Would a plastic bag do the same?
+
+<details>
+<summary>Check your prediction</summary>
+
+The hole seals. No bonds broke when the needle went in, because none held the lipids together. The lipids at the edge of the hole now have tails facing water, and the hydrophobic effect drives them to flow back and close the gap. A living cell speeds the repair by fusing vesicles at the wound. A plastic bag is covalently bonded plastic. It tears and stays torn.
+
+</details>
+
+## The toll for leaving water
+
+Now the second puzzle. If size does not decide, something else must.
+
+The answer is what each molecule carries with it. Water molecules are **polar**: each has a slightly negative oxygen end and slightly positive hydrogen ends. An ion's charge pulls those ends toward it, so in solution every ion wears a tight shell of water molecules, oriented and held in place. That shell is not free. Its attraction is what makes salts dissolve, and pulling it off costs energy.
+
+Now look at what the ion would have to enter. The middle of the bilayer is a slab of hydrocarbon tails: oil, with no partial charges to offer. An ion that entered the oil would have to leave its water shell behind and get almost nothing back in its place. The cost of that trade is the **toll for leaving water**, also called the desolvation penalty.
+
+**Predict.** Rank these by how easily they cross a bare bilayer: O₂, water, glucose, Na⁺. What one feature are you using to rank them?
+
+<details>
+<summary>Check your prediction</summary>
+
+O₂ crosses fastest, then water, then glucose, then Na⁺, far behind. The feature is how strongly each one holds water. O₂ is nonpolar and holds almost none, so its toll is close to zero. Water and glucose are polar and pay a moderate toll; glucose has more polar groups and is larger. Na⁺ has a full charge and pays the largest toll of all. Size matters a little. Charge matters most.
+
+</details>
+
+How large is the toll for an ion? The energy released when an ion gains its water shell, its hydration energy, is a few hundred kilojoules per mole: roughly 300 to 400 kJ/mol for K⁺ and Na⁺, with about 70 kJ/mol more for the smaller Na⁺, whose charge is packed more tightly. The exact values depend on the convention used (Going deeper has a table), but the roughly 70 kJ/mol difference in hydration free energy does not, and only that difference matters later, at the potassium channel. For comparison, a hydrogen bond is about 20 kJ/mol. A toll that large means an ion essentially never dissolves in the oil and crosses directly. The few ions that do leak through probably take a cheaper route: they drag some water into the bilayer with them, or slip through rare, short-lived water-filled defects. Even that cheapest route is extremely slow.
+
+To feel the gap between water and sodium, scale it in time. If a water molecule took one millisecond to cross, a sodium ion would take about four months. Chemists measure how readily a solute crosses with a **permeability coefficient**, in centimeters per second. Across the solutes a cell cares about, it spans about twelve orders of magnitude. Small gases such as O₂ and CO₂ sit at the top, at about 1 cm/s and above. Water comes next, then small polar molecules such as urea and glycerol, then glucose. Ions sit at the bottom, near 10⁻¹² cm/s for Na⁺.
+
+A natural pair isolates the variable. Indole is the aromatic ring of tryptophan on its own. Tryptophan carries the same ring plus an amino group and a carboxyl group, which at pH 7 are both charged. Indole crosses many orders of magnitude faster. The ring is the same and the weight differs by less than twofold, so neither size nor weight can explain the gap. Each charged group on tryptophan pays the toll. The ring crosses fine; the charge is what costs.
+Test the ranking yourself below. Send molecules at the bilayer and watch each one land on a log-scale plot. The gap that opens between small neutral molecules and ions is the toll.
 
 {/* ISLAND */}
 <PermeabilityCliff />
 
-## Tuning the fluidity
+## A separate question: keeping the sheet fluid
 
-A membrane has to stay fluid, and the cell tunes that fluidity with chemistry. The melting temperature, Tm, is the point where half the lipids have melted from a tight gel into a fluid state. Two features set it. Longer fatty-acid tails pack more snugly and raise Tm. A cis double bond puts a roughly 30-degree kink in the tail that prevents tight packing and lowers Tm. Saturated tails are straight sticks that stack neatly; unsaturated tails have a permanent bend that keeps them loose. Trans fats straighten the tail back out, so they pack like a saturated fat despite being technically unsaturated.
+This is the one topic outside the guiding idea: it is about how tightly lipid tails pack, not about crossing.
 
-Cholesterol is the membrane's thermostat, and it works in both directions. When the cell gets cold, its rigid four-ring body jams between lipids and stops them from packing into a gel, keeping the membrane from freezing solid. When the cell warms up, the same flat rings press against the upper stretch of neighboring tails and restrain their motion, keeping the membrane from getting too runny. One molecule buffers against both rigidity and excess fluidity.
+A membrane has to stay fluid, and the cell tunes that fluidity with chemistry. Below a transition temperature, Tm, the tails pack into an ordered, nearly frozen **gel**. Above it they are disordered and the sheet is fluid. Tm is the midpoint of that change. Two features of the tails set it. Longer fatty-acid tails pack more snugly and raise Tm. A cis double bond puts a roughly 30-degree kink in the tail that prevents tight packing and lowers Tm. Trans fats straighten the tail back out, so they pack like a saturated fat despite being technically unsaturated.
 
-The pathway that makes cholesterol may also explain why statins can cause muscle pain in some people. Statins block the mevalonate pathway, which makes not only cholesterol but also isoprenoids and coenzyme Q10 that muscle cells depend on. The mechanism is still debated.
+Cholesterol is the membrane's thermostat, and it works in both directions. When the cell gets cold, its rigid four-ring body jams between lipids and stops them from packing into a gel, so the membrane does not freeze solid. When the cell warms up, the same flat rings press against the upper stretch of neighboring tails and restrain their motion, so the membrane does not get too runny. The thermostat is a teaching image: cholesterol does not hold the membrane at a set temperature, but it broadens and flattens the gel-to-fluid change, so fluidity changes less as temperature changes.
 
-Cholesterol and sphingolipids are thought to cluster into lipid rafts, small, short-lived patches roughly 10 to 200 nm across. Their size and roles in living cells are still debated. They may act as gathering points where signaling proteins find their partners, and HIV and influenza appear to use them to assemble and bud.
+### What moves, and how fast
 
-## The proteins in the sheet
-
-Most of what a membrane does, it does through protein. Most membrane proteins are integral, embedded in the bilayer; the rest are peripheral, perched on the surface. The test for telling them apart is operational: peripheral proteins come off with high salt or a pH change, while integral proteins release only when detergent dissolves the membrane around them.
-
-Proteins cross the membrane in a few stereotyped ways. An alpha-helix needs about 20 hydrophobic residues to span the bilayer once, and multi-pass proteins string several together. A beta-barrel rolls a beta sheet into a tube; these are found in the outer membranes of bacteria, mitochondria, and chloroplasts. Some proteins skip spanning entirely and attach by a lipid anchor: a GPI anchor on the outside, a prenyl or fatty-acyl group on the inside. The signaling protein Ras, for example, is prenylated so it can dock at the inner membrane.
-
-One clinically loaded example: the enzyme COX-1 sits embedded in the membrane and pulls arachidonic acid in through a hydrophobic channel to make prostaglandins. Aspirin works by reaching into that channel and irreversibly acetylating the active site. Because the block is permanent, it lasts until the cell makes fresh enzyme. Platelets have no nucleus and cannot make new COX-1, so a blocked platelet stays blocked for its whole life, which is the basis of low-dose aspirin's lasting antiplatelet effect. Ibuprofen competes for the same site reversibly, so taking ibuprofen before aspirin can shield the site and blunt aspirin's antiplatelet effect; how much heart protection is lost is still unclear.
-
-## What stays put, what moves
-
-Membrane proteins and lipids move, and FRAP lets us watch them do it. Fluorescence recovery after photobleaching means exactly what it says: tag the membrane with fluorescent dye, bleach a small spot dark with a laser, and watch unbleached molecules diffuse back in. How fast the spot recovers gives the diffusion coefficient. How completely it recovers tells you the mobile fraction; if recovery stalls at 50%, half the labeled molecules cannot move, often because they are anchored to the cytoskeleton.
+Membrane proteins and lipids move, and FRAP lets us watch them do it. In fluorescence recovery after photobleaching, tag the membrane with a fluorescent dye, bleach a small spot dark with a laser, and watch unbleached molecules diffuse back in. How fast the spot recovers gives the diffusion coefficient. How completely it recovers gives the mobile fraction. If recovery stalls at 50%, half the labeled molecules cannot move, often because they are anchored to the cytoskeleton.
 
 <LessonFigure src="/figures/membrane-structure-function/frap-bleach-and-recover.webp" width={1200} height={676} alt="AI-generated illustration: three membrane patches show fluorescent labeling, laser bleaching of a circular spot, and recovery as unbleached molecules diffuse into the spot. An inset shows interspersed fluorescent and bleached molecules, with some bleached molecules tethered to a cytoskeletal rod as an example of an immobile population." caption="In FRAP, a laser bleaches a small spot of fluorescently labeled membrane. Unbleached mobile molecules diffuse into the spot as bleached mobile molecules diffuse out. Incomplete fluorescence recovery indicates a fraction that does not exchange during the observation period; attachment to the cytoskeleton is one possible explanation." />
 
-The two kinds of motion are not equal. Lateral diffusion is fast: a lipid can travel the length of a bacterium in about a second. Transverse motion, a lipid flipping from one leaflet to the other, is glacially slow, because the polar head would have to cross the oily core; it happens at a useful rate only with dedicated enzymes: flippases, floppases and scramblases. That asymmetry of rates is what preserves the membrane's chemical asymmetry. Phosphatidylserine stays inside because flip-flop is slow on its own and ATP-driven flippases keep returning it to the inner leaflet.
+The two kinds of motion are not equal. Lateral diffusion, within one leaflet, is fast: a lipid can travel the length of a bacterium in about a second. Transverse motion, a lipid flipping from one leaflet to the other, is glacially slow. Here the toll returns. To flip, the polar head would have to cross the oily core. Flip-flop happens at a useful rate only with dedicated enzymes: flippases move lipids to the inner leaflet, floppases to the outer, and scramblases either way.
 
-## Crossing on purpose: pumps, channels, and the selectivity trick
+That difference in rates is what keeps the two leaflets different. The membrane is **asymmetric**: the outer leaflet differs from the inner one. Phosphatidylserine, for instance, stays on the inside of a resting cell, because flip-flop is slow on its own and ATP-driven flippases keep returning it to the inner leaflet. When a cell dies, phosphatidylserine flips outward, and that becomes an "eat me" signal for the immune system.
 
-When something charged or large has to cross, a protein does the work, and three questions sort out how. Does it need a protein at all? If so, is it moving down its gradient or against it? And if against, does ATP power it directly or indirectly? The answers define three machines. Channels are highways: fast, from about a million to a hundred million ions per second, but passive, moving things only downhill. Carriers are slower and regulated, changing shape to ferry their cargo. Pumps are escalators: slow, around a hundred cycles per second, but they spend ATP to push against the gradient.
+## Proteins in the sheet
 
-The flagship pump is the Na⁺-K⁺ ATPase, a P-type ATPase that ejects 3 sodium ions and imports 2 potassium ions per ATP. It runs constantly and burns a large fraction of your resting ATP — on the order of a quarter, and up to half in neurons — to maintain the gradients that almost everything else depends on. The "P" marks its trick: it phosphorylates one of its own aspartate residues, and that phosphoaspartate intermediate drives the conformational flip from inward-facing to outward-facing.
+Most of what a membrane does, it does through protein. Most membrane proteins are **integral**, embedded in the bilayer; the rest are **peripheral**, perched on the surface. The test for telling them apart is operational. Peripheral proteins come off with high salt or a pH change. Integral proteins release only when detergent dissolves the membrane around them.
 
-<LessonFigure src="/figures/membrane-structure-function/sodium-potassium-pump-two-states.webp" width={1200} height={564} alt="AI-generated illustration: two schematic states of the Na⁺-K⁺ ATPase, with extracellular space above and cytoplasm below. The inward-facing state binds three sodium ions, and ATP transfers phosphate to a separate cytosolic aspartate site. The phosphorylated outward-facing state releases three sodium ions and binds two potassium ions from outside; potassium delivery into the cytoplasm occurs later in the cycle." caption="The Na⁺-K⁺ ATPase phosphorylates one of its own aspartates, and that phosphoaspartate intermediate drives the flip from inward-facing to outward-facing, ejecting 3 sodium ions and importing 2 potassium ions per ATP." />
+Proteins that cross the bilayer face a toll of the same kind as ions, though far smaller per group. Every peptide bond in a protein's backbone carries a polar N–H and a polar C=O. Burying those groups in oil without a partner would be costly. An **alpha-helix** solves this: its backbone groups hydrogen-bond to each other along the helix, so the backbone pays its own toll, and its hydrophobic side chains face the oil. A helix rises 1.5 Å per residue, so about 20 hydrophobic residues span the 3 nm oily core once, and multi-pass proteins string several together. A **beta-barrel** rolls a beta sheet into a tube, in which each strand hydrogen-bonds to its neighbors. Beta-barrels are found in the outer membranes of bacteria, mitochondria and chloroplasts.
 
-That gradient is a battery, and secondary active transport spends it. Couple a molecule running downhill to another being dragged uphill, and you get uphill transport with no ATP spent at that step, the cellular version of a water wheel stealing energy from one current to drive another. Symporters move both in the same direction (SGLT1 hauls glucose into intestinal cells on the back of sodium); antiporters move them oppositely (the Na⁺/Ca²⁺ exchanger uses sodium to push calcium out). In animal cells, these sodium-coupled transporters depend on the gradient the Na⁺-K⁺ ATPase builds; other secondary transporters, such as those in plant cells and lysosomes, spend proton gradients made by proton pumps. The diabetes drugs called gliflozins block SGLT2, the kidney's sodium-glucose symporter that normally reclaims filtered glucose, so glucose spills into the urine and blood sugar falls.
+Some proteins skip spanning entirely and attach by a lipid anchor: a GPI anchor on the outside, a prenyl or fatty-acyl group on the inside. The signaling protein Ras, for example, is prenylated so it can dock at the inner membrane. Other enzymes, such as aspirin's target COX-1, sit in only one leaflet.
 
-The pump's gradients also set the membrane's voltage. Each ion has an equilibrium potential, given by the Nernst equation: the voltage at which that ion's electrical pull exactly balances its concentration gradient, so it has no net tendency to move. At rest the membrane is most permeable to K⁺, so the resting potential sits near K⁺'s equilibrium potential. Pick an ion in the calculator below, change its inside and outside concentrations, and see where its equilibrium potential lands relative to rest.
+## Which way: the electrochemical gradient
+
+So far the toll has told us how fast things cross. Now the second question, which way. The electrochemical gradient has two parts.
+
+The first part is concentration. A solute tends to move from where it is more concentrated to where it is less. The second part is voltage, and it applies only to charged solutes. The **membrane potential**, Vm, is the voltage inside the cell relative to outside. In a typical neuron the inside sits around 60 to 70 millivolts negative. Most cells fall between about −35 and −80 mV, and some sit far shallower: red blood cells are about −10 mV. A negative inside pulls positive ions in and pushes negative ions out.
+
+**Predict.** Sodium is 145 mM outside a cell and 12 mM inside, and the membrane potential is −70 mV. Which way does the concentration difference push sodium? Which way does the voltage push it? Do they agree?
+
+<details>
+<summary>Check your prediction</summary>
+
+Both push sodium in. The concentration is about twelve times higher outside, so sodium tends to move in. The inside is negative, and sodium is positive, so the voltage pulls it in too. The two pushes agree.
+
+</details>
+
+The two parts add up in one equation.
+
+<EquationCard
+  purpose="The free-energy change for moving one mole of a solute into the cell. A negative value means the move is downhill; a positive value means it is uphill."
+  eq="ΔG_in = RT × ln(c_in / c_out) + z × F × Vm"
+  say="The free-energy change for moving a solute in equals a concentration term, RT times the log of inside over outside concentration, plus a voltage term, the charge times Faraday's constant times the membrane potential."
+  symbols={[
+    ["ΔG_in", "delta G sub in", "the free-energy change for moving one mole of the solute from outside to inside", "kJ/mol"],
+    ["RT", "R T", "the gas constant times the absolute temperature; about 2.58 kJ/mol at 37 °C", "kJ/mol"],
+    ["c_in", "c sub in", "the solute's concentration inside the cell", "mM"],
+    ["c_out", "c sub out", "the solute's concentration outside the cell", "mM"],
+    ["z", "z", "the solute's charge: +1 for Na⁺ and K⁺, −1 for Cl⁻, 0 for glucose", ""],
+    ["F", "F", "Faraday's constant, the charge on one mole of +1 ions: about 96.5 kJ per mole per volt", "kJ/(mol·V)"],
+    ["Vm", "V m", "the membrane potential, inside relative to outside, in volts (−70 mV is −0.070 V)", "V"],
+  ]}
+  toolkit={["e-and-ln", "units"]}
+  check="If the concentrations are equal and Vm is zero, ΔG is zero and there is no net push. For an uncharged solute such as glucose, z = 0 and only the concentration term counts. Moving the solute out instead gives the same size with the opposite sign."
+>
+  <Fragment slot="example">
+    <p>Try potassium, 4 mM outside and 140 mM inside, at Vm = −70 mV and 37 °C.</p>
+    <p>Concentration term: 2.58 × ln(140 / 4) = 2.58 × 3.56 = +9.2 kJ/mol. Potassium is much more concentrated inside, so this term opposes moving it in.</p>
+    <p>Voltage term: (+1) × 96.5 × (−0.070) = −6.8 kJ/mol. The negative inside favors moving it in.</p>
+    <p>Total: 9.2 − 6.8 = +2.4 kJ/mol. Moving potassium in is uphill, so on its own potassium tends to leave the cell.</p>
+  </Fragment>
+</EquationCard>
+
+Now the sodium from the prediction, 145 mM outside and 12 mM inside. Concentration term: 2.58 × ln(12 / 145) = −6.4 kJ/mol. Voltage term: (+1) × 96.5 × (−0.070) = −6.8 kJ/mol. Total: about −13.2 kJ/mol for moving one mole of sodium in. Both parts are negative and about equal, so the move is well downhill.
+
+For each ion there is one voltage where the two parts cancel exactly, so the ion has no net push in or out. That voltage is the ion's **equilibrium potential**. Set ΔG to zero and solve for the voltage, and you get the Nernst equation.
+
+<EquationCard
+  purpose="The voltage at which one ion has no net push in or out: its equilibrium potential."
+  eq="E_ion = (RT / zF) × ln(c_out / c_in)"
+  say="An ion's equilibrium potential equals RT over its charge times Faraday's constant, times the log of outside over inside concentration."
+  symbols={[
+    ["E_ion", "E sub ion", "the ion's equilibrium potential, the membrane potential at which its ΔG for crossing is zero", "mV"],
+    ["RT", "R T", "the gas constant times the absolute temperature", "kJ/mol"],
+    ["z", "z", "the ion's charge", ""],
+    ["F", "F", "Faraday's constant", "kJ/(mol·V)"],
+    ["c_out", "c sub out", "the ion's concentration outside", "mM"],
+    ["c_in", "c sub in", "the ion's concentration inside", "mM"],
+  ]}
+  toolkit={["e-and-ln", "log-scales"]}
+  check="If the concentrations are equal, ln(1) = 0, so E is zero: nothing needs balancing. At 37 °C, for an ion with charge +1, each tenfold excess outside adds about 61 mV."
+>
+  <Fragment slot="example">
+    <p>Potassium again: 4 mM outside, 140 mM inside, 37 °C. RT/F is 2.58 ÷ 96.5 = 0.0267 V, about 26.7 mV.</p>
+    <p>ln(4 / 140) = −3.56.</p>
+    <p>E_K = 26.7 × (−3.56) = about −95 mV.</p>
+    <p>The same arithmetic gives E_Na of about +67 mV (145 outside, 12 inside) and E_Cl of about −64 mV (110 outside, 10 inside, with z = −1).</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, set the free-energy change to zero at Vm = E: RT × ln(c_in / c_out) + zF × E = 0.</p>
+    <p>Step 2, move the concentration term across: zF × E = −RT × ln(c_in / c_out) = RT × ln(c_out / c_in).</p>
+    <p>Step 3, divide both sides by zF.</p>
+  </Fragment>
+</EquationCard>
+
+At rest the membrane is most permeable to K⁺, so the resting potential sits near K⁺'s equilibrium potential. Pick an ion in the calculator below, change its inside and outside concentrations, and see where its equilibrium potential lands relative to rest.
 
 <NernstCalculator />
 
-Pull on this thread and a folk remedy appears: digitalis, from the foxglove plant, inhibits the Na⁺-K⁺ ATPase. Sodium then backs up inside the heart cell, the Na⁺/Ca²⁺ exchanger slows, calcium accumulates, and each heartbeat hits harder — a treatment for failing hearts, with a narrow therapeutic window, since too much triggers calcium-overload arrhythmias. (The remedy reached medicine through William Withering, who studied an old woman's foxglove brew and published his account in 1785; that story is in the margins.)
+Animal cells keep sodium high outside and potassium high inside. Those gradients store energy, like a charged battery.
 
-CFTR belongs to a family that explains a lot of this machinery, and it is where the lesson began. ABC transporters share an architecture: two transmembrane domains that form the path across, and two nucleotide-binding domains that act as the ATP-powered engine. When ATP binds, the two engine domains clamp together and flip the protein from inward-facing to outward-facing. P-glycoprotein is the family's promiscuous pump, throwing structurally diverse drugs out of cancer cells. Tumor cells that overexpress it can become multidrug-resistant, pumping chemotherapy out before it can work. CFTR is the family's odd member: it has the same core domains plus a regulatory domain, and it works as a chloride channel. Once protein kinase A phosphorylates the regulatory domain, ATP binding gates its pore open. ΔF508 wrecks the folding of that protein, so in most patients the main problem is a channel that rarely arrives at the surface, and the few that arrive open poorly. Treatment follows that split: correctors help the protein fold and reach the surface, and a potentiator helps it open once it gets there. That is precision medicine aimed at the protein-level consequence of a mutation.
+## Moving things across: channels, carriers and paying for uphill
+
+When something charged or large has to cross, a protein does the work. Transport proteins differ on two separate axes, one for each question.
+
+The first axis is **mechanism**. A **channel** is a pore. When its gate is open, it is open to both sides at once, and its solute streams straight through. Channels are fast, typically millions of ions per second, up to about 10⁸ per second for the fastest potassium channels. Many channels have gates, opened by membrane voltage (voltage-gated channels) or by a bound molecule (ligand-gated channels). A **carrier** works by **alternating access**. It binds its cargo on one side, changes shape, and releases the cargo on the other side. It is never open to both sides at once, and it is slower than a channel.
+
+The second axis is **energy**. Does the solute move downhill, with its electrochemical gradient, or uphill, against it?
+
+| | **Downhill**: speeds the move toward equilibrium | **Uphill**: against the gradient |
+|---|---|---|
+| **Channel** (a pore, open to both sides when its gate is open) | Potassium channels, aquaporins, CFTR | None. A pore open to both sides only lets solutes run downhill. |
+| **Carrier** (alternating access, never open to both sides at once) | Uniporters, which carry one solute down its gradient | **Pumps** spend ATP (the Na⁺-K⁺ ATPase). **Coupled transporters** spend another solute's downhill run (SGLT1, the Na⁺/Ca²⁺ exchanger). |
+
+The film's three transporter families map onto this table: its channels are the top row, its carriers the uniporters, and its pumps carriers that spend ATP. Its decision tree asks the same two questions in three steps.
+
+### The pump that charges the battery
+
+Pumps are slow, around a hundred cycles per second, but they push solutes uphill. The flagship pump is the Na⁺-K⁺ ATPase, a P-type ATPase that ejects 3 sodium ions and imports 2 potassium ions per ATP. The "P" marks its trick: it phosphorylates one of its own aspartate residues, and that phosphoaspartate intermediate drives the shape change from inward-facing to outward-facing.
+
+<LessonFigure src="/figures/membrane-structure-function/sodium-potassium-pump-two-states.webp" width={1200} height={564} alt="AI-generated illustration: two schematic states of the Na⁺-K⁺ ATPase, with extracellular space above and cytoplasm below. The inward-facing state binds three sodium ions, and ATP transfers phosphate to a separate cytosolic aspartate site. The phosphorylated outward-facing state releases three sodium ions and binds two potassium ions from outside; potassium delivery into the cytoplasm occurs later in the cycle." caption="The Na⁺-K⁺ ATPase phosphorylates one of its own aspartates, and that phosphoaspartate intermediate drives the flip from inward-facing to outward-facing, ejecting 3 sodium ions and importing 2 potassium ions per ATP." />
+
+Can one ATP pay for that? Use the numbers from the last section. Pushing one mole of sodium out against its gradient costs about +13.2 kJ, the reverse of the −13.2 kJ/mol for moving it in, so three cost about 39.6 kJ. Bringing one mole of potassium in costs about 2.4 kJ, so two cost about 4.8 kJ. One cycle costs about 44 kJ/mol. ATP hydrolysis under cell conditions releases roughly 50 to 57 kJ/mol. The pump fits inside one ATP, with a modest margin.
+
+It runs constantly and burns a large fraction of your resting ATP, on the order of a quarter, and up to half in neurons, to maintain the gradients that almost everything else depends on.
+
+### Spending the battery: coupled transport
+
+Couple a solute running downhill to another being dragged uphill, and you get uphill transport with no ATP spent at that step. It is the cellular version of a water wheel, stealing energy from one current to drive another. This is **secondary active transport**. Symporters move both solutes in the same direction: SGLT1 hauls glucose into intestinal cells on the back of sodium. Antiporters move them in opposite directions: the Na⁺/Ca²⁺ exchanger uses sodium flowing in to push calcium out.
+
+The coupling ratio matters. SGLT1 carries two sodium ions with each glucose. Two sodiums running in release about 2 × 13.2 = 26.4 kJ/mol. Glucose is uncharged, so only its concentration term counts, and 26.4 kJ/mol is enough in principle to hold glucose about 28,000-fold higher inside than outside. (26.4 / 2.58 is about 10.2, and e raised to 10.2 is about 28,000.) One sodium per glucose would allow only about 170-fold. Carrying two sodiums is what lets the transporter pull glucose so far uphill.
+
+In animal cells, these sodium-coupled transporters depend on the gradient the Na⁺-K⁺ ATPase builds. Other secondary transporters, such as those in plant cells and lysosomes, spend proton gradients made by proton pumps.
+
+Two drugs test this logic. The diabetes drugs called gliflozins block SGLT2, the kidney's sodium-glucose symporter that normally reclaims filtered glucose, so glucose spills into the urine and blood sugar falls. Digitalis, from the foxglove plant, inhibits the Na⁺-K⁺ ATPase. Sodium then backs up inside the heart cell, the Na⁺/Ca²⁺ exchanger slows because the sodium gradient it spends has shrunk, calcium accumulates, and each heartbeat hits harder. It is a treatment for failing hearts with a narrow therapeutic window, since too much triggers calcium-overload arrhythmias.
+
+## Lowering the toll exactly: the potassium channel filter
+
+Now the fourth puzzle. A potassium channel passes K⁺ more than a thousand times more readily than Na⁺, and Na⁺ is the smaller ion.
+
+The part of the channel that chooses is the **selectivity filter**, the narrowest stretch of the pore. It is a short tube lined mostly with backbone carbonyl oxygens, turned inward by the signature sequence Thr-Val-Gly-Tyr-Gly (TVGYG). Along the tube sit four binding sites in a row, called S1 to S4. Each site is a cage of eight oxygens; in the innermost site, S4, four of them come from threonine side chains.
+
+**Predict.** Na⁺ is smaller than K⁺. If the filter were a sieve, which ion would pass more easily? Since K⁺ wins instead, what must the filter be doing? Use the toll.
+
+<details>
+<summary>Check your prediction</summary>
+
+A sieve would pass Na⁺, so the filter is not a sieve. It works on the toll. A K⁺ ion entering the filter sheds its water, and the eight oxygens of a site take the water's place closely, so K⁺ pays little net energy to enter. In the classic snug-fit picture, Na⁺ is too small to touch all eight oxygens at once. It cannot be paid back the energy it spent shedding its own water, so it stalls. The filter repays nearly all of K⁺'s toll and falls short on Na⁺'s.
+
+</details>
+
+How exact must the fit be? Less exact than it sounds. A preference of 1000 to 1 corresponds to a free-energy difference of RT × ln(1000), only about 17.8 kJ/mol at 37 °C. The hydration energies of Na⁺ and K⁺ differ by about 70 kJ/mol. So the filter does not have to be a perfect stand-in for water. It can even give Na⁺ more energy back than K⁺, as much as about 52 kJ/mol more, and still pass K⁺ a thousand times better, because that falls about 18 kJ/mol short of Na⁺'s extra 70. Small differences in a huge toll are enough. Simulations refine the snug-fit picture: they suggest the oxygens do give Na⁺ more energy than K⁺, just not enough more. The filter's carbonyls are flexible, and their number and electrical properties matter as much as the fit, a point still being worked out.
+
+That raises one more puzzle. If the filter binds K⁺ well enough to be that selective, why does K⁺ ever leave? The answer is probably crowding. Several K⁺ ions sit in the filter at once, and like charges repel. When a second ion enters, the repulsion between the ions lowers the barrier for the leading ion to leave. This is the **knock-on** mechanism. A Newton's cradle is a fair image of it, but only an image: the energy is not passed along like a collision. Whether water molecules separate the ions in the filter is still argued, though recent evidence favors direct ion-to-ion contact. The point to keep: repulsion among the crowded ions lifts each ion out of the deep well it would sit in if it were alone, so K⁺ leaves fast. K⁺ moves at near the diffusion limit, as fast as ions can diffuse to the pore, around 10⁸ ions per second, selective and fast at the same time. Roderick MacKinnon solved this structure and won the 2003 Nobel Prize in Chemistry for it.
+
+Aquaporins give water its own cheap path in the same spirit, single file, while excluding protons. How voltage-gated Na⁺ and K⁺ channels use the gradients from this lesson to fire a nerve impulse is the subject of the [Action Potential](/lessons/action-potential/) lesson.
+
+## CFTR: a channel built from a pump family
+
+Now the last puzzle. CFTR belongs to the **ABC transporter** family, and its family is mostly pumps. ABC transporters share an architecture: two transmembrane domains that form the path across, and two nucleotide-binding domains that act as the ATP-powered engine. When ATP binds, the two engine domains clamp together and flip the protein from inward-facing to outward-facing. Most family members use that flip to pump solutes; P-glycoprotein, which throws drugs out of cells, is one.
+
+CFTR is the family's odd member. It has the same core domains plus a regulatory domain, and it works as a chloride channel. Once protein kinase A phosphorylates the regulatory domain, ATP binding gates its pore open.
 
 <LessonFigure src="/figures/membrane-structure-function/abc-transporter-two-states.webp" width={1200} height={656} alt="AI-generated illustration: an ABC exporter changes from an inward-facing state with separated nucleotide-binding domains to an outward-facing state with ATP bound between the joined domains. A separate CFTR inset shows the two core domain pairs, a cytoplasmic regulatory domain phosphorylated by protein kinase A, ATP at the nucleotide-binding interface, and an open chloride pore." caption="An ABC exporter has two transmembrane domains and two nucleotide-binding domains. ATP binding brings the nucleotide-binding domains together and favors the outward-facing state. CFTR shares these core domains but also has a regulatory domain: after protein kinase A phosphorylates that domain, ATP binding can gate its chloride pore open." />
 
-Then there are channels that gate. Voltage-gated channels open in response to membrane voltage; ligand-gated ones open when a molecule binds. Two famous toxins, tetrodotoxin from pufferfish and saxitoxin from the dinoflagellates behind paralytic shellfish poisoning, both plug the outer mouth of voltage-gated sodium channels, so nerves cannot depolarize and the victim is paralyzed. TRP channels sense the environment: TRPV1 opens to heat and to capsaicin, TRPM8 opens to cold and to menthol. Capsaicin activates the heat-sensing channel directly, which is why chili registers as heat and mint as cold even though nothing has changed temperature.
+CFTR uses ATP, so why is it a channel and not a pump? Apply the "which way" question. Once the pore is open, chloride flows down its own electrochemical gradient, the way it would through any channel. ATP opens the gate. It does not pay for the move.
+
+The disease comes from a missing protein. In ΔF508, the most common mutation, one phenylalanine is deleted. The protein misfolds, and most of it is destroyed in the endoplasmic reticulum, so in most cystic fibrosis CFTR mostly fails to reach the membranes of cells lining the lungs and gut. The main defect is not a broken channel at the membrane. Most of it never arrives, and the little that does opens poorly. Everything downstream, the thick mucus, the chronic infections, the shortened life, follows from that one missing protein.
+
+**Predict.** Two kinds of drug could help. A **corrector** helps the protein fold and reach the surface. A **potentiator** helps a channel that is already at the surface open. Which does a patient with ΔF508 need?
+
+<details>
+<summary>Check your prediction</summary>
+
+Both. The corrector is the one that cannot be skipped: a potentiator alone has little to work on, because most of the channel never arrives. Treatment follows the split in the defect, which is precision medicine aimed at the protein-level consequence of a mutation.
+
+</details>
+
+## Putting the two questions together
+
+Every case in this lesson came down to the two questions: how cheap is the route around the toll, and which way does the gradient point.
 
 ### Design problem
 
-The most elegant problem in this whole chapter is how a potassium channel rejects sodium, even though sodium is the smaller ion. A simple sieve would let the smaller ion through, so size cannot be the answer. The selectivity filter solves it thermodynamically. It lines the path with backbone carbonyl oxygens that present, at each site, 8 oxygens to the passing ion, closely mimicking the cage of water K⁺ carries in solution. K⁺ sheds its water and the oxygens take water's place closely, so it pays little net energy to enter. In the classic snug-fit picture, Na⁺ is too small to touch all 8 oxygens at once, so it cannot pay back the energy it spent shedding its own water, and it stalls. Simulations refine this: the filter's carbonyls are flexible, and their number and electrical properties matter as much as the fit, a point still being worked out. The result is more than a thousandfold selectivity for the larger ion. The channel offers an energy landscape only K⁺ can afford.
+A drug candidate crosses cell membranes poorly. It carries a carboxylate group, with a pKa of 4. Its target is inside the cell.
 
-That raises one more puzzle. If the filter binds K⁺ tightly enough to be that selective, why does K⁺ ever leave? The answer is crowding. Multiple K⁺ ions sit in the filter at once and repel each other electrostatically, so the entry of one ion shoves the next one out, like a Newton's cradle converting entry energy directly into exit energy. K⁺ moves at near the diffusion limit, around 10⁸ ions per second, selective and fast at the same time. Roderick MacKinnon solved this structure and won the 2003 Nobel Prize in Chemistry for it.
+1. Predict the effect of masking the carboxylate as an ester.
+2. Suppose a transporter in the membrane happens to carry the drug. Why can the drug now act on its target, and what sets the direction in which the transporter moves it?
 
-The action potential is where all of this comes together: voltage-gated sodium and potassium channels firing in sequence, the Na⁺-K⁺ pump resetting the gradients, an inactivation gate swinging shut to inactivate the sodium channel, and a refractory period that keeps the signal traveling in one direction. The region the impulse just passed cannot fire again yet, so the signal does not run backward. The membrane — the impermeable sheet that builds itself — turns out to be the substrate on which a nerve fires.
+<details>
+<summary>Check your answer</summary>
+
+1. At pH 7, three units above the pKa, only about one molecule in a thousand is uncharged. The charged carboxylate pays the toll for leaving water, like the charged groups on tryptophan. An ester carries no charge, so the masked drug should cross far faster. Once inside, cellular esterases can cut the ester back to the active acid. This is the speed question.
+2. The transporter offers a cheap route around the toll, so speed is no longer the problem. Direction is a separate question. If the transporter is a uniporter or a channel, it can only move the drug down its electrochemical gradient. For a negatively charged drug the voltage counts too: the negative inside pushes an anion out, so a uniporter alone would leave the drug less concentrated inside than outside. A carrier coupled to sodium could pull it in uphill, the way SGLT1 pulls in glucose.
+
+</details>
 
 ## Going deeper
 
-### Scale of a bilayer
+### Hydration energies depend on the convention
 
-A membrane runs about 7 nanometers thick, roughly 70 Angstroms. For scale, a ribosome is about 25 nm across, so a membrane is roughly a quarter of that.
+The toll for an ion is often quoted as a single number, but tables differ, because absolute hydration energies depend on a reference convention. All values below are magnitudes, in kJ/mol.
+
+| Quantity | K⁺ | Na⁺ | Na⁺ minus K⁺ |
+|---|---|---|---|
+| Hydration free energy, Marcus scale | 295 | 365 | 70 |
+| Hydration free energy, absolute scale (Tissandier) | 352 | 424 | 72 |
+| Values often quoted in teaching (about 330 and 400), between the free-energy and enthalpy figures | 330 | 400 | 70 |
+
+The difference on the free-energy scales is the number the filter section uses. Tabulated hydration enthalpies are a different quantity; they differ by somewhat more, about 80 kJ/mol.
+
+### How ions actually leak through a bare bilayer
+
+If an ion had to pay its whole toll to cross, it would never cross. The chance that a molecule has enough energy to cross a barrier is about e^(−ΔG/RT), the Boltzmann factor. For a toll of 330 to 400 kJ/mol that is 10⁻⁵⁶ to 10⁻⁶⁷. Even if the oil's slight polarizability is counted (the Born model with a dielectric constant of 2, and effective cavity radii of 1.68 Å for Na⁺ and 2.17 Å for K⁺, larger than the ionic radii in the opening), the cost of moving the ion into the core is about 201 and 156 kJ/mol, giving factors of 10⁻³⁴ and 10⁻²⁶. The observed water-to-sodium ratio of 10¹⁰ corresponds to an extra barrier for Na⁺, over and above water's own, of only about 59 kJ/mol (RT × ln 10¹⁰). So real ions must take the much cheaper water-dragging or defect route described in the main text, and which picture fits best depends on how thick the bilayer is. That route sets the measured leak.
+
+### Liposomes as drug carriers
+
+Liposomes, closed lipid vesicles, carry drugs. Load a water-soluble drug in the aqueous core, a fat-soluble one in the bilayer, and you have a delivery vehicle. Doxil packages the chemotherapy drug doxorubicin in liposomes and spares the heart much of its toxicity. The COVID-19 mRNA vaccines used lipid nanoparticles to protect fragile mRNA long enough to deliver it. Closed vesicles form on their own, but making small, uniform liposomes usually needs extra steps such as sonication or extrusion.
+
+### Lipid rafts
+
+Cholesterol and sphingolipids are thought to cluster into lipid rafts, small, short-lived patches roughly 10 to 200 nm across. Their size and roles in living cells are still debated. They may act as gathering points where signaling proteins find their partners, and HIV and influenza appear to use them to assemble and bud.
+
+### Statins and muscle pain
+
+The pathway that makes cholesterol may also explain why statins can cause muscle pain in some people. Statins block the mevalonate pathway, which makes not only cholesterol but also isoprenoids and coenzyme Q10 that muscle cells depend on. The mechanism is still debated.
+
+### COX-1, aspirin and ibuprofen
+
+The enzyme COX-1 is a monotopic membrane protein: it sits in one leaflet of the endoplasmic reticulum and nuclear membranes, without spanning the bilayer. It pulls arachidonic acid in through a hydrophobic channel to make prostaglandins. Aspirin works by irreversibly acetylating a serine (Ser530) in that substrate channel, which blocks arachidonic acid from reaching the catalytic site. Because the block is permanent, it lasts until the cell makes fresh enzyme. Platelets have no nucleus and cannot make new COX-1, so a blocked platelet stays blocked for its whole life, which is the basis of low-dose aspirin's lasting antiplatelet effect. Ibuprofen competes for the same site reversibly, so taking ibuprofen before aspirin can shield the site and blunt aspirin's antiplatelet effect; how much heart protection is lost is still unclear.
+
+### Toxins and sensor channels
+
+Two famous toxins, tetrodotoxin from pufferfish and saxitoxin from the dinoflagellates behind paralytic shellfish poisoning, both plug the outer mouth of voltage-gated sodium channels, so nerves cannot depolarize and the victim is paralyzed. TRP channels sense the environment: TRPV1 opens to heat and to capsaicin, and TRPM8 opens to cold and to menthol. Capsaicin activates the heat-sensing channel directly, which is why chili registers as heat and mint as cold even though nothing has changed temperature.
+
+### From gradients to a nerve impulse
+
+The action potential is where all of this comes together: voltage-gated sodium and potassium channels firing in sequence, the Na⁺-K⁺ pump maintaining the gradients, an inactivation gate that closes the sodium channel shortly after it opens, and a refractory period that keeps the signal traveling in one direction. The region the impulse just passed cannot fire again yet, so the signal does not run backward. The membrane, the impermeable sheet that builds itself, turns out to be the substrate on which a nerve fires.
+
+### P-glycoprotein and multidrug resistance
+
+P-glycoprotein is the ABC family's promiscuous pump, accepting structurally diverse drugs. Tumor cells that overexpress it can become multidrug-resistant, pumping chemotherapy out before it can work.
 
 ### How an aquaporin passes water but not protons
 
@@ -520,4 +764,4 @@ Aquaporins are channels that pass about 3 billion (3 × 10⁹) water molecules p
 
 ### Trikafta and the clinical picture for CFTR
 
-The drug Trikafta, approved in 2019, combines two correctors (elexacaftor and tezacaftor) that help the protein fold and reach the surface with a potentiator (ivacaftor) that helps it open once it gets there. It is projected to add decades of expected survival for people who carry two copies of ΔF508.
+The drug Trikafta, approved in 2019, combines two correctors (elexacaftor and tezacaftor) with a potentiator (ivacaftor). It is approved for people with at least one copy of ΔF508, and for some other mutations. The projection of decades of added expected survival is for people who carry two copies of ΔF508.
