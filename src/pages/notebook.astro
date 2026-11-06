@@ -20,8 +20,11 @@ const titles = Object.fromEntries(lessons.map((l) => {
   <article class="wrap nb" data-titles={JSON.stringify(titles)}>
     <p class="eyebrow">Your notebook</p>
     <h1>Highlights and notes</h1>
-    <p class="lede">
-      Saved in this browser. <a data-account-link>Sign in to keep them on all your devices.</a>
+    <p class="lede" data-lede-out>
+      Saved in this browser. <a href="/account/">Sign in to keep them on all your devices.</a>
+    </p>
+    <p class="lede" data-lede-in hidden>
+      Saved to your account and kept in step on every device you sign in on. <a href="/account/">Your account</a>
     </p>
 
     <noscript><p class="warn">This page needs JavaScript to read your saved highlights and notes.</p></noscript>
@@ -72,6 +75,12 @@ const titles = Object.fromEntries(lessons.map((l) => {
   </article>
 
   <script>
+    // Signed in (the readable bp_signed_in cookie set by the accounts worker): say they are synced.
+    if (/(?:^|; )bp_signed_in=1/.test(document.cookie)) {
+      document.querySelector('[data-lede-out]')?.setAttribute('hidden', '');
+      document.querySelector('[data-lede-in]')?.removeAttribute('hidden');
+    }
+
     import { allItems, upsertItem, deleteItem, loadNotebook, storageWorks, NOTEBOOK_EVENT, NOTEBOOK_KEY, type NotebookItem } from '../lib/notebook';
 
     const root = document.querySelector<HTMLElement>('.nb')!;
@@ -84,9 +93,6 @@ const titles = Object.fromEntries(lessons.map((l) => {
     const countEl = $<HTMLElement>('[data-count]');
     const MISSING_KEY = 'biochempedia:notebook-missing:v1';
 
-    // Set here rather than in the HTML: /account/ comes with the accounts work, and the
-    // build's link check would flag it until then. Once /account/ exists, a plain href is fine.
-    $<HTMLAnchorElement>('[data-account-link]').href = '/account/';
     if (!storageWorks()) $<HTMLElement>('[data-blocked]').hidden = false;
 
     function missing(): Record<string, string> {
