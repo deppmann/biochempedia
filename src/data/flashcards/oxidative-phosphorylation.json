@@ -1,0 +1,652 @@
+{
+ "slug": "oxidative-phosphorylation",
+ "title": "Oxidative Phosphorylation: The Electron-Transport Chain",
+ "generated": {
+  "date": "2026-11-06",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "7fd1d69a28db",
+ "sectionHashes": {
+  "(opening)": "c911e3984dbc",
+  "The energy ladder": "4d092ec6dee1",
+  "The chain, in order": "06540542fc17",
+  "The proton ledger": "a2249b64b3d4",
+  "The exchange rate: about 4 protons per ATP": "7aa8f1b7926e",
+  "Two machines that keep each other in step": "ec8dcb2093ca",
+  "Reading the order of the chain": "cd25ec4e735a",
+  "The price of running on oxygen": "76b8edfebd0f",
+  "Protons released versus charges moved": "ef37869576bf",
+  "Why 2.5 and not 2.7": "6c4a37ed4d70",
+  "The porous outer membrane": "0328b9e366d5",
+  "Reactive oxygen species: numbers and cleanup": "f3a7467f57e0",
+  "Low oxygen at ecosystem scale": "8f90df4f4764"
+ },
+ "cards": [
+  {
+   "id": "oxidative-phosphorylation-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Oxidative phosphorylation is two machines: the electron-transport chain and ATP synthase. What single thing links them?",
+   "back": "The proton gradient across the inner mitochondrial membrane. The chain pumps protons out of the matrix into the intermembrane space; ATP synthase lets them flow back and uses that flow to make ATP.",
+   "quote": "The two are linked by exactly one thing: the proton gradient."
+  },
+  {
+   "id": "oxidative-phosphorylation-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the electron-transport chain, electrons flow spontaneously from {{c1::more negative toward more positive}} reduction potential (E°′).",
+   "back": "A more negative E°′ donates electrons eagerly; a more positive one grabs them hard.",
+   "quote": "Electrons flow spontaneously from negative toward positive, downstairs",
+   "section": "The energy ladder"
+  },
+  {
+   "id": "oxidative-phosphorylation-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Rank NADH, cytochrome c, coenzyme Q and O₂ from most negative to most positive standard reduction potential (E°′), with values.",
+   "back": "NADH (−0.32 V) < coenzyme Q (about +0.04 V) < cytochrome c (+0.25 V) < O₂ (+0.82 V).",
+   "quote": "coenzyme Q just below it near +0.04 V, cytochrome c at +0.25 V, and oxygen in the basement at +0.82 V",
+   "section": "The energy ladder"
+  },
+  {
+   "id": "oxidative-phosphorylation-c04",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Using E°′(NADH) = −0.32 V, E°′(O₂) = +0.82 V and F = 96.5 kJ/(mol·V), calculate ΔE°′ and ΔG°′ for passing one electron pair from NADH to O₂.",
+   "back": "ΔE°′ = +0.82 − (−0.32) = 1.14 V. ΔG°′ = −nFΔE°′ = −2 × 96.5 × 1.14 ≈ −220 kJ/mol per electron pair.",
+   "quote": "NADH to oxygen: ΔE°′ = +0.82 − (−0.32) = 1.14 V, so ΔG°′ = −2 × 96.5 × 1.14 ≈ −220 kJ/mol per electron pair.",
+   "section": "The energy ladder"
+  },
+  {
+   "id": "oxidative-phosphorylation-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why do Complexes I, III and IV pump protons while Complex II does not?",
+   "back": "They are the three steep drops in E°′ (I: 0.36 V, about 70 kJ/mol; III: 0.21 V, about 40; IV: 0.57 V, about 110). Complex II's drop is 0.01 V, under 3 kJ/mol.",
+   "why": "The three steep drops together make up the whole 220 kJ/mol fall from NADH to O₂.",
+   "quote": "The three steep drops make up the whole fall (70 + 40 + 110 = 220), and their energy pumps protons uphill, out of the matrix.",
+   "section": "The energy ladder"
+  },
+  {
+   "id": "oxidative-phosphorylation-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Pushing one proton out of the mitochondrial matrix against a typical gradient (about 0.18 V) costs about 17 kJ/mol. Complex II (succinate → Q) drops E°′ by only 0.01 V. Could Complex II pump protons?",
+   "back": "No. Its step releases under 3 kJ/mol, which cannot pay for even one proton, and Complex II has no proton-pumping machinery anyway. It pumps zero protons.",
+   "why": "This is the structural reason FADH₂ yields less ATP than NADH.",
+   "quote": "Under 3 kJ/mol cannot pay for one proton, and Complex II has no proton-pumping machinery anyway: it pumps zero protons, the structural reason FADH₂ yields less ATP than NADH.",
+   "section": "The energy ladder"
+  },
+  {
+   "id": "oxidative-phosphorylation-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why must the inner mitochondrial membrane be impermeable to ions?",
+   "back": "Because the energy of electron transport is stored as a proton gradient across it, and a gradient is only useful if it cannot leak away.",
+   "quote": "That is the whole foundation: a gradient is only useful if it cannot leak away.",
+   "section": "The chain, in order"
+  },
+  {
+   "id": "oxidative-phosphorylation-c08",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Coenzyme Q is a lipid-soluble carrier within the inner membrane, while {{c1::cytochrome c}} is a water-soluble carrier on the intermembrane-space face that carries one electron at a time.",
+   "back": "",
+   "quote": "and water-soluble cytochrome c, on the inner membrane's intermembrane-space face, carrying one electron at a time.",
+   "section": "The chain, in order"
+  },
+  {
+   "id": "oxidative-phosphorylation-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Trace the electron path through Complex I (NADH-Q oxidoreductase), and give its proton count per NADH.",
+   "back": "NADH → FMN (a flavin) → a relay of Fe-S clusters → coenzyme Q. About 4 protons moved out per NADH.",
+   "quote": "NADH hands two electrons to FMN (a flavin, like FAD), which passes them through a relay of Fe-S clusters",
+   "section": "The chain, in order"
+  },
+  {
+   "id": "oxidative-phosphorylation-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What reaction does Complex II (succinate dehydrogenase) catalyze, and where do its electrons go?",
+   "back": "It oxidizes succinate to fumarate (it is also a citric acid cycle enzyme) and passes the electrons through its FAD and Fe-S clusters to coenzyme Q.",
+   "quote": "Complex II (succinate dehydrogenase), also a citric acid cycle enzyme, oxidizes succinate to fumarate and passes the electrons through its FAD and Fe-S clusters to Q.",
+   "section": "The chain, in order"
+  },
+  {
+   "id": "oxidative-phosphorylation-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does Complex III (cytochrome bc1) need the Q cycle?",
+   "back": "QH₂ carries two electrons but cytochrome c accepts only one, so the Q cycle splits each pair. Net per pair: one QH₂ in, two cytochrome c reduced, four protons out.",
+   "quote": "QH₂ carries two electrons but cytochrome c takes one, so the complex splits each pair by the Q cycle.",
+   "section": "The chain, in order"
+  },
+  {
+   "id": "oxidative-phosphorylation-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What is the hazard built into the Q cycle at Complex III?",
+   "back": "It forms a short-lived Q radical (semiquinone, a Q holding one unpaired electron) that makes superoxide if it meets O₂.",
+   "quote": "The cost is a short-lived Q radical (a Q holding a single unpaired electron) that makes superoxide, O₂ with one extra electron, if it meets O₂",
+   "section": "The chain, in order"
+  },
+  {
+   "id": "oxidative-phosphorylation-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does Complex IV (cytochrome c oxidase) avoid releasing reactive oxygen species while reducing O₂?",
+   "back": "Its binuclear center (a heme iron and a copper side by side) holds O₂ and every partly reduced form of it until all of it is water, so partly reduced oxygen almost never escapes.",
+   "quote": "It holds oxygen and every partly reduced form of it until all of it is water, so partly reduced oxygen almost never escapes.",
+   "section": "The chain, in order"
+  },
+  {
+   "id": "oxidative-phosphorylation-c14",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At Complex IV, four electrons plus four protons plus O₂ give {{c1::two waters}}.",
+   "back": "Cyanide and CO jam this site.",
+   "quote": "Four electrons plus four protons plus O₂ give two waters.",
+   "section": "The chain, in order"
+  },
+  {
+   "id": "oxidative-phosphorylation-c15",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How many protons are pumped out per electron pair by Complexes I, II, III and IV, and what are the totals for NADH and FADH₂?",
+   "back": "I: 4, II: 0, III: 4, IV: 2. NADH: 4 + 4 + 2 = 10. FADH₂, joining at Q: 4 + 2 = 6.",
+   "quote": "The column gives the rule's totals: 10 from NADH, 6 from FADH₂, whose pair joins at Q and never passes the first pump.",
+   "section": "The proton ledger"
+  },
+  {
+   "id": "oxidative-phosphorylation-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Complex IV pumps 2 protons per electron pair and uses 2 more matrix protons per pair to make water. How many protons does it pump and use per whole O₂?",
+   "back": "One O₂ (two oxygen atoms) accepts two electron pairs. Pumped: 2 × 2 = 4. Used: 2 × 2 = 4. Total 8 per O₂, which is why per-O₂ counts look larger than the per-pair ledger.",
+   "quote": "Complex IV pumps 2 protons out per pair and uses 2 more from the matrix to make water.",
+   "section": "The proton ledger"
+  },
+  {
+   "id": "oxidative-phosphorylation-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Complex III's own energy drop (about 40 kJ/mol) pays to move only about 2 protons. How can it release 4 protons per pair?",
+   "back": "Two of the four came from the matrix earlier: when Complex I or II loaded electrons onto Q, Q picked up two matrix protons, and QH₂ carried them across the membrane.",
+   "quote": "when Complex I or II loaded electrons onto Q, Q picked up two matrix protons with them, and QH₂ carried them across",
+   "section": "The proton ledger"
+  },
+  {
+   "id": "oxidative-phosphorylation-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "NADH and FADH₂ each deliver two electrons. Why does FADH₂ yield less ATP?",
+   "back": "FADH₂'s pair enters at Q through Complex II, which pumps nothing, so it skips Complex I's 4 protons: 6 protons instead of 10.",
+   "quote": "Those four protons are the entire difference: both carriers bring two electrons, and every proton they move is identical.",
+   "section": "The proton ledger"
+  },
+  {
+   "id": "oxidative-phosphorylation-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Each ATP made in the matrix and delivered to the cytosol costs about 4 protons. Where do the 4 go?",
+   "back": "About 3 pass through ATP synthase itself (more exactly 2.7 in mammals); about 1 more drives the carriers that bring ADP and phosphate in and send ATP out.",
+   "quote": "about 1 more to move the goods: the carriers that bring ADP and phosphate in and send ATP out run on the same gradient.",
+   "section": "The exchange rate: about 4 protons per ATP"
+  },
+  {
+   "id": "oxidative-phosphorylation-c20",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "NADH drives 10 protons out per electron pair and FADH₂ drives 6. At about 4 protons per ATP, how many ATP does each yield?",
+   "back": "NADH: 10 ÷ 4 = 2.5 ATP. FADH₂: 6 ÷ 4 = 1.5 ATP.",
+   "quote": "So one NADH buys 10 ÷ 4 = 2.5 ATP and one FADH₂ 6 ÷ 4 = 1.5.",
+   "section": "The exchange rate: about 4 protons per ATP"
+  },
+  {
+   "id": "oxidative-phosphorylation-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why can the ATP yield per NADH (2.5) be a non-whole number?",
+   "back": "No chemical step ties one electron pair to a fixed number of ATP. The protons go into one shared gradient, and ATP synthase draws from it.",
+   "quote": "Neither has to be a whole number, because no chemical step ties one electron pair to a fixed number of ATP",
+   "section": "The exchange rate: about 4 protons per ATP"
+  },
+  {
+   "id": "oxidative-phosphorylation-c22",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Full oxidation of one glucose makes 10 NADH, 2 FADH₂ and 4 ATP or GTP directly. Using 2.5 ATP/NADH and 1.5 ATP/FADH₂, with the malate-aspartate shuttle delivering cytosolic NADH as NADH, what is the total ATP yield?",
+   "back": "10 × 2.5 + 2 × 1.5 + 4 = 25 + 3 + 4 = 32 ATP.",
+   "quote": "Glycolysis, pyruvate dehydrogenase and the citric acid cycle make 10 NADH and 2 FADH₂, plus 4 ATP or GTP made directly",
+   "section": "The exchange rate: about 4 protons per ATP"
+  },
+  {
+   "id": "oxidative-phosphorylation-c23",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In skeletal muscle and brain, the glycerol 3-phosphate shuttle hands the 2 cytosolic NADH from glycolysis to Q, as if they were FADH₂. Starting from 32 ATP per glucose with the malate-aspartate shuttle, what is the yield now?",
+   "back": "Each of the 2 cytosolic NADH is worth 1.5 instead of 2.5 ATP, losing 1 ATP each: 32 − 2 × 1 = 30 ATP.",
+   "quote": "as if they were FADH₂, worth 1.5 ATP each instead of 2.5, which gives 30.",
+   "section": "The exchange rate: about 4 protons per ATP"
+  },
+  {
+   "id": "oxidative-phosphorylation-c24",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What are the two components of the proton-motive force, and which side of the inner membrane is positive and more acidic?",
+   "back": "A voltage and a pH difference. The intermembrane side is positive and more acidic. In mitochondria the voltage does most of the work.",
+   "quote": "The proton-motive force has two parts: a voltage, with the intermembrane side positive, and a pH difference, with that side more acidic.",
+   "section": "Two machines that keep each other in step"
+  },
+  {
+   "id": "oxidative-phosphorylation-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does the electron-transport chain burn less oxygen when ADP is scarce?",
+   "back": "With little ADP, ATP synthase slows, so protons stop returning and the gradient builds. Each proton then costs more to push out, until electron flow nearly stalls.",
+   "why": "Electrons can push protons out only as fast as ATP synthase, or a leak, lets them back in.",
+   "quote": "With little ADP to make into ATP, the synthase slows and the chain burns less oxygen.",
+   "section": "Two machines that keep each other in step"
+  },
+  {
+   "id": "oxidative-phosphorylation-c26",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Oligomycin, an ATP synthase blocker, is added to respiring mitochondria. What happens to oxygen use, and why?",
+   "back": "Oxygen use nearly stops, down to the leak rate. Protons cannot return through the synthase, so the gradient fills and opposes the pumps.",
+   "quote": "Oligomycin: protons cannot return through the synthase, the gradient fills, and oxygen use nearly stops, down to the leak rate.",
+   "section": "Two machines that keep each other in step"
+  },
+  {
+   "id": "oxidative-phosphorylation-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An uncoupler such as DNP (dinitrophenol), which makes the inner mitochondrial membrane leaky to protons, is added to respiring mitochondria. Predict oxygen use, ATP output and heat.",
+   "back": "Oxygen use speeds up, ATP output falls, and heat rises. Protons rush back without passing through ATP synthase, so the gradient stays low and nothing holds the pumps back.",
+   "quote": "The gradient stays low, nothing holds the pumps back, and oxygen use speeds up.",
+   "section": "Two machines that keep each other in step"
+  },
+  {
+   "id": "oxidative-phosphorylation-c28",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Mitochondria are treated with oligomycin until oxygen use falls to the leak rate. An uncoupler is then added. Predict oxygen use and ATP synthesis, and say what the result shows.",
+   "back": "Oxygen use resumes and rises; ATP synthesis stays off, because the synthase is still blocked. The chain was held back by the gradient, not by any direct link to ATP synthase.",
+   "why": "Rests on the rule that protons return only through ATP synthase or a leak, and electron flow can go only as fast as they return.",
+   "quote": "That is the rule's second half, and the return route is ATP synthase or a small leak.",
+   "section": "Two machines that keep each other in step"
+  },
+  {
+   "id": "oxidative-phosphorylation-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does brown fat's uncoupling differ from that caused by the diet drug DNP?",
+   "back": "Brown fat uncouples on purpose, for warmth, through a regulated proton channel, UCP1. DNP made the membrane leaky with no control, and lethally.",
+   "quote": "Brown fat uncouples on purpose, for warmth, through a regulated proton channel, UCP1.",
+   "section": "Two machines that keep each other in step"
+  },
+  {
+   "id": "oxidative-phosphorylation-c30",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Cyanide binds the binuclear center of Complex IV. Predict what happens to proton pumping, the proton gradient and ATP synthase.",
+   "back": "Electrons cannot reach O₂, so the chain backs up and the pumps stop. Protons keep leaking back in, the gradient runs down, and ATP synthase can no longer make ATP; it may even run backward, spending glycolytic ATP.",
+   "quote": "It stops the chain, so the pumps stop, while protons keep leaking back in.",
+   "section": "Two machines that keep each other in step"
+  },
+  {
+   "id": "oxidative-phosphorylation-c31",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Cyanide-poisoned mitochondria are given the uncoupler DNP. Does oxygen use recover?",
+   "back": "No. An uncoupler only removes the gradient's back-pressure on the pumps; with Complex IV blocked, electrons still have nowhere to fall, so the chain stays stopped.",
+   "why": "Rests on two stated rules: electron flow needs O₂ at the bottom of the ladder, and the gradient only limits the rate of a running chain.",
+   "quote": "Block that last step and electrons have nowhere to fall, the chain backs up"
+  },
+  {
+   "id": "oxidative-phosphorylation-c32",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which complex does each inhibitor block: rotenone, antimycin A, cyanide?",
+   "back": "Rotenone: Complex I. Antimycin A: Complex III. Cyanide: Complex IV.",
+   "quote": "Rotenone blocks Complex I, antimycin A Complex III, cyanide Complex IV.",
+   "section": "Reading the order of the chain"
+  },
+  {
+   "id": "oxidative-phosphorylation-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "When an inhibitor blocks one complex of the electron-transport chain, which carriers become reduced and which oxidized, and why?",
+   "back": "Carriers upstream of the block become reduced, because electrons cannot leave. Carriers downstream become oxidized, because no electrons arrive.",
+   "why": "This crossover pattern, read by spectroscopy, helped work out the order of the chain before any structure was known.",
+   "quote": "Every carrier upstream of the block piles up reduced, because electrons cannot leave; everything downstream goes oxidized, because none arrive.",
+   "section": "Reading the order of the chain"
+  },
+  {
+   "id": "oxidative-phosphorylation-c34",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Rotenone is added to mitochondria fed an NADH-linked fuel, and the chain stops. Succinate is then supplied instead. Does the chain run, and how many protons move per pair?",
+   "back": "Yes. Succinate's electrons enter at Q, below the Complex I block, so the chain runs and each pair still moves 6 protons.",
+   "quote": "With succinate it runs, because those electrons enter at Q, below the block, and each pair still moves 6 protons.",
+   "section": "Reading the order of the chain"
+  },
+  {
+   "id": "oxidative-phosphorylation-c35",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Antimycin A is added to mitochondria. Would switching their fuel to succinate restore oxygen use, as it does after rotenone? Which carriers end up reduced?",
+   "back": "No. Succinate's electrons enter at Q, which is upstream of Complex III, so they still meet the block. Q stays reduced; cytochrome c and Complex IV go oxidized; oxygen use stops.",
+   "why": "Rests on the crossover rule plus the entry point of succinate's electrons at Q.",
+   "quote": "Inhibitors freeze the chain at one point, and the freeze is diagnostic.",
+   "section": "Reading the order of the chain"
+  },
+  {
+   "id": "oxidative-phosphorylation-c36",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which sites in the electron-transport chain are among the main sources of superoxide?",
+   "back": "Complex I and the Complex III Qo site. Which sites dominate depends on the fuels present, and the leak is lower when mitochondria are busy making ATP.",
+   "quote": "Complex I and the Complex III Qo site are among the main sources, and which sites dominate depends on the fuels present.",
+   "section": "The price of running on oxygen"
+  },
+  {
+   "id": "oxidative-phosphorylation-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does Friedreich's ataxia impair the electron-transport chain?",
+   "back": "A GAA-repeat expansion lowers frataxin, a protein that helps build Fe-S clusters. Cluster assembly is impaired, so Fe-S enzymes of the chain and citric acid cycle lose activity.",
+   "why": "Sensory neurons and the heart are hit hardest.",
+   "quote": "a GAA-repeat expansion lowers levels of frataxin, a protein that helps build Fe-S clusters",
+   "section": "The price of running on oxygen"
+  },
+  {
+   "id": "oxidative-phosphorylation-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does reperfusion after ischemia produce a burst of superoxide?",
+   "back": "Succinate builds up during ischemia. When O₂ returns, Complex II oxidizes it fast and over-reduces the Q pool; with the gradient high, electrons are pushed backward through Complex I toward NADH, making superoxide.",
+   "quote": "electrons are pushed backward through it, from QH₂ toward NADH, making a burst of superoxide.",
+   "section": "The price of running on oxygen"
+  },
+  {
+   "id": "oxidative-phosphorylation-c39",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "On standard values, Complex I releases about 70 kJ/mol per pair and pumps 4 protons at about 17 kJ/mol each. Use this to explain why Complex I can be pushed into reverse at reperfusion.",
+   "back": "4 × 17 = 68 kJ/mol against about 70 released: a margin of only about 2 kJ/mol. Running near balance, it is easily tipped backward by a high gradient and a crammed Q pool.",
+   "why": "Rests on the energy ladder plus the rule that the gradient's cost per proton rises as it builds.",
+   "quote": "Complex I's drop only just covers its four protons on standard values (about 70 kJ against 4 × 17)",
+   "section": "The price of running on oxygen"
+  },
+  {
+   "id": "oxidative-phosphorylation-c40",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A drug briefly inhibits Complex II at the moment blood flow returns to an ischemic heart. Predict its effect on the reperfusion superoxide burst.",
+   "back": "The burst should shrink. Blocking Complex II slows oxidation of the accumulated succinate, so the Q pool is not over-reduced and fewer electrons are pushed backward through Complex I.",
+   "why": "Reasoned from the lesson's mechanism: succinate oxidation by Complex II over-reduces Q, which drives reverse flow through Complex I.",
+   "quote": "When blood returns, Complex II oxidizes it fast and over-reduces the Q pool.",
+   "section": "The price of running on oxygen"
+  },
+  {
+   "id": "oxidative-phosphorylation-c41",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "An NADH pair releases about 220 kJ/mol and a succinate pair about 150 kJ/mol. At about 17.4 kJ/mol per proton, how much energy is stored as the gradient in each case, and what fraction is that?",
+   "back": "NADH: 10 × 17.4 ≈ 174 kJ/mol, about 79% of 220. Succinate: 6 × 17.4 ≈ 104 kJ/mol, about 70% of 150.",
+   "quote": "10 protons at about 17 kJ is about 174 of the 220 kJ an NADH pair releases",
+   "section": "Protons released versus charges moved"
+  },
+  {
+   "id": "oxidative-phosphorylation-c42",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "The mammalian ATP synthase rotor has 8 c-subunits and makes 3 ATP per turn; transport adds about 1 proton per ATP. Calculate the theoretical ATP per NADH (10 H⁺) and per FADH₂ (6 H⁺).",
+   "back": "8 ÷ 3 ≈ 2.7 H⁺ per ATP; + 1 ≈ 3.7. NADH: 10 ÷ 3.7 ≈ 2.7 ATP. FADH₂: 6 ÷ 3.7 ≈ 1.6 ATP.",
+   "why": "Proton leak and slip bring measured values down to about 2.5 and 1.5.",
+   "quote": "The mammalian ATP synthase rotor has 8 c-subunits and makes 3 ATP per turn, about 2.7 protons per ATP.",
+   "section": "Why 2.5 and not 2.7"
+  },
+  {
+   "id": "oxidative-phosphorylation-c43",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "How does the permeability of the outer mitochondrial membrane compare with the inner membrane's?",
+   "back": "The outer membrane is porous: its VDAC channels let most small molecules and ions, up to roughly 5000 Da, through. The inner membrane is impermeable to ions.",
+   "quote": "Its VDAC channels let most small molecules and ions, up to roughly 5000 Da, through.",
+   "section": "The porous outer membrane"
+  },
+  {
+   "id": "oxidative-phosphorylation-c44",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How is mitochondrial superoxide cleaned up?",
+   "back": "Superoxide dismutase converts two superoxides to H₂O₂ and O₂; peroxiredoxins and glutathione peroxidases (and catalase, mostly in peroxisomes) then remove the H₂O₂.",
+   "quote": "Superoxide dismutase converts two superoxides to H₂O₂ and O₂, then peroxiredoxins and glutathione peroxidases",
+   "section": "Reactive oxygen species: numbers and cleanup"
+  },
+  {
+   "id": "oxidative-phosphorylation-c45",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a hypoxic coastal dead zone, how is a fish's electron-transport chain like one poisoned with cyanide, and how does it differ?",
+   "back": "Alike: with no O₂ as terminal acceptor, electrons cannot leave, the chain backs up and pumping stops. Different: Complex IV itself is unblocked, so restoring O₂ restores electron flow.",
+   "why": "Rests on the rule that the chain needs O₂ at the bottom of the ladder; cyanide removes the site, hypoxia removes the acceptor.",
+   "quote": "Every aerobic animal needs O₂ waiting at the bottom of the ladder; without it the chain backs up just as it does under cyanide.",
+   "section": "Low oxygen at ecosystem scale"
+  },
+  {
+   "id": "oxidative-phosphorylation-c46",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Skeletal muscle mitochondria are treated with rotenone. Can electrons from cytosolic NADH made in glycolysis still reach O₂ through the glycerol 3-phosphate shuttle?",
+   "back": "Yes. That shuttle hands the electrons straight to Q from the intermembrane-space side, below the Complex I block, so they still pass Complexes III and IV (6 protons per pair).",
+   "why": "Rests on the crossover rule plus the shuttle's entry point at Q.",
+   "quote": "The glycerol 3-phosphate shuttle (skeletal muscle, brain) hands them straight to Q from the intermembrane-space side",
+   "section": "The exchange rate: about 4 protons per ATP"
+  }
+ ]
+}

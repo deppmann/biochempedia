@@ -6,9 +6,11 @@ order: 3
 summary: >-
   Twenty amino acids share one backbone, so what makes them different — and why
   can a single swap among them turn a healthy protein into a disease? The answer
-  is the side chain. One idea drives the whole lesson: the shared backbone gives every amino acid
-  its zwitterion and its basic titration curve, and the R group adds what makes
-  each one different: its charge, its pKa, and how it behaves. It ends on the Glu→Val swap behind sickle cell.
+  is the side chain. One idea drives the whole lesson: every ionizable group is a proton
+  switch, its pKa is where it sits halfway, and an amino acid's charge at any pH is the
+  sum of its switches. The side chain adds a switch or none, plus a second property,
+  polarity. It ends on the Glu→Val swap behind sickle cell: charge explains how it was
+  first seen, polarity explains why cells sickle.
 hook: "The R group sets what makes each amino acid different — its charge, its pKa, and the Glu→Val swap behind sickle cell."
 
 estMinutes: 22
@@ -17,6 +19,7 @@ objectives:
   - "Predict whether a group is protonated or deprotonated from pH and pKa, and explain why an amino acid is a zwitterion at pH 7.4."
   - "Read pKa and pI off a titration curve, and compute pI as the average of the two pKa values bracketing the net-zero form."
   - "Classify a side chain by R-group property and predict the consequence of swapping one amino acid for another (e.g., Glu→Val in sickle cell)."
+  - "Predict which way an amino acid or protein moves in electrophoresis from the buffer pH and its pI."
 
 explainer:
   src: "/explainers/amino-acids/explainer.mp4"
@@ -413,8 +416,8 @@ explainLevels:
       identical substituents make it achiral.
 
       The R group sets most of what distinguishes one amino acid from another, and the cleanest sorting is by
-      polarity and charge: hydrophobic, polar-neutral, positively charged (Lys, Arg,
-      His), and negatively charged (Asp, Glu). At physiological pH the molecule is a
+      polarity and charge: hydrophobic, polar-neutral, basic (Lys and Arg, positive at
+      pH 7.4; His, only about 4% protonated in free solution), and acidic (Asp, Glu). At physiological pH the molecule is a
       zwitterion, and the protonation state of every ionizable group follows from the
       Henderson–Hasselbalch logic: pH > pKa favors the deprotonated form, pH < pKa the
       protonated form.
@@ -528,135 +531,196 @@ corpusTags:
 import AminoTitrator from '../../../components/AminoTitrator.astro';
 import AminoAcidClassifier from '../../../components/AminoAcidClassifier.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**All twenty amino acids are built on one backbone.** Same alpha-carbon, same
-carboxyl group, the same amino nitrogen, the same lone hydrogen. The only thing
-that differs is one attachment — the side chain, the R group. And yet swapping one
-amino acid for another at a single position in one protein is enough to cause
-sickle cell disease.
+**In 1949 Linus Pauling, Harvey Itano, S. J. Singer and Ibert Wells put hemoglobin from healthy people and from people with sickle-cell anemia in an electric field, and the two moved differently: at the same pH they carried different net charges.**
 
-So here is the question this lesson turns on: if the scaffold is identical, how can
-one side chain decide so much? The answer runs in a straight line — structure sets
-charge, charge sets behavior — and it is one of the most useful chains of reasoning
-in biochemistry.
+For two molecules of the same size and shape, only a charge difference explains that. The difference turned out to be one amino acid: at position 6 of each beta chain, a valine where a glutamate belongs. Why does that swap change the charge, and why does it make red cells sickle? The answers differ, and by the end you can work out both.
 
-## The idea: the backbone is shared, the side chain is everything
+*The film above is a preview.* It uses pKa and pI, defined below; this page adds polarity, which the sickle story also needs.
 
-Every amino acid is a central carbon — the **alpha-carbon** — wearing four groups:
-an amino group (−NH₂), a carboxyl group (−COOH), a hydrogen, and a distinctive **R
-group**. Three of those four are the same across the set, with one twist: proline's
-side chain loops back onto its own backbone nitrogen, so its amino group is a
-secondary amine. The R group is the variable, and it carries all the personality:
-its size, its charge, whether it loves or flees water, whether it can react.
+## One backbone, twenty side chains
 
-That four-groups-on-one-carbon arrangement has a consequence. When all four are
-different, the carbon is **chiral** — it has two non-superimposable mirror images,
-L and D, like your two hands. Proteins are built almost exclusively from the **L
-form**. The lone exception is **glycine**, whose R group is just another hydrogen;
-with two identical groups, its alpha-carbon is no longer chiral. Glycine is the
-only achiral amino acid, and that simplicity is exactly why it shows up at the tight
-turns where a protein needs to fold back on itself.
+Every amino acid is a central carbon, the **alpha-carbon**, carrying four groups: an amino group (written −NH₂), a carboxyl group (written −COOH), a hydrogen, and a side chain, the **R group**. That is how it is drawn on paper; in water near neutral pH the ends are −NH₃⁺ and −COO⁻ (the next section shows why). Three groups are shared (proline's side chain loops back onto its backbone nitrogen, making a secondary amine). The R group carries the differences: size, charge, comfort in water, reactivity.
 
-Chirality has a body count. Thalidomide was sold in the 1950s as a sedative; one
-mirror-image form is thought to carry its sedative effect and the other its power to cause
-severe birth defects in roughly ten thousand children. Because the body converts each form
-into the other within hours, even the pure "safe" form would not have been safe. Same atoms,
-opposite hand, different effects.
+With four different groups, the alpha-carbon is **chiral**: it has two mirror images, L and D, that cannot be superimposed, like your two hands. Proteins are built almost exclusively from the **L form**. The exception is **glycine**, whose R group is just another hydrogen, so it is the only achiral amino acid. That tiny side chain lets it take backbone angles other residues cannot, so it turns up in tight turns.
 
-Sort the R groups by what they do and four families appear: **hydrophobic** (greasy
-hydrocarbon and aromatic chains that bury themselves in a protein's core, away from
-water), **polar but neutral** (the hydroxyls of Ser, Thr, Tyr; the amides of Asn,
-Gln; the reactive thiol of Cys), **positively charged** (Lys, Arg, His), and
-**negatively charged** (Asp, Glu). Which family a residue belongs to predicts where
-it sits and what it does. Ask where you would put an amino acid in a
-membrane-spanning helix, on the face surrounded by lipid, and the answer is almost forced: hydrophobic.
+## Proton switches: the one rule for charge
+
+Both ends of the backbone are **proton switches**: groups that hold a hydrogen ion, H⁺ (**protonated**), or let it go (**deprotonated**), depending on how acidic the surroundings are. Each switch has a set point, its **pKa**: the pH at which half of those groups hold a proton.
+
+> **The one idea to carry through this lesson.**
+>
+> 1. Below a group's pKa it mostly holds its proton; above it the group mostly lets go. Each pH unit away from the pKa makes the winning form ten times more common.
+> 2. A proton carries +1, so holding it always makes a group one charge more positive.
+> 3. An amino acid's net charge is the sum of its switches: two on the backbone, and one or none on the side chain. The pI is the pH where they sum to zero.
+
+This holds for free amino acids in water; inside a protein, neighbors can shift a pKa (Going deeper). Point 2 matters most, because switches come in two kinds:
+
+| Kind of switch | Holding H⁺ | Without H⁺ | Examples (pKa) |
+|---|---|---|---|
+| **Acid type** | 0 (−COOH) | −1 (−COO⁻) | backbone carboxyl (about 2), Asp and Glu side chains (about 4) |
+| **Base type** | +1 (−NH₃⁺; His and Arg have a protonated ring or guanidinium) | 0 (−NH₂; the neutral ring or guanidine) | backbone amino (about 9.5), His (about 6), Lys (about 10.5), Arg (about 12.5) |
+
+So "deprotonated" does not mean "negative": a lysine side chain that has lost its proton is neutral.
+
+How much is "mostly"? The Henderson–Hasselbalch equation gives the ratio.
+
+<EquationCard
+  purpose="How the two forms of one proton switch are split at a given pH."
+  eq="pH − pKa = log( [without H⁺] / [with H⁺] )"
+  say="How far the pH sits above the pKa is the log of the ratio of the form without the proton to the form with it."
+  symbols={[
+    ["pH", "p H", "how acidic the solution is; lower means more H⁺", ""],
+    ["pKa", "p K a", "the group's set point, where half the groups hold a proton", ""],
+    ["[without H⁺]", "", "the form that has let go (written A⁻ in most textbooks, even when it is neutral)", "M"],
+    ["[with H⁺]", "", "the form holding the proton (written HA)", "M"],
+  ]}
+  toolkit={["log-scales", "powers"]}
+  check="At pH = pKa the split is 50:50. One unit above gives 10:1 (about 91% without H⁺), two units 100:1 (99%). Within about half a unit of the pKa the minority form is about a quarter or more, so there the short form of the rule (the film's ‘pH above pKa, proton off’) is not enough."
+>
+  <Fragment slot="example">
+    <p>Glutamate's side chain at blood pH: 7.4 − 4.25 = 3.15 units, more than two, so over 99% have let go: negative for all practical purposes. (Exactly, 10 to the power 3.15 is about 1400 to one.)</p>
+    <p>Histidine's side chain: 7.4 − 6.0 = 1.4, and 10 to the power 1.4 is about 25. About 25 are neutral for every one that is positive, so it is about 4% positive.</p>
+  </Fragment>
+</EquationCard>
+
+Textbooks and the MCAT write the same equation as pH = pKa + log([A⁻]/[HA]).
+
+Glycine has just the two backbone switches: carboxyl pKa₁ = 2.34 and amino pKa₂ = 9.60.
+
+**Predict.** What is glycine's net charge at pH 1, at pH 6 and at pH 12?
+
+<details>
+<summary>Check your prediction</summary>
+
+- **pH 1.** Below both pKa values, so both hold their protons: −COOH (0) and −NH₃⁺ (+1). About **+1**.
+- **pH 6.** Above the carboxyl's pKa, so −COO⁻ (−1); below the amino group's, so −NH₃⁺ (+1). **0**.
+- **pH 12.** Above both, so −COO⁻ (−1) and −NH₂ (0). About **−1**.
+
+</details>
+
+Stack the three forms from most positive to most negative, with a pKa between each pair, and you have glycine's **charge ladder**:
+
+| Net charge | Form | Main form when |
+|---|---|---|
+| +1 | H₃N⁺–CH₂–COOH | pH below 2.34 |
+| | *pKa₁ = 2.34* | |
+| 0 | H₃N⁺–CH₂–COO⁻ | pH between 2.34 and 9.60 |
+| | *pKa₂ = 9.60* | |
+| −1 | H₂N–CH₂–COO⁻ | pH above 9.60 |
+
+A molecule carrying both a positive and a negative charge is a **zwitterion** (which does not mean net zero: aspartate at 7.4 has both charges and is net −1). Glycine's net-zero zwitterion is more than 90% of it from about pH 3.3 to 8.6, one unit inside each pKa. That includes blood pH, about **7.4** (the inside of a cell runs a little lower).
+
+The pH where the net charge is exactly zero is the **isoelectric point, pI**: the average of the two pKa values on either side of the net-zero rung. For glycine, (2.34 + 9.60) / 2 = **5.97**.
+
+Why the average? Near the pI almost all glycine is the zwitterion, with a little +1 and a little −1 form, and zero net charge needs equal amounts of those two. By the rule, the +1 form's ratio to the zwitterion is 10 to the power (pKa₁ − pH), and the −1 form's is 10 to the power (pH − pKa₂). Set them equal and pH = (pKa₁ + pKa₂) / 2.
+
+**Predict.** Aspartate has three switches: backbone carboxyl 1.88, side-chain carboxyl 3.65 and backbone amino 9.60. What is its net charge at pH 7.4, and what is its pI?
+
+<details>
+<summary>Check your prediction</summary>
+
+At 7.4 both carboxyls have let go (−1 each) and the amino group holds on (+1): **−1**.
+
+Walk down the ladder: +1 below pH 1.88, 0 past 1.88, −1 past 3.65, −2 past 9.60. The net-zero rung sits between 1.88 and 3.65, so pI = (1.88 + 3.65) / 2 = **2.77**. The common error is to average the two backbone values, giving 5.74, where aspartate carries −1, not 0. Find the net-zero rung first.
+
+</details>
+
+## Four side-chain families, read from the switches
+
+The two charged families are switch states at pH 7.4; the other two are sorted by **polarity**, whether a side chain is comfortable in water. Recall: below its pKa a group holds its proton and is one charge more positive.
+
+- **Acidic (Asp, Glu).** Acid-type switches near pKa 4, far below 7.4, so they have let go: **negative**.
+- **Basic (Lys, Arg, His).** Lys and Arg switches sit far above 7.4, so they hold on: **positive**. His is a base whose switch sits near 6, so free histidine is mostly neutral at 7.4; it is grouped with the bases by convention, which is why the classifier files it as "Basic (+)".
+- **Polar, uncharged.** The hydroxyls of Ser, Thr and Tyr, the amides of Asn and Gln, and the reactive thiol of Cys. Tyr (pKa about 10) and Cys (about 8.2) have switches, but at 7.4 they mostly stay neutral.
+- **Hydrophobic (Gly, Ala, Val, Leu, Ile, Met, Pro, Phe, Trp).** Greasy hydrocarbon and aromatic chains with no switch, which bury themselves in a protein's core, away from water.
+
+The seven ionizable side chains, **Asp, Glu, His, Cys, Tyr, Lys and Arg**, include the residues that form salt bridges, ion pairs between opposite charges (Asp and Glu with Lys and Arg), bind metals (His, Cys) and do acid-base catalysis (His above all).
+
+**Predict.** Which family belongs on the face of a membrane-spanning helix that is surrounded by lipid?
+
+<details>
+<summary>Check your prediction</summary>
+
+Hydrophobic: the lipid interior has no water, so charged and polar side chains are out of place and greasy ones are at home.
+
+</details>
 
 <LessonFigure src="/figures/amino-acids/families-where-they-sit.webp" width={1200} height={786} alt="AI-generated illustration: two schematic protein cutaways show representative side-chain locations. A water-soluble protein has gold hydrophobic tokens buried in its interior and polar and charged tokens on its water-exposed boundary. A membrane-spanning protein has gold tokens on its lateral surface in contact with the lipid band, with polar and charged tokens on its water-exposed extensions." caption="Side-chain properties help predict residue location. In water-soluble proteins, hydrophobic side chains tend to be buried, while polar and charged side chains often face water. In membrane-spanning regions, lipid-facing side chains are predominantly hydrophobic. These schematics show representative arrangements." />
 
-The classifier below sorts all twenty by side chain. It gives the aromatic rings (Phe,
-Tyr, Trp) a color of their own; click any residue to see the job it does.
+The classifier sorts all twenty, with the aromatic rings (Phe, Tyr, Trp) in their own color; click any residue to see its job.
 
 <AminoAcidClassifier />
 
-## Charge depends on pH: the zwitterion and the one rule
+## Reading the curve: titration, pKa and pI
 
-Here is where the amino acid starts doing chemistry. At the pH of your blood —
-about **7.4** (the inside of a cell runs a little lower) — an amino acid does not look like the uncharged −NH₂/−COOH form
-described above. Its carboxyl
-group has given up a proton to become −COO⁻, and its amino group has grabbed one to
-become −NH₃⁺. It carries a positive and a negative charge at the same time. For an
-amino acid with an uncharged side chain, that double-charged, net-neutral form is a **zwitterion**.
+A titration curve is the measured record of the charge ladder: add base drop by drop, with equivalents of base (base added per amino-acid molecule) along the bottom and pH up the side. Each flat part is a **buffering region**, where added base barely moves the pH because one switch is busy letting go of its protons.
 
-What decides whether any given group holds its proton? Every ionizable group has a
-**pKa**, the pH at which half of that group's molecules carry the proton. Compare the
-pH to the pKa and one rule, which you will use for the rest of biochemistry, gives the
-answer:
-
-> **pH > pKa → deprotonated. pH < pKa → protonated.**
-
-Sit above the pKa and the group has mostly let go of its proton; sit below it and the
-group mostly holds on. Anchor
-everything to physiological pH and you can read any amino acid's charge off its pKa
-values.
-
-Seven side chains are ionizable — they can gain or lose a proton depending on the
-surrounding pH: **Asp, Glu, His, Cys, Tyr, Lys, and Arg**. These are the residues
-that form salt bridges, bind metals, and do acid-base catalysis. The standout is
-**histidine**. Its imidazole side chain has a pKa near 6, close to
-physiological pH. That one fact lets histidine flip between
-charged and neutral with a tiny shift in its environment — exactly what an enzyme
-needs from a residue that has to hand a proton off and take one back. It is the
-workhorse of acid-base catalysis, and the reason histidine turns up in active site
-after active site.
-
-## Reading the curve: titration, pKa, and pI
+**For well-separated pKa values, each pKa sits at the middle of a flat part, the half-equivalence point.** When the two pKa values on either side of the net-zero rung are far apart, as in glycine (flat parts at 2.34 and 9.60), the pI of 5.97 sits in the steep jump between them: no switch is mid-change there, so almost every molecule is the net-zero form and nothing buffers. When the two are close, as in aspartate (1.88 and 3.65) or lysine (8.95 and 10.53), their flat parts merge and the pI falls inside one broad buffering region, so find it from the ladder, not from the shape of the curve. Histidine, with its extra imidazole switch, has three (pKa₁ = 1.82, pKa₂ = 6.00, pKa₃ = 9.17) and a pI of 7.59.
 
 <AminoTitrator />
 
-Add base to an amino acid drop by drop, track the pH, and you get a **titration
-curve**: a rising staircase with a flat plateau at each pKa and a steep jump between
-them. Each plateau is a **buffering region**, where added base barely moves the pH
-because a group is busy giving up its proton. The midpoint of a plateau — the
-**half-equivalence point** — reads the pKa straight off the y-axis.
+Drag the pH cursor to see the main form and net charge at each point. (The plotter's aspartate uses a slightly different pKa table, so its values differ by a few tenths.) Then switch to histidine and move its imidazole slider.
 
-Glycine, with two ionizable groups, has two plateaus: pKa₁ = 2.34 for the carboxyl,
-pKa₂ = 9.60 for the amino group. Between them lies the **isoelectric point**, pI =
-5.97, the pH where glycine carries no net charge. Histidine, with its extra ionizable
-imidazole, has three plateaus (pKa₁ = 1.82, pKa₂ = 6.00, pKa₃ = 9.17) and a pI of
-7.59. The extra wrinkle in the curve is the side chain earning its keep.
+Raise the imidazole pKa from 6.0 to 7.0, as a protein pocket can, and the protonated share at pH 7.4 goes from about 4% to about 28%; raise it to 7.4 and it is half and half, ready to give a proton or take one. Free cysteine's thiol (about 8.2) actually sits a little closer to body pH, and it does its own catalytic work as a reactive nucleophile. But histidine's neutral-to-positive switch is the one enzymes use most to pass protons, which is why it turns up in active site after active site: a residue that must give and take protons works best with its pKa near the enzyme's working pH.
 
-The shortcut for pI is worth committing to memory: find the form on the charge ladder
-that is net-zero, then average the two pKa values that flank it. For glycine the
-neutral zwitterion is bracketed by 2.34 and 9.60, so pI = (2.34 + 9.60)/2 = 5.97.
-Drag the pH cursor up and down the plotter above and it shows which species dominates
-and the net charge at every point. Then switch to histidine and slide its imidazole
-pKa toward 7.4: its buffering plateau slides up until it is centered on body pH, where
-half the imidazoles hold a proton and half do not, ready to give one or take one. That is why a
-catalytic residue that has to both give and take protons works best with its pKa near the pH where its enzyme works.
+## Electrophoresis: which way does it move?
 
-## The payoff: one swap, one property, a disease
+Pauling's experiment applied the rule. In **electrophoresis**, molecules in a buffer sit between two electrodes: the negative **cathode** and the positive **anode**. Below its pI a molecule is net positive and moves to the cathode; above its pI it moves to the anode; at its pI it stays put.
 
-Now the opening mystery resolves. In sickle cell disease, position 6 of the
-beta-globin chain carries a **valine** where a **glutamate** belongs. Glutamate is
-negatively charged and hydrophilic; it sits comfortably on the protein's water-facing
-surface. Valine is hydrophobic. The substitution plants a greasy patch on a surface
-that should be wet. When hemoglobin gives up its oxygen, its shape shifts and a
-matching hydrophobic pocket opens on its surface. The valine patch of one molecule
-sticks into that pocket on the next, chaining hemoglobin into rigid fibers that deform
-the red cell into a sickle. One
-side chain changed from charged to greasy. That is where the disease starts;
-hemolysis, inflammation and blocked vessels follow from it. The same logic
-— R-group property predicts behavior — runs from the membrane helix to the active
-site to the clinic.
+**Predict.** In a buffer at pH 6.0, which way do glycine (pI 5.97), aspartate (pI 2.77) and histidine (pI 7.59) move?
 
-## Detecting and separating amino acids in the lab
+<details>
+<summary>Check your prediction</summary>
 
-The behavior in this lesson is read off two kinds of measurement. **Titration** turns
-charge into a curve. Add base in steps, plot pH, and the plateaus give you the pKa
-values while the net-zero point gives you the pI — the numbers that let you predict an
-amino acid's charge at any pH. To **detect** amino acids, chemists reach for
-**ninhydrin**: it reacts with the free alpha-amino group and stains each one purple
-(proline turns yellow). To **separate** them, they reach for **chromatography**, which
-sorts a mixture by the same two side-chain properties this lesson is built on — charge
-and hydrophobicity. The chemistry you reason about on paper is the chemistry the assay
-reports back.
+Glycine barely moves: the pH is almost exactly its pI. Aspartate, far above its pI, is about −1 and moves toward the anode. Histidine, below its pI, moves toward the cathode; with its imidazole pKa at exactly 6.0, half those side chains are protonated, for a net charge of about +0.5.
+
+</details>
+
+## The payoff: one swap, two properties
+
+Now the opening question: sickle-cell hemoglobin (HbS), with **valine** for **glutamate** at beta position 6.
+
+**Charge explains the gel.** Glutamate's side chain is negative at 7.4; valine has no switch. Each of hemoglobin's two beta chains loses one negative charge, so HbS is +2 per molecule relative to normal hemoglobin (HbA). In an alkaline buffer, where hemoglobin is net negative, HbA runs toward the anode faster than HbS.
+
+**Predict.** Hemoglobin C (HbC), a real variant, replaces the same glutamate with lysine. How much does that change the charge of each hemoglobin molecule, compared with normal HbA? Would you expect HbC to form fibers?
+
+<details>
+<summary>Check your prediction</summary>
+
+Lysine is +1 where glutamate was −1: +2 per chain, **+4 per molecule**, twice HbS's change. On the same gel HbC runs slower still, so toward the anode the order is HbA, HbS, HbC.
+
+Yet HbC does not form sickle fibers. It forms crystals and causes a much milder anemia. Lysine, like glutamate, is charged and hydrophilic, so it plants no greasy patch.
+
+</details>
+
+So **charge explains how Pauling saw the defect; polarity explains why the cells sickle.** Hydrophilic glutamate is at home on the protein's water-facing surface; hydrophobic valine plants a greasy patch there. When hemoglobin gives up its oxygen, its shape shifts and a matching hydrophobic pocket opens on its surface. The valine patch of one molecule sticks into that pocket on the next, chaining hemoglobin into rigid fibers that deform the red cell into a sickle. That is where the disease starts; hemolysis, inflammation and blocked vessels follow from it. Charge and polarity, both set by structure, run from the membrane helix to the active site to the clinic.
+
+## Going deeper
+
+The main line above does not depend on these details.
+
+### Assigning L and D: the CORN rule
+
+View the alpha-carbon with the H pointing toward you and trace CO → R → N. Clockwise reads L, counterclockwise D; view from the other side and the handedness flips. The D residues in some peptides are made by enzymes after the ribosome. In R/S terms, L is S for every chiral amino acid except cysteine, whose sulfur-bearing side chain makes it R.
+
+### Thalidomide
+
+Chirality has a body count. Thalidomide was sold in the 1950s as a sedative; one mirror-image form is thought to carry its sedative effect and the other its power to cause severe birth defects in roughly ten thousand children. Because the body converts each form into the other within hours, even the pure "safe" form would not have been safe.
+
+### pKa values inside proteins
+
+A protein's local environment can shift a pKa substantially: a buried Asp or a Lys in a hydrophobic pocket can move several pH units, and histidine's is often shifted nearer to 7. Such shifts underlie pH-dependent catalysis and shape changes.
+
+### Small print on the numbers
+
+- **The uncharged form.** The −NH₂/−COOH form is a tiny minority at every pH in water.
+- **The exact pI.** Strictly, the pI is the pH where the net-charge sum is zero; the averaging shortcut matches it to within about 0.02 for the common ionizable amino acids, with tyrosine furthest off.
+- **Real curves.** At very low pH, part of the added base goes to free H⁺ in the water, so on a measured curve the carboxyl's half-equivalence point reads its pKa only approximately; the plotter draws the idealized curve.
+- **Tyr and Cys.** At pH 7.4 tyrosine's side chain is about 99.8% neutral and free cysteine's about 86% (14% thiolate), so neither normally forms salt bridges.
+- **Numbering.** Clinical genetics counts beta-globin from the starting methionine, which the finished chain lacks, so the sickle change Glu6Val is written p.Glu7Val.
+
+### Detecting amino acids in the lab
+
+**Chromatography** sorts a mixture of amino acids by charge and hydrophobicity, the two side-chain properties this lesson is built on, and **ninhydrin** stains free alpha-amino groups purple (proline turns yellow) so each spot shows. The Techniques panel has more.

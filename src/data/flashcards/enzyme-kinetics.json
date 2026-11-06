@@ -1,0 +1,617 @@
+{
+ "slug": "enzyme-kinetics",
+ "title": "Enzyme Kinetics: The Michaelis–Menten Model",
+ "generated": {
+  "date": "2026-11-06",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "929b64d3157b",
+ "sectionHashes": {
+  "(opening)": "fcf6bf08f885",
+  "Measuring the reaction: the assay and V₀": "aebdbaf84d79",
+  "Building the curve: how much of the enzyme is busy": "85f9d877b30e",
+  "Km is the half-busy point, not the affinity": "bfeb3fc96be4",
+  "Speed and efficiency: kcat and kcat/Km": "d89553fb88d6",
+  "Reading the curve a second way: Lineweaver–Burk": "939b9e65cf04",
+  "When something gets in the way: inhibitors": "f1962582b92c",
+  "Where the model stops": "3be67d988748",
+  "When Km is below Kd": "a8c2e8639fd5",
+  "From lock and key to the transition state": "1d9ddae01b0d"
+ },
+ "cards": [
+  {
+   "id": "enzyme-kinetics-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is an enzyme's turnover number, kcat?",
+   "back": "How many substrate molecules one busy (substrate-holding) enzyme converts per second. Units: s⁻¹.",
+   "quote": "Only busy enzymes make product, and each works at its own fixed pace, its turnover number, kcat: how many substrate molecules one busy enzyme converts per second."
+  },
+  {
+   "id": "enzyme-kinetics-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the simplest enzyme scheme, velocity is how fast one busy enzyme works times how much enzyme is busy: v = {{c1::kcat × [ES]}}.",
+   "back": "",
+   "quote": "An enzyme's velocity is how fast one busy enzyme works times how much of the enzyme is busy: in the simplest scheme, v = kcat × [ES]."
+  },
+  {
+   "id": "enzyme-kinetics-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For a Michaelis–Menten enzyme, the busy fraction is [S]/(Km + [S]). What do saturation, Vmax and Km each mean in terms of that fraction?",
+   "back": "Saturation: the fraction climbing toward 1. Vmax: every enzyme busy. Km: the [S] at which half the enzyme is busy.",
+   "quote": "Saturation is that fraction climbing toward 1; Vmax is every enzyme busy; Km is the substrate concentration at which half the enzyme is busy."
+  },
+  {
+   "id": "enzyme-kinetics-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What single property of a reversible enzyme inhibitor decides how it changes the v versus [S] curve?",
+   "back": "Which pool of enzyme it pulls out of the working pool: free enzyme (E), busy enzyme (ES), or both.",
+   "quote": "An inhibitor pulls enzyme out of the working pool, and which pool it pulls from (free enzyme, busy enzyme, or both) decides how the curve changes."
+  },
+  {
+   "id": "enzyme-kinetics-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does thermodynamics tell you about a reaction, and what does kinetics tell you?",
+   "back": "Thermodynamics: whether the reaction can happen (the destination). Kinetics: how fast it happens (the journey).",
+   "quote": "Thermodynamics tells you the destination: whether a reaction can happen. Kinetics tells you the journey: how fast.",
+   "section": "Measuring the reaction: the assay and V₀"
+  },
+  {
+   "id": "enzyme-kinetics-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Before converting substrate to product, an enzyme binds it and forms a temporary {{c1::enzyme–substrate (ES) complex}}: E + S ⇌ ES → E + P.",
+   "back": "",
+   "quote": "An enzyme first has to grab its substrate and hold it, forming a temporary enzyme–substrate (ES) complex, before converting it to product:",
+   "section": "Measuring the reaction: the assay and V₀"
+  },
+  {
+   "id": "enzyme-kinetics-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an enzyme assay, why is velocity taken as the initial slope (V₀) of product versus time rather than a later slope?",
+   "back": "The product curve starts straight, then bends as substrate is depleted, product accumulates and interferes, and the enzyme loses activity. Only the first moments reflect the [S] you added.",
+   "quote": "Plot product against time and the line starts straight, then bends as substrate is depleted, product accumulates and interferes, and the enzyme loses activity.",
+   "section": "Measuring the reaction: the assay and V₀"
+  },
+  {
+   "id": "enzyme-kinetics-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the simple Michaelis–Menten scheme, name the one way into the ES state and the two ways out, with their rates.",
+   "back": "In: substrate binds empty enzyme, k₁[E][S]. Out without product: substrate falls off, k₋₁[ES]. Out with product: k₂[ES] (k₂ is kcat here).",
+   "quote": "In: substrate collides with an empty enzyme and sticks, at k₁[E][S].",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does enzyme velocity level off as substrate concentration keeps rising?",
+   "back": "More substrate speeds the way into ES (binding) but not the ways out (falling off, turnover). Once nearly every enzyme is busy (saturated), no empty ones are left to fill.",
+   "quote": "Adding substrate speeds up the way in but does nothing to the ways out.",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the steady-state assumption at the centre of the Michaelis–Menten model?",
+   "back": "Soon after mixing (usually within milliseconds), enzymes become busy as fast as they stop being busy, so [ES] holds steady: k₁[E][S] = (k₋₁ + k₂)[ES].",
+   "quote": "Soon after mixing, usually within milliseconds, enzymes become busy as fast as they stop being busy, and the number of busy enzymes holds steady.",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the steady-state derivation, the Michaelis constant collects the rate constants: Km = {{c1::(k₋₁ + k₂) / k₁}}.",
+   "back": "",
+   "quote": "Collect the rate constants into one number: [E][S] / [ES] = (k₋₁ + k₂) / k₁.",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The Michaelis–Menten equation: v = {{c1::Vmax[S] / (Km + [S])}}.",
+   "back": "A hyperbola rising toward Vmax but never reaching it.",
+   "quote": "So v = Vmax[S] / (Km + [S]). That is the Michaelis–Menten equation",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c13",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the Michaelis–Menten model, Vmax equals what product of enzyme quantities?",
+   "back": "kcat × [E]ₜ: the speed with every enzyme molecule busy.",
+   "quote": "The left side becomes v; kcat[E]ₜ, the speed with every enzyme busy, is Vmax.",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "The Michaelis–Menten curve has the same shape as which protein-binding curve, and what plays the role of Kd?",
+   "back": "Single-site binding, Y = L/(Kd + L). Km takes the place of Kd (but the two constants are not the same thing).",
+   "quote": "It has the shape of single-site binding in protein binding, Y = L/(Kd + L), with Km in place of Kd.",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c15",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Under what three conditions does the simple Michaelis–Menten equation apply?",
+   "back": "One substrate; far more substrate than enzyme (so free [S] is about the [S] added); velocity measured at the initial rate.",
+   "quote": "Its scope: one substrate, far more substrate than enzyme (so free [S] is about the [S] you added), measured at initial velocity.",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An enzyme has Vmax = 60 µmol/min and Km = 4 mM. Find v at [S] = 12 mM and at 24 mM. By what percentage did doubling [S] raise v?",
+   "back": "12 mM: busy fraction 12/16 = 0.75, v = 45 µmol/min. 24 mM: 24/28 ≈ 0.86, v ≈ 51 µmol/min. About 14% faster.",
+   "why": "Only a quarter of the enzyme was empty at 12 mM, so doubling substrate had little left to fill: saturation.",
+   "quote": "At [S] = 12 mM the busy fraction is 12 / (4 + 12) = 0.75, so v = 0.75 × 60 = 45 µmol/min.",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c17",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For a Michaelis–Menten enzyme, what [S], as a multiple of Km, gives 95% of Vmax?",
+   "back": "19 Km. A fraction f needs [S] = (f / (1 − f)) × Km = (0.95/0.05) × Km = 19 Km.",
+   "quote": "In general, a fraction f needs [S] = (f / (1 − f)) × Km, so 80% needs 4 Km.",
+   "section": "Building the curve: how much of the enzyme is busy"
+  },
+  {
+   "id": "enzyme-kinetics-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is Km not a measure of an enzyme's binding affinity for substrate?",
+   "back": "Km = Kd + k₂/k₁. Turnover is a second way to empty a site, so a fast enzyme needs more substrate to keep half its sites full. Km equals Kd only when k₂ ≪ k₋₁.",
+   "why": "A small Km means the enzyme reaches half speed on very little substrate, whatever the reason.",
+   "quote": "Km equals Kd only when turnover is much slower than falling off (k₂ ≪ k₋₁), so Km is not binding affinity",
+   "section": "Km is the half-busy point, not the affinity"
+  },
+  {
+   "id": "enzyme-kinetics-c19",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the minimal Michaelis–Menten scheme, an enzyme has Kd = 20 µM for its substrate and turns substrate over 4 times faster than substrate falls off (k₂ = 4 k₋₁). What is Km?",
+   "back": "Km = Kd + k₂/k₁ = Kd + 4(k₋₁/k₁) = 20 + 80 = 100 µM, five times Kd.",
+   "quote": "Split Km into two parts: Km = (k₋₁ + k₂) / k₁ = k₋₁/k₁ + k₂/k₁ = Kd + k₂/k₁",
+   "section": "Km is the half-busy point, not the affinity"
+  },
+  {
+   "id": "enzyme-kinetics-c20",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "To get a property of the enzyme molecule rather than the tube, divide out the enzyme: kcat = {{c1::Vmax / [E]ₜ}}, in s⁻¹.",
+   "back": "Strictly, per active site.",
+   "quote": "Divide it out for a property of the molecule: kcat = Vmax / [E]ₜ, in s⁻¹ (strictly, per active site).",
+   "section": "Speed and efficiency: kcat and kcat/Km"
+  },
+  {
+   "id": "enzyme-kinetics-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An assay with 2 nM total enzyme gives Vmax = 1.0 µM/s. What is kcat? If you repeat it with 4 nM enzyme, what happens to Vmax and kcat?",
+   "back": "kcat = Vmax/[E]ₜ = (1.0 × 10⁻⁶ M/s)/(2 × 10⁻⁹ M) = 500 s⁻¹. With 4 nM enzyme, Vmax doubles to 2.0 µM/s; kcat stays 500 s⁻¹.",
+   "quote": "Vmax depends on how much enzyme is in the tube: double the enzyme, double Vmax.",
+   "section": "Speed and efficiency: kcat and kcat/Km"
+  },
+  {
+   "id": "enzyme-kinetics-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does kcat/Km, not kcat, set an enzyme's rate when substrate is scarce?",
+   "back": "At low [S] almost every enzyme is empty and the busy fraction is about [S]/Km, so v ≈ (kcat/Km) × [E]ₜ × [S]. kcat/Km is the rate constant for an encounter that ends in product (M⁻¹s⁻¹).",
+   "quote": "When substrate is scarce, almost every enzyme is empty, the busy fraction is about [S]/Km, and v ≈ (kcat/Km) × [E]ₜ × [S]",
+   "section": "Speed and efficiency: kcat and kcat/Km"
+  },
+  {
+   "id": "enzyme-kinetics-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What sets the upper limit on kcat/Km, and about how large is it?",
+   "back": "The diffusion limit: how often enzyme and substrate collide in water, typically about 10⁸–10⁹ M⁻¹s⁻¹. Enzymes near it are called kinetically perfect.",
+   "quote": "It cannot exceed how often enzyme and substrate collide in water, the diffusion limit, typically about 10⁸–10⁹ M⁻¹s⁻¹",
+   "section": "Speed and efficiency: kcat and kcat/Km"
+  },
+  {
+   "id": "enzyme-kinetics-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "One enzyme can act on substrates A and B. A has the higher kcat/Km. Both are present together at equal low concentrations. Which is converted faster, and why?",
+   "back": "A. kcat/Km is the specificity constant, which sets an enzyme's preference among competing substrates.",
+   "why": "kcat/Km describes only the low-substrate regime, so it is safest for comparing substrates of one enzyme.",
+   "quote": "more precisely it is the specificity constant, which sets an enzyme's preference among competing substrates.",
+   "section": "Speed and efficiency: kcat and kcat/Km"
+  },
+  {
+   "id": "enzyme-kinetics-c25",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A metabolite in a cell sits at 3 × Km of the enzyme that uses it. What fraction of Vmax does the enzyme run at? If the metabolite doubles to 6 × Km, how much faster does the enzyme go?",
+   "back": "At 3 Km: 3/4 of Vmax. At 6 Km: 6/7 ≈ 0.86 of Vmax, about 14% faster. Above Km the enzyme is more than half busy but still tracks substrate changes.",
+   "quote": "at 3 Km an enzyme runs at three-quarters of Vmax and still tracks changes in substrate.",
+   "section": "Speed and efficiency: kcat and kcat/Km"
+  },
+  {
+   "id": "enzyme-kinetics-c26",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On a Lineweaver–Burk plot (1/v versus 1/[S]), what are the y-intercept, x-intercept and slope?",
+   "back": "y-intercept 1/Vmax; x-intercept −1/Km; slope Km/Vmax.",
+   "why": "Watch the reciprocals: the intercept is 1/Vmax, not Vmax.",
+   "quote": "This double-reciprocal or Lineweaver–Burk plot has y-intercept 1/Vmax, x-intercept −1/Km and slope Km/Vmax.",
+   "section": "Reading the curve a second way: Lineweaver–Burk"
+  },
+  {
+   "id": "enzyme-kinetics-c27",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A Lineweaver–Burk line crosses the y-axis at 0.02 min/µmol and the x-axis at −0.25 per mM. Find Vmax, Km and the slope.",
+   "back": "Vmax = 1/0.02 = 50 µmol/min. Km = 1/0.25 = 4 mM. Slope = Km/Vmax = 4/50 = 0.08 min·mM/µmol.",
+   "quote": "y-intercept: 1/Vmax = 1/100 = 0.01 min/µmol. Slope: Km/Vmax = 2/100 = 0.02. x-intercept: −1/Km = −1/2 = −0.5 per mM.",
+   "section": "Reading the curve a second way: Lineweaver–Burk"
+  },
+  {
+   "id": "enzyme-kinetics-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why are Km and Vmax now estimated by non-linear fitting of the hyperbola rather than from a Lineweaver–Burk plot?",
+   "back": "Taking reciprocals magnifies the error in the low-[S] points. The double-reciprocal plot is still used to see patterns, such as the type of inhibitor.",
+   "quote": "One caution: taking reciprocals magnifies the error in the low-[S] points.",
+   "section": "Reading the curve a second way: Lineweaver–Burk"
+  },
+  {
+   "id": "enzyme-kinetics-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a competitive inhibitor raise the apparent Km but leave Vmax unchanged?",
+   "back": "It ties up free enzyme, so more substrate is needed to make half the enzyme busy (Km rises). At very high [S] almost no free enzyme is left for it, so Vmax is unchanged.",
+   "quote": "But flood the system with substrate and almost no free enzyme is left for the inhibitor, so Vmax is unchanged and the Lineweaver–Burk lines share a y-intercept.",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c30",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A competitive inhibitor is present at [I] = Ki, so its factor 1 + [I]/Ki = 2. What fraction of Vmax is reached at [S] = Km, and what share of the uninhibited velocity is lost?",
+   "back": "Apparent Km = 2 Km. v = Vmax × Km/(2 Km + Km) = ⅓ Vmax, versus ½ Vmax without inhibitor: one third of the velocity lost.",
+   "quote": "For worked numbers, take an inhibitor dose that makes its factor, 1 + [I]/Ki, equal to 3 (that is, [I] = 2 Ki).",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does an uncompetitive inhibitor lower both apparent Vmax and apparent Km, and what does its Lineweaver–Burk plot look like?",
+   "back": "It binds only ES, forming ESI. Pulling ES away draws more E + S into ES (Le Chatelier), lowering apparent Km, while the stuck ESI lowers Vmax. Both fall by the same factor: parallel lines.",
+   "quote": "Both fall by the same factor, leaving the slope, Km/Vmax, unchanged: parallel lines.",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c32",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A drug is an uncompetitive inhibitor of an enzyme in a pathway. As the enzyme slows, its substrate builds up. Does the build-up relieve the inhibition or worsen it? Why?",
+   "back": "It worsens it. An uncompetitive inhibitor binds only ES, and more substrate makes more ES for it to grab, so the share of velocity lost grows as [S] rises.",
+   "why": "Rests on the rule that the inhibitor's pattern is set by which enzyme pool it ties up (here ES only).",
+   "quote": "More, because more substrate makes more ES for it to grab.",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a pure noncompetitive inhibitor lower Vmax but leave Km unchanged?",
+   "back": "It binds away from the active site, equally well to E and ES. Taking the same share out of both is like having less enzyme: Vmax falls, Km unchanged, lines share the x-intercept (−1/Km).",
+   "quote": "Taking the same share out of E and ES is like having less enzyme: Vmax falls, Km unchanged, so the lines share the x-intercept (−1/Km).",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c34",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Lineweaver–Burk lines with and without a reversible inhibitor meet on the x-axis; the inhibited line has a higher y-intercept. What kind of inhibitor is it, and what does it bind?",
+   "back": "Pure noncompetitive. Same −1/Km means Km is unchanged; higher 1/Vmax means Vmax fell. It binds a site away from the active site, to E and ES equally well.",
+   "quote": "The inhibitor binds a site away from the active site, equally well with or without substrate.",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c35",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An irreversible inactivator is added to an enzyme and allowed to finish reacting. What Lineweaver–Burk pattern results, compared with the untreated enzyme, and why?",
+   "back": "The pure noncompetitive pattern: Vmax falls, Km unchanged, lines share the x-intercept. The inactivator simply leaves less working enzyme.",
+   "quote": "An irreversible inactivator that has finished reacting gives the same plot, because it simply leaves less enzyme.",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An inhibitor at fixed concentration cuts V₀ in half at [S] = Km. Design a simple test of whether it is competitive or pure noncompetitive, and state the expected results.",
+   "back": "Measure V₀ with and without inhibitor at very high [S] (say 100 Km). Competitive: the share of v lost shrinks toward zero (about 2% at 100 Km). Noncompetitive: the share lost stays the same.",
+   "why": "Rests on which pool each ties up: competitive binds only free E, which high [S] removes; noncompetitive takes the same share of E and ES.",
+   "quote": "The same arithmetic gives about 15% lost at 10 Km and only about 2% at 100 Km.",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why are stable transition-state analogs among the most potent reversible enzyme inhibitors?",
+   "back": "The active site is shaped to grip the fleeting transition state more tightly than the substrate, so a stable mimic of that state binds the active site very tightly.",
+   "quote": "stable mimics of that state, transition-state analogs, make some of the most potent inhibitors known.",
+   "section": "When something gets in the way: inhibitors"
+  },
+  {
+   "id": "enzyme-kinetics-c38",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Enzyme concentration in an assay is comparable to Km. Someone reads Km as the added [S] that gives half of Vmax. Is the half-busy point reached at an added [S] = Km? Why?",
+   "back": "No. Much of the substrate sits on the enzyme, so free [S] is below the added [S]; at an added [S] = Km the busy fraction falls below one half (about 0.38 when [E]ₜ = Km).",
+   "why": "Rests on the model's assumption that free [S] is about the [S] added, which needs far more substrate than enzyme.",
+   "quote": "With enzyme concentration comparable to Km, much of the substrate sits on the enzyme, and the busy fraction at an added [S] = Km falls below one half",
+   "section": "Where the model stops"
+  },
+  {
+   "id": "enzyme-kinetics-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What v versus [S] curve shape do cooperative enzymes give, and what is reported instead of Km?",
+   "back": "Sigmoidal curves (usually allosteric, multi-subunit enzymes). K₀.₅ is reported rather than a mechanistic Km.",
+   "quote": "Cooperative enzymes, usually allosteric multi-subunit ones, give sigmoidal v–[S] curves",
+   "section": "Where the model stops"
+  },
+  {
+   "id": "enzyme-kinetics-c40",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "An enzyme forms an acyl-enzyme intermediate that breaks down slowly. Can its Km be smaller than its Kd for substrate? Why?",
+   "back": "Yes. With a slow step after ES, enzyme piles up in that busy form, so Km can fall below Kd. Km = Kd + k₂/k₁ holds only for the minimal scheme. Km is still the [S] at half of Vmax.",
+   "quote": "With a slow step after ES, such as an acyl-enzyme intermediate, enzyme piles up in that busy form, so Km can be smaller than Kd.",
+   "section": "When Km is below Kd"
+  },
+  {
+   "id": "enzyme-kinetics-c41",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Where does an enzyme's catalytic power come from, in terms of the transition state?",
+   "back": "From gripping the transition state more tightly than the substrate: the binding energy released pays down the activation barrier, ΔG‡.",
+   "quote": "That tighter grip on the transition state is where catalysis comes from: the binding energy released pays down ΔG‡ (Pauling's insight).",
+   "section": "From lock and key to the transition state"
+  },
+  {
+   "id": "enzyme-kinetics-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A substrate analog binds an enzyme's active site well, but its transition state fits the site poorly. Predict its kcat/Km relative to the natural substrate, and explain.",
+   "back": "Lower: it is turned over slowly even though it binds. kcat/Km reflects how tightly the enzyme binds each substrate's transition state, not the substrate itself.",
+   "why": "Rests on the rule that transition-state binding energy underlies both catalysis and specificity.",
+   "quote": "so a substrate whose transition state fits the site poorly is turned over slowly even if it binds.",
+   "section": "From lock and key to the transition state"
+  },
+  {
+   "id": "enzyme-kinetics-c43",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For one enzyme, Lineweaver–Burk lines for substrates X and Y share a y-intercept. X crosses the x-axis at −0.5 per mM, Y at −0.05 per mM. Find each Km, compare kcat, and say which is preferred when both compete at low concentration.",
+   "back": "Km(X) = 2 mM, Km(Y) = 20 mM. Same y-intercept means same Vmax, so same kcat. kcat/Km is 10 times higher for X, so X is preferred.",
+   "why": "Combines x-intercept = −1/Km and y-intercept = 1/Vmax with kcat/Km as the specificity constant for substrates of one enzyme.",
+   "quote": "It is safest for comparing substrates of one enzyme: ranking different enzymes by it can mislead, because it describes only the low-substrate regime.",
+   "section": "Speed and efficiency: kcat and kcat/Km"
+  },
+  {
+   "id": "enzyme-kinetics-c44",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At very low [S] (far below Km), a competitive inhibitor is added at [I] = 2 Ki. By what factor does the velocity fall?",
+   "back": "Threefold. The factor 1 + [I]/Ki = 3 raises apparent Km to 3 Km. At low [S], v ≈ (kcat/Km_app) × [E]ₜ × [S], so v drops to one third.",
+   "why": "Combines the low-substrate rate law with the competitive rule that only apparent Km changes.",
+   "quote": "It takes more substrate to make half the enzyme busy, so the apparent Km rises (here, threefold).",
+   "section": "When something gets in the way: inhibitors"
+  }
+ ]
+}
