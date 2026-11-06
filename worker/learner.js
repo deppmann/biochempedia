@@ -254,7 +254,13 @@ export async function handleLearner(request, env, db, path, method, url) {
   const ip = await clientKey(request);
   const signinLimit = () => allow(db, 'lsign:' + ip, 30, 60_000);
   const origin = url.origin;
-  const rpID = url.hostname;
+  // www.biochemistrypedia.com serves the site too (no redirect), so passkeys are tied to the parent
+  // domain: one passkey then works on both hostnames. Google sign-in always returns to the bare
+  // domain, so only one redirect URI needs registering.
+  const SITE = 'biochemistrypedia.com';
+  const onSite = url.hostname === SITE || url.hostname.endsWith('.' + SITE);
+  const rpID = onSite ? SITE : url.hostname;
+  const googleOrigin = onSite ? `https://${SITE}` : origin;
 
   if (sub === '/me' && method === 'GET') {
     const l = await getLearner(db, request);
@@ -269,6 +275,8 @@ export async function handleLearner(request, env, db, path, method, url) {
   // ---------- Google ----------
   if (sub === '/google/start' && method === 'GET') {
     const ret = safeReturn(url.searchParams.get('return'));
+    // Start on the bare domain, so the state cookie and the callback share one hostname.
+    if (onSite && url.hostname !== SITE) return redirect(`https://${SITE}${url.pathname}${url.search}`);
     if (!googleOn(env)) return redirect('/account/?error=google-off');
     if (!(await signinLimit())) return redirect('/account/?error=busy');
     const current = await getLearner(db, request);
@@ -278,7 +286,7 @@ export async function handleLearner(request, env, db, path, method, url) {
     const raw = await startFlow(db, 'google', verifier, { learnerId: current?.id ?? null, extra: JSON.stringify({ nonce, ret, age }) });
     const q = new URLSearchParams({
       client_id: env.GOOGLE_CLIENT_ID,
-      redirect_uri: `${origin}/api/learner/google/callback`,
+      redirect_uri: `${googleOrigin}/api/learner/google/callback`,
       response_type: 'code',
       scope: 'openid email profile',
       state: raw,
@@ -311,7 +319,7 @@ export async function handleLearner(request, env, db, path, method, url) {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           code, client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET,
-          redirect_uri: `${origin}/api/learner/google/callback`, grant_type: 'authorization_code', code_verifier: flow.challenge,
+          redirect_uri: `${googleOrigin}/api/learner/google/callback`, grant_type: 'authorization_code', code_verifier: flow.challenge,
         }),
       });
       const tok = await tr.json().catch(() => ({}));
