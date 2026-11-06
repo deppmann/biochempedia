@@ -21,6 +21,7 @@ import ListenPlayer from '../../components/ListenPlayer.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
 import FilmTranscript from '../../components/FilmTranscript.astro';
 import FlashcardDeck from '../../components/FlashcardDeck.astro';
+import HighlightLayer from '../../components/HighlightLayer.astro';
 import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
 import { courseOf, courseHref } from '../../data/courses';
@@ -243,6 +244,7 @@ const lessonLd = {
             answers (bare <details>) and the answer boxes are skipped by exclude_selectors in pagefind.yml. */}
         <div class="prose-col" data-pagefind-body data-pagefind-meta="title[data-lesson-title]" data-pagefind-filter="course[data-lesson-course]"
           data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>
+        <HighlightLayer slug={entry.data.slug} title={lesson.title} />
 
         {(lesson.techniques.length > 0 || methods.length > 0) && (
           <section class="tech-panel" id="methods">
