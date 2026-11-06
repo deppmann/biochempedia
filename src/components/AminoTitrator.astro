@@ -25,6 +25,7 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
   <p class="titr-readout" data-readout></p>
   <div class="titr-species" data-species aria-hidden="true"></div>
   <p class="titr-form" data-form></p>
+  <div class="titr-switches" data-switches></div>
   <div class="titr-controls">
     <label class="titr-aa">Amino acid
       <select data-aa>
@@ -35,7 +36,11 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
       </select>
     </label>
     <div class="titr-sliders" data-sliders></div>
-    <button type="button" class="titr-reset" data-reset>Reset pKa values</button>
+    <div class="titr-buttons">
+      <button type="button" class="titr-reset" data-reset>Reset pKa values</button>
+      <button type="button" class="titr-reset" data-goto74>pH 7.4</button>
+      <button type="button" class="titr-reset" data-gotopi>Go to pI</button>
+    </div>
   </div>
 </figure>
 
@@ -59,9 +64,9 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
       { name: 'α-NH₃⁺', pKa: 9.17, type: 'base', forms: ['α-NH₃⁺', 'α-NH₂'] },
     ] },
     aspartate: { label: 'Aspartate', groups: [
-      { name: 'α-COOH', pKa: 1.99, type: 'acid', forms: ['α-COOH', 'α-COO⁻'] },
-      { name: 'β-COOH', pKa: 3.90, type: 'acid', forms: ['β-COOH', 'β-COO⁻'] },
-      { name: 'α-NH₃⁺', pKa: 9.90, type: 'base', forms: ['α-NH₃⁺', 'α-NH₂'] },
+      { name: 'α-COOH', pKa: 1.88, type: 'acid', forms: ['α-COOH', 'α-COO⁻'] },
+      { name: 'β-COOH', pKa: 3.65, type: 'acid', forms: ['β-COOH', 'β-COO⁻'] },
+      { name: 'α-NH₃⁺', pKa: 9.60, type: 'base', forms: ['α-NH₃⁺', 'α-NH₂'] },
     ] },
     lysine: { label: 'Lysine', groups: [
       { name: 'α-COOH', pKa: 2.18, type: 'acid', forms: ['α-COOH', 'α-COO⁻'] },
@@ -86,6 +91,7 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
     const formEl = root.querySelector<HTMLElement>('[data-form]')!;
     const slidersBox = root.querySelector<HTMLElement>('[data-sliders]')!;
     const sel = root.querySelector<HTMLSelectElement>('[data-aa]')!;
+    const switchesEl = root.querySelector<HTMLElement>('[data-switches]')!;
 
     let key = 'glycine';
     let pKas: number[] = AAS[key].groups.map((g) => g.pKa);
@@ -250,6 +256,20 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
       formEl.innerHTML = v0 >= 0.9
         ? `Main form (${Math.round(v0 * 100)}%): ${describe(k0)}`
         : `A mix — ${Math.round(v0 * 100)}% ${describe(k0)} and ${Math.round(v1 * 100)}% ${describe(k1)}. Near a pKa, a group is part-way through giving up its proton.`;
+
+      // each switch's state and its share of the net charge, then the sum
+      switchesEl.replaceChildren();
+      groups().forEach((g, i) => {
+        const f = fDeprot(pH, pKas[i]);
+        const row = document.createElement('p');
+        row.className = 'titr-sw';
+        row.textContent = `${g.name} (${g.type}-type, pKa ${pKas[i].toFixed(2)}): ${(100 * (1 - f)).toFixed(0)}% hold H⁺ → contributes ${signed(g.type === 'acid' ? -f : 1 - f)}`;
+        switchesEl.appendChild(row);
+      });
+      const sum = document.createElement('p');
+      sum.className = 'titr-sw titr-sw-sum';
+      sum.textContent = 'Sum = net charge ' + signed(q);
+      switchesEl.appendChild(sum);
     }
 
     function buildSliders() {
@@ -316,6 +336,8 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
       buildSliders();
       render();
     });
+    root.querySelector<HTMLButtonElement>('[data-goto74]')!.addEventListener('click', () => { pH = 7.4; render(); });
+    root.querySelector<HTMLButtonElement>('[data-gotopi]')!.addEventListener('click', () => { pH = computePI(); render(); });
 
     buildSliders();
     render();
@@ -352,6 +374,10 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
   .titr-slider { display: grid; grid-template-columns: 7.5rem 1fr 2.2rem; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .titr-slider input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
   .titr-slider em { font-style: normal; font-family: var(--ddp-font-mono); color: var(--ddp-color-muted); text-align: right; }
+  .titrator .titr-switches { margin-top: 0.35rem; padding: 0.3rem 0.45rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; background: var(--ddp-color-surface); }
+  .titrator .titr-sw { margin: 0; font-family: var(--ddp-font-mono); font-size: 0.66rem; line-height: 1.45; color: var(--ddp-color-ink-soft); }
+  .titrator .titr-sw-sum { margin-top: 0.15rem; padding-top: 0.15rem; border-top: 1px dashed var(--ddp-color-line); font-weight: 700; color: var(--ddp-color-primary); }
+  .titr-buttons { display: flex; flex-wrap: wrap; gap: 0.35rem; }
   .titr-reset { align-self: flex-start; font-size: var(--ddp-text-xs); padding: 0.25rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; background: var(--ddp-color-surface); color: var(--ddp-color-ink-soft); cursor: pointer; }
   .titr-reset:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
 </style>

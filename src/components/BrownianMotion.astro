@@ -17,8 +17,8 @@
   <canvas class="bm-canvas" width="600" height="360" data-canvas role="img" aria-label="A large tracer particle performing a random walk as it is struck by many small water molecules"></canvas>
 
   <div class="bm-controls">
-    <label class="bm-slabel">Temperature <em data-out="temp">warm</em>
-      <input type="range" data-in="temp" min="20" max="160" step="5" value="70" />
+    <label class="bm-slabel">Temperature <em data-out="temp">37 °C</em>
+      <input type="range" data-in="temp" min="0" max="100" step="5" value="37" />
     </label>
     <label class="bm-slabel">Tracer size <em data-out="size">medium</em>
       <input type="range" data-in="size" min="5" max="20" step="1" value="10" />
@@ -34,10 +34,11 @@
     <div><dt>Diffusion speed, D ∝ T/r <span class="bm-dt-sub">(vs. default)</span></dt><dd data-r-d>—</dd></div>
     <div><dt>Path traveled</dt><dd data-r-path>—</dd></div>
     <div><dt>Net distance from start</dt><dd data-r-net>—</dd></div>
+    <div><dt>RT, the size of the kicks</dt><dd data-r-rt>2.58 kJ/mol</dd></div>
   </dl>
   <p class="bm-why"><span>The big particle is never pushed by a hand — only by lopsided volleys of water molecules (each hit flashes dark). It travels a long, wandering path yet ends up only a short way from the start (the + mark): that is a random walk.</span> <span data-why aria-live="polite">Warm it up or shrink it and the walk speeds up.</span></p>
 
-  <p class="bm-foot">Einstein's 1905 insight: the jitter you can see in a microscope is direct evidence of molecules you cannot. Diffusion is just this random walk, summed over billions of particles.</p>
+  <p class="bm-foot">Einstein's 1905 insight: the jitter you can see in a microscope is direct evidence of molecules you cannot. Diffusion is just this random walk, summed over billions of particles. RT, about 2.6 kJ/mol at 37 °C, is the size of these kicks; a bond worth one or two RT is broken and re-formed by them all the time.</p>
 </figure>
 
 <script>
@@ -61,14 +62,17 @@
     const rD = root.querySelector<HTMLElement>('[data-r-d]')!;
     const rPath = root.querySelector<HTMLElement>('[data-r-path]')!;
     const rNet = root.querySelector<HTMLElement>('[data-r-net]')!;
+    const rRT = root.querySelector<HTMLElement>('[data-r-rt]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
     const ACCENT = '#0e7c86', NAVY = '#232d4b', WATER = 'rgba(43,111,176,0.5)', HIT = 'rgba(35,45,75,0.95)', GOLD = '212,168,67';
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const N = 110, WR = 2.4; // water "molecules" (a stand-in: real water has ~10^22 per mL)
     const mols: V[] = [];
-    // Molecular speeds scale as √T (kinetic energy ∝ T); T is relative to the default setting.
-    const Trel = () => parseInt(tempIn.value, 10) / 70;
+    // Molecular speeds scale as √T (kinetic energy ∝ T). The slider is in °C; T is absolute
+    // temperature relative to the default, 37 °C (310.15 K).
+    const tC = () => parseInt(tempIn.value, 10);
+    const Trel = () => (tC() + 273.15) / 310.15;
     const rad = () => parseInt(sizeIn.value, 10);
     function seed() {
       mols.length = 0;
@@ -100,22 +104,23 @@
     }
 
     function labels() {
-      const t = parseInt(tempIn.value, 10);
-      const tw = t < 45 ? 'cold' : t < 95 ? 'warm' : 'hot';
+      const t = tC();
+      const tw = `${t} °C`;
       tempOut.textContent = tw;
+      rRT.textContent = ((8.314 * (t + 273.15)) / 1000).toFixed(2) + ' kJ/mol';
       const s = rad();
       const sw = s <= 8 ? 'small' : s <= 14 ? 'medium' : 'large';
       sizeOut.textContent = sw;
       const D = Trel() / (s / 10); // T / r, normalized to 1 at defaults
       rD.textContent = D.toFixed(2) + '×';
-      tempIn.setAttribute('aria-valuetext', tw);
+      tempIn.setAttribute('aria-valuetext', `${t} degrees Celsius`);
       sizeIn.setAttribute('aria-valuetext', `${sw} tracer`);
       if (touched) {
         why.textContent = D > 1.15
-          ? `${tw[0].toUpperCase() + tw.slice(1)} water, ${sw} tracer: D is ${D.toFixed(1)}× the default, so the walk spreads faster — harder kicks, or a smaller particle that the water drags on less.`
+          ? `${tw} water, ${sw} tracer: D is ${D.toFixed(1)}× the default, so the walk spreads faster — harder kicks, or a smaller particle that the water drags on less.`
           : D < 0.87
-            ? `${tw[0].toUpperCase() + tw.slice(1)} water, ${sw} tracer: D is only ${D.toFixed(2)}× the default. Gentler kicks, or a bigger particle that the water drags on more, so the walk slows.`
-            : `${tw[0].toUpperCase() + tw.slice(1)} water, ${sw} tracer: D is about the default.`;
+            ? `${tw} water, ${sw} tracer: D is only ${D.toFixed(2)}× the default. Gentler kicks, or a bigger particle that the water drags on more, so the walk slows.`
+            : `${tw} water, ${sw} tracer: D is about the default.`;
       }
     }
 

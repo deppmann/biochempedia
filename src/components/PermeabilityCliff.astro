@@ -35,15 +35,19 @@
   </div>
 
   <div class="pc-controls">
-    <label class="pc-slabel"><span>Desolvation cost (water debt): <em data-desolv-out>—</em> kJ/mol <span class="pc-hint" data-desolv-note>(select a charged species)</span></span>
+    <label class="pc-slabel"><span>Extra barrier over water (effective toll): <em data-desolv-out>—</em> kJ/mol <span class="pc-hint" data-desolv-note>(select a charged species)</span></span>
       <input type="range" data-desolv min="0" max="90" step="5" value="60" disabled />
     </label>
     <label class="pc-check">
       <input type="checkbox" data-aqp /> add an aquaporin (water channel)
     </label>
+    <label class="pc-check">
+      <input type="checkbox" data-kch /> add a K⁺ channel (a polar-lined path)
+    </label>
   </div>
+  <p class="pc-hint pc-note">The full toll for stripping an ion is 300–400 kJ/mol; real ions leak by a cheaper route (dragging water along, or through brief defects), so the barrier that sets the leak is far smaller.</p>
 
-  <p class="pc-foot">Selective permeability is an energy balance, not a sieve. The same desolvation logic returns in the K⁺ selectivity filter — where Na⁺, too small to be paid back by eight carbonyl oxygens, owes a water debt the channel will not refund.</p>
+  <p class="pc-foot">This plot answers only how fast: the toll for leaving water sets the rate across bare lipid. Which way an ion moves is set by its electrochemical gradient (the Nernst calculator below). The same toll returns at the K⁺ channel filter, which repays nearly all of K⁺'s toll and falls short on Na⁺'s.</p>
 </figure>
 
 <script>
@@ -62,8 +66,8 @@
   const MOLECULES: Mol[] = [
     { id: 'o2', label: 'O₂', klass: 'gas', logP: 0.5, dGdesolv: 0, rule: 'Small and nonpolar — a free pass straight through the core.' },
     { id: 'co2', label: 'CO₂', klass: 'gas', logP: 0.5, dGdesolv: 0, rule: 'Small and nonpolar — crosses freely, no water shell to shed.' },
-    { id: 'h2o', label: 'H₂O', klass: 'water', logP: -2.5, dGdesolv: 0, rule: 'Tiny and only weakly polar — slips through slowly on its own.' },
-    { id: 'etoh', label: 'ethanol', klass: 'small-polar', logP: -3.0, dGdesolv: 0, rule: 'Small polar — partly greasy, so it crosses, just not fast.' },
+    { id: 'h2o', label: 'H₂O', klass: 'water', logP: -2, dGdesolv: 0, rule: 'Polar but tiny and uncharged — pays a moderate toll and slips through slowly on its own.' },
+    { id: 'etoh', label: 'ethanol', klass: 'small-polar', logP: -1.5, dGdesolv: 0, rule: 'Small polar — partly greasy, so it crosses, just not fast.' },
     { id: 'urea', label: 'urea', klass: 'small-polar', logP: -6, dGdesolv: 0, rule: 'Polar and hydrogen-bonding — pays a real price to cross.' },
     { id: 'glycerol', label: 'glycerol', klass: 'small-polar', logP: -6.5, dGdesolv: 0, rule: 'Three hydroxyls clinging to water — slow going.' },
     { id: 'glucose', label: 'glucose', klass: 'small-polar', logP: -8, dGdesolv: 0, rule: 'Large and heavily hydroxylated — needs a transporter in practice.' },
@@ -71,7 +75,7 @@
     { id: 'trp', label: 'tryptophan', klass: 'aromatic', logP: -7, dGdesolv: 50, rule: 'Same ring as indole, but charged groups stall it. Charge is the toll.' },
     { id: 'cl', label: 'Cl⁻', klass: 'ion', logP: -8.5, dGdesolv: 55, rule: 'Charged — wrapped in water it must shed. The core repels it.' },
     { id: 'k', label: 'K⁺', klass: 'ion', logP: -10, dGdesolv: 60, rule: 'Charged — bounces off the core; needs a channel to cross.' },
-    { id: 'na', label: 'Na⁺', klass: 'ion', logP: -12, dGdesolv: 80, rule: 'The biggest water debt of all — essentially blocked.' },
+    { id: 'na', label: 'Na⁺', klass: 'ion', logP: -12, dGdesolv: 80, rule: 'The biggest toll of all — essentially blocked.' },
   ];
   const R = 8.314, T = 310; // J/mol/K, body temperature
   const LOGP_MIN = -12, LOGP_MAX = 1;
@@ -86,6 +90,7 @@
     const desolvOut = root.querySelector<HTMLElement>('[data-desolv-out]')!;
     const desolvNote = root.querySelector<HTMLElement>('[data-desolv-note]')!;
     const aqp = root.querySelector<HTMLInputElement>('[data-aqp]')!;
+    const kch = root.querySelector<HTMLInputElement>('[data-kch]')!;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let selected: Mol | null = null;
@@ -101,6 +106,8 @@
       }
       // aquaporin acts only on water
       if (mol.id === 'h2o' && aqp.checked) lp += 1.8;
+      // a K⁺ channel repays K⁺'s toll only; Na⁺ stays blocked
+      if (mol.id === 'k' && kch.checked) lp = Math.max(lp, -2);
       return lp;
     }
 
@@ -158,7 +165,7 @@
       puck.appendChild(dot); puck.appendChild(t);
       stage.appendChild(puck);
       const X = X_LANE, yStart = 26, yEnd = 196, yCore = 104;
-      const verdict = (ok: boolean) => txt(stage, X + r + 6, (ok ? yEnd : yStart) + fs(9.5) * 0.35, ok ? 'crossed ✓' : 'bounced back ✗', 9.5, ok ? '#1f6b43' : '#a02c20', { 'font-weight': 700 });
+      const verdict = (ok: boolean) => txt(stage, X + r + 6, (ok ? yEnd : yStart) + fs(9.5) * 0.35, ok ? 'crossed ✓' : 'almost never crosses', 9.5, ok ? '#1f6b43' : '#a02c20', { 'font-weight': 700 });
       if (reduceMotion) {
         puck.setAttribute('transform', `translate(${X},${crosses ? yEnd : yStart})`);
         verdict(crosses);
@@ -249,10 +256,11 @@
       // enable/disable desolvation slider
       const charged = mol.dGdesolv > 0;
       desolv.disabled = !charged;
-      desolvNote.textContent = charged ? '(drag to change this ion’s water debt)' : '(select a charged species)';
+      desolvNote.textContent = charged ? '(drag to change this ion’s toll)' : '(select a charged species)';
       if (charged) { desolv.value = String(mol.dGdesolv); }
       desolvOut.textContent = charged ? desolv.value : '—';
-      info.textContent = mol.rule + (mol.id === 'h2o' && aqp.checked ? ' With an aquaporin open, water now races through — ions still cannot.' : '');
+      info.textContent = mol.rule + (mol.id === 'h2o' && aqp.checked ? ' With an aquaporin open, water now races through — ions still cannot.' : '')
+        + (mol.id === 'k' && kch.checked ? ' With a K⁺ channel, polar groups stand in for K⁺’s water, so the toll is repaid and K⁺ crosses fast. The channel changes how fast, not which way. Na⁺ is still blocked.' : '');
       const eff = effectiveLogP(mol);
       tested.set(mol.id, { mol, effLogP: eff });
       animateCrossing(mol);
@@ -265,7 +273,7 @@
       desolvOut.textContent = desolv.value;
       const eff = effectiveLogP(selected);
       tested.set(selected.id, { mol: selected, effLogP: eff });
-      info.textContent = `${selected.label}: water debt ${desolv.value} kJ/mol → log P ${eff.toFixed(1)}. A few kJ/mol moves permeability by orders of magnitude.`;
+      info.textContent = `${selected.label}: toll ${desolv.value} kJ/mol → log P ${eff.toFixed(1)}. A few kJ/mol moves permeability by orders of magnitude.`;
       animateCrossing(selected);
       drawPlot();
       updateRate();
@@ -278,6 +286,15 @@
         drawPlot();
       }
       if (selected && selected.id === 'h2o') select(selected);
+    });
+    kch.addEventListener('change', () => {
+      // re-test K⁺ if it has been tested, and refresh selection text
+      if (tested.has('k')) {
+        const pot = MOLECULES.find((m) => m.id === 'k')!;
+        tested.set('k', { mol: pot, effLogP: effectiveLogP(pot) });
+        drawPlot();
+      }
+      if (selected && selected.id === 'k') select(selected);
     });
 
     const fit = () => { const w = plot.getBoundingClientRect().width || 320; const nk = Math.min(1.5, Math.max(1, 380 / w)); if (Math.abs(nk - k) > 0.02) { k = nk; drawPlot(); if (!selected) drawStage(); } };
@@ -307,6 +324,7 @@
   .pc .pc-slabel input { accent-color: var(--ddp-color-accent); }
   .pc .pc-slabel input:disabled { opacity: 0.4; }
   .pc .pc-hint { color: var(--ddp-color-muted); }
+  .pc .pc-note { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); line-height: 1.45; }
   .pc .pc-check { display: flex; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .pc .pc-check input { accent-color: var(--ddp-color-accent); }
   .pc .pc-lead { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }

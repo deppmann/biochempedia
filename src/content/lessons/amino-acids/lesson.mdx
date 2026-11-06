@@ -564,6 +564,8 @@ This holds for free amino acids in water; inside a protein, neighbors can shift 
 
 So "deprotonated" does not mean "negative": a lysine side chain that has lost its proton is neutral.
 
+<LessonFigure src="/figures/amino-acids/proton-switch-two-kinds.webp" width={1200} height={800} alt="AI-generated illustration: two rows of toggle switches along a pH arrow. In the acid-type row, a switch holding a gold proton is neutral and, past its pKa line, has released the proton and become negative. In the base-type row, a switch holding the proton is positive and, past its pKa line, has released it and become neutral. A small inset sums several switch charges into one net charge." caption="Every ionizable group is a proton switch. Below its pKa it mostly holds H+; above it, it mostly lets go. Holding the proton always makes the group one charge more positive, so an acid-type group goes from 0 to −1 and a base-type group from +1 to 0. An amino acid's net charge is the sum of its switches." />
+
 How much is "mostly"? The Henderson–Hasselbalch equation gives the ratio.
 
 <EquationCard
@@ -649,7 +651,7 @@ Hydrophobic: the lipid interior has no water, so charged and polar side chains a
 
 <LessonFigure src="/figures/amino-acids/families-where-they-sit.webp" width={1200} height={786} alt="AI-generated illustration: two schematic protein cutaways show representative side-chain locations. A water-soluble protein has gold hydrophobic tokens buried in its interior and polar and charged tokens on its water-exposed boundary. A membrane-spanning protein has gold tokens on its lateral surface in contact with the lipid band, with polar and charged tokens on its water-exposed extensions." caption="Side-chain properties help predict residue location. In water-soluble proteins, hydrophobic side chains tend to be buried, while polar and charged side chains often face water. In membrane-spanning regions, lipid-facing side chains are predominantly hydrophobic. These schematics show representative arrangements." />
 
-The classifier sorts all twenty, with the aromatic rings (Phe, Tyr, Trp) in their own color; click any residue to see its job.
+The classifier sorts all twenty, with the aromatic rings (Phe, Tyr, Trp) marked; click any residue to see its job.
 
 <AminoAcidClassifier />
 
@@ -661,13 +663,15 @@ A titration curve is the measured record of the charge ladder: add base drop by 
 
 <AminoTitrator />
 
-Drag the pH cursor to see the main form and net charge at each point. (The plotter's aspartate uses a slightly different pKa table, so its values differ by a few tenths.) Then switch to histidine and move its imidazole slider.
+Drag the pH cursor to see the main form and net charge at each point. Then switch to histidine and move its imidazole slider.
 
 Raise the imidazole pKa from 6.0 to 7.0, as a protein pocket can, and the protonated share at pH 7.4 goes from about 4% to about 28%; raise it to 7.4 and it is half and half, ready to give a proton or take one. Free cysteine's thiol (about 8.2) actually sits a little closer to body pH, and it does its own catalytic work as a reactive nucleophile. But histidine's neutral-to-positive switch is the one enzymes use most to pass protons, which is why it turns up in active site after active site: a residue that must give and take protons works best with its pKa near the enzyme's working pH.
 
 ## Electrophoresis: which way does it move?
 
 Pauling's experiment applied the rule. In **electrophoresis**, molecules in a buffer sit between two electrodes: the negative **cathode** and the positive **anode**. Below its pI a molecule is net positive and moves to the cathode; above its pI it moves to the anode; at its pI it stays put.
+
+<LessonFigure src="/figures/amino-acids/electrophoresis-hb-order.webp" width={1200} height={800} alt="AI-generated illustration: a horizontal electrophoresis gel with the cathode on the left and anode on the right. From a common well, normal hemoglobin A has run furthest toward the anode, sickle hemoglobin S a little less far, and hemoglobin C least far. An inset shows that a molecule moves toward the cathode below its pI, stays put at its pI, and moves toward the anode above it." caption="In electrophoresis a molecule moves according to its net charge. Below its pI it is positive and heads for the cathode; above its pI it heads for the anode. In an alkaline buffer every hemoglobin is net negative, but relative to HbA, HbS is two charges more positive per molecule and HbC four, so toward the anode the order is HbA, HbS, HbC." />
 
 **Predict.** In a buffer at pH 6.0, which way do glycine (pI 5.97), aspartate (pI 2.77) and histidine (pI 7.59) move?
 
@@ -696,6 +700,8 @@ Yet HbC does not form sickle fibers. It forms crystals and causes a much milder 
 </details>
 
 So **charge explains how Pauling saw the defect; polarity explains why the cells sickle.** Hydrophilic glutamate is at home on the protein's water-facing surface; hydrophobic valine plants a greasy patch there. When hemoglobin gives up its oxygen, its shape shifts and a matching hydrophobic pocket opens on its surface. The valine patch of one molecule sticks into that pocket on the next, chaining hemoglobin into rigid fibers that deform the red cell into a sickle. That is where the disease starts; hemolysis, inflammation and blocked vessels follow from it. Charge and polarity, both set by structure, run from the membrane helix to the active site to the clinic.
+
+<LessonFigure src="/figures/amino-acids/hbs-patch-into-pocket.webp" width={1200} height={800} alt="AI-generated illustration: three numbered steps. A deoxygenated sickle hemoglobin carries a gold valine patch and a surface pocket; the patch of each molecule fits the pocket of the next, chaining them; bundles of chains form a rigid fiber that bends a red blood cell into a crescent. Insets show normal hemoglobin with a negative glutamate and hemoglobin C with a positive lysine at the same spot, both staying separate." caption="Why cells sickle is a polarity story. Valine puts a hydrophobic patch on the surface of HbS; when hemoglobin releases oxygen, a matching hydrophobic pocket opens, and the patch of one molecule docks into the next, building rigid fibers that deform the red cell. Glutamate (HbA) and lysine (HbC) are both charged and hydrophilic, so neither plants the patch." />
 
 ## Going deeper
 

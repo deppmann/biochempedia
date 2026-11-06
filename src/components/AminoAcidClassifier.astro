@@ -14,7 +14,7 @@
 
   <div class="aac-filters" role="group" aria-label="Side-chain property">
     <button type="button" data-cat="all" aria-pressed="true">All 20</button>
-    <button type="button" data-cat="nonpolar">Nonpolar</button>
+    <button type="button" data-cat="nonpolar">Hydrophobic (nonpolar)</button>
     <button type="button" data-cat="aromatic">Aromatic</button>
     <button type="button" data-cat="polar">Polar uncharged</button>
     <button type="button" data-cat="acidic">Acidic (−)</button>
@@ -28,38 +28,38 @@
 </figure>
 
 <script>
-  type AA = { code: string; name: string; cat: string; note: string };
+  type AA = { code: string; name: string; cat: string; note: string; sw: string; aromatic?: boolean };
   const AAS: AA[] = [
-    { code: 'Gly', name: 'Glycine', cat: 'nonpolar', note: 'Just an H side chain — the smallest and most flexible; fits tight turns where nothing else can.' },
-    { code: 'Ala', name: 'Alanine', cat: 'nonpolar', note: 'A small methyl group; the generic hydrophobic residue.' },
-    { code: 'Val', name: 'Valine', cat: 'nonpolar', note: 'Branched and hydrophobic; the Glu→Val swap is exactly what causes sickle-cell.' },
-    { code: 'Leu', name: 'Leucine', cat: 'nonpolar', note: 'Bulky, hydrophobic; common in the buried core and in leucine zippers.' },
-    { code: 'Ile', name: 'Isoleucine', cat: 'nonpolar', note: 'Branched hydrophobic isomer of leucine.' },
-    { code: 'Met', name: 'Methionine', cat: 'nonpolar', note: 'Sulfur-containing, hydrophobic; the start codon always codes for it.' },
-    { code: 'Pro', name: 'Proline', cat: 'nonpolar', note: 'Its ring locks the backbone — the helix-breaker and the kink in collagen.' },
-    { code: 'Phe', name: 'Phenylalanine', cat: 'aromatic', note: 'A hydrophobic benzene ring; accumulates toxically in untreated PKU.' },
-    { code: 'Tyr', name: 'Tyrosine', cat: 'aromatic', note: 'Phenylalanine plus an −OH; its hydroxyl is a phosphorylation target in signaling.' },
-    { code: 'Trp', name: 'Tryptophan', cat: 'aromatic', note: 'The largest residue, an indole ring; rare and often functionally important.' },
-    { code: 'Ser', name: 'Serine', cat: 'polar', note: 'A small −OH; a phosphorylation site and a catalytic nucleophile in serine proteases.' },
-    { code: 'Thr', name: 'Threonine', cat: 'polar', note: 'A branched −OH; also phosphorylated in regulation.' },
-    { code: 'Cys', name: 'Cysteine', cat: 'polar', note: 'A reactive −SH; two cysteines form a disulfide bond that staples a fold together.' },
-    { code: 'Asn', name: 'Asparagine', cat: 'polar', note: 'An amide side chain; the anchor for N-linked glycosylation.' },
-    { code: 'Gln', name: 'Glutamine', cat: 'polar', note: 'A longer amide; a major nitrogen carrier in the blood.' },
-    { code: 'Asp', name: 'Aspartate', cat: 'acidic', note: 'A carboxylate, negative at pH 7; common in active sites and metal binding.' },
-    { code: 'Glu', name: 'Glutamate', cat: 'acidic', note: 'A longer carboxylate; also the brain\'s main excitatory neurotransmitter.' },
-    { code: 'Lys', name: 'Lysine', cat: 'basic', note: 'A long amine, positive at pH 7; a target for acetylation on histones.' },
-    { code: 'Arg', name: 'Arginine', cat: 'basic', note: 'A guanidinium group, the most reliably positive residue; binds phosphates and DNA.' },
-    { code: 'His', name: 'Histidine', cat: 'basic', note: 'An imidazole with a pKa near 6 — it can grab or give a proton at physiological pH, the workhorse of acid–base catalysis.' },
+    { code: 'Gly', name: 'Glycine', cat: 'nonpolar', note: 'Just an H side chain — the smallest and most flexible; fits tight turns where nothing else can.', sw: 'no side-chain switch' },
+    { code: 'Ala', name: 'Alanine', cat: 'nonpolar', note: 'A small methyl group; the generic hydrophobic residue.', sw: 'no side-chain switch' },
+    { code: 'Val', name: 'Valine', cat: 'nonpolar', note: 'Branched and hydrophobic; the Glu→Val swap is exactly what causes sickle-cell.', sw: 'no side-chain switch' },
+    { code: 'Leu', name: 'Leucine', cat: 'nonpolar', note: 'Bulky, hydrophobic; common in the buried core and in leucine zippers.', sw: 'no side-chain switch' },
+    { code: 'Ile', name: 'Isoleucine', cat: 'nonpolar', note: 'Branched hydrophobic isomer of leucine.', sw: 'no side-chain switch' },
+    { code: 'Met', name: 'Methionine', cat: 'nonpolar', note: 'Sulfur-containing, hydrophobic; the start codon always codes for it.', sw: 'no side-chain switch' },
+    { code: 'Pro', name: 'Proline', cat: 'nonpolar', note: 'Its ring locks the backbone — the helix-breaker and the kink in collagen.', sw: 'no side-chain switch' },
+    { code: 'Phe', name: 'Phenylalanine', cat: 'nonpolar', note: 'A hydrophobic benzene ring; accumulates toxically in untreated PKU.', sw: 'no side-chain switch', aromatic: true },
+    { code: 'Tyr', name: 'Tyrosine', cat: 'polar', note: 'Phenylalanine plus an −OH; its hydroxyl is a phosphorylation target in signaling.', sw: 'acid-type switch, pKa ≈ 10 → neutral at pH 7.4', aromatic: true },
+    { code: 'Trp', name: 'Tryptophan', cat: 'nonpolar', note: 'The largest residue, an indole ring; rare and often functionally important.', sw: 'no side-chain switch', aromatic: true },
+    { code: 'Ser', name: 'Serine', cat: 'polar', note: 'A small −OH; a phosphorylation site and a catalytic nucleophile in serine proteases.', sw: 'no side-chain switch' },
+    { code: 'Thr', name: 'Threonine', cat: 'polar', note: 'A branched −OH; also phosphorylated in regulation.', sw: 'no side-chain switch' },
+    { code: 'Cys', name: 'Cysteine', cat: 'polar', note: 'A reactive −SH; two cysteines form a disulfide bond that staples a fold together.', sw: 'acid-type switch, pKa ≈ 8.2 → mostly neutral at pH 7.4 (about 14% −1)' },
+    { code: 'Asn', name: 'Asparagine', cat: 'polar', note: 'An amide side chain; the anchor for N-linked glycosylation.', sw: 'no side-chain switch' },
+    { code: 'Gln', name: 'Glutamine', cat: 'polar', note: 'A longer amide; a major nitrogen carrier in the blood.', sw: 'no side-chain switch' },
+    { code: 'Asp', name: 'Aspartate', cat: 'acidic', note: 'A carboxylate, negative at pH 7.4; common in active sites and metal binding.', sw: 'acid-type switch, pKa ≈ 3.65 → −1 at pH 7.4' },
+    { code: 'Glu', name: 'Glutamate', cat: 'acidic', note: 'A longer carboxylate; also the brain\'s main excitatory neurotransmitter.', sw: 'acid-type switch, pKa ≈ 4.25 → −1 at pH 7.4' },
+    { code: 'Lys', name: 'Lysine', cat: 'basic', note: 'A long amine, positive at pH 7.4; a target for acetylation on histones.', sw: 'base-type switch, pKa ≈ 10.5 → +1 at pH 7.4' },
+    { code: 'Arg', name: 'Arginine', cat: 'basic', note: 'A guanidinium group, the most reliably positive residue; binds phosphates and DNA.', sw: 'base-type switch, pKa ≈ 12.5 → +1 at pH 7.4' },
+    { code: 'His', name: 'Histidine', cat: 'basic', note: 'An imidazole with a pKa near 6 — it can grab or give a proton at physiological pH, the workhorse of acid–base catalysis.', sw: 'base-type switch, pKa ≈ 6.0 → about 4% +1 at pH 7.4 (mostly neutral)' },
   ];
   const CATCOLOR: Record<string, string> = { nonpolar: '#0e7c86', aromatic: '#7a4fbf', polar: '#2b6fb0', acidic: '#c0392b', basic: '#e57200' };
-  const FAMNAME: Record<string, string> = { nonpolar: 'nonpolar', aromatic: 'aromatic', polar: 'polar uncharged', acidic: 'acidic (−)', basic: 'basic (+)' };
+  const FAMNAME: Record<string, string> = { nonpolar: 'hydrophobic (nonpolar)', aromatic: 'aromatic', polar: 'polar uncharged', acidic: 'acidic (−)', basic: 'basic (+)' };
   const CATRULE: Record<string, string> = {
     all: 'Each color marks a side-chain family. Click a family to isolate it, or any residue for its role.',
     nonpolar: 'Nonpolar (hydrophobic) side chains avoid water, so they pack into the protein\'s buried core and into membrane-spanning helices. Example: the Glu→Val substitution that makes hemoglobin sticky in sickle-cell disease.',
     aromatic: 'Aromatic rings are large and mostly hydrophobic (tyrosine is the polar exception). They stack against each other, and tryptophan and tyrosine absorb UV at 280 nm — the basis of measuring protein concentration.',
     polar: 'Polar uncharged side chains make hydrogen bonds and often do chemistry: serine/threonine are phosphorylated, cysteine forms disulfides, asparagine anchors sugars.',
-    acidic: 'Acidic side chains (aspartate, glutamate) carry a negative charge at pH 7 — they cluster in active sites, bind metals and positive partners, and shape electrostatics.',
-    basic: 'Basic side chains can carry a positive charge. Lysine and arginine are positive at pH 7 and bind the negatively charged backbone of DNA and the phosphates of substrates. Histidine, with a pKa near 6, is only partly protonated at pH 7 — which is exactly what makes it the catalytic proton shuttle.',
+    acidic: 'Acidic side chains (aspartate, glutamate) carry a negative charge at pH 7.4 — they cluster in active sites, bind metals and positive partners, and shape electrostatics.',
+    basic: 'Basic side chains can carry a positive charge. Lysine and arginine are positive at pH 7.4 and bind the negatively charged backbone of DNA and the phosphates of substrates. Histidine, with a pKa near 6, is only about 4% protonated at pH 7.4 in free solution — which is exactly what makes it the catalytic proton shuttle.',
   };
 
   document.querySelectorAll<HTMLElement>('[data-aaclassifier]').forEach((root) => {
@@ -68,18 +68,19 @@
     AAS.forEach((aa) => {
       const chip = document.createElement('button');
       chip.type = 'button'; chip.className = 'aac-chip-btn'; chip.setAttribute('data-aacat', aa.cat);
+      if (aa.aromatic) chip.setAttribute('data-aromatic', 'true');
       chip.style.setProperty('--aac-c', CATCOLOR[aa.cat]);
-      chip.innerHTML = `<b>${aa.code}</b><span>${aa.name}</span>`;
+      chip.innerHTML = `<b>${aa.code}</b><span>${aa.name}</span>${aa.aromatic ? '<i class="aac-arom">◯ aromatic</i>' : ''}`;
       chip.setAttribute('aria-pressed', 'false');
       chip.addEventListener('click', () => {
         grid.querySelectorAll<HTMLElement>('.aac-chip-btn').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
-        rule.innerHTML = `<strong>${aa.name} (${aa.code})</strong> · <span class="aac-fam">${FAMNAME[aa.cat]}</span> — ${aa.note}`;
+        rule.innerHTML = `<strong>${aa.name} (${aa.code})</strong> · <span class="aac-fam">${FAMNAME[aa.cat]}${aa.aromatic ? ' · aromatic' : ''}</span> — ${aa.note} <span class="aac-sw">Side chain: ${aa.sw}.</span>`;
       });
       grid.appendChild(chip);
     });
     function filter(cat: string) {
       grid.querySelectorAll<HTMLElement>('.aac-chip-btn').forEach((c) => {
-        const match = cat === 'all' || c.getAttribute('data-aacat') === cat;
+        const match = cat === 'all' || (cat === 'aromatic' ? c.hasAttribute('data-aromatic') : c.getAttribute('data-aacat') === cat);
         c.classList.toggle('is-dim', !match);
         c.setAttribute('aria-pressed', 'false');
       });
@@ -106,6 +107,8 @@
   .aac-chip-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 0.05rem; font-family: inherit; text-align: left; border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--aac-c, #888); background: #fff; border-radius: 5px; padding: 0.3rem 0.45rem; cursor: pointer; transition: opacity 0.2s; }
   .aac-chip-btn b { font-size: var(--ddp-text-sm); color: var(--aac-c, var(--ddp-color-primary)); }
   .aac-chip-btn span { font-size: 0.66rem; color: var(--ddp-color-muted); }
+  .aac-chip-btn .aac-arom { font-style: normal; font-size: 0.6rem; color: #7a4fbf; }
+  .aac .aac-rule .aac-sw { display: block; margin-top: 0.2rem; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
   .aac-chip-btn:hover { border-color: var(--aac-c); }
   .aac-chip-btn.is-dim { opacity: 0.22; }
   .aac-chip-btn[aria-pressed='true'] { border-color: var(--aac-c); box-shadow: 0 0 0 2px color-mix(in srgb, var(--aac-c) 35%, transparent); opacity: 1; }

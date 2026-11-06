@@ -3,10 +3,12 @@
  * InterOrganFuelMap — the body-wide companion to CoriCycleLab. That island zooms in on one loop
  * (muscle lactate ↔ liver glucose); this one zooms all the way out to the whole fuel economy:
  * four tissues (liver, muscle, adipose, brain) trading through the blood, with the traffic
- * labeled by fuel. Flip the FED / FASTED toggle and the arrows redraw — fed means distribute and
- * store (glucose out to everyone, fat banked); fasted means mobilize and protect the brain (fat
- * and lactate and alanine move toward the liver, which ships glucose and ketones to the brain).
- * The legend reports what each organ is exporting and importing in the current state.
+ * labeled by fuel. Flip FED / FASTED / WEEKS and the arrows redraw — fed means distribute and
+ * store (glucose out to everyone, fat banked); fasted means mobilize and protect the brain (fat,
+ * glycerol, alanine and lactate move toward the liver, which ships glucose and ketones to the
+ * brain); weeks means ketones feed most of the brain and muscle protein is spared. Lactate is
+ * coloured apart as recycled carbon; glycerol and amino acids are the only new carbon for glucose.
+ * Chips with a dashed border mark traffic that has shrunk since early in the fast.
  * Self-contained vanilla-TS Astro island. Original.
  */
 ---
@@ -17,6 +19,7 @@
   <div class="iof-toggle" role="group" aria-label="Metabolic state">
     <button type="button" data-state="fed" aria-pressed="true">Fed</button>
     <button type="button" data-state="fasted" aria-pressed="false">Fasted</button>
+    <button type="button" data-state="starved" aria-pressed="false">Weeks</button>
   </div>
 
   <p class="iof-summary" data-summary role="status"></p>
@@ -40,46 +43,62 @@
     <span style="--c:#0e7c86">glucose</span>
     <span style="--c:#D4A843">fat</span>
     <span style="--c:#232d4b">ketone bodies</span>
-    <span style="--c:#e57200">lactate · alanine · glycerol · amino acids</span>
+    <span style="--c:#e57200">glycerol · amino acids (new carbon)</span>
+    <span style="--c:#c99a86">lactate (recycled carbon)</span>
+    <span style="--c:#9a9aa3">urea (nitrogen waste)</span>
+    <span class="iof-key-less">dashed = less than early in the fast</span>
   </div>
 
-  <p class="iof-foot">Two states, two logics. Fed, insulin is high and the body distributes and stores: glucose from the gut reaches every tissue, and the liver and adipose bank the surplus as glycogen and fat. Fasted, the priority flips to mobilize and protect the brain: adipose releases fatty acids, muscle returns lactate and alanine to the liver, and the liver — the main source of both — makes fresh glucose and ketone bodies to keep the brain running. No tissue is selfish here; the blood is just a ledger, and the hormones decide which way the entries point.</p>
+  <p class="iof-foot">Two states, two logics, and a long-fast endgame. Fed, insulin is high and the body distributes and stores: glucose from the gut reaches every tissue, and the liver and adipose bank the surplus as glycogen and fat. Fasted, the priority flips to mobilize and protect the brain: adipose releases fatty acids and glycerol, muscle sends alanine (carbon from its protein, plus nitrogen the liver dumps as urea) and lactate (recycled carbon, no gain for the brain), and the liver makes fresh glucose and ketone bodies to keep the brain running. Weeks in, ketones carry most of the brain's load and far less muscle is spent. No tissue is selfish here; the blood is just a ledger, and the hormones decide which way the entries point.</p>
 </figure>
 
 <script>
   // Every exchange runs through the blood, so each organ gets two lanes to the bloodstream:
   // what it SENDS into the blood and what it TAKES from it. Flip the state and the lanes refill.
-  type Fuel = 'glucose' | 'fat' | 'ketone' | 'carbon';
+  type Fuel = 'glucose' | 'fat' | 'ketone' | 'newcarbon' | 'recycled' | 'waste';
   const FUEL_COLOR: Record<Fuel, [string, string]> = {
     // [swatch, text ink] — gold and orange get darker inks so the words clear WCAG AA on white
     glucose: ['#0e7c86', '#0e7c86'],
     fat: ['#D4A843', '#7f6315'],
     ketone: ['#232d4b', '#232d4b'],
-    carbon: ['#e57200', '#b35900'],
+    newcarbon: ['#e57200', '#b35900'], // glycerol, amino acids: the only new carbon for glucose
+    recycled: ['#c99a86', '#8a4f3a'],  // lactate: carbon the body already had (Cori cycle)
+    waste: ['#9a9aa3', '#55555e'],     // urea: the nitrogen from amino acids
   };
-  type Item = [string, Fuel];
+  // [label, fuel, less?] — less = this traffic has shrunk since early in the fast (dashed chip)
+  type Item = [string, Fuel, boolean?];
   type OrganState = { role: string; sends: Item[]; takes: Item[] };
   type StateDef = { summary: string; gut: Item[]; organs: Record<string, OrganState> };
 
   const STATES: Record<string, StateDef> = {
     fed: {
-      summary: 'Fed = distribute and store. Insulin is high. The gut floods the blood with glucose, amino acids, and dietary fat; every tissue takes up glucose, the liver banks glycogen and ships surplus carbon out as fat (VLDL), and adipose stores it.',
-      gut: [['glucose', 'glucose'], ['amino acids', 'carbon'], ['dietary fat', 'fat']],
+      summary: 'Fed = distribute and store. Insulin is high. The gut floods the blood with glucose, amino acids, and dietary fat; every tissue takes up glucose, the liver banks glycogen (and can ship some surplus carbon out as fat, VLDL), and adipose stores mostly the fat from the meal.',
+      gut: [['glucose', 'glucose'], ['amino acids', 'newcarbon'], ['dietary fat', 'fat']],
       organs: {
-        liver: { role: 'stores glycogen; turns surplus glucose into fat', sends: [['fat (VLDL)', 'fat']], takes: [['glucose', 'glucose'], ['amino acids', 'carbon']] },
-        muscle: { role: 'refills glycogen, builds protein', sends: [], takes: [['glucose', 'glucose'], ['amino acids', 'carbon']] },
+        liver: { role: 'stores glycogen; can turn surplus glucose into fat', sends: [['fat (VLDL)', 'fat']], takes: [['glucose', 'glucose'], ['amino acids', 'newcarbon']] },
+        muscle: { role: 'refills glycogen, builds protein', sends: [], takes: [['glucose', 'glucose'], ['amino acids', 'newcarbon']] },
         adipose: { role: 'banks fat as triacylglycerol', sends: [], takes: [['fat', 'fat'], ['glucose', 'glucose']] },
         brain: { role: 'burns glucose', sends: [], takes: [['glucose', 'glucose']] },
       },
     },
     fasted: {
-      summary: 'Fasted = mobilize and protect the brain. Glucagon is high and the gut is empty. Adipose releases fatty acids and glycerol, muscle sends lactate and alanine, and the liver turns them into fresh glucose (gluconeogenesis) and ketone bodies for the brain and muscle.',
+      summary: 'Fasted = mobilize and protect the brain. Glucagon is high and the gut is empty. Adipose releases fatty acids and glycerol, muscle sends alanine (carbon from its protein, plus nitrogen) and lactate (recycled carbon), and the liver turns them into fresh glucose (gluconeogenesis) and ketone bodies for the brain and muscle, dumping the nitrogen as urea.',
       gut: [],
       organs: {
-        liver: { role: 'makes new glucose and ketone bodies', sends: [['glucose', 'glucose'], ['ketones', 'ketone']], takes: [['fatty acids', 'fat'], ['lactate', 'carbon'], ['alanine', 'carbon'], ['glycerol', 'carbon']] },
-        muscle: { role: 'burns fat and ketones, spares glucose', sends: [['lactate', 'carbon'], ['alanine', 'carbon']], takes: [['fatty acids', 'fat'], ['ketones', 'ketone']] },
-        adipose: { role: 'lipolysis: releases stored fat', sends: [['fatty acids', 'fat'], ['glycerol', 'carbon']], takes: [] },
+        liver: { role: 'makes new glucose and ketone bodies', sends: [['glucose', 'glucose'], ['ketones', 'ketone'], ['urea', 'waste']], takes: [['fatty acids', 'fat'], ['glycerol', 'newcarbon'], ['alanine', 'newcarbon'], ['lactate', 'recycled']] },
+        muscle: { role: 'burns fat and ketones, spares glucose', sends: [['alanine', 'newcarbon'], ['lactate', 'recycled']], takes: [['fatty acids', 'fat'], ['ketones', 'ketone']] },
+        adipose: { role: 'lipolysis: releases stored fat', sends: [['fatty acids', 'fat'], ['glycerol', 'newcarbon']], takes: [] },
         brain: { role: 'glucose, plus ketones as the fast lengthens', sends: [], takes: [['glucose', 'glucose'], ['ketones', 'ketone']] },
+      },
+    },
+    starved: {
+      summary: 'Weeks into a fast: ketone bodies supply about two-thirds of the brain\u2019s fuel, the brain needs about 40 g of glucose a day, the kidney makes about as much new glucose as the liver, and far less muscle protein is spent.',
+      gut: [],
+      organs: {
+        liver: { role: 'makes ketone bodies; less glucose than early in the fast', sends: [['ketones', 'ketone'], ['glucose', 'glucose', true], ['urea', 'waste', true]], takes: [['fatty acids', 'fat'], ['glycerol', 'newcarbon'], ['alanine', 'newcarbon', true]] },
+        muscle: { role: 'burns fatty acids; protein breakdown slowed', sends: [['alanine', 'newcarbon', true]], takes: [['fatty acids', 'fat']] },
+        adipose: { role: 'lipolysis: fat is the main fuel reserve', sends: [['fatty acids', 'fat'], ['glycerol', 'newcarbon']], takes: [] },
+        brain: { role: 'mostly ketone bodies, some glucose', sends: [], takes: [['ketones', 'ketone'], ['glucose', 'glucose', true]] },
       },
     },
   };
@@ -88,12 +107,12 @@
   function chips(items: Item[]): HTMLUListElement {
     const ul = document.createElement('ul');
     ul.className = 'iof-fuels';
-    items.forEach(([label, fuel]) => {
+    items.forEach(([label, fuel, less]) => {
       const li = document.createElement('li');
-      li.className = 'iof-fuel';
+      li.className = less ? 'iof-fuel is-less' : 'iof-fuel';
       li.style.setProperty('--c', FUEL_COLOR[fuel][0]);
       li.style.setProperty('--ci', FUEL_COLOR[fuel][1]);
-      li.textContent = label;
+      li.textContent = less ? `${label} · less` : label;
       ul.appendChild(li);
     });
     return ul;
@@ -193,6 +212,7 @@
   @keyframes iof-up { 0% { top: calc(100% - 8px); opacity: 0; } 15% { opacity: 0.9; } 85% { opacity: 0.9; } 100% { top: 0; opacity: 0; } }
   .iof .iof-fuels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 0.2rem; position: relative; z-index: 1; }
   .iof .iof-fuel { margin: 0; max-width: 100%; overflow-wrap: anywhere; font-size: 0.78rem; font-weight: 600; line-height: 1.2; color: var(--ci); background: #fff; border: 1px solid color-mix(in srgb, var(--c) 55%, #fff); border-left: 4px solid var(--c); border-radius: 4px; padding: 0.12rem 0.4rem; text-align: center; animation: iof-in 0.35s ease-out both; }
+  .iof .iof-fuel.is-less { border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; font-weight: 500; }
   @keyframes iof-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
   .iof-blood { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.3rem 0.6rem; background: color-mix(in srgb, #c0392b 10%, #fff); border: 1px solid color-mix(in srgb, #c0392b 30%, #fff); border-radius: 999px; padding: 0.35rem 0.8rem; }
   .iof-blood-name { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #9b2c20; margin-left: auto; }
@@ -201,6 +221,7 @@
   .iof-gut-name { font-weight: 700; font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); }
   .iof-gut-empty { font-size: 0.72rem; color: var(--ddp-color-muted); font-style: italic; }
   .iof-key { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; margin: var(--ddp-space-2) 0 var(--ddp-space-3); font-size: 0.72rem; color: var(--ddp-color-ink-soft); }
+  .iof-key .iof-key-less::before { background: #fff; border: 1px dashed var(--ddp-color-muted); }
   .iof-key span::before { content: ''; display: inline-block; width: 0.65rem; height: 0.65rem; border-radius: 2px; background: var(--c); margin-right: 0.3rem; vertical-align: -0.05rem; }
   @media (max-width: 480px) {
     .iof-map { column-gap: 0.4rem; padding: 0.5rem; }
