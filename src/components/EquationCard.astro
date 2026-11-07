@@ -7,7 +7,7 @@
  * there was no number to try. A card puts things in that order:
  *   1. what it is for (one line, before the symbols);
  *   2. the equation, with each symbol a button that lights up its row in the key;
- *   3. the equation read aloud in plain words (with a free Read aloud button: the browser's voice);
+ *   3. the equation read aloud in plain words (Read aloud plays a Kokoro clip; no clip, no button);
  *   4. the key: every symbol with how to say it, what it means and its unit (always visible, so a
  *      phone or a screen reader gets it without hovering);
  *   5. a sanity check: what the equation says in a limiting case;
@@ -28,6 +28,8 @@
  * Symbols and text may use the site's keyboard notation (E_K, 10^-6); it renders as sub/superscript.
  */
 import { _convertForTest as convert } from '../lib/rehype-sub-sup.mjs';
+import { cardSpeakable, hashOf } from '../lib/rehype-listen.mjs';
+import listenManifest from '../data/listen-manifest.json';
 
 interface Props {
   purpose: string;
@@ -39,6 +41,11 @@ interface Props {
   toolkit?: string[];   // anchors in /math-toolkit/: read, subscripts, units, powers, e-and-ln, log-scales, ratios
 }
 const { purpose, eq, say, symbols, check, title, toolkit } = Astro.props;
+// Read aloud plays the Kokoro clip of the say sentence (rendered by scripts/listen-render.mjs).
+// The site never uses the device voice (Chris, 2026-11-06), so with no clip there is no button.
+const lessonSlug = (/^\/lessons\/([^/]+)\/?/.exec(Astro.url.pathname) || [])[1] || '';
+const sayHash = hashOf(cardSpeakable(say));
+const clipSrc = lessonSlug && ((listenManifest as Record<string, string[]>)[lessonSlug] || []).includes(sayHash) ? `/listen/${lessonSlug}/${sayHash}.mp3` : '';
 const TOOLKIT: Record<string, string> = { read: 'reading an equation', subscripts: 'subscripts and Greek letters', units: 'units and prefixes', powers: 'powers and roots', 'e-and-ln': 'e and ln', 'log-scales': 'log scales', ratios: 'rates and “per”' };
 const hasExample = Astro.slots.has('example');
 const hasDerivation = Astro.slots.has('derivation');
@@ -73,7 +80,7 @@ const id = 'eqc-' + Math.abs([...eq].reduce((h, c) => (h * 31 + c.charCodeAt(0))
   <div class="eqc-eq" set:html={eqHtml} />
   <p class="eqc-say">
     <span class="eqc-kicker">In words</span> <span class="eqc-say-text" set:html={nota(say)} />
-    <button type="button" class="eqc-listen" data-say={say} hidden>▶ Read aloud</button>
+    {clipSrc && <button type="button" class="eqc-listen" data-clip={clipSrc}>▶ Read aloud</button>}
   </p>
   <dl class="eqc-key">
     {symbols.map(([sym, spoken, meaning, unit], i) => (
@@ -150,15 +157,19 @@ const id = 'eqc-' + Math.abs([...eq].reduce((h, c) => (h * 31 + c.charCodeAt(0))
       s.addEventListener('blur', () => light(null));
       s.addEventListener('click', () => { light(s.dataset.sym!); rows.find((r) => r.dataset.row === s.dataset.sym)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); });
     });
-    // Read aloud with the browser's own voice: free, nothing leaves the device.
+    // Read aloud: the Kokoro clip for this card (the button exists only when the clip does).
     const btn = card.querySelector<HTMLButtonElement>('.eqc-listen');
-    if (btn && 'speechSynthesis' in window) {
-      btn.hidden = false;
+    if (btn && btn.dataset.clip) {
+      const audio = new Audio();
+      audio.preload = 'none';
+      const reset = () => { btn.textContent = '▶ Read aloud'; };
+      audio.onended = reset;
+      audio.onerror = () => { reset(); btn.hidden = true; };
       btn.addEventListener('click', () => {
-        if (speechSynthesis.speaking) { speechSynthesis.cancel(); btn.textContent = '▶ Read aloud'; return; }
-        const u = new SpeechSynthesisUtterance(btn.dataset.say!.replace(/_/g, ' sub ').replace(/×/g, ' times ').replace(/−/g, ' minus '));
-        u.rate = 0.95; u.onend = () => (btn.textContent = '▶ Read aloud');
-        btn.textContent = '❚❚ Stop'; speechSynthesis.speak(u);
+        if (!audio.paused) { audio.pause(); audio.currentTime = 0; reset(); return; }
+        if (!audio.src) audio.src = btn.dataset.clip!;
+        btn.textContent = '❚❚ Stop';
+        audio.play().catch(reset);
       });
     }
   }

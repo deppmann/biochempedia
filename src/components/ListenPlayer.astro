@@ -10,11 +10,12 @@
  *
  * For each paragraph: if src/data/listen-manifest.json lists its hash for this lesson, it plays
  * the Kokoro clip /listen/<slug>/<hash>.mp3 (served from R2 by the worker; made by
- * scripts/listen-render.mjs). Otherwise, or if the clip fails to load, the browser's own
- * speechSynthesis reads the text. The player says which voice is reading.
+ * scripts/listen-render.mjs). A paragraph with no clip (edited since the last render) is skipped.
+ * The device voice is never used (Chris, 2026-11-06: "we should never do that"), so a lesson
+ * with no clips shows no Listen button.
  *
  * It stops when the reader leaves the page and pauses when a video on the page starts. Without
- * JavaScript, or with neither clips nor a device voice, nothing is shown.
+ * JavaScript, or with no clips, nothing is shown.
  */
 import manifest from '../data/listen-manifest.json';
 
@@ -26,7 +27,7 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
   <button type="button" class="bp-listen-btn" data-listen-start>
     <span aria-hidden="true">▶</span> Listen
   </button>
-  <span class="bp-listen-note">{clips.length ? 'Read aloud in the recorded Kokoro voice.' : 'Read aloud by your device’s voice.'}</span>
+  <span class="bp-listen-note">Read aloud in the recorded Kokoro voice.</span>
 </div>
 
 <div class="bp-listen-player" role="region" aria-label="Listen player" data-listen-player hidden>
@@ -61,7 +62,8 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
   const root = document.querySelector<HTMLElement>('[data-listen-root]');
   const player = document.querySelector<HTMLElement>('[data-listen-player]');
   const prose = document.querySelector<HTMLElement>('.prose-col[data-lesson-title]');
-  const synth: SpeechSynthesis | null = 'speechSynthesis' in window ? window.speechSynthesis : null;
+  // Never the device voice (Chris, 2026-11-06). The speech code below stays inert with synth null.
+  const synth: SpeechSynthesis | null = null;
 
   if (root && player && prose) init(root, player, prose);
 
@@ -192,12 +194,8 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       utter = u;
       synth.speak(u);
     };
-    const useDevice = (el: HTMLElement) => {
-      mode = 'device';
-      chunks = sentences(textOf(el));
-      setStatus();
-      speakFrom(0);
-    };
+    // No clip for this paragraph (or it failed to load): skip it rather than use the device voice.
+    const useDevice = (_el: HTMLElement) => { playAt(idx + 1); };
 
     const playAt = (i: number) => {
       silence();
@@ -217,7 +215,7 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
         audio.src = clipUrl(h);
         audio.playbackRate = rate;
         audio.onended = () => { if (g === gen) playAt(i + 1); };
-        // A missing or broken clip falls back to the device voice for this paragraph.
+        // A missing or broken clip is skipped.
         audio.onerror = () => { if (g === gen) useDevice(el); };
         audio.play().catch((err) => {
           if (g !== gen) return;
