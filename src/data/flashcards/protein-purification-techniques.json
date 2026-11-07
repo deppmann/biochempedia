@@ -1,0 +1,672 @@
+{
+ "slug": "protein-purification-techniques",
+ "title": "Techniques in Protein Biochemistry: Purify It, Then Prove It",
+ "generated": {
+  "date": "2026-11-06",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "ea95875f0afe",
+ "sectionHashes": {
+  "(opening)": "944d285046de",
+  "Find it: the assay and the unit": "397d815d89ba",
+  "Judge it: specific activity, yield and fold": "a8831d9a1667",
+  "Reading the purification table": "caa43deb50fa",
+  "Enrich it: one property per row": "0e5bc5eba1d6",
+  "Solubility: salting out": "6c35f5de3888",
+  "Charge: ion exchange": "26a4f14163d8",
+  "Size: gel filtration": "589353b00a3c",
+  "Binding: affinity": "f9df19991dc0",
+  "Which step goes first?": "a46e23471561",
+  "Know when to stop": "cbd5d070959a",
+  "Prove it: three questions": "29bb684ab2ad",
+  "When the ledger lies": "984e9206becb",
+  "Planning the order": "dc6f3d15940b",
+  "Isoelectric focusing and 2D gels": "690d0cb26361",
+  "More antibody methods": "8e3911c75d64",
+  "When SDS-PAGE misleads": "115f665826cd",
+  "Inside the mass spectrometer": "7d222676ae02",
+  "Edman's blind spot": "14f1dc1d9a1b"
+ },
+ "cards": [
+  {
+   "id": "protein-purification-techniques-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a protein purification, what two fractions judge whether a step helped, and how do they set the rise in specific activity?",
+   "back": "The fraction of the target's activity kept and the fraction of total protein kept. Specific activity rises by their ratio; a step helps only if it keeps more target than everything else.",
+   "quote": "Judge every step by two fractions: the fraction of your target's activity it kept, and the fraction of total protein it kept."
+  },
+  {
+   "id": "protein-purification-techniques-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Across a multi-step protein purification, why does purity climb while the amount of enzyme falls?",
+   "back": "Each step's gain in purity multiplies with the others, and so does each step's loss of enzyme.",
+   "quote": "Across steps the gains multiply, and so do the losses, so purity climbs while quantity falls."
+  },
+  {
+   "id": "protein-purification-techniques-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is an assay, in protein purification?",
+   "back": "A way to detect the target protein in a tube where you cannot see it. For an enzyme it is usually the enzyme's own reaction.",
+   "quote": "First you need an assay: a way to detect your protein in a tube where you cannot see it.",
+   "section": "Find it: the assay and the unit"
+  },
+  {
+   "id": "protein-purification-techniques-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "One unit of enzyme is the amount that converts {{c1::1 µmol}} of substrate per minute, under stated conditions.",
+   "back": "Conditions stated: temperature, pH, substrate concentration.",
+   "why": "A unit counts catalytic work. It is not a mass.",
+   "quote": "One unit is the amount of enzyme that converts 1 µmol of substrate per minute, under conditions you state (temperature, pH, substrate concentration).",
+   "section": "Find it: the assay and the unit"
+  },
+  {
+   "id": "protein-purification-techniques-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why is lactate dehydrogenase (pyruvate + NADH → lactate + NAD⁺) assayed as a falling absorbance at 340 nm?",
+   "back": "NADH absorbs at 340 nm and NAD⁺ does not. As NADH is consumed the absorbance falls, and the slope of that fall is the activity.",
+   "quote": "NADH absorbs light at 340 nm and its oxidized form, NAD⁺, does not, so the absorbance falls, and the slope of that fall is the activity.",
+   "section": "Find it: the assay and the unit"
+  },
+  {
+   "id": "protein-purification-techniques-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an LDH assay in a 1 cm cuvette holding 1 mL, A340 falls by 0.622 per minute. NADH absorbs 6,220 M⁻¹ cm⁻¹ at 340 nm. How many enzyme units are in the cuvette?",
+   "back": "Rate = 0.622 / 6,220 = 0.00010 M per minute = 0.10 mM per minute. 1 mM is 1 µmol per mL, so 0.10 µmol NADH used per minute in 1 mL: 0.10 units.",
+   "quote": "Rate = 0.311 / 6,220 = 0.000050 M per minute, which is 0.050 mM per minute.",
+   "section": "Find it: the assay and the unit"
+  },
+  {
+   "id": "protein-purification-techniques-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Specific activity}} is units divided by milligrams of total protein.",
+   "back": "",
+   "quote": "Specific activity is units divided by milligrams of total protein.",
+   "section": "Judge it: specific activity, yield and fold"
+  },
+  {
+   "id": "protein-purification-techniques-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Under what condition does specific activity track the purity of an enzyme preparation?",
+   "back": "Only while the enzyme stays fully active (constant activity per milligram of enzyme). Then doubling the fraction of protein that is enzyme doubles the specific activity.",
+   "quote": "as long as your enzyme stays fully active, doubling the fraction of red doubles the specific activity.",
+   "section": "Judge it: specific activity, yield and fold"
+  },
+  {
+   "id": "protein-purification-techniques-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a purification table, how is yield calculated, and what does it tell you?",
+   "back": "Total activity now ÷ total activity at the start. It tells you how much enzyme you still have.",
+   "quote": "Yield = total activity now ÷ total activity at the start: how much enzyme you still have.",
+   "section": "Reading the purification table"
+  },
+  {
+   "id": "protein-purification-techniques-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a purification table, how is fold-purification calculated, and what does it tell you?",
+   "back": "Specific activity now ÷ specific activity at the start. It tells you how much purer the sample is.",
+   "quote": "Fold-purification = specific activity now ÷ specific activity at the start: how much purer the sample is.",
+   "section": "Reading the purification table"
+  },
+  {
+   "id": "protein-purification-techniques-c11",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A crude homogenate holds 10,000 mg protein and 100,000 units. After one step, 2,000 mg and 80,000 units remain. Give specific activity, yield and fold-purification.",
+   "back": "Specific activity = 80,000 ÷ 2,000 = 40 units/mg. Yield = 80,000 ÷ 100,000 = 80%. Fold = 40 ÷ 10 = 4, which equals 0.80 ÷ 0.20 (activity kept over protein kept).",
+   "quote": "Three columns are computed from the other two: Specific activity = total activity ÷ total protein.",
+   "section": "Reading the purification table"
+  },
+  {
+   "id": "protein-purification-techniques-c12",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A purification step loses half the enzyme activity but keeps only 5% of the total protein. Is it a good step?",
+   "back": "Yes. Specific activity rises 0.50 ÷ 0.05 = 10-fold.",
+   "why": "A step is judged by what it keeps of the target relative to what it keeps of everything else, not by how much it loses.",
+   "quote": "A step is judged by what it keeps of the target compared with what it keeps of everything else, not by how much it loses.",
+   "section": "Reading the purification table"
+  },
+  {
+   "id": "protein-purification-techniques-c13",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Three purification steps keep 80%, 70% and 50% of the activity they are given. What is the overall yield?",
+   "back": "Step yields multiply: 0.80 × 0.70 × 0.50 = 0.28, so 28%.",
+   "quote": "Every step loses some enzyme, and the losses multiply: 0.90 × 0.90 × 0.81 × 0.55 ≈ 0.36, the 36% in the last row.",
+   "section": "Reading the purification table"
+  },
+  {
+   "id": "protein-purification-techniques-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Three steps raise specific activity 3-fold, 4-fold and 25-fold. The final specific activity is 6,000 units/mg. What was the starting specific activity?",
+   "back": "Step folds multiply: 3 × 4 × 25 = 300-fold overall. Start = 6,000 ÷ 300 = 20 units/mg.",
+   "quote": "The step folds (each row's specific activity over the row before) multiply too: 3 × 3 × 12.2 × 27.3 ≈ 3,000.",
+   "section": "Reading the purification table"
+  },
+  {
+   "id": "protein-purification-techniques-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A purification step partly inactivates the enzyme while removing contaminants. How does specific activity misreport that step?",
+   "back": "It understates the enrichment.",
+   "why": "Specific activity reads as purity only while activity per milligram of enzyme stays constant; here it fell.",
+   "quote": "A step that inactivates some enzyme makes specific activity understate the enrichment.",
+   "section": "When the ledger lies"
+  },
+  {
+   "id": "protein-purification-techniques-c16",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After a column step, total activity in an enzyme prep rises, giving a yield above 100%. What most likely happened, and does it mean the enzyme got purer?",
+   "back": "One possible cause is that the step removed an inhibitor or added an activator. That raises activity per milligram of enzyme, not purity, so it need not mean any purification.",
+   "quote": "A step that removes an inhibitor or adds an activator can raise specific activity with no purification, and can raise total activity too, giving a \"yield\" above 100%.",
+   "section": "When the ledger lies"
+  },
+  {
+   "id": "protein-purification-techniques-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In differential centrifugation of a homogenate, in what order do nuclei, mitochondria and small vesicles pellet as the spin gets harder, and what is left?",
+   "back": "Nuclei first (gentle spin), then mitochondria, then the smallest vesicles. Cytosol stays in the final supernatant.",
+   "quote": "A gentle spin drops the heavy nuclei; crank it harder and mitochondria pellet; harder still and the smallest vesicles go down, leaving cytosol in the final supernatant.",
+   "section": "Enrich it: one property per row"
+  },
+  {
+   "id": "protein-purification-techniques-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does an ammonium sulfate cut (salting out) enrich a target protein?",
+   "back": "Different proteins precipitate at different salt concentrations, so a well-chosen cut keeps most of the enzyme and leaves many contaminants behind.",
+   "quote": "Different proteins precipitate at different salt concentrations, so a carefully chosen cut keeps most of your enzyme and leaves many contaminants behind.",
+   "section": "Solubility: salting out"
+  },
+  {
+   "id": "protein-purification-techniques-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why is a salted-out protein dialyzed before it goes onto an ion-exchange column?",
+   "back": "Dialysis through a semi-permeable membrane washes the salt out, and ion exchange needs low salt to bind the protein.",
+   "quote": "A round of dialysis through a semi-permeable membrane then washes the salt back out, because the next column, ion exchange, needs low salt to bind the protein.",
+   "section": "Solubility: salting out"
+  },
+  {
+   "id": "protein-purification-techniques-c20",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A protein's {{c1::pI}} is the pH at which its net charge is zero.",
+   "back": "Below the pI a protein is net positive; above it, net negative.",
+   "quote": "The rule compares the buffer pH with the protein's pI, the pH at which its net charge is zero.",
+   "section": "Charge: ion exchange"
+  },
+  {
+   "id": "protein-purification-techniques-c21",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An ion-exchange resin carries fixed negative charges. Is it a cation or an anion exchanger?",
+   "back": "A cation exchanger: it holds and swaps positive ions.",
+   "why": "Name the resin by what it catches, not by its own charge.",
+   "quote": "A resin with negative charges holds and swaps positive ions, cations, so it is a cation exchanger.",
+   "section": "Charge: ion exchange"
+  },
+  {
+   "id": "protein-purification-techniques-c22",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A protein has a pI of 9.0 and the column buffer is pH 7.0. Which ion-exchange resin will bind it, and why?",
+   "back": "A cation exchanger (negative resin). The buffer is below the pI, so the protein is net positive and sticks to the negative resin.",
+   "quote": "At a pH below its pI, a protein is net positive; above its pI, it is net negative.",
+   "section": "Charge: ion exchange"
+  },
+  {
+   "id": "protein-purification-techniques-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An enzyme with pI 5.0 is bound to an anion exchanger at pH 8.0. Name two changes to the buffer that would release it.",
+   "back": "Raise the salt, or shift the pH down toward the pI so the enzyme loses its net negative charge.",
+   "why": "Above its pI the enzyme is net negative and sticks to the positive resin; salt or a pH shift breaks that.",
+   "quote": "Raise the salt or shift the pH and the bound protein lets go.",
+   "section": "Charge: ion exchange"
+  },
+  {
+   "id": "protein-purification-techniques-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A 150 kDa protein and a 15 kDa protein are run on a gel-filtration (size-exclusion) column. Which elutes first, and why?",
+   "back": "The 150 kDa protein, if it is large enough to be excluded from the pores. It cannot enter them, so it uses only the liquid between beads and less buffer washes it through. The small one explores the pores and elutes last.",
+   "quote": "A large protein cannot enter the pores, so it can use only the liquid between the beads, and less buffer washes it through: it elutes (comes off the column) first.",
+   "section": "Size: gel filtration"
+  },
+  {
+   "id": "protein-purification-techniques-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does gel filtration usually come late in a purification?",
+   "back": "It resolves well only when the load is a small fraction of the column volume, so it suits polishing a small, concentrated sample.",
+   "quote": "Gel filtration resolves well only when the load is a small fraction of the column volume, so it usually comes late, polishing a small, concentrated sample.",
+   "section": "Which step goes first?"
+  },
+  {
+   "id": "protein-purification-techniques-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does affinity chromatography capture and then release a target protein?",
+   "back": "Beads carry something the protein binds tightly and selectively (substrate analog, cofactor, antibody, metal for a His-tag). Everything else flows through; the target is released with free ligand or a competitor, sometimes a pH change.",
+   "quote": "Then release it, often with a flood of free ligand or a competitor, sometimes with a change in pH.",
+   "section": "Binding: affinity"
+  },
+  {
+   "id": "protein-purification-techniques-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A recombinant protein carries a His-tag and sits in a large volume of crude lysate. What is a natural first column, and what limits it?",
+   "back": "Affinity capture on a metal resin that grips the His-tag. Resin capacity and cost limit how much lysate you can load.",
+   "quote": "a His-tag or a known ligand makes affinity capture a natural first step.",
+   "section": "Which step goes first?"
+  },
+  {
+   "id": "protein-purification-techniques-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An extra purification step leaves specific activity unchanged at 30,000 units/mg while yield falls. What do you conclude?",
+   "back": "Most likely the enzyme was already pure: the step kept equal fractions of activity and protein (ratio 1) and cost enzyme. Or the column cannot tell the leftover contaminants from the enzyme.",
+   "quote": "Most likely the enzyme was already pure: the step kept the same fraction of activity as of protein, a ratio of 1, and cost enzyme for nothing.",
+   "section": "Know when to stop"
+  },
+  {
+   "id": "protein-purification-techniques-c29",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Specific activity has stopped rising, but an SDS-PAGE check of the prep still shows a second band at a different size. What does this suggest, and what should the next step sort on?",
+   "back": "The last column may have sorted on a property where the contaminant resembles the enzyme (or the band may be another subunit). Switch to a different property; the band suggests they differ in size, so a size step could help.",
+   "why": "A flat specific activity cannot distinguish purity from a matched contaminant; the gel can. Sort on a different property at each stage.",
+   "quote": "Or the column sorts on a property where the leftover contaminants look like your enzyme.",
+   "section": "Know when to stop"
+  },
+  {
+   "id": "protein-purification-techniques-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is a single band on SDS-PAGE needed for purity but not proof of it?",
+   "back": "Two proteins of the same size run together, and a contaminant can sit below what the stain detects.",
+   "quote": "The band pattern is needed but not enough: two proteins of the same size run together, and a contaminant can sit below what the stain detects.",
+   "section": "Know when to stop"
+  },
+  {
+   "id": "protein-purification-techniques-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does SDS-PAGE separate proteins by size rather than by native charge or shape?",
+   "back": "SDS unfolds each chain and coats it at roughly one SDS per two residues, giving nearly every protein the same charge-to-mass ratio.",
+   "quote": "The detergent SDS unfolds the chain and coats it at roughly one molecule per two residues, giving nearly every protein the same charge-to-mass ratio.",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c32",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On an SDS-PAGE gel, which proteins run fastest, and how is a band's size read?",
+   "back": "The smallest. Size is read against a ladder of marker proteins of known size run in a neighbouring lane.",
+   "quote": "Proteins then sort by size alone, the small ones running fastest, and you read the size against a ladder of marker proteins",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c33",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What are the steps of a western blot?",
+   "back": "Run SDS-PAGE, transfer the gel to a membrane, probe with antibodies, and light up the band with chemiluminescence.",
+   "quote": "Transfer an SDS-PAGE gel to a membrane, probe it with antibodies, and light up one band with a light-producing reaction (chemiluminescence): the western blot.",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c34",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "You must follow a hormone receptor through a purification, but it catalyzes no reaction. How do you assay it?",
+   "back": "With antibodies against the receptor (an antibody signal), since there is no reaction to measure.",
+   "why": "Any assay that counts the target works for the ledger: enzyme reaction, binding signal or antibody signal.",
+   "quote": "One route uses antibodies, which are also how you track a protein with no reaction to assay, such as a hormone receptor.",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does a peptide mass fingerprint identify a purified protein?",
+   "back": "Cut it with trypsin, weigh the peptides by MALDI-TOF, and match the mass list to the predicted digests of database proteins. Few proteins share the same set of masses.",
+   "quote": "Cut your protein with trypsin, weigh the pieces by MALDI-TOF mass spectrometry, and match the mass list against the computer-predicted digest of every protein in a database",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In MALDI-TOF mass spectrometry, how is mass measured?",
+   "back": "Ionized peptides fly down a tube; for ions of the same charge (usually +1 in MALDI), heavier ones arrive later.",
+   "quote": "MALDI-TOF sends ionized peptides down a flight tube where heavier ones arrive later",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c37",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A sequencing chemistry like Edman degradation is 95% efficient per cycle. What fraction of chains is still in step after 20 cycles?",
+   "back": "Per-cycle efficiencies multiply: 0.95²⁰ ≈ 0.36, about a third. (At the lesson's 98%, 50 cycles gives 0.98⁵⁰ ≈ 0.36.)",
+   "why": "Signal from in-step chains falls and out-of-step background builds, which is why Edman stalls past roughly fifty residues.",
+   "quote": "But each cycle is only about 98% efficient.",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c38",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What do overall purification yield and the Edman sequencing signal have in common mathematically, and what does that imply for long procedures?",
+   "back": "Both are products of per-step fractions, so losses compound: many steps or cycles shrink the remaining fraction geometrically. Hence few purification steps and short Edman reads.",
+   "why": "Yield multiplies step yields; in-step chains multiply per-cycle efficiency.",
+   "quote": "The losses multiply, just as yields do in the purification table.",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does tandem MS read a peptide's sequence?",
+   "back": "The peptide is fragmented into a ladder of pieces each one residue shorter; the spacing between peaks matches the mass of one amino acid.",
+   "quote": "read its sequence from the spacing between peaks, since each gap matches the mass of one amino acid",
+   "section": "Prove it: three questions"
+  },
+  {
+   "id": "protein-purification-techniques-c40",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can tandem MS not tell leucine from isoleucine?",
+   "back": "They have identical mass (113.08 Da), so the peak spacing is the same.",
+   "quote": "leucine and isoleucine have identical mass (113.08 Da)",
+   "section": "Inside the mass spectrometer"
+  },
+  {
+   "id": "protein-purification-techniques-c41",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Edman degradation on an intact human protein returns no residues. What is the likely cause, and how can you still get sequence by Edman?",
+   "back": "The N-terminus is probably acetylated, which blocks Edman. Digest the protein and read internal peptides, which have free N-termini.",
+   "quote": "Many eukaryotic proteins, including most human ones, are acetylated at the N-terminus, which blocks Edman on the intact chain",
+   "section": "Edman's blind spot"
+  },
+  {
+   "id": "protein-purification-techniques-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "After an anion-exchange step at pH 8.0, a student plans a second identical anion-exchange column at pH 8.0. Will it help much? What would be better?",
+   "back": "Little. The contaminants left have charge like the enzyme's at that pH. Better: a size step, or a charge step at another pH or on the opposite resin.",
+   "quote": "after a charge step, the contaminants left are the ones whose charge resembles your enzyme's at that pH, so repeating the same charge step buys little",
+   "section": "Planning the order"
+  },
+  {
+   "id": "protein-purification-techniques-c43",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A sample comes straight from an ammonium sulfate cut, still in high salt. Should the next column be ion exchange or hydrophobic interaction, and why?",
+   "back": "Hydrophobic interaction. It suits a high-salt sample, while ion exchange needs low salt (it would need dialysis first).",
+   "why": "Each step should leave the sample in a buffer the next step can take.",
+   "quote": "hydrophobic interaction suits a high-salt sample straight from an ammonium sulfate cut, while ion exchange needs low salt.",
+   "section": "Planning the order"
+  },
+  {
+   "id": "protein-purification-techniques-c44",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does isoelectric focusing separate proteins?",
+   "back": "By pI: proteins drift through a pH gradient until each stalls where its net charge is zero.",
+   "quote": "Isoelectric focusing sorts by pI: proteins drift through a pH gradient until each stalls where its net charge is zero.",
+   "section": "Isoelectric focusing and 2D gels"
+  },
+  {
+   "id": "protein-purification-techniques-c45",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On a 2D gel (isoelectric focusing, then SDS-PAGE), a protein spot moves to a more acidic pI after treatment but keeps the same mass. What is the likely explanation?",
+   "back": "A modification that adds negative charge, classically phosphorylation.",
+   "quote": "A spot that moves to a more acidic pI at the same mass suggests a modification that adds negative charge, classically phosphorylation.",
+   "section": "Isoelectric focusing and 2D gels"
+  },
+  {
+   "id": "protein-purification-techniques-c46",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the classic HIV testing algorithm, an ELISA screen was confirmed by western blot. Why does the western blot add information the ELISA lacks?",
+   "back": "The western blot separates proteins by size on SDS-PAGE before antibody probing, so antibody reactivity is seen against bands of particular sizes, not as one summed signal in a well.",
+   "why": "Western blot = SDS-PAGE + transfer + antibody; ELISA reads antibody binding on a coated plate.",
+   "quote": "Coat a plate instead and you have an ELISA, the clinic's workhorse, with concentration read off a standard curve; in the classic HIV algorithm, a western blot confirmed a positive ELISA screen.",
+   "section": "More antibody methods"
+  },
+  {
+   "id": "protein-purification-techniques-c47",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A protein made of a 30 kDa and a 50 kDa chain joined by a disulfide bond is run on SDS-PAGE without a reducing agent. What do you see, and what changes with reduction?",
+   "back": "Without reduction the linked chains run together as one larger species (about the sum, 80 kDa). After reducing the disulfide, two bands at 30 and 50 kDa.",
+   "why": "Disulfide bonds must be reduced for each chain to run at its own size.",
+   "quote": "disulfide bonds must be reduced for each chain to run at its own size.",
+   "section": "When SDS-PAGE misleads"
+  }
+ ]
+}

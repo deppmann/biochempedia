@@ -2,10 +2,11 @@
 /**
  * VitalismTimeline — the 70-year retreat of the vital force. The textbook opens by granting that
  * life is chemistry; this island shows that the grant was won slowly, one synthesis at a time.
- * Click along the row from 1828 to 1897 and watch the "ground remaining for the vital force" meter
- * shrink as each chemist removes one more place for it to hide. The teaching point lives in the
- * gaps: Wöhler's urea did NOT kill vitalism — critics noted his cyanate came from animal sources,
- * so the fight went on for another seventy years. Self-contained vanilla-TS Astro island. Original.
+ * Click along the row from 1828 to 1897 and watch a three-row checklist fill in: where life was
+ * taken out (making a molecule, its starting materials, a whole process) and how we know it was
+ * gone. The teaching point lives in the gaps: Wöhler's urea did NOT kill vitalism — his cyanate
+ * came from blood and horn — and even after Buchner one hatch stayed open until 1969.
+ * Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
@@ -16,14 +17,14 @@
 
   <div class="vtl-nodes" data-nodes role="group" aria-label="Choose a synthesis to view"></div>
 
-  <div class="vtl-meter">
-    <div class="vtl-meter-row">
-      <span class="vtl-meter-label">Ground remaining for the vital force <span class="vtl-meter-note">(illustrative, not measured)</span></span>
-      <strong class="vtl-meter-pct" data-pct>70%</strong>
-    </div>
-    {/* Static width must match the static "70%" label — with no width the
-        bar painted full before JS ran. */}
-    <div class="vtl-meter-track"><div class="vtl-meter-fill" data-fill style="width: 70%"></div></div>
+  {/* Static dots match Wöhler (the first node) so the panel reads right before JS runs. */}
+  <div class="vtl-out">
+    <span class="vtl-out-label">Life taken out of:</span>
+    <ul class="vtl-out-list">
+      <li><span class="vtl-dot" aria-hidden="true" data-out="0" data-state="yes"></span><span>making a molecule</span><em class="vtl-out-word" data-out-word="0">yes</em></li>
+      <li><span class="vtl-dot" aria-hidden="true" data-out="1" data-state="no"></span><span>its starting materials</span><em class="vtl-out-word" data-out-word="1">no</em></li>
+      <li><span class="vtl-dot" aria-hidden="true" data-out="2" data-state="no"></span><span>a whole process</span><em class="vtl-out-word" data-out-word="2">no</em></li>
+    </ul>
   </div>
 
   <div class="vtl-detail" role="status">
@@ -33,18 +34,18 @@
     </div>
     <p class="vtl-d-made" data-made></p>
     <div class="vtl-d-grid">
-      <div class="vtl-d-cell vtl-removed">
-        <span class="vtl-d-cell-tag">Excuse removed</span>
-        <span class="vtl-d-cell-txt" data-removed></span>
+      <div class="vtl-d-cell vtl-proof">
+        <span class="vtl-d-cell-tag">How we know it is gone</span>
+        <span class="vtl-d-cell-txt" data-proof></span>
       </div>
       <div class="vtl-d-cell vtl-remaining">
-        <span class="vtl-d-cell-tag">Excuse remaining</span>
+        <span class="vtl-d-cell-tag">Escape hatch left</span>
         <span class="vtl-d-cell-txt" data-remaining></span>
       </div>
     </div>
   </div>
 
-  <p class="vtl-foot">Vitalism was not refuted in one afternoon. It was a fighting retreat across seventy years — each synthesis pried the vital force out of one more hiding place, until Buchner's cell-free ferment left it nowhere to stand. Once you grant that life is chemistry, the rest of biochemistry becomes possible: you can lift the machinery out of the cell and study it one reaction at a time.</p>
+  <p class="vtl-foot">Vitalism was not refuted in one afternoon. It was a fighting retreat across seventy years — each synthesis pried the vital force out of one more hiding place, until Buchner's cell-free ferment left it nowhere to stand in the chemistry of the cell. Once you grant that life is chemistry, the rest of biochemistry becomes possible: you can lift the machinery out of the cell and study it one reaction at a time.</p>
 </figure>
 
 <script>
@@ -55,32 +56,38 @@
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
     return e;
   }
-  type Node = { year: string; who: string; ground: number; made: string; removed: string; remaining: string };
+  type Out = 'yes' | 'partial' | 'no';
+  // out = [making a molecule, its starting materials, a whole process]
+  type Node = { year: string; who: string; made: string; out: Out[]; proof: string; remaining: string };
   // Strings are trusted, static HTML (only <strong>/<em>), written for innerHTML.
   const NODES: Node[] = [
     {
-      year: '1828', who: 'Friedrich Wöhler', ground: 70,
-      made: 'Heated ammonium cyanate and got <strong>urea</strong> — an organic molecule out of an inorganic salt, with no living thing in the flask.',
-      removed: '"Only life can make organic molecules." Cracked, for the first time.',
-      remaining: 'Contrary to the popular story, this did <em>not</em> kill vitalism. Critics noted his ammonium cyanate was itself derived from organic (animal) sources, so the vital force could still claim it never really left the loop.',
+      year: '1828', who: 'Friedrich Wöhler',
+      made: 'Evaporated a solution meant to hold ammonium cyanate and got <strong>urea</strong> crystals, with no kidney in the room.',
+      out: ['yes', 'no', 'no'],
+      proof: 'No organism in the flask — but the cyanate was made from blood, horn and hoof.',
+      remaining: '"Your cyanate came from blood and horn." Most chemists, Berzelius included, read it as isomerism, not a refutation.',
     },
     {
-      year: '1845', who: 'Hermann Kolbe', ground: 45,
+      year: '1845', who: 'Hermann Kolbe',
       made: 'Built <strong>acetic acid</strong> up from carbon disulfide (charcoal plus sulfur), finishing with a battery, not a cell.',
-      removed: 'The "organic-source loophole." His starting materials touched nothing alive.',
-      remaining: 'But these were small, simple molecules. Surely the complex molecules of the body still need life to assemble them.',
+      out: ['yes', 'yes', 'no'],
+      proof: 'Started from charcoal and sulfur, counted as elements (charcoal is usually from wood); finished with a battery.',
+      remaining: '"A process still needs a living cell."',
     },
     {
-      year: '1854', who: 'Marcellin Berthelot', ground: 25,
-      made: 'Synthesized <strong>fats</strong> — real triglycerides — from glycerol and fatty acids, building a whole <em>class</em> of the body’s molecules.',
-      removed: '"Only simple molecules can be made without life." Gone.',
-      remaining: 'But surely the <em>processes</em> of life — fermentation, digestion — still need the living cell itself. This was Pasteur’s stand.',
+      year: '1854', who: 'Marcellin Berthelot',
+      made: 'Rejoined glycerol and fatty acids into <strong>fats</strong> by reversible ester-bond chemistry, the same equilibrium rules as the mineral world.',
+      out: ['yes', 'partial', 'no'],
+      proof: 'Life out of the joining step; the glycerol and fatty acids still came from natural fat.',
+      remaining: '"Your parts came from fat" (answered in principle by Kolbe). And the process hatch is still open: Pasteur’s stand.',
     },
     {
-      year: '1897', who: 'Eduard Buchner', ground: 3,
-      made: '<strong>Cell-free fermentation</strong>: dead yeast "press-juice," with no living cells left, fermented sugar to alcohol. He named the agent "zymase."',
-      removed: '"Metabolism needs the intact living cell." Gone.',
-      remaining: 'Essentially none. Life is chemistry; the machinery can be lifted out of the cell and studied one reaction at a time.',
+      year: '1897', who: 'Eduard Buchner',
+      made: 'Yeast ground with sand and pressed gave a juice with almost no cells; sugar added to it <strong>fermented</strong>. He named the agent zymase.',
+      out: ['yes', 'yes', 'yes'],
+      proof: 'A sterile filter that holds back every cell, and chloroform, an antiseptic: it still fermented. (Warming could not decide.)',
+      remaining: '"The zymase was made by yeast." Closed in 1969 by building an enzyme (ribonuclease A) from amino acids with no cell.',
     },
   ];
 
@@ -122,15 +129,14 @@
 
   document.querySelectorAll<HTMLElement>('[data-vitaltimeline]').forEach((root) => {
     const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
-    const pctEl = root.querySelector<HTMLElement>('[data-pct]')!;
-    const fillEl = root.querySelector<HTMLElement>('[data-fill]')!;
+    const dotEls = Array.from(root.querySelectorAll<HTMLElement>('[data-out]'));
+    const wordEls = Array.from(root.querySelectorAll<HTMLElement>('[data-out-word]'));
     const yearEl = root.querySelector<HTMLElement>('[data-year]')!;
     const whoEl = root.querySelector<HTMLElement>('[data-who]')!;
     const madeEl = root.querySelector<HTMLElement>('[data-made]')!;
-    const removedEl = root.querySelector<HTMLElement>('[data-removed]')!;
+    const proofEl = root.querySelector<HTMLElement>('[data-proof]')!;
     const remainingEl = root.querySelector<HTMLElement>('[data-remaining]')!;
     const nodesWrap = root.querySelector<HTMLElement>('[data-nodes]')!;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let sel = 0;
     // Keyboard- and screen-reader-accessible controls (the SVG click is a visual shortcut).
     NODES.forEach((n, i) => {
@@ -146,13 +152,15 @@
     function render() {
       const node = NODES[sel];
       nodeBtns.forEach((b, i) => b.setAttribute('aria-pressed', String(i === sel)));
-      pctEl.textContent = `${node.ground}%`;
-      fillEl.style.width = `${node.ground}%`;
-      fillEl.style.transition = reduce ? 'none' : 'width 0.4s ease';
+      const WORD: Record<Out, string> = { yes: 'yes', partial: 'partly', no: 'no' };
+      node.out.forEach((o, i) => {
+        if (dotEls[i]) dotEls[i].setAttribute('data-state', o);
+        if (wordEls[i]) wordEls[i].textContent = WORD[o];
+      });
       yearEl.textContent = node.year;
       whoEl.textContent = node.who;
       madeEl.innerHTML = node.made;
-      removedEl.innerHTML = node.removed;
+      proofEl.innerHTML = node.proof;
       remainingEl.innerHTML = node.remaining;
       draw(svg, sel);
     }
@@ -180,14 +188,15 @@
   .vtl-node-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .vtl-node-btn[aria-pressed='true'] { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); }
   .vtl-node-btn[aria-pressed='true'] b { color: var(--ddp-color-accent); }
-  .vtl-meter { margin-bottom: var(--ddp-space-3); }
-  .vtl-meter-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: var(--ddp-space-1); }
-  .vtl-meter-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-  .vtl-meter-note { font-style: italic; opacity: 0.85; }
+  .vtl-out { margin-bottom: var(--ddp-space-3); }
+  .vtl-out-label { display: block; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-bottom: var(--ddp-space-1); }
+  .vtl-out-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+  .vtl-out-list li { display: flex; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); margin: 0; }
+  .vtl-dot { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ddp-color-accent); background: #fff; }
+  .vtl-dot[data-state='yes'] { background: var(--ddp-color-accent); }
+  .vtl-dot[data-state='partial'] { background: linear-gradient(90deg, var(--ddp-color-accent) 50%, #fff 50%); }
+  .vtl-out-word { margin-left: auto; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-style: normal; color: var(--ddp-color-muted); }
   .vtl .vtl-d-cell-txt strong, .vtl .vtl-d-made strong { color: var(--ddp-color-primary); }
-  .vtl-meter-pct { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-secondary-ink); }
-  .vtl-meter-track { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--ddp-color-line) 60%, #fff); overflow: hidden; border: 1px solid var(--ddp-color-line); }
-  .vtl-meter-fill { height: 100%; background: color-mix(in srgb, var(--ddp-color-secondary) 70%, var(--ddp-color-primary)); border-radius: 6px 0 0 6px; }
   .vtl-detail { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
   .vtl-d-head { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: var(--ddp-space-2); }
   .vtl-d-year { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-secondary-ink); }
@@ -196,7 +205,7 @@
   .vtl-d-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); }
   @media (min-width: 560px) { .vtl-d-grid { grid-template-columns: 1fr 1fr; } }
   .vtl-d-cell { border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.25rem; }
-  .vtl-removed { background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-left: 3px solid var(--ddp-color-accent); }
+  .vtl-proof { background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-left: 3px solid var(--ddp-color-accent); }
   .vtl-remaining { background: color-mix(in srgb, var(--ddp-color-secondary) 8%, transparent); border-left: 3px solid var(--ddp-color-secondary); }
   .vtl-d-cell-tag { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--ddp-color-muted); }
   .vtl-d-cell-txt { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }

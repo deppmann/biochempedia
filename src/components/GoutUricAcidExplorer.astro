@@ -2,10 +2,11 @@
 /**
  * GoutUricAcidExplorer — the clinical payoff of the purine-catabolism tail. Where the nucleotide
  * map ends in "uric acid," this island shows WHY that dead-end matters: humans lost uricase, so
- * uric acid is the final product, and it is barely soluble. Push the purine-load slider (diet and
- * cell turnover) and serum urate climbs; cross ~6.8 mg/dL and it crystallizes — a gout flare. Then
- * flip allopurinol on: it poisons xanthine oxidase, the two XO arrows grey out, urate production
- * falls, and the value drops back under the solubility line. Self-contained vanilla-TS Astro island. Original.
+ * uric acid is the final product, and it is barely soluble. Push the "purine leaving the loop"
+ * slider (what salvage fails to recycle, plus food purine) or lower urate excretion and serum urate
+ * climbs; cross ~6.8 mg/dL and it crystallizes — a gout flare. Then flip allopurinol on: it poisons
+ * xanthine oxidase, the two XO arrows grey out, urate production falls, and the value drops back
+ * under the solubility line. Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
@@ -15,15 +16,18 @@
   <svg class="gout-svg" role="img" aria-label="Purine breakdown: AMP and GMP are degraded to hypoxanthine and guanine, which converge on xanthine; xanthine oxidase makes uric acid, which humans cannot break down further" data-svg></svg>
 
   <div class="gout-controls">
-    <label class="gout-slabel"><span>Purine load <span class="gout-hint">(diet + cell turnover)</span> <em data-out="load">high</em></span>
+    <label class="gout-slabel"><span>Purine leaving the loop <span class="gout-hint">(not recycled + food purine)</span> <em data-out="load">high</em></span>
       <input type="range" data-in="load" min="0" max="100" step="5" value="75" />
+    </label>
+    <label class="gout-slabel"><span>Urate excretion <span class="gout-hint">(kidney + gut)</span> <em data-out="excr">normal</em></span>
+      <input type="range" data-in="excr" min="0" max="2" step="1" value="1" />
     </label>
     <button type="button" data-allo class="gout-toggle" aria-pressed="false">Allopurinol: off</button>
   </div>
 
   <div class="gout-readout">
     <div class="gout-meter" data-meter aria-hidden="true"></div>
-    <div class="gout-scale" aria-hidden="true"><span>0</span><span class="gout-scale-lim" data-limpos>6.8</span><span>11 mg/dL</span></div>
+    <div class="gout-scale" aria-hidden="true"><span>0</span><span class="gout-scale-lim" data-limpos>6.8</span><span>12 mg/dL</span></div>
     <div class="gout-vals">
       <span class="gout-urate">Serum urate <strong data-urate>8.0</strong> mg/dL</span>
       <span class="gout-thresh">solubility limit ≈ 6.8 mg/dL</span>
@@ -32,7 +36,7 @@
 
   <p class="gout-state" data-state role="status"></p>
 
-  <p class="gout-foot">Uric acid is where purine catabolism dead-ends in us — we lost uricase, the enzyme other mammals use to break it down further, so the poorly soluble acid is the last stop. Gout is simply that acid crossing its solubility line and crystallizing in a joint. Allopurinol, one of Elion and Hitchings's rationally designed purine analogs, is the elegant fix: it is itself oxidized by xanthine oxidase into oxypurinol, which then jams the enzyme shut — fewer urate molecules made, the serum level falls back under the line, and the crystals dissolve.</p>
+  <p class="gout-foot">Uric acid is where purine catabolism dead-ends in us — we lost uricase, the enzyme other mammals use to begin breaking it down further, so the poorly soluble acid is the last stop. Gout is simply that acid crossing its solubility line and crystallizing in a joint. Allopurinol, one of Elion and Hitchings's rationally designed purine analogs, is the elegant fix: it is itself oxidized by xanthine oxidase into oxypurinol, which then jams the enzyme shut — fewer urate molecules made, the serum level falls back under the line, and the crystals dissolve.</p>
 </figure>
 
 <script>
@@ -134,9 +138,14 @@
         svg.appendChild(t);
       }
       if (e.lost) {
-        // keep the label inside the canvas: to the right of the arrow if there is room, else to the left
-        const right = mx + 140 < L.W;
-        svg.appendChild(el('text', { x: right ? mx + 8 : mx - 8, y: my + 4, 'text-anchor': right ? 'start' : 'end', fill: MUTED, 'font-size': 10 }, 'uricase ✕ lost in humans'));
+        // uricase does only the first of three steps to allantoin. Wide: two lines left of the arrow,
+        // in the gap between the boxes. Tall: three short lines beside the boxes, right of the arrow.
+        const lines = L.tall ? ['uricase ✕ lost', 'in humans', '(step 1 of 3)'] : ['uricase ✕ lost', 'in humans (step 1 of 3)'];
+        const lx = L.tall ? mx + L.bw / 2 + 6 : mx - 8;
+        const y0 = L.tall ? my - 8 : my - 1;
+        lines.forEach((line, i) => {
+          svg.appendChild(el('text', { x: lx, y: y0 + i * (L.tall ? 12 : 11), 'text-anchor': L.tall ? 'start' : 'end', fill: MUTED, 'font-size': 10 }, line));
+        });
       }
     });
 
@@ -145,7 +154,7 @@
       const x = cx - L.bw / 2, y = cy - L.bh / 2;
       if (id === 'alla') {
         svg.appendChild(el('rect', { x, y, width: L.bw, height: L.bh, rx: 6, fill: '#fff', stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
-        svg.appendChild(el('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', fill: MUTED, 'font-size': 11 }, 'allantoin'));
+        svg.appendChild(el('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', fill: MUTED, 'font-size': 11 }, '… allantoin'));
         return;
       }
       if (id === 'uric') {
@@ -163,7 +172,7 @@
     svg.appendChild(leg);
   }
 
-  const THRESHOLD = 6.8, MAX = 11;
+  const THRESHOLD = 6.8, MAX = 12;
 
   function drawMeter(meter: HTMLElement, urate: number, over: boolean) {
     // build the fill + threshold line once, then only restyle, so the width change can transition
@@ -184,6 +193,8 @@
     const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
     const loadIn = root.querySelector<HTMLInputElement>('[data-in="load"]')!;
     const loadOut = root.querySelector<HTMLElement>('[data-out="load"]')!;
+    const excrIn = root.querySelector<HTMLInputElement>('[data-in="excr"]')!;
+    const excrOut = root.querySelector<HTMLElement>('[data-out="excr"]')!;
     const alloBtn = root.querySelector<HTMLButtonElement>('[data-allo]')!;
     const meter = root.querySelector<HTMLElement>('[data-meter]')!;
     const urateEl = root.querySelector<HTMLElement>('[data-urate]')!;
@@ -192,43 +203,50 @@
     limPos.style.left = `${(THRESHOLD / MAX) * 100}%`;
     let allo = false;
 
-    // Teaching model, not a clinical calculator: serum urate rises linearly with purine load
-    // (baseline 3.5 → 9.5 mg/dL); allopurinol cuts the production above a ~3 mg/dL floor by ~38%.
-    function urateFor(load: number): number {
+    // Teaching model, not a clinical calculator: urate made rises linearly with the purine leaving
+    // the loop (3.5 → 9.5 mg/dL at normal excretion); allopurinol cuts that production above a
+    // ~3 mg/dL floor by ~38%; then excretion scales the serum level (low ×1.25, normal ×1, high ×0.8).
+    const EXCR_WORD = ['low', 'normal', 'high'], EXCR_FACTOR = [1.25, 1.0, 0.8];
+    function urateFor(load: number, excr: number): number {
       const raw = 3.5 + (load / 100) * 6.0;
-      return allo ? 3.0 + (raw - 3.0) * 0.62 : raw;
+      const made = allo ? 3.0 + (raw - 3.0) * 0.62 : raw;
+      return made * EXCR_FACTOR[excr];
     }
 
     function render() {
       const load = parseInt(loadIn.value, 10);
       const word = load > 70 ? 'high' : load > 35 ? 'moderate' : load > 5 ? 'low' : 'minimal';
       loadOut.textContent = word;
+      const excr = Math.max(0, Math.min(2, parseInt(excrIn.value, 10) || 0));
+      excrOut.textContent = EXCR_WORD[excr];
+      excrIn.setAttribute('aria-valuetext', `${EXCR_WORD[excr]} urate excretion`);
       alloBtn.textContent = `Allopurinol: ${allo ? 'on' : 'off'}`;
       alloBtn.setAttribute('aria-pressed', String(allo));
       alloBtn.classList.toggle('gout-toggle--on', allo);
 
-      const urate = Math.round(urateFor(load) * 10) / 10; // compare the value the student sees
+      const urate = Math.round(urateFor(load, excr) * 10) / 10; // compare the value the student sees
       const over = urate > THRESHOLD;
       urateEl.textContent = urate.toFixed(1);
       urateEl.style.color = over ? RED : GREEN;
-      loadIn.setAttribute('aria-valuetext', `${word} purine load; serum urate ${urate.toFixed(1)} mg/dL`);
+      loadIn.setAttribute('aria-valuetext', `${word} purine leaving the loop; serum urate ${urate.toFixed(1)} mg/dL`);
       drawMeter(meter, urate, over);
       drawPathway(svg, allo, over);
 
       if (over) {
         stateEl.textContent = allo
-          ? `Still above the line. Allopurinol has cut urate production, but at this purine load the serum is still ${urate.toFixed(1)} mg/dL — past the ≈ 6.8 mg/dL solubility limit, so crystals can keep forming. Lower the load (or, clinically, raise the dose) to get under it.`
-          : `Above the solubility limit — crystals can form. At ${urate.toFixed(1)} mg/dL the serum is supersaturated with urate, so monosodium urate can fall out of solution as needle-shaped crystals in a joint; that is what sets off a gout flare. Try switching allopurinol on.`;
+          ? `Still above the line. Allopurinol has cut urate production, but the serum is still ${urate.toFixed(1)} mg/dL — past the ≈ 6.8 mg/dL solubility limit, so crystals can keep forming. Lowering production (allopurinol) or raising excretion both bring urate down: lower the purine leaving the loop, raise excretion, or (clinically) raise the dose to get under it.`
+          : `Above the solubility limit — crystals can form. At ${urate.toFixed(1)} mg/dL the serum is supersaturated with urate, so monosodium urate can fall out of solution as needle-shaped crystals in a joint; that is what sets off a gout flare. Lowering production (allopurinol) or raising excretion both bring urate down: try switching allopurinol on.`;
         stateEl.className = 'gout-state gout-state--bad';
       } else {
         stateEl.textContent = allo
           ? `Below the line. Allopurinol has throttled xanthine oxidase, so less hypoxanthine and xanthine become urate and the serum sits at ${urate.toFixed(1)} mg/dL, under the solubility limit. Kept there, existing crystals slowly dissolve.`
-          : `Below the line. At ${urate.toFixed(1)} mg/dL the urate stays dissolved, under its ≈ 6.8 mg/dL solubility limit. No crystals form. Push the purine load up to see what happens.`;
+          : `Below the line. At ${urate.toFixed(1)} mg/dL the urate stays dissolved, under its ≈ 6.8 mg/dL solubility limit. No crystals form. Push the purine leaving the loop up, or lower excretion, to see what happens.`;
         stateEl.className = 'gout-state gout-state--ok';
       }
     }
 
     loadIn.addEventListener('input', render);
+    excrIn.addEventListener('input', render);
     alloBtn.addEventListener('click', () => { allo = !allo; render(); });
     let lastW = 0;
     if ('ResizeObserver' in window) {

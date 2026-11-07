@@ -5,33 +5,35 @@
  * is regenerated. Pick a fate — aerobic oxidation, lactate fermentation, or alcoholic
  * fermentation — and the diagram shows the product and, crucially, how (or whether)
  * NAD⁺ comes back, so the logic of fermentation lands: it exists to recycle NAD⁺ when
- * oxygen can't. Self-contained vanilla-TS Astro island. Original.
+ * oxygen can't. A fourth tab removes every recycler (LDH blocked in a red cell, which has
+ * no mitochondria) to show the stall. Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
 <figure class="pf card" data-pyruvatefates>
-  <figcaption class="pf-head">Three fates of pyruvate<span class="pf-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="pf-head">Three fates of pyruvate, and a stall<span class="pf-chip">⚙ original · interactive</span></figcaption>
 
   <div class="pf-tabs" role="group" aria-label="Fate of pyruvate">
     <button type="button" data-fate="aerobic" aria-pressed="true">Aerobic (O₂ present)</button>
     <button type="button" data-fate="lactate" aria-pressed="false">Lactate fermentation</button>
     <button type="button" data-fate="ethanol" aria-pressed="false">Alcoholic fermentation</button>
+    <button type="button" data-fate="blocked" aria-pressed="false">No recycler (LDH blocked, no mitochondria)</button>
   </div>
 
   <svg class="pf-svg" viewBox="0 0 340 196" role="img" aria-label="Pyruvate's fate and how NAD+ is regenerated" data-svg></svg>
 
   <dl class="pf-readout">
     <div><dt>Product</dt><dd data-r-prod>Acetyl-CoA → CO₂</dd></div>
-    <div><dt>NAD⁺ regenerated?</dt><dd data-r-nad>by the electron-transport chain</dd></div>
+    <div><dt>NAD⁺ regenerated?</dt><dd data-r-nad>via shuttles + electron-transport chain</dd></div>
   </dl>
-  <p class="pf-why" data-why role="status">With oxygen, pyruvate is fully oxidized and NADH is reoxidized by the electron-transport chain — the high-yield route.</p>
+  <p class="pf-why" data-why role="status">With oxygen, shuttles pass NADH’s electrons into the mitochondrion, where the electron-transport chain hands them to O₂, and NAD⁺ comes back to step 6. Pyruvate enters too and is oxidized to CO₂: about 30 ATP per glucose in all.</p>
 
   <p class="pf-foot">Fermentation makes no extra ATP. Its entire job is to regenerate NAD⁺ so glycolysis (and its 2 ATP per glucose) can keep running when oxygen is scarce.</p>
 </figure>
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55', GOLD = '#D4A843';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55', GOLD = '#D4A843', CLAY = '#b4472f';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
@@ -50,12 +52,14 @@
 
   type Fate = { prod: string; nad: string; why: string; product: string; recycler: string; co2: boolean; enzyme: string };
   const FATES: Record<string, Fate> = {
-    aerobic: { prod: 'Acetyl-CoA → TCA → CO₂', nad: 'by the electron-transport chain', product: 'Acetyl-CoA → TCA', recycler: 'ETC (O₂)', co2: true, enzyme: 'pyruvate dehydrogenase',
-      why: 'With oxygen, pyruvate enters the mitochondrion, is fully oxidized to CO₂, and NADH is reoxidized by the electron-transport chain — the high-yield route (~30+ ATP per glucose).' },
+    aerobic: { prod: 'Acetyl-CoA → TCA → CO₂', nad: 'via shuttles + electron-transport chain', product: 'Acetyl-CoA → TCA', recycler: 'ETC (O₂)', co2: true, enzyme: 'pyruvate dehydrogenase',
+      why: 'With oxygen, shuttles pass NADH’s electrons into the mitochondrion, where the electron-transport chain hands them to O₂, and NAD⁺ comes back to step 6. Pyruvate enters too and is oxidized to CO₂: about 30 ATP per glucose in all.' },
     lactate: { prod: 'Lactate', nad: 'by lactate dehydrogenase', product: 'Lactate', recycler: 'lactate dehydrogenase', co2: false, enzyme: 'lactate dehydrogenase',
-      why: 'Without enough oxygen (sprinting muscle, red blood cells), lactate dehydrogenase reduces pyruvate to lactate, reoxidizing NADH to NAD⁺. No extra ATP — the point is to keep glycolysis running. The lactate is shipped to the liver (the Cori cycle).' },
+      why: 'When oxygen runs short (sprinting muscle), or in a cell with no mitochondria (red blood cell), lactate dehydrogenase hands NADH’s electrons to pyruvate itself: 2 NADH in, 2 NAD⁺ back to step 6. No extra ATP; the lactate goes to the liver (Cori cycle).' },
     ethanol: { prod: 'Ethanol + CO₂', nad: 'by alcohol dehydrogenase', product: 'Ethanol', recycler: 'ADH (+ decarboxylase)', co2: true, enzyme: 'decarboxylase, then ADH',
       why: 'In yeast, pyruvate is decarboxylated to acetaldehyde (losing CO₂) and then reduced to ethanol, regenerating NAD⁺. Same logic as lactate — recycle NAD⁺ without oxygen — and the basis of brewing and baking.' },
+    blocked: { prod: 'None: pyruvate and NADH pile up', nad: 'not regenerated', product: 'No lactate made', recycler: '—', co2: false, enzyme: 'LDH blocked',
+      why: 'With no way to return NAD⁺, the small pool is used up at step 6. GAPDH stalls, so steps 7 and 10 stop too: ATP production stops, even with plenty of glucose.' },
   };
 
   document.querySelectorAll<HTMLElement>('[data-pyruvatefates]').forEach((root) => {
@@ -66,6 +70,7 @@
     function render(key: string) {
       const f = FATES[key];
       const aerobic = key === 'aerobic';
+      const blocked = key === 'blocked';
       svg.replaceChildren();
       // Same skeleton for every fate: glycolysis → pyruvate → product. The dashed gold loop
       // is the point of the figure: glycolysis hands off NADH, and each fate differs only in
@@ -74,8 +79,8 @@
       box(svg, 110, 72, 90, 28, 'Pyruvate', 'color-mix(in srgb,#0e7c86 14%,#fff)', NAVY);
       arrow(svg, 155, 38, 155, 72, INK);
       const pw = aerobic ? 120 : 100;
-      box(svg, 155 - pw / 2, 144, pw, 30, f.product, aerobic ? 'color-mix(in srgb,#0e7c86 14%,#fff)' : '#fff4e6', NAVY);
-      arrow(svg, 155, 100, 155, 144, ACCENT);
+      box(svg, 155 - pw / 2, 144, pw, 30, f.product, aerobic ? 'color-mix(in srgb,#0e7c86 14%,#fff)' : blocked ? '#f6f1ef' : '#fff4e6', NAVY);
+      arrow(svg, 155, 100, 155, 144, blocked ? CLAY : ACCENT);
       const en = el('text', { x: 161, y: 118, 'font-size': 9.5, fill: INK }); en.textContent = f.enzyme; svg.appendChild(en);
       if (f.co2) {
         svg.appendChild(el('path', { d: 'M155 124 Q170 132 186 132', fill: 'none', stroke: ORANGE, 'stroke-width': 1.5 }));
@@ -88,15 +93,22 @@
       };
       if (aerobic) {
         // NADH leaves to the electron-transport chain, which needs O₂; NAD⁺ comes back
-        box(svg, 262, 78, 70, 34, '', '#fff', NAVY);
-        const e1 = el('text', { x: 297, y: 92, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, 'font-weight': 700 }); e1.textContent = 'ETC'; svg.appendChild(e1);
-        const e2 = el('text', { x: 297, y: 104, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); e2.textContent = 'O₂ → H₂O'; svg.appendChild(e2);
+        box(svg, 262, 78, 70, 44, '', '#fff', NAVY);
+        const e0 = el('text', { x: 297, y: 90, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); e0.textContent = 'shuttles →'; svg.appendChild(e0);
+        const e1 = el('text', { x: 297, y: 102, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, 'font-weight': 700 }); e1.textContent = 'ETC'; svg.appendChild(e1);
+        const e2 = el('text', { x: 297, y: 114, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); e2.textContent = 'O₂ → H₂O'; svg.appendChild(e2);
         svg.appendChild(el('path', { d: 'M250 20 C290 20 300 40 300 74', fill: 'none', stroke: GOLD, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
         svg.appendChild(el('path', { d: 'M300 78 l-4 -8 8 0 z', fill: GOLD }));
         svg.appendChild(el('path', { d: 'M282 78 C282 52 270 40 254 32', fill: 'none', stroke: GOLD, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
         svg.appendChild(el('path', { d: 'M251 31 l9 -2 -3 8 z', fill: GOLD }));
         loopLbl(306, 44, 'NADH', 'out', 'start');
-        loopLbl(258, 60, 'NAD⁺', 'back', 'end');
+        loopLbl(258, 60, 'NAD⁺ back', 'to step 6', 'end');
+      } else if (blocked) {
+        // No recycler: the NADH path dead-ends in an X and no NAD⁺ returns
+        svg.appendChild(el('path', { d: 'M58 24 C20 30 16 80 36 104', fill: 'none', stroke: GOLD, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+        svg.appendChild(el('path', { d: 'M33 105 l12 12 M45 105 l-12 12', fill: 'none', stroke: CLAY, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+        loopLbl(8, 132, 'NADH', 'piles up', 'start');
+        svg.appendChild(el('path', { d: 'M150 120 l10 10 M160 120 l-10 10', fill: 'none', stroke: CLAY, 'stroke-width': 3, 'stroke-linecap': 'round' }));
       } else {
         // NADH is spent right here, reducing pyruvate; the NAD⁺ returns to glycolysis
         svg.appendChild(el('path', { d: 'M58 24 C12 30 12 126 146 126', fill: 'none', stroke: GOLD, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
@@ -104,7 +116,7 @@
         svg.appendChild(el('path', { d: 'M150 114 C118 108 102 80 102 44', fill: 'none', stroke: GOLD, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
         svg.appendChild(el('path', { d: 'M102 39 l-4.5 8 9 0 z', fill: GOLD }));
         loopLbl(8, 78, 'NADH', 'in', 'start');
-        loopLbl(96, 70, 'NAD⁺', 'back', 'end');
+        loopLbl(96, 70, 'NAD⁺ back', 'to step 6', 'end');
       }
       rProd.textContent = f.prod; rNad.textContent = f.nad; why.textContent = f.why;
     }

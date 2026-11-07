@@ -5,7 +5,10 @@
  * answers a different question: where, and at what pH, does each digestive enzyme actually
  * work? Drag the location slider down the GI tract (Mouth → Stomach → Small intestine), watch
  * the local pH swing from ~6.8 to ~1.8 to ~8, and see each enzyme light up or dim against its
- * own pH optimum. The teaching point: every enzyme's optimum is matched to its compartment.
+ * own pH optimum. The teaching point: every enzyme's optimum is matched to its compartment,
+ * but pH is the on-switch only for pepsin; the pancreatic proteases are switched on by a cut,
+ * and amylase and lipase are secreted already on. A top row shows the other job of acid:
+ * unfolding dietary protein so its peptide bonds are exposed.
  * Stomach acid both ACTIVATES pepsin and irreversibly DENATURES salivary amylase; pancreatic
  * bicarbonate then resets the pH so the intestinal enzymes can run. Self-contained vanilla-TS
  * Astro island. Original.
@@ -37,7 +40,7 @@
 
   <p class="get-why" data-why role="status"></p>
 
-  <p class="get-foot">There is no single "best" pH for digestion — each enzyme is tuned to the compartment it works in. Salivary amylase starts on starch at the near-neutral pH of the mouth, then the stomach's acid bath denatures it for good while switching pepsin on. Once the chyme reaches the duodenum, pancreatic bicarbonate neutralizes the acid back to ~8, which is exactly where pancreatic amylase, trypsin, chymotrypsin, and lipase do their best work. Match the enzyme to its pH, and you have matched it to its place.</p>
+  <p class="get-foot">There is no single "best" pH for digestion — each enzyme is tuned to the compartment it works in. Salivary amylase starts on starch at the near-neutral pH of the mouth, then the stomach's acid bath denatures it for good while switching pepsin on. Once the chyme reaches the duodenum, pancreatic bicarbonate neutralizes the acid back to ~8, which is exactly where pancreatic amylase, trypsin, chymotrypsin, and lipase do their best work. Match the enzyme to its pH, and you have matched it to its place. pH sets how well each enzyme works; only pepsin uses pH as its on-switch. The pancreatic proteases are switched on by a cut, and amylase and lipase arrive already on.</p>
 </figure>
 
 <script>
@@ -46,41 +49,48 @@
 
   type Loc = { name: string; ph: number; why: string };
   const LOCS: Loc[] = [
-    { name: 'Mouth', ph: 6.8, why: 'Mouth, pH ~6.8: salivary amylase begins breaking down starch at near-neutral pH. Nothing acid-loving works here yet — pepsin needs an acid bath it will not get until the stomach.' },
-    { name: 'Stomach', ph: 1.8, why: 'Stomach, pH ~1.8: the acid bath activates pepsin (its optimum is ~1.5–2, alone among these enzymes) and irreversibly DENATURES the salivary amylase that arrived from the mouth. The pancreatic enzymes cannot tolerate this pH.' },
+    { name: 'Mouth', ph: 6.8, why: 'Mouth, pH ~6.8: salivary amylase begins breaking down starch at near-neutral pH. Nothing acid-loving works here yet: pepsinogen is not secreted until the stomach, where acid switches it on to pepsin.' },
+    { name: 'Stomach', ph: 1.8, why: 'Stomach, pH ~1.8: the acid does two jobs. It unfolds dietary protein, exposing its peptide bonds, and it switches pepsinogen on to pepsin (its optimum is ~1.5–2, alone among these enzymes). It also irreversibly DENATURES the salivary amylase that arrived from the mouth. The pancreatic enzymes cannot tolerate this pH.' },
     { name: 'Small intestine', ph: 8.0, why: 'Small intestine, pH ~8: pancreatic bicarbonate has neutralized the stomach acid, resetting the pH to where pancreatic amylase, trypsin, chymotrypsin, and lipase all work best. Pepsin, the acid-lover, is now switched off.' },
   ];
 
-  type Enzyme = { name: string; opt: string; color: string; active: boolean[]; denatured: boolean[]; tag: (i: number) => string };
+  /** switch: how the enzyme is turned on, shown as a second line under the name. */
+  type Enzyme = { name: string; switch?: string; opt: string; color: string; active: boolean[]; denatured: boolean[]; tag: (i: number) => string };
   // active/denatured indexed by location: [Mouth, Stomach, Small intestine]
   const ENZYMES: Enzyme[] = [
     {
-      name: 'Salivary amylase', opt: 'optimum ~6.8', color: ORANGE,
+      // Not an enzyme: the substrate. Acid's other job is to unfold it and expose its bonds.
+      name: 'Dietary protein', opt: '', color: NAVY,
+      active: [false, true, true], denatured: [false, false, false],
+      tag: (i) => ['folded', 'unfolded by acid: bonds exposed', 'unfolded, being cut'][i],
+    },
+    {
+      name: 'Salivary amylase', switch: 'secreted active', opt: 'optimum ~6.8', color: ORANGE,
       active: [true, false, false], denatured: [false, true, true],
       tag: (i) => i === 0 ? 'active — digesting starch' : 'irreversibly denatured by acid',
     },
     {
-      name: 'Pepsin', opt: 'optimum ~1.5–2', color: GOLD,
+      name: 'Pepsin', switch: 'switch: acid (pepsinogen → pepsin)', opt: 'optimum ~1.5–2', color: GOLD,
       active: [false, true, false], denatured: [false, false, false],
-      tag: (i) => i === 1 ? 'active — the lone acid-lover' : 'inactive (needs acid)',
+      tag: (i) => i === 0 ? 'not secreted here' : i === 2 ? 'switched off by the rising pH' : 'active: acid switched pepsinogen on',
     },
     {
-      name: 'Pancreatic amylase', opt: 'optimum ~7–8', color: ACCENT,
+      name: 'Pancreatic amylase', switch: 'secreted active', opt: 'optimum ~7–8', color: ACCENT,
       active: [false, false, true], denatured: [false, false, false],
       tag: (i) => i === 2 ? 'active — finishing starch' : 'not secreted here yet',
     },
     {
-      name: 'Trypsin', opt: 'optimum ~7–8', color: ACCENT,
+      name: 'Trypsin', switch: 'switch: enteropeptidase cut', opt: 'optimum ~7–8', color: ACCENT,
+      active: [false, false, true], denatured: [false, false, false],
+      tag: (i) => i === 2 ? 'active: switched on by enteropeptidase, not by pH' : 'not secreted here yet',
+    },
+    {
+      name: 'Chymotrypsin', switch: 'switch: trypsin cut', opt: 'optimum ~7–8', color: ACCENT,
       active: [false, false, true], denatured: [false, false, false],
       tag: (i) => i === 2 ? 'active — cleaving proteins' : 'not secreted here yet',
     },
     {
-      name: 'Chymotrypsin', opt: 'optimum ~7–8', color: ACCENT,
-      active: [false, false, true], denatured: [false, false, false],
-      tag: (i) => i === 2 ? 'active — cleaving proteins' : 'not secreted here yet',
-    },
-    {
-      name: 'Pancreatic lipase', opt: 'optimum ~7–8', color: ACCENT,
+      name: 'Pancreatic lipase', switch: 'secreted active; needs a droplet surface', opt: 'optimum ~7–8', color: ACCENT,
       active: [false, false, true], denatured: [false, false, false],
       tag: (i) => i === 2 ? 'active — splitting fats' : 'not secreted here yet',
     },
@@ -95,11 +105,17 @@
       const nm = document.createElement('span');
       nm.className = 'get-bar-name';
       nm.textContent = enz.name;
+      if (enz.switch) {
+        const sw = document.createElement('span');
+        sw.className = 'get-bar-switch';
+        sw.textContent = enz.switch;
+        nm.appendChild(sw);
+      }
       const opt = document.createElement('span');
       opt.className = 'get-bar-opt';
       opt.textContent = enz.opt;
       head.appendChild(nm);
-      head.appendChild(opt);
+      if (enz.opt) head.appendChild(opt);
       const track = document.createElement('div');
       track.className = 'get-bar-track';
       const fill = document.createElement('div');
@@ -200,6 +216,7 @@
   .get-bar { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); transition: opacity 0.15s; }
   .get-bar-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.3rem; }
   .get-bar-name { font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .get-bar-switch { display: block; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-ink-soft); }
   .get-bar-opt { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .get-bar-track { height: 9px; border-radius: 999px; background: color-mix(in srgb, var(--ddp-color-line) 60%, #fff); overflow: hidden; }
   .get-bar-fill { height: 100%; width: 18%; border-radius: 999px; transition: width 0.18s ease, background 0.18s, opacity 0.18s; }

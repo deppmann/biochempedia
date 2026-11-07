@@ -3,11 +3,13 @@
  * FattyAcidEnergyCalculator — the payoff companion to the β-oxidation pathway map.
  * Pick an even-chain saturated fatty acid and the calculator counts the spiral
  * turns, the acetyl-CoA / FADH₂ / NADH harvest, and the net ATP under the modern
- * P/O convention (2.5 ATP/NADH, 1.5/FADH₂, 10/acetyl-CoA via the TCA cycle and
+ * P/O convention (2.5 ATP/NADH, 1.5/FADH₂, 10/acetyl-CoA via the citric acid cycle and
  * oxidative phosphorylation), minus the 2-ATP activation toll. A bar compares the
- * yield to one glucose (~32 ATP), splits it into the part earned later in the TCA
- * cycle vs. the spiral's own carriers, and reports ATP per carbon, making "fat is
- * the dense fuel" quantitative. Self-contained vanilla-TS Astro island. Original.
+ * yield to one glucose (~32 ATP), splits it into the part earned later in the citric
+ * acid cycle vs. the spiral's own carriers, and reports ATP per carbon, making "fat is
+ * the dense fuel" quantitative. A checkbox shows what a fasting liver keeps when it
+ * exports the acetyl-CoA as ketones (turns × 4 − 2). Self-contained vanilla-TS Astro
+ * island. Original.
  */
 // Bars share one scale, set by the longest chain on the slider (C24 nets 162 ATP),
 // so no bar ever saturates and every chain length is visibly different.
@@ -23,6 +25,7 @@ const GLC_W = ((32 / MAX_NET) * 100).toFixed(1) + '%';
     <input type="range" data-in="n" min="4" max="24" step="2" value="16" aria-valuetext="16 carbons, palmitate" />
     <span class="fae-scale" aria-hidden="true"><span>C4 · short</span><span>C24 · very long</span></span>
   </label>
+  <label class="fae-check"><input type="checkbox" data-in="liver" /> Liver exporting the acetyl-CoA as ketones</label>
 
   <div class="fae-grid">
     <dl class="fae-ledger">
@@ -31,7 +34,7 @@ const GLC_W = ((32 / MAX_NET) * 100).toFixed(1) + '%';
       <div><dt>FADH₂</dt><dd data-r-fadh2>7</dd></div>
       <div><dt>NADH</dt><dd data-r-nadh>7</dd></div>
       <div><dt>Activation</dt><dd>−2 ATP <small class="fae-sub">ATP → AMP</small></dd></div>
-      <div class="fae-net"><dt>Net ATP</dt><dd data-r-atp>106</dd></div>
+      <div class="fae-net"><dt data-net-lbl>Net ATP</dt><dd data-r-atp>106</dd></div>
     </dl>
 
     <div class="fae-barwrap">
@@ -47,14 +50,16 @@ const GLC_W = ((32 / MAX_NET) * 100).toFixed(1) + '%';
         <b class="fae-bar-n">~32</b>
       </div>
       <p class="fae-legend">
-        <span><i class="is-tca"></i>acetyl-CoA, burned in the TCA cycle</span>
+        <span><i class="is-tca"></i><span data-leg-tca>acetyl-CoA, burned in the citric acid cycle</span></span>
         <span><i class="is-spiral"></i>spiral's FADH₂ + NADH, minus activation</span>
       </p>
-      <p class="fae-eff">ATP per carbon: <b data-r-perc>6.6</b> &nbsp;·&nbsp; glucose ≈ 5.3</p>
+      <p class="fae-eff"><span data-eff-lbl>ATP per carbon:</span> <b data-eff-n>6.6</b> <span data-eff-tail>· glucose ≈ 5.3</span></p>
     </div>
   </div>
 
-  <p class="fae-why" data-why role="status">C16 palmitate runs 7 turns of the spiral, giving 8 acetyl-CoA, 7 FADH₂, and 7 NADH: about 106 net ATP, 3.3 times what one glucose yields. Most of it (80 ATP) comes later, when the acetyl-CoA burns in the TCA cycle; the spiral's own carriers add 28, minus 2 for activation. Per carbon, fat still wins (6.6 vs 5.3) because its carbons start out more reduced.</p>
+  <p class="fae-formula" data-formula>turns × 4 + acetyl-CoA × 10 − 2 = 7 × 4 + 8 × 10 − 2 = 106</p>
+
+  <p class="fae-why" data-why role="status">C16 palmitate runs 7 turns of the spiral, giving 8 acetyl-CoA, 7 FADH₂, and 7 NADH: about 106 net ATP, 3.3 times what one glucose yields. Most of it (80 ATP) comes later, when the acetyl-CoA burns in the citric acid cycle; the spiral's own carriers add 28, minus 2 for activation. Per carbon, fat still wins (6.6 vs 5.3) because its carbons start out more reduced.</p>
   <p class="fae-foot">Modern P/O ratios (2.5 ATP/NADH, 1.5/FADH₂, ~10/acetyl-CoA). Older textbooks counting 3 and 2 give higher totals (palmitate ≈ 129). Even chains only here; odd chains leave a propionyl-CoA.</p>
 </figure>
 
@@ -63,7 +68,8 @@ const GLC_W = ((32 / MAX_NET) * 100).toFixed(1) + '%';
   document.querySelectorAll<HTMLElement>('[data-fae]').forEach((root) => {
     const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]')!;
     const q = (s: string) => root.querySelector<HTMLElement>(s)!;
-    const out = { n: q('[data-out="n"]'), name: q('[data-name]'), cycles: q('[data-r-cycles]'), acetyl: q('[data-r-acetyl]'), fadh2: q('[data-r-fadh2]'), nadh: q('[data-r-nadh]'), atp: q('[data-r-atp]'), perc: q('[data-r-perc]'), why: q('[data-why]'), segTca: q('[data-seg-tca]'), segSp: q('[data-seg-sp]'), barFatN: q('[data-bar-fat-n]') };
+    const liverIn = root.querySelector<HTMLInputElement>('[data-in="liver"]')!;
+    const out = { n: q('[data-out="n"]'), netLbl: q('[data-net-lbl]'), legTca: q('[data-leg-tca]'), effLbl: q('[data-eff-lbl]'), effN: q('[data-eff-n]'), effTail: q('[data-eff-tail]'), formula: q('[data-formula]'), name: q('[data-name]'), cycles: q('[data-r-cycles]'), acetyl: q('[data-r-acetyl]'), fadh2: q('[data-r-fadh2]'), nadh: q('[data-r-nadh]'), atp: q('[data-r-atp]'), why: q('[data-why]'), segTca: q('[data-seg-tca]'), segSp: q('[data-seg-sp]'), barFatN: q('[data-bar-fat-n]') };
     const GLUCOSE = 32;
     const MAX = parseFloat(root.dataset.max || '162');
     const pct = (v: number) => ((v / MAX) * 100).toFixed(1) + '%';
@@ -74,7 +80,10 @@ const GLC_W = ((32 / MAX_NET) * 100).toFixed(1) + '%';
       const fadh2 = cycles, nadh = cycles;
       const fromTca = acetyl * 10;
       const fromSpiral = fadh2 * 1.5 + nadh * 2.5;
-      const net = fromTca + fromSpiral - 2;
+      const full = fromTca + fromSpiral - 2;
+      const liver = liverIn.checked;
+      // A fasting liver exporting ketones keeps only the per-turn carriers.
+      const net = liver ? fromSpiral - 2 : full;
       const name = NAMES[n] || '';
       out.n.textContent = `C${n}`;
       out.name.textContent = name;
@@ -84,15 +93,29 @@ const GLC_W = ((32 / MAX_NET) * 100).toFixed(1) + '%';
       out.fadh2.textContent = String(fadh2);
       out.nadh.textContent = String(nadh);
       out.atp.textContent = String(net);
-      out.perc.textContent = (net / n).toFixed(1);
       out.barFatN.textContent = String(net);
-      // one shared scale (C24 = full track): TCA share, then the spiral's carriers net of the 2-ATP toll
+      out.netLbl.textContent = liver ? 'Liver keeps' : 'Net ATP';
+      out.legTca.textContent = liver ? 'acetyl-CoA, leaves as ketones' : 'acetyl-CoA, burned in the citric acid cycle';
+      out.segTca.style.opacity = liver ? '0.25' : '1';
+      out.effLbl.textContent = liver ? 'Liver keeps' : 'ATP per carbon:';
+      out.effN.textContent = liver ? String(net) : (full / n).toFixed(1);
+      out.effTail.textContent = liver ? `of ${full} · most of the rest goes to other tissues` : '· glucose ≈ 5.3';
+      out.formula.textContent = liver
+        ? `turns × 4 − 2 = ${cycles} × 4 − 2 = ${net}`
+        : `turns × 4 + acetyl-CoA × 10 − 2 = ${cycles} × 4 + ${acetyl} × 10 − 2 = ${net}`;
+      // one shared scale (C24 = full track): citric acid cycle share, then the spiral's carriers net of the 2-ATP toll
       out.segTca.style.width = pct(fromTca);
       out.segSp.style.width = pct(fromSpiral - 2);
       const turns = cycles === 1 ? '1 turn' : `${cycles} turns`;
-      out.why.textContent = `C${n}${name ? ' ' + name : ''} runs ${turns} of the spiral, giving ${acetyl} acetyl-CoA, ${fadh2} FADH₂, and ${nadh} NADH: about ${net} net ATP, ${(net / GLUCOSE).toFixed(1)} times what one glucose yields. Most of it (${fromTca} ATP) comes later, when the acetyl-CoA burns in the TCA cycle; the spiral's own carriers add ${fromSpiral}, minus 2 for activation. Per carbon, fat still wins (${(net / n).toFixed(1)} vs 5.3) because its carbons start out more reduced.`;
+      const ketones = acetyl % 2 === 0 ? ` as ${acetyl / 2} acetoacetate` : ' as ketone bodies';
+      const why = liver
+        ? `A fasting liver keeps only the per-turn carriers: ${cycles} × 4 − 2 = ${net} ATP. The ${acetyl} acetyl-CoA leave${ketones} for other tissues to burn.`
+        : `C${n}${name ? ' ' + name : ''} runs ${turns} of the spiral, giving ${acetyl} acetyl-CoA, ${fadh2} FADH₂, and ${nadh} NADH: about ${net} net ATP, ${(net / GLUCOSE).toFixed(1)} times what one glucose yields. Most of it (${fromTca} ATP) comes later, when the acetyl-CoA burns in the citric acid cycle; the spiral's own carriers add ${fromSpiral}, minus 2 for activation. Per carbon, fat still wins (${(net / n).toFixed(1)} vs 5.3) because its carbons start out more reduced.`;
+      const perox = n >= 22 ? ' Chains this long are first shortened in peroxisomes, where step 1 hands its electrons to O₂ instead of the electron transport chain, so the real yield is somewhat lower than this count.' : '';
+      out.why.textContent = why + perox;
     }
     nIn.addEventListener('input', render);
+    liverIn.addEventListener('change', render);
     render();
   });
 </script>
@@ -107,6 +130,9 @@ const GLC_W = ((32 / MAX_NET) * 100).toFixed(1) + '%';
   .fae-name { color: var(--ddp-color-primary); font-weight: 600; }
   .fae-slabel input { accent-color: var(--ddp-color-accent); width: 100%; margin: 0.2rem 0 0; }
   .fae-scale { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--ddp-color-muted); }
+  .fae-check { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: 0 0 var(--ddp-space-3); cursor: pointer; }
+  .fae-check input { accent-color: var(--ddp-color-accent); margin: 0; }
+  .fae-formula { margin: var(--ddp-space-3) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); overflow-wrap: anywhere; }
   .fae-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
   @media (min-width: 600px) { .fae-grid { grid-template-columns: 1fr 1.15fr; align-items: center; } }
   .fae-ledger { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: 0; }
@@ -120,7 +146,7 @@ const GLC_W = ((32 / MAX_NET) * 100).toFixed(1) + '%';
   .fae-bar-row { display: flex; align-items: center; gap: 0.5rem; }
   .fae-bar-lbl { width: 52px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); flex: none; text-align: right; }
   .fae-bar-track { display: flex; flex: 1; min-width: 0; height: 20px; background: color-mix(in srgb, var(--ddp-color-accent) 7%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 5px; overflow: hidden; }
-  .fae-seg { height: 100%; flex: none; transition: width 0.25s ease; }
+  .fae-seg { height: 100%; flex: none; transition: width 0.25s ease, opacity 0.25s ease; }
   .fae-seg.is-tca, .fae-legend i.is-tca { background: var(--ddp-color-accent); }
   .fae-seg.is-spiral, .fae-legend i.is-spiral { background: var(--ddp-color-primary-soft); }
   .fae-seg.is-glc { background: var(--ddp-color-secondary); }

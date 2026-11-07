@@ -1,7 +1,7 @@
 ---
 /**
  * PPPModes — the regulation companion to the pentose-phosphate pathway map. The PPP is
- * not one fixed route; the cell tunes the balance of its oxidative and non-oxidative
+ * not one fixed route; the cell tunes the balance of its one-way tap (oxidative) and reversible exchange (non-oxidative)
  * branches to whatever it needs most — ribose-5-phosphate for DNA, NADPH for
  * biosynthesis and antioxidant defense, or both, sometimes feeding the leftover carbon
  * back into glycolysis for ATP. Pick a demand and see which branches run, in which
@@ -15,8 +15,8 @@
   <figcaption class="ppm-head">Four modes of the pentose phosphate pathway<span class="ppm-chip">⚙ original · interactive</span></figcaption>
 
   <div class="ppm-tabs" role="group" aria-label="Cellular demand">
-    <button type="button" data-mode="ribose" aria-pressed="true"><b>1</b> Need ribose, not NADPH</button>
-    <button type="button" data-mode="both" aria-pressed="false"><b>2</b> Need both</button>
+    <button type="button" data-mode="ribose" aria-pressed="false"><b>1</b> Ribose, NADPH already high</button>
+    <button type="button" data-mode="both" aria-pressed="true"><b>2</b> 2 NADPH per ribose</button>
     <button type="button" data-mode="nadph" aria-pressed="false"><b>3</b> Need NADPH, not ribose</button>
     <button type="button" data-mode="nadphatp" aria-pressed="false"><b>4</b> Need NADPH + ATP</button>
   </div>
@@ -26,11 +26,11 @@
       <marker id="ppm-ar-on" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4 Z" class="ppm-mk-on" /></marker>
       <marker id="ppm-ar-off" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4 Z" class="ppm-mk-off" /></marker>
     </defs>
-    <g class="ppm-a" data-a="ox"><path d="M 96 34 L 240 34" /><text x="168" y="12" text-anchor="middle">oxidative: 2 NADPH + CO₂</text></g>
+    <g class="ppm-a" data-a="ox"><path d="M 96 34 L 240 34" /><text x="168" y="12" text-anchor="middle">tap: 2 NADPH + 1 CO₂ per G6P</text></g>
     <g class="ppm-a" data-a="nucl"><path d="M 336 34 L 386 34" /><text x="410" y="38" text-anchor="middle">DNA/</text><text x="410" y="52" text-anchor="middle">RNA</text></g>
     <g class="ppm-a" data-a="fwd"><path d="M 296 52 L 252 108" /></g>
     <g class="ppm-a" data-a="rev"><path d="M 222 108 L 266 52" /></g>
-    <text class="ppm-nonox" x="300" y="86">non-oxidative</text>
+    <text class="ppm-nonox" x="300" y="86">exchange</text>
     <text class="ppm-nonox" x="300" y="99">(reversible)</text>
     <g class="ppm-a" data-a="glyin"><path d="M 60 126 L 144 126" /><text x="100" y="144" text-anchor="middle">from glycolysis</text></g>
     <g class="ppm-a" data-a="recyc"><path d="M 150 114 C 110 96, 60 88, 56 56" /><text x="70" y="76">back to G6P</text></g>
@@ -42,43 +42,55 @@
   </svg>
 
   <div class="ppm-branches">
-    <div class="ppm-branch" data-b-ox><span class="ppm-b-name">Oxidative branch</span><span class="ppm-b-state" data-ox-state>—</span></div>
-    <div class="ppm-branch" data-b-non><span class="ppm-b-name">Non-oxidative branch</span><span class="ppm-b-state" data-non-state>—</span></div>
+    <div class="ppm-branch" data-b-ox><span class="ppm-b-name">Tap (oxidative, one-way)</span><span class="ppm-b-state" data-ox-state>—</span></div>
+    <div class="ppm-branch" data-b-non><span class="ppm-b-name">Exchange (non-oxidative, reversible)</span><span class="ppm-b-state" data-non-state>—</span></div>
   </div>
 
   <dl class="ppm-readout">
     <div><dt>Net output</dt><dd data-r-out>—</dd></div>
     <div><dt>Where you see it</dt><dd data-r-where>—</dd></div>
+    <div class="ppm-tally"><dt>Net per batch</dt><dd data-r-tally>—</dd></div>
   </dl>
   <p class="ppm-why" data-why role="status" aria-live="polite">The same enzymes, run forward or backward in different proportions, let one pathway serve four very different cellular needs.</p>
 
-  <p class="ppm-foot">The oxidative branch (G6PD onward) is one-way and makes NADPH + CO₂. The non-oxidative branch (transketolase / transaldolase) is fully reversible, so the cell runs it whichever way the demand points.</p>
+  <div class="ppm-custom" data-custom>
+    <span class="ppm-custom-h">Your own demand</span>
+    <label>NADPH <input type="number" min="0" max="60" step="1" value="12" data-n /></label>
+    <label>ribose-5-P <input type="number" min="0" max="60" step="1" value="0" data-r /></label>
+    <output class="ppm-custom-out" data-custom-out aria-live="polite">—</output>
+  </div>
+
+  <p class="ppm-foot">The tap (G6PD onward) is one-way; NADP⁺ opens it. The exchange (transketolase, transaldolase) is reversible and runs toward whichever end is being drained.</p>
 </figure>
 
 <script>
-  type Mode = { ox: string; non: string; out: string; where: string; why: string; oxOn: boolean };
+  type Mode = { ox: string; non: string; out: string; where: string; why: string; tally: string; oxOn: boolean };
   // which arrows on the flow map are lit in each mode, plus a one-line caption under the map
   const ARROWS: Record<string, { on: string[]; cap: string }> = {
-    ribose:   { on: ['glyin', 'rev', 'nucl'], cap: 'glycolytic sugars → reshuffled backward → ribose' },
-    both:     { on: ['ox', 'nucl'], cap: 'G6P → oxidized → ribose + 2 NADPH, no reshuffling' },
-    nadph:    { on: ['ox', 'fwd', 'recyc'], cap: 'ribose reshuffled forward → back to G6P → oxidized again' },
-    nadphatp: { on: ['ox', 'fwd', 'glyout'], cap: 'ribose reshuffled forward → on down glycolysis' },
+    ribose:   { on: ['glyin', 'rev', 'nucl'], cap: 'glycolytic sugars → exchange runs backward → ribose' },
+    both:     { on: ['ox', 'nucl'], cap: 'G6P → tap → ribose + 2 NADPH, exchange idle' },
+    nadph:    { on: ['ox', 'fwd', 'recyc'], cap: 'exchange runs forward → back to G6P → through the tap again' },
+    nadphatp: { on: ['ox', 'fwd', 'glyout'], cap: 'exchange runs forward → on down glycolysis' },
   };
   const MODES: Record<string, Mode> = {
-    ribose: { oxOn: false, ox: 'off', non: 'runs in reverse: F6P + G3P → ribose', out: 'ribose-5-P (no NADPH)',
+    ribose: { oxOn: false, ox: 'nearly shut (NADPH high, so little NADP⁺ to open it)', non: 'runs backward: F6P + G3P → ribose', out: 'ribose-5-P (no NADPH)',
+      tally: '5 G6P + 1 ATP → 6 ribose-5-P',
       where: 'rapidly dividing cells (DNA/RNA synthesis)',
-      why: 'When a cell needs ribose for nucleotides but not reducing power, it skips the oxidative branch entirely and runs the non-oxidative enzymes BACKWARD, building ribose-5-phosphate out of glycolytic fructose-6-phosphate and glyceraldehyde-3-phosphate.' },
-    both: { oxOn: true, non: 'idle', ox: 'runs forward', out: '2 NADPH + ribose-5-P',
+      why: 'When a cell needs ribose for nucleotides but not reducing power, it keeps the tap nearly shut, because NADPH is already high, and runs the exchange BACKWARD, building ribose-5-phosphate out of glycolytic fructose-6-phosphate and glyceraldehyde-3-phosphate.' },
+    both: { oxOn: true, non: 'idle', ox: 'runs', out: '2 NADPH + ribose-5-P',
+      tally: '1 G6P → 1 ribose-5-P + 2 NADPH + 1 CO₂',
       where: 'cells balancing growth and biosynthesis',
-      why: 'When NADPH and ribose are needed in roughly equal measure, the oxidative branch alone does the job: it makes 2 NADPH and delivers ribose-5-phosphate directly, with no carbon reshuffling required.' },
-    nadph: { oxOn: true, non: 'runs forward: ribose → F6P + G3P', ox: 'runs forward',
+      why: 'When the cell wants 2 NADPH for every ribose — the tap\'s own fixed ratio — the tap alone does the job: one G6P gives 2 NADPH, 1 CO₂ and, through the isomerase, one ribose-5-phosphate. The exchange sits idle.' },
+    nadph: { oxOn: true, non: 'runs forward: ribose → F6P + G3P', ox: 'runs hard (NADP⁺ high)',
+      tally: '6 G6P through the tap, 5 back: net 1 G6P → 12 NADPH + 6 CO₂',
       out: 'lots of NADPH (carbon recycled to G6P)',
       where: 'liver, adipose, lactating mammary (making fat)',
-      why: 'When the cell wants maximum NADPH and little ribose, the oxidative branch runs hard and the non-oxidative branch converts the leftover ribose-5-phosphate into fructose-6-phosphate and glyceraldehyde-3-phosphate. Those are turned back into glucose-6-phosphate (phosphoglucose isomerase, plus gluconeogenic steps for G3P), which re-enters the oxidative branch for another round — squeezing out NADPH without piling up ribose.' },
-    nadphatp: { oxOn: true, non: 'runs forward: ribose → F6P + G3P', ox: 'runs forward',
+      why: 'When the cell wants maximum NADPH and little ribose, the tap runs hard and the exchange converts the leftover ribose-5-phosphate into fructose-6-phosphate and glyceraldehyde-3-phosphate. Those are turned back into glucose-6-phosphate (phosphoglucose isomerase, plus gluconeogenic steps for G3P), which goes through the tap again — squeezing out NADPH without piling up ribose.' },
+    nadphatp: { oxOn: true, non: 'runs forward: ribose → F6P + G3P', ox: 'runs',
+      tally: '3 G6P → 6 NADPH + 3 CO₂ + 5 pyruvate + 5 NADH + 8 ATP',
       out: 'NADPH + ATP (carbon to pyruvate)',
       where: 'cells needing both reducing power and energy',
-      why: 'When both NADPH and ATP are needed, the oxidative branch makes NADPH and the non-oxidative branch funnels the carbon into fructose-6-phosphate and glyceraldehyde-3-phosphate, which continue down glycolysis to pyruvate and ATP. Reducing power and energy from one stream.' },
+      why: 'When both NADPH and ATP are needed, the tap makes NADPH and the exchange funnels the carbon into fructose-6-phosphate and glyceraldehyde-3-phosphate, which continue down glycolysis to pyruvate and ATP. Reducing power and energy from one stream.' },
   };
 
   document.querySelectorAll<HTMLElement>('[data-pppmodes]').forEach((root) => {
@@ -91,6 +103,7 @@
     const out = root.querySelector<HTMLElement>('[data-r-out]')!;
     const where = root.querySelector<HTMLElement>('[data-r-where]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const tally = root.querySelector<HTMLElement>('[data-r-tally]')!;
     function render(key: string) {
       const m = MODES[key];
       oxState.textContent = m.ox;
@@ -103,14 +116,32 @@
       const lit = ARROWS[key];
       arrows.forEach((g) => g.classList.toggle('is-on', lit.on.includes(g.dataset.a!)));
       mapCap.textContent = lit.cap;
-      out.textContent = m.out; where.textContent = m.where; why.textContent = m.why;
+      out.textContent = m.out; where.textContent = m.where; why.textContent = m.why; tally.textContent = m.tally;
     }
     root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) =>
       b.addEventListener('click', () => {
         root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
         render(b.getAttribute('data-mode')!);
       }));
-    render('ribose');
+    render('both');
+
+    // Custom demand: n NADPH and r ribose-5-P → tap runs n/2 times; the exchange
+    // runs forward (n/2 − r)/3 turns (negative = backward), as in the lesson's Going deeper.
+    const nIn = root.querySelector<HTMLInputElement>('[data-n]')!;
+    const rIn = root.querySelector<HTMLInputElement>('[data-r]')!;
+    const cOut = root.querySelector<HTMLOutputElement>('[data-custom-out]')!;
+    const fmt = (x: number) => (Number.isInteger(x) ? String(x) : x.toFixed(2).replace(/0+$/, ''));
+    function custom() {
+      const n = Math.max(0, Number(nIn.value) || 0);
+      const r = Math.max(0, Number(rIn.value) || 0);
+      const tap = n / 2;
+      const ex = (tap - r) / 3;
+      const dir = ex > 0 ? 'forward' : ex < 0 ? 'backward' : 'idle';
+      cOut.textContent = `tap runs ${fmt(tap)}× · exchange ${dir}${ex === 0 ? '' : ` ${fmt(Math.abs(ex))} turn${Math.abs(ex) === 1 ? '' : 's'}`}`;
+    }
+    nIn.addEventListener('input', custom);
+    rIn.addEventListener('input', custom);
+    custom();
   });
 </script>
 
@@ -146,6 +177,11 @@
   .ppm-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
   .ppm-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .ppm-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .ppm-readout .ppm-tally { grid-column: 1 / -1; }
+  .ppm-custom { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; margin: var(--ddp-space-3) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); border: 1px dashed var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ppm-custom-h { font-weight: 700; color: var(--ddp-color-primary); }
+  .ppm-custom input { width: 4.2em; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); padding: 0.15rem 0.3rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; }
+  .ppm-custom-out { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
   .ppm-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.6em; }
   .ppm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

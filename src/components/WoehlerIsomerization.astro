@@ -1,11 +1,13 @@
 ---
 /**
- * WoehlerIsomerization — the moment vitalism started to lose. In 1828 Wöhler heated ammonium
- * cyanate, a lifeless inorganic salt, and got urea — the very compound an animal kidney makes to
- * dump nitrogen. This island puts the two molecules side by side, draws them atom-for-atom, and
+ * WoehlerIsomerization — the first crack in vitalism. In 1828 Wöhler evaporated a solution meant
+ * to hold ammonium cyanate, an inorganic salt, and got urea — the very compound an animal kidney
+ * makes to dump nitrogen. This island puts the two molecules side by side, draws them atom-for-atom, and
  * tallies their inventory: 1 C, 4 H, 2 N, 1 O on both sides. They are isomers — same atoms, only
- * the wiring differs. Press "Apply heat (Δ)" and the salt rearranges into urea, no kidney and no
- * vital spark required. Self-contained vanilla-TS Astro island. Original.
+ * the wiring differs. Press "Warm and evaporate" and the salt rearranges into urea in the two steps
+ * the lesson describes (proton transfer to NH3 + HNCO, then attack on the carbon). Urea is the
+ * more stable isomer: warmth only speeds a change already downhill. Self-contained vanilla-TS
+ * Astro island. Original.
  */
 ---
 
@@ -23,12 +25,12 @@
   <p class="woe-payoff" data-payoff role="status" hidden></p>
 
   <div class="woe-controls">
-    <button type="button" data-heat>Apply heat (Δ)</button>
+    <button type="button" data-heat>Warm and evaporate</button>
     <button type="button" data-reset class="woe-reset">Reset</button>
     <span class="woe-state" data-state role="status">Unreacted salt</span>
   </div>
 
-  <p class="woe-foot">This is an isomerization: same formula (CH₄N₂O), atoms simply rearranged. No new matter, no missing matter — and yet a lifeless salt became a hallmark of animal metabolism. That single flask is where vitalism, the idea that life's molecules need a living source, began its long retreat.</p>
+  <p class="woe-foot">This is an isomerization: same formula (CH₄N₂O), atoms simply rearranged. No new matter, no missing matter — and yet an inorganic salt became a hallmark of animal metabolism. It was the first crack, not the end: a skeptic could still point to where the cyanate came from.</p>
 </figure>
 
 <script>
@@ -63,6 +65,23 @@
     { a: 'O1', b: 'C1', double: true }, { a: 'C1', b: 'N2', double: true },
   ];
 
+  // Halfway point: ammonium has handed a proton (H4) to cyanate, giving ammonia (NH3, left)
+  // and cyanic acid (H–N=C=O, right). Two neutral molecules, no ion brackets.
+  const MID: Atom[] = [
+    { id: 'N1', sym: 'N', x: 110, y: 115, color: NAVY },
+    { id: 'H1', sym: 'H', x: 110, y: 70, color: FAINT },
+    { id: 'H2', sym: 'H', x: 110, y: 160, color: FAINT },
+    { id: 'H3', sym: 'H', x: 67, y: 115, color: FAINT },
+    { id: 'H4', sym: 'H', x: 400, y: 165, color: FAINT },
+    { id: 'O1', sym: 'O', x: 290, y: 115, color: ORANGE },
+    { id: 'C1', sym: 'C', x: 345, y: 115, color: ACCENT },
+    { id: 'N2', sym: 'N', x: 400, y: 115, color: NAVY },
+  ];
+  const MID_BONDS: Bond[] = [
+    { a: 'N1', b: 'H1' }, { a: 'N1', b: 'H2' }, { a: 'N1', b: 'H3' },
+    { a: 'O1', b: 'C1', double: true }, { a: 'C1', b: 'N2', double: true }, { a: 'N2', b: 'H4' },
+  ];
+
   const UREA: Atom[] = [
     // central C double-bonded to O, two -NH2 groups: H2N-CO-NH2
     { id: 'C1', sym: 'C', x: 230, y: 130, color: ACCENT },
@@ -80,7 +99,7 @@
     { a: 'N1', b: 'H1' }, { a: 'N1', b: 'H2' },
     { a: 'N2', b: 'H3' }, { a: 'N2', b: 'H4' },
   ];
-  // What the heat actually changed: the ammonium N (N1) bonds to carbon, and two of its
+  // What the rearrangement changed: the ammonium N (N1) bonds to carbon, and two of its
   // hydrogens (H3, H4) end up on the cyanate N (N2). Highlighted in the urea drawing.
   const NEW_BOND = { a: 'C1', b: 'N1' };
   const MOVED_H = ['H3', 'H4'];
@@ -120,7 +139,7 @@
     return g;
   }
 
-  type DrawOpts = { bonds: Bond[]; bondOpacity?: number; ions?: number; highlight?: boolean };
+  type DrawOpts = { bonds: Bond[]; bondOpacity?: number; ions?: number; highlight?: boolean; midLabels?: number };
   function draw(svg: SVGElement, atoms: Atom[], o: DrawOpts) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     const byId: Record<string, Atom> = {};
@@ -128,6 +147,15 @@
     if (o.ions && o.ions > 0.01) {
       svg.appendChild(ionBracket(34, 50, 156, 180, '+', 'ammonium ion, NH₄⁺', o.ions));
       svg.appendChild(ionBracket(270, 93, 420, 137, '−', 'cyanate ion, OCN⁻', o.ions));
+    }
+    if (o.midLabels && o.midLabels > 0.01) {
+      const lg = el('g', { opacity: o.midLabels });
+      const l1 = el('text', { x: 95, y: 207, 'text-anchor': 'middle', fill: MUTE, 'font-size': 11, 'font-family': FONT });
+      l1.textContent = 'ammonia, NH₃';
+      const l2 = el('text', { x: 345, y: 207, 'text-anchor': 'middle', fill: MUTE, 'font-size': 11, 'font-family': FONT });
+      l2.textContent = 'cyanic acid, HNCO';
+      lg.appendChild(l1); lg.appendChild(l2);
+      svg.appendChild(lg);
     }
     // bonds first, under the atoms
     const bg = el('g', { opacity: o.bondOpacity ?? 1 });
@@ -161,15 +189,19 @@
     const SALT_TITLE = '<strong>Ammonium cyanate</strong> (NH₄⁺ OCN⁻) — an inorganic salt of two ions · CH₄N₂O';
     const UREA_TITLE = '<strong>Urea</strong> (H₂N–CO–NH₂) — a signature of animal metabolism · CH₄N₂O';
     const CHANGED = '<span class="woe-key" aria-hidden="true"></span>What changed: the ammonium nitrogen bonded to the carbon (thick teal bond), and two of its hydrogens (dashed rings) moved onto the cyanate nitrogen.';
-    const PAYOFF = 'Same atoms, different connectivity — one a lifeless salt, the other a molecule the body makes to dump nitrogen. Wöhler made it in a flask with no kidney and no vital spark, in 1828.';
+    const STABLE = '<span class="woe-changed">Urea is the more stable isomer: warming speeds the change, it does not force it.</span>';
+    const STEP1 = '<strong>Step 1:</strong> ammonium hands a proton to cyanate → ammonia + cyanic acid';
+    const STEP2 = '<strong>Step 2:</strong> ammonia’s nitrogen attacks the carbon; a proton shifts → urea';
+    const PAYOFF = 'Same atoms, different connections. Life was taken out of the making — no kidney in the flask — but not out of the starting material: the cyanate was made from blood and horn. So this cracked the vital force; it did not break it.';
     const SALT_LABEL = 'Ammonium cyanate: an ammonium ion, NH4 plus, beside a cyanate ion, OCN minus';
     const UREA_LABEL = 'Urea: a carbon double-bonded to oxygen and single-bonded to two NH2 groups. The new carbon–nitrogen bond and the two hydrogens that moved are highlighted.';
 
     let heated = false;
     let animating = false;
+    let run = 0; // bumps on every start/reset so stale timers and frames from an old run do nothing
 
     function showSalt() {
-      heated = false; animating = false;
+      heated = false; animating = false; run++;
       draw(svg, SALT, { bonds: SALT_BONDS, ions: 1 });
       svg.setAttribute('aria-label', SALT_LABEL);
       capEl.innerHTML = SALT_TITLE;
@@ -178,47 +210,62 @@
       heatB.disabled = false;
     }
     function showUrea() {
-      heated = true; animating = false;
+      heated = true; animating = false; run++;
       draw(svg, UREA, { bonds: UREA_BONDS, highlight: true });
       svg.setAttribute('aria-label', UREA_LABEL);
-      capEl.innerHTML = `${UREA_TITLE}<span class="woe-changed">${CHANGED}</span>`;
-      stateEl.textContent = 'Urea — heated (Δ)';
+      capEl.innerHTML = `${UREA_TITLE}<span class="woe-changed">${CHANGED}</span>${STABLE}`;
+      stateEl.textContent = 'Urea — the stable isomer';
       payoffEl.textContent = PAYOFF;
       payoffEl.hidden = false;
       heatB.disabled = true;
+    }
+
+    // Tween every atom (matched by id) between two layouts. Old bonds fade out as the atoms
+    // leave and new bonds fade in as they arrive, so no line ever whips across the drawing.
+    function tween(from: Atom[], fromBonds: Bond[], to: Atom[], toBonds: Bond[], fade: { ions?: [number, number]; mid?: [number, number] }, dur: number, myRun: number, done: () => void) {
+      const fromById: Record<string, Atom> = {};
+      for (const a of from) fromById[a.id] = a;
+      const start = performance.now();
+      const lerp = (r: [number, number] | undefined, e: number) => (r ? r[0] + (r[1] - r[0]) * e : 0);
+      function frame(now: number) {
+        if (!animating || myRun !== run) return; // reset pressed mid-animation
+        const t = Math.min(1, (now - start) / dur);
+        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        const moving: Atom[] = to.map((u) => {
+          const s = fromById[u.id]!;
+          return { id: u.id, sym: u.sym, color: u.color, x: s.x + (u.x - s.x) * ease, y: s.y + (u.y - s.y) * ease };
+        });
+        const extra = { ions: lerp(fade.ions, ease), midLabels: lerp(fade.mid, ease) };
+        if (ease < 0.35) draw(svg, moving, { bonds: fromBonds, bondOpacity: 1 - ease / 0.35, ...extra });
+        else if (ease > 0.65) draw(svg, moving, { bonds: toBonds, bondOpacity: (ease - 0.65) / 0.35, ...extra });
+        else draw(svg, moving, { bonds: [], ...extra });
+        if (t < 1) requestAnimationFrame(frame);
+        else done();
+      }
+      requestAnimationFrame(frame);
     }
 
     function animateToUrea() {
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduce || document.hidden) { showUrea(); return; }
       animating = true;
+      const myRun = ++run;
+      const STEP = 800, HOLD = 900;
       // safety net: if rAF never delivers (throttled/backgrounded tab), guarantee the end state
-      window.setTimeout(() => { if (animating) showUrea(); }, 1600);
-      // tween each atom from its salt position to its urea position by id
-      const saltById: Record<string, Atom> = {};
-      for (const a of SALT) saltById[a.id] = a;
-      const start = performance.now();
-      const dur = 1000;
+      window.setTimeout(() => { if (animating && myRun === run) showUrea(); }, 2 * STEP + HOLD + 900);
       heatB.disabled = true;
-      stateEl.textContent = 'Rearranging…';
+      stateEl.textContent = 'Rearranging (downhill; warmth only speeds it)…';
       payoffEl.hidden = true;
-      function frame(now: number) {
-        if (!animating) return; // reset pressed mid-animation
-        const t = Math.min(1, (now - start) / dur);
-        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        const moving: Atom[] = UREA.map((u) => {
-          const s = saltById[u.id]!;
-          return { id: u.id, sym: u.sym, color: u.color, x: s.x + (u.x - s.x) * ease, y: s.y + (u.y - s.y) * ease };
-        });
-        // Old bonds fade out as the atoms leave; new bonds fade in as they arrive,
-        // so no line ever whips across the drawing.
-        if (ease < 0.35) draw(svg, moving, { bonds: SALT_BONDS, bondOpacity: 1 - ease / 0.35, ions: 1 - ease / 0.35 });
-        else if (ease > 0.65) draw(svg, moving, { bonds: UREA_BONDS, bondOpacity: (ease - 0.65) / 0.35 });
-        else draw(svg, moving, { bonds: [] });
-        if (t < 1) requestAnimationFrame(frame);
-        else showUrea();
-      }
-      requestAnimationFrame(frame);
+      capEl.innerHTML = STEP1;
+      tween(SALT, SALT_BONDS, MID, MID_BONDS, { ions: [1, 0], mid: [0, 1] }, STEP, myRun, () => {
+        draw(svg, MID, { bonds: MID_BONDS, midLabels: 1 });
+        svg.setAttribute('aria-label', 'Halfway: ammonia, NH3, beside cyanic acid, H–N=C=O');
+        window.setTimeout(() => {
+          if (!animating || myRun !== run) return;
+          capEl.innerHTML = STEP2;
+          tween(MID, MID_BONDS, UREA, UREA_BONDS, { mid: [1, 0] }, STEP, myRun, () => { if (myRun === run) showUrea(); });
+        }, HOLD);
+      });
     }
 
     heatB.addEventListener('click', () => { if (!heated && !animating) animateToUrea(); });

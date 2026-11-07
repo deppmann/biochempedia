@@ -12,6 +12,11 @@
  * so scoped CSS reaches everything. Records nothing (no storage, no analytics). No
  * document-level key listeners: it is plain <button>s, so Tab/Enter/Space just work and
  * the lesson's slide deck and narration player keep their arrow keys.
+ *
+ * LESSON_FACTS replaces the shared data's explanation for the token steps whose wording
+ * no longer matches the glycolysis lesson (step 6: the oxidation pays for a new phosphate;
+ * step 10: feed-forward only in the liver and red-cell forms). The arcade keeps its own
+ * text in glycolysis.ts.
  */
 import { glycolysis } from '../game/data/glycolysis';
 
@@ -31,6 +36,10 @@ const p = glycolysis;
 // Decoys to include: the two authored misconceptions (hexokinase, GAPDH) plus a generated
 // wrong-kind token at the two ATP-payoff steps (the same rule ledgerRush.ts falls back to).
 const DECOY_STEPS = new Set([1, 6, 7, 10]);
+const LESSON_FACTS: Record<number, string> = {
+  6: 'The ONLY oxidation. The oxidation pays for attaching inorganic phosphate (Pi, not ATP), making 1,3-BPG, a phosphate above ATP on the ladder; the electrons go to NAD⁺ → NADH.',
+  10: 'Second payoff and the finish line. Far downhill in the cell and regulated (liver and red-cell forms are feed-forward activated by fructose-1,6-bisphosphate). Without NAD⁺ coming back, step 6 stalls.',
+};
 
 const queue: Card[] = [];
 for (const s of p.steps) {
@@ -40,7 +49,7 @@ for (const s of p.steps) {
   for (const kind of ['atp', 'nadh'] as Kind[]) {
     const v = (s.tokens as Record<string, number | undefined>)[kind] ?? 0;
     for (let i = 0; i < Math.abs(v); i++) {
-      real.push({ real: true, step: s.n, enzyme: s.enzyme, kind, sign: v > 0 ? 1 : -1, amt, why: s.fact });
+      real.push({ real: true, step: s.n, enzyme: s.enzyme, kind, sign: v > 0 ? 1 : -1, amt, why: LESSON_FACTS[s.n] ?? s.fact });
     }
   }
   let decoy: Card | undefined;
@@ -108,7 +117,7 @@ const payload = JSON.stringify({ queue, truth, doubleAfter: p.doubleAfter });
   <div class="lw-end" data-end hidden>
     <h3 class="lw-endh" data-endh tabindex="-1">Ledger closed</h3>
     <p class="lw-sum" data-summary></p>
-    <p class="lw-take">The investment phase spends 2 ATP; the payoff phase makes 4 ATP and 2 NADH, because everything after the aldolase split counts twice. Net: {fmt(truth.atp)} ATP, {fmt(truth.nadh)} NADH.</p>
+    <p class="lw-take">The investment phase spends 2 ATP; the payoff phase makes 4 ATP and 2 NADH, because everything after the aldolase split counts twice. Net: {fmt(truth.atp)} ATP, {fmt(truth.nadh)} NADH. Where the profit comes from: of the 4 phosphates handed to ADP, 2 repay steps 1 and 3 and 2 are new, captured from inorganic phosphate at step 6.</p>
     <div class="lw-endbtns">
       <button type="button" class="lw-btn" data-again>Try again</button>
       <a class="lw-link" href="/play?game=ledger&pathway=glycolysis&from=glycolysis">Play the full game &rarr;</a>

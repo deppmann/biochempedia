@@ -4,8 +4,9 @@
  * walks the eleven enzymatic steps inside one cell; this island zooms out to two organs: a
  * sprinting muscle dumps lactate into the blood, the liver spends ATP to rebuild it into glucose,
  * and ships it back. Drag the effort slider to drive lactate flux and watch the asymmetric ATP
- * ledger — the muscle banks 2, the liver pays 6 — so the body spends 4 ATP per cycle to move the
- * energy debt to a tissue that has oxygen. Self-contained vanilla-TS Astro island. Original.
+ * ledger — the muscle banks 2, the liver pays 6 (4 ATP + 2 GTP) — so the body spends 4 high-energy
+ * phosphates per cycle to move the bill to the liver, fueled largely by fat oxidation.
+ * Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
@@ -20,12 +21,12 @@
 
   <div class="cori-ledger">
     <div class="cori-cell"><span class="cori-c-name">Muscle: glucose → 2 lactate</span><span class="cori-c-v cori-pos" data-musc>+2 ATP</span></div>
-    <div class="cori-cell"><span class="cori-c-name">Liver: 2 lactate → glucose</span><span class="cori-c-v cori-neg" data-liver>−6 ATP <small>(4 ATP + 2 GTP)</small></span></div>
-    <div class="cori-cell"><span class="cori-c-name">Net cost to the body</span><span class="cori-c-v" data-net>−4 ATP / cycle</span></div>
+    <div class="cori-cell"><span class="cori-c-name">Liver: 2 lactate → glucose</span><span class="cori-c-v cori-neg" data-liver>−6 <small>(4 ATP + 2 GTP)</small></span></div>
+    <div class="cori-cell"><span class="cori-c-name">Net cost to the body</span><span class="cori-c-v" data-net>−4 high-energy phosphates / cycle</span></div>
   </div>
   <p class="cori-why" data-why role="status"></p>
 
-  <p class="cori-foot">The Cori cycle makes no new energy — it relocates the bill. A sprinting muscle outruns its oxygen and can only make ATP by fermenting glucose to lactate; shipping that lactate to the liver lets a tissue that still has oxygen pay the 6-ATP cost of rebuilding glucose. That deferred cost is part of why you keep breathing hard after the sprint ends.</p>
+  <p class="cori-foot">The Cori cycle makes no new energy — it relocates the bill. Muscle makes lactate faster than it can oxidize it, and the liver, fueled largely by fat oxidation, spends 6 high-energy phosphates (4 ATP + 2 GTP) to rebuild glucose. That spend is what makes the climb from lactate back to glucose run downhill.</p>
 </figure>
 
 <script>
@@ -63,9 +64,9 @@
     };
     organ(16, 'Muscle', ORANGE, ORANGE_INK, 'glucose → 2 lactate', '+2 ATP', GREEN);
     organ(324, 'Liver', NAVY, NAVY, '2 lactate → glucose', '−4 ATP, −2 GTP', RED);
-    // oxygen status: the whole reason the cycle exists
-    g.appendChild(el('text', { x: 76, y: 182, 'text-anchor': 'middle', fill: flux > 0.7 ? RED : MUTED, 'font-size': 10, 'font-weight': 700 }, flux > 0.7 ? 'demand outruns O₂' : flux > 0.35 ? 'O₂ mostly keeping up' : 'O₂ plentiful'));
-    g.appendChild(el('text', { x: 384, y: 182, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10, 'font-weight': 700 }, 'O₂ plentiful'));
+    // muscle status: lactate leaves when glycolysis outpaces the mitochondria
+    g.appendChild(el('text', { x: 76, y: 182, 'text-anchor': 'middle', fill: flux > 0.7 ? RED : MUTED, 'font-size': 10, 'font-weight': 700 }, flux > 0.7 ? 'lactate spills out' : flux > 0.35 ? 'mitochondria mostly keep up' : 'mitochondria keep up'));
+    g.appendChild(el('text', { x: 384, y: 182, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10, 'font-weight': 700 }, 'fueled by fat oxidation'));
     // blood vessels
     const w = 2 + flux * 7;
     const lac = el('path', { d: LAC_D, fill: 'none', stroke: ORANGE, 'stroke-width': w, 'stroke-linecap': 'round', opacity: idle ? 0.35 : 0.85 }) as SVGPathElement;
@@ -131,12 +132,12 @@
       placeDots();
       kick();
       whyEl.textContent = eff > 70
-        ? 'All-out: the muscle has outrun its oxygen, so glycolysis runs anaerobically and floods the blood with lactate. The liver works hard to recycle it — the Cori cycle is running fast, and every turn costs the body 4 ATP.'
+        ? 'All-out: glycolysis makes pyruvate faster than the muscle\'s mitochondria can oxidize it, so the excess leaves as lactate. The liver recycles it; every turn costs the body 4 high-energy phosphates.'
         : eff > 35
-          ? 'Moderate effort: some lactate spills into the blood and the liver recycles it, but most pyruvate is still oxidized aerobically in the muscle. The Cori cycle ticks along.'
+          ? 'Moderate effort: some lactate spills into the blood and the liver recycles it, but most pyruvate is still oxidized in the muscle\'s mitochondria. The Cori cycle ticks along.'
           : eff > 5
-            ? 'Light effort: the muscle gets nearly all its ATP from aerobic respiration, so little lactate is made and the Cori cycle is nearly idle.'
-            : 'At rest the muscle burns fuel aerobically and exports almost no lactate, so its share of the Cori cycle is essentially off. (A trickle still runs on lactate from red blood cells, which have no mitochondria.)';
+            ? 'Light effort: the muscle\'s mitochondria oxidize nearly all the pyruvate glycolysis makes, so little lactate is made and the Cori cycle is nearly idle.'
+            : 'At rest the muscle oxidizes its fuel in its mitochondria and exports almost no lactate, so its share of the Cori cycle is essentially off. (A trickle still runs on lactate from red blood cells, which have no mitochondria.)';
     }
     effIn.addEventListener('input', render);
     reduce.addEventListener?.('change', () => { placeDots(); kick(); });

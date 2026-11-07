@@ -3,13 +3,13 @@ title: "The Calvin Cycle: Fixing Carbon from Thin Air"
 slug: "calvin-cycle"
 courseChapter: "Photosynthesis"
 order: 23
-summary: "The Calvin cycle is the chemistry that builds you. Most of the carbon in the sugars, proteins, and DNA of living things was first fixed from CO2 by this one loop, which runs in the chloroplast stroma of plants and algae and in cyanobacteria. Counted three turns at a time, it spends ATP and NADPH from the light reactions to weld CO2 onto a five-carbon sugar, reduce the product to a three-carbon sugar (a triose), and regenerate the acceptor so the loop never stops. Master one number set (3 ATP + 2 NADPH per CO2) and one enzyme (Rubisco), and the whole pathway falls into place."
+summary: "The Calvin cycle is the chemistry that builds you. Most of the carbon in the sugars, proteins, and DNA of living things was first fixed from CO2 by this one loop, which runs in the chloroplast stroma of plants and algae and in cyanobacteria. Counted three turns at a time, it spends ATP and NADPH from the light reactions to weld CO2 onto a five-carbon sugar, reduce the product to a three-carbon sugar (a triose), and regenerate the acceptor so the loop never stops. Derive one number set (3 ATP + 2 NADPH per CO2) from a carbon count, meet one enzyme (Rubisco), and the whole pathway falls into place."
 hook: "Most of the carbon in the sugars, proteins, and DNA of living things was first fixed from CO2 by this loop."
 estMinutes: 24
 objectives:
   - "Trace a single carbon atom from atmospheric CO2 through fixation, reduction, and regeneration, naming the molecule it occupies at each stage (CO2 → 3-PGA → 1,3-BPG → G3P → RuBP)."
   - "State and derive the canonical stoichiometry — 3 ATP + 2 NADPH per CO2, 9 ATP + 6 NADPH per G3P, 18 ATP + 12 NADPH per hexose — and explain why the cycle consumes more ATP than NADPH."
-  - "Describe the Rubisco carboxylation mechanism, including the enediol intermediate, the transient 6-carbon species, and the role of the Lys-201 carbamate plus Mg2+ — and distinguish the activating CO2 from the substrate CO2."
+  - "Outline the Rubisco carboxylation mechanism (enediol, transient six-carbon intermediate, hydration and cleavage), distinguish the activating CO2 (the Lys-201 carbamate plus Mg2+) from the substrate CO2, and explain why carboxylation spends no ATP or NADPH."
   - "Explain how light regulates the cycle through three stromal signals (rising pH, rising Mg2+, and reduced thioredoxin) and predict why the cycle stalls in the dark."
   - "Account for photorespiration as Rubisco's oxygenase side-reaction and compare the C4 (spatial) and CAM (temporal) strategies that suppress it, including their ATP costs."
 explainer:
@@ -238,61 +238,200 @@ anecdotes:
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
 import RubiscoFork from '../../../components/RubiscoFork.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-export const calvinSteps = [{"n": 1, "enzyme": "Rubisco (carboxylation)", "sub": "RuBP (5C) + CO₂", "prod": "2 × 3-PGA (3C)", "regulated": true, "note": "The fixation step, and often the rate-limiter. RuBP forms a C2–C3 enediol; CO₂ adds at C2 to give a six-carbon intermediate that is hydrated and then cleaved at the C2–C3 bond into two molecules of 3-PGA. It costs no ATP or NADPH — the energy is paid later. Needs the Lys-201 carbamate plus Mg²⁺, and that carbamate CO₂ is not the substrate CO₂.", "clinical": "Rubisco is the most abundant protein on Earth, yet each active site in a typical plant enzyme fixes only about 3 CO2 per second. That slowness is one of the main limits on crop photosynthesis, and plants compensate by making astonishing amounts of it, up to about half of the protein in a leaf."}, {"n": 2, "enzyme": "Phosphoglycerate kinase", "sub": "3-PGA (3C) + ATP", "prod": "1,3-BPG (3C)", "atp": -1, "doubled": true, "note": "Reduction stage begins. One ATP phosphorylates the carboxylate to a mixed anhydride, priming the carbon for reduction — a glycolytic payoff step run backward. It happens twice per CO₂, once for each 3-PGA."}, {"n": 3, "enzyme": "Glyceraldehyde-3-phosphate dehydrogenase", "sub": "1,3-BPG (3C) + NADPH", "prod": "G3P (3C)", "nadph": -1, "doubled": true, "note": "NADPH delivers the electrons that actually reduce the molecule to a triose sugar, releasing Pᵢ. The chloroplast isoform prefers NADPH (it can also use NADH) — the reducing power comes from Photosystem I, by way of ferredoxin and ferredoxin-NADP+ reductase. This is the only true reduction in the cycle, and it runs twice per CO₂."}, {"n": 4, "enzyme": "Aldolase + transketolase (sugar shuffle)", "sub": "5 × G3P (3C)", "prod": "3 × ribulose-5-P (5C)", "regulated": true, "note": "Regeneration. Five of every six G3P (15 carbons) are reshuffled into three 5-carbon sugars by aldolase and transketolase, with FBPase and SBPase clipping phosphates. The sixth G3P exits as the net product. FBPase and SBPase are light-activated control points."}, {"n": 5, "enzyme": "Phosphoribulokinase (PRK)", "sub": "ribulose-5-P (5C) + ATP", "prod": "RuBP (5C)", "atp": -1, "regulated": true, "note": "The last ATP of the cycle phosphorylates ribulose-5-P back to the CO₂ acceptor RuBP, closing the loop. This regeneration ATP is why the cycle needs more ATP than NADPH (3:2). PRK is switched on by reduced thioredoxin in the light and off in the dark."}];
+export const calvinSteps = [{"n": 1, "enzyme": "Rubisco (carboxylation)", "sub": "RuBP (5C) + CO₂", "prod": "2 × 3-PGA (3C)", "co2": -1, "regulated": true, "note": "The fixation step, and often the rate-limiter. RuBP forms a C2–C3 enediol; CO₂ adds at C2 to give a six-carbon intermediate that is hydrated and then cleaved at the C2–C3 bond into two molecules of 3-PGA. It costs no ATP or NADPH — the energy is paid later. Needs the Lys-201 carbamate plus Mg²⁺, and that carbamate CO₂ is not the substrate CO₂.", "clinical": "Rubisco is the most abundant protein on Earth, yet each active site in a typical plant enzyme fixes only about 3 CO2 per second. That slowness is one of the main limits on crop photosynthesis, and plants compensate by making astonishing amounts of it, up to about half of the soluble protein in a leaf."}, {"n": 2, "enzyme": "Phosphoglycerate kinase", "sub": "3-PGA (3C) + ATP", "prod": "1,3-BPG (3C)", "atp": -1, "doubled": true, "note": "Reduction stage begins. One ATP phosphorylates the carboxylate to a mixed anhydride, priming the carbon for reduction — a glycolytic payoff step run backward. It happens twice per CO₂, once for each 3-PGA."}, {"n": 3, "enzyme": "Glyceraldehyde-3-phosphate dehydrogenase", "sub": "1,3-BPG (3C) + NADPH", "prod": "G3P (3C)", "nadph": -1, "doubled": true, "note": "NADPH delivers the electrons that actually reduce the molecule to a triose sugar, releasing Pᵢ. The chloroplast isoform prefers NADPH (it can also use NADH) — the reducing power comes from Photosystem I, by way of ferredoxin and ferredoxin-NADP+ reductase. This is the only true reduction in the cycle, and it runs twice per CO₂."}, {"n": 4, "enzyme": "Aldolase + transketolase, with isomerase and epimerase (sugar shuffle)", "sub": "the G3P pool: 5 of every 6 G3P (counted over 3 turns, 15C)", "prod": "3 × ribulose-5-P (15C), 1 per turn", "regulated": true, "note": "Regeneration. Five of every six G3P (15 carbons) are reshuffled into three 5-carbon sugars by aldolase and transketolase, with FBPase and SBPase clipping phosphates; an isomerase and an epimerase then turn ribose-5-P and xylulose-5-P into ribulose-5-P. The sixth G3P (3C) leaves as profit — one triose per three CO₂. FBPase and SBPase are light-activated control points."}, {"n": 5, "enzyme": "Phosphoribulokinase (PRK)", "sub": "ribulose-5-P (5C) + ATP", "prod": "RuBP (5C)", "atp": -1, "regulated": true, "note": "The last ATP of the cycle phosphorylates ribulose-5-P back to the CO₂ acceptor RuBP, closing the loop. This regeneration ATP is why the cycle needs more ATP than NADPH (3:2). PRK is switched on by reduced thioredoxin in the light and off in the dark."}];
 
-**Pick a carbon atom in the CO2 you just exhaled. Follow it. Within a day, somewhere in a leaf, that exact atom can be welded into a sugar — and the machine that does the welding is the Calvin cycle.** Nearly every carbon in your body, in your last meal, in the wood of the table in front of you, entered the living world through this one loop of chemistry. Each year it builds roughly 100 billion tons of carbon into new plant and algal biomass, on land and in the sea. It is the main route by which carbon enters the living world.
+**Pick a carbon atom in the CO₂ you just breathed out. Follow it. A leaf might fix it next week, or years from now (on average a CO₂ molecule spends several years in the air), and the machine that welds it into a sugar is the Calvin cycle.** Nearly every carbon in your body, in your last meal, in the wood of the table in front of you, entered the living world through this one loop of chemistry. Each year it builds roughly 100 billion tons of carbon into new plant and algal biomass, on land and in the sea.
 
-The cycle runs in the **stroma**, the soup inside the chloroplast surrounding the thylakoid stacks. It is often called the "dark reactions," and that name is doubly wrong. It runs in broad daylight, and it cannot run without the light reactions, because it spends two products they make: **ATP for energy** and **NADPH for reducing power** — the electrons that actually build the sugar. Hold onto that division of labor; the whole cycle is just ATP and NADPH being cashed in.
+The cycle runs in the **stroma**, the soup inside the chloroplast surrounding the thylakoid stacks. It is often called the "dark reactions," and that name is doubly wrong. It runs in broad daylight, and it cannot run without the light reactions, because it spends two products they make: **ATP for energy** and **NADPH for reducing power**, the electrons that actually build the sugar.
 
 <LessonFigure src="/figures/calvin-cycle/stroma-division-of-labor.webp" width={1200} height={762} alt="AI-generated illustration: two schematic panels show thylakoid light reactions supplying ATP and NADPH to the Calvin cycle in the stroma, and triose-phosphate carbon supplying starch inside the chloroplast or sucrose synthesis in the cytosol followed by phloem transport." caption="The Calvin cycle runs in the chloroplast stroma, using ATP for energy and NADPH for reducing power from the light reactions. Its triose-phosphate product can supply starch synthesis inside the chloroplast or cross the envelope for sucrose synthesis in the cytosol; sucrose is then transported through the phloem." />
 
-We'll take it in two acts, the way I do on the board. Act 1 is the engine: how the carbon actually gets fixed. Act 2 is the control panel: how the plant turns the engine on at dawn and off at dusk.
+The cycle's bill is **3 ATP + 2 NADPH per CO₂**, and the plant keeps only one of every six three-carbon sugars it makes. Those look like numbers to memorize, but they are not. Meet the players: **RuBP**, a five-carbon sugar that accepts the CO₂; **3-PGA**, the three-carbon acid the joining makes; and a **triose** (here G3P), a three-carbon sugar the plant can use.
 
-## Act 1: three stages, one number to memorize
+> **The one idea to carry through this lesson.** Count the carbons and the bill follows. Every CO₂ that Rubisco fixes uses up one RuBP and makes two 3-PGA. To keep the loop turning, every 3-PGA has to become a triose (1 ATP to prime it, 1 NADPH to reduce it), and every RuBP used has to be rebuilt (1 ATP). So each CO₂ costs 2 + 1 = **3 ATP and 2 NADPH**. Because the acceptor has to be rebuilt too, only **one triose in six** can leave as profit.
 
-The engine runs in three stages, and the single number that organizes everything is **3 ATP + 2 NADPH per CO2 fixed**.
+This holds for the ordinary (C3) cycle in the light at steady state, with the RuBP pool neither growing nor shrinking. Photorespiration, C4 and CAM plants, and start-up at dawn bend it (Going deeper, "Where the rule bends").
 
-**Stage 1 — Fixation.** One CO2 is grabbed by **ribulose-1,5-bisphosphate (RuBP)**, a five-carbon sugar, and the product is two molecules of **3-phosphoglycerate (3-PGA)**, each three carbons. The catalyst is **Rubisco**, ribulose-1,5-bisphosphate carboxylase/oxygenase, the most abundant protein on Earth. Mechanistically, RuBP first forms a high-energy **enediol** across carbons 2 and 3. CO2 adds to C2, producing a six-carbon intermediate so unstable it never accumulates — it is immediately hydrated and cleaved between C2 and C3 into the two three-carbon products. This carboxylation is often the **rate-limiting step**, especially when CO2 is scarce (under other conditions, rebuilding RuBP sets the pace), and remarkably it costs no ATP and no NADPH. The price comes due later.
+*The film at the top of the page recaps the totals without deriving them, so work them out below first. It counts in glucose; the plant actually builds hexose phosphates at the same Calvin-cycle cost, then spends a little more ATP or UTP turning them into sucrose and starch.*
 
-**Stage 2 — Reduction.** Now the cell pays. Each 3-PGA is phosphorylated by ATP (phosphoglycerate kinase) to **1,3-bisphosphoglycerate**, then reduced by NADPH (G3P dehydrogenase) to **glyceraldehyde-3-phosphate (G3P)**. If that sounds like glycolysis run in reverse, it is — these are the same two steps, backward, using NADPH instead of NADH. Per three CO2, reduction burns **6 ATP and 6 NADPH**. This is where almost all the energy goes.
+Act 1 is the engine and its cost. Act 2 is the control panel that light switches on at dawn and off at dusk.
 
-**Stage 3 — Regeneration.** Now the bookkeeping trick that confuses everyone. Three turns of the cycle fix three CO2 and make **six** G3P. But only **one** G3P leaves as net product. The other five (5 × 3 = 15 carbons) are reshuffled — by **aldolase** and **transketolase**, with two phosphatases (fructose-1,6-bisphosphatase, FBPase, and sedoheptulose-1,7-bisphosphatase, SBPase) clipping phosphates — back into three molecules of five-carbon RuBP (3 × 5 = 15 carbons, the books balance). The final step, **phosphoribulokinase**, spends one more ATP per RuBP to rebuild the acceptor and close the loop. Regeneration costs **3 ATP per 3 CO2** and no NADPH.
+## Act 1, the first clue: a three-carbon acid
 
-Add it up and you get the answer to a question students always ask: *why does the cycle need more ATP than NADPH?* Because regeneration spends ATP alone. Reduction needs them in a 1:1 ratio (6 ATP + 6 NADPH per three CO2); regeneration adds 3 more ATP, for **9 ATP + 6 NADPH per three CO2**. Double that for a six-carbon sugar and you get **18 ATP and 12 NADPH per hexose** — a 3:2 ratio. The full balance sheet:
+Calvin, Benson and Bassham fed green algae carbon-14-labeled CO₂, killed the cells after shorter and shorter exposures, and separated the labeled molecules on paper (Techniques). At thirty seconds the label had spread into a wide variety of compounds. At a few seconds it sat in only a handful. At the shortest exposures one spot held most of it: **3-phosphoglycerate (3-PGA)**.
 
-One more point students miss every year, about how Rubisco gets switched on. Rubisco needs a CO2 molecule to even work — but not as substrate. A separate CO2 reacts with **Lys-201** on the large subunit to form a **carbamate**, which then chelates **Mg2+**. That carbamate-Mg2+ pair builds the active site. So one CO2 *activates* the enzyme and a *different* CO2 gets fixed. If Rubisco isn't activated, it clamps onto RuBP so tightly it shuts itself down, and an ATP-burning chaperone called **Rubisco activase** has to pry the inhibitory sugar loose.
+Whatever lights up first is the earliest product, so carbon from the air lands first in a three-carbon acid. What the CO₂ joins came from a second experiment, later in this act.
 
-> **6 CO2 + 18 ATP + 12 NADPH + 12 H2O → C6H12O6 + 18 ADP + 18 Pi + 12 NADP+ + 6 H+**
+## Count the carbons, and the bill follows
 
-<PathwayExplorer steps={calvinSteps} title="The Calvin cycle · per CO₂ fixed" doubledNote="×2 per CO₂" cyclic />
+Why count three turns at a time? Each turn adds one carbon, and a triose has three, so three turns is the smallest batch that makes one whole molecule to take out.
 
-The G3P that exits doesn't stay G3P. Two of these trioses (one first isomerized to dihydroxyacetone phosphate) join into fructose-1,6-bisphosphate, which becomes fructose-6-phosphate and enters the hexose pool, a path that mirrors **gluconeogenesis** almost step for step. From there the plant partitions its sugar two ways: into **sucrose**, exported to the rest of the plant through the phloem, or into **starch**, stockpiled right inside the chloroplast for the night. When you tap a maple in spring, the sweetness running into the bucket is sucrose the tree fixed in summers past and stored, now mobilized through the xylem.
+**Predict.** Three RuBP and three CO₂ go in. How many three-carbon molecules come out, and how many can the plant keep?
+
+<details>
+<summary>Check your prediction</summary>
+
+> **3 RuBP (3 × 5 = 15 C) + 3 CO₂ (3 C) → 6 three-carbon acids (3-PGA, 18 C) → 6 trioses (18 C)**
+>
+> **→ 1 triose leaves (3 C); 5 trioses (15 C) are rebuilt into 3 RuBP (15 C) for the next round.**
+
+Only one triose is profit: three carbons, exactly as many as came from the air.
+
+</details>
+
+<LessonFigure src="/figures/calvin-cycle/carbon-count-three-turns.webp" width={1200} height={676} alt="AI-generated illustration: three five-carbon RuBP bars and three single carbons from CO2 become six three-carbon acids, then six three-carbon sugars, using six ATP and six NADPH. One sugar leaves the loop. The other five, 15 carbons, are rebuilt into three RuBP using three more ATP. An inset shows that one CO2 costs 3 ATP and 2 NADPH." caption="Count the carbons and the bill follows. Three turns take in 3 carbons from the air and make six trioses (18 carbons). Five trioses (15 carbons) must be rebuilt into the three RuBP acceptors, so only one leaves as profit. Per CO2, two 3-PGA each need 1 ATP and 1 NADPH, and one RuBP needs 1 ATP to rebuild: 3 ATP + 2 NADPH." />
+
+Now the three stages.
+
+**Stage 1, fixation.** **Rubisco** (ribulose-1,5-bisphosphate carboxylase/oxygenase), the most abundant protein on Earth, joins one CO₂ to one RuBP (ribulose-1,5-bisphosphate). The six-carbon intermediate is so unstable it never accumulates; it is hydrated and split at once into two 3-PGA. It needs no ATP because the reaction is strongly downhill on its own, and no NADPH because no outside electrons enter; Rubisco shuffles electrons within the molecule. It is often the **rate-limiting step**, especially when CO₂ is scarce; under other conditions, rebuilding RuBP sets the pace.
+
+**Stage 2, reduction.** Each 3-PGA is primed by ATP (phosphoglycerate kinase adds a phosphate to its acid end) to **1,3-bisphosphoglycerate**, then reduced by NADPH (G3P dehydrogenase) to **glyceraldehyde-3-phosphate (G3P)**, a triose. These are glycolysis's two steps run backward, using NADPH instead of NADH. Per three CO₂, reduction spends **6 ATP and 6 NADPH**, most of the cost.
+
+**Stage 3, regeneration.** The job is to turn five trioses (15 C) into three five-carbon sugars (15 C), adding and losing no carbon. **Aldolase** joins two sugars into one; **transketolase** moves a two-carbon piece from one sugar to another; two phosphatases, fructose-1,6-bisphosphatase (FBPase) and sedoheptulose-1,7-bisphosphatase (SBPase), clip off phosphates.
+
+| Step | Carbons | What happens |
+| --- | --- | --- |
+| 1 | 3 + 3 → 6 | Aldolase joins two trioses into fructose-1,6-bisphosphate; FBPase clips one phosphate |
+| 2 | 6 + 3 → 4 + 5 | Transketolase moves two carbons from the six-carbon sugar onto a triose |
+| 3 | 4 + 3 → 7 | Aldolase joins the four-carbon sugar to a triose; SBPase clips one phosphate |
+| 4 | 7 + 3 → 5 + 5 | Transketolase moves two carbons again |
+
+Trioses used: 2 + 1 + 1 + 1 = 5; out come three five-carbon sugars, 15 carbons. Check that each row balances; don't memorize it. Finally, **phosphoribulokinase (PRK)** spends one ATP on each to make RuBP, closing the loop. Regeneration costs **3 ATP per three CO₂** and no NADPH.
+
+**Predict.** Why does the cycle need more ATP than NADPH?
+
+<details>
+<summary>Check your prediction</summary>
+
+Two kinds of step spend ATP and only one spends NADPH: **1 ATP + 1 NADPH per 3-PGA** to make a triose, and **1 ATP per RuBP** rebuilt. One CO₂ makes two 3-PGA and uses one RuBP: 2 × (1 ATP + 1 NADPH) + 1 ATP = **3 ATP + 2 NADPH**.
+
+</details>
+
+Chemistry checks the NADPH independently. Turning CO₂ carbon (oxidation state +4, as oxidized as carbon gets) into sugar carbon (0 on average) takes at least four electrons per carbon, the load of two NADPH, by *any* route, and the Calvin cycle spends exactly that.
+
+<EquationCard
+  purpose="The full energy bill of the Calvin cycle, scaled from one CO₂ to one hexose."
+  eq="per CO₂: 3 ATP + 2 NADPH · per triose (3 CO₂): 9 ATP + 6 NADPH · per hexose (6 CO₂): 18 ATP + 12 NADPH"
+  say="Each carbon fixed costs three ATP and two NADPH, so a three-carbon sugar costs nine and six, and a six-carbon sugar costs eighteen and twelve."
+  symbols={[
+    ["ATP", "A T P", "spent twice per CO₂ to prime the two 3-PGA, and once to rebuild RuBP", "molecules"],
+    ["NADPH", "N A D P H", "spent once per 3-PGA, twice per CO₂, to reduce the acid to a sugar", "molecules"],
+  ]}
+  toolkit={["ratios"]}
+  check="The ATP-to-NADPH ratio is 3:2 at every scale. A pathway that claimed fewer than four electrons (2 NADPH-equivalents) per carbon turned into sugar would be breaking redox chemistry."
+>
+  <Fragment slot="example">
+    <p>One hexose takes 6 CO₂, so six turns.</p>
+    <p>Six turns make 12 3-PGA: 12 ATP + 12 NADPH to reduce them.</p>
+    <p>Six RuBP must be rebuilt: 6 more ATP.</p>
+    <p>Total: 18 ATP + 12 NADPH.</p>
+  </Fragment>
+</EquationCard>
+
+The full balance sheet for one hexose:
+
+> **6 CO₂ + 18 ATP + 12 NADPH + 12 H₂O → C₆H₁₂O₆ + 18 ADP + 18 Pᵢ + 12 NADP⁺ + 6 H⁺**
+
+Now follow the carbon from the opening. Welded onto RuBP, it becomes the acid (–COO⁻) end of one 3-PGA, and ATP and NADPH turn that end into the aldehyde (C=O) end of a G3P. Only one triose in six leaves each time, so it may go around the loop several times before it is exported as sugar.
+
+<PathwayExplorer steps={calvinSteps} title="The Calvin cycle · per CO₂ fixed" doubledNote="×2 per CO₂" chip="tap each step; watch the bill per CO₂" cyclic />
+
+Exported G3P doesn't stay G3P. Two trioses (one first isomerized to dihydroxyacetone phosphate) join into fructose-1,6-bisphosphate, then fructose-6-phosphate, a path that mirrors **gluconeogenesis** almost step for step. The plant then makes **sucrose**, exported through the phloem, or **starch**, stockpiled in the chloroplast for the night. Trees also bank carbon across seasons: the sweetness in a tapped maple's spring sap is sucrose the tree fixed in summers past and stored, now mobilized through the xylem.
+
+## Switch off the light, or the CO₂
+
+Calvin's group let algae fix labeled CO₂ steadily, then suddenly changed one input and watched two pools, 3-PGA and RuBP.
+
+**Predict.** The light goes off. Which pool rises?
+
+<details>
+<summary>Check your prediction</summary>
+
+3-PGA rises and RuBP falls. Without ATP and NADPH, 3-PGA cannot be reduced, and RuBP cannot be rebuilt while Rubisco keeps using it. Cutting off CO₂ in the light does the reverse: RuBP rises and 3-PGA falls, because regeneration keeps making RuBP and nothing uses it.
+
+</details>
+
+A molecule that piles up when CO₂ is withheld is a candidate acceptor: this is the experiment that pointed to RuBP, later confirmed with the purified enzyme. It also shows the loop's weak point: without regeneration, fixation stops when RuBP runs out.
 
 ## Act 2: the control panel runs on light
 
-The cycle would be wasteful in the dark — it would burn ATP and NADPH that the light reactions are no longer making. So light itself flips the switches, through three stromal signals.
+In the dark, a running cycle would spend ATP and NADPH that are no longer being made. Worse, at night the chloroplast makes NADPH by burning sugar (the oxidative pentose phosphate pathway), so the cycle would build sugar while that pathway burns it: a futile cycle. So light flips the switches, through three stromal signals.
 
-First, when the light reactions pump protons into the thylakoid lumen, the **stromal pH rises from about 7 to 8**. Second, to keep the charge balanced, **Mg2+ flows out of the lumen into the stroma**. Both changes favor carbamate formation on Lys-201, activating Rubisco. Third, and most elegant: Photosystem I generates **reduced ferredoxin**, which feeds **ferredoxin-thioredoxin reductase** to make **reduced thioredoxin**. Thioredoxin then reaches into four Calvin enzymes — FBPase, SBPase, phosphoribulokinase, and the chloroplast G3P dehydrogenase — and reduces a regulatory disulfide bond, switching each one on. In plants that make the redox-sensitive alpha form of Rubisco activase, it switches that on too. At nightfall, thioredoxin is re-oxidized, the disulfides reform, and the cycle quietly stalls. The plant has wired its sugar factory directly to the sun.
+<LessonFigure src="/figures/calvin-cycle/light-control-panel.webp" width={1200} height={800} alt="AI-generated illustration: in light, a thylakoid pumps protons into its lumen, so the stroma pH rises from about 7 to 8, and in the textbook account magnesium ions move into the stroma (drawn dashed). Both help build Rubisco's activating carbamate and magnesium site. Photosystem I reduces ferredoxin, which through ferredoxin-thioredoxin reductase reduces thioredoxin, and thioredoxin opens the disulfide switches on FBPase, SBPase, PRK and GAPDH. An inset compares an enzyme switched on by day with the same enzyme switched off at night." caption="Light flips three switches in the stroma. Proton pumping raises stromal pH, and in the textbook account Mg2+ moves into the stroma; both help a separate, activating CO2 and Mg2+ build Rubisco's working site. Reduced thioredoxin breaks regulatory disulfides on four Calvin enzymes. At night thioredoxin is re-oxidized, the disulfides reform, and the cycle stalls." />
 
-## Photorespiration, and the workarounds
+First, as the light reactions pump protons into the thylakoid lumen (the space inside the thylakoids), **stromal pH rises from about 7 to 8**. Second, in the textbook account, **Mg²⁺ flows out of the lumen into the stroma** to balance the charge.
 
-Rubisco has a costly flaw written into its name: it is also an **oxygenase**. When O2 wins the active site instead of CO2, RuBP is split into one 3-PGA plus one **phosphoglycolate** — no carbon fixed, and salvaging the phosphoglycolate actually *releases* CO2. This **photorespiration** worsens on hot, dry days. Heat itself lowers Rubisco's preference for CO2 over O2 and makes CO2 less soluble relative to O2, and when stomata close to save water, CO2 inside the leaf falls. On a scorching afternoon a plant can lose a quarter of its fixed carbon this way.
+Both act on Rubisco. A *separate* CO₂ first reacts with a lysine on the large subunit (**Lys-201**) to form a **carbamate**, which then holds a **Mg²⁺** ion; that pair builds the working active site. High pH helps the lysine react, and more Mg²⁺ completes the pair. So one CO₂ *switches the enzyme on*, and a different CO₂ gets fixed. A Rubisco that is not switched on clamps onto RuBP so tightly it shuts itself down, and an ATP-burning chaperone, **Rubisco activase**, pries the sugar loose.
+
+Third, and most elegant: Photosystem I makes **reduced ferredoxin**, which feeds **ferredoxin-thioredoxin reductase** to make **reduced thioredoxin**. In four Calvin enzymes (FBPase, SBPase, PRK and the chloroplast G3P dehydrogenase), thioredoxin reduces a regulatory disulfide, breaking an S–S bridge between two cysteines into two –SH groups so the enzyme can take its active shape. In plants that make the redox-sensitive alpha form of Rubisco activase, it switches that on too. At nightfall thioredoxin is re-oxidized via peroxiredoxin, which passes the electrons to hydrogen peroxide; the disulfides reform, and the cycle quietly stalls. The plant has wired its sugar factory directly to the sun.
+
+## Photorespiration: the ledger broken
+
+Rubisco has a costly flaw written into its name: it is also an **oxygenase**. When O₂ wins the active site, RuBP is split into one 3-PGA plus one two-carbon **phosphoglycolate**: RuBP spent, no carbon fixed. This is **photorespiration**, and it worsens on hot, dry days.
+
+**Predict.** On a hot afternoon the leaf closes its stomata to save water. Which reaction gains, carboxylation or oxygenation?
+
+<details>
+<summary>Check your prediction</summary>
+
+Oxygenation. With stomata closed, CO₂ inside the leaf falls while O₂ stays high. Heat also lowers Rubisco's preference for CO₂ over O₂ and makes CO₂ less soluble relative to O₂.
+
+</details>
+
+Salvaging phosphoglycolate costs ATP and reducing power, and it *releases* CO₂: two phosphoglycolates (4 carbons) become one 3-PGA (3 carbons) plus one CO₂. On a scorching afternoon a plant can lose a quarter of its fixed carbon this way.
+
+**Predict.** Run six oxygenations, using six RuBP (30 carbons). After salvage, is there enough carbon to rebuild all six?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Oxygenation gives six 3-PGA (18 carbons) and six phosphoglycolates (12 carbons); salvage turns those 12 into three 3-PGA (9 carbons) and three CO₂. That is 27 carbons back and three lost as CO₂. Six RuBP need 30, so the loop ends three carbons short (the film's "three fixed carbons" lost), and it takes three ordinary fixations just to break even. Real leaves mix both reactions, so net gain shrinks, and in extreme heat and low CO₂ can stop.
+
+</details>
 
 <RubiscoFork />
 
-Two strategies evolved as fixes, each many times over. **C4 plants** (corn, sugarcane) separate the chemistry in *space*: in mesophyll cells, carbonic anhydrase turns CO2 into bicarbonate, and **PEP carboxylase** — which binds bicarbonate tightly and has no oxygenase activity — fixes it onto PEP to make oxaloacetate, then malate (some C4 species use aspartate instead), which is shuttled into bundle-sheath cells and decarboxylated to flood Rubisco with concentrated CO2. It costs two extra ATP per CO2, spent regenerating PEP (maize-type C4 runs at about **5 ATP + 2 NADPH** per CO2), worth it in heat and dry light. **CAM plants** (cacti, agave, pineapple) separate it in *time*: they open stomata mainly at night to fix CO2 into malate, then close up by day and release that CO2 to the Calvin cycle, conserving precious water. The same PEP carboxylase that drives both also discriminates less against heavy 13C than Rubisco does, which is why C4 and C3 plants carry distinct **isotopic signatures** — a fingerprint paleoecologists read straight out of fossils.
+## C4 and CAM: paying for a CO₂ pump
 
-<LessonFigure src="/figures/calvin-cycle/c4-space-cam-time.webp" width={1200} height={800} alt="AI-generated illustration: a C4 plant fixes CO2 in a mesophyll cell and shuttles malate to a bundle-sheath cell with Rubisco, while a CAM cell opens its stomata at night to store malate and closes them by day to release CO2." caption="Two ways around Rubisco's flaw. C4 plants separate the chemistry in space, fixing CO2 in mesophyll cells and shuttling malate to bundle-sheath cells where Rubisco sits. CAM plants separate it in time, fixing CO2 at night and releasing it by day behind closed stomata." />
+<LessonFigure src="/figures/calvin-cycle/c4-space-cam-time.webp" width={1200} height={800} alt="AI-generated illustration: in a C4 leaf, a mesophyll cell turns CO2 into bicarbonate, and PEP carboxylase fixes it onto PEP to make malate. Malate crosses into a bundle-sheath cell, where a decarboxylase releases CO2 into a chloroplast holding Rubisco and the Calvin cycle. Pyruvate returns to the mesophyll, where rebuilding PEP spends ATP. Two lower panels show a CAM cell storing malate in its vacuole with stomata open at night, and releasing CO2 to Rubisco with stomata closed by day." caption="Two ways around Rubisco's flaw. C4 plants split the work in space: PEP carboxylase captures CO2 in mesophyll cells, malate carries it to bundle-sheath cells, where it is released around Rubisco, and pyruvate returns to rebuild PEP at an extra ATP cost. CAM plants split it in time, fixing CO2 into malate at night and releasing it to Rubisco by day behind closed stomata." />
+
+Two fixes evolved, each many times over. **C4 plants** (corn, sugarcane) separate the chemistry in *space*:
+
+1. **Capture.** In mesophyll cells, carbonic anhydrase turns CO₂ into bicarbonate, and **PEP carboxylase**, which binds bicarbonate tightly and has no oxygenase activity, fixes it onto PEP to make oxaloacetate, then malate.
+2. **Carry.** Malate is shuttled into bundle-sheath cells, where Rubisco sits (some species carry aspartate instead).
+3. **Release.** Malate is decarboxylated there, flooding Rubisco with CO₂.
+4. **Pay.** Regenerating PEP costs two extra ATP per CO₂, so maize-type C4 runs at about **5 ATP + 2 NADPH** per CO₂, worth it in hot, bright, dry conditions.
+
+**CAM plants** (cacti, agave, pineapple) separate it in *time*: they open stomata mainly at night and use the same PEP carboxylase to fix CO₂ into malate, then close up by day and release that CO₂ to the Calvin cycle, conserving water. CAM pays extra ATP too, usually somewhat more than C4 (Going deeper, "Where the rule bends").
+
+So it all comes back to one count: each CO₂ uses one RuBP and makes two 3-PGA. Photorespiration spends RuBP without adding carbon; C4 and CAM pay ATP to suppress it.
 
 Next comes the **pentose phosphate pathway**. Your own cells run the same transketolase carbon shuffles you just watched regenerate RuBP, there to make NADPH and the ribose for nucleotides.
 
 ## Going deeper
 
-### How thioredoxin is re-oxidized at night
+### Where the rule bends
 
-At nightfall, thioredoxin is re-oxidized via peroxiredoxin, which passes the electrons to hydrogen peroxide.
+Photorespiration uses RuBP without fixing CO₂, so the cost per *net* CO₂ rises. CAM's surcharge over C4 varies with the subtype and the carbohydrate it stores, because it also stores malate overnight and rebuilds its PEP from that carbohydrate. At dawn the cycle keeps *more* than five of six trioses to build up its RuBP pool (it is autocatalytic). On the supply side, with 14 c subunits in the chloroplast ATP synthase (4.67 H⁺ per ATP) and about 6 H⁺ per NADPH, linear electron flow makes about 1.29 ATP per NADPH, short of the 1.5 the cycle needs; cyclic electron flow tops up the ATP.
+
+### How Rubisco makes the cut
+
+RuBP first forms a reactive 2,3-enediolate (an enediol across carbons 2 and 3). CO₂ adds to C2, producing a six-carbon intermediate, 2-carboxy-3-keto-arabinitol-1,5-bisphosphate, that is immediately hydrated and cleaved between C2 and C3 into two 3-PGA. Only one 3-PGA carries the new carbon, as its carboxyl; the other is old RuBP carbon that Rubisco's internal electron shuffle left as an acid. So the bill is counted per 3-PGA, not per new atom.
+
+### The full regeneration list
+
+Triose-phosphate isomerase turns some G3P into dihydroxyacetone phosphate, aldolase's partner in steps 1 and 3. Step 2 makes erythrose-4-phosphate and xylulose-5-phosphate; step 3 makes sedoheptulose-1,7-bisphosphate, which SBPase trims to sedoheptulose-7-phosphate; step 4 makes ribose-5-phosphate and a second xylulose-5-phosphate. Ribose-5-phosphate isomerase and ribulose-5-phosphate epimerase turn these into ribulose-5-phosphate for PRK.
+
+### Rubisco activase
+
+Lys-201 is spinach numbering. The RuBP-locked, uncarbamylated enzyme is structure 1RCX. Inhibitory sugar phosphates such as CA1P can jam the site too, and activase, an AAA+ ATPase, spends ATP to strip them off as well.
+
+### C4 isotope signatures
+
+A C4 plant makes its first capture with PEP carboxylase rather than Rubisco, and the two enzymes treat carbon isotopes differently. PEP carboxylase discriminates much less against heavy 13C than Rubisco does, which is why C4 and C3 plants carry distinct **isotopic signatures**, a fingerprint paleoecologists read straight out of fossils.
 
 ### Diffuse light and the Pinatubo canopy
 
-One last surprise about how much light is enough. When **Mount Pinatubo** erupted in 1991, its sulfate haze scattered sunlight into soft, diffuse light. Counterintuitively, photosynthesis at a well-studied deciduous forest *rose* on clear days: the upper canopy was already light-saturated, so the diffuse light reached deeper into shaded lower leaves that had been starved for photons. A plant canopy's carbon fixation depends on how evenly light reaches its leaves as well as on how much light arrives.
+When **Mount Pinatubo** erupted in 1991, its sulfate haze scattered sunlight into soft, diffuse light. Photosynthesis at a well-studied deciduous forest *rose* on clear days: the upper canopy was already light-saturated, so the diffuse light reached deeper into shaded lower leaves that had been starved for photons. A plant canopy's carbon fixation depends on how evenly light reaches its leaves as well as on how much light arrives.
