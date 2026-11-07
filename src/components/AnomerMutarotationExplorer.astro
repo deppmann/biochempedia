@@ -1,7 +1,8 @@
 ---
 /**
- * AnomerMutarotationExplorer — makes the chapter's thesis manipulable: one
- * hydroxyl flip at C1 decides storage vs structure, reducing vs locked. Three
+ * AnomerMutarotationExplorer — makes the chapter's thesis manipulable: a FREE
+ * anomeric carbon flips α⇄β, reduces copper and glycates; a USED one is locked,
+ * and the face of its bond sets the shape of the chain. Three
  * panels: (1) the α/β anomer toggle (they interconvert only through the open
  * chain); (2) the anomeric equilibrium (~36% α, ~64% β, <1% open) plus reducing
  * power and accumulated glycation; (3) a polymer builder — α-1,4 (starch/glycogen,
@@ -12,17 +13,17 @@
 ---
 
 <figure class="anomer card" data-anomer>
-  <figcaption class="anomer-head">Try it: one hydroxyl, two fates<span class="anomer-chip">flip C1 · build a polymer</span></figcaption>
+  <figcaption class="anomer-head">Try it: a free anomeric carbon, then a used one<span class="anomer-chip">flip C1 · lock C1 in a polymer</span></figcaption>
   <div class="anomer-grid">
 
     <section class="anomer-panel">
       <h4>1 · Anomer</h4>
-      <svg class="anomer-svg" viewBox="0 0 200 150" role="img" aria-label="A glucose ring showing the C1 hydroxyl below the ring (alpha) or above it (beta)" data-ring></svg>
+      <svg class="anomer-svg" viewBox="0 0 200 150" role="img" aria-label="A glucose ring showing the C1 hydroxyl on the opposite face from CH2OH (alpha, below in this drawing) or on the same face (beta, above)" data-ring></svg>
       <div class="anomer-seg" role="group" aria-label="Anomer">
         <button type="button" data-an="alpha" aria-pressed="true">α</button>
         <button type="button" data-an="beta" aria-pressed="false">β</button>
       </div>
-      <p class="anomer-note" data-an-note>α = C1–OH below the ring. They interconvert only through the open chain.</p>
+      <p class="anomer-note" data-an-note>α: C1–OH on the opposite face from CH₂OH (below, in this standard drawing). The flip goes through the open chain.</p>
     </section>
 
     <section class="anomer-panel">
@@ -61,7 +62,7 @@
       <p class="anomer-badge" data-badge>—</p>
     </section>
   </div>
-  <p class="anomer-foot">One hydroxyl flip on one glucose cascades into storage vs structure, reducing vs locked, self vs foreign.</p>
+  <p class="anomer-foot">Free, C1 reopens: the sugar flips α⇄β, reduces copper and slowly tags hemoglobin. Used in a bond, C1 is locked, and the face of that bond sets the shape of the chain.</p>
 </figure>
 
 <script>
@@ -123,8 +124,8 @@
         anomer = a;
         root.querySelectorAll<HTMLButtonElement>('[data-an]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-an') === a)));
         anNote.textContent = a === 'alpha'
-          ? 'α = C1–OH below the ring. They interconvert only through the open chain.'
-          : 'β = C1–OH above the ring (equatorial, favored). The flip goes through the open chain.';
+          ? 'α: C1–OH on the opposite face from CH₂OH (below, in this standard drawing). The flip goes through the open chain.'
+          : 'β: C1–OH on the same face as CH₂OH (equatorial in the chair, favored). The flip goes through the open chain.';
         drawRing(false);
         flipping = false;
       }, 420);
@@ -205,6 +206,7 @@
         for (let i = 0; i < n; i++) poly.appendChild(el('circle', { cx: ux(i), cy: uy(i), r: 4, fill: TEAL }));
         ring(ux(0), uy(0));
         const re = el('text', { x: x1, y: 104, 'text-anchor': 'end', 'font-size': 8, fill: NAVY }); re.textContent = 'reducing end →'; poly.appendChild(re);
+        if (state.branches) { const sp = el('text', { x: 100, y: 9, 'text-anchor': 'middle', 'font-size': 7, fill: '#6b6b6b' }); sp.textContent = 'branch spacing schematic (glycogen: every 8–12)'; poly.appendChild(sp); }
       } else {
         // β-1,4: every other glucose is flipped 180°, so the chain runs dead straight
         // and neighbouring chains lock together with hydrogen bonds.
@@ -222,7 +224,7 @@
       const ends = state.bond === 'alpha' ? 1 + state.branches : 1;
       counts.innerHTML = `<span>glucose units: <b>${state.units}</b></span><span>non-reducing ends: <b>${ends}</b></span><span>release rate: <b class="anomer-rate">${'▮'.repeat(ends)}${'▯'.repeat(5 - ends)}</b></span>`;
       badge.textContent = state.bond === 'alpha'
-        ? 'STARCH / GLYCOGEN · storage · digestible. Enzymes nibble glucose off the non-reducing ends (dashed rings), so more branches = more ends = faster release.'
+        ? 'STARCH / GLYCOGEN · storage. Amylases cut α-1,4 bonds mid-chain; in your cells phosphorylase takes glucose from non-reducing ends (dashed rings), so more branches = more ends = faster release.'
         : 'CELLULOSE · structure · indigestible. Straight β-1,4 chains hydrogen-bond into fibers, and humans make no cellulase to cut them.';
       badge.className = 'anomer-badge ' + (state.bond === 'alpha' ? 'is-storage' : 'is-structure');
       branchBtn.disabled = state.bond !== 'alpha' || state.branches >= maxBranches();

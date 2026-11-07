@@ -4,8 +4,8 @@
  * cell's radius and watch surface area, volume, and the surface-area-to-volume ratio
  * respond: volume (the demand for nutrients) grows as r³ while surface (the supply
  * across the membrane) grows only as r², so SA:V = 3/r collapses as a cell enlarges.
- * That single inequality is why cells stay small, why a neuron is thin, and why the
- * gut and mitochondria fold their membranes. Self-contained vanilla-TS Astro island.
+ * That single inequality is why cells stay small, why a neuron is thin, and why gut
+ * cells fold their plasma membrane into microvilli. The baseline is a 1 µm bacterium. Self-contained vanilla-TS Astro island.
  */
 ---
 
@@ -13,7 +13,7 @@
   <figcaption class="cs-head">Why cells stay small — surface vs volume<span class="cs-chip">⚙ original · interactive</span></figcaption>
 
   <div class="cs-grid">
-    <svg class="cs-svg" viewBox="0 0 200 200" role="img" aria-label="The cell drawn to scale, with a dashed 10-micrometer reference outline" data-cell></svg>
+    <svg class="cs-svg" viewBox="0 0 200 200" role="img" aria-label="The cell drawn to scale, with a dashed outline of a 1-micrometer bacterium" data-cell></svg>
     <svg class="cs-svg" viewBox="0 0 200 200" role="img" aria-label="Surface-area-to-volume ratio falling as radius rises" data-plot></svg>
   </div>
 
@@ -25,10 +25,11 @@
     <div><dt>Surface area, 4πr²</dt><dd data-r-sa>—</dd></div>
     <div><dt>Volume, ⁴⁄₃πr³</dt><dd data-r-v>—</dd></div>
     <div><dt>SA : V = 3/r</dt><dd data-r-ratio>—</dd></div>
+    <div><dt>Cytoplasm per µm² membrane, V/SA = r/3</dt><dd data-r-load>—</dd></div>
   </dl>
-  <p class="cs-why" data-why role="status">A small cell has lots of surface per unit of contents, so nutrients and waste cross fast enough. Double the radius and the inside grows eightfold but the membrane only fourfold.</p>
+  <p class="cs-why" data-why role="status">At 10 µm, SA:V is 0.30 µm⁻¹. Compared with a 1 µm bacterium: surface ×100, volume ×1000, so each µm² of membrane serves 10× as much cytoplasm.</p>
 
-  <p class="cs-foot">Demand scales with volume, supply with surface — so above a few tens of microns a naked sphere starves. The fix is folding: microvilli, the cristae of a mitochondrion, the flattened sheets of the ER all buy back surface.</p>
+  <p class="cs-foot">Demand scales with volume, supply with surface. A cell can stay small, stretch out thin, or fold extra membrane inside. Inner membranes (mitochondrial cristae, the ER) give room for work done on membranes and each one encloses a room; uptake from outside still needs the plasma membrane, which is why gut cells fold it into microvilli.</p>
 </figure>
 
 <script>
@@ -47,6 +48,7 @@
     const rSa = root.querySelector<HTMLElement>('[data-r-sa]')!;
     const rV = root.querySelector<HTMLElement>('[data-r-v]')!;
     const rRatio = root.querySelector<HTMLElement>('[data-r-ratio]')!;
+    const rLoad = root.querySelector<HTMLElement>('[data-r-load]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
 
     const SCALE = 1.64; // px per µm, so the drawing is truly to scale (50 µm → 82 px, clear of the labels)
@@ -55,10 +57,10 @@
       cell.replaceChildren();
       const cx = 100, cy = 103;
       cell.appendChild(el('circle', { cx, cy, r: Math.max(1.5, r * SCALE), fill: 'color-mix(in srgb,#0e7c86 14%,#fff)', stroke: NAVY, 'stroke-width': r < 4 ? 1.2 : 2 }));
-      // reference 10 µm cell outline, drawn on top so it stays visible inside a big cell
-      cell.appendChild(el('circle', { cx, cy, r: 10 * SCALE, fill: 'none', stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }));
+      // reference 1 µm bacterium outline, drawn on top; held to at least 3 px so it stays visible
+      cell.appendChild(el('circle', { cx, cy, r: Math.max(3, 1 * SCALE), fill: 'none', stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '1.5 1.5' }));
       const t = el('text', { x: 100, y: 16, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: NAVY, 'font-family': SANS }); t.textContent = `radius ${r} µm`; cell.appendChild(t);
-      const t2 = el('text', { x: 100, y: 196, 'text-anchor': 'middle', 'font-size': 9, fill: INK, 'font-family': SANS }); t2.textContent = 'orange dashes = a 10 µm cell, to scale'; cell.appendChild(t2);
+      const t2 = el('text', { x: 100, y: 196, 'text-anchor': 'middle', 'font-size': 9, fill: INK, 'font-family': SANS }); t2.textContent = 'orange = a 1 µm bacterium, near scale'; cell.appendChild(t2);
     }
     const PX0 = 34, PX1 = 190, PY0 = 22, PY1 = 168;
     function drawPlot(r: number) {
@@ -94,15 +96,16 @@
       rSa.textContent = Math.round(sa).toLocaleString('en-US') + ' µm²';
       rV.textContent = Math.round(v).toLocaleString('en-US') + ' µm³';
       rRatio.textContent = ratio.toFixed(2) + ' µm⁻¹';
+      rLoad.textContent = (r / 3).toFixed(2) + ' µm³';
       drawCell(r); drawPlot(r);
-      // compare with the 10 µm reference cell, so the r² vs r³ race is concrete
-      const k = r / 10, saX = fmtX(k * k), vX = fmtX(k * k * k);
-      const vs = r === 10
-        ? 'This is the reference cell. Drag right to double the radius: the surface grows 4×, the volume 8×.'
-        : `Compared with the 10 µm cell: surface ×${saX}, volume ×${vX}.`;
-      why.textContent = r <= 12
-        ? `At ${r} µm, SA:V is ${ratio.toFixed(2)} µm⁻¹ — plenty of membrane per unit of contents, so exchange keeps up with metabolism. ${vs}`
-        : `At ${r} µm, SA:V has fallen to ${ratio.toFixed(2)} µm⁻¹: the interior (∝ r³) has outrun the membrane (∝ r²). ${vs} A real cell this big must fold its membranes or stay thin, because diffusion to the center now takes far too long (time ∝ r²).`;
+      // compare with the 1 µm bacterium, as the lesson text does (1 µm → 10 µm: surface ×100, volume ×1000)
+      const k = r, saX = fmtX(k * k), vX = fmtX(k * k * k);
+      const vs = r === 1
+        ? 'This is the 1 µm bacterium. Drag right to see how a bigger cell compares.'
+        : `Compared with a 1 µm bacterium: surface ×${saX}, volume ×${vX}, so each µm² of membrane serves ${fmtX(k)}× as much cytoplasm.`;
+      why.textContent = r <= 2
+        ? `Bacterium-sized: little cytoplasm per patch of membrane. ${vs}`
+        : `At ${r} µm, SA:V is ${ratio.toFixed(2)} µm⁻¹. ${vs}`;
     }
     rIn.addEventListener('input', render);
     render();

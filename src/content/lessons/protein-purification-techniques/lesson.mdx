@@ -7,7 +7,7 @@ summary: >-
   How do you pull one protein out of a soup of ten thousand others — and then
   prove you got it? You need a way to find it (an assay), a way to enrich it
   (centrifugation and chromatography), and a way to read its mass, charge, and
-  sequence. This lesson follows a single enzyme through five purification steps,
+  sequence. This lesson follows a single enzyme from crude homogenate through four purification steps,
   watches its specific activity climb three-thousandfold, and ends with the
   methods — SDS-PAGE, immunoassays, Edman degradation, mass spectrometry — that
   turn a purified band into an identity.
@@ -154,7 +154,7 @@ techniques:
   - name: "Specific activity and the purification table"
     blurb: >-
       Specific activity = enzyme units divided by total protein (units/mg). It
-      rises every time a step removes contaminant without destroying your target,
+      rises every time a step removes contaminant faster than it loses your target,
       so the column of specific-activity numbers — not the raw activity — tells you
       whether the purification is actually working.
   - name: "Peptide mass fingerprinting"
@@ -302,7 +302,7 @@ simulations:
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
-  - stem: "During a four-step purification, the specific activity (units/mg) at each step is: crude lysate = 12, ammonium sulfate cut = 40, ion exchange = 220, affinity column = 4,800. What is the overall fold-purification?"
+  - stem: "A crude lysate goes through three purification steps. The specific activity (units/mg) at each stage is: crude lysate = 12, ammonium sulfate cut = 40, ion exchange = 220, affinity column = 4,800. What is the overall fold-purification?"
     choices:
       - "120-fold"
       - "400-fold"
@@ -314,7 +314,7 @@ practiceQuestions:
       4,800 ÷ 12 = 400-fold. The 120-fold option divides the final value by an
       intermediate step rather than the starting one; the 4,800-fold option mistakes
       the final specific activity itself for the fold; the 40-fold option mistakes an
-      intermediate specific activity for the fold. Specific activity is the success metric because it reports the
+      intermediate specific activity for the fold. Specific activity is the success metric because it tracks the
       proportion of target in total protein, independent of how much sample remains.
 
   - stem: "A protein mixture is loaded onto a gel-filtration (size-exclusion) column. Which protein elutes FIRST?"
@@ -326,9 +326,9 @@ practiceQuestions:
     answer: 2
     rationale: >-
       Gel filtration separates by size in a counterintuitive way: large proteins are
-      too big to enter the porous beads, so they travel only through the spaces
-      between beads — a shorter, faster path — and elute first. Small proteins enter
-      the pores, take a longer winding route, and elute last. Charge is irrelevant
+      too big to enter the porous beads, so they can use only the liquid between the
+      beads, and less buffer washes them through: they elute first. Small proteins
+      also explore the liquid inside every bead, need more buffer, and elute last. Charge is irrelevant
       to size exclusion, and tight ligand binding describes affinity
       chromatography.
 
@@ -456,8 +456,8 @@ explainLevels:
       by size and density. Adding salt and running columns (chromatography) sort proteins by
       other traits: how soluble they are, how big they are, what charge they carry, or
       what they like to stick to. Each step throws away contaminants and keeps your protein, so the
-      fraction of the sample that is your protein — its specific activity — keeps
-      going up.
+      share of the sample that is your protein keeps going up, and its specific
+      activity (activity per milligram of protein) rises with it.
 
       Finally you prove what you have. A gel (SDS-PAGE) sorts proteins by size into
       bands. Antibodies can grab a specific protein for a western blot or a pregnancy
@@ -468,9 +468,9 @@ explainLevels:
     text: |
       Protein purification is hypothesis-driven and assay-anchored. The assay (e.g.,
       LDH oxidizing NADH, tracked at 340 nm) lets you compute specific activity =
-      activity units / mg total protein. Specific activity must rise at every
-      successful step, because each step should remove contaminating protein faster
-      than it loses target.
+      activity units / mg total protein. Each step multiplies specific activity by
+      the fraction of activity it kept divided by the fraction of protein it kept,
+      so a successful step raises it.
 
       The workflow: disrupt cells, then use differential centrifugation (increasing g
       pellets progressively smaller structures; final supernatant = cytosol). Then
@@ -493,10 +493,10 @@ explainLevels:
     label: "Graduate"
     text: |
       The conceptual spine is the specific-activity ledger: SA = activity/[total
-      protein], and a valid step satisfies d(SA)/step > 0 even as total activity
+      protein], and a valid step satisfies SA_(n+1)/SA_n > 1 even as total activity
       declines, because purification is enrichment, not preservation. Yield (total activity retained ÷
       starting total activity) and fold-purification (SA_n/SA_0) are the trade-off you optimize; the
-      simulator's five-step table runs SA 10→30→90→1,100→30,000 (3,000-fold) at ~36%
+      simulator's five-row table runs SA 10→30→90→1,100→30,000 (3,000-fold) at ~36%
       yield, with affinity supplying the largest single jump.
 
       Separation principles map to orthogonal physical parameters, and orthogonality is
@@ -524,9 +524,9 @@ anecdotes:
     text: >-
       The most-missed idea in the chapter, run as a race. Load a protein mixture onto a
       gel-filtration column and the big proteins win — because they can't squeeze into
-      the porous beads, they take the open highway between them and elute first. The
-      small proteins detour through the scenic route inside every bead and straggle in
-      last. It is exactly backwards from a kitchen sieve: here, bigger is faster.
+      the porous beads, they stay in the moving liquid between them and elute first. The
+      small proteins also wander into the still liquid inside every bead, so it takes
+      more buffer to wash them through, and they straggle in last. It is exactly backwards from a kitchen sieve: here, bigger is faster.
   - title: "Affinity chromatography is fishing with the perfect lure"
     source: "CH05 (Chapter 6) lecture notes — affinity hook."
     text: >-
@@ -576,149 +576,217 @@ corpusTags:
 import PurificationSimulator from '../../../components/PurificationSimulator.astro';
 import ChromatographyColumn from '../../../components/ChromatographyColumn.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**Many of the clinical tests you will order as a physician run on the techniques
-in this chapter.** The pregnancy test detects a hormone with an antibody. The
-troponin test that helps confirm a heart attack does the same. The classic
-confirmatory HIV test was a western blot. Strip away the brand names and the
-plastic cartridges, and what remains is a small set of methods for finding one
-protein in a crowd, pulling it out clean, and proving its identity. It starts
-with a problem of numbers.
+**Many of the clinical tests you will order as a physician run on the techniques in this lesson.** The pregnancy test detects a hormone with an antibody, the troponin test that helps confirm a heart attack does the same, and the classic confirmatory HIV test was a western blot. Getting one protein out pure is harder. In this lesson's purification, the enzyme starts as roughly 1 part in 3,000 of the protein in the tube, and you cannot see it. So you find it with an assay, judge every step with a ledger, enrich it by sorting on its properties, and then prove what you have.
 
-A single human cell holds billions of individual protein molecules, but they are
-drawn from only about ten thousand distinct protein species. Across the whole
-body, alternative splicing and post-translational modification expand the roughly
-20,000 protein-coding genes into a far larger set of distinct protein forms. Estimates run into
-the millions, but no one has counted them. The
-genome is the blueprint. The proteome is the building, lived in and constantly
-remodeled. To study one protein, you have to get it out of that building alone.
+*About the film above:* it is a short preview, and the text below qualifies four of its lines. Specific activity rises at a good step only while the enzyme keeps its activity per milligram. What you know about the protein picks the methods; load, volume and any tag or ligand you can capture on set their order. A single band (one per kind of subunit) is needed for purity but does not prove it. And MALDI-TOF weighs small peptides too, not only proteins above ten kilodaltons.
 
-## You cannot purify what you cannot find
+> **The one idea to carry through this lesson.** Judge every step by two fractions: the fraction of your target's activity it kept, and the fraction of total protein it kept. Specific activity rises by their ratio. A step helps only when it keeps more of your target than of everything else, and it does that by sorting on a property where your target differs from most other proteins: solubility, charge, size or a binding partner. Across steps the gains multiply, and so do the losses, so purity climbs while quantity falls.
 
-Before the first spin, before the first column, you need an **assay** — a way to
-detect your protein in a tube where you cannot see it. For an enzyme, the assay is
-usually its own reaction. Lactate dehydrogenase converts pyruvate to lactate using
-the coenzyme NADH, which is consumed as the reaction runs. NADH absorbs light at
-340 nm and its oxidized form, NAD⁺, does not, so the absorbance falls, and the
-slope of that fall is the activity. The number that matters is **specific activity** — units of
-activity divided by milligrams of total protein. Picture a jar of mixed marbles:
-the count of red marbles is the activity, but the *fraction* that are red is the
-specific activity. A good step throws away other-colored marbles without losing
-red ones, so the fraction climbs. That single number guides every step that
-follows.
+This holds for any assay that counts the target: an enzyme reaction, a binding signal or an antibody signal. Reading it as purity assumes constant activity per milligram of enzyme (Going deeper, "When the ledger lies"). What the protein *is* is a separate question, answered at the end.
 
-## Four ways to separate a protein from its neighbors
+## Find it: the assay and the unit
 
-First you have to get the proteins out of the cell. Break the cells open into a
-homogenate, then spin. **Differential centrifugation** uses force as a sieve. A
-gentle spin drops the heavy nuclei; crank it harder and mitochondria pellet;
-harder still and the smallest vesicles go down, leaving cytosol in the final
-supernatant. Each spin trades one mixture for two cleaner ones.
+First you need an **assay**: a way to detect your protein in a tube where you cannot see it. For an enzyme, the assay is usually its own reaction. Lactate dehydrogenase (LDH) converts pyruvate to lactate, consuming the coenzyme NADH. NADH absorbs light at 340 nm and its oxidized form, NAD⁺, does not, so the absorbance falls, and the slope of that fall is the activity.
 
-<LessonFigure src="/figures/protein-purification-techniques/differential-centrifugation-series.webp" width={1200} height={573} alt="AI-generated illustration: four centrifuge tubes in a row, a cloudy homogenate and then three successive spins of increasing force, each leaving a pellet enriched in nuclei, mitochondria or small vesicles, with the supernatant carried on to the next tube and a clear cytosol supernatant in the last tube." caption="Differential centrifugation separates components by sedimentation, which depends on size and density. After each spin the supernatant moves to a fresh tube and the pellet is set aside. Harder spins give fractions enriched in nuclei, then mitochondria, then small vesicles; the final supernatant is the cytosol. The fractions are enriched, not pure." />
+A slope is a rate. To turn a rate into an amount of enzyme, biochemists count in **units**. One unit is the amount of enzyme that converts 1 µmol of substrate per minute, under conditions you state (temperature, pH, substrate concentration). A unit counts catalytic work. It is not a mass.
 
-What centrifugation cannot finish, you finish by exploiting four different
-properties of your protein, one at a time: the first by precipitation, the other
-three on **chromatography** columns.
+<EquationCard
+  purpose="How much LDH activity is in a cuvette, from the falling absorbance of NADH."
+  eq="rate = ΔA₃₄₀ / (ε₃₄₀ × path length)"
+  say="The rate of NADH use equals the fall in absorbance each minute, divided by NADH's absorbance per molar per centimeter times the path length."
+  symbols={[
+    ["rate", "rate", "how fast NADH is used up", "M per min"],
+    ["ΔA₃₄₀", "delta A 340", "the fall in absorbance at 340 nm each minute", "per min"],
+    ["ε₃₄₀", "epsilon 340", "how strongly NADH absorbs at 340 nm: 6,220", "M⁻¹ cm⁻¹"],
+    ["path length", "path length", "how far the light travels through the sample", "cm (usually 1)"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="If the absorbance does not fall, there is no activity. Twice the enzyme should give twice the slope, as long as substrate is not running out."
+>
+  <Fragment slot="example">
+    <p>The absorbance falls by 0.311 each minute in a 1 cm cuvette holding 1 mL.</p>
+    <p>Rate = 0.311 / 6,220 = 0.000050 M per minute, which is 0.050 mM per minute.</p>
+    <p>1 mM is 1 µmol per mL, so in 1 mL that is 0.050 µmol of NADH used per minute: 0.05 units in the cuvette.</p>
+  </Fragment>
+</EquationCard>
 
-The first is **solubility**. Add ammonium sulfate and proteins begin to drop out
-of solution, but not all at once. Different proteins precipitate at different salt
-concentrations, so a carefully chosen cut leaves many contaminants behind. A round
-of dialysis through a semi-permeable membrane then washes the salt back out.
+## Judge it: specific activity, yield and fold
 
-The second is **size**, and it runs backward from intuition. In gel filtration the
-column is packed with porous beads. Large proteins are too big to enter the pores,
-so they skip them and ride the short path between beads — and **elute first**.
-Small proteins wander into the pores, take the long way around, and come off last.
-It is the part students most often get backward.
+Now weigh all the protein in the same sample. **Specific activity** is units divided by milligrams of total protein.
 
-The third is **charge**. An ion-exchange column carries fixed charges on its beads,
-and opposite charges stick. The rule comes from comparing the buffer pH with the
-protein's pI, the pH at which its net charge is zero. At a pH below its pI, a protein is net positive and binds a negative
-(cation-exchange) resin; at a pH above its pI, it is net negative and binds a
-positive (anion-exchange) resin. Raise the salt or
-shift the pH and the protein lets go.
+Picture a jar of mixed marbles. The number of gold marbles is the activity. The *fraction* of marbles that are gold is the purity. Specific activity tracks that fraction: as long as your enzyme stays fully active, doubling the fraction of gold doubles the specific activity.
 
-The fourth, and most powerful, is **binding affinity**. Decorate the beads with
-something your protein binds tightly and selectively — a substrate analog, a cofactor, an
-antibody, a metal that grips a His-tag — and your target binds while everything
-else flows through. Then release it, often with a flood of free ligand or a competitor, sometimes with a
-change in pH.
+<LessonFigure src="/figures/protein-purification-techniques/purification-step-marbles.webp" width={1200} height={800} alt="AI-generated illustration: a jar of 40 marbles, 4 gold and 36 grey, passes through one purification step into a jar of 10 marbles, 3 gold and 7 grey; a tray below holds the discarded 1 gold and 29 grey marbles." caption="One step, counted. It kept 3 of 4 enzyme marbles (75%) but only 10 of 40 marbles overall (25%), so the gold fraction rose 0.75 ÷ 0.25 = 3-fold. Losing some enzyme is fine if you lose far more of everything else." />
 
-So which column first? If you know a binding partner, run affinity; if you know the
-size, gel filtration; if you know the pI, ion exchange; if you know nothing yet,
-salt it out and start narrowing. HPLC (high-performance liquid chromatography)
-speeds any of these up — fine beads under high pressure, paid for with expensive
-plumbing.
+### Reading the purification table
 
-The column chooser below runs one four-protein mixture through four columns: size
-exclusion, ion exchange, affinity, and hydrophobic interaction (HIC), which sorts
-proteins by how greasy their surfaces are. Switch columns and watch the elution
-order rearrange.
+One enzyme, from crude homogenate (the broken-open cells) through four separation steps. The simulator below uses the same numbers, and its five buttons are the table's five rows.
 
-<ChromatographyColumn />
+| Step | Total protein (mg) | Total activity (units) | Specific activity (units/mg) | Yield | Fold-purification |
+| --- | --- | --- | --- | --- | --- |
+| Crude homogenate | 10,000 | 100,000 | 10 | 100% | 1 |
+| Salting out | 3,000 | 90,000 | 30 | 90% | 3 |
+| Ion exchange | 900 | 81,000 | 90 | 81% | 9 |
+| Gel filtration | 60 | 66,000 | 1,100 | 66% | 110 |
+| Affinity | 1.2 | 36,000 | 30,000 | 36% | 3,000 |
 
-## Watch the numbers climb
+Three columns are computed from the other two:
 
-Walk a crude lysate through five steps and record total protein, total activity,
-and specific activity at each one. Both totals fall: you lose protein, and you lose
-some enzyme along the way. Losing some target is the price of enrichment. The
-number that must rise, every step, is specific activity, because each step strips
-contaminant faster than it sacrifices target.
+- **Specific activity** = total activity ÷ total protein.
+- **Yield** = total activity now ÷ total activity at the start: how much enzyme you still have.
+- **Fold-purification** = specific activity now ÷ specific activity at the start: how much purer the sample is.
+
+Work the salt cut by hand. It kept 90,000 of 100,000 units (90% of the enzyme) and 3,000 of 10,000 mg (30% of the protein). 0.90 ÷ 0.30 = 3, and specific activity went from 10 to 30. The ratio is exact, because specific activity is activity over protein.
+
+**Predict.** The affinity step kept about 55% of the activity it was given (36,000 of 66,000 units) and 2% of the protein (1.2 of 60 mg). Is that a good step?
+
+<details>
+<summary>Check your prediction</summary>
+
+It is the best step in the table. It lost almost half the enzyme, but 0.55 ÷ 0.02 ≈ 27: specific activity rose 27-fold, from 1,100 to 30,000. A step is judged by what it keeps of the target *compared with* what it keeps of everything else, not by how much it loses.
+
+</details>
+
+**Predict.** Can yield ever go up from one row to the next?
+
+<details>
+<summary>Check your prediction</summary>
+
+Not if the assay is honest and no step activates the enzyme or removes an inhibitor (Going deeper, "When the ledger lies"). Every step loses some enzyme, and the losses multiply: 0.90 × 0.90 × 0.81 × 0.55 ≈ 0.36, the 36% in the last row. The step folds (each row's specific activity over the row before) multiply too: 3 × 3 × 12.2 × 27.3 ≈ 3,000.
+
+</details>
+
+If 30,000 units/mg is pure enzyme, the homogenate at 10 units/mg was 1 part in 3,000: the opening's haystack.
 
 {/* ISLAND */}
 
 <PurificationSimulator />
 
-Run it and watch the table fill. Specific activity climbs from about 10 to 30,000
-units/mg, a three-thousandfold purification. Yield, meanwhile, slides from 100% to
-roughly a third. The gel tells the same story in pictures: lane one is crowded with
-contaminant bands, and by the affinity step one strong band stands essentially alone. That band is
-your protein, finally alone.
+Run the simulator to fill the table one step at a time. On its gel, lane one is crowded with bands, and by the affinity step one strong band stands nearly alone.
 
-## Reading the band: identity, sequence, mass
+## Enrich it: one property per row
 
-A pure band is not yet an answer. **SDS-PAGE** got you there by erasing every
-difference except mass: the detergent SDS coats the chain at roughly one molecule
-per two residues, giving every protein the same charge-to-mass ratio, so they sort
-by size alone and the small ones run fastest. **Isoelectric focusing** sorts by
-charge instead, letting proteins drift through a pH gradient until each stalls at the pH
-where its net charge is zero — its pI. Run focusing first, then SDS-PAGE at a right
-angle, and you get a **2D gel**: proteins become spots placed by both pI and
-mass. Compare a healthy proteome to a tumor's, and a spot that shifts or brightens
-is a candidate biomarker.
+Each row of that table was earned by sorting on one property. Step zero: break the cells open into a homogenate, then spin; what sinks is the pellet, and the liquid above it is the supernatant. **Differential centrifugation** uses force as a sieve. A gentle spin drops the heavy nuclei; crank it harder and mitochondria pellet; harder still and the smallest vesicles go down, leaving cytosol in the final supernatant. Each spin trades one mixture for two cleaner ones.
 
-When a protein has no enzymatic activity to assay — a hormone receptor, say — you
-reach for **antibodies**. An antibody-coated bead pulls its target out of a mixture
-(**immunoprecipitation**). Transfer an SDS-PAGE gel to a membrane, probe it with
-antibodies, and light up one band by chemiluminescence (the **western blot**),
-supporting its identity and estimating its size. Coat a plate instead and you have an **ELISA**,
-the workhorse of the clinic, with concentration read off a standard curve. The same
-antibody-sandwich logic, in a strip-based lateral-flow format, is the engine inside
-the pregnancy test and the COVID rapid test.
+<LessonFigure src="/figures/protein-purification-techniques/differential-centrifugation-series.webp" width={1200} height={573} alt="AI-generated illustration: four centrifuge tubes in a row, a cloudy homogenate and then three successive spins of increasing force, each leaving a pellet enriched in nuclei, mitochondria or small vesicles, with the supernatant carried on to the next tube and a clear cytosol supernatant in the last tube." caption="Sedimentation depends on size and density. After each spin the supernatant moves to a fresh tube and the pellet is set aside. The fractions are enriched, not pure." />
 
-<LessonFigure src="/figures/protein-purification-techniques/western-blot-three-steps.webp" width={1200} height={561} alt="AI-generated illustration: three panels showing a gel with lanes of bands, the gel pressed against a membrane that receives a copy of the bands, and the membrane probed by an antibody so that a single gold band stands out. The faded bands are simplified and not meant to be counted." caption="In a western blot, proteins separated by SDS-PAGE are transferred from the gel to a membrane and probed with antibodies, lighting up one band. A validated antibody supports identity, and the band's position against size markers estimates its size." />
+What centrifugation cannot finish, you finish with four properties, one at a time: the first by precipitation, the other three on **chromatography** columns.
 
-Identity is not sequence. To read the order of amino acids, **Edman degradation**
-clips off the N-terminal residue, identifies it, and repeats. But each cycle is
-only about 98% efficient, so after fifty rounds you are down near a third of your
-signal, and the method stalls past roughly fifty residues. The modern answer is
-**mass spectrometry**. MALDI-TOF flicks ionized peptides down a flight tube where
-the heavier ones arrive later, weighing them to a fraction of a dalton. Cut your
-protein with trypsin, weigh the pieces, and match the mass list against a database
-— a peptide mass fingerprint. Push further with tandem MS, fragmenting one peptide
-and reading sequence directly from the spacing between peaks, since each gap matches the mass of one amino acid. Frederick Sanger
-spent twelve years reading the 51 amino acids of insulin by hand; today mass
-spectrometry can identify a protein from its peptides in a single run.
+### Solubility: salting out
 
-## What each method actually answers
+Add ammonium sulfate and proteins begin to drop out of solution, but not all at once. Different proteins precipitate at different salt concentrations, so a carefully chosen cut keeps most of your enzyme and leaves many contaminants behind. A round of dialysis through a semi-permeable membrane then washes the salt back out, because the next column, ion exchange, needs low salt to bind the protein.
 
-Every method here answers a short list of questions about your protein. Is it
-present? How pure is it? Did the last step help? How much did you keep? Is it
-still intact? The purification table answers the first four at a glance: activity
-says the protein is there, specific activity tracks purity and whether each step
-helped, and yield says how much you kept. The gel answers the fifth, one band at
-the right size. Mass spectrometry and Edman degradation answer the question the
-table cannot: exactly which protein it is. They read it off one peptide mass or one residue at
-a time. Find it, enrich it, prove it. That is
-protein biochemistry, and the proving step that took Sanger twelve years is now fast.
+### Charge: ion exchange
+
+An ion-exchange column carries fixed charges on its beads, and opposite charges stick. The rule compares the buffer pH with the protein's **pI**, the pH at which its net charge is zero. At a pH below its pI, a protein is net positive; above its pI, it is net negative. Raise the salt or shift the pH and the bound protein lets go.
+
+The names are the trap. A resin with negative charges holds and swaps positive ions, cations, so it is a **cation exchanger**. A resin with positive charges is an **anion exchanger**. Name the resin by what it catches, not by its own charge.
+
+Suppose the enzyme has a pI of 5.0 and the column runs at pH 8.0. The buffer is above the pI, so the enzyme is net negative and sticks to a positive resin, an anion exchanger.
+
+**Predict.** Which resin would you use for the same enzyme at pH 4.0?
+
+<details>
+<summary>Check your prediction</summary>
+
+A cation exchanger. At pH 4.0 the buffer is below the pI of 5.0, so the enzyme is net positive and sticks to a negative resin, which catches cations.
+
+</details>
+
+<LessonFigure src="/figures/protein-purification-techniques/ion-exchange-anion-vs-cation.webp" width={1200} height={800} alt="AI-generated illustration: two columns of resin beads. At pH 8 positively charged beads, an anion exchanger, hold the enzyme, which carries negative charge. At pH 4 negatively charged beads, a cation exchanger, hold the same enzyme, now carrying positive charge." caption="Name the resin by what it catches. The same enzyme (pI 5.0) is net negative at pH 8.0 and sticks to an anion exchanger, but is net positive at pH 4.0 and sticks to a cation exchanger." />
+
+### Size: gel filtration
+
+Gel filtration runs backward from intuition. The column is packed with porous beads. A large protein cannot enter the pores, so it can use only the liquid between the beads, and less buffer washes it through: it **elutes** (comes off the column) first. A small protein also explores the liquid inside every bead, so it takes more buffer to come off and elutes last.
+
+### Binding: affinity
+
+Decorate the beads with something your protein binds tightly and selectively (a substrate analog, a cofactor, an antibody, a metal that grips a His-tag, a run of histidines added to the protein), and your target binds while everything else flows through. Then release it, often with a flood of free ligand or a competitor, sometimes with a change in pH. Affinity is usually the most selective step. Its limits: you need a ligand your protein binds, and capacity and cost restrict how much you can load.
+
+### Which step goes first?
+
+A property tells you which resin to choose; load and volume set the order. Early steps must handle large volumes and a lot of protein, as salting out and ion exchange can, and as affinity capture can when you have a tag or ligand and enough resin; a His-tag or a known ligand makes affinity capture a natural first step. Gel filtration resolves well only when the load is a small fraction of the column volume, so it usually comes late, polishing a small, concentrated sample. The table's numbers follow a classic textbook example, which runs gel filtration before affinity; its 12-fold gel-filtration step is generous, since size exclusion usually gives a few-fold. The simulator's order is one sensible route of several.
+
+The column chooser below runs one four-protein mixture through four columns, including hydrophobic interaction (HIC), which sorts proteins by how greasy their surfaces are. Switch columns and watch the elution order rearrange.
+
+<ChromatographyColumn />
+
+## Know when to stop
+
+Two signs, taken together, suggest the protein is pure: specific activity stops rising when you add another step, and a gel shows one band at the right size (or one per kind of subunit, in fixed proportion, for a protein built from different chains).
+
+The gel is a check, not a purification step: a small sample run on **SDS-PAGE**, which sorts chains by size (next section), is sacrificed; the rest of your prep is untouched. The band pattern is needed but not enough: two proteins of the same size run together, and a contaminant can sit below what the stain detects.
+
+**Predict.** You add a sixth step. Specific activity stays at 30,000 units/mg and the yield falls. What do you conclude?
+
+<details>
+<summary>Check your prediction</summary>
+
+Most likely the enzyme was already pure: the step kept the same fraction of activity as of protein, a ratio of 1, and cost enzyme for nothing. Or the column sorts on a property where the leftover contaminants look like your enzyme. The flat number cannot tell these apart; the gel can help.
+
+</details>
+
+## Prove it: three questions
+
+A pure protein still needs an identity. Ask three questions.
+
+**What size is it?** Use SDS-PAGE. The detergent SDS unfolds the chain and coats it at roughly one molecule per two residues, giving nearly every protein the same charge-to-mass ratio. Proteins then sort by size alone, the small ones running fastest, and you read the size against a ladder of marker proteins (proteins of known size run in a lane alongside). (Some proteins run at the wrong size; see Going deeper.)
+
+**Is it the protein I think it is?** One route uses antibodies, which are also how you track a protein with no reaction to assay, such as a hormone receptor. Transfer an SDS-PAGE gel to a membrane, probe it with antibodies, and light up one band with a light-producing reaction (chemiluminescence): the **western blot**.
+
+<LessonFigure src="/figures/protein-purification-techniques/western-blot-three-steps.webp" width={1200} height={676} alt="AI-generated illustration: three panels. A gel with three lanes (a grey size-marker ladder, a mixture of navy bands, and a purified sample with one band); the gel transferred to a membrane that carries the same bands at the same heights; the membrane probed with a Y-shaped antibody, all bands faded except the matching band in the mixture and sample lanes, which glow gold." caption="Gel, membrane, antibody: the three steps of a western blot. The membrane is an exact copy of the gel. A validated antibody supports identity, and the band's position against the size markers estimates its size." />
+
+The other route uses mass. Cut your protein with trypsin, weigh the pieces by **MALDI-TOF** mass spectrometry, and match the mass list against the computer-predicted digest of every protein in a database: a **peptide mass fingerprint**. MALDI-TOF sends ionized peptides down a flight tube where heavier ones arrive later (for ions of the same charge, which in MALDI is usually +1), weighing them to a fraction of a dalton. Few proteins give the same set of masses, so the fingerprint identifies a known protein without reading its sequence.
+
+**What is its sequence?** **Edman degradation** clips off the N-terminal residue, identifies it, and repeats. But each cycle is only about 98% efficient.
+
+**Predict.** After fifty cycles, roughly what fraction of the chains are still in step?
+
+<details>
+<summary>Check your prediction</summary>
+
+About a third: 0.98⁵⁰ ≈ 0.36. The losses multiply, just as yields do in the purification table. Signal from chains still in step falls, out-of-step background builds up, and the method stalls past roughly fifty residues. So long proteins are cut into overlapping peptides and read in pieces.
+
+</details>
+
+The modern answer is **tandem MS**. Fragment one peptide inside the mass spectrometer into a ladder of pieces, each one residue shorter than the next, and read its sequence from the spacing between peaks, since each gap matches the mass of one amino acid (with some blind spots, in Going deeper). Frederick Sanger spent twelve years reading the 51 amino acids of insulin by hand; today mass spectrometry can identify a protein from its peptides in a single run.
+
+## What each method answers
+
+The ledger says whether your protein is there, how pure it is, whether each step helped and how much you kept. The gel checks chain size and gives a first look at purity. Antibodies, masses and sequence say which protein it is.
+
+## Going deeper
+
+### The proteome in numbers
+
+A single human cell holds billions of protein molecules, drawn from only about ten thousand distinct species. Across the body, alternative splicing and post-translational modification expand the roughly 20,000 protein-coding genes into a far larger set of protein forms; estimates run into the millions, but no one has counted them.
+
+### When the ledger lies
+
+Specific activity reads as purity only while activity per milligram of enzyme stays constant. A step that inactivates some enzyme makes specific activity understate the enrichment. A step that removes an inhibitor or adds an activator can raise specific activity with no purification, and can raise total activity too, giving a "yield" above 100%. Either way, the ledger is reporting a change in activity per milligram of enzyme, not a change in purity.
+
+### Planning the order
+
+Purifications are often planned as capture, intermediate purification and polishing. Sort on a different property at each stage: after a charge step, the contaminants left are the ones whose charge resembles your enzyme's at that pH, so repeating the same charge step buys little (a charge step at another pH, or on the opposite resin, can still help), while a size step can still separate them (if size and charge are not linked among them). Each step should also leave the sample in a buffer the next can take: hydrophobic interaction suits a high-salt sample straight from an ammonium sulfate cut, while ion exchange needs low salt. **HPLC** (high-performance liquid chromatography) speeds any of these columns up: fine beads under high pressure, paid for with expensive plumbing.
+
+### Isoelectric focusing and 2D gels
+
+**Isoelectric focusing** sorts by pI: proteins drift through a pH gradient until each stalls where its net charge is zero. Run focusing first, then SDS-PAGE at a right angle, and you get a **2D gel**, with proteins as spots placed by both pI and mass. Compare a healthy proteome to a tumor's, and a spot that shifts or brightens is a candidate biomarker. A spot that moves to a more acidic pI at the same mass suggests a modification that adds negative charge, classically phosphorylation.
+
+### More antibody methods
+
+An antibody-coated bead pulls its target out of a mixture (**immunoprecipitation**). Coat a plate instead and you have an **ELISA**, the clinic's workhorse, with concentration read off a standard curve; in the classic HIV algorithm, a western blot confirmed a positive ELISA screen. The same antibody-sandwich logic in a lateral-flow strip runs the pregnancy test and the COVID rapid test.
+
+### When SDS-PAGE misleads
+
+The charge-to-mass ratio is nearly, not exactly, the same for every protein. The one-SDS-per-two-residues figure holds: about 1.4 g of SDS binds each gram of protein, which at 110 g/mol per residue and 288 g/mol for SDS is about 0.53 SDS per residue. Glycoproteins, very basic proteins and membrane proteins can run anomalously, and disulfide bonds must be reduced for each chain to run at its own size.
+
+### Inside the mass spectrometer
+
+MALDI embeds the sample in a matrix and hits it with a laser pulse; the matrix absorbs the energy and launches the ions into the flight tube. Tandem MS has well-known blind spots: leucine and isoleucine have identical mass (113.08 Da); lysine and glutamine differ by only 0.04 Da, which only high-resolution instruments separate; and some single residues weigh the same as pairs (asparagine and Gly-Gly, glutamine and Ala-Gly). So MS/MS alone cannot always tell them apart.
+
+### Edman's blind spot
+
+Edman degradation needs a free N-terminus. Many eukaryotic proteins, including most human ones, are acetylated at the N-terminus, which blocks Edman on the intact chain; internal peptides from a digest can still be read.

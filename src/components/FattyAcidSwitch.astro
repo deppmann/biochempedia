@@ -1,16 +1,16 @@
 ---
 /**
  * FattyAcidSwitch — the regulatory companion to the fatty-acid-synthesis map. One
- * molecule, malonyl-CoA, enforces that a cell never builds and burns fat at once:
- * it is the committed substrate of synthesis AND a direct inhibitor of CPT-1, the
- * gate into β-oxidation. Slide the cell's energy/hormonal state and watch malonyl-CoA
- * rise or fall, switching synthesis on while β-oxidation goes off, and vice versa.
+ * molecule, malonyl-CoA, tips a cell toward building or burning fat: ACC1's
+ * malonyl-CoA is the committed substrate of synthesis, and ACC2's (made on the
+ * mitochondrion) inhibits CPT-I, the gate into β-oxidation. Slide the cell's energy/hormonal state and watch malonyl-CoA
+ * rise or fall; the middle of the slider is a graded zone where both are partly on.
  * Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
 <figure class="fas2 card" data-fatswitch>
-  <figcaption class="fas2-head">Build or burn — never both at once<span class="fas2-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="fas2-head">Build or burn — malonyl CoA tips the balance<span class="fas2-chip">⚙ original · interactive</span></figcaption>
 
   <div class="fas2-presets" role="group" aria-label="State">
     <button type="button" data-preset="fed" aria-pressed="true">Fed (insulin high)</button>
@@ -25,12 +25,12 @@
 
   <div class="fas2-states" role="status">
     <div class="fas2-state is-on" data-s-syn><span class="fas2-s-name">Fatty acid synthesis (cytosol)</span><span class="fas2-s-v" data-syn>ON</span></div>
-    <div class="fas2-state is-off" data-s-cpt><span class="fas2-s-name">CPT-1 gate (fat into mitochondrion)</span><span class="fas2-s-v" data-cpt>blocked by malonyl-CoA</span></div>
+    <div class="fas2-state is-off" data-s-cpt><span class="fas2-s-name">CPT-I gate (fat into mitochondrion)</span><span class="fas2-s-v" data-cpt>blocked by malonyl-CoA</span></div>
     <div class="fas2-state is-off" data-s-ox><span class="fas2-s-name">β-oxidation (fat burning)</span><span class="fas2-s-v" data-ox>OFF</span></div>
   </div>
-  <p class="fas2-why" data-why>Fed state: insulin activates ACC, malonyl-CoA climbs, fatty acid synthesis runs, and CPT-1 is blocked — the cell stockpiles fat and will not burn it.</p>
+  <p class="fas2-why" data-why>Fed state: insulin activates ACC, malonyl-CoA climbs, fatty acid synthesis runs, and CPT-I is blocked — the cell stockpiles fat and burns little of it.</p>
 
-  <p class="fas2-foot">ACC is the hinge. Insulin activates it (build); glucagon and the low-energy sensor AMPK shut it off (burn). Because its product malonyl-CoA both feeds synthesis and blocks the burn gate, one signal flips the whole cell between storing and spending fat.</p>
+  <p class="fas2-foot">ACC is the hinge. Insulin activates it (build); glucagon and the low-energy sensor AMPK shut it off (burn). Because ACC's product is both the building block (ACC1) and the CPT-I signal (ACC2), one enzyme tilts the cell between storing and spending fat.</p>
 </figure>
 
 <script>
@@ -49,17 +49,29 @@
       const m = parseInt(malIn.value, 10);
       // the switch sits at 50: every label on the building side says "high", every label on the burning side "low"
       const building = m >= 50;
+      // graded middle (35–64): neither pathway is fully on or off
+      const mid = m >= 35 && m < 65;
       const level = building ? (m >= 75 ? 'high' : 'moderately high') : (m < 25 ? 'low' : 'moderately low');
       malOut.textContent = level;
       malIn.setAttribute('aria-valuetext', `malonyl-CoA ${level}: ${building ? 'building fat' : 'burning fat'}`);
-      syn.textContent = building ? 'ON' : 'off';
-      cpt.textContent = building ? 'blocked by malonyl-CoA' : 'open';
-      ox.textContent = building ? 'OFF' : 'ON';
-      setState(sSyn, building); setState(sCpt, !building); setState(sOx, !building);
+      if (mid) {
+        syn.textContent = building ? 'running, but slowing' : 'slowing';
+        cpt.textContent = building ? 'partly blocked' : 'partly open';
+        ox.textContent = building ? 'low, but rising' : 'rising';
+        [sSyn, sCpt, sOx].forEach((e) => { e.classList.remove('is-on', 'is-off'); e.classList.add('is-mid'); });
+      } else {
+        syn.textContent = building ? 'ON' : 'off';
+        cpt.textContent = building ? 'blocked by malonyl-CoA' : 'open';
+        ox.textContent = building ? 'OFF' : 'ON';
+        [sSyn, sCpt, sOx].forEach((e) => e.classList.remove('is-mid'));
+        setState(sSyn, building); setState(sCpt, !building); setState(sOx, !building);
+      }
       if (presetWhy) { why.textContent = presetWhy; return; }
-      why.textContent = building
-        ? 'High malonyl-CoA: synthesis runs, and that same malonyl-CoA plugs CPT-1, so fatty acids cannot enter the mitochondrion to be burned. The cell is building and storing fat.'
-        : 'Low malonyl-CoA: synthesis stops and CPT-1 opens, so fatty acids stream into the mitochondrion for β-oxidation. The cell is burning fat. One molecule, opposite states — never both at once.';
+      why.textContent = mid
+        ? 'Middle malonyl-CoA: synthesis slows and CPT-I is only partly blocked, so some fat is built while some is burned. The balance tips as ACC activity moves.'
+        : building
+        ? "High malonyl-CoA: ACC1's malonyl-CoA feeds synthesis, and ACC2's malonyl-CoA on the mitochondrion blocks CPT-I, so long-chain fats are kept out of the mitochondrion. The cell is mostly building and storing fat."
+        : 'Low malonyl-CoA: synthesis slows for lack of its building block and CPT-I opens, so fatty acids enter the mitochondrion for β-oxidation. The cell is mostly burning fat.';
     }
     const presets = root.querySelectorAll<HTMLButtonElement>('[data-preset]');
     // dragging the slider leaves the preset scenario, so neither preset button stays pressed
@@ -70,8 +82,8 @@
         const fed = b.getAttribute('data-preset') === 'fed';
         malIn.value = fed ? '85' : '10';
         render(fed
-          ? 'Fed state: insulin activates ACC, malonyl-CoA climbs, fatty acid synthesis runs, and CPT-1 is blocked — the cell stockpiles fat and will not burn it.'
-          : 'Fasting or exercise: glucagon and AMPK shut ACC off, malonyl-CoA falls, CPT-1 opens, and β-oxidation burns fat for fuel — while synthesis is silent.');
+          ? 'Fed state: insulin activates ACC, malonyl-CoA climbs, fatty acid synthesis runs, and CPT-I is blocked — the cell stockpiles fat and burns little of it.'
+          : 'Fasting or exercise: glucagon and AMPK shut ACC off, malonyl-CoA falls, CPT-I opens, and β-oxidation burns fat for fuel — while synthesis winds down.');
       }));
     render(root.querySelector<HTMLElement>('[data-why]')!.textContent || undefined);
   });
@@ -99,6 +111,7 @@
   .fas2-state { border: 1px solid var(--ddp-color-line); border-left: 3px solid var(--ddp-color-muted); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
   .fas2-state.is-on { border-left-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 10%, #fff); }
   .fas2-state.is-off { opacity: 0.6; }
+  .fas2-state.is-mid { border-left-color: var(--ddp-color-secondary); opacity: 0.85; }
   .fas2-s-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .fas2-s-v { font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
   .fas2-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }

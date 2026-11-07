@@ -16,7 +16,7 @@
     <span class="cdf-chip">tap a molecule, then tap its step</span>
   </figcaption>
 
-  <div class="cdf-banner" data-banner hidden>✓ Flow complete — <b>DNA → mRNA → protein</b>, nucleus to cytoplasm.</div>
+  <div class="cdf-banner" data-banner hidden>✓ Flow complete — <b>DNA → mRNA → protein</b>, made in one room and read in another.</div>
 
   <div class="cdf-zones">
     <div class="cdf-zone">
@@ -34,7 +34,7 @@
         <div class="cdf-st-note" data-note hidden>Transcription: DNA → mRNA</div>
       </div>
     </div>
-    <div class="cdf-arrow" aria-hidden="true"><span class="cdf-arrow-glyph">→</span><span class="cdf-arrow-lbl">mRNA leaves <br />the nucleus</span></div>
+    <div class="cdf-arrow" aria-hidden="true"><span class="cdf-arrow-glyph">→</span><span class="cdf-arrow-lbl">spliced and checked, <br />then out through nuclear pores</span></div>
     <div class="cdf-zone">
       <div class="cdf-zone-label">Cytoplasm</div>
       <div class="cdf-station" data-station="s3" data-answer="ribosome" tabindex="0" role="button" aria-label="Translation station: what reads mRNA and makes protein?">
@@ -67,7 +67,7 @@
   const HINTS: Record<string, string> = {
     'helicase': 'Helicase unzips the double helix — a helper in replication, but not the enzyme that copies it.',
     'trna': 'tRNA delivers amino acids to the ribosome — a helper in translation, but not the machine that runs the step.',
-    'lipid': 'A lipid bilayer is membrane — the boundary around the nucleus and the cell. It copies and reads nothing.',
+    'lipid': 'A lipid bilayer copies and reads nothing, but the nuclear envelope built from it is why steps 2 and 3 happen in different rooms.',
   };
   // A real machine dropped on the wrong step: say what it builds, and let the student find the match.
   const WRONG_STEP: Record<string, string> = {
@@ -114,7 +114,7 @@
         tok.disabled = true; tok.classList.add('cdf-used');
         feedback.textContent = `✓ Right: ${NAMES[selected]} carries out ${station.querySelector('.cdf-st-title')!.textContent!.replace(/^\d+ · /, '').toLowerCase()} (${note.textContent!.replace(/^[^:]+: /, '')}).`;
         clearSel();
-        if (filled.size === 3) { banner.hidden = false; feedback.textContent = 'All three steps placed. That is the central dogma, nucleus to cytoplasm.'; }
+        if (filled.size === 3) { banner.hidden = false; feedback.textContent = 'All three steps placed. The nuclear wall separates making the message from reading it, so the message can be edited and checked before a ribosome sees it. In a bacterium, with no wall, ribosomes start on mRNA still being made.'; }
       } else {
         station.classList.remove('cdf-shake');
         void station.offsetWidth; // restart animation

@@ -10,8 +10,11 @@
  * gluconeogenesis…) swaps that array and reuses the component unchanged. Glycolysis
  * is the first instance.
  *
- * Phases follow the lesson exactly: Investment (1–3), Cleavage (4–5), Payoff (6–10).
- * From step 6 on, every yield is doubled (two trioses per glucose).
+ * Phases follow the lesson exactly: Investment (1–5), Payoff (6–10).
+ * From step 6 on, every yield is doubled (two trioses per glucose). The tally also counts
+ * the new phosphate captured from inorganic phosphate at step 6, so a finished map shows
+ * that net ATP equals that new phosphate. Each step lists ΔG°′ and ΔG in a red blood
+ * cell (the lesson's table, Lehninger values); the locked steps are the far-downhill ones.
  */
 interface Step {
   n: number;
@@ -20,8 +23,11 @@ interface Step {
   prod: string;
   atp: number;   // per-triose ATP delta (negative = spent)
   nadh: number;  // per-triose NADH produced
-  phase: 'investment' | 'cleavage' | 'payoff';
-  regulated?: boolean;   // irreversible + a control point → amber + lock
+  pi?: number;   // per-triose new phosphate captured from inorganic phosphate (step 6)
+  phase: 'investment' | 'payoff';
+  dgStd: string;   // ΔG°′, kJ/mol (lesson table)
+  dgCell: string;  // ΔG in a red blood cell, with units (lesson table)
+  regulated?: boolean;   // far downhill in the cell + a main control point → amber + lock
   doubled?: boolean;     // steps 6–10: ×2 per glucose
   note: string;
   regNote?: string;
@@ -29,36 +35,35 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { n: 1, enzyme: 'Hexokinase', sub: 'Glucose', prod: 'Glucose-6-phosphate', atp: -1, nadh: 0, phase: 'investment', regulated: true,
+  { n: 1, enzyme: 'Hexokinase', sub: 'Glucose', prod: 'Glucose-6-phosphate', atp: -1, nadh: 0, phase: 'investment', dgStd: '−16.7', dgCell: '−33.4 kJ/mol', regulated: true,
     note: 'Spends one ATP to phosphorylate glucose. Induced fit closes the enzyme around the sugar, excluding water so ATP isn’t wasted on hydrolysis — and the charged product can no longer cross the membrane, trapping glucose inside the cell.',
     regNote: 'Inhibited by its own product, glucose-6-phosphate.' },
-  { n: 2, enzyme: 'Phosphoglucose isomerase', sub: 'Glucose-6-phosphate', prod: 'Fructose-6-phosphate', atp: 0, nadh: 0, phase: 'investment',
+  { n: 2, enzyme: 'Phosphoglucose isomerase', sub: 'Glucose-6-phosphate', prod: 'Fructose-6-phosphate', atp: 0, nadh: 0, phase: 'investment', dgStd: '+1.7', dgCell: '−2.5 kJ/mol',
     note: 'Aldose → ketose: a quiet repositioning of the carbonyl so the six-carbon sugar can later be split cleanly down the middle.' },
-  { n: 3, enzyme: 'Phosphofructokinase-1', sub: 'Fructose-6-phosphate', prod: 'Fructose-1,6-bisphosphate', atp: -1, nadh: 0, phase: 'investment', regulated: true,
+  { n: 3, enzyme: 'Phosphofructokinase-1', sub: 'Fructose-6-phosphate', prod: 'Fructose-1,6-bisphosphate', atp: -1, nadh: 0, phase: 'investment', dgStd: '−14.2', dgCell: '−22.2 kJ/mol', regulated: true,
     note: 'The committed step. Once fructose-1,6-bisphosphate forms, the molecule is locked into glycolysis. The second and last ATP is spent here.',
     regNote: 'Inhibited by ATP and citrate; activated by AMP and fructose-2,6-bisphosphate. This is the master throttle of glycolytic flux.' },
-  { n: 4, enzyme: 'Aldolase', sub: 'Fructose-1,6-bisphosphate', prod: 'DHAP + glyceraldehyde-3-phosphate', atp: 0, nadh: 0, phase: 'cleavage',
+  { n: 4, enzyme: 'Aldolase', sub: 'Fructose-1,6-bisphosphate', prod: 'DHAP + glyceraldehyde-3-phosphate', atp: 0, nadh: 0, phase: 'investment', dgStd: '+23.8', dgCell: '−1.3 kJ/mol',
     note: 'Splits the six-carbon sugar into two three-carbon halves — the symmetry break the whole pathway is built around.' },
-  { n: 5, enzyme: 'Triose phosphate isomerase', sub: 'DHAP', prod: 'Glyceraldehyde-3-phosphate', atp: 0, nadh: 0, phase: 'cleavage',
+  { n: 5, enzyme: 'Triose phosphate isomerase', sub: 'DHAP', prod: 'Glyceraldehyde-3-phosphate', atp: 0, nadh: 0, phase: 'investment', dgStd: '+7.5', dgCell: '+2.5 kJ/mol',
     note: 'Converts DHAP into a second glyceraldehyde-3-phosphate, so both three-carbon halves run the payoff phase. From here, everything counts twice.',
     clinical: 'TPI deficiency: when this enzyme fails, DHAP piles up and forms toxic methylglyoxal. It is the most severe glycolytic enzymopathy — hemolytic anemia plus progressive neurodegeneration.' },
-  { n: 6, enzyme: 'GAPDH', sub: 'Glyceraldehyde-3-phosphate', prod: '1,3-bisphosphoglycerate', atp: 0, nadh: 1, phase: 'payoff', doubled: true,
-    note: 'The only oxidation step. A thioester on an active-site cysteine couples oxidation to phosphate capture — using inorganic phosphate, not ATP — and banks the energy as NADH.' },
-  { n: 7, enzyme: 'Phosphoglycerate kinase', sub: '1,3-bisphosphoglycerate', prod: '3-phosphoglycerate', atp: 1, nadh: 0, phase: 'payoff', doubled: true,
-    note: 'The first ATP is made here by substrate-level phosphorylation: the high-energy phosphate goes straight from substrate to ADP. The ledger is now back to break-even.' },
-  { n: 8, enzyme: 'Phosphoglycerate mutase', sub: '3-phosphoglycerate', prod: '2-phosphoglycerate', atp: 0, nadh: 0, phase: 'payoff', doubled: true,
-    note: 'Moves the phosphate from the third carbon to the second, setting up the next step’s dehydration.' },
-  { n: 9, enzyme: 'Enolase', sub: '2-phosphoglycerate', prod: 'Phosphoenolpyruvate', atp: 0, nadh: 0, phase: 'payoff', doubled: true,
-    note: 'A dehydration traps the molecule as an unstable enol, loading phosphoenolpyruvate with the highest phosphoryl-transfer potential in the whole pathway.' },
-  { n: 10, enzyme: 'Pyruvate kinase', sub: 'Phosphoenolpyruvate', prod: 'Pyruvate', atp: 1, nadh: 0, phase: 'payoff', doubled: true, regulated: true,
+  { n: 6, enzyme: 'GAPDH', sub: 'Glyceraldehyde-3-phosphate', prod: '1,3-bisphosphoglycerate', atp: 0, nadh: 1, pi: 1, phase: 'payoff', dgStd: '+6.3', dgCell: '−1.3 kJ/mol (steps 6 and 7 together)', doubled: true,
+    note: 'The only oxidation. An active-site cysteine catches the aldehyde, so the oxidation leaves an activated thioester; inorganic phosphate (Pi, not ATP) then attacks it. Result: a new phosphate on carbon 1 at −49.3 kJ/mol, above ATP’s −30.5. The electrons go to NAD⁺ → NADH.' },
+  { n: 7, enzyme: 'Phosphoglycerate kinase', sub: '1,3-bisphosphoglycerate', prod: '3-phosphoglycerate', atp: 1, nadh: 0, phase: 'payoff', dgStd: '−18.5', dgCell: 'counted with step 6', doubled: true,
+    note: 'The first ATP is made here by substrate-level phosphorylation: the high-energy phosphate goes straight from substrate to ADP. The ledger is now back to break-even. This cashes the phosphate built at step 6.' },
+  { n: 8, enzyme: 'Phosphoglycerate mutase', sub: '3-phosphoglycerate', prod: '2-phosphoglycerate', atp: 0, nadh: 0, phase: 'payoff', dgStd: '+4.4', dgCell: '+0.8 kJ/mol', doubled: true,
+    note: 'The carbon-3 phosphate is still below ATP on the ladder. Moving it to carbon 2 sets up the step that raises it.' },
+  { n: 9, enzyme: 'Enolase', sub: '2-phosphoglycerate', prod: 'Phosphoenolpyruvate', atp: 0, nadh: 0, phase: 'payoff', dgStd: '+7.5', dgCell: '−3.3 kJ/mol', doubled: true,
+    note: 'Removing water barely changes the free energy, but leaves PEP’s phosphate at the top of the ladder (−61.9): once it leaves, enolpyruvate snaps into stable pyruvate.' },
+  { n: 10, enzyme: 'Pyruvate kinase', sub: 'Phosphoenolpyruvate', prod: 'Pyruvate', atp: 1, nadh: 0, phase: 'payoff', dgStd: '−31.4', dgCell: '−16.7 kJ/mol', doubled: true, regulated: true,
     note: 'Phosphoenolpyruvate hands its phosphate to ADP — the second substrate-level ATP — and the pathway ends at pyruvate.',
-    regNote: 'Activated by fructose-1,6-bisphosphate (feedforward); inhibited by ATP and alanine; the liver isoform is switched off by PKA phosphorylation during fasting.' },
+    regNote: 'Liver and red-cell forms: activated ahead of time (feed-forward) by fructose-1,6-bisphosphate from step 3 and inhibited by ATP and alanine; the main muscle form lacks the feed-forward control. In liver, glucagon switches it off via PKA phosphorylation.' },
 ];
 
 const PHASES = [
-  { key: 'investment', label: 'Investment phase', steps: 'steps 1–3 · spend 2 ATP' },
-  { key: 'cleavage', label: 'Cleavage', steps: 'steps 4–5 · split into two trioses' },
-  { key: 'payoff', label: 'Payoff phase', steps: 'steps 6–10 · ×2, earn 4 ATP + 2 NADH' },
+  { key: 'investment', label: 'Investment', steps: 'steps 1–5 · trap, reshape, commit, split · spend 2 ATP' },
+  { key: 'payoff', label: 'Payoff', steps: 'steps 6–10 · build a phosphate above ATP, then cash it · ×2' },
 ] as const;
 
 const badge = (s: Step) => {
@@ -79,26 +84,29 @@ const badge = (s: Step) => {
     <span><em data-t="invested">0</em> ATP invested</span>
     <span><em data-t="produced">0</em> ATP made</span>
     <span><em data-t="nadh">0</em> NADH</span>
+    <span><em data-t="pi">0</em> new phosphate captured</span>
     <span class="pw-net">Net <em data-t="net">0</em> ATP</span>
   </div>
-  <p class="pw-key"><span><span aria-hidden="true">🔒</span> irreversible, regulated step</span><span><b>×2</b> counts twice: two trioses per glucose</span></p>
+  <p class="pw-rule" data-rule hidden>Net ATP (+2) = new phosphates captured at step 6 (2).</p>
+  <p class="pw-key"><span><span aria-hidden="true">🔒</span> far downhill in the cell: a main control point</span><span><b>×2</b> counts twice: two trioses per glucose</span></p>
 
   <div class="pw-steps">
     {PHASES.map((ph) => (
       <div class="pw-phase" data-phase={ph.key}>
         <p class="pw-phase-head orient-pad-left"><span>{ph.label}</span> {ph.steps}</p>
         {STEPS.filter((s) => s.phase === ph.key).map((s) => (
-          <div class={`pw-step${s.regulated ? ' is-reg' : ''}`} data-step={s.n} data-atp={s.atp} data-nadh={s.nadh} data-doubled={s.doubled ? '1' : '0'}>
+          <div class={`pw-step${s.regulated ? ' is-reg' : ''}`} data-step={s.n} data-atp={s.atp} data-nadh={s.nadh} data-pi={s.pi ?? 0} data-doubled={s.doubled ? '1' : '0'}>
             <button type="button" class="pw-step-head" aria-expanded="false">
               <span class="pw-num">{s.n}</span>
               <span class="pw-main">
-                <span class="pw-enzyme">{s.enzyme}{s.regulated && <span class="pw-lock" title="Regulated, irreversible step" aria-label="regulated step">🔒</span>}</span>
+                <span class="pw-enzyme">{s.enzyme}{s.regulated && <span class="pw-lock" title="Far downhill in the cell: a main control point" aria-label="main control point">🔒</span>}</span>
                 <span class="pw-rxn">{s.sub} → {s.prod}</span>
               </span>
               {badge(s) && <span class="pw-badge">{badge(s)}{s.doubled && <i> ×2</i>}</span>}
             </button>
             <div class="pw-body" hidden>
               <p>{s.note}</p>
+              <p class="pw-dg">ΔG°′ {s.dgStd} kJ/mol · ΔG in red cell {s.dgCell}</p>
               {s.regNote && <p class="pw-reg"><strong>Regulation.</strong> {s.regNote}</p>}
               {s.clinical && <p class="pw-clin"><strong>Clinical.</strong> {s.clinical}</p>}
             </div>
@@ -122,12 +130,14 @@ const badge = (s: Step) => {
       produced: tally.querySelector<HTMLElement>('[data-t="produced"]')!,
       nadh: tally.querySelector<HTMLElement>('[data-t="nadh"]')!,
       net: tally.querySelector<HTMLElement>('[data-t="net"]')!,
+      pi: tally.querySelector<HTMLElement>('[data-t="pi"]')!,
     };
+    const rule = root.querySelector<HTMLElement>('[data-rule]')!;
     const steps = Array.from(root.querySelectorAll<HTMLElement>('.pw-step'));
     const visited = new Set<string>();
 
     function recompute() {
-      let invested = 0, produced = 0, nadh = 0;
+      let invested = 0, produced = 0, nadh = 0, pi = 0;
       steps.forEach((step) => {
         const n = step.getAttribute('data-step')!;
         if (!visited.has(n)) return;
@@ -137,10 +147,13 @@ const badge = (s: Step) => {
         if (atp < 0) invested += -atp * mult;
         if (atp > 0) produced += atp * mult;
         nadh += nd * mult;
+        pi += parseInt(step.getAttribute('data-pi') || '0', 10) * mult;
       });
       out.invested.textContent = String(invested);
       out.produced.textContent = String(produced);
       out.nadh.textContent = String(nadh);
+      out.pi.textContent = String(pi);
+      rule.hidden = visited.size < steps.length;
       const net = produced - invested;
       out.net.textContent = (net > 0 ? '+' : '') + net;
       tally.classList.toggle('is-positive', net > 0);
@@ -197,6 +210,7 @@ const badge = (s: Step) => {
   .pw-tally em { font-style: normal; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
   .pw-net { margin-left: auto; }
   .pw-tally.is-positive .pw-net em { color: var(--ddp-color-verified); }
+  .pw-rule { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-verified); }
   .pw-key { display: flex; flex-wrap: wrap; gap: 0.2rem var(--ddp-space-4); margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .pw-key b { font-family: var(--ddp-font-mono); color: var(--ddp-color-secondary-ink); }
 
@@ -235,6 +249,7 @@ const badge = (s: Step) => {
   }
   .pw-body { padding: 0 var(--ddp-space-3) var(--ddp-space-3) calc(26px + var(--ddp-space-3) + var(--ddp-space-3)); }
   .pw-body p { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .pw-body p.pw-dg { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .pw-reg { color: var(--ddp-color-ink-soft); }
   .pw-clin { background: var(--ddp-color-accent-soft); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); }
 

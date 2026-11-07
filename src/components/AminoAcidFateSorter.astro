@@ -10,7 +10,7 @@
 ---
 
 <figure class="afs card" data-aafate>
-  <figcaption class="afs-head">Where does the carbon skeleton go?<span class="afs-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="afs-head">Split by atom: where does the carbon go?<span class="afs-chip">⚙ original · interactive</span></figcaption>
 
   <div class="afs-filters" role="group" aria-label="Catabolic fate">
     <button type="button" data-fate="all" aria-pressed="true">All 20</button>
@@ -22,33 +22,34 @@
   <div class="afs-grid" data-grid></div>
 
   <p class="afs-rule" data-rule role="status"></p>
-  <p class="afs-foot">The split comes down to one irreversible reaction: pyruvate dehydrogenase. A skeleton that enters as pyruvate or a TCA intermediate can be pumped back up to glucose, so it is glucogenic. A skeleton that enters as acetyl-CoA is stuck — animals have no way to turn acetyl-CoA into net glucose — so it can only become ketone bodies or fat. That is why, in prolonged starvation, your glucogenic amino acids keep your blood sugar up while the ketogenic ones feed the ketones your brain learns to burn.</p>
+  <p class="afs-foot">Only five doors give net glucose, because each can become oxaloacetate. Acetyl-CoA cannot: pyruvate dehydrogenase is irreversible, and each turn of the citric acid cycle takes in two carbons and gives off two as CO₂, so it never makes extra oxaloacetate. Acetoacetyl-CoA is two acetyl units, so the same count applies. That is why leucine and lysine can feed ketone bodies or fat but never net glucose.</p>
 </figure>
 
 <script>
-  type AA = { code: string; name: string; fate: string; entry: string; note: string };
+  type AA = { code: string; name: string; fate: string; entry: string; note: string; nitrogen?: string };
+  const N_DEFAULT = 'Nitrogen: transaminated onto α-ketoglutarate → glutamate → urea.';
   const G = 'gluco', K = 'keto', B = 'both';
   const AAS: AA[] = [
     { code: 'Ala', name: 'Alanine', fate: G, entry: 'pyruvate', note: 'Transaminates directly to pyruvate — the simplest glucogenic case, and the carrier of muscle nitrogen to the liver in the glucose–alanine cycle.' },
     { code: 'Gly', name: 'Glycine', fate: G, entry: 'pyruvate', note: 'Converted to serine, then to pyruvate. Glucogenic.' },
     { code: 'Ser', name: 'Serine', fate: G, entry: 'pyruvate', note: 'Deaminated to pyruvate. Glucogenic.' },
     { code: 'Cys', name: 'Cysteine', fate: G, entry: 'pyruvate', note: 'Loses its sulfur and enters as pyruvate. Glucogenic.' },
-    { code: 'Thr', name: 'Threonine', fate: B, entry: 'succinyl-CoA + acetyl-CoA', note: 'Splits: part of the skeleton is glucogenic (succinyl-CoA), part is ketogenic (acetyl-CoA). Both.' },
-    { code: 'Trp', name: 'Tryptophan', fate: B, entry: 'pyruvate (via Ala) + acetyl-CoA', note: 'The largest residue is split — a glucogenic alanine/pyruvate piece and a ketogenic acetyl-CoA piece. Both.' },
+    { code: 'Thr', name: 'Threonine', fate: B, entry: 'succinyl-CoA + acetyl-CoA', note: 'Splits: part of the skeleton is glucogenic (succinyl-CoA), part is ketogenic (acetyl-CoA). Both. In adult humans the acetyl-CoA route is minor; most goes to succinyl-CoA.', nitrogen: 'Nitrogen: bypasses transamination (removed by its own route), still ends in urea.' },
+    { code: 'Trp', name: 'Tryptophan', fate: B, entry: 'pyruvate (via Ala) + acetyl-CoA + acetoacetyl-CoA', note: 'The largest residue is split — a glucogenic alanine/pyruvate piece and ketogenic acetyl-CoA and acetoacetyl-CoA pieces. Both.' },
     { code: 'Val', name: 'Valine', fate: G, entry: 'succinyl-CoA', note: 'A branched-chain amino acid that enters as succinyl-CoA. Glucogenic.' },
     { code: 'Met', name: 'Methionine', fate: G, entry: 'succinyl-CoA', note: 'Enters as succinyl-CoA after donating methyl groups. Glucogenic.' },
     { code: 'Ile', name: 'Isoleucine', fate: B, entry: 'succinyl-CoA + acetyl-CoA', note: 'A branched-chain amino acid split between a glucogenic (succinyl-CoA) and ketogenic (acetyl-CoA) end. Both.' },
-    { code: 'Asp', name: 'Aspartate', fate: G, entry: 'oxaloacetate', note: 'One transamination from oxaloacetate, a TCA intermediate. Glucogenic.' },
-    { code: 'Asn', name: 'Asparagine', fate: G, entry: 'oxaloacetate', note: 'Hydrolyzed to aspartate, then to oxaloacetate. Glucogenic.' },
+    { code: 'Asp', name: 'Aspartate', fate: G, entry: 'oxaloacetate; fumarate via urea cycle', note: 'One transamination from oxaloacetate, a TCA intermediate. Glucogenic. When aspartate gives its nitrogen to urea (step 3), its four carbons leave as fumarate.' },
+    { code: 'Asn', name: 'Asparagine', fate: G, entry: 'oxaloacetate', note: 'Hydrolyzed to aspartate, then to oxaloacetate. Glucogenic.', nitrogen: 'Nitrogen: amide nitrogen freed as ammonium by asparaginase; amino nitrogen via glutamate.' },
     { code: 'Glu', name: 'Glutamate', fate: G, entry: 'α-ketoglutarate', note: 'The hub of nitrogen handling; its skeleton is α-ketoglutarate. Glucogenic.' },
-    { code: 'Gln', name: 'Glutamine', fate: G, entry: 'α-ketoglutarate', note: 'Deamidated to glutamate, then α-ketoglutarate. Glucogenic.' },
+    { code: 'Gln', name: 'Glutamine', fate: G, entry: 'α-ketoglutarate', note: 'Deamidated to glutamate, then α-ketoglutarate. Glucogenic.', nitrogen: 'Nitrogen: amide nitrogen freed as ammonium by glutaminase; amino nitrogen via glutamate.' },
     { code: 'Pro', name: 'Proline', fate: G, entry: 'α-ketoglutarate', note: 'Oxidized to glutamate, then α-ketoglutarate. Glucogenic.' },
     { code: 'Arg', name: 'Arginine', fate: G, entry: 'α-ketoglutarate', note: 'Funnels through glutamate to α-ketoglutarate. Glucogenic.' },
     { code: 'His', name: 'Histidine', fate: G, entry: 'α-ketoglutarate', note: 'Converted to glutamate, then α-ketoglutarate. Glucogenic.' },
-    { code: 'Phe', name: 'Phenylalanine', fate: B, entry: 'fumarate + acetoacetate', note: 'Hydroxylated to tyrosine, then split into glucogenic fumarate and ketogenic acetoacetate. Both. (The blocked first step causes PKU.)' },
-    { code: 'Tyr', name: 'Tyrosine', fate: B, entry: 'fumarate + acetoacetate', note: 'Degraded to glucogenic fumarate and ketogenic acetoacetate. Both.' },
-    { code: 'Leu', name: 'Leucine', fate: K, entry: 'acetyl-CoA + acetoacetate', note: 'One of only two purely ketogenic amino acids — its entire skeleton becomes acetyl-CoA/acetoacetate and can never be glucose.' },
-    { code: 'Lys', name: 'Lysine', fate: K, entry: 'acetoacetyl-CoA', note: 'The other purely ketogenic amino acid. Its carbons can only become ketone bodies or fat.' },
+    { code: 'Phe', name: 'Phenylalanine', fate: B, entry: 'fumarate + acetoacetyl-CoA', note: 'Hydroxylated to tyrosine, then split into glucogenic fumarate and ketogenic acetoacetyl-CoA. Both. (The blocked first step causes PKU.)' },
+    { code: 'Tyr', name: 'Tyrosine', fate: B, entry: 'fumarate + acetoacetyl-CoA', note: 'Degraded to glucogenic fumarate and ketogenic acetoacetyl-CoA. Both.' },
+    { code: 'Leu', name: 'Leucine', fate: K, entry: 'acetyl-CoA + acetoacetyl-CoA', note: 'One of only two purely ketogenic amino acids — its entire skeleton becomes acetyl-CoA and acetoacetyl-CoA and can never be net glucose.' },
+    { code: 'Lys', name: 'Lysine', fate: K, entry: 'acetoacetyl-CoA', note: 'The other purely ketogenic amino acid. Its carbons can only become ketone bodies or fat.', nitrogen: 'Nitrogen: bypasses transamination (removed by its own route), still ends in urea.' },
   ];
   // stripe/fill colors, plus darker text inks so the gold and orange codes clear WCAG AA on white
   const COLOR: Record<string, string> = { gluco: '#0e7c86', keto: '#e57200', both: '#D4A843' };
@@ -56,7 +57,7 @@
   const FATE_WORD: Record<string, string> = { gluco: 'glucogenic', keto: 'purely ketogenic', both: 'both glucogenic and ketogenic' };
   const RULE: Record<string, string> = {
     all: 'Each color is a catabolic fate — teal glucogenic, orange ketogenic, gold both. Under each code is the metabolite its carbon skeleton becomes. Click any residue for the story behind it.',
-    gluco: 'Glucogenic skeletons enter as pyruvate, α-ketoglutarate, succinyl-CoA, fumarate, or oxaloacetate — all of which gluconeogenesis can pull back up to glucose. Eighteen of the twenty are at least partly glucogenic: the thirteen teal ones fully, the gold five in part.',
+    gluco: 'Glucogenic skeletons enter as pyruvate, α-ketoglutarate, succinyl-CoA, fumarate, or oxaloacetate — each of which can become oxaloacetate, the starting point for glucose. Eighteen of the twenty are at least partly glucogenic: the thirteen teal ones fully, the gold five in part.',
     keto: 'Ketogenic skeletons enter as acetyl-CoA, acetoacetyl-CoA, or acetoacetate, which animals cannot convert to net glucose, so these carbons become ketone bodies or fat. Only leucine and lysine (orange) are PURELY ketogenic — the two L’s; the gold five are partly ketogenic.',
     both: 'Five amino acids are split down the middle — part becomes glucose, part becomes ketone bodies: isoleucine, phenylalanine, tyrosine, tryptophan, threonine.',
   };
@@ -83,7 +84,13 @@
         const head = document.createElement('strong');
         head.textContent = `${aa.name} (${aa.code})`;
         head.style.color = INKC[aa.fate];
-        rule.append(head, ` → ${aa.entry}. ${aa.note}`);
+        const carbon = document.createElement('span'); carbon.className = 'afs-line';
+        const cLabel = document.createElement('b'); cLabel.textContent = 'Carbon: ';
+        carbon.append(cLabel, aa.note);
+        const nitro = document.createElement('span'); nitro.className = 'afs-line';
+        const sw = document.createElement('i'); sw.className = 'afs-sw'; sw.style.setProperty('--afs-c', '#5b6b7a'); sw.setAttribute('aria-hidden', 'true');
+        nitro.append(sw, aa.nitrogen ?? N_DEFAULT);
+        rule.append(head, ` → ${aa.entry}.`, carbon, nitro);
       });
       grid.appendChild(chip);
     });
@@ -125,5 +132,6 @@
   .afs-sw { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 2px; background: var(--afs-c); margin-right: 0.35rem; vertical-align: -0.02rem; }
   @media (prefers-reduced-motion: reduce) { .afs-chip-btn { transition: none; } }
   .afs-rule { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .afs-line { display: block; margin-top: 0.15rem; }
   .afs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>
