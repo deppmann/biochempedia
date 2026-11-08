@@ -34,7 +34,7 @@ import { tmpdir, homedir, cpus } from 'node:os';
 import { createInterface } from 'node:readline';
 
 // Chris, 2026-11-06: never the device voice; every levelled-up course gets Kokoro. Lessons with no `course:` are Biochemistry.
-const POLISHED = new Set(['neuroscience', 'sensory-systems', 'developmental-neuroscience', 'biochemistry']);
+import { POLISHED } from './listen-courses.mjs';
 const LISTEN_DIR = '.listen';
 const AUDIO_DIR = 'listen-audio';
 const MANIFEST = 'src/data/listen-manifest.json';

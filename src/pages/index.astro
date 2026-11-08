@@ -7,6 +7,9 @@ import { PATHS } from '../data/paths';
 import { STAGES, stageOf } from '../data/stages';
 import { courseCards, plural } from '../lib/catalog';
 import { feedbackUrl } from '../lib/feedback';
+import { getCollection } from 'astro:content';
+import { courseOf } from '../data/courses';
+import rewritten from '../data/recently-rewritten.json';
 
 /* The homepage is a front door, not the catalog. It offers three ways in (see
    everything, my age or stage, what I want to do), two films, and a compact course
@@ -24,6 +27,18 @@ const COUNTS = [
   plural(sum('sims'), 'simulation', 'simulations'),
   plural(sum('questions'), 'practice question', 'practice questions'),
 ].map((t) => t.replace(/^\d+/, (d) => fmt(Number(d))));
+
+/* "Recently rewritten": the last ten lessons through the level-up pass (new text, figures and
+   simulation fixes), from src/data/recently-rewritten.json, which scripts/rewritten-shelf.mjs writes
+   from the level-up notes. Static: works with JavaScript off. */
+const live = new Map((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => [l.data.slug, l.data]));
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const day = (d: string) => `${MON[Number(d.slice(5, 7)) - 1]} ${Number(d.slice(8, 10))}`;
+const rewrittenAll = (rewritten as { slug: string; date: string }[]).filter((r) => live.has(r.slug));
+const shelf = rewrittenAll.slice(0, 10).map((r) => {
+  const l = live.get(r.slug)!;
+  return { slug: r.slug, title: l.title, course: courseOf(l.course).title, date: day(r.date) };
+});
 
 /* ---- Films. The files live under /explainers/home/ like every lesson film
    (poster.jpg, explainer.mp4, explainer.vtt) and are served the same way. ---- */
@@ -143,6 +158,17 @@ const TRY = [
       </span></p>
     </div>
   </div>
+
+  {shelf.length > 0 && (
+    <section class="wrap rewritten" aria-labelledby="rewritten-h">
+      <h2 id="rewritten-h" class="rewritten-h">Recently rewritten <span>· new text, figures and fixed simulations · {rewrittenAll.length} lessons so far</span></h2>
+      <ul class="rewritten-list">
+        {shelf.map((r) => (
+          <li><a href={`/lessons/${r.slug}/`}><span class="rw-t">{r.title}</span> <span class="rw-m">{r.course} · {r.date}</span></a></li>
+        ))}
+      </ul>
+    </section>
+  )}
 
   <section class="wrap home-search">
     <SiteSearch label="Search every course" />
@@ -363,6 +389,21 @@ const TRY = [
     .tally-i { white-space: nowrap; }
     .tally-i::before { content: '·'; display: inline-block; width: 1.6em; text-align: center; opacity: 0.7; }
     .tally-more { font-style: italic; }
+    /* Recently rewritten: a quiet strip under the totals; wraps on phones. */
+    .rewritten { margin-top: var(--ddp-space-6); }
+    .rewritten-h { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; color: var(--ddp-color-primary); }
+    .rewritten-h span { text-transform: none; letter-spacing: 0.02em; font-weight: 400; color: var(--ddp-color-muted); }
+    .rewritten-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--ddp-space-2); }
+    .rewritten-list a { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.5rem 0.75rem; border: 1px solid var(--ddp-color-line); border-radius: 10px; background: var(--ddp-color-surface); text-decoration: none; height: 100%; }
+    .rewritten-list a:hover { border-color: var(--ddp-color-accent); }
+    .rw-t { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.35; }
+    .rw-m { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    @media (max-width: 640px) {
+      .rewritten-list { display: block; border-top: 1px solid var(--ddp-color-line); }
+      .rewritten-list a { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 0.75rem; padding: 0.45rem 0; border: 0; border-bottom: 1px solid var(--ddp-color-line); border-radius: 0; background: none; }
+      .rw-t { font-weight: 500; }
+      .rw-m { flex: none; }
+    }
     .doors { grid-area: doors; }
     @media (max-width: 900px) {
       .top { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hero" "doors" "film"; padding-top: var(--ddp-space-8); gap: var(--ddp-space-6); }

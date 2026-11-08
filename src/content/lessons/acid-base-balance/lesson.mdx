@@ -313,6 +313,7 @@ draft: false
 ---
 
 import AcidBaseCompensation from '../../../components/AcidBaseCompensation.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Adult human arterial plasma at rest holds about 24 millimoles of bicarbonate per litre and about 40 nanomoles of free hydrogen ions per litre.** Metabolism in a US adult on a typical diet adds roughly 50 mEq of non-volatile acid a day, yet pH stays near 7.40, held on three clocks: buffers in seconds, lungs in minutes, kidneys over days. [Water, pH and weak bonds](/lessons/water-weak-bonds/) gave you pH = pKa + log([A-]/[HA]), and [the kidney](/lessons/kidney/) the nephron; here both get numbers.
 
@@ -322,7 +323,26 @@ A **volatile acid** leaves as a gas: carbon dioxide, removed by the lungs. A **n
 
 For human plasma at 37 C, with pCO2 in mmHg and bicarbonate in mmol/L:
 
-> **pH = 6.1 + log10( [HCO3-] / (0.03 x pCO2) )**
+<EquationCard
+  purpose="The pH of human plasma at 37 C, from its bicarbonate and its pCO2."
+  eq="pH = 6.1 + log10( [HCO3-] / (0.03 × pCO2) )"
+  say="pH equals six point one plus the base-ten log of bicarbonate divided by the dissolved carbon dioxide, which is zero point zero three times the carbon dioxide tension."
+  symbols={[
+    ["pH", "p H", "the pH of the plasma", "no unit"],
+    ["6.1", "six point one", "an apparent pK for the combined reaction CO2 + H2O = HCO3- + H+ in plasma at 37 C, hydration and ionization together", ""],
+    ["[HCO3-]", "bicarbonate", "the plasma bicarbonate concentration", "mmol/L"],
+    ["0.03", "zero point zero three", "the solubility of CO2 in plasma; it converts pCO2 into dissolved CO2. It is not the pK.", "mmol/L per mmHg"],
+    ["pCO2", "p C O 2", "the carbon dioxide tension of the plasma", "mmHg"],
+  ]}
+  toolkit={["log-scales"]}
+  check="At rest, 24 / (0.03 × 40) = 20, and pH = 6.1 + 1.30 = 7.40. pH follows the ratio, not either number alone."
+  calc={{ fn: "hh-ph", result: "pH", digits: 2, inputs: [["hco3", "[HCO3-]", "mmol/L", 12, 0.1], ["pco2", "pCO2", "mmHg", 27, 1]] }}
+>
+  <Fragment slot="example">
+    <p>At rest: bicarbonate 24 mmol/L, pCO2 40 mmHg. Dissolved CO2 = 0.03 × 40 = 1.2 mmol/L, the ratio is 24 / 1.2 = 20, and pH = 6.1 + 1.30 = 7.40.</p>
+    <p>The worked problem below: bicarbonate 12 mmol/L, pCO2 27 mmHg. Dissolved CO2 = 0.03 × 27 = 0.81 mmol/L; 12 / 0.81 = 14.8; pH = 6.1 + 1.17 = 7.27.</p>
+  </Fragment>
+</EquationCard>
 
 The 0.03 is the solubility of CO2 in plasma, in mmol/L per mmHg. The 6.1 is an apparent pK for the combined reaction CO2 + H2O = HCO3- + H+ in plasma at 37 C, hydration and ionization together; carbonic acid by itself is a much stronger acid. Henderson set out the mass-action relation in 1908, and in 1916 Hasselbalch rewrote it in Sorensen's pH notation ([carrying oxygen and carbon dioxide](/lessons/oxygen-transport/) tells his work with Bohr and Krogh). At a pCO2 of 40 mmHg, dissolved CO2 is 0.03 x 40 = 1.2 mmol/L, the ratio is 24 / 1.2 = 20, and pH = 6.1 + 1.30 = 7.40. pH follows the ratio, not either number alone.
 
@@ -382,6 +402,30 @@ Human genetics reaches the same segment through a different protein, the proton 
 4. Anion gap = [Na+] - [Cl-] - [HCO3-] = 140 - 104 - 12 = 24 mmol/L. An acid whose anion the panel does not measure, such as a ketoacid or lactate, consumes bicarbonate and leaves its anion, so the gap rises; base lost directly is replaced by chloride, leaving the gap unchanged.
 5. Albumin is the main unmeasured anion. Corrected gap = 24 + 2.5 x (4.0 - 2.0) = 29 mmol/L, the same as 24 + 0.25 x (40 - 20) with albumin in g/L.
 6. Against a made-up comparison gap of 12 (140 - 104 - 24), the gap rose 12 (17 corrected) as bicarbonate fell 12, ratios of 1.0 and 1.4. That ratio genuinely varies, larger for lactate than for ketoacid anions, so alone it cannot establish a second process.
+
+<EquationCard
+  purpose="The anion gap, with its albumin correction: albumin is the main unmeasured anion, so a low albumin hides part of the gap."
+  eq="corrected gap = ([Na+] − [Cl-] − [HCO3-]) + 2.5 × (4.0 − albumin)"
+  say="The corrected gap equals sodium minus chloride minus bicarbonate, plus two and a half times how far albumin sits below four grams per decilitre."
+  symbols={[
+    ["corrected gap", "corrected gap", "the anion gap with its albumin correction", "mmol/L"],
+    ["[Na+]", "sodium", "plasma sodium", "mmol/L"],
+    ["[Cl-]", "chloride", "plasma chloride", "mmol/L"],
+    ["[HCO3-]", "bicarbonate", "plasma bicarbonate", "mmol/L"],
+    ["2.5", "two point five", "the correction per g/dL of albumin; 0.25 per g/L if albumin is in g/L", "mmol/L per g/dL"],
+    ["4.0", "four point oh", "the comparison albumin in this lesson's worked problem", "g/dL"],
+    ["albumin", "albumin", "the sample's plasma albumin", "g/dL"],
+  ]}
+  toolkit={["log-scales", "units"]}
+  check="With albumin at the comparison 4.0 g/dL, the correction is zero and the corrected gap is just [Na+] − [Cl-] − [HCO3-]. Base lost directly is replaced by chloride, leaving the gap unchanged; an acid whose anion the panel does not measure leaves its anion, so the gap rises."
+  calc={{ fn: "anion-gap-albumin", result: "Corrected gap", unit: "mmol/L", digits: 0, inputs: [["na", "[Na+]", "mmol/L", 140, 1], ["cl", "[Cl-]", "mmol/L", 104, 1], ["hco3", "[HCO3-]", "mmol/L", 12, 1], ["alb", "albumin", "g/dL", 2.0, 0.1]] }}
+>
+  <Fragment slot="example">
+    <p>The worked problem: Na+ 140, Cl- 104 and HCO3- 12 mmol/L, albumin 2.0 g/dL.</p>
+    <p>Anion gap = 140 − 104 − 12 = 24 mmol/L.</p>
+    <p>Corrected gap = 24 + 2.5 × (4.0 − 2.0) = 29 mmol/L, the same as 24 + 0.25 × (40 − 20) with albumin in g/L.</p>
+  </Fragment>
+</EquationCard>
 
 The gap's reference range is not fixed either: it shifted down in one laboratory when ion-selective electrodes raised measured chloride (Winter and colleagues, 1990), so each laboratory's own range applies.
 

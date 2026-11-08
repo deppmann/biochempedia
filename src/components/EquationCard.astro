@@ -26,6 +26,15 @@
  *     <Fragment slot="derivation">…optional…</Fragment>
  *   </EquationCard>
  * Symbols and text may use the site's keyboard notation (E_K, 10^-6); it renders as sub/superscript.
+ *
+ * Optional calc (2026-11-08): a "try your own numbers" box inside the worked-example fold, after the
+ * fixed example. It is hidden until the script runs, so with JavaScript off only the fixed example shows.
+ *   calc={{ fn: "hh-ph", result: "pH", digits: 2,
+ *           inputs: [["hco3", "[HCO3-]", "mmol/L", 12, 0.1], ["pco2", "pCO2", "mmHg", 27, 1]] }}
+ * inputs are [id, label, unit, default, step?]; set the defaults to the fixed example's numbers so the
+ * first answer matches it. fn names a function in the registry in the <script> below (no eval):
+ *   hh-ph              needs hco3, pco2           pH = 6.1 + log10(HCO3 / (0.03 × pCO2))
+ *   anion-gap-albumin  needs na, cl, hco3, alb    corrected gap = (Na − Cl − HCO3) + 2.5 × (4.0 − albumin g/dL)
  */
 import { _convertForTest as convert } from '../lib/rehype-sub-sup.mjs';
 import { cardSpeakable, hashOf } from '../lib/rehype-listen.mjs';
@@ -39,8 +48,9 @@ interface Props {
   check?: string;
   title?: string;
   toolkit?: string[];   // anchors in /math-toolkit/: read, subscripts, units, powers, e-and-ln, log-scales, ratios
+  calc?: { fn: string; inputs: [string, string, string, number, number?][]; result: string; unit?: string; digits?: number };
 }
-const { purpose, eq, say, symbols, check, title, toolkit } = Astro.props;
+const { purpose, eq, say, symbols, check, title, toolkit, calc } = Astro.props;
 // Read aloud plays the Kokoro clip of the say sentence (rendered by scripts/listen-render.mjs).
 // The site never uses the device voice (Chris, 2026-11-06), so with no clip there is no button.
 const lessonSlug = (/^\/lessons\/([^/]+)\/?/.exec(Astro.url.pathname) || [])[1] || '';
@@ -91,10 +101,25 @@ const id = 'eqc-' + Math.abs([...eq].reduce((h, c) => (h * 31 + c.charCodeAt(0))
     ))}
   </dl>
   {check && <p class="eqc-check"><span class="eqc-kicker">Sanity check</span> <span set:html={nota(check)} /></p>}
-  {hasExample && (
+  {(hasExample || calc) && (
     <details class="eqc-fold">
-      <summary>Try one number</summary>
-      <div class="eqc-fold-body"><slot name="example" /></div>
+      <summary>{calc ? 'Worked example · try your own numbers' : 'Try one number'}</summary>
+      <div class="eqc-fold-body"><slot name="example" />
+        {calc && (
+          <div class="eqc-calc" hidden data-eqc-calc data-fn={calc.fn} data-digits={String(calc.digits ?? 2)} data-result={calc.result} data-unit={calc.unit ?? ''}>
+            <p class="eqc-calc-head"><span class="eqc-kicker">Your numbers</span> Change any box; the answer updates.</p>
+            <div class="eqc-calc-grid">
+              {calc.inputs.map(([inId, label, unit, value, step]) => (
+                <label class="eqc-calc-field" for={`${id}-${inId}`}>
+                  <span class="eqc-calc-label"><span set:html={nota(label)} />{unit && <span class="eqc-unit" set:html={nota(unit)} />}</span>
+                  <input type="number" inputmode="decimal" id={`${id}-${inId}`} data-in={inId} value={String(value)} step={step != null ? String(step) : 'any'} />
+                </label>
+              ))}
+            </div>
+            <output class="eqc-calc-out" aria-live="polite" for={calc.inputs.map(([inId]) => `${id}-${inId}`).join(' ')}></output>
+          </div>
+        )}
+      </div>
     </details>
   )}
   {hasDerivation && (
@@ -139,10 +164,59 @@ const id = 'eqc-' + Math.abs([...eq].reduce((h, c) => (h * 31 + c.charCodeAt(0))
   .eqc-badge { font: 500 0.68rem var(--ddp-font-mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ddp-color-muted); border: 1px solid var(--ddp-color-line); border-radius: 999px; padding: 0.05em 0.5em; margin-left: 0.35em; vertical-align: 0.1em; }
   .eqc-toolkit { margin: 0.55rem 0 0; font-size: 0.88rem; }
   .eqc-toolkit a { color: var(--ddp-color-primary); }
+  .eqc-calc { margin-top: 0.6rem; padding: 0.6rem 0.75rem 0.7rem; border: 1px solid var(--ddp-color-line); border-radius: 10px; }
+  .eqc-calc[hidden] { display: none; }
+  .eqc-calc .eqc-calc-head { margin: 0 0 0.45rem; font-size: 0.9rem; color: var(--ddp-color-muted); }
+  .eqc-calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.5rem 0.75rem; }
+  .eqc-calc-field { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .eqc-calc-label { font-size: 0.88rem; }
+  .eqc-calc-field input { box-sizing: border-box; width: 100%; min-width: 0; font: 1rem var(--ddp-font-mono); padding: 0.3rem 0.45rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: inherit; }
+  .eqc-calc-field input:focus-visible { outline: 2px solid var(--ddp-color-primary); outline-offset: 1px; }
+  .eqc-calc-out { display: block; margin-top: 0.6rem; line-height: 1.45; }
+  .eqc-calc-out :global(.eqc-calc-ans) { font-weight: 600; color: var(--ddp-color-primary); }
   @media (max-width: 640px) { .eqc-row { grid-template-columns: 1fr; gap: 0.15rem; } }
 </style>
 
 <script>
+  // Named calculators for the optional "try your own numbers" box (no eval). Each takes the inputs by id
+  // and returns the answer plus a line of working, or a plain message when the numbers cannot work.
+  type CalcOut = { value: number; note?: string } | { error: string };
+  const fmt = (n: number, d: number) => String(Number(n.toFixed(d)));
+  const CALC: Record<string, (v: Record<string, number>) => CalcOut> = {
+    'hh-ph': ({ hco3, pco2 }) => {
+      if (!(pco2 > 0) || !(hco3 > 0)) return { error: 'Bicarbonate and pCO2 both need to be above zero: the log of zero or of a negative number has no value.' };
+      const co2 = 0.03 * pco2, ratio = hco3 / co2;
+      return { value: 6.1 + Math.log10(ratio), note: `Dissolved CO2 = 0.03 × ${fmt(pco2, 2)} = ${fmt(co2, 2)} mmol/L; ratio = ${fmt(hco3, 2)} / ${fmt(co2, 2)} = ${fmt(ratio, 1)}; log10 of the ratio = ${fmt(Math.log10(ratio), 2)}.` };
+    },
+    'anion-gap-albumin': ({ na, cl, hco3, alb }) => {
+      if (![na, cl, hco3, alb].every((x) => x >= 0)) return { error: 'Concentrations cannot be negative. Enter zero or more in every box.' };
+      const gap = na - cl - hco3;
+      return { value: gap + 2.5 * (4.0 - alb), note: `Uncorrected gap = ${fmt(na, 1)} − ${fmt(cl, 1)} − ${fmt(hco3, 1)} = ${fmt(gap, 1)} mmol/L; albumin correction = 2.5 × (4.0 − ${alb.toFixed(1)}) = ${fmt(2.5 * (4.0 - alb), 1)}.` };
+    },
+  };
+  for (const box of document.querySelectorAll<HTMLElement>('[data-eqc-calc]')) {
+    const fn = CALC[box.dataset.fn ?? ''];
+    const out = box.querySelector<HTMLOutputElement>('output');
+    const inputs = [...box.querySelectorAll<HTMLInputElement>('input[data-in]')];
+    if (!fn || !out) continue;
+    const digits = Number(box.dataset.digits ?? 2);
+    const run = () => {
+      out.textContent = '';
+      const vals: Record<string, number> = {};
+      if (inputs.some((i) => i.value.trim() === '' || !Number.isFinite(Number(i.value)))) { out.textContent = 'Fill in every box with a number.'; return; }
+      inputs.forEach((i) => { vals[i.dataset.in!] = Number(i.value); });
+      const r = fn(vals);
+      if ('error' in r) { out.textContent = r.error; return; }
+      const ans = document.createElement('strong');
+      ans.className = 'eqc-calc-ans';
+      ans.textContent = `${box.dataset.result} = ${r.value.toFixed(digits)}${box.dataset.unit ? ' ' + box.dataset.unit : ''}`;
+      out.append(ans);
+      if (r.note) out.append(document.createElement('br'), r.note);
+    };
+    inputs.forEach((i) => i.addEventListener('input', run));
+    run();
+    box.hidden = false;
+  }
   for (const card of document.querySelectorAll<HTMLElement>('[data-eqc]')) {
     const rows = [...card.querySelectorAll<HTMLElement>('.eqc-row')];
     const syms = [...card.querySelectorAll<HTMLElement>('.eqc-sym')];
