@@ -5,6 +5,9 @@
    Reports are fire-and-forget. A failed report never interrupts the lesson. */
 
 const KEY = 'biochempedia:class:v1';
+// Running "Again" counts per flashcard, kept only for a student in a class, only for lessons
+// the teacher assigned with flashcards on: { "<lesson slug>": { "<card id>": n } }.
+const CARDS_KEY = 'biochempedia:class-cards:v1';
 
 export interface ClassMarker { className: string; nickname: string; teacherName?: string }
 
@@ -18,7 +21,7 @@ export function enrolled(): ClassMarker | null {
 export function setEnrolled(m: ClassMarker | null) {
   try {
     if (m) window.localStorage.setItem(KEY, JSON.stringify(m));
-    else window.localStorage.removeItem(KEY);
+    else { window.localStorage.removeItem(KEY); window.localStorage.removeItem(CARDS_KEY); }
   } catch { /* storage blocked: the cookie still works, the page just won't know */ }
   window.dispatchEvent(new CustomEvent('bp-class'));
 }
@@ -39,7 +42,7 @@ export async function api<T = unknown>(path: string, body?: unknown, method = bo
   }
 }
 
-export type AnswerKind = 'quiz' | 'idea' | 'cer' | 'done' | 'stuck';
+export type AnswerKind = 'quiz' | 'idea' | 'cer' | 'done' | 'stuck' | 'cards';
 
 /** Send one answer for the current student, if they are in a class. */
 export function report(lesson: string, kind: AnswerKind, fields: Record<string, unknown>) {
@@ -54,7 +57,7 @@ export function report(lesson: string, kind: AnswerKind, fields: Record<string, 
 }
 
 // ---- AI feedback and teacher notes (only for a student in a class) ------------------
-export interface StudentMe { nickname: string; className: string; teacherName: string; pending: boolean; ai?: boolean; assignments: { slug: string; due: string | null }[]; done: string[]; stuck?: string }
+export interface StudentMe { nickname: string; className: string; teacherName: string; pending: boolean; ai?: boolean; assignments: { slug: string; due: string | null; flashcards?: boolean }[]; done: string[]; stuck?: string }
 export interface FeedbackItem { id: number; lesson: string; kind: string; item: string; text: string; source: 'ai' | 'teacher'; at: number }
 
 let meCache: Promise<StudentMe | null> | null = null;
@@ -66,6 +69,21 @@ export function studentMe(lesson?: string): Promise<StudentMe | null> {
     return r.ok ? r.data : null;
   });
   return meCache;
+}
+
+/** A flashcard marked "Again". Counted only when this student's class assigned the lesson with
+ *  flashcards on; the lesson's running counts go with the usual report (no AI, nothing for anyone else). */
+export function markAgain(lesson: string, cardId: string) {
+  if (!enrolled()) return;
+  studentMe(lesson).then((me) => {
+    if (!me || me.pending || !me.assignments.some((a) => a.slug === lesson && a.flashcards)) return;
+    let all: Record<string, Record<string, number>> = {};
+    try { all = JSON.parse(window.localStorage.getItem(CARDS_KEY) || '{}') || {}; } catch { /* start empty */ }
+    const mine = (all[lesson] ??= {});
+    mine[cardId] = Math.min(999, (mine[cardId] ?? 0) + 1);
+    try { window.localStorage.setItem(CARDS_KEY, JSON.stringify(all)); } catch { /* still sent this time */ }
+    report(lesson, 'cards', { cards: mine });
+  });
 }
 
 let fbCache: Promise<FeedbackItem[]> | null = null;
