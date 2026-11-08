@@ -149,29 +149,41 @@ const lessonLd = {
           <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>.</p>
         </details>
       )}
-      <p class="summary">{lesson.summary}</p>
+      {/* Only the hook shows (2026-11-08, "get to the material quicker"); the full summary stays the page's
+          search and share description. */}
+      <p class="summary">{hookFor(entry)}</p>
       <ListenPlayer slug={lesson.slug} />
     </header>
 
-    {lesson.objectives.length > 0 && (
-      <aside class="wrap orient" aria-label="Lesson overview">
-        <div class="orient-obj card">
-          {/* Time lives in the heading so hiding the meta row on mobile loses nothing. */}
-          <h2 class="orient-pad-left" >What you'll learn{lesson.estMinutes ? ` · ~${lesson.estMinutes} min` : ''}</h2>
-          <ul>{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
-          {showSections && (
-            <nav class="lesson-toc" aria-label="In this lesson" data-lesson-toc>
-              <p class="lesson-toc-h">In this lesson</p>
-              <ol>{sections.map((h) => <li><a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a></li>)}</ol>
-            </nav>
-          )}
-        </div>
-        {/* The reading time is already in the card's heading, so the stats
-            column lists only what the lesson contains. */}
-        {hasStats && (
-          <div class="orient-meta">
-            <p class="orient-meta-h">What's included</p>
-            <ul>
+    {(lesson.objectives.length > 0 || showSections) && (
+      <aside class="wrap overview" aria-label="Lesson overview">
+        {/* One closed line instead of a box (2026-11-08): goals, sections and contents fold away so the
+            lesson starts on the first screen. A plain <details>, so it works with JavaScript off. */}
+        <details class="ov">
+          <summary>
+            <span class="ov-k">Overview</span>
+            {lesson.objectives.length > 0 && <span>{lesson.objectives.length} {lesson.objectives.length === 1 ? 'goal' : 'goals'}</span>}
+            {showSections && <span>{sections.length} sections</span>}
+            {lesson.estMinutes && <span>~{lesson.estMinutes} min</span>}
+          </summary>
+          <div class="ov-body">
+            {lesson.objectives.length > 0 && (
+              <div class="ov-col">
+                <p class="ov-h">What you'll learn</p>
+                <ul class="ov-goals">{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
+              </div>
+            )}
+            <div class="ov-col">
+              {showSections && (
+                <nav class="lesson-toc" aria-label="In this lesson" data-lesson-toc>
+                  <p class="ov-h">In this lesson</p>
+                  <ol>{sections.map((h) => <li><a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a></li>)}</ol>
+                </nav>
+              )}
+              {hasStats && (
+                <div class="ov-included">
+                  <p class="ov-h">What's included</p>
+                  <ul>
               {ex && <li><span aria-hidden="true">🎬</span> <b>{exLen}</b> animated explainer</li>}
               {lesson.structures.length > 0 && <li><span aria-hidden="true">🧬</span> <b>{lesson.structures.length}</b> live 3D {lesson.structures.length === 1 ? 'structure' : 'structures'}</li>}
               {narratedSlides > 0 && <li><span aria-hidden="true">🎧</span> <b>{narratedSlides}</b> narrated {narratedSlides === 1 ? 'slide' : 'slides'}</li>}
@@ -179,8 +191,11 @@ const lessonLd = {
               {qCount > 0 && <li><span aria-hidden="true">📝</span> <b>{qCount}</b> self-test {qCount === 1 ? 'question' : 'questions'}</li>}
               {lesson.scientists.length > 0 && <li><span aria-hidden="true">👤</span> <b>{lesson.scientists.length}</b> scientist {lesson.scientists.length === 1 ? 'profile' : 'profiles'}</li>}
             </ul>
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </details>
       </aside>
     )}
 
@@ -188,18 +203,23 @@ const lessonLd = {
 
     {ex && (
       <section class="wrap explainer" id="explainer" aria-labelledby="explainer-h">
+        {/* A compact row (2026-11-08): poster thumbnail, title and length; the player opens in place on
+            a tap and starts playing. A plain <details>, so it opens without JavaScript too. */}
+        <details class="ex-row" data-ex-row>
+          <summary>
+            <img class="ex-thumb" src={ex.poster} alt="" width="160" height="90" loading="lazy" decoding="async" />
+            <span class="ex-txt"><span class="explainer-kicker">▶ Watch</span> <span class="explainer-h" id="explainer-h">{ex.title}</span> <span class="explainer-len">· {exLen}</span></span>
+          </summary>
         <figure class="explainer-fig">
           <video controls preload="none" playsinline poster={ex.poster} width="1920" height="1080">
             <source src={ex.src} type="video/mp4" />
             <track kind="captions" src={ex.captions} srclang="en" label="English" />
             Your browser cannot play this video. <a href={ex.src}>Download the explainer (MP4)</a>.
           </video>
-          <figcaption>
-            <p class="explainer-h" id="explainer-h"><span class="explainer-kicker">Watch first</span> {ex.title} <span class="explainer-len">· {exLen}</span></p>
-          </figcaption>
         </figure>
         {/* The film's words as text, closed until asked for. Its own search region: see the note at the prose column. */}
         <div data-pagefind-body><FilmTranscript captions={ex.captions} title={ex.title} id="explainer" /></div>
+        </details>
       </section>
     )}
 
@@ -590,6 +610,14 @@ const lessonLd = {
     ))}
 
     <a href="#top" class="to-top" aria-label="Back to top">↑ Top</a>
+    {showSections && (
+      <>
+        <button type="button" class="toc-pill" data-toc-pill aria-expanded="false" aria-controls="toc-pop">☰ Contents</button>
+        <nav class="toc-pop" id="toc-pop" aria-label="Contents" hidden data-toc-pop>
+          <ol>{sections.map((h) => <li><a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a></li>)}</ol>
+        </nav>
+      </>
+    )}
   </article>
 
   <script>
@@ -817,6 +845,42 @@ const lessonLd = {
     .orient-obj li::marker { color: var(--ddp-color-muted); }
     .mcat-forward { margin: var(--ddp-space-6) 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
     .mcat-forward a { font-weight: 600; color: var(--ddp-color-accent); margin-right: 0.4em; }
+    /* Overview bar (2026-11-08): one closed line; opens to goals, sections and what's included. */
+    .overview { margin-bottom: var(--ddp-space-4); }
+    .ov { border: 1px solid var(--ddp-color-line); border-radius: 12px; background: var(--ddp-color-surface); }
+    .ov > summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.7rem; padding: 0.6rem 0.9rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.03em; color: var(--ddp-color-muted); }
+    .ov > summary::-webkit-details-marker { display: none; }
+    .ov > summary::before { content: '▸'; color: var(--ddp-color-primary); transition: transform 0.15s; }
+    .ov[open] > summary::before { transform: rotate(90deg); }
+    .ov > summary span + span::before { content: '· '; opacity: 0.6; }
+    .ov-k { text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--ddp-color-primary); }
+    .ov > summary:hover .ov-k { text-decoration: underline; }
+    .ov-body { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--ddp-space-6); padding: 0.4rem 1rem 1rem; border-top: 1px solid var(--ddp-color-line); }
+    @media (max-width: 760px) { .ov-body { grid-template-columns: 1fr; gap: var(--ddp-space-4); } }
+    .ov-h { margin: 0.6rem 0 0.4rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .ov-goals { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.35rem; }
+    .ov-goals li, .ov-included li { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+    .ov-included ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+    .ov-included b { color: var(--ddp-color-primary); }
+    .lesson-toc ol { margin: 0; padding-left: 1.4rem; list-style: decimal; display: flex; flex-direction: column; gap: 0.35rem; }
+    .lesson-toc li { font-size: var(--ddp-text-sm); }
+    /* Film row (2026-11-08): thumbnail + title; the player opens in place. */
+    .ex-row > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; padding: 0.45rem; border: 1px solid var(--ddp-color-line); border-radius: 12px; background: var(--ddp-color-surface); max-width: 880px; }
+    .ex-row > summary::-webkit-details-marker { display: none; }
+    .ex-row > summary:hover { border-color: var(--ddp-color-accent); }
+    .ex-row[open] > summary { margin-bottom: var(--ddp-space-3); }
+    .ex-thumb { width: 112px; height: 63px; object-fit: cover; border-radius: 8px; flex: none; background: var(--ddp-color-line); }
+    .ex-txt { line-height: 1.35; }
+    .ex-txt .explainer-h { font-size: var(--ddp-text-base); }
+    .explainer { margin-bottom: var(--ddp-space-5) !important; }
+    /* Contents pill (2026-11-08): opens the section list from anywhere; marks where you are. */
+    .toc-pill { position: fixed; left: var(--ddp-space-6); bottom: var(--ddp-space-6); z-index: 40; font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; padding: 0.5em 0.9em; box-shadow: var(--ddp-shadow); cursor: pointer; opacity: 0; visibility: hidden; transition: opacity 0.18s ease, visibility 0.18s; }
+    .toc-pill.is-visible { opacity: 0.95; visibility: visible; }
+    .toc-pop { position: fixed; left: var(--ddp-space-6); bottom: calc(var(--ddp-space-6) + 3rem); z-index: 41; width: min(22rem, calc(100vw - 2 * var(--ddp-space-6))); max-height: 60vh; overflow: auto; padding: 0.8rem 1rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 12px; box-shadow: var(--ddp-shadow); }
+    .toc-pop ol { margin: 0; padding-left: 1.4rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .toc-pop li { font-size: var(--ddp-text-sm); }
+    @media (max-width: 900px) { .toc-pill { left: var(--ddp-space-4); bottom: var(--ddp-space-4); } .toc-pop { left: var(--ddp-space-4); bottom: calc(var(--ddp-space-4) + 3rem); } }
+    @media (prefers-reduced-motion: reduce) { .toc-pill { transition: none; } }
     .lesson-toc { margin-top: var(--ddp-space-4); padding-top: var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); }
     .lesson-toc-h { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
     .orient-obj .lesson-toc ol { margin: 0; padding-left: 1.4rem; list-style: decimal; display: flex; flex-direction: column; gap: 0.35rem; }
@@ -881,14 +945,20 @@ const lessonLd = {
       .mobile-explore.is-stuck { border-bottom-color: var(--ddp-color-line); }
       .mobile-explore.me-released { position: static; }
       .me-title {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
         margin: 0 0 var(--ddp-space-2);
         font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
         letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-primary);
       }
       .me-chips {
         list-style: none; margin: 0; padding: 0;
-        display: flex; flex-wrap: wrap; gap: var(--ddp-space-2);
+        display: flex; flex-wrap: nowrap; gap: var(--ddp-space-2);
+        /* One scrolling row (2026-11-08), not three wrapped rows. */
+        overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        margin: 0 calc(-1 * var(--ddp-space-6)); padding: 0 var(--ddp-space-6);
       }
+      .me-chips::-webkit-scrollbar { display: none; }
+      .me-chips li { flex: none; }
       .me-chips button, .me-chips a {
         display: inline-flex; align-items: center; gap: 0.4em;
         /* 44px min target: these are the primary mobile affordance. */
@@ -1137,19 +1207,43 @@ const lessonLd = {
     // "In this lesson": mark the section being read (aria-current), so the list doubles as a
     // "you are here" for Listen and the notebook. The links work without this script.
     {
-      const toc = document.querySelector<HTMLElement>('[data-lesson-toc]');
-      const links = toc ? [...toc.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')] : [];
-      const heads = links.map((a) => document.getElementById(a.dataset.tocLink!)).filter((h): h is HTMLElement => !!h);
-      if (heads.length && 'IntersectionObserver' in window) {
+      const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')];
+      const heads = [...new Set(links.map((a) => a.dataset.tocLink!))].map((id) => document.getElementById(id)).filter((h): h is HTMLElement => !!h);
+      if (heads.length) {
+        let last: string | null | undefined;
         const mark = () => {
           const y = window.innerHeight * 0.3;
           let cur: HTMLElement | null = null;
           for (const h of heads) if (h.getBoundingClientRect().top <= y) cur = h;
           links.forEach((a) => (cur && a.dataset.tocLink === cur.id ? a.setAttribute('aria-current', 'location') : a.removeAttribute('aria-current')));
-          document.dispatchEvent(new CustomEvent('bp-section', { detail: { id: cur?.id ?? null, title: cur?.textContent ?? null } }));
+          if ((cur?.id ?? null) !== last) { last = cur?.id ?? null; document.dispatchEvent(new CustomEvent('bp-section', { detail: { id: last, title: cur?.textContent ?? null } })); }
         };
-        const io = new IntersectionObserver(mark, { rootMargin: '0px 0px -60% 0px' });
-        heads.forEach((h) => io.observe(h));
+        // A throttled scroll listener, like .to-top below (IntersectionObserver does not fire in hidden tabs).
+        let queued = false;
+        window.addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; mark(); }); } }, { passive: true });
+        mark();
+      }
+      // Contents pill: shown once the reader is into the lesson; opens the section list.
+      const pill = document.querySelector<HTMLButtonElement>('[data-toc-pill]');
+      const pop = document.querySelector<HTMLElement>('[data-toc-pop]');
+      const firstHead = heads[0];
+      if (pill && pop && firstHead) {
+        const close = () => { pop.hidden = true; pill.setAttribute('aria-expanded', 'false'); };
+        const sync = () => { const on = window.scrollY + window.innerHeight * 0.5 > firstHead.offsetTop; pill.classList.toggle('is-visible', on); if (!on) close(); };
+        sync();
+        window.addEventListener('scroll', sync, { passive: true });
+        pill.addEventListener('click', () => { const open = pop.hidden; pop.hidden = !open; pill.setAttribute('aria-expanded', String(open)); });
+        pop.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) close(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+        document.addEventListener('click', (e) => { if (!pop.hidden && !(e.target as HTMLElement).closest('[data-toc-pop],[data-toc-pill]')) close(); });
+      }
+      // Film row: opening it starts the film; closing it pauses.
+      const exRow = document.querySelector<HTMLDetailsElement>('[data-ex-row]');
+      const exVid = exRow?.querySelector('video');
+      // Play only on the reader's own tap (a search hit that opens the fold must not start the film).
+      if (exRow && exVid) {
+        exRow.querySelector('summary')!.addEventListener('click', () => { if (!exRow.open) exVid.play().catch(() => {}); });
+        exRow.addEventListener('toggle', () => { if (!exRow.open) exVid.pause(); });
       }
     }
   </script>
