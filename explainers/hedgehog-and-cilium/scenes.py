@@ -252,7 +252,7 @@ class S02Brake(SpokenScene):
         self.play(Create(mem), FadeIn(out_l), FadeIn(in_l), run_time=0.6)
         self.play(FadeIn(pat, shift=UP * 0.15), FadeIn(sm1, shift=UP * 0.15), run_time=0.7)
 
-        self.at("Patched is a")
+        self.at("Pached")
         self.play(Indicate(VGroup(pat.body, pat.lab), color=BLUE, scale_factor=1.07), run_time=0.8)
         self.at("Smoothened is the protein")
         self.play(Indicate(VGroup(sm1.body, sm1.lab), color=PURPLE, scale_factor=1.07), run_time=0.8)
@@ -448,7 +448,7 @@ class S05Cilium(SpokenScene):
 
         self.at("In vertebrates")
         self.play(Create(body), run_time=0.9)
-        self.at("primary cilium")
+        self.at("primary")
         self.add(patch)
         self.play(Create(cilium), FadeIn(cil_l), run_time=1.2)
         self.at("a single")

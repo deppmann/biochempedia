@@ -4,8 +4,9 @@
  * thermal denaturation curve (fraction folded vs temperature) showing that folding
  * is cooperative and all-or-none: the protein stays folded, then melts over a
  * narrow window around its Tm. Sliders for Tm and cooperativity (ΔH), plus a
- * "stabilizing change" toggle (a disulfide / thermophile substitution) that shifts
- * Tm up. A marker at body temperature reads out the folded fraction, making
+ * choice of point mutation: a surface Lys → Arg (no shift), a buried Leu → Asp in
+ * the core (Tm −26 °C, the lesson's 62 → 36 °C example) or a stabilizing disulfide
+ * (Tm +18 °C). A marker at body temperature reads out the folded fraction, making
  * marginal stability concrete. Self-contained vanilla-TS Astro island. Original.
  */
 ---
@@ -16,28 +17,33 @@
   <svg class="fm-svg" viewBox="0 0 320 220" role="img" aria-label="Fraction of protein folded versus temperature, a sigmoidal melting curve with the melting temperature marked" data-plot></svg>
 
   <div class="fm-controls">
-    <label class="fm-slabel"><span>Starting melting temperature T<sub>m</sub> <em data-out="tm">60</em> <em>°C</em></span>
-      <input type="range" data-in="tm" min="40" max="95" step="1" value="60" />
+    <label class="fm-slabel"><span>Starting melting temperature T<sub>m</sub> <em data-out="tm">62</em> <em>°C</em></span>
+      <input type="range" data-in="tm" min="40" max="95" step="1" value="62" />
     </label>
     <label class="fm-slabel"><span>Cooperativity (ΔH) <em data-out="coop">sharp</em></span>
       <input type="range" data-in="coop" min="1" max="6" step="0.5" value="4" />
     </label>
-    <label class="fm-check"><input type="checkbox" data-stab /> <span>add a stabilizing change (disulfide / thermophile): T<sub>m</sub> +18 °C</span></label>
+    <fieldset class="fm-mut" data-mut>
+      <legend>Point mutation</legend>
+      <label class="fm-check"><input type="radio" name="fm-mut" value="0" data-kind="wt" checked /> <span>Wild type</span></label>
+      <label class="fm-check"><input type="radio" name="fm-mut" value="0" data-kind="surface" /> <span>Surface Lys → Arg</span></label>
+      <label class="fm-check"><input type="radio" name="fm-mut" value="-26" data-kind="core" /> <span>Buried Leu → Asp in the core</span></label>
+      <label class="fm-check"><input type="radio" name="fm-mut" value="18" data-kind="stab" /> <span>Add a disulfide (stabilizing)</span></label>
+    </fieldset>
   </div>
 
   <dl class="fm-readout">
     <div><dt>Folded at 37 °C</dt><dd data-r-f37>~100%</dd></div>
-    <div><dt>Melting temperature</dt><dd data-r-tm>60 °C</dd></div>
+    <div><dt>Melting temperature</dt><dd data-r-tm>62 °C</dd></div>
   </dl>
-  <p class="fm-why" data-why role="status">A protein does not loosen gradually; it holds its shape, then unravels over a few degrees. That sharp transition is the signature of cooperative folding.</p>
+  <p class="fm-why" data-why role="status">A protein does not loosen gradually; it holds its shape, then unravels over roughly ten degrees. That sharp transition is the signature of cooperative folding.</p>
 
-  <p class="fm-foot">Native proteins are only marginally stable — the folded state beats the unfolded one by the energy of just a few hydrogen bonds. A single disulfide or a thermophile's extra salt bridge can push Tm well up.</p>
+  <p class="fm-foot">Favorable contacts and freed water only just pay for the chain's lost freedom, so the fold is only marginally stable; one buried charged residue can tip it. A single disulfide or a thermophile's extra salt bridge can push Tm well up.</p>
 </figure>
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ACCENT = '#0e7c86', ORANGE = '#e57200', NAVY = '#232d4b', INK = '#4b4b55', FAINT = '#b9b9c2', GHOST = '#9a9aa3';
-  const STAB = 18; // °C shift from the stabilizing change
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
@@ -48,7 +54,9 @@
   document.querySelectorAll<HTMLElement>('[data-folding]').forEach((root) => {
     const tmIn = root.querySelector<HTMLInputElement>('[data-in="tm"]')!;
     const coopIn = root.querySelector<HTMLInputElement>('[data-in="coop"]')!;
-    const stab = root.querySelector<HTMLInputElement>('[data-stab]')!;
+    const muts = root.querySelectorAll<HTMLInputElement>('[data-mut] input');
+    const checked = () => root.querySelector<HTMLInputElement>('[data-mut] input:checked')!;
+    const shiftOf = () => parseFloat(checked().value); // °C shift in Tm from the chosen mutation
     const tmOut = root.querySelector<HTMLElement>('[data-out="tm"]')!;
     const coopOut = root.querySelector<HTMLElement>('[data-out="coop"]')!;
     const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
@@ -73,7 +81,7 @@
       t.textContent = str; plot.appendChild(t); return t;
     }
 
-    // The stabilizing shift is tweened so the student SEES the curve slide right.
+    // The mutation's shift is tweened so the student SEES the curve slide right.
     let shown = 0; // current drawn shift (°C)
     let raf = 0;
 
@@ -81,7 +89,7 @@
       const baseTm = parseInt(tmIn.value, 10);
       const coop = parseFloat(coopIn.value);
       const tm = baseTm + shown;
-      const target = baseTm + (stab.checked ? STAB : 0);
+      const target = baseTm + shiftOf();
       const w = plot.getBoundingClientRect().width || 320;
       const k = w / 320;
       fs = (n: number) => Math.max(n, 9.5 / k);
@@ -93,15 +101,15 @@
       plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
       plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
       for (const f of [0.5, 1]) { plot.appendChild(el('line', { x1: X0, y1: py(f), x2: X1, y2: py(f), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' })); text(X0 - 4, py(f) + 3, (f * 100) + '%', 8, INK, 'end'); }
-      text(X0 - 4, py(0) + 3, '0%', 8, INK, 'end');
+      text(X0 - 4, py(0) - 2, '0%', 8, INK, 'end');
       for (const T of [20, 37, 60, 80, 100]) { plot.appendChild(el('line', { x1: px(T), y1: Y1, x2: px(T), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 })); text(px(T), Y1 + 13, String(T), 8, INK); }
       text((X0 + X1) / 2, Y1 + 26, 'temperature (°C)', 9, INK);
       text(X0 + 4, Y0 - 4, 'fraction folded', 9, INK, 'start');
       // body temp marker, labelled at its foot so it never collides with the orange point
       plot.appendChild(el('line', { x1: px(37), y1: Y0, x2: px(37), y2: Y1, stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }));
       text(px(37) + 3, Y1 - 5, 'body temp.', 7.5, INK, 'start');
-      // wild-type ghost curve when the stabilizing change is on
-      if (shown > 0.5) {
+      // wild-type ghost curve when a mutation shifts Tm
+      if (Math.abs(shown) > 0.5) {
         plot.appendChild(el('path', { d: curve(baseTm, coop), fill: 'none', stroke: GHOST, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
         if (baseTm >= TMIN && baseTm <= TMAX) text(px(baseTm) - 5, py(0.5) + 12, 'before', 7.5, GHOST, 'end');
       }
@@ -128,19 +136,25 @@
     function explain() {
       const baseTm = parseInt(tmIn.value, 10);
       const coop = parseFloat(coopIn.value);
-      const tm = baseTm + (stab.checked ? STAB : 0);
+      const tm = baseTm + shiftOf();
       const f37 = folded(37, tm, coop);
-      why.textContent = stab.checked
+      const kind = checked().dataset.kind;
+      const pct = f37 > 0.995 ? '~100' : String(Math.round(f37 * 100));
+      why.textContent = kind === 'core'
+        ? `A charged aspartate buried in the oily core has no water to bond with and breaks up the packing. Because the fold is only marginally stable, that one change drops Tm from ${baseTm} to ${tm} °C, ${f37 < 0.9 ? `and only ${pct}% is folded` : `though ${pct}% is still folded`} at body temperature.`
+        : kind === 'surface'
+        ? 'Lys → Arg on the surface swaps one positive charge for another, still in water, so Tm does not move.'
+        : kind === 'stab'
         ? `The stabilizing change pushed Tm from ${baseTm} to ${tm} °C (dashed curve = before). The protein now resists heat that would have melted the original; this is how thermophiles keep their enzymes folded in hot springs.`
         : f37 < 0.9
           ? `With Tm at ${tm} °C the protein is already partly unfolded at body temperature (only ${Math.round(f37 * 100)}% folded). A destabilizing change can drag Tm down toward 37 °C, which is how many disease mutations act.`
           : coop < 2.5
             ? 'With low cooperativity the protein loosens gradually over a wide temperature range. Real single-domain proteins are sharper than this: the whole structure tends to go at once.'
-            : 'A protein does not loosen gradually; it holds its shape, then unravels over a few degrees around Tm. That sharp transition is the signature of cooperative folding: the whole structure goes at once.';
+            : 'A protein does not loosen gradually; it holds its shape, then unravels over roughly ten degrees around Tm. That sharp transition is the signature of cooperative folding: the whole structure goes at once.';
     }
 
     function animateTo() {
-      const target = stab.checked ? STAB : 0;
+      const target = shiftOf();
       cancelAnimationFrame(raf);
       if (reduceMotion() || shown === target) { shown = target; draw(); return; }
       const from = shown, t0 = performance.now(), dur = 600;
@@ -156,7 +170,7 @@
 
     tmIn.addEventListener('input', () => { draw(); explain(); });
     coopIn.addEventListener('input', () => { draw(); explain(); });
-    stab.addEventListener('change', () => { animateTo(); explain(); });
+    muts.forEach((m) => m.addEventListener('change', () => { animateTo(); explain(); }));
     new ResizeObserver(() => draw()).observe(plot);
     draw(); explain();
   });
@@ -173,6 +187,8 @@
   .fm-slabel input { accent-color: var(--ddp-color-accent); }
   .fm-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .fm-check input { accent-color: var(--ddp-color-accent); }
+  .fm-mut { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.25rem var(--ddp-space-3); margin: 0; padding: 0; border: 0; min-width: 0; }
+  .fm-mut legend { width: 100%; padding: 0; margin-bottom: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .fm-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .fm-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
   .fm-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }

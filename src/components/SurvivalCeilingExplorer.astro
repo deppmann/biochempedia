@@ -1,0 +1,130 @@
+---
+/**
+ * SurvivalCeilingExplorer — the ceiling argument of the neurotrophic-hypothesis lesson.
+ * Two sliders set how many neurons were made and how many the target's factor can
+ * support; survivors are the smaller of the two, as the lesson's rule states. The learner
+ * sees that adding factor raises survivors only while factor is the smaller term, and
+ * that once every neuron has more factor than it can use a larger dose adds nothing.
+ * Relative units throughout: the lesson gives no numbers for this, so the picture is a
+ * sketch of the logic. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="sce card" data-sce>
+  <figcaption class="sce-head">Survival ceiling: made, supported, surviving<span class="sce-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="sce-svg" viewBox="0 0 360 190" role="img" aria-label="Three bars: neurons made, neurons the target's factor can support, and neurons surviving, which equals the smaller of the first two" data-plot></svg>
+
+  <div class="sce-controls">
+    <label class="sce-slabel"><span>Neurons made <em data-out="made">60</em> <small>(relative units)</small></span>
+      <input type="range" data-in="made" min="0" max="100" step="5" value="60" />
+    </label>
+    <label class="sce-slabel"><span>Neurons the target's factor can support <em data-out="supp">30</em> <small>(relative units)</small></span>
+      <input type="range" data-in="supp" min="0" max="100" step="5" value="30" />
+    </label>
+  </div>
+
+  <p class="sce-status" data-status role="status"></p>
+
+  <p class="sce-foot">neurons surviving = the smaller of (neurons made) and (neurons the target's factor can support). Extra factor raises the second term; nothing about a survival factor raises the first. The numbers are relative units: this is a sketch of the logic, for a population and its own factor such as sympathetic neurons and NGF.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#8a8a96', GREY = '#6b6b78', TEAL = '#0e7c86', ORANGE = '#b85600';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-sce]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const madeIn = root.querySelector<HTMLInputElement>('[data-in="made"]')!;
+    const suppIn = root.querySelector<HTMLInputElement>('[data-in="supp"]')!;
+    const madeOut = root.querySelector<HTMLElement>('[data-out="made"]')!;
+    const suppOut = root.querySelector<HTMLElement>('[data-out="supp"]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+
+    const X0 = 118, X1 = 346, MAX = 100;
+    const px = (v: number) => X0 + (v / MAX) * (X1 - X0);
+    let prev = { made: parseInt(madeIn.value, 10), supp: parseInt(suppIn.value, 10) };
+    let moved: 'made' | 'supp' | null = null;
+
+    function bar(y: number, v: number, fill: string, label: string) {
+      plot.appendChild(el('text', { x: 8, y: y + 17, 'font-size': 10, 'font-weight': 700, fill: INK }, label));
+      plot.appendChild(el('rect', { x: X0, y, width: X1 - X0, height: 24, fill: '#f3f3f6' }));
+      if (v > 0) plot.appendChild(el('rect', { x: X0, y, width: px(v) - X0, height: 24, fill }));
+    }
+    function render() {
+      const made = parseInt(madeIn.value, 10), supp = parseInt(suppIn.value, 10);
+      const surv = Math.min(made, supp);
+      madeOut.textContent = String(made);
+      suppOut.textContent = String(supp);
+      plot.replaceChildren();
+      plot.appendChild(el('text', { x: X0, y: 12, 'font-size': 9, fill: INK }, 'relative units, not to scale'));
+
+      bar(24, made, GREY, 'made');
+      bar(70, supp, TEAL, 'factor supports');
+      bar(116, surv, ORANGE, 'survive');
+      // portions that do not count: made neurons beyond the ceiling are lost; factor beyond the made number is unused
+      if (made > surv) {
+        plot.appendChild(el('rect', { x: px(surv), y: 24, width: px(made) - px(surv), height: 24, fill: '#fff', stroke: GREY, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('text', { x: (px(surv) + px(made)) / 2, y: 40, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, made - surv >= 15 ? 'lost' : ''));
+      }
+      if (supp > surv) {
+        plot.appendChild(el('rect', { x: px(surv), y: 70, width: px(supp) - px(surv), height: 24, fill: '#fff', stroke: TEAL, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('text', { x: (px(surv) + px(supp)) / 2, y: 86, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, supp - surv >= 20 ? 'unused' : ''));
+      }
+      if (surv >= 8) plot.appendChild(el('text', { x: px(surv) - 4, y: 132, 'font-size': 10, 'font-weight': 700, 'text-anchor': 'end', fill: '#fff', stroke: '#7a3a00', 'stroke-width': 0.6, 'paint-order': 'stroke' }, String(surv)));
+      else plot.appendChild(el('text', { x: px(surv) + 6, y: 132, 'font-size': 10, 'font-weight': 700, fill: ORANGE }, String(surv)));
+      // the ceiling
+      plot.appendChild(el('line', { x1: px(surv), y1: 20, x2: px(surv), y2: 156, stroke: ORANGE, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('text', { x: Math.min(px(surv) + 4, X1 - 120), y: 172, 'font-size': 10, 'font-weight': 700, fill: ORANGE }, 'ceiling = the smaller one'));
+
+      // status: state first, then what the last change did
+      let s: string;
+      if (made === 0) s = 'No neurons were made, so none can survive, however much factor there is.';
+      else if (supp === 0) s = 'The target\'s factor can support none of the neurons that were made, so none survive.';
+      else if (made === supp) s = `Made and supported are equal at ${made}: all ${made} survive. Either term is the smaller one.`;
+      else if (made > supp) s = `${made} neurons were made but the factor can support only ${supp}, so ${supp} survive and ${made - supp} are lost. Factor is the smaller term, so it sets the ceiling.`;
+      else s = `${made} neurons were made and the factor could support ${supp}, so all ${made} survive. The number made is the smaller term, so it sets the ceiling, and factor enough for ${supp - made} more neurons goes unused.`;
+      if (moved) {
+        const d = surv - Math.min(prev.made, prev.supp);
+        let t: string;
+        if (moved === 'supp') {
+          const up = supp > prev.supp, down = supp < prev.supp;
+          if (up) t = d > 0 ? 'You added factor: it raised the second term, and more of the neurons that were made escaped the loss.' : (made === 0 ? 'You added factor, but survivors did not rise: no neurons were made.' : 'You added factor, but survivors did not rise: once every neuron has more factor than it can use, a larger dose adds nothing.');
+          else if (down) t = d < 0 ? 'You removed factor, and more neurons were lost.' : 'You removed factor, but the factor still supports every neuron that was made, so survivors are unchanged.';
+          else t = '';
+        } else {
+          const up = made > prev.made, down = made < prev.made;
+          if (up) t = d > 0 ? (surv === made ? 'You made more neurons, and the factor could support them all, so survivors rose.' : 'You made more neurons, and the factor could support some of the extra, so survivors rose.') : 'You made more neurons, but survivors did not rise: the factor sets the ceiling, so the extra neurons are lost.';
+          else if (down) t = d < 0 ? 'You made fewer neurons, and fewer survive, because the number made is now the smaller term.' : 'You made fewer neurons, but survivors are unchanged: the factor still sets the ceiling.';
+          else t = '';
+        }
+        if (t) s += ' ' + t;
+      }
+      status.textContent = s;
+      prev = { made, supp };
+    }
+    madeIn.addEventListener('input', () => { moved = 'made'; render(); });
+    suppIn.addEventListener('input', () => { moved = 'supp'; render(); });
+    render();
+  });
+</script>
+
+<style>
+  .sce { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sce-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sce-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sce-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sce-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .sce-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sce-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .sce-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .sce-slabel input { accent-color: var(--ddp-color-accent); }
+  .sce-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .sce-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .sce-controls { grid-template-columns: 1fr; } }
+</style>

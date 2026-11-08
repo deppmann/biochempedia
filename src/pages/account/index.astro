@@ -1,0 +1,235 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/teach.css';
+---
+
+<BaseLayout title="Your account — Biochemistrypedia" description="An optional free account that keeps your notebook and progress in step across your devices." noindex>
+  <article class="wrap tc acct" data-account>
+    <p class="tc-eyebrow">Account</p>
+    <h1 data-title>Your account</h1>
+
+    <noscript><p class="tc-note">Accounts need JavaScript.</p></noscript>
+    <p class="tc-error" data-banner role="alert" hidden></p>
+    <p class="tc-muted" data-loading>Checking…</p>
+
+    <!-- Signed out -->
+    <section data-out hidden>
+      <p class="tc-lede">
+        You don't need an account to use this site. An account only keeps your highlights, notes and
+        progress the same on every device you use. Accounts are for people 13 and older.
+      </p>
+
+      <label class="tc-check acct-age"><input type="checkbox" data-age /> <span>I am 13 or older.</span></label>
+
+      <div class="acct-choices">
+        <div class="tc-card" data-google-card hidden>
+          <h2>Sign in with Google</h2>
+          <p class="tc-muted">We get your name and email from Google. Nothing else.</p>
+          <a class="tc-btn" href="#google" data-google>Sign in with Google</a>
+        </div>
+
+        <div class="tc-card">
+          <h2>Use a passkey</h2>
+          <p class="tc-muted">A passkey uses your phone or computer's fingerprint, face or PIN. No password, no email.</p>
+          <div data-pk-unsupported hidden><p class="tc-note">This browser can't use passkeys.</p></div>
+          <div data-pk>
+            <button class="tc-btn" type="button" data-pk-login>Sign in with a passkey</button>
+            <form class="tc-form acct-new" data-pk-new>
+              <h3>New here? Make a passkey</h3>
+              <label>A name to show on your account<input type="text" name="displayName" maxlength="40" required placeholder="e.g. Sam" autocomplete="nickname" /></label>
+              <button class="tc-btn ghost" type="submit">Create account with a passkey</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <p class="tc-error" data-out-err role="alert"></p>
+      <p class="tc-muted">How we handle your data: <a href="/privacy/">Privacy</a>.</p>
+    </section>
+
+    <!-- Signed in -->
+    <section data-in hidden>
+      <p class="tc-lede">Signed in as <strong data-name></strong><span data-email></span>.</p>
+      <p class="tc-muted" data-synced></p>
+      <div class="tc-row">
+        <button class="tc-btn" type="button" data-sync>Sync now</button>
+        <span class="tc-ok" data-sync-msg role="status"></span>
+      </div>
+
+      <h2>Ways to sign in</h2>
+      <p data-methods></p>
+      <div class="tc-row">
+        <button class="tc-btn ghost" type="button" data-add-pk>Add a passkey</button>
+        <a class="tc-btn ghost" href="#google" data-link-google hidden>Link Google</a>
+      </div>
+      <p class="tc-ok" data-add-msg role="status"></p>
+      <p class="tc-error" data-add-err role="alert"></p>
+
+      <h2>Your data</h2>
+      <p>Download a copy of everything we hold about you, as a JSON file.</p>
+      <a class="tc-btn ghost" href="#export" download data-export>Download my data</a>
+
+      <h2>Sign out</h2>
+      <label class="tc-check"><input type="checkbox" data-clear-device /> <span>Also remove my notes and progress from this device (for a shared computer).</span></label>
+      <div class="tc-row"><button class="tc-btn ghost" type="button" data-signout>Sign out</button></div>
+
+      <h2>Delete my account</h2>
+      <form class="tc-form" data-delete>
+        <p class="tc-muted" style="margin:0">This deletes your account and everything synced to it, at once, for good. Notes on this device stay unless you remove them.</p>
+        <label>Type DELETE to confirm<input type="text" name="confirm" autocomplete="off" autocapitalize="characters" required /></label>
+        <button class="tc-btn danger" type="submit" data-delete-btn disabled>Delete my account</button>
+        <p class="tc-error" data-delete-err role="alert"></p>
+      </form>
+    </section>
+
+    <p class="tc-ok" data-gone role="status" hidden>Your account is deleted.</p>
+  </article>
+</BaseLayout>
+
+<style is:global>
+  .acct .acct-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--ddp-space-4); margin-top: var(--ddp-space-5); }
+  .acct .acct-choices h2 { margin-top: 0; }
+  .acct .acct-new { margin-top: var(--ddp-space-5); }
+  .acct .acct-age { display: flex; gap: 0.6rem; align-items: center; margin-top: var(--ddp-space-5); font-weight: 600; }
+  .acct .acct-age input, .acct .tc-check input { width: 20px; height: 20px; flex: none; }
+  .acct .tc-check { display: flex; gap: 0.6rem; align-items: flex-start; max-width: 64ch; }
+</style>
+
+<script>
+  import {
+    getMe, syncNow, registerPasskey, signInWithPasskey, googleStartUrl, signOut, deleteAccount,
+    passkeysSupported, lastSyncAt, EXPORT_URL, type Me,
+  } from '../../lib/learner';
+
+  const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const show = (el: HTMLElement, on: boolean) => { el.hidden = !on; };
+
+  const ERRORS: Record<string, string> = {
+    'google-off': 'Sign in with Google is not switched on yet. Use a passkey instead.',
+    'google-state': 'That sign-in link expired or came from another browser. Please try again.',
+    'google-cancel': 'Google sign-in was cancelled.',
+    'google-failed': 'Google sign-in did not work. Please try again.',
+    'google-in-use': 'That Google account is already on a different Biochemistrypedia account.',
+    age: 'Please tick "I am 13 or older" before making an account.',
+    busy: 'Too many tries from here. Wait a minute and try again.',
+  };
+
+  // API links are filled in here so the static build's link checker doesn't follow them.
+  $<HTMLAnchorElement>('[data-export]').href = EXPORT_URL;
+  const params = new URLSearchParams(location.search);
+  const err = params.get('error');
+  if (err) {
+    const b = $('[data-banner]');
+    b.textContent = ERRORS[err] || 'Something went wrong. Please try again.';
+    b.hidden = false;
+    history.replaceState(null, '', location.pathname);
+  }
+
+  const when = (ms?: number | null) => (ms ? new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'not yet');
+
+  function renderOut(me: Me) {
+    show($('[data-out]'), true);
+    show($('[data-in]'), false);
+    $('[data-title]').textContent = 'Sign in';
+    show($('[data-google-card]'), !!me.googleAvailable);
+    if (!passkeysSupported()) { show($('[data-pk]'), false); show($('[data-pk-unsupported]'), true); }
+  }
+
+  function renderIn(me: Me) {
+    show($('[data-out]'), false);
+    show($('[data-in]'), true);
+    $('[data-title]').textContent = 'Your account';
+    $('[data-name]').textContent = me.name || '';
+    $('[data-email]').textContent = me.email ? ` (${me.email})` : '';
+    $('[data-synced]').textContent = `Last synced: ${when(lastSyncAt() ?? me.lastSynced)}.`;
+    const m = me.methods || [];
+    const parts = [];
+    if (m.includes('google')) parts.push('Google');
+    if (me.passkeys) parts.push(me.passkeys === 1 ? '1 passkey' : `${me.passkeys} passkeys`);
+    $('[data-methods]').textContent = parts.length ? `You can sign in with ${parts.join(' and ')}.` : 'No sign-in method yet. Add a passkey so you can get back in.';
+    show($('[data-link-google]'), !!me.googleAvailable && !m.includes('google'));
+    $<HTMLAnchorElement>('[data-link-google]').href = googleStartUrl('/account/');
+    if (!passkeysSupported()) show($('[data-add-pk]'), false);
+  }
+
+  async function refresh() {
+    const me = await getMe();
+    show($('[data-loading]'), false);
+    if (me.signedIn) renderIn(me); else renderOut(me);
+    return me;
+  }
+
+  // ---- signed out ----
+  const age = $<HTMLInputElement>('[data-age]');
+  const outErr = $('[data-out-err]');
+  const needAge = () => {
+    if (age.checked) return false;
+    outErr.textContent = 'Please tick "I am 13 or older" first.';
+    age.focus();
+    return true;
+  };
+  $<HTMLAnchorElement>('[data-google]').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (needAge()) return;
+    location.href = googleStartUrl(params.get('return') || '/account/', true);
+  });
+  $('[data-pk-login]').addEventListener('click', async () => {
+    outErr.textContent = '';
+    const r = await signInWithPasskey();
+    if (!r.ok) { outErr.textContent = r.error; return; }
+    await syncNow();
+    await refresh();
+  });
+  $<HTMLFormElement>('[data-pk-new]').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    outErr.textContent = '';
+    if (needAge()) return;
+    const name = String(new FormData(e.target as HTMLFormElement).get('displayName') || '').trim();
+    if (!name) { outErr.textContent = 'Please choose a name.'; return; }
+    const r = await registerPasskey(name, true);
+    if (!r.ok) { outErr.textContent = r.error; return; }
+    await syncNow();
+    await refresh();
+  });
+
+  // ---- signed in ----
+  $('[data-sync]').addEventListener('click', async () => {
+    const msg = $('[data-sync-msg]');
+    msg.className = 'tc-ok';
+    msg.textContent = 'Syncing…';
+    const r = await syncNow();
+    if (r.ok) {
+      msg.textContent = r.changed ? 'Synced. New items from your other devices are here now.' : 'Synced. Everything is up to date.';
+      $('[data-synced]').textContent = `Last synced: ${when(r.at)}.`;
+    } else { msg.className = 'tc-error'; msg.textContent = r.error; }
+  });
+  $('[data-add-pk]').addEventListener('click', async () => {
+    $('[data-add-msg]').textContent = ''; $('[data-add-err]').textContent = '';
+    const r = await registerPasskey();
+    if (!r.ok) { $('[data-add-err]').textContent = r.error; return; }
+    $('[data-add-msg]').textContent = 'Passkey added.';
+    await refresh();
+  });
+  $('[data-signout]').addEventListener('click', async () => {
+    await signOut($<HTMLInputElement>('[data-clear-device]').checked);
+    await refresh();
+  });
+  const del = $<HTMLFormElement>('[data-delete]');
+  const delBtn = $<HTMLButtonElement>('[data-delete-btn]');
+  const confirmBox = del.elements.namedItem('confirm') as HTMLInputElement;
+  confirmBox.addEventListener('input', () => { delBtn.disabled = confirmBox.value.trim().toUpperCase() !== 'DELETE'; });
+  del.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const r = await deleteAccount(confirmBox.value);
+    if (!r.ok) { $('[data-delete-err]').textContent = r.error; return; }
+    show($('[data-in]'), false);
+    show($('[data-gone]'), true);
+    del.reset();
+    delBtn.disabled = true;
+    setTimeout(refresh, 2500);
+  });
+
+  refresh().then((me) => {
+    // Just back from Google: sync this device once.
+    if (me.signedIn && !lastSyncAt()) syncNow().then(() => refresh());
+  });
+</script>

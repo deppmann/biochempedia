@@ -109,7 +109,7 @@ class S01Fixation(SpokenScene):
         rubp_l.move_to([-1.9, 1.85, 0])
         self.at("Ribulose")
         self.play(FadeIn(rubp.body), FadeIn(rubp_l), run_time=0.8)
-        self.at("5 carbon backbone")
+        self.at("backbone")
         self.play(pop(rubp.dots, 1.0))
         self.at("capped")
         self.play(FadeIn(rubp.pl, scale=0.5), FadeIn(rubp.pr, scale=0.5), run_time=0.8)
@@ -157,7 +157,7 @@ class S01Fixation(SpokenScene):
         labA = VGroup(T("3-PGA", 28, BLUE), T("3-phosphoglycerate", 22, GREY)).arrange(DOWN, buff=0.06)
         labA.move_to([-2.2, -1.72, 0])
         labB = labA.copy().move_to([2.0, -1.72, 0])
-        self.at("3 phosphoglycerate")
+        self.at("phosphoglycerate")
         self.play(FadeIn(labA), FadeIn(labB), run_time=0.8)
 
         # --- the bookkeeping -----------------------------------------------------------------------------
@@ -175,7 +175,7 @@ class S01Fixation(SpokenScene):
         self.at("plus")
         self.play(FadeIn(ep), FadeIn(e1, scale=0.6), Indicate(co2.body, color=ORANGE, scale_factor=1.15),
                   run_time=0.8)
-        self.at("6 carbons total")
+        self.at("carbons total")
         self.play(FadeIn(eq1), FadeIn(e6, scale=0.6), run_time=0.7)
         self.at("cleanly")
         self.play(FadeIn(eq2), FadeIn(e3a, scale=0.6), FadeIn(ep2), FadeIn(e3b, scale=0.6), FadeIn(ec),
@@ -247,9 +247,9 @@ class S02Ledger(SpokenScene):
         self.at("doubling")
         times2.next_to(a_top[0], LEFT, buff=0.2)
         self.play(FadeIn(times2, scale=0.6), run_time=0.5)
-        self.at("18 ATP")
+        self.at("Eighteen")
         self.play(FadeIn(a_top[0], shift=RIGHT * 0.15), pop(a_top[3], 1.0))
-        self.at("12 NADPH")
+        self.at("twelve")
         self.play(FadeIn(a_top[1]), FadeIn(a_top[2], shift=RIGHT * 0.15), pop(a_top[4], 0.9))
         self.at("per glucose")
         self.play(Indicate(tt, color=GREEN, scale_factor=1.03), run_time=0.8)
@@ -423,7 +423,7 @@ class S03Hot(SpokenScene):
                 continue
             if all(np.hypot(p[0] - q[0], p[1] - q[1]) > 0.42 for q in pts):
                 pts.append(p)
-        co2_in, o2_in = ValueTracker(1.0), ValueTracker(0.3)
+        co2_in, o2_in = ValueTracker(1.0), ValueTracker(1.0)
         co2_field = DotField(pts[:10], ORANGE, co2_in, seed=1)
         o2_field = DotField(pts[10:24], RED, o2_in, seed=2)
         inflow = Inflow(7, CX, 2.95, BY1, -0.7, open_t)
@@ -468,7 +468,7 @@ class S03Hot(SpokenScene):
             t = T(text, 26, color).move_to(r)
             return VGroup(r, t).move_to([3.4, y, 0])
         ys = [2.5, 1.5, 0.5, -0.5, -1.5, -2.5]
-        chips = [link_chip("Temperature rises", GOLD, ys[0]), link_chip("Stomata close", GREY, ys[1]),
+        chips = [link_chip("Hot, dry day", GOLD, ys[0]), link_chip("Stomata close", GREY, ys[1]),
                  link_chip("Internal CO₂ drops", ORANGE, ys[2]), link_chip("O₂ wins the competition", RED, ys[3]),
                  link_chip("Rubisco acts as an oxygenase", RED, ys[4]), link_chip("Carbon and energy lost", RED, ys[5])]
         arrows = [Arrow([3.4, ys[i] - 0.38, 0], [3.4, ys[i + 1] + 0.38, 0], buff=0, stroke_width=3, color=GREY,
@@ -477,20 +477,20 @@ class S03Hot(SpokenScene):
         # ------------------------------------------------------------------------------------------------------------
         self.add(co2_field, o2_field, inflow, guard_m)
         self.play(FadeIn(head), FadeIn(leaf), FadeIn(rub), FadeIn(stoma_lab), FadeIn(leg), run_time=1.2)
-        self.at("plant gets too hot")
+        self.at("plant gets")
         self.add(th_fill)
         self.play(FadeIn(th_out), FadeIn(bulb), run_time=0.7)
 
-        self.at("Temperature rises")
+        self.at("hot dry day")
         self.play(FadeIn(chips[0], shift=DOWN * 0.15), heat.animate.set_value(1.0), run_time=1.5)
         self.at("closes")
         self.play(FadeIn(arrows[0]), FadeIn(chips[1], shift=DOWN * 0.15), open_t.animate.set_value(0.0), run_time=1.3)
-        self.at("trap")
+        self.at("Fresh carbon dioxide")
         self.play(Indicate(guard_m, color=RED, scale_factor=1.15), run_time=1.0)
         self.at("internal")
         self.play(FadeIn(arrows[1]), FadeIn(chips[2], shift=DOWN * 0.15), co2_in.animate.set_value(0.3), run_time=2.4)
-        self.at("oxygen builds up")
-        self.play(o2_in.animate.set_value(1.0), run_time=1.6)
+        self.at("oxygen stays high")
+        self.play(Indicate(o2_field, color=RED, scale_factor=1.0), run_time=1.6)
         self.at("Now oxygen")
         self.play(FadeIn(arrows[2]), FadeIn(chips[3], shift=DOWN * 0.15), FadeIn(bar_cap), FadeIn(bar_m), run_time=0.8)
         self.play(c_um.animate.set_value(2.8), run_time=2.2)
@@ -507,7 +507,7 @@ class S03Hot(SpokenScene):
         self.play(FadeIn(arrows[4]), FadeIn(chips[5], shift=DOWN * 0.15),
                   loss_c.animate.shift(LEFT * 1.0 + UP * 0.5).set_opacity(0),
                   loss_a.animate.shift(LEFT * 1.1 + DOWN * 0.1).set_opacity(0), run_time=1.6)
-        self.at("Each step forces")
+        self.at("Each step feeds")
         self.play(LaggedStart(*[Indicate(c, color=TEXT, scale_factor=1.04) for c in chips], lag_ratio=0.25, run_time=2.6))
         self.at("lost productivity")
         self.play(chips[5][0].animate.set_fill(RED, 0.4).set_stroke(width=4), run_time=0.8)
@@ -551,7 +551,7 @@ class S04Photoresp(SpokenScene):
         def arrow_between(xa, xb, y, color=GREY):
             return Arrow([xa + 0.62, y, 0], [xb - 0.62, y, 0], buff=0, stroke_width=4, color=color, tip_length=0.18)
 
-        self.at("side by side")
+        self.at("Compare")
         self.play(Create(divider), run_time=0.8)
         self.at("counting")
         self.play(FadeIn(leg), run_time=0.5)
@@ -576,9 +576,9 @@ class S04Photoresp(SpokenScene):
         a12 = arrow_between(X1, X2, ytop)
         rub_lab = T("Rubisco", 22, TEAL).next_to(a12, UP, buff=0.12)
         lab2 = two_line(X2, 0.95, "12 3-PGA", "36 C", BLUE, size=22)
-        self.at("Rubisco makes")
+        self.at("Robisco")
         self.play(GrowArrow(a12), FadeIn(rub_lab), run_time=0.7)
-        self.at("12 molecules")
+        self.at("molecules")
         self.play(TransformFromCopy(s1_all, s2), FadeIn(lab2), run_time=1.3)
 
         s3 = block([BLUE] * 36, sp=SP).move_to([X3, ytop, 0])
@@ -610,13 +610,13 @@ class S04Photoresp(SpokenScene):
         self.play(FadeIn(net_top, shift=UP * 0.1), Indicate(s4b, color=GREEN, scale_factor=1.3), run_time=1.0)
 
         # ---- bottom: photorespiration ----------------------------------------------------------------------------------
-        t_bot = T("Photorespiration", 30, TEXT, weight=BOLD).move_to([-4.6, -0.5, 0])
+        t_bot = T("All oxygenation", 30, TEXT, weight=BOLD).move_to([-4.6, -0.5, 0])
         self.at("On the bottom")
         self.play(FadeIn(t_bot), run_time=0.5)
         b1 = block([BLUE] * 30, sp=SP).move_to([X1, ybot, 0])
         lab_b1 = VGroup(VGroup(T("6 RuBP", 22, BLUE), T("+ 6 O₂", 22, RED)).arrange(RIGHT, buff=0.12),
                         M("30 C", 22, GREY)).arrange(DOWN, buff=0.06).move_to([X1, -2.3, 0])
-        self.at("Rubisco grabs")
+        self.at("respiration")
         self.play(pop(b1, 0.9), FadeIn(lab_b1), run_time=0.9)
 
         b2a = block([BLUE] * 18, sp=SP).move_to([XB2a, ybot, 0])
@@ -627,7 +627,7 @@ class S04Photoresp(SpokenScene):
         lab_b2b = two_line(XB2b, -2.3, "6 phosphoglycolate", "12 C", RED, size=22)
         self.at("producing")
         self.play(GrowArrow(a_b), FadeIn(rub_lab2), run_time=0.6)
-        self.at("3PGA plus")
+        self.at("plus")
         self.play(TransformFromCopy(VGroup(*b1[:18]), b2a), FadeIn(lab_b2a), run_time=1.0)
         self.at("phosphoglycolate")
         self.play(TransformFromCopy(VGroup(*b1[18:]), b2b), FadeIn(lab_b2b), run_time=1.0)
@@ -657,11 +657,11 @@ class S04Photoresp(SpokenScene):
         a_g = Arrow([XB3 + 0.4, ybot, 0], [XB4 - 0.7, ybot, 0], buff=0, stroke_width=4, color=GREY, tip_length=0.18)
         lab_b4 = two_line(XB4, -2.3, "9 G3P", "27 C", BLUE, size=22)
         need = T("30 C needed", 22, RED).move_to([XB4, -2.95, 0])
-        self.at("There are not even enough")
+        self.at("every reaction")
         self.play(GrowArrow(a_g), TransformFromCopy(VGroup(*b2a, *b3), VGroup(*b4[:27])), FadeIn(lab_b4), run_time=0.9)
-        self.at("carbons left")
+        self.at("carbons would")
         self.play(FadeIn(hollow, scale=1.6), FadeIn(need), run_time=0.9)
-        self.at("no glucose")
+        self.at("starting sugar")
         nog = T("no glucose made", 26, RED).move_to([XB4 - 0.25, -0.6, 0])
         self.play(FadeIn(nog, shift=DOWN * 0.1), run_time=0.7)
         self.at("contrast")

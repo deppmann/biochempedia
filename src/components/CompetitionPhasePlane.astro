@@ -1,0 +1,256 @@
+---
+/**
+ * CompetitionPhasePlane — the Lotka-Volterra competition model of the "competition" lesson
+ * drawn as a phase plane. N1 against N2, the two isoclines (where each species' growth is
+ * zero), the point where they cross, and the path the two populations take from a start the
+ * learner picks. K1 = 100, K2 = 80, r1 = 0.5 and r2 = 0.25 per day are the lesson's own
+ * values and are fixed. The learner changes alpha12 and alpha21 and the start point, and
+ * the sketch shows whether the two conditions K1 > alpha12 K2 and K2 > alpha21 K1 hold, the
+ * rare-species growth rates the lesson works, and the algebraic expectation beside the
+ * numbers the run actually reaches. A sketch of the logic, not a prediction for real species.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cpp card" data-cpp>
+  <figcaption class="cpp-head">Competition phase plane: coexist or exclude?<span class="cpp-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cpp-svg" viewBox="0 0 340 334" role="img" aria-label="Phase plane of species 1 numbers against species 2 numbers, with the two isoclines, their crossing point if any, and the path of the two populations from the chosen start" data-plot></svg>
+
+  <ul class="cpp-legend" aria-hidden="true">
+    <li><span class="cpp-sw cpp-sw1"></span>species 1 isocline (dN1/dt = 0)</li>
+    <li><span class="cpp-sw cpp-sw2"></span>species 2 isocline (dN2/dt = 0)</li>
+    <li><span class="cpp-dot cpp-dot-start"></span>start</li>
+    <li><span class="cpp-dot cpp-dot-end"></span>numbers at day 400 of the run</li>
+    <li><span class="cpp-dot cpp-dot-eq"></span><span data-eqkey>isoclines cross</span></li>
+  </ul>
+
+  <div class="cpp-controls">
+    <label class="cpp-slabel"><span>α<sub>12</sub>, effect of one species 2 individual on species 1 <em data-out="a12">0.50</em></span>
+      <input type="range" data-in="a12" min="0" max="2" step="0.05" value="0.5" />
+    </label>
+    <label class="cpp-slabel"><span>α<sub>21</sub>, effect of one species 1 individual on species 2 <em data-out="a21">0.50</em></span>
+      <input type="range" data-in="a21" min="0" max="2" step="0.05" value="0.5" />
+    </label>
+    <label class="cpp-slabel"><span>Start: species 1 numbers N<sub>1</sub> <em data-out="n1">20</em></span>
+      <input type="range" data-in="n1" min="5" max="200" step="5" value="20" />
+    </label>
+    <label class="cpp-slabel"><span>Start: species 2 numbers N<sub>2</sub> <em data-out="n2">20</em></span>
+      <input type="range" data-in="n2" min="5" max="200" step="5" value="20" />
+    </label>
+  </div>
+  <p class="cpp-hint">You can also click the plot to set the start point. Fixed: K<sub>1</sub> = 100, K<sub>2</sub> = 80 individuals; r<sub>1</sub> = 0.5, r<sub>2</sub> = 0.25 per day.</p>
+
+  <p class="cpp-assume">In this sketch: constant parameters, no age structure, no migration, and the two equations of the lesson are the only rules; the path steps the two equations forward 0.05 day at a time for 400 days, a choice of this sketch.</p>
+
+  <p class="cpp-why" data-why role="status"></p>
+
+  <dl class="cpp-read">
+    <div class="cpp-wide"><dt>Growth at the start, species 1 (individuals per day)</dt><dd data-r-g1></dd></div>
+    <div class="cpp-wide"><dt>Growth at the start, species 2 (individuals per day)</dt><dd data-r-g2></dd></div>
+    <div class="cpp-wide"><dt>Species 1 rare, species 2 at K<sub>2</sub> (per day)</dt><dd data-r-i1></dd></div>
+    <div class="cpp-wide"><dt>Species 2 rare, species 1 at K<sub>1</sub> (per day)</dt><dd data-r-i2></dd></div>
+    <div><dt>Expected from the conditions</dt><dd data-r-exp></dd></div>
+    <div><dt>Result of this run in the sketch, day 400</dt><dd data-r-obs></dd></div>
+  </dl>
+
+  <p class="cpp-foot">The outcome is set by two conditions, K<sub>1</sub> &gt; α<sub>12</sub> K<sub>2</sub> and K<sub>2</sub> &gt; α<sub>21</sub> K<sub>1</sub>: both hold, coexistence; one holds, the other species is excluded; neither holds, the winner depends on the starting numbers. The growth rates r never appear in them. This picture is a sketch of the logic, not a prediction for real species.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const C1 = '#0e7c86', C2 = '#e57200', INK = '#4b4b55', FAINT = '#d4d4da', PATH = '#3b3b45';
+  const K1 = 100, K2 = 80, R1 = 0.5, R2 = 0.25;
+  const AX = 200; // axis range, individuals
+  const X0 = 46, X1 = 326, Y1 = 302, Y0 = 22;
+  const px = (n: number) => X0 + (n / AX) * (X1 - X0);
+  const py = (n: number) => Y1 - (n / AX) * (Y1 - Y0);
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const clean = (x: number) => (Math.abs(x) < 1e-12 ? 0 : x);
+  // plain number: up to 4 decimals, trailing zeros dropped
+  function f4(x: number): string {
+    x = clean(x);
+    return String(parseFloat(x.toFixed(4)));
+  }
+  // rates: as the lesson writes them (0.3, 0.094, -0.0625)
+  function rate(x: number): string {
+    x = clean(x);
+    const r4 = parseFloat(x.toFixed(4));
+    if (Math.abs(r4 - x) < 1e-9) return f4(x);
+    return String(parseFloat(x.toPrecision(2)));
+  }
+  const neg = (s: string) => s.replace(/-/g, '−');
+
+  document.querySelectorAll<HTMLElement>('[data-cpp]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const a12In = inp('a12'), a21In = inp('a21'), n1In = inp('n1'), n2In = inp('n2');
+    const why = o('[data-why]'), eqKey = o('[data-eqkey]');
+    const rG1 = o('[data-r-g1]'), rG2 = o('[data-r-g2]'), rI1 = o('[data-r-i1]'), rI2 = o('[data-r-i2]');
+    const rExp = o('[data-r-exp]'), rObs = o('[data-r-obs]');
+
+    function render() {
+      const a12 = Math.round(parseFloat(a12In.value) * 100) / 100;
+      const a21 = Math.round(parseFloat(a21In.value) * 100) / 100;
+      const s1 = parseInt(n1In.value, 10), s2 = parseInt(n2In.value, 10);
+      out('a12').textContent = a12.toFixed(2);
+      out('a21').textContent = a21.toFixed(2);
+      out('n1').textContent = String(s1);
+      out('n2').textContent = String(s2);
+
+      // the lesson's conditions and invasion rates
+      const lim1 = a12 * K2, lim2 = a21 * K1; // alpha12 K2 and alpha21 K1
+      const cond1 = K1 > lim1, cond2 = K2 > lim2;
+      const inv1 = R1 * (1 - (a12 * K2) / K1); // species 1 rare, species 2 at K2
+      const inv2 = R2 * (1 - (a21 * K1) / K2); // species 2 rare, species 1 at K1
+      const g1 = R1 * s1 * (1 - (s1 + a12 * s2) / K1);
+      const g2 = R2 * s2 * (1 - (s2 + a21 * s1) / K2);
+
+      // run the two equations (Euler, small step) for 400 days
+      const dt = 0.05, steps = 8000;
+      let n1 = s1, n2 = s2;
+      const pts: [number, number][] = [[n1, n2]];
+      for (let i = 1; i <= steps; i++) {
+        const d1 = R1 * n1 * (1 - (n1 + a12 * n2) / K1);
+        const d2 = R2 * n2 * (1 - (n2 + a21 * n1) / K2);
+        n1 = Math.max(0, n1 + d1 * dt);
+        n2 = Math.max(0, n2 + d2 * dt);
+        if (i % 20 === 0) pts.push([n1, n2]);
+      }
+
+      // where the isoclines cross, if inside the positive quadrant
+      const den = 1 - a12 * a21;
+      let eq: [number, number] | null = null;
+      if (Math.abs(den) > 1e-9) {
+        const e1 = (K1 - a12 * K2) / den, e2 = (K2 - a21 * K1) / den;
+        if (e1 > 0 && e2 > 0) eq = [e1, e2];
+      }
+
+      // ---- drawing
+      plot.replaceChildren();
+      plot.appendChild(el('rect', { x: 0, y: 0, width: 340, height: 334, fill: '#fff' }));
+      const clip = el('clipPath', { id: 'cpp-clip' });
+      clip.appendChild(el('rect', { x: X0, y: Y0, width: X1 - X0, height: Y1 - Y0 }));
+      const defs = el('defs', {}); defs.appendChild(clip); plot.appendChild(defs);
+      for (const t of [0, 50, 100, 150, 200]) {
+        if (t > 0) {
+          plot.appendChild(el('line', { x1: px(t), y1: Y0, x2: px(t), y2: Y1, stroke: FAINT, 'stroke-width': 0.6 }));
+          plot.appendChild(el('line', { x1: X0, y1: py(t), x2: X1, y2: py(t), stroke: FAINT, 'stroke-width': 0.6 }));
+        }
+        const tx = el('text', { x: px(t), y: Y1 + 13, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); tx.textContent = String(t); plot.appendChild(tx);
+        const ty = el('text', { x: X0 - 5, y: py(t) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); ty.textContent = String(t); plot.appendChild(ty);
+      }
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      const xl = el('text', { x: (X0 + X1) / 2, y: 330, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); xl.textContent = 'N1: species 1 (individuals)'; plot.appendChild(xl);
+      const yl = el('text', { x: X0, y: 12, 'text-anchor': 'start', 'font-size': 10, fill: INK }); yl.textContent = 'N2: species 2 (individuals)'; plot.appendChild(yl);
+
+      const g = el('g', { 'clip-path': 'url(#cpp-clip)' });
+      // species 1 isocline: N1 = K1 - a12 N2
+      const e2 = a12 > 0 ? Math.min(AX, K1 / a12) : AX;
+      g.appendChild(el('line', { x1: px(K1), y1: py(0), x2: px(K1 - a12 * e2), y2: py(e2), stroke: C1, 'stroke-width': 2.4 }));
+      // species 2 isocline: N2 = K2 - a21 N1
+      const e1 = a21 > 0 ? Math.min(AX, K2 / a21) : AX;
+      g.appendChild(el('line', { x1: px(0), y1: py(K2), x2: px(e1), y2: py(K2 - a21 * e1), stroke: C2, 'stroke-width': 2.4 }));
+      // trajectory
+      const d = pts.map((p, i) => (i ? 'L' : 'M') + px(p[0]).toFixed(1) + ' ' + py(p[1]).toFixed(1)).join(' ');
+      g.appendChild(el('path', { d, fill: 'none', stroke: PATH, 'stroke-width': 1.8, 'stroke-dasharray': '5 3', 'stroke-linejoin': 'round' }));
+      plot.appendChild(g);
+      // the crossing point
+      const bothHold = cond1 && cond2;
+      if (eq) {
+        plot.appendChild(el('circle', { cx: px(eq[0]), cy: py(eq[1]), r: 6, fill: bothHold ? '#fff' : '#fff', stroke: INK, 'stroke-width': 2 }));
+        if (bothHold) plot.appendChild(el('circle', { cx: px(eq[0]), cy: py(eq[1]), r: 2.6, fill: INK }));
+      }
+      // start (filled circle) and end of the run (square)
+      plot.appendChild(el('circle', { cx: px(s1), cy: py(s2), r: 5, fill: '#7a5ea8', stroke: '#fff', 'stroke-width': 1.2 }));
+      const last = pts[pts.length - 1];
+      plot.appendChild(el('rect', { x: px(last[0]) - 4.5, y: py(last[1]) - 4.5, width: 9, height: 9, fill: PATH, stroke: '#fff', 'stroke-width': 1.2 }));
+
+      eqKey.textContent = eq
+        ? (bothHold ? 'isoclines cross here' : 'isoclines cross here')
+        : 'isoclines do not cross where both numbers are positive';
+
+      // ---- readouts with the lesson's arithmetic
+      const t1 = `${R1} × ${s1} × [1 − (${s1} + ${f4(a12)} × ${s2}) / ${K1}] = ${f4(g1)}`;
+      const t2 = `${R2} × ${s2} × [1 − (${s2} + ${f4(a21)} × ${s1}) / ${K2}] = ${f4(g2)}`;
+      rG1.textContent = neg(t1);
+      rG2.textContent = neg(t2);
+      rI1.textContent = neg(`${R1} × (1 − ${f4(a12)} × ${K2} / ${K1}) = ${rate(inv1)}`);
+      rI2.textContent = neg(`${R2} × (1 − ${f4(a21)} × ${K1} / ${K2}) = ${rate(inv2)}`);
+
+      const obs = `N1 = ${last[0].toFixed(1)}, N2 = ${last[1].toFixed(1)}`;
+      let exp: string;
+      if (bothHold) exp = eq ? `N1 = ${f4(eq[0])}, N2 = ${f4(eq[1])}` : 'coexistence';
+      else if (cond1 && !cond2) exp = `N1 = ${K1}, N2 = 0`;
+      else if (!cond1 && cond2) exp = `N1 = 0, N2 = ${K2}`;
+      else exp = `either N1 = ${K1}, N2 = 0 or N1 = 0, N2 = ${K2}, by the start`;
+      rExp.textContent = exp;
+      rObs.textContent = obs;
+
+      // ---- status sentence
+      const cs1 = `K1 = ${K1} ${cond1 ? '>' : 'is not greater than'} α12 K2 = ${f4(a12)} × ${K2} = ${f4(lim1)}`;
+      const cs2 = `K2 = ${K2} ${cond2 ? '>' : 'is not greater than'} α21 K1 = ${f4(a21)} × ${K1} = ${f4(lim2)}`;
+      let msg: string;
+      if (bothHold) {
+        msg = `Both conditions hold: ${cs1}, and ${cs2}. Each species can increase when rare (${rate(inv1)} and ${rate(inv2)} per day), so in this sketch the model predicts stable coexistence at N1 = ${f4(eq ? eq[0] : 0)} and N2 = ${f4(eq ? eq[1] : 0)}.`;
+      } else if (cond1 && !cond2) {
+        msg = `Only the first condition holds: ${cs1}, but ${cs2}. Species 2 cannot increase when rare (${rate(inv2)} per day) while species 1 can (${rate(inv1)} per day), so in this sketch the model predicts that species 1 excludes species 2.`;
+      } else if (!cond1 && cond2) {
+        msg = `Only the second condition holds: ${cs2}, but ${cs1}. Species 1 cannot increase when rare (${rate(inv1)} per day) while species 2 can (${rate(inv2)} per day), so in this sketch the model predicts that species 2 excludes species 1.`;
+      } else {
+        msg = `Both conditions fail: ${cs1}, and ${cs2}. Neither rare-growth rate (see the readouts) is positive, so in this sketch the winner depends on the starting numbers. At day 400 in this run: N1 = ${last[0].toFixed(1)}, N2 = ${last[1].toFixed(1)}. Move the start point to see the other outcome.`;
+      }
+      why.textContent = neg(msg);
+    }
+
+    [a12In, a21In, n1In, n2In].forEach((s) => s.addEventListener('input', render));
+    plot.addEventListener('click', (ev: MouseEvent) => {
+      const r = plot.getBoundingClientRect();
+      const vx = ((ev.clientX - r.left) / r.width) * 340, vy = ((ev.clientY - r.top) / r.height) * 334;
+      if (vx < X0 || vx > X1 || vy < Y0 || vy > Y1) return;
+      const snap = (v: number) => Math.min(200, Math.max(5, Math.round(v / 5) * 5));
+      n1In.value = String(snap(((vx - X0) / (X1 - X0)) * AX));
+      n2In.value = String(snap(((Y1 - vy) / (Y1 - Y0)) * AX));
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .cpp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cpp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cpp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cpp-svg { display: block; width: 100%; max-width: 460px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; cursor: crosshair; }
+  .cpp-legend { list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cpp-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .cpp-sw { display: inline-block; width: 18px; height: 0; border-top: 3px solid; flex: none; }
+  .cpp-sw1 { border-color: #0e7c86; }
+  .cpp-sw2 { border-color: #e57200; }
+  .cpp-dot { display: inline-block; width: 10px; height: 10px; flex: none; }
+  .cpp-dot-start { background: #7a5ea8; border-radius: 50%; }
+  .cpp-dot-end { background: #3b3b45; }
+  .cpp-dot-eq { border: 2px solid #4b4b55; border-radius: 50%; background: #fff; box-sizing: border-box; }
+  .cpp-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-1); }
+  @media (max-width: 560px) { .cpp-controls { grid-template-columns: 1fr; } }
+  .cpp-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cpp-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cpp-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .cpp-hint, .cpp-assume { margin: var(--ddp-space-1) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cpp-assume { color: var(--ddp-color-ink-soft); font-style: italic; }
+  .cpp-why { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5.5em; overflow-wrap: anywhere; }
+  .cpp-read { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  @media (max-width: 560px) { .cpp-read { grid-template-columns: 1fr; } }
+  .cpp-read div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .cpp-read .cpp-wide { grid-column: 1 / -1; }
+  .cpp-read dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cpp-read dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .cpp-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

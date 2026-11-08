@@ -29,6 +29,7 @@
     <div class="cvl-prod"><span class="cvl-p-name">O₂ (water split)</span><span class="cvl-p-v" data-o2>—</span></div>
     <div class="cvl-prod"><span class="cvl-p-name">NADPH</span><span class="cvl-p-v" data-nadph>—</span></div>
     <div class="cvl-prod"><span class="cvl-p-name">ATP</span><span class="cvl-p-v" data-atp>—</span></div>
+    <div class="cvl-prod"><span class="cvl-p-name">Photons</span><span class="cvl-p-v" data-photons>—</span></div>
   </div>
 
   <div class="cvl-balance">
@@ -39,7 +40,7 @@
 
   <p class="cvl-why" data-why role="status"></p>
 
-  <p class="cvl-foot">Two products, two jobs. Linear flow is the only mode that splits water and reduces NADP⁺, so it has to run — it is where the O₂ and all the NADPH come from. But the protons it pumps buy slightly less than the 3 ATP the Calvin cycle spends for every 2 NADPH it consumes, so a leaf living on linear flow alone would slowly run out of ATP. Cyclic flow is the fix: route PSI's electrons back through b6f, pump protons without touching NADP⁺, and make ATP with no NADPH on the side. The chloroplast dials in just enough cyclic flow to balance the books at 3:2 — the same trick as topping up one currency without minting the other.</p>
+  <p class="cvl-foot">Two products, two jobs. Linear flow is the only mode that splits water and reduces NADP⁺, so it has to run — it is where the O₂ and all the NADPH come from. But the protons it delivers to the lumen buy slightly less than the 3 ATP the Calvin cycle spends for every 2 NADPH it consumes, so a leaf living on linear flow alone would slowly run out of ATP. Cyclic flow is the fix: route PSI's electrons back through b6f, pump protons without touching NADP⁺, and make ATP with no NADPH on the side. The chloroplast dials in just enough cyclic flow to balance the books at 3:2 — the same trick as topping up one currency without minting the other.</p>
 </figure>
 
 <script>
@@ -100,6 +101,9 @@
       caption(svg, 46, 52, 'H₂O → O₂', ACCENT);
       // PSII -> b6f
       flowLine(svg, 78, 100, 138, 100, ACCENT, 'cvl-ar-acc');
+      // split water releases its own protons into the lumen at PSII (4 of the 12 per O₂)
+      flowLine(svg, 46, 122, 46, 150, GOLD, 'cvl-ar-gold');
+      caption(svg, 46, 168, 'H⁺ from water', GOLD_INK);
     }
     // b6f -> PSI (both modes)
     flowLine(svg, 202, 100, 262, 100, ACCENT, 'cvl-ar-acc');
@@ -121,7 +125,7 @@
 
     // proton/ATP note from b6f (every mode pumps; cyclic adds more)
     flowLine(svg, 170, 122, 170, 150, GOLD, 'cvl-ar-gold');
-    caption(svg, 170, 168, mode === 'linear' ? 'H⁺ gradient → ATP' : 'more H⁺ → more ATP', GOLD_INK);
+    caption(svg, 170, 168, mode === 'linear' ? 'b6f H⁺ (most)' : 'more H⁺ → more ATP', GOLD_INK);
 
     // mode title baseline
     const title = el('text', { x: 230, y: 193, 'text-anchor': 'middle', fill: INK, 'font-size': 12, 'font-weight': 700 });
@@ -134,23 +138,23 @@
   // Bookkeeping (per the lesson): water gives 1 H⁺ per e⁻ into the lumen; the b6f Q-cycle pumps
   // ~2 H⁺ per e⁻ (~4 per pair); the chloroplast c14 ATP synthase spends 14 H⁺ per 3 ATP.
   const H_PER_ATP = 14 / 3;
-  type Row = { basis: string; o2: string; nadph: string; atp: string; ratio: string; balanced: boolean; why: string };
+  type Row = { basis: string; o2: string; nadph: string; atp: string; photons: string; ratio: string; balanced: boolean; why: string };
   const ROWS: Record<Mode, Row> = {
     linear: {
       basis: 'Counting 4 electrons pulled from water (one O₂):',
-      o2: '1 O₂', nadph: '2 NADPH', atp: `≈ ${(12 / H_PER_ATP).toFixed(1)} ATP (12 H⁺)`,
+      o2: '1 O₂', nadph: '2 NADPH', atp: `≈ ${(12 / H_PER_ATP).toFixed(1)} ATP (12 H⁺)`, photons: '8 (2 per e⁻: PSII + PSI)',
       ratio: `≈ ${(12 / H_PER_ATP).toFixed(1)} ATP : 2 NADPH — about 0.4 ATP short`, balanced: false,
       why: 'Linear flow is the workhorse: water is split at PSII (releasing O₂), electrons run downhill through b6f to PSI and on to ferredoxin, which reduces NADP⁺ to NADPH. Four electrons put 12 H⁺ in the lumen — 4 from water, 8 from the Q-cycle — and at 14 H⁺ per 3 ATP that buys only about 2.6 ATP for every 2 NADPH. The Calvin cycle wants 3. Pure linear flow cannot pay the carbon-fixing bill on its own.',
     },
     cyclic: {
       basis: 'Counting 2 electrons sent once around the PSI loop:',
-      o2: 'none', nadph: 'none', atp: `≈ ${(4 / H_PER_ATP).toFixed(1)} ATP (4 H⁺)`,
+      o2: 'none', nadph: 'none', atp: `≈ ${(4 / H_PER_ATP).toFixed(1)} ATP (4 H⁺)`, photons: '2 (1 per e⁻: PSI only)',
       ratio: 'ATP only — 0 NADPH', balanced: false,
       why: 'Cyclic flow runs PSI alone. Ferredoxin hands its electrons back to the plastoquinone pool and cytochrome b6f instead of to NADP⁺, so the electrons go around in a loop, pumping protons each pass. The product is ATP — and only ATP. No water is split, so no O₂; nothing reaches NADP⁺, so no NADPH. This is the dial the chloroplast turns when it needs ATP without making more reducing power.',
     },
     both: {
       basis: 'Counting 4 linear electrons + 1 electron looped through cyclic flow:',
-      o2: '1 O₂', nadph: '2 NADPH', atp: '3 ATP (14 H⁺)',
+      o2: '1 O₂', nadph: '2 NADPH', atp: '3 ATP (14 H⁺)', photons: '≈ 9 (8 + 1 looped)',
       ratio: '3 ATP : 2 NADPH — balanced', balanced: true,
       why: 'This is what a working leaf does. Linear flow supplies all the O₂ and NADPH plus 12 H⁺; sending roughly one extra electron around the cyclic loop for every four that run the linear path pumps the missing 2 H⁺. Total 14 H⁺ → 3 ATP alongside 2 NADPH: exactly the Calvin cycle\'s 3:2 per CO₂. (The real share of cyclic flow shifts with light and demand; this is the minimum bookkeeping.)',
     },
@@ -163,6 +167,7 @@
     const o2El = root.querySelector<HTMLElement>('[data-o2]')!;
     const nadphEl = root.querySelector<HTMLElement>('[data-nadph]')!;
     const atpEl = root.querySelector<HTMLElement>('[data-atp]')!;
+    const photonsEl = root.querySelector<HTMLElement>('[data-photons]')!;
     const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
     const balEl = root.querySelector<HTMLElement>('.cvl-balance')!;
     const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
@@ -183,6 +188,7 @@
       nadphEl.className = r.nadph === 'none' ? 'cvl-p-v cvl-no' : 'cvl-p-v cvl-yes';
       atpEl.textContent = r.atp;
       atpEl.className = 'cvl-p-v cvl-yes';
+      photonsEl.textContent = r.photons;
       ratioEl.textContent = r.ratio;
       balEl.classList.toggle('is-balanced', r.balanced);
       whyEl.textContent = r.why;
@@ -204,7 +210,7 @@
   .cvl-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
   .cvl-basis { margin: 0 0 var(--ddp-space-1); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .cvl-readouts { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
-  @media (min-width: 560px) { .cvl-readouts { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 560px) { .cvl-readouts { grid-template-columns: repeat(4, 1fr); } }
   .cvl-prod { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
   .cvl-p-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .cvl-p-v { font-size: var(--ddp-text-sm); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }

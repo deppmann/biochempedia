@@ -1,0 +1,251 @@
+---
+/**
+ * CycleFractionsToDurations — the lesson's worked problem as a live instrument.
+ * 10,000 illustrative cells are sorted into a DNA-content histogram (2C peak, S plateau,
+ * 4C peak). Sliders set the phase fractions and the doubling time T. Next to the histogram,
+ * the naive fraction x T is set beside the lesson's formula t = -T x log2(1 - F/2), with
+ * F the cumulative fraction of the population ordered by age. Nothing is sampled at random:
+ * every number is the expected value from the fractions. Original; vanilla-TS Astro island.
+ */
+---
+
+<figure class="cfd card" data-cfd>
+  <figcaption class="cfd-head">Fractions are not durations: from a DNA histogram to phase lengths<span class="cfd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cfd-svg" viewBox="0 0 340 214" role="img" aria-label="A DNA-content histogram of 10,000 illustrative cells with a 2C peak, an S-phase plateau and a 4C peak" data-hist></svg>
+
+  <div class="cfd-controls">
+    <label class="cfd-slabel"><span>2C peak (G1) <em data-out="g1">55</em>% of cells</span>
+      <input type="range" data-in="g1" min="5" max="90" step="1" value="55" />
+    </label>
+    <label class="cfd-slabel"><span>4C peak (G2 plus M) <em data-out="g2m">20</em>% of cells</span>
+      <input type="range" data-in="g2m" min="3" max="90" step="1" value="20" />
+    </label>
+    <label class="cfd-slabel"><span>Phospho-H3 positive (M) <em data-out="m">3</em>% of cells</span>
+      <input type="range" data-in="m" min="0" max="10" step="1" value="3" />
+    </label>
+    <label class="cfd-slabel"><span>Doubling time T <em data-out="T">24</em> h</span>
+      <input type="range" data-in="T" min="12" max="48" step="1" value="24" />
+    </label>
+  </div>
+
+  <dl class="cfd-counts">
+    <div><dt>2C (G1)</dt><dd data-c="g1">5,500</dd></div>
+    <div><dt>Between (S)</dt><dd data-c="s">2,500</dd></div>
+    <div><dt>4C (G2 + M)</dt><dd data-c="g2m">2,000</dd></div>
+    <div><dt>EdU pulse labels (30 min, equals S)</dt><dd data-c="edu">25%</dd></div>
+  </dl>
+
+  <table class="cfd-table">
+    <thead>
+      <tr><th scope="col">Phase</th><th scope="col">Fraction</th><th scope="col">Naive: fraction × T</th><th scope="col">Lesson’s formula</th></tr>
+    </thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <svg class="cfd-svg cfd-bars" viewBox="0 0 340 112" role="img" aria-label="Two stacked bars of equal length T: the naive split of the doubling time and the split from the formula" data-bars></svg>
+
+  <p class="cfd-why" data-why role="status">Defaults reproduce the worked problem.</p>
+
+  <p class="cfd-foot">Keep the rule: a phase’s share of the cells is not its share of the cycle, because a growing culture holds twice as many newborn cells as cells about to divide; use t = −T × log₂(1 − F/2) on the cumulative fraction. This is the lesson’s illustrative culture (every cell cycling, none dying, identical phase lengths), assuming the phospho-H3 stain marks only mitotic cells. The histogram’s peak shapes are a sketch, and slider ranges go beyond the worked problem.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const C_G1 = '#0e7c86', C_S = '#e57200', C_G2 = '#6a4c93', C_M = '#b3261e', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const N = 10000;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, size = 9, anchor = 'start', fill = INK, weight = 400): SVGElement {
+    const t = el('text', { x, y, 'font-size': size, 'text-anchor': anchor, fill, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+  const fmt = (n: number) => n.toLocaleString('en-US');
+  const h1 = (x: number) => x.toFixed(2);
+  // The lesson's formula: time to pass the first fraction F of the population, ordered by age.
+  const tOf = (F: number, T: number) => -T * Math.log2(1 - F / 2);
+
+  document.querySelectorAll<HTMLElement>('[data-cfd]').forEach((root) => {
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const g1In = q('[data-in="g1"]'), g2mIn = q('[data-in="g2m"]'), mIn = q('[data-in="m"]'), tIn = q('[data-in="T"]');
+    const g1Out = o('[data-out="g1"]'), g2mOut = o('[data-out="g2m"]'), mOut = o('[data-out="m"]'), tOut = o('[data-out="T"]');
+    const cG1 = o('[data-c="g1"]'), cS = o('[data-c="s"]'), cG2M = o('[data-c="g2m"]'), cEdu = o('[data-c="edu"]');
+    const hist = root.querySelector<SVGSVGElement>('[data-hist]')!;
+    const bars = root.querySelector<SVGSVGElement>('[data-bars]')!;
+    const rows = o('[data-rows]'), why = o('[data-why]');
+
+    // Histogram frame: DNA content 1.4C to 4.6C in bins of 0.1C.
+    const X0 = 40, X1 = 330, Y0 = 26, Y1 = 170, XMIN = 1.4, XMAX = 4.6, BW = 0.1, YMAX = 4000;
+    const px = (c: number) => X0 + ((c - XMIN) / (XMAX - XMIN)) * (X1 - X0);
+    const py = (n: number) => Y1 - (Math.min(n, YMAX) / YMAX) * (Y1 - Y0);
+    const nb = Math.round((XMAX - XMIN) / BW);
+    const centers: number[] = [];
+    for (let i = 0; i < nb; i++) centers.push(XMIN + BW * (i + 0.5));
+    // Normalised shapes so that bin heights add up to the phase's cell count.
+    function gauss(mu: number, sd: number): number[] {
+      const w = centers.map((c) => Math.exp(-0.5 * ((c - mu) / sd) ** 2));
+      const s = w.reduce((a, b) => a + b, 0);
+      return w.map((v) => v / s);
+    }
+    function flat(lo: number, hi: number): number[] {
+      const w = centers.map((c) => (c >= lo && c <= hi ? 1 : 0));
+      const s = w.reduce((a: number, b: number) => a + b, 0);
+      return w.map((v) => v / s);
+    }
+    const shG1 = gauss(2, 0.1), shG2 = gauss(4, 0.12), shS = flat(2.15, 3.85);
+
+    function render() {
+      // Constrain the sliders so the fractions always add to 1.
+      let g1 = parseInt(g1In.value, 10);
+      const g1max = 95 - parseInt(g2mIn.min, 10);
+      if (g1 > g1max) { g1 = g1max; g1In.value = String(g1); }
+      g2mIn.max = String(Math.max(3, 100 - g1));
+      let g2m = Math.min(parseInt(g2mIn.value, 10), parseInt(g2mIn.max, 10));
+      g2mIn.value = String(g2m);
+      mIn.max = String(Math.min(10, g2m));
+      let m = Math.min(parseInt(mIn.value, 10), parseInt(mIn.max, 10));
+      mIn.value = String(m);
+      const T = parseInt(tIn.value, 10);
+      g1Out.textContent = String(g1); g2mOut.textContent = String(g2m); mOut.textContent = String(m); tOut.textContent = String(T);
+
+      const fG1 = g1 / 100, fG2M = g2m / 100, fS = 1 - fG1 - fG2M, fM = m / 100, fG2 = fG2M - fM;
+      const nG1 = Math.round(fG1 * N), nG2M = Math.round(fG2M * N), nS = N - nG1 - nG2M, nM = Math.round(fM * N), nG2 = nG2M - nM;
+      cG1.textContent = fmt(nG1); cS.textContent = fmt(nS); cG2M.textContent = fmt(nG2M);
+      cEdu.textContent = Math.round(fS * 100) + '%';
+
+      // Durations from the lesson's formula, on cumulative fractions F.
+      const F1 = fG1, F2 = fG1 + fS, F3 = 1 - fM;
+      const dG1 = tOf(F1, T), dS = tOf(F2, T) - tOf(F1, T), dG2 = tOf(F3, T) - tOf(F2, T), dM = T - tOf(F3, T);
+      const naive = [fG1 * T, fS * T, fG2 * T, fM * T];
+      const form = [dG1, dS, dG2, dM];
+      const fr = [fG1, fS, fG2, fM];
+      const names = ['G1', 'S', 'G2', 'M'];
+      const cols = [C_G1, C_S, C_G2, C_M];
+
+      // ---- histogram
+      hist.replaceChildren();
+      hist.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      hist.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [1000, 2000, 3000, 4000]) {
+        hist.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        hist.appendChild(txt(X0 - 4, py(v) + 3, fmt(v), 9, 'end'));
+      }
+      for (const c of [2, 3, 4]) {
+        hist.appendChild(el('line', { x1: px(c), y1: Y1, x2: px(c), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        hist.appendChild(txt(px(c), Y1 + 14, c + 'C', 9, 'middle'));
+      }
+      hist.appendChild(txt((X0 + X1) / 2, Y1 + 28, 'DNA content (C)', 10, 'middle'));
+      hist.appendChild(txt(X0 - 2, Y0 - 12, 'cells per 0.1C bin, of 10,000 (peak shapes are a sketch)', 9, 'start'));
+      const bw = ((X1 - X0) / (XMAX - XMIN)) * BW;
+      for (let i = 0; i < nb; i++) {
+        let base = 0;
+        const parts = [
+          [nG1 * shG1[i], C_G1], [nS * shS[i], C_S], [(nG2) * shG2[i], C_G2], [nM * shG2[i], C_M],
+        ] as [number, string][];
+        for (const [v, col] of parts) {
+          if (v <= 0.5) continue;
+          const top = Math.min(base + v, YMAX);
+          if (top <= base) { base = top; continue; }
+          hist.appendChild(el('rect', { x: (px(centers[i]) - bw / 2 + 0.3).toFixed(2), y: py(top).toFixed(1), width: (bw - 0.6).toFixed(2), height: (py(base) - py(top)).toFixed(1), fill: col }));
+          base = top;
+        }
+      }
+      // legend, two rows kept inside the viewBox
+      const leg: [string, string][] = [['G1', C_G1], ['S', C_S], ['G2', C_G2], ['M', C_M]];
+      leg.forEach(([n, c], i) => {
+        const lx = X0 + 6 + i * 44;
+        hist.appendChild(el('rect', { x: lx, y: Y0 - 4, width: 9, height: 9, fill: c }));
+        hist.appendChild(txt(lx + 12, Y0 + 4, n, 9));
+      });
+
+      // ---- table
+      rows.replaceChildren();
+      for (let i = 0; i < 4; i++) {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.scope = 'row';
+        th.textContent = names[i] + (i === 2 ? ' (4C, not M)' : i === 3 ? ' (phospho-H3)' : '');
+        th.style.borderLeft = '4px solid ' + cols[i];
+        tr.appendChild(th);
+        const noM = i === 3 && fM === 0;
+        for (const s of [fr[i].toFixed(2), noM ? '–' : h1(naive[i]) + ' h', noM ? '–' : h1(form[i]) + ' h']) {
+          const td = document.createElement('td'); td.textContent = s; tr.appendChild(td);
+        }
+        rows.appendChild(tr);
+      }
+      const tot = document.createElement('tr'); tot.className = 'cfd-total';
+      const tth = document.createElement('th'); tth.scope = 'row'; tth.textContent = 'Total';
+      tot.appendChild(tth);
+      for (const s of ['1.00', h1(naive.reduce((a, b) => a + b, 0)) + ' h', h1(form.reduce((a, b) => a + b, 0)) + ' h']) {
+        const td = document.createElement('td'); td.textContent = s; tot.appendChild(td);
+      }
+      rows.appendChild(tot);
+
+      // ---- stacked bars: same total T, different split
+      bars.replaceChildren();
+      const BX0 = 12, BX1 = 328, bpx = (h: number) => BX0 + (h / T) * (BX1 - BX0);
+      const draw = (y: number, label: string, vals: number[]) => {
+        bars.appendChild(txt(BX0, y - 4, label, 10, 'start', INK, 700));
+        let acc = 0;
+        vals.forEach((v, i) => {
+          const x = bpx(acc), w = bpx(acc + v) - x;
+          bars.appendChild(el('rect', { x: x.toFixed(1), y, width: Math.max(w, 0).toFixed(1), height: 22, fill: cols[i] }));
+          if (w >= 22 && !(i === 3 && fM === 0)) bars.appendChild(txt(x + w / 2, y + 15, names[i], 10, 'middle', '#ffffff', 700));
+          acc += v;
+        });
+      };
+      draw(18, 'Naive: fraction × T', naive);
+      draw(66, 'Lesson’s formula', form);
+      bars.appendChild(el('line', { x1: BX0, y1: 96, x2: BX1, y2: 96, stroke: INK, 'stroke-width': 1 }));
+      bars.appendChild(txt(BX0, 108, '0 h', 9, 'start'));
+      bars.appendChild(txt(BX1, 108, T + ' h = one doubling', 9, 'end'));
+
+      // ---- status
+      const diffG1 = naive[0] - form[0];
+      const lastDiff = form[3] - naive[3];
+      const atDefault = g1 === 55 && g2m === 20 && m === 3 && T === 24;
+      if (fS < -1e-9) {
+        why.textContent = 'The fractions leave no cells for S, so the histogram is not a possible culture.';
+      } else {
+        const tail = fG2M > 0 ? ` G2 plus M together last ${h1(dG2 + dM)} h by the formula against ${h1(naive[2] + naive[3])} h naive.` : '';
+        why.textContent = (atDefault ? 'Worked problem: ' : '') +
+          `G1 holds ${Math.round(fG1 * 100)}% of the cells, so the naive estimate is ${h1(naive[0])} h, but the formula gives ${h1(dG1)} h, which is ${h1(diffG1)} h shorter. ` +
+          `S lasts ${h1(dS)} h, G2 ${h1(dG2)} h` + (fM > 0 ? ` and M ${h1(dM)} h` : '') + (fM > 0 ? ` (naive M: ${h1(naive[3])} h, ${h1(lastDiff)} h too short).` : ` ; with no phospho-H3 positive cells, M is not resolved.`) + tail +
+          ` The formula’s durations add to ${h1(dG1 + dS + dG2 + dM)} h, the doubling time. ` +
+          (atDefault ? 'The naive G1 is two hours too long and G2 plus M (6.31 h) one and a half hours too short.' : 'Newborn cells are overrepresented, so the naive G1 runs too long and the naive M too short; S and G2 can fall either way.');
+      }
+    }
+    [g1In, g2mIn, mIn, tIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .cfd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cfd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cfd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cfd-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cfd-bars { margin-top: var(--ddp-space-3); }
+  .cfd-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cfd-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cfd-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cfd-slabel input { accent-color: var(--ddp-color-accent); }
+  .cfd-counts { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cfd-counts div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .cfd-counts dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); overflow-wrap: anywhere; }
+  .cfd-counts dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .cfd-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); }
+  .cfd-table th, .cfd-table td { padding: 0.25rem 0.4rem; text-align: right; border-bottom: 1px solid var(--ddp-color-line); overflow-wrap: anywhere; vertical-align: top; }
+  .cfd-table th:first-child { text-align: left; font-weight: 600; }
+  .cfd-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .cfd-table td { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .cfd-table td:last-child { font-weight: 700; color: var(--ddp-color-accent); }
+  :global(.cfd-total th), :global(.cfd-total td) { border-top: 2px solid var(--ddp-color-line); }
+  .cfd-why { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .cfd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .cfd-controls { grid-template-columns: 1fr; } .cfd-counts { grid-template-columns: 1fr 1fr; } }
+</style>

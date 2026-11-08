@@ -4,10 +4,12 @@
  * ProtonGradientBattery draws the membrane in cross-section, this island is the DAM/TURBINE
  * analogy plus a PERTURBATION-PREDICTION panel: the proton gradient is water held behind a dam,
  * and ATP synthase is the turbine the water drives. Because electron transport and ATP synthesis
- * are COUPLED through the proton-motive force (Δp = ΔΨ − 59·ΔpH mV at 37 °C, ΔΨ the larger term),
- * any one perturbation moves three readouts together. Pick a condition — block the chain, jam the
- * turbine, or punch a leak — and the island predicts electron flow / O₂ use, gradient Δp, ATP
- * output, and heat. The subtle, important case is oligomycin: jamming the turbine backs the water
+ * are COUPLED through the proton-motive force (Δp = |ΔΨ| + 61.5 mV × ΔpH at 37 °C; ΔΨ ≈ 150 mV is
+ * the larger part, Δp ≈ 200 mV), any one perturbation moves three readouts together. Start at rest
+ * with no ADP (State 4), then add ADP (State 3), block the chain, jam the turbine, punch a leak, or
+ * jam the turbine and then punch a leak — and the island predicts electron flow / O₂ use, gradient
+ * Δp, ATP output, and heat, and names which side each condition changed (earning, spending through
+ * the synthase, or spending through a leak). The subtle, important case is oligomycin: jamming the turbine backs the water
  * up and stalls the chain too (respiratory control). Complex II is drawn without proton pumping (it
  * passes electrons to Q but pumps none); the turbine sits low so the water visibly FALLS to reach it,
  * and the water level tweens between conditions (instant under reduced motion). Original.
@@ -20,10 +22,12 @@
   <svg class="pmd-svg" viewBox="0 0 720 360" role="img" aria-label="A dam analogy for oxidative phosphorylation: the electron transport chain on the left pumps protons up behind a dam (the proton gradient, center), and the height of the water drives a turbine (ATP synthase) on the right that makes ATP." data-svg></svg>
 
   <div class="pmd-conditions" role="group" aria-label="Perturbation conditions">
-    <button type="button" class="pmd-cond" data-cond="normal" aria-pressed="true">Normal (coupled)</button>
+    <button type="button" class="pmd-cond" data-cond="normal" aria-pressed="true">Resting, no ADP<small>State 4</small></button>
+    <button type="button" class="pmd-cond" data-cond="adp" aria-pressed="false">Add ADP<small>State 3</small></button>
     <button type="button" class="pmd-cond" data-cond="etc" aria-pressed="false">Block the chain<small>rotenone · antimycin · cyanide</small></button>
     <button type="button" class="pmd-cond" data-cond="oligo" aria-pressed="false">Jam the turbine<small>oligomycin</small></button>
     <button type="button" class="pmd-cond" data-cond="uncoupler" aria-pressed="false">Punch a leak<small>DNP · FCCP · thermogenin</small></button>
+    <button type="button" class="pmd-cond" data-cond="oligo+unc" aria-pressed="false">Oligomycin, then uncoupler<small>both at once</small></button>
   </div>
 
   <div class="pmd-readouts">
@@ -39,10 +43,11 @@
     <div class="pmd-heat"><span class="pmd-b-name">Heat</span><span class="pmd-heat-dot" data-heat>little</span></div>
   </div>
 
+  <p class="pmd-side" data-side></p>
   <p class="pmd-why" data-why role="status"></p>
 
   <dl class="pmd-readout-sr" data-readout aria-live="polite">
-    <dt>Δp formula</dt><dd>Δp = ΔΨ − 59·ΔpH mV (37 °C); ΔΨ is the larger term, ~150–200 mV.</dd>
+    <dt>Δp formula</dt><dd>Δp = |ΔΨ| + 61.5 mV × ΔpH (37 °C); ΔΨ ≈ 150 mV is the larger part, Δp ≈ 200 mV.</dd>
     <dt>Electron flow / O₂ use</dt><dd data-sr="o2"></dd>
     <dt>Gradient Δp</dt><dd data-sr="grad"></dd>
     <dt>ATP output</dt><dd data-sr="atp"></dd>
@@ -62,8 +67,9 @@
   }
 
   type Level = 'high' | 'mid' | 'low' | 'zero' | 'max';
+  type Side = 'demand' | 'earning' | 'synthase' | 'leak';
   type Cond = {
-    o2: Level; grad: Level; atp: Level; heat: Level;
+    o2: Level; grad: Level; atp: Level; heat: Level; side: Side;
     label: string; why: string;
   };
   const LEVELS: Record<Level, number> = { zero: 0, low: 18, mid: 52, high: 88, max: 100 };
@@ -71,34 +77,56 @@
 
   const CONDS: Record<string, Cond> = {
     normal: {
-      o2: 'high', grad: 'high', atp: 'high', heat: 'low',
-      label: 'Normal (coupled)',
-      why: 'Coupled and running: the chain pumps protons up behind the dam, the high gradient drives the turbine, and ATP pours out. Electron flow and ATP synthesis rise and fall together — that is the coupling. A little heat always leaks, but most of the energy lands in ATP.',
+      o2: 'low', grad: 'max', atp: 'low', heat: 'low', side: 'demand',
+      label: 'Resting, no ADP (State 4)',
+      why: 'Fuel but almost no ADP: the turbine has little to make, so little water falls through it. The dam stands near the brim, the pumps push against that back-pressure, and the chain idles, burning O₂ slowly. A little heat always leaks. Now add ADP.',
+    },
+    adp: {
+      o2: 'high', grad: 'high', atp: 'high', heat: 'low', side: 'synthase',
+      label: 'Add ADP (State 3)',
+      why: 'ADP lets the synthase spend, so Δp dips a little, the pumps\' margin widens and electrons flow faster. The chain feels ADP only through Δp. Notice the gradient barely moves while O₂ use and ATP output jump: small changes in Δp drive large changes in flow. This is acceptor (respiratory) control.',
     },
     etc: {
-      o2: 'zero', grad: 'low', atp: 'zero', heat: 'zero',
+      o2: 'zero', grad: 'low', atp: 'zero', heat: 'zero', side: 'earning',
       label: 'Block the chain (rotenone / antimycin / cyanide)',
-      why: 'Stop the pumps and you stop filling the dam. Rotenone hits Complex I, antimycin Complex III, cyanide/CO Complex IV — wherever you block it, electrons stop flowing, so O₂ is no longer consumed, the gradient drains away through normal leak, and with no water behind the dam the turbine stops. Everything goes to zero together.',
+      why: 'Stop the pumps and you stop filling the dam. Rotenone hits Complex I, antimycin Complex III, cyanide/CO Complex IV — wherever you block it, electrons stop flowing, so O₂ is no longer consumed, the gradient drains away through normal leak, and with no water behind the dam the turbine stops. O₂ use, the gradient and ATP output all fall. (Assumes fuel enters upstream of the block and no ATP is available to run the synthase backward.)',
     },
     oligo: {
-      o2: 'low', grad: 'max', atp: 'zero', heat: 'zero',
+      o2: 'low', grad: 'max', atp: 'zero', heat: 'low', side: 'synthase',
       label: 'Jam the turbine (oligomycin)',
-      why: 'Oligomycin plugs the turbine, so protons have nowhere to fall — ATP output stops and the gradient builds to its maximum. Here is the subtle part: that back-pressure pushes back on the pumps. The chain cannot keep shoving protons uphill against a brim-full dam, so electron flow and O₂ use slow to a crawl too. Jamming the turbine quiets the chain — this is respiratory control.',
+      why: 'Oligomycin plugs the turbine, so protons have nowhere to fall — ATP output stops and the gradient builds to its maximum. Here is the subtle part: that back-pressure pushes back on the pumps. The chain cannot keep shoving protons uphill against a brim-full dam, so electron flow and O₂ use slow to the small rate the leak allows. Jamming the turbine quiets the chain — this is respiratory control.',
     },
     uncoupler: {
-      o2: 'max', grad: 'low', atp: 'zero', heat: 'max',
+      o2: 'max', grad: 'low', atp: 'zero', heat: 'max', side: 'leak',
       label: 'Punch a leak (DNP / FCCP / thermogenin)',
       why: 'An uncoupler lets protons leak straight back across the membrane, bypassing the turbine. The dam can never fill, so the chain runs flat-out trying to refill it — O₂ use is maxed — but the water falls without turning the turbine, so ATP is near zero and the energy comes out as heat. This is nonshivering thermogenesis in brown fat (thermogenin/UCP1); it is also why the DNP diet pills of the 1930s cooked people from the inside.',
     },
+    'oligo+unc': {
+      o2: 'max', grad: 'low', atp: 'zero', heat: 'max', side: 'leak',
+      label: 'Oligomycin, then uncoupler',
+      why: 'The leak drains Δp with the synthase still plugged; the pumps race, O₂ climbs past the starting rate, and ATP stays at zero.',
+    },
   };
 
-  const ORDER = ['normal', 'etc', 'oligo', 'uncoupler'];
+  const ORDER = ['normal', 'adp', 'etc', 'oligo', 'uncoupler', 'oligo+unc'];
+
+  // Which side of the Δp ledger this condition moved, and which way Δp went as a result.
+  // 'high' (88) is the respiring (State 3) reference; above it Δp has risen, below it Δp has fallen.
+  function sideLine(c: Cond): string {
+    const up = LEVELS[c.grad] > LEVELS.high;
+    if (c.side === 'demand') return 'Baseline: little spending through the synthase → Δp near the brim → pumps idle';
+    if (c.side === 'earning') return 'Changed: earning (the pumps) ↓ → Δp down → turbine stops';
+    if (c.side === 'leak') return 'Changed: spending through a leak ↑ → Δp down → pumps race';
+    return up
+      ? 'Changed: spending through the synthase ↓ → Δp up → pumps slow'
+      : 'Changed: spending through the synthase ↑ → Δp dips → pumps speed up';
+  }
 
   function pumpsAlive(c: Cond): boolean { return c.o2 !== 'zero'; }
 
   // `g` (gradient 0..1) and `fx` (electron flux 0..1) are passed separately from the condition so
   // the water level can tween between conditions instead of jumping.
-  function draw(svg: SVGElement, c: Cond, g: number, fx: number) {
+  function draw(svg: SVGElement, c: Cond, cond: string, g: number, fx: number) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
 
     const gradFrac = g;  // 0..1
@@ -155,7 +183,8 @@
     // ΔΨ bar (the larger term) just right of the basin
     const psiX = damX + damW + 12;
     svg.appendChild(el('rect', { x: psiX, y: damTop, width: 16, height: damH, rx: 4, fill: color(GOLD, 0.18), stroke: GOLD, 'stroke-width': 1 }));
-    const psiH = Math.max(4, damH * gradFrac);
+    // ΔΨ is about three-quarters of Δp (150 of 196 mV in the lesson's worked example)
+    const psiH = Math.max(4, damH * gradFrac * 0.75);
     svg.appendChild(el('rect', { x: psiX + 1, y: damBot - psiH, width: 14, height: psiH - 1, rx: 3, fill: color(GOLD, 0.85) }));
     const psl = el('text', { x: psiX + 8, y: 318, 'text-anchor': 'middle', fill: INK, 'font-size': 10 }); psl.textContent = 'ΔΨ'; svg.appendChild(psl);
     const psl2 = el('text', { x: psiX + 8, y: 330, 'text-anchor': 'middle', fill: INK, 'font-size': 8.5 }); psl2.textContent = '(most of Δp)'; svg.appendChild(psl2);
@@ -165,11 +194,16 @@
     const stallAtp = c.atp === 'zero';
     const leak = c.atp === 'zero' && c.grad === 'low' && c.o2 === 'max';
     const jammed = stallAtp && c.grad === 'max';
+    const plugged = cond === 'oligo+unc';
     const fallX = psiX + 28;
 
     if (gradFrac > 0.05) {
       if (leak) {
         // uncoupler: protons spill straight back to the matrix, bypassing the turbine
+        if (plugged) {
+          // oligomycin still in: the turbine itself stays plugged
+          svg.appendChild(el('path', { d: `M ${tCx - 12} ${tCy - 12} L ${tCx + 12} ${tCy + 12} M ${tCx + 12} ${tCy - 12} L ${tCx - 12} ${tCy + 12}`, stroke: RED, 'stroke-width': 3.5, 'stroke-linecap': 'round' }));
+        }
         svg.appendChild(el('path', { d: `M ${fallX - 6} ${waterY + 4} q 30 4 38 ${Math.max(20, damBot - waterY - 4)}`, fill: 'none', stroke: ORANGE, 'stroke-width': 4, 'marker-end': 'url(#pmd-arr-leak)' }));
         const fl = el('text', { x: fallX - 4, y: waterY - 22, fill: ORANGE, 'font-size': 10.5, 'font-weight': 700 }); fl.textContent = 'leak — bypasses the turbine'; svg.appendChild(fl);
       } else if (!stallAtp) {
@@ -201,7 +235,7 @@
     }
     const tl = el('text', { x: tCx, y: tCy + tR + 22, 'text-anchor': 'middle', fill: NAVY, 'font-size': 12, 'font-weight': 700 }); tl.textContent = 'ATP synthase'; svg.appendChild(tl);
     const tl2 = el('text', { x: tCx, y: tCy + tR + 37, 'text-anchor': 'middle', fill: stallAtp ? RED : INK, 'font-size': 10, 'font-weight': stallAtp ? 700 : 400 });
-    tl2.textContent = stallAtp ? (jammed ? 'jammed — not turning' : leak ? 'idle — water bypasses it' : 'idle — no water') : 'turbine — spinning';
+    tl2.textContent = stallAtp ? (jammed ? 'jammed — not turning' : leak ? (plugged ? 'jammed — water bypasses it' : 'idle — water bypasses it') : 'idle — no water') : 'turbine — spinning';
     svg.appendChild(tl2);
 
     // ATP token(s) emitted when turbine spins
@@ -230,6 +264,7 @@
   document.querySelectorAll<HTMLElement>('[data-pmdam]').forEach((root) => {
     const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
     const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    const sideEl = root.querySelector<HTMLElement>('[data-side]')!;
     const heatEl = root.querySelector<HTMLElement>('[data-heat]')!;
     const btns = Array.from(root.querySelectorAll<HTMLButtonElement>('.pmd-cond'));
     const fills: Record<string, HTMLElement> = {
@@ -269,6 +304,7 @@
       paintBar('o2', c.o2); paintBar('grad', c.grad); paintBar('atp', c.atp);
       heatEl.textContent = WORDS[c.heat] === 'maxed' ? 'pouring out' : (c.heat === 'zero' ? 'none' : WORDS[c.heat]);
       heatEl.style.color = c.heat === 'max' ? '#c0392b' : INK;
+      sideEl.textContent = sideLine(c);
       whyEl.textContent = c.why;
       srs.o2.textContent = `${WORDS[c.o2]} (${LEVELS[c.o2]}%)`;
       srs.grad.textContent = `${WORDS[c.grad]} (${LEVELS[c.grad]}%)`;
@@ -284,14 +320,14 @@
       cancelAnimationFrame(raf);
       const g1 = LEVELS[c.grad] / 100, f1 = LEVELS[c.o2] / 100;
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        shownG = g1; shownF = f1; draw(svg, c, g1, f1); return;
+        shownG = g1; shownF = f1; draw(svg, c, current, g1, f1); return;
       }
       const g0 = shownG, f0 = shownF, t0 = performance.now(), dur = 650;
       const step = (now: number) => {
         const t = Math.min(1, (now - t0) / dur);
         const e = 1 - Math.pow(1 - t, 3);
         shownG = g0 + (g1 - g0) * e; shownF = f0 + (f1 - f0) * e;
-        draw(svg, c, shownG, t < 1 ? shownF : f1);
+        draw(svg, c, current, shownG, t < 1 ? shownF : f1);
         if (t < 1) raf = requestAnimationFrame(step);
       };
       raf = requestAnimationFrame(step);
@@ -312,7 +348,7 @@
   .pmd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .pmd-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); }
   .pmd-conditions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
-  @media (min-width: 620px) { .pmd-conditions { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 620px) { .pmd-conditions { grid-template-columns: repeat(3, 1fr); } }
   .pmd-cond { display: flex; flex-direction: column; gap: 0.1rem; font-family: inherit; font-size: var(--ddp-text-xs); font-weight: 600; text-align: left; border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); cursor: pointer; }
   .pmd-cond small { font-weight: 400; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .pmd-cond:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
@@ -326,6 +362,7 @@
   .pmd-b-val { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); }
   .pmd-heat { display: flex; align-items: baseline; gap: var(--ddp-space-2); padding-top: var(--ddp-space-1); border-top: 1px dashed var(--ddp-color-line); }
   .pmd-heat-dot { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; }
+  .pmd-side { margin: 0 0 var(--ddp-space-1); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); }
   .pmd-why { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.55; min-height: 4.6em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   @media (prefers-reduced-motion: reduce) { .pmd-fill { transition: none; } }
   .pmd-readout-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

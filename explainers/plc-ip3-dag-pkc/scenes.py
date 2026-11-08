@@ -737,7 +737,7 @@ class S06Together(Film):
         self.play(FadeIn(det, shift=UP * 0.1), FadeIn(on, scale=0.8), run_time=0.7)
         self.at("keep this rule")
         self.play(pop(det, 1.1), pop(on, 1.3), run_time=0.8)
-        self.at("fires only")
+        self.at("strongly")
         self.play(*hglow(k.h2, 1.08, TEXT), *hglow(k.h1, 1.08, TEXT), run_time=0.8)
         self.at("when calcium")
         self.play(*glow(*c_dots, s=1.5, color=YELLOW), run_time=0.8)
@@ -750,4 +750,4 @@ class S06Together(Film):
 
 
 class S07End(EndCard):
-    LINE = "Conventional protein kinase C fires only when calcium and DAG arrive together."
+    LINE = "Conventional protein kinase C responds strongly when calcium and DAG arrive together."

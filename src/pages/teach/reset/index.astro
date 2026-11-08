@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/teach.css';
+---
+
+<BaseLayout title="Choose a new password — Biochemistrypedia" description="Set a new password for your teacher account." noindex>
+  <article class="wrap tc" data-reset>
+    <p class="tc-eyebrow"><a href="/teach/">Classes</a></p>
+    <h1>Choose a new password</h1>
+    <form class="tc-form" style="margin-top: var(--ddp-space-6)">
+      <label>New password (at least 10 characters)<input type="password" name="password" autocomplete="new-password" minlength="10" required /></label>
+      <button class="tc-btn" type="submit">Save password</button>
+      <p class="tc-error" data-err role="alert"></p>
+    </form>
+  </article>
+  <script>
+    import { api } from '../../../lib/classroom';
+    const token = new URLSearchParams(location.search).get('t') || '';
+    document.querySelector('[data-reset] form')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = (e.target as HTMLFormElement).password.value;
+      const r = await api('/api/teacher/reset', { token, password });
+      if (r.ok) location.href = '/teach/classes/';
+      else document.querySelector('[data-err]')!.textContent = r.data.error || 'That did not work.';
+    });
+  </script>
+</BaseLayout>

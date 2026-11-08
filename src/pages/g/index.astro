@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/teach.css';
+// One static page serves every group address /g/<slug>/ (the worker rewrites them here);
+// the script reads the slug from the address and loads the group from the API.
+---
+
+<BaseLayout title="School page — Biochemistrypedia" description="A school or department's page for free Biochemistrypedia classes." noindex>
+  <article class="wrap tc" data-group-page>
+    <p class="tc-eyebrow">Biochemistrypedia classes</p>
+    <h1 data-name>Loading…</h1>
+    <p class="tc-lede" data-about></p>
+
+    <section data-body hidden>
+      <div class="tc-grid" style="margin-top: var(--ddp-space-6)">
+        <div class="tc-card">
+          <h2 style="margin-top:0">Students</h2>
+          <p>Your teacher gives you a class code. You don't need an email or a password.</p>
+          <form class="tc-form" data-code-form>
+            <label>Class code<input type="text" name="code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" required /></label>
+            <button class="tc-btn" type="submit">Join my class</button>
+          </form>
+        </div>
+        <div class="tc-card">
+          <h2 style="margin-top:0">Teachers here</h2>
+          <ul data-teachers style="padding-left:1.1rem"></ul>
+          <p class="tc-muted" data-domain hidden></p>
+          <p class="tc-row"><button type="button" class="tc-btn ghost" data-request>I teach here: ask to join</button></p>
+          <p class="tc-muted" data-request-msg role="status"></p>
+        </div>
+      </div>
+      <p class="tc-muted" style="margin-top: var(--ddp-space-6)">
+        Free biology courses from grade 7 to college. <a href="/paths/">Browse the paths</a> · <a href="/teach/privacy/">Privacy</a>
+      </p>
+    </section>
+
+    <section data-none hidden>
+      <p class="tc-lede">School and department pages live at biochemistrypedia.com/g/ followed by the school's name. Ask your teacher for the address, or <a href="/join/">join a class with its code</a>.</p>
+      <p>Teachers: <a href="/teach/">make a class or a group</a>.</p>
+    </section>
+  </article>
+
+  <script>
+    import { api } from '../../lib/classroom';
+
+    const root = document.querySelector<HTMLElement>('[data-group-page]')!;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const slug = /^\/g\/([a-z0-9-]+)\/?$/.exec(location.pathname)?.[1];
+
+    (async () => {
+      if (!slug) { $('[data-name]').textContent = 'School pages'; $('[data-none]').hidden = false; return; }
+      const r = await api<{ name: string; about: string; domain: string | null; teachers: string[] }>(`/api/g/${slug}`);
+      if (!r.ok) { $('[data-name]').textContent = 'No school page here'; $('[data-none]').hidden = false; return; }
+      document.title = `${r.data.name} — Biochemistrypedia`;
+      $('[data-name]').textContent = r.data.name;
+      $('[data-about]').textContent = r.data.about;
+      const ul = $('[data-teachers]');
+      for (const n of r.data.teachers) { const li = document.createElement('li'); li.textContent = n; ul.append(li); }
+      if (r.data.domain) { $('[data-domain]').hidden = false; $('[data-domain]').textContent = `Teachers join with an @${r.data.domain} email.`; }
+      $('[data-body]').hidden = false;
+    })();
+
+    $('[data-code-form]').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const code = ((e.target as HTMLFormElement).code as HTMLInputElement).value.trim();
+      if (code) location.href = `/join/?code=${encodeURIComponent(code)}`;
+    });
+    $('[data-request]').addEventListener('click', async () => {
+      const msg = $('[data-request-msg]');
+      const r = await api<{ status: string }>(`/api/groups/by-slug/${slug}/request`, {});
+      if (r.status === 401) {
+        msg.textContent = '';
+        const a = document.createElement('a');
+        a.href = `/teach/?next=${encodeURIComponent(location.pathname)}`;
+        a.textContent = 'Sign in or make a free teacher account first';
+        msg.append(a, ', then come back to this page.');
+        return;
+      }
+      msg.textContent = !r.ok ? r.data.error || 'Could not send the request.'
+        : r.data.status === 'active' ? 'You are already in this group. Open it from My classes.'
+        : 'Request sent. An admin of this group will let you in.';
+    });
+  </script>
+</BaseLayout>

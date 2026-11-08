@@ -1,0 +1,346 @@
+---
+/**
+ * PressureOnAPopulation — a model population with an inherited trait (tusks or no tusks)
+ * run for 40 generations under a pressure the learner sets. Tusked animals are taken with a
+ * chance set by the pressure slider; the survivors make the next 100 young, each young
+ * copying the trait of one survivor chosen at random. A switch lets rare new no-tusk young
+ * arise (mutation). A trait never changes inside one animal's life: the "Follow one animal"
+ * button traces one life from birth to the end of the generation. The expected path is
+ * computed from the same rules and drawn beside the observed one; "Resample" draws a new
+ * random run. Rates are the sketch's own settings (relative units), not measurements.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="pop card" data-pop>
+  <figcaption class="pop-head">Pressure on a population: tusks or no tusks<span class="pop-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pop-svg" viewBox="0 0 360 176" role="img" aria-label="One generation of 100 animals drawn as dots: filled dots have tusks, open rings have no tusks, a cross marks an animal taken by hunters" data-grid></svg>
+
+  <svg class="pop-svg" viewBox="0 0 360 268" role="img" aria-label="Share of animals with and without tusks over 40 generations, simulated in this run and expected from the rules" data-plot></svg>
+
+  <div class="pop-controls">
+    <label class="pop-ctl">
+      <span class="pop-lab">Pressure on tusked animals (relative units): <output data-out="k"></output></span>
+      <input autocomplete="off" type="range" min="0" max="10" step="1" value="5" data-in="k" />
+    </label>
+    <label class="pop-ctl">
+      <span class="pop-lab">Starting share with no tusks: <output data-out="s"></output></span>
+      <input autocomplete="off" type="range" min="0" max="50" step="5" value="20" data-in="s" />
+    </label>
+    <label class="pop-ctl">
+      <span class="pop-lab">Generation shown: <output data-out="g"></output></span>
+      <input autocomplete="off" type="range" min="0" max="40" step="1" value="40" data-in="g" />
+    </label>
+    <label class="pop-chk">
+      <input autocomplete="off" type="checkbox" data-in="mut" />
+      <span>New variation can arise (mutation)</span>
+    </label>
+  </div>
+  <div class="pop-actions">
+    <button type="button" class="pop-btn" data-follow>Follow one animal</button>
+    <button type="button" class="pop-btn" data-resample>Resample (new random run)</button>
+    <button type="button" class="pop-btn" data-reset>Reset</button>
+  </div>
+
+  <p class="pop-verdict" data-verdict role="status"></p>
+
+  <table class="pop-tab">
+    <caption class="pop-sr">Expected beside this run (simulated): share of animals with no tusks</caption>
+    <thead><tr><th scope="col"></th><th scope="col">Expected</th><th scope="col">This run (simulated)</th></tr></thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <p class="pop-assume">In this sketch: 100 animals per generation. Each tusked animal is taken with a chance of 5 percent per pressure unit (so 25 percent at 5); animals with no tusks are not taken. The survivors make the next 100 young, and each young copies the trait of one survivor chosen at random. With new variation on, 1 in 200 young of a tusked survivor is born with no tusks. These rates are the sketch’s own relative settings, not measurements, and one parent per young simplifies real inheritance.</p>
+  <p class="pop-foot">An animal keeps the trait it was born with. What changes from generation to generation is how common each trait is in the population, and it changes faster under a stronger pressure. This is a sketch of the logic, not a prediction for any real herd.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const N = 100;
+  const GENS = 40;
+  const MU = 0.005;
+  const PER_UNIT = 0.05;
+  const INK = '#2b2b33', FAINT = '#6b6b78', TEAL = '#0e7c86', ORANGE = '#c25e00';
+  const DEFAULTS = { k: 5, s: 20, g: 40, mut: false };
+
+  type Gen = { tl: boolean[]; taken: boolean[]; kids: number[] };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function rng(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function simulate(seed: number, k: number, mut: boolean, startPct: number): Gen[] {
+    const rnd = rng(seed);
+    const c = PER_UNIT * k;
+    let tl: boolean[] = [];
+    const n0 = Math.round((startPct * N) / 100);
+    for (let i = 0; i < N; i++) tl.push(i < n0);
+    for (let i = N - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const t = tl[i]; tl[i] = tl[j]; tl[j] = t;
+    }
+    const gens: Gen[] = [];
+    for (let g = 0; g <= GENS + 1; g++) {
+      const taken = tl.map((t) => !t && rnd() < c);
+      let survivors: number[] = [];
+      taken.forEach((tk, i) => { if (!tk) survivors.push(i); });
+      if (survivors.length === 0) { taken.fill(false); survivors = tl.map((_, i) => i); }
+      const kids: number[] = new Array(N).fill(0);
+      const next: boolean[] = [];
+      for (let j = 0; j < N; j++) {
+        const p = survivors[Math.floor(rnd() * survivors.length)];
+        kids[p]++;
+        let child = tl[p];
+        if (!child && mut && rnd() < MU) child = true;
+        next.push(child);
+      }
+      gens.push({ tl, taken, kids });
+      tl = next;
+    }
+    return gens;
+  }
+  function expectedPath(k: number, mut: boolean, startPct: number): number[] {
+    const c = PER_UNIT * k;
+    const out: number[] = [];
+    let x = startPct / 100;
+    for (let g = 0; g <= GENS; g++) {
+      out.push(x);
+      const sel = x / (x + (1 - x) * (1 - c));
+      x = mut ? sel + (1 - sel) * MU : sel;
+    }
+    return out;
+  }
+  const pctText = (x: number) => `${Math.round(x * 100)}%`;
+  function pressureWord(k: number): string { return k === 0 ? 'none' : k <= 4 ? 'weak' : 'strong'; }
+
+  document.querySelectorAll<HTMLElement>('[data-pop]').forEach((root) => {
+    const grid = root.querySelector<SVGSVGElement>('[data-grid]');
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]');
+    const rows = root.querySelector<HTMLElement>('[data-rows]');
+    const followBtn = root.querySelector<HTMLButtonElement>('[data-follow]');
+    const resampleBtn = root.querySelector<HTMLButtonElement>('[data-resample]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const inp = (key: string) => root.querySelector<HTMLInputElement>(`[data-in="${key}"]`);
+    const out = (key: string) => root.querySelector<HTMLElement>(`[data-out="${key}"]`);
+    const inK = inp('k'), inS = inp('s'), inG = inp('g'), inMut = inp('mut');
+    if (!grid || !plot || !verdict || !rows || !followBtn || !resampleBtn || !resetBtn || !inK || !inS || !inG || !inMut) return;
+
+    let seed = 9;
+    let gens: Gen[] = [];
+    let expd: number[] = [];
+    let followed: { g: number; i: number } | null = null;
+
+    function drawGrid(g: number, k: number) {
+      const gen = gens[g];
+      grid!.replaceChildren();
+      const nTl = gen.tl.filter(Boolean).length;
+      const nTaken = gen.taken.filter(Boolean).length;
+      grid!.appendChild(el('text', { x: 10, y: 16, 'font-size': 12, 'font-weight': 700, fill: INK }, `Generation ${g}: 100 animals`));
+      gen.tl.forEach((t, i) => {
+        const cx = 18 + (i % 10) * 14, cy = 34 + Math.floor(i / 10) * 14;
+        if (t) grid!.appendChild(el('circle', { cx, cy, r: 5, fill: '#fff', stroke: TEAL, 'stroke-width': 2 }));
+        else grid!.appendChild(el('circle', { cx, cy, r: 5.2, fill: ORANGE }));
+        if (gen.taken[i]) {
+          grid!.appendChild(el('line', { x1: cx - 4, y1: cy - 4, x2: cx + 4, y2: cy + 4, stroke: INK, 'stroke-width': 1.6 }));
+          grid!.appendChild(el('line', { x1: cx - 4, y1: cy + 4, x2: cx + 4, y2: cy - 4, stroke: INK, 'stroke-width': 1.6 }));
+        }
+      });
+      if (followed && followed.g === g) {
+        const cx = 18 + (followed.i % 10) * 14, cy = 34 + Math.floor(followed.i / 10) * 14;
+        grid!.appendChild(el('circle', { cx, cy, r: 8, fill: 'none', stroke: INK, 'stroke-width': 2 }));
+      }
+      // legend
+      grid!.appendChild(el('circle', { cx: 176, cy: 30, r: 5.2, fill: ORANGE }));
+      grid!.appendChild(el('text', { x: 188, y: 34, 'font-size': 12, fill: INK }, `tusked: ${N - nTl}`));
+      grid!.appendChild(el('circle', { cx: 176, cy: 48, r: 5, fill: '#fff', stroke: TEAL, 'stroke-width': 2 }));
+      grid!.appendChild(el('text', { x: 188, y: 52, 'font-size': 12, fill: INK }, `no tusks: ${nTl}`));
+      grid!.appendChild(el('line', { x1: 172, y1: 62, x2: 180, y2: 70, stroke: INK, 'stroke-width': 1.6 }));
+      grid!.appendChild(el('line', { x1: 172, y1: 70, x2: 180, y2: 62, stroke: INK, 'stroke-width': 1.6 }));
+      grid!.appendChild(el('text', { x: 188, y: 70, 'font-size': 12, fill: INK }, `taken by hunters: ${nTaken}`));
+      if (!followed || followed.g !== g) {
+        grid!.appendChild(el('text', { x: 170, y: 112, 'font-size': 12, fill: FAINT }, 'Press “Follow one animal”'));
+        grid!.appendChild(el('text', { x: 170, y: 130, 'font-size': 12, fill: FAINT }, 'to trace one life.'));
+        return;
+      }
+      const f = followed;
+      const t = gen.tl[f.i] ? 'no tusks' : 'tusked';
+      const taken = gen.taken[f.i];
+      const kids = gen.kids[f.i];
+      const steps = [
+        `Born: ${t}`,
+        `Adult: ${t}`,
+        taken ? 'End: taken, no young' : `End: survived, ${kids} young`,
+      ];
+      steps.forEach((s, n) => {
+        const y = 80 + n * 32;
+        grid!.appendChild(el('rect', { x: 170, y, width: 182, height: 22, rx: 5, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }));
+        grid!.appendChild(el('text', { x: 178, y: y + 15, 'font-size': 12, 'font-weight': 700, fill: INK }, s));
+        if (n < 2) {
+          grid!.appendChild(el('line', { x1: 261, y1: y + 22, x2: 261, y2: y + 30, stroke: INK, 'stroke-width': 1.5 }));
+          grid!.appendChild(el('path', { d: `M256 ${y + 26} L261 ${y + 32} L266 ${y + 26}`, fill: 'none', stroke: INK, 'stroke-width': 1.5 }));
+        }
+      });
+      void k;
+    }
+
+    function drawPlot(g: number) {
+      plot!.replaceChildren();
+      const L = 40, R = 350, T = 28, B = 186;
+      const X = (gg: number) => L + (gg / GENS) * (R - L);
+      const Y = (p: number) => B - p * (B - T);
+      plot!.appendChild(el('text', { x: 6, y: 16, 'font-size': 12, 'font-weight': 700, fill: INK }, 'Share of animals with no tusks'));
+      const obs: number[] = [];
+      for (let i = 0; i <= GENS; i++) obs.push(gens[i].tl.filter(Boolean).length / N);
+      let below = `M${X(0)} ${B}`;
+      obs.forEach((p, i) => { below += ` L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`; });
+      below += ` L${X(GENS)} ${B} Z`;
+      let above = `M${X(0)} ${T}`;
+      obs.forEach((p, i) => { above += ` L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`; });
+      above += ` L${X(GENS)} ${T} Z`;
+      plot!.appendChild(el('path', { d: below, fill: TEAL, opacity: 0.28 }));
+      plot!.appendChild(el('path', { d: above, fill: ORANGE, opacity: 0.2 }));
+      plot!.appendChild(el('rect', { x: L, y: T, width: R - L, height: B - T, fill: 'none', stroke: FAINT, 'stroke-width': 1 }));
+      for (const v of [0, 0.5, 1]) {
+        plot!.appendChild(el('line', { x1: L - 4, y1: Y(v), x2: L, y2: Y(v), stroke: FAINT, 'stroke-width': 1 }));
+        plot!.appendChild(el('text', { x: L - 7, y: Y(v) + 4, 'font-size': 12, 'text-anchor': 'end', fill: INK }, `${v * 100}%`));
+      }
+      for (const v of [0, 10, 20, 30, 40]) {
+        plot!.appendChild(el('line', { x1: X(v), y1: B, x2: X(v), y2: B + 4, stroke: FAINT, 'stroke-width': 1 }));
+        plot!.appendChild(el('text', { x: X(v), y: B + 17, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, String(v)));
+      }
+      plot!.appendChild(el('text', { x: (L + R) / 2, y: B + 33, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'Generation'));
+      let dObs = '';
+      obs.forEach((p, i) => { dObs += `${i ? ' L' : 'M'}${X(i).toFixed(1)} ${Y(p).toFixed(1)}`; });
+      plot!.appendChild(el('path', { d: dObs, fill: 'none', stroke: INK, 'stroke-width': 2 }));
+      let dExp = '';
+      expd.forEach((p, i) => { dExp += `${i ? ' L' : 'M'}${X(i).toFixed(1)} ${Y(p).toFixed(1)}`; });
+      plot!.appendChild(el('path', { d: dExp, fill: 'none', stroke: '#7a5ea8', 'stroke-width': 2, 'stroke-dasharray': '6 4' }));
+      plot!.appendChild(el('line', { x1: X(g), y1: T, x2: X(g), y2: B, stroke: INK, 'stroke-width': 1.5, 'stroke-dasharray': '2 3' }));
+      plot!.appendChild(el('circle', { cx: X(g), cy: Y(obs[g]), r: 4, fill: INK }));
+      // key
+      plot!.appendChild(el('rect', { x: 40, y: 232, width: 12, height: 10, fill: TEAL, opacity: 0.45 }));
+      plot!.appendChild(el('text', { x: 58, y: 241, 'font-size': 12, fill: INK }, 'no tusks (below line)'));
+      plot!.appendChild(el('rect', { x: 200, y: 232, width: 12, height: 10, fill: ORANGE, opacity: 0.35 }));
+      plot!.appendChild(el('text', { x: 218, y: 241, 'font-size': 12, fill: INK }, 'tusked (above)'));
+      plot!.appendChild(el('line', { x1: 40, y1: 256, x2: 56, y2: 256, stroke: INK, 'stroke-width': 2 }));
+      plot!.appendChild(el('text', { x: 62, y: 260, 'font-size': 12, fill: INK }, 'this run'));
+      plot!.appendChild(el('line', { x1: 200, y1: 256, x2: 216, y2: 256, stroke: '#7a5ea8', 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+      plot!.appendChild(el('text', { x: 222, y: 260, 'font-size': 12, fill: INK }, 'expected'));
+    }
+
+    function firstAbove(series: number[]): string {
+      const i = series.findIndex((p) => p >= 0.5);
+      return i < 0 ? `not within ${GENS}` : `generation ${i}`;
+    }
+
+    function recompute() {
+      gens = simulate(seed, Number(inK!.value), inMut!.checked, Number(inS!.value));
+      expd = expectedPath(Number(inK!.value), inMut!.checked, Number(inS!.value));
+    }
+
+    function render() {
+      const k = Number(inK!.value), s0 = Number(inS!.value), g = Number(inG!.value), mut = inMut!.checked;
+      out('k')!.textContent = `${k} (${pressureWord(k)})`;
+      out('s')!.textContent = `${s0}%`;
+      out('g')!.textContent = String(g);
+      if (followed && followed.g !== g) followed = null;
+      drawGrid(g, k);
+      drawPlot(g);
+
+      const obsAt = (gg: number) => gens[gg].tl.filter(Boolean).length;
+      const obsSeries = gens.slice(0, GENS + 1).map((x) => x.tl.filter(Boolean).length / N);
+      rows!.replaceChildren();
+      const addRow = (label: string, e: string, o: string) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.scope = 'row'; th.textContent = label;
+        const td1 = document.createElement('td'); td1.textContent = e;
+        const td2 = document.createElement('td'); td2.textContent = o;
+        tr.append(th, td1, td2); rows!.appendChild(tr);
+      };
+      addRow(`Generation ${g} (shown)`, pctText(expd[g]), `${obsAt(g)} of ${N} (${obsAt(g)}%)`);
+      addRow(`Generation ${GENS}`, pctText(expd[GENS]), `${obsAt(GENS)} of ${N} (${obsAt(GENS)}%)`);
+      addRow('First generation at 50% or more', firstAbove(expd), firstAbove(obsSeries));
+
+      // status sentence
+      let line = `Generation ${g}: ${obsAt(g)} of ${N} animals have no tusks (expected ${pctText(expd[g])}). `;
+      const seenTl = obsSeries.slice(0, g + 1).some((p) => p > 0);
+      if (followed) {
+        const gen = gens[followed.g];
+        const t = gen.tl[followed.i] ? 'no tusks' : 'tusks';
+        line += gen.taken[followed.i]
+          ? `The ringed animal had ${t} at birth, as an adult and when it was taken. Its trait did not change; only the share in the population changes.`
+          : `The ringed animal had ${t} at birth and as an adult, and survived. Its trait did not change; only the share in the population changes.`;
+      } else if (s0 === 0 && !mut) {
+        line += 'No animal has no tusks and none can arise, so pressure has nothing to act on: every young is tusked.';
+      } else if (k === 0) {
+        line += 'With no pressure, both kinds survive equally often, so the share only wobbles by chance.';
+        if (obsAt(g) === 0 || obsAt(g) === N) line += ' Here chance alone has left one kind: Resample to see another run.';
+        if (mut) line += ' New variation adds rare no-tusk young, so the expected share creeps up slowly.';
+      } else {
+        line += 'Tusked animals are taken more often, so animals with no tusks leave more young whenever any are present. ';
+        const fe = expd.findIndex((p) => p >= 0.5);
+        line += fe < 0 ? `A ${pressureWord(k)} pressure does not bring the expected share to 50% within ${GENS} generations.` : fe === 0 ? 'The expected share starts at 50% or more.' : `A ${pressureWord(k)} pressure brings the expected share to 50% by generation ${fe}.`;
+        if (s0 === 0 && mut && !seenTl) line += ' No no-tusk young have arisen yet in this run: Resample to see another run.';
+        if (s0 === 0 && mut && seenTl) line += ' A no-tusk animal first appears by mutation, by chance, whether or not it helps.';
+      }
+      if (obsAt(g) === N || (obsAt(g) === 0 && s0 > 0)) line += ' In this sketch one kind is gone; real populations usually keep both variants side by side.';
+      verdict!.textContent = line;
+    }
+
+    [inK, inS, inG].forEach((e) => e.addEventListener('input', () => {
+      if (e !== inG) { followed = null; recompute(); }
+      render();
+    }));
+    inMut.addEventListener('change', () => { followed = null; recompute(); render(); });
+    resampleBtn.addEventListener('click', () => { seed = (Math.floor(Math.random() * 1e9) + 1) >>> 0; followed = null; recompute(); render(); });
+    followBtn.addEventListener('click', () => {
+      followed = { g: Number(inG.value), i: Math.floor(Math.random() * N) };
+      render();
+    });
+    resetBtn.addEventListener('click', () => {
+      inK.value = String(DEFAULTS.k); inS.value = String(DEFAULTS.s); inG.value = String(DEFAULTS.g); inMut.checked = DEFAULTS.mut;
+      seed = 9; followed = null; recompute(); render();
+    });
+    recompute();
+    render();
+  });
+</script>
+
+<style is:global>
+  .pop { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pop-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pop-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pop-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pop-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem 1rem; margin: var(--ddp-space-2) 0; }
+  .pop-ctl { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pop-ctl input { width: 100%; min-height: 44px; accent-color: var(--ddp-color-accent); }
+  .pop-lab output { font-weight: 700; color: var(--ddp-color-primary); }
+  .pop-chk { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem; min-height: 44px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .pop-chk input { width: 22px; height: 22px; accent-color: var(--ddp-color-accent); }
+  .pop-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-2) 0; }
+  .pop-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.8rem; cursor: pointer; }
+  .pop-btn:focus-visible, .pop-ctl input:focus-visible, .pop-chk input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .pop-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .pop-tab { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pop-tab th, .pop-tab td { text-align: left; padding: 0.2rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); vertical-align: top; }
+  .pop-tab thead th { color: var(--ddp-color-muted); font-weight: 400; }
+  .pop-tab tbody th { font-weight: 400; }
+  .pop-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .pop-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pop-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .pop-controls { grid-template-columns: 1fr; } }
+</style>

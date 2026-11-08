@@ -498,10 +498,10 @@ class S01Question(Film):
         self.at("does not shrink")
         self.play(Indicate(mem, color=TEXT, scale_factor=1.0), run_time=0.8)
 
-        self.at("Every receptor")
+        self.at("Many receptors")
         self.play(*[Indicate(r, color=TEXT, scale_factor=1.12) for r in side], run_time=0.8)
         d = V(0, -1.0)
-        self.at("makes the trip")
+        self.at("make the trip")
         self.play(*[Indicate(r, color=TEXT, scale_factor=1.15) for r in v.recs], run_time=0.6)
         self.play(UpdateFromAlphaFunc(v.ring, lambda m, a: v.set(c0 + a * d)), run_time=1.0)
 
@@ -556,7 +556,7 @@ class S02Enter(Film):
 
         s_lab = T("sequence", 28, ORANGE).move_to(V(-4.2, y0 - 0.7))
         s_ptr = pointer(V(-3.4, y0 - 0.72), V(-1.65, y0 - 1.05), ORANGE)
-        self.at("a sequence")
+        self.at("tail sequence")
         self.play(*[r.mark.animate.set_stroke(opacity=1) for r in recs], FadeIn(s_lab), Create(s_ptr), run_time=0.6)
 
         a_lab = T("adaptor", 28, ORANGE).move_to(V(-4.2, y0 - 1.5))

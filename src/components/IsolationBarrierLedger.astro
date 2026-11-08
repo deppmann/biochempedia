@@ -1,0 +1,206 @@
+---
+/**
+ * IsolationBarrierLedger — the monkeyflower barrier ledger of the Speciation lesson.
+ * Three barriers act in sequence on the gene flow left by earlier ones. Each barrier's
+ * absolute contribution is AC = RI x (gene flow left); total isolation is
+ * 1 - product of (1 - RI). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ibl card" data-ibl>
+  <figcaption class="ibl-head">Barrier ledger: adding barriers in sequence<span class="ibl-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ibl-svg" viewBox="0 0 340 168" role="img" aria-label="A stacked bar splitting the gene flow between two plant species into the part each barrier blocks and the part left, with the gene flow remaining after each step below it" data-plot></svg>
+
+  <div class="ibl-controls">
+    <label class="ibl-slabel"><span>Ecogeographic RI <em data-out="0">0.60</em></span>
+      <input type="range" data-in="0" min="0" max="1" step="0.01" value="0.6" />
+    </label>
+    <label class="ibl-slabel"><span>Pollinator RI <em data-out="1">0.90</em></span>
+      <input type="range" data-in="1" min="0" max="1" step="0.01" value="0.9" />
+    </label>
+    <label class="ibl-slabel"><span>Hybrid fertility RI <em data-out="2">0.50</em></span>
+      <input type="range" data-in="2" min="0" max="1" step="0.01" value="0.5" />
+    </label>
+    <label class="ibl-slabel"><span>Order the barriers act</span>
+      <select data-order></select>
+    </label>
+  </div>
+
+  <table class="ibl-table" data-table>
+    <caption class="ibl-cap">The ledger, in the order the barriers act</caption>
+    <thead><tr><th scope="col">Barrier</th><th scope="col">RI</th><th scope="col">Gene flow left before</th><th scope="col">AC = RI × left</th></tr></thead>
+    <tbody data-body></tbody>
+  </table>
+
+  <dl class="ibl-readout">
+    <div><dt>Total isolation = 1 − ∏(1 − RI)</dt><dd data-r-total>0.98</dd></div>
+    <div><dt>Gene flow remaining</dt><dd data-r-left>0.02</dd></div>
+    <div><dt>Sum of ACs (check)</dt><dd data-r-ac>0.98</dd></div>
+    <div class="ibl-warn"><dt>Raw sum of the RIs (not a fraction)</dt><dd data-r-raw>2.00</dd></div>
+  </dl>
+
+  <p class="ibl-why" data-why role="status"></p>
+  <p class="ibl-assume">In this sketch: three barriers act in sequence and independently, and each RI is the fraction of the remaining gene flow that barrier blocks. Real combinations can depart from this. The numbers are illustrative, in the style of the monkeyflower study.</p>
+  <p class="ibl-foot">Each barrier works on the gene flow left by the ones before it, so total isolation does not depend on the order, but the credit each barrier gets does. Never add the raw strengths.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2';
+  const COLORS = ['#0e7c86', '#e57200', '#6b4fa3'];
+  const NAMES = ['Ecogeographic', 'Pollinator', 'Hybrid fertility'];
+  const SHORT = ['ecogeographic', 'pollinator', 'hybrid fertility'];
+  const ORDERS: number[][] = [[0, 1, 2], [1, 0, 2]];
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const f2 = (x: number) => (Math.abs(x) < 5e-10 ? 0 : x).toFixed(2);
+  document.querySelectorAll<HTMLElement>('[data-ibl]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const ins = [0, 1, 2].map((i) => root.querySelector<HTMLInputElement>(`[data-in="${i}"]`)!);
+    const outs = [0, 1, 2].map((i) => root.querySelector<HTMLElement>(`[data-out="${i}"]`)!);
+    const sel = root.querySelector<HTMLSelectElement>('[data-order]')!;
+    const body = root.querySelector<HTMLElement>('[data-body]')!;
+    const rTotal = root.querySelector<HTMLElement>('[data-r-total]')!;
+    const rLeft = root.querySelector<HTMLElement>('[data-r-left]')!;
+    const rAc = root.querySelector<HTMLElement>('[data-r-ac]')!;
+    const rRaw = root.querySelector<HTMLElement>('[data-r-raw]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+
+    ORDERS.forEach((ord, k) => {
+      const o = document.createElement('option');
+      o.value = String(k);
+      o.textContent = ord.map((i) => SHORT[i]).join(' → ');
+      sel.appendChild(o);
+    });
+
+    const BX = 124, BW = 206;
+    function render() {
+      const ri = ins.map((s) => Math.min(1, Math.max(0, parseFloat(s.value))));
+      ri.forEach((v, i) => { outs[i].textContent = f2(v); });
+      const ord = ORDERS[parseInt(sel.value, 10)];
+      let left = 1;
+      const rows = ord.map((b) => {
+        const before = left;
+        const ac = ri[b] * before;
+        left = before - ac;
+        return { b, ri: ri[b], before, ac, after: left };
+      });
+      // remaining flow as the product of what each barrier lets through
+      const prod = ri.reduce((p, v) => p * (1 - v), 1);
+      const total = 1 - prod;
+      const raw = ri[0] + ri[1] + ri[2];
+
+      plot.replaceChildren();
+      const t0 = el('text', { x: 2, y: 12, 'font-size': 10, fill: INK }); t0.textContent = 'Gene flow (1 = all of it)'; plot.appendChild(t0);
+      // stacked bar
+      const BY = 20, BH = 28;
+      let x = BX;
+      rows.forEach((r) => {
+        const w = r.ac * BW;
+        if (w > 0) plot.appendChild(el('rect', { x, y: BY, width: w, height: BH, fill: COLORS[r.b], stroke: '#fff', 'stroke-width': 0.5 }));
+        if (w >= 34) {
+          const t = el('text', { x: x + w / 2, y: BY + 17, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: '#fff' });
+          t.textContent = f2(r.ac); plot.appendChild(t);
+        }
+        x += w;
+      });
+      const wl = left * BW;
+      if (wl > 0) plot.appendChild(el('rect', { x, y: BY, width: wl, height: BH, fill: '#eceef2', stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '3 2' }));
+      if (wl >= 34) {
+        const t = el('text', { x: x + wl / 2, y: BY + 17, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+        t.textContent = 'left ' + f2(left); plot.appendChild(t);
+      }
+      const bl = el('text', { x: BX - 6, y: BY + 17, 'text-anchor': 'end', 'font-size': 9, fill: INK }); bl.textContent = 'blocked / left'; plot.appendChild(bl);
+      // axis
+      for (const v of [0, 0.5, 1]) {
+        const ax = BX + v * BW;
+        plot.appendChild(el('line', { x1: ax, y1: BY + BH, x2: ax, y2: BY + BH + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: ax, y: BY + BH + 13, 'text-anchor': v === 0 ? 'start' : v === 1 ? 'end' : 'middle', 'font-size': 9, fill: INK });
+        t.textContent = String(v === 0 ? '0' : v === 1 ? '1' : '0.5'); plot.appendChild(t);
+      }
+      // waterfall of gene flow remaining
+      const WY = 80;
+      const wt = el('text', { x: 2, y: WY - 6, 'font-size': 10, fill: INK }); wt.textContent = 'Gene flow left after each step'; plot.appendChild(wt);
+      const steps = [{ label: 'start', v: 1, c: FAINT }].concat(rows.map((r) => ({ label: 'after ' + SHORT[r.b].split(' ')[0], v: r.after, c: COLORS[r.b] })));
+      steps.forEach((s, i) => {
+        const y = WY + i * 20;
+        const lt = el('text', { x: BX - 6, y: y + 9, 'text-anchor': 'end', 'font-size': 9, fill: INK });
+        lt.textContent = s.label + '  ' + f2(s.v); plot.appendChild(lt);
+        if (s.v > 0) plot.appendChild(el('rect', { x: BX, y, width: s.v * BW, height: 12, fill: s.c, opacity: i === 0 ? 0.5 : 0.85 }));
+        else plot.appendChild(el('line', { x1: BX, y1: y, x2: BX, y2: y + 12, stroke: INK, 'stroke-width': 1.5 }));
+      });
+
+      // table
+      body.replaceChildren();
+      rows.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.scope = 'row';
+        const sw = document.createElement('span'); sw.className = 'ibl-sw'; sw.style.background = COLORS[r.b];
+        th.appendChild(sw); th.appendChild(document.createTextNode((i + 1) + '. ' + NAMES[r.b]));
+        tr.appendChild(th);
+        [f2(r.ri), f2(r.before), f2(r.ri) + ' × ' + f2(r.before) + ' = ' + f2(r.ac)].forEach((s) => {
+          const td = document.createElement('td'); td.textContent = s; tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+
+      rTotal.textContent = f2(total);
+      rLeft.textContent = f2(prod);
+      rAc.textContent = f2(rows.reduce((s, r) => s + r.ac, 0));
+      rRaw.textContent = f2(raw);
+
+      // status
+      const first = rows[0], second = rows[1], third = rows[2];
+      let msg: string;
+      if (ri.every((v) => v === 0)) {
+        msg = 'Every RI is 0, so no barrier blocks any gene flow: total isolation is 0.00 and all of the gene flow is left.';
+      } else if (rows.some((r, i) => r.ri === 1 && i < 2 && rows[i + 1].before === 0)) {
+        const k = rows.findIndex((r) => r.ri === 1);
+        msg = `The ${SHORT[rows[k].b]} barrier has RI = 1.00, so it blocks all of the gene flow that reaches it and total isolation is 1.00. The barriers after it find no gene flow left to block, so each gets an absolute contribution of 0.00 however strong it is.`;
+      } else if (ri.some((v) => v === 1)) {
+        msg = `One barrier has RI = 1.00 and acts last, so it blocks everything that is left: total isolation is 1.00. Each barrier's credit is its RI times the gene flow left when it acts.`;
+      } else if (Math.abs(ri[0] - 0.6) < 1e-9 && Math.abs(ri[1] - 0.9) < 1e-9 && Math.abs(ri[2] - 0.5) < 1e-9) {
+        msg = `Order ${ord.map((i) => SHORT[i]).join(', then ')}: ${rows.map((r) => f2(r.ac)).join(', ')}. Total isolation is ${f2(total)} and ${f2(prod)} of the gene flow is left. ` +
+          (ord[0] === 1 ? 'The total is the same as in the other order, but the credit has moved: the pollinator barrier now gets the most credit (0.90) because it acts on all of the gene flow.' : 'Try putting the pollinator barrier first: the total stays the same, but the credit moves.');
+      } else {
+        msg = `Order ${ord.map((i) => SHORT[i]).join(', then ')}: the barriers get credit ${f2(first.ac)}, ${f2(second.ac)} and ${f2(third.ac)}, because each acts on the gene flow left by the one before. Total isolation is ${f2(total)}, whichever order they act in, given the sketch’s assumptions. The raw sum of the RIs, ${f2(raw)}, is not a fraction of gene flow.`;
+      }
+      why.textContent = msg;
+    }
+    [...ins, sel].forEach((s) => s.addEventListener('input', render));
+    sel.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .ibl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ibl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ibl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ibl-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ibl-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ibl-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ibl-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ibl-slabel input { accent-color: var(--ddp-color-accent); }
+  .ibl-slabel select { font: inherit; font-size: var(--ddp-text-xs); max-width: 100%; padding: 0.2rem; }
+  .ibl-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); margin: var(--ddp-space-2) 0; }
+  .ibl-cap { text-align: left; color: var(--ddp-color-muted); padding-bottom: 0.2rem; }
+  .ibl-table th, .ibl-table td { text-align: left; padding: 0.2rem 0.3rem; border-bottom: 1px solid var(--ddp-color-line); font-weight: 400; }
+  .ibl-table thead th { color: var(--ddp-color-muted); }
+  .ibl-table tbody th { font-weight: 600; }
+  .ibl-table td { font-family: var(--ddp-font-mono); }
+  .ibl-sw { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 2px; margin-right: 0.35rem; vertical-align: -1px; }
+  .ibl-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ibl-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ibl-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ibl-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .ibl-warn dd { text-decoration: line-through; color: var(--ddp-color-muted); }
+  .ibl-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .ibl-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .ibl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .ibl-controls, .ibl-readout { grid-template-columns: 1fr; } }
+</style>

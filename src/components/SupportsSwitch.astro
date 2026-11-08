@@ -1,0 +1,123 @@
+---
+/* =============================================================================
+   SupportsSwitch: one task for everyone, with more or less help (the pattern of
+   the VDOE differentiated lesson plans). Three radios:
+     0 Just the task · 1 Some help (default) · 2 Most help
+   The lesson body marks content with <Support min|max>, <WordBank>,
+   <SentenceFrames>, <ScaffoldFigure> and <CER>, which carry the classes
+   .sup-min-1, .sup-min-2, .sup-max-0 and .sup-max-1.
+
+   Without JavaScript the radios alone drive what shows, through CSS :has() on
+   <body> (the global rules below). A browser without :has() shows everything,
+   which is acceptable. With JavaScript the choice is remembered in localStorage
+   ("bp-supports"), a ?supports=0|1|2 link sets it for one visit (so a teacher
+   can send a class to one setting), and changes are announced politely.
+   Render it once per page.
+   ============================================================================ */
+const OPTIONS = [
+  { v: 0, label: 'Just the task', hint: 'No extra help' },
+  { v: 1, label: 'Some help', hint: 'Word banks, partly labelled diagrams' },
+  { v: 2, label: 'Most help', hint: 'Adds sentence starters, fully labelled diagrams' },
+];
+---
+<div class="supports" id="supports">
+  <fieldset class="supports-set">
+    <legend class="supports-legend">Supports</legend>
+    <div class="supports-opts">
+      {OPTIONS.map((o) => (
+        <label class="supports-opt" for={`supports-${o.v}`}>
+          <input type="radio" name="supports" id={`supports-${o.v}`} value={String(o.v)} checked={o.v === 1} aria-describedby={`supports-${o.v}-hint`} />
+          <span class="supports-opt-text">
+            <span class="supports-opt-label">{o.label}</span>
+            <span class="supports-opt-hint" id={`supports-${o.v}-hint`} aria-hidden="true">{o.hint}</span>
+          </span>
+        </label>
+      ))}
+    </div>
+    <p class="supports-note">Supports change how much help you get, not what you learn.</p>
+  </fieldset>
+  <span class="visually-hidden" role="status" aria-live="polite" data-supports-status></span>
+</div>
+
+<script>
+  const KEY = 'bp-supports';
+  const NAMES = ['Just the task', 'Some help', 'Most help'];
+  const radios = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="supports"]'));
+  const status = document.querySelector<HTMLElement>('[data-supports-status]');
+  const valid = (v: string | null) => v === '0' || v === '1' || v === '2';
+  const pick = (v: string) => radios.forEach((r) => { r.checked = r.value === v; });
+
+  if (radios.length > 0) {
+    // A link's ?supports= wins for this visit; otherwise the reader's saved choice.
+    let fromUrl: string | null = null;
+    try { fromUrl = new URLSearchParams(window.location.search).get('supports'); } catch { fromUrl = null; }
+    let saved: string | null = null;
+    try { saved = window.localStorage.getItem(KEY); } catch { saved = null; }
+    if (valid(fromUrl)) pick(fromUrl!);
+    else if (valid(saved)) pick(saved!);
+
+    radios.forEach((r) => {
+      r.addEventListener('change', () => {
+        if (!r.checked) return;
+        try { window.localStorage.setItem(KEY, r.value); } catch { /* storage blocked: the choice lasts this visit */ }
+        if (status) status.textContent = 'Supports: ' + NAMES[Number(r.value)];
+      });
+    });
+  }
+</script>
+
+<style is:global>
+  /* Level visibility, driven by the checked radio. display:none so hidden help
+     also leaves the accessibility tree. Without :has() support nothing hides. */
+  body:has(#supports-0:checked) .sup-min-1 { display: none !important; }
+  body:has(#supports-0:checked) .sup-min-2,
+  body:has(#supports-1:checked) .sup-min-2 { display: none !important; }
+  body:has(#supports-1:checked) .sup-max-0,
+  body:has(#supports-2:checked) .sup-max-0 { display: none !important; }
+  body:has(#supports-2:checked) .sup-max-1 { display: none !important; }
+</style>
+
+<style>
+  .supports { margin: 0 0 var(--ddp-space-6); }
+  .supports-set {
+    margin: 0; min-width: 0;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: var(--ddp-radius);
+    background: var(--ddp-color-surface);
+  }
+  .supports-legend {
+    padding: 0 0.35rem;
+    font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-primary);
+  }
+  .supports-opts {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ddp-space-2);
+  }
+  @media (max-width: 600px) { .supports-opts { grid-template-columns: 1fr; } }
+  .supports-opt {
+    position: relative;
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    min-height: 44px; box-sizing: border-box;
+    padding: 0.55rem 0.75rem;
+    border: 1.5px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
+    background: var(--ddp-color-bg);
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .supports-opt:hover { border-color: var(--ddp-color-accent); }
+  .supports-opt input {
+    flex: none; margin: 0.2rem 0 0; width: 1.1rem; height: 1.1rem;
+    accent-color: var(--ddp-color-accent);
+  }
+  .supports-opt:has(input:checked) {
+    border-color: var(--ddp-color-accent);
+    background: color-mix(in srgb, var(--ddp-color-accent) 10%, var(--ddp-color-surface));
+  }
+  .supports-opt:has(input:focus-visible) { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .supports-opt-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .supports-opt-label { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+  .supports-opt-hint { font-size: var(--ddp-text-xs); line-height: 1.35; color: var(--ddp-color-muted); }
+  .supports-note { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  @media (prefers-reduced-motion: reduce) { .supports-opt { transition: none; } }
+</style>

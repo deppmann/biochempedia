@@ -118,7 +118,7 @@ class S01Fork(SpokenScene):
         self.play(*[Create(c) for c in curves], *[FadeIn(t) for t in tips], run_time=0.9)
         self.at("pour carbons into")
         self.play(FadeIn(dest_groups[0], shift=LEFT * 0.2), run_time=0.7)
-        self.at("It can route them")
+        self.at("root")
         self.play(FadeIn(dest_groups[1], shift=LEFT * 0.2), run_time=0.7)
         self.at("or it can elaborate")
         self.play(FadeIn(dest_groups[2], shift=LEFT * 0.2), run_time=0.7)
@@ -145,7 +145,7 @@ class S01Fork(SpokenScene):
         lab_fed = T("fed or fasting", 24, ORANGE).next_to(sw_fed, LEFT, buff=0.2)
         lab_en = T("energy", 24, GREEN).next_to(sw_en, DOWN, buff=0.2)
         lab_ch = T("cholesterol held", 24, RED).next_to(sw_ch, LEFT, buff=0.2)
-        self.at("fed or fasting")
+        self.at("whether you are")
         self.play(ac.animate.set_color(YELLOW), FadeIn(lab_fed), run_time=0.3)
         self.at("or fasting")
         self.play(*flip(sw_fed, False), curves[0].animate.set_stroke(opacity=0.25), tips[0].animate.set_fill(opacity=0.25), run_time=0.5)
@@ -180,12 +180,12 @@ class S02Carbons(SpokenScene):
         ac = chip("acetyl-CoA", YELLOW, 34).move_to([1.6, -1.7, 0])
         up = Arrow(ac.get_top(), grid.get_bottom() + DOWN * 0.1, buff=0.12, stroke_width=5, color=YELLOW, max_tip_length_to_length_ratio=0.3)
         sub = T("a two-carbon unit", 26, GREY).next_to(ac, RIGHT, buff=0.3)
-        self.at("acetyl CoA")
+        self.at("acetyl")
         self.play(FadeIn(ac, shift=UP * 0.15), FadeIn(sub), GrowArrow(up), run_time=0.7)
         self.play(Indicate(grid, color=YELLOW, scale_factor=1.05), run_time=0.8)
 
         # ---- phase B: 18 acetyl-CoA = 36 carbons; 27 are retained
-        self.at("Eighteen acetyl CoA molecules")
+        self.at("molecules")
         self.play(FadeOut(VGroup(chol, grid, big, carb, ac, sub, up)), run_time=0.4)
         pairs, sqs = [], []
         pitch = 0.68
@@ -326,7 +326,7 @@ class S03Dials(SpokenScene):
         axis = Arrow([-5.3, -2.7, 0], [5.3, -2.7, 0], buff=0, stroke_width=4, color=GREY, max_tip_length_to_length_ratio=0.05)
         fast = T("fast", 24, GREY).align_to([-6.3, 0, 0], LEFT).set_y(-2.7)
         slow = T("slow", 24, GREY).align_to([6.3, 0, 0], RIGHT).set_y(-2.7)
-        tsc = T("time scale", 24, GREY).move_to([0, -3.2, 0])
+        tsc = T("rough time scale", 24, GREY).move_to([0, -3.2, 0])
         self.at("on different time scales")
         self.play(GrowArrow(axis), FadeIn(fast), FadeIn(slow), FadeIn(tsc), run_time=0.9)
 
@@ -357,7 +357,7 @@ class S03Dials(SpokenScene):
         self.play(*a2, run_time=0.8)
         self.at("derived products")
         self.play(Indicate(g2[1], color=PURPLE, scale_factor=1.08), run_time=0.7)
-        self.at("suppress the messenger RNA")
+        self.at("slow translation")
         self.play(FadeOut(tokens[4]), FadeOut(tokens[5]), act.animate.set_value(4 / 6), run_time=0.8)
         active.remove(tokens[4], tokens[5])
 
@@ -373,8 +373,8 @@ class S03Dials(SpokenScene):
         active.add(*new)
 
         # --- 4 degradation
-        a4, g4 = fill_card(3, "Degradation", "sterol-induced", "hours")
-        self.at("and finally")
+        a4, g4 = fill_card(3, "Degradation", "sterol-induced", "minutes to hours")
+        self.at("sterile")
         self.play(*a4, run_time=0.8)
         self.at("accelerates destruction")
         gone = list(active)[2:]
@@ -423,7 +423,7 @@ class S04Thermostat(SpokenScene):
         BH, BW = 2.3, 0.55
         BY = 0.35
         l_title = T("SREBP", 32, RED, weight=BOLD).move_to([LX, 2.75, 0])
-        l_sub = T("senses cholesterol", 24, RED).move_to([LX, 2.25, 0])
+        l_sub = T("pathway senses cholesterol", 24, RED).move_to([LX, 2.25, 0])
         l_frame = Rectangle(width=BW, height=BH, stroke_color=RED, stroke_width=3).move_to([LX, BY, 0])
         l_fill = always_redraw(lambda: Rectangle(width=BW, height=max(0.02, BH * c.get_value()), stroke_width=0, fill_color=RED, fill_opacity=0.85)
                                .move_to([LX, BY - BH / 2 + max(0.02, BH * c.get_value()) / 2, 0]))
@@ -454,7 +454,7 @@ class S04Thermostat(SpokenScene):
         self.play(GrowArrow(in_l), GrowArrow(in_r), run_time=0.8)
 
         # --- SREBP
-        self.at("SREBP senses cholesterol")
+        self.at("pathway senses cholesterol")
         self.play(Indicate(VGroup(l_title, l_sub), color=RED, scale_factor=1.08), run_time=0.8)
         self.at("low on cholesterol")
         self.play(c.animate.set_value(0.12), run_time=1.5)
@@ -462,11 +462,11 @@ class S04Thermostat(SpokenScene):
         self.play(ca.animate.set_value(0.12), Indicate(in_l, color=RED, scale_factor=1.15), run_time=1.3)
 
         # --- AMPK
-        self.at("AMPK senses energy")
+        self.at("MPK")
         self.play(Indicate(VGroup(r_title, r_sub), color=GREEN, scale_factor=1.08), run_time=0.8)
-        self.at("When ATP runs low")
+        self.at("and")
         self.play(e.animate.set_value(0.12), run_time=1.6)
-        self.at("AMPK turns synthesis down")
+        self.at("down")
         self.play(ea.animate.set_value(0.12), Indicate(in_r, color=GREEN, scale_factor=1.15), run_time=1.3)
         famine = T("famine", 28, GREEN).move_to([CX, -2.35, 0])
         self.at("during a famine")
@@ -549,7 +549,7 @@ class S05Triage(SpokenScene):
         self.play(ang.animate.set_value(0.8), run_time=1.6)
         self.at("signaling a low energy state")
         self.play(FadeIn(hot), FadeIn(low_t, shift=UP * 0.1), run_time=0.7)
-        self.at("AMPK becomes active")
+        self.at("becomes")
         glow = Circle(radius=0.5, stroke_color=GREEN, stroke_width=3).move_to(lamp)
         self.play(lamp.animate.set_fill(GREEN, opacity=0.95), ampk[0].animate.set_fill(GREEN, opacity=0.5), Flash(lamp, color=GREEN, flash_radius=0.6, line_length=0.18), run_time=0.9)
         self.at("starts phosphorylating")
@@ -590,11 +590,11 @@ class S05Triage(SpokenScene):
         self.at("The logic is blunt")
         lg = T("no ATP to spare: don't build", 34, TEXT, font=TITLE_FONT).move_to([0.9, -2.45, 0])
         self.play(FadeIn(lg, shift=UP * 0.1), run_time=0.7)
-        self.at("Do not spend ATP")
+        self.at("not")
         self.play(Indicate(ampk, color=GREEN, scale_factor=1.08), run_time=0.7)
         self.at("storage and membrane molecules")
         self.play(*[Indicate(o_, color=c_, scale_factor=1.1) for o_, c_ in zip(outs, (RED, ORANGE))], run_time=1.0)
-        self.at("do not have ATP to spare")
+        self.at("have")
         self.play(Indicate(VGroup(arc, hot, g_lab, g_sub), color=GREEN, scale_factor=1.06), run_time=0.9)
         self.at("This is metabolic triage")
         self.play(Indicate(lg, color=GREEN, scale_factor=1.05), run_time=0.8)

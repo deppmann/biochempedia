@@ -1,0 +1,260 @@
+---
+/**
+ * MicrobeRolesWeb — switch off one group of microbes (decomposers, nitrogen fixers, gut bacteria,
+ * pathogens, viruses that infect bacteria) in a simple ecosystem (soybean field, stream with fallen
+ * leaves, deer, a person, ocean water) and watch which flows of matter stall and which populations
+ * change. Bars are in relative units (100 = the starting level in this sketch). Only the direction
+ * Only the soybean 47 comes from the lesson (Michigan trial ratio); every other direction and size
+ * is a display assumption. A time slider shows how each change builds up.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="mr card" data-microberolesweb>
+  <figcaption class="mr-head">Microbe roles web: switch a group off<span class="mr-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="mr-groups">
+    <legend>Switch off one group of microbes</legend>
+    <label class="mr-opt"><input type="radio" name="mr-group" value="none" checked /><span>None (all microbes working)</span></label>
+    <label class="mr-opt"><input type="radio" name="mr-group" value="decomposers" /><span>Decomposers</span></label>
+    <label class="mr-opt"><input type="radio" name="mr-group" value="fixers" /><span>Nitrogen fixers</span></label>
+    <label class="mr-opt"><input type="radio" name="mr-group" value="gut" /><span>Gut bacteria</span></label>
+    <label class="mr-opt"><input type="radio" name="mr-group" value="pathogens" /><span>Pathogens</span></label>
+    <label class="mr-opt"><input type="radio" name="mr-group" value="phages" /><span>Viruses that infect bacteria</span></label>
+  </fieldset>
+
+  <svg class="mr-svg" viewBox="0 0 360 470" role="img" aria-label="Five schematic tiles for a soybean field, a stream with leaves, deer, a person and ocean water, above nine bars for flows of matter and populations" data-svg></svg>
+
+  <label class="mr-slabel"><span>Time after switching off: step <em data-out="t">4</em> of 4 <small>(relative steps, not days or years)</small></span>
+    <input type="range" data-in="t" min="0" max="4" step="1" value="4" />
+  </label>
+
+  <div class="mr-row"><button type="button" class="mr-btn" data-reset>Reset</button></div>
+
+  <p class="mr-status" data-status role="status"></p>
+  <p class="mr-note" data-note hidden></p>
+  <p class="mr-data" data-data hidden></p>
+
+  <p class="mr-assume">In this sketch: every bar starts at 100 (relative units, not a measurement) and one group is off at a time. Steps are not days or years. Only the soybean 47 comes from the lesson; every other direction and size is a display assumption, not to scale.</p>
+  <p class="mr-foot">Rule to keep: microbes keep matter moving and shape populations, and whether a microbe helps or harms depends on which microbe it is and where it lives.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', TEAL = '#0e7c86', RUST = '#c2410c', PURPLE = '#6d4aa3';
+  type Group = 'none' | 'decomposers' | 'fixers' | 'gut' | 'pathogens' | 'phages';
+  type Eff = { end: number; delay: number; dur: number };
+  const ROWS = [
+    { id: 'pile', label: 'Dead leaves in the stream' },
+    { id: 'recycle', label: 'Nutrients returned to soil and water' },
+    { id: 'fixed', label: 'Usable nitrogen made in nodules' },
+    { id: 'soy', label: 'Soybeans (nitrogen they hold)' },
+    { id: 'deer', label: 'Deer' },
+    { id: 'fiber', label: 'Fiber broken down in the gut' },
+    { id: 'bact', label: 'Ocean bacteria (number)' },
+    { id: 'ocean', label: 'Nutrients released into ocean water' },
+    { id: 'disease', label: 'Disease caused by pathogens' },
+  ];
+  // The soybean ratio comes from the lesson's Michigan trial: 150/282, 67.6/144, 61.6/148 (mean about 47%).
+  const SOY = Math.round(((150 / 282 + 67.6 / 144 + 61.6 / 148) / 3) * 100);
+  const EFFECTS: Record<Group, Record<string, Eff>> = {
+    none: {},
+    decomposers: {
+      pile: { end: 200, delay: 0, dur: 4 },
+      recycle: { end: 0, delay: 0, dur: 1 },
+      ocean: { end: 60, delay: 0, dur: 1 },
+    },
+    fixers: {
+      fixed: { end: 0, delay: 0, dur: 1 },
+      soy: { end: SOY, delay: 0, dur: 2 },
+    },
+    gut: {
+      fiber: { end: 0, delay: 0, dur: 1 },
+    },
+    pathogens: {
+      disease: { end: 0, delay: 0, dur: 1 },
+    },
+    phages: {
+      bact: { end: 160, delay: 0, dur: 4 },
+    },
+  };
+  const OFF_TILES: Record<Group, string[]> = {
+    none: [],
+    decomposers: ['stream', 'ocean'],
+    fixers: ['field'],
+    gut: ['person'],
+    pathogens: ['field', 'deer', 'person'],
+    phages: ['ocean'],
+  };
+  const TILES = [
+    { id: 'field', l1: 'Soybean', l2: 'field' },
+    { id: 'stream', l1: 'Stream,', l2: 'leaves' },
+    { id: 'deer', l1: 'Deer', l2: '' },
+    { id: 'person', l1: 'Person', l2: '' },
+    { id: 'ocean', l1: 'Ocean', l2: 'water' },
+  ];
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
+
+  function value(g: Group, row: string, t: number): number {
+    const e = EFFECTS[g][row];
+    if (!e) return 100;
+    const f = clamp((t - e.delay) / e.dur, 0, 1);
+    return 100 + (e.end - 100) * f;
+  }
+
+  function icon(svg: SVGSVGElement, id: string, cx: number, off: boolean) {
+    const c = off ? RUST : INK;
+    const sw = 1.6;
+    if (id === 'field') {
+      svg.appendChild(el('line', { x1: cx - 26, y1: 40, x2: cx + 26, y2: 40, stroke: c, 'stroke-width': sw }));
+      for (const dx of [-16, 0, 16]) {
+        svg.appendChild(el('line', { x1: cx + dx, y1: 40, x2: cx + dx, y2: 24, stroke: c, 'stroke-width': sw }));
+        svg.appendChild(el('circle', { cx: cx + dx, cy: 21, r: 4, fill: '#fff', stroke: c, 'stroke-width': sw }));
+      }
+    } else if (id === 'stream') {
+      svg.appendChild(el('path', { d: `M${cx - 26} 34 q6.5 -8 13 0 t13 0 t13 0 t13 0`, fill: 'none', stroke: c, 'stroke-width': sw }));
+      svg.appendChild(el('ellipse', { cx, cy: 20, rx: 9, ry: 4, fill: '#fff', stroke: c, 'stroke-width': sw, transform: `rotate(-20 ${cx} 20)` }));
+    } else if (id === 'deer') {
+      svg.appendChild(el('rect', { x: cx - 15, y: 24, width: 28, height: 12, rx: 5, fill: '#fff', stroke: c, 'stroke-width': sw }));
+      for (const dx of [-11, 9]) svg.appendChild(el('line', { x1: cx + dx, y1: 36, x2: cx + dx, y2: 44, stroke: c, 'stroke-width': sw }));
+      svg.appendChild(el('circle', { cx: cx + 17, cy: 20, r: 5, fill: '#fff', stroke: c, 'stroke-width': sw }));
+      svg.appendChild(el('path', { d: `M${cx + 15} 15 l-2 -7 M${cx + 19} 15 l2 -7`, fill: 'none', stroke: c, 'stroke-width': sw }));
+    } else if (id === 'person') {
+      svg.appendChild(el('circle', { cx, cy: 17, r: 6, fill: '#fff', stroke: c, 'stroke-width': sw }));
+      svg.appendChild(el('rect', { x: cx - 9, y: 26, width: 18, height: 18, rx: 6, fill: '#fff', stroke: c, 'stroke-width': sw }));
+    } else {
+      for (const y of [20, 30, 40]) {
+        svg.appendChild(el('path', { d: `M${cx - 26} ${y} q6.5 -8 13 0 t13 0 t13 0 t13 0`, fill: 'none', stroke: c, 'stroke-width': sw }));
+      }
+    }
+  }
+
+  function draw(svg: SVGSVGElement, g: Group, t: number) {
+    svg.replaceChildren();
+    const offList = OFF_TILES[g];
+    TILES.forEach((tile, i) => {
+      const x0 = 6 + i * 70, cx = x0 + 32;
+      const off = offList.includes(tile.id);
+      svg.appendChild(el('rect', { x: x0, y: 6, width: 64, height: 98, rx: 8, fill: off ? '#fff4ec' : '#fff', stroke: off ? RUST : FAINT, 'stroke-width': off ? 2 : 1 }));
+      icon(svg, tile.id, cx, off);
+      svg.appendChild(el('text', { x: cx, y: 62, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, tile.l1));
+      if (tile.l2) svg.appendChild(el('text', { x: cx, y: 76, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, tile.l2));
+      svg.appendChild(el('text', { x: cx, y: 96, 'font-size': 12, 'text-anchor': 'middle', 'font-weight': 700, fill: off ? RUST : TEAL }, off ? 'OFF' : 'on'));
+    });
+
+    const top = 122, pitch = 36, trackX = 8, trackW = 344, scale = trackW / 200;
+    ROWS.forEach((r, i) => {
+      const y = top + i * pitch;
+      const v = value(g, r.id, t);
+      const rounded = Math.round(v);
+      const changed = Math.abs(v - 100) >= 1;
+      const colour = !changed ? TEAL : v < 100 ? RUST : PURPLE;
+      let word = '';
+      if (changed) {
+        if (v < 100) word = rounded <= 0 ? 'stalled' : 'down';
+        else word = r.id === 'pile' ? 'piling up' : 'up';
+      }
+      svg.appendChild(el('text', { x: trackX, y, 'font-size': 12, fill: INK }, r.label));
+      svg.appendChild(el('text', { x: trackX + trackW, y, 'font-size': 12, 'text-anchor': 'end', 'font-weight': 700, fill: colour }, word ? `${rounded} · ${word}` : String(rounded)));
+      svg.appendChild(el('rect', { x: trackX, y: y + 6, width: trackW, height: 12, rx: 3, fill: '#eeeef2' }));
+      if (v > 0.5) svg.appendChild(el('rect', { x: trackX, y: y + 6, width: v * scale, height: 12, rx: 3, fill: colour }));
+      svg.appendChild(el('line', { x1: trackX + 100 * scale, y1: y + 3, x2: trackX + 100 * scale, y2: y + 21, stroke: INK, 'stroke-width': 1.2 }));
+    });
+    svg.appendChild(el('text', { x: 8, y: top + ROWS.length * pitch + 6, 'font-size': 12, fill: INK }, 'Vertical tick = starting level, 100 (relative units)'));
+  }
+
+  function statusFor(g: Group, t: number): string {
+    if (g === 'none') return 'Every microbe group is working, so every bar sits at 100, the starting level in this sketch.';
+    if (t === 0) return 'Nothing has changed yet. Move the time slider forward to see the changes build up.';
+    switch (g) {
+      case 'decomposers':
+        return 'Without decomposers, dead leaves pile up and their nutrients stay locked inside them, so nutrients stop returning to soil and water.';
+      case 'fixers':
+        return 'Soybeans hold less nitrogen in this trial.';
+      case 'gut':
+        return 'Without gut bacteria, fiber is not fermented, so the small acids your body can absorb are not made from it.';
+      case 'pathogens':
+        return 'Disease from pathogens stops.';
+      case 'phages':
+        return 'Viruses cut back bacteria, so bacteria may rise in this sketch.';
+    }
+  }
+  function noteFor(g: Group, t: number): string {
+    if (t === 0) return '';
+    if (g === 'decomposers') return 'In the ocean model, bacteria break down the remains of burst cells, so that release of nutrients falls too.';
+    if (g === 'pathogens') return 'Real case from the lesson: after the virus disease rinderpest disappeared from the Serengeti in the 1960s, wildebeest numbers rose, they ate more grass, fewer fires burned and more trees grew (wildebeest, not deer; one case).';
+    if (g === 'phages') return 'A virus usually infects only certain kinds of bacteria. Without viruses to cut back a very common kind, there may be less room for other kinds.';
+    if (g === 'gut') return 'Your body cannot digest some parts of plant food, called fiber.';
+    return '';
+  }
+  const DATA_TEXT = 'Lesson data for the soybean bar (Michigan field trial, Kellogg Biological Station, means across farming systems): plants that cannot form nodules held 150, 67.6 and 61.6 kg N/ha, against 282, 144 and 148 kg N/ha for nodulating plants in 2006, 2007 and 2008. Ratios: 150 ÷ 282 = 53%, 67.6 ÷ 144 = 47%, 61.6 ÷ 148 = 42%; mean about ' + SOY + '%. The sketch uses ' + SOY + '. It is one trial, so it is not a rate for every field.';
+
+  document.querySelectorAll<HTMLElement>('[data-microberolesweb]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]');
+    const slider = root.querySelector<HTMLInputElement>('[data-in="t"]');
+    const out = root.querySelector<HTMLElement>('[data-out="t"]');
+    const status = root.querySelector<HTMLElement>('[data-status]');
+    const note = root.querySelector<HTMLElement>('[data-note]');
+    const data = root.querySelector<HTMLElement>('[data-data]');
+    const reset = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="mr-group"]'));
+    if (!svg || !slider || !out || !status || !note || !data || !reset || radios.length === 0) return;
+
+    function group(): Group {
+      const r = radios.find((x) => x.checked);
+      return ((r && r.value) || 'none') as Group;
+    }
+    function render() {
+      const g = group();
+      const t = Number(slider!.value);
+      out!.textContent = String(t);
+      draw(svg!, g, t);
+      status!.textContent = statusFor(g, t);
+      const n = noteFor(g, t);
+      note!.textContent = n;
+      note!.hidden = n === '';
+      data!.textContent = DATA_TEXT;
+      data!.hidden = !(g === 'fixers' && t > 0);
+      slider!.disabled = g === 'none';
+    }
+    radios.forEach((r) => r.addEventListener('change', () => { slider.value = '4'; render(); }));
+    slider.addEventListener('input', render);
+    reset.addEventListener('click', () => {
+      radios.forEach((r) => { r.checked = r.value === 'none'; });
+      slider.value = '4';
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .mr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mr-groups { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-3); padding: 0.4rem 0.6rem 0.6rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .mr-groups legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .mr-opt { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding: 0.3rem 0.7rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .mr-opt input { accent-color: var(--ddp-color-accent); width: 1.1rem; height: 1.1rem; margin: 0; }
+  .mr-opt:has(input:checked) { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 10%, transparent); color: var(--ddp-color-primary); font-weight: 600; }
+  .mr-opt:has(input:focus-visible) { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mr-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mr-slabel { display: block; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; }
+  .mr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-primary); }
+  .mr-slabel small { color: var(--ddp-color-muted); }
+  .mr-slabel input { display: block; width: 100%; min-height: 44px; accent-color: var(--ddp-color-accent); }
+  .mr-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.35rem 0; }
+  .mr-btn { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.3rem 0.9rem; cursor: pointer; }
+  .mr-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mr-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .mr-note, .mr-data { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .mr-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mr-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

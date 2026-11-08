@@ -1,0 +1,441 @@
+---
+/**
+ * InheritancePatternSwitch — one cross, three inheritance patterns, plus a family pedigree.
+ * Panel 1: choose two parents (RR, RW or WW) and a pattern (complete dominance, incomplete
+ * dominance or codominance). The Punnett square keeps the same genotypes; only the phenotype
+ * each genotype shows changes. "Grow 100 offspring" draws 100 random offspring and shows the
+ * observed counts beside the expected counts. Panel 2: click people in a three-generation
+ * pedigree to shade them, and see whether a dominant or a recessive one-gene model fits.
+ * Every rule is a statement of the beyond-dominance lesson. Organisms are labelled schematic
+ * shapes only. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ips card" data-ips>
+  <figcaption class="ips-head">Inheritance pattern switch: one cross, three patterns<span class="ips-chip">⚙ original · interactive</span></figcaption>
+
+  <h4 class="ips-h">1. One cross, three patterns</h4>
+
+  <fieldset class="ips-modes">
+    <legend>Pattern</legend>
+    <label class="ips-mode"><input type="radio" name="ips-mode" value="complete" data-mode /> <span>Complete dominance</span></label>
+    <label class="ips-mode"><input type="radio" name="ips-mode" value="incomplete" data-mode checked /> <span>Incomplete dominance</span></label>
+    <label class="ips-mode"><input type="radio" name="ips-mode" value="codominant" data-mode /> <span>Codominance</span></label>
+  </fieldset>
+
+  <div class="ips-row">
+    <label class="ips-sel">Parent 1
+      <select data-p1><option value="RR">RR</option><option value="RW" selected>RW</option><option value="WW">WW</option></select>
+    </label>
+    <span class="ips-x" aria-hidden="true">×</span>
+    <label class="ips-sel">Parent 2
+      <select data-p2><option value="RR">RR</option><option value="RW" selected>RW</option><option value="WW">WW</option></select>
+    </label>
+  </div>
+
+  <svg class="ips-svg" viewBox="0 0 360 200" role="img" aria-label="A Punnett square for the chosen cross, with each offspring genotype and the phenotype it shows in the chosen pattern, and a grid of dots for the offspring you grow" data-cross></svg>
+
+  <div class="ips-row">
+    <button type="button" class="ips-btn ips-go" data-grow>Grow 100 offspring</button>
+    <button type="button" class="ips-btn" data-reset>Reset everything</button>
+  </div>
+
+  <p class="ips-status" role="status" data-cstatus></p>
+
+  <table class="ips-tab" data-counts>
+    <caption>Counts out of 100 offspring</caption>
+    <thead><tr><th scope="col">Group</th><th scope="col">Expected</th><th scope="col">Observed</th></tr></thead>
+    <tbody data-tbody></tbody>
+  </table>
+  <p class="ips-ratio" data-ratio></p>
+
+  <h4 class="ips-h">2. A family pedigree</h4>
+  <p class="ips-help">Press a person to shade them as showing the trait. Press again to clear. Then read which model fits.</p>
+
+  <svg class="ips-svg ips-ped" viewBox="0 0 360 300" role="group" aria-label="A three-generation pedigree. Press a person to shade or clear them." data-ped></svg>
+  <p class="ips-key">Square = male. Circle = female. Shaded = shows the trait. Numerals I to III label generations, numbers label people within a generation.</p>
+
+  <div class="ips-row">
+    <button type="button" class="ips-btn" data-clear>Clear shading</button>
+  </div>
+
+  <p class="ips-status" role="status" data-pstatus></p>
+  <ul class="ips-models">
+    <li data-dom></li>
+    <li data-rec></li>
+  </ul>
+
+  <p class="ips-assume">In this sketch: one gene with two alleles, R and W, on an autosome. Each parent passes on one of its two alleles with equal chance. Observed counts are random, so Grow gives new counts each time.</p>
+  <p class="ips-foot">The Punnett square gives the genotypes. The pattern only decides which phenotype each genotype shows, and the alleles never blend. Pedigree clues are not proofs.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Mode = 'complete' | 'incomplete' | 'codominant';
+  type Geno = 'RR' | 'RW' | 'WW';
+  type Ph = 'red' | 'pink' | 'roan' | 'white';
+  const GENOS: Geno[] = ['RR', 'RW', 'WW'];
+  const MODE_NAME: Record<Mode, string> = { complete: 'Complete dominance', incomplete: 'Incomplete dominance', codominant: 'Codominance' };
+  const PH: Record<Mode, Record<Geno, Ph>> = {
+    complete: { RR: 'red', RW: 'red', WW: 'white' },
+    incomplete: { RR: 'red', RW: 'pink', WW: 'white' },
+    codominant: { RR: 'red', RW: 'roan', WW: 'white' },
+  };
+  const PH_ORDER: Record<Mode, Ph[]> = {
+    complete: ['red', 'white'],
+    incomplete: ['red', 'pink', 'white'],
+    codominant: ['red', 'roan', 'white'],
+  };
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86';
+  let uid = 0;
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function gcd(a: number, b: number): number { return b === 0 ? a : gcd(b, a % b); }
+  function geno(a: string, b: string): Geno { return a === b ? (a === 'R' ? 'RR' : 'WW') : 'RW'; }
+
+  type Person = { id: string; gen: number; num: number; male: boolean; x: number; parents: string[] };
+  const PEOPLE: Person[] = [
+    { id: 'I-1', gen: 0, num: 1, male: true, x: 130, parents: [] },
+    { id: 'I-2', gen: 0, num: 2, male: false, x: 230, parents: [] },
+    { id: 'II-1', gen: 1, num: 1, male: false, x: 100, parents: ['I-1', 'I-2'] },
+    { id: 'II-2', gen: 1, num: 2, male: true, x: 180, parents: ['I-1', 'I-2'] },
+    { id: 'II-3', gen: 1, num: 3, male: false, x: 270, parents: [] },
+    { id: 'III-1', gen: 2, num: 1, male: true, x: 165, parents: ['II-2', 'II-3'] },
+    { id: 'III-2', gen: 2, num: 2, male: false, x: 225, parents: ['II-2', 'II-3'] },
+    { id: 'III-3', gen: 2, num: 3, male: true, x: 285, parents: ['II-2', 'II-3'] },
+  ];
+  const GEN_Y = [32, 142, 252], HALF = 22;
+
+  function list(ids: string[]): string {
+    if (ids.length <= 1) return ids.join('');
+    return ids.slice(0, -1).join(', ') + ' and ' + ids[ids.length - 1];
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-ips]').forEach((root) => {
+    function q<T extends Element>(sel: string): T {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('InheritancePatternSwitch: missing ' + sel);
+      return e;
+    }
+    const cross = q<SVGSVGElement>('[data-cross]');
+    const ped = q<SVGSVGElement>('[data-ped]');
+    const p1Sel = q<HTMLSelectElement>('[data-p1]');
+    const p2Sel = q<HTMLSelectElement>('[data-p2]');
+    const growBtn = q<HTMLButtonElement>('[data-grow]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const clearBtn = q<HTMLButtonElement>('[data-clear]');
+    const cstatus = q<HTMLElement>('[data-cstatus]');
+    const pstatus = q<HTMLElement>('[data-pstatus]');
+    const tbody = q<HTMLElement>('[data-tbody]');
+    const ratioEl = q<HTMLElement>('[data-ratio]');
+    const domEl = q<HTMLElement>('[data-dom]');
+    const recEl = q<HTMLElement>('[data-rec]');
+    const modeInputs = Array.from(root.querySelectorAll<HTMLInputElement>('[data-mode]'));
+    const id = ++uid;
+    const PAT = `ips-roan-${id}`;
+
+    let mode: Mode = 'incomplete';
+    let sample: Geno[] | null = null;
+    let last: 'start' | 'cross' | 'grow' | 'mode' = 'start';
+    const shaded = new Set<string>();
+
+    function parents(): [Geno, Geno] { return [p1Sel.value as Geno, p2Sel.value as Geno]; }
+    function squareCells(): Geno[] {
+      const [a, b] = parents();
+      const out: Geno[] = [];
+      for (const x of a) for (const y of b) out.push(geno(x, y));
+      return out;
+    }
+    function expected(): Record<Geno, number> {
+      const e: Record<Geno, number> = { RR: 0, RW: 0, WW: 0 };
+      squareCells().forEach((g) => { e[g] += 25; });
+      return e;
+    }
+    function fillFor(ph: Ph): string {
+      return ph === 'red' ? '#c0392b' : ph === 'pink' ? '#f4a6b7' : ph === 'roan' ? `url(#${PAT})` : '#ffffff';
+    }
+    function defs(): SVGElement {
+      const d = el('defs', {});
+      const pat = el('pattern', { id: PAT, width: 4, height: 4, patternUnits: 'userSpaceOnUse' });
+      pat.appendChild(el('rect', { x: 0, y: 0, width: 4, height: 4, fill: '#ffffff' }));
+      pat.appendChild(el('rect', { x: 0, y: 0, width: 2, height: 4, fill: '#c0392b' }));
+      d.appendChild(pat);
+      return d;
+    }
+    function ratioText(): string {
+      const cells = squareCells();
+      const counts = PH_ORDER[mode].map((ph) => ({ ph, n: cells.filter((g) => PH[mode][g] === ph).length })).filter((c) => c.n > 0);
+      if (counts.length === 1) return `every offspring is ${counts[0].ph}`;
+      const g = counts.reduce((acc, c) => gcd(acc, c.n), 0);
+      return counts.map((c) => `${c.n / g} ${c.ph}`).join(' : ');
+    }
+    function genoRatioText(): string {
+      const cells = squareCells();
+      const counts = GENOS.map((gt) => ({ gt, n: cells.filter((g) => g === gt).length })).filter((c) => c.n > 0);
+      if (counts.length === 1) return `every offspring is ${counts[0].gt}`;
+      const g = counts.reduce((acc, c) => gcd(acc, c.n), 0);
+      return counts.map((c) => `${c.n / g} ${c.gt}`).join(' : ');
+    }
+
+    function drawCross() {
+      cross.replaceChildren();
+      cross.appendChild(defs());
+      const [a, b] = parents();
+      const X0 = 56, Y0 = 56, CW = 64, CH = 64;
+      cross.appendChild(el('text', { x: X0, y: 22, 'font-size': 12, 'font-weight': 700, fill: INK }, 'Parent 2 passes on:'));
+      cross.appendChild(el('text', { x: 4, y: 48, 'font-size': 12, 'font-weight': 700, fill: INK }, 'Parent 1'));
+      [...b].forEach((al, j) => {
+        cross.appendChild(el('text', { x: X0 + j * CW + CW / 2, y: 48, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, `${b[0] === b[1] ? al : al + ' (1/2)'}`));
+      });
+      [...a].forEach((al, i) => {
+        cross.appendChild(el('text', { x: X0 - 4, y: Y0 + i * CH + CH / 2 + 4, 'font-size': 12, 'text-anchor': 'end', fill: INK }, `${a[0] === a[1] ? al : al + ' (1/2)'}`));
+      });
+      [...a].forEach((x, i) => {
+        [...b].forEach((y, j) => {
+          const g = geno(x, y), ph = PH[mode][g];
+          const cx = X0 + j * CW, cy = Y0 + i * CH;
+          cross.appendChild(el('rect', { x: cx + 1, y: cy + 1, width: CW - 2, height: CH - 2, rx: 4, fill: '#fff', stroke: FAINT, 'stroke-width': 1 }));
+          cross.appendChild(el('text', { x: cx + CW / 2, y: cy + 17, 'font-size': 14, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, g));
+          cross.appendChild(el('circle', { cx: cx + CW / 2, cy: cy + 33, r: 10, fill: fillFor(ph), stroke: INK, 'stroke-width': 1 }));
+          cross.appendChild(el('text', { x: cx + CW / 2, y: cy + 56, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, ph));
+        });
+      });
+      // observed dots
+      const DX = 214, DY = 56, S = 14;
+      cross.appendChild(el('text', { x: DX - 4, y: 22, 'font-size': 12, 'font-weight': 700, fill: INK }, sample ? 'Observed: 100 offspring' : 'Observed: none yet'));
+      cross.appendChild(el('text', { x: DX - 4, y: 40, 'font-size': 12, fill: INK }, 'one dot per offspring'));
+      for (let k = 0; k < 100; k++) {
+        const cx = DX + (k % 10) * S + 5, cy = DY + Math.floor(k / 10) * S + 5;
+        if (sample) {
+          cross.appendChild(el('circle', { cx, cy, r: 5.2, fill: fillFor(PH[mode][sample[k]]), stroke: INK, 'stroke-width': 0.8 }));
+        } else {
+          cross.appendChild(el('circle', { cx, cy, r: 5.2, fill: 'none', stroke: '#c9c9d2', 'stroke-width': 1 }));
+        }
+      }
+    }
+
+    function drawTable() {
+      const exp = expected();
+      const obs: Record<Geno, number> = { RR: 0, RW: 0, WW: 0 };
+      if (sample) sample.forEach((g) => { obs[g] += 1; });
+      tbody.replaceChildren();
+      const sub = (t: string) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.scope = 'colgroup'; th.colSpan = 3; th.className = 'ips-sub'; th.textContent = t;
+        tr.appendChild(th); tbody.appendChild(tr);
+      };
+      const row = (label: string, e: number, o: number | null) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.scope = 'row'; th.textContent = label;
+        const te = document.createElement('td'); te.textContent = String(e);
+        const to = document.createElement('td'); to.textContent = o === null ? '–' : String(o);
+        tr.append(th, te, to); tbody.appendChild(tr);
+      };
+      sub('Genotypes (the same in every pattern)');
+      GENOS.forEach((g) => row(g, exp[g], sample ? obs[g] : null));
+      sub(`Phenotypes in ${MODE_NAME[mode].toLowerCase()}`);
+      PH_ORDER[mode].forEach((ph) => {
+        const e = GENOS.filter((g) => PH[mode][g] === ph).reduce((s, g) => s + exp[g], 0);
+        const o = GENOS.filter((g) => PH[mode][g] === ph).reduce((s, g) => s + obs[g], 0);
+        row(ph === 'roan' ? 'roan (red and white hairs)' : ph, e, sample ? o : null);
+      });
+      ratioEl.textContent = `Expected from the square: genotype ratio ${genoRatioText()}. Phenotype ratio: ${ratioText()}.`;
+    }
+
+    function crossStatus() {
+      const cells = squareCells();
+      const hasRW = cells.includes('RW');
+      const parts: string[] = [];
+      parts.push(`${MODE_NAME[mode]}. Expected phenotypes: ${ratioText()}.`);
+      if (!hasRW) {
+        parts.push(`Every offspring is ${cells[0]}, so the pattern makes no difference for this cross.`);
+      } else if (mode === 'complete') {
+        parts.push('R is dominant, so RW offspring look red: R hides W.');
+      } else if (mode === 'incomplete') {
+        parts.push('RW is in between red and white, so RW offspring are pink.');
+      } else {
+        parts.push('Both alleles show in RW, so RW offspring are roan, with red and white hairs side by side.');
+      }
+      if (!sample) {
+        parts.push(last === 'cross' ? 'New cross. Press Grow 100 offspring to test it.' : 'Press Grow 100 offspring to test it.');
+      } else if (last === 'mode') {
+        parts.push(hasRW
+          ? 'Same 100 offspring, new pattern: the genotype counts stay the same, and the phenotype counts can change.'
+          : 'Same 100 offspring, new pattern: no counts change.');
+      } else {
+        parts.push(new Set(cells).size > 1
+          ? 'The counts are random. They are usually close to the expected numbers, but not exactly equal.'
+          : 'Every offspring has the same genotype, so the observed counts equal the expected counts.');
+      }
+      cstatus.textContent = parts.join(' ');
+    }
+
+    function renderCross() {
+      drawCross();
+      drawTable();
+      crossStatus();
+      growBtn.textContent = sample ? 'Resample 100 offspring' : 'Grow 100 offspring';
+    }
+
+    // ----- pedigree -----
+    type Node = { g: SVGGElement; sym: SVGElement; carrier: SVGElement; p: Person };
+    const nodes: Node[] = [];
+    function buildPed() {
+      ped.replaceChildren();
+      const ln = (x1: number, y1: number, x2: number, y2: number) => ped.appendChild(el('line', { x1, y1, x2, y2, stroke: INK, 'stroke-width': 1.5 }));
+      ['I', 'II', 'III'].forEach((n, i) => ped.appendChild(el('text', { x: 6, y: GEN_Y[i] + 5, 'font-size': 14, 'font-weight': 700, fill: INK }, n)));
+      // partner lines and child lines
+      ln(152, GEN_Y[0], 208, GEN_Y[0]);
+      ln(180, GEN_Y[0], 180, 98);
+      ln(100, 98, 180, 98);
+      ln(100, 98, 100, GEN_Y[1] - HALF);
+      ln(180, 98, 180, GEN_Y[1] - HALF);
+      ln(202, GEN_Y[1], 248, GEN_Y[1]);
+      ln(225, GEN_Y[1], 225, 208);
+      ln(165, 208, 285, 208);
+      [165, 225, 285].forEach((x) => ln(x, 208, x, GEN_Y[2] - HALF));
+      PEOPLE.forEach((p) => {
+        const cy = GEN_Y[p.gen];
+        const g = el('g', { class: 'ips-p', tabindex: 0, role: 'button', 'aria-pressed': 'false' }) as SVGGElement;
+        g.appendChild(el('rect', { x: p.x - 26, y: cy - 26, width: 52, height: 52, fill: 'transparent' }));
+        const sym = p.male
+          ? el('rect', { class: 'ips-sym', x: p.x - HALF, y: cy - HALF, width: HALF * 2, height: HALF * 2, fill: '#fff', stroke: INK, 'stroke-width': 2 })
+          : el('circle', { class: 'ips-sym', cx: p.x, cy, r: HALF, fill: '#fff', stroke: INK, 'stroke-width': 2 });
+        g.appendChild(sym);
+        g.appendChild(el('text', { x: p.x, y: cy + HALF + 15, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, String(p.num)));
+        const carrier = el('text', { x: p.x, y: cy + HALF + 29, 'font-size': 12, 'text-anchor': 'middle', fill: TEAL }, '');
+        g.appendChild(carrier);
+        const toggle = () => { if (shaded.has(p.id)) shaded.delete(p.id); else shaded.add(p.id); renderPed(); };
+        g.addEventListener('click', toggle);
+        g.addEventListener('keydown', (ev: Event) => {
+          const k = (ev as KeyboardEvent).key;
+          if (k === 'Enter' || k === ' ') { ev.preventDefault(); toggle(); }
+        });
+        ped.appendChild(g);
+        nodes.push({ g, sym, carrier, p });
+      });
+    }
+
+    function renderPed() {
+      const isOn = (id2: string) => shaded.has(id2);
+      // dominant: a shaded child of two unshaded parents does not fit
+      const domBad: string[] = [];
+      const recBad: string[] = [];
+      PEOPLE.forEach((p) => {
+        if (p.parents.length !== 2) return;
+        const pa = p.parents.map(isOn);
+        if (isOn(p.id) && !pa[0] && !pa[1]) domBad.push(p.id);
+        if (!isOn(p.id) && pa[0] && pa[1]) recBad.push(p.id);
+      });
+      const domFits = domBad.length === 0, recFits = recBad.length === 0;
+      // unshaded parents of a shaded child: both must be carriers in the recessive model
+      const carriers = new Set<string>();
+      if (recFits) {
+        PEOPLE.forEach((p) => {
+          if (p.parents.length === 2 && isOn(p.id) && !isOn(p.parents[0]) && !isOn(p.parents[1])) p.parents.forEach((x) => carriers.add(x));
+        });
+      }
+      nodes.forEach((n) => {
+        const on = isOn(n.p.id);
+        n.sym.setAttribute('fill', on ? TEAL : '#fff');
+        n.g.setAttribute('aria-pressed', on ? 'true' : 'false');
+        n.g.setAttribute('aria-label', `${n.p.id}, ${n.p.male ? 'male' : 'female'}, ${on ? 'shows the trait' : 'does not show the trait'}`);
+        n.carrier.textContent = carriers.has(n.p.id) ? 'carrier?' : '';
+      });
+      const none = shaded.size === 0;
+      const kids = PEOPLE.filter((p) => p.parents.length === 2 && isOn(p.id) && !isOn(p.parents[0]) && !isOn(p.parents[1])).map((p) => p.id);
+      const carrierIds = PEOPLE.filter((p) => carriers.has(p.id)).map((p) => p.id);
+
+      if (none) {
+        domEl.innerHTML = ''; recEl.innerHTML = '';
+        domEl.textContent = 'Dominant model: fits. Nobody shows the trait yet.';
+        recEl.textContent = 'Recessive model: fits. Nobody shows the trait yet.';
+      } else {
+        domEl.textContent = domFits
+          ? 'Dominant model: fits. No shaded child has two unshaded parents.'
+          : `Dominant model: does not fit. ${list(domBad)} ${domBad.length > 1 ? 'are' : 'is'} shaded, but both parents are unshaded. A dominant trait usually has a shaded parent. Rarely, a new change in DNA starts one, so this is a clue, not proof.`;
+        recEl.textContent = recFits
+          ? `Recessive model: fits. No unshaded child has two shaded parents.${carrierIds.length ? ` ${list(carrierIds)} would be carriers: heterozygotes who carry a recessive allele but do not show the trait.` : ''}`
+          : `Recessive model: does not fit well. ${list(recBad)} ${recBad.length > 1 ? 'are' : 'is'} unshaded, but both parents are shaded. For a simple recessive trait this is unexpected, so it is a clue, not proof.`;
+      }
+      domEl.className = 'ips-m ' + (domFits ? 'ips-ok' : 'ips-no');
+      recEl.className = 'ips-m ' + (recFits ? 'ips-ok' : 'ips-no');
+
+      let s: string;
+      if (none) s = 'No one is shaded. Press a person to shade them as showing the trait, then see which model fits.';
+      else if (domFits && recFits) s = 'Both models fit this family. A small family may fit both, and these are clues, not proofs.';
+      else if (recFits) s = `Only the recessive model fits. Two unshaded parents with a shaded child (${list(kids)}) point to a recessive trait.`;
+      else if (domFits) s = 'The dominant model fits better. Two shaded parents have an unshaded child, which is unexpected for a simple recessive trait. This is a clue, not proof.';
+      else s = 'Neither simple model fits this shading. Try shading different people.';
+      pstatus.textContent = s;
+    }
+
+    // ----- wiring -----
+    function grow() {
+      const [a, b] = parents();
+      const out: Geno[] = [];
+      for (let k = 0; k < 100; k++) out.push(geno(a[Math.random() < 0.5 ? 0 : 1], b[Math.random() < 0.5 ? 0 : 1]));
+      sample = out; last = 'grow'; renderCross();
+    }
+    growBtn.addEventListener('click', grow);
+    [p1Sel, p2Sel].forEach((s) => s.addEventListener('change', () => { sample = null; last = 'cross'; renderCross(); }));
+    modeInputs.forEach((m) => m.addEventListener('change', () => { if (m.checked) { mode = m.value as Mode; last = 'mode'; renderCross(); } }));
+    clearBtn.addEventListener('click', () => { shaded.clear(); renderPed(); });
+    resetBtn.addEventListener('click', () => {
+      mode = 'incomplete'; sample = null; last = 'start'; shaded.clear();
+      p1Sel.value = 'RW'; p2Sel.value = 'RW';
+      modeInputs.forEach((m) => { m.checked = m.value === 'incomplete'; });
+      renderCross(); renderPed();
+    });
+
+    buildPed();
+    renderCross();
+    renderPed();
+  });
+</script>
+
+<style is:global>
+  .ips { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ips-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ips-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ips-h { margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .ips-help, .ips-key { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ips-modes { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-2); padding: 0.3rem 0.5rem 0.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .ips-modes legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .ips-mode { position: relative; display: inline-flex; }
+  .ips-mode input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .ips-mode span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.8rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); background: transparent; }
+  .ips-mode input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ips-mode input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ips-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem; margin: 0.4rem 0; }
+  .ips-sel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ips-sel select { min-height: 44px; min-width: 6rem; font-size: var(--ddp-text-sm); padding: 0 0.5rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); }
+  .ips-x { align-self: center; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); padding-top: 1rem; }
+  .ips-svg { display: block; width: 100%; max-width: 600px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ips-ped { max-width: 420px; }
+  .ips-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0 0.9rem; cursor: pointer; }
+  .ips-go { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ips-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ips-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .ips-tab { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0 0.2rem; }
+  .ips-tab caption { text-align: left; color: var(--ddp-color-muted); padding-bottom: 0.2rem; }
+  .ips-tab th, .ips-tab td { border-bottom: 1px solid var(--ddp-color-line); padding: 0.2rem 0.4rem; text-align: left; font-weight: 400; }
+  .ips-tab thead th { font-weight: 700; }
+  .ips-tab tbody th[scope="row"] { font-weight: 600; }
+  .ips-tab .ips-sub { font-style: italic; color: var(--ddp-color-muted); background: color-mix(in srgb, var(--ddp-color-accent) 5%, transparent); }
+  .ips-ratio { margin: 0.2rem 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ips-p { cursor: pointer; }
+  .ips-p:focus { outline: none; }
+  .ips-p:focus-visible .ips-sym { stroke: #e57200; stroke-width: 4; }
+  .ips-models { list-style: none; margin: 0 0 var(--ddp-space-2); padding: 0; display: grid; gap: 0.35rem; }
+  .ips-m { font-size: var(--ddp-text-xs); line-height: 1.5; padding: 0.35rem 0.6rem; border-radius: 6px; border-left: 4px solid var(--ddp-color-line); color: var(--ddp-color-ink-soft); }
+  .ips-m.ips-ok { border-left-color: #0e7c86; }
+  .ips-m.ips-no { border-left-color: #b03a2e; }
+  .ips-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ips-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

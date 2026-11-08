@@ -1,0 +1,296 @@
+---
+/**
+ * EagleRecovery — a Bay shoreline with eagle nests shown as one bar per decade (1950s to 2020s)
+ * for the lesson "Helping Ecosystems Recover". The learner picks the year a harmful pesticide is
+ * banned (or never), how much shoreline forest is protected for nests (low, medium, high), and a
+ * switch for a new pollution problem. Made-up rules (named in the visible assumptions line): one
+ * cause of egg failure, young reach nesting age after a delay of years, a fixed food supply, no eagles
+ * arriving from other states, and each bar is a decade average in relative units. Original.
+ * Self-contained vanilla-TS Astro island. No molecules.
+ */
+---
+
+<figure class="er card" data-eaglerecovery>
+  <figcaption class="er-head">Bald eagle nests on a Bay shoreline: ban the pesticide, protect forest<span class="er-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="er-start">Start here: under “Pesticide banned in”, choose 1972 and watch the bars.</p>
+
+  <div class="er-controls">
+    <div class="er-group" role="group" aria-labelledby="er-l-ban">
+      <span class="er-glabel" id="er-l-ban">Pesticide banned in</span>
+      <div class="er-row">
+        <button type="button" class="er-opt" data-ban="1962" aria-pressed="false">1962</button>
+        <button type="button" class="er-opt" data-ban="1972" aria-pressed="false">1972</button>
+        <button type="button" class="er-opt" data-ban="1982" aria-pressed="false">1982</button>
+        <button type="button" class="er-opt" data-ban="1992" aria-pressed="false">1992</button>
+        <button type="button" class="er-opt" data-ban="never" aria-pressed="true">Never</button>
+      </div>
+    </div>
+    <div class="er-group" role="group" aria-labelledby="er-l-for">
+      <span class="er-glabel" id="er-l-for">Protected shoreline forest for nests</span>
+      <div class="er-row">
+        <button type="button" class="er-opt" data-forest="low" aria-pressed="false">Low</button>
+        <button type="button" class="er-opt" data-forest="medium" aria-pressed="true">Medium</button>
+        <button type="button" class="er-opt" data-forest="high" aria-pressed="false">High</button>
+      </div>
+    </div>
+    <div class="er-group" role="group" aria-labelledby="er-l-pol">
+      <span class="er-glabel" id="er-l-pol">A new pollution problem</span>
+      <div class="er-row">
+        <button type="button" class="er-opt er-switch" data-poll aria-pressed="false">Pollution: <b data-poll-word>off</b></button>
+      </div>
+    </div>
+    <div class="er-btns">
+      <button type="button" class="er-btn" data-pin>Pin this run to compare</button>
+      <button type="button" class="er-btn" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <svg class="er-svg" viewBox="0 0 360 346" role="img" aria-label="A Bay shoreline with protected forest, and a bar chart of eagle nests for each decade from the 1950s to the 2020s" data-svg>
+    <text x="8" y="14" font-size="12" font-weight="700" fill="#4b4b55">The Bay shoreline</text>
+    <rect x="0" y="22" width="140" height="92" fill="#cfe3f1"></rect>
+    <path d="M0 34 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#8fb6d3" stroke-width="2"></path>
+    <path d="M0 62 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#8fb6d3" stroke-width="2"></path>
+    <path d="M0 90 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#8fb6d3" stroke-width="2"></path>
+    <text x="70" y="106" text-anchor="middle" font-size="12" font-weight="700" fill="#2b5a7a">Bay water</text>
+    <rect x="140" y="22" width="220" height="92" fill="#e9efd9"></rect>
+    <path d="M140 22 q-8 23 0 46 t0 46" fill="none" stroke="#c9b98a" stroke-width="5"></path>
+    <g data-trees></g>
+    <text data-forest-label x="352" y="106" text-anchor="end" font-size="12" font-weight="700" fill="#3d6a35">Protected forest: medium</text>
+
+    <text x="8" y="140" font-size="12" font-weight="700" fill="#2b2b33">Eagle nests, decade average</text>
+    <text x="8" y="156" font-size="12" fill="#4b4b55">(relative units, not counts)</text>
+    <line x1="12" y1="276" x2="348" y2="276" stroke="#8a8a96" stroke-width="1.5"></line>
+    <g data-ghost></g>
+    <g data-bars></g>
+    <g data-labels></g>
+    <line data-banline x1="0" y1="164" x2="0" y2="276" stroke="#2b2b33" stroke-width="2" stroke-dasharray="4 3" visibility="hidden"></line>
+    <line data-bantick x1="0" y1="298" x2="0" y2="318" stroke="#2b2b33" stroke-width="2" visibility="hidden"></line>
+    <rect data-band-used x="12" y="300" width="0" height="14" fill="#c8553d"></rect>
+    <rect data-band-ok x="12" y="300" width="0" height="14" fill="#4f9a5b"></rect>
+    <rect data-band-pol x="12" y="320" width="0" height="14" fill="#d99a1f"></rect>
+    <rect x="12" y="300" width="336" height="14" fill="none" stroke="#b9b9c2" stroke-width="1"></rect>
+    <rect x="12" y="320" width="336" height="14" fill="none" stroke="#b9b9c2" stroke-width="1"></rect>
+  </svg>
+
+  <ul class="er-legend">
+    <li><span class="er-key" style="background:#c8553d"></span>Top strip: pesticide in use</li>
+    <li><span class="er-key" style="background:#4f9a5b"></span>Top strip: pesticide banned</li>
+    <li><span class="er-key" style="background:#d99a1f"></span>Lower strip: pollution problem on</li>
+    <li data-ghost-note hidden></li>
+  </ul>
+
+  <p class="er-why" data-why role="status">In this sketch, the pesticide is never banned. Choose a ban year to compare.</p>
+
+  <p class="er-assume"><strong>Assumptions made up for this sketch:</strong> The pesticide is in use from 1950 (invented). Bar heights are relative units, not nest counts, and the starting height in the 1950s is invented. There is one cause of egg failure: while the pesticide is used, far fewer young are raised. Young eagles reach nesting age after a delay of 5 years. Food is the same every year, and no eagles arrive from other states. Forest only sets how many young find a safe nest place (the lesson does not say how much it helps). The pollution starts in 2000 and halves the young raised. All rates are invented. Each bar is a decade average.</p>
+
+  <p class="er-foot">Rule to keep: removing the harmful pesticide and protecting nesting places let eagles recover over decades, because young eagles take several years to grow old enough to breed.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Ban = number | null;
+  type Forest = 'low' | 'medium' | 'high';
+  interface Run { ban: Ban; forest: Forest; poll: boolean; }
+
+  // --- Made-up model, in relative units (1 = a nest place filled at the cap of 100) ---
+  const START = 90, SURVIVE = 0.9, YOUNG = 0.4, PEST_FACTOR = 0.1, POLL_FACTOR = 0.5, POLL_YEAR = 2000, LAG = 5, CAP = 100;
+  const SHARE: Record<Forest, number> = { low: 0.5, medium: 0.75, high: 1 };
+  const DECADES = [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
+  const FIRST = 1950, LAST = 2029;
+
+  function decadeBars(r: Run): number[] {
+    const n: Record<number, number> = {};
+    for (let y = FIRST - LAG; y <= FIRST; y++) n[y] = START;
+    for (let y = FIRST; y < LAST; y++) {
+      const pest = r.ban === null || y < r.ban;
+      const rate = YOUNG * (pest ? PEST_FACTOR : 1) * (r.poll && y >= POLL_YEAR ? POLL_FACTOR : 1);
+      const room = Math.max(0, 1 - n[y] / CAP);
+      n[y + 1] = SURVIVE * n[y] + SHARE[r.forest] * rate * n[y - LAG] * room;
+    }
+    return DECADES.map((d) => {
+      let s = 0;
+      for (let y = d; y < d + 10; y++) s += n[y];
+      return s / 10;
+    });
+  }
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-eaglerecovery]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const treesG = q<SVGGElement>('[data-trees]');
+    const forestLabel = q<SVGTextElement>('[data-forest-label]');
+    const ghostG = q<SVGGElement>('[data-ghost]');
+    const barsG = q<SVGGElement>('[data-bars]');
+    const labelsG = q<SVGGElement>('[data-labels]');
+    const banLine = q<SVGLineElement>('[data-banline]');
+    const banTick = q<SVGLineElement>('[data-bantick]');
+    const bandUsed = q<SVGRectElement>('[data-band-used]');
+    const bandOk = q<SVGRectElement>('[data-band-ok]');
+    const bandPol = q<SVGRectElement>('[data-band-pol]');
+    const ghostNote = q<HTMLElement>('[data-ghost-note]');
+    const why = q<HTMLElement>('[data-why]');
+    const pollBtn = q<HTMLButtonElement>('[data-poll]');
+    const pollWord = q<HTMLElement>('[data-poll-word]');
+    const pinBtn = q<HTMLButtonElement>('[data-pin]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const banBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-ban]'));
+    const forBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-forest]'));
+    if (!treesG || !forestLabel || !ghostG || !barsG || !labelsG || !banLine || !banTick || !bandUsed || !bandOk || !bandPol ||
+        !ghostNote || !why || !pollBtn || !pollWord || !pinBtn || !resetBtn || banBtns.length === 0 || forBtns.length === 0) return;
+
+    const X0 = 12, SLOT = 42, BASE = 276, SCALE = 1.05; // 100 relative units = 105 px
+    const yearX = (y: number) => X0 + ((y - FIRST) / 10) * SLOT;
+
+    // decade labels (static)
+    DECADES.forEach((d, i) => {
+      const t = el('text', { x: X0 + SLOT * i + SLOT / 2, y: 294, 'text-anchor': 'middle', 'font-size': 12, fill: '#2b2b33' });
+      t.textContent = d + 's';
+      labelsG.appendChild(t);
+    });
+
+    // state
+    const state: Run = { ban: null, forest: 'medium', poll: false };
+    let pinned: Run | null = null;
+
+    const forestWord = (f: Forest) => f;
+    const runText = (r: Run) => `pesticide ${r.ban === null ? 'never banned' : 'banned in ' + r.ban}, ${forestWord(r.forest)} forest, pollution ${r.poll ? 'on' : 'off'}`;
+
+    function drawTrees() {
+      treesG!.replaceChildren();
+      const slots = [0, 1, 2, 3, 4, 5];
+      const nTrees = state.forest === 'low' ? 2 : state.forest === 'medium' ? 4 : 6;
+      slots.forEach((s) => {
+        const cx = 168 + s * 34;
+        if (s < nTrees) {
+          treesG!.appendChild(el('rect', { x: cx - 3, y: 66, width: 6, height: 22, fill: '#7a5a3a' }));
+          treesG!.appendChild(el('polygon', { points: `${cx - 15},70 ${cx + 15},70 ${cx},36`, fill: '#4f8f4a', stroke: '#2f5e2c', 'stroke-width': 1.5 }));
+          treesG!.appendChild(el('ellipse', { cx, cy: 62, rx: 8, ry: 4, fill: '#a9825a', stroke: '#6b4a2f', 'stroke-width': 1.5 }));
+        } else {
+          treesG!.appendChild(el('rect', { x: cx - 4, y: 80, width: 8, height: 8, fill: '#d9d2bd', stroke: '#8a7a62', 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+        }
+      });
+      const fw = state.forest[0].toUpperCase() + state.forest.slice(1);
+      forestLabel!.textContent = 'Protected forest: ' + fw.toLowerCase();
+    }
+
+    function drawBars(g: SVGGElement, bars: number[], ghost: boolean) {
+      g.replaceChildren();
+      bars.forEach((v, i) => {
+        const h = Math.max(1.5, v * SCALE);
+        if (ghost) {
+          g.appendChild(el('rect', { x: X0 + SLOT * i + 4, y: BASE - h, width: SLOT - 8, height: h, fill: 'none', stroke: '#6b6b78', 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+        } else {
+          g.appendChild(el('rect', { x: X0 + SLOT * i + 7, y: BASE - h, width: SLOT - 14, height: h, fill: '#2f7d8c', stroke: '#1f5560', 'stroke-width': 1 }));
+        }
+      });
+    }
+
+    function drawBands() {
+      const endX = yearX(LAST + 1);
+      if (state.ban === null) {
+        bandUsed!.setAttribute('x', String(X0)); bandUsed!.setAttribute('width', String(endX - X0));
+        bandOk!.setAttribute('width', '0');
+        banLine!.setAttribute('visibility', 'hidden'); banTick!.setAttribute('visibility', 'hidden');
+      } else {
+        const bx = yearX(state.ban);
+        bandUsed!.setAttribute('x', String(X0)); bandUsed!.setAttribute('width', String(bx - X0));
+        bandOk!.setAttribute('x', String(bx)); bandOk!.setAttribute('width', String(endX - bx));
+        banLine!.setAttribute('x1', String(bx)); banLine!.setAttribute('x2', String(bx));
+        banLine!.setAttribute('visibility', 'visible');
+        banTick!.setAttribute('x1', String(bx)); banTick!.setAttribute('x2', String(bx)); banTick!.setAttribute('visibility', 'visible');
+      }
+      if (state.poll) {
+        const px = yearX(POLL_YEAR);
+        bandPol!.setAttribute('x', String(px)); bandPol!.setAttribute('width', String(endX - px));
+      } else bandPol!.setAttribute('width', '0');
+    }
+
+    const dec = (i: number) => DECADES[i] + 's';
+
+    function render() {
+      banBtns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.ban === 'never' ? null : parseInt(b.dataset.ban || '0', 10)) === state.ban)));
+      forBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.forest === state.forest)));
+      pollBtn!.setAttribute('aria-pressed', String(state.poll));
+      pollWord!.textContent = state.poll ? 'on' : 'off';
+      pinBtn!.textContent = pinned ? 'Clear pinned run' : 'Pin this run to compare';
+
+      drawTrees();
+      const bars = decadeBars(state);
+      drawBars(barsG!, bars, false);
+      if (pinned) { drawBars(ghostG!, decadeBars(pinned), true); } else ghostG!.replaceChildren();
+      ghostNote!.hidden = !pinned;
+      if (pinned) ghostNote!.innerHTML = '<span style="display:inline-block;flex:none;width:0.9em;height:0.9em;margin-right:0.35rem;background:transparent;border:2px dashed #6b6b78;box-sizing:border-box"></span>Dashed outline: pinned run (' + runText(pinned) + ')';
+      drawBands();
+
+      // status sentences (each under 18 words)
+      const parts: string[] = [];
+      const noPoll = decadeBars({ ban: state.ban, forest: state.forest, poll: false });
+      if (state.ban === null) {
+        parts.push('In this sketch, the pesticide is never banned, so few young are raised.');
+        parts.push('The nest bars keep falling.');
+        parts.push('In this sketch, protected forest cannot make up for the pesticide.');
+        if (state.poll) parts.push('Few nests are left, so the pollution changes little.');
+      } else {
+        parts.push(`In this sketch, the pesticide is banned in ${state.ban}. Nests fall while it is used.`);
+        let lowest = 0;
+        noPoll.forEach((v, i) => { if (v < noPoll[lowest]) lowest = i; });
+        parts.push(`The lowest bar is the ${dec(lowest)}, so the nests do not come back right away.`);
+        parts.push('Young eagles take several years to grow old enough to breed.');
+        let half = -1;
+        for (let i = lowest + 1; i < bars.length; i++) if (bars[i] >= 0.5 * bars[0]) { half = i; break; }
+        if (bars[lowest] >= 0.5 * bars[0]) parts.push('In this sketch, the bars never fall below half the 1950s height.');
+        else parts.push(half >= 0
+          ? `In this sketch, the bars first reach half the 1950s height in the ${dec(half)}.`
+          : 'In this sketch, the bars never reach half the 1950s height.');
+        const last = bars[bars.length - 1], first = bars[0];
+        const rel = last > first * 1.1 ? 'taller than' : last < first * 0.9 ? 'shorter than' : 'about as tall as';
+        parts.push(`In this sketch, the 2020s bar is ${rel} the 1950s bar${rel === 'shorter than' ? ': the recovery is partial' : ''}.`);
+        if (state.poll) {
+          if (noPoll[noPoll.length - 1] >= 15) parts.push('In this sketch, the new pollution after 2000 keeps the bars lower than they would be without it.');
+          else parts.push('Few nests are left, so the pollution changes little.');
+        }
+      }
+      why!.textContent = parts.join(' ');
+    }
+
+    banBtns.forEach((b) => b.addEventListener('click', () => {
+      state.ban = b.dataset.ban === 'never' ? null : parseInt(b.dataset.ban || '0', 10);
+      render();
+    }));
+    forBtns.forEach((b) => b.addEventListener('click', () => {
+      const f = b.dataset.forest;
+      if (f === 'low' || f === 'medium' || f === 'high') { state.forest = f; render(); }
+    }));
+    pollBtn.addEventListener('click', () => { state.poll = !state.poll; render(); });
+    pinBtn.addEventListener('click', () => { pinned = pinned ? null : { ban: state.ban, forest: state.forest, poll: state.poll }; render(); });
+    resetBtn.addEventListener('click', () => { state.ban = null; state.forest = 'medium'; state.poll = false; pinned = null; render(); });
+    render();
+  });
+</script>
+
+<style>
+  .er { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .er-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .er-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .er-start { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .er-controls { display: flex; flex-direction: column; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+  .er-glabel { display: block; font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-ink-soft); margin-bottom: 0.25rem; }
+  .er-row { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .er-opt, .er-btn { min-height: 44px; min-width: 44px; padding: 0 var(--ddp-space-3); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
+  .er-opt[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .er-opt:hover, .er-opt:focus-visible, .er-btn:hover, .er-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 1px; }
+  .er-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .er-svg { display: block; width: 100%; max-width: 640px; height: auto; margin: 0 auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .er-legend { list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem var(--ddp-space-4); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .er-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .er-key { display: inline-block; width: 0.9em; height: 0.9em; border-radius: 2px; flex: none; }
+  .er-why { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .er-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .er-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

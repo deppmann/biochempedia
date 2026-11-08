@@ -1,0 +1,78 @@
+---
+/* =============================================================================
+   DepthLadder: a small four-step staircase badge showing where a course or a
+   lesson sits on the depth ladder, bottom to top:
+     1 Life Science (grade 7) · 2 Biology · 3 Biology II · 4 College
+   The lit step is solid, the steps below it a lighter tint, the steps above it
+   an outline. Pure HTML and CSS, no script; colours come from the --ddp-*
+   tokens so it follows both themes.
+   ============================================================================ */
+interface Props {
+  /** Which step is lit, 1 to 4. */
+  step: 1 | 2 | 3 | 4;
+  /** sm: about 44 by 28 px, no text (cards). md: larger, with the step name beside it. */
+  size?: 'sm' | 'md';
+  class?: string;
+}
+const { step, size = 'sm', class: extra } = Astro.props;
+const SHORT = ['Life Science', 'Biology', 'Biology II', 'College'];
+const n = Math.min(4, Math.max(1, Math.round(step)));
+const label = `Level: ${SHORT[n - 1]}, step ${n} of 4 (Life Science, Biology, Biology II, College)`;
+---
+<span class:list={['depth-ladder', `dl-${size}`, extra]} role="img" aria-label={label} title={size === 'sm' ? label : undefined}>
+  <span class="dl-bars" aria-hidden="true">
+    {[1, 2, 3, 4].map((i) => (
+      <span class:list={['dl-bar', i === n ? 'is-on' : i < n ? 'is-below' : 'is-above']} style={`--dl-h:${i * 25}%`}></span>
+    ))}
+  </span>
+  {size === 'md' && <span class="dl-text" aria-hidden="true"><b>{SHORT[n - 1]}</b> · step {n} of 4</span>}
+</span>
+
+<style>
+  .depth-ladder {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    vertical-align: middle;
+    flex: none;
+  }
+  .dl-bars {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .dl-sm .dl-bars { width: 44px; height: 28px; }
+  .dl-md .dl-bars { width: 64px; height: 40px; gap: 4px; }
+  .dl-bar {
+    flex: 1;
+    height: var(--dl-h);
+    box-sizing: border-box;
+    border-radius: 2px 2px 0 0;
+    border: 1.5px solid var(--ddp-color-accent);
+  }
+  .dl-bar.is-on { background: var(--ddp-color-accent); }
+  .dl-bar.is-below {
+    background: color-mix(in srgb, var(--ddp-color-accent) 35%, var(--ddp-color-surface));
+    border-color: color-mix(in srgb, var(--ddp-color-accent) 55%, var(--ddp-color-surface));
+  }
+  .dl-bar.is-above {
+    background: transparent;
+    border-color: var(--ddp-color-line);
+    border-style: dashed;
+  }
+  .dl-text {
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    letter-spacing: 0.04em;
+    color: var(--ddp-color-muted);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .dl-text b { color: var(--ddp-color-primary); font-weight: 700; }
+  /* Forced colours: keep the lit step distinguishable without the tints. */
+  @media (forced-colors: active) {
+    .dl-bar { border-color: CanvasText; }
+    .dl-bar.is-on { background: Highlight; }
+    .dl-bar.is-below { background: GrayText; }
+  }
+</style>

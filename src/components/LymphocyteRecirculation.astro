@@ -1,0 +1,285 @@
+---
+/**
+ * LymphocyteRecirculation — "Where a lymphocyte spends its day". Residence time in each
+ * compartment, set by its exit rate, decides where the recirculating pool sits. Three
+ * compartments with first-order exchange, using the lesson's rat-model values (Ganusov and
+ * Auerbach, 2014): blood, spleen (entry 0.056, exit 0.007 per min) and subcutaneous nodes
+ * (entry 0.026; two sub-compartments in series, each exit 0.0034 per min). A cohort that starts
+ * in blood follows
+ *   dB/dt = -(kS + kN) B + eS S + eN N2;  dS/dt = kS B - eS S;
+ *   dN1/dt = kN B - eN N1;  dN2/dt = eN N1 - eN N2.
+ * Steady state B : S : N = 1 : kS/eS : 2 kN/eN; residence 1/eS (spleen) and 2/eN (nodes).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="lr card" data-lr>
+  <figcaption class="lr-head">Where a lymphocyte spends its day<span class="lr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="lr-svg" viewBox="0 0 340 186" role="img" aria-label="Block diagram of three compartments. Blood sends cells to the spleen and to two node parts in series, and each returns cells to blood. Each block shows its steady-state share of the pool." data-scheme></svg>
+
+  <div class="lr-controls">
+    <label class="lr-slabel"><span>Spleen exit rate <em data-out="es">0.007</em> per min</span>
+      <input type="range" data-in="es" min="0.002" max="0.02" step="0.001" value="0.007" />
+    </label>
+    <label class="lr-slabel"><span>Node exit rate, each of the two parts <em data-out="en">0.0034</em> per min<small data-eff></small></span>
+      <input type="range" data-in="en" min="0.001" max="0.01" step="0.0001" value="0.0034" />
+    </label>
+    <label class="lr-toggle"><input type="checkbox" data-in="s1p1" /> <span>Lymphocytes lack S1P1 (mouse finding): node exit rate × 0.1 (schematic, not a measured value)</span></label>
+    <label class="lr-toggle"><input type="checkbox" data-in="inf" /> <span>Node drains a site of immune challenge: node entry × 2 (schematic; the lesson says only that entry may also rise, and the main change is slower exit, so try the node exit slider)</span></label>
+  </div>
+
+  <svg class="lr-svg" viewBox="0 0 340 222" role="img" aria-label="Line plot of the share of a labelled cohort in blood, spleen and nodes over 24 hours, after the cohort starts in blood, with dashed lines at the steady-state shares" data-plot></svg>
+
+  <dl class="lr-readout">
+    <div><dt>Spleen stay = 1 / exit rate</dt><dd data-r-ts></dd></div>
+    <div><dt>Node stay = 2 / exit rate (two parts)</dt><dd data-r-tn></dd></div>
+    <div><dt>Steady-state ratio blood : spleen : nodes</dt><dd data-r-ratio></dd></div>
+    <div><dt>Steady-state shares, blood · spleen · nodes</dt><dd data-r-share></dd></div>
+    <div><dt>Shares of the cohort at 24 h, blood · spleen · nodes</dt><dd data-r-24></dd></div>
+  </dl>
+  <p class="lr-why" data-why role="status"></p>
+
+  <p class="lr-assume">In this sketch: three compartments only, blood, spleen and subcutaneous nodes (two parts in series), with first-order entry and exit, steady state, no cell death or division, and labelled cells behaving like the rest of the pool; the nodes here are the lumped rat compartment. The default rates are the lesson’s fitted values for a rat (Ganusov and Auerbach, 2014; per min): spleen entry 0.056 and exit 0.007, node entry 0.026 and exit 0.0034 for each part. The slider ranges, the factor of 0.1 for lymphocytes lacking S1P1 and the doubling of node entry are made up for the sketch. The curves over 24 h are computed in this sketch from those first-order rules; the lesson gives no time course. Lung, liver, loss and other organs are omitted, so the blood share is a teaching value, not a measurement. Because lung and liver are left out, cells leave blood in about 12 min here at the default entry rates, 1 / (0.056 + 0.026) per min, not the lesson’s 26 s per pass.</p>
+  <p class="lr-foot">Rule to keep: mean residence time = 1 / exit rate constant, and the number held at steady state = entry rate × residence time (Little’s law), so a longer stay or a faster entry gives a compartment a larger share relative to blood.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const C_BLOOD = '#b45309', C_SPLEEN = '#0e7c86', C_NODE = '#5b3f9a', INK = '#1f2933', SOFT = '#4b4b55', FAINT = '#b9b9c2';
+  // The lesson's rat-model values (per min).
+  const K_S = 0.056, E_S0 = 0.007, K_N0 = 0.026, E_N0 = 0.0034;
+  const SHARE_FACTOR = 0.1, ENTRY_FACTOR = 2; // made up for the sketch
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, size: number, fill: string, anchor = 'middle', weight = 400): SVGElement {
+    const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('LymphocyteRecirculation: missing ' + sel);
+    return e;
+  }
+  const rate = (x: number) => String(Number(x.toPrecision(2)));
+  const pct = (f: number) => (f * 100).toFixed(1);
+  const mins = (m: number) => Math.round(m).toLocaleString('en-US') + ' min (' + (m / 60).toFixed(1) + ' h)';
+
+  function arrow(g: SVGElement, x1: number, y1: number, x2: number, y2: number, color: string, headOnly = false) {
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len, hl = 6, hw = 3.2;
+    const bx = x2 - ux * hl, by = y2 - uy * hl;
+    if (!headOnly) g.appendChild(el('line', { x1, y1, x2: bx, y2: by, stroke: color, 'stroke-width': 1.7 }));
+    g.appendChild(el('polygon', { points: `${x2},${y2} ${bx - uy * hw},${by + ux * hw} ${bx + uy * hw},${by - ux * hw}`, fill: color }));
+  }
+
+  // Cohort starts in blood; RK4 on the lesson's four equations. Returns shares at every 2 min.
+  function simulate(kS: number, eS: number, kN: number, eN: number) {
+    type V = [number, number, number, number];
+    const f = (v: V): V => [
+      -(kS + kN) * v[0] + eS * v[1] + eN * v[3],
+      kS * v[0] - eS * v[1],
+      kN * v[0] - eN * v[2],
+      eN * v[2] - eN * v[3],
+    ];
+    const add = (a: V, b: V, h: number): V => [a[0] + h * b[0], a[1] + h * b[1], a[2] + h * b[2], a[3] + h * b[3]];
+    let v: V = [1, 0, 0, 0];
+    const dt = 0.5, steps = 2880;
+    const B: number[] = [1], S: number[] = [0], N: number[] = [0];
+    for (let i = 1; i <= steps; i++) {
+      const k1 = f(v), k2 = f(add(v, k1, dt / 2)), k3 = f(add(v, k2, dt / 2)), k4 = f(add(v, k3, dt));
+      v = [0, 1, 2, 3].map((j) => v[j] + (dt / 6) * (k1[j] + 2 * k2[j] + 2 * k3[j] + k4[j])) as V;
+      if (i % 4 === 0) { B.push(v[0]); S.push(v[1]); N.push(v[2] + v[3]); }
+    }
+    return { B, S, N }; // index n is time n * 2 min
+  }
+  function steady(kS: number, eS: number, kN: number, eN: number) {
+    const rs = kS / eS, rn = (2 * kN) / eN, tot = 1 + rs + rn;
+    return { rs, rn, b: 1 / tot, s: rs / tot, n: rn / tot };
+  }
+  const BASE = steady(K_S, E_S0, K_N0, E_N0);
+
+  document.querySelectorAll<HTMLElement>('[data-lr]').forEach((root) => {
+    const scheme = need<SVGSVGElement>(root, '[data-scheme]');
+    const plot = need<SVGSVGElement>(root, '[data-plot]');
+    const esIn = need<HTMLInputElement>(root, '[data-in="es"]');
+    const enIn = need<HTMLInputElement>(root, '[data-in="en"]');
+    const s1p1In = need<HTMLInputElement>(root, '[data-in="s1p1"]');
+    const infIn = need<HTMLInputElement>(root, '[data-in="inf"]');
+    const esOut = need<HTMLElement>(root, '[data-out="es"]');
+    const effOut = need<HTMLElement>(root, '[data-eff]');
+    const enOut = need<HTMLElement>(root, '[data-out="en"]');
+    const rTs = need<HTMLElement>(root, '[data-r-ts]');
+    const rTn = need<HTMLElement>(root, '[data-r-tn]');
+    const rRatio = need<HTMLElement>(root, '[data-r-ratio]');
+    const rShare = need<HTMLElement>(root, '[data-r-share]');
+    const r24 = need<HTMLElement>(root, '[data-r-24]');
+    const why = need<HTMLElement>(root, '[data-why]');
+
+    function drawScheme(eS: number, kN: number, eN: number, st: ReturnType<typeof steady>) {
+      scheme.replaceChildren();
+      const box = (x: number, y: number, w: number, h: number, color: string, name: string, line2: string, share: number, nameY: number) => {
+        scheme.appendChild(el('rect', { x, y, width: w, height: h, rx: 6, fill: '#fff', stroke: color, 'stroke-width': 1.6 }));
+        scheme.appendChild(el('rect', { x, y, width: w, height: h, rx: 6, fill: color, 'fill-opacity': 0.06 + 0.3 * share }));
+        scheme.appendChild(txt(x + w / 2, nameY, name, 10, INK, 'middle', 700));
+        if (line2) scheme.appendChild(txt(x + w / 2, nameY + 13, line2, 10, INK));
+        if (h > 40) {
+          const bx = x + 6, bw = w - 12, by = y + h - 11;
+          scheme.appendChild(el('rect', { x: bx, y: by, width: bw, height: 5, fill: '#fff', stroke: color, 'stroke-width': 0.8 }));
+          scheme.appendChild(el('rect', { x: bx, y: by, width: Math.max(0.5, bw * share), height: 5, fill: color }));
+        }
+      };
+      // Blood (tall box on the left)
+      box(8, 10, 56, 140, C_BLOOD, 'Blood', pct(st.b) + '%', st.b, 74);
+      // Spleen
+      box(190, 8, 142, 50, C_SPLEEN, 'Spleen', pct(st.s) + '% · stay ' + Math.round(1 / eS) + ' min', st.s, 24);
+      // Nodes: two parts in series
+      scheme.appendChild(txt(231, 94, 'Subcutaneous nodes, two parts in series', 10, SOFT));
+      box(130, 102, 76, 48, C_NODE, 'Part 1', pct(st.n / 2) + '%', st.n / 2, 117);
+      box(256, 102, 76, 48, C_NODE, 'Part 2', pct(st.n / 2) + '%', st.n / 2, 117);
+      // Spleen arrows (entry in, exit back to blood)
+      arrow(scheme, 64, 25, 188, 25, C_SPLEEN);
+      scheme.appendChild(txt(126, 19, 'entry ' + rate(K_S), 10, SOFT));
+      arrow(scheme, 188, 44, 64, 44, C_SPLEEN);
+      scheme.appendChild(txt(126, 56, 'exit ' + rate(eS), 10, SOFT));
+      // Node arrows
+      arrow(scheme, 64, 124, 128, 124, C_NODE);
+      scheme.appendChild(txt(96, 118, 'entry ' + rate(kN), 10, SOFT));
+      scheme.appendChild(txt(96, 138, 'via HEVs', 10, SOFT));
+      arrow(scheme, 206, 124, 254, 124, C_NODE);
+      scheme.appendChild(txt(230, 118, rate(eN), 10, SOFT));
+      // Node exit: from part 2 back to blood along the bottom
+      scheme.appendChild(el('polyline', { points: '294,150 294,166 36,166', fill: 'none', stroke: C_NODE, 'stroke-width': 1.7 }));
+      arrow(scheme, 36, 166, 36, 151, C_NODE, true);
+      scheme.appendChild(el('line', { x1: 36, y1: 166, x2: 36, y2: 156, stroke: C_NODE, 'stroke-width': 1.7 }));
+      scheme.appendChild(txt(165, 180, 'exit ' + rate(eN) + ', efferent lymph to blood', 10, SOFT));
+      scheme.appendChild(txt(260, 79, 'rates are per min', 9, SOFT));
+    }
+
+    function drawPlot(sim: ReturnType<typeof simulate>, st: ReturnType<typeof steady>) {
+      plot.replaceChildren();
+      const X0 = 42, X1 = 262, Y0 = 26, Y1 = 166;
+      const px = (h: number) => X0 + (h / 24) * (X1 - X0);
+      const py = (f: number) => Y1 - f * (Y1 - Y0);
+      plot.appendChild(txt(8, 13, 'share of the cohort (percent)', 10, SOFT, 'start'));
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: SOFT, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: SOFT, 'stroke-width': 1 }));
+      for (const f of [0, 0.25, 0.5, 0.75, 1]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(f), x2: X1, y2: py(f), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        plot.appendChild(txt(X0 - 4, py(f) + 3, String(f * 100), 9, SOFT, 'end'));
+      }
+      for (const h of [0, 6, 12, 18, 24]) {
+        plot.appendChild(el('line', { x1: px(h), y1: Y1, x2: px(h), y2: Y1 + 3, stroke: SOFT, 'stroke-width': 1 }));
+        plot.appendChild(txt(px(h), Y1 + 14, String(h), 9, SOFT));
+      }
+      plot.appendChild(txt((X0 + X1) / 2, Y1 + 28, 'time since the cohort starts in blood (h)', 10, SOFT));
+      const series: Array<{ name: string; data: number[]; color: string; ss: number }> = [
+        { name: 'Blood', data: sim.B, color: C_BLOOD, ss: st.b },
+        { name: 'Spleen', data: sim.S, color: C_SPLEEN, ss: st.s },
+        { name: 'Nodes', data: sim.N, color: C_NODE, ss: st.n },
+      ];
+      for (const s of series) {
+        plot.appendChild(el('line', { x1: X0, y1: py(s.ss), x2: X1, y2: py(s.ss), stroke: s.color, 'stroke-width': 1.1, 'stroke-dasharray': '4 3', 'stroke-opacity': 0.7 }));
+      }
+      for (const s of series) {
+        let d = '';
+        for (let i = 0; i < s.data.length; i += 3) {
+          d += (i === 0 ? 'M' : 'L') + px((i * 2) / 60).toFixed(1) + ' ' + py(s.data[i]).toFixed(1) + ' ';
+        }
+        const last = s.data.length - 1;
+        d += 'L' + px(24).toFixed(1) + ' ' + py(s.data[last]).toFixed(1);
+        plot.appendChild(el('path', { d, fill: 'none', stroke: s.color, 'stroke-width': 2.4, 'stroke-linejoin': 'round' }));
+      }
+      // End labels at 24 h, spaced so they never collide.
+      const labels = series.map((s) => ({ s, y: py(s.data[s.data.length - 1]) + 3 })).sort((a, b) => a.y - b.y);
+      for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 12) labels[i].y = labels[i - 1].y + 12;
+      for (const l of labels) {
+        const v = l.s.data[l.s.data.length - 1];
+        plot.appendChild(txt(X1 + 5, l.y, l.s.name + ' ' + (v * 100).toFixed(0) + '%', 10, l.s.color, 'start', 700));
+      }
+      plot.appendChild(txt(8, 216, 'solid: modelled cohort share · dashed: steady-state share', 9, SOFT, 'start'));
+    }
+
+    function render() {
+      const s1p1 = s1p1In.checked, inf = infIn.checked;
+      const eSbase = parseFloat(esIn.value), eNbase = parseFloat(enIn.value);
+      const eS = eSbase;
+      const eN = eNbase * (s1p1 ? SHARE_FACTOR : 1);
+      const kN = K_N0 * (inf ? ENTRY_FACTOR : 1);
+      esOut.textContent = rate(eSbase);
+      enOut.textContent = rate(eNbase);
+      effOut.textContent = s1p1 ? ' (in use: ' + rate(eN) + ')' : '';
+
+      const st = steady(K_S, eS, kN, eN);
+      const sim = simulate(K_S, eS, kN, eN);
+      const last = sim.B.length - 1;
+      const b24 = sim.B[last], s24 = sim.S[last], n24 = sim.N[last];
+      drawScheme(eS, kN, eN, st);
+      drawPlot(sim, st);
+
+      const tS = 1 / eS, tN = 2 / eN;
+      rTs.textContent = '1 / ' + rate(eS) + ' = ' + mins(tS);
+      rTn.textContent = '2 / ' + rate(eN) + ' = ' + mins(tN);
+      rRatio.textContent = '1 : ' + rate(K_S) + ' / ' + rate(eS) + ' : 2 × ' + rate(kN) + ' / ' + rate(eN) + ' = 1 : ' + st.rs.toFixed(1) + ' : ' + st.rn.toFixed(1);
+      rShare.textContent = pct(st.b) + ' · ' + pct(st.s) + ' · ' + pct(st.n) + ' percent';
+      r24.textContent = pct(b24) + ' · ' + pct(s24) + ' · ' + pct(n24) + ' percent';
+
+      // Status line: every sentence reports the sketch's own result.
+      const parts: string[] = [];
+      if (s1p1) parts.push('node exit rate multiplied by 0.1 (a schematic factor)');
+      if (inf) parts.push(!s1p1 && Math.abs(eNbase - E_N0) < 1e-9 ? 'node entry doubled (schematic, exit unchanged)' : 'node entry doubled (schematic)');
+      if (Math.abs(eSbase - E_S0) > 1e-9) parts.push('the spleen exit slider at ' + rate(eSbase) + ' per min');
+      if (Math.abs(eNbase - E_N0) > 1e-9) parts.push('the node exit slider at ' + rate(eNbase) + ' per min');
+      const shares: Array<[string, number]> = [['blood', st.b], ['spleen', st.s], ['nodes', st.n]];
+      const biggest = shares.reduce((a, b) => (b[1] > a[1] ? b : a))[0];
+      const out: string[] = [];
+      out.push('In this sketch, the steady-state shares of the pool are blood ' + pct(st.b) + ' percent, spleen ' + pct(st.s) + ' percent and nodes ' + pct(st.n) + ' percent, so the largest share sits in the ' + biggest + '; the spleen stay is ' + mins(tS) + ' and the node stay is ' + mins(tN) + '.');
+      if (parts.length === 0) {
+        out.push('In this sketch, these default rates reproduce the lesson’s worked problem: 143 min in the spleen, 588 min in a node and a blood share of 4.1 percent, a teaching value, not a measurement.');
+      } else {
+        const cmp = (now: number, base: number) => {
+          const d = now - base;
+          const word = Math.abs(d) < 0.0005 ? 'unchanged' : d > 0 ? 'higher' : 'lower';
+          return word + ' (' + pct(now) + ' against ' + pct(base) + ' percent)';
+        };
+        const listed = parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : parts[0];
+        out.push('In this sketch, with ' + listed + ', the share compared with the defaults is ' + cmp(st.b, BASE.b) + ' in blood, ' + cmp(st.s, BASE.s) + ' in the spleen and ' + cmp(st.n, BASE.n) + ' in the nodes.');
+      }
+      const settled = Math.abs(b24 - st.b) < 0.01 && Math.abs(s24 - st.s) < 0.01 && Math.abs(n24 - st.n) < 0.01;
+      out.push('In this sketch, 24 h after a cohort starts in blood it holds blood ' + pct(b24) + ', spleen ' + pct(s24) + ' and nodes ' + pct(n24) + ' percent, ' + (settled ? 'close to the steady-state shares.' : 'so it has not yet settled at the steady-state shares.'));
+      why.textContent = out.join(' ');
+    }
+
+    [esIn, enIn, s1p1In, infIn].forEach((c) => c.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .lr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .lr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .lr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .lr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .lr-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0; }
+  .lr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .lr-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .lr-slabel input { accent-color: var(--ddp-color-accent); }
+  .lr-toggle { display: flex; align-items: flex-start; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.4; }
+  .lr-toggle input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; flex: none; }
+  .lr-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .lr-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .lr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .lr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .lr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .lr-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .lr-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) {
+    .lr-controls, .lr-readout { grid-template-columns: 1fr; }
+  }
+</style>

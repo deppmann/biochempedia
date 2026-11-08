@@ -1,0 +1,261 @@
+---
+/**
+ * OrganellePartitionSampler — the Cytokinesis lesson's worked problem, made to sample.
+ * Each of n organelle units goes to daughter A or B independently with probability 0.5.
+ * The learner sets n (1 to 200; presets for the lesson's cases), divides once or 1,000
+ * times, and compares the observed count in daughter A, the histogram, and the share of
+ * divisions that leave a daughter empty with the lesson's rules: mean = n x 0.5,
+ * SD = sqrt(n x 0.25), P(one daughter gets none) = 2 x 0.5^n. Expected values sit beside
+ * every observed one. Labelled dots and bars only; self-contained vanilla-TS island. Original.
+ */
+---
+
+<figure class="ops card" data-ops>
+  <figcaption class="ops-head">Partition by chance: how many units reach each daughter?<span class="ops-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ops-svg" viewBox="0 0 360 290" role="img" aria-label="Two daughter cells holding the dots that each of n organelle units became, above a histogram of the count in daughter A against the binomial expectation" data-stage></svg>
+
+  <div class="ops-row">
+    <label class="ops-label" for="ops-n">Units n</label>
+    <input id="ops-n" class="ops-range" type="range" min="1" max="200" step="1" value="100" data-n />
+    <output class="ops-out" data-nout>100</output>
+  </div>
+  <div class="ops-row">
+    <span class="ops-label">Lesson cases</span>
+    <div class="ops-presets" data-presets></div>
+  </div>
+  <div class="ops-row">
+    <button type="button" class="ops-btn ops-go" data-one>Divide</button>
+    <button type="button" class="ops-btn ops-go" data-many>Divide 1,000 times</button>
+    <button type="button" class="ops-btn" data-clear>Start over</button>
+  </div>
+
+  <p class="ops-verdict" data-verdict role="status" aria-live="polite"></p>
+
+  <dl class="ops-grid">
+    <div class="ops-cell"><dt>Mean count in one daughter</dt><dd data-mean></dd></div>
+    <div class="ops-cell"><dt>Standard deviation</dt><dd data-sd></dd></div>
+    <div class="ops-cell"><dt>Within mean ± 2 SD (exact binomial)</dt><dd data-two></dd></div>
+    <div class="ops-cell"><dt>P(one daughter gets none)</dt><dd data-p></dd></div>
+    <div class="ops-cell ops-wide"><dt>Divisions that left a daughter with none</dt><dd data-empty></dd></div>
+  </dl>
+
+  <p class="ops-foot">The numbers are illustrative: independent 50:50 partition of each unit. Some structures are broken up first or segregated actively. Dot positions are a grid, not real positions.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#8a8a96', CA = '#0e7c86', CB = '#7a5ea8', ORG = '#e57200';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const SUP: Record<string, string> = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '-': '⁻' };
+  function sci(x: number): string {
+    const [m, e] = x.toExponential(1).split('e');
+    return `${m} × 10${String(parseInt(e, 10)).split('').map((c) => SUP[c] ?? c).join('')}`;
+  }
+  function pEmpty(n: number): number { return n === 1 ? 1 : 2 * Math.pow(0.5, n); }
+  function fmtP(n: number): string {
+    const p = pEmpty(n);
+    if (p >= 1e-4) return `${parseFloat((p * 100).toPrecision(2))}%`;
+    return sci(p);
+  }
+  function fmtCount(x: number): string {
+    if (x === 0) return '0';
+    if (x < 0.01) return sci(x);
+    return x.toFixed(1);
+  }
+  function pmf(n: number): number[] {
+    const out: number[] = [Math.pow(0.5, n)];
+    for (let k = 0; k < n; k++) out.push(out[k] * (n - k) / (k + 1));
+    return out;
+  }
+  const CASES: Record<number, string> = {
+    1: 'By the lesson’s formula, with one unit, one daughter always gets none: 2 × 0.5 = 1.',
+    2: 'Lesson case 3: n = 2 gives P = 2 × 0.25 = 0.5, so half of all divisions fail.',
+    6: 'Practice question: 6 copies give 2/64, about 3.1 percent.',
+    10: 'Lesson case 2: n = 10 gives 2/1024, about 0.2%, one division in five hundred.',
+    100: 'Lesson case 1: 100 Golgi stacks give mean 50 and SD 5, so about 95% of divisions give a daughter 40 to 60 stacks, and one daughter getting none (about 1.6 × 10⁻³⁰) never happens.',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-ops]').forEach((root) => {
+    const q = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const stage = q<HTMLElement>('[data-stage]') as unknown as SVGSVGElement;
+    const slider = q<HTMLInputElement>('[data-n]');
+    const nout = q<HTMLElement>('[data-nout]');
+    const presets = q<HTMLElement>('[data-presets]');
+    const verdict = q<HTMLElement>('[data-verdict]');
+    const cMean = q<HTMLElement>('[data-mean]'), cSd = q<HTMLElement>('[data-sd]'), cTwo = q<HTMLElement>('[data-two]');
+    const cP = q<HTMLElement>('[data-p]'), cEmpty = q<HTMLElement>('[data-empty]');
+
+    let n = 100;
+    let tally: number[] = [];
+    let total = 0;
+    let last = -1;      // count in A from the most recent single division, -1 if none
+    let lastBatch = 0;  // size of the most recent click (1 or 1000)
+
+    function reset() { tally = new Array(n + 1).fill(0); total = 0; last = -1; lastBatch = 0; }
+    function divideOnce(): number {
+      let k = 0;
+      for (let i = 0; i < n; i++) if (Math.random() < 0.5) k++;
+      tally[k]++; total++;
+      return k;
+    }
+
+    function drawDaughter(x0: number, label: string, count: number, fill: string, started: boolean) {
+      const y0 = 20, w = 164, h = 76;
+      stage.appendChild(el('rect', { x: x0, y: y0, width: w, height: h, rx: 14, fill: '#fff', stroke: fill, 'stroke-width': 1.6 }));
+      stage.appendChild(el('text', { x: x0 + w / 2, y: 13, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill }, started ? `${label}: ${count} of ${n}` : label));
+      if (!started) { stage.appendChild(el('text', { x: x0 + w / 2, y: y0 + h / 2 + 3, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'no division yet')); return; }
+      if (count === 0) { stage.appendChild(el('text', { x: x0 + w / 2, y: y0 + h / 2 + 3, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#b3261e' }, 'none')); return; }
+      const iw = w - 20, ih = h - 16;
+      const cols = Math.max(1, Math.ceil(Math.sqrt(count * iw / ih)));
+      const rows = Math.ceil(count / cols);
+      const s = Math.min(iw / cols, ih / rows);
+      const r = Math.max(1.3, Math.min(4.5, s * 0.36));
+      const gx = x0 + (w - s * cols) / 2 + s / 2, gy = y0 + (h - s * rows) / 2 + s / 2;
+      for (let i = 0; i < count; i++) {
+        stage.appendChild(el('circle', { cx: gx + (i % cols) * s, cy: gy + Math.floor(i / cols) * s, r, fill }));
+      }
+    }
+
+    function draw() {
+      stage.replaceChildren();
+      const started = total > 0 && last >= 0;
+      drawDaughter(8, 'Daughter A', last, CA, started);
+      drawDaughter(188, 'Daughter B', n - last, CB, started);
+
+      // histogram: share of divisions at each count in A
+      const sd = Math.sqrt(n * 0.25), mean = n * 0.5;
+      const lo = n <= 40 ? 0 : Math.max(0, Math.floor(mean - 5 * sd));
+      const hi = n <= 40 ? n : Math.min(n, Math.ceil(mean + 5 * sd));
+      const px0 = 32, px1 = 350, py0 = 132, py1 = 246;
+      const bins = hi - lo + 1, bw = (px1 - px0) / bins;
+      const P = pmf(n);
+      let ymax = 0;
+      for (let k = lo; k <= hi; k++) ymax = Math.max(ymax, P[k], total ? tally[k] / total : 0);
+      ymax *= 1.1;
+      const X = (k: number) => px0 + (k - lo) * bw;   // left edge of bin k
+      const Y = (v: number) => py1 - (v / ymax) * (py1 - py0);
+
+      stage.appendChild(el('text', { x: 8, y: 120, 'font-size': 9, fill: INK }, 'share of divisions: bars observed, line binomial, band mean ± 2 SD'));
+      // mean ± 2 SD band
+      const bL = Math.max(lo, Math.ceil(mean - 2 * sd - 1e-9)), bR = Math.min(hi + 1, Math.floor(mean + 2 * sd + 1e-9) + 1);
+      stage.appendChild(el('rect', { x: X(bL), y: py0, width: Math.max(0, X(bR) - X(bL)), height: py1 - py0, fill: '#fdebd6' }));
+      stage.appendChild(el('line', { x1: px0, y1: py1, x2: px1, y2: py1, stroke: INK, 'stroke-width': 1 }));
+      stage.appendChild(el('line', { x1: px0, y1: py0, x2: px0, y2: py1, stroke: INK, 'stroke-width': 1 }));
+      if (total > 0) {
+        for (let k = lo; k <= hi; k++) {
+          const f = tally[k] / total;
+          if (f <= 0) continue;
+          stage.appendChild(el('rect', { x: X(k) + Math.min(0.5, bw * 0.08), y: Y(f), width: Math.max(0.8, bw - Math.min(1, bw * 0.16)), height: py1 - Y(f), fill: CA, opacity: 0.8 }));
+        }
+        if (last >= lo && last <= hi && lastBatch === 1) {
+          stage.appendChild(el('rect', { x: X(last), y: py0, width: bw, height: py1 - py0, fill: 'none', stroke: ORG, 'stroke-width': 1.5 }));
+        }
+      }
+      // expected curve through bin centres
+      const pts: string[] = [];
+      for (let k = lo; k <= hi; k++) pts.push(`${(X(k) + bw / 2).toFixed(1)},${Y(P[k]).toFixed(1)}`);
+      stage.appendChild(el('polyline', { points: pts.join(' '), fill: 'none', stroke: ORG, 'stroke-width': 1.8, 'stroke-linejoin': 'round' }));
+      if (bins <= 12) for (let k = lo; k <= hi; k++) stage.appendChild(el('circle', { cx: X(k) + bw / 2, cy: Y(P[k]), r: 2.4, fill: ORG }));
+      // mean line
+      const mx = X(mean + 0.5);
+      stage.appendChild(el('line', { x1: mx, y1: py0, x2: mx, y2: py1, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      // axis labels
+      stage.appendChild(el('text', { x: px0 - 4, y: py0 + 8, 'font-size': 9, 'text-anchor': 'end', fill: INK }, ymax.toFixed(ymax < 0.1 ? 2 : 1)));
+      stage.appendChild(el('text', { x: px0 - 4, y: py1 + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '0'));
+      const tx = (k: number, anchor: string) => stage.appendChild(el('text', { x: anchor === 'start' ? px0 : anchor === 'end' ? px1 : X(k) + bw / 2, y: 259, 'font-size': 9, 'text-anchor': anchor, fill: INK }, String(k)));
+      tx(lo, 'start'); tx(hi, 'end');
+      if (hi - lo >= 4 && Number.isInteger(mean) && Math.min(X(mean) + bw / 2 - px0, px1 - X(mean) - bw / 2) > 30) tx(mean, 'middle');
+      stage.appendChild(el('text', { x: 190, y: 282, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, `units in daughter A (of n = ${n}); dashed line at n × 0.5 = ${mean}`));
+    }
+
+    function render() {
+      nout.textContent = String(n);
+      draw();
+      const sd = Math.sqrt(n * 0.25), mean = n * 0.5, p = pEmpty(n);
+      cMean.textContent = `expected ${mean} (n × 0.5)`;
+      cSd.textContent = `expected ${parseFloat(sd.toFixed(2))} (√(n × 0.25))`;
+      cP.textContent = `${n <= 20 ? `2/${Math.pow(2, n)} = ` : ''}${fmtP(n)} (2 × 0.5^${n})`;
+      // observed beside expected
+      const P = pmf(n);
+      let inBand = 0, expBand = 0;
+      for (let k = 0; k <= n; k++) if (Math.abs(k - mean) <= 2 * sd + 1e-9) expBand += P[k];
+      if (total === 0) {
+        cMean.textContent += '; observed: no divisions yet';
+        cSd.textContent += '; observed: no divisions yet';
+        cTwo.textContent = `expected ${(expBand * 100).toFixed(1)}% (exact binomial; the lesson’s “about 95%” is the rule of thumb); observed: no divisions yet`;
+        cEmpty.textContent = 'expected: none yet; observed: none yet';
+      } else {
+        let s1 = 0, s2 = 0;
+        for (let k = 0; k <= n; k++) { s1 += k * tally[k]; s2 += k * k * tally[k]; if (Math.abs(k - mean) <= 2 * sd + 1e-9) inBand += tally[k]; }
+        const om = s1 / total, osd = Math.sqrt(Math.max(0, s2 / total - om * om));
+        cMean.textContent = `expected ${mean}; observed ${om.toFixed(1)} (${total.toLocaleString()} division${total === 1 ? '' : 's'})`;
+        cSd.textContent = total > 1
+          ? `expected ${parseFloat(sd.toFixed(2))}; observed ${osd.toFixed(2)}`
+          : `expected ${parseFloat(sd.toFixed(2))}; observed: needs two divisions`;
+        cTwo.textContent = `expected ${(expBand * 100).toFixed(1)}% (exact binomial; the lesson’s “about 95%” is the rule of thumb); observed ${(inBand / total * 100).toFixed(1)}%`;
+        const emp = tally[0] + (n > 0 ? tally[n] : 0) - (n === 0 ? 0 : 0);
+        cEmpty.textContent = `expected ${fmtCount(total * p)}; observed ${emp} of ${total.toLocaleString()}`;
+      }
+      // status line
+      let v: string;
+      if (total === 0) {
+        v = `Each of ${n} unit${n === 1 ? '' : 's'} will go to either daughter with probability 0.5. Press Divide to sample one division.`;
+      } else if (lastBatch === 1) {
+        v = `This division: daughter A received ${last} and daughter B ${n - last}. The expected count in one daughter is ${mean}, give or take an SD of ${parseFloat(sd.toFixed(2))}.`;
+        if (last === 0 || last === n) v += ' One daughter received none.';
+      } else {
+        const emp = tally[0] + tally[n];
+        v = `${total.toLocaleString()} divisions are in the histogram. The bars should follow the binomial line, and the mean should sit near n × 0.5 = ${mean}. ${emp} of them left a daughter with none; at P = ${fmtP(n)} the expected number is ${fmtCount(total * p)}. Cells above show the last division.`;
+      }
+      if (CASES[n]) v += ' ' + CASES[n];
+      else if (n >= 50) v += ' With many independent units, an empty daughter is vanishingly unlikely (by the formula).';
+      else if (n <= 10) v += ' With few units, an empty daughter is not negligible (see P above).';
+      verdict.textContent = v;
+    }
+
+    [1, 2, 6, 10, 100].forEach((c) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ops-btn';
+      b.textContent = c === 100 ? 'n = 100 Golgi stacks' : `n = ${c}`;
+      b.addEventListener('click', () => { n = c; slider.value = String(c); reset(); render(); });
+      presets.appendChild(b);
+    });
+    slider.addEventListener('input', () => { n = parseInt(slider.value, 10); reset(); render(); });
+    q<HTMLButtonElement>('[data-one]').addEventListener('click', () => { last = divideOnce(); lastBatch = 1; render(); });
+    q<HTMLButtonElement>('[data-many]').addEventListener('click', () => {
+      for (let i = 0; i < 1000; i++) last = divideOnce();
+      lastBatch = 1000; render();
+    });
+    q<HTMLButtonElement>('[data-clear]').addEventListener('click', () => { reset(); render(); });
+    reset(); render();
+  });
+</script>
+
+<style is:global>
+  .ops { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ops-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ops-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ops-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ops-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.35rem 0; }
+  .ops-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 6.2em; }
+  .ops-range { flex: 1 1 10rem; min-width: 8rem; accent-color: var(--ddp-color-accent); }
+  .ops-out { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 2.4em; text-align: right; }
+  .ops-presets { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .ops-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.55rem; cursor: pointer; }
+  .ops-go { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ops-btn:focus-visible, .ops-range:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ops-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .ops-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1rem; margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); }
+  .ops-cell { min-width: 0; }
+  .ops-wide { grid-column: 1 / -1; }
+  .ops-grid dt { color: var(--ddp-color-muted); }
+  .ops-grid dd { margin: 0; color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
+  .ops-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .ops-grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/teach.css';
+---
+
+<BaseLayout title="Join a group — Biochemistrypedia" description="Accept an invitation to a group of teachers." noindex>
+  <article class="wrap tc" data-invite>
+    <p class="tc-eyebrow"><a href="/teach/">Classes</a> · Invitation</p>
+    <h1 data-title>Checking your invitation…</h1>
+    <p class="tc-lede" data-lede></p>
+    <div class="tc-row" data-actions hidden style="margin-top: var(--ddp-space-5)">
+      <button type="button" class="tc-btn" data-accept hidden>Join the group</button>
+      <a class="tc-btn" data-signin hidden>Sign in</a>
+      <a class="tc-btn ghost" data-signup hidden>Make a free teacher account</a>
+    </div>
+    <p class="tc-error" data-err role="alert"></p>
+  </article>
+
+  <script>
+    import { api } from '../../../lib/classroom';
+
+    const root = document.querySelector<HTMLElement>('[data-invite]')!;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const token = new URLSearchParams(location.search).get('t') || '';
+    const here = `/teach/invite/?t=${token}`;
+
+    (async () => {
+      const info = await api<{ group: string; role: string; domain: string | null }>(`/api/groups/invite-info?t=${encodeURIComponent(token)}`);
+      if (!info.ok) { $('[data-title]').textContent = 'This invitation does not work'; $('[data-lede]').textContent = info.data.error || ''; return; }
+      $('[data-title]').textContent = `Join ${info.data.group}`;
+      $('[data-lede]').textContent = `You've been invited as ${info.data.role === 'admin' ? 'an admin' : 'a teacher'}.`
+        + (info.data.domain ? ` This group is for teachers with an @${info.data.domain} email.` : '');
+      $('[data-actions]').hidden = false;
+      const me = await api('/api/teacher/me');
+      if (me.ok) { $('[data-accept]').hidden = false; return; }
+      const signin = $<HTMLAnchorElement>('[data-signin]');
+      const signup = $<HTMLAnchorElement>('[data-signup]');
+      signin.hidden = signup.hidden = false;
+      signin.href = `/teach/?next=${encodeURIComponent(here)}`;
+      signup.href = `/teach/?next=${encodeURIComponent(here)}#signup`;
+    })();
+
+    $('[data-accept]').addEventListener('click', async () => {
+      const r = await api<{ id: string }>('/api/groups/join', { token });
+      if (r.ok) location.href = `/teach/group/?id=${r.data.id}`;
+      else $('[data-err]').textContent = r.data.error || 'Could not join.';
+    });
+  </script>
+</BaseLayout>

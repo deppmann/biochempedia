@@ -193,8 +193,8 @@ class S01Melting(SpokenScene):
         self.at("melt higher")
         self.play(FadeIn(cap1, shift=RIGHT * 0.2), run_time=0.5)
 
-        for key, r, edge in (("Loric acid at 12", rows[0], LEFT), ("palmitic at 16", rows[1], LEFT),
-                             ("steric at 18", rows[2], LEFT)):
+        for key, r, edge in (("Loric acid", rows[0], LEFT), ("pomidic at 16", rows[1], LEFT),
+                             ("steric at", rows[2], LEFT)):
             self.at(key)
             self.play(GrowFromEdge(r["bar"], edge), FadeIn(r["val"]), run_time=0.7)
 
@@ -212,10 +212,10 @@ class S01Melting(SpokenScene):
         self.at("breaks the packing")
         self.play(FadeIn(cap2, shift=RIGHT * 0.2), run_time=0.5)
 
-        self.at("Steric acid is a solid")
+        self.at("is a solid")
         self.play(Indicate(rows[2]["bar"], color=BLUE, scale_factor=1.12), run_time=0.8)
 
-        self.at("Oleic acid")
+        self.at("Olic")
         self.play(FadeIn(rows[3]["name"]), run_time=0.4)
         self.at("melts at just 13")
         self.play(GrowFromEdge(rows[3]["bar"], LEFT), FadeIn(rows[3]["val"]), run_time=0.7)
@@ -297,14 +297,12 @@ class S02Tag(SpokenScene):
 
         m_palm = marker(66, BLUE)
         m_olei = marker(5, YELLOW)
-        rng = Rectangle(width=tx(40) - tx(25), height=0.3, stroke_width=0)
-        rng.set_fill(color=[BLUE, YELLOW], opacity=0.9).move_to([(tx(25) + tx(40)) / 2, AY, 0])
-        rng_l = T("melts over a range", 24, GREY).move_to([(tx(25) + tx(40)) / 2, AY + 0.5, 0])
+        rng_l = T("melting varies", 24, GREY).move_to([mixd["cx"], AY + 0.5, 0])
         rng_l = VGroup(BackgroundRectangle(rng_l, color=BG, fill_opacity=1, buff=0.06, stroke_width=0), rng_l).set_z_index(6)
 
         chip_solid = chip("SOLID", BLUE, 26).move_to([palm["cx"], -0.4, 0])
         chip_liq = chip("LIQUID", YELLOW, 26).move_to([olei["cx"], -0.4, 0])
-        chip_semi = chip("SEMI-SOLID", TEXT, 26).move_to([mixd["cx"], -0.4, 0])
+        chip_semi = chip("VARIES", TEXT, 26).move_to([mixd["cx"], -0.4, 0])
 
         # --- cues -------------------------------------------------------------------------------
         self.at("which fatty acids hang off")
@@ -313,7 +311,7 @@ class S02Tag(SpokenScene):
         self.at("glycerol.")
         self.play(FadeIn(gly), run_time=0.5)
 
-        self.at("Trypalmitin")
+        self.at("Tri")
         self.play(FadeIn(palm["name"]), run_time=0.5)
         self.at("three saturated")
         self.play(LaggedStart(*[Create(t) for t in palm["tails"]], lag_ratio=0.3),
@@ -324,7 +322,7 @@ class S02Tag(SpokenScene):
         self.play(FadeIn(chip_solid), Create(body), FadeIn(body_l), run_time=0.8)
         self.play(FadeIn(m_palm, scale=0.5), run_time=0.6)
 
-        self.at("Triolin")
+        self.at("Trilene")
         self.play(FadeOut(gly), Create(olei["back"]), FadeIn(olei["name"]), run_time=0.6)
         self.at("three unsaturated")
         self.play(LaggedStart(*[Create(t) for t in olei["tails"]], lag_ratio=0.3),
@@ -341,17 +339,15 @@ class S02Tag(SpokenScene):
         self.at("two unsaturated")
         self.play(Create(mixd["tails"][1]), FadeIn(mixd["labs"][1]), run_time=0.6)
         self.play(Create(mixd["tails"][2]), FadeIn(mixd["labs"][2]), run_time=0.6)
-        self.at("lands in between")
-        self.play(GrowFromCenter(rng), FadeIn(rng_l), run_time=0.8)
-        self.at("semi solid")
+        self.at("can melt")
+        self.play(FadeIn(rng_l), run_time=0.8)
+        self.at("below body temperature")
         self.play(FadeIn(chip_semi), run_time=0.5)
-        self.at("around body temperature")
-        self.play(Indicate(body, color=RED, scale_factor=1.0), Indicate(rng, color=TEXT, scale_factor=1.15), run_time=0.8)
 
-        self.at("profile of most natural body fat")
+        self.at("Natural fats")
         frame = RoundedRectangle(corner_radius=0.18, width=4.1, height=3.55, stroke_color=GOLD, stroke_width=3)
         frame.move_to([mixd["cx"] + 0.25, 0.95, 0])
-        head2 = T("Most body fat is a mixture", 36, font=TITLE_FONT).move_to(heading)
+        head2 = T("Natural fats are mixtures", 36, font=TITLE_FONT).move_to(heading)
         self.play(Create(frame), ReplacementTransform(heading, head2), run_time=0.9)
 
         self.at("fine tune the physical state")
@@ -457,7 +453,8 @@ class S03Fluidity(SpokenScene):
 
         tr = ValueTracker(37)
         fl = ValueTracker(0.62)
-        tube, tfill, tlab = thermo(1.6, -1.1, 3.0, tr)
+        tube, tfill, _ = thermo(1.6, -1.1, 3.0, tr)
+        tlab = M("warm", 28, RED).next_to(tube, RIGHT, buff=0.3)
         MX, MY0, MH = 4.7, -1.0, 2.8
         mtube = RoundedRectangle(width=0.45, height=MH, corner_radius=0.1, stroke_color=GREY, stroke_width=3,
                                  fill_opacity=0).move_to([MX, MY0 + MH / 2, 0])
@@ -472,8 +469,9 @@ class S03Fluidity(SpokenScene):
         self.at("is elegant")
         self.play(FadeIn(tube), FadeIn(tfill), FadeIn(tlab), FadeIn(mtube), FadeIn(mfill), FadeIn(mlab), FadeIn(ref), run_time=0.7)
 
-        self.at("chilled to 20 degrees")
-        self.play(tr.animate.set_value(20), fl.animate.set_value(0.24), run_time=1.5)
+        self.at("grown colder")
+        self.play(tr.animate.set_value(20), fl.animate.set_value(0.24),
+                  Transform(tlab, M("cool", 28, RED).next_to(tube, RIGHT, buff=0.3)), run_time=1.5)
 
         self.at("makes more unsaturated")
         new_tails = []
@@ -508,7 +506,7 @@ class S03Fluidity(SpokenScene):
         self.at("as the environment changes")
         self.play(FadeIn(c_env, shift=UP * 0.15), GrowArrow(a1), run_time=0.6)
 
-        self.at("homeoviscous adaptation")
+        self.at("homeiviscous")
         head2 = T("Homeoviscous adaptation", 40, font=TITLE_FONT).move_to(heading)
         rule = Line(LEFT * 2.2, RIGHT * 2.2, color=GOLD, stroke_width=4).next_to(head2, DOWN, buff=0.12)
         self.play(ReplacementTransform(heading, head2), GrowFromCenter(rule), run_time=0.9)

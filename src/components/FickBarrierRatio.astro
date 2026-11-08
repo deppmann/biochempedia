@@ -1,0 +1,138 @@
+---
+/**
+ * FickBarrierRatio — two exchange barriers as cross-section slabs (width = area,
+ * height = thickness) with a gas-transfer arrow sized by Fick's law as the lesson
+ * gives it: rate = k x A x (P1 - P2) / T. Barrier 1 is the worked problem's fixed
+ * 50 m2 and 0.5 micrometres; barrier 2 is set by the learner. k is the same for
+ * both and cancels. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fbr card" data-fbr>
+  <figcaption class="fbr-head">Fick’s law — two barriers compared<span class="fbr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="fbr-svg" viewBox="0 0 340 308" role="img" aria-label="Two exchange barriers drawn as slabs. Width shows area, height shows thickness, and the width of the gas arrow shows the rate of transfer. Not to scale." data-plot></svg>
+
+  <div class="fbr-controls">
+    <label class="fbr-slabel"><span>Barrier 2 area <em data-out="area">30</em> m²</span>
+      <input type="range" data-in="area" min="5" max="100" step="1" value="30" />
+    </label>
+    <label class="fbr-slabel"><span>Barrier 2 thickness <em data-out="thick">1.00</em> µm</span>
+      <input type="range" data-in="thick" min="0.25" max="2" step="0.05" value="1" />
+    </label>
+    <label class="fbr-slabel"><span>Barrier 2 pressure difference, relative to barrier 1 <em data-out="dp">1.00</em> ×</span>
+      <input type="range" data-in="dp" min="0.5" max="2" step="0.05" value="1" />
+    </label>
+  </div>
+
+  <dl class="fbr-readout">
+    <div><dt>Area ratio, A2 / A1</dt><dd data-r="area"></dd></div>
+    <div><dt>Thickness ratio, T1 / T2 (flipped: T is below the line)</dt><dd data-r="thick"></dd></div>
+    <div><dt>Pressure-difference ratio, ΔP2 / ΔP1</dt><dd data-r="dp"></dd></div>
+    <div><dt>Rate 2 / Rate 1 (k cancels)</dt><dd data-r="rate"></dd></div>
+    <div><dt>A / T, barrier 2</dt><dd data-r="at2"></dd></div>
+    <div><dt>A / T, barrier 1</dt><dd data-r="at1"></dd></div>
+    <div class="fbr-wide"><dt>Check: (A2 / T2) / (A1 / T1) × ΔP ratio</dt><dd data-r="check"></dd></div>
+  </dl>
+  <p class="fbr-why" data-why role="status"></p>
+
+  <p class="fbr-foot">Rule to keep: rate ∝ A × (P1 − P2) / T. More area, a steeper difference and a thinner barrier all raise the rate; lost area and added thickness multiply. In this sketch: invented numbers; same gas, same k, steady diffusion across a uniform sheet; not to scale.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const A1 = 50, T1 = 0.5;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', { x, y, 'font-size': 9.5, fill: INK, ...extra });
+    t.textContent = s;
+    return t;
+  }
+  document.querySelectorAll<HTMLElement>('[data-fbr]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const areaIn = root.querySelector<HTMLInputElement>('[data-in="area"]');
+    const thickIn = root.querySelector<HTMLInputElement>('[data-in="thick"]');
+    const dpIn = root.querySelector<HTMLInputElement>('[data-in="dp"]');
+    const areaOut = root.querySelector<HTMLElement>('[data-out="area"]');
+    const thickOut = root.querySelector<HTMLElement>('[data-out="thick"]');
+    const dpOut = root.querySelector<HTMLElement>('[data-out="dp"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const r: Record<string, HTMLElement | null> = {};
+    ['area', 'thick', 'dp', 'rate', 'at2', 'at1', 'check'].forEach((k) => { r[k] = root.querySelector<HTMLElement>('[data-r="' + k + '"]'); });
+    if (!plot || !areaIn || !thickIn || !dpIn || !areaOut || !thickOut || !dpOut || !why) return;
+    const whyEl: HTMLElement = why;
+    const set = (k: string, s: string) => { const n = r[k]; if (n) n.textContent = s; };
+
+    const CX = 170, WS = 1.8, TS = 20; // px per m2, px per micrometre
+    function row(y0: number, title: string, a: number, t: number, w: number, fill: string, stroke: string) {
+      plot!.appendChild(txt(8, y0 + 12, title, { 'font-weight': 700 }));
+      plot!.appendChild(txt(8, y0 + 24, 'higher P', { fill: FAINT, 'font-size': 9 }));
+      plot!.appendChild(txt(8, y0 + 130, 'lower P', { fill: FAINT, 'font-size': 9 }));
+      const top = y0 + 62, sw = a * WS, sh = t * TS;
+      // gas arrow, shaft behind the slab, head below
+      plot!.appendChild(el('rect', { x: CX - w / 2, y: y0 + 30, width: w, height: 84, fill: ORANGE, opacity: 0.85 }));
+      plot!.appendChild(el('path', { d: `M${CX - w} ${y0 + 114} L${CX + w} ${y0 + 114} L${CX} ${y0 + 128} Z`, fill: ORANGE, opacity: 0.85 }));
+      plot!.appendChild(el('rect', { x: CX - sw / 2, y: top, width: sw, height: sh, fill, stroke, 'stroke-width': 1.2 }));
+    }
+    function render() {
+      const a2 = parseFloat(areaIn!.value), t2 = parseFloat(thickIn!.value), dp = parseFloat(dpIn!.value);
+      areaOut!.textContent = String(a2);
+      thickOut!.textContent = t2.toFixed(2);
+      dpOut!.textContent = dp.toFixed(2);
+      const fa = a2 / A1, ft = T1 / t2, rate = fa * ft * dp;
+      const at2 = a2 / t2, at1 = A1 / T1;
+      // arrow width linear in rate; barrier 1 = 6 px
+      const wid = (rel: number) => Math.max(1, Math.min(44, 6 * rel));
+      plot!.replaceChildren();
+      row(0, 'Barrier 1 (fixed): A = 50 m², T = 0.5 µm', A1, T1, wid(1), '#cfe6e8', ACCENT);
+      row(150, `Barrier 2: A = ${a2} m², T = ${t2.toFixed(2)} µm, ΔP = ${dp.toFixed(2)} × barrier 1`, a2, t2, wid(rate), '#f3d9bd', ORANGE);
+      plot!.appendChild(txt(170, 290, 'slab width = area, slab height = thickness,', { 'text-anchor': 'middle', 'font-size': 9 }));
+      plot!.appendChild(txt(170, 302, 'arrow width = rate (capped at the extremes) · not to scale', { 'text-anchor': 'middle', 'font-size': 9 }));
+
+      set('area', `${a2} / 50 = ${fa.toFixed(2)}`);
+      set('thick', `0.5 / ${t2.toFixed(2)} = ${ft.toFixed(2)}`);
+      set('dp', dp.toFixed(2));
+      set('rate', `${fa.toFixed(2)} × ${ft.toFixed(2)} × ${dp.toFixed(2)} = ${rate.toFixed(2)} (factors shown rounded)`);
+      set('at2', `${a2} / ${t2.toFixed(2)} = ${at2.toFixed(1)}`);
+      set('at1', '50 / 0.5 = 100');
+      set('check', `${at2.toFixed(1)} / 100 = ${(at2 / at1).toFixed(2)}, × ${dp.toFixed(2)} = ${rate.toFixed(2)} (factors shown rounded)`);
+
+      const pct = Math.round(rate * 100);
+      const aW = a2 < A1 ? 'lost area' : a2 > A1 ? 'gained area' : 'the same area';
+      const tW = t2 > T1 ? 'added thickness' : t2 < T1 ? 'a thinner barrier' : 'the same thickness';
+      const pW = dp > 1 ? 'a steeper difference' : dp < 1 ? 'a shallower difference' : 'the same difference';
+      const mult = (a2 < A1 && t2 > T1)
+        ? 'Lost area and added thickness multiply: '
+        : 'The factors multiply: ';
+      const verdict = Math.abs(rate - 1) < 0.005
+        ? 'Barrier 2 matches barrier 1’s rate.'
+        : rate < 1 ? `Barrier 2 reaches ${pct}% of barrier 1’s rate.` : `Barrier 2 reaches ${pct}% of barrier 1’s rate, more than barrier 1.`;
+      whyEl.textContent = `${verdict} It has ${aW} (factor ${fa.toFixed(2)}), ${tW} (factor ${ft.toFixed(2)}) and ${pW} (factor ${dp.toFixed(2)}). ${mult}${fa.toFixed(2)} × ${ft.toFixed(2)} × ${dp.toFixed(2)} = ${rate.toFixed(2)}. More area, a steeper difference and a thinner barrier all raise the rate. In this sketch the numbers are invented and k is the same for both (factors shown rounded).`;
+    }
+    [areaIn, thickIn, dpIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .fbr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fbr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fbr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fbr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fbr-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .fbr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fbr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fbr-slabel input { accent-color: var(--ddp-color-accent); }
+  .fbr-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fbr-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .fbr-wide { grid-column: 1 / -1; }
+  .fbr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fbr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .fbr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .fbr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

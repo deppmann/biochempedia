@@ -10,6 +10,9 @@
  * ratio, the efficiency framing, and the ATP yield from one NADH's proton budget. The NADH yield
  * includes the ~1 H⁺ "export tax" (ATP/ADP translocase + phosphate carrier) that the lesson adds for
  * mitochondria, so c8 gives ~3.7 H⁺ per exported ATP and ~2.7 ATP per NADH, matching the prose.
+ * A fourth ledger cell prices that proton count: at Δp ≈ 196 mV each H⁺ delivers ~18.9 kJ/mol, so
+ * c8 delivers ~69 kJ per exported ATP against the ~55 kJ needed, and the minimum Δp for the ring is
+ * 55 / (n × 96.5) V with n = c/3 + 1 (≈ 155 mV for c8) — the "one price" idea from the lesson.
  * "Turn the rotor" animates one full 360° turn (requestAnimationFrame; instant under reduced
  * motion): c protons in, 3 β-subunit catalytic events out. Original.
  */
@@ -40,10 +43,11 @@
     <div class="agr-cell"><span class="agr-c-name">Full turn → catalytic cycles</span><span class="agr-c-v" data-turns>3 ATP / 360° turn</span></div>
     <div class="agr-cell"><span class="agr-c-name">Proton cost at the rotor (gear ratio)</span><span class="agr-c-v agr-hi" data-ratio>2.7 H⁺ / ATP</span></div>
     <div class="agr-cell"><span class="agr-c-name">ATP per NADH (~10 H⁺), after the +1 H⁺ export tax</span><span class="agr-c-v" data-yield>2.7 ATP</span></div>
+    <div class="agr-cell"><span class="agr-c-name">Energy delivered per exported ATP at Δp ≈ 196 mV</span><span class="agr-c-v" data-energy>69 kJ</span><span class="agr-c-sub" data-margin>vs ≈ 55 kJ needed</span></div>
   </div>
   <p class="agr-why" data-why role="status"></p>
 
-  <p class="agr-foot">The "P/O ratio" you memorized as a constant is really a gear ratio you can read off the hardware, plus a one-proton tax for shipping each ATP out of the matrix. A smaller c-ring (mammal c8 ≈ 2.7 H⁺/ATP) is a high-yield gearbox — fewer protons per ATP — but it needs a steeper proton-motive force to crank, like a low gear on a hill. A bigger ring (spinach c14 ≈ 4.7) spends more protons per ATP yet turns at a gentler Δp. Same machine, different transmission — and evolution tuned each one to the membrane it lives in.</p>
+  <p class="agr-foot">The "P/O ratio" you memorized as a constant is really a gear ratio you can read off the hardware, plus a one-proton tax for shipping each ATP out of the matrix. A smaller c-ring (mammal c8 ≈ 2.7 H⁺/ATP) is a high-yield gearbox — fewer protons per ATP — but it needs a steeper proton-motive force to crank, like a low gear on a hill. A bigger ring (spinach c14 ≈ 4.7) spends more protons per ATP yet can turn at a lower Δp. Same machine, different transmission — and evolution tuned each one to the membrane it lives in.</p>
 </figure>
 
 <script>
@@ -57,6 +61,9 @@
 
   const H_PER_NADH = 10; // protons pumped per NADH down the electron transport chain
   const EXPORT_TAX = 1;  // ~1 H⁺ per ATP to export it (ATP/ADP translocase + phosphate carrier), per the lesson
+  const KJ_PER_H = 18.9; // F × Δp = 96.5 kJ/(mol·V) × 0.196 V, the lesson's worked example
+  const NEED = 55;       // kJ/mol to make an ATP and deliver it to the cytosol in a working cell (lesson: 50–60)
+  const F_KJ = 96.5;     // Faraday constant, kJ per mole per volt
   const CX = 118, CY = 121, R = 40;   // c-ring
   const HX = 358, HY = 121;           // F1 head
 
@@ -118,6 +125,8 @@
     const cOut = root.querySelector<HTMLElement>('[data-out="cnum"]')!;
     const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
     const yieldEl = root.querySelector<HTMLElement>('[data-yield]')!;
+    const energyEl = root.querySelector<HTMLElement>('[data-energy]')!;
+    const marginEl = root.querySelector<HTMLElement>('[data-margin]')!;
     const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
     const spinB = root.querySelector<HTMLButtonElement>('[data-spin]')!;
     const tallyEl = root.querySelector<HTMLElement>('[data-tally]')!;
@@ -174,14 +183,19 @@
       const perNadh = H_PER_NADH / exported;
       ratioEl.textContent = `${ratio.toFixed(1)} H⁺ / ATP`;
       yieldEl.textContent = `${perNadh.toFixed(1)} ATP`;
+      const delivered = exported * KJ_PER_H;
+      const minDp = NEED / (exported * F_KJ) * 1000; // mV
+      energyEl.textContent = `≈ ${Math.round(delivered)} kJ`;
+      marginEl.textContent = `vs ≈ ${NEED} kJ needed (margin ≈ ${Math.round(delivered - NEED)} kJ)`;
+      const priceLine = ` Minimum Δp for this ring in a mitochondrion ≈ ${NEED} / (${exported.toFixed(2)} × ${F_KJ}) V ≈ ${Math.round(minDp)} mV.`;
       tallyEl.textContent = 'Press to count protons in and ATP out for one 360° turn.';
       presetBtns.forEach((b) => b.classList.toggle('is-on', parseInt(b.dataset.preset!, 10) === c));
       presetBtns.forEach((b) => b.setAttribute('aria-pressed', String(parseInt(b.dataset.preset!, 10) === c)));
       whyEl.textContent = c <= 8
-        ? `Mammalian mitochondria run the smallest known ring (c8): ${ratio.toFixed(1)} H⁺ per ATP at the rotor, the highest-yield gearbox in the lineup. Add ~1 H⁺ to export each ATP from the matrix and the cost is ~${exported.toFixed(1)} H⁺, so one NADH's ~10 protons buy about ${perNadh.toFixed(1)} ATP (textbooks usually quote ~2.5). The catch: a small ring only turns if the membrane holds a steep proton-motive force.`
+        ? `Mammalian mitochondria run the smallest known ring (c8): ${ratio.toFixed(1)} H⁺ per ATP at the rotor, the highest-yield gearbox in the lineup. Add ~1 H⁺ to export each ATP from the matrix and the cost is ~${exported.toFixed(1)} H⁺, so one NADH's ~10 protons buy about ${perNadh.toFixed(1)} ATP (textbooks quote ~2.5, which assumes ~4 H⁺ per ATP; measured values fall below the ceiling because of leak and slip). The catch: a small ring only turns if the membrane holds a steep proton-motive force.${priceLine}`
         : c <= 11
-          ? `A mid-sized ring (yeast and E. coli sit near c10). At ${ratio.toFixed(1)} H⁺/ATP the gearbox spends more protons per ATP than the mammalian c8; with the export tax, one NADH's ~10 protons would buy about ${perNadh.toFixed(1)} ATP instead of ~2.7.`
-          : `A large ring — the spinach chloroplast runs c14, and some bacteria push to c15. At ${ratio.toFixed(1)} H⁺/ATP this is a low-yield, low-torque gearbox: it spends more protons per ATP, but it turns at the gentler Δp these membranes maintain. (A chloroplast spends its ATP in the stroma where it is made, so it pays no export tax; fitted to a mitochondrion's ~10-proton NADH budget, this ring would buy only ~${perNadh.toFixed(1)} ATP.)`;
+          ? `A mid-sized ring (yeast and E. coli sit near c10). At ${ratio.toFixed(1)} H⁺/ATP the gearbox spends more protons per ATP than the mammalian c8; with the export tax, one NADH's ~10 protons would buy about ${perNadh.toFixed(1)} ATP instead of ~2.7.${priceLine}`
+          : `A large ring — the spinach chloroplast runs c14, and some bacteria push to c15. At ${ratio.toFixed(1)} H⁺/ATP this is a low-yield, low-torque gearbox: it spends more protons per ATP, yet can turn at a lower Δp. (A chloroplast spends its ATP in the stroma where it is made, so it pays no export tax; fitted to a mitochondrion's ~10-proton NADH budget, this ring would buy only ~${perNadh.toFixed(1)} ATP.)${priceLine}`;
       draw(svg, c);
     }
 
@@ -211,10 +225,12 @@
   .agr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .agr-slabel input { accent-color: var(--ddp-color-accent); }
   .agr-ledger { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
-  @media (min-width: 560px) { .agr-ledger { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 560px) { .agr-ledger { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 760px) { .agr-ledger { grid-template-columns: repeat(4, 1fr); } }
   .agr-cell { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
   .agr-c-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .agr-c-v { font-size: var(--ddp-text-sm); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .agr-c-sub { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .agr-hi { color: var(--ddp-color-accent); }
   .agr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .agr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }

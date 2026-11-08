@@ -1,0 +1,79 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/teach.css';
+
+const titles = Object.fromEntries((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => [l.data.slug, l.data.title]));
+---
+
+<BaseLayout title="Room view — Biochemistrypedia" description="Open class with the room's own answers." noindex>
+  <article class="wrap tc room" data-room data-titles={JSON.stringify(titles)}>
+    <p class="tc-eyebrow tc-noprint"><a data-back href="/teach/classes/">Back to the brief</a> · Room view, for the projector. No names are shown.</p>
+    <h1 data-title>Room view</h1>
+    <div data-ideas></div>
+    <h2 data-claims-h hidden>In your own words</h2>
+    <p class="tc-muted tc-noprint" data-claims-help hidden>Claims students sent, without names. Click one to hide it before you put this on the screen.</p>
+    <div data-claims></div>
+  </article>
+
+  <script>
+    import { api } from '../../../lib/classroom';
+
+    const root = document.querySelector<HTMLElement>('[data-room]')!;
+    const titles: Record<string, string> = JSON.parse(root.dataset.titles!);
+    const q = new URLSearchParams(location.search);
+    const id = q.get('id') || '';
+    const slug = q.get('lesson') || '';
+    root.querySelector<HTMLAnchorElement>('[data-back]')!.href = `/teach/class/?id=${encodeURIComponent(id)}`;
+    root.querySelector('[data-title]')!.textContent = titles[slug] ?? 'Room view';
+
+    api<{ lessons: Record<string, { ideas: { idea: string; answer: string; agree: number; disagree: number }[]; cers: { claim: string }[] }> }>(`/api/classes/${encodeURIComponent(id)}/brief`).then((r) => {
+      if (r.status === 401) { location.replace('/teach/'); return; }
+      const L = r.ok ? r.data.lessons[slug] : null;
+      const ideas = root.querySelector<HTMLElement>('[data-ideas]')!;
+      if (!L) { ideas.textContent = r.data.error || 'No answers for this lesson yet.'; return; }
+      for (const it of L.ideas) {
+        const n = it.agree + it.disagree;
+        const wrap = document.createElement('div');
+        wrap.className = 'room-idea';
+        const p = document.createElement('p');
+        p.className = 'room-statement';
+        p.textContent = it.idea;
+        const bar = document.createElement('div');
+        bar.className = 'tc-bar room-bar';
+        const a = document.createElement('span'); a.className = 'agree'; a.style.width = `${(it.agree / Math.max(n, 1)) * 100}%`;
+        const d = document.createElement('span'); d.className = 'disagree'; d.style.width = `${(it.disagree / Math.max(n, 1)) * 100}%`;
+        bar.append(a, d);
+        const leg = document.createElement('p');
+        leg.className = 'room-count';
+        leg.textContent = `${it.agree} agree · ${it.disagree} disagree`;
+        wrap.append(p, bar, leg);
+        ideas.append(wrap);
+      }
+      const claims = L.cers.map((c) => c.claim).filter(Boolean);
+      root.querySelector<HTMLElement>('[data-claims-h]')!.hidden = !claims.length;
+      root.querySelector<HTMLElement>('[data-claims-help]')!.hidden = !claims.length;
+      const box = root.querySelector<HTMLElement>('[data-claims]')!;
+      // Shuffle so the order doesn't track who sent first.
+      for (const c of claims.sort(() => Math.random() - 0.5)) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'room-claim';
+        b.textContent = `“${c}”`;
+        b.addEventListener('click', () => b.classList.toggle('is-hidden'));
+        box.append(b);
+      }
+    });
+  </script>
+
+  <style is:global>
+    .tc.room { max-width: 1100px; }
+    .tc.room h1 { font-size: clamp(2rem, 4vw, 3rem); }
+    .tc.room .room-idea { margin: var(--ddp-space-6) 0; }
+    .tc.room .room-statement { font-size: clamp(1.2rem, 2.2vw, 1.7rem); margin: 0 0 var(--ddp-space-2); color: var(--ddp-color-ink); }
+    .tc.room .room-bar { height: 36px; }
+    .tc.room .room-count { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-base); margin: var(--ddp-space-1, .25rem) 0 0; color: var(--ddp-color-ink-soft); }
+    .tc.room .room-claim { display: block; width: 100%; text-align: left; font: inherit; font-size: clamp(1.05rem, 1.8vw, 1.4rem); line-height: 1.45; margin: var(--ddp-space-3) 0; padding: var(--ddp-space-3) var(--ddp-space-4); border: 0; border-left: 4px solid var(--ddp-color-accent); background: var(--ddp-color-surface); cursor: pointer; color: var(--ddp-color-ink); }
+    .tc.room .room-claim.is-hidden { opacity: 0.12; }
+  </style>
+</BaseLayout>

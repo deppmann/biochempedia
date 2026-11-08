@@ -1,0 +1,90 @@
+---
+/* =============================================================================
+   LessonFigure: one AI-generated illustration placed beside the paragraph it
+   serves (IMAGE_POLICY.md rule 8). Drawn by an image model from a written
+   spec, then checked by a separate model judge against the spec and the
+   lesson text. Disclosed in the alt text ("AI-generated illustration: ..."),
+   in a visible tag under the figure, and in the lesson's Sources & Integrity panel. Never a chemical structure,
+   never a data graph.
+   ============================================================================ */
+import FigureZoom from './FigureZoom.astro';
+
+interface Props {
+  /** /figures/<lesson slug>/<id>.webp */
+  src: string;
+  /** Must start "AI-generated illustration:" (check-figures guards it). */
+  alt: string;
+  caption: string;
+  /** Words for the numbered callouts drawn in the image, in order (1, 2, 3...). Rendered as text so
+   *  the words are exact, searchable and read by screen readers. */
+  keyItems?: string[];
+  width?: number;
+  height?: number;
+}
+const { src, alt, caption, keyItems = [], width = 1200, height = 800 } = Astro.props;
+---
+<figure class="lesson-figure">
+  <FigureZoom src={src} alt={alt} width={width} height={height} />
+  <figcaption>
+    {keyItems.length > 0 && (
+      <ol class="figure-key">{keyItems.map((k) => <li>{k}</li>)}</ol>
+    )}
+    {caption}
+    <span class="fig-ai">AI-generated illustration</span>
+  </figcaption>
+</figure>
+
+<style>
+  .lesson-figure {
+    margin: 1.75rem 0;
+    max-width: 100%;
+  }
+  .lesson-figure figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--ddp-color-ink-soft);
+  }
+  /* Visible disclosure, so a sighted reader sees what the alt text already says. */
+  .fig-ai {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.05em 0.55em;
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 999px;
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    color: var(--ddp-color-ink-soft);
+  }
+  .figure-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    margin: 0 0 0.45rem;
+    padding: 0;
+    list-style: none;
+    counter-reset: fig;
+    color: var(--ddp-color-ink);
+  }
+  .figure-key li {
+    counter-increment: fig;
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .figure-key li::before {
+    content: counter(fig);
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    background: #1f2a44;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+</style>

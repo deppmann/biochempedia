@@ -1,0 +1,306 @@
+---
+/**
+ * ChiSquareCrossTester — test a set of offspring counts against a chosen ratio. The learner
+ * picks the expected ratio, enters counts (or resamples a progeny of a chosen size drawn
+ * from the ratio itself, so the scatter that chance makes is visible), and reads off expected
+ * counts, chi-square = sum of (O - E)^2 / E, degrees of freedom = classes - 1, and the
+ * p-value, with a plain statement of what the p-value is and is not. Every rule and number
+ * is the probability-and-crosses lesson's own. Labelled bars only. Self-contained vanilla-TS
+ * Astro island. Original.
+ */
+---
+
+<figure class="cx card" data-chitester>
+  <figcaption class="cx-head">Chi-square tester: do these counts fit the ratio?<span class="cx-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cx-svg" viewBox="0 0 360 240" role="img" aria-label="Bars of observed and expected offspring counts for each class, and a gauge comparing chi-square with the critical value" data-plot></svg>
+
+  <div class="cx-controls">
+    <label class="cx-field"><span>Expected ratio</span>
+      <select data-ratio>
+        <option value="3:1">3 : 1</option>
+        <option value="9:3:3:1" selected>9 : 3 : 3 : 1</option>
+        <option value="1:2">1 : 2</option>
+        <option value="9:7">9 : 7</option>
+      </select>
+    </label>
+    <label class="cx-field"><span>Plants or seeds in a resample</span>
+      <input type="number" data-n min="10" max="2000" step="10" value="160" inputmode="numeric" />
+    </label>
+    <button type="button" class="cx-btn cx-resample" data-resample>Resample from the ratio</button>
+  </div>
+
+  <fieldset class="cx-counts">
+    <legend>Observed counts (type your own; counts, never percentages)</legend>
+    <div class="cx-inputs" data-inputs></div>
+  </fieldset>
+
+  <div class="cx-row">
+    <span class="cx-label">Load a lesson example</span>
+    <div class="cx-examples" data-examples></div>
+  </div>
+
+  <table class="cx-table">
+    <thead><tr><th scope="col">Class</th><th scope="col">Observed O</th><th scope="col">Expected E</th><th scope="col">(O − E)² / E</th></tr></thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <dl class="cx-readout">
+    <div><dt>chi-square</dt><dd data-r-chi>–</dd></div>
+    <div><dt>degrees of freedom</dt><dd data-r-df>–</dd></div>
+    <div><dt>p-value</dt><dd data-r-p>–</dd></div>
+  </dl>
+
+  <p class="cx-tally" data-tally></p>
+  <p class="cx-verdict" data-verdict role="status"></p>
+  <p class="cx-means"><strong>What p means.</strong> It is the probability of data at least this far from expectation if the hypothesis and every other assumption of the model were true. It is not the probability that the hypothesis is true, and p above 0.05 means you fail to reject the ratio, not that you have shown it. A small p does not say which assumption failed.</p>
+
+  <p class="cx-foot">Rule to keep: expected = total × probability, chi-square = sum of (O − E)² / E, degrees of freedom = classes − 1 for a ratio fixed in advance, and a count that differs from its expected value is normal. This is a sketch of the logic with independent plants, correct scoring and equal survival assumed.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#8a8a96';
+  type Ratio = { parts: number[]; labels: string[]; crit: number | null };
+  // Critical values at the 0.05 level are the lesson's: 3.84 for 1 df, 7.81 for 3 df.
+  const RATIOS: Record<string, Ratio> = {
+    '3:1': { parts: [3, 1], labels: ['dominant', 'recessive'], crit: 3.841459 },
+    '9:3:3:1': { parts: [9, 3, 3, 1], labels: ['round yellow', 'round green', 'wrinkled yellow', 'wrinkled green'], crit: 7.814728 },
+    '1:2': { parts: [1, 2], labels: ['only round', 'both forms'], crit: 3.841459 },
+    '9:7': { parts: [9, 7], labels: ['purple', 'white'], crit: 3.841459 },
+  };
+  const EXAMPLES: { label: string; ratio: string; counts: number[] }[] = [
+    { label: 'F2 of 160 vs 9:3:3:1', ratio: '9:3:3:1', counts: [98, 28, 26, 8] },
+    { label: "Mendel's 556 seeds vs 9:3:3:1", ratio: '9:3:3:1', counts: [315, 108, 101, 32] },
+    { label: 'Hidden two-thirds vs a simple 1:2', ratio: '1:2', counts: [193, 372] },
+    { label: 'Design problem vs 3:1', ratio: '3:1', counts: [96, 64] },
+    { label: 'Design problem vs 9:7', ratio: '9:7', counts: [96, 64] },
+    { label: '200 plants vs 3:1', ratio: '3:1', counts: [140, 60] },
+  ];
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  // Complementary error function (Abramowitz and Stegun 7.1.26).
+  function erfc(x: number): number {
+    const t = 1 / (1 + 0.3275911 * x);
+    const poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
+    return poly * Math.exp(-x * x);
+  }
+  // Upper-tail probability of a chi-square value, for 1 and 3 degrees of freedom.
+  function pValue(chi: number, df: number): number {
+    if (chi <= 0) return 1;
+    const a = erfc(Math.sqrt(chi / 2));
+    if (df === 1) return a;
+    return Math.min(1, a + Math.sqrt((2 * chi) / Math.PI) * Math.exp(-chi / 2));
+  }
+  const fmt = (x: number) => (Math.round(x * 100) / 100).toFixed(2);
+  const fmtP = (p: number) => (p < 0.001 ? 'below 0.001' : p.toFixed(p >= 0.04 && p <= 0.06 ? 3 : 2));
+
+  document.querySelectorAll<HTMLElement>('[data-chitester]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const ratioSel = root.querySelector<HTMLSelectElement>('[data-ratio]')!;
+    const nIn = root.querySelector<HTMLInputElement>('[data-n]')!;
+    const inputs = root.querySelector<HTMLElement>('[data-inputs]')!;
+    const examples = root.querySelector<HTMLElement>('[data-examples]')!;
+    const rows = root.querySelector<HTMLElement>('[data-rows]')!;
+    const rChi = root.querySelector<HTMLElement>('[data-r-chi]')!;
+    const rDf = root.querySelector<HTMLElement>('[data-r-df]')!;
+    const rP = root.querySelector<HTMLElement>('[data-r-p]')!;
+    const tally = root.querySelector<HTMLElement>('[data-tally]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+
+    let counts: number[] = [98, 28, 26, 8];
+    let runs = 0, rejected = 0;
+    let lead = '';
+
+    const ratio = () => RATIOS[ratioSel.value];
+
+    function buildInputs() {
+      inputs.replaceChildren();
+      ratio().labels.forEach((lab, i) => {
+        const l = document.createElement('label');
+        l.className = 'cx-count';
+        const s = document.createElement('span');
+        s.textContent = lab;
+        const inp = document.createElement('input');
+        inp.type = 'number'; inp.min = '0'; inp.step = '1'; inp.inputMode = 'numeric';
+        inp.value = String(counts[i] ?? 0);
+        inp.dataset.i = String(i);
+        inp.addEventListener('input', () => {
+          const v = Math.max(0, Math.floor(Number(inp.value) || 0));
+          counts[i] = v; lead = ''; resetTally(); render();
+        });
+        l.appendChild(s); l.appendChild(inp);
+        inputs.appendChild(l);
+      });
+    }
+    function syncInputs() {
+      inputs.querySelectorAll<HTMLInputElement>('input').forEach((inp) => { inp.value = String(counts[Number(inp.dataset.i)] ?? 0); });
+    }
+    function resetTally() { runs = 0; rejected = 0; }
+
+    function stats() {
+      const r = ratio();
+      const total = counts.reduce((a, b) => a + b, 0);
+      const sum = r.parts.reduce((a, b) => a + b, 0);
+      const exp = r.parts.map((p) => (total * p) / sum);
+      const terms = counts.map((o, i) => (exp[i] > 0 ? ((o - exp[i]) ** 2) / exp[i] : 0));
+      const chi = terms.reduce((a, b) => a + b, 0);
+      const df = r.parts.length - 1;
+      return { r, total, exp, terms, chi, df, p: total > 0 ? pValue(chi, df) : 1 };
+    }
+
+    function draw(s: ReturnType<typeof stats>) {
+      plot.replaceChildren();
+      const k = s.r.parts.length;
+      const X0 = 36, X1 = 346, Y0 = 26, Y1 = 150;
+      const top = Math.max(1, ...counts, ...s.exp) * 1.12;
+      const py = (v: number) => Y1 - (v / top) * (Y1 - Y0);
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: FAINT, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: FAINT, 'stroke-width': 1 }));
+      plot.appendChild(el('text', { x: X0 - 4, y: Y0 + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, String(Math.round(top))));
+      plot.appendChild(el('text', { x: X0 - 4, y: Y1 + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '0'));
+      plot.appendChild(el('text', { x: 6, y: 12, 'font-size': 9, fill: INK }, 'offspring in each class'));
+      // legend
+      plot.appendChild(el('rect', { x: 226, y: 4, width: 9, height: 9, fill: ACCENT }));
+      plot.appendChild(el('text', { x: 238, y: 12, 'font-size': 9, fill: INK }, 'observed'));
+      plot.appendChild(el('rect', { x: 286, y: 4, width: 9, height: 9, fill: '#fff', stroke: ORANGE, 'stroke-width': 1.5 }));
+      plot.appendChild(el('text', { x: 298, y: 12, 'font-size': 9, fill: INK }, 'expected'));
+      const slot = (X1 - X0) / k, bw = Math.min(34, slot / 2 - 6);
+      for (let i = 0; i < k; i++) {
+        const cx = X0 + slot * (i + 0.5);
+        const o = counts[i] ?? 0, e = s.exp[i];
+        plot.appendChild(el('rect', { x: cx - bw - 1, y: py(o), width: bw, height: Math.max(0, Y1 - py(o)), fill: ACCENT }));
+        plot.appendChild(el('rect', { x: cx + 1, y: py(e), width: bw, height: Math.max(0, Y1 - py(e)), fill: '#fff', stroke: ORANGE, 'stroke-width': 1.5 }));
+        plot.appendChild(el('text', { x: cx - bw / 2 - 1, y: py(o) - 3, 'font-size': 9, 'text-anchor': 'middle', fill: ACCENT, 'font-weight': 700 }, String(o)));
+        plot.appendChild(el('text', { x: cx + bw / 2 + 1, y: py(e) - 3, 'font-size': 9, 'text-anchor': 'middle', fill: '#a85400', 'font-weight': 700 }, fmt(e).replace(/\.00$/, '')));
+        plot.appendChild(el('text', { x: cx, y: Y1 + 13, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, s.r.labels[i]));
+      }
+      // gauge: chi-square against the 0.05 critical value
+      const crit = s.r.crit!;
+      const gx0 = 36, gx1 = 340, gy = 205, gmax = crit * 2;
+      const gx = (v: number) => gx0 + (Math.min(v, gmax) / gmax) * (gx1 - gx0);
+      plot.appendChild(el('text', { x: 6, y: 174, 'font-size': 9, fill: INK }, `chi-square against the 0.05 critical value (${s.df} df)`));
+      plot.appendChild(el('rect', { x: gx0, y: gy - 5, width: gx(crit) - gx0, height: 10, fill: '#e3f1f2' }));
+      plot.appendChild(el('rect', { x: gx(crit), y: gy - 5, width: gx1 - gx(crit), height: 10, fill: '#fbe6d2' }));
+      plot.appendChild(el('line', { x1: gx(crit), y1: gy - 9, x2: gx(crit), y2: gy + 9, stroke: ORANGE, 'stroke-width': 2 }));
+      plot.appendChild(el('text', { x: gx(crit), y: gy + 21, 'font-size': 9, 'text-anchor': 'middle', fill: '#a85400' }, `critical value ${crit.toFixed(2)}`));
+      plot.appendChild(el('text', { x: gx0, y: gy + 21, 'font-size': 9, fill: INK }, '0'));
+      const off = s.chi > gmax;
+      plot.appendChild(el('polygon', { points: `${gx(s.chi) - 5},${gy - 14} ${gx(s.chi) + 5},${gy - 14} ${gx(s.chi)},${gy - 6}`, fill: ACCENT }));
+      plot.appendChild(el('text', { x: off ? 350 : Math.min(gx(s.chi), 318), y: gy - 17, 'font-size': 9, 'text-anchor': off ? 'end' : 'middle', fill: ACCENT, 'font-weight': 700 }, (off ? 'off scale: ' : 'yours: ') + fmt(s.chi)));
+    }
+
+    function render() {
+      const s = stats();
+      draw(s);
+      rows.replaceChildren();
+      s.r.labels.forEach((lab, i) => {
+        const tr = document.createElement('tr');
+        [lab, String(counts[i] ?? 0), fmt(s.exp[i]), fmt(s.terms[i])].forEach((t, j) => {
+          const td = document.createElement(j === 0 ? 'th' : 'td');
+          if (j === 0) td.setAttribute('scope', 'row');
+          td.textContent = t; tr.appendChild(td);
+        });
+        rows.appendChild(tr);
+      });
+      if (s.total === 0) {
+        rChi.textContent = '–'; rDf.textContent = String(s.df); rP.textContent = '–';
+        tally.textContent = '';
+        verdict.textContent = 'Enter counts, or resample from the ratio, to run the test.';
+        return;
+      }
+      rChi.textContent = fmt(s.chi); rDf.textContent = String(s.df); rP.textContent = fmtP(s.p);
+      tally.textContent = runs > 0
+        ? `Resamples so far: ${runs}. Rejected at 0.05: ${rejected} (${Math.round((100 * rejected) / runs)}%). Each resample here is drawn from the ratio, so the ratio is true by construction; any rejection is scatter that chance alone produced.`
+        : '';
+      const rej = s.chi > s.r.crit!;
+      const smallE = s.exp.some((e) => e < 5);
+      let v = `${s.total} offspring, ${s.r.parts.length} classes against ${ratioSel.value}: chi-square ${fmt(s.chi)} with ${s.df} df, p ${s.p < 0.001 ? 'below 0.001' : 'about ' + fmtP(s.p)}. `;
+      if (rej) {
+        v += `That is past the critical value ${s.r.crit!.toFixed(2)}, so ${ratioSel.value} is rejected at the 0.05 level: a deviation this large would be unusual if the ratio and the rest of the model held. The test does not say which assumption failed (linkage, a lethal genotype and misscored plants can all inflate chi-square).`;
+      } else {
+        v += `That is below the critical value ${s.r.crit!.toFixed(2)}, so you fail to reject ${ratioSel.value}: ${s.p >= 0.25 ? 'a deviation this size is well within chance if the ratio holds' : 'a deviation this size is not past the critical value'}. This does not prove the ratio; other ratios or models may fit these counts as well.`;
+      }
+      if (s.p > 0.99) v += ' Counts this close to expectation should also be uncommon when the ratio is true: the test reads both tails, too far and too close (in this sketch the flag is p above 0.99).';
+      if (smallE) v += ' Some expected counts are under about five, so the chi-square approximation is poor and this test is a bad fit for so few offspring.';
+      verdict.textContent = (lead ? lead + ' ' : '') + v;
+    }
+
+    function resample() {
+      const r = ratio();
+      const n = Math.max(10, Math.min(2000, Math.floor(Number(nIn.value) || 160)));
+      nIn.value = String(n);
+      const sum = r.parts.reduce((a, b) => a + b, 0);
+      const c = r.parts.map(() => 0);
+      for (let j = 0; j < n; j++) {
+        let u = Math.random() * sum, i = 0;
+        while (i < r.parts.length - 1 && u >= r.parts[i]) { u -= r.parts[i]; i++; }
+        c[i]++;
+      }
+      counts = c;
+      syncInputs();
+      lead = `Resample of ${n} drawn at random from ${ratioSel.value}: expected counts sit beside the observed ones, and the two usually differ even though the ratio is true.`;
+      const s = stats();
+      runs++; if (s.p < 0.05) rejected++;
+      render();
+    }
+
+    EXAMPLES.forEach((ex) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'cx-btn'; b.textContent = ex.label;
+      b.addEventListener('click', () => {
+        ratioSel.value = ex.ratio; counts = [...ex.counts];
+        buildInputs(); resetTally(); lead = `Loaded: ${ex.label}.` + (ex.ratio === '1:2' ? ' The exact expectation is a little lower than 2:1 (Fisher, ten seeds per plant); this tests the simple 1:2.' : ''); render();
+      });
+      examples.appendChild(b);
+    });
+    ratioSel.addEventListener('change', () => {
+      const k = ratio().parts.length;
+      counts = Array.from({ length: k }, (_, i) => counts[i] ?? 0);
+      buildInputs(); resetTally(); lead = ''; render();
+    });
+    nIn.addEventListener('change', () => { nIn.value = String(Math.max(10, Math.min(2000, Math.floor(Number(nIn.value) || 160)))); });
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', resample);
+    buildInputs();
+    render();
+  });
+</script>
+
+<style is:global>
+  .cx { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cx-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cx-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cx-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cx-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem 1rem; margin: 0.35rem 0; }
+  .cx-field { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cx-field select, .cx-field input, .cx-count input { font-size: var(--ddp-text-sm); padding: 0.25rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: #fff; color: var(--ddp-color-ink-soft); }
+  .cx-field input { width: 6.5em; }
+  .cx-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.55rem; cursor: pointer; }
+  .cx-resample { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .cx-btn:focus-visible, .cx-field select:focus-visible, .cx-field input:focus-visible, .cx-count input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cx-counts { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; }
+  .cx-counts legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .cx-inputs { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; }
+  .cx-count { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cx-count input { width: 5.5em; }
+  .cx-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.35rem 0; }
+  .cx-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 8em; }
+  .cx-examples { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .cx-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cx-table th, .cx-table td { text-align: left; padding: 0.2rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); font-weight: 400; }
+  .cx-table thead th { color: var(--ddp-color-muted); }
+  .cx-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin: var(--ddp-space-2) 0; }
+  .cx-readout div { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.3rem 0.5rem; }
+  .cx-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cx-readout dd { margin: 0; font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .cx-tally { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cx-tally:empty { display: none; }
+  .cx-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .cx-means { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cx-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cx-readout { grid-template-columns: 1fr; } .cx-label { min-width: 0; } }
+</style>

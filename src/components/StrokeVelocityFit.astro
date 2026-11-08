@@ -1,0 +1,194 @@
+---
+/**
+ * StrokeVelocityFit — reads the group quadratic that Marshall and colleagues (2019)
+ * fitted to brush pleasantness ratings on the pain-affected side before cordotomy:
+ * y = -2.07x² + 1.88x + 6.22, x = log10(v in cm/s). A velocity cursor reads the fit,
+ * a toggle shows the peak arithmetic, a toggle shades Löken's 1 to 10 cm/s band.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="svf card" data-svf>
+  <figcaption class="svf-head">Reading a velocity-tuning fit<span class="svf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="svf-svg" viewBox="0 0 340 250" role="img" aria-label="The published group quadratic fit of brush pleasantness rating against stroke velocity on a log axis from 0.3 to 30 centimetres per second, with a movable velocity cursor" data-plot></svg>
+
+  <div class="svf-controls">
+    <label class="svf-slabel"><span>Stroke velocity <em data-out-v>1.00</em> cm/s <small>(log steps)</small></span>
+      <input type="range" data-in-v min="0" max="200" step="1" value="52" aria-label="Stroke velocity from 0.3 to 30 centimetres per second, log steps" />
+    </label>
+    <div class="svf-jump" role="group" aria-label="Jump to a velocity">
+      <span class="svf-jlabel">Jump to</span>
+      <button type="button" data-jump="0.3">0.3</button>
+      <button type="button" data-jump="1">1</button>
+      <button type="button" data-jump="3">3</button>
+      <button type="button" data-jump="30">30</button>
+      <button type="button" data-jump="peak">peak</button>
+      <span class="svf-jlabel">cm/s</span>
+    </div>
+    <label class="svf-check"><input type="checkbox" data-in-peak /> Show the peak arithmetic</label>
+    <label class="svf-check"><input type="checkbox" data-in-band /> Shade Löken’s 1 to 10 cm/s band</label>
+  </div>
+
+  <dl class="svf-readout">
+    <div><dt>x = log<sub>10</sub>(v)</dt><dd data-r-x>0.000</dd></div>
+    <div><dt>Predicted rating y</dt><dd data-r-y>6.22</dd></div>
+    <div><dt>Slope dy/dx (points per tenfold change)</dt><dd data-r-s>1.88</dd></div>
+  </dl>
+
+  <p class="svf-peak" data-peak hidden>dy/dx = −4.14x + 1.88 = 0, so x = 1.88 / 4.14 = 0.454. The second derivative is −4.14, a maximum. v = 10<sup>0.454</sup> = 2.85 cm/s, and y = −2.07(0.206) + 1.88(0.454) + 6.22 = 6.65.</p>
+
+  <p class="svf-fixed">R² = 0.22: velocity explains about a fifth of the variance in the ratings; most of it lies between people and trials.</p>
+  <p class="svf-why" data-why role="status"></p>
+
+  <p class="svf-assume">In this sketch: one published group quadratic, drawn between the lowest and highest tested speeds (0.3 and 30 cm/s); only 0.3, 3 and 30 cm/s were tested, so the curve between them is the fit's interpolation, for the pain-affected side before cordotomy. No individual ratings and no CT firing curve are drawn.</p>
+  <p class="svf-foot">A group quadratic from the Marshall 2019 cancer-pain patients tested before cordotomy; the correspondence with CT tuning is between curves measured in different people, and no mouse outcome is shown.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', BAND = '#cfe8ea';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const A = -2.07, B = 1.88, C = 6.22;
+  const fit = (x: number) => A * x * x + B * x + C;
+  const slope = (x: number) => 2 * A * x + B;
+  const XMIN = Math.log10(0.3), XMAX = Math.log10(30);
+  const XPEAK = B / (-2 * A);
+  const fmt = (n: number, d: number) => (n < 0 ? '−' : '') + Math.abs(n).toFixed(d);
+
+  document.querySelectorAll<HTMLElement>('[data-svf]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const vIn = root.querySelector<HTMLInputElement>('[data-in-v]');
+    const peakIn = root.querySelector<HTMLInputElement>('[data-in-peak]');
+    const bandIn = root.querySelector<HTMLInputElement>('[data-in-band]');
+    const vOut = root.querySelector<HTMLElement>('[data-out-v]');
+    const rX = root.querySelector<HTMLElement>('[data-r-x]');
+    const rY = root.querySelector<HTMLElement>('[data-r-y]');
+    const rS = root.querySelector<HTMLElement>('[data-r-s]');
+    const peakP = root.querySelector<HTMLElement>('[data-peak]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !vIn || !peakIn || !bandIn || !vOut || !rX || !rY || !rS || !peakP || !why) return;
+
+    const X0 = 46, X1 = 326, Y0 = 24, Y1 = 196, RMIN = 3, RMAX = 8;
+    const px = (x: number) => X0 + ((x - XMIN) / (XMAX - XMIN)) * (X1 - X0);
+    const py = (r: number) => Y1 - ((r - RMIN) / (RMAX - RMIN)) * (Y1 - Y0);
+    let x = 0;
+
+    function text(s: string, a: Record<string, string | number>) {
+      const t = el('text', a); t.textContent = s; plot!.appendChild(t); return t;
+    }
+
+    function render() {
+      const p = plot!;
+      p.replaceChildren();
+      const showBand = bandIn!.checked, showPeak = peakIn!.checked;
+      // band first, behind everything
+      if (showBand) {
+        p.appendChild(el('rect', { x: px(0), y: Y0, width: px(1) - px(0), height: Y1 - Y0, fill: BAND, opacity: 0.7 }));
+      }
+      // axes
+      p.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      p.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (let r = RMIN; r <= RMAX; r++) {
+        p.appendChild(el('line', { x1: X0, y1: py(r), x2: X1, y2: py(r), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        text(String(r), { x: X0 - 4, y: py(r) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK });
+      }
+      for (const v of [0.3, 1, 3, 10, 30]) {
+        p.appendChild(el('line', { x1: px(Math.log10(v)), y1: Y1, x2: px(Math.log10(v)), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(String(v), { x: px(Math.log10(v)), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+      }
+      text('stroke velocity (cm/s, log axis)', { x: (X0 + X1) / 2, y: Y1 + 29, 'text-anchor': 'middle', 'font-size': 10, fill: INK });
+      text('rating (axis zoomed; the scale runs −10 to +10)', { x: 4, y: 11, 'font-size': 9, fill: INK });
+      text('group fit, pain-affected side, before cordotomy', { x: (X0 + X1) / 2, y: Y1 + 43, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+      // the fit, between the lowest and highest tested speeds
+      let d = '';
+      for (let i = 0; i <= 120; i++) {
+        const xx = XMIN + ((XMAX - XMIN) * i) / 120;
+        d += (i === 0 ? 'M' : 'L') + px(xx).toFixed(1) + ' ' + py(fit(xx)).toFixed(1) + ' ';
+      }
+      p.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // peak
+      if (showPeak) {
+        const pk = fit(XPEAK);
+        p.appendChild(el('line', { x1: px(XPEAK), y1: py(pk), x2: px(XPEAK), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        p.appendChild(el('circle', { cx: px(XPEAK), cy: py(pk), r: 3.5, fill: ORANGE }));
+      }
+      // cursor
+      p.appendChild(el('line', { x1: px(x), y1: Y0, x2: px(x), y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      p.appendChild(el('circle', { cx: px(x), cy: py(fit(x)), r: 5, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+      // labels last, with a white halo, so the cursor line never runs through them
+      const halo = { 'paint-order': 'stroke', stroke: '#fff', 'stroke-width': 3, 'stroke-linejoin': 'round' };
+      if (showBand) {
+        ['CT firing and ratings', 'peaked here, in separate', 'groups of people'].forEach((l, i) => text(l, { x: px(0) + 5, y: Y1 - 34 + i * 11, 'font-size': 9, fill: INK, ...halo }));
+        text('1 to 10 cm/s (Löken 2009)', { x: px(0) + 5, y: Y0 + 10, 'font-size': 9, fill: INK, ...halo });
+      }
+      if (showPeak) text('peak 2.85 cm/s, y = 6.65', { x: px(XPEAK), y: py(fit(XPEAK)) - 18, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: ORANGE, ...halo });
+
+      const v = Math.pow(10, x);
+      const y = fit(x), s = slope(x);
+      vOut!.textContent = v < 10 ? v.toFixed(2) : v.toFixed(1);
+      rX!.textContent = fmt(x, 3);
+      rY!.textContent = fmt(y, 2);
+      rS!.textContent = fmt(s, 2);
+      peakP!.hidden = !showPeak;
+
+      let where: string;
+      if (Math.abs(x - XPEAK) < 0.005) where = 'This is the fitted peak, where the slope is zero.';
+      else if (x < XPEAK) where = 'Below the fitted peak the curve is still rising with velocity (positive slope).';
+      else where = 'Above the fitted peak the curve falls with velocity (negative slope).';
+      const inBand = v >= 1 && v <= 10;
+      const band = inBand
+        ? ' This velocity lies inside the 1 to 10 cm/s band in which Löken and colleagues found CT firing and, in a separate group, ratings peaked.'
+        : ' This velocity lies outside the 1 to 10 cm/s band of Löken 2009.';
+      why!.textContent = `In this sketch the group fit predicts a rating of ${fmt(y, 2)} at ${vOut!.textContent} cm/s. ${where}${band} This is the pain-affected side before cordotomy; the same study found ratings were not significantly changed after the operation, and a fit to ratings cannot show that CT afferents are needed.`;
+    }
+
+    vIn.addEventListener('input', () => {
+      const i = parseInt(vIn.value, 10);
+      x = i >= 200 ? XMAX : XMIN + i * 0.01;
+      render();
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-jump]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const j = b.getAttribute('data-jump') ?? '';
+        x = j === 'peak' ? XPEAK : Math.min(XMAX, Math.max(XMIN, Math.log10(parseFloat(j))));
+        vIn.value = String(Math.round((x - XMIN) / 0.01));
+        render();
+      });
+    });
+    peakIn.addEventListener('change', render);
+    bandIn.addEventListener('change', render);
+    vIn.value = String(Math.round((x - XMIN) / 0.01));
+    render();
+  });
+</script>
+
+<style>
+  .svf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .svf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .svf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .svf-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .svf-controls { display: flex; flex-direction: column; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .svf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .svf-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .svf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .svf-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .svf-jump { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .svf-jump button { font: inherit; padding: 0.15rem 0.55rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .svf-jump button:hover, .svf-jump button:focus-visible { border-color: var(--ddp-color-accent); }
+  .svf-check { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .svf-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .svf-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .svf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .svf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .svf-peak { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; font-family: var(--ddp-font-mono); }
+  .svf-fixed { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-primary); }
+  .svf-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .svf-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .svf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .svf-readout { grid-template-columns: 1fr; } }
+</style>

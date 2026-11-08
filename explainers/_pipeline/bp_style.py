@@ -34,8 +34,14 @@ SAFE_W = 12.6   # Manim frame is 14.22 x 8 units; keep content inside this
 SAFE_H = 7.0
 
 
+# Spoken number words and the digits a transcriber writes for them are the same token (Kokoro, 2026-10-31).
+_NUM = {w: str(i) for i, w in enumerate("zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty".split())}
+_NUM.update(thirty="30", forty="40", fifty="50", sixty="60", seventy="70", eighty="80", ninety="90", hundred="100", thousand="1000", million="1000000")
+
+
 def _norm(w):
-    return re.sub(r"[^a-z0-9']", "", w.lower())
+    w = re.sub(r"[^a-z0-9']", "", w.lower())
+    return _NUM.get(w, w)
 
 
 class SpokenScene(NarratedScene):
@@ -54,11 +60,12 @@ class SpokenScene(NarratedScene):
             sid = os.environ["KX_SCENE_ID"]
             vdir = Path(os.environ["KX_SCRIPT"]).parent
             words = json.loads((vdir / "audio" / "words.json").read_text())[sid]
-            self._wl = [(float(w[0]), _norm(w[2])) for w in words if _norm(w[2])]
+            # A dash can glue two words into one transcript token ("1155—outward"): split it, both at the token's start.
+            self._wl = [(float(w[0]), _norm(p)) for w in words for p in re.split(r"[\u2014\u2013]", w[2]) if _norm(p)]
         return self._wl
 
     def t_of(self, phrase, nth=0):
-        toks = [_norm(p) for p in phrase.split() if _norm(p)]
+        toks = [_norm(p) for p in re.split(r"[\s\u2014\u2013]+", phrase) if _norm(p)]
         wl = self._words()
         hits = [wl[i][0] for i in range(len(wl) - len(toks) + 1) if [x[1] for x in wl[i:i + len(toks)]] == toks]
         if len(hits) <= nth:

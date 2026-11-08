@@ -36,7 +36,8 @@ A non-AI image must declare where it came from via a `credit` field — either
 All 30 lessons carry an empty `images[]`. Every structure renders live from an
 accession ID (Mol*/PubChem) and every plot is drawn from its equation in the
 browser, so there is no hand-made figure to keep in sync with the prose. This is
-the standing default: **prefer live data and generated plots over static figures.**
+the standing default: **prefer live data and generated plots over static figures.** Rule 8 adds
+AI-drawn illustrations of scenes, organisms and setups, never of data or structures.
 
 The exception is `lectureSlides[]`, covered next. Those *are* raster, and at 305
 slides they are the site's main image surface. A lesson's Sources & Integrity panel
@@ -93,7 +94,9 @@ Sarah, generated from the presenter notes); where a lesson has no narrated slide
 new narration is written from the lesson's prose in the same voice. The Cell Signaling
 course's films are narrated instead by a Gemini text-to-speech voice (Charon), reading narration
 written from each lesson's fact-checked text, or by the narrator of the instructor's graduate
-modules where a film is cut from those; each lesson's `explainer.narration` line says which. The animation
+modules where a film is cut from those. Biochemistry films that repeated a line corrected in the
+2026 fact-check were re-voiced whole in that Gemini voice, reading the corrected slide narration or
+profile story. Each lesson's `explainer.narration` line says which voice a film uses. The animation
 is drawn **in code by an AI** (Manim, authored by Claude), so:
 - It is a **schematic**: labelled boxes, arrows, timelines and plots computed from
   their equations. It never draws a molecular structure; rule 1 still holds.
@@ -107,6 +110,26 @@ is drawn **in code by an AI** (Manim, authored by Claude), so:
   the profile's own `story` text read verbatim, the quote on screen is verbatim, and the
   AI-generated portrait (rule 6) is captioned as an illustration inside the film itself.
 
+
+### 8. Lesson illustrations: AI-drawn, AI-judged, disclosed.
+Since 2026-10-18, by the author's decision, a lesson may carry up to five illustrations placed beside
+the paragraphs they serve (`<LessonFigure>`, files under `public/figures/<slug>/`). They are made
+this way:
+- A model judge reads the lesson and proposes a figure only where a scene, organism, habitat,
+  experiment setup, anatomy, life cycle or staged process would teach better than the text alone.
+  Every detail in the written spec must be supported by a quoted lesson sentence.
+- An image model draws it from that spec. It is never asked for a **chemical or molecular
+  structure** (rule 1 still holds) or for **data** (a graph or a result it could invent).
+- A separate model judge, which did not write the spec, checks the image against the spec and the
+  lesson: required parts present, nothing extra, anatomy and counts right, every label spelled
+  exactly, nothing firmer than the lesson. A failed image is redrawn or dropped. Claude looks at
+  every image that passes before it is placed.
+- **Disclosure:** the alt text starts "AI-generated illustration:", and the Sources & Integrity
+  panel lists each one as AI-generated and says how it was checked. As with rule 7, an AI judge is
+  never named as a fact-checker; the `factCheckedBy` gate of rule 2 is for figures a person checked.
+- The spec, the judge's verdict and every redraw are kept in the expansion audit trail.
+  `scripts/check-figures.mjs` fails the build if a figure's file is missing or its alt text does
+  not disclose it.
 
 ## How the enforcement works
 

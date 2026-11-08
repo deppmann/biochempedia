@@ -1,0 +1,96 @@
+---
+/**
+ * SubSupEnhancer — the browser half of rehype-sub-sup (2026-11-05).
+ *
+ * rehype-sub-sup turns E_K, g_Na, 10^-6 and h^2 in lesson text into real subscripts and
+ * superscripts at build time. Interactive components (simulation labels, live readouts such as
+ * "With P_open = 0 …") write their text in the browser, where the build step cannot reach. This
+ * applies the same narrow rules to text inside the lesson body after it renders, and again whenever
+ * a component rewrites its text. In SVG it uses <tspan baseline-shift>. Code, inputs and links are
+ * never touched. Without JavaScript, only the component text keeps the plain notation.
+ */
+---
+<script>
+  const GREEK: Record<string, string> = { pi: 'π', Pi: 'Π', psi: 'ψ', Psi: 'Ψ', tau: 'τ', Delta: 'Δ', delta: 'δ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', alpha: 'α', beta: 'β', gamma: 'γ', theta: 'θ', omega: 'ω' };
+  const RE = /((?<![\p{L}\p{N}_.\\`-])(?:pi|Pi|psi|Psi|tau|Delta|delta|lambda|mu|sigma|Sigma|alpha|beta|gamma|theta|omega|\d+\.\d+|[\p{L}\p{N}][\p{L}\p{N}]{0,4})|\))([_^])(?:\{([^{}]{1,24})\}|\(([^()]{1,24})\)|([−\-]?\d+\.\d+|[−\-]?[\p{L}\p{N}+−]{1,8}(?:\/[\p{L}\p{N}]{1,6})?))(?![\p{L}\p{N}_])/gu;
+  const SKIP = new Set(['CODE', 'PRE', 'KBD', 'SCRIPT', 'STYLE', 'A', 'SUB', 'SUP', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION', 'tspan']);
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function pieces(value: string) {
+    const out: Array<string | { op: string; base: string; script: string }> = [];
+    let last = 0, hit = false;
+    for (const m of value.matchAll(RE)) {
+      const [whole, base, op, braced, paren, plain] = m;
+      let script = braced ?? paren ?? plain;
+      let used = whole;
+      if (plain && plain.includes('/') && (op === '_' || /^[−-]?[\d.]+$/.test(plain.split('/')[0]))) { script = plain.split('/')[0]; used = whole.slice(0, whole.length - (plain.length - script.length)); }
+      if (op === '_' && /^\d+$/.test(base) && /^\d+$/.test(script)) continue;
+      if (op === '_' && /\./.test(base)) continue;                                    // a decimal only takes powers
+      if (op === '^' && script.length > 6 && !braced && !paren) continue;
+      if (plain && /^[−-]$/.test(plain)) continue;
+      if (/\.(mp4|vtt|webp|png|jpg|pdf|html|js|mjs|ts)$/i.test(whole)) continue;
+      out.push(value.slice(last, m.index));
+      out.push({ op, base: GREEK[base] ?? base, script: script.replace(/-/g, '−') });
+      last = (m.index ?? 0) + used.length; hit = true;
+    }
+    if (!hit) return null;
+    out.push(value.slice(last));
+    return out;
+  }
+
+  function convertNode(t: Text) {
+    const parent = t.parentElement;
+    if (!parent || SKIP.has(parent.tagName) || parent.closest('code, pre, a, textarea, [contenteditable]')) return;
+    const p = pieces(t.nodeValue || '');
+    if (!p) return;
+    const inSvg = parent instanceof SVGElement;
+    const frag = document.createDocumentFragment();
+    for (const x of p) {
+      if (typeof x === 'string') { if (x) frag.append(x); continue; }
+      frag.append(x.base);
+      if (inSvg) {
+        const s = document.createElementNS(SVG_NS, 'tspan');
+        s.setAttribute('baseline-shift', x.op === '_' ? 'sub' : 'super');
+        s.setAttribute('font-size', '72%');
+        s.textContent = x.script;
+        frag.append(s);
+        // tspan baseline-shift does not carry to the next run in every browser, so reset it.
+        const back = document.createElementNS(SVG_NS, 'tspan');
+        back.setAttribute('baseline-shift', 'baseline');
+        frag.append(back);
+      } else {
+        const s = document.createElement(x.op === '_' ? 'sub' : 'sup');
+        s.textContent = x.script;
+        frag.append(s);
+      }
+    }
+    t.replaceWith(frag);
+  }
+
+  function scan(root: Node) {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const todo: Text[] = [];
+    let n: Node | null;
+    while ((n = w.nextNode())) if (/[_^]/.test(n.nodeValue || '')) todo.push(n as Text);
+    todo.forEach(convertNode);
+  }
+
+  for (const body of document.querySelectorAll('.prose-col')) {
+    scan(body);
+    let pending = false;
+    const queue = new Set<Node>();
+    new MutationObserver((recs) => {
+      for (const r of recs) {
+        if (r.type === 'characterData') queue.add(r.target);
+        else r.addedNodes.forEach((a) => queue.add(a));
+      }
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => {
+        pending = false;
+        const items = [...queue]; queue.clear();
+        for (const q of items) if (q.isConnected) (q.nodeType === Node.TEXT_NODE ? convertNode(q as Text) : scan(q));
+      });
+    }).observe(body, { childList: true, subtree: true, characterData: true });
+  }
+</script>

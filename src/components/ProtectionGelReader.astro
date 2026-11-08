@@ -1,0 +1,179 @@
+---
+/**
+ * ProtectionGelReader — read the protein-sorting lesson's made-up protease-protection gel.
+ * A secretory protein's mRNA is translated in reticulocyte lysate: precursor 26 kDa, processed
+ * form 23 kDa. The learner chooses when microsomes were added (during translation, after
+ * translation, never), whether protease is added and whether detergent is added, and sees the
+ * three lanes drawn as band rectangles with the lesson's own intensities. Only the lane outcomes
+ * the lesson states are drawn; any other combination says so. The arithmetic (processed share,
+ * protected fraction, size of the signal) is computed from the displayed numbers.
+ * Nothing is random, so there is no resample. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="pgr card" data-pgr>
+  <figcaption class="pgr-head">Protection gel reader: was the protein inside the vesicles?<span class="pgr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pgr-svg" viewBox="0 0 360 200" role="img" aria-label="A gel with three lanes showing a 26 kilodalton precursor band and a 23 kilodalton processed band, with intensities that depend on when microsomes were added and on protease and detergent" data-gel></svg>
+
+  <div class="pgr-controls">
+    <fieldset class="pgr-set">
+      <legend>Microsomes (ER vesicles) in the tube</legend>
+      <label><input type="radio" name="pgr-mic" value="during" data-mic checked /> added during translation</label>
+      <label><input type="radio" name="pgr-mic" value="after" data-mic /> added after translation</label>
+      <label><input type="radio" name="pgr-mic" value="none" data-mic /> none</label>
+    </fieldset>
+    <fieldset class="pgr-set">
+      <legend>Then treat with</legend>
+      <label><input type="checkbox" data-protease checked /> protease</label>
+      <label><input type="checkbox" data-detergent /> detergent (dissolves the vesicles)</label>
+    </fieldset>
+  </div>
+
+  <p class="pgr-verdict" data-verdict role="status"></p>
+  <ul class="pgr-list" data-list></ul>
+
+  <p class="pgr-foot">Protease cannot cross an intact membrane, so a band that survives protease but not protease plus detergent was inside a sealed vesicle; bands are proportional to the amount of protein. This is the lesson’s made-up data set, a sketch of the logic, not a real gel.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Mic = 'none' | 'during' | 'after';
+  type Bands = { p26: number; p23: number };
+  // Lane numbers exactly as the lesson gives them. Missing key = the lesson does not give it.
+  const DATA: Record<Mic, { plain: Bands; protease: Bands; both?: Bands }> = {
+    none: { plain: { p26: 100, p23: 0 }, protease: { p26: 0, p23: 0 } },
+    during: { plain: { p26: 40, p23: 60 }, protease: { p26: 0, p23: 57 }, both: { p26: 0, p23: 0 } },
+    after: { plain: { p26: 100, p23: 0 }, protease: { p26: 0, p23: 0 } },
+  };
+  const LANES: { mic: Mic; n: number; title: string }[] = [
+    { mic: 'none', n: 1, title: 'no microsomes' },
+    { mic: 'during', n: 2, title: 'microsomes during' },
+    { mic: 'after', n: 3, title: 'microsomes after' },
+  ];
+  const RES_MASS = 110; // Da per residue, as the lesson uses
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-pgr]').forEach((root) => {
+    const gel = root.querySelector<SVGSVGElement>('[data-gel]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const list = root.querySelector<HTMLElement>('[data-list]')!;
+    const prot = root.querySelector<HTMLInputElement>('[data-protease]')!;
+    const det = root.querySelector<HTMLInputElement>('[data-detergent]')!;
+    const mics = Array.from(root.querySelectorAll<HTMLInputElement>('[data-mic]'));
+    const INK = '#4b4b55', FAINT = '#6b6b78', TEAL = '#0e7c86';
+
+    function lookup(mic: Mic, p: boolean, d: boolean): Bands | null {
+      const row = DATA[mic];
+      if (!p && !d) return row.plain;
+      if (p && !d) return row.protease;
+      if (p && d) return row.both ?? null;
+      return null; // detergent without protease: not in the lesson
+    }
+    function selected(): Mic { return (mics.find((m) => m.checked)?.value ?? 'during') as Mic; }
+
+    function band(cx: number, y: number, v: number) {
+      const w = 64;
+      if (v > 0) {
+        gel.appendChild(el('rect', { x: cx - w / 2, y, width: w, height: 12, rx: 2, fill: '#2b2b33', opacity: (0.18 + 0.82 * v / 100).toFixed(2) }));
+      } else {
+        gel.appendChild(el('rect', { x: cx - w / 2, y, width: w, height: 12, rx: 2, fill: 'none', stroke: '#c4c4cc', 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      }
+      gel.appendChild(el('text', { x: cx, y: y + 25, 'font-size': 10, 'text-anchor': 'middle', fill: INK, 'font-weight': v > 0 ? 700 : 400 }, String(v)));
+    }
+    function draw(sel: Mic, p: boolean, d: boolean) {
+      gel.replaceChildren();
+      gel.appendChild(el('text', { x: 4, y: 74, 'font-size': 10, fill: INK }, '26 kDa'));
+      gel.appendChild(el('text', { x: 4, y: 124, 'font-size': 10, fill: INK }, '23 kDa'));
+      gel.appendChild(el('text', { x: 4, y: 90, 'font-size': 9, fill: FAINT }, 'precursor'));
+      gel.appendChild(el('text', { x: 4, y: 140, 'font-size': 9, fill: FAINT }, 'processed'));
+      LANES.forEach((ln, i) => {
+        const cx = 110 + i * 100;
+        const on = ln.mic === sel;
+        gel.appendChild(el('rect', { x: cx - 42, y: 28, width: 84, height: 128, rx: 4, fill: '#fff', stroke: on ? TEAL : '#c4c4cc', 'stroke-width': on ? 2.5 : 1 }));
+        gel.appendChild(el('text', { x: cx, y: 14, 'font-size': 9, 'text-anchor': 'middle', fill: on ? TEAL : INK, 'font-weight': on ? 700 : 400 }, `lane ${ln.n}`));
+        gel.appendChild(el('text', { x: cx, y: 24, 'font-size': 9, 'text-anchor': 'middle', fill: on ? TEAL : FAINT }, ln.title));
+        const b = lookup(ln.mic, p, d);
+        if (!b) {
+          gel.appendChild(el('text', { x: cx, y: 90, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'not given'));
+          gel.appendChild(el('text', { x: cx, y: 102, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'in the lesson'));
+        } else {
+          band(cx, 56, b.p26);
+          band(cx, 106, b.p23);
+        }
+      });
+      const tx = (p ? 'protease' : 'no protease') + (d ? ' + detergent' : p ? ', no detergent' : ', no detergent');
+      gel.appendChild(el('text', { x: 210, y: 178, 'font-size': 10, 'text-anchor': 'middle', fill: INK, 'font-weight': 700 }, 'treatment: ' + tx));
+      gel.appendChild(el('text', { x: 210, y: 192, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'band intensities in arbitrary units; darker = more'));
+    }
+
+    function status(sel: Mic, p: boolean, d: boolean, b: Bands | null): string {
+      if (!b) {
+        if (d && !p) return 'The lesson gives no lane for detergent without protease, so none is drawn. Detergent is used in the lesson only together with protease, to test whether the membrane did the protecting.';
+        return 'The lesson gives the detergent test only for lane 2 (microsomes during translation), so the other lanes are not drawn here.';
+      }
+      if (sel === 'none') {
+        return p
+          ? 'No microsomes, then protease: nothing is left. All 100 units were precursor, and none survived protease.'
+          : 'No microsomes: all 100 units are the 26 kDa precursor and nothing is processed.';
+      }
+      if (sel === 'after') {
+        return p
+          ? 'Microsomes added after translation, then protease: nothing is left. There was no processing and no protection. In this assay, translocation needs ongoing translation.'
+          : 'Microsomes added after translation: still 100 units of 26 kDa precursor and no 23 kDa band, so no processing. In this assay, translocation needs ongoing translation.';
+      }
+      if (!p) return 'Microsomes present during translation: 40 units of precursor and 60 of processed 23 kDa form. So 60 percent of chains lost their signal. Add protease to see which of them are protected.';
+      if (!d) return 'Microsomes during translation, then protease: the 26 kDa band is gone (every unprocessed chain is outside and digested) while 57 of the 60 processed units survive. Nearly all processed chains are inside sealed vesicles.';
+      return 'Microsomes during translation, then protease plus detergent: nothing is left. Detergent dissolved the vesicles, so the 23 kDa protein is not resistant to protease on its own; the membrane protected it.';
+    }
+
+    function render() {
+      const sel = selected(), p = prot.checked, d = det.checked;
+      const b = lookup(sel, p, d);
+      draw(sel, p, d);
+      verdict.textContent = status(sel, p, d, b);
+      list.replaceChildren();
+      const add = (html: string) => { const li = document.createElement('li'); li.innerHTML = html; list.appendChild(li); };
+      if (!b) { add('Not covered by the lesson’s data set, so no numbers are shown.'); return; }
+      const plain = DATA[sel].plain;
+      const total = plain.p26 + plain.p23;
+      const processed = plain.p23;
+      add(`<strong>Processed share</strong> (23 kDa of all bands, before protease): ${processed} / ${total} = ${Math.round((processed / total) * 100)} percent`);
+      if (p && !d && processed > 0) {
+        const prot23 = b.p23;
+        add(`<strong>Protected fraction</strong> (23 kDa left after protease): ${prot23} / ${processed} = ${(prot23 / processed).toFixed(2)}, or ${Math.round((prot23 / processed) * 100)} percent`);
+      }
+      if (p && d && processed > 0) {
+        add(`<strong>With detergent</strong>: the 23 kDa band falls from ${processed} to ${b.p23}, so protection depended on the membrane`);
+      }
+      if (sel === 'during') {
+        const kda = 26 - 23;
+        add(`<strong>Size of the signal</strong>: shift 26 − 23 = ${kda} kDa; ${kda * 1000} Da / ${RES_MASS} Da per residue ≈ ${Math.round((kda * 1000) / RES_MASS)} residues (about 110 Da per residue; preprolactin’s signal is 30 residues, but this made-up gel is not preprolactin)`);
+      }
+    }
+    mics.forEach((m) => m.addEventListener('change', render));
+    prot.addEventListener('change', render);
+    det.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .pgr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pgr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pgr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pgr-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pgr-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; }
+  .pgr-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.4rem 0.7rem; display: flex; flex-direction: column; gap: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .pgr-set legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .pgr-set input { accent-color: var(--ddp-color-accent); }
+  .pgr-set input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .pgr-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .pgr-list { margin: 0; padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .pgr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .pgr-controls { grid-template-columns: 1fr; } }
+</style>

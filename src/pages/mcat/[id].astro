@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import McatFigure from '../../components/McatFigure.astro';
+import { SETS, SECTION, CATEGORY, SKILL, type McatSet } from '../../lib/mcat';
+import { itemId } from '../../lib/progress';
+
+export function getStaticPaths() {
+  return SETS.map((s) => ({ params: { id: s.id }, props: { set: s } }));
+}
+const { set } = Astro.props as { set: McatSet };
+const slug = `mcat-${set.id}`;
+const letters = ['A', 'B', 'C', 'D'];
+---
+
+<BaseLayout title={`${set.title} — MCAT practice — Biochemistrypedia`} description={`An original MCAT-style passage with ${set.questions.length} questions: ${set.categories.map((c) => CATEGORY[c] ?? c).join(', ')}.`}>
+  <article class="wrap mset" data-mset={slug}>
+    <p class="mset-eyebrow"><a href="/mcat/">MCAT practice</a> · {SECTION[set.section]} · {set.categories.map((c) => `${c} ${CATEGORY[c] ?? ''}`).join(' · ')}</p>
+    <h1>{set.title}</h1>
+    <p class="mset-note">An original practice passage written for this site, not an AAMC item. Exam pace is about 8 minutes for a passage like this. <span class="mset-timer" data-timer hidden></span></p>
+
+    <div class="mset-grid">
+      <section class="mset-passage" aria-label="Passage">
+        {set.passage.map((p) => <p>{p}</p>)}
+        {(set.figures ?? []).map((f) => <McatFigure fig={f} />)}
+        <p class="mset-source">{set.source}</p>
+      </section>
+
+      <section class="mset-questions" aria-label="Questions">
+        {set.questions.map((q, i) => (
+          <div class="mq" data-mq data-item={itemId(slug, q.stem)} data-answer={q.answer}>
+            <p class="mq-stem"><span class="mq-n">{i + 1}.</span> {q.stem}</p>
+            <ul class="mq-choices">
+              {q.choices.map((c, ci) => (
+                <li><button type="button" class="mq-choice" data-ci={ci} aria-pressed="false"><span class="mq-letter">{letters[ci]}</span><span>{c}</span></button></li>
+              ))}
+            </ul>
+            <div class="mq-feedback" data-feedback hidden>
+              <p class="mq-verdict" data-verdict></p>
+              <ul class="mq-why">{q.why.map((w, wi) => <li><strong>{letters[wi]}.</strong> {w}</li>)}</ul>
+              <p class="mq-meta">Skill: {SKILL[q.skill]} · Topic: {CATEGORY[q.category] ?? q.category} · <a href={`/lessons/${q.lesson.slug}/${q.lesson.anchor ? `#${q.lesson.anchor}` : ''}`}>Review the lesson section →</a></p>
+            </div>
+          </div>
+        ))}
+        <div class="mset-done" data-done hidden>
+          <p class="mset-score" data-score></p>
+          <p>Missed questions come back in <a href="/review/">your review queue</a> after 1, 3, 7 and 21 days. <a href="/mcat/">More passages →</a></p>
+        </div>
+      </section>
+    </div>
+  </article>
+
+  <script>
+    import { recordFirstTry, setDone } from '../../lib/progress';
+
+    const root = document.querySelector<HTMLElement>('[data-mset]')!;
+    const slug = root.dataset.mset!;
+    const qs = Array.from(root.querySelectorAll<HTMLElement>('[data-mq]'));
+    let answered = 0, right = 0;
+    const started = Date.now();
+    const timer = root.querySelector<HTMLElement>('[data-timer]')!;
+    timer.hidden = false;
+    const tick = () => { const s = Math.floor((Date.now() - started) / 1000); timer.textContent = `Your time: ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+    tick();
+    const iv = setInterval(tick, 1000);
+
+    for (const q of qs) {
+      const key = Number(q.dataset.answer);
+      const btns = Array.from(q.querySelectorAll<HTMLButtonElement>('.mq-choice'));
+      btns.forEach((b) => b.addEventListener('click', () => {
+        if (q.dataset.locked) return;
+        q.dataset.locked = '1';
+        const pick = Number(b.dataset.ci);
+        const ok = pick === key;
+        btns.forEach((x, i) => {
+          x.setAttribute('aria-pressed', String(i === pick));
+          if (i === key) x.classList.add('is-correct');
+          if (i === pick && !ok) x.classList.add('is-wrong');
+          x.disabled = true;
+        });
+        const v = q.querySelector<HTMLElement>('[data-verdict]')!;
+        v.textContent = ok ? '✓ Correct' : `✗ Not quite. The answer is ${'ABCD'[key]}.`;
+        v.className = `mq-verdict ${ok ? 'is-correct' : 'is-wrong'}`;
+        q.querySelector<HTMLElement>('[data-feedback]')!.hidden = false;
+        recordFirstTry(q.dataset.item!, slug, ok);
+        answered++; if (ok) right++;
+        if (answered === qs.length) {
+          clearInterval(iv);
+          setDone(slug, true);
+          const done = root.querySelector<HTMLElement>('[data-done]')!;
+          done.hidden = false;
+          const s = Math.floor((Date.now() - started) / 1000);
+          root.querySelector('[data-score]')!.textContent = `${right} of ${qs.length} right, in ${Math.floor(s / 60)} min ${s % 60} s.`;
+        }
+      }));
+    }
+  </script>
+
+  <style>
+    .mset { padding-block: var(--ddp-space-10, 2.5rem) var(--ddp-space-12); max-width: 1180px; }
+    .mset-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0 0 var(--ddp-space-2); }
+    .mset-eyebrow a { color: inherit; }
+    h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-2xl, 1.9rem); margin: 0; }
+    .mset-note { color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); margin: var(--ddp-space-2) 0 var(--ddp-space-6); }
+    .mset-timer { font-family: var(--ddp-font-mono); margin-left: var(--ddp-space-2); }
+    .mset-timer[hidden] { display: none; }
+    .mset-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--ddp-space-8); align-items: start; }
+    .mset-passage { position: sticky; top: 90px; max-height: calc(100vh - 110px); overflow: auto; padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); line-height: 1.6; }
+    .mset-passage p { margin: 0 0 var(--ddp-space-3); }
+    .mset-source { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .mq { margin-bottom: var(--ddp-space-6); }
+    .mq-stem { margin: 0 0 var(--ddp-space-3); line-height: 1.55; }
+    .mq-n { font-weight: 700; }
+    .mq-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+    .mq-choice { width: 100%; display: flex; gap: var(--ddp-space-3); text-align: left; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
+    .mq-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
+    .mq-choice:disabled { cursor: default; }
+    .mq-letter { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-muted); }
+    .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); }
+    .mq-choice.is-wrong { border-color: #c0392b; background: #fcebe9; }
+    .mq-feedback { margin-top: var(--ddp-space-3); padding-top: var(--ddp-space-3); border-top: 1px dashed var(--ddp-color-line); font-size: var(--ddp-text-sm); }
+    .mq-feedback[hidden] { display: none; }
+    .mq-verdict { font-weight: 700; margin: 0 0 var(--ddp-space-2); }
+    .mq-verdict.is-correct { color: var(--ddp-color-verified); }
+    .mq-verdict.is-wrong { color: #c0392b; }
+    .mq-why { margin: 0; padding-left: 1rem; color: var(--ddp-color-ink-soft); }
+    .mq-why li { margin-bottom: var(--ddp-space-1, .25rem); }
+    .mq-meta { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .mq-meta a { color: var(--ddp-color-accent); }
+    .mset-done { padding: var(--ddp-space-4); border: 2px solid var(--ddp-color-verified); border-radius: var(--ddp-radius-sm, 8px); }
+    .mset-done[hidden] { display: none; }
+    .mset-score { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl, 1.4rem); color: var(--ddp-color-primary); margin: 0 0 var(--ddp-space-2); }
+    .mset-done a { color: var(--ddp-color-accent); }
+    @media (max-width: 860px) { .mset-grid { grid-template-columns: 1fr; } .mset-passage { position: static; max-height: none; } }
+  </style>
+</BaseLayout>

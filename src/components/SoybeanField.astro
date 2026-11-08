@@ -1,0 +1,315 @@
+---
+/**
+ * SoybeanField — one growing season on a soybean field and a cornfield side by side.
+ * Three controls (root bacteria on or off, fertilizer amount, rain) and a "Run the season"
+ * button. Counters (dots) move between air, soil, plants and a nearby stream, and three bars
+ * per field show plant growth, usable nitrogen in the soil and nitrogen washed into the stream.
+ * Every amount is a made-up count for the sketch; nothing is measured. Original. Self-contained.
+ */
+---
+
+<figure class="sf card" data-soybeanfield>
+  <figcaption class="sf-head">Grow a soybean field and a cornfield<span class="sf-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="sf-controls">
+    <div class="sf-ctl">
+      <span class="sf-lab" id="sf-bact-lab">Root bacteria in the soybean roots</span>
+      <div class="sf-seg" role="group" aria-labelledby="sf-bact-lab">
+        <button type="button" class="sf-btn sf-on" data-bact="1" aria-pressed="true">On</button>
+        <button type="button" class="sf-btn" data-bact="0" aria-pressed="false">Off</button>
+      </div>
+    </div>
+    <label class="sf-ctl">
+      <span class="sf-lab">Nitrogen fertilizer: <em data-out="fert">none</em></span>
+      <input type="range" data-in="fert" min="0" max="4" step="1" value="0" />
+    </label>
+    <label class="sf-ctl">
+      <span class="sf-lab">Rain: <em data-out="rain">light</em></span>
+      <input type="range" data-in="rain" min="0" max="3" step="1" value="1" />
+    </label>
+  </div>
+  <div class="sf-actions">
+    <button type="button" class="sf-btn sf-run" data-run>Run the season</button>
+    <button type="button" class="sf-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="sf-panels">
+    <svg class="sf-svg" viewBox="0 0 340 436" role="img" aria-label="Soybean field. Air and a fertilizer bag at the top, soybean plants, soil, and a nearby stream below, with arrows for nitrogen moving between them. Three bars show plant growth, usable nitrogen in the soil, and nitrogen washed into the stream." data-panel="soy"></svg>
+    <svg class="sf-svg" viewBox="0 0 340 436" role="img" aria-label="Cornfield. Air and a fertilizer bag at the top, corn plants, soil, and a nearby stream below, with arrows for nitrogen moving between them. Three bars show plant growth, usable nitrogen in the soil, and nitrogen washed into the stream." data-panel="corn"></svg>
+  </div>
+
+  <p class="sf-why" data-why role="status">Set the field, then press Run the season. Each dot is one made-up amount of nitrogen.</p>
+  <p class="sf-assume">In this sketch, everything below is made up (relative amounts, not measured): each dot is one made-up amount of nitrogen. The soil starts with 4 dots, and each step of fertilizer adds 4. Plants can hold at most 12 dots, and a full growth bar means 12. Roots take soil nitrogen first, then root bacteria fill the gap. Rain washes none, 1 in 4, 1 in 2 or 3 in 4 of the nitrogen the plants did not take up. The sketch has no drop in growth at high doses. The picture is a sketch of the logic, not to scale.</p>
+  <p class="sf-foot">Plants can use only so much nitrogen. Nitrogen they do not take up can wash into streams in rain, and some streams flow to the Chesapeake Bay, where extra nitrogen can feed algal blooms.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#c9c9d1', GREEN = '#2e7d32', BROWN = '#8a5a2b', BLUE = '#1f6fb5', ORANGE = '#c25e00', TEAL = '#0e7c86';
+  const FERT_WORDS = ['none', 'a little', 'some', 'much', 'a lot'];
+  const RAIN_WORDS = ['none', 'light', 'steady', 'heavy'];
+  const CAP = 12, SOIL0 = 4, DOT_STEP = 13;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-soybeanfield]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('SoybeanField: missing ' + s);
+      return e;
+    };
+    const fertIn = q<HTMLInputElement>('[data-in="fert"]');
+    const rainIn = q<HTMLInputElement>('[data-in="rain"]');
+    const fertOut = q<HTMLElement>('[data-out="fert"]');
+    const rainOut = q<HTMLElement>('[data-out="rain"]');
+    const runBtn = q<HTMLButtonElement>('[data-run]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const why = q<HTMLElement>('[data-why]');
+    const panels: Record<string, SVGSVGElement> = {
+      soy: q<SVGSVGElement>('[data-panel="soy"]'),
+      corn: q<SVGSVGElement>('[data-panel="corn"]'),
+    };
+    const bactBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-bact]'));
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let bact = true;
+    let p = 0; // 0 = start of season, 1 = end of season
+    let raf = 0;
+    let ran = false;
+
+    type Result = { S: number; uptake: number; fix: number; plant: number; leftover: number; wash: number; soilEnd: number };
+    function compute(crop: string): Result {
+      const fert = parseInt(fertIn.value, 10);
+      const rain = parseInt(rainIn.value, 10);
+      const S = SOIL0 + 4 * fert;
+      const uptake = Math.min(S, CAP);
+      const fix = crop === 'soy' && bact ? CAP - uptake : 0;
+      const leftover = S - uptake;
+      const wash = (leftover * rain) / 4;
+      return { S, uptake, fix, plant: uptake + fix, leftover, wash, soilEnd: leftover - wash };
+    }
+
+    function text(x: number, y: number, s: string, opts: Record<string, string | number> = {}): SVGElement {
+      const t = el('text', Object.assign({ x, y, 'font-size': 14, fill: INK }, opts));
+      t.textContent = s;
+      return t;
+    }
+    function arrow(svg: SVGSVGElement, x1: number, y1: number, x2: number, y2: number, color: string, dashed: boolean) {
+      const attrs: Record<string, string | number> = { x1, y1, x2, y2, stroke: color, 'stroke-width': 2 };
+      if (dashed) attrs['stroke-dasharray'] = '4 3';
+      svg.appendChild(el('line', attrs));
+      const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+      const ux = dx / len, uy = dy / len;
+      const bx = x2 - ux * 8, by = y2 - uy * 8;
+      const pts = `${x2},${y2} ${bx - uy * 4.5},${by + ux * 4.5} ${bx + uy * 4.5},${by - ux * 4.5}`;
+      svg.appendChild(el('polygon', { points: pts, fill: color }));
+    }
+    function box(svg: SVGSVGElement, x: number, y: number, w: number, h: number, fill: string, stroke: string) {
+      svg.appendChild(el('rect', { x, y, width: w, height: h, rx: 6, fill, stroke, 'stroke-width': 1.5 }));
+    }
+    function dots(svg: SVGSVGElement, x: number, y: number, count: number, max: number, color: string, step: number = DOT_STEP) {
+      const n = Math.max(0, Math.min(max, Math.round(count)));
+      for (let i = 0; i < max; i++) {
+        const filled = i < n;
+        svg.appendChild(el('circle', { cx: x + i * step, cy: y, r: 4.5, fill: filled ? color : '#fff', stroke: filled ? color : FAINT, 'stroke-width': 1 }));
+      }
+    }
+    function bar(svg: SVGSVGElement, y0: number, label: string, frac: number, color: string, mark: number | null, sub: string = '') {
+      svg.appendChild(text(10, y0, label, { 'font-weight': 700 }));
+      let y = y0;
+      if (sub) { svg.appendChild(text(10, y0 + 16, sub, { 'font-size': 13 })); y = y0 + 16; }
+      svg.appendChild(el('rect', { x: 10, y: y + 6, width: 320, height: 16, rx: 3, fill: '#fff', stroke: INK, 'stroke-width': 1 }));
+      const w = Math.max(0, Math.min(1, frac)) * 320;
+      if (w > 0.5) svg.appendChild(el('rect', { x: 10, y: y + 6, width: w, height: 16, rx: 3, fill: color }));
+      if (mark !== null) {
+        const mx = 10 + Math.max(0, Math.min(1, mark)) * 320;
+        svg.appendChild(el('line', { x1: mx, y1: y + 3, x2: mx, y2: y + 25, stroke: ORANGE, 'stroke-width': 2.5 }));
+      }
+    }
+    function fly(svg: SVGSVGElement, x1: number, y1: number, x2: number, y2: number, color: string) {
+      if (reduce || p <= 0 || p >= 1) return;
+      for (let i = 0; i < 3; i++) {
+        const u = (p * 3 + i / 3) % 1;
+        svg.appendChild(el('circle', { cx: x1 + (x2 - x1) * u, cy: y1 + (y2 - y1) * u, r: 5, fill: color, stroke: '#fff', 'stroke-width': 1 }));
+      }
+    }
+
+    function drawPanel(crop: string) {
+      const svg = panels[crop];
+      svg.replaceChildren();
+      const fert = parseInt(fertIn.value, 10);
+      const rain = parseInt(rainIn.value, 10);
+      const r = compute(crop);
+      const isSoy = crop === 'soy';
+      const plantN = p * r.plant;
+      const soilN = r.S - p * (r.uptake + r.wash);
+      const streamN = p * r.wash;
+
+      svg.appendChild(text(10, 16, isSoy ? 'Soybean field' : 'Cornfield', { 'font-weight': 700, 'font-size': 15, fill: TEAL }));
+
+      // boxes
+      box(svg, 10, 26, 140, 28, '#eef6fb', INK);
+      svg.appendChild(text(18, 45, 'Air: nitrogen gas'));
+      box(svg, 160, 26, 170, 28, '#fff6e6', INK);
+      svg.appendChild(text(168, 45, 'Fertilizer: ' + FERT_WORDS[fert]));
+      box(svg, 10, 84, 150, 50, '#eef7ee', INK);
+      svg.appendChild(text(18, 101, isSoy ? 'Soybean plants' : 'Corn plants', { 'font-weight': 700 }));
+      dots(svg, 20, 120, plantN, CAP, GREEN, 11);
+      svg.appendChild(text(10, 150, isSoy ? (bact ? 'Root bacteria: on' : 'Root bacteria: off') : 'Corn: no root nodules', { 'font-size': 13 }));
+      box(svg, 10, 156, 320, 50, '#f5ede2', INK);
+      svg.appendChild(text(18, 173, 'Soil: usable nitrogen', { 'font-weight': 700 }));
+      svg.appendChild(text(322, 173, 'Rain: ' + RAIN_WORDS[rain], { 'text-anchor': 'end', 'font-size': 14 }));
+      dots(svg, 20, 193, soilN, SOIL0 + 16, BROWN);
+      box(svg, 10, 236, 320, 50, '#e8f1fa', INK);
+      svg.appendChild(text(18, 253, 'Nearby stream: nitrogen washed in', { 'font-weight': 700 }));
+      dots(svg, 20, 273, streamN, 6, BLUE);
+
+      // arrows
+      const bacteriaWork = isSoy && bact && r.fix > 0;
+      arrow(svg, 50, 56, 50, 82, bacteriaWork ? TEAL : FAINT, !bacteriaWork);
+      svg.appendChild(text(58, 74, bacteriaWork ? 'root bacteria change the gas' : (isSoy && bact ? 'root bacteria not needed here' : 'plants cannot use the gas'), { 'font-size': 14 }));
+      arrow(svg, 156, 154, 156, 136, BROWN, false);
+      arrow(svg, 300, 56, 300, 154, ORANGE, fert === 0);
+      svg.appendChild(text(292, 112, fert === 0 ? 'none added' : 'added to soil', { 'text-anchor': 'end', 'font-size': 14 }));
+      arrow(svg, 300, 208, 300, 234, BLUE, r.wash === 0);
+      svg.appendChild(text(292, 226, 'washed by rain', { 'text-anchor': 'end', 'font-size': 14 }));
+
+      // moving counters
+      if (r.fix > 0) fly(svg, 50, 56, 50, 82, TEAL);
+      if (r.uptake > 0) fly(svg, 156, 154, 156, 136, BROWN);
+      if (r.wash > 0) fly(svg, 300, 208, 300, 234, BLUE);
+
+      // bars
+      bar(svg, 306, 'Plant growth', plantN / CAP, GREEN, null, '(in this sketch, nitrogen held; full = 12 dots)');
+      bar(svg, 362, 'Usable nitrogen in soil (line: start)', soilN / 20, BROWN, r.S / 20);
+      bar(svg, 402, 'Nitrogen washed into stream', streamN / 20, BLUE, null);
+    }
+
+    function statusText(): string {
+      if (!ran) return 'Set the field, then press Run the season. Each dot is one made-up amount of nitrogen.';
+      const s = compute('soy'), c = compute('corn');
+      const lines: string[] = [];
+      if (bact) {
+        lines.push(parseInt(fertIn.value, 10) === 0
+          ? 'In this sketch, soybeans with root bacteria grew fully with no fertilizer. In the lesson’s field, soybeans with nodules held more nitrogen, and real soybeans often need little or none.'
+          : 'In this sketch, soybeans with root bacteria grew fully.');
+      } else {
+        lines.push(s.plant >= CAP
+          ? 'In this sketch, soybeans with no root bacteria grew fully, using nitrogen from the soil.'
+          : 'In this sketch, soybeans with no root bacteria grew only part way.');
+      }
+      lines.push(c.plant >= CAP
+        ? 'In this sketch, corn grew fully, using nitrogen from the soil.'
+        : 'In this sketch, corn grew only part way. It has no root nodules and depends on nitrogen in the soil.');
+      const rain = parseInt(rainIn.value, 10);
+      if (c.leftover > 0) {
+        lines.push(rain === 0
+          ? 'In this sketch, the plants took up all they could, and the extra stayed in the soil with no rain. This sketch does not show that too much fertilizer can slow growth; in the lesson’s greenhouse pot trial a soybean grew less at the highest amount.'
+          : 'In this sketch, rain washed some of the extra nitrogen toward the stream. Heavier rain washed more. This sketch does not show that too much fertilizer can slow growth; in the lesson’s greenhouse pot trial a soybean grew less at the highest amount.');
+      } else {
+        lines.push('In this sketch, the plants took up all the nitrogen, so none washed toward the stream.');
+      }
+      return lines.join(' ');
+    }
+
+    function draw() {
+      drawPanel('soy');
+      drawPanel('corn');
+    }
+    function setBactUI() {
+      bactBtns.forEach((b) => {
+        const on = b.getAttribute('data-bact') === '1';
+        const pressed = on === bact;
+        b.setAttribute('aria-pressed', String(pressed));
+        b.classList.toggle('sf-on', pressed);
+      });
+    }
+    function labels() {
+      fertOut.textContent = FERT_WORDS[parseInt(fertIn.value, 10)];
+      rainOut.textContent = RAIN_WORDS[parseInt(rainIn.value, 10)];
+    }
+    function stopAnim() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      runBtn.disabled = false;
+    }
+    function toStart() {
+      stopAnim();
+      p = 0;
+      ran = false;
+      labels();
+      setBactUI();
+      draw();
+      why.textContent = statusText();
+    }
+    function run() {
+      stopAnim();
+      ran = true;
+      if (reduce) {
+        p = 1;
+        draw();
+        why.textContent = statusText();
+        return;
+      }
+      p = 0;
+      runBtn.disabled = true;
+      why.textContent = 'The season is running.';
+      const t0 = performance.now();
+      const DUR = 2800;
+      const step = (now: number) => {
+        p = Math.min(1, (now - t0) / DUR);
+        draw();
+        if (p < 1) {
+          raf = requestAnimationFrame(step);
+        } else {
+          raf = 0;
+          runBtn.disabled = false;
+          why.textContent = statusText();
+        }
+      };
+      raf = requestAnimationFrame(step);
+    }
+
+    bactBtns.forEach((b) => b.addEventListener('click', () => {
+      bact = b.getAttribute('data-bact') === '1';
+      toStart();
+    }));
+    fertIn.addEventListener('input', toStart);
+    rainIn.addEventListener('input', toStart);
+    runBtn.addEventListener('click', run);
+    resetBtn.addEventListener('click', () => {
+      bact = true;
+      fertIn.value = '0';
+      rainIn.value = '1';
+      toStart();
+    });
+    toStart();
+  });
+</script>
+
+<style is:global>
+  .sf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sf-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--ddp-space-3) var(--ddp-space-4); margin-bottom: var(--ddp-space-2); }
+  .sf-ctl { display: flex; flex-direction: column; gap: 0.3rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .sf-lab { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .sf-lab em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .sf-ctl input[type="range"] { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .sf-seg { display: flex; gap: 0.4rem; }
+  .sf-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: var(--ddp-space-2) 0 var(--ddp-space-3); }
+  .sf-btn { min-height: 44px; min-width: 64px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.3rem 0.9rem; cursor: pointer; }
+  .sf-btn.sf-on { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .sf-run { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .sf-btn:disabled { opacity: 0.55; cursor: default; }
+  .sf-btn:focus-visible, .sf-ctl input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .sf-panels { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  .sf-svg { display: block; width: 100%; max-width: 520px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sf-why { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 5.5em; }
+  .sf-assume { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .sf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

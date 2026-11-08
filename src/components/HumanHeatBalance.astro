@@ -1,0 +1,262 @@
+---
+/**
+ * HumanHeatBalance — "Can sweat keep up?" The worked problem of the Skin, Sweat and Human
+ * Thermoregulation lesson as a sketch. Heat storage S = (M - W) + dry exchange - E, with
+ * evaporation E the smaller of the requirement E_req = (M - W) + dry exchange and the maximum
+ * the air allows, E_max. Sweat to evaporate = E x 3,600 / 2,430 (latent heat 2.43 kJ per g);
+ * rate of rise = S x 3,600 / (70 kg x specific heat). Defaults reproduce the lesson's worked
+ * problem (850 W, 1,259 g per h, 150 W, 2.6 or 2.2 degrees C per hour). Original, illustrative.
+ */
+---
+
+<figure class="hhb card" data-hhb>
+  <figcaption class="hhb-head">Can sweat keep up? Heat balance of a 70 kg adult<span class="hhb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="hhb-svg" viewBox="0 0 340 284" role="img" aria-label="Schematic of heat balance: heat made and dry heat exchange arrows, an evaporation arrow out of the body, a dripped-sweat arrow, and bars comparing required evaporation, the maximum the air allows, and evaporated against dripped sweat" data-svg></svg>
+
+  <div class="hhb-controls">
+    <label class="hhb-slabel"><span>Heat production, M − W <em data-out="m">800</em> W</span>
+      <input type="range" data-in="m" min="100" max="1000" step="10" value="800" />
+    </label>
+    <label class="hhb-slabel"><span>Dry heat exchange <em data-out="d">+50</em> W <small>(negative = dry loss)</small></span>
+      <input type="range" data-in="d" min="-100" max="150" step="5" value="50" />
+    </label>
+    <label class="hhb-slabel"><span>Most evaporation the air allows, E_max <em data-out="e">700</em> W <small>(left = humid air, right = dry air)</small></span>
+      <input type="range" data-in="e" min="300" max="1200" step="10" value="700" />
+    </label>
+    <fieldset class="hhb-fs">
+      <legend>Body specific heat (kJ per kg per °C)</legend>
+      <label class="hhb-radio"><input type="radio" name="hhb-c" data-c value="2.98" checked /> 2.98 <small>(calculated from tissue masses in four MRI-based virtual humans)</small></label>
+      <label class="hhb-radio"><input type="radio" name="hhb-c" data-c value="3.47" /> 3.47 <small>(older, assumed)</small></label>
+    </fieldset>
+  </div>
+
+  <dl class="hhb-readout">
+    <div><dt>Required evaporation E_req</dt><dd data-r="ereq">850 W</dd><span class="hhb-arith" data-a="ereq"></span></div>
+    <div><dt>Sweat to evaporate to meet E_req</dt><dd data-r="sweat">1,259 g per h</dd><span class="hhb-arith" data-a="sweat"></span></div>
+    <div><dt>Evaporation E (smaller of E_req and E_max)</dt><dd data-r="e">700 W</dd><span class="hhb-arith" data-a="e"></span></div>
+    <div><dt>Heat storage S</dt><dd data-r="s">+150 W</dd><span class="hhb-arith" data-a="s"></span></div>
+    <div><dt>Rate of rise of body temperature</dt><dd data-r="rise">2.6 °C per h</dd><span class="hhb-arith" data-a="rise"></span></div>
+    <div><dt>State</dt><dd data-r="state">uncompensable</dd><span class="hhb-arith" data-a="state"></span></div>
+  </dl>
+
+  <p class="hhb-why" data-why role="status"></p>
+
+  <p class="hhb-assume">In this sketch every number is illustrative and made up for practice, except the latent heat of evaporating sweat (2.43 kJ per g) and the two specific heats. Fixed, as in the lesson’s worked problem: a 70 kg adult, no respiratory heat loss, 1 g of sweat = 1 mL, uniform body temperature for storage, skin blood flow unchanged. Invented for the sketch: sweat is made at the rate that would meet E_req; any sweat beyond what E_max can evaporate drips and removes almost no heat (counted as none here); that dripping share is an assumption, not a measurement. The rate holds only while the three sliders stay fixed; it predicts no real person.</p>
+
+  <p class="hhb-foot">Rule to keep: evaporation is the smaller of E_req and E_max, and storage is what is left, S = (M − W) + dry exchange − E. The bars share one scale, 0 to 1,200 W.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', NAVY = '#2b3a67', LIGHT = '#bfe3e6';
+  const LATENT = 2430;   // J per g, lesson: 2.43 kJ per g at skin temperature
+  const MASS = 70;       // kg, lesson worked problem
+  const MINUS = '−';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const n0 = (v: number) => Math.round(v).toLocaleString('en-US');
+  const signed = (v: number) => (v > 0 ? '+' : v < 0 ? MINUS : '') + n0(Math.abs(v));
+  const thick = (w: number) => 2 + (Math.max(0, w) / 1200) * 16;
+
+  document.querySelectorAll<HTMLElement>('[data-hhb]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]');
+    const mIn = root.querySelector<HTMLInputElement>('[data-in="m"]');
+    const dIn = root.querySelector<HTMLInputElement>('[data-in="d"]');
+    const eIn = root.querySelector<HTMLInputElement>('[data-in="e"]');
+    const mOut = root.querySelector<HTMLElement>('[data-out="m"]');
+    const dOut = root.querySelector<HTMLElement>('[data-out="d"]');
+    const eOut = root.querySelector<HTMLElement>('[data-out="e"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const cIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-c]'));
+    if (!svg || !mIn || !dIn || !eIn || !mOut || !dOut || !eOut || !why || cIns.length === 0) return;
+    const rd = (k: string) => root.querySelector<HTMLElement>('[data-r="' + k + '"]');
+    const ar = (k: string) => root.querySelector<HTMLElement>('[data-a="' + k + '"]');
+    const rEreq = rd('ereq'), rSweat = rd('sweat'), rE = rd('e'), rS = rd('s'), rRise = rd('rise'), rState = rd('state');
+    const aEreq = ar('ereq'), aSweat = ar('sweat'), aE = ar('e'), aS = ar('s'), aRise = ar('rise'), aState = ar('state');
+    if (!rEreq || !rSweat || !rE || !rS || !rRise || !rState || !aEreq || !aSweat || !aE || !aS || !aRise || !aState) return;
+
+    function txt(x: number, y: number, s: string, opts: Record<string, string | number> = {}): SVGElement {
+      const t = el('text', Object.assign({ x, y, 'font-size': 10, fill: INK }, opts));
+      t.textContent = s;
+      svg!.appendChild(t);
+      return t;
+    }
+    // Horizontal arrow from x1 to x2 (either direction) centred on yc with body thickness th.
+    function hArrow(x1: number, x2: number, yc: number, th: number, fill: string, extra: Record<string, string | number> = {}) {
+      const dir = x2 >= x1 ? 1 : -1, head = 11, hh = th / 2 + 4;
+      const xb = x2 - dir * head;
+      const pts = [[x1, yc - th / 2], [xb, yc - th / 2], [xb, yc - hh], [x2, yc], [xb, yc + hh], [xb, yc + th / 2], [x1, yc + th / 2]];
+      svg!.appendChild(el('polygon', Object.assign({ points: pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '), fill }, extra)));
+    }
+    function vArrow(xc: number, y1: number, y2: number, th: number, fill: string) {
+      const head = 11, hh = th / 2 + 4, yb = y2 - head;
+      const pts = [[xc - th / 2, y1], [xc - th / 2, yb], [xc - hh, yb], [xc, y2], [xc + hh, yb], [xc + th / 2, yb], [xc + th / 2, y1]];
+      svg!.appendChild(el('polygon', { points: pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '), fill }));
+    }
+
+    function render() {
+      const mw = parseInt(mIn!.value, 10);
+      const dry = parseInt(dIn!.value, 10);
+      const emax = parseInt(eIn!.value, 10);
+      const checked = cIns.find((r) => r.checked) || cIns[0];
+      const c = parseFloat(checked.value);
+      const ereq = mw + dry;                          // E_req = (M - W) + dry gain
+      const e = Math.min(ereq, emax);                 // E = the smaller
+      const s = mw + dry - e;                         // S = (M - W) + dry - E
+      const comp = ereq <= emax;
+      const sweatReq = (ereq * 3600) / LATENT;        // g per h
+      const sweatEvap = (e * 3600) / LATENT;
+      const sweatReqR = Math.round(sweatReq), sweatEvapR = Math.round(sweatEvap);
+      const sweatDrip = sweatReqR - sweatEvapR;
+      const kjPerH = (s * 3600) / 1000;
+      const cap = MASS * c;                           // kJ per degree C
+      const rise = kjPerH / cap;                      // degrees C per h
+      const riseTxt = s === 0 ? '0' : rise.toFixed(1);
+
+      mOut!.textContent = n0(mw);
+      dOut!.textContent = signed(dry) === '' ? '0' : signed(dry);
+      eOut!.textContent = n0(emax);
+
+      // ---- readouts
+      rEreq!.textContent = n0(ereq) + ' W';
+      aEreq!.textContent = n0(mw) + ' W ' + (dry < 0 ? MINUS : '+') + ' ' + n0(Math.abs(dry)) + ' W = ' + n0(ereq) + ' W';
+      rSweat!.textContent = n0(sweatReq) + ' g per h';
+      aSweat!.textContent = n0(ereq) + ' W × 3,600 s per h ÷ 2,430 J per g; about ' + (sweatReq / 1000).toFixed(2) + ' L per h';
+      rE!.textContent = n0(e) + ' W';
+      aE!.textContent = 'smaller of ' + n0(ereq) + ' W and ' + n0(emax) + ' W';
+      rS!.textContent = (s > 0 ? '+' : '') + n0(s) + ' W';
+      aS!.textContent = n0(mw) + ' ' + (dry < 0 ? MINUS : '+') + ' ' + n0(Math.abs(dry)) + ' ' + MINUS + ' ' + n0(e) + ' = ' + (s > 0 ? '+' : '') + n0(s) + ' W';
+      rRise!.textContent = riseTxt + ' °C per h';
+      aRise!.textContent = n0(kjPerH) + ' kJ per h ÷ (70 kg × ' + c.toFixed(2) + ' kJ per kg per °C = ' + cap.toFixed(1) + ' kJ per °C)';
+      rState!.textContent = comp ? 'compensable' : 'uncompensable';
+      aState!.textContent = comp ? 'E_req is no more than E_max, so S = 0' : 'E_req exceeds E_max, so S is positive';
+
+      // ---- drawing
+      svg!.replaceChildren();
+      const BX0 = 105, BX1 = 235, BY0 = 42, BY1 = 126, YC = 84;
+      svg!.appendChild(el('rect', { x: BX0, y: BY0, width: BX1 - BX0, height: BY1 - BY0, rx: 8, fill: '#f6f7f9', stroke: INK, 'stroke-width': 1.4 }));
+      txt(170, 62, 'Body, 70 kg', { 'text-anchor': 'middle', 'font-weight': 700 });
+      txt(170, 80, 'stored S = ' + (s > 0 ? '+' : '') + n0(s) + ' W', { 'text-anchor': 'middle', fill: s > 0 ? ORANGE : INK, 'font-weight': 700 });
+      if (s > 0) {
+        txt(170, 98, 'body temperature', { 'text-anchor': 'middle' });
+        txt(170, 111, 'rises ' + riseTxt + ' °C per h', { 'text-anchor': 'middle' });
+      } else {
+        txt(170, 98, 'body temperature', { 'text-anchor': 'middle' });
+        txt(170, 111, 'holds steady', { 'text-anchor': 'middle' });
+      }
+
+      // heat made, M - W: down into the body
+      vArrow(138, 6, BY0, thick(mw), NAVY);
+      txt(160, 20, 'heat made, M − W', {});
+      txt(160, 32, n0(mw) + ' W', { 'font-weight': 700 });
+
+      // dry exchange: into the body when positive, out of it when negative
+      if (dry > 0) {
+        hArrow(10, BX0, YC, thick(dry), NAVY);
+        txt(10, 52, 'dry heat gain', {});
+        txt(10, 64, n0(dry) + ' W in', { 'font-weight': 700 });
+      } else if (dry < 0) {
+        hArrow(BX0, 10, YC, thick(-dry), ACCENT);
+        txt(10, 52, 'dry heat loss', {});
+        txt(10, 64, n0(-dry) + ' W out', { 'font-weight': 700 });
+      } else {
+        txt(10, 52, 'dry exchange', {});
+        txt(10, 64, '0 W', { 'font-weight': 700 });
+      }
+
+      // evaporation: out of the body; dashed outline shows the requirement
+      if (ereq > 0) {
+        hArrow(BX1, 332, YC, thick(ereq), 'none', { stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '3 2' });
+      }
+      if (e > 0) hArrow(BX1, 332, YC, thick(e), ACCENT);
+      txt(284, 52, 'evaporation E', { 'text-anchor': 'middle' });
+      txt(284, 64, n0(e) + ' W out', { 'text-anchor': 'middle', 'font-weight': 700 });
+      txt(284, 112, 'dashed: needed', { 'text-anchor': 'middle', 'font-size': 9.5 });
+      txt(284, 124, n0(ereq) + ' W', { 'text-anchor': 'middle', 'font-size': 9.5 });
+
+      // dripped sweat, only when E_req exceeds E_max
+      if (!comp) {
+        vArrow(200, BY1 + 2, 160, thick(ereq - emax) * 0.8 + 1, ORANGE);
+        txt(212, 140, 'sweat that drips', {});
+        txt(212, 152, 'removes almost no heat', {});
+      }
+
+      // ---- bars on one scale, 0 to 1,200 W
+      const X0 = 15, XW = 310, px = (w: number) => (w / 1200) * XW;
+      // row 1: required evaporation, with a tick at E_max
+      txt(15, 175, 'Required evaporation E_req', {});
+      txt(165, 175, 'orange tick = E_max', { fill: ORANGE, 'font-weight': 700 });
+      txt(325, 175, n0(ereq) + ' W', { 'text-anchor': 'end', 'font-weight': 700 });
+      svg!.appendChild(el('rect', { x: X0, y: 182, width: Math.max(0.5, px(ereq)), height: 12, fill: NAVY }));
+      svg!.appendChild(el('line', { x1: X0 + px(emax), y1: 181, x2: X0 + px(emax), y2: 197, stroke: ORANGE, 'stroke-width': 2.4 }));
+      // row 2: most the air allows
+      txt(15, 211, 'Most the air allows, E_max', {});
+      txt(325, 211, n0(emax) + ' W', { 'text-anchor': 'end', 'font-weight': 700 });
+      svg!.appendChild(el('rect', { x: X0, y: 216, width: px(emax), height: 12, fill: LIGHT, stroke: ACCENT, 'stroke-width': 1 }));
+      // row 3: sweat made, evaporated against dripped
+      txt(15, 245, 'Sweat needed to meet E_req', {});
+      txt(325, 245, n0(sweatReq) + ' g per h', { 'text-anchor': 'end', 'font-weight': 700 });
+      svg!.appendChild(el('rect', { x: X0, y: 250, width: 310, height: 12, fill: 'none', stroke: FAINT, 'stroke-width': 0.8 }));
+      if (ereq > 0) {
+        svg!.appendChild(el('rect', { x: X0, y: 250, width: Math.max(0.5, px(e)), height: 12, fill: ACCENT }));
+        if (!comp) svg!.appendChild(el('rect', { x: X0 + px(e), y: 250, width: px(ereq - e), height: 12, fill: ORANGE }));
+      }
+      svg!.appendChild(el('rect', { x: 15, y: 269, width: 8, height: 8, fill: ACCENT }));
+      if (ereq <= 0) {
+        txt(27, 277, 'no sweat needed in this state', {});
+      } else if (comp) {
+        txt(27, 277, 'all evaporates: ' + n0(sweatEvapR) + ' g per h', {});
+      } else {
+        txt(27, 277, 'evaporated ' + n0(sweatEvapR) + ' g per h', {});
+        svg!.appendChild(el('rect', { x: 160, y: 269, width: 8, height: 8, fill: ORANGE }));
+        txt(172, 277, 'dripped (assumed) ' + n0(sweatDrip) + ' g per h', {});
+      }
+
+      // ---- status line
+      const cTxt = c.toFixed(2);
+      let msg: string;
+      if (ereq <= 0) {
+        msg = 'In this sketch, the heat made is carried away by dry loss alone, so no evaporation is required, storage is 0 W and body temperature holds steady while the sliders stay fixed.';
+      } else if (comp) {
+        msg = 'In this sketch, the air can take up the ' + n0(ereq) + ' W that is required (E_max is ' + n0(emax) + ' W), so evaporation equals E_req and all of the ' + n0(sweatReq) + ' g per h of sweat evaporates. Storage is 0 W: body temperature holds steady, the compensable case, but only while heat production, E_max and skin blood flow stay fixed.';
+      } else {
+        msg = 'In this sketch, E_req (' + n0(ereq) + ' W) exceeds E_max (' + n0(emax) + ' W), so evaporation is capped at ' + n0(emax) + ' W and ' + n0(s) + ' W is stored: body temperature rises ' + riseTxt + ' °C per h with a specific heat of ' + cTxt + ' kJ per kg per °C. Sweating harder adds dripping, not cooling. Balance returns only with less heat production, more dry loss or drier air. A lower specific heat means the same stored heat raises body temperature faster. This is the sketch’s arithmetic only; it predicts no real person.' + (rise > 5 ? ' The rate is far outside the lesson’s example.' : '');
+      }
+      why!.textContent = msg;
+    }
+    [mIn, dIn, eIn].forEach((x) => x.addEventListener('input', render));
+    cIns.forEach((x) => x.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .hhb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hhb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .hhb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hhb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hhb-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .hhb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hhb-slabel small, .hhb-radio small { font-size: inherit; color: var(--ddp-color-muted); }
+  .hhb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .hhb-slabel input { accent-color: var(--ddp-color-accent); }
+  .hhb-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.2rem 0.6rem 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hhb-fs legend { padding: 0 0.3rem; }
+  .hhb-radio { display: flex; align-items: center; gap: 0.35rem; margin-top: 0.15rem; }
+  .hhb-radio input { accent-color: var(--ddp-color-accent); }
+  .hhb-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .hhb-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .hhb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hhb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .hhb-arith { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.4; overflow-wrap: anywhere; }
+  .hhb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .hhb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .hhb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) {
+    .hhb-controls, .hhb-readout { grid-template-columns: 1fr; }
+  }
+</style>

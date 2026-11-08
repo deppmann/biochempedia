@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CuriosityRouter from '../components/CuriosityRouter.astro';
+---
+
+<!-- A test page for the curiosity router: not in the sitemap, not indexed. The box stays
+     invisible until the Worker says the router is switched on (ROUTER_ENABLED=1). -->
+<BaseLayout
+  title="What are you curious about? — Biochemistrypedia"
+  description="Type what you are curious about and get three lessons to start with."
+  noindex
+>
+  <section class="wrap curious-page">
+    <p class="eyebrow"><a href="/courses/">All courses</a> · suggestions</p>
+    <h1>Find a lesson to start with</h1>
+    <p class="lede">Tell us what you want to understand. We will point you to three lessons here. We will not answer the question for you; the lessons do that.</p>
+    <CuriosityRouter />
+    <noscript><p class="lede">The suggestion box needs JavaScript. <a href="/search/">Search every lesson</a> or <a href="/paths/">choose a path</a> instead.</p></noscript>
+  </section>
+
+  <style>
+    .curious-page { padding-block: var(--ddp-space-8) var(--ddp-space-16); display: flex; flex-direction: column; gap: var(--ddp-space-3); min-height: 50vh; }
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0; }
+    .eyebrow a { color: inherit; text-underline-offset: 3px; }
+    h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
+    .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 60ch; margin: 0 0 var(--ddp-space-4); }
+  </style>
+</BaseLayout>

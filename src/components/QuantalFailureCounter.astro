@@ -1,0 +1,208 @@
+---
+/**
+ * QuantalFailureCounter — del Castillo and Katz's quantal analysis as a sketch. 200 stimuli are
+ * drawn from a Poisson distribution of quantal content m; each response is k quanta of size q.
+ * The histogram puts observed counts beside the expected 200 x P(k), and two readouts estimate m:
+ * direct (mean EPP / q) and the failure method (-ln of the failure fraction). Original.
+ */
+---
+
+<figure class="qf card" data-qfc>
+  <figcaption class="qf-head">Counting quanta — direct and failure estimates of quantal content<span class="qf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="qf-svg" viewBox="0 0 340 250" role="img" aria-label="Histogram of 200 simulated endplate potential amplitudes at multiples of the quantal size, observed counts beside the counts expected from a Poisson distribution" data-plot></svg>
+
+  <div class="qf-controls">
+    <label class="qf-slabel"><span>Mean quantal content m <em data-out="m">1.0</em> quanta</span>
+      <input type="range" data-in="m" min="0.1" max="3" step="0.1" value="1" />
+    </label>
+    <label class="qf-slabel"><span>Quantal size q <em data-out="q">0.40</em> mV</span>
+      <input type="range" data-in="q" min="0.2" max="0.6" step="0.02" value="0.4" />
+    </label>
+  </div>
+  <div class="qf-btns">
+    <button type="button" class="qf-btn" data-resample>Resample 200 stimuli</button>
+    <button type="button" class="qf-btn qf-btn2" data-recording>Load the lesson’s made-up example</button>
+  </div>
+
+  <dl class="qf-readout">
+    <div><dt>Direct: m = mean EPP / q</dt><dd data-r-direct>—</dd></div>
+    <div><dt>Failure method: m = −ln(failures / 200)</dt><dd data-r-fail>—</dd></div>
+  </dl>
+  <dl class="qf-readout qf-readout3">
+    <div><dt>0 quanta (failures): observed | expected</dt><dd data-r-k0>—</dd></div>
+    <div><dt>1 quantum: observed | expected</dt><dd data-r-k1>—</dd></div>
+    <div><dt>2 quanta: observed | expected</dt><dd data-r-k2>—</dd></div>
+  </dl>
+  <p class="qf-avg" data-avg>—</p>
+  <p class="qf-why" data-why role="status">Press Resample to draw 200 stimuli.</p>
+
+  <p class="qf-assume">In this sketch: Poisson release from many independent low-probability sites, fixed q with no spread, linear summation, a frog junction in low calcium and high magnesium, made-up numbers. Normal-calcium release and the safety factor are not modelled.</p>
+  <p class="qf-foot">Rule to keep: m counts quanta, so it is the same whether q is large or small. Estimate it from the mean EPP divided by q, or from the failures as −ln(failures / trials); the two agree when the Poisson model holds and release is low.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const N = 200, KMAX = 10, MV_MAX = 6;
+  // The lesson's worked problem: 74 failures, about 74 with one quantum, about 37 with two.
+  // The counts for 3, 4 and 5 quanta are filler chosen so the mean is 1.00 quantum (0.40 mV).
+  const RECORDING_COUNTS = [74, 74, 37, 10, 3, 2];
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function poissonSample(m: number): number {
+    const L = Math.exp(-m);
+    let k = 0, p = 1;
+    do { k++; p *= Math.random(); } while (p > L);
+    return k - 1;
+  }
+  function pk(m: number, k: number): number {
+    let f = 1;
+    for (let i = 2; i <= k; i++) f *= i;
+    return Math.exp(-m) * Math.pow(m, k) / f;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-qfc]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const mIn = root.querySelector<HTMLInputElement>('[data-in="m"]')!;
+    const qIn = root.querySelector<HTMLInputElement>('[data-in="q"]')!;
+    const mOut = o('[data-out="m"]'), qOut = o('[data-out="q"]');
+    const rDirect = o('[data-r-direct]'), rFail = o('[data-r-fail]');
+    const rK = [o('[data-r-k0]'), o('[data-r-k1]'), o('[data-r-k2]')];
+    const avg = o('[data-avg]'), why = o('[data-why]');
+
+    let ks: number[] = [];
+    let source: 'sample' | 'recording' = 'sample';
+    let lastChange: 'sample' | 'q' | 'recording' = 'sample';
+    let sumD = 0, sumF = 0, nD = 0, nF = 0;
+
+    const X0 = 40, X1 = 330, Y0 = 24, Y1 = 186;
+    const px = (mv: number) => X0 + (mv / MV_MAX) * (X1 - X0);
+
+    function resetAvg() { sumD = 0; sumF = 0; nD = 0; nF = 0; }
+    function tally() {
+      const f = ks.filter((k) => k === 0).length;
+      sumD += ks.reduce((a, b) => a + b, 0) / N; nD++;
+      if (f > 0) { sumF += -Math.log(f / N); nF++; }
+    }
+    function draw(): void {
+      const m = parseFloat(mIn.value), qv = parseFloat(qIn.value);
+      const counts = new Array(KMAX + 1).fill(0);
+      let beyond = 0;
+      ks.forEach((k) => { if (k <= KMAX) counts[k]++; else beyond++; });
+      const mExp = counts.map((_, k) => N * pk(m, k));
+      const top = Math.max(...counts, ...mExp);
+      const ymax = top <= 20 ? 20 : top <= 40 ? 40 : top <= 60 ? 60 : top <= 80 ? 80 : 100;
+      const py = (c: number) => Y1 - (c / ymax) * (Y1 - Y0);
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const c of [0, ymax / 2, ymax]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(c), x2: X1, y2: py(c), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        const t = el('text', { x: X0 - 4, y: py(c) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); t.textContent = String(c); plot.appendChild(t);
+      }
+      const yl = el('text', { x: X0 - 2, y: Y0 - 10, 'text-anchor': 'start', 'font-size': 9, fill: INK }); yl.textContent = 'number of stimuli (of 200)'; plot.appendChild(yl);
+      for (let mv = 0; mv <= MV_MAX; mv++) {
+        plot.appendChild(el('line', { x1: px(mv), y1: Y1, x2: px(mv), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: px(mv), y: Y1 + 27, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); t.textContent = String(mv); plot.appendChild(t);
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 41, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); xl.textContent = 'EPP amplitude (mV); peaks at 0, q, 2q, 3q…'; plot.appendChild(xl);
+      const bw = 0.09 * (X1 - X0) / MV_MAX;
+      for (let k = 0; k <= KMAX; k++) {
+        const mv = k * qv, cx = px(mv);
+        if (mv > MV_MAX + 0.001) continue;
+        if (counts[k] > 0) plot.appendChild(el('rect', { x: cx - bw, y: py(counts[k]), width: bw, height: Y1 - py(counts[k]), fill: ACCENT }));
+        plot.appendChild(el('rect', { x: cx, y: py(mExp[k]), width: bw, height: Math.max(0, Y1 - py(mExp[k])), fill: ORANGE, 'fill-opacity': 0.75 }));
+        if (k <= 5) {
+          const t = el('text', { x: cx, y: Y1 + 15, 'text-anchor': 'middle', 'font-size': 9, fill: INK, 'font-weight': 700 }); t.textContent = String(k); plot.appendChild(t);
+        }
+      }
+      const lt = el('text', { x: X0 - 8, y: Y1 + 15, 'text-anchor': 'end', 'font-size': 9, fill: INK }); lt.textContent = 'k ='; plot.appendChild(lt);
+      // legend, top right
+      const LX = X1 - 135, LY = Y0 + 2;
+      plot.appendChild(el('rect', { x: LX, y: LY, width: 8, height: 8, fill: ACCENT }));
+      const lines1 = source === 'recording' ? ['recording (made up;', 'only the 74 failures are', 'from the lesson)'] : ['observed (sample)'];
+      lines1.forEach((ln, i) => { const l1 = el('text', { x: LX + 12, y: LY + 8 + i * 11.5, 'font-size': 9, fill: INK }); l1.textContent = ln; plot.appendChild(l1); });
+      const EY = LY + 4 + lines1.length * 11.5;
+      plot.appendChild(el('rect', { x: LX, y: EY, width: 8, height: 8, fill: ORANGE, 'fill-opacity': 0.75 }));
+      const l2 = el('text', { x: LX + 12, y: EY + 8, 'font-size': 9, fill: INK }); l2.textContent = 'expected, 200 × P(k)'; plot.appendChild(l2);
+
+      // readouts
+      const f = counts[0];
+      const meanK = ks.reduce((a, b) => a + b, 0) / N;
+      const meanEpp = meanK * qv;
+      const direct = meanEpp / qv;
+      rDirect.textContent = `${meanEpp.toFixed(2)} mV / ${qv.toFixed(2)} mV = ${direct.toFixed(2)} quanta`;
+      rFail.textContent = f > 0 ? `−ln(${f}/${N}) = −ln(${(f / N).toFixed(2)}) = ${(-Math.log(f / N)).toFixed(2)} quanta` : 'not available (no failures)';
+      for (let k = 0; k < 3; k++) rK[k].textContent = `${counts[k]} | ${mExp[k].toFixed(1)}`;
+      avg.textContent = source === 'recording'
+        ? 'Average over resamples: press Resample to start. The recording is one made-up data set.'
+        : `Average over ${nD} sample${nD === 1 ? '' : 's'} at m = ${m.toFixed(1)}: direct ${(sumD / nD).toFixed(2)}` +
+          (nF > 0 ? `; failure method ${(sumF / nF).toFixed(2)} (${nF} sample${nF === 1 ? '' : 's'} with at least one failure).` : '; failure method has no sample with a failure yet.');
+
+      // status line
+      const parts: string[] = [];
+      if (source === 'recording') {
+        parts.push(`The lesson’s made-up example, in this sketch: ${f} of ${N} stimuli gave no response, the mean EPP is ${meanEpp.toFixed(2)} mV and q is ${qv.toFixed(2)} mV. Direct method ${direct.toFixed(2)}; failure method −ln(${f}/${N}) = ${(-Math.log(f / N)).toFixed(2)}. Only the 74 failures, the 0.40 mV mean EPP and the predicted 74 and 37 come from the lesson; the other counts are invented in this sketch to make the mean 1.00, so the agreement here is built in and tests nothing. At m = 1.0 the model expects P(0) = P(1) = 0.368, about 74 trials each, and P(2) = 0.184, about 37.`);
+        if (Math.abs(qv - 0.4) > 0.005) parts.push(`You have changed q from the recording’s 0.40 mV, so the mean EPP is rescaled.`);
+      } else {
+        parts.push(`In this sketch, 200 stimuli at m = ${m.toFixed(1)}: ${f} gave no response (expected about ${mExp[0].toFixed(0)}), direct estimate ${direct.toFixed(2)}.`);
+        if (f === 0) parts.push(`There were no failures in 200 trials, so the failure method cannot estimate m from this sample; −ln of a zero count is undefined.`);
+        else if (f === N) parts.push(`Every stimulus failed, so both estimates are 0 for this sample.`);
+        else parts.push(`Failure method ${(-Math.log(f / N)).toFixed(2)}. The two estimates differ by chance, and each is an estimate of the m you set.`);
+        if (m >= 2.5) parts.push(`At high m failures are rare, which is why the lesson uses the failure method only when release is low.`);
+        else if (m <= 0.15) parts.push(`At low m most stimuli fail and the few responses are mostly one quantum.`);
+      }
+      if (lastChange === 'q') parts.push(`Changing q moved the peaks along the voltage axis but did not change m, which counts quanta. Small q with normal m would suggest a postsynaptic change, low m with normal q a presynaptic one; miniature size depends on vesicle filling as well as receptors, so a receptor count is still needed.`);
+      if (beyond > 0) parts.push(`${beyond} stimuli released more than ${KMAX} quanta and are not drawn.`);
+      why.textContent = parts.join(' ');
+    }
+    function resample() {
+      const m = parseFloat(mIn.value);
+      ks = Array.from({ length: N }, () => poissonSample(m));
+      source = 'sample'; lastChange = 'sample';
+      tally(); draw();
+    }
+    function loadRecording() {
+      ks = [];
+      RECORDING_COUNTS.forEach((c, k) => { for (let i = 0; i < c; i++) ks.push(k); });
+      mIn.value = '1'; qIn.value = '0.4'; mOut.textContent = '1.0'; qOut.textContent = '0.40';
+      source = 'recording'; lastChange = 'recording'; resetAvg(); draw();
+    }
+    mIn.addEventListener('input', () => { mOut.textContent = parseFloat(mIn.value).toFixed(1); resetAvg(); resample(); });
+    qIn.addEventListener('input', () => { qOut.textContent = parseFloat(qIn.value).toFixed(2); lastChange = 'q'; draw(); });
+    o('[data-resample]').addEventListener('click', () => { if (source === 'recording') resetAvg(); resample(); });
+    o('[data-recording]').addEventListener('click', loadRecording);
+    resample();
+  });
+</script>
+
+<style>
+  .qf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .qf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .qf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .qf-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .qf-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .qf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .qf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .qf-slabel input { accent-color: var(--ddp-color-accent); }
+  .qf-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .qf-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.35rem 0.7rem; border-radius: 6px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; cursor: pointer; }
+  .qf-btn2 { background: transparent; color: var(--ddp-color-accent); }
+  .qf-btn:focus-visible { outline: 2px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .qf-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .qf-readout3 { grid-template-columns: 1fr 1fr 1fr; }
+  .qf-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .qf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .qf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .qf-avg { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); }
+  .qf-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .qf-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .qf-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .qf-readout3 { grid-template-columns: 1fr; } .qf-readout { grid-template-columns: 1fr; } }
+</style>

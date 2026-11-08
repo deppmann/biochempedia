@@ -1,0 +1,355 @@
+---
+/**
+ * HarveyCardiacOutput — follow one portion of blood through the mammalian heart, valve by valve,
+ * and redo Harvey's arithmetic. A schematic heart (four labelled boxes, vessels as bars with
+ * arrowheads, the animal's right drawn on the viewer's left) with a Step button that moves a blood
+ * dot along the lesson's route; three sliders (heart rate, end-diastolic volume, end-systolic
+ * volume) feed the lesson's three equations and Harvey's comparison with 5.0 L of blood.
+ * Nothing is drawn as anatomy; every sentence is a statement of the circulation-and-heart lesson.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="hv card" data-harvey data-step="0">
+  <figcaption class="hv-head">Harvey's arithmetic: blood through the heart and cardiac output<span class="hv-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="hv-svg" viewBox="0 0 360 318" role="img" aria-label="A schematic mammalian heart: four labelled boxes (right atrium, right ventricle, left atrium, left ventricle) joined by arrows, with the venae cavae entering the right atrium, the pulmonary trunk going to the lungs, the pulmonary veins returning to the left atrium, and the aorta going to the body. The animal's right is drawn on the viewer's left." data-stage>
+    <!-- side labels -->
+    <text x="6" y="12" font-size="9" fill="#4b4b55" font-weight="700">animal's right</text>
+    <text x="354" y="12" font-size="9" fill="#4b4b55" font-weight="700" text-anchor="end">animal's left</text>
+
+    <!-- lungs and body -->
+    <g class="hv-seg" data-seg="lungs">
+      <rect class="hv-box hv-mid" x="134" y="12" width="104" height="34" rx="4" />
+      <text x="194" y="33" font-size="10" font-weight="700" fill="#2b2b33" text-anchor="middle">lungs</text>
+    </g>
+    <g class="hv-seg" data-seg="body">
+      <rect class="hv-box hv-mid" x="14" y="262" width="332" height="34" rx="4" />
+      <text x="200" y="283" font-size="10" font-weight="700" fill="#2b2b33" text-anchor="middle">body</text>
+    </g>
+
+    <!-- chambers -->
+    <g class="hv-seg" data-seg="ra">
+      <rect class="hv-box hv-poor" x="44" y="84" width="96" height="44" rx="4" />
+      <text x="92" y="111" font-size="10" font-weight="700" fill="#1c3f6b" text-anchor="middle">right atrium</text>
+      <text x="92" y="123" font-size="9" fill="#1c3f6b" text-anchor="middle">oxygen-poor</text>
+    </g>
+    <g class="hv-seg" data-seg="rv">
+      <rect class="hv-box hv-poor" x="44" y="160" width="96" height="44" rx="4" />
+      <text x="92" y="187" font-size="10" font-weight="700" fill="#1c3f6b" text-anchor="middle">right ventricle</text>
+      <text x="92" y="199" font-size="9" fill="#1c3f6b" text-anchor="middle">oxygen-poor</text>
+    </g>
+    <g class="hv-seg" data-seg="la">
+      <rect class="hv-box hv-rich" x="232" y="84" width="96" height="44" rx="4" />
+      <text x="280" y="111" font-size="10" font-weight="700" fill="#7a2018" text-anchor="middle">left atrium</text>
+      <text x="280" y="123" font-size="9" fill="#7a2018" text-anchor="middle">oxygen-rich</text>
+    </g>
+    <g class="hv-seg" data-seg="lv">
+      <rect class="hv-box hv-rich" x="232" y="160" width="96" height="44" rx="4" />
+      <text x="280" y="187" font-size="10" font-weight="700" fill="#7a2018" text-anchor="middle">left ventricle</text>
+      <text x="280" y="199" font-size="9" fill="#7a2018" text-anchor="middle">oxygen-rich</text>
+    </g>
+
+    <!-- vessels and valves -->
+    <g class="hv-seg hv-vessel hv-poor" data-seg="cavae">
+      <path d="M20 262 V106 H38" />
+      <polygon points="44,106 36,100 36,112" />
+    </g>
+    <text x="28" y="236" font-size="9" fill="#1c3f6b">venae cavae</text>
+
+    <g class="hv-seg hv-vessel hv-poor" data-seg="tri">
+      <path d="M92 130 V152" />
+      <polygon points="92,159 86,151 98,151" />
+      <rect class="hv-valve" x="84" y="138" width="16" height="4" />
+    </g>
+    <text x="104" y="141" font-size="9" fill="#2b2b33">tricuspid</text>
+    <text x="104" y="152" font-size="9" fill="#2b2b33">valve</text>
+
+    <g class="hv-seg hv-vessel hv-poor" data-seg="pulv">
+      <path d="M140 182 H159" />
+      <rect class="hv-valve" x="145" y="175" width="4" height="14" />
+    </g>
+    <text x="146" y="198" font-size="9" fill="#2b2b33">pulmonary valve</text>
+
+    <g class="hv-seg hv-vessel hv-poor" data-seg="trunk">
+      <path d="M156 185 V56" />
+      <polygon points="156,47 150,56 162,56" />
+    </g>
+    <text x="148" y="62" font-size="9" fill="#1c3f6b" text-anchor="end">pulmonary trunk</text>
+    <text x="148" y="73" font-size="9" fill="#1c3f6b" text-anchor="end">and arteries</text>
+
+    <g class="hv-seg hv-vessel hv-rich" data-seg="pveins">
+      <path d="M216 49 V106 H226" />
+      <polygon points="232,106 224,100 224,112" />
+    </g>
+    <text x="222" y="66" font-size="9" fill="#7a2018">pulmonary veins</text>
+
+    <g class="hv-seg hv-vessel hv-rich" data-seg="mitral">
+      <path d="M280 130 V152" />
+      <polygon points="280,159 274,151 286,151" />
+      <rect class="hv-valve" x="272" y="138" width="16" height="4" />
+    </g>
+    <text x="292" y="146" font-size="9" fill="#2b2b33">mitral valve</text>
+
+    <g class="hv-seg hv-vessel hv-rich" data-seg="aortic">
+      <path d="M300 204 V226" />
+      <rect class="hv-valve" x="292" y="212" width="16" height="4" />
+    </g>
+    <text x="289" y="219" font-size="9" fill="#2b2b33" text-anchor="end">aortic valve</text>
+
+    <g class="hv-seg hv-vessel hv-rich" data-seg="aorta">
+      <path d="M300 224 V254" />
+      <polygon points="300,261 294,253 306,253" />
+    </g>
+    <text x="289" y="246" font-size="9" fill="#7a2018" text-anchor="end">aorta</text>
+
+    <!-- blood dot -->
+    <circle class="hv-dot" data-dot cx="0" cy="0" r="6" style="opacity:0" />
+
+    <!-- legend -->
+    <rect x="14" y="304" width="10" height="9" fill="#cfe0f3" stroke="#3b6ea8" />
+    <text x="29" y="312" font-size="9" fill="#4b4b55">oxygen-poor</text>
+    <rect x="102" y="304" width="10" height="9" fill="#f5d0cb" stroke="#b5382c" />
+    <text x="117" y="312" font-size="9" fill="#4b4b55">oxygen-rich</text>
+    <text x="346" y="312" font-size="9" fill="#4b4b55" text-anchor="end">schematic boxes, not anatomy</text>
+  </svg>
+
+  <div class="hv-steprow">
+    <button type="button" class="hv-btn" data-step-btn>Step</button>
+    <span class="hv-stepname" data-step-name>Step 0 of 14: press Step to start at the venae cavae</span>
+  </div>
+
+  <div class="hv-status" role="status">
+    <p class="hv-s1" data-s-step></p>
+    <p class="hv-s2" data-s-series></p>
+    <p class="hv-s3" data-s-num></p>
+  </div>
+
+  <svg class="hv-vol" viewBox="0 0 360 52" role="img" aria-label="One ventricle's volume to scale from 0 to 200 millilitres: the volume left after ejection (end-systolic) and the volume ejected (stroke volume) together make the end-diastolic volume" data-vol></svg>
+
+  <div class="hv-controls">
+    <label class="hv-slabel"><span>Heart rate <em data-out="hr">75</em> beats per min</span>
+      <input type="range" data-in="hr" min="50" max="100" step="1" value="75" />
+    </label>
+    <label class="hv-slabel"><span>End-diastolic volume (EDV) <em data-out="edv">120</em> mL</span>
+      <input type="range" data-in="edv" min="90" max="160" step="1" value="120" />
+    </label>
+    <label class="hv-slabel"><span>End-systolic volume (ESV) <em data-out="esv">50</em> mL <small data-guard>held at least 10 mL below EDV</small></span>
+      <input type="range" data-in="esv" min="30" max="100" step="1" value="50" />
+    </label>
+  </div>
+
+  <dl class="hv-readout">
+    <div><dt>Stroke volume = EDV - ESV</dt><dd data-r="sv"></dd></div>
+    <div><dt>Cardiac output = heart rate x stroke volume</dt><dd data-r="co"></dd></div>
+    <div><dt>Ejection fraction = stroke volume / EDV</dt><dd data-r="ef"></dd></div>
+    <div><dt>Time for 5.0 L of blood to pass one side of the heart</dt><dd data-r="pass"></dd></div>
+    <div><dt>In half an hour (30 min)</dt><dd data-r="half"></dd></div>
+    <div><dt>In a day (1,440 min)</dt><dd data-r="day"></dd></div>
+  </dl>
+
+  <p class="hv-assume">In this sketch: adult human at rest, steady state, illustrative numbers, 5.0 L of blood in the body, one ventricle's output; slider ends go beyond the lesson's worked values and are not data; boxes and arrows are a schematic, not anatomy.</p>
+  <p class="hv-foot">The rule to keep: stroke volume = EDV - ESV, cardiac output = heart rate x stroke volume, and because the left and right ventricles pump in series their outputs are equal over time, so one ventricle's output is the figure to use and the two are never added.</p>
+</figure>
+
+<script>
+  type Shade = 'poor' | 'rich' | 'mid';
+  interface Stop { id: string; label: string; x: number; y: number; shade: Shade; text: string }
+  const VALVE = " Each valve opens when pressure behind it exceeds pressure ahead, and closes when that reverses.";
+  const STOPS: Stop[] = [
+    { id: 'cavae', label: 'venae cavae', x: 20, y: 180, shade: 'poor',
+      text: "The superior and inferior venae cavae bring oxygen-poor blood from the body to the right atrium. A vein carries blood toward the heart, whatever its oxygen content." },
+    { id: 'ra', label: 'right atrium', x: 92, y: 95, shade: 'poor',
+      text: "The oxygen-poor blood is in the right atrium, on the animal's right." },
+    { id: 'tri', label: 'tricuspid valve', x: 92, y: 144, shade: 'poor',
+      text: "It passes the tricuspid valve into the right ventricle." + VALVE },
+    { id: 'rv', label: 'right ventricle', x: 92, y: 171, shade: 'poor',
+      text: "The oxygen-poor blood is in the right ventricle." },
+    { id: 'pulv', label: 'pulmonary valve', x: 148, y: 182, shade: 'poor',
+      text: "The right ventricle pushes it through the pulmonary valve into the pulmonary trunk and arteries, to the lungs." },
+    { id: 'trunk', label: 'pulmonary trunk and arteries', x: 156, y: 112, shade: 'poor',
+      text: "The pulmonary trunk and arteries carry the blood to the lungs. An artery carries blood away from the heart, whatever its oxygen content, so the pulmonary artery carries oxygen-poor blood." },
+    { id: 'lungs', label: 'lungs', x: 150, y: 29, shade: 'mid',
+      text: "The right side of the heart sends blood to the lungs. What comes back by the pulmonary veins is oxygen-rich blood." },
+    { id: 'pveins', label: 'pulmonary veins', x: 216, y: 82, shade: 'rich',
+      text: "The pulmonary veins return oxygen-rich blood to the left atrium, so the pulmonary veins carry oxygen-rich blood." },
+    { id: 'la', label: 'left atrium', x: 280, y: 95, shade: 'rich',
+      text: "The oxygen-rich blood is in the left atrium, on the animal's left." },
+    { id: 'mitral', label: 'mitral valve', x: 280, y: 144, shade: 'rich',
+      text: "It passes the mitral valve into the left ventricle." + VALVE },
+    { id: 'lv', label: 'left ventricle', x: 280, y: 171, shade: 'rich',
+      text: "The oxygen-rich blood is in the left ventricle." },
+    { id: 'aortic', label: 'aortic valve', x: 300, y: 214, shade: 'rich',
+      text: "The left ventricle pushes it through the aortic valve into the aorta." },
+    { id: 'aorta', label: 'aorta', x: 300, y: 242, shade: 'rich',
+      text: "The aorta takes the oxygen-rich blood on to the body." },
+    { id: 'body', label: 'body', x: 120, y: 279, shade: 'mid',
+      text: "The left side of the heart sends blood to the body. Blood leaves the body's tissues and returns by veins, so the next step brings it back to the venae cavae and round again." },
+  ];
+  const DOT_FILL: Record<Shade, string> = { poor: '#7aa7d6', rich: '#d9534a', mid: '#9a86b8' };
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55';
+  const fmt = (n: number, d = 2) => n.toLocaleString('en-US', { maximumFractionDigits: d });
+
+  document.querySelectorAll<HTMLElement>('[data-harvey]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const hrIn = q<HTMLInputElement>('[data-in="hr"]');
+    const edvIn = q<HTMLInputElement>('[data-in="edv"]');
+    const esvIn = q<HTMLInputElement>('[data-in="esv"]');
+    const hrOut = q<HTMLElement>('[data-out="hr"]');
+    const edvOut = q<HTMLElement>('[data-out="edv"]');
+    const esvOut = q<HTMLElement>('[data-out="esv"]');
+    const guard = q<HTMLElement>('[data-guard]');
+    const btn = q<HTMLButtonElement>('[data-step-btn]');
+    const stepName = q<HTMLElement>('[data-step-name]');
+    const sStep = q<HTMLElement>('[data-s-step]');
+    const sSeries = q<HTMLElement>('[data-s-series]');
+    const sNum = q<HTMLElement>('[data-s-num]');
+    const dot = q<SVGCircleElement>('[data-dot]');
+    const vol = q<SVGSVGElement>('[data-vol]');
+    const rSv = q<HTMLElement>('[data-r="sv"]');
+    const rCo = q<HTMLElement>('[data-r="co"]');
+    const rEf = q<HTMLElement>('[data-r="ef"]');
+    const rPass = q<HTMLElement>('[data-r="pass"]');
+    const rHalf = q<HTMLElement>('[data-r="half"]');
+    const rDay = q<HTMLElement>('[data-r="day"]');
+    if (!hrIn || !edvIn || !esvIn || !hrOut || !edvOut || !esvOut || !guard || !btn || !stepName ||
+        !sStep || !sSeries || !sNum || !dot || !vol || !rSv || !rCo || !rEf || !rPass || !rHalf || !rDay) return;
+
+    let step = 0; // 0 = not started; 1..14 = stops on the lesson's route
+    let clamped = false;
+
+    function svgEl(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+      const e = document.createElementNS(NS, name);
+      for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+      if (text !== undefined) e.textContent = text;
+      return e;
+    }
+
+    function drawVolumes(edv: number, esv: number, sv: number) {
+      const X0 = 10, K = 1.4; // 0 to 200 mL across 280 units
+      vol!.replaceChildren();
+      vol!.appendChild(svgEl('rect', { x: X0, y: 18, width: 200 * K, height: 14, fill: '#f4f4f7', stroke: '#d4d4dc', 'stroke-width': 1 }));
+      vol!.appendChild(svgEl('rect', { x: X0, y: 18, width: esv * K, height: 14, fill: '#9a9aa6' }));
+      vol!.appendChild(svgEl('rect', { x: X0 + esv * K, y: 18, width: sv * K, height: 14, fill: '#0e7c86' }));
+      vol!.appendChild(svgEl('text', { x: X0, y: 13, 'font-size': 9, fill: INK }, `ESV ${esv} mL left after ejection`));
+      const mid = Math.min(Math.max(X0 + (esv + sv / 2) * K, 75), 262);
+      vol!.appendChild(svgEl('text', { x: mid, y: 45, 'font-size': 9, 'text-anchor': 'middle', fill: '#0e7c86', 'font-weight': 700 }, `stroke volume ${sv} mL ejected`));
+      vol!.appendChild(svgEl('text', { x: X0 + edv * K + 6, y: 29, 'font-size': 9, fill: INK }, `EDV ${edv} mL`));
+      vol!.appendChild(svgEl('text', { x: 350, y: 13, 'font-size': 9, 'text-anchor': 'end', fill: INK }, "scale 0 to 200 mL"));
+    }
+
+    function place() {
+      root.dataset.step = String(step);
+      root.querySelectorAll<SVGElement>('[data-seg]').forEach((g) => {
+        g.classList.toggle('hv-on', step > 0 && g.getAttribute('data-seg') === STOPS[step - 1].id);
+      });
+      if (step === 0) {
+        dot!.style.opacity = '0';
+        delete dot!.dataset.pos;
+        stepName!.textContent = "Step 0 of 14: press Step to start at the venae cavae";
+        sStep!.textContent = "Press Step to follow one portion of blood along the lesson's route, from the venae cavae to the body. Right and left mean the animal's right and left, as drawn: the animal's right is on the viewer's left.";
+        return;
+      }
+      const s = STOPS[step - 1];
+      dot!.dataset.pos = s.id;
+      if (dot!.style.opacity !== '1') { dot!.style.transition = 'none'; dot!.style.transform = `translate(${s.x}px, ${s.y}px)`; void dot!.getBoundingClientRect(); dot!.style.transition = ''; }
+      dot!.style.opacity = '1';
+      dot!.style.transform = `translate(${s.x}px, ${s.y}px)`;
+      dot!.style.fill = DOT_FILL[s.shade];
+      stepName!.textContent = `Step ${step} of 14: ${s.label}`;
+      sStep!.textContent = s.text;
+    }
+
+    function compute() {
+      const hr = parseInt(hrIn!.value, 10);
+      const edv = parseInt(edvIn!.value, 10);
+      let esv = parseInt(esvIn!.value, 10);
+      clamped = false;
+      if (esv > edv - 10) { esv = edv - 10; esvIn!.value = String(esv); clamped = true; }
+      const sv = edv - esv;
+      const co = hr * sv;                 // mL per min
+      const coL = co / 1000;              // L per min
+      const ef = sv / edv;
+      const passMin = 5.0 / coL;
+      const passSec = passMin * 60;
+      const half = coL * 30;
+      const mult = half / 5.0;
+      const day = coL * 1440;
+
+      hrOut!.textContent = String(hr);
+      edvOut!.textContent = String(edv);
+      esvOut!.textContent = String(esv);
+      guard!.textContent = clamped
+        ? `limited to EDV - 10 mL = ${edv - 10} mL`
+        : (esv === edv - 10 ? "at its limit: EDV - 10 mL" : "held at least 10 mL below EDV");
+
+      rSv!.textContent = `${edv} - ${esv} = ${sv} mL per beat`;
+      rCo!.textContent = `${hr} x ${sv} = ${fmt(co, 0)} mL per min = ${fmt(coL, 3)} L per min`;
+      rEf!.textContent = `${sv} / ${edv} = ${(ef).toFixed(3)}, or ${(ef * 100).toFixed(1)}%`;
+      rPass!.textContent = `5.0 / ${fmt(coL, 3)} = ${passMin.toFixed(2)} min, about ${fmt(Math.round(passSec), 0)} s`;
+      rHalf!.textContent = `${fmt(coL, 3)} x 30 = ${fmt(half, 2)} L, ${fmt(mult, 1)} times the body's 5.0 L`;
+      rDay!.textContent = `${fmt(coL, 3)} x 1,440 = ${fmt(day, 2)} L`;
+
+      drawVolumes(edv, esv, sv);
+
+      sSeries!.textContent = "The cardiac output shown is the output of one ventricle: the left and right ventricles pump in series, so over time their outputs are equal and are not added.";
+
+      let size: string;
+      if (mult > 30) size = `more than 30 times the body's blood`;
+      else if (mult >= 3) size = `several times the body's blood`;
+      else size = `${fmt(mult, 1)} times the body's blood`;
+      let t = `In this sketch (adult human at rest, steady state, illustrative numbers): ${hr} beats per min x ${sv} mL per beat = ${fmt(coL, 3)} L per min, so the whole 5.0 L passes through one side of the heart in about ${fmt(Math.round(passSec), 0)} s, and in half an hour that side pumps ${fmt(half, 2)} L, ${size}.`;
+      if (half / 4 > 5.0) t += " Harvey's conclusion survives even if you halve every number.";
+      else if (half > 5.0) t += " That is still more blood than the body holds at once.";
+      if (clamped) t += ` ESV was limited to ${esv} mL, because it is held at least 10 mL below EDV.`;
+      sNum!.textContent = t;
+    }
+
+    btn.addEventListener('click', () => { step = step >= STOPS.length ? 1 : step + 1; place(); });
+    [hrIn, edvIn, esvIn].forEach((s) => s.addEventListener('input', compute));
+    compute();
+    place();
+  });
+</script>
+
+<style is:global>
+  .hv { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hv-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .hv-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hv-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hv-vol { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto 0; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hv-box { stroke-width: 1.5; }
+  .hv-poor .hv-box, .hv-box.hv-poor { fill: #cfe0f3; stroke: #3b6ea8; }
+  .hv-rich .hv-box, .hv-box.hv-rich { fill: #f5d0cb; stroke: #b5382c; }
+  .hv-box.hv-mid { fill: #eceef2; stroke: #6b6b78; }
+  .hv-vessel path { fill: none; stroke-width: 6; stroke-linejoin: miter; }
+  .hv-vessel.hv-poor path { stroke: #7aa7d6; }
+  .hv-vessel.hv-poor polygon { fill: #7aa7d6; }
+  .hv-vessel.hv-rich path { stroke: #d9534a; }
+  .hv-vessel.hv-rich polygon { fill: #d9534a; }
+  .hv-valve { fill: #2b2b33; }
+  .hv-seg.hv-on .hv-box { stroke: #e57200; stroke-width: 3; }
+  .hv-seg.hv-on path { stroke: #e57200; }
+  .hv-seg.hv-on polygon { fill: #e57200; }
+  .hv-dot { stroke: #2b2b33; stroke-width: 1.5; fill: #7aa7d6; transition: transform 0.45s ease, opacity 0.2s; }
+  @media (prefers-reduced-motion: reduce) { .hv-dot { transition: none; } }
+  .hv-steprow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .hv-btn { font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; padding: 0.35rem 1.1rem; border-radius: 6px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; cursor: pointer; }
+  .hv-btn:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .hv-stepname { font-size: var(--ddp-text-xs); font-family: var(--ddp-font-mono); color: var(--ddp-color-ink-soft); }
+  .hv-status { margin: 0 0 var(--ddp-space-2); }
+  .hv-status p { margin: 0 0 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .hv-s1 { font-weight: 600; color: var(--ddp-color-primary) !important; }
+  .hv-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .hv-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hv-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .hv-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .hv-slabel input { accent-color: var(--ddp-color-accent); }
+  .hv-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .hv-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .hv-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hv-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .hv-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hv-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

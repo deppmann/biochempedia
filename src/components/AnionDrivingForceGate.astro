@@ -1,0 +1,231 @@
+---
+/**
+ * AnionDrivingForceGate — a gate has two ways to fail. One target dorsal-horn neuron
+ * receives one anionic (inhibitory) synapse. The lesson's rule: driving force =
+ * membrane potential minus anion reversal potential. The learner picks which failure
+ * is in play (intact / gatekeeper output removed / reversal potential shifted) and
+ * moves the two voltages; the sign of the driving force says which way the same
+ * synapse pushes. Voltages are illustrative. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="adg card" data-adg>
+  <figcaption class="adg-head">One synapse, two ways to lose inhibition<span class="adg-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="adg-svg" viewBox="0 0 360 250" role="img" aria-label="A target dorsal-horn neuron with one anionic synapse, beside a voltage axis showing membrane potential, anion reversal potential and the driving force between them" data-svg></svg>
+
+  <fieldset class="adg-fail">
+    <legend>Failure to show</legend>
+    <label><input type="radio" name="adg-mode" value="intact" checked /> Intact</label>
+    <label><input type="radio" name="adg-mode" value="removed" /> Gatekeeper output removed</label>
+    <label><input type="radio" name="adg-mode" value="shifted" /> Reversal potential shifted</label>
+  </fieldset>
+
+  <div class="adg-controls">
+    <label class="adg-slabel"><span>Anion reversal potential <em data-out="e">−70</em> mV</span>
+      <input type="range" data-in="e" min="-80" max="-40" step="1" value="-70" />
+    </label>
+    <label class="adg-slabel"><span>Membrane potential <em data-out="v">−65</em> mV</span>
+      <input type="range" data-in="v" min="-75" max="-50" step="1" value="-65" />
+    </label>
+  </div>
+
+  <dl class="adg-readout">
+    <div><dt>Driving force (Vm − reversal)</dt><dd data-r-df>+5 mV</dd></div>
+    <div><dt>Sign</dt><dd data-r-sign>positive</dd></div>
+  </dl>
+
+  <table class="adg-q">
+    <thead><tr><th scope="col">Question</th><th scope="col">What answers it</th><th scope="col">In this state</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1. Is the gatekeeper’s output there?</th><td>A cell count, or evoked inhibitory events</td><td data-q1></td></tr>
+      <tr><th scope="row">2. Which way does that output push?</th><td>The anion reversal potential, by gramicidin-perforated patch</td><td data-q2></td></tr>
+    </tbody>
+  </table>
+
+  <p class="adg-why" data-why role="status"></p>
+  <p class="adg-prep" data-prep></p>
+  <p class="adg-assume"><strong>In this sketch:</strong> one compartment, one anionic synapse, driving force only, no spikes. The voltages are illustrative, not a measured reversal potential.</p>
+  <p class="adg-foot">An inhibitory synapse has no fixed effect: the current depends on the driving force, membrane potential minus anion reversal potential, so a gate can fail because the gatekeeper’s output is gone or because the sign has changed. A cell count answers the first and says nothing about the second.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', ACCENT = '#0e7c86', ORANGE = '#c25e00', RED = '#b3261e';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 10, fill: INK }, extra));
+    t.textContent = s;
+    return t;
+  }
+  const fmt = (n: number) => (n < 0 ? '−' : n > 0 ? '+' : '') + Math.abs(n);
+  const neg = (n: number) => (n < 0 ? '−' : '') + Math.abs(n);
+
+  document.querySelectorAll<HTMLElement>('[data-adg]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]');
+    const eIn = root.querySelector<HTMLInputElement>('[data-in="e"]');
+    const vIn = root.querySelector<HTMLInputElement>('[data-in="v"]');
+    const eOut = root.querySelector<HTMLElement>('[data-out="e"]');
+    const vOut = root.querySelector<HTMLElement>('[data-out="v"]');
+    const rDf = root.querySelector<HTMLElement>('[data-r-df]');
+    const rSign = root.querySelector<HTMLElement>('[data-r-sign]');
+    const q1 = root.querySelector<HTMLElement>('[data-q1]');
+    const q2 = root.querySelector<HTMLElement>('[data-q2]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const prep = root.querySelector<HTMLElement>('[data-prep]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="adg-mode"]'));
+    if (!svg || !eIn || !vIn || !eOut || !vOut || !rDf || !rSign || !q1 || !q2 || !why || !prep || radios.length === 0) return;
+
+    const AX = 222, YTOP = 34, YBOT = 204, VMIN = -80, VMAX = -40;
+    const py = (v: number) => YBOT - ((v - VMIN) / (VMAX - VMIN)) * (YBOT - YTOP);
+    const mode = () => radios.find((r) => r.checked)?.value ?? 'intact';
+
+    function render() {
+      const m = mode();
+      const e = parseInt(eIn!.value, 10), v = parseInt(vIn!.value, 10);
+      const df = v - e;
+      const removed = m === 'removed';
+      eOut!.textContent = neg(e);
+      vOut!.textContent = neg(v);
+      eIn!.disabled = removed;
+      svg!.replaceChildren();
+
+      // --- left: target neuron and synapse ---
+      const pre = el('rect', { x: 10, y: 28, width: 124, height: 38, rx: 5, fill: removed ? '#f2f2f5' : '#e6f3f4', stroke: removed ? FAINT : ACCENT, 'stroke-width': 1.5 });
+      if (removed) pre.setAttribute('stroke-dasharray', '4 3');
+      svg!.appendChild(pre);
+      svg!.appendChild(txt(72, 44, 'gatekeeper', { 'text-anchor': 'middle', 'font-weight': 700, fill: removed ? '#7a7a85' : ACCENT }));
+      svg!.appendChild(txt(72, 58, removed ? 'output removed' : 'inhibitory output', { 'text-anchor': 'middle', fill: removed ? '#7a7a85' : INK, 'font-size': 9 }));
+      if (removed) {
+        svg!.appendChild(txt(72, 86, 'no synapse', { 'text-anchor': 'middle', fill: '#7a7a85', 'font-size': 9 }));
+      } else {
+        svg!.appendChild(el('line', { x1: 72, y1: 66, x2: 72, y2: 100, stroke: ACCENT, 'stroke-width': 2.2 }));
+        svg!.appendChild(el('rect', { x: 62, y: 92, width: 20, height: 8, rx: 2, fill: ACCENT }));
+        svg!.appendChild(txt(88, 84, 'anionic synapse', { 'font-size': 9, fill: INK }));
+      }
+      svg!.appendChild(el('rect', { x: 10, y: 100, width: 124, height: 84, rx: 7, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }));
+      svg!.appendChild(txt(72, 120, 'target dorsal-horn', { 'text-anchor': 'middle', 'font-weight': 700 }));
+      svg!.appendChild(txt(72, 133, 'neuron', { 'text-anchor': 'middle', 'font-weight': 700 }));
+      let effect = '', ecol = INK;
+      if (removed) { effect = 'no synaptic current'; }
+      else if (df > 0) { effect = 'same synapse: inhibits'; ecol = ACCENT; }
+      else if (df < 0) { effect = 'same synapse: depolarizes'; ecol = RED; }
+      else { effect = 'same synapse: no net anion current'; ecol = ORANGE; }
+      svg!.appendChild(txt(72, 158, effect, { 'text-anchor': 'middle', fill: ecol, 'font-size': 9, 'font-weight': 700 }));
+      if (!removed && df > 0) svg!.appendChild(txt(72, 171, '(inhibitory current)', { 'text-anchor': 'middle', fill: ecol, 'font-size': 9, 'font-weight': 700 }));
+      if (!removed && df < 0) svg!.appendChild(txt(72, 171, '(excitatory current)', { 'text-anchor': 'middle', fill: ecol, 'font-size': 9 }));
+
+      // --- voltage axis ---
+      svg!.appendChild(txt(AX, 16, 'mV (illustrative)', { 'text-anchor': 'middle', 'font-size': 9 }));
+      svg!.appendChild(el('line', { x1: AX, y1: YTOP - 6, x2: AX, y2: YBOT + 6, stroke: INK, 'stroke-width': 1 }));
+      for (const t of [-80, -70, -60, -50, -40]) {
+        svg!.appendChild(el('line', { x1: AX - 3, y1: py(t), x2: AX + 3, y2: py(t), stroke: INK, 'stroke-width': 1 }));
+        svg!.appendChild(txt(AX + 7, py(t) + 3, neg(t), { 'font-size': 9, fill: '#6a6a75' }));
+      }
+      // Vm marker: on the right side of the axis, label at far right of its tick
+      svg!.appendChild(el('line', { x1: AX - 14, y1: py(v), x2: AX + 3, y2: py(v), stroke: ACCENT, 'stroke-width': 2.4 }));
+      svg!.appendChild(el('circle', { cx: AX - 14, cy: py(v), r: 3.5, fill: ACCENT }));
+      // labels sit left of the axis: Vm above/below E so they do not collide
+      const vAbove = v >= e || removed;
+      svg!.appendChild(txt(AX - 20, py(v) + (vAbove ? -4 : 12), 'Vm ' + neg(v), { 'text-anchor': 'end', fill: ACCENT, 'font-weight': 700 }));
+      if (!removed) {
+        svg!.appendChild(el('line', { x1: AX - 14, y1: py(e), x2: AX + 3, y2: py(e), stroke: ORANGE, 'stroke-width': 2.4, 'stroke-dasharray': '4 2' }));
+        svg!.appendChild(el('rect', { x: AX - 17.5, y: py(e) - 3.5, width: 7, height: 7, fill: ORANGE, transform: `rotate(45 ${AX - 14} ${py(e)})` }));
+        svg!.appendChild(txt(AX - 20, py(e) + (vAbove ? 12 : -4), 'E anion ' + neg(e), { 'text-anchor': 'end', fill: ORANGE, 'font-weight': 700 }));
+        // driving-force arrow: from the reversal potential to the membrane potential
+        const AXR = 318;
+        svg!.appendChild(el('line', { x1: AX + 3, y1: py(e), x2: AXR + 4, y2: py(e), stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '2 3' }));
+        svg!.appendChild(el('line', { x1: AX + 3, y1: py(v), x2: AXR + 4, y2: py(v), stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '2 3' }));
+        if (df === 0) {
+          svg!.appendChild(el('circle', { cx: AXR, cy: py(v), r: 4, fill: 'none', stroke: ORANGE, 'stroke-width': 2 }));
+        } else {
+          const col = df > 0 ? ACCENT : RED, dir = df > 0 ? -1 : 1; // up on screen when positive
+          const y1 = py(e), y2 = py(v);
+          svg!.appendChild(el('line', { x1: AXR, y1, x2: AXR, y2: y2 - dir * 0, stroke: col, 'stroke-width': 3 }));
+          svg!.appendChild(el('path', { d: `M${AXR - 5} ${y2 - dir * 8} L${AXR} ${y2} L${AXR + 5} ${y2 - dir * 8} Z`, fill: col }));
+        }
+      }
+
+      // --- readouts ---
+      if (removed) {
+        rDf!.textContent = 'not computed';
+        rSign!.textContent = 'none (no synapse)';
+      } else {
+        rDf!.textContent = fmt(df) + ' mV';
+        rSign!.textContent = df > 0 ? 'positive' : df < 0 ? 'negative' : 'zero';
+      }
+      svg!.appendChild(txt(AX + 50, 230, removed ? 'driving force: not computed' : `driving force = ${neg(v)} − (${neg(e)}) = ${fmt(df)} mV`, { 'text-anchor': 'middle', fill: INK, 'font-size': 9, 'font-weight': 700 }));
+      // keep the bottom line inside the frame at any value
+      const last = svg!.lastChild as SVGTextElement;
+      last.setAttribute('x', '236');
+
+      // --- two questions ---
+      if (m === 'removed') {
+        q1!.textContent = 'No. The first kind of failure: the output is gone, so excitation runs unopposed.';
+        q2!.textContent = 'No sign to ask about: there is no synapse, so no driving force is computed.';
+      } else if (m === 'shifted') {
+        q1!.textContent = 'Yes, in this scenario. The lesson’s design problem predicts, for a sign change, stable counts and evoked events that are still present, though their current at a fixed holding potential changes with the driving force; the stable counts were mouse parvalbumin, the chloride route rat.';
+        q2!.textContent = df < 0 ? 'The reversal potential is positive of the membrane potential: the sign has flipped.' : df === 0 ? 'Reversal potential equals the membrane potential: no driving force yet.' : 'Reversal potential still negative of the membrane potential: the sign has not flipped.';
+      } else {
+        q1!.textContent = 'Yes. The gatekeeper and its output are present.';
+        q2!.textContent = df > 0 ? 'Reversal potential negative of the membrane potential: the synapse is inhibitory.' : df === 0 ? 'Reversal potential equals the membrane potential: no driving force, so no net anion current.' : 'Reversal potential positive of the membrane potential, which is the chloride route’s state, not the intact one.';
+      }
+
+      // --- status sentence ---
+      let s = '';
+      if (removed) {
+        s = 'The gatekeeper’s output is removed, so the synapse is not drawn and no driving force is computed. This is the first way a gate can fail: the inhibitory output is lost and excitation runs unopposed. The reversal potential is not the question here.';
+      } else {
+        if (df > 0) s = `At ${neg(e)} and ${neg(v)} the difference is ${fmt(df)} mV: the reversal potential is negative of the membrane potential, and the same synapse is inhibitory.`;
+        else if (df < 0) s = `At ${neg(e)} and ${neg(v)} the difference is ${fmt(df)} mV: the reversal potential is positive of the membrane potential, so the same receptor and the same transmitter now depolarize.`;
+        else if (df === 0) s = `At ${neg(e)} and ${neg(v)} the difference is 0 mV: there is no driving force, so no net anion current flows at this voltage.`;
+        if (df < 0 && m === 'shifted') s += ' No neuron has died; the gatekeeper is still there and its signal has changed sign.';
+        if (m === 'intact' && df <= 0) s += ' A reversal potential at or positive of the membrane potential is not the intact case here; choose “Reversal potential shifted” for that route.';
+        if (m === 'shifted' && df > 0) s += ' Move the reversal potential up past the membrane potential to see the sign change.';
+      }
+      why!.textContent = s;
+
+      // --- preparation ---
+      prep!.textContent = m === 'shifted'
+        ? 'Measured route in the lesson: adult male rat lamina I, acute slices, gramicidin-perforated patch that leaves the cell’s own chloride intact, after nerve injury (Coull and colleagues, 2003). This sketch does not join the two preparations; the route is not shown to be obligatory across sexes or species.'
+        : m === 'removed'
+          ? 'In the lesson, output loss comes from mouse studies (ablation, or tetanus toxin light chain silencing, of dorsal-horn populations); the chloride route comes from adult male rat. This sketch does not join the two preparations.'
+          : 'The lesson’s intact-gate reasoning is the driving-force rule itself; the lesson’s measured chloride route is adult male rat lamina I.';
+    }
+
+    [eIn, vIn].forEach((s) => s.addEventListener('input', render));
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .adg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .adg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .adg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .adg-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .adg-fail { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.35rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .adg-fail legend { font-size: var(--ddp-text-xs); font-weight: 600; padding: 0 0.3rem; }
+  .adg-fail label { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .adg-fail input { accent-color: var(--ddp-color-accent); }
+  .adg-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; }
+  .adg-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .adg-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .adg-slabel input { accent-color: var(--ddp-color-accent); }
+  .adg-slabel input:disabled { opacity: 0.45; }
+  .adg-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .adg-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .adg-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .adg-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .adg-q { width: 100%; border-collapse: collapse; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .adg-q th, .adg-q td { border: 1px solid var(--ddp-color-line); padding: 0.3rem 0.45rem; text-align: left; vertical-align: top; font-weight: 400; }
+  .adg-q thead th, .adg-q tbody th { font-weight: 600; }
+  .adg-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .adg-prep, .adg-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .adg-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .adg-controls { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,281 @@
+---
+/**
+ * PairOrderingAuc — two overlapping normal curves of a baseline connectivity score (relative
+ * units), one for patients whose back pain persisted (n = 19) and one for those who recovered
+ * (n = 20), after the cohort described in the lesson (Baliki and colleagues, reported ROC area
+ * 0.83). The learner sets the separation; the area under the ROC curve is computed from it and
+ * read as the share of the 380 persist-recover pairs ordered with the persisting patient higher.
+ * Original sketch; curve shapes and the separation are assumptions.
+ */
+---
+
+<figure class="pau card" data-pau>
+  <figcaption class="pau-head">Area under the curve as a pair-ordering probability<span class="pau-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pau-svg" viewBox="0 0 340 262" role="img" aria-label="Two overlapping normal curves of a baseline connectivity score in relative units, one for patients whose back pain persisted and one for patients who recovered, with a movable cutoff cursor and dots for simulated patients" data-plot></svg>
+
+  <div class="pau-controls">
+    <label class="pau-slabel"><span>Separation between the curves <em data-out="sep">1.35</em> relative units</span>
+      <input type="range" data-in="sep" min="0" max="2" step="0.01" value="1.35" />
+    </label>
+    <label class="pau-slabel"><span>Cutoff cursor <em data-out="cut">0.70</em> relative units</span>
+      <input type="range" data-in="cut" min="-3" max="5" step="0.05" value="0.7" />
+    </label>
+    <button type="button" class="pau-btn pau-resample" data-resample>Resample 19 persisting + 20 recovering simulated patients</button>
+  </div>
+
+  <dl class="pau-readout">
+    <div><dt>Area under the ROC curve</dt><dd data-auc>0.83</dd></div>
+    <div><dt>Separation</dt><dd data-sepro>1.35</dd></div>
+    <div><dt>Cutoff</dt><dd data-cutro>0.70</dd></div>
+  </dl>
+  <p class="pau-prob" data-prob></p>
+
+  <table class="pau-table">
+    <thead>
+      <tr><th scope="col"></th><th scope="col">Expected</th><th scope="col">Drawn</th></tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">Persisting patients above the cutoff (n = 19)</th><td data-r-pe></td><td data-r-po></td></tr>
+      <tr><th scope="row">Recovering patients above the cutoff (n = 20)</th><td data-r-re></td><td data-r-ro></td></tr>
+      <tr><th scope="row">Pairs of 380 with the persisting patient higher</th><td data-r-ke></td><td data-r-ko></td></tr>
+      <tr><th scope="row">Area from this draw (pairs ÷ 380)</th><td data-r-ae></td><td data-r-ao></td></tr>
+    </tbody>
+  </table>
+
+  <div class="pau-roc-wrap">
+    <svg class="pau-roc" viewBox="0 0 170 170" role="img" aria-label="ROC curve for the two curves, with a point for the current cutoff" data-roc></svg>
+  </div>
+
+  <p class="pau-why" data-why role="status"></p>
+
+  <p class="pau-foot">In this sketch: two normal shapes of equal spread (1 relative unit), independent draws, and a separation set by you, with the default chosen to give the area of 0.83 that the lesson reports; the study’s individual scores are not shown, and only the group sizes (19 persisted, 20 recovered) and the reported area are its numbers. Rule to keep: the area is a probability about pairs of patients, not an accuracy and not one patient’s risk.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const NP = 19, NR = 20; // persisted, recovered: the lesson's main completed cohort
+  const XMIN = -3.5, XMAX = 5.5;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function erf(x: number): number {
+    const s = x < 0 ? -1 : 1; x = Math.abs(x);
+    const t = 1 / (1 + 0.3275911 * x);
+    const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return s * y;
+  }
+  const cdf = (x: number) => 0.5 * (1 + erf(x / Math.SQRT2));
+  const pdf = (x: number, m: number) => Math.exp(-0.5 * (x - m) ** 2) / Math.sqrt(2 * Math.PI);
+  function mulberry(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  type Dot = { z: number; j: number };
+  function draw(n: number, rnd: () => number): Dot[] {
+    const out: Dot[] = [];
+    for (let i = 0; i < n; i++) {
+      const u1 = Math.max(rnd(), 1e-12), u2 = rnd();
+      out.push({ z: Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2), j: rnd() });
+    }
+    return out;
+  }
+  const pct = (x: number) => (x * 100).toFixed(1) + '%';
+
+  document.querySelectorAll<HTMLElement>('[data-pau]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const roc = root.querySelector<SVGSVGElement>('[data-roc]');
+    const sepIn = root.querySelector<HTMLInputElement>('[data-in="sep"]');
+    const cutIn = root.querySelector<HTMLInputElement>('[data-in="cut"]');
+    const sepOut = root.querySelector<HTMLElement>('[data-out="sep"]');
+    const cutOut = root.querySelector<HTMLElement>('[data-out="cut"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const resample = root.querySelector<HTMLButtonElement>('[data-resample]');
+    const aucEl = root.querySelector<HTMLElement>('[data-auc]');
+    const sepRo = root.querySelector<HTMLElement>('[data-sepro]');
+    const cutRo = root.querySelector<HTMLElement>('[data-cutro]');
+    const probEl = root.querySelector<HTMLElement>('[data-prob]');
+    const cell = (k: string) => root.querySelector<HTMLElement>('[data-r-' + k + ']');
+    const cells = { pe: cell('pe'), po: cell('po'), re: cell('re'), ro: cell('ro'), ke: cell('ke'), ko: cell('ko'), ae: cell('ae'), ao: cell('ao') };
+    if (!plot || !roc || !sepIn || !cutIn || !sepOut || !cutOut || !why || !resample || !aucEl || !sepRo || !cutRo || !probEl) return;
+    for (const k of Object.keys(cells) as (keyof typeof cells)[]) if (!cells[k]) return;
+    const C = cells as Record<keyof typeof cells, HTMLElement>;
+
+    const X0 = 36, X1 = 328, Y0 = 46, YB = 150;
+    const px = (v: number) => X0 + ((Math.min(Math.max(v, XMIN), XMAX) - XMIN) / (XMAX - XMIN)) * (X1 - X0);
+    const PK = pdf(0, 0);
+    const py = (d: number) => YB - (d / PK) * (YB - Y0);
+
+    let cohP: Dot[] = [], cohR: Dot[] = [];
+    function resampleNow(seed: number) {
+      const r = mulberry(seed);
+      cohP = draw(NP, r);
+      cohR = draw(NR, r);
+    }
+    resampleNow(830);
+
+    function curvePath(m: number, upTo: number | null): string {
+      // upTo null: open curve; number: closed area from upTo to XMAX
+      const from = upTo === null ? XMIN : upTo;
+      let d = upTo === null ? '' : 'M' + px(from).toFixed(1) + ' ' + YB + ' ';
+      for (let x = from, first = true; x <= XMAX + 1e-9; x += 0.1, first = false) {
+        d += (first && upTo === null ? 'M' : 'L') + px(x).toFixed(1) + ' ' + py(pdf(x, m)).toFixed(1) + ' ';
+      }
+      if (upTo !== null) d += 'L' + px(XMAX).toFixed(1) + ' ' + YB + ' Z';
+      return d;
+    }
+    function text(parent: SVGElement, x: number, y: number, str: string, o: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, o));
+      t.textContent = str;
+      parent.appendChild(t);
+    }
+
+    function render() {
+      const sep = parseFloat(sepIn!.value);
+      const cut = parseFloat(cutIn!.value);
+      sepOut!.textContent = sep.toFixed(2);
+      cutOut!.textContent = cut.toFixed(2);
+      sepRo!.textContent = sep.toFixed(2);
+      cutRo!.textContent = cut.toFixed(2);
+
+      // area under the ROC curve for two equal-spread normals (SD 1): Phi(separation / sqrt 2)
+      const auc = cdf(sep / Math.SQRT2);
+      aucEl!.textContent = auc.toFixed(2);
+      probEl!.textContent = 'Read as: the probability that a randomly chosen persisting patient scores above a randomly chosen recovering one is ' + auc.toFixed(2) + ' (' + (auc * 100).toFixed(0) + '% of pairs).';
+
+      // cutoff pair: share of each group above the cutoff
+      const eP = 1 - cdf(cut - sep), eR = 1 - cdf(cut);
+      const vP = cohP.map((d) => sep + d.z), vR = cohR.map((d) => d.z);
+      const oP = vP.filter((v) => v > cut).length, oR = vR.filter((v) => v > cut).length;
+      let k = 0;
+      for (const a of vP) for (const b of vR) if (a > b) k++;
+      const pairs = NP * NR;
+      C.pe.textContent = pct(eP);
+      C.po.textContent = pct(oP / NP) + ' (' + oP + '/' + NP + ')';
+      C.re.textContent = pct(eR);
+      C.ro.textContent = pct(oR / NR) + ' (' + oR + '/' + NR + ')';
+      C.ke.textContent = (auc * pairs).toFixed(1) + ' of ' + pairs;
+      C.ko.textContent = k + ' of ' + pairs;
+      C.ae.textContent = auc.toFixed(2);
+      C.ao.textContent = (k / pairs).toFixed(2);
+
+      // main plot
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: X0, y1: YB, x2: X1, y2: YB, stroke: INK, 'stroke-width': 1 }));
+      for (let v = -3; v <= 5; v += 1) {
+        plot!.appendChild(el('line', { x1: px(v), y1: YB, x2: px(v), y2: YB + 3, stroke: INK, 'stroke-width': 1 }));
+        text(plot!, px(v), YB + 13, String(v), { 'text-anchor': 'middle' });
+      }
+      text(plot!, (X0 + X1) / 2, YB + 25, 'baseline connectivity score (relative units); higher to the right', { 'text-anchor': 'middle' });
+      text(plot!, X0, 40, 'relative density', {});
+      // area above the cutoff
+      plot!.appendChild(el('path', { d: curvePath(0, cut), fill: TEAL, 'fill-opacity': 0.22, stroke: 'none' }));
+      plot!.appendChild(el('path', { d: curvePath(sep, cut), fill: ORANGE, 'fill-opacity': 0.22, stroke: 'none' }));
+      plot!.appendChild(el('path', { d: curvePath(0, null), fill: 'none', stroke: TEAL, 'stroke-width': 2.4 }));
+      plot!.appendChild(el('path', { d: curvePath(sep, null), fill: 'none', stroke: ORANGE, 'stroke-width': 2.4 }));
+      // cursor
+      plot!.appendChild(el('line', { x1: px(cut), y1: Y0 - 4, x2: px(cut), y2: YB + 100, stroke: INK, 'stroke-width': 1.4 }));
+      plot!.appendChild(el('polygon', { points: `${px(cut) - 4},${Y0 - 6} ${px(cut) + 4},${Y0 - 6} ${px(cut)},${Y0}`, fill: INK }));
+      // legend
+      plot!.appendChild(el('line', { x1: 40, y1: 11, x2: 56, y2: 11, stroke: ORANGE, 'stroke-width': 2.4 }));
+      text(plot!, 60, 14, 'persisted (n = 19)');
+      plot!.appendChild(el('line', { x1: 180, y1: 11, x2: 196, y2: 11, stroke: TEAL, 'stroke-width': 2.4 }));
+      text(plot!, 200, 14, 'recovered (n = 20)');
+      text(plot!, 40, 28, 'shaded: above the cursor', { fill: INK });
+      // dot strips
+      const strip = (vals: number[], dots: Dot[], y0: number, colour: string, label: string) => {
+        plot!.appendChild(el('line', { x1: X0, y1: y0 + 20, x2: X1, y2: y0 + 20, stroke: FAINT, 'stroke-width': 0.6 }));
+        dots.forEach((d, i) => {
+          const v = vals[i];
+          plot!.appendChild(el('circle', { cx: px(v), cy: y0 + 3 + d.j * 14, r: 2.3, fill: colour, 'fill-opacity': v > cut ? 0.95 : 0.4, stroke: colour, 'stroke-width': 0.6 }));
+        });
+        text(plot!, X1, y0 + 31, label, { 'text-anchor': 'end', fill: colour, 'font-weight': 700 });
+      };
+      strip(vP, cohP, YB + 38, ORANGE, 'simulated persisting patients (n = 19)');
+      strip(vR, cohR, YB + 38 + 40, TEAL, 'simulated recovering patients (n = 20)');
+
+      // ROC inset
+      roc!.replaceChildren();
+      const RX0 = 34, RX1 = 160, RY0 = 10, RY1 = 130;
+      const rx = (f: number) => RX0 + f * (RX1 - RX0), ry = (t: number) => RY1 - t * (RY1 - RY0);
+      roc!.appendChild(el('rect', { x: RX0, y: RY0, width: RX1 - RX0, height: RY1 - RY0, fill: 'none', stroke: INK, 'stroke-width': 1 }));
+      roc!.appendChild(el('line', { x1: rx(0), y1: ry(0), x2: rx(1), y2: ry(1), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      let d = '';
+      for (let i = 0; i <= 80; i++) {
+        const c = XMIN - 3 + (i / 80) * (XMAX - XMIN + 6);
+        const f = 1 - cdf(c), t = 1 - cdf(c - sep);
+        d += (i === 0 ? 'M' : 'L') + rx(f).toFixed(1) + ' ' + ry(t).toFixed(1) + ' ';
+      }
+      roc!.appendChild(el('path', { d: d + 'L' + rx(0) + ' ' + ry(0) + ' L' + rx(1) + ' ' + ry(0) + ' Z', fill: ORANGE, 'fill-opacity': 0.15, stroke: 'none' }));
+      roc!.appendChild(el('path', { d, fill: 'none', stroke: ORANGE, 'stroke-width': 2 }));
+      roc!.appendChild(el('circle', { cx: rx(eR), cy: ry(eP), r: 4, fill: INK }));
+      text(roc!, (RX0 + RX1) / 2, 152, 'recovering above cutoff', { 'text-anchor': 'middle' });
+      const yl = el('text', { x: 10, y: (RY0 + RY1) / 2, 'font-size': 9, fill: INK, 'text-anchor': 'middle', transform: `rotate(-90 10 ${(RY0 + RY1) / 2})` });
+      yl.textContent = 'persisting above cutoff';
+      roc!.appendChild(yl);
+      text(roc!, RX0 - 3, RY1 + 11, '0', { 'text-anchor': 'end' });
+      text(roc!, RX0 - 3, RY0 + 8, '1', { 'text-anchor': 'end' });
+      text(roc!, RX1, RY1 + 11, '1', { 'text-anchor': 'end' });
+      text(roc!, RX0 + 6, RY0 + 11, 'area ' + auc.toFixed(2), { 'font-weight': 700 });
+      text(roc!, RX1 - 4, RY1 - 6, 'dot = cutoff', { 'text-anchor': 'end' });
+
+      // status
+      let lead: string;
+      if (sep < 0.005) {
+        lead = 'Separation 0: in this sketch the two curves coincide, the area is 0.50: a randomly chosen persisting patient scores above a randomly chosen recovering one in half of pairs, so in this sketch the score does not separate the groups.';
+      } else {
+        lead = 'In this sketch the area is ' + auc.toFixed(2) + ': a randomly chosen persisting patient scores above a randomly chosen recovering one in about ' + (auc * 100).toFixed(0) + '% of pairs (drawn: ' + k + ' of ' + pairs + ').';
+      }
+      why!.textContent = lead +
+        ' At a cutoff of ' + cut.toFixed(2) + ', about ' + pct(eP) + ' of persisting and ' + pct(eR) + ' of recovering patients score above it (drawn: ' + oP + ' of ' + NP + ' and ' + oR + ' of ' + NR + '); the two shares move together as the cutoff moves, while the area is set by the separation alone in this sketch. ' +
+        'The area is not an accuracy of ' + (auc * 100).toFixed(0) + ' percent, because accuracy depends on the chosen cutoff. It is not an individual’s chance of lasting pain, which would also depend on the cutoff, how common persistence is and calibration. It is not a cause: the design is observational, so it supports prediction and leaves causation open.';
+    }
+
+    sepIn.addEventListener('input', render);
+    cutIn.addEventListener('input', render);
+    resample.addEventListener('click', () => {
+      resampleNow(Math.floor(Math.random() * 4294967295));
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .pau { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pau-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pau-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pau-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pau-controls { display: flex; flex-direction: column; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .pau-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pau-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .pau-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .pau-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .pau-btn:hover { border-color: var(--ddp-color-accent); }
+  .pau-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .pau-resample { align-self: flex-start; color: var(--ddp-color-primary); font-weight: 600; text-align: left; }
+  .pau-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pau-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .pau-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pau-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .pau-prob { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .pau-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; }
+  .pau-table th, .pau-table td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); vertical-align: top; }
+  .pau-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .pau-table tbody th { font-weight: 400; }
+  .pau-table td { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .pau-roc-wrap { margin: var(--ddp-space-2) 0; }
+  .pau-roc { display: block; width: 100%; max-width: 230px; height: auto; margin: 0 auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pau-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 14em; }
+  .pau-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

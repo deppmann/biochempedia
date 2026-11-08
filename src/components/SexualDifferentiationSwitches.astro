@@ -1,0 +1,262 @@
+---
+/**
+ * SexualDifferentiationSwitches — "Build the tract". Four switches (testis forms via SRY
+ * and SOX9; AMH signalling; androgen receptor; 5-alpha-reductase type 2) drive three
+ * labelled panels (Müllerian ducts, Wolffian ducts, external genitalia) and two
+ * hormone arrows (LH, testosterone). The rules are the lesson's table: no testis means no
+ * AMH and no testicular testosterone (Jost castrate); Müllerian ducts regress only with a
+ * testis and AMH signalling; Wolffian ducts are maintained only with a testis and a working
+ * androgen receptor; external genitalia are male-typical only with testis, receptor and the
+ * enzyme, with reduced masculinization if the enzyme alone is off. Qualitative only; anatomy
+ * is drawn as labelled blocks and arrows. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="sd card" data-sexdiff>
+  <figcaption class="sd-head">Build the tract: what a testis sends and what each tissue can read<span class="sd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="sd-svg" viewBox="0 0 360 282" role="img" aria-label="A schematic of an XY embryo: the pituitary sends LH to the testis, the testis sends AMH to the Müllerian ducts and testosterone to the Wolffian ducts and external genitalia, and each of these three tissues is shown as developed or not" data-stage></svg>
+
+  <fieldset class="sd-controls">
+    <legend>Switch each part on or off</legend>
+    <label class="sd-sw"><input type="checkbox" data-in="testis" checked /><span>A testis forms (SRY raises SOX9, giving Sertoli cells) <small>Off: the table’s rabbit gonadectomy row</small></span></label>
+    <label class="sd-sw"><input type="checkbox" data-in="amh" checked /><span>AMH is made and acts <small>Off: the male mouse null mutant <em data-hint="amh" hidden>(no effect without a testis)</em></small></span></label>
+    <label class="sd-sw"><input type="checkbox" data-in="ar" checked /><span>The androgen receptor works <small>Off: the XY Tfm mouse <em data-hint="ar" hidden>(no effect without a testis)</em></small></span></label>
+    <label class="sd-sw"><input type="checkbox" data-in="srd" checked /><span>5-alpha-reductase type 2 works <small>Off: the human SRD5A2 mechanism <em data-hint="srd" hidden>(no effect without a testis)</em><em data-hint="srd2" hidden>(no visible effect without the receptor)</em></small></span></label>
+  </fieldset>
+
+  <p class="sd-status" data-why role="status"></p>
+
+  <p class="sd-assume">In this sketch: an XY embryo with a bipotential gonad; every switch is a complete loss from the start of development with the others intact, as in the lesson’s table; the switches combine findings from rabbit, mouse and human, so two or more switches off at once is a prediction from these rules, not an observation; if the receptor is off the external genitalia are drawn female-typical whether or not the enzyme works; “reference” is a made-up baseline for LH and testosterone, with no numbers, concentrations or units; the LH and feedback arrows come from the lesson’s general statements, not from fetal data; the external-genitalia names (glans, scrotum, labia) are human structures.</p>
+  <p class="sd-foot">A testis sends two separable signals: AMH removes the Müllerian ducts, and testosterone acting through the androgen receptor maintains the Wolffian ducts; in humans, conversion to DHT by 5-alpha-reductase type 2 also supports masculinization of the external genitalia.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', DARK = '#22222a', FAINT = '#b9b9c2', TEAL = '#0e7c86', ORANGE = '#e57200', PURPLE = '#7a5ea8';
+  const PURPLE_TXT = '#5d4290', ORANGE_TXT = '#a64f00';
+  type St = { testis: boolean; amh: boolean; ar: boolean; srd: boolean };
+  type Attrs = Record<string, string | number>;
+
+  function el(name: string, attrs: Attrs, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-sexdiff]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const iTestis = root.querySelector<HTMLInputElement>('[data-in="testis"]');
+    const iAmh = root.querySelector<HTMLInputElement>('[data-in="amh"]');
+    const iAr = root.querySelector<HTMLInputElement>('[data-in="ar"]');
+    const iSrd = root.querySelector<HTMLInputElement>('[data-in="srd"]');
+    const hAmh = root.querySelector<HTMLElement>('[data-hint="amh"]');
+    const hAr = root.querySelector<HTMLElement>('[data-hint="ar"]');
+    const hSrd = root.querySelector<HTMLElement>('[data-hint="srd"]');
+    const hSrd2 = root.querySelector<HTMLElement>('[data-hint="srd2"]');
+    if (!stage || !why || !iTestis || !iAmh || !iAr || !iSrd || !hAmh || !hAr || !hSrd || !hSrd2) return;
+    const svg = stage;
+
+    function add(e: SVGElement) { svg.appendChild(e); }
+    function line(x1: number, y1: number, x2: number, y2: number, color: string, w: number, dash?: string) {
+      const a: Attrs = { x1, y1, x2, y2, stroke: color, 'stroke-width': w };
+      if (dash) a['stroke-dasharray'] = dash;
+      add(el('line', a));
+    }
+    function path(d: string, color: string, w: number, dash?: string) {
+      const a: Attrs = { d, fill: 'none', stroke: color, 'stroke-width': w, 'stroke-linejoin': 'round' };
+      if (dash) a['stroke-dasharray'] = dash;
+      add(el('path', a));
+    }
+    // arrowhead whose tip is at (x, y); dir is the direction the arrow points
+    function head(x: number, y: number, dir: 'r' | 'd', color: string, len = 7, half = 4) {
+      const pts = dir === 'r'
+        ? `${x},${y} ${x - len},${y - half} ${x - len},${y + half}`
+        : `${x},${y} ${x - half},${y - len} ${x + half},${y - len}`;
+      add(el('polygon', { points: pts, fill: color }));
+    }
+    function text(x: number, y: number, s: string, o: { size?: number; weight?: number; fill?: string; anchor?: string } = {}) {
+      add(el('text', {
+        x, y, 'font-size': o.size ?? 9.5, 'font-weight': o.weight ?? 400,
+        fill: o.fill ?? INK, 'text-anchor': o.anchor ?? 'start',
+      }, s));
+    }
+    function lines(x: number, y0: number, arr: string[], o: { size?: number; weight?: number; fill?: string; anchor?: string } = {}, step = 11) {
+      arr.forEach((s, i) => text(x, y0 + i * step, s, o));
+    }
+
+    function panelFor(kind: string, s: St) {
+      // returns the content of one panel
+      const t = s.testis;
+      if (kind === 'mull') {
+        const regressed = t && s.amh;
+        return {
+          present: !regressed,
+          title: 'Müllerian ducts',
+          outcome: regressed ? 'Regressed' : 'Retained',
+          detail: regressed ? ['would form oviducts, uterus,', 'upper vagina'] : t ? ['uterus and oviducts'] : ['oviducts, uterus, upper vagina'],
+          reason: !t ? ['no testis, so no AMH']
+            : s.amh ? (s.ar && !s.srd ? ['Sertoli AMH acts; usually', 'regressed (human SRD5A2)'] : ['Sertoli AMH signalling acts'])
+            : ['testis, but no AMH signal', '(mouse null: uterus, oviducts)'],
+          fill: regressed ? '#f4f4f6' : '#e6f3f4', stroke: regressed ? FAINT : TEAL, dash: regressed ? '4 3' : '',
+        };
+      }
+      if (kind === 'wolff') {
+        const kept = t && s.ar;
+        return {
+          present: kept,
+          title: 'Wolffian ducts',
+          outcome: kept ? 'Maintained' : t ? 'Not maintained' : 'Largely lost',
+          detail: kept ? ['epididymis, vas deferens,', 'seminal vesicles'] : ['epididymis, vas deferens,', t ? 'seminal vesicles: not kept' : 'seminal vesicles: mostly lost'],
+          reason: !t ? ['no testis, so no testosterone', '(rabbit: largely lost)']
+            : s.ar ? (s.srd ? ['testosterone acts through the', 'androgen receptor'] : ['receptor acts; generally', 'retained (human SRD5A2)'])
+            : ['testosterone made, but no', 'receptor response (Tfm mouse)'],
+          fill: kept ? '#e6f3f4' : '#f4f4f6', stroke: kept ? TEAL : FAINT, dash: kept ? '' : '4 3',
+        };
+      }
+      // external genitalia
+      const male = t && s.ar && s.srd;
+      const reduced = t && s.ar && !s.srd;
+      return {
+        present: true,
+        title: 'External genitalia',
+        outcome: male ? 'Male-typical' : reduced ? 'Reduced masculinization' : 'Female-typical',
+        detail: male ? ['glans penis, scrotum, with', 'urethral-fold fusion']
+          : reduced ? ['same starting structures,', 'less masculinized']
+          : ['clitoris, labia majora'],
+        reason: !t ? ['no testicular androgen']
+          : !s.ar ? ['no receptor response', '(XY Tfm mouse)']
+          : reduced ? ['testosterone not converted', 'to DHT (human SRD5A2)']
+          : ['testosterone and, in humans,', 'DHT act through the receptor'],
+        fill: male || reduced ? '#fdf0e3' : '#f1ecf8', stroke: male || reduced ? ORANGE : PURPLE, dash: reduced ? '4 3' : '',
+      };
+    }
+
+    function drawPanel(y: number, kind: string, s: St) {
+      const p = panelFor(kind, s);
+      const X = 190, W = 162, H = 82;
+      const r: Attrs = { x: X, y, width: W, height: H, rx: 6, fill: p.fill, stroke: p.stroke, 'stroke-width': 1.6 };
+      if (p.dash) r['stroke-dasharray'] = p.dash;
+      add(el('rect', r));
+      text(X + 8, y + 15, p.title, { size: 10, weight: 700, fill: DARK });
+      text(X + 8, y + 31, p.outcome, { size: 11, weight: 700, fill: DARK });
+      lines(X + 8, y + 44, p.detail, { size: 9, fill: INK }, 10);
+      lines(X + 8, y + 67, p.reason, { size: 9, fill: INK }, 10);
+    }
+
+    function render() {
+      const s: St = { testis: iTestis!.checked, amh: iAmh!.checked, ar: iAr!.checked, srd: iSrd!.checked };
+      hAmh!.hidden = s.testis; hAr!.hidden = s.testis; hSrd!.hidden = s.testis; hSrd2!.hidden = !(s.testis && !s.ar);
+      svg.replaceChildren();
+
+      const t = s.testis;
+      const lhHigher = t && !s.ar;
+      const MY = 8, WY = 98, EY = 188; // panel tops
+      const mc = MY + 41, wc = WY + 41, ec = EY + 41; // panel centres
+
+      // pituitary
+      add(el('rect', { x: 8, y: 8, width: 142, height: 28, rx: 6, fill: '#eef0f3', stroke: INK, 'stroke-width': 1.2 }));
+      text(79, 26, 'Pituitary', { size: 10.5, weight: 700, fill: DARK, anchor: 'middle' });
+
+      // LH arrow: pituitary down to testis
+      const lhCol = t ? TEAL : FAINT;
+      const lhW = lhHigher ? 4.5 : 2.2;
+      line(26, 36, 26, lhHigher ? 94 : 98, lhCol, lhW, t ? undefined : '3 3');
+      head(26, 104, 'd', lhCol, lhHigher ? 10 : 7, lhHigher ? 6.5 : 4);
+      text(36, 56, !t ? 'LH: not shown' : lhHigher ? 'LH drive: higher ↑' : 'LH: reference', { size: 9.5, weight: 700, fill: t ? '#0b6269' : INK });
+
+      // testosterone arrow: testis up to pituitary, restraining LH (bar end)
+      if (t) {
+        line(136, 104, 136, 40, ORANGE, s.ar ? 2.2 : 3.4);
+        line(126, 38, 146, 38, s.ar ? ORANGE : FAINT, 2.6, s.ar ? undefined : '3 2');
+        lines(128, 74, s.ar ? ['testosterone:', 'reference'] : ['testosterone:', 'normal or high', 'AR feedback lost'], { size: 9.5, weight: 700, fill: ORANGE_TXT, anchor: 'end' });
+      } else {
+        line(136, 104, 136, 40, FAINT, 2.2, '3 3');
+        lines(128, 74, ['testosterone:', 'none from', 'a testis'], { size: 9.5, weight: 700, fill: INK, anchor: 'end' });
+      }
+
+      // testis block
+      const tr: Attrs = { x: 8, y: 104, width: 142, height: 62, rx: 6, fill: t ? '#e6f3f4' : '#f4f4f6', stroke: t ? TEAL : FAINT, 'stroke-width': 1.6 };
+      if (!t) tr['stroke-dasharray'] = '4 3';
+      add(el('rect', tr));
+      text(79, 121, t ? 'Testis' : 'No testis', { size: 11, weight: 700, fill: DARK, anchor: 'middle' });
+      text(79, 136, !t ? 'no Sertoli AMH' : s.amh ? 'Sertoli: AMH' : 'Sertoli: no AMH signal', { size: 9.5, fill: t ? PURPLE_TXT : INK, anchor: 'middle' });
+      text(79, 150, !t ? 'no Leydig testosterone' : 'Leydig: testosterone', { size: 9.5, fill: t ? ORANGE_TXT : INK, anchor: 'middle' });
+
+      // AMH arrow (testis to Müllerian panel)
+      const amhOn = t && s.amh;
+      const amhCol = amhOn ? PURPLE : FAINT;
+      path(`M150 118 H168 V${mc} H182`, amhCol, 2.4, amhOn ? undefined : '3 3');
+      head(190, mc, 'r', amhCol);
+      // testosterone arrows (testis to Wolffian and external panels)
+      const tCol = t ? ORANGE : FAINT;
+      path(`M150 ${wc} H182`, tCol, 2.4, t ? undefined : '3 3');
+      head(190, wc, 'r', tCol);
+      path(`M172 ${wc} V${ec} H182`, tCol, 2.4, t ? undefined : '3 3');
+      head(190, ec, 'r', tCol);
+      add(el('circle', { cx: 172, cy: wc, r: 3, fill: tCol }));
+
+      drawPanel(MY, 'mull', s);
+      drawPanel(WY, 'wolff', s);
+      drawPanel(EY, 'ext', s);
+
+      // key
+      const keyY = 200;
+      line(14, keyY, 34, keyY, PURPLE, 2.4); head(36, keyY, 'r', PURPLE, 6, 3.5);
+      text(44, keyY + 3, 'AMH (Sertoli)', { size: 9, fill: INK });
+      line(14, keyY + 16, 34, keyY + 16, ORANGE, 2.4); head(36, keyY + 16, 'r', ORANGE, 6, 3.5);
+      text(44, keyY + 19, 'testosterone (Leydig)', { size: 9, fill: INK });
+      line(14, keyY + 32, 34, keyY + 32, TEAL, 2.4); head(36, keyY + 32, 'r', TEAL, 6, 3.5);
+      text(44, keyY + 35, 'LH (pituitary)', { size: 9, fill: INK });
+      text(14, keyY + 54, 'Dashed grey: signal absent or not shown.', { size: 9, fill: INK });
+
+      why!.textContent = statusFor(s);
+    }
+
+    function statusFor(s: St): string {
+      if (!s.testis) {
+        return 'In this sketch, with no testis there is no AMH and no testicular testosterone (the Jost castrate, from early gonadectomy of rabbit fetuses), so the Müllerian ducts are retained, the Wolffian ducts are not maintained (largely lost in the rabbit) and the external genitalia stay female-typical. In this sketch, the AMH, receptor and enzyme switches change nothing without a testis. Jost’s early operations could still leave rudimentary prostatic buds, which the sketch does not draw, and the lesson does not say what happens to LH in this preparation, so none is shown.';
+      }
+      const ext = s.ar ? (s.srd ? 'male-typical' : 'less masculinized (reduced masculinization)') : 'female-typical';
+      const out: string[] = [];
+      out.push(`In this sketch, with a testis the Müllerian ducts ${s.amh ? (s.ar && !s.srd ? 'usually regress' : 'regress') : 'are retained'}, the Wolffian ducts are ${s.ar ? (s.srd ? 'maintained' : 'generally maintained') : 'not maintained'} and the external genitalia are ${ext}.`);
+      out.push(s.amh
+        ? 'In this sketch, Sertoli AMH signalling removes the Müllerian ducts.'
+        : 'In this sketch, without AMH signalling the Müllerian ducts persist, as in the male mouse null mutant, which keeps a uterus and oviducts.');
+      if (s.ar) {
+        out.push('In this sketch, testosterone acting through the androgen receptor maintains the Wolffian derivatives'
+          + (s.srd
+            ? ', and in humans conversion to DHT by 5-alpha-reductase type 2 supports external-genital masculinization.'
+            : '; without 5-alpha-reductase type 2 there is no conversion to DHT (the human SRD5A2 mechanism)' + (s.amh ? ', where, with AMH intact, the Müllerian ducts are usually absent and the Wolffian ducts generally retained.' : '.')));
+      } else {
+        out.push('In this sketch, testosterone is made but the receptor does not respond to it, so the Wolffian ducts are not maintained and the external genitalia stay female-typical, as in the XY Tfm mouse.');
+        out.push('In this sketch, losing receptor-mediated feedback is drawn as higher LH with normal or high testosterone; the lesson calls normal or high testosterone a human AR-loss pattern, not a guaranteed Tfm-mouse value.');
+      }
+      if (s.ar) out.push('In this sketch, LH and testosterone stay at the made-up reference level, because the lesson describes a change only for receptor loss.');
+      const failures = (s.amh ? 0 : 1) + (s.ar ? 0 : 1) + (s.srd ? 0 : 1);
+      if (failures >= 2) out.push('In this sketch, more than one failure at once is not a row of the lesson’s table, which removes one component with the others intact, so this combination is a prediction from the rules, not an observation.');
+      return out.join(' ');
+    }
+
+    [iTestis, iAmh, iAr, iSrd].forEach((c) => c.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .sd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sd-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sd-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sd-controls legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .sd-sw { display: flex; align-items: flex-start; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.4; cursor: pointer; }
+  .sd-sw input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; flex: none; width: 1rem; height: 1rem; }
+  .sd-sw small { display: block; font-size: inherit; color: var(--ddp-color-muted); }
+  .sd-sw em { font-style: normal; }
+  .sd-status { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 9em; }
+  .sd-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .sd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

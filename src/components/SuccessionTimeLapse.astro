@@ -1,0 +1,367 @@
+---
+/**
+ * SuccessionTimeLapse — step a plot of land through the decades. The learner picks a start
+ * (bare rock, abandoned field, burned forest), steps forward 10 years (or 1 year), and can burn
+ * or clear half of the plot. Every stage, year and rule comes from the succession-in-virginia
+ * lesson: the Piedmont old-field summary (secondary succession) and the Glacier Bay record and
+ * park estimates (primary succession). Light and soil are relative levels, not measurements.
+ * Plants are drawn as labelled schematic shapes only. No random draws: each patch follows the
+ * lesson's table. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="stl card" data-stl>
+  <figcaption class="stl-head">Succession time-lapse: step a plot through the decades<span class="stl-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="stl-svg" viewBox="0 0 320 322" role="img" aria-label="A plot seen from above" data-stl-plot></svg>
+  <div class="stl-legend" data-stl-legend aria-label="What each shape stands for"></div>
+
+  <div class="stl-controls">
+    <fieldset class="stl-set">
+      <legend>1. Start the plot as</legend>
+      <label class="stl-opt"><input type="radio" name="stl-start" value="field" checked /> abandoned field</label>
+      <label class="stl-opt"><input type="radio" name="stl-start" value="rock" /> bare rock</label>
+      <label class="stl-opt"><input type="radio" name="stl-start" value="burn" /> burned forest</label>
+    </fieldset>
+    <fieldset class="stl-set">
+      <legend>2. Step size</legend>
+      <label class="stl-opt"><input type="radio" name="stl-step" value="10" checked /> 10 years</label>
+      <label class="stl-opt"><input type="radio" name="stl-step" value="1" /> 1 year</label>
+    </fieldset>
+  </div>
+  <div class="stl-actions">
+    <button type="button" class="stl-btn stl-primary" data-stl-step>Step forward 10 years</button>
+    <button type="button" class="stl-btn" data-stl-disturb="left">Burn or clear the left half</button>
+    <button type="button" class="stl-btn" data-stl-disturb="right">Burn or clear the right half</button>
+    <button type="button" class="stl-btn" data-stl-reset>Reset</button>
+  </div>
+
+  <p class="stl-status" data-stl-status role="status"></p>
+
+  <div class="stl-halves" data-stl-halves></div>
+
+  <p class="stl-assume"><strong>In this sketch</strong> an abandoned field follows the lesson’s Piedmont old-field summary (a regional summary with no dates). A burned forest and a cleared patch borrow the old-field timeline; the lesson gives none for them, so a real burned forest may differ. Bare rock follows one Glacier Bay plot (Q2) plus park estimates; other plots and places differ. The alder at about 80 years (park estimate) and the Q2 spruce at 81 years are separate estimates. Light and soil are relative levels, not measurements. Nothing is random.</p>
+  <p class="stl-foot">Rule to keep: each stage changes the light and the soil, and those changes favor the next group of plants. A disturbance that leaves the soil restarts secondary succession.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Track = 'p' | 's';
+  type Origin = 'rock' | 'field' | 'burn' | 'cleared';
+  type Half = { track: Track; age: number; origin: Origin };
+  type Stage = { id: string; from: number; name: string; say: string; icons: string[]; light: number; soil: number };
+
+  const LIGHT = ['', 'shaded', 'shade building', 'full sun'];
+  const SOIL = ['none (bare rock)', 'thin: the first layer', 'soil present'];
+  const MAXYEAR = 250;
+
+  const SEC: Stage[] = [
+    { id: 'soil', from: 0, name: 'soil with seeds, few plants yet', say: '', icons: ['seed', 'seed', 'seed', 'seed'], light: 3, soil: 2 },
+    { id: 'horseweed', from: 1, name: 'horseweed', say: 'Horseweed, a weed, grows fast in full sun.', icons: ['weed', 'weed', 'weed', 'weed'], light: 3, soil: 2 },
+    { id: 'aster', from: 2, name: 'asters', say: 'Asters grow in full sun.', icons: ['aster', 'aster', 'aster', 'aster'], light: 3, soil: 2 },
+    { id: 'grass', from: 3, name: 'broomsedge', say: 'By about year 3, broomsedge, a tall grass, often covers the field.', icons: ['grass', 'grass', 'grass', 'grass'], light: 3, soil: 2 },
+    { id: 'grassb', from: 5, name: 'broomsedge, blackberry and pine seedlings', say: 'Broomsedge still covers the ground. After about 5 years, blackberry and pine seedlings appear where seed trees grow nearby.', icons: ['grass', 'berry', 'grass', 'pineS'], light: 3, soil: 2 },
+    { id: 'young', from: 19, name: 'young pine forest', say: 'Young pine forest. Pines grow fast in full sun, and their canopy starts to shade the ground.', icons: ['pine', 'pine', 'pine', 'pine'], light: 2, soil: 2 },
+    { id: 'mature', from: 31, name: 'mature pines over young hardwoods', say: 'Mature pines over young hardwoods. A closed pine canopy blocks much of the sunlight, and pine seedlings grow poorly in that shade.', icons: ['pine', 'oakS', 'pine', 'oakS'], light: 1, soil: 2 },
+    { id: 'giving', from: 71, name: 'pines giving way to hardwoods', say: 'Pines are giving way to hardwoods. Oaks and hickories cope with shade better and fill the gaps as old pines die.', icons: ['oak', 'pine', 'oak', 'oak'], light: 1, soil: 2 },
+    { id: 'oak', from: 101, name: 'oak-hickory forest', say: 'Oak-hickory forest, the climax community in most of Virginia. It stays fairly stable if no major disturbance strikes.', icons: ['oak', 'oak', 'oak', 'oak'], light: 1, soil: 2 },
+  ];
+  const PRI: Stage[] = [
+    { id: 'rock', from: 0, name: 'bare rock, no soil', say: 'Bare rock with no soil. This is primary succession, so pioneer species such as lichens and mosses come first.', icons: ['rock', 'rock', 'rock', 'rock'], light: 3, soil: 0 },
+    { id: 'lichen', from: 1, name: 'lichens and mosses (no dates in the lesson)', say: 'Lichens and mosses grow on the rock. They help break it down, and when they die they add the first thin soil. The lesson gives no dates for this span.', icons: ['lichen', 'lichen', 'lichen', 'lichen'], light: 3, soil: 1 },
+    { id: 'alder', from: 80, name: 'alder shading the ground', say: 'Alder shades the ground. The park estimates this at about 80 years; it is not measured.', icons: ['alder', 'alder', 'alder', 'alder'], light: 2, soil: 2 },
+    { id: 'alderSp', from: 81, name: 'alder, with the oldest Q2 spruce (estimate)', say: 'Alder shades the ground. At Glacier Bay plot Q2, the oldest spruce found is estimated to have started growing 81 years after the ice left (1960); other plots may follow other schedules.', icons: ['alder', 'alder', 'alder', 'spruce'], light: 2, soil: 2 },
+    { id: 'spruce', from: 200, name: 'Sitka spruce forest', say: 'Sitka spruce forest, which the park estimates at about 200 years. Primary succession usually takes longer than secondary.', icons: ['spruce', 'spruce', 'spruce', 'spruce'], light: 1, soil: 2 },
+  ];
+  const START_SAY: Record<string, string> = {
+    field: 'Abandoned field: the soil, with its seeds and roots, is still there. This is secondary succession.',
+    burn: 'Burned forest: the soil stays, often with seeds and roots in it. This is secondary succession.',
+    cleared: 'Cleared patch: the soil stays, with seeds in it, so secondary succession restarts.',
+  };
+  const START_NAME: Record<string, string> = { rock: 'Bare rock', field: 'Abandoned field', burn: 'Burned forest' };
+
+  const LEGEND: { icon: string; label: string }[] = [
+    { icon: 'rock', label: 'bare rock' },
+    { icon: 'lichen', label: 'lichens and mosses' },
+    { icon: 'seed', label: 'soil with seeds' },
+    { icon: 'weed', label: 'horseweed' },
+    { icon: 'aster', label: 'asters' },
+    { icon: 'grass', label: 'broomsedge' },
+    { icon: 'berry', label: 'blackberry' },
+    { icon: 'pine', label: 'pines' },
+    { icon: 'oak', label: 'oaks and hickories' },
+    { icon: 'alder', label: 'alder' },
+    { icon: 'spruce', label: 'spruce' },
+  ];
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const found = root.querySelector<T>(sel);
+    if (!found) throw new Error('SuccessionTimeLapse: missing ' + sel);
+    return found;
+  }
+  function stageOf(h: Half): Stage {
+    const list = h.track === 'p' ? PRI : SEC;
+    let s = list[0];
+    for (const c of list) if (h.age >= c.from) s = c;
+    return s;
+  }
+  const INK = '#2b2b33';
+
+  function icon(g: SVGElement, kind: string, cx: number, cy: number) {
+    const add = (n: string, a: Record<string, string | number>) => g.appendChild(el(n, a));
+    const tri = (x: number, y: number, w: number, h: number, fill: string) =>
+      add('polygon', { points: `${x},${y - h} ${x - w},${y} ${x + w},${y}`, fill, stroke: INK, 'stroke-width': 1 });
+    switch (kind) {
+      case 'seed':
+        for (const [dx, dy] of [[0, 0], [-6, 4], [5, -3]]) add('circle', { cx: cx + dx, cy: cy + dy, r: 2.6, fill: '#8b5a2b', stroke: INK, 'stroke-width': 0.8 });
+        break;
+      case 'rock':
+        add('polygon', { points: `${cx - 10},${cy + 7} ${cx - 6},${cy - 6} ${cx + 4},${cy - 8} ${cx + 10},${cy + 7}`, fill: '#a4a4ae', stroke: INK, 'stroke-width': 1 });
+        break;
+      case 'lichen':
+        add('polygon', { points: `${cx - 10},${cy + 7} ${cx - 6},${cy - 6} ${cx + 4},${cy - 8} ${cx + 10},${cy + 7}`, fill: '#a4a4ae', stroke: INK, 'stroke-width': 1 });
+        add('circle', { cx: cx - 4, cy: cy - 1, r: 2.6, fill: '#e57200' });
+        add('circle', { cx: cx + 4, cy: cy - 3, r: 2.2, fill: '#e57200' });
+        add('ellipse', { cx: cx + 1, cy: cy + 5, rx: 6, ry: 2.8, fill: '#5b8c3a' });
+        break;
+      case 'weed':
+        for (const dx of [-5, 1, 6]) { add('line', { x1: cx + dx, y1: cy + 10, x2: cx + dx, y2: cy - 8, stroke: '#3b7d2a', 'stroke-width': 2 }); add('line', { x1: cx + dx, y1: cy, x2: cx + dx + 4, y2: cy - 4, stroke: '#3b7d2a', 'stroke-width': 1.5 }); }
+        break;
+      case 'aster':
+        for (const dx of [-5, 1, 6]) { add('line', { x1: cx + dx, y1: cy + 10, x2: cx + dx, y2: cy - 5, stroke: '#3b7d2a', 'stroke-width': 2 }); add('circle', { cx: cx + dx, cy: cy - 7, r: 3, fill: '#8a5cc0', stroke: INK, 'stroke-width': 0.8 }); }
+        break;
+      case 'grass':
+        for (const dx of [-8, -4, 0, 4, 8]) add('line', { x1: cx, y1: cy + 10, x2: cx + dx, y2: cy - 10, stroke: '#a8832a', 'stroke-width': 2 });
+        break;
+      case 'berry':
+        add('line', { x1: cx, y1: cy + 10, x2: cx, y2: cy - 2, stroke: '#3b7d2a', 'stroke-width': 2 });
+        for (const [dx, dy] of [[-5, 0], [5, 0], [0, -6]]) add('circle', { cx: cx + dx, cy: cy + dy, r: 4, fill: '#5a2a6e', stroke: INK, 'stroke-width': 0.8 });
+        break;
+      case 'pineS':
+        add('line', { x1: cx, y1: cy + 9, x2: cx, y2: cy + 5, stroke: '#6b4a2b', 'stroke-width': 2 });
+        tri(cx, cy + 5, 4.5, 11, '#2e6b3a');
+        break;
+      case 'pine':
+        add('line', { x1: cx, y1: cy + 11, x2: cx, y2: cy + 5, stroke: '#6b4a2b', 'stroke-width': 3 });
+        tri(cx, cy + 5, 8, 17, '#2e6b3a');
+        break;
+      case 'oakS':
+        add('line', { x1: cx, y1: cy + 11, x2: cx, y2: cy + 5, stroke: '#6b4a2b', 'stroke-width': 2 });
+        add('circle', { cx, cy: cy + 1, r: 5, fill: '#8ab84a', stroke: INK, 'stroke-width': 0.8 });
+        break;
+      case 'oak':
+        add('line', { x1: cx, y1: cy + 11, x2: cx, y2: cy + 2, stroke: '#6b4a2b', 'stroke-width': 3 });
+        add('circle', { cx, cy: cy - 2, r: 9, fill: '#8ab84a', stroke: INK, 'stroke-width': 1 });
+        break;
+      case 'alder':
+        add('line', { x1: cx, y1: cy + 11, x2: cx, y2: cy + 3, stroke: '#6b4a2b', 'stroke-width': 2 });
+        add('circle', { cx: cx - 3, cy: cy - 1, r: 6, fill: '#bcd9a0', stroke: INK, 'stroke-width': 1 });
+        add('circle', { cx: cx + 4, cy: cy + 1, r: 5, fill: '#bcd9a0', stroke: INK, 'stroke-width': 1 });
+        break;
+      case 'spruce':
+        add('line', { x1: cx, y1: cy + 11, x2: cx, y2: cy + 7, stroke: '#6b4a2b', 'stroke-width': 3 });
+        tri(cx, cy + 8, 5.5, 21, '#1f5a52');
+        break;
+    }
+  }
+
+  function miniIcon(kind: string): SVGElement {
+    const s = el('svg', { viewBox: '0 0 28 28', width: 28, height: 28, 'aria-hidden': 'true', class: 'stl-mini' }) as SVGElement;
+    icon(s, kind, 14, 14);
+    return s;
+  }
+
+  const root = document.querySelector<HTMLElement>('[data-stl]');
+  if (root) {
+    const plot = need<SVGSVGElement>(root, '[data-stl-plot]');
+    const legend = need<HTMLElement>(root, '[data-stl-legend]');
+    const statusEl = need<HTMLElement>(root, '[data-stl-status]');
+    const halvesEl = need<HTMLElement>(root, '[data-stl-halves]');
+    const stepBtn = need<HTMLButtonElement>(root, '[data-stl-step]');
+    const resetBtn = need<HTMLButtonElement>(root, '[data-stl-reset]');
+    const disturbBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-stl-disturb]'));
+    const startRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="stl-start"]'));
+    const stepRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="stl-step"]'));
+
+    LEGEND.forEach((l) => {
+      const item = document.createElement('span');
+      item.className = 'stl-key';
+      item.appendChild(miniIcon(l.icon));
+      item.appendChild(document.createTextNode(l.label));
+      legend.appendChild(item);
+    });
+
+    let year = 0;
+    let left: Half = { track: 's', age: 0, origin: 'field' };
+    let right: Half = { track: 's', age: 0, origin: 'field' };
+    let event = '';
+
+    const startVal = () => startRadios.find((r) => r.checked)?.value ?? 'field';
+    const stepVal = () => (stepRadios.find((r) => r.checked)?.value === '1' ? 1 : 10);
+    function fresh(): Half {
+      const v = startVal();
+      return { track: v === 'rock' ? 'p' : 's', age: 0, origin: v === 'rock' ? 'rock' : v === 'burn' ? 'burn' : 'field' };
+    }
+    const sayOf = (h: Half): string => {
+      const s = stageOf(h);
+      if (s.id === 'soil' && h.track === 's') return START_SAY[h.origin] ?? START_SAY.field;
+      return s.say;
+    };
+    const plural = (n: number) => `${n} ${n === 1 ? 'year' : 'years'}`;
+
+    function drawPlot() {
+      plot.replaceChildren();
+      const x0 = 32, y0 = 40, c = 64;
+      plot.appendChild(el('text', { x: x0 + c, y: 28, 'font-size': 13, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'Left half'));
+      plot.appendChild(el('text', { x: x0 + 3 * c, y: 28, 'font-size': 13, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'Right half'));
+      for (let r = 0; r < 4; r++) {
+        for (let k = 0; k < 4; k++) {
+          const h = k < 2 ? left : right;
+          const st = stageOf(h);
+          const ground = h.track === 'p' && st.soil < 2 ? '#e3e3e8' : '#f1ebdd';
+          const g = el('g', {}) as SVGElement;
+          g.appendChild(el('rect', { x: x0 + k * c, y: y0 + r * c, width: c, height: c, fill: ground, stroke: '#b9b9c2', 'stroke-width': 1 }));
+          const slots = [[16, 16], [48, 16], [16, 48], [48, 48]];
+          st.icons.forEach((kind, i) => {
+            const s = slots[(i + r + k) % 4];
+            icon(g, kind, x0 + k * c + s[0], y0 + r * c + s[1]);
+          });
+          plot.appendChild(g);
+        }
+      }
+      plot.appendChild(el('line', { x1: x0 + 2 * c, y1: 34, x2: x0 + 2 * c, y2: y0 + 4 * c + 4, stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('text', { x: 160, y: 316, 'font-size': 13, 'text-anchor': 'middle', fill: INK }, `Year ${year} in this sketch`));
+      const sl = stageOf(left).name, sr = stageOf(right).name;
+      plot.setAttribute('aria-label', `A plot seen from above, year ${year}. Left half: ${sl}. Right half: ${sr}.`);
+    }
+
+    function meter(n: number, max: number): string {
+      let s = '';
+      for (let i = 1; i <= max; i++) s += `<span class="stl-seg${i <= n ? ' stl-on' : ''}"></span>`;
+      return `<span class="stl-meter" aria-hidden="true">${s}</span>`;
+    }
+    function drawHalves() {
+      halvesEl.replaceChildren();
+      ([['Left half', left], ['Right half', right]] as [string, Half][]).forEach(([title, h]) => {
+        const st = stageOf(h);
+        const box = document.createElement('div');
+        box.className = 'stl-half';
+        const since = h.origin === 'cleared' ? 'clearing' : 'the start';
+        box.innerHTML =
+          `<h4>${title}</h4>` +
+          `<p class="stl-line"><span class="stl-k">Time</span> ${plural(h.age)} since ${since}</p>` +
+          `<p class="stl-line"><span class="stl-k">Plants</span> ${st.name}</p>` +
+          `<p class="stl-line"><span class="stl-k">Light at the ground</span> ${LIGHT[st.light]} ${meter(st.light, 3)}</p>` +
+          `<p class="stl-line"><span class="stl-k">Soil</span> ${SOIL[st.soil]} ${meter(st.soil + 1, 3)}</p>`;
+        halvesEl.appendChild(box);
+      });
+      const note = document.createElement('p');
+      note.className = 'stl-note';
+      note.textContent = 'Light and soil are relative levels in this sketch, not measurements.';
+      halvesEl.appendChild(note);
+    }
+
+    function render() {
+      drawPlot();
+      drawHalves();
+      const sl = stageOf(left), sr = stageOf(right);
+      const same = left.track === right.track && left.age === right.age;
+      const main = same
+        ? `Year ${year}, in this sketch: ${sayOf(left)}`
+        : `Left half, ${plural(left.age)}: ${sl.name}. Right half, ${plural(right.age)}: ${sr.name}.`;
+      statusEl.textContent = [event, main].filter(Boolean).join(' ');
+      stepBtn.textContent = `Step forward ${stepVal()} ${stepVal() === 1 ? 'year' : 'years'}`;
+      stepBtn.disabled = year >= MAXYEAR;
+      if (year >= MAXYEAR) statusEl.textContent += ' The sketch stops at year 250: press Reset to start again.';
+    }
+
+    function reset(note: string) {
+      year = 0;
+      left = fresh();
+      right = fresh();
+      event = note;
+      render();
+    }
+    function changes(name: string, before: Stage, after: Stage): string[] {
+      const out: string[] = [];
+      const pre = name ? `${name}: ` : '';
+      if (before.light !== after.light) out.push(`${pre}light changed from ${LIGHT[before.light]} to ${LIGHT[after.light]}.`);
+      if (before.soil !== after.soil) out.push(`${pre}soil changed from ${SOIL[before.soil]} to ${SOIL[after.soil]}.`);
+      return out;
+    }
+
+    stepBtn.addEventListener('click', () => {
+      const dt = Math.min(stepVal(), MAXYEAR - year);
+      if (dt <= 0) return;
+      const bl = stageOf(left), br = stageOf(right);
+      left = { ...left, age: left.age + dt };
+      right = { ...right, age: right.age + dt };
+      year += dt;
+      const al = stageOf(left), ar = stageOf(right);
+      const same = left.track === right.track && left.age === right.age;
+      const notes = same ? changes('', bl, al) : [...changes('Left half', bl, al), ...changes('Right half', br, ar)];
+      event = notes.join(' ');
+      render();
+    });
+    disturbBtns.forEach((b) => {
+      b.addEventListener('click', () => {
+        const isLeft = b.dataset.stlDisturb === 'left';
+        const h = isLeft ? left : right;
+        const name = isLeft ? 'Left' : 'Right';
+        if (h.track === 'p') {
+          event = 'The lesson gives no regrowth timeline for a cleared Glacier Bay patch, so this sketch does not clear it.';
+        } else if (h.track === 's' && h.age === 0) {
+          event = `The ${name.toLowerCase()} half is at year 0 of secondary succession, so nothing changes. Step forward to see what grows.`;
+        } else {
+          const next: Half = { track: 's', age: 0, origin: 'cleared' };
+          if (isLeft) left = next; else right = next;
+          event = `${name} half burned or cleared. The soil stays, so secondary succession starts over there. Predict what grows first, then step.`;
+        }
+        render();
+      });
+    });
+    resetBtn.addEventListener('click', () => reset('Reset.'));
+    startRadios.forEach((r) => r.addEventListener('change', () => reset(`${START_NAME[startVal()] ?? 'Field'} selected. Predict, then press Step forward.`)));
+    stepRadios.forEach((r) => r.addEventListener('change', render));
+    reset('Predict what will cover the most ground after 10 years, then press Step forward.');
+  }
+</script>
+
+<style is:global>
+  .stl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .stl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .stl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .stl-svg { display: block; width: 100%; max-width: 440px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .stl-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; justify-content: center; margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .stl-key { display: inline-flex; align-items: center; gap: 0.25rem; background: #fff; border-radius: 4px; padding-right: 0.3rem; }
+  .stl-mini { background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 4px; flex: none; }
+  .stl-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; }
+  .stl-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.2rem 0.7rem 0.4rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .stl-set legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .stl-opt { display: flex; align-items: center; gap: 0.5rem; min-height: 44px; cursor: pointer; }
+  .stl-opt input { width: 20px; height: 20px; accent-color: var(--ddp-color-accent); flex: none; }
+  .stl-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: var(--ddp-space-3) 0; }
+  .stl-btn { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); font-weight: 600; padding: 0.3rem 0.8rem; cursor: pointer; }
+  .stl-btn.stl-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; }
+  .stl-btn:disabled { opacity: 0.5; cursor: default; }
+  .stl-btn:focus-visible, .stl-opt input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .stl-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .stl-halves { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: var(--ddp-space-2) 0; }
+  .stl-half { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.4rem 0.7rem; }
+  .stl-half h4 { margin: 0 0 0.2rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .stl-line { margin: 0.2rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .stl-k { display: block; color: var(--ddp-color-muted); }
+  .stl-meter { display: inline-flex; gap: 2px; vertical-align: middle; margin-left: 0.3rem; }
+  .stl-seg { width: 14px; height: 8px; border: 1px solid var(--ddp-color-muted); border-radius: 2px; display: inline-block; }
+  .stl-seg.stl-on { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); }
+  .stl-note { grid-column: 1 / -1; margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .stl-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .stl-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .stl-controls, .stl-halves { grid-template-columns: 1fr; } }
+</style>

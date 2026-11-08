@@ -1,0 +1,265 @@
+---
+/**
+ * ArborCoverageCounter — a small patch of retina with ganglion cell bodies on a jittered
+ * mosaic, each with a circular dendritic field. A probe grid counts how many arbors cover each
+ * sample point. The coverage factor of the retinal-cell-types lesson is cell density times mean
+ * dendritic field area (after converting µm² to mm²); the sketch shows that expected value beside
+ * the mean count the probes actually read. The only numbers tied to a preparation are the W3
+ * values of Zhang and colleagues (2012), transgenic mouse line, as the lesson gives them.
+ * Nothing is drawn as a molecule. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="acc card" data-acc>
+  <figcaption class="acc-head">Arbor coverage counter<span class="acc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="acc-svg" viewBox="0 0 360 390" role="img" aria-label="A square patch of retina 0.25 millimetres on a side. Ganglion cell bodies sit on a jittered mosaic, each inside a circular dendritic field. A grid of probe points is coloured by how many dendritic fields cover each point." data-stage></svg>
+
+  <div class="acc-controls">
+    <label class="acc-slabel"><span>Cell density <em data-out="den">440</em> cells/mm²</span>
+      <input type="range" data-in="den" min="50" max="1000" step="10" value="440" />
+    </label>
+    <label class="acc-slabel"><span>Mean dendritic field area <em data-out="area">10,300</em> µm²</span>
+      <input type="range" data-in="area" min="2000" max="20000" step="100" value="10300" />
+    </label>
+    <label class="acc-check"><input type="checkbox" data-in="spread" /> <span>Reported spread: area as 10,300 ± 500 µm² (n = 25)</span></label>
+    <button type="button" class="acc-btn" data-resample>Resample the jitter</button>
+  </div>
+
+  <dl class="acc-readout">
+    <div><dt>Unit conversion</dt><dd data-r-conv>10,300 µm² × 10⁻⁶ = 0.0103 mm²</dd></div>
+    <div><dt>Coverage factor, expected (density × area)</dt><dd data-r-exp>440 × 0.0103 = 4.53</dd></div>
+    <div><dt>Mean count at the probe points, in this draw</dt><dd data-r-obs>4.5</dd></div>
+    <div><dt>Cell bodies in the patch, in this draw (expected)</dt><dd data-r-cells>27 (27.5)</dd></div>
+    <div class="acc-band" data-band hidden><dt>Band from the spread</dt><dd data-r-band></dd></div>
+  </dl>
+
+  <p class="acc-why" data-why role="status"></p>
+  <p class="acc-assume">In this sketch: circular dendritic fields of equal size, uniform density inside the patch, cell positions on a jittered mosaic (the jitter amount is arbitrary) drawn at random (cells just outside the edge also cover points inside it), and a point counts as covered if it lies inside an arbor. The patch is 0.25 mm on a side and not to scale for any real field.</p>
+  <p class="acc-foot">Coverage factor = cell density × mean dendritic field area, with µm² converted to mm² (× 10⁻⁶); it is an average number of arbors per location, so it is only as good as the density and area you put in.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const SCALE = ['#f1f1f4', '#cfe8ea', '#9fd0d4', '#6bb6bd', '#3a9aa4', '#0e7c86', '#0a4f56'];
+  const PATCH_UM = 250, PX0 = 30, PY0 = 22, PSIZE = 300, K = PSIZE / PATCH_UM, NPROBE = 25;
+  const W3_DEN = 440, W3_AREA = 10300, SPREAD = 500;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function rng(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const nf = (n: number) => n.toLocaleString('en-US');
+
+  document.querySelectorAll<HTMLElement>('[data-acc]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]');
+    const denIn = root.querySelector<HTMLInputElement>('[data-in="den"]');
+    const areaIn = root.querySelector<HTMLInputElement>('[data-in="area"]');
+    const spreadIn = root.querySelector<HTMLInputElement>('[data-in="spread"]');
+    const denOut = root.querySelector<HTMLElement>('[data-out="den"]');
+    const areaOut = root.querySelector<HTMLElement>('[data-out="area"]');
+    const resample = root.querySelector<HTMLButtonElement>('[data-resample]');
+    const rConv = root.querySelector<HTMLElement>('[data-r-conv]');
+    const rExp = root.querySelector<HTMLElement>('[data-r-exp]');
+    const rObs = root.querySelector<HTMLElement>('[data-r-obs]');
+    const rCells = root.querySelector<HTMLElement>('[data-r-cells]');
+    const rBand = root.querySelector<HTMLElement>('[data-r-band]');
+    const band = root.querySelector<HTMLElement>('[data-band]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!stage || !denIn || !areaIn || !spreadIn || !denOut || !areaOut || !resample || !rConv || !rExp || !rObs || !rCells || !rBand || !band || !why) return;
+
+    let seed = 20120;
+
+    function render() {
+      if (!stage || !denIn || !areaIn || !spreadIn || !denOut || !areaOut || !rConv || !rExp || !rObs || !rCells || !rBand || !band || !why) return;
+      const den = parseInt(denIn.value, 10);
+      const area = parseInt(areaIn.value, 10);
+      const spreadOn = spreadIn.checked;
+      denOut.textContent = nf(den);
+      areaOut.textContent = nf(area);
+
+      const areaMm2 = area * 1e-6;
+      const cf = den * areaMm2;
+      const radius = Math.sqrt(area / Math.PI); // µm
+      const isW3 = den === W3_DEN && area === W3_AREA;
+
+      // jittered mosaic: one cell per lattice square (random phase), position drawn at random in the square
+      const rand = rng(seed);
+      const s = 1000 / Math.sqrt(den); // µm
+      const ox = rand() * s, oy = rand() * s;
+      const J = 0.8;
+      const lo = -radius - s, hi = PATCH_UM + radius + s;
+      const i0 = Math.floor((lo - ox) / s) - 1, i1 = Math.ceil((hi - ox) / s) + 1;
+      const cells: { x: number; y: number }[] = [];
+      for (let i = i0; i <= i1; i++) {
+        for (let j = i0; j <= i1; j++) {
+          const x = ox + (i + 0.5 + (rand() - 0.5) * J) * s;
+          const y = oy + (j + 0.5 + (rand() - 0.5) * J) * s;
+          if (x >= -radius && x <= PATCH_UM + radius && y >= -radius && y <= PATCH_UM + radius) cells.push({ x, y });
+        }
+      }
+      const inPatch = cells.filter((c) => c.x >= 0 && c.x < PATCH_UM && c.y >= 0 && c.y < PATCH_UM);
+
+      // probe grid
+      const r2 = radius * radius;
+      const counts: number[] = [];
+      let sum = 0;
+      for (let a = 0; a < NPROBE; a++) {
+        for (let b = 0; b < NPROBE; b++) {
+          const px = ((b + 0.5) * PATCH_UM) / NPROBE, py = ((a + 0.5) * PATCH_UM) / NPROBE;
+          let n = 0;
+          for (const c of cells) {
+            const dx = c.x - px, dy = c.y - py;
+            if (dx * dx + dy * dy <= r2) n++;
+          }
+          counts.push(n);
+          sum += n;
+        }
+      }
+      const obs = sum / counts.length;
+
+      // draw
+      stage.replaceChildren();
+      const t0 = el('text', { x: PX0, y: 14, 'font-size': 10, fill: INK });
+      t0.textContent = 'Retinal patch, 0.25 mm × 0.25 mm (not to scale for any real field)';
+      stage.appendChild(t0);
+      stage.appendChild(el('rect', { x: PX0, y: PY0, width: PSIZE, height: PSIZE, fill: '#ffffff', stroke: INK, 'stroke-width': 1 }));
+      const clipId = 'acc-clip-' + Math.floor(Math.random() * 1e9);
+      const defs = el('defs', {});
+      const cp = el('clipPath', { id: clipId });
+      cp.appendChild(el('rect', { x: PX0, y: PY0, width: PSIZE, height: PSIZE }));
+      defs.appendChild(cp);
+      stage.appendChild(defs);
+      const g = el('g', { 'clip-path': `url(#${clipId})` });
+      const pr = Math.max(2.2, Math.min(3.4, (PSIZE / NPROBE) * 0.28));
+      for (let a = 0; a < NPROBE; a++) {
+        for (let b = 0; b < NPROBE; b++) {
+          const n = counts[a * NPROBE + b];
+          g.appendChild(el('circle', {
+            cx: PX0 + ((b + 0.5) * PSIZE) / NPROBE, cy: PY0 + ((a + 0.5) * PSIZE) / NPROBE, r: pr,
+            fill: SCALE[Math.min(n, 6)], stroke: n === 0 ? FAINT : 'none', 'stroke-width': 0.6,
+          }));
+        }
+      }
+      const rpx = radius * K;
+      for (const c of cells) {
+        g.appendChild(el('circle', { cx: PX0 + c.x * K, cy: PY0 + c.y * K, r: rpx, fill: 'none', stroke: INK, 'stroke-opacity': 0.35, 'stroke-width': 0.7 }));
+      }
+      for (const c of cells) {
+        g.appendChild(el('circle', { cx: PX0 + c.x * K, cy: PY0 + c.y * K, r: 1.9, fill: '#1f1f26' }));
+      }
+      // spread rings on the cell nearest the patch centre
+      if (spreadOn && inPatch.length > 0) {
+        let best = inPatch[0], bd = Infinity;
+        for (const c of inPatch) {
+          const d = (c.x - PATCH_UM / 2) ** 2 + (c.y - PATCH_UM / 2) ** 2;
+          if (d < bd) { bd = d; best = c; }
+        }
+        const rIn = Math.sqrt((area - SPREAD) / Math.PI) * K, rOut = Math.sqrt((area + SPREAD) / Math.PI) * K;
+        for (const rr of [rIn, rOut]) {
+          g.appendChild(el('circle', { cx: PX0 + best.x * K, cy: PY0 + best.y * K, r: rr, fill: 'none', stroke: ORANGE, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+        }
+        g.appendChild(el('circle', { cx: PX0 + best.x * K, cy: PY0 + best.y * K, r: 3.2, fill: ORANGE }));
+      }
+      stage.appendChild(g);
+      // scale bar under the patch
+      stage.appendChild(el('line', { x1: PX0, y1: 332, x2: PX0 + PSIZE, y2: 332, stroke: INK, 'stroke-width': 1 }));
+      stage.appendChild(el('line', { x1: PX0, y1: 328, x2: PX0, y2: 336, stroke: INK, 'stroke-width': 1 }));
+      stage.appendChild(el('line', { x1: PX0 + PSIZE, y1: 328, x2: PX0 + PSIZE, y2: 336, stroke: INK, 'stroke-width': 1 }));
+      const sb = el('text', { x: PX0 + PSIZE / 2, y: 347, 'text-anchor': 'middle', 'font-size': 10, fill: INK });
+      sb.textContent = '0.25 mm';
+      stage.appendChild(sb);
+      // legend
+      const lc = el('text', { x: PX0, y: 362, 'font-size': 10, fill: INK });
+      lc.textContent = 'Probe points, coloured by the number of arbors covering them:';
+      stage.appendChild(lc);
+      for (let i = 0; i < 7; i++) {
+        const x = PX0 + i * 44;
+        stage.appendChild(el('rect', { x, y: 369, width: 14, height: 12, fill: SCALE[i], stroke: i === 0 ? FAINT : 'none', 'stroke-width': 0.8 }));
+        const lt = el('text', { x: x + 18, y: 379, 'font-size': 10, fill: INK });
+        lt.textContent = i === 6 ? '6+' : String(i);
+        stage.appendChild(lt);
+      }
+
+      // readouts
+      rConv.textContent = `${nf(area)} µm² × 10⁻⁶ = ${areaMm2.toFixed(4)} mm²`;
+      rExp.textContent = `${nf(den)} × ${areaMm2.toFixed(4)} = ${cf.toFixed(2)}`;
+      rObs.textContent = `${obs.toFixed(2)} (${counts.length} probe points)`;
+      rCells.textContent = `${inPatch.length} (${(den * (PATCH_UM / 1000) ** 2).toFixed(1)})`;
+      if (spreadOn) {
+        band.hidden = false;
+        const bl = den * (area - SPREAD) * 1e-6, bh = den * (area + SPREAD) * 1e-6;
+        rBand.textContent = `${nf(area)} ± 500 µm²${isW3 ? ' (n = 25)' : ' (spread borrowed from W3, arithmetic only)'} gives ${bl.toFixed(2)} to ${bh.toFixed(2)}`;
+      } else {
+        band.hidden = true;
+        rBand.textContent = '';
+      }
+
+      // status
+      let msg = `In this sketch ${inPatch.length} cell bodies sit in the patch, each with a circular field of ${nf(area)} µm². The coverage factor, density × area, is ${cf.toFixed(2)}, expected, and the probe points read a mean of ${obs.toFixed(2)} arbors on this draw; Resample redraws the jitter and the value in this draw scatters around the expected one. `;
+      if (cf > 1.05) {
+        msg += 'A coverage factor above 1 means arbors overlap. It does not by itself show that several types were mixed together: aggregate density can be conserved while individual arbors overlap. ';
+      } else if (cf >= 0.95) {
+        msg += 'A coverage factor near 1 means about one arbor covers an average point; it is an average, so individual points still differ. ';
+      } else {
+        msg += 'A coverage factor below 1 means an average point is covered by less than one arbor, so some points are covered by none. ';
+      }
+      if (isW3) {
+        msg += `These are the W3 values from Zhang and colleagues (2012), transgenic mouse line: a peak density of 440 cells/mm² in ventral retina and a mean area of 10,300 ± 500 µm² (n = 25), about ${cf.toFixed(1)} arbors per average point. The figure pairs a regional peak density with a mean area, so treat it as an estimate and not as a measured average.`;
+      } else {
+        msg += 'These settings are yours; they are not W3 data. The W3 values in the lesson are 440 cells/mm² and 10,300 µm².';
+      }
+      if (spreadOn) {
+        msg += isW3
+          ? ' Orange dashed rings on the cell nearest the centre show the area at 10,300 − 500 and 10,300 + 500 µm².'
+          : ' Orange dashed rings on the cell nearest the centre apply the same ± 500 µm² to your area, as arithmetic only; that spread was reported for the W3 area, not for these values.';
+      }
+      why.textContent = msg;
+    }
+
+    denIn.addEventListener('input', render);
+    areaIn.addEventListener('input', render);
+    spreadIn.addEventListener('change', render);
+    resample.addEventListener('click', () => { seed = (seed * 1664525 + 1013904223) >>> 0; render(); });
+    render();
+  });
+</script>
+
+<style>
+  .acc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .acc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .acc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .acc-svg { display: block; width: 100%; max-width: 460px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .acc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .acc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .acc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .acc-slabel input { accent-color: var(--ddp-color-accent); }
+  .acc-check { display: flex; align-items: flex-start; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .acc-check input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .acc-btn { justify-self: start; font: inherit; font-size: var(--ddp-text-xs); padding: 0.35rem 0.7rem; border: 1px solid var(--ddp-color-accent); border-radius: 6px; background: transparent; color: var(--ddp-color-accent); cursor: pointer; }
+  .acc-btn:hover, .acc-btn:focus-visible { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
+  .acc-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .acc-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .acc-readout div[hidden] { display: none; }
+  .acc-band { grid-column: 1 / -1; }
+  .acc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .acc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .acc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .acc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .acc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .acc-controls, .acc-readout { grid-template-columns: 1fr; }
+  }
+</style>

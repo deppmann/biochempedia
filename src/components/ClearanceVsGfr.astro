@@ -1,0 +1,327 @@
+---
+/**
+ * ClearanceVsGfr — one mammalian nephron drawn as labelled blocks (blood: afferent arteriole,
+ * glomerulus, efferent arteriole, peritubular capillaries, vasa recta; filtrate: Bowman's
+ * capsule, proximal tubule, loop of Henle descending then ascending limb, distal tubule,
+ * collecting duct) beside a clearance bar compared with a GFR line at 120 mL per min.
+ * C = U x V / P with the lesson's numbers; glucose shows the filtered load GFR x P.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cvg card" data-cvg>
+  <figcaption class="cvg-head"><span>Clearance against GFR — one nephron</span><span class="cvg-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="cvg-pair">
+    <svg class="cvg-svg cvg-neph" viewBox="0 0 360 378" role="img" aria-label="Schematic of one mammalian nephron as labelled blocks and arrows. Blood: afferent arteriole into the glomerulus, out by the efferent arteriole, then the peritubular capillaries, and the vasa recta for deep nephrons. Filtrate: Bowman's capsule, proximal tubule, loop of Henle descending limb then ascending limb, distal tubule, collecting duct, urine." data-neph></svg>
+    <svg class="cvg-svg cvg-bar" viewBox="0 0 340 176" role="img" aria-label="A bar for the clearance C on a scale of mL per min, with a vertical line at the GFR of 120 mL per min" data-bar></svg>
+  </div>
+
+  <div class="cvg-controls">
+    <label class="cvg-slabel cvg-wide"><span>Substance</span>
+      <select data-in="sub">
+        <option value="inulin">Inulin</option>
+        <option value="glucose">Glucose</option>
+        <option value="x300">A substance with clearance 300 mL per min</option>
+        <option value="x1">A substance with clearance 1 mL per min</option>
+      </select>
+    </label>
+    <label class="cvg-slabel"><span data-lab="u">Urine concentration U <em data-out="u">30</em> <span data-unit="u">mg per mL</span></span>
+      <input type="range" data-in="u" min="0" max="100" step="0.25" value="30" />
+    </label>
+    <label class="cvg-slabel"><span>Urine collected in 60 min <em data-out="vol">120</em> mL</span>
+      <input type="range" data-in="vol" min="30" max="600" step="6" value="120" />
+    </label>
+    <label class="cvg-slabel"><span data-lab="p"><span data-name="p">Plasma concentration</span> P <em data-out="p">0.50</em> <span data-unit="p">mg per mL</span></span>
+      <input type="range" data-in="p" min="0.1" max="2" step="0.05" value="0.5" />
+    </label>
+  </div>
+
+  <dl class="cvg-readout">
+    <div><dt>Urine flow V</dt><dd data-r="v"></dd></div>
+    <div><dt>Clearance C</dt><dd data-r="c"></dd></div>
+    <div><dt>C over a day (1,440 min)</dt><dd data-r="day"></dd></div>
+    <div><dt>C against GFR (120 mL per min)</dt><dd data-r="ratio"></dd></div>
+    <div data-glu hidden><dt>Filtered glucose load, GFR × P</dt><dd data-r="load"></dd></div>
+  </dl>
+
+  <div class="cvg-math" data-math></div>
+  <p class="cvg-why" data-why role="status"></p>
+  <p class="cvg-assume">In this sketch: adult human at steady state, illustrative numbers, GFR taken as the inulin clearance of 120 mL per min, the test substances freely filtered, and the sketch holds urine glucose at 0 at every plasma glucose. Schematic tube, not to scale; the stack lists segments in the order the filtrate meets them.</p>
+  <p class="cvg-foot">Clearance C = U × V / P is a volume of plasma per minute. For a freely filtered substance, C equal to GFR fits no net handling (inulin); C above GFR means net secretion; C below GFR means net reabsorption. Creatinine, a muscle waste, is used to estimate GFR, but a little is secreted, so creatinine clearance tends to overestimate GFR.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', BLOOD = '#b3262e';
+  const GFR = 120; // mL per min: the inulin clearance in the lesson's worked problem
+  const MIN_PER_DAY = 1440;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('ClearanceVsGfr: missing ' + sel);
+    return e;
+  }
+  function txt(parent: SVGElement, x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+    t.textContent = s;
+    parent.appendChild(t);
+    return t;
+  }
+  const thousands = (n: number) => Math.round(n).toLocaleString('en-US');
+  const fmtC = (c: number) => (c === 0 ? '0' : c >= 100 ? thousands(c) : c.toFixed(1));
+  const fmtL = (l: number) => (l === 0 ? '0' : l >= 10 ? thousands(l) : l.toFixed(1));
+
+  document.querySelectorAll<HTMLElement>('[data-cvg]').forEach((root) => {
+    const neph = need<SVGSVGElement>(root, '[data-neph]');
+    const bar = need<SVGSVGElement>(root, '[data-bar]');
+    const subIn = need<HTMLSelectElement>(root, '[data-in="sub"]');
+    const uIn = need<HTMLInputElement>(root, '[data-in="u"]');
+    const volIn = need<HTMLInputElement>(root, '[data-in="vol"]');
+    const pIn = need<HTMLInputElement>(root, '[data-in="p"]');
+    const uOut = need<HTMLElement>(root, '[data-out="u"]');
+    const volOut = need<HTMLElement>(root, '[data-out="vol"]');
+    const pOut = need<HTMLElement>(root, '[data-out="p"]');
+    const uUnit = need<HTMLElement>(root, '[data-unit="u"]');
+    const pUnit = need<HTMLElement>(root, '[data-unit="p"]');
+    const pName = need<HTMLElement>(root, '[data-name="p"]');
+    const uLab = need<HTMLElement>(root, '[data-lab="u"]');
+    const rV = need<HTMLElement>(root, '[data-r="v"]');
+    const rC = need<HTMLElement>(root, '[data-r="c"]');
+    const rDay = need<HTMLElement>(root, '[data-r="day"]');
+    const rRatio = need<HTMLElement>(root, '[data-r="ratio"]');
+    const rLoad = need<HTMLElement>(root, '[data-r="load"]');
+    const gluBox = need<HTMLElement>(root, '[data-glu]');
+    const math = need<HTMLElement>(root, '[data-math]');
+    const why = need<HTMLElement>(root, '[data-why]');
+
+    // Preset starting values (U, urine mL in 60 min, P). 300 and 1 mL per min follow from
+    // C = U x V / P with V = 2.0 mL per min: 75 x 2.0 / 0.50 = 300 and 0.25 x 2.0 / 0.50 = 1.
+    const PRESET: Record<string, { u: number; vol: number; p: number }> = {
+      inulin: { u: 30, vol: 120, p: 0.5 },
+      x300: { u: 75, vol: 120, p: 0.5 },
+      x1: { u: 0.25, vol: 120, p: 0.5 },
+      glucose: { u: 0, vol: 120, p: 5.0 },
+    };
+
+    function setMode(sub: string) {
+      const glu = sub === 'glucose';
+      const pre = PRESET[sub] ?? PRESET.inulin;
+      if (glu) {
+        pIn.min = '2'; pIn.max = '10'; pIn.step = '0.5';
+      } else {
+        pIn.min = '0.1'; pIn.max = '2'; pIn.step = '0.05';
+      }
+      uIn.disabled = glu;
+      uIn.value = String(pre.u);
+      volIn.value = String(pre.vol);
+      pIn.value = String(pre.p);
+    }
+
+    function drawNeph(glu: boolean, vMin: number, netTag: string) {
+      neph.replaceChildren();
+      const defs = el('defs', {});
+      const mk = (id: string, color: string) => {
+        const m = el('marker', { id, viewBox: '0 0 8 8', refX: 7, refY: 4, markerWidth: 7, markerHeight: 7, orient: 'auto' });
+        m.appendChild(el('path', { d: 'M0,0 L8,4 L0,8 Z', fill: color }));
+        defs.appendChild(m);
+      };
+      mk('cvg-ab', BLOOD); mk('cvg-af', ACCENT); mk('cvg-ao', ORANGE);
+      neph.appendChild(defs);
+      const rowY = (i: number) => 24 + i * 40;
+      const H = 28;
+      const BX = 16, BW = 112, FX = 208, FW = 136;
+      txt(neph, BX + BW / 2, 14, 'BLOOD', { 'text-anchor': 'middle', 'font-weight': 700, fill: BLOOD });
+      txt(neph, FX + FW / 2, 14, 'FILTRATE', { 'text-anchor': 'middle', 'font-weight': 700, fill: ACCENT });
+      const box = (x: number, y: number, w: number, h: number, fill: string, stroke: string, sw: number, lines: string[]) => {
+        neph.appendChild(el('rect', { x, y, width: w, height: h, rx: 4, fill, stroke, 'stroke-width': sw }));
+        const n = lines.length;
+        const base = y + h / 2 - ((n - 1) * 11) / 2 + 3;
+        lines.forEach((l, i) => txt(neph, x + w / 2, base + i * 11, l, { 'text-anchor': 'middle' }));
+      };
+      const bloodBox = (i: number, lines: string[], span = 1) =>
+        box(BX, rowY(i), BW, H + (span - 1) * 40, '#fbe9ea', BLOOD, 1.3, lines);
+      const filtBox = (i: number, lines: string[], span = 1, hi = false) =>
+        box(FX, rowY(i), FW, H + (span - 1) * 40, hi ? '#ffe9d1' : '#e6f4f5', hi ? ORANGE : ACCENT, hi ? 2.4 : 1.3, lines);
+      const arrow = (x1: number, y1: number, x2: number, y2: number, color: string, marker: string, dash = '') => {
+        const a: Record<string, string | number> = { x1, y1, x2, y2, stroke: color, 'stroke-width': 1.6, 'marker-end': `url(#${marker})` };
+        if (dash) a['stroke-dasharray'] = dash;
+        neph.appendChild(el('line', a));
+      };
+
+      // blood column
+      bloodBox(0, ['1 afferent arteriole', 'blood in']);
+      bloodBox(1, ['2 glomerulus']);
+      bloodBox(2, ['3 efferent arteriole', 'blood out']);
+      bloodBox(3, ['4 peritubular', 'capillaries']);
+      bloodBox(4, ['vasa recta', '(deep nephrons)'], 2);
+      const bx = BX + BW / 2;
+      arrow(bx, rowY(0) + H, bx, rowY(1), BLOOD, 'cvg-ab');
+      arrow(bx, rowY(1) + H, bx, rowY(2), BLOOD, 'cvg-ab');
+      arrow(bx, rowY(2) + H, bx, rowY(3), BLOOD, 'cvg-ab');
+      // dashed elbow: efferent arteriole blood also reaches the vasa recta in deep nephrons
+      const ey = rowY(2) + H / 2, vy = rowY(4) + (H + 40) / 2;
+      neph.appendChild(el('path', { d: `M${BX},${ey} L7,${ey} L7,${vy} L${BX - 1},${vy}`, fill: 'none', stroke: BLOOD, 'stroke-width': 1.4, 'stroke-dasharray': '3 2', 'marker-end': 'url(#cvg-ab)' }));
+
+      // filtrate column
+      filtBox(1, ['1 Bowman’s capsule']);
+      filtBox(2, glu ? ['2 proximal tubule', 'glucose: almost all', 'taken back'] : ['2 proximal tubule'], 2, glu);
+      filtBox(4, ['3 loop of Henle:', 'descending limb']);
+      filtBox(5, ['4 loop of Henle:', 'ascending limb']);
+      filtBox(6, ['5 distal tubule']);
+      filtBox(7, ['6 collecting duct']);
+      const fx = FX + FW / 2;
+      arrow(fx, rowY(1) + H, fx, rowY(2), ACCENT, 'cvg-af');
+      arrow(fx, rowY(3) + H, fx, rowY(4), ACCENT, 'cvg-af');
+      // hairpin bend joins the descending limb to the ascending limb
+      neph.appendChild(el('path', { d: `M${FX + FW},${rowY(4) + H / 2} L${FX + FW + 10},${rowY(4) + H / 2} L${FX + FW + 10},${rowY(5) + H / 2} L${FX + FW + 1},${rowY(5) + H / 2}`, fill: 'none', stroke: ACCENT, 'stroke-width': 1.6, 'marker-end': 'url(#cvg-af)' }));
+      arrow(fx, rowY(5) + H, fx, rowY(6), ACCENT, 'cvg-af');
+      arrow(fx, rowY(6) + H, fx, rowY(7), ACCENT, 'cvg-af');
+      arrow(fx, rowY(7) + H, fx, rowY(7) + H + 14, ACCENT, 'cvg-af');
+
+      // glomerulus to capsule: filtration
+      const gy = rowY(1) + H / 2;
+      arrow(BX + BW, gy, FX, gy, ACCENT, 'cvg-af');
+      txt(neph, (BX + BW + FX) / 2, gy - 15, 'filtered', { 'text-anchor': 'middle' });
+      txt(neph, (BX + BW + FX) / 2, gy - 4, 'GFR 120 mL/min', { 'text-anchor': 'middle' });
+      // reabsorption: tubule back to the peritubular capillaries
+      const ry = rowY(3) + H / 2;
+      arrow(FX, ry, BX + BW, ry, glu ? ORANGE : ACCENT, glu ? 'cvg-ao' : 'cvg-af', '4 2');
+      txt(neph, (BX + BW + FX) / 2, ry - 4, 'reabsorbed', { 'text-anchor': 'middle', fill: glu ? ORANGE : INK, 'font-weight': glu ? 700 : 400 });
+
+      // urine out and the net handling
+      txt(neph, fx, rowY(7) + H + 26, 'urine: V = ' + vMin.toFixed(1) + ' mL/min', { 'text-anchor': 'middle', 'font-weight': 700 });
+      txt(neph, fx, rowY(7) + H + 38, netTag, { 'text-anchor': 'middle' });
+    }
+
+    function drawBar(c: number) {
+      bar.replaceChildren();
+      const X0 = 20, X1 = 320, MAX = 400;
+      const px = (v: number) => X0 + (Math.min(v, MAX) / MAX) * (X1 - X0);
+      txt(bar, X0, 14, 'Clearance C and the GFR line (mL per min)', { 'font-size': 10 });
+      // axis
+      const AY = 118;
+      bar.appendChild(el('line', { x1: X0, y1: AY, x2: X1, y2: AY, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 100, 200, 300, 400]) {
+        bar.appendChild(el('line', { x1: px(v), y1: AY, x2: px(v), y2: AY + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(bar, px(v), AY + 14, String(v), { 'text-anchor': v === 0 ? 'start' : v === MAX ? 'end' : 'middle' });
+      }
+      // bar
+      const barW = c > 0 ? Math.max(px(c) - X0, 1.5) : 0;
+      bar.appendChild(el('rect', { x: X0, y: 62, width: barW, height: 30, fill: ACCENT, rx: 2 }));
+      if (c > MAX) txt(bar, X1 - 4, 81, 'off scale ▸', { 'text-anchor': 'end', fill: '#fff', 'font-weight': 700 });
+      // GFR line
+      bar.appendChild(el('line', { x1: px(GFR), y1: 38, x2: px(GFR), y2: AY, stroke: ORANGE, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+      txt(bar, px(GFR) + 4, 34, 'GFR = 120 mL per min', { fill: ORANGE, 'font-weight': 700 });
+      // value line under the axis
+      const ratio = c / GFR;
+      txt(bar, X0, 156, 'C = ' + fmtC(c) + ' mL per min  (C ÷ GFR = ' + ratio.toFixed(2) + ')', { 'font-size': 10, 'font-weight': 700, fill: ACCENT });
+    }
+
+    function render() {
+      const sub = subIn.value;
+      const glu = sub === 'glucose';
+      const vol = parseFloat(volIn.value);
+      const P = parseFloat(pIn.value);
+      const U = glu ? 0 : parseFloat(uIn.value);
+      const V = vol / 60;
+      const C = (U * V) / P;
+      const unit = glu ? 'mmol per L' : 'mg per mL';
+      const pD = glu ? P.toFixed(1) : P.toFixed(2);
+
+      uOut.textContent = glu ? '0' : U.toFixed(2).replace(/\.?0+$/, (m) => (m === '.00' ? '' : m));
+      volOut.textContent = String(vol);
+      pOut.textContent = pD;
+      uUnit.textContent = unit; pUnit.textContent = unit;
+      pName.textContent = glu ? 'Plasma glucose' : 'Plasma concentration';
+      uLab.title = glu ? 'Urine glucose is set to 0 for glucose' : '';
+      gluBox.hidden = !glu;
+
+      const dayMl = C * MIN_PER_DAY;
+      rV.textContent = V.toFixed(1) + ' mL per min';
+      rC.textContent = fmtC(C) + ' mL per min';
+      rDay.textContent = thousands(dayMl) + ' mL' + (C > 0 ? ' (about ' + fmtL(dayMl / 1000) + ' L)' : '');
+      rRatio.textContent = (C / GFR).toFixed(2) + ' × GFR';
+
+      // worked arithmetic with units
+      const uTxt = glu ? '0' : String(parseFloat(U.toFixed(2)));
+      const lines: string[] = [];
+      lines.push(`V = ${vol} mL ÷ 60 min = ${V.toFixed(1)} mL per min`);
+      lines.push(`C = U × V ÷ P = ${uTxt} × ${V.toFixed(1)} ÷ ${pD} = ${fmtC(C)} mL per min`);
+      lines.push(`Units: (${unit} × mL per min) ÷ (${unit}) = mL per min. Clearance is a plasma volume.`);
+      lines.push(`Over a day: ${fmtC(C)} × 1,440 = ${thousands(dayMl)} mL${C > 0 ? ', about ' + fmtL(dayMl / 1000) + ' L' : ''}`);
+      if (glu) {
+        const loadMin = 0.12 * P; // L per min x mmol per L
+        const loadDay = loadMin * MIN_PER_DAY;
+        const grams = (loadDay * 156) / 864; // the lesson's own ratio: 864 mmol is about 156 g
+        rLoad.textContent = loadMin.toFixed(2) + ' mmol per min';
+        lines.push(`Filtered load = GFR × P = 0.120 L per min × ${pD} mmol per L = ${loadMin.toFixed(2)} mmol per min`);
+        lines.push(`Per day: ${loadMin.toFixed(2)} × 1,440 = ${thousands(loadDay)} mmol, about ${thousands(grams)} g (scaled from the lesson’s ratio of about 156 g to 864 mmol)`);
+      }
+      math.replaceChildren(...lines.map((l) => { const d = document.createElement('div'); d.textContent = l; return d; }));
+
+      // comparison with GFR
+      const equal = Math.abs(C - GFR) < 0.05;
+      let netTag = '';
+      let msg = '';
+      if (glu) {
+        netTag = 'glucose in urine: none';
+        msg = `Glucose is freely filtered, so the filtered load is GFR × P = 0.120 L per min × ${pD} mmol per L = ${(0.12 * P).toFixed(2)} mmol per min. In this sketch urine glucose is 0, so none of it leaves in the urine: all of it was reabsorbed, and the proximal tubule normally takes back almost all filtered glucose.`;
+      } else if (C === 0) {
+        netTag = 'none in urine';
+        msg = `With U = 0 nothing of the substance leaves in the urine, so C = 0 mL per min. If it was freely filtered, all of it was taken back by the tubule.`;
+      } else if (equal) {
+        netTag = 'C equals GFR: no net handling';
+        msg = `C = ${fmtC(C)} mL per min is equal to the GFR of 120 mL per min, as for inulin: a substance that is freely filtered and neither reabsorbed nor secreted leaves in the urine at the rate it was filtered.`;
+      } else if (C > GFR) {
+        netTag = 'C above GFR: net secretion';
+        msg = `C = ${fmtC(C)} mL per min is above the GFR of 120 mL per min. The substance leaves faster than filtration alone could carry it, so the tubule must secrete it.`;
+      } else {
+        netTag = 'C below GFR: net reabsorption';
+        msg = `C = ${fmtC(C)} mL per min is below the GFR of 120 mL per min: about ${(C / GFR * 100).toFixed(1)}% of what was filtered leaves in the urine, so the tubule reabsorbs the rest on net.`;
+      }
+      if (sub === 'inulin' && !equal && !glu) {
+        msg = `Inulin’s clearance equals the GFR, 120 mL per min, so these values no longer describe inulin. Read as a freely filtered substance: ` + msg;
+      }
+      why.textContent = msg;
+
+      drawNeph(glu, V, netTag);
+      drawBar(C);
+    }
+
+    subIn.addEventListener('change', () => { setMode(subIn.value); render(); });
+    subIn.addEventListener('input', () => { setMode(subIn.value); render(); });
+    [uIn, volIn, pIn].forEach((s) => s.addEventListener('input', render));
+    setMode(subIn.value);
+    render();
+  });
+</script>
+
+<style is:global>
+  .cvg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cvg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cvg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cvg-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ddp-space-3); align-items: start; }
+  .cvg-svg { display: block; width: 100%; max-width: 480px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cvg-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  @media (max-width: 520px) { .cvg-controls { grid-template-columns: 1fr; } }
+  .cvg-wide { grid-column: 1 / -1; }
+  .cvg-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cvg-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cvg-slabel input[type="range"] { accent-color: var(--ddp-color-accent); }
+  .cvg-slabel select { font: inherit; font-size: var(--ddp-text-xs); padding: 0.25rem 0.35rem; max-width: 100%; }
+  .cvg-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cvg-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .cvg-readout div[hidden] { display: none; }
+  .cvg-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cvg-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .cvg-math { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; margin: var(--ddp-space-2) 0; padding-left: 0.55rem; border-left: 3px solid var(--ddp-color-accent); overflow-wrap: anywhere; }
+  .cvg-why { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .cvg-assume { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .cvg-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

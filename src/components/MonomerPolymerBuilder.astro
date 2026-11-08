@@ -1,0 +1,238 @@
+---
+/**
+ * MonomerPolymerBuilder — pick a kind of building block and snap blocks into a chain.
+ * The sketch names the large molecule, gives its main job and counts the water molecules
+ * released: joining two monomers releases one water, so n blocks make n - 1 links and
+ * release n - 1 waters (dehydration synthesis). Fats are the exception the lesson names:
+ * a common fat is one glycerol joined to three fatty acids, not a long chain of repeating
+ * blocks, so that mode stops at three fatty acids and does not count water.
+ * Every rule here is a statement of the macromolecules lesson; blocks are labelled boxes,
+ * never molecular structures. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="mpb card" data-mpb>
+  <figcaption class="mpb-head">Monomer builder: chain small blocks into a large molecule<span class="mpb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="mpb-svg" viewBox="0 0 360 232" role="img" aria-label="Labelled boxes for the building blocks you have linked, with a drop for each water molecule released" data-stage></svg>
+
+  <fieldset class="mpb-kinds">
+    <legend>1. Pick a kind of building block</legend>
+    <label class="mpb-kind"><input type="radio" name="mpb-kind" value="sugar" checked /><span>Simple sugar</span></label>
+    <label class="mpb-kind"><input type="radio" name="mpb-kind" value="amino" /><span>Amino acid</span></label>
+    <label class="mpb-kind"><input type="radio" name="mpb-kind" value="nucleotide" /><span>Nucleotide</span></label>
+    <label class="mpb-kind"><input type="radio" name="mpb-kind" value="fat" /><span>Fatty acids + glycerol</span></label>
+  </fieldset>
+
+  <div class="mpb-row">
+    <span class="mpb-label">2. Build</span>
+    <button type="button" class="mpb-btn mpb-add" data-add></button>
+    <button type="button" class="mpb-btn" data-remove>Remove last block</button>
+    <button type="button" class="mpb-btn" data-reset>Reset</button>
+  </div>
+
+  <p class="mpb-verdict" data-verdict role="status"></p>
+
+  <dl class="mpb-read" data-read>
+    <div><dt>Blocks</dt><dd data-r-blocks></dd></div>
+    <div><dt>Links</dt><dd data-r-links></dd></div>
+    <div><dt>Water released</dt><dd data-r-water></dd></div>
+    <div><dt>Large molecule</dt><dd data-r-name></dd></div>
+    <div><dt>Main job</dt><dd data-r-job></dd></div>
+    <div><dt>Elements</dt><dd data-r-elem></dd></div>
+  </dl>
+
+  <p class="mpb-assume">In this sketch each block is one monomer drawn as a labelled box, not a molecule. A chain stops at 12 blocks to fit the screen; a real polymer has many monomers.</p>
+  <p class="mpb-foot">Rule to keep: joining two monomers releases one water molecule, so a chain of n blocks has n − 1 links and releases n − 1 waters. A common fat is one glycerol joined to three fatty acids, so it is not a true polymer.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Kind = 'sugar' | 'amino' | 'nucleotide' | 'fat';
+  const KINDS: Record<Kind, { block: string; add: string; fill: string; job: string; elem: string }> = {
+    sugar: { block: 'sugar', add: '+ Add a simple sugar', fill: '#0b6e78', job: 'quick energy; plant cell walls', elem: 'C, H, O' },
+    amino: { block: 'amino acid', add: '+ Add an amino acid', fill: '#a8500a', job: 'building tissues; running cell processes', elem: 'C, H, O, N (often S)' },
+    nucleotide: { block: 'nucleotide', add: '+ Add a nucleotide', fill: '#6b4f99', job: 'storing and passing on genetic information', elem: 'C, H, O, N, P' },
+    fat: { block: 'fatty acid', add: '+ Add a fatty acid', fill: '#7d5a06', job: 'long-term energy storage; insulation; cell membranes (lipids)', elem: 'mostly C, H, O' },
+  };
+  const MAX = 12;
+  const FAT_MAX = 3;
+  const INK = '#3d3d47';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+  document.querySelectorAll<HTMLElement>('[data-mpb]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('MonomerPolymerBuilder: missing ' + s);
+      return e;
+    };
+    const stage = q<SVGSVGElement>('[data-stage]');
+    const addBtn = q<HTMLButtonElement>('[data-add]');
+    const removeBtn = q<HTMLButtonElement>('[data-remove]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const verdict = q<HTMLElement>('[data-verdict]');
+    const rBlocks = q<HTMLElement>('[data-r-blocks]');
+    const rLinks = q<HTMLElement>('[data-r-links]');
+    const rWater = q<HTMLElement>('[data-r-water]');
+    const rName = q<HTMLElement>('[data-r-name]');
+    const rJob = q<HTMLElement>('[data-r-job]');
+    const rElem = q<HTMLElement>('[data-r-elem]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="mpb-kind"]'));
+
+    let kind: Kind = 'sugar';
+    let n = 0; // blocks in a chain, or fatty acids on the glycerol
+    let note = '';
+
+    function drawChain() {
+      const W = 76, H = 36, GAP = 12, X0 = 10, PITCH = 70, Y0 = 24;
+      const pos = (i: number) => ({ x: X0 + (i % 4) * (W + GAP), y: Y0 + Math.floor(i / 4) * PITCH });
+      if (n === 0) {
+        stage.appendChild(el('text', { x: 180, y: 110, 'font-size': 13, 'text-anchor': 'middle', fill: INK }, 'Press the Add button to place a block.'));
+      }
+      for (let i = 0; i < n - 1; i++) {
+        const a = pos(i), b = pos(i + 1);
+        if (b.y === a.y) {
+          stage.appendChild(el('line', { x1: a.x + W, y1: a.y + H / 2, x2: b.x, y2: b.y + H / 2, stroke: INK, 'stroke-width': 2.5 }));
+          stage.appendChild(el('circle', { cx: a.x + W + GAP / 2, cy: a.y - 8, r: 5, fill: '#2f7fc1' }));
+        } else {
+          const ax = a.x + W / 2, bx = b.x + W / 2, my = a.y + H + 17;
+          stage.appendChild(el('polyline', { points: `${ax},${a.y + H} ${ax},${my} ${bx},${my} ${bx},${b.y}`, fill: 'none', stroke: INK, 'stroke-width': 2.5 }));
+          stage.appendChild(el('circle', { cx: 180, cy: my - 8, r: 5, fill: '#2f7fc1' }));
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        const p = pos(i);
+        stage.appendChild(el('rect', { x: p.x, y: p.y, width: W, height: H, rx: 6, fill: KINDS[kind].fill }));
+        stage.appendChild(el('text', { x: p.x + W / 2, y: p.y + H / 2 + 4.5, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: '#fff' }, KINDS[kind].block));
+      }
+      stage.appendChild(el('circle', { cx: 24, cy: 217, r: 5, fill: '#2f7fc1' }));
+      stage.appendChild(el('text', { x: 36, y: 221, 'font-size': 13, fill: INK }, '= one water molecule (H₂O) released'));
+    }
+
+    function drawFat() {
+      const gx = 19, gy = 24, gw = 84, gh = 160;
+      stage.appendChild(el('rect', { x: gx, y: gy, width: gw, height: gh, rx: 6, fill: '#4b4b55' }));
+      stage.appendChild(el('text', { x: gx + gw / 2, y: gy + gh / 2 + 4.5, 'font-size': 13, 'font-weight': 700, 'text-anchor': 'middle', fill: '#fff' }, 'glycerol'));
+      for (let i = 0; i < FAT_MAX; i++) {
+        const sx = 160, sy = 24 + i * 56, sw = 150, sh = 48;
+        if (i < n) {
+          stage.appendChild(el('line', { x1: gx + gw, y1: sy + sh / 2, x2: sx, y2: sy + sh / 2, stroke: INK, 'stroke-width': 2.5 }));
+          stage.appendChild(el('rect', { x: sx, y: sy, width: sw, height: sh, rx: 6, fill: KINDS.fat.fill }));
+          stage.appendChild(el('text', { x: sx + sw / 2, y: sy + sh / 2 + 4.5, 'font-size': 13, 'font-weight': 700, 'text-anchor': 'middle', fill: '#fff' }, 'fatty acid'));
+        } else {
+          stage.appendChild(el('rect', { x: sx, y: sy, width: sw, height: sh, rx: 6, fill: '#fff', stroke: '#8a8a96', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+          stage.appendChild(el('text', { x: sx + sw / 2, y: sy + sh / 2 + 4.5, 'font-size': 13, 'text-anchor': 'middle', fill: INK }, 'empty'));
+        }
+      }
+      stage.appendChild(el('text', { x: 19, y: 217, 'font-size': 13, fill: INK }, 'A common fat has 1 glycerol and 3 fatty acids.'));
+    }
+
+    function describe() {
+      const waters = Math.max(n - 1, 0);
+      let name = '';
+      let v = '';
+      if (kind === 'sugar') {
+        if (n === 0) { name = 'none yet'; v = 'Add a simple sugar to start a chain.'; }
+        else if (n === 1) { name = 'a simple sugar (one monomer)'; v = 'One simple sugar is a single monomer. Nothing is joined yet, so no water is released.'; }
+        else if (n === 2) { name = 'a double sugar (a carbohydrate)'; v = 'Two simple sugars joined make a double sugar. The 1 link released 1 water molecule.'; }
+        else { name = 'a carbohydrate: a chain of simple sugars (starch and cellulose are examples)'; v = `${plural(n, 'sugar')} make ${plural(n - 1, 'link')}. Each link released 1 water, so ${n - 1} waters.`; }
+      } else if (kind === 'amino') {
+        if (n === 0) { name = 'none yet'; v = 'Add an amino acid to start a chain.'; }
+        else if (n === 1) { name = 'an amino acid (one monomer)'; v = 'One amino acid is a single monomer. Nothing is joined yet, so no water is released.'; }
+        else { name = 'a chain of amino acids; folded into a shape, it is a protein'; v = `${plural(n, 'amino acid')} make ${plural(n - 1, 'link')}. The name changes: a chain of amino acids is a protein once it folds. The water rule is the same: ${n - 1} ${n === 2 ? 'water' : 'waters'}.`; }
+      } else if (kind === 'nucleotide') {
+        if (n === 0) { name = 'none yet'; v = 'Add a nucleotide to start a chain.'; }
+        else if (n === 1) { name = 'a nucleotide (one monomer)'; v = 'One nucleotide is a single monomer. Nothing is joined yet, so no water is released.'; }
+        else { name = 'a nucleic acid: a chain of nucleotides, such as DNA or RNA'; v = `${plural(n, 'nucleotide')} make ${plural(n - 1, 'link')}, so ${n - 1} ${n === 2 ? 'water' : 'waters'} released. The rule is the same again.`; }
+      } else {
+        if (n === 0) { name = 'glycerol alone'; v = 'Glycerol is on its own. Add a fatty acid to join it.'; }
+        else if (n < FAT_MAX) { name = 'glycerol with ' + plural(n, 'fatty acid') + '; a common fat has three'; v = `Glycerol has ${plural(n, 'fatty acid')} joined so far. A common fat has three.`; }
+        else { name = 'a fat (lipid): one glycerol joined to three fatty acids'; v = 'This is a common fat: one glycerol and three fatty acids. It is not a long chain of repeating blocks.'; }
+      }
+      if (note) v = note;
+      verdict.textContent = v;
+
+      if (kind === 'fat') {
+        rBlocks.textContent = `1 glycerol + ${plural(n, 'fatty acid')}`;
+        rLinks.textContent = `${n} (one for each fatty acid joined)`;
+        rWater.textContent = 'not counted in this sketch: the n − 1 rule is for chains of monomers';
+        rJob.textContent = n === FAT_MAX ? 'long-term energy storage; insulation (other lipids form cell membranes)' : KINDS.fat.job;
+      } else {
+        rBlocks.textContent = String(n);
+        rLinks.textContent = n === 0 ? '0' : `${n} − 1 = ${n - 1}`;
+        rWater.textContent = n === 0 ? '0' : `${n - 1} water ${n - 1 === 1 ? 'molecule' : 'molecules'}`;
+        rJob.textContent = n === 0 ? 'none yet' : n < 2 ? 'one monomer is not yet a polymer' : KINDS[kind].job;
+      }
+      rName.textContent = name;
+      rElem.textContent = KINDS[kind].elem;
+      void waters;
+    }
+
+    function render() {
+      stage.replaceChildren();
+      if (kind === 'fat') drawFat(); else drawChain();
+      addBtn.textContent = KINDS[kind].add;
+      removeBtn.disabled = n === 0;
+      describe();
+    }
+
+    function setKind(k: Kind) {
+      kind = k;
+      n = 0;
+      note = '';
+      render();
+    }
+
+    addBtn.addEventListener('click', () => {
+      note = '';
+      const cap = kind === 'fat' ? FAT_MAX : MAX;
+      if (n >= cap) {
+        note = kind === 'fat'
+          ? 'No more fatty acids fit. A common fat is one glycerol joined to three fatty acids, so it does not grow into a long chain.'
+          : 'This sketch stops at 12 blocks to fit the screen. A real polymer has many monomers.';
+      } else n += 1;
+      render();
+    });
+    removeBtn.addEventListener('click', () => { if (n > 0) n -= 1; note = ''; render(); });
+    resetBtn.addEventListener('click', () => {
+      kind = 'sugar'; n = 0; note = '';
+      radios.forEach((r) => { r.checked = r.value === 'sugar'; });
+      render();
+    });
+    radios.forEach((r) => r.addEventListener('change', () => { if (r.checked) setKind(r.value as Kind); }));
+    render();
+  });
+</script>
+
+<style is:global>
+  .mpb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mpb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mpb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mpb-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mpb-kinds { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-3); padding: 0.4rem 0.6rem 0.6rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .mpb-kinds legend { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .mpb-kind { position: relative; display: inline-flex; }
+  .mpb-kind input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .mpb-kind span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.8rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); background: transparent; }
+  .mpb-kind input:checked + span { background: var(--ddp-color-primary); border-color: var(--ddp-color-primary); color: #fff; font-weight: 700; }
+  .mpb-kind input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mpb-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.35rem 0; }
+  .mpb-label { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); min-width: 4.5em; }
+  .mpb-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0 0.9rem; cursor: pointer; }
+  .mpb-btn:disabled { opacity: 0.45; cursor: default; }
+  .mpb-add { background: var(--ddp-color-primary); border-color: var(--ddp-color-primary); color: #fff; font-weight: 700; }
+  .mpb-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mpb-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .mpb-read { margin: 0 0 var(--ddp-space-2); display: grid; grid-template-columns: 1fr; gap: 0.15rem; font-size: var(--ddp-text-sm); }
+  .mpb-read > div { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; }
+  .mpb-read dt { min-width: 8.5em; color: var(--ddp-color-muted); }
+  .mpb-read dd { margin: 0; flex: 1 1 12em; color: var(--ddp-color-ink-soft); font-weight: 600; }
+  .mpb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mpb-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

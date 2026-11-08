@@ -1,0 +1,232 @@
+---
+/**
+ * DivisionOfLabour — share out life's five jobs (take in food, move, sense the
+ * surroundings, reproduce, remove extra water) between one cell or a group of cells.
+ * In this sketch every job is work that grows with the size of the organism, every cell
+ * has the same limited energy supply, and every job must be done by some cell. The
+ * learner gives jobs to cells, grows the organism and sees which arrangement keeps up.
+ * All numbers are relative units; the rules are stated on screen. Nothing is drawn as a
+ * molecule (labelled circles and bars only). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="dol card" data-dol>
+  <figcaption class="dol-head">Division of labour: share out the jobs<span class="dol-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="dol-rules">In this sketch: each job is 1.5 units of work for every step of size, one cell has an energy supply of 10 units, and all five jobs must be done. In this sketch, food is the only energy supply: if no cell takes in food, no cell has energy. Units are relative, not measured.</p>
+
+  <svg class="dol-svg" viewBox="0 0 420 290" role="img" aria-label="One bar for each cell showing how much work it does, compared with the limit of its energy supply" data-stage></svg>
+
+  <div class="dol-row">
+    <label class="dol-label" for="dol-size">Organism size</label>
+    <input id="dol-size" class="dol-range" type="range" min="1" max="6" step="1" value="1" data-size />
+    <output class="dol-out" data-sizeout for="dol-size">1</output>
+  </div>
+
+  <div class="dol-row dol-btns">
+    <button type="button" class="dol-btn" data-preset="one">One cell, all five jobs</button>
+    <button type="button" class="dol-btn" data-preset="five">Five cells, one job each</button>
+    <button type="button" class="dol-btn" data-add>+ Add a cell</button>
+    <button type="button" class="dol-btn" data-remove>− Remove last cell</button>
+    <button type="button" class="dol-btn dol-reset" data-reset>Reset</button>
+  </div>
+
+  <p class="dol-hint">Press a job to give it to a cell or take it away. The jobs are: take in food, move, sense the surroundings, reproduce, remove extra water.</p>
+  <div class="dol-cells" data-cells></div>
+
+  <p class="dol-verdict" data-verdict role="status"></p>
+  <ul class="dol-list" data-list></ul>
+
+  <p class="dol-foot">Rule to keep in this sketch: a cell can only do as much work as its limited energy supply allows, so when the work grows, sharing the jobs among more cells lets the organism keep up. Real specialized cells still take in food and make ATP themselves; this is a sketch of the logic.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const JOBS = [
+    { chip: 'take in food', short: 'food', long: 'take in food' },
+    { chip: 'move', short: 'move', long: 'move' },
+    { chip: 'sense', short: 'sense', long: 'sense the surroundings' },
+    { chip: 'reproduce', short: 'reproduce', long: 'reproduce' },
+    { chip: 'remove extra water', short: 'water', long: 'remove extra water' },
+  ];
+  const WORK_PER_SIZE = 1.5; // relative units of work for one job per step of size
+  const SUPPLY = 10; // relative units one cell can use
+  const MAX_CELLS = 6;
+  const INK = '#4b4b55', FAINT = '#8a8a96', OK = '#0e7c86', BAD = '#c2410c';
+
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('DivisionOfLabour: missing ' + sel);
+    return e;
+  }
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const fmt = (x: number) => String(Math.round(x * 100) / 100);
+
+  document.querySelectorAll<HTMLElement>('[data-dol]').forEach((root) => {
+    const stage = need<SVGSVGElement>(root, '[data-stage]');
+    const sizeIn = need<HTMLInputElement>(root, '[data-size]');
+    const sizeOut = need<HTMLOutputElement>(root, '[data-sizeout]');
+    const cellsEl = need<HTMLElement>(root, '[data-cells]');
+    const verdict = need<HTMLElement>(root, '[data-verdict]');
+    const list = need<HTMLElement>(root, '[data-list]');
+    const addBtn = need<HTMLButtonElement>(root, '[data-add]');
+    const remBtn = need<HTMLButtonElement>(root, '[data-remove]');
+
+    let size = 1;
+    let cells: boolean[][] = [[true, true, true, true, true]];
+
+    function buildCards() {
+      cellsEl.replaceChildren();
+      cells.forEach((jobs, i) => {
+        const card = document.createElement('div');
+        card.className = 'dol-card';
+        const h = document.createElement('div');
+        h.className = 'dol-card-h';
+        h.textContent = 'Cell ' + (i + 1);
+        card.appendChild(h);
+        const grp = document.createElement('div');
+        grp.className = 'dol-chips';
+        grp.setAttribute('role', 'group');
+        grp.setAttribute('aria-label', 'Jobs for cell ' + (i + 1));
+        JOBS.forEach((j, k) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'dol-job';
+          b.textContent = j.chip;
+          b.setAttribute('aria-pressed', jobs[k] ? 'true' : 'false');
+          b.setAttribute('aria-label', 'Cell ' + (i + 1) + ': ' + j.long);
+          b.addEventListener('click', () => {
+            cells[i][k] = !cells[i][k];
+            b.setAttribute('aria-pressed', cells[i][k] ? 'true' : 'false');
+            render();
+          });
+          grp.appendChild(b);
+        });
+        card.appendChild(grp);
+        cellsEl.appendChild(card);
+      });
+    }
+
+    function render() {
+      const W = WORK_PER_SIZE * size;
+      const nOn = JOBS.map((_, k) => cells.filter((c) => c[k]).length);
+      const load = cells.map((c) => c.reduce((s, on, k) => s + (on ? W / nOn[k] : 0), 0));
+      const fed = nOn[0] > 0;
+      const missing = JOBS.filter((_, k) => nOn[k] === 0);
+      const over = load.filter((l) => l > SUPPLY + 1e-9).length;
+      const n = cells.length;
+      sizeOut.textContent = String(size);
+      addBtn.disabled = n >= MAX_CELLS;
+      remBtn.disabled = n <= 1;
+
+      // drawing
+      stage.replaceChildren();
+      stage.appendChild(el('text', { x: 4, y: 18, 'font-size': 12, 'font-weight': 700, fill: INK }, 'Work done by each cell (relative units; bars stop at 15)'));
+      const base = 172, per = 8, colW = 63;
+      const off = (378 - n * colW) / 2;
+      stage.appendChild(el('line', { x1: 0, y1: base, x2: 378, y2: base, stroke: FAINT, 'stroke-width': 1 }));
+      const ly = base - SUPPLY * per;
+      stage.appendChild(el('line', { x1: 0, y1: ly, x2: 380, y2: ly, stroke: INK, 'stroke-width': 1.5, 'stroke-dasharray': '5 3' }));
+      stage.appendChild(el('text', { x: 418, y: ly - 5, 'font-size': 12, 'text-anchor': 'end', fill: INK }, 'limit 10'));
+      cells.forEach((c, i) => {
+        const cx = off + i * colW + colW / 2;
+        const l = load[i];
+        const isOver = fed && l > SUPPLY + 1e-9;
+        const col = !fed ? FAINT : isOver ? BAD : OK;
+        const hgt = Math.min(l, 15) * per;
+        if (hgt > 0) {
+          stage.appendChild(el('rect', { x: cx - 19, y: base - hgt, width: 38, height: hgt, fill: fed ? col : '#fff', 'fill-opacity': fed ? 0.85 : 1, stroke: col, 'stroke-width': 1.5, 'stroke-dasharray': fed ? '0' : '4 3' }));
+        }
+        stage.appendChild(el('text', { x: cx, y: Math.max(base - hgt - 5, 46), 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: col }, fmt(l)));
+        stage.appendChild(el('circle', { cx, cy: 192, r: 12, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }));
+        stage.appendChild(el('text', { x: cx, y: 197, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, String(i + 1)));
+        const mine = JOBS.map((j, k) => (c[k] ? j.short : '')).filter(Boolean);
+        if (mine.length === 0) stage.appendChild(el('text', { x: cx, y: 222, 'font-size': 12, 'text-anchor': 'middle', fill: FAINT }, 'no job'));
+        mine.forEach((t, r) => stage.appendChild(el('text', { x: cx, y: 222 + r * 14, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, t)));
+      });
+
+      // status (under 25 words each)
+      let v: string;
+      if (!fed) v = 'No cell takes in food, so in this sketch no cell has an energy supply and the other jobs stop.';
+      else if (missing.length > 0) v = 'Nothing is doing: ' + missing.map((j) => j.long).join(', ') + '. The organism does not keep up.';
+      else if (over > 0) {
+        v = n === 1
+          ? 'This one cell has more work than its energy supply allows at size ' + size + ', so it does not keep up.'
+          : over + (over === 1 ? ' cell has' : ' cells have') + ' more work than the energy supply allows at size ' + size + ', so the organism does not keep up.';
+      } else {
+        v = n === 1
+          ? 'One cell does all five jobs and keeps up at size ' + size + ': its work is ' + fmt(load[0]) + ' of 10 units.'
+          : 'Every job is done and no cell is over its limit, so the group keeps up at size ' + size + '.';
+      }
+      verdict.textContent = v;
+
+      // arithmetic
+      list.replaceChildren();
+      const head = document.createElement('li');
+      head.className = 'dol-li-head';
+      head.textContent = 'Work for each job at size ' + size + ': 1.5 × ' + size + ' = ' + fmt(W) + ' units, shared by the cells that do it. Figures are rounded.';
+      list.appendChild(head);
+      cells.forEach((c, i) => {
+        const li = document.createElement('li');
+        const parts = JOBS.map((j, k) => (c[k] ? j.short + ' ' + fmt(W / nOn[k]) : '')).filter(Boolean);
+        const bad = fed && load[i] > SUPPLY + 1e-9;
+        li.textContent = 'Cell ' + (i + 1) + ': ' + (parts.length ? parts.join(' + ') + ' = ' : 'no job, ') + fmt(load[i]) + ' of 10' + (!fed ? ' (jobs stopped)' : bad ? ' (over the limit)' : '');
+        if (bad) li.className = 'dol-over';
+        list.appendChild(li);
+      });
+    }
+
+    function setFive() {
+      cells = JOBS.map((_, k) => JOBS.map((__, j) => j === k));
+      buildCards();
+      render();
+    }
+    function setOne() {
+      cells = [[true, true, true, true, true]];
+      buildCards();
+      render();
+    }
+    sizeIn.addEventListener('input', () => { size = Number(sizeIn.value); render(); });
+    need<HTMLButtonElement>(root, '[data-preset="one"]').addEventListener('click', setOne);
+    need<HTMLButtonElement>(root, '[data-preset="five"]').addEventListener('click', setFive);
+    addBtn.addEventListener('click', () => { if (cells.length < MAX_CELLS) { cells.push([false, false, false, false, false]); buildCards(); render(); } });
+    remBtn.addEventListener('click', () => { if (cells.length > 1) { cells.pop(); buildCards(); render(); } });
+    need<HTMLButtonElement>(root, '[data-reset]').addEventListener('click', () => { size = 1; sizeIn.value = '1'; setOne(); });
+    buildCards();
+    render();
+  });
+</script>
+
+<style is:global>
+  .dol { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dol-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dol-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dol-rules { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dol-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dol-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.4rem 0; }
+  .dol-label { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); font-weight: 600; }
+  .dol-range { flex: 1 1 8rem; min-width: 8rem; min-height: 44px; accent-color: var(--ddp-color-accent); }
+  .dol-out { min-width: 1.5em; font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .dol-btns { gap: 0.4rem; }
+  .dol-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .dol-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .dol-reset { font-weight: 700; }
+  .dol-hint { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dol-cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 0.5rem; }
+  .dol-card { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.4rem 0.5rem; }
+  .dol-card-h { font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); margin-bottom: 0.3rem; }
+  .dol-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .dol-job { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.2rem 0.55rem; cursor: pointer; }
+  .dol-job[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .dol-btn:focus-visible, .dol-job:focus-visible, .dol-range:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dol-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .dol-list { margin: 0; padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .dol-li-head { list-style: none; margin-left: -1.1rem; color: var(--ddp-color-primary); font-weight: 600; }
+  .dol-over { color: #c2410c; font-weight: 600; }
+  .dol-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

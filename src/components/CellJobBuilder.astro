@@ -1,0 +1,286 @@
+---
+/**
+ * CellJobBuilder — build one cell for a job. Three switches (cell wall, chloroplasts, large
+ * central vacuole), a water slider and a light switch. A stiffness bar rises only when the cell
+ * has a wall AND a large central vacuole AND water (a full vacuole presses on a stiff wall); a
+ * food bar rises only with chloroplasts AND light. The outline is boxy with a wall and round
+ * without one. One cell stands for a whole celery stalk. Every rule is a statement of the
+ * plant-and-animal-cells lesson; bars are relative units, not measurements. Original.
+ */
+---
+
+<figure class="cjb card" data-cjb>
+  <figcaption class="cjb-head">Build a cell for a job<span class="cjb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cjb-svg" viewBox="0 0 400 290" role="img" aria-label="A labelled sketch of one cell, with a celery stalk beside it that stands up or droops" data-stage>
+    <circle cx="14" cy="16" r="8" data-sun fill="#f2b705" stroke="#8a6d00" stroke-width="1.5" />
+    <text x="28" y="21" font-size="12" fill="#4b4b55" data-lighttxt>Light on</text>
+
+    <!-- cell: wall (outside), membrane + cytoplasm -->
+    <path data-wall d="" fill="none" stroke="#9a7b3f" stroke-width="8" stroke-linejoin="round" />
+    <path data-cell d="" fill="#f3f7e8" stroke="#4b4b55" stroke-width="1.8" />
+    <path data-vac d="" fill="#bfe0f2" stroke="#2f7fa8" stroke-width="1.5" />
+    <g data-chlo>
+      <ellipse cx="164" cy="92" rx="13" ry="7" fill="#4c9a3f" stroke="#2c6a24" />
+      <ellipse cx="164" cy="115" rx="13" ry="7" fill="#4c9a3f" stroke="#2c6a24" />
+      <ellipse cx="164" cy="138" rx="13" ry="7" fill="#4c9a3f" stroke="#2c6a24" />
+      <ellipse cx="164" cy="161" rx="13" ry="7" fill="#4c9a3f" stroke="#2c6a24" />
+    </g>
+    <circle cx="164" cy="185" r="9" fill="#c9b8e6" stroke="#6b4fa0" stroke-width="1.5" />
+
+    <!-- labels -->
+    <g font-size="12" fill="#2b2b33">
+      <text x="6" y="139" data-lab-wall>cell wall</text>
+      <line x1="62" y1="135" x2="114" y2="135" stroke="#7a7a85" stroke-width="1" data-line-wall />
+      <text x="6" y="96" data-lab-chlo>chloroplasts</text>
+      <line x1="82" y1="92" x2="150" y2="92" stroke="#7a7a85" stroke-width="1" data-line-chlo />
+      <text x="6" y="194">nucleus</text>
+      <line x1="52" y1="190" x2="153" y2="187" stroke="#7a7a85" stroke-width="1" />
+      <text x="225" y="40" text-anchor="middle" data-lab-vac>large central vacuole</text>
+      <line x1="225" y1="46" x2="225" y2="80" stroke="#7a7a85" stroke-width="1" data-line-vac />
+      <text x="210" y="252" text-anchor="middle">cell membrane</text>
+      <line x1="210" y1="233" x2="210" y2="222" stroke="#7a7a85" stroke-width="1" />
+    </g>
+
+    <!-- celery stalk -->
+    <path data-stalk d="" fill="none" stroke="#7fb069" stroke-width="16" stroke-linecap="round" />
+    <line x1="318" y1="252" x2="372" y2="252" stroke="#7a7a85" stroke-width="2" />
+    <text x="345" y="272" font-size="12" fill="#2b2b33" text-anchor="middle">celery stalk</text>
+    <text x="345" y="286" font-size="12" fill="#4b4b55" text-anchor="middle" data-stalktxt>stands up</text>
+  </svg>
+
+  <div class="cjb-bars">
+    <div class="cjb-bar">
+      <span class="cjb-bl">Stiffness</span>
+      <div class="cjb-track" role="meter" aria-label="Stiffness, relative units" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-m-stiff><i data-b-stiff></i></div>
+      <span class="cjb-bv" data-v-stiff>0</span>
+    </div>
+    <div class="cjb-bar">
+      <span class="cjb-bl">Food making</span>
+      <div class="cjb-track" role="meter" aria-label="Food making, relative units" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-m-food><i data-b-food class="cjb-food"></i></div>
+      <span class="cjb-bv" data-v-food>0</span>
+    </div>
+  </div>
+
+  <div class="cjb-controls">
+    <label class="cjb-sw"><input type="checkbox" role="switch" data-in="wall" /> <span>Cell wall</span></label>
+    <label class="cjb-sw"><input type="checkbox" role="switch" data-in="chlo" /> <span>Chloroplasts</span></label>
+    <label class="cjb-sw"><input type="checkbox" role="switch" data-in="vac" /> <span>Large central vacuole</span></label>
+    <label class="cjb-sw"><input type="checkbox" role="switch" data-in="light" checked /> <span>Light on</span></label>
+  </div>
+  <div class="cjb-row">
+    <label class="cjb-slabel"><span>Water supply: <em data-out="water">10</em> of 10 <small>(relative units)</small></span>
+      <input type="range" data-in="water" min="0" max="10" step="1" value="10" />
+    </label>
+    <button type="button" class="cjb-btn" data-reset>Reset</button>
+  </div>
+
+  <p class="cjb-why" data-why role="status">Switch on a part to build your cell. Then change the water or the light.</p>
+  <p class="cjb-assume">In this sketch, one cell stands for a whole celery stalk. The bars are relative units, not measurements. Stiffness is 10 times the water supply when the cell has a wall and a large central vacuole, and 0 otherwise (a simple rule for this sketch, not a measurement). The food bar checks chloroplasts, light and water. Carbon dioxide is not shown.</p>
+  <p class="cjb-foot">Rule to keep: a full vacuole presses on a stiff cell wall and keeps a plant firm, and chloroplasts need light to make food.</p>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cjb]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const sel = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('CellJobBuilder: missing ' + s);
+      return e;
+    };
+    if (!q('[data-stage]')) return;
+
+    const wallIn = sel<HTMLInputElement>('[data-in="wall"]');
+    const chloIn = sel<HTMLInputElement>('[data-in="chlo"]');
+    const vacIn = sel<HTMLInputElement>('[data-in="vac"]');
+    const lightIn = sel<HTMLInputElement>('[data-in="light"]');
+    const waterIn = sel<HTMLInputElement>('[data-in="water"]');
+    const waterOut = sel<HTMLElement>('[data-out="water"]');
+    const why = sel<HTMLElement>('[data-why]');
+    const resetBtn = sel<HTMLButtonElement>('[data-reset]');
+
+    const wallP = sel<SVGPathElement>('[data-wall]');
+    const cellP = sel<SVGPathElement>('[data-cell]');
+    const vacP = sel<SVGPathElement>('[data-vac]');
+    const chloG = sel<SVGGElement>('[data-chlo]');
+    const stalkP = sel<SVGPathElement>('[data-stalk]');
+    const stalkTxt = sel<SVGTextElement>('[data-stalktxt]');
+    const sun = sel<SVGCircleElement>('[data-sun]');
+    const lightTxt = sel<SVGTextElement>('[data-lighttxt]');
+    const labWall = sel<SVGTextElement>('[data-lab-wall]');
+    const lineWall = sel<SVGLineElement>('[data-line-wall]');
+    const labChlo = sel<SVGTextElement>('[data-lab-chlo]');
+    const lineChlo = sel<SVGLineElement>('[data-line-chlo]');
+    const labVac = sel<SVGTextElement>('[data-lab-vac]');
+    const lineVac = sel<SVGLineElement>('[data-line-vac]');
+    const mStiff = sel<HTMLElement>('[data-m-stiff]');
+    const mFood = sel<HTMLElement>('[data-m-food]');
+    const bStiff = sel<HTMLElement>('[data-b-stiff]');
+    const bFood = sel<HTMLElement>('[data-b-food]');
+    const vStiff = sel<HTMLElement>('[data-v-stiff]');
+    const vFood = sel<HTMLElement>('[data-v-food]');
+
+    // Cell box (membrane): x 120..300, y 50..220.
+    const X0 = 120, Y0 = 50, X1 = 300, Y1 = 220;
+
+    function boxPath(x0: number, y0: number, x1: number, y1: number, sag: number): string {
+      const r = 8, mx = (x0 + x1) / 2, my = (y0 + y1) / 2, bow = sag * 0.35;
+      return (
+        `M${x0 + r},${y0} Q${mx},${y0 + 2 * sag} ${x1 - r},${y0} ` +
+        `Q${x1},${y0} ${x1},${y0 + r} Q${x1 + 2 * bow},${my} ${x1},${y1 - r} ` +
+        `Q${x1},${y1} ${x1 - r},${y1} L${x0 + r},${y1} ` +
+        `Q${x0},${y1} ${x0},${y1 - r} Q${x0 - 2 * bow},${my} ${x0},${y0 + r} Q${x0},${y0} ${x0 + r},${y0} Z`
+      );
+    }
+    function roundPath(): string {
+      const rx = (X1 - X0) / 2, ry = (Y1 - Y0) / 2, cx = (X0 + X1) / 2, cy = (Y0 + Y1) / 2;
+      return `M${cx - rx},${cy} A${rx},${ry} 0 1 1 ${cx + rx},${cy} A${rx},${ry} 0 1 1 ${cx - rx},${cy} Z`;
+    }
+    function vacPath(halfW: number, halfH: number): string {
+      const cx = 225, cy = 135, r = Math.min(10, halfW, halfH);
+      return (
+        `M${cx - halfW + r},${cy - halfH} L${cx + halfW - r},${cy - halfH} Q${cx + halfW},${cy - halfH} ${cx + halfW},${cy - halfH + r} ` +
+        `L${cx + halfW},${cy + halfH - r} Q${cx + halfW},${cy + halfH} ${cx + halfW - r},${cy + halfH} L${cx - halfW + r},${cy + halfH} ` +
+        `Q${cx - halfW},${cy + halfH} ${cx - halfW},${cy + halfH - r} L${cx - halfW},${cy - halfH + r} Q${cx - halfW},${cy - halfH} ${cx - halfW + r},${cy - halfH} Z`
+      );
+    }
+    function show(e: Element, on: boolean) {
+      (e as SVGElement).style.display = on ? '' : 'none';
+    }
+
+    function render() {
+      const wall = wallIn.checked, chlo = chloIn.checked, vac = vacIn.checked, light = lightIn.checked;
+      const water = parseInt(waterIn.value, 10);
+      waterOut.textContent = String(water);
+
+      // Rules from the lesson (relative units, 0 to 100).
+      const stiff = wall && vac ? water * 10 : 0;
+      const food = chlo && light && water > 0 ? 100 : 0;
+      // One band drives the stalk drawing, the stalk words and the cell sag.
+      const holds = wall && vac;
+      const band = !holds || water === 0 ? 3 : water >= 8 ? 0 : water >= 4 ? 1 : 2;
+      const sag = [0, 0.45, 0.75, 1][band]; // 0 = stands up, 1 = limp
+
+      // Outline: boxy with a wall, round without one.
+      if (wall) {
+        const s = 22 * sag;
+        cellP.setAttribute('d', boxPath(X0, Y0, X1, Y1, s));
+        wallP.setAttribute('d', boxPath(X0 - 5, Y0 - 5, X1 + 5, Y1 + 5, s));
+        show(wallP, true);
+      } else {
+        cellP.setAttribute('d', roundPath());
+        show(wallP, false);
+      }
+
+      // Vacuole fills with water (relative size).
+      if (vac) {
+        vacP.setAttribute('d', vacPath(14 + 2.8 * water, 14 + 3.4 * water));
+        show(vacP, true);
+        labVac.textContent = 'large central vacuole';
+        const top = 135 - (14 + 3.4 * water);
+        lineVac.setAttribute('y2', String(top - 1));
+      } else {
+        show(vacP, false);
+      }
+      show(labVac, vac);
+      show(lineVac, vac);
+
+      show(chloG, chlo);
+      show(labChlo, chlo);
+      show(lineChlo, chlo);
+      show(labWall, wall);
+      show(lineWall, wall);
+
+      // Celery stalk: one cell stands for the whole stalk.
+      const d = sag;
+      const tipX = 345 + 40 * d, tipY = 60 + 120 * d, cX = 345, cY = 150 + 60 * d;
+      stalkP.setAttribute('d', `M345,250 Q${cX},${cY} ${tipX},${tipY}`);
+      stalkTxt.textContent = ['stands up', 'droops', 'starts to go limp', 'limp'][band];
+
+      // Light.
+      sun.setAttribute('fill', light ? '#f2b705' : '#d5d5db');
+      sun.setAttribute('stroke', light ? '#8a6d00' : '#7a7a85');
+      lightTxt.textContent = light ? 'Light on' : 'Light off';
+
+      // Bars.
+      bStiff.style.width = stiff + '%';
+      bFood.style.width = food + '%';
+      vStiff.textContent = String(stiff);
+      vFood.textContent = String(food);
+      mStiff.setAttribute('aria-valuenow', String(stiff));
+      mFood.setAttribute('aria-valuenow', String(food));
+
+      // Status: shape, then stiffness, then food. Each sentence follows the lesson.
+      const shape = wall
+        ? 'The wall gives straight sides, so plant cells often look boxy.'
+        : 'Animal cells are often rounder, and with no wall this outline is round.';
+      let hold: string;
+      if (!wall) {
+        hold = 'With no cell wall, water inside the cell does not hold it up the way it holds up a plant. Water only changes stiffness when the cell has a wall and a large central vacuole.';
+      } else if (!vac) {
+        hold = 'In this sketch, with no large central vacuole nothing presses on the wall, so the stiffness bar stays at zero. Water only changes stiffness when the cell has a wall and a large central vacuole.';
+      } else if (water >= 8) {
+        hold = 'A full vacuole presses on the stiff wall, and the wall pushes back. The cell is firm. A real wall can stretch a little.';
+      } else if (water >= 4) {
+        hold = 'Less water, so the vacuole is smaller and presses less. In this sketch, the cell is less firm.';
+      } else if (water >= 1) {
+        hold = 'Little water: the vacuole shrinks and the cell starts to go limp.';
+      } else {
+        hold = 'No water: the vacuole shrinks away and the cell goes limp.';
+      }
+      let make: string;
+      if (!chlo) {
+        make = 'No chloroplasts, so the food bar stays at zero, as in most onion bulb cells.';
+      } else if (!light) {
+        make = 'Chloroplasts need light to make sugar, so with no light the food bar stays at zero.';
+      } else if (water === 0) {
+        make = 'Water is also an input, so with none the food bar stays at zero.';
+      } else {
+        make = 'Chloroplasts capture radiant energy and make sugar, so the food bar rises.';
+      }
+      why.textContent = shape + ' ' + hold + ' ' + make;
+    }
+
+    [wallIn, chloIn, vacIn, lightIn, waterIn].forEach((el) => {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    });
+    resetBtn.addEventListener('click', () => {
+      wallIn.checked = false;
+      chloIn.checked = false;
+      vacIn.checked = false;
+      lightIn.checked = true;
+      waterIn.value = '10';
+      render();
+      why.textContent = 'Switch on a part to build your cell. Then change the water or the light.';
+    });
+    render();
+    why.textContent = 'Switch on a part to build your cell. Then change the water or the light.';
+  });
+</script>
+
+<style>
+  .cjb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cjb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cjb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cjb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cjb-bars { display: grid; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); max-width: 560px; margin-left: auto; margin-right: auto; }
+  .cjb-bar { display: grid; grid-template-columns: 6.5rem 1fr 2.5rem; align-items: center; gap: var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cjb-track { height: 16px; background: #eceef0; border-radius: 8px; overflow: hidden; border: 1px solid var(--ddp-color-line); }
+  .cjb-track i { display: block; height: 100%; width: 0; background: var(--ddp-color-accent); transition: width 0.2s; }
+  .cjb-track i.cjb-food { background: #4c9a3f; }
+  .cjb-bv { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); text-align: right; }
+  .cjb-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); max-width: 560px; margin: var(--ddp-space-3) auto var(--ddp-space-2); }
+  .cjb-sw { display: flex; align-items: center; gap: 0.5rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .cjb-sw input { width: 22px; height: 22px; accent-color: var(--ddp-color-accent); flex: none; }
+  .cjb-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); max-width: 560px; margin: 0 auto var(--ddp-space-2); }
+  .cjb-slabel { flex: 1 1 14rem; display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .cjb-slabel small { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cjb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cjb-slabel input { accent-color: var(--ddp-color-accent); min-height: 44px; }
+  .cjb-btn { min-height: 44px; min-width: 88px; padding: 0 1rem; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .cjb-btn:hover { border-color: var(--ddp-color-accent); }
+  .cjb-why { max-width: 560px; margin: var(--ddp-space-2) auto 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 9em; }
+  .cjb-assume { max-width: 560px; margin: var(--ddp-space-2) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cjb-foot { max-width: 560px; margin: var(--ddp-space-3) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

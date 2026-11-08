@@ -293,7 +293,7 @@ class S02Tag(SpokenScene):
 
         deg = T("degron", 40, GOLD, weight=BOLD).move_to([TX + 3.2, 1.55, 0])
         dl = Line(deg.get_left() + LEFT * 0.05, peg.get_center() + RIGHT * 0.32, color=GOLD, stroke_width=3)
-        self.at("It reads a degron")
+        self.at("reads")
         self.play(FadeIn(deg, shift=LEFT * 0.1), Create(dl), pop(peg, 1.5), run_time=0.8)
         self.at("a mark on")
         self.play(pop(peg, 1.6), run_time=0.5)
@@ -330,7 +330,7 @@ class S03Write(SpokenScene):
         gen = bchip("target", GREY, 54).next_to(CE, LEFT, buff=0)
         slot = DashedVMobject(Circle(radius=0.4), num_dashes=18).set_color(GOLD).move_to(SITE)
         nodeg = T("no degron yet", 32, GREY).move_to(SITE + DOWN * 1.15)
-        self.at("Most proteins")
+        self.at("Some proteins")
         self.play(FadeIn(gen, shift=UP * 0.15), run_time=0.5)
         self.play(Create(slot), FadeIn(nodeg), run_time=0.6)
 

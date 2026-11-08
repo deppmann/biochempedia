@@ -1,0 +1,191 @@
+---
+/**
+ * CleavageWithoutGrowth — the worked problem of the Animal Development lesson as a sketch.
+ * A zygote of invented round volume divides n times, equally and synchronously, with no growth
+ * and no cell loss. cells = 2^n; d = 2 x (3V / 4 pi)^(1/3); area = pi x d^2. Volume is conserved
+ * while total membrane area rises 2^(n/3)-fold. A switch to mouse-like asynchronous divisions
+ * shows where the first step breaks. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cwg card" data-cwg>
+  <figcaption class="cwg-head">Cleavage without growth — cells, volume and membrane<span class="cwg-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cwg-svg" viewBox="0 0 340 204" role="img" aria-label="A zygote and its blastomeres drawn as circles to the same scale" data-plot></svg>
+
+  <fieldset class="cwg-mode">
+    <legend>Division pattern</legend>
+    <label><input type="radio" name="cwg-mode" value="equal" data-mode checked /> equal, synchronous divisions (this sketch)</label>
+    <label><input type="radio" name="cwg-mode" value="mouse" data-mode /> mouse-like: asynchronous</label>
+  </fieldset>
+
+  <div class="cwg-controls">
+    <label class="cwg-slabel"><span>Number of equal divisions n: <em data-out="n">5</em></span>
+      <input type="range" data-in="n" min="0" max="7" step="1" value="5" />
+    </label>
+    <label class="cwg-slabel"><span>Zygote volume V: <em data-out="v">1.000</em> nL <small>(invented round values)</small></span>
+      <input type="range" data-in="v" min="0.5" max="2" step="0.05" value="1" />
+    </label>
+  </div>
+
+  <p class="cwg-eq">cells = 2<sup>n</sup> &nbsp;·&nbsp; d = 2 × (3V / 4π)<sup>1/3</sup> &nbsp;·&nbsp; area = π × d²</p>
+
+  <dl class="cwg-readout">
+    <div><dt>Blastomeres, 2ⁿ</dt><dd data-r="cells">—</dd></div>
+    <div><dt>Volume each (nL)</dt><dd data-r="vnl">—</dd></div>
+    <div><dt>Volume each (pL)</dt><dd data-r="vpl">—</dd></div>
+    <div><dt>Volume each (µm³)</dt><dd data-r="vum">—</dd></div>
+    <div><dt>Zygote diameter</dt><dd data-r="dz">—</dd></div>
+    <div><dt>Blastomere diameter</dt><dd data-r="db">—</dd></div>
+    <div><dt>Diameter ratio, zygote / blastomere</dt><dd data-r="dratio">—</dd></div>
+    <div><dt>Zygote membrane area</dt><dd data-r="az">—</dd></div>
+    <div><dt>Total blastomere membrane area</dt><dd data-r="ab">—</dd></div>
+    <div><dt>Area ratio, blastomeres / zygote</dt><dd data-r="aratio">—</dd></div>
+    <div><dt>Nuclei in the same total cytoplasm</dt><dd data-r="nuc">—</dd></div>
+    <div><dt>Check: cells × volume each</dt><dd data-r="check">—</dd></div>
+  </dl>
+
+  <p class="cwg-why" data-why role="status"></p>
+
+  <p class="cwg-assume" data-assume></p>
+  <p class="cwg-foot">Rule to keep: cleavage divides the same cytoplasm without growth, so cells × volume each stays equal to the zygote volume while total membrane area rises 2<sup>n/3</sup>-fold. Circles are drawn to scale with each other, not to a real embryo.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const NAVY = '#232d4b', INK = '#4b4b55', ORANGE = '#e57200';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const num = (x: number, sig = 5) => x.toLocaleString('en-US', { maximumSignificantDigits: sig });
+  const int = (x: number) => Math.round(x).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  const hundred = (x: number) => (Math.round(x / 100) * 100).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+  document.querySelectorAll<HTMLElement>('[data-cwg]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]');
+    const vIn = root.querySelector<HTMLInputElement>('[data-in="v"]');
+    const nOut = root.querySelector<HTMLElement>('[data-out="n"]');
+    const vOut = root.querySelector<HTMLElement>('[data-out="v"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const assume = root.querySelector<HTMLElement>('[data-assume]');
+    const modes = root.querySelectorAll<HTMLInputElement>('[data-mode]');
+    if (!plot || !nIn || !vIn || !nOut || !vOut || !why || !assume) return;
+    const R: Record<string, HTMLElement> = {};
+    root.querySelectorAll<HTMLElement>('[data-r]').forEach((d) => { R[d.dataset.r ?? ''] = d; });
+    const setR = (k: string, t: string) => { const d = R[k]; if (d) d.textContent = t; };
+
+    const S = 0.56; // px per µm, one scale for the zygote and every blastomere
+    const SANS = 'Inter, system-ui, sans-serif';
+    const dOf = (vUm3: number) => 2 * Math.cbrt((3 * vUm3) / (4 * Math.PI));
+    const txt = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) => {
+      const t = el('text', { x, y, 'text-anchor': 'middle', 'font-size': 10, fill: INK, 'font-family': SANS, ...extra });
+      t.textContent = s; plot.appendChild(t);
+    };
+    function isMouse() { return Array.from(modes).some((m) => m.checked && m.value === 'mouse'); }
+
+    function render() {
+      const mouse = isMouse();
+      const n = parseInt(nIn!.value, 10);
+      const vNl = parseFloat(vIn!.value);
+      nOut!.textContent = String(n);
+      vOut!.textContent = vNl.toFixed(3);
+      nIn!.disabled = mouse; vIn!.disabled = mouse;
+      plot!.replaceChildren();
+
+      txt(55, 13, 'zygote', { 'font-weight': 700, fill: NAVY });
+
+      if (mouse) {
+        const dz0 = dOf(vNl * 1e6);
+        plot!.appendChild(el('circle', { cx: 55, cy: 100, r: (dz0 * S) / 2, fill: 'color-mix(in srgb,#0e7c86 14%,#fff)', stroke: NAVY, 'stroke-width': 1.6 }));
+        txt(225, 13, 'mouse-like: asynchronous', { 'font-weight': 700, fill: NAVY });
+        txt(225, 76, 'Divisions are not synchronous,', {});
+        txt(225, 92, 'so cell counts need not be powers of two;', {});
+        txt(225, 108, 'odd numbers such as three or five occur.', {});
+        txt(225, 130, 'Sizes and areas are not computed here.', { fill: ORANGE, 'font-weight': 700 });
+        Object.keys(R).forEach((k) => setR(k, '—'));
+        why!.innerHTML = 'In the mouse, cleavage is rotational and slow, and because divisions are not synchronous, counts need not be powers of two: odd numbers such as three or five occur. The first step, cells = 2<sup>n</sup>, need not hold, so the sketch stops computing sizes. Switch back to equal, synchronous divisions to see the arithmetic.';
+        assume!.textContent = 'In this sketch: sizes and areas are not computed when divisions are asynchronous.';
+        return;
+      }
+
+      const cells = Math.pow(2, n);
+      const vUm = vNl * 1e6;
+      const vEachUm = vUm / cells;
+      const vEachNl = vNl / cells;
+      const dz = dOf(vUm), db = dOf(vEachUm);
+      const dRatio = dz / db;
+      const az = Math.PI * dz * dz;
+      const aTot = cells * Math.PI * db * db;
+      const aRatio = aTot / az;
+
+      // zygote at scale
+      plot!.appendChild(el('circle', { cx: 55, cy: 100, r: (dz * S) / 2, fill: 'color-mix(in srgb,#0e7c86 14%,#fff)', stroke: NAVY, 'stroke-width': 1.6 }));
+      txt(55, 198, `d = ${int(dz)} µm`);
+      // blastomeres at the same scale, packed in rows
+      const cols = Math.ceil(Math.sqrt(cells)), rows = Math.ceil(cells / cols);
+      const dpx = db * S, rowH = dpx * 0.866;
+      const gridH = dpx + (rows - 1) * rowH;
+      const y0 = 100 - gridH / 2 + dpx / 2;
+      for (let i = 0; i < cells; i++) {
+        const row = Math.floor(i / cols), col = i % cols;
+        const inRow = row === rows - 1 ? cells - row * cols : cols;
+        const rowW = inRow * dpx + (row % 2 ? dpx / 2 : 0);
+        const x = 225 - rowW / 2 + dpx / 2 + col * dpx + (row % 2 ? dpx / 2 : 0);
+        plot!.appendChild(el('circle', { cx: x.toFixed(2), cy: (y0 + row * rowH).toFixed(2), r: (dpx / 2 * 0.97).toFixed(2), fill: 'color-mix(in srgb,#0e7c86 14%,#fff)', stroke: NAVY, 'stroke-width': cells > 32 ? 0.7 : 1.2 }));
+      }
+      txt(225, 13, n === 0 ? 'no division yet' : `after ${n} division${n === 1 ? '' : 's'}`, { 'font-weight': 700, fill: NAVY });
+      txt(225, 198, n === 0 ? `1 cell, d = ${int(db)} µm` : `${cells} blastomeres, d = ${int(db)} µm each`);
+      // scale bar, 50 µm
+      plot!.appendChild(el('line', { x1: 12, y1: 178, x2: 12 + 50 * S, y2: 178, stroke: INK, 'stroke-width': 1.5 }));
+      txt(12 + 50 * S + 5, 181, '50 µm', { 'text-anchor': 'start', 'font-size': 9 });
+
+      setR('cells', String(cells));
+      setR('vnl', num(vEachNl));
+      setR('vpl', num(vEachNl * 1000));
+      setR('vum', int(vEachUm));
+      setR('dz', `about ${int(dz)} µm`);
+      setR('db', `about ${int(db)} µm`);
+      setR('dratio', dRatio.toFixed(2));
+      setR('az', `about ${hundred(az)} µm²`);
+      setR('ab', `about ${hundred(aTot)} µm²`);
+      setR('aratio', aRatio.toFixed(2));
+      setR('nuc', cells === 1 ? '1 (unchanged)' : `${cells}-fold more`);
+      setR('check', `${cells} × ${num(vEachNl)} nL = ${(cells * vEachNl).toFixed(3)} nL`);
+
+      why!.innerHTML = n === 0
+        ? `No division has happened: one cell of ${vNl.toFixed(3)} nL, diameter about ${int(dz)} µm. The diameter and area ratios are 1.`
+        : `After ${n} equal, synchronous division${n === 1 ? '' : 's'} with no growth and no cell loss there are 2<sup>${n}</sup> = ${cells} blastomeres of ${num(vEachNl)} nL each, ${dRatio.toFixed(2)} times smaller in diameter. Their total membrane is ${aRatio.toFixed(2)} times the zygote’s, with no new cytoplasm, and the nuclei are up ${cells}-fold: the surface-to-volume logic of <a href="/lessons/size-and-scaling/">size and scaling</a>. Changing V changes the volumes and diameters but not the ratios.`;
+      assume!.textContent = 'In this sketch: invented round values; complete, equal, synchronous divisions; no growth; no cell loss; spherical cells; one nucleus per blastomere.';
+    }
+    [nIn, vIn].forEach((s) => s.addEventListener('input', render));
+    modes.forEach((m) => m.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .cwg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cwg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cwg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cwg-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cwg-mode { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cwg-mode legend { padding: 0 0.3rem; color: var(--ddp-color-muted); }
+  .cwg-mode label { display: flex; gap: 0.4rem; align-items: baseline; }
+  .cwg-mode input { accent-color: var(--ddp-color-accent); }
+  .cwg-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; }
+  .cwg-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cwg-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .cwg-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cwg-slabel input { accent-color: var(--ddp-color-accent); }
+  .cwg-eq { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); font-family: var(--ddp-font-mono); color: var(--ddp-color-ink-soft); }
+  .cwg-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cwg-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .cwg-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cwg-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .cwg-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .cwg-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cwg-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

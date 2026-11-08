@@ -1,0 +1,176 @@
+---
+/**
+ * AnaphaseRateReader — read anaphase A, anaphase B and sister separation from the
+ * mitosis lesson's illustrative movie. A time cursor (0 to 4 min) picks two frames of a
+ * straight spindle with steady movement; the learner sees the two poles and two sister
+ * kinetochores on a line, the kinetochore-to-pole and pole-to-pole distances against
+ * time, and the lesson's arithmetic: anaphase A rate, anaphase B rate, sister
+ * separation and its check (2 x A + B). Two sliders change the rates around the
+ * lesson's values (1.0 and 1.0 um/min); any other pair is labelled illustrative.
+ * Nothing is drawn as a molecule. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ar card" data-anaphase>
+  <figcaption class="ar-head">Anaphase A and B: read the rates from a movie<span class="ar-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ar-svg" viewBox="0 0 360 282" role="img" aria-label="Top: two spindle poles and two sister kinetochores on a line, moving apart. Bottom: kinetochore-to-pole and pole-to-pole distance against time, with a time cursor." data-stage></svg>
+
+  <div class="ar-controls">
+    <label class="ar-slabel"><span>Time cursor, t <em data-out="t">4.0</em> min</span>
+      <input type="range" data-in="t" min="0" max="4" step="0.5" value="4" />
+    </label>
+    <label class="ar-slabel"><span>Anaphase A rate <em data-out="a">1.0</em> um/min</span>
+      <input type="range" data-in="a" min="0.5" max="1.25" step="0.25" value="1" />
+    </label>
+    <label class="ar-slabel"><span>Anaphase B rate <em data-out="b">1.0</em> um/min</span>
+      <input type="range" data-in="b" min="0" max="2" step="0.25" value="1" />
+    </label>
+    <button type="button" class="ar-btn" data-reset>Use the lesson’s rates</button>
+  </div>
+
+  <p class="ar-why" data-why role="status"></p>
+
+  <dl class="ar-readout">
+    <div><dt>Anaphase A (kinetochore to pole)</dt><dd data-r-a></dd></div>
+    <div><dt>Anaphase B (pole to pole)</dt><dd data-r-b></dd></div>
+    <div><dt>Sister separation</dt><dd data-r-s></dd></div>
+    <div><dt>Check: 2 × A + B</dt><dd data-r-c></dd></div>
+  </dl>
+
+  <p class="ar-foot">Sister separation is the pole distance minus both kinetochore-to-pole distances, so its rate is twice anaphase A plus anaphase B. A movie that tracks only chromosomes cannot say how much of that came from the poles. The picture assumes a straight spindle and steady movement, as the lesson does. All numbers here, the lesson’s included, are illustrative, not measurements, and frames between 0 and 4 min are interpolated by the steady-movement assumption.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const P0 = 12.0, K0 = 5.5; // um at anaphase onset (the lesson's movie)
+  const TMAX = 4.0; // min
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  // Format to at most three decimals, always showing at least one.
+  function f(x: number): string {
+    const s = Number((Math.abs(x) < 1e-9 ? 0 : x).toFixed(3)).toString();
+    return s.indexOf('.') < 0 ? s + '.0' : s;
+  }
+  document.querySelectorAll<HTMLElement>('[data-anaphase]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const tIn = q('[data-in="t"]'), aIn = q('[data-in="a"]'), bIn = q('[data-in="b"]');
+    const tOut = o('[data-out="t"]'), aOut = o('[data-out="a"]'), bOut = o('[data-out="b"]');
+    const rA = o('[data-r-a]'), rB = o('[data-r-b]'), rS = o('[data-r-s]'), rC = o('[data-r-c]'), why = o('[data-why]');
+
+    // Diagram geometry (um -> px)
+    const CX = 180, S = 12, YL = 62;
+    // Trace geometry
+    const X0 = 44, X1 = 340, Y0 = 130, Y1 = 250, DMAX = 20;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (d: number) => Y1 - (d / DMAX) * (Y1 - Y0);
+
+    function render() {
+      const t = parseFloat(tIn.value), A = parseFloat(aIn.value), B = parseFloat(bIn.value);
+      const lesson = A === 1 && B === 1;
+      const pole = (tt: number) => P0 + B * tt; // pole-to-pole distance
+      const kin = (tt: number) => K0 - A * tt; // kinetochore-to-pole distance
+      const sis = (tt: number) => pole(tt) - 2 * kin(tt);
+      const P = pole(t), K = kin(t), Sx = sis(t);
+      tOut.textContent = f(t); aOut.textContent = f(A); bOut.textContent = f(B);
+
+      stage.replaceChildren();
+      // ---- top panel: the spindle on a line
+      stage.appendChild(el('text', { x: 8, y: 16, 'font-size': 10, 'font-weight': 700, fill: INK }, 't = ' + f(t) + ' min'));
+      stage.appendChild(el('line', { x1: CX - (P / 2) * S, y1: YL, x2: CX + (P / 2) * S, y2: YL, stroke: FAINT, 'stroke-width': 1 }));
+      for (const sgn of [-1, 1]) {
+        const xp = CX + sgn * (P / 2) * S, xk = CX + sgn * (P / 2 - K) * S;
+        stage.appendChild(el('line', { x1: xp, y1: YL, x2: xk, y2: YL, stroke: TEAL, 'stroke-width': 3 }));
+        stage.appendChild(el('circle', { cx: xp, cy: YL, r: 5, fill: INK }));
+        stage.appendChild(el('text', { x: xp, y: 44, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, 'pole'));
+        stage.appendChild(el('rect', { x: xk - 3, y: YL - 8, width: 6, height: 16, fill: ORANGE }));
+        stage.appendChild(el('text', { x: xk + sgn * 6, y: 82, 'font-size': 10, 'text-anchor': sgn < 0 ? 'end' : 'start', fill: ORANGE }, 'kinetochore'));
+      }
+      // bracket across the sister kinetochores
+      const xl = CX - (P / 2 - K) * S, xr = CX + (P / 2 - K) * S;
+      stage.appendChild(el('line', { x1: xl, y1: 92, x2: xr, y2: 92, stroke: ORANGE, 'stroke-width': 1.2 }));
+      stage.appendChild(el('line', { x1: xl, y1: 88, x2: xl, y2: 96, stroke: ORANGE, 'stroke-width': 1.2 }));
+      stage.appendChild(el('line', { x1: xr, y1: 88, x2: xr, y2: 96, stroke: ORANGE, 'stroke-width': 1.2 }));
+      stage.appendChild(el('text', { x: CX, y: 108, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, 'sisters ' + f(Sx) + ' um apart'));
+
+      // ---- bottom panel: distance against time
+      stage.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      stage.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const d of [0, 5, 10, 15, 20]) {
+        if (d > 0) stage.appendChild(el('line', { x1: X0, y1: py(d), x2: X1, y2: py(d), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        stage.appendChild(el('text', { x: X0 - 4, y: py(d) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, String(d)));
+      }
+      for (const tt of [0, 1, 2, 3, 4]) {
+        stage.appendChild(el('line', { x1: px(tt), y1: Y1, x2: px(tt), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        stage.appendChild(el('text', { x: px(tt), y: Y1 + 13, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, String(tt)));
+      }
+      stage.appendChild(el('text', { x: (X0 + X1) / 2, y: 276, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, 'time after anaphase onset (min)'));
+      stage.appendChild(el('text', { x: X0 - 2, y: Y0 - 8, 'font-size': 10, fill: INK }, 'distance (um)'));
+      // traces
+      stage.appendChild(el('line', { x1: px(0), y1: py(pole(0)), x2: px(TMAX), y2: py(pole(TMAX)), stroke: INK, 'stroke-width': 2.4 }));
+      stage.appendChild(el('line', { x1: px(0), y1: py(kin(0)), x2: px(TMAX), y2: py(kin(TMAX)), stroke: TEAL, 'stroke-width': 2.4 }));
+      // legend (the band between the two traces is always clear)
+      stage.appendChild(el('line', { x1: X0 + 10, y1: 192, x2: X0 + 26, y2: 192, stroke: INK, 'stroke-width': 2.4 }));
+      stage.appendChild(el('text', { x: X0 + 31, y: 195, 'font-size': 9, fill: INK }, 'pole to pole'));
+      stage.appendChild(el('line', { x1: X0 + 10, y1: 205, x2: X0 + 26, y2: 205, stroke: TEAL, 'stroke-width': 2.4 }));
+      stage.appendChild(el('text', { x: X0 + 31, y: 208, 'font-size': 9, fill: INK }, 'kinetochore to pole'));
+      // cursor
+      stage.appendChild(el('line', { x1: px(t), y1: Y0, x2: px(t), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      stage.appendChild(el('circle', { cx: px(t), cy: py(P), r: 4, fill: INK }));
+      stage.appendChild(el('circle', { cx: px(t), cy: py(K), r: 4, fill: TEAL }));
+
+      // ---- the lesson's arithmetic, measured between t = 0 and the cursor
+      const tag = lesson ? '' : ' (illustrative)';
+      if (t === 0) {
+        rA.textContent = 'Move the cursor past 0 to measure.';
+        rB.textContent = 'Move the cursor past 0 to measure.';
+        rS.textContent = '12.0 − 2(5.5) = ' + f(sis(0)) + ' um at t = 0';
+        rC.textContent = 'needs a second frame';
+        why.textContent = 'At anaphase onset the poles are 12.0 um apart and each kinetochore is 5.5 um from its pole, so the sisters are 1.0 um apart. Move the time cursor to a later frame to measure the rates.';
+        return;
+      }
+      const rateA = (K0 - K) / t, rateB = (P - P0) / t, rateS = (Sx - sis(0)) / t, chk = 2 * rateA + rateB;
+      rA.textContent = '(' + f(K0) + ' − ' + f(K) + ') / ' + f(t) + ' = ' + f(rateA) + ' um/min' + tag;
+      rB.textContent = '(' + f(P) + ' − ' + f(P0) + ') / ' + f(t) + ' = ' + f(rateB) + ' um/min of pole separation' + tag + '; each pole ' + f(rateB / 2) + ' um/min relative to the spindle centre (poles assumed to move equally)';
+      rS.textContent = f(P0) + ' − 2(' + f(K0) + ') = ' + f(sis(0)) + ' at t = 0; ' + f(P) + ' − 2(' + f(K) + ') = ' + f(Sx) + ' at t = ' + f(t) + '; rate ' + f(Sx - sis(0)) + ' / ' + f(t) + ' = ' + f(rateS) + ' um/min' + tag;
+      const ok = Math.abs(chk - rateS) < 1e-6;
+      rC.textContent = '2(' + f(rateA) + ') + ' + f(rateB) + ' = ' + f(chk) + ' um/min' + (ok ? '. It matches the separation rate.' : '. It does not match.') + tag;
+      let msg = 'By ' + f(t) + ' min each kinetochore is ' + f(K) + ' um from its pole, the poles are ' + f(P) + ' um apart, and the sisters are ' + f(Sx) + ' um apart. ';
+      msg += B === 0
+        ? 'The poles do not move apart here, so all of the sisters’ separation is anaphase A.'
+        : 'Of the sisters’ separation rate of ' + f(rateS) + ' um/min, ' + f(2 * rateA) + ' comes from chromosomes moving to their poles (anaphase A: ' + f(rateA) + ' from each sister) and ' + f(rateB) + ' from the poles moving apart (anaphase B).';
+      if (!lesson) msg += ' These rates are illustrative, not the lesson’s.';
+      why.textContent = msg;
+    }
+    [tIn, aIn, bIn].forEach((s) => s.addEventListener('input', render));
+    root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => { aIn.value = '1'; bIn.value = '1'; render(); });
+    render();
+  });
+</script>
+
+<style>
+  .ar { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ar-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ar-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ar-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ar-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .ar-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ar-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ar-slabel input { accent-color: var(--ddp-color-accent); }
+  .ar-btn { justify-self: start; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.55rem; cursor: pointer; }
+  .ar-btn:focus-visible, .ar-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ar-why { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 5.5em; }
+  .ar-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .ar-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ar-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ar-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .ar-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .ar-controls { grid-template-columns: 1fr; } }
+</style>

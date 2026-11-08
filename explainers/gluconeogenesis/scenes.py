@@ -130,7 +130,7 @@ class S01Fasting(SpokenScene):
         self.play(FadeIn(gly, scale=0.9), run_time=0.5)
         self.at("Krebs cycle")
         self.play(GrowArrow(a2), FadeIn(krebs, scale=0.9), run_time=0.7)
-        self.at("which makes ATP")
+        self.at("which")
         self.play(GrowArrow(a3), FadeIn(atp, scale=0.9), run_time=0.6)
         self.play(Indicate(atp, color=GREEN, scale_factor=1.15), run_time=0.7)
 
@@ -169,7 +169,7 @@ class S01Fasting(SpokenScene):
         # three streams
         self.at("Three streams")
         srcs = []
-        for (nm, org, y) in [("Lactate", "muscle, red cells", 1.65), ("Alanine", "muscle protein", 0.0),
+        for (nm, org, y) in [("Lactate", "muscle, red cells", 1.65), ("Alanine", "muscle", 0.0),
                              ("Glycerol", "fat breakdown", -1.65)]:
             c = met(nm, 26)
             o = T("from " + org, 24, GREY)
@@ -181,7 +181,7 @@ class S01Fasting(SpokenScene):
         self.play(Indicate(fac, color=ORANGE, scale_factor=1.08), run_time=0.8)
         self.at("Lactate from muscle")
         self.play(FadeIn(srcs[0], shift=RIGHT * 0.2), GrowArrow(arrows_in[0]), run_time=0.8)
-        self.at("alanine from muscle protein")
+        self.at("alanine and glutamine")
         self.play(FadeIn(srcs[1], shift=RIGHT * 0.2), GrowArrow(arrows_in[1]), run_time=0.8)
         self.at("and glycerol from fat")
         self.play(FadeIn(srcs[2], shift=RIGHT * 0.2), GrowArrow(arrows_in[2]), run_time=0.8)
@@ -275,7 +275,7 @@ class S02Cliffs(SpokenScene):
         self.play(FadeIn(pfk[0], shift=RIGHT * 0.15), run_time=0.6)
         self.at("and pyruvate")
         self.play(FadeIn(pk[0], shift=RIGHT * 0.15), run_time=0.6)
-        self.at("large negative delta G")
+        self.at("large negative")
         self.play(*[v.animate.set_opacity(1) for n, v, g in (hk, pfk, pk)], run_time=0.8)
 
         # reversing is impossible
@@ -336,11 +336,11 @@ class S02Cliffs(SpokenScene):
         self.play(Indicate(oaa, color=ORANGE, scale_factor=1.2), run_time=0.9)
 
         # ---- summary: same map, different roads --------------------------------------------
-        self.at("Same map")
+        self.at("Same")
         self.play(FadeOut(two), *[a.animate.set_opacity(0.35) for a in blue_arrows],
                   *[v[0].animate.set_opacity(0.35) for v in (hk, pfk, pk)],
                   *[v[1].animate.set_opacity(0.35) for v in (hk, pfk, pk)], run_time=0.8)
-        self.at("different roads")
+        self.at("map—different")
         self.play(LaggedStart(*[Indicate(a, color=ORANGE, scale_factor=1.3) for a in (up1, up2, pa, pb)],
                               lag_ratio=0.2), run_time=1.6)
         self.finish()
@@ -371,14 +371,14 @@ class S03Shuttle(SpokenScene):
         self.play(FadeIn(matrix), FadeIn(cyto), run_time=0.6)
         self.at("Pyruvate carboxylase lives")
         self.play(FadeIn(pyr, shift=DOWN * 0.1), FadeIn(pc, shift=LEFT * 0.1), run_time=0.8)
-        self.at("so oxaloacetate is made there")
+        self.at("oxalocetate")
         self.play(GrowArrow(a_pc), FadeIn(oaa_in, scale=0.9), run_time=0.9)
 
         # --- outside: PEP carboxykinase -----------------------------------------------------
         pepck = chip("PEP carboxykinase", ORANGE, 24).move_to([4.6, 0.35, 0])
         self.at("But the next enzyme")
         self.play(FadeIn(pepck, shift=DOWN * 0.1), run_time=0.8)
-        self.at("needs that oxaloacetate out in")
+        self.at("works in")
         want = arr(oaa_in.get_right() + RIGHT * 0.1, [wall_x - 0.1, 0.3, 0], YELLOW, 4, 0.18)
         want2 = DashedLine([wall_x + 0.1, 0.3, 0], [pepck.get_left()[0] - 0.1, 0.3, 0], color=YELLOW, stroke_width=4)
         self.play(GrowArrow(want), Create(want2), run_time=1.2)
@@ -397,7 +397,7 @@ class S03Shuttle(SpokenScene):
         # --- the workaround ----------------------------------------------------------------
         self.at("The workaround is elegant")
         self.play(FadeOut(no), FadeOut(xm), run_time=0.5)
-        self.at("Reduce oxaloacetate")
+        self.at("Reduce")
         a_red = arr([oaa_in.get_center()[0], oaa_in.get_bottom()[1] - 0.05, 0],
                     [mal_in.get_center()[0], mal_in.get_top()[1] + 0.05, 0], YELLOW, 6, 0.2)
         nadh_in = T("NADH \u2192 NAD\u207a", 24, PURPLE).next_to(a_red, RIGHT, buff=0.25)
@@ -418,12 +418,12 @@ class S03Shuttle(SpokenScene):
         a_ox = arr(mal_out.get_right() + RIGHT * 0.06, oaa_out.get_left() + LEFT * 0.06, YELLOW, 6, 0.2)
         self.play(GrowArrow(a_ox), FadeIn(oaa_out, scale=0.9), run_time=1.0)
 
-        self.at("regenerates cytoplasmic NADH")
+        self.at("regenerates")
         nadh_out = T("NAD\u207a \u2192 NADH", 24, PURPLE).move_to([3.1, pore_y - 0.55, 0])
         self.play(FadeIn(nadh_out, shift=UP * 0.1), run_time=0.7)
         nadh_big = T("NADH", 30, PURPLE, weight=BOLD).move_to([2.7, -2.7, 0])
         self.play(ReplacementTransform(nadh_out, nadh_big), run_time=0.8)
-        self.at("which gluconeogenesis later needs")
+        self.at("which gluconeogenesis needs")
         down = chip("later steps", ORANGE, 26).move_to([5.0, -2.7, 0])
         a_dn = arr([nadh_big.get_right()[0] + 0.15, -2.7, 0], [down.get_left()[0] - 0.08, -2.7, 0], PURPLE, 5, 0.18)
         self.play(GrowArrow(a_dn), FadeIn(down), run_time=0.8)
@@ -483,7 +483,7 @@ class S04Bargain(SpokenScene):
         self.at("Glycolysis releases energy")
         self.play(FadeIn(gl_head), run_time=0.5)
         self.play(Create(glu_line), FadeIn(glu_lab), Create(pyr_line), FadeIn(pyr_lab), run_time=0.9)
-        self.at("about 85 kilojoules")
+        self.at("about")
         drop_val = M("releases \u2248 85 kJ/mol", 24, BLUE).move_to([-3.4, -2.75, 0])
         self.play(Create(ramp_l), run_time=0.8)
         self.play(FadeIn(drop_val, shift=UP * 0.1), run_time=0.5)
@@ -552,18 +552,18 @@ class S04Bargain(SpokenScene):
         self.play(MoveAlongPath(ball2, path2, rate_func=smooth), FadeIn(fav, shift=UP * 0.1), run_time=1.0)
 
         # ---- the futile cycle --------------------------------------------------------------
-        self.at("If synthesis were free")
+        self.at("That means")
         self.play(*[FadeOut(m) for m in self.mobjects if isinstance(m, VMobject)], run_time=0.5)
         self.clear()
         cell = RoundedRectangle(corner_radius=0.9, width=10.4, height=5.4, stroke_color=GREY, stroke_width=4,
                                 fill_color=GREY, fill_opacity=0.06).move_to([0, -0.1, 0])
         glu = met("Glucose", 26).move_to([0, 1.75, 0])
         pyr = met("Pyruvate", 26).move_to([0, -1.95, 0])
-        free_t = T("Suppose the climb were free", 36, font=TITLE_FONT, color=GOLD).move_to([0, 3.3, 0])
+        free_t = T("Both directions are downhill", 36, font=TITLE_FONT, color=GOLD).move_to([0, 3.3, 0])
         self.play(FadeIn(free_t), Create(cell), run_time=0.7)
         self.play(FadeIn(glu), FadeIn(pyr), run_time=0.4)
 
-        self.at("both pathways would run simultaneously")
+        self.at("both pathways")
         ang = PI * 0.85
         a_gly = CurvedArrow([-0.55, 1.3, 0], [-0.55, -1.5, 0], angle=ang, color=BLUE, stroke_width=7)
         a_gn = CurvedArrow([0.55, -1.5, 0], [0.55, 1.3, 0], angle=ang, color=ORANGE, stroke_width=7)
@@ -574,7 +574,7 @@ class S04Bargain(SpokenScene):
         self.at("in the same cell")
         self.play(Indicate(cell, color=GREY, scale_factor=1.02), run_time=0.8)
 
-        self.at("creating a futile cycle")
+        self.at("a futile cycle")
         fut = T("futile cycle", 32, RED, weight=BOLD).move_to([0, -0.1, 0])
         self.play(FadeIn(fut, scale=0.8), run_time=0.5)
         loop_d = Dot([-0.55, 1.3, 0], radius=0.13, color=YELLOW)
@@ -582,7 +582,7 @@ class S04Bargain(SpokenScene):
         gly_path = a_gly.copy(); gn_path = a_gn.copy()
         self.play(MoveAlongPath(loop_d, gly_path), run_time=0.8, rate_func=linear)
 
-        self.at("that burns ATP")
+        self.at("burns")
         atp1 = chip("ATP", GREEN, 24, pad=0.1).move_to([3.4, 0.9, 0])
         self.play(FadeIn(atp1, scale=0.8), MoveAlongPath(loop_d, gn_path), run_time=0.9, rate_func=linear)
         self.at("and dumps it as heat")
@@ -597,13 +597,13 @@ class S04Bargain(SpokenScene):
         self.play(FadeIn(net, shift=UP * 0.1), run_time=0.7)
 
         # ---- the price of directional control ----------------------------------------------
-        self.at("The energy cost is not")
+        self.at("Regulation")
         self.play(FadeOut(VGroup(cell, glu, pyr, a_gly, a_gn, lg, ln, fut, loop_d, heat, heat_t, net, free_t,
                                  atp1)), run_time=0.6)
-        l1 = T("The energy cost is not waste.", 40, font=TITLE_FONT).move_to([0, 2.1, 0])
+        l1 = T("The energy cost makes synthesis favorable.", 28, font=TITLE_FONT).move_to([0, 2.1, 0])
         self.play(Write(l1), run_time=1.3)
-        self.at("price of directional control")
-        l2 = T("It is the price of directional control.", 40, font=TITLE_FONT, color=GOLD).move_to([0, 1.0, 0])
+        self.at("holds that")
+        l2 = T("Regulation picks the direction.", 40, font=TITLE_FONT, color=GOLD).move_to([0, 1.0, 0])
         pyr2 = met("2 Pyruvate", 26).move_to([-4.6, -1.3, 0])
         glu2 = met("Glucose", 26).move_to([4.6, -1.3, 0])
         one_way = arr([-3.5, -1.3, 0], [3.5, -1.3, 0], ORANGE, 10, 0.4)

@@ -67,7 +67,8 @@
       }
       stage.appendChild(el('text', { x: 140, y: 22, 'font-size': 9, 'text-anchor': 'middle', fill: hasCa ? '#b8860b' : INK }, hasCa ? 'calcium high' : 'calcium low'));
       // kinase: C2, C1, pseudosubstrate, kinase domain
-      const y = both ? 52 : 120, x0 = 100, w = 40;
+      const y = both ? 52 : 112, x0 = 100, w = 40;
+      const kh = both ? 24 : 36;
       const blocks: { name: string; fill: string; on: boolean }[] = [
         { name: 'C2', fill: '#b8860b', on: hasCa },
         { name: 'C1', fill: '#7a5ea8', on: hasDag },
@@ -81,17 +82,17 @@
         if (both) stage.appendChild(el('line', { x1: x + w / 2, y1: y, x2: x + w / 2, y2: 44, stroke: b.fill, 'stroke-width': 1.5, 'stroke-dasharray': '2 2' }));
       });
       const kx = x0 + 2 * (w + 4);
-      stage.appendChild(el('rect', { x: kx, y, width: 92, height: 24, rx: 5, fill: '#4b4b55' }));
-      stage.appendChild(el('text', { x: kx + 46, y: y + 16, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'kinase domain'));
+      stage.appendChild(el('rect', { x: kx, y, width: 92, height: kh, rx: 5, fill: '#4b4b55' }));
+      stage.appendChild(el('text', { x: kx + 46, y: y + (both ? 16 : 13), 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'kinase domain'));
       // pseudosubstrate: in the active site (blocking) or pulled out
       if (both) {
         stage.appendChild(el('rect', { x: kx + 8, y: y + 32, width: 76, height: 16, rx: 4, fill: '#fff', stroke: '#c0392b', 'stroke-width': 1.5 }));
         stage.appendChild(el('text', { x: kx + 46, y: y + 44, 'font-size': 9, 'text-anchor': 'middle', fill: '#c0392b' }, 'pseudosubstrate'));
         stage.appendChild(el('text', { x: 180, y: y + 66, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#0e7c86' }, 'held at the membrane: kinase works'));
       } else {
-        stage.appendChild(el('rect', { x: kx + 8, y: y + 8, width: 76, height: 14, rx: 4, fill: '#fff', stroke: '#c0392b', 'stroke-width': 1.5 }));
-        stage.appendChild(el('text', { x: kx + 46, y: y + 19, 'font-size': 9, 'text-anchor': 'middle', fill: '#c0392b' }, 'pseudosubstrate'));
-        stage.appendChild(el('text', { x: 180, y: y + 44, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'pseudosubstrate in the active site: kinase off'));
+        stage.appendChild(el('rect', { x: kx + 8, y: y + 19, width: 76, height: 13, rx: 4, fill: '#fff', stroke: '#c0392b', 'stroke-width': 1.5 }));
+        stage.appendChild(el('text', { x: kx + 46, y: y + 29, 'font-size': 9, 'text-anchor': 'middle', fill: '#c0392b' }, 'pseudosubstrate'));
+        stage.appendChild(el('text', { x: 180, y: y + 48, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'pseudosubstrate in the active site: kinase off'));
       }
       // preference bar, log scale up to k*k at the slider's maximum (10,000)
       const bx = 20, bw = 320, by = 184;

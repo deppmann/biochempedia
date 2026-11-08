@@ -1,0 +1,595 @@
+{
+ "slug": "mechanotransduction-channels",
+ "title": "Piezo Channels and the Physics of Force",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "00512fb38405",
+ "sectionHashes": {
+  "(opening)": "d09d86da4199",
+  "Three questions and one idea": "f914076889c9",
+  "Which protein? A screen, and the claim it refused to make": "291989fb3580",
+  "Blades, beam and dome": "5c6da84fde30",
+  "Tension pays for area: from an energy to a curve": "12cffa225ee0",
+  "Reading a patch: from pressure to current, and back to an area": "40cc7f9de0d4",
+  "Worked problem: from patch pressure to predicted current, and back to an area": "da6b6a61c104",
+  "The gap between structure and current": "001f067ad970",
+  "Lipid or tether?": "cd4541e6a515",
+  "Design problem": "eddbb607ec40",
+  "Variants that change inactivation, and what people report": "a2e8677ddba5",
+  "Where the idea stops": "85ddc2277f99",
+  "Piezo1 variants and red blood cells": "949935fb28b7",
+  "Piezo2 tension sensitivity and splice variants": "ed6605a75da2",
+  "Piezo1 in cell-derived membranes": "659edec62795"
+ },
+ "cards": [
+  {
+   "id": "mechanotransduction-channels-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Which sensory functions principally depend on Piezo2?",
+   "back": "Touch and limb position (proprioception).",
+   "quote": "Piezo2 is a principal channel for touch and limb position:"
+  },
+  {
+   "id": "mechanotransduction-channels-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does increasing membrane tension favour opening a channel whose open state occupies more membrane area?",
+   "back": "Tension does work as the channel gains area, lowering the free energy of the open state relative to the closed state.",
+   "quote": "If a channel takes up more membrane area when it is open than when it is closed, membrane tension pushes it open.",
+   "section": "Three questions and one idea"
+  },
+  {
+   "id": "mechanotransduction-channels-c03",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Silencing a candidate gene abolishes a cell’s mechanically evoked current. Does that establish that the protein forms the pore? Explain the inference.",
+   "back": "No. It establishes a requirement for the current in that cell; an accessory protein could also be required without lining the pore.",
+   "quote": "A protein required for a current could still be an accessory subunit of a channel made of something else.",
+   "section": "Which protein? A screen, and the claim it refused to make"
+  },
+  {
+   "id": "mechanotransduction-channels-c04",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Introducing a candidate channel gene into another cultured cell confers a mechanically activated current. What does this establish, and what remains unresolved?",
+   "back": "Expression is sufficient to confer the current in that cellular setting. It does not establish that the introduced protein lines the pore.",
+   "quote": "The screen showed necessity in one cell line; expression showed sufficiency to confer a current in another.",
+   "section": "Which protein? A screen, and the claim it refused to make"
+  },
+  {
+   "id": "mechanotransduction-channels-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The decay of a mechanically activated current while the stimulus remains present is {{c1::inactivation}}.",
+   "back": "",
+   "quote": "Inactivation is the decay of a mechanically activated current while the stimulus is held;",
+   "section": "Which protein? A screen, and the claim it refused to make"
+  },
+  {
+   "id": "mechanotransduction-channels-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What type of conductance did ion-substitution experiments suggest for Piezo2’s mechanically activated current?",
+   "back": "A non-selective cation conductance.",
+   "quote": "Ion-substitution experiments pointed to a non-selective cation conductance for Piezo2, and its current inactivated quickly.",
+   "section": "Which protein? A screen, and the claim it refused to make"
+  },
+  {
+   "id": "mechanotransduction-channels-c07",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How many transmembrane helices are in one mouse PIEZO2 protomer and in the complete trimer?",
+   "back": "38 per protomer; 114 in the complete three-subunit channel.",
+   "quote": "holds 38 transmembrane helices per protomer, which means 114 in the trimer.",
+   "section": "Blades, beam and dome"
+  },
+  {
+   "id": "mechanotransduction-channels-c08",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A membrane dome’s shadow on the flat plane of the surrounding membrane is its {{c1::projected area}}.",
+   "back": "",
+   "quote": "Its projected area is its shadow on the flat plane of the surrounding membrane: the area it occupies seen from above.",
+   "section": "Blades, beam and dome"
+  },
+  {
+   "id": "mechanotransduction-channels-c09",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Model a PIEZO2 dome as a spherical cap with rim radius a = 14 nm and depth h = 10 nm. Surface area is π(a² + h²); projected area is πa². What projected area is gained on flattening without stretching?",
+   "back": "ΔA = π(a² + h²) − πa² = πh² = π(10 nm)² ≈ 314 nm², or about 310 nm². This is idealized geometry, not a measured opening area.",
+   "quote": "Flattened, all 930 nm² lies in the plane, so the projected area rises by about 930 − 616 ≈ 310 nm².",
+   "section": "Blades, beam and dome"
+  },
+  {
+   "id": "mechanotransduction-channels-c10",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Two idealized spherical membrane caps have the same depth but different rim radii. If both flatten without stretching, which gains more projected area, and why?",
+   "back": "They gain the same projected area. For a spherical cap the gain is πh², so equal depths give equal gains regardless of rim radius.",
+   "quote": "It depends on how deep the dome is, not on how wide.",
+   "section": "Blades, beam and dome"
+  },
+  {
+   "id": "mechanotransduction-channels-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Membrane {{c1::tension}} is an in-plane stretch measured as force per unit length.",
+   "back": "",
+   "quote": "Membrane tension, T, is an in-plane stretch: force per unit length of membrane.",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the two-state tension-gating model, what is the free energy of the open state relative to the closed state? Define the area term.",
+   "back": "ΔG = ΔG₀ − T·ΔA; ΔA is the increase in projected area on opening, and T is membrane tension.",
+   "quote": "So tension lowers the free energy of the open state relative to the closed one: ΔG = ΔG₀ − T × ΔA",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What physical preference does ΔG₀ represent in the two-state tension-gating model?",
+   "back": "The open-minus-closed free energy in a slack membrane; a positive value means the closed state is favoured without tension.",
+   "quote": "ΔG₀ is how strongly the channel prefers to be closed in a slack membrane.",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why is the half-activation tension T50 = ΔG₀/ΔA in an equilibrium two-state channel model?",
+   "back": "At half activation, open and closed are equally favoured: ΔG = 0. Thus T50·ΔA = ΔG₀.",
+   "quote": "At T = T50 the exponent is zero, so ΔG is zero and half the channels are open.",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does the slope factor k of an equilibrium two-state current–tension curve encode the opening area ΔA?",
+   "back": "k = k_B T_abs/ΔA, where k_B T_abs is thermal energy. A larger opening area gives a smaller k and a steeper curve.",
+   "quote": "The slope factor is thermal energy divided by that area. A larger area gives a smaller k and a steeper switch.",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c16",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A two-state channel’s resting closed-state preference ΔG₀ increases, while opening area and temperature stay fixed. What happens to T50 and k, and why?",
+   "back": "T50 increases while k stays unchanged. T50 = ΔG₀/ΔA depends on resting energy, whereas k = k_B T_abs/ΔA does not.",
+   "quote": "The half-activation tension is the channel's resting preference for closed, divided by the area it gains on opening.",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c17",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Two equilibrium two-state channels at the same temperature have the same T50, but one has a smaller k. What must differ about its opening area and resting energy?",
+   "back": "The smaller-k channel has a larger ΔA, by k = k_B T_abs/ΔA. Its ΔG₀ must also be larger in the same proportion, because T50 = ΔG₀/ΔA is unchanged.",
+   "quote": "With that assumption, matching the two forms gives each fitted number a physical meaning: T50 = ΔG₀ / ΔA.",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What must remain constant for a normalized channel current to track the fraction of available channels open?",
+   "back": "Conductance and channel availability must stay constant, and the plateau must correspond to the available channels being open.",
+   "quote": "constant conductance and availability, and a plateau where the available channels are open.",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A membrane tension of 1 pN/nm equals {{c1::1 mN/m}}.",
+   "back": "",
+   "quote": "1 pN/nm and 1 mN/m are the same quantity.",
+   "section": "Tension pays for area: from an energy to a curve"
+  },
+  {
+   "id": "mechanotransduction-channels-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why must patch curvature be measured before pressure can be used to compare membrane tension between spherical patches?",
+   "back": "Tension is T = R·|Δp|/2 for uniform tension. The same pressure difference gives different tensions when the radii of curvature differ.",
+   "quote": "with R the patch's radius of curvature: T = R × (pressure difference) / 2",
+   "section": "Reading a patch: from pressure to current, and back to an area"
+  },
+  {
+   "id": "mechanotransduction-channels-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A spherical membrane patch has uniform tension and a measured radius of curvature of 1.5 μm. A pressure difference of magnitude 4000 Pa is applied. Using T = R·|Δp|/2, calculate the tension in mN/m.",
+   "back": "T = (1.5 × 10⁻⁶ m)(4000 N/m²)/2 = 3.0 × 10⁻³ N/m = 3.0 mN/m.",
+   "quote": "with R the patch's radius of curvature: T = R × (pressure difference) / 2",
+   "section": "Reading a patch: from pressure to current, and back to an area"
+  },
+  {
+   "id": "mechanotransduction-channels-c22",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two spherical patches have different current–pressure curves and different curvatures. How would you test whether geometry, rather than channel tension sensitivity, explains the difference?",
+   "back": "For uniform tension, measure curvature across the pressure range and convert each point using T = R·|Δp|/2. Compare normalized current–tension curves. Their overlap would support a geometry explanation, because pressure alone does not specify tension.",
+   "quote": "For a patch shaped like part of a sphere, with uniform tension, the Young–Laplace relation converts pressure into tension,",
+   "section": "Reading a patch: from pressure to current, and back to an area"
+  },
+  {
+   "id": "mechanotransduction-channels-c23",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "An illustrative mouse Piezo1 patch reaches T = 3.5 mN/m. Using central fit values T50 = 2.7 mN/m and k = 0.8 mN/m, calculate I/Imax = 1/[1 + exp((T50 − T)/k)].",
+   "back": "(T50 − T)/k = (2.7 − 3.5)/0.8 = −1. Thus I/Imax = 1/(1 + e⁻¹) ≈ 0.731, about 73% of the fitted plateau.",
+   "quote": "a half-activation tension T50 = 2.7 ± 0.1 mN/m and a Boltzmann slope factor k = 0.8 ± 0.1 mN/m.",
+   "section": "Worked problem: from patch pressure to predicted current, and back to an area"
+  },
+  {
+   "id": "mechanotransduction-channels-c24",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "An equilibrium two-state fit has k = 0.4 mN/m. At thermal energy k_B T_abs = 4.1 × 10⁻²¹ J, what effective opening area follows from ΔA = k_B T_abs/k? Use 1 nm² = 10⁻¹⁸ m².",
+   "back": "ΔA = (4.1 × 10⁻²¹ J)/(0.4 × 10⁻³ N/m) = 1.025 × 10⁻¹⁷ m² = 10.25 nm², about 10 nm². This is a model-derived effective area.",
+   "quote": "Run the fit backwards, reading it as a two-state switch:",
+   "section": "Worked problem: from patch pressure to predicted current, and back to an area"
+  },
+  {
+   "id": "mechanotransduction-channels-c25",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Use fitted effective area ΔA = 5.1 × 10⁻¹⁸ m² and T50 = 2.7 mN/m to estimate ΔG₀ = T50·ΔA. Express it in joules and in thermal units of 4.1 × 10⁻²¹ J.",
+   "back": "ΔG₀ = (2.7 × 10⁻³)(5.1 × 10⁻¹⁸) = 1.377 × 10⁻²⁰ J ≈ 1.4 × 10⁻²⁰ J, or 3.36 ≈ 3.4 thermal units. It is derived from the fit, not independently measured.",
+   "quote": "it is computed from the fitted area, so it is not an independent measurement of how strongly the channel prefers closed.",
+   "section": "Worked problem: from patch pressure to predicted current, and back to an area"
+  },
+  {
+   "id": "mechanotransduction-channels-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the mouse Piezo1 prepulse protocol, T50 fell from 2.2 to 1.4 mN/m. Why should the separate pressure-clamp value of 2.7 mN/m not be the baseline for that comparison?",
+   "back": "The values belong to different protocols. Compare 2.2 with 1.4 within the prepulse protocol; the apparent sensitivity depends on the channel’s preceding tension history.",
+   "quote": "Compare those two with each other, not with 2.7, which belongs to the other protocol.",
+   "section": "Worked problem: from patch pressure to predicted current, and back to an area"
+  },
+  {
+   "id": "mechanotransduction-channels-c27",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "If the entire structural expansion of 300 nm² were coupled to two-state Piezo1 opening, calculate k = k_B T_abs/ΔA at thermal energy 4.1 × 10⁻²¹ J. Compare with fitted k = 0.8 mN/m.",
+   "back": "k = (4.1 × 10⁻²¹)/(300 × 10⁻¹⁸) = 1.37 × 10⁻⁵ N/m ≈ 0.014 mN/m. The fitted factor is about 59 times larger (roughly sixty-fold), so the fitted switch is much shallower.",
+   "quote": "The half-activation tensions are of the same order (1.9 mN/m calculated from structure and a stiffness, 2.7 from a patch fit), but the slope factors differ about sixty-fold.",
+   "section": "The gap between structure and current"
+  },
+  {
+   "id": "mechanotransduction-channels-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does a structural comparison showing about 300 nm² of expansion not establish that Piezo1 gains that area on pore opening?",
+   "back": "The flattened structural class may not be the open channel. Even if flattening contributes to gating, only part of it may be coupled to the pore.",
+   "quote": "The flattened class may not be the open channel, which is the hedge Yang and colleagues make.",
+   "section": "The gap between structure and current"
+  },
+  {
+   "id": "mechanotransduction-channels-c29",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A population current curve is shallower than individual channel curves. Under what specific assumptions does its slope-derived area underestimate the common opening area, and why?",
+   "back": "Assume independent equilibrium two-state switches with a common ΔA and differences only in T50. Threshold spread broadens the population curve, increasing fitted k; since ΔA = k_B T_abs/k, the inferred area falls. Outside those assumptions it is not a bound.",
+   "quote": "If the channels are independent two-state switches that differ only in T50, spread can only make the population curve shallower.",
+   "section": "The gap between structure and current"
+  },
+  {
+   "id": "mechanotransduction-channels-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the membrane-footprint model of Piezo gating, why can membrane beyond the protein contribute to tension’s work?",
+   "back": "The surrounding bilayer bends into a skirt beyond the curved protein. Tension therefore does work on this membrane footprint as well as on the protein.",
+   "quote": "so tension does work on the footprint as well as on the protein.",
+   "section": "The gap between structure and current"
+  },
+  {
+   "id": "mechanotransduction-channels-c31",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A purified mechanosensitive channel still opens in response to mechanical stimulation in an artificial lipid bilayer containing no other cellular components. What does this establish about gating requirements in that preparation?",
+   "back": "Protein plus lipid suffices for mechanical gating there; a cellular tether is not required in that preparation.",
+   "quote": "Because it opened, protein plus lipid is sufficient in that preparation, and no tether is required there.",
+   "section": "Lipid or tether?"
+  },
+  {
+   "id": "mechanotransduction-channels-c32",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A purified channel is mechanically activated in lipid alone, yet disrupting a protein linker prevents mechanically evoked gating in intact cells. Can both results be valid? Explain using necessity and sufficiency.",
+   "back": "Yes. Protein plus lipid is sufficient in the bilayer, while the linker can be necessary for force delivery in the intact-cell preparation. Sufficiency in one setting does not exclude an additional route in another.",
+   "quote": "Bilayer sufficiency cannot exclude a second route in an intact cell,",
+   "section": "Lipid or tether?"
+  },
+  {
+   "id": "mechanotransduction-channels-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A tether pulls directly on a channel without changing membrane tension. Would the −T·ΔA term alone describe that added force input? What changes in the energy model, and why?",
+   "back": "An additional work term is needed: tether force times displacement. The −T·ΔA term accounts for work by membrane tension, not direct tether pulling.",
+   "quote": "it could pull on the channel directly, which would add its own work term, force times distance.",
+   "section": "Lipid or tether?"
+  },
+  {
+   "id": "mechanotransduction-channels-c34",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Deleting a proposed force-transmission protein throughout development reduces adult sensory responses. What follow-up would better test its immediate mechanical role, and why?",
+   "back": "Disrupt the protein acutely in adult sensory cells and record before tissue architecture changes. The rule is to separate immediate function from developmental and structural effects of lifelong deletion.",
+   "quote": "A germline deletion of a cadherin or a catenin changes development, adhesion and skin structure,",
+   "section": "Design problem"
+  },
+  {
+   "id": "mechanotransduction-channels-c35",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After an acute perturbation, a skin stimulus evokes fewer sensory spikes. How could paired ending recordings and current–tension measurements distinguish altered force delivery from altered channel tension sensitivity?",
+   "back": "Compare spike responses with channel current across measured tensions. Preserved current–tension behaviour despite altered stimulus-to-spike responses supports changed force delivery. A changed current–tension curve suggests altered gating or availability; the rule is to measure the channel’s actual mechanical input.",
+   "quote": "a tether could change the mechanics of force delivery to the ending without changing the channel's tension sensitivity,",
+   "section": "Design problem"
+  },
+  {
+   "id": "mechanotransduction-channels-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Acute disruption of a proposed Piezo2 linker shifts the current–tension curve in a sensory ending. What controls are needed before assigning the shift to loss of a specific gating interaction?",
+   "back": "Check channel abundance, patch mechanics and tissue architecture, then rescue the interaction. The rule is that a linker can change local mechanics or availability; a shifted curve alone does not isolate direct gating.",
+   "quote": "A shifted curve alone is not decisive, because a linker can also alter local membrane mechanics or channel availability,",
+   "section": "Design problem"
+  },
+  {
+   "id": "mechanotransduction-channels-c37",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In HEK293T recordings, which inactivation changes were shared by human PIEZO2 variants I802F and E2727del, and which occurred only with E2727del?",
+   "back": "Both recovered faster from inactivation; only E2727del slowed inactivation during a maintained pulse.",
+   "quote": "Both I802F and E2727del accelerated recovery from inactivation; only E2727del slowed inactivation during the pulse.",
+   "section": "Variants that change inactivation, and what people report"
+  },
+  {
+   "id": "mechanotransduction-channels-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Based on the two reported individuals with compound inactivating PIEZO2 variants, what would you predict about apparent limb-position impairment in trials without visual cues versus eyes-open trials, and why?",
+   "back": "More pronounced impairment is expected without visual cues. Eyes-open trials can conceal part of the proprioceptive deficit because vision helps compensate for impaired limb-position input.",
+   "quote": "had impaired discriminative touch and profound proprioceptive impairment that worsened without visual cues, while retaining other abilities.",
+   "section": "Variants that change inactivation, and what people report"
+  },
+  {
+   "id": "mechanotransduction-channels-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why should the mouse Piezo2 deletion phenotype not be described as the observed human PIEZO2 loss-of-function phenotype?",
+   "back": "Adult mice with Piezo2 deleted from sensory neurons and Merkel cells showed almost complete light-touch loss. The two people had selective touch and profound proprioceptive deficits with residual abilities; the preparations and outcomes differ.",
+   "quote": "the human ones are selective deficits with residual abilities, and the two should not be merged.",
+   "section": "Variants that change inactivation, and what people report"
+  },
+  {
+   "id": "mechanotransduction-channels-c40",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why can the closed/open two-state tension model not explain PIEZO2 variant effects on inactivation or recovery?",
+   "back": "It contains no inactivated state. It therefore cannot represent entry into inactivation or recovery from it.",
+   "quote": "The two-state model has no inactivated state, so it covers neither inactivation nor recovery from it,",
+   "section": "Where the idea stops"
+  },
+  {
+   "id": "mechanotransduction-channels-c41",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What channel mediated the dehydration following Yoda1-induced calcium entry in mouse red blood cells?",
+   "back": "The Gardos channel, a calcium-activated potassium channel.",
+   "quote": "Yoda1 produced calcium influx followed by dehydration that depended on the Gardos channel, a calcium-activated potassium channel.",
+   "section": "Piezo1 variants and red blood cells"
+  },
+  {
+   "id": "mechanotransduction-channels-c42",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In mouse red blood cells, selectively block the Gardos channel while preserving the calcium influx induced by Yoda1. What happens to the reported dehydration, and why?",
+   "back": "The Gardos-dependent dehydration is prevented despite calcium entry. In this preparation, dehydration depends on the downstream Gardos channel, so calcium influx alone is insufficient.",
+   "quote": "Yoda1 produced calcium influx followed by dehydration that depended on the Gardos channel, a calcium-activated potassium channel.",
+   "section": "Piezo1 variants and red blood cells"
+  },
+  {
+   "id": "mechanotransduction-channels-c43",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Which alternatively spliced exon conferred high Piezo2 tension sensitivity in the tested splice variants, and how broad is that conclusion?",
+   "back": "Exon 35. It is evidence from one recent study of tested variants, not a field-wide rule.",
+   "quote": "An alternatively spliced exon, exon 35, was enough to confer high tension sensitivity on Piezo2 in the tested splice variants",
+   "section": "Piezo2 tension sensitivity and splice variants"
+  },
+  {
+   "id": "mechanotransduction-channels-c44",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What did the 2026 cell-derived-membrane study propose about force as a requirement for Piezo1 conduction?",
+   "back": "Force is necessary but not sufficient; lipid context also matters. This is a proposal from one recent study.",
+   "quote": "They propose that force is necessary but not sufficient.",
+   "section": "Piezo1 in cell-derived membranes"
+  }
+ ]
+}

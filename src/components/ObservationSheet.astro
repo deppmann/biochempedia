@@ -1,0 +1,130 @@
+---
+/* =============================================================================
+   ObservationSheet: the printable record sheet at the end of an Ages 5–10
+   activity (Biology Together). Plain boxes and lines a child fills in with a
+   pencil: a recording table, boxes to draw in, and prompts with lines to write
+   on. "Print this sheet" prints only the sheet: the script copies it into a
+   top-level holder, hides everything else for the print, and removes the copy
+   afterwards. Printing the whole page also works and includes the sheet.
+     <ObservationSheet title="..." intro="..."
+       table={{ columns: ['Thing', 'Alive', 'Never alive'], rows: 6 }}
+       boxes={['Draw your seed on day 1', 'Draw it on day 5']}
+       lines={['What surprised you?']} />
+   `table.rows` is a number of blank rows, or a list of first-column labels.
+   ============================================================================ */
+interface Props {
+  title: string;
+  intro?: string;
+  table?: { columns: string[]; rows: number | string[] };
+  boxes?: string[];
+  lines?: string[];
+}
+const { title, intro, table, boxes = [], lines = [] } = Astro.props;
+const rows = table ? (typeof table.rows === 'number' ? Array.from({ length: table.rows }, () => '') : table.rows) : [];
+---
+<section class="obs-sheet" data-obs-sheet aria-label={`Observation sheet: ${title}`}>
+  <div class="obs-top">
+    <p class="obs-kicker">Observation sheet</p>
+    <button type="button" class="obs-print" data-obs-print>Print this sheet</button>
+  </div>
+  <h3 class="obs-title">{title}</h3>
+  <p class="obs-name"><span>Name</span><span class="obs-blank"></span><span>Date</span><span class="obs-blank obs-blank-short"></span></p>
+  {intro && <p class="obs-intro">{intro}</p>}
+  {table && (
+    <table class="obs-table">
+      <thead><tr>{table.columns.map((c) => <th scope="col">{c}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((label) => (
+          <tr>{table.columns.map((_, i) => <td>{i === 0 ? label : ''}</td>)}</tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+  {boxes.length > 0 && (
+    <div class="obs-boxes">
+      {boxes.map((b) => <div class="obs-box"><span>{b}</span></div>)}
+    </div>
+  )}
+  {lines.map((l) => (
+    <div class="obs-lines"><p>{l}</p><span class="obs-rule"></span><span class="obs-rule"></span></div>
+  ))}
+  <p class="obs-foot">biochemistrypedia.com · Biology Together</p>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-obs-print]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const sheet = btn.closest('[data-obs-sheet]');
+      if (!sheet) return;
+      const holder = document.createElement('div');
+      holder.className = 'obs-print-root';
+      holder.appendChild(sheet.cloneNode(true));
+      document.body.appendChild(holder);
+      document.body.classList.add('obs-printing');
+      const done = () => {
+        document.body.classList.remove('obs-printing');
+        holder.remove();
+        window.removeEventListener('afterprint', done);
+      };
+      window.addEventListener('afterprint', done);
+      window.print();
+    });
+  });
+</script>
+
+<style is:global>
+  .obs-print-root { display: none; }
+  @media print {
+    body.obs-printing > *:not(.obs-print-root) { display: none !important; }
+    body.obs-printing > .obs-print-root { display: block; }
+    body.obs-printing .obs-print-root .obs-sheet { margin: 0; border: none; padding: 0; }
+    .obs-sheet .obs-print { display: none !important; }
+    .obs-sheet { break-inside: avoid-page; }
+  }
+</style>
+
+<style>
+  .obs-sheet {
+    margin: var(--ddp-space-4) 0 var(--ddp-space-6);
+    padding: var(--ddp-space-4);
+    border: 2px dashed var(--ddp-color-line);
+    border-radius: var(--ddp-radius-sm);
+    background: #fff;
+    color: #1a1a1a;
+  }
+  .obs-top { display: flex; align-items: center; justify-content: space-between; gap: var(--ddp-space-2); }
+  .obs-kicker {
+    margin: 0;
+    font-size: var(--ddp-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #555;
+  }
+  .obs-print {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--ddp-color-primary);
+    border-radius: 999px;
+    background: var(--ddp-color-primary);
+    color: #fff;
+    font: inherit;
+    font-size: var(--ddp-text-sm);
+    cursor: pointer;
+  }
+  .obs-print:hover { opacity: 0.9; }
+  .obs-title { margin: var(--ddp-space-2) 0; font-size: 1.4rem; }
+  .obs-name { display: flex; align-items: flex-end; gap: 0.5rem; margin: 0 0 var(--ddp-space-3); font-size: 1rem; }
+  .obs-blank { flex: 2; border-bottom: 1.5px solid #333; height: 1.2rem; }
+  .obs-blank-short { flex: 1; }
+  .obs-intro { margin: 0 0 var(--ddp-space-3); font-size: 1.05rem; line-height: 1.5; }
+  .obs-table { width: 100%; border-collapse: collapse; margin: 0 0 var(--ddp-space-4); font-size: 1rem; }
+  .obs-table th, .obs-table td { border: 1.5px solid #333; padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; }
+  .obs-table th { background: #f2efe6; font-weight: 700; }
+  .obs-table th:first-child { width: 28%; }
+  .obs-table td { height: 2.4rem; }
+  .obs-boxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--ddp-space-3); margin: 0 0 var(--ddp-space-4); }
+  .obs-box { min-height: 11rem; border: 1.5px solid #333; border-radius: 6px; padding: 0.4rem 0.5rem; font-size: 0.95rem; }
+  .obs-lines { margin: 0 0 var(--ddp-space-3); }
+  .obs-lines p { margin: 0 0 0.2rem; font-size: 1.05rem; }
+  .obs-rule { display: block; height: 2rem; border-bottom: 1.5px solid #333; }
+  .obs-foot { margin: var(--ddp-space-3) 0 0; font-size: 0.75rem; color: #666; text-align: right; }
+</style>

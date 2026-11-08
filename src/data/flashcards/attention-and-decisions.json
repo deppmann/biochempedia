@@ -1,0 +1,716 @@
+{
+ "slug": "attention-and-decisions",
+ "title": "Attention, Executive Control and Decisions",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Opus draft → Codex accuracy gate → fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "OpenAI via Codex",
+   "fix": "claude-sonnet-5-5"
+  },
+  "tokens": {
+   "draft": 112821,
+   "gate": 30637
+  }
+ },
+ "lessonHash": "d3591d870207",
+ "sectionHashes": {
+  "The task and the puzzle": "95ddc5fe958b",
+  "Why adding up helps": "266033df2c97",
+  "The evidence comes from MT": "cc620e1219c7",
+  "A rule for when to stop": "6b72a739d532",
+  "The record: LIP": "da1850adb4f5",
+  "Worked problem": "ca19a83d730d",
+  "The speed–accuracy trade": "20ee4feb76cf",
+  "Attention: a stronger signal, less shared noise": "3812ca6905c4",
+  "Attention biases a competition": "cbf6783b2352",
+  "Attention acts like more contrast": "707a36a7cf43",
+  "Attention lowers shared noise": "4926bafe48e6",
+  "Holding the goal: prefrontal cortex": "cd2e7c43e357",
+  "Holding a place in mind": "9f620d20e5a7",
+  "Holding a rule": "a32c8d44c25a",
+  "A theory that ties these together": "9838f5ddf4db",
+  "When the best correlate is not necessary": "afe2dfba43a3",
+  "Design problem": "b00504746607",
+  "The numbers behind the worked problem": "9d14ba83cb4a",
+  "When adding up stops helping": "8dc7229284a6",
+  "Holding a goal: thalamus and prefrontal cortex in mice": "cbfbe1ecde67",
+  "Memories that go quiet": "a9f17e1eed8e"
+ },
+ "cards": [
+  {
+   "id": "attention-and-decisions-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the random-dot motion task, {{c1::coherence}} is the percentage of dots moving together in one direction; the rest move randomly.",
+   "back": "At 51.2% the motion is easy to see; at 0% there is no imposed direction.",
+   "quote": "Coherence is the percentage of dots moving together in one direction; the rest move randomly.",
+   "section": "The task and the puzzle"
+  },
+  {
+   "id": "attention-and-decisions-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the random-dot motion task, how do accuracy (the psychometric curve) and reaction time (the chronometric curve) change as coherence rises?",
+   "back": "Accuracy rises with coherence, from chance at 0%. Reaction time falls: strong motion gives fast answers, weak motion slow ones.",
+   "quote": "Reaction time (the chronometric curve) falls with coherence.",
+   "section": "The task and the puzzle"
+  },
+  {
+   "id": "attention-and-decisions-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does adding up n noisy samples of the same signal make the total more reliable, and by how much?",
+   "back": "The signal adds in step and grows n-fold; independent noise partly cancels and grows only √n-fold. Reliability (signal divided by noise) grows as √n.",
+   "quote": "Adding up noisy signals makes them more reliable, because the signal adds in step while independent noise partly cancels.",
+   "section": "The task and the puzzle"
+  },
+  {
+   "id": "attention-and-decisions-c04",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An observer adds up independent noisy evidence and watches nine times as long. By what factor does the reliability (signal divided by noise) of the running total change?",
+   "back": "Signal grows 9-fold; noise grows √9 = 3-fold. Reliability = 9 / 3 = 3 times higher, not 9.",
+   "quote": "The signal grows fourfold, but the noise grows too, by √4 = 2, so signal divided by noise doubles.",
+   "section": "Why adding up helps"
+  },
+  {
+   "id": "attention-and-decisions-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "If accumulating evidence doubles reliability (signal divided by noise), does percent correct double? Why or why not?",
+   "back": "No. Percent correct is a bounded, nonlinear function of reliability whose shape depends on the noise and the decision rule.",
+   "quote": "Reliability means signal divided by noise, not percent correct.",
+   "section": "Why adding up helps"
+  },
+  {
+   "id": "attention-and-decisions-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the random-dot task at 0% coherence, a monkey is made to view the dots four times as long before answering. What happens to its accuracy, and why?",
+   "back": "It stays at chance. The √n gain needs a signal to add; at 0% the expected signal is zero, so waiting cannot help.",
+   "quote": "And there must be a signal to add: at 0% coherence waiting cannot help.",
+   "section": "Why adding up helps"
+  },
+  {
+   "id": "attention-and-decisions-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an evidence-accumulation account of the random-dot task, why do weak-motion trials take longer?",
+   "back": "Each glimpse of weak motion gives only a small push, so the running total needs longer to become trustworthy.",
+   "quote": "Weak motion gives a small push per glimpse, so the total needs longer to become trustworthy.",
+   "section": "Why adding up helps"
+  },
+  {
+   "id": "attention-and-decisions-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "The noise in a stream of evidence resembles itself over about 300 ms. Will extending the viewing window from 50 ms to 100 ms roughly improve reliability by √2? Why?",
+   "back": "No. Over windows shorter than the noise's correlation time, successive noise samples are alike and adding them cancels little, so waiting barely helps.",
+   "why": "Approximate √t growth needs windows much longer than the correlation time, and even then there are fewer effective independent samples than raw ones.",
+   "quote": "The span over which it still resembles the last is the noise's correlation time, and over windows shorter than that, waiting barely helps.",
+   "section": "When adding up stops helping"
+  },
+  {
+   "id": "attention-and-decisions-c09",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Most of the MT neurons studied on a task matched to their properties discriminated motion about as well as, or better than, the monkey. What experiment showed that MT activity can actually sway direction choices, and why is it a stronger test?",
+   "back": "Microstimulation: weak current into clusters of MT neurons sharing a preferred direction biased choices toward that direction. Changing activity and changing the choice is a causal test; recording is only a correlation.",
+   "quote": "That was a causal test: MT supplies evidence, and in this task its activity can sway the choice.",
+   "section": "The evidence comes from MT"
+  },
+  {
+   "id": "attention-and-decisions-c10",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Monkeys view 0% coherence dots and report left or right. On some trials, a cluster of MT neurons preferring leftward motion is microstimulated. Predict the choices on stimulated trials.",
+   "back": "More leftward choices than on unstimulated trials, which would otherwise be at chance. Stimulating MT neurons with a shared preferred direction biases choices toward that direction.",
+   "quote": "passed weak electrical current into small clusters of MT neurons with a shared preferred direction (microstimulation) and biased the monkeys' choices toward that direction",
+   "section": "The evidence comes from MT"
+  },
+  {
+   "id": "attention-and-decisions-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the drift-to-bound model, the rule for when to stop is a {{c1::bound}}: keep adding until the total reaches a set level, then act.",
+   "back": "",
+   "quote": "The simplest rule is a bound: keep adding until the total reaches a set level, then act.",
+   "section": "A rule for when to stop"
+  },
+  {
+   "id": "attention-and-decisions-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the drift-to-bound model, what sets the drift, and why do reaction times vary from trial to trial even at one motion strength?",
+   "back": "The drift (average slope of the total) is set by evidence strength. Noise makes the total wobble, carrying it to the bound early on some trials and late on others.",
+   "quote": "On some trials it carries the total to the bound early, on others late, so reaction times vary from trial to trial even at one motion strength.",
+   "section": "A rule for when to stop"
+  },
+  {
+   "id": "attention-and-decisions-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does a two-choice drift-to-bound model produce errors?",
+   "back": "A second bound sits below the start for the other answer. The total drifts toward the correct bound, but on weak-motion trials the wobble sometimes carries it to the wrong one.",
+   "quote": "The total drifts toward the correct bound, but on weak-motion trials the wobble sometimes carries it to the wrong one.",
+   "section": "A rule for when to stop"
+  },
+  {
+   "id": "attention-and-decisions-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the noiseless drift-to-bound model, give the equations for time to bound and for reaction time.",
+   "back": "Time to bound = (bound − starting level) / drift. Reaction time = latency + time to bound + motor delay.",
+   "why": "Latency is the time before the total starts to move; motor delay is the time from reaching the bound to the eye moving.",
+   "quote": "time to bound = (bound − starting level) / drift",
+   "section": "A rule for when to stop"
+  },
+  {
+   "id": "attention-and-decisions-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Suppose a neuron holds the running total toward its target in a drift-to-bound decision. On trials ending in a choice of that target, predict its firing on strong- versus weak-motion trials and just before the saccade.",
+   "back": "It climbs, more steeply for stronger motion, and reaches about the same level just before the saccade whatever the motion strength, because the bound is the same on every trial.",
+   "quote": "reach about the same level just before the saccade whatever the motion strength, because the bound is the same on every trial",
+   "section": "A rule for when to stop"
+  },
+  {
+   "id": "attention-and-decisions-c16",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "A {{c1::response field}} is LIP's version of a receptive field: the place a target must be for the neuron to fire before a saccade to it.",
+   "back": "",
+   "quote": "A response field is LIP's version of a receptive field: the place a target must be for the neuron to fire before a saccade to it.",
+   "section": "The record: LIP"
+  },
+  {
+   "id": "attention-and-decisions-c17",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Monkeys answered a reaction-time random-dot task with one choice target in a recorded LIP neuron's response field. Describe the trial-averaged firing aligned to motion onset and to the saccade.",
+   "back": "For about 200 ms the lines lie together, then ramp, more steeply for stronger motion when the monkey chose the response-field target. Aligned to the saccade, they reach about the same rate whatever the motion strength.",
+   "quote": "Realigned to the saccade, the lines arrive at about the same rate shortly before the eye moves, whatever the motion strength.",
+   "section": "The record: LIP"
+  },
+  {
+   "id": "attention-and-decisions-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Trial-averaged LIP firing ramps smoothly during a motion decision. Why does this not show that firing ramps on single trials?",
+   "back": "A smooth average is compatible with steps of varied timing on single trials. Population recordings are needed to settle it.",
+   "why": "LIP firing also mixes sensory and premotor signals and an urgency signal that grows with elapsed time.",
+   "quote": "a smooth average is compatible with steps of varied timing on single trials",
+   "section": "The record: LIP"
+  },
+  {
+   "id": "attention-and-decisions-c19",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A model LIP neuron fires at 30 spikes/s until 200 ms after motion onset, then climbs to a bound of 70 spikes/s; the saccade follows 70 ms later. Drift is 400 (spikes/s) per second at 51.2% coherence and scales with coherence. Noiselessly, what is the reaction time at 6.4%?",
+   "back": "Drift = 400 × 6.4/51.2 = 50 (spikes/s)/s. Time to bound = (70 − 30)/50 = 0.80 s. Reaction time = 200 + 800 + 70 = 1,070 ms.",
+   "quote": "The drift is 400 (spikes/s) per second at 51.2% coherence, 100 at 12.8% and 25 at 3.2%: it scales with coherence.",
+   "section": "Worked problem"
+  },
+  {
+   "id": "attention-and-decisions-c20",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a noiseless drift-to-bound model, the total starts at 30 and the bound is 70 spikes/s; latency plus motor delay is 270 ms. A trial's reaction time is 520 ms. What drift is implied, and what coherence if drift is 7.8125 (spikes/s) per second per percent coherence?",
+   "back": "Time to bound = 520 − 270 = 250 ms. Drift = 40 / 0.25 s = 160 (spikes/s)/s. Coherence = 160 / 7.8125 = 20.48%.",
+   "quote": "The drifts in the worked problem come from one constant: 7.8125 (spikes/s) per second for each percent coherence",
+   "section": "The numbers behind the worked problem"
+  },
+  {
+   "id": "attention-and-decisions-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In a two-bound drift-to-bound model, adding noise shortens mean reaction times at weak motion (about 1,870 to 700 ms at 3.2% in one model) but barely changes them at strong motion. Why?",
+   "back": "With two bounds you never wait forever: the wobble carries the total to one bound or the other sooner, some trials to the wrong one. At strong motion the drift does nearly all the work.",
+   "quote": "With two bounds you never wait forever: even with no drift, the wobble carries the total off to one side or the other.",
+   "section": "Worked problem"
+  },
+  {
+   "id": "attention-and-decisions-c22",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the lesson's noisy two-choice drift-to-bound model, both bounds move farther from the starting point while drift is unchanged. Predict the effects on speed and accuracy at 51.2%, 3.2% and 0% coherence.",
+   "back": "Choices slow at all three coherences, with much greater slowing at weak and zero motion than at strong motion. Accuracy improves at 51.2% and 3.2%; at 0% it stays at chance.",
+   "why": "At weak motion the wobble, not the drift, sets how long the total takes to reach a bound; at 0% there is no signal to gather.",
+   "quote": "In the noisy model the slowing is largest at weak motion, because there the wobble, not the drift, sets how long the total takes to reach a bound.",
+   "section": "The speed–accuracy trade"
+  },
+  {
+   "id": "attention-and-decisions-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Define attention, and say how it differs from arousal.",
+   "back": "Attention is selecting part of what is available for further processing. Arousal is the overall level of alertness, which shifts with sleep and rhythms.",
+   "quote": "Attention is selecting part of what is available for further processing.",
+   "section": "Attention: a stronger signal, less shared noise"
+  },
+  {
+   "id": "attention-and-decisions-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does the rule for adding noisy samples apply when a downstream cell sums many neurons instead of many moments?",
+   "back": "Each neuron acts like one glimpse: private noise partly cancels, shared noise does not, and a stronger signal helps either way.",
+   "quote": "their private noise partly cancels, their shared noise does not, and a stronger signal helps either way",
+   "section": "Attention: a stronger signal, less shared noise"
+  },
+  {
+   "id": "attention-and-decisions-c25",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two stimuli sit in one macaque V4 receptive field, one that drives the cell well and one poorly. Only the location of attention changes. What happens when the monkey attends to the poor stimulus?",
+   "back": "The response falls toward what the poor stimulus gives alone, although the retinal image is unchanged.",
+   "quote": "When the monkey attended to the poor stimulus, the response fell toward what that stimulus gave alone, although the retinal image was unchanged.",
+   "section": "Attention biases a competition"
+  },
+  {
+   "id": "attention-and-decisions-c26",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A V4 neuron fires 40 spikes/s to stimulus A alone and 10 spikes/s to stimulus B alone. Both are placed in its receptive field. The monkey shifts attention from B to A. Predict the change in firing and the principle behind it.",
+   "back": "Firing rises, moving toward the 40 spikes/s A gives alone. Stimuli compete for the neuron, and attention biases the competition toward the attended one.",
+   "quote": "Stimuli seem to compete for a neuron, and attention biases the competition toward the attended one.",
+   "section": "Attention biases a competition"
+  },
+  {
+   "id": "attention-and-decisions-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Distinguish contrast gain from response gain as descriptions of attention's effect on a contrast-response curve.",
+   "back": "Contrast gain slides the curve left on a log contrast axis, boosting responses most at low and middle contrast. Response gain scales the whole curve up.",
+   "quote": "Draw the attended curve on a contrast axis with a log scale and it is the same curve slid to the left.",
+   "section": "Attention acts like more contrast"
+  },
+  {
+   "id": "attention-and-decisions-c28",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In one V4 study, attention acted as if it multiplied stimulus contrast by 1.51 on average. An attended grating has 8% contrast. What unattended contrast would drive cells about as well?",
+   "back": "8% × 1.51 ≈ 12% contrast.",
+   "quote": "On average, attention acted as if it multiplied the stimulus contrast by 1.51.",
+   "section": "Attention acts like more contrast"
+  },
+  {
+   "id": "attention-and-decisions-c29",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Attention acts on a V4 neuron by contrast gain. Which response does attention raise more: to a 5% contrast grating or to a 90% contrast grating near saturation? Why?",
+   "back": "The 5% grating. Multiplying contrast raises the response most where the curve rises steeply and hardly at all near saturation.",
+   "quote": "So the same multiplication raises the response most where the curve rises steeply and hardly at all near saturation.",
+   "section": "Attention acts like more contrast"
+  },
+  {
+   "id": "attention-and-decisions-c30",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Using the rule for adding noisy signals, name two separate routes by which attention in V4 could make a pooled readout more reliable. Which route would still help a readout of a single neuron?",
+   "back": "A stronger signal (contrast gain) and lower shared noise (lower noise correlation). Only the stronger signal helps a single neuron; shared noise matters because it survives pooling.",
+   "why": "Reliability is signal divided by noise. A stronger signal raises it either way; pooling cancels private noise but not shared noise.",
+   "quote": "In terms of the rule, contrast gain is a stronger signal for the attended stimulus.",
+   "section": "Attention acts like more contrast"
+  },
+  {
+   "id": "attention-and-decisions-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "{{c1::Noise correlation}} is the correlation of two neurons' spike counts across repeats of the same stimulus.",
+   "back": "ρ = Cov(n1, n2) / √(Var(n1) × Var(n2))",
+   "quote": "Noise correlation is the correlation of two neurons' spike counts across repeats of the same stimulus",
+   "section": "Attention lowers shared noise"
+  },
+  {
+   "id": "attention-and-decisions-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "When averaging N similarly tuned neurons with noise σ and pairwise noise correlation ρ above zero, why does adding more neurons eventually stop helping?",
+   "back": "Variance of the average = σ² × [1 + (N − 1)ρ] / N. The private part shrinks but the shared part stays, so noise falls toward a floor of σ√ρ: at most a 1/√ρ-fold improvement.",
+   "quote": "As N grows, the noise falls toward a floor of σ√ρ, so pooling can improve on one neuron at most 1/√ρ-fold.",
+   "section": "Attention lowers shared noise"
+  },
+  {
+   "id": "attention-and-decisions-c33",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Average 25 similarly tuned neurons, each with noise σ and pairwise noise correlation 0.04. What is the noise of the average? What is the best possible improvement over one neuron with an endless pool?",
+   "back": "Variance = σ² × (1 + 24 × 0.04)/25 = 0.0784σ², so noise = 0.28σ, about 3.6-fold less than one neuron (σ/5 if ρ were 0). Endless pool: 1/√0.04 = 5-fold.",
+   "quote": "variance of the average = σ² × [1 + (N − 1)ρ] / N",
+   "section": "Attention lowers shared noise"
+  },
+  {
+   "id": "attention-and-decisions-c34",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In V4, attention lowered mean noise correlation from 0.065 to 0.045. For an idealized pool of 100 identical, similarly tuned neurons with unchanged single-neuron variance, by what percentage does pooled noise fall?",
+   "back": "Unattended: √[(1 + 99 × 0.065)/100] ≈ 0.273σ. Attended: √[(1 + 99 × 0.045)/100] ≈ 0.234σ. Drop ≈ 14%.",
+   "why": "This is a calculation from averages, not a measured pool.",
+   "quote": "in an idealized pool of 100 identical, similarly tuned neurons, that drop would cut the pooled noise by about 14%",
+   "section": "Attention lowers shared noise"
+  },
+  {
+   "id": "attention-and-decisions-c35",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A patient has a stroke damaging right parietal cortex. Predict an attentional deficit the patient may show.",
+   "back": "Contralesional hemispatial neglect: failing to notice or respond to things on the left side of space. Neglect is commoner and more severe after right-hemisphere damage.",
+   "quote": "Neglect is commoner and more severe after right-hemisphere damage.",
+   "section": "Attention lowers shared noise"
+  },
+  {
+   "id": "attention-and-decisions-c36",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is executive control, and which brain region is it tied to?",
+   "back": "The ability to organize thought and action according to internal goals rather than whatever the senses offer next. It is tied to prefrontal cortex, which never works alone.",
+   "quote": "Executive control is the ability to organize thought and action according to internal goals rather than whatever the senses offer next.",
+   "section": "Holding the goal: prefrontal cortex"
+  },
+  {
+   "id": "attention-and-decisions-c37",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Working memory}} is holding information that is no longer in front of you so that you can use it; it is one tool of executive control.",
+   "back": "It differs from long-term memory stores.",
+   "quote": "Working memory, holding information that is no longer in front of you so that you can use it, is one of its tools.",
+   "section": "Holding the goal: prefrontal cortex"
+  },
+  {
+   "id": "attention-and-decisions-c38",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the monkey oculomotor delayed-response task, a cue flashes, the monkey fixates through a 1 to 6 s delay, then saccades to the cue's location. Why is fixation the key control for prefrontal delay activity?",
+   "back": "With the eyes still and the screen blank, cue-location-dependent firing cannot be a response to a visible cue or to an eye movement under way.",
+   "quote": "With the eyes still and the screen blank, firing that depends on the cue's location cannot be a response to a visible cue or to an eye movement under way.",
+   "section": "Holding a place in mind"
+  },
+  {
+   "id": "attention-and-decisions-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What question about prefrontal delay activity can the oculomotor delayed-response task alone not settle?",
+   "back": "Whether the activity is a memory of the place or a plan to look there. Fixation does not rule out a movement being planned.",
+   "quote": "Whether delay activity is a memory of the place or a plan to look there is a question this task alone cannot settle.",
+   "section": "Holding a place in mind"
+  },
+  {
+   "id": "attention-and-decisions-c40",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a delayed-response recording, 90 of 300 prefrontal neurons change firing during the delay, and 60% of those 90 are directionally selective. What percentage of the whole sample carries the remembered direction?",
+   "back": "0.60 × 90 = 54 cells; 54 / 300 = 18% of the sample.",
+   "quote": "Of 288 neurons, 87 changed their firing in the delay and 79% of those were directionally selective",
+   "section": "Holding a place in mind"
+  },
+  {
+   "id": "attention-and-decisions-c41",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Monkeys judged picture pairs under a match or a non-match rule, and prefrontal neurons signalled the rule in force. Why did testing with never-seen pictures matter?",
+   "back": "A cell that signals the rule for a novel picture cannot be signalling a memorized picture-response pairing.",
+   "quote": "The new pictures matter: a cell that signals the rule for a novel picture cannot be signalling a memorized picture-response pairing.",
+   "section": "Holding a rule"
+  },
+  {
+   "id": "attention-and-decisions-c42",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Under Miller and Cohen's proposal, what role would prefrontal cortex play in the random-dot motion decision, and what role does the proposal not claim for it?",
+   "back": "Prefrontal cortex would hold the goal that says which signal to count, biasing processing in other areas toward it. It does not claim prefrontal cortex does the adding.",
+   "why": "The proposal: prefrontal goal representations bias processing in other structures. It is a theory, and prefrontal cortex is one partner among several.",
+   "quote": "Miller and Cohen (2001) proposed that prefrontal cortex maintains representations of goals, and these bias processing in other structures toward what the goal needs.",
+   "section": "A theory that ties these together"
+  },
+  {
+   "id": "attention-and-decisions-c43",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A neuron's activity correlates with a choice. What two further questions does a manipulation ask?",
+   "back": "Does changing the activity change the choice? Does the choice need the activity?",
+   "quote": "A manipulation asks two further questions: does changing the activity change the choice, and does the choice need it?",
+   "section": "When the best correlate is not necessary"
+  },
+  {
+   "id": "attention-and-decisions-c44",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does muscimol reversibly silence a brain area?",
+   "back": "It activates inhibitory GABA-A receptors, which quiets nearby neurons.",
+   "quote": "muscimol, a drug that activates the inhibitory GABA-A receptors (see synaptic transmission) and quiets nearby neurons",
+   "section": "When the best correlate is not necessary"
+  },
+  {
+   "id": "attention-and-decisions-c45",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After muscimol in LIP, a monkey's motion-discrimination threshold is unchanged, but in a free-choice task it picks targets on the inactivated side less often and saccades there less accurately. Interpret the two results together.",
+   "back": "The free-choice effect shows the drug acted, so the unchanged threshold is not a missed injection: silencing LIP produced no measurable discrimination deficit. It still cannot exclude compensation by other areas.",
+   "quote": "After LIP inactivation they chose targets in the affected part of space less often, and their saccades to that side landed less accurately, so the drug had acted.",
+   "section": "When the best correlate is not necessary"
+  },
+  {
+   "id": "attention-and-decisions-c46",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Silencing a brain area biases decisions at first, but the bias fades while the area is still silenced. What does this suggest, and what does it imply for reading a null inactivation result?",
+   "back": "Other areas compensated. So a lack of deficit after inactivation cannot show an area plays no part; spared tissue or other areas may cover for it.",
+   "why": "Rests on the lesson's rule that a null result cannot exclude compensation by other areas.",
+   "quote": "the biases faded while the area was still silenced, which suggests that other areas compensated",
+   "section": "When the best correlate is not necessary"
+  },
+  {
+   "id": "attention-and-decisions-c47",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Using MT and LIP in the random-dot task, contrast a neural correlate of a decision with a necessary component.",
+   "back": "LIP firing looks like the running total (correlate), but silencing LIP caused no measurable discrimination deficit. MT stimulation swayed choices and MT inactivation impaired discrimination, so MT was needed.",
+   "why": "Correlation shows what goes with a choice; only manipulation tests whether the choice changes with, and needs, the activity.",
+   "quote": "What the experiments show is that a neuron displaying the running total is not thereby the place the total is needed.",
+   "section": "When the best correlate is not necessary"
+  },
+  {
+   "id": "attention-and-decisions-c48",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "LIP activity ramps like an accumulator, yet silencing LIP leaves motion discrimination intact even though the drug acted. Propose two next experiments.",
+   "back": "Inactivate several areas together (for example LIP with the frontal eye field or superior colliculus) to test redundancy or compensation, and record many neurons at once to see single-trial dynamics.",
+   "why": "Other areas carrying choice signals may hold the signal redundantly or compensate. Scope conclusions to this task, training and species.",
+   "quote": "Next, inactivate several areas together, and record many neurons at once to see single-trial dynamics.",
+   "section": "Design problem"
+  },
+  {
+   "id": "attention-and-decisions-c49",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Some noise is shared across a whole trial and across many neurons. Would viewing longer or pooling more neurons remove it? Why?",
+   "back": "Neither. The √n gain needs independent noise; noise shared across a trial does not cancel over time, and noise shared across neurons survives pooling.",
+   "why": "Over time and over neurons, only the independent (private, quickly decorrelating) part of the noise partly cancels.",
+   "quote": "slowly decaying correlations, or noise shared across a whole trial, prevent the gain",
+   "section": "When adding up stops helping"
+  },
+  {
+   "id": "attention-and-decisions-c50",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In mice doing a delayed non-match-to-sample T-maze task, which pathway between mediodorsal thalamus and medial prefrontal cortex supported delay maintenance, and which supported the later choice?",
+   "back": "Thalamus-to-prefrontal input supported maintenance during the delay; the reverse, prefrontal-to-thalamus projection supported the later choice.",
+   "quote": "supported maintenance during the delay, and the reverse projection supported the later choice",
+   "section": "Holding a goal: thalamus and prefrontal cortex in mice"
+  },
+  {
+   "id": "attention-and-decisions-c51",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In humans, the category of an item set aside in working memory could no longer be decoded from the EEG, but a single TMS pulse briefly made the category decodable again while the item might still be needed. Give two reasons this does not prove the item is held in synapses.",
+   "back": "The synapses were not measured. And because decoding was at the category level, reinstated category context is an alternative to reactivation of the item itself.",
+   "quote": "That item's category could no longer be decoded from the EEG, but a single TMS pulse briefly made it decodable again",
+   "section": "Memories that go quiet"
+  }
+ ]
+}

@@ -1,0 +1,203 @@
+---
+/**
+ * IsothermLagSlope — a mountainside with a moving isotherm and a species' upper edge,
+ * both starting level. Isotherm speed = (warming per decade / lapse rate per 100 m) x 100 m,
+ * the Global Change lesson's own rule; the species edge moves at a chosen rate. Shows the
+ * fraction of the isotherm's shift matched and the lag in metres. Deterministic, so no
+ * random draws. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ilg card" data-ilg>
+  <figcaption class="ilg-head">An isotherm climbs a mountain: does the species keep up?<span class="ilg-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="ilg-plots">
+    <div class="ilg-plotbox">
+      <svg class="ilg-svg" viewBox="0 0 340 262" role="img" aria-label="A mountainside with a dashed isotherm line and a solid line for the species’ upper edge, both starting at the same level" data-mtn></svg>
+    </div>
+    <div class="ilg-plotbox">
+      <svg class="ilg-svg" viewBox="0 0 340 262" role="img" aria-label="Metres uphill of the starting level against years, for the isotherm and for the species’ upper edge" data-ts></svg>
+    </div>
+  </div>
+
+  <div class="ilg-controls">
+    <label class="ilg-slabel"><span>Warming <em data-out="w">0.30</em> C per decade</span>
+      <input type="range" data-in="w" min="0.1" max="0.6" step="0.05" value="0.3" />
+    </label>
+    <label class="ilg-slabel"><span>Lapse rate <em data-out="l">0.60</em> C per 100 m</span>
+      <input type="range" data-in="l" min="0.4" max="1" step="0.05" value="0.6" />
+    </label>
+    <label class="ilg-slabel"><span>Species shift <em data-out="s">11.0</em> m per decade</span>
+      <input type="range" data-in="s" min="0" max="60" step="0.5" value="11" />
+    </label>
+    <label class="ilg-slabel"><span>Years elapsed <em data-out="y">30</em> years</span>
+      <input type="range" data-in="y" min="0" max="50" step="1" value="30" />
+    </label>
+  </div>
+
+  <dl class="ilg-readout">
+    <div><dt>Isotherm speed, (warming / lapse) x 100 m</dt><dd data-r="iso"></dd></div>
+    <div><dt>Share of isotherm’s shift matched</dt><dd data-r="frac"></dd></div>
+    <div><dt>Isotherm has moved</dt><dd data-r="isod"></dd></div>
+    <div><dt>Species edge has moved</dt><dd data-r="spd"></dd></div>
+    <div><dt>Lag behind the isotherm</dt><dd data-r="lag"></dd></div>
+  </dl>
+
+  <p class="ilg-why" data-why role="status"></p>
+  <p class="ilg-assume">In this sketch: constant warming and lapse rate, the species’ range is set by temperature alone, and nothing such as a road, a farm or a cliff blocks it. The mountain is not to scale and its starting elevation is not given. The default species rate, 11.0 m per decade, is the median of Chen and colleagues’ 2011 meta-analysis; the other numbers are invented round figures, and a particular species could be far ahead of or far behind the median.</p>
+  <p class="ilg-foot">Rule to keep: the isotherm moves (warming / lapse rate) metres per decade; a species that moves slower than that falls behind by the difference in rates each decade, and a real lag could reflect slow dispersal, cues other than temperature, competitors or predators already upslope, or loss of forest.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const YMAX = 800;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+    const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+    t.textContent = s;
+    parent.appendChild(t);
+    return t;
+  }
+  const r0 = (x: number) => Math.round(x).toLocaleString('en-US');
+  const pct = (x: number) => (Math.round(x * 10) / 10).toString().replace(/\.0$/, '');
+
+  document.querySelectorAll<HTMLElement>('[data-ilg]').forEach((root) => {
+    const mtn = root.querySelector<SVGSVGElement>('[data-mtn]')!;
+    const ts = root.querySelector<SVGSVGElement>('[data-ts]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
+    const rd = (k: string) => root.querySelector<HTMLElement>(`[data-r="${k}"]`)!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const wI = inp('w'), lI = inp('l'), sI = inp('s'), yI = inp('y');
+
+    // Mountain panel geometry (x 0..340, y: elevation 0 at Y1, YMAX at Y0)
+    const Y0 = 16, Y1 = 214;
+    const py = (m: number) => Y1 - (m / YMAX) * (Y1 - Y0);
+
+    function render() {
+      const w = parseFloat(wI.value), l = parseFloat(lI.value), s = parseFloat(sI.value), yrs = parseInt(yI.value, 10);
+      out('w').textContent = w.toFixed(2);
+      out('l').textContent = l.toFixed(2);
+      out('s').textContent = s.toFixed(1);
+      out('y').textContent = String(yrs);
+
+      const iso = (w / l) * 100;          // m per decade
+      const dec = yrs / 10;
+      const isoD = iso * dec, spD = s * dec;
+      const lag = Math.max(0, isoD - spD);
+      const frac = s / iso;               // share of isotherm shift matched
+      const ahead = Math.max(0, spD - isoD);
+
+      const isoR = Math.round(iso * 10) / 10;       // displayed isotherm speed
+      const ab = (shown: number, fromDisplayed: number) => (Math.abs(shown - fromDisplayed) > 1e-6 ? 'about ' : '');
+      const isoDs = Math.round(isoD * 10) / 10, spDs = Math.round(spD * 10) / 10, lagS = Math.round(lag * 10) / 10;
+      const fracS = Math.round(frac * 1000) / 10;
+      rd('iso').textContent = `${w.toFixed(2)} / ${l.toFixed(2)} x 100 = ${pct(iso)} m per decade`;
+      rd('frac').textContent = `${s.toFixed(1)} / ${pct(iso)} = ${ab(fracS, Math.round((s / isoR) * 1000) / 10)}${pct(fracS)}%`;
+      rd('isod').textContent = `${pct(iso)} x ${pct(dec)} decades = ${ab(isoDs, Math.round(isoR * dec * 10) / 10)}${pct(isoDs)} m`;
+      rd('spd').textContent = `${s.toFixed(1)} x ${pct(dec)} decades = ${ab(spDs, Math.round(s * dec * 10) / 10)}${pct(spDs)} m`;
+      rd('lag').textContent = spD >= isoD
+        ? `0 m (keeps pace${ahead > 0 ? `, ${pct(ahead)} m ahead` : ''})`
+        : `${pct(isoDs)} - ${pct(spDs)} = ${ab(lagS, Math.round((isoDs - spDs) * 10) / 10)}${pct(lagS)} m`;
+
+      // ---- Mountain panel ----
+      mtn.replaceChildren();
+      const peakX = 250, baseL = 20;
+      const slope = el('polygon', { points: `${baseL},${Y1} ${peakX},${Y0} 330,${Y1}`, fill: '#e8efe9', stroke: INK, 'stroke-width': 1 });
+      mtn.appendChild(slope);
+      mtn.appendChild(el('line', { x1: baseL, y1: Y1, x2: 330, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      const xAt = (m: number) => baseL + (peakX - baseL) * (m / YMAX); // west slope
+      // starting level
+      mtn.appendChild(el('line', { x1: 8, y1: py(0), x2: 332, y2: py(0), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
+      txt(mtn, 8, 225, 'starting level (both edges), not to scale');
+      const clamp = (m: number) => Math.min(YMAX, m);
+      const isoY = py(clamp(isoD)), spY = py(clamp(spD));
+      // species edge (solid teal) and isotherm (dashed orange), drawn across the slope
+      mtn.appendChild(el('line', { x1: xAt(clamp(spD)), y1: spY, x2: 330 - (xAt(clamp(spD)) - baseL) * 0.35, y2: spY, stroke: ACCENT, 'stroke-width': 2.6 }));
+      mtn.appendChild(el('line', { x1: xAt(clamp(isoD)), y1: isoY, x2: 330 - (xAt(clamp(isoD)) - baseL) * 0.35, y2: isoY, stroke: ORANGE, 'stroke-width': 2.2, 'stroke-dasharray': '6 3' }));
+      // lag bracket
+      if (lag > 0) {
+        const bx = 300;
+        mtn.appendChild(el('line', { x1: bx, y1: isoY, x2: bx, y2: spY, stroke: INK, 'stroke-width': 1.2 }));
+        mtn.appendChild(el('line', { x1: bx - 4, y1: isoY, x2: bx + 4, y2: isoY, stroke: INK, 'stroke-width': 1.2 }));
+        mtn.appendChild(el('line', { x1: bx - 4, y1: spY, x2: bx + 4, y2: spY, stroke: INK, 'stroke-width': 1.2 }));
+      }
+      // legend, under the baseline
+      mtn.appendChild(el('line', { x1: 10, y1: 238, x2: 30, y2: 238, stroke: ACCENT, 'stroke-width': 2.6 }));
+      txt(mtn, 34, 241, 'species’ upper edge');
+      mtn.appendChild(el('line', { x1: 150, y1: 238, x2: 170, y2: 238, stroke: ORANGE, 'stroke-width': 2.2, 'stroke-dasharray': '6 3' }));
+      txt(mtn, 174, 241, 'isotherm of its former temperature');
+      txt(mtn, 10, 256, lag > 0 ? `bracket = lag, ${pct(lag)} m` : 'no lag to bracket', { fill: INK });
+
+      // ---- Time panel ----
+      ts.replaceChildren();
+      const TX0 = 44, TX1 = 326, TY0 = 22, TY1 = 196;
+      const tx = (y: number) => TX0 + (y / 50) * (TX1 - TX0);
+      const tyy = (m: number) => TY1 - (Math.min(m, YMAX) / YMAX) * (TY1 - TY0);
+      ts.appendChild(el('line', { x1: TX0, y1: TY0, x2: TX0, y2: TY1, stroke: INK, 'stroke-width': 1 }));
+      ts.appendChild(el('line', { x1: TX0, y1: TY1, x2: TX1, y2: TY1, stroke: INK, 'stroke-width': 1 }));
+      for (const m of [0, 200, 400, 600, 800]) {
+        ts.appendChild(el('line', { x1: TX0, y1: tyy(m), x2: TX1, y2: tyy(m), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        txt(ts, TX0 - 4, tyy(m) + 3, String(m), { 'text-anchor': 'end' });
+      }
+      for (const y of [0, 10, 20, 30, 40, 50]) {
+        ts.appendChild(el('line', { x1: tx(y), y1: TY1, x2: tx(y), y2: TY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(ts, tx(y), TY1 + 13, String(y), { 'text-anchor': 'middle' });
+      }
+      txt(ts, (TX0 + TX1) / 2, TY1 + 27, 'years', { 'text-anchor': 'middle', 'font-size': 10 });
+      txt(ts, TX0 - 2, TY0 - 8, 'metres uphill of the starting level', { 'font-size': 10 });
+      const lineTo = (rate: number) => `M${tx(0)} ${tyy(0)} L${tx(50)} ${tyy(rate * 5)}`;
+      ts.appendChild(el('path', { d: lineTo(iso), stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '2 3', fill: 'none', opacity: 0.45 }));
+      ts.appendChild(el('path', { d: lineTo(s), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '2 3', fill: 'none', opacity: 0.45 }));
+      ts.appendChild(el('path', { d: `M${tx(0)} ${tyy(0)} L${tx(yrs)} ${tyy(isoD)}`, stroke: ORANGE, 'stroke-width': 2.4, fill: 'none', 'stroke-dasharray': '6 3' }));
+      ts.appendChild(el('path', { d: `M${tx(0)} ${tyy(0)} L${tx(yrs)} ${tyy(spD)}`, stroke: ACCENT, 'stroke-width': 2.6, fill: 'none' }));
+      ts.appendChild(el('circle', { cx: tx(yrs), cy: tyy(isoD), r: 3.5, fill: ORANGE }));
+      ts.appendChild(el('circle', { cx: tx(yrs), cy: tyy(spD), r: 3.5, fill: ACCENT }));
+      ts.appendChild(el('line', { x1: 52, y1: 240, x2: 72, y2: 240, stroke: ACCENT, 'stroke-width': 2.6 }));
+      txt(ts, 76, 243, 'species’ edge (faint = to 50 yr)');
+      ts.appendChild(el('line', { x1: 52, y1: 253, x2: 72, y2: 253, stroke: ORANGE, 'stroke-width': 2.2, 'stroke-dasharray': '6 3' }));
+      txt(ts, 76, 256, 'isotherm (faint = to 50 yr)');
+
+      // ---- Status ----
+      let msg: string;
+      if (yrs === 0) {
+        msg = 'At the start the species’ upper edge and its isotherm are level, so there is no lag yet. Move the years slider to let the isotherm climb.';
+      } else if (s === 0) {
+        msg = `The species has not moved, while the isotherm of its former temperature has climbed ${pct(isoD)} m in ${yrs} years. In this sketch the lag is the whole ${pct(lag)} m.`;
+      } else if (spD >= isoD) {
+        msg = ahead === 0
+          ? `The species moves ${s.toFixed(1)} m per decade, as fast as the isotherm (${pct(iso)} m per decade), so in this sketch there is no lag.`
+          : `The species moves ${s.toFixed(1)} m per decade, faster than the isotherm (${pct(iso)} m per decade). In this sketch there is no lag; its edge is ${pct(ahead)} m ahead of the isotherm after ${yrs} years.`;
+      } else {
+        msg = `The isotherm moves ${pct(iso)} m per decade and the species ${s.toFixed(1)} m per decade, so it matches ${pct(frac * 100)}% of the isotherm’s shift. After ${yrs} years the isotherm has moved ${pct(isoD)} m and the species ${pct(spD)} m: a lag of ${pct(lag)} m in this sketch.`;
+      }
+      why.textContent = msg;
+    }
+    [wI, lI, sI, yI].forEach((e) => e.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .ilg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ilg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ilg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ilg-plots { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--ddp-space-3); }
+  .ilg-svg { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ilg-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ilg-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ilg-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ilg-slabel input { accent-color: var(--ddp-color-accent); }
+  .ilg-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ilg-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ilg-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ilg-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .ilg-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .ilg-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .ilg-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

@@ -588,9 +588,9 @@ class S04Borrow(Film):
         self.at("actin skeleton")
         self.play(*glow(act[1], act[2], s=1.08), run_time=0.7)
 
-        self.at("no enzyme of its")
+        self.at("This is")
         self.play(Indicate(W.tail[0][0], color=TEXT, scale_factor=1.0), Indicate(W.tail[1][0], color=TEXT, scale_factor=1.0), run_time=0.7)
-        self.at("borrows one")
+        self.at("one route")
         self.play(*glow(s1[1], s1[2], s2[1], s2[2], s=1.12), run_time=0.8)
 
         W5 = World(FULL, n=2, tail=True, dots=True, closed=True)
@@ -668,19 +668,19 @@ class S05Test(Film):
         sl = T("at the cell surface", 28, YELLOW).move_to([xb + 0.7, -0.55, 0], aligned_edge=LEFT)
         ck = VGroup(Line([0, 0, 0], [0.16, -0.16, 0], color=TEXT, stroke_width=6), Line([0.16, -0.16, 0], [0.5, 0.3, 0], color=TEXT, stroke_width=6))
         ck.next_to(sl, RIGHT, buff=0.2)
-        self.at("still reaches")
+        self.at("reaches the surface")
         self.play(FadeIn(sl, shift=RIGHT * 0.1), Create(ck), *glow(W.knob[0], W.knob[1], s=1.25), run_time=0.8)
 
-        # the grip and the forward signal stay
-        self.at("the grip and")
+        # close the grip and measure the forward signal
+        self.at("then measure")
         self.play(*W.grip(True), run_time=0.5)
         fa = sarrow(f0, f1, GREEN)
         dgs = [sdot(GREEN, [x, L.gy, 0]) for x in (xa, xb)]
-        self.at("forward signal stay")
+        self.at("forward signal")
         self.play(*[FadeIn(d, scale=0.5) for d in dgs], FadeOut(sl), FadeOut(ck), run_time=0.2)
         self.play(*[d.animate.move_to([x, L.kin_y() - 0.28, 0]) for d, x in zip(dgs, (xa, xb))], run_time=0.6)
         self.play(GrowArrow(fa), dgs[1].animate.move_to(f1), FadeOut(dgs[0]), run_time=0.5)
-        fl2 = fwd_label(L, xb)
+        fl2 = T("forward signal?", 26, GREEN).move_to(fwd_label(L, xb))
         self.play(FadeIn(fl2, shift=UP * 0.1), FadeOut(dgs[1]), run_time=0.3)
 
         # the reverse signal is gone

@@ -1,0 +1,220 @@
+---
+/**
+ * BodyAxisDirectionIndex — the direction-index worked problem of the LTMR lesson as a sketch.
+ * A top view of one mouse trunk follicle (rostral at top) beside twelve sketch Aδ-LTMRs, each an
+ * arrow for its preferred deflection. Spikes to the preferred deflection (P) and to an equal
+ * opposite deflection (O) give ratio P/O and DI = (P − O)/(P + O). Control: every neuron prefers
+ * caudal-to-rostral movement, endings on the caudal side. Epithelial Bdnf deletion: endings
+ * scattered, each neuron's preferred angle random; body-axis index = DI × cos(theta).
+ * Original; self-contained vanilla-TS island.
+ */
+---
+
+<figure class="bdi card" data-bdi>
+  <figcaption class="bdi-head">Direction index and the body axis — a sketch of twelve Aδ-LTMRs<span class="bdi-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="bdi-figs">
+    <svg class="bdi-svg" viewBox="0 0 360 262" role="img" aria-label="Top view of one mouse trunk follicle with rostral at the top. Orange ticks mark where Aδ-LTMR endings sit; a teal arrow marks the preferred deflection of the hair tip" data-follicle></svg>
+    <svg class="bdi-svg" viewBox="0 0 360 246" role="img" aria-label="Twelve sketch Aδ-LTMRs, each a small dial whose arrow points along that neuron's preferred deflection, with length equal to its direction index; up is rostral" data-dials></svg>
+  </div>
+  <p class="bdi-side">Up is rostral (toward the head) in both pictures. In each dial the thin line is the neuron’s preferred direction; the bold arrow’s length is its direction index. The number under a dial is that neuron’s body-axis index, DI × cos θ. The ringed dial is the neuron drawn on the follicle.</p>
+
+  <div class="bdi-controls">
+    <label class="bdi-slabel"><span>Spikes to preferred deflection, P: <em data-out="p">12</em></span>
+      <input type="range" data-in="p" min="1" max="20" step="1" value="12" />
+    </label>
+    <label class="bdi-slabel"><span>Spikes to equal opposite deflection, O: <em data-out="o">3</em></span>
+      <input type="range" data-in="o" min="0" max="12" step="1" value="3" />
+    </label>
+    <fieldset class="bdi-geno">
+      <legend>Genotype</legend>
+      <label><input type="radio" name="bdi-geno" value="control" checked /> Control</label>
+      <label><input type="radio" name="bdi-geno" value="mutant" /> K5Cre;Bdnf epithelial deletion</label>
+    </fieldset>
+    <button type="button" class="bdi-btn" data-resample>Resample</button>
+  </div>
+
+  <dl class="bdi-readout">
+    <div><dt>Ratio P / O</dt><dd data-r-ratio></dd></div>
+    <div><dt>Direction index, DI = (P − O) / (P + O)</dt><dd data-r-di></dd></div>
+    <div><dt>Mean body-axis index, expected</dt><dd data-r-exp></dd></div>
+    <div><dt>Mean body-axis index, observed (12 sketch neurons)</dt><dd data-r-obs></dd></div>
+  </dl>
+  <p class="bdi-why" data-why role="status"></p>
+
+  <p class="bdi-foot">In this sketch: spike counts are illustrative, not Rutlin’s data. Mutant angles are drawn uniformly at random, which is why the expected mean is 0. Two assumptions are mine, not findings: the body-axis index is cosine tuning, DI × cos θ, and every neuron has the same DI, which each mutant neuron keeps while only its angle is randomized (the lesson does not say whether single-neuron tuning strength survived). The deletion shows a developmental role for epithelial BDNF, not BDNF release during touch. The rule to keep is DI = (P − O) / (P + O): 0 is no preference, 1 is no response to the opposite direction.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const N = 12;           // sketch neurons
+  const N_END = 7;        // sketch endings drawn on the follicle
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, opts: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 10, fill: INK }, opts));
+    t.textContent = s;
+    return t;
+  }
+  const sgn = (v: number) => { const a = Math.abs(v).toFixed(2); return (v < 0 && a !== '0.00' ? '−' : '+') + a; };
+  const trim = (n: number) => String(parseFloat(n.toFixed(2)));
+  // angle phi is measured clockwise from rostral (up)
+  const pt = (cx: number, cy: number, r: number, phi: number): [number, number] => [cx + r * Math.sin(phi), cy - r * Math.cos(phi)];
+  const rnd = () => Math.random() * 2 * Math.PI;
+
+  document.querySelectorAll<HTMLElement>('[data-bdi]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const fol = q<SVGSVGElement>('[data-follicle]');
+    const dials = q<SVGSVGElement>('[data-dials]');
+    const pIn = q<HTMLInputElement>('[data-in="p"]');
+    const oIn = q<HTMLInputElement>('[data-in="o"]');
+    const pOut = q<HTMLElement>('[data-out="p"]');
+    const oOut = q<HTMLElement>('[data-out="o"]');
+    const resample = q<HTMLButtonElement>('[data-resample]');
+    const rRatio = q<HTMLElement>('[data-r-ratio]');
+    const rDi = q<HTMLElement>('[data-r-di]');
+    const rExp = q<HTMLElement>('[data-r-exp]');
+    const rObs = q<HTMLElement>('[data-r-obs]');
+    const why = q<HTMLElement>('[data-why]');
+    const radios = root.querySelectorAll<HTMLInputElement>('input[name="bdi-geno"]');
+    if (!fol || !dials || !pIn || !oIn || !pOut || !oOut || !resample || !rRatio || !rDi || !rExp || !rObs || !why || radios.length < 2) return;
+
+    let thetas: number[] = [];
+    let endAngles: number[] = [];
+    const draw = () => {
+      thetas = Array.from({ length: N }, rnd);
+      endAngles = Array.from({ length: N_END }, rnd);
+    };
+    draw();
+    const genotype = () => {
+      let g = 'control';
+      radios.forEach((r) => { if (r.checked) g = r.value; });
+      return g;
+    };
+
+    function render() {
+      const P = +pIn!.value;
+      // O cannot exceed P (the index is defined for O between 0 and P)
+      oIn!.max = String(P);
+      if (+oIn!.value > P) oIn!.value = String(P);
+      const O = +oIn!.value;
+      pOut!.textContent = String(P);
+      oOut!.textContent = String(O);
+      const mutant = genotype() === 'mutant';
+      const DI = (P - O) / (P + O);
+      const th = mutant ? thetas : new Array(N).fill(0);
+      const bai = th.map((t) => DI * Math.cos(t));
+      const obs = bai.reduce((a, b) => a + b, 0) / N;
+      const exp = mutant ? 0 : DI;
+      const sem = mutant ? DI * Math.SQRT1_2 / Math.sqrt(N) : 0;
+
+      // readouts
+      rRatio!.textContent = O === 0 ? 'no response to the opposite direction' : trim(P / O);
+      rDi!.textContent = DI.toFixed(2);
+      rExp!.textContent = sgn(exp) + (mutant ? ' (typical scatter of a 12-neuron mean ±' + sem.toFixed(2) + ')' : '');
+      rObs!.textContent = sgn(obs);
+      root.dataset.ratio = O === 0 ? 'none' : trim(P / O);
+      root.dataset.di = DI.toFixed(2);
+      root.dataset.meanExp = exp.toFixed(2);
+      root.dataset.meanObs = obs.toFixed(2);
+      root.dataset.geno = mutant ? 'mutant' : 'control';
+
+      // follicle picture (neuron 1 of 12)
+      fol!.replaceChildren();
+      const cx = 180, cy = 128;
+      fol!.appendChild(txt(180, 14, 'Rostral (toward the head)', { 'text-anchor': 'middle', 'font-weight': 700 }));
+      fol!.appendChild(txt(180, 204, 'Caudal (toward the tail)', { 'text-anchor': 'middle', 'font-weight': 700 }));
+      fol!.appendChild(el('circle', { cx, cy, r: 44, fill: '#fdf6ee', stroke: INK, 'stroke-width': 1.2 }));
+      const ends = mutant ? endAngles : [-50, -33, -17, 0, 17, 33, 50].map((d) => Math.PI + (d * Math.PI) / 180);
+      ends.forEach((a) => {
+        const [x1, y1] = pt(cx, cy, 41, a), [x2, y2] = pt(cx, cy, 55, a);
+        fol!.appendChild(el('line', { x1, y1, x2, y2, stroke: ORANGE, 'stroke-width': 5, 'stroke-linecap': 'round' }));
+      });
+      fol!.appendChild(el('circle', { cx, cy, r: 4, fill: INK }));
+      const a0 = th[0];
+      const [ax, ay] = pt(cx, cy, 70, a0);
+      const [bx, by] = pt(cx, cy, 52, a0);
+      fol!.appendChild(el('line', { x1: cx, y1: cy, x2: bx, y2: by, stroke: TEAL, 'stroke-width': 3 }));
+      const hd = 8, ca = Math.cos(a0), sa = Math.sin(a0);
+      // arrow head: tip at (ax, ay), base back along the shaft
+      const base = pt(cx, cy, 70 - 12, a0);
+      fol!.appendChild(el('polygon', { points: `${ax},${ay} ${base[0] + hd * ca * 0.6},${base[1] + hd * sa * 0.6} ${base[0] - hd * ca * 0.6},${base[1] - hd * sa * 0.6}`, fill: TEAL }));
+      // legend (two different variables)
+      fol!.appendChild(el('line', { x1: 14, y1: 224, x2: 28, y2: 224, stroke: ORANGE, 'stroke-width': 5, 'stroke-linecap': 'round' }));
+      fol!.appendChild(txt(36, 227, mutant ? 'endings: scattered around the follicle' : 'endings: enriched on the caudal side'));
+      fol!.appendChild(el('line', { x1: 14, y1: 245, x2: 28, y2: 245, stroke: TEAL, 'stroke-width': 3 }));
+      fol!.appendChild(txt(36, 248, mutant ? 'preferred deflection: random angle (neuron 1)' : 'preferred deflection: hair tip toward the head'));
+
+      // twelve dials
+      dials!.replaceChildren();
+      const R = 26;
+      for (let i = 0; i < N; i++) {
+        const dcx = 45 + (i % 4) * 90, dcy = 40 + Math.floor(i / 4) * 76;
+        dials!.appendChild(el('circle', { cx: dcx, cy: dcy, r: R, fill: '#fff', stroke: i === 0 ? INK : FAINT, 'stroke-width': i === 0 ? 2.5 : 1 }));
+        const [fx, fy] = pt(dcx, dcy, R, th[i]);
+        dials!.appendChild(el('line', { x1: dcx, y1: dcy, x2: fx, y2: fy, stroke: FAINT, 'stroke-width': 1 }));
+        const len = R * DI;
+        if (len > 0.5) {
+          const [tx, ty] = pt(dcx, dcy, len, th[i]);
+          dials!.appendChild(el('line', { x1: dcx, y1: dcy, x2: tx, y2: ty, stroke: TEAL, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+        }
+        dials!.appendChild(el('circle', { cx: dcx, cy: dcy, r: 2, fill: INK }));
+        dials!.appendChild(txt(dcx, dcy + 45, sgn(bai[i]), { 'text-anchor': 'middle' }));
+      }
+
+      // status
+      let s: string;
+      if (!mutant) {
+        s = 'Control, in this sketch: every one of the twelve is drawn preferring caudal-to-rostral deflection (hair tip toward the head; the paper reports an average), and their endings are enriched on the caudal side (drawn here as a cluster). These are two different variables: where the ending sits is not the direction it prefers. ';
+        s += 'Every body-axis index equals the DI (cos 0 = 1), so the mean is ' + sgn(exp) + ' both expected and observed; nothing is random in the control sketch, so Resample changes nothing here. ';
+      } else {
+        s = 'With epithelial Bdnf deleted (K5Cre;Bdnf), the endings are scattered and each neuron’s preferred angle is random relative to the body axis. Body-axis index = DI × cos θ, and each neuron keeps the DI set by the sliders, an assumption of this sketch. ';
+        s += 'Expected population mean 0; this draw of twelve gives ' + sgn(obs) + ', and Resample shows how far a small sample wanders (typical ±' + sem.toFixed(2) + '). A deletion acting through development shows that epithelial BDNF is needed to organize the endings, not that BDNF is released during touch. ';
+      }
+      s += 'Ratio and index: ';
+      if (O === 0) s += 'O = 0, so DI = 1, no response to the opposite direction.';
+      else if (P === O) s += 'P = O, so DI = 0, no preference.';
+      else if (P === 3 * O) s += 'a 3:1 pair gives DI 0.50, the index a ratio of exactly 3 gives; the paper’s average ratio for adult mouse Aδ-LTMRs was over 3 (an average over tested spots, not a per-neuron floor).';
+      else if (P > 3 * O) s += 'ratio ' + trim(P / O) + ' is above 3:1, so DI ' + DI.toFixed(2) + ' is above 0.50' + (P === 12 && O === 3 ? ' (the lesson’s worked example, illustrative).' : '.');
+      else s += 'ratio ' + trim(P / O) + ' is below 3:1, so DI ' + DI.toFixed(2) + ' is below the 0.50 that 3:1 gives' + (P === 8 && O === 7 && mutant ? ' (the lesson’s illustrative mutant pair, 8 and 7).' : '; the paper’s figure is an average, so single neurons can sit on either side.');
+      why!.textContent = s;
+    }
+
+    pIn.addEventListener('input', render);
+    oIn.addEventListener('input', render);
+    radios.forEach((r) => r.addEventListener('change', () => { if (genotype() === 'mutant') draw(); render(); }));
+    resample.addEventListener('click', () => { draw(); render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .bdi { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bdi-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bdi-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bdi-figs { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  .bdi-svg { display: block; width: 100%; max-width: 440px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .bdi-side { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bdi-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: start; }
+  .bdi-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bdi-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .bdi-slabel input { accent-color: var(--ddp-color-accent); }
+  .bdi-geno { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.2rem 0.6rem 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; }
+  .bdi-geno legend { padding: 0 0.3rem; }
+  .bdi-geno label { display: flex; align-items: center; gap: 0.4rem; }
+  .bdi-geno input { accent-color: var(--ddp-color-accent); }
+  .bdi-btn { justify-self: start; align-self: center; font: inherit; font-size: var(--ddp-text-xs); padding: 0.35rem 0.9rem; border: 1px solid var(--ddp-color-accent); background: #fff; color: var(--ddp-color-accent); border-radius: 6px; cursor: pointer; }
+  .bdi-btn:hover, .bdi-btn:focus-visible { background: color-mix(in srgb, var(--ddp-color-accent) 10%, #fff); }
+  .bdi-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .bdi-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .bdi-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bdi-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .bdi-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 9em; }
+  .bdi-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 640px) { .bdi-controls, .bdi-readout { grid-template-columns: 1fr; } }
+</style>

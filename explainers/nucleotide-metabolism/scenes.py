@@ -90,7 +90,7 @@ class S01Cost(SpokenScene):
         hub = chip("nucleotide", GREEN, 40).move_to([0, 0.9, 0])
         self.play(FadeIn(hub, scale=0.9), run_time=0.8)
 
-        self.at("most expensive")
+        self.at("costly")
         self.play(Circumscribe(hub, color=ORANGE, time_width=0.6, run_time=1.2))
 
         specs = [("DNA and RNA", "the letters", [-4.3, 2.6, 0], "Nucleotides are the letters"),
@@ -125,8 +125,8 @@ class S01Cost(SpokenScene):
         atp = T("ATP", 32, ORANGE, weight=BOLD).move_to([4.2, -0.85, 0])
         self.play(FadeIn(atp), run_time=0.4)
 
-        # --- the cell almost never throws one away -------------------------------------------------
-        self.at("almost never throws")
+        # --- the cell recycles much of what it has -------------------------------------------------
+        self.at("cell recycles")
         bin_ = chip("thrown away", GREY, 28).move_to([0.5, -2.5, 0])
         down = arr([0.5, 0.7, 0], [0.5, -2.0, 0], GREY)
         self.play(GrowArrow(down), FadeIn(bin_), run_time=0.8)
@@ -177,7 +177,7 @@ class S02Denovo(SpokenScene):
         self.play(FadeIn(rib), run_time=0.5)
 
         # --- ten steps, six ATP -------------------------------------------------------------------------
-        self.at("about 10 enzymatic steps")
+        self.at("enzymatic steps")
         steps = T("about ten enzymatic steps", 30, BLUE).move_to([-0.6, 0.0, 0])
         self.play(LaggedStart(*[t.animate.set_stroke(BLUE, 4) for t in tiles], lag_ratio=0.1),
                   FadeIn(steps), run_time=1.3)
@@ -194,26 +194,26 @@ class S02Denovo(SpokenScene):
         self.remove(counter)
         self.add(approx)
         # --- out comes IMP -------------------------------------------------------------------------------
-        self.at("finished purine nucleotide")
+        self.at("finished purine")
         nuc = chip("nucleotide", GREEN, 40).move_to([-0.9, 0.9, 0])
         self.play(FadeOut(rib), FadeOut(steps),
                   ReplacementTransform(VGroup(prpp, tiles), nuc), run_time=1.1)
         self.at("IMP")
         imp = chip("IMP", GREEN, 44).move_to(nuc)
         self.play(ReplacementTransform(nuc, imp), run_time=0.5)
-        self.at("Both AMP")
+        self.at("Both")
         amp = chip("AMP", GREEN, 44).move_to([3.4, 2.2, 0])
         gmp = chip("GMP", GREEN, 44).move_to([3.4, -0.3, 0])
         l1, l2 = link(imp, amp, GREY), link(imp, gmp, GREY)
         self.play(GrowArrow(l1), FadeIn(amp, shift=l1.get_vector() * 0.1), run_time=0.7)
-        self.at("GMP")
+        self.at("branch")
         self.play(GrowArrow(l2), FadeIn(gmp, shift=l2.get_vector() * 0.1), run_time=0.7)
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------------
 class S03Salvage(SpokenScene):
-    """Salvage: free base + PRPP -> nucleotide in one step (HGPRT, APRT); ~90% recovered; the default."""
+    """Salvage: free base + PRPP -> nucleotide in one step (HGPRT, APRT); a major source in many tissues."""
 
     def construct(self):
         rows = [("hypoxanthine", "IMP", "HGPRT", 1.9), ("guanine", "GMP", "HGPRT", 0.6), ("adenine", "AMP", "APRT", -0.7)]
@@ -251,7 +251,7 @@ class S03Salvage(SpokenScene):
 
         # --- the two enzymes ------------------------------------------------------------------------
         xm = (right_edge + 0.2 + XN - 0.85) / 2 + 0.5
-        self.at("The enzyme HGPRT")
+        self.at("The enzyme")
         e1 = solid(chip("HGPRT", BLUE, 26).move_to([xm, 1.9, 0]))
         e2 = solid(chip("HGPRT", BLUE, 26).move_to([xm, 0.6, 0]))
         self.play(FadeIn(e1, scale=0.8), FadeIn(e2, scale=0.8), run_time=0.7)
@@ -259,25 +259,24 @@ class S03Salvage(SpokenScene):
         self.play(Indicate(bases[0], color=YELLOW, scale_factor=1.1), run_time=0.8)
         self.at("guanine", nth=1)
         self.play(Indicate(bases[1], color=YELLOW, scale_factor=1.1), run_time=0.8)
-        self.at("a PRT")
+        self.at("salvages", nth=1)
         e3 = solid(chip("APRT", BLUE, 26).move_to([xm, -0.7, 0]))
         self.play(FadeIn(e3, scale=0.8), run_time=0.6)
-        self.at("salvages adenine")
+        self.at("adenine", nth=1)
         self.play(Indicate(bases[2], color=YELLOW, scale_factor=1.1), run_time=0.8)
 
-        # --- ~90% recovered -----------------------------------------------------------------------------
+        # --- a large share recovered -----------------------------------------------------------------------------
         self.at("Recycling is so much cheaper")
         lbl = T("free purines recovered", 28, GREY).move_to([-3.45, -2.2, 0])
-        track = Rectangle(width=6.0, height=0.5, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([-0.1, -2.9, 0])
-        track.align_to([-5.9, 0, 0], LEFT)
+        track = arr([-5.9, -2.9, 0], [0.1, -2.9, 0], GREEN)
         self.play(FadeIn(lbl), Create(track), run_time=0.8)
-        self.at("something like 90")
-        fill = Rectangle(width=6.0 * 0.9, height=0.5, stroke_width=0, fill_color=GREEN, fill_opacity=0.9)
-        fill.align_to(track, LEFT).align_to(track, DOWN)
-        pct = M("~90%", 36, GREEN).next_to(track, RIGHT, buff=0.3)
+        self.at("a large share")
+        fill = VGroup(*[dot(GREEN, 0.16).move_to([x, -2.9, 0])
+                        for x in (-5.3, -4.4, -3.5, -2.6, -1.7, -0.8)])
+        pct = T("large share", 28, GREEN).next_to(track, RIGHT, buff=0.3)
         self.play(GrowFromEdge(fill, LEFT), FadeIn(pct), run_time=1.5)
 
-        self.at("Salvage is the default")
+        self.at("major source")
         frame = SurroundingRectangle(VGroup(*bases, *nucs, e1, e2, e3), color=GOLD, buff=0.3, stroke_width=3,
                                      corner_radius=0.2)
         self.play(Create(frame), run_time=0.9)
@@ -301,7 +300,7 @@ class S04Lesch(SpokenScene):
         self.play(Create(x), dim(H, 0.55), a1.animate.set_opacity(0.3), a2.animate.set_opacity(0.3),
                   dim(N, 0.3), run_time=0.8)
 
-        self.at("In Lesch")
+        self.at("Leschneihin")
         ln = T("Lesch-Nyhan syndrome", 34, font=TITLE_FONT).move_to([0, 3.05, 0])
         self.play(FadeIn(ln, shift=DOWN * 0.1), run_time=0.7)
         self.at("X linked")
@@ -334,7 +333,7 @@ class S04Lesch(SpokenScene):
         self.play(Indicate(U, color=RED, scale_factor=1.12), run_time=0.5)
 
         # --- PRPP piles up, pushes de novo ---------------------------------------------------------------------
-        self.at("The PRPP")
+        self.at("that salvage")
         tank_box = Rectangle(width=0.9, height=1.9, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([-5.6, -2.3, 0])
         lvl = ValueTracker(0.22)
 
@@ -397,7 +396,7 @@ class S05Uric(SpokenScene):
         self.at("taken apart")
         t = T("a purine is retired", 32, font=TITLE_FONT).move_to([0, 3.15, 0])
         self.play(FadeIn(t, shift=UP * 0.1), run_time=0.8)
-        self.at("AMP and adenosine")
+        self.at("adenosine")
         amp = chip("AMP", GREEN, 26, pad=0.18).move_to([ad.get_center()[0], 2.35, 0])
         la = arr([amp.get_center()[0], amp.get_bottom()[1] - 0.05, 0], [ad.get_center()[0], ad.get_top()[1] + 0.05, 0])
         self.play(FadeOut(t), FadeIn(amp), GrowArrow(la), FadeIn(ad), run_time=0.9)
@@ -498,7 +497,7 @@ class S06Gout(SpokenScene):
                   Succession(Wait(0.45), AnimationGroup(Create(limit), FadeIn(lim_lbl), run_time=0.6)))
 
         # --- crystals in a joint -------------------------------------------------------------------------------------
-        self.at("begins to crystallize")
+        self.at("can crystallize")
         joint = RoundedRectangle(corner_radius=0.25, width=6.2, height=2.7, stroke_color=GREY, stroke_width=3,
                                  fill_opacity=0).move_to([2.9, 1.65, 0])
         jl = T("joint", 24, GREY).move_to(joint.get_corner(UL) + np.array([0.55, -0.32, 0]))
@@ -521,13 +520,13 @@ class S06Gout(SpokenScene):
         self.at("monosodium urate")
         msu = T("monosodium urate crystals", 24, RED).next_to(joint, DOWN, buff=0.18)
         self.play(FadeIn(msu), run_time=0.5)
-        self.at("needle sharp crystals")
+        self.at("A flare")
         self.play(Indicate(crystals, color=RED, scale_factor=1.1), run_time=1.0)
-        self.at("flare")
+        self.at("inflammation")
         self.play(joint.animate.set_stroke(RED, 6), run_time=0.7)
 
         # --- allopurinol -------------------------------------------------------------------------------------------------
-        self.at("The fix")
+        self.at("One fix")
         self.play(FadeOut(msu), run_time=0.4)
         row = VGroup(chip("hypoxanthine", YELLOW, 24, pad=0.18), chip("xanthine", YELLOW, 24, pad=0.18),
                      chip("uric acid", RED, 24, pad=0.18)).arrange(RIGHT, buff=0.75).move_to([2.9, -0.85, 0])
@@ -541,7 +540,7 @@ class S06Gout(SpokenScene):
         self.at("Allopurinol")
         allo = chip("allopurinol", TEAL, 26).move_to([-0.2, -2.1, 0])
         self.play(FadeIn(allo, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("look alike")
+        self.at("lookalike")
         self.play(Indicate(hyp, color=YELLOW, scale_factor=1.12), Indicate(allo, color=TEAL, scale_factor=1.12), run_time=1.0)
         self.at("inhibits xanthine oxidase")
         bar = Line(xo.get_left() + np.array([-0.12, -0.2, 0]), xo.get_left() + np.array([-0.12, 0.2, 0]),
@@ -552,7 +551,7 @@ class S06Gout(SpokenScene):
                   run_time=0.9)
         self.at("urate production falls")
         self.play(lv.animate.set_value(4.2), run_time=1.5, rate_func=smooth)
-        self.at("crystals can dissolve")
+        self.at("slowly dissolve")
         self.play(LaggedStart(*[FadeOut(c, scale=0.3) for c in crystals], lag_ratio=0.07),
                   joint.animate.set_stroke(GREY, 3), run_time=1.8)
         self.at("Gertrude")

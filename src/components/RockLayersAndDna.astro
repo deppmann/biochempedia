@@ -1,0 +1,550 @@
+---
+/**
+ * RockLayersAndDna — two readings of evidence for evolution, both from the
+ * evidence-for-evolution lesson. (1) Stack four rock layers and read their order: in an
+ * undisturbed stack the bottom layer was laid down first, so its fossil is older; tilting
+ * or flipping can break that rule. (2) Compare a made-up stretch of DNA across five
+ * species, count the bases that differ for each pair, and build a similarity table:
+ * fewer differences in matching stretches usually mean a more recent common ancestor.
+ * Orders only, no ages in years. Original. Self-contained vanilla-TS Astro island.
+ */
+---
+
+<figure class="rld card" data-rld>
+  <figcaption class="rld-head">Rock layers and DNA: two ways to read the past<span class="rld-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="rld-assume">In this sketch: four rock layers and a made-up DNA stretch. Layers show order only, not ages in years. Each symbol stands for one DNA base. Animals P, Q, R, S are invented. P, Q and R use the lesson’s counts (2, 9, 16 per 30 bases). S (23) is added here. 60 bases repeats the 30-base pattern, so the percent match stays the same.</p>
+
+  <h4 class="rld-h">Part 1. Stack the rock layers</h4>
+  <div class="rld-row">
+    <span class="rld-label" id="rld-pred-l">Predict the oldest fossil</span>
+    <div class="rld-btns" role="group" aria-labelledby="rld-pred-l" data-pred1>
+      <button type="button" class="rld-btn" data-p1="1" aria-pressed="false">Fossil shell</button>
+      <button type="button" class="rld-btn" data-p1="2" aria-pressed="false">Fossil whale bone</button>
+      <button type="button" class="rld-btn" data-p1="4" aria-pressed="false">Shark teeth</button>
+    </div>
+  </div>
+  <div class="rld-row">
+    <button type="button" class="rld-btn rld-go" data-build>Build the stack</button>
+    <label class="rld-check"><input type="checkbox" data-show disabled /> Show laying-down order</label>
+  </div>
+  <fieldset class="rld-set" data-modes disabled>
+    <legend>The stack</legend>
+    <label><input type="radio" name="rld-mode" value="none" checked /> Undisturbed</label>
+    <label><input type="radio" name="rld-mode" value="tilt" /> Tilted</label>
+    <label><input type="radio" name="rld-mode" value="flipTop" /> Top two layers flipped</label>
+    <label><input type="radio" name="rld-mode" value="flipAll" /> Whole stack flipped</label>
+  </fieldset>
+
+  <svg class="rld-svg" viewBox="0 0 360 250" role="img" aria-label="A cliff of four sedimentary rock layers, each with a fossil or an ash layer" data-cliff></svg>
+  <p class="rld-key">Number in a circle: 1 means laid down first (oldest), 4 means laid down last (youngest).</p>
+  <p class="rld-status" role="status" data-status1></p>
+
+  <h4 class="rld-h">Part 2. Count DNA differences</h4>
+  <div class="rld-row">
+    <span class="rld-label" id="rld-pred-l2">Predict the closest relative of humans</span>
+    <div class="rld-btns" role="group" aria-labelledby="rld-pred-l2" data-pred2>
+      <button type="button" class="rld-btn" data-p2="1" aria-pressed="false">Animal P</button>
+      <button type="button" class="rld-btn" data-p2="2" aria-pressed="false">Animal Q</button>
+      <button type="button" class="rld-btn" data-p2="3" aria-pressed="false">Animal R</button>
+      <button type="button" class="rld-btn" data-p2="4" aria-pressed="false">Animal S</button>
+    </div>
+  </div>
+  <fieldset class="rld-set" data-lens>
+    <legend>Length of the DNA stretch</legend>
+    <label><input type="radio" name="rld-len" value="30" checked /> 30 bases</label>
+    <label><input type="radio" name="rld-len" value="60" /> 60 bases</label>
+  </fieldset>
+  <p class="rld-key">Pick a pair in the table to line up their bases and count the differences. Each cell shows bases that differ (top) and percent that match (bottom).</p>
+  <div class="rld-tablewrap"><table class="rld-table" data-table></table></div>
+  <div class="rld-row">
+    <button type="button" class="rld-btn" data-all>Count all pairs</button>
+    <button type="button" class="rld-btn" data-reset>Reset both parts</button>
+  </div>
+  <div class="rld-pair" data-pair role="group" aria-label="The two stretches of DNA, lined up base by base"></div>
+  <p class="rld-status" role="status" data-status2></p>
+
+  <p class="rld-foot">Keep this rule: lower layers are older in an undisturbed stack, so geologists check for folding, tilting and breaking first; and in matching stretches of DNA, fewer differences usually mean a more recent common ancestor. The DNA here is a made-up example, and a short stretch is weak evidence on its own. This is a sketch of the logic, not a measurement.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+
+  function q<T extends Element>(root: ParentNode, sel: string): T {
+    const el = root.querySelector<T>(sel);
+    if (!el) throw new Error('RockLayersAndDna: missing ' + sel);
+    return el;
+  }
+  function qa<T extends Element>(root: ParentNode, sel: string): T[] {
+    return Array.from(root.querySelectorAll<T>(sel));
+  }
+  function svgEl(tag: string, attrs: Record<string, string | number>, parent?: Element): SVGElement {
+    const e = document.createElementNS(NS, tag);
+    for (const k of Object.keys(attrs)) e.setAttribute(k, String(attrs[k]));
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  type Kind = 'shell' | 'bone' | 'ash' | 'tooth';
+  type Layer = { id: number; name: string; sub: string; kind: Kind; fill: string };
+  // id = order laid down (1 first). Bottom to top in an undisturbed stack.
+  const LAYERS: Layer[] = [
+    { id: 1, name: 'Fossil shell', sub: '', kind: 'shell', fill: '#f3e3c3' },
+    { id: 2, name: 'Fossil whale bone', sub: '', kind: 'bone', fill: '#dfe9d3' },
+    { id: 3, name: 'Ash layer: can be dated', sub: '', kind: 'ash', fill: '#e4e4ea' },
+    { id: 4, name: 'Shark teeth', sub: '', kind: 'tooth', fill: '#d6e6ee' },
+  ];
+  type Mode = 'none' | 'tilt' | 'flipTop' | 'flipAll';
+  const ARR: Record<Mode, number[]> = {
+    none: [1, 2, 3, 4],
+    tilt: [1, 2, 3, 4],
+    flipTop: [1, 2, 4, 3],
+    flipAll: [4, 3, 2, 1],
+  };
+  const FLIPPED: Record<Mode, number[]> = { none: [], tilt: [], flipTop: [3, 4], flipAll: [1, 2, 3, 4] };
+  const PRED1_NAME: Record<number, string> = { 1: 'fossil shell', 2: 'fossil whale bone', 4: 'shark teeth' };
+
+  // ---- DNA: a made-up stretch, five species in a nested chain ----
+  const SYM = ['●', '■', '▲', '◆'];
+  const SPECIES = ['Human', 'Animal P', 'Animal Q', 'Animal R', 'Animal S'];
+  const SHORT = ['Human', 'P', 'Q', 'R', 'S'];
+  // differences from the human stretch per 30 bases (P 2, Q 9, R 16 are the lesson's made-up numbers)
+  const K = [0, 2, 9, 16, 23];
+
+  function lcg(seed: number): () => number {
+    let s = seed;
+    return () => {
+      s = (s * 1664525 + 1013904223) % 4294967296;
+      return s / 4294967296;
+    };
+  }
+  const rnd = lcg(20261020);
+  const HUMAN: number[] = [];
+  for (let i = 0; i < 60; i++) HUMAN.push(Math.floor(rnd() * 4));
+  function perm(lo: number, n: number): number[] {
+    const a: number[] = [];
+    for (let i = 0; i < n; i++) a.push(lo + i);
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
+  }
+  const PERM1 = perm(0, 30);
+  const PERM2 = perm(30, 30);
+  const MUT = HUMAN.map((h, i) => (h + 1 + (i % 3)) % 4);
+
+  function seqFor(sp: number, len: number): number[] {
+    const changed = new Set<number>();
+    for (let t = 0; t < K[sp]; t++) {
+      changed.add(PERM1[t]);
+      if (len === 60) changed.add(PERM2[t]);
+    }
+    const out: number[] = [];
+    for (let i = 0; i < len; i++) out.push(changed.has(i) ? MUT[i] : HUMAN[i]);
+    return out;
+  }
+  function diffs(a: number, b: number, len: number): boolean[] {
+    const sa = seqFor(a, len);
+    const sb = seqFor(b, len);
+    return sa.map((x, i) => x !== sb[i]);
+  }
+  const fmt = (x: number) => (Math.round(x * 10) / 10).toFixed(1);
+
+  function init(root: HTMLElement) {
+    const cliff = q<SVGSVGElement>(root, '[data-cliff]');
+    const status1 = q<HTMLElement>(root, '[data-status1]');
+    const status2 = q<HTMLElement>(root, '[data-status2]');
+    const buildBtn = q<HTMLButtonElement>(root, '[data-build]');
+    const showChk = q<HTMLInputElement>(root, '[data-show]');
+    const modesSet = q<HTMLFieldSetElement>(root, '[data-modes]');
+    const table = q<HTMLTableElement>(root, '[data-table]');
+    const pairBox = q<HTMLElement>(root, '[data-pair]');
+    const allBtn = q<HTMLButtonElement>(root, '[data-all]');
+    const resetBtn = q<HTMLButtonElement>(root, '[data-reset]');
+    const pred1Btns = qa<HTMLButtonElement>(root, '[data-p1]');
+    const pred2Btns = qa<HTMLButtonElement>(root, '[data-p2]');
+    const modeRadios = qa<HTMLInputElement>(root, 'input[name="rld-mode"]');
+    const lenRadios = qa<HTMLInputElement>(root, 'input[name="rld-len"]');
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let pred1 = 0;
+    let built = 0;
+    let building = false;
+    let timer = 0;
+    let mode: Mode = 'none';
+    let show = false;
+
+    let pred2 = 0;
+    let len = 30;
+    let sel: [number, number] | null = null;
+    const counted: Record<number, Set<string>> = { 30: new Set<string>(), 60: new Set<string>() };
+    const ranking: Record<number, string> = {};
+
+    // ---------- Part 1 ----------
+    function icon(parent: Element, kind: Kind, cx: number, cy: number, flipped: boolean) {
+      const g = svgEl('g', { transform: `translate(${cx} ${cy}) rotate(${flipped ? 180 : 0})`, fill: '#fff', stroke: '#333', 'stroke-width': 1.5 }, parent);
+      if (kind === 'shell') {
+        svgEl('path', { d: 'M-14 8 A14 14 0 0 1 14 8 Z' }, g);
+        svgEl('path', { d: 'M0 8 L0 -5 M-7 8 L-9 0 M7 8 L9 0', fill: 'none' }, g);
+      } else if (kind === 'bone') {
+        svgEl('rect', { x: -14, y: -4, width: 28, height: 8, rx: 3 }, g);
+        for (const [x, y] of [[-14, -4], [-14, 4], [14, -4], [14, 4]]) svgEl('circle', { cx: x, cy: y, r: 4 }, g);
+      } else if (kind === 'tooth') {
+        svgEl('path', { d: 'M-15 8 L-7 -10 L1 8 Z' }, g);
+        svgEl('path', { d: 'M3 8 L9 -4 L15 8 Z' }, g);
+      } else {
+        for (const [x, y] of [[-10, -4], [-2, 4], [6, -6], [12, 3], [-12, 6], [2, -1]]) svgEl('circle', { cx: x, cy: y, r: 2.2 }, g);
+      }
+    }
+
+    function drawCliff() {
+      while (cliff.firstChild) cliff.removeChild(cliff.firstChild);
+      const rx = 60;
+      const rw = 240;
+      const g = svgEl('g', mode === 'tilt' && built > 0 ? { transform: 'rotate(-8 180 133)' } : {}, cliff);
+      if (built === 0) {
+        svgEl('rect', { x: rx, y: 41, width: rw, height: 184, fill: 'none', stroke: '#999', 'stroke-dasharray': '5 4' }, g);
+        const t = svgEl('text', { x: 180, y: 137, 'text-anchor': 'middle', 'font-size': 13, fill: '#555' }, g);
+        t.textContent = 'Empty cliff: no layers yet';
+      } else {
+        const arr = ARR[mode];
+        arr.forEach((id, slot) => {
+          if (id > built) return;
+          const L = LAYERS[id - 1];
+          const y = 225 - 46 * (slot + 1) + 2;
+          const cy = y + 22;
+          svgEl('rect', { x: rx, y, width: rw, height: 44, fill: L.fill, stroke: '#555', 'stroke-width': 1.5 }, g);
+          if (show) {
+            svgEl('circle', { cx: rx + 22, cy, r: 13, fill: '#fff', stroke: '#222', 'stroke-width': 1.5 }, g);
+            const n = svgEl('text', { x: rx + 22, y: cy + 5, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: '#111' }, g);
+            n.textContent = String(id);
+          }
+          const t = svgEl('text', { x: rx + 44, y: L.sub ? cy - 3 : cy + 5, 'font-size': 13, fill: '#111' }, g);
+          t.textContent = L.name;
+          if (L.sub) {
+            const t2 = svgEl('text', { x: rx + 44, y: cy + 13, 'font-size': 12, fill: '#333' }, g);
+            t2.textContent = L.sub;
+          }
+          icon(g, L.kind, rx + rw - 26, cy, FLIPPED[mode].indexOf(id) >= 0);
+        });
+      }
+    }
+
+    function status1Text(): string {
+      if (building) return 'The layers settle one at a time. The first layer laid down ends up at the bottom.';
+      if (built === 0) {
+        return pred1
+          ? `You predicted the ${PRED1_NAME[pred1]}. Press Build the stack to check your prediction.`
+          : 'Predict first: which fossil is the oldest? Then press Build the stack.';
+      }
+      const check = pred1
+        ? pred1 === 1
+          ? 'You predicted the fossil shell, and the stack agrees. '
+          : `You predicted the ${PRED1_NAME[pred1]}, but the fossil shell is the oldest here. `
+        : '';
+      if (mode === 'none') {
+        return `${check}This stack is undisturbed, so the bottom layer was laid down first and its fossil is older than the fossils above it. This gives the order only, not ages in years.`;
+      }
+      if (!show) {
+        if (mode === 'tilt') return 'The stack is tilted in this sketch. Tilting can break the stack-of-mail rule. Predict: is the bottom layer still the oldest? Then press Show laying-down order.';
+        if (mode === 'flipTop') return 'The top two layers are flipped in this sketch. Predict: is the bottom layer still the oldest? Are the top two in the right order? Then press Show laying-down order.';
+        return 'The whole stack is flipped in this sketch. Predict: is the bottom layer still the oldest? Then press Show laying-down order.';
+      }
+      if (mode === 'tilt') return 'In this sketch the tilt did not change the order. The lesson warns that tilted, folded or broken layers can break the rule, so check first.';
+      if (mode === 'flipTop') return 'The bottom layer is still the oldest, number 1. The ash layer now sits above the shark teeth but was laid down before the shark teeth. Height alone gets those two wrong.';
+      return 'The numbers show layer 1 at the top. The bottom layer is now the youngest, so lower means older fails here. Geologists check for folding and flipping first.';
+    }
+
+    function setBuilt(n: number) {
+      built = n;
+      const done = built >= 4 && !building;
+      modesSet.disabled = !done;
+      showChk.disabled = !done;
+      drawCliff();
+      status1.textContent = status1Text();
+    }
+
+    function startBuild() {
+      window.clearTimeout(timer);
+      mode = 'none';
+      modeRadios.forEach((r) => (r.checked = r.value === 'none'));
+      show = false;
+      showChk.checked = false;
+      if (reduce) {
+        building = false;
+        setBuilt(4);
+        return;
+      }
+      building = true;
+      setBuilt(1);
+      const step = () => {
+        if (built >= 4) {
+          building = false;
+          setBuilt(4);
+          return;
+        }
+        setBuilt(built + 1);
+        timer = window.setTimeout(step, 450);
+      };
+      timer = window.setTimeout(step, 450);
+    }
+
+    buildBtn.addEventListener('click', startBuild);
+    pred1Btns.forEach((b) =>
+      b.addEventListener('click', () => {
+        pred1 = Number(b.dataset.p1 || 0);
+        pred1Btns.forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+        status1.textContent = status1Text();
+      }),
+    );
+    modeRadios.forEach((r) =>
+      r.addEventListener('change', () => {
+        if (!r.checked) return;
+        mode = r.value as Mode;
+        drawCliff();
+        status1.textContent = status1Text();
+      }),
+    );
+    showChk.addEventListener('change', () => {
+      show = showChk.checked;
+      drawCliff();
+      status1.textContent = status1Text();
+    });
+
+    // ---------- Part 2 ----------
+    const key = (a: number, b: number) => `${a}-${b}`;
+    function nDiff(a: number, b: number): number {
+      return diffs(a, b, len).filter(Boolean).length;
+    }
+
+    function drawTable() {
+      table.innerHTML = '';
+      const cap = document.createElement('caption');
+      cap.className = 'rld-cap';
+      cap.textContent = `Similarity table, ${len}-base stretch`;
+      table.appendChild(cap);
+      const head = document.createElement('tr');
+      const corner = document.createElement('th');
+      corner.scope = 'col';
+      corner.textContent = '';
+      head.appendChild(corner);
+      for (let j = 1; j < 5; j++) {
+        const th = document.createElement('th');
+        th.scope = 'col';
+        th.textContent = SHORT[j];
+        th.setAttribute('aria-label', SPECIES[j]);
+        head.appendChild(th);
+      }
+      table.appendChild(head);
+      for (let i = 0; i < 4; i++) {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.scope = 'row';
+        th.textContent = SHORT[i];
+        th.setAttribute('aria-label', SPECIES[i]);
+        tr.appendChild(th);
+        for (let j = 1; j < 5; j++) {
+          const td = document.createElement('td');
+          if (j <= i) {
+            td.className = 'rld-empty';
+            td.textContent = j === i ? 'same' : '';
+            if (j !== i) td.setAttribute('aria-hidden', 'true');
+          } else {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'rld-cell';
+            const k = key(i, j);
+            const isSel = sel !== null && sel[0] === i && sel[1] === j;
+            btn.setAttribute('aria-pressed', String(isSel));
+            if (counted[len].has(k)) {
+              const n = nDiff(i, j);
+              const d = (n / len) * 100;
+              btn.innerHTML = `<b>${n}</b><span>${fmt(100 - d)}%</span>`;
+              btn.setAttribute('aria-label', `${SPECIES[i]} and ${SPECIES[j]}: ${n} bases differ, ${fmt(100 - d)} percent match`);
+            } else {
+              btn.innerHTML = '<b>?</b><span>count</span>';
+              btn.setAttribute('aria-label', `Count differences between ${SPECIES[i]} and ${SPECIES[j]}`);
+            }
+            btn.addEventListener('click', () => {
+              sel = [i, j];
+              counted[len].add(k);
+              render2();
+            });
+            td.appendChild(btn);
+          }
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+    }
+
+    function drawPair() {
+      pairBox.innerHTML = '';
+      if (!sel) return;
+      const [a, b] = sel;
+      const sa = seqFor(a, len);
+      const sb = seqFor(b, len);
+      const dd = diffs(a, b, len);
+      const CH = 10;
+      for (let c = 0; c < len; c += CH) {
+        const block = document.createElement('div');
+        block.className = 'rld-block';
+        const mk = (name: string, cells: string[], cls: (i: number) => string) => {
+          const row = document.createElement('div');
+          row.className = 'rld-seq';
+          const nm = document.createElement('span');
+          nm.className = 'rld-nm';
+          nm.textContent = name;
+          row.appendChild(nm);
+          cells.forEach((s, i) => {
+            const sp = document.createElement('span');
+            sp.className = 'rld-base ' + cls(i);
+            sp.textContent = s;
+            row.appendChild(sp);
+          });
+          block.appendChild(row);
+        };
+        const idx = Array.from({ length: Math.min(CH, len - c) }, (_, i) => c + i);
+        mk(SPECIES[a], idx.map((i) => SYM[sa[i]]), (k) => (dd[idx[k]] ? 'rld-diff' : ''));
+        mk(SPECIES[b], idx.map((i) => SYM[sb[i]]), (k) => (dd[idx[k]] ? 'rld-diff' : ''));
+        mk('differ?', idx.map((i) => (dd[i] ? '×' : '')), () => 'rld-mark');
+        pairBox.appendChild(block);
+      }
+    }
+
+    function humanRankingDone(): boolean {
+      for (let j = 1; j < 5; j++) if (!counted[len].has(key(0, j))) return false;
+      return true;
+    }
+
+    function status2Text(): string {
+      const parts: string[] = [];
+      if (!sel) {
+        parts.push('Predict the closest relative of humans. Then pick a pair in the table to count the bases that differ.');
+      } else {
+        const [a, b] = sel;
+        const n = nDiff(a, b);
+        const d = (n / len) * 100;
+        parts.push(`${SPECIES[a]} and ${SPECIES[b]} differ at ${n} of ${len} bases in this made-up stretch.`);
+        parts.push(`That is ${fmt(d)}% different, so ${fmt(100 - d)}% match (100% − ${fmt(d)}% = ${fmt(100 - d)}%).`);
+      }
+      if (humanRankingDone()) {
+        const order = [1, 2, 3, 4].sort((x, y) => nDiff(0, x) - nDiff(0, y));
+        const names = order.map((s) => SHORT[s]).join(', ');
+        ranking[len] = names;
+        parts.push(`Fewest to most differences from humans: ${names}.`);
+        parts.push(`Animal ${SHORT[order[0]]} differs from humans at the fewest bases. It probably shares the most recent common ancestor with humans.`);
+        if (pred2) {
+          parts.push(pred2 === order[0] ? `You predicted Animal ${SHORT[pred2]}, and it had the fewest differences.` : `You predicted Animal ${SHORT[pred2]}, but Animal ${SHORT[order[0]]} had the fewest differences.`);
+        }
+        const other = len === 30 ? 60 : 30;
+        if (ranking[other]) {
+          parts.push(ranking[other] === names ? `At ${other} bases the ranking was also ${ranking[other]}, so in this sketch it did not change.` : `At ${other} bases the ranking was ${ranking[other]}, so it changed.`);
+        }
+        parts.push(len === 30 ? 'A 30-base stretch of one gene is weak evidence on its own.' : 'Even 60 bases is a short made-up stretch, weak evidence on its own.');
+      } else if (sel) {
+        parts.push('Fewer differences in a matching stretch usually mean a more recent common ancestor.');
+      }
+      return parts.join(' ');
+    }
+
+    function render2() {
+      drawTable();
+      drawPair();
+      status2.textContent = status2Text();
+    }
+
+    pred2Btns.forEach((b) =>
+      b.addEventListener('click', () => {
+        pred2 = Number(b.dataset.p2 || 0);
+        pred2Btns.forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+        render2();
+      }),
+    );
+    lenRadios.forEach((r) =>
+      r.addEventListener('change', () => {
+        if (!r.checked) return;
+        len = Number(r.value);
+        if (sel) counted[len].add(key(sel[0], sel[1]));
+        render2();
+      }),
+    );
+    allBtn.addEventListener('click', () => {
+      for (let i = 0; i < 4; i++) for (let j = i + 1; j < 5; j++) counted[len].add(key(i, j));
+      if (!sel) sel = [0, 1];
+      render2();
+    });
+    resetBtn.addEventListener('click', () => {
+      window.clearTimeout(timer);
+      building = false;
+      pred1 = 0;
+      pred1Btns.forEach((o) => o.setAttribute('aria-pressed', 'false'));
+      mode = 'none';
+      modeRadios.forEach((r) => (r.checked = r.value === 'none'));
+      show = false;
+      showChk.checked = false;
+      setBuilt(0);
+      pred2 = 0;
+      pred2Btns.forEach((o) => o.setAttribute('aria-pressed', 'false'));
+      len = 30;
+      lenRadios.forEach((r) => (r.checked = r.value === '30'));
+      sel = null;
+      counted[30].clear();
+      counted[60].clear();
+      delete ranking[30];
+      delete ranking[60];
+      render2();
+    });
+
+    setBuilt(0);
+    render2();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-rld]').forEach(init);
+</script>
+
+<style is:global>
+  .rld { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rld-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .rld-chip { font-family: var(--ddp-font-mono); font-size: max(12px, var(--ddp-text-xs)); font-weight: 400; color: var(--ddp-color-muted); }
+  .rld-assume { margin: 0 0 var(--ddp-space-2); font-size: max(12px, var(--ddp-text-xs)); color: var(--ddp-color-ink-soft); }
+  .rld-h { margin: var(--ddp-space-4) 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .rld-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; margin: 0.35rem 0; }
+  .rld-label { font-size: max(12px, var(--ddp-text-xs)); color: var(--ddp-color-muted); }
+  .rld-btns { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .rld-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: max(12px, var(--ddp-text-xs)); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .rld-btn[aria-pressed="true"] { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 14%, transparent); color: var(--ddp-color-primary); font-weight: 600; }
+  .rld-go { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 600; }
+  .rld-btn:focus-visible, .rld-cell:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .rld-check { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; font-size: max(12px, var(--ddp-text-xs)); color: var(--ddp-color-ink-soft); }
+  .rld-check input, .rld-set input { accent-color: var(--ddp-color-accent); width: 18px; height: 18px; }
+  .rld-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-2) 0; padding: 0.2rem 0.7rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; font-size: max(12px, var(--ddp-text-xs)); color: var(--ddp-color-ink-soft); }
+  .rld-set legend { font-size: max(12px, var(--ddp-text-xs)); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .rld-set label { display: flex; align-items: center; gap: 0.4rem; min-height: 44px; }
+  .rld-set:disabled { opacity: 0.55; }
+  .rld-svg { display: block; width: 100%; max-width: 520px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rld-key { margin: 0.3rem 0; font-size: max(12px, var(--ddp-text-xs)); color: var(--ddp-color-ink-soft); }
+  .rld-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .rld-tablewrap { max-width: 100%; }
+  .rld-table { width: 100%; max-width: 440px; table-layout: fixed; border-collapse: collapse; font-size: max(12px, var(--ddp-text-xs)); margin: 0.3rem 0; }
+  .rld-table th, .rld-table td { border: 1px solid var(--ddp-color-line); padding: 2px; text-align: center; color: var(--ddp-color-ink-soft); font-weight: 600; }
+  .rld-cap { caption-side: top; text-align: left; font-size: max(12px, var(--ddp-text-xs)); color: var(--ddp-color-muted); padding-bottom: 0.2rem; }
+  .rld-empty { background: color-mix(in srgb, var(--ddp-color-line) 35%, transparent); font-weight: 400; }
+  .rld-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 44px; border: 0; background: transparent; cursor: pointer; padding: 2px; color: var(--ddp-color-primary); font-size: max(12px, var(--ddp-text-xs)); line-height: 1.25; }
+  .rld-cell b { font-size: 14px; }
+  .rld-cell span { font-weight: 400; }
+  .rld-cell[aria-pressed="true"] { background: color-mix(in srgb, var(--ddp-color-accent) 18%, transparent); outline: 2px solid var(--ddp-color-accent); outline-offset: -2px; }
+  .rld-pair { margin: var(--ddp-space-2) 0; max-width: 100%; }
+  .rld-block { margin-bottom: 0.5rem; }
+  .rld-seq { display: grid; grid-template-columns: 4.6rem repeat(10, 22px); gap: 1px; align-items: center; }
+  .rld-nm { font-size: 12px; color: var(--ddp-color-ink-soft); }
+  .rld-base { text-align: center; font-size: 13px; line-height: 20px; height: 20px; color: var(--ddp-color-primary); border-radius: 3px; }
+  .rld-base.rld-diff { background: #ffe08a; color: #111; font-weight: 700; }
+  .rld-base.rld-mark { color: #8a1c1c; font-weight: 700; }
+  .rld-foot { margin: var(--ddp-space-3) 0 0; font-size: max(12px, var(--ddp-text-xs)); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .rld-set { grid-template-columns: 1fr; } .rld-seq { grid-template-columns: 4.2rem repeat(10, 20px); } }
+</style>

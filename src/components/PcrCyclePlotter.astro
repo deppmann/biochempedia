@@ -1,0 +1,222 @@
+---
+/**
+ * PcrCyclePlotter — set the starting copies, the number of cycles and the per-cycle
+ * efficiency, and watch the product rise as N = N0 x (1 + E)^n, then (if you switch the
+ * plateau on) bend over and level off. A threshold line shows the cycle at which the product
+ * first crosses it (Ct), and two faint curves show that half as much, or twice as much,
+ * starting template crosses later or earlier. Every rule is a statement of the
+ * recombinant-dna-and-pcr lesson; the plateau level and the threshold height are not given
+ * there, so they are drawn in relative units as a sketch of the logic.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="pcp card" data-pcp>
+  <figcaption class="pcp-head">PCR cycle plotter: product against cycle number<span class="pcp-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pcp-svg" viewBox="0 0 360 230" role="img" aria-label="Log plot of PCR product copies against cycle number, with a threshold line and the cycle where the curve crosses it" data-plot></svg>
+
+  <div class="pcp-controls">
+    <label class="pcp-ctl">
+      <span class="pcp-lab">Starting copies of template: <output data-out="n0"></output></span>
+      <input type="range" min="0" max="9" step="1" value="3" data-in="n0" />
+    </label>
+    <label class="pcp-ctl">
+      <span class="pcp-lab">Cycles run: <output data-out="cyc"></output></span>
+      <input type="range" min="0" max="40" step="1" value="30" data-in="cyc" />
+    </label>
+    <label class="pcp-ctl">
+      <span class="pcp-lab">Efficiency per cycle (E): <output data-out="eff"></output></span>
+      <input type="range" min="50" max="100" step="5" value="100" data-in="eff" />
+    </label>
+    <label class="pcp-check"><input type="checkbox" data-in="plat" checked /> a real reaction: let the product level off (plateau)</label>
+  </div>
+
+  <table class="pcp-table" data-table aria-label="Readout">
+    <tbody>
+      <tr><th scope="row">Copies after the chosen cycles, ideal N0 x (1 + E)^n</th><td data-r="ideal"></td></tr>
+      <tr><th scope="row">Copies in the plotted reaction (plateau level is a sketch)</th><td data-r="real"></td></tr>
+      <tr><th scope="row">Ct expected from the formula</th><td data-r="ctx"></td></tr>
+      <tr><th scope="row">Ct observed: first whole cycle at the threshold</th><td data-r="cto"></td></tr>
+    </tbody>
+  </table>
+
+  <p class="pcp-verdict" data-verdict role="status"></p>
+
+  <p class="pcp-foot">Keep the rule: a lower Ct means more starting template, and at 100% efficiency one cycle earlier means twice as much; a plateau hides the starting amount at the end but not at the threshold. The plateau level and threshold height are relative units, a sketch of the logic.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const START = [1, 2, 5, 10, 20, 50, 100, 1000, 10000, 100000];
+  const MAXC = 40;
+  const THRESH = 1e6; // relative units: a height chosen inside the exponential phase
+  const CAP = 1e9; // relative units: where the sketch plateau sits
+  const YMAX = 11; // log10 axis top
+  const W = 360, H = 230, L = 46, R = 12, T = 12, B = 40;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function fmt(n: number): string {
+    if (n >= 1e6) {
+      let e = Math.floor(Math.log10(n)), m = n / Math.pow(10, e);
+      if (+m.toFixed(2) >= 10) { m /= 10; e += 1; }
+      return m.toFixed(2) + ' x 10^' + e;
+    }
+    return Math.round(n).toLocaleString('en-US');
+  }
+  // series[c] = copies after c cycles
+  function series(n0: number, E: number, plateau: boolean): number[] {
+    const s = [n0];
+    for (let c = 1; c <= MAXC; c++) {
+      const p = s[c - 1];
+      const e = plateau ? E * Math.max(0, 1 - p / CAP) : E;
+      s.push(p * (1 + e));
+    }
+    return s;
+  }
+  function firstAt(s: number[], level: number): number {
+    for (let c = 0; c < s.length; c++) if (s[c] >= level) return c;
+    return -1;
+  }
+  document.querySelectorAll<HTMLElement>('[data-pcp]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
+    const cell = (k: string) => root.querySelector<HTMLElement>(`[data-r="${k}"]`)!;
+    const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORANGE = '#e57200';
+    const X = (c: number) => L + (c / MAXC) * (W - L - R);
+    const Y = (n: number) => T + (1 - Math.max(0, Math.log10(Math.max(n, 1))) / YMAX) * (H - T - B);
+
+    function path(s: number[], upTo: number): string {
+      let d = '';
+      for (let c = 0; c <= upTo; c++) d += (c === 0 ? 'M' : 'L') + X(c).toFixed(1) + ' ' + Y(s[c]).toFixed(1) + ' ';
+      return d;
+    }
+    function ctText(ct: number, cyc: number, tag: string): string {
+      if (ct < 0) return 'not reached in 40 cycles';
+      if (ct > cyc) return 'cycle ' + ct + ' (after the ' + cyc + ' you chose)';
+      return 'cycle ' + ct + (tag ? ' ' + tag : '');
+    }
+
+    function render() {
+      const n0 = START[+inp('n0').value];
+      const cyc = +inp('cyc').value;
+      const E = +inp('eff').value / 100;
+      const plat = inp('plat').checked;
+      out('n0').textContent = n0.toLocaleString('en-US');
+      out('cyc').textContent = String(cyc);
+      out('eff').textContent = Math.round(E * 100) + '%';
+
+      const ideal = series(n0, E, false);
+      const real = series(n0, E, plat);
+      const half = series(n0 / 2, E, plat);
+      const twice = series(n0 * 2, E, plat);
+
+      plot.replaceChildren();
+      const defs = el('defs', {});
+      const clip = el('clipPath', { id: 'pcp-clip-plot' });
+      clip.appendChild(el('rect', { x: L, y: T, width: W - L - R, height: H - T - B }));
+      defs.appendChild(clip);
+      plot.appendChild(defs);
+      // axes and gridlines
+      for (let e = 0; e <= YMAX; e += 2) {
+        plot.appendChild(el('line', { x1: L, y1: Y(Math.pow(10, e)), x2: W - R, y2: Y(Math.pow(10, e)), stroke: '#e6e6ec', 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: L - 4, y: Y(Math.pow(10, e)) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '10^' + e));
+      }
+      for (let c = 0; c <= MAXC; c += 10) {
+        plot.appendChild(el('line', { x1: X(c), y1: H - B, x2: X(c), y2: H - B + 3, stroke: INK }));
+        plot.appendChild(el('text', { x: X(c), y: H - B + 13, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, String(c)));
+      }
+      plot.appendChild(el('rect', { x: L, y: T, width: W - L - R, height: H - T - B, fill: 'none', stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('text', { x: (L + W - R) / 2, y: H - 6, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, 'cycle number'));
+      const yl = el('text', { x: 11, y: (T + H - B) / 2, 'font-size': 10, 'text-anchor': 'middle', fill: INK, transform: `rotate(-90 11 ${(T + H - B) / 2})` }, 'copies (relative units, log)');
+      plot.appendChild(yl);
+
+      // plateau sketch line and threshold line
+      if (plat) {
+        plot.appendChild(el('line', { x1: L, y1: Y(CAP), x2: W - R, y2: Y(CAP), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '1 3' }));
+        plot.appendChild(el('text', { x: L + 4, y: Y(CAP) + 11, 'font-size': 9, fill: INK }, 'plateau level and shape (sketch)'));
+      }
+      plot.appendChild(el('line', { x1: L, y1: Y(THRESH), x2: W - R, y2: Y(THRESH), stroke: ORANGE, 'stroke-width': 1.2 }));
+      plot.appendChild(el('text', { x: W - R - 3, y: Y(THRESH) + 11, 'font-size': 9, 'text-anchor': 'end', fill: '#a04f00' }, 'threshold (sketch)'));
+
+      const g = el('g', { 'clip-path': 'url(#pcp-clip-plot)' });
+      // faint neighbours: half and twice the starting template
+      g.appendChild(el('path', { d: path(twice, cyc), fill: 'none', stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+      g.appendChild(el('path', { d: path(half, cyc), fill: 'none', stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+      // ideal curve when the plateau is on, so the learner sees what stopping short costs
+      if (plat) g.appendChild(el('path', { d: path(ideal, cyc), fill: 'none', stroke: '#b9b9c4', 'stroke-width': 1.5 }));
+      g.appendChild(el('path', { d: path(real, cyc), fill: 'none', stroke: TEAL, 'stroke-width': 2.4 }));
+      plot.appendChild(g);
+      // end marker
+      plot.appendChild(el('circle', { cx: X(cyc), cy: Math.min(H - B, Math.max(T, Y(real[cyc]))), r: 3.5, fill: TEAL }));
+
+      // Ct marker
+      const ctObs = firstAt(real, THRESH);
+      if (ctObs >= 0 && ctObs <= cyc) {
+        plot.appendChild(el('line', { x1: X(ctObs), y1: Y(THRESH), x2: X(ctObs), y2: H - B, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('circle', { cx: X(ctObs), cy: Y(THRESH), r: 3.5, fill: '#fff', stroke: ORANGE, 'stroke-width': 1.8 }));
+        const right = ctObs > MAXC * 0.7;
+        plot.appendChild(el('text', { x: X(ctObs) + (right ? -5 : 5), y: Y(THRESH) - 6, 'font-size': 9, 'font-weight': 700, 'text-anchor': right ? 'end' : 'start', fill: '#a04f00' }, 'Ct = ' + ctObs));
+      }
+      // legend
+      plot.appendChild(el('line', { x1: L + 6, y1: T + 9, x2: L + 22, y2: T + 9, stroke: TEAL, 'stroke-width': 2.4 }));
+      plot.appendChild(el('text', { x: L + 26, y: T + 12, 'font-size': 9, fill: INK }, plat ? 'this reaction' : 'ideal doubling model'));
+      plot.appendChild(el('line', { x1: L + 118, y1: T + 9, x2: L + 134, y2: T + 9, stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('text', { x: L + 138, y: T + 12, 'font-size': 9, fill: INK }, 'half / twice the template'));
+      if (plat) {
+        plot.appendChild(el('line', { x1: L + 6, y1: T + 22, x2: L + 22, y2: T + 22, stroke: '#b9b9c4', 'stroke-width': 1.5 }));
+        plot.appendChild(el('text', { x: L + 26, y: T + 25, 'font-size': 9, fill: INK }, 'ideal, no plateau'));
+      }
+
+      // readout table
+      cell('ideal').textContent = fmt(ideal[cyc]);
+      cell('real').textContent = fmt(real[cyc]) + (plat ? ' (plateau on)' : ' (plateau off)');
+      const ctExp = Math.log(THRESH / n0) / Math.log(1 + E);
+      cell('ctx').textContent = ctExp <= 0 ? 'already above the threshold at cycle 0' : ctExp.toFixed(2) + ' = log(threshold / N0) / log(1 + E)';
+      cell('cto').textContent = ctText(ctObs, cyc, '');
+
+      // status sentence
+      const eTxt = E === 1 ? 'perfect doubling (each cycle multiplies the copies by 2)' : `an efficiency of ${Math.round(E * 100)}% (each cycle multiplies the copies by ${(1 + E).toFixed(2)})`;
+      let v = `With ${n0.toLocaleString('en-US')} starting cop${n0 === 1 ? 'y' : 'ies'} and ${eTxt}, ${cyc} cycles give ${fmt(ideal[cyc])} copies in the ideal model.`;
+      if (cyc === 0) v = `Before any cycle there are only the ${n0.toLocaleString('en-US')} starting cop${n0 === 1 ? 'y' : 'ies'}.`;
+      if (plat && real[cyc] < ideal[cyc] * 0.98) v += ` The plotted reaction has stopped short, at ${fmt(real[cyc])}: amplification is exponential only in the early cycles, then it slows and levels off (sketch level).`;
+      else if (plat) v += ' So far the reaction is still in the exponential phase, and tracks the ideal curve.';
+      if (ctObs < 0) v += ' The curve never reaches the threshold in 40 cycles, so no Ct can be read.';
+      else if (ctObs > cyc) v += ` The run stops before the curve reaches the threshold; it would cross at cycle ${ctObs}.`;
+      else v += ` The curve crosses the threshold at Ct = ${ctObs}; half as much template would, by the formula, cross about ${E === 1 ? 'one cycle' : (Math.log(2) / Math.log(1 + E)).toFixed(1) + ' cycles'} later, and twice as much about that many cycles earlier.`;
+      if (plat && ctObs >= 0 && real[cyc] >= CAP * 0.9 && cyc >= 38) v += ' In the model system the lesson cites, different starting amounts converged on the same final level, as they do in this sketch, so a bright endpoint band does not tell you the starting amount; the Ct does.';
+      verdict.textContent = v;
+    }
+    ['n0', 'cyc', 'eff', 'plat'].forEach((k) => {
+      inp(k).addEventListener('input', render);
+      inp(k).addEventListener('change', render);
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .pcp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pcp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pcp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pcp-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pcp-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem 1rem; margin: var(--ddp-space-2) 0; }
+  .pcp-ctl { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pcp-ctl input[type="range"] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .pcp-lab output { font-weight: 700; color: var(--ddp-color-primary); }
+  .pcp-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pcp-check input { accent-color: var(--ddp-color-accent); }
+  .pcp-ctl input:focus-visible, .pcp-check input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .pcp-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pcp-table th, .pcp-table td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); font-weight: 400; vertical-align: top; }
+  .pcp-table td { font-weight: 700; color: var(--ddp-color-primary); overflow-wrap: anywhere; }
+  .pcp-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .pcp-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .pcp-controls { grid-template-columns: 1fr; } }
+</style>

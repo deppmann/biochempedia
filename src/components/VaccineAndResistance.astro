@@ -1,0 +1,334 @@
+---
+/**
+ * VaccineAndResistance — two small sketches for the lesson "Germs, Vaccines and Antibiotics".
+ * Panel 1: antibody level over time after a first and a second exposure, with or without a
+ * vaccine (the second meeting with an antigen is faster and larger). Panel 2: a population of
+ * bacterial cells with a few resistant ones under an antibiotic course that the student stops
+ * early or finishes. Relative units only; random draws show expected beside observed.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="vr card" data-vr>
+  <figcaption class="vr-head">Vaccine and resistance — two sketches<span class="vr-chip">⚙ original · interactive</span></figcaption>
+  <p class="vr-assume">Everything below is “in this sketch”: relative units, not to scale, and a model of the logic. It is not medical advice.</p>
+
+  <section class="vr-panel" aria-labelledby="vr-h1">
+    <h4 class="vr-h" id="vr-h1">1. Antibody level after exposures</h4>
+    <div class="vr-row">
+      <span class="vr-lab" id="vr-vlabel">Vaccine first?</span>
+      <div class="vr-seg" role="group" aria-labelledby="vr-vlabel">
+        <button type="button" class="vr-btn" data-vac="off" aria-pressed="true">No vaccine</button>
+        <button type="button" class="vr-btn" data-vac="on" aria-pressed="false">Vaccine given</button>
+      </div>
+    </div>
+    <div class="vr-row">
+      <button type="button" class="vr-btn vr-primary" data-expose>Expose to pathogen</button>
+      <button type="button" class="vr-btn" data-reset1>Reset</button>
+    </div>
+    <svg class="vr-svg" viewBox="0 0 320 210" role="img" aria-label="Antibody level against time in relative units, with markers for a vaccine and for each exposure" data-plot1></svg>
+    <dl class="vr-readout" data-read1></dl>
+    <p class="vr-why" role="status" data-why1>No exposure yet. Choose “No vaccine” or “Vaccine given”, then press Expose to pathogen.</p>
+  </section>
+
+  <section class="vr-panel" aria-labelledby="vr-h2">
+    <h4 class="vr-h" id="vr-h2">2. Bacteria under an antibiotic course</h4>
+    <div class="vr-legend" aria-label="Key">
+      <span><i class="vr-k vr-k-s"></i> sensitive cell</span>
+      <span><i class="vr-k vr-k-r"></i> resistant cell</span>
+      <span><i class="vr-k vr-k-d"></i> killed cell</span>
+    </div>
+    <div class="vr-row">
+      <button type="button" class="vr-btn vr-primary" data-stop>Stop early</button>
+      <button type="button" class="vr-btn vr-primary" data-finish>Run the full course</button>
+    </div>
+    <div class="vr-row">
+      <button type="button" class="vr-btn" data-multiply disabled>Let survivors multiply</button>
+      <button type="button" class="vr-btn" data-resample>Resample cells</button>
+      <button type="button" class="vr-btn" data-reset2>Reset</button>
+    </div>
+    <svg class="vr-svg" viewBox="0 0 320 140" role="img" aria-label="A grid of bacterial cells drawn as circles for sensitive cells and squares for resistant cells; killed cells are dashed" data-plot2></svg>
+    <dl class="vr-readout" data-read2></dl>
+    <p class="vr-why" role="status" data-why2>Press Stop early or Run the full course to treat the population. The cells start with a few resistant ones.</p>
+  </section>
+
+  <p class="vr-assume" data-assume2>Assumptions in this sketch: 40 cells; each starts resistant with a 5 in 100 chance (samples with no resistant cell are redrawn); each round kills a sensitive cell with a 65 in 100 chance and never kills a resistant cell; a full course is 6 rounds, stopping early is 2 rounds; no cell changes kind; survivors divide once. Panel 1: a first meeting peaks at 30 after 14, a later meeting at 100 after 5, in relative units; the curve shape is drawn, not measured.</p>
+  <p class="vr-foot">Rule to keep: the first meeting with an antigen gives a slow response and leaves memory cells, so a later meeting is faster and larger; an antibiotic kills the sensitive bacteria it reaches, and the resistant ones are left to multiply (vaccines do not work perfectly in everyone, and how long a course should last is decided by doctors).</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GREEN = '#2e7d32';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, anchor: string, fill: string, weight = 400): SVGElement {
+    const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': 12, 'font-weight': weight, fill });
+    t.textContent = s;
+    return t;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('VaccineAndResistance: missing ' + sel);
+    return e;
+  }
+  const fmt = (x: number) => (x < 1 ? x.toFixed(2) : x.toFixed(1));
+
+  document.querySelectorAll<HTMLElement>('[data-vr]').forEach((root) => {
+    /* ---------- Panel 1: antibody level ---------- */
+    const plot1 = need<SVGSVGElement>(root, '[data-plot1]');
+    const read1 = need<HTMLElement>(root, '[data-read1]');
+    const why1 = need<HTMLElement>(root, '[data-why1]');
+    const exposeBtn = need<HTMLButtonElement>(root, '[data-expose]');
+    const reset1 = need<HTMLButtonElement>(root, '[data-reset1]');
+    const vacBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-vac]'));
+
+    // Sketch values (relative units): first meeting = low and slow, later meeting = high and fast.
+    const FIRST = { peak: 30, tp: 14 }, LATER = { peak: 100, tp: 5 };
+    const T_END = 150, EXPOSURE_T = [50, 100];
+    const gamma = (s: number, tp: number) => (s <= 0 ? 0 : Math.pow(s / tp, 3) * Math.exp(3 * (1 - s / tp)));
+    let vaccine = false, exposures = 0;
+
+    interface Ev { t: number; label: string; primed: boolean; }
+    function events(): Ev[] {
+      const list: Ev[] = [];
+      if (vaccine) list.push({ t: 0, label: 'Vaccine', primed: false });
+      for (let i = 0; i < exposures; i++) list.push({ t: EXPOSURE_T[i], label: 'Exposure ' + (i + 1), primed: false });
+      list.forEach((e, i) => { e.primed = i > 0; });
+      return list;
+    }
+    function render1() {
+      const X0 = 40, X1 = 312, Y0 = 34, Y1 = 176, YMAX = 112;
+      const px = (t: number) => X0 + (t / T_END) * (X1 - X0);
+      const py = (a: number) => Y1 - (a / YMAX) * (Y1 - Y0);
+      const evs = events();
+      plot1.replaceChildren();
+      plot1.appendChild(el('line', { x1: X0, y1: Y0 - 6, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot1.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      const yl = txt(14, (Y0 + Y1) / 2, 'antibody level', 'middle', INK);
+      yl.setAttribute('transform', `rotate(-90 14 ${(Y0 + Y1) / 2})`);
+      plot1.appendChild(yl);
+      plot1.appendChild(txt((X0 + X1) / 2, 204, 'time (relative units, not to scale)', 'middle', INK));
+      // markers
+      evs.forEach((e) => {
+        const col = e.label === 'Vaccine' ? GREEN : ORANGE;
+        plot1.appendChild(el('line', { x1: px(e.t), y1: Y0 - 6, x2: px(e.t), y2: Y1, stroke: col, 'stroke-width': 1.4, 'stroke-dasharray': '3 3' }));
+        const anchor = e.t === 0 ? 'start' : 'middle';
+        plot1.appendChild(txt(px(e.t) + (e.t === 0 ? 3 : 0), 22, e.label, anchor, col, 700));
+      });
+      // curve
+      const level = (t: number) => evs.reduce((sum, e) => {
+        const m = e.primed ? LATER : FIRST;
+        return sum + m.peak * gamma(t - e.t, m.tp);
+      }, 0);
+      if (evs.length === 0) {
+        plot1.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: ACCENT, 'stroke-width': 2.6 }));
+        plot1.appendChild(txt((X0 + X1) / 2, 100, 'no response yet', 'middle', INK));
+      } else {
+        let d = '';
+        for (let t = 0; t <= T_END; t += 1) d += (t === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(Math.min(level(t), YMAX)).toFixed(1) + ' ';
+        plot1.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+        evs.forEach((e) => {
+          const m = e.primed ? LATER : FIRST;
+          plot1.appendChild(el('circle', { cx: px(e.t + m.tp), cy: py(level(e.t + m.tp)), r: 4, fill: ACCENT }));
+        });
+      }
+      // readout
+      read1.replaceChildren();
+      evs.forEach((e) => {
+        const m = e.primed ? LATER : FIRST;
+        const row = document.createElement('div');
+        const dt = document.createElement('dt');
+        dt.textContent = e.label + (e.primed ? ' (memory cells already formed)' : ' (first meeting with the antigen)');
+        const dd = document.createElement('dd');
+        dd.textContent = `peak ${m.peak}, reached after ${m.tp} (relative units)`;
+        row.append(dt, dd);
+        read1.appendChild(row);
+      });
+      // status
+      let msg: string;
+      const firstExp = evs.filter((e) => e.label !== 'Vaccine')[0];
+      if (exposures === 0) {
+        msg = vaccine
+          ? 'The vaccine is a first meeting with the antigen, without the full disease. Now press Expose to pathogen.'
+          : 'No exposure yet. Choose “No vaccine” or “Vaccine given”, then press Expose to pathogen.';
+      } else if (exposures === 1) {
+        msg = firstExp && firstExp.primed
+          ? 'Exposure 1 in this sketch: memory cells from the vaccine make a faster, higher rise than a first meeting.'
+          : 'Exposure 1 in this sketch: a first meeting, so antibody rises slowly to a low peak. Memory cells stay as it falls.';
+      } else {
+        msg = vaccine
+          ? 'In this sketch both exposures behave like a second meeting: fast and high, because the vaccine came first.'
+          : 'Exposure 2 in this sketch: memory cells respond, so antibody rises faster and peaks higher than after exposure 1.';
+      }
+      why1.textContent = msg;
+      exposeBtn.disabled = exposures >= 2;
+      exposeBtn.textContent = exposures === 0 ? 'Expose to pathogen' : exposures === 1 ? 'Expose again' : 'Both exposures done';
+      vacBtns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.vac === 'on') === vaccine)));
+    }
+    vacBtns.forEach((b) => b.addEventListener('click', () => {
+      vaccine = b.dataset.vac === 'on';
+      exposures = 0;
+      render1();
+    }));
+    exposeBtn.addEventListener('click', () => { if (exposures < 2) exposures += 1; render1(); });
+    reset1.addEventListener('click', () => { vaccine = false; exposures = 0; render1(); });
+    render1();
+
+    /* ---------- Panel 2: bacterial population ---------- */
+    const plot2 = need<SVGSVGElement>(root, '[data-plot2]');
+    const read2 = need<HTMLElement>(root, '[data-read2]');
+    const why2 = need<HTMLElement>(root, '[data-why2]');
+    const stopBtn = need<HTMLButtonElement>(root, '[data-stop]');
+    const finishBtn = need<HTMLButtonElement>(root, '[data-finish]');
+    const multBtn = need<HTMLButtonElement>(root, '[data-multiply]');
+    const resampleBtn = need<HTMLButtonElement>(root, '[data-resample]');
+    const reset2 = need<HTMLButtonElement>(root, '[data-reset2]');
+
+    const N = 40, P_RES = 0.05, P_KILL = 0.65, ROUNDS_FULL = 6, ROUNDS_EARLY = 2;
+    interface Cell { res: boolean; u: number[]; }
+    let cells: Cell[] = [];
+    type Phase = 'start' | 'early' | 'full';
+    let phase: Phase = 'start', multiplied = false;
+
+    function sample() {
+      let list: Cell[];
+      do {
+        list = [];
+        for (let i = 0; i < N; i++) {
+          list.push({ res: Math.random() < P_RES, u: Array.from({ length: ROUNDS_FULL }, () => Math.random()) });
+        }
+      } while (list.filter((c) => c.res).length < 1);
+      cells = list;
+      phase = 'start';
+      multiplied = false;
+    }
+    // survival after r rounds: a cell is killed in round i if sensitive, still alive and u[i] < P_KILL
+    function aliveAfter(c: Cell, r: number): boolean {
+      if (c.res) return true;
+      for (let i = 0; i < r; i++) if (c.u[i] < P_KILL) return false;
+      return true;
+    }
+    const rounds = () => (phase === 'early' ? ROUNDS_EARLY : phase === 'full' ? ROUNDS_FULL : 0);
+
+    function render2() {
+      const r = rounds();
+      const S0 = cells.filter((c) => !c.res).length;
+      const R0 = cells.length - S0;
+      const sensLeft = cells.filter((c) => !c.res && aliveAfter(c, r)).length;
+      const expectedSens = S0 * Math.pow(1 - P_KILL, r);
+      // cells to draw
+      type Item = { res: boolean; dead: boolean };
+      let items: Item[];
+      if (multiplied) {
+        items = [];
+        cells.forEach((c) => { if (aliveAfter(c, r)) { items.push({ res: c.res, dead: false }, { res: c.res, dead: false }); } });
+      } else {
+        items = cells.map((c) => ({ res: c.res, dead: !aliveAfter(c, r) }));
+      }
+      const COLS = 10, GAP = 31, RAD = 12, OX = 14, OY = 17, CAP = 40;
+      plot2.replaceChildren();
+      items.slice(0, CAP).forEach((it, i) => {
+        const cx = OX + (i % COLS) * GAP + 6, cy = OY + Math.floor(i / COLS) * GAP;
+        if (it.dead) {
+          const shape = it.res ? el('rect', { x: cx - RAD, y: cy - RAD, width: RAD * 2, height: RAD * 2, rx: 4 }) : el('circle', { cx, cy, r: RAD });
+          shape.setAttribute('fill', '#fff'); shape.setAttribute('stroke', FAINT); shape.setAttribute('stroke-width', '1.2'); shape.setAttribute('stroke-dasharray', '3 3');
+          plot2.appendChild(shape);
+        } else if (it.res) {
+          plot2.appendChild(el('rect', { x: cx - RAD, y: cy - RAD, width: RAD * 2, height: RAD * 2, rx: 4, fill: '#fde6cf', stroke: ORANGE, 'stroke-width': 2.4 }));
+        } else {
+          plot2.appendChild(el('circle', { cx, cy, r: RAD, fill: '#d8f0f1', stroke: ACCENT, 'stroke-width': 1.6 }));
+        }
+      });
+      if (items.length > CAP) plot2.appendChild(txt(160, 134, `Only the first ${CAP} of ${items.length} cells are drawn.`, 'middle', INK));
+      // readout
+      read2.replaceChildren();
+      const add = (dt: string, dd: string) => {
+        const row = document.createElement('div');
+        const a = document.createElement('dt'); a.textContent = dt;
+        const b = document.createElement('dd'); b.textContent = dd;
+        row.append(a, b); read2.appendChild(row);
+      };
+      if (phase === 'start') {
+        add('Resistant cells at the start', `observed ${R0}, expected ${fmt(2 / (1 - Math.pow(1 - P_RES, N)))} of ${N} (2.0 before redraws)`);
+        add('Sensitive cells at the start', `observed ${S0}`);
+      } else if (!multiplied) {
+        const steps: string[] = [], exp: string[] = [];
+        for (let i = 0; i <= r; i++) {
+          steps.push(String(cells.filter((c) => !c.res && aliveAfter(c, i)).length));
+          exp.push(fmt(S0 * Math.pow(1 - P_KILL, i)));
+        }
+        add(`Sensitive cells after each round (0 to ${r})`, `observed ${steps.join(' → ')}`);
+        add('Expected, same start', `${S0} × (1 − 0.65)^${r} = ${fmt(expectedSens)}`);
+        add('Resistant cells left', `observed ${R0} of ${R0} (a resistant cell is never killed in this sketch)`);
+      } else {
+        const sTot = items.filter((i) => !i.res).length, rTot = items.length - sTot;
+        add('After each survivor divides once', `${sTot} sensitive, ${rTot} resistant, ${items.length} cells`);
+        add('Resistant share', `${rTot} of ${items.length} now, ${R0} of ${cells.length} at the start`);
+      }
+      // status
+      let msg: string;
+      if (phase === 'start') {
+        msg = `${cells.length} cells, ${R0} of them resistant. Press Stop early or Run the full course to treat the population in this sketch.`;
+      } else if (multiplied) {
+        const sTot = items.filter((i) => !i.res).length;
+        msg = sTot === 0
+          ? 'In this sketch only resistant cells were left to multiply, so every cell now is resistant.'
+          : `In this sketch the surviving sensitive cells multiplied too, but resistant cells are now a larger share than at the start.`;
+      } else if (phase === 'early') {
+        msg = sensLeft > 0
+          ? `Stopped after ${ROUNDS_EARLY} of ${ROUNDS_FULL} rounds. In this sketch ${sensLeft} sensitive and ${R0} resistant cells are left.`
+          : `Stopped after ${ROUNDS_EARLY} rounds. By chance no sensitive cell survived in this sketch; ${R0} resistant remain. Try Resample.`;
+      } else {
+        msg = sensLeft > 0
+          ? `Full course of ${ROUNDS_FULL} rounds. By chance ${sensLeft} sensitive ${sensLeft === 1 ? 'cell' : 'cells'} survived in this sketch, with ${R0} resistant. Try Resample.`
+          : `Full course in this sketch: no sensitive cell is left, but the ${R0} resistant cells are. Not every cell is gone.`;
+      }
+      why2.textContent = msg;
+      multBtn.disabled = phase === 'start' || multiplied;
+      stopBtn.setAttribute('aria-pressed', String(phase === 'early'));
+      finishBtn.setAttribute('aria-pressed', String(phase === 'full'));
+    }
+    const run = (p: Phase) => { phase = p; multiplied = false; render2(); };
+    stopBtn.addEventListener('click', () => run('early'));
+    finishBtn.addEventListener('click', () => run('full'));
+    multBtn.addEventListener('click', () => { if (phase !== 'start') { multiplied = true; render2(); } });
+    resampleBtn.addEventListener('click', () => { sample(); render2(); });
+    reset2.addEventListener('click', () => { sample(); render2(); });
+    sample();
+    render2();
+  });
+</script>
+
+<style is:global>
+  .vr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .vr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .vr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .vr-panel { border-top: 1px solid var(--ddp-color-line); padding-top: var(--ddp-space-3); margin-top: var(--ddp-space-3); }
+  .vr-h { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .vr-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .vr-lab { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); font-weight: 600; }
+  .vr-seg { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .vr-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 0.9rem; font: inherit; font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-ink-soft); background: #fff; border: 1.5px solid var(--ddp-color-line); border-radius: 8px; cursor: pointer; }
+  .vr-btn:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
+  .vr-btn:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .vr-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .vr-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .vr-primary { border-color: var(--ddp-color-accent); }
+  .vr-svg { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .vr-legend { display: flex; flex-wrap: wrap; gap: var(--ddp-space-1) var(--ddp-space-4); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vr-k { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; box-sizing: border-box; }
+  .vr-k-s { border-radius: 50%; background: #d8f0f1; border: 2px solid #0e7c86; }
+  .vr-k-r { border-radius: 3px; background: #fde6cf; border: 2.4px solid #e57200; }
+  .vr-k-d { border-radius: 50%; background: #fff; border: 1.5px dashed #b9b9c2; }
+  .vr-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .vr-readout:empty { display: none; }
+  .vr-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .vr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .vr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .vr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .vr-assume { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .vr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

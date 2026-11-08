@@ -1,0 +1,204 @@
+---
+/**
+ * ConductanceHeatBalance — the worked problem of the Thermoregulation lesson as a plot.
+ * Below the lower critical temperature, heat production (W) = C x (Tb - Ta) with Tb = 37 C.
+ * Two markers at two air temperatures, the extra power between them, the extra energy per
+ * day (x 86,400 s) and the grams of fat at about 39 kJ per g. Self-contained vanilla-TS
+ * Astro island. Original.
+ */
+---
+
+<figure class="chb card" data-chb>
+  <figcaption class="chb-head">Cost of keeping warm: conductance and air temperature<span class="chb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="chb-svg" viewBox="0 0 340 226" role="img" aria-label="Plot of heat production in watts against air temperature from 0 to 30 degrees C for a small endotherm in a made-up example, a straight line whose slope size is the thermal conductance, with two markers at the chosen air temperatures" data-plot></svg>
+
+  <div class="chb-controls">
+    <label class="chb-slabel"><span>Conductance C <em data-out="c">0.020</em> W per K</span>
+      <input type="range" data-in="c" min="0.005" max="0.030" step="0.001" value="0.020" />
+    </label>
+    <label class="chb-slabel"><span>Air temperature 1 <em data-out="t1">27</em> °C</span>
+      <input type="range" data-in="t1" min="0" max="30" step="1" value="27" />
+    </label>
+    <label class="chb-slabel"><span>Air temperature 2 <em data-out="t2">17</em> °C</span>
+      <input type="range" data-in="t2" min="0" max="30" step="1" value="17" />
+    </label>
+    <button type="button" class="chb-btn" data-fluff>Fluff the fur (C = 0.010 W per K)</button>
+  </div>
+
+  <dl class="chb-readout">
+    <div><dt>Heat production at air 1</dt><dd data-r="p1"></dd></div>
+    <div><dt>Heat production at air 2</dt><dd data-r="p2"></dd></div>
+    <div><dt>Extra power (air 2 minus air 1)</dt><dd data-r="extra"></dd></div>
+    <div><dt>Extra energy per day</dt><dd data-r="energy"></dd></div>
+    <div class="chb-wide"><dt>Fat for that energy, assuming fat yields about 39 kJ per g</dt><dd data-r="fat"></dd></div>
+  </dl>
+
+  <p class="chb-why" data-why role="status"></p>
+
+  <p class="chb-assume"><strong>In this sketch</strong> (invented numbers for a small endotherm): steady state, no heat stored, no external work, constant conductance, body held at 37 °C, air below the lower critical temperature.</p>
+  <p class="chb-foot">Below the lower critical temperature the size of the slope (steepness) of the line is the conductance; with C fixed, a bigger gap between body and air means more heat to make.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', LINE = '#0e7c86', C1 = '#b85600', C2 = '#0e7c86';
+  const TB = 37, SECONDS = 86400, KJ_PER_G = 39;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const minus = (s: string) => s.replace('-', '−');
+  // Watts to two decimals, or three when the third is not zero.
+  function fw(x: number): string {
+    let s = (Math.round(x * 1000) / 1000).toFixed(3);
+    if (s.endsWith('0')) s = s.slice(0, -1);
+    return minus(s);
+  }
+  document.querySelectorAll<HTMLElement>('[data-chb]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const cIn = root.querySelector<HTMLInputElement>('[data-in="c"]');
+    const t1In = root.querySelector<HTMLInputElement>('[data-in="t1"]');
+    const t2In = root.querySelector<HTMLInputElement>('[data-in="t2"]');
+    const cOut = root.querySelector<HTMLElement>('[data-out="c"]');
+    const t1Out = root.querySelector<HTMLElement>('[data-out="t1"]');
+    const t2Out = root.querySelector<HTMLElement>('[data-out="t2"]');
+    const fluff = root.querySelector<HTMLButtonElement>('[data-fluff]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const r = (k: string) => root.querySelector<HTMLElement>('[data-r="' + k + '"]');
+    const rp1 = r('p1'), rp2 = r('p2'), rex = r('extra'), ren = r('energy'), rfat = r('fat');
+    if (!plot || !cIn || !t1In || !t2In || !cOut || !t1Out || !t2Out || !fluff || !why || !rp1 || !rp2 || !rex || !ren || !rfat) return;
+
+    const X0 = 46, X1 = 326, Y0 = 24, Y1 = 186, TMAX = 30, WMAX = 1.2;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (w: number) => Y1 - (w / WMAX) * (Y1 - Y0);
+
+    function text(x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, extra));
+      t.textContent = s;
+      plot!.appendChild(t);
+    }
+
+    function render() {
+      const C = Math.round(parseFloat(cIn!.value) * 1000) / 1000;
+      const t1 = parseInt(t1In!.value, 10), t2 = parseInt(t2In!.value, 10);
+      const g1 = TB - t1, g2 = TB - t2;
+      const p1 = Math.round(C * g1 * 1000) / 1000;
+      const p2 = Math.round(C * g2 * 1000) / 1000;
+      const extra = Math.round((p2 - p1) * 1000) / 1000;
+      const joules = Math.round(extra * SECONDS * 10) / 10;
+      const kj = Math.round((joules / 1000) * 100) / 100;
+      const fat = Math.round((kj / KJ_PER_G) * 100) / 100;
+      const Cs = C.toFixed(3);
+
+      cOut!.textContent = Cs; t1Out!.textContent = String(t1); t2Out!.textContent = String(t2);
+
+      // plot
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const w of [0, 0.4, 0.8, 1.2]) {
+        if (w > 0) plot!.appendChild(el('line', { x1: X0, y1: py(w), x2: X1, y2: py(w), stroke: '#e3e3e8', 'stroke-width': 0.7 }));
+        text(X0 - 10, py(w) + 3, w.toFixed(1), { 'text-anchor': 'end' });
+      }
+      for (const t of [0, 10, 20, 30]) {
+        plot!.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(px(t), Y1 + 14, String(t), { 'text-anchor': 'middle' });
+      }
+      text((X0 + X1) / 2, Y1 + 30, 'air temperature (°C)', { 'text-anchor': 'middle', 'font-size': 10 });
+      text(X0 - 2, Y0 - 9, 'heat production (W)', { 'text-anchor': 'start', 'font-size': 10 });
+
+      // note on what is not drawn
+      const nx = X1 - 4;
+      text(nx, Y0 + 4, 'In this sketch, air 0 to 30 °C only.', { 'text-anchor': 'end' });
+      text(nx, Y0 + 15, 'Lower critical temperature:', { 'text-anchor': 'end' });
+      text(nx, Y0 + 26, 'value not given.', { 'text-anchor': 'end' });
+      text(nx, Y0 + 37, 'Flat thermoneutral part not drawn.', { 'text-anchor': 'end' });
+
+      // the line: heat production = C x (37 - Ta)
+      plot!.appendChild(el('line', { x1: px(0), y1: py(C * TB), x2: px(TMAX), y2: py(C * (TB - TMAX)), stroke: LINE, 'stroke-width': 2.6 }));
+
+      // markers, drop lines
+      const marks = [
+        { t: t1, p: p1, col: C1, n: '1' },
+        { t: t2, p: p2, col: C2, n: '2' },
+      ];
+      for (const m of marks) {
+        plot!.appendChild(el('line', { x1: px(m.t), y1: py(m.p), x2: px(m.t), y2: Y1, stroke: m.col, 'stroke-width': 1.1, 'stroke-dasharray': '3 2' }));
+        plot!.appendChild(el('line', { x1: X0, y1: py(m.p), x2: px(m.t), y2: py(m.p), stroke: m.col, 'stroke-width': 1.1, 'stroke-dasharray': '3 2' }));
+      }
+      if (t1 === t2) {
+        plot!.appendChild(el('circle', { cx: px(t1), cy: py(p1), r: 9, fill: C1 }));
+        text(px(t1), py(p1) + 3, '1,2', { 'text-anchor': 'middle', fill: '#fff', 'font-weight': 700 });
+      } else {
+        for (const m of marks) {
+          plot!.appendChild(el('circle', { cx: px(m.t), cy: py(m.p), r: 5, fill: m.col }));
+          text(px(m.t), py(m.p) + 3, m.n, { 'text-anchor': 'middle', fill: '#fff', 'font-weight': 700 });
+        }
+      }
+
+      // readouts with arithmetic
+      const gap = (t: number) => '(37 − ' + t + ') K';
+      rp1!.textContent = Cs + ' W per K × ' + gap(t1) + ' = ' + Cs + ' × ' + g1 + ' = ' + fw(p1) + ' W';
+      rp2!.textContent = Cs + ' W per K × ' + gap(t2) + ' = ' + Cs + ' × ' + g2 + ' = ' + fw(p2) + ' W';
+      rex!.textContent = fw(p2) + ' − ' + fw(p1) + ' = ' + fw(extra) + ' W. Check: ' + Cs + ' × (' + t1 + ' − ' + t2 + ') = ' + fw(C * (t1 - t2)) + ' W';
+      const less = extra < 0 ? ' less' : '';
+      ren!.textContent = fw(Math.abs(extra)) + ' J per s × 86,400 s = ' + Math.abs(joules).toLocaleString('en-US') + ' J = ' + Math.abs(kj).toFixed(2) + ' kJ per day' + less;
+      rfat!.textContent = Math.abs(kj).toFixed(2) + ' kJ ÷ 39 kJ per g = about ' + Math.abs(fat).toFixed(2) + ' g of fat per day' + less;
+
+      // status
+      const parts: string[] = [];
+      parts.push('In this sketch the size of the slope (steepness) of the line is the conductance, C = ' + Cs + ' W per K: heat production changes by ' + Cs + ' W for every 1 K change in air temperature.');
+      if (t1 === t2) {
+        parts.push('Both markers sit at ' + t1 + ' °C, so the heat production is the same, ' + fw(p1) + ' W, and the extra power, energy and fat are zero.');
+      } else if (t2 < t1) {
+        parts.push('Cooling from ' + t1 + ' to ' + t2 + ' °C widens the body-to-air gap from ' + g1 + ' K to ' + g2 + ' K, so heat production rises from ' + fw(p1) + ' to ' + fw(p2) + ' W, an extra ' + fw(extra) + ' W.');
+        if (g2 === 2 * g1) {
+          parts.push('The cost doubled only because these numbers double the gradient with C fixed; ' + (t1 - t2) + ' degrees of cooling does not generally double metabolism.');
+        } else {
+          parts.push('Heat production changes by the same factor as the gap (' + (g2 / g1).toFixed(2) + ' here) because C is held fixed; cooling does not generally double metabolism.');
+        }
+      } else {
+        parts.push('Air 2 (' + t2 + ' °C) is warmer than air 1 (' + t1 + ' °C), so the gap narrows from ' + g1 + ' K to ' + g2 + ' K and heat production falls from ' + fw(p1) + ' to ' + fw(p2) + ' W, so the difference is negative, ' + fw(-extra) + ' W less.');
+      }
+      if (C === 0.01 && t2 === 17) {
+        parts.push('With C = 0.010 W per K the cost at 17 °C is ' + fw(p2) + ' W, down from 0.40 W at C = 0.020 W per K.');
+      } else if (C < 0.0195) {
+        parts.push('A lower C means less heat leaks out per kelvin, so the line is shallower than at the worked problem’s C = 0.020 W per K.');
+      } else if (C > 0.0205) {
+        parts.push('A higher C means more heat leaks out per kelvin, so the line is steeper than at the worked problem’s C = 0.020 W per K.');
+      }
+      parts.push('This assumes air below the lower critical temperature, whose value is not given.');
+      why!.textContent = parts.join(' ');
+    }
+
+    [cIn, t1In, t2In].forEach((s) => s.addEventListener('input', render));
+    fluff.addEventListener('click', () => { cIn.value = '0.010'; render(); });
+    render();
+  });
+</script>
+
+<style>
+  .chb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .chb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .chb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .chb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .chb-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .chb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .chb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .chb-slabel input { accent-color: var(--ddp-color-accent); }
+  .chb-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.4rem 0.6rem; border: 1px solid var(--ddp-color-accent); background: #fff; color: var(--ddp-color-accent); border-radius: 6px; cursor: pointer; }
+  .chb-btn:hover, .chb-btn:focus-visible { background: color-mix(in srgb, var(--ddp-color-accent) 10%, transparent); }
+  .chb-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .chb-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .chb-wide { grid-column: 1 / -1; }
+  .chb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .chb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .chb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .chb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .chb-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .chb-controls, .chb-readout { grid-template-columns: 1fr; }
+  }
+</style>

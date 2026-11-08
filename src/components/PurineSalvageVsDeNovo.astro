@@ -2,13 +2,13 @@
 /**
  * PurineSalvageVsDeNovo — "Build it or recycle it: the cost of a purine." Two routes converge on
  * the same product (an IMP/AMP/GMP nucleotide), but the price tags are wildly different. DE NOVO
- * assembles the purine ring from scratch on PRPP — ~6 ATP, ~10 enzymatic steps, committed at
+ * assembles the purine ring from scratch on PRPP — ~6 ATP equivalents to IMP, ~10 enzymatic steps, committed at
  * glutamine-PRPP amidotransferase. SALVAGE snaps a free base back onto PRPP in ONE step (HGPRT for
- * hypoxanthine/guanine, APRT for adenine) — ~1 ATP-equivalent. Toggle the two paths and watch the
+ * hypoxanthine/guanine, APRT for adenine) — the PRPP's 2 ATP equivalents. Toggle the two paths and watch the
  * ATP meter, the step count, and the "when the cell uses this" note swing. The clinical payoff:
- * Lesch-Nyhan (HGPRT loss) breaks salvage, forcing the wasteful de novo route AND dumping the
- * unsalvaged bases into uric acid — hyperuricemia plus neurological disease. Salvage is the thrifty
- * default; losing it is both wasteful and toxic. Self-contained vanilla-TS Astro island. Original.
+ * Lesch-Nyhan (HGPRT loss) breaks salvage: unsalvaged bases go to uric acid, and the unspent PRPP
+ * pushes the committed step open, so extra de novo product also leaves as uric acid (hyperuricemia;
+ * the neurological disease is a separate harm, not caused by urate). Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
@@ -23,7 +23,7 @@
   <svg class="psd-svg" viewBox="0 0 460 170" role="img" aria-label="Two routes to the same purine nucleotide: de novo takes about ten enzymatic steps from PRPP; salvage takes one" data-svg></svg>
 
   <div class="psd-stats">
-    <div class="psd-stat"><span class="psd-s-name">ATP cost</span><span class="psd-s-v" data-atp>≈ 6 ATP</span></div>
+    <div class="psd-stat"><span class="psd-s-name">ATP cost</span><span class="psd-s-v" data-atp>≈ 6 ATP-eq</span></div>
     <div class="psd-stat"><span class="psd-s-name">Enzymatic steps</span><span class="psd-s-v" data-steps>~10</span></div>
     <div class="psd-stat"><span class="psd-s-name" data-commitname>Committed step</span><span class="psd-s-v psd-s-small" data-commit>Gln-PRPP amidotransferase</span></div>
   </div>
@@ -37,10 +37,10 @@
 
   <div class="psd-clin">
     <span class="psd-clin-head">Clinical payoff — Lesch-Nyhan syndrome</span>
-    <p class="psd-clin-body">Knock out HGPRT and salvage breaks. The cell can no longer recycle hypoxanthine or guanine, so it is forced down the wasteful <strong>de novo</strong> route to keep its purine pools full. Meanwhile the bases it can't salvage pile up and are oxidized to <strong>uric acid</strong> — hence the hyperuricemia (gout, kidney stones) and the severe neurological disease. One missing enzyme, and the thrifty default becomes both wasteful and toxic.</p>
+    <p class="psd-clin-body">Knock out HGPRT and the recycle door shuts. Freed hypoxanthine and guanine can no longer go back into the pool, so they are oxidized to <strong>uric acid</strong>. The PRPP that salvage would have spent piles up and pushes the committed step open, so <strong>de novo</strong> building speeds up, and that extra purine leaves as uric acid too: the cell still builds what it fails to recycle. The result is severe hyperuricemia (urate crystals, kidney stones, gout). The neurological disease is a separate harm, not caused by urate.</p>
   </div>
 
-  <p class="psd-foot">Most resting tissue salvages — it is cheaper to glue a used base back onto PRPP than to build the nine-atom double ring (five carbons, four nitrogens) from glutamine, glycine, aspartate, CO₂, and folate-carried formyl groups. De novo is the route a rapidly dividing cell pays for when there simply aren't enough scrap bases to go around. The lesson sits in the contrast: salvage is the thrifty default, and Lesch-Nyhan shows what it costs to lose it — you pay twice, once in ATP and once in uric acid.</p>
+  <p class="psd-foot">Many tissues rely heavily on salvage — it is cheaper to glue a used base back onto PRPP than to build the nine-atom double ring (five carbons, four nitrogens) from glutamine, glycine, aspartate, CO₂, and folate-carried formyl groups. De novo is the route a rapidly dividing cell pays for when there simply aren't enough scrap bases to go around. The lesson sits in the contrast: salvage is the thrifty default, and Lesch-Nyhan shows what it costs to lose it — you pay twice, once in ATP and once in uric acid.</p>
 </figure>
 
 <script>
@@ -60,17 +60,17 @@
   };
   const PATHS: Record<PathKey, Path> = {
     denovo: {
-      atp: 6, atpLabel: '≈ 6 ATP', steps: '~10', stepsN: 10, commitName: 'Committed step', commit: 'Gln-PRPP amidotransferase',
+      atp: 6, atpLabel: '≈ 6 ATP-eq', steps: '~10', stepsN: 10, commitName: 'Committed step', commit: 'Gln-PRPP amidotransferase',
       color: ORANGE, ink: ORANGE_INK, title: 'De novo — build the ring',
       input: ['PRPP', '+ Gln, Gly, Asp,', 'CO₂, N¹⁰-formyl-THF'], stepTag: 'committed step',
       when: 'When the cell uses this: rapidly dividing cells — bone marrow, gut lining, a tumor — lean on de novo synthesis because they need more purines than the scrap heap of free bases can supply.',
       ms: 1400,
     },
     salvage: {
-      atp: 1, atpLabel: '≈ 1 ATP-eq', steps: '1', stepsN: 1, commitName: 'Salvage enzymes', commit: 'HGPRT (hypoxanthine/guanine) · APRT (adenine)',
+      atp: 2, atpLabel: '≈ 2 ATP-eq', steps: '1', stepsN: 1, commitName: 'Salvage enzymes', commit: 'HGPRT (hypoxanthine/guanine) · APRT (adenine)',
       color: ACCENT, ink: ACCENT, title: 'Salvage — recycle a base',
       input: ['PRPP', '+ a free base:', 'hypoxanthine,', 'guanine, or adenine'], stepTag: 'HGPRT / APRT',
-      when: 'When the cell uses this: most resting tissue — including the brain — salvages by default. Recycling a free base onto PRPP costs about one ATP-equivalent, roughly a sixth of building the ring from scratch.',
+      when: 'When the cell uses this: many tissues rely heavily on salvage; how much depends on the tissue and how fast it grows. Recycling a free base onto PRPP costs the PRPP, 2 ATP-equivalents, with no amino acids or folate: about a third of building the ring from scratch.',
       ms: 450,
     },
   };

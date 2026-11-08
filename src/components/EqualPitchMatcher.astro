@@ -1,0 +1,197 @@
+---
+/**
+ * EqualPitchMatcher — the fitted equal-pitch rule for mouse vibrotactile pitch
+ * (Prsa and colleagues 2021): P = f × (A/5.6 µm)^0.32 near a 450 Hz reference.
+ * The learner moves a comparison vibration (amplitude A, frequency f) and sees where it
+ * sits against the equal-pitch curve f* = 450 / (A/5.6)^0.32. A toggle sets the exponent
+ * to 0 (frequency-only view). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="epm card" data-epm>
+  <figcaption class="epm-head">Equal-pitch matcher — amplitude shifts pitch<span class="epm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="epm-svg" viewBox="0 0 340 240" role="img" aria-label="Frequency versus comparison amplitude on a log axis, with the equal-pitch curve, the reference point and the comparison vibration" data-plot></svg>
+
+  <ul class="epm-legend" aria-label="Legend">
+    <li><span class="epm-sw epm-sw-curve"></span>equal-pitch curve f* (in this sketch)</li>
+    <li><span class="epm-sw epm-sw-ref"></span>reference, 450 Hz at 5.6 µm</li>
+    <li><span class="epm-sw epm-sw-dot"></span>your comparison vibration</li>
+  </ul>
+
+  <div class="epm-controls">
+    <label class="epm-slabel"><span>Comparison amplitude A <em data-out="a">5.6</em> µm</span>
+      <input type="range" data-in="a" min="0" max="1" step="0.05" value="0" />
+    </label>
+    <label class="epm-slabel"><span>Comparison frequency f <em data-out="f">450</em> Hz</span>
+      <input type="range" data-in="f" min="300" max="500" step="1" value="450" />
+    </label>
+    <label class="epm-check"><input type="checkbox" data-in="flat" /> <span>Frequency-only view (exponent set to 0)</span></label>
+  </div>
+
+  <dl class="epm-readout">
+    <div><dt>Exponent used</dt><dd data-r-exp>0.32</dd></div>
+    <div><dt>(A/5.6)<sup data-r-expsup>0.32</sup></dt><dd data-r-factor>1.000</dd></div>
+    <div><dt>P = f × (A/5.6)<sup data-r-expsup2>0.32</sup></dt><dd data-r-p>450.0 Hz</dd></div>
+    <div><dt>Against the reference (450)</dt><dd data-r-cmp>matched</dd></div>
+    <div class="epm-wide"><dt>Frequency that matches the reference at this A</dt><dd data-r-fstar>f* = 450 ÷ 1.000 ≈ 450.0 Hz</dd></div>
+    <div class="epm-wide"><dt>Check</dt><dd data-r-check>450.0 × 1.000 = 450.0 Hz</dd></div>
+  </dl>
+
+  <p class="epm-badge" data-badge>Reference point: the lesson's measured reference, 450 Hz at 5.6 µm.</p>
+  <p class="epm-why" data-why role="status"></p>
+
+  <p class="epm-assume">In this sketch: the power-law fit P = f × (A/5.6 µm)<sup>0.32</sup> near a 450 Hz reference in head-fixed C57BL/6 mice (a fit to four mice), assumed to hold from the reference amplitude up to double it (5.6 to 11.2 µm). Frequencies far from 450 Hz are extrapolation. The 1% band is a display tolerance in this sketch, not a perceptual threshold.</p>
+  <p class="epm-foot">Rule to keep: the model is a local fit, so any amplitude other than 5.6 µm gives a prediction, not a measurement. Humans also showed amplitude-dependent pitch, but no human exponent is given, so none is applied here.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const AREF = 5.6, FREF = 450, EXP = 0.32;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-epm]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const aIn = root.querySelector<HTMLInputElement>('[data-in="a"]');
+    const fIn = root.querySelector<HTMLInputElement>('[data-in="f"]');
+    const flatIn = root.querySelector<HTMLInputElement>('[data-in="flat"]');
+    const aOut = root.querySelector<HTMLElement>('[data-out="a"]');
+    const fOut = root.querySelector<HTMLElement>('[data-out="f"]');
+    const rExp = root.querySelector<HTMLElement>('[data-r-exp]');
+    const rSup = root.querySelector<HTMLElement>('[data-r-expsup]');
+    const rSup2 = root.querySelector<HTMLElement>('[data-r-expsup2]');
+    const rFactor = root.querySelector<HTMLElement>('[data-r-factor]');
+    const rP = root.querySelector<HTMLElement>('[data-r-p]');
+    const rCmp = root.querySelector<HTMLElement>('[data-r-cmp]');
+    const rFstar = root.querySelector<HTMLElement>('[data-r-fstar]');
+    const rCheck = root.querySelector<HTMLElement>('[data-r-check]');
+    const badge = root.querySelector<HTMLElement>('[data-badge]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !aIn || !fIn || !flatIn || !aOut || !fOut || !rExp || !rSup || !rSup2 || !rFactor || !rP || !rCmp || !rFstar || !rCheck || !badge || !why) return;
+
+    const X0 = 50, X1 = 324, Y0 = 26, Y1 = 188, FMIN = 300, FMAX = 500;
+    const px = (a: number) => X0 + Math.log2(a / AREF) * (X1 - X0);
+    const py = (f: number) => Y1 - ((f - FMIN) / (FMAX - FMIN)) * (Y1 - Y0);
+    const fmt1 = (x: number) => x.toFixed(1);
+
+    function txt(x: number, y: number, s: string, anchor: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': 9, fill: INK, ...extra });
+      t.textContent = s;
+      plot!.appendChild(t);
+    }
+
+    function render() {
+      const flat = flatIn!.checked;
+      const exp = flat ? 0 : EXP;
+      const a = AREF * Math.pow(2, parseFloat(aIn!.value));
+      const aShown = Math.abs(parseFloat(aIn!.value)) < 1e-9 ? 5.6 : a;
+      const f = parseInt(fIn!.value, 10);
+      const factor = Math.pow(a / AREF, exp);
+      const factorR = Math.round(factor * 1000) / 1000;
+      const fstar = FREF / factor;
+      const fstarR = Math.round(fstar * 10) / 10;
+      const p = f * factor;
+      const atRef = Math.abs(parseFloat(aIn!.value)) < 1e-9;
+      const dev = (p - FREF) / FREF;
+      const cmp = Math.abs(dev) <= 0.01 ? 'matched (within 1%, a display tolerance)' : p > FREF ? 'higher' : 'lower';
+
+      aOut!.textContent = fmt1(aShown);
+      fOut!.textContent = String(f);
+      rExp!.textContent = String(exp);
+      rSup!.textContent = String(exp);
+      rSup2!.textContent = String(exp);
+      rFactor!.textContent = factor.toFixed(3);
+      rP!.textContent = fmt1(p) + ' Hz';
+      rCmp!.textContent = cmp;
+      rFstar!.textContent = `f* = 450 ÷ ${factorR.toFixed(3)} ≈ ${fmt1(fstarR)} Hz`;
+      rCheck!.textContent = `${fmt1(fstarR)} × ${factorR.toFixed(3)} = ${fmt1(Math.round(fstarR * factorR * 10) / 10)} Hz`;
+
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const fr of [300, 400, 450, 500]) {
+        plot!.appendChild(el('line', { x1: X0, y1: py(fr), x2: X1, y2: py(fr), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        txt(X0 - 4, py(fr) + 3, String(fr), 'end');
+      }
+      for (const av of [5.6, 8.4, 11.2]) {
+        plot!.appendChild(el('line', { x1: px(av), y1: Y1, x2: px(av), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(px(av), Y1 + 14, String(av), 'middle');
+      }
+      txt((X0 + X1) / 2, Y1 + 30, 'comparison amplitude A (µm, log axis)', 'middle', { 'font-size': 10 });
+      txt(4, 10, 'f (Hz)', 'start', { 'font-size': 10 });
+
+      // equal-pitch curve
+      let d = '';
+      for (let v = 0; v <= 1.0001; v += 0.05) {
+        const av = AREF * Math.pow(2, v);
+        const fs = FREF / Math.pow(av / AREF, exp);
+        d += (v === 0 ? 'M' : 'L') + px(av).toFixed(1) + ' ' + py(fs).toFixed(1) + ' ';
+      }
+      plot!.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // reference point
+      plot!.appendChild(el('circle', { cx: px(AREF), cy: py(FREF), r: 5, fill: '#fff', stroke: INK, 'stroke-width': 1.8 }));
+      txt(px(AREF), py(FREF) + 20, 'reference', 'middle', { 'font-weight': 700 });
+
+      // connector from the dot to the curve at the same A, then the dot
+      if (!atRef || Math.abs(f - fstar) > 0.5) {
+        plot!.appendChild(el('line', { x1: px(a), y1: py(f), x2: px(a), y2: py(fstar), stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot!.appendChild(el('circle', { cx: px(a), cy: py(fstar), r: 3, fill: '#fff', stroke: ACCENT, 'stroke-width': 1.6 }));
+      }
+      plot!.appendChild(el('circle', { cx: px(a), cy: py(f), r: 5, fill: ORANGE }));
+
+      // badge
+      badge!.textContent = atRef
+        ? 'At 5.6 µm the comparison amplitude equals the reference amplitude, so the exponent term is 1.'
+        : 'Prediction of a local fit to four mice, not a measurement: the lesson gives no fitted amplitude range, so the sketch covers only the reference amplitude up to double it.';
+      badge!.classList.toggle('epm-pred', !atRef);
+
+      // status
+      let s: string;
+      if (flat) {
+        s = `Frequency-only view: with the exponent set to 0, pitch depends on frequency alone, so the curve is flat at 450 Hz and ${f} Hz reads ${cmp.startsWith('matched') ? 'as matched with' : p > FREF ? 'higher than' : 'lower than'} the reference at any amplitude. Exponent 0 is not the fitted model (the fit uses 0.32); it only shows the curve without an amplitude term.`;
+      } else if (atRef) {
+        s = `At the reference amplitude the amplitude term is 1, so P = f. In this sketch ${f} Hz is ${cmp.startsWith('matched') ? 'matched with' : p > FREF ? 'higher than' : 'lower than'} the 450 Hz reference. Raise A and the fit gives a higher P, so a lower f matches.`;
+      } else {
+        s = `In this sketch, at ${fmt1(aShown)} µm the factor is ${factor.toFixed(3)}, so the fit gives a higher P at larger A and a lower f matches: f* = ${fmt1(fstarR)} Hz, a decrease of ${fmt1(Math.abs((FREF - fstarR) / FREF) * 100)}%. Your ${f} Hz gives P = ${fmt1(p)}, ${cmp.startsWith('matched') ? 'matched with' : p > FREF ? 'higher than' : 'lower than'} 450 (predicted).`;
+      }
+      why!.textContent = s;
+    }
+    [aIn, fIn, flatIn].forEach((c) => c.addEventListener('input', render));
+    flatIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .epm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .epm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .epm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .epm-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .epm-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .epm-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .epm-sw { display: inline-block; flex: none; }
+  .epm-sw-curve { width: 16px; height: 3px; background: #0e7c86; }
+  .epm-sw-ref { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #4b4b55; background: #fff; box-sizing: border-box; }
+  .epm-sw-dot { width: 10px; height: 10px; border-radius: 50%; background: #e57200; }
+  .epm-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .epm-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .epm-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .epm-slabel input { accent-color: var(--ddp-color-accent); }
+  .epm-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .epm-check input { accent-color: var(--ddp-color-accent); }
+  .epm-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .epm-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .epm-wide { grid-column: 1 / -1; }
+  .epm-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .epm-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .epm-badge { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .epm-pred { color: #a24f00; font-weight: 600; }
+  .epm-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5em; }
+  .epm-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .epm-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

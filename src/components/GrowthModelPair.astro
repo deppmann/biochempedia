@@ -1,0 +1,239 @@
+---
+/**
+ * GrowthModelPair — exponential and logistic growth from the same start (N0 = 100),
+ * plotted together against time, with a second panel of total growth rate dN/dt
+ * against N. Sliders for r, K and a day cursor. Equations and worked values are the
+ * Population Growth lesson's own. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="gmp card" data-gmp>
+  <figcaption class="gmp-head">Exponential and logistic growth, side by side<span class="gmp-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="gmp-plots">
+    <div class="gmp-plotbox">
+      <svg class="gmp-svg" viewBox="0 0 340 230" role="img" aria-label="Population size N against days for exponential and logistic growth, both starting at 100" data-plot-n></svg>
+    </div>
+    <div class="gmp-plotbox">
+      <svg class="gmp-svg" viewBox="0 0 340 230" role="img" aria-label="Total growth rate dN/dt against N for exponential and logistic growth" data-plot-rate></svg>
+    </div>
+  </div>
+
+  <div class="gmp-controls">
+    <label class="gmp-slabel"><span>r, per-capita rate <em data-out="r">0.20</em> per day</span>
+      <input type="range" data-in="r" min="0.05" max="0.5" step="0.01" value="0.2" />
+    </label>
+    <label class="gmp-slabel"><span>K, carrying capacity <em data-out="k">1,000</em> individuals</span>
+      <input type="range" data-in="k" min="200" max="2000" step="50" value="1000" />
+    </label>
+    <label class="gmp-slabel"><span>Day cursor <em data-out="t">10</em> days</span>
+      <input type="range" data-in="t" min="0" max="30" step="1" value="10" />
+    </label>
+  </div>
+
+  <dl class="gmp-readout">
+    <div><dt>Exponential N at the cursor</dt><dd data-r="ne">739</dd></div>
+    <div><dt>Logistic N at the cursor</dt><dd data-r="nl">451</dd></div>
+    <div><dt>Rate now: exponential / logistic</dt><dd data-r="rates">148 / 50 individuals per day</dd></div>
+    <div><dt>Doubling time, ln 2 / r (exponential)</dt><dd data-r="dbl">3.47 days</dd></div>
+    <div><dt>Logistic reaches K/2 at</dt><dd data-r="half">10.99 days</dd></div>
+    <div><dt>Peak logistic rate, rK/4, at N = K/2</dt><dd data-r="peak">50 per day at N = 500</dd></div>
+  </dl>
+
+  <p class="gmp-why" data-why role="status"></p>
+  <p class="gmp-assume">In this sketch: closed, unstructured population, constant r and K, no time lag. N0 = 100; the numbers are invented and illustrative, not measured for any species.</p>
+  <p class="gmp-foot">Rule to keep: both models start with the same per-capita rate r, but the logistic one lets it fall in a straight line to zero at K, so total growth peaks at K/2 and the population settles at K.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const N0 = 100, TMAX = 30;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const fmt = (x: number) => Math.round(x).toLocaleString('en-US');
+  const f2 = (x: number) => x.toFixed(2);
+  function nExp(t: number, r: number) { return N0 * Math.exp(r * t); }
+  function nLog(t: number, r: number, k: number) { return k / (1 + (k / N0 - 1) * Math.exp(-r * t)); }
+  function rateExp(n: number, r: number) { return r * n; }
+  function rateLog(n: number, r: number, k: number) { return r * n * (1 - n / k); }
+
+  document.querySelectorAll<HTMLElement>('[data-gmp]').forEach((root) => {
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const rIn = q('[data-in="r"]'), kIn = q('[data-in="k"]'), tIn = q('[data-in="t"]');
+    const rOut = o('[data-out="r"]'), kOut = o('[data-out="k"]'), tOut = o('[data-out="t"]');
+    const plotN = root.querySelector<SVGSVGElement>('[data-plot-n]')!;
+    const plotR = root.querySelector<SVGSVGElement>('[data-plot-rate]')!;
+    const out = {
+      ne: o('[data-r="ne"]'), nl: o('[data-r="nl"]'), rates: o('[data-r="rates"]'),
+      dbl: o('[data-r="dbl"]'), half: o('[data-r="half"]'), peak: o('[data-r="peak"]'),
+    };
+    const why = o('[data-why]');
+
+    const X0 = 46, X1 = 326, Y0 = 26, Y1 = 188;
+
+    function text(svg: SVGElement, x: number, y: number, s: string, anchor: string, size = 9, fill = INK, weight = 400) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+      t.textContent = s; svg.appendChild(t);
+    }
+    function axes(svg: SVGElement) {
+      svg.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      svg.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+    }
+    function legend(svg: SVGElement, x: number, y: number) {
+      svg.appendChild(el('line', { x1: x, y1: y, x2: x + 14, y2: y, stroke: ORANGE, 'stroke-width': 2.4 }));
+      text(svg, x + 18, y + 3, 'exponential', 'start');
+      svg.appendChild(el('line', { x1: x + 80, y1: y, x2: x + 94, y2: y, stroke: ACCENT, 'stroke-width': 2.6 }));
+      text(svg, x + 98, y + 3, 'logistic', 'start');
+    }
+    function offArrow(svg: SVGElement, x: number, y: number, dir: 'up' | 'right', color: string) {
+      const d = dir === 'up'
+        ? `M ${x - 4} ${y + 6} L ${x} ${y} L ${x + 4} ${y + 6} Z`
+        : `M ${x - 6} ${y - 4} L ${x} ${y} L ${x - 6} ${y + 4} Z`;
+      svg.appendChild(el('path', { d, fill: color }));
+    }
+
+    function render() {
+      const r = parseFloat(rIn.value);
+      const k = parseFloat(kIn.value);
+      const day = parseInt(tIn.value, 10);
+      rOut.textContent = f2(r);
+      kOut.textContent = fmt(k);
+      tOut.textContent = String(day);
+
+      const ne = nExp(day, r), nl = nLog(day, r, k);
+      const reE = rateExp(ne, r), reL = rateLog(nl, r, k);
+
+      /* ---------- left panel: N against t ---------- */
+      const ymax = k * 1.2;
+      const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+      const py = (n: number) => Y1 - (Math.min(n, ymax) / ymax) * (Y1 - Y0);
+      plotN.replaceChildren();
+      axes(plotN);
+      text(plotN, X0 - 2, Y0 - 12, 'N (individuals)', 'start', 10);
+      for (const t of [0, 10, 20, 30]) {
+        plotN.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(plotN, px(t), Y1 + 14, String(t), 'middle');
+      }
+      text(plotN, (X0 + X1) / 2, Y1 + 28, 'time (days)', 'middle', 10);
+      plotN.appendChild(el('line', { x1: X0, y1: py(k), x2: X1, y2: py(k), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      text(plotN, X0 - 4, py(k) + 3, 'K', 'end', 10, INK, 700);
+      text(plotN, X0 - 4, Y1 + 3, '0', 'end');
+      // curves
+      let dE = '', dL = '', clipped = false;
+      for (let i = 0; i <= 150; i++) {
+        const t = (i / 150) * TMAX;
+        const a = nExp(t, r);
+        if (!clipped) {
+          if (a > ymax) {
+            // end the exponential exactly where it leaves the chart
+            const tc = Math.log(ymax / N0) / r;
+            dE += `L${px(tc).toFixed(1)} ${py(ymax).toFixed(1)} `;
+            clipped = true;
+          } else dE += (dE ? 'L' : 'M') + px(t).toFixed(1) + ' ' + py(a).toFixed(1) + ' ';
+        }
+        dL += (i === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(nLog(t, r, k)).toFixed(1) + ' ';
+      }
+      plotN.appendChild(el('path', { d: dE.trim(), fill: 'none', stroke: ORANGE, 'stroke-width': 2.4 }));
+      plotN.appendChild(el('path', { d: dL.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // cursor
+      plotN.appendChild(el('line', { x1: px(day), y1: Y0, x2: px(day), y2: Y1, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
+      plotN.appendChild(el('circle', { cx: px(day), cy: py(nl), r: 4.5, fill: ACCENT }));
+      if (ne <= ymax) plotN.appendChild(el('circle', { cx: px(day), cy: py(ne), r: 4.5, fill: ORANGE }));
+      else offArrow(plotN, px(day), Y0 + 1, 'up', ORANGE);
+      legend(plotN, 192, 12);
+
+      /* ---------- right panel: dN/dt against N ---------- */
+      const peak = r * k / 4;
+      const rmax = peak * 1.5;
+      const qx = (n: number) => X0 + (n / k) * (X1 - X0);
+      const qy = (v: number) => Y1 - (Math.min(Math.max(v, 0), rmax) / rmax) * (Y1 - Y0);
+      plotR.replaceChildren();
+      axes(plotR);
+      text(plotR, X0 - 2, Y0 - 12, 'dN/dt (individuals per day)', 'start', 10);
+      for (const [n, lab] of [[0, '0'], [k / 2, 'K/2'], [k, 'K']] as [number, string][]) {
+        plotR.appendChild(el('line', { x1: qx(n), y1: Y1, x2: qx(n), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(plotR, qx(n), Y1 + 14, lab, n === k ? 'end' : 'middle', 9, INK, n === 0 ? 400 : 700);
+      }
+      text(plotR, (X0 + X1) / 2, Y1 + 28, 'population size N (individuals)', 'middle', 10);
+      plotR.appendChild(el('line', { x1: X0, y1: qy(peak), x2: X1, y2: qy(peak), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      text(plotR, X0 - 4, qy(peak) + 3, 'rK/4', 'end', 9, INK, 700);
+      text(plotR, X0 - 4, Y1 + 3, '0', 'end');
+      // exponential: straight line rN, leaves the chart at N = rmax / r
+      const nLeave = Math.min(k, rmax / r);
+      plotR.appendChild(el('line', { x1: qx(0), y1: qy(0), x2: qx(nLeave), y2: qy(r * nLeave), stroke: ORANGE, 'stroke-width': 2.4 }));
+      // logistic: parabola
+      let dP = '';
+      for (let i = 0; i <= 100; i++) {
+        const n = (i / 100) * k;
+        dP += (i === 0 ? 'M' : 'L') + qx(n).toFixed(1) + ' ' + qy(rateLog(n, r, k)).toFixed(1) + ' ';
+      }
+      plotR.appendChild(el('path', { d: dP.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // markers at the cursor day
+      plotR.appendChild(el('circle', { cx: qx(Math.min(nl, k)), cy: qy(reL), r: 4.5, fill: ACCENT }));
+      if (ne <= nLeave) plotR.appendChild(el('circle', { cx: qx(ne), cy: qy(reE), r: 4.5, fill: ORANGE }));
+      else offArrow(plotR, qx(nLeave) - 2, qy(r * nLeave) + 6, 'up', ORANGE);
+      legend(plotR, 192, 12);
+
+      /* ---------- readouts ---------- */
+      out.ne.textContent = fmt(ne);
+      out.nl.textContent = fmt(nl);
+      out.rates.textContent = `${fmt(reE)} / ${fmt(reL)} individuals per day`;
+      out.dbl.textContent = `${f2(Math.LN2 / r)} days`;
+      if (k > N0 * 2) out.half.textContent = `${f2(Math.log(k / N0 - 1) / r)} days`;
+      else if (k === N0 * 2) out.half.textContent = '0.00 days (starts at K/2)';
+      else out.half.textContent = 'starts above K/2';
+      out.peak.textContent = `${fmt(peak)} per day at N = ${fmt(k / 2)}`;
+
+      /* ---------- status ---------- */
+      const tHalf = k > N0 * 2 ? Math.log(k / N0 - 1) / r : 0;
+      let s: string;
+      if (k === N0) {
+        s = `K equals the starting size, so the logistic brake is already zero: the logistic population stays at ${fmt(N0)} while the exponential one climbs to ${fmt(ne)}.`;
+      } else if (day === 0) {
+        s = `Day 0: both start at N = ${fmt(N0)}. The exponential rate is rN = ${fmt(reE)} per day; the logistic rate is rN(1 - N/K) = ${fmt(reL)} per day, because the brake term (1 - N/K) is already ${(1 - N0 / k).toFixed(2)}.`;
+      } else if (nl < k / 2 - 0.5 && day < tHalf) {
+        s = `Day ${day}: the exponential model predicts ${fmt(ne)} and the logistic ${fmt(nl)}. The logistic population is still below K/2 (reached at ${f2(tHalf)} days), so its total growth is still rising toward the peak at K/2; the rate is ${fmt(reL)} versus ${fmt(reE)} individuals per day for the exponential model.`;
+      } else if (Math.abs(nl - k / 2) <= k * 0.02 + 0.5) {
+        s = `Day ${day}: the logistic population is close to K/2, where total growth is greatest, rK/4 = ${fmt(peak)} per day; its rate now is ${fmt(reL)} per day. The exponential model predicts ${fmt(ne)}.`;
+      } else if (nl > k * 0.995) {
+        s = `Day ${day}: the logistic model has settled almost at K = ${fmt(k)}, where its growth rate is ${fmt(reL)} per day. K is an equilibrium the model approaches. The exponential model, with no brake, predicts ${fmt(ne)}.`;
+      } else {
+        s = `Day ${day}: the logistic population (${fmt(nl)}) is past K/2, so the brake (1 - N/K) now outweighs the larger N and total growth is falling, ${fmt(reL)} per day. The exponential model predicts ${fmt(ne)}.`;
+      }
+      if (ne > ymax) s += ' The exponential curve has run off the top of the left plot.';
+      why.textContent = s;
+    }
+    [rIn, kIn, tIn].forEach((x) => x.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .gmp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gmp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gmp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gmp-plots { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-3); }
+  .gmp-plotbox { min-width: 0; }
+  .gmp-svg { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gmp-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .gmp-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gmp-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gmp-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .gmp-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gmp-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .gmp-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gmp-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .gmp-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .gmp-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gmp-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 640px) {
+    .gmp-plots { grid-template-columns: 1fr; }
+    .gmp-controls { grid-template-columns: 1fr; }
+    .gmp-readout { grid-template-columns: 1fr 1fr; }
+  }
+</style>

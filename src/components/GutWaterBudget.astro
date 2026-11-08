@@ -1,0 +1,190 @@
+---
+/**
+ * GutWaterBudget — the gut's daily water budget as a mass-balance sketch. Water enters the
+ * small intestine, a set fraction is absorbed there, the rest passes to the colon, the colon
+ * absorbs some of it, and what is left is fecal water. Widths of the bars and arrows are
+ * proportional to flow. Only the arithmetic of the lesson's worked problem is used:
+ * absorbed = input x fraction; to colon = input - absorbed; fecal = to colon - colonic
+ * absorption; overall = (absorbed + colonic) / input. Self-contained vanilla-TS island. Original.
+ */
+---
+
+<figure class="gwb card" data-gutwater>
+  <figcaption class="gwb-head">The gut’s daily water budget<span class="gwb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="gwb-svg" viewBox="0 0 340 376" role="img" aria-label="Schematic: water enters the small intestine, part is absorbed into the body there, the rest passes to the colon, the colon absorbs more, and the remainder leaves as fecal water. Bar and arrow widths are proportional to flow." data-plot></svg>
+
+  <div class="gwb-controls">
+    <label class="gwb-slabel"><span>Water entering the small intestine <em data-out="inflow">9.0</em> L per day</span>
+      <input type="range" data-in="inflow" min="6" max="12" step="0.5" value="9" />
+    </label>
+    <label class="gwb-slabel"><span>Fraction absorbed in the small intestine <em data-out="frac">90</em>%</span>
+      <input type="range" data-in="frac" min="80" max="95" step="1" value="90" />
+    </label>
+    <label class="gwb-slabel"><span>Colonic absorption <em data-out="colon">0.8</em> L per day <small data-capnote>(cannot exceed what reaches the colon)</small></span>
+      <input type="range" data-in="colon" min="0" max="1" step="0.005" value="0.8" />
+    </label>
+  </div>
+
+  <dl class="gwb-readout">
+    <div><dt>Small intestine</dt><dd data-r-si></dd></div>
+    <div><dt>Colon</dt><dd data-r-colon></dd></div>
+    <div><dt>Overall absorption</dt><dd data-r-all></dd></div>
+    <div><dt>Check: absorbed + fecal water = input</dt><dd data-r-check></dd></div>
+  </dl>
+  <p class="gwb-why" data-why role="status"></p>
+
+  <p class="gwb-assume">In this sketch: adult human at steady state, no change in the water held in the gut; textbook figures used as illustrative values; bar and arrow widths proportional to flow. Slider ranges are chosen for the sketch; only 9.0 L, 90%, 0.8 and 0.4 L per day come from the lesson.</p>
+  <p class="gwb-foot">Rule to keep: absorbed water plus fecal water equals the water that entered. Fecal water is what is left of what reaches the colon after the colon absorbs; in the lesson’s numbers, a small difference between two large flows.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#2f2f38', BLOCK = '#eef3f6', EDGE = '#6b7a86';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  // exact arithmetic in thousandths of a litre (inputs have at most 3 decimals)
+  const milli = (x: number) => Math.round(x * 1000);
+  const fmt = (m: number) => {
+    let s = (m / 1000).toFixed(3).replace(/0+$/, '');
+    if (s.endsWith('.')) s += '0';
+    return s;
+  };
+  const pct = (num: number, den: number) => ((num / den) * 100).toFixed(1);
+
+  document.querySelectorAll<HTMLElement>('[data-gutwater]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const inflowIn = root.querySelector<HTMLInputElement>('[data-in="inflow"]');
+    const fracIn = root.querySelector<HTMLInputElement>('[data-in="frac"]');
+    const colonIn = root.querySelector<HTMLInputElement>('[data-in="colon"]');
+    const inflowOut = root.querySelector<HTMLElement>('[data-out="inflow"]');
+    const fracOut = root.querySelector<HTMLElement>('[data-out="frac"]');
+    const colonOut = root.querySelector<HTMLElement>('[data-out="colon"]');
+    const capNote = root.querySelector<HTMLElement>('[data-capnote]');
+    const rSi = root.querySelector<HTMLElement>('[data-r-si]');
+    const rColon = root.querySelector<HTMLElement>('[data-r-colon]');
+    const rAll = root.querySelector<HTMLElement>('[data-r-all]');
+    const rCheck = root.querySelector<HTMLElement>('[data-r-check]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !inflowIn || !fracIn || !colonIn || !inflowOut || !fracOut || !colonOut || !capNote || !rSi || !rColon || !rAll || !rCheck || !why) return;
+
+    let wish = milli(parseFloat(colonIn.value)); // the learner's own colon setting, kept when the cap moves
+    const S = 8; // px per L per day
+    const CX = 105;
+
+    function pipe(y0: number, y1: number, litres: number) {
+      const w = Math.max(litres * S, 1.5);
+      plot!.appendChild(el('rect', { x: CX - w / 2, y: y0, width: w, height: y1 - y0, fill: TEAL }));
+      plot!.appendChild(el('path', { d: `M${CX - 6} ${y1 - 7} L${CX} ${y1 - 1} L${CX + 6} ${y1 - 7}`, fill: 'none', stroke: '#fff', 'stroke-width': 1.4 }));
+    }
+    function block(y0: number, y1: number, lines: [string, number][]) {
+      plot!.appendChild(el('rect', { x: 15, y: y0, width: 180, height: y1 - y0, rx: 5, fill: BLOCK, stroke: EDGE, 'stroke-width': 1.2 }));
+      for (const [t, y] of lines) text(CX, y, t, 'middle', 10, 400);
+    }
+    function text(x: number, y: number, t: string, anchor: string, size: number, weight: number, fill = INK) {
+      const e = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, 'font-weight': weight, fill });
+      e.textContent = t;
+      plot!.appendChild(e);
+    }
+    function sideArrow(cy: number, litres: number) {
+      if (litres <= 0) return;
+      const t = Math.max(litres * S, 1.5);
+      plot!.appendChild(el('rect', { x: 195, y: cy - t / 2, width: 68, height: t, fill: ORANGE }));
+      plot!.appendChild(el('polygon', { points: `263,${cy - t / 2 - 7} 291,${cy} 263,${cy + t / 2 + 7}`, fill: ORANGE }));
+    }
+
+    function render() {
+      const inflow = milli(parseFloat(inflowIn!.value));
+      const frac = parseInt(fracIn!.value, 10);
+      const absorbed = Math.round((inflow * frac) / 100);
+      const toColon = inflow - absorbed;
+      // colon slider: its top is what reaches the colon (or 1.0 L per day), on the 0.005 grid
+      const capM = Math.min(1000, toColon);
+      const gridMax = Math.floor(capM / 5) * 5;
+      colonIn!.max = String(gridMax / 1000);
+      const colonM = Math.min(wish, toColon, gridMax);
+      colonIn!.value = String(colonM / 1000);
+      const fecal = toColon - colonM;
+      const totalAbs = absorbed + colonM;
+      const overall = pct(totalAbs, inflow);
+
+      inflowOut!.textContent = fmt(inflow);
+      fracOut!.textContent = String(frac);
+      colonOut!.textContent = fmt(colonM);
+      capNote!.textContent = `(cannot exceed what reaches the colon, ${fmt(toColon)} L per day)`;
+
+      const f = (m: number) => fmt(m);
+      rSi!.textContent = `${f(inflow)} × ${(frac / 100).toFixed(2)} = ${f(absorbed)} L per day absorbed; ${f(inflow)} − ${f(absorbed)} = ${f(toColon)} L per day passed to the colon`;
+      rColon!.textContent = `${f(toColon)} − ${f(colonM)} = ${f(fecal)} L per day fecal water`;
+      rAll!.textContent = `(${f(absorbed)} + ${f(colonM)}) / ${f(inflow)} = ${f(totalAbs)} / ${f(inflow)} = ${overall}%`;
+      rCheck!.textContent = `${f(totalAbs)} + ${f(fecal)} = ${f(totalAbs + fecal)} L per day ${totalAbs + fecal === inflow ? '= input ✓' : '≠ input ✗'}`;
+
+      // ---- drawing ----
+      plot!.replaceChildren();
+      block(4, 54, [['Enters the small intestine', 17], [`${f(inflow)} L per day`, 31], ['food, drink and secretions', 45]]);
+      pipe(54, 80, inflow / 1000);
+      block(80, 190, [['Small intestine', 128], [`${frac}% absorbed here`, 143]]);
+      sideArrow(135, absorbed / 1000);
+      text(205, 60, 'absorbed into the body', 'start', 10, 700, ORANGE);
+      text(205, 72, `${f(absorbed)} L per day`, 'start', 10, 400);
+      pipe(190, 232, toColon / 1000);
+      text(150, 214, `${f(toColon)} L per day reaches the colon`, 'start', 10, 400);
+      block(232, 292, [['Colon', 258], [`absorbs ${fmt(colonM)} L per day`, 272]]);
+      sideArrow(262, colonM / 1000);
+      text(205, 234, 'absorbed into the body', 'start', 10, 700, ORANGE);
+      text(205, 245, `${fmt(colonM)} L per day`, 'start', 10, 400);
+      pipe(292, 322, fecal / 1000);
+      block(322, 368, [['Fecal water', 341], [`${f(fecal)} L per day`, 356]]);
+
+      // ---- status ----
+      let s = `Of ${f(inflow)} L per day entering the small intestine of an adult human at steady state, ${f(absorbed)} L per day is absorbed there and ${f(toColon)} L per day reaches the colon. `;
+      if (colonM === 0) {
+        s += `With no colonic absorption, fecal water equals what reaches the colon, ${f(fecal)} L per day, and overall absorption is ${overall}%. `;
+      } else if (fecal === 0) {
+        s += `The colon absorbs all of it, ${f(colonM)} L per day, so fecal water is 0 in this sketch; overall absorption is ${overall}%. `;
+      } else {
+        s += `The colon absorbs ${f(colonM)} L per day, leaving ${f(fecal)} L per day as fecal water; overall absorption is ${overall}%. `;
+      }
+      if (inflow === 9000 && frac === 90 && colonM === 400) {
+        s += 'This is the halved case in the lesson: fecal water is five times the 0.1 L per day at 0.8, yet overall absorption falls only 4.4 percentage points. ';
+      }
+      s += inflow === 9000 && frac === 90
+        ? 'In the lesson’s numbers, fecal water is a small difference between two large flows, so it is very sensitive to colonic absorption.'
+        : 'Change the colon setting and watch how much fecal water moves.';
+      why!.textContent = s;
+    }
+
+    inflowIn.addEventListener('input', render);
+    fracIn.addEventListener('input', render);
+    colonIn.addEventListener('input', () => {
+      wish = milli(parseFloat(colonIn.value));
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .gwb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gwb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gwb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gwb-svg { display: block; width: 100%; max-width: 420px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gwb-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .gwb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gwb-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .gwb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gwb-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .gwb-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gwb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .gwb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gwb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .gwb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .gwb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-style: italic; }
+  .gwb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (min-width: 700px) {
+    .gwb-controls { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>

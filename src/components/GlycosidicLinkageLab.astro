@@ -30,7 +30,7 @@
     <p class="gll-so" data-so role="status"></p>
   </div>
 
-  <p class="gll-foot">One geometric choice at the anomeric carbon — α down, β up — decides whether a glucose chain is food or fiber. Branching adds a second lever: every α-1,6 branch is another loose end an enzyme can grab, which is why glycogen mobilizes glucose fast enough to sprint on.</p>
+  <p class="gll-foot">One choice at the anomeric carbon decides food or fiber: α (C1 bond on the opposite face from CH₂OH) or β (same face). Every other anomeric carbon is used in a bond; only the reducing end's is free. Branching adds a second lever: each α-1,6 branch adds one more non-reducing end for phosphorylase.</p>
 </figure>
 
 <script>
@@ -50,25 +50,25 @@
       shape: 'A loose left-handed helix — the α bond kinks each glucose, so the chain coils.',
       job: 'Energy storage in plants. Compact and easy to take apart from the ends.',
       digest: 'Yes — salivary and pancreatic amylase cleave α-1,4 bonds.',
-      so: 'The α-1,4 link folds the chain into a helix the body can unzip. This is the glucose you actually eat as starch.',
+      so: 'The α-1,4 link bends every junction the same way, so the chain winds into a helix that packs into starch granules. Your amylases fit the α-1,4 bond and cut it.',
     },
     branch: {
       name: 'Glycogen / amylopectin', color: ACCENT,
-      shape: 'A bush: α-1,4 backbone with α-1,6 branches every ~12 (glycogen) or ~30 (amylopectin) residues.',
+      shape: 'A bush: α-1,4 backbone with α-1,6 branches every 8–12 residues (glycogen) or about 30 (amylopectin).',
       job: 'Fast-access energy store in animals (liver, muscle).',
-      digest: 'Yes — and the branches make it faster: every branch is one more non-reducing end.',
-      so: 'A liver glycogen molecule presents ~2,000 loose ends at once, so thousands of enzymes chew inward in parallel. That branching is what lets you sprint.',
+      digest: 'Yes: amylases cut α-1,4 bonds mid-chain and a separate enzyme handles α-1,6. In your own cells, phosphorylase works only from non-reducing ends, so branches speed release.',
+      so: 'Every branch point uses one more anomeric carbon and adds one more non-reducing end (b branches, b + 1 ends). A model full-size particle of about 55,000 glucoses has about 2,000 chains in its outer layer, so many phosphorylase molecules work at once.',
     },
     b14: {
       name: 'Cellulose', color: NAVY,
       shape: 'Flat, straight chains that hydrogen-bond side-by-side into rigid fibrils.',
       job: 'Structural — the load-bearing fiber of plant cell walls (and your pencil).',
-      digest: 'No. Humans lack cellulase; the β-1,4 bond passes through as dietary fiber.',
-      so: 'Same glucose brick, laid β instead of α: a cow lives on grass because its gut bacteria make cellulase, and you cannot because yours do not.',
+      digest: 'No. You make no cellulase, so cellulose passes through as dietary fiber. (Lactase cuts lactose\'s β-1,4 bond, but not cellulose.)',
+      so: 'Same glucose brick, laid β instead of α. A cow lives on grass because its rumen microbes make cellulases; you make none, and your gut carries far fewer such microbes.',
     },
   };
 
-  const INKT = '#0a5f67', MUTED = '#6b6b6b';
+  const INKT = '#0a5f67', MUTED = '#6b6b6b', GOLD = '#c9a227';
   function draw(svg: SVGElement, mode: string, k: number) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     const c = MODES[mode].color;
@@ -111,8 +111,11 @@
       const beads = (front: boolean) => pts.filter((p) => (p.z >= 0) === front).forEach((p) => bead(p.x, p.y, c, 6 + 3 * (p.z + 1) / 2, 0.45 + 0.55 * (p.z + 1) / 2));
       strand(false); beads(false); strand(true); beads(true);
       endRing(pts[0].x, pts[0].y);
+      // the reducing end: the one anomeric carbon (C1) not used in a bond
+      const re = pts[n - 1];
+      bead(re.x, re.y, GOLD);
       txt(pts[0].x, 172, 'non-reducing end', 9.5, NAVY, { 'text-anchor': 'start' });
-      txt(x1, 172, 'reducing end', 9.5, NAVY, { 'text-anchor': 'end' });
+      txt(x1, 172, 'free C1: reducing end', 9.5, '#7f6315', { 'text-anchor': 'end', 'font-weight': 600 });
       txt(230, 20, k > 1.2 ? 'left-handed helix · ~6 glucoses/turn' : 'left-handed helix · about 6 glucoses per turn', 9.5, MUTED, { 'text-anchor': 'middle' });
     } else if (mode === 'branch') {
       // α-1,4 backbone with α-1,6 side chains; every chain tip is a non-reducing end
@@ -127,12 +130,12 @@
         for (let j = 1; j < p.length; j++) bead(p[j][0], p[j][1], ORANGE);
         tips.push([p[3][0], p[3][1]]);
       }
-      for (let i = 0; i < n; i++) bead(x0 + i * dx, y, c);
+      for (let i = 0; i < n; i++) bead(x0 + i * dx, y, i === n - 1 ? GOLD : c);
       tips.forEach(([tx, ty]) => endRing(tx, ty));
       const bx = x0 + 6 * dx;
       txt(bx + 14, y - 22, '← α-1,6 branch point', 9.5, '#b35900', { 'font-weight': 600 });
-      txt(x0 + (n - 1) * dx + 6, y + 28, 'reducing end', 9.5, NAVY, { 'text-anchor': 'end' });
-      txt(x0 - 12, 190, k > 1.2 ? `${tips.length} non-reducing ends (dashed rings)` : `${tips.length} non-reducing ends (dashed rings) · enzymes work on every one at once`, 9.5, NAVY);
+      txt(x0 + (n - 1) * dx + 6, y + 28, 'free C1: reducing end', 9.5, '#7f6315', { 'text-anchor': 'end', 'font-weight': 600 });
+      txt(x0 - 12, 190, k > 1.2 ? `${branchAt.length} branches → ${tips.length} non-reducing ends, 1 reducing` : `${branchAt.length} branch points → ${tips.length} non-reducing ends, 1 reducing end`, 9.5, NAVY);
     } else {
       // β-1,4: alternate residues flipped 180°, so chains run dead straight and
       // stack side by side, zipped together by hydrogen bonds.

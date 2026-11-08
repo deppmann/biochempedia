@@ -194,16 +194,16 @@ class S02Imatinib(SpokenScene):
         self.play(K.body.animate.set_stroke(RED, 6), FadeIn(inh), run_time=0.5)
 
         c1 = chip("leukaemia cell", TEAL, size=26).move_to(V(3.7, -0.75))
-        r1 = T("without BCR-ABL: does not get through", 22, RED).next_to(c1, DOWN, buff=0.15)
+        r1 = T("without BCR-ABL: most do not get through", 22, RED).next_to(c1, DOWN, buff=0.15)
         c2 = chip("normal cell", TEAL, size=26).move_to(V(3.7, -2.45))
-        r2 = T("without ABL, PDGF receptor, KIT:\ngets through", 22, GREEN, line_spacing=0.9).next_to(c2, DOWN, buff=0.15)
-        self.at("cell does not")
+        r2 = T("early tests:\nnormal colonies grew", 22, GREEN, line_spacing=0.9).next_to(c2, DOWN, buff=0.15)
+        self.at("cells do not")
         self.play(FadeOut(short), FadeIn(c1), run_time=0.4)
         self.at("get through a")
         self.play(FadeIn(r1), run_time=0.4)
-        self.at("Normal cells")
+        self.at("early tests")
         self.play(FadeIn(c2), run_time=0.4)
-        self.at("cells do")
+        self.at("normal colonies")
         self.play(FadeIn(r2), run_time=0.4)
         self.finish()
 
@@ -254,7 +254,7 @@ class S03Letter(SpokenScene):
         ile = chip("isoleucine 315", YELLOW, size=28).move_to(thr)
         self.at("replaces")
         self.play(FadeIn(thr, shift=UP * 0.1), run_time=0.5)
-        self.at("with isoleucine")
+        self.at("isolucin")
         self.play(ReplacementTransform(thr, ile), run_time=0.7)
         self.finish()
 
@@ -283,7 +283,7 @@ class S04Contact(SpokenScene):
 
         bump = bump_of(pc, k, big=True)
         ile = residue_chip("Ile 315", YELLOW, 24, pc + k * V(-3.05, 0.5))
-        self.at("Isoleucine is bulkier")
+        self.at("Isolucin")
         self.play(ReplacementTransform(knob, bump), ReplacementTransform(thr, ile), FadeOut(contact),
                   FadeOut(tie), run_time=0.9)
         tie2 = Line(ile.get_right(), bump.get_left(), color=YELLOW, stroke_width=3)
@@ -298,12 +298,12 @@ class S04Contact(SpokenScene):
         self.play(w.animate.shift(out - V(0.4 * k, 0.2 * k)).set_stroke(RED, 5),
                   wl.animate.shift(out - V(0.4 * k, 0.2 * k)), FadeOut(no), FadeIn(nb), run_time=0.9)
 
-        note = T("not needed for the reaction", 24, YELLOW).move_to(V(-2.0, -2.2))
-        self.at("does not need")
+        note = T("reaction still works", 24, YELLOW).move_to(V(-2.0, -2.2))
+        self.at("enzyme can")
         self.play(FadeIn(note), Indicate(bump, color=TEXT, scale_factor=1.1), run_time=0.6)
         atp = atp_chip(pc, k, xo=0.6)
         sub = chip("substrate", TEAL, size=24).move_to(V(4.4, -2.3))
-        self.at("keeps working")
+        self.at("its reaction")
         self.play(FadeOut(wl), FadeOut(w), FadeOut(nb), FadeOut(note), FadeIn(atp, shift=DOWN * 0.3), FadeIn(sub), run_time=0.6)
         p = pbadge().move_to(atp.get_right() + RIGHT * 0.2)
         self.play(FadeIn(p, scale=0.5), K.body.animate.set_stroke(GREEN, 6), run_time=0.4)
@@ -331,10 +331,10 @@ class S05Experiment(SpokenScene):
         self.play(ReplacementTransform(fail, exp), run_time=0.8)
 
         one = T("the one position the drug depended on", 24, YELLOW).move_to(V(-2.8, -3.1))
-        self.at("changed the one position")
+        self.at("one position")
         self.play(Indicate(bump, color=TEXT, scale_factor=1.25), FadeIn(one), run_time=0.8)
         rest = T("the rest of the enzyme: unchanged", 24, GREY).move_to(V(-2.8, -3.1))
-        self.at("left the rest")
+        self.at("rest of")
         self.play(FadeOut(one), FadeIn(rest), Indicate(K.body, color=TEXT, scale_factor=1.03), run_time=0.8)
 
         l1 = T("the drug had been working\nthrough BCR-ABL", 30, GREEN, line_spacing=0.9).move_to(V(3.8, 0.6))

@@ -1,0 +1,168 @@
+---
+/**
+ * DensityBandPredictor — choose a replication model (conservative, semiconservative,
+ * dispersive) and the number of generations after the shift from 15N to 14N, and see the
+ * bands that model predicts in a CsCl density gradient beside the pattern Meselson and
+ * Stahl observed. Every rule here is a statement of the dna-replication lesson's worked
+ * problem (all DNA starts fully heavy, rounds complete and synchronous, new strands fully
+ * light, no recycling, even dispersive mixing). The lesson reports observations only for
+ * generations 1 and 2, so none is shown for 3. Labelled bands only. Original.
+ */
+---
+
+<figure class="dbp card" data-dbp>
+  <figcaption class="dbp-head">Density band predictor: what does each model predict?<span class="dbp-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="dbp-svg" viewBox="0 0 360 214" role="img" aria-label="Two density-gradient lanes from light on the left to heavy on the right: the bands predicted by the chosen model, and the bands Meselson and Stahl observed" data-stage></svg>
+
+  <fieldset class="dbp-ctl">
+    <legend>Replication model</legend>
+    <label><input type="radio" name="dbp-model" value="con" /> conservative</label>
+    <label><input type="radio" name="dbp-model" value="semi" checked /> semiconservative</label>
+    <label><input type="radio" name="dbp-model" value="disp" /> dispersive</label>
+  </fieldset>
+
+  <div class="dbp-gen">
+    <label for="dbp-gen-in">Generations in 14N</label>
+    <input id="dbp-gen-in" type="range" min="0" max="3" step="1" value="1" data-gen />
+    <output class="dbp-out" data-genout>1</output>
+  </div>
+
+  <p class="dbp-verdict" data-verdict role="status"></p>
+
+  <p class="dbp-foot">Only the distribution of label among molecules tells the models apart: the average heavy content is 1/2, 1/4, 1/8 in all three. This is a sketch of the logic under the lesson’s assumptions (even mixing, synchronous rounds), not a trace of the gradient.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Model = 'con' | 'semi' | 'disp';
+  type Band = { pos: number; frac: number; name: string };
+  const X0 = 40, X1 = 320; // light at X0, heavy at X1
+  const INK = '#4b4b55', FAINT = '#8a8a96', HEAVY = '#0e4f6b', HYB = '#7a5ea8', LIGHT = '#e57200', DISP = '#2f6f8f';
+  const NAMES: Record<Model, string> = { con: 'conservative', semi: 'semiconservative', disp: 'dispersive' };
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const pct = (f: number) => (Math.round(f * 1000) / 10).toString().replace(/\.0$/, '') + '%';
+  // Bands predicted by each model after g generations (lesson, worked problem steps 1 to 3).
+  function predict(m: Model, g: number): Band[] {
+    if (g === 0) return [{ pos: 1, frac: 1, name: 'heavy' }];
+    const n = Math.pow(2, g);
+    if (m === 'semi') {
+      const hyb = 2 / n; // 2 HL duplexes among 2^g
+      const out: Band[] = [{ pos: 0.5, frac: hyb, name: 'hybrid' }];
+      if (hyb < 1) out.push({ pos: 0, frac: 1 - hyb, name: 'light' });
+      return out;
+    }
+    if (m === 'con') return [{ pos: 1, frac: 1 / n, name: 'heavy' }, { pos: 0, frac: 1 - 1 / n, name: 'light' }];
+    return [{ pos: 1 / n, frac: 1, name: 'one band at 1/' + n + ' of the way to heavy' }];
+  }
+  // What Meselson and Stahl saw, as the lesson reports it: generation 1 and 2 only.
+  function observed(g: number): Band[] | null {
+    if (g === 0) return [{ pos: 1, frac: 1, name: 'heavy' }];
+    if (g === 1) return [{ pos: 0.5, frac: 1, name: 'hybrid' }];
+    if (g === 2) return [{ pos: 0.5, frac: 0.5, name: 'hybrid' }, { pos: 0, frac: 0.5, name: 'light' }];
+    return null;
+  }
+  function colour(b: Band, m: Model | 'obs') {
+    if (b.name === 'heavy') return HEAVY;
+    if (b.name === 'light') return LIGHT;
+    if (b.name === 'hybrid') return HYB;
+    return m === 'disp' ? DISP : HYB;
+  }
+  function sameBands(a: Band[], b: Band[]) {
+    if (a.length !== b.length) return false;
+    return a.every((x) => b.some((y) => Math.abs(x.pos - y.pos) < 1e-9 && Math.abs(x.frac - y.frac) < 1e-9));
+  }
+  document.querySelectorAll<HTMLElement>('[data-dbp]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const gen = root.querySelector<HTMLInputElement>('[data-gen]')!;
+    const genOut = root.querySelector<HTMLElement>('[data-genout]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const radios = root.querySelectorAll<HTMLInputElement>('input[name="dbp-model"]');
+    const model = (): Model => (Array.from(radios).find((r) => r.checked)?.value as Model) || 'semi';
+
+    function lane(y: number, title: string, bands: Band[] | null, m: Model | 'obs', note?: string) {
+      stage.appendChild(el('text', { x: 6, y: y - 6, 'font-size': 10, 'font-weight': 700, fill: INK }, title));
+      stage.appendChild(el('rect', { x: 8, y, width: 344, height: 44, rx: 6, fill: '#f3f3f6', stroke: '#d9d9e0' }));
+      if (!bands) {
+        stage.appendChild(el('text', { x: 180, y: y + 26, 'font-size': 10, 'text-anchor': 'middle', fill: FAINT }, note || ''));
+        return;
+      }
+      bands.forEach((b) => {
+        const x = X0 + b.pos * (X1 - X0);
+        stage.appendChild(el('rect', { x: x - 9, y: y + 6, width: 18, height: 32, rx: 2, fill: colour(b, m), 'fill-opacity': 0.25 + 0.75 * b.frac }));
+        stage.appendChild(el('text', { x, y: y + 56, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, pct(b.frac)));
+      });
+    }
+    function draw(m: Model, g: number, pred: Band[], obs: Band[] | null) {
+      stage.replaceChildren();
+      stage.appendChild(el('rect', { x: 0, y: 0, width: 360, height: 214, fill: '#fff' }));
+      lane(22, `Predicted: ${NAMES[m]}, generation ${g}`, pred, m);
+      lane(104, g === 0 ? 'Starting condition' : `Observed by Meselson and Stahl, generation ${g}`, obs, 'obs', 'the lesson reports no observation here');
+      if (g === 0) stage.appendChild(el('text', { x: 180, y: 173, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'all DNA heavy (the starting culture, not an observation reported in the lesson)'));
+      // density axis
+      stage.appendChild(el('line', { x1: X0, y1: 186, x2: X1, y2: 186, stroke: FAINT, 'stroke-width': 1 }));
+      ([[0, 'light (14N)', 'start'], [0.5, 'hybrid', 'middle'], [1, 'heavy (15N)', 'end']] as [number, string, string][]).forEach(([p, t, a]) => {
+        const x = X0 + p * (X1 - X0);
+        stage.appendChild(el('line', { x1: x, y1: 182, x2: x, y2: 190, stroke: FAINT }));
+        stage.appendChild(el('text', { x: a === 'start' ? x - 14 : a === 'end' ? x + 14 : x, y: 201, 'font-size': 9, 'text-anchor': a, fill: INK }, t));
+      });
+      stage.appendChild(el('text', { x: 180, y: 211, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'density in CsCl (relative units)'));
+    }
+    function say(m: Model, g: number, pred: Band[], obs: Band[] | null): string {
+      const n = Math.pow(2, g);
+      if (g === 0) return 'Generation 0: before the switch every molecule is fully heavy, so all DNA is in one heavy band whatever the model.';
+      let p: string;
+      if (m === 'semi') {
+        p = g === 1
+          ? 'After one round each heavy strand has a light partner, so all DNA is hybrid.'
+          : `Of every ${n} duplexes, 2 are hybrid (the two original heavy strands never multiply) and ${n - 2} are light: ${pct(2 / n)} hybrid, ${pct(1 - 2 / n)} light.`;
+      } else if (m === 'con') {
+        p = `The original heavy duplex stays intact and every copy is new, so there is 1 heavy duplex among ${n}: ${pct(1 / n)} heavy, ${pct(1 - 1 / n)} light, and never a hybrid band.`;
+      } else {
+        p = `Every molecule is a patchwork, 1/${n} old, so there is always one band, 1/${n} of the way from light to heavy.`;
+      }
+      if (!obs) return p + ' The lesson reports no observation for this generation, so there is nothing to compare; the generation-2 pattern is what separates the models.';
+      if (sameBands(pred, obs)) {
+        if (m === 'disp' && g === 1) return p + ' This matches the single hybrid band observed, so one generation does not rule dispersive replication out.';
+        if (m === 'semi') return p + ' This matches what Meselson and Stahl observed, so semiconservative replication survives.';
+        return p + ' This matches what was observed.';
+      }
+      if (m === 'con') return p + (g === 1
+        ? ' They saw only hybrid DNA, so this model is ruled out.'
+        : ' They saw hybrid and light DNA, not heavy and light, so this model does not match (and was already ruled out at generation 1).');
+      if (m === 'disp') return p + ' They saw hybrid and light DNA in equal amounts, not one band, so this model is ruled out.';
+      return p + ' This does not match the observed pattern.';
+    }
+    function render() {
+      const m = model(), g = Number(gen.value);
+      genOut.textContent = String(g);
+      const pred = predict(m, g), obs = observed(g);
+      draw(m, g, pred, obs);
+      verdict.textContent = say(m, g, pred, obs);
+    }
+    radios.forEach((r) => r.addEventListener('change', render));
+    gen.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .dbp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dbp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dbp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dbp-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dbp-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dbp-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .dbp-ctl input, .dbp-gen input { accent-color: var(--ddp-color-accent); }
+  .dbp-gen { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dbp-gen input[type="range"] { flex: 1 1 8rem; max-width: 16rem; }
+  .dbp-out { font-family: var(--ddp-font-mono); font-weight: 700; min-width: 1.2em; }
+  .dbp input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dbp-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .dbp-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

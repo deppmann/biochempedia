@@ -1,0 +1,541 @@
+{
+ "slug": "wiring-problem",
+ "title": "The Wiring Problem: How a Brain Gets Built",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "d4d4b83279ae",
+ "sectionHashes": {
+  "One circuit, built right": "bf8f672b6758",
+  "The wiring problem": "4afeb63c4884",
+  "Three strategies instead of a list": "6093157865d8",
+  "Why one noisy gradient gives only rough order": "04398ca704bb",
+  "Testing the split: block the spikes": "c0c5219d65e3",
+  "Overproduce, then select, across a human life": "62f29604ffb5",
+  "The roadmap: from induction to refinement": "db90a42c132d",
+  "Design problem": "1a5a9b100705",
+  "Axons read relative, not absolute, levels": "979b9f2790f8",
+  "Precise wiring without activity": "5fde5261494c",
+  "The worm's list": "34e4fb2b0547",
+  "Density is not a total count": "5b5ee3c5160c",
+  "How many kinds of retinal ganglion cell?": "1b0d31356cfb"
+ },
+ "cards": [
+  {
+   "id": "wiring-problem-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What makes a group of neurons a neural circuit?",
+   "back": "Synaptic connections join the neurons to carry out a specific function.",
+   "quote": "A neural circuit is a population of neurons joined by synapses to carry out a specific function.",
+   "section": "One circuit, built right"
+  },
+  {
+   "id": "wiring-problem-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The stretch-sensing sensory neurons whose endings wrap muscle-spindle fibres are called {{c1::Ia afferents}}.",
+   "back": "Their cell bodies lie in a ganglion beside the spinal cord.",
+   "quote": "their cell bodies sit in a ganglion beside the spinal cord; they are called Ia afferents.",
+   "section": "One circuit, built right"
+  },
+  {
+   "id": "wiring-problem-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does one quadriceps stretch-sensing axon coordinate the two opposing muscles in the stretch reflex?",
+   "back": "It excites quadriceps motor neurons directly and excites an inhibitory interneuron that inhibits hamstring motor neurons.",
+   "quote": "The same axon also excites an inhibitory interneuron, which inhibits the motor neurons of the hamstring, the opposing muscle on the back of the thigh.",
+   "section": "One circuit, built right"
+  },
+  {
+   "id": "wiring-problem-c04",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical stretch-reflex circuit, the interneuron excites hamstring motor neurons instead of inhibiting them. What happens to the hamstring response, and why?",
+   "back": "Hamstring motor neurons are excited rather than inhibited, so the hamstring is driven to contract instead of relaxing. The connection has the wrong sign.",
+   "quote": "Connections are selective and precise: each had to be made during development, with the right partner and the right sign.",
+   "section": "One circuit, built right"
+  },
+  {
+   "id": "wiring-problem-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What approximate neuron, synapse and protein-coding gene counts frame the human brain wiring problem?",
+   "back": "About 86 billion neurons, on the order of 100 trillion synapses, and about 20,000 protein-coding genes. The synapse count is an order-of-magnitude estimate.",
+   "quote": "An adult human brain holds about 86 billion neurons (8.6 × 10¹⁰).",
+   "section": "The wiring problem"
+  },
+  {
+   "id": "wiring-problem-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why compare an explicit human synapse list with the whole genome in bits rather than compare synapse and gene counts?",
+   "back": "Bits compare information capacity in the same units. A gene can act at many synapses, so counting genes does not measure how much the genome can specify.",
+   "quote": "The whole genome, all 3.1 billion base pairs and not just the genes, holds at most about 6 × 10⁹ bits:",
+   "section": "The wiring problem"
+  },
+  {
+   "id": "wiring-problem-c07",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Using 10¹⁴ human synapses and about 36 bits per partner, estimate the wiring-list size. Compare it with 3.1 × 10⁹ bases at 2 bits per base.",
+   "back": "List ≈ 10¹⁴ × 36 = 3.6 × 10¹⁵ bits, or about 4 × 10¹⁵ bits. Genome ≤ 6.2 × 10⁹ bits. Ratio ≈ 5.8 × 10⁵: roughly a millionfold shortfall.",
+   "quote": "A list of 10¹⁴ synapses at 36 bits each needs about 4 × 10¹⁵ bits.",
+   "section": "The wiring problem"
+  },
+  {
+   "id": "wiring-problem-c08",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the idealized on-or-off gene-label model, n genes can produce {{c1::2ⁿ}} distinct labels.",
+   "back": "Each additional independently switchable gene doubles the combinations.",
+   "quote": "If each gene is either on or off in a cell, each added gene doubles the number of combinations,",
+   "section": "The wiring problem"
+  },
+  {
+   "id": "wiring-problem-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why would giving every neuron a unique molecular identity leave the wiring problem unsolved?",
+   "back": "An identity specifies which neuron it is; it does not specify which other neurons should be its synaptic partners.",
+   "quote": "A unique name says which cell a neuron is. It says nothing about which of the other 86 billion cells it should connect to.",
+   "section": "The wiring problem"
+  },
+  {
+   "id": "wiring-problem-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What recognition task does the near-unique identity provided by clustered protocadherins support?",
+   "back": "It lets a neuron’s own branches recognize and avoid each other; it is not a list of synaptic partners.",
+   "quote": "The clustered protocadherins give a neuron a near-unique identity that lets its own branches recognize and avoid each other.",
+   "section": "The wiring problem"
+  },
+  {
+   "id": "wiring-problem-c11",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which three developmental strategies can build many neural connections using reusable rules?",
+   "back": "Graded and combinatorial labels; local rules that produce global order; overproduction followed by selection.",
+   "quote": "So the information that wires a brain has to be compressed into rules that apply in many places at once.",
+   "section": "Three strategies instead of a list"
+  },
+  {
+   "id": "wiring-problem-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The moving tip of a growing axon that senses its immediate surroundings is the {{c1::growth cone}}.",
+   "back": "",
+   "quote": "A growth cone, the moving tip of a growing axon, senses only its immediate surroundings.",
+   "section": "Three strategies instead of a list"
+  },
+  {
+   "id": "wiring-problem-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How can a molecular gradient encode many positions without a separate gene for each position?",
+   "back": "The amount of the molecule varies smoothly across tissue, giving cells at different positions different local values to read.",
+   "quote": "A molecule whose amount rises smoothly across a tissue gives each cell a value for where it sits, with no separate gene for each position.",
+   "section": "Three strategies instead of a list"
+  },
+  {
+   "id": "wiring-problem-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Two retinal axons compete in the same target. One has more EphA receptor than its neighbour. Which is kept farther from high ephrin-A regions, and why?",
+   "back": "The axon with more receptor is kept farther away. High receptor levels produce stronger avoidance of high-cue regions; receptor levels matter relative to competing axons.",
+   "quote": "Axons with more receptor are kept away from regions with more cue,",
+   "section": "Three strategies instead of a list"
+  },
+  {
+   "id": "wiring-problem-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A growing axon encounters increasing attractant to its left and increasing repellent to its right. What steering response follows the local guidance rules, and why?",
+   "back": "It steers left, toward more attractant and away from more repellent. Both local rules favour the same direction.",
+   "quote": "grow toward more of an attractant, turn away from a repellent, stop at a suitable partner.",
+   "section": "Three strategies instead of a list"
+  },
+  {
+   "id": "wiring-problem-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "During overproduction followed by selection, what information helps decide which neurons or connections remain?",
+   "back": "Whether inputs fire together with their neighbours and whether they win limited support supplied by targets.",
+   "quote": "which inputs fire together with their neighbours, and which win the limited support, such as nerve growth factor, that targets supply.",
+   "section": "Three strategies instead of a list"
+  },
+  {
+   "id": "wiring-problem-c17",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Design a rule-based way to build an ordered neural map when molecular labels give only rough positions. How can later activity improve it?",
+   "back": "Use graded positional labels read by local growth cones for coarse order, then overproduce branches and preferentially retain those coactive with neighbouring inputs. This combines the rules for molecular guidance and post-connection selection.",
+   "quote": "Comparisons made after connections form help set the fine detail and decide which neurons and connections stay.",
+   "section": "Three strategies instead of a list"
+  },
+  {
+   "id": "wiring-problem-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the simple noisy-gradient sketch, why can a nearly perfect overall rank correlation coexist with poor ordering of neighbouring axons?",
+   "back": "Noise is small relative to the whole target but large relative to neighbour spacing. It preserves coarse order while leaving adjacent positions poorly resolved.",
+   "quote": "The overall order comes out nearly perfect: in simulations of the sketch, the rank correlation between start and landing position (1 means perfect order) was about 0.99.",
+   "section": "Why one noisy gradient gives only rough order"
+  },
+  {
+   "id": "wiring-problem-c19",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the simple gradient sketch, resolvable positions ≈ ln(F)/(2σ). Estimate the number for F = 10 and fractional reading error σ = 0.1.",
+   "back": "ln(10)/(2 × 0.1) = 11.51, or about 12 resolvable positions. This is a property of the sketch, not a measured growth-cone resolution.",
+   "quote": "resolvable positions ≈ ln F ÷ 2σ; F = 10, σ = 0.1 → about 12;",
+   "section": "Why one noisy gradient gives only rough order"
+  },
+  {
+   "id": "wiring-problem-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An axon has two branches: one fires in step with nearby inputs and the other fires out of step. Under activity-dependent selection, which is more likely to remain, and why?",
+   "back": "The branch firing in step is more likely to remain. Correlated inputs jointly drive target cells; an out-of-step branch tends to be lost.",
+   "quote": "A branch that lands among strangers fires out of step and tends to be lost.",
+   "section": "Why one noisy gradient gives only rough order"
+  },
+  {
+   "id": "wiring-problem-c21",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical retinal map, guidance gradients remain normal and cells keep firing, but neighbouring cells lose their correlated firing. What happens to coarse order and activity-dependent sharpening, and why?",
+   "back": "Coarse order can remain, while sharpening can be impaired. The molecular-guidance rule still supplies rough positions, but the correlated-activity rule no longer reliably favours branches near their retinal neighbours.",
+   "quote": "Together with competition, this can sharpen the neighbour order that a gradient leaves rough.",
+   "section": "Why one noisy gradient gives only rough order"
+  },
+  {
+   "id": "wiring-problem-c22",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Tetrodotoxin prevents action potentials by blocking {{c1::voltage-gated sodium channels}}.",
+   "back": "",
+   "quote": "Tetrodotoxin blocks voltage-gated sodium channels, so neurons cannot fire action potentials, or spikes.",
+   "section": "Testing the split: block the spikes"
+  },
+  {
+   "id": "wiring-problem-c23",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "During adult goldfish optic-nerve regeneration, retinal spikes are blocked. Axons reach roughly ordered positions but their terminal branches remain broad. Which developmental process depends on spikes under these conditions?",
+   "back": "Sharpening the terminal arbors depends on spikes; reaching the target in rough order does not. Molecular cues are a likely guide for rough targeting.",
+   "quote": "The axons still reached the target in roughly the right order, but each axon's terminal branches stayed spread over a wide area,",
+   "section": "Testing the split: block the spikes"
+  },
+  {
+   "id": "wiring-problem-c24",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In zebrafish embryos, spike blockade begins around retinal axon outgrowth. Ordered maps and compact arbors still form. What does this establish about the first embryonic map?",
+   "back": "Both the measured coarse order and fine arbor precision can form without spikes in that early window. This does not establish that later refinement is activity-independent.",
+   "quote": "So in that first embryonic map, fine precision formed without spikes too.",
+   "section": "Testing the split: block the spikes"
+  },
+  {
+   "id": "wiring-problem-c25",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Adult goldfish regeneration needs spikes for precise arbors, whereas the first zebrafish embryonic map forms precise arbors without them. Does the comparison isolate species as the cause?",
+   "back": "No. By the rule that activity requirements depend on the tested system, the comparison is confounded by species, developmental stage, and regeneration versus first assembly. Vary one difference while holding the others fixed.",
+   "quote": "The two experiments also differ in species, in stage, and in regrowing a map against building one for the first time,",
+   "section": "Testing the split: block the spikes"
+  },
+  {
+   "id": "wiring-problem-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does activity during neural circuit assembly differ from switching on a conventional electronic circuit after assembly?",
+   "back": "Neural circuits already carry signals while later connections are growing. Early activity and later experience help determine which connections remain.",
+   "quote": "Embryonic neurons fire, and connections made early carry signals while later ones are still growing.",
+   "section": "Overproduce, then select, across a human life"
+  },
+  {
+   "id": "wiring-problem-c27",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What does synapse density measure?",
+   "back": "The number of synapses per unit tissue volume.",
+   "quote": "counted synapses per unit volume, their density, by electron microscopy in a region of human frontal cortex,",
+   "section": "Overproduce, then select, across a human life"
+  },
+  {
+   "id": "wiring-problem-c28",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What developmental synapse-density pattern was reported in the sampled region of human frontal cortex?",
+   "back": "Density rose during infancy, peaked at about one to two years at roughly half again the adult value, then declined through childhood and adolescence.",
+   "quote": "peaked at about one to two years of age at roughly half again the adult value,",
+   "section": "Overproduce, then select, across a human life"
+  },
+  {
+   "id": "wiring-problem-c29",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an invented cortical dataset, synapse density is 6.0 × 10⁸ synapses/mm³ at age 2 and 4.0 × 10⁸ synapses/mm³ in adults. What is the age-2/adult density ratio?",
+   "back": "(6.0 × 10⁸ synapses/mm³)/(4.0 × 10⁸ synapses/mm³) = 1.5. The age-2 density is 1.5 times the adult density; this compares densities, not total synapse counts.",
+   "quote": "peaked at about one to two years of age at roughly half again the adult value,",
+   "section": "Overproduce, then select, across a human life"
+  },
+  {
+   "id": "wiring-problem-c30",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What is the developmental sequence from neural induction through activity-dependent refinement?",
+   "back": "Induction → patterning → generation of neurons and glia → migration → axon growth and guidance → target selection → naturally occurring death → synapse formation → activity-dependent refinement.",
+   "quote": "The course follows them in order.",
+   "section": "The roadmap: from induction to refinement"
+  },
+  {
+   "id": "wiring-problem-c31",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What central question defines each of the three acts of neural circuit development: coalescence, guidance and competition?",
+   "back": "Coalescence: where cells go and gather into ganglia and layers. Guidance: how axons find targets. Competition: which neurons survive.",
+   "quote": "Act 2 is guidance: how axons find their targets. Act 3 is competition: who survives.",
+   "section": "The roadmap: from induction to refinement"
+  },
+  {
+   "id": "wiring-problem-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How do the listed stages of neural circuit development relate in timing and use of signals?",
+   "back": "The stages overlap in time, and many reuse the same signals. An ordered description does not imply that one stage finishes everywhere before another begins.",
+   "quote": "The steps overlap in time, and many of them reuse the same signals:",
+   "section": "The roadmap: from induction to refinement"
+  },
+  {
+   "id": "wiring-problem-c33",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Design a comparison that distinguishes a neural connection’s need for visual experience from its need for neural activity during development.",
+   "back": "Compare normal rearing, dark rearing and retinal spike blockade. Darkness removes visual experience while spontaneous activity continues. Normal refinement in darkness but failure with blockade supports a need for activity without a need for visual experience.",
+   "why": "The design uses the rule that normal formation without an input shows that the input was unnecessary under those conditions.",
+   "quote": "To remove visual experience while spontaneous activity continues, raise the animal in the dark instead.",
+   "section": "Design problem"
+  },
+  {
+   "id": "wiring-problem-c34",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A connection forms normally without retinal spikes. A researcher concludes that a particular molecular cue guides it. What extra experiment would test that cue’s necessity?",
+   "back": "Compare spike-blocked animals with the candidate cue available versus unavailable. A specific targeting defect after cue removal supports its necessity. This follows the local-guidance rule; spike independence alone does not identify the cue.",
+   "quote": "A connection that forms normally without what was removed did not need it, and molecular cues are the likely guide;",
+   "section": "Design problem"
+  },
+  {
+   "id": "wiring-problem-c35",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Isl2–EphA3 manipulation, only some retinal axons receive extra receptor, yet unmodified axons shift their target positions too. What does the shift of unmodified axons show?",
+   "back": "Mapping depends on receptor levels relative to competing axons, rather than only each axon’s absolute receptor level. Unchanged receptor levels do not guarantee an unchanged position.",
+   "quote": "wild-type axons shifted too, although their own receptor levels were unchanged.",
+   "section": "Axons read relative, not absolute, levels"
+  },
+  {
+   "id": "wiring-problem-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can retinal partner types form precise connections in the same inner plexiform sublayer without activity?",
+   "back": "Matching adhesion labels, including Sidekicks, help partner types meet in the same sublayer. Fine precision therefore does not always require activity.",
+   "quote": "partner types meet in the same sublayer, guided in part by matching adhesion proteins such as the Sidekicks",
+   "section": "Precise wiring without activity"
+  },
+  {
+   "id": "wiring-problem-c37",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "For the simplified C. elegans partner list, use about 7,600 contacts, 9 bits for each end and 2 bits for contact type. What fraction of a 2 × 10⁸-bit genome would the list occupy?",
+   "back": "Bits/contact = 9 + 9 + 2 = 20. List ≈ 7,600 × 20 = 152,000 bits. Fraction = 152,000/(2 × 10⁸) = 0.00076, or 0.076%, below a thousandth.",
+   "why": "This estimate omits contact location on each cell and contact strength. A list could fit, yet the worm still develops through guidance and partner recognition.",
+   "quote": "7,600 × 20 ≈ 1.5 × 10⁵ bits, against a genome of about 2 × 10⁸ bits, under a thousandth.",
+   "section": "The worm's list"
+  },
+  {
+   "id": "wiring-problem-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Synapse density falls as a cortex grows. What observation would establish actual loss of existing synapses rather than only a change in tissue volume?",
+   "back": "Follow the same dendritic spines over time and observe their disappearance. The density-versus-total-count rule means a density decline alone cannot distinguish synapse loss from dilution by tissue growth.",
+   "quote": "Studies in animals that follow the same dendritic spines over time show the loss directly.",
+   "section": "Density is not a total count"
+  },
+  {
+   "id": "wiring-problem-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can shape-based and single-cell gene-expression surveys report different numbers of mouse retinal ganglion-cell types?",
+   "back": "They classify cells using different features and can resolve different groupings. The reported number of types depends on the method.",
+   "quote": "so the count depends on the method. Types differ in the combination of brain targets they reach,",
+   "section": "How many kinds of retinal ganglion cell?"
+  }
+ ]
+}

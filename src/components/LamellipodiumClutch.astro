@@ -1,0 +1,238 @@
+---
+/**
+ * LamellipodiumClutch — the one-dimensional lamellipodium model of the Cell Shape,
+ * Migration and Cilia lesson: edge speed (relative to the substrate) = polymerization
+ * speed (relative to the network) minus retrograde flow. Two sliders (polymerization,
+ * and clutch engagement expressed as the retrograde flow it leaves), an animation in the
+ * substrate frame, and the lesson's arithmetic beside it. Original, self-contained.
+ */
+---
+
+<figure class="lc card" data-lamclutch>
+  <figcaption class="lc-head">Lamellipodium clutch — edge speed = polymerization − flow<span class="lc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="lc-svg" viewBox="0 0 340 168" role="img" aria-label="A leading edge advancing over a ruler fixed to the substrate while actin speckles behind it move backward" data-stage></svg>
+
+  <div class="lc-controls">
+    <label class="lc-slabel"><span>Polymerization at the edge <em data-out="poly">40</em> nm/s <small>(illustrative assumption)</small></span>
+      <input type="range" data-in="poly" min="20" max="60" step="1" value="40" />
+    </label>
+    <label class="lc-slabel"><span>Clutch engagement, shown as retrograde flow <em data-out="flow">25</em> nm/s <small>(left = clutch more engaged, less flow)</small></span>
+      <input type="range" data-in="flow" min="0" max="40" step="1" value="25" />
+    </label>
+  </div>
+  <div class="lc-btnrow">
+    <button type="button" class="lc-btn" data-play>Pause</button>
+    <button type="button" class="lc-btn" data-reset>Back to the lesson’s numbers</button>
+  </div>
+
+  <dl class="lc-readout">
+    <div><dt>Edge speed = polymerization − flow</dt><dd data-r-speed>40 − 25 = 15 nm/s</dd></div>
+    <div><dt>Distance in 120 s</dt><dd data-r-dist>15 × 120 = 1,800 nm = 1.8 µm</dd></div>
+    <div><dt>Check: forward gain − rearward loss</dt><dd data-r-check>4,800 − 3,000 = 1,800 nm</dd></div>
+  </dl>
+  <p class="lc-why" data-why role="status">Starting case.</p>
+
+  <p class="lc-foot">Rule to keep: edge speed = polymerization speed − retrograde flow speed. One-dimensional sketch: only the 25 nm/s flow is measured (PtK1 cells); the 40 nm/s polymerization is an illustrative assumption, as are the slider ranges and any flow other than 25 nm/s (10 nm/s is the lesson’s supposed case). Stronger adhesion is not always faster movement: in PtK1 cells traction stress and actin speed were related biphasically, switching near 8 to 10 nm/s, and in CHO cells strong adhesion slowed migration because the rear could not detach. Edge advance is not movement of the cell body. Speckle positions are arbitrary, and 120 s of model time plays in 8 s, so this is a sketch of the logic.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const MINUS = '−';
+  const fmt = (n: number) => (n < 0 ? MINUS : '') + Math.abs(n).toLocaleString('en-US');
+  const um = (nm: number) => {
+    const v = Math.round(Math.abs(nm)) / 1000;
+    return (nm < 0 ? MINUS : '') + String(parseFloat(v.toFixed(3)));
+  };
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-lamclutch]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const polyIn = q('[data-in="poly"]'), flowIn = q('[data-in="flow"]');
+    const polyOut = o('[data-out="poly"]'), flowOut = o('[data-out="flow"]');
+    const rSpeed = o('[data-r-speed]'), rDist = o('[data-r-dist]'), rCheck = o('[data-r-check]');
+    const why = o('[data-why]');
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+
+    const T_END = 120;          // model seconds (the lesson's interval)
+    const REAL_S = 8;           // real seconds to play T_END
+    const HOLD_S = 1.2;         // pause at the end of each loop
+    const AX0 = -6000, AX1 = 8000; // nm shown on the substrate ruler
+    const PX0 = 16, PX1 = 324;
+    const X = (nm: number) => PX0 + ((Math.min(AX1, Math.max(AX0, nm)) - AX0) / (AX1 - AX0)) * (PX1 - PX0);
+    const BAND_Y0 = 38, BAND_Y1 = 104, RULER_Y = 128;
+    const WIN = 2000;           // nm of network drawn behind the edge (speckles recycle here)
+    const ROWS = [50, 62, 74, 86, 98 - 2];
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let poly = 40, flow = 25, t = reduced ? T_END : 0, playing = !reduced, last = 0, hold = 0;
+
+    function setState() {
+      poly = parseInt(polyIn.value, 10);
+      flow = parseInt(flowIn.value, 10);
+      polyOut.textContent = String(poly);
+      flowOut.textContent = String(flow);
+      const speed = poly - flow;
+      const dist = speed * T_END;
+      rSpeed.textContent = `${poly} ${MINUS} ${flow} = ${fmt(speed)} nm/s`;
+      rDist.textContent = `${fmt(speed)} × ${T_END} = ${fmt(dist)} nm = ${um(dist)} µm`;
+      rCheck.textContent = `${fmt(poly * T_END)} ${MINUS} ${fmt(flow * T_END)} = ${fmt(dist)} nm`;
+      status(speed, dist);
+    }
+
+    function status(speed: number, dist: number) {
+      const base = `Polymerization ${poly} nm/s minus flow ${flow} nm/s gives an edge speed of ${fmt(speed)} nm/s, so ${fmt(dist)} nm (${um(dist)} µm) in 120 s.`;
+      let extra: string;
+      if (speed < 0) {
+        extra = ' Flow is faster than polymerization, so the formula gives a negative edge speed (in this sketch the edge moves back). The orange speckle moves back faster than filaments are added at the edge.';
+      } else if (speed === 0) {
+        extra = ' The two rates cancel: filaments still grow at the edge, but the edge goes nowhere.';
+      } else if (poly === 40 && flow === 25) {
+        extra = ' This is the lesson’s worked case: 15 nm/s and 1.8 µm. The 25 nm/s flow was measured in PtK1 cells; the 40 nm/s polymerization is only an illustrative assumption.';
+      } else if (poly === 40 && flow === 10) {
+        extra = ' This is the lesson’s engage-the-clutch case: cutting flow from 25 to 10 nm/s, with polymerization unchanged, doubles the advance (3.6 µm instead of 1.8 µm).';
+      } else if (flow < 25) {
+        extra = ' Less flow than the measured 25 nm/s means less polymerization is lost to rearward flow, so more of it becomes forward motion. Remember that the lesson’s polymerization value is an assumption.';
+      } else if (flow > 25) {
+        extra = ' More flow than the measured 25 nm/s means more polymerization is taken back, so less of it becomes forward motion. Remember that the lesson’s polymerization value is an assumption.';
+      } else {
+        extra = ' Flow is the measured 25 nm/s; with polymerization changed, the edge speed follows the same subtraction. The polymerization values are illustrative.';
+      }
+      why.textContent = base + extra;
+    }
+
+    function text(x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+      const e = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, opts));
+      e.textContent = s;
+      stage.appendChild(e);
+    }
+
+    function draw() {
+      const speed = poly - flow;
+      const edge = speed * t;                       // nm, substrate frame
+      const ex = X(edge);
+      stage.replaceChildren();
+
+      // legend, row 1
+      stage.appendChild(el('line', { x1: 16, y1: 10, x2: 16, y2: 18, stroke: ACCENT, 'stroke-width': 3 }));
+      text(22, 17, 'edge');
+      stage.appendChild(el('circle', { cx: 62, cy: 14, r: 2.5, fill: INK }));
+      text(68, 17, 'network speckle');
+      stage.appendChild(el('circle', { cx: 150, cy: 14, r: 3, fill: ORANGE }));
+      text(157, 17, 'one tagged speckle');
+      text(324, 17, `t = ${Math.round(t)} s`, { 'text-anchor': 'end', 'font-weight': 700 });
+      // legend, row 2
+      stage.appendChild(el('path', { d: 'M12 29 L16 23 L20 29 Z', fill: ACCENT }));
+      text(24, 29, 'where the edge will be at 120 s (this setting)');
+
+      // network band (cell behind the edge)
+      const bandX0 = Math.max(PX0, ex - X(WIN) + X(0));
+      stage.appendChild(el('rect', { x: PX0, y: BAND_Y0, width: Math.max(0, ex - PX0), height: BAND_Y1 - BAND_Y0, fill: '#eef6f7' }));
+      void bandX0;
+
+      // t = 0 reference line
+      stage.appendChild(el('line', { x1: X(0), y1: BAND_Y0 - 4, x2: X(0), y2: RULER_Y, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+
+      // speckles: recycled across WIN behind the edge; substrate-frame x = edge - rel
+      const per = 4;
+      ROWS.forEach((y, ri) => {
+        for (let k = 0; k < per; k++) {
+          const r0 = (k + ri * 0.37) * (WIN / per);
+          const rel = (r0 + poly * t) % WIN;
+          const sx = X(edge - rel);
+          if (sx > PX0) stage.appendChild(el('circle', { cx: sx, cy: y, r: 2.5, fill: INK, opacity: 0.55 }));
+        }
+      });
+      // tagged speckle: starts 800 nm behind the edge at t = 0 and moves back at the flow speed
+      const tag = -800 - flow * t;
+      stage.appendChild(el('circle', { cx: X(tag), cy: 68, r: 3.6, fill: ORANGE, stroke: '#fff', 'stroke-width': 1 }));
+      // faint trace of its path
+      stage.appendChild(el('line', { x1: X(-800), y1: 68, x2: X(tag), y2: 68, stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '2 2', opacity: 0.6 }));
+
+      // leading edge
+      stage.appendChild(el('line', { x1: ex, y1: BAND_Y0 - 2, x2: ex, y2: BAND_Y1 + 2, stroke: ACCENT, 'stroke-width': 4, 'stroke-linecap': 'round' }));
+      // edge position drop line to ruler
+      stage.appendChild(el('line', { x1: ex, y1: BAND_Y1 + 2, x2: ex, y2: RULER_Y, stroke: ACCENT, 'stroke-width': 1 }));
+
+      // expected 120 s marker on the ruler
+      const ex120 = X(speed * T_END);
+      stage.appendChild(el('path', { d: `M${ex120 - 5} ${RULER_Y + 8} L${ex120} ${RULER_Y + 1} L${ex120 + 5} ${RULER_Y + 8} Z`, fill: ACCENT }));
+
+      // ruler fixed to the substrate
+      stage.appendChild(el('line', { x1: PX0, y1: RULER_Y, x2: PX1, y2: RULER_Y, stroke: INK, 'stroke-width': 1 }));
+      for (let nm = AX0; nm <= AX1; nm += 1000) {
+        const major = nm % 2000 === 0;
+        stage.appendChild(el('line', { x1: X(nm), y1: RULER_Y, x2: X(nm), y2: RULER_Y - (major ? 5 : 3), stroke: INK, 'stroke-width': 1 }));
+        if (major) text(X(nm), RULER_Y + 20, String(nm / 1000).replace('-', MINUS), { 'text-anchor': 'middle' });
+      }
+      text((PX0 + PX1) / 2, RULER_Y + 32, 'position on the substrate (µm)', { 'text-anchor': 'middle' });
+    }
+
+    function frame(now: number) {
+      if (!last) last = now;
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      if (playing) {
+        if (hold > 0) {
+          hold -= dt;
+          if (hold <= 0) t = 0;
+        } else {
+          t += dt * (T_END / REAL_S);
+          if (t >= T_END) { t = T_END; hold = HOLD_S; }
+        }
+        draw();
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function onInput() {
+      setState();
+      hold = 0;
+      t = reduced && !playing ? T_END : 0;
+      draw();
+    }
+    [polyIn, flowIn].forEach((s) => s.addEventListener('input', onInput));
+    resetBtn.addEventListener('click', () => { polyIn.value = '40'; flowIn.value = '25'; onInput(); });
+    playBtn.addEventListener('click', () => {
+      playing = !playing;
+      playBtn.textContent = playing ? 'Pause' : 'Play';
+      if (playing && t >= T_END) { t = 0; hold = 0; }
+    });
+    if (!playing) { playBtn.textContent = 'Play'; }
+
+    setState();
+    draw();
+    requestAnimationFrame(frame);
+  });
+</script>
+
+<style>
+  .lc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .lc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .lc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .lc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .lc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .lc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lc-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .lc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .lc-slabel input { accent-color: var(--ddp-color-accent); }
+  .lc-btnrow { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .lc-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .lc-btn:hover { border-color: var(--ddp-color-accent); }
+  .lc-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .lc-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .lc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .lc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .lc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .lc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .lc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) { .lc-controls { grid-template-columns: 1fr; } }
+</style>

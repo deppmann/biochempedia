@@ -1,0 +1,187 @@
+---
+/**
+ * SkylarkCostArithmetic — the lesson's worked problem on Hegemann and colleagues' skylark
+ * handicap. Nest success (successful nests / nests) for 25 control and 17 handicapped pairs
+ * is set by two count sliders; a toggle shows the gap as percentage points or as a relative
+ * reduction against the control rate. A second, fixed pair of bars gives the published mean
+ * fledglings per nest (2.0 and 1.2). Arithmetic only. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="sca card" data-skylark>
+  <figcaption class="sca-head">Skylark handicap: percentage points or percent?<span class="sca-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="sca-svg" viewBox="0 0 340 205" role="img" aria-label="Paired bars: nest success for control and handicapped skylark pairs, and mean fledglings per nest for each group" data-plot></svg>
+
+  <div class="sca-controls">
+    <label class="sca-slabel"><span>Successful nests among 25 controls <em data-out="c">19</em></span>
+      <input type="range" data-in="c" min="0" max="25" step="1" value="19" />
+    </label>
+    <label class="sca-slabel"><span>Successful nests among 17 handicapped <em data-out="h">8</em></span>
+      <input type="range" data-in="h" min="0" max="17" step="1" value="8" />
+    </label>
+    <fieldset class="sca-toggle">
+      <legend>Show the gap in nest success as</legend>
+      <label><input type="radio" name="sca-unit" value="pp" checked /> percentage points</label>
+      <label><input type="radio" name="sca-unit" value="pct" /> percent of the control rate</label>
+    </fieldset>
+  </div>
+
+  <dl class="sca-readout">
+    <div><dt>Control nest success</dt><dd data-r-c></dd></div>
+    <div><dt>Handicapped nest success</dt><dd data-r-h></dd></div>
+    <div><dt data-r-gap-label>Gap</dt><dd data-r-gap></dd></div>
+    <div><dt>Fledglings per nest, 1.2 / 2.0</dt><dd data-r-fl></dd></div>
+  </dl>
+  <p class="sca-calc" data-calc></p>
+  <p class="sca-why" data-why role="status"></p>
+
+  <p class="sca-assume">In this sketch: arithmetic only. The fledgling bars are the published means (2.0 and 1.2) and do not follow the sliders. The harness and the load cannot be separated, and the counts do not measure a survival cost to the adults. Counts other than 19 of 25 and 8 of 17 are what-ifs, not the study’s data.</p>
+  <p class="sca-foot">Percentage points compare two rates directly; percent compares one rate with the other, and is measured against the control.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', ACCENT = '#0e7c86', ORANGE = '#e57200';
+  const NC = 25, NH = 17;
+  const MINUS = '−';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const txt = (x: number, y: number, s: string, size = 9, anchor = 'middle', fill = INK, weight = 400) => {
+    const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  };
+  const sgn = (v: number, d: number) => {
+    const r = Number(v.toFixed(d));
+    return (r > 0 ? '+' : r < 0 ? MINUS : '') + Math.abs(r).toFixed(d);
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-skylark]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const cIn = root.querySelector<HTMLInputElement>('[data-in="c"]')!;
+    const hIn = root.querySelector<HTMLInputElement>('[data-in="h"]')!;
+    const cOut = o('[data-out="c"]'), hOut = o('[data-out="h"]');
+    const rC = o('[data-r-c]'), rH = o('[data-r-h]'), rGap = o('[data-r-gap]'), rGapL = o('[data-r-gap-label]'), rFl = o('[data-r-fl]');
+    const calc = o('[data-calc]'), why = o('[data-why]');
+    const units = root.querySelectorAll<HTMLInputElement>('input[name="sca-unit"]');
+
+    const Y1 = 150, YT = 30, H = Y1 - YT;
+    function bar(cx: number, val: number, max: number, fill: string, label: string, name: string) {
+      const h = Math.max(0, (val / max) * H);
+      plot.appendChild(el('rect', { x: cx - 16, y: Y1 - h, width: 32, height: h, fill, rx: 2 }));
+      plot.appendChild(txt(cx, Math.max(YT - 3, Y1 - h - 4), label, 10, 'middle', INK, 700));
+      plot.appendChild(txt(cx, Y1 + 12, name, 9));
+    }
+
+    function render() {
+      const c = parseInt(cIn.value, 10), h = parseInt(hIn.value, 10);
+      const unit = Array.from(units).find((u) => u.checked)!.value;
+      cOut.textContent = String(c);
+      hOut.textContent = String(h);
+      const rc = c / NC, rh = h / NH;
+      const published = c === 19 && h === 8;
+      const equal = h * NC === c * NH;
+      const ppDiff = (rh - rc) * 100;
+      const undefinedRel = c === 0;
+      const rel = undefinedRel ? NaN : (rc - rh) / rc;
+
+      plot.replaceChildren();
+      // panel A: nest success (0-100%)
+      plot.appendChild(txt(100, 13, 'Nest success (% of nests)', 10, 'middle', INK, 600));
+      plot.appendChild(el('line', { x1: 40, y1: YT, x2: 40, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: 40, y1: Y1, x2: 165, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const t of [0, 50, 100]) {
+        const y = Y1 - (t / 100) * H;
+        if (t > 0) plot.appendChild(el('line', { x1: 40, y1: y, x2: 165, y2: y, stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        plot.appendChild(txt(36, y + 3, t + '%', 9, 'end'));
+      }
+      bar(76, rc * 100, 100, ACCENT, (rc * 100).toFixed(1) + '%', 'Control');
+      bar(132, rh * 100, 100, ORANGE, (rh * 100).toFixed(1) + '%', 'Handicapped');
+      plot.appendChild(txt(76, Y1 + 23, c + ' of ' + NC, 9));
+      plot.appendChild(txt(132, Y1 + 23, h + ' of ' + NH, 9));
+      // panel B: fledglings (0-2.5, fixed published means)
+      plot.appendChild(txt(262, 13, 'Fledglings per nest', 10, 'middle', INK, 600));
+      plot.appendChild(el('line', { x1: 200, y1: YT, x2: 200, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: 200, y1: Y1, x2: 325, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const t of [0, 1, 2]) {
+        const y = Y1 - (t / 2.5) * H;
+        if (t > 0) plot.appendChild(el('line', { x1: 200, y1: y, x2: 325, y2: y, stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        plot.appendChild(txt(196, y + 3, String(t), 9, 'end'));
+      }
+      bar(236, 2.0, 2.5, ACCENT, '2.0', 'Control');
+      bar(292, 1.2, 2.5, ORANGE, '1.2', 'Handicapped');
+      plot.appendChild(txt(262, Y1 + 23, 'published means, fixed', 9));
+      plot.appendChild(txt(170, 200, 'first broods', 9, 'middle', INK));
+
+      rC.textContent = (rc * 100).toFixed(1) + '%';
+      rH.textContent = (rh * 100).toFixed(1) + '%';
+      rFl.textContent = '0.60, so 40% fewer';
+
+      let gapText: string, calcText: string;
+      if (unit === 'pp') {
+        rGapL.textContent = 'Gap, in percentage points';
+        gapText = sgn(ppDiff, 1) + ' pp';
+        calcText = (rh * 100).toFixed(1) + '% ' + MINUS + ' ' + (rc * 100).toFixed(1) + '% = ' + sgn(ppDiff, 1) + ' percentage points.';
+      } else {
+        rGapL.textContent = rel < 0 ? 'Relative change, against the control' : 'Relative reduction, against the control';
+        if (undefinedRel) {
+          gapText = 'undefined';
+          calcText = 'Relative reduction = (control rate ' + MINUS + ' treated rate) / control rate. With a control rate of 0 the division is by zero, so it is undefined.';
+        } else {
+          gapText = rel < 0 ? sgn(-rel * 100, 1) + '%' : (rel * 100).toFixed(1) + '%';
+          calcText = '(' + rc.toFixed(4) + ' ' + MINUS + ' ' + rh.toFixed(4) + ') / ' + rc.toFixed(4) + ' = ' + sgn(rel, 3) + (rel < 0 ? ' (negative: the handicapped rate is the higher one).' : '.');
+        }
+      }
+      rGap.textContent = gapText;
+      calc.textContent = calcText;
+
+      let s: string;
+      if (c === 0 && h === 0) {
+        s = 'Both rates are 0.0%, so the gap is 0 percentage points. The relative reduction is undefined, because it divides by the control rate, which is 0. No nest succeeded in either group here, so there is nothing to compare.';
+      } else if (undefinedRel) {
+        s = 'The control rate is 0.0%, so the handicapped rate is higher by ' + ppDiff.toFixed(1) + ' percentage points, and the relative reduction is undefined because it divides by 0. Percentage points still describe this gap; percent of the control cannot.';
+      } else if (equal) {
+        s = 'The two rates are equal at ' + (rc * 100).toFixed(1) + '%: a gap of 0 percentage points and a relative reduction of 0%. Equal rates leave nothing for either measure to show.';
+      } else if (published) {
+        s = 'These are the published first-brood counts: 76.0% against 47.1%, a gap of ' + MINUS + '28.9 percentage points and a relative reduction of 38.1%. Fledglings per nest fell from 2.0 to 1.2, which is 40% fewer. P = 0.055 (borderline) for nest success and P = 0.042 for fledglings. The combined harness and load reduced reproductive output; the study did not establish a survival cost to the adults.';
+      } else if (rh > rc) {
+        s = 'In this what-if the handicapped rate (' + (rh * 100).toFixed(1) + '%) is above the control rate (' + (rc * 100).toFixed(1) + '%): a gap of ' + sgn(ppDiff, 1) + ' percentage points, or a relative change of ' + sgn(-rel * 100, 1) + '% against the control. P values are given in the lesson only for the published counts and are not computed here.';
+      } else {
+        s = 'In this what-if the handicapped rate is ' + (rh * 100).toFixed(1) + '% against ' + (rc * 100).toFixed(1) + '%: a gap of ' + sgn(ppDiff, 1) + ' percentage points, or a relative reduction of ' + (rel * 100).toFixed(1) + '% of the control rate. These are the same difference in two forms. P values are given in the lesson only for the published counts and are not computed here.';
+      }
+      why.textContent = s;
+    }
+    [cIn, hIn].forEach((x) => x.addEventListener('input', render));
+    units.forEach((u) => u.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .sca { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sca-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sca-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sca-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sca-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .sca-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sca-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .sca-slabel input { accent-color: var(--ddp-color-accent); }
+  .sca-toggle { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; border: 0; padding: 0; margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sca-toggle legend { padding: 0; margin-bottom: 0.2rem; }
+  .sca-toggle label { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .sca-toggle input { accent-color: var(--ddp-color-accent); }
+  .sca-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .sca-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .sca-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .sca-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .sca-calc { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); overflow-wrap: anywhere; }
+  .sca-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .sca-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .sca-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .sca-controls, .sca-readout { grid-template-columns: 1fr; } }
+</style>

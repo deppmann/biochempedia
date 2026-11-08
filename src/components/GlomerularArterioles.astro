@@ -1,0 +1,360 @@
+---
+/**
+ * GlomerularArterioles — two arterioles, one filter. A series-resistor sketch of the
+ * glomerular circulation: blood flow Q = (arterial pressure − renal venous pressure) /
+ * (afferent + efferent resistance), P_GC = arterial pressure − Q × afferent resistance, then
+ * 100 capillary segments, each filtering Kf/100 × (P_GC − P_BS − pi), with pi rising in
+ * proportion to protein concentration. Kf is calibrated so the lesson's worked-problem
+ * baseline gives GFR 125 mL per min, RPF 694 mL per min, FF 0.18. Controls: afferent
+ * resistance, efferent resistance, arterial pressure, and an autoregulation toggle (an
+ * assumed rule that rescales afferent resistance over 80 to 180 mmHg). Self-contained
+ * vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="gfa card" data-gfa>
+  <figcaption class="gfa-head">Two arterioles, one filter<span class="gfa-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="gfa-svg" viewBox="0 0 340 318" role="img" aria-label="A labelled schematic of blood flowing from arterial pressure through the afferent arteriole, the glomerular capillary and the efferent arteriole to the renal vein, with filtrate passing into Bowman’s space, above a bar strip of net filtration pressure along the capillary" data-plot></svg>
+
+  <div class="gfa-controls">
+    <label class="gfa-slabel"><span>Afferent resistance <em data-out="ra">×1.00</em> <small data-ra-note>(baseline ×1.00)</small></span>
+      <input type="range" data-in="ra" min="0.5" max="3" step="0.05" value="1" />
+    </label>
+    <label class="gfa-slabel"><span>Efferent resistance <em data-out="re">×1.00</em> <small>(baseline ×1.00)</small></span>
+      <input type="range" data-in="re" min="0.5" max="4" step="0.05" value="1" />
+    </label>
+    <label class="gfa-slabel"><span>Arterial pressure <em data-out="map">100</em> mmHg <small>(baseline 100)</small></span>
+      <input type="range" data-in="map" min="60" max="200" step="1" value="100" />
+    </label>
+    <label class="gfa-toggle"><input type="checkbox" data-in="auto" /> <span>Autoregulation on (a rule assumed for this sketch)</span></label>
+  </div>
+
+  <dl class="gfa-readout">
+    <div><dt>GFR</dt><dd><b data-v="gfr"></b><span data-a="gfr"></span></dd></div>
+    <div><dt>Renal plasma flow, RPF</dt><dd><b data-v="rpf"></b><span data-a="rpf"></span></dd></div>
+    <div><dt>Renal blood flow, RBF</dt><dd><b data-v="rbf"></b><span data-a="rbf"></span></dd></div>
+    <div><dt>Filtration fraction, FF</dt><dd><b data-v="ff"></b><span data-a="ff"></span></dd></div>
+    <div><dt>Glomerular capillary pressure, P_GC</dt><dd><b data-v="pgc"></b><span data-a="pgc"></span></dd></div>
+    <div><dt>Net pressure, afferent end then efferent end</dt><dd><b data-v="net"></b><span data-a="net"></span></dd></div>
+  </dl>
+  <p class="gfa-why" data-why role="status"></p>
+
+  <p class="gfa-assume">In this sketch: steady state, adult human at rest, both kidneys. Blood flow Q = (arterial pressure − renal venous pressure) / (afferent resistance + efferent resistance), ignoring the volume filtered in the series resistance, and P_GC = arterial pressure − Q × afferent resistance. The capillary is cut into 100 segments; each filters Kf / 100 × (P_GC − P_BS − pi) and stops filtering when its net pressure is not positive. Pi rises in proportion to protein concentration (a linear rule: the lesson notes real oncotic pressure rises faster than linearly, so this underestimates pi downstream), and there are no feedback dynamics. From the lesson’s worked problem (made-up round numbers): P_BS 15 mmHg, afferent pi 25 mmHg, hematocrit 0.45, P_GC 55 mmHg, GFR 125 mL per min, RPF 694 mL per min, FF 0.18. Made up for the sketch: renal venous pressure 5 mmHg, an arterial pressure of 100 mmHg at baseline, the split of baseline resistance between the two arterioles (the one that gives P_GC 55 mmHg), Kf (chosen so baseline GFR is 125 mL per min), the slider ranges, the autoregulation rule (afferent resistance rescaled so that P_GC stays at 55 mmHg over 80 to 180 mmHg when the efferent resistance is at baseline, a stand-in for the lesson’s “about 80 to 180 mmHg”) and a 1 mmHg tolerance for calling net pressure zero. In this sketch the size of the FF change with afferent resistance and of the GFR rise and fall with efferent resistance come from these made-up numbers and do not match the lesson’s “changes little” and “slightly”. All numbers are schematic, and arteriole thickness is drawn thinner for higher resistance, not to scale.</p>
+  <p class="gfa-foot">Rule to keep: the two arterioles are resistors in series, so P_GC is arterial pressure minus the drop across the afferent arteriole; as water leaves the capillary and protein stays, oncotic pressure rises and net filtration pressure shrinks along the capillary.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', BLUE = '#5b6fae', RED = '#b3261e';
+  const MINUS = '−';
+
+  // ---- the lesson's worked-problem numbers (made-up round numbers, adult human at rest) ----
+  const PBS = 15, PIA = 25, HCT = 0.45;
+  const GFR0 = 125, RPF0 = 625 / 0.9; // 694 mL per min; RBF0 = RPF0 / (1 - Hct)
+  const RBF0 = RPF0 / (1 - HCT);
+  // ---- made up for the sketch ----
+  const PV = 5, MAP0 = 100, PGC0 = 55, NSEG = 100, TOL = 1;
+  const RT0 = (MAP0 - PV) / RBF0; // baseline total resistance, mmHg per (mL per min)
+  const RA0 = (MAP0 - PGC0) / RBF0; // baseline afferent share: P_GC = 55 at 100 mmHg
+  const RE0 = RT0 - RA0;
+
+  type Result = {
+    raEff: number; // effective afferent resistance, multiple of baseline
+    sAuto: number; // autoregulation scale factor
+    Q: number; pgc: number; rpf: number; gfr: number; ff: number;
+    nets: number[]; dFs: number[]; eq: number; netEnd: number; piEnd: number;
+  };
+
+  function autoScale(map: number): number {
+    const m = Math.min(180, Math.max(80, map));
+    const k = (m - PGC0) / (m - PV);
+    return ((RE0 * k) / (1 - k)) / RA0;
+  }
+
+  function simulate(kf: number, map: number, ra: number, re: number, auto: boolean): Result {
+    const sAuto = auto ? autoScale(map) : 1;
+    const raEff = ra * sAuto;
+    const Ra = RA0 * raEff, Re = RE0 * re;
+    const Q = (map - PV) / (Ra + Re);
+    const pgc = map - Q * Ra;
+    const rpf = Q * (1 - HCT);
+    let F = 0, eq = -1;
+    const nets: number[] = [], dFs: number[] = [];
+    for (let i = 0; i < NSEG; i++) {
+      const pi = PIA / (1 - F / rpf);
+      const net = pgc - PBS - pi;
+      nets.push(net);
+      if (eq < 0 && net <= TOL) eq = i;
+      let dF = (kf / NSEG) * Math.max(0, net);
+      dF = Math.min(dF, (rpf - F) * 0.9);
+      dFs.push(dF);
+      F += dF;
+    }
+    const piEnd = PIA / (1 - F / rpf);
+    return { raEff, sAuto, Q, pgc, rpf, gfr: F, ff: F / rpf, nets, dFs, eq, netEnd: pgc - PBS - piEnd, piEnd };
+  }
+
+  // Kf (mL per min per mmHg) chosen so the baseline gives GFR 125 mL per min
+  let lo = 0.01, hi = 200;
+  for (let i = 0; i < 70; i++) {
+    const mid = (lo + hi) / 2;
+    if (simulate(mid, MAP0, 1, 1, false).gfr < GFR0) lo = mid; else hi = mid;
+  }
+  const KF = (lo + hi) / 2;
+  const BASE = simulate(KF, MAP0, 1, 1, false);
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, anchor: string, size = 10, fill = INK, weight = 400): SVGElement {
+    const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+  const int = (v: number) => Math.round(v).toLocaleString('en-US');
+  const sg1 = (v: number) => { const r = Math.round(v * 10) / 10; return r === 0 ? '0.0' : (r < 0 ? MINUS : '+') + Math.abs(r).toFixed(1); };
+  const mult = (v: number) => '×' + v.toFixed(2);
+  const rel = (now: number, base: number, word: string) => (now === base ? `the same as the baseline ${word}` : `${now > base ? 'above' : 'below'} the baseline ${word}`);
+
+  document.querySelectorAll<HTMLElement>('[data-gfa]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const raIn = root.querySelector<HTMLInputElement>('[data-in="ra"]');
+    const reIn = root.querySelector<HTMLInputElement>('[data-in="re"]');
+    const mapIn = root.querySelector<HTMLInputElement>('[data-in="map"]');
+    const autoIn = root.querySelector<HTMLInputElement>('[data-in="auto"]');
+    const raOut = root.querySelector<HTMLElement>('[data-out="ra"]');
+    const reOut = root.querySelector<HTMLElement>('[data-out="re"]');
+    const mapOut = root.querySelector<HTMLElement>('[data-out="map"]');
+    const raNote = root.querySelector<HTMLElement>('[data-ra-note]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const keys = ['gfr', 'rpf', 'rbf', 'ff', 'pgc', 'net'];
+    const vOut: Record<string, HTMLElement | null> = {}, aOut: Record<string, HTMLElement | null> = {};
+    for (const k of keys) {
+      vOut[k] = root.querySelector<HTMLElement>(`[data-v="${k}"]`);
+      aOut[k] = root.querySelector<HTMLElement>(`[data-a="${k}"]`);
+    }
+    if (!plot || !raIn || !reIn || !mapIn || !autoIn || !raOut || !reOut || !mapOut || !raNote || !why) return;
+    for (const k of keys) if (!vOut[k] || !aOut[k]) return;
+    const setV = (k: string, v: string, a: string) => {
+      const ve = vOut[k], ae = aOut[k];
+      if (ve) ve.textContent = v;
+      if (ae) ae.textContent = a;
+    };
+
+    // strip geometry (viewBox 340 x 318)
+    const SX0 = 40, SX1 = 330, SYB = 280, SSC = 1.0, YMAX = 100;
+    const sw = (SX1 - SX0) / NSEG;
+
+    function thick(r: number): number { return Math.max(6, Math.min(30, 20 / Math.sqrt(r))); }
+
+    function arrowBar(x0: number, x1: number, cy: number, t: number, col: string) {
+      plot!.appendChild(el('rect', { x: x0, y: (cy - t / 2).toFixed(1), width: x1 - x0 - 12, height: t.toFixed(1), fill: col, 'fill-opacity': 0.75 }));
+      const hh = Math.max(t, 14) / 2 + 3;
+      plot!.appendChild(el('polygon', { points: `${x1 - 14},${(cy - hh).toFixed(1)} ${x1},${cy} ${x1 - 14},${(cy + hh).toFixed(1)}`, fill: col, 'fill-opacity': 0.75 }));
+    }
+    function block(x: number, y: number, w: number, h: number, fill: string) {
+      plot!.appendChild(el('rect', { x, y, width: w, height: h, rx: 4, fill, stroke: INK, 'stroke-width': 1 }));
+    }
+
+    function render() {
+      const ra = parseFloat(raIn!.value), re = parseFloat(reIn!.value), map = parseInt(mapIn!.value, 10);
+      const auto = autoIn!.checked;
+      const r = simulate(KF, map, ra, re, auto);
+      raOut!.textContent = mult(ra);
+      reOut!.textContent = mult(re);
+      mapOut!.textContent = String(map);
+      raNote!.textContent = auto ? `(effective ${mult(r.raEff)} with autoregulation)` : '(baseline ×1.00)';
+
+      const r1 = (v: number) => Math.round(v * 10) / 10;
+      const pgcI = Math.round(r.pgc), dropA = map - pgcI, dropE = pgcI - PV; // whole mmHg, for the drawing and the status
+      const rpfI = Math.round(r.rpf), gfrI = Math.round(r.gfr);
+      const rbfI = Math.round(rpfI / (1 - HCT));
+      const ffS = rpfI > 0 ? (gfrI / rpfI).toFixed(2) : '0.00';
+      const pgc1 = r1(r.pgc), dropA1 = r1(map - pgc1), piEnd1 = r1(r.piEnd);
+      const net0S = r1(pgc1 - PBS - PIA), netEndS = r1(pgc1 - PBS - piEnd1);
+      const noFilt = r.nets[0] <= 0;
+
+      // ---- readouts with the lesson's arithmetic ----
+      const rtRel = (RA0 * r.raEff + RE0 * re) / RT0;
+      setV('gfr', `${int(gfrI)} mL per min`, ` sum of filtration in the 100 segments (baseline ${GFR0})`);
+      setV('rpf', `${int(rpfI)} mL per min`, ` from (${map} − ${PV} mmHg) / (Ra + Re), times (1 − ${HCT}); total resistance ${mult(rtRel)} baseline`);
+      setV('rbf', `${int(rbfI)} mL per min`, ` RPF / (1 − ${HCT}) = ${int(rpfI)} / ${(1 - HCT).toFixed(2)}`);
+      setV('ff', ffS, ` GFR / RPF = ${int(gfrI)} / ${int(rpfI)}`);
+      setV('pgc', `${pgc1.toFixed(1)} mmHg`, ` arterial pressure − afferent drop = ${map} − ${dropA1.toFixed(1)}`);
+      setV('net', `${sg1(net0S)} then ${sg1(netEndS)} mmHg`,
+        ` P_GC − P_BS − pi: afferent end ${pgc1.toFixed(1)} − ${PBS} − ${PIA} = ${sg1(net0S)}; efferent end ${pgc1.toFixed(1)} − ${PBS} − ${piEnd1.toFixed(1)} = ${sg1(netEndS)}`);
+
+      // ---- drawing ----
+      plot!.replaceChildren();
+      const CY = 54;
+      // blocks
+      block(4, 28, 56, 52, '#f3f4f7');
+      plot!.appendChild(txt(32, 41, 'arterial', 'middle', 9));
+      plot!.appendChild(txt(32, 54, 'pressure', 'middle', 9));
+      plot!.appendChild(txt(32, 72, `${map} mmHg`, 'middle', 9, INK, 700));
+      block(124, 28, 92, 52, '#eaf4f5');
+      plot!.appendChild(txt(170, 41, 'Glomerular', 'middle'));
+      plot!.appendChild(txt(170, 54, 'capillary', 'middle'));
+      plot!.appendChild(txt(170, 72, `P_GC ${pgcI} mmHg`, 'middle', 10, INK, 700));
+      block(282, 28, 52, 52, '#f3f4f7');
+      plot!.appendChild(txt(308, 41, 'renal', 'middle'));
+      plot!.appendChild(txt(308, 54, 'venous', 'middle'));
+      plot!.appendChild(txt(308, 72, `${PV} mmHg`, 'middle', 10, INK, 700));
+      // arterioles (blood flows left to right: arterial pressure, afferent, glomerulus, efferent, vein)
+      arrowBar(60, 122, CY, thick(r.raEff), ACCENT);
+      arrowBar(218, 280, CY, thick(re), ORANGE);
+      plot!.appendChild(txt(91, 13, 'Afferent', 'middle', 10, ACCENT, 700));
+      plot!.appendChild(txt(91, 26, 'arteriole', 'middle', 10, ACCENT, 700));
+      plot!.appendChild(txt(249, 13, 'Efferent', 'middle', 10, ORANGE, 700));
+      plot!.appendChild(txt(249, 26, 'arteriole', 'middle', 10, ORANGE, 700));
+      plot!.appendChild(txt(91, 88, `Ra ${mult(r.raEff)}`, 'middle'));
+      plot!.appendChild(txt(91, 101, `${MINUS}${dropA} mmHg`, 'middle'));
+      plot!.appendChild(txt(249, 88, `Re ${mult(re)}`, 'middle'));
+      plot!.appendChild(txt(249, 101, `${MINUS}${dropE} mmHg`, 'middle'));
+      // filtrate into Bowman's space
+      const fw = Math.max(3, Math.min(16, 3 + (r.gfr / GFR0) * 5));
+      if (r.gfr >= 0.5) {
+        plot!.appendChild(el('rect', { x: (170 - fw / 2).toFixed(1), y: 80, width: fw.toFixed(1), height: 10, fill: BLUE, 'fill-opacity': 0.8 }));
+        plot!.appendChild(el('polygon', { points: `${(170 - fw / 2 - 4).toFixed(1)},90 170,105 ${(170 + fw / 2 + 4).toFixed(1)},90`, fill: BLUE, 'fill-opacity': 0.8 }));
+      } else {
+        plot!.appendChild(el('rect', { x: 168.5, y: 80, width: 3, height: 10, fill: 'none', stroke: BLUE, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      }
+      block(124, 106, 92, 32, '#eef0f8');
+      plot!.appendChild(txt(170, 119, 'Bowman’s space', 'middle'));
+      plot!.appendChild(txt(170, 132, `P_BS ${PBS} mmHg`, 'middle', 10, INK, 700));
+      plot!.appendChild(txt(222, 119, 'filtrate (GFR)', 'start', 10, BLUE, 700));
+      plot!.appendChild(txt(222, 132, `${int(gfrI)} mL per min`, 'start', 10, BLUE, 700));
+      plot!.appendChild(txt(6, 119, 'blood flow (RBF)', 'start'));
+      plot!.appendChild(txt(6, 132, `${int(rbfI)} mL per min`, 'start', 10, INK, 700));
+
+      // ---- net-pressure strip ----
+      plot!.appendChild(txt(SX0, 158, 'Net pressure along the capillary', 'start', 10, INK, 700));
+      if (r.nets[0] > YMAX) plot!.appendChild(txt(SX1, 158, `(bars cut at ${YMAX} mmHg)`, 'end', 10, INK));
+      for (const v of [0, 50, 100]) {
+        const y = SYB - v * SSC;
+        plot!.appendChild(el('line', { x1: SX0, y1: y, x2: SX1, y2: y, stroke: v === 0 ? INK : FAINT, 'stroke-width': v === 0 ? 1 : 0.7, 'stroke-dasharray': v === 0 ? '0' : '2 3' }));
+        plot!.appendChild(txt(SX0 - 4, y + 3, String(v), 'end', 9));
+      }
+      plot!.appendChild(txt(SX0 - 4, SYB - YMAX * SSC - 8, 'mmHg', 'end', 9));
+      const xEq = SX0 + Math.max(0, r.eq) * sw;
+      if (r.eq >= 0 && !noFilt) {
+        plot!.appendChild(el('rect', { x: xEq, y: SYB - YMAX * SSC, width: SX1 - xEq, height: YMAX * SSC, fill: RED, 'fill-opacity': 0.08 }));
+      }
+      for (let i = 0; i < NSEG; i++) {
+        const v = Math.min(YMAX, Math.max(0, r.nets[i] ?? 0));
+        if (v <= 0) continue;
+        plot!.appendChild(el('rect', { x: (SX0 + i * sw).toFixed(2), y: (SYB - v * SSC).toFixed(2), width: (sw + 0.15).toFixed(2), height: (v * SSC).toFixed(2), fill: BLUE, 'fill-opacity': 0.85 }));
+      }
+      if (noFilt) {
+        plot!.appendChild(txt(SX0 + 4, 174, 'no filtration: net pressure ≤ 0 at the afferent end', 'start', 10, RED, 700));
+      } else if (r.eq >= 0) {
+        plot!.appendChild(el('line', { x1: xEq, y1: 176, x2: xEq, y2: SYB, stroke: RED, 'stroke-width': 1.3, 'stroke-dasharray': '3 2' }));
+        const right = xEq > 160;
+        const label = r.eq === 0 ? 'net ≈ 0 from the start' : `net ≈ 0 from ${r.eq}% of the length`;
+        plot!.appendChild(txt(right ? xEq - 4 : xEq + 4, 174, label, right ? 'end' : 'start', 10, RED, 700));
+      }
+      plot!.appendChild(txt(SX0, 296, 'afferent end', 'start', 10));
+      plot!.appendChild(txt(SX1, 296, 'efferent end', 'end', 10));
+      plot!.appendChild(txt((SX0 + SX1) / 2, 311, 'distance along the capillary, 100 segments', 'middle', 10));
+
+      // ---- status: every sentence reports a model result, so each starts "In this sketch," ----
+      const bP = Math.round(BASE.pgc), bR = Math.round(BASE.rpf), bG = Math.round(BASE.gfr), bF = (bG / bR).toFixed(2);
+      const nP = pgcI, nR = rpfI, nG = gfrI, nF = ffS;
+      const parts: string[] = [];
+      if (nP === bP && nR === bR && nG === bG && nF === bF) {
+        parts.push(`In this sketch, every value equals the baseline case: P_GC ${bP} mmHg, RPF ${int(bR)} mL per min, GFR ${bG} mL per min and FF ${bF}, the lesson’s worked-problem numbers (made-up round numbers, adult human at rest).`);
+      } else {
+        parts.push(`In this sketch, P_GC is ${nP} mmHg (${rel(nP, bP, String(bP))}), RPF is ${int(nR)} mL per min (${rel(nR, bR, int(bR))}), GFR is ${int(nG)} mL per min (${rel(nG, bG, String(bG))}) and FF is ${nF} (${rel(Number(nF), Number(bF), bF)}).`);
+      }
+      // where filtration stops, or does not
+      if (noFilt) {
+        parts.push(`In this sketch there is no filtration: P_GC − P_BS is ${pgcI - PBS} mmHg, no higher than the afferent pi of ${PIA} mmHg, so net pressure is not positive even at the afferent end. This is a sensitivity of the sketch’s made-up numbers, in which baseline net pressure at the afferent end is only ${PBS} mmHg.`);
+      } else if (r.eq === 0) {
+        parts.push('In this sketch net pressure is already within 1 mmHg of zero at the afferent end, so little is filtered.');
+      } else if (r.eq > 0) {
+        let after = 0;
+        for (let i = r.eq; i < NSEG; i++) after += r.dFs[i] ?? 0;
+        const share = (after / r.gfr) * 100;
+        parts.push(`In this sketch pi rises until net pressure is within 1 mmHg of zero, about ${r.eq}% of the way along the capillary, and the rest of the capillary adds ${share < 1 ? 'less than 1' : String(Math.round(share))}% of GFR.`);
+      } else {
+        parts.push(`In this sketch net pressure is still ${sg1(netEndS)} mmHg at the efferent end, so the capillary does not reach filtration pressure equilibrium; whether human glomeruli reach it is unknown.`);
+      }
+      // afferent resistance: FF is reported against the same settings with afferent resistance at baseline
+      if (Math.abs(ra - 1) > 0.0001) {
+        const ref = simulate(KF, map, 1, re, auto);
+        const refF = ref.gfr / ref.rpf;
+        const gCh = ref.gfr > 0 ? r.gfr / ref.gfr - 1 : 0, rCh = r.rpf / ref.rpf - 1;
+        if (ref.gfr > 0 && Math.abs(r.ff - refF) >= 0.005 && Math.abs(gCh) > Math.abs(rCh)) {
+          parts.push(`In this sketch FF is ${ffS} against ${refF.toFixed(2)} with afferent resistance at baseline (other settings unchanged), because GFR ${gCh < 0 ? 'falls' : 'rises'} by a larger share than RPF ${rCh < 0 ? 'falls' : 'rises'}; the lesson says FF changes little in its simple model, so the size of this FF change comes from the sketch’s made-up numbers.`);
+        }
+      }
+      // efferent resistance: the biphasic effect on GFR, found by scanning the slider range
+      if (re > 1.0001) {
+        let bestRe = 0.5, bestG = -1;
+        for (let x = 0.5; x <= 4.0001; x += 0.05) {
+          const g = simulate(KF, map, ra, x, auto).gfr;
+          if (g > bestG + 1e-9) { bestG = g; bestRe = x; }
+        }
+        let s = 'In this sketch, with the other settings unchanged, raising efferent resistance lowers RPF and raises P_GC';
+        if (bestG < 0.5) s += '; GFR is zero across the efferent range of this slider.';
+        else if (bestRe >= 3.95) s += '; GFR keeps rising across the efferent range of this slider.';
+        else if (bestRe <= 0.55) s += '; GFR already falls as efferent resistance rises across the range of this slider.';
+        else {
+          const gRef = simulate(KF, map, ra, 1, auto).gfr;
+          const past = re > bestRe + 0.04;
+          s += `; GFR is highest near ${mult(bestRe)} baseline efferent resistance, ${past ? 'and past that peak it falls as P_GC keeps rising' : 'and this setting is still on the rising side of that peak'}, and at this setting it is ${int(gfrI)} mL per min against ${int(gRef)} at baseline efferent resistance.`;
+          parts.push(s);
+          s = 'The lesson says GFR rises at first and then falls once the rise in oncotic pressure outruns the rise in hydrostatic pressure, and puts severe constriction at a threefold or larger rise in efferent resistance, in one analysis.';
+          if (past && r.gfr > gRef) s += ' In this sketch the fall past the peak has not yet taken GFR below its value at baseline efferent resistance, so the size of the rise and fall comes from the sketch’s made-up numbers.';
+          else if (past) s += ' In this sketch GFR is now below its value at baseline efferent resistance.';
+        }
+        parts.push(s);
+      } else if (re < 0.9999) {
+        parts.push('In this sketch, with the other settings unchanged, lowering efferent resistance (efferent dilation) raises RPF and lowers P_GC.');
+      }
+      // arterial pressure and autoregulation
+      if (auto) {
+        const inRange = map >= 80 && map <= 180;
+        const base = ra === 1 && re === 1;
+        if (inRange) {
+          parts.push(`In this sketch, with autoregulation on, the afferent resistance is scaled by ${mult(r.sAuto)}, the rule assumed here over about 80 to 180 mmHg${base ? ', so by construction of this assumed rule P_GC, RPF and GFR stay at their baseline values as arterial pressure changes (the lesson says nearly constant).' : '; that factor holds P_GC at 55 mmHg only when both sliders are at baseline.'}`);
+        } else {
+          parts.push(`In this sketch, with autoregulation on but arterial pressure outside about 80 to 180 mmHg, the scale factor stays at ${mult(r.sAuto)}, its value at the nearest end of that range, so P_GC and GFR change with arterial pressure again.`);
+        }
+      } else if (map !== MAP0) {
+        parts.push(`In this sketch, with autoregulation off the afferent resistance stays fixed, so ${map > MAP0 ? 'raising' : 'lowering'} arterial pressure ${map > MAP0 ? 'raises' : 'lowers'} both RPF and P_GC.`);
+      }
+      why!.textContent = parts.join(' ');
+    }
+    [raIn, reIn, mapIn, autoIn].forEach((s) => s.addEventListener('input', render));
+    autoIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .gfa { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gfa-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gfa-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gfa-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gfa-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .gfa-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gfa-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .gfa-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gfa-slabel input { accent-color: var(--ddp-color-accent); }
+  .gfa-toggle { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .gfa-toggle input { accent-color: var(--ddp-color-accent); width: 1.1rem; height: 1.1rem; }
+  .gfa-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gfa-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .gfa-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gfa-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); overflow-wrap: anywhere; display: flex; flex-direction: column; }
+  .gfa-readout dd b { font-weight: 700; }
+  .gfa-readout dd span { font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-ink-soft); }
+  .gfa-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 7em; }
+  .gfa-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .gfa-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .gfa-controls, .gfa-readout { grid-template-columns: 1fr; } }
+</style>

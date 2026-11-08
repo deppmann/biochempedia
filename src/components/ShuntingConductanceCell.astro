@@ -1,0 +1,257 @@
+---
+/**
+ * ShuntingConductanceCell — the lesson's isopotential passive cell (C 200 pF, gL 10 nS,
+ * EL −65 mV, fixed threshold −50 mV). Each input is a conductance with its own reversal
+ * potential; V_ss = (gL·EL + gE·EE + gI·EI)/(gL+gE+gI) and τ_eff = C/(gL+gE+gI). Sustained
+ * conductances show the steady voltage and the time to cross threshold; pulse mode shows two
+ * 0.4 pC charge pulses 10 ms apart, whose jumps stay 2 mV while the shunt shortens τ.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="sg card" data-shunt>
+  <figcaption class="sg-head">Inhibition you cannot see — conductances against threshold<span class="sg-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="sg-svg" viewBox="0 0 340 236" role="img" aria-label="Membrane potential over 60 milliseconds for a passive cell with excitatory and inhibitory conductances, drawn against a fixed minus 50 millivolt threshold line" data-plot></svg>
+
+  <div class="sg-legend" aria-hidden="true">
+    <span class="sg-key"><i class="sg-sw sg-sw-main"></i>this setting</span>
+    <span class="sg-key" data-ghostkey hidden><i class="sg-sw sg-sw-ghost"></i><span data-ghostlabel>excitation alone</span></span>
+  </div>
+
+  <fieldset class="sg-mode">
+    <legend>Input type</legend>
+    <label><input type="radio" name="sg-mode" value="sustained" checked data-mode /> Sustained conductances</label>
+    <label><input type="radio" name="sg-mode" value="pulses" data-mode /> Two 0.4 pC pulses, 10 ms apart</label>
+  </fieldset>
+
+  <div class="sg-controls">
+    <label class="sg-slabel" data-ge-label><span>Excitatory conductance g<sub>E</sub> (E<sub>E</sub> = 0 mV) <em data-out="ge">5.0</em> nS <small data-ge-note hidden>(not used in pulse mode)</small></span>
+      <input type="range" data-in="ge" min="0" max="10" step="0.5" value="5" />
+    </label>
+    <label class="sg-slabel"><span>Inhibitory conductance g<sub>I</sub> <em data-out="gi">0</em> nS</span>
+      <input type="range" data-in="gi" min="0" max="20" step="1" value="0" />
+    </label>
+    <label class="sg-slabel"><span>Its reversal potential E<sub>I</sub> <em data-out="ei">−65</em> mV <small>(rest is −65)</small></span>
+      <input type="range" data-in="ei" min="-80" max="-55" step="1" value="-65" />
+    </label>
+  </div>
+
+  <dl class="sg-readout">
+    <div><dt>Input resistance (1/total g)</dt><dd data-r-rin>100 MΩ</dd></div>
+    <div><dt>τ<sub>eff</sub> = C/total g</dt><dd data-r-tau>20.0 ms</dd></div>
+    <div><dt data-t-v>Steady voltage V<sub>ss</sub></dt><dd data-r-v>−65.0 mV</dd></div>
+    <div><dt data-t-res>Crosses −50 mV at</dt><dd data-r-res>never</dd></div>
+  </dl>
+
+  <p class="sg-why" data-why role="status"></p>
+
+  <p class="sg-assume">In this sketch: one isopotential compartment (C 200 pF, g<sub>L</sub> 10 nS, E<sub>L</sub> −65 mV; illustrative values), constant conductances, a fixed −50 mV threshold, E<sub>E</sub> = 0 mV, no chloride loading. The trace is the passive cell and draws no spike.</p>
+
+  <p class="sg-foot">Rule to keep: every open conductance pulls the voltage toward its own reversal potential, so in an isopotential cell the steady voltage is their conductance-weighted average and τ<sub>eff</sub> shrinks as total conductance grows. An inhibitory conductance with E<sub>I</sub> at rest can veto a spike without moving the voltage.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#9a9aa6';
+  const C = 200, GL = 10, EL = -65, EE = 0, THR = -50; // pF, nS, mV, mV, mV  (pF/nS = ms)
+  const Q = 0.4, T1 = 10, T2 = 20; // pC, ms, ms
+  const JUMP = Q / C * 1000; // mV: q/C = 0.4 pC / 200 pF = 2 mV
+  const mv = (x: number, d = 1) => (x < 0 ? '−' : '') + Math.abs(x).toFixed(d);
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-shunt]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const geIn = inp('[data-in="ge"]'), giIn = inp('[data-in="gi"]'), eiIn = inp('[data-in="ei"]');
+    const geOut = o('[data-out="ge"]'), giOut = o('[data-out="gi"]'), eiOut = o('[data-out="ei"]');
+    const modes = Array.from(root.querySelectorAll<HTMLInputElement>('[data-mode]'));
+    const geLabel = o('[data-ge-label]'), geNote = o('[data-ge-note]');
+    const rRin = o('[data-r-rin]'), rTau = o('[data-r-tau]'), rV = o('[data-r-v]'), rRes = o('[data-r-res]');
+    const tV = o('[data-t-v]'), tRes = o('[data-t-res]');
+    const why = o('[data-why]');
+    const ghostKey = o('[data-ghostkey]'), ghostLabel = o('[data-ghostlabel]');
+
+    const X0 = 42, X1 = 276, Y0 = 16, Y1 = 192, TMAX = 60, VMIN = -80, VMAX = -30;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (v: number) => Math.min(Y1, Math.max(Y0, Y1 - ((v - VMIN) / (VMAX - VMIN)) * (Y1 - Y0)));
+
+    const vss = (ge: number, gi: number, ei: number) => (GL * EL + ge * EE + gi * ei) / (GL + ge + gi);
+    const tauOf = (ge: number, gi: number) => C / (GL + ge + gi);
+    // time to reach THR from rest after conductances switch on at t = 0; null if never
+    function cross(ge: number, gi: number, ei: number): number | null {
+      const v = vss(ge, gi, ei), tau = tauOf(ge, gi);
+      if (v <= THR + 1e-9) return null;
+      return -tau * Math.log((THR - v) / (EL - v));
+    }
+    function sustained(ge: number, gi: number, ei: number) {
+      const v = vss(ge, gi, ei), tau = tauOf(ge, gi);
+      return (t: number) => v + (EL - v) * Math.exp(-t / tau);
+    }
+    function pulses(gi: number, ei: number) {
+      const base = vss(0, gi, ei), tau = tauOf(0, gi);
+      return (t: number) => {
+        let v = base;
+        if (t >= T1) v += JUMP * Math.exp(-(t - T1) / tau);
+        if (t >= T2) v += JUMP * Math.exp(-(t - T2) / tau);
+        return v;
+      };
+    }
+    function path(f: (t: number) => number) {
+      let d = '';
+      for (let t = 0; t <= TMAX + 1e-9; t += 0.25) d += (t === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(f(t)).toFixed(1) + ' ';
+      return d.trim();
+    }
+    function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+
+    function render() {
+      const pulseMode = modes.find((m) => m.checked)!.value === 'pulses';
+      const ge = pulseMode ? 0 : parseFloat(geIn.value);
+      const gi = parseFloat(giIn.value);
+      const ei = parseFloat(eiIn.value);
+      geOut.textContent = parseFloat(geIn.value).toFixed(1);
+      giOut.textContent = String(gi);
+      eiOut.textContent = mv(ei, 0);
+      geIn.disabled = pulseMode;
+      geLabel.classList.toggle('sg-off', pulseMode);
+      geNote.hidden = !pulseMode;
+
+      const gt = GL + ge + gi, tau = C / gt, rin = 1000 / gt;
+      const v = vss(ge, gi, ei);
+
+      // ---- plot ----
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const vv of [-80, -70, -60, -50, -40, -30]) {
+        plot.appendChild(el('line', { x1: X0 - 3, y1: py(vv), x2: X0, y2: py(vv), stroke: INK, 'stroke-width': 1 }));
+        txt(X0 - 5, py(vv) + 3, mv(vv, 0), { 'text-anchor': 'end' });
+      }
+      for (let t = 0; t <= TMAX; t += 10) {
+        plot.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(px(t), Y1 + 14, String(t), { 'text-anchor': 'middle' });
+      }
+      txt((X0 + X1) / 2, Y1 + 29, 'time (ms)', { 'text-anchor': 'middle', 'font-size': 10 });
+      txt(X0 - 2, Y0 - 5, 'membrane potential (mV)', { 'font-size': 10 });
+      // rest and threshold lines, labelled in the right margin
+      plot.appendChild(el('line', { x1: X0, y1: py(EL), x2: X1, y2: py(EL), stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '1 3' }));
+      txt(X1 + 4, py(EL) - 3, 'rest', { fill: INK });
+      txt(X1 + 4, py(EL) + 10, '−65 mV', { fill: INK });
+      plot.appendChild(el('line', { x1: X0, y1: py(THR), x2: X1, y2: py(THR), stroke: ORANGE, 'stroke-width': 1.4, 'stroke-dasharray': '5 3' }));
+      txt(X1 + 4, py(THR) - 3, 'threshold', { fill: ORANGE, 'font-weight': 700 });
+      txt(X1 + 4, py(THR) + 10, '−50 mV', { fill: ORANGE, 'font-weight': 700 });
+
+      // ghost: the same input without the inhibitory conductance
+      let ghostFn: ((t: number) => number) | null = null;
+      if (pulseMode) { if (gi > 0) { ghostFn = pulses(0, EL); ghostLabel.textContent = 'same pulses, no inhibitory conductance'; } }
+      else if (gi > 0 && ge > 0) { ghostFn = sustained(ge, 0, ei); ghostLabel.textContent = 'excitation alone (gᴵ = 0)'; }
+      ghostKey.hidden = !ghostFn;
+      if (ghostFn) plot.appendChild(el('path', { d: path(ghostFn), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+
+      const main = pulseMode ? pulses(gi, ei) : sustained(ge, gi, ei);
+      if (!pulseMode) plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: ACCENT, 'stroke-width': 0.8, 'stroke-dasharray': '2 3', opacity: 0.6 }));
+      plot.appendChild(el('path', { d: path(main), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // ---- readouts and status ----
+      rRin.textContent = rin.toFixed(rin % 1 ? 1 : 0) + ' MΩ';
+      rTau.textContent = tau.toFixed(1) + ' ms';
+      let msg = '';
+      if (!pulseMode) {
+        tV.innerHTML = 'Steady voltage V<sub>ss</sub>';
+        tRes.textContent = 'Crosses −50 mV at';
+        rV.textContent = mv(v) + ' mV';
+        const tc = cross(ge, gi, ei);
+        rRes.textContent = tc === null ? 'never' : tc.toFixed(1) + ' ms';
+        if (tc !== null) {
+          const cx = px(tc), cy = py(THR);
+          plot.appendChild(el('circle', { cx, cy, r: 4, fill: ORANGE }));
+          txt(Math.min(cx + 6, X1 - 30), cy + 14, tc.toFixed(1) + ' ms', { fill: ORANGE, 'font-weight': 700 });
+        }
+        const near = Math.abs(ei - EL) < 0.5;
+        const v0 = vss(ge, 0, ei), t0 = cross(ge, 0, ei);
+        if (ge === 0 && gi === 0) {
+          msg = `No synaptic conductance is open, so the cell sits at rest, −65 mV, with input resistance 100 MΩ and τ 20 ms. Nothing moves; raise gₑ or gᴵ.`;
+        } else if (gi === 0) {
+          msg = `gₑ = ${ge.toFixed(1)} nS pulls the voltage toward Eₑ = 0 mV: steady voltage ${mv(v)} mV, reached with τ_eff = ${tau.toFixed(1)} ms. ` +
+            (tc !== null ? `That is above threshold, so the trace crosses −50 mV at ${tc.toFixed(1)} ms (in this sketch the cell is treated as firing there).` : `That stays below threshold: no spike in this sketch.`) +
+            (ge > 5 ? ` The depolarization is ${(v - EL).toFixed(1)} mV, not the ${(ge / 5 * (vss(5, 0, ei) - EL)).toFixed(1)} mV that scaling the gₑ = 5 nS result by ${(ge / 5).toFixed(1)} would give: as the voltage nears Eₑ each added conductance pushes less (sublinear).` : '');
+        } else if (ge === 0) {
+          if (near) msg = `The trace does not move: with Eᴵ at rest the steady voltage stays ${mv(v)} mV. Yet total conductance is now ${gt.toFixed(0)} nS, so input resistance has fallen to ${rin.toFixed(1)} MΩ and τ to ${tau.toFixed(1)} ms. Add excitation to see what that does.`;
+          else if (ei < EL) msg = `Eᴵ is below rest, so this conductance pulls the voltage down toward ${mv(ei, 0)} mV, to ${mv(v)} mV, and also lowers input resistance (${rin.toFixed(1)} MΩ) and τ (${tau.toFixed(1)} ms).`;
+          else msg = `Eᴵ lies between rest and threshold, so the input pulls the voltage up toward Eᴵ, to ${mv(v)} mV, while holding it below threshold. With excitation it may cross, and in Gulledge and Stuart’s rat layer 5 cells the sign of a GABA input depended on timing and site, which constant conductances here cannot show.`;
+        } else {
+          const how = near
+            ? `Eᴵ sits at rest, so gᴵ adds no pull of its own; it enlarges the total conductance (input resistance ${rin.toFixed(1)} MΩ, τ_eff ${tau.toFixed(1)} ms).`
+            : ei < EL ? `Eᴵ is below rest, so gᴵ also pulls the voltage down, besides enlarging the total conductance (τ_eff ${tau.toFixed(1)} ms).`
+            : `Eᴵ is above rest but below threshold, so gᴵ also pulls the voltage up toward Eᴵ, besides enlarging the total conductance (τ_eff ${tau.toFixed(1)} ms).`;
+          if (t0 !== null && tc === null) msg = `Excitation alone would settle at ${mv(v0)} mV and cross at ${t0.toFixed(1)} ms. With the inhibitory conductance the steady voltage is ${mv(v)} mV, below threshold: no spike. ${how}`;
+          else if (t0 !== null && tc !== null) msg = `Even with the inhibitory conductance the steady voltage, ${mv(v)} mV, is above threshold; the crossing comes at ${tc.toFixed(1)} ms (excitation alone: ${t0.toFixed(1)} ms). ${how}`;
+          else msg = `Steady voltage ${mv(v)} mV (excitation alone: ${mv(v0)} mV). Neither reaches −50 mV, so no spike either way in this sketch. ${how}`;
+        }
+      } else {
+        tV.innerHTML = 'Baseline voltage';
+        tRes.textContent = 'Second peak above baseline';
+        rV.textContent = mv(v) + ' mV';
+        const f = pulses(gi, ei);
+        const peak = f(T2) - v; // depolarization just after the second pulse
+        const expPeak = JUMP + JUMP * Math.exp(-(T2 - T1) / tau);
+        rRes.textContent = peak.toFixed(2) + ' mV';
+        const px2 = px(T2), py2 = py(f(T2));
+        plot.appendChild(el('circle', { cx: px2, cy: py2, r: 3.5, fill: ORANGE }));
+        txt(Math.min(px2 + 6, X1 - 44), Math.max(py2 - 6, Y0 + 9), '+' + peak.toFixed(2) + ' mV', { fill: ORANGE, 'font-weight': 700 });
+        const ref = JUMP + JUMP * Math.exp(-(T2 - T1) / (C / GL));
+        const crossed = f(T2) >= THR;
+        msg = `Two 0.4 pC pulses, 10 ms apart: each jumps the voltage by q/C = ${JUMP.toFixed(2)} mV. With τ = ${tau.toFixed(1)} ms, ${(Math.exp(-(T2 - T1) / tau) * 100).toFixed(0)}% of the first is left when the second lands, so the peak is ${JUMP.toFixed(2)} + ${JUMP.toFixed(2)} × e^(−10/${tau.toFixed(1)}) = ${expPeak.toFixed(2)} mV above baseline (read off the trace: ${peak.toFixed(2)} mV; the cell with no inhibitory conductance: ${ref.toFixed(2)} mV). ` +
+          (gi > 0 ? `The inhibitory conductance did not shrink each jump, which charge and capacitance set; it shortened τ, so less of the first pulse was left. ` : '') +
+          (gi > 0 && Math.abs(ei - EL) >= 0.5 ? `Its Eᴵ differs from rest, so the baseline itself sits at ${mv(v)} mV. ` : '') +
+          (crossed ? 'The trace reaches −50 mV.' : 'The trace stays below threshold.');
+      }
+      why.textContent = msg;
+    }
+    [geIn, giIn, eiIn, ...modes].forEach((s) => s.addEventListener('input', render));
+    modes.forEach((m) => m.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .sg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sg-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sg-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; justify-content: center; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sg-key { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .sg-key[hidden] { display: none; }
+  .sg-sw { display: inline-block; width: 18px; height: 0; border-top: 3px solid #0e7c86; }
+  .sg-sw-ghost { border-top: 2px dashed #9a9aa6; }
+  .sg-mode { display: flex; flex-wrap: wrap; gap: 0.25rem 1.2rem; margin: var(--ddp-space-2) 0; padding: 0; border: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sg-mode legend { padding: 0; margin-bottom: 0.2rem; font-weight: 600; }
+  .sg-mode label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+  .sg-mode input { accent-color: var(--ddp-color-accent); }
+  .sg-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .sg-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sg-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .sg-slabel small[hidden] { display: none; }
+  .sg-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .sg-slabel input { accent-color: var(--ddp-color-accent); }
+  .sg-off { opacity: 0.5; }
+  .sg-readout { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .sg-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .sg-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .sg-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .sg-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .sg-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .sg-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) {
+    .sg-controls { grid-template-columns: 1fr; }
+    .sg-readout { grid-template-columns: 1fr 1fr; }
+  }
+</style>

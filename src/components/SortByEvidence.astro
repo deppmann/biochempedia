@@ -1,0 +1,358 @@
+---
+/**
+ * SortByEvidence — six organism cards (mushroom, oak, deer, paramecium, bacterium, archaeon) are
+ * sorted into boxes as one kind of evidence is added at a time: what eyes see, a light microscope,
+ * cell chemistry, DNA. Two menus pick a pair; at the DNA step a bar shows the lesson's own protein
+ * match for that kind of pair (animal and fungus, fungus and plant), and says so when the lesson
+ * has no number. Original sketch for the grade 7 Life Science course. Self-contained.
+ */
+---
+
+<figure class="sbe card" data-sbe>
+  <figcaption class="sbe-head">Sort by evidence<span class="sbe-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="sbe-ctl">
+    <label class="sbe-slabel" for="sbe-slider">
+      <span>Evidence available: <em data-lvlname>What eyes see</em></span>
+    </label>
+    <input id="sbe-slider" class="sbe-slider" type="range" min="0" max="3" step="1" value="0" data-slider aria-valuetext="What eyes see" />
+    <div class="sbe-ticks">
+      <button type="button" class="sbe-tick" data-tick="0">What eyes see</button>
+      <button type="button" class="sbe-tick" data-tick="1">Light microscope</button>
+      <button type="button" class="sbe-tick" data-tick="2">Cell chemistry</button>
+      <button type="button" class="sbe-tick" data-tick="3">DNA</button>
+    </div>
+    <div class="sbe-pick">
+      <label class="sbe-sel">Organism A
+        <select data-pa>
+          <option value="mushroom" selected>Mushroom</option>
+          <option value="oak">Oak</option>
+          <option value="deer">Deer</option>
+          <option value="paramecium">Paramecium</option>
+          <option value="bacterium">Bacterium</option>
+          <option value="archaeon">Archaeon</option>
+        </select>
+      </label>
+      <label class="sbe-sel">Organism B
+        <select data-pb>
+          <option value="mushroom">Mushroom</option>
+          <option value="oak">Oak</option>
+          <option value="deer" selected>Deer</option>
+          <option value="paramecium">Paramecium</option>
+          <option value="bacterium">Bacterium</option>
+          <option value="archaeon">Archaeon</option>
+        </select>
+      </label>
+      <button type="button" class="sbe-reset" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <div class="sbe-stage" data-stage></div>
+
+  <p class="sbe-hist" data-hist></p>
+
+  <div class="sbe-dna">
+    <p class="sbe-dnahead">Protein match (one protein) for the pair you picked</p>
+    <svg class="sbe-svg sbe-off" viewBox="0 0 340 120" role="img" aria-label="Bars showing how much of one protein matches for the pairs you picked, from 0 to 100 percent" data-bars></svg>
+    <p class="sbe-barnote" data-barnote></p>
+  </div>
+
+  <p class="sbe-why" data-why role="status"></p>
+
+  <p class="sbe-assume">Made up for this sketch: only six organisms; boxes, not branches; the order of the four kinds of evidence; the mushroom, deer and oak stand in for groups the table measured with other organisms; bar values are that table’s means, rounded.</p>
+  <p class="sbe-foot">Rule to keep: the more alike two organisms’ DNA sequences are, the more recent their common ancestor, and new evidence can change the groups.</p>
+</figure>
+
+<script>
+  type Id = 'mushroom' | 'oak' | 'deer' | 'paramecium' | 'bacterium' | 'archaeon';
+  interface Group { t: string; c?: Id[]; sub?: Group[]; near?: boolean }
+  const IDS: Id[] = ['mushroom', 'oak', 'deer', 'paramecium', 'bacterium', 'archaeon'];
+  const NAME: Record<Id, string> = { mushroom: 'Mushroom', oak: 'Oak', deer: 'Deer', paramecium: 'Paramecium', bacterium: 'Bacterium', archaeon: 'Archaeon' };
+  const KIND: Partial<Record<Id, string>> = { mushroom: 'fungus', oak: 'plant', deer: 'animal' };
+  const COLOR: Record<Id, string> = { mushroom: '#8a5a9e', oak: '#2e8b4f', deer: '#a0662b', paramecium: '#0e7c86', bacterium: '#d0701a', archaeon: '#b23b4e' };
+  const LEVELS = ['What eyes see', 'Light microscope', 'Cell chemistry', 'DNA'];
+
+  // Short clue under each card, by evidence step. Only clues the lesson states.
+  const CAP: Record<number, Record<Id, string>> = {
+    0: { mushroom: 'stays in one place, like a plant', oak: 'body parts seen by eye', deer: 'body parts seen by eye', paramecium: 'tiny living things', bacterium: 'tiny living things', archaeon: 'tiny living things' },
+    1: { mushroom: 'nucleus, cell wall, no chloroplasts', oak: 'nucleus, cell wall, chloroplasts', deer: 'nucleus, no cell wall', paramecium: 'nucleus', bacterium: 'no nucleus', archaeon: 'no nucleus' },
+    2: { mushroom: 'nucleus, cell wall, no chloroplasts', oak: 'nucleus, cell wall, chloroplasts', deer: 'nucleus, no cell wall', paramecium: 'nucleus', bacterium: 'chemistry differs from Archaea', archaeon: 'chemistry differs from Bacteria' },
+    3: { mushroom: 'closer to animals than to plants (one protein)', oak: 'cell wall and chloroplasts', deer: 'nucleus, no cell wall', paramecium: 'nucleus', bacterium: 'genes differ from Archaea', archaeon: 'genes differ from Bacteria' },
+  };
+
+  const LAYOUT: Record<number, Group[]> = {
+    0: [
+      { t: 'Plants', c: ['mushroom', 'oak'] },
+      { t: 'Animals', c: ['deer'] },
+      { t: 'Tiny living things', c: ['paramecium', 'bacterium', 'archaeon'] },
+    ],
+    1: [
+      { t: 'Cells with a nucleus', c: ['mushroom', 'oak', 'deer', 'paramecium'] },
+      { t: 'Cells with no nucleus (they look alike)', c: ['bacterium', 'archaeon'] },
+    ],
+    2: [
+      { t: 'Cells with a nucleus', c: ['mushroom', 'oak', 'deer', 'paramecium'] },
+      { t: 'Bacteria', c: ['bacterium'] },
+      { t: 'Archaea', c: ['archaeon'] },
+    ],
+    3: [
+      { t: 'Domain Eukarya (cells with a nucleus)', sub: [
+        { t: 'Animals', c: ['deer'], near: true },
+        { t: 'Fungi', c: ['mushroom'], near: true },
+        { t: 'Plants', c: ['oak'] },
+        { t: 'Protists', c: ['paramecium'] },
+      ] },
+      { t: 'Domain Bacteria', c: ['bacterium'] },
+      { t: 'Domain Archaea', c: ['archaeon'] },
+    ],
+  };
+
+  const WHY: string[] = [
+    'In this sketch, eyes alone put the mushroom with the oak, as many scientists once did. Tiny living things were later found to be neither plant nor animal.',
+    'In this sketch, a light microscope shows a nucleus in four cards. The bacterium and archaeon have none and look alike.',
+    'In this sketch, chemistry splits the bacterium from the archaeon, though they look alike under a light microscope.',
+    'In this sketch, DNA puts the mushroom beside the deer. That does not make a mushroom an animal.',
+  ];
+  const HIST: string[] = [
+    'In 1735 Linnaeus sorted living things into 2 kingdoms using body parts seen by eye.',
+    'Microscopes showed tiny living things that were neither plant nor animal. Haeckel (1866) used 3 kingdoms and Copeland (1938) used 4.',
+    'In 1977 Woese and Fox compared a molecule all cells have, ribosomal RNA, and found 3 main lines of life.',
+    'In 1990 molecule comparisons led to 3 domains, a new level above kingdom. Comparing DNA and proteins put fungi closer to animals than to plants.',
+  ];
+
+  // Means of the lesson's table (EF-1 alpha, one protein), rounded: animal+fungus 82.3, fungus+plant 74.1.
+  const PAIRS: Record<string, { v: number; n: number; label: string; who: string }> = {
+    'animal|fungus': { v: 82, n: 2, label: 'Fungi and animals (2 pairs)', who: 'human with baker’s yeast and bread mold' },
+    'fungus|plant': { v: 74, n: 4, label: 'Fungi and plants (4 pairs)', who: 'baker’s yeast and bread mold with thale cress and wheat' },
+  };
+
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('SortByEvidence: missing ' + sel);
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-sbe]').forEach((root) => {
+    const slider = must<HTMLInputElement>(root, '[data-slider]');
+    const lvlName = must<HTMLElement>(root, '[data-lvlname]');
+    const selA = must<HTMLSelectElement>(root, '[data-pa]');
+    const selB = must<HTMLSelectElement>(root, '[data-pb]');
+    const stage = must<HTMLElement>(root, '[data-stage]');
+    const hist = must<HTMLElement>(root, '[data-hist]');
+    const bars = must<SVGSVGElement>(root, '[data-bars]');
+    const barNote = must<HTMLElement>(root, '[data-barnote]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    const reset = must<HTMLButtonElement>(root, '[data-reset]');
+    const ticks = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tick]'));
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Persistent cards so they can move between boxes.
+    const cards = new Map<Id, HTMLElement>();
+    const capEls = new Map<Id, HTMLElement>();
+    IDS.forEach((id) => {
+      const c = document.createElement('div');
+      c.className = 'sbe-card';
+      c.style.setProperty('--sbe-c', COLOR[id]);
+      const n = document.createElement('strong');
+      n.textContent = NAME[id];
+      const cap = document.createElement('span');
+      c.append(n, cap);
+      cards.set(id, c);
+      capEls.set(id, cap);
+    });
+
+    let rendered = false;
+    let history: { key: string; label: string; v: number; n: number }[] = [];
+
+    function build(g: Group, nested: boolean): HTMLElement {
+      const box = document.createElement('section');
+      box.className = 'sbe-group' + (nested ? ' sbe-sub' : '') + (g.near ? ' sbe-near' : '');
+      box.setAttribute('aria-label', g.t);
+      const h = document.createElement('h4');
+      h.textContent = g.t;
+      box.appendChild(h);
+      if (g.sub) {
+        const row = document.createElement('div');
+        row.className = 'sbe-row';
+        g.sub.forEach((s) => row.appendChild(build(s, true)));
+        box.appendChild(row);
+      } else {
+        const row = document.createElement('div');
+        row.className = 'sbe-row';
+        (g.c ?? []).forEach((id) => {
+          const el = cards.get(id);
+          if (el) row.appendChild(el);
+        });
+        box.appendChild(row);
+      }
+      return box;
+    }
+
+    function drawStage(level: number) {
+      const first = new Map<Id, DOMRect>();
+      if (rendered) cards.forEach((el, id) => first.set(id, el.getBoundingClientRect()));
+      stage.replaceChildren(...LAYOUT[level].map((g) => build(g, false)));
+      IDS.forEach((id) => {
+        const cap = capEls.get(id);
+        if (cap) cap.textContent = CAP[level][id];
+      });
+      if (rendered && !reduce) {
+        cards.forEach((el, id) => {
+          const a = first.get(id);
+          if (!a || typeof el.animate !== 'function') return;
+          const b = el.getBoundingClientRect();
+          if (Math.abs(a.left - b.left) > 1 || Math.abs(a.top - b.top) > 1) {
+            // The card moved to a new box: it fades in there, with a short teal glow.
+            el.animate(
+              [{ opacity: 0, transform: 'scale(0.92)', boxShadow: '0 0 0 3px #0e7c86' }, { opacity: 1, transform: 'none', boxShadow: '0 0 0 0 rgba(14,124,134,0)' }],
+              { duration: 450, easing: 'ease-out' },
+            );
+          }
+        });
+      }
+      rendered = true;
+    }
+
+    const NS = 'http://www.w3.org/2000/svg';
+    function svgEl(name: string, attrs: Record<string, string | number>): SVGElement {
+      const e = document.createElementNS(NS, name);
+      for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+      return e;
+    }
+
+    function drawBars(currentKey: string) {
+      bars.replaceChildren();
+      const TW = 240; // track width = 100 percent
+      const rows = history.length;
+      const h = 12 + rows * 52 + 34;
+      bars.setAttribute('viewBox', `0 0 340 ${h}`);
+      history.forEach((r, i) => {
+        const y = 12 + i * 52;
+        const cur = r.key === currentKey;
+        const t = svgEl('text', { x: 0, y: y + 12, 'font-size': 12, 'font-weight': cur ? 700 : 400, fill: '#1f2937' });
+        t.textContent = r.label;
+        bars.appendChild(t);
+        bars.appendChild(svgEl('rect', { x: 0, y: y + 20, width: TW, height: 18, fill: '#eef0f4', stroke: '#9aa3b2', 'stroke-width': 1 }));
+        bars.appendChild(svgEl('rect', { x: 0, y: y + 20, width: (TW * r.v) / 100, height: 18, fill: cur ? '#0e7c86' : '#7ea9ad' }));
+        const v = svgEl('text', { x: TW + 8, y: y + 34, 'font-size': 12, 'font-weight': 700, fill: '#1f2937' });
+        v.textContent = 'about ' + r.v + '%';
+        bars.appendChild(v);
+      });
+      const ay = 12 + rows * 52 + 8;
+      const z = svgEl('text', { x: 0, y: ay + 12, 'font-size': 12, fill: '#1f2937' });
+      z.textContent = '0%';
+      bars.appendChild(z);
+      const m = svgEl('text', { x: TW, y: ay + 12, 'font-size': 12, 'text-anchor': 'end', fill: '#1f2937' });
+      m.textContent = '100%';
+      bars.appendChild(m);
+      const ax = svgEl('text', { x: 0, y: ay + 28, 'font-size': 12, fill: '#1f2937' });
+      ax.textContent = 'Match for one protein (EF-1 alpha)';
+      bars.appendChild(ax);
+    }
+
+    function drawDna(level: number) {
+      const a = selA.value as Id, b = selB.value as Id;
+      const la = NAME[a], lb = NAME[b];
+      bars.classList.add('sbe-off');
+      if (a === b) {
+        barNote.textContent = 'Pick two different organisms to compare.';
+        return;
+      }
+      if (level < 3) {
+        barNote.textContent = `Move the slider to DNA to see the bar for ${la.toLowerCase()} and ${lb.toLowerCase()}.`;
+        return;
+      }
+      const ka = KIND[a], kb = KIND[b];
+      const key = ka && kb ? [ka, kb].sort().join('|') : '';
+      const p = key ? PAIRS[key] : undefined;
+      if (!p) {
+        const bothTiny = (a === 'bacterium' && b === 'archaeon') || (a === 'archaeon' && b === 'bacterium');
+        barNote.textContent = bothTiny
+          ? 'The lesson gives no protein numbers for this pair. It says their chemistry and genes show they are very different.'
+          : ka && kb
+            ? 'The lesson’s table has no animal-and-plant pair, so there is no bar for this pair.'
+            : 'The lesson gives no protein numbers for this pair, so there is no bar.';
+        if (history.length) {
+          barNote.textContent += ' Earlier bars stay for comparison.';
+          bars.classList.remove('sbe-off');
+          drawBars('');
+        }
+        return;
+      }
+      const pk = key;
+      history = history.filter((r) => r.key !== pk);
+      history.unshift({ key: pk, label: p.label, v: p.v, n: p.n });
+      history = history.slice(0, 3);
+      bars.classList.remove('sbe-off');
+      drawBars(pk);
+      barNote.textContent = `In this sketch, the bar is not measured for a mushroom, deer or oak. It is the lesson’s mean for ${p.n} pairs (${p.who}): about ${p.v} percent for one protein. A higher match suggests a more recent common ancestor.`;
+    }
+
+    function render() {
+      const level = parseInt(slider.value, 10) || 0;
+      lvlName.textContent = LEVELS[level];
+      slider.setAttribute('aria-valuetext', LEVELS[level]);
+      ticks.forEach((t) => {
+        const on = t.dataset.tick === String(level);
+        t.classList.toggle('sbe-on', on);
+        t.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      drawStage(level);
+      hist.textContent = HIST[level];
+      why.textContent = WHY[level];
+      drawDna(level);
+    }
+
+    slider.addEventListener('input', render);
+    selA.addEventListener('change', render);
+    selB.addEventListener('change', render);
+    ticks.forEach((t) => t.addEventListener('click', () => {
+      slider.value = t.dataset.tick ?? '0';
+      render();
+    }));
+    reset.addEventListener('click', () => {
+      slider.value = '0';
+      selA.value = 'mushroom';
+      selB.value = 'deer';
+      history = [];
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .sbe { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sbe-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sbe-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sbe-slabel { display: block; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .sbe-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); }
+  .sbe-slider { width: 100%; height: 44px; accent-color: var(--ddp-color-accent); }
+  .sbe-ticks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .sbe-tick { min-height: 44px; padding: 0.2rem 0.25rem; font: inherit; font-size: 0.8125rem; line-height: 1.2; color: var(--ddp-color-ink); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 6px; cursor: pointer; }
+  .sbe-tick.sbe-on { background: var(--ddp-color-accent-soft); border-color: var(--ddp-color-accent); font-weight: 700; }
+  .sbe-pick { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); align-items: flex-end; }
+  .sbe-sel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .sbe-sel select { min-height: 44px; min-width: 9rem; font: inherit; font-size: 1rem; padding: 0 0.5rem; color: var(--ddp-color-ink); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sbe-reset { min-height: 44px; padding: 0 1rem; font: inherit; font-size: 0.9375rem; color: var(--ddp-color-ink); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 6px; cursor: pointer; }
+  .sbe-stage { display: flex; flex-direction: column; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0; }
+  .sbe-group { border: 2px solid var(--ddp-color-primary-soft, #6b7a99); border-radius: 8px; padding: 0.4rem 0.5rem 0.5rem; background: var(--ddp-color-surface); }
+  .sbe-group h4 { margin: 0 0 0.35rem; font-size: 0.875rem; font-weight: 700; color: var(--ddp-color-primary); }
+  .sbe-sub { flex: 1 1 8.5rem; border-width: 1px; border-style: dashed; }
+  .sbe-near { border-color: var(--ddp-color-accent); border-style: solid; }
+  .sbe-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .sbe-group > .sbe-row > .sbe-sub { margin: 0; }
+  .sbe-card { flex: 1 1 8rem; max-width: 100%; display: flex; flex-direction: column; gap: 0.15rem; padding: 0.4rem 0.5rem; background: var(--ddp-color-surface); color: var(--ddp-color-ink); border: 1px solid var(--ddp-color-line); border-left: 6px solid var(--sbe-c, #888); border-radius: 6px; font-size: 0.8125rem; line-height: 1.3; }
+  .sbe-card strong { font-size: 0.9375rem; }
+  .sbe-card span { color: var(--ddp-color-ink-soft); }
+  .sbe-hist { margin: 0 0 var(--ddp-space-2); font-size: 0.8125rem; color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; line-height: 1.45; }
+  .sbe-dna { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .sbe-dnahead { margin: 0 0 0.3rem; font-weight: 700; font-size: 0.875rem; color: var(--ddp-color-primary); }
+  .sbe-svg { display: block; width: 100%; max-width: 420px; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sbe-off { display: none; }
+  .sbe-barnote { margin: 0.4rem 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--ddp-color-ink-soft); }
+  .sbe-why { margin: var(--ddp-space-2) 0 0; font-size: 0.9375rem; line-height: 1.45; color: var(--ddp-color-ink); min-height: 3em; }
+  .sbe-assume { margin: var(--ddp-space-2) 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--ddp-color-muted); }
+  .sbe-foot { margin: var(--ddp-space-2) 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (prefers-reduced-motion: reduce) { .sbe-card { animation: none; } }
+</style>

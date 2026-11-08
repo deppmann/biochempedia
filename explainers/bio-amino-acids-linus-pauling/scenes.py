@@ -10,9 +10,9 @@ COLOR MAP (one color per concept, whole video)
   TEAL   = Pauling's chemistry: the chain/strip, the coil, the alpha helix, "molecular disease", the DNA proposal
   YELLOW = tools and data: paper, slide rule, electrophoresis apparatus, the photographs
   RED    = what went wrong or stood in the way: infection, the old assumption, sickle-cell, the lesion,
-           "wrong", the passport
+           "wrong", the photographs he never saw
   GREEN  = healthy hemoglobin (this film uses no hydrogen-bond arrows)
-  PLACE (lavender) = places and institutions: Oxford, the government, King's College
+  PLACE (lavender) = places and institutions: Oxford, King's College
   GREY   = axes, de-emphasized things
 No molecular structure is drawn: the chain is a strip of numbered residue tiles, the coil is an end-on
 arrangement of those tiles, sickle/healthy hemoglobin are colored spots on an apparatus schematic, and
@@ -453,7 +453,7 @@ class S04MolecularDisease(ProfileScene):
         self.finish()
 
 
-# ----------------------------------------------------------------------------- s05 Nobels, DNA, passport
+# ----------------------------------------------------------------------------- s05 Nobels, DNA, the photographs
 class S05NobelsDna(ProfileScene):
     def medal(self, x, field):
         ring = Circle(radius=1.3, stroke_color=GOLD, stroke_width=4, fill_color=GOLD, fill_opacity=0.1)
@@ -493,28 +493,22 @@ class S05NobelsDna(ProfileScene):
         self.play(dna[0].animate.set_stroke(RED).set_fill(RED, 0.16), dna[1].animate.set_color(RED),
                   FadeIn(wrong, shift=UP * 0.1), run_time=0.7)
 
-        # the passport, King's College photographs
-        gov = lab("the government", PLACE, 28).move_to([-0.2, -0.45, 0])
-        pp = lab("passport pulled", RED, 28).move_to([4.5, -0.45, 0])
-        arr = Arrow(gov.get_right() + RIGHT * 0.05, pp.get_left() + LEFT * 0.05, color=RED, stroke_width=4, buff=0.0,
-                    max_tip_length_to_length_ratio=0.3)
+        # the King's College photographs he never saw
+        nsaw = lab("never saw them", RED, 28).move_to([PANEL_C, -0.45, 0])
         self.at("particular", lead=0.0)
         self.play(Indicate(wrong, color=RED, scale_factor=1.06), run_time=0.7)
         self.at("partly because", lead=0.0)
         self.play(VGroup(dna, wrong).animate.set_opacity(0.45), run_time=0.4)
-        self.at("the government")
-        self.play(pop(gov), run_time=0.45)
-        self.at("pulled his passport")
-        self.play(GrowArrow(arr), pop(pp), run_time=0.5)
 
         kings = RoundedRectangle(corner_radius=0.2, width=7.4, height=1.3, stroke_color=PLACE, stroke_width=2.5,
                                  fill_color=PLACE, fill_opacity=0.08).move_to([PANEL_C, -2.3, 0])
         k_lab = T("King's College", 30, PLACE).move_to(kings.get_left() + RIGHT * 1.7)
         photos = lab("photographs", YELLOW, 28).move_to([4.2, -2.3, 0])
-        blocked = DashedLine(pp.get_bottom() + DOWN * 0.05, [4.5, kings.get_top()[1] + 0.05, 0], color=RED,
+        blocked = DashedLine(nsaw.get_bottom() + DOWN * 0.05, [PANEL_C, kings.get_top()[1] + 0.05, 0], color=RED,
                              stroke_width=4, dash_length=0.12)
         x = cross_at(blocked.get_center(), 0.2)
         self.at("never saw")
+        self.play(pop(nsaw), run_time=0.45)
         self.play(Create(blocked), run_time=0.4)
         self.play(FadeIn(x, scale=1.5), run_time=0.25)
         self.at("photographs")

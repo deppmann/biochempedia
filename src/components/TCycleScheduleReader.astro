@@ -1,0 +1,197 @@
+---
+/**
+ * TCycleScheduleReader — a light-dark schedule drawn over 48 hours, with the cycle length
+ * T = L + D and cycles per day 24 / T worked out. Only the schedule LeGates and colleagues
+ * (2012) used (T7: 3.5 h light + 3.5 h dark) has a result in the lesson. Original.
+ */
+---
+
+<figure class="tcs card" data-tcs>
+  <figcaption class="tcs-head">Light-dark schedule reader: the T7 cycle<span class="tcs-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="tcs-svg" viewBox="0 0 340 150" role="img" aria-label="A 48-hour timeline of alternating light and dark blocks above an unsplit 24-hour reference bar" data-plot></svg>
+
+  <div class="tcs-controls">
+    <label class="tcs-slabel"><span>Hours of light L <em data-out="l">3.5</em> h</span>
+      <input type="range" data-in="l" min="0.5" max="12" step="0.5" value="3.5" />
+    </label>
+    <label class="tcs-slabel"><span>Hours of dark D <em data-out="d">3.5</em> h</span>
+      <input type="range" data-in="d" min="0.5" max="12" step="0.5" value="3.5" />
+    </label>
+    <fieldset class="tcs-group">
+      <legend>Mice</legend>
+      <label><input type="radio" name="tcs-grp" value="wt" checked /> wild-type</label>
+      <label><input type="radio" name="tcs-grp" value="abl" /> ipRGC-ablated</label>
+    </fieldset>
+  </div>
+
+  <dl class="tcs-readout">
+    <div><dt>Cycle length T = L + D</dt><dd data-r-t>7 h</dd></div>
+    <div><dt>Cycles per day, 24 / T</dt><dd data-r-n>3.43</dd></div>
+    <div><dt>LeGates 2012 T7 cycle?</dt><dd data-r-is>yes</dd></div>
+  </dl>
+
+  <ul class="tcs-res" data-res></ul>
+
+  <p class="tcs-why" data-why role="status"></p>
+
+  <p class="tcs-assume"><strong>In this sketch:</strong> square-wave light starting with the light block, no intensity or wavelength, mouse results for the T7 cycle only, set against a control 24-hour cycle whose light-dark split the lesson does not give (drawn unsplit).</p>
+  <p class="tcs-assume"><strong>It does not show:</strong> that circadian changes are absent, which input (melanopsin response or rod and cone relay) mattered, that a mouse depression-like assay is a diagnosis, or anything about human light schedules.</p>
+
+  <p class="tcs-foot">T is the length of one light-dark cycle, so cycles per day is 24 / T: 3.5 + 3.5 = 7 h gives 24 / 7 = 3.43, about 3.4 cycles per day. Only that schedule has a result in the lesson, and it is a result in mice.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', LIGHT = '#f2c94c', DARK = '#3b3f5c';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-tcs]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const lIn = root.querySelector<HTMLInputElement>('[data-in="l"]');
+    const dIn = root.querySelector<HTMLInputElement>('[data-in="d"]');
+    const lOut = root.querySelector<HTMLElement>('[data-out="l"]');
+    const dOut = root.querySelector<HTMLElement>('[data-out="d"]');
+    const rT = root.querySelector<HTMLElement>('[data-r-t]');
+    const rN = root.querySelector<HTMLElement>('[data-r-n]');
+    const rIs = root.querySelector<HTMLElement>('[data-r-is]');
+    const res = root.querySelector<HTMLElement>('[data-res]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="tcs-grp"]'));
+    if (!plot || !lIn || !dIn || !lOut || !dOut || !rT || !rN || !rIs || !res || !why || radios.length === 0) return;
+
+    const X0 = 12, X1 = 328, W = X1 - X0;
+    const px = (h: number) => X0 + (h / 48) * W;
+    const fmt = (x: number) => (Number.isInteger(x) ? String(x) : x.toFixed(1));
+
+    function txt(x: number, y: number, s: string, anchor = 'start', size = 10, weight = 400) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, 'font-weight': weight, fill: INK });
+      t.textContent = s;
+      plot!.appendChild(t);
+    }
+
+    function render() {
+      const L = parseFloat(lIn!.value), D = parseFloat(dIn!.value);
+      const grp = radios.find((r) => r.checked)?.value === 'abl' ? 'abl' : 'wt';
+      const T = L + D;
+      const perDay = 24 / T;
+      const isT7 = L === 3.5 && D === 3.5;
+      lOut!.textContent = fmt(L);
+      dOut!.textContent = fmt(D);
+      rT!.textContent = fmt(T) + ' h';
+      rN!.textContent = perDay.toFixed(2);
+      rIs!.textContent = isT7 ? 'yes' : 'no';
+
+      plot!.replaceChildren();
+      txt(X0, 12, 'Your schedule, 48 h (light first)', 'start', 10, 700);
+      // light-dark blocks
+      const y0 = 20, bh = 34;
+      let h = 0, light = true;
+      while (h < 48) {
+        const len = light ? L : D;
+        const end = Math.min(48, h + len);
+        plot!.appendChild(el('rect', { x: px(h), y: y0, width: Math.max(0.2, px(end) - px(h)), height: bh, fill: light ? LIGHT : DARK }));
+        h = end;
+        light = !light;
+      }
+      plot!.appendChild(el('rect', { x: X0, y: y0, width: W, height: bh, fill: 'none', stroke: INK, 'stroke-width': 1 }));
+      // one cycle bracket
+      const cEnd = Math.min(48, T);
+      plot!.appendChild(el('line', { x1: px(0), y1: y0 + bh + 6, x2: px(cEnd), y2: y0 + bh + 6, stroke: '#e57200', 'stroke-width': 2 }));
+      plot!.appendChild(el('line', { x1: px(0), y1: y0 + bh + 3, x2: px(0), y2: y0 + bh + 9, stroke: '#e57200', 'stroke-width': 2 }));
+      plot!.appendChild(el('line', { x1: px(cEnd), y1: y0 + bh + 3, x2: px(cEnd), y2: y0 + bh + 9, stroke: '#e57200', 'stroke-width': 2 }));
+      const right = px(cEnd) + 4 > X1 - 90;
+      txt(right ? X1 : px(cEnd) + 4, y0 + bh + 17, 'one cycle, T = ' + fmt(T) + ' h', right ? 'end' : 'start', 9, 700);
+
+      // control: unsplit 24 h reference
+      const ry = 88;
+      txt(X0, ry - 6, 'Control 24 h cycle (light-dark split not given in the lesson)', 'start', 9, 700);
+      plot!.appendChild(el('rect', { x: X0, y: ry, width: W / 2, height: 22, fill: '#e4e4ea', stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('rect', { x: X0 + W / 2, y: ry, width: W / 2, height: 22, fill: '#e4e4ea', stroke: INK, 'stroke-width': 1 }));
+      txt(X0 + W / 4, ry + 15, '24 h', 'middle', 9);
+      txt(X0 + (3 * W) / 4, ry + 15, '24 h', 'middle', 9);
+
+      // axis
+      const ay = 124;
+      plot!.appendChild(el('line', { x1: X0, y1: ay, x2: X1, y2: ay, stroke: INK, 'stroke-width': 1 }));
+      for (const t of [0, 12, 24, 36, 48]) {
+        plot!.appendChild(el('line', { x1: px(t), y1: ay, x2: px(t), y2: ay + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(px(t), ay + 13, String(t), t === 0 ? 'start' : t === 48 ? 'end' : 'middle', 9);
+      }
+      txt((X0 + X1) / 2, ay + 25, 'hours (square-wave light; no intensity or wavelength)', 'middle', 9);
+
+      // result rows
+      res!.replaceChildren();
+      const none = 'no result in the lesson for this schedule';
+      const rows: Array<[string, string]> = [];
+      if (isT7 && grp === 'wt') {
+        rows.push(['Depression-like behaviour', 'reported']);
+        rows.push(['Hippocampal long-term potentiation (slices)', 'impaired']);
+        rows.push(['Total sleep and sleep architecture (T7 mice; genotype not stated)', 'preserved, per earlier work the authors cite']);
+        rows.push(['Circadian period (T7 mice; genotype not stated)', 'still lengthened']);
+      } else if (isT7) {
+        rows.push(['Depression-like behaviour', 'absent']);
+        rows.push(['Hippocampal long-term potentiation impairment (slices)', 'absent']);
+        rows.push(['Total sleep, sleep architecture, circadian period', 'not stated for ablated mice in the lesson']);
+      } else {
+        rows.push(['Mouse results', none]);
+      }
+      for (const [k, v] of rows) {
+        const li = document.createElement('li');
+        const b = document.createElement('span');
+        b.className = 'tcs-k';
+        b.textContent = k;
+        const s = document.createElement('span');
+        s.className = 'tcs-v';
+        s.textContent = v;
+        li.append(b, s);
+        res!.appendChild(li);
+      }
+
+      const arith = `L + D = ${fmt(L)} + ${fmt(D)} = ${fmt(T)} h, so 24 / ${fmt(T)} = ${perDay.toFixed(2)} cycles per day`;
+      const who = grp === 'wt' ? 'wild-type mice' : 'ipRGC-ablated mice';
+      if (isT7) {
+        why!.textContent = grp === 'wt'
+          ? `${arith}, about 3.4. This is the T7 cycle of LeGates and colleagues (2012). In this sketch, in ${who} the lesson reports depression-like behaviour and impaired hippocampal long-term potentiation. For T7 mice, whose genotype the lesson does not give for these two findings, total sleep and sleep architecture were preserved according to earlier work the authors cite and the circadian period still lengthened, so "no circadian changes" would be wrong.`
+          : `${arith}, about 3.4. This is the T7 cycle of LeGates and colleagues (2012). In ${who} the depression-like behaviour and the long-term potentiation impairment were absent. Ablation implicates the cells but cannot say whether the melanopsin response or the rod and cone relay supplied the input.`;
+      } else if (T === 24) {
+        why!.textContent = `${arith}, the same length as the control cycle. The lesson does not give the control cycle's light-dark split, so there is no result in the lesson for this schedule.`;
+      } else {
+        why!.textContent = `${arith}. This is arithmetic only: there is no result in the lesson for this schedule in ${who}. Set L = 3.5 h and D = 3.5 h for the T7 cycle.`;
+      }
+    }
+    [lIn, dIn, ...radios].forEach((c) => c.addEventListener('input', render));
+    radios.forEach((c) => c.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .tcs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tcs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tcs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tcs-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tcs-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .tcs-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tcs-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .tcs-slabel input { accent-color: var(--ddp-color-accent); }
+  .tcs-group { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; border: 0; margin: 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tcs-group legend { padding: 0; font-weight: 600; margin-bottom: 0.2rem; }
+  .tcs-group label { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .tcs-group input { accent-color: var(--ddp-color-accent); }
+  .tcs-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .tcs-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .tcs-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .tcs-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .tcs-res { list-style: none; margin: var(--ddp-space-2) 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tcs-res li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 0.8rem; padding: 0.2rem 0; border-bottom: 1px solid var(--ddp-color-line); }
+  .tcs-k { font-weight: 600; margin-right: 0.6rem; }
+  .tcs-v { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .tcs-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .tcs-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .tcs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .tcs-readout { grid-template-columns: 1fr; } .tcs-controls { grid-template-columns: 1fr; } }
+</style>

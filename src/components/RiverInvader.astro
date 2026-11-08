@@ -1,0 +1,329 @@
+---
+/**
+ * RiverInvader — a model Virginia river drawn as population bars: blue catfish, native white
+ * catfish, blue crabs and small fish, plus a bar for the prey each catfish gets. The learner
+ * chooses how many blue catfish are released (none, a few, many), how much shoreline habitat is
+ * lost to building (0 to 50 percent) and how hard people fish for blue catfish (none, some,
+ * heavy), then plays 20 years or drags the year slider. The two catfish share one fixed food
+ * supply, blue catfish use it slightly better, crabs and small fish drop with lost habitat and
+ * with more catfish eating them, and fishing blue catfish gives white catfish food back.
+ * Relative units only, four species, no seasons, no random scatter. Original.
+ */
+---
+
+<figure class="rvi card" data-riverinvader>
+  <figcaption class="rvi-head">Release a new fish into a model river<span class="rvi-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rvi-svg" viewBox="0 0 360 318" role="img" aria-label="Population bars for a model river" data-plot></svg>
+
+  <div class="rvi-controls">
+    <fieldset class="rvi-group">
+      <legend>Blue catfish released</legend>
+      <div class="rvi-seg" data-group="rel">
+        <button type="button" class="rvi-btn" data-val="none" aria-pressed="true">None</button>
+        <button type="button" class="rvi-btn" data-val="few" aria-pressed="false">A few</button>
+        <button type="button" class="rvi-btn" data-val="many" aria-pressed="false">Many</button>
+      </div>
+    </fieldset>
+    <fieldset class="rvi-group">
+      <legend>Fishing for blue catfish</legend>
+      <div class="rvi-seg" data-group="fish">
+        <button type="button" class="rvi-btn" data-val="none" aria-pressed="true">None</button>
+        <button type="button" class="rvi-btn" data-val="some" aria-pressed="false">Some</button>
+        <button type="button" class="rvi-btn" data-val="heavy" aria-pressed="false">Heavy</button>
+      </div>
+    </fieldset>
+    <div class="rvi-group rvi-wide">
+      <label class="rvi-slide"><span>Shoreline habitat lost to building: <em data-loss-out>0 percent</em></span>
+        <input type="range" min="0" max="50" step="5" value="0" data-loss aria-label="Shoreline habitat lost to building, 0 to 50 percent" />
+      </label>
+    </div>
+  </div>
+
+  <div class="rvi-run">
+    <button type="button" class="rvi-btn rvi-primary" data-play>Play 20 years</button>
+    <button type="button" class="rvi-btn" data-reset>Reset</button>
+    <label class="rvi-slide rvi-year"><span>Year <em data-year-out>20</em> of 20</span>
+      <input type="range" min="0" max="20" step="1" value="20" data-year aria-label="Year to show, from 0 to 20" />
+    </label>
+  </div>
+
+  <p class="rvi-status" data-status role="status">In this sketch, nothing has changed, so every bar stays on its dashed line.</p>
+
+  <p class="rvi-assume">Made up for this sketch, in relative units, not measurements: a few and many releases, the food supply, the share of blue catfish fished each year, and how much each kind loses to habitat loss or to being eaten. In this sketch, blue catfish are made to use the shared food slightly better; the lesson does not say why they spread. Catfish are not changed by lost habitat, and the food bar does not change with habitat loss. Small fish losing habitat is an assumption of this sketch. In this sketch, blue catfish are made to take more small fish than crabs. Four species, the same food every year, no seasons, no random scatter. Not to scale.</p>
+  <p class="rvi-foot">Rule to keep: when two species use the same limited food, more of one leaves less for the other, and people can raise or lower a population by what they do to its habitat and its competitors.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#9a9aa5';
+  const C_BLUE = '#2b6cb0', C_WHITE = '#8a8f9c', C_CRAB = '#e57200', C_FISH = '#0e7c86', C_FOOD = '#a77b3c', C_HAB = '#3a8f4b';
+  type Rel = 'none' | 'few' | 'many';
+  type Fish = 'none' | 'some' | 'heavy';
+
+  // Made-up sketch numbers, relative units.
+  const YEARS = 20;
+  const START = 60;            // start line for white catfish, crabs, small fish, and prey per catfish
+  const SUPPLY = 60;           // the one fixed food supply the two catfish share
+  const H_BLUE = 0.8, H_WHITE = 1.0;   // blue catfish use shared food slightly better
+  const R_BLUE = 0.5, R_WHITE = 0.3;
+  const R_CRAB = 0.4, R_SMALL = 0.5;
+  const E_CRAB = 0.3, E_SMALL = 0.5;   // small fish are eaten more than crabs
+  const K0_CRAB = START / (1 - E_CRAB), K0_SMALL = START / (1 - E_SMALL);
+  const RELEASE: Record<Rel, number> = { none: 0, few: 6, many: 20 };
+  const HARVEST: Record<Fish, number> = { none: 0, some: 0.07, heavy: 0.14 };
+  const AXMAX = 80;
+
+  type Row = { blue: number; white: number; crab: number; small: number; prey: number };
+
+  function simulate(rel: Rel, loss: number, fish: Fish): Row[] {
+    let B = RELEASE[rel], W = START, C = START, F = START;
+    const harv = HARVEST[fish];
+    const rows: Row[] = [];
+    const push = () => {
+      const D = Math.max(1, B + W);
+      rows.push({ blue: B, white: W, crab: C, small: F, prey: Math.min(AXMAX, START * SUPPLY / D) });
+    };
+    push();
+    for (let y = 1; y <= YEARS; y++) {
+      const D = Math.max(1, B + W);
+      const f = SUPPLY / D;
+      const nB = B > 0 ? B + B * R_BLUE * (f - H_BLUE) : 0;
+      const nW = W + W * R_WHITE * (f - H_WHITE);
+      const kc = K0_CRAB * (1 - loss / 100), kf = K0_SMALL * (1 - loss / 100);
+      const nC = C + R_CRAB * C * (1 - C / kc) - R_CRAB * C * E_CRAB * D / SUPPLY;
+      const nF = F + R_SMALL * F * (1 - F / kf) - R_SMALL * F * E_SMALL * D / SUPPLY;
+      B = Math.max(0, nB) * (1 - harv);
+      W = Math.max(0, nW);
+      C = Math.max(0, nC);
+      F = Math.max(0, nF);
+      push();
+    }
+    return rows;
+  }
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, size: number, fill: string, anchor = 'start', weight = 400): SVGElement {
+    const t = el('text', { x, y, 'font-size': size, fill, 'text-anchor': anchor, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+
+  // Small labelled schematic icons, centered near (cx, cy).
+  function fishIcon(g: SVGElement, cx: number, cy: number, fill: string, scale: number, outline: boolean) {
+    const s = scale;
+    g.appendChild(el('ellipse', { cx, cy, rx: 9 * s, ry: 5 * s, fill, stroke: outline ? INK : 'none', 'stroke-width': 1 }));
+    g.appendChild(el('path', { d: `M${cx + 8 * s} ${cy} L${cx + 15 * s} ${cy - 5 * s} L${cx + 15 * s} ${cy + 5 * s} Z`, fill, stroke: outline ? INK : 'none', 'stroke-width': 1 }));
+    g.appendChild(el('circle', { cx: cx - 5 * s, cy: cy - 1.2 * s, r: 1, fill: outline ? INK : '#fff' }));
+  }
+  function crabIcon(g: SVGElement, cx: number, cy: number) {
+    g.appendChild(el('ellipse', { cx, cy, rx: 9, ry: 6, fill: C_CRAB }));
+    g.appendChild(el('circle', { cx: cx - 11, cy: cy - 7, r: 3.2, fill: C_CRAB }));
+    g.appendChild(el('circle', { cx: cx + 11, cy: cy - 7, r: 3.2, fill: C_CRAB }));
+    g.appendChild(el('path', { d: `M${cx - 6} ${cy + 5} L${cx - 10} ${cy + 9} M${cx} ${cy + 6} L${cx} ${cy + 10} M${cx + 6} ${cy + 5} L${cx + 10} ${cy + 9}`, stroke: C_CRAB, 'stroke-width': 1.6, fill: 'none' }));
+  }
+  function foodIcon(g: SVGElement, cx: number, cy: number) {
+    for (const [dx, dy] of [[-8, -3], [0, 3], [8, -3]]) g.appendChild(el('rect', { x: cx + dx - 3.5, y: cy + dy - 3.5, width: 7, height: 7, rx: 1.5, fill: C_FOOD }));
+  }
+  function plantIcon(g: SVGElement, cx: number, cy: number) {
+    g.appendChild(el('rect', { x: cx - 1, y: cy - 2, width: 2, height: 9, fill: C_HAB }));
+    g.appendChild(el('path', { d: `M${cx} ${cy - 8} L${cx - 7} ${cy + 1} L${cx + 7} ${cy + 1} Z`, fill: C_HAB }));
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-riverinvader]').forEach((root) => {
+    const need = <T extends Element>(sel: string): T => {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('RiverInvader: missing ' + sel);
+      return e;
+    };
+    const plot = need<SVGSVGElement>('[data-plot]');
+    const status = need<HTMLElement>('[data-status]');
+    const playBtn = need<HTMLButtonElement>('[data-play]');
+    const resetBtn = need<HTMLButtonElement>('[data-reset]');
+    const yearSlider = need<HTMLInputElement>('[data-year]');
+    const yearOut = need<HTMLElement>('[data-year-out]');
+    const lossSlider = need<HTMLInputElement>('[data-loss]');
+    const lossOut = need<HTMLElement>('[data-loss-out]');
+
+    const state: { rel: Rel; fish: Fish; loss: number; year: number } = { rel: 'none', fish: 'none', loss: 0, year: YEARS };
+    let timer: number | null = null;
+    const groupButtons = (g: string) => Array.from(root.querySelectorAll<HTMLButtonElement>(`[data-group="${g}"] .rvi-btn`));
+
+    function stop() {
+      if (timer !== null) { window.clearInterval(timer); timer = null; }
+      playBtn.textContent = 'Play 20 years';
+    }
+
+    function statusText(rows: Row[]): string {
+      const y = state.year;
+      const r = rows[y];
+      const prev = y > 0 ? rows[y - 1] : r;
+      const out: string[] = [];
+      const anyChange = state.rel !== 'none' || state.loss > 0;
+      if (!anyChange) {
+        out.push('In this sketch, nothing has changed, so every bar stays on its dashed line.');
+        if (state.fish !== 'none') out.push('In this sketch, there are no blue catfish to fish, so fishing changes nothing.');
+        return out.join(' ');
+      }
+      if (y === 0) {
+        return 'In this sketch, this is year 0, before the changes act. Press Play or move the year.';
+      }
+      if (state.rel !== 'none') {
+        const whiteLow = r.white < 0.95 * START;
+        if (state.fish === 'none') {
+          if (whiteLow) {
+            out.push('In this sketch, blue catfish rise while white catfish fall.');
+            out.push('Both eat similar prey, so they may compete for it.');
+          } else {
+            out.push('In this sketch, blue catfish are rising, and white catfish have barely changed yet.');
+          }
+        } else {
+          if (r.white < prev.white - 0.05) {
+            out.push('In this sketch, white catfish still fall, while blue catfish are fished.');
+          } else {
+            out.push('In this sketch, fishing removes blue catfish, so more food may be left for white catfish.');
+          }
+          if (r.white < prev.white - 0.05) { /* the first sentence already says it */ }
+          else if (r.white >= 0.97 * START) out.push('In this sketch, white catfish are back near their dashed line.');
+          else if (r.white > prev.white + 0.05) out.push('In this sketch, white catfish come back part of the way.');
+          else out.push('In this sketch, white catfish are still below their dashed line.');
+        }
+      } else if (state.fish !== 'none') {
+        out.push('In this sketch, there are no blue catfish to fish, so fishing changes nothing.');
+      }
+      if (state.loss > 0) {
+        const fewer = r.crab < 0.95 * START || r.small < 0.95 * START;
+        if (fewer) out.push(state.rel !== 'none' && state.fish === 'none'
+          ? 'In this sketch, crabs and small fish may fall with less habitat and if more catfish eat them.'
+          : 'In this sketch, less shoreline habitat may leave fewer crabs and small fish, as the lesson says crabs often drop when habitat is lost.');
+      } else if (state.rel !== 'none' && state.fish === 'none' && r.small < 0.95 * START) {
+        out.push('In this sketch, small fish may fall if more catfish eat them.');
+      }
+      return out.join(' ');
+    }
+
+    function draw(rows: Row[]) {
+      const r = rows[state.year];
+      plot.replaceChildren();
+      const XB = 122, XE = 350, SC = (XE - XB) / AXMAX;
+      plot.appendChild(txt(8, 16, 'River community (relative units)', 12, INK, 'start', 700));
+      const bars: { name: string; sub: string; v: number; col: string; base: number | null; icon: (g: SVGElement, cx: number, cy: number) => void }[] = [
+        { name: 'Blue catfish', sub: 'new', v: r.blue, col: C_BLUE, base: null, icon: (g, cx, cy) => fishIcon(g, cx - 6, cy, C_BLUE, 1, false) },
+        { name: 'White catfish', sub: 'native', v: r.white, col: C_WHITE, base: START, icon: (g, cx, cy) => fishIcon(g, cx - 6, cy, '#e4e6ea', 1, true) },
+        { name: 'Blue crabs', sub: '', v: r.crab, col: C_CRAB, base: START, icon: (g, cx, cy) => crabIcon(g, cx, cy) },
+        { name: 'Small fish', sub: '', v: r.small, col: C_FISH, base: START, icon: (g, cx, cy) => fishIcon(g, cx - 4, cy, C_FISH, 0.7, false) },
+        { name: 'Prey for each', sub: 'catfish', v: r.prey, col: C_FOOD, base: START, icon: (g, cx, cy) => foodIcon(g, cx, cy) },
+      ];
+      const Y0 = 30, PITCH = 46, BH = 24;
+      bars.forEach((b, i) => {
+        const y = Y0 + i * PITCH;
+        const cy = y + BH / 2;
+        b.icon(plot, 18, cy);
+        plot.appendChild(txt(40, b.sub !== '' ? cy - 1 : cy + 4, b.name, 12, INK, 'start', 700));
+        if (b.sub) plot.appendChild(txt(40, cy + 12, b.sub === 'new' ? '(new)' : b.sub === 'native' ? '(native)' : b.sub, 11, INK));
+        plot.appendChild(el('rect', { x: XB, y, width: XE - XB, height: BH, fill: '#f4f4f6' }));
+        const w = Math.max(0, Math.min(AXMAX, b.v)) * SC;
+        if (w > 0.6) plot.appendChild(el('rect', { x: XB, y, width: w.toFixed(1), height: BH, fill: b.col }));
+        if (b.base !== null) {
+          const bx = XB + b.base * SC;
+          plot.appendChild(el('line', { x1: bx, y1: y - 4, x2: bx, y2: y + BH + 4, stroke: '#222', 'stroke-width': 1.4, 'stroke-dasharray': '3 2' }));
+        }
+      });
+      // shoreline habitat strip
+      const hy = Y0 + 5 * PITCH + 2;
+      plantIcon(plot, 18, hy + 10);
+      plot.appendChild(txt(40, hy + 9, 'Shoreline', 12, INK, 'start', 700));
+      plot.appendChild(txt(40, hy + 22, 'habitat left', 11, INK));
+      const left = 100 - state.loss;
+      plot.appendChild(el('rect', { x: XB, y: hy, width: XE - XB, height: 20, fill: '#fff', stroke: FAINT, 'stroke-width': 1 }));
+      plot.appendChild(el('rect', { x: XB, y: hy, width: ((XE - XB) * left / 100).toFixed(1), height: 20, fill: C_HAB }));
+      if (state.loss >= 15) {
+        const lw = (XE - XB) * state.loss / 100;
+        plot.appendChild(txt(XE - lw / 2, hy + 14, 'lost', 11, INK, 'middle'));
+      }
+      // footer
+      const fy = hy + 46;
+      plot.appendChild(el('line', { x1: 8, y1: fy - 4, x2: 24, y2: fy - 4, stroke: '#222', 'stroke-width': 1.4, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(txt(30, fy, 'River before any change', 11, INK));
+      plot.appendChild(txt(XE, fy, `Year ${state.year}`, 12, INK, 'end', 700));
+      plot.setAttribute('aria-label', `Population bars for year ${state.year}: blue catfish, white catfish, blue crabs, small fish, and prey for each catfish, with dashed lines for the river before any change, and a shoreline habitat bar with ${state.loss} percent lost`);
+    }
+
+    function render() {
+      const rows = simulate(state.rel, state.loss, state.fish);
+      state.year = Math.min(YEARS, Math.max(0, state.year));
+      yearSlider.value = String(state.year);
+      yearOut.textContent = String(state.year);
+      lossSlider.value = String(state.loss);
+      lossOut.textContent = `${state.loss} percent`;
+      for (const g of ['rel', 'fish'] as const) {
+        groupButtons(g).forEach((b) => b.setAttribute('aria-pressed', b.dataset.val === state[g] ? 'true' : 'false'));
+      }
+      draw(rows);
+      status.textContent = statusText(rows);
+    }
+
+    function changed() { stop(); state.year = YEARS; render(); }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-group] .rvi-btn').forEach((b) => {
+      b.addEventListener('click', () => {
+        const g = (b.parentElement as HTMLElement).dataset.group;
+        const v = b.dataset.val;
+        if (g === 'rel' && (v === 'none' || v === 'few' || v === 'many')) state.rel = v;
+        else if (g === 'fish' && (v === 'none' || v === 'some' || v === 'heavy')) state.fish = v;
+        changed();
+      });
+    });
+    lossSlider.addEventListener('input', () => { state.loss = parseInt(lossSlider.value, 10) || 0; changed(); });
+
+    playBtn.addEventListener('click', () => {
+      if (timer !== null) { stop(); render(); return; }
+      state.year = 0;
+      render();
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { state.year = YEARS; render(); return; }
+      playBtn.textContent = 'Pause';
+      timer = window.setInterval(() => {
+        if (state.year >= YEARS) { stop(); return; }
+        state.year += 1;
+        render();
+        if (state.year >= YEARS) stop();
+      }, 280);
+    });
+    yearSlider.addEventListener('input', () => { stop(); state.year = parseInt(yearSlider.value, 10) || 0; render(); });
+    resetBtn.addEventListener('click', () => {
+      stop();
+      state.rel = 'none'; state.fish = 'none'; state.loss = 0; state.year = YEARS;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .rvi { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rvi-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rvi-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rvi-svg { display: block; width: 100%; max-width: 440px; height: auto; margin: 0 auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rvi-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .rvi-group { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .rvi-wide { grid-column: 1 / -1; }
+  .rvi-group legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding: 0; margin-bottom: 0.25rem; font-weight: 600; }
+  .rvi-seg { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .rvi-btn { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .rvi-seg .rvi-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .rvi-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .rvi-btn:focus-visible, .rvi-slide input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .rvi-run { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; margin: var(--ddp-space-2) 0; }
+  .rvi-slide { display: flex; flex-direction: column; gap: 0.1rem; min-height: 44px; justify-content: center; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rvi-year { flex: 1 1 180px; }
+  .rvi-slide em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .rvi-slide input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 24px; }
+  .rvi-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 4.5em; }
+  .rvi-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .rvi-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .rvi-controls { grid-template-columns: 1fr; } }
+</style>

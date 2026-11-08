@@ -1,0 +1,330 @@
+---
+/**
+ * MerkelPhaseSplit — paired bars (control beside manipulated) for the dynamic (onset) and static
+ * (held) phases of a touch-dome SA1 response, with remaining fraction and reduction
+ * = (control - manipulated) / control for each phase. Three manipulations from the Merkel-cells
+ * lesson, plus an optional plot of the Merkel cell's own current, 20 + 350 exp(-t/8 ms) pA.
+ * Every number comes from the lesson. Self-contained vanilla-TS Astro island. Original.
+ */
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<figure class="mps card" data-mps>
+  <figcaption class="mps-head">Merkel cells: which phase of the SA1 response falls?<span class="mps-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="mps-field">
+    <legend>Manipulation</legend>
+    <label class="mps-opt"><input type="radio" name={`mps-${uid}`} value="silence" checked /> Merkel cells silenced with light (invented numbers)</label>
+    <label class="mps-opt"><input type="radio" name={`mps-${uid}`} value="piezo" /> Piezo2 deleted from skin epithelium</label>
+    <label class="mps-opt"><input type="radio" name={`mps-${uid}`} value="atoh1" /> Atoh1 deleted, no Merkel cells</label>
+  </fieldset>
+
+  <p class="mps-prep" data-prep></p>
+
+  <svg class="mps-svg" viewBox="0 0 340 215" role="img" aria-label="Paired bars, control beside manipulated, for the dynamic and the static phase of a touch-dome SA1 response" data-bars></svg>
+
+  <table class="mps-table">
+    <thead>
+      <tr><th scope="col">Phase</th><th scope="col">Remaining fraction = manipulated ÷ control</th><th scope="col">Reduction = (control − manipulated) ÷ control</th></tr>
+    </thead>
+    <tbody data-rows></tbody>
+  </table>
+  <p class="mps-check" data-check></p>
+
+  <label class="mps-opt mps-cur"><input type="checkbox" data-cur /> Show the Merkel cell’s own current (cultured cells, a different preparation)</label>
+  <div class="mps-curbox" data-curbox hidden>
+    <svg class="mps-svg" viewBox="0 0 340 200" role="img" aria-label="Mechanically activated current of a cultured Merkel cell against time, a decay from 370 pA to a steady 20 pA" data-curve></svg>
+    <dl class="mps-readout">
+      <div><dt>Peak current</dt><dd data-c-peak></dd></div>
+      <div><dt>Steady current</dt><dd data-c-steady></dd></div>
+      <div><dt>Steady ÷ peak (ratio of group means)</dt><dd data-c-ratio></dd></div>
+    </dl>
+  </div>
+
+  <p class="mps-why" data-why role="status"></p>
+
+  <p class="mps-assume">In this sketch: ratios of group means, not changes within one afferent; bars use the lesson’s values, or relative units where the lesson gives none; the transmitter is not modelled; the current is drawn as one exponential with the lesson’s 8 ms time constant.</p>
+  <p class="mps-foot">Rule to keep: remaining fraction = manipulated ÷ control, reduction = (control − manipulated) ÷ control, and the two add to 100%. Compare the phases by fraction rather than by Hz, and read the preparation before the result.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GREY = '#8a8a96';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, opts: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 10, fill: INK, 'text-anchor': 'middle' }, opts));
+    t.textContent = s;
+    return t;
+  }
+  const pct = (f: number) => {
+    const s = (f * 100).toFixed(1);
+    return (s.endsWith('.0') ? s.slice(0, -2) : s) + '%';
+  };
+
+  type Val = { c: number; m: number; sdc?: number; sdm?: number };
+  type Scen = {
+    prep: string;
+    unit: string; // axis sub-line
+    dyn: Val | null;
+    sta: Val | null;
+    dynLabel?: [string, string]; // text above manipulated bar when no number (and note under it)
+    staLabel?: [string, string];
+    maxD: number; maxS: number; ticksD: number[]; ticksS: number[];
+    manip: string;
+    status: string;
+  };
+
+  const SCEN: Record<string, Scen> = {
+    silence: {
+      prep: 'Invented numbers from the lesson’s exercise, not data: single SA1 afferents, ex vivo mouse skin-nerve preparation, held indentation, Merkel cells silenced acutely with light. Dynamic = mean peak firing in the first 100 ms; static = mean firing during the held phase.',
+      unit: 'Hz',
+      dyn: { c: 200, m: 180 },
+      sta: { c: 30, m: 6 },
+      maxD: 250, maxS: 35, ticksD: [0, 100, 200], ticksS: [0, 10, 20, 30],
+      manip: 'silenced',
+      status: 'In this sketch, with these invented numbers, acute silencing of Merkel cells leaves 90% of the dynamic phase (a 10% fall) but only 20% of the static phase (an 80% fall). The 20% is what remains, not the fall. The held phase is mostly removed, the pattern the two-receptor model predicts.',
+    },
+    piezo: {
+      prep: 'Maksimovic and colleagues (2014), touch-dome afferents in mouse skin-nerve recordings, mice lacking Piezo2 in skin epithelium. The lesson gives no values, so the bars are relative units (control = 1); hatched bars have no value in the lesson and their heights are not to scale.',
+      unit: 'relative units',
+      dyn: null,
+      sta: null,
+      maxD: 1.25, maxS: 1.25, ticksD: [0, 1], ticksS: [0, 1],
+      manip: 'Piezo2 del.',
+      status: 'In Maksimovic and colleagues’ touch-dome recordings, epithelial Piezo2 deletion gave a clean split: dynamic responses were similar to controls and normal sustained firing was lost. Woo and colleagues’ own skin-nerve recordings from these knockouts also found lower static firing. The lesson gives no values, so no percentage is computed.',
+    },
+    atoh1: {
+      prep: 'Maksimovic and colleagues (2014): female mice aged 8 to 15 weeks, ex vivo skin-nerve preparation, touch-dome afferents; developmental Atoh1 deletion that leaves no Merkel cells. Peak SA1 firing, mean ± SD (whiskers).',
+      unit: 'Hz',
+      dyn: { c: 238, m: 79, sdc: 69, sdm: 40 },
+      sta: null,
+      maxD: 320, maxS: 1, ticksD: [0, 100, 200, 300], ticksS: [],
+      manip: 'Atoh1 del.',
+      status: 'In Maksimovic and colleagues’ recordings, afferents without Merkel cells still responded to touch, but peak firing fell to 33.2% of the control mean, a 66.8% fall (a ratio of group means, not the change within one afferent; the groups are widely spread). Peak firing belongs to the dynamic phase, so “Merkel cells do only the static phase” is refuted. A developmental deletion cannot say through which mechanism, and the lesson gives no static value for this experiment.',
+    },
+  };
+
+  const CUR_PEAK = 370, CUR_STEADY = 20, CUR_AMP = 350, CUR_TAU = 8; // pA, pA, pA, ms (lesson)
+  const CUR_TEXT = 'The cell’s own current (cultured neonatal P2 to P5 mouse Merkel cells, group means) is mostly transient: the steady 20 pA is 5.4% of the 370 pA peak. A sustained afferent response is therefore not a copy of a sustained receptor current, and how the transient current becomes sustained firing is not explained by these data.';
+
+  document.querySelectorAll<HTMLElement>('[data-mps]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('MerkelPhaseSplit: missing ' + s);
+      return e;
+    };
+    const bars = q<SVGSVGElement>('[data-bars]');
+    const curve = q<SVGSVGElement>('[data-curve]');
+    const prep = q<HTMLElement>('[data-prep]');
+    const rows = q<HTMLElement>('[data-rows]');
+    const check = q<HTMLElement>('[data-check]');
+    const why = q<HTMLElement>('[data-why]');
+    const curBox = q<HTMLElement>('[data-curbox]');
+    const curChk = q<HTMLInputElement>('[data-cur]');
+    const cPeak = q<HTMLElement>('[data-c-peak]');
+    const cSteady = q<HTMLElement>('[data-c-steady]');
+    const cRatio = q<HTMLElement>('[data-c-ratio]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[type=radio]'));
+
+    const BASE = 182, TOP = 40;
+
+    function panel(x0: number, title: string, sub: string, max: number, ticks: number[], tickFmt: (v: number) => string) {
+      bars.appendChild(txt(x0 + 62, 11, title, { 'font-weight': 700 }));
+      bars.appendChild(txt(x0 + 62, 23, sub, { fill: GREY }));
+      const py = (v: number) => BASE - (v / max) * (BASE - TOP);
+      bars.appendChild(el('line', { x1: x0, y1: TOP - 2, x2: x0, y2: BASE, stroke: INK, 'stroke-width': 1 }));
+      bars.appendChild(el('line', { x1: x0, y1: BASE, x2: x0 + 128, y2: BASE, stroke: INK, 'stroke-width': 1 }));
+      for (const t of ticks) {
+        if (t > 0) bars.appendChild(el('line', { x1: x0, y1: py(t), x2: x0 + 128, y2: py(t), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        bars.appendChild(txt(x0 - 4, py(t) + 3, tickFmt(t), { 'text-anchor': 'end' }));
+      }
+      return py;
+    }
+
+    function bar(cx: number, py: (v: number) => number, v: number, color: string, hatched: boolean) {
+      const y = py(v);
+      bars.appendChild(el('rect', {
+        x: cx - 19, y, width: 38, height: BASE - y,
+        fill: hatched ? 'url(#mps-hatch)' : color, stroke: color, 'stroke-width': 1.2,
+        'stroke-dasharray': hatched ? '4 2' : '0',
+      }));
+    }
+
+    function whisker(cx: number, py: (v: number) => number, mean: number, sd: number) {
+      const a = py(mean + sd), b = py(Math.max(mean - sd, 0));
+      bars.appendChild(el('line', { x1: cx, y1: a, x2: cx, y2: b, stroke: INK, 'stroke-width': 1.2 }));
+      bars.appendChild(el('line', { x1: cx - 5, y1: a, x2: cx + 5, y2: a, stroke: INK, 'stroke-width': 1.2 }));
+      bars.appendChild(el('line', { x1: cx - 5, y1: b, x2: cx + 5, y2: b, stroke: INK, 'stroke-width': 1.2 }));
+    }
+
+    function drawPhase(x0: number, title: string, subHz: string, s: Scen, v: Val | null, isDyn: boolean) {
+      const max = isDyn ? s.maxD : s.maxS;
+      const ticks = isDyn ? s.ticksD : s.ticksS;
+      const relative = s.unit === 'relative units';
+      const sub = relative ? 'relative units' : subHz;
+      if (!isDyn && s.sta === null && s === SCEN.atoh1) {
+        // no static value for this experiment: say so, draw no bars
+        bars.appendChild(txt(x0 + 62, 11, title, { 'font-weight': 700 }));
+        bars.appendChild(txt(x0 + 62, 23, sub, { fill: GREY }));
+        bars.appendChild(el('rect', { x: x0, y: TOP, width: 128, height: BASE - TOP, fill: 'none', stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+        bars.appendChild(txt(x0 + 64, 108, 'not given', { 'font-weight': 700 }));
+        bars.appendChild(txt(x0 + 64, 122, 'no static value in', { fill: GREY }));
+        bars.appendChild(txt(x0 + 64, 134, 'the lesson', { fill: GREY }));
+        return;
+      }
+      const py = panel(x0, title, sub, max, ticks, (t) => (relative ? String(t) : String(t)));
+      const cx1 = x0 + 36, cx2 = x0 + 91;
+      const numeric = v !== null;
+      const c = numeric ? v.c : 1;
+      bar(cx1, py, c, ACCENT, false);
+      const lab = (cx: number, y: number, s2: string) => bars.appendChild(txt(cx, Math.max(y - 4, 33), s2, { 'font-weight': 700 }));
+      if (numeric) {
+        bar(cx2, py, v.m, ORANGE, false);
+        if (v.sdc !== undefined && v.sdm !== undefined) {
+          whisker(cx1, py, v.c, v.sdc);
+          whisker(cx2, py, v.m, v.sdm);
+          lab(cx1, py(v.c + v.sdc), String(v.c));
+          lab(cx2, py(v.m + v.sdm), String(v.m));
+        } else {
+          lab(cx1, py(v.c), String(v.c));
+          lab(cx2, py(v.m), String(v.m));
+        }
+      } else {
+        // relative units: control = 1; manipulated bar is hatched, value not given
+        const mh = isDyn ? 1 : 0.1;
+        bar(cx2, py, mh, ORANGE, true);
+        lab(cx1, py(1), '1');
+        lab(cx2, py(mh), isDyn ? 'similar' : 'lost / lower');
+      }
+      bars.appendChild(txt(cx1, 195, 'control'));
+      bars.appendChild(txt(cx2, 195, s.manip));
+      if (!numeric) bars.appendChild(txt(cx2, 207, 'no value given', { fill: GREY }));
+    }
+
+    function rowFor(label: string, v: Val | null, relative: boolean, unitHz: boolean, isDyn: boolean, s: Scen): { tr: HTMLTableRowElement; rem: number | null; red: number | null } {
+      const tr = document.createElement('tr');
+      const th = document.createElement('th'); th.scope = 'row'; th.textContent = label; tr.appendChild(th);
+      const a = document.createElement('td'), b = document.createElement('td');
+      let rem: number | null = null, red: number | null = null;
+      if (v) {
+        rem = v.m / v.c; red = (v.c - v.m) / v.c;
+        a.textContent = `${v.m} / ${v.c} = ${pct(rem)}`;
+        b.textContent = `(${v.c} − ${v.m}) / ${v.c} = ${pct(red)}`;
+      } else if (relative) {
+        a.textContent = isDyn ? 'similar to control; no value given' : 'lost (Maksimovic); lower (Woo); no value given';
+        b.textContent = 'no percentage computed';
+      } else {
+        a.textContent = 'not given';
+        b.textContent = 'not given';
+      }
+      void unitHz; void s;
+      tr.appendChild(a); tr.appendChild(b);
+      return { tr, rem, red };
+    }
+
+    function drawBars(key: string) {
+      const s = SCEN[key];
+      bars.replaceChildren();
+      const defs = el('defs', {});
+      const pat = el('pattern', { id: 'mps-hatch', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' });
+      pat.appendChild(el('rect', { width: 6, height: 6, fill: '#fff' }));
+      pat.appendChild(el('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: ORANGE, 'stroke-width': 2 }));
+      defs.appendChild(pat);
+      bars.appendChild(defs);
+      drawPhase(34, 'Dynamic (onset)', 'peak firing, Hz', s, s.dyn, true);
+      drawPhase(196, 'Static (held)', 'held firing, Hz', s, s.sta, false);
+      prep.textContent = 'Preparation: ' + s.prep;
+
+      rows.replaceChildren();
+      const relative = s.unit === 'relative units';
+      const d = rowFor('Dynamic (onset)', s.dyn, relative, !relative, true, s);
+      const st = rowFor('Static (held)', s.sta, relative, !relative, false, s);
+      rows.appendChild(d.tr); rows.appendChild(st.tr);
+      const lines: string[] = [];
+      if (d.rem !== null && d.red !== null) lines.push(`Dynamic check: ${pct(d.rem)} + ${pct(d.red)} = ${pct(d.rem + d.red)}.`);
+      if (st.rem !== null && st.red !== null) lines.push(`Static check: ${pct(st.rem)} + ${pct(st.red)} = ${pct(st.rem + st.red)}.`);
+      check.textContent = lines.length ? lines.join(' ') : 'No percentages are computed here, because the lesson gives no values for this experiment.';
+    }
+
+    function drawCurve() {
+      curve.replaceChildren();
+      const X0 = 44, X1 = 324, Y0 = 48, Y1 = 160, TMAX = 40, IMAX = 400;
+      const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+      const py = (i: number) => Y1 - (i / IMAX) * (Y1 - Y0);
+      const I = (t: number) => CUR_STEADY + CUR_AMP * Math.exp(-t / CUR_TAU);
+      curve.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      curve.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const i of [0, 100, 200, 300, 400]) {
+        if (i > 0) curve.appendChild(el('line', { x1: X0, y1: py(i), x2: X1, y2: py(i), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        curve.appendChild(txt(X0 - 4, py(i) + 3, String(i), { 'text-anchor': 'end' }));
+      }
+      for (const t of [0, 10, 20, 30, 40]) {
+        curve.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        curve.appendChild(txt(px(t), Y1 + 14, String(t)));
+      }
+      curve.appendChild(txt((X0 + X1) / 2, Y1 + 28, 'time after the stimulus (ms)'));
+      curve.appendChild(txt(X0, 11, 'mechanically activated current (pA, magnitude)', { 'text-anchor': 'start' }));
+      curve.appendChild(txt(X0, 23, 'In this sketch: idealised single exponential,', { 'text-anchor': 'start', fill: GREY }));
+      curve.appendChild(txt(X0, 35, '20 + 350·e^(−t/8 ms) pA', { 'text-anchor': 'start', fill: GREY }));
+      // steady level
+      curve.appendChild(el('line', { x1: X0, y1: py(CUR_STEADY), x2: X1, y2: py(CUR_STEADY), stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+      curve.appendChild(txt(X1 - 2, py(CUR_STEADY) - 10, 'steady 20 pA', { 'text-anchor': 'end', fill: ORANGE, 'font-weight': 700 }));
+      // curve
+      let d = '';
+      for (let t = 0; t <= TMAX + 0.01; t += 0.5) d += (t === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(I(t)).toFixed(1) + ' ';
+      curve.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      curve.appendChild(el('circle', { cx: px(0), cy: py(I(0)), r: 3.5, fill: ACCENT }));
+      curve.appendChild(txt(X0 + 12, py(I(0)) - 2, 'peak 370 pA', { 'text-anchor': 'start', fill: ACCENT, 'font-weight': 700 }));
+      // one time constant
+      curve.appendChild(el('line', { x1: px(CUR_TAU), y1: py(I(CUR_TAU)), x2: px(CUR_TAU), y2: Y1, stroke: GREY, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      curve.appendChild(el('circle', { cx: px(CUR_TAU), cy: py(I(CUR_TAU)), r: 3, fill: GREY }));
+      curve.appendChild(txt(px(CUR_TAU) + 8, py(I(CUR_TAU)) - 10, 'τ = 8 ms', { 'text-anchor': 'start', fill: INK }));
+      cPeak.textContent = `${CUR_PEAK} pA`;
+      cSteady.textContent = `${CUR_STEADY} pA`;
+      cRatio.textContent = `${CUR_STEADY} / ${CUR_PEAK} = ${pct(CUR_STEADY / CUR_PEAK)}`;
+    }
+
+    function render() {
+      const sel = radios.find((r) => r.checked);
+      const key = sel ? sel.value : 'silence';
+      if (!(key in SCEN)) return;
+      drawBars(key);
+      const on = curChk.checked;
+      curBox.hidden = !on;
+      if (on) drawCurve();
+      why.textContent = SCEN[key].status + (on ? ' ' + CUR_TEXT : '');
+    }
+    radios.forEach((r) => r.addEventListener('change', render));
+    curChk.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .mps { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mps-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mps-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mps-field { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); }
+  .mps-field legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .mps-opt { display: flex; align-items: baseline; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: 0.15rem 0; }
+  .mps-opt input { accent-color: var(--ddp-color-accent); }
+  .mps p.mps-prep { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .mps-svg { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mps-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); margin: var(--ddp-space-2) 0; }
+  .mps-table th, .mps-table td { text-align: left; vertical-align: top; padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); color: var(--ddp-color-ink-soft); }
+  .mps-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .mps-table td { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .mps p.mps-check { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mps-cur { margin-top: var(--ddp-space-3); }
+  .mps-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .mps-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .mps-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mps-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .mps p.mps-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .mps p.mps-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mps p.mps-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

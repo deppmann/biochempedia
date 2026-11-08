@@ -1,0 +1,276 @@
+---
+/**
+ * OvarianCycleFeedback — "What the sampling schedule sees". A 24-hour trace of identical
+ * pulses of an illustrative pulsatile hormone, scaled to an invented span of
+ * relative units (10 to 100). Three controls: pulse interval, sampling interval, start-time
+ * offset. Readout: samples per pulse interval = pulse interval / sampling interval (the
+ * lesson's equation), pulses present and pulses detected, highest and lowest single sample.
+ * No feedback is simulated. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ocf card" data-ocf>
+  <figcaption class="ocf-head">What the sampling schedule sees — a pulsatile hormone<span class="ocf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ocf-svg" viewBox="0 0 340 226" role="img" aria-label="A 24-hour illustrative trace of identical hormone pulses with the sampled points drawn over it and the sample-to-sample rises that count as detected pulses" data-plot></svg>
+
+  <div class="ocf-controls">
+    <label class="ocf-slabel"><span>Pulse interval <em data-out="pint">95 min</em> <small>(lesson means: 94.7 early luteal, 171.4 late luteal)</small></span>
+      <input type="range" data-in="pint" min="60" max="180" step="1" value="95" aria-describedby="ocf-assume" />
+    </label>
+    <fieldset class="ocf-fs">
+      <legend>Sampling interval <small>(minutes between samples)</small></legend>
+      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="10" data-in="samp" /> 10</label>
+      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="30" data-in="samp" checked /> 30</label>
+      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="60" data-in="samp" /> 60</label>
+      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="240" data-in="samp" /> 240</label>
+    </fieldset>
+    <label class="ocf-slabel ocf-wide"><span>Start-time offset <em data-out="off">0 min</em> <small>(when the first sample is drawn; 0 up to one sampling interval)</small></span>
+      <input type="range" data-in="off" min="0" max="30" step="1" value="0" aria-describedby="ocf-assume" />
+    </label>
+  </div>
+
+  <dl class="ocf-readout">
+    <div class="ocf-full"><dt>Samples per pulse interval = pulse interval / sampling interval</dt><dd data-r-spi>0</dd></div>
+    <div><dt>Pulses in the 24 h trace</dt><dd data-r-true>0</dd></div>
+    <div><dt>Pulses detected in the samples</dt><dd data-r-det>0</dd></div>
+    <div><dt>Highest single sample</dt><dd data-r-hi>0</dd></div>
+    <div><dt>Lowest single sample</dt><dd data-r-lo>0</dd></div>
+    <div class="ocf-full"><dt>Highest / lowest sample</dt><dd data-r-ratio>0</dd></div>
+  </dl>
+  <p class="ocf-why" data-why role="status">In this sketch, the status appears here.</p>
+
+  <p class="ocf-assume" id="ocf-assume">In this sketch: the pulses are identical, repeat exactly at the chosen interval, and are made up (each rises in 10 minutes and falls with a 25-minute time constant, both invented). The trace is scaled to an invented span of relative units (10 to 100); no real hormone, assay or woman is shown. A detected pulse is a run of consecutive sample-to-sample rises, each larger than 25% of the trace range (an invented rule). There is no assay noise, and no feedback is simulated.</p>
+  <p class="ocf-foot">Keep this: samples per interval = pulse interval / sampling interval. Below about two, pulses cannot be resolved, and even above it peaks can fall between samples; one sample gives no pulse information.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GREEN = '#2e7d32';
+  const DAY = 1440;                 // minutes in the 24 h window
+  const LOW = 10, HIGH = 100;       // relative units, invented span
+  const RISE = 10;                  // minutes to peak (invented)
+  const TAU = 25;                   // minutes, exponential fall (invented)
+  const THRESH = 0.25 * (HIGH - LOW); // detection rule: rise above 25% of trace range (invented)
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('OvarianCycleFeedback: missing ' + sel);
+    return e;
+  }
+
+  // One pulse: linear rise to 1 over RISE minutes, then exponential fall.
+  const g = (u: number) => (u < 0 ? 0 : u < RISE ? u / RISE : Math.exp(-(u - RISE) / TAU));
+
+  // Steady-state profile over one pulse interval (earlier pulses carry over), scaled to LOW..HIGH.
+  function profile(P: number): number[] {
+    const raw: number[] = [];
+    const K = Math.ceil(400 / P) + 1;
+    for (let t = 0; t < P; t++) {
+      let s = 0;
+      for (let k = 0; k <= K; k++) s += g(t + k * P);
+      raw.push(s);
+    }
+    const lo = Math.min(...raw), hi = Math.max(...raw);
+    return raw.map((r) => LOW + ((r - lo) / (hi - lo)) * (HIGH - LOW));
+  }
+
+  type Series = { t: number[]; v: number[]; rises: boolean[]; detected: number };
+  function sample(trace: number[], S: number, off: number): Series {
+    const t: number[] = [], v: number[] = [], rises: boolean[] = [];
+    for (let m = off; m <= DAY; m += S) { t.push(m); v.push(trace[Math.min(m, DAY)]); }
+    let detected = 0, prev = false;
+    for (let i = 0; i < v.length; i++) {
+      const q = i > 0 && v[i] - v[i - 1] > THRESH;
+      rises.push(q);
+      if (q && !prev) detected++;
+      prev = q;
+    }
+    return { t, v, rises, detected };
+  }
+
+  const f1 = (x: number) => x.toFixed(1);
+
+  document.querySelectorAll<HTMLElement>('[data-ocf]').forEach((root) => {
+    const plot = need<SVGSVGElement>(root, '[data-plot]');
+    const pIn = need<HTMLInputElement>(root, '[data-in="pint"]');
+    const oIn = need<HTMLInputElement>(root, '[data-in="off"]');
+    const sIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="samp"]'));
+    const pOut = need<HTMLElement>(root, '[data-out="pint"]');
+    const oOut = need<HTMLElement>(root, '[data-out="off"]');
+    const rSpi = need<HTMLElement>(root, '[data-r-spi]');
+    const rTrue = need<HTMLElement>(root, '[data-r-true]');
+    const rDet = need<HTMLElement>(root, '[data-r-det]');
+    const rHi = need<HTMLElement>(root, '[data-r-hi]');
+    const rLo = need<HTMLElement>(root, '[data-r-lo]');
+    const rRatio = need<HTMLElement>(root, '[data-r-ratio]');
+    const why = need<HTMLElement>(root, '[data-why]');
+
+    const X0 = 40, X1 = 328, Y0 = 44, Y1 = 176, YMAX = 112;
+    const px = (m: number) => X0 + (m / DAY) * (X1 - X0);
+    const py = (c: number) => Y1 - (c / YMAX) * (Y1 - Y0);
+
+    function text(x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+      t.textContent = s;
+      plot.appendChild(t);
+      return t;
+    }
+
+    function currentS(): number {
+      const c = sIns.find((r) => r.checked);
+      return c ? parseInt(c.value, 10) : 30;
+    }
+
+    let lastS = 0;
+    function render() {
+      const P = parseInt(pIn.value, 10);
+      const S = currentS();
+      if (S !== lastS) {
+        oIn.max = String(S);
+        if (parseInt(oIn.value, 10) > S) oIn.value = String(S);
+        lastS = S;
+      }
+      const off = Math.min(parseInt(oIn.value, 10), S);
+
+      pOut.textContent = P + ' min';
+      oOut.textContent = off + ' min';
+      oIn.setAttribute('aria-valuetext', off + ' minutes');
+
+      // trace
+      const prof = profile(P);
+      const trace: number[] = [];
+      for (let m = 0; m <= DAY; m++) trace.push(prof[m % P]);
+      const ser = sample(trace, S, off);
+      const nTrue = Math.ceil(DAY / P);
+
+      // detections across every whole-minute start time from 0 to S
+      let dMin = Infinity, dMax = 0;
+      for (let o = 0; o <= S; o++) {
+        const d = sample(trace, S, o).detected;
+        if (d < dMin) dMin = d;
+        if (d > dMax) dMax = d;
+      }
+
+      const hi = Math.max(...ser.v), lo = Math.min(...ser.v);
+      const spi = P / S;
+
+      // ---- drawing
+      plot.replaceChildren();
+      // legend, two rows
+      plot.appendChild(el('line', { x1: 6, y1: 10, x2: 20, y2: 10, stroke: ACCENT, 'stroke-width': 2 }));
+      text(24, 13, 'illustrative trace');
+      plot.appendChild(el('circle', { cx: 128, cy: 10, r: 3.5, fill: ORANGE }));
+      text(135, 13, 'sample');
+      plot.appendChild(el('line', { x1: 176, y1: 10, x2: 190, y2: 10, stroke: GREEN, 'stroke-width': 3 }));
+      text(194, 13, 'rise counted as a pulse');
+      text(6, 25, '▼ pulse starts');
+      text(86, 25, '(orange line joins the samples)');
+
+      // axes
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [25, 50, 75, 100]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        text(X0 - 4, py(v) + 3, String(v), { 'text-anchor': 'end' });
+      }
+      for (let h = 0; h <= 24; h += 4) {
+        const x = px(h * 60);
+        plot.appendChild(el('line', { x1: x, y1: Y1, x2: x, y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(x, Y1 + 14, String(h), { 'text-anchor': 'middle' });
+      }
+      text((X0 + X1) / 2, Y1 + 28, 'time in the 24 h window (hours)', { 'text-anchor': 'middle' });
+      const yl = text(0, 0, 'illustrative hormone (relative units)', { 'text-anchor': 'middle' });
+      yl.setAttribute('transform', `translate(10 ${(Y0 + Y1) / 2}) rotate(-90)`);
+
+      // pulse-start marks
+      for (let m = 0; m < DAY; m += P) {
+        plot.appendChild(el('path', { d: `M${(px(m) - 2.5).toFixed(1)} ${Y0 - 9} L${(px(m) + 2.5).toFixed(1)} ${Y0 - 9} L${px(m).toFixed(1)} ${Y0 - 3} Z`, fill: INK }));
+      }
+
+      // trace
+      let d = '';
+      for (let m = 0; m <= DAY; m++) d += (m === 0 ? 'M' : 'L') + px(m).toFixed(1) + ' ' + py(trace[m]).toFixed(1) + ' ';
+      plot.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 1.6, 'stroke-linejoin': 'round' }));
+
+      // samples joined
+      let sd = '';
+      ser.t.forEach((m, i) => { sd += (i === 0 ? 'M' : 'L') + px(m).toFixed(1) + ' ' + py(ser.v[i]).toFixed(1) + ' '; });
+      plot.appendChild(el('path', { d: sd.trim(), fill: 'none', stroke: ORANGE, 'stroke-width': 1.1, opacity: 0.85 }));
+      // counted rises
+      ser.t.forEach((m, i) => {
+        if (!ser.rises[i]) return;
+        plot.appendChild(el('line', { x1: px(ser.t[i - 1]).toFixed(1), y1: py(ser.v[i - 1]).toFixed(1), x2: px(m).toFixed(1), y2: py(ser.v[i]).toFixed(1), stroke: GREEN, 'stroke-width': 3 }));
+      });
+      const rad = S === 10 ? 1.8 : 3.2;
+      ser.t.forEach((m, i) => {
+        plot.appendChild(el('circle', { cx: px(m).toFixed(1), cy: py(ser.v[i]).toFixed(1), r: rad, fill: ORANGE }));
+      });
+
+      // ---- readouts
+      rSpi.textContent = `${P} min / ${S} min = ${f1(spi)}`;
+      rTrue.textContent = `${nTrue} (24 h / interval = ${f1(DAY / P)})`;
+      rDet.textContent = String(ser.detected);
+      rHi.textContent = f1(hi) + ' relative units';
+      rLo.textContent = f1(lo) + ' relative units';
+      rRatio.textContent = `${f1(hi)} / ${f1(lo)} = ${f1(hi / lo)}-fold`;
+
+      // ---- status
+      const parts: string[] = [];
+      parts.push(`In this sketch, a pulse every ${P} min sampled every ${S} min gives ${f1(spi)} samples per pulse interval, and the samples meet the detection rule for ${ser.detected} of the ${nTrue} pulses in the 24 h window.`);
+      if (spi < 1) {
+        parts.push('In this sketch, with fewer than one sample per pulse interval, many rises and falls happen between samples, so the series cannot resolve most pulses.');
+      } else if (spi < 2) {
+        parts.push('In this sketch, with fewer than about two samples per pulse interval, the lesson’s rule of thumb is that pulses cannot be resolved.');
+      } else if (spi < 9) {
+        parts.push('In this sketch, with about two or more samples per pulse interval, pulses can be resolved in principle, but peaks can still fall between samples.');
+      } else {
+        parts.push('In this sketch, with about nine or more samples per pulse interval, the series follows the pulses closely, as the lesson says of its 9.5 and 17.1 samples per interval; a pulse at the edge of the 24 h window can still be missed.');
+      }
+      if ((hi - lo) < 0.1 * (HIGH - LOW)) {
+        parts.push(`In this sketch, all the samples fall within ${f1(hi - lo)} relative units of each other, so the series looks steady although the trace has ${nTrue} pulses.`);
+      } else {
+        parts.push(`In this sketch, the highest sample is ${f1(hi)} and the lowest ${f1(lo)} relative units, a ${f1(hi / lo)}-fold ratio, against ${f1(HIGH / LOW)}-fold across the whole trace.`);
+      }
+      parts.push(dMin === dMax
+        ? `In this sketch, every start time from 0 to ${S} min gives the same count, ${dMin} detected.`
+        : `In this sketch, across start times from 0 to ${S} min the number of pulses detected ranges from ${dMin} to ${dMax}, with the trace unchanged.`);
+      why.textContent = parts.join(' ');
+    }
+
+    [pIn, oIn, ...sIns].forEach((s) => s.addEventListener('input', render));
+    sIns.forEach((s) => s.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .ocf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ocf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ocf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ocf-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ocf-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ocf-wide { grid-column: 1 / -1; }
+  .ocf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ocf-slabel small, .ocf-fs small { font-size: inherit; color: var(--ddp-color-muted); }
+  .ocf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ocf-slabel input { accent-color: var(--ddp-color-accent); }
+  .ocf-fs { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: 0.1rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ocf-fs legend { padding: 0; margin-bottom: 0.1rem; }
+  .ocf-radio { display: inline-flex; align-items: center; gap: 0.3rem; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-accent); }
+  .ocf-radio input { accent-color: var(--ddp-color-accent); }
+  .ocf-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ocf-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .ocf-full { grid-column: 1 / -1; }
+  .ocf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ocf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .ocf-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 14em; }
+  .ocf-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .ocf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .ocf-controls { grid-template-columns: 1fr; } .ocf-why { min-height: 28em; } }
+</style>

@@ -5,9 +5,11 @@
  * blood/lymph. Click any stage to reveal the enzyme, the bond it hydrolyzes, the condition or
  * cofactor it needs, the absorbable product, and Chris's hook. The pedagogical spine: every
  * class reaches the same finish line (absorbable monomers) by the same reaction — hydrolysis —
- * and the entire protein+fat side hangs on ONE master switch (enteropeptidase → trypsin).
- * Three controls make the lesson manipulable: knock out the master switch (protein AND fat
- * fail, carbs survive), show the water (every cleavage is bond + H₂O), and show drug targets.
+ * and the protein side hangs on ONE master switch (enteropeptidase → trypsin).
+ * Four controls make the lesson manipulable: knock out the master switch (protein fails, fat is
+ * only slightly slowed because lipase is secreted active, carbs survive), show the water (every
+ * cleavage is bond + H₂O), show drug targets, and show the two meetings (a bond is cut only
+ * where an active enzyme meets an exposed bond).
  * Self-contained vanilla-TS Astro island. Original.
  */
 ---
@@ -19,6 +21,7 @@
     <button type="button" class="dgl-btn" data-toggle="ko" aria-pressed="false">Knock out enteropeptidase / trypsin</button>
     <button type="button" class="dgl-btn" data-toggle="lens" aria-pressed="false">Show the water</button>
     <button type="button" class="dgl-btn" data-toggle="drugs" aria-pressed="false">Show drug targets</button>
+    <button type="button" class="dgl-btn" data-toggle="meet" aria-pressed="false">Show the two meetings</button>
   </div>
 
   <p class="dgl-banner" data-banner role="status"></p>
@@ -44,7 +47,7 @@
     <p class="dgl-panel-empty">Click any stage above to see the enzyme, the bond it breaks, and where each macronutrient becomes absorbable.</p>
   </div>
 
-  <p class="dgl-foot">Three classes, three sets of enzymes, one reaction: hydrolysis. Carbohydrate ends as monosaccharides, protein as amino acids, fat as fatty acids and monoglycerides — all small enough to cross the gut wall. Carbs and protein head straight to the blood; fat is too bulky for capillaries, so it takes the scenic route through the lymph. And the whole protein-and-fat side balances on a single switch: enteropeptidase flips trypsin on, trypsin flips everyone else on. Knock that switch out and an infant can starve at a full table.</p>
+  <p class="dgl-foot">Three classes, three sets of enzymes, one reaction: hydrolysis. Carbohydrate ends as monosaccharides, protein as amino acids, fat as fatty acids and monoglycerides — all small enough to cross the gut wall. Carbs and protein head straight to the blood; fat is too bulky for capillaries, so it takes the scenic route through the lymph. And the protein side balances on a single switch: enteropeptidase flips trypsin on, trypsin flips the other proteases on. Knock that switch out and an infant can starve at a full table.</p>
 </figure>
 
 <script>
@@ -58,6 +61,8 @@
 
   type Bond = 'peptide' | 'glycosidic' | 'ester' | '-';
   type Drug = { name: string; mech: string };
+  type Role = 'expose' | 'switch' | 'cut' | 'move';
+  const ROLE_LABEL: Record<Role, string> = { expose: 'exposes bonds', switch: 'switches enzyme on', cut: 'cuts', move: 'moves' };
   interface DStep {
     id: string;
     organ: string;
@@ -68,35 +73,39 @@
     product: string;
     hook: string;
     /** 'direct': the enzyme itself needs trypsin to be activated. 'downstream': it works on
-     *  the products of a trypsin-dependent step, so it is starved when trypsin is missing. */
-    ko?: 'direct' | 'downstream';
+     *  the products of a trypsin-dependent step, so it is starved when trypsin is missing.
+     *  'partial': trypsin only tunes the step (it still runs, slightly slowed, without trypsin). */
+    ko?: 'direct' | 'downstream' | 'partial';
+    /** Which half of the control this step is: exposing the bond, switching the enzyme on,
+     *  cutting, or moving the products. A step can play more than one part. */
+    role?: Role[];
     drug?: Drug;
   }
   type Lane = { key: string; name: string; color: string; steps: DStep[] };
 
   const PROTEIN: DStep[] = [
-    { id: 'p-mouth', organ: 'Mouth', col: 0, enzyme: 'Mechanical only', bond: '-', condition: 'Chewing; no protease in saliva', product: 'Intact protein, smaller pieces', hook: 'Teeth start it, chemistry does not — protein digestion has no mouth enzyme.' },
-    { id: 'p-stomach', organ: 'Stomach', col: 1, enzyme: 'Pepsinogen → pepsin', bond: 'peptide', condition: 'Low pH 1.5–2.5 from the H⁺/K⁺-ATPase; autocatalytic activation (pepsin makes more pepsin)', product: 'Large peptides', hook: 'The acid is the activator. Drop the pH and the zymogen clips itself into pepsin — a chain reaction in a bath of acid.', drug: { name: 'omeprazole', mech: 'acid-activated prodrug; a covalent suicide inhibitor of the proton pump. Takes 1–2 days to fully build up and 1–2 days to wear off, because you must make new pumps.' } },
-    { id: 'p-lumen', organ: 'Lumen', col: 2, enzyme: 'Trypsinogen → trypsin (by enteropeptidase) → activates chymotrypsin, elastase, carboxypeptidase', bond: 'peptide', condition: 'Enteropeptidase on the brush border flips the MASTER SWITCH; trypsin then activates every other pancreatic protease', product: 'Short peptides + some amino acids', hook: 'One switch runs the whole room: enteropeptidase turns on trypsin, and trypsin turns on everyone else.', ko: 'direct' },
-    { id: 'p-brush', organ: 'Brush border', col: 3, enzyme: 'Amino\u00adpeptidases', bond: 'peptide', condition: 'Surface peptidases trim from the N-terminus', product: 'Amino acids + di/tripeptides', hook: 'The last few cuts happen on the wall itself, not free in the lumen.', ko: 'downstream' },
-    { id: 'p-entero', organ: 'Enterocyte', col: 4, enzyme: 'PepT1 importer + cytoplasmic peptidases', bond: 'peptide', condition: 'PepT1 pulls in di/tripeptides; cytoplasmic peptidases finish the job inside', product: 'Free amino acids', hook: 'You absorb whole di- and tripeptides, then finish digesting them indoors.', ko: 'downstream' },
-    { id: 'p-blood', organ: 'Blood', col: 5, enzyme: 'Basolateral AA antiporters', bond: '-', condition: 'Amino acids exit the cell into the portal blood', product: 'Amino acids → blood', hook: 'Amino acids ship out through the portal vein — straight to the liver.', ko: 'downstream' },
+    { id: 'p-mouth', role: ['expose'], organ: 'Mouth', col: 0, enzyme: 'Mechanical only', bond: '-', condition: 'Chewing; no protease in saliva', product: 'Intact protein, smaller pieces', hook: 'Teeth start it, chemistry does not — protein digestion has no mouth enzyme.' },
+    { id: 'p-stomach', role: ['expose', 'switch'], organ: 'Stomach', col: 1, enzyme: 'Pepsinogen → pepsin', bond: 'peptide', condition: 'Acid unfolds the protein (exposes its bonds) and switches pepsinogen on: low pH 1.5–2.5 from the H⁺/K⁺-ATPase; autocatalytic activation (pepsin makes more pepsin)', product: 'Large peptides', hook: 'The acid is the activator. Drop the pH and the zymogen clips itself into pepsin — a chain reaction in a bath of acid.', drug: { name: 'omeprazole', mech: 'acid-activated prodrug that bonds covalently to the proton pump. It catches only actively secreting pumps, so full effect builds over about 3–5 days of daily doses, and acid returns only as the cell makes new pumps.' } },
+    { id: 'p-lumen', role: ['switch'], organ: 'Lumen', col: 2, enzyme: 'Trypsinogen → trypsin (by enteropeptidase) → activates chymotrypsin, elastase, carboxypeptidase', bond: 'peptide', condition: 'Enteropeptidase on the brush border flips the MASTER SWITCH; trypsin then activates every other pancreatic protease', product: 'Short peptides + some amino acids', hook: 'One switch runs the whole room: enteropeptidase turns on trypsin, and trypsin turns on everyone else.', ko: 'direct' },
+    { id: 'p-brush', role: ['cut'], organ: 'Brush border', col: 3, enzyme: 'Amino\u00adpeptidases', bond: 'peptide', condition: 'Surface peptidases trim from the N-terminus', product: 'Amino acids + di/tripeptides', hook: 'The last few cuts happen on the wall itself, not free in the lumen.', ko: 'downstream' },
+    { id: 'p-entero', role: ['move'], organ: 'Enterocyte', col: 4, enzyme: 'PepT1 importer + cytoplasmic peptidases', bond: 'peptide', condition: 'PepT1 pulls in di/tripeptides; cytoplasmic peptidases finish the job inside', product: 'Free amino acids', hook: 'You absorb whole di- and tripeptides, then finish digesting them indoors.', ko: 'downstream' },
+    { id: 'p-blood', role: ['move'], organ: 'Blood', col: 5, enzyme: 'Basolateral AA antiporters', bond: '-', condition: 'Amino acids exit the cell into the portal blood', product: 'Amino acids → blood', hook: 'Amino acids ship out through the portal vein — straight to the liver.', ko: 'downstream' },
   ];
 
   const CARB: DStep[] = [
-    { id: 'c-mouth', organ: 'Mouth', col: 0, enzyme: 'Salivary α-amylase', bond: 'glycosidic', condition: 'Cleaves α-1,4 only — blind to α-1,6 branch points and to β bonds', product: 'Shorter oligosaccharides', hook: 'Starch digestion starts before you swallow — but amylase only sees α-1,4, never the branch points.' },
-    { id: 'c-lumen', organ: 'Lumen', col: 2, enzyme: 'Pancreatic α-amylase', bond: 'glycosidic', condition: 'Cleaves interior α-1,4 bonds; leaves α-1,6 branches as limit dextrins', product: 'Maltose, oligosaccharides, limit dextrins', hook: 'Same enzyme, bigger dose — and it still cannot touch the branch points it leaves behind.' },
-    { id: 'c-brush', organ: 'Brush border', col: 3, enzyme: 'α-glucosidase, α-dextrinase, sucrase, lactase', bond: 'glycosidic', condition: 'The disaccharidases finish the job on the wall; lactase is the fragile one', product: 'Glucose, galactose, fructose', hook: 'Lose lactase and undigested lactose pulls water into the gut — that osmotic load is the cramp and the diarrhea.' },
-    { id: 'c-absorb', organ: 'Enterocyte', col: 4, enzyme: 'SGLT1 (glucose/galactose) + GLUT5 (fructose)', bond: '-', condition: 'SGLT1 is Na⁺-coupled secondary active transport; GLUT5 is facilitated diffusion', product: 'Monosaccharides inside the cell', hook: 'Glucose rides in on the sodium gradient — it pays nothing directly, the Na⁺/K⁺-ATPase already paid.', drug: { name: 'ouabain / SGLT2 inhibitors', mech: 'ouabain kills the Na⁺/K⁺-ATPase, the sodium gradient collapses, and SGLT1 stalls. Gliflozins block kidney SGLT2 → glucose spills into urine (glucosuria).' } },
-    { id: 'c-blood', organ: 'Blood', col: 5, enzyme: 'GLUT2 (basolateral)', bond: '-', condition: 'Facilitated exit across the basolateral membrane', product: 'Monosaccharides → blood', hook: 'GLUT2 is the back door — sugars leave the cell down their gradient into the portal blood.' },
+    { id: 'c-mouth', role: ['cut'], organ: 'Mouth', col: 0, enzyme: 'Salivary α-amylase', bond: 'glycosidic', condition: 'Cleaves α-1,4 only — blind to α-1,6 branch points and to β bonds', product: 'Shorter oligosaccharides', hook: 'Starch digestion starts before you swallow — but amylase only sees α-1,4, never the branch points.' },
+    { id: 'c-lumen', role: ['cut'], organ: 'Lumen', col: 2, enzyme: 'Pancreatic α-amylase', bond: 'glycosidic', condition: 'Cleaves interior α-1,4 bonds; leaves α-1,6 branches as limit dextrins', product: 'Maltose, oligosaccharides, limit dextrins', hook: 'Same enzyme, bigger dose — and it still cannot touch the branch points it leaves behind.' },
+    { id: 'c-brush', role: ['cut'], organ: 'Brush border', col: 3, enzyme: 'α-glucosidase, α-dextrinase, sucrase, lactase', bond: 'glycosidic', condition: 'The disaccharidases finish the job on the wall; lactase is the fragile one', product: 'Glucose, galactose, fructose', hook: 'Lose lactase and undigested lactose pulls water into the gut — that osmotic load is the cramp and the diarrhea.' },
+    { id: 'c-absorb', role: ['move'], organ: 'Enterocyte', col: 4, enzyme: 'SGLT1 (glucose/galactose) + GLUT5 (fructose)', bond: '-', condition: 'SGLT1 is Na⁺-coupled secondary active transport; GLUT5 is facilitated diffusion', product: 'Monosaccharides inside the cell', hook: 'Glucose rides in on the sodium gradient — it pays nothing directly, the Na⁺/K⁺-ATPase already paid.', drug: { name: 'ouabain / SGLT2 inhibitors', mech: 'ouabain kills the Na⁺/K⁺-ATPase, the sodium gradient collapses, and SGLT1 stalls. Gliflozins block kidney SGLT2 → glucose spills into urine (glucosuria).' } },
+    { id: 'c-blood', role: ['move'], organ: 'Blood', col: 5, enzyme: 'GLUT2 (basolateral)', bond: '-', condition: 'Facilitated exit across the basolateral membrane', product: 'Monosaccharides → blood', hook: 'GLUT2 is the back door — sugars leave the cell down their gradient into the portal blood.' },
   ];
 
   const LIPID: DStep[] = [
-    { id: 'l-emulsify', organ: 'Lumen (emulsify)', col: 2, enzyme: 'Bile salts', bond: '-', condition: 'Bile salts emulsify — soap on greasy dishes — breaking fat into tiny droplets to make interface', product: 'Emulsified fat droplets', hook: 'No bond broken yet. Bile salts just make surface area, the way dish soap shatters grease into beads.' },
-    { id: 'l-digest', organ: 'Lumen (digest)', col: 2, enzyme: 'Pancreatic lipase + colipase', bond: 'ester', condition: 'Colipase anchors lipase to the bile-coated droplet; lipase cleaves the sn-1 and sn-3 ester bonds. Lipase is secreted already active, but its cofactor procolipase needs trypsin to switch on.', product: '2-monoacylglycerol + 2 free fatty acids', hook: 'Lipase shaves the two outer fatty acids off and leaves the middle one — but it needs colipase to grip the bile-coated droplet, and trypsin must activate procolipase first.', ko: 'direct' },
-    { id: 'l-micelle', organ: 'Brush border', col: 3, enzyme: 'Bile salts (packaging)', bond: '-', condition: 'Bile salts package the products into micelles that ferry them to the absorptive surface', product: 'Micelles delivering MAG + FFA', hook: 'Micelles are the delivery van — they carry the fat products right up to the brush border.', ko: 'downstream' },
-    { id: 'l-entero', organ: 'Enterocyte', col: 4, enzyme: 'TAG re-synthesis → chylomicron assembly', bond: '-', condition: 'Inside the cell the fatty acids and monoglyceride are re-esterified into triglyceride and wrapped into chylomicrons', product: 'Chylomicrons', hook: 'IKEA in reverse: you break the fat apart to get it through the door, then rebuild it inside.', ko: 'downstream' },
-    { id: 'l-lymph', organ: 'Lymph', col: 5, enzyme: 'Exit via lacteals', bond: '-', condition: 'Chylomicrons are too big for the blood capillaries, so they exit through the lymphatic lacteals', product: 'Chylomicrons → lymph', hook: 'Fat takes the scenic route — too bulky for the capillaries, it rides the lymph and bypasses the liver on the way in.', ko: 'downstream' },
+    { id: 'l-emulsify', role: ['expose'], organ: 'Lumen (emulsify)', col: 2, enzyme: 'Bile salts', bond: '-', condition: 'Bile salts emulsify — soap on greasy dishes — breaking fat into tiny droplets to make interface', product: 'Emulsified fat droplets', hook: 'No bond broken yet, but this is half the job: lipase can reach only the bonds at a droplet surface, and bile multiplies that surface.' },
+    { id: 'l-digest', role: ['cut'], organ: 'Lumen (digest)', col: 2, enzyme: 'Pancreatic lipase + colipase', bond: 'ester', condition: 'Colipase anchors lipase to the bile-coated droplet; lipase cleaves the sn-1 and sn-3 ester bonds. Lipase is secreted already active, and uncut procolipase already works, so trypsin only tunes this step.', product: '2-monoacylglycerol + 2 free fatty acids', hook: 'Lipase shaves the two outer fatty acids off and leaves the middle one — but it needs colipase to grip the bile-coated droplet.', ko: 'partial' },
+    { id: 'l-micelle', role: ['move'], organ: 'Brush border', col: 3, enzyme: 'Bile salts (packaging)', bond: '-', condition: 'Bile salts package the products into micelles that ferry them to the absorptive surface', product: 'Micelles delivering MAG + FFA', hook: 'Micelles are the delivery van — they carry the fat products right up to the brush border.' },
+    { id: 'l-entero', role: ['move'], organ: 'Enterocyte', col: 4, enzyme: 'TAG re-synthesis → chylomicron assembly', bond: '-', condition: 'Inside the cell the fatty acids and monoglyceride are re-esterified into triglyceride and wrapped into chylomicrons', product: 'Chylomicrons', hook: 'IKEA in reverse: you break the fat apart to get it through the door, then rebuild it inside.' },
+    { id: 'l-lymph', role: ['move'], organ: 'Lymph', col: 5, enzyme: 'Exit via lacteals', bond: '-', condition: 'Chylomicrons are too big for the blood capillaries, so they exit through the lymphatic lacteals', product: 'Chylomicrons → lymph', hook: 'Fat takes the scenic route — too bulky for the capillaries, it rides the lymph and bypasses the liver on the way in.' },
   ];
 
   const LANES: Lane[] = [
@@ -109,7 +118,7 @@
   for (const lane of LANES) for (const s of lane.steps) STEP_INDEX[s.id] = s;
 
   // The stomach node carries an attachable GLP-1 drug note in the overlay.
-  const GLP1: Drug = { name: 'semaglutide (GLP-1)', mech: 'slows gastric emptying so food trickles into the gut. The nausea side effect IS the mechanism — the stomach is being held shut.' };
+  const GLP1: Drug = { name: 'semaglutide (GLP-1)', mech: 'slows gastric emptying and signals fullness. Its nausea comes partly from the slowed stomach and partly from direct action on the brainstem; most of the weight loss comes from appetite circuits in the brain.' };
 
   function bondLabel(b: Bond): string {
     return b === 'peptide' ? 'peptide bond' : b === 'glycosidic' ? 'glycosidic bond' : b === 'ester' ? 'ester bond' : 'none — no covalent bond is cut here (a physical or transport step)';
@@ -123,12 +132,13 @@
     const koBtn = root.querySelector<HTMLButtonElement>('[data-toggle="ko"]')!;
     const lensBtn = root.querySelector<HTMLButtonElement>('[data-toggle="lens"]')!;
     const drugsBtn = root.querySelector<HTMLButtonElement>('[data-toggle="drugs"]')!;
+    const meetBtn = root.querySelector<HTMLButtonElement>('[data-toggle="meet"]')!;
 
     const panelHome = root.querySelector<HTMLElement>('[data-panel-home]')!;
     const narrow = window.matchMedia('(max-width: 560px)');
     narrow.addEventListener('change', () => { panelHome.after(panelEl); });
-    const state: { selected: string | null; ko: boolean; lens: boolean; drugs: boolean } = {
-      selected: null, ko: false, lens: false, drugs: false,
+    const state: { selected: string | null; ko: boolean; lens: boolean; drugs: boolean; meet: boolean } = {
+      selected: null, ko: false, lens: false, drugs: false, meet: false,
     };
 
     // Build the lanes once; render() only toggles classes + panel.
@@ -182,6 +192,12 @@
           tag.textContent = 'needs the master switch';
           card.appendChild(tag);
         }
+        for (const r of s.role ?? []) {
+          const mb = document.createElement('span');
+          mb.className = `dgl-meet dgl-meet-${r}`;
+          mb.textContent = ROLE_LABEL[r];
+          card.appendChild(mb);
+        }
 
         card.addEventListener('click', () => {
           state.selected = state.selected === s.id ? null : s.id;
@@ -201,7 +217,7 @@
       while (convergeSvg.firstChild) convergeSvg.removeChild(convergeSvg.firstChild);
       const NAVY = '#232d4b', INK = '#4b4b55', GOLD_INK = '#7f6315';
       const protColor = state.ko ? FAINT : ORANGE;
-      const lipColor = state.ko ? FAINT : GOLD;
+      const lipColor = GOLD; // fat is largely spared without trypsin: lipase is secreted active
       const defs = el('defs', {});
       const mk = (id: string, color: string) => {
         const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 5, refY: 3, orient: 'auto', markerUnits: 'userSpaceOnUse' });
@@ -220,7 +236,7 @@
       const src: [number, string, string, string, string][] = [
         [26, 'Carbohydrate', 'monosaccharides', ACCENT, 'dgl-ar-c'],
         [75, 'Protein', state.ko ? 'blocked' : 'amino acids', protColor, 'dgl-ar-p'],
-        [124, 'Fat', state.ko ? 'blocked' : 'fatty acids + 2-MAG', lipColor, 'dgl-ar-l'],
+        [124, 'Fat', 'fatty acids + 2-MAG', lipColor, 'dgl-ar-l'],
       ];
       const TX = 132, TY = 50, TW = 104, TH = 50; // monomer tile
       for (const [y, name, mono, color, mid] of src) {
@@ -240,9 +256,9 @@
       convergeSvg.appendChild(el('rect', { x: BX, y: 14, width: BW, height: 40, rx: 7, fill: '#fff', stroke: NAVY, 'stroke-width': 1.5 }));
       text(BX + BW / 2, 31, 'Portal blood', { 'text-anchor': 'middle', fill: NAVY, 'font-size': 11, 'font-weight': 700 });
       text(BX + BW / 2, 45, 'straight to the liver', { 'text-anchor': 'middle', fill: INK, 'font-size': 8.5 });
-      convergeSvg.appendChild(el('rect', { x: BX, y: 96, width: BW, height: 40, rx: 7, fill: state.ko ? '#fff' : 'rgba(212,168,67,0.12)', stroke: lipColor, 'stroke-width': 1.5 }));
-      text(BX + BW / 2, 113, 'Lymph', { 'text-anchor': 'middle', fill: state.ko ? FAINT : GOLD_INK, 'font-size': 11, 'font-weight': 700 });
-      text(BX + BW / 2, 127, 'rebuilt as chylomicrons', { 'text-anchor': 'middle', fill: state.ko ? FAINT : INK, 'font-size': 8.5 });
+      convergeSvg.appendChild(el('rect', { x: BX, y: 96, width: BW, height: 40, rx: 7, fill: 'rgba(212,168,67,0.12)', stroke: lipColor, 'stroke-width': 1.5 }));
+      text(BX + BW / 2, 113, 'Lymph', { 'text-anchor': 'middle', fill: GOLD_INK, 'font-size': 11, 'font-weight': 700 });
+      text(BX + BW / 2, 127, 'rebuilt as chylomicrons', { 'text-anchor': 'middle', fill: INK, 'font-size': 8.5 });
       const ex = TX + TW;
       convergeSvg.appendChild(el('path', { d: `M${ex} 66 C256 66 250 30 ${BX - 5} 30`, fill: 'none', stroke: ACCENT, 'stroke-width': 2.4, 'marker-end': 'url(#dgl-ar-c)' }));
       convergeSvg.appendChild(el('path', { d: `M${ex} 71 C260 71 254 38 ${BX - 5} 38`, fill: 'none', stroke: protColor, 'stroke-width': 2.4, 'marker-end': 'url(#dgl-ar-p)' }));
@@ -255,7 +271,7 @@
         return;
       }
       const s = STEP_INDEX[state.selected];
-      const koHit = state.ko && !!s.ko;
+      const koHit = state.ko && (s.ko === 'direct' || s.ko === 'downstream');
       const rows: string[] = [];
       rows.push(`<div class="dgl-p-row"><span class="dgl-p-k">Organ</span><span class="dgl-p-v">${s.organ}</span></div>`);
       rows.push(`<div class="dgl-p-row"><span class="dgl-p-k">Enzyme / step</span><span class="dgl-p-v">${s.enzyme}</span></div>`);
@@ -268,6 +284,8 @@
         html += `<span class="dgl-p-master${koHit ? ' is-cut' : ''}">${koHit ? '✕ master switch knocked out — this step is OFF' : 'needs the master switch (trypsin)'}</span>`;
       } else if (s.ko === 'downstream') {
         html += `<span class="dgl-p-master${koHit ? ' is-cut' : ''}">${koHit ? '✕ starved — almost no digested product reaches this step' : 'downstream of the master switch'}</span>`;
+      } else if (s.ko === 'partial') {
+        html += `<span class="dgl-p-master">${state.ko ? 'knockout: slightly slowed (procolipase uncut), not stopped' : 'trypsin only tunes this step'}</span>`;
       }
       html += `<div class="dgl-p-rows">${rows.join('')}</div>`;
       html += `<p class="dgl-p-hook">${s.hook}</p>`;
@@ -288,21 +306,25 @@
       koBtn.setAttribute('aria-pressed', String(state.ko));
       lensBtn.setAttribute('aria-pressed', String(state.lens));
       drugsBtn.setAttribute('aria-pressed', String(state.drugs));
+      meetBtn.setAttribute('aria-pressed', String(state.meet));
+      root.classList.toggle('meet-on', state.meet);
       root.classList.toggle('lens-on', state.lens);
       root.classList.toggle('drugs-on', state.drugs);
 
       root.querySelectorAll<HTMLButtonElement>('.dgl-card-btn').forEach((card) => {
         const id = card.dataset.step!;
         const s = STEP_INDEX[id];
-        const koHit = state.ko && !!s.ko;
+        const koHit = state.ko && (s.ko === 'direct' || s.ko === 'downstream');
         card.classList.toggle('is-ko', koHit);
+        card.classList.toggle('is-tuned', state.ko && s.ko === 'partial');
         card.classList.toggle('is-selected', state.selected === id);
         card.setAttribute('aria-expanded', String(state.selected === id));
       });
 
       const msgs: string[] = [];
-      if (state.ko) msgs.push('No trypsin → protein AND fat digestion both fail (faded cards). Carbohydrates still digest. This is enteropeptidase deficiency: an infant starving in the presence of food.');
+      if (state.ko) msgs.push('No trypsin: protein digestion fails (faded cards). Carbohydrate is untouched and fat is largely spared, because lipase is secreted active. This is enteropeptidase deficiency: an infant starving in the presence of food.');
       if (state.lens) msgs.push('Every card tagged “+ H₂O” cuts a bond by hydrolysis and spends one water molecule on it: –H goes to one fragment, –OH to the other. Untagged cards cut nothing; they move or package.');
+      if (state.meet) msgs.push('A bond is cut only where an active enzyme meets an exposed bond. Gold badges expose the bond; navy badges switch the enzyme on; the rest cut or carry.');
       if (state.drugs) msgs.push('“Rx” tags mark drug targets. Click a tagged stage to read how the drug works.');
       bannerEl.replaceChildren(...msgs.map((m) => { const d = document.createElement('span'); d.textContent = m; return d; }));
       bannerEl.classList.toggle('is-on', msgs.length > 0);
@@ -314,6 +336,7 @@
     koBtn.addEventListener('click', () => { state.ko = !state.ko; render(); });
     lensBtn.addEventListener('click', () => { state.lens = !state.lens; render(); });
     drugsBtn.addEventListener('click', () => { state.drugs = !state.drugs; render(); });
+    meetBtn.addEventListener('click', () => { state.meet = !state.meet; render(); });
 
     render();
   });
@@ -347,6 +370,7 @@
   .dgl-card-btn:hover { background: color-mix(in srgb, var(--lane) 14%, #fff); }
   .dgl-card-btn.is-selected { outline: 2px solid var(--lane); outline-offset: 1px; background: color-mix(in srgb, var(--lane) 16%, #fff); }
   .dgl-card-btn.is-ko { opacity: 0.35; border-style: dashed; }
+  .dgl-card-btn.is-tuned { opacity: 0.8; border-style: dotted; }
   .dgl-card-organ { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .dgl-card-enz { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.2; }
 
@@ -359,6 +383,11 @@
 
   .dgl-rx { display: none; font-size: 0.7rem; font-weight: 600; line-height: 1.25; color: var(--ddp-color-secondary-ink); border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 50%, var(--ddp-color-line)); border-radius: 8px; padding: 0.05rem 0.34rem; margin-top: 0.1rem; align-self: flex-start; }
   .drugs-on .dgl-rx { display: inline-block; }
+
+  .dgl-meet { display: none; font-size: 0.7rem; font-weight: 600; line-height: 1.25; align-self: flex-start; color: var(--ddp-color-ink-soft); background: color-mix(in srgb, var(--ddp-color-line) 30%, transparent); border: 1px solid var(--ddp-color-line); border-radius: 3px; padding: 0.05rem 0.2rem; margin-top: 0.1rem; }
+  .dgl-meet-expose { color: #7f6315; border-color: #D4A843; background: rgba(212,168,67,0.12); }
+  .dgl-meet-switch { color: #232d4b; border-color: #232d4b; background: rgba(35,45,75,0.08); }
+  .meet-on .dgl-meet { display: inline-block; }
 
   .dgl-master { font-size: 0.7rem; font-weight: 600; line-height: 1.25; color: var(--ddp-color-secondary-ink); margin-top: 0.1rem; }
 

@@ -1,0 +1,338 @@
+---
+/**
+ * TwoSpeciesTube — a model test tube with one or two kinds of paramecium, drawn as
+ * colored dots, and a bar graph of both kinds over 20 days. The learner chooses how much
+ * food is added each day (low, medium, high), whether the second kind is added, and how
+ * much the two kinds' foods overlap (same, partly the same, different). Grown alone, the
+ * first kind grows and then levels off as the day's food is used up. Sharing the same
+ * food, the kind set to use food slightly faster stays common and the other shrinks to a
+ * small number. With different food they do not compete. A day-by-day competition sketch in
+ * relative units; no predators, no random scatter, no evolution. Original.
+ */
+---
+
+<figure class="tst card" data-twospeciestube>
+  <figcaption class="tst-head">Share a tube of food: one kind or two<span class="tst-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="tst-stage">
+    <svg class="tst-svg tst-tube" viewBox="0 0 200 250" role="img" aria-label="A model test tube with colored dots for paramecium and food added at the top" data-tube></svg>
+    <svg class="tst-svg tst-plot" viewBox="0 0 360 250" role="img" aria-label="Bar graph of how many paramecium of each kind there are on each of 20 days" data-plot></svg>
+  </div>
+
+  <div class="tst-controls">
+    <fieldset class="tst-group">
+      <legend>Food added each day</legend>
+      <div class="tst-seg" data-group="food">
+        <button type="button" class="tst-btn" data-val="low" aria-pressed="false">Low</button>
+        <button type="button" class="tst-btn" data-val="medium" aria-pressed="true">Medium</button>
+        <button type="button" class="tst-btn" data-val="high" aria-pressed="false">High</button>
+      </div>
+    </fieldset>
+    <fieldset class="tst-group">
+      <legend>Add the second kind</legend>
+      <div class="tst-seg" data-group="second">
+        <button type="button" class="tst-btn" data-val="off" aria-pressed="true">Off</button>
+        <button type="button" class="tst-btn" data-val="on" aria-pressed="false">On</button>
+      </div>
+    </fieldset>
+    <fieldset class="tst-group tst-wide" data-overlap-group>
+      <legend>How much their food overlaps <span class="tst-hint" data-overlap-hint>(turn on the second kind first)</span></legend>
+      <div class="tst-seg" data-group="overlap">
+        <button type="button" class="tst-btn" data-val="same" aria-pressed="true">Same food</button>
+        <button type="button" class="tst-btn" data-val="partly" aria-pressed="false">Partly the same</button>
+        <button type="button" class="tst-btn" data-val="different" aria-pressed="false">Different food</button>
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="tst-run">
+    <button type="button" class="tst-btn tst-primary" data-run>Run 20 days</button>
+    <button type="button" class="tst-btn" data-reset>Reset</button>
+    <label class="tst-day"><span>Day <em data-day-out>0</em> of 20</span>
+      <input type="range" min="0" max="20" step="1" value="0" data-day aria-label="Day to show, from 0 to 20" />
+    </label>
+  </div>
+
+  <p class="tst-status" data-status role="status">In this sketch, Kind 1 is alone in the tube. Press Run.</p>
+
+  <p class="tst-assume">Made up for this sketch, in relative units, not measurements: each food level sets how high the bars can get; both kinds start with the same few; Kind 1 uses food faster (about 2 to 1); “partly the same” food is a guess, and different food means no overlap in this sketch. Growth slows as both kinds together fill the top set by the food; the competition strengths are invented. No predators and no random scatter. Dots are not to scale.</p>
+  <p class="tst-foot">Rule to keep: when two kinds eat the same limited food, food eaten by one is gone for the other, and the kind that gets more of it can leave the other with a small number.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', FOOD = '#a77b3c';
+  type Food = 'low' | 'medium' | 'high';
+  type Overlap = 'same' | 'partly' | 'different';
+  const CEIL: Record<Food, number> = { low: 40, medium: 70, high: 100 }; // made-up top levels, relative units
+  const OV: Record<Overlap, number> = { same: 1, partly: 0.5, different: 0 };
+  const DAYS = 20, START = 4, RATE = 0.7, A12 = 0.7, A21 = 1.5, SUB = 20;
+  const DOTS_MAX = 36;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, size: number, fill: string, anchor = 'start', weight = 400): SVGElement {
+    const t = el('text', { x, y, 'font-size': size, fill, 'text-anchor': anchor, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+
+  // Fixed, spread-out dot positions inside the tube (a layout, not a random outcome).
+  const TX0 = 52, TX1 = 148, TY0 = 62, TY1 = 196;
+  const SLOTS: { x: number; y: number }[] = [];
+  (function layout() {
+    let seed = 12345;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+    let tries = 0;
+    while (SLOTS.length < DOTS_MAX * 2 && tries < 60000) {
+      tries++;
+      const x = TX0 + 7 + rnd() * (TX1 - TX0 - 14), y = TY0 + 7 + rnd() * (TY1 - TY0 - 14);
+      if (SLOTS.every((p) => (p.x - x) ** 2 + (p.y - y) ** 2 > 10 * 10)) SLOTS.push({ x, y });
+    }
+  })();
+
+  function simulate(food: Food, second: boolean, overlap: Overlap): { n1: number[]; n2: number[]; solo: number[] } {
+    const K = CEIL[food], o = OV[overlap], a12 = A12 * o, a21 = A21 * o;
+    const run = (withSecond: boolean) => {
+      let n1 = START, n2 = START;
+      const r1 = [n1], r2 = [n2];
+      for (let d = 1; d <= DAYS; d++) {
+        for (let s = 0; s < SUB; s++) {
+          const h = 1 / SUB;
+          const d1 = RATE * n1 * (1 - (n1 + (withSecond ? a12 * n2 : 0)) / K);
+          const d2 = RATE * n2 * (1 - (n2 + a21 * n1) / K);
+          n1 += d1 * h;
+          if (withSecond) n2 += d2 * h;
+        }
+        r1.push(Math.max(0, n1)); r2.push(withSecond ? Math.max(0, n2) : 0);
+      }
+      return { r1, r2 };
+    };
+    const both = run(second);
+    const alone = run(false);
+    return { n1: both.r1, n2: both.r2, solo: alone.r1 };
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-twospeciestube]').forEach((root) => {
+    const need = <T extends Element>(sel: string): T => {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('TwoSpeciesTube: missing ' + sel);
+      return e;
+    };
+    const tube = need<SVGSVGElement>('[data-tube]');
+    const plot = need<SVGSVGElement>('[data-plot]');
+    const status = need<HTMLElement>('[data-status]');
+    const runBtn = need<HTMLButtonElement>('[data-run]');
+    const resetBtn = need<HTMLButtonElement>('[data-reset]');
+    const daySlider = need<HTMLInputElement>('[data-day]');
+    const dayOut = need<HTMLElement>('[data-day-out]');
+    const overlapGroup = need<HTMLElement>('[data-overlap-group]');
+    const overlapHint = need<HTMLElement>('[data-overlap-hint]');
+
+    const state: { food: Food; second: boolean; overlap: Overlap; day: number } = { food: 'medium', second: false, overlap: 'same', day: 0 };
+    let timer: number | null = null;
+
+    const groupButtons = (g: string) => Array.from(root.querySelectorAll<HTMLButtonElement>(`[data-group="${g}"] .tst-btn`));
+
+    function stop() {
+      if (timer !== null) { window.clearInterval(timer); timer = null; }
+      runBtn.textContent = 'Run 20 days';
+    }
+
+    function statusText(sim: { n1: number[]; n2: number[] }): string {
+      const d = state.day;
+      const K = CEIL[state.food];
+      if (!state.second) {
+        if (d === 0) return 'In this sketch, Kind 1 is alone in the tube. Press Run.';
+        const grow = sim.n1[d] - sim.n1[d - 1] > 0.5;
+        return grow
+          ? 'In this sketch, Kind 1 alone is growing.'
+          : 'In this sketch, Kind 1 stops growing at the top set by the food added each day.';
+      }
+      if (d === 0) {
+        const what = state.overlap === 'same' ? 'the same food' : state.overlap === 'partly' ? 'partly the same food' : 'different food';
+        return `In this sketch, two kinds start in one tube with ${what}. Press Run.`;
+      }
+      const g1 = sim.n1[d] - sim.n1[d - 1] > 0.5;
+      const g2 = sim.n2[d] - sim.n2[d - 1] > 0.5;
+      if (state.overlap === 'same') {
+        if (d > 3 && sim.n2[d] <= 0.08 * K && !g2) return 'In this sketch, Kind 2 has shrunk to a small number. Kind 1 stays common.';
+        if (!g2 && sim.n2[d] < sim.n2[d - 1]) return 'In this sketch, food Kind 1 eats is gone for Kind 2, so Kind 2 shrinks.';
+        return 'In this sketch, both kinds are growing and eating the same food.';
+      }
+      if (state.overlap === 'partly') {
+        return g1 && g2
+          ? 'In this sketch, both kinds are growing and share only some food.'
+          : 'In this sketch, the kinds share only some food, so they compete less and both stay.';
+      }
+      return g1
+        ? 'In this sketch, the kinds eat different food, and both are growing.'
+        : 'In this sketch, the kinds eat different food, so they do not compete.';
+    }
+
+    function drawTube(sim: { n1: number[]; n2: number[] }) {
+      tube.replaceChildren();
+      // food arrows above the tube: 1, 2 or 3 food squares
+      tube.appendChild(txt(100, 14, 'Food added each day', 12, INK, 'middle', 700));
+      const nFood = state.food === 'low' ? 1 : state.food === 'medium' ? 2 : 3;
+      for (let i = 0; i < nFood; i++) {
+        const cx = 100 + (i - (nFood - 1) / 2) * 24;
+        tube.appendChild(el('rect', { x: cx - 5, y: 22, width: 10, height: 10, fill: FOOD, rx: 2 }));
+        tube.appendChild(el('path', { d: `M${cx} 35 L${cx} 52 M${cx - 4} 47 L${cx} 52 L${cx + 4} 47`, fill: 'none', stroke: INK, 'stroke-width': 1.4 }));
+      }
+      // tube
+      tube.appendChild(el('path', { d: `M${TX0} ${TY0 - 8} L${TX0} ${TY1 - 14} Q${TX0} ${TY1 + 6} ${TX0 + 24} ${TY1 + 6} L${TX1 - 24} ${TY1 + 6} Q${TX1} ${TY1 + 6} ${TX1} ${TY1 - 14} L${TX1} ${TY0 - 8}`, fill: '#eef6f7', stroke: INK, 'stroke-width': 1.6 }));
+      tube.appendChild(el('line', { x1: TX0, y1: TY0, x2: TX1, y2: TY0, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      // dots: kind 1 uses even slots, kind 2 odd slots
+      const d = state.day;
+      const c1 = d === 0 ? Math.max(1, Math.round(START / 100 * DOTS_MAX)) : Math.max(sim.n1[d] > 0.5 ? 1 : 0, Math.round(sim.n1[d] / 100 * DOTS_MAX));
+      for (let i = 0; i < c1; i++) {
+        const p = SLOTS[i * 2];
+        if (p) tube.appendChild(el('circle', { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 4.2, fill: TEAL }));
+      }
+      if (state.second) {
+        const c2 = d === 0 ? Math.max(1, Math.round(START / 100 * DOTS_MAX)) : Math.max(sim.n2[d] > 0.05 ? 1 : 0, Math.round(sim.n2[d] / 100 * DOTS_MAX));
+        for (let i = 0; i < c2; i++) {
+          const p = SLOTS[i * 2 + 1];
+          if (p) tube.appendChild(el('rect', { x: (p.x - 3.6).toFixed(1), y: (p.y - 3.6).toFixed(1), width: 7.2, height: 7.2, fill: ORANGE, transform: `rotate(45 ${p.x.toFixed(1)} ${p.y.toFixed(1)})` }));
+        }
+      }
+      // legend
+      tube.appendChild(el('circle', { cx: 24, cy: 226, r: 4.2, fill: TEAL }));
+      tube.appendChild(txt(32, 230, 'Kind 1', 12, INK));
+      if (state.second) {
+        tube.appendChild(el('rect', { x: 100.4, y: 222.4, width: 7.2, height: 7.2, fill: ORANGE, transform: 'rotate(45 104 226)' }));
+        tube.appendChild(txt(114, 230, 'Kind 2', 12, INK));
+      }
+      tube.appendChild(txt(100, 246, 'Dots are not to scale', 11, INK, 'middle'));
+    }
+
+    function drawPlot(sim: { n1: number[]; n2: number[]; solo: number[] }) {
+      plot.replaceChildren();
+      const X0 = 22, X1 = 350, Y0 = 38, Y1 = 196, YMAX = 105;
+      const gw = (X1 - X0) / (DAYS + 1), bw = 5.8;
+      const py = (v: number) => Y1 - (v / YMAX) * (Y1 - Y0);
+      const gx = (d: number) => X0 + gw * d + gw / 2;
+      plot.appendChild(txt(X0 - 4, 14, 'Paramecium in the tube (relative units)', 12, INK, 'start', 700));
+      plot.appendChild(txt(X0 - 4, 30, 'In this sketch, 20 days', 11, INK));
+      plot.appendChild(el('line', { x1: X0, y1: Y0 - 4, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const d of [0, 5, 10, 15, 20]) {
+        plot.appendChild(el('line', { x1: gx(d), y1: Y1, x2: gx(d), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(txt(gx(d), Y1 + 17, String(d), 11, INK, 'middle'));
+      }
+      plot.appendChild(txt((X0 + X1) / 2, Y1 + 33, 'Day', 12, INK, 'middle'));
+      const top = CEIL[state.food];
+      plot.appendChild(el('line', { x1: X0, y1: py(top), x2: X1, y2: py(top), stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '2 3' }));
+      for (let d = 0; d <= state.day; d++) {
+        const x = gx(d);
+        const h1 = Math.max(0, Y1 - py(sim.n1[d]));
+        if (state.second) {
+          if (h1 > 0.4) plot.appendChild(el('rect', { x: x - bw - 0.4, y: py(sim.n1[d]), width: bw, height: h1, fill: TEAL }));
+          const h2 = Y1 - py(sim.n2[d]);
+          if (sim.n2[d] > 0.05) { const hh = Math.max(h2, 1.5); plot.appendChild(el('rect', { x: x + 0.4, y: Y1 - hh, width: bw, height: hh, fill: ORANGE })); }
+          // dashed tick: the same kind grown alone (expected, no partner)
+          if (d > 0) plot.appendChild(el('line', { x1: x - bw - 1.4, y1: py(sim.solo[d]), x2: x + bw + 1.4, y2: py(sim.solo[d]), stroke: '#222', 'stroke-width': 1.3 }));
+        } else if (h1 > 0.4) {
+          plot.appendChild(el('rect', { x: x - bw / 2 - 0.4, y: py(sim.n1[d]), width: bw, height: h1, fill: TEAL }));
+        }
+      }
+      // legend row
+      const LY = 244;
+      plot.appendChild(el('rect', { x: X0 - 4, y: LY - 9, width: 9, height: 9, fill: TEAL }));
+      plot.appendChild(txt(X0 + 8, LY, 'Kind 1', 11, INK));
+      if (state.second) {
+        plot.appendChild(el('rect', { x: X0 + 56, y: LY - 9, width: 9, height: 9, fill: ORANGE }));
+        plot.appendChild(txt(X0 + 68, LY, 'Kind 2', 11, INK));
+        plot.appendChild(el('line', { x1: X0 + 120, y1: LY - 4, x2: X0 + 134, y2: LY - 4, stroke: '#222', 'stroke-width': 1.6 }));
+        plot.appendChild(txt(X0 + 138, LY, 'same kind grown alone', 11, INK));
+      }
+      plot.setAttribute('aria-label', state.second
+        ? `Bar graph of Kind 1 in teal and Kind 2 in orange over 20 days, up to day ${state.day}, with a mark for each kind grown alone`
+        : `Bar graph of Kind 1 alone over 20 days, up to day ${state.day}`);
+    }
+
+    function render() {
+      const sim = simulate(state.food, state.second, state.overlap);
+      state.day = Math.min(DAYS, Math.max(0, state.day));
+      daySlider.value = String(state.day);
+      dayOut.textContent = String(state.day);
+      for (const g of ['food', 'second', 'overlap'] as const) {
+        const cur = g === 'second' ? (state.second ? 'on' : 'off') : state[g];
+        groupButtons(g).forEach((b) => b.setAttribute('aria-pressed', b.dataset.val === cur ? 'true' : 'false'));
+      }
+      groupButtons('overlap').forEach((b) => { b.disabled = !state.second; });
+      overlapGroup.classList.toggle('tst-off', !state.second);
+      overlapHint.hidden = state.second;
+      drawTube(sim);
+      drawPlot(sim);
+      status.textContent = statusText(sim);
+    }
+
+    function changed() { stop(); state.day = 0; render(); }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-group] .tst-btn').forEach((b) => {
+      b.addEventListener('click', () => {
+        const g = (b.parentElement as HTMLElement).dataset.group;
+        const v = b.dataset.val;
+        if (g === 'food' && (v === 'low' || v === 'medium' || v === 'high')) state.food = v;
+        else if (g === 'second') state.second = v === 'on';
+        else if (g === 'overlap' && (v === 'same' || v === 'partly' || v === 'different')) state.overlap = v;
+        changed();
+      });
+    });
+
+    runBtn.addEventListener('click', () => {
+      if (timer !== null) { stop(); render(); return; }
+      state.day = 0;
+      render();
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { state.day = DAYS; render(); return; }
+      runBtn.textContent = 'Pause';
+      timer = window.setInterval(() => {
+        if (state.day >= DAYS) { stop(); return; }
+        state.day += 1;
+        render();
+        if (state.day >= DAYS) stop();
+      }, 280);
+    });
+    daySlider.addEventListener('input', () => { stop(); state.day = parseInt(daySlider.value, 10) || 0; render(); });
+    resetBtn.addEventListener('click', () => {
+      stop();
+      state.food = 'medium'; state.second = false; state.overlap = 'same'; state.day = 0;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .tst { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tst-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tst-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tst-stage { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); justify-content: center; }
+  .tst-svg { display: block; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tst-tube { width: 100%; max-width: 200px; flex: 0 1 200px; }
+  .tst-plot { width: 100%; max-width: 380px; flex: 1 1 280px; }
+  .tst-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .tst-group { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .tst-wide { grid-column: 1 / -1; }
+  .tst-group legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding: 0; margin-bottom: 0.25rem; font-weight: 600; }
+  .tst-hint { font-weight: 400; color: var(--ddp-color-muted); }
+  .tst-seg { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .tst-btn { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .tst-seg .tst-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .tst-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .tst-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .tst-btn:focus-visible, .tst-day input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .tst-run { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; margin: var(--ddp-space-2) 0; }
+  .tst-day { display: flex; flex-direction: column; gap: 0.1rem; flex: 1 1 180px; min-height: 44px; justify-content: center; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tst-day em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .tst-day input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 24px; }
+  .tst-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 3em; }
+  .tst-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .tst-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .tst-controls { grid-template-columns: 1fr; } }
+</style>

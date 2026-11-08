@@ -1,0 +1,223 @@
+---
+/**
+ * Sarm1StumpTimer — cut an axon and follow the distal stump. The learner toggles two genetic
+ * changes (the Wlds fusion, loss of Sarm1) and drags a clock that starts at the cut. The
+ * picture follows the lesson's leading model: NMNAT2, which is short-lived and no longer
+ * supplied after a cut, falls; its substrate NMN builds up and NAD+ begins to fall; a rise in
+ * NMN relative to NAD+ switches on SARM1; its TIR domain cleaves NAD+, ATP falls after NAD+,
+ * calcium rises, calpains cut the cytoskeleton and the axon fragments. Wlds is a longer-lived
+ * source of NMNAT activity, so it keeps NMN low; without SARM1 there is nothing to switch on.
+ * The lesson gives no rates, so every curve is a sketch in relative units. Labelled lines,
+ * bars and blocks only; nothing is drawn as a molecule. Self-contained vanilla-TS Astro
+ * island. Original.
+ */
+---
+
+<figure class="s1t card" data-sarm1timer>
+  <figcaption class="s1t-head">Cut axon: follow the stump<span class="s1t-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="s1t-svg" viewBox="0 0 360 262" role="img" aria-label="Curves of NMNAT2, NMN and NAD+ in the distal stump of a cut axon against time, with the state of SARM1 and of the axon below" data-stage></svg>
+
+  <fieldset class="s1t-ctl">
+    <legend>The mouse</legend>
+    <label><input type="checkbox" data-in="wlds" /> Wlds fusion present (Ube4b–NMNAT1)</label>
+    <label><input type="checkbox" data-in="null" /> Sarm1 deleted</label>
+  </fieldset>
+  <div class="s1t-time">
+    <label for="s1t-t" class="s1t-tlabel">Time since the cut <span class="s1t-muted">(relative units)</span></label>
+    <input id="s1t-t" type="range" min="0" max="100" step="1" value="0" data-in="t" aria-valuetext="at the cut" />
+  </div>
+
+  <p class="s1t-verdict" data-verdict role="status"></p>
+
+  <p class="s1t-foot">Rule to keep: a cut axon loses NMNAT2, NMN builds up, SARM1 switches on and cleaves NAD+, and the axon falls apart; Wlds works upstream of SARM1 and loss of Sarm1 removes the executioner, so either holds the stump for weeks. This is a sketch of the logic in relative units, not a measurement, and it shows the leading model, not the last word.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  // Sketch constants (relative units; the lesson gives no rates).
+  const TAU = 24;            // how fast the short-lived NMNAT2 is lost once supply stops
+  const NMN_ON = 0.8;        // NMN level (relative) at which SARM1 is switched on
+  const COLLAPSE = 22;       // length of the collapse once SARM1 is on
+  const TMAX = 100;
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORANGE = '#e57200', BLUE = '#2f6f8f', RED = '#b3261e';
+
+  document.querySelectorAll<HTMLElement>('[data-sarm1timer]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const wldsIn = root.querySelector<HTMLInputElement>('[data-in="wlds"]')!;
+    const nullIn = root.querySelector<HTMLInputElement>('[data-in="null"]')!;
+    const tIn = root.querySelector<HTMLInputElement>('[data-in="t"]')!;
+
+    type G = { wlds: boolean; nul: boolean };
+    const nmnat2 = (t: number) => Math.exp(-t / TAU);
+    const supply = (g: G, t: number) => (g.wlds ? 1 : nmnat2(t));
+    const nmn = (g: G, t: number) => 0.1 + 0.9 * (1 - supply(g, t));
+    const canSwitchOn = (g: G) => !g.nul && !g.wlds;
+    const tOn = -TAU * Math.log(1 - (NMN_ON - 0.1) / 0.9);
+    const earlyNad = (g: G, t: number) => (1 - 0.2 * (nmn(g, t) - 0.1) / 0.9);
+    function nad(g: G, t: number) {
+      if (canSwitchOn(g) && t > tOn) return earlyNad(g, tOn) * Math.exp(-(t - tOn) / 8);
+      return earlyNad(g, Math.min(t, canSwitchOn(g) ? tOn : t));
+    }
+    const tFrag = tOn + COLLAPSE;
+
+    // plot frame
+    const PX0 = 40, PX1 = 346, PY0 = 38, PY1 = 138;
+    const X = (t: number) => PX0 + (t / TMAX) * (PX1 - PX0);
+    const Y = (v: number) => PY1 - v * (PY1 - PY0);
+    function path(f: (t: number) => number, a: number, b: number) {
+      let d = '';
+      for (let t = a; t <= b + 1e-9; t += 1) d += (d ? ' L ' : 'M ') + X(t).toFixed(1) + ' ' + Y(f(t)).toFixed(1);
+      return d;
+    }
+
+    function render() {
+      const g: G = { wlds: wldsIn.checked, nul: nullIn.checked };
+      const t = Number(tIn.value);
+      const on = canSwitchOn(g) && t >= tOn;
+      const p = on ? Math.min(1, (t - tOn) / COLLAPSE) : 0;
+      const frag = canSwitchOn(g) && t >= tFrag;
+      stage.replaceChildren();
+
+      // legend
+      const leg: [string, string, string, string][] = [
+        ['NMNAT2', TEAL, '3 3', ''],
+        ['NMN', ORANGE, '', ''],
+        ['NAD+', BLUE, '', ''],
+        ['Wlds NMNAT', TEAL, '', g.wlds ? '' : '0.3'],
+      ];
+      const lx = [8, 78, 120, 168];
+      leg.forEach(([name, col, dash, op], i) => {
+        const a: Record<string, string | number> = { x1: lx[i], y1: 12, x2: lx[i] + 16, y2: 12, stroke: col, 'stroke-width': 2.2 };
+        if (dash) a['stroke-dasharray'] = dash;
+        if (op) a.opacity = op;
+        stage.appendChild(el('line', a));
+        stage.appendChild(el('text', { x: lx[i] + 20, y: 15, 'font-size': 10, fill: op ? FAINT : INK }, name));
+      });
+      stage.appendChild(el('text', { x: 8, y: 30, 'font-size': 9, fill: FAINT }, 'level in the stump beyond the cut (relative units)'));
+
+      // axes
+      stage.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: FAINT, 'stroke-width': 1 }));
+      stage.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: FAINT, 'stroke-width': 1 }));
+      stage.appendChild(el('text', { x: PX0 - 4, y: PY0 + 4, 'font-size': 9, 'text-anchor': 'end', fill: FAINT }, 'high'));
+      stage.appendChild(el('text', { x: PX0 - 4, y: PY1, 'font-size': 9, 'text-anchor': 'end', fill: FAINT }, 'low'));
+      stage.appendChild(el('text', { x: PX0, y: PY1 + 11, 'font-size': 9, fill: INK }, 'the cut'));
+      stage.appendChild(el('text', { x: PX1, y: PY1 + 11, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'time, not to scale'));
+
+      // SARM1 switch-on marker (only if it can happen)
+      if (canSwitchOn(g)) {
+        stage.appendChild(el('line', { x1: X(tOn), y1: PY0, x2: X(tOn), y2: PY1, stroke: RED, 'stroke-width': 1, 'stroke-dasharray': '2 3', opacity: 0.55 }));
+        stage.appendChild(el('text', { x: X(tOn) + 3, y: PY0 + 9, 'font-size': 9, fill: RED }, 'SARM1 on'));
+      }
+
+      // curves: faint full course, solid up to the clock
+      const curves: [(x: number) => number, string, string, boolean][] = [
+        [(x) => nmnat2(x), TEAL, '3 3', true],
+        [(x) => nmn(g, x), ORANGE, '', true],
+        [(x) => nad(g, x), BLUE, '', true],
+        [() => 1, TEAL, '', g.wlds],
+      ];
+      curves.forEach(([f, col, dash, show]) => {
+        if (!show) return;
+        stage.appendChild(el('path', { d: path(f, 0, TMAX), fill: 'none', stroke: col, 'stroke-width': 1.5, opacity: 0.22 }));
+        const a: Record<string, string | number> = { d: path(f, 0, t), fill: 'none', stroke: col, 'stroke-width': 2.4 };
+        if (dash) a['stroke-dasharray'] = dash;
+        stage.appendChild(el('path', a));
+        stage.appendChild(el('circle', { cx: X(t), cy: Y(f(t)), r: 3.2, fill: col }));
+      });
+      stage.appendChild(el('line', { x1: X(t), y1: PY0, x2: X(t), y2: PY1, stroke: INK, 'stroke-width': 1, opacity: 0.5 }));
+
+      // SARM1 block
+      const sy = 160;
+      stage.appendChild(el('text', { x: 8, y: sy + 15, 'font-size': 10, 'font-weight': 700, fill: INK }, 'SARM1'));
+      const sFill = g.nul ? '#fff' : on ? RED : '#6b6b78';
+      stage.appendChild(el('rect', { x: 62, y: sy, width: 150, height: 24, rx: 5, fill: sFill, stroke: g.nul ? FAINT : sFill, 'stroke-width': 1.2, 'stroke-dasharray': g.nul ? '3 3' : '' }));
+      const sLabel = g.nul ? 'deleted: no executioner' : on ? 'on: TIR cleaves NAD+' : 'held shut (ARM domain)';
+      stage.appendChild(el('text', { x: 137, y: sy + 16, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: g.nul ? INK : '#fff' }, sLabel));
+      // collapse readout
+      const steps = ['NAD+ falls', 'ATP falls', 'calcium rises', 'calpains cut'];
+      steps.forEach((s, i) => {
+        const lit = on && p >= i * 0.25;
+        const x = 220 + (i % 2) * 70, y = sy - 2 + Math.floor(i / 2) * 15;
+        stage.appendChild(el('rect', { x, y, width: 66, height: 13, rx: 3, fill: lit ? RED : '#fff', stroke: lit ? RED : FAINT, 'stroke-width': 1 }));
+        stage.appendChild(el('text', { x: x + 33, y: y + 10, 'font-size': 9, 'text-anchor': 'middle', fill: lit ? '#fff' : FAINT }, s));
+      });
+
+      // the axon
+      const ay = 226;
+      stage.appendChild(el('text', { x: 8, y: ay - 14, 'font-size': 10, 'font-weight': 700, fill: INK }, 'Stump of the axon'));
+      stage.appendChild(el('text', { x: 62, y: ay + 22, 'font-size': 9, fill: FAINT }, '← cut end'));
+      stage.appendChild(el('text', { x: 346, y: ay + 22, 'font-size': 9, 'text-anchor': 'end', fill: FAINT }, 'far end, no cell body →'));
+      stage.appendChild(el('line', { x1: 56, y1: ay - 12, x2: 56, y2: ay + 12, stroke: INK, 'stroke-width': 2.5 }));
+      const x0 = 62, x1 = 346;
+      if (frag) {
+        const n = 9, w = (x1 - x0) / n;
+        for (let i = 0; i < n; i++) stage.appendChild(el('line', { x1: x0 + i * w + 3, y1: ay, x2: x0 + (i + 1) * w - 3, y2: ay, stroke: RED, 'stroke-width': 7, 'stroke-linecap': 'round' }));
+      } else {
+        const col = TEAL;
+        const a: Record<string, string | number> = { x1: x0, y1: ay, x2: x1, y2: ay, stroke: col, 'stroke-width': 7, 'stroke-linecap': 'butt' };
+                stage.appendChild(el('line', a));
+      }
+
+      // status sentence
+      let v: string;
+      const nowNad = nad(g, t);
+      if (t === 0) {
+        v = 'The axon has just been cut. The stump beyond the cut is cut off from its cell body, so no new NMNAT2 will arrive. Drag the clock to follow it.';
+      } else if (g.wlds && g.nul) {
+        v = 'In this sketch, NMNAT2 still falls, but Wlds keeps NMNAT activity up and SARM1 is gone, so NMN does not build up and nothing cleaves NAD+. The stump stays intact. Either change alone already protects it.';
+      } else if (g.wlds) {
+        v = 'NMNAT2 still falls, but the longer-lived Wlds protein keeps making NAD+ from NMN, so, in the leading model, NMN stays low and SARM1 stays shut. The stump stays intact for weeks, far beyond this axis. The program is held off upstream of SARM1.';
+      } else if (g.nul) {
+        v = t < tOn
+          ? 'NMNAT2 is falling and NMN is starting to build up. With no SARM1 in the axon, nothing will respond to it, and NAD+ dips only a little.'
+          : 'NMN has built up, but with no SARM1 there is nothing to switch on and nothing to cleave NAD+. Nothing cleaves NAD+, so it does not collapse as in a normal axon. The stump stays intact for weeks, far beyond this axis, because the program has lost its executioner.';
+      } else if (frag) {
+        v = 'The axon has fragmented. This is Wallerian degeneration of the distal stump: a program of self-destruction that runs locally, with no nucleus and without needing caspases.';
+      } else if (on) {
+        v = p < 0.25
+          ? 'SARM1 has switched on. Its TIR domain is an enzyme that cleaves NAD+, so NAD+ is now falling.'
+          : p < 0.5
+            ? 'NAD+ is being cleaved, and ATP falls after NAD+.'
+            : p < 0.75
+              ? 'As energy fails, calcium rises inside the axon.'
+              : 'Calcium has switched on the calpains. They are cutting the cytoskeleton and the axon is about to fragment.';
+      } else {
+        v = nmn(g, t) < 0.5
+          ? 'NMNAT2 is short-lived and is no longer being supplied, so it falls. Its substrate NMN starts to build up. The axon still looks normal: this is the latent phase.'
+          : 'NMN keeps building up relative to NAD+, and NAD+ begins to fall. SARM1 is still held shut, and the axon still looks normal. A high NMN to NAD+ ratio is what, in the leading model, switches SARM1 on.';
+      }
+      verdict.textContent = v;
+      void nowNad;
+      tIn.setAttribute('aria-valuetext', t === 0 ? 'at the cut' : 'time ' + t + ' of 100, relative units');
+    }
+    [wldsIn, nullIn].forEach((i) => i.addEventListener('change', render));
+    tIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .s1t { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .s1t-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .s1t-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .s1t-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .s1t-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .s1t-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .s1t-ctl input { accent-color: var(--ddp-color-accent); }
+  .s1t-time { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; margin: var(--ddp-space-2) 0; }
+  .s1t-tlabel { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .s1t-muted { color: var(--ddp-color-muted); }
+  .s1t-time input[type="range"] { flex: 1 1 14rem; min-width: 0; accent-color: var(--ddp-color-accent); }
+  .s1t-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .s1t-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .s1t input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  @media (max-width: 520px) { .s1t-ctl { grid-template-columns: 1fr; } }
+</style>

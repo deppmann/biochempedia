@@ -103,7 +103,7 @@ class S01Specific(Nar):
         self.play(FadeIn(rise), run_time=0.8)
 
         # fold
-        self.at("Fold-purification is")
+        self.at("Fold")
         self.play(FadeOut(rise), run_time=0.4)
         fold = M("fold = 200 ÷ 2 = 100-fold", 28, GREEN).move_to(DOWN * 2.4)
         circ = VGroup(SurroundingRectangle(sa[0], color=YELLOW, buff=0.12), SurroundingRectangle(sa[2], color=YELLOW, buff=0.12))
@@ -169,7 +169,7 @@ class S02Four(Nar):
         self.play(LaggedStart(*[FadeIn(p[0]) for p in panels], lag_ratio=0.2), run_time=self.until("Solubility:", 0.2))
 
         # 1 solubility: precipitation curves
-        self.at("Solubility:", 0.1)
+        self.at("solution", 0.1)
         fr, ti, su = panels[0]
         self.play(FadeIn(ti), FadeIn(su), run_time=0.6)
         c = centers[0]
@@ -236,7 +236,7 @@ class S02Four(Nar):
         pg4 = blob("", GREY, 1.0, 0.75).move_to(c + np.array([0.0, 0.5, 0]))
         self.play(FadeIn(pr4), FadeIn(pg4), run_time=0.4)
         self.play(pr4.animate.move_to(lig.get_top() + UP * 0.38), pg4.animate.move_to(c + np.array([0.0, -1.0, 0])).set_rate_func(linear), run_time=2.0)
-        only = T("only yours\nsticks", 28, RED).move_to(c + np.array([1.7, 0.2, 0]))
+        only = T("selective\nbinding", 28, RED).move_to(c + np.array([1.7, 0.2, 0]))
         self.play(FadeIn(only), FadeOut(pg4, shift=DOWN * 0.5), run_time=0.6)
 
         # match
@@ -286,7 +286,7 @@ class S03Ion(Nar):
         self.play(FadeIn(cond, shift=DOWN * 0.1), run_time=0.8)
 
         # right panel
-        self.at("An anion exchanger", 0.3)
+        self.at("anion", 0.3)
         beadsR = VGroup(*[bead("+", 0.45).move_to(cR + np.array([-1.9 + 1.9 * i, -0.9, 0])) for i in range(3)])
         self.play(Create(frR), FadeIn(hR), LaggedStart(*[FadeIn(x) for x in beadsR], lag_ratio=0.2), run_time=1.4)
         posb = T("positive beads", 26, TEAL).move_to(cR + np.array([0, -2.5, 0]))
@@ -457,15 +457,15 @@ class S05Maldi(Nar):
         anims.append(Succession(Wait(6.4), FadeIn(heavy)))
         self.play(AnimationGroup(*anims), run_time=max(times) + 0.4)
         self.play(FadeOut(ions), FadeOut(heavy), FadeOut(mz), run_time=0.4)
-        self.at("It needs only", 0.3)
-        c1 = chip("picomoles of sample", RED, 28).move_to([-3.2, 3.0, 0])
-        c2 = chip("proteins above 10 kDa", RED, 28).move_to([3.0, 3.0, 0])
+        self.at("It needs", 0.3)
+        c1 = chip("very little sample", RED, 28).move_to([-3.2, 3.0, 0])
+        c2 = chip("peptides and proteins", RED, 28).move_to([3.0, 3.0, 0])
         self.play(FadeIn(c1, shift=DOWN * 0.1), run_time=0.8)
-        self.at("can resolve proteins", 0.3)
+        self.at("weighs peptides", 0.3)
         self.play(FadeIn(c2, shift=DOWN * 0.1), run_time=0.8)
 
         # spectrum
-        self.at("Weigh a protein's tryptic", 0.5)
+        self.at("Weigh", 0.5)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.5)
         ttl = T("weigh the tryptic peptides", 34).move_to([0, 3.2, 0])
         ax = Axes(x_range=[700, 2300, 200], y_range=[0, 1, 0.5], x_length=9.5, y_length=2.4, tips=False,

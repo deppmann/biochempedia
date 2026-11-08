@@ -1,0 +1,269 @@
+---
+/**
+ * ThreatOutputDissociation — the rat threat circuit (tone, lateral amygdala, central amygdala,
+ * then a lateral-hypothalamic route to a pressure rise and a caudal periaqueductal gray route
+ * to freezing) beside two bar charts built from the lesson's invented table, laid out in the
+ * design of LeDoux and colleagues (1988). Learned response = paired minus unpaired; each lesion
+ * group is shown raw or as a share of the learned response. Self-contained vanilla-TS Astro
+ * island. Original.
+ */
+---
+
+<figure class="tod card" data-tod>
+  <figcaption class="tod-head">Threat conditioning — two outputs, one amygdala node<span class="tod-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="tod-grid">
+    <svg class="tod-svg tod-circuit" viewBox="0 0 320 294" role="img" aria-label="Schematic of the rat threat circuit: tone to lateral amygdala to central amygdala, which splits to the lateral hypothalamus and a pressure rise, and to the caudal periaqueductal gray and freezing. The lesioned node is crossed out." data-circuit></svg>
+    <div class="tod-charts">
+      <svg class="tod-svg" viewBox="0 0 320 218" role="img" aria-label="Bar chart of freezing to the tone for the five groups" data-chart-f></svg>
+      <svg class="tod-svg" viewBox="0 0 320 218" role="img" aria-label="Bar chart of the pressure rise to the tone for the five groups" data-chart-p></svg>
+    </div>
+  </div>
+
+  <div class="tod-controls">
+    <fieldset class="tod-fs">
+      <legend>Group (all tested with the tone alone)</legend>
+      <label><input type="radio" name="tod-group" value="paired" checked /> Intact, paired</label>
+      <label><input type="radio" name="tod-group" value="unpaired" /> Intact, unpaired</label>
+      <label><input type="radio" name="tod-group" value="lh" /> Lateral hypothalamic lesion, paired</label>
+      <label><input type="radio" name="tod-group" value="pag" /> Caudal PAG lesion, paired</label>
+      <label><input type="radio" name="tod-group" value="cea" /> Central amygdala lesion, paired</label>
+    </fieldset>
+    <fieldset class="tod-fs">
+      <legend>View</legend>
+      <label><input type="radio" name="tod-view" value="raw" checked /> Raw values</label>
+      <label><input type="radio" name="tod-view" value="share" /> Share of the learned response</label>
+    </fieldset>
+  </div>
+
+  <dl class="tod-readout">
+    <div><dt data-k-f>Freezing</dt><dd data-r-f>—</dd></div>
+    <div><dt data-k-p>Pressure rise</dt><dd data-r-p>—</dd></div>
+  </dl>
+  <p class="tod-math" data-math>—</p>
+  <p class="tod-why" data-why role="status">—</p>
+  <p class="tod-assume">In this sketch: invented numbers laid out in the design of LeDoux and colleagues (1988), not its data; rats; the unpaired baseline is assumed unchanged by lesions and the measures are assumed to add linearly. No lesion combinations are offered because the lesson gives none. LH = lateral hypothalamus, PAG = caudal periaqueductal gray, CeA = central amygdala. “Spared” and “impaired” here mean at least or under half of the learned response, a sketch convention.</p>
+  <p class="tod-foot">Each output lesion removes one response and keeps the other, a double dissociation below one amygdala node; the unpaired group is the subtraction that isolates learning about the tone; the result localizes outputs of a defensive response and says nothing about a feeling.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', GRID = '#e4e4ea', TEAL = '#0e7c86', ORANGE = '#e57200', RED = '#b3261e';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, attrs: Record<string, string | number>, s: string) {
+    const t = el('text', attrs); t.textContent = s; parent.appendChild(t); return t;
+  }
+
+  type G = 'paired' | 'unpaired' | 'lh' | 'pag' | 'cea';
+  // The lesson's invented table: freezing (%), pressure rise (mmHg).
+  const DATA: Record<G, { name: string; f: number; p: number; l1: string; l2: string }> = {
+    paired: { name: 'Intact, paired', f: 60, p: 20, l1: 'Intact', l2: 'paired' },
+    unpaired: { name: 'Intact, unpaired', f: 8, p: 3, l1: 'Intact', l2: 'unpaired' },
+    lh: { name: 'Lateral hypothalamic lesion, paired', f: 57, p: 4, l1: 'LH', l2: 'lesion' },
+    pag: { name: 'Caudal PAG lesion, paired', f: 9, p: 19, l1: 'PAG', l2: 'lesion' },
+    cea: { name: 'Central amygdala lesion, paired', f: 6, p: 3, l1: 'CeA', l2: 'lesion' },
+  };
+  const ORDER: G[] = ['paired', 'unpaired', 'lh', 'pag', 'cea'];
+  const BASE_F = DATA.unpaired.f, BASE_P = DATA.unpaired.p;
+  const LEARN_F = DATA.paired.f - BASE_F; // 52 points
+  const LEARN_P = DATA.paired.p - BASE_P; // 17 mmHg
+  const shareF = (g: G) => (DATA[g].f - BASE_F) / LEARN_F;
+  const shareP = (g: G) => (DATA[g].p - BASE_P) / LEARN_P;
+  // percent text; a small negative share (central amygdala freezing, -2/52) is shown as about 0%
+  function pct(x: number): string {
+    const r = Math.round(x * 100);
+    if (x < 0 && r > -10) return 'about 0%';
+    if (r === 0) return '0%';
+    return r + '%';
+  }
+  const sgn = (v: number) => (v < 0 ? '−' + Math.abs(v) : String(v));
+
+  document.querySelectorAll<HTMLElement>('[data-tod]').forEach((root) => {
+    const circuit = root.querySelector<SVGSVGElement>('[data-circuit]')!;
+    const chartF = root.querySelector<SVGSVGElement>('[data-chart-f]')!;
+    const chartP = root.querySelector<SVGSVGElement>('[data-chart-p]')!;
+    const q = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const rF = q('[data-r-f]'), rP = q('[data-r-p]'), kF = q('[data-k-f]'), kP = q('[data-k-p]');
+    const math = q('[data-math]'), why = q('[data-why]');
+    const groupRadios = [...root.querySelectorAll<HTMLInputElement>('input[name="tod-group"]')];
+    const viewRadios = [...root.querySelectorAll<HTMLInputElement>('input[name="tod-view"]')];
+
+    function drawCircuit(g: G) {
+      circuit.replaceChildren();
+      const lesion: 'LH' | 'PAG' | 'CeA' | null = g === 'lh' ? 'LH' : g === 'pag' ? 'PAG' : g === 'cea' ? 'CeA' : null;
+      const defs = el('defs', {});
+      const mk = el('marker', { id: 'tod-arr', viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+      mk.appendChild(el('path', { d: 'M0 0 L10 5 L0 10 z', fill: INK }));
+      defs.appendChild(mk);
+      const mk2 = el('marker', { id: 'tod-arr-off', viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+      mk2.appendChild(el('path', { d: 'M0 0 L10 5 L0 10 z', fill: FAINT }));
+      defs.appendChild(mk2);
+      circuit.appendChild(defs);
+
+      // node geometry
+      const N = {
+        tone: { x: 8, y: 16, w: 70, h: 40, lines: ['Tone (CS)'] },
+        la: { x: 94, y: 16, w: 100, h: 40, lines: ['Lateral', 'amygdala'] },
+        cea: { x: 210, y: 16, w: 100, h: 40, lines: ['Central', 'amygdala'] },
+        lh: { x: 8, y: 112, w: 136, h: 48, lines: ['Lateral', 'hypothalamus'] },
+        pag: { x: 176, y: 112, w: 136, h: 48, lines: ['Caudal periaqueductal', 'gray (PAG)'] },
+        po: { x: 8, y: 208, w: 136, h: 52, lines: ['Pressure rise'] },
+        fo: { x: 176, y: 208, w: 136, h: 52, lines: ['Freezing'] },
+      };
+      // which stretches of the pathway are cut by the lesion
+      const cutLH = lesion === 'LH' || lesion === 'CeA';
+      const cutPAG = lesion === 'PAG' || lesion === 'CeA';
+      const arrow = (x1: number, y1: number, x2: number, y2: number, off: boolean, dash = false) =>
+        circuit.appendChild(el('line', { x1, y1, x2, y2, stroke: off ? FAINT : INK, 'stroke-width': 1.8, 'stroke-dasharray': off || dash ? '4 3' : '0', 'marker-end': off ? 'url(#tod-arr-off)' : 'url(#tod-arr)' }));
+      arrow(78, 36, 94, 36, false);
+      arrow(194, 36, 210, 36, false, true);
+      // central amygdala splits to the two routes
+      arrow(240, 56, 100, 112, lesion === 'CeA');
+      arrow(280, 56, 244, 112, lesion === 'CeA');
+      arrow(76, 160, 76, 208, cutLH);
+      arrow(244, 160, 244, 208, cutPAG);
+
+      const node = (n: { x: number; y: number; w: number; h: number; lines: string[] }, fill: string, crossed: boolean, fs = 11) => {
+        circuit.appendChild(el('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 7, fill: crossed ? '#f4f4f7' : fill, stroke: crossed ? RED : INK, 'stroke-width': crossed ? 2 : 1.2, 'stroke-dasharray': crossed ? '5 3' : '0' }));
+        const cy = n.y + n.h / 2, k = n.lines.length;
+        n.lines.forEach((l, i) => txt(circuit, { x: n.x + n.w / 2, y: cy + (i - (k - 1) / 2) * 13 + 4, 'text-anchor': 'middle', 'font-size': fs, fill: crossed ? '#7a7a85' : '#23232b' }, l));
+        if (crossed) {
+          circuit.appendChild(el('line', { x1: n.x + 6, y1: n.y + 6, x2: n.x + n.w - 6, y2: n.y + n.h - 6, stroke: RED, 'stroke-width': 2.4 }));
+          circuit.appendChild(el('line', { x1: n.x + n.w - 6, y1: n.y + 6, x2: n.x + 6, y2: n.y + n.h - 6, stroke: RED, 'stroke-width': 2.4 }));
+        }
+      };
+      node(N.tone, '#ffffff', false);
+      node(N.la, '#ffffff', false);
+      node(N.cea, '#ffffff', lesion === 'CeA');
+      node(N.lh, '#ffffff', lesion === 'LH');
+      node(N.pag, '#ffffff', lesion === 'PAG');
+
+      // output boxes with the lesson's words: learned, impaired, spared
+      const tag = (s: number, unpaired: boolean) => (unpaired ? 'not learned' : s >= 0.995 ? 'learned' : s >= 0.5 ? 'spared' : 'impaired');
+      const un = g === 'unpaired';
+      const sf = shareF(g), sp = shareP(g);
+      const fOut = (n: typeof N.po, color: string, s: number) => {
+        circuit.appendChild(el('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 7, fill: '#ffffff', stroke: color, 'stroke-width': 2.2 }));
+        txt(circuit, { x: n.x + n.w / 2, y: n.y + 22, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#23232b' }, n.lines[0]);
+        txt(circuit, { x: n.x + n.w / 2, y: n.y + 40, 'text-anchor': 'middle', 'font-size': 11, fill: color }, tag(s, un));
+      };
+      fOut(N.po, ORANGE, sp);
+      fOut(N.fo, TEAL, sf);
+      txt(circuit, { x: 160, y: 273, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'Schematic of the rat circuit; connections simplified;');
+      txt(circuit, { x: 160, y: 286, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'red cross = lesioned node (bilateral lesions)');
+    }
+
+    function drawChart(svg: SVGSVGElement, which: 'f' | 'p', view: 'raw' | 'share', sel: G) {
+      svg.replaceChildren();
+      const color = which === 'f' ? TEAL : ORANGE;
+      const X0 = 44, X1 = 312, Y0 = 34, Y1 = 170;
+      const share = view === 'share';
+      const max = share ? 1 : which === 'f' ? 70 : 25;
+      const ticks = share ? [0, 0.5, 1] : which === 'f' ? [0, 20, 40, 60] : [0, 10, 20];
+      const py = (v: number) => Y1 - (Math.max(0, v) / max) * (Y1 - Y0);
+      const title = share
+        ? (which === 'f' ? 'Learned freezing kept (% of 52 points)' : 'Learned pressure rise kept (% of 17 mmHg)')
+        : (which === 'f' ? 'Freezing to the tone (% of the 60-s tone)' : 'Pressure rise to the tone (mmHg)');
+      txt(svg, { x: X0 - 36, y: 12, 'font-size': 11, 'font-weight': 700, fill: '#23232b' }, title);
+      svg.appendChild(el('line', { x1: X0, y1: Y0 - 6, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      svg.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const t of ticks) {
+        svg.appendChild(el('line', { x1: X0, y1: py(t), x2: X1, y2: py(t), stroke: GRID, 'stroke-width': 0.8 }));
+        txt(svg, { x: X0 - 4, y: py(t) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }, share ? Math.round(t * 100) + '%' : String(t));
+      }
+      const slot = (X1 - X0) / ORDER.length, bw = 30;
+      ORDER.forEach((g, i) => {
+        const cx = X0 + slot * (i + 0.5);
+        const raw = which === 'f' ? DATA[g].f : DATA[g].p;
+        const val = share ? (which === 'f' ? shareF(g) : shareP(g)) : raw;
+        const on = g === sel;
+        const top = py(val);
+        if (Y1 - top > 0.4) svg.appendChild(el('rect', { x: cx - bw / 2, y: top, width: bw, height: Y1 - top, fill: color, 'fill-opacity': on ? 1 : 0.28, stroke: on ? '#23232b' : 'none', 'stroke-width': on ? 1.4 : 0 }));
+        else svg.appendChild(el('line', { x1: cx - bw / 2, y1: Y1 - 1, x2: cx + bw / 2, y2: Y1 - 1, stroke: color, 'stroke-width': 2, 'stroke-opacity': on ? 1 : 0.4 }));
+        const lab = share ? (g === 'unpaired' ? '0%' : pct(val)) : (which === 'p' ? '+' + raw : String(raw));
+        txt(svg, { x: cx, y: top - 4, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': on ? 700 : 400, fill: '#23232b' }, lab);
+        txt(svg, { x: cx, y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': on ? 700 : 400, fill: '#23232b' }, DATA[g].l1);
+        txt(svg, { x: cx, y: Y1 + 25, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': on ? 700 : 400, fill: '#23232b' }, DATA[g].l2);
+      });
+      txt(svg, { x: (X0 + X1) / 2, y: 211, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, share ? 'share = (group − unpaired) ÷ (paired − unpaired)' : 'invented numbers, in this sketch');
+    }
+
+    function statusText(g: G, view: 'raw' | 'share'): string {
+      const d = DATA[g];
+      const sf = pct(shareF(g)), sp = pct(shareP(g));
+      const raw = `${d.f}% freezing and a ${d.p} mmHg pressure rise`;
+      const shr = `${sf} of the learned freezing and ${sp} of the learned pressure rise`;
+      const val = view === 'raw' ? raw : shr;
+      switch (g) {
+        case 'paired':
+          return view === 'raw'
+            ? `Intact, paired: the tone alone gives ${raw}. Subtracting the unpaired group leaves the learned response, 52 points of freezing and 17 mmHg of pressure, which is 100% of each.`
+            : `Intact, paired: by definition it holds ${shr}. That 100% is the learned response, the paired value minus the unpaired value.`;
+        case 'unpaired':
+          return view === 'raw'
+            ? `Intact, unpaired: the same tones and shocks, never predicting each other, give ${raw}. This group is the subtraction that isolates learning about the tone.`
+            : `Intact, unpaired: it is the baseline of the subtraction, so it holds 0% of each learned response by definition. The same tones and shocks without the contingency are the control for learning about the tone.`;
+        case 'lh':
+          return `Lateral hypothalamic lesion: ${val}. The lesion impairs the pressure response and spares freezing: one response removed, the other kept.`;
+        case 'pag':
+          return `Caudal PAG lesion: ${val}. The lesion impairs freezing and spares the pressure response: the reverse pattern. With the hypothalamic lesion this is a double dissociation, two separate routes below one amygdala node.`;
+        default:
+          return `Central amygdala lesion: ${val}. The lesion removes both responses, as a shared source for the two routes predicts. Freezing of ${d.f}% sits ${BASE_F - d.f} points below the unpaired ${BASE_F}%, which the share view shows as about 0%.`;
+      }
+    }
+
+    function render() {
+      const g = (groupRadios.find((r) => r.checked)?.value ?? 'paired') as G;
+      const view = (viewRadios.find((r) => r.checked)?.value ?? 'raw') as 'raw' | 'share';
+      const d = DATA[g];
+      root.dataset.group = g; root.dataset.view = view;
+      drawCircuit(g);
+      drawChart(chartF, 'f', view, g);
+      drawChart(chartP, 'p', view, g);
+      if (view === 'raw') {
+        kF.textContent = 'Freezing (% of the tone)'; kP.textContent = 'Pressure rise (mmHg)';
+        rF.textContent = d.f + '%'; rP.textContent = '+' + d.p + ' mmHg';
+        math.textContent = 'Learned response in intact rats, paired minus unpaired: freezing 60 − 8 = 52 percentage points; pressure 20 − 3 = 17 mmHg.';
+      } else {
+        kF.textContent = 'Share of learned freezing'; kP.textContent = 'Share of learned pressure rise';
+        rF.textContent = pct(shareF(g)); rP.textContent = pct(shareP(g));
+        const fd = d.f - BASE_F, pd = d.p - BASE_P;
+        const fr = shareF(g) < 0 ? `(${d.f} − ${BASE_F})/${LEARN_F} = ${sgn(fd)}/${LEARN_F}, ${pct(shareF(g))}` : `(${d.f} − ${BASE_F})/${LEARN_F} = ${fd}/${LEARN_F} = ${pct(shareF(g))}`;
+        const pr = `(${d.p} − ${BASE_P})/${LEARN_P} = ${pd}/${LEARN_P} = ${pct(shareP(g))}`;
+        math.textContent = `Freezing ${fr}; pressure ${pr}.`;
+      }
+      root.dataset.freezing = rF.textContent ?? ''; root.dataset.pressure = rP.textContent ?? '';
+      why.textContent = statusText(g, view);
+    }
+    [...groupRadios, ...viewRadios].forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .tod { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tod-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tod-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tod-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  @media (min-width: 760px) { .tod-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
+  .tod-charts { display: grid; gap: var(--ddp-space-3); }
+  .tod-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tod-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  @media (min-width: 640px) { .tod-controls { grid-template-columns: 1.4fr 1fr; } }
+  .tod-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.5rem; min-width: 0; }
+  .tod-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .tod-fs label { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding: 0.15rem 0; cursor: pointer; }
+  .tod-fs input { accent-color: var(--ddp-color-accent); }
+  .tod-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .tod-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .tod-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .tod-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .tod-math { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .tod-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .tod-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .tod-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

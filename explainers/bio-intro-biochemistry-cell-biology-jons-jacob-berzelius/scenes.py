@@ -176,9 +176,9 @@ class S01Pictograms(ProfileScene):
         arr = Arrow([CX, 1.62, 0], [CX, 1.38, 0], buff=0, color=GREY, stroke_width=4, max_tip_length_to_length_ratio=0.8)
         self.play(Create(box), GrowArrow(arr), run_time=0.8)
         pic = T("little pictograms", 28, GREY).move_to([CX, -2.3, 0])
-        self.at("pictograms")
+        self.at("of little")
         self.play(FadeIn(pic, shift=UP * 0.1), run_time=0.4)
-        for g, l, ph in zip(groups, labs, ("circles", "crescents", "fragments of alchemy")):
+        for g, l, ph in zip(groups, labs, ("of little", "crescents", "fragments of alchemy")):
             self.at(ph)
             self.play(LaggedStart(*[FadeIn(m, scale=0.5) for m in g], lag_ratio=0.25), FadeIn(l), run_time=0.8)
         self.wait(0.3)
@@ -207,11 +207,11 @@ class S02Letters(ProfileScene):
                   FadeIn(head, shift=UP * 0.1), run_time=0.7)
         old_lab = T("pictograms", 24, GREY).next_to(allold, DOWN, buff=0.15).set_opacity(0.7)
         self.play(FadeIn(old_lab), run_time=0.3)
-        self.at("insultingly simple")
+        self.at("almost insultingly")
         simple = VGroup(T("almost", 28, GOLD), T("insultingly simple", 28, GOLD)).arrange(DOWN, buff=0.08).move_to([4.6, 1.85, 0])
         self.play(FadeIn(simple, shift=LEFT * 0.15), run_time=0.5)
 
-        self.at("the chemical signs ought")
+        self.at("chemical signs ought")
         q1 = T("“The chemical signs ought to be", 34, GREEN, font=TITLE_FONT)
         q1b = T("letters …”", 34, GREEN, font=TITLE_FONT)
         qg = VGroup(q1, q1b).arrange(DOWN, aligned_edge=LEFT, buff=0.14).move_to([CX + 0.3, 0.05, 0])
@@ -351,8 +351,8 @@ class S03Kitchen(ProfileScene):
         self.play(LaggedStart(*[FadeIn(t, scale=0.4) for t in tiles], lag_ratio=0.03), FadeIn(n45), run_time=1.1)
         self.play(FadeIn(el), run_time=0.3)
 
-        # ---- within a few percent
-        self.at("within a few percent", lead=0.15)
+        # ---- most of them close to today
+        self.at("most of them close", lead=0.15)
         ly = -1.45
         line = Line([-1.4, ly, 0], [6.1, ly, 0], color=GREY, stroke_width=4)
         x_his, x_now = 3.0, 3.5
@@ -366,7 +366,7 @@ class S03Kitchen(ProfileScene):
         self.at("the values we use today", lead=0.3)
         self.play(FadeIn(t_now), FadeIn(l_now), run_time=0.5)
         br = BraceBetweenPoints([x_his - 0.05, ly - 0.38, 0], [x_now + 0.05, ly - 0.38, 0], direction=DOWN, color=BLUE)
-        few = T("within a few percent", 28, BLUE).next_to(br, DOWN, buff=0.15)
+        few = T("most of them close", 28, BLUE).next_to(br, DOWN, buff=0.15)
         self.play(GrowFromCenter(br), FadeIn(few), run_time=0.6)
 
         # ---- coined protein, catalysis
@@ -420,7 +420,7 @@ class S04Exacting(ProfileScene):
         self.play(Create(frame), FadeIn(ktag), run_time=0.8)
 
         ber = lab("Berzelius", GOLD, 28).move_to([4.8, 1.1, 0])
-        self.at("Berzelius glanced")
+        self.at("glanced")
         self.play(pop(ber), run_time=0.4)
         gaze = Arrow(ber.get_left() + LEFT * 0.1 + DOWN * 0.15, sheet.get_top() + UP * 0.1 + RIGHT * 0.35, buff=0, color=GOLD, stroke_width=3,
                      max_tip_length_to_length_ratio=0.12)
@@ -433,7 +433,7 @@ class S04Exacting(ProfileScene):
                     max_tip_length_to_length_ratio=0.2)
         vl = T("verdict", 28, RED).next_to(ver, UP, buff=0.12)
         self.play(FadeOut(gaze), GrowArrow(ver), FadeIn(vl), run_time=0.5)
-        self.at("trailed Wöhler for life")
+        self.at("trailed")
         life = T("for life", 26, RED).next_to(ver, DOWN, buff=0.15)
         trail = DashedLine(ver.get_start() + DOWN * 0.45, woh.get_bottom() + RIGHT * 0.9 + DOWN * 0.05, color=YELLOW, stroke_width=3)
         self.play(FadeIn(life, shift=UP * 0.1), run_time=0.5)

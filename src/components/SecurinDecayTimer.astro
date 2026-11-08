@@ -1,0 +1,206 @@
+---
+/**
+ * SecurinDecayTimer — the Checkpoints lesson's worked problem as a measurement you make.
+ * Made-up HeLa securin reporter data, F(t) = F0 e^(-kt), half-life = ln2/k. A half-life
+ * slider, a time cursor, and a toggle that re-imposes the checkpoint at time T (destruction
+ * stops). Marks the lesson's ~20 min anaphase and the time to 10%, with the arithmetic.
+ * Self-contained vanilla-TS Astro component. Original.
+ */
+---
+
+<figure class="sdt card" data-securin>
+  <figcaption class="sdt-head">Securin destruction timer — read a half-life, stop the clock<span class="sdt-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="sdt-svg" viewBox="0 0 340 240" role="img" aria-label="Securin fluorescence as percent of its metaphase value against minutes after metaphase, decaying exponentially" data-plot></svg>
+
+  <p class="sdt-key">
+    <span><i class="sdt-sw sdt-sw-line"></i>securin, this model</span>
+    <span><i class="sdt-sw sdt-sw-ghost"></i>dashed grey: no re-imposition</span>
+    <span>orange: assumed anaphase; red: 10% point; dotted: checkpoint back on</span>
+    <span><i class="sdt-sw sdt-sw-dot"></i>lesson’s made-up data (half-life 10 min)</span>
+  </p>
+
+  <div class="sdt-controls">
+    <label class="sdt-slabel"><span>Half-life <em data-out="h">10</em> min</span>
+      <input type="range" data-in="h" min="5" max="15" step="0.5" value="10" />
+    </label>
+    <label class="sdt-slabel"><span>Time cursor: <em data-out="t">10</em> min after metaphase</span>
+      <input type="range" data-in="t" min="0" max="60" step="1" value="10" />
+    </label>
+    <label class="sdt-check"><input type="checkbox" data-in="on" /> <span>Re-impose the checkpoint (add a spindle poison)</span></label>
+    <label class="sdt-slabel"><span>…at time T = <em data-out="T">10</em> min</span>
+      <input type="range" data-in="T" min="0" max="40" step="1" value="10" disabled />
+    </label>
+  </div>
+
+  <dl class="sdt-readout">
+    <div><dt>Rate constant</dt><dd data-r-k></dd></div>
+    <div><dt>Securin at the cursor</dt><dd data-r-f></dd></div>
+    <div><dt>At 20 min (assumed anaphase)</dt><dd data-r-a></dd></div>
+    <div><dt>Time to 10 percent</dt><dd data-r-ten></dd></div>
+  </dl>
+  <p class="sdt-why" data-why role="status"></p>
+
+  <p class="sdt-foot">Rule to keep: with a half-life h, k = ln 2 / h and F = F0 × e<sup>−kt</sup>; time to 10 percent is ln 10 / k; and once the checkpoint is back on, destruction stops and the level stays where it was. In this sketch the stop is idealized as instant and complete (the lesson: “rapidly stops”, “near 50”). The half-life and T sliders are this sketch’s own, not the lesson’s; only 10 min and T = 10 are the lesson’s. The data are made up, as in the lesson.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', RED = '#b3261e';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-securin]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const hIn = q('[data-in="h"]'), tIn = q('[data-in="t"]'), onIn = q('[data-in="on"]'), TIn = q('[data-in="T"]');
+    const hOut = o('[data-out="h"]'), tOut = o('[data-out="t"]'), TOut = o('[data-out="T"]');
+    const rK = o('[data-r-k]'), rF = o('[data-r-f]'), rA = o('[data-r-a]'), rTen = o('[data-r-ten]'), why = o('[data-why]');
+
+    const X0 = 42, X1 = 328, Y0 = 26, Y1 = 196, TMAX = 60;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (f: number) => Y1 - (f / 100) * (Y1 - Y0);
+    const fmt = (x: number) => (Math.abs(x - Math.round(x)) < 0.05 ? String(Math.round(x)) : x.toFixed(1));
+    const LESSON: [number, number][] = [[0, 100], [5, 71], [10, 50], [15, 35], [20, 25]];
+
+    function txt(x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+      // labels placed to the right of a line flip to the left of it near the right edge
+      if (opts['data-flip'] !== undefined) {
+        delete opts['data-flip'];
+        if (x + s.length * 5.2 > 334) { x -= 8; opts['text-anchor'] = 'end'; }
+      }
+      const t = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, opts));
+      t.textContent = s;
+      plot.appendChild(t);
+      return t;
+    }
+
+    function render() {
+      const h = parseFloat(hIn.value);
+      const t = parseInt(tIn.value, 10);
+      const on = onIn.checked;
+      const T = parseInt(TIn.value, 10);
+      TIn.disabled = !on;
+      const k = Math.LN2 / h;
+      const F = (tt: number) => 100 * Math.exp(-k * (on ? Math.min(tt, T) : tt));
+      const Ffree = (tt: number) => 100 * Math.exp(-k * tt);
+      hOut.textContent = fmt(h);
+      tOut.textContent = String(t);
+      TOut.textContent = String(T);
+
+      plot.replaceChildren();
+      // axes
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const f of [100, 50, 25, 10]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(f), x2: X1, y2: py(f), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        txt(X0 - 4, py(f) + 3, f + '%', { 'text-anchor': 'end' });
+      }
+      for (let m = 0; m <= TMAX; m += 10) {
+        plot.appendChild(el('line', { x1: px(m), y1: Y1, x2: px(m), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(px(m), Y1 + 14, String(m), { 'text-anchor': 'middle' });
+      }
+      txt((X0 + X1) / 2, Y1 + 30, 'minutes after metaphase', { 'text-anchor': 'middle', 'font-size': 10 });
+      txt(X0 - 2, Y0 - 12, 'securin (% of metaphase value)', { 'font-size': 10 });
+
+      // uninterrupted curve as a ghost when the checkpoint is re-imposed
+      const path = (fn: (x: number) => number, to: number) => {
+        let d = '';
+        for (let m = 0; m <= to + 1e-9; m += 0.5) d += (m === 0 ? 'M' : 'L') + px(m).toFixed(1) + ' ' + py(fn(m)).toFixed(1) + ' ';
+        return d.trim();
+      };
+      if (on) plot.appendChild(el('path', { d: path(Ffree, TMAX), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('path', { d: path(F, TMAX), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // lesson's made-up data
+      for (const [m, f] of LESSON) plot.appendChild(el('circle', { cx: px(m), cy: py(f), r: 3, fill: '#fff', stroke: INK, 'stroke-width': 1.3 }));
+
+      // anaphase marker at about 20 min
+      plot.appendChild(el('line', { x1: px(20), y1: Y0, x2: px(20), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      txt(px(20) + 4, Y0 + 8, on ? '20 min: anaphase if never re-imposed' : 'anaphase ~20 min (assumed)', { fill: ORANGE, 'font-weight': 700, 'data-flip': 1 });
+
+      // time to 10 percent (only if reached)
+      const t10 = Math.log(10) / k;
+      const reached10 = !on || t10 <= T;
+      if (reached10 && t10 <= TMAX) {
+        plot.appendChild(el('line', { x1: px(t10), y1: py(10), x2: px(t10), y2: Y1, stroke: RED, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('circle', { cx: px(t10), cy: py(10), r: 3.5, fill: RED }));
+        txt(px(t10) + 4, py(10) - 14, '10% at ' + fmt(t10) + ' min', { fill: RED, 'font-weight': 700, 'data-flip': 1 });
+      }
+
+      // checkpoint re-imposed marker
+      if (on) {
+        plot.appendChild(el('line', { x1: px(T), y1: Y0 + 14, x2: px(T), y2: Y1, stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '1 3' }));
+        txt(px(T) + 4, Y0 + 24, 'checkpoint on, T = ' + T, { 'font-weight': 700, 'data-flip': 1 });
+      }
+
+      // time cursor
+      plot.appendChild(el('line', { x1: px(t), y1: Y0, x2: px(t), y2: Y1, stroke: ACCENT, 'stroke-width': 1 }));
+      plot.appendChild(el('circle', { cx: px(t), cy: py(F(t)), r: 5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1.5 }));
+
+      // readouts and arithmetic
+      const kTxt = k.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+      rK.textContent = 'ln 2 / ' + fmt(h) + ' = ' + (k).toPrecision(3) + ' per min';
+      const teff = on ? Math.min(t, T) : t;
+      rF.textContent = '100 × e^(−' + k.toPrecision(3) + ' × ' + teff + ') = ' + F(t).toFixed(0) + '%';
+      const fa = Ffree(20);
+      rA.textContent = '100 × e^(−' + k.toPrecision(3) + ' × 20) = ' + fa.toFixed(0) + '% left' + (on ? ' (without the checkpoint)' : '');
+      rTen.textContent = reached10
+        ? 'ln 10 / ' + k.toPrecision(3) + ' = 2.303 / ' + k.toPrecision(3) + ' = ' + t10.toFixed(0) + ' min'
+        : 'not reached: destruction stops at ' + F(T).toFixed(0) + '%';
+
+      // status sentence, one per reachable state
+      const atHalf = Math.abs(h - 10) < 1e-9;
+      let s: string;
+      if (!on) {
+        s = 'Securin halves every ' + fmt(h) + ' min (k = ' + k.toPrecision(3) + ' per min). ' + (t / h).toFixed(1) + ' half-lives after metaphase, ' + F(t).toFixed(0) + '% is left. ';
+        s += atHalf
+          ? 'With the lesson’s 10 min half-life, about 25% is left at 20 min and 10% is reached at 33 min, matching the worked problem.'
+          : 'The lesson’s numbers (25% at 20 min, 10% at 33 min) belong to a half-life of 10 min; yours gives ' + fa.toFixed(0) + '% and ' + t10.toFixed(0) + ' min.';
+      } else if (t < T) {
+        s = 'The checkpoint is not back on yet at ' + t + ' min (it is re-imposed at ' + T + ' min), so securin is still falling: ' + F(t).toFixed(0) + '% left. Move the cursor past T to see destruction stop.';
+      } else if (t === T) {
+        s = 'Checkpoint re-imposed at ' + T + ' min; destruction stops here, with ' + F(T).toFixed(0) + '% left.';
+      } else {
+        s = 'Re-imposed at ' + T + ' min: destruction stopped, so securin stays at ' + F(T).toFixed(0) + '% (its value at T) instead of falling to ' + Ffree(t).toFixed(0) + '%. ';
+        s += reached10 ? 'It had already passed 10% before T.' : 'It never reaches 10%.';
+        if (atHalf && T === 10) s += ' The lesson has near 50% for the next 20 min; here exactly F(T).';
+        s += ' In this sketch the stop is idealized as instant and complete (the lesson: “rapidly stops”, “near 50”).';
+      }
+      why.textContent = s;
+    }
+    [hIn, tIn, onIn, TIn].forEach((c) => c.addEventListener('input', render));
+    onIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .sdt { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sdt-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sdt-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sdt-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sdt-key { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; justify-content: center; margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sdt-sw { display: inline-block; vertical-align: middle; margin-right: 0.35rem; }
+  .sdt-sw-line { width: 18px; height: 3px; background: #0e7c86; }
+  .sdt-sw-ghost { width: 18px; height: 0; border-top: 2px dashed #b9b9c2; }
+  .sdt-sw-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #4b4b55; background: #fff; }
+  .sdt-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .sdt-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sdt-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .sdt-slabel input { accent-color: var(--ddp-color-accent); }
+  .sdt-check { display: flex; align-items: flex-start; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sdt-check input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .sdt-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .sdt-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .sdt-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .sdt-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .sdt-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .sdt-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .sdt-controls, .sdt-readout { grid-template-columns: 1fr; }
+  }
+</style>

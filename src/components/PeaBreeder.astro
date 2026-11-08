@@ -1,0 +1,281 @@
+---
+/**
+ * PeaBreeder — a Punnett-square breeder for pea flower color. Choose the genotype of each parent
+ * (PP, Pp or pp) and the number of offspring (4, 40 or 1,000). The filled Punnett square shows the
+ * predicted fractions; "Grow offspring" then draws one sex cell from each parent at random, 50 percent
+ * for each allele of a Pp parent, and a bar graph puts the real share next to the predicted share.
+ * One gene, complete dominance (P purple over p white). Original. Self-contained.
+ */
+---
+
+<figure class="pb card" data-peabreeder>
+  <figcaption class="pb-head">Breed purple and white pea plants<span class="pb-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="pb-controls">
+    <div class="pb-ctl">
+      <span class="pb-lab" id="pb-p1-lab">1. Parent 1’s genotype</span>
+      <div class="pb-seg" role="group" aria-labelledby="pb-p1-lab">
+        <button type="button" class="pb-btn" data-p1="PP" aria-pressed="false">PP</button>
+        <button type="button" class="pb-btn pb-on" data-p1="Pp" aria-pressed="true">Pp</button>
+        <button type="button" class="pb-btn" data-p1="pp" aria-pressed="false">pp</button>
+      </div>
+    </div>
+    <div class="pb-ctl">
+      <span class="pb-lab" id="pb-p2-lab">2. Parent 2’s genotype</span>
+      <div class="pb-seg" role="group" aria-labelledby="pb-p2-lab">
+        <button type="button" class="pb-btn" data-p2="PP" aria-pressed="false">PP</button>
+        <button type="button" class="pb-btn pb-on" data-p2="Pp" aria-pressed="true">Pp</button>
+        <button type="button" class="pb-btn" data-p2="pp" aria-pressed="false">pp</button>
+      </div>
+    </div>
+    <div class="pb-ctl">
+      <span class="pb-lab" id="pb-n-lab">3. Number of offspring</span>
+      <div class="pb-seg" role="group" aria-labelledby="pb-n-lab">
+        <button type="button" class="pb-btn pb-on" data-n="4" aria-pressed="true">4</button>
+        <button type="button" class="pb-btn" data-n="40" aria-pressed="false">40</button>
+        <button type="button" class="pb-btn" data-n="1000" aria-pressed="false">1,000</button>
+      </div>
+    </div>
+  </div>
+  <div class="pb-actions">
+    <button type="button" class="pb-btn pb-run" data-grow>Grow offspring</button>
+    <button type="button" class="pb-btn" data-reset>Reset</button>
+  </div>
+
+  <svg class="pb-svg" viewBox="0 0 340 404" role="img" aria-label="Two parent pea plants, the Punnett square for their cross, and a bar graph of the share of offspring with purple and white flowers, predicted and grown." data-plot></svg>
+
+  <dl class="pb-readout">
+    <div><dt>Purple flowers</dt><dd data-r-purple></dd></div>
+    <div><dt>White flowers</dt><dd data-r-white></dd></div>
+    <div><dt>White offspring in the last runs (up to 8)</dt><dd data-r-runs>none yet</dd></div>
+  </dl>
+  <p class="pb-why" data-why role="status">Pick two parents and a number of offspring. Then press Grow offspring.</p>
+  <p class="pb-assume">In this sketch: one gene with complete dominance (P purple, p white), no weather, soil or lost seeds, and every cross gives offspring. A Pp parent passes on P or p with a 50 percent chance, as the lesson says. A PP or pp parent makes only one kind of sex cell, so it is written twice to keep the 4-box square. The plants are labelled shapes, not to scale. Nothing here is measured; the computer makes the random draws.</p>
+  <p class="pb-foot">A Punnett square gives the chance for each offspring, not an exact count. Real counts land near its ratio but rarely match it exactly.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#c9c9d1', GREEN = '#2e7d32', PURPLE = '#7b3fa0', WHITEFILL = '#e4e4ea';
+  type Geno = 'PP' | 'Pp' | 'pp';
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const isPurple = (g: string) => g.indexOf('P') >= 0;
+  const sortGeno = (a: string, b: string) => (a === b ? a + b : a === 'P' ? a + b : b + a);
+  const fmtNum = (n: number) => n.toLocaleString('en-US');
+  const pct = (x: number) => String(Math.round(x * 10) / 10) + '%';
+
+  document.querySelectorAll<HTMLElement>('[data-peabreeder]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('PeaBreeder: missing ' + s);
+      return e;
+    };
+    const plot = q<SVGSVGElement>('[data-plot]');
+    const rPurple = q<HTMLElement>('[data-r-purple]');
+    const rWhite = q<HTMLElement>('[data-r-white]');
+    const rRuns = q<HTMLElement>('[data-r-runs]');
+    const why = q<HTMLElement>('[data-why]');
+    const growBtn = q<HTMLButtonElement>('[data-grow]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const p1Btns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-p1]'));
+    const p2Btns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-p2]'));
+    const nBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-n]'));
+
+    let p1: Geno = 'Pp', p2: Geno = 'Pp', n = 4;
+    let grownWhite: number | null = null; // white offspring in the latest run
+    let runs: number[] = [];
+
+    function press(btns: HTMLButtonElement[], attr: string, val: string) {
+      btns.forEach((b) => {
+        const on = b.getAttribute(attr) === val;
+        b.classList.toggle('pb-on', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+    const gametes = (g: Geno): string[] => (g === 'PP' ? ['P'] : g === 'pp' ? ['p'] : ['P', 'p']);
+    // boxes of the Punnett square: rows = parent 2 sex cells, columns = parent 1 sex cells
+    function square() {
+      const top = gametes(p1).length === 1 ? [gametes(p1)[0], gametes(p1)[0]] : gametes(p1);
+      const side = gametes(p2).length === 1 ? [gametes(p2)[0], gametes(p2)[0]] : gametes(p2);
+      // a homozygous parent still shows two boxes of the same sex cell, as in the lesson's 4-box square
+      return { top, side };
+    }
+    function whiteBoxes(): number {
+      const { top, side } = square();
+      let k = 0;
+      for (const s of side) for (const t of top) if (!isPurple(sortGeno(t, s))) k++;
+      return k;
+    }
+
+    function plant(cx: number, purple: boolean) {
+      plot.appendChild(el('line', { x1: cx, y1: 30, x2: cx, y2: 58, stroke: GREEN, 'stroke-width': 3 }));
+      plot.appendChild(el('ellipse', { cx: cx - 9, cy: 46, rx: 8, ry: 4, fill: '#7bbf7e', stroke: GREEN, 'stroke-width': 1 }));
+      plot.appendChild(el('ellipse', { cx: cx + 9, cy: 40, rx: 8, ry: 4, fill: '#7bbf7e', stroke: GREEN, 'stroke-width': 1 }));
+      plot.appendChild(el('circle', { cx, cy: 20, r: 12, fill: purple ? PURPLE : '#ffffff', stroke: purple ? '#4f2570' : INK, 'stroke-width': 1.5 }));
+      plot.appendChild(el('circle', { cx, cy: 20, r: 3, fill: '#f2c200' }));
+    }
+    function text(x: number, y: number, s: string, size = 12, anchor = 'middle', weight = 400, fill = INK) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, 'font-weight': weight, fill });
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+
+    function render() {
+      plot.replaceChildren();
+      // parents
+      plant(60, isPurple(p1));
+      plant(280, isPurple(p2));
+      text(60, 76, 'Parent 1: ' + p1, 12, 'middle', 700);
+      text(60, 90, isPurple(p1) ? 'purple flowers' : 'white flowers');
+      text(280, 76, 'Parent 2: ' + p2, 12, 'middle', 700);
+      text(280, 90, isPurple(p2) ? 'purple flowers' : 'white flowers');
+      text(170, 26, '×', 18, 'middle', 700);
+
+      // Punnett square
+      const { top, side } = square();
+      const X0 = 110, Y0 = 138, W = 60, H = 40;
+      text(170, 112, 'Parent 1 sex cells', 12);
+      text(4, 172, 'Parent 2', 12, 'start');
+      text(4, 186, 'sex cells', 12, 'start');
+      top.forEach((g, i) => text(X0 + W * i + W / 2, 130, g, 14, 'middle', 700));
+      side.forEach((g, j) => text(X0 - 8, Y0 + H * j + H / 2 + 5, g, 14, 'end', 700));
+      for (let j = 0; j < 2; j++) {
+        for (let i = 0; i < 2; i++) {
+          const geno = sortGeno(top[i], side[j]);
+          const purple = isPurple(geno);
+          const bx = X0 + W * i, by = Y0 + H * j;
+          plot.appendChild(el('rect', { x: bx, y: by, width: W, height: H, fill: '#fff', stroke: INK, 'stroke-width': 1.2 }));
+          plot.appendChild(el('circle', { cx: bx + 15, cy: by + H / 2, r: 8, fill: purple ? PURPLE : '#ffffff', stroke: purple ? '#4f2570' : INK, 'stroke-width': 1.3 }));
+          text(bx + 40, by + H / 2 + 5, geno, 14, 'middle', 700);
+        }
+      }
+      const wb = whiteBoxes(), pb = 4 - wb;
+      text(244, 152, 'Predicted:', 12, 'start', 700);
+      text(244, 170, pb + '/4 purple', 12, 'start');
+      text(244, 188, wb + '/4 white', 12, 'start');
+      text(244, 206, '(' + pb * 25 + '%, ' + wb * 25 + '%)', 12, 'start');
+
+      // bar graph
+      const BT = 258, BB = 358, BH = BB - BT;
+      text(50, 238, 'Share of offspring (%)', 12, 'start', 700);
+      plot.appendChild(el('line', { x1: 50, y1: BT - 4, x2: 50, y2: BB, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: 50, y1: BB, x2: 328, y2: BB, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 50, 100]) {
+        const y = BB - (v / 100) * BH;
+        if (v > 0) plot.appendChild(el('line', { x1: 50, y1: y, x2: 328, y2: y, stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        text(44, y + 4, String(v), 12, 'end');
+      }
+      const predW = wb / 4 * 100, predP = 100 - predW;
+      const haveGrown = grownWhite !== null;
+      const obsW = haveGrown ? (grownWhite as number) / n * 100 : 0;
+      const obsP = haveGrown ? 100 - obsW : 0;
+      const groups = [
+        { c: 133, pred: predP, obs: obsP, fill: PURPLE, name: 'purple flowers' },
+        { c: 255, pred: predW, obs: obsW, fill: WHITEFILL, name: 'white flowers' },
+      ];
+      for (const g of groups) {
+        const ph = (g.pred / 100) * BH;
+        plot.appendChild(el('rect', { x: g.c - 44, y: BB - ph, width: 40, height: ph, fill: 'none', stroke: INK, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+        text(g.c - 24, BB - ph - 5, pct(g.pred), 12);
+        if (haveGrown) {
+          const oh = (g.obs / 100) * BH;
+          plot.appendChild(el('rect', { x: g.c + 4, y: BB - oh, width: 40, height: oh, fill: g.fill, stroke: INK, 'stroke-width': 1.4 }));
+          text(g.c + 24, BB - oh - 5, pct(g.obs), 12, 'middle', 700);
+        }
+        text(g.c, 376, g.name, 12, 'middle', 700);
+      }
+      plot.appendChild(el('rect', { x: 50, y: 387, width: 12, height: 10, fill: 'none', stroke: INK, 'stroke-width': 1.4, 'stroke-dasharray': '3 2' }));
+      text(66, 396, 'predicted', 12, 'start');
+      plot.appendChild(el('rect', { x: 150, y: 387, width: 12, height: 10, fill: '#b8a0cc', stroke: INK, 'stroke-width': 1.2 }));
+      text(166, 396, 'grown (random draws; purple or white bar)', 12, 'start');
+
+      // readouts
+      const expW = (wb / 4) * n, expP = n - expW;
+      const fmtRow = (exp: number, obs: number | null) =>
+        'predicted ' + fmtNum(exp) + ' of ' + fmtNum(n) + (obs === null ? '' : '; grown ' + fmtNum(obs));
+      rPurple.textContent = fmtRow(expP, haveGrown ? n - (grownWhite as number) : null);
+      rWhite.textContent = fmtRow(expW, haveGrown ? (grownWhite as number) : null);
+      rRuns.textContent = runs.length ? runs.join(', ') + ' (of ' + fmtNum(n) + ' each)' : 'none yet';
+
+      // status
+      if (!haveGrown) {
+        if (wb === 0) {
+          why.textContent = 'A PP parent only passes on P, so every offspring gets at least one P. None are predicted white.';
+        } else if (wb === 4) {
+          why.textContent = 'Both parents can only pass on p, so every offspring is pp. All are predicted white.';
+        } else {
+          why.textContent = 'The square predicts ' + pb + '/4 purple and ' + wb + '/4 white. Press Grow offspring to test it.';
+        }
+        return;
+      }
+      const w = grownWhite as number, pu = n - w;
+      let tail: string;
+      if (wb === 0 || wb === 4) tail = 'Every draw gives the same result for these parents.';
+      else if (n === 4) tail = 'Small groups can vary from the prediction. Grow again.';
+      else if (n === 40) tail = 'Bigger groups tend to land closer to the prediction, but this is still a small group. Grow again.';
+      else tail = 'Large groups usually land close to the prediction.';
+      why.textContent = 'In this sketch, ' + fmtNum(w) + ' of ' + fmtNum(n) + ' offspring have white flowers and ' + fmtNum(pu) + ' have purple. ' + tail;
+    }
+
+    function clearRuns() { grownWhite = null; runs = []; }
+    function grow() {
+      const a = gametes(p1), b = gametes(p2);
+      let white = 0;
+      for (let k = 0; k < n; k++) {
+        const x = a[Math.floor(Math.random() * a.length)];
+        const y = b[Math.floor(Math.random() * b.length)];
+        if (x === 'p' && y === 'p') white++;
+      }
+      grownWhite = white;
+      runs.push(white);
+      if (runs.length > 8) runs = runs.slice(runs.length - 8);
+      render();
+    }
+
+    p1Btns.forEach((b) => b.addEventListener('click', () => { p1 = b.dataset.p1 as Geno; press(p1Btns, 'data-p1', p1); clearRuns(); render(); }));
+    p2Btns.forEach((b) => b.addEventListener('click', () => { p2 = b.dataset.p2 as Geno; press(p2Btns, 'data-p2', p2); clearRuns(); render(); }));
+    nBtns.forEach((b) => b.addEventListener('click', () => {
+      n = parseInt(b.dataset.n || '4', 10);
+      press(nBtns, 'data-n', String(n));
+      grownWhite = null; // runs of a different size are not mixed in one list
+      runs = [];
+      render();
+    }));
+    growBtn.addEventListener('click', grow);
+    resetBtn.addEventListener('click', () => {
+      p1 = 'Pp'; p2 = 'Pp'; n = 4; clearRuns();
+      press(p1Btns, 'data-p1', p1); press(p2Btns, 'data-p2', p2); press(nBtns, 'data-n', '4');
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .pb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pb-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: 0 0 var(--ddp-space-2); }
+  .pb-ctl { display: flex; flex-direction: column; gap: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .pb-lab { font-weight: 600; }
+  .pb-seg { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .pb-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-2) 0 var(--ddp-space-3); }
+  .pb-btn { border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.4rem 0.7rem; min-height: 44px; min-width: 44px; cursor: pointer; }
+  .pb-btn.pb-on { background: color-mix(in srgb, var(--ddp-color-accent) 14%, transparent); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 700; }
+  .pb-run { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .pb-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .pb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pb-readout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pb-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .pb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pb-readout dd { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .pb-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 3em; }
+  .pb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .pb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 620px) { .pb-controls, .pb-readout { grid-template-columns: 1fr; } }
+</style>

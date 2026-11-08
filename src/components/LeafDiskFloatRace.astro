@@ -1,0 +1,309 @@
+---
+/**
+ * LeafDiskFloatRace — a virtual leaf-disk lab for the high school Biology lesson
+ * "Capturing Sunlight". Three controls (lamp distance, baking soda, water temperature)
+ * set the photosynthesis rate in a sketch: the rate follows whichever of light, carbon
+ * dioxide and temperature is lowest (the limiting factor). Ten disks float at slightly
+ * different times; the time for 5 of 10 to float is shown beside the rule's expected time.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ldf card" data-ldf>
+  <figcaption class="ldf-head">Leaf-disk float race<span class="ldf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ldf-svg" viewBox="0 0 320 170" role="img" aria-label="A lamp shines on a cup of water holding ten leaf disks. The disks rise to the top as oxygen collects inside them." data-scene></svg>
+  <p class="ldf-key">Each disk has a white centre. Oxygen gas collects there until the disk floats.</p>
+
+  <div class="ldf-controls">
+    <label class="ldf-slabel"><span>Lamp distance <em data-out="d">20 cm</em></span>
+      <input type="range" data-in="d" min="10" max="40" step="5" value="20" aria-label="Lamp distance in centimetres" />
+    </label>
+    <label class="ldf-slabel"><span>Baking soda (adds dissolved carbon dioxide) <em data-out="c">some</em></span>
+      <input type="range" data-in="c" min="0" max="4" step="1" value="2" aria-label="Amount of baking soda" />
+    </label>
+    <label class="ldf-slabel"><span>Water temperature <em data-out="t">warm</em></span>
+      <input type="range" data-in="t" min="0" max="4" step="1" value="2" aria-label="Water temperature" />
+    </label>
+  </div>
+
+  <div class="ldf-buttons">
+    <button type="button" class="ldf-btn ldf-primary" data-run>Start the race</button>
+    <button type="button" class="ldf-btn" data-resample>Resample</button>
+    <button type="button" class="ldf-btn" data-reset>Reset</button>
+  </div>
+
+  <svg class="ldf-svg" viewBox="0 0 340 236" role="img" aria-label="Graph of time for 5 of 10 leaf disks to float, in relative units, against the control you moved last" data-plot></svg>
+  <p class="ldf-legend"><span class="ldf-dot ldf-dot-exp"></span> expected from the rule &nbsp; <span class="ldf-dot ldf-dot-obs"></span> this run (5th disk to float) &nbsp; <span class="ldf-dot ldf-dot-now"></span> your setting</p>
+
+  <dl class="ldf-readout">
+    <div><dt>Disks floating</dt><dd data-r-float>0 of 10</dd></div>
+    <div><dt>Clock (relative units)</dt><dd data-r-clock>0.0</dd></div>
+    <div><dt>Expected: 5 of 10 float at</dt><dd data-r-exp>–</dd></div>
+    <div><dt>This run: 5th disk floats at</dt><dd data-r-obs>press Start</dd></div>
+  </dl>
+
+  <p class="ldf-why" data-why role="status">Press “Start the race” to drop the disks under the lamp.</p>
+
+  <p class="ldf-assume"><strong>In this sketch</strong>, the rate follows whichever of light, carbon dioxide and temperature is lowest. The rate level for each setting is made up (relative units), with light dimmer at greater distance and temperature best at ‘warm’. Times are relative, not minutes, and the graph is a sketch of the logic, not a measurement. Each disk floats at a randomly varied time in this sketch; Resample redraws them.</p>
+  <p class="ldf-foot">Rule to keep: the factor in shortest supply sets the rate, so the rate rises with a factor and then levels off when another factor runs short.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', WATER = '#dcecf5', LEAF = '#4f8a3c';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const C_NAMES = ['none', 'a little', 'some', 'plenty', 'a lot'];
+  const T_NAMES = ['cold', 'cool', 'warm', 'hot', 'very hot'];
+  // Relative rates in this sketch (not measurements).
+  const RC = [0.15, 0.45, 0.9, 1.6, 2.0];   // carbon dioxide ceiling by baking soda level
+  const RT = [0.25, 0.7, 1.6, 1.0, 0.2];    // temperature: warmth helps, too much heat slows
+  const R_LIGHT: Record<number, number> = { 10: 1.5, 15: 0.7, 20: 0.4, 25: 0.25, 30: 0.17, 35: 0.12, 40: 0.09 }; // made up: dimmer when farther
+const rLight = (d: number) => R_LIGHT[d] ?? 0.09;
+  const TIME_K = 8;                          // time = TIME_K / rate (relative units)
+  const D_VALUES = [40, 35, 30, 25, 20, 15, 10]; // dim to bright, left to right on the graph
+
+  type Sim = { d: number; c: number; t: number };
+  function calc(s: Sim) {
+    const rates = { d: rLight(s.d), c: RC[s.c], t: RT[s.t] };
+    const rate = Math.min(rates.d, rates.c, rates.t);
+    const limits = [(Object.keys(rates) as ('d' | 'c' | 't')[]).reduce((a, b) => (rates[b] < rates[a] ? b : a))];
+    return { rate, T: TIME_K / rate, limits };
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-ldf]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const scene = q<SVGSVGElement>('[data-scene]');
+    const plot = q<SVGSVGElement>('[data-plot]');
+    const dIn = q<HTMLInputElement>('[data-in="d"]');
+    const cIn = q<HTMLInputElement>('[data-in="c"]');
+    const tIn = q<HTMLInputElement>('[data-in="t"]');
+    const dOut = q<HTMLElement>('[data-out="d"]');
+    const cOut = q<HTMLElement>('[data-out="c"]');
+    const tOut = q<HTMLElement>('[data-out="t"]');
+    const runBtn = q<HTMLButtonElement>('[data-run]');
+    const resBtn = q<HTMLButtonElement>('[data-resample]');
+    const rstBtn = q<HTMLButtonElement>('[data-reset]');
+    const rFloat = q<HTMLElement>('[data-r-float]');
+    const rClock = q<HTMLElement>('[data-r-clock]');
+    const rExp = q<HTMLElement>('[data-r-exp]');
+    const rObs = q<HTMLElement>('[data-r-obs]');
+    const why = q<HTMLElement>('[data-why]');
+    if (!scene || !plot || !dIn || !cIn || !tIn || !dOut || !cOut || !tOut || !runBtn || !resBtn || !rstBtn || !rFloat || !rClock || !rExp || !rObs || !why) return;
+
+    const N = 10;
+    let mult: number[] = [];
+    let focus: 'd' | 'c' | 't' = 'd';
+    let tNow = 0;          // race clock, relative units
+    let done = false;      // race finished for the current settings and sample
+    let raf = 0;
+
+    const draw = () => { mult = Array.from({ length: N }, () => 0.75 + 0.5 * Math.random()); };
+    draw();
+
+    const state = (): Sim => ({ d: parseInt(dIn.value, 10), c: parseInt(cIn.value, 10), t: parseInt(tIn.value, 10) });
+    const floatTimes = (T: number) => mult.map((m) => T * m);
+    const fifth = (T: number) => floatTimes(T).slice().sort((a, b) => a - b)[4];
+
+    // ---------- scene ----------
+    const CUP_L = 190, CUP_R = 300, CUP_T = 62, CUP_B = 146, SURF = 72;
+    const diskX = (i: number) => 203 + (i % 5) * 21;
+    const diskRest = (i: number) => (i < 5 ? 116 : 136);
+    const diskTop = (i: number) => (i < 5 ? 84 : 102);
+    function drawScene(s: Sim, T: number) {
+      scene!.replaceChildren();
+      const gapPx = s.d * 3.5;
+      const lampR = CUP_L - gapPx, lampL = lampR - 40;
+      // cup + water
+      scene!.appendChild(el('rect', { x: CUP_L, y: SURF, width: CUP_R - CUP_L, height: CUP_B - SURF, fill: WATER }));
+      scene!.appendChild(el('path', { d: `M${CUP_L} ${CUP_T} V${CUP_B} H${CUP_R} V${CUP_T}`, fill: 'none', stroke: INK, 'stroke-width': 2 }));
+      const cupLab = el('text', { x: (CUP_L + CUP_R) / 2, y: 40, 'text-anchor': 'middle', 'font-size': 12, fill: INK });
+      cupLab.textContent = 'baking soda: ' + C_NAMES[s.c];
+      scene!.appendChild(cupLab);
+      const cupLab2 = el('text', { x: (CUP_L + CUP_R) / 2, y: 56, 'text-anchor': 'middle', 'font-size': 12, fill: INK });
+      cupLab2.textContent = 'water: ' + T_NAMES[s.t];
+      scene!.appendChild(cupLab2);
+      // lamp, rays, distance
+      scene!.appendChild(el('rect', { x: lampL, y: 78, width: 40, height: 30, rx: 4, fill: '#fff6dd', stroke: ORANGE, 'stroke-width': 2 }));
+      const lampLab = el('text', { x: lampL + 20, y: 70, 'text-anchor': 'middle', 'font-size': 12, fill: INK });
+      lampLab.textContent = 'lamp';
+      scene!.appendChild(lampLab);
+      for (const y of [86, 93, 100]) {
+        scene!.appendChild(el('line', { x1: lampR + 4, y1: y, x2: Math.max(lampR + 10, CUP_L - 4), y2: y, stroke: ORANGE, 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
+      }
+      scene!.appendChild(el('line', { x1: lampR, y1: 126, x2: CUP_L, y2: 126, stroke: INK, 'stroke-width': 1.2 }));
+      scene!.appendChild(el('line', { x1: lampR, y1: 121, x2: lampR, y2: 131, stroke: INK, 'stroke-width': 1.2 }));
+      scene!.appendChild(el('line', { x1: CUP_L, y1: 121, x2: CUP_L, y2: 131, stroke: INK, 'stroke-width': 1.2 }));
+      const dLab = el('text', { x: CUP_L - 3, y: 146, 'text-anchor': 'end', 'font-size': 12, 'font-weight': 700, fill: ORANGE });
+      dLab.textContent = s.d + ' cm';
+      scene!.appendChild(dLab);
+      const cupFoot = el('text', { x: (CUP_L + CUP_R) / 2, y: 164, 'text-anchor': 'middle', 'font-size': 12, fill: INK });
+      cupFoot.textContent = '10 leaf disks';
+      scene!.appendChild(cupFoot);
+      // disks
+      const times = floatTimes(T);
+      const span = 0.08 * Math.max(...times);
+      let n = 0;
+      for (let i = 0; i < N; i++) {
+        const ti = times[i];
+        const fl = done ? 1 : (tNow >= ti ? Math.min(1, (tNow - ti) / span) : 0);
+        if (fl >= 1) n++;
+        const y = diskRest(i) + (diskTop(i) - diskRest(i)) * fl;
+        const o2 = Math.max(0, Math.min(1, tNow / ti));
+        scene!.appendChild(el('circle', { cx: diskX(i), cy: y, r: 7, fill: LEAF, stroke: '#2f5a24', 'stroke-width': 1 }));
+        if (o2 > 0.05) scene!.appendChild(el('circle', { cx: diskX(i), cy: y, r: (4.5 * o2).toFixed(2), fill: '#fff' }));
+      }
+      return n;
+    }
+
+    // ---------- plot ----------
+    const PX0 = 44, PX1 = 324, PY0 = 36, PY1 = 190, YMAX = 120;
+    const py = (v: number) => PY1 - (Math.min(v, YMAX) / YMAX) * (PY1 - PY0);
+    function drawPlot(s: Sim, obsT: number | null) {
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 40, 80, 120]) {
+        if (v > 0) plot!.appendChild(el('line', { x1: PX0, y1: py(v), x2: PX1, y2: py(v), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        const t = el('text', { x: PX0 - 5, y: py(v) + 4, 'text-anchor': 'end', 'font-size': 12, fill: INK });
+        t.textContent = String(v);
+        plot!.appendChild(t);
+      }
+      const yl = el('text', { x: PX0 - 30, y: 16, 'text-anchor': 'start', 'font-size': 12, fill: INK });
+      yl.textContent = 'time for 5 of 10 disks to float (relative units)';
+      plot!.appendChild(yl);
+      // sweep the focus factor, other two held at the current setting
+      let labels: string[]; let cur: number; let vary: (i: number) => Sim;
+      if (focus === 'd') { labels = D_VALUES.map((v) => v + ' cm'); cur = D_VALUES.indexOf(s.d); vary = (i) => ({ ...s, d: D_VALUES[i] }); }
+      else if (focus === 'c') { labels = C_NAMES; cur = s.c; vary = (i) => ({ ...s, c: i }); }
+      else { labels = T_NAMES; cur = s.t; vary = (i) => ({ ...s, t: i }); }
+      const m = labels.length;
+      const px = (i: number) => PX0 + 24 + (i / (m - 1)) * (PX1 - PX0 - 48);
+      let dpath = '';
+      const ts: number[] = [];
+      for (let i = 0; i < m; i++) {
+        const T = calc(vary(i)).T; ts.push(T);
+        dpath += (i === 0 ? 'M' : 'L') + px(i).toFixed(1) + ' ' + py(T).toFixed(1) + ' ';
+      }
+      plot!.appendChild(el('path', { d: dpath.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.4 }));
+      for (let i = 0; i < m; i++) {
+        plot!.appendChild(el('circle', { cx: px(i), cy: py(ts[i]), r: 3.5, fill: ACCENT }));
+        const t = el('text', { x: px(i), y: PY1 + 17, 'text-anchor': 'middle', 'font-size': 12, fill: INK });
+        t.textContent = labels[i];
+        plot!.appendChild(t);
+      }
+      const xl = el('text', { x: (PX0 + PX1) / 2, y: 228, 'text-anchor': 'middle', 'font-size': 12, fill: INK });
+      xl.textContent = focus === 'd' ? 'lamp distance (dim → bright)' : focus === 'c' ? 'baking soda (less → more)' : 'water temperature';
+      plot!.appendChild(xl);
+      // your setting + observed
+      if (cur >= 0) {
+        plot!.appendChild(el('circle', { cx: px(cur), cy: py(ts[cur]), r: 7, fill: 'none', stroke: ORANGE, 'stroke-width': 2.4 }));
+        if (obsT !== null) {
+          const oy = el('rect', { x: px(cur) - 4, y: py(obsT) - 4, width: 8, height: 8, fill: '#fff', stroke: INK, 'stroke-width': 2 });
+          plot!.appendChild(oy);
+        }
+      }
+    }
+
+    // ---------- text ----------
+    function statusText(s: Sim, r: ReturnType<typeof calc>) {
+      let msg: string;
+      if (r.limits[0] === 'd') {
+        msg = 'In this sketch, light is the limit. More light would make the disks float sooner.';
+      } else if (r.limits[0] === 'c') {
+        msg = 'In this sketch, carbon dioxide is the limit. More light would not make the disks float sooner.';
+      } else {
+        msg = s.t >= 3
+          ? 'In this sketch, temperature is the limit. Too much heat slows the reactions as enzymes lose their shape.'
+          : 'In this sketch, temperature is the limit. Warmth speeds the reactions up, up to a point, so warmer water would help in this sketch.';
+      }
+      return msg;
+    }
+
+    function render() {
+      const s = state();
+      const r = calc(s);
+      dOut!.textContent = s.d + ' cm';
+      cOut!.textContent = C_NAMES[s.c];
+      tOut!.textContent = T_NAMES[s.t];
+      cIn!.setAttribute('aria-valuetext', C_NAMES[s.c]);
+      tIn!.setAttribute('aria-valuetext', T_NAMES[s.t]);
+      dIn!.setAttribute('aria-valuetext', s.d + ' centimetres');
+      const n = drawScene(s, r.T);
+      const obs = fifth(r.T);
+      drawPlot(s, done ? obs : null);
+      rFloat!.textContent = `${n} of ${N}`;
+      rClock!.textContent = tNow.toFixed(1);
+      rExp!.textContent = r.T.toFixed(1);
+      rObs!.textContent = done ? obs.toFixed(1) : 'press Start';
+      let msg = statusText(s, r);
+      if (done) msg += ` The 5th disk floated at ${obs.toFixed(1)}; the rule expects ${r.T.toFixed(1)} (relative units).`;
+      why!.textContent = msg;
+    }
+
+    // ---------- race ----------
+    function stop() { if (raf) { clearInterval(raf); raf = 0; } }
+    function clear() { stop(); tNow = 0; done = false; runBtn!.textContent = 'Start the race'; }
+    function run() {
+      stop(); tNow = 0; done = false;
+      const r = calc(state());
+      const tEnd = Math.max(...floatTimes(r.T)) * 1.1;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        tNow = tEnd; done = true; runBtn!.textContent = 'Run again'; render(); return;
+      }
+      const t0 = performance.now();
+      raf = window.setInterval(() => {
+        const frac = Math.min(1, (performance.now() - t0) / 4500);
+        tNow = frac * tEnd;
+        if (frac >= 1) { stop(); done = true; runBtn!.textContent = 'Run again'; }
+        render();
+      }, 50);
+    }
+
+    const onSlide = (which: 'd' | 'c' | 't') => () => { focus = which; clear(); render(); };
+    dIn.addEventListener('input', onSlide('d'));
+    cIn.addEventListener('input', onSlide('c'));
+    tIn.addEventListener('input', onSlide('t'));
+    runBtn.addEventListener('click', run);
+    resBtn.addEventListener('click', () => { draw(); run(); });
+    rstBtn.addEventListener('click', () => {
+      dIn.value = '20'; cIn.value = '2'; tIn.value = '2'; focus = 'd'; draw(); clear(); render();
+      why.textContent = 'Back to the start. ' + why.textContent;
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .ldf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ldf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ldf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ldf-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ldf-key { margin: 0.3rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); text-align: center; }
+  .ldf-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ldf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ldf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); margin-left: 0.3rem; }
+  .ldf-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .ldf-buttons { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0 var(--ddp-space-3); }
+  .ldf-btn { min-height: 44px; min-width: 44px; padding: 0 1rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .ldf-btn:hover { border-color: var(--ddp-color-accent); }
+  .ldf-btn:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ldf-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ldf-legend { margin: 0.4rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); text-align: center; }
+  .ldf-dot { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; box-sizing: border-box; }
+  .ldf-dot-exp { background: #0e7c86; border-radius: 50%; }
+  .ldf-dot-obs { background: #fff; border: 2px solid #4b4b55; }
+  .ldf-dot-now { border: 2px solid #e57200; border-radius: 50%; }
+  .ldf-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ldf-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ldf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ldf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .ldf-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .ldf-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ldf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .ldf-readout { grid-template-columns: 1fr; } }
+</style>

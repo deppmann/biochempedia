@@ -4,7 +4,9 @@
  * step-by-step metabolic-pathway map that lives INLINE in the prose. Reveal each
  * step to see substrate → product, the enzyme, a one-line mechanism note, optional
  * regulation/clinical notes; a running ledger tallies any of ATP / NADH / FADH₂ /
- * NADPH / GTP / CO₂ as you go.
+ * NADPH / GTP / CO₂ / acetyl-CoA as you go. An optional `spiral` prop adds a
+ * "Run another turn" button that re-runs the listed cycle steps and shortens the
+ * chain two carbons per turn (β-oxidation); lessons that omit it are unchanged.
  *
  * Unlike PathwayMap (which hard-codes glycolysis), this one takes its data via
  * props, so every metabolic-pathway lesson (gluconeogenesis, the citric acid cycle,
@@ -23,24 +25,38 @@ export interface PathwayStep {
   nadph?: number;
   gtp?: number;
   co2?: number;
+  acoa?: number;   // acetyl-CoA released
   regulated?: boolean;
+  reversible?: boolean;  // optional: draw the reaction with ⇌ instead of → (default one-way arrow)
   doubled?: boolean;  // counts ×2 (e.g. two trioses, two turns of the cycle per glucose)
   note: string;
   regNote?: string;
   clinical?: string;
+  tracks?: { label: string; text: string }[];  // optional: side-by-side tracks shown when the step opens (e.g. carbons / electrons)
 }
 interface Props {
   steps: PathwayStep[];
   title: string;                // e.g. "Gluconeogenesis · 11 steps"
   chip?: string;                // small hint, default "tap a step to reveal it"
-  ledger?: Array<'atp' | 'nadh' | 'fadh2' | 'nadph' | 'gtp' | 'co2'>;
+  ledger?: Array<'atp' | 'nadh' | 'fadh2' | 'nadph' | 'gtp' | 'co2' | 'acoa'>;
   doubledNote?: string;         // shown next to ×2 badges, e.g. "×2 per glucose"
   cyclic?: boolean;             // label the reveal-all button "turn the cycle"
+  scale?: { factor: number; label: string };  // optional: once every step is open, show the totals × factor (e.g. 7 turns per palmitate)
+  revealLabel?: string;         // optional: override the reveal-all button text
+  pairsTarget?: number;         // optional: show "Electron pairs n / target" (NADH + FADH₂ + NADPH) in the tally
+  completeNote?: string;        // optional: a closing line shown once every step has been opened
+  labels?: Partial<Record<'atp' | 'nadh' | 'fadh2' | 'nadph' | 'gtp' | 'co2' | 'acoa', string>>;  // optional: rename a counter in badges and tally (e.g. atp: 'high-energy bonds')
+  // Optional repeat-the-cycle mode: `steps` are the step numbers of one turn,
+  // `carbons` the starting (even) chain length. Turns = carbons/2 − 1; the last
+  // turn splits C4 into two acetyl-CoA.
+  spiral?: { steps: number[]; carbons: number; label?: string };
 }
-const { steps, title, chip = 'tap a step to reveal it', ledger, doubledNote = '×2', cyclic = false } = Astro.props;
+const { steps, title, chip = 'tap a step to reveal it', ledger, doubledNote = '×2', cyclic = false, scale, revealLabel, pairsTarget, completeNote, spiral } = Astro.props;
+const spiralTurns = spiral ? spiral.carbons / 2 - 1 : 0;
 
-const COUNTERS: Record<string, string> = { atp: 'ATP', nadh: 'NADH', fadh2: 'FADH₂', nadph: 'NADPH', gtp: 'GTP', co2: 'CO₂' };
-const ALL_KEYS = ['atp', 'nadh', 'fadh2', 'nadph', 'gtp', 'co2'] as const;
+const COUNTERS: Record<string, string> = { atp: 'ATP', nadh: 'NADH', fadh2: 'FADH₂', nadph: 'NADPH', gtp: 'GTP', co2: 'CO₂', acoa: 'acetyl-CoA' };
+const LABELS: Record<string, string> = { ...COUNTERS, ...(Astro.props.labels ?? {}) };
+const ALL_KEYS = ['atp', 'nadh', 'fadh2', 'nadph', 'gtp', 'co2', 'acoa'] as const;
 type Key = (typeof ALL_KEYS)[number];
 const val = (s: PathwayStep, k: Key) => (s[k] ?? 0);
 const keys: Key[] = (ledger ?? ALL_KEYS.filter((k) => steps.some((s) => val(s, k) !== 0))) as Key[];
@@ -57,18 +73,19 @@ const badge = (s: PathwayStep) => {
     const v = val(s, k);
     if (v === 0) continue;
     const sign = v > 0 ? '+' : '−';
-    parts.push(`${sign}${Math.abs(v)} ${COUNTERS[k]}`);
+    parts.push(`${sign}${Math.abs(v)} ${LABELS[k]}`);
   }
   return parts.join(' · ');
 };
 const dataAttrs = (s: PathwayStep) => {
   const o: Record<string, string> = { 'data-step': String(s.n), 'data-doubled': s.doubled ? '1' : '0' };
+  if (spiral && spiral.steps.includes(s.n)) o['data-cycle'] = '1';
   for (const k of ALL_KEYS) o[`data-c-${k}`] = String(val(s, k));
   return o;
 };
 ---
 
-<figure class="pathway-x card" data-pathwayx>
+<figure class="pathway-x card" data-pathwayx data-carbons={spiral ? String(spiral.carbons) : undefined}>
   <figcaption class="pwx-head">
     {title} <span class="pwx-chip">{chip}</span>
   </figcaption>
@@ -76,10 +93,18 @@ const dataAttrs = (s: PathwayStep) => {
   <div class="pwx-tally" data-tally role="status" aria-live="polite">
     <span class="pwx-tally-label">Running total</span>
     {keys.map((k) => (
-      <span><em data-t={k}>0</em> {COUNTERS[k]}</span>
+      <span><em data-t={k}>0</em> {LABELS[k]}</span>
     ))}
     {hasNetATP && <span class="pwx-net">Net <em data-t="net">0</em> ATP</span>}
+    {pairsTarget !== undefined && <span class="pwx-pairs">Electron pairs <em data-t="pairs">0</em> / {pairsTarget}</span>}
   </div>
+  {scale && (
+    <p class="pwx-scale" data-scale data-factor={String(scale.factor)} hidden>
+      {scale.label}:{keys.map((k, i) => (
+        <>{i > 0 ? ',' : ''} <em data-s={k}>0</em> {LABELS[k]}</>
+      ))}
+    </p>
+  )}
   {(hasRegulated || hasSpent) && (
     <p class="pwx-key">
       {hasRegulated && <span><span aria-hidden="true">🔒</span> regulated step</span>}
@@ -94,11 +119,16 @@ const dataAttrs = (s: PathwayStep) => {
           <span class="pwx-num">{s.n}</span>
           <span class="pwx-main">
             <span class="pwx-enzyme">{s.enzyme}{s.regulated && <span class="pwx-lock" title="Regulated / committed step" aria-label="regulated step">🔒</span>}</span>
-            <span class="pwx-rxn">{s.sub} → {s.prod}</span>
+            <span class="pwx-rxn">{s.sub} {s.reversible ? '⇌' : '→'} {s.prod}</span>
           </span>
           {badge(s) && <span class="pwx-badge">{badge(s)}{s.doubled && <i> {doubledNote}</i>}</span>}
         </button>
         <div class="pwx-body" hidden>
+          {s.tracks && s.tracks.length > 0 && (
+            <dl class="pwx-tracks">
+              {s.tracks.map((t) => (<><dt>{t.label}</dt><dd>{t.text}</dd></>))}
+            </dl>
+          )}
           <p>{s.note}</p>
           {s.regNote && <p class="pwx-reg"><strong>Regulation.</strong> {s.regNote}</p>}
           {s.clinical && <p class="pwx-clin"><strong>Clinical.</strong> {s.clinical}</p>}
@@ -106,33 +136,63 @@ const dataAttrs = (s: PathwayStep) => {
       </div>
     ))}
   </div>
+  {completeNote && <p class="pwx-done" data-done hidden>{completeNote}</p>}
 
   <div class="pwx-controls">
-    <button type="button" class="pwx-btn" data-revealall>{cyclic ? 'Turn the whole cycle' : `Reveal all ${steps.length} steps`}</button>
+    <button type="button" class="pwx-btn" data-revealall>{revealLabel ?? (cyclic ? 'Turn the whole cycle' : `Reveal all ${steps.length} steps`)}</button>
+    {spiral && <button type="button" class="pwx-btn" data-turn>Run another turn</button>}
     <button type="button" class="pwx-btn pwx-btn-quiet" data-reset>Reset</button>
   </div>
+  {spiral && (
+    <p class="pwx-spiral" role="status" aria-live="polite">
+      Chain{spiral.label && <> ({spiral.label})</>}: <b data-chain>C{spiral.carbons}</b> · turn <b data-turns>0</b> of {spiralTurns}<span data-spiral-note></span>
+    </p>
+  )}
 </figure>
 
 <script>
-  const KEYS = ['atp', 'nadh', 'fadh2', 'nadph', 'gtp', 'co2'] as const;
+  const KEYS = ['atp', 'nadh', 'fadh2', 'nadph', 'gtp', 'co2', 'acoa'] as const;
   // Typographic minus (U+2212), matching the step badges; ATP keeps an explicit +.
   const fmt = (v: number, plus = false) => (v < 0 ? '−' + Math.abs(v) : (plus && v > 0 ? '+' : '') + v);
   document.querySelectorAll<HTMLElement>('[data-pathwayx]').forEach((root) => {
     const tally = root.querySelector<HTMLElement>('[data-tally]')!;
     const steps = Array.from(root.querySelectorAll<HTMLElement>('.pwx-step'));
     const visited = new Set<string>();
+    // Optional spiral mode: re-run the cycle steps, shortening the chain each turn.
+    const carbons = parseInt(root.dataset.carbons || '0', 10);
+    const finalTurn = carbons > 0 ? carbons / 2 - 1 : 0;
+    const cycleSteps = steps.filter((s) => s.hasAttribute('data-cycle'));
+    const turnBtn = root.querySelector<HTMLButtonElement>('[data-turn]');
+    let turns = 0;
+    // Completed turns: opening every cycle step once counts as the first turn.
+    const doneTurns = () => (turns > 0 ? turns : (cycleSteps.length > 0 && cycleSteps.every((s) => visited.has(s.getAttribute('data-step')!)) ? 1 : 0));
 
     function recompute() {
       const totals: Record<string, number> = {};
       KEYS.forEach((k) => (totals[k] = 0));
+      const t = doneTurns();
       steps.forEach((step) => {
         const n = step.getAttribute('data-step')!;
         if (!visited.has(n)) return;
-        const mult = step.getAttribute('data-doubled') === '1' ? 2 : 1;
+        let mult = step.getAttribute('data-doubled') === '1' ? 2 : 1;
+        if (step.hasAttribute('data-cycle')) mult *= Math.max(t, 1);
         KEYS.forEach((k) => {
           totals[k] += parseInt(step.getAttribute(`data-c-${k}`) || '0', 10) * mult;
         });
       });
+      if (finalTurn > 0) {
+        const isLast = t >= finalTurn;
+        if (isLast) totals.acoa += 1; // the last turn splits C4 into two acetyl-CoA
+        const chainEl = root.querySelector<HTMLElement>('[data-chain]');
+        const turnsEl = root.querySelector<HTMLElement>('[data-turns]');
+        const noteEl = root.querySelector<HTMLElement>('[data-spiral-note]');
+        if (chainEl) chainEl.textContent = isLast ? 'all cut' : `C${carbons - 2 * t}`;
+        if (turnsEl) turnsEl.textContent = String(t);
+        if (noteEl) noteEl.textContent = isLast
+          ? ` · the last turn splits C4 into two acetyl-CoA · ${finalTurn} turns · ${totals.acoa} acetyl-CoA · ${totals.fadh2} FADH₂ · ${totals.nadh} NADH`
+          : '';
+        if (turnBtn) turnBtn.disabled = isLast;
+      }
       KEYS.forEach((k) => {
         const el = tally.querySelector<HTMLElement>(`[data-t="${k}"]`);
         if (el) el.textContent = fmt(totals[k], k === 'atp');
@@ -142,6 +202,22 @@ const dataAttrs = (s: PathwayStep) => {
         const net = totals.atp;
         netEl.textContent = fmt(net, true);
         tally.classList.toggle('is-positive', net > 0);
+      }
+      // optional electron-pair count and closing line (both off unless the lesson passes them)
+      const pairsEl = tally.querySelector<HTMLElement>('[data-t="pairs"]');
+      if (pairsEl) pairsEl.textContent = String(totals.nadh + totals.fadh2 + totals.nadph);
+      const doneEl = root.querySelector<HTMLElement>('[data-done]');
+      if (doneEl) doneEl.hidden = visited.size !== steps.length;
+      // optional scale-up line: appears once every step has been opened
+      const scaleEl = root.querySelector<HTMLElement>('[data-scale]');
+      if (scaleEl) {
+        const factor = parseInt(scaleEl.getAttribute('data-factor') || '1', 10);
+        const done = visited.size === steps.length;
+        scaleEl.hidden = !done;
+        KEYS.forEach((k) => {
+          const el = scaleEl.querySelector<HTMLElement>(`[data-s="${k}"]`);
+          if (el) el.textContent = fmt(totals[k] * factor, k === 'atp');
+        });
       }
     }
 
@@ -161,8 +237,15 @@ const dataAttrs = (s: PathwayStep) => {
       });
     });
     root.querySelector<HTMLButtonElement>('[data-revealall]')!.addEventListener('click', () => { steps.forEach((s) => setOpen(s, true)); recompute(); });
+    turnBtn?.addEventListener('click', () => {
+      const t = doneTurns();
+      steps.forEach((s) => setOpen(s, true));
+      turns = Math.min(t + 1, finalTurn);
+      recompute();
+    });
     root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => {
       visited.clear();
+      turns = 0;
       steps.forEach((s) => { setOpen(s, false); s.classList.remove('is-visited'); });
       recompute();
     });
@@ -178,6 +261,10 @@ const dataAttrs = (s: PathwayStep) => {
   .pwx-tally em { font-style: normal; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
   .pwx-tally-label { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ddp-color-muted); }
   .pwx-net { margin-left: auto; }
+  .pwx-pairs { margin-left: auto; }
+  .pwx-done { margin: var(--ddp-space-1) 0 0; padding: var(--ddp-space-2) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-secondary); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .pwx-scale { margin: 0 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-secondary); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .pwx-scale em { font-style: normal; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
   .pwx-key { display: flex; flex-wrap: wrap; gap: 0.2rem var(--ddp-space-4); margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .pwx-key b { font-family: var(--ddp-font-mono); color: var(--ddp-color-ink-soft); }
   .pwx-tally.is-positive .pwx-net em { color: var(--ddp-color-verified, #2e7d32); }
@@ -201,11 +288,17 @@ const dataAttrs = (s: PathwayStep) => {
   }
   .pwx-body { padding: 0 var(--ddp-space-3) var(--ddp-space-3) calc(26px + var(--ddp-space-3) + var(--ddp-space-3)); }
   .pwx-body p { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .pwx-tracks { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.15rem var(--ddp-space-3); margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.45; }
+  .pwx-tracks dt { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); padding-top: 0.1rem; }
+  .pwx-tracks dd { margin: 0; color: var(--ddp-color-ink-soft); }
   .pwx-reg { color: var(--ddp-color-ink-soft); }
   .pwx-clin { background: var(--ddp-color-accent-soft); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); }
-  .pwx-controls { display: flex; gap: var(--ddp-space-3); margin-top: var(--ddp-space-3); }
+  .pwx-controls { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); margin-top: var(--ddp-space-3); }
   .pwx-btn { font-size: var(--ddp-text-sm); font-weight: 600; padding: 0.4rem 0.9rem; border-radius: var(--ddp-radius-sm); border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; cursor: pointer; }
   .pwx-btn:hover { opacity: 0.9; }
+  .pwx-btn:disabled { opacity: 0.45; cursor: default; }
+  .pwx-spiral { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .pwx-spiral b { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
   .pwx-btn-quiet { background: var(--ddp-color-surface); color: var(--ddp-color-ink-soft); border-color: var(--ddp-color-line); }
   .pwx-btn-quiet:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
 </style>

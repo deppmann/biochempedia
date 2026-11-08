@@ -1,0 +1,201 @@
+---
+/**
+ * PocketMutantDoseShift — reading a dose-response shift from a pocket mutant. Two computed
+ * curves, R(c) = c / (EC50 + c), for human OR51E2 and the F155A pocket mutant with propionate
+ * (cAMP assay in cultured cells, Billesbølle and colleagues, 2023), each normalized to its own
+ * maximum. Original. Self-contained vanilla-TS Astro island.
+ */
+---
+
+<figure class="pmd card" data-pmd>
+  <figcaption class="pmd-head">Pocket mutant: reading a potency shift<span class="pmd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pmd-svg" viewBox="0 0 360 250" role="img" aria-label="Two computed dose-response curves on a log concentration axis, wild-type OR51E2 and the F155A mutant, with a concentration cursor and a target response line" data-plot></svg>
+
+  <div class="pmd-controls">
+    <label class="pmd-slabel"><span>Propionate concentration c <em data-out="c">0.824</em> mM <small>(log scale)</small></span>
+      <input type="range" data-in="c" min="-2" max="2" step="0.001" value="-0.084" />
+    </label>
+    <label class="pmd-slabel"><span>Match the response: target R <em data-out="t">0.50</em></span>
+      <input type="range" data-in="t" min="0.05" max="0.95" step="0.01" value="0.5" />
+    </label>
+    <label class="pmd-slabel"><span>EC<sub>50</sub> values from
+      <select data-in="tab">
+        <option value="t2">Extended Data Table 2 (means)</option>
+        <option value="t3">Extended Data Table 3</option>
+      </select></span>
+    </label>
+  </div>
+
+  <dl class="pmd-readout">
+    <div><dt>R at c, wild type</dt><dd data-r="rwt">0.500</dd></div>
+    <div><dt>R at c, F155A</dt><dd data-r="rmu">0.063</dd></div>
+    <div><dt>c for target R, wild type</dt><dd data-r="cwt">0.824 mM</dd></div>
+    <div><dt>c for target R, F155A</dt><dd data-r="cmu">12.3 mM</dd></div>
+    <div class="pmd-wide"><dt>Ratio of the two concentrations</dt><dd data-r="ratio">14.9-fold</dd></div>
+  </dl>
+
+  <p class="pmd-why" data-why role="status"></p>
+
+  <p class="pmd-assume">In this sketch: Hill slope 1, zero baseline, each construct normalized to its own maximum, a cAMP assay in cultured cells (Billesbølle and colleagues, 2023); model values, not measured light outputs.</p>
+  <p class="pmd-refuse">This sketch cannot say: that an EC<sub>50</sub> is a binding constant; what airborne concentration a nose detects; whether concentrations this high (the axis runs to 1000 mM) could be tested, since values far above the lesson’s are model arithmetic only; whether the two maxima were equal (each curve is scaled to its own, so a drop in maximum cannot be read here); or that the mutant’s gain for longer-chain fatty acids follows from this curve.</p>
+
+  <p class="pmd-foot">Rule to keep: with a Hill slope of 1, R = c / (EC<sub>50</sub> + c), so the concentration that gives any chosen response is EC<sub>50</sub> × R / (1 − R), and the shift between two constructs equals the ratio of their EC<sub>50</sub> values at every response. Even so, the size of the shift is uncertain.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#c25e00', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const TABLES: Record<string, { wt: number; mu: number; label: string }> = {
+    t2: { wt: 0.824, mu: 12.3, label: 'Extended Data Table 2 (mean EC50 values)' },
+    t3: { wt: 1.4, mu: 9.13, label: 'Extended Data Table 3' },
+  };
+  function fmt(x: number): string {
+    if (x >= 100) return x.toFixed(0);
+    if (x >= 10) return x.toFixed(1);
+    return x.toPrecision(3);
+  }
+  document.querySelectorAll<HTMLElement>('[data-pmd]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const cIn = root.querySelector<HTMLInputElement>('[data-in="c"]');
+    const tIn = root.querySelector<HTMLInputElement>('[data-in="t"]');
+    const tabIn = root.querySelector<HTMLSelectElement>('[data-in="tab"]');
+    const cOut = root.querySelector<HTMLElement>('[data-out="c"]');
+    const tOut = root.querySelector<HTMLElement>('[data-out="t"]');
+    const rWt = root.querySelector<HTMLElement>('[data-r="rwt"]');
+    const rMu = root.querySelector<HTMLElement>('[data-r="rmu"]');
+    const cWt = root.querySelector<HTMLElement>('[data-r="cwt"]');
+    const cMu = root.querySelector<HTMLElement>('[data-r="cmu"]');
+    const ratioOut = root.querySelector<HTMLElement>('[data-r="ratio"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !cIn || !tIn || !tabIn || !cOut || !tOut || !rWt || !rMu || !cWt || !cMu || !ratioOut || !why) return;
+
+    const X0 = 46, X1 = 346, Y0 = 26, Y1 = 196, LMIN = -2, LMAX = 3; // x = log10 mM
+    const px = (lx: number) => X0 + ((lx - LMIN) / (LMAX - LMIN)) * (X1 - X0);
+    const py = (r: number) => Y1 - r * (Y1 - Y0);
+    const R = (c: number, ec: number) => c / (ec + c);
+    function curve(ec: number): string {
+      let d = '';
+      for (let lx = LMIN; lx <= LMAX + 1e-9; lx += 0.05) {
+        const r = R(Math.pow(10, lx), ec);
+        d += (d === '' ? 'M' : 'L') + px(lx).toFixed(1) + ' ' + py(r).toFixed(1) + ' ';
+      }
+      return d.trim();
+    }
+    function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+      const t = el('text', { x, y, 'font-size': 9.5, fill: INK, ...extra });
+      t.textContent = s;
+      return t;
+    }
+
+    function render() {
+      const tb = TABLES[tabIn!.value] ?? TABLES.t2;
+      const ecWt = tb.wt, ecMu = tb.mu;
+      let lc = parseFloat(cIn!.value);
+      // snap to the lesson's two worked concentrations so they read exactly
+      for (const ec of [ecWt, ecMu]) if (Math.abs(lc - Math.log10(ec)) < 0.004) lc = Math.log10(ec);
+      const c = Math.pow(10, lc);
+      const t = parseFloat(tIn!.value);
+      const cTWt = ecWt * t / (1 - t), cTMu = ecMu * t / (1 - t);
+      const rw = R(c, ecWt), rm = R(c, ecMu);
+      const shift = ecMu / ecWt;
+
+      cOut!.textContent = fmt(c);
+      tOut!.textContent = t.toFixed(2);
+      rWt!.textContent = rw.toFixed(3);
+      rMu!.textContent = rm.toFixed(3);
+      cWt!.textContent = fmt(cTWt) + ' mM';
+      cMu!.textContent = fmt(cTMu) + ' mM';
+      ratioOut!.textContent = (cTMu / cTWt).toFixed(1) + '-fold';
+
+      plot!.replaceChildren();
+      // axes
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const r of [0.5, 1]) {
+        plot!.appendChild(el('line', { x1: X0, y1: py(r), x2: X1, y2: py(r), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        plot!.appendChild(txt(X0 - 4, py(r) + 3, r === 1 ? '1.0' : '0.5', { 'text-anchor': 'end' }));
+      }
+      plot!.appendChild(txt(X0 - 4, Y1 + 3, '0', { 'text-anchor': 'end' }));
+      const ticks: [number, string][] = [[-2, '0.01'], [-1, '0.1'], [0, '1'], [1, '10'], [2, '100'], [3, '1000']];
+      for (const [lx, s] of ticks) {
+        plot!.appendChild(el('line', { x1: px(lx), y1: Y1, x2: px(lx), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot!.appendChild(txt(px(lx), Y1 + 14, s, { 'text-anchor': 'middle' }));
+      }
+      plot!.appendChild(txt((X0 + X1) / 2, Y1 + 30, 'propionate concentration c (mM, log scale)', { 'text-anchor': 'middle', 'font-size': 10 }));
+      plot!.appendChild(txt(4, 12, 'response R (fraction of own maximum)', { 'font-size': 10 }));
+
+      // curves
+      plot!.appendChild(el('path', { d: curve(ecWt), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      plot!.appendChild(el('path', { d: curve(ecMu), fill: 'none', stroke: ORANGE, 'stroke-width': 2.6 }));
+
+      // target line, markers and bracket
+      const yt = py(t);
+      plot!.appendChild(el('line', { x1: X0, y1: yt, x2: X1, y2: yt, stroke: INK, 'stroke-width': 0.9, 'stroke-dasharray': '5 3' }));
+      const xa = px(Math.log10(cTWt)), xb = px(Math.log10(cTMu));
+      plot!.appendChild(el('line', { x1: xa, y1: yt, x2: xb, y2: yt, stroke: INK, 'stroke-width': 2 }));
+      plot!.appendChild(el('circle', { cx: xa, cy: yt, r: 4.5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1 }));
+      plot!.appendChild(el('circle', { cx: xb, cy: yt, r: 4.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1 }));
+      let mid = Math.min(Math.max((xa + xb) / 2, X0 + 30), X1 - 30);
+      const labelY = t > 0.88 ? yt + 14 : yt - 6;
+      // keep the label clear of the legend box (legend spans y from Y1 - 49 to Y1 - 15)
+      if (labelY > Y1 - 62 && labelY < Y1 - 12) mid = Math.min(mid, X1 - 134 - 66);
+      plot!.appendChild(txt(mid, labelY, '×' + (cTMu / cTWt).toFixed(1) + ' in c at R = ' + t.toFixed(2), { 'text-anchor': 'middle', 'font-weight': 700 }));
+
+      // cursor
+      const xc = px(lc);
+      plot!.appendChild(el('line', { x1: xc, y1: Y0 - 4, x2: xc, y2: Y1, stroke: INK, 'stroke-width': 1.2 }));
+      plot!.appendChild(el('circle', { cx: xc, cy: py(rw), r: 4, fill: '#fff', stroke: ACCENT, 'stroke-width': 2 }));
+      plot!.appendChild(el('circle', { cx: xc, cy: py(rm), r: 4, fill: '#fff', stroke: ORANGE, 'stroke-width': 2 }));
+
+      // legend (bottom-right, below both curves)
+      const LX = X1 - 130, LY = Y1 - 40;
+      plot!.appendChild(el('rect', { x: LX - 4, y: LY - 9, width: 124, height: 34, fill: '#fff', 'fill-opacity': 0.92, stroke: FAINT, 'stroke-width': 0.6 }));
+      plot!.appendChild(el('line', { x1: LX, y1: LY, x2: LX + 16, y2: LY, stroke: ACCENT, 'stroke-width': 2.6 }));
+      plot!.appendChild(txt(LX + 20, LY + 3, 'wild type (model)'));
+      plot!.appendChild(el('line', { x1: LX, y1: LY + 14, x2: LX + 16, y2: LY + 14, stroke: ORANGE, 'stroke-width': 2.6 }));
+      plot!.appendChild(txt(LX + 20, LY + 17, 'F155A mutant (model)'));
+
+      // status
+      const near = (a: number, b: number) => Math.abs(Math.log10(a / b)) < 0.005;
+      let s = `At c = ${fmt(c)} mM the wild-type curve gives R = ${rw.toFixed(3)} and the F155A curve ${rm.toFixed(3)}, each as a fraction of its own maximum. `;
+      if (tabIn!.value === 't2' && near(c, 0.824)) s += 'This is the worked problem’s Step 1: wild type sits at its EC50 (0.500) while the mutant gives 0.824 / 13.124 = 0.063. ';
+      else if (tabIn!.value === 't2' && near(c, 12.3)) s += 'This is the worked problem’s Step 3: the mutant now sits at its EC50 (0.500) and wild type gives 12.3 / 13.124 = 0.937. ';
+      s += `To reach R = ${t.toFixed(2)} the wild-type curve needs ${fmt(cTWt)} mM and the F155A curve ${fmt(cTMu)} mM, a ratio of ${(cTMu / cTWt).toFixed(1)}, equal to ${fmt(ecMu)} / ${fmt(ecWt)} = ${shift.toFixed(1)} whatever R you pick, because this sketch assumes a Hill slope of 1. `;
+      if (tabIn!.value === 't2') s += 'Using the mean EC50 values in Extended Data Table 2.';
+      else s += `Using Extended Data Table 3 for the same two constructs (${tb.wt.toFixed(2)} mM and ${tb.mu.toFixed(2)} mM; the sketch applies the same Hill-slope-1, own-maximum assumptions to them), a shift of about 6.5-fold rather than about 15-fold.`;
+      s += ' The F155A pEC50 in Table 2 has a standard error of 0.77 log units, so the size of the shift is uncertain.';
+      why!.textContent = s;
+    }
+    [cIn, tIn].forEach((x) => x.addEventListener('input', render));
+    tabIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .pmd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pmd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pmd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pmd-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pmd-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .pmd-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pmd-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .pmd-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .pmd-slabel input { accent-color: var(--ddp-color-accent); }
+  .pmd-slabel select { font: inherit; display: block; margin-top: 0.15rem; max-width: 100%; }
+  .pmd-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pmd-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .pmd-readout .pmd-wide { grid-column: 1 / -1; }
+  .pmd-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pmd-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .pmd-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .pmd-assume, .pmd-refuse { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .pmd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .pmd-controls { grid-template-columns: 1fr; } }
+</style>

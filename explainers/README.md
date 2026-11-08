@@ -31,5 +31,8 @@ transcript; the cue phrases match those transcribed spellings, while `narration`
 hand-corrected spelling used for captions. Do not re-run `align.py` on a finished video without
 re-checking both. Manim's cache is disabled in `bp_style.py`: it reused stale clips across renders.
 
+Films re-voiced after the 2026 fact-check use Gemini (Charon) for every scene; in those explainers
+the slide clips became `tts` scenes that speak the corrected transcript.
+
 Profile films narrate the scientist's `story` verbatim (ElevenLabs, Sarah), keep the AI-generated
 portrait captioned as an illustration in frame, and end on a verbatim quote.

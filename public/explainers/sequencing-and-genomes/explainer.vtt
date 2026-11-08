@@ -1,0 +1,141 @@
+WEBVTT
+
+1
+00:00:03.400 --> 00:00:07.360
+Two drafts of the human genome appeared in 2001.
+
+2
+00:00:08.180 --> 00:00:13.500
+The first assembly with no gaps, for all but one chromosome, came in 2022.
+
+3
+00:00:14.680 --> 00:00:18.060
+The machines got faster every year, so why the wait?
+
+4
+00:00:19.120 --> 00:00:20.660
+Speed was never the bottleneck.
+
+5
+00:00:21.300 --> 00:00:24.000
+No instrument reads a chromosome in one pass.
+
+6
+00:00:24.780 --> 00:00:30.020
+Every method reads pieces, and a genome is only as good as the way the pieces are
+
+7
+00:00:30.020 --> 00:00:31.020
+put back together.
+
+8
+00:00:31.533 --> 00:00:33.513
+First, count the pieces.
+
+9
+00:00:34.293 --> 00:00:37.673
+A read is the sequence reported from one fragment.
+
+10
+00:00:38.593 --> 00:00:42.853
+Coverage is how many reads, on average, lie over each base.
+
+11
+00:00:44.133 --> 00:00:48.413
+Coverage equals reads times read length, divided by genome length.
+
+12
+00:00:49.313 --> 00:00:56.793
+For a human genome of 3.1 billion bases, 30-fold coverage with 150-base reads
+
+13
+00:00:56.793 --> 00:00:59.853
+needs about 620 million reads.
+
+14
+00:01:00.683 --> 00:01:06.203
+Reads start at random positions, so 30-fold is a mean, not a guarantee.
+
+15
+00:01:07.283 --> 00:01:12.483
+Under a Poisson model, the fraction of bases with no read is e to the minus C.
+
+16
+00:01:13.383 --> 00:01:16.443
+At one-fold, 37% is unread.
+
+17
+00:01:17.263 --> 00:01:20.663
+At five-fold, about 21 million bases are unread.
+
+18
+00:01:21.383 --> 00:01:24.743
+At 30-fold, far less than one base is expected.
+
+19
+00:01:25.263 --> 00:01:28.923
+So more depth shrinks the gaps that random sampling leaves.
+
+20
+00:01:29.883 --> 00:01:32.743
+Depth cannot fix a different problem.
+
+21
+00:01:33.503 --> 00:01:37.863
+Give the genome two identical copies of a 6-kilobase repeat.
+
+22
+00:01:38.743 --> 00:01:42.983
+A read from inside the repeat fits both copies equally well.
+
+23
+00:01:43.943 --> 00:01:45.643
+Reads at its edges are unique.
+
+24
+00:01:46.363 --> 00:01:53.183
+But no read, and no pair from a 400-base fragment, reaches across 6 kilobases to
+
+25
+00:01:53.183 --> 00:01:58.663
+the far edge. So the assembler cannot tell which flanking sequences belong together.
+
+26
+00:01:59.483 --> 00:02:03.883
+Deeper coverage adds more reads of the same ambiguous kind.
+
+27
+00:02:04.863 --> 00:02:07.763
+Extra depth does not change what each read can say.
+
+28
+00:02:08.563 --> 00:02:12.563
+Every new read from inside the repeat still fits both copies.
+
+29
+00:02:13.423 --> 00:02:18.123
+The assembler collapses the two copies into one, or it breaks the contig.
+
+30
+00:02:18.867 --> 00:02:23.887
+Now try a 15-kilobase read instead of a 150-base read.
+
+31
+00:02:24.587 --> 00:02:29.947
+It can hold a whole 6-kilobase copy with several kilobases of unique sequence on
+
+32
+00:02:29.947 --> 00:02:32.747
+each side. That pins the copy in place.
+
+33
+00:02:33.967 --> 00:02:37.087
+Long reads span repeats that short reads cannot.
+
+34
+00:02:37.947 --> 00:02:43.307
+Keep this rule: a repeat longer than your reads cannot be placed, and more depth
+
+35
+00:02:43.307 --> 00:02:44.027
+does not help.

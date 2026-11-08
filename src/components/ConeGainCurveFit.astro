@@ -1,0 +1,213 @@
+---
+/**
+ * ConeGainCurveFit — the modified Weber-Fechner fit S/Sdark = 1/(1 + (I/I0)^n) drawn on
+ * log-log axes for two kinds of mouse cone (Vinberg and Kefalov, 2018 fit values as given in
+ * the lesson), with a cursor at the chosen background. One toggle separates the two fit
+ * parameters (counterfactual n = 1.0 for the deficient cones, keeping their I0).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cgf card" data-cgf>
+  <figcaption class="cgf-head">Cone gain curves — reading a Weber-type fit<span class="cgf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cgf-svg" viewBox="0 0 360 236" role="img" aria-label="Log-log plot of relative flash sensitivity against background intensity for control cones and cones lacking GCAPs and recoverin, with a vertical cursor at the chosen background" data-plot></svg>
+
+  <ul class="cgf-legend" data-legend></ul>
+
+  <div class="cgf-controls">
+    <label class="cgf-slabel"><span>Background I: <em data-out="i">48,800</em> photons µm⁻² s⁻¹ <small>(log scale; the 10³ to 10⁶ range is this sketch’s choice)</small></span>
+      <input type="range" data-in="i" min="3" max="6" step="0.01" value="4.69" aria-describedby="cgf-snap" />
+    </label>
+    <label class="cgf-check"><input type="checkbox" data-in="sep" /> <span>Separate the two parameters (counterfactual: deficient cones with n = 1.0, keeping their I₀)</span></label>
+    <p class="cgf-snapnote" id="cgf-snap">The slider snaps to 12,100 and 48,800, the two I₀ values.</p>
+  </div>
+
+  <dl class="cgf-readout">
+    <div><dt>Control cones, S/S<sub>dark</sub></dt><dd data-r="c">0.500</dd></div>
+    <div><dt data-r-dlabel>Cones lacking GCAPs and recoverin (fit), S/S<sub>dark</sub></dt><dd data-r="d">0.110</dd></div>
+    <div><dt>Ratio, control ÷ deficient (flash strength needed for a fixed-size response, each against its own dark sensitivity)</dt><dd data-r="ratio">4.55</dd></div>
+    <div><dt>Slope on the log-log plot well above I₀ (control; deficient)</dt><dd data-r="slope">−1.0; −1.5</dd></div>
+  </dl>
+
+  <p class="cgf-why" data-why role="status"></p>
+
+  <p class="cgf-assume"><strong>In this sketch:</strong> the curves are computed from the lesson’s fit, S/S<sub>dark</sub> = 1/(1 + (I/I₀)<sup>n</sup>), using central fit values with no uncertainty carried through (control I₀ = 48,800 photons µm⁻² s⁻¹, n = 1.0; cones lacking GCAPs and recoverin I₀ = 12,100, n = 1.5). Isolated mouse retina 2 to 3 months old, 505-nm light, Gnat1 knockout background (Vinberg and Kefalov, 2018). The lesson does not give the range of backgrounds that was tested, so the whole curve is labelled fit extended.</p>
+
+  <p class="cgf-foot">Rule to keep: I₀ is the background that halves sensitivity and n sets the slope; each sensitivity is relative to its own dark value, so the ratio is not a ratio of absolute thresholds between genotypes, and the fit does not name the residual mechanism (the low-calcium bath is not a clamp of outer-segment calcium).</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GHOST = '#f0b98a';
+  const SUP: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  const sup = (n: number) => String(n).split('').map((c) => SUP[c] ?? c).join('');
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const I0_C = 48800, N_C = 1.0, I0_D = 12100, N_D = 1.5;
+  const rel = (I: number, I0: number, n: number) => 1 / (1 + Math.pow(I / I0, n));
+  // local slope of log S against log I: -n x^n / (1 + x^n)
+  const localSlope = (I: number, I0: number, n: number) => {
+    const xn = Math.pow(I / I0, n);
+    return (-n * xn) / (1 + xn);
+  };
+  const fmtI = (I: number) => Math.round(I).toLocaleString('en-US');
+  const fmtS = (s: number) => (s >= 0.1 ? s.toFixed(3) : s >= 0.01 ? s.toFixed(4) : s.toPrecision(2));
+  const fmtSlope = (s: number) => (s < 0 ? '−' : '') + Math.abs(s).toFixed(2);
+
+  document.querySelectorAll<HTMLElement>('[data-cgf]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const slider = root.querySelector<HTMLInputElement>('[data-in="i"]');
+    const sepBox = root.querySelector<HTMLInputElement>('[data-in="sep"]');
+    const iOut = root.querySelector<HTMLElement>('[data-out="i"]');
+    const rC = root.querySelector<HTMLElement>('[data-r="c"]');
+    const rD = root.querySelector<HTMLElement>('[data-r="d"]');
+    const rRatio = root.querySelector<HTMLElement>('[data-r="ratio"]');
+    const rSlope = root.querySelector<HTMLElement>('[data-r="slope"]');
+    const dLabel = root.querySelector<HTMLElement>('[data-r-dlabel]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const legend = root.querySelector<HTMLElement>('[data-legend]');
+    if (!plot || !slider || !sepBox || !iOut || !rC || !rD || !rRatio || !rSlope || !dLabel || !why || !legend) return;
+
+    const X0 = 46, X1 = 346, Y0 = 34, Y1 = 196; // x: log10 I 3..6 ; y: log10 S/Sdark 0..-3
+    const LMIN = 3, LMAX = 6, SMIN = -3;
+    const px = (lx: number) => X0 + ((lx - LMIN) / (LMAX - LMIN)) * (X1 - X0);
+    const py = (ls: number) => Y0 + (ls / SMIN) * (Y1 - Y0);
+    const curve = (I0: number, n: number) => {
+      let d = '';
+      for (let lx = LMIN; lx <= LMAX + 1e-9; lx += 0.05) {
+        const s = Math.log10(rel(Math.pow(10, lx), I0, n));
+        d += (lx === LMIN ? 'M' : 'L') + px(lx).toFixed(1) + ' ' + py(Math.max(s, SMIN)).toFixed(1) + ' ';
+      }
+      return d.trim();
+    };
+    const text = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) => {
+      const t = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, extra));
+      t.textContent = s;
+      plot.appendChild(t);
+    };
+
+    function currentI(): number {
+      let lx = parseFloat(slider!.value);
+      if (!isFinite(lx)) lx = 4.69;
+      for (const snap of [I0_D, I0_C]) {
+        if (Math.abs(lx - Math.log10(snap)) < 0.006) return snap;
+      }
+      return Math.pow(10, lx);
+    }
+
+    function render() {
+      const I = currentI();
+      const cf = sepBox!.checked;
+      const nD = cf ? 1.0 : N_D;
+      const sC = rel(I, I0_C, N_C);
+      const sD = rel(I, I0_D, nD);
+      const ratio = sC / sD;
+      iOut!.textContent = fmtI(I);
+      rC!.textContent = fmtS(sC);
+      rD!.textContent = fmtS(sD);
+      rRatio!.textContent = ratio.toFixed(2);
+      rSlope!.textContent = '−' + N_C.toFixed(1) + '; −' + nD.toFixed(1) + (cf ? ' (counterfactual)' : '');
+      dLabel!.innerHTML = cf
+        ? 'Cones lacking GCAPs and recoverin, counterfactual n = 1.0 (not a fit), S/S<sub>dark</sub>'
+        : 'Cones lacking GCAPs and recoverin (fit), S/S<sub>dark</sub>';
+
+      // legend
+      legend!.replaceChildren();
+      const items: Array<[string, string]> = [
+        ['control cones (fit extended)', 'c'],
+        [cf ? 'deficient cones, n set to 1.0 (counterfactual, not a fit)' : 'cones lacking GCAPs and recoverin (fit extended)', 'd'],
+      ];
+      if (cf) items.push(['deficient cones, the fit with n = 1.5 (for comparison)', 'g']);
+      for (const [label, kind] of items) {
+        const li = document.createElement('li');
+        const sw = document.createElement('span');
+        sw.className = 'cgf-sw cgf-sw-' + kind;
+        sw.setAttribute('aria-hidden', 'true');
+        li.appendChild(sw);
+        li.appendChild(document.createTextNode(' ' + label));
+        legend!.appendChild(li);
+      }
+
+      // plot
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const ls of [0, -1, -2, -3]) {
+        plot!.appendChild(el('line', { x1: X0, y1: py(ls), x2: X1, y2: py(ls), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        text(X0 - 4, py(ls) + 3, ls === 0 ? '1' : '10' + sup(ls), { 'text-anchor': 'end' });
+      }
+      for (const lx of [3, 4, 5, 6]) {
+        plot!.appendChild(el('line', { x1: px(lx), y1: Y1, x2: px(lx), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(px(lx), Y1 + 14, '10' + sup(lx), { 'text-anchor': 'middle' });
+      }
+      text(4, 11, 'S / S(dark) (log, relative to each cone’s own dark value)', { 'text-anchor': 'start' });
+      text((X0 + X1) / 2, Y1 + 29, 'background I (photons µm⁻² s⁻¹, log scale)', { 'text-anchor': 'middle', 'font-size': 10 });
+
+      // I0 markers
+      for (const [I0, lab, anchor, dx] of [[I0_D, 'I₀ deficient', 'end', -3], [I0_C, 'I₀ control', 'start', 3]] as Array<[number, string, string, number]>) {
+        plot!.appendChild(el('line', { x1: px(Math.log10(I0)), y1: py(-0.3), x2: px(Math.log10(I0)), y2: Y1, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '1 3' }));
+        text(px(Math.log10(I0)) + dx, Y1 - 5, lab, { 'text-anchor': anchor });
+      }
+
+      if (cf) plot!.appendChild(el('path', { d: curve(I0_D, N_D), fill: 'none', stroke: GHOST, 'stroke-width': 1.6, 'stroke-dasharray': '1 3' }));
+      plot!.appendChild(el('path', { d: curve(I0_C, N_C), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      plot!.appendChild(el('path', cf
+        ? { d: curve(I0_D, nD), fill: 'none', stroke: ORANGE, 'stroke-width': 2.4, 'stroke-dasharray': '6 3' }
+        : { d: curve(I0_D, nD), fill: 'none', stroke: ORANGE, 'stroke-width': 2.6 }));
+
+      // cursor
+      const lxI = Math.log10(I);
+      plot!.appendChild(el('line', { x1: px(lxI), y1: Y0, x2: px(lxI), y2: Y1, stroke: INK, 'stroke-width': 1.2 }));
+      plot!.appendChild(el('circle', { cx: px(lxI), cy: py(Math.log10(sC)), r: 4, fill: ACCENT, stroke: '#fff', 'stroke-width': 1 }));
+      plot!.appendChild(el('circle', { cx: px(lxI), cy: py(Math.max(Math.log10(sD), SMIN)), r: 4, fill: ORANGE, stroke: '#fff', 'stroke-width': 1 }));
+      const cx = Math.min(Math.max(px(lxI), X0 + 40), X1 - 40);
+      text(cx, 25, 'I = ' + fmtI(I), { 'text-anchor': 'middle', 'font-weight': 700 });
+
+      // status
+      const atD = I === I0_D, atC = I === I0_C;
+      let s = `At I = ${fmtI(I)} photons µm⁻² s⁻¹ in this sketch, control cones have S/Sdark = ${fmtS(sC)} and cones lacking GCAPs and recoverin ${cf ? 'with n set to 1.0 (a counterfactual, not a fit)' : '(the fit, n = 1.5)'} have ${fmtS(sD)}. `;
+      s += `Each is relative to its own dark sensitivity, so the ratio ${ratio.toFixed(2)} is the factor by which a flash would need to be stronger for a fixed-size response in the deficient cones, not a ratio of absolute thresholds between genotypes. `;
+      if (atC) s += 'At I = I₀ the bracket is 1 + 1, so the control cones sit at 0.500 by the definition of I₀. ';
+      if (atD) s += `At I = I₀ the bracket is 1 + 1, so the deficient cones sit at 0.500 whatever n is${cf ? ', which is why the dotted fit and the dashed counterfactual cross here' : ''}. `;
+      if (I < I0_D / 10) s += 'Well below both I₀ values (under about 1,210) both curves are near their dark sensitivity. ';
+      else if (I > I0_C * 4) s += `Well above I₀ the curves fall with slope −${N_C.toFixed(1)} and −${nD.toFixed(1)}; the local slopes here are ${fmtSlope(localSlope(I, I0_C, N_C))} and ${fmtSlope(localSlope(I, I0_D, nD))}. `;
+      if (cf) s += 'Setting n to 1.0 while keeping I₀ is a what-if in this sketch: it separates the two fit parameters but does not say how the gap divides between them in real cones, and the study did not fit it. ';
+      s += 'The fit does not identify the residual mechanism of adaptation, and outside the tested backgrounds, which the lesson does not give, the curve is a fit extended, not data.';
+      why!.textContent = s;
+    }
+    slider.addEventListener('input', render);
+    sepBox.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .cgf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cgf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cgf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cgf-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cgf-legend { list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cgf-sw { display: inline-block; width: 1.4rem; height: 0; vertical-align: middle; border-top: 3px solid #0e7c86; }
+  .cgf-sw-d { border-top: 3px solid #e57200; }
+  .cgf-sw-g { border-top: 2px dotted #f0b98a; }
+  .cgf-controls { display: flex; flex-direction: column; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cgf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cgf-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .cgf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cgf-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .cgf-check { display: flex; gap: 0.5rem; align-items: flex-start; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cgf-check input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .cgf-snapnote { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cgf-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cgf-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .cgf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cgf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .cgf-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .cgf-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .cgf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cgf-readout { grid-template-columns: 1fr; } }
+</style>

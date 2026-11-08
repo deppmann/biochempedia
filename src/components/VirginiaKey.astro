@@ -1,0 +1,462 @@
+---
+/**
+ * VirginiaKey — run a dichotomous key on eight organisms, then reorder its questions.
+ * The learner picks a picture card, answers two-choice questions about what the card shows,
+ * and watches the path light up to a scientific name. A switch rebuilds the key from the same
+ * questions in a different order: the names stay the same, but different organisms end up
+ * side by side. Every rule is a statement of the sorting-living-things lesson; organisms are
+ * labelled outlines and trait chips only. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="vk card" data-virginiakey>
+  <figcaption class="vk-head">Dichotomous key: name eight Virginia organisms<span class="vk-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="vk-row">
+    <span class="vk-label" id="vk-pick-label">1. Pick a card</span>
+    <div class="vk-cards" role="group" aria-labelledby="vk-pick-label" data-cards></div>
+  </div>
+
+  <div class="vk-card" data-cardbox aria-live="polite">
+    <p class="vk-card-title" data-cardtitle>No card yet.</p>
+    <p class="vk-card-traits" data-cardtraits></p>
+  </div>
+
+  <div class="vk-row vk-ask">
+    <span class="vk-label">2. Answer</span>
+    <div class="vk-q">
+      <p class="vk-qtext" data-qtext>Pick a card to start the key.</p>
+      <div class="vk-answers">
+        <button type="button" class="vk-btn vk-ans" data-yes disabled>Yes</button>
+        <button type="button" class="vk-btn vk-ans" data-no disabled>No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vk-row">
+    <span class="vk-label">3. Reorder</span>
+    <button type="button" class="vk-btn vk-switch" role="switch" aria-checked="false" data-switch>
+      <span class="vk-knob" aria-hidden="true"></span>
+      <span data-switchtext>Reorder the questions: key 1</span>
+    </button>
+    <button type="button" class="vk-btn" data-reset>Reset</button>
+  </div>
+
+  <svg class="vk-svg" viewBox="0 0 480 362" role="img" aria-label="A dichotomous key drawn as a tree. Numbered circles are questions. The eight boxes on the right are the organisms the key can name." data-tree></svg>
+  <p class="vk-legend">In the tree, a numbered circle is a question. The upper branch is the first choice, and the lower branch is the second choice.</p>
+
+  <p class="vk-status" data-status role="status">In this sketch, pick a card to start the key.</p>
+  <p class="vk-name" data-name hidden></p>
+  <p class="vk-nbrs" data-nbrs hidden></p>
+
+  <ol class="vk-path" data-path aria-label="Your answers so far"></ol>
+
+  <div class="vk-steps">
+    <p class="vk-steps-title">This key written as steps</p>
+    <ol data-steps></ol>
+  </div>
+
+  <p class="vk-assume">Assumptions made up for this sketch: only these eight organisms are in the key. The questions about wings, feathers and the head are simple traits chosen here. The second order of questions was picked by hand.</p>
+  <p class="vk-foot">A key names an organism from traits you can see. It works only for the organisms built into it, and neighbors in a key are not shown to be related. This is a sketch of the logic.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+
+  type OrgId = 'trout' | 'crab' | 'oyster' | 'swallowtail' | 'cardinal' | 'vulture' | 'dogwood' | 'pine';
+  type Attr = 'fins' | 'legs' | 'shell' | 'woody' | 'needles' | 'wings' | 'feathers' | 'bare';
+
+  interface Org { id: OrgId; common: string; short: string; sci: string | null; traits: string[]; has: Attr[]; }
+  interface QDef { yes: string; no: string; }
+
+  const ORGS: Org[] = [
+    { id: 'trout', common: 'Brook trout', short: 'Brook trout', sci: 'Salvelinus fontinalis', traits: ['fins'], has: ['fins'] },
+    { id: 'crab', common: 'Blue crab', short: 'Blue crab', sci: 'Callinectes sapidus', traits: ['jointed legs'], has: ['legs'] },
+    { id: 'oyster', common: 'Eastern oyster', short: 'Eastern oyster', sci: null, traits: ['two hinged shell halves'], has: ['shell'] },
+    { id: 'swallowtail', common: 'Eastern tiger swallowtail', short: 'Tiger swallowtail', sci: 'Papilio glaucus', traits: ['jointed legs', 'wings'], has: ['legs', 'wings'] },
+    { id: 'cardinal', common: 'Northern cardinal', short: 'Northern cardinal', sci: 'Cardinalis cardinalis', traits: ['feathers', 'wings', 'feathered head'], has: ['feathers', 'wings'] },
+    { id: 'vulture', common: 'Turkey vulture', short: 'Turkey vulture', sci: 'Cathartes aura', traits: ['feathers', 'wings', 'bare head'], has: ['feathers', 'wings', 'bare'] },
+    { id: 'dogwood', common: 'Flowering dogwood', short: 'Flowering dogwood', sci: 'Cornus florida', traits: ['woody twig', 'broad leaves', 'flower cluster with four showy bracts'], has: ['woody'] },
+    { id: 'pine', common: 'Loblolly pine', short: 'Loblolly pine', sci: 'Pinus taeda', traits: ['woody twig', 'needles in bundles', 'cones'], has: ['woody', 'needles'] },
+  ];
+  const BYID: Record<string, Org> = {};
+  ORGS.forEach((o) => { BYID[o.id] = o; });
+
+  const QS: Record<Attr, QDef> = {
+    fins: { yes: 'Has fins', no: 'No fins' },
+    legs: { yes: 'Has jointed legs', no: 'No jointed legs' },
+    shell: { yes: 'Has two hinged shell halves', no: 'No hinged shell halves' },
+    woody: { yes: 'Has a woody twig', no: 'No woody twig' },
+    needles: { yes: 'Needles in bundles, with cones', no: 'Broad leaves and a flower cluster' },
+    wings: { yes: 'Has wings', no: 'No wings' },
+    feathers: { yes: 'Has feathers', no: 'No feathers' },
+    bare: { yes: 'Has a bare head', no: 'Has a feathered head' },
+  };
+  const ORDERS: Attr[][] = [
+    ['fins', 'legs', 'shell', 'woody', 'needles', 'wings', 'feathers', 'bare'],
+    ['feathers', 'fins', 'shell', 'legs', 'woody', 'needles', 'wings', 'bare'],
+  ];
+
+  interface QNode { kind: 'q'; attr: Attr; step: number; yes: Tree; no: Tree; x: number; y: number; depth: number; }
+  interface Leaf { kind: 'leaf'; org: Org; index: number; x: number; y: number; }
+  type Tree = QNode | Leaf;
+
+  function build(set: Org[], order: Attr[], depth: number): Tree {
+    if (set.length === 1) return { kind: 'leaf', org: set[0], index: 0, x: 0, y: 0 };
+    for (const a of order) {
+      const yes = set.filter((o) => o.has.indexOf(a) >= 0);
+      const no = set.filter((o) => o.has.indexOf(a) < 0);
+      if (yes.length > 0 && no.length > 0) {
+        return { kind: 'q', attr: a, step: 0, yes: build(yes, order, depth + 1), no: build(no, order, depth + 1), x: 0, y: 0, depth };
+      }
+    }
+    return { kind: 'leaf', org: set[0], index: 0, x: 0, y: 0 };
+  }
+
+  const LEAF_X = 296, ROW = 42, TOP = 26, DX = 40, X0 = 28, NODE_R = 14;
+
+  function layout(root: Tree): { leaves: Leaf[]; nodes: QNode[] } {
+    const leaves: Leaf[] = [];
+    const nodes: QNode[] = [];
+    let step = 0;
+    const walk = (t: Tree, depth: number): void => {
+      if (t.kind === 'leaf') {
+        t.index = leaves.length;
+        t.y = TOP + t.index * ROW;
+        t.x = LEAF_X;
+        leaves.push(t);
+        return;
+      }
+      step += 1;
+      t.step = step;
+      t.depth = depth;
+      nodes.push(t);
+      walk(t.yes, depth + 1);
+      walk(t.no, depth + 1);
+      t.x = X0 + depth * DX;
+      t.y = (t.yes.y + t.no.y) / 2;
+    };
+    walk(root, 0);
+    return { leaves, nodes };
+  }
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  function lower(s: string): string { return s.charAt(0).toLowerCase() + s.slice(1); }
+
+  document.querySelectorAll<HTMLElement>('[data-virginiakey]').forEach((root) => {
+    const q = <T extends Element>(sel: string): T | null => root.querySelector<T>(sel);
+    const cardsEl = q<HTMLElement>('[data-cards]');
+    const cardTitle = q<HTMLElement>('[data-cardtitle]');
+    const cardTraits = q<HTMLElement>('[data-cardtraits]');
+    const qText = q<HTMLElement>('[data-qtext]');
+    const yesBtn = q<HTMLButtonElement>('[data-yes]');
+    const noBtn = q<HTMLButtonElement>('[data-no]');
+    const switchBtn = q<HTMLButtonElement>('[data-switch]');
+    const switchText = q<HTMLElement>('[data-switchtext]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const svg = q<SVGSVGElement>('[data-tree]');
+    const statusEl = q<HTMLElement>('[data-status]');
+    const nameEl = q<HTMLElement>('[data-name]');
+    const nbrsEl = q<HTMLElement>('[data-nbrs]');
+    const pathEl = q<HTMLElement>('[data-path]');
+    const stepsEl = q<HTMLElement>('[data-steps]');
+    if (!cardsEl || !cardTitle || !cardTraits || !qText || !yesBtn || !noBtn || !switchBtn || !switchText || !resetBtn || !svg || !statusEl || !nameEl || !nbrsEl || !pathEl || !stepsEl) return;
+
+    const trees: Tree[] = ORDERS.map((o) => build(ORGS.slice(), o, 0));
+    const layouts = trees.map((t) => layout(t));
+
+    let keyIdx = 0;
+    let picked: Org | null = null;
+    let current: Tree = trees[0];
+    interface Taken { node: QNode; said: boolean; right: boolean; }
+    let taken: Taken[] = [];
+    let finished: Leaf | null = null;
+
+    const cardBtns: HTMLButtonElement[] = [];
+    ORGS.forEach((o) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'vk-btn vk-cardbtn';
+      b.setAttribute('aria-pressed', 'false');
+      b.textContent = o.short;
+      b.addEventListener('click', () => pick(o));
+      cardsEl.appendChild(b);
+      cardBtns.push(b);
+    });
+
+    function leavesOf(i: number): Leaf[] { return layouts[i].leaves; }
+    function leafFor(i: number, o: Org): Leaf {
+      const found = leavesOf(i).filter((l) => l.org.id === o.id)[0];
+      return found || leavesOf(i)[0];
+    }
+    function neighbors(i: number, o: Org): Org[] {
+      const ls = leavesOf(i);
+      const at = leafFor(i, o).index;
+      const out: Org[] = [];
+      if (at > 0) out.push(ls[at - 1].org);
+      if (at < ls.length - 1) out.push(ls[at + 1].org);
+      return out;
+    }
+    function listNames(os: Org[]): string {
+      return os.map((o) => o.short).join(' and ');
+    }
+
+    // ---- static drawing of the tree for the current key ----
+    let edgeOf: Map<Tree, SVGElement> = new Map();
+    let nodeEls: Map<QNode, SVGElement> = new Map();
+    let leafEls: Map<Leaf, SVGElement> = new Map();
+
+    function drawTree(): void {
+      while (svg!.firstChild) svg!.removeChild(svg!.firstChild);
+      edgeOf = new Map();
+      nodeEls = new Map();
+      leafEls = new Map();
+      const L = layouts[keyIdx];
+      const edgesG = el('g', {});
+      const nodesG = el('g', {});
+      svg!.appendChild(edgesG);
+      svg!.appendChild(nodesG);
+      const addEdge = (p: QNode, c: Tree): void => {
+        const ex = c.kind === 'leaf' ? LEAF_X : c.x - NODE_R;
+        const e = el('path', { d: `M ${p.x} ${p.y} V ${c.y} H ${ex}`, class: 'vk-edge', fill: 'none' });
+        edgesG.appendChild(e);
+        edgeOf.set(c, e);
+      };
+      L.nodes.forEach((n) => { addEdge(n, n.yes); addEdge(n, n.no); });
+      L.nodes.forEach((n) => {
+        const g = el('g', { class: 'vk-node' });
+        g.appendChild(el('circle', { cx: n.x, cy: n.y, r: NODE_R, class: 'vk-circ' }));
+        g.appendChild(el('text', { x: n.x, y: n.y + 5.5, 'text-anchor': 'middle', class: 'vk-num' }, String(n.step)));
+        nodesG.appendChild(g);
+        nodeEls.set(n, g);
+      });
+      L.leaves.forEach((l) => {
+        const g = el('g', { class: 'vk-leaf' });
+        g.appendChild(el('rect', { x: LEAF_X, y: l.y - 16, width: 178, height: 32, rx: 6, class: 'vk-box' }));
+        g.appendChild(el('text', { x: LEAF_X + 9, y: l.y + 6, class: 'vk-ltxt' }, l.org.short));
+        nodesG.appendChild(g);
+        leafEls.set(l, g);
+      });
+    }
+
+    function writeSteps(): void {
+      while (stepsEl!.firstChild) stepsEl!.removeChild(stepsEl!.firstChild);
+      const sideText = (t: Tree): string => (t.kind === 'leaf' ? `${t.org.common}` : `go to step ${t.step}`);
+      layouts[keyIdx].nodes.forEach((n) => {
+        const li = document.createElement('li');
+        li.value = n.step;
+        li.textContent = `${QS[n.attr].yes}: ${sideText(n.yes)}. ${QS[n.attr].no}: ${sideText(n.no)}.`;
+        stepsEl!.appendChild(li);
+      });
+    }
+
+    // ---- dynamic state ----
+    function paint(): void {
+      // reset classes
+      edgeOf.forEach((e) => { e.setAttribute('class', 'vk-edge'); });
+      nodeEls.forEach((g) => { g.setAttribute('class', 'vk-node'); });
+      leafEls.forEach((g) => { g.setAttribute('class', 'vk-leaf'); });
+      taken.forEach((t) => {
+        const ns = nodeEls.get(t.node);
+        if (ns) ns.setAttribute('class', 'vk-node vk-on');
+        const child = t.said ? t.node.yes : t.node.no;
+        const es = edgeOf.get(child);
+        if (es) es.setAttribute('class', t.right ? 'vk-edge vk-on' : 'vk-edge vk-bad');
+      });
+      if (!finished && current.kind === 'q') {
+        const ns = nodeEls.get(current);
+        if (ns) ns.setAttribute('class', 'vk-node vk-now');
+      }
+      if (finished && picked) {
+        const ls = leafEls.get(finished);
+        const wrong = finished.org.id !== picked.id;
+        if (ls) ls.setAttribute('class', wrong ? 'vk-leaf vk-wrong' : 'vk-leaf vk-hit');
+        if (wrong) {
+          const own = leafEls.get(leafFor(keyIdx, picked));
+          if (own) own.setAttribute('class', 'vk-leaf vk-own');
+        } else {
+          neighbors(keyIdx, picked).forEach((n) => {
+            const ln = leafEls.get(leafFor(keyIdx, n));
+            if (ln) ln.setAttribute('class', 'vk-leaf vk-nbr');
+          });
+        }
+      }
+    }
+
+    function renderPath(): void {
+      while (pathEl!.firstChild) pathEl!.removeChild(pathEl!.firstChild);
+      taken.forEach((t) => {
+        const li = document.createElement('li');
+        li.value = t.node.step;
+        const a = t.said ? QS[t.node.attr].yes : QS[t.node.attr].no;
+        li.textContent = `Step ${t.node.step}: ${a}.`;
+        if (finished && !t.right) li.textContent += ' This does not match the card.';
+        pathEl!.appendChild(li);
+      });
+    }
+
+    function render(): void {
+      switchBtn!.setAttribute('aria-checked', keyIdx === 1 ? 'true' : 'false');
+      switchText!.textContent = `Reorder the questions: key ${keyIdx + 1}`;
+      cardBtns.forEach((b, i) => b.setAttribute('aria-pressed', picked && ORGS[i].id === picked.id ? 'true' : 'false'));
+      nameEl!.hidden = true;
+      nbrsEl!.hidden = true;
+
+      if (!picked) {
+        cardTitle!.textContent = 'No card yet.';
+        cardTraits!.textContent = '';
+        qText!.textContent = 'Pick a card to start the key.';
+        yesBtn!.disabled = true; noBtn!.disabled = true;
+        yesBtn!.textContent = 'Yes'; noBtn!.textContent = 'No';
+        statusEl!.textContent = 'In this sketch, pick a card to start the key.';
+        paint(); renderPath();
+        return;
+      }
+      cardTitle!.textContent = `Card: ${picked.common}`;
+      cardTraits!.textContent = `What the picture shows: ${picked.traits.join(', ')}.`;
+
+      if (!finished && current.kind === 'q') {
+        const d = QS[current.attr];
+        qText!.textContent = `Step ${current.step}: which fits the card?`;
+        yesBtn!.disabled = false; noBtn!.disabled = false;
+        yesBtn!.textContent = d.yes; noBtn!.textContent = d.no;
+        const n = taken.length;
+        statusEl!.textContent = n === 0
+          ? 'In this sketch, the key starts at step 1. Look at the card and choose.'
+          : `In this sketch, you have answered ${n} ${n === 1 ? 'question' : 'questions'}. Now choose at step ${current.step}.`;
+      } else if (finished) {
+        qText!.textContent = 'The key has reached a name.';
+        yesBtn!.disabled = true; noBtn!.disabled = true;
+        const n = taken.length;
+        const qs = `${n} ${n === 1 ? 'question' : 'questions'}`;
+        const ok = finished.org.id === picked.id;
+        if (ok) {
+          statusEl!.textContent = `In this sketch, key ${keyIdx + 1} names the ${lower(finished.org.common)} after ${qs}.`;
+        } else {
+          statusEl!.textContent = `In this sketch, at least one answer did not match the card, so the key ends at the ${lower(finished.org.common)}. The card shows the ${lower(picked.common)}.`;
+        }
+        nameEl!.hidden = false;
+        nameEl!.textContent = '';
+        const lab = document.createElement('span');
+        lab.textContent = `${finished.org.common}: `;
+        nameEl!.appendChild(lab);
+        if (finished.org.sci) {
+          const i = document.createElement('em');
+          i.textContent = finished.org.sci;
+          nameEl!.appendChild(i);
+        } else {
+          const s = document.createElement('span');
+          s.textContent = 'no scientific name is given for it in the lesson’s key.';
+          nameEl!.appendChild(s);
+        }
+        if (ok) {
+          const n1 = neighbors(0, picked), n2 = neighbors(1, picked);
+          const same = n1.map((o) => o.id).sort().join() === n2.map((o) => o.id).sort().join();
+          nbrsEl!.hidden = false;
+          nbrsEl!.textContent = `In this sketch, next to the ${lower(picked.common)}: key 1 has ${listNames(n1)}; key 2 has ${listNames(n2)}. `
+            + (same ? 'These neighbors match, but the other organisms still moved.' : 'The neighbors change with the order. The name stays the same.');
+        }
+      }
+      paint();
+      renderPath();
+    }
+
+    function startKey(): void {
+      current = trees[keyIdx];
+      taken = [];
+      finished = null;
+      drawTree();
+      writeSteps();
+    }
+
+    function pick(o: Org): void {
+      picked = o;
+      startKey();
+      render();
+    }
+
+    function answer(said: boolean): void {
+      if (!picked || finished || current.kind !== 'q') return;
+      const node = current;
+      const right = (picked.has.indexOf(node.attr) >= 0) === said;
+      taken.push({ node, said, right });
+      const next = said ? node.yes : node.no;
+      if (next.kind === 'leaf') { finished = next; current = next; } else { current = next; }
+      render();
+    }
+
+    yesBtn.addEventListener('click', () => answer(true));
+    noBtn.addEventListener('click', () => answer(false));
+    switchBtn.addEventListener('click', () => {
+      keyIdx = keyIdx === 0 ? 1 : 0;
+      startKey();
+      render();
+    });
+    resetBtn.addEventListener('click', () => {
+      picked = null;
+      keyIdx = 0;
+      startKey();
+      render();
+    });
+
+    startKey();
+    render();
+  });
+</script>
+
+<style is:global>
+  .vk { margin: var(--ddp-space-5) 0; }
+  .vk-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .vk-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .vk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.45rem 0; }
+  .vk-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 6.2em; }
+  .vk-cards { display: flex; flex-wrap: wrap; gap: 0.35rem; flex: 1 1 14rem; }
+  .vk-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .vk-btn:disabled { opacity: 0.45; cursor: default; }
+  .vk-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .vk-cardbtn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .vk-card { border: 1px dashed var(--ddp-color-line); border-radius: 6px; padding: 0.4rem 0.7rem; margin: 0.45rem 0; min-height: 4.2em; }
+  .vk-card-title { margin: 0; font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .vk-card-traits { margin: 0.15rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vk-ask { align-items: flex-start; }
+  .vk-q { flex: 1 1 14rem; }
+  .vk-qtext { margin: 0 0 0.3rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .vk-answers { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .vk-ans { flex: 1 1 11rem; text-align: left; border-color: var(--ddp-color-secondary); color: var(--ddp-color-primary); font-weight: 600; }
+  .vk-switch { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .vk-knob { position: relative; display: inline-block; width: 2.2rem; height: 1.2rem; border-radius: 0.6rem; background: var(--ddp-color-line); flex: none; }
+  .vk-knob::after { content: ""; position: absolute; top: 0.15rem; left: 0.15rem; width: 0.9rem; height: 0.9rem; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); transition: left 0.15s; }
+  .vk-switch[aria-checked="true"] .vk-knob { background: var(--ddp-color-accent); }
+  .vk-switch[aria-checked="true"] .vk-knob::after { left: 1.15rem; }
+  .vk-svg { display: block; width: 100%; max-width: 600px; margin: var(--ddp-space-3) auto 0.3rem; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .vk-legend { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .vk-edge { stroke: #9aa3ad; stroke-width: 2; }
+  .vk-edge.vk-on { stroke: #0e7c86; stroke-width: 4.5; }
+  .vk-edge.vk-bad { stroke: #b3261e; stroke-width: 4.5; stroke-dasharray: 8 5; }
+  .vk-circ { fill: #fff; stroke: #6b7580; stroke-width: 2; }
+  .vk-num { font-size: 16px; font-weight: 700; fill: #2b3137; }
+  .vk-on .vk-circ { fill: #d9f0f1; stroke: #0e7c86; stroke-width: 3; }
+  .vk-now .vk-circ { fill: #fff3d6; stroke: #e57200; stroke-width: 4; }
+  .vk-box { fill: #fff; stroke: #6b7580; stroke-width: 1.5; }
+  .vk-ltxt { font-size: 16px; fill: #2b3137; }
+  .vk-hit .vk-box { fill: #d9f0f1; stroke: #0e7c86; stroke-width: 3.5; }
+  .vk-wrong .vk-box { fill: #fbe3e1; stroke: #b3261e; stroke-width: 3.5; }
+  .vk-own .vk-box { stroke: #b3261e; stroke-width: 3; stroke-dasharray: 6 4; }
+  .vk-nbr .vk-box { fill: #fff3d6; stroke: #e57200; stroke-width: 3; stroke-dasharray: 6 4; }
+  .vk-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .vk-name { margin: 0.3rem 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 600; }
+  .vk-nbrs { margin: 0.3rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vk-path { margin: 0.3rem 0; padding-left: 1.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .vk-steps { margin: 0.4rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vk-steps-title { margin: 0.2rem 0; font-weight: 600; color: var(--ddp-color-primary); }
+  .vk-steps ol { padding-left: 1.4rem; line-height: 1.5; }
+  .vk-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .vk-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  [data-virginiakey] [hidden] { display: none; }
+</style>

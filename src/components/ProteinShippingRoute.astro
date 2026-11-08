@@ -1,0 +1,237 @@
+---
+/**
+ * ProteinShippingRoute: follow one insulin shipment through a model beta cell, one stop at a
+ * time (nucleus, ribosome on the rough ER, vesicle, Golgi apparatus, storage vesicle, cell
+ * membrane), and switch off one cell part to see where the shipment stops. Every rule is a
+ * statement of the organelles-as-a-system lesson. Labelled blocks and arrows only.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="psr card" data-psr>
+  <figcaption class="psr-head">Protein shipping route: switch a cell part off<span class="psr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="psr-svg" viewBox="0 0 360 400" role="img" aria-label="A model beta cell. An insulin shipment passes six stops: nucleus, ribosome on the rough ER, vesicle, Golgi apparatus, storage vesicle and cell membrane. Mitochondria and a lysosome sit at the bottom." data-stage></svg>
+
+  <p class="psr-key"><span class="psr-dot" aria-hidden="true"></span> The orange dot is the insulin shipment. Dashed lines show ATP from the mitochondria.</p>
+
+  <fieldset class="psr-off">
+    <legend>Switch off one cell part</legend>
+    <label><input type="radio" name="psr-off" value="none" checked /> none (all on)</label>
+    <label><input type="radio" name="psr-off" value="nucleus" /> nucleus</label>
+    <label><input type="radio" name="psr-off" value="ribo" /> ribosomes and rough ER</label>
+    <label><input type="radio" name="psr-off" value="golgi" /> Golgi apparatus</label>
+    <label><input type="radio" name="psr-off" value="mito" /> mitochondria</label>
+    <label><input type="radio" name="psr-off" value="lyso" /> lysosomes</label>
+  </fieldset>
+
+  <div class="psr-buttons">
+    <button type="button" class="psr-btn psr-go" data-next>Next step</button>
+    <button type="button" class="psr-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="psr-meters">
+    <div class="psr-meter">
+      <span class="psr-mlabel">ATP supply from the mitochondria (relative units, not to scale)</span>
+      <span class="psr-bar" aria-hidden="true"><span class="psr-fill" data-atp></span></span>
+      <span class="psr-val" data-atpval></span>
+    </div>
+    <p class="psr-count" data-count></p>
+  </div>
+
+  <p class="psr-verdict" data-verdict role="status"></p>
+
+  <p class="psr-foot">In this sketch the shipment moves one stop at a time, only one part is off at once, and a part on the route that is off stops the shipment before its step, and with the mitochondria off it stops at the rough ER. Rule to keep: a secreted protein goes from the nucleus to a ribosome on the rough ER, by vesicle to the Golgi, and out through the membrane, with mitochondria supplying ATP. This is a sketch of the logic, not a measurement.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Off = 'none' | 'nucleus' | 'ribo' | 'golgi' | 'mito' | 'lyso';
+  type Stop = { name: string; sub: string; x: number; y: number; say: string };
+  const W = 150, H = 52;
+  const STOPS: Stop[] = [
+    { name: '1 Nucleus', sub: 'DNA instructions', x: 12, y: 48, say: 'Step 1, nucleus: the cell copies the insulin gene into messenger RNA, which leaves the nucleus.' },
+    { name: '2 Rough ER', sub: 'ribosome builds chain', x: 12, y: 132, say: 'Step 2, ribosome on the rough ER: a ribosome reads the messenger RNA and builds a protein chain. The chain folds in the ER.' },
+    { name: '3 Vesicle', sub: 'carries it to Golgi', x: 12, y: 216, say: 'Step 3, vesicle: a small bubble of membrane buds off the ER and delivers the protein to the Golgi apparatus.' },
+    { name: '4 Golgi apparatus', sub: 'sorts and packs', x: 198, y: 216, say: 'Step 4, Golgi apparatus: the Golgi sorts the protein and packs it into new vesicles.' },
+    { name: '5 Storage vesicle', sub: 'stored until needed', x: 198, y: 132, say: 'Step 5, storage vesicle: insulin is stored in these vesicles until it is needed.' },
+    { name: '6 Cell membrane', sub: 'releases insulin', x: 198, y: 48, say: 'Step 6, cell membrane: when blood sugar rises, more vesicles fuse with the membrane and release insulin outside the cell.' },
+  ];
+  // Which stop (1 to 6) each switched-off part is, and how far the shipment can get (0 to 6).
+  const LIMIT: Record<Off, number> = { none: 6, nucleus: 0, ribo: 1, golgi: 3, mito: 2, lyso: 6 };
+  const OFFSTOP: Record<Off, number> = { none: -1, nucleus: 1, ribo: 2, golgi: 4, mito: -1, lyso: -1 };
+  const PICK: Record<Off, string> = {
+    none: 'Every part is on.',
+    nucleus: 'The nucleus is switched off.',
+    ribo: 'The ribosomes and rough ER are switched off.',
+    golgi: 'The Golgi apparatus is switched off.',
+    mito: 'The mitochondria are switched off, so the ATP supply is zero.',
+    lyso: 'The lysosomes are switched off. They are not a stop on this route.',
+  };
+  const BLOCKED: Record<Off, string> = {
+    none: '',
+    nucleus: 'Stopped before it starts. No messenger RNA copy of the insulin gene leaves, so no ribosome has instructions to read.',
+    ribo: 'Stopped after the nucleus. Without ribosomes and rough ER no protein chain is built or folded, so nothing goes on.',
+    golgi: 'Stopped before the Golgi. The vesicle arrives, but the Golgi cannot sort and pack the protein, so no storage vesicle forms.',
+    mito: 'Stopped at the rough ER. In a 1968 experiment on pancreas cells, chemicals that blocked the mitochondria’s ATP making also stopped proteins moving from the rough ER to the Golgi. This sketch stops the shipment there.',
+    lyso: 'Done: 6 of 6 stops. Insulin still leaves. A lysosome breaks down worn-out cell parts, so over days worn-out parts might build up.',
+  };
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-psr]').forEach((root) => {
+    const stageQ = root.querySelector<SVGSVGElement>('[data-stage]');
+    const nextQ = root.querySelector<HTMLButtonElement>('[data-next]');
+    const resetQ = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const verdictQ = root.querySelector<HTMLElement>('[data-verdict]');
+    const countQ = root.querySelector<HTMLElement>('[data-count]');
+    const atpQ = root.querySelector<HTMLElement>('[data-atp]');
+    const atpValQ = root.querySelector<HTMLElement>('[data-atpval]');
+    if (!stageQ || !nextQ || !resetQ || !verdictQ || !countQ || !atpQ || !atpValQ) return;
+    const stage: SVGSVGElement = stageQ, next: HTMLButtonElement = nextQ, reset: HTMLButtonElement = resetQ;
+    const verdict: HTMLElement = verdictQ, count: HTMLElement = countQ, atp: HTMLElement = atpQ, atpVal: HTMLElement = atpValQ;
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="psr-off"]'));
+    let pos = 0;          // stops reached, 0 to 6
+    let blocked = false;  // the learner pressed Next at the limit
+    let intro = '';       // sentence shown right after a switch or reset
+
+    function off(): Off {
+      const r = radios.find((x) => x.checked);
+      return (r ? r.value : 'none') as Off;
+    }
+    function node(i: number) { return STOPS[i]; }
+
+    function draw(o: Off) {
+      stage.replaceChildren();
+      const INK = '#2b2b33', FAINT = '#6b6b76', TEAL = '#0e7c86', RED = '#b3261e', ORANGE = '#e57200';
+      const mitoOff = o === 'mito', lysoOff = o === 'lyso';
+      // cell outline and the outside
+      stage.appendChild(el('text', { x: 273, y: 13, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'outside the cell'));
+      stage.appendChild(el('rect', { x: 4, y: 34, width: 352, height: 360, rx: 36, fill: '#f6fafa', stroke: '#8aa6a8', 'stroke-width': 2 }));
+      // ATP supply lines: bus under the route, up to the vesicle and the Golgi
+      const atpCol = mitoOff ? '#c4c4cc' : ORANGE;
+      const dash = { 'stroke-dasharray': '4 3', 'stroke-width': 2, stroke: atpCol, fill: 'none' };
+      stage.appendChild(el('path', { d: 'M87 322 V268', ...dash }));
+      stage.appendChild(el('path', { d: 'M87 296 H273 V268', ...dash }));
+      stage.appendChild(el('text', { x: 180, y: 288, 'font-size': 11, 'text-anchor': 'middle', fill: mitoOff ? FAINT : INK }, mitoOff ? 'no ATP' : 'ATP for the work along the route'));
+      // route arrows
+      const arrows: [number, number, number, number][] = [
+        [87, 100, 87, 130], [87, 184, 87, 214], [162, 242, 196, 242], [273, 216, 273, 186], [273, 132, 273, 102], [273, 48, 273, 28],
+      ];
+      arrows.forEach(([x1, y1, x2, y2], i) => {
+        const done = i < pos - 1 || (i === 5 && pos === 6);
+        const col = done ? TEAL : '#9a9aa6';
+        stage.appendChild(el('line', { x1, y1, x2, y2, stroke: col, 'stroke-width': 3 }));
+        const dx = Math.sign(x2 - x1), dy = Math.sign(y2 - y1);
+        const head = dx !== 0
+          ? `M${x2} ${y2} l${-7 * dx} -5 v10 z`
+          : `M${x2} ${y2} l-5 ${-7 * dy} h10 z`;
+        stage.appendChild(el('path', { d: head, fill: col }));
+      });
+      // a stop mark on the arrow the shipment cannot cross
+      if (blocked && pos >= 1 && pos < 6) {
+        const [x1, y1, x2, y2] = arrows[pos - 1];
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        const sx = x1 === x2 ? mx + 18 : mx, sy = x1 === x2 ? my + 5 : my - 8;
+        stage.appendChild(el('text', { x: sx, y: sy, 'font-size': 16, 'font-weight': 700, 'text-anchor': 'middle', fill: RED }, '✕'));
+      }
+      // the six stops
+      STOPS.forEach((s, i) => {
+        const n = i + 1;
+        const isOff = OFFSTOP[o] === n;
+        const reached = n <= pos;
+        const here = n === pos;
+        let fill = '#fff', stroke = '#8a8a96', txt = INK, sw = 1.5, sd = '';
+        if (isOff) { fill = '#ececf0'; stroke = '#8a8a96'; txt = FAINT; sd = '5 3'; }
+        else if (here) { fill = TEAL; stroke = TEAL; txt = '#fff'; sw = 2.5; }
+        else if (reached) { fill = '#dff0f1'; stroke = TEAL; sw = 2; }
+        stage.appendChild(el('rect', { x: s.x, y: s.y, width: W, height: H, rx: 9, fill, stroke, 'stroke-width': sw, ...(sd ? { 'stroke-dasharray': sd } : {}) }));
+        stage.appendChild(el('text', { x: s.x + W / 2, y: s.y + 21, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: txt }, s.name));
+        stage.appendChild(el('text', { x: s.x + W / 2, y: s.y + 40, 'font-size': 11, 'text-anchor': 'middle', fill: isOff ? RED : txt }, isOff ? 'SWITCHED OFF' : s.sub));
+      });
+      // shipment dot
+      if (pos === 0) {
+        const s = node(0);
+        stage.appendChild(el('circle', { cx: s.x + 2, cy: s.y - 2, r: 8, fill: ORANGE, stroke: '#fff', 'stroke-width': 2 }));
+      } else {
+        const s = node(pos - 1);
+        stage.appendChild(el('circle', { cx: s.x + W - 4, cy: s.y + 2, r: 8, fill: ORANGE, stroke: '#fff', 'stroke-width': 2 }));
+      }
+      // mitochondria and lysosome, beside the route
+      const side = (x: number, name: string, sub: string, isOff: boolean) => {
+        stage.appendChild(el('rect', { x, y: 322, width: W, height: H, rx: 9, fill: isOff ? '#ececf0' : '#fff', stroke: '#8a8a96', 'stroke-width': 1.5, ...(isOff ? { 'stroke-dasharray': '5 3' } : {}) }));
+        stage.appendChild(el('text', { x: x + W / 2, y: 343, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: isOff ? FAINT : INK }, name));
+        stage.appendChild(el('text', { x: x + W / 2, y: 362, 'font-size': 11, 'text-anchor': 'middle', fill: isOff ? RED : INK }, isOff ? 'SWITCHED OFF' : sub));
+      };
+      side(12, 'Mitochondria', 'supply ATP', mitoOff);
+      side(198, 'Lysosome', 'not a stop on this route', lysoOff);
+    }
+
+    function render() {
+      const o = off();
+      draw(o);
+      const lim = LIMIT[o];
+      const finished = pos === 6;
+      const stuck = blocked && pos === lim && lim < 6;
+      atp.style.width = o === 'mito' ? '0%' : '100%';
+      atpVal.textContent = o === 'mito' ? '0 of 100' : '100 of 100';
+      count.textContent = stuck
+        ? `Stops reached: ${pos} of 6. The shipment is stuck.`
+        : `Stops reached: ${pos} of 6.`;
+      let v: string;
+      if (finished) v = o === 'lyso' ? `${STOPS[5].say} ${BLOCKED.lyso}` : `${STOPS[5].say} All 6 stops are done in this sketch.`;
+      else if (stuck) v = BLOCKED[o];
+      else if (pos === 0) v = `${intro || 'The shipment is waiting at the start.'} Predict how far it gets, then press Next step.`;
+      else v = STOPS[pos - 1].say;
+      verdict.textContent = v;
+      next.disabled = finished;
+      next.textContent = pos === 0 ? 'Start: next step' : 'Next step';
+    }
+
+    next.addEventListener('click', () => {
+      const lim = LIMIT[off()];
+      if (pos < lim) pos += 1;
+      else if (pos < 6) blocked = true;
+      render();
+    });
+    function restart(say: string) { pos = 0; blocked = false; intro = say; render(); }
+    reset.addEventListener('click', () => {
+      const r = radios.find((x) => x.value === 'none');
+      if (r) r.checked = true;
+      restart('Every part is on.');
+    });
+    radios.forEach((r) => r.addEventListener('change', () => restart(PICK[off()])));
+    render();
+  });
+</script>
+
+<style is:global>
+  .psr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .psr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .psr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .psr-svg { display: block; width: 100%; max-width: 420px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .psr .psr-key { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .psr-dot { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; background: #e57200; vertical-align: -0.05em; }
+  .psr-off { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-3); padding: 0.3rem 0.6rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .psr-off legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .psr-off label { display: flex; align-items: center; gap: 0.5rem; min-height: 44px; cursor: pointer; }
+  .psr-off input { accent-color: var(--ddp-color-accent); width: 1.2rem; height: 1.2rem; flex: none; }
+  .psr-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--ddp-space-3); }
+  .psr-btn { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.4rem 1rem; cursor: pointer; }
+  .psr-go { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .psr-btn:disabled { opacity: 0.5; cursor: default; }
+  .psr-btn:focus-visible, .psr-off input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .psr-meters { margin-bottom: var(--ddp-space-2); }
+  .psr-meter { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 0.6rem; align-items: center; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .psr-mlabel { grid-column: 1 / -1; }
+  .psr-bar { display: block; height: 14px; background: #ececf0; border-radius: 7px; overflow: hidden; }
+  .psr-fill { display: block; height: 100%; background: #e57200; transition: width 0.25s; }
+  .psr-val { font-family: var(--ddp-font-mono); }
+  .psr .psr-count { margin: 0.4rem 0 0; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .psr .psr-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .psr .psr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 420px) { .psr-off { grid-template-columns: 1fr; } }
+</style>

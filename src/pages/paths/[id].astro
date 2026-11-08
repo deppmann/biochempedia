@@ -1,0 +1,143 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LessonIcon from '../../components/LessonIcon.astro';
+import { PATHS, type LearningPath } from '../../data/paths';
+import { COURSES, courseHref } from '../../data/courses';
+
+export function getStaticPaths() {
+  return PATHS.map((p) => ({ params: { id: p.id }, props: { path: p } }));
+}
+
+const { path } = Astro.props as { path: LearningPath };
+const lessons = (await getCollection('lessons', ({ data }) => !data.draft))
+  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+// Only courses that are live today; a path never links to an empty course.
+const steps = path.steps
+  .map((s) => ({ ...s, course: COURSES.find((c) => c.slug === s.course)!, lessons: lessons.filter((l) => l.data.course === s.course) }))
+  .filter((s) => s.course && s.lessons.length > 0);
+const firstIcon = (s: (typeof steps)[number]) => s.lessons[0].data.slug;
+---
+
+<BaseLayout title={`${path.title} — Biochemistrypedia`} description={path.blurb}>
+  <article class="wrap path" data-path={path.id}>
+    <p class="eyebrow"><a href="/paths/">Paths</a> · {path.who}</p>
+    <h1>{path.title}</h1>
+    <p class="lede">{path.blurb}</p>
+    <p class="mine-row" data-mine-row hidden>
+      <button type="button" class="mine-btn" data-mine-btn aria-pressed="false">Make this my path</button>
+      <span class="mine-note" data-mine-note>Saved on this device only.</span>
+    </p>
+
+    <ol class="steps">
+      {steps.map((s, i) => (
+        <li class={`step${s.optional ? ' is-optional' : ''}`} data-step data-slugs={s.lessons.map((l) => l.data.slug).join(' ')}
+            data-titles={JSON.stringify(s.lessons.map((l) => l.data.title))}>
+          <span class="step-n" aria-hidden="true">{i + 1}</span>
+          <span class="step-ico"><LessonIcon slug={firstIcon(s)} size={48} /></span>
+          <div class="step-body">
+            <p class="step-kicker">{s.optional ? 'Optional · ' : ''}{s.lessons.length} lessons</p>
+            <h2 class="step-title"><a href={courseHref(s.course.slug)}>{s.course.title}</a></h2>
+            <p class="step-why">{s.why}</p>
+            <div class="step-bar" data-bar-wrap hidden><span class="step-bar-fill" data-bar></span></div>
+            <p class="step-go">
+              <a class="go" href={`/lessons/${s.lessons[0].data.slug}/`} data-go>Start: {s.lessons[0].data.title} →</a>
+              <span class="step-count" data-count></span>
+            </p>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    {path.notes && (
+      <section class="notes" aria-label="Good to know">
+        {path.notes.map((n) => (
+          <p>
+            {n.text}
+            {n.links && <>{' '}{n.links.map((l, i) => <>{i > 0 && ' · '}<a href={l.href} rel="noopener">{l.label}</a></>)}</>}
+          </p>
+        ))}
+      </section>
+    )}
+    {path.extras && (
+      <p class="extras">{path.extras.map((x, i) => <>{i > 0 && ' · '}<a href={x.href}>{x.label}</a></>)}</p>
+    )}
+    <p class="extras"><a href="/progress/">Your progress and review queue →</a> · <a href="/paths/">Other paths</a></p>
+  </article>
+
+  <script>
+    import { load, setPath, onChange } from '../../lib/progress';
+
+    const root = document.querySelector<HTMLElement>('[data-path]')!;
+    const id = root.getAttribute('data-path')!;
+    const row = root.querySelector<HTMLElement>('[data-mine-row]');
+    const btn = root.querySelector<HTMLButtonElement>('[data-mine-btn]');
+    if (row) row.hidden = false;
+    btn?.addEventListener('click', () => setPath(btn.getAttribute('aria-pressed') === 'true' ? null : id));
+
+    onChange(() => {
+      const p = load();
+      const mine = p.path === id;
+      if (btn) {
+        btn.setAttribute('aria-pressed', String(mine));
+        btn.textContent = mine ? '✓ This is your path' : 'Make this my path';
+      }
+      root.querySelectorAll<HTMLElement>('[data-step]').forEach((step) => {
+        const slugs = step.getAttribute('data-slugs')!.split(' ');
+        const titles: string[] = JSON.parse(step.getAttribute('data-titles')!);
+        const done = slugs.filter((s) => p.lessons[s]?.d).length;
+        const started = slugs.some((s) => p.lessons[s]);
+        const wrap = step.querySelector<HTMLElement>('[data-bar-wrap]');
+        const bar = step.querySelector<HTMLElement>('[data-bar]');
+        const count = step.querySelector<HTMLElement>('[data-count]');
+        const go = step.querySelector<HTMLAnchorElement>('[data-go]');
+        if (wrap) wrap.hidden = !started;
+        if (bar) bar.style.width = `${(done / slugs.length) * 100}%`;
+        if (count) count.textContent = started ? `${done} of ${slugs.length} done` : '';
+        const next = slugs.findIndex((s) => !p.lessons[s]?.d);
+        if (go) {
+          if (next === -1) { go.href = `/lessons/${slugs[0]}/`; go.textContent = 'Finished. Revisit →'; }
+          else { go.href = `/lessons/${slugs[next]}/`; go.textContent = `${started ? 'Continue' : 'Start'}: ${titles[next]} →`; }
+        }
+        step.classList.toggle('is-done', next === -1);
+      });
+    });
+  </script>
+
+  <style>
+    .path { padding-block: var(--ddp-space-12); }
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0 0 var(--ddp-space-2); }
+    .eyebrow a { color: inherit; text-underline-offset: 3px; }
+    h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
+    .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 62ch; margin: var(--ddp-space-3) 0 0; }
+    .mine-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); margin: var(--ddp-space-5) 0 0; }
+    .mine-row[hidden] { display: none; }
+    .mine-btn { min-height: 44px; padding: 0.45em 1.1em; font: inherit; font-weight: 700; cursor: pointer; border-radius: 999px; border: 1.5px solid var(--ddp-color-primary); background: var(--ddp-color-primary); color: var(--ddp-color-surface); }
+    .mine-btn[aria-pressed='true'] { background: var(--ddp-color-verified-soft); border-color: var(--ddp-color-verified); color: var(--ddp-color-verified); }
+    .mine-note { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .steps { list-style: none; padding: 0; margin: var(--ddp-space-8) 0 0; display: flex; flex-direction: column; gap: var(--ddp-space-4); max-width: 820px; }
+    .step { display: grid; grid-template-columns: auto auto 1fr; gap: var(--ddp-space-4); align-items: start; padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); }
+    .step.is-optional { border-style: dashed; }
+    .step.is-done { border-color: var(--ddp-color-verified); }
+    .step-n { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-muted); padding-top: 0.2em; }
+    .step-body p { margin: 0; }
+    .step-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .step-title { margin: var(--ddp-space-1, 0.25rem) 0 0; font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-xl, 1.4rem); }
+    .step-title a { color: var(--ddp-color-primary); text-decoration: none; }
+    .step-title a:hover { text-decoration: underline; }
+    .step-why { margin-top: var(--ddp-space-2) !important; color: var(--ddp-color-ink-soft); line-height: 1.5; }
+    .step-bar { height: 6px; border-radius: 3px; background: var(--ddp-color-line); overflow: hidden; margin-top: var(--ddp-space-3); max-width: 360px; }
+    .step-bar[hidden] { display: none; }
+    .step-bar-fill { display: block; height: 100%; width: 0; background: var(--ddp-color-verified); transition: width 0.3s ease; }
+    .step-go { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); margin-top: var(--ddp-space-3) !important; }
+    .go { font-weight: 700; color: var(--ddp-color-accent); }
+    .step-count { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-verified); }
+    .notes { max-width: 820px; margin-top: var(--ddp-space-8); padding: var(--ddp-space-4) var(--ddp-space-5); border-left: 4px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 6px; }
+    .notes p { margin: 0; line-height: 1.55; }
+    .notes p + p { margin-top: var(--ddp-space-3); }
+    .notes a, .extras a { color: var(--ddp-color-accent); }
+    .extras { margin: var(--ddp-space-5) 0 0; }
+    @media (max-width: 560px) { .step { grid-template-columns: auto 1fr; } .step-ico { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .step-bar-fill { transition: none; } }
+  </style>
+</BaseLayout>

@@ -1,23 +1,25 @@
 ---
 /**
- * FedFastedTimeline — "hours since your last meal." The other islands sit inside one pathway;
+ * FedFastedTimeline — "time since your last meal." The other islands sit inside one pathway;
  * this one zooms all the way out to the whole-body fuel economy and lets you scrub time. Drag
- * the slider from a fresh meal out to three days of fasting and watch the body hand the job of
- * defending blood glucose from one source to the next: the plate, then liver glycogen, then
- * gluconeogenesis, then ketones. The hormonal switch (insulin vs. glucagon) flips with it, and
- * four organs — liver, adipose, muscle, brain — change what they burn and what they export. The
- * payoff is the brain's slow pivot to ketone bodies, the adaptation that lets us outlast a long
- * fast without dismantling our own muscle. Self-contained vanilla-TS Astro island. Original.
+ * the slider from a fresh meal out to five weeks of fasting and watch who pays for blood glucose:
+ * the plate, then liver glycogen and new glucose together (about half each overnight), then
+ * almost all new glucose, stretched by ketones. The time axis is linear for the first three days
+ * and compressed from day 3 to week 5. The insulin : glucagon ratio flips with it, four organs —
+ * liver, adipose, muscle, brain — change what they burn and export, and a "new glucose carbon"
+ * line keeps the accounting honest (lactate only recycles; glycerol and amino acids are new).
+ * The payoff is the brain's slow pivot to ketone bodies over days to weeks, the adaptation that
+ * spares muscle protein in a long fast. Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
 <figure class="fft card" data-fedfast>
-  <figcaption class="fft-head">Hours since your last meal — how the body switches fuels<span class="fft-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="fft-head">Time since your last meal — how the body switches fuels<span class="fft-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="fft-svg" viewBox="0 0 460 200" role="img" aria-label="Schematic timeline: after a meal, blood glucose is supplied first by the meal, then by liver glycogen, then by gluconeogenesis, while blood ketone bodies rise over the first three days of fasting" data-svg></svg>
+  <svg class="fft-svg" viewBox="0 0 460 208" role="img" aria-label="Schematic timeline from a meal to five weeks of fasting: blood glucose is supplied first by the meal, then by liver glycogen and new glucose together, then almost entirely by new glucose; blood ketone bodies rise to about 2 to 3 mM by day three and 7 to 8 mM by five weeks, when the brain burns about two-thirds ketones" data-svg></svg>
 
   <label class="fft-slabel"><span>Drag to set the time since your last meal: <em data-out="time">0 h</em></span>
-    <input type="range" data-in="time" min="0" max="72" step="1" value="0" />
+    <input type="range" data-in="time" min="0" max="200" step="1" value="0" />
   </label>
 
   <div class="fft-state" role="status">
@@ -25,6 +27,7 @@
     <span class="fft-hormone" data-hormone></span>
   </div>
   <p class="fft-glucose" data-glucose></p>
+  <p class="fft-carbon"><span class="fft-carbon-k">New glucose carbon from:</span> <span data-carbon></span></p>
 
   <div class="fft-organs">
     <div class="fft-organ"><span class="fft-o-name">Liver</span><span class="fft-o-job" data-liver></span></div>
@@ -33,11 +36,11 @@
     <div class="fft-organ"><span class="fft-o-name">Brain</span><span class="fft-o-job" data-brain></span></div>
   </div>
 
-  <p class="fft-foot">The body never lets blood glucose drift far — it just keeps changing who pays for it. For the first few hours the meal covers the bill; then liver glycogen, good for maybe a day; then gluconeogenesis, built from lactate, the glycerol off your fat, and amino acids pulled from muscle. Run that too long and you would burn through your own muscle. The escape hatch is ketogenesis: the liver ships ketone bodies the brain learns to burn, cutting its glucose demand from roughly 120 to 40 grams a day. That single adaptation is the reason a healthy person survives weeks without food instead of days.</p>
+  <p class="fft-foot">The body never lets blood glucose drift far — it just keeps changing who pays for it. First the meal covers the bill; then liver glycogen and new glucose share it, about half each overnight; by the second or third day it is almost all new glucose. The stages blend. New glucose is built from the glycerol off your fat and amino acids pulled from muscle (lactate only recycles carbon the body already had). Run that too long and you would burn through your own muscle. The escape hatch is ketogenesis: the liver ships ketone bodies the brain learns to burn, cutting its glucose need from roughly 120 to 40 grams a day over days to weeks. That protein-sparing adaptation is what makes a long fast survivable.</p>
 </figure>
 
 <script>
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', PLUM = '#5b4a8a';
   const SVGNS = 'http://www.w3.org/2000/svg';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(SVGNS, name);
@@ -46,94 +49,144 @@
   }
 
   type State = {
-    name: string; color: string; hormone: string; glucose: string;
+    name: string; color: string; hormone: string; glucose: string; carbon: string;
     liver: string; adipose: string; muscle: string; brain: string;
   };
-  // four whole-body states keyed by hours since eating
+  const H3D = 72, H5W = 840; // 3 days and 5 weeks, in hours
+  // whole-body states keyed by hours since eating (rows of the lesson's fast table)
   function stateFor(h: number): State {
     if (h < 4) return {
       name: 'FED · absorptive', color: ORANGE,
-      hormone: 'Insulin high · glucagon low',
+      hormone: 'Insulin : glucagon — high',
       glucose: 'Keeping blood glucose up right now: the meal itself — dietary carbohydrate is still being absorbed.',
-      liver: 'Storing glycogen and converting excess glucose into fat.',
-      adipose: 'Storing incoming fat as triglyceride.',
+      carbon: 'none needed; the meal supplies the glucose.',
+      liver: 'Storing glycogen; can also turn surplus glucose into fat.',
+      adipose: 'Storing incoming fat, mostly from the meal, as triglyceride.',
       muscle: 'Taking up glucose and topping off its own glycogen.',
       brain: 'Burning glucose, as always.',
     };
     if (h < 16) return {
-      name: 'POSTABSORPTIVE · early fast', color: GOLD,
-      hormone: 'Insulin falling · glucagon rising',
-      glucose: 'Keeping blood glucose up right now: liver glycogenolysis — the liver breaks down its glycogen and releases glucose.',
-      liver: 'Glycogenolysis: breaking glycogen back down to glucose and exporting it.',
+      name: 'OVERNIGHT FAST', color: GOLD,
+      hormone: 'Insulin : glucagon — falling',
+      glucose: 'Keeping blood glucose up right now: liver glycogen and new glucose (gluconeogenesis) together, about half each by the end of an overnight fast.',
+      carbon: 'glycerol + amino acids (lactate only recycles).',
+      liver: 'Breaking down glycogen and already making new glucose; exporting both.',
       adipose: 'Beginning to release fatty acids as insulin falls.',
       muscle: 'Shifting toward burning fatty acids to spare glucose.',
-      brain: 'Still glucose-only.',
+      brain: 'Still glucose only.',
     };
-    if (h < 48) return {
+    if (h < 24) return {
+      name: 'OVERNIGHT FAST', color: GOLD,
+      hormone: 'Insulin : glucagon — falling',
+      glucose: 'Keeping blood glucose up right now: mostly new glucose (gluconeogenesis); liver glycogen is running down.',
+      carbon: 'glycerol + amino acids (lactate only recycles).',
+      liver: 'Making more and more new glucose as its glycogen runs down.',
+      adipose: 'Releasing more fatty acids as insulin keeps falling.',
+      muscle: 'Burning mostly fatty acids, sparing glucose for the brain.',
+      brain: 'Still glucose only.',
+    };
+    if (h < H3D) return {
       name: 'FASTING', color: ACCENT,
-      hormone: 'Glucagon dominant · insulin low',
-      glucose: 'Keeping blood glucose up right now: gluconeogenesis — the liver builds new glucose from lactate, alanine, and glycerol.',
-      liver: 'Gluconeogenesis: making new glucose from lactate, alanine, and glycerol.',
+      hormone: 'Insulin : glucagon — low',
+      glucose: 'Keeping blood glucose up right now: mostly new glucose (gluconeogenesis); glycogen is nearly spent.',
+      carbon: 'glycerol + amino acids (lactate only recycles).',
+      liver: 'Gluconeogenesis: new glucose from glycerol and amino acids (new carbon), plus lactate recycled from red cells and muscle. Ketone-body output is climbing.',
       adipose: 'Lipolysis in full swing, flooding the blood with free fatty acids.',
-      muscle: 'Burning fatty acids and ketones, sparing glucose for the brain — and breaking down some protein to send alanine to the liver.',
+      muscle: 'Burning fatty acids and ketones, sparing glucose for the brain — and breaking down protein to send amino acids (as alanine) to the liver.',
       brain: 'Still mostly glucose, but ketone use is starting to climb.',
     };
+    if (h < 14 * 24) return {
+      name: 'PROLONGED FAST · days', color: PLUM,
+      hormone: 'Insulin : glucagon — low',
+      glucose: 'Keeping blood glucose up right now: new glucose only, from the liver and, more and more, the kidney.',
+      carbon: 'glycerol + amino acids, kidney\u2019s share rising.',
+      liver: 'Ketogenesis in full swing: fatty acids become ketone bodies for export, while gluconeogenesis continues.',
+      adipose: 'Sustained lipolysis — fat is now the body\u2019s main fuel reserve.',
+      muscle: 'Burning fatty acids and ketones; protein breakdown near its peak at about day three, then falling as ketones spare it.',
+      brain: 'Glucose, with more and more ketone bodies. Over days to weeks this cuts its glucose need from about 120 to about 40 g a day.',
+    };
     return {
-      name: 'STARVATION', color: NAVY,
-      hormone: 'Glucagon dominant · insulin minimal',
-      glucose: 'Keeping blood glucose up right now: still gluconeogenesis, though ketones increasingly spare it. The more ketone bodies the brain burns, the less glucose (and muscle protein) the liver has to spend.',
-      liver: 'Ketogenesis ramps up — fatty acids become ketone bodies for export — while gluconeogenesis continues.',
-      adipose: 'Sustained lipolysis — fat is now the body’s main fuel reserve.',
-      muscle: 'Burning fatty acids and ketones; protein breakdown slows as ketones spare it.',
-      brain: 'Adapting: ketone bodies supply a growing share of its fuel. Over several days this cuts its glucose need from ~120 to ~40 g/day, sparing muscle protein.',
+      name: 'PROLONGED FAST · weeks', color: NAVY,
+      hormone: 'Insulin : glucagon — low',
+      glucose: 'Keeping blood glucose up right now: new glucose only, with the kidney now making about as much as the liver.',
+      carbon: 'same, but far less protein needed as ketones feed the brain.',
+      liver: 'Making ketone bodies (blood levels about 7\u20138 mM) and less glucose than early in the fast.',
+      adipose: 'Sustained lipolysis — fat is the body\u2019s main fuel reserve.',
+      muscle: 'Burning mostly fatty acids; protein breakdown well below its day-three peak.',
+      brain: 'About two-thirds ketone bodies; its glucose need is down to roughly 40 g a day, so far less muscle protein is spent.',
     };
   }
 
+  // Time axis: linear for 0-72 h across the left 60% of the plot, then 3 d-5 wk compressed
+  // (log time) into the right 40%. The slider runs 0-200 in the same fraction, so it tracks the plot.
+  const LSPAN = Math.log(H5W / H3D);
+  const frac = (h: number) => (h <= H3D ? 0.6 * h / H3D : 0.6 + 0.4 * Math.log(h / H3D) / LSPAN);
+  const hoursAt = (f: number) => (f <= 0.6 ? H3D * f / 0.6 : H3D * Math.exp(((f - 0.6) / 0.4) * LSPAN));
+  // whole hours up to 3 days, whole days after
+  const snap = (h: number) => (h < H3D ? Math.round(h) : Math.round(h / 24) * 24);
+  // piecewise-linear in plot position through [hours, value] anchors
+  const interp = (h: number, pts: [number, number][]) => {
+    const f = frac(h);
+    for (let i = 1; i < pts.length; i++) {
+      const fa = frac(pts[i - 1][0]), fb = frac(pts[i][0]);
+      if (f <= fb) return pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * ((f - fa) / (fb - fa || 1));
+    }
+    return pts[pts.length - 1][1];
+  };
+
   // Schematic (shape, not data) of who supplies blood glucose, after Cahill's classic picture:
-  // the meal first, then liver glycogen, then gluconeogenesis — handing off gradually, with the
-  // glycogen / gluconeogenesis split roughly even after an overnight fast. Shares sum to 1.
+  // the meal first, then liver glycogen and gluconeogenesis sharing the load (about half each
+  // at 12 h), then almost all gluconeogenesis by day 2-3. Shares sum to 1.
   const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
   function supply(h: number): [number, number, number] {
     const meal = 1 - smooth(1.5, 5, h);
     const glycFrac = 1 / (1 + Math.exp((h - 12) / 4.5));
     return [meal, (1 - meal) * glycFrac, (1 - meal) * (1 - glycFrac)];
   }
-  // blood ketone bodies, relative to their 72-h level: low for a day, then climbing steeply
-  const ketone = (h: number) => 0.03 + 0.97 * Math.pow(h / 72, 1.6);
+  // blood ketone bodies in mM, rounded from the lesson's table (2 h, 12 h, 24 h, 3 d, 5 wk)
+  const KET: [number, number][] = [[0, 0.1], [4, 0.1], [12, 0.15], [24, 0.4], [H3D, 2.5], [H5W, 7.5]];
+  const KET_MAX = 8;
+  // schematic ketone share of the brain's fuel: none to ~24 h, "more" by day 3, about two-thirds at 5 weeks
+  const BRAIN_K: [number, number][] = [[0, 0], [24, 0], [H3D, 0.3], [H5W, 2 / 3]];
 
-  const BOUNDS = [0, 4, 16, 48, 72];
-  const BAND_FILL = [ORANGE, GOLD, ACCENT, NAVY];
-  const BAND_LABEL = ['Fed', 'Early fast', 'Fasting', 'Starvation'];
+  const BOUNDS = [0, 4, 24, H3D, H5W];
+  const BAND_FILL = [ORANGE, GOLD, ACCENT, PLUM];
+  const BAND_LABEL = ['Fed', 'Overnight', 'Fasting', 'Prolonged fast'];
+  const TICKS: [number, string][] = [[0, '0'], [4, '4'], [12, '12'], [24, '24 h'], [H3D, '3 d'], [168, '1 wk'], [H5W, '5 wk']];
   const MUTED = '#6b6b6b', GOLD_INK = '#7f6315', ORANGE_INK = '#b35900';
 
   function draw(svg: SVGElement, h: number, s: State) {
     const W = Math.round(Math.max(300, Math.min(760, svg.getBoundingClientRect().width || 460)));
     const x0 = 36, x1 = W - 14, span = x1 - x0;
-    const X = (t: number) => x0 + (t / 72) * span;
+    const X = (t: number) => x0 + frac(t) * span;
     const pT = 34, pB = 116;            // stacked-area plot
-    const kT = 128, kB = 150;           // ketone strip
-    const bT = 158, bB = 178;           // state band
-    const H = 200;
+    const kT = 122, kB = 142;           // ketone strip
+    const rT = 147, rB = 160;           // brain-fuel strip
+    const bT = 166, bB = 186;           // state band
+    const H = 208;
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     const add = (n: string, a: Record<string, string | number>, t?: string) => { const e = el(n, a); if (t !== undefined) e.textContent = t; svg.appendChild(e); return e; };
+    const halo = { stroke: '#fff', 'stroke-width': 2.5, 'paint-order': 'stroke', 'stroke-linejoin': 'round' };
 
     // --- stacked area: share of blood-glucose supply ---------------------------------------
     add('text', { x: x0, y: 13, fill: NAVY, 'font-size': 11.5, 'font-weight': 700 }, 'Who is supplying blood glucose?');
     add('text', { x: x1, y: 13, 'text-anchor': 'end', fill: MUTED, 'font-size': 10 }, 'schematic');
-    const N = 144, pts: [number, number, number][] = [];
-    for (let i = 0; i <= N; i++) { const t = (i / N) * 72; pts.push(supply(t)); }
+    const N = 200, hs: number[] = [], pts: [number, number, number][] = [];
+    for (let i = 0; i <= N; i++) { const t = hoursAt(i / N); hs.push(t); pts.push(supply(t)); }
     const Y = (f: number) => pB - f * (pB - pT);
     const layer = (lo: (p: [number, number, number]) => number, hi: (p: [number, number, number]) => number, fill: string) => {
       let d = '';
-      pts.forEach((p, i) => { d += `${i ? 'L' : 'M'}${X((i / N) * 72).toFixed(1)},${Y(hi(p)).toFixed(1)}`; });
-      for (let i = N; i >= 0; i--) d += `L${X((i / N) * 72).toFixed(1)},${Y(lo(pts[i])).toFixed(1)}`;
+      pts.forEach((p, i) => { d += `${i ? 'L' : 'M'}${X(hs[i]).toFixed(1)},${Y(hi(p)).toFixed(1)}`; });
+      for (let i = N; i >= 0; i--) d += `L${X(hs[i]).toFixed(1)},${Y(lo(pts[i])).toFixed(1)}`;
       add('path', { d: d + 'Z', fill, 'fill-opacity': 0.55, stroke: fill, 'stroke-width': 1 });
     };
     layer(() => 0, (p) => p[0], ORANGE);
     layer((p) => p[0], (p) => p[0] + p[1], GOLD);
     layer((p) => p[0] + p[1], () => 1, ACCENT);
     add('line', { x1: x0, y1: pT, x2: x0, y2: pB, stroke: '#b9b9c2', 'stroke-width': 1 });
+    // dashed seam where the time axis switches from linear hours to compressed days
+    add('line', { x1: X(H3D), y1: pT, x2: X(H3D), y2: bB, stroke: '#9a9aa3', 'stroke-width': 0.8, 'stroke-dasharray': '1 2' });
     // --- current-time marker ----------------------------------------------------------------
     const mx = X(h);
     add('line', { x1: mx, y1: pT - 2, x2: mx, y2: bB + 2, stroke: NAVY, 'stroke-width': 1.6, 'stroke-dasharray': '3 2' });
@@ -142,36 +195,49 @@
     add('text', { x: x0 - 5, y: pB, 'text-anchor': 'end', fill: MUTED, 'font-size': 10 }, '0');
     // in-area labels, placed where each source is thickest
     add('text', { x: X(1.2), y: pT - 5, fill: ORANGE_INK, 'font-size': 10.5, 'font-weight': 700 }, '↓ the meal');
-    add('text', { x: Math.max(x0 + 4, X(8) - 40), y: Y(0.14), fill: GOLD_INK, 'font-size': 11, 'font-weight': 700 }, 'liver glycogen');
-    add('text', { x: X(46), y: Y(0.55), 'text-anchor': 'middle', fill: NAVY, 'font-size': 11.5, 'font-weight': 700 }, 'gluconeogenesis');
+    add('text', { x: Math.max(x0 + 4, X(5)), y: Y(0.14), fill: GOLD_INK, 'font-size': 11, 'font-weight': 700, ...halo }, 'liver glycogen');
+    add('text', { x: X(H3D), y: Y(0.55), 'text-anchor': 'middle', fill: NAVY, 'font-size': 11.5, 'font-weight': 700 }, 'new glucose (gluconeogenesis)');
 
-    // --- ketone strip -------------------------------------------------------------------------
+    // --- ketone strip (mM, rising to about 7-8 mM at 5 weeks) -------------------------------
+    const kY = (mm: number) => kB - (mm / KET_MAX) * (kB - kT);
     let kd = `M${X(0)},${kB}`;
-    for (let i = 0; i <= N; i++) { const t = (i / N) * 72; kd += `L${X(t).toFixed(1)},${(kB - ketone(t) * (kB - kT)).toFixed(1)}`; }
-    kd += `L${X(72)},${kB}Z`;
+    hs.forEach((t) => { kd += `L${X(t).toFixed(1)},${kY(interp(t, KET)).toFixed(1)}`; });
+    kd += `L${X(H5W)},${kB}Z`;
     add('path', { d: kd, fill: NAVY, 'fill-opacity': 0.18, stroke: NAVY, 'stroke-width': 1.4 });
-    add('text', { x: x0 + 4, y: kT + 10, fill: NAVY, 'font-size': 10.5, 'font-weight': 600 }, 'blood ketone bodies');
+    add('text', { x: x0 + 4, y: kT + 10, fill: NAVY, 'font-size': 10.5, 'font-weight': 600, ...halo }, 'blood ketone bodies');
+    add('text', { x: X(H3D), y: kT + 8, 'text-anchor': 'middle', fill: NAVY, 'font-size': 9.5, ...halo }, '2–3 mM');
+    add('text', { x: x1 - 2, y: kB - 3, 'text-anchor': 'end', fill: NAVY, 'font-size': 9.5, 'font-weight': 700, ...halo }, '7–8 mM');
 
-    // --- state band + hour ticks --------------------------------------------------------------
+    // --- brain-fuel strip: glucose (teal) with the ketone share (navy) growing from below ---
+    add('rect', { x: x0, y: rT, width: span, height: rB - rT, fill: ACCENT, 'fill-opacity': 0.3 });
+    let rd = `M${X(0)},${rB}`;
+    hs.forEach((t) => { rd += `L${X(t).toFixed(1)},${(rB - interp(t, BRAIN_K) * (rB - rT)).toFixed(1)}`; });
+    rd += `L${X(H5W)},${rB}Z`;
+    add('path', { d: rd, fill: NAVY, 'fill-opacity': 0.55 });
+    add('text', { x: x0 + 4, y: rB - 3, fill: NAVY, 'font-size': 9.5, 'font-weight': 600, ...halo }, 'brain burns: glucose');
+    add('text', { x: x1 - 2, y: rB - 3, 'text-anchor': 'end', fill: NAVY, 'font-size': 9.5, 'font-weight': 700, ...halo }, '⅔ ketones');
+
+    // --- state band + time ticks --------------------------------------------------------------
     for (let i = 0; i < 4; i++) {
       const sx = X(BOUNDS[i]), ex = X(BOUNDS[i + 1]);
-      const on = h >= BOUNDS[i] && (h < BOUNDS[i + 1] || (i === 3 && h === 72));
+      const on = h >= BOUNDS[i] && (h < BOUNDS[i + 1] || (i === 3 && h === H5W));
       add('rect', { x: sx, y: bT, width: ex - sx, height: bB - bT, fill: BAND_FILL[i], 'fill-opacity': on ? 0.32 : 0.12, stroke: BAND_FILL[i], 'stroke-width': on ? 1.5 : 0.8 });
       if (ex - sx > BAND_LABEL[i].length * 6 + 6) {
         add('text', { x: (sx + ex) / 2, y: bT + 14, 'text-anchor': 'middle', fill: on ? NAVY : '#4b4b55', 'font-size': 10.5, 'font-weight': on ? 700 : 400 }, BAND_LABEL[i]);
       }
     }
-    BOUNDS.forEach((t) => {
+    TICKS.forEach(([t, label]) => {
+      if (t === 4 && span < 330) return; // 0 and 4 collide on narrow screens
       add('line', { x1: X(t), y1: bB, x2: X(t), y2: bB + 4, stroke: '#9a9aa3', 'stroke-width': 1 });
-      add('text', { x: X(t), y: bB + 15, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10 }, t === 72 ? '72 h' : String(t));
+      add('text', { x: X(t), y: bB + 15, 'text-anchor': t === H5W ? 'end' : 'middle', fill: MUTED, 'font-size': 10 }, label);
     });
     svg.appendChild(svg.querySelector('[data-knob]')!); // keep the time knob on top
-
   }
 
   function fmtTime(h: number): string {
     if (h < 24) return `${h} h`;
     const d = Math.floor(h / 24), r = h % 24;
+    if (r === 0 && d >= 7 && d % 7 === 0) return `${d / 7} wk`;
     return r === 0 ? `${d} d` : `${d} d ${r} h`;
   }
 
@@ -182,18 +248,21 @@
     const nameEl = root.querySelector<HTMLElement>('[data-name]')!;
     const hormoneEl = root.querySelector<HTMLElement>('[data-hormone]')!;
     const glucoseEl = root.querySelector<HTMLElement>('[data-glucose]')!;
+    const carbonEl = root.querySelector<HTMLElement>('[data-carbon]')!;
     const liverEl = root.querySelector<HTMLElement>('[data-liver]')!;
     const adiposeEl = root.querySelector<HTMLElement>('[data-adipose]')!;
     const muscleEl = root.querySelector<HTMLElement>('[data-muscle]')!;
     const brainEl = root.querySelector<HTMLElement>('[data-brain]')!;
+    const max = parseInt(timeIn.max, 10) || 200;
     function render() {
-      const h = parseInt(timeIn.value, 10);
+      const h = snap(hoursAt(parseInt(timeIn.value, 10) / max));
       const s = stateFor(h);
       timeOut.textContent = fmtTime(h);
       nameEl.textContent = s.name;
       nameEl.style.color = s.color;
       hormoneEl.textContent = s.hormone;
       glucoseEl.textContent = s.glucose;
+      carbonEl.textContent = s.carbon;
       liverEl.textContent = s.liver;
       adiposeEl.textContent = s.adipose;
       muscleEl.textContent = s.muscle;
@@ -225,7 +294,9 @@
   .fft-state { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.1rem 0.75rem; margin-bottom: var(--ddp-space-1); }
   .fft-statename { font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-primary); }
   .fft-hormone { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); text-align: right; }
-  .fft-glucose { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fft-glucose { margin: 0 0 var(--ddp-space-1); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fft-carbon { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; padding: 0 var(--ddp-space-3); }
+  .fft-carbon-k { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-secondary-ink); }
   .fft-organs { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
   @media (min-width: 560px) { .fft-organs { grid-template-columns: repeat(2, 1fr); } }
   .fft-organ { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }

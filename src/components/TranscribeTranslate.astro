@@ -1,0 +1,430 @@
+---
+/**
+ * TranscribeTranslate — copy a short DNA template strand into mRNA, translate it with the
+ * lesson's partial codon chart, then mutate it (swap, add or remove one letter) and see
+ * whether the chain is silent, has one changed amino acid, is frameshifted or stops early.
+ * Every rule is a statement of the protein-synthesis lesson: DNA A pairs with RNA U, T with
+ * A, C with G, G with C; ribosomes read three bases at a time from the start codon AUG; a
+ * stop codon adds no amino acid; one added or removed base shifts every later codon.
+ * Letters and labelled blocks only. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="tt card" data-tt>
+  <figcaption class="tt-head">Transcribe, translate and mutate a gene<span class="tt-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="tt-svg" viewBox="0 0 372 170" role="img" aria-label="A DNA template strand as lettered blocks, the mRNA that pairs with it, and the chain of amino acids it codes for" data-stage></svg>
+
+  <div class="tt-row">
+    <span class="tt-label">DNA template</span>
+    <div class="tt-btns" data-presets></div>
+  </div>
+  <form class="tt-row tt-typed" data-form>
+    <label class="tt-label" for="tt-dna-input">Or type your own template strand, written 3′ to 5′ (A, T, C, G; 3 to 15 letters)</label>
+    <input id="tt-dna-input" class="tt-input" type="text" maxlength="15" autocomplete="off" autocapitalize="characters" spellcheck="false" data-input />
+    <button type="submit" class="tt-btn">Use it</button>
+  </form>
+
+  <div class="tt-row">
+    <span class="tt-label">Steps</span>
+    <div class="tt-btns">
+      <button type="button" class="tt-btn tt-go" data-step="1">1. Build the mRNA</button>
+      <button type="button" class="tt-btn tt-go" data-step="2">2. Translate</button>
+    </div>
+  </div>
+
+  <fieldset class="tt-mut">
+    <legend>Mutate the DNA</legend>
+    <div class="tt-kinds" role="radiogroup" aria-label="Kind of mutation">
+      <label class="tt-kind"><input type="radio" name="tt-kind" value="sub" checked /> Swap one letter</label>
+      <label class="tt-kind"><input type="radio" name="tt-kind" value="ins" /> Add one letter</label>
+      <label class="tt-kind"><input type="radio" name="tt-kind" value="del" /> Remove one letter</label>
+    </div>
+    <div class="tt-slide">
+      <label for="tt-spot">Spot</label>
+      <input id="tt-spot" type="range" min="1" max="15" step="1" value="4" data-spot />
+      <output class="tt-out" data-spotout for="tt-spot">letter 4 of 15</output>
+    </div>
+    <div class="tt-slide">
+      <label for="tt-letter">New letter</label>
+      <select id="tt-letter" class="tt-select" data-letter>
+        <option value="A">A</option><option value="T">T</option><option value="C">C</option><option value="G">G</option>
+      </select>
+    </div>
+    <div class="tt-btns">
+      <button type="button" class="tt-btn tt-go" data-mutate>Mutate</button>
+      <button type="button" class="tt-btn" data-undo>Undo mutation</button>
+      <button type="button" class="tt-btn" data-reset>Reset</button>
+    </div>
+  </fieldset>
+
+  <p class="tt-verdict" data-verdict role="status"></p>
+
+  <div class="tt-chart" aria-label="Partial codon chart from this lesson">
+    <span class="tt-chart-t">Codon chart (partial, from this lesson):</span>
+    <span class="tt-cc">AUG = Met, start</span>
+    <span class="tt-cc">GAG, GAA = Glu</span>
+    <span class="tt-cc">GUG = Val</span>
+    <span class="tt-cc">UUU, UUC = Phe</span>
+    <span class="tt-cc">GGC = Gly</span>
+    <span class="tt-cc">AAA = Lys</span>
+    <span class="tt-cc">UAA, UAG, UGA = stop</span>
+    <span class="tt-chart-n">Met methionine, Glu glutamic acid, Val valine, Phe phenylalanine, Gly glycine, Lys lysine.</span>
+  </div>
+
+  <p class="tt-assume">In this sketch: DNA A pairs with RNA U, T with A, C with G, G with C. Reading begins at the first AUG (the usual start codon) and ends at a stop codon. Only the codons in the chart are named; any other shows a ?.</p>
+  <p class="tt-foot">Rule to keep: ribosomes read mRNA three bases at a time, so one added or removed letter shifts every codon after it, while a swapped letter changes at most one codon, unless it removes or creates the AUG where reading begins.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const PAIR: Record<string, string> = { A: 'U', T: 'A', C: 'G', G: 'C' };
+  // The lesson's partial codon chart. Anything else is "not on the chart".
+  const CHART: Record<string, string> = {
+    AUG: 'Met', GAG: 'Glu', GAA: 'Glu', GUG: 'Val', UUU: 'Phe', UUC: 'Phe', GGC: 'Gly', AAA: 'Lys',
+    UAA: 'stop', UAG: 'stop', UGA: 'stop',
+  };
+  const PRESETS: { label: string; dna: string }[] = [
+    { label: 'Lesson example', dna: 'TACCTCCTTAAAACT' },
+    { label: 'Practice strand', dna: 'TACAAACCGATT' },
+  ];
+  const BASE_FILL: Record<string, string> = { A: '#ffe3b3', U: '#cfe8ff', T: '#cfe8ff', C: '#d8f0d0', G: '#f3d4ee' };
+  const INK = '#1f2430', FAINT = '#6b6b78', LINE = '#8a8a96';
+  const BW = 19, GAP = 1, CGAP = 5, W = 372;
+
+  type Codon = { i: number; codon: string; aa: string; stop: boolean; known: boolean };
+  type Res = { mrna: string; s: number; started: boolean; codons: Codon[]; stopped: boolean; end: number; leftover: number; tokens: string[] };
+  type Kind = 'sub' | 'ins' | 'del';
+  type Mut = { kind: Kind; k: number; letter: string; old: string };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const key in attrs) e.setAttribute(key, String(attrs[key]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('TranscribeTranslate: missing ' + sel);
+    return e;
+  }
+  function pairUp(dna: string): string {
+    let out = '';
+    for (const b of dna) out += PAIR[b] ?? '?';
+    return out;
+  }
+  function translate(dna: string): Res {
+    const mrna = pairUp(dna);
+    const s = mrna.indexOf('AUG');
+    const empty: Res = { mrna, s: 0, started: false, codons: [], stopped: false, end: 0, leftover: 0, tokens: [] };
+    if (s < 0) return empty;
+    const codons: Codon[] = [];
+    let i = s, stopped = false;
+    while (i + 3 <= mrna.length) {
+      const c = mrna.slice(i, i + 3);
+      const m = CHART[c];
+      const stop = m === 'stop';
+      codons.push({ i, codon: c, aa: m === undefined ? '?' : (stop ? 'stop' : m), stop, known: m !== undefined });
+      i += 3;
+      if (stop) { stopped = true; break; }
+    }
+    const tokens = codons.filter((c) => !c.stop).map((c) => c.aa);
+    return { mrna, s, started: true, codons, stopped, end: i, leftover: stopped ? 0 : mrna.length - i, tokens };
+  }
+  function applyMut(orig: string, m: Mut): string {
+    if (m.kind === 'sub') return orig.slice(0, m.k - 1) + m.letter + orig.slice(m.k);
+    if (m.kind === 'ins') return orig.slice(0, m.k) + m.letter + orig.slice(m.k);
+    return orig.slice(0, m.k - 1) + orig.slice(m.k);
+  }
+  const chainText = (r: Res) => (r.started && r.tokens.length ? r.tokens.join('–') : 'none');
+  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+  document.querySelectorAll<HTMLElement>('[data-tt]').forEach((root) => {
+    const stage = must<SVGSVGElement>(root, '[data-stage]');
+    const presetsEl = must<HTMLElement>(root, '[data-presets]');
+    const form = must<HTMLFormElement>(root, '[data-form]');
+    const input = must<HTMLInputElement>(root, '[data-input]');
+    const btn1 = must<HTMLButtonElement>(root, '[data-step="1"]');
+    const btn2 = must<HTMLButtonElement>(root, '[data-step="2"]');
+    const spot = must<HTMLInputElement>(root, '[data-spot]');
+    const spotOut = must<HTMLOutputElement>(root, '[data-spotout]');
+    const letterSel = must<HTMLSelectElement>(root, '[data-letter]');
+    const mutateBtn = must<HTMLButtonElement>(root, '[data-mutate]');
+    const undoBtn = must<HTMLButtonElement>(root, '[data-undo]');
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+    const verdict = must<HTMLElement>(root, '[data-verdict]');
+    const kindInputs = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="tt-kind"]'));
+
+    let orig = PRESETS[0].dna;
+    let mut: Mut | null = null;
+    let step = 0; // 0 DNA only, 1 mRNA built, 2 translated
+    let note = '';
+
+    const kind = (): Kind => {
+      const c = kindInputs.find((r) => r.checked);
+      return (c ? c.value : 'sub') as Kind;
+    };
+
+    function syncSpot() {
+      const k = kind();
+      const n = orig.length;
+      const lo = k === 'ins' ? 0 : 1;
+      spot.min = String(lo);
+      spot.max = String(n);
+      let v = parseInt(spot.value, 10);
+      if (!(v >= lo)) v = lo;
+      if (v > n) v = n;
+      spot.value = String(v);
+      spotOut.textContent = k === 'ins' ? `after letter ${v} of ${n}` : `letter ${v} of ${n}`;
+      letterSel.disabled = k === 'del';
+    }
+
+    function positions(strand: string, s: number): number[] {
+      const xs: number[] = [];
+      let x = 0;
+      for (let i = 0; i < strand.length; i++) {
+        if (i > 0) x += GAP;
+        if (i > 0 && i >= s && (i - s) % 3 === 0) x += CGAP;
+        xs.push(x);
+        x += BW;
+      }
+      const total = x;
+      const x0 = Math.max(4, (W - total) / 2);
+      return xs.map((v) => v + x0);
+    }
+
+    function block(x: number, y: number, ch: string, hi: boolean, faded: boolean) {
+      stage.appendChild(el('rect', { x, y, width: BW, height: 24, rx: 3, fill: BASE_FILL[ch] ?? '#fff', stroke: hi ? '#d35400' : LINE, 'stroke-width': hi ? 3 : 1, opacity: faded ? 0.55 : 1 }));
+      stage.appendChild(el('text', { x: x + BW / 2, y: y + 17, 'font-size': 15, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, ch));
+    }
+    function chainBlock(x: number, y: number, w: number, c: Codon) {
+      if (c.stop) {
+        stage.appendChild(el('rect', { x, y, width: w, height: 26, rx: 5, fill: '#fff', stroke: '#b03a2e', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+        stage.appendChild(el('text', { x: x + w / 2, y: y + 18, 'font-size': 14, 'font-weight': 700, 'text-anchor': 'middle', fill: '#b03a2e' }, 'stop'));
+      } else if (!c.known) {
+        stage.appendChild(el('rect', { x, y, width: w, height: 26, rx: 5, fill: '#fff', stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+        stage.appendChild(el('text', { x: x + w / 2, y: y + 18, 'font-size': 14, 'font-weight': 700, 'text-anchor': 'middle', fill: FAINT }, '?'));
+      } else {
+        stage.appendChild(el('rect', { x, y, width: w, height: 26, rx: 5, fill: '#0e7c86' }));
+        stage.appendChild(el('text', { x: x + w / 2, y: y + 18, 'font-size': 14, 'font-weight': 700, 'text-anchor': 'middle', fill: '#fff' }, c.aa));
+      }
+    }
+
+    function draw(cur: string, r: Res, o: Res) {
+      stage.replaceChildren();
+      const xs = positions(cur, r.started ? r.s : 0);
+      stage.setAttribute('viewBox', `0 0 ${W} ${mut && step >= 2 ? 232 : 170}`);
+      // DNA row
+      stage.appendChild(el('text', { x: 8, y: 16, 'font-size': 14, fill: INK }, mut ? 'DNA template, 3′ to 5′ (mutated)' : 'DNA template, 3′ to 5′'));
+      cur.split('').forEach((ch, i) => {
+        const hi = !!mut && ((mut.kind === 'sub' && i === mut.k - 1) || (mut.kind === 'ins' && i === mut.k));
+        block(xs[i], 22, ch, hi, false);
+      });
+      if (mut && mut.kind === 'del') {
+        const bx = mut.k - 1 >= cur.length ? xs[cur.length - 1] + BW + 1 : xs[mut.k - 1] - 3;
+        stage.appendChild(el('rect', { x: bx, y: 19, width: 3, height: 30, fill: '#d35400' }));
+      }
+      if (!mut) {
+        // caret under the chosen spot
+        const k = kind();
+        const v = parseInt(spot.value, 10);
+        let cx: number | null = null;
+        if (k === 'ins') {
+          if (v === 0) cx = xs[0] - 3;
+          else if (v >= 1 && v <= cur.length) cx = xs[v - 1] + BW + (v < cur.length ? (xs[v] - xs[v - 1] - BW) / 2 : 3);
+        } else if (v >= 1 && v <= cur.length) cx = xs[v - 1] + BW / 2;
+        if (cx !== null) stage.appendChild(el('polygon', { points: `${cx - 5},56 ${cx + 5},56 ${cx},48`, fill: '#d35400' }));
+      }
+      // mRNA row
+      if (step >= 1) {
+        stage.appendChild(el('text', { x: 8, y: 80, 'font-size': 14, fill: INK }, 'mRNA, 5′ to 3′'));
+        r.mrna.split('').forEach((ch, i) => block(xs[i], 86, ch, false, r.started && (i < r.s || (r.stopped && i >= r.end))));
+        if (r.started && r.s > 0) stage.appendChild(el('text', { x: W - 8, y: 80, 'font-size': 13, 'text-anchor': 'end', fill: FAINT }, 'faded letters are not read'));
+        else if (r.started && r.stopped && r.end < r.mrna.length) stage.appendChild(el('text', { x: W - 8, y: 80, 'font-size': 13, 'text-anchor': 'end', fill: FAINT }, 'faded letters are not read'));
+      }
+      // chain row
+      if (step >= 2) {
+        stage.appendChild(el('text', { x: 8, y: 138, 'font-size': 14, fill: INK }, r.started ? 'amino acid chain' : 'amino acid chain: none, no AUG'));
+        r.codons.forEach((c) => chainBlock(xs[c.i], 144, BW * 3 + GAP * 2 - 1, c));
+        if (mut) {
+          stage.appendChild(el('text', { x: 8, y: 196, 'font-size': 14, fill: INK }, o.started ? 'chain before the mutation' : 'chain before the mutation: none'));
+          o.codons.forEach((c, j) => chainBlock(8 + j * 62, 202, 58, c));
+        }
+      }
+    }
+
+    function describeStop(r: Res): string {
+      const last = r.codons[r.codons.length - 1];
+      return last && last.stop ? last.codon : '';
+    }
+
+    function chainSentences(r: Res): string {
+      if (!r.started) return 'There is no AUG, so reading does not begin and, in this sketch, no chain is made.';
+      let t = `Chain: ${chainText(r)}.`;
+      if (r.stopped) t += ` ${describeStop(r)} is a stop codon, so it adds no amino acid and the chain is released.`;
+      else t += ' No stop codon comes before the strand ends in this sketch.';
+      if (r.leftover > 0) t += ` The last ${plural(r.leftover, 'letter')} do not make a full codon.`;
+      if (r.tokens.includes('?')) t += ' A ? marks a codon that is not on the chart.';
+      if (r.s > 0) t += ` In this sketch, the first ${plural(r.s, 'letter')} of mRNA come before the first AUG and are not read.`;
+      return t;
+    }
+
+    function mutVerdict(o: Res, m: Res, mu: Mut): string {
+      const act = mu.kind === 'sub' ? `Swapped letter ${mu.k} from ${mu.old} to ${mu.letter}.`
+        : mu.kind === 'ins' ? (mu.k === 0 ? `Added ${mu.letter} at the very start.` : `Added ${mu.letter} after letter ${mu.k}.`) : `Removed letter ${mu.k} (${mu.old}).`;
+      const tail = `New chain: ${chainText(m)}. Before: ${chainText(o)}.` + (m.tokens.includes('?') ? ' A ? marks a codon that is not on the chart.' : '');
+      if (!o.started && !m.started) return `${act} The mRNA still has no AUG, so in this sketch no chain is made.`;
+      if (o.started && !m.started) return `${act} The AUG start codon is gone. So in this sketch no chain is made. Before: ${chainText(o)}.`;
+      if (!o.started && m.started) return `${act} An AUG now appears, so in this sketch reading begins there. ${tail}`;
+      const same = m.tokens.join('|') === o.tokens.join('|') && m.stopped === o.stopped;
+      const idx = mu.kind === 'ins' ? mu.k : mu.k - 1; // 0-based place in the original strand
+      if (mu.kind === 'sub') {
+        const inRegion = idx >= o.s && idx < o.end;
+        if (inRegion && m.s === o.s) {
+          const c = Math.floor((idx - o.s) / 3);
+          const oc = o.codons[c], nc = m.codons[c];
+          if (oc && nc) {
+            const nm = (x: Codon) => (x.stop ? 'a stop codon' : x.known ? x.aa : 'not on the chart');
+            if (nc.stop && !oc.stop) return `${act} Early stop: ${nc.codon} is a stop codon, so the chain ends early${o.tokens.includes('?') || c === 0 ? '' : ` after ${plural(c, 'amino acid')}, not ${o.tokens.length}`}. ${tail}`;
+            if (oc.stop && !nc.stop) return `${act} The stop codon ${oc.codon} became ${nc.codon} (${nm(nc)}), so it no longer ends the chain. ${tail}`;
+            if (oc.stop && nc.stop) return `${act} Silent: ${oc.codon} and ${nc.codon} are both stop codons, so the chain is unchanged. ${tail}`;
+            if (!oc.known || !nc.known) return `${act} The codon changes from ${oc.codon} to ${nc.codon}. One is not on the chart, so this sketch cannot say whether the amino acid changes. ${tail}`;
+            if (oc.aa === nc.aa) return `${act} Silent mutation: ${oc.codon} and ${nc.codon} both mean ${oc.aa}, so the chain is unchanged. ${tail}`;
+            const sickle = oc.codon === 'GAG' && nc.codon === 'GUG' ? ' GAG to GUG is the change in the sickle cell allele (beta-globin’s sixth amino acid in the usual numbering). The strand here is not the real gene.' : '';
+            return `${act} One amino acid changes: ${oc.aa} becomes ${nc.aa}. One changed amino acid can change a protein’s shape and job.${sickle} ${tail}`;
+          }
+        }
+        if (same && idx < o.s) return `${act} That letter is before the AUG, so reading still begins at the AUG. ${tail}`;
+        if (same && o.stopped && idx >= o.end) return `${act} That letter is after the stop codon, where the chain is already released. ${tail}`;
+        if (same) return `${act} That letter is in leftover letters that do not make a full codon, so the chain is unchanged. ${tail}`;
+        return `${act} The chain changes. ${tail}`;
+      }
+      // insertion or deletion
+      const inside = mu.kind === 'ins'
+        ? mu.k > o.s && mu.k < o.end
+        : idx >= o.s && idx < o.end;
+      if (inside) {
+        let t = `${act} Frameshift: the groups of three shift, so every codon after this spot can change. ${tail}`;
+        if (m.stopped) {
+          const early = m.tokens.length < o.tokens.length;
+          const cnt = m.tokens.includes('?') ? '' : `, after ${plural(m.tokens.length, 'amino acid')}`;
+          t += ` ${early ? 'A stop codon now comes early' : 'A stop codon comes'}${cnt}.`;
+        } else t += ' No stop codon comes before the strand ends.';
+        if (same) t += ' Here the new chain happens to match the old one.';
+        return t;
+      }
+      if (same && idx < o.s + (mu.kind === 'ins' ? 1 : 0)) return `${act} That change is before the AUG, so reading still begins at the AUG. ${tail}`;
+      if (same) return `${act} That change is after the stop codon, where the chain is already released. ${tail}`;
+      return `${act} The chain changes. ${tail}`;
+    }
+
+    function render() {
+      syncSpot();
+      const cur = mut ? applyMut(orig, mut) : orig;
+      const r = translate(cur);
+      const o = translate(orig);
+      draw(cur, r, o);
+      btn1.disabled = step >= 1;
+      btn2.disabled = step < 1 || step >= 2;
+      undoBtn.disabled = !mut;
+      let v: string;
+      if (note) v = note;
+      else if (step === 0) v = 'This is the DNA template strand, written 3′ to 5′. Press 1 to build the mRNA that pairs with it.';
+      else if (step === 1) v = r.started
+        ? 'mRNA built: DNA A pairs with RNA U, T with A, C with G, G with C. Press 2 to translate from the first AUG.'
+        : 'mRNA built, but it has no AUG start codon. So in this sketch no chain is made.';
+      else if (mut) v = mutVerdict(o, r, mut);
+      else v = chainSentences(r);
+      verdict.textContent = v;
+    }
+
+    function setDna(dna: string) {
+      orig = dna; mut = null; step = 0; note = '';
+      spot.value = '4';
+      render();
+    }
+
+    PRESETS.forEach((p) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'tt-btn'; b.textContent = p.label;
+      b.addEventListener('click', () => { input.value = ''; setDna(p.dna); });
+      presetsEl.appendChild(b);
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = input.value.toUpperCase().replace(/[\s′'’-]/g, '');
+      if (!/^[ATCG]{3,15}$/.test(v)) {
+        note = 'Use only the letters A, T, C and G, from 3 to 15 of them.';
+        render();
+        return;
+      }
+      input.value = v;
+      setDna(v);
+    });
+    btn1.addEventListener('click', () => { note = ''; if (step < 1) step = 1; render(); });
+    btn2.addEventListener('click', () => { note = ''; if (step < 2) step = 2; render(); });
+    kindInputs.forEach((r) => r.addEventListener('change', () => { note = ''; render(); }));
+    spot.addEventListener('input', () => { note = ''; render(); });
+    letterSel.addEventListener('change', () => { note = ''; render(); });
+    mutateBtn.addEventListener('click', () => {
+      const k = kind();
+      const v = parseInt(spot.value, 10);
+      const letter = letterSel.value;
+      if (k === 'sub' && orig[v - 1] === letter) {
+        note = `Letter ${v} is already ${letter}. Pick a different new letter to swap it.`;
+        render();
+        return;
+      }
+      if (k === 'del' && orig.length <= 3) {
+        note = 'The strand is already at its shortest, 3 letters. Add a letter first or pick another strand.';
+        render();
+        return;
+      }
+      note = '';
+      mut = { kind: k, k: v, letter: k === 'del' ? '' : letter, old: k === 'ins' ? '' : orig[v - 1] };
+      step = 2;
+      render();
+    });
+    undoBtn.addEventListener('click', () => { mut = null; note = ''; render(); });
+    resetBtn.addEventListener('click', () => {
+      input.value = '';
+      kindInputs.forEach((r) => { r.checked = r.value === 'sub'; });
+      letterSel.value = 'A';
+      setDna(PRESETS[0].dna);
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .tt { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tt-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tt-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tt-svg { display: block; width: 100%; max-width: 640px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tt-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; margin: 0.4rem 0; }
+  .tt-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 6.2em; }
+  .tt-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tt-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.3rem 0.8rem; cursor: pointer; }
+  .tt-go { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 600; }
+  .tt-btn:disabled { opacity: 0.45; cursor: default; }
+  .tt-btn:focus-visible, .tt-input:focus-visible, .tt-select:focus-visible, .tt-kind input:focus-visible, .tt-slide input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .tt-typed .tt-label { flex-basis: 100%; }
+  .tt-input { min-height: 44px; width: 11em; max-width: 100%; border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.3rem 0.6rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); letter-spacing: 0.08em; text-transform: uppercase; }
+  .tt-mut { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem 0.6rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .tt-mut legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .tt-kinds { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
+  .tt-kind { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; cursor: pointer; }
+  .tt-kind input { width: 1.1rem; height: 1.1rem; accent-color: var(--ddp-color-accent); }
+  .tt-slide { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.7rem; min-height: 44px; margin-bottom: 0.3rem; }
+  .tt-slide label { min-width: 5.5em; }
+  .tt-slide input[type="range"] { flex: 1 1 8rem; min-width: 7rem; min-height: 44px; accent-color: var(--ddp-color-accent); }
+  .tt-out { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); min-width: 9.5em; }
+  .tt-select { min-height: 44px; min-width: 5em; border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.2rem 0.5rem; font-size: var(--ddp-text-sm); background: #fff; color: var(--ddp-color-ink-soft); }
+  .tt-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .tt-chart { display: flex; flex-wrap: wrap; gap: 0.3rem 0.4rem; align-items: center; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; }
+  .tt-chart-t { color: var(--ddp-color-muted); flex-basis: 100%; }
+  .tt-cc { border: 1px solid var(--ddp-color-line); border-radius: 4px; padding: 0.1rem 0.4rem; font-family: var(--ddp-font-mono); }
+  .tt-chart-n { color: var(--ddp-color-muted); flex-basis: 100%; }
+  .tt-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .tt-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

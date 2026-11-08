@@ -1,0 +1,156 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DepthLadder from '../../components/DepthLadder.astro';
+import { courseHref, courseOf } from '../../data/courses';
+import { feedbackUrl } from '../../lib/feedback';
+import { getCollection } from 'astro:content';
+
+// Standards map: each VDOE Life Science standard (2018 SOL) and the lessons that teach it.
+// LS.1 (scientific and engineering practices) runs through every lesson.
+const SOL: [string, string, string[]][] = [
+  ['LS.2', 'Cells and the cell theory', ['cells-everywhere', 'inside-a-cell', 'plant-and-animal-cells', 'cells-divide', 'diffusion-and-osmosis', 'reproduction-and-meiosis']],
+  ['LS.3', 'Levels of organization and classification', ['levels-of-organization', 'sorting-living-things', 'domains-kingdoms-and-dna']],
+  ['LS.4', 'Photosynthesis and cellular respiration', ['photosynthesis-feeds-the-world', 'releasing-energy-from-food', 'photosynthesis-and-respiration-partners']],
+  ['LS.5', 'Matter and energy in ecosystems', ['food-webs-and-energy', 'producers-consumers-decomposers', 'carbon-and-water-cycles', 'nitrogen-for-life']],
+  ['LS.6', 'Populations in a community', ['predators-and-prey', 'competition-and-cooperation', 'living-together-symbiosis', 'habitat-and-niche']],
+  ['LS.7', 'Adaptations and ecosystems', ['land-and-water-ecosystems', 'adaptations-for-survival']],
+  ['LS.8', 'Ecosystems change over time', ['daily-and-seasonal-rhythms', 'populations-rise-and-fall', 'eutrophication-and-big-changes']],
+  ['LS.9', 'People and ecosystems', ['people-change-habitats', 'restoring-ecosystems']],
+  ['LS.10', 'Heredity', ['dna-the-code-of-life', 'reproduction-and-meiosis', 'predicting-traits', 'inherited-or-acquired']],
+  ['LS.11', 'Change over time', ['mutations-and-variation', 'natural-selection-in-action', 'evidence-for-change', 'extinction-and-survival', 'inherited-or-acquired']],
+];
+// Published lessons only (drafts too under `astro dev`), so the map never links a page that is not live.
+const lessons = await getCollection('lessons', (l) => l.data.course === 'life-science' && (import.meta.env.DEV || !l.data.draft));
+const all = await getCollection('lessons', (l) => l.data.course === 'life-science');
+const live = (slug: string) => lessons.find((l) => l.data.slug === slug);
+const titleOf = (slug: string) => all.find((l) => l.data.slug === slug)?.data.title ?? slug.replace(/-/g, ' ');
+const course = courseOf('life-science');
+const total = course.units.reduce((n, u) => n + u.slugs.length, 0);
+const unitsOut = course.units.filter((u) => u.slugs.every((s) => live(s))).length;
+---
+
+<BaseLayout
+  title="Grade 7 Life Science for teachers — Biochemistrypedia"
+  description="A free Virginia SOL Life Science course for grade 7: what is in it, how it connects to high school Biology, how the supports switch works, and how to help audit the lessons."
+>
+  <article class="wrap prose-col tb" style="padding-top: var(--ddp-space-12)">
+    <p class="tb-eyebrow"><a href="/teachers">Resources for teachers</a> / grade 7 Life Science</p>
+    <h1>A free Life Science course for Virginia's seventh graders</h1>
+    <p class="tb-lede">
+      {total} lessons that follow the Virginia Life Science Standards of Learning (2018), LS.1 to LS.11, with
+      the scientific and engineering practices of LS.1 worked into every lesson. It is the middle school
+      companion to our <a href="/teachers/biology">high school Biology course</a>. Free, no account, no ads.
+    </p>
+    <p class="tb-status">
+      <strong>Status: first edition (October 2026).</strong>
+      {unitsOut === course.units.length
+        ? <> All {course.units.length} units are out, covering LS.1 to LS.11.</>
+        : <> {lessons.length} of {total} lessons are out so far ({unitsOut} of {course.units.length} units); the rest follow unit by unit.</>}
+      {' '}Every lesson is checked against published sources by AI models from two companies, with classroom
+      testing just beginning. Updated continuously; teacher feedback is welcome on every page.
+    </p>
+    {lessons.length > 0 && <p><a class="btn" href={courseHref('life-science')}>Open the course</a></p>}
+
+    <h2>What every lesson has</h2>
+    <p>Each lesson follows the 5E arc, built so a seventh grader can do it alone online:</p>
+    <ul>
+      <li><strong>Engage.</strong> Something students can picture (a scraped knee healing, Bay water losing
+        oxygen at night, a white hare on brown ground), then a quick "What do you think?" check made from the
+        VDOE guide's common student ideas. Students commit to agree or disagree before they read.</li>
+      <li><strong>Explore.</strong> A simulation with two or three controls and a short "Try this" list:
+        predict, then test.</li>
+      <li><strong>Explain.</strong> The essential knowledge from the VDOE instructional guide in short
+        sentences, the LS vocabulary in bold, and a narrated film of about two minutes.</li>
+      <li><strong>Elaborate.</strong> Real data, much of it from Virginia and the Chesapeake Bay. Students read
+        a table, make a claim with evidence and reasoning, then plan an investigation of their own.</li>
+      <li><strong>Evaluate.</strong> A self-test whose wrong answers are the common student ideas, each with an
+        explanation.</li>
+    </ul>
+    <p>
+      Scope follows the guide's stated limits: no stages of meiosis, single-trait crosses with complete
+      dominance only, no names for the steps of the nitrogen cycle, no types of mutation, and scientists'
+      names as stories rather than test items.
+    </p>
+
+    <h2>The depth ladder: how it connects to Biology</h2>
+    <div class="tb-ladder"><DepthLadder step={1} size="md" /></div>
+    <p>
+      Every lesson shows a four-step staircase: <strong>Life Science (grade 7)</strong>,
+      <strong>Biology</strong>, <strong>Biology II</strong>, <strong>College</strong>. A Life Science lesson
+      sits on the first step. One step up previews what high school Biology adds and links the matching
+      Biology lesson, so a student who is ready can keep going. The Biology lessons link back down to these
+      lessons in the same way, which makes the pair useful for review in grade 9 and for early finishers in
+      grade 7.
+    </p>
+
+    <h2>The supports switch: same task, more or less help</h2>
+    <p>A switch at the top of each lesson sets how much help a student gets. It changes the support, never the task.</p>
+    <ul>
+      <li><strong>Just the task.</strong> Unlabelled diagrams to label; no word bank.</li>
+      <li><strong>Some help</strong> (the default). Word banks and partly labelled diagrams.</li>
+      <li><strong>Most help.</strong> Adds sentence starters for claim, evidence and reasoning, fully labelled
+        diagrams, and a one-line key idea after each section.</li>
+    </ul>
+    <p>
+      It works with JavaScript turned off. With JavaScript, the page remembers a student's choice, and you can
+      link a whole class to one setting by adding <code>?supports=0</code>, <code>?supports=1</code> or
+      <code>?supports=2</code> to a lesson's address.
+    </p>
+
+    <h2>Standards map</h2>
+    <p>
+      LS.1, the scientific and engineering practices, runs through every lesson: each one asks for a
+      prediction, an investigation plan, and a claim backed by evidence and reasoning from real data. Lessons
+      not yet released are listed without a link.
+    </p>
+    <table class="tb-sol">
+      <thead><tr><th>Standard</th><th>Lessons</th></tr></thead>
+      <tbody>
+        {SOL.map(([code, name, slugs]) => (
+          <tr>
+            <td><strong>{code}</strong><br /><span class="tb-sol-name">{name}</span></td>
+            <td>{slugs.map((slug, i) => {
+              const l = live(slug);
+              return <>{i > 0 && ' · '}{l ? <a href={`/lessons/${slug}/`}>{l.data.title}</a> : <span class="tb-soon">{titleOf(slug)} (coming)</span>}</>;
+            })}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <h2>How it was made, and how you can help</h2>
+    <p>
+      The lessons, films, simulations and figures were drafted with AI from the VDOE instructional guide and
+      checked by other AI models against published sources, before any person read them. Every lesson lists
+      its sources. That is why we are asking teachers to audit them.
+    </p>
+    <p>
+      If you teach Life Science, pick a lesson you know well and read it as you would a student's textbook. Is
+      anything wrong, unclear, too hard, too easy, or missing from the SOL? Every lesson page has a "Report an
+      error" link; it takes two minutes and goes straight to Chris. You can also
+      <a href={feedbackUrl('Grade 7 Life Science: teacher note')}>send a general note</a>.
+    </p>
+    <p>
+      This is an early edition, built quickly so teachers could use it this year. Corrections go in within
+      days, not at the next printing, so it will keep getting better, and the more teachers tell us, the
+      faster that happens.
+    </p>
+    <p><a href="/teachers">&larr; Back to resources for teachers</a></p>
+  </article>
+
+  <style>
+    .tb-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .tb-lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); }
+    .tb ul { padding-left: 1.3rem; list-style: disc; }
+    .tb li { margin-bottom: var(--ddp-space-2); }
+    .tb-ladder { margin: var(--ddp-space-3) 0; }
+    .tb .btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font-weight: 600; text-decoration: none; }
+    .tb-status { border-left: 4px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); padding: var(--ddp-space-3) var(--ddp-space-4); border-radius: 6px; }
+    .tb-sol { width: 100%; border-collapse: collapse; margin: var(--ddp-space-3) 0 var(--ddp-space-6); }
+    .tb-sol th, .tb-sol td { text-align: left; vertical-align: top; padding: var(--ddp-space-2) var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); line-height: 1.5; }
+    .tb-sol td:first-child { white-space: nowrap; }
+    .tb-sol-name { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .tb-soon { color: var(--ddp-color-muted); }
+    .tb code { font-family: var(--ddp-font-mono); font-size: 0.92em; }
+  </style>
+</BaseLayout>

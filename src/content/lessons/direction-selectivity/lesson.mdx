@@ -1,0 +1,593 @@
+---
+title: "Computing Motion in the Retina"
+slug: "direction-selectivity"
+course: "sensory-systems"
+courseChapter: "Sensory Systems · Unit 5: Vision"
+order: 819
+summary: >-
+  Some retinal ganglion cells fire strongly to motion in one direction and little to the opposite
+  direction, before any signal leaves the eye. One idea carries the lesson: each dendritic branch of
+  a starburst amacrine cell prefers motion outward from its cell body, and a direction-selective
+  ganglion cell is wired mainly to the branches that point in its null direction (soma to tip), so
+  null-direction motion drives mostly the branches that inhibit it. You start from what the
+  mechanism must do, a local veto found in rabbit recordings of the 1960s, then test the idea piece
+  by piece: the starburst dendrite, its wiring, how that wiring develops, and what is left when its
+  GABA release is cut. Afterwards you can read a direction signal from a published ratio, show when a
+  spike threshold sharpens a difference in inhibition and when it does not, and say what an
+  ablation does and does not show. Going deeper holds a wiring model, the input-kinetics work, a
+  delay-line exercise and the debate over tuned excitation.
+hook: "A cell in the eye fires to a spot moving left and stays quiet for the same spot moving right. Which neuron makes the difference?"
+
+estMinutes: 28
+objectives:
+  - "Explain how the retina computes motion direction before the optic nerve: starburst dendrites prefer outward motion, and the ones that point in a ganglion cell's null direction (soma to tip) give it the most inhibition. Define preferred and null responses and the null side, and say what Barlow and Hill (1963) and Barlow and Levick (1965) each reported."
+  - "Explain why the starburst amacrine cell computes direction in its dendrites rather than in its soma, and state what removing the starburst population, and reducing only its GABA release, each showed."
+  - "Interpret correlated imaging and electron microscopy, and paired recordings during development, as evidence about which starburst branches connect to which ganglion cells."
+  - "Compute a transformed direction index from a published ratio, and use the balance-point rule to show when a spike threshold sharpens a difference in inhibition and when it does not."
+  - "In Going deeper, test a delay-line argument against its numbers and say what it does and does not establish."
+
+explainer:
+  src: "/explainers/direction-selectivity/explainer.mp4"
+  captions: "/explainers/direction-selectivity/explainer.vtt"
+  poster: "/explainers/direction-selectivity/poster.jpg"
+  title: "A Veto From the Null Side"
+  durationSec: 169.9
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  aiGenerated: true
+
+films:
+  - id: "reading-the-wiring"
+    src: "/explainers/direction-selectivity/reading-the-wiring.mp4"
+    captions: "/explainers/direction-selectivity/reading-the-wiring.vtt"
+    poster: "/explainers/direction-selectivity/reading-the-wiring-poster.jpg"
+    title: "Reading the Wiring"
+    durationSec: 152.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "built-by-strengthening"
+    src: "/explainers/direction-selectivity/built-by-strengthening.mp4"
+    captions: "/explainers/direction-selectivity/built-by-strengthening.vtt"
+    poster: "/explainers/direction-selectivity/built-by-strengthening-poster.jpg"
+    title: "Built by Strengthening, and Where the Idea Stops"
+    durationSec: 145.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+
+scientists:
+  - name: "Horace Barlow"
+    contribution: >-
+      With Richard Hill, reported direction-selective ganglion cells in the rabbit retina (1963);
+      with William Levick, tested how they work and inferred suppression of null-direction
+      sequences (1965).
+    profileSourceAnchor: "Barlow & Hill, Science 139:412 (1963); Barlow & Levick, J. Physiol. 178:477 (1965)."
+    quotes: []
+    story: >-
+      The two papers ask different questions. In 1963 Barlow and Hill reported that some ganglion
+      cells in the rabbit retina respond to movement in one direction and not the other, and that
+      replacing a light spot with a black spot kept the preferred direction. Two years later
+      Barlow and Levick asked how such a cell does it. They recorded spikes in vivo from rabbit
+      ganglion cells and presented two stimuli, one after the other, at neighbouring places inside
+      one receptive field. In the preferred order the pair of flashes gave about the sum of the two single
+      responses or a little more, and in the null order it gave far fewer spikes than that sum. They concluded that
+      a mechanism in small subunits of the field suppresses sequences that run in the null
+      direction. They were tentative about which cells carry it out. That caution is part of the
+      result: the experiments fixed what the mechanism must do, and the cell types were left for
+      later work to find.
+
+  - name: "Thomas Euler"
+    contribution: >-
+      With Peter Detwiler and Winfried Denk, imaged calcium in single starburst dendrites of the
+      rabbit retina and found a direction preference in the dendrite that the soma did not
+      show.
+    profileSourceAnchor: "Euler, Detwiler & Denk, Nature 418:845 (2002)."
+    quotes: []
+    story: >-
+      A cell body is the easy place to put an electrode. Euler, Detwiler and Denk asked whether it
+      is the right place. They took isolated rabbit retina, imaged calcium with
+      two-photon microscopy in the dendrites of ON starburst cells, and moved a stimulus across the
+      tissue in different directions. Each dendrite gave larger calcium signals to motion away from
+      the cell body than toward it. Recording the voltage at the soma, they did not find the same
+      directional preference. The finding moved the question from which cell is direction selective
+      to which branch of which cell is. It also showed that a measurement can miss a computation by
+      sitting in the wrong compartment of the right neuron. Later work on wiring and development
+      took the dendrite as the unit to explain.
+
+  - name: "Kevin Briggman"
+    contribution: >-
+      With Moritz Helmstaedter and Winfried Denk, combined calcium imaging of direction-selective
+      ganglion cells with serial block-face electron microscopy of the same mouse retina.
+    profileSourceAnchor: "Briggman, Helmstaedter & Denk, Nature 471:183 (2011)."
+    quotes: []
+    story: >-
+      Microscopy could trace the starburst dendrites and show where they contact a ganglion cell,
+      but a wiring diagram alone does not say which way a given ganglion cell prefers. Briggman,
+      Helmstaedter and Denk solved that by imaging first. In a wild-type mouse retina, they used moving bars and calcium imaging to find each ganglion cell's preferred
+      direction. They then cut the same tissue into serial block-face electron microscopy images
+      and reconstructed the cells. With function in hand, they could ask how the starburst contacts
+      were arranged around each ganglion cell. The reconstruction showed that most starburst input
+      came from dendrites pointing roughly in the ganglion cell's null direction, and that the
+      direction of the individual branch predicted connection better than the line between cell
+      bodies did.
+
+  - name: "Wei Wei"
+    contribution: >-
+      With Marla Feller and colleagues, recorded pairs of starburst and ganglion cells in
+      developing mouse retina and found that inhibition from the null side strengthens while
+      preferred-side connections persist.
+    profileSourceAnchor: "Wei, Hamby, Zhou & Feller, Nature 469:402 (2011; online December 2010)."
+    quotes: []
+    story: >-
+      If the adult circuit is asymmetric, the asymmetry has to come from somewhere. Wei, Hamby, Zhou
+      and Feller used mouse lines in which starburst cells and nasal-preferring ganglion cells
+      could be found in isolated retina, and they recorded from pairs while stimulating one
+      starburst cell at a time. At postnatal days 4 and 7 the inhibition that a ganglion cell
+      received was similar from the two sides. By later stages the inhibition from the null side
+      had grown, while the preferred side stayed about the same size. Preferred-side connections
+      were still there in adult retina. The result changed the question from how a wrong
+      connection gets removed to how one set of connections gets stronger. Because the paper
+      appeared online in December 2010, you will see it dated 2010 or 2011.
+
+techniques:
+  - name: "Two-photon calcium imaging"
+    blurb: >-
+      A pulsed infrared laser excites a calcium indicator in a small volume of living tissue, so
+      you can read calcium changes from single dendrites. Calcium rises with activity but is not a
+      direct measure of transmitter release.
+  - name: "Serial block-face electron microscopy"
+    blurb: >-
+      An automated blade removes a thin slice from a block of stained tissue after each image of
+      the block face, which gives a three-dimensional stack at synaptic resolution. Cells are
+      then traced through the stack, and contacts between them are counted.
+  - name: "Paired whole-cell voltage clamp"
+    blurb: >-
+      You record from two connected cells at once, stimulate one and measure the synaptic current
+      in the other. This gives the strength of one connection, which a population recording
+      cannot give.
+  - name: "Targeted cell ablation"
+    blurb: >-
+      A genetic strategy removes one cell population from an adult animal so you can test whether
+      it is needed for a response or a behaviour. It shows necessity in that assay only.
+
+structures: []
+
+simulations:
+  - type: "local"
+    ref: "TwoFlashRemainder"
+    title: "The two-flash remainder test"
+    caption: >-
+      Probe a two-input detector with each flash alone, the pair and the remainder, and see which order leaves a deficit and which a surplus under a veto, a boost, or both.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "A rabbit retinal ganglion cell fires about 40 spikes per second to a spot moving across its field in one direction and 3 spikes per second in the opposite direction. How is this cell defined in this lesson?"
+    choices:
+      - "A cell that responds only to moving stimuli of one contrast, with no response to any steady light"
+      - "A cell with a strong response to a preferred direction and a weak response to the opposite null"
+      - "A cell that reports the speed of a moving stimulus by firing at a constant fixed latency"
+      - "A cell whose receptive field has an excitatory centre and a delayed inhibitory surround ring"
+    answer: 1
+    rationale: >-
+      A direction-selective ganglion cell is defined by its response to preferred versus null
+      motion, so the strong-versus-weak pair is the definition. The contrast-only choice is wrong
+      because Barlow and Hill found the preferred direction held when a black spot replaced a
+      light spot. The centre-surround choice describes the classical field of the retina lesson,
+      which does not give a direction. The speed choice is wrong because a fixed latency is not what
+      defines the cell; the definition is the preferred-versus-null comparison, although such cells can also be tuned to speed.
+  - stem: "Euler, Detwiler and Denk imaged rabbit starburst cells in vitro. What did they report about direction?"
+    choices:
+      - "The soma shows strong direction selectivity that the dendrites inherit through gap junctions"
+      - "Single dendrites prefer motion away from the soma, while somatic voltage did not show this"
+      - "Every starburst cell prefers motion toward the cell body, and the soma reports this clearly"
+      - "Starburst cells show no direction preference in calcium or in voltage under any stimulus"
+    answer: 1
+    rationale: >-
+      The dendritic calcium signals preferred centrifugal motion, away from the soma, and the
+      somatic voltage did not reproduce that preference, so the dendrite is the computing unit. The
+      choice with preference toward the cell body reverses the direction and wrongly gives the
+      soma the signal. The choice with a selective soma and inheriting dendrites reverses the
+      relation that was measured. The choice with no preference anywhere contradicts the
+      directional dendritic calcium signal.
+  - stem: "Briggman and colleagues imaged ganglion cells for their preferred direction before the same tissue went for electron microscopy. Why was the imaging step needed?"
+    choices:
+      - "Without it, the contacts could not be counted at all, because the stain would not penetrate"
+      - "Without it, the age of the mouse could not be estimated from the dendritic branching pattern"
+      - "Without it, the reconstructed contacts could not be related to each ganglion cell's null direction"
+      - "Without it, the electron microscope could not distinguish ganglion cells from starburst cells"
+    answer: 2
+    rationale: >-
+      A reconstruction shows who touches whom, but only the imaging gives each ganglion cell's
+      preferred and null direction, so the wiring can be compared with function. The cell-type
+      choice is wrong because cell types can be recognised by shape in the reconstruction. The
+      stain-penetration choice confuses a preparation problem with the purpose of imaging. The
+      age choice is irrelevant because imaging served to read function, not to date the tissue.
+  - stem: "In Wei and colleagues' paired recordings, how did inhibition from starburst cells onto ganglion cells of one labelled type, all preferring the same direction, change from postnatal day 4 to adulthood?"
+    choices:
+      - "Both sides strengthened equally, and the asymmetry arose from a change in cell number"
+      - "Preferred-side connections were removed, leaving only the null-side connections in adults"
+      - "Null-side inhibition strengthened, while preferred-side connections persisted in adult retina"
+      - "Inhibition stayed equal from both sides, and the asymmetry arose from excitation alone"
+    answer: 2
+    rationale: >-
+      The null-side unitary inhibition grew while preferred-side strength stayed about constant,
+      and preferred-side connections were still detectable in adults. The removal choice is the
+      pruning story the paper did not support. The equal-inhibition choice describes only the
+      early stages, P4 and P7, not adulthood. The both-sides choice contradicts the finding that
+      preferred-side strength stayed about the same.
+  - stem: "Adult mice lacking starburst cells lost ganglion-cell direction selectivity and the tested optokinetic reflex. Which conclusion does this experiment support?"
+    choices:
+      - "The starburst population is needed for direction selectivity in that assay, by an unspecified route"
+      - "Starburst cells are the only cell type that is direction selective in the mouse retina"
+      - "Starburst GABA release alone is sufficient to produce direction selectivity in any retina"
+      - "Starburst acetylcholine release has been shown to play no role in direction selectivity"
+    answer: 0
+    rationale: >-
+      Removing the whole population tests necessity in that assay, and it removes both
+      transmitters at once, so it cannot say which route matters. The sufficiency choice reverses
+      the logic of an ablation, which can show necessity but not sufficiency. The acetylcholine
+      choice claims a negative result for a transmitter that the ablation did not isolate. The
+      only-type choice overreaches, because the ganglion cells and bipolar cells discussed
+      later also carry direction signals.
+
+mcatQuestions:
+  - stem: "In a made-up data set, a direction-selective ganglion cell receives the same excitation for motion in either direction. Starburst inhibition onto it is 120 pA for motion in its null direction and 40 pA for motion in its preferred direction. Which prediction fits the circuit described in this lesson?"
+    choices:
+      - "The cell fires equally in both directions, because the excitation is the same"
+      - "The cell fires less for null-direction motion, because the starburst branches pointing in the null direction give it stronger inhibition"
+      - "The cell fires less for preferred-direction motion, because weaker inhibition silences a neuron"
+      - "The cell fires only to null-direction motion, because inhibition is what drives spikes"
+    answer: 1
+    rationale: "Starburst branches that point in a ganglion cell's null direction, from soma to tip, make the strongest inhibitory connections onto it, and inhibition is stronger for null-direction motion, so null-direction motion is suppressed even when excitation is similar. Equal excitation does not give equal firing when the inhibition differs. Weaker inhibition for the preferred direction leaves more of the excitation to drive spikes, not fewer. Inhibition reduces firing and does not drive it. The data are made up and the lesson notes that tuned excitation and timing can also contribute in some cells."
+  - stem: "In a made-up data set modelled on real experiments, GABA release from starburst cells is blocked in an adult mouse while acetylcholine release and the cells themselves are intact. A ganglion cell's preferred-to-null response ratio falls from 5 to 2 but does not fall to 1. Which interpretation is best supported?"
+    choices:
+      - "Starburst cells are not needed for selectivity, because some direction selectivity remained after the manipulation"
+      - "Starburst GABA is the entire mechanism of selectivity, because the ratio changed once its release was blocked"
+      - "Starburst GABA plays no role in selectivity, because the cell still shows a ratio greater than 1 afterwards"
+      - "Starburst GABA contributes to the selectivity, and other mechanisms, such as tuned input, also contribute"
+    answer: 3
+    rationale: >-
+      A fall from 5 to 2 shows that GABA release matters, and the ratio staying above 1 shows that
+      something else also contributes, which fits the other mechanisms described in the
+      lesson, such as tuned excitation and the timing of excitation relative to inhibition. The entire-mechanism choice ignores the remaining
+      selectivity. The no-role choice ignores the large fall. The not-needed choice confuses a
+      transmitter-specific block with removal of the cells, which was a different experiment
+      with a different result.
+  - stem: "In a made-up two-flash experiment, flash A alone gives 5 spikes and flash B alone gives 3 spikes. A then B gives 14 spikes, and B then A gives 3 spikes. Compared with the sum of the single-flash responses, which statement is correct?"
+    choices:
+      - "Both are present: A then B is enhanced and B then A is suppressed relative to the sum"
+      - "Only suppression is present, because one order gave a response smaller than the sum"
+      - "Only enhancement is present, because one order gave a response larger than the sum"
+      - "Neither is present, because the two orders do not give identical spike counts"
+    answer: 0
+    rationale: >-
+      The summed single responses predict 8 spikes. A then B gives 14, which is 6 above the
+      prediction, so it is enhanced. B then A gives 3, which is 5 below, so it is suppressed. The
+      enhancement-only and suppression-only choices each see half of the data. The neither choice
+      is wrong because unequal counts for the two orders are exactly what a direction-selective
+      cell produces, and the comparison to the sum is what measures the size of each operation.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      Some cells in the eyes of animals like rabbits, mice and monkeys are like a gate that only lets traffic through one way. When
+      something moves the right way, the cell gets excited, and when it moves the wrong way,
+      the cell stays quiet. A special helper cell shaped like a star is in charge of the quiet,
+      and each of its arms works on its own.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      The retina does not just send a picture to the brain. Some of its output cells, called
+      direction-selective ganglion cells, respond to motion in one direction and hardly at all to
+      the opposite direction. A star-shaped helper neuron, the starburst amacrine cell, plays
+      the key part. Each arm of the star responds best to motion going away from the cell body,
+      and the arms that connect to a ganglion cell are placed so that they quiet it when the
+      motion goes the wrong way.
+  - level: "college"
+    label: "College"
+    text: >-
+      Direction-selective ganglion cells fire for preferred motion and little for null motion.
+      Starburst amacrine cells are a central computing element in the mouse. Their dendrites show
+      calcium signals that prefer centrifugal motion, while somatic voltage showed little such preference for the stimuli used, so each branch is
+      its own detector. Correlated imaging and electron microscopy in mouse retina showed that most
+      starburst input to a ganglion cell comes from dendrites pointing roughly in the cell's null
+      direction. Paired recordings in development showed null-side inhibition strengthening while
+      preferred-side connections remained. The timing of excitation along the starburst dendrite adds
+      to the effect, and whether bipolar output is itself direction tuned is debated.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Barlow and Levick inferred null-direction suppression within receptive-field subunits, and
+      the Hassenstein-Reichardt scheme is the alternative of preferred-direction enhancement.
+      In the mouse retina the starburst population is necessary for ganglion-cell direction
+      selectivity in the ablation assay, but ablation removes acetylcholine, GABA and any
+      trophic role together, so transmitter-specific tests are needed to say
+      which carries the asymmetry. One has been done: deleting the vesicular GABA transporter from SACs (Pei and colleagues, 2015), which reduced their GABA release, removed the direction tuning of inhibition, and direction selectivity survived only in a subset of ON-OFF DSGCs. Wiring data (branch orientation predicts contact better than
+      soma geometry) give a connection pattern, not a conductance, and the null-side
+      strengthening during development comes from more synapses per null-side pair, not stronger synapses (Morrie and Feller, 2015). The
+      input side is under revision: proximal-to-distal differences in excitation kinetics support
+      a space-time contribution at low speeds in one constrained model, and one study finds bipolar
+      boutons that are direction tuned through starburst and wide-field amacrine signalling while another finds untuned glutamate release onto DSGCs, so
+      a one-pass feed-forward diagram is incomplete. Open question: how much of the asymmetry is
+      set by inhibitory wiring and how much by tuned input. In macaque, ON-DSGC direction selectivity is known to depend on GABA (Wang and colleagues, 2023), but the balance of mechanisms in primates is less studied.
+
+anecdotes:
+  - title: "The paper that is dated two ways"
+    source: "Wei, Hamby, Zhou & Feller, Nature 469:402 (2011); online publication December 2010."
+    text: >-
+      The development paper from the Feller laboratory is cited as 2010 in some places and 2011
+      in others, and both dates have a reason. It appeared online in December 2010 and then in
+      an issue of Nature volume 469 in 2011. When you build a timeline of a field, the year
+      alone can mislead, because the online date and the issue date may differ. The volume and
+      page numbers do not change, so they are the safer way to point at the paper, and they are
+      worth checking before you decide which paper came before which.
+  - title: "Two papers, two questions"
+    source: "Barlow & Hill, Science 139:412 (1963); Barlow & Levick, J. Physiol. 178:477 (1965)."
+    text: >-
+      Retinal direction selectivity is sometimes credited to the 1965 paper from Barlow and Levick,
+      but the earlier report came from Barlow and Hill in Science in 1963. That first report
+      described direction-selective ganglion cells in the rabbit retina. The 1965 paper asked
+      about mechanism and used recordings from the unopened eye of the living rabbit to test how
+      two spots at neighbouring places combine. Keeping the two papers apart matters because the
+      mechanism paper also left the cell identities open, which is why the starburst cell had to
+      be found by later work.
+  - title: "A newer story for the primate"
+    source: "Kim et al., Nat. Commun. (2022); Wang et al., Nature (2023)."
+    text: >-
+      For years a textbook sentence said that primates have no direction-selective ganglion cells.
+      Recordings from isolated macaque retina have now identified ON-OFF cells in 2022 and ON cells
+      in 2023 that show direction selectivity. The 2023 paper also identified a candidate
+      homologous cell in human retina, but this came without a recording of a human motion
+      response, so the human cell remains a candidate. The sentence in the old textbook is out of
+      date, and the newer claim has to stay at the level of evidence that exists.
+
+corpusTags:
+  - "direction-selectivity"
+  - "starburst-amacrine-cell"
+  - "retina"
+  - "connectomics"
+  - "visual-motion"
+draft: false
+---
+
+import TwoFlashRemainder from '../../../components/TwoFlashRemainder.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
+
+**A ganglion cell in a rabbit's retina fires hard when a spot moves one way across its field and hardly at all when the same spot moves the other way. The eye has worked out the direction before the signal reaches the brain. Which neuron makes the difference?**
+
+The [retina lesson](/lessons/retina/) built centre-surround fields from bipolar and amacrine circuitry, and [sensory coding](/lessons/sensory-coding/) described lateral inhibition between neighbours. Neither gave a cell a sense of direction. This lesson starts where the retina does that, one synapse before the optic nerve. Motion in the cortex belongs to [visual cortex](/lessons/visual-cortex/). The cell census this circuit belongs to is in [retinal cell types](/lessons/retinal-cell-types/).
+
+The questions come in order: what the mechanism must do, which cells do it, how they are wired, how the wiring forms, and where the explanation stops.
+
+## What the mechanism must do: a veto on the null direction
+
+Start with the cell. A **direction-selective ganglion cell (DSGC)** fires strongly to motion in one direction, its **preferred direction**, and little or not at all to motion the opposite way, its **null direction**. Barlow and Hill reported such cells in rabbit retina in 1963. Replacing a light spot with a black spot kept the same preferred direction, so the preferred direction does not depend on whether the spot is lighter or darker than its background.
+
+Two years later Barlow and Levick asked how the cell does it. They recorded spikes from ON-OFF direction-selective units, which respond both when light comes on and when it goes off, in the living rabbit. In one test, they flashed two neighbouring places inside one receptive field, one after the other. Call them A and B, with A on the side that a preferred-direction stimulus comes from. A then B is a small jump in the preferred direction, and B then A is a jump in the null direction. Measure each flash alone first. If the two flashes simply added, the pair would give the sum of the two single responses in either order.
+
+Take illustrative numbers (not Barlow and Levick's): A alone gives 4 spikes and B alone gives 4, so simple adding predicts 8 for the pair.
+
+**Predict.** For suitable positions and timing, the two orders differ, because the cell is direction selective. A cell could do that by vetoing null-direction sequences or by boosting preferred-direction ones. Which order falls below 8 under a veto, and which rises above 8 under a boost?
+
+<details>
+<summary>Check your prediction</summary>
+
+A veto shows up as a deficit in the null order: B then A gives fewer than 8, say 2. A boost shows up as a surplus in the preferred order: A then B gives more than 8, say 14. The useful number is the **remainder**, the paired response minus the sum of the singles: 2 − 8 = −6 for the veto and 14 − 8 = +6 for the boost. Barlow and Levick found far fewer spikes than the sum in the null order. The preferred order gave about the sum, or a little more. The main operation Barlow and Levick inferred is a veto.
+
+</details>
+
+They also inferred that the veto works in small subunits spread across the receptive field, not once for the whole cell. So the specification is local. In each small patch, something must detect a null-direction sequence and cancel the excitation it would cause.
+
+Where should that something sit? Take the simplest sketch, an offset model rather than a measurement of this circuit. Inhibition cancels excitation only while the two overlap in time. For null-direction motion to recruit inhibition early enough to overlap the excitation it causes, the inhibition should come from the side that null-direction motion approaches from. Call that the cell's **null side**. For a cell that prefers rightward motion, null motion runs leftward, so it comes from the right, and the right is the null side. Preferred-direction motion reaches the excitation first, so the excitation gets a head start. How much inhibition there is matters as well as when it arrives.
+
+<TwoFlashRemainder />
+
+Barlow and Levick were tentative about which cells supply the veto, so read their paper as a statement of what the mechanism must do; the rest of this lesson is the search for those cells. (Insect vision suggested a second classical scheme, the Hassenstein-Reichardt detector, which multiplies signals and boosts the preferred direction.)
+
+## The circuit in one picture
+
+The veto turned out to come largely from the **starburst amacrine cell (SAC)**, an interneuron that releases both GABA, which inhibits, and acetylcholine, which excites. Its dendrites radiate from the soma like the spokes of a wheel and overlap the dendrites of DSGCs. The DSGC's excitation comes mainly from bipolar cells, and in this picture it is about the same for either direction. Hold this picture, then test it piece by piece.
+
+> **The one idea to carry through this lesson.** Each starburst dendrite is its own small direction detector: it is most active, and drives the most GABA release, when motion runs outward, from the cell body to its tip. A direction-selective ganglion cell is wired mainly to the starburst dendrites that point in its null direction. So null-direction motion drives mostly the dendrites that inhibit the cell, and their inhibition overlaps and vetoes the excitation. Preferred-direction motion runs inward along those same dendrites, which release little, so the excitation wins. Remember the sign: the dendrites that give a DSGC its strongest inhibition prefer roughly the direction the DSGC ignores.
+
+Draw it for a DSGC that prefers rightward motion, so its null side is the right. Put a starburst soma to the right of the ganglion cell, with one branch pointing left so that its tip lies over the ganglion cell's dendrites. That is the strongly connected case; weaker connections from other branches and soma positions also occur.
+
+| For a DSGC that prefers rightward motion | Rightward motion (preferred) | Leftward motion (null) |
+|---|---|---|
+| Along the left-pointing starburst branches that contact it | runs inward, tip toward soma | runs outward, soma toward tip |
+| Inhibition from those branches | weak | strongest |
+| The inhibition, in a simple offset sketch | lags the excitation | overlaps the excitation in time |
+| Result | excitation wins; the cell fires | the veto; the cell stays quiet |
+
+**Scope.** The idea is best established for the ON-OFF DSGCs of mouse and rabbit, and it describes how the adult circuit computes. It bundles two ingredients, the tuning of each branch and the placement of the inhibition on the null side; both contribute, and neither should be credited with the whole effect. It does not say how a starburst dendrite gets its outward preference (still open), how the wiring develops, how much tuned excitation, acetylcholine and timing add in some cells, or how the primate circuit is built. Later sections take these up.
+
+## Each branch is its own detector (2002)
+
+<LessonFilm film={frontmatter.films[0]} />
+
+Euler, Detwiler and Denk imaged ON SACs in isolated rabbit retina, using two-photon calcium imaging, and compared the dendrites with the voltage at the soma. Calcium signals in a dendrite were larger for motion outward from the soma, called **centrifugal** motion, than for motion inward.
+
+**Predict.** The soma sits where all the branches meet. Each branch prefers outward motion, and outward points a different way for each branch. What should the voltage at the soma show?
+
+<details>
+<summary>Check your prediction</summary>
+
+Little or no preference, if the soma simply summed equal spokes: motion that runs outward along one branch runs inward along the branch opposite it, so the preferences cancel. Euler and colleagues found that the somatic voltage did not show the dendrites' directional preference under the conditions tested; they did not show that summation is the reason.
+
+</details>
+
+<LessonFigure src="/figures/direction-selectivity/starburst-dendrite-is-the-unit.webp" width={1200} height={788} alt="AI-generated illustration: a flat plan view of a starburst amacrine cell with a sage soma and four identical dendrites radiating like wheel spokes, each with a gold arrow for outward stimulus motion. The soma has only a faint grey double arrow marking no matching somatic voltage preference under the conditions tested. An inset compares outward and inward motion along one dendrite." caption="In ON starburst amacrine cells of isolated rabbit retina, Euler, Detwiler and Denk found dendritic calcium signals larger for motion outward from the soma than inward, while somatic voltage did not show the same preference under the conditions tested. Arrows show stimulus motion. Calcium signals are not transmitter release, so the result shows a local directional signal and leaves its mechanism open." />
+
+So a SAC does not have one preferred direction that its soma reports. Each branch has its own, set by where the branch points. Calcium is not release; the evidence that outward motion also gives more inhibition comes from the paired recordings of the next section. The same arithmetic shows why the wiring has to be selective: a ganglion cell that took input equally from every branch of a SAC would get no direction signal from it.
+
+How necessary is the starburst cell? Yoshida and colleagues ablated the SAC population in adult mice with an immunotoxin-based method, then recorded ganglion-cell responses and tested the **optokinetic reflex**, the eye movement that follows a moving visual field. Both direction selectivity in the ganglion cells and the reflex they tested were abolished. This is necessity in that assay, and taking the whole population away removes both of its transmitters together.
+
+## Reading the wiring (2002, 2011)
+
+Paired recordings in rabbit retina had already shown the predicted pattern in function: Fried, Münch and Werblin (2002) found that SAC processes pointing in a DSGC's null direction delivered inhibition and those pointing in its preferred direction did not, and that SAC inhibition was stronger for null-direction motion.
+
+Briggman, Helmstaedter and Denk tested the anatomy in mouse retina. A wiring diagram alone does not say which way a ganglion cell prefers, so they read function first. In a retina from a wild-type mouse, they imaged calcium in DSGCs, using moving bars, to read each cell's preferred direction. They then cut the same tissue with **serial block-face electron microscopy**, which images the face of a tissue block after each slice is removed, and reconstructed the cells and their contacts. The [microscopy and images](/lessons/microscopy-and-images/) lesson covers how that stack is made.
+
+**Predict.** Take a DSGC that prefers rightward motion. Which way should the starburst branches that contact it point? And which should predict a contact better: the line between the two cell bodies, or the direction of the individual branch?
+
+<details>
+<summary>Check your prediction</summary>
+
+Left, in the null direction, and the branch, because the branch is the unit. The reconstruction showed both:
+
+| Hypothesis | Connection should depend on | What the reconstruction showed |
+|---|---|---|
+| The SAC soma's position sets the wiring | the line between the two cell bodies | a weaker predictor of connection |
+| Each branch's direction sets the wiring | which way the individual branch points | the better predictor; most input came from branches pointing roughly in the null direction |
+
+</details>
+
+<LessonFigure src="/figures/direction-selectivity/imaging-then-em-null-direction.webp" width={1200} height={452} alt="AI-generated illustration: a three-step strip. First, calcium imaging with moving bars finds the preferred direction of a gold direction-selective ganglion cell in mouse retina. Second, the same tissue is cut and imaged for electron microscopy. Third, an illustrative subset of reconstructed slate starburst dendrites that contact the gold cell point roughly in its null direction, opposite the preferred arrow." caption="Briggman, Helmstaedter and Denk read each ganglion cell's preferred direction by calcium imaging in mouse retina, then reconstructed the same tissue by serial block-face electron microscopy. Most starburst input onto a direction-selective ganglion cell came from dendrites pointing roughly in its null direction. The reconstruction is an illustrative subset; contacts do not measure synaptic strength." />
+
+Two limits apply. Anatomy does not measure the strength of a synapse, so a contact count or area is an indirect sign of connectivity, not a conductance. And a snapshot of an adult retina says nothing about how the pattern arose. How tight must the wiring be? In a simple model (Going deeper), even fairly loose wiring around the null direction keeps a two- to threefold difference in inhibition between the two directions.
+
+## Built by strengthening, not pruning (2011)
+
+<LessonFilm film={frontmatter.films[1]} />
+
+An asymmetric circuit could arise by **pruning**, deleting preferred-side connections from a symmetric start, or by **strengthening**, keeping both sides and making the null side stronger. Wei, Hamby, Zhou and Feller recorded pairs in mouse retina: one SAC and one ON-OFF DSGC of a labelled type whose cells all prefer the same direction. They stimulated one SAC at a time and measured the inhibitory current in the ganglion cell.
+
+**Predict.** At postnatal days 4 and 7 the inhibition was similar from the two sides. What should later recordings show under pruning, and what under strengthening?
+
+<details>
+<summary>Check your prediction</summary>
+
+| | Postnatal days 4 and 7 | Later, to adult |
+|---|---|---|
+| Pruning predicts | similar from both sides | preferred-side connections removed |
+| Strengthening predicts | similar from both sides | null side larger; preferred side still present |
+| Observed | similar from both sides | null-side unitary inhibition (from one SAC) increased; preferred-side inhibition about constant and still detectable in adult retina |
+
+Development strengthened one side and did not delete the other.
+
+</details>
+
+<LessonFigure src="/figures/direction-selectivity/strengthening-not-pruning.webp" width={1200} height={800} alt="AI-generated illustration: two matching panels with a gold ganglion cell between two slate starburst cells. At postnatal days 4 and 7 the inhibitory connections from the null and preferred sides are the same. Later the null-side connection is thicker while the preferred-side connection is unchanged, and a crossed-out scissors icon rejects wholesale removal of preferred-side connections as the explanation of the asymmetry; individual synapse turnover was not measured." caption="In paired recordings in mouse retina, Wei, Hamby, Zhou and Feller found that inhibition onto the direction-selective ganglion cell was similar from the two sides at postnatal days 4 and 7. Later the null-side inhibition increased while the preferred-side inhibition stayed about constant and was still detectable in adult retina, so development strengthened one side rather than pruning the other." />
+
+Does the strengthening need neural activity? The authors found that direction selectivity developed despite intraocular injections, during the period when the asymmetry forms, of muscimol (a GABA-A agonist used here to silence retinal activity) or gabazine (which blocks GABA-A receptors). They concluded that the null-side strengthening follows a developmental program that does not depend on neural activity, at least within that treatment window. For the activity patterns that wire the retina early on, see [spontaneous activity](/lessons/spontaneous-activity/), and for how cell types find their partners, see [partners, layers and self-avoidance](/lessons/partners-layers-self-avoidance/).
+
+Why does the null-side connection grow? Later paired recordings from the same laboratory (Morrie and Feller, 2015) counted **quantal events**, single-vesicle responses to GABA released from the stimulated SAC. Larger events would mean stronger single synapses. More frequent events can mean more release sites or a higher release probability, so frequency alone does not settle it. Quantal events became more than three times more frequent for null-side pairs, with no change in their size, and the authors concluded, with further tests, that the growth comes from more inhibitory synapses per null-side pair, not from stronger single synapses.
+
+## Where the idea stops
+
+Recall the sign from the one idea: the branches that inhibit a DSGC most strongly prefer roughly the direction it ignores. Taking the whole SAC population away abolished direction selectivity, but that removes two transmitters and every other function of the cells at once. The direct test is to remove only the GABA. In rabbit, the GABA receptor blocker picrotoxin abolished the direction selectivity of ON-OFF and ON DSGCs (Caldwell, Daw and Wyatt, 1978), though a bath-applied drug acts on every GABAergic cell.
+
+**Predict.** In mouse, Pei and colleagues (2015) deleted the vesicular GABA transporter, which loads GABA into synaptic vesicles, from SACs only. That reduced their GABA release while leaving the cells and their acetylcholine. If the starburst veto were the whole mechanism, what would happen to direction selectivity? What if other mechanisms also contribute?
+
+<details>
+<summary>Check your prediction</summary>
+
+If the veto were the only mechanism, cutting it would abolish direction selectivity in every cell; if other mechanisms can carry selectivity on their own, some would remain. Inhibition lost its direction tuning, and direction selectivity survived only in a subset of ON-OFF DSGCs, carried by tuned excitation and a **timing offset**: residual, untuned inhibition arriving at a different time relative to excitation, which can change how much it cancels even when its size is the same in both directions. So direction tuning of inhibition is important but not indispensable for selectivity in every tested cell. This experiment did not eliminate all SAC GABA.
+
+</details>
+
+Three more limits mark the edge of the idea.
+
+**How the branch gets its preference is open.** One line of work points inside the dendrite: in rabbit, Hausselt and colleagues (2007) found that SAC direction selectivity persisted with GABA and glycine receptors blocked and depended on voltage-gated channels and a voltage gradient from soma to dendritic tip. Another line looks at the bipolar inputs to the starburst dendrite, and that side is under revision (Going deeper).
+
+**Excitation is not always untuned.** Some DSGCs also receive direction-tuned excitation; how much is debated (Going deeper).
+
+**Other animals.** In *Drosophila* the same job is done by T4 cells (the ON channel) and T5 cells (the OFF channel). In vivo calcium imaging of their axon terminals by Haag, Mishra and Borst found both preferred-direction enhancement and null-direction suppression in all four subtypes of each cell type, which differ in their preferred direction. The fly and the mouse reach a similar algorithm with different cells, so this is convergent computation, not homology, and no single idealised detector accounts for either circuit.
+
+On the primate side, a textbook line says that primates lack DSGCs. That is out of date: physiological direction selectivity has been reported in macaque ON-OFF cells (Kim and colleagues, 2022) and ON cells (Wang and colleagues, 2023). The macaque ON-OFF cells form a single mosaic, one evenly tiled population, about 1.5% of peripheral ganglion cells, unlike the four ON-OFF types with different preferred directions in mouse and rabbit, so the rodent circuit should not be copied onto the primate wholesale. The 2023 human cell was identified as a candidate homolog without a human motion recording.
+
+### Worked problem (a): a direction index from a published ratio
+
+Kim and colleagues (2022) reported, for dendritic calcium in macaque SACs (adult isolated retina, radial gratings), a mean inward-to-outward response ratio of 0.32 (SD 0.18) across 36 regions of interest on the terminal dendrites of one starburst cell. For this exercise only, normalise the outward response to 1 and define D = (Rout - Rin) / (Rout + Rin).
+
+> **D = (1 - 0.32) / (1 + 0.32) = 0.68 / 1.32 = 0.515, outward-preferring**
+
+The point: a ratio of 0.32 already means a strong outward preference. This transforms a published mean ratio; it is not a published direction-selectivity index, and because the formula is non-linear it is not the mean of per-region indices, which would need each region's own ratio. The 36 are regions of interest on one cell, not cells or animals.
+
+### Worked problem (b): when does a spike threshold sharpen the signal?
+
+MCAT question 1 below gives a cell three times more inhibitory current for null motion than for preferred motion (120 against 40 pA). Assume the same inhibitory reversal potential and adequate voltage clamp at one holding voltage away from that reversal: the driving force is then the same, so the threefold current ratio is a threefold conductance ratio, which is what the rule below uses. How can a 3 to 1 difference in inhibition become a silent null response, and when does it not? Use the balance-point rule from [the action potential](/lessons/action-potential/) and [ipRGCs](/lessons/iprgcs/): when the voltage is steady and no current is injected, it sits at the average of the reversal potentials, weighted by each conductance.
+
+Take made-up values in a passive, steady-state model (not DSGC measurements; it ignores timing). Reversal potentials: excitation E_E = 0 mV, inhibition E_I = −70 mV, leak E_L = −60 mV. Conductances: leak g_L = 1 and excitation g_E = 2 in both directions; inhibition g_I = 1 for preferred motion and 3 for null motion. For the nonnegative quantities used here (conductances, depolarizations from the leak potential, firing rates), compare preferred (P) and null (N) values with the index (P − N) / (P + N), defined when P + N > 0; it is positive when P > N. Do not apply it to raw membrane potentials, which are negative.
+
+1. **Voltage.** Preferred: (2 × 0 + 1 × −70 + 1 × −60) / (2 + 1 + 1) = −130 / 4 = −32.5 mV. Null: (2 × 0 + 3 × −70 + 1 × −60) / (2 + 3 + 1) = −270 / 6 = −45 mV.
+2. **Indices before spiking.** The inhibitory conductances give (1 − 3) / (1 + 3) = −0.50, negative because inhibition is larger for null motion; compare its size, 0.50, with the others. The depolarizations from the leak potential, 27.5 and 15 mV, give (27.5 − 15) / (27.5 + 15) = 12.5 / 42.5 = 0.29. The voltage is less selective than the inhibition: because the voltage is a weighted average, tripling one conductance does not triple its effect.
+3. **Spikes.** Let the firing rate rise in proportion to how far the voltage sits above a threshold, and be zero below it (arbitrary units).
+
+| Threshold | Preferred rate | Null rate | Preferred : null | Spike index |
+|---|---|---|---|---|
+| −55 mV | 22.5 | 10 | 2.25 | 0.38 |
+| −50 mV | 17.5 | 5 | 3.5 | 0.56 |
+| −45 mV | 12.5 | 0 | all or none | 1.00 |
+
+4. **What it shows.** A threshold *can* turn a 3 to 1 difference in inhibition into a silent null response. In this model that happens, with the preferred response still positive, only for thresholds from −45 mV up to just below −32.5 mV. Below −45 mV both directions fire; at or above −32.5 mV neither does, and the index is undefined. With a low threshold, the spike output (0.38 at −55 mV) is less selective than the inhibition (0.50). Spike selectivity depends on where the threshold sits; it is not a general law that spiking sharpens it.
+
+### Design problem
+
+Null-side starburst inhibition is stronger, SACs release both acetylcholine and GABA, and removing them abolished direction selectivity in the assay of Yoshida and colleagues. Does asymmetric GABAergic inhibition cause direction selectivity? Say what experiments would settle it.
+
+<details>
+<summary>One way to do it</summary>
+
+Start by separating necessity from sufficiency. The ablation shows that the cells are needed, not that GABA is.
+
+Test the transmitter directly. Remove or reduce GABA release from SACs while leaving the cells and their cholinergic output in place, and compare the result with acute, reversible silencing of the same cells. If the ratio falls but does not reach one, other mechanisms contribute. The SAC-specific deletion of Pei and colleagues, above, is the closest test so far. A genetic deletion can act through development, so the next point still matters.
+
+Separate development from the adult requirement. A manipulation begun before about postnatal day 7 could change the wiring, and a manipulation in the adult changes signalling. The two answer different questions.
+
+Add a control for tuned excitation. Where bipolar-bouton tuning depends partly on wide-field amacrine GABA (Going deeper), a global GABA block would remove that tuning too, while a SAC-specific removal may not. Because other work finds untuned glutamate release, measure glutamate input directly rather than assume either result.
+
+State the species scope: rabbit, mouse and macaque DSGCs; the human cell is a candidate homolog only.
+
+</details>
+
+## Going deeper
+
+### The Barlow and Levick preparation
+
+Barlow and Levick recorded from unopened eyes of decerebrate rabbits (higher brain regions surgically disconnected) or lightly anaesthetized ones.
+
+### Veto, boost, and what the two-flash test measures
+
+There are two simple ways to build a direction detector from two inputs. The Barlow-Levick scheme suppresses, with null-side inhibition vetoing the excitation as in the offset sketch above. The Hassenstein-Reichardt scheme enhances: a delayed signal from one side is multiplied with the signal from the other, so the response grows when motion runs the preferred way.
+
+Computed from stimulus-evoked responses, baseline subtracted in matched response windows, the remainder measures the size of each nonlinearity: positive is net enhancement, negative net suppression. It does not, on its own, assign a cell to one scheme or identify a cellular mechanism. An opponent Hassenstein-Reichardt detector, which subtracts two mirror-image half-detectors, gives a surplus in one order *and*, in a cell with a linear term, a deficit in the other, so a deficit alone does not rule out multiplication.
+
+### The two transmitters of the starburst cell
+
+That SACs release both acetylcholine and GABA onto DSGCs was shown in rabbit by Lee and colleagues in 2010, and the role of the cholinergic input was tested by Sethuramanujam and colleagues in 2016.
+
+### How selective must the wiring be?
+
+A simple model makes the soma Predict box quantitative. Let each branch's release follow 1 + k cos(motion direction − branch direction), and choose k = 0.515 so that inward release is 0.32 of outward release. That k is borrowed for illustration from the macaque calcium ratio of worked problem (a); it is not a measured release ratio for mouse or rabbit. Then let equally strong synapses, summing linearly, come from branches spread evenly within the stated angle of the DSGC's null direction.
+
+| Spread of contacting branches around the null direction | Null : preferred inhibition | Size of inhibition index |
+|---|---|---|
+| ±0° | 3.1 | 0.52 |
+| ±45° | 2.7 | 0.46 |
+| ±90° | 2.0 | 0.33 |
+| ±180° (every branch equally; no wiring selectivity) | 1.0 | 0.00 |
+
+In this linear, otherwise symmetric model the last row carries no direction signal, as for a summing soma, while loose wiring still gives about the 3 to 1 of the made-up currents in MCAT question 1. These are model values, not measurements.
+
+### Input kinetics onto the starburst dendrite
+
+The EyeWire project (Kim and colleagues, Nature, 2014) reconstructed 79 OFF SACs in a mouse retinal electron microscopy volume. Contact area, an indirect measure, suggested that type BC2 bipolar cells contact proximal parts of a SAC dendrite and type BC3a cells more distal parts. Their model proposed that this arrangement, with different timing in the two inputs, could favour outward motion; that is a model prediction.
+
+Measurements followed. Fransen and Borghuis recorded excitation in ON and OFF SACs in whole-mount retina from mice aged 1.5 to 3 months, in vitro. Distal excitation was faster and more transient than proximal excitation in both types. Srivastava and colleagues imaged glutamate on SAC dendrites directly in mouse retina in vitro and found relatively sustained proximal input. Deconvolution suggested about three times larger steady release proximally, and their constrained model gave its strongest space-time contribution below about 500 micrometres per second. They measured similar proximal and distal latencies and found the contribution of sustained and transient kinetics at low speeds. This input mechanism is a conditional contribution under revision.
+
+### Worked problem: a delay-line speed, and why it misleads
+
+For this exercise only, take the gradients in time to peak of excitation that Fransen and Borghuis reported in mouse SACs, about 26 ms per 100 micrometres in OFF SACs and 8 ms per 100 micrometres in ON SACs, and treat them as pure delays. A pure delay line makes the signals coincide when the stimulus crosses 100 micrometres in the delay time.
+
+> **OFF: 100 / 26 = 3.8 micrometres per ms, about 3,800 micrometres per second. ON: 100 / 8 = 12.5 micrometres per ms, about 12,500 micrometres per second.**
+
+At about 31 micrometres of mouse retina per degree of visual angle (a commonly used value for mouse), these are roughly 120 and 400 degrees per second, against about 16 degrees per second for the below-500 micrometres per second regime of the Srivastava model (2022). Treated as pure delays, the gradients would match only far faster stimuli. The mismatch comes from the pure-delay assumption, which ignores the difference in response shape (sustained proximal, transient distal), and is not a finding of either paper. Real latency differences depend on the radial positions and the preparation, so do not restate these values as a universal delay.
+
+### Tuned excitation: the debate
+
+Matsumoto and colleagues found that single bipolar cells have output boutons with different preferred directions in mouse retina, and that this depended on SAC cholinergic excitation and on wide-field amacrine inhibition. The DSGCs they recorded received both direction-tuned and untuned glutamatergic input. Park and colleagues (2014) imaged glutamate arriving on ON-OFF DSGC dendrites in mouse and found no direction tuning, and they argued that apparent tuned excitation in voltage clamp comes from poor voltage control during null-direction inhibition. Either way, an upstream cell type does not make a clean feed-forward origin.
+
+### Downstream: what the cortex inherits
+
+Hillier and colleagues reported in mice that disrupting retinal direction selectivity abolished the over-representation of posterior-motion-preferring layer 2/3 cells in primary visual cortex (V1), while other cortical motion computations persisted.

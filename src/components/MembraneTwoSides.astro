@@ -1,0 +1,371 @@
+---
+/**
+ * MembraneTwoSides — grade 7 Life Science, "Diffusion and Osmosis". A tank with a dashed
+ * membrane in the middle. Controls: salt on the left, salt on the right, membrane that lets
+ * water only or water and dye through, and an Add dye button for either side. Dye dots wander
+ * at random and spread (diffusion) only if the membrane lets dye through. Water moves toward
+ * the saltier side and its level rises there (osmosis). A cell in the left liquid shrinks or
+ * swells. All numbers are relative units; salt per water = salt amount / water amount.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="mts card" data-mts>
+  <figcaption class="mts-head">Two sides of a membrane<span class="mts-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="mts-svg" viewBox="0 0 360 350" role="img" aria-label="A tank split by a dashed membrane with salt and dye particles on each side, and a cell below that shrinks or swells" data-scene>
+    <text x="180" y="14" text-anchor="middle" font-size="13" fill="#2b2b33">dashed line = membrane</text>
+    <text data-title-l x="100" y="32" text-anchor="middle" font-size="13" fill="#2b2b33"></text>
+    <text data-title-r x="260" y="32" text-anchor="middle" font-size="13" fill="#2b2b33"></text>
+    <rect data-water-l x="21" y="120" width="159" height="69" fill="#cfe6f4" />
+    <rect data-water-r x="180" y="120" width="159" height="69" fill="#cfe6f4" />
+    <path d="M20 40 V190 H340 V40" fill="none" stroke="#4b4b55" stroke-width="2" />
+    <g data-salt></g>
+    <g data-dye></g>
+    <line x1="180" y1="40" x2="180" y2="190" stroke="#4b4b55" stroke-width="2.4" stroke-dasharray="6 5" />
+    <g data-arrow-r visibility="hidden">
+      <line x1="150" y1="168" x2="200" y2="168" stroke="#0e7c86" stroke-width="3" />
+      <polygon points="212,168 198,160 198,176" fill="#0e7c86" />
+    </g>
+    <g data-arrow-l visibility="hidden">
+      <line x1="210" y1="168" x2="160" y2="168" stroke="#0e7c86" stroke-width="3" />
+      <polygon points="148,168 162,160 162,176" fill="#0e7c86" />
+    </g>
+    <text data-flowlabel x="180" y="208" text-anchor="middle" font-size="13" fill="#2b2b33"></text>
+
+    <line x1="10" y1="218" x2="350" y2="218" stroke="#d6d6dc" stroke-width="1" />
+    <text x="8" y="258" font-size="13" fill="#2b2b33">liquid around</text>
+    <text x="8" y="274" font-size="13" fill="#2b2b33">the cell has the</text>
+    <text x="8" y="290" font-size="13" fill="#2b2b33">left salt level</text>
+    <text x="352" y="266" text-anchor="end" font-size="13" fill="#2b2b33">salt inside:</text>
+    <text x="352" y="282" text-anchor="end" font-size="13" fill="#2b2b33">level 3, fixed</text>
+    <circle cx="180" cy="274" r="34" fill="none" stroke="#8d8d99" stroke-width="1.2" stroke-dasharray="4 4" />
+    <circle data-cell cx="180" cy="274" r="34" fill="#f6efe2" stroke="#8a6b2e" stroke-width="2.2" />
+    <text x="180" y="279" text-anchor="middle" font-size="13" fill="#2b2b33">cell</text>
+    <text x="180" y="338" text-anchor="middle" font-size="13" fill="#2b2b33">dashed ring = cell size at the start</text>
+  </svg>
+  <p class="mts-key">Schematic, not to scale. <span class="mts-sq"></span> salt, <span class="mts-dot"></span> dye. Salt cannot cross the dashed line. Each dot is one particle.</p>
+
+  <div class="mts-controls">
+    <label class="mts-slabel"><span>Salt on the left: level <em data-out="sl">3</em> (relative units)</span>
+      <input type="range" min="0" max="5" step="1" value="3" data-in="sl" />
+    </label>
+    <label class="mts-slabel"><span>Salt on the right: level <em data-out="sr">3</em> (relative units)</span>
+      <input type="range" min="0" max="5" step="1" value="3" data-in="sr" />
+    </label>
+    <div class="mts-group" role="group" aria-label="What the membrane lets through">
+      <span class="mts-glabel">The membrane lets through</span>
+      <div class="mts-btns">
+        <button type="button" class="mts-btn mts-tog" data-mem="water" aria-pressed="true">Water only</button>
+        <button type="button" class="mts-btn mts-tog" data-mem="dye" aria-pressed="false">Water and dye</button>
+      </div>
+    </div>
+    <div class="mts-group" role="group" aria-label="Add dye">
+      <span class="mts-glabel">Dye (new random dots each time)</span>
+      <div class="mts-btns">
+        <button type="button" class="mts-btn mts-main" data-add="l">Add dye to the left</button>
+        <button type="button" class="mts-btn mts-main" data-add="r">Add dye to the right</button>
+      </div>
+    </div>
+  </div>
+
+  <dl class="mts-read">
+    <div><dt>Dye dots on the left</dt><dd data-out="dl">0 (expected when even: 10)</dd></div>
+    <div><dt>Dye dots on the right</dt><dd data-out="dr">0 (expected when even: 10)</dd></div>
+    <div><dt>Dye crossings, last 5 s</dt><dd data-out="cross">left to right 0, right to left 0</dd></div>
+    <div><dt>Water level (relative units, start 10 each)</dt><dd data-out="vol">left 10.0, right 10.0</dd></div>
+    <div><dt>Which side has more salt per water</dt><dd data-out="conc">about the same</dd></div>
+    <div><dt>Water in the cell (relative units, start 10)</dt><dd data-out="cellv">10.0</dd></div>
+  </dl>
+
+  <div class="mts-btns mts-actions">
+    <button type="button" class="mts-btn" data-reset>Reset</button>
+  </div>
+  <p class="mts-status" role="status" data-status></p>
+
+  <p class="mts-assume">In this sketch the dashed membrane holds back all the salt. Real membranes let some salt through, but much more slowly than water. There is one kind of salt, drawn as squares. Each salt level adds 5 squares. Only salt sets which way water moves; the dye is just a marker. The cell is small, so the liquid around it keeps the left salt level you set. There is no pressure. Dye dots move at random, so the counts wobble around the expected value. In this sketch water keeps moving toward the side with more salt per water until the two sides match, then it moves about equally both ways. The water levels can end up different. The rates, the tank size and the cell size limits are made up. The water tank and the cell stop at the largest and smallest sizes drawn.</p>
+  <p class="mts-foot">Rule to keep: particles spread from more concentrated to less concentrated, and water crosses toward the side with more dissolved salt; the cell spends no energy on either.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+
+  function svgEl(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type P = { x: number; y: number; vx: number; vy: number; el: SVGElement };
+
+  document.querySelectorAll<HTMLElement>('[data-mts]').forEach((root) => {
+    function q<T extends Element>(sel: string): T {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('MembraneTwoSides: missing ' + sel);
+      return e;
+    }
+    const waterL = q<SVGRectElement>('[data-water-l]');
+    const waterR = q<SVGRectElement>('[data-water-r]');
+    const titleL = q<SVGTextElement>('[data-title-l]');
+    const titleR = q<SVGTextElement>('[data-title-r]');
+    const saltG = q<SVGGElement>('[data-salt]');
+    const dyeG = q<SVGGElement>('[data-dye]');
+    const arrowL = q<SVGGElement>('[data-arrow-l]');
+    const arrowR = q<SVGGElement>('[data-arrow-r]');
+    const flowLabel = q<SVGTextElement>('[data-flowlabel]');
+    const cellEl = q<SVGCircleElement>('[data-cell]');
+    const slIn = q<HTMLInputElement>('[data-in="sl"]');
+    const srIn = q<HTMLInputElement>('[data-in="sr"]');
+    const out = (k: string) => q<HTMLElement>('[data-out="' + k + '"]');
+    const oSl = out('sl'), oSr = out('sr'), oDl = out('dl'), oDr = out('dr'), oCross = out('cross');
+    const oVol = out('vol'), oConc = out('conc'), oCellV = out('cellv');
+    const status = q<HTMLElement>('[data-status]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const memBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-mem]'));
+    const addBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-add]'));
+
+    // ---- constants ---------------------------------------------------------
+    const MID = 180, XL = 24, XR = 336, YB = 186;
+    const SCALE = 7; // svg units of water height per unit of water
+    const VMIN = 3, VMAX = 17; // limits of the drawn tank
+    const CMIN = 5, CMAX = 16; // limits of the drawn cell
+    const K = 0.25; // water units per second per unit of salt-per-water difference (not measured)
+    const CELL_SALT = 30; // level 3 in 10 units of water
+    const NDYE = 20, NSALT = 25;
+    const THR = 0.15;
+    const WINDOW = 5000;
+
+    const state = {
+      sl: 3, sr: 3,
+      vl: 10, vr: 10, vc: 10,
+      permeable: false,
+      dye: false,
+    };
+    const crossLR: number[] = [];
+    const crossRL: number[] = [];
+
+    const saltL: P[] = [], saltR: P[] = [], dye: P[] = [];
+    for (let i = 0; i < NSALT; i++) {
+      for (const arr of [saltL, saltR]) {
+        const el = svgEl('rect', { width: 7, height: 7, fill: '#fff', stroke: '#6b6b78', 'stroke-width': 1.3 });
+        saltG.appendChild(el);
+        arr.push({ x: 0, y: 0, vx: 0, vy: 0, el });
+      }
+    }
+    for (let i = 0; i < NDYE; i++) {
+      const el = svgEl('circle', { r: 4, fill: '#7a3fb0', stroke: '#fff', 'stroke-width': 1, visibility: 'hidden' });
+      dyeG.appendChild(el);
+      dye.push({ x: 0, y: 0, vx: 0, vy: 0, el });
+    }
+
+    const surfL = () => YB - SCALE * state.vl;
+    const surfR = () => YB - SCALE * state.vr;
+    const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+
+    function seedSalt(arr: P[], left: boolean) {
+      const top = left ? surfL() : surfR();
+      for (const p of arr) {
+        p.x = left ? rnd(XL + 4, MID - 8) : rnd(MID + 4, XR - 8);
+        p.y = rnd(top + 6, YB - 8);
+      }
+    }
+    seedSalt(saltL, true); seedSalt(saltR, false);
+
+    function addDye(left: boolean) {
+      const top = left ? surfL() : surfR();
+      const now = performance.now();
+      void now;
+      for (const p of dye) {
+        p.x = left ? rnd(XL + 4, XL + 44) : rnd(XR - 44, XR - 4);
+        p.y = rnd(top + 6, YB - 6);
+        p.el.setAttribute('visibility', 'visible');
+      }
+      crossLR.length = 0; crossRL.length = 0;
+      state.dye = true;
+    }
+
+    // ---- concentration helpers ------------------------------------------------
+    const cL = () => (state.sl * 10) / state.vl;
+    const cR = () => (state.sr * 10) / state.vr;
+    const cC = () => CELL_SALT / state.vc;
+    const cOut = () => state.sl; // the liquid around the cell has the left side's salt level
+
+    // ---- motion --------------------------------------------------------------
+    function walk(p: P, step: number, f: number, cross: boolean, time: number, isDye: boolean, sideLeft: boolean | null) {
+      // smooth random wandering: velocity keeps some memory of the last step
+      const keep = Math.pow(0.85, f);
+      p.vx = p.vx * keep + (Math.random() * 2 - 1) * step;
+      p.vy = p.vy * keep + (Math.random() * 2 - 1) * step;
+      let nx = p.x + p.vx * f;
+      let ny = p.y + p.vy * f;
+      const wasLeft = p.x < MID;
+      const home = sideLeft === null ? wasLeft : sideLeft;
+      const lo = cross ? XL : home ? XL : MID + 5, hi = cross ? XR : home ? MID - 5 : XR;
+      if (nx < lo) { nx = lo; p.vx = Math.abs(p.vx); }
+      if (nx > hi) { nx = hi; p.vx = -Math.abs(p.vx); }
+      const nowLeft = nx < MID;
+      const top = (nowLeft ? surfL() : surfR()) + 5;
+      if (ny < top) { ny = top; p.vy = Math.abs(p.vy); }
+      if (ny > YB - 5) { ny = YB - 5; p.vy = -Math.abs(p.vy); }
+      if (isDye && nowLeft !== wasLeft) {
+        if (nowLeft) crossRL.push(time); else crossLR.push(time);
+      }
+      p.x = nx; p.y = ny;
+    }
+
+    // ---- drawing -------------------------------------------------------------
+    function place() {
+      for (const arr of [saltL, saltR]) for (let i = 0; i < NSALT; i++) {
+        const p = arr[i];
+        p.el.setAttribute('x', (p.x - 3.5).toFixed(1));
+        p.el.setAttribute('y', (p.y - 3.5).toFixed(1));
+      }
+      for (const p of dye) {
+        p.el.setAttribute('cx', p.x.toFixed(1));
+        p.el.setAttribute('cy', p.y.toFixed(1));
+      }
+    }
+    function showCounts() {
+      for (let i = 0; i < NSALT; i++) {
+        saltL[i].el.setAttribute('visibility', i < state.sl * 5 ? 'visible' : 'hidden');
+        saltR[i].el.setAttribute('visibility', i < state.sr * 5 ? 'visible' : 'hidden');
+      }
+    }
+    function fmt(v: number) { return v.toFixed(1); }
+    function band(a: number, b: number): 'more' | 'less' | 'same' {
+      return a - b > THR ? 'more' : b - a > THR ? 'less' : 'same';
+    }
+
+    let lastStatus = '';
+    function render(now: number) {
+      const yl = surfL(), yr = surfR();
+      waterL.setAttribute('y', yl.toFixed(1)); waterL.setAttribute('height', (YB - yl).toFixed(1));
+      waterR.setAttribute('y', yr.toFixed(1)); waterR.setAttribute('height', (YB - yr).toFixed(1));
+      titleL.textContent = 'Left: salt level ' + state.sl;
+      titleR.textContent = 'Right: salt level ' + state.sr;
+      oSl.textContent = String(state.sl); oSr.textContent = String(state.sr);
+
+      const l = cL(), r = cR(), c = cC(), diff = l - r;
+      const dir = diff > THR ? 'l' : diff < -THR ? 'r' : '';
+      arrowL.setAttribute('visibility', dir === 'l' ? 'visible' : 'hidden');
+      arrowR.setAttribute('visibility', dir === 'r' ? 'visible' : 'hidden');
+      flowLabel.textContent = dir === 'l' ? 'water moves toward the left (more salt)'
+        : dir === 'r' ? 'water moves toward the right (more salt)'
+        : 'water moves about equally both ways';
+
+      const rad = 34 * Math.sqrt(state.vc / 10);
+      cellEl.setAttribute('r', rad.toFixed(1));
+
+      // readouts
+      let nl = 0;
+      if (state.dye) for (const p of dye) if (p.x < MID) nl++;
+      const nr = state.dye ? NDYE - nl : 0;
+      const exp = state.dye ? (state.permeable ? 'expected when even: ' + NDYE / 2 : 'cannot cross') : 'no dye yet';
+      oDl.textContent = nl + ' (' + exp + ')';
+      oDr.textContent = nr + ' (' + exp + ')';
+      while (crossLR.length && now - crossLR[0] > WINDOW) crossLR.shift();
+      while (crossRL.length && now - crossRL[0] > WINDOW) crossRL.shift();
+      oCross.textContent = 'left to right ' + crossLR.length + ', right to left ' + crossRL.length;
+      oVol.textContent = 'left ' + fmt(state.vl) + ', right ' + fmt(state.vr);
+      oConc.textContent = dir === 'l' ? 'left' : dir === 'r' ? 'right' : 'about the same';
+      oCellV.textContent = fmt(state.vc);
+
+      // status: three short lines
+      let s1: string;
+      if (!state.dye) s1 = 'No dye yet. Press Add dye to the left or right.';
+      else if (!state.permeable) s1 = 'This membrane lets only water through, so the dye stays on its own side.';
+      else if (nl >= 7 && nl <= 13) s1 = 'The dye looks even, but the dots keep moving. About as many cross each way.';
+      else s1 = 'The dye can cross. More dots leave the crowded side than enter it.';
+      let s2: string;
+      const atEdge = (dir === 'l' && state.vl >= VMAX - 0.05) || (dir === 'r' && state.vr >= VMAX - 0.05);
+      if (dir === '') s2 = 'In this sketch, the salt per water is now about the same on both sides, so water moves about equally both ways.';
+      else if (atEdge) s2 = 'The tank drawn is full on the salty side, so the levels stop changing in this sketch.';
+      else s2 = 'The ' + (dir === 'l' ? 'left' : 'right') + ' side has more salt, so water moves there and its level rises.';
+      const cb = band(cOut(), c);
+      let s3: string;
+      if (cb === 'more') {
+        s3 = state.vc <= CMIN + 0.05 ? 'The cell is at its smallest size drawn in this sketch.'
+          : 'Around the cell there is more salt than inside, so water leaves and the cell shrinks.';
+      } else if (cb === 'less') {
+        s3 = state.vc >= CMAX - 0.05 ? 'The cell is at its largest size drawn in this sketch.'
+          : 'Around the cell there is less salt than inside, so water enters and the cell swells.';
+      } else s3 = 'The salt around the cell and inside it are about the same, so the cell stops changing size.';
+      const text = s1 + ' ' + s2 + ' ' + s3;
+      if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
+    }
+
+    // ---- loop ------------------------------------------------------------------
+    let last = performance.now(), frame = 0;
+    function tick(now: number) {
+      const dt = Math.min((now - last) / 1000, 0.1);
+      last = now;
+      const f = dt * 60;
+      // water
+      const diff = cL() - cR();
+      state.vl = Math.min(Math.max(state.vl + K * diff * dt, VMIN), VMAX);
+      state.vr = 20 - state.vl;
+      state.vc = Math.min(Math.max(state.vc + K * (cC() - cOut()) * dt, CMIN), CMAX);
+      // particles
+      for (const p of saltL) walk(p, 1.2, f, false, now, false, true);
+      for (const p of saltR) walk(p, 1.2, f, false, now, false, false);
+      if (state.dye) for (const p of dye) walk(p, 2.2, f, state.permeable, now, true, null);
+      place();
+      if (frame++ % 3 === 0) render(now);
+      requestAnimationFrame(tick);
+    }
+
+    // ---- controls ----------------------------------------------------------------
+    function syncMem() {
+      memBtns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.mem === 'dye') === state.permeable)));
+    }
+    slIn.addEventListener('input', () => { state.sl = parseInt(slIn.value, 10); showCounts(); render(performance.now()); });
+    srIn.addEventListener('input', () => { state.sr = parseInt(srIn.value, 10); showCounts(); render(performance.now()); });
+    memBtns.forEach((b) => b.addEventListener('click', () => {
+      state.permeable = b.dataset.mem === 'dye';
+      syncMem(); render(performance.now());
+    }));
+    addBtns.forEach((b) => b.addEventListener('click', () => { addDye(b.dataset.add === 'l'); render(performance.now()); }));
+    resetBtn.addEventListener('click', () => {
+      state.sl = 3; state.sr = 3; state.vl = 10; state.vr = 10; state.vc = 10;
+      state.permeable = false; state.dye = false;
+      slIn.value = '3'; srIn.value = '3';
+      for (const p of dye) p.el.setAttribute('visibility', 'hidden');
+      crossLR.length = 0; crossRL.length = 0;
+      seedSalt(saltL, true); seedSalt(saltR, false);
+      syncMem(); showCounts(); place(); render(performance.now());
+    });
+
+    syncMem(); showCounts(); place(); render(performance.now());
+    requestAnimationFrame(tick);
+  });
+</script>
+
+<style is:global>
+  .mts { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mts-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mts-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mts-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mts-key { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.7; }
+  .mts-sq { display: inline-block; width: 9px; height: 9px; border: 1.3px solid #6b6b78; background: #fff; vertical-align: middle; }
+  .mts-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #7a3fb0; vertical-align: middle; }
+  .mts-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .mts-group { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .mts-glabel { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .mts-slabel { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .mts-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .mts-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .mts-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .mts-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.4rem 0.8rem; cursor: pointer; }
+  .mts-tog[aria-pressed="true"] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, transparent); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 700; }
+  .mts-main { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .mts-btn:focus-visible, .mts-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mts-actions { margin: var(--ddp-space-2) 0; }
+  .mts-read { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .mts-read div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .mts-read dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mts-read dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .mts-status { margin: 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 5.4em; }
+  .mts-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mts-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 720px) { .mts-controls, .mts-read { grid-template-columns: 1fr; } }
+</style>

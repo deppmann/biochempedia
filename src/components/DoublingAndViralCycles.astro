@@ -1,0 +1,416 @@
+---
+/**
+ * DoublingAndViralCycles — two panels for the "How Microbes Multiply" lesson.
+ * Panel 1 doubles one bacterial cell at a chosen doubling time; a food slider sets a
+ * ceiling where growth levels off (a sketch value, not a measurement). A "read the count
+ * at" slider lets the learner make the lesson's arithmetic: minutes / doubling time =
+ * doublings, then 1 x 2 x 2 ... Panel 2 steps a phage through the lytic path (inject, copy
+ * and build, assemble, burst) or the lysogenic path (prophage joins the host DNA, both
+ * daughters carry it each time the host divides, one cell can switch to lytic).
+ * Cells are labelled blocks only; no molecular structures. Self-contained vanilla-TS island.
+ */
+---
+
+<figure class="dvc card" data-dvc>
+  <figcaption class="dvc-head">Doubling and virus cycles: grow a population, follow a phage<span class="dvc-chip">⚙ original · interactive</span></figcaption>
+
+  <!-- Panel 1: bacterial doubling -->
+  <section class="dvc-panel" aria-label="Panel 1: bacterial doubling">
+    <p class="dvc-ptitle">Panel 1. Double a bacterial population</p>
+    <svg class="dvc-svg" viewBox="0 0 360 226" role="img" aria-label="Plot of the number of cells against time for one starting cell, on a log scale, with and without a food ceiling" data-plot></svg>
+
+    <div class="dvc-controls">
+      <label class="dvc-slabel"><span>Doubling time: <em data-out="g">20</em> minutes</span>
+        <input type="range" data-in="g" min="20" max="60" step="10" value="20" />
+      </label>
+      <label class="dvc-slabel"><span>Food in the dish: <em data-out="food">100</em>% of full</span>
+        <input type="range" data-in="food" min="25" max="100" step="25" value="100" />
+      </label>
+      <label class="dvc-slabel"><span>Read the count at: <em data-out="t">2 h 0 min</em></span>
+        <input type="range" data-in="t" min="0" max="420" step="10" value="120" />
+      </label>
+    </div>
+
+    <dl class="dvc-readout">
+      <div><dt>Doublings finished</dt><dd data-r="d">6</dd></div>
+      <div><dt>Cells with endless food</dt><dd data-r="u">64</dd></div>
+      <div><dt>Cells with the food ceiling</dt><dd data-r="n">64</dd></div>
+    </dl>
+    <p class="dvc-math" data-math></p>
+    <p class="dvc-status" data-status1 role="status"></p>
+    <p class="dvc-assume">In this sketch: one starting cell, no waiting before growth starts, no cells dying, and growth runs at full speed until it stops at a ceiling set by food alone (a real culture slows first, and wastes build up). The ceiling (4,096 cells at full food) and doubling times other than 20 minutes are made-up sketch values, not measurements.</p>
+    <button type="button" class="dvc-btn" data-reset1>Reset panel 1</button>
+  </section>
+
+  <!-- Panel 2: phage -->
+  <section class="dvc-panel" aria-label="Panel 2: a phage infects a bacterium">
+    <p class="dvc-ptitle">Panel 2. Follow a phage</p>
+    <svg class="dvc-svg" viewBox="0 0 360 214" role="img" aria-label="A phage, a host bacterium and its DNA, shown at the current step of the lytic or lysogenic path" data-phage></svg>
+
+    <div class="dvc-actions" data-actions>
+      <button type="button" class="dvc-btn dvc-primary" data-act="infect">Phage infects the cell</button>
+      <button type="button" class="dvc-btn dvc-primary" data-act="lytic" hidden>Take the lytic path</button>
+      <button type="button" class="dvc-btn dvc-primary" data-act="lyso" hidden>Take the lysogenic path</button>
+      <button type="button" class="dvc-btn dvc-primary" data-act="next" hidden>Next step</button>
+      <button type="button" class="dvc-btn dvc-primary" data-act="divide" hidden>Host divides</button>
+      <button type="button" class="dvc-btn" data-act="switch" hidden>Switch one cell to lytic</button>
+      <button type="button" class="dvc-btn" data-act="reset2">Reset panel 2</button>
+    </div>
+
+    <dl class="dvc-readout">
+      <div><dt>Cells carrying the prophage</dt><dd data-r2="car">–</dd></div>
+      <div><dt>Host divisions</dt><dd data-r2="div">–</dd></div>
+      <div><dt>Cells that burst</dt><dd data-r2="bur">–</dd></div>
+    </dl>
+    <p class="dvc-math" data-math2></p>
+    <p class="dvc-status" data-status2 role="status"></p>
+    <p class="dvc-assume">In this sketch: you pick the path, the only cell that dies is one that bursts, and the picture shows at most 8 cells.</p>
+  </section>
+
+  <p class="dvc-foot">In this sketch, a population doubles once each doubling time until food runs low and wastes build up, and a prophage is copied into both daughter cells each time its host divides.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', ORANGE_TXT = '#9a4700', INK = '#4b4b55', FAINT = '#8a8a96', GRID = '#e3e3e8';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('DoublingAndViralCycles: missing ' + sel);
+    return e;
+  }
+  const fmt = (n: number) => n.toLocaleString('en-US');
+
+  document.querySelectorAll<HTMLElement>('[data-dvc]').forEach((root) => {
+    /* ============================ Panel 1 ============================ */
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const gIn = must<HTMLInputElement>(root, '[data-in="g"]');
+    const fIn = must<HTMLInputElement>(root, '[data-in="food"]');
+    const tIn = must<HTMLInputElement>(root, '[data-in="t"]');
+    const outG = must<HTMLElement>(root, '[data-out="g"]');
+    const outF = must<HTMLElement>(root, '[data-out="food"]');
+    const outT = must<HTMLElement>(root, '[data-out="t"]');
+    const rD = must<HTMLElement>(root, '[data-r="d"]');
+    const rU = must<HTMLElement>(root, '[data-r="u"]');
+    const rN = must<HTMLElement>(root, '[data-r="n"]');
+    const math1 = must<HTMLElement>(root, '[data-math]');
+    const status1 = must<HTMLElement>(root, '[data-status1]');
+
+    const FULL_CEILING = 4096; // sketch value at full food
+    const TMAX = 420; // 7 hours
+    const X0 = 72, X1 = 344, Y0 = 44, Y1 = 176;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (n: number) => Y1 - (Math.log10(Math.max(n, 1)) / 7) * (Y1 - Y0);
+
+    function stair(g: number, K: number | null): string {
+      let d = `M ${px(0).toFixed(1)} ${py(1).toFixed(1)}`;
+      let prev = 1;
+      for (let k = 1; k * g <= TMAX + 1e-9; k++) {
+        const n = K === null ? 2 ** k : Math.min(2 ** k, K);
+        const x = px(k * g).toFixed(1);
+        d += ` L ${x} ${py(prev).toFixed(1)} L ${x} ${py(n).toFixed(1)}`;
+        prev = n;
+      }
+      d += ` L ${px(TMAX).toFixed(1)} ${py(prev).toFixed(1)}`;
+      return d;
+    }
+
+    function render1() {
+      const g = +gIn.value, food = +fIn.value, t = +tIn.value;
+      const K = Math.round((FULL_CEILING * food) / 100);
+      const d = Math.floor(t / g + 1e-9);
+      const U = 2 ** d;
+      const N = Math.min(U, K);
+      outG.textContent = String(g);
+      outF.textContent = String(food);
+      outT.textContent = `${Math.floor(t / 60)} h ${t % 60} min`;
+      rD.textContent = String(d);
+      rU.textContent = fmt(U);
+      rN.textContent = fmt(N);
+
+      // plot
+      plot.replaceChildren();
+      for (let i = 0; i <= 7; i++) {
+        const y = py(10 ** i);
+        plot.appendChild(el('line', { x1: X0, y1: y, x2: X1, y2: y, stroke: GRID, 'stroke-width': 1 }));
+        if (i % 2 === 0) plot.appendChild(el('text', { x: X0 - 6, y: y + 4, 'font-size': 12, 'text-anchor': 'end', fill: INK }, fmt(10 ** i)));
+      }
+      for (let h = 0; h <= 7; h++) {
+        const x = px(h * 60);
+        plot.appendChild(el('line', { x1: x, y1: Y1, x2: x, y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x, y: Y1 + 18, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, String(h)));
+      }
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1.2 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y0 - 4, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1.2 }));
+      plot.appendChild(el('text', { x: (X0 + X1) / 2, y: 216, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'time (hours); cells on a log scale'));
+      // food ceiling line
+      plot.appendChild(el('line', { x1: X0, y1: py(K), x2: X1, y2: py(K), stroke: ORANGE, 'stroke-width': 1.4 }));
+      // endless-food curve (dashed) and food-ceiling curve
+      plot.appendChild(el('path', { d: stair(g, null), fill: 'none', stroke: FAINT, 'stroke-width': 1.8, 'stroke-dasharray': '5 3' }));
+      plot.appendChild(el('path', { d: stair(g, K), fill: 'none', stroke: TEAL, 'stroke-width': 2.6 }));
+      // legend
+      plot.appendChild(el('line', { x1: X0, y1: 12, x2: X0 + 20, y2: 12, stroke: TEAL, 'stroke-width': 2.6 }));
+      plot.appendChild(el('text', { x: X0 + 26, y: 16, 'font-size': 12, fill: INK }, 'with food ceiling'));
+      plot.appendChild(el('line', { x1: 214, y1: 12, x2: 234, y2: 12, stroke: FAINT, 'stroke-width': 1.8, 'stroke-dasharray': '5 3' }));
+      plot.appendChild(el('text', { x: 240, y: 16, 'font-size': 12, fill: INK }, 'endless food'));
+      plot.appendChild(el('line', { x1: X0, y1: 29, x2: X0 + 20, y2: 29, stroke: ORANGE, 'stroke-width': 1.4 }));
+      plot.appendChild(el('text', { x: X0 + 26, y: 33, 'font-size': 12, fill: INK }, `sketch ceiling: ${fmt(K)} cells`));
+      // reading marker
+      const mx = px(t), my = py(N);
+      plot.appendChild(el('line', { x1: mx, y1: Y1, x2: mx, y2: my, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('circle', { cx: mx, cy: my, r: 5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.5 }));
+
+      // arithmetic
+      const kReach = Math.ceil(Math.log2(K));
+      const tReach = kReach * g;
+      const prod = d === 0 ? '1' : d <= 8 ? '1 × ' + Array(d).fill('2').join(' × ') : `1 doubled ${d} times`;
+      const reachTxt = tReach <= TMAX
+        ? `The count reaches the ceiling after ${tReach} minutes.`
+        : 'The count does not reach the ceiling within 7 hours at this doubling time.';
+      const ratio = t % g === 0 ? String(d) : String(+(t / g).toFixed(1));
+      math1.textContent = `${t} min ÷ ${g} min = ${ratio}${t % g === 0 ? ' doubling' + (d === 1 ? '' : 's') : `, so ${d} whole doubling${d === 1 ? '' : 's'} finished`}; ${prod} = ${fmt(U)} cells. ${reachTxt}`;
+
+      // status
+      let s: string;
+      if (d === 0) s = `In this sketch, no doubling has finished by ${t} minutes, so there is still 1 cell.`;
+      else if (U <= K) s = `In this sketch, ${t} minutes is ${d} doubling${d === 1 ? '' : 's'} of ${g} minutes, so 1 cell becomes ${fmt(N)} cells.`;
+      else s = `In this sketch, endless food would give ${fmt(U)} cells, but the food ceiling holds the count at ${fmt(K)}.`;
+      status1.textContent = s;
+    }
+    [gIn, fIn, tIn].forEach((i) => i.addEventListener('input', render1));
+    must<HTMLButtonElement>(root, '[data-reset1]').addEventListener('click', () => {
+      gIn.value = '20'; fIn.value = '100'; tIn.value = '120'; render1();
+    });
+    render1();
+
+    /* ============================ Panel 2 ============================ */
+    type CS = 'carrier' | 's2' | 's3' | 'burst';
+    type Mode = 'ready' | 'inj' | 'lytic' | 'lyso';
+    const svg = must<SVGSVGElement>(root, '[data-phage]');
+    const actions = must<HTMLElement>(root, '[data-actions]');
+    const act = (k: string) => must<HTMLButtonElement>(actions, `[data-act="${k}"]`);
+    const rCar = must<HTMLElement>(root, '[data-r2="car"]');
+    const rDiv = must<HTMLElement>(root, '[data-r2="div"]');
+    const rBur = must<HTMLElement>(root, '[data-r2="bur"]');
+    const math2 = must<HTMLElement>(root, '[data-math2]');
+    const status2 = must<HTMLElement>(root, '[data-status2]');
+
+    const MAXCELLS = 8;
+    let mode: Mode = 'ready';
+    let lstep = 2; // 2 copy and build, 3 assemble, 4 burst
+    let cells: CS[] = [];
+    let divs = 0;
+
+    const switching = () => cells.findIndex((c) => c === 's2' || c === 's3');
+    const carriers = () => cells.filter((c) => c === 'carrier').length;
+    const bursts = () => cells.filter((c) => c === 'burst').length;
+    const slotsAfterDivide = () => carriers() * 2 + (cells.length - carriers());
+
+    function phageBox(x: number, y: number, w = 56, h = 26) {
+      svg.appendChild(el('rect', { x, y, width: w, height: h, rx: 4, fill: '#fff4e6', stroke: ORANGE, 'stroke-width': 2 }));
+      svg.appendChild(el('text', { x: x + w / 2, y: y + h / 2 + 4, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: ORANGE_TXT }, 'phage'));
+    }
+    function arrowDown(x: number, y1: number, y2: number) {
+      svg.appendChild(el('line', { x1: x, y1, x2: x, y2: y2 - 5, stroke: INK, 'stroke-width': 1.5 }));
+      svg.appendChild(el('polygon', { points: `${x - 4},${y2 - 6} ${x + 4},${y2 - 6} ${x},${y2}`, fill: INK }));
+    }
+
+    type Scene = 'ready' | 'inj' | 'l2' | 'l3' | 'l4' | 'pro';
+    function bigScene(scene: Scene) {
+      const cx = 120, cy = 44, cw = 220, ch = 96;
+      svg.appendChild(el('text', { x: cx, y: 36, 'font-size': 12, 'font-weight': 700, fill: INK }, 'host cell (a bacterium)'));
+      if (scene === 'l4') {
+        svg.appendChild(el('rect', { x: cx, y: cy, width: cw, height: 66, rx: 18, fill: '#fff', stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '6 4' }));
+        svg.appendChild(el('text', { x: cx + cw / 2, y: cy + 28, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'the cell bursts'));
+        svg.appendChild(el('text', { x: cx + cw / 2, y: cy + 48, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'the host cell usually dies'));
+        [140, 196, 252].forEach((x) => { arrowDown(x + 24, cy + 66, 134); phageBox(x, 138, 48, 24); });
+        svg.appendChild(el('text', { x: 20, y: 154, 'font-size': 12, 'font-weight': 700, fill: ORANGE_TXT }, 'new phages'));
+        return;
+      }
+      svg.appendChild(el('rect', { x: cx, y: cy, width: cw, height: ch, rx: 18, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+      // host DNA bar
+      svg.appendChild(el('text', { x: cx + 16, y: 110, 'font-size': 12, fill: TEAL, 'font-weight': 700 }, 'host DNA'));
+      svg.appendChild(el('rect', { x: cx + 16, y: 116, width: 188, height: 10, rx: 2, fill: TEAL }));
+      if (scene === 'pro') {
+        svg.appendChild(el('rect', { x: cx + 106, y: 113, width: 44, height: 16, rx: 2, fill: ORANGE }));
+        svg.appendChild(el('text', { x: cx + 106, y: 106, 'font-size': 12, 'font-weight': 700, fill: ORANGE_TXT }, 'prophage'));
+      }
+      if (scene === 'ready') { phageBox(24, 66, 64, 30); arrowDown(56, 98, 130); svg.appendChild(el('text', { x: 24, y: 150, 'font-size': 12, fill: INK }, 'outside')); }
+      if (scene === 'inj') {
+        phageBox(52, 66, 64, 30);
+        svg.appendChild(el('line', { x1: 116, y1: 81, x2: cx + 4, y2: 81, stroke: ORANGE, 'stroke-width': 2 }));
+        svg.appendChild(el('rect', { x: cx + 30, y: 66, width: 40, height: 14, rx: 2, fill: ORANGE }));
+        svg.appendChild(el('text', { x: cx + 78, y: 78, 'font-size': 12, 'font-weight': 700, fill: ORANGE_TXT }, 'viral DNA'));
+      }
+      if (scene === 'l2') {
+        [0, 40, 80].forEach((dx) => svg.appendChild(el('rect', { x: cx + 14 + dx, y: 56, width: 34, height: 14, rx: 2, fill: ORANGE })));
+        svg.appendChild(el('text', { x: cx + 134, y: 68, 'font-size': 12, 'font-weight': 700, fill: ORANGE_TXT }, 'viral DNA'));
+        [0, 28, 56].forEach((dx) => svg.appendChild(el('rect', { x: cx + 14 + dx, y: 78, width: 22, height: 14, rx: 2, fill: '#fff4e6', stroke: ORANGE, 'stroke-width': 1.6 })));
+        svg.appendChild(el('text', { x: cx + 108, y: 90, 'font-size': 12, 'font-weight': 700, fill: ORANGE_TXT }, 'viral parts'));
+      }
+      if (scene === 'l3') {
+        [0, 56, 112].forEach((dx) => phageBox(cx + 14 + dx, 52, 48, 26));
+        svg.appendChild(el('text', { x: cx + 14, y: 94, 'font-size': 12, 'font-weight': 700, fill: ORANGE_TXT }, 'new phages, assembled'));
+      }
+    }
+
+    function gridScene() {
+      cells.forEach((c, i) => {
+        const col = i % 4, row = Math.floor(i / 4);
+        const x = 60 + col * 62, y = 24 + row * 58, w = 54, h = 44;
+        if (c === 'burst') {
+          svg.appendChild(el('rect', { x, y, width: w, height: h, rx: 10, fill: '#fff', stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+          [[x - 5, y + 6], [x + w - 5, y + 18], [x + 22, y + h - 5]].forEach(([qx, qy]) => svg.appendChild(el('rect', { x: qx, y: qy, width: 10, height: 10, rx: 2, fill: ORANGE })));
+          return;
+        }
+        svg.appendChild(el('rect', { x, y, width: w, height: h, rx: 10, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+        svg.appendChild(el('rect', { x: x + 7, y: y + 29, width: 40, height: 7, rx: 2, fill: TEAL }));
+        if (c === 'carrier') svg.appendChild(el('rect', { x: x + 20, y: y + 26, width: 14, height: 13, rx: 2, fill: ORANGE }));
+        if (c === 's2') {
+          [0, 15].forEach((dx) => svg.appendChild(el('rect', { x: x + 7 + dx, y: y + 8, width: 13, height: 8, rx: 2, fill: ORANGE })));
+          [30].forEach((dx) => svg.appendChild(el('rect', { x: x + 7 + dx, y: y + 8, width: 10, height: 8, rx: 2, fill: '#fff4e6', stroke: ORANGE, 'stroke-width': 1.4 })));
+        }
+        if (c === 's3') [0, 15, 30].forEach((dx) => svg.appendChild(el('rect', { x: x + 6 + dx, y: y + 6, width: 12, height: 14, rx: 2, fill: '#fff4e6', stroke: ORANGE, 'stroke-width': 2 })));
+      });
+      // legend
+      svg.appendChild(el('rect', { x: 14, y: 150, width: 14, height: 8, rx: 2, fill: TEAL }));
+      svg.appendChild(el('text', { x: 34, y: 159, 'font-size': 12, fill: INK }, 'host DNA'));
+      svg.appendChild(el('rect', { x: 118, y: 150, width: 14, height: 8, rx: 2, fill: ORANGE }));
+      svg.appendChild(el('text', { x: 138, y: 159, 'font-size': 12, fill: INK }, 'viral DNA (a prophage in host DNA)'));
+      svg.appendChild(el('rect', { x: 14, y: 168, width: 14, height: 10, rx: 3, fill: '#fff', stroke: INK, 'stroke-width': 1.5, 'stroke-dasharray': '3 2' }));
+      svg.appendChild(el('text', { x: 34, y: 177, 'font-size': 12, fill: INK }, 'burst cell; orange squares are released phages'));
+      svg.appendChild(el('rect', { x: 14, y: 188, width: 14, height: 10, rx: 2, fill: '#fff4e6', stroke: ORANGE, 'stroke-width': 1.6 }));
+      svg.appendChild(el('text', { x: 34, y: 197, 'font-size': 12, fill: INK }, 'hollow orange box: viral parts or new phages'));
+    }
+
+    function currentScene(): Scene {
+      if (mode === 'ready') return 'ready';
+      if (mode === 'inj') return 'inj';
+      if (mode === 'lytic') return lstep === 2 ? 'l2' : lstep === 3 ? 'l3' : 'l4';
+      const c = cells[0];
+      return c === 's2' ? 'l2' : c === 's3' ? 'l3' : c === 'burst' ? 'l4' : 'pro';
+    }
+
+    function render2() {
+      svg.replaceChildren();
+      if (mode === 'lyso' && cells.length > 1) gridScene();
+      else bigScene(currentScene());
+
+      // which buttons show
+      const sw = switching();
+      const show = (k: string, on: boolean) => { act(k).hidden = !on; };
+      show('infect', mode === 'ready');
+      show('lytic', mode === 'inj');
+      show('lyso', mode === 'inj');
+      show('next', (mode === 'lytic' && lstep < 4) || (mode === 'lyso' && sw >= 0));
+      show('divide', mode === 'lyso' && sw < 0);
+      show('switch', mode === 'lyso' && sw < 0);
+      const car = carriers();
+      const capped = slotsAfterDivide() > MAXCELLS;
+      act('divide').disabled = car === 0 || capped;
+      act('switch').disabled = car === 0;
+
+      // readouts and arithmetic
+      if (mode === 'lyso') {
+        rCar.textContent = String(car);
+        rDiv.textContent = String(divs);
+        rBur.textContent = String(bursts());
+        if (divs > 0) {
+          const expected = 2 ** divs;
+          math2.textContent = `Expected if no cell switches: 1 × ${Array(divs).fill('2').join(' × ')} = ${expected} cells carrying the prophage. Cells carrying it now: ${car}.`;
+        } else math2.textContent = sw < 0 && car > 0 ? 'Press “Host divides” to see how many cells carry the prophage after each division.' : '';
+      } else {
+        rCar.textContent = '–'; rDiv.textContent = '–'; rBur.textContent = mode === 'lytic' ? (lstep === 4 ? '1' : '0') : '–';
+        math2.textContent = '';
+      }
+
+      // status
+      let s = '';
+      if (mode === 'ready') s = 'In this sketch, a phage waits outside a host cell. Press the button to start an infection.';
+      else if (mode === 'inj') s = 'The phage attached to the bacterium and injected its DNA. Now pick the lytic path or the lysogenic path.';
+      else if (mode === 'lytic') {
+        s = lstep === 2 ? 'Lytic path: the host’s machinery copies the viral DNA and builds viral parts.'
+          : lstep === 3 ? 'Lytic path: new phages are assembled from those parts.'
+          : 'Lytic path: the cell bursts and the new phages escape. The host cell usually dies.';
+      } else {
+        const c = sw >= 0 ? cells[sw] : null;
+        if (c === 's2') s = 'The prophage in one cell switched to the lytic cycle. The host’s machinery copies the viral DNA and builds viral parts.';
+        else if (c === 's3') s = 'In the switched cell, new phages are assembled from the viral parts.';
+        else if (bursts() > 0) {
+          const b = bursts();
+          s = `${b === 1 ? 'One cell' : b + ' cells'} burst and released new phages; ${b === 1 ? 'that host cell' : 'those host cells'} usually died. ${car === 0 ? 'No cell still carries the prophage.' : car === 1 ? '1 other cell still carries the prophage.' : car + ' other cells still carry the prophage.'}`;
+        } else if (divs === 0) s = 'Lysogenic path: the viral DNA joined the host’s DNA as a prophage. The host cell stays alive.';
+        else s = `The host has divided ${divs} time${divs === 1 ? '' : 's'}. Both daughter cells get a copy each time, so ${car} cells carry the prophage.`;
+        if (sw < 0 && car > 0 && capped) s += ' This sketch shows up to 8 cells.';
+      }
+      status2.textContent = s;
+    }
+
+    function keepFocus() {
+      const a = document.activeElement;
+      if (a instanceof HTMLButtonElement && actions.contains(a) && (a.hidden || a.disabled)) {
+        const first = actions.querySelector<HTMLButtonElement>('button:not([hidden]):not([disabled])');
+        if (first) first.focus();
+      }
+    }
+    function go(fn: () => void) { fn(); render2(); keepFocus(); }
+
+    act('infect').addEventListener('click', () => go(() => { if (mode === 'ready') mode = 'inj'; }));
+    act('lytic').addEventListener('click', () => go(() => { if (mode === 'inj') { mode = 'lytic'; lstep = 2; } }));
+    act('lyso').addEventListener('click', () => go(() => { if (mode === 'inj') { mode = 'lyso'; cells = ['carrier']; divs = 0; } }));
+    act('next').addEventListener('click', () => go(() => {
+      if (mode === 'lytic' && lstep < 4) lstep++;
+      else if (mode === 'lyso') {
+        const i = switching();
+        if (i >= 0) cells[i] = cells[i] === 's2' ? 's3' : 'burst';
+      }
+    }));
+    act('divide').addEventListener('click', () => go(() => {
+      if (mode !== 'lyso' || switching() >= 0 || carriers() === 0 || slotsAfterDivide() > MAXCELLS) return;
+      const next: CS[] = [];
+      cells.forEach((c) => { if (c === 'carrier') next.push('carrier', 'carrier'); else next.push(c); });
+      cells = next; divs++;
+    }));
+    act('switch').addEventListener('click', () => go(() => {
+      if (mode !== 'lyso' || switching() >= 0) return;
+      const i = cells.indexOf('carrier');
+      if (i >= 0) cells[i] = 's2';
+    }));
+    act('reset2').addEventListener('click', () => go(() => { mode = 'ready'; lstep = 2; cells = []; divs = 0; }));
+    render2();
+  });
+</script>
+
+<style is:global>
+  .dvc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dvc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dvc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dvc-panel { border-top: 1px solid var(--ddp-color-line); padding-top: var(--ddp-space-3); margin-top: var(--ddp-space-3); }
+  .dvc-ptitle { margin: 0 0 var(--ddp-space-2); font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .dvc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dvc-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .dvc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .dvc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .dvc-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .dvc-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: var(--ddp-space-2) 0; }
+  .dvc-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.4rem 0.9rem; cursor: pointer; }
+  .dvc-btn[hidden] { display: none; }
+  .dvc-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .dvc-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 600; }
+  .dvc-btn:focus-visible, .dvc-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dvc-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .dvc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .dvc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dvc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .dvc-math { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .dvc-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4em; }
+  .dvc-assume { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dvc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .dvc-readout { grid-template-columns: 1fr; } }
+</style>

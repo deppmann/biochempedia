@@ -1,0 +1,27 @@
+{
+  "_about": "Model prices for AI feedback estimates and metering. Update whenever a provider releases a model or changes prices: copy the numbers from the official pages below and set 'checked'. Prices are US dollars per million tokens, paid tier, standard (not batch, not priority).",
+  "checked": "2026-10-25",
+  "sources": {
+    "gemini": "https://ai.google.dev/gemini-api/docs/pricing",
+    "anthropic": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "openai": "https://developers.openai.com/api/docs/pricing"
+  },
+  "default": { "provider": "gemini", "model": "gemini-3.8-flash" },
+  "models": [
+    { "provider": "gemini", "model": "gemini-3.8-flash", "label": "Gemini 3.8 Flash (newest Flash)", "in": 0.75, "out": 3.75, "note": "Rises to $1.50 in / $7.50 out on January 1, 2027.", "after": { "date": "2027-01-01", "in": 1.5, "out": 7.5 } },
+    { "provider": "gemini", "model": "gemini-3.5-flash-lite", "label": "Gemini 3.5 Flash-Lite (cheaper)", "in": 0.30, "out": 2.50 },
+    { "provider": "gemini", "model": "gemini-2.5-flash-lite", "label": "Gemini 2.5 Flash-Lite (cheapest)", "in": 0.10, "out": 0.40 },
+    { "provider": "anthropic", "model": "claude-haiku-5-5", "label": "Claude Haiku 5.5", "in": 0.10, "out": 0.50 },
+    { "provider": "anthropic", "model": "claude-sonnet-5-5", "label": "Claude Sonnet 5.5 (stronger, costlier)", "in": 2.00, "out": 10.00 },
+    { "provider": "openai", "model": "gpt-5.4-mini", "label": "GPT-5.4 mini", "in": 0.75, "out": 4.50 },
+    { "provider": "openai", "model": "gpt-5.4-nano", "label": "GPT-5.4 nano (cheaper)", "in": 0.20, "out": 1.25 },
+    { "provider": "openai", "model": "gpt-6-luna", "label": "GPT-6 Luna", "in": 0.10, "out": 0.50 }
+  ],
+  "estimate": {
+    "_about": "Typical tokens for one feedback reply: the task, the worked answer and the student's answer in; a short reply plus the model's reasoning out.",
+    "feedback_in": 1400,
+    "feedback_out": 900,
+    "summary_in_per_answer": 250,
+    "summary_out": 1200
+  }
+}

@@ -1,0 +1,269 @@
+---
+/**
+ * ChromosomeSorter — reproduction-and-meiosis lesson. The learner picks asexual or sexual
+ * reproduction and 1, 2 or 3 chromosome pairs, then makes 8 offspring. Asexual: one parent,
+ * 8 matching copies. Sexual: each pair of each parent splits by chance, a sex cell gets one bar
+ * from each pair, one sex cell from each parent joins, and the 8 offspring line up. Counters show
+ * how many different mixes appeared, the kinds of sex cell (expected beside seen) and the share
+ * of sex cells carrying B and b (expected: about 50 percent). No stages of meiosis, no crossing
+ * over; chromosomes are plain labelled bars. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="chs card" data-chromsorter>
+  <figcaption class="chs-head">Chromosome sorter: one parent or two<span class="chs-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="chs-group">
+    <legend>1. How is reproduction done?</legend>
+    <div class="chs-btns" data-modes></div>
+  </fieldset>
+  <fieldset class="chs-group">
+    <legend>2. How many chromosome pairs?</legend>
+    <div class="chs-btns" data-pairs></div>
+  </fieldset>
+  <div class="chs-btns chs-act">
+    <button type="button" class="chs-btn chs-go" data-make>Make 8 offspring</button>
+    <button type="button" class="chs-btn" data-reset>Reset</button>
+  </div>
+
+  <svg class="chs-svg" viewBox="0 0 360 336" role="img" aria-label="Parent cells drawn as boxes with chromosome pairs as labelled bars, and below them 8 offspring cells, not to scale" data-stage></svg>
+
+  <p class="chs-why" data-why role="status" aria-live="polite"></p>
+
+  <div class="chs-read" data-read>
+    <div class="chs-row"><span class="chs-k">Different mixes in these 8 offspring</span><span class="chs-v" data-mixes></span></div>
+    <div class="chs-row"><span class="chs-k">Kinds of sex cell one parent can make (expected)</span><span class="chs-v" data-kinds-exp></span></div>
+    <div class="chs-row"><span class="chs-k">Kinds seen from Parent 1 in these 8 (observed)</span><span class="chs-v" data-kinds-obs></span></div>
+    <div class="chs-row"><span class="chs-k">Sex cells made so far</span><span class="chs-v" data-total></span></div>
+  </div>
+
+  <div class="chs-share" data-share>
+    <div class="chs-sharetitle">Share of sex cells carrying B or b (first pair)</div>
+    <div class="chs-track" data-track role="img" aria-label="">
+      <i class="chs-fillB" data-fillb></i>
+      <i class="chs-mid" aria-hidden="true"></i>
+    </div>
+    <div class="chs-sharelab"><span data-labb></span><span data-labs></span></div>
+    <div class="chs-expect">Expected: about 50 percent each (the dark line marks 50 percent).</div>
+  </div>
+
+  <p class="chs-assume">Made up for this sketch, not measured: every parent is drawn with two different alleles on each pair (B and b, D and d, G and g), as in the lesson’s count of mixes. Each bar stands for one chromosome; a copied chromosome is still one chromosome, and the copying before meiosis is not drawn. Pairs split by chance with a 50 percent chance for each bar. The steps of meiosis and the swapping of pieces are left out. Two offspring count as the same mix only when every bar matches, including which parent it came from (left bar from Parent 1, right bar from Parent 2). Rare changes in DNA are not drawn. A human body cell has 46 chromosomes in 23 pairs; this sketch shows only 1 to 3 pairs.</p>
+  <p class="chs-foot">Rule to keep: in meiosis each pair splits by chance, so a sex cell gets one chromosome from each pair, and asexual offspring are genetically the same as the one parent. This is a sketch of the logic, not a measurement.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Mode = 'asexual' | 'sexual';
+  type Allele = 0 | 1; // 0 = capital letter, 1 = small letter
+  const GENES = [
+    { cap: 'B', low: 'b', color: '#0e7c86' },
+    { cap: 'D', low: 'd', color: '#c2410c' },
+    { cap: 'G', low: 'g', color: '#7a5ea8' },
+  ];
+  const INK = '#4b4b55';
+  const LINE = '#2b2f3a';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function pick(): Allele { return Math.random() < 0.5 ? 0 : 1; }
+
+  document.querySelectorAll<HTMLElement>('[data-chromsorter]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const modesEl0 = q<HTMLElement>('[data-modes]');
+    const pairsEl0 = q<HTMLElement>('[data-pairs]');
+    const make0 = q<HTMLButtonElement>('[data-make]');
+    const reset0 = q<HTMLButtonElement>('[data-reset]');
+    const stage0 = q<SVGSVGElement>('[data-stage]');
+    const why0 = q<HTMLElement>('[data-why]');
+    const mixes0 = q<HTMLElement>('[data-mixes]');
+    const kindsExp0 = q<HTMLElement>('[data-kinds-exp]');
+    const kindsObs0 = q<HTMLElement>('[data-kinds-obs]');
+    const total0 = q<HTMLElement>('[data-total]');
+    const track0 = q<HTMLElement>('[data-track]');
+    const fillB0 = q<HTMLElement>('[data-fillb]');
+    const labB0 = q<HTMLElement>('[data-labb]');
+    const labS0 = q<HTMLElement>('[data-labs]');
+    if (!modesEl0 || !pairsEl0 || !make0 || !reset0 || !stage0 || !why0 || !mixes0 || !kindsExp0 || !kindsObs0 || !total0 || !track0 || !fillB0 || !labB0 || !labS0) return;
+    const modesEl = modesEl0, pairsEl = pairsEl0, make = make0, reset = reset0, stage = stage0, why = why0;
+    const mixesEl = mixes0, kindsExp = kindsExp0, kindsObs = kindsObs0, totalEl = total0;
+    const track = track0, fillB = fillB0, labB = labB0, labS = labS0;
+
+    let mode: Mode = 'asexual';
+    let np = 2;
+    // One offspring = list of [fromParent1, fromParent2] alleles per pair.
+    let kids: [Allele, Allele][][] = [];
+    let batchKinds1 = 0;
+    let sexTotal = 0;
+    let nB = 0;
+
+    const modeBtns: { m: Mode; b: HTMLButtonElement }[] = [];
+    ([['asexual', 'Asexual (one parent)'], ['sexual', 'Sexual (two parents)']] as [Mode, string][]).forEach(([m, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chs-btn'; b.textContent = label;
+      b.addEventListener('click', () => { mode = m; clearRun(); render(); });
+      modesEl.appendChild(b); modeBtns.push({ m, b });
+    });
+    const pairBtns: { n: number; b: HTMLButtonElement }[] = [];
+    [1, 2, 3].forEach((n) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chs-btn'; b.textContent = n === 1 ? '1 pair' : n + ' pairs';
+      b.addEventListener('click', () => { np = n; clearRun(); render(); });
+      pairsEl.appendChild(b); pairBtns.push({ n, b });
+    });
+
+    function clearRun() {
+      kids = []; batchKinds1 = 0; sexTotal = 0; nB = 0;
+    }
+
+    function makeOffspring() {
+      kids = [];
+      const seen1 = new Set<string>();
+      for (let k = 0; k < 8; k++) {
+        if (mode === 'asexual') {
+          // a copy of the parent: both bars of every pair as in the parent
+          kids.push(Array.from({ length: np }, () => [0, 1] as [Allele, Allele]));
+        } else {
+          const cell1: Allele[] = Array.from({ length: np }, pick);
+          const cell2: Allele[] = Array.from({ length: np }, pick);
+          seen1.add(cell1.join(''));
+          kids.push(cell1.map((a, i) => [a, cell2[i]] as [Allele, Allele]));
+          sexTotal += 2;
+          nB += (cell1[0] === 0 ? 1 : 0) + (cell2[0] === 0 ? 1 : 0);
+        }
+      }
+      batchKinds1 = seen1.size;
+    }
+
+    const kidKey = (k: [Allele, Allele][]) => k.map((p) => p.join('')).join('|');
+    function distinct(): number { return new Set(kids.map(kidKey)).size; }
+
+    function bar(g: SVGElement, x: number, y: number, w: number, h: number, gene: number, a: Allele) {
+      const c = GENES[gene].color;
+      const lower = a === 1;
+      g.appendChild(el('rect', { x, y, width: w, height: h, rx: 4, fill: lower ? '#fff' : c, stroke: c, 'stroke-width': 2 }));
+      g.appendChild(el('text', { x: x + w / 2, y: y + h - 4, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: lower ? c : '#fff' }, lower ? GENES[gene].low : GENES[gene].cap));
+    }
+
+    function drawParent(x: number, title: string) {
+      const w = 150, h = 98;
+      stage.appendChild(el('rect', { x, y: 6, width: w, height: h, rx: 14, fill: '#f7f8fa', stroke: LINE, 'stroke-width': 2 }));
+      stage.appendChild(el('text', { x: x + w / 2, y: 22, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, title));
+      for (let i = 0; i < np; i++) {
+        const y = 30 + i * 22;
+        bar(stage, x + 27, y, 46, 18, i, 0);
+        bar(stage, x + 77, y, 46, 18, i, 1);
+      }
+    }
+
+    function drawKid(i: number) {
+      const col = i % 4, row = Math.floor(i / 4);
+      const x = 14 + col * 86, y = 176 + row * 70;
+      const k = kids[i];
+      stage.appendChild(el('rect', { x, y, width: 80, height: 64, rx: 10, fill: k ? '#f7f8fa' : '#fff', stroke: k ? LINE : '#b0b4bc', 'stroke-width': k ? 2 : 1.5, 'stroke-dasharray': k ? '' : '4 3' }));
+      if (!k) return;
+      for (let p = 0; p < np; p++) {
+        const yy = y + 5 + p * 19;
+        bar(stage, x + 5, yy, 32, 17, p, k[p][0]);
+        bar(stage, x + 43, yy, 32, 17, p, k[p][1]);
+      }
+    }
+
+    function drawStage() {
+      stage.replaceChildren();
+      const sexual = mode === 'sexual';
+      if (sexual) {
+        drawParent(15, 'Parent 1');
+        drawParent(195, 'Parent 2');
+        stage.appendChild(el('line', { x1: 90, y1: 106, x2: 90, y2: 124, stroke: INK, 'stroke-width': 2 }));
+        stage.appendChild(el('line', { x1: 270, y1: 106, x2: 270, y2: 124, stroke: INK, 'stroke-width': 2 }));
+        stage.appendChild(el('line', { x1: 90, y1: 124, x2: 270, y2: 124, stroke: INK, 'stroke-width': 2 }));
+        stage.appendChild(el('text', { x: 180, y: 142, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'Meiosis: each sex cell gets one bar from each pair'));
+        stage.appendChild(el('text', { x: 180, y: 158, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'Fertilization: one sex cell from each parent joins'));
+        stage.appendChild(el('path', { d: 'M180 162 L180 172 M174 166 L180 172 L186 166', stroke: INK, 'stroke-width': 2, fill: 'none' }));
+      } else {
+        drawParent(105, 'Parent');
+        stage.appendChild(el('text', { x: 180, y: 126, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'One parent makes copies of itself'));
+        stage.appendChild(el('path', { d: 'M180 134 L180 170 M174 164 L180 170 L186 164', stroke: INK, 'stroke-width': 2, fill: 'none' }));
+      }
+      for (let i = 0; i < 8; i++) drawKid(i);
+      stage.appendChild(el('text', { x: 180, y: 326, 'font-size': 12, 'text-anchor': 'middle', fill: INK },
+        sexual ? 'Left bar from Parent 1, right bar from Parent 2. Not to scale.' : 'Each offspring is a copy of the parent. Not to scale.'));
+    }
+
+    function sentence(): string {
+      if (!kids.length) {
+        return mode === 'asexual'
+          ? 'Start here: press Make 8 offspring. Guess first: will the 8 match each other?'
+          : 'Press Make 8 offspring. Guess first: what share of sex cells will carry B?';
+      }
+      if (mode === 'asexual') {
+        return 'In this sketch, all 8 offspring match their one parent. Asexual offspring are genetically the same as the parent. Rare changes in DNA can still happen, but are not drawn.';
+      }
+      const d = distinct();
+      const pct = sexTotal ? Math.round((100 * nB) / sexTotal) : 0;
+      return `In this sketch, the 8 offspring show ${d} different ${d === 1 ? 'mix' : 'mixes'}. ` +
+        `So far ${nB} of ${sexTotal} sex cells carry B, which is ${pct} percent. ` +
+        'The lesson says each sex cell has a 50 percent chance of carrying B. Counts need not be exactly half.';
+    }
+
+    function render() {
+      modeBtns.forEach(({ m, b }) => { const on = m === mode; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
+      pairBtns.forEach(({ n, b }) => { const on = n === np; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
+      const sexual = mode === 'sexual';
+      const have = kids.length > 0;
+      drawStage();
+      why.textContent = sentence();
+
+      const d = have ? distinct() : 0;
+      mixesEl.textContent = !have ? 'press Make 8 offspring' : (sexual ? `${d} of 8` : `${d} (all 8 match the parent)`);
+      const kindsTxt = np === 1 ? '2' : np === 2 ? '2 × 2 = 4' : '2 × 2 × 2 = 8';
+      kindsExp.textContent = sexual ? kindsTxt : 'none: no sex cells';
+      kindsObs.textContent = sexual ? (have ? String(batchKinds1) : '—') : 'none: no sex cells';
+      totalEl.textContent = sexual ? String(sexTotal) : 'none: asexual reproduction makes no sex cells';
+
+      const pct = sexual && sexTotal ? Math.round((100 * nB) / sexTotal) : 50;
+      fillB.style.width = (sexual && sexTotal ? pct : 0) + '%';
+      track.setAttribute('aria-label', sexual && sexTotal ? `B in ${pct} percent of sex cells; expected about 50 percent` : 'no sex cells made yet; expected about 50 percent each');
+      labB.textContent = sexual && sexTotal ? `B: ${nB} of ${sexTotal} (${pct}%)` : 'B: none made yet';
+      labS.textContent = sexual && sexTotal ? `b: ${sexTotal - nB} of ${sexTotal} (${100 - pct}%)` : 'b: none made yet';
+      make.setAttribute('aria-label', 'Make 8 offspring' + (have ? ' again' : ''));
+    }
+
+    make.addEventListener('click', () => { makeOffspring(); render(); });
+    reset.addEventListener('click', () => { mode = 'asexual'; np = 2; clearRun(); render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .chs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .chs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .chs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .chs-group { border: 0; padding: 0; margin: 0 auto var(--ddp-space-2); max-width: 560px; min-width: 0; }
+  .chs-group legend { padding: 0; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); margin-bottom: 0.3rem; }
+  .chs-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .chs-act { max-width: 560px; margin: var(--ddp-space-3) auto; }
+  .chs-btn { min-height: 44px; min-width: 44px; padding: 0 0.9rem; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .chs-btn:hover { border-color: var(--ddp-color-accent); }
+  .chs-btn.on { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .chs-go { background: var(--ddp-color-primary); border-color: var(--ddp-color-primary); color: #fff; font-weight: 700; }
+  .chs-btn:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .chs-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .chs-why { max-width: 560px; margin: var(--ddp-space-2) auto 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .chs-read { max-width: 560px; margin: var(--ddp-space-2) auto 0; display: grid; gap: 0.25rem; }
+  .chs-row { display: grid; grid-template-columns: 1fr auto; gap: var(--ddp-space-2); align-items: baseline; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-bottom: 1px solid var(--ddp-color-line); padding-bottom: 0.25rem; }
+  .chs-v { font-weight: 700; color: var(--ddp-color-primary); text-align: right; }
+  .chs-share { max-width: 560px; margin: var(--ddp-space-3) auto 0; }
+  .chs-sharetitle { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); margin-bottom: 0.3rem; }
+  .chs-track { position: relative; height: 20px; background: #fff; border: 2px solid #0e7c86; border-radius: 10px; overflow: hidden; }
+  .chs-fillB { display: block; height: 100%; width: 0; background: #0e7c86; transition: width 0.2s; }
+  .chs-mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #2b2f3a; }
+  .chs-sharelab { display: flex; justify-content: space-between; gap: var(--ddp-space-2); margin-top: 0.25rem; font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); }
+  .chs-expect { margin-top: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .chs-assume { max-width: 560px; margin: var(--ddp-space-3) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .chs-foot { max-width: 560px; margin: var(--ddp-space-3) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

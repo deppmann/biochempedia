@@ -1,0 +1,251 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { COURSES } from '../../../data/courses';
+import PRICES from '../../../data/model-prices.json';
+import '../../../styles/teach.css';
+
+const lessons = await getCollection('lessons', ({ data }) => !data.draft);
+const courses = COURSES.filter((c) => lessons.some((l) => l.data.course === c.slug)).map((c) => ({ slug: c.slug, title: c.title }));
+const MODES = [
+  ['open', 'Open: anyone with the code joins with a nickname'],
+  ['approve', 'Approve: students wait until you let them in'],
+  ['roster', 'Roster: you make the list and hand out student codes'],
+  ['locked', 'Locked: nobody new can join'],
+];
+---
+
+<BaseLayout title="My classes — Biochemistrypedia" description="Your classes." noindex>
+  <article class="wrap tc" data-classes data-courses={JSON.stringify(courses)}>
+    <p class="tc-eyebrow"><a href="/teach/">Classes</a> · <span data-who></span></p>
+    <h1>My classes</h1>
+
+    <p class="tc-note" data-verify hidden style="margin-top: var(--ddp-space-4)">
+      Please confirm your email: we sent you a link. Students can join your classes once it's confirmed.
+      <button type="button" class="tc-btn small ghost" data-resend>Send it again</button> <span data-resend-msg class="tc-muted"></span>
+    </p>
+    <p class="tc-muted" data-loading>Loading…</p>
+
+    <ul class="tc-grid" data-list style="list-style:none; padding:0; margin-top: var(--ddp-space-6)"></ul>
+    <p class="tc-muted" data-empty hidden>No classes yet. Make your first one below.</p>
+
+    <h2>Groups</h2>
+    <p class="tc-muted">A group is your school, department or district: its own page, its own admins, and a shared list of classes.</p>
+    <ul class="tc-grid" data-groups style="list-style:none; padding:0"></ul>
+    <details style="margin-top: var(--ddp-space-4)">
+      <summary>Make a group</summary>
+      <form class="tc-form" data-new-group style="margin-top: var(--ddp-space-3)">
+        <label>Group name<input type="text" name="name" maxlength="80" required placeholder="e.g. Albemarle High School Science" /></label>
+        <label>Page address: biochemistrypedia.com/g/<input type="text" name="slug" maxlength="40" required placeholder="albemarle-science" /></label>
+        <label>Only teachers with this email domain may join (optional)<input type="text" name="emailDomain" maxlength="190" placeholder="school.k12.va.us" /></label>
+        <label>About (shown on the page, optional)<textarea name="about" rows="2" maxlength="600"></textarea></label>
+        <button class="tc-btn" type="submit">Make the group</button>
+        <p class="tc-error" data-group-err role="alert"></p>
+      </form>
+    </details>
+    <p class="tc-muted">Joining your school's group? Use the invitation link a colleague sent, or ask to join on the school's page.</p>
+
+    <h2>New class</h2>
+    <form class="tc-form" data-new>
+      <label>Class name<input type="text" name="name" maxlength="60" required placeholder="e.g. Biology, period 3" /></label>
+      <label>Course<select name="course" required>
+        {courses.map((c) => <option value={c.slug} selected={c.slug === 'high-school-biology'}>{c.title}</option>)}
+      </select></label>
+      <label data-group-pick hidden>Group<select name="groupId"><option value="">No group</option></select></label>
+      <label>How students join<select name="joinMode" onchange="this.dataset.touched='1'">
+        {MODES.map(([v, l]) => <option value={v}>{l}</option>)}
+      </select></label>
+      <button class="tc-btn" type="submit">Create class</button>
+      <p class="tc-error" data-err role="alert"></p>
+    </form>
+
+    <h2 id="ai">AI feedback keys</h2>
+    <p class="tc-muted" style="max-width:68ch">
+      AI feedback on students' written answers is optional and off until you turn it on for a class. It runs on
+      <strong>your own API key</strong>, so the provider bills you directly; the site never pays for it or marks it up.
+      Use a <strong>paid-tier</strong> key: some free tiers let the provider use prompts for training, which isn't acceptable
+      for student work. Students' nicknames are never sent, only the question, the worked answer and the student's answer.
+    </p>
+    <p class="tc-note" data-ai-off hidden>AI feedback isn't switched on for the site yet.</p>
+    <ul data-keys style="padding-left:1.1rem"></ul>
+    <form class="tc-form" data-key-form>
+      <label>Provider<select name="provider">
+        <option value="gemini">Google (Gemini)</option>
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="openai">OpenAI (GPT)</option>
+      </select></label>
+      <label>API key<input type="password" name="key" autocomplete="off" spellcheck="false" required /></label>
+      <button class="tc-btn" type="submit">Save key</button>
+      <p class="tc-muted" style="margin:0">Stored encrypted. We show only its last four characters. Remove it any time.</p>
+      <p class="tc-error" data-key-err role="alert"></p>
+    </form>
+    <p class="tc-muted">Prices change; ours were checked {PRICES.checked} against each provider's pricing page.</p>
+
+    <h2>Account</h2>
+    <div class="tc-row">
+      <button type="button" class="tc-btn ghost" data-logout>Sign out</button>
+      <a href="/teach/privacy/">Privacy and classroom rules</a>
+    </div>
+    <details style="margin-top: var(--ddp-space-5)">
+      <summary>Delete my account</summary>
+      <form class="tc-form" data-delete style="margin-top: var(--ddp-space-3)">
+        <p class="tc-muted" style="margin:0">This deletes your account, every class, every student and every answer, at once and for good.</p>
+        <label>Password<input type="password" name="password" autocomplete="current-password" required /></label>
+        <button class="tc-btn danger" type="submit">Delete everything</button>
+        <p class="tc-error" data-del-err role="alert"></p>
+      </form>
+    </details>
+  </article>
+
+  <script>
+    import { api } from '../../../lib/classroom';
+
+    interface Cls { id: string; name: string; course: string; code: string; joinMode: string; students: number; pending: number; assignments: number }
+    const root = document.querySelector<HTMLElement>('[data-classes]')!;
+    const courses: { slug: string; title: string }[] = JSON.parse(root.dataset.courses!);
+    const titleOf = (s: string) => courses.find((c) => c.slug === s)?.title ?? s;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+
+    async function load() {
+      const r = await api<{ name: string; email: string; verified: boolean; mailOn: boolean; classes: Cls[] }>('/api/teacher/me');
+      if (r.status === 401) { location.replace('/teach/'); return; }
+      $('[data-loading]').hidden = true;
+      if (!r.ok) { $('[data-loading]').hidden = false; $('[data-loading]').textContent = r.data.error || 'Could not load.'; return; }
+      $('[data-who]').textContent = `${r.data.name} (${r.data.email})`;
+      $('[data-verify]').hidden = !r.data.mailOn || r.data.verified;
+      const list = $('[data-list]');
+      list.textContent = '';
+      $('[data-empty]').hidden = r.data.classes.length > 0;
+      for (const c of r.data.classes) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = 'tc-card';
+        a.href = `/teach/class/?id=${c.id}`;
+        a.style.cssText = 'display:flex;flex-direction:column;gap:.4rem;text-decoration:none;color:inherit;height:100%;box-sizing:border-box';
+        const h = document.createElement('strong');
+        h.textContent = c.name;
+        h.style.cssText = 'font-size:1.15rem;color:var(--ddp-color-primary)';
+        const course = document.createElement('span');
+        course.className = 'tc-muted';
+        course.textContent = titleOf(c.course);
+        const code = document.createElement('span');
+        code.innerHTML = 'Class code <span class="tc-code small"></span>';
+        code.querySelector('span')!.textContent = c.code;
+        const meta = document.createElement('span');
+        meta.className = 'tc-muted';
+        meta.textContent = `${c.students} ${c.students === 1 ? 'student' : 'students'} · ${c.assignments} assigned${c.pending ? ` · ${c.pending} waiting to join` : ''}`;
+        a.append(h, course, code, meta);
+        li.append(a);
+        list.append(li);
+      }
+    }
+    load();
+
+    // Groups I'm in, and the group picker for a new class.
+    interface Grp { id: string; slug: string; name: string; role: string; status: string; members: number; pending: number; classes: number }
+    async function loadGroups() {
+      const r = await api<{ groups: Grp[] }>('/api/groups/mine');
+      if (!r.ok) return;
+      const list = $('[data-groups]');
+      list.textContent = '';
+      const sel = root.querySelector<HTMLSelectElement>('[name=groupId]')!;
+      sel.querySelectorAll('option:not([value=""])').forEach((o) => o.remove());
+      for (const g of r.data.groups) {
+        const li = document.createElement('li');
+        const a = document.createElement(g.status === 'active' ? 'a' : 'div');
+        a.className = 'tc-card';
+        if (a instanceof HTMLAnchorElement) a.href = `/teach/group/?id=${g.id}`;
+        a.style.cssText = 'display:flex;flex-direction:column;gap:.3rem;text-decoration:none;color:inherit';
+        const h = document.createElement('strong');
+        h.textContent = g.name;
+        h.style.cssText = 'color:var(--ddp-color-primary)';
+        const meta = document.createElement('span');
+        meta.className = 'tc-muted';
+        meta.textContent = g.status === 'pending'
+          ? 'Waiting for an admin to let you in'
+          : `${g.role === 'admin' ? 'Admin' : 'Member'} · ${g.members} teachers · ${g.classes} classes${g.role === 'admin' && g.pending ? ` · ${g.pending} asking to join` : ''}`;
+        a.append(h, meta);
+        li.append(a);
+        list.append(li);
+        if (g.status === 'active') {
+          const o = document.createElement('option');
+          o.value = g.id; o.textContent = g.name;
+          sel.append(o);
+        }
+      }
+      $('[data-group-pick]').hidden = !r.data.groups.some((g) => g.status === 'active');
+    }
+    loadGroups();
+
+    // AI keys
+    const NAMES: Record<string, string> = { gemini: 'Google (Gemini)', anthropic: 'Anthropic (Claude)', openai: 'OpenAI (GPT)' };
+    async function loadKeys() {
+      const r = await api<{ available: boolean; keys: { provider: string; last4: string; created: number }[] }>('/api/ai/status');
+      if (!r.ok) return;
+      $('[data-ai-off]').hidden = r.data.available;
+      $('[data-key-form]').hidden = !r.data.available;
+      const ul = $('[data-keys]');
+      ul.textContent = '';
+      for (const k of r.data.keys) {
+        const li = document.createElement('li');
+        li.textContent = `${NAMES[k.provider] ?? k.provider}: key ending ${k.last4} `;
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'tc-btn small ghost';
+        rm.textContent = 'Remove';
+        rm.addEventListener('click', async () => {
+          if (!confirm('Remove this key? AI feedback turns off in classes that use it.')) return;
+          await api(`/api/ai/keys/${k.provider}`, undefined, 'DELETE');
+          loadKeys();
+        });
+        li.append(rm);
+        ul.append(li);
+      }
+    }
+    loadKeys();
+    $('[data-key-form]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target as HTMLFormElement;
+      const v = Object.fromEntries(new FormData(f).entries()) as Record<string, string>;
+      const r = await api(`/api/ai/keys/${v.provider}`, { key: v.key }, 'PUT');
+      $('[data-key-err]').textContent = r.ok ? '' : r.data.error || 'Could not save the key.';
+      if (r.ok) { f.reset(); loadKeys(); }
+    });
+
+    $('[data-new-group]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = Object.fromEntries(new FormData(e.target as HTMLFormElement).entries());
+      const r = await api<{ id: string }>('/api/groups', v);
+      if (r.ok) location.href = `/teach/group/?id=${r.data.id}`;
+      else $('[data-group-err]').textContent = r.data.error || 'Could not make the group.';
+    });
+    // Suggest an address from the name.
+    root.querySelector<HTMLInputElement>('[data-new-group] [name=name]')!.addEventListener('input', (e) => {
+      const slug = root.querySelector<HTMLInputElement>('[data-new-group] [name=slug]')!;
+      if (slug.dataset.touched) return;
+      slug.value = (e.target as HTMLInputElement).value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+    });
+    root.querySelector<HTMLInputElement>('[data-new-group] [name=slug]')!.addEventListener('input', (e) => { (e.target as HTMLElement).dataset.touched = '1'; });
+
+    $('[data-new]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v: Record<string, FormDataEntryValue> = Object.fromEntries(new FormData(e.target as HTMLFormElement).entries());
+      if (!v.groupId) delete v.groupId;
+      else if (!root.querySelector<HTMLSelectElement>('[name=joinMode]')!.dataset.touched) delete v.joinMode;
+      const r = await api<{ id: string }>('/api/classes', v);
+      if (r.ok) location.href = `/teach/class/?id=${r.data.id}&tab=assign`;
+      else $('[data-err]').textContent = r.data.error || 'Could not create the class.';
+    });
+    $('[data-resend]').addEventListener('click', async () => {
+      const r = await api<{ ok: boolean }>('/api/teacher/resend-verify', {});
+      $('[data-resend-msg]').textContent = r.ok && r.data.ok ? 'Sent.' : r.data.error || 'Could not send.';
+    });
+    $('[data-logout]').addEventListener('click', async () => { await api('/api/teacher/logout', {}); location.href = '/teach/'; });
+    $('[data-delete]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!confirm('Delete your account and all class data for good?')) return;
+      const r = await api('/api/teacher/delete', { password: (e.target as HTMLFormElement).password.value });
+      if (r.ok) location.href = '/teach/'; else $('[data-del-err]').textContent = r.data.error || 'Could not delete.';
+    });
+  </script>
+</BaseLayout>

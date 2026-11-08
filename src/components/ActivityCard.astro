@@ -1,0 +1,98 @@
+---
+/* =============================================================================
+   ActivityCard: the "before you start" card at the top of an Ages 5–10
+   activity (Biology Together). It reads the lesson's `activity` frontmatter:
+   hands-on time, any follow-up, where to do it, how closely the grown-up
+   supervises, what you need, and the Virginia K–4 SOL codes it serves.
+   Written for the adult; the child never needs the screen.
+   Use in a lesson body: <ActivityCard activity={frontmatter.activity} />
+   ============================================================================ */
+interface Props {
+  activity: {
+    minutes: number;
+    followUp?: string;
+    setting: 'indoors' | 'outdoors' | 'either';
+    adult: string;
+    materials: string[];
+    sol: string[];
+  };
+}
+const { activity } = Astro.props;
+const where = { indoors: 'Indoors', outdoors: 'Outdoors', either: 'Indoors or outdoors' }[activity.setting];
+---
+<section class="act-card" aria-labelledby="act-card-h">
+  <h2 id="act-card-h" class="act-h">Before you start</h2>
+  <dl class="act-facts">
+    <div><dt>Hands-on time</dt><dd>About {activity.minutes} minutes{activity.followUp && <>, {activity.followUp}</>}</dd></div>
+    <div><dt>Where</dt><dd>{where}</dd></div>
+    <div><dt>Ages</dt><dd>5 to 10, with an easier and a harder version below</dd></div>
+    <div><dt>Grown-up</dt><dd>{activity.adult}</dd></div>
+  </dl>
+  <h3 class="act-sub">What you need</h3>
+  <ul class="act-materials">
+    {activity.materials.map((m) => <li>{m}</li>)}
+  </ul>
+  <p class="act-sol">
+    <span class="act-sol-lab">Virginia science standards</span>
+    {activity.sol.map((c) => <span class="act-chip">SOL {c}</span>)}
+  </p>
+</section>
+
+<style>
+  .act-card {
+    margin: 0 0 var(--ddp-space-6);
+    padding: var(--ddp-space-4) var(--ddp-space-4) var(--ddp-space-3);
+    border: 1px solid var(--ddp-color-line);
+    border-left: 4px solid var(--ddp-color-secondary);
+    border-radius: var(--ddp-radius-sm);
+    background: var(--ddp-color-surface);
+  }
+  .act-h {
+    margin: 0 0 var(--ddp-space-3);
+    font-size: var(--ddp-text-lg);
+  }
+  .act-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: var(--ddp-space-2) var(--ddp-space-4);
+    margin: 0 0 var(--ddp-space-3);
+  }
+  .act-facts dt {
+    font-size: var(--ddp-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ddp-color-muted);
+  }
+  .act-facts dd {
+    margin: 0.1rem 0 0;
+    font-size: var(--ddp-text-sm);
+    line-height: 1.45;
+  }
+  .act-sub {
+    margin: var(--ddp-space-3) 0 var(--ddp-space-1);
+    font-size: var(--ddp-text-base);
+  }
+  .act-materials {
+    margin: 0 0 var(--ddp-space-3);
+    padding-left: 1.2rem;
+    columns: 2 15rem;
+    column-gap: var(--ddp-space-6);
+    font-size: var(--ddp-text-sm);
+  }
+  .act-materials li { break-inside: avoid; margin-bottom: 0.2rem; }
+  .act-sol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    font-size: var(--ddp-text-xs);
+  }
+  .act-sol-lab { color: var(--ddp-color-muted); margin-right: 0.25rem; }
+  .act-chip {
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 999px;
+    color: var(--ddp-color-ink-soft);
+  }
+</style>

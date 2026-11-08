@@ -385,7 +385,7 @@ class S03Relay(Film):
 
         sl = [slab("MyD88", 1.2), slab("IRAK", 0.55), slab("IRAK", -0.1)]
         dot = Dot([X, 1.7, 0], radius=0.14, color=TEXT)
-        self.at("The pair docks")
+        self.at("The")
         self.play(FadeIn(sl[0], shift=DOWN * 0.15), FadeIn(dot), run_time=0.6)
         self.at("stacks with")
         self.play(FadeIn(sl[1], shift=DOWN * 0.15), dot.animate.move_to([X, 0.55, 0]), run_time=0.5)
@@ -406,8 +406,8 @@ class S03Relay(Film):
         self.at("lysine")
         self.play(FadeIn(lys, shift=UP * 0.1), run_time=0.5)
 
-        plat = T("a platform", 28, TEXT).move_to([1.2, -2.85, 0])
-        self.at("a platform")
+        plat = T("+ linear chains", 28, TEXT).move_to([1.2, -2.85, 0])
+        self.at("Together with")
         self.play(FadeIn(plat, shift=UP * 0.1), Indicate(chain[1:], color=UBQ, scale_factor=1.25), run_time=0.8)
 
         tak = bchip("TAK1", PURPLE, 28).move_to([0.2, -0.8, 0])
@@ -422,7 +422,7 @@ class S03Relay(Film):
         on = T("ON", 30, GREEN, weight=BOLD).move_to([4.7, -0.8, 0])
         self.play(*recolor(ikk, GREEN), FadeIn(on, scale=0.8), run_time=0.6)
         ikk_lbl = T("IκB kinase", 24, GREY).move_to([3.2, 0.3, 0])
-        self.at("kinase", nth=1)
+        self.at("kinase")
         self.play(FadeIn(ikk_lbl, shift=DOWN * 0.1), run_time=0.5)
         self.finish()
 

@@ -1,0 +1,252 @@
+---
+/**
+ * PilotEffectSizeSampler — 200 simulated two-group pilots (opsin plus light against fluorophore plus light),
+ * each a dot at its observed standardized difference d, filled if p < 0.05. The lesson's planning formula
+ * n per group = 2 (1.96 + 0.84)^2 / d^2 sits beside it, and a toggle follows up only the significant pilots
+ * to show that the pilots chosen for follow-up overestimate the true d. Original.
+ */
+---
+
+<figure class="pes card" data-pes>
+  <figcaption class="pes-head">Pilot experiments — effect size, power and sample size<span class="pes-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pes-svg" viewBox="0 0 340 204" role="img" aria-label="Strip of 200 simulated two-group experiments, each drawn as a dot at its observed standardized difference d, filled if it reached p below 0.05, with the true d marked" data-plot></svg>
+
+  <p class="pes-legend" aria-hidden="true">
+    <span><b class="pes-k pes-k-fill">●</b> p &lt; 0.05</span>
+    <span><b class="pes-k pes-k-hollow">○</b> not significant</span>
+    <span><b class="pes-k pes-k-true">┆</b> true d</span>
+    <span><b class="pes-k pes-k-cut">┆</b> cutoff for p &lt; 0.05</span>
+    <span><b class="pes-k pes-k-mean">│</b> mean of followed-up pilots</span>
+  </p>
+
+  <div class="pes-controls">
+    <label class="pes-slabel"><span>True effect d <em data-out="d">1.00</em> <small>(standardized difference)</small></span>
+      <input type="range" data-in="d" min="0" max="1.5" step="0.05" value="1" />
+    </label>
+    <label class="pes-slabel"><span>Animals per group n <em data-out="n">8</em> <small>(one number per animal)</small></span>
+      <input type="range" data-in="n" min="4" max="80" step="1" value="8" />
+    </label>
+  </div>
+  <div class="pes-btns">
+    <button type="button" class="pes-btn" data-resample>Resample (200 experiments)</button>
+    <label class="pes-check"><input type="checkbox" data-follow /> Follow up only significant pilots</label>
+  </div>
+
+  <dl class="pes-readout">
+    <div><dt>Fraction with p &lt; 0.05: observed | expected</dt><dd data-r-frac>—</dd></div>
+    <div><dt>Mean observed d among followed-up pilots | expected | true d</dt><dd data-r-follow>—</dd></div>
+    <div><dt>Planning formula at this true d: n per group</dt><dd data-r-plan>—</dd></div>
+  </dl>
+  <p class="pes-lesson">The lesson’s pilot: d = (60 s − 48 s) / 12 s = 1.0, so n per group = 2 (1.96 + 0.84)² / 1.0² = 15.7, which is 16 animals per group (about 17 with a t distribution). At d = 0.5 it is 15.7 / 0.25 = 62.8, so 63 per group.</p>
+  <p class="pes-why" data-why role="status">Press Resample to draw 200 experiments.</p>
+
+  <p class="pes-assume">In this sketch: normal data, equal and known SD (z test), two-sided α = 0.05, 80% power as the planning target, one number per animal, invented numbers. Expected fraction = Φ(d √(n/2) − 1.96) + Φ(−d √(n/2) − 1.96), derived from the lesson’s formula (the second term is the opposite tail). “Followed up” means significant with the opsin group higher. Eight mice with 40 trials each is n = 8, not 320. The lesson’s correlation arithmetic (n about 780 for r = 0.10) is left to the text.</p>
+  <p class="pes-foot">Rule to keep: power the confirmatory study on the smallest effect you would care about, not on the pilot.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', DEEP = '#0a4f56';
+  const N = 200, CRIT = 1.96, ONE_PLAN = 15.7;
+  const X0 = 14, X1 = 326, XMIN = -2, XMAX = 4;
+  const BASE = 164, TOPY = 32;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function erf(x: number): number {
+    const s = x < 0 ? -1 : 1; x = Math.abs(x);
+    const t = 1 / (1 + 0.3275911 * x);
+    const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return s * y;
+  }
+  const Phi = (x: number) => 0.5 * (1 + erf(x / Math.SQRT2));
+  const phi = (x: number) => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+  function gauss(): number {
+    let u = 0;
+    while (u === 0) u = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+  }
+  const pct = (x: number) => (100 * x).toFixed(0) + '%';
+
+  document.querySelectorAll<HTMLElement>('[data-pes]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const dIn = root.querySelector<HTMLInputElement>('[data-in="d"]');
+    const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]');
+    const dOut = root.querySelector<HTMLElement>('[data-out="d"]');
+    const nOut = root.querySelector<HTMLElement>('[data-out="n"]');
+    const resample = root.querySelector<HTMLButtonElement>('[data-resample]');
+    const follow = root.querySelector<HTMLInputElement>('[data-follow]');
+    const rFrac = root.querySelector<HTMLElement>('[data-r-frac]');
+    const rFollow = root.querySelector<HTMLElement>('[data-r-follow]');
+    const rPlan = root.querySelector<HTMLElement>('[data-r-plan]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !dIn || !nIn || !dOut || !nOut || !resample || !follow || !rFrac || !rFollow || !rPlan || !why) return;
+
+    let zs: number[] = [];
+    function redraw() { zs = Array.from({ length: N }, gauss); render(); }
+
+    const px = (v: number) => X0 + ((v - XMIN) / (XMAX - XMIN)) * (X1 - X0);
+
+    function render() {
+      const d = parseFloat(dIn!.value);
+      const n = parseInt(nIn!.value, 10);
+      dOut!.textContent = d.toFixed(2);
+      nOut!.textContent = String(n);
+      const s = Math.sqrt(2 / n);              // SD of the observed d
+      const cut = CRIT * s;                     // |observed d| needed for p < 0.05
+      const obs = zs.map((z) => d + z * s);
+      const sig = obs.map((v) => Math.abs(v) > cut);
+      const sel = obs.map((v) => v > cut);      // significant, opsin group higher
+      const kSig = sig.filter(Boolean).length;
+      const kSel = sel.filter(Boolean).length;
+      const delta = d * Math.sqrt(n / 2);
+      const expFrac = Phi(delta - CRIT) + Phi(-delta - CRIT);
+      const on = follow!.checked;
+
+      // mean observed d among followed-up pilots, observed and expected (truncated normal)
+      let meanSel = NaN;
+      if (kSel > 0) { let t = 0; obs.forEach((v, i) => { if (sel[i]) t += v; }); meanSel = t / kSel; }
+      const a = (cut - d) / s;
+      const tail = 1 - Phi(a);
+      const expSel = tail > 1e-9 ? d + s * phi(a) / tail : NaN;
+
+      // planning formula, with the lesson's rounding of 2 (1.96 + 0.84)^2 to 15.7
+      const planRaw = d > 0 ? ONE_PLAN / (d * d) : Infinity;
+      const planN = d > 0 ? Math.ceil(planRaw - 1e-9) : Infinity;
+
+      // layout of the strip
+      const order = obs.map((_v, i) => i).sort((i, j) => obs[i] - obs[j]);
+      const xs = obs.map((v) => px(Math.max(XMIN + 0.04, Math.min(XMAX - 0.04, v))));
+      let r = 2, level = new Array<number>(N).fill(0), nLev = 0;
+      for (let pass = 0; pass < 4; pass++) {
+        const last: number[] = [];
+        nLev = 0;
+        for (const i of order) {
+          let L = 0;
+          while (L < last.length && xs[i] - last[L] < 2 * r + 0.5) L++;
+          last[L] = xs[i]; level[i] = L; nLev = Math.max(nLev, L + 1);
+        }
+        const fit = (BASE - TOPY) / (nLev * (2 * r + 0.5));
+        if (fit >= 1) break;
+        r = Math.max(1.0, r * fit * 0.98);
+      }
+      const step = Math.min(2 * r + 0.5, (BASE - TOPY - 2 * r) / Math.max(1, nLev - 1));
+
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: X0, y1: BASE + 2, x2: X1, y2: BASE + 2, stroke: INK, 'stroke-width': 1 }));
+      for (let v = XMIN; v <= XMAX; v++) {
+        plot!.appendChild(el('line', { x1: px(v), y1: BASE + 2, x2: px(v), y2: BASE + 5, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: px(v), y: BASE + 16, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); t.textContent = String(v); plot!.appendChild(t);
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: BASE + 31, 'text-anchor': 'middle', 'font-size': 10, fill: INK });
+      xl.textContent = 'observed d in each simulated experiment (one dot each)'; plot!.appendChild(xl);
+
+      // cutoff lines (both directions)
+      for (const c of [-cut, cut]) {
+        if (c < XMIN || c > XMAX) continue;
+        plot!.appendChild(el('line', { x1: px(c), y1: TOPY - 4, x2: px(c), y2: BASE + 2, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      }
+      // true d
+      plot!.appendChild(el('line', { x1: px(d), y1: 16, x2: px(d), y2: BASE + 2, stroke: ORANGE, 'stroke-width': 1.6, 'stroke-dasharray': '4 2' }));
+      const tl = el('text', { x: px(d) + (px(d) > 250 ? -4 : 4), y: 12, 'text-anchor': px(d) > 250 ? 'end' : 'start', 'font-size': 9, 'font-weight': 700, fill: ORANGE });
+      tl.textContent = 'true d = ' + d.toFixed(2); plot!.appendChild(tl);
+
+      // dots
+      obs.forEach((_v, i) => {
+        const cy = BASE - r - level[i] * step;
+        const isSel = sel[i];
+        const dim = on && !isSel;
+        plot!.appendChild(el('circle', {
+          cx: xs[i].toFixed(1), cy: cy.toFixed(1), r: r.toFixed(2),
+          fill: sig[i] ? ACCENT : '#fff', stroke: sig[i] ? ACCENT : INK, 'stroke-width': sig[i] ? 0.6 : 0.8,
+          opacity: dim ? 0.15 : 1,
+        }));
+      });
+
+      // mean of followed-up pilots
+      if (on && kSel > 0) {
+        plot!.appendChild(el('line', { x1: px(meanSel), y1: 28, x2: px(meanSel), y2: BASE + 2, stroke: DEEP, 'stroke-width': 2 }));
+        const right = px(meanSel) > 200;
+        const ml = el('text', { x: px(meanSel) + (right ? -4 : 4), y: 24, 'text-anchor': right ? 'end' : 'start', 'font-size': 9, 'font-weight': 700, fill: DEEP });
+        ml.textContent = 'followed-up mean = ' + meanSel.toFixed(2); plot!.appendChild(ml);
+      }
+
+      // readouts
+      rFrac!.textContent = `${kSig}/${N} (${pct(kSig / N)}) | ${pct(expFrac)}`;
+      if (!on) rFollow!.textContent = 'toggle off';
+      else if (kSel === 0) rFollow!.textContent = 'no pilot reached p < 0.05 with the opsin group higher';
+      else rFollow!.textContent = `${meanSel.toFixed(2)} (${kSel} pilots) | ${isNaN(expSel) ? '—' : expSel.toFixed(2)} | ${d.toFixed(2)}`;
+      rPlan!.textContent = d > 0
+        ? `15.7 / ${d.toFixed(2)}² = ${planRaw.toFixed(1)}, so ${planN} per group (you have ${n})`
+        : 'no finite n: an effect of 0 cannot be detected';
+
+      // status
+      let msg: string;
+      if (d === 0) {
+        msg = `True d is 0, so there is nothing to find. ${kSig} of ${N} experiments (${pct(kSig / N)}) reached p < 0.05 where about 5% are expected${kSig > 0 ? ', and every one of them is a false positive' : ''}.`;
+        if (on) msg += kSel > 0
+          ? ` Following up only the ${kSel} that favour the opsin group picks pilots whose mean observed d is ${meanSel.toFixed(2)} when the true d is 0.`
+          : ' No pilot favoured the opsin group, so none would be followed up.';
+      } else {
+        msg = `With a true d of ${d.toFixed(2)} and ${n} animals per group, ${kSig} of ${N} experiments (${pct(kSig / N)}) reached p < 0.05; the expected fraction is ${pct(expFrac)}${kSig < N ? ', and the rest missed a real effect' : ''}.`;
+        if (on) {
+          if (kSel === 0) msg += ' No pilot reached p < 0.05 with the opsin group higher, so none would be followed up.';
+          else {
+            const gap = meanSel - d;
+            msg += gap > 0.05
+              ? ` In this sketch, the ${kSel} pilots followed up (significant, opsin group higher) overestimate the effect: their mean observed d is ${meanSel.toFixed(2)} against a true ${d.toFixed(2)} (expected ${isNaN(expSel) ? '—' : expSel.toFixed(2)}). A pilot that happened to overshoot is the one that gets followed up.`
+              : ` In this sketch the ${kSel} pilots followed up have a mean observed d of ${meanSel.toFixed(2)}, close to the true ${d.toFixed(2)}; in this sketch the selection effect is small when most pilots reach p < 0.05.`;
+          }
+        }
+        msg += n >= planN
+          ? ` The planning formula asks for ${planN} per group at this d, and ${n} meets it.`
+          : ` The planning formula asks for ${planN} per group at this d; ${n} is fewer.`;
+      }
+      why!.textContent = msg;
+    }
+
+    dIn.addEventListener('input', render);
+    nIn.addEventListener('input', render);
+    follow.addEventListener('change', render);
+    resample.addEventListener('click', redraw);
+    redraw();
+  });
+</script>
+
+<style>
+  .pes { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pes-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pes-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pes-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pes-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pes-k { font-weight: 700; }
+  .pes-k-fill { color: #0e7c86; }
+  .pes-k-hollow { color: #4b4b55; }
+  .pes-k-true { color: #e57200; }
+  .pes-k-cut { color: #8d8d98; }
+  .pes-k-mean { color: #0a4f56; }
+  .pes-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  @media (max-width: 520px) { .pes-controls { grid-template-columns: 1fr; } }
+  .pes-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pes-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .pes-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .pes-slabel input { accent-color: var(--ddp-color-accent); }
+  .pes-btns { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; }
+  .pes-btn { font: inherit; font-size: var(--ddp-text-xs); font-weight: 600; padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; cursor: pointer; }
+  .pes-btn:hover { filter: brightness(1.08); }
+  .pes-btn:focus-visible, .pes-check input:focus-visible, .pes-slabel input:focus-visible { outline: 2px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .pes-check { display: inline-flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .pes-check input { accent-color: var(--ddp-color-accent); }
+  .pes-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pes-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .pes-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pes-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .pes-lesson { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .pes-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5em; }
+  .pes-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .pes-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

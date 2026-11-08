@@ -1,0 +1,225 @@
+---
+/**
+ * DriftSelectionSimulator — replicate populations over generations, set against the
+ * Hardy-Weinberg expectation. The learner sets the number of breeders (Ne), the starting
+ * frequency p of allele A, and the cost s of selection against aa. Each generation applies
+ * the lesson's viability-selection rule p' = (p^2 wAA + pq wAa)/w-bar (wAA = wAa = 1,
+ * waa = 1 - s), then draws 2Ne allele copies at random, so the change in p has
+ * variance p(1 - p)/(2Ne) before selection acts. The deterministic path (selection, no
+ * drift) is drawn beside the replicates; with s = 0 it is the flat Hardy-Weinberg line.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="dsm card" data-dsm>
+  <figcaption class="dsm-head">Drift and selection: replicate populations<span class="dsm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="dsm-svg" viewBox="0 0 360 232" role="img" aria-label="Frequency of allele A over 50 generations in 30 replicate populations, with the average of the replicates and the expected path without drift" data-plot></svg>
+
+  <div class="dsm-controls">
+    <label class="dsm-ctl">
+      <span class="dsm-lab">Breeders per population, Ne: <output data-out="n"></output></span>
+      <input type="range" min="0" max="7" step="1" value="3" data-in="n" />
+    </label>
+    <label class="dsm-ctl">
+      <span class="dsm-lab">Starting frequency of A, p: <output data-out="p"></output></span>
+      <input type="range" min="0.05" max="0.95" step="0.05" value="0.5" data-in="p" />
+    </label>
+    <label class="dsm-ctl">
+      <span class="dsm-lab">Cost to aa (s): <output data-out="s"></output></span>
+      <input type="range" min="0" max="1" step="0.05" value="0" data-in="s" />
+    </label>
+  </div>
+  <div class="dsm-actions">
+    <button type="button" class="dsm-btn" data-resample>Resample (30 new replicates)</button>
+  </div>
+
+  <p class="dsm-verdict" data-verdict role="status"></p>
+
+  <table class="dsm-tab">
+    <caption class="dsm-sr">Expected beside observed</caption>
+    <thead><tr><th scope="col"></th><th scope="col">Expected</th><th scope="col">Observed</th></tr></thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <p class="dsm-foot">With no systematic force acting, the expected p stays put; drift scatters small populations around that line without a direction, and selection gives the line one. This is a sketch of the logic: constant Ne, random mating, selection against aa only. Viability selection with wAA = wAa = 1 and waa = 1 - s; each generation draws 2Ne allele copies at random (binomial sampling); 30 replicates, 50 generations. Here s is the cost to aa, not the s of q = s/(s + t).</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const SIZES = [8, 16, 25, 50, 100, 200, 500, 1000];
+  const GENS = 50;
+  const REPS = 30;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function rng(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  // Selection against aa: wAA = wAa = 1, waa = 1 - s. p' = (p^2 + pq)/w-bar = p / (1 - s q^2).
+  function select(p: number, s: number): number {
+    const q = 1 - p;
+    return p / (1 - s * q * q);
+  }
+  const f2 = (x: number) => x.toFixed(2);
+  const f3 = (x: number) => x.toFixed(3);
+
+  document.querySelectorAll<HTMLElement>('[data-dsm]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const rows = root.querySelector<HTMLElement>('[data-rows]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const out = (k: string) => root.querySelector<HTMLOutputElement>(`[data-out="${k}"]`)!;
+    let seed = (Math.random() * 4294967296) >>> 0;
+
+    function render() {
+      const n = SIZES[Number(inp('n').value)];
+      const p0 = Number(inp('p').value);
+      const s = Number(inp('s').value);
+      out('n').textContent = String(n);
+      out('p').textContent = f2(p0);
+      out('s').textContent = f2(s);
+
+      // Expected path: selection only, no drift (the flat Hardy-Weinberg line when s = 0).
+      const exp: number[] = [p0];
+      for (let g = 1; g <= GENS; g++) exp.push(select(exp[g - 1], s));
+
+      // Replicates: select, then draw 2Ne allele copies at random.
+      const rand = rng(seed);
+      const copies = 2 * n;
+      const reps: number[][] = [];
+      for (let r = 0; r < REPS; r++) {
+        const path = [p0];
+        for (let g = 1; g <= GENS; g++) {
+          const prev = path[g - 1];
+          if (prev <= 0 || prev >= 1) { path.push(prev); continue; }
+          const ps = select(prev, s);
+          let k = 0;
+          for (let i = 0; i < copies; i++) if (rand() < ps) k++;
+          path.push(k / copies);
+        }
+        reps.push(path);
+      }
+      const mean = (g: number) => reps.reduce((a, r) => a + r[g], 0) / REPS;
+      const sd1 = (() => {
+        const m = mean(1);
+        return Math.sqrt(reps.reduce((a, r) => a + (r[1] - m) ** 2, 0) / (REPS - 1));
+      })();
+      // Expected one-generation numbers from the lesson's rules.
+      const drift1 = Math.sqrt((exp[1] * (1 - exp[1])) / (2 * n));
+      const sel1 = exp[1] - p0;
+      const lost = reps.filter((r) => r[GENS] <= 0).length;
+      const fixed = reps.filter((r) => r[GENS] >= 1).length;
+      const open = REPS - lost - fixed;
+      const meanEnd = mean(GENS);
+
+      // Plot
+      plot.replaceChildren();
+      const INK = '#4b4b55', FAINT = '#8a8a96';
+      const X0 = 40, X1 = 350, Y0 = 14, Y1 = 180;
+      const xs = (g: number) => X0 + (g / GENS) * (X1 - X0);
+      const ys = (p: number) => Y1 - p * (Y1 - Y0);
+      for (const t of [0, 0.5, 1]) {
+        plot.appendChild(el('line', { x1: X0, y1: ys(t), x2: X1, y2: ys(t), stroke: '#e3e3ea', 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: X0 - 5, y: ys(t) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, String(t)));
+      }
+      for (const g of [0, 10, 20, 30, 40, 50]) {
+        plot.appendChild(el('text', { x: xs(g), y: Y1 + 12, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, String(g)));
+      }
+      plot.appendChild(el('text', { x: (X0 + X1) / 2, y: Y1 + 24, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'generation'));
+      plot.appendChild(el('text', { x: 10, y: (Y0 + Y1) / 2, 'font-size': 9, 'text-anchor': 'middle', fill: INK, transform: `rotate(-90 10 ${(Y0 + Y1) / 2})` }, 'frequency of A (p)'));
+      plot.appendChild(el('text', { x: X1 + 2, y: ys(1) - 3, 'font-size': 9, 'text-anchor': 'end', fill: FAINT }, 'fixed'));
+      plot.appendChild(el('text', { x: X1 + 2, y: ys(0) - 3, 'font-size': 9, 'text-anchor': 'end', fill: FAINT }, 'lost'));
+      for (const r of reps) {
+        const d = r.map((p, g) => `${g === 0 ? 'M' : 'L'}${xs(g).toFixed(1)} ${ys(p).toFixed(1)}`).join(' ');
+        plot.appendChild(el('path', { d, fill: 'none', stroke: '#0e7c86', 'stroke-width': 1, opacity: 0.38 }));
+      }
+      const dm = Array.from({ length: GENS + 1 }, (_, g) => `${g === 0 ? 'M' : 'L'}${xs(g).toFixed(1)} ${ys(mean(g)).toFixed(1)}`).join(' ');
+      plot.appendChild(el('path', { d: dm, fill: 'none', stroke: '#1f2937', 'stroke-width': 2.2 }));
+      const de = exp.map((p, g) => `${g === 0 ? 'M' : 'L'}${xs(g).toFixed(1)} ${ys(p).toFixed(1)}`).join(' ');
+      plot.appendChild(el('path', { d: de, fill: 'none', stroke: '#e57200', 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+      // legend
+      const LY = 226;
+      plot.appendChild(el('line', { x1: 14, y1: LY - 3, x2: 30, y2: LY - 3, stroke: '#0e7c86', 'stroke-width': 1.5, opacity: 0.6 }));
+      plot.appendChild(el('text', { x: 34, y: LY, 'font-size': 9, fill: INK }, '30 replicates'));
+      plot.appendChild(el('line', { x1: 108, y1: LY - 3, x2: 124, y2: LY - 3, stroke: '#1f2937', 'stroke-width': 2.2 }));
+      plot.appendChild(el('text', { x: 128, y: LY, 'font-size': 9, fill: INK }, 'average observed'));
+      plot.appendChild(el('line', { x1: 216, y1: LY - 3, x2: 232, y2: LY - 3, stroke: '#e57200', 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+      plot.appendChild(el('text', { x: 236, y: LY, 'font-size': 9, fill: INK }, s === 0 ? 'expected: Hardy-Weinberg' : 'expected: no drift'));
+
+      // Table
+      rows.replaceChildren();
+      const addRow = (label: string, e: string, o: string) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.scope = 'row'; th.textContent = label;
+        const a = document.createElement('td'); a.textContent = e;
+        const b = document.createElement('td'); b.textContent = o;
+        tr.append(th, a, b); rows.appendChild(tr);
+      };
+      addRow('Spread of p after generation 1 (SD)', f3(drift1), f3(sd1));
+      addRow('Average p, generation 1', f3(exp[1]), f3(mean(1)));
+      addRow(`Average p, generation ${GENS}`, f3(exp[GENS]), f3(meanEnd));
+      addRow(`Replicates with A lost / fixed / still varying at ${GENS}`, `0 / 0 / ${REPS}`, `${lost} / ${fixed} / ${open}`);
+
+      // Status sentences
+      let a: string;
+      if (s === 0) {
+        a = `With no selection the expected path is flat at ${f2(p0)}: no systematic force is acting, so the expected p stays put. Any movement of a replicate is drift, which has no direction.`;
+      } else {
+        a = `Selection against aa gives the expected path a direction: p moves from ${f2(p0)} to ${f2(exp[GENS])} in ${GENS} generations if drift is ignored.`;
+      }
+      let b: string;
+      if (s === 0) {
+        b = `In this sketch, with ${n} breeders the one-generation spread of p is expected to be ${f3(drift1)} (observed ${f3(sd1)}), a spread that grows as breeders become fewer; the average of the replicates is ${f3(meanEnd)} against ${f3(exp[GENS])} expected.`;
+      } else {
+        const stronger = Math.abs(sel1) > drift1
+          ? 'selection moves p more per generation than chance scatters it, so the replicates tend to follow the expected path'
+          : 'chance scatters p more per generation than selection moves it, so the replicates wander around the expected path';
+        b = `In this sketch, with ${n} breeders, in the first generation selection is expected to move p by ${sel1 >= 0 ? '+' : ''}${f3(sel1)} while drift spreads it by ${f3(drift1)} (observed spread ${f3(sd1)}): ${stronger}.`;
+      }
+      const c = lost + fixed > 0
+        ? ` By generation ${GENS}, A has been lost in ${lost} and fixed in ${fixed} of ${REPS} populations.`
+        : ` By generation ${GENS}, A is still present and not fixed in all ${REPS} populations.`;
+      verdict.textContent = `${a} ${b}${c}`;
+    }
+
+    ['n', 'p', 's'].forEach((k) => inp(k).addEventListener('input', render));
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', () => {
+      seed = (Math.random() * 4294967296) >>> 0;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .dsm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dsm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dsm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dsm-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dsm-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem 1rem; margin: var(--ddp-space-2) 0; }
+  .dsm-ctl { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dsm-ctl input { width: 100%; accent-color: var(--ddp-color-accent); }
+  .dsm-lab output { font-weight: 700; color: var(--ddp-color-primary); }
+  .dsm-actions { margin: var(--ddp-space-2) 0; }
+  .dsm-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .dsm-btn:focus-visible, .dsm-ctl input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dsm-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .dsm-tab { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dsm-tab th, .dsm-tab td { text-align: left; padding: 0.2rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); vertical-align: top; }
+  .dsm-tab thead th { color: var(--ddp-color-muted); font-weight: 400; }
+  .dsm-tab tbody th { font-weight: 400; }
+  .dsm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .dsm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .dsm-controls { grid-template-columns: 1fr; } }
+</style>

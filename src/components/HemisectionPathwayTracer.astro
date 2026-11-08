@@ -1,0 +1,304 @@
+---
+/**
+ * HemisectionPathwayTracer — three schematic tracts drawn on a cord-and-brainstem diagram,
+ * and the losses that follow when one half of the cord is cut. The learner picks the side
+ * of the cut (the patient's left or right), the level (C5 or T10, the two the lessons
+ * work) and which tract to highlight. Each tract is a polyline with the crossing the
+ * lesson gives it: the dorsal column-medial lemniscus pathway ascends on its own side and
+ * crosses in the caudal medulla; the spinothalamic pathway synapses in the dorsal horn
+ * and crosses within a segment or two; the lateral corticospinal tract crossed in the
+ * caudal medulla and serves its own side in the cord. A tract is "cut" when its line in
+ * the cord passes through the cut half; the body map is shaded from that, not hard-coded.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="hpt card" data-hpt>
+  <figcaption class="hpt-head">Hemisection: where each pathway crosses<span class="hpt-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="hpt-side-note">Everything is labelled as the patient’s left and right, with the body drawn from behind, so the patient’s left is on the viewer’s left.</p>
+
+  <svg class="hpt-svg" viewBox="0 0 340 352" role="img" aria-label="Schematic of the caudal medulla and spinal cord with three tracts, the dorsal column pathway, the spinothalamic pathway and the lateral corticospinal tract, and a hemisection of one half of the cord" data-cord></svg>
+
+  <div class="hpt-key" aria-hidden="true">
+    <span><i style="background:#0e7c86"></i>dorsal column pathway (fine touch, vibration, position)</span>
+    <span><i style="background:#e57200"></i>spinothalamic (pain, temperature)</span>
+    <span><i style="background:#6b4bb8"></i>lateral corticospinal (weakness)</span>
+    <span><i class="hpt-key-cut"></i>fibres beyond the cut</span>
+  </div>
+
+  <div class="hpt-controls">
+    <fieldset class="hpt-fs" data-grp="side">
+      <legend>Hemisection side (patient’s)</legend>
+      <label><input type="radio" name="hpt-side" value="L" /> Left</label>
+      <label><input type="radio" name="hpt-side" value="R" checked /> Right</label>
+    </fieldset>
+    <fieldset class="hpt-fs" data-grp="level">
+      <legend>Level of the cut</legend>
+      <label><input type="radio" name="hpt-level" value="C5" /> C5</label>
+      <label><input type="radio" name="hpt-level" value="T10" checked /> T10</label>
+    </fieldset>
+    <fieldset class="hpt-fs" data-grp="path">
+      <legend>Pathway to highlight</legend>
+      <label><input type="radio" name="hpt-path" value="all" checked /> All</label>
+      <label><input type="radio" name="hpt-path" value="dcml" /> Dorsal column</label>
+      <label><input type="radio" name="hpt-path" value="stt" /> Spinothalamic</label>
+      <label><input type="radio" name="hpt-path" value="cst" /> Corticospinal</label>
+    </fieldset>
+  </div>
+
+  <svg class="hpt-svg" viewBox="0 0 340 272" role="img" aria-label="Three body maps drawn from behind showing what is lost: fine touch, vibration and position; pain and temperature; and weakness" data-body></svg>
+
+  <p class="hpt-why" data-why role="status"></p>
+
+  <p class="hpt-assume">In this sketch: a clean hemisection of one half of the cord; first-order axons enter below the cut; tracts are drawn schematically and not to scale; the body map shades the levels the lessons state. Both pathways are major routes, not the whole of touch or pain processing.</p>
+
+  <p class="hpt-foot">Rule to keep: a tract is lost on the side where it runs through the cut half. The dorsal column and corticospinal tract run on the side they serve, and the spinothalamic axons have already crossed, so touch and weakness go on the cut side and pain and temperature on the other (the Brown-Séquard pattern). In this sketch, a clean hemisection examined weeks after onset (spinal shock first), with the face’s trigeminal system left aside; real injuries are rarely this clean. Mechanism only, not clinical advice.</p>
+</figure>
+
+<script>
+  type Side = 'L' | 'R';
+  type Tract = 'dcml' | 'stt' | 'cst';
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', RED = '#c0392b';
+  const COL: Record<Tract, string> = { dcml: '#0e7c86', stt: '#e57200', cst: '#6b4bb8' };
+  const CX = 170;
+  const sgn = (s: Side) => (s === 'R' ? 1 : -1); // patient's right is the viewer's right of centre (seen from behind)
+  const opp = (s: Side): Side => (s === 'L' ? 'R' : 'L');
+  const word = (s: Side) => (s === 'L' ? 'left' : 'right');
+
+  // Levels the lessons work. yCord = position in the schematic cord (not to scale).
+  // painStart is the lesson's own wording for where the crossed loss begins.
+  const LEVELS = {
+    C5: { yCord: 176, yBody: 38, painY: 47, painText: 'about C6', name: 'C5' },
+    T10: { yCord: 268, yBody: 84, painY: 94, painText: 'about T11 to T12', name: 'T10' },
+  } as const;
+  type Lv = keyof typeof LEVELS;
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  type Pt = [number, number];
+  // A tract is a list of points in the direction of travel; `col` is the side of the cord
+  // it occupies where it passes the cut level; `body` is the side of the body it reports for.
+  interface Path { tract: Tract; body: Side; col: Side; pts: Pt[]; }
+
+  function buildPaths(): Path[] {
+    const out: Path[] = [];
+    (['L', 'R'] as Side[]).forEach((X) => {
+      const s = sgn(X), o = sgn(opp(X));
+      // Dorsal column-medial lemniscus: first-order axon ascends on its own side (no synapse in the
+      // cord), synapses in the gracile or cuneate nucleus, crosses as internal arcuate fibres.
+      out.push({ tract: 'dcml', body: X, col: X, pts: [[CX + s * 12, 318], [CX + s * 12, 92], [CX + o * 12, 78], [CX + o * 12, 32]] });
+      // Spinothalamic: synapse in the dorsal horn near entry, second-order axon crosses within a
+      // segment or two, ascends in the opposite anterolateral cord.
+      out.push({ tract: 'stt', body: X, col: opp(X), pts: [[CX + s * 24, 316], [CX + s * 24, 306], [CX + o * 26, 292], [CX + o * 26, 32]] });
+      // Lateral corticospinal: from motor cortex of the opposite hemisphere, crossed at the pyramidal
+      // decussation; descends on the side of the body it serves (X).
+      out.push({ tract: 'cst', body: X, col: X, pts: [[CX + o * 70, 32], [CX + o * 38, 100], [CX + o * 38, 116], [CX + s * 38, 142], [CX + s * 38, 316]] });
+    });
+    return out;
+  }
+  const PATHS = buildPaths();
+
+  // Split a polyline where it passes the cut level; return [before, after].
+  function split(pts: Pt[], y: number): [Pt[], Pt[]] {
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+      if ((y0 - y) * (y1 - y) <= 0 && y0 !== y1) {
+        const t = (y - y0) / (y1 - y0);
+        const m: Pt = [x0 + t * (x1 - x0), y];
+        return [[...pts.slice(0, i + 1), m], [m, ...pts.slice(i + 1)]];
+      }
+    }
+    return [pts, []];
+  }
+  const d = (pts: Pt[]) => pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+
+  // Is a tract cut? Yes when the part of it that runs through the cord at the cut level lies on the cut side.
+  function isCut(p: Path, cutSide: Side) { return p.col === cutSide; }
+
+  // What is lost, and on which side of the body, derived from which tracts are cut.
+  function losses(cutSide: Side) {
+    const lost: Record<Tract, Side[]> = { dcml: [], stt: [], cst: [] };
+    PATHS.forEach((p) => { if (isCut(p, cutSide)) lost[p.tract].push(p.body); });
+    return lost;
+  }
+
+
+  document.querySelectorAll<HTMLElement>('[data-hpt]').forEach((root) => {
+    const cord = root.querySelector<SVGSVGElement>('[data-cord]')!;
+    const body = root.querySelector<SVGSVGElement>('[data-body]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const val = (name: string) => (root.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)!).value;
+    const uid = 'hpt' + Math.random().toString(36).slice(2, 7);
+
+    function text(svg: SVGElement, x: number, y: number, t: string, o: Record<string, string | number> = {}) {
+      svg.appendChild(el('text', { x, y, 'font-size': 9.5, fill: INK, ...o }, t));
+    }
+
+    function drawCord(cut: Side, lv: Lv, hl: string) {
+      const L = LEVELS[lv];
+      cord.replaceChildren();
+      // brainstem and cord outlines
+      cord.appendChild(el('path', { d: 'M120 58 L220 58 L215 148 L125 148 Z', fill: '#f1f1f4', stroke: INK, 'stroke-width': 1 }));
+      cord.appendChild(el('rect', { x: 125, y: 148, width: 90, height: 172, fill: '#f1f1f4', stroke: INK, 'stroke-width': 1 }));
+      cord.appendChild(el('line', { x1: CX, y1: 58, x2: CX, y2: 320, stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '3 3' }));
+      // nuclei (gracile/cuneate) where the dorsal column fibres synapse
+      [-1, 1].forEach((s) => cord.appendChild(el('rect', { x: CX + s * 12 - 5, y: 88, width: 10, height: 8, fill: '#fff', stroke: COL.dcml, 'stroke-width': 1.2 })));
+      // labels
+      text(cord, CX, 16, 'thalamus', { 'text-anchor': 'middle' });
+      text(cord, CX - 70, 14, 'motor cortex', { 'text-anchor': 'middle' });
+      text(cord, CX + 70, 14, 'motor cortex', { 'text-anchor': 'middle' });
+      text(cord, 228, 80, 'gracile or cuneate', { });
+      text(cord, 228, 91, 'nucleus', { });
+      text(cord, 228, 103, 'dorsal column crosses', { fill: COL.dcml, 'font-weight': 700 });
+      text(cord, 228, 114, '(internal arcuate)', { fill: COL.dcml });
+      text(cord, 228, 133, 'pyramidal', { fill: COL.cst, 'font-weight': 700 });
+      text(cord, 228, 144, 'decussation', { fill: COL.cst, 'font-weight': 700 });
+      text(cord, 112, 100, 'caudal', { 'text-anchor': 'end' });
+      text(cord, 112, 111, 'medulla', { 'text-anchor': 'end' });
+      text(cord, 112, 210, 'cord', { 'text-anchor': 'end' });
+      text(cord, 222, 286, 'spinothalamic crosses', { fill: COL.stt, 'font-weight': 700 });
+      text(cord, 222, 297, 'within a segment or two', { fill: COL.stt });
+      text(cord, 120, 306, 'dorsal horn', { 'text-anchor': 'end' });
+      text(cord, 120, 317, 'synapse', { 'text-anchor': 'end' });
+      (Object.keys(LEVELS) as Lv[]).forEach((k) => {
+        const on = k === lv;
+        cord.appendChild(el('line', { x1: 121, y1: LEVELS[k].yCord, x2: 125, y2: LEVELS[k].yCord, stroke: on ? RED : INK, 'stroke-width': 1.4 }));
+        text(cord, 119, LEVELS[k].yCord + 3.5, k, { 'text-anchor': 'end', 'font-weight': on ? 800 : 400, fill: on ? RED : INK });
+      });
+      // tracts
+      PATHS.forEach((p) => {
+        const dim = hl !== 'all' && hl !== p.tract;
+        const cutP = isCut(p, cut);
+        const [a, b] = cutP ? split(p.pts, L.yCord) : [p.pts, []];
+        cord.appendChild(el('path', { d: d(a), fill: 'none', stroke: COL[p.tract], 'stroke-width': 2.4, 'stroke-linejoin': 'round', opacity: dim ? 0.15 : 1 }));
+        if (b.length) cord.appendChild(el('path', { d: d(b), fill: 'none', stroke: FAINT, 'stroke-width': 2, 'stroke-dasharray': '3 3', opacity: dim ? 0.15 : 1 }));
+        // arrowhead at the end of travel
+        const e = p.pts[p.pts.length - 1], q = p.pts[p.pts.length - 2];
+        const dir = Math.sign(e[1] - q[1]) || -1;
+        const hc = cutP ? FAINT : COL[p.tract];
+        cord.appendChild(el('path', { d: `M${e[0] - 3.5} ${e[1] - dir * 6} L${e[0]} ${e[1]} L${e[0] + 3.5} ${e[1] - dir * 6} Z`, fill: hc, opacity: dim ? 0.15 : 1 }));
+      });
+      // the cut: one half of the cord at the chosen level
+      const x0 = cut === 'L' ? 125 : CX;
+      cord.appendChild(el('rect', { x: x0, y: L.yCord - 5, width: 45, height: 10, fill: RED, opacity: 0.6, stroke: RED, 'stroke-width': 1 }));
+      // side labels
+      text(cord, 8, 345, 'patient’s left');
+      text(cord, 332, 345, 'patient’s right', { 'text-anchor': 'end' });
+      text(cord, CX, 345, '(seen from behind)', { 'text-anchor': 'middle' });
+      text(cord, CX, 333, 'first-order axons enter below the cut', { 'text-anchor': 'middle' });
+      cord.appendChild(el('title', {}, `Hemisection of the patient’s ${word(cut)} half of the cord at ${lv}`));
+    }
+
+    function drawBody(cut: Side, lv: Lv, hl: string) {
+      const L = LEVELS[lv];
+      body.replaceChildren();
+      const lost = losses(cut);
+      const defs = el('defs', {});
+      const clip = el('clipPath', { id: uid + '-clip' });
+      [[32, 28, 36, 72], [17, 30, 13, 72], [70, 30, 13, 72], [33, 100, 16, 80], [51, 100, 16, 80]].forEach(([x, y, w, h]) => clip.appendChild(el('rect', { x, y, width: w, height: h, rx: 3 })));
+      defs.appendChild(clip);
+      body.appendChild(defs);
+      const SC = 0.85, TOP = 40;
+      const cells: { t: Tract; x: number; t1: string; t2: string }[] = [
+        { t: 'dcml', x: 5, t1: 'Fine touch,', t2: 'vibration, position' },
+        { t: 'stt', x: 120, t1: 'Pain and', t2: 'temperature' },
+        { t: 'cst', x: 235, t1: 'Weakness', t2: '(corticospinal)' },
+      ];
+      cells.forEach((c) => {
+        const dim = hl !== 'all' && hl !== c.t;
+        const g = el('g', { opacity: dim ? 0.25 : 1 });
+        body.appendChild(g);
+        text(g, c.x + 50 * SC + 8, 12, c.t1, { 'text-anchor': 'middle', 'font-weight': 700, fill: COL[c.t] });
+        text(g, c.x + 50 * SC + 8, 23, c.t2, { 'text-anchor': 'middle', 'font-weight': 700, fill: COL[c.t] });
+        const bx = c.x + 8;
+        const gb = el('g', { transform: `translate(${bx} ${TOP}) scale(${SC})` });
+        g.appendChild(gb);
+        gb.appendChild(el('circle', { cx: 50, cy: 14, r: 10, fill: '#e8e8ee', stroke: INK, 'stroke-width': 1 }));
+        [[32, 28, 36, 72], [17, 30, 13, 72], [70, 30, 13, 72], [33, 100, 16, 80], [51, 100, 16, 80]].forEach(([x, y, w, h]) => gb.appendChild(el('rect', { x, y, width: w, height: h, rx: 3, fill: '#e8e8ee', stroke: INK, 'stroke-width': 1 })));
+        // shading of each lost side
+        const sides = lost[c.t];
+        const start = c.t === 'stt' ? L.painY : L.yBody;
+        sides.forEach((S) => {
+          const sx = S === 'L' ? 0 : 50;
+          const shade = el('rect', { x: sx, y: start, width: 50, height: 200 - start, fill: COL[c.t], opacity: 0.7, 'clip-path': `url(#${uid}-clip)` });
+          shade.setAttribute('data-lost', `${c.t}:${S}`);
+          gb.appendChild(shade);
+        });
+        const yy = (v: number) => TOP + v * SC;
+        const xx = (v: number) => bx + v * SC;
+        // level line and the start of the loss
+        g.appendChild(el('line', { x1: xx(8), y1: yy(L.yBody), x2: xx(92), y2: yy(L.yBody), stroke: RED, 'stroke-width': 0.9, 'stroke-dasharray': '3 2' }));
+        if (c.t === 'stt') g.appendChild(el('line', { x1: xx(8), y1: yy(L.painY), x2: xx(92), y2: yy(L.painY), stroke: COL.stt, 'stroke-width': 1, 'stroke-dasharray': '1 2' }));
+        if (c.t === 'cst' && lv === 'C5') {
+          const sx = cut === 'L' ? 17 : 52;
+          g.appendChild(el('rect', { x: xx(sx), y: yy(L.yBody - 9), width: 31 * SC, height: 14 * SC, fill: 'none', stroke: RED, 'stroke-width': 1.4, 'stroke-dasharray': '2 2' }));
+        }
+        text(g, xx(50) - 33, yy(14) + 4, 'L', { 'font-weight': 800, 'text-anchor': 'middle' });
+        text(g, xx(50) + 33, yy(14) + 4, 'R', { 'font-weight': 800, 'text-anchor': 'middle' });
+        // note
+        const sideTxt = sides.map((x) => (x === 'L' ? 'L' : 'R')).join('');
+        let n1 = '', n2 = '';
+        if (c.t === 'stt') { n1 = `${sideTxt} side`; n2 = `from ${L.painText}`; }
+        else { n1 = `${sideTxt} side, below ${lv}`; n2 = ''; }
+        text(g, c.x + 50 * SC + 8, TOP + 180 * SC + 14, n1, { 'text-anchor': 'middle', 'font-weight': 700 });
+        if (n2) text(g, c.x + 50 * SC + 8, TOP + 180 * SC + 25, n2, { 'text-anchor': 'middle', fill: INK });
+      });
+      text(body, CX, 229, 'Red dashed line = level of the cut.', { 'text-anchor': 'middle', 'font-size': 9 });
+      text(body, CX, 241, 'Orange dotted line = where pain loss begins.', { 'text-anchor': 'middle', 'font-size': 9 });
+      if (lv === 'C5') text(body, CX, 253, 'Red box = lower motor neuron signs at the level.', { 'text-anchor': 'middle', 'font-size': 9 });
+      text(body, CX, 266, 'L = patient’s left (viewer’s left), R = patient’s right', { 'text-anchor': 'middle' });
+    }
+
+    function sentence(cut: Side, lv: Lv, hl: string): string {
+      const L = LEVELS[lv], other = opp(cut), c = word(cut), o = word(other);
+      const lost = losses(cut);
+      // The sentence is built from the derived losses, so it can only say what the drawn crossings give.
+      const dSide = word(lost.dcml[0]), sSide = word(lost.stt[0]), cSide = word(lost.cst[0]);
+      const dcml = `The dorsal column pathway ascends on the same side and crosses only in the caudal medulla, so the ${c} column carries the ${c} body, so cutting it loses fine touch, vibration and position on the ${dSide}, below ${lv}.`;
+      const stt = `The spinothalamic axons synapse in the dorsal horn and cross within a segment or two, so the ${c} half of the cord holds axons that crossed from the ${o} body: pain and temperature are lost on the ${sSide}. Fibres entering just below the cut cross a segment or two higher and some cross above it and escape, so the loss begins a little lower, ${L.painText} down.`;
+      const cst = `The lateral corticospinal tract crossed in the caudal medulla, so in the cord it serves its own side: weakness is on the ${cSide}, below the lesion.` + (lv === 'C5' ? ' In this sketch, following the basal ganglia lesson’s C5 case, upper motor neuron signs are in the arm and leg, lower motor neuron signs are expected at the level itself where ventral horn cells are destroyed, and the face is spared because the facial motor neurons sit in the pons.' : '');
+      if (hl === 'dcml') return dcml;
+      if (hl === 'stt') return stt;
+      if (hl === 'cst') return cst;
+      return `In this sketch a ${c} hemisection at ${lv} cuts the ${c} dorsal column, which has not yet crossed, the ${c} lateral corticospinal tract, which crossed in the caudal medulla, and the ${c} anterolateral cord, which carries axons that crossed from the ${o} side of the body. Fine touch, vibration and position are lost on the ${dSide} below ${lv}; pain and temperature on the ${sSide} from ${L.painText} down; weakness on the ${cSide} below the lesion. Touch and weakness are lost on one side and pain on the other: the Brown-Séquard pattern.` + (lv === 'C5' ? ' In this sketch, as the basal ganglia lesson’s C5 case has it, the face is spared and lower motor neuron signs are expected at the level itself.' : '');
+    }
+
+    function render() {
+      const cut = val('hpt-side') as Side, lv = val('hpt-level') as Lv, hl = val('hpt-path');
+      drawCord(cut, lv, hl);
+      drawBody(cut, lv, hl);
+      why.textContent = sentence(cut, lv, hl);
+      root.dataset.state = JSON.stringify(losses(cut));
+    }
+    root.querySelectorAll('input[type=radio]').forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .hpt { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hpt-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .hpt-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hpt-side-note { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hpt-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hpt-key { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hpt-key span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .hpt-key i { display: inline-block; width: 16px; height: 4px; border-radius: 2px; }
+  .hpt-key .hpt-key-cut { background: repeating-linear-gradient(90deg, #b9b9c2 0 3px, transparent 3px 6px); }
+  .hpt-controls { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; }
+  .hpt-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.7rem 0.45rem; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hpt-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .hpt-fs label { display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
+  .hpt-fs input { accent-color: var(--ddp-color-accent); }
+  .hpt-fs input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hpt-why { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 5.5em; }
+  .hpt-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hpt-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

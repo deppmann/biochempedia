@@ -412,12 +412,12 @@ class S03Gate(Film):
         self.at("a flood at once")
         self.play(*glow(D, s=1.15), run_time=0.6)
 
-        # the cell makes nothing
+        # the cell makes no calcium
         new = ghost_chip("new calcium", 24).move_to([-2.05, -2.95, 0])
         xx = strike(new)
-        self.at("To send a calcium signal")
+        self.at("To signal")
         self.play(FadeOut(res), FadeOut(gate_l), run_time=0.4)
-        self.at("makes nothing")
+        self.at("no calcium")
         self.play(FadeIn(new), run_time=0.4)
         self.play(Create(xx), run_time=0.35)
 
@@ -527,7 +527,7 @@ class S04Pump(Film):
         t_stop = self.t_of("The pump called") - 0.45
         while self.elapsed() + 0.9 < t_stop and pumped_n[0] < 12:
             cycle(1)
-        self.at("The pump called")
+        self.at("pump called")
         serca = btext("SERCA", 28, RED).move_to([PUMP_X - 1.2, -0.62, 0])
         self.play(FadeIn(serca), run_time=0.4)
         two = T("2 Ca²⁺ per ATP", 26, GOLD).move_to([PUMP_X + 2.7, -0.5, 0])
@@ -545,7 +545,7 @@ class S04Pump(Film):
 
         # buffers
         bufs = [buffer_mob(c) for c in BUF_C]
-        self.at("Buffer proteins")
+        self.at("proteins")
         self.play(FadeOut(serca), FadeOut(two), *[FadeIn(b, scale=0.7) for b in bufs], run_time=0.6)
         slots = [buffer_slots(c) for c in BUF_C]
         # each buffer takes its nearest twelve of the remaining dots
@@ -691,7 +691,7 @@ class S05Read(Film):
         body, cover, notch, rope, blocker, klabel, site = kinase_mobs()
         strand = VGroup(rope, blocker)
         kin = VGroup(body, cover, notch)
-        self.at("then close around")
+        self.at("on many targets")
         self.play(FadeIn(kin, shift=LEFT * 0.7), FadeIn(strand, shift=LEFT * 0.7), XC.animate.set_value(XC0),
                   cam_l.animate.shift(LEFT * (X0S - XC0)), run_time=1.0)
         hel = T("helix", 28, PURPLE).move_to([XC0 - 2.3, RY, 0])
@@ -700,13 +700,13 @@ class S05Read(Film):
         self.play(FadeIn(hel, shift=RIGHT * 0.1), Create(hel_line), run_time=0.5)
         self.at("like two hands")
         self.play(SEP.animate.set_value(SEP1), run_time=1.0)
-        self.at("gripping a rope")
+        self.at("a rope")
         self.play(*glow(rope, s=1.1), run_time=0.6)
 
         # the kinase
         self.at("In the enzyme")
         self.play(FadeOut(hel), FadeOut(hel_line), FadeIn(klabel, shift=UP * 0.1), run_time=0.6)
-        self.at("kinase")
+        self.at("Camkinase")
         self.play(Indicate(klabel, color=TEXT, scale_factor=1.15), run_time=0.7)
         self.at("a segment")
         self.play(*glow(blocker, s=1.15, color=RED), run_time=0.7)
@@ -718,7 +718,7 @@ class S05Read(Film):
         # the grip pulls the strand clear
         self.at("Calmodulin grips")
         self.play(ping([XC0 - 0.9, RY, 0]), ping([XC0 + 0.9, RY, 0]), run_time=0.6)
-        self.at("beside")
+        self.at("end")
         self.play(*glow(rope, s=1.1), *glow(blocker, s=1.1, color=RED), run_time=0.6)
         self.at("pulls it clear")
         self.play(XC.animate.set_value(XC0 - PULL), strand.animate.shift(LEFT * PULL), cam_l.animate.shift(LEFT * PULL),
@@ -761,7 +761,7 @@ class S06Rule(Film):
         a2 = arr(camp.get_bottom(), e2.get_top(), PURPLE)
         l1 = T("makes", 28, GREY).next_to(a1, RIGHT, buff=0.2)
         l2 = T("destroys", 28, GREY).next_to(a2, RIGHT, buff=0.2)
-        self.at("The cell made nothing")
+        self.at("The cell")
         self.play(FadeOut(gone), OP.animate.set_value(0.0), run_time=0.6)
         self.remove(cam)
         self.at("Cyclic")

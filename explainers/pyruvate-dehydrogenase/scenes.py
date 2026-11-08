@@ -252,7 +252,7 @@ class S02Arm(SpokenScene):
         self.play(cargo.animate.move_to(tip_at(150) + np.array([-0.3, 0.2, 0])), FadeOut(cl), run_time=0.7)
         cargo.add_updater(lambda m: m.move_to(tip_at(th.get_value()) + np.array([-0.3, 0.2, 0]) * 1.0 if False else
                                               tip_at(th.get_value()) + 0.3 * np.array([np.cos(np.radians(th.get_value())), np.sin(np.radians(th.get_value())), 0])))
-        self.at("becoming acetyl lipoamide")
+        self.at("becoming acetyl")
         self.play(*set_state("acetyl-lipoamide", YELLOW), run_time=0.6)
 
         # ---- 2. pivot to E2, hand to CoA ---------------------------------------------------------
@@ -267,7 +267,7 @@ class S02Arm(SpokenScene):
         acoa = tok("acetyl-CoA", GREEN).move_to(coa)
         self.play(FadeOut(cargo, scale=0.4), FadeTransform(coa, acoa), run_time=0.6)
         self.play(acoa.animate.move_to([4.7, 2.7, 0]), run_time=1.0)
-        self.at("reduced as dihydrolipoamide")
+        self.at("reduced as")
         ring = always_redraw(lambda: Circle(radius=0.3, stroke_color=ORANGE, stroke_width=5, fill_opacity=0).move_to(tip_at(th.get_value())))
         self.play(Create(ring), *set_state("dihydrolipoamide (reduced)", ORANGE), run_time=0.8)
 
@@ -285,20 +285,19 @@ class S02Arm(SpokenScene):
         self.at("so the cycle can repeat")
         self.play(th.animate.set_value(150), run_time=1.4, rate_func=smooth)
 
-        # ---- reach: 14 angstroms, many copies ---------------------------------------------------------
-        self.at("about 14 angstroms")
+        # ---- reach: a mobile lipoyl domain, many copies ---------------------------------------------------
+        self.at("on a mobile")
         t = tip_at(150)
         nrm = np.array([0.5, 0.866, 0.0])
-        dim = DashedLine(B + nrm * 0.4, t + nrm * 0.4, color=GREY, stroke_width=3, dash_length=0.12)
-        dim_lbl = M("≈ 14 Å", 26, PINK).move_to((B + t) / 2 + nrm * 0.95)
-        self.play(Create(dim), FadeIn(dim_lbl), run_time=0.9)
+        dim_lbl = T("mobile\nlipoyl domain", 24, PINK, line_spacing=0.8).move_to((B + t) / 2 + nrm * 0.95)
+        self.play(FadeIn(dim_lbl), run_time=0.9)
         self.at("many copies")
         self.play(copies.animate.set_opacity(1.0), run_time=0.6)
         self.at("24 or 60")
         n_lbl = M("24 or 60 copies", 26, BLUE).move_to([3.7, -2.0, 0])
         self.play(FadeIn(n_lbl, shift=LEFT * 0.2), run_time=0.7)
         self.at("all three active sites")
-        self.play(FadeOut(dim), FadeOut(dim_lbl), FadeOut(acoa), FadeOut(state_hd), FadeOut(cur["state"]),
+        self.play(FadeOut(dim_lbl), FadeOut(acoa), FadeOut(state_hd), FadeOut(cur["state"]),
                   th.animate.set_value(90), run_time=0.5)
         arc = ArcBetweenPoints(tip_at(150), tip_at(30), angle=-PI / 3.1, color=GREY, stroke_width=3)
         arc = DashedVMobject(arc, num_dashes=28)
@@ -419,7 +418,7 @@ class S03Nadh(SpokenScene):
         self.at("Only in Step 4")
         nm4, ec4 = reveal(3)
         self.play(unhighlight(2), highlight(3, ORANGE), FadeIn(nm4), FadeIn(ec4), run_time=0.9)
-        self.at("reoxidized by FAD")
+        self.at("oxidized by FAD")
         etok4 = tok("2 e− → FAD", ORANGE).move_to([xs[3], LE, 0])
         self.play(ReplacementTransform(etok, etok4), run_time=0.9)
         self.at("electrons flow onward")
@@ -429,7 +428,7 @@ class S03Nadh(SpokenScene):
         self.play(FadeIn(yes, scale=0.7), run_time=0.6)
 
         # ---- the punchline ------------------------------------------------------------------------
-        self.at("So three steps")
+        self.at("So 3 steps")
         brace1 = Brace(VGroup(cards[0], cards[2]), UP, color=GREEN, buff=0.12)
         lbl1 = T("build the product", 26, GREEN).next_to(brace1, UP, buff=0.1)
         self.play(FadeOut(heading), GrowFromCenter(brace1), FadeIn(lbl1), run_time=1.0)

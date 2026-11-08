@@ -1,0 +1,271 @@
+---
+/**
+ * FreeWaterClearance — "splitting the urine". Three sliders (solute excretion, urine
+ * osmolality, plasma osmolality) feed the lesson's two equations, Cosm = Uosm x V / Posm and
+ * CH2O = V - Cosm, with V = solute excretion / Uosm. A single bar shows the urine flow split
+ * into an osmolar part (a volume at plasma osmolality) and a solute-free part; when CH2O is
+ * negative the solute-free part turns into a dashed "water returned to blood" segment.
+ * Rule only, no physiology model: it does not predict plasma sodium.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fwc card" data-fwc>
+  <figcaption class="fwc-head"><span>Free-water clearance — splitting the urine</span><span class="fwc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="fwc-svg" viewBox="0 0 340 176" role="img" aria-label="One horizontal bar for urine flow in mL per min, split into an osmolar part at plasma osmolality and a solute-free part, or, when free-water clearance is negative, a dashed segment for water returned to blood" data-bar></svg>
+
+  <div class="fwc-controls">
+    <label class="fwc-slabel fwc-wide"><span>Start from a worked case in the lesson <small>(round illustrative numbers, not measurements)</small></span>
+      <select data-in="preset">
+        <option value="custom">My own values</option>
+        <option value="1">Case 1: solute 600, Uosm 60, Posm 282</option>
+        <option value="2">Case 2: solute 500, Uosm 1,000, Posm 295</option>
+        <option value="3a">Case 3: solute 600, Uosm 1,200 (smallest daily volume)</option>
+        <option value="3b">Case 3: solute 600, Uosm 60 (largest daily volume)</option>
+        <option value="4">Case 4: solute 500, Uosm 500, Posm 265</option>
+      </select>
+    </label>
+    <label class="fwc-slabel"><span>Solute excretion <em data-out="s">600</em> µOsm per min</span>
+      <input type="range" data-in="s" min="300" max="900" step="10" value="600" />
+    </label>
+    <label class="fwc-slabel"><span>Urine osmolality Uosm <em data-out="u">60</em> mOsm per kg</span>
+      <input type="range" data-in="u" min="50" max="1200" step="5" value="60" />
+    </label>
+    <label class="fwc-slabel"><span>Plasma osmolality Posm <em data-out="p">282</em> mOsm per kg</span>
+      <input type="range" data-in="p" min="265" max="295" step="1" value="282" />
+    </label>
+  </div>
+
+  <dl class="fwc-readout">
+    <div><dt>Urine flow V = solute ÷ Uosm</dt><dd data-r="v"></dd></div>
+    <div><dt>Osmolar clearance Cosm</dt><dd data-r="cosm"></dd></div>
+    <div><dt>Free-water clearance CH₂O</dt><dd data-r="ch2o"></dd></div>
+    <div><dt>Uosm ÷ Posm</dt><dd data-r="ratio"></dd></div>
+    <div><dt>Urine volume if this flow were held for 24 h, V × 1,440</dt><dd data-r="day"></dd></div>
+    <div><dt data-r="tclabel">Water returned to blood, −CH₂O</dt><dd data-r="tc"></dd></div>
+  </dl>
+
+  <div class="fwc-math" data-math></div>
+  <div class="fwc-why" data-why role="status">
+    <p data-why-main></p>
+    <p data-why-range></p>
+  </div>
+  <p class="fwc-assume">In this sketch: round illustrative numbers for healthy adults, not measurements; a steady state over each collection with constant plasma osmolality; the urine is treated as two volumes added, one carrying all the solute at plasma osmolality and one of solute-free water; you set solute excretion, Uosm and Posm independently, so some combinations may not occur in a healthy adult. The slider limits are made up for the sketch (solute excretion 300 to 900 µOsm per min, Posm 265 to 295 mOsm per kg), except that Uosm about 50 to about 1,200 is the lesson’s range and Posm 265 is the lesson’s fourth example. Values are shown rounded, so “≈” marks a rounded step. The bar’s scale changes with the numbers, so read the axis.</p>
+  <p class="fwc-foot">Rule to keep: Cosm = Uosm × V ÷ Posm (divide by plasma osmolality, not urine osmolality) and CH₂O = V − Cosm. Positive means urine more dilute than plasma, zero isosmotic urine, negative concentrated urine, and then minus CH₂O is the solute-free water reabsorbed into blood. This sketch is a rule only and does not predict plasma sodium concentration: free-water clearance is a renal, solute-based index of one collection and cannot say which way plasma sodium will move next, since that depends also on what is drunk and on non-renal losses.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#c25f00', INK = '#4b4b55', PALE = '#bfe3e6', FAINT = '#b9b9c2';
+  const MIN_PER_DAY = 1440;
+  const U_MAX = 1200; // the lesson's maximal urine osmolality, mOsm per kg
+  const W = 340;
+  const BX0 = 20, BX1 = 320, BY0 = 46, BY1 = 74;
+
+  type Preset = { s: number; u: number; p?: number };
+  const PRESETS: Record<string, Preset> = {
+    '1': { s: 600, u: 60, p: 282 },
+    '2': { s: 500, u: 1000, p: 295 },
+    '3a': { s: 600, u: 1200 },
+    '3b': { s: 600, u: 60 },
+    '4': { s: 500, u: 500, p: 265 },
+  };
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('FreeWaterClearance: missing ' + sel);
+    return e;
+  }
+  function txt(parent: SVGElement, x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+    t.textContent = s;
+    parent.appendChild(t);
+    return t;
+  }
+  const thousands = (n: number) => Math.round(n).toLocaleString('en-US');
+  const f2 = (n: number) => n.toFixed(2);
+  const eq = (n: number, d: number) => (Math.abs(n - Number(n.toFixed(d))) < 1e-9 ? '=' : '≈');
+  const trim = (n: number) => String(Number(n.toFixed(2)));
+  const signed = (n: number, neg: boolean) => {
+    const a = Math.abs(n);
+    const s = a < 0.01 && a > 0 ? a.toFixed(3) : a.toFixed(2);
+    return (neg ? '−' : '+') + s;
+  };
+  function anchorFor(x: number): string {
+    return x < 70 ? 'start' : x > W - 70 ? 'end' : 'middle';
+  }
+  function niceMax(v: number): number {
+    for (const m of [1, 2, 5, 10, 20, 50]) if (v <= m) return m;
+    return 50;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fwc]').forEach((root) => {
+    const bar = need<SVGSVGElement>(root, '[data-bar]');
+    const sIn = need<HTMLInputElement>(root, '[data-in="s"]');
+    const uIn = need<HTMLInputElement>(root, '[data-in="u"]');
+    const pIn = need<HTMLInputElement>(root, '[data-in="p"]');
+    const preIn = need<HTMLSelectElement>(root, '[data-in="preset"]');
+    const sOut = need<HTMLElement>(root, '[data-out="s"]');
+    const uOut = need<HTMLElement>(root, '[data-out="u"]');
+    const pOut = need<HTMLElement>(root, '[data-out="p"]');
+    const rV = need<HTMLElement>(root, 'dd[data-r="v"]');
+    const rCosm = need<HTMLElement>(root, 'dd[data-r="cosm"]');
+    const rCh = need<HTMLElement>(root, 'dd[data-r="ch2o"]');
+    const rRatio = need<HTMLElement>(root, 'dd[data-r="ratio"]');
+    const rDay = need<HTMLElement>(root, 'dd[data-r="day"]');
+    const rTc = need<HTMLElement>(root, 'dd[data-r="tc"]');
+    const math = need<HTMLElement>(root, '[data-math]');
+    const whyMain = need<HTMLElement>(root, '[data-why-main]');
+    const whyRange = need<HTMLElement>(root, '[data-why-range]');
+
+    function render() {
+      const S = parseInt(sIn.value, 10); // microOsm per min
+      const U = parseInt(uIn.value, 10); // mOsm per kg
+      const P = parseInt(pIn.value, 10); // mOsm per kg
+      sOut.textContent = thousands(S);
+      uOut.textContent = thousands(U);
+      pOut.textContent = String(P);
+
+      const V = S / U; // mL per min
+      const cosm = S / P; // mL per min
+      const ch = V - cosm; // mL per min
+      // The sign comes from comparing the osmolalities, so rounding never flips it.
+      const sign = U < P ? 1 : U > P ? -1 : 0; // +1 dilute, -1 concentrated, 0 isosmotic
+      const dayL = (V * MIN_PER_DAY) / 1000;
+      const ratio = U / P;
+
+      // readouts
+      rV.textContent = f2(V) + ' mL per min';
+      rCosm.textContent = f2(cosm) + ' mL per min';
+      rCh.textContent = sign === 0 ? '0 mL per min' : signed(ch, sign < 0) + ' mL per min';
+      rRatio.textContent = f2(ratio);
+      rDay.textContent = trim(dayL) + ' L';
+      rTc.textContent = sign < 0 ? f2(-ch) + ' mL per min' : 'none (CH₂O is not negative)';
+
+      // arithmetic, with units
+      const dayMl = V * MIN_PER_DAY;
+      math.replaceChildren();
+      const lines = [
+        'V = solute excretion ÷ Uosm = ' + thousands(S) + ' ÷ ' + thousands(U) + ' ' + eq(V, 2) + ' ' + f2(V) + ' mL per min',
+        'Cosm = ' + thousands(S) + ' ÷ ' + P + ' ' + eq(cosm, 2) + ' ' + f2(cosm) + ' mL per min',
+        'CH₂O = V − Cosm ' + eq(ch, 2) + ' ' + f2(V) + ' − ' + f2(cosm) + ' ' + eq(ch, 2) + ' ' + (sign === 0 ? '0' : signed(ch, sign < 0)) + ' mL per min',
+        'If held for 24 h: V × 1,440 = ' + V.toFixed(3) + ' × 1,440 ' + eq(dayMl, 0) + ' ' + thousands(dayMl) + ' mL ' + eq(dayL, 2) + ' ' + trim(dayL) + ' L',
+      ];
+      for (const l of lines) {
+        const d = document.createElement('div');
+        d.textContent = l;
+        math.appendChild(d);
+      }
+
+      // bar
+      const top = Math.max(V, cosm);
+      const scale = niceMax(top);
+      const px = (v: number) => BX0 + (v / scale) * (BX1 - BX0);
+      bar.replaceChildren();
+      const xV = px(V), xC = px(cosm);
+
+      if (sign >= 0) {
+        // osmolar part 0..Cosm, solute-free part Cosm..V (zero width when isosmotic)
+        bar.appendChild(el('rect', { x: BX0, y: BY0, width: Math.max(xC - BX0, 0), height: BY1 - BY0, fill: ACCENT }));
+        if (sign > 0) bar.appendChild(el('rect', { x: xC, y: BY0, width: Math.max(xV - xC, 0), height: BY1 - BY0, fill: PALE, stroke: ACCENT, 'stroke-width': 1 }));
+      } else {
+        // all the urine flow V, then the dashed segment V..Cosm for water returned to blood
+        bar.appendChild(el('rect', { x: BX0, y: BY0, width: Math.max(xV - BX0, 0), height: BY1 - BY0, fill: ACCENT }));
+        bar.appendChild(el('rect', { x: xV, y: BY0, width: Math.max(xC - xV, 0), height: BY1 - BY0, fill: '#fff', stroke: ORANGE, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      }
+      // V marker above the bar, Cosm marker below it
+      bar.appendChild(el('line', { x1: xV, y1: BY0 - 12, x2: xV, y2: BY0 + 2, stroke: INK, 'stroke-width': 1.2 }));
+      txt(bar, xV, BY0 - 16, 'Urine flow V = ' + f2(V) + ' mL per min', { 'text-anchor': anchorFor(xV), 'font-weight': 700 });
+      bar.appendChild(el('line', { x1: xC, y1: BY1 - 2, x2: xC, y2: BY1 + 12, stroke: INK, 'stroke-width': 1.2 }));
+      txt(bar, xC, BY1 + 22, 'Cosm = ' + f2(cosm) + ' mL per min', { 'text-anchor': anchorFor(xC), 'font-weight': 700 });
+      // axis
+      const AY = 112;
+      bar.appendChild(el('line', { x1: BX0, y1: AY, x2: BX1, y2: AY, stroke: INK, 'stroke-width': 1 }));
+      for (const f of [0, 0.5, 1]) {
+        const x = BX0 + f * (BX1 - BX0);
+        bar.appendChild(el('line', { x1: x, y1: AY, x2: x, y2: AY + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(bar, x, AY + 13, trim(f * scale), { 'text-anchor': f === 0 ? 'start' : f === 1 ? 'end' : 'middle' });
+      }
+      txt(bar, BX0, AY + 25, 'mL per min (the scale changes with the values)', { 'text-anchor': 'start' });
+      // legend
+      const legend: { fill: string; stroke: string; dash: boolean; label: string }[] = [];
+      if (sign > 0) {
+        legend.push({ fill: ACCENT, stroke: ACCENT, dash: false, label: 'Osmolar part: carries the solute at plasma osmolality' });
+        legend.push({ fill: PALE, stroke: ACCENT, dash: false, label: 'Solute-free water in the urine (CH₂O, positive)' });
+      } else if (sign === 0) {
+        legend.push({ fill: ACCENT, stroke: ACCENT, dash: false, label: 'All of the flow is osmolar part; no solute-free part' });
+      } else {
+        legend.push({ fill: ACCENT, stroke: ACCENT, dash: false, label: 'Urine flow V (less than Cosm)' });
+        legend.push({ fill: '#fff', stroke: ORANGE, dash: true, label: 'Water returned to blood (−CH₂O), reaching Cosm' });
+      }
+      legend.forEach((it, i) => {
+        const y = 150 + i * 13;
+        const r = el('rect', { x: BX0, y: y - 8, width: 12, height: 9, fill: it.fill, stroke: it.stroke, 'stroke-width': 1.2 });
+        if (it.dash) r.setAttribute('stroke-dasharray', '3 2');
+        bar.appendChild(r);
+        txt(bar, BX0 + 17, y, it.label, { 'text-anchor': 'start' });
+      });
+      // faint baseline for the bar frame
+      bar.appendChild(el('line', { x1: BX0, y1: BY0, x2: BX0, y2: BY1, stroke: FAINT, 'stroke-width': 1 }));
+
+      // status
+      const mL = (n: number) => f2(n) + ' mL per min';
+      let main: string;
+      if (sign > 0) {
+        main = 'In this sketch, urine is more dilute than plasma (Uosm below Posm), so CH₂O is positive: of the urine flow of ' + mL(V) + ', ' + mL(cosm) + ' carries the solute at plasma osmolality and ' + mL(ch) + ' is solute-free water.';
+      } else if (sign === 0) {
+        main = 'In this sketch, Uosm equals Posm, so the urine is isosmotic, CH₂O is zero and all of the urine flow of ' + mL(V) + ' is the osmolar part at plasma osmolality.';
+      } else {
+        main = 'In this sketch, urine is more concentrated than plasma (Uosm above Posm), so Cosm of ' + mL(cosm) + ' exceeds the urine flow of ' + mL(V) + ' and CH₂O is negative: ' + mL(-ch) + ' of solute-free water is returned to blood.';
+        if (P < 275) {
+          main += ' Plasma osmolality here is below the 275 to 295 mOsm per kg typical of an adult human at rest while the urine is concentrated, as in the lesson’s fourth example, in which vasopressin was given with a water load; the sketch does not say what produced your values.';
+        }
+      }
+      whyMain.textContent = main;
+      const hi = (S * 1.44) / U_MAX, lo = (S * 1.44) / 60;
+      whyRange.textContent = 'In this sketch, holding solute excretion at ' + thousands(S) + ' µOsm per min, the rule gives ' + trim(hi) + ' L per day at Uosm 1,200 and ' + trim(lo) + ' L per day at Uosm 60 (the lesson’s very dilute example): water excretion is limited by solute delivery as much as by the hormone.';
+    }
+
+    function applyPreset(key: string) {
+      const p = PRESETS[key];
+      if (!p) return;
+      sIn.value = String(p.s);
+      uIn.value = String(p.u);
+      if (p.p !== undefined) pIn.value = String(p.p);
+      render();
+    }
+    [sIn, uIn, pIn].forEach((g) => g.addEventListener('input', () => { preIn.value = 'custom'; render(); }));
+    preIn.addEventListener('change', () => applyPreset(preIn.value));
+    render();
+  });
+</script>
+
+<style is:global>
+  .fwc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fwc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fwc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fwc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fwc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  @media (max-width: 520px) { .fwc-controls { grid-template-columns: 1fr; } }
+  .fwc-wide { grid-column: 1 / -1; }
+  .fwc-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fwc-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .fwc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fwc-slabel input[type="range"] { accent-color: var(--ddp-color-accent); }
+  .fwc-slabel select { font: inherit; font-size: var(--ddp-text-xs); padding: 0.25rem 0.35rem; max-width: 100%; }
+  .fwc-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fwc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .fwc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fwc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .fwc-math { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; margin: var(--ddp-space-2) 0; padding-left: 0.55rem; border-left: 3px solid var(--ddp-color-accent); overflow-wrap: anywhere; }
+  .fwc-why { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .fwc-why p { margin: 0 0 0.4rem; }
+  .fwc-assume { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .fwc-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

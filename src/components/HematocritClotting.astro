@@ -1,0 +1,223 @@
+---
+/**
+ * HematocritClotting — "One block, one lifespan". After an irreversible (covalent) block in a
+ * cell that cannot rebuild its target, function comes back only as fast as new cells arrive.
+ * Platelets (aspirin on COX-1, clopidogrel's active metabolite on P2Y12) are the lesson's case;
+ * the same rule is shown on a longer clock with red cells (the lesson's 120-day average). The
+ * curve is f(t) = (1 - b) + b x min(1, t / L) for an irreversible block, and
+ * f(t) = 1 - b x 0.5^(t / 12 h) for a reversible block that fades as an inhibitor clears.
+ * Sketch only: steady state, constant production, removal at a fixed lifespan, no drug left to
+ * block new cells. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="hc card" data-hematocritclotting>
+  <figcaption class="hc-head">One block, one lifespan: how fast function comes back<span class="hc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="hc-svg" viewBox="0 0 340 236" role="img" aria-label="A line plot of the percentage of cells with a working target against days after a block. The solid curve is the chosen block: an irreversible block rises in a straight line to 100 percent at one cell lifespan, a reversible block rises quickly as the inhibitor clears. A dashed curve shows the other kind of block for comparison." data-plot></svg>
+
+  <div class="hc-controls">
+    <label class="hc-slabel"><span><span data-life-name>Platelet</span> lifespan L <em data-out="life">8</em> days <small data-life-note>(made up for this sketch; the lesson gives none)</small></span>
+      <input type="range" data-in="life" min="5" max="12" step="1" value="8" />
+    </label>
+    <label class="hc-slabel"><span>Fraction blocked at time zero, b <em data-out="b">100</em> %</span>
+      <input type="range" data-in="b" min="50" max="100" step="5" value="100" />
+    </label>
+    <fieldset class="hc-fs">
+      <legend>Kind of block</legend>
+      <label class="hc-opt"><input type="radio" name="hc-mode" data-mode value="irrev" checked /> irreversible, covalent <small><span data-irrev-note>(aspirin on COX-1; clopidogrel’s active metabolite on P2Y12)</span></small></label>
+      <label class="hc-opt"><input type="radio" name="hc-mode" data-mode value="rev" /> reversible, fades as the inhibitor clears <small>(half-life 12 h, made up for this sketch)</small></label>
+    </fieldset>
+    <label class="hc-opt hc-swap"><input type="checkbox" data-in="rbc" /> Swap platelets for red cells <small>(120 days, the lesson’s average)</small></label>
+  </div>
+
+  <dl class="hc-readout">
+    <div><dt>Working at time zero</dt><dd data-r="f0">0 %</dd></div>
+    <div><dt>Half of the lost function back</dt><dd data-r="half">day 4</dd></div>
+    <div><dt>All of it back</dt><dd data-r="full">day 8</dd></div>
+  </dl>
+
+  <p class="hc-why" data-why role="status"></p>
+
+  <p class="hc-assume">In this sketch: steady state, constant production, cells removed at a fixed lifespan so their ages are spread evenly, and no drug left to block new cells. Made up for the sketch: the platelet lifespans, the blocked fractions and the 12-hour half-life. <span data-target-note>“Target” means COX-1 for aspirin and the P2Y12 receptor for clopidogrel.</span> The 120-day red cell figure is the lesson’s average, and the lesson notes that red cell survival varies between people. The straight-line and 12-hour half-life curves are this sketch’s own rules, not data.</p>
+
+  <p class="hc-foot">Rule to keep: a platelet has no nucleus and makes little protein, so an irreversible block lasts its life and function returns only as new platelets arrive; a reversible block fades as the inhibitor clears. A model of recovery of a blocked target (an enzyme or a receptor), not of bleeding; how many working platelets are enough is not shown.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#9a9aa5';
+  const HALF_LIFE_DAYS = 0.5; // 12 h, made up for the sketch
+  const RBC_DAYS = 120; // the lesson's average red cell lifespan
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const fmt = (d: number): string => {
+    if (d >= 10) return String(Math.round(d));
+    const s = d.toFixed(1);
+    return s.endsWith('.0') ? s.slice(0, -2) : s;
+  };
+  document.querySelectorAll<HTMLElement>('[data-hematocritclotting]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('HematocritClotting: missing ' + s);
+      return e;
+    };
+    const plot = q<SVGSVGElement>('[data-plot]');
+    const lifeIn = q<HTMLInputElement>('[data-in="life"]');
+    const bIn = q<HTMLInputElement>('[data-in="b"]');
+    const rbcIn = q<HTMLInputElement>('[data-in="rbc"]');
+    const modeIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-mode]'));
+    const lifeOut = q<HTMLElement>('[data-out="life"]');
+    const bOut = q<HTMLElement>('[data-out="b"]');
+    const lifeNote = q<HTMLElement>('[data-life-note]');
+    const lifeName = q<HTMLElement>('[data-life-name]');
+    const irrevNote = q<HTMLElement>('[data-irrev-note]');
+    const targetNote = q<HTMLElement>('[data-target-note]');
+    const rF0 = q<HTMLElement>('[data-r="f0"]');
+    const rHalf = q<HTMLElement>('[data-r="half"]');
+    const rFull = q<HTMLElement>('[data-r="full"]');
+    const why = q<HTMLElement>('[data-why]');
+    const lifeLabel = lifeIn.closest('label');
+
+    const X0 = 50, X1 = 326, Y0 = 30, Y1 = 170;
+    // Irreversible: f = (1 - b) + b * min(1, t / L). Reversible: f = 1 - b * 0.5^(t / 0.5 d).
+    const fIrrev = (t: number, b: number, L: number) => (1 - b) + b * Math.min(1, t / L);
+    const fRev = (t: number, b: number) => 1 - b * Math.pow(0.5, t / HALF_LIFE_DAYS);
+    const t95 = HALF_LIFE_DAYS * Math.log2(20); // 95 percent of the lost function regained
+
+    function render() {
+      const rbc = rbcIn.checked;
+      const rev = modeIns.some((m) => m.checked && m.value === 'rev');
+      const b = parseInt(bIn.value, 10) / 100;
+      const L = rbc ? RBC_DAYS : parseInt(lifeIn.value, 10);
+      const AX = rbc ? 140 : 14;
+      const cell = rbc ? 'red cells' : 'platelets';
+      const px = (t: number) => X0 + (t / AX) * (X1 - X0);
+      const py = (f: number) => Y1 - f * (Y1 - Y0);
+
+      lifeIn.disabled = rbc;
+      if (lifeLabel) lifeLabel.classList.toggle('hc-off', rbc);
+      lifeOut.textContent = String(L);
+      lifeName.textContent = rbc ? 'Red cell' : 'Platelet';
+      irrevNote.textContent = rbc ? '(made-up target)' : '(aspirin on COX-1; clopidogrel’s active metabolite on P2Y12)';
+      targetNote.textContent = rbc ? '“Target” in red cells is made up for the sketch; the lesson names none.' : '“Target” means COX-1 for aspirin and the P2Y12 receptor for clopidogrel.';
+      lifeNote.textContent = rbc ? '(fixed while red cells are selected: the lesson’s average, which varies)' : '(made up for this sketch; the lesson gives none)';
+      bOut.textContent = String(Math.round(b * 100));
+
+      const tHalf = rev ? HALF_LIFE_DAYS : L / 2;
+      const tFull = rev ? t95 : L;
+      rF0.textContent = Math.round((1 - b) * 100) + ' %';
+      rHalf.textContent = 'day ' + fmt(tHalf);
+      rFull.textContent = rev ? 'no exact end; 95 % by day ' + fmt(t95) : 'day ' + fmt(L);
+
+      plot.replaceChildren();
+      // axes, gridlines, ticks
+      plot.appendChild(el('line', { x1: X0, y1: Y0 - 4, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const f of [0, 0.5, 1]) {
+        if (f > 0) plot.appendChild(el('line', { x1: X0, y1: py(f), x2: X1, y2: py(f), stroke: '#d7d7de', 'stroke-width': 0.8, 'stroke-dasharray': '2 3' }));
+        plot.appendChild(el('text', { x: X0 - 5, y: py(f) + 3.5, 'text-anchor': 'end', 'font-size': 10, fill: INK }, Math.round(f * 100) + ''));
+      }
+      const step = rbc ? 20 : 2;
+      for (let t = 0; t <= AX + 0.01; t += step) {
+        plot.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: px(t), y: Y1 + 15, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, String(t)));
+      }
+      plot.appendChild(el('text', { x: (X0 + X1) / 2, y: Y1 + 30, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'days after the block (time zero)'));
+      plot.appendChild(el('text', { x: 11, y: (Y0 + Y1) / 2, 'text-anchor': 'middle', 'font-size': 10, fill: INK, transform: 'rotate(-90 11 ' + (Y0 + Y1) / 2 + ')' }, '% of ' + cell + ' with a working target'));
+
+      const path = (fn: (t: number) => number) => {
+        let d = '';
+        const n = 420;
+        for (let i = 0; i <= n; i++) {
+          const t = (i / n) * AX;
+          d += (i === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(fn(t)).toFixed(1) + ' ';
+        }
+        return d.trim();
+      };
+      const irrevFn = (t: number) => fIrrev(t, b, L);
+      const revFn = (t: number) => fRev(t, b);
+      // dashed ghost = the other kind of block, same b and L
+      plot.appendChild(el('path', { d: path(rev ? irrevFn : revFn), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('path', { d: path(rev ? revFn : irrevFn), fill: 'none', stroke: ACCENT, 'stroke-width': 2.8 }));
+
+      // markers: time zero, half, all (or 95 percent)
+      plot.appendChild(el('circle', { cx: px(0), cy: py(1 - b), r: 3.5, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }));
+      const halo = 'paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round';
+      const fHalf = rev ? fRev(tHalf, b) : fIrrev(tHalf, b, L);
+      const fFull = rev ? fRev(tFull, b) : 1;
+      plot.appendChild(el('circle', { cx: px(tHalf), cy: py(fHalf), r: 4, fill: ORANGE }));
+      const halfX = px(tHalf);
+      const hl = el('text', { x: halfX + 7, y: py(fHalf) + 13, 'font-size': 10, 'font-weight': 700, fill: ORANGE, style: halo }, 'half back, day ' + fmt(tHalf));
+      plot.appendChild(hl);
+      plot.appendChild(el('circle', { cx: px(tFull), cy: py(fFull), r: 4, fill: ORANGE }));
+      const fullTxt = (rev ? '95 % of loss back, day ' : 'all back, day ') + fmt(tFull);
+      const fullX = px(tFull);
+      const flip = fullX > X1 - 84;
+      if (rev) {
+        plot.appendChild(el('text', { x: fullX + 7, y: py(fFull) + 13, 'font-size': 10, 'font-weight': 700, fill: ORANGE, style: halo }, fullTxt));
+      } else {
+        plot.appendChild(el('text', { x: flip ? fullX + 4 : fullX + 7, y: Y0 - 9, 'text-anchor': flip ? 'end' : 'start', 'font-size': 10, 'font-weight': 700, fill: ORANGE, style: halo }, fullTxt));
+      }
+
+      // legend
+      const sel = rev ? 'reversible block (12 h half-life)' : 'irreversible block (L = ' + L + ' days)';
+      const oth = rev ? 'the irreversible case (L = ' + L + ' days)' : 'a reversible block (12 h half-life)';
+      plot.appendChild(el('line', { x1: X0, y1: 217, x2: X0 + 18, y2: 217, stroke: ACCENT, 'stroke-width': 2.8 }));
+      plot.appendChild(el('text', { x: X0 + 24, y: 220.5, 'font-size': 10, fill: INK }, 'shown: ' + sel));
+      plot.appendChild(el('line', { x1: X0, y1: 230, x2: X0 + 18, y2: 230, stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('text', { x: X0 + 24, y: 233.5, 'font-size': 10, fill: INK }, 'for comparison: ' + oth));
+
+      // status line: every reported result of the model starts with "In this sketch,"
+      const bPct = Math.round(b * 100);
+      let s: string;
+      if (rev) {
+        s = `In this sketch, ${bPct} % of ${cell} are blocked at time zero, but the block is not covalent: it fades as the inhibitor clears, so half of the lost function is back by day ${fmt(HALF_LIFE_DAYS)} and 95 % by about day ${fmt(t95)}. The lifespan plays no part in this rule, so it matters only to the dashed irreversible curve, which needs ${fmt(L)} days to finish${rbc ? ' (on a 140-day axis the 12-hour rise looks almost vertical)' : ''}.${rbc ? ' In this sketch the target is made up; the lesson names none for red cells.' : ''}`;
+      } else if (rbc) {
+        s = `In this sketch, if ${bPct} % of red cells were blocked for good and could not rebuild the target (an assumption; the lesson does not say so), function would return only as new cells replace them: half by day ${fmt(L / 2)} and all by day ${L}, the lesson’s average lifespan, which varies between people. By day 14 only ${fmt((14 / L) * 100)} % of the lost function would be back. In this sketch the target is made up; the lesson names none for red cells.`;
+      } else if (b >= 1) {
+        s = `In this sketch, every platelet is blocked at time zero, so no working target is left. A platelet has no nucleus and makes little protein, so the block lasts its life, and function returns only as new platelets arrive: half by day ${fmt(L / 2)} and all by day ${L}.`;
+      } else {
+        s = `In this sketch, ${bPct} % of platelets are blocked at time zero, so ${100 - bPct} % still work. A platelet has no nucleus and makes little protein, so the block lasts its life, and function returns only as new platelets arrive: half of the lost function by day ${fmt(L / 2)} and all of it by day ${L}.`;
+      }
+      why.textContent = s;
+    }
+    [lifeIn, bIn, rbcIn, ...modeIns].forEach((c) => c.addEventListener('input', render));
+    [rbcIn, ...modeIns].forEach((c) => c.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .hc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .hc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .hc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hc-slabel small, .hc-opt small { font-size: inherit; color: var(--ddp-color-muted); }
+  .hc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .hc-slabel input { accent-color: var(--ddp-color-accent); }
+  .hc-off { opacity: 0.7; }
+  .hc-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.3rem 0.6rem 0.4rem; margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .hc-fs legend { padding: 0 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hc-opt { display: block; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+  .hc-fs .hc-opt + .hc-opt { margin-top: 0.25rem; }
+  .hc-opt input { accent-color: var(--ddp-color-accent); margin-right: 0.3rem; }
+  .hc-swap { align-self: center; }
+  .hc-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .hc-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .hc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .hc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5em; }
+  .hc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .hc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) {
+    .hc-controls { grid-template-columns: 1fr; }
+    .hc-readout { grid-template-columns: 1fr; }
+  }
+</style>

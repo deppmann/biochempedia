@@ -28,20 +28,18 @@ PURPLE = "#B58CD9"
 STT_DIR = Path(__file__).resolve().parent.parent / "_shared" / "stt"
 
 
-def _norm(w):
-    return re.sub(r"[^a-z0-9']", "", w.lower())
+from bp_style import _norm  # noqa: E402  numbers as digits, as the transcript writes them
 
 
 class Scn(NarratedScene):
     """NarratedScene + at(): wait until a spoken phrase starts (word timestamps from speech-to-text)."""
 
     def _words(self):
+        """Spoken words of this scene with start times (audio/words.json, from the Kokoro re-voice, 2026-10-31)."""
         if not hasattr(self, "_wl"):
             sid = os.environ["KX_SCENE_ID"]
-            sc = next(s for s in json.loads(Path(os.environ["KX_SCRIPT"]).read_text())["scenes"] if s["id"] == sid)
-            stem = Path(sc["clip"]).stem
-            d = json.loads((STT_DIR / f"enzyme-kinetics__{stem}.json").read_text())
-            self._wl = [(float(w[0]), _norm(w[2])) for w in d["words"] if _norm(w[2])]
+            d = json.loads((Path(os.environ["KX_SCRIPT"]).resolve().parent / "audio" / "words.json").read_text())
+            self._wl = [(float(w[0]), _norm(w[2])) for w in d.get(sid, []) if _norm(w[2])]
         return self._wl
 
     def t_of(self, phrase, nth=0):
@@ -284,13 +282,13 @@ class S01Tollbooth(Scn):
         self.play(*set_state("saturated", 28, True), booth.animate.set_fill(BLUE, 0.55), run_time=0.4)
         load(0.6)
         flow(self.t_of("VMAX") - 0.15, 0.6)
-        self.at("VMAX", 0.1)
+        self.at("Adding", 0.1)
         vmax_line = dline(ax.c2p(0, 1), ax.c2p(XM, 1), RED, 4)
         vmax_lbl = T("Vmax", 28, RED, weight=BOLD).next_to(ax.c2p(XM, 1), UP, buff=0.12).shift(LEFT * 0.7)
         self.play(Create(vmax_line), FadeIn(vmax_lbl), set_meter(1.0), FadeOut(band_hi), run_time=0.7)
 
         # ---- "Adding more cars doesn't make the worker any faster."
-        flow(self.t_of("Adding more") - 0.15, 0.6)
+        flow(self.t_of("more") - 0.15, 0.6)
         self.at("Adding more", 0.1)
         da, db = dot_at(8), dot_at(XM)
         arr = Arrow(da.get_center(), db.get_center() + LEFT * 0.12, buff=0.12, color=YELLOW, stroke_width=4,
@@ -307,7 +305,7 @@ class S01Tollbooth(Scn):
         self.at("Saturation", 0.1)
         self.play(*set_state("saturated ≠ stopped", 28, True), run_time=0.4)
         flow(self.t_of("It means") - 0.15, 0.6)
-        self.at("It means", 0.1)
+        self.at("means", 0.1)
         self.play(*set_state("working flat out: Vmax", 28, True), Indicate(vmax_line, color=RED, scale_factor=1.0),
                   run_time=0.8)
         flow(self.narration_s - 0.5, 0.6)
@@ -338,7 +336,7 @@ class S02Curve(Scn):
         self.play(Create(ax), FadeIn(xl), FadeIn(yl), run_time=1.2)
         self.play(Create(cv), run_time=1.8)
         # ---- "Almost every idea you'll meet maps onto it."
-        self.at("Almost every", 0.2)
+        self.at("kinetics—almost", 0.2)
         self.play(FadeIn(eq, shift=DOWN * 0.15), run_time=0.8)
 
         # ---- "At low substrate concentration, the rate rises nearly linearly,
@@ -352,7 +350,7 @@ class S02Curve(Scn):
         nl = T("nearly linear", 28, GREEN).next_to(tip, RIGHT, buff=0.15)
         self.play(Create(tan), run_time=1.1)
         self.play(FadeIn(nl, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("kcat", 0.3, nth=0)
+        self.at("cat", 0.3)
         kk = T("slope ∝ kcat/Km", 30, GREEN, weight=BOLD).next_to(tip, RIGHT, buff=0.15)
         self.play(ReplacementTransform(nl, kk), run_time=0.7)
 
@@ -388,17 +386,17 @@ class S02Curve(Scn):
         s_t2 = T("barely faster", 26, BLUE).next_to(s_arr, DOWN, buff=0.12)
         s3 = VGroup(s_arr, s_t1, s_t2)
         self.play(Create(s3), run_time=1.1)
-        self.at("Vmax", 0.4)
+        self.at("max", 0.4)
         vline = dline(ax.c2p(0, VM), ax.c2p(12, VM), RED, 4)
         vm_t = T("Vmax", 30, RED, weight=BOLD)
         kc_t = T("= kcat·[E]", 30, GREEN, weight=BOLD)
         vlab = VGroup(vm_t, kc_t).arrange(RIGHT, buff=0.18).next_to(ax.c2p(7.0, VM), UP, buff=0.18)
         self.play(Create(vline), FadeIn(vm_t, shift=DOWN * 0.1), run_time=0.8)
-        self.at("kcat", 0.3, nth=1)
+        self.at("times", 0.3)
         self.play(FadeIn(kc_t, shift=RIGHT * 0.1), run_time=0.7)
 
         # ---- "Km sits at the midpoint of the curve, where velocity is half of Vmax."
-        self.at("Km sits", 0.3)
+        self.at("sits", 0.3)
         self.play(FadeOut(VGroup(bd, br, tx, s3)), run_time=0.4)
         pt = Dot(ax.c2p(K, VM / 2), radius=0.13, color=GOLD)
         vl = dline(ax.c2p(K, 0), ax.c2p(K, VM / 2), GOLD, 3)
@@ -421,120 +419,86 @@ class S02Curve(Scn):
 
 # --------------------------------------------------------------------------------------------
 class S03Km(Scn):
-    """Spoken: Km is useful -> enzyme prefers one substrate; lowest Km captured most efficiently, half-maximal
-    speed at the lowest concentration -> vending machine: quarters, dimes, pennies; same output, quarters most
-    smoothly -> Km is usually close to the [S] the enzyme sees in the living cell."""
+    """One enzyme, several substrates; Km sets half-max concentration, while preference
+    depends on kcat/Km. Most measured E. coli substrate levels exceed Km."""
 
     def construct(self):
         KM = [0.5, 2.0, 5.0]
-        COIN = ["quarter", "dime", "penny"]
         CC = [BLUE, TEAL, PURPLE]
         heading = T("Why Km is so useful", 34, font=TITLE_FONT).to_edge(UP, buff=0.45)
-
-        # ---- "An enzyme can prefer one substrate over another."
         enz = chip("enzyme", BLUE, size=34).move_to([-4.4, 0, 0])
         ys = [1.9, 0.0, -1.9]
         subs = [chip(f"S{i + 1}", YELLOW, size=32).move_to([1.6, y, 0]) for i, y in enumerate(ys)]
         kms = [T(f"Km = {k:g} mM", 28, GOLD).move_to([3.5, y, 0], aligned_edge=LEFT) for y, k in zip(ys, KM)]
+        # Equal arrows show possible substrates without implying preference from Km alone.
         arrows = [Arrow(enz.get_right() + RIGHT * 0.1, s.get_left() + LEFT * 0.1, buff=0.05, color=BLUE,
-                        stroke_width=w, max_tip_length_to_length_ratio=0.12)
-                  for s, w in zip(subs, [14, 7, 3])]
+                        stroke_width=5, max_tip_length_to_length_ratio=0.12) for s in subs]
         self.play(FadeIn(heading), FadeIn(enz, shift=RIGHT * 0.2), run_time=1.2)
-        self.at("An enzyme", 0.1)
+        self.at("One enzyme", 0.1)
         self.play(LaggedStart(*[AnimationGroup(FadeIn(s), FadeIn(k)) for s, k in zip(subs, kms)], lag_ratio=0.3),
-                  run_time=1.5)
-        self.at("one substrate", 0.1)
-        self.play(*[GrowArrow(a) for a in arrows], run_time=1.0)
-        # ---- "The one with the lowest Km is captured most efficiently,"
-        self.at("lowest", 0.1)
-        ring = SurroundingRectangle(VGroup(subs[0], kms[0]), color=GOLD, buff=0.2, corner_radius=0.15)
-        self.play(Create(ring), run_time=0.8)
+                  run_time=0.8)
+        self.at("several substrates", 0.1)
+        self.play(*[GrowArrow(a) for a in arrows], run_time=0.6)
 
-        # ---- "reaching half-maximal speed at the lowest concentration."
-        self.at("reaching", 1.6)
+        self.at("A lower", 0.1)
         ax = make_axes(12, 1.15, 8.0, 4.4, origin=(-5.3, -2.0), x_step=2, y_step=0.5)
         xl, yl = axis_labels(ax, "substrate concentration [S] (mM)", "velocity v₀", size=26, x_dy=0.95, y_dx=0.55)
         legend_y = [1.35, -0.15, -1.65]
-        self.play(FadeOut(ring), FadeOut(VGroup(*arrows)), FadeOut(enz),
+        self.play(FadeOut(VGroup(*arrows)), FadeOut(enz),
                   *[s.animate.move_to([4.9, y, 0]).set_color(c) for s, y, c in zip(subs, legend_y, CC)],
                   *[k.animate.move_to([4.9, y - 0.62, 0]) for k, y in zip(kms, legend_y)],
-                  Create(ax), FadeIn(xl), FadeIn(yl), run_time=0.9)
+                  Create(ax), FadeIn(xl), FadeIn(yl), run_time=0.6)
         curves = [curve(ax, 1.0, k, 12, c) for k, c in zip(KM, CC)]
-        self.play(LaggedStart(*[Create(cv) for cv in curves], lag_ratio=0.3), run_time=1.1)
-        self.at("half maximal", 0.1)
+        self.play(LaggedStart(*[Create(cv) for cv in curves], lag_ratio=0.3), run_time=0.6)
+        self.at("means reaching", 0.1)
         half = dline(ax.c2p(0, 0.5), ax.c2p(12, 0.5), GOLD, 3)
         halflab = T("½Vmax", 28, GOLD, weight=BOLD).next_to(ax.c2p(12, 0.5), UP, buff=0.08, aligned_edge=RIGHT)
         self.play(Create(half), FadeIn(halflab), run_time=0.6)
-        self.at("lowest concentration", 0.3)
+        self.at("a lower concentration", 0.1)
         marks = VGroup()
         for k in KM:
             marks.add(Dot(ax.c2p(k, 0.5), radius=0.11, color=GOLD), dline(ax.c2p(k, 0), ax.c2p(k, 0.5), GOLD, 3))
         tick_labels = VGroup(*[T(f"{k:g}", 26, GOLD, weight=BOLD).next_to(ax.c2p(k, 0), DOWN, buff=0.12)
                                for k in KM])
-        self.play(LaggedStart(*[Create(m) for m in marks], lag_ratio=0.2), FadeIn(tick_labels), run_time=1.3)
+        self.play(LaggedStart(*[Create(m) for m in marks], lag_ratio=0.2), FadeIn(tick_labels), run_time=0.7)
 
-        # ---- "It's like a vending machine that takes quarters, dimes, and pennies."
-        self.at("It's like a vending", 0.2)
-        vend = chip("vending machine", BLUE, size=26).move_to([4.6, 2.6, 0])
-        self.play(FadeIn(vend, shift=DOWN * 0.1), run_time=0.6)
-
-        def coin(i):
-            return chip(COIN[i], CC[i], size=30).move_to([4.9, legend_y[i], 0])
-        self.at("quarters", 0.15)
-        c0 = coin(0)
-        self.play(ReplacementTransform(subs[0], c0), run_time=0.4)
-        self.at("dimes", 0.1)
-        c1 = coin(1)
-        self.play(ReplacementTransform(subs[1], c1), run_time=0.4)
-        self.at("pennies", 0.1)
-        c2 = coin(2)
-        self.play(ReplacementTransform(subs[2], c2), run_time=0.4)
-
-        # ---- "Same output,"
-        self.at("Same output", 0.1)
-        vline = dline(ax.c2p(0, 1), ax.c2p(12, 1), RED, 4)
-        vlab = T("same Vmax", 30, RED, weight=BOLD).next_to(ax.c2p(6, 1), UP, buff=0.15)
-        self.play(Create(vline), FadeIn(vlab), run_time=0.7)
-        # ---- "but it handles quarters most smoothly."
-        self.at("quarters", 0.3, nth=1)
-        ring2 = SurroundingRectangle(VGroup(c0, kms[0]), color=GOLD, buff=0.15, corner_radius=0.15)
-        self.play(curves[0].animate.set_stroke(width=9), curves[1].animate.set_stroke(opacity=0.3),
-                  curves[2].animate.set_stroke(opacity=0.3), Create(ring2), run_time=0.8)
-
-        # ---- "And remarkably, an enzyme's Km is usually close to the substrate concentration it actually
-        #      sees inside the living cell."
-        self.at("And remarkably", 0.1)
+        self.at("But preference", 0.1)
         keep = {id(heading)}
-        self.play(*[FadeOut(m) for m in list(self.mobjects) if id(m) not in keep], run_time=0.9)
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if id(m) not in keep], run_time=0.5)
+        preference = T("competing substrates", 32, YELLOW).move_to([0, 1.2, 0])
+        self.play(FadeIn(preference), run_time=0.5)
+        self.at("depends on", 0.1)
+        efficiency = T("preference: kcat/Km", 40, GREEN, weight=BOLD).move_to([0, 0, 0])
+        self.play(FadeIn(efficiency), run_time=0.6)
+        self.at("counts turnover too", 0.1)
+        turnover = T("includes turnover", 30, GREEN).move_to([0, -1.0, 0])
+        self.play(FadeIn(turnover), run_time=0.6)
+
+        self.at("In", 0.1)
+        self.play(FadeOut(VGroup(preference, efficiency, turnover)), run_time=0.4)
         line_y = -0.2
         nline = Arrow([-5.4, line_y, 0], [5.4, line_y, 0], buff=0, color=GREY, stroke_width=4,
                       max_tip_length_to_length_ratio=0.03)
         conc = T("substrate concentration", 26, GREY).move_to([-5.4, line_y - 0.5, 0], aligned_edge=LEFT)
-        self.at("enzyme's", 0.2)
-        self.play(Create(nline), FadeIn(conc), run_time=0.8)
-        # Above the line it reads "Km ≈ [S]"; the note under the [S] dot says which [S].
-        self.at("km is usually", 0.1)
-        gx, yx = -0.9, 0.9
-        g_dot = Dot([gx, line_y, 0], radius=0.14, color=GOLD)
-        g_lbl = T("Km", 34, GOLD, weight=BOLD).move_to([gx, line_y + 0.6, 0])
-        self.play(FadeIn(g_dot, scale=0.5), FadeIn(g_lbl, shift=DOWN * 0.1), run_time=0.6)
-        self.at("close to", 0.1)
-        approx = T("≈", 44).move_to([(gx + yx) / 2, line_y + 0.6, 0])
-        self.play(FadeIn(approx, scale=0.8), run_time=0.4)
-        self.at("substrate concentration", 0.3)
-        y_dot = Dot([yx, line_y, 0], radius=0.14, color=YELLOW)
-        y_lbl = T("[S]", 34, YELLOW, weight=BOLD).move_to([yx, line_y + 0.6, 0])
-        self.play(FadeIn(y_dot, scale=0.5), FadeIn(y_lbl, shift=DOWN * 0.1), run_time=0.6)
-        self.at("it actually sees", 0.2)
-        sees = T("what the enzyme actually sees", 26, YELLOW).move_to([yx - 0.25, line_y - 0.55, 0],
-                                                                      aligned_edge=LEFT)
-        self.play(FadeIn(sees, shift=UP * 0.1), run_time=0.6)
-        self.at("inside the living", 0.1)
         cell = RoundedRectangle(corner_radius=0.5, width=11.6, height=4.0, stroke_color=GREY, stroke_width=3,
                                 fill_color=GREY, fill_opacity=0.06).move_to([0, line_y - 0.1, 0])
-        cell_lbl = T("inside the living cell", 28, GREY).move_to(cell.get_corner(UL) + RIGHT * 0.5 + DOWN * 0.4,
-                                                              aligned_edge=LEFT)
-        self.play(Create(cell), FadeIn(cell_lbl), run_time=1.3)
+        cell_lbl = T("in E. coli", 28, GREY).move_to(cell.get_corner(UL) + RIGHT * 0.5 + DOWN * 0.4,
+                                                   aligned_edge=LEFT)
+        self.play(Create(cell), FadeIn(cell_lbl), Create(nline), FadeIn(conc), run_time=0.7)
+        self.at("most", 0.1)
+        # Above the line: "Km, [S]"; separated points illustrate levels exceeding Km.
+        gx, yx = -1.8, 1.8
+        g_dot = Dot([gx, line_y, 0], radius=0.14, color=GOLD)
+        g_lbl = T("Km", 34, GOLD, weight=BOLD).move_to([gx, line_y + 0.6, 0])
+        comma = T(",", 44).move_to([(gx + yx) / 2, line_y + 0.6, 0])
+        y_dot = Dot([yx, line_y, 0], radius=0.14, color=YELLOW)
+        y_lbl = T("[S]", 34, YELLOW, weight=BOLD).move_to([yx, line_y + 0.6, 0])
+        self.play(FadeIn(g_dot), FadeIn(g_lbl), FadeIn(comma), FadeIn(y_dot), FadeIn(y_lbl), run_time=0.6)
+        self.at("substrate levels exceed", 0.1)
+        sees = T("most measured [S] > Km", 26, YELLOW).move_to([0, line_y - 1.1, 0])
+        self.play(FadeIn(sees, shift=UP * 0.1), run_time=0.6)
+        self.at("enzyme that uses", 0.1)
+        self.play(Indicate(g_lbl, color=GOLD, scale_factor=1.1), run_time=0.5)
         self.finish()
 
 
@@ -593,7 +557,7 @@ class S04Kcat(Scn):
                   run_time=1.2)
         same = T("same for 1 or 2: a property of the molecule", 28, TEXT).move_to([0, -2.85, 0])
         self.play(FadeIn(same, shift=UP * 0.1), run_time=0.6)
-        self.at("we use kcat", 0.25)
+        self.at("use", 0.25)
         gA = bar(unit, GREEN).move_to(barA, aligned_edge=DOWN)
         gB = bar(unit, GREEN).move_to(barB, aligned_edge=DOWN)
         nA = T("kcat", 26, GREEN, weight=BOLD).next_to(gA, UP, buff=0.12)
@@ -642,14 +606,14 @@ class S04Kcat(Scn):
                 self.play(p.animate(rate_func=linear).move_to(out_pts[1]), run_time=0.22)
                 self.remove(p)
 
-        self.at("It's the number", 0.0)
+        self.at("reactions", 0.0)
         self.play(FadeIn(enz), FadeIn(feed), FadeIn(sub_lbl), FadeIn(prod_lbl), FadeIn(defin, shift=UP * 0.1),
                   run_time=0.7)
         react(self.t_of("per second", nth=0) - 0.6)
-        self.at("per second", 0.5)
+        self.at("Lysosine", 0.5)
         hand.add_updater(lambda m, dt: m.rotate(-TAU * dt / 1.0, about_point=centre))
         self.play(FadeIn(clock_g), FadeIn(one_s), run_time=0.6)
-        react(self.t_of("fully saturated") - 0.1)
+        react(self.t_of("substrate") - 0.1)
         self.at("fully saturated", 0.1)
         sat = T("saturated: always waiting", 26, YELLOW).move_to(sub_lbl)
         self.play(Transform(sub_lbl, sat), run_time=0.5)
@@ -657,7 +621,7 @@ class S04Kcat(Scn):
         self.at("top speed", 0.35, nth=0)
         top_lbl = T("top speed", 34, GREEN, weight=BOLD).next_to(enz, UP, buff=0.5)
         self.play(FadeIn(top_lbl, shift=DOWN * 0.1), run_time=0.5)
-        react(self.t_of("Carbonic") - 0.75)
+        react(self.t_of("scarce") - 0.75)
 
         # ================= phase 3: log scale, carbonic anhydrase vs lysozyme =================
         # (built below; the swap from phase 2 is one staggered move so "top speed" stays up while it is spoken)
@@ -691,7 +655,7 @@ class S04Kcat(Scn):
         hand.clear_updaters()
         self.at("Carbonic", 0.2)
         self.play(FadeIn(pin_ca, scale=0.4), Create(ca_stem), FadeIn(ca_name, shift=DOWN * 0.1), run_time=0.8)
-        self.at("600", 0.1)
+        self.at("clocks", 0.1)
         self.play(FadeIn(ca_val, shift=DOWN * 0.1), run_time=0.7)
         self.at("plods", 0.6)
         self.play(FadeIn(pin_lz, scale=0.4), Create(lz_stem), FadeIn(lz_name, shift=DOWN * 0.1), run_time=0.9)
@@ -703,7 +667,7 @@ class S04Kcat(Scn):
         self.play(GrowFromCenter(gap), FadeIn(gap_t), run_time=0.7)
 
         # ================= phase 4: kcat is only top speed =================
-        self.at("But kcat", 0.0)
+        self.at("over", 0.0)
         self.play(FadeOut(VGroup(line, ticks, axis_name, pin_lz, lz_lbl, lz_stem, pin_ca, ca_lbl, ca_stem, gap,
                                  gap_t)), run_time=0.3)
         ax = make_axes(12, 1.25, 10.2, 3.9, origin=(-5.4, -2.3), x_step=2, y_step=0.5)
@@ -727,11 +691,11 @@ class S04Kcat(Scn):
         self.at("For that", 0.1)
         tan = dline(ax.c2p(0, 0), ax.c2p(1.65, 1.1), GREEN, 5)
         self.play(Create(tan), run_time=0.9)
-        self.at("kcat over", 0.2)
+        self.at("catalytic", 0.2)
         kk = T("slope ∝ kcat/Km", 30, GREEN, weight=BOLD).next_to(ax.c2p(1.65, 1.1), RIGHT, buff=0.15
                                                                  ).shift(UP * 0.22)
         self.play(FadeIn(kk, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("the catalytic", 0.1)
+        self.at("efficiency", 0.1)
         eff = T("catalytic efficiency", 28, GREEN).next_to(kk, UP, buff=0.12, aligned_edge=LEFT)
         self.play(FadeIn(eff, shift=DOWN * 0.1), run_time=0.6)
         self.finish()

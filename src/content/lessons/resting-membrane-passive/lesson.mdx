@@ -1,0 +1,753 @@
+---
+title: "The Resting Membrane and Passive Signals"
+slug: "resting-membrane-passive"
+course: "neuroscience"
+courseChapter: "Neuroscience · Unit 1: Neurons and their signals"
+order: 603
+summary: >-
+  Why does a neuron sit at a steady negative voltage when neither Na+ nor K+ is at equilibrium, and what
+  does its membrane do to a small current before any spike happens? One rule carries the
+  lesson: the voltage heads for a balance point, the average of the ions' equilibrium
+  potentials weighted by their conductances (setting aside the pump's small direct current), and the leak decides how big, how fast and how
+  far a small nudge goes, with the membrane's capacitance and, in a dendrite, the core's
+  resistance playing their parts. With it you compute driving forces and ionic
+  currents, build the resting potential from several leaks (and from the Goldman-Hodgkin-Katz
+  equation), and treat the membrane as a resistor and capacitor and a dendrite as a leaky
+  cable. Afterwards you can read input resistance, time constant and capacitance off a
+  current-clamp trace, say how far a passive signal spreads, and predict what a permeability
+  change will do.
+hook: "In a resting neuron potassium leaks out and sodium leaks in all the time. Why does the voltage hold still?"
+
+estMinutes: 30
+objectives:
+  - "Use a supplied equilibrium potential to compute an ion's driving force (Vm − E_ion) and its ohmic current I = g × (Vm − E_ion), with outward current positive."
+  - "Explain the resting potential as a zero-net-current steady state, the balance point of several leaks (the average of the equilibrium potentials weighted by conductance, with the pump's direct current set aside), kept up by the Na+/K+ pump; compute it from conductances, and from concentrations and relative permeabilities with the GHK voltage equation."
+  - "Predict how a small injected current changes the voltage of a passive membrane: how big (input resistance, Rin = 1/g_total in a compact cell with ohmic leaks), how fast (the time constant, τ = Rin × C, 63% of the final change at one τ) and how far along a uniform cable (the length constant λ = √(rm/ri), 37% of the steady deflection left at one λ)."
+  - "Read a current-clamp trace for Rin, τ and C, and predict how opening or closing a resting conductance changes rest, Rin and τ."
+
+explainer:
+  src: "/explainers/resting-membrane-passive/explainer.mp4"
+  captions: "/explainers/resting-membrane-passive/explainer.vtt"
+  poster: "/explainers/resting-membrane-passive/poster.jpg"
+  title: "The Standoff"
+  durationSec: 174.9
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  aiGenerated: true
+
+films:
+  - id: "leaks-balance"
+    src: "/explainers/resting-membrane-passive/leaks-balance.mp4"
+    captions: "/explainers/resting-membrane-passive/leaks-balance.vtt"
+    poster: "/explainers/resting-membrane-passive/leaks-balance-poster.jpg"
+    title: "Where the Leaks Balance"
+    durationSec: 214.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "nudge-in-time"
+    src: "/explainers/resting-membrane-passive/nudge-in-time.mp4"
+    captions: "/explainers/resting-membrane-passive/nudge-in-time.vtt"
+    poster: "/explainers/resting-membrane-passive/nudge-in-time-poster.jpg"
+    title: "A Nudge Takes Time"
+    durationSec: 172.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "nudge-in-space"
+    src: "/explainers/resting-membrane-passive/nudge-in-space.mp4"
+    captions: "/explainers/resting-membrane-passive/nudge-in-space.vtt"
+    poster: "/explainers/resting-membrane-passive/nudge-in-space-poster.jpg"
+    title: "A Nudge Fades with Distance"
+    durationSec: 164.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "reading-a-trace"
+    src: "/explainers/resting-membrane-passive/reading-a-trace.mp4"
+    captions: "/explainers/resting-membrane-passive/reading-a-trace.vtt"
+    poster: "/explainers/resting-membrane-passive/reading-a-trace-poster.jpg"
+    title: "Reading a Trace, Predicting a Drug"
+    durationSec: 187.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+
+scientists:
+  - name: "David E. Goldman"
+    contribution: >-
+      Published in 1943 a theory of ion movement through a membrane that assumes a constant
+      electric field across it, tested it on artificial membranes, and supplied the voltage
+      equation that Hodgkin and Katz later applied to the squid axon.
+    profileSourceAnchor: "Goldman, J. Gen. Physiol. 27:37–60 (1943), 'Potential, impedance, and rectification in membranes'; reviewed in Alvarez & Latorre, J. Gen. Physiol. (2017)."
+    quotes: []
+    story: >-
+      By the early 1940s physiologists knew that a membrane separating two salt solutions
+      carries a voltage, and that the voltage depends on which ions can cross. Nernst and Planck
+      had described ions diffusing under an electric field, but there was no simple formula for a membrane that several ions cross at once, each with its own ease of passage.
+      Goldman built a theory for that case. He treated each ion as diffusing through the membrane
+      and being pushed by the electric field inside it, and he made one simplifying assumption:
+      that the field is the same at every depth in the membrane, a constant field. He then tested
+      the theory on artificial membranes, measuring their impedance and potential while he changed
+      the bathing solutions and passed current. Membranes with different solutions on the two
+      sides rectified, passing current more easily one way than the other, and the theory matched
+      his potential and rectification data only to the right order of magnitude. Its voltage
+      equation, taken up by Hodgkin and Katz for the squid axon in 1949, became the standard way
+      to write a resting potential as a weighted mix of several ions.
+  - name: "Alan Hodgkin"
+    contribution: >-
+      With William Rushton, measured the passive electrical constants of a single lobster axon
+      using cable theory (1946); with Bernard Katz, applied the constant-field voltage
+      equation to the squid giant axon with relative permeabilities for K+, Na+ and Cl− (1949).
+    profileSourceAnchor: "Hodgkin & Rushton, Proc. R. Soc. B 133:444–479 (1946); Hodgkin & Katz, J. Physiol. 108:37–77 (1949); Hodgkin, Nobel biography, NobelPrize.org (1963)."
+    quotes: []
+    story: >-
+      Hodgkin's Nobel biography credits William Rushton with teaching him cable theory, the
+      mathematics of current leaking out of a long, thin conductor. In 1946 the two published
+      their measurements of the electrical constants of a single lobster axon: they
+      applied weak current through external electrodes along the axon, recorded how the potential outside it changed with
+      distance and time, and used cable equations to work back to the resistance and capacitance
+      of the membrane and the resistance of the core. Three years later, with Bernard Katz,
+      Hodgkin turned to the squid giant axon and changed the sodium in the bathing solution. To
+      describe both the resting potential and the peak of the impulse, Hodgkin and Katz used
+      Goldman's constant-field voltage equation with a relative permeability for each ion,
+      reporting for the resting axon a ratio of potassium to sodium to chloride of about 1 to
+      0.04 to 0.45. The equation now carries all three names. Hodgkin shared the 1963 Nobel Prize
+      in Physiology or Medicine with Andrew Huxley and John Eccles. The two papers gave
+      neuroscience the tools to compute a resting voltage and to say how far a passive signal
+      spreads.
+  - name: "Lou Beaulieu-Laroche"
+    contribution: >-
+      With Mark Harnett and colleagues, recorded directly from the dendrites of human layer 5
+      cortical pyramidal neurons in surgically resected tissue and found stronger attenuation of
+      distal inputs than in rat layer 5 neurons, with similar specific capacitance (2018).
+    profileSourceAnchor: "Beaulieu-Laroche et al., Cell 175:643–651 (2018); Beaulieu-Laroche et al., Nature (2021), layer 5 neurons across ten mammalian species."
+    quotes: []
+    story: >-
+      Most of what is known about the passive properties of cortical neurons comes from rodent
+      brain slices. Human pyramidal neurons are larger, with longer dendrites, and it was an open
+      question whether rodent measurements transfer. Working in Mark Harnett's laboratory,
+      Beaulieu-Laroche and colleagues obtained slices of human temporal-lobe cortex resected from epilepsy patients and
+      made patch recordings directly from the dendrites of layer 5 pyramidal neurons, alongside
+      the same measurements in adult rat cortex. In paired recordings they injected current
+      steps at one site and measured the voltage at another. Distal inputs were attenuated more
+      strongly on their way to the soma in the human cells, and distal human dendrites had about twice the input resistance of distal rat dendrites. In rat, input
+      resistance fell with distance from the soma; in human it rose only gently. Specific capacitance was near 0.9 µF/cm² in both
+      species, so a lower capacitance could not explain the difference. Instead the human dendrites
+      had lower densities of ion channels, including HCN channels, which raised their input resistance,
+      and their greater length added to the attenuation. A 2021 follow-up across
+      ten mammalian species found that human layer 5 neurons had lower potassium and HCN
+      conductances than size-based rules predicted. The work made it possible to test, rather
+      than assume, whether rodent cable parameters describe human neurons.
+
+techniques:
+  - name: "Whole-cell current clamp"
+    blurb: >-
+      A patch pipette gains electrical access to the cell interior, and the amplifier injects a
+      current you choose while recording the voltage. A small current step gives the steady
+      deflection (input resistance) and the charging curve (time constant); a series of steps
+      gives a voltage-current plot whose slope is Rin.
+  - name: "Nucleated-patch capacitance measurement"
+    blurb: >-
+      A large patch of somatic membrane is pulled away from the cell and voltage-clamped. The
+      charge in its capacitive transient, divided by the voltage step and by the patch's surface
+      area measured under the microscope, gives specific capacitance in µF/cm².
+  - name: "Paired dendritic and somatic patch recording"
+    blurb: >-
+      Two pipettes on the same neuron, one on a dendrite and one on the soma or a second
+      dendritic site, let you inject at one point and record at the other. The ratio of the two
+      voltages measures how much a passive signal is attenuated along the dendrite.
+
+structures:
+  - label: "KcsA potassium channel — the kind of pore that makes a membrane potassium-selective"
+    source: "rcsb"
+    id: "1K4C"
+    note: "Streptomyces lividans KcsA, high-resolution X-ray crystal structure (Zhou et al., Nature, 2001)"
+    caption: >-
+      A bacterial channel, used here as the model for potassium selectivity. Look down the pore
+      at the narrow filter near the outer end, where carbonyl oxygens line up to hold potassium
+      ions in single file; this is why a resting membrane dominated by potassium channels sits
+      near EK.
+  - label: "Na+/K+-ATPase — the pump that keeps the gradients the leaks run down"
+    source: "rcsb"
+    id: "3B8E"
+    note: "Pig kidney Na+/K+-ATPase, X-ray crystal structure (Morth et al., Nature, 2007)"
+    caption: >-
+      The alpha subunit carries the ion sites in the membrane and the ATP-binding domains in the
+      cytosol. Each cycle moves three Na+ out and two K+ in, which is why the pump is
+      electrogenic, though its main job at rest is restoring the gradients.
+
+simulations:
+  - type: "local"
+    ref: "CableLengthConstant"
+    title: "The length constant"
+    caption: >-
+      Hold a steady −10 mV at one end of a passive cable, change leak and diameter, and drag a cursor to read the length constant where the deflection falls to 37%.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "A neuron sits at −65 mV, and EK in this cell is −90 mV. What is the driving force on K+, and which way does K+ current flow through open K+ channels?"
+    choices:
+      - "−155 mV, so the K+ current is inward"
+      - "+25 mV, so the K+ current is inward"
+      - "+25 mV, so the K+ current is outward"
+      - "−25 mV, so the K+ current is inward"
+    answer: 2
+    rationale: >-
+      Driving force is Vm − EK = −65 − (−90) = +25 mV; for a cation a positive driving force
+      means positive charge leaves, an outward current. Getting −25 mV comes from subtracting
+      the wrong way round (EK − Vm). Pairing +25 mV with inward current reverses the sign
+      convention, in which outward is positive. The −155 mV value comes from adding the two
+      voltages instead of subtracting them.
+  - stem: "In most neurons the resting potential is somewhat less negative than EK. Which explanation is correct?"
+    choices:
+      - "A small resting Na+ permeability pulls Vm toward ENa"
+      - "The pump sets Vm directly, whatever the permeabilities"
+      - "Every ion is at its own equilibrium potential at rest"
+      - "K+ channels are all closed at rest, so K+ cannot move"
+    answer: 0
+    rationale: >-
+      The resting potential is the zero-net-current voltage of several leaks weighted by
+      permeability, so a small sodium permeability pulls Vm up from EK toward ENa. The pump is
+      electrogenic, and its direct contribution is usually small though it varies between cells; mainly it keeps the gradients. If K+
+      channels were all closed the cell would not sit near EK at all. Rest cannot be equilibrium
+      for both Na+ and K+, since their equilibrium potentials are about 150 mV apart.
+  - stem: "A compact, passive neuron has an input resistance of 200 MΩ and a capacitance of 100 pF. A small current step begins at time zero. How far toward its final value has the voltage moved 20 ms later?"
+    choices:
+      - "All of the way, 100 percent"
+      - "About 63 percent of the way"
+      - "About 37 percent of the way"
+      - "About 50 percent of the way"
+    answer: 1
+    rationale: >-
+      τ = Rin × C = 200 MΩ × 100 pF = 20 ms, and at one time constant the response has reached
+      1 − e^−1, about 63 percent of its final change. Thirty-seven percent is what remains, not
+      what has been reached. Reaching all of it confuses τ with the time to finish charging,
+      which in theory never quite ends. Fifty percent would be a half-time, which is about 0.69τ.
+  - stem: "A steady 5 mV deflection is held at one point on a long, uniform passive dendrite whose length constant is 0.4 mm. What is the steady deflection 0.4 mm away?"
+    choices:
+      - "About 3.2 mV, 63 percent of the start"
+      - "Zero, since λ marks where it vanishes"
+      - "2.5 mV, half of the starting size"
+      - "About 1.8 mV, 37 percent of the start"
+    answer: 3
+    rationale: >-
+      In a uniform infinite cable the steady deflection falls as e^(−x/λ), so at one λ it is
+      5 × 0.368 = 1.84 mV. Zero treats λ as a hard cutoff, which it is not. Half the size would be
+      the value at about 0.69λ. Sixty-three percent mixes the length constant with the time
+      constant, where 63 percent is the fraction reached rather than the fraction left.
+  - stem: "A drug closes many of a neuron's resting K+ leak channels and has no other effect. What do you expect in current clamp?"
+    choices:
+      - "Rin is unchanged, τ lengthens and Vm depolarizes"
+      - "Rin rises, τ is unchanged and Vm hyperpolarizes"
+      - "Rin rises, τ lengthens and Vm depolarizes"
+      - "Rin falls, τ shortens and Vm hyperpolarizes"
+    answer: 2
+    rationale: >-
+      Closing channels removes conductance, so Rin rises, and with capacitance unchanged
+      τ = Rin × C lengthens; with less K+ permeability the weighted average moves away from EK,
+      so the cell depolarizes. Rin falling with hyperpolarization describes opening K+ channels.
+      An unchanged τ ignores that τ depends on Rin. An unchanged Rin cannot coexist with a longer
+      τ unless capacitance changed, which the drug does not do.
+
+mcatQuestions:
+  - stem: "In a made-up whole-cell current-clamp recording, steps of −20, −40 and −60 pA give steady deflections of −3, −6 and −9 mV. During the −40 pA step the deflection reaches −3.8 mV at 15 ms after the step begins and charges as a single exponential with no sag. Treat the cell as compact and passive. What are the input resistance and capacitance?"
+    choices:
+      - "Rin is 150 MΩ and C is 10 pF"
+      - "Rin is 450 MΩ and C is 33 pF"
+      - "Rin is 6.7 MΩ and C is 2.2 nF"
+      - "Rin is 150 MΩ and C is 100 pF"
+    answer: 3
+    rationale: >-
+      The voltage-current slope is 3 mV per 20 pA, or 150 MΩ. Since −3.8 mV is 63 percent of
+      −6 mV, τ is 15 ms, and C = τ/Rin = 15 ms / 150 MΩ = 100 pF. A value of 10 pF is a factor of
+      ten slip in the units. The 6.7 MΩ answer divides current by voltage, inverting the
+      definition. The 450 MΩ answer divides the −9 mV deflection by the −20 pA step, pairing
+      numbers from different sweeps.
+  - stem: "In a made-up recording, a neuron rests at −70 mV, and its chloride equilibrium potential, calculated from measured internal and external chloride, is also −70 mV. A −50 pA test step is given before and after a drug that opens many more chloride channels."
+    choices:
+      - "Rest depolarizes; the step's deflection grows larger"
+      - "Rest stays at −70 mV; the step's deflection shrinks"
+      - "Rest hyperpolarizes; the step's deflection is unchanged"
+      - "Rest stays at −70 mV; the step's deflection is unchanged"
+    answer: 1
+    rationale: >-
+      With ECl equal to Vm the driving force on chloride is zero, so the new channels carry no net
+      current at rest and Vm stays put, but they add conductance, so Rin falls and the same
+      current gives a smaller deflection (shunting). Hyperpolarization would need ECl below rest.
+      Depolarization with a larger deflection reverses both effects. An unchanged deflection
+      overlooks that open channels add conductance even when they carry no net current.
+  - stem: "In a made-up paired recording on a long, unbranched dendrite, a steady current at one site gives a 10 mV deflection there and a 4.5 mV deflection 300 µm away. Treat the dendrite as a uniform, infinite passive cable. What is its length constant?"
+    choices:
+      - "About 375 µm"
+      - "About 545 µm"
+      - "About 300 µm"
+      - "About 135 µm"
+    answer: 0
+    rationale: >-
+      From V(x) = V0 × e^(−x/λ), λ = x / ln(V0/V) = 300 µm / ln(10/4.5) = 300 / 0.799, about
+      375 µm. Taking 300 µm assumes the deflection fell to 37 percent, but 4.5 mV is 45 percent,
+      so the signal has not yet decayed by a full λ. The 135 µm answer multiplies the distance by
+      0.45. The 545 µm answer divides the distance by the fraction lost, 0.55, instead of using
+      the logarithm.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      A nerve cell is like a bucket with tiny holes. Salt-like particles keep trickling in and out
+      through the holes, and a little pump keeps putting them back. Because the trickles in and
+      out balance, the cell stays at a steady electric level. If you push a little extra charge
+      in, the level changes slowly, and the push fades as it travels along the cell's long arms.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Inside a neuron there is more potassium than outside, and outside there is more sodium.
+      Potassium leaks out and sodium leaks in through open channels, and the voltage settles
+      where those leaks cancel, closer to potassium's preferred voltage because the open potassium
+      channels let much more current through in total (more conductance). A pump puts the ions back so the leaks never run dry. The
+      membrane also stores charge, like the two plates of a capacitor, so a small injected current changes
+      the voltage gradually, and along a thin branch the change gets smaller with distance
+      because charge leaks out on the way.
+  - level: "college"
+    label: "College"
+    text: >-
+      Each ion's current is I = g × (Vm − E_ion), with outward current positive. At rest the sum
+      of these currents is zero, not each one, so the resting potential is a steady state. With
+      fixed conductances and no injected or pump current, it is the conductance-weighted average
+      of the reversal potentials. The GHK voltage equation, which assumes a constant field and
+      independent ions, instead computes the zero-current voltage from concentrations and relative
+      permeabilities; chord conductances evaluated at that voltage reproduce the weighted average,
+      but fixed ohmic conductances generally describe a different current-voltage relation. The
+      Na+/K+ pump maintains the gradients and adds an electrogenic
+      component that is usually small but varies between cells. Electrically, the membrane is a capacitor in parallel with leak resistance: a
+      current step changes Vm along I × Rin × (1 − e^(−t/τ)), with τ = Rin × C. Along a uniform
+      passive cable a steady deflection decays as e^(−x/λ), with λ = √(rm/ri), so λ grows with
+      membrane resistance and with the square root of diameter.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      The GHK voltage equation rests on the constant-field assumption and on independent
+      electrodiffusion, and some channels depart from it (for example by saturating at high
+      concentration), so it is best read as a description of permeability ratios at one
+      operating point. Rin and τ measured at the soma of a branched neuron are lumped values: in
+      Rall's analysis the transient contains equalization time constants faster than τm = RmCm,
+      and their values depend on geometry and boundary conditions, so a single-exponential fit
+      can mislead. Specific capacitance is often near 0.9 µF/cm² (Gentet and colleagues, 2000),
+      but human layer 2/3 nucleated patches gave 0.51 ± 0.11 µF/cm² (Eyal and colleagues, 2016,
+      n = 5) while human layer 5 gave about 0.9 (Beaulieu-Laroche and colleagues, 2018). An open
+      question is how much of the difference between layers and studies reflects the membrane
+      itself and how much reflects method and sampling, and what such passive differences do to
+      computation in human dendrites.
+
+anecdotes:
+  - title: "Two numbers for human membrane capacitance"
+    source: "Eyal et al., eLife 5:e16553 (2016); Beaulieu-Laroche et al., Cell 175:643–651 (2018)."
+    text: >-
+      In 2016 Eyal and colleagues fitted models to voltage transients from human layer 2/3
+      pyramidal neurons in surgical slices, recorded at 32 to 35 °C, and then checked the result
+      with nucleated patches: 0.51 ± 0.11 µF/cm² in five human cells against 0.83 ± 0.34 in seven
+      mouse cells. Two years later Beaulieu-Laroche and colleagues measured about 0.9 µF/cm² in
+      human layer 5 neurons, close to the rat value. Both are measurements in particular cells
+      by particular methods. Neither licenses the shorthand that human neurons have half the
+      usual capacitance.
+  - title: "A neuron with dendrites has more than one time constant"
+    source: "Rall, Biophys. J. 9:1483–1508 (1969)."
+    text: >-
+      Wilfrid Rall's 1969 theoretical analysis of passive membrane cylinders and soma-dendrite
+      models showed that the voltage after a brief current is not one exponential. The slowest
+      component decays with the membrane time constant τm = RmCm, which describes a uniform
+      membrane potential. Faster equalization components describe charge redistributing along
+      the dendrites, and their time constants depend on the cable's boundary conditions. Fitting
+      several exponentials to a recorded transient became a way to estimate how electrically
+      long a neuron's dendrites are.
+  - title: "A constant-field theory that fitted artificial membranes only roughly"
+    source: "Goldman, J. Gen. Physiol. 27:37–60 (1943)."
+    text: >-
+      The equation every student now uses for the resting potential began as a test on
+      artificial membranes. David Goldman measured impedance and potential while varying the
+      solutions on each side and the current passed, and reported that asymmetric systems
+      rectified. In his own summary, the agreement between his constant-field theory and the
+      data was of the right order of magnitude only for the artificial membranes; he reported very good agreement when he applied the theory to squid axon potentials. The assumption of a uniform field was a
+      simplification from the start, and later work found channels that depart from it, yet
+      the voltage equation remains a useful approximation.
+
+corpusTags:
+  - "resting-membrane-potential"
+  - "driving-force"
+  - "ghk-equation"
+  - "membrane-time-constant"
+  - "length-constant"
+  - "cable-theory"
+  - "current-clamp"
+  - "input-resistance"
+draft: false
+---
+
+
+import CableLengthConstant from '../../../components/CableLengthConstant.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
+import EquationCard from '../../../components/EquationCard.astro';
+
+**In a made-up neuron resting at −71 mV, about 200 picoamperes of potassium current leave the cell all the time, and about 200 picoamperes of sodium current come in. Neither ion is at equilibrium (the voltage at which it would feel no net push), yet the membrane potential does not move.**
+
+That standoff is the resting potential. Building on [neurons and glia at work](/lessons/neurons-and-glia-at-work/), this lesson works out where it comes from, then asks how big, how fast and how far a small injected current changes the voltage. That sets up [the action potential](/lessons/action-potential/) and [synaptic integration](/lessons/synaptic-integration/). One made-up cell, describing no real neuron, runs through most of the lesson.
+
+## The standoff
+
+Each ion has an **equilibrium potential**, E_ion, the voltage at which the electrical force on the ion balances its concentration gradient. The Nernst equation, derived in [transport across membranes](/lessons/membrane-transport/), gives it; here the E values are supplied. For a channel that passes only one ion, the voltage at which its current reverses direction, its **reversal potential**, is that ion's E; a channel that passes several ions has a reversal potential between theirs. Vm, the membrane potential, is inside minus outside.
+
+Picture a voltage scale. For our cell, E_K = −95 mV sits near the left end and E_Na = +60.6 mV near the right. A marker on the scale shows Vm. The **driving force** on an ion is the gap between the marker and that ion's own mark: Vm − E_ion. Its size says how hard the ion is pushed; its sign gives the direction.
+
+Now tie a rope from the marker to each ion's mark. If that ion's channels are open and behave like a resistor (ohmic, meaning current rises in proportion to the driving force), the rope's pull is the ion's current:
+
+<EquationCard
+  purpose="How much current one kind of ion carries across the membrane, and which way it flows."
+  eq="I_ion = g_ion × (Vm − E_ion)"
+  say="An ion's current equals how open its channels are, times the gap between the voltage and that ion's own equilibrium potential."
+  symbols={[
+    ["I_ion", "I sub ion", "the current that ion carries. By convention outward current (positive charge leaving) is positive and inward current is negative.", "pA (picoamperes)"],
+    ["g_ion", "g sub ion", "the ion's conductance: how open its path is, mostly how many of its channels are open. In the rope picture, the rope's thickness. For a small cell it is measured in nanosiemens.", "nS"],
+    ["Vm", "V m", "the membrane potential, inside minus outside: the marker on the scale", "mV"],
+    ["E_ion", "E sub ion", "the ion's equilibrium potential: its own mark on the scale", "mV"],
+  ]}
+  toolkit={["subscripts", "units"]}
+  check="The bracket, Vm − E_ion, is the driving force. If no channels are open (g_ion = 0) there is no current. If the marker sits exactly on the ion's mark, the driving force is zero and there is no current either, however many channels are open."
+>
+  <Fragment slot="example">
+    <p>Take 2 nS of open channels for some cation, with the marker 10 mV below that ion's mark (round values to keep the arithmetic easy).</p>
+    <p>Driving force: Vm − E_ion = −10 mV.</p>
+    <p>Current: 2 nS × (−10 mV) = −20 pA. It is negative, so it is inward: the ion enters.</p>
+    <p>Units: nano times milli is pico (10^-9 × 10^-3 = 10^-12), so nS × mV = pA.</p>
+  </Fragment>
+</EquationCard>
+
+A thicker rope (more conductance) or a longer stretch (more driving force) pulls harder. With the sign convention above, a positive driving force on a cation gives outward current: the ion leaves. (For an anion such as chloride the direction flips: outward current means the ion moves in, because a negative ion moving in carries charge the same way a positive ion moving out does.) That is how the rope pulls the marker: potassium flowing out removes positive charge and pulls Vm down toward E_K, while sodium flowing in adds positive charge and pulls Vm up toward E_Na.
+
+**Worked problem, part 1.** A cell at 37 °C has [K+] of 140 mM inside and 4 mM outside, and [Na+] of 15 mM inside and 145 mM outside. You are given E_K = −95 mV and E_Na = +60.6 mV. It rests at −71.2 mV; the next section shows why.
+
+**Predict.** The marker sits at −71.2 mV and E_K is −95 mV. Which way does potassium current flow through open K+ channels?
+
+<details>
+<summary>Check your prediction</summary>
+
+Outward. The marker sits above potassium's mark, so the driving force is positive: Vm − E_K = −71.2 − (−95) = +23.8 mV, and positive charge leaves.
+
+Sodium is the opposite case. Vm − E_Na = −71.2 − 60.6 = −131.8 mV, negative and large, so sodium current is inward.
+
+</details>
+
+*The currents:* this cell's open leak channels give it g_K = 8.47 nS and g_Na = 1.53 nS. Throughout, we treat these leaks as ohmic: fixed conductances that do not change with voltage. Their ratio matches the cell's permeabilities at this voltage (next section); their absolute size is chosen for the example. Then I_K = 8.47 nS × 23.8 mV = +202 pA, and I_Na = 1.53 nS × (−131.8 mV) = −202 pA. They cancel. That is what rest means: zero net current, not zero current for each ion.
+
+The standoff raises two puzzles.
+
+1. **Where does it rest?** Potassium's conductance is more than five times sodium's, yet sodium's small leak holds the cell 24 mV above E_K. Why −71.2 mV and not somewhere else?
+2. **What does a nudge do?** Push a little current into this resting cell. How big a change does it make, how fast does the voltage get there, and how far along a dendrite does the change reach?
+
+One rule answers both.
+
+> **The one idea to carry through this lesson.** Each open channel pulls the voltage toward its own reversal potential (for a channel that passes one ion, that ion's equilibrium potential), harder the more conductance it has and the farther the voltage sits from that potential. Three things follow, and each gets its own section below.
+>
+> - **Where it rests.** The voltage heads for the **balance point**, where the pulls cancel and the net current is zero: the average of the reversal potentials, weighted by their conductances. With only leak channels open, no current injected and the pump's small direct current set aside, the balance point is the resting potential.
+> - **How big and how fast.** Inject a small steady current, I, and the balance point shifts by I / g_total, where g_total is the total leak conductance. In a compact cell, that total leak sets how big the shift is and, with the capacitance, how fast the voltage gets there.
+> - **How far.** Along a dendrite, the leak per unit length, set against the core's resistance, sets how far the shift reaches.
+>
+> In short: rest is where the leaks balance, and the leak (with capacitance, and in a dendrite the core) decides how big, how fast and how far a nudge goes.
+
+The second half of the rule is for small nudges in a passive membrane. Each section below says where its part stops working.
+
+## Where the leaks balance
+
+<LessonFilm film={frontmatter.films[0]} />
+
+Back to the scale. Potassium's rope runs to −95 mV and is 8.47 nS thick. Sodium's runs to +60.6 mV and is 1.53 nS thick. The marker settles where the two pulls are equal and opposite.
+
+**Predict.** Which end does the marker settle nearer, and roughly how far along?
+
+<details>
+<summary>Check your prediction</summary>
+
+Nearer E_K. At the balance point the pulls are equal, so the weaker rope must be stretched farther. Potassium's rope is about 5.5 times stronger, so the marker sits about 5.5 times closer to E_K than to E_Na. Split the 155.6 mV gap in that ratio: 23.8 mV from E_K and 131.8 mV from E_Na. That is −71.2 mV, and those two distances are the driving forces from part 1.
+
+</details>
+
+The same answer in algebra is a weighted average, and it works for any conductances, not only this cell's:
+
+<EquationCard
+  purpose="Where the voltage settles when the currents cancel: the balance point."
+  eq="Vm = (g_K × E_K + g_Na × E_Na) / (g_K + g_Na)"
+  say="The balance point is the average of the two equilibrium potentials, each counted in proportion to its conductance."
+  symbols={[
+    ["Vm", "V m", "the membrane potential at the balance point, where the net current is zero", "mV"],
+    ["g_K", "g sub K", "potassium conductance (rope thickness)", "nS"],
+    ["E_K", "E sub K", "potassium's equilibrium potential, −95 mV in our cell", "mV"],
+    ["g_Na", "g sub Na", "sodium conductance", "nS"],
+    ["E_Na", "E sub Na", "sodium's equilibrium potential, +60.6 mV in our cell", "mV"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="If sodium's conductance were zero, the g_Na terms drop out and Vm = E_K. If the two conductances were equal, Vm would sit exactly halfway between E_K and E_Na. The bigger a conductance, the closer Vm sits to that ion's mark."
+>
+  <Fragment slot="example">
+    <p>Our cell: g_K = 8.47 nS, g_Na = 1.53 nS.</p>
+    <p>Top: 8.47 × (−95) = −804.65, and 1.53 × 60.6 = +92.72. Their sum is −711.93 (units nS × mV).</p>
+    <p>Bottom: 8.47 + 1.53 = 10 nS.</p>
+    <p>Vm = −711.93 / 10 = −71.19, about −71.2 mV, the same rest the rope picture gave.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, set the net current to zero: g_K × (Vm − E_K) + g_Na × (Vm − E_Na) = 0.</p>
+    <p>Step 2, multiply out the brackets and move the E terms to the right: Vm × (g_K + g_Na) = g_K × E_K + g_Na × E_Na.</p>
+    <p>Step 3, divide both sides by the total conductance, g_K + g_Na.</p>
+  </Fragment>
+</EquationCard>
+
+More ions just add more terms, above and below the line. Do not shorten it to "rest sits nearest the ion with the biggest conductance": with three or more conductances that shortcut can fail (Going deeper has an example), so use the average. The formula assumes no injected current and sets aside the pump's small direct current, which Going deeper adds as one more term.
+
+Three consequences follow straight from the average:
+
+- **Open more of one ion's channels** and the balance point slides toward that ion's equilibrium potential.
+- **Close some** and it slides away.
+- **Scale every leak up or down together** and the balance point does not move, though Rin and τ do (next two sections).
+
+For example, double this cell's sodium conductance, to 3.06 nS. Rest depolarizes toward E_Na, but only partway: potassium's rope is still about 2.8 times stronger, so the marker stays nearer E_K. The average gives (8.47 × −95 + 3.06 × 60.6) / 11.53 = −53.7 mV.
+
+Keep one more number: this cell's total leak, g_K + g_Na = 10 nS.
+
+### The calculating tool: the GHK equation
+
+The average needs conductances. Usually what you know instead are the concentrations and the **relative permeabilities**, P, of the ions: how easily each passes through the membrane. The Goldman-Hodgkin-Katz (GHK) voltage equation writes the same zero-net-current condition in those terms.
+
+Read it as the balance point again: each ion counts in proportion to its permeability, and the equation does the weighting for you. You will use it with a calculator, so the aim is to know what each piece does.
+
+<EquationCard
+  purpose="The resting potential from concentrations and permeabilities, when you do not know the conductances."
+  eq="Vm = (RT/F) × ln[(P_K[K]o + P_Na[Na]o + P_Cl[Cl]i) / (P_K[K]i + P_Na[Na]i + P_Cl[Cl]o)]"
+  say="The voltage is RT over F times the natural log of a ratio. On top, each ion's permeability times its concentration outside (inside, for chloride); on the bottom, the same with inside and outside swapped."
+  symbols={[
+    ["Vm", "V m", "the membrane potential where the net current is zero", "mV"],
+    ["RT/F", "R T over F", "R is the gas constant, T the absolute temperature in kelvin, F Faraday's constant. Together they make one voltage: 26.72 mV at 37 °C.", "mV"],
+    ["ln", "natural log", "answers “e raised to what power gives this number?” A ratio below 1 has a negative log, which is why this cell’s rest comes out negative.", ""],
+    ["P_K", "P sub K", "relative permeability to potassium: how easily it passes. Only the ratios matter, so this lesson sets P_K = 1.", ""],
+    ["[K]o", "K outside", "potassium concentration outside the cell; [K]i is inside. The square brackets mean concentration.", "mM"],
+    ["P_Na", "P sub Na", "relative permeability to sodium", ""],
+    ["P_Cl", "P sub Cl", "relative permeability to chloride", ""],
+  ]}
+  toolkit={["e-and-ln", "log-scales", "subscripts"]}
+  check="If only potassium could pass (P_Na = P_Cl = 0), P_K cancels, the ratio is just [K]o / [K]i, and the equation becomes the Nernst equation for potassium: Vm = E_K. Adding a little sodium permeability raises the top more than the bottom and pulls Vm up toward E_Na."
+>
+  <Fragment slot="example">
+    <p>Try the potassium-only case with this cell’s concentrations, 4 mM outside and 140 mM inside.</p>
+    <p>Ratio: 4 / 140 = 0.0286.</p>
+    <p>Natural log: ln(0.0286) = −3.555 (a calculator’s ln button).</p>
+    <p>Vm = 26.72 × (−3.555) = −95.0 mV, exactly the E_K this cell was given.</p>
+  </Fragment>
+</EquationCard>
+
+It comes from Goldman's 1943 constant-field theory (its assumptions are in Going deeper). Chloride's concentrations sit the other way round from the cations' because a negative ion flowing in carries current the way a positive ion flowing out does.
+
+**Worked problem, part 2.** Take RT/F = 26.72 mV (37 °C), P_K = 1, P_Na = 0.04, P_Cl = 0 (chloride is left out here), and the concentrations from part 1.
+
+*Top:* 4 + 0.04 × 145 = 4 + 5.8 = 9.8 mM.
+
+*Bottom:* 140 + 0.04 × 15 = 140 + 0.6 = 140.6 mM.
+
+*Vm* = 26.72 × ln(9.8 / 140.6) = 26.72 × ln(0.0697) = 26.72 × (−2.664) = −71.2 mV, the same rest as the conductance average. (A ratio below 1 has a negative log. Check: e^−2.664 ≈ 0.0697; see [e and ln](/math-toolkit/#e-and-ln).)
+
+Now double P_Na to 0.08. The top becomes 4 + 11.6 = 15.6 and the bottom 140 + 1.2 = 141.2, so Vm = 26.72 × ln(0.1105) = 26.72 × (−2.203) = −58.9 mV, 12 mV toward E_Na. That is a smaller shift than the −53.7 mV from doubling g_Na in the ohmic average, for the reason that follows.
+
+**Why 0.04 and not 0.18?** The permeability ratio is 1 : 0.04. The conductance ratio is 8.47 : 1.53, about 1 : 0.18. Both describe the same cell. Permeability is a property of the pathway: how easily an ion gets through. Conductance is the current the pathway actually carries per millivolt of driving force, and that also depends on how many ions sit on each side and on the voltage. Sodium is plentiful outside, and at −71 mV the negative inside draws it in. Potassium is plentiful inside, and the same negative inside holds it back. So each unit of sodium permeability carries more current than each unit of potassium permeability. It also means real GHK leaks are not quite ohmic: their conductances shift as the voltage moves. Doubling P_Na raises g_Na only about 1.9 times and also raises g_K about 1.14 times, so sodium gains less ground (Going deeper).
+
+> **Which to use.** Reason with the balance point: which way rest moves, and why. Calculate with GHK when you are given concentrations and permeabilities.
+
+Hodgkin and Katz used P_K : P_Na : P_Cl of about 1 : 0.04 : 0.45 for the resting squid giant axon in 1949. Other cells differ, so there is no universal resting potential.
+
+### What keeps the balance point there: the pump
+
+Left alone, those leaks would run the gradients down. The Na+/K+ pump (three Na+ out, two K+ in per ATP) puts the ions back. So rest is a steady state, kept up by the pump, not an equilibrium. The pump's main job is keeping the gradients, but because it moves net charge outward it also carries a small outward current. The balance point and the GHK equation leave that current out; it shifts real rest somewhat more negative, by an amount small in many cells but varying with cell type and pump activity. How a K+ channel excludes Na+ belongs to [ion channels as receptors](/lessons/ion-channels-as-receptors/).
+
+## A nudge takes time: the RC membrane
+
+<LessonFilm film={frontmatter.films[1]} />
+
+Now the second puzzle. In **current clamp** you set the current injected into the cell and record its voltage. Give our cell a small step of current, −100 pA, from 0 to 60 ms. Injected current is signed the other way from membrane current: positive injected current carries positive charge into the cell and depolarizes it. So −100 pA pushes the voltage down, away from threshold.
+
+**Predict.** Does the voltage jump to its new level the instant the current switches on?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The trace is flat at rest. When the step begins, the voltage starts moving at once but smoothly: steeply at first, then bending over toward a plateau. When the step ends, it relaxes back to rest along the same kind of curve. The reason is that the membrane stores charge, and moving charge takes time.
+
+</details>
+
+The bilayer is a thin insulator between two conducting solutions, so it stores charge like a capacitor (see [membrane structure and function](/lessons/membrane-structure-function/)). The leak channels are resistors in parallel with it. **Capacitance**, C, is the charge stored per volt. For a compact cell whose whole surface sits at one voltage (isopotential), that is the entire model.
+
+Picture a straight-sided tank with a drain. The water level is the size of the voltage change from rest, whichever way the voltage moves. The tank's width is the capacitance. The drain is the leak, and its outflow grows in proportion to the level. The injected current is a hose pouring in.
+
+- At the first instant the level has not risen yet, so nothing extra goes down the drain. All the inflow goes into raising the level. That sets the starting slope: current divided by capacitance, I / C.
+- As the level rises, more water leaves through the drain, so the level rises more slowly.
+- The level stops rising when the drain carries all the inflow. That is the plateau.
+
+A wider tank (more capacitance) fills more slowly. A bigger drain (more leak) stops at a lower level, and gets there sooner.
+
+Now the same thing with the balance point. From here on, keep two things apart: the balance point, where the voltage is heading, and the marker, where the voltage is now. At rest they coincide. The injected current is a steady extra pull on the marker, one that does not depend on where the marker sits. The ropes stretch until together they cancel it. Each rope's pull changes in proportion to its conductance times how far the marker moves, so the marker has to move by I / g_total. That is the plateau. The **input resistance**, Rin, is the steady voltage change divided by the small steady current that caused it:
+
+> **Rin = ΔV / I = 1 / g_total**
+
+For our ohmic cell, 1 / 10 nS = 100 MΩ (a siemens is one over an ohm, so 1 / (10 × 10^-9 S) = 10^8 Ω; a cell whose leaks follow the GHK equation would differ; see Going deeper). The balance point moves the instant the current starts. The voltage follows it, at a pace set by capacitance and leak:
+
+<EquationCard
+  purpose="How far the voltage has moved at any moment after a small steady current is switched on."
+  eq="ΔV(t) = I × Rin × (1 − e^(−t/τ))"
+  say="The change so far equals the final change, I times Rin, times a fraction that starts at zero and climbs toward one."
+  symbols={[
+    ["ΔV(t)", "delta V of t", "the change in voltage from rest at time t after the current starts", "mV"],
+    ["I", "I", "the injected current (positive into the cell)", "pA"],
+    ["Rin", "R in", "the input resistance, 1 / g_total. I × Rin is the final change, the plateau.", "MΩ"],
+    ["e^(−t/τ)", "e to the minus t over tau", "the share of the final change still to come at time t. e is about 2.718; t is the time since the current started.", ""],
+    ["τ", "tau", "the membrane time constant, found inside the exponent above: τ = Rin × C = C / g_total, where C is the membrane capacitance", "ms"],
+  ]}
+  toolkit={["e-and-ln", "units"]}
+  check="At t = 0, e^0 = 1, so the bracket is 0: nothing has changed yet. As t grows, e^(−t/τ) shrinks toward 0, the bracket climbs toward 1, and ΔV approaches I × Rin. More capacitance or less leak makes τ longer, so the climb is slower."
+>
+  <Fragment slot="example">
+    <p>The bracket, 1 − e^(−t/τ), at whole numbers of τ:</p>
+    <p>t = τ: e^−1 = 1 / 2.718 = 0.368, so the bracket is 1 − 0.368 = 0.632.</p>
+    <p>t = 2τ: e^−2 = 0.135, so the bracket is 0.865.</p>
+    <p>t = 3τ: e^−3 = 0.050, so the bracket is 0.950.</p>
+    <p>Multiply by the final change, I × Rin, to get the voltage change at each time. Part 3 below does it for our cell.</p>
+  </Fragment>
+</EquationCard>
+
+The **membrane time constant** τ is the time to reach 63% of the final change, since 1 − e^−1 = 0.632. It is not the time to finish: 2τ gives 86% and 3τ 95%. When the current stops, the deflection decays toward rest with the same τ. These formulas are exact for a compact cell with fixed capacitance and fixed ohmic conductances. In a real membrane they hold approximately for small steps that open or close no gated channels; the last section shows how to spot a step that does.
+
+**Worked problem, part 3.** The same cell: Rin = 100 MΩ (from its 10 nS of leak) and C = 200 pF. Inject −100 pA from 0 to 60 ms.
+
+*τ* = (100 × 10^6 Ω) × (200 × 10^−12 F) = 0.020 s = 20 ms. (Mega, M, is 10^6 and pico, p, is 10^−12; ohms times farads give seconds.) Equivalently, 200 pF / 10 nS = 20 ms, since pico over nano is 10^−12 / 10^−9 = 10^−3, milli.
+
+*Final deflection:* −100 pA × 100 MΩ = −10 mV. The balance point moves from −71.2 to −81.2 mV.
+
+*At 20 ms:* −10 × (1 − e^−1) = −10 × 0.632 = −6.32 mV.
+
+*At 60 ms (3τ):* −10 × (1 − e^−3) = −10 × 0.950 = −9.50 mV, still short of −10.
+
+*At 80 ms, 20 ms after the step ends:* the decay starts from −9.50 mV, so −9.50 × e^−1 = −3.50 mV.
+
+*Initial slope:* −100 pA / 200 pF = −0.5 mV per ms.
+
+In absolute terms: −71.2 mV, then −80.7 mV at 60 ms, then −74.7 mV at 80 ms.
+
+A deflection lingers after its input ends: 37% of it remains one τ later, and 14% after 2τ. So responses to two brief current pulses that arrive closer together than a few τ overlap and add, exactly so in this fixed-conductance model. This is **temporal summation**. Small synaptic inputs ([synaptic integration](/lessons/synaptic-integration/)) add roughly the same way, but a synaptic input opens channels, changing both the conductance and the driving force, so its responses need not add linearly. A longer τ leaves a larger share of the first response when the second arrives, so it widens the window for adding; the size of the summed peak also depends on Rin, C and the inputs themselves. In a cell with dendrites the transient is a sum of exponentials (Rall's 1969 theoretical analysis), so one exponential is an approximation.
+
+## A nudge fades with distance: the cable
+
+<LessonFilm film={frontmatter.films[2]} />
+
+A dendrite or axon is a thin tube of salty cytoplasm in leaky membrane. Current injected at one point has two paths: along the core, or out through the membrane. Water in a garden hose full of small holes behaves the same way. Some leaks out at every hole, so the farther along you go, the less is left.
+
+How far the current gets depends on which path is easier. A wide core carries it farther. A tight wall loses less on the way. The **length constant**, λ, puts that contest into one number. Take a stretch of cable one λ long: the resistance along its core equals the resistance out through its wall over that same stretch.
+
+The next formula gives the steady voltage at any distance, x, from the source. Two resistances set λ, each for a unit length of cable: rm, the membrane resistance (the wall), and ri, the core (axial) resistance. For a uniform, effectively infinite passive cable with a steady current at one point, the voltage falls exponentially with distance:
+
+> **V(x) = V0 × e^(−x/λ), with λ = √(rm / ri)**
+
+Read it as: the voltage at distance x equals the voltage at the source, V0 (“V zero”), times a factor that shrinks as x grows. λ is read “lambda”. A tighter wall (bigger rm) or a less resistive core (smaller ri) makes λ longer.
+
+**Predict.** One length constant away from the source, is the steady signal gone?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. At one λ the steady deflection is e^−1, about 37% of its value at the source: smaller, not gone. At 2λ about 14% remains. λ sets the scale of the decay; it is not a cutoff.
+
+</details>
+
+With membrane and cytoplasm unchanged, λ grows as the square root of diameter. Capacitance does not appear: it sets how fast the steady state arrives, not its shape in space.
+
+In the simulation, a steady −10 mV is held at one end of a passive cable. Make the membrane leakier and watch the 37% point move toward the source; widen the cable and watch it move away.
+
+<CableLengthConstant />
+
+**Worked problem, part 4.** An infinite uniform passive cable with λ = 0.5 mm is held at a steady −10 mV deflection at one point.
+
+*At 0.5 mm:* −10 × e^−1 = −10 × 0.368 = −3.68 mV.
+
+*At 1 mm (2λ):* −10 × e^−2 = −10 × 0.135 = −1.35 mV.
+
+### More leak: smaller, faster, more local
+
+**Worked problem, part 5.** Instead of changing P_Na, double the uniform leak conductance, so membrane resistance halves, with C and geometry unchanged. For the compact cell of part 3, Rin falls to 50 MΩ, so τ = 50 MΩ × 200 pF = 10 ms, and the −100 pA step now gives only −5 mV. Because λ scales with √rm, halving rm divides λ by √2, about 1.414: the cable's λ = 0.5 / 1.414 = 0.354 mm. (A long cable's input resistance falls only by a factor of √2.) Whether rest moves depends on the added leak's reversal potential. If every leak doubles in proportion, the passive balance point stays put (the pump's small direct shift halves; Going deeper).
+
+| | Before | Leak doubled |
+| --- | --- | --- |
+| Total leak (compact cell) | 10 nS | 20 nS |
+| Input resistance | 100 MΩ | 50 MΩ |
+| Steady change for −100 pA | −10 mV | −5 mV |
+| Time constant | 20 ms | 10 ms |
+| Length constant (cable of part 4) | 0.5 mm | 0.354 mm |
+
+## Reading a trace and predicting a drug
+
+<LessonFilm film={frontmatter.films[3]} />
+
+For a compact passive cell, one current step gives three numbers: Rin = ΔV / I (the plateau divided by the current), τ (the time to 63%), and C = τ / Rin. The word compact matters. In a cell with substantial dendrites, a steady current at the soma spreads only partway into the dendrites, so Rin is higher than if the whole membrane sat at one voltage, and τ / Rin underestimates the total capacitance (Going deeper). Small hyperpolarizing steps, which stay away from threshold, plotted as steady ΔV against I give Rin as the slope. A straight line means Rin is constant over that range, which fits a passive membrane but does not prove it.
+
+Check the trace against the model. A pure RC response rises smoothly to a plateau. If the voltage overshoots and sags back during a hyperpolarizing step, a conductance is turning on with voltage, often the HCN current, which hyperpolarization switches on. If the voltage-current plot bends, Rin depends on voltage. Either way a single RC fit will mislead you.
+
+To predict what a drug does, ask two questions. Which ion's conductance changed, and which way? That moves rest. Did the total conductance go up or down? That moves Rin and τ.
+
+**Predict.** A drug opens more K+ leak channels and does nothing else. What happens to rest, Rin and τ?
+
+<details>
+<summary>Check your prediction</summary>
+
+Rest moves toward E_K, so the cell hyperpolarizes: potassium's rope got thicker. The total conductance rose, so Rin falls and τ = Rin × C shortens. A test step now gives a smaller, faster response.
+
+</details>
+
+The other cases follow the same way. More Na+ conductance depolarizes toward E_Na and also lowers Rin. Closing a leak raises Rin and τ and moves rest away from that leak's reversal potential.
+
+### Shunting: more conductance, same rest
+
+One case surprises most students. Suppose the added channels reverse right at rest, as chloride channels do when chloride sits at equilibrium (often roughly so at rest, though in many neurons transporters hold chloride away from it). On the scale, the new rope is anchored exactly where the marker already sits. It is not stretched, so it adds no pull, and rest does not move. But it makes the marker harder to move. Any other current now shifts the voltage less, because g_total is larger and the shift is I / g_total, and the response is faster too. This is **shunting**: a conductance that reverses at rest lowers Rin without moving Vm.
+
+### Design problem
+
+In a made-up current-clamp recording from a different neuron, in a brain slice, a −50 pA step gives a steady −5 mV deflection with τ = 20 ms. You apply a drug. Rest depolarizes by 8 mV, and the same step now gives −8 mV with τ = 32 ms. Treat this cell as isopotential and passive, with fixed ohmic leaks, fixed specific capacitance and negligible pump current, and suppose the drug changes only one leak conductance. What did the drug do, and how would you test your reading?
+
+<details>
+<summary>One way to do it</summary>
+
+Before the drug, Rin = 5 mV / 50 pA = 100 MΩ and C = 20 ms / 100 MΩ = 200 pF. After it, Rin = 8 mV / 50 pA = 160 MΩ and C = 32 ms / 160 MΩ = 200 pF.
+
+Capacitance did not change, consistent with unchanged membrane area under fixed specific capacitance; τ rose only because Rin did. Total leak fell from 10 nS to 6.25 nS, a loss of 3.75 nS. Closing a conductance moves rest away from its reversal potential, and rest depolarized, so the closed conductance reversed below rest: a K+ leak is the likeliest candidate. The shift also says where it reversed, in three steps. First, the 6.25 nS of leak that remains balances 8 mV above the starting rest, so at the starting rest it carried 6.25 nS × 8 mV = 50 pA of net inward current. Second, the net current at rest was zero, so the closed 3.75 nS must have carried 50 pA outward. Third, 50 pA / 3.75 nS ≈ 13 mV of driving force, so it reversed about 13 mV below the starting rest (in one line, 8 mV × 6.25 / 3.75). If that leak was uniform over the dendrites, rm rose 1.6 times (10 / 6.25), so λ would rise by √1.6, about 1.26 times. All of this holds only within the stated model.
+
+To test it, voltage-clamp the cell and subtract currents recorded at several voltages with and without the drug. A K+ leak should give a drug-sensitive current that reverses near E_K, shifts its reversal when external K+ is raised, and appears without delay after each voltage step. Its current-voltage curve need not be straight: with far more K+ inside than outside, even a passive K+ pore passes outward current more easily than inward current (GHK rectification). If instead the drug-sensitive current turns on slowly after a voltage step, the target is a voltage-gated conductance. A lost sag would point to HCN channels, but HCN current reverses above rest, so blocking it alone would hyperpolarize the cell rather than depolarize it.
+
+</details>
+
+## Going deeper
+
+### Rest with three conductances
+
+The shortcut "rest sits nearest the equilibrium potential of the largest conductance" fails with three conductances. In the squid model used in [the action potential](/lessons/action-potential/), the resting conductances are about 0.367 mS/cm² for potassium, 0.3 for leak and 0.011 for sodium, with E_K = −77 mV, E_leak = −54.4 mV and E_Na = +50 mV. Here "leak" is a lumped conductance for other ions together, with an effective reversal potential, not a single ion. The balance point is (0.367 × −77 + 0.3 × −54.4 + 0.011 × 50) / 0.678 = (−28.26 − 16.32 + 0.55) / 0.678 = −44.03 / 0.678 = −64.9 mV. That is 12.1 mV from E_K but 10.5 mV from E_leak, so rest sits nearer E_leak even though potassium has the largest conductance.
+
+### Why doubling PNa is not doubling gNa
+
+For leaks that obey the GHK current equation, conductance changes with voltage. The conductances 8.47 and 1.53 nS match this cell's GHK **chord conductances** at −71.2 mV (each current divided by its driving force), once the overall scale is set so that each current is 202 pA. Recompute the chord conductances at the new rest after P_Na doubles, put them into the weighted average, and it returns −58.9 mV, the same as GHK, so the balance point holds at every steady state. Only the naive move, doubling g_Na while holding g_K, gives −53.7 mV.
+
+A small nudge depends on a different quantity, the **slope conductance**: how much the current changes per millivolt. For these GHK leaks it is about 12.9 nS at rest, not 10 nS, so a GHK version of this cell would have Rin near 78 MΩ and τ near 16 ms. That is why the RC section uses the ohmic model, whose conductances are fixed. The same voltage dependence produces the GHK rectification in the design problem.
+
+### What the GHK equation assumes
+
+Goldman's 1943 theory assumes a constant field, the same at every depth in the membrane, and ions that move independently of one another. Some channels depart from it, for example by saturating at high concentration, so the equation is best read as a description of permeability ratios at one operating point. The anecdote "A constant-field theory that fitted artificial membranes only roughly" tells how the theory began.
+
+### The pump's own current
+
+Add the pump's net outward current, I_pump, and any injected current, I_inj (positive into the cell), to the leak currents and set the total to zero. The steady voltage is then Vm = (Σ g × E + I_inj − I_pump) / g_total, where Σ (“sigma”) means “add up”: Σ g × E is one g × E term for each leak, summed. The pump shifts rest by −I_pump / g_total, so scaling every leak together leaves the passive balance point where it is but shrinks the pump's shift in proportion: doubling every leak halves it.
+
+### Units of rm and ri
+
+rm is the membrane resistance of a unit length of cable, in Ω·cm. ri is the axial resistance per unit length, in Ω/cm.
+
+### More than one time constant
+
+Rin and τ measured at the soma of a branched neuron are lumped values. In Rall's analysis the transient also contains equalization time constants, faster than the membrane time constant, that describe charge spreading along the dendrites; their values depend on geometry and boundary conditions, so a single-exponential fit can mislead. τ / Rin already underestimates total capacitance in such a cell (the last section says why), and a single-exponential fit that picks up the faster components lowers it further. A cable or multi-exponential analysis is needed for total C. The anecdote "A neuron with dendrites has more than one time constant" has more.
+
+### Human dendrites
+
+In human temporal-lobe cortex resected from epilepsy patients, Beaulieu-Laroche and colleagues (2018) found that distal inputs to layer 5 pyramidal neurons were attenuated more on the way to the soma than in rat layer 5 neurons: a result for those cells, not all human neurons. Measurements of human specific capacitance differ between studies; the anecdote "Two numbers for human membrane capacitance" gives both.

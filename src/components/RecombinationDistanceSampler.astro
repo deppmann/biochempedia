@@ -1,0 +1,213 @@
+---
+/**
+ * RecombinationDistanceSampler — set the map distance between two linked loci and sample
+ * test-cross progeny from a coupling-phase female (A B / a b x a b / a b). The four classes
+ * are counted beside their expected values, and the recombination frequency is plotted
+ * against distance: it tracks distance at short range and levels off below the 50% ceiling.
+ * Rules are the linkage-and-mapping lesson's: RF = recombinants / total, 1 cM = 1% at short
+ * range, the two recombinant classes are equal, and Haldane's function
+ * RF = (1 - e^(-2d)) / 2 (d in morgans) turns distance into frequency when crossovers form
+ * independently. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="rds card" data-rds>
+  <figcaption class="rds-head">Recombination sampler: distance versus what you count<span class="rds-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rds-svg" viewBox="0 0 360 190" role="img" aria-label="Bars of observed counts for the four test-cross classes with the expected count marked on each" data-bars></svg>
+
+  <div class="rds-controls">
+    <label class="rds-slabel"><span>Map distance between the loci <em data-out="d">20</em> cM</span>
+      <input type="range" data-in="d" min="0" max="150" step="1" value="20" />
+    </label>
+    <label class="rds-slabel"><span>Progeny scored</span>
+      <select data-in="n">
+        <option value="100">100</option>
+        <option value="500">500</option>
+        <option value="1000" selected>1,000</option>
+      </select>
+    </label>
+    <button type="button" class="rds-btn" data-resample>Resample</button>
+  </div>
+
+  <dl class="rds-readout">
+    <div><dt>Recombinants (A b + a B)</dt><dd data-r-rec>0</dd></div>
+    <div><dt>Observed RF</dt><dd data-r-rf>0</dd></div>
+    <div><dt>Expected RF at this distance</dt><dd data-r-exp>0</dd></div>
+    <div><dt>Distance read as 100 x RF (short-interval rule)</dt><dd data-r-read>0</dd></div>
+  </dl>
+
+  <svg class="rds-svg" viewBox="0 0 360 220" role="img" aria-label="Recombination frequency plotted against map distance, rising along the line RF equals distance at first and levelling off below 50 percent" data-plot></svg>
+
+  <p class="rds-why" data-why role="status"></p>
+
+  <p class="rds-foot">Recombination frequency tracks map distance only over short intervals; it climbs toward, and never passes, 50%, so long distances are underestimated. This is a sketch of the logic: the curve assumes crossovers form independently (Haldane), and real crossovers interfere, so it can overcorrect. Assumes equal survival of all classes and accurate scoring; a Drosophila female heterozygote.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', TEAL = '#0e7c86', ORANGE = '#e57200';
+  const MAXN = 1000;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  // Haldane (1919), as in the lesson: RF = (1 - e^(-2d)) / 2 with d in morgans.
+  const rfOf = (cM: number) => (1 - Math.exp(-2 * (cM / 100))) / 2;
+  // Inverse, as in the lesson: d = -1/2 ln(1 - 2 RF). Not defined at RF = 0.5.
+  document.querySelectorAll<HTMLElement>('[data-rds]').forEach((root) => {
+    const bars = root.querySelector<SVGSVGElement>('[data-bars]')!;
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const dIn = root.querySelector<HTMLInputElement>('[data-in="d"]')!;
+    const nIn = root.querySelector<HTMLSelectElement>('[data-in="n"]')!;
+    const dOut = root.querySelector<HTMLElement>('[data-out="d"]')!;
+    const rRec = root.querySelector<HTMLElement>('[data-r-rec]')!;
+    const rRf = root.querySelector<HTMLElement>('[data-r-rf]')!;
+    const rExp = root.querySelector<HTMLElement>('[data-r-exp]')!;
+    const rRead = root.querySelector<HTMLElement>('[data-r-read]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+
+    // Each progeny keeps two uniform draws, so moving the slider changes the odds smoothly
+    // and only Resample redraws the flies.
+    let u1: number[] = [], u2: number[] = [];
+    function redraw() {
+      u1 = []; u2 = [];
+      for (let i = 0; i < MAXN; i++) { u1.push(Math.random()); u2.push(Math.random()); }
+    }
+    redraw();
+
+    function render() {
+      const dcM = parseInt(dIn.value, 10);
+      const n = parseInt(nIn.value, 10);
+      const rf = rfOf(dcM);
+      // coupling female A B / a b: parental A B, a b; recombinant A b, a B
+      const cnt = { AB: 0, ab: 0, Ab: 0, aB: 0 };
+      for (let i = 0; i < n; i++) {
+        if (u1[i] < rf) { if (u2[i] < 0.5) cnt.Ab++; else cnt.aB++; }
+        else { if (u2[i] < 0.5) cnt.AB++; else cnt.ab++; }
+      }
+      const rec = cnt.Ab + cnt.aB;
+      const obsRf = rec / n;
+      dOut.textContent = String(dcM);
+      rRec.textContent = `${rec} of ${n}`;
+      rRf.textContent = (obsRf * 100).toFixed(1) + '%';
+      rExp.textContent = (rf * 100).toFixed(1) + '%';
+      // naive reading: map distance (cM) = 100 x RF, the short-interval rule in the lesson
+      rRead.textContent = (obsRf * 100).toFixed(1) + ' cM';
+
+      // ---- class bars ----
+      bars.replaceChildren();
+      const rows: { key: 'AB' | 'ab' | 'Ab' | 'aB'; label: string; parental: boolean; exp: number }[] = [
+        { key: 'AB', label: 'A B', parental: true, exp: (n * (1 - rf)) / 2 },
+        { key: 'ab', label: 'a b', parental: true, exp: (n * (1 - rf)) / 2 },
+        { key: 'Ab', label: 'A b', parental: false, exp: (n * rf) / 2 },
+        { key: 'aB', label: 'a B', parental: false, exp: (n * rf) / 2 },
+      ];
+      const X0 = 52, X1 = 260, top = 24, step = 36;
+      const scale = (X1 - X0) / (0.5 * n); // full width = 50% of progeny
+      bars.appendChild(el('text', { x: 8, y: 12, 'font-size': 10, fill: INK }, 'Class (A B / a b female)'));
+      bars.appendChild(el('text', { x: X1, y: 12, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '0 to 50% of progeny'));
+      rows.forEach((r, i) => {
+        const y = top + i * step;
+        const obs = cnt[r.key];
+        const col = r.parental ? TEAL : ORANGE;
+        bars.appendChild(el('text', { x: 8, y: y + 17, 'font-size': 11, 'font-weight': 700, fill: INK }, r.label));
+        bars.appendChild(el('rect', { x: X0, y, width: X1 - X0, height: 24, rx: 3, fill: '#f1f1f4' }));
+        if (obs > 0) bars.appendChild(el('rect', { x: X0, y, width: Math.min(obs * scale, X1 - X0), height: 24, rx: 3, fill: col }));
+        const ex = X0 + Math.min(r.exp * scale, X1 - X0);
+        bars.appendChild(el('line', { x1: ex, y1: y - 3, x2: ex, y2: y + 27, stroke: '#1f1f26', 'stroke-width': 2 }));
+        bars.appendChild(el('text', { x: X1 + 8, y: y + 10, 'font-size': 10, 'font-weight': 700, fill: INK }, `${obs} seen`));
+        bars.appendChild(el('text', { x: X1 + 8, y: y + 22, 'font-size': 9, fill: INK }, `${r.exp.toFixed(1)} expected`));
+      });
+      // legend
+      const ly = top + 4 * step - 2;
+      bars.appendChild(el('rect', { x: X0, y: ly, width: 10, height: 8, rx: 2, fill: TEAL }));
+      bars.appendChild(el('text', { x: X0 + 14, y: ly + 8, 'font-size': 9, fill: INK }, 'parental'));
+      bars.appendChild(el('rect', { x: X0 + 70, y: ly, width: 10, height: 8, rx: 2, fill: ORANGE }));
+      bars.appendChild(el('text', { x: X0 + 84, y: ly + 8, 'font-size': 9, fill: INK }, 'recombinant'));
+      bars.appendChild(el('line', { x1: X0 + 156, y1: ly - 1, x2: X0 + 156, y2: ly + 9, stroke: '#1f1f26', 'stroke-width': 2 }));
+      bars.appendChild(el('text', { x: X0 + 162, y: ly + 8, 'font-size': 9, fill: INK }, 'expected count'));
+
+      // ---- RF versus distance plot ----
+      plot.replaceChildren();
+      const PX0 = 44, PX1 = 346, PY0 = 22, PY1 = 176;
+      const DMAX = 150, RMAX = 60; // percent
+      const px = (c: number) => PX0 + (c / DMAX) * (PX1 - PX0);
+      const py = (p: number) => PY1 - (p / RMAX) * (PY1 - PY0);
+      plot.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      for (const p of [0, 10, 20, 30, 40, 50]) {
+        plot.appendChild(el('line', { x1: PX0 - 3, y1: py(p), x2: PX0, y2: py(p), stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: PX0 - 5, y: py(p) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, p + '%'));
+      }
+      for (const c of [0, 25, 50, 75, 100, 125, 150]) {
+        plot.appendChild(el('line', { x1: px(c), y1: PY1, x2: px(c), y2: PY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: px(c), y: PY1 + 13, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, String(c)));
+      }
+      plot.appendChild(el('text', { x: (PX0 + PX1) / 2, y: PY1 + 28, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, 'map distance (cM)'));
+      plot.appendChild(el('text', { x: PX0 - 2, y: PY0 - 9, 'font-size': 10, fill: INK }, 'recombination frequency'));
+      // 50% ceiling
+      plot.appendChild(el('line', { x1: PX0, y1: py(50), x2: PX1, y2: py(50), stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '5 3' }));
+      plot.appendChild(el('text', { x: PX1, y: py(50) - 4, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '50% ceiling'));
+      // RF = distance reference line (1 cM = 1%), clipped at the ceiling
+      plot.appendChild(el('line', { x1: px(0), y1: py(0), x2: px(50), y2: py(50), stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('text', { x: px(50) + 4, y: py(50) + 12, 'font-size': 9, fill: INK }, 'RF = distance (short-interval rule)'));
+      // Haldane curve
+      let path = '';
+      for (let c = 0; c <= DMAX; c += 1.5) path += (c === 0 ? 'M' : 'L') + px(c).toFixed(1) + ' ' + py(rfOf(c) * 100).toFixed(1) + ' ';
+      plot.appendChild(el('path', { d: path.trim(), fill: 'none', stroke: TEAL, 'stroke-width': 2.6 }));
+      plot.appendChild(el('text', { x: px(100) , y: py(rfOf(100) * 100) + 16, 'font-size': 9, 'text-anchor': 'middle', fill: TEAL }, 'expected RF'));
+      // current distance, expected and observed
+      plot.appendChild(el('line', { x1: px(dcM), y1: PY1, x2: px(dcM), y2: py(rf * 100), stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('circle', { cx: px(dcM), cy: py(rf * 100), r: 4.5, fill: '#fff', stroke: TEAL, 'stroke-width': 2 }));
+      plot.appendChild(el('circle', { cx: px(dcM), cy: py(Math.min(obsRf * 100, RMAX)), r: 4, fill: ORANGE }));
+      const lx = dcM > 85 ? px(dcM) - 8 : px(dcM) + 8;
+      plot.appendChild(el('text', { x: lx, y: PY1 - 6, 'font-size': 9, 'font-weight': 700, 'text-anchor': dcM > 85 ? 'end' : 'start', fill: ORANGE }, 'filled dot: your sample'));
+
+      // ---- status line ----
+      const exp = (rf * 100).toFixed(1);
+      let s: string;
+      if (dcM === 0) {
+        s = `At 0 cM, in this sketch, the loci are never separated, so recombination frequency is 0 and only the parental classes (A B, a b) appear.`;
+      } else if (dcM <= 5) {
+        s = `Over a short interval, 1 cM is 1% recombinant progeny, so ${dcM} cM expects about ${exp}% recombinants. You counted ${(obsRf * 100).toFixed(1)}%, and the two recombinant classes are about equal (with few progeny they can differ by chance), as a reciprocal exchange predicts.`;
+      } else if (dcM < 60) {
+        s = `At ${dcM} cM the expected recombination frequency is ${exp}%, already less than ${dcM}%, because double crossovers between the loci put the parental combination back. You counted ${(obsRf * 100).toFixed(1)}%; the parental classes are still the larger ones.`;
+      } else if (dcM < 120) {
+        s = `At ${dcM} cM the expected frequency is only ${exp}%, close under the 50% ceiling. Reading your counted ${(obsRf * 100).toFixed(1)}% as distance gives ${(obsRf * 100).toFixed(1)} cM, well short of the true ${dcM} cM: a long interval is underestimated.`;
+      } else {
+        s = `At ${dcM} cM the expected frequency is ${exp}%, approaching the 50% seen for unlinked loci, so a two-point cross struggles to tell loci this far apart on one chromosome from loci on different chromosomes; map them with short intervals and add them.`;
+      }
+      if (n === 100 && dcM > 0) s += ' With only 100 progeny the scatter around the expected count is large; press Resample to see it.';
+      why.textContent = s;
+    }
+
+    dIn.addEventListener('input', render);
+    nIn.addEventListener('change', render);
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', () => { redraw(); render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .rds { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rds-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rds-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rds-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rds-controls { display: grid; grid-template-columns: 2fr 1fr auto; gap: var(--ddp-space-2) var(--ddp-space-4); align-items: end; margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .rds-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rds-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .rds-slabel input { accent-color: var(--ddp-color-accent); }
+  .rds-slabel select { font-size: var(--ddp-text-xs); padding: 0.25rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); }
+  .rds-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .rds-btn:focus-visible, .rds-slabel input:focus-visible, .rds-slabel select:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .rds-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0 var(--ddp-space-3); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .rds-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .rds-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rds-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .rds-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 4.5em; }
+  .rds-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .rds-controls { grid-template-columns: 1fr; } .rds-readout { grid-template-columns: 1fr; } }
+</style>

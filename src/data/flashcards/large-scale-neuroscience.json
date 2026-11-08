@@ -1,0 +1,616 @@
+{
+ "slug": "large-scale-neuroscience",
+ "title": "Recording Many Neurons: Imaging, Arrays and Atlases",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Opus draft → Codex accuracy gate → fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "OpenAI via Codex",
+   "fix": "claude-sonnet-5-5"
+  },
+  "tokens": {
+   "draft": 110976,
+   "gate": 31531
+  }
+ },
+ "lessonHash": "74bf527aa974",
+ "sectionHashes": {
+  "Four big numbers, four questions": "3ec2274d52be",
+  "Probes: sites, channels and units": "0e021ba560c1",
+  "Imaging: light, two steps from a spike": "3bd82b36e203",
+  "The neuropil problem": "17a3588d2b6f",
+  "How many spikes is a flash? Calibrate it": "fd840efc7751",
+  "Two methods, two ladders": "3e5d8d3fcd3e",
+  "How many samples do you really have?": "84d53aa4dc86",
+  "Atlases and connectomes: steps the data do not fully check": "ad210eb64fe5",
+  "MICrONS: one cell, seen twice": "0ac9f7771723",
+  "Design problem": "9fc01a9d3b7f",
+  "Photons, not frames: a rough estimate": "dde21b14830e",
+  "How much do more units help?": "a08e64a116a8"
+ },
+ "cards": [
+  {
+   "id": "large-scale-neuroscience-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What is the rule for deciding how far to trust a large-scale neuroscience number, such as sorted units, ΔF/F0 or a synapse count?",
+   "back": "Each number is a proxy, one or more steps from what the claim is about. Name each step, and trust it only as far as that step has been measured in conditions like yours.",
+   "quote": "Name each step, and trust it only as far as someone has measured that step in conditions like yours.",
+   "section": "Four big numbers, four questions"
+  },
+  {
+   "id": "large-scale-neuroscience-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Can a large observational dataset (calcium imaging, probe recordings, a transcriptomic atlas or a connectome) show that a pathway is needed for a behaviour?",
+   "back": "No. Such data tell you how far a measurement can be trusted. Showing that a pathway is needed takes a manipulation.",
+   "quote": "It tells you how far a measurement can be trusted, not whether a pathway is needed for anything",
+   "section": "Four big numbers, four questions"
+  },
+  {
+   "id": "large-scale-neuroscience-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "On a high-density probe such as Neuropixels, each recording site being read out at a given moment is a {{c1::channel}}.",
+   "back": "Sites and channels are hardware; units come later, from spike sorting.",
+   "quote": "Each site being read out is a channel.",
+   "section": "Probes: sites, channels and units"
+  },
+  {
+   "id": "large-scale-neuroscience-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "The original Neuropixels probe (2017) has 960 recording sites. How many of them could its electronics read out at once?",
+   "back": "384, chosen by the experimenter within limits set by the wiring.",
+   "quote": "The original probe's electronics (Jun and colleagues, 2017) could read out only 384 of its sites at once",
+   "section": "Probes: sites, channels and units"
+  },
+  {
+   "id": "large-scale-neuroscience-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why can spike sorting on a Neuropixels probe find more units than channels, or fewer, and why is a sorted unit not necessarily one neuron?",
+   "back": "Units are inferred from spike shape and the sites where each spike appears. One neuron shows up on several sites and one site hears several neurons, so a unit can merge two neurons or split one.",
+   "why": "Even a well-isolated unit is a judgment made from quality scores.",
+   "quote": "One neuron shows up on several neighbouring sites; one site hears several neurons.",
+   "section": "Probes: sites, channels and units"
+  },
+  {
+   "id": "large-scale-neuroscience-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Compared with an intracellular recording, what does an extracellular electrode lose and what does it keep?",
+   "back": "It loses the membrane potential but keeps millisecond spike timing.",
+   "why": "It sits outside cells and picks up the small voltage changes that nearby spikes cause in the surrounding fluid.",
+   "quote": "It loses the membrane potential but keeps millisecond timing.",
+   "section": "Probes: sites, channels and units"
+  },
+  {
+   "id": "large-scale-neuroscience-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does the genetically encoded sensor GCaMP6 turn a rise in calcium into brighter light?",
+   "back": "Calcium binds the calmodulin part of the protein; calcium-bound calmodulin grips the M13 peptide built into the same protein, and that shape change makes the green fluorescent barrel brighter.",
+   "quote": "Calcium-bound calmodulin grips a short peptide, M13, built into the same protein, and that change of shape makes the green barrel brighter.",
+   "section": "Imaging: light, two steps from a spike"
+  },
+  {
+   "id": "large-scale-neuroscience-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is a GCaMP fluorescence signal described as two steps from a spike?",
+   "back": "The spike opens voltage-gated calcium channels so calcium in the cell body rises; then calcium makes the sensor glow.",
+   "quote": "the spike lets calcium in, and calcium makes the sensor glow.",
+   "section": "Imaging: light, two steps from a spike"
+  },
+  {
+   "id": "large-scale-neuroscience-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a GCaMP calcium-imaging trace blur the timing of individual spikes?",
+   "back": "A spike is over within a few milliseconds, but the calcium rise and the glow it causes rise and fade far more slowly.",
+   "quote": "A spike is over within a few milliseconds, but the calcium and the glow it causes rise and fade far more slowly.",
+   "section": "Imaging: light, two steps from a spike"
+  },
+  {
+   "id": "large-scale-neuroscience-c10",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Calcium-imaging activity as a fractional change from baseline: ΔF/F0 = {{c1::(F − F0) / F0}}",
+   "back": "F is the fluorescence at one moment; F0 is the baseline.",
+   "quote": "ΔF/F0 = (F − F0) / F0 F is the fluorescence at one moment and F0 is the baseline",
+   "section": "Imaging: light, two steps from a spike"
+  },
+  {
+   "id": "large-scale-neuroscience-c11",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A GCaMP6s-labelled neuron reads 250 at baseline and 340 at the peak of a response (arbitrary units). Ignoring neuropil, what is ΔF/F0?",
+   "back": "ΔF/F0 = (340 − 250)/250 = 90/250 = 0.36, a fractional change with no units.",
+   "quote": "Activity is reported as a fractional change from baseline",
+   "section": "Imaging: light, two steps from a spike"
+  },
+  {
+   "id": "large-scale-neuroscience-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In calcium imaging of a cortical cell body, what is neuropil?",
+   "back": "The dense tangle of axons, dendrites and glial processes around each cell body. Its axons and dendrites carry the sensor too, so its glow leaks into any soma region.",
+   "quote": "Around each cell body lies neuropil, the dense tangle of axons, dendrites and glial processes",
+   "section": "The neuropil problem"
+  },
+  {
+   "id": "large-scale-neuroscience-c13",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Neuropil correction of a soma's fluorescence: F_corrected = F_soma − {{c1::r × F_neuropil}}",
+   "back": "r = 0.8 was the default Huang and colleagues (2021) used in mouse visual cortex; it is not a universal constant.",
+   "quote": "The usual fix subtracts a scaled copy of the surrounding signal: F_corrected = F_soma − r × F_neuropil",
+   "section": "The neuropil problem"
+  },
+  {
+   "id": "large-scale-neuroscience-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Invented numbers: a soma region reads 600 at baseline and 720 at the peak; its neuropil ring reads 400 and 420. With r = 0.8, compute ΔF/F0 without and with neuropil correction.",
+   "back": "Uncorrected: 120/600 = 0.20. Corrected F0 = 600 − 0.8 × 400 = 280; F = 720 − 0.8 × 420 = 384; ΔF/F0 = 104/280 ≈ 0.37.",
+   "why": "Assumes r is the same at baseline and peak and the ring samples the same contaminating light as the soma.",
+   "quote": "Take r = 0.8, the default that Huang and colleagues (2021) used in mouse visual cortex",
+   "section": "The neuropil problem"
+  },
+  {
+   "id": "large-scale-neuroscience-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Invented numbers: a soma rises from 500 to 600 while its neuropil ring rises from 200 to 260. With r = 0.8, does neuropil correction raise or lower ΔF/F0?",
+   "back": "Lower. Uncorrected 100/500 = 0.20. Corrected F0 = 340, F = 392, so ΔF/F0 = 52/340 ≈ 0.15.",
+   "why": "Correction raises ΔF/F0 only when the neuropil's fractional change is smaller than the soma's. Here the neuropil rose 30% and the soma 20%.",
+   "quote": "No. It depends on which brightened more, in proportion.",
+   "section": "The neuropil problem"
+  },
+  {
+   "id": "large-scale-neuroscience-c16",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Cell 1's neuropil ring is nearly as bright as the soma at baseline and barely changes during a response. Cell 2 sits in tissue with dim, also nearly steady neuropil. Assume equal soma responses, the same r above zero, and positive corrected baselines. Whose ΔF/F0 rises more after neuropil correction, and why?",
+   "back": "Cell 1. Correction raises ΔF/F0 when the neuropil's fractional change is smaller than the soma's; a large, nearly steady neuropil glow inflates the baseline, so subtracting it shrinks F0 much more than the change. Dim neuropil barely alters F0.",
+   "quote": "In the worked problem it was, because the neuropil had added a large, nearly steady glow to the baseline.",
+   "section": "The neuropil problem"
+  },
+  {
+   "id": "large-scale-neuroscience-c17",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do you calibrate GCaMP fluorescence against spikes in a given preparation?",
+   "back": "Record both at once: a loose-seal cell-attached pipette picks up each spike electrically while the microscope films the same cell. The electrical record is the answer key for scoring the light.",
+   "quote": "The electrical record is the answer key, and you ask how often the light gets it right.",
+   "section": "How many spikes is a flash? Calibrate it"
+  },
+  {
+   "id": "large-scale-neuroscience-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In calibrating calcium imaging against electrical spikes, what is the detection rate?",
+   "back": "The fraction of isolated single spikes that the light reveals.",
+   "quote": "The detection rate is the fraction of isolated single spikes that the light reveals.",
+   "section": "How many spikes is a flash? Calibrate it"
+  },
+  {
+   "id": "large-scale-neuroscience-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A spike detector working on fluorescence has a 1% false-positive rate. What does that mean, what does it not mean, and why do fair comparisons fix it?",
+   "back": "In about 1 of 100 designated spike-free test windows, the light reports a spike anyway. It is not the fraction of reported spikes that are wrong.",
+   "why": "You can always find more spikes by accepting more false alarms, so detection rates are compared at the same false-positive rate.",
+   "quote": "It is not the fraction of reported spikes that are wrong.",
+   "section": "How many spikes is a flash? Calibrate it"
+  },
+  {
+   "id": "large-scale-neuroscience-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Calcium movies recorded at high magnification (a small field centred on each soma at about 158 frames per second) with simultaneous cell-attached spikes are downsampled to the pixels and frames of a 412 by 412 µm field at 30.3 frames per second. Predict single-spike detection at a fixed 1% false-positive rate, and why.",
+   "back": "It falls to a minority, about 16 to 43% for a tuned detector (Huang and colleagues, 2021). A wider field spreads the same imaging time over more pixels, so each cell returns fewer photons and one spike's small glow sinks into photon noise.",
+   "quote": "A larger field of view spreads the same imaging time over more pixels, so each neuron sends back fewer photons.",
+   "section": "How many spikes is a flash? Calibrate it"
+  },
+  {
+   "id": "large-scale-neuroscience-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Toy estimate: a soma about 12 µm across fills about 12.6% of a 30 µm field but about 0.067% of a 412 µm field. If single-spike signal-to-noise scales with the square root of photons collected, by roughly what factor does it fall in the wide field?",
+   "back": "Photons fall about 12.6/0.067 ≈ 190 times, so signal-to-noise falls by √190 ≈ 14 times. Detection probability does not fall in the same proportion.",
+   "why": "Assumes fixed laser power sweeping the whole field evenly in the same total time.",
+   "quote": "so it falls by about 14 times; detection probability does not fall in the same proportion.",
+   "section": "Photons, not frames: a rough estimate"
+  },
+  {
+   "id": "large-scale-neuroscience-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In population calcium imaging, why does a flat ΔF/F0 trace not prove that a neuron was silent?",
+   "back": "Under wide-field conditions only a minority of single spikes are detected, so one or a few spikes can hide in the trace.",
+   "quote": "In population imaging a flat trace does not prove a silent cell: one or a few spikes can hide in it.",
+   "section": "How many spikes is a flash? Calibrate it"
+  },
+  {
+   "id": "large-scale-neuroscience-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does a spike-to-fluorescence calibration belong to its conditions rather than to the sensor?",
+   "back": "Detection differed across preparations: 99% in Chen's best case, about 40 to 80% in Huang's transgenic mice at high magnification, and about 16 to 43% after downsampling to a wide field, at a 1% false-positive rate. Weaker transgenic expression and more labelled neuropil were proposed reasons for the first gap. The relation also differs between neurons.",
+   "quote": "So a calibration belongs to its conditions, not to the sensor.",
+   "section": "How many spikes is a flash? Calibrate it"
+  },
+  {
+   "id": "large-scale-neuroscience-c24",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A lab doing wide-field calcium imaging switches from GCaMP6s to the faster GCaMP6f to resolve spike timing. Predict the trade-off for single-spike detection.",
+   "back": "Better timing but lower sensitivity, so fewer single spikes detected. In Huang's downsampled data the GCaMP6f lines fell below the GCaMP6s lines' 32 to 43%.",
+   "why": "Rule: fast GCaMP6 variants trade sensitivity for speed, and frame rate matters more for fast sensors.",
+   "quote": "GCaMP6s decays slowly, and the fast GCaMP6 variants trade sensitivity for speed.",
+   "section": "How many spikes is a flash? Calibrate it"
+  },
+  {
+   "id": "large-scale-neuroscience-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Contrast what calcium imaging and high-density probe recordings each give you, and what each lacks.",
+   "back": "Imaging: which cell, where, often its genetic type, but slow light two steps from the spike. Probes: millisecond spike timing across many regions, but uncertain unit identity.",
+   "quote": "Imaging tells you which cell, where, and often its genetic type, but its light is slow and two steps from the spike.",
+   "section": "Two methods, two ladders"
+  },
+  {
+   "id": "large-scale-neuroscience-c26",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Counting observations that share conditions (such as many units from one mouse) as if they were independent is {{c1::pseudoreplication}}.",
+   "back": "",
+   "quote": "Observations that share conditions like this are not independent, and counting them as if they were is pseudoreplication",
+   "section": "How many samples do you really have?"
+  },
+  {
+   "id": "large-scale-neuroscience-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why are units recorded from the same mouse not independent observations?",
+   "back": "They share the mouse's genes and drug dose; units from one session also share its alertness and probe track. If that mouse or session is unusual, its units shift together.",
+   "quote": "If that mouse or session happened to be unusual, its units tend to shift together.",
+   "section": "How many samples do you really have?"
+  },
+  {
+   "id": "large-scale-neuroscience-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Name two ways to analyse a nested recording dataset (units within sessions within animals) at the level of a claim about animals.",
+   "back": "Average within each animal so animals are the units of analysis, or fit a hierarchical (mixed-effects) model that estimates between-animal and within-animal variation separately.",
+   "quote": "The fix is to analyse at the level of your claim: average within each animal",
+   "section": "How many samples do you really have?"
+  },
+  {
+   "id": "large-scale-neuroscience-c29",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Three mice each give two recording sessions. Each session yields 5 units, and each session shows the same stimulus 10 times. Count units, sessions, animals, unit-trials and stimulus presentations. What is n for a claim about mice?",
+   "back": "30 units, 6 sessions, 3 animals, 30 × 10 = 300 unit-trials, but only 6 × 10 = 60 stimulus presentations. n = 3.",
+   "quote": "Step 1: count. 6 units, 4 sessions, 2 animals, 6 × 4 = 24 unit-trials, but only 4 × 4 = 16 stimulus presentations.",
+   "section": "How many samples do you really have?"
+  },
+  {
+   "id": "large-scale-neuroscience-c30",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Invented probe data, each unit measured over the same 1 s: mouse A, session 1 has units at 8, 6 and 10 spikes/s; session 2 has one unit at 4 spikes/s. Mouse B has one session with one unit at 2 spikes/s. Give the pooled rate and the animal-weighted rate (average units within a session, then sessions within a mouse).",
+   "back": "Pooled: 30/5 = 6 spikes/s. Mouse A = (8 + 4)/2 = 6, mouse B = 2, animal mean = 4 spikes/s. The pooled rate is higher because mouse A supplied more units; n = 2 mice.",
+   "quote": "The pooled rate is higher because mouse A supplied twice the units.",
+   "section": "How many samples do you really have?"
+  },
+  {
+   "id": "large-scale-neuroscience-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A drug has no true effect. A lab records 100 units from each of three mice before and after the drug and runs a t-test treating all 300 units as independent. Will its false-positive rate be near 5%? Why?",
+   "back": "Not determined by the counts alone. In the lesson's invented model (mouse SD 1, unit SD 2), treating units as independent gave about 68% false positives, versus about 5% on the three mouse means. Each mouse's units move together, so 300 units carry little more information than three mouse averages, yet the test counts 300 samples.",
+   "why": "The same test on the three mouse averages gave 5%.",
+   "quote": "Because each mouse's units move together, 300 units carry not much more information about the drug than three mouse averages do",
+   "section": "How many samples do you really have?"
+  },
+  {
+   "id": "large-scale-neuroscience-c32",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the lesson's two-level model (mouse SD 1, unit SD 2, held fixed), a 3-mouse study plans to shrink its error bars for a claim about mice by recording 1,000 units per mouse instead of 100. Will that work?",
+   "back": "Only a little here: the standard error falls from about 0.589 to 0.579, near the floor of 0.577. More units average out unit-to-unit noise within each mouse but cannot average out differences between mice, so with that spread fixed only more mice lower the floor.",
+   "quote": "with that spread held fixed, the error stops shrinking at a floor that only more mice lower.",
+   "section": "How many samples do you really have?"
+  },
+  {
+   "id": "large-scale-neuroscience-c33",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a two-level model where mice differ with a standard deviation of 1, what is the floor on the standard error of the grand mean with 3 mice, however many units are added? With 12 mice?",
+   "back": "Floor = mouse SD / √(number of mice): 1/√3 ≈ 0.577 with 3 mice; 1/√12 ≈ 0.289 with 12.",
+   "quote": "With the variances held fixed it can never fall below 0.577 (the mouse SD divided by √3)",
+   "section": "How much do more units help?"
+  },
+  {
+   "id": "large-scale-neuroscience-c34",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In a transcriptomic atlas, a {{c1::cluster}} is a group of cells whose expressed genes are similar.",
+   "back": "",
+   "quote": "a cluster is a group of cells whose expressed genes are similar",
+   "section": "Atlases and connectomes: steps the data do not fully check"
+  },
+  {
+   "id": "large-scale-neuroscience-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Give two limits on reading a cluster in a whole-brain transcriptomic atlas of the mouse as a cell type.",
+   "back": "The cluster-to-type step is not fully tested, and the authors caution that some clusters may not be true types. Dissociation probably depletes large, fragile neurons.",
+   "why": "A cluster is a molecular category, not a measured function.",
+   "quote": "A cluster is a molecular category, not a measured function.",
+   "section": "Atlases and connectomes: steps the data do not fully check"
+  },
+  {
+   "id": "large-scale-neuroscience-c36",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A lab finds a new cluster in a mouse transcriptomic atlas and wants to claim it is a functional cell type that responds to touch. What can the atlas alone support, and what would the claim need?",
+   "back": "Only a molecular category, which may not be a true type. The claim needs activity recorded from those cells, for example imaging, which can identify genetic type, calibrated in that preparation and analysed per animal.",
+   "why": "Rule: a cluster is not a measured function; each step from data to claim needs its own check.",
+   "quote": "The authors cautioned that not every cluster may be a true cell type",
+   "section": "Atlases and connectomes: steps the data do not fully check"
+  },
+  {
+   "id": "large-scale-neuroscience-c37",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What does a synaptic connectome count, and what does it not measure?",
+   "back": "It counts synapses. It does not measure synaptic strength or sign.",
+   "quote": "A connectome counts synapses; it does not measure strength or sign.",
+   "section": "Atlases and connectomes: steps the data do not fully check"
+  },
+  {
+   "id": "large-scale-neuroscience-c38",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Which kind of synapse is absent from the FlyWire electron-microscopy connectome of the adult Drosophila brain?",
+   "back": "Electrical synapses (gap junctions). Some connections of only a few synapses were also missed.",
+   "quote": "Electrical synapses (gap junctions) are absent from the map, and some connections of only a few synapses were missed.",
+   "section": "Atlases and connectomes: steps the data do not fully check"
+  },
+  {
+   "id": "large-scale-neuroscience-c39",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A connectome shows neuron X making 80 chemical synapses onto Y and 8 onto Z. A model assumes X drives Y ten times as hard and excites it. What does the anatomy alone support?",
+   "back": "Only that X has a chemical path by which it could influence Y and Z. Strength and sign depend on release probability, receptor type and transmitter sign, which a synapse count does not measure.",
+   "why": "Strength proportional to synapse count is an assumption, not a measurement.",
+   "quote": "Strength depends on release probability, receptor type and the sign of the transmitter, and a synapse count measures none of them.",
+   "section": "Atlases and connectomes: steps the data do not fully check"
+  },
+  {
+   "id": "large-scale-neuroscience-c40",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "MICrONS (2025) imaged calcium in about 75,000 neurons in one mouse's visual cortex, then reconstructed the same tissue by electron microscopy. Which gap did this narrow?",
+   "back": "For about 15,000 hand-matched neurons, the imaged response and the reconstructed wiring can be assigned to the same cell, though the matching itself can err.",
+   "quote": "for the matched neurons, the imaged response and the reconstructed wiring can be assigned to the same cell",
+   "section": "MICrONS: one cell, seen twice"
+  },
+  {
+   "id": "large-scale-neuroscience-c41",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "From MICrONS data, a team claims that a matched neuron receiving 40 synapses from cell P is strongly driven by P, and that this holds in mice generally. Which steps of the proxy rule does the claim skip?",
+   "back": "Count to strength (a synapse count is not a strength) and one animal to mice in general (one mouse, about one cubic millimetre). Its activity is also still light, two steps from spikes.",
+   "quote": "the whole dataset is still one mouse and about one cubic millimetre of cortex",
+   "section": "MICrONS: one cell, seen twice"
+  },
+  {
+   "id": "large-scale-neuroscience-c42",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A lab images 400 neurons in mouse V1 across three mice with GCaMP6s at 30 frames per second over a wide field, and reports that 60% \"did not fire\" to a stimulus. Critique the imaging and statistical claims and propose a fix for each.",
+   "back": "No fluorescence change is not no spikes: wide-field detection catches a minority of single spikes. Calibrate with cell-attached recording at the same field of view and frame rate. And n = 3 mice: report the fraction per mouse and add animals.",
+   "quote": "No fluorescence change is not the same as no spikes.",
+   "section": "Design problem"
+  },
+  {
+   "id": "large-scale-neuroscience-c43",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "To argue that thalamic input barely drives certain V1 cell types, a lab cites few thalamic synapses onto them in a different mouse's connectome. Why is this weak, and what tests the input directly?",
+   "back": "The connectome is one other animal, chemical synapses only, and counts rather than strengths, so few synapses need not mean weak drive. Stimulate thalamic afferents (for example optogenetically) and record V1 responses with calibrated imaging or a probe.",
+   "quote": "stimulate the thalamic afferents, for example optogenetically, and record the V1 neurons' responses with calibrated imaging or a probe",
+   "section": "Design problem"
+  },
+  {
+   "id": "large-scale-neuroscience-c44",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A lab adds a Neuropixels probe to a wide-field GCaMP6s experiment in mouse V1 to check which imaged cells are truly silent. What does the probe add, and what limits it for this question?",
+   "back": "Millisecond spike timing. But its sorted units usually cannot be matched one to one to the imaged cells, a unit may merge or split neurons, and it can miss neurons that rarely fire.",
+   "quote": "its units usually cannot be matched one to one to the imaged cells, and it can miss neurons that rarely fire",
+   "section": "Design problem"
+  }
+ ]
+}

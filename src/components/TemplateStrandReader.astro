@@ -1,0 +1,187 @@
+---
+/**
+ * TemplateStrandReader — a short DNA duplex with a promoter at one end. The learner flips the
+ * promoter (left or right) and slides how many bases the polymerase has copied. The tool
+ * works out which strand is the template and which is the coding strand, and writes the RNA
+ * 5' to 3'. Every rule is a statement of the transcription lesson: the RNA grows 5' to 3',
+ * the polymerase reads the template 3' to 5', the RNA has the coding strand's sequence with
+ * U for T, and the promoter sets where to start (+1). The duplex is the lesson's own worked
+ * example. Nothing is drawn as a molecular structure. No chance is involved.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="tsr card" data-tsr>
+  <figcaption class="tsr-head">Template strand reader: flip the promoter<span class="tsr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="tsr-svg" viewBox="0 0 360 200" role="img" aria-label="An 18 base pair DNA duplex with a promoter at one end, the polymerase partway along, and the RNA made so far" data-stage></svg>
+
+  <fieldset class="tsr-ctl">
+    <legend>Promoter</legend>
+    <label><input type="radio" name="tsr-side" value="left" data-side /> on the left, so the polymerase moves right</label>
+    <label><input type="radio" name="tsr-side" value="right" data-side checked /> on the right, so the polymerase moves left</label>
+  </fieldset>
+  <div class="tsr-slide">
+    <label for="tsr-n">Bases copied</label>
+    <input type="range" id="tsr-n" min="0" max="18" step="1" value="11" data-n />
+    <output class="tsr-out" data-out for="tsr-n">11 of 18</output>
+  </div>
+
+  <p class="tsr-verdict" data-verdict role="status"></p>
+
+  <p class="tsr-foot">Rule to keep: a bare duplex does not tell you the template; the promoter, or the RNA, does. The polymerase reads the template 3&prime; to 5&prime;, builds RNA 5&prime; to 3&prime;, and the RNA matches the coding strand with U for T. The picture shows only the stretch drawn and is a sketch of the logic; the lesson does not draw a promoter, so its placement beside +1 here is not to scale.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  // The lesson's own worked example, top strand written 5' to 3' from left to right.
+  const TOP = 'TACGGATCCATGAAACGT';
+  const PAIR: Record<string, string> = { A: 'T', T: 'A', C: 'G', G: 'C' };
+  const BOT = TOP.split('').map((b) => PAIR[b]).join(''); // bottom strand, written 3' to 5' left to right
+  const N = TOP.length;
+  const CELL = 13, X0 = 63;
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#8a8a96';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-tsr]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const slider = root.querySelector<HTMLInputElement>('[data-n]')!;
+    const out = root.querySelector<HTMLElement>('[data-out]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const sides = root.querySelectorAll<HTMLInputElement>('[data-side]');
+
+    function side(): 'left' | 'right' {
+      let s: 'left' | 'right' = 'right';
+      sides.forEach((r) => { if (r.checked) s = r.value as 'left' | 'right'; });
+      return s;
+    }
+
+    function render() {
+      const s = side();
+      const n = Number(slider.value);
+      const rightward = s === 'left'; // promoter on the left: polymerase moves rightward
+      // Template is read 3' to 5' in the direction of travel. The top strand has its 3' end
+      // at the right, so it is read 3' to 5' only when the polymerase moves leftward.
+      const templateIsTop = !rightward;
+      const tpl = templateIsTop ? TOP : BOT;
+      const cols: number[] = [];
+      for (let i = 0; i < n; i++) cols.push(rightward ? i : N - 1 - i);
+      const rna = cols.map((c) => { const b = PAIR[tpl[c]]; return b === 'T' ? 'U' : b; }).join('');
+      const dirWord = rightward ? 'right' : 'left';
+      const tplName = templateIsTop ? 'top' : 'bottom';
+      const codName = templateIsTop ? 'bottom' : 'top';
+      const startSide = s;
+
+      out.textContent = `${n} of ${N}`;
+      slider.setAttribute('aria-valuetext', `${n} of ${N} bases copied`);
+
+      stage.replaceChildren();
+      const cx = (c: number) => X0 + c * CELL;
+      const tagT = templateIsTop ? 'template: read 3′ to 5′' : 'coding: same sequence as the RNA, T for U';
+      const tagB = templateIsTop ? 'coding: same sequence as the RNA, T for U' : 'template: read 3′ to 5′';
+      stage.appendChild(el('text', { x: X0, y: 24, 'font-size': 10, 'font-weight': 700, fill: templateIsTop ? ORANGE : TEAL }, `top strand, ${tagT}`));
+      stage.appendChild(el('text', { x: X0, y: 146, 'font-size': 10, 'font-weight': 700, fill: templateIsTop ? TEAL : ORANGE }, `bottom strand, ${tagB}`));
+
+      // promoter block on the chosen side, with an arrow pointing into the duplex
+      const px = s === 'left' ? 2 : 316;
+      stage.appendChild(el('rect', { x: px, y: 60, width: 42, height: 50, rx: 5, fill: '#efe9f7', stroke: '#7a5ea8', 'stroke-width': 1.2 }));
+      stage.appendChild(el('text', { x: px + 21, y: 80, 'font-size': 9, 'font-weight': 700, 'text-anchor': 'middle', fill: '#5b4486' }, 'promoter'));
+      const ax1 = s === 'left' ? px + 8 : px + 34, ax2 = s === 'left' ? px + 34 : px + 8;
+      stage.appendChild(el('line', { x1: ax1, y1: 96, x2: ax2, y2: 96, stroke: '#5b4486', 'stroke-width': 1.6 }));
+      const hd = ax2 > ax1 ? -5 : 5;
+      stage.appendChild(el('polygon', { points: `${ax2},96 ${ax2 + hd},92 ${ax2 + hd},100`, fill: '#5b4486' }));
+
+      // end labels
+      stage.appendChild(el('text', { x: X0 - 4, y: 72, 'font-size': 10, 'text-anchor': 'end', fill: INK }, '5′'));
+      stage.appendChild(el('text', { x: X0 + N * CELL + 4, y: 72, 'font-size': 10, fill: INK }, '3′'));
+      stage.appendChild(el('text', { x: X0 - 4, y: 106, 'font-size': 10, 'text-anchor': 'end', fill: INK }, '3′'));
+      stage.appendChild(el('text', { x: X0 + N * CELL + 4, y: 106, 'font-size': 10, fill: INK }, '5′'));
+
+      // the two strands
+      const copied = new Set(cols);
+      for (let c = 0; c < N; c++) {
+        const x = cx(c);
+        const topCol = templateIsTop ? ORANGE : TEAL, botCol = templateIsTop ? TEAL : ORANGE;
+        const topDone = templateIsTop && copied.has(c), botDone = !templateIsTop && copied.has(c);
+        stage.appendChild(el('rect', { x, y: 60, width: CELL, height: 16, fill: topDone ? '#fde6cc' : '#fff', stroke: topCol, 'stroke-width': 1 }));
+        stage.appendChild(el('rect', { x, y: 94, width: CELL, height: 16, fill: botDone ? '#fde6cc' : '#fff', stroke: botCol, 'stroke-width': 1 }));
+        stage.appendChild(el('text', { x: x + CELL / 2, y: 72, 'font-size': 11, 'font-family': 'monospace', 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, TOP[c]));
+        stage.appendChild(el('text', { x: x + CELL / 2, y: 106, 'font-size': 11, 'font-family': 'monospace', 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, BOT[c]));
+        stage.appendChild(el('line', { x1: x + CELL / 2, y1: 77, x2: x + CELL / 2, y2: 93, stroke: FAINT, 'stroke-width': 1 }));
+      }
+
+      // +1 marker over the first base copied
+      const c1 = rightward ? 0 : N - 1;
+      stage.appendChild(el('text', { x: cx(c1) + CELL / 2, y: 44, 'font-size': 10, 'font-weight': 700, 'text-anchor': 'middle', fill: '#5b4486' }, '+1'));
+      stage.appendChild(el('polygon', { points: `${cx(c1) + 2},48 ${cx(c1) + CELL - 2},48 ${cx(c1) + CELL / 2},57`, fill: '#5b4486' }));
+
+      // polymerase: dashed line at the boundary between copied and uncopied bases
+      const bx = rightward ? cx(n) : cx(N - n) + CELL; // edge of the copied region facing the travel
+      const edge = rightward ? cx(n) : cx(N - n);
+      stage.appendChild(el('line', { x1: edge, y1: 56, x2: edge, y2: 114, stroke: '#2f6f8f', 'stroke-width': 1.6, 'stroke-dasharray': '3 2' }));
+      void bx;
+      const pw = 64, pxm = Math.min(Math.max(edge - pw / 2, 2), 358 - pw);
+      stage.appendChild(el('rect', { x: pxm, y: 116, width: pw, height: 16, rx: 5, fill: '#2f6f8f' }));
+      stage.appendChild(el('text', { x: pxm + pw / 2, y: 127.5, 'font-size': 9, 'font-weight': 700, 'text-anchor': 'middle', fill: '#fff' }, rightward ? 'polymerase →' : '← polymerase'));
+
+      // the RNA row
+      stage.appendChild(el('text', { x: X0, y: 166, 'font-size': 10, 'font-weight': 700, fill: INK }, 'RNA, written 5′ to 3′ as it is made'));
+      if (n === 0) {
+        stage.appendChild(el('text', { x: X0, y: 184, 'font-size': 10, fill: FAINT }, 'no RNA yet: slide “Bases copied”'));
+      } else {
+        cols.forEach((c, i) => {
+          const x = cx(c);
+          stage.appendChild(el('rect', { x, y: 170, width: CELL, height: 16, fill: '#e3f2f3', stroke: TEAL, 'stroke-width': 1 }));
+          stage.appendChild(el('text', { x: x + CELL / 2, y: 182, 'font-size': 11, 'font-family': 'monospace', 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, rna[i]));
+        });
+        const first = cx(cols[0]), last = cx(cols[cols.length - 1]);
+        if (rightward) {
+          stage.appendChild(el('text', { x: first - 4, y: 182, 'font-size': 10, 'text-anchor': 'end', fill: INK }, '5′'));
+          stage.appendChild(el('text', { x: last + CELL + 4, y: 182, 'font-size': 10, fill: INK }, '3′'));
+        } else {
+          stage.appendChild(el('text', { x: first + CELL + 4, y: 182, 'font-size': 10, fill: INK }, '5′'));
+          stage.appendChild(el('text', { x: last - 4, y: 182, 'font-size': 10, 'text-anchor': 'end', fill: INK }, '3′'));
+        }
+      }
+
+      // status
+      const lead = `The promoter is on the ${startSide}, so the polymerase starts at the ${startSide} end (+1) and moves ${dirWord}. It reads the ${tplName} strand, which has its 3′ end at the ${startSide}, so it reads the template 3′ to 5′.`;
+      let v: string;
+      if (n === 0) {
+        v = `${lead} No RNA yet: slide “Bases copied” to grow it.`;
+      } else {
+        const fivePrime = rightward ? 'left' : 'right';
+        v = `${lead} After ${n} base${n === 1 ? '' : 's'}, the RNA is 5′-${rna}-3′, with its 5′ end toward the ${fivePrime}. It has the sequence of the ${codName} strand, the coding strand, with U in place of T, and it is antiparallel to its template.`;
+        if (n === N) v += ' This is the end of the stretch drawn.';
+      }
+      v += ' Flip the promoter and the other strand becomes the template; as the lesson notes, neighboring genes can use opposite strands.';
+      verdict.textContent = v;
+    }
+
+    slider.addEventListener('input', render);
+    sides.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .tsr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tsr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tsr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tsr-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tsr-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: grid; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tsr-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .tsr-ctl input { accent-color: var(--ddp-color-accent); }
+  .tsr-slide { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: 0.35rem 0; }
+  .tsr-slide input[type="range"] { flex: 1 1 10rem; accent-color: var(--ddp-color-accent); }
+  .tsr-out { font-family: var(--ddp-font-mono); min-width: 5em; }
+  .tsr input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .tsr-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; overflow-wrap: anywhere; }
+  .tsr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

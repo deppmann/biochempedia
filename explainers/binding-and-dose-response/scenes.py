@@ -275,7 +275,7 @@ class S05Gap(SpokenScene):
         occ_lab = T("occupancy", 26, LIG).move_to([px(2.1), py(0.58), 0])
         self.add(b, xt, occ_c, occ_lab)
         self.wait(0.2)
-        self.at("property of the receptor")
+        self.at("property of the drug")
         kd = kd_label()
         vl = DashedLine([px(0), YB, 0], [px(0), py(0.5), 0], color=LIG, stroke_width=3)
         dot = Dot([px(0), py(0.5), 0], radius=0.13, color=LIG)

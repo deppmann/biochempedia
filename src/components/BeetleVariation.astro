@@ -1,0 +1,352 @@
+---
+/**
+ * BeetleVariation — mutations-and-variation lesson (grade 7 Life Science). A population of 30
+ * model beetles varies in body colour (one gene) and size. The learner sets how often mutations
+ * happen (low, medium, high = more radiation or chemicals), where they happen (a body cell or a
+ * sex cell) and the background, then presses "Next generation". A body-cell mutation shows as a
+ * patch on one beetle and is gone from its young; a sex-cell mutation shows as a whole new colour
+ * in the young. Each colour is tagged helpful, harmful or neutral for the current background and
+ * a bar graph counts the beetles carrying each colour, with the expected count beside it.
+ * Self-contained vanilla-TS Astro island. Original. No mutation types are named.
+ */
+---
+
+<figure class="bv card" data-beetlevar>
+  <figcaption class="bv-head">Beetle variation: new colours by chance<span class="bv-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="bv-group">
+    <legend>1. How often do mutations happen?</legend>
+    <div class="bv-btns" data-rates></div>
+  </fieldset>
+  <fieldset class="bv-group">
+    <legend>2. Where does a mutation happen?</legend>
+    <div class="bv-btns" data-places></div>
+  </fieldset>
+  <fieldset class="bv-group">
+    <legend>3. What is the background?</legend>
+    <div class="bv-btns" data-bgs></div>
+  </fieldset>
+  <div class="bv-btns bv-act">
+    <button type="button" class="bv-btn bv-go" data-next>Next generation</button>
+    <button type="button" class="bv-btn" data-resample>Resample this generation</button>
+    <button type="button" class="bv-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="bv-gen" data-gen aria-hidden="true"></div>
+  <svg class="bv-svg" viewBox="0 0 360 230" role="img" aria-label="30 model beetles of different colours and sizes on a coloured background, drawn as simple shapes, not to scale" data-field></svg>
+  <ul class="bv-key" aria-label="How to read the beetles">
+    <li><span class="bv-keyring" aria-hidden="true"></span> ring: a new mutation in this generation</li>
+    <li><span class="bv-keypatch" aria-hidden="true"></span> small dot: a patch of body cells with a new colour</li>
+  </ul>
+
+  <p class="bv-why" data-why role="status" aria-live="polite"></p>
+
+  <div class="bv-chart" data-chart>
+    <div class="bv-charttitle">How many beetles carry each colour (30 in all)</div>
+    <div data-rows></div>
+    <div class="bv-legend">
+      <span><i class="bv-lg bv-lg-solid" aria-hidden="true"></i> colour in every cell</span>
+      <span><i class="bv-lg bv-lg-patch" aria-hidden="true"></i> colour in a patch of body cells only</span>
+      <span><i class="bv-lg bv-lg-tick" aria-hidden="true"></i> expected count in this sketch</span>
+    </div>
+  </div>
+
+  <p class="bv-assume">Made up for this sketch, not measured: one gene sets body colour, and a mutation turns a beetle’s colour into one of the other four at random. Low, medium and high mean about 1 in 20, 1 in 8 and 1 in 4 new beetles get a mutation. On the background shown, helpful beetles survive 9 times in 10, harmful 4 in 10, and neutral ones 7 in 10, the same chance as the starting colour, green. Which colour is helpful, harmful or neutral on each background is also made up. Survivors have young at random, with no mates. Size varies at random and does not change survival. A patch does not change survival either.</p>
+  <p class="bv-foot">Rule to keep: mutations arise by chance, a mutation does not “know” whether it will help, only a mutation in a sex cell can pass to young, and whether a colour helps depends on where the beetle lives. This is a sketch of the logic, not a measurement.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const N = 30;
+  type Tag = 'helpful' | 'harmful' | 'neutral';
+  type Beetle = { col: number; size: number; patch: number; mut: boolean };
+  const COLS = [
+    { name: 'green', fill: '#2e8b3a' },
+    { name: 'brown', fill: '#7a4a21' },
+    { name: 'yellow', fill: '#e6c01e' },
+    { name: 'blue', fill: '#2f6fd0' },
+    { name: 'red', fill: '#c8362e' },
+  ];
+  // Which tag each colour gets on each background (made up for the sketch; background only).
+  const BGS = [
+    { id: 'leaf', label: 'Green leaves', ground: 'green leaves', fill: '#d6ecd0', tags: ['neutral', 'neutral', 'helpful', 'harmful', 'harmful'] as Tag[] },
+    { id: 'soil', label: 'Brown soil', ground: 'brown soil', fill: '#e8d6bf', tags: ['neutral', 'helpful', 'harmful', 'neutral', 'harmful'] as Tag[] },
+  ];
+  const RATES = [
+    { id: 'low', label: 'Low', p: 0.05, words: 'low' },
+    { id: 'medium', label: 'Medium', p: 0.125, words: 'medium' },
+    { id: 'high', label: 'High: more radiation or chemicals', p: 0.25, words: 'high' },
+  ];
+  const PLACES = [
+    { id: 'body', label: 'In a body cell' },
+    { id: 'sex', label: 'In a sex cell (egg or sperm)' },
+  ];
+  const SURV: Record<Tag, number> = { helpful: 0.9, neutral: 0.7, harmful: 0.4 };
+  const SIZES = [{ rx: 9, ry: 6.5 }, { rx: 12, ry: 8.5 }, { rx: 15, ry: 10.5 }];
+  const TAGTXT: Record<Tag, string> = { helpful: '▲ helpful here', harmful: '▼ harmful here', neutral: '＝ neutral here' };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const pick = (n: number) => Math.floor(Math.random() * n);
+  const otherColour = (c: number) => { let k = pick(COLS.length - 1); if (k >= c) k++; return k; };
+  const one = (d: number) => (Math.round(d * 10) / 10).toFixed(1).replace(/\.0$/, '');
+
+  document.querySelectorAll<HTMLElement>('[data-beetlevar]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('BeetleVariation: missing ' + s);
+      return e;
+    };
+    const field = q<SVGSVGElement>('[data-field]');
+    const genEl = q<HTMLElement>('[data-gen]');
+    const why = q<HTMLElement>('[data-why]');
+    const rowsEl = q<HTMLElement>('[data-rows]');
+    const ratesEl = q<HTMLElement>('[data-rates]');
+    const placesEl = q<HTMLElement>('[data-places]');
+    const bgsEl = q<HTMLElement>('[data-bgs]');
+    const nextBtn = q<HTMLButtonElement>('[data-next]');
+    const resampleBtn = q<HTMLButtonElement>('[data-resample]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+
+    let rate = 1, place = 0, bg = 0;
+    let gen = 0;
+    let beetles: Beetle[] = [];
+    let prev: Beetle[] | null = null;
+    let expected: number[] = [];
+    let lastMessage = '';
+
+    function startPop(): Beetle[] {
+      return Array.from({ length: N }, () => ({ col: 0, size: pick(3), patch: -1, mut: false }));
+    }
+    const tagOf = (c: number, b = bg): Tag => BGS[b].tags[c];
+
+    function counts(pop: Beetle[]) {
+      const solid = COLS.map(() => 0), patch = COLS.map(() => 0);
+      pop.forEach((b) => { solid[b.col]++; if (b.patch >= 0) patch[b.patch]++; });
+      return { solid, patch };
+    }
+
+    // One step from `from` to a new generation of 30. Also returns the expected values of the rule.
+    function stepFrom(from: Beetle[]) {
+      const p = RATES[rate].p;
+      const sexMode = place === 1;
+      const surv = from.map((b) => Math.random() < SURV[tagOf(b.col)]);
+      let survivors = from.filter((_, i) => surv[i]);
+      if (survivors.length === 0) survivors = [from[pick(from.length)]];
+      const young: Beetle[] = [];
+      let mutCount = 0;
+      for (let i = 0; i < N; i++) {
+        const parent = survivors[pick(survivors.length)];
+        const b: Beetle = { col: parent.col, size: pick(3), patch: -1, mut: false };
+        if (Math.random() < p) {
+          b.mut = true; mutCount++;
+          if (sexMode) b.col = otherColour(b.col); else b.patch = otherColour(b.col);
+        }
+        young.push(b);
+      }
+      // expected counts of each colour in every cell, by the same rule
+      const n = counts(from).solid;
+      const s = n.map((k, c) => k * SURV[tagOf(c)]);
+      const S = s.reduce((a, b) => a + b, 0);
+      const f = s.map((x) => x / S);
+      const pm = sexMode ? p : 0;
+      const exp = COLS.map((_, c) => {
+        let inflow = 0;
+        COLS.forEach((__, d) => { if (d !== c) inflow += f[d] / (COLS.length - 1); });
+        return N * ((1 - pm) * f[c] + pm * inflow);
+      });
+      return { young, survivors: survivors.length, expSurv: S, expMut: N * p, mutCount, exp, sexMode };
+    }
+
+    function describe(r: ReturnType<typeof stepFrom>, prevPatches: number): string {
+      const parts: string[] = [];
+      const e = one(r.expMut);
+      if (r.mutCount === 0) {
+        parts.push(`In this sketch, no new mutation appeared this time (about ${e} expected).`);
+      } else if (r.sexMode) {
+        parts.push(`In this sketch, ${r.mutCount} ${r.mutCount === 1 ? 'young was' : 'young were'} born with a new colour from a sex-cell mutation (about ${e} expected).`);
+        parts.push('Their parents did not show it, and the young carry it in every cell.');
+      } else {
+        parts.push(`In this sketch, ${r.mutCount} ${r.mutCount === 1 ? 'beetle has a patch' : 'beetles have a patch'} of body cells with a new colour (about ${e} expected).`);
+        parts.push(r.mutCount === 1 ? 'The patch stays in that beetle and is not passed to young.' : 'A patch stays in its beetle and is not passed to young.');
+      }
+      parts.push(`${r.survivors} of 30 parents survived (about ${one(r.expSurv)} expected) and had young.`);
+      if (prevPatches > 0) parts.push(`${prevPatches === 1 ? 'Last generation’s 1 patch is gone' : `Last generation’s ${prevPatches} patches are gone`}: young do not inherit them.`);
+      return parts.join(' ');
+    }
+
+    function drawField() {
+      field.replaceChildren();
+      field.appendChild(el('rect', { x: 0, y: 0, width: 360, height: 230, fill: BGS[bg].fill }));
+      const cols = 6, cw = 60, ch = 46;
+      beetles.forEach((b, i) => {
+        const cx = (i % cols) * cw + cw / 2, cy = Math.floor(i / cols) * ch + ch / 2 + 2;
+        const sz = SIZES[b.size];
+        const g = el('g', {});
+        if (b.mut) g.appendChild(el('circle', { cx, cy, r: 20, fill: 'none', stroke: '#1d2230', 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+        g.appendChild(el('circle', { cx: cx + sz.rx - 1, cy, r: 4.5, fill: '#2b2f3a' }));
+        g.appendChild(el('ellipse', { cx, cy, rx: sz.rx, ry: sz.ry, fill: COLS[b.col].fill, stroke: '#1d2230', 'stroke-width': 1.5 }));
+        g.appendChild(el('line', { x1: cx - sz.rx + 3, y1: cy, x2: cx + sz.rx - 4, y2: cy, stroke: '#1d2230', 'stroke-width': 1, opacity: 0.6 }));
+        if (b.patch >= 0) g.appendChild(el('circle', { cx: cx - sz.rx / 3, cy: cy - sz.ry / 2.2, r: 4.5, fill: COLS[b.patch].fill, stroke: '#fff', 'stroke-width': 1.5 }));
+        const title = el('title', {}, `${COLS[b.col].name} beetle${b.patch >= 0 ? ' with a ' + COLS[b.patch].name + ' patch' : ''}`);
+        g.appendChild(title);
+        field.appendChild(g);
+      });
+    }
+
+    function drawChart() {
+      const { solid, patch } = counts(beetles);
+      rowsEl.replaceChildren();
+      COLS.forEach((c, i) => {
+        const tag = tagOf(i);
+        const row = document.createElement('div');
+        row.className = 'bv-row';
+        const head = document.createElement('div');
+        head.className = 'bv-rowhead';
+        const sw = document.createElement('i');
+        sw.className = 'bv-sw'; sw.style.background = c.fill; sw.setAttribute('aria-hidden', 'true');
+        const nm = document.createElement('span');
+        nm.className = 'bv-name'; nm.textContent = c.name;
+        const tg = document.createElement('span');
+        tg.className = 'bv-tag bv-tag-' + tag; tg.textContent = TAGTXT[tag];
+        head.append(sw, nm, tg);
+        const track = document.createElement('div');
+        track.className = 'bv-track';
+        track.setAttribute('role', 'img');
+        track.setAttribute('aria-label', `${c.name}: ${solid[i]} beetles carry it in every cell, ${patch[i]} in a patch, about ${one(expected[i])} expected`);
+        const fill = document.createElement('i');
+        fill.className = 'bv-fill'; fill.style.width = (solid[i] / N * 100) + '%'; fill.style.background = c.fill;
+        const pt = document.createElement('i');
+        pt.className = 'bv-patchbar'; pt.style.width = (patch[i] / N * 100) + '%'; pt.style.borderColor = c.fill;
+        const tick = document.createElement('i');
+        tick.className = 'bv-tick'; tick.style.left = `calc(${Math.min(100, expected[i] / N * 100)}% - 1px)`;
+        track.append(fill, pt, tick);
+        const read = document.createElement('div');
+        read.className = 'bv-read';
+        let t = `${solid[i]} in every cell (about ${one(expected[i])} expected)`;
+        if (patch[i] > 0) t += `; ${patch[i]} in a patch`;
+        read.textContent = t;
+        row.append(head, track, read);
+        rowsEl.appendChild(row);
+      });
+    }
+
+    function render() {
+      genEl.textContent = gen === 0 ? 'Start: generation 0' : `Generation ${gen}`;
+      resampleBtn.disabled = prev === null;
+      drawField();
+      drawChart();
+      why.textContent = lastMessage;
+    }
+
+    function setActive(box: HTMLElement, idx: number) {
+      box.querySelectorAll<HTMLButtonElement>('button').forEach((b, i) => {
+        b.classList.toggle('on', i === idx);
+        b.setAttribute('aria-pressed', i === idx ? 'true' : 'false');
+      });
+    }
+    function mkButtons(box: HTMLElement, items: { label: string }[], get: () => number, set: (i: number) => void) {
+      items.forEach((it, i) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'bv-btn'; b.textContent = it.label;
+        b.addEventListener('click', () => { set(i); setActive(box, get()); });
+        box.appendChild(b);
+      });
+      setActive(box, get());
+    }
+
+    function reset() {
+      gen = 0; beetles = startPop(); prev = null;
+      expected = COLS.map((_, c) => (c === 0 ? N : 0));
+      lastMessage = 'In this sketch, all 30 beetles start green, and their sizes vary. Pick a rate and a place, then press Next generation.';
+      render();
+    }
+    function advance(from: Beetle[], nextGen: number) {
+      const prevPatches = from.filter((b) => b.patch >= 0).length;
+      const r = stepFrom(from);
+      beetles = r.young; expected = r.exp; gen = nextGen;
+      lastMessage = describe(r, prevPatches);
+      render();
+    }
+
+    mkButtons(ratesEl, RATES, () => rate, (i) => {
+      rate = i;
+      lastMessage = `In this sketch, the rate is now ${RATES[i].words}: about ${one(N * RATES[i].p)} of 30 new beetles would get a mutation. Press Next generation.`;
+      why.textContent = lastMessage;
+    });
+    mkButtons(placesEl, PLACES, () => place, (i) => {
+      place = i;
+      lastMessage = i === 0
+        ? 'In this sketch, mutations now happen in body cells. A new colour would show as a patch on one beetle, and its young would not inherit it.'
+        : 'In this sketch, mutations now happen in sex cells. The parents would not change, but their young would carry the new colour in every cell.';
+      why.textContent = lastMessage;
+    });
+    mkButtons(bgsEl, BGS, () => bg, (i) => {
+      if (i === bg) return;
+      const old = bg;
+      bg = i;
+      const changes: string[] = [];
+      COLS.forEach((c, k) => {
+        if (tagOf(k, old) !== tagOf(k, i)) changes.push(`${c.name[0].toUpperCase() + c.name.slice(1)} was ${tagOf(k, old)} and is now ${tagOf(k, i)}.`);
+      });
+      lastMessage = `In this sketch, the background is now ${BGS[i].ground}. ${changes.join(' ')} The same colour can help in one place and harm in another.`;
+      render();
+    });
+
+    nextBtn.addEventListener('click', () => { prev = beetles; advance(beetles, gen + 1); });
+    resampleBtn.addEventListener('click', () => { if (prev) advance(prev, gen); });
+    resetBtn.addEventListener('click', () => reset());
+
+    reset();
+  });
+</script>
+
+<style is:global>
+  .bv { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bv-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bv-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bv-group { border: 0; padding: 0; margin: 0 auto var(--ddp-space-2); max-width: 560px; min-width: 0; }
+  .bv-group legend { padding: 0; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); margin-bottom: 0.3rem; }
+  .bv-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .bv-act { max-width: 560px; margin: var(--ddp-space-3) auto; }
+  .bv-btn { min-height: 44px; min-width: 44px; padding: 0 0.9rem; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .bv-btn:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
+  .bv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .bv-btn.on { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .bv-go { background: var(--ddp-color-primary); border-color: var(--ddp-color-primary); color: #fff; font-weight: 700; }
+  .bv-btn:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .bv-gen { max-width: 560px; margin: 0 auto 0.3rem; font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .bv-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .bv-key { list-style: none; max-width: 560px; margin: 0.4rem auto 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bv-key li { margin: 0; display: flex; align-items: center; gap: 0.35rem; }
+  .bv-keyring { width: 16px; height: 16px; border-radius: 50%; border: 2px dashed #1d2230; flex: none; }
+  .bv-keypatch { width: 10px; height: 10px; border-radius: 50%; background: #c8362e; border: 1.5px solid #1d2230; flex: none; }
+  .bv-why { max-width: 560px; margin: var(--ddp-space-2) auto 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .bv-chart { max-width: 560px; margin: var(--ddp-space-3) auto 0; }
+  .bv-charttitle { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); margin-bottom: 0.3rem; }
+  .bv-row { margin-bottom: 0.55rem; }
+  .bv-rowhead { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.5rem; font-size: var(--ddp-text-sm); margin-bottom: 0.2rem; }
+  .bv-sw { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #1d2230; flex: none; }
+  .bv-name { font-weight: 700; color: var(--ddp-color-primary); }
+  .bv-tag { font-size: var(--ddp-text-xs); font-weight: 700; padding: 0.05rem 0.45rem; border-radius: 10px; border: 1.5px solid; }
+  .bv-tag-helpful { color: #14532d; border-color: #14532d; background: #e3f4e8; }
+  .bv-tag-harmful { color: #7f1d1d; border-color: #7f1d1d; background: #fbe6e4; }
+  .bv-tag-neutral { color: #3b3f4a; border-color: #5a5f6b; background: #eceef2; }
+  .bv-track { position: relative; height: 16px; background: #fff; border: 1.5px solid var(--ddp-color-line); border-radius: 4px; }
+  .bv-fill { position: absolute; left: 0; top: 0; bottom: 0; display: block; transition: width 0.2s; }
+  .bv-patchbar { position: absolute; left: 0; bottom: 0; height: 5px; display: block; box-sizing: border-box; border: 2px dashed; background: #fff; transition: width 0.2s; }
+  .bv-tick { position: absolute; top: -4px; bottom: -4px; width: 3px; background: #1d2230; display: block; border-radius: 1px; }
+  .bv-read { margin-top: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bv-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; margin-top: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bv-legend span { display: flex; align-items: center; gap: 0.35rem; }
+  .bv-lg { display: inline-block; flex: none; }
+  .bv-lg-solid { width: 14px; height: 10px; background: #5a5f6b; }
+  .bv-lg-patch { width: 14px; height: 6px; border: 2px dashed #5a5f6b; box-sizing: border-box; }
+  .bv-lg-tick { width: 3px; height: 14px; background: #1d2230; }
+  .bv-assume { max-width: 560px; margin: var(--ddp-space-3) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bv-foot { max-width: 560px; margin: var(--ddp-space-3) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

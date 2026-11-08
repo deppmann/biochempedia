@@ -505,15 +505,15 @@ class S04Family(Film):
         t3 = T("sensors", 26, YELLOW).next_to(dots[2], RIGHT, buff=0.18)
         self.at("The sensors")
         self.play(FadeIn(sa, shift=DOWN * 0.4), FadeIn(sb, shift=DOWN * 0.4), FadeIn(t3, shift=RIGHT * 0.1), run_time=0.7)
-        self.at("one short")
+        self.at("carry")
         self.play(pop(sa.cap, 1.25), pop(sa.lbl, 1.25), pop(sb.cap, 1.25), pop(sb.lbl, 1.25), run_time=0.7)
-        self.at("It fits into")
+        self.at("short helix")
         self.play(*glow(s.g1.slot, s=1.15), run_time=0.5)
         tgt = s.g1.slot.get_center()
         dy = tgt[1] - sa.cap.get_center()[1]
-        self.at("a groove")
+        self.at("fills")
         self.play(sa.animate.shift(DOWN * (-dy)), run_time=0.9)
-        self.at("occupies it")
+        self.at("groove")
         self.play(*glow(s.g1.body, sa.cap, s=1.05, color=YELLOW), FadeOut(s.b1), run_time=0.7)
         n = make_strip(G5)
         self.outro(FadeOut(sa), FadeOut(sb), FadeOut(VGroup(lab, t1, t2, t3, *dots)), FadeIn(s.b1),
@@ -560,7 +560,7 @@ class S05Balance(Film):
         # their proportion sets how hard to push
         push = arr([4.0, 3.3, 0], [4.0, 2.4, 0], YELLOW, w=7, tip=0.26)
         pushlab = T("push", 28, YELLOW).move_to([5.0, 2.95, 0])
-        self.at("proportion")
+        self.at("amounts")
         self.play(FadeOut(eflab), *[FadeIn(x) for x in sl], FadeIn(slab), run_time=0.5)
         self.at("how hard")
         self.play(GrowArrow(push), FadeIn(pushlab, shift=LEFT * 0.1), run_time=0.5)
@@ -582,7 +582,7 @@ class S05Balance(Film):
         self.at("sensors")
         self.play(*on(1), run_time=0.25)
         self.play(lean(-5), run_time=0.45)
-        self.at("outnumber")
+        self.at("tie up")
         self.play(*on(2), run_time=0.25)
         self.play(lean(-7), run_time=0.55)
         self.play(*glow(*pl, s=1.1, color=YELLOW), run_time=0.5)
@@ -692,7 +692,7 @@ class S06Rule(Film):
 
         self.at("whole chain")
         self.play(*[pop(x, 1.08) for x in icons], run_time=0.7)
-        self.at("sensors outnumber")
+        self.at("sensors tie up")
         self.play(*lit(0), run_time=0.5)
         self.at("open the membrane")
         self.play(*lit(1), run_time=0.5)
@@ -712,11 +712,11 @@ class S06Rule(Film):
         self.play(pop(icons[0], 1.12), run_time=0.6)
         back = arr([-5.7, -1.2, 0], [-2.9, -1.2, 0], GREY, w=7, tip=0.26)
         nwb = T("no way back", 36, TEXT, weight=BOLD).move_to([-4.3, -2.3, 0])
-        self.at("nothing undoes")
+        self.at("no cut")
         self.play(GrowArrow(back), FadeIn(nwb, shift=UP * 0.1), run_time=0.6)
         self.play(Create(strike(back, TEXT, 8)), run_time=0.4)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "The balance decides before the first cut, because nothing undoes a cut."
+    LINE = "The balance mostly decides before the first cut; no cut is undone."

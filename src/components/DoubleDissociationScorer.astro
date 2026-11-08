@@ -1,0 +1,281 @@
+---
+/**
+ * DoubleDissociationScorer — two groups on two tasks, scored against chance. Design of
+ * Knowlton, Mangels and Squire (1996) with the memory-systems lesson's INVENTED numbers.
+ * relative score = (patient − chance) / (control − chance). Original, self-contained.
+ */
+---
+
+<figure class="dds card" data-dds>
+  <figcaption class="dds-head">Double dissociation — scoring above chance<span class="dds-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="dds-row">
+    <legend>Group to edit</legend>
+    <label><input type="radio" data-grp value="A" checked /> Amnesic patients</label>
+    <label><input type="radio" data-grp value="P" /> Parkinson’s patients (nondemented)</label>
+  </fieldset>
+
+  <div class="dds-controls">
+    <label class="dds-slabel"><span>Two-choice classification (chance 50%): <em data-out="s1">68</em>%</span>
+      <input type="range" data-in="s1" min="40" max="100" step="1" value="68" />
+    </label>
+    <label class="dds-slabel"><span>Four-choice questionnaire (chance 25%): <em data-out="s2">40</em>%</span>
+      <input type="range" data-in="s2" min="15" max="100" step="1" value="40" />
+    </label>
+  </div>
+
+  <fieldset class="dds-row">
+    <legend>View</legend>
+    <label><input type="radio" data-view value="raw" checked /> Raw percent correct</label>
+    <label><input type="radio" data-view value="rel" /> Share of the controls’ gain above chance</label>
+  </fieldset>
+
+  <svg class="dds-svg" viewBox="0 0 340 232" role="img" aria-label="Crossed-line plot of two groups on two tasks" data-plot></svg>
+
+  <ul class="dds-legend" aria-label="Legend">
+    <li><i class="dds-sw dds-sw-c"></i>Controls (fixed: 70% and 80%)</li>
+    <li><i class="dds-sw dds-sw-a"></i>Amnesic</li>
+    <li><i class="dds-sw dds-sw-p"></i>Parkinson’s</li>
+    <li>▲ hollow dot: above the plot, drawn at 140%; the label gives the true value</li>
+  </ul>
+
+  <table class="dds-table">
+    <thead>
+      <tr><th scope="col">Group</th><th scope="col">Classification: raw → above-chance share</th><th scope="col">Questionnaire: raw → above-chance share</th></tr>
+    </thead>
+    <tbody>
+      <tr data-row="C"><th scope="row">Controls</th><td data-cell="C1"></td><td data-cell="C2"></td></tr>
+      <tr data-row="A"><th scope="row">Amnesic</th><td data-cell="A1"></td><td data-cell="A2"></td></tr>
+      <tr data-row="P"><th scope="row">Parkinson’s</th><td data-cell="P1"></td><td data-cell="P2"></td></tr>
+    </tbody>
+  </table>
+
+  <p class="dds-arith-title" data-arith-title></p>
+  <ul class="dds-arith" data-arith></ul>
+
+  <p class="dds-why" data-why role="status"></p>
+
+  <p class="dds-assume">In this sketch: invented numbers, controls fixed at 70% and 80%, chance known exactly (50% and 25%); the picture is a sketch of the logic, not data.</p>
+  <p class="dds-foot">Score each task above chance: relative score = (patient − chance) / (control − chance). Parkinson’s disease damages more than the striatum, and amnesic patients’ lesions differ from one another, so a double dissociation does not by itself pin each process to one structure.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#d4d4da', GREY = '#8a8a94', TEAL = '#0e7c86', ORANGE = '#e57200';
+  const CHANCE = [50, 25];
+  const CTRL = [70, 80];
+  const TASK = ['classification', 'questionnaire'];
+  const MINUS = '−';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const rel = (p: number, i: number) => ((p - CHANCE[i]) / (CTRL[i] - CHANCE[i])) * 100;
+  const num = (n: number) => (n < 0 ? MINUS : '') + Math.abs(n);
+  const pct = (x: number) => num(Math.round(x)) + '%';
+
+  document.querySelectorAll<HTMLElement>('[data-dds]').forEach((root, inst) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const s1 = root.querySelector<HTMLInputElement>('[data-in="s1"]')!;
+    const s2 = root.querySelector<HTMLInputElement>('[data-in="s2"]')!;
+    const o1 = root.querySelector<HTMLElement>('[data-out="s1"]')!;
+    const o2 = root.querySelector<HTMLElement>('[data-out="s2"]')!;
+    const grpIn = [...root.querySelectorAll<HTMLInputElement>('[data-grp]')];
+    const viewIn = [...root.querySelectorAll<HTMLInputElement>('[data-view]')];
+    grpIn.forEach((r) => (r.name = 'dds-grp-' + inst));
+    viewIn.forEach((r) => (r.name = 'dds-view-' + inst));
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const arith = root.querySelector<HTMLElement>('[data-arith]')!;
+    const arithTitle = root.querySelector<HTMLElement>('[data-arith-title]')!;
+    const cell = (k: string) => root.querySelector<HTMLElement>(`[data-cell="${k}"]`)!;
+
+    // Lesson values; the group not being edited keeps its own.
+    const scores: Record<string, number[]> = { A: [68, 40], P: [52, 78] };
+    const NAME: Record<string, string> = { A: 'amnesic', P: 'Parkinson’s' };
+    const grp = () => (grpIn.find((r) => r.checked)?.value ?? 'A') as 'A' | 'P';
+    const view = () => viewIn.find((r) => r.checked)?.value ?? 'raw';
+
+    const X = [128, 244], Y0 = 24, Y1 = 176, AX = 36, AX2 = 336;
+
+    function render() {
+      const g = grp(), v = view();
+      scores[g] = [parseInt(s1.value, 10), parseInt(s2.value, 10)];
+      o1.textContent = String(scores[g][0]);
+      o2.textContent = String(scores[g][1]);
+      const lo = v === 'raw' ? 0 : -60, hi = v === 'raw' ? 100 : 140;
+      const py = (val: number) => Y1 - ((Math.min(val, hi) - lo) / (hi - lo)) * (Y1 - Y0);
+      const val = (grpKey: string, i: number) => (grpKey === 'C' ? (v === 'raw' ? CTRL[i] : 100) : v === 'raw' ? scores[grpKey][i] : rel(scores[grpKey][i], i));
+
+      plot.replaceChildren();
+      // below-chance band (relative view)
+      if (v === 'rel') {
+        plot.appendChild(el('rect', { x: AX, y: py(0), width: AX2 - AX, height: Y1 - py(0), fill: '#f3e6e6' }));
+      }
+      // axes and grid
+      plot.appendChild(el('line', { x1: AX, y1: Y0, x2: AX, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: AX, y1: Y1, x2: AX2, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      const ticks = v === 'raw' ? [0, 25, 50, 75, 100] : [-50, 0, 50, 100];
+      for (const t of ticks) {
+        plot.appendChild(el('line', { x1: AX, y1: py(t), x2: AX2, y2: py(t), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        const tx = el('text', { x: AX - 4, y: py(t) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK });
+        tx.textContent = (t < 0 ? MINUS : '') + Math.abs(t) + '%';
+        plot.appendChild(tx);
+      }
+      const yl = el('text', { x: 2, y: 11, 'font-size': 10, fill: INK });
+      yl.textContent = v === 'raw' ? 'raw score (% correct)' : 'share of controls’ gain above chance';
+      plot.appendChild(yl);
+      // chance marks
+      if (v === 'raw') {
+        for (let i = 0; i < 2; i++) {
+          plot.appendChild(el('line', { x1: X[i] - 16, y1: py(CHANCE[i]), x2: X[i] + 16, y2: py(CHANCE[i]), stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '3 2' }));
+        }
+      } else {
+        const zl = el('line', { x1: AX, y1: py(0), x2: AX2, y2: py(0), stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' });
+        plot.appendChild(zl);
+        const bl = el('text', { x: (X[0] + X[1]) / 2, y: Y1 - 5, 'text-anchor': 'middle', 'font-size': 9, fill: '#8a2d2d' });
+        bl.textContent = 'below chance';
+        plot.appendChild(bl);
+        const cl = el('text', { x: (X[0] + X[1]) / 2, y: py(0) - 4, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+        cl.textContent = 'chance = 0%';
+        plot.appendChild(cl);
+      }
+      // x labels
+      const xl: string[][] = [['Classification', 'chance 50%'], ['Questionnaire', 'chance 25%']];
+      for (let i = 0; i < 2; i++) {
+        const a = el('text', { x: X[i], y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); a.textContent = xl[i][0]; plot.appendChild(a);
+        const b = el('text', { x: X[i], y: Y1 + 26, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); b.textContent = xl[i][1]; plot.appendChild(b);
+      }
+      // lines
+      const sty: Record<string, { c: string; dash: string; w: number; tag: string }> = {
+        C: { c: GREY, dash: '', w: 2.4, tag: 'Controls' },
+        A: { c: TEAL, dash: '', w: 2.8, tag: 'Amnesic' },
+        P: { c: ORANGE, dash: '6 3', w: 2.8, tag: 'Parkinson’s' },
+      };
+      for (const k of ['C', 'A', 'P']) {
+        const s = sty[k];
+        const a = { x1: X[0], y1: py(val(k, 0)), x2: X[1], y2: py(val(k, 1)), stroke: s.c, 'stroke-width': s.w } as Record<string, string | number>;
+        if (s.dash) a['stroke-dasharray'] = s.dash;
+        plot.appendChild(el('line', a));
+      }
+      // dots + labels with simple de-overlap per side
+      for (let i = 0; i < 2; i++) {
+        const items = ['C', 'A', 'P'].map((k) => ({ k, y: py(val(k, i)), val: val(k, i) }));
+        const ly = items.map((it) => it.y + 3);
+        const order = items.map((_, j) => j).sort((a, b) => ly[a] - ly[b]);
+        for (let n = 1; n < order.length; n++) if (ly[order[n]] - ly[order[n - 1]] < 11) ly[order[n]] = ly[order[n - 1]] + 11;
+        items.forEach((it, j) => {
+          const s = sty[it.k];
+          const off = it.val > hi;
+          plot.appendChild(el('circle', { cx: X[i], cy: it.y, r: 4.5, fill: off ? '#fff' : s.c, stroke: s.c, 'stroke-width': 2 }));
+          const left = i === 0;
+          const t = el('text', { x: left ? X[i] - 9 : X[i] + 9, y: ly[j], 'text-anchor': left ? 'end' : 'start', 'font-size': 9, 'font-weight': 700, fill: s.c === GREY ? INK : s.c });
+          const txt = v === 'raw' ? Math.round(it.val) + '%' : pct(it.val);
+          t.textContent = s.tag + ' ' + txt + (off ? ' ▲' : '');
+          plot.appendChild(t);
+        });
+      }
+
+      // table
+      for (const k of ['C', 'A', 'P']) {
+        for (let i = 0; i < 2; i++) {
+          const raw = k === 'C' ? CTRL[i] : scores[k][i];
+          const r = k === 'C' ? 100 : rel(raw, i);
+          let txt = `${raw}% → ${pct(r)}`;
+          if (k !== 'C') {
+            if (raw === CHANCE[i]) txt += ' (exactly at chance)';
+            else if (raw < CHANCE[i]) txt += ' (below chance)';
+          }
+          cell(k + (i + 1)).textContent = txt;
+        }
+      }
+      root.querySelectorAll<HTMLElement>('[data-row]').forEach((tr) => tr.classList.toggle('dds-editing', tr.dataset.row === g));
+
+      // arithmetic for the edited group
+      arithTitle.textContent = `Arithmetic for the ${NAME[g]} group:`;
+      arith.replaceChildren();
+      for (let i = 0; i < 2; i++) {
+        const p = scores[g][i], c = CTRL[i], ch = CHANCE[i];
+        const r = rel(p, i);
+        const li = document.createElement('li');
+        li.textContent = `${TASK[i][0].toUpperCase() + TASK[i].slice(1)}: (${p} ${MINUS} ${ch}) / (${c} ${MINUS} ${ch}) = ${num(p - ch)} / ${c - ch} = ${pct(r)}. Raw score ÷ controls: ${p}/${c} = ${Math.round((p / c) * 100)}%.`;
+        arith.appendChild(li);
+      }
+
+      // status
+      const q = scores[g][1];
+      const parts: string[] = [];
+      if (v === 'raw') {
+        parts.push(`Raw view: the ${NAME[g]} questionnaire score of ${q}% against 80% looks like ${Math.round((q / 80) * 100)}% of normal; relative to chance it is ${pct(rel(q, 1))}, because a quarter of answers are right by guessing.`);
+      } else {
+        parts.push(`Above-chance view: each score is counted from its chance level (50% and 25%) as a share of the controls’ gain, so the ${NAME[g]} questionnaire score of ${q}% is ${pct(rel(q, 1))}, not ${Math.round((q / 80) * 100)}%.`);
+      }
+      for (let i = 0; i < 2; i++) {
+        const p = scores[g][i];
+        if (p === CHANCE[i]) parts.push(`The ${NAME[g]} ${TASK[i]} score is exactly at chance, so the relative score is 0%.`);
+        else if (p < CHANCE[i]) parts.push(`The ${NAME[g]} ${TASK[i]} score is below chance, so the relative score is negative (${pct(rel(p, i))}).`);
+      }
+      const d1 = rel(scores.A[0], 0) - rel(scores.P[0], 0);
+      const d2 = rel(scores.A[1], 1) - rel(scores.P[1], 1);
+      const R = [[rel(scores.A[0], 0), rel(scores.A[1], 1)], [rel(scores.P[0], 0), rel(scores.P[1], 1)]];
+      const failsOne = (r: number[]) => (r[0] <= 50 && r[1] >= 75 ? 0 : r[1] <= 50 && r[0] >= 75 ? 1 : -1);
+      const fa = failsOne(R[0]), fp = failsOne(R[1]);
+      const anyLow = R.some((r) => r[0] <= 50 || r[1] <= 50);
+      if (d1 * d2 < 0) {
+        if (fa >= 0 && fp >= 0 && fa !== fp) {
+          parts.push('The lines cross: each group fails the task the other passes, so no single difficulty scale fits. In this sketch’s logic that is a double dissociation: two separable learning processes; it does not by itself pin each to one structure.');
+        } else {
+          parts.push('The lines cross, but neither group clearly fails a task the other passes, so this is not a double dissociation.');
+        }
+      } else if (anyLow) {
+        parts.push('The lines do not cross: one group is at or below the other on both tasks. A single dissociation (one group failing one task) could mean only that the failed task is harder.');
+      } else {
+        parts.push('Neither group is clearly impaired on either task, so there is no dissociation to read.');
+      }
+      why.textContent = parts.join(' ');
+    }
+
+    function loadGroup() {
+      const g = grp();
+      s1.value = String(scores[g][0]);
+      s2.value = String(scores[g][1]);
+      render();
+    }
+    grpIn.forEach((r) => r.addEventListener('change', loadGroup));
+    viewIn.forEach((r) => r.addEventListener('change', render));
+    [s1, s2].forEach((s) => s.addEventListener('input', render));
+    loadGroup();
+  });
+</script>
+
+<style>
+  .dds { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dds-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dds-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dds-row { border: 0; margin: 0 0 var(--ddp-space-2); padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dds-row legend { float: left; margin-right: 0.8rem; padding: 0; font-weight: 600; color: var(--ddp-color-muted); }
+  .dds-row label { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .dds-row input { accent-color: var(--ddp-color-accent); }
+  .dds-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0 var(--ddp-space-3); }
+  .dds-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dds-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .dds-slabel input { accent-color: var(--ddp-color-accent); }
+  .dds-svg { display: block; width: 100%; max-width: 600px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dds-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; margin: 0 0 var(--ddp-space-2); padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dds-legend li { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .dds-sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; }
+  .dds-sw-c { border-color: #8a8a94; }
+  .dds-sw-a { border-color: #0e7c86; }
+  .dds-sw-p { border-color: #e57200; border-top-style: dashed; }
+  .dds-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); margin: var(--ddp-space-2) 0; }
+  .dds-table th, .dds-table td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); vertical-align: top; }
+  .dds-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .dds-table td { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .dds-table tr.dds-editing { background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); }
+  .dds-arith-title { margin: var(--ddp-space-2) 0 0.15rem; font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-muted); }
+  .dds-arith { margin: 0 0 var(--ddp-space-2); padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); font-family: var(--ddp-font-mono); }
+  .dds-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .dds-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dds-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .dds-controls { grid-template-columns: 1fr; } .dds-table { display: block; overflow-x: auto; } }
+</style>

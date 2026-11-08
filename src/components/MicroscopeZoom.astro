@@ -1,0 +1,402 @@
+---
+/**
+ * MicroscopeZoom — zoom into a sample with the eye, a hand lens, and a light microscope
+ * at 40x, 100x and 400x. The circle of view shrinks as magnification rises, a scale bar in
+ * micrometres (µm) updates, and an object shows only when it is big enough for the tool.
+ * Sketch rule (from the lesson): the eye shows objects larger than about 100 µm, so a tool
+ * that magnifies M times shows an object when size x M is at least 100 µm; a light
+ * microscope cannot show details below about 0.2 µm. Sizes of the pond-water organisms come
+ * from the lesson's table. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="mz card" data-microscopezoom>
+  <figcaption class="mz-head">Microscope zoom: what can each tool show?<span class="mz-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="mz-first">First, pick a sample. Then press a bigger tool to zoom in.</p>
+
+  <div class="mz-controls">
+    <fieldset class="mz-group">
+      <legend>Sample</legend>
+      <div class="mz-btns">
+        <button type="button" class="mz-btn" data-sample="pond" aria-pressed="true">Pond water</button>
+        <button type="button" class="mz-btn" data-sample="onion" aria-pressed="false">Onion skin</button>
+        <button type="button" class="mz-btn" data-sample="cork" aria-pressed="false">Cork slice</button>
+        <button type="button" class="mz-btn" data-sample="cheek" aria-pressed="false">Cheek scraping</button>
+      </div>
+    </fieldset>
+    <fieldset class="mz-group">
+      <legend>Tool (magnification)</legend>
+      <div class="mz-btns">
+        <button type="button" class="mz-btn" data-tool="0" aria-pressed="true">Eye</button>
+        <button type="button" class="mz-btn" data-tool="1" aria-pressed="false">Hand lens 10x</button>
+        <button type="button" class="mz-btn" data-tool="2" aria-pressed="false">40x</button>
+        <button type="button" class="mz-btn" data-tool="3" aria-pressed="false">100x</button>
+        <button type="button" class="mz-btn" data-tool="4" aria-pressed="false">400x</button>
+        <button type="button" class="mz-btn mz-reset" data-reset>Reset</button>
+      </div>
+    </fieldset>
+  </div>
+
+  <svg class="mz-svg" viewBox="0 0 360 384" role="img" aria-label="A circle showing what you can see through the chosen tool, with a scale bar in micrometres below it" data-stage></svg>
+
+  <p class="mz-status" data-status role="status"></p>
+
+  <dl class="mz-read">
+    <div><dt>Total magnification</dt><dd data-r-mag></dd></div>
+    <div><dt>Circle of view, across (in this sketch)</dt><dd data-r-field></dd></div>
+    <div><dt>Smallest object shown (in this sketch)</dt><dd data-r-limit></dd></div>
+  </dl>
+
+  <ul class="mz-legend" data-legend></ul>
+
+  <p class="mz-assume">In this sketch: an object shows when its size × the magnification is at least 100 µm, the eye’s limit. For cells, the narrower side is used. Circle sizes, the 10x hand lens, the onion, cork and cheek cell sizes, and the spots shown are sketch values. Pond contents are a sketch. There is no focusing or staining.</p>
+  <p class="mz-foot">Keep this rule: an object shows only if it is bigger than the smallest size the tool can show, and higher power shows a smaller circle of the slide.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#8a8a96';
+
+  type Shape = 'paramecium' | 'alga' | 'bacterium' | 'onion' | 'cork' | 'cheek';
+  type Kind = {
+    id: Shape; name: string; sizeUm: number; // the size used for "shows or hidden"
+    w: number; h: number;                    // drawn size in µm (length, width)
+    sizeText: string;                        // what the legend says about its size
+    tissue: boolean; short: string; sketch?: boolean; count: number[];        // count of objects per view, one per tool
+    fill: string; stroke: string;
+  };
+  type Sample = { id: string; name: string; tint: string; patch: string; kinds: Kind[]; kindWord: string };
+  type Tool = { id: number; phrase: string; label: string; mag: number; eyepiece: number | null; objective: number | null };
+
+  const TOOLS: Tool[] = [
+    { id: 0, phrase: 'the eye', label: 'Eye', mag: 1, eyepiece: null, objective: null },
+    { id: 1, phrase: 'the hand lens', label: 'Hand lens 10x', mag: 10, eyepiece: null, objective: null },
+    { id: 2, phrase: '40x', label: 'Microscope 40x', mag: 40, eyepiece: 10, objective: 4 },
+    { id: 3, phrase: '100x', label: 'Microscope 100x', mag: 100, eyepiece: 10, objective: 10 },
+    { id: 4, phrase: '400x', label: 'Microscope 400x', mag: 400, eyepiece: 10, objective: 40 },
+  ];
+  const EYE_LIMIT_UM = 100;      // lesson: the eye shows objects larger than about 100 µm
+  const SCOPE_FLOOR_UM = 0.2;    // lesson: a light microscope shows details down to about 0.2 µm
+  const FIELD_AT_1X_UM = 160000; // sketch value: the circle of view at 1x; it shrinks as 1 / magnification
+  const R = 130, CX = 180, CY = 185; // the circle in the SVG, px
+
+  const SAMPLES: Sample[] = [
+    {
+      id: 'pond', name: 'pond water', tint: '#eaf4fb', patch: 'drop of pond water', kindWord: 'living thing',
+      kinds: [
+        { id: 'paramecium', name: 'Paramecium', sizeUm: 200, w: 200, h: 60, sizeText: 'about 200 µm long', tissue: false, short: 'Paramecium', count: [2, 2, 2, 2, 1], fill: '#cfe9ec', stroke: '#0e7c86' },
+        { id: 'alga', name: 'Green alga', sizeUm: 20, w: 20, h: 20, sizeText: '20 µm wide (Haematococcus, lab value)', tissue: false, short: 'alga', count: [5, 5, 5, 5, 3], fill: '#b9dc8f', stroke: '#4c8a2b' },
+        { id: 'bacterium', name: 'Bacterium', sizeUm: 2, w: 2, h: 1, sizeText: 'about 2 µm long (E. coli, lab value)', tissue: false, short: 'bacterium', count: [14, 14, 14, 14, 10], fill: '#f3c58a', stroke: '#e57200' },
+      ],
+    },
+    {
+      id: 'onion', name: 'onion skin', tint: '#f5f0e2', patch: 'piece of onion skin', kindWord: 'cell',
+      kinds: [
+        { id: 'onion', name: 'Onion skin cell', sizeUm: 55, w: 412, h: 55, sizeText: 'about 412 µm long, 55 µm across', tissue: true, short: 'Onion cells', count: [1, 1, 1, 1, 1], fill: '#e1f1d6', stroke: '#4c8a2b' },
+      ],
+    },
+    {
+      id: 'cork', name: 'cork slice', tint: '#f3e8d8', patch: 'thin slice of cork', kindWord: 'cell',
+      kinds: [
+        { id: 'cork', name: 'Cork cell', sizeUm: 50, w: 50, h: 50, sizeText: 'sketch size, under 100 µm', tissue: true, sketch: true, short: 'Cork cells', count: [1, 1, 1, 1, 1], fill: '#ffffff', stroke: '#8a5a2b' },
+      ],
+    },
+    {
+      id: 'cheek', name: 'cheek scraping', tint: '#f9eeea', patch: 'cheek scraping on the slide', kindWord: 'cell',
+      kinds: [
+        { id: 'cheek', name: 'Cheek cell', sizeUm: 55, w: 55, h: 48, sizeText: 'about 55 µm across', tissue: false, short: 'Cheek cells', count: [6, 6, 6, 6, 5], fill: '#f3d9d0', stroke: '#b5604a' },
+      ],
+    },
+  ];
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('MicroscopeZoom: missing ' + sel);
+    return e;
+  }
+  function fmt(n: number): string {
+    if (n >= 1000) return Math.round(n).toLocaleString('en-US');
+    return String(Math.round(n * 100) / 100);
+  }
+  function fmtUm(n: number): string {
+    return n >= 1000 ? fmt(n) + ' µm (' + fmt(n / 1000) + ' mm)' : fmt(n) + ' µm';
+  }
+  function limitUm(t: Tool): number {
+    return t.mag === 1 ? EYE_LIMIT_UM : Math.max(EYE_LIMIT_UM / t.mag, SCOPE_FLOOR_UM);
+  }
+  function limText(t: Tool): string { return 'about ' + fmtUm(limitUm(t)); }
+  function niceBar(target: number): number {
+    const p = Math.pow(10, Math.floor(Math.log10(target)));
+    let best = p, d = Infinity;
+    for (const m of [1, 2, 5, 10]) {
+      const v = m * p, dd = Math.abs(v - target);
+      if (dd < d) { d = dd; best = v; }
+    }
+    return best;
+  }
+  function rng(seedStr: string): () => number {
+    let h = 1779033703 ^ seedStr.length;
+    for (let i = 0; i < seedStr.length; i++) { h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+    let a = h >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function capital(x: string): string { return x.charAt(0).toUpperCase() + x.slice(1); }
+  function wrap(text: string, n: number): string[] {
+    const out: string[] = []; let cur = '';
+    text.split(' ').forEach((w) => { if ((cur + ' ' + w).trim().length > n) { out.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); });
+    if (cur) out.push(cur);
+    return out;
+  }
+  function shownKindsFor(s: Sample, t: Tool): Kind[] { return s.kinds.filter((k) => k.sizeUm >= limitUm(t)); }
+  function listNames(names: string[]): string {
+    if (names.length === 1) return names[0];
+    return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1].toLowerCase();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-microscopezoom]').forEach((root) => {
+    const stage = must<SVGSVGElement>(root, '[data-stage]');
+    const statusEl = must<HTMLElement>(root, '[data-status]');
+    const rMag = must<HTMLElement>(root, '[data-r-mag]');
+    const rField = must<HTMLElement>(root, '[data-r-field]');
+    const rLimit = must<HTMLElement>(root, '[data-r-limit]');
+    const legend = must<HTMLElement>(root, '[data-legend]');
+    const sampleBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-sample]'));
+    const toolBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tool]'));
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+
+    let sampleId = 'pond';
+    let toolId = 0;
+    let prevTool: number | null = null; // set only when the tool was just changed
+
+    function currentSample(): Sample { return SAMPLES.find((s) => s.id === sampleId) ?? SAMPLES[0]; }
+
+    function drawKind(g: SVGElement, k: Kind, cx: number, cy: number, f: number, pxPerUm: number, rand: () => number) {
+      const ang = rand() * 180;
+      const L = k.w * pxPerUm * f, W = k.h * pxPerUm * f;
+      if (k.id === 'paramecium') {
+        g.appendChild(el('ellipse', { cx, cy, rx: L / 2, ry: W / 2, transform: `rotate(${ang} ${cx} ${cy})`, fill: k.fill, stroke: k.stroke, 'stroke-width': 1.5 }));
+      } else if (k.id === 'alga') {
+        g.appendChild(el('circle', { cx, cy, r: Math.max(L / 2, 2.5), fill: k.fill, stroke: k.stroke, 'stroke-width': 1.2 }));
+      } else if (k.id === 'bacterium') {
+        g.appendChild(el('ellipse', { cx, cy, rx: L / 2, ry: Math.max(W / 2, 1.8), transform: `rotate(${ang} ${cx} ${cy})`, fill: k.fill, stroke: k.stroke, 'stroke-width': 1 }));
+      } else {
+        g.appendChild(el('ellipse', { cx, cy, rx: L / 2, ry: W / 2, transform: `rotate(${ang} ${cx} ${cy})`, fill: k.fill, stroke: k.stroke, 'stroke-width': 1.3 }));
+      }
+    }
+
+    function render() {
+      const s = currentSample();
+      const t = TOOLS[toolId];
+      const lim = limitUm(t);
+      const fieldUm = FIELD_AT_1X_UM / t.mag;
+      const pxPerUm = (2 * R) / fieldUm;
+      const rand = rng(s.id + ':' + t.id);
+      const big: string[] = [];
+      let enlarged = false;
+
+      stage.replaceChildren();
+      const defs = el('defs', {});
+      const clip = el('clipPath', { id: 'mz-clip' });
+      clip.appendChild(el('circle', { cx: CX, cy: CY, r: R }));
+      defs.appendChild(clip);
+      stage.appendChild(defs);
+      stage.appendChild(el('text', { x: CX, y: 20, 'font-size': 14, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, t.label));
+      const kindLabel = !shownKindsFor(s, t).length || t.id === 0 ? '' : s.id === 'onion' ? 'Dots: the nucleus of each living cell' : s.id === 'cork' ? 'Boxes: empty walls of dead cells' : '';
+      if (kindLabel) stage.appendChild(el('text', { x: CX, y: 40, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, kindLabel));
+      stage.appendChild(el('circle', { cx: CX, cy: CY, r: R, fill: s.tint }));
+
+      const g = el('g', { 'clip-path': 'url(#mz-clip)' });
+      stage.appendChild(g);
+
+      const shown: Kind[] = [], hidden: Kind[] = [];
+      s.kinds.forEach((k) => (k.sizeUm >= lim ? shown : hidden).push(k));
+
+      // At the eye, the piece of material is visible but its cells (smaller than 100 µm) are not.
+      const cellsHidden = s.id !== 'pond' && shown.length === 0;
+      if (s.id === 'pond' && t.id === 0) {
+        g.appendChild(el('circle', { cx: CX, cy: CY, r: 98, fill: '#d9ecf8', stroke: '#6aa7c9', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      }
+      if (cellsHidden) {
+        g.appendChild(el('ellipse', { cx: CX, cy: CY, rx: 100, ry: 64, fill: s.id === 'cork' ? '#dcc7a6' : s.id === 'onion' ? '#e9e0c8' : '#f1ddd6', stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      }
+
+      // Draw the kinds that this tool can show.
+      const placed: { x: number; y: number; r: number }[] = [];
+      if (s.id === 'pond' && t.id === 0) placed.push({ x: CX, y: CY + 112, r: 60 });
+      shown.slice().sort((a, b) => b.w - a.w).forEach((k) => {
+        const longPx = k.w * pxPerUm, shortPx = Math.min(k.w, k.h) * pxPerUm;
+        if (k.tissue) {
+          // Boxes in rows, like a wall of bricks; drawn at least 8 px on the short side.
+          const f = Math.max(1, 8 / shortPx);
+          if (f > 1.05) { enlarged = true; big.push(k.short); }
+          const bw = k.w * pxPerUm * f, bh = k.h * pxPerUm * f;
+          const rows = Math.ceil((2 * R) / bh) + 1, cols = Math.ceil((2 * R) / bw) + 2;
+          for (let r = 0; r < rows; r++) {
+            const off = k.id === 'onion' && r % 2 ? bw / 2 : 0;
+            for (let c = -1; c < cols; c++) {
+              const bx = CX - R + c * bw + off, by2 = CY - R + r * bh;
+              g.appendChild(el('rect', { x: bx, y: by2, width: bw, height: bh, fill: k.fill, stroke: k.stroke, 'stroke-width': k.id === 'cork' ? 1.8 : 1.2 }));
+              if (k.id === 'onion' && bh >= 14) g.appendChild(el('circle', { cx: bx + bw * 0.35, cy: by2 + bh / 2, r: Math.min(bh * 0.2, 7), fill: '#3f7a2a' }));
+            }
+          }
+          return;
+        }
+        const f = Math.max(1, 7 / longPx);
+        if (f > 1.05) { enlarged = true; big.push(k.short); }
+        const rad = (longPx * f) / 2;
+        const n = k.count[t.id];
+        const rmax = Math.max(R * 0.3, R * 0.92 - rad * 0.8);
+        for (let i = 0; i < n; i++) {
+          let x = CX, y = CY;
+          for (let tries = 0; tries < 60; tries++) {
+            const a = rand() * Math.PI * 2, d = Math.sqrt(rand()) * rmax;
+            x = CX + Math.cos(a) * d; y = CY + Math.sin(a) * d;
+            if (placed.every((p) => Math.hypot(p.x - x, p.y - y) > p.r + rad + 2)) break;
+          }
+          placed.push({ x, y, r: rad });
+          drawKind(g, k, x, y, f, pxPerUm, rand);
+        }
+      });
+
+      stage.appendChild(el('circle', { cx: CX, cy: CY, r: R, fill: 'none', stroke: INK, 'stroke-width': 2.5 }));
+
+      // Labels for the eye-level view and for an empty view.
+      if (t.id === 0 && s.id !== 'pond') {
+        stage.appendChild(el('text', { x: CX, y: CY + 4, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, s.patch));
+      }
+      if (t.id === 0 && s.id === 'pond') {
+        stage.appendChild(el('text', { x: CX, y: CY + 112, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, s.patch));
+      }
+      if (cellsHidden) {
+        stage.appendChild(el('text', { x: CX, y: CY + 50, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'no cells to see at this size'));
+      }
+
+      // Scale bar
+      const barUm = niceBar(fieldUm * 0.3);
+      const barPx = barUm * pxPerUm;
+      const bx0 = CX - barPx / 2, bx1 = CX + barPx / 2, by = 326;
+      stage.appendChild(el('line', { x1: bx0, y1: by, x2: bx1, y2: by, stroke: INK, 'stroke-width': 3 }));
+      stage.appendChild(el('line', { x1: bx0, y1: by - 6, x2: bx0, y2: by + 6, stroke: INK, 'stroke-width': 2 }));
+      stage.appendChild(el('line', { x1: bx1, y1: by - 6, x2: bx1, y2: by + 6, stroke: INK, 'stroke-width': 2 }));
+      stage.appendChild(el('text', { x: CX, y: by + 22, 'font-size': 13, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, 'Scale bar: ' + fmtUm(barUm)));
+      if (enlarged) {
+        const verb = big.length > 1 || big[0].endsWith('cells') ? 'are' : 'is';
+        const sentence = capital(listNames(big)) + ' ' + verb + ' drawn larger than true size.';
+        wrap(sentence, 44).forEach((ln, i) => stage.appendChild(el('text', { x: CX, y: 368 + i * 13, 'font-size': 11, 'text-anchor': 'middle', fill: INK }, ln)));
+      }
+
+      // Readout
+      rMag.textContent = t.eyepiece
+        ? `${t.eyepiece} × ${t.objective} = ${t.mag}x (eyepiece × objective)`
+        : t.id === 0 ? '1x (no lens)' : '10x';
+      rField.textContent = fmtUm(fieldUm);
+      rLimit.textContent = t.id === 0
+        ? 'about ' + fmtUm(EYE_LIMIT_UM) + ' (the eye’s limit)'
+        : `about ${fmtUm(EYE_LIMIT_UM)} ÷ ${t.mag} = about ${fmtUm(EYE_LIMIT_UM / t.mag)}` + (t.eyepiece ? ` (a light microscope also cannot show details below about ${SCOPE_FLOOR_UM} µm)` : '');
+
+      // Legend
+      legend.replaceChildren();
+      s.kinds.forEach((k) => {
+        const on = k.sizeUm >= lim;
+        const li = document.createElement('li');
+        const sw = document.createElement('span');
+        sw.className = 'mz-sw'; sw.style.background = k.fill; sw.style.borderColor = k.stroke;
+        const nm = document.createElement('strong');
+        nm.textContent = k.name;
+        const st = document.createElement('span');
+        st.className = on ? 'mz-on' : 'mz-off';
+        st.textContent = on ? 'shown' : 'hidden';
+        const why = k.sketch
+          ? (on ? ` (bigger than ${limText(t)})` : ` (smaller than ${limText(t)})`)
+          : ` (${fmtUm(k.sizeUm)} is ${on ? 'at least' : 'below'} ${limText(t)})`;
+        li.append(sw, nm, ` · ${k.sizeText} · `, st, why);
+        legend.appendChild(li);
+      });
+
+      // Status line, in the lesson's words
+      const parts: string[] = [];
+      if (prevTool !== null && prevTool !== t.id) {
+        const pt = TOOLS[prevTool];
+        const ratio = Math.max(t.mag, pt.mag) / Math.min(t.mag, pt.mag);
+        parts.push(`From ${pt.phrase} to ${t.phrase}, the circle of view is ${fmt(ratio)} times ${t.mag > pt.mag ? 'narrower' : 'wider'}.`);
+      }
+      const tool = 'With ' + (t.id === 0 ? 'your eye' : t.id === 1 ? 'the 10x hand lens' : 'the ' + t.mag + 'x microscope');
+      if (s.id === 'pond') {
+        parts.push(`${tool}, ${shown.length} of ${s.kinds.length} kinds of living thing show in this sketch.`);
+        if (hidden.length) {
+          parts.push(`${listNames(hidden.map((k) => k.name))} ${hidden.length === 1 ? 'is' : 'are'} smaller than ${limText(t)}, so ${hidden.length === 1 ? 'it stays' : 'they stay'} hidden.`);
+          if (t.id === 0) parts.push('Most living things in pond water are smaller than the eye can see.');
+        } else {
+          parts.push('Nothing in the drop is smaller than the smallest size this tool shows.');
+        }
+      } else if (cellsHidden) {
+        parts.push(`${tool}, you see the ${s.patch}, not its cells.`);
+        parts.push(`Each cell in this sketch is smaller than ${limText(t)}.`);
+      } else if (s.id === 'onion') {
+        parts.push(`${tool}, each box is one living cell. The dot is its nucleus.`);
+      } else if (s.id === 'cork') {
+        parts.push(`${tool}, each box is only the empty wall of a dead cell.`);
+      } else {
+        parts.push(`${tool}, each blob is one cell from the cheek scraping.`);
+      }
+      if (enlarged) parts.push(capital(listNames(big)) + (big.length > 1 || big[0].endsWith('cells') ? ' are' : ' is') + ' drawn larger than true size.');
+      if (t.id === 0 && prevTool === null) parts.push('Press a bigger tool to zoom in.');
+      statusEl.textContent = parts.join(' ');
+
+      sampleBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sample === sampleId)));
+      toolBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tool === String(toolId))));
+    }
+
+    sampleBtns.forEach((b) => b.addEventListener('click', () => {
+      sampleId = b.dataset.sample ?? 'pond'; prevTool = null; render();
+    }));
+    toolBtns.forEach((b) => b.addEventListener('click', () => {
+      const next = Number(b.dataset.tool);
+      if (Number.isNaN(next) || next === toolId) return;
+      prevTool = toolId; toolId = next; render();
+    }));
+    resetBtn.addEventListener('click', () => { sampleId = 'pond'; toolId = 0; prevTool = null; render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .mz { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mz-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mz-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mz-first { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .mz-controls { display: grid; gap: var(--ddp-space-2); }
+  .mz-group { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.5rem; }
+  .mz-group legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .mz-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .mz-btn { min-height: 44px; min-width: 44px; padding: 0.3rem 0.8rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); cursor: pointer; }
+  .mz-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .mz-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mz-reset { margin-left: auto; }
+  .mz-svg { display: block; width: 100%; max-width: 600px; margin: var(--ddp-space-3) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mz-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .mz-read { margin: var(--ddp-space-2) 0; display: grid; gap: 0.3rem; font-size: var(--ddp-text-xs); }
+  .mz-read div { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; }
+  .mz-read dt { color: var(--ddp-color-muted); }
+  .mz-read dd { margin: 0; color: var(--ddp-color-primary); font-weight: 600; }
+  .mz-legend { list-style: none; margin: var(--ddp-space-2) 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.6; }
+  .mz-legend li { margin: 0.2rem 0; }
+  .mz-sw { display: inline-block; width: 0.9em; height: 0.9em; border: 2px solid; border-radius: 50%; margin-right: 0.4em; vertical-align: -0.1em; }
+  .mz-on { color: #0e7c86; font-weight: 700; }
+  .mz-off { color: #8a4b00; font-weight: 700; }
+  .mz-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mz-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

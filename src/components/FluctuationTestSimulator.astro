@@ -1,0 +1,199 @@
+---
+/**
+ * FluctuationTestSimulator — run many parallel cultures under the two hypotheses of the
+ * mutation lesson and compare the scatter of resistant colonies. Either the virus induces
+ * resistance (every culture has the same small chance, so counts scatter like sampling noise,
+ * variance close to the mean) or resistance arises by mutation before exposure (an early event
+ * leaves a jackpot, a late one a few cells, many cultures have none). Numbers are the lesson's
+ * worked problem: about 2 x 10^8 cells per culture, p0 = 0.5 so m = 0.69 events per culture,
+ * induced mean 6. A mutation after a fraction f of the divisions leaves about 1/f resistant
+ * cells, because mutants grow like the parent and divisions roughly equal cells.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fl card" data-fluct>
+  <figcaption class="fl-head">Fluctuation test: induced or already there?<span class="fl-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="fl-svg" viewBox="0 0 360 256" role="img" aria-label="Two bar charts of resistant colonies per culture, one for each hypothesis, with one bar per culture" data-stage></svg>
+
+  <div class="fl-row">
+    <fieldset class="fl-ctl">
+      <legend>Parallel cultures</legend>
+      <label><input type="radio" name="fl-n" value="10" checked /> 10 cultures</label>
+      <label><input type="radio" name="fl-n" value="100" /> 100 cultures</label>
+    </fieldset>
+    <label class="fl-log"><input type="checkbox" data-log /> stretch small counts (log scale)</label>
+    <button type="button" class="fl-btn" data-resample>Resample</button>
+  </div>
+
+  <table class="fl-table">
+    <thead>
+      <tr><th scope="col">Hypothesis</th><th scope="col">Mean</th><th scope="col">Variance</th><th scope="col">Variance ÷ mean</th><th scope="col">Cultures with none</th></tr>
+    </thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <p class="fl-verdict" data-verdict role="status"></p>
+
+  <p class="fl-foot">Rule to keep: if the virus induced resistance, counts from separate cultures scatter only as much as sampling allows (variance close to the mean); if mutation comes first, jackpots and many empty plates make the variance far larger than the mean. This is a sketch of the logic using the lesson’s worked-problem numbers (about 2 x 10^8 cells per culture, 0.69 mutation events per culture, induced mean 6), not a model of a real strain. In this sketch a mutation after a fraction f of the growth leaves about 1/f resistant cells (f random, capped at 2 x 10^8), so clone sizes here are not measured values; the lesson’s jackpot was 52. The two arms’ means are not matched.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const CELLS = 2e8;        // cells (and so divisions) per culture, from the lesson's worked problem
+  const M_EVENTS = 0.69;    // mutation events per culture, m = -ln(0.5)
+  const IND_MEAN = 6;       // induced arm: the lesson's mean colonies per plate
+  const BLUE = '#2f6f8f', ORANGE = '#c25e00', INK = '#4b4b55', FAINT = '#8a8a96';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function poisson(lambda: number): number {
+    const L = Math.exp(-lambda);
+    let k = 0, p = 1;
+    do { k++; p *= Math.random(); } while (p > L);
+    return k - 1;
+  }
+  // Mutation before exposure: events are Poisson(m); an event after a fraction f of the divisions
+  // leaves about 1/f resistant cells (mutants grow like the parent), at least one cell.
+  function mutantCulture(): number {
+    const k = poisson(M_EVENTS);
+    let total = 0;
+    for (let i = 0; i < k; i++) {
+      const f = 1 - Math.random(); // in (0, 1]
+      total += Math.min(CELLS, Math.max(1, Math.round(1 / f)));
+    }
+    return total;
+  }
+  function stats(v: number[]) {
+    const n = v.length;
+    const mean = v.reduce((a, b) => a + b, 0) / n;
+    const variance = v.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (n - 1);
+    const none = v.filter((x) => x === 0).length;
+    return { n, mean, variance, none, max: Math.max(...v) };
+  }
+  const axf = (x: number) => (x >= 100000 ? x.toExponential(0).replace('e+', 'e') : fmt(x));
+  const fmt = (x: number) => (x >= 1000 ? Math.round(x).toLocaleString('en-US') : x >= 100 ? x.toFixed(0) : x.toFixed(1));
+
+  document.querySelectorAll<HTMLElement>('[data-fluct]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const rows = root.querySelector<HTMLElement>('[data-rows]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const logBox = root.querySelector<HTMLInputElement>('[data-log]')!;
+    let induced: number[] = [];
+    let mutant: number[] = [];
+
+    function count(): number {
+      return Number(root.querySelector<HTMLInputElement>('input[name="fl-n"]:checked')!.value);
+    }
+    function run() {
+      const n = count();
+      induced = Array.from({ length: n }, () => poisson(IND_MEAN));
+      mutant = Array.from({ length: n }, () => mutantCulture());
+      render();
+    }
+    function panel(data: number[], y0: number, h: number, colour: string, title: string, ymax: number, log: boolean) {
+      const x0 = 38, w = 314, n = data.length;
+      stage.appendChild(el('text', { x: x0, y: y0 - 6, 'font-size': 10, 'font-weight': 700, fill: colour }, title));
+      stage.appendChild(el('line', { x1: x0, y1: y0, x2: x0, y2: y0 + h, stroke: FAINT, 'stroke-width': 1 }));
+      stage.appendChild(el('line', { x1: x0, y1: y0 + h, x2: x0 + w, y2: y0 + h, stroke: FAINT, 'stroke-width': 1 }));
+      const yOf = (v: number) => (log ? Math.log10(1 + v) / Math.log10(1 + ymax) : v / ymax) * (h - 12);
+      // axis ticks: 0 and the top of the scale
+      stage.appendChild(el('text', { x: x0 - 4, y: y0 + h + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '0'));
+      stage.appendChild(el('text', { x: x0 - 4, y: y0 + 15, 'font-size': 9, 'text-anchor': 'end', fill: INK }, axf(ymax)));
+      if (log) for (const t of [10, 100, 1000, 1e4, 1e5, 1e6, 1e7]) {
+        if (t >= ymax) break;
+        const y = y0 + h - yOf(t);
+        if (y - y0 < 26) continue;
+        stage.appendChild(el('line', { x1: x0, y1: y, x2: x0 + w, y2: y, stroke: '#e3e3e8', 'stroke-width': 1 }));
+        stage.appendChild(el('text', { x: x0 - 4, y: y + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, axf(t)));
+      }
+      const slot = w / n, bw = Math.max(1.5, slot * 0.7);
+      let top = 0;
+      data.forEach((v, i) => { if (v > data[top]) top = i; });
+      data.forEach((v, i) => {
+        const bh = v === 0 ? 0 : Math.max(1.5, yOf(v));
+        const x = x0 + i * slot + (slot - bw) / 2;
+        if (v === 0) {
+          stage.appendChild(el('rect', { x, y: y0 + h - 2, width: bw, height: 2, fill: FAINT }));
+        } else {
+          stage.appendChild(el('rect', { x, y: y0 + h - bh, width: bw, height: bh, fill: colour }));
+        }
+        if (i === top && v > 0) {
+          const tx = Math.max(x0 + 12, Math.min(x + bw / 2, x0 + w - 12));
+          stage.appendChild(el('text', { x: tx, y: Math.max(y0 + 8, y0 + h - bh - 3), 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: colour }, fmt(v)));
+        }
+      });
+    }
+    function render() {
+      const log = logBox.checked;
+      const ymax = Math.max(10, ...induced, ...mutant);
+      stage.replaceChildren();
+      stage.appendChild(el('text', { x: 8, y: 12, 'font-size': 9, fill: INK }, 'Resistant colonies per culture, one bar per culture'));
+      stage.appendChild(el('text', { x: 8, y: 23, 'font-size': 9, fill: INK }, 'Same scale in both panels; a grey tick means none'));
+      panel(induced, 48, 80, BLUE, 'If: the virus induces resistance', ymax, log);
+      panel(mutant, 162, 80, ORANGE, 'If: mutation arises before exposure', ymax, log);
+
+      const si = stats(induced), sm = stats(mutant);
+      const expectNoneInd = Math.exp(-IND_MEAN);
+      const expectNoneMut = Math.exp(-M_EVENTS);
+      const pct = (a: number, n: number) => `${a} of ${n}`;
+      rows.replaceChildren();
+      const addRow = (name: string, colour: string, s: ReturnType<typeof stats>, expRatio: string, expNone: number) => {
+        const tr = document.createElement('tr');
+        const ratio = s.mean > 0 ? s.variance / s.mean : NaN;
+        tr.innerHTML =
+          `<th scope="row" style="color:${colour}">${name}</th>` +
+          `<td>${s.mean.toFixed(1)}</td>` +
+          `<td>${fmt(s.variance)}</td>` +
+          `<td>${isNaN(ratio) ? 'n/a' : fmt(ratio)} <em>(expected ${expRatio})</em></td>` +
+          `<td>${pct(s.none, s.n)} <em>(expected ${(expNone * s.n).toFixed(s.n >= 100 ? 0 : 1)})</em></td>`;
+        rows.appendChild(tr);
+      };
+      addRow('Induced', BLUE, si, 'about 1', expectNoneInd);
+      addRow('Mutation first', ORANGE, sm, 'far above 1', expectNoneMut);
+
+      const ri = si.mean > 0 ? si.variance / si.mean : NaN;
+      const rm = sm.mean > 0 ? sm.variance / sm.mean : NaN;
+      let v = `Induced: variance is ${isNaN(ri) ? 'undefined' : fmt(ri) + ' times'} the mean, the scatter that sampling alone gives. `;
+      if (isNaN(rm)) {
+        v += 'Mutation first: no culture had a resistant mutant in this run, so there is nothing to compare. Resample.';
+      } else {
+        v += `Mutation first: variance is ${fmt(rm)} times the mean, ${sm.none} of ${sm.n} cultures have none and the largest has ${fmt(sm.max)}. `;
+        v += rm > 3
+          ? 'Cultures that started the same end up with very different counts, which is what mutation before exposure predicts, as in the 1943 result.'
+          : 'This run happens to look tame, because a jackpot needs an early event and a small sample can miss one. Resample' + (sm.n < 100 ? ', or try 100 cultures.' : '.');
+      }
+      verdict.textContent = v;
+    }
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', run);
+    root.querySelectorAll<HTMLInputElement>('input[name="fl-n"]').forEach((r) => r.addEventListener('change', run));
+    logBox.addEventListener('change', render);
+    run();
+  });
+</script>
+
+<style is:global>
+  .fl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fl-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0.35rem 0; }
+  .fl-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fl-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .fl-ctl input, .fl-log input { accent-color: var(--ddp-color-accent); }
+  .fl-log { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fl-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); font-weight: 600; padding: 0.35rem 0.8rem; cursor: pointer; }
+  .fl-btn:focus-visible, .fl-ctl input:focus-visible, .fl-log input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .fl-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fl-table th, .fl-table td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); vertical-align: top; }
+  .fl-table thead th { color: var(--ddp-color-muted); font-weight: 400; }
+  .fl-table em { color: var(--ddp-color-muted); font-style: normal; display: block; }
+  .fl-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .fl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .fl-table th, .fl-table td { padding: 0.2rem 0.25rem; } }
+</style>

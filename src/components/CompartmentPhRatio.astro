@@ -1,0 +1,201 @@
+---
+/**
+ * CompartmentPhRatio — pick any two compartments whose pH the organelles-as-environments
+ * lesson gives and see the free-proton ratio worked out as in the lesson's worked problem:
+ * pH = -log10(aH+), so aH+(1) / aH+(2) = 10^(pH2 - pH1). Bars sit on a log scale of
+ * proton activity. Every value is a figure in the lesson's chemical map, with its system.
+ * Where the lesson gives a range, each end of the range is its own choice. The optional
+ * bafilomycin switch states only what the lesson states (the HeLa Golgi becomes less acid;
+ * no value is given). Nothing is random, nothing is drawn as a molecule. Original.
+ */
+---
+
+<figure class="cph card" data-cph>
+  <figcaption class="cph-head">Compartment pH ratio: how many more free protons?<span class="cph-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cph-svg" viewBox="0 0 360 198" role="img" aria-label="Two bars on a log scale of free proton activity, one for each chosen compartment, with the ratio between them" data-stage></svg>
+
+  <div class="cph-controls">
+    <label class="cph-sel">Compartment 1
+      <select data-sel="a"></select>
+    </label>
+    <label class="cph-sel">Compartment 2
+      <select data-sel="b"></select>
+    </label>
+  </div>
+  <label class="cph-baf"><input type="checkbox" data-baf /> add bafilomycin A1 (V-ATPase inhibitor), HeLa Golgi only</label>
+
+  <p class="cph-verdict" data-verdict role="status"></p>
+  <ol class="cph-steps" data-steps></ol>
+
+  <p class="cph-foot">Each pH unit is a tenfold change in free protons, so the ratio is 10 raised to the pH difference. It compares free proton activity only; it says nothing about the total protons held by buffers or how fast they move. This is a sketch of the logic, and the values come from different systems.</p>
+</figure>
+
+<script>
+  const NS = "http://www.w3.org/2000/svg";
+  type Item = { id: string; name: string; ph: number; desc: string; sys: string; kind: "hela" | "rev" | "plant"; group?: string; golgi?: boolean };
+  const ITEMS: Item[] = [
+    { id: "nuc", name: "Nucleus", ph: 7.2, desc: "pH near 7.2; mammalian cells, review", sys: "mammalian cells, review", kind: "rev" },
+    { id: "golgi", name: "Medial/trans Golgi", ph: 6.58, desc: "pH 6.58; HeLa cells, targeted reporter", sys: "HeLa cells, targeted reporter", kind: "hela", golgi: true },
+    { id: "ee-lo", name: "Early/recycling endosome", ph: 6.3, desc: "pH 6.3, the low end of about 6.3 to 6.5; mammalian cells, review", sys: "mammalian cells, review", kind: "rev", group: "ee" },
+    { id: "ee-hi", name: "Early/recycling endosome", ph: 6.5, desc: "pH 6.5, the high end of about 6.3 to 6.5; mammalian cells, review", sys: "mammalian cells, review", kind: "rev", group: "ee" },
+    { id: "le", name: "Late endosome", ph: 5.5, desc: "pH about 5.5; mammalian cells, review", sys: "mammalian cells, review", kind: "rev" },
+    { id: "ly-lo", name: "Lysosome", ph: 4.5, desc: "pH 4.5, the low end of 4.5 to 5.0; mammalian cells, review", sys: "mammalian cells, review", kind: "rev", group: "ly" },
+    { id: "ly-hi", name: "Lysosome", ph: 5.0, desc: "pH 5.0, the high end of 4.5 to 5.0; mammalian cells, review", sys: "mammalian cells, review", kind: "rev", group: "ly" },
+    { id: "mx", name: "Mitochondrial matrix", ph: 7.98, desc: "pH about 7.98, estimated; HeLa cells, targeted reporter", sys: "HeLa cells, targeted reporter", kind: "hela" },
+    { id: "st-lo", name: "Chloroplast stroma, in light", ph: 7.8, desc: "pH 7.8, the low end of about 7.8 to 8.0; older plant measurements, reviewed", sys: "older plant measurements, reviewed", kind: "plant", group: "st" },
+    { id: "st-hi", name: "Chloroplast stroma, in light", ph: 8.0, desc: "pH 8.0, the high end of about 7.8 to 8.0; older plant measurements, reviewed", sys: "older plant measurements, reviewed", kind: "plant", group: "st" },
+  ];
+  const PH_MIN = 4.0, PH_MAX = 8.5, X0 = 12, X1 = 348;
+  const xOf = (ph: number) => X0 + ((PH_MAX - ph) / (PH_MAX - PH_MIN)) * (X1 - X0);
+  const INK = "#4b4b55", FAINT = "#8a8a96";
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const SUP: Record<string, string> = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "-": "⁻" };
+  const sup = (n: number) => String(n).split("").map((c) => SUP[c] || c).join("");
+  function fmt(x: number, sf = 2): string {
+    if (x >= 1000 || x < 0.001) {
+      const e = Math.floor(Math.log10(x));
+      return (x / Math.pow(10, e)).toPrecision(sf) + " × 10" + sup(e);
+    }
+    return x.toPrecision(sf);
+  }
+  const phText = (p: number) => (Math.abs(p * 10 - Math.round(p * 10)) < 1e-9 ? p.toFixed(1) : p.toFixed(2));
+  const label = (it: Item) => `${it.name}, ${it.desc.split(";")[0]}`;
+
+  document.querySelectorAll<HTMLElement>("[data-cph]").forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>("[data-stage]")!;
+    const selA = root.querySelector<HTMLSelectElement>('[data-sel="a"]')!;
+    const selB = root.querySelector<HTMLSelectElement>('[data-sel="b"]')!;
+    const baf = root.querySelector<HTMLInputElement>("[data-baf]")!;
+    const verdict = root.querySelector<HTMLElement>("[data-verdict]")!;
+    const steps = root.querySelector<HTMLElement>("[data-steps]")!;
+
+    for (const s of [selA, selB]) {
+      ITEMS.forEach((it) => {
+        const o = document.createElement("option");
+        o.value = it.id;
+        o.textContent = label(it);
+        s.appendChild(o);
+      });
+    }
+    selA.value = "golgi";
+    selB.value = "mx";
+
+    const get = (id: string) => ITEMS.find((i) => i.id === id)!;
+
+    function draw(a: Item, b: Item, bafOn: boolean) {
+      stage.replaceChildren();
+      const rows = [a, b];
+      const ys = [30, 80];
+      rows.forEach((it, i) => {
+        const y = ys[i];
+        const isBaf = bafOn && !!it.golgi;
+        stage.appendChild(el("text", { x: X0, y: y - 6, "font-size": 10, "font-weight": 700, fill: INK }, `${it.name} · pH ${phText(it.ph)}`));
+        stage.appendChild(el("rect", { x: X0, y, width: Math.max(2, xOf(it.ph) - X0), height: 18, rx: 3, fill: i === 0 ? "#0e7c86" : "#e57200" }));
+        if (isBaf) {
+          const ex = xOf(it.ph);
+          stage.appendChild(el("line", { x1: ex - 6, y1: y + 9, x2: ex - 40, y2: y + 9, stroke: "#fff", "stroke-width": 2 }));
+          stage.appendChild(el("path", { d: `M ${ex - 40} ${y + 9} l 6 -4 l 0 8 z`, fill: "#fff" }));
+        }
+      });
+      // guides from each bar end to the ratio arrow
+      const xa = xOf(a.ph), xb = xOf(b.ph);
+      const yArrow = 120;
+      stage.appendChild(el("line", { x1: xa, y1: ys[0] + 18, x2: xa, y2: yArrow, stroke: "#0e7c86", "stroke-width": 1, "stroke-dasharray": "3 3" }));
+      stage.appendChild(el("line", { x1: xb, y1: ys[1] + 18, x2: xb, y2: yArrow, stroke: "#e57200", "stroke-width": 1, "stroke-dasharray": "3 3" }));
+      if (Math.abs(xa - xb) > 1) {
+        stage.appendChild(el("line", { x1: Math.min(xa, xb), y1: yArrow, x2: Math.max(xa, xb), y2: yArrow, stroke: INK, "stroke-width": 1.5 }));
+      }
+      // axis
+      stage.appendChild(el("line", { x1: X0, y1: 130, x2: X1, y2: 130, stroke: INK, "stroke-width": 1 }));
+      [8, 7, 6, 5, 4].forEach((p) => {
+        const x = xOf(p);
+        const anchor = p === 4 ? "end" : "middle";
+        stage.appendChild(el("line", { x1: x, y1: 130, x2: x, y2: 135, stroke: INK, "stroke-width": 1 }));
+        const tx = p === 4 ? x + 4 : x;
+        stage.appendChild(el("text", { x: tx, y: 147, "font-size": 10, "text-anchor": anchor, fill: INK }, `pH ${p}`));
+        stage.appendChild(el("text", { x: tx, y: 159, "font-size": 9, "text-anchor": anchor, fill: FAINT }, `10${sup(-p)} M`));
+      });
+      stage.appendChild(el("text", { x: 180, y: 178, "font-size": 9, "text-anchor": "middle", fill: INK }, "free proton activity, log scale; bars start at pH 8.5 (arbitrary)"));
+      stage.appendChild(el("text", { x: 180, y: 190, "font-size": 9, "text-anchor": "middle", fill: INK }, "M assumes activity = concentration; longer bar = more acid"));
+    }
+
+    function render() {
+      const a = get(selA.value), b = get(selB.value);
+      const hasGolgi = !!a.golgi || !!b.golgi;
+      baf.disabled = !hasGolgi;
+      if (!hasGolgi) baf.checked = false;
+      const bafOn = baf.checked;
+      draw(a, b, bafOn);
+
+      // numerator is the more acidic (lower pH) of the two, as the Golgi over the matrix in the lesson
+      const hi = a.ph <= b.ph ? a : b;
+      const lo = hi === a ? b : a;
+      const d = Math.round((lo.ph - hi.ph) * 100) / 100;
+      const ratio = Math.pow(10, d);
+      const cHi = Math.pow(10, -hi.ph), cLo = Math.pow(10, -lo.ph);
+
+      // arrow label, drawn as part of the stage but at a fixed row (y 120 line, text just under none): in the status instead
+      const sf = (a.id === "golgi" && b.id === "mx") || (a.id === "mx" && b.id === "golgi") ? 3 : 2;
+      let text: string;
+      if (a.group && a.group === b.group) {
+        text = `These are the two ends of one reported range, not two compartments (${a.name}: ${a.desc.split("; ")[0].replace(/^pH \d\.\d, the (low|high) end of /, "pH ")}). The ends differ by ${d.toFixed(2)} pH units, which is a free-proton ratio of ${fmt(ratio, sf)}.`;
+      } else if (d === 0) {
+        text = `Both entries read pH ${phText(a.ph)}, so their free proton activities are equal (ratio 1).`;
+      } else {
+        text = `${hi.name} (${hi.desc}) has about ${fmt(ratio, sf)} times the free proton activity of ${lo.name} (${lo.desc}). This is free activity only.`;
+      }
+      if (bafOn) {
+        text += " Bafilomycin A1 made the HeLa Golgi less acid, which shows its acidity is actively kept; the lesson gives no pH after treatment, so the numbers here stay at the untreated reading and the white arrow shows only the direction.";
+      }
+      if (a.id !== b.id && !(a.group && a.group === b.group)) {
+        const src = a.kind === "plant" || b.kind === "plant" ? "different organisms" : "different sources";
+        text += ` The two values come from ${src} (${a.sys}; ${b.sys}); the map combines single-cell measurements with review ranges.`;
+      }
+      verdict.textContent = text;
+
+      steps.replaceChildren();
+      const add = (s: string) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); };
+      if (d === 0) {
+        add(`Subtract: ${phText(lo.ph)} − ${phText(hi.ph)} = 0.`);
+        add("Raise ten to that power: 10⁰ = 1.");
+      } else {
+        add(`Subtract: ${phText(lo.ph)} − ${phText(hi.ph)} = ${d.toFixed(2)}.`);
+        add(`Raise ten to that power: 10^${d.toFixed(2)} = ${fmt(ratio, sf)}.`);
+        add(`Check, treating activity as concentration: 10^−${phText(hi.ph)} = ${fmt(cHi, 3)} M (${fmt(cHi * 1e6, 3)} µM) and 10^−${phText(lo.ph)} = ${fmt(cLo, 3)} M (${fmt(cLo * 1e6, 3)} µM). Then ${fmt(cHi * 1e6, 3)} / ${fmt(cLo * 1e6, 3)} = ${fmt(cHi / cLo, 3)}.`);
+      }
+      // ratio label on the stage
+      if (d !== 0) {
+        const xa = xOf(a.ph), xb = xOf(b.ph);
+        const lx = Math.max(xa, xb), mn = Math.min(xa, xb);
+        const right = 352 - lx >= mn - 8;
+        stage.appendChild(el("text", { x: right ? Math.min(lx + 8, 300) : Math.max(mn - 8, 60), y: 116, "font-size": 10, "font-weight": 700, "text-anchor": right ? "start" : "end", fill: INK }, `${fmt(ratio, sf)}×`));
+      }
+    }
+    selA.addEventListener("change", render);
+    selB.addEventListener("change", render);
+    baf.addEventListener("change", render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .cph { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cph-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cph-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cph-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cph-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cph-sel { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .cph-sel select { width: 100%; max-width: 100%; font: inherit; font-size: var(--ddp-text-sm); padding: 0.3rem; }
+  .cph-baf { display: block; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; }
+  .cph-verdict { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .cph-steps { margin: 0 0 var(--ddp-space-2); padding-left: 1.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-family: var(--ddp-font-mono); line-height: 1.5; overflow-wrap: anywhere; }
+  .cph-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cph-controls { grid-template-columns: 1fr; } }
+</style>

@@ -287,7 +287,7 @@ class S01Dip(Film):
         bot = Panel(-1.9, 6.2, -3.3, -0.55, "transmitter", PINK, base=-1.6, depth=1.2)
         self.at("reports that")
         self.play(Indicate(ph[1], color=TEXT, scale_factor=1.6), run_time=0.7)
-        self.at("switching a current off")
+        self.at("a current")
         self.play(FadeIn(top.axes), FadeIn(top.title), run_time=0.5)
         self.at("In the dark")
         self.play(LaggedStart(*[GrowArrow(a) for a in ins], lag_ratio=0.1), run_time=0.9)
@@ -359,7 +359,7 @@ class S02Hold(Film):
 
         # three chips fly up and bind directly; then their gates swing open
         movers = [chips[k] for k in BOUND_FROM]
-        self.at("no kinase")
+        self.at("no kindness")
         self.play(*[m.animate.move_to(row.bound_xy(i)) for m, i in zip(movers, OPEN_IDX)], run_time=1.0)
         self.at("holds some")
         self.play(*[row.swing(i, True, 0.55) for i in OPEN_IDX], run_time=0.55)
@@ -465,7 +465,7 @@ class S03Light(Film):
         self.at("transducin switches on")
         self.play(trans[1].animate.set_stroke(GREEN, 5), GrowArrow(a2), FadeIn(pde), run_time=0.7)
         self.play(pde[1].animate.set_stroke(GREEN, 5), run_time=0.3)
-        self.at("a phosphodiesterase")
+        self.at("a phosphodiesteris")
         self.play(FadeIn(pde_lbl), run_time=0.4)
 
         # PDE6 reaches the cGMP and destroys it
@@ -538,7 +538,7 @@ class S04Close(Film):
         self.at("roughly")
         self.play(FadeIn(n20, shift=DOWN * 0.1), Indicate(cur.flat, color=TEXT, scale_factor=1.0), run_time=0.8)
         tc = cur.trough()
-        shut = T("all channels shut", 22, GREY).move_to([tc[0] + 0.3, tc[1] + 0.35, 0], aligned_edge=LEFT)
+        shut = T("bright light", 22, GREY).move_to([tc[0] + 0.3, tc[1] + 0.35, 0], aligned_edge=LEFT)
         nx = cur.xm(0.2)
         notch = VMobject(stroke_color=RED, stroke_width=5).set_points_as_corners(
             [[nx + 0.5 * u, cur.base - 0.095 * float(resp(u * 1.0 + 0.0)) , 0] for u in np.linspace(0, 1.4, 40)])

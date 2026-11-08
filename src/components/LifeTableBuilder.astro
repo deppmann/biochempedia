@@ -1,0 +1,259 @@
+---
+/**
+ * LifeTableBuilder — the demography lesson's invented female cohort as a live life table.
+ * Three sliders set the survivors n1, n2, n3 out of 100 newborns (m_x fixed at 0, 1, 2, 1, 0;
+ * no female lives past age 3). The table, the survivorship curve on a log axis, R0, T, r and
+ * lambda all follow from the lesson's own formulas. A sketch of the logic, not data. Original.
+ */
+---
+
+<figure class="ltb card" data-ltb>
+  <figcaption class="ltb-head">Life table builder — survivorship, R<sub>0</sub> and generation time<span class="ltb-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="ltb-presets" role="group" aria-label="Starting tables">
+    <button type="button" class="ltb-btn" data-preset="80,40,10">The lesson’s table</button>
+    <button type="button" class="ltb-btn" data-preset="80,64,51">Nearly constant q to age 2</button>
+    <button type="button" class="ltb-btn" data-preset="30,10,2">Low survival</button>
+  </div>
+
+  <div class="ltb-controls">
+    <label class="ltb-slabel" for="ltb-n1"><span>Alive at age 1, n<sub>1</sub> <em data-out="n1">80</em> of 100</span>
+      <input id="ltb-n1" type="range" data-in="n1" min="0" max="100" step="1" value="80" />
+    </label>
+    <label class="ltb-slabel" for="ltb-n2"><span>Alive at age 2, n<sub>2</sub> <em data-out="n2">40</em> (at most n<sub>1</sub>)</span>
+      <input id="ltb-n2" type="range" data-in="n2" min="0" max="80" step="1" value="40" />
+    </label>
+    <label class="ltb-slabel" for="ltb-n3"><span>Alive at age 3, n<sub>3</sub> <em data-out="n3">10</em> (at most n<sub>2</sub>)</span>
+      <input id="ltb-n3" type="range" data-in="n3" min="0" max="40" step="1" value="10" />
+    </label>
+  </div>
+
+  <svg class="ltb-svg" viewBox="0 0 340 230" role="img" aria-label="Survivorship l sub x against age on a logarithmic axis for the cohort set by the sliders" data-plot></svg>
+  <p class="ltb-key" aria-hidden="true">
+    <span><i class="ltb-sw ltb-sw-you"></i>your cohort</span>
+    <span><i class="ltb-sw ltb-sw-ref"></i>the lesson’s table</span>
+    <span><i class="ltb-sw ltb-sw-line"></i>straight line (constant q)</span>
+  </p>
+
+  <div class="ltb-tablewrap">
+    <table class="ltb-table" data-table>
+      <thead>
+        <tr><th scope="col">x</th><th scope="col">n<sub>x</sub></th><th scope="col">l<sub>x</sub></th><th scope="col">d<sub>x</sub></th><th scope="col">q<sub>x</sub></th><th scope="col">m<sub>x</sub></th><th scope="col">l<sub>x</sub>m<sub>x</sub></th><th scope="col">x·l<sub>x</sub>m<sub>x</sub></th></tr>
+      </thead>
+      <tbody data-rows></tbody>
+    </table>
+  </div>
+
+  <dl class="ltb-readout">
+    <div><dt>R<sub>0</sub> = Σ l<sub>x</sub>m<sub>x</sub></dt><dd data-r-r0></dd></div>
+    <div><dt>T = Σ x·l<sub>x</sub>m<sub>x</sub> / R<sub>0</sub></dt><dd data-r-t></dd></div>
+    <div><dt>r ≈ ln(R<sub>0</sub>) / T</dt><dd data-r-r></dd></div>
+    <div><dt>λ = e<sup>r</sup></dt><dd data-r-l></dd></div>
+  </dl>
+
+  <p class="ltb-why" data-why role="status"></p>
+
+  <p class="ltb-assume">In this sketch: closed cohort of 100 newborn females, complete records, births in a pulse at each exact age, no female alive past age 3 (so q<sub>3</sub> = 1.00), r approximate. Nearly equal here means q within 0.03. A sketch of the logic, not data.</p>
+  <p class="ltb-foot">Read survivorship on a log axis: a straight line means the same fraction dies each interval, not the same number; R<sub>0</sub> is per generation, and r and λ are per year.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const M = [0, 1, 2, 1, 0]; // daughters per female at exact ages 0..4 (the lesson's table)
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const f2 = (v: number) => v.toFixed(2);
+  const f3 = (v: number) => v.toFixed(3);
+
+  document.querySelectorAll<HTMLElement>('[data-ltb]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const rows = root.querySelector<HTMLElement>('[data-rows]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
+    const rR0 = root.querySelector<HTMLElement>('[data-r-r0]')!;
+    const rT = root.querySelector<HTMLElement>('[data-r-t]')!;
+    const rR = root.querySelector<HTMLElement>('[data-r-r]')!;
+    const rL = root.querySelector<HTMLElement>('[data-r-l]')!;
+    const ins = [inp('n1'), inp('n2'), inp('n3')];
+
+    const X0 = 48, X1 = 300, Y0 = 34, Y1 = 186, LMIN = 0.01; // y is log10 l, from 0.01 to 1
+    const px = (x: number) => X0 + (x / 4) * (X1 - X0);
+    const py = (l: number) => Y1 - ((Math.log10(l) - Math.log10(LMIN)) / (0 - Math.log10(LMIN))) * (Y1 - Y0);
+
+    function curvePath(n: number[], dashedFrom0: boolean) {
+      // n = counts at ages 0..3 ; solid through positive l, dashed drop to the floor at the first zero
+      let solid = '', drop = '';
+      for (let x = 0; x <= 3; x++) {
+        const l = n[x] / 100;
+        if (l > 0) solid += (solid ? 'L' : 'M') + px(x).toFixed(1) + ' ' + py(l).toFixed(1) + ' ';
+        else { const lastX = x - 1; drop = `M${px(lastX).toFixed(1)} ${py(n[lastX] / 100).toFixed(1)} L${px(x).toFixed(1)} ${Y1}`; break; }
+      }
+      if (!drop && n[3] > 0) drop = `M${px(3).toFixed(1)} ${py(n[3] / 100).toFixed(1)} L${px(4).toFixed(1)} ${Y1}`;
+      return { solid: solid.trim(), drop };
+    }
+
+    function render() {
+      // clamp so survivors never exceed the age before
+      let n1 = parseInt(ins[0].value, 10);
+      let n2 = Math.min(parseInt(ins[1].value, 10), n1);
+      let n3 = Math.min(parseInt(ins[2].value, 10), n2);
+      ins[1].max = String(n1); ins[1].value = String(n2);
+      ins[2].max = String(n2); ins[2].value = String(n3);
+      out('n1').textContent = String(n1); out('n2').textContent = String(n2); out('n3').textContent = String(n3);
+
+      const n = [100, n1, n2, n3, 0];
+      const l = n.map((v) => v / 100);
+      const d: (number | null)[] = n.map((v, i) => (i < 4 ? v - n[i + 1] : null));
+      const q: (number | null)[] = n.map((v, i) => (i < 4 && v > 0 ? (v - n[i + 1]) / v : null));
+      const lm = l.map((v, i) => v * M[i]);
+      const xlm = lm.map((v, i) => v * i);
+      const sumN = n1 + 2 * n2 + n3; // 100 * R0
+      const R0 = sumN / 100;
+      const hasT = sumN > 0;
+      const T = hasT ? (n1 + 4 * n2 + 3 * n3) / sumN : NaN;
+      const r = hasT ? Math.log(R0) / T : NaN;
+      const lam = hasT ? Math.exp(r) : NaN;
+
+      // table
+      rows.replaceChildren();
+      for (let x = 0; x <= 4; x++) {
+        const tr = document.createElement('tr');
+        const cells = [
+          String(x), String(n[x]), f2(l[x]),
+          d[x] === null ? 'none' : String(d[x]),
+          q[x] === null ? '—' : f2(q[x] as number),
+          String(M[x]), f2(lm[x]), f2(xlm[x]),
+        ];
+        cells.forEach((c) => { const td = document.createElement('td'); td.textContent = c; tr.appendChild(td); });
+        rows.appendChild(tr);
+      }
+
+      // readouts with the lesson's arithmetic
+      const terms = [1, 2, 3].map((x) => f2(lm[x]));
+      rR0.textContent = `${terms.join(' + ')} = ${f2(R0)} daughters per newborn female`;
+      if (hasT) {
+        const num = [1, 2, 3].map((x) => f2(xlm[x])).join(' + ');
+        const tot = xlm[1] + xlm[2] + xlm[3];
+        rT.textContent = `(${num}) / ${f2(R0)} = ${f2(tot)} / ${f2(R0)} = ${f2(T)} years`;
+        rR.textContent = `ln(${f2(R0)}) / ${f2(T)} = ${f3(r)} per year`;
+        rL.textContent = `${f2(lam)} per year`;
+      } else {
+        rT.textContent = 'undefined (R₀ = 0, no daughters)';
+        rR.textContent = 'undefined (ln 0)';
+        rL.textContent = 'undefined';
+      }
+
+      // plot
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [1, 0.1, 0.01]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        const t = el('text', { x: X0 - 4, y: py(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); t.textContent = String(v); plot.appendChild(t);
+      }
+      for (let x = 0; x <= 4; x++) {
+        plot.appendChild(el('line', { x1: px(x), y1: Y1, x2: px(x), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: px(x), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+        t.textContent = x > 0 && l[x] === 0 ? `${x} (l=0)` : String(x);
+        plot.appendChild(t);
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 30, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); xl.textContent = 'age x (years)'; plot.appendChild(xl);
+      const yl = el('text', { x: 4, y: 14, 'text-anchor': 'start', 'font-size': 10, fill: INK }); yl.textContent = 'survivorship l_x (log axis)'; plot.appendChild(yl);
+
+      // reference: the lesson's table
+      const ref = curvePath([100, 80, 40, 10], false);
+      plot.appendChild(el('path', { d: ref.solid, fill: 'none', stroke: FAINT, 'stroke-width': 1.8, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('path', { d: ref.drop, fill: 'none', stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '1 3' }));
+      // straight line through l_0 and l_3 on the log axis (what a constant q would draw)
+      if (n3 > 0) plot.appendChild(el('line', { x1: px(0), y1: py(1), x2: px(3), y2: py(l[3]), stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '1 3' }));
+      // your cohort
+      const mine = curvePath([100, n1, n2, n3], false);
+      if (mine.drop) plot.appendChild(el('path', { d: mine.drop, fill: 'none', stroke: ACCENT, 'stroke-width': 1.6, 'stroke-dasharray': '3 3' }));
+      plot.appendChild(el('path', { d: mine.solid, fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      for (let x = 0; x <= 3; x++) if (l[x] > 0) plot.appendChild(el('circle', { cx: px(x), cy: py(l[x]), r: 3.6, fill: ACCENT }));
+
+      // status
+      const qs = [0, 1, 2].map((x) => q[x]);
+      const allQ = qs.every((v) => v !== null);
+      const qv = qs as number[];
+      const qtxt = allQ ? qv.map(f2).join(', ') : '';
+      let shape: string;
+      const cav = ' (q₃ = 1.00 here only because the sketch ends at age 3)';
+      if (!allQ) {
+        shape = 'Too few ages have survivors to read a curve shape; q is undefined where no one is alive at the start of an interval.';
+      } else if (Math.max(...qv) === 0) {
+        shape = 'No one dies before age 3, so there is no pattern to read.';
+      } else if (Math.max(...qv) - Math.min(...qv) <= 0.03) {
+        shape = `q₀, q₁ and q₂ are nearly equal (${qtxt}), so log l_x falls close to a straight line through age 3, the Type II pattern for these intervals${cav}. The same fraction dies each interval, not the same number: d_x = ${d[0]}, ${d[1]}, ${d[2]}.`;
+      } else if (qv[0] <= qv[1] && qv[1] <= qv[2]) {
+        shape = qv[0] < 0.5
+          ? `q_x rises with age (${qtxt}), so this cohort is not Type II. Mortality concentrated at older ages puts it nearer Type I${cav}.`
+          : `q_x rises with age (${qtxt}), so this cohort is not Type II.`;
+      } else if (qv[0] >= qv[1] && qv[1] >= qv[2]) {
+        shape = qv[0] >= 0.5
+          ? `q_x falls with age (${qtxt}): losses are concentrated early, nearer Type III${cav}. The three types are idealizations, and real species mix them.`
+          : `q_x falls with age (${qtxt}); real species mix the idealized types.`;
+      } else {
+        shape = `q_x does not rise or fall steadily (${qtxt}), so it fits none of the three idealized types cleanly; real species mix them.`;
+      }
+      let verdict: string;
+      if (!hasT) {
+        verdict = 'No female reaches age 1 or gives birth, so R₀ = 0: no daughters at all, and T, r and λ have no value (ln 0 is undefined). If these rates stayed fixed, the model’s verdict would be decline; that is a prediction from assumptions, not an observation.';
+      } else if (Math.abs(R0 - 1) < 1e-9) {
+        verdict = `R₀ = 1.00, so the cohort just replaces itself and r = 0 per year. That is the model’s verdict if the rates stayed fixed, a prediction from assumptions, not an observation.`;
+      } else if (R0 < 1) {
+        verdict = `R₀ = ${f2(R0)} is below 1, so r is negative (about ${f3(r)} per year, λ about ${f2(lam)}). If these rates stayed fixed, the model’s verdict is decline in the long run; that is a prediction from assumptions, not an observation.`;
+      } else {
+        verdict = `R₀ = ${f2(R0)} is above 1, so r is positive (about ${f3(r)} per year, λ about ${f2(lam)}), and T = ${f2(T)} years is the mean age of mothers at the births of their daughters. If these rates stayed fixed, the model’s verdict is growth in the long run; that is a prediction from assumptions, not an observation.`;
+      }
+      why.textContent = verdict + ' ' + shape;
+    }
+
+    ins.forEach((s) => s.addEventListener('input', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const [a, c, e] = (b.dataset.preset as string).split(',').map(Number);
+        ins[0].value = String(a);
+        ins[1].max = String(a); ins[1].value = String(c);
+        ins[2].max = String(c); ins[2].value = String(e);
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .ltb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ltb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ltb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ltb-presets { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  .ltb-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .ltb-btn:hover, .ltb-btn:focus-visible { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+  .ltb-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  .ltb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ltb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ltb-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .ltb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ltb-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.2rem 0.9rem; margin: var(--ddp-space-2) 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ltb-sw { display: inline-block; width: 18px; height: 0; margin-right: 0.35rem; vertical-align: middle; border-top: 3px solid var(--ddp-color-accent); }
+  .ltb-sw-ref { border-top: 2px dashed #b9b9c2; }
+  .ltb-sw-line { border-top: 2px dotted #e57200; }
+  .ltb-tablewrap { overflow-x: auto; }
+  .ltb-table { width: 100%; border-collapse: collapse; font-family: var(--ddp-font-mono); font-size: 0.72rem; }
+  .ltb-table th, .ltb-table td { padding: 0.2rem 0.25rem; text-align: right; border-bottom: 1px solid var(--ddp-color-line); }
+  .ltb-table th { font-weight: 600; color: var(--ddp-color-muted); }
+  .ltb-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ltb-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .ltb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ltb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .ltb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .ltb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ltb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .ltb-readout { grid-template-columns: 1fr; } }
+</style>

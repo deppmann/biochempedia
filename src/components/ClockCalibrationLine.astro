@@ -1,0 +1,186 @@
+---
+/**
+ * ClockCalibrationLine — Ecology and Evolution, "Molecular Evolution". A plot of corrected
+ * distance D against time since the split, with the line D = 2rt drawn through one fossil
+ * calibration point (3.0 million years). A target distance is read off the line to date a second
+ * split; a toggle shows the commonest error (forgetting the factor 2). Original, self-contained.
+ */
+---
+
+<figure class="cc card" data-clockcal>
+  <figcaption class="cc-head">Calibrating a molecular clock: D = 2rt<span class="cc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cc-svg" viewBox="0 0 340 230" role="img" aria-label="Corrected distance D in substitutions per site against time since the split in million years, with a straight line through the fossil calibration point and a horizontal line at the target distance" data-plot></svg>
+
+  <ul class="cc-legend" aria-label="Legend">
+    <li><span class="cc-key cc-key-line"></span>D = 2rt, through the calibration</li>
+    <li><span class="cc-key cc-key-fossil"></span>fossil calibration (3.0 million years)</li>
+    <li><span class="cc-key cc-key-target"></span>target distance</li>
+    <li><span class="cc-key cc-key-ok"></span>date read from the line</li>
+    <li data-leg-wrong hidden><span class="cc-key cc-key-wrong"></span>factor 2 forgotten (D = rt)</li>
+  </ul>
+
+  <div class="cc-controls">
+    <label class="cc-slabel"><span>Calibration distance, fossil pair (at 3.0 million years) <em data-out="cal">0.012</em> per site</span>
+      <input type="range" data-in="cal" min="0.004" max="0.030" step="0.001" value="0.012" />
+    </label>
+    <label class="cc-slabel"><span>Target distance, second pair <em data-out="tgt">0.024</em> per site</span>
+      <input type="range" data-in="tgt" min="0" max="0.060" step="0.001" value="0.024" />
+    </label>
+    <label class="cc-check"><input type="checkbox" data-in="wrong" /> <span>Forget the factor 2</span></label>
+  </div>
+
+  <dl class="cc-readout">
+    <div><dt>1. Calibrate: r = D / (2t)</dt><dd data-r-rate></dd></div>
+    <div><dt>2. Date the target: t = D / (2r)</dt><dd data-r-date></dd></div>
+    <div data-r-wrongbox hidden><dt>Without the factor 2: t = D / r</dt><dd class="cc-bad" data-r-wrong></dd></div>
+  </dl>
+  <p class="cc-why" data-why role="status"></p>
+
+  <p class="cc-assume">In this sketch: slider values other than 0.012 and 0.024 are illustrative; one constant rate on both lineages, the calibration date treated as exact, and ancestral polymorphism ignored. The fossil date is a minimum, so the dates may be older.</p>
+  <p class="cc-foot">Distance builds up on two branches, so D = 2rt: use the factor 2 when you find the rate and again when you find the date.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', RED = '#b3261e', TARGET = '#6b6b78';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const CAL_T = 3.0;   // fossil date, million years
+  const DMAX = 0.06;   // top of the distance axis
+  const sci = (r: number) => {
+    // r in per site per year -> "2.0 × 10⁻⁹"
+    const SUP: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+    const exp = Math.floor(Math.log10(r));
+    const m = r / Math.pow(10, exp);
+    return m.toPrecision(3) + ' × 10' + String(exp).split('').map((c) => SUP[c] ?? c).join('');
+  };
+  const fmtMyr = (t: number) => (t < 10 ? t.toFixed(1) : t.toFixed(t < 100 ? 1 : 0));
+  document.querySelectorAll<HTMLElement>('[data-clockcal]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const calIn = o('[data-in="cal"]') as HTMLInputElement, tgtIn = o('[data-in="tgt"]') as HTMLInputElement, wrongIn = o('[data-in="wrong"]') as HTMLInputElement;
+    const calOut = o('[data-out="cal"]'), tgtOut = o('[data-out="tgt"]');
+    const rRate = o('[data-r-rate]'), rDate = o('[data-r-date]'), rWrong = o('[data-r-wrong]'), wrongBox = o('[data-r-wrongbox]'), legWrong = o('[data-leg-wrong]'), why = o('[data-why]');
+
+    const X0 = 46, X1 = 326, Y0 = 18, Y1 = 192;
+    function niceStep(tmax: number) {
+      for (const s of [1, 2, 5, 10, 20, 50, 100]) if (tmax / s <= 6) return s;
+      return 200;
+    }
+    function render() {
+      const dcal = parseFloat(calIn.value);
+      const dt = parseFloat(tgtIn.value);
+      const wrong = wrongIn.checked;
+      calOut.textContent = dcal.toFixed(3);
+      tgtOut.textContent = dt.toFixed(3);
+
+      const slope = dcal / CAL_T;                 // D per million years on the line D = 2rt
+      const rYear = dcal / (2 * CAL_T * 1e6);     // substitutions per site per year, per lineage
+      const tOk = dt / slope;                     // million years, factor 2 kept
+      const tBad = 2 * tOk;                       // million years, factor 2 forgotten (t = D/r)
+      const reach = Math.max(CAL_T, wrong ? tBad : tOk) * 1.1;
+      const step = niceStep(reach);
+      const tmax = Math.ceil(reach / step) * step;
+
+      const px = (t: number) => X0 + (t / tmax) * (X1 - X0);
+      const py = (d: number) => Y1 - (d / DMAX) * (Y1 - Y0);
+
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const d of [0, 0.02, 0.04, 0.06]) {
+        if (d > 0) plot.appendChild(el('line', { x1: X0, y1: py(d), x2: X1, y2: py(d), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        const t = el('text', { x: X0 - 4, y: py(d) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); t.textContent = d.toFixed(2); plot.appendChild(t);
+      }
+      for (let t = 0; t <= tmax + 1e-9; t += step) {
+        plot.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const lab = el('text', { x: px(t), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); lab.textContent = String(t); plot.appendChild(lab);
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 28, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); xl.textContent = 'time since the split (million years)'; plot.appendChild(xl);
+      const yl = el('text', { x: X0 - 2, y: Y0 - 6, 'text-anchor': 'start', 'font-size': 10, fill: INK }); yl.textContent = 'distance D (substitutions per site)'; plot.appendChild(yl);
+
+      // target distance
+      plot.appendChild(el('line', { x1: X0, y1: py(dt), x2: X1, y2: py(dt), stroke: TARGET, 'stroke-width': 1.4, 'stroke-dasharray': '5 3' }));
+
+      // the line D = 2rt (clipped at the top of the axis and the right edge)
+      const tEnd = Math.min(tmax, DMAX / slope);
+      plot.appendChild(el('line', { x1: px(0), y1: py(0), x2: px(tEnd), y2: py(slope * tEnd), stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // wrong line D = rt (half the slope), only when the error is switched on
+      if (wrong) {
+        const half = slope / 2;
+        const wEnd = Math.min(tmax, DMAX / half);
+        plot.appendChild(el('line', { x1: px(0), y1: py(0), x2: px(wEnd), y2: py(half * wEnd), stroke: RED, 'stroke-width': 1.8, 'stroke-dasharray': '4 3' }));
+        if (dt > 0) plot.appendChild(el('circle', { cx: px(tBad), cy: py(dt), r: 4, fill: RED }));
+      }
+
+      // date read from the correct line
+      if (dt > 0) {
+        plot.appendChild(el('line', { x1: px(tOk), y1: py(dt), x2: px(tOk), y2: Y1, stroke: ACCENT, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      }
+      plot.appendChild(el('circle', { cx: px(tOk), cy: py(dt), r: 4, fill: '#2e8b57' }));
+
+      // fossil calibration point
+      plot.appendChild(el('circle', { cx: px(CAL_T), cy: py(dcal), r: 5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1 }));
+
+      rRate.textContent = `${dcal.toFixed(3)} / (2 × 3,000,000 yr) = ${sci(rYear)} per site per year (rate rounded; date from the unrounded rate)`;
+      rDate.textContent = dt === 0
+        ? `0 / (2 × ${sci(rYear)}) = 0 million years`
+        : `${dt.toFixed(3)} / (2 × ${sci(rYear)}) = ${fmtMyr(tOk)} million years`;
+      wrongBox.hidden = !wrong;
+      legWrong.hidden = !wrong;
+      rWrong.textContent = dt === 0
+        ? '0 / ' + sci(rYear) + ' = 0 million years (no difference when D is 0)'
+        : `${dt.toFixed(3)} / ${sci(rYear)} = ${fmtMyr(tBad)} million years, the commonest error`;
+
+      const base = `The line is fixed by the fossil: ${dcal.toFixed(3)} substitutions per site at 3.0 million years gives r = ${sci(rYear)} per site per year on each lineage.`;
+      let msg: string;
+      if (dt === 0) {
+        msg = `${base} At a target distance of 0 the line gives t = 0, and the factor 2 makes no difference to zero.`;
+      } else if (wrong) {
+        msg = `${base} Reading the target with the factor 2 forgotten gives ${fmtMyr(tBad)} million years, twice the ${fmtMyr(tOk)} million years from the line D = 2rt. This is the commonest error; distance builds up on both branches.`;
+      } else {
+        msg = `${base} The target distance ${dt.toFixed(3)} meets the line at ${fmtMyr(tOk)} million years. Since the calibration is a minimum, the split may be older.`;
+      }
+      why.textContent = msg;
+    }
+    [calIn, tgtIn, wrongIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .cc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cc-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; margin: var(--ddp-space-2) 0 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cc-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .cc-legend li[hidden] { display: none; }
+  .cc-key { display: inline-block; flex: none; }
+  .cc-key-line { width: 18px; height: 0; border-top: 3px solid #0e7c86; }
+  .cc-key-fossil { width: 10px; height: 10px; border-radius: 50%; background: #e57200; }
+  .cc-key-target { width: 18px; height: 0; border-top: 2px dashed #6b6b78; }
+  .cc-key-ok { width: 10px; height: 10px; border-radius: 50%; background: #2e8b57; }
+  .cc-key-wrong { width: 18px; height: 0; border-top: 2px dashed #b3261e; }
+  .cc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cc-slabel input { accent-color: var(--ddp-color-accent); }
+  .cc-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cc-check input { accent-color: var(--ddp-color-accent); }
+  .cc-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .cc-readout div[hidden] { display: none; }
+  .cc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .cc-readout dd.cc-bad { color: #b3261e; }
+  .cc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .cc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cc-controls { grid-template-columns: 1fr; } }
+</style>

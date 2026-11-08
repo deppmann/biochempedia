@@ -74,7 +74,7 @@ class S01Roadmap(AA):
                         color=TEXT, stroke_width=6, max_tip_length_to_length_ratio=0.6),
                   Arrow(cards[1].get_right(), cards[2].get_left(), buff=0,
                         color=TEXT, stroke_width=6, max_tip_length_to_length_ratio=0.6)]
-        caption = T("R group  →  charge  →  function", 42, TEXT, font=TITLE_FONT).move_to([0, -3.4, 0])
+        caption = T("Structure → charge → function", 42, TEXT, font=TITLE_FONT).move_to([0, -3.4, 0])
 
         self.do(1.5, LaggedStart(*[FadeIn(c, scale=0.95) for c in cards], lag_ratio=0.25), run=1.4)
         self.do(2.14, Write(heads[0]), run=0.6)
@@ -124,7 +124,7 @@ class S02Zwitterion(AA):
         XA, XM, XC, YR = -3.7, 0.0, 3.7, -0.35
         container = RoundedRectangle(corner_radius=0.3, width=11.6, height=3.1, stroke_color=GREY, stroke_width=2.5,
                                      fill_color=GREY, fill_opacity=0.05).move_to([0, YR - 0.15, 0])
-        ctitle = T("amino acid", 28, GREY).move_to([0, YR + 1.1, 0])
+        ctitle = T("glycine", 28, GREY).move_to([0, YR + 1.1, 0])
 
         def row():
             p = pH.get_value()
@@ -334,7 +334,7 @@ class S04Titration(AA):
         beaker = VMobject(color=GREY, stroke_width=4).set_points_as_corners(beaker_pts)
         liquid = Rectangle(width=2.78, height=1.3, stroke_width=0, fill_color=TEXT, fill_opacity=0.12)
         liquid.move_to([BX, -2.35, 0])
-        sample = T("amino acid", 28, GREY).move_to([BX, -3.4, 0])
+        sample = T("glycine", 28, GREY).move_to([BX, -3.4, 0])
         readout = always_redraw(lambda: M(f"pH {self.ph_of(e.get_value()):.1f}", 36, YELLOW).move_to([BX, -2.35, 0]))
         drop = always_redraw(lambda: Dot([BX, 0.1 - 1.1 * ((clock.get_value() * 1.6) % 1) ** 2, 0], radius=0.1,
                                           color=BLUE).set_opacity(drip.get_value()))
@@ -391,7 +391,7 @@ class S04Titration(AA):
         mid_dot = Dot(ax.c2p(1.0, ypi), radius=0.15, color=GOLD)
         l3 = DashedLine(ax.c2p(0, ypi), ax.c2p(2.4, ypi), color=GOLD, dash_length=0.12, stroke_width=4)
         t3 = M("pI ≈ 6.0", 32, GOLD); t3.next_to(ax.c2p(2.4, ypi), UP, 0.1).align_to([rx, 0, 0], RIGHT)
-        t4 = T("net charge = 0", 30, GOLD); t4.next_to(ax.c2p(2.4, ypi), DOWN, 0.1).align_to([rx, 0, 0], RIGHT)
+        t4 = T("avg net charge = 0", 30, GOLD); t4.next_to(ax.c2p(2.4, ypi), DOWN, 0.1).align_to([rx, 0, 0], RIGHT)
         self.do(18.4, FadeIn(mid_dot, scale=2.0), run=0.6)
         self.do(19.6, Create(l3), run=0.8)
         self.do(20.1, FadeIn(t3, shift=UP * 0.1), run=0.6)
@@ -528,7 +528,7 @@ class S06Histidine(AA):
         self.do(21.1, FadeIn(roles[2], shift=LEFT * 0.15), run=0.5)
         self.do(22.5, FadeIn(switchlab, shift=DOWN * 0.1), run=0.6)
         self.play(Indicate(pill, color=GOLD, scale_factor=1.1), run_time=0.8)
-        self.do(24.8, s.animate.set_value(0.5), run=0.8)
+        self.do(24.8, s.animate.set_value(0.04), run=0.8)
         self.do(26.9, proton.animate.set_opacity(1), run=0.3)
         self.play(proton.animate.move_to([RX + 2.0, 1.75, 0]), run_time=0.8)
         self.do(28.2, proton.animate.move_to([RX + 1.0, 1.05, 0]), run=0.8)

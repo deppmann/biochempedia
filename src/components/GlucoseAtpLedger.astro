@@ -7,7 +7,7 @@
  * citric acid cycle, then the electron-transport chain cashing in the NADH/FADH2 via the P/O
  * ratios. Two toggles drive the grand total live: the P/O convention (modern 2.5/1.5 vs
  * classic textbook 3/2) and the cytosolic-NADH shuttle (malate-aspartate, which delivers the
- * 2 glycolytic NADH as NADH, vs glycerophosphate, which delivers them as FADH2 and costs ~2 ATP).
+ * 2 glycolytic NADH as NADH, vs glycerol 3-phosphate, which delivers them as FADH2 and costs ~2 ATP).
  * The teaching point: the famous "38" is the old number; the modern estimate is ~30–32, and the
  * exact figure depends on the shuttle and P/O assumptions. Accounting, not dogma. Original.
  */
@@ -28,7 +28,7 @@
       <span class="gal-tlabel">Cytosolic-NADH shuttle</span>
       <div class="gal-tbtns" role="group">
         <button type="button" data-shuttle="malate" class="gal-on" aria-pressed="true">Malate–aspartate</button>
-        <button type="button" data-shuttle="glycerol" aria-pressed="false">Glycerophosphate</button>
+        <button type="button" data-shuttle="glycerol" aria-pressed="false">Glycerol 3-phosphate</button>
       </div>
     </div>
   </div>
@@ -79,7 +79,7 @@
 
   <p class="gal-note">
     <span data-conv>—</span> · <span data-shut>—</span>.
-    <span class="gal-foot-line">* The 2 cytosolic NADH from glycolysis can't cross the mitochondrial membrane directly — a shuttle moves their electrons in, and which shuttle decides whether they're cashed as NADH or as FADH₂.</span>
+    <span class="gal-foot-line">* The 2 cytosolic NADH from glycolysis can't cross the inner mitochondrial membrane directly — a shuttle moves their electrons in, and which shuttle decides whether they're cashed as NADH or as FADH₂.</span>
   </p>
 
   <p class="gal-why" data-why role="status"></p>
@@ -127,22 +127,28 @@
       calc('glyc', `2 + 2×${fmt(cytoNadhYield)}`);
       calc('pdh', `2×${fmt(nadhYield)}`);
       calc('tca', `2 + 6×${fmt(nadhYield)} + 2×${fmt(fadhYield)}`);
-      calc('total', `4 + ${cytoAsNadh ? 10 : 8}×${fmt(nadhYield)} + ${cytoAsNadh ? 2 : 4}×${fmt(fadhYield)}`);
+      if (po === 'modern') {
+        // the lesson's one idea: count protons, then divide by ~4 per ATP
+        const h = (cytoAsNadh ? 10 : 8) * 10 + (cytoAsNadh ? 2 : 4) * 6;
+        calc('total', `4 + ${h} H⁺ ÷ 4`);
+      } else {
+        calc('total', `4 + ${cytoAsNadh ? 10 : 8}×${fmt(nadhYield)} + ${cytoAsNadh ? 2 : 4}×${fmt(fadhYield)}`);
+      }
 
       convEl.textContent = po === 'modern'
-        ? 'Modern P/O: NADH ≈ 2.5 ATP, FADH₂ ≈ 1.5 ATP'
+        ? 'Modern P/O: NADH ≈ 2.5 ATP, FADH₂ ≈ 1.5 ATP (10 H⁺ and 6 H⁺ per pair at ~4 H⁺ per ATP)'
         : 'Classic P/O: NADH = 3 ATP, FADH₂ = 2 ATP';
       shutEl.textContent = shuttle === 'malate'
         ? 'malate–aspartate shuttle (glycolytic NADH enter as NADH)'
-        : 'glycerophosphate shuttle (glycolytic NADH enter as FADH₂)';
+        : 'glycerol 3-phosphate shuttle (glycolytic NADH enter as FADH₂)';
 
       whyEl.textContent = total === 32
         ? 'The standard modern textbook figure: ~32 ATP. Modern P/O ratios with the malate–aspartate shuttle (heart, liver) preserve the full reducing power of the glycolytic NADH.'
         : total === 30
-          ? 'About 30 ATP — modern P/O, but the glycerophosphate shuttle (muscle, brain) downgrades the 2 glycolytic NADH to FADH₂, surrendering ~2 ATP for a faster, less reversible transfer.'
+          ? 'About 30 ATP — modern P/O, but the glycerol 3-phosphate shuttle (muscle, brain) downgrades the 2 glycolytic NADH to FADH₂, surrendering ~2 ATP for a faster, less reversible transfer.'
           : total === 38
             ? 'The classic "38 ATP" you may have memorized — round P/O ratios of 3 and 2 with the malate–aspartate shuttle. Historically standard, but it overestimates the real yield.'
-            : 'The classic convention with the glycerophosphate shuttle gives 36 — the older counterpart to the ~30 modern figure for muscle and brain.';
+            : 'The classic convention with the glycerol 3-phosphate shuttle gives 36 — the older counterpart to the ~30 modern figure for muscle and brain.';
     }
 
     poBtns.forEach((b) => b.addEventListener('click', () => {

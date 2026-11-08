@@ -1,0 +1,13 @@
+# Pagefind: the full-text index for lesson search. Run by `npm run build` after `astro build`.
+# See src/lib/lesson-search.ts for the client and the ranking.
+site: dist
+# Only pages with data-pagefind-body are indexed, and on a lesson page that is several regions
+# (src/pages/lessons/[...slug].astro): the prose column, the film transcripts, the explain-at-my-level
+# and story dialogs, the self-test, and the "How we measure it" techniques.
+# Skipped inside them: the worked answers folded under each design problem and the other bare
+# <details> folds in the prose ("What scientists think", "Compare with a model answer", "Check your
+# labels": all answer reveals), and the box where a student types their own answer. The film
+# transcript is a <details> too, so it is the one fold let through.
+exclude_selectors:
+  - "details:not(.film-transcript)"
+  - ".design-answer"

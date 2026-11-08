@@ -1,0 +1,190 @@
+---
+/**
+ * ActivationFractionPulse — first-order activation a(t) = 1 − exp(−t/τ) during a square
+ * depolarization, with an optional slow partner at τ = 500 ms. Sketch for the lesson's
+ * worked problem (CALHM1 alone vs CALHM1 with CALHM3). Self-contained vanilla-TS island. Original.
+ */
+---
+
+<figure class="afp card" data-afp>
+  <figcaption class="afp-head">Activation fraction after a short pulse<span class="afp-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="afp-svg" viewBox="0 0 340 230" role="img" aria-label="Plot of activated fraction of maximum against time in milliseconds for a first-order exponential, with the end of a square pulse marked" data-plot></svg>
+
+  <div class="afp-legend" aria-hidden="true">
+    <span><i class="afp-sw afp-sw-a"></i>your τ</span>
+    <span data-leg-slow hidden><i class="afp-sw afp-sw-b"></i>τ = 500 ms partner</span>
+    <span><i class="afp-sw afp-sw-d"></i>dashed: the same exponential if the pulse lasted longer</span>
+  </div>
+
+  <div class="afp-controls">
+    <label class="afp-slabel"><span>Pulse duration t <em data-out="t">3</em> ms</span>
+      <input type="range" data-in="t" min="0.5" max="10" step="0.5" value="3" />
+    </label>
+    <label class="afp-slabel"><span>Time constant τ <em data-out="tau">10</em> ms <small>(log slider)</small></span>
+      <input type="range" data-in="tau" min="0.7" max="2.78" step="0.01" value="1" />
+    </label>
+    <label class="afp-check"><input type="checkbox" data-in="slow" /> show the τ = 500 ms partner alongside</label>
+  </div>
+
+  <table class="afp-table">
+    <thead><tr><th scope="col">Step</th><th scope="col">your τ</th><th scope="col">τ = 500 ms</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">t / τ</th><td data-r="x1"></td><td data-r="x2"></td></tr>
+      <tr><th scope="row">a = 1 − e<sup>−t/τ</sup></th><td data-r="a1"></td><td data-r="a2"></td></tr>
+      <tr><th scope="row">fraction of maximum</th><td data-r="p1"></td><td data-r="p2"></td></tr>
+    </tbody>
+  </table>
+  <p class="afp-ratio" data-ratio></p>
+
+  <p class="afp-why" data-why role="status"></p>
+
+  <p class="afp-assume">In this sketch: one exponential, a square pulse, no inactivation. The values of about 10 ms and above 500 ms are voltage activation time constants for CALHM1 with CALHM3 and CALHM1 alone in cultured mouse N2a cells; any other τ here is made up. Real CALHM currents have more than one kinetic component. Pulse durations here are made up.</p>
+  <p class="afp-foot">A fraction of maximal activation is not the ATP released and not the intensity of a taste.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const TAU_SLOW = 500;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const act = (t: number, tau: number) => 1 - Math.exp(-t / tau);
+  const num = (v: number) => String(Number(v.toPrecision(3)));
+  const frac = (a: number) => a.toPrecision(3);
+  const pct = (a: number) => (a * 100 < 1 ? (a * 100).toFixed(2) : (a * 100).toFixed(1)) + '%';
+  const pct3 = (a: number) => (a * 100).toPrecision(3) + '%';
+  const tauFrom = (v: number) => Number((Math.pow(10, v)).toPrecision(2));
+
+  document.querySelectorAll<HTMLElement>('[data-afp]').forEach((root) => {
+    const q = <T extends HTMLElement>(s: string): T | null => root.querySelector<T>(s);
+    const plot = q<SVGSVGElement & HTMLElement>('[data-plot]') as unknown as SVGSVGElement | null;
+    const tIn = q<HTMLInputElement>('[data-in="t"]');
+    const tauIn = q<HTMLInputElement>('[data-in="tau"]');
+    const slowIn = q<HTMLInputElement>('[data-in="slow"]');
+    const tOut = q('[data-out="t"]'), tauOut = q('[data-out="tau"]');
+    const ratioEl = q('[data-ratio]'), why = q('[data-why]'), legSlow = q('[data-leg-slow]');
+    const cell = (k: string) => q('[data-r="' + k + '"]');
+    if (!plot || !tIn || !tauIn || !slowIn || !tOut || !tauOut || !ratioEl || !why || !legSlow) return;
+
+    const X0 = 44, X1 = 326, Y0 = 26, Y1 = 188, TMAX = 10;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (a: number) => Y1 - a * (Y1 - Y0);
+    const path = (tau: number, t0: number, t1: number) => {
+      let d = '';
+      const n = 60;
+      for (let i = 0; i <= n; i++) {
+        const t = t0 + ((t1 - t0) * i) / n;
+        d += (i === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(act(t, tau)).toFixed(1) + ' ';
+      }
+      return d.trim();
+    };
+    const text = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) => {
+      const e = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, extra));
+      e.textContent = s;
+      plot.appendChild(e);
+    };
+
+    function render() {
+      const t = parseFloat(tIn!.value);
+      const tau = tauFrom(parseFloat(tauIn!.value));
+      const slow = slowIn!.checked;
+      tOut!.textContent = num(t);
+      tauOut!.textContent = num(tau);
+      legSlow!.hidden = !slow;
+
+      plot!.replaceChildren();
+      // axes, grid, ticks
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const a of [0, 0.5, 1]) {
+        plot!.appendChild(el('line', { x1: X0, y1: py(a), x2: X1, y2: py(a), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        text(X0 - 4, py(a) + 3, Math.round(a * 100) + '%', { 'text-anchor': 'end' });
+      }
+      for (const tk of [0, 2, 4, 6, 8, 10]) {
+        plot!.appendChild(el('line', { x1: px(tk), y1: Y1, x2: px(tk), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(px(tk), Y1 + 14, String(tk), { 'text-anchor': 'middle' });
+      }
+      text((X0 + X1) / 2, Y1 + 28, 'time t (ms)', { 'text-anchor': 'middle', 'font-size': 10 });
+      text(X0, Y0 - 12, 'activated fraction (% of maximum)', { 'font-size': 10 });
+
+      // pulse shading
+      plot!.appendChild(el('rect', { x: X0, y: Y0, width: px(t) - X0, height: Y1 - Y0, fill: ORANGE, opacity: 0.08 }));
+
+      const a1 = act(t, tau), a2 = act(t, TAU_SLOW);
+      // dashed continuation, then solid curve during the pulse
+      plot!.appendChild(el('path', { d: path(tau, t, TMAX), fill: 'none', stroke: ACCENT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3', opacity: 0.7 }));
+      if (slow) plot!.appendChild(el('path', { d: path(TAU_SLOW, t, TMAX), fill: 'none', stroke: ORANGE, 'stroke-width': 1.6, 'stroke-dasharray': '4 3', opacity: 0.7 }));
+      plot!.appendChild(el('path', { d: path(tau, 0, t), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      if (slow) plot!.appendChild(el('path', { d: path(TAU_SLOW, 0, t), fill: 'none', stroke: ORANGE, 'stroke-width': 2.6 }));
+
+      // pulse end marker
+      plot!.appendChild(el('line', { x1: px(t), y1: Y0, x2: px(t), y2: Y1, stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      const right = px(t) > 200;
+      text(px(t) + (right ? -4 : 4), Y1 - 6, 'pulse ends, t = ' + num(t) + ' ms', { 'text-anchor': right ? 'end' : 'start', 'font-weight': 700 });
+      plot!.appendChild(el('circle', { cx: px(t), cy: py(a1), r: 4, fill: ACCENT }));
+      if (slow) plot!.appendChild(el('circle', { cx: px(t), cy: py(a2), r: 4, fill: ORANGE }));
+
+      // readouts
+      const x1 = t / tau, x2 = t / TAU_SLOW;
+      const set = (k: string, v: string) => { const c = cell(k); if (c) c.textContent = v; };
+      set('x1', num(x1));
+      set('a1', '1 − e^(−' + num(x1) + ') = ' + frac(a1));
+      set('p1', pct(a1));
+      set('x2', slow ? num(x2) : '–');
+      set('a2', slow ? '1 − e^(−' + num(x2) + ') = ' + frac(a2) : '–');
+      set('p2', slow ? pct(a2) : '–');
+
+      const tauWord = tau === 10 ? 'τ = 10 ms (about the value measured for CALHM1 with CALHM3 in cultured mouse N2a cells)'
+        : tau === TAU_SLOW ? 'τ = 500 ms (the measured time constant for CALHM1 alone was above this, in cultured mouse N2a cells)'
+        : 'a made-up τ = ' + num(tau) + ' ms';
+      let s = 'In this sketch, a ' + num(t) + ' ms square depolarization with ' + tauWord + ' gives t/τ = ' + num(x1) + ' and an activated fraction of ' + pct(a1) + ' of the maximum.';
+      if (Math.abs(t - tau) < 1e-9) s += ' When t equals τ the fraction is 0.63, whatever the value of τ.';
+      if (slow) {
+        const r = a1 / a2;
+        const rs = r >= 10 ? String(Math.round(r)) : r.toFixed(1);
+        ratioEl!.textContent = 'Ratio of the two fractions: ' + pct3(a1).replace('%', '') + ' ÷ ' + pct3(a2).replace('%', '') + ' = ' + rs;
+        s += ' The τ = 500 ms partner reaches ' + pct(a2) + ', so your τ gives about ' + rs + ' times the fraction over this pulse. The measured slow time constant was above 500 ms, so the true fraction for CALHM1 alone is smaller still.';
+      } else {
+        ratioEl!.textContent = 'Switch on the τ = 500 ms partner to compute the ratio of the two fractions.';
+      }
+      s += ' This is an activation fraction, not the ATP released and not the intensity of a taste.';
+      why!.textContent = s;
+    }
+    [tIn, tauIn, slowIn].forEach((c) => c.addEventListener('input', render));
+    slowIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .afp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .afp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .afp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .afp-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .afp-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; justify-content: center; margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .afp-legend span[hidden] { display: none; }
+  .afp-sw { display: inline-block; width: 1.1rem; height: 0; border-top: 3px solid; margin-right: 0.35rem; vertical-align: middle; }
+  .afp-sw-a { border-color: #0e7c86; }
+  .afp-sw-b { border-color: #e57200; }
+  .afp-sw-d { border-top: 2px dashed #8a8a94; }
+  .afp-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .afp-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .afp-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .afp-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .afp-slabel input { accent-color: var(--ddp-color-accent); }
+  .afp-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .afp-check input { accent-color: var(--ddp-color-accent); }
+  .afp-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .afp-table th, .afp-table td { text-align: left; padding: 0.3rem 0.5rem; font-weight: 400; color: var(--ddp-color-muted); }
+  .afp-table thead th { font-weight: 600; }
+  .afp-table td { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); overflow-wrap: anywhere; }
+  .afp-ratio { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); }
+  .afp-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .afp-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .afp-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .afp-controls { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,171 @@
+---
+/**
+ * EnergyBudgetLadder — the lesson's invented one-year energy budget (kJ m^-2 yr^-1) as a
+ * ladder of bars. Three sliders (consumption, assimilation and net production efficiency
+ * of the herbivores) change the herbivore rows; predator ratios and decomposer respiration
+ * are held at the lesson's values. A checker shows GPP = respiration + detritus left +
+ * predator production at every setting. Original, self-contained vanilla-TS island.
+ */
+---
+
+<figure class="eb card" data-ebl>
+  <figcaption class="eb-head">Energy budget ladder — one invented square metre, one year<span class="eb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="eb-svg" viewBox="0 0 340 268" role="img" aria-label="Horizontal bars for gross primary production, net primary production, herbivore ingestion, assimilation and production, predator production, detritus inputs and detritus left, in kilojoules per square metre per year" data-plot></svg>
+
+  <div class="eb-controls">
+    <label class="eb-slabel"><span>Herbivore consumption efficiency <em data-out="ce">30</em>%</span>
+      <input type="range" data-in="ce" min="10" max="60" step="5" value="30" />
+    </label>
+    <label class="eb-slabel"><span>Herbivore assimilation efficiency <em data-out="ae">40</em>%</span>
+      <input type="range" data-in="ae" min="10" max="80" step="5" value="40" />
+    </label>
+    <label class="eb-slabel"><span>Herbivore net production efficiency <em data-out="npe">50</em>%</span>
+      <input type="range" data-in="npe" min="10" max="80" step="5" value="50" />
+    </label>
+  </div>
+
+  <dl class="eb-readout">
+    <div><dt>Herbivores: A = I − egestion | P = A − R</dt><dd data-r-ap>—</dd></div>
+    <div><dt>Herbivore TTE = P / NPP</dt><dd data-r-tte>—</dd></div>
+    <div><dt>Predator TTE = P / P below</dt><dd data-r-ptte>—</dd></div>
+    <div><dt>Detritus inputs | left after decomposers</dt><dd data-r-det>—</dd></div>
+    <div><dt>Total respiration | NEP = GPP − Reco</dt><dd data-r-nep>—</dd></div>
+    <div class="eb-check" data-check><dt>Balance check</dt><dd data-r-bal>—</dd></div>
+  </dl>
+  <p class="eb-legend" aria-hidden="true"><span class="eb-sw eb-sw-r"></span>respiration <span class="eb-sw eb-sw-d"></span>detritus left <span class="eb-sw eb-sw-p"></span>predator production <span class="eb-tick"></span>the lesson’s value</p>
+  <p class="eb-why" data-why role="status"></p>
+
+  <p class="eb-assume"><strong>In this sketch:</strong> a closed system with no imports or exports and no decomposer growth; GPP 12,000 and autotrophic respiration 6,000 are fixed, so NPP is 6,000; predators ingest 200 for every 360 of herbivore production, with assimilation 50% and net production 40%, as in the lesson; decomposer respiration is held at 3,240; all numbers are kJ m⁻² yr⁻¹ and the budget is made up, not measured.</p>
+  <p class="eb-foot">Keep the rule: the transfer efficiency is the product of the three efficiencies, and in this sketch the ledger always closes, because everything fixed is respired, held as detritus, or made into predator production.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const PURPLE = '#6a4c93', BROWN = '#a0763c', GREY = '#8a8a96';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const GPP = 12000, RA = 6000, NPP = GPP - RA, DECOMP_R = 3240;
+  // predator ratios from the lesson: ingest 200 per 360 herbivore production; A/I = 100/200; P/A = 40/100
+  const PRED_I_PER_P = 200 / 360, PRED_AE = 0.5, PRED_NPE = 0.4;
+
+  function budget(ce: number, ae: number, npe: number) {
+    const Ih = ce * NPP, egH = Ih * (1 - ae), Ah = Ih - egH, Rh = Ah * (1 - npe), Ph = Ah - Rh;
+    const Ip = Ph * PRED_I_PER_P, egP = Ip * (1 - PRED_AE), Ap = Ip - egP, Rp = Ap * (1 - PRED_NPE), Pp = Ap - Rp;
+    const ungrazed = NPP - Ih, notEaten = Ph - Ip;
+    const detIn = ungrazed + egH + notEaten + egP;
+    const detLeft = detIn - DECOMP_R;
+    const resp = RA + Rh + Rp + DECOMP_R;
+    const nep = GPP - resp;
+    return { Ih, egH, Ah, Rh, Ph, Ip, Ap, Rp, Pp, detIn, detLeft, resp, nep, ungrazed, notEaten, egP };
+  }
+  const D = budget(0.3, 0.4, 0.5); // the lesson's own settings
+  const f = (n: number) => {
+    const r = Math.round(n * 10) / 10;
+    return r.toLocaleString('en-US', { maximumFractionDigits: 1 });
+  };
+  const pct = (n: number) => (Math.round(n * 1000) / 10).toFixed(1) + '%';
+
+  document.querySelectorAll<HTMLElement>('[data-ebl]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const ceIn = q('[data-in="ce"]'), aeIn = q('[data-in="ae"]'), npeIn = q('[data-in="npe"]');
+    const ceOut = o('[data-out="ce"]'), aeOut = o('[data-out="ae"]'), npeOut = o('[data-out="npe"]');
+    const rAP = o('[data-r-ap]'), rTte = o('[data-r-tte]'), rPtte = o('[data-r-ptte]'), rDet = o('[data-r-det]'), rNep = o('[data-r-nep]'), rBal = o('[data-r-bal]');
+    const check = o('[data-check]'), why = o('[data-why]');
+
+    const LX = 4, BX = 114, BW = 160, SC = BW / GPP, RH = 26, Y0 = 8;
+
+    function bar(row: number, label: string, v: number, ref: number, color: string) {
+      const y = Y0 + row * RH;
+      const t = el('text', { x: LX, y: y + 13, 'font-size': 10, fill: INK }); t.textContent = label; plot.appendChild(t);
+      plot.appendChild(el('rect', { x: BX, y: y + 3, width: Math.max(1.5, v * SC), height: 14, fill: color, rx: 1 }));
+      plot.appendChild(el('line', { x1: BX + ref * SC, y1: y, x2: BX + ref * SC, y2: y + 20, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      const vt = el('text', { x: BX + Math.max(v, ref) * SC + 5, y: y + 14, 'font-size': 10, 'font-weight': 700, fill: INK }); vt.textContent = f(v); plot.appendChild(vt);
+    }
+
+    function render() {
+      const ce = parseInt(ceIn.value, 10) / 100, ae = parseInt(aeIn.value, 10) / 100, npe = parseInt(npeIn.value, 10) / 100;
+      ceOut.textContent = String(Math.round(ce * 100)); aeOut.textContent = String(Math.round(ae * 100)); npeOut.textContent = String(Math.round(npe * 100));
+      const B = budget(ce, ae, npe);
+
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: BX, y1: Y0, x2: BX, y2: Y0 + 9 * RH - 4, stroke: INK, 'stroke-width': 1 }));
+      bar(0, 'GPP', GPP, GPP, ACCENT);
+      bar(1, 'NPP', NPP, NPP, ACCENT);
+      bar(2, 'Herb. ingestion I', B.Ih, D.Ih, ORANGE);
+      bar(3, 'Herb. assimilation A', B.Ah, D.Ah, ORANGE);
+      bar(4, 'Herb. production P', B.Ph, D.Ph, ORANGE);
+      bar(5, 'Pred. production', B.Pp, D.Pp, PURPLE);
+      bar(6, 'Detritus inputs', B.detIn, D.detIn, BROWN);
+      bar(7, 'Detritus left', B.detLeft, D.detLeft, BROWN);
+      // balance row: GPP split into respiration, detritus left, predator production
+      const y = Y0 + 8 * RH;
+      const lt = el('text', { x: LX, y: y + 13, 'font-size': 10, fill: INK }); lt.textContent = 'GPP accounted for'; plot.appendChild(lt);
+      const wR = B.resp * SC, wD = B.detLeft * SC, wP = B.Pp * SC;
+      plot.appendChild(el('rect', { x: BX, y: y + 3, width: wR, height: 14, fill: GREY }));
+      plot.appendChild(el('rect', { x: BX + wR, y: y + 3, width: wD, height: 14, fill: BROWN }));
+      plot.appendChild(el('rect', { x: BX + wR + wD, y: y + 3, width: Math.max(1.5, wP), height: 14, fill: PURPLE }));
+      const ut = el('text', { x: BX + BW + 5, y: y + 14, 'font-size': 10, 'font-weight': 700, fill: INK }); ut.textContent = '12,000'; plot.appendChild(ut);
+      const ax = el('text', { x: LX, y: Y0 + 9 * RH + 8, 'font-size': 9, fill: INK }); ax.textContent = 'bar length ∝ kJ m⁻² yr⁻¹; dashed tick = lesson’s value'; plot.appendChild(ax);
+
+      const tte = B.Ph / NPP, ptte = B.Pp / B.Ph;
+      rAP.textContent = `${f(B.Ah)} | ${f(B.Ph)}`;
+      rTte.textContent = `${f(B.Ph)} / ${f(NPP)} = ${pct(tte)} = ${ce.toFixed(2)} × ${ae.toFixed(2)} × ${npe.toFixed(2)}`;
+      rPtte.textContent = `${f(B.Pp)} / ${f(B.Ph)} = ${pct(ptte)}`;
+      rDet.textContent = `${f(B.detIn)} | ${f(B.detLeft)}`;
+      rNep.textContent = `${f(B.resp)} | ${f(B.nep)}`;
+      const sum = B.resp + B.detLeft + B.Pp, resid = GPP - sum;
+      const ok = Math.abs(resid) < 1e-6;
+      rBal.textContent = `12,000 = ${f(B.resp)} + ${f(B.detLeft)} + ${f(B.Pp)}${ok ? ' ✓ holds (to the nearest 0.1)' : ' ✗ off by ' + resid.toFixed(4)}`;
+      check.classList.toggle('eb-bad', !ok);
+
+      const atLesson = Math.abs(ce - 0.3) < 1e-9 && Math.abs(ae - 0.4) < 1e-9 && Math.abs(npe - 0.5) < 1e-9;
+      const half = B.Ih < NPP / 2;
+      const parts: string[] = [];
+      if (atLesson) {
+        parts.push('These are the lesson’s settings: 30% × 40% × 50% = 6% for the first transfer, and 11.1% for the second, so no single number describes both links.');
+      } else {
+        parts.push(`The first transfer is now ${pct(tte)} (${Math.round(ce * 100)}% × ${Math.round(ae * 100)}% × ${Math.round(npe * 100)}%), against 6% at the lesson’s settings.`);
+        parts.push('The predator transfer stays 11.1% only because the predator ratios are held at the lesson’s values.');
+      }
+      parts.push(`Net ecosystem production is ${f(B.nep)}, which is the ${f(B.detLeft)} of detritus left plus ${f(B.Pp)} of predator production.`);
+      if (half && DECOMP_R > B.Rh + B.Rp) parts.push(`Herbivores ingest ${f(B.Ih)} of the ${f(NPP)} of NPP, so in this sketch most NPP never passes through an animal, and the decomposers’ 3,240 of respiration exceeds that of all the animals combined (${f(B.Rh + B.Rp)}).`);
+      else if (!half) parts.push(`Herbivores now ingest ${f(B.Ih)}, at least half of the ${f(NPP)} of NPP, so at this setting the lesson’s remark that most NPP never passes through an animal no longer holds in the sketch.`);
+      else parts.push(`Animal respiration (${f(B.Rh + B.Rp)}) is not smaller than the decomposers’ 3,240 at this setting.`);
+      why.textContent = parts.join(' ');
+    }
+    [ceIn, aeIn, npeIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .eb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .eb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .eb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .eb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .eb-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .eb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .eb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .eb-slabel input { accent-color: var(--ddp-color-accent); }
+  .eb-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .eb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .eb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .eb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .eb-bad dd { color: #b3261e; }
+  .eb-legend { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.5rem; }
+  .eb-sw { display: inline-block; width: 12px; height: 10px; border-radius: 2px; }
+  .eb-sw-r { background: #8a8a96; }
+  .eb-sw-d { background: #a0763c; }
+  .eb-sw-p { background: #6a4c93; }
+  .eb-tick { display: inline-block; width: 0; height: 12px; border-left: 1px dashed #4b4b55; }
+  .eb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .eb-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .eb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

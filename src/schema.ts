@@ -230,7 +230,9 @@ const lectureSlide = z.object({
 
 /** A multi-level explanation of the lesson's core idea ("explain it like I'm…"). */
 const explainLevel = z.object({
-  level: z.enum(['eli5', 'highschool', 'college', 'grad']),
+  /** grade7 and bio2 are depth-ladder steps: the same idea at Life Science (grade 7) level and
+   *  previewed at Biology II level. On a grade 7 lesson, 'highschool' is the Biology preview. */
+  level: z.enum(['eli5', 'highschool', 'college', 'grad', 'grade7', 'bio2']),
   label: z.string().min(1),
   text: z.string().min(1),
 });
@@ -316,12 +318,59 @@ export const lessonSchema = z.object({
   /** Optional fun stories / asides shown as sidebars, never in the main text. */
   anecdotes: z.array(anecdote).default([]),
 
+  /** High school lessons only: where the lesson sits on the depth ladder (grade 7 Life
+   *  Science, Biology, Biology II, college). Rendered as the "Where this lesson sits" card. */
+  ladder: z.object({
+    /** Virginia SOL codes this lesson teaches, e.g. ['BIO.2a']. */
+    sol: z.array(z.string().min(1)).min(1),
+    /** BIO.1 practices it uses, e.g. ['BIO.1c', 'BIO.1d']. */
+    practices: z.array(z.string()).default([]),
+    /** The essential question of the 5E lesson. */
+    essentialQuestion: z.string().min(1),
+    /** Life Science (grade 7) standard one step down, e.g. 'LS.4 a'; the review text is explainLevels 'grade7'. */
+    lifeScience: z.string().optional(),
+    /** Biology II standard one step up, e.g. 'Biology II: Advanced Topics, BIOII.3 d'; the preview text is explainLevels 'bio2'. */
+    biology2: z.string().optional(),
+    /** College lessons on this site that take the idea further (slugs). */
+    college: z.array(z.string()).default([]),
+    /** High school lessons: the grade 7 Life Science lessons one step down (slugs). */
+    grade7: z.array(z.string()).default([]),
+    /** Grade 7 lessons: the high school Biology lessons one step up (slugs); the preview text is explainLevels 'highschool'. */
+    biology: z.array(z.string()).default([]),
+  }).optional(),
+
+  /** Ages 5–10 activities only (families tier): the at-a-glance facts an adult needs before starting,
+   *  rendered by <ActivityCard activity={frontmatter.activity} /> at the top of the body. */
+  activity: z.object({
+    /** Hands-on time with the child, in minutes. */
+    minutes: z.number().int().min(5).max(60),
+    /** Any waiting or follow-up beyond the hands-on time, in words ("then a 2-minute look each day for a week"). */
+    followUp: z.string().optional(),
+    setting: z.enum(['indoors', 'outdoors', 'either']),
+    /** How closely the adult must supervise, in plain words. */
+    adult: z.string().min(1),
+    /** What you need: cheap household items, one per line. */
+    materials: z.array(z.string().min(1)).min(1),
+    /** Virginia 2018 Science SOL codes this activity serves, e.g. ['K.6 a', '2.5 a']. */
+    sol: z.array(z.string().regex(/^(K|[1-4])\.\d+( [a-d])?$/, 'A K–4 SOL code such as "K.6 a" or "3.5 b".')).min(1),
+    /** Grade 7 Life Science lessons one step up the ladder (slugs). */
+    stepUp: z.array(z.string()).default([]),
+  }).optional(),
+
+  /** The lesson body uses scaffolded supports (<Support>, <WordBank>, <SentenceFrames>,
+   *  <ScaffoldFigure>, <CER>), so the page shows the supports switch. */
+  supports: z.boolean().default(false),
+
   /** Reserved for the future RAG-grounded tutor. Not rendered yet. */
   corpusTags: z.array(z.string()).default([]),
 
   /** Optional ordering hint for the lesson index. */
   order: z.number().optional(),
   draft: z.boolean().default(false),
+  /** Parts of a published lesson that are still being checked by Chris. Each entry is one
+   *  short reader-facing sentence; a non-empty list shows an "Under review" tag under the
+   *  title. Remove an entry once the check is done (log the item in REVIEW_LATER.md). */
+  underReview: z.array(z.string()).default([]),
 });
 
 export type Lesson = z.infer<typeof lessonSchema>;

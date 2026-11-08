@@ -1,0 +1,52 @@
+/* Class-slide viewer. The slide itself is styled by the deck's own CSS (deck.json). */
+html, body { margin: 0; height: 100%; background: #111; color: #eee; overflow: hidden;
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; }
+[hidden] { display: none !important; }
+body.idle { cursor: none; }
+
+.msg { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 24px; font-size: 22px; line-height: 1.4; }
+.msg a { color: #8fd3c8; }
+
+/* A 1280x720 stage scaled to fit its box (viewer.js sets the transform); the rest is letterbox. */
+.stagebox { position: relative; overflow: hidden; background: #111; }
+.stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0;
+  background: #F5F2EA; overflow: hidden; }
+.layer { position: absolute; inset: 0; opacity: 1; transition: opacity 200ms ease; }
+.layer.fading { opacity: 0; }
+.stagebox.inert { pointer-events: none; }
+#aud-stage { position: fixed; inset: 0; cursor: pointer; }
+
+#black { position: fixed; inset: 0; background: #000; z-index: 50; }
+
+#help { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, 0.7);
+  display: flex; align-items: center; justify-content: center; }
+.helpbox { background: #1b1b1b; border: 1px solid #444; border-radius: 12px; padding: 20px 28px; min-width: 340px; }
+.helpbox h2 { margin: 0 0 12px; font-size: 20px; }
+.helpbox dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 22px; margin: 0; font-size: 16px; }
+.helpbox dt { font-family: 'IBM Plex Mono', monospace; color: #8fd3c8; }
+.helpbox dd { margin: 0; color: #ccc; }
+body.student .inst { display: none; }
+
+/* Presenter window */
+#presenter { position: fixed; inset: 0; display: flex; flex-direction: column; padding: 10px 14px; gap: 10px; box-sizing: border-box; }
+.pbar { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.pstep { font-size: 20px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pstep b { font-family: 'IBM Plex Mono', monospace; color: #8fd3c8; margin-right: 14px; }
+.pright { display: flex; align-items: center; gap: 16px; flex: none; }
+.pill { font: 600 24px 'IBM Plex Mono', monospace; background: #222; color: #fff; border: 1px solid #444;
+  border-radius: 999px; padding: 4px 16px; cursor: pointer; }
+.pclock { font: 22px 'IBM Plex Mono', monospace; color: #bbb; }
+.pmain { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 32vw); gap: 14px; }
+.pleft { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.pleft .stagebox { flex: 1; min-height: 0; border: 1px solid #333; }
+.pctl { display: flex; align-items: center; gap: 12px; }
+.pctl button, #p-video { font: 600 18px 'IBM Plex Sans', sans-serif; background: #23756B; color: #fff; border: 0;
+  border-radius: 8px; padding: 10px 20px; cursor: pointer; }
+#p-prev { background: #333; }
+.pstatus { flex: 1; font-size: 15px; color: #e9b44c; text-align: center; }
+.pright-col { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.plabel { font: 14px 'IBM Plex Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; color: #8fd3c8; }
+.stagebox.small { width: 100%; aspect-ratio: 16 / 9; flex: none; border: 1px solid #333; }
+.notes { flex: 1; min-height: 0; overflow-y: auto; font-size: 20px; line-height: 1.5; background: #1b1b1b;
+  border-radius: 8px; padding: 14px 16px; white-space: pre-wrap; }

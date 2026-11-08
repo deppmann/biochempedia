@@ -1,0 +1,194 @@
+---
+/**
+ * OdorantPatternMatrix — the lesson's made-up receptor-by-odorant matrix (invented data):
+ * four receptor types A to D, four odorants, each cell on or off. Knock out a receptor,
+ * raise the concentration tenfold, and see which odorants end up with identical patterns
+ * (cannot be told apart, in this model). A slider for N receptor types gives the toy
+ * capacity 2^N − 1. Every readout is a model prediction, not an observation.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="opm card" data-opm>
+  <figcaption class="opm-head">Odorant pattern matrix — a made-up code<span class="opm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="opm-svg" viewBox="0 0 380 232" role="img" aria-label="A grid of four receptor types, A to D, by four odorants, each cell on or off, with each odorant's pattern written beside it" data-plot></svg>
+
+  <div class="opm-controls">
+    <label class="opm-slabel"><span>Knock out a receptor</span>
+      <select data-in="ko">
+        <option value="">none</option>
+        <option value="A">receptor A</option>
+        <option value="B">receptor B</option>
+        <option value="C">receptor C</option>
+        <option value="D">receptor D</option>
+      </select>
+    </label>
+    <label class="opm-slabel"><span>Concentration</span>
+      <select data-in="conc">
+        <option value="low">low</option>
+        <option value="high">tenfold higher</option>
+      </select>
+    </label>
+    <label class="opm-slabel"><span>Receptor types N <em data-out="n">4</em></span>
+      <input type="range" data-in="n" min="1" max="10" step="1" value="4" />
+    </label>
+  </div>
+
+  <dl class="opm-readout">
+    <div><dt>Capacity (toy model, N = <span data-r-n>4</span>)</dt><dd data-r-cap>2⁴ = 16 patterns, 15 non-empty</dd></div>
+    <div><dt>Distinct non-empty patterns among the 4 odorants</dt><dd data-r-distinct>4 of 4</dd></div>
+  </dl>
+  <p class="opm-why" data-why role="status"></p>
+
+  <p class="opm-foot">Rule to keep: in this sketch a receptor is simply on or off, with no noise and no transformation in the bulb or cortex, so two odorants with the same pattern are predicted to be indistinguishable. 2<sup>N</sup> − 1 is a toy capacity, not a count of smells; the matrix is invented, and every prediction needs a behavioural test.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const RECS = ['A', 'B', 'C', 'D'];
+  // The lesson's made-up matrix (invented data).
+  const LOW: string[][] = [['A', 'B'], ['B', 'C'], ['A', 'B', 'C'], ['D']];
+  const HIGH: string[][] = [['A', 'B', 'C'], ['B', 'C'], ['A', 'B', 'C'], ['D']]; // only odorant 1 changes: recruits C
+  const SUP: Record<string, string> = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  const sup = (n: number) => String(n).split('').map((c) => SUP[c] ?? c).join('');
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, s: string, attrs: Record<string, string | number>) {
+    const t = el('text', attrs); t.textContent = s; parent.appendChild(t); return t;
+  }
+  const list = (a: number[]) => a.length === 1 ? String(a[0]) : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+
+  document.querySelectorAll<HTMLElement>('[data-opm]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const koSel = root.querySelector<HTMLSelectElement>('[data-in="ko"]')!;
+    const concSel = root.querySelector<HTMLSelectElement>('[data-in="conc"]')!;
+    const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]')!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const nOut = o('[data-out="n"]'), rN = o('[data-r-n]'), rCap = o('[data-r-cap]'), rDist = o('[data-r-distinct]'), why = o('[data-why]');
+
+    const X0 = 62, STEP = 33, CW = 30, Y0 = 44, RH = 45, CH = 30;
+    function render() {
+      const ko = koSel.value, high = concSel.value === 'high';
+      const base = high ? HIGH : LOW;
+      const n = parseInt(nIn.value, 10);
+      nOut.textContent = String(n);
+      rN.textContent = String(n);
+      const patterns = base.map((p) => p.filter((r) => r !== ko));
+      const keys = patterns.map((p) => p.join('+'));
+      // groups of odorants (1-based) with identical, non-empty patterns
+      const same: number[][] = patterns.map((p, i) =>
+        p.length === 0 ? [] : keys.map((k, j) => (j !== i && k === keys[i] ? j + 1 : 0)).filter((x) => x > 0));
+      const distinct = new Set(keys.filter((k) => k !== '')).size;
+      const undetected = patterns.map((p, i) => (p.length === 0 ? i + 1 : 0)).filter((x) => x > 0);
+
+      plot.replaceChildren();
+      txt(plot, 'Receptor type', { x: X0, y: 12, 'font-size': 10, fill: INK });
+      txt(plot, 'Pattern (on receptors)', { x: 200, y: 12, 'font-size': 10, fill: INK });
+      RECS.forEach((r, c) => {
+        const x = X0 + c * STEP;
+        const out = r === ko;
+        plot.appendChild(el('rect', { x, y: 18, width: CW, height: 18, rx: 3, fill: out ? '#f1f1f4' : '#fff', stroke: out ? ORANGE : INK, 'stroke-width': out ? 1.4 : 1 }));
+        txt(plot, out ? r + ' out' : r, { x: x + CW / 2, y: 31, 'text-anchor': 'middle', 'font-size': out ? 9 : 10, 'font-weight': 700, fill: out ? ORANGE : INK });
+      });
+      patterns.forEach((p, i) => {
+        const y = Y0 + i * RH;
+        txt(plot, 'Odorant ' + (i + 1), { x: 4, y: y + 19, 'font-size': 10, fill: INK });
+        RECS.forEach((r, c) => {
+          const x = X0 + c * STEP;
+          const wasOn = base[i].includes(r);
+          const out = r === ko;
+          if (out) {
+            plot.appendChild(el('rect', { x, y, width: CW, height: CH, rx: 3, fill: '#f6f6f8', stroke: wasOn ? ORANGE : FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+            txt(plot, 'out', { x: x + CW / 2, y: y + 19, 'text-anchor': 'middle', 'font-size': 9, fill: wasOn ? ORANGE : INK });
+          } else if (wasOn) {
+            plot.appendChild(el('rect', { x, y, width: CW, height: CH, rx: 3, fill: ACCENT, stroke: ACCENT, 'stroke-width': 1 }));
+            txt(plot, 'on', { x: x + CW / 2, y: y + 19, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: '#fff' });
+          } else {
+            plot.appendChild(el('rect', { x, y, width: CW, height: CH, rx: 3, fill: '#fff', stroke: FAINT, 'stroke-width': 1 }));
+            txt(plot, 'off', { x: x + CW / 2, y: y + 19, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+          }
+        });
+        const isSame = same[i].length > 0, none = p.length === 0;
+        txt(plot, none ? 'no active receptor' : p.join('+'), { x: 200, y: y + 12, 'font-size': 11, 'font-weight': 700, fill: none ? ORANGE : isSame ? ORANGE : ACCENT });
+        if (none) {
+          txt(plot, 'not detected in this model', { x: 200, y: y + 25, 'font-size': 9, fill: ORANGE });
+        } else if (isSame) {
+          txt(plot, 'same as odorant ' + list(same[i]) + ':', { x: 200, y: y + 25, 'font-size': 9, fill: ORANGE });
+          txt(plot, 'cannot be told apart, in this model', { x: 200, y: y + 36, 'font-size': 9, fill: ORANGE });
+        } else {
+          txt(plot, 'distinct pattern', { x: 200, y: y + 25, 'font-size': 9, fill: INK });
+        }
+      });
+      txt(plot, 'in this sketch: invented data; ' + (high ? 'tenfold concentration' : 'low concentration'), { x: 4, y: 228, 'font-size': 9, fill: INK });
+
+      // capacity readout
+      const pat = Math.pow(2, n);
+      rCap.textContent = n === 1
+        ? '2¹ = 2 patterns, 1 non-empty'
+        : `2${sup(n)} = ${pat.toLocaleString('en-US')} patterns, ${(pat - 1).toLocaleString('en-US')} non-empty`;
+      rDist.textContent = `${distinct} of 4`;
+
+      // status line: model predictions only
+      const parts: string[] = [];
+      if (!ko && !high) {
+        parts.push('At low concentration the four odorants give four different patterns (A+B, B+C, A+B+C and D), so the model predicts all four can be told apart.');
+      } else if (!ko && high) {
+        parts.push('At tenfold concentration odorant 1 also recruits the lower-affinity receptor C, so its pattern becomes A+B+C, the low-concentration pattern of odorant 3. The model predicts odorant 1 at high concentration could be mistaken for odorant 3: a change in quality with concentration.');
+      } else {
+        const where = high ? 'at tenfold concentration' : 'at low concentration';
+        const head = `With receptor ${ko} removed ${where}, `;
+        if (undetected.length) {
+          parts.push(head + `odorant ${list(undetected)} has no active receptor and is not detected in this model.`);
+        }
+        const groups: string[] = [];
+        const seen = new Set<string>();
+        patterns.forEach((p, i) => {
+          if (same[i].length && !seen.has(keys[i])) {
+            seen.add(keys[i]);
+            const ids = [i + 1, ...same[i]].sort((a, b) => a - b);
+            groups.push(`odorants ${list(ids)} ${ids.length > 2 ? 'all ' : ''}give ${p.join('+')}`);
+          }
+        });
+        if (groups.length) {
+          const g = groups.join('; ') + ', so the model predicts they can no longer be told apart.';
+          parts.push(undetected.length ? g.charAt(0).toUpperCase() + g.slice(1) : head + g);
+        } else if (!undetected.length) {
+          parts.push(head + 'all four patterns are still different, so the model predicts no loss of discrimination.');
+        }
+        if (high) parts.push(ko === 'C' ? 'At tenfold concentration odorant 1 would recruit C, but C is removed.' : 'At tenfold concentration odorant 1 also recruits C.');
+      }
+      parts.push(n === 4
+        ? 'Four on-or-off switches give 2⁴ = 16 patterns; removing the all-off pattern leaves 15 that could report an odorant.'
+        : 'The N slider changes only the toy capacity, 2ᴺ − 1; the grid stays at four receptor types.');
+      parts.push('This is a prediction of the model, not an observation; it needs a behavioural test in mice.');
+      why.textContent = parts.join(' ');
+    }
+    [koSel, concSel].forEach((s) => s.addEventListener('change', render));
+    nIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .opm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .opm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .opm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .opm-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .opm-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .opm-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .opm-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .opm-slabel input { accent-color: var(--ddp-color-accent); }
+  .opm-slabel select { font: inherit; font-size: var(--ddp-text-xs); padding: 0.25rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; background: #fff; color: var(--ddp-color-ink-soft); }
+  .opm-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .opm-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .opm-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .opm-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .opm-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .opm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .opm-controls, .opm-readout { grid-template-columns: 1fr; } }
+</style>

@@ -15,7 +15,7 @@
 <figure class="rf card" data-rubisco>
   <figcaption class="rf-head">Rubisco's fork — fix carbon or waste it<span class="rf-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="rf-fork" viewBox="0 0 420 132" role="img" aria-label="Rubisco's two reactions with RuBP: carboxylation with CO2 gives two 3-PGA for the Calvin cycle; oxygenation with O2 gives one 3-PGA plus 2-phosphoglycolate, which photorespiration must salvage. Branch thickness shows the current split.">
+  <svg class="rf-fork" viewBox="0 0 420 156" role="img" aria-label="Rubisco's two reactions with RuBP: carboxylation with CO2 gives two 3-PGA for the Calvin cycle; oxygenation with O2 gives one 3-PGA plus 2-phosphoglycolate, which photorespiration must salvage. Branch thickness shows the current split.">
     <rect class="rf-f-node" x="4" y="46" width="92" height="40" rx="8" />
     <text class="rf-f-nodet" x="50" y="63" text-anchor="middle">RuBP (5C)</text>
     <text class="rf-f-nodes" x="50" y="78" text-anchor="middle">+ Rubisco</text>
@@ -23,8 +23,10 @@
     <path class="rf-f-br is-oxy" data-br-oxy d="M 96 72 C 136 72, 140 106, 184 106" style="stroke-width: 5px" />
     <text class="rf-f-t" x="192" y="24">+ CO₂ → 2 × 3-PGA</text>
     <text class="rf-f-s" x="192" y="40">carbon fixed → Calvin cycle</text>
-    <text class="rf-f-t" x="192" y="104">+ O₂ → 3-PGA + 2-phosphoglycolate</text>
-    <text class="rf-f-s" x="192" y="120">salvaged by photorespiration: CO₂ + ATP lost</text>
+    <text class="rf-f-t" x="192" y="104">+ O₂ → 3-PGA +</text>
+    <text class="rf-f-t" x="192" y="119">2-phosphoglycolate</text>
+    <text class="rf-f-s" x="192" y="135">RuBP spent, no carbon fixed</text>
+    <text class="rf-f-s" x="192" y="149">salvage: CO₂ + ATP lost</text>
   </svg>
 
   <div class="rf-bars">
@@ -46,6 +48,7 @@
   <dl class="rf-readout">
     <div><dt>Carboxylation : oxygenation</dt><dd data-r-ratio>3 : 1</dd></div>
     <div><dt>Net CO₂ kept per 100 Rubisco reactions</dt><dd data-r-net>62 (75 fixed − 13 lost)</dd></div>
+    <div><dt>RuBP spent per net CO₂ kept</dt><dd data-r-rubp>1.6</dd></div>
   </dl>
   <p class="rf-why" data-why role="status">At typical leaf conditions (25 °C, normal air) Rubisco fixes carbon about three times for every wasteful reaction with O₂.</p>
 
@@ -66,6 +69,7 @@
     const oxyN = root.querySelector<HTMLElement>('[data-oxy-n]')!;
     const rRatio = root.querySelector<HTMLElement>('[data-r-ratio]')!;
     const rNet = root.querySelector<HTMLElement>('[data-r-net]')!;
+    const rRubp = root.querySelector<HTMLElement>('[data-r-rubp]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
     function render() {
       const ratio = parseFloat(ratioIn.value);
@@ -92,9 +96,14 @@
       rRatio.textContent = co >= 1 ? co.toFixed(1) + ' : 1' : '1 : ' + (1 / co).toFixed(1);
       // every carboxylation fixes 1 CO₂; photorespiration releases 1 CO₂ per 2 oxygenations
       const lost = Math.round(op / 2);
-      rNet.textContent = `${cp - lost} (${cp} fixed − ${lost} lost)`;
+      const net = cp - lost;
+      rNet.textContent = net > 0 ? `${net} (${cp} fixed − ${lost} lost)` : `${net} (${cp} fixed − ${lost} lost): no net gain`;
+      // each Rubisco reaction spends one RuBP; 100 reactions keep `net` CO₂
+      rRubp.textContent = net > 0 ? (100 / net).toFixed(1) : '∞ (no net gain)';
       const where = `At ${T} °C and ${air}`;
-      why.textContent = oxy > 0.4
+      why.textContent = net <= 0
+        ? `${where}, oxygenation is so frequent that photorespiration releases as much CO₂ as Rubisco fixes, or more (below the compensation point). Every 2 oxygenations cost one carbon, so once there are 2 oxygenations per carboxylation the leaf gains nothing.`
+        : oxy > 0.4
         ? `${where}, oxygenation has climbed to ${op}% — photorespiration now hands back ${lost} of every ${cp} CO₂ fixed. This is precisely the regime where C4 and CAM plants win.`
         : oxy > 0.28
           ? `${where}, carboxylation still leads (${cp}%), but the wasteful branch is rising as it gets hotter or drier — a steady tax on C3 photosynthesis.`
@@ -134,7 +143,7 @@
   .rf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .rf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .rf-slabel input { accent-color: var(--ddp-color-accent); }
-  .rf-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .rf-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .rf-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
   .rf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .rf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }

@@ -24,7 +24,7 @@ explainer:
   captions: "/explainers/binding-and-dose-response/explainer.vtt"
   poster: "/explainers/binding-and-dose-response/poster.jpg"
   title: "A Full Response, Mostly Empty Receptors"
-  durationSec: 167.3
+  durationSec: 169.2
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
 
@@ -58,7 +58,7 @@ scientists:
     story: >-
       In 1926 Clark measured how strongly isolated frog heart muscle
       responded to graded doses of acetylcholine, and how atropine opposed it. Then he treated the curve as a binding curve, as A. V. Hill had done for nicotine in 1909. Irving Langmuir had written an equation for gas molecules sticking to a surface that has a fixed number of sites, and Clark described the acetylcholine curve as an adsorption process of that kind. The response followed a hyperbola, as it should if a finite set of
-      sites were being filled under the law of mass action. He had confirmed none of the
+      sites were being filled under the law of mass action and the response tracked the number filled. He had confirmed none of the
       underlying picture, and in his 1933 book, The Mode of Action of Drugs on Cells, he said that
       he chose it because every alternative required less likely assumptions. Some of his contemporaries, Dale among them, doubted that the receptor did more than restate the data. Clark died in 1941, decades before any
       receptor was purified. His treatment let pharmacologists describe a drug by a dissociation
@@ -85,9 +85,9 @@ scientists:
     profileSourceAnchor: "Pert & Snyder, 'Opiate receptor: demonstration in nervous tissue', Science 179:1011 (1973); Snyder, Brainstorming: The Science and Politics of Opiate Research (Harvard University Press, 1989)."
     quotes: []
     story: >-
-      Pert was a graduate student in Solomon Snyder's laboratory at Johns Hopkins when she was
-      handed a new assay. Earlier attempts to find the opiate receptor had used radioactive opiates of low specific activity, which had to be used at concentrations so high that they saturated the receptor sites. The new assay used a custom batch of tritiated naloxone, an antagonist, at high specific radioactivity. Pert mixed it with ground-up brain, collected the tissue on filters with a manifold that could handle many samples and be washed vigorously, using techniques adapted from insulin-receptor binding work, and counted what stayed bound. She found specific binding. Active opiates displaced the label and their
-      mirror-image forms did not. The paper appeared in Science in 1973. The 1978 Lasker Award for
+      Pert was a graduate student in Solomon Snyder's laboratory at Johns Hopkins when she
+      developed a binding assay for the opiate receptor. Earlier attempts to find the opiate receptor had used radioactive opiates of low specific activity, which had to be used at high concentrations. Snyder later suggested that this was why the small specific signal had been lost. The new assay used a custom batch of tritiated naloxone, an antagonist, at high specific radioactivity. Pert mixed it with ground-up brain, collected the tissue on filters with a manifold that could handle many samples and be washed vigorously, using techniques adapted from insulin-receptor binding work, and counted what stayed bound. She found specific binding. Active opiates displaced the label and their
+      mirror-image forms did so only weakly. The paper appeared in Science in 1973. The 1978 Lasker Award for
       this field went to Snyder, John Hughes and Hans Kosterlitz, and Pert was not included. Her
       assay became a standard way to count receptors and to screen drugs by displacement. A
       binding site for a plant drug also strengthened the case that the brain makes opioids of its
@@ -111,7 +111,7 @@ techniques:
       You measure agonist dose-response curves at several concentrations of an antagonist and
       calculate the dose ratio for each. For a competitive antagonist, log(dose ratio − 1) plotted
       against log antagonist concentration is a straight line of slope 1. The point where the line
-      crosses zero gives KB, the antagonist's dissociation constant.
+      crosses zero sits at log KB, which gives KB, the antagonist's dissociation constant.
   - name: "Irreversible receptor inactivation"
     blurb: >-
       A tissue is treated with a blocker that bonds covalently to the receptor and is then washed,
@@ -140,7 +140,7 @@ structures:
     note: "PubChem CID 5284596"
     caption: >-
       The same morphinan skeleton as morphine, with an allyl group on the nitrogen in place of the
-      methyl. It fits the same pocket and does not switch the receptor on.
+      methyl and a few smaller changes to the rings. It fits the same pocket and does not switch the receptor on.
   - label: "Mu-opioid receptor with an irreversible antagonist bound — the pocket itself"
     source: "rcsb"
     id: "4DKL"
@@ -225,12 +225,12 @@ practiceQuestions:
       - "The blocker is a partial agonist with a maximum of 40%"
     answer: 1
     rationale: >-
-      A blocker that survives washing has bound irreversibly. Removing some receptors moved the
+      A blocker that survives washing is acting irreversibly. Removing some receptors moved the
       curve right without lowering the maximum, so the tissue did not need all of its receptors
       for a full response, which is a receptor reserve. Removing more receptors than the reserve
       could cover then lowered the maximum. A competitive antagonist is reversible, so washing
       would restore the curve, and, at equilibrium, no dose of it lowers the maximum, because more agonist always
-      overcomes it. A partial agonist would produce a response of its own and would also wash out.
+      overcomes it. A partial agonist would produce a response of its own, which the data do not show.
       A blocker that reacted with the agonist in the bath would be removed by washing and would
       not lower the maximum, since extra agonist would make up the loss.
 
@@ -277,7 +277,7 @@ mcatQuestions:
     rationale: >-
       Binding that persists in a large excess of unlabelled ligand is the nonspecific component.
       The labelled drug has been competed off any finite set of sites, and what remains rises in
-      proportion to concentration without limit. The difference between the two curves is specific
+      proportion to concentration across the range tested. The difference between the two curves is specific
       binding. It saturates at 25 pmol per gram, which is the number of sites (Bmax), and it is
       half-maximal at 2 nM, which is Kd. Concluding that binding is only nonspecific reads the
       total curve alone and misses the saturable part inside it. A Kd of 40 nM confuses the
@@ -380,6 +380,7 @@ draft: false
 ---
 
 import DoseResponseExplorer from '../../../components/DoseResponseExplorer.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Naloxone can pull a person out of a morphine overdose within minutes, and it never reacts with a single molecule of morphine.** The two drugs compete for the same place on the same cells. This lesson asks how much of that place a given dose fills, and how filling it becomes a response.
 
@@ -387,7 +388,9 @@ import DoseResponseExplorer from '../../../components/DoseResponseExplorer.astro
 
 In 1905 John Langley, in Cambridge, tested two drugs on skeletal muscle. Nicotine made the muscle contract and curare prevented it, and both still worked after the nerve to the muscle had been cut and had degenerated. So the drugs were acting on the muscle itself. Langley called the thing they acted on the **receptive substance**. A few years earlier Paul Ehrlich, working on how the body makes antitoxins, had coined a shorter word for a related idea about toxins and nutrients, not yet about drugs: **receptor**.
 
-The picture that still works is Emil Fischer's lock and key. An **agonist** is a molecule that binds a receptor and switches it on: the key fits and turns. An **antagonist** binds the same receptor and does nothing there: the key fits, will not turn, and keeps the other key out.
+The picture that still works is Emil Fischer's lock and key. An **agonist** is a molecule that binds a receptor and switches it on: the key fits and turns. An **antagonist** binds the same receptor and does nothing there: the key fits, will not turn, and keeps the other key out. Some receptors are partly active with nothing bound, and some blockers, called **inverse agonists**, turn that background activity down.
+
+<LessonFigure src="/figures/binding-and-dose-response/fits-versus-turns.webp" width={1200} height={573} alt="AI-generated illustration: three membrane receptors represented as locks with bound key-shaped ligands. The agonist panel has a large turning arrow; the neutral competitive antagonist panel has no turning arrow and shows a second key excluded from the occupied pocket; the partial agonist panel has a smaller turning arrow and a partly gold key. These are qualitative activation symbols, not measured response fractions; full versus partial tissue response depends on the drug and tissue." caption="Binding and activation are separate. In this lock-and-key analogy, a full agonist activates the receptor, a neutral competitive antagonist occupies the pocket without adding activation and excludes a competing agonist, and a partial agonist activates more weakly. Whether an agonist produces a full or partial tissue response depends on the drug and the tissue, including receptor reserve. The drawing is qualitative. Inverse agonists, which reduce background activity, are not shown." />
 
 ## One equation: occupancy follows mass action
 
@@ -413,7 +416,7 @@ Occupancy counts the receptors that have ligand bound. Response is what the tiss
 
 **EC50** is the concentration that gives half of the drug's maximum response. It measures **potency**: the lower the EC50, the less drug you need. **Emax** is the largest response the drug can produce, however much you add. It reflects **efficacy**: how well the drug switches the receptor on once it is bound.
 
-These are separate properties. A **full agonist** can drive the tissue to its maximum. A **partial agonist** levels off below that maximum even when it occupies every receptor, like a key that turns the lock only part of the way. Buprenorphine is a partial agonist at the receptor that morphine activates and naloxone blocks.
+These are separate properties. A **full agonist** can drive the tissue to its maximum. A **partial agonist** levels off below that maximum even when it occupies every receptor, like a key that turns the lock only part of the way. Whether a drug looks full or partial depends on the tissue as well as the drug: in a tissue with many receptors, a weak key can still reach the maximum. Buprenorphine is a partial agonist at the receptor that morphine activates and naloxone blocks.
 
 Compare three drugs acting at one receptor in one tissue. The first has an EC50 of 1 nM and reaches 100%. The second has an EC50 of 100 nM and also reaches 100%: 100-fold less potent, with the same maximum. The third has an EC50 of 1 nM but tops out at 40%: as potent as the first, less efficacious.
 
@@ -425,11 +428,11 @@ Clark assumed that response is proportional to occupancy, which would make EC50 
 
 The reason is amplification in the pathway after the receptor. Picture a bottling line where the capper is the bottleneck: once it runs at full speed, extra filling machines add nothing. Likewise, once enough receptors are occupied to saturate the slowest step downstream, more occupied receptors change nothing you can measure. The receptors that are not needed are called **spare receptors**, and together they make up the **receptor reserve**. They are ordinary receptors. The tissue has more copies than the pathway can use at once.
 
-Kd is a property of the receptor. EC50 is a property of the whole pathway. With a reserve, EC50 sits below Kd.
+Kd is a property of the drug and its receptor. EC50 is a property of the whole pathway. With a reserve, EC50 sits below Kd.
 
 How far below? Say the pathway reaches its ceiling at 5% occupancy and responds in proportion below that. Half the maximum then needs 2.5% occupancy. Solving [L] / (Kd + [L]) = 0.025 gives [L] = Kd/39, so the EC50 is 39-fold below the Kd with no change in binding.
 
-Treating an EC50 as a binding affinity is a common error in the research literature. You can also use the gap as a tool. If a treatment changes a drug's EC50 and leaves its Kd alone, something after binding has changed, and you can look for it.
+Treating an EC50 as a binding affinity is a common error in the research literature. You can also use the gap as a tool. If a treatment changes a drug's EC50 and leaves its Kd alone, either the number of receptors or something after binding has changed, and you can look for it.
 
 ### Design problem
 
@@ -466,13 +469,15 @@ The size of the slide is the **dose ratio**: how many times more agonist you nee
 
 [B] is the antagonist concentration and KB is the antagonist's own dissociation constant. J. H. Gaddum wrote down the competition equation in 1937. In 1947 Heinz Schild turned it into a measurement he called pA2: the negative logarithm of the antagonist concentration that forces you to double the agonist dose. At a dose ratio of 2, [B] equals KB. Two ordinary dose–response curves therefore give the affinity of a blocker for a site that nobody has isolated.
 
-A **non-competitive antagonist** takes receptors out of play in a way that more agonist cannot reverse. It may bind somewhere else on the receptor, or bind at the agonist's site and never let go. Its signature is a lower maximum. In a tissue with a receptor reserve, as the design problem showed, the first receptors lost cost only a rightward shift.
+Some blockers cannot be overcome by more agonist. A **non-competitive antagonist** binds somewhere else on the receptor, or acts after it, and stops the receptor from responding. An **irreversible antagonist** binds at the agonist's own site and never lets go, so more agonist cannot win the site back. The signature of both is a lower maximum. In a tissue with a receptor reserve, as the design problem showed, the first receptors lost cost only a rightward shift.
 
-Potency rankings also sort receptors into types. In 1948 Raymond Ahlquist ranked six adrenaline-like drugs by potency on many tissues. Blood delivers adrenaline to every organ at much the same concentration, yet it narrows arteries and relaxes airways. In arteries adrenaline and noradrenaline ranked high and isoproterenol low. In airways and heart the ranking ran nearly the other way. No third order appeared. One kind of pocket predicts one order everywhere, so he proposed two kinds and named them alpha and beta.
+Potency rankings also sort receptors into types. In 1948 Raymond Ahlquist ranked six adrenaline-like drugs by potency on many tissues. Blood delivers adrenaline to every organ at much the same concentration, yet it narrows blood vessels in the skin and relaxes airways. In arteries adrenaline and noradrenaline ranked high and isoproterenol low. In airways and heart the ranking ran nearly the other way. No third order appeared. One kind of pocket should give much the same order everywhere, he reasoned, so he proposed two kinds and named them alpha and beta.
 
 ## The proof: binding you can count
 
 Every argument so far infers the receptor from a response. In 1973 Candace Pert and Solomon Snyder at Johns Hopkins measured binding itself, as did two other groups the same year. They mixed radioactive naloxone with ground-up brain tissue, pulled the mixture through a filter, washed the filter and counted the radioactivity that stayed behind.
+
+<LessonFigure src="/figures/binding-and-dose-response/counting-bound-naloxone.webp" width={1200} height={676} alt="AI-generated illustration: a three-step strip showing ground-up brain tissue mixed with radioactive naloxone, the mixture pulled through a filter, and the washed filter shown next to a counter, schematically representing measurement of retained radioactivity. A small inset contrasts a finite row of filled receptor pockets with scattered sticking to greasy tissue." caption="In 1973 Pert and Snyder mixed radioactive naloxone with ground-up brain, filtered it, washed the filter and counted the radioactivity that stayed (in practice by liquid scintillation counting of the filter). A finite set of sites that fills up is one sign of a receptor, whereas sticking to grease keeps rising; counts include nonspecific sticking, so counting alone does not identify a receptor." />
 
 Brain is greasy and will hold on to almost any small molecule. So how do you show that what stuck is a receptor?
 

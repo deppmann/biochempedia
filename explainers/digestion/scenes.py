@@ -192,7 +192,7 @@ class S01Puzzle(SpokenScene):
         self.at("an inactive precursor")
         defn = T("zymogen: an inactive precursor", 34, t2c={"zymogen": GREY}, weight=BOLD).move_to([0, -3.1, 0])
         self.play(FadeIn(defn, shift=UP * 0.15), run_time=0.7)
-        self.at("folded but dormant form")
+        self.at("folded")
         self.play(*[pulse(n, TEXT, 1.12) for n in shred], run_time=0.9)
 
         # --- ship it out; switch it on at the destination ----------------------------------------
@@ -295,7 +295,7 @@ class S02Water(SpokenScene):
         self.play(*show(r1), run_time=0.7)
         self.at("peptide bond")
         self.play(Indicate(r1["link"], color=TEXT, scale_factor=1.0), run_time=0.7)
-        self.at("disaccharidase attack the glycosidic bond")
+        self.at("disaccharidases attack")
         self.play(*show(r2), run_time=0.8)
         self.at("glycosidic bond")
         self.play(Indicate(r2["link"], color=TEXT, scale_factor=1.0), run_time=0.7)
@@ -401,7 +401,7 @@ class S03Cascade(SpokenScene):
         self.play(*tryp.to_active("trypsin", GOLD), run_time=0.8)
         fan = []
         for node, nm, pt, phrase in [(chy, "chymotrypsin", chy, "It activates chymotrypsinogen"),
-                                     (pro, "carboxypeptidase", pro, "the procarboxypeptidase"),
+                                     (pro, "carboxypeptidase", pro, "the procarboxype"),
                                      (pre, "elastase", pre, "and prolastase")]:
             self.at(phrase)
             a = arr([tryp.box.get_center()[0] + (node.box.get_center()[0] - tryp.box.get_center()[0]) * 0.18,
@@ -452,7 +452,7 @@ PX = 3.225   # panel centre
 
 
 def build_tree(cx):
-    """enteropeptidase -> trypsinogen -> four zymogens, all dormant. Returns a dict of mobjects."""
+    """Activation tree: dormant protease precursors and a functional procolipase helper."""
     d = {}
     d["panel"] = RoundedRectangle(corner_radius=0.2, width=6.15, height=6.9, stroke_color=GREY, stroke_width=2.5,
                                   fill_color=GREY, fill_opacity=0.03).move_to([cx, 0.05, 0])
@@ -461,7 +461,9 @@ def build_tree(cx):
     ys = [0.75, -0.05, -0.85, -1.65]
     names = [("chymotrypsinogen", "chymotrypsin"), ("procarboxypeptidase", "carboxypeptidase"),
              ("proelastase", "elastase"), ("procolipase", "colipase")]
-    d["tg"] = [Node(z, GREY, 22, anchor="left", pad=0.13).place_left(cx - 0.55, y) for (z, _), y in zip(names, ys)]
+    d["tg"] = [Node(z, BLUE if z == "procolipase" else GREY, 22,
+                    zymogen=z != "procolipase", anchor="left", pad=0.13).place_left(cx - 0.55, y)
+               for (z, _), y in zip(names, ys)]
     d["act"] = [a for _, a in names]
     d["zy"] = [z for z, _ in names]
     d["ep_arrow"] = arr([cx - 2.0, d["ep"].get_bottom()[1], 0], [cx - 2.0, d["try"].box.get_top()[1] + 0.2, 0], TRIG)
@@ -486,23 +488,23 @@ class S04Deficiency(SpokenScene):
         self.at("normal activation tree")
         self.play(FadeIn(L["ep"], shift=DOWN * 0.1), FadeIn(L["try"].group),
                   *[FadeIn(t.group, shift=LEFT * 0.1) for t in L["tg"]], lag_ratio=0.2, run_time=1.8)
-        self.at("Enteropeptidase switches on trypsin")
+        self.at("Enteroptidase")
         self.play(Create(L["ep_arrow"]), run_time=0.5)
         self.play(*L["try"].to_active("trypsin", GOLD), run_time=0.7)
         L_arrows = []
-        for i, phrase in enumerate(["activates chymotrypsin", "the carboxypeptidases", "elastase",
-                                    "and procolipase"]):
+        for i, phrase in enumerate(["activates chymotrypsin", "the carboxyptidases", "elastase",
+                                    "and prokalopase"]):
             self.at(phrase)
             self.play(Create(L["fan"][i]), run_time=0.4)
             self.play(*L["tg"][i].to_active(L["act"][i], BLUE), run_time=0.6)
             L_arrows.append(L["fan"][i])
         # lipase is secreted already active; colipase is its partner (nothing here shows lipase being activated)
-        self.at("the partner lipase")
+        self.at("a lipase helper")
         lipL = Node("lipase", BLUE, 22, zymogen=False, anchor="left", pad=0.13).place_left(-PX - 0.55, -2.6)
         linkL = Line([-PX - 0.15, L["tg"][3].box.get_bottom()[1], 0], [-PX - 0.15, lipL.box.get_top()[1], 0],
                      color=BLUE, stroke_width=3.5)
         self.play(Create(linkL), FadeIn(lipL.group, shift=UP * 0.1), run_time=0.8)
-        self.at("to digest fat")
+        self.at("works even uncut")
         helper = T("digests fat", 24, GREY).next_to(lipL.box, RIGHT, buff=0.25)
         self.play(FadeIn(helper, shift=LEFT * 0.1), pulse(lipL, BLUE, 1.12), run_time=0.8)
 
@@ -523,12 +525,12 @@ class S04Deficiency(SpokenScene):
         self.at("Now the master switch is gone")
         cap = T("master switch gone", 26, RED).move_to([PX, -3.2, 0])
         self.play(FadeIn(cap, shift=UP * 0.1), run_time=0.6)
-        self.at("every downstream zymogen stays locked")
-        locks = [lock_icon(s=1.2).move_to([t.box.get_left()[0] - 0.22, t.box.get_center()[1] + 0.02, 0]).set_z_index(5) for t in R["tg"]]
+        self.at("protease")
+        locks = [lock_icon(s=1.2).move_to([t.box.get_left()[0] - 0.22, t.box.get_center()[1] + 0.02, 0]).set_z_index(5) for t in R["tg"][:3]]
         self.play(*[FadeIn(l, scale=0.5) for l in locks], lag_ratio=0.2, run_time=1.2)
-        self.at("no matter how abundant it is")
+        self.at("abundant they are")
         stacks = []
-        for t in R["tg"]:
+        for t in R["tg"][:3]:
             for k in (1, 2):
                 c = t.box.copy().shift(np.array([0.11, -0.11, 0]) * k)
                 c.set_z_index(-k)
@@ -547,20 +549,20 @@ class S04Deficiency(SpokenScene):
         self.at("Lose trypsin")
         self.play(FadeOut(cap), Indicate(g, color=RED, scale_factor=1.15), run_time=0.8)
         self.at("protein digestion collapses")
-        cap2 = T("protein digestion collapses", 24, RED).move_to([PX, -3.2, 0])
+        cap2 = T("pancreatic proteases fail", 24, RED).move_to([PX, -3.2, 0])
         self.play(FadeIn(cap2, shift=UP * 0.1), *[pulse(t, RED, 1.08) for t in R["tg"][:3]], run_time=1.3)
-        # fat digestion: lipase is still active, so it is impaired (not abolished) without colipase
+        # fat digestion: lipase and uncut procolipase remain functional
         self.at("while fat digestion")
         lipR = Node("lipase", BLUE, 22, zymogen=False, anchor="left", pad=0.13).place_left(PX - 0.55, -2.6)
         self.play(FadeIn(lipR.group, shift=UP * 0.1), run_time=0.9)
-        self.at("falters without colipase")
-        tagR = T("slower", 24, RED).next_to(lipR.box, RIGHT, buff=0.25)
-        cap3 = T("fat digestion falters", 24, RED).move_to([PX, -3.2, 0])
-        self.play(FadeOut(cap2), FadeIn(cap3, shift=UP * 0.1), FadeIn(tagR), pulse(R["tg"][3], RED, 1.1),
+        self.at("largely spared")
+        tagR = T("working", 24, BLUE).next_to(lipR.box, RIGHT, buff=0.25)
+        cap3 = T("fat digestion spared", 24, BLUE).move_to([PX, -3.2, 0])
+        self.play(FadeOut(cap2), FadeIn(cap3, shift=UP * 0.1), FadeIn(tagR), pulse(R["tg"][3], BLUE, 1.1),
                   run_time=1.2)
         self.finish()
 
 
 # --------------------------------------------------------------------------------------------
 class S05End(EndCard):
-    LINE = "One master switch wakes the whole digestive cascade."
+    LINE = "One master switch wakes the pancreatic protease cascade."

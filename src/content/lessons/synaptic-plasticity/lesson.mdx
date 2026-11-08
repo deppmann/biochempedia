@@ -1,0 +1,712 @@
+---
+title: "Synaptic Plasticity"
+slug: "synaptic-plasticity"
+course: "neuroscience"
+courseChapter: "Neuroscience · Unit 2: Synapses and plasticity"
+order: 608
+summary: >-
+  How could one synapse know that both of its cells were active at once? One idea carries
+  the lesson: at an NMDA-type synapse, LTP is triggered by Ca2+ entering the spine through
+  NMDA receptors, and substantial entry needs glutamate from the presynaptic cell and
+  depolarization of the postsynaptic membrane together. You read the field recordings that
+  revealed long-term potentiation in the rabbit dentate gyrus, test the NMDA receptor as the
+  gate at CA1 with the experiments that showed it detects coincidence, and use it to explain
+  input specificity, cooperativity and associativity. Then you see how the size and time
+  course of the Ca2+ signal turn a synapse up or down in the standard model, and contrast
+  all of this with short-term facilitation and depression. Afterwards you can compute a
+  percentage of potentiation from a recording, judge whether it is input specific and
+  NMDA-receptor dependent, work a paired-pulse depletion model, and say what a plasticity
+  experiment can and cannot show about memory.
+hook: "A synapse that stores an association should strengthen when its own input is active at the same moment as the cell it talks to. How could one synapse know what the whole cell is doing?"
+
+estMinutes: 35
+objectives:
+  - "Interpret Bliss and Lømo's 1973 field recordings from the perforant path to the dentate gyrus of urethane-anaesthetized rabbits: normalize to baseline, separate the population EPSP from the population spike, and use an untrained control pathway."
+  - "Explain why NMDA-receptor-dependent LTP is input specific, cooperative and associative, using the rule that, at normal Mg2+ levels, substantial Ca2+ entry through NMDA receptors needs glutamate and postsynaptic depolarization together, and the experiments (APV, a postsynaptic Ca2+ buffer, hyperpolarization and pairing) that tested it."
+  - "Explain NMDA-receptor-dependent LTP and LTD at Schaffer collateral-CA1 synapses: glutamate plus depolarization relieves the Mg2+ block, a large Ca2+ rise recruits CaMKII and adds AMPA receptors, a modest rise recruits phosphatases and removes them; and name mossy-fibre LTP as an NMDA-independent form."
+  - "Explain short-term facilitation and depression with paired pulses, using residual Ca2+ and synaptotagmin 7 for facilitation and a depletion model, with its limits, for depression."
+  - "State what plasticity experiments can and cannot show about memory, separating correlation, necessity and sufficiency in a named preparation."
+
+explainer:
+  src: "/explainers/synaptic-plasticity/explainer.mp4"
+  captions: "/explainers/synaptic-plasticity/explainer.vtt"
+  poster: "/explainers/synaptic-plasticity/poster.jpg"
+  title: "A Synapse That Could Learn"
+  durationSec: 222.8
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  aiGenerated: true
+
+films:
+  - id: "two-signal-gate"
+    src: "/explainers/synaptic-plasticity/two-signal-gate.mp4"
+    captions: "/explainers/synaptic-plasticity/two-signal-gate.vtt"
+    poster: "/explainers/synaptic-plasticity/two-signal-gate-poster.jpg"
+    title: "A Gate That Needs Two Signals"
+    durationSec: 235.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "testing-the-gate"
+    src: "/explainers/synaptic-plasticity/testing-the-gate.mp4"
+    captions: "/explainers/synaptic-plasticity/testing-the-gate.vtt"
+    poster: "/explainers/synaptic-plasticity/testing-the-gate-poster.jpg"
+    title: "Testing the Gate"
+    durationSec: 164.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "what-the-rule-predicts"
+    src: "/explainers/synaptic-plasticity/what-the-rule-predicts.mp4"
+    captions: "/explainers/synaptic-plasticity/what-the-rule-predicts.vtt"
+    poster: "/explainers/synaptic-plasticity/what-the-rule-predicts-poster.jpg"
+    title: "What the Rule Explains"
+    durationSec: 169.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "up-or-down"
+    src: "/explainers/synaptic-plasticity/up-or-down.mp4"
+    captions: "/explainers/synaptic-plasticity/up-or-down.vtt"
+    poster: "/explainers/synaptic-plasticity/up-or-down-poster.jpg"
+    title: "Turning It Up or Down"
+    durationSec: 164.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "fast-changes-and-memory"
+    src: "/explainers/synaptic-plasticity/fast-changes-and-memory.mp4"
+    captions: "/explainers/synaptic-plasticity/fast-changes-and-memory.vtt"
+    poster: "/explainers/synaptic-plasticity/fast-changes-and-memory-poster.jpg"
+    title: "Fast Changes, and the Road to Memory"
+    durationSec: 190.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+
+scientists:
+  - name: "Timothy Bliss and Terje Lømo"
+    contribution: >-
+      Showed in urethane-anaesthetized rabbits that brief high-frequency trains to the perforant
+      path left the dentate gyrus responding more strongly to test pulses for 30 minutes to 10
+      hours: the effect now called long-term potentiation.
+    profileSourceAnchor: "Bliss & Lømo, J. Physiol. 232:331–356 (1973)."
+    quotes: []
+    story: >-
+      Lømo had seen the effect in 1966, recording from the dentate gyrus of anaesthetized rabbits in Per Andersen's laboratory in Oslo, and
+      he and Bliss then set out to measure it carefully. Their preparation was the rabbit, under
+      urethane anaesthesia. They stimulated the perforant path, the bundle of axons that carries
+      input from the entorhinal cortex to the dentate gyrus, and recorded the summed response of
+      the granule cells with an extracellular electrode. Between test pulses they gave the same
+      fibres conditioning trains; one regimen was 100 stimuli per second for 3 to 4 seconds.
+      Afterwards the response to the same test pulse was larger in 15 of 18 rabbits, and the
+      potentiation they reported lasted from 30 minutes to 10 hours. They measured the
+      population EPSP and the population spike separately, and suggested that stronger synaptic
+      transmission and more excitable granule cells were independent contributors. Their 1973
+      paper in the Journal of Physiology gave the field a measurable, lasting change at a
+      synapse, made by activity alone, that could then be taken apart in the slice.
+  - name: "Graham Collingridge"
+    contribution: >-
+      With Steve Kehl and Hugh McLennan, showed in rat hippocampal slices that the NMDA-receptor
+      antagonist APV prevented LTP at Schaffer collateral-CA1 synapses while leaving the baseline
+      field EPSP unaffected.
+    profileSourceAnchor: "Collingridge, Kehl & McLennan, J. Physiol. 334:33–46 (1983)."
+    quotes: []
+    story: >-
+      By the early 1980s LTP could be studied in slices of rat hippocampus kept alive in a dish,
+      where drugs reach the synapses directly. Glutamate was the likely transmitter at the
+      Schaffer collateral synapses onto CA1 pyramidal cells, and pharmacologists had begun to
+      sort its receptors with selective agonists and antagonists. Collingridge, Kehl and
+      McLennan asked which receptor the induction of LTP needs. They applied APV at doses that
+      abolished the response to N-methyl-DL-aspartate, an agonist for the NMDA receptor, and
+      checked the ordinary field EPSP: it was unaffected under their conditions. A
+      high-frequency train given in APV then failed to produce LTP. The design separated two
+      things that are easy to confuse: the receptor that carries the everyday synaptic response,
+      and the receptor whose activation starts the lasting change. Their 1983 paper in the
+      Journal of Physiology made the NMDA receptor the place to look for the induction step.
+      Bliss, Collingridge and Richard Morris shared the 2016 Brain Prize.
+  - name: "Serena Dudek and Mark Bear"
+    contribution: >-
+      Showed in rat hippocampal slices that 900 stimuli at 1 to 3 Hz produced a lasting,
+      input-specific and NMDA-receptor-dependent depression of the CA1 population EPSP:
+      homosynaptic long-term depression.
+    profileSourceAnchor: "Dudek & Bear, Proc. Natl. Acad. Sci. USA 89:4363–4367 (1992)."
+    quotes: []
+    story: >-
+      If synapses could only be strengthened, every active synapse would drift toward its
+      ceiling, and theorists had argued that a working network also needs a way to weaken
+      synapses. Dudek and Bear tested whether the Schaffer collateral input to CA1 in rat
+      hippocampal slices could be turned down by its own activity. Instead of a brief
+      high-frequency train they delivered a long, slow one: 900 stimuli at 1 to 3 Hz. The
+      population EPSP of the conditioned input fell and stayed down for more than an hour, with
+      no sign of recovery during the observation. A second input to the same cells, left
+      unconditioned, did not change, so the depression was specific to the input that had been
+      used. NMDA-receptor antagonists prevented it. The same receptor that gated LTP was
+      therefore needed for its opposite, and the outcome depended on how the input was used,
+      which in the standard model sets how much Ca2+ enters and how fast.
+      Their 1992 paper in PNAS gave the field a reliable protocol for LTD that many laboratories
+      then used to find its mechanism.
+  - name: "Sadegh Nabavi and Roberto Malinow"
+    contribution: >-
+      With colleagues, replaced a tone with optogenetic stimulation of auditory inputs to the
+      lateral amygdala in rats, and showed that optical LTD of those inputs removed a
+      conditioned response and optical LTP restored it.
+    profileSourceAnchor: "Nabavi, Fox, Proulx, Lin, Tsien & Malinow, Nature 511:348–352 (2014)."
+    quotes: []
+    story: >-
+      Fear conditioning pairs a neutral cue with a mild shock, and the cue alone then changes
+      behaviour. Auditory inputs to the lateral amygdala were known to be potentiated after such
+      pairing, but a correlation between LTP and learning does not show that the LTP matters.
+      Nabavi, Malinow and colleagues expressed a light-gated channel in auditory inputs to the
+      lateral amygdala of rats and used light on those inputs as the cue. After optical
+      cue-shock pairing, the light suppressed lever pressing. They then delivered an optical
+      protocol that induces LTD at those inputs, and the conditioned response was gone at
+      testing. An optical LTP protocol given afterwards restored it in previously conditioned
+      rats. LTP given to rats that had never had the pairing produced no conditioned response.
+      Their 2014 paper in Nature turned a long-standing correlation into a manipulation, in one
+      pathway, one species and one task.
+
+techniques:
+  - name: "Extracellular field recording"
+    blurb: >-
+      An electrode placed among many neurons records the voltage set up by their summed currents. In the
+      hippocampus a stimulus to a fibre bundle gives a slow field EPSP, which measures synaptic
+      strength, and, if enough cells fire, a sharp population spike riding on it, which reflects
+      how many fire and how closely in time. Reading them separately hints at a stronger synapse or a more excitable cell; comparing spike size at matched field EPSP size is the clean test.
+  - name: "Receptor-antagonist pharmacology"
+    blurb: >-
+      Apply a selective blocker, show that it works by abolishing the response to its agonist,
+      and check whether it changes the baseline response. A drug that leaves the baseline alone
+      but prevents a lasting change shows that the receptor is needed for induction under that
+      protocol.
+  - name: "Paired-pulse recording"
+    blurb: >-
+      Two stimuli are given a few to a few hundred milliseconds apart, and the second response
+      is divided by the first. A ratio above 1 is facilitation and below 1 is depression; a
+      change in the ratio after a manipulation is often taken as a sign of a presynaptic change,
+      though it is not proof.
+  - name: "Optogenetic stimulation"
+    blurb: >-
+      A light-gated ion channel expressed in a defined set of axons lets light drive them at a
+      chosen frequency. Driving them in an LTP or LTD pattern changes those synapses on purpose,
+      so the effect on behaviour can be tested rather than only correlated.
+
+structures:
+  - label: "AMPA receptor (GluA2 structure) — the receptor type added in LTP and removed in LTD"
+    source: "rcsb"
+    id: "3KG2"
+    note: "Rat GluA2 homotetramer bound to an antagonist, X-ray crystal structure (Sobolevsky, Rosconi & Gouaux, Nature, 2009)"
+    caption: >-
+      Four subunits stack into a Y shape: the amino-terminal domains on top, the
+      glutamate-binding domains in the middle and the ion channel in the membrane below. Count
+      the layers, then find the pore where sodium passes during an EPSP.
+  - label: "NMDA receptor (GluN1/GluN2B) — the induction gate"
+    source: "rcsb"
+    id: "4PE5"
+    note: "Rat GluN1/GluN2B heterotetramer, X-ray crystal structure (Karakas & Furukawa, Science, 2014)"
+    caption: >-
+      Two GluN1 and two GluN2B subunits form the channel. GluN1 binds the co-agonist glycine or D-serine and
+      GluN2B binds glutamate; then follow the helices down to the pore, the path that Mg2+
+      blocks at resting potential.
+  - label: "L-glutamate — the transmitter at these synapses"
+    source: "pubchem"
+    id: "33032"
+    note: "PubChem compound record for L-glutamic acid"
+    caption: >-
+      One amino acid serves as the transmitter at the perforant path, Schaffer collateral and
+      mossy fibre synapses in this lesson. Both receptors above bind it.
+
+simulations:
+  - type: "local"
+    ref: "VesicleDepletionPairedPulse"
+    title: "Depletion and the paired-pulse ratio"
+    caption: >-
+      Step through a train of pulses in the simplest depletion model, changing the release fraction and pool size to see why the paired-pulse ratio equals 1 − F, and what this model cannot explain.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "In which preparation did Bliss and Lømo report long-lasting potentiation in their 1973 paper?"
+    choices:
+      - "Mossy fibres to CA3 in slices of guinea-pig hippocampus"
+      - "Schaffer collaterals to CA1 in slices of rat hippocampus"
+      - "Auditory inputs to the lateral amygdala in awake rats"
+      - "Perforant path to dentate gyrus in anaesthetized rabbits"
+    answer: 3
+    rationale: >-
+      Bliss and Lømo stimulated the perforant path and recorded the dentate gyrus in
+      urethane-anaesthetized rabbits in vivo. Schaffer collateral-CA1 in rat slices is the
+      preparation of later work, such as Collingridge's in 1983, and is easy to
+      confuse with the original. Guinea-pig mossy fibres to CA3 is where Harris and Cotman found
+      NMDA-independent LTP. Auditory inputs to the lateral amygdala are the 2014 optogenetic
+      study of Nabavi and colleagues.
+  - stem: "At a Schaffer collateral-CA1 synapse, why does LTP induction need postsynaptic depolarization as well as glutamate release?"
+    choices:
+      - "Depolarization raises the driving force for Ca2+ to enter"
+      - "Depolarization opens AMPA receptors that glutamate cannot open"
+      - "Depolarization displaces glycine from the NMDA receptor"
+      - "Depolarization expels Mg2+ from the NMDA receptor pore"
+    answer: 3
+    rationale: >-
+      At resting potential Mg2+ sits in the NMDA receptor pore; depolarization drives it out, so
+      glutamate-bound receptors can pass Ca2+. AMPA receptors open with glutamate alone, so they
+      need no depolarization. Depolarization actually lowers the driving force for Ca2+, since it
+      moves Vm toward the calcium equilibrium potential; it helps only by relieving the block.
+      A co-agonist, glycine or D-serine, is needed too, and depolarization does not remove it.
+  - stem: "After a 100 Hz train to one pathway, the field EPSP rises to 150% of baseline. Which added measurement best shows that this is input-specific potentiation and not a drift of the whole preparation?"
+    choices:
+      - "A recording of the population spike from the trained pathway alone"
+      - "A larger stimulus to the trained pathway before the train is given"
+      - "A second, untrained pathway to the same cells, tested throughout"
+      - "A second 100 Hz train to the trained pathway an hour afterwards"
+    answer: 2
+    rationale: >-
+      A control pathway that converges on the same cells but gets no train will also drift if
+      the slice or animal is drifting; if it stays near 100% while the trained pathway rises,
+      the change belongs to the trained input. A larger stimulus before the train only maps the
+      input-output curve. The population spike of the same pathway adds information about
+      excitability but cannot rule out drift. A second train tests saturation, not specificity.
+  - stem: "A CA1 pyramidal cell in a rat slice is filled with an inhibitor of protein phosphatases 1 and 2A. Its Schaffer collateral input then receives 900 pulses at 1 Hz. What do you predict at that input?"
+    choices:
+      - "LTD develops but spreads to inputs that were not stimulated"
+      - "LTD fails to develop at the conditioned Schaffer input"
+      - "LTD develops normally because induction is presynaptic"
+      - "LTP develops in place of LTD at the conditioned input"
+    answer: 1
+    rationale: >-
+      In the canonical model a modest NMDA-receptor-mediated Ca2+ rise recruits phosphatases that
+      lead to AMPA receptor removal; Mulkey, Herron and Malenka found that the phosphatase
+      inhibitor microcystin LR loaded into CA1 cells blocked or attenuated LTD, as did bath-applied okadaic acid or calyculin A, in rat CA1. Spreading to
+      unstimulated inputs contradicts the input specificity Dudek and Bear found. Induction at
+      this synapse is postsynaptic, so a postsynaptic inhibitor matters. Blocking the
+      phosphatase step does not by itself convert the protocol into an LTP stimulus.
+  - stem: "In the simplest depletion model (no refilling, no facilitation, fixed release fraction), a synapse has release fraction F = 0.25, 200 releasable vesicles and 10 pA per vesicle. What are the two EPSCs of a closely spaced pair, and their ratio?"
+    choices:
+      - "500 pA then 125 pA; ratio 0.25"
+      - "500 pA then 375 pA; ratio 0.75"
+      - "2000 pA then 1500 pA; ratio 0.75"
+      - "500 pA then 500 pA; ratio 1.00"
+    answer: 1
+    rationale: >-
+      EPSC1 = F × S × i = 0.25 × 200 × 10 pA = 500 pA. The pool left is 200 × 0.75 = 150
+      vesicles, so EPSC2 = 0.25 × 150 × 10 pA = 375 pA, and the ratio 0.75 equals 1 − F. A
+      second response of 125 pA confuses the fraction released with the fraction left. Equal
+      responses ignore the depletion the model assumes. 2000 pA leaves out F, treating every
+      vesicle as released by the first pulse yet still giving a second response.
+
+mcatQuestions:
+  - stem: "In a rat hippocampal slice, two Schaffer collateral pathways converge on the same CA1 cells. Before a 100 Hz train to pathway 1, the field EPSP slope is 0.40 mV/ms in pathway 1 and 0.40 mV/ms in pathway 2. Sixty minutes after the train it is 0.58 mV/ms in pathway 1 and 0.39 mV/ms in pathway 2. Which reading of the data is best supported?"
+    choices:
+      - "A 45% potentiation confined to pathway 1"
+      - "A 45% potentiation shared by both pathways"
+      - "A 58% potentiation confined to pathway 1"
+      - "A 145% potentiation confined to pathway 1"
+    answer: 0
+    rationale: >-
+      0.58 / 0.40 = 1.45, so pathway 1 is at 145% of baseline, a 45% potentiation, while
+      pathway 2 is at 0.39 / 0.40 = 97.5%, within normal drift: the change is input specific.
+      145% is the response as a percentage of baseline, not the potentiation. A shared
+      potentiation would need pathway 2 to rise too, and it did not. 58% comes from reading
+      the raw value 0.58 as if it were a fraction of 1.
+  - stem: "At mouse Schaffer collateral synapses, paired pulses 20 ms apart give a second EPSC 1.6 times the first in wild-type slices and 1.0 times the first in slices lacking a presynaptic protein. The first EPSC and presynaptic residual Ca2+ after the first pulse are the same in both. Expressing the wild-type protein presynaptically restores facilitation; a version with a Ca2+-insensitive C2A domain does not. What do the data best support?"
+    choices:
+      - "The protein is needed for all release at these synapses"
+      - "Facilitation reflects vesicle depletion by the first spike"
+      - "The protein is a Ca2+ sensor needed for facilitation"
+      - "The protein raises residual Ca2+ after the first spike"
+    answer: 2
+    rationale: >-
+      Residual Ca2+ is unchanged, the first response is normal, facilitation is lost, and only a
+      Ca2+-binding version rescues it, so the protein acts as a sensor that reads residual
+      Ca2+, as Jackman and colleagues found for synaptotagmin 7. Raising residual Ca2+ is ruled
+      out by the equal Ca2+ signals. Depletion would make the second response smaller, not
+      larger. A protein needed for all release would shrink the first EPSC, which is unchanged.
+  - stem: "In rat CA1 slices, 900 pulses at 1 Hz to one Schaffer collateral input lower its field EPSP to 75% of baseline for the next hour, while a second input to the same cells stays at 100%. With the NMDA-receptor antagonist APV present during the 900 pulses, the conditioned input stays at 100%. APV alone does not change the baseline response. Which conclusion do these data support?"
+    choices:
+      - "The slow train induces NMDA-receptor-dependent, input-specific LTD"
+      - "The slow train causes a depression that recovers within seconds"
+      - "APV lowers baseline transmission and so masks the depression"
+      - "The slow train depletes vesicles in every input to the cells"
+    answer: 0
+    rationale: >-
+      The depression lasts an hour, stays at the conditioned input and needs NMDA receptors
+      during induction, which matches the LTD Dudek and Bear described. Depletion of every input
+      would lower the second, unconditioned input too. APV leaves the baseline unchanged, so it
+      cannot be masking anything. Short-term depression recovers over seconds, whereas this
+      change persists for the hour of observation.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      Nerve cells talk to each other at tiny joins called synapses. If two cells are busy
+      together, the join between them can get stronger, so later messages come through louder.
+      If one cell talks slowly and the other barely answers, the join can get weaker. These
+      changes can last for hours, and scientists think they are one way the brain stores what
+      it learns.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      A synapse is where one neuron passes a chemical signal to the next. Its strength is not
+      fixed. In 1973 Tim Bliss and Terje Lømo found that a short burst of fast stimulation to a
+      pathway in a rabbit's hippocampus made later responses larger for hours; this is
+      long-term potentiation, or LTP. A long run of slow stimulation can do the reverse,
+      long-term depression, or LTD. At the best-studied synapses, both are thought to depend on how much calcium enters the receiving cell
+      through a special glutamate receptor, the NMDA receptor. Synapses also change for a split
+      second after each use, growing briefly stronger or weaker. LTP and LTD are good
+      candidates for part of how memories are stored, but showing that a memory depends on them
+      takes experiments that change the synapse and then test behaviour.
+  - level: "college"
+    label: "College"
+    text: >-
+      At Schaffer collateral-CA1 synapses in rodent hippocampus, glutamate opens AMPA receptors,
+      which carry most of the baseline EPSP, and binds NMDA receptors, whose pore is blocked by
+      Mg2+ at resting potential. When the postsynaptic cell is depolarized at the same time,
+      Mg2+ leaves and Ca2+ enters through the NMDA receptor. In the canonical model a large Ca2+
+      rise, as after a 100 Hz train, recruits CaMKII and adds AMPA receptors to the synapse
+      (LTP), while a modest rise, as during 900 pulses at 1 Hz, recruits phosphatases and AMPA
+      receptor endocytosis (LTD). Both are input specific. The NMDA antagonist APV prevents both
+      forms without changing the baseline field EPSP. Not all LTP works this way: mossy-fibre
+      LTP in guinea-pig CA3 is NMDA independent. Short-term plasticity is separate: paired-pulse
+      facilitation over tens to hundreds of milliseconds depends on residual Ca2+ read by
+      synaptotagmin 7 at the mouse synapses tested, and depression is partly, not always,
+      explained by vesicle depletion.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Field recordings measure synaptic strength (field EPSP slope) and cell output
+      (population spike) separately, and Bliss and Lømo's suggestion of independent contributions in the
+      rabbit dentate gyrus means a larger spike alone cannot be read as synaptic LTP. At CA1,
+      induction is NMDA-receptor dependent, and expression includes regulated AMPA receptor
+      trafficking: LTP drove tagged GluA1-containing receptors into synapses (Hayashi and
+      colleagues, 2000), and blocking endocytosis gradually increased AMPA EPSCs, implying
+      constitutive cycling (Lüscher and colleagues, 1999). The idea that Ca2+ amplitude alone
+      selects kinase or phosphatase is a model; no single calcium threshold is established.
+
+
+      Recent work widens the timing rules. Behavioural timescale synaptic plasticity in mouse
+      CA1 links inputs to a dendritic plateau potential over seconds rather than milliseconds,
+      with a fitted backward time constant of about 1.3 s in slices (Bittner and colleagues,
+      2017), and can potentiate weak inputs while depressing strong ones (Milstein and
+      colleagues, 2021). An open question is how Hebbian millisecond rules and such
+      seconds-scale, plateau-gated rules divide the work of storing information in vivo, and
+      which, if either, the classic tetanus-induced LTP of the slice actually models.
+
+anecdotes:
+  - title: "An LTP that ignored the NMDA blocker"
+    source: "Harris & Cotman, Neuroscience Letters (1986), doi:10.1016/0304-3940(86)90451-9."
+    text: >-
+      Once APV had been shown to prevent LTP at CA1, it was tempting to treat NMDA receptors as
+      the rule for all LTP. Eric Harris and Carl Cotman tested the mossy fibres, the axons of
+      dentate granule cells that synapse onto CA3 pyramidal cells, in slices of guinea-pig
+      hippocampus. NMDA-receptor antagonists did not block mossy-fibre LTP. The finding split
+      LTP into more than one mechanism, and it is why a lesson on plasticity has to name the
+      synapse before it names the receptor.
+  - title: "A knockout with the calcium still there"
+    source: "Jackman, Turecek, Belinsky & Regehr, Nature (2016), doi:10.1038/nature16507."
+    text: >-
+      The residual-calcium idea holds that Ca2+ left over from one spike adds to the next and
+      raises release. Skyler Jackman, Wade Regehr and colleagues deleted synaptotagmin 7 in mice
+      and lost paired-pulse facilitation at the synapses they tested, including Schaffer
+      collateral and mossy-fibre synapses. Imaging showed the residual Ca2+ signal in the
+      terminals unchanged. Putting wild-type synaptotagmin 7 back into the presynaptic cells
+      restored facilitation, but a mutant with a Ca2+-insensitive C2A domain did not. The calcium was
+      necessary, and it needed a sensor to be read.
+  - title: "A drug, a maze and a caveat"
+    source: "Morris, Anderson, Lynch & Baudry, Nature 319:774–776 (1986)."
+    text: >-
+      Richard Morris and colleagues infused the NMDA antagonist AP5 into the cerebral
+      ventricles of rats chronically. The treated rats were impaired at place learning, finding a
+      location by spatial cues, but learned a visual discrimination, and the drug also
+      suppressed hippocampal LTP recorded in vivo. The parallel was striking. It was still a
+      drug acting on NMDA receptors everywhere it reached, so it showed that the receptors were
+      needed for both, not that the learning was the LTP.
+
+corpusTags:
+  - "synaptic-plasticity"
+  - "long-term-potentiation"
+  - "long-term-depression"
+  - "nmda-receptor"
+  - "ampa-receptor-trafficking"
+  - "camkii"
+  - "short-term-plasticity"
+  - "paired-pulse"
+  - "synaptotagmin-7"
+  - "hippocampus"
+  - "fear-conditioning"
+draft: false
+---
+
+import VesicleDepletionPairedPulse from '../../../components/VesicleDepletionPairedPulse.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
+
+**A synapse that stores an association should strengthen when its own input is active at the same moment as the cell it talks to. How could one synapse know what the whole cell is doing?**
+
+In 1949 Donald Hebb proposed that when one cell repeatedly helps fire another, the connection between them grows. That is a postulate about what learning needs, not a mechanism, and it was made before anyone knew a molecule that could carry it out. This lesson follows one molecule that can, traces the experiments showing that it reads both cells, and then asks what it would take to show that memory uses it.
+
+## A synapse that could store an association
+
+Treat the opening requirement as a design specification, with one refinement: for the receiving cell, "active" means that the spine is sufficiently depolarized, by summed synaptic input, a local dendritic event or a backpropagating spike. First we need evidence that synapses change at all, and a way to measure the change.
+
+### A map of the hippocampus
+
+Most of the work in this lesson comes from the hippocampus, so start with a map. Picture a chain of three relays. For most of the lesson only the last one, Schaffer collateral → CA1, matters.
+
+1. Input arrives from the **entorhinal cortex**. Its axons, the **perforant path**, reach the **dentate gyrus**, where the main neurons are small **granule cells**.
+2. The granule cells' axons, the **mossy fibres**, reach the pyramidal cells of **CA3**.
+3. The CA3 axons, the **Schaffer collaterals**, reach the pyramidal cells of **CA1**.
+
+| Synapse | Where it appears in this lesson |
+| --- | --- |
+| Perforant path → dentate gyrus | where long-term potentiation was first measured, in rabbits |
+| Schaffer collateral → CA1 | where its mechanism was worked out, in slices of rat hippocampus |
+| Mossy fibre → CA3 | the exception: a potentiation that works differently |
+
+One more synapse lies outside the chain: auditory inputs to the lateral amygdala, where the last section tests a link to memory.
+
+### The first record
+
+Tim Bliss and Terje Lømo reported the change in 1973. They worked in anaesthetized rabbits. They stimulated the perforant path and recorded from the dentate gyrus.
+
+Their electrode sat outside the cells, so it recorded a **field potential**: the voltage set up by the summed currents of many neurons at once. A test pulse gives two parts. The **population EPSP** (field EPSP) is the slow wave made by synaptic current flowing into many granule cells; an EPSP, an excitatory postsynaptic potential, is the depolarization one synapse's transmitter produces. Its slope or amplitude measures synaptic strength. The **population spike** is a sharp deflection riding on it, made by granule cells firing together, and its size reflects how many fire and how closely in time.
+
+Between test pulses they gave the same fibres conditioning trains. A brief high-frequency train like this is called a **tetanus**; one of their regimens was 100 stimuli per second for 3 to 4 seconds. Afterwards the response to the same test pulse was larger in 15 of 18 rabbits, for 30 minutes to 10 hours. They measured the population EPSP and the population spike separately, and suggested that stronger transmission and more excitable granule cells were independent contributors. This lasting rise in synaptic efficacy is **long-term potentiation (LTP)**.
+
+### Reading the record
+
+**Worked problem, part 1.** The numbers in this made-up field recording are illustrative, not data from a paper. Two pathways converge on the same cells. You measure field EPSP slope in mV/ms.
+
+*Step 1: baseline.* Five test pulses on the test pathway give 0.48, 0.52, 0.50, 0.49 and 0.51 mV/ms. The mean is 2.50 / 5 = 0.50 mV/ms. Every later value is divided by this.
+
+*Step 2: after the train.* Sixty minutes after a 100 Hz train the slope is 0.80 mV/ms.
+
+> **percent of baseline = (value after / baseline mean) × 100**
+
+0.80 / 0.50 × 100 = 160% of baseline, which is a 60% potentiation. Do not report 160% as the potentiation.
+
+*Step 3: the control pathway.* The untrained pathway was 0.51 mV/ms before and 0.50 mV/ms after: 0.50 / 0.51 = 98%. It did not move, so the rise is **input specific**, confined to the stimulated input, and is not a drift of the whole preparation.
+
+*Step 4: the population spike.* It grew from 2.0 to 5.0 mV, 250% of baseline.
+
+**Predict.** Is the synapse now 2.5 times stronger?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Synaptic strength is read from the field EPSP, and its slope rose to 160%. Does the larger rise in the spike mean the cells also became more excitable, the component Bliss and Lømo proposed? Not necessarily. Firing has a threshold, so a modest rise in the EPSP pushes many more cells past it, and the spike grows out of proportion. These ratios alone cannot separate a stronger synapse from more excitable cells. The clean test compares spike size at matched EPSP size: if the same EPSP now gives a bigger spike, the coupling from EPSP to spike has risen, so the same drive fires more cells or fires them more in step. That can come from the cells' own excitability, from less inhibition, or both.
+
+</details>
+
+### Three puzzles
+
+The record raises three puzzles.
+
+1. **Coincidence.** How can a synapse tell that its input was active at the same moment as the cell it talks to?
+2. **Direction.** The same synapse can also be turned down for hours. What decides up or down?
+3. **Memory.** What would show that memory actually uses these changes?
+
+One receptor answers the first, and gives the standard model's answer to the second. The **NMDA receptor** is a glutamate receptor. At resting potential its pore is plugged by a magnesium ion, Mg2+, and once open it lets calcium, Ca2+, into the cell. It sits on a **spine**, a small bud on a dendrite that holds the receiving side of one synapse.
+
+> **The one idea to carry through this lesson.** At an NMDA-type synapse, LTP is triggered by Ca2+ that enters the spine through NMDA receptors. At normal Mg2+ levels, substantial entry needs **two signals together**: glutamate from the active terminal, and depolarization of the postsynaptic membrane, which clears the Mg2+ block. In the standard model, the amount and time course of that Ca2+ also set the direction: a large, fast rise turns the synapse up (LTP), and a modest, prolonged rise turns it down (LTD). The first half, for LTP, rests on firm biophysics and experiment. The second half is a model: no single calcium threshold between LTD and LTP is established, and whether NMDA-receptor LTD needs Ca2+ flow at all is debated.
+
+The rule's scope: it covers NMDA-receptor-dependent LTP and LTD at Schaffer collateral-CA1 synapses and synapses like them, not every form. Harris and Cotman found in 1986 that NMDA antagonists did not block mossy-fibre LTP in guinea-pig CA3, so "LTP" names a family of changes. Oliet, Malenka and Nicoll showed in 1997, in young rats, that a second form of LTD at Schaffer collateral-CA1 synapses, triggered through metabotropic glutamate receptors instead of NMDA receptors, exists alongside the NMDA-receptor form. Short-term plasticity is a different machine, covered near the end.
+
+## The gate that needs two signals
+
+<LessonFilm film={frontmatter.films[0]} />
+
+The mechanism was worked out mostly at Schaffer collateral synapses onto CA1 pyramidal cells, in slices of rat hippocampus, where drugs reach the synapses directly. Each Schaffer terminal releases glutamate onto a spine, and two kinds of ionotropic glutamate receptor sit there.
+
+- **AMPA receptors** need only glutamate to open; they have no Mg2+ block. They carry most of the ordinary EPSP.
+- **NMDA receptors** also bind glutamate, and they need a co-agonist, glycine or D-serine, which is normally present. At resting potential, a Mg2+ ion from the fluid outside sits in their pore and blocks it. Once the block clears, they pass Na+, K+ and Ca2+.
+
+Receptor structure and gating are covered in [ion channels as receptors](/lessons/ion-channels-as-receptors/). Keep two steps apart. **Induction** is what starts the lasting change (here, the NMDA receptor's job); **expression** is what carries it afterwards (here, more or fewer AMPA receptors).
+
+What clears the block is depolarization. Mg2+ is a positive ion, held in the pore by the negative inside of the cell. Make the inside less negative and Mg2+ is pushed back out.
+
+Where does that depolarization come from? The balance-point rule from [the action potential](/lessons/action-potential/) answers. In an isolated passive compartment with fixed ohmic conductances and no injected or axial current, the voltage relaxes toward the average of the currents' reversal potentials, weighted by their conductances: a tug of war in which the rope with more open channels pulls the voltage closer to its own end. That is a simplified local balance point. A real dendrite is not isolated: current flows along it, and the voltage at a spine can differ from the voltage at the cell body. AMPA receptors pass both Na+ and K+, so their current reverses near 0 mV. When many AMPA receptors on a stretch of dendrite open at once, their conductance pulls the local balance point up from near −70 mV toward 0 mV. A spike fired by the cell and spreading back into the dendrite, a backpropagating spike, also depolarizes the spine, though less far out on the dendrite. So the voltage at the spine reports what the postsynaptic cell is doing, and the Mg2+ block reads that voltage.
+
+Put the two signals together:
+
+> **Ca2+ entry through NMDA receptors ∝ (glutamate bound) × (fraction of the block cleared by depolarization) × (inward push on Ca2+)**
+
+The active terminal supplies the first factor. The other two are set by the voltage of the postsynaptic membrane: depolarization raises the second and lowers the third. Without glutamate, no Ca2+ enters through these receptors at any voltage, and near rest the Mg2+ block keeps entry small. That makes the receptor a **coincidence detector**.
+
+| | Spine near rest (−70 mV) | Spine depolarized (−30 mV) |
+| --- | --- | --- |
+| No glutamate | no Ca2+ | no Ca2+ |
+| Glutamate bound | a little Ca2+ (about 1 receptor in 20 unblocked) | about 4 times more (about 1 in 3 unblocked) |
+
+Two features of the gate matter later.
+
+- **It is graded, not a switch.** Even at rest a few receptors are unblocked, so glutamate alone lets in a trickle of Ca2+.
+- **More depolarization is not always better.** Ca2+ entry is greatest at about −20 mV and falls beyond it, because depolarization also weakens the push that drives Ca2+ inward.
+
+The table's 4-fold gain at −30 mV is modest because about 8 times as many receptors are unblocked but each passes Ca2+ about half as hard (model constants in Going deeper). The steep difference between a tetanus and a single pulse comes mainly from summation. During a 100 Hz train, glutamate keeps arriving faster than the receptors close, so they stay activated while the EPSPs summate and the depolarization builds, and the Ca2+ in the spine climbs steeply. The enzymes downstream then respond nonlinearly to that Ca2+.
+
+## Testing the gate
+
+<LessonFilm film={frontmatter.films[1]} />
+
+A rule earns trust when it predicts experiments. Here is one.
+
+**Predict.** Give the Schaffer input its usual 100 Hz train, but inject current into one CA1 cell to hold it hyperpolarized, near −90 mV, throughout the train. Does that cell's input potentiate?
+
+<details>
+<summary>Check your prediction</summary>
+
+No, provided the injected current keeps the stimulated spines sufficiently negative during the train. Then the Mg2+ block stays strong (at −90 mV only about 1 receptor in 75 is unblocked), and glutamate arrives without the second signal, so the NMDA-mediated Ca2+ signal stays below what induction needs. Malinow and Miller found in 1986 that postsynaptic hyperpolarization during the train prevented LTP under their conditions. Holding the cell body near −90 mV does not by itself guarantee the voltage at every spine: strong synaptic or dendritic depolarization can escape it. The reverse also works. Low-frequency input, too weak to potentiate by itself, produced LTP when each pulse was paired with depolarizing current injected into the cell (Kelso, Ganong and Brown, 1986; Wigström and colleagues, 1986). So high frequency is not required; what the gate needs is glutamate and depolarization together. A fast train is one way to make the cell supply its own depolarization, and frequency still shapes how much Ca2+ builds up.
+
+</details>
+
+Three experiments tested the gate directly.
+
+1. **Block the receptor.** In 1983, Collingridge, Kehl and McLennan applied the NMDA antagonist APV in rat slices, at doses that abolished responses to an NMDA agonist. The baseline field EPSP was unaffected, but a high-frequency train no longer produced LTP. NMDA receptors were needed to *induce* the change, not to carry the everyday response.
+2. **Block the Ca2+.** The same year, Lynch and colleagues injected the Ca2+ buffer EGTA into CA1 cells, and LTP failed at those cells. So induction needs a Ca2+ rise inside the postsynaptic cell. With the APV result, that points to Ca2+ entering through NMDA receptors in active spines.
+3. **Withhold the depolarization.** That was the prediction above.
+
+**Worked problem, part 2.** Repeat the made-up experiment with APV in the bath. Baseline is 0.50 mV/ms. Sixty minutes after the same train, the slope is 0.51 mV/ms: 0.51 / 0.50 = 102%, within the drift of the control pathway. Induction under this protocol was NMDA-receptor dependent.
+
+## What the rule explains: specificity, cooperativity, associativity
+
+<LessonFilm film={frontmatter.films[2]} />
+
+Picture one CA1 cell receiving several separate input pathways, each of which you can stimulate on its own. Three properties of LTP were measured before the NMDA gate was known. The product rule explains all three, as long as the inputs depolarize the right spines enough.
+
+**Input specificity.** An input that was silent during the train released no glutamate, so its NMDA receptors let in no Ca2+, however depolarized the cell became. It is not potentiated by this mechanism. That is the control pathway in worked problem 1.
+
+**Cooperativity** (McNaughton, Douglas and Goddard, 1978, in the dentate gyrus). A train to a few fibres can fail to induce LTP, because it cannot depolarize its spines enough. The same train to many fibres succeeds. The balance point shows why. Take the isolated compartment from above, with leak reversing at −70 mV and AMPA current reversing at 0 mV. These numbers are illustrative, and they show the direction of the effect, not the voltage at any real spine. With AMPA conductance one tenth of the resting conductance, the balance point is (1 × (−70) + 0.1 × 0) / 1.1 ≈ −64 mV.
+
+| AMPA conductance, compared with the resting conductance | Local balance point | What the gate does |
+| --- | --- | --- |
+| one tenth (a few synapses) | about −64 mV | barely moves |
+| equal | about −35 mV | opening |
+| twice (many synapses together) | about −23 mV | near the range of greatest Ca2+ entry |
+
+**Associativity** (Levy and Steward, 1979, in the dentate gyrus; Barrionuevo and Brown, 1983, at CA1 in hippocampal slices). Now take a weak pathway that cannot potentiate on its own, and a strong one that can.
+
+**Predict.** The weak pathway is stimulated alone and fails. Now it is stimulated during the strong pathway's tetanus. A third pathway gets no stimulation at all. Predict each pathway's slope an hour later.
+
+<details>
+<summary>Check your prediction</summary>
+
+The strong pathway is potentiated, as before. The weak pathway is potentiated too: it supplied its own glutamate, and the strong input supplied the depolarization that cleared the block at its spines (this works when that depolarization reaches them). The third pathway stays near baseline, because it released no glutamate. This is a Hebbian rule in a dish: an input that is active while other inputs strongly depolarize the cell gets stronger.
+
+</details>
+
+This is the shape an association needs: a weak input, like a cue, gains strength when it is active together with a strong one, like an outcome. A backpropagating spike can play the strong input's part, which is how a synapse can read whether its own cell fired.
+
+## Up or down: what the Ca2+ does
+
+<LessonFilm film={frontmatter.films[3]} />
+
+**Turning it up.** In the canonical model, the large, fast Ca2+ rise after a tetanus recruits CaMKII, a kinase that can stay active after Ca2+ falls (see [the phosphorylation switch](/lessons/phosphorylation-switch/) and [calcium signaling](/lessons/calcium-signaling/)). That persistence matters: a brief Ca2+ signal can leave a change that outlasts it. Expression includes more AMPA receptors at the synapse. Hayashi, Malinow and colleagues found in 2000 that LTP drove electrophysiologically tagged AMPA receptors into synapses in rat hippocampal neurons. More AMPA receptors mean a bigger response to the same glutamate. LTP that lasts many hours often needs new protein synthesis, and its longest-lasting forms also need new gene transcription, which [signaling to the nucleus](/lessons/signaling-to-the-nucleus/) takes up.
+
+**Turning it down.** In 1992 Serena Dudek and Mark Bear gave the Schaffer collateral input in rat slices 900 stimuli at 1 to 3 Hz. The population EPSP fell and stayed down for more than an hour, only at the conditioned input. This is **long-term depression (LTD)**, a lasting fall in synaptic efficacy.
+
+**Predict.** Repeat Dudek and Bear's 900 slow pulses with APV in the bath. Does LTD develop?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. NMDA antagonists prevented it, so the same receptor that gates LTP is needed for its opposite. In the standard model the trigger is a modest Ca2+ signal through the receptor, though whether LTD needs that ion flow is debated (see Going deeper).
+
+</details>
+
+What, then, decides the direction? The second half of the lesson's rule: how much Ca2+ comes through, and how fast. In the canonical model the synapse works like a dimmer switch with one input wire. A modest, prolonged Ca2+ rise preferentially recruits protein phosphatases, which lead to receptor removal, rather than CaMKII, which leads to insertion. The model's reason is that the phosphatase pathway (calcineurin, a phosphatase that in turn activates protein phosphatase 1) responds to smaller Ca2+/calmodulin signals than CaMKII does.
+
+The evidence fits. Mulkey, Herron and Malenka found in 1993 that phosphatase inhibitors blocked or reduced LTD induction in rat CA1, whether applied in the bath (okadaic acid, calyculin A) or loaded into the postsynaptic cell (microcystin LR). Expression includes removal of AMPA receptors by endocytosis (see [endocytosis](/lessons/endocytosis/)).
+
+Similar rules shape cortex during development, when vision rewires the visual cortex; [ocular dominance](/lessons/ocular-dominance/) and [critical-period control](/lessons/critical-period-control/) cover that.
+
+## A different machine: short-term plasticity
+
+<LessonFilm film={frontmatter.films[4]} />
+
+Now a different machine, with a different rule. The facilitation and depression examples here need no coincidence of pre- and postsynaptic activity, mostly last milliseconds to seconds, and happen mainly in the presynaptic terminal, the one that releases transmitter (see [synaptic transmission](/lessons/synaptic-transmission/)). Short-term plasticity also includes other mechanisms.
+
+Most synapses change from one spike to the next. Give two pulses a few to a few hundred milliseconds apart and divide the second response by the first: the **paired-pulse ratio**. Above 1 is **facilitation**; below 1 is **depression**. Paired-pulse changes fade within about a second or a few seconds, though depression can take seconds to tens of seconds to recover and post-tetanic potentiation after a train lasts minutes.
+
+**Facilitation** can raise release for hundreds of milliseconds after one spike. The classic explanation is residual Ca2+: calcium left in the terminal from the first spike adds to the second. In 2016 Jackman, Regehr and colleagues found that deleting synaptotagmin 7, a Ca2+-binding protein of the terminal, eliminated paired-pulse facilitation at the mouse synapses they tested, although the residual Ca2+ signal was unchanged. Wild-type synaptotagmin 7 restored facilitation and a mutant with a calcium-insensitive C2A domain did not, so at those synapses synaptotagmin 7 is a Ca2+ sensor that reads the leftover calcium.
+
+**Depression.** Depression has a simple candidate: the first spike uses up vesicles.
+
+**Worked problem, part 3.** Use the simplest depletion model, with these assumptions: no refilling between pulses, no facilitation, a fixed release fraction F and a fixed current per vesicle i. Let F = 0.40, a releasable pool S = 100 vesicles and i = 10 pA. These are teaching values.
+
+> **EPSC1 = F × S × i**
+
+**Predict.** Will the second response be larger or smaller than the first, and by what ratio?
+
+<details>
+<summary>Check your prediction</summary>
+
+Smaller. EPSC1 = 0.40 × 100 × 10 pA = 400 pA. The first pulse releases 40% of the pool, leaving 100 × (1 − 0.40) = 60 vesicles, so EPSC2 = 0.40 × 60 × 10 pA = 240 pA. The ratio is 240 / 400 = 0.60, which equals 1 − F: a 40% depression.
+
+</details>
+
+Now the limit. A measured ratio of 0.60 does not prove depletion, since other processes can give the same number, and a simple depletion model cannot explain short-term depression at many synapses.
+
+<VesicleDepletionPairedPulse />
+
+How the postsynaptic cell adds these weights is the subject of [synaptic integration](/lessons/synaptic-integration/).
+
+## From synapse to memory: what the evidence licenses
+
+Return to Hebb. NMDA-receptor LTP, input specific and associative, fits his rule. But fitting is not proof.
+
+Three kinds of evidence differ in strength.
+
+- A **correlation**: learning goes with potentiation at a pathway.
+- A **necessity** test: blocking or reversing the change impairs the memory. Morris and colleagues found in 1986 that the NMDA antagonist AP5 infused into the ventricles of rats impaired place learning, spared visual-discrimination learning and suppressed hippocampal LTP in vivo. The drug reached many synapses, so this shows the receptors were needed for both, not that the learning was LTP.
+- A **sufficiency** test: inducing the change produces the memory's effect. The design problem below is an attempt at both necessity and sufficiency in one pathway.
+
+The timing rule is also not settled. In 2017 Bittner and colleagues found that in mouse CA1, inputs arriving seconds before or after a dendritic plateau potential could be potentiated, enough to form a place field, the spot in an environment where the cell fires: a rule that works over seconds, not the milliseconds of classic Hebbian pairing. How these lessons map onto memory is the business of [memory systems](/lessons/memory-systems/), [plasticity, networks and consolidation](/lessons/memory-consolidation/) and [emotion and stress](/lessons/emotion-and-stress/).
+
+### Design problem
+
+Is potentiation at auditory inputs to the lateral amygdala needed for a conditioned fear response? Nabavi, Malinow and colleagues (2014) expressed a light-gated channel in those inputs in rats and used light as the cue. After optical cue-shock pairing, the light suppressed lever pressing. Optical LTD of the inputs abolished the response at testing. Optical LTP given afterwards restored it. LTP in rats never given the pairing produced no response. What do these results show, and what do they not show?
+
+<details>
+<summary>One way to do it</summary>
+
+Name the scope first: rats, auditory inputs to the lateral amygdala driven by light, and a conditioned suppression of lever pressing.
+
+LTD after conditioning removed the response. That shows the potentiated state of these inputs was necessary for expressing this response at the time of testing.
+
+LTP after LTD brought the response back. The association was not simply lost; the pathway could be reactivated, which argues that LTD turned the response down rather than erasing everything learned.
+
+LTP in rats never paired produced nothing. So LTP at these inputs is not sufficient to create the association on its own; something set up by the pairing had to be there.
+
+What the data do not show: that the whole memory lives at one set of synapses, that LTD destroyed information (the restoration argues against it), or that the same holds for other fear tasks or for people. (In a separate experiment, the paper also showed that optical LTD right after tone-shock pairing reduced the tone-evoked response, in rats with the opposite amygdala ablated.) A good next control is to test whether a different set of inputs, given the same LTD, leaves the response intact.
+
+</details>
+
+## Going deeper
+
+### The first observation, and the variable signs of LTP
+
+Lømo first saw the effect in 1966, in the same rabbit preparation, in Per Andersen's laboratory in Oslo, so 1973 is the date of the full report, not of the first observation. The 1973 rabbits were under urethane anaesthesia. Potentiation did not always look the same: the population EPSP, the spike size and the spike latency (the delay from stimulus to spike) all improved together in only 29% of experiments, and a shorter spike latency was the commonest sign.
+
+### Who first described the Mg2+ block
+
+In 1984 two groups reported the voltage-dependent Mg2+ block of NMDA receptors: Nowak, Ascher and colleagues in mouse central neurons, and Mayer, Westbrook and Guthrie in mouse spinal cord neurons.
+
+### The co-agonist
+
+The NMDA receptor's co-agonist binds its GluN1 subunit. In rat CA1, D-serine becomes the main co-agonist at synaptic receptors as the synapses mature, taking over from glycine.
+
+### The numbers behind the gate
+
+The fractions in the gate table come from the standard Mg2+-block function of Jahr and Stevens (1990) at 1 mM external Mg2+, combined with a Goldman-Hodgkin-Katz Ca2+ flux at 2 mM external Ca2+, 100 nM internal Ca2+ and 35 °C.
+
+| Spine voltage | Fraction of NMDA receptors unblocked | Ca2+ entry, relative to glutamate at −70 mV |
+| --- | --- | --- |
+| −70 mV | 0.044 (about 1 in 20) | 1.0 |
+| −50 mV | 0.14 | 2.3 |
+| −30 mV | 0.36 (about 1 in 3) | 3.8 |
+| −20 mV | 0.51 | 4.2 (near the peak, −18.6 mV) |
+| 0 mV | 0.78 | 3.3 |
+| +40 mV | 0.98 | 0.65 (15% of peak) |
+
+The peak moves to about −16 mV at 1.3 mM Mg2+ and −11 mV at 2 mM, so the rise-then-fall shape does not depend on the exact Mg2+ level.
+
+### Receptors cycle all the time
+
+When Lüscher and colleagues blocked endocytosis in CA1 pyramidal cells in 1999, AMPA receptor EPSCs (excitatory postsynaptic currents, the current counterpart of an EPSP) gradually grew. The receptors are inserted and removed all the time.
+
+### Does NMDA-receptor LTD need ion flow?
+
+The standard model treats NMDA-receptor LTD as driven by Ca2+ flowing through the receptor. One line of work reported LTD that needs glutamate binding to NMDA receptors but not ion flow (Nabavi and colleagues, 2013, PNAS). Another reported that ion flow is required (Babiec and colleagues, 2014, Journal of Neuroscience). Treat the question as open.

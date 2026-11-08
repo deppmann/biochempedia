@@ -203,35 +203,35 @@ class S01Evening(ProfileScene):
                                 fill_color=PLACE, fill_opacity=0.07).move_to([2.55, 0.75, 0])
         room_lab = T("the lab", 28, PLACE).move_to(room.get_corner(UR) + np.array([-0.85, -0.38, 0]))
         monod = person("Monod", GOLD, [-2.0, 0.55, 0], r=0.4)
-        self.at("Monod")
+        self.at("Minode")
         self.play(pop(monod), run_time=0.4)
         self.at("walked into")
         self.play(Create(room), FadeIn(room_lab), monod.animate.move_to([0.4, 0.55, 0]), run_time=1.1)
 
-        coat = lab("coat still on", GREY, 26).move_to([0.55, 1.6, 0])
-        self.at("coat still on")
+        coat = lab("tired and worried", GREY, 26).move_to([0.55, 1.6, 0])
+        self.at("tired and worried")
         self.play(pop(coat), run_time=0.45)
 
         bench = Rectangle(width=1.8, height=0.3, stroke_color=GREY, stroke_width=3, fill_color=GREY,
                           fill_opacity=0.35).move_to([2.7, 0.35, 0])
         bench_lab = T("bench", 26, GREY).next_to(bench, DOWN, buff=0.2)
         gaze = DashedLine([0.95, 0.6, 0], [1.7, 0.45, 0], color=GREY, stroke_width=3, dash_length=0.12)
-        self.at("stared at the bench")
+        self.at("stood silently")
         self.play(FadeIn(bench), FadeIn(bench_lab), Create(gaze), run_time=0.7)
 
         ull = person("Agnès Ullmann", TEXT, [4.85, 0.55, 0], r=0.4, size=24, role="colleague")
         self.at("colleague")
         self.play(pop(ull), run_time=0.5)
 
-        q1 = T("“I have discovered the second", 32, TEXT, font=TITLE_FONT)
-        q2 = T("secret of life.”", 32, TEXT, font=TITLE_FONT)
+        q1 = T("“I think I have discovered the", 32, TEXT, font=TITLE_FONT)
+        q2 = T("second secret of life.”", 32, TEXT, font=TITLE_FONT)
         qg = VGroup(q1, q2).arrange(DOWN, aligned_edge=LEFT, buff=0.16)
         bubble = RoundedRectangle(corner_radius=0.25, width=qg.width + 0.7, height=qg.height + 0.55,
                                   stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=0.1)
         bub = VGroup(bubble, qg.move_to(bubble)).move_to([2.55, -2.35, 0])
         tail = CurvedArrow(monod[0].get_bottom() + DOWN * 1.0, bubble.get_left() + LEFT * 0.05, angle=0.9,
                            color=GOLD, stroke_width=4, tip_length=0.2)
-        self.at("I have discovered", lead=0.35)
+        self.at("I think I have", lead=0.35)
         self.play(Create(tail), FadeIn(bubble), run_time=0.5)
         self.play(Write(qg), run_time=2.0)
         self.finish()
@@ -483,7 +483,7 @@ class S05Bohr(ProfileScene):
 class S06Quote(ProfileScene):
     def construct(self):
         self.add_inset()
-        lines = ["“I have discovered the", "second secret of life.”"]
+        lines = ["“I think I have discovered", "the second secret of life.”"]
         q = VGroup(*[T(l, 44, TEXT, font=TITLE_FONT) for l in lines]).arrange(DOWN, aligned_edge=LEFT, buff=0.3)
         fit(q, max_w=8.4)
         who = T("— Jacques Monod", 32, GOLD)

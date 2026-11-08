@@ -1,0 +1,282 @@
+---
+/**
+ * FetalCirculationBirth — "More flow, nearly the same pressure". The lesson's pregnancy arithmetic as a sketch:
+ * MAP = CO x SVR (right atrial pressure taken as 0 mmHg); hematocrit = red cells / (red cells + plasma);
+ * relative oxygen delivery = (CO / 5.0) x (hematocrit / 0.375), because the lesson assumes hemoglobin per
+ * litre of red cells is unchanged and dissolved oxygen is ignored, so oxygen content scales with hematocrit.
+ * Baselines are the lesson's made-up round numbers for one healthy adult woman at rest: CO 5.0 L per min,
+ * MAP 90 mmHg, resistance 18.0 mmHg min per L, plasma 2.5 L, red cells 1.5 L. Self-contained vanilla-TS
+ * Astro island. Original.
+ */
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<figure class="fcb card" data-fcb>
+  <figcaption class="fcb-head">More flow, nearly the same pressure: the pregnancy arithmetic<span class="fcb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="fcb-svg" viewBox="0 0 340 250" role="img" aria-label="Five pairs of horizontal bars, before and after the changes set by the sliders: cardiac output, systemic vascular resistance, mean arterial pressure, hematocrit and relative oxygen delivery, with the change written under each pair" data-plot></svg>
+
+  <div class="fcb-controls">
+    <div class="fcb-ctl">
+      <label class="fcb-slabel" for={`fcb-co-${uid}`}><span>Cardiac output change <em data-out="co">+40</em> percent (from 5.0 L per min)</span></label>
+      <input id={`fcb-co-${uid}`} type="range" data-in="co" min="0" max="50" step="1" value="40" />
+    </div>
+
+    <div class="fcb-ctl">
+      <label class="fcb-slabel" for={`fcb-r-${uid}`}><span>Systemic resistance change <em data-out="r">−28</em> percent (from 18.0 mmHg min per L)</span></label>
+      <input id={`fcb-r-${uid}`} type="range" data-in="r" min="-35" max="0" step="1" value="-28" />
+    </div>
+
+    <div class="fcb-ctl">
+      <label class="fcb-slabel" for={`fcb-p-${uid}`}><span>Plasma volume change <em data-out="p">+44</em> percent (from 2.5 L)</span></label>
+      <input id={`fcb-p-${uid}`} type="range" data-in="p" min="0" max="50" step="1" value="44" />
+    </div>
+
+    <div class="fcb-ctl">
+      <label class="fcb-slabel" for={`fcb-c-${uid}`}><span>Red-cell volume change <em data-out="c">+20</em> percent (from 1.5 L)</span></label>
+      <input id={`fcb-c-${uid}`} type="range" data-in="c" min="0" max="30" step="1" value="20" />
+    </div>
+  </div>
+
+  <div class="fcb-presets">Marks:
+    <button type="button" class="fcb-mark" data-preset="lesson">lesson’s worked example (+40, −28, +44, +20)</button>
+    <button type="button" class="fcb-mark" data-preset="none">no change (0, 0, 0, 0)</button>
+  </div>
+
+  <dl class="fcb-readout">
+    <div><dt>Pressure: output × resistance</dt><dd data-r-map></dd></div>
+    <div><dt>Blood volume: plasma + red cells</dt><dd data-r-vol></dd></div>
+    <div><dt>Hematocrit: red cells ÷ blood volume</dt><dd data-r-hct></dd></div>
+    <div><dt>Relative oxygen delivery</dt><dd data-r-do2></dd></div>
+  </dl>
+  <p class="fcb-why" data-why role="status"></p>
+
+  <p class="fcb-assume">In this sketch (all of this is made up for the sketch unless the lesson gives it): the baselines are the lesson’s made-up round numbers for one healthy adult woman at rest, with cardiac output 5.0 L per min, mean arterial pressure 90 mmHg, resistance 18.0 mmHg min per L (90 ÷ 5.0), plasma 2.5 L and red cells 1.5 L (hematocrit 37.5 percent); right atrial pressure is taken as 0 mmHg; hemoglobin per litre of red cells is unchanged and dissolved oxygen is ignored, so oxygen content scales with hematocrit; the slider ranges, and any setting other than the lesson’s worked example, are choices made for the sketch. The lesson reports a cardiac output rise of around 40 percent and a fall in resistance of approximately 25 to 30 percent, and only supposes the plasma and red-cell rises. Real values are group values that vary with gestational age and method, and measured pressure dips a little in the first and second trimesters and returns to nonpregnant levels in the third, so this is a first approximation.</p>
+
+  <p class="fcb-foot">Rule to keep: pressure follows the product of output and resistance, so a 40 percent rise in output against a 25 to 30 percent fall in resistance nearly cancel, while hematocrit follows the share of blood volume that is red cells, so oxygen delivery can rise even though oxygen content per litre of blood falls.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ISFC = '#5a7bc4', PLASMA = '#e57200', DARKORANGE = '#a64600', RED = '#b4323c', INK = '#4b4b55', BEFORE = '#d3d5dc';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('FetalCirculationBirth: missing ' + sel);
+    return e;
+  }
+  const MINUS = '−';
+  const f1 = (x: number) => x.toFixed(1);
+  const f2 = (x: number) => x.toFixed(2);
+  const f3 = (x: number) => x.toFixed(3);
+  const sgn = (n: number) => (n > 0 ? '+' : n < 0 ? MINUS : '') + Math.abs(n);
+  // percent change text, one decimal, "no change" when it rounds to 0.0
+  function pcTxt(ratio: number): string {
+    const p = (ratio - 1) * 100;
+    const r = Math.round(p * 10) / 10;
+    if (r === 0) return 'no change';
+    return (r > 0 ? '+' : MINUS) + Math.abs(r).toFixed(1) + ' percent';
+  }
+  function rounded0(ratio: number): boolean {
+    return Math.round((ratio - 1) * 1000) === 0;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fcb]').forEach((root) => {
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const coIn = must<HTMLInputElement>(root, '[data-in="co"]');
+    const rIn = must<HTMLInputElement>(root, '[data-in="r"]');
+    const pIn = must<HTMLInputElement>(root, '[data-in="p"]');
+    const cIn = must<HTMLInputElement>(root, '[data-in="c"]');
+    const coOut = must<HTMLElement>(root, '[data-out="co"]');
+    const rOut = must<HTMLElement>(root, '[data-out="r"]');
+    const pOut = must<HTMLElement>(root, '[data-out="p"]');
+    const cOut = must<HTMLElement>(root, '[data-out="c"]');
+    const rMap = must<HTMLElement>(root, '[data-r-map]');
+    const rVol = must<HTMLElement>(root, '[data-r-vol]');
+    const rHct = must<HTMLElement>(root, '[data-r-hct]');
+    const rDo2 = must<HTMLElement>(root, '[data-r-do2]');
+    const why = must<HTMLElement>(root, '[data-why]');
+
+    // the lesson's made-up baselines
+    const CO0 = 5.0, MAP0 = 90, R0 = MAP0 / CO0, PL0 = 2.5, RC0 = 1.5;
+    const HCT0 = RC0 / (RC0 + PL0); // 0.375
+
+    const BX0 = 66, BW = 158, RX = 232; // bar region and right-hand value column (viewBox units)
+    const ROW0 = 6, ROWH = 42;
+
+    function text(x: number, y: number, s: string, size: number, fill: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': size, fill }, extra));
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+
+    function render() {
+      const dCo = parseInt(coIn.value, 10);
+      const dR = parseInt(rIn.value, 10);
+      const dP = parseInt(pIn.value, 10);
+      const dC = parseInt(cIn.value, 10);
+
+      const co1 = CO0 * (1 + dCo / 100);
+      const r1 = R0 * (1 + dR / 100);
+      const map1 = co1 * r1;
+      const pl1 = PL0 * (1 + dP / 100);
+      const rc1 = RC0 * (1 + dC / 100);
+      const bv1 = pl1 + rc1;
+      const hct1 = rc1 / bv1;
+      const content = hct1 / HCT0;           // arterial oxygen content, relative to start
+      const flow = co1 / CO0;                // cardiac output, relative to start
+      const do2 = flow * content;            // relative oxygen delivery
+      const dMap = map1 - MAP0;
+
+      coOut.textContent = sgn(dCo);
+      rOut.textContent = sgn(dR);
+      pOut.textContent = sgn(dP);
+      cOut.textContent = sgn(dC);
+      coIn.setAttribute('aria-valuetext', sgn(dCo) + ' percent');
+      rIn.setAttribute('aria-valuetext', sgn(dR) + ' percent');
+      pIn.setAttribute('aria-valuetext', sgn(dP) + ' percent');
+      cIn.setAttribute('aria-valuetext', sgn(dC) + ' percent');
+
+      // ---- plot: five rows, each on its own scale from zero ----
+      plot.replaceChildren();
+      const rows = [
+        { name: 'Output', sub: 'L per min', max: 8, b: CO0, a: co1, col: ACCENT, fmt: f2, ratio: co1 / CO0 },
+        { name: 'Resistance', sub: 'mmHg min/L', max: 20, b: R0, a: r1, col: ISFC, fmt: f2, ratio: r1 / R0 },
+        { name: 'Pressure', sub: 'mean, mmHg', max: 140, b: MAP0, a: map1, col: PLASMA, fmt: f1, ratio: map1 / MAP0 },
+        { name: 'Hematocrit', sub: 'percent', max: 50, b: HCT0 * 100, a: hct1 * 100, col: RED, fmt: f1, ratio: hct1 / HCT0 },
+        { name: 'O₂ delivery', sub: 'relative', max: 2, b: 1, a: do2, col: ACCENT, fmt: f2, ratio: do2 },
+      ];
+      rows.forEach((r, i) => {
+        const y0 = ROW0 + i * ROWH;
+        const x = (v: number) => BX0 + (v / r.max) * BW;
+        text(4, y0 + 11, r.name, 10, INK, { 'font-weight': 700 });
+        text(4, y0 + 23, r.sub, 9, INK);
+        plot.appendChild(el('rect', { x: BX0, y: y0, width: Math.max(0.5, x(r.b) - BX0), height: 12, fill: BEFORE }));
+        plot.appendChild(el('rect', { x: BX0, y: y0 + 14, width: Math.max(0.5, x(r.a) - BX0), height: 12, fill: r.col }));
+        plot.appendChild(el('line', { x1: x(r.b), y1: y0 - 2, x2: x(r.b), y2: y0 + 28, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+        text(RX, y0 + 10, `before ${r.fmt(r.b)}`, 9, INK);
+        text(RX, y0 + 24, `after ${r.fmt(r.a)}`, 9, INK, { 'font-weight': 700 });
+        const ct = pcTxt(r.ratio);
+        text(BX0, y0 + 37, ct, 9, ct === 'no change' ? INK : (r.ratio > 1 ? ACCENT : DARKORANGE), { 'font-weight': 700 });
+      });
+      // legend
+      const LY = ROW0 + rows.length * ROWH + 8;
+      plot.appendChild(el('rect', { x: 4, y: LY - 8, width: 12, height: 9, fill: BEFORE }));
+      text(20, LY, 'before (non-pregnant baseline)', 9, INK);
+      plot.appendChild(el('rect', { x: 4, y: LY + 6, width: 12, height: 9, fill: ACCENT }));
+      text(20, LY + 14, 'after (colour by row)', 9, INK);
+      plot.appendChild(el('line', { x1: 160, y1: LY - 10, x2: 160, y2: LY + 2, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      text(166, LY, 'level before', 9, INK);
+      text(160, LY + 14, 'each row has its own scale from zero', 9, INK);
+
+      // ---- readouts ----
+      rMap.textContent = `${f2(co1)} × ${f2(r1)} = ${f1(map1)} mmHg`;
+      rVol.textContent = `${f3(pl1)} + ${f3(rc1)} = ${f3(bv1)} L`;
+      rHct.textContent = `${f3(rc1)} ÷ ${f3(bv1)} = ${f1(hct1 * 100)} percent`;
+      rDo2.textContent = `${f2(flow)} × ${f3(content)} = ${f2(do2)}`;
+
+      // ---- status line: pressure, hematocrit, oxygen delivery; each clause built from the state ----
+      const parts: string[] = [];
+
+      // pressure
+      let pres: string;
+      const sentIn = `In this sketch, cardiac output ${dCo === 0 ? 'stays at' : 'rises ' + dCo + ' percent to'} ${f2(co1)} L per min and resistance ${dR === 0 ? 'stays at' : 'falls ' + Math.abs(dR) + ' percent to'} ${f2(r1)} mmHg min per L, so mean arterial pressure = ${f2(co1)} × ${f2(r1)} = ${f1(map1)} mmHg, against 90.0 before`;
+      if (dCo === 0 && dR === 0) {
+        pres = `In this sketch, neither output nor resistance has changed, so mean arterial pressure stays at 90.0 mmHg.`;
+      } else if (Math.abs(dMap) < 1e-9) {
+        pres = `${sentIn}: the two changes cancel exactly and pressure is unchanged.`;
+      } else if (dCo > 0 && dR < 0 && Math.abs(dMap) <= 5) {
+        pres = `${sentIn} (${dMap > 0 ? 'higher' : 'lower'} by ${f1(Math.abs(dMap))} mmHg): the two changes, in opposite directions, nearly cancel (within 5 mmHg, a cutoff chosen for this sketch).`;
+      } else {
+        const side = dMap > 0
+          ? (dR === 0 ? 'the rise in output is not offset by any fall in resistance' : 'the rise in output outweighs the fall in resistance')
+          : (dCo === 0 ? 'the fall in resistance is not offset by any rise in output' : 'the fall in resistance outweighs the rise in output');
+        pres = `${sentIn} (${dMap > 0 ? 'higher' : 'lower'} by ${f1(Math.abs(dMap))} mmHg): ${side}, so pressure ${dMap > 0 ? 'rises' : 'falls'} ${Math.abs(dMap) > 5 ? 'clearly' : 'by this much'}.`;
+      }
+      if (!(dCo === 0 && dR === 0 && dP === 0 && dC === 0) && (dR > -25 || dR < -30)) {
+        pres += ` The lesson reports a fall in resistance of approximately 25 to 30 percent in healthy pregnancy, so this setting is outside that range.`;
+      }
+      parts.push(pres);
+
+      // hematocrit
+      let hs: string;
+      const chg = dP === 0 ? `Plasma volume stays at 2.5 L and red-cell volume rises ${dC} percent,`
+        : dC === 0 ? `Plasma volume rises ${dP} percent and red-cell volume stays at 1.5 L,`
+        : `Plasma volume rises ${dP} percent and red-cell volume ${dC} percent,`;
+      const hctD = Math.round((hct1 - HCT0) * 1000) / 10; // percentage points, 1 decimal
+      if (dP === 0 && dC === 0) {
+        hs = `Plasma and red-cell volumes are unchanged, so hematocrit stays at 37.5 percent.`;
+      } else if (hctD === 0) {
+        hs = dP === dC
+          ? `Plasma and red-cell volumes both rise ${dP} percent, so hematocrit stays at 37.5 percent.`
+          : `Plasma and red-cell volumes rise by almost the same proportion, so hematocrit (${f1(hct1 * 100)} percent) stays at about 37.5 percent.`;
+      } else if (hct1 < HCT0) {
+        hs = `${chg} so blood volume is ${f3(bv1)} L and hematocrit falls to ${f1(hct1 * 100)} percent from 37.5: plasma expands proportionally more, so the red cells are diluted and none are lost.`;
+      } else {
+        hs = `${chg} so blood volume is ${f3(bv1)} L and hematocrit rises to ${f1(hct1 * 100)} percent from 37.5, because red-cell volume rises proportionally more than plasma.`;
+      }
+      if (dC > dP) {
+        hs += ` The lesson says plasma expands proportionally more in healthy pregnancy, so this setting is outside that.`;
+      }
+      parts.push(hs);
+
+      // oxygen delivery
+      const cTxt = rounded0(content) ? 'unchanged' : (content < 1 ? `about ${f1((1 - content) * 100)} percent lower` : `about ${f1((content - 1) * 100)} percent higher`);
+      let ox: string;
+      if (rounded0(do2)) {
+        ox = `With hemoglobin per litre of red cells unchanged, oxygen content per litre of blood is ${cTxt} and output is ${rounded0(flow) ? 'unchanged' : (flow > 1 ? 'higher' : 'lower')}, so relative oxygen delivery = ${f2(flow)} × ${f3(content)} = ${f2(do2)} is unchanged from the starting value.`;
+      } else {
+        ox = `With hemoglobin per litre of red cells unchanged, oxygen content per litre of blood is ${cTxt}, so relative oxygen delivery = ${f2(flow)} × ${f3(content)} = ${f2(do2)}, about ${f1(Math.abs(do2 - 1) * 100)} percent ${do2 > 1 ? 'higher' : 'lower'} than the starting value`;
+        if (do2 > 1 && content < 1) ox += ` although content per litre is lower`;
+        else if (do2 < 1 && flow > 1) ox += ` although output is higher`;
+        ox += `.`;
+      }
+      parts.push(ox);
+
+      why.textContent = parts.join(' ');
+    }
+
+    [coIn, rIn, pIn, cIn].forEach((c) => c.addEventListener('input', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const lesson = b.dataset.preset === 'lesson';
+        coIn.value = lesson ? '40' : '0';
+        rIn.value = lesson ? '-28' : '0';
+        pIn.value = lesson ? '44' : '0';
+        cIn.value = lesson ? '20' : '0';
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .fcb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fcb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fcb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fcb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fcb-controls { display: grid; grid-template-columns: 1fr; gap: 0.1rem var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .fcb-ctl { display: flex; flex-direction: column; }
+  .fcb-slabel { display: flex; flex-direction: column; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-top: var(--ddp-space-2); }
+  .fcb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fcb-controls input[type="range"] { accent-color: var(--ddp-color-accent); width: 100%; margin: 0; }
+  .fcb-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fcb-mark { font: inherit; font-size: var(--ddp-text-xs); padding: 0.1rem 0.5rem; border: 1px solid var(--ddp-color-line); border-radius: 999px; background: transparent; color: var(--ddp-color-ink-soft); cursor: pointer; text-align: left; }
+  .fcb-mark:hover, .fcb-mark:focus-visible { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+  .fcb-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fcb-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .fcb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fcb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .fcb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 12em; }
+  .fcb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .fcb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (min-width: 640px) {
+    .fcb-controls { grid-template-columns: 1fr 1fr; }
+    .fcb-why { min-height: 9em; }
+  }
+</style>

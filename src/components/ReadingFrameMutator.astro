@@ -1,0 +1,251 @@
+---
+/**
+ * ReadingFrameMutator — edit the mRNA of the genetic-code lesson's worked problem with one
+ * substitution, insertion or deletion, and see the codons, the amino acids and whether the
+ * change is silent, missense, nonsense or a frameshift. The message is the lesson's own:
+ * 5'-GCCAUGGCUUGGAAACCUGACUAGCC-3', translated from the first AUG with the standard table.
+ * No chance is involved, so there is nothing to resample; every output follows from the table.
+ * Labelled blocks only, no drawn molecules. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="rfm card" data-rfm>
+  <figcaption class="rfm-head">Reading frame mutator: edit the message, read the protein<span class="rfm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rfm-svg" viewBox="0 0 360 156" role="img" aria-label="The original mRNA read in codons above, and the edited mRNA read in codons below" data-stage></svg>
+
+  <div class="rfm-controls">
+    <fieldset class="rfm-fs">
+      <legend>Kind of edit</legend>
+      <label><input type="radio" name="rfm-kind" value="sub" data-kind checked /> substitute a base</label>
+      <label><input type="radio" name="rfm-kind" value="ins" data-kind /> insert a base</label>
+      <label><input type="radio" name="rfm-kind" value="del" data-kind /> delete a base</label>
+    </fieldset>
+    <div class="rfm-row">
+      <label class="rfm-lab" for="rfm-pos-x" data-poslabel>Position (base number)</label>
+      <input type="range" id="rfm-pos-x" min="7" max="26" step="1" value="10" data-pos />
+      <output class="rfm-out" data-posout></output>
+    </div>
+    <div class="rfm-row">
+      <label class="rfm-lab" for="rfm-base-x">New base</label>
+      <select id="rfm-base-x" data-base>
+        <option>A</option><option>C</option><option>G</option><option>U</option>
+      </select>
+      <button type="button" class="rfm-btn" data-reset>reset</button>
+    </div>
+  </div>
+
+  <p class="rfm-verdict" data-verdict role="status"></p>
+  <dl class="rfm-prot">
+    <div><dt>original protein</dt><dd data-p-orig></dd></div>
+    <div><dt>edited protein</dt><dd data-p-new></dd></div>
+  </dl>
+
+  <p class="rfm-foot">Read from the first AUG in nonoverlapping triplets: a base change alters at most one codon, but one inserted or deleted base shifts every codon after it. The AUG and the 5′ bases before it are held fixed here, and the message has no exon junctions, so nonsense-mediated decay is not shown.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const SEQ = 'GCCAUGGCUUGGAAACCUGACUAGCC';
+  const START = 3; // 0-based index of the first AUG (bases 4 to 6)
+  const STOP_END = 24; // 1-based position of the last base of the original UAG
+  // Standard code, bases in the order U, C, A, G; * is a stop.
+  const TABLE = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
+  const ORDER = 'UCAG';
+  const THREE: Record<string, string> = { F: 'Phe', L: 'Leu', S: 'Ser', Y: 'Tyr', C: 'Cys', W: 'Trp', P: 'Pro', H: 'His', Q: 'Gln', R: 'Arg', I: 'Ile', M: 'Met', T: 'Thr', N: 'Asn', K: 'Lys', V: 'Val', A: 'Ala', D: 'Asp', E: 'Glu', G: 'Gly' };
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORANGE = '#c05f00', RED = '#b3261e';
+
+  function aaOf(codon: string): string {
+    const i = ORDER.indexOf(codon[0]) * 16 + ORDER.indexOf(codon[1]) * 4 + ORDER.indexOf(codon[2]);
+    return TABLE[i];
+  }
+  type Codon = { bases: string; aa: string | null; start: number }; // aa null = incomplete tail
+  function read(seq: string): { codons: Codon[]; ended: boolean } {
+    const codons: Codon[] = [];
+    let i = START;
+    while (i < seq.length) {
+      if (i + 3 > seq.length) { codons.push({ bases: seq.slice(i), aa: null, start: i }); return { codons, ended: false }; }
+      const b = seq.slice(i, i + 3), a = aaOf(b);
+      codons.push({ bases: b, aa: a, start: i });
+      if (a === '*') return { codons, ended: true };
+      i += 3;
+    }
+    return { codons, ended: false };
+  }
+  const residues = (cs: Codon[]) => cs.filter((c) => c.aa && c.aa !== '*').map((c) => THREE[c.aa!]);
+  const chain = (cs: Codon[], ended: boolean) => {
+    const r = residues(cs);
+    return (r.length ? r.join('-') : 'no residues') + (ended ? ', then stop' : ', no stop before the message ends');
+  };
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const STEP = 12.8, X0 = 8;
+  const cx = (i: number) => X0 + i * STEP + STEP / 2;
+
+  document.querySelectorAll<HTMLElement>('[data-rfm]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const pos = root.querySelector<HTMLInputElement>('[data-pos]')!;
+    const posOut = root.querySelector<HTMLElement>('[data-posout]')!;
+    const posLabel = root.querySelector<HTMLElement>('[data-poslabel]')!;
+    const baseSel = root.querySelector<HTMLSelectElement>('[data-base]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const pOrig = root.querySelector<HTMLElement>('[data-p-orig]')!;
+    const pNew = root.querySelector<HTMLElement>('[data-p-new]')!;
+    const kinds = Array.from(root.querySelectorAll<HTMLInputElement>('[data-kind]'));
+    const kind = () => kinds.find((k) => k.checked)!.value as 'sub' | 'ins' | 'del';
+    const orig = read(SEQ);
+
+    function setRange() {
+      const k = kind();
+      // Substitution and deletion act on a base after the AUG (bases 7 to 26); an insertion goes after a base (6 to 26).
+      pos.min = k === 'ins' ? '6' : '7';
+      if (Number(pos.value) < Number(pos.min)) pos.value = pos.min;
+      posLabel.textContent = k === 'ins' ? 'Insert after base number' : k === 'del' ? 'Delete base number' : 'Substitute base number';
+      baseSel.disabled = k === 'del';
+    }
+
+    function render() {
+      const k = kind(), p = Number(pos.value), nb = baseSel.value; // p is 1-based
+      let mut = SEQ;
+      let same = false;
+      if (k === 'sub') { same = SEQ[p - 1] === nb; mut = SEQ.slice(0, p - 1) + nb + SEQ.slice(p); }
+      else if (k === 'ins') mut = SEQ.slice(0, p) + nb + SEQ.slice(p);
+      else mut = SEQ.slice(0, p - 1) + SEQ.slice(p);
+      const res = read(mut);
+      posOut.textContent = k === 'ins' ? `after ${SEQ[p - 1]}${p}` : `${SEQ[p - 1]}${p}`;
+
+      // ---- classify ----
+      const afterStop = k === 'ins' ? p >= STOP_END : p > STOP_END;
+      const codonNo = Math.floor((p - 4) / 3) + 1; // Met is codon 1
+      const posIn = (p - 4) % 3 + 1;
+      const nOrig = residues(orig.codons).length;
+      let kindName = '', v = '';
+      if (k === 'sub' && same) {
+        kindName = 'none';
+        v = `Base ${p} is already ${nb}, so nothing changes: ${chain(orig.codons, orig.ended)}.`;
+      } else if (afterStop) {
+        kindName = 'after the stop';
+        v = `The edit falls after the stop codon UAG. The ribosome has already released the chain, so the protein is unchanged: ${chain(res.codons, res.ended)}.`;
+      } else if (k === 'sub') {
+        const c = orig.codons[codonNo - 1], oldAa = c.aa!;
+        const newCodon = c.bases.slice(0, posIn - 1) + nb + c.bases.slice(posIn);
+        const newAa = aaOf(newCodon);
+        const nm = (a: string) => (a === '*' ? 'a stop' : THREE[a]);
+        if (oldAa === '*' && newAa === '*') { kindName = 'still a stop'; v = `Codon ${codonNo + 0} ${c.bases} becomes ${newCodon}, which is still a stop codon, so the protein is unchanged: ${chain(res.codons, res.ended)}.`; }
+        else if (oldAa === '*') { kindName = 'stop codon lost'; v = `The stop codon ${c.bases} becomes ${newCodon} (${nm(newAa)}), so reading does not end here. This short message runs out of bases with no stop: ${chain(res.codons, res.ended)}.`; }
+        else if (newAa === '*') { kindName = 'nonsense'; v = `Nonsense. Codon ${codonNo} ${c.bases} (${nm(oldAa)}) becomes ${newCodon}, a stop. The chain ends after ${residues(res.codons).length} residues instead of ${nOrig}: ${chain(res.codons, res.ended)}.`; }
+        else if (newAa === oldAa) { kindName = 'silent'; v = `Silent. Codon ${codonNo} changes from ${c.bases} to ${newCodon}, and both encode ${nm(oldAa)}, so the protein is unchanged: ${chain(res.codons, res.ended)}. Silent does not always mean harmless. In human cell lines, synonymous changes can alter mRNA stability.`; }
+        else { kindName = 'missense'; v = `Missense. Codon ${codonNo} changes from ${c.bases} (${nm(oldAa)}) to ${newCodon} (${nm(newAa)}), so one amino acid is swapped and the rest is unchanged: ${chain(res.codons, res.ended)}.`; }
+      } else {
+        const what = k === 'ins' ? `Inserting ${nb} after base ${p}` : `Deleting base ${p}`;
+        const sameChain = res.ended && residues(res.codons).join('-') === residues(orig.codons).join('-');
+        if (k === 'ins' && sameChain) {
+          kindName = 'stop rebuilt';
+          v = `The inserted base ${nb} sits inside the stop codon UAG and the new triplet ${res.codons[res.codons.length - 1].bases} is still a stop, so the protein is unchanged: ${chain(res.codons, res.ended)}.`;
+        } else {
+          kindName = 'frameshift';
+          v = `Frameshift. ${what} changes the length by one base, not a multiple of three, so every codon after it is read out of register. New reading: ${chain(res.codons, res.ended)}, against ${nOrig} residues before.`;
+        }
+      }
+      verdict.textContent = v;
+      pOrig.textContent = chain(orig.codons, orig.ended);
+      pNew.textContent = chain(res.codons, res.ended) + (kindName && kindName !== 'none' ? ` (${kindName})` : '');
+      draw(mut, res, k, p, kindName);
+    }
+
+    function draw(mut: string, res: { codons: Codon[]; ended: boolean }, k: 'sub' | 'ins' | 'del', p: number, kindName: string) {
+      stage.replaceChildren();
+      const T = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) =>
+        stage.appendChild(el('text', { x, y, 'font-size': 9, fill: INK, ...extra }, s));
+      // base letters
+      const letters = (seq: string, y: number, mark: (i: number) => boolean) => {
+        for (let i = 0; i < seq.length; i++) {
+          const m = mark(i);
+          T(cx(i), y, seq[i], { 'text-anchor': 'middle', 'font-size': 10, 'font-weight': m ? 800 : 400, fill: m ? ORANGE : INK, 'font-family': 'monospace' });
+        }
+      };
+      // codon blocks
+      const blocks = (cs: Codon[], y: number, compare: Codon[] | null) => {
+        const first = cs.length ? cs[0].start : START;
+        // dashed grey for bases not read
+        if (first > 0) stage.appendChild(el('rect', { x: X0 + 1, y, width: first * STEP - 2, height: 22, rx: 4, fill: 'none', stroke: FAINT, 'stroke-dasharray': '3 2' }));
+        cs.forEach((c, i) => {
+          const w = c.bases.length * STEP - 2, x = X0 + c.start * STEP + 1;
+          if (c.aa === null) {
+            stage.appendChild(el('rect', { x, y, width: w, height: 22, rx: 4, fill: 'none', stroke: FAINT, 'stroke-dasharray': '3 2' }));
+            return;
+          }
+          const stop = c.aa === '*';
+          const changed = compare ? !(compare[i] && compare[i].aa === c.aa) : false;
+          const fill = stop ? RED : changed ? ORANGE : '#d9eef0';
+          const ink = stop || changed ? '#fff' : '#0b3d42';
+          stage.appendChild(el('rect', { x, y, width: w, height: 22, rx: 4, fill, stroke: stop || changed ? fill : TEAL }));
+          stage.appendChild(el('text', { x: x + w / 2, y: y + 14, 'font-size': 10, 'font-weight': 700, 'text-anchor': 'middle', fill: ink }, stop ? 'stop' : THREE[c.aa]));
+        });
+        const lastEnd = cs.length ? cs[cs.length - 1].start + cs[cs.length - 1].bases.length : START;
+        return lastEnd;
+      };
+      T(8, 11, 'original, read from the first AUG (5′ to 3′)', { 'font-weight': 700 });
+      const dels = k === 'del' ? p - 1 : -1;
+      letters(SEQ, 33, (i) => i === dels || (k === 'sub' && i === p - 1));
+      const eo = blocks(orig.codons, 38, null);
+      if (eo < SEQ.length) stage.appendChild(el('rect', { x: X0 + eo * STEP + 1, y: 38, width: (SEQ.length - eo) * STEP - 2, height: 22, rx: 4, fill: 'none', stroke: FAINT, 'stroke-dasharray': '3 2' }));
+      // edit marker on the original row
+      const mx = k === 'ins' ? X0 + p * STEP : cx(p - 1);
+      stage.appendChild(el('path', { d: `M${mx - 4} 14 L${mx + 4} 14 L${mx} 20 Z`, fill: ORANGE }));
+      if (k === 'del') stage.appendChild(el('line', { x1: cx(p - 1) - 4, y1: 30, x2: cx(p - 1) + 4, y2: 30, stroke: ORANGE, 'stroke-width': 1.5 }));
+      T(8, 82, 'edited message, read from the same AUG', { 'font-weight': 700 });
+      const changedIdx = (i: number) => (k === 'sub' ? i === p - 1 : k === 'ins' ? i === p : false);
+      letters(mut, 104, changedIdx);
+      if (k === 'del') { const x = X0 + (p - 1) * STEP; stage.appendChild(el('line', { x1: x, y1: 94, x2: x, y2: 108, stroke: ORANGE, 'stroke-width': 1.5 })); }
+      const em = blocks(res.codons, 109, orig.codons);
+      if (em < mut.length) stage.appendChild(el('rect', { x: X0 + em * STEP + 1, y: 109, width: (mut.length - em) * STEP - 2, height: 22, rx: 4, fill: 'none', stroke: FAINT, 'stroke-dasharray': '3 2' }));
+      // legend
+      const leg: [string, string, string][] = [['#d9eef0', TEAL, 'same amino acid'], [ORANGE, ORANGE, 'changed'], [RED, RED, 'stop'], ['#fff', FAINT, 'not translated']];
+      let lx = 8;
+      leg.forEach(([f, s, t]) => {
+        stage.appendChild(el('rect', { x: lx, y: 141, width: 10, height: 8, rx: 2, fill: f, stroke: s, 'stroke-dasharray': t === 'not translated' ? '2 1' : '0' }));
+        T(lx + 14, 149, t);
+        lx += 14 + t.length * 5.1 + 12;
+      });
+    }
+
+    kinds.forEach((r) => r.addEventListener('change', () => { setRange(); render(); }));
+    pos.addEventListener('input', render);
+    baseSel.addEventListener('change', render);
+    root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => {
+      kinds[0].checked = true; setRange(); pos.value = '10'; baseSel.value = 'C'; render();
+    });
+    baseSel.value = 'C';
+    setRange();
+    render();
+  });
+</script>
+
+<style is:global>
+  .rfm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rfm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rfm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rfm-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rfm-controls { display: grid; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rfm-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
+  .rfm-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .rfm-fs input { accent-color: var(--ddp-color-accent); }
+  .rfm-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .rfm-lab { min-width: 11em; color: var(--ddp-color-muted); }
+  .rfm-row input[type="range"] { flex: 1 1 8rem; min-width: 8rem; accent-color: var(--ddp-color-accent); }
+  .rfm-out { font-family: var(--ddp-font-mono); min-width: 5em; color: var(--ddp-color-primary); }
+  .rfm-row select { font-size: var(--ddp-text-xs); padding: 0.2rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); }
+  .rfm-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.25rem 0.6rem; cursor: pointer; }
+  .rfm-btn:focus-visible, .rfm-row input:focus-visible, .rfm-row select:focus-visible, .rfm-fs input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .rfm-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4em; }
+  .rfm-prot { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rfm-prot div { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; margin: 0.15rem 0; }
+  .rfm-prot dt { min-width: 8.5em; color: var(--ddp-color-muted); }
+  .rfm-prot dd { margin: 0; font-family: var(--ddp-font-mono); overflow-wrap: anywhere; }
+  .rfm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

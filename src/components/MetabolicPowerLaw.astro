@@ -1,0 +1,262 @@
+---
+/**
+ * MetabolicPowerLaw — the lesson's "widely quoted mammal fit", basal metabolic rate
+ * = 70 x M^b kcal per day (M in kg), drawn as a fitted line on log-log axes with no data
+ * points, two animals marked on it, and a second small plot of rate per kg = 70 x M^(b - 1).
+ * Original. Self-contained vanilla-TS Astro island.
+ */
+---
+
+<figure class="mpl card" data-mpl>
+  <figcaption class="mpl-head">Metabolic rate and body mass — a fitted power law<span class="mpl-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="mpl-assume">In this sketch: one mammal fit, basal rate = a × M<sup>b</sup> with a = 70 kcal per day and M in kg; a fitted line, not measurements; no data points. The line is drawn from 10 g to 1,000 kg only so you can move the markers; the lesson uses it for the 30 g mouse and the 70 kg adult human.</p>
+
+  <div class="mpl-plots">
+    <svg class="mpl-svg" viewBox="0 0 340 230" role="img" aria-label="Log-log plot of the fitted total basal metabolic rate against body mass, with two marked animals" data-plot-total></svg>
+    <svg class="mpl-svg" viewBox="0 0 340 230" role="img" aria-label="Log-log plot of the fitted rate per kilogram against body mass, with the same two marked animals" data-plot-perkg></svg>
+  </div>
+
+  <div class="mpl-controls">
+    <label class="mpl-slabel"><span><strong class="mpl-c1">Animal 1</strong> mass: <em data-out="m1">30 g mouse</em></span>
+      <input type="range" data-in="m1" min="-2" max="3" step="0.01" value="-1.52" aria-label="Animal 1 mass, logarithmic slider from 0.01 to 1,000 kilograms" />
+      <span class="mpl-ends"><span>10 g</span><span>1,000 kg</span></span>
+    </label>
+    <label class="mpl-slabel"><span><strong class="mpl-c2">Animal 2</strong> mass: <em data-out="m2">70 kg adult human</em></span>
+      <input type="range" data-in="m2" min="-2" max="3" step="0.01" value="1.85" aria-label="Animal 2 mass, logarithmic slider from 0.01 to 1,000 kilograms" />
+      <span class="mpl-ends"><span>10 g</span><span>1,000 kg</span></span>
+    </label>
+    <label class="mpl-slabel mpl-wide"><span>Exponent b: <em data-out="b">0.75</em></span>
+      <input type="range" data-in="b" min="0.6" max="1" step="0.01" value="0.75" list="mpl-b-ticks" />
+      <datalist id="mpl-b-ticks"><option value="0.67"></option><option value="0.75"></option></datalist>
+      <span class="mpl-bticks" aria-hidden="true">
+        <span class="mpl-btick" style="--p:0">0.60</span>
+        <span class="mpl-btick" style="--p:0.1667">2/3</span>
+        <span class="mpl-btick" style="--p:0.375">3/4</span>
+        <span class="mpl-btick" style="--p:1">1.00</span>
+      </span>
+    </label>
+  </div>
+
+  <div class="mpl-table" role="group" aria-label="Fitted rates for the two animals">
+    <div class="mpl-th"></div><div class="mpl-th">Total rate (kcal per day)</div><div class="mpl-th">Rate per kg (kcal per kg per day)</div>
+    <div class="mpl-rowh"><strong class="mpl-c1">Animal 1</strong></div><div class="mpl-val" data-r-t1>–</div><div class="mpl-val" data-r-p1>–</div>
+    <div class="mpl-rowh"><strong class="mpl-c2">Animal 2</strong></div><div class="mpl-val" data-r-t2>–</div><div class="mpl-val" data-r-p2>–</div>
+  </div>
+  <dl class="mpl-readout">
+    <div><dt data-l-tr>Ratio of totals, heavier ÷ lighter</dt><dd data-r-tr>–</dd></div>
+    <div><dt data-l-pr>Ratio of rates per kg, lighter ÷ heavier</dt><dd data-r-pr>–</dd></div>
+  </dl>
+
+  <div class="mpl-status" role="status">
+    <p class="mpl-why" data-why></p>
+    <p class="mpl-hedge" data-hedge>3/4 is an empirical fit, not a law. White and Seymour (2003) found a mammalian exponent near 2/3 once body temperature and digestive state were controlled; Griebeler and Werner (2016) found no single exponent for all the groups. The exponent depends on the group, the state, temperature and method, no explanation of it is settled, and a fitted slope cannot confirm a mechanism.</p>
+  </div>
+
+  <p class="mpl-foot">Rule to keep: rate per kg = a × M<sup>(b − 1)</sup>, so when b is below 1 the rate per kilogram falls as mass rises. The sketch is a fitted line, not a measurement of any animal. The lesson rounds along the way, so its figures are slightly rounder.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const SUP: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  const sup = (n: number) => String(n).split('').map((c) => SUP[c] ?? c).join('');
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const A = 70;                  // kcal per day, the lesson's constant
+  const M1_DEFAULT = 0.03;       // kg, the lesson's 30 g mouse
+  const M2_DEFAULT = 70;         // kg, the lesson's 70 kg adult human
+  const S1_DEFAULT = -1.52, S2_DEFAULT = 1.85; // slider positions that stand for the two defaults
+
+  // three significant figures; no exponent notation; thousands separators
+  function sf3(x: number): string {
+    if (!isFinite(x)) return '–';
+    if (x >= 100) return Math.round(Number(x.toPrecision(3))).toLocaleString('en-US');
+    return x.toPrecision(3);
+  }
+  function fmtMass(m: number, isDefault: boolean, name: string): string {
+    if (isDefault) return name;
+    if (m < 1) return sf3(m * 1000) + ' g';
+    return sf3(m) + ' kg';
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-mpl]').forEach((root) => {
+    const pick = <T extends Element>(sel: string): T | null => root.querySelector<T>(sel);
+    const plotT = pick<SVGSVGElement>('[data-plot-total]');
+    const plotP = pick<SVGSVGElement>('[data-plot-perkg]');
+    const in1 = pick<HTMLInputElement>('[data-in="m1"]');
+    const in2 = pick<HTMLInputElement>('[data-in="m2"]');
+    const inB = pick<HTMLInputElement>('[data-in="b"]');
+    const out1 = pick<HTMLElement>('[data-out="m1"]');
+    const out2 = pick<HTMLElement>('[data-out="m2"]');
+    const outB = pick<HTMLElement>('[data-out="b"]');
+    const rT1 = pick<HTMLElement>('[data-r-t1]');
+    const rP1 = pick<HTMLElement>('[data-r-p1]');
+    const rT2 = pick<HTMLElement>('[data-r-t2]');
+    const rP2 = pick<HTMLElement>('[data-r-p2]');
+    const rTr = pick<HTMLElement>('[data-r-tr]');
+    const rPr = pick<HTMLElement>('[data-r-pr]');
+    const lTr = pick<HTMLElement>('[data-l-tr]');
+    const lPr = pick<HTMLElement>('[data-l-pr]');
+    const why = pick<HTMLElement>('[data-why]');
+    if (!plotT || !plotP || !in1 || !in2 || !inB || !out1 || !out2 || !outB || !rT1 || !rP1 || !rT2 || !rP2 || !rTr || !rPr || !lTr || !lPr || !why) return;
+
+    const X0 = 48, X1 = 326, Y0 = 26, Y1 = 188;
+    const LMIN = -2, LMAX = 3; // log10 mass, kg
+
+    const massOf = (input: HTMLInputElement, def: number, defPos: number) => {
+      const s = parseFloat(input.value);
+      return Math.abs(s - defPos) < 1e-9 ? def : Math.pow(10, s);
+    };
+
+    function drawPlot(svg: SVGSVGElement, o: {
+      title: string; ylo: number; yhi: number; yfun: (m: number) => number;
+      legendRight: boolean; m1: number; m2: number; yTicks: number[];
+    }) {
+      const px = (lm: number) => X0 + ((lm - LMIN) / (LMAX - LMIN)) * (X1 - X0);
+      const py = (ly: number) => Y1 - ((ly - o.ylo) / (o.yhi - o.ylo)) * (Y1 - Y0);
+      svg.replaceChildren();
+      svg.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      svg.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const ly of o.yTicks) {
+        svg.appendChild(el('line', { x1: X0, y1: py(ly), x2: X1, y2: py(ly), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        const t = el('text', { x: X0 - 4, y: py(ly) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK });
+        t.textContent = '10' + sup(ly);
+        svg.appendChild(t);
+      }
+      for (let lx = LMIN; lx <= LMAX; lx++) {
+        svg.appendChild(el('line', { x1: px(lx), y1: Y1, x2: px(lx), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: px(lx), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+        t.textContent = '10' + sup(lx);
+        svg.appendChild(t);
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 31, 'text-anchor': 'middle', 'font-size': 10, fill: INK });
+      xl.textContent = 'body mass M (kg, log scale)';
+      svg.appendChild(xl);
+      const yl = el('text', { x: 4, y: 12, 'text-anchor': 'start', 'font-size': 10, fill: INK });
+      yl.textContent = o.title;
+      svg.appendChild(yl);
+      // the fitted line (straight on log-log axes)
+      const pts = [LMIN, LMAX].map((lm) => px(lm).toFixed(1) + ' ' + py(Math.log10(o.yfun(Math.pow(10, lm)))).toFixed(1));
+      svg.appendChild(el('path', { d: 'M' + pts[0] + ' L' + pts[1], fill: 'none', stroke: INK, 'stroke-width': 2.4 }));
+      // legend
+      const LX = o.legendRight ? X1 - 118 : X0 + 8, LY = Y0 + 8;
+      svg.appendChild(el('line', { x1: LX, y1: LY, x2: LX + 16, y2: LY, stroke: INK, 'stroke-width': 2.4 }));
+      const lt = el('text', { x: LX + 20, y: LY + 3, 'font-size': 9, fill: INK });
+      lt.textContent = 'fitted line, not data';
+      svg.appendChild(lt);
+      // markers; the higher marker gets its label above, the lower one below
+      const marks = [
+        { n: '1', m: o.m1, c: ACCENT },
+        { n: '2', m: o.m2, c: ORANGE },
+      ].map((k) => ({ ...k, x: px(Math.log10(k.m)), y: py(Math.log10(o.yfun(k.m))) }));
+      const topIdx = marks[1].y < marks[0].y ? 1 : 0;
+      marks.forEach((k, i) => {
+        svg.appendChild(el('circle', { cx: k.x, cy: k.y, r: 5, fill: k.c, stroke: '#fff', 'stroke-width': 1.2 }));
+        const above = i === topIdx;
+        const ty = Math.min(Y1 - 3, Math.max(Y0 + 2, above ? k.y - 9 : k.y + 17));
+        const tx = Math.min(X1 - 6, Math.max(X0 + 6, k.x));
+        const t = el('text', { x: tx, y: ty, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: k.c });
+        t.textContent = k.n;
+        svg.appendChild(t);
+      });
+    }
+
+    function render() {
+      const m1 = massOf(in1!, M1_DEFAULT, S1_DEFAULT);
+      const m2 = massOf(in2!, M2_DEFAULT, S2_DEFAULT);
+      const def1 = Math.abs(parseFloat(in1!.value) - S1_DEFAULT) < 1e-9;
+      const def2 = Math.abs(parseFloat(in2!.value) - S2_DEFAULT) < 1e-9;
+      const b = parseFloat(inB!.value);
+      const bIs34 = Math.abs(b - 0.75) < 1e-9;
+
+      const name1 = '30 g mouse', name2 = '70 kg adult human';
+      const lab1 = fmtMass(m1, def1, name1), lab2 = fmtMass(m2, def2, name2);
+      out1!.textContent = lab1;
+      out2!.textContent = lab2;
+      outB!.textContent = b.toFixed(2) + (Math.abs(b - 0.67) < 1e-9 ? ' (nearest step to 2/3)' : bIs34 ? ' (3/4)' : '');
+      in1!.setAttribute('aria-valuetext', lab1);
+      in2!.setAttribute('aria-valuetext', lab2);
+
+      const rate = (m: number) => A * Math.pow(m, b);
+      const perkg = (m: number) => A * Math.pow(m, b - 1);
+      const t1 = rate(m1), t2 = rate(m2), p1 = perkg(m1), p2 = perkg(m2);
+      rT1!.textContent = sf3(t1);
+      rT2!.textContent = sf3(t2);
+      rP1!.textContent = sf3(p1);
+      rP2!.textContent = sf3(p2);
+
+      // ratios: totals heavier ÷ lighter, per kg lighter ÷ heavier (so both are 1 or more for b below 1)
+      const heavy2 = m2 >= m1;
+      const tHeavy = heavy2 ? t2 : t1, tLight = heavy2 ? t1 : t2;
+      const pHeavy = heavy2 ? p2 : p1, pLight = heavy2 ? p1 : p2;
+      const tRatio = tHeavy / tLight, pRatio = pLight / pHeavy;
+      rTr!.textContent = sf3(tRatio);
+      rPr!.textContent = sf3(pRatio);
+      const equal = Math.abs(Math.log10(m1) - Math.log10(m2)) < 1e-9;
+      lTr!.textContent = equal ? 'Ratio of totals (equal masses)' : heavy2 ? 'Ratio of totals, animal 2 ÷ animal 1 (heavier ÷ lighter)' : 'Ratio of totals, animal 1 ÷ animal 2 (heavier ÷ lighter)';
+      lPr!.textContent = equal ? 'Ratio of rates per kg (equal masses)' : heavy2 ? 'Ratio of rates per kg, animal 1 ÷ animal 2 (lighter ÷ heavier)' : 'Ratio of rates per kg, animal 2 ÷ animal 1 (lighter ÷ heavier)';
+
+      // plots
+      drawPlot(plotT!, { title: 'total rate (kcal per day)', ylo: -1, yhi: 5, yfun: rate, legendRight: false, m1, m2, yTicks: [-1, 1, 3, 5] });
+      drawPlot(plotP!, { title: 'rate per kg (kcal per kg per day)', ylo: 0, yhi: 3, yfun: perkg, legendRight: true, m1, m2, yTicks: [0, 1, 2, 3] });
+
+      // status (the hedge paragraph stays on screen, in the same status region)
+      const nm1 = def1 ? 'the ' + name1 : 'a ' + lab1 + ' animal';
+      const nm2 = def2 ? 'the ' + name2 : 'a ' + lab2 + ' animal';
+      let s = `In this sketch, the fitted line with b = ${b.toFixed(2)} and a = 70 kcal per day gives animal 1 (${nm1}) about ${sf3(t1)} kcal per day, ${sf3(p1)} per kg, and animal 2 (${nm2}) about ${sf3(t2)} kcal per day, ${sf3(p2)} per kg. `;
+      if (equal) {
+        s += 'The masses are equal, so both ratios are 1.';
+      } else if (Math.abs(b - 1) < 1e-9) {
+        s += `At b = 1 rate is proportional to mass, so the rates per kilogram are equal and the ratio of totals (${sf3(tRatio)}) equals the mass ratio. Rubner’s resting dogs ruled out simple proportionality in those dogs.`;
+      } else {
+        s += `The heavier animal’s total is about ${sf3(tRatio)} times the lighter animal’s, while the lighter animal’s rate per kilogram is about ${sf3(pRatio)} times the heavier animal’s: with b below 1, rate per kilogram falls as mass rises.`;
+      }
+      if (!bIs34) {
+        s += ' The constant a stays 70 kcal per day, so at this b the totals are not the lesson’s numbers. The lesson works only b = 3/4 and b = 2/3, for the 30 g mouse and the 70 kg adult human.';
+      }
+      if (def1 && def2 && Math.abs(b - 0.67) < 1e-9) {
+        s += ' The lesson’s b = 2/3 gives a per-kilogram ratio of (70 / 0.03)^(1/3), about 13: the exponent alone nearly doubles the predicted difference from about 7.';
+      }
+      why!.textContent = s;
+    }
+    [in1, in2, inB].forEach((i) => i.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .mpl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mpl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .mpl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mpl-assume { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mpl-plots { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  @media (min-width: 760px) { .mpl-plots { grid-template-columns: 1fr 1fr; } }
+  .mpl-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mpl-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  @media (max-width: 560px) { .mpl-controls { grid-template-columns: 1fr; } }
+  .mpl-wide { grid-column: 1 / -1; }
+  .mpl-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mpl-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .mpl-slabel input { accent-color: var(--ddp-color-accent); }
+  .mpl-c1 { color: #0e7c86; }
+  .mpl-c2 { color: #b45500; }
+  .mpl-ends { display: flex; justify-content: space-between; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mpl-bticks { position: relative; display: block; height: 1.2em; }
+  .mpl-btick { position: absolute; top: 0; left: calc(8px + (100% - 16px) * var(--p)); transform: translateX(-50%); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); }
+  .mpl-table { display: grid; grid-template-columns: auto 1fr 1fr; gap: 0.2rem var(--ddp-space-3); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-xs); align-items: baseline; }
+  .mpl-th { color: var(--ddp-color-muted); }
+  .mpl-val { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .mpl-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  @media (max-width: 560px) { .mpl-readout { grid-template-columns: 1fr; } }
+  .mpl-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .mpl-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mpl-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .mpl-status { margin: 0; }
+  .mpl-why, .mpl-hedge { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .mpl-hedge { border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .mpl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

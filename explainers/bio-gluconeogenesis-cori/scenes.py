@@ -326,7 +326,7 @@ class S03Discovery(BioScene):
         self.at("they found")
         self.play(FadeOut(Group(toss, bin_)), Indicate(frac, color=GOLD, scale_factor=1.04), *self.focus("both"),
                   run_time=0.6)
-        self.at("glycogen debranching")
+        self.at("glycogen de")
         deb = self.chip_at("glycogen debranching\nenzyme", BLUE, 3.9, -0.8, 28)
         a3 = Arrow([tx + tw / 2 + 0.15, -0.8, 0], deb.get_left() + LEFT * 0.08, buff=0, color=GOLD, stroke_width=5,
                    max_tip_length_to_length_ratio=0.3)
@@ -450,27 +450,27 @@ class S05Nobel(BioScene):
         cen = T("centered", 26, GOLD).next_to(arr, DOWN, buff=0.15)
         self.play(GrowArrow(arr), FadeIn(gerty, scale=0.9), FadeIn(cen), *self.focus("right"), run_time=0.8)
 
-        # --- the same year: dying of myelofibrosis, finally a full professor
+        # --- the same year: finally a full professor, and the first signs of myelofibrosis
         self.at("The same year", lead=0.4)
         self.play(FadeOut(Group(carl, ban, arr, gerty, cen)), run_time=0.35)
         same = T("the same year", 28, GREY).move_to([CX, 1.35, 0])
         self.play(FadeIn(same, shift=UP * 0.1), run_time=0.4)
-        self.at("dying of")
-        dy = T("dying of", 26, GREY)
+        self.at("she was finally")
+        prof = self.chip_at("Gerty: full professor", GOLD, CX, 0.45, 32)
+        self.play(FadeIn(prof, shift=UP * 0.1), *self.focus("right"), run_time=0.6)
+        self.play(Indicate(prof, color=GOLD, scale_factor=1.05), run_time=0.6)
+        self.at("first signs")
+        dy = T("first signs of", 26, GREY)
         myel = chip("myelofibrosis", RED, 30)
-        row = VGroup(dy, myel).arrange(RIGHT, buff=0.3).move_to([CX, 0.45, 0])
+        row = VGroup(dy, myel).arrange(RIGHT, buff=0.3).move_to([CX, -0.85, 0])
         self.play(FadeIn(dy, shift=UP * 0.1), run_time=0.4)
         self.at("myelofibrosis")
         self.play(FadeIn(myel, shift=UP * 0.1), run_time=0.6)
-        self.at("worked through")
+        self.at("work through")
         blocks = VGroup(*[Square(0.3, stroke_width=0, fill_color=YELLOW, fill_opacity=0.9) for _ in range(10)])
-        blocks.arrange(RIGHT, buff=0.1).move_to([CX, -0.75, 0])
-        dec = T("she worked through it for a decade", 26, YELLOW).move_to([CX, -1.45, 0])
+        blocks.arrange(RIGHT, buff=0.1).move_to([CX, -1.95, 0])
+        dec = T("she would work through it for a decade", 26, YELLOW).move_to([CX, -2.65, 0])
         self.play(LaggedStart(*[FadeIn(b, scale=0.5) for b in blocks], lag_ratio=0.12), FadeIn(dec), run_time=1.0)
-        self.at("she was finally")
-        prof = self.chip_at("Gerty: full professor", GOLD, CX, -2.5, 32)
-        self.play(FadeIn(prof, shift=UP * 0.1), *self.focus("right"), run_time=0.6)
-        self.play(Indicate(prof, color=GOLD, scale_factor=1.05), run_time=0.6)
         self.finish()
 
 

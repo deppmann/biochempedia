@@ -10,7 +10,10 @@
  * the pumps lift H+ into the intermembrane space, the gradient meter fill, and — once the gradient
  * is above threshold — the F1 rotor turn 120° per ATP. Flip the uncoupler and the wire is cut:
  * electrons keep flowing, O2 is still consumed, but the protons leak straight back as HEAT.
- * Inhibitors stop electron flow at one complex and show the crossover pattern on the carriers.
+ * Inhibitors stop electron flow at one complex and show the crossover pattern on the carriers
+ * (the stored gradient then runs down through a small basal leak). Oligomycin blocks ATP synthase:
+ * the gradient fills to a back-pressure ceiling and electron flow (and O2 use) stalls, which is
+ * respiratory control; add the uncoupler and flow resumes, all of it lost as heat.
  *
  * Teaching-grade stoichiometry (standard textbook accounting, matching the lesson prose):
  *   H+ pumped per electron pair — Complex I = 4, Complex II = 0, Complex III = 4, Complex IV = 2.
@@ -27,7 +30,7 @@
 <figure class="pgb card" data-pgbattery>
   <figcaption class="pgb-head">The proton gradient is a battery — charge it, spend it, or short it out<span class="pgb-chip">⚙ original · interactive</span></figcaption>
 
-  <p class="pgb-howto">Press <strong>Send one electron pair</strong> and follow it: down the chain, down the redox ladder, H⁺ pumped up, then ATP synthase spending the gradient. Then try an inhibitor or the uncoupler.</p>
+  <p class="pgb-howto">Press <strong>Send one electron pair</strong> and follow it: down the chain, down the redox ladder, H⁺ pumped up, then ATP synthase spending the gradient. Then try an inhibitor, block ATP synthase with oligomycin, or switch on the uncoupler.</p>
 
   <svg
     class="pgb-svg"
@@ -77,6 +80,14 @@
     </div>
 
     <div class="pgb-group">
+      <span class="pgb-g-label">ATP synthase</span>
+      <div class="pgb-seg" role="group" aria-label="ATP synthase">
+        <button type="button" data-oligo="off" aria-pressed="true">Running</button>
+        <button type="button" data-oligo="on" aria-pressed="false">Blocked (oligomycin)</button>
+      </div>
+    </div>
+
+    <div class="pgb-group">
       <span class="pgb-g-label">Coupling</span>
       <div class="pgb-seg" role="group" aria-label="Uncoupler">
         <button type="button" data-uncouple aria-pressed="false">DNP / proton leak: OFF</button>
@@ -92,7 +103,7 @@
   <p class="pgb-log" data-log aria-live="polite"></p>
   <p class="pgb-takeaway" data-takeaway role="status"></p>
 
-  <p class="pgb-foot">Here is the whole chapter in one sentence: the respiratory chain and ATP synthase are <em>two different machines that never touch</em>. The chain is a pump that charges a battery (the H⁺ gradient); ATP synthase is a motor that spends it. Cut the wire between them — add an uncoupler like 2,4-dinitrophenol — and electrons still flow, O₂ is still burned, but the protons leak back as heat and almost no ATP gets made. That is exactly how brown fat keeps a newborn warm and why a fever spikes your metabolic rate. It is also why DNP, sold as a 1930s diet pill, melted fat by literally turning the battery into a space heater — and killed people by cooking them from the inside. Same physics, two destinies, decided entirely by whether the protons go through the motor.</p>
+  <p class="pgb-foot">Here is the whole chapter in one sentence: the respiratory chain and ATP synthase are <em>two different machines that never touch</em>. The chain is a pump that charges a battery (the H⁺ gradient); ATP synthase is a motor that spends it. Cut the wire between them — add an uncoupler like 2,4-dinitrophenol — and electrons still flow, O₂ is still burned, but the protons leak back as heat and almost no ATP gets made. That is how brown fat keeps a newborn warm, through a regulated proton channel, UCP1. It is also why DNP, sold as a 1930s diet pill, melted fat by turning the battery into a heater, and killed people through uncontrolled overheating. Same physics, two destinies, decided entirely by whether the protons go through the motor.</p>
 </figure>
 
 <script>
@@ -115,7 +126,9 @@
   // --- model constants -------------------------------------------------------------------
   const H_PER_ATP = 4;     // ~4 H+ per ATP including ADP/Pi transport
   const THRESH = 12;       // synthase turns only while the gradient holds more than this
-  const MAX_H = 30;        // meter ceiling (max possible charge is THRESH + 3 + 10 = 25)
+  const MAX_H = 30;        // meter ceiling (coupled running peaks at 24; oligomycin stalls flow at STALL)
+  const STALL = 24;        // back-pressure: with the synthase blocked, a pair that would push the gradient past this stalls
+  const BASAL_LEAK = 4;    // H+ that leak back per click while an inhibitor stops the pumps
   const PUMP: Record<Cx, number> = { I: 4, II: 0, III: 4, IV: 2 };
 
   // --- scene geometry (viewBox 540 × 508) ---------------------------------------------------
@@ -130,12 +143,11 @@
   // --- redox ladder (true E°′ spacing on the y axis) ---------------------------------------
   type Rung = { label: string; volts: number; x: number };
   const LADDER: Rung[] = [
+    // the lesson's five landmark floors
     { label: 'NADH', volts: -0.32, x: 40 },
-    { label: 'FMN', volts: -0.30, x: 105 },
-    { label: 'Fe-S', volts: 0.00, x: 170 },
+    { label: 'succinate', volts: 0.03, x: 150 },
     { label: 'CoQ', volts: 0.04, x: 240 },
-    { label: 'cyt c', volts: 0.25, x: 320 },
-    { label: 'cyt a', volts: 0.29, x: 395 },
+    { label: 'cyt c', volts: 0.25, x: 340 },
     { label: 'O₂', volts: 0.82, x: 480 },
   ];
   const ly = (v: number) => 374 + (v + 0.35) * (114 / 1.2);
@@ -174,35 +186,47 @@
     const full: Stop[] = entry === 'NADH'
       ? [
           { p: { x: CXX.I, y: 250 }, rung: 0 },
-          { p: { x: CXX.I, y: E_Y }, rung: 2, cx: 'I' },
-          { p: Q_POS, rung: 3 },
-          { p: { x: CXX.III, y: E_Y }, rung: 3.5, cx: 'III' },
-          { p: C_POS, rung: 4 },
-          { p: { x: CXX.IV, y: E_Y }, rung: 5, cx: 'IV' },
-          { p: { x: CXX.IV, y: 238 }, rung: 6 },
+          { p: { x: CXX.I, y: E_Y }, rung: 0.5, cx: 'I' },
+          { p: Q_POS, rung: 2 },
+          { p: { x: CXX.III, y: E_Y }, rung: 2.5, cx: 'III' },
+          { p: C_POS, rung: 3 },
+          { p: { x: CXX.IV, y: E_Y }, rung: 3.5, cx: 'IV' },
+          { p: { x: CXX.IV, y: 238 }, rung: 4 },
         ]
       : [
-          { p: { x: CXX.II, y: 250 }, rung: 3 },
-          { p: { x: CXX.II, y: E_Y }, rung: 3, cx: 'II' },
-          { p: Q_POS, rung: 3 },
-          { p: { x: CXX.III, y: E_Y }, rung: 3.5, cx: 'III' },
-          { p: C_POS, rung: 4 },
-          { p: { x: CXX.IV, y: E_Y }, rung: 5, cx: 'IV' },
-          { p: { x: CXX.IV, y: 238 }, rung: 6 },
+          { p: { x: CXX.II, y: 250 }, rung: 1 },
+          { p: { x: CXX.II, y: E_Y }, rung: 1.5, cx: 'II' },
+          { p: Q_POS, rung: 2 },
+          { p: { x: CXX.III, y: E_Y }, rung: 2.5, cx: 'III' },
+          { p: C_POS, rung: 3 },
+          { p: { x: CXX.IV, y: E_Y }, rung: 3.5, cx: 'IV' },
+          { p: { x: CXX.IV, y: 238 }, rung: 4 },
         ];
     if (!block) return full;
     // electrons advance up to the blocked complex and pile up there
     const i = full.findIndex((st) => st.cx === block);
     const cut = full.slice(0, i + 1).map((st) => ({ ...st }));
     const last = cut[cut.length - 1];
-    last.rung = block === 'I' ? 0 : block === 'III' ? 3 : 5; // where the pile-up sits on the ladder
+    last.rung = block === 'I' ? 0 : block === 'III' ? 2 : 3; // where the pile-up sits on the ladder
     last.cx = undefined; // a blocked complex does not pump
+    return cut;
+  }
+
+  // oligomycin back-pressure: the pair gets no further than the first complex that would pump
+  function stalledPath(entry: Entry): Stop[] {
+    const full = pathFor(entry, null);
+    const first: Cx = entry === 'NADH' ? 'I' : 'III';
+    const i = full.findIndex((st) => st.cx === first);
+    const cut = full.slice(0, i + 1).map((st) => ({ ...st }));
+    const last = cut[cut.length - 1];
+    last.rung = entry === 'NADH' ? 0 : 2;
+    last.cx = undefined;
     return cut;
   }
 
   // ---------------------------------------------------------------------------------------
   type View = {
-    entry: Entry; inhib: Inhib; uncouple: boolean; pairs: number;
+    entry: Entry; inhib: Inhib; uncouple: boolean; oligo: boolean; basalLeak: boolean; pairs: number;
     dots: { x: number; y: number; moving?: boolean }[];
     electron: Pt | null; ladderPos: number | null;
     activeCx: Cx | null; rotor: number; synthRunning: boolean; leaking: boolean;
@@ -237,9 +261,9 @@
     }
     g.appendChild(el('text', { x: 8, y: 16, fill: INK, 'font-size': 11 * FS, 'font-weight': 700, 'letter-spacing': '0.04em' }, FS > 1 ? 'INTERMEMBRANE SPACE · high [H⁺]' : 'INTERMEMBRANE SPACE · high [H⁺], + side'));
     g.appendChild(el('text', { x: 8, y: MAT_BOT - 8, fill: ACCENT, 'font-size': 11 * FS, 'font-weight': 700, 'letter-spacing': '0.04em' }, FS > 1 ? 'MATRIX · low [H⁺]' : 'MATRIX · low [H⁺], − side'));
-    if (!v.uncouple) {
+    if (!v.uncouple && !v.basalLeak) {
       g.appendChild(el('text', { x: LEAK_X, y: MEM_TOP + 40, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10 * FS, 'font-style': 'italic' }, 'inner'));
-      g.appendChild(el('text', { x: LEAK_X, y: MEM_TOP + 52, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10 * FS, 'font-style': 'italic' }, 'membrane'));
+      g.appendChild(el('text', { x: LEAK_X, y: MEM_TOP + 40 + 12.5 * FS, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10 * FS, 'font-style': 'italic' }, 'membrane'));
     }
 
     // ---- complexes
@@ -298,7 +322,13 @@
       downArrow(g, LEAK_X, 60, MEM_TOP + 50, ORANGE, 2.5, '5 4');
       downArrow(g, LEAK_X, MEM_TOP + 72, 226, ORANGE, 2.5, '5 4');
       g.appendChild(el('text', { x: LEAK_X, y: 242, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10.5 * FS, 'font-weight': 800 }, 'H⁺ leak'));
-      g.appendChild(el('text', { x: LEAK_X, y: 255, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10.5 * FS, 'font-weight': 800 }, '→ heat'));
+      g.appendChild(el('text', { x: LEAK_X, y: 242 + 13 * FS, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10.5 * FS, 'font-weight': 800 }, '→ heat'));
+    }
+
+    // ---- basal leak while an inhibitor has stopped the pumps
+    if (v.basalLeak && !v.uncouple) {
+      downArrow(g, LEAK_X, 60, 226, SLATE, 1.5, '3 3');
+      g.appendChild(el('text', { x: LEAK_X, y: 242, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10 * FS, 'font-weight': 700 }, 'basal leak'));
     }
 
     // ---- ATP synthase (F0 in the membrane, F1 head in the matrix)
@@ -318,7 +348,12 @@
     rg.appendChild(el('line', { x1: SYN_X, y1: F1_Y, x2: SYN_X, y2: F1_Y - 15, stroke: NAVY, 'stroke-width': 4.5, 'stroke-linecap': 'round' }));
     rg.appendChild(el('circle', { cx: SYN_X, cy: F1_Y, r: 4.5, fill: NAVY }));
     g.appendChild(rg);
-    g.appendChild(el('text', { x: SYN_X, y: 288, 'text-anchor': 'middle', fill: v.uncouple ? ORANGE : GOLD_INK, 'font-size': 10.5 * FS, 'font-weight': 700 }, v.uncouple ? 'bypassed: no ATP' : 'ADP + Pᵢ → ATP'));
+    if (v.oligo) {
+      const my = (MEM_TOP + MEM_BOT) / 2;
+      g.appendChild(el('path', { d: `M${SYN_X - 14},${my - 14} L${SYN_X + 14},${my + 14} M${SYN_X + 14},${my - 14} L${SYN_X - 14},${my + 14}`, stroke: NAVY, 'stroke-width': 4.5, 'stroke-linecap': 'round' }));
+    }
+    const synLabel = v.uncouple ? 'bypassed: no ATP' : v.oligo ? 'oligomycin: no ATP' : 'ADP + Pᵢ → ATP';
+    g.appendChild(el('text', { x: SYN_X, y: 288, 'text-anchor': 'middle', fill: v.uncouple ? ORANGE : v.oligo ? NAVY : GOLD_INK, 'font-size': 10.5 * FS, 'font-weight': 700 }, synLabel));
 
     // ---- protons in the IMS (and in flight)
     v.dots.forEach((d) => {
@@ -340,16 +375,16 @@
     title.appendChild(el('tspan', { fill: INK, 'font-weight': 400 }, ' — electrons fall toward more positive E°′ (volts)'));
     L.appendChild(title);
     const bands: { from: number; to: number; label: string; cx: Cx }[] = [
-      { from: 18, to: 240, label: v.entry === 'FADH2' ? 'Complex I — skipped by FADH₂' : 'Complex I → pumps 4 H⁺', cx: 'I' },
-      { from: 240, to: 320, label: 'III → 4 H⁺', cx: 'III' },
-      { from: 320, to: 505, label: 'Complex IV → 2 H⁺', cx: 'IV' },
+      { from: 18, to: 195, label: v.entry === 'FADH2' ? 'Complex I — skipped by FADH₂' : 'Complex I → pumps 4 H⁺', cx: 'I' },
+      { from: 195, to: 410, label: 'Complex III → 4 H⁺', cx: 'III' },
+      { from: 410, to: 505, label: 'IV → 2 H⁺', cx: 'IV' },
     ];
     bands.forEach((b, i) => {
       L.appendChild(el('rect', { x: b.from, y: 332, width: b.to - b.from, height: 168, fill: i % 2 ? '#f3f5fa' : '#fafbfd', opacity: b.cx === 'I' && v.entry === 'FADH2' ? 0.5 : 1 }));
       L.appendChild(el('text', { x: (b.from + b.to) / 2, y: 346, 'text-anchor': 'middle', fill: b.cx === 'I' && v.entry === 'FADH2' ? MUTED : GOLD_INK, 'font-size': 10 * FS, 'font-weight': 700 }, b.label));
     });
     const endRung = pathFor(v.entry, block).slice(-1)[0].rung;
-    const startRung = v.entry === 'NADH' ? 0 : 3;
+    const startRung = v.entry === 'NADH' ? 0 : 1;
     for (let i = 0; i < LADDER.length; i++) {
       const r = LADDER[i];
       const y = ly(r.volts);
@@ -364,7 +399,7 @@
       L.appendChild(el('text', { x: r.x, y: y + 13, 'text-anchor': 'middle', fill: INK, 'font-size': 9.5 * FS, 'font-family': 'ui-monospace, monospace', opacity: op }, `${r.volts > 0 ? '+' : r.volts < 0 ? '−' : ''}${Math.abs(r.volts).toFixed(2)}`));
     }
     if (v.entry === 'FADH2') {
-      L.appendChild(el('text', { x: 240, y: 380, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10 * FS, 'font-weight': 700 }, 'FADH₂ joins here'));
+      L.appendChild(el('text', { x: LADDER[1].x, y: 380, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10 * FS, 'font-weight': 700 }, 'FADH₂ joins here'));
     }
     if (block) {
       const r = LADDER[Math.floor(endRung)];
@@ -406,10 +441,11 @@
     const uncoupleBtn = root.querySelector<HTMLButtonElement>('[data-uncouple]')!;
     const entryBtns = root.querySelectorAll<HTMLButtonElement>('[data-entry]');
     const inhibBtns = root.querySelectorAll<HTMLButtonElement>('[data-inhib]');
+    const oligoBtns = root.querySelectorAll<HTMLButtonElement>('[data-oligo]');
     thresh.style.left = `${(THRESH / MAX_H) * 100}%`;
 
     const s = {
-      entry: 'NADH' as Entry, inhib: 'none' as Inhib, uncouple: false,
+      entry: 'NADH' as Entry, inhib: 'none' as Inhib, uncouple: false, oligo: false, stalled: false,
       hPlus: 0, atp: 0, heat: 0, o2Halves: 0, pairs: 0, rotor: 0,
       endRung: null as number | null,
     };
@@ -417,6 +453,7 @@
     type Plan = {
       stops: Stop[]; pumps: { cx: Cx; n: number; t: number; first: number }[];
       h0: number; hPeak: number; hAfter: number; atpMade: number; leaked: number; reachesO2: boolean;
+      basal: boolean; stalled: boolean;
       tElec: number; tSettle: number; tEnd: number;
     };
     let anim: { plan: Plan; t0: number; raf: number } | null = null;
@@ -429,7 +466,7 @@
     function staticView(): View {
       const dots = DOTS.slice(0, Math.min(MAX_H, s.hPlus)).map((d) => ({ ...d }));
       return {
-        entry: s.entry, inhib: s.inhib, uncouple: s.uncouple, pairs: s.pairs, dots,
+        entry: s.entry, inhib: s.inhib, uncouple: s.uncouple, oligo: s.oligo, basalLeak: false, pairs: s.pairs, dots,
         electron: null, ladderPos: s.endRung, activeCx: null, rotor: s.rotor, synthRunning: false, leaking: false,
       };
     }
@@ -442,7 +479,7 @@
 
     function takeaway(): string {
       if (s.inhib === 'IV') {
-        return 'Cyanide jams Complex IV: electrons pile up behind it (every carrier stays reduced), O₂ can no longer be reduced, and the whole chain stalls. The pumps stop, the gradient cannot be recharged, and ATP synthesis stops — this is why cyanide kills in minutes. The mitochondria are full of fuel and oxygen and still cannot make energy.';
+        return 'Cyanide jams Complex IV: every carrier upstream of it, up to and including cytochrome c, stays reduced and O₂ cannot be reduced. The pumps stop while protons keep leaking back, so the gradient runs down and ATP synthase can no longer make ATP (it may even run backward, spending glycolytic ATP). That is why cyanide kills in minutes.';
       }
       if (s.inhib === 'III') {
         return 'Antimycin A blocks Complex III: CoQ upstream stays reduced while cyt c downstream stays oxidized — the classic crossover point. With nowhere to send its electrons, Complex I stalls too, so pumping stops, no O₂ is consumed, and ATP output collapses.';
@@ -451,7 +488,12 @@
         return 'Rotenone blocks Complex I, so NADH electrons cannot get in at all — flow is dead on arrival, and the carriers downstream stay oxidized. (Switch the entry point to FADH₂: those electrons enter at Complex II, downstream of the block, and flow resumes.)';
       }
       if (s.uncouple) {
-        return 'Uncoupler engaged: the pumps still work, but the protons skip ATP synthase and leak straight back across the membrane. Electrons still flow and O₂ is still consumed — the energy comes out as HEAT, not ATP. This is brown fat warming a newborn, and the lethal logic of the DNP diet pill.';
+        return `Uncoupler engaged${s.oligo ? ' (oligomycin is still blocking the synthase, but the leak lets protons back in, so electrons race again)' : ''}: the pumps still work, but the protons skip ATP synthase and leak straight back across the membrane. Electrons still flow and O₂ is still consumed — the energy comes out as HEAT, not ATP. Brown fat does this on purpose through UCP1; DNP does it with no control.`;
+      }
+      if (s.oligo) {
+        return s.stalled
+          ? 'Oligomycin blocks ATP synthase: the gradient fills and the pumps stall, so oxygen use nearly stops. Now switch on DNP: the leak lets protons back in and electrons race again, with all the energy lost as heat.'
+          : `Oligomycin blocks ATP synthase, so protons have no way back in. Each pair still pumps ${pumpedPerPair()} H⁺, but no ATP is made and the gradient keeps filling. Keep sending pairs and watch what back-pressure does to electron flow.`;
       }
       const lead = s.inhib === 'I' && s.entry === 'FADH2'
         ? 'Rotenone blocks Complex I — but FADH₂ enters at Complex II, downstream of the block, so its electrons flow on untouched. Where flow stops tells you where the block is. '
@@ -469,7 +511,7 @@
     function statusClass(): void {
       const coupled = !blockAt(s.entry, s.inhib) && !s.uncouple && s.atp > 0;
       takeawayEl.classList.toggle('pgb-ok', coupled);
-      takeawayEl.classList.toggle('pgb-bad', !!blockAt(s.entry, s.inhib) || s.uncouple);
+      takeawayEl.classList.toggle('pgb-bad', !!blockAt(s.entry, s.inhib) || s.uncouple || s.oligo);
     }
 
     function refresh(): void {
@@ -480,6 +522,7 @@
       const n = pumpedPerPair();
       yieldEl.textContent = n === 0 ? '0 H⁺ → 0 ATP'
         : s.uncouple ? `${n} H⁺ → leak, 0 ATP`
+          : s.oligo ? `${n} H⁺ → synthase blocked, 0 ATP`
           : `${n} H⁺ ÷ 4 = ${(n / H_PER_ATP).toFixed(1)} ATP`;
       takeawayEl.textContent = takeaway();
       statusClass();
@@ -488,23 +531,28 @@
 
     function makePlan(): Plan {
       const block = blockAt(s.entry, s.inhib);
-      const stops = pathFor(s.entry, block);
+      // back-pressure: with the synthase blocked and no leak, a full gradient stops the pumps
+      const stalled = !block && s.oligo && !s.uncouple && s.hPlus + pumpedPerPair() > STALL;
+      const stops = stalled ? stalledPath(s.entry) : pathFor(s.entry, block);
       const seg = 190;
       const tElec = (stops.length - 1) * seg;
       const pumps: Plan['pumps'] = [];
       let cum = 0;
       // a blocked chain has no steady electron flow, so no complex pumps (not even the ones upstream)
-      if (!block) stops.forEach((st, i) => {
+      if (!block && !stalled) stops.forEach((st, i) => {
         if (st.cx && PUMP[st.cx] > 0) { pumps.push({ cx: st.cx, n: PUMP[st.cx], t: i * seg, first: cum }); cum += PUMP[st.cx]; }
       });
       const h0 = s.hPlus, hPeak = Math.min(MAX_H, h0 + cum);
       let atpMade = 0, leaked = 0, hAfter = hPeak;
-      if (s.uncouple) { leaked = hPeak; hAfter = 0; }
+      if (block) { leaked = Math.min(h0, BASAL_LEAK); hAfter = h0 - leaked; } // pumps stopped, basal leak drains the gradient
+      else if (stalled) { hAfter = h0; }
+      else if (s.uncouple) { leaked = hPeak; hAfter = 0; }
+      else if (s.oligo) { hAfter = hPeak; }
       else { atpMade = Math.max(0, Math.floor((hPeak - THRESH) / H_PER_ATP)); hAfter = hPeak - atpMade * H_PER_ATP; }
       const leaving = hPeak - hAfter;
       const tSettle = tElec + 380;
       const tEnd = tSettle + (leaving > 0 ? 520 + leaving * 45 : 200);
-      return { stops, pumps, h0, hPeak, hAfter, atpMade, leaked, reachesO2: !block, tElec, tSettle, tEnd };
+      return { stops, pumps, h0, hPeak, hAfter, atpMade, leaked, reachesO2: !block && !stalled, basal: !!block, stalled, tElec, tSettle, tEnd };
     }
 
     function commit(p: Plan): void {
@@ -515,13 +563,20 @@
       if (p.reachesO2) s.o2Halves += 1;
       s.rotor = (s.rotor + 120 * p.atpMade) % 360;
       s.endRung = p.stops[p.stops.length - 1].rung;
+      s.stalled = p.stalled;
       const pumped = p.hPeak - p.h0;
       const who = s.entry === 'NADH' ? 'NADH' : 'FADH₂';
-      logEl.textContent = !p.reachesO2
-        ? `No flow: the ${who} electrons stop at the blocked complex — 0 H⁺ pumped, no O₂ used, no ATP.`
-        : s.uncouple
-          ? `Pair ${s.pairs} (${who}): ${pumped} H⁺ pumped, ½ O₂ reduced to water — and every proton leaked back as heat. 0 ATP.`
-          : `Pair ${s.pairs} (${who}): ${pumped} H⁺ pumped, ½ O₂ reduced to water, ${p.atpMade} ATP made; ${p.hAfter} H⁺ left in the gradient.`;
+      logEl.textContent = p.stalled
+        ? `Back-pressure: the gradient (${p.h0} H⁺) is so high that pushing more protons out costs more than the electrons release. Electron flow stalls and O₂ use stops, down to the leak rate.`
+        : !p.reachesO2
+          ? p.leaked > 0
+            ? `No flow: 0 H⁺ pumped, no O₂ used; the stored gradient leaks down by ${p.leaked} H⁺ and is not refilled.`
+            : `No flow: the ${who} electrons stop at the blocked complex — 0 H⁺ pumped, no O₂ used, no ATP.`
+          : s.uncouple
+            ? `Pair ${s.pairs} (${who}): ${pumped} H⁺ pumped, ½ O₂ reduced to water — and every proton leaked back as heat. 0 ATP.`
+            : s.oligo
+              ? `Pair ${s.pairs} (${who}): ${pumped} H⁺ pumped, ½ O₂ reduced to water, 0 ATP (synthase blocked); ${p.hAfter} H⁺ now in the gradient.`
+              : `Pair ${s.pairs} (${who}): ${pumped} H⁺ pumped, ½ O₂ reduced to water, ${p.atpMade} ATP made; ${p.hAfter} H⁺ left in the gradient.`;
       refresh();
     }
 
@@ -556,7 +611,8 @@
         }
       });
       const leaving = p.hPeak - p.hAfter;
-      const exitX = s.uncouple ? LEAK_X : SYN_X;
+      const viaLeak = s.uncouple || p.basal;
+      const exitX = viaLeak ? LEAK_X : SYN_X;
       if (t >= p.tSettle && leaving > 0) {
         for (let m = 0; m < leaving; m++) {
           const idx = p.hPeak - 1 - m;
@@ -567,7 +623,7 @@
           dots.splice(di, 1);
           present--;
           if (f < 1) {
-            const mid = { x: exitX, y: 44 }, end = { x: exitX, y: s.uncouple ? 226 : MEM_BOT - 6 };
+            const mid = { x: exitX, y: 44 }, end = { x: exitX, y: viaLeak ? 226 : MEM_BOT - 6 };
             const pos = f < 0.5 ? lerp(DOTS[idx], mid, ease(f * 2)) : lerp(mid, end, ease((f - 0.5) * 2));
             dots.push({ ...pos, moving: true });
           }
@@ -580,7 +636,7 @@
       if (p.leaked > 0) heatEl.textContent = String(s.heat + Math.round(p.leaked * sp));
 
       drawScene(svg, {
-        entry: s.entry, inhib: s.inhib, uncouple: s.uncouple, pairs: s.pairs + (done && p.reachesO2 ? 1 : 0), dots,
+        entry: s.entry, inhib: s.inhib, uncouple: s.uncouple, oligo: s.oligo, basalLeak: p.basal && p.leaked > 0, pairs: s.pairs + (done && p.reachesO2 ? 1 : 0), dots,
         electron, ladderPos, activeCx, rotor, synthRunning: t >= p.tSettle && p.atpMade > 0, leaking: s.uncouple,
       });
       if (t >= p.tEnd) { const pl = p; anim = null; commit(pl); return; }
@@ -620,7 +676,7 @@
 
     function setUncouple(on: boolean): void {
       finishAnim();
-      s.uncouple = on;
+      s.uncouple = on; s.stalled = false;
       uncoupleBtn.setAttribute('aria-pressed', String(on));
       uncoupleBtn.textContent = `DNP / proton leak: ${on ? 'ON' : 'OFF'}`;
       if (on && s.hPlus > 0) {
@@ -632,11 +688,28 @@
       refresh();
     }
 
+    function setOligo(on: boolean): void {
+      finishAnim();
+      s.oligo = on; s.stalled = false; s.endRung = null;
+      oligoBtns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.oligo === 'on') === on)));
+      logEl.textContent = '';
+      if (!on && !s.uncouple && s.hPlus > THRESH) {
+        // the unblocked synthase immediately spends the backed-up gradient
+        const made = Math.floor((s.hPlus - THRESH) / H_PER_ATP);
+        if (made > 0) {
+          s.atp += made; s.hPlus -= made * H_PER_ATP; s.rotor = (s.rotor + 120 * made) % 360;
+          logEl.textContent = `ATP synthase unblocked: the backed-up gradient flows through it, ${made} ATP made; ${s.hPlus} H⁺ left in the gradient.`;
+        }
+      }
+      refresh();
+    }
+
     function resetAll(): void {
       if (anim) { cancelAnimationFrame(anim.raf); anim = null; }
-      Object.assign(s, { entry: 'NADH', inhib: 'none', uncouple: false, hPlus: 0, atp: 0, heat: 0, o2Halves: 0, pairs: 0, rotor: 0, endRung: null });
+      Object.assign(s, { entry: 'NADH', inhib: 'none', uncouple: false, oligo: false, stalled: false, hPlus: 0, atp: 0, heat: 0, o2Halves: 0, pairs: 0, rotor: 0, endRung: null });
       entryBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.entry === 'NADH')));
       inhibBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.inhib === 'none')));
+      oligoBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.oligo === 'off')));
       uncoupleBtn.setAttribute('aria-pressed', 'false');
       uncoupleBtn.textContent = 'DNP / proton leak: OFF';
       logEl.textContent = '';
@@ -645,6 +718,7 @@
 
     entryBtns.forEach((b) => b.addEventListener('click', () => setEntry(b.dataset.entry as Entry)));
     inhibBtns.forEach((b) => b.addEventListener('click', () => setInhib(b.dataset.inhib as Inhib)));
+    oligoBtns.forEach((b) => b.addEventListener('click', () => setOligo(b.dataset.oligo === 'on')));
     uncoupleBtn.addEventListener('click', () => setUncouple(!s.uncouple));
     runBtn.addEventListener('click', runPair);
     resetBtn.addEventListener('click', resetAll);

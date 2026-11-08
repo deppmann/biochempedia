@@ -33,14 +33,14 @@
     <label class="bench-slabel"><span>Chain length <em data-out="chain">18</em> C</span>
       <input type="range" data-in="chain" min="12" max="22" step="1" value="18" />
     </label>
-    <label class="bench-slabel"><span>cis double bonds per chain <em data-out="db">1</em></span>
-      <input type="range" data-in="db" min="0" max="4" step="1" value="1" />
+    <label class="bench-slabel"><span>cis double bonds per chain <em data-out="db">0</em></span>
+      <input type="range" data-in="db" min="0" max="4" step="1" value="0" />
     </label>
-    <label class="bench-slabel"><span>Cholesterol <em data-out="chol">20</em> mol %</span>
-      <input type="range" data-in="chol" min="0" max="40" step="5" value="20" />
+    <label class="bench-slabel"><span>Cholesterol <em data-out="chol">0</em> mol %</span>
+      <input type="range" data-in="chol" min="0" max="40" step="5" value="0" />
     </label>
-    <label class="bench-slabel"><span>Temperature <em data-out="temp">25</em> °C</span>
-      <input type="range" data-in="temp" min="-10" max="60" step="1" value="25" />
+    <label class="bench-slabel"><span>Temperature <em data-out="temp">37</em> °C</span>
+      <input type="range" data-in="temp" min="-10" max="60" step="1" value="37" />
     </label>
   </div>
 
@@ -48,7 +48,7 @@
     <span class="bench-hablbl">Habitat:</span>
     <button type="button" data-preset="arctic" aria-pressed="false">Arctic fish</button>
     <button type="button" data-preset="desert" aria-pressed="false">Desert plant</button>
-    <button type="button" data-preset="human" aria-pressed="true">Human</button>
+    <button type="button" data-preset="human" aria-pressed="false">Human</button>
     <button type="button" data-preset="ecoli" aria-pressed="false">E. coli (cold)</button>
   </div>
 
@@ -73,16 +73,19 @@
   }
   // Teaching-grade model (NOT literal lab values; documented for transparency):
   // Tm rises with chain length (more van der Waals contact) and falls sharply
-  // with each cis double bond (a kink that blocks packing). Calibrated so the
-  // four habitat presets each read FLUID at their habitat temperature.
-  function computeTm(chain: number, db: number) { return 3.5 * (chain - 14) + 24 - 25 * db; }
+  // with the first cis double bond, less with each further one (a kink that
+  // blocks packing). The kink steps (-43, -15, -6, -4) echo the lesson's
+  // DPPC -> POPC -> DOPC drops (43, then 15) and the 18:2 -> 18:3 step (6).
+  // Calibrated so the four habitat presets each read FLUID at their habitat temperature.
+  const KINK = [0, 43, 58, 64, 68];
+  function computeTm(chain: number, db: number) { return 3.5 * (chain - 14) + 24 - KINK[db]; }
   // Cholesterol broadens (does not shift) the transition.
   function computeWidth(chol: number) { return 6 + 0.6 * chol; }
   function order(T: number, Tm: number, w: number) { return 1 / (1 + Math.exp((T - Tm) / (w / 4))); }
 
   type Preset = { chain: number; db: number; chol: number; temp: number };
   const PRESETS: Record<string, Preset> = {
-    arctic: { chain: 18, db: 3, chol: 5, temp: 2 },
+    arctic: { chain: 22, db: 4, chol: 5, temp: 2 },
     desert: { chain: 20, db: 0, chol: 10, temp: 48 },
     human: { chain: 18, db: 1, chol: 25, temp: 37 },
     ecoli: { chain: 16, db: 2, chol: 0, temp: 15 },
@@ -109,7 +112,8 @@
     const rWidth = root.querySelector<HTMLElement>('[data-r-width]')!;
     const rState = root.querySelector<HTMLElement>('[data-r-state]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
-    let activePreset: string | null = 'human';
+    let activePreset: string | null = null;
+    let prev: { chain: number; db: number; Tm: number } | null = null;
 
     // Deterministic pseudo-jitter so the fluid cartoon is stable, never AI-random.
     function seeded(i: number) { const x = Math.sin(i * 12.9898) * 43758.5453; return x - Math.floor(x); }
@@ -159,7 +163,12 @@
       // Tm guide (or an arrow saying where it went, when it is off the chart)
       if (Tm >= TMIN && Tm <= TMAX) {
         plot.appendChild(el('line', { x1: xPix(Tm), y1: PY0, x2: xPix(Tm), y2: PY1, stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
-        txt(plot, xPix(Tm), PY0 - 6, `Tm ${Tm.toFixed(0)} °C`, 9.5, NAVY, { 'text-anchor': 'middle', 'font-weight': 700 });
+        // keep the label clear of the 'fluid' axis word (left) and inside the frame (right)
+        const tmLab = `Tm ${Tm.toFixed(0)} °C`;
+        const half = (tmLab.length * 0.55 * fs(9.5)) / 2;
+        const tx = xPix(Tm);
+        const lo = tx - half < PX0 + 4, hi = tx + half > 416;
+        txt(plot, lo ? PX0 + 4 : hi ? 416 : tx, PY0 - 6, tmLab, 9.5, NAVY, { 'text-anchor': lo ? 'start' : hi ? 'end' : 'middle', 'font-weight': 700 });
       } else {
         const left = Tm < TMIN;
         txt(plot, left ? PX0 + 4 : PX1, PY0 - 6, left ? `← Tm ${Tm.toFixed(0)} °C, off the chart` : `Tm ${Tm.toFixed(0)} °C, off the chart →`, 9.5, NAVY, { 'text-anchor': left ? 'start' : 'end', 'font-weight': 700 });
@@ -185,13 +194,14 @@
     }
 
     // ---- left panel: bilayer cartoon ----
-    // Each phospholipid = a head (navy) with two tails. Gel: straight, tightly packed
-    // tails at full length. Fluid: cis kinks, jitter, looser packing, and a slightly
-    // thinner bilayer (disordered chains are effectively shorter).
+    // Each phospholipid = a head (navy) with two tails. A cis kink is a fixed bend in
+    // the molecule, drawn in both states. Gel: tails lined up at full length (kinked
+    // tails cannot pack, so they sit wider apart). Fluid: tails flex (jitter, gauche
+    // wiggles), looser packing, and a slightly thinner bilayer.
     function renderBilayer(v: { chain: number; db: number; chol: number; temp: number }, isGel: boolean) {
       bilayer.replaceChildren();
       const W = 420, headTop = 70, headBot = 250, R0 = 8;
-      const spacing = isGel ? 30 : 34 + v.db * 3;
+      const spacing = isGel ? 30 + v.db * 3 : 34 + v.db * 3;
       const N = Math.floor((W - 36) / spacing) + 1;
       const startX = (W - (N - 1) * spacing) / 2;
       const full = 44 + (v.chain - 12) * 4.2;          // 12 C → 44, 22 C → 86 (midplane is 90 away)
@@ -204,15 +214,21 @@
       const tailColor = isGel ? GEL : ACCENT;
       const tail = (x: number, y0: number, dir: number, seed: number) => {
         let d = `M${x.toFixed(1)} ${y0.toFixed(1)}`;
-        if (isGel || v.db === 0) {
-          const wob = isGel ? 0 : (seeded(seed) - 0.5) * 6;
-          d += ` L${(x + wob).toFixed(1)} ${(y0 + dir * tailLen).toFixed(1)}`;
+        if (v.db === 0) {
+          if (isGel) {
+            d += ` L${x.toFixed(1)} ${(y0 + dir * tailLen).toFixed(1)}`;
+          } else {
+            // fluid saturated tail: a small two-segment wiggle (gauche flexing)
+            const wob = (seeded(seed) - 0.5) * 8;
+            d += ` L${(x + wob).toFixed(1)} ${(y0 + dir * tailLen * 0.5).toFixed(1)}`;
+            d += ` L${(x - wob * 0.4).toFixed(1)} ${(y0 + dir * tailLen).toFixed(1)}`;
+          }
         } else {
           // a ~30° kink at each cis double bond, alternating direction
           const seg = tailLen / (v.db + 1);
           let cx = x, cy = y0;
           for (let kk = 0; kk <= v.db; kk++) {
-            const ang = kk === 0 ? 0 : (kk % 2 ? 1 : -1) * 0.52 + (seeded(seed + kk) - 0.5) * 0.3;
+            const ang = kk === 0 ? 0 : (kk % 2 ? 1 : -1) * 0.52 + (isGel ? 0 : (seeded(seed + kk) - 0.5) * 0.3);
             cx += Math.sin(ang) * seg; cy += dir * Math.cos(ang) * seg;
             d += ` L${cx.toFixed(1)} ${cy.toFixed(1)}`;
           }
@@ -241,7 +257,7 @@
           bilayer.appendChild(el('circle', { cx: x, cy: y0, r: 2.6, fill: '#fff', stroke: '#a8862f', 'stroke-width': 1 }));
         });
       }
-      txt(bilayer, 210, 20, isGel ? 'GEL — straight tails, packed tight' : 'FLUID — kinked tails, loosely packed', 11, isGel ? GEL_INK : ACCENT_INK, { 'text-anchor': 'middle', 'font-weight': 700 });
+      txt(bilayer, 210, 20, isGel ? 'GEL — tails lined up and packed' : 'FLUID — tails flex and slide', 11, isGel ? GEL_INK : ACCENT_INK, { 'text-anchor': 'middle', 'font-weight': 700 });
       if (nChol > 0) {
         bilayer.appendChild(el('rect', { x: 210 - fs(10) * 3.4, y: 300 - fs(10) * 0.9, width: 6, height: fs(10), rx: 2, fill: GOLD, stroke: '#a8862f', 'stroke-width': 0.8 }));
         txt(bilayer, 210 - fs(10) * 3.4 + 11, 300, 'cholesterol', 10, INK);
@@ -265,18 +281,18 @@
       rState.textContent = isGel ? 'GEL (ordered, frozen)' : 'FLUID';
       rState.className = isGel ? 'is-gel' : 'is-fluid';
       bilayerCap.textContent = isGel
-        ? 'Below Tm: chains pack into an ordered gel — proteins can barely move.'
-        : 'Above Tm: kinked, loosely packed chains let lipids and proteins diffuse.';
+        ? 'Below Tm: tails stay lined up in an ordered gel; proteins can barely move.'
+        : 'Above Tm: tails flex and slide past each other; lipids and proteins diffuse.';
       // why line + habitat challenge
       let msg = '';
       if (isGel) {
         msg = v.db === 0
           ? 'No double bonds and a long chain push Tm high; at this temperature the membrane has frozen. Add a cis double bond to drop Tm and thaw it.'
-          : 'The temperature has fallen below Tm and the membrane has gelled. More cis double bonds, or cholesterol, would hold it fluid.';
+          : 'The temperature is below Tm and the tails have lined up into a gel. A cis double bond lowers Tm; cholesterol loosens the gel (the curve sits lower) but does not move Tm.';
       } else {
         msg = v.chol >= 25
           ? 'Fluid — and cholesterol is holding the transition broad, so this membrane resists both freezing and over-melting across a wide range.'
-          : 'Fluid — the temperature sits above Tm, so kinks and gaps keep the chains mobile.';
+          : 'Fluid — the temperature sits above Tm, so the tails flex and slide.';
       }
       if (activePreset) {
         const name = HAB_NAME[activePreset];
@@ -284,6 +300,12 @@
           ? `${name}: GEL at its habitat temperature ✗ — a real ${name.toLowerCase()} would remodel its lipids (more double bonds) to stay fluid. ` + msg
           : `${name}: FLUID at its habitat temperature ✓ — this is homeoviscous adaptation in action. ` + msg;
       }
+      // show what one more (or one fewer) cis bond did, so the shrinking steps are visible
+      if (prev && prev.chain === v.chain && prev.db !== v.db) {
+        const dTm = Tm - prev.Tm;
+        msg = `That change in double bonds moved Tm by ${dTm > 0 ? '+' : '−'}${Math.abs(dTm).toFixed(0)} °C. ` + msg;
+      }
+      if (!prev || prev.chain !== v.chain || prev.db !== v.db) prev = { chain: v.chain, db: v.db, Tm };
       why.textContent = msg;
     }
 
@@ -305,8 +327,7 @@
         renderAll();
       });
     });
-    // start on the Human preset
-    root.querySelector<HTMLButtonElement>('[data-preset="human"]')!.setAttribute('aria-pressed', 'true');
+    // start with no preset: a saturated 18 C membrane just below its Tm at 37 °C
     const fit = () => { const w = plot.getBoundingClientRect().width || 420; const nk = Math.min(1.6, Math.max(1, 440 / w)); if (Math.abs(nk - k) > 0.02) { k = nk; renderAll(); } };
     if ('ResizeObserver' in window) new ResizeObserver(fit).observe(plot);
     renderAll();

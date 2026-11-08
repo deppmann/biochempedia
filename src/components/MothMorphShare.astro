@@ -1,0 +1,177 @@
+---
+/**
+ * MothMorphShare — the worked problem of "Natural Selection in Ecological Context".
+ * Typica survives each day at 0.80, carbonaria at 0.80 x (1 - s). Two bars show expected
+ * survivors out of 1,000 each; Resample draws survivors at random beside the expected value.
+ * Share of carbonaria = (1-s)^t / (1 + (1-s)^t). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="mms card" data-mms>
+  <figcaption class="mms-head">Moth morph share: relative daily survival<span class="mms-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="mms-svg" viewBox="0 0 340 230" role="img" aria-label="Two bars of expected surviving resting moths, typica and carbonaria, out of 1,000 each, with random survivors marked on each bar" data-plot></svg>
+
+  <div class="mms-controls">
+    <label class="mms-slabel"><span>Selection against carbonaria, s per day <em data-out="s">0.091</em></span>
+      <input type="range" data-in="s" min="0" max="0.2" step="0.001" value="0.091" />
+    </label>
+    <label class="mms-slabel"><span>Day <em data-out="t">1</em></span>
+      <input type="range" data-in="t" min="0" max="20" step="1" value="1" />
+    </label>
+    <button type="button" class="mms-btn" data-resample>Resample</button>
+  </div>
+
+  <table class="mms-table">
+    <thead><tr><th scope="col"></th><th scope="col">daily survival</th><th scope="col">expected survivors</th><th scope="col">random draw</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">typica</th><td data-v="p1">0.8000</td><td data-v="e1">800.0</td><td data-v="o1">–</td></tr>
+      <tr><th scope="row">carbonaria</th><td data-v="p2">0.7272</td><td data-v="e2">727.2</td><td data-v="o2">–</td></tr>
+      <tr class="mms-share"><th scope="row">carbonaria share</th><td colspan="2" data-v="es">47.6%</td><td data-v="os">–</td></tr>
+    </tbody>
+  </table>
+
+  <p class="mms-assume">In this sketch: 1,000 typica and 1,000 carbonaria to start (all invented numbers), typica daily survival 0.80, no migration, no reproduction, rates constant. Fractional survivors are expectations. s is relative and per day. Resample: in this sketch each moth survives independently with the probability shown (a sampling model of this sketch, not from the study).</p>
+  <p class="mms-why" data-why role="status"></p>
+
+  <p class="mms-foot">Rule to keep: carbonaria share after t days = (1 − s)<sup>t</sup> / (1 + (1 − s)<sup>t</sup>) for equal starting numbers. A change in morph share among survivors is not yet a change in allele frequency; that is left to the Genetics lesson.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const C1 = '#0e7c86', C2 = '#4b4b55', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const N0 = 1000, P1 = 0.8;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function binom(n: number, p: number): number {
+    let c = 0;
+    for (let i = 0; i < n; i++) if (Math.random() < p) c++;
+    return c;
+  }
+  document.querySelectorAll<HTMLElement>('[data-mms]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
+    const v = (k: string) => root.querySelector<HTMLElement>(`[data-v="${k}"]`)!;
+    const sIn = inp('s'), tIn = inp('t');
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    let draw: { a: number; b: number } | null = null;
+
+    const X0 = 50, X1 = 326, Y0 = 36, Y1 = 170;
+    const py = (n: number) => Y1 - (n / N0) * (Y1 - Y0);
+    const BW = 70, XA = 92, XB = 214;
+
+    function render() {
+      const s = parseFloat(sIn.value), t = parseInt(tIn.value, 10);
+      const p2 = P1 * (1 - s);
+      const e1 = N0 * Math.pow(P1, t), e2 = N0 * Math.pow(p2, t);
+      const share = e2 / (e1 + e2); // = (1-s)^t / (1 + (1-s)^t)
+      out('s').textContent = s.toFixed(3);
+      out('t').textContent = String(t);
+      v('p1').textContent = P1.toFixed(4);
+      v('p2').textContent = p2.toFixed(4);
+      v('e1').textContent = e1.toFixed(1);
+      v('e2').textContent = e2.toFixed(1);
+      v('es').textContent = (share * 100).toFixed(1) + '%';
+      let obsShare = NaN;
+      if (draw) {
+        v('o1').textContent = String(draw.a);
+        v('o2').textContent = String(draw.b);
+        obsShare = draw.a + draw.b > 0 ? draw.b / (draw.a + draw.b) : NaN;
+        v('os').textContent = isNaN(obsShare) ? 'none left' : (obsShare * 100).toFixed(1) + '%';
+      } else {
+        v('o1').textContent = '–'; v('o2').textContent = '–'; v('os').textContent = '–';
+      }
+
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0 - 6, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const n of [0, 500, 1000]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(n), x2: X1, y2: py(n), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        const tx = el('text', { x: X0 - 4, y: py(n) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); tx.textContent = n.toLocaleString('en-US'); plot.appendChild(tx);
+      }
+      const yl = el('text', { x: X0, y: 12, 'font-size': 10, fill: INK }); yl.textContent = 'moths surviving to the chosen day'; plot.appendChild(yl);
+      const bars: [number, number, string, string, number, number | undefined][] = [
+        [XA, e1, C2, 'typica', e1, draw?.a],
+        [XB, e2, C1, 'carbonaria', e2, draw?.b],
+      ];
+      for (const [x, e, col, name, , o] of bars) {
+        // start of day 0 outline
+        plot.appendChild(el('rect', { x, y: py(N0), width: BW, height: Y1 - py(N0), fill: 'none', stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+        plot.appendChild(el('rect', { x, y: py(e), width: BW, height: Math.max(0, Y1 - py(e)), fill: col, 'fill-opacity': 0.85 }));
+        if (o !== undefined) {
+          plot.appendChild(el('line', { x1: x - 6, y1: py(o), x2: x + BW + 6, y2: py(o), stroke: ORANGE, 'stroke-width': 2.4 }));
+          plot.appendChild(el('circle', { cx: x + BW / 2, cy: py(o), r: 4, fill: ORANGE }));
+        }
+        const nm = el('text', { x: x + BW / 2, y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: INK }); nm.textContent = name; plot.appendChild(nm);
+        const ev = el('text', { x: x + BW / 2, y: Y1 + 27, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); ev.textContent = 'expected ' + e.toFixed(1); plot.appendChild(ev);
+      }
+      // legend, right of the title row, clear of bars
+      plot.appendChild(el('rect', { x: 150, y: 22, width: 10, height: 8, fill: C1, 'fill-opacity': 0.85 }));
+      const l1 = el('text', { x: 164, y: 30, 'font-size': 9, fill: INK }); l1.textContent = 'expected'; plot.appendChild(l1);
+      plot.appendChild(el('line', { x1: 214, y1: 26, x2: 228, y2: 26, stroke: ORANGE, 'stroke-width': 2.4 }));
+      const l2 = el('text', { x: 232, y: 30, 'font-size': 9, fill: INK }); l2.textContent = 'random draw'; plot.appendChild(l2);
+      plot.appendChild(el('rect', { x: 290, y: 22, width: 10, height: 8, fill: 'none', stroke: FAINT, 'stroke-dasharray': '3 2' }));
+      const l3 = el('text', { x: 304, y: 30, 'font-size': 9, fill: INK }); l3.textContent = 'day 0'; plot.appendChild(l3);
+
+      const sh = (share * 100).toFixed(1);
+      let msg: string;
+      if (t === 0) {
+        msg = 'In this sketch, day 0 is the start: 1,000 of each form, so carbonaria is 50.0% of the moths. Move the day slider to let the daily survival act.';
+      } else if (s === 0) {
+        msg = `In this sketch, with s = 0 the two forms survive at the same rate, 0.8000 a day, so after ${t} day${t > 1 ? 's' : ''} both bars stand at ${e1.toFixed(1)} and carbonaria stays at 50.0%. Both forms still die; the share does not change.`;
+      } else {
+        msg = `In this sketch, carbonaria survives at ${p2.toFixed(4)} a day against 0.8000 for typica, so after ${t} day${t > 1 ? 's' : ''} the expected survivors are ${e1.toFixed(1)} and ${e2.toFixed(1)}, and carbonaria is ${sh}% of the survivors, ${sh === '50.0' ? 'slightly below 50%' : 'down from 50%'}. Both bars shrink; the share falls because carbonaria shrinks faster.`;
+        if (Math.abs(s - 0.091) < 0.0005 && (t === 1 || t === 5)) msg += ' This matches the lesson’s worked problem for s = 0.091.';
+        else if (Math.abs(s - 0.091) < 0.0005) msg += ' Here s = 0.091 is the Cook and colleagues estimate for one site; the lesson works day 1 and day 5 (and day 2 in a practice question).';
+      }
+      if (s !== 0.091 && t > 0) {
+        msg += ` s = ${s.toFixed(3)} is hypothetical here; the lesson’s estimate is 0.091 (interval 0.028 to 0.157).`;
+        if (s > 0.157) msg += ' Values above 0.157 are outside that interval.';
+      }
+      if (draw) {
+        msg += isNaN(obsShare)
+          ? ' In this random draw no moth of either form survived, so there is no share to report.'
+          : ` In this random draw ${draw.a} typica and ${draw.b} carbonaria ${t === 0 ? 'were counted' : 'survived'}, a share of ${(obsShare * 100).toFixed(1)}%; the expected share is ${sh}%. Press Resample for another draw.`;
+      } else if (t > 0) {
+        msg += ' Press Resample to draw survivors at random beside the expected values (each moth independently, in this sketch).';
+      }
+      why.textContent = msg;
+    }
+
+    function resample() {
+      const s = parseFloat(sIn.value), t = parseInt(tIn.value, 10);
+      const p2 = P1 * (1 - s);
+      draw = { a: binom(N0, Math.pow(P1, t)), b: binom(N0, Math.pow(p2, t)) };
+      render();
+    }
+    // changing a control makes an old draw stale, so clear it
+    [sIn, tIn].forEach((x) => x.addEventListener('input', () => { draw = null; render(); }));
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', resample);
+    render();
+  });
+</script>
+
+<style>
+  .mms { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mms-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mms-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mms-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mms-controls { display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--ddp-space-2) var(--ddp-space-4); align-items: end; margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .mms-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mms-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .mms-slabel input { accent-color: var(--ddp-color-accent); }
+  .mms-btn { font: inherit; font-size: var(--ddp-text-xs); font-weight: 600; padding: 0.4rem 0.8rem; border: 1px solid var(--ddp-color-accent); background: transparent; color: var(--ddp-color-accent); border-radius: 6px; cursor: pointer; }
+  .mms-btn:hover, .mms-btn:focus-visible { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
+  .mms-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .mms-table th, .mms-table td { padding: 0.25rem 0.4rem; text-align: left; font-weight: 400; color: var(--ddp-color-muted); }
+  .mms-table tbody th { color: var(--ddp-color-ink-soft); font-weight: 600; }
+  .mms-table td { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); font-weight: 700; }
+  .mms-assume { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mms-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .mms-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .mms-controls { grid-template-columns: 1fr; } .mms-btn { justify-self: start; } .mms-table th, .mms-table td { padding: 0.2rem 0.25rem; } }
+</style>

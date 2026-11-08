@@ -8,6 +8,7 @@
  * physiological state — and watch the switch flip and pyruvate→acetyl-CoA flux start
  * or stall. Self-contained vanilla-TS Astro island. Original.
  */
+const uid = Math.random().toString(36).slice(2, 8);
 ---
 
 <figure class="pdh card" data-pdhswitch>
@@ -20,16 +21,21 @@
     <button type="button" data-preset="fasting" aria-pressed="false">Fasting (burning fat)</button>
   </div>
 
+  <fieldset class="pdh-ratio">
+    <legend>ATP/ADP ratio <span>(PDK reads it: ATP is its substrate, ADP competes)</span></legend>
+    <label><input type="radio" name={`pdh-ratio-${uid}`} value="high" data-ratio /> High (turns PDH off)</label>
+    <label><input type="radio" name={`pdh-ratio-${uid}`} value="normal" data-ratio checked /> Normal</label>
+    <label><input type="radio" name={`pdh-ratio-${uid}`} value="low" data-ratio /> Low (turns PDH on)</label>
+  </fieldset>
+
   <div class="pdh-effectors">
     <div class="pdh-col">
-      <p class="pdh-col-head">Turns PDH OFF<br/><span>(activates PDK)</span></p>
-      <label><input type="checkbox" data-eff="atp" data-dir="off" /> ATP high</label>
+      <p class="pdh-col-head">Turns PDH OFF<br/><span>(activates PDK; NADH and acetyl-CoA also brake E3/E2 directly)</span></p>
       <label><input type="checkbox" data-eff="nadh" data-dir="off" /> NADH high</label>
       <label><input type="checkbox" data-eff="acetylcoa" data-dir="off" /> Acetyl-CoA high</label>
     </div>
     <div class="pdh-col">
       <p class="pdh-col-head">Turns PDH ON<br/><span>(activates PDP / blocks PDK)</span></p>
-      <label><input type="checkbox" data-eff="adp" data-dir="on" /> ADP high</label>
       <label><input type="checkbox" data-eff="pyruvate" data-dir="on" /> Pyruvate high</label>
       <label><input type="checkbox" data-eff="ca" data-dir="on" /> Ca²⁺ high</label>
     </div>
@@ -44,29 +50,43 @@
     <div class="pdh-flux" data-flux>Pyruvate → Acetyl-CoA: flowing</div>
   </div>
   <p class="pdh-why" data-why role="status">With no effectors set, the phosphatase keeps the complex dephosphorylated and active by default.</p>
+  <p class="pdh-brake" data-brake hidden></p>
 
-  <p class="pdh-foot">Phosphorylation is the master switch: PDK adds a phosphate to shut PDH off when the cell is fuel-rich; PDP removes it to turn PDH on when the cell needs to burn pyruvate. The products of the reaction (acetyl-CoA, NADH) feed back to switch it off — classic product inhibition through a kinase.</p>
+  <p class="pdh-foot">Two layers. Directly, the products brake the stop where they leave: acetyl-CoA competes with CoA at E2 (carbon track) and NADH with NAD⁺ at E3 (electron track). On top of that, PDK phosphorylates E1 to close the gate when the cell is fuel-rich, and PDP removes the phosphate to reopen it. This switch models the second layer.</p>
 </figure>
 
 <script>
   type Preset = Record<string, boolean>;
-  const PRESETS: Record<string, { effs: Preset; why: string }> = {
-    fed: { effs: { atp: true, nadh: true }, why: 'Fed and resting (think of an idle muscle): ATP and NADH are plentiful, so PDK phosphorylates and shuts the complex OFF — no need to burn more pyruvate to acetyl-CoA right now. (After a meal, insulin can push fat tissue the other way, turning PDH on to make fat from surplus glucose; this switch tallies only the energy signals.)' },
-    sprint: { effs: { adp: true, pyruvate: true, ca: true }, why: 'Sprinting muscle: ADP, pyruvate, and the Ca²⁺ that triggers contraction all rise, activating the phosphatase. PDH switches ON to feed the cycle and meet the energy demand.' },
-    fasting: { effs: { acetylcoa: true, nadh: true }, why: 'Fasting: fat oxidation floods the matrix with acetyl-CoA and NADH, which switch PDH OFF — sparing pyruvate (and the lactate and alanine that feed it) so the liver can rebuild glucose for the brain. Fatty acids can never make that trip: their carbons arrive as acetyl-CoA, already on the far side of this one-way gate.' },
+  type Ratio = 'high' | 'normal' | 'low';
+  const PRESETS: Record<string, { effs: Preset; ratio: Ratio; why: string }> = {
+    fed: { effs: { nadh: true }, ratio: 'high', why: 'Fed and resting (think of an idle muscle): ATP and NADH are plentiful, so PDK phosphorylates and shuts the complex OFF — no need to burn more pyruvate to acetyl-CoA right now. (After a meal, insulin can push fat tissue the other way, turning PDH on to make fat from surplus glucose; this switch tallies only the energy signals.)' },
+    sprint: { effs: { pyruvate: true, ca: true }, ratio: 'low', why: 'Sprinting muscle: ADP, pyruvate, and the Ca²⁺ that triggers contraction all rise, activating the phosphatase. PDH switches ON to feed the cycle and meet the energy demand.' },
+    fasting: { effs: { acetylcoa: true, nadh: true }, ratio: 'normal', why: 'Fasting: fat oxidation floods the matrix with acetyl-CoA and NADH, which switch PDH OFF — sparing pyruvate (and the lactate and alanine that feed it) so the liver can rebuild glucose for the brain. Fatty acids can never make that trip: their carbons arrive as acetyl-CoA, already on the far side of this one-way gate.' },
   };
   document.querySelectorAll<HTMLElement>('[data-pdhswitch]').forEach((root) => {
     const boxes = Array.from(root.querySelectorAll<HTMLInputElement>('[data-eff]'));
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('[data-ratio]'));
+    const brake = root.querySelector<HTMLElement>('[data-brake]')!;
     const badge = root.querySelector<HTMLElement>('[data-badge]')!;
     const flux = root.querySelector<HTMLElement>('[data-flux]')!;
     const stateBox = root.querySelector<HTMLElement>('[data-state]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
     const e1 = root.querySelector<HTMLElement>('[data-e1]')!;
-    const NAMES: Record<string, string> = { atp: 'ATP', nadh: 'NADH', acetylcoa: 'acetyl-CoA', adp: 'ADP', pyruvate: 'pyruvate', ca: 'Ca²⁺' };
+    const NAMES: Record<string, string> = { atp: 'a high ATP/ADP ratio', nadh: 'NADH', acetylcoa: 'acetyl-CoA', adp: 'a low ATP/ADP ratio', pyruvate: 'pyruvate', ca: 'Ca²⁺' };
     const list = (xs: string[]) => xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
+    const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+    const checked = (eff: string) => boxes.some((b) => b.checked && b.getAttribute('data-eff') === eff);
     function render(presetWhy?: string) {
       const offs: string[] = [], ons: string[] = [];
+      const ratio = radios.find((r) => r.checked)?.value ?? 'normal';
+      if (ratio === 'high') offs.push(NAMES.atp);
+      if (ratio === 'low') ons.push(NAMES.adp);
       boxes.forEach((b) => { if (b.checked) (b.getAttribute('data-dir') === 'off' ? offs : ons).push(NAMES[b.getAttribute('data-eff')!]); });
+      const brakes: string[] = [];
+      if (checked('acetylcoa')) brakes.push('acetyl-CoA vs CoA at E2: carbon track slowed');
+      if (checked('nadh')) brakes.push('NADH vs NAD⁺ at E3: electron track slowed');
+      brake.textContent = brakes.length ? `Direct product brake (layer 1): ${brakes.join('; ')}.` : '';
+      brake.hidden = brakes.length === 0;
       const off = offs.length, on = ons.length;
       // ON effectors win ties (phosphatase active by default); PDH ON unless OFF effectors strictly dominate
       const pdhOn = on >= off;
@@ -80,14 +100,14 @@
       why.textContent = off === 0 && on === 0
         ? 'With no effectors set, the phosphatase keeps the complex dephosphorylated and active by default. Tick a box, or pick a state above.'
         : !pdhOn
-          ? `${list(offs)} ${off > 1 ? 'activate' : 'activates'} PDK${on ? `, outweighing ${list(ons)}` : ''}, so PDK phosphorylates E1 and the gate closes.`
+          ? `${cap(list(offs))} ${off > 1 ? 'activate' : 'activates'} PDK${on ? `, outweighing ${list(ons)}` : ''}, so PDK phosphorylates E1 and the gate closes.`
           : off === 0
-            ? `${list(ons)} ${on > 1 ? 'keep' : 'keeps'} PDK in check and the phosphatase in charge, so PDH stays dephosphorylated and active — pyruvate is committed to acetyl-CoA.`
+            ? `${cap(list(ons))} ${on > 1 ? 'keep' : 'keeps'} PDK in check and the phosphatase in charge, so PDH stays dephosphorylated and active — pyruvate is committed to acetyl-CoA.`
             : on > off
-              ? `${list(ons)} outweigh${on > 1 ? '' : 's'} ${list(offs)}, keeping PDK in check and the phosphatase in charge, so PDH stays dephosphorylated and active.`
-              : `${list(ons)} ${on > 1 ? 'hold' : 'holds'} off the brake from ${list(offs)} — in this simple tally a tie goes to the phosphatase, so PDH stays on.`;
+              ? `${cap(list(ons))} outweigh${on > 1 ? '' : 's'} ${list(offs)}, keeping PDK in check and the phosphatase in charge, so PDH stays dephosphorylated and active.`
+              : `${cap(list(ons))} ${on > 1 ? 'hold' : 'holds'} off the brake from ${list(offs)} — in this simple tally a tie goes to the phosphatase, so PDH stays on.`;
     }
-    boxes.forEach((b) => b.addEventListener('change', () => {
+    [...boxes, ...radios].forEach((b) => b.addEventListener('change', () => {
       // hand-editing an effector means we are no longer in a named preset
       root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
       render();
@@ -97,6 +117,7 @@
         const p = PRESETS[btn.getAttribute('data-preset')!];
         root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
         boxes.forEach((b) => { b.checked = !!p.effs[b.getAttribute('data-eff')!]; });
+        radios.forEach((r) => { r.checked = r.value === p.ratio; });
         render(p.why);
       }));
     render();
@@ -133,5 +154,12 @@
   .pdh-badge { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
   .pdh-flux { order: 3; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .pdh-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .pdh-ratio { display: flex; flex-wrap: wrap; gap: 0.2rem var(--ddp-space-3); border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); margin: 0 0 var(--ddp-space-3); }
+  .pdh-ratio legend { padding: 0 0.3rem; font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); }
+  .pdh-ratio legend span { font-weight: 400; color: var(--ddp-color-muted); }
+  .pdh-ratio label { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pdh-ratio input { accent-color: var(--ddp-color-accent); }
+  .pdh-brake { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .pdh-brake[hidden] { display: none; }
   .pdh-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

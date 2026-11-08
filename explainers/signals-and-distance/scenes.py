@@ -522,7 +522,7 @@ class S04Numbers(Film):
 
 # ---------------------------------------------------------------------------------------------
 class S05Answers(Film):
-    """too slow past a millimeter: ride the blood (far) or shrink the gap (near)."""
+    """too slow past a few hundred micrometers: ride the blood (far) or shrink the gap (near)."""
 
     def construct(self):
         CY = -0.3
@@ -540,8 +540,8 @@ class S05Answers(Film):
         wk = walks(14, 240, 0.09, [-3.45, CY], -3.45, -0.6, CY - 1.5, CY + 1.5, seed=9)
         cloud = Cloud(wk, r=0.09)
         br = DoubleArrow([-3.55, -1.95, 0], [3.55, -1.95, 0], buff=0, color=GREY, stroke_width=4, tip_length=0.18)
-        brl = T("past a millimeter or so", 26, GREY).move_to([0, -2.5, 0])
-        self.at("millimeter or so")
+        brl = T("past a few hundred µm", 26, GREY).move_to([0, -2.5, 0])
+        self.at("few hundred")
         self.play(GrowFromCenter(br), FadeIn(brl), FadeIn(cloud.dots), run_time=0.7)
         xmark = VGroup(Line([-0.3, CY + 0.3, 0], [0.3, CY - 0.3, 0], color=RED, stroke_width=9),
                        Line([-0.3, CY - 0.3, 0], [0.3, CY + 0.3, 0], color=RED, stroke_width=9))
@@ -589,7 +589,7 @@ class S05Answers(Film):
                                       fill_opacity=1, stroke_width=0).move_to([0.1 + 0.13, y, 0]) for y in (0.9, -0.5)])
         other = RoundedRectangle(corner_radius=0.3, width=5.4, height=1.2, stroke_color=GREY, stroke_width=3,
                                  fill_color=GREY, fill_opacity=0.1).move_to([0, -2.75, 0])
-        ol = T("anyone else", 26, GREY).move_to(other)
+        ol = T("nearby cells", 26, GREY).move_to(other)
         pts = VGroup(*[sdot(0.1) for _ in range(5)])
         for p, y in zip(pts, (1.1, 0.65, 0.2, -0.25, -0.7)):
             p.move_to([-0.55, y, 0])
@@ -605,8 +605,9 @@ class S05Answers(Film):
         self.at("arrives almost")
         self.play(*[p.animate.move_to([0.1, y, 0]) for p, y in zip(pts, (0.9, 0.5, 0.2, -0.1, -0.5))], run_time=0.25)
         self.play(recv.animate.set_stroke(GREEN), rl.animate.set_color(GREEN), cups.animate.set_color(GREEN), FadeIn(tm), run_time=0.5)
-        self.at("anyone else")
-        self.play(*flash(other, ol, s=1.06), run_time=0.8)
+        self.at("some spills out")
+        self.play(pts[-1].animate.move_to([-0.65, -2.2, 0]),
+                  pts[-2].animate.move_to([0.65, -2.2, 0]), run_time=0.8)
         self.finish()
 
 
@@ -630,13 +631,14 @@ class S06Receiver(Film):
             return AnnularSector(inner_radius=0.2, outer_radius=0.38, angle=PI, start_angle=PI, color=BLUE,
                                  fill_opacity=1, stroke_width=0).move_to([x, TOP, 0])
 
-        # first row: four organs, only the pancreas has a receptor
+        # first row: pancreatic secretion measured; other organ responses unspecified
         orgs = [box(x, GREY) for x in xs]
         orgs[2].set_stroke(BLUE).set_fill(BLUE, 0.15)
         names = [T("organ", 26, GREY).move_to([xs[0], RY, 0]), T("organ", 26, GREY).move_to([xs[1], RY, 0]),
                  T("pancreas", 26, BLUE).move_to([xs[2], RY, 0]), T("organ", 26, GREY).move_to([xs[3], RY, 0])]
-        c0 = cup(xs[2])
-        row1 = VGroup(*orgs, *names, c0)
+        unknown = VGroup(*[T("no such response", 20, GREY).move_to([xs[i], RY - 0.7, 0])
+                           for i in (0, 1, 3)])
+        row1 = VGroup(*orgs, *names, unknown)
         self.play(FadeIn(ves), FadeIn(vl), FadeIn(row1), run_time=0.5)
 
         reach = VGroup(*[sdot(0.14) for _ in xs])
@@ -649,8 +651,8 @@ class S06Receiver(Film):
         jd = [Dot(radius=0.12, color=GREEN) for _ in range(3)]
         invisible(*jd)
         self.add(*jd)
-        self.at("only the pancreas")
-        self.play(reach[2].animate.move_to([xs[2], TOP + 0.02, 0]), *[r.animate.set_opacity(0.35) for i, r in enumerate(reach) if i != 2],
+        self.at("the pancreas")
+        self.play(reach[2].animate.move_to([xs[2], TOP + 0.02, 0]),
                   orgs[2].animate.set_stroke(GREEN), run_time=0.7)
         self.play(FadeIn(jl), drip(jd, [xs[2] - 0.5, xs[2], xs[2] + 0.5], RY - 1.35, RY - 2.55, 1.1, 0.3), run_time=1.3)
 

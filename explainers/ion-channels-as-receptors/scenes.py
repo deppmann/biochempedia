@@ -533,7 +533,7 @@ class S02Gate(Film):
             RoundedRectangle(corner_radius=0.15, width=12.4, height=1.9, stroke_color=PINK, stroke_width=2.5, fill_color=PINK, fill_opacity=0.08).move_to([0, 2.25, 0]),
             RoundedRectangle(corner_radius=0.15, width=12.4, height=1.9, stroke_color=PINK, stroke_width=2.5, fill_color=PINK, fill_opacity=0.08).move_to([0, -2.25, 0]))
         gl = T("gradient", 26, PINK, weight=BOLD).move_to([-5.2, 0, 0])
-        self.at("build the gradients")
+        self.at("build")
         self.play(FadeIn(st), run_time=0.6)
         ions3, anims3 = stream(ORANGE, A_CHAN + 0.08, 1.9, -1.9, n=8)
         self.add(*ions3)
@@ -613,7 +613,7 @@ class S03Pushpull(Film):
         # rest
         mk = always_redraw(lambda: marker(vt.get_value()))
         ml = mlabel(V_REST)
-        self.at("resting cell sits near")
+        self.at("resting neuron")
         self.add(mk)
         self.play(FadeIn(ml), FadeIn(mk), run_time=0.5)
         self.play(*glow(ml, s=1.2, color=TEXT), run_time=0.6)

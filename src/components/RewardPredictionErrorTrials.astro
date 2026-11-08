@@ -1,0 +1,218 @@
+---
+/**
+ * RewardPredictionErrorTrials — the Rescorla-Wagner rule from the lesson on feeding, motivation and
+ * reward: delta(n) = r - V(n); V(n+1) = V(n) + alpha x delta(n), with r = 1 on every training trial.
+ * Bars show the cue-onset response (drawn as V, the lesson's temporal-difference reading) and the
+ * response at reward time (delta) for one probe trial after n training trials. Original.
+ */
+---
+
+<figure class="rp card" data-rpe>
+  <figcaption class="rp-head">Reward prediction error over trials — a Rescorla-Wagner sketch<span class="rp-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rp-svg" viewBox="0 0 340 180" role="img" aria-label="Two bars in model units: the response at cue onset, drawn as the learned value V, and the response at reward time, the prediction error delta, for the chosen probe trial" data-bars></svg>
+  <svg class="rp-svg rp-svg2" viewBox="0 0 340 172" role="img" aria-label="Learned value V and the prediction error at the reward for the chosen probe, plotted against the number of training trials, with a marker at the chosen trial number" data-curves></svg>
+
+  <div class="rp-controls">
+    <label class="rp-slabel"><span>Learning rate α <em data-out="a">0.30</em></span>
+      <input type="range" data-in="a" min="0.05" max="0.9" step="0.05" value="0.3" />
+    </label>
+    <label class="rp-slabel"><span>Training trials completed <em data-out="n">3</em></span>
+      <input type="range" data-in="n" min="0" max="30" step="1" value="3" />
+    </label>
+  </div>
+  <fieldset class="rp-probe">
+    <legend>Probe trial (r = 1 on every training trial)</legend>
+    <label><input type="radio" name="rp-probe" value="given" checked /> Cue, then reward delivered</label>
+    <label><input type="radio" name="rp-probe" value="omit" /> Cue, then reward omitted</label>
+    <label><input type="radio" name="rp-probe" value="nocue" /> Reward with no cue</label>
+  </fieldset>
+
+  <dl class="rp-readout">
+    <div><dt>Learned value of the cue, V</dt><dd data-r-v>—</dd></div>
+    <div><dt>Prediction error at reward time, δ</dt><dd data-r-d>—</dd></div>
+    <div><dt>Value after this trial, V + α × δ</dt><dd data-r-next>—</dd></div>
+  </dl>
+  <p class="rp-first" data-first>—</p>
+  <p class="rp-why" data-why role="status">—</p>
+
+  <p class="rp-assume">In this sketch: a Rescorla-Wagner rule (the trial-end temporal-difference error, with V(next) = 0), one cue, a fixed reward of 1 unit, no timing within a trial, model units rather than spikes per second. Nothing is random, so every number follows from the rule and there is nothing to resample. The cue-onset bar is drawn as V, as in the lesson’s temporal-difference reading. On a no-cue trial the cue’s V is left unchanged.</p>
+  <p class="rp-foot">Rule to keep: δ = r − V and V ← V + α × δ. As V grows the error at the reward shrinks and, in the temporal-difference reading, the cue response grows; an omission after long training gives a large dip and a reward with no cue gives +1. Not every dopamine neuron codes this error, and the model says nothing about pleasure.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', NEG = '#b3261e';
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, x: number, y: number, s: string, opts: Record<string, string | number> = {}): void {
+    const t = el('text', { x, y, 'font-size': 9, fill: INK, ...opts });
+    t.textContent = s;
+    parent.appendChild(t);
+  }
+  const sgn3 = (x: number) => (x > 0.0005 ? '+' : x < -0.0005 ? '−' : '') + Math.abs(x).toFixed(3);
+  // Value after n training trials at r = 1, by the rule itself.
+  function vAfter(a: number, n: number): number {
+    let v = 0;
+    for (let i = 0; i < n; i++) v = v + a * (1 - v);
+    return v;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-rpe]').forEach((root) => {
+    const bars = root.querySelector<SVGSVGElement>('[data-bars]')!;
+    const curves = root.querySelector<SVGSVGElement>('[data-curves]')!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const aIn = root.querySelector<HTMLInputElement>('[data-in="a"]')!;
+    const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]')!;
+    const aOut = o('[data-out="a"]'), nOut = o('[data-out="n"]');
+    const rV = o('[data-r-v]'), rD = o('[data-r-d]'), rNext = o('[data-r-next]');
+    const first = o('[data-first]'), why = o('[data-why]');
+    const probes = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="rp-probe"]'));
+    const probe = () => (probes.find((p) => p.checked)?.value ?? 'given') as 'given' | 'omit' | 'nocue';
+
+    // delta at the reward time for a probe, given the cue's value V
+    function deltaFor(p: string, v: number): number {
+      if (p === 'given') return 1 - v;
+      if (p === 'omit') return 0 - v;
+      return 1 - 0; // no cue: V = 0 for this trial
+    }
+
+    function drawBars(p: string, v: number, d: number): void {
+      bars.replaceChildren();
+      const Z = 100, S = 55; // zero line and pixels per unit
+      const yv = (x: number) => Z - x * S;
+      for (const t of [1, 0, -1]) {
+        bars.appendChild(el('line', { x1: 40, y1: yv(t), x2: 330, y2: yv(t), stroke: t === 0 ? INK : FAINT, 'stroke-width': t === 0 ? 1 : 0.6, 'stroke-dasharray': t === 0 ? '0' : '2 3' }));
+        txt(bars, 34, yv(t) + 3, (t > 0 ? '+' : t < 0 ? '−' : '') + Math.abs(t), { 'text-anchor': 'end' });
+      }
+      txt(bars, 4, 176, 'model units', { 'text-anchor': 'start' });
+      const cols = [
+        { cx: 115, l1: 'Response at cue onset', l2: 'drawn as V', l3: p === 'nocue' ? '(no cue on this trial)' : v < 0.0005 ? '(no value yet)' : '(burst moves to the cue)' },
+        { cx: 245, l1: 'Response at reward time', l2: 'δ = r − V', l3: p === 'omit' ? '(reward omitted: r = 0)' : p === 'nocue' ? '(no cue: V = 0)' : '(reward delivered: r = 1)' },
+      ];
+      cols.forEach((c) => {
+        txt(bars, c.cx, 10, c.l1, { 'text-anchor': 'middle', 'font-weight': 700 });
+        txt(bars, c.cx, 21, c.l2, { 'text-anchor': 'middle' });
+        txt(bars, c.cx, 32, c.l3, { 'text-anchor': 'middle' });
+      });
+      // cue bar
+      if (p === 'nocue') {
+        txt(bars, 115, Z - 8, 'no cue shown', { 'text-anchor': 'middle', 'font-style': 'italic' });
+      } else if (v > 0.0005) {
+        bars.appendChild(el('rect', { x: 85, y: yv(v), width: 60, height: v * S, fill: ACCENT }));
+      }
+      // reward-time bar
+      if (Math.abs(d) > 0.0005) {
+        const top = d > 0 ? yv(d) : Z;
+        bars.appendChild(el('rect', { x: 215, y: top, width: 60, height: Math.abs(d) * S, fill: d > 0 ? ORANGE : NEG }));
+      }
+      txt(bars, 115, 172, p === 'nocue' ? 'V = 0' : 'V = ' + v.toFixed(3), { 'text-anchor': 'middle', 'font-weight': 700, 'font-size': 10 });
+      txt(bars, 245, 172, 'δ = ' + sgn3(d), { 'text-anchor': 'middle', 'font-weight': 700, 'font-size': 10 });
+    }
+
+    function drawCurves(a: number, n: number, p: string): void {
+      curves.replaceChildren();
+      const X0 = 40, X1 = 325, YZ = 84, YS = 52;
+      const px = (k: number) => X0 + (k / 30) * (X1 - X0);
+      const py = (x: number) => YZ - x * YS;
+      for (const t of [1, 0, -1]) {
+        curves.appendChild(el('line', { x1: X0, y1: py(t), x2: X1, y2: py(t), stroke: t === 0 ? INK : FAINT, 'stroke-width': t === 0 ? 1 : 0.6, 'stroke-dasharray': t === 0 ? '0' : '2 3' }));
+        txt(curves, X0 - 4, py(t) + 3, (t > 0 ? '+' : t < 0 ? '−' : '') + Math.abs(t), { 'text-anchor': 'end' });
+      }
+      for (const k of [0, 10, 20, 30]) {
+        curves.appendChild(el('line', { x1: px(k), y1: py(-1), x2: px(k), y2: py(-1) + 3, stroke: INK }));
+        txt(curves, px(k), py(-1) + 13, String(k), { 'text-anchor': 'middle' });
+      }
+      txt(curves, (X0 + X1) / 2, 168, 'training trials completed', { 'text-anchor': 'middle' });
+      // legend (fixed, top)
+      curves.appendChild(el('rect', { x: X0, y: 3, width: 8, height: 8, fill: ACCENT }));
+      txt(curves, X0 + 12, 10, 'V, the cue’s learned value');
+      curves.appendChild(el('rect', { x: 185, y: 3, width: 8, height: 8, fill: p === 'omit' ? NEG : ORANGE }));
+      txt(curves, 197, 10, p === 'nocue' ? 'δ, reward with no cue' : p === 'omit' ? 'δ, reward omitted' : 'δ, reward delivered');
+      const pathV: string[] = [], pathD: string[] = [];
+      for (let k = 0; k <= 30; k++) {
+        const v = vAfter(a, k);
+        pathV.push((k === 0 ? 'M' : 'L') + px(k).toFixed(1) + ' ' + py(v).toFixed(1));
+        pathD.push((k === 0 ? 'M' : 'L') + px(k).toFixed(1) + ' ' + py(deltaFor(p, v)).toFixed(1));
+      }
+      curves.appendChild(el('path', { d: pathV.join(' '), fill: 'none', stroke: ACCENT, 'stroke-width': 2 }));
+      curves.appendChild(el('path', { d: pathD.join(' '), fill: 'none', stroke: p === 'omit' ? NEG : ORANGE, 'stroke-width': 2, 'stroke-dasharray': p === 'nocue' ? '5 3' : '0' }));
+      curves.appendChild(el('line', { x1: px(n), y1: py(1), x2: px(n), y2: py(-1), stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+      const v = vAfter(a, n);
+      curves.appendChild(el('circle', { cx: px(n), cy: py(v), r: 3.5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1 }));
+      curves.appendChild(el('circle', { cx: px(n), cy: py(deltaFor(p, v)), r: 3.5, fill: p === 'omit' ? NEG : ORANGE, stroke: '#fff', 'stroke-width': 1 }));
+    }
+
+    function update(): void {
+      const a = parseFloat(aIn.value), n = parseInt(nIn.value, 10), p = probe();
+      aOut.textContent = a.toFixed(2); nOut.textContent = String(n);
+      const v = vAfter(a, n);
+      const d = deltaFor(p, v);
+      const r = p === 'omit' ? 0 : 1;
+      const vEff = p === 'nocue' ? 0 : v;
+      const next = p === 'nocue' ? v : v + a * d;
+      drawBars(p, v, d);
+      drawCurves(a, n, p);
+
+      rV.textContent = p === 'nocue' ? `V = 0 on this trial (no cue); after ${n} trials the cue’s V is ${v.toFixed(3)}` : `${v.toFixed(3)} after ${n} trial${n === 1 ? '' : 's'}`;
+      rD.textContent = `${r} − ${vEff.toFixed(3)} = ${sgn3(d)}`;
+      rNext.textContent = p === 'nocue' ? 'the cue’s V is left unchanged on this trial (no cue was shown)' : `${v.toFixed(3)} + ${a.toFixed(2)} × (${sgn3(d)}) = ${next.toFixed(3)}`;
+
+      // the lesson's worked problem, computed at the current alpha
+      let vv = 0; const rows: string[] = [];
+      for (let k = 1; k <= 3; k++) { const dk = 1 - vv; const nv = vv + a * dk; rows.push(`trial ${k}: δ = ${dk.toFixed(2)}, V = ${nv.toFixed(3).replace(/0$/, '')}`); vv = nv; }
+      first.textContent = `First three training trials at α = ${a.toFixed(2)} (r = 1, V starts at 0): ${rows.join('; ')}. The error left after n trials is ${(1 - a).toFixed(2)}^n.`;
+
+      const parts: string[] = [];
+      if (p === 'given') {
+        if (n === 0) parts.push(`In this sketch, with no training V = 0, so the reward is unpredicted and δ = 1 − 0 = +1.00; in Schultz’s monkey recordings an unwarned reward evoked a burst. There is no response at the cue, because the cue has no value yet.`);
+        else parts.push(`In this sketch, after ${n} training trial${n === 1 ? '' : 's'} V = ${v.toFixed(3)}, so the reward is partly predicted and δ = 1 − ${v.toFixed(3)} = ${sgn3(d)}. The bar at the reward has shrunk and the bar at the cue has grown to V: in the temporal-difference reading the burst moves from reward to cue, as in the monkeys.`);
+      } else if (p === 'omit') {
+        if (n === 0) parts.push(`In this sketch, with no training V = 0, so nothing was predicted and an omitted reward gives δ = 0 − 0 = 0: no dip, because there was no expectation to violate.`);
+        else if (v < 0.9) parts.push(`In this sketch, the reward is omitted before long training: V = ${v.toFixed(3)}, so δ = 0 − ${v.toFixed(3)} = ${sgn3(d)}, a dip at the expected time that is smaller than after long training, because less was expected.`);
+        else if (v >= 0.9) parts.push(`In this sketch, the reward is omitted after long training: V = ${v.toFixed(3)}, so δ = 0 − ${v.toFixed(3)} = ${sgn3(d)}, a large dip at the expected time${v >= 0.93 && v <= 0.97 ? ' (the lesson’s case: V about 0.95 gives −0.95)' : ''}. In the monkeys, firing dipped below baseline when an expected reward was left out.`);
+              } else {
+        parts.push(`In this sketch, a reward with no cue is unpredicted whatever the training: V = 0 for this trial, so δ = 1 − 0 = +1.00, a burst, as for an unpredicted reward in the monkeys. The cue-onset bar is empty because no cue was shown.`);
+      }
+      if (a >= 0.8) parts.push(`With α = ${a.toFixed(2)} the value moves most of the way to the reward in a single trial.`);
+      else if (a <= 0.1 && n > 0 && v < 0.9) parts.push(`With α = ${a.toFixed(2)} learning is slow: V is only ${v.toFixed(2)} after ${n} trials.`);
+      parts.push(`These are model units, not spikes per second. Not every dopamine neuron codes this error, and the model says nothing about pleasure.`);
+      why.textContent = parts.join(' ');
+    }
+
+    aIn.addEventListener('input', update);
+    nIn.addEventListener('input', update);
+    probes.forEach((r) => r.addEventListener('change', update));
+    update();
+  });
+</script>
+
+<style>
+  .rp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rp-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rp-svg2 { margin-top: var(--ddp-space-2); }
+  .rp-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .rp-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rp-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .rp-slabel input { accent-color: var(--ddp-color-accent); }
+  .rp-probe { display: flex; flex-wrap: wrap; gap: 0.3rem var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rp-probe legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .rp-probe label { display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
+  .rp-probe input { accent-color: var(--ddp-color-accent); }
+  .rp-probe input:focus-visible, .rp-slabel input:focus-visible { outline: 2px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .rp-readout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .rp-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .rp-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rp-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .rp-first { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); }
+  .rp-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .rp-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rp-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) { .rp-readout { grid-template-columns: 1fr; } .rp-controls { grid-template-columns: 1fr; } }
+</style>

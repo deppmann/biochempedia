@@ -1,0 +1,672 @@
+{
+ "slug": "synaptic-plasticity",
+ "title": "Synaptic Plasticity",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Opus draft → Codex accuracy gate → fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "OpenAI via Codex",
+   "fix": "claude-sonnet-5-5"
+  },
+  "tokens": {
+   "draft": 119588,
+   "gate": 28500
+  }
+ },
+ "lessonHash": "aac8bb2a2cd5",
+ "sectionHashes": {
+  "(opening)": "807f3339c1fb",
+  "A map of the hippocampus": "9543d7efcd35",
+  "The first record": "1a0cdb0cc11b",
+  "Reading the record": "02df776869a4",
+  "Three puzzles": "ff93e745343c",
+  "The gate that needs two signals": "1c2eaa7718a6",
+  "Testing the gate": "3ae0954fa533",
+  "What the rule explains: specificity, cooperativity, associativity": "39870b3fe91a",
+  "Up or down: what the Ca2+ does": "6667b359a855",
+  "A different machine: short-term plasticity": "dcef899d8377",
+  "From synapse to memory: what the evidence licenses": "996556790276",
+  "Design problem": "f91c03a09b2d"
+ },
+ "cards": [
+  {
+   "id": "synaptic-plasticity-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What did Hebb's 1949 postulate propose about the connection between two cells?",
+   "back": "When one cell repeatedly helps fire another, the connection between them grows.",
+   "why": "It is a postulate about what learning needs, not a mechanism; it came before any molecule that could carry it out was known.",
+   "quote": "Donald Hebb proposed that when one cell repeatedly helps fire another, the connection between them grows."
+  },
+  {
+   "id": "synaptic-plasticity-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Trace the chain of three hippocampal relays from the entorhinal cortex to CA1, naming each axon pathway.",
+   "back": "Entorhinal cortex → perforant path → dentate gyrus granule cells → mossy fibres → CA3 pyramidal cells → Schaffer collaterals → CA1 pyramidal cells.",
+   "quote": "The CA3 axons, the Schaffer collaterals, reach the pyramidal cells of CA1.",
+   "section": "A map of the hippocampus"
+  },
+  {
+   "id": "synaptic-plasticity-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an extracellular field recording from the dentate gyrus, what do the population EPSP and the population spike each measure?",
+   "back": "Population EPSP: the slow wave of synaptic current into many granule cells; its slope or amplitude measures synaptic strength. Population spike: granule cells firing together; its size reflects how many fire and how closely in time.",
+   "quote": "The population spike is a sharp deflection riding on it, made by granule cells firing together",
+   "section": "The first record"
+  },
+  {
+   "id": "synaptic-plasticity-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A lasting rise in synaptic efficacy after a brief high-frequency train is called {{c1::long-term potentiation (LTP)}}.",
+   "back": "",
+   "quote": "This lasting rise in synaptic efficacy is long-term potentiation (LTP).",
+   "section": "The first record"
+  },
+  {
+   "id": "synaptic-plasticity-c05",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Five baseline test pulses give field EPSP slopes of 0.30, 0.32, 0.28, 0.31 and 0.29 mV/ms. Sixty minutes after a 100 Hz train the slope is 0.42 mV/ms. Express the result as percent of baseline and as percent potentiation.",
+   "back": "Baseline mean = 1.50 / 5 = 0.30 mV/ms. 0.42 / 0.30 × 100 = 140% of baseline, which is a 40% potentiation.",
+   "why": "Do not report 140% as the potentiation; percent of baseline = (value after / baseline mean) × 100.",
+   "quote": "0.80 / 0.50 × 100 = 160% of baseline, which is a 60% potentiation.",
+   "section": "Reading the record"
+  },
+  {
+   "id": "synaptic-plasticity-c06",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a two-pathway field recording, the trained pathway rises to 160% of baseline after a tetanus, while an untrained pathway to the same cells stays at 98%. What does the untrained pathway rule out, and what property does it show?",
+   "back": "It rules out a drift of the whole preparation. The rise is input specific: confined to the stimulated input.",
+   "quote": "It did not move, so the rise is input specific, confined to the stimulated input, and is not a drift of the whole preparation.",
+   "section": "Reading the record"
+  },
+  {
+   "id": "synaptic-plasticity-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a dentate gyrus field recording after a tetanus, the field EPSP slope rises to 130% of baseline and the population spike to 300%. Is the synapse three times stronger?",
+   "back": "No. Strength is read from the field EPSP, so the synapse is about 30% stronger. Firing has a threshold, so a modest EPSP rise pushes many more cells past it and the spike grows out of proportion.",
+   "why": "These ratios alone cannot separate a stronger synapse from more excitable cells.",
+   "quote": "Firing has a threshold, so a modest rise in the EPSP pushes many more cells past it, and the spike grows out of proportion.",
+   "section": "Reading the record"
+  },
+  {
+   "id": "synaptic-plasticity-c08",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "After a tetanus in the dentate gyrus, the same field EPSP size now evokes a larger population spike than before. What has changed, and what could cause it?",
+   "back": "The coupling from EPSP to spike has risen: the same drive fires more cells or fires them more in step. Causes: the cells' own excitability, less inhibition, or both.",
+   "why": "Comparing spike size at matched EPSP size is the clean test that separates excitability from synaptic strength.",
+   "quote": "if the same EPSP now gives a bigger spike, the coupling from EPSP to spike has risen",
+   "section": "Reading the record"
+  },
+  {
+   "id": "synaptic-plasticity-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At an NMDA-type synapse such as Schaffer collateral-CA1, what triggers LTP?",
+   "back": "Ca2+ entering the spine through NMDA receptors.",
+   "quote": "At an NMDA-type synapse, LTP is triggered by Ca2+ that enters the spine through NMDA receptors.",
+   "section": "Three puzzles"
+  },
+  {
+   "id": "synaptic-plasticity-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At normal Mg2+ levels, what two signals must coincide for substantial Ca2+ entry through NMDA receptors?",
+   "back": "Glutamate from the active presynaptic terminal, and depolarization of the postsynaptic membrane, which clears the Mg2+ block.",
+   "why": "Mg2+ is a positive ion held in the pore by the negative inside of the cell; making the inside less negative pushes it back out.",
+   "quote": "At normal Mg2+ levels, substantial entry needs two signals together: glutamate from the active terminal, and depolarization of the postsynaptic membrane, which clears the Mg2+ block.",
+   "section": "Three puzzles"
+  },
+  {
+   "id": "synaptic-plasticity-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the standard model, what decides whether NMDA-receptor Ca2+ turns a Schaffer collateral-CA1 synapse up or down?",
+   "back": "The amount and time course of the Ca2+: a large, fast rise gives LTP; a modest, prolonged rise gives LTD.",
+   "why": "This half is a model: no single calcium threshold between LTD and LTP is established.",
+   "quote": "a large, fast rise turns the synapse up (LTP), and a modest, prolonged rise turns it down (LTD).",
+   "section": "Three puzzles"
+  },
+  {
+   "id": "synaptic-plasticity-c12",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "NMDA receptor antagonists fail to block LTP at mossy fibre → CA3 synapses in guinea-pig hippocampus. What does this imply about LTP as a category?",
+   "back": "LTP names a family of changes. Mossy-fibre LTP is an NMDA-receptor-independent form, so the NMDA gate rule covers Schaffer collateral-CA1 and similar synapses, not every form.",
+   "quote": "Harris and Cotman found in 1986 that NMDA antagonists did not block mossy-fibre LTP in guinea-pig CA3",
+   "section": "Three puzzles"
+  },
+  {
+   "id": "synaptic-plasticity-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At a Schaffer collateral spine, how do AMPA and NMDA receptors differ in what they need to open and what they pass?",
+   "back": "AMPA: needs only glutamate, no Mg2+ block; passes Na+ and K+ and carries most of the ordinary EPSP. NMDA: needs glutamate plus a co-agonist (glycine or D-serine), Mg2+-blocked at rest and unblocked by depolarization; once unblocked it passes Na+, K+ and Ca2+.",
+   "quote": "AMPA receptors need only glutamate to open; they have no Mg2+ block.",
+   "section": "The gate that needs two signals"
+  },
+  {
+   "id": "synaptic-plasticity-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In NMDA-receptor-dependent LTP, distinguish induction from expression.",
+   "back": "Induction starts the lasting change (the NMDA receptor's job). Expression carries it afterwards; for LTP it includes more AMPA receptors at the synapse, giving a bigger response to the same glutamate.",
+   "quote": "Induction is what starts the lasting change (here, the NMDA receptor's job); expression is what carries it afterwards (here, more or fewer AMPA receptors).",
+   "section": "The gate that needs two signals"
+  },
+  {
+   "id": "synaptic-plasticity-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Ca2+ entry through NMDA receptors ∝ (glutamate bound) × (fraction of the Mg2+ block cleared) × (inward push on Ca2+). Why does this make the receptor a coincidence detector?",
+   "back": "The first factor comes from the presynaptic terminal; the block is cleared by postsynaptic depolarization. Without glutamate no Ca2+ enters at any voltage, and near rest the Mg2+ block keeps entry small.",
+   "quote": "Without glutamate, no Ca2+ enters through these receptors at any voltage, and near rest the Mg2+ block keeps entry small.",
+   "section": "The gate that needs two signals"
+  },
+  {
+   "id": "synaptic-plasticity-c16",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A glutamate-bound NMDA receptor spine is depolarized from about −20 mV to +40 mV. Predict the change in Ca2+ entry through its NMDA receptors.",
+   "back": "Ca2+ entry falls, even though nearly all receptors are now unblocked. Depolarization also weakens the inward push on Ca2+, so entry peaks near −20 mV and drops beyond it.",
+   "quote": "Ca2+ entry is greatest at about −20 mV and falls beyond it, because depolarization also weakens the push that drives Ca2+ inward.",
+   "section": "The gate that needs two signals"
+  },
+  {
+   "id": "synaptic-plasticity-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does a 100 Hz tetanus raise spine Ca2+ far more steeply than a single pulse at a Schaffer collateral-CA1 synapse?",
+   "back": "Summation: glutamate keeps arriving faster than NMDA receptors close, so they stay activated while EPSPs summate and depolarization builds. Downstream enzymes then respond nonlinearly to the Ca2+.",
+   "quote": "The steep difference between a tetanus and a single pulse comes mainly from summation.",
+   "section": "The gate that needs two signals"
+  },
+  {
+   "id": "synaptic-plasticity-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "One CA1 cell is held near −90 mV by injected current throughout a 100 Hz train to its Schaffer input; neighbouring cells are not held. Predict LTP in the held cell and in its neighbours.",
+   "back": "The held cell does not potentiate, provided its stimulated spines stay negative; the neighbours potentiate as usual. At −90 mV the Mg2+ block stays strong (about 1 receptor in 75 unblocked), so glutamate arrives without the second signal.",
+   "why": "Holding the cell body near −90 mV does not guarantee the voltage at every spine; strong dendritic depolarization can escape it.",
+   "quote": "Malinow and Miller found in 1986 that postsynaptic hyperpolarization during the train prevented LTP under their conditions.",
+   "section": "Testing the gate"
+  },
+  {
+   "id": "synaptic-plasticity-c19",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A Schaffer input is stimulated at a low frequency that does not potentiate on its own. Each pulse is now paired with depolarizing current injected into the CA1 cell. Predict the outcome and explain.",
+   "back": "LTP. Each pulse supplies glutamate and the injected current supplies the depolarization that clears the Mg2+ block.",
+   "why": "High frequency is not required; a fast train is one way for the cell to supply its own depolarization.",
+   "quote": "So high frequency is not required; what the gate needs is glutamate and depolarization together.",
+   "section": "Testing the gate"
+  },
+  {
+   "id": "synaptic-plasticity-c20",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In rat hippocampal slices, the NMDA antagonist APV leaves the baseline field EPSP unchanged but prevents LTP after a high-frequency train. What does this show?",
+   "back": "NMDA receptors are needed to induce LTP, not to carry the everyday synaptic response, which AMPA receptors carry.",
+   "quote": "NMDA receptors were needed to induce the change, not to carry the everyday response.",
+   "section": "Testing the gate"
+  },
+  {
+   "id": "synaptic-plasticity-c21",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Only one CA1 cell in a rat slice is filled with the Ca2+ buffer EGTA before a 100 Hz Schaffer train. Predict LTP at that cell and at unfilled neighbours.",
+   "back": "No LTP at the filled cell; the neighbours potentiate. Induction needs a Ca2+ rise inside the postsynaptic cell, and EGTA buffers it.",
+   "quote": "Lynch and colleagues injected the Ca2+ buffer EGTA into CA1 cells, and LTP failed at those cells.",
+   "section": "Testing the gate"
+  },
+  {
+   "id": "synaptic-plasticity-c22",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "With APV in the bath, a field EPSP slope is 0.60 mV/ms at baseline and 0.61 mV/ms sixty minutes after a 100 Hz train. An untrained control pathway drifts between 97% and 103%. Compute and interpret.",
+   "back": "0.61 / 0.60 × 100 ≈ 102% of baseline, within the control pathway's drift: no detectable LTP with APV. To establish NMDA-receptor-dependent induction under this protocol, you must also show that the same train induces LTP without APV.",
+   "quote": "Sixty minutes after the same train, the slope is 0.51 mV/ms: 0.51 / 0.50 = 102%, within the drift of the control pathway.",
+   "section": "Testing the gate"
+  },
+  {
+   "id": "synaptic-plasticity-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "During a tetanus that strongly depolarizes a CA1 cell, why does a silent input onto the same cell not potentiate by the NMDA mechanism?",
+   "back": "It released no glutamate, so its NMDA receptors let in no Ca2+, however depolarized the cell became. This is input specificity.",
+   "quote": "An input that was silent during the train released no glutamate, so its NMDA receptors let in no Ca2+, however depolarized the cell became.",
+   "section": "What the rule explains: specificity, cooperativity, associativity"
+  },
+  {
+   "id": "synaptic-plasticity-c24",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In an isolated passive compartment with leak reversing at −70 mV and AMPA current at 0 mV, find the local balance point when AMPA conductance is half the resting conductance. What does this say about cooperativity?",
+   "back": "(1 × (−70) + 0.5 × 0) / 1.5 ≈ −47 mV. More coactive fibres add AMPA conductance and pull the spine toward 0 mV, clearing more Mg2+ block; a few fibres barely move it.",
+   "why": "Illustrative numbers in a simplified compartment; they show the direction of the effect, not the voltage at a real spine.",
+   "quote": "Take the isolated compartment from above, with leak reversing at −70 mV and AMPA current reversing at 0 mV.",
+   "section": "What the rule explains: specificity, cooperativity, associativity"
+  },
+  {
+   "id": "synaptic-plasticity-c25",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On one CA1 cell, weak pathway W cannot potentiate alone. W is stimulated during strong pathway S's tetanus; pathway N gets no stimulation. Predict each pathway's slope an hour later.",
+   "back": "S is potentiated. W is potentiated too: it supplied its own glutamate and S supplied the depolarization that cleared the block at W's spines, if it reaches them. N stays near baseline: no glutamate.",
+   "why": "This is associativity, a Hebbian rule: an input active while other inputs strongly depolarize the cell gets stronger.",
+   "quote": "This is a Hebbian rule in a dish: an input that is active while other inputs strongly depolarize the cell gets stronger.",
+   "section": "What the rule explains: specificity, cooperativity, associativity"
+  },
+  {
+   "id": "synaptic-plasticity-c26",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The weak-plus-strong pairing that normally gives associative LTP at CA1 is repeated with APV in the bath throughout. Predict the weak and strong pathways an hour later.",
+   "back": "Neither potentiates. Associativity and the strong pathway's own LTP both rest on Ca2+ entry through NMDA receptors, and APV blocks them whatever the glutamate or depolarization.",
+   "why": "Rule: the NMDA gate explains specificity, cooperativity and associativity, and APV prevents NMDA-receptor-dependent induction.",
+   "quote": "The product rule explains all three, as long as the inputs depolarize the right spines enough.",
+   "section": "What the rule explains: specificity, cooperativity, associativity"
+  },
+  {
+   "id": "synaptic-plasticity-c27",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Hypothetically, a CA1 slice is bathed with no Mg2+. By the NMDA gate rule, would a weak input still need a strong partner to admit substantial Ca2+? Would input specificity survive?",
+   "back": "By the rule, no partner would be needed: with no Mg2+ in the pore, glutamate alone opens the receptors near rest, so the coincidence requirement weakens. Input specificity survives: silent inputs still release no glutamate.",
+   "why": "Rests on the rule that depolarization matters because it clears the Mg2+ block, and that no Ca2+ enters without glutamate.",
+   "quote": "So the voltage at the spine reports what the postsynaptic cell is doing, and the Mg2+ block reads that voltage.",
+   "section": "The gate that needs two signals"
+  },
+  {
+   "id": "synaptic-plasticity-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the canonical model of LTP, why does recruiting CaMKII let a brief Ca2+ signal leave a lasting change?",
+   "back": "CaMKII is a kinase that can stay active after Ca2+ falls, so the change outlasts the signal.",
+   "quote": "the large, fast Ca2+ rise after a tetanus recruits CaMKII, a kinase that can stay active after Ca2+ falls",
+   "section": "Up or down: what the Ca2+ does"
+  },
+  {
+   "id": "synaptic-plasticity-c29",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What expression change carries LTP at Schaffer collateral-CA1 synapses, and what does it do to the synaptic response?",
+   "back": "More AMPA receptors at the synapse, giving a bigger response to the same glutamate.",
+   "quote": "More AMPA receptors mean a bigger response to the same glutamate.",
+   "section": "Up or down: what the Ca2+ does"
+  },
+  {
+   "id": "synaptic-plasticity-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "LTP that lasts many hours often needs new {{c1::protein synthesis}}, and its longest-lasting forms also need new gene transcription.",
+   "back": "",
+   "quote": "LTP that lasts many hours often needs new protein synthesis, and its longest-lasting forms also need new gene transcription",
+   "section": "Up or down: what the Ca2+ does"
+  },
+  {
+   "id": "synaptic-plasticity-c31",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What stimulation protocol induces long-term depression (LTD) at Schaffer collateral-CA1 synapses in rat slices?",
+   "back": "900 stimuli at 1 to 3 Hz. The population EPSP falls and stays down for more than an hour, only at the conditioned input.",
+   "quote": "gave the Schaffer collateral input in rat slices 900 stimuli at 1 to 3 Hz.",
+   "section": "Up or down: what the Ca2+ does"
+  },
+  {
+   "id": "synaptic-plasticity-c32",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a rat CA1 slice, 900 pulses at 1 Hz to one Schaffer input change its field EPSP slope from 0.50 to 0.35 mV/ms an hour later. A second input to the same cells goes from 0.48 to 0.47 mV/ms. Express both as percent of baseline and interpret.",
+   "back": "Conditioned: 0.35 / 0.50 × 100 = 70% of baseline, a 30% depression. Control: 0.47 / 0.48 × 100 ≈ 98%, unchanged. Input-specific LTD.",
+   "quote": "The population EPSP fell and stayed down for more than an hour, only at the conditioned input.",
+   "section": "Up or down: what the Ca2+ does"
+  },
+  {
+   "id": "synaptic-plasticity-c33",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "LTD fails to develop when an NMDA receptor antagonist is present during 900 slow pulses to a Schaffer input. What does this show?",
+   "back": "The same receptor that gates LTP is needed for LTD.",
+   "why": "In the standard model the trigger is a modest Ca2+ signal through the receptor, but whether LTD needs ion flow is debated.",
+   "quote": "NMDA antagonists prevented it, so the same receptor that gates LTP is needed for its opposite.",
+   "section": "Up or down: what the Ca2+ does"
+  },
+  {
+   "id": "synaptic-plasticity-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the canonical model, why does a modest, prolonged Ca2+ rise favour LTD rather than LTP?",
+   "back": "The phosphatase pathway (calcineurin, then protein phosphatase 1) responds to smaller Ca2+/calmodulin signals than CaMKII. Phosphatases lead to AMPA receptor removal; CaMKII leads to insertion.",
+   "why": "Phosphatase inhibitors in the bath or the postsynaptic cell blocked or reduced LTD induction in rat CA1.",
+   "quote": "the phosphatase pathway (calcineurin, a phosphatase that in turn activates protein phosphatase 1) responds to smaller Ca2+/calmodulin signals than CaMKII does",
+   "section": "Up or down: what the Ca2+ does"
+  },
+  {
+   "id": "synaptic-plasticity-c35",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Endocytosis is blocked in a CA1 pyramidal cell. Predict what happens to its baseline AMPA EPSCs over time, and to LTD expression after 900 slow pulses.",
+   "back": "Baseline AMPA EPSCs gradually grow, because receptors are inserted and removed all the time. LTD expression should be impaired, since it includes AMPA receptor removal by endocytosis.",
+   "why": "Rests on two stated facts: blocking endocytosis made AMPA EPSCs grow, and LTD is expressed partly by endocytic removal of AMPA receptors.",
+   "quote": "Expression includes removal of AMPA receptors by endocytosis",
+   "section": "Up or down: what the Ca2+ does"
+  },
+  {
+   "id": "synaptic-plasticity-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For the short-term facilitation and depression examples covered in this lesson, how do their coincidence requirement, duration and main site differ from NMDA-receptor LTP?",
+   "back": "These examples need no coincidence of pre- and postsynaptic activity, mostly last milliseconds to seconds, and happen mainly in the presynaptic terminal.",
+   "quote": "need no coincidence of pre- and postsynaptic activity, mostly last milliseconds to seconds, and happen mainly in the presynaptic terminal",
+   "section": "A different machine: short-term plasticity"
+  },
+  {
+   "id": "synaptic-plasticity-c37",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the paired-pulse ratio, and which values mean facilitation and depression?",
+   "back": "Second response divided by the first, for two pulses a few to a few hundred milliseconds apart. Above 1 is facilitation; below 1 is depression.",
+   "quote": "Give two pulses a few to a few hundred milliseconds apart and divide the second response by the first: the paired-pulse ratio.",
+   "section": "A different machine: short-term plasticity"
+  },
+  {
+   "id": "synaptic-plasticity-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the classic explanation for paired-pulse facilitation?",
+   "back": "Residual Ca2+: calcium left in the presynaptic terminal from the first spike adds to the second.",
+   "quote": "The classic explanation is residual Ca2+: calcium left in the terminal from the first spike adds to the second.",
+   "section": "A different machine: short-term plasticity"
+  },
+  {
+   "id": "synaptic-plasticity-c39",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two pulses 50 ms apart give EPSC1 = 200 pA and EPSC2 = 300 pA. What is the paired-pulse ratio, what kind of plasticity is it, and could the simplest depletion model produce it?",
+   "back": "300 / 200 = 1.5: above 1, so facilitation. The simplest depletion model cannot produce it: its ratio is 1 − F, always below 1.",
+   "quote": "Above 1 is facilitation; below 1 is depression.",
+   "section": "A different machine: short-term plasticity"
+  },
+  {
+   "id": "synaptic-plasticity-c40",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At the mouse synapses tested, synaptotagmin 7 is the Ca2+ sensor for paired-pulse facilitation. What results support a sensor role rather than a role in making residual Ca2+?",
+   "back": "Deleting it eliminated facilitation while the residual Ca2+ signal was unchanged. Wild-type protein restored facilitation; a mutant with a calcium-insensitive C2A domain did not.",
+   "quote": "Wild-type synaptotagmin 7 restored facilitation and a mutant with a calcium-insensitive C2A domain did not",
+   "section": "A different machine: short-term plasticity"
+  },
+  {
+   "id": "synaptic-plasticity-c41",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the simplest depletion model (no refilling, no facilitation, fixed release fraction), F = 0.20, releasable pool S = 150 vesicles and i = 8 pA per vesicle. Find both EPSCs of a closely spaced pair and their ratio.",
+   "back": "EPSC1 = 0.20 × 150 × 8 pA = 240 pA. Pool left = 150 × 0.80 = 120, so EPSC2 = 0.20 × 120 × 8 pA = 192 pA. Ratio 192 / 240 = 0.80 = 1 − F.",
+   "quote": "The ratio is 240 / 400 = 0.60, which equals 1 − F: a 40% depression.",
+   "section": "A different machine: short-term plasticity"
+  },
+  {
+   "id": "synaptic-plasticity-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Synapse A has release fraction F = 0.1 and synapse B has F = 0.5. Using the simplest depletion model, predict which depresses more. If B's measured paired-pulse ratio is 0.5, does that prove depletion?",
+   "back": "B depresses more: ratio = 1 − F, so A ≈ 0.9 and B ≈ 0.5. No: a matching ratio does not prove depletion, since other processes can give the same number.",
+   "why": "Rule: ratio = 1 − F in the simplest model, which fails to explain short-term depression at many synapses.",
+   "quote": "A measured ratio of 0.60 does not prove depletion, since other processes can give the same number",
+   "section": "A different machine: short-term plasticity"
+  },
+  {
+   "id": "synaptic-plasticity-c43",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Name the three kinds of evidence linking a synaptic change such as LTP to memory, and what each shows.",
+   "back": "Correlation: learning goes with potentiation at a pathway. Necessity: blocking or reversing the change impairs the memory. Sufficiency: inducing the change produces the memory's effect.",
+   "quote": "A necessity test: blocking or reversing the change impairs the memory.",
+   "section": "From synapse to memory: what the evidence licenses"
+  },
+  {
+   "id": "synaptic-plasticity-c44",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Rats given the NMDA antagonist AP5 into the ventricles are impaired at place learning, spared at visual-discrimination learning, and lose hippocampal LTP in vivo. What does this show, and what does it not show?",
+   "back": "NMDA receptors were needed for both place learning and hippocampal LTP. Because the drug reached many synapses, it does not show that the learning was LTP.",
+   "quote": "The drug reached many synapses, so this shows the receptors were needed for both, not that the learning was LTP.",
+   "section": "From synapse to memory: what the evidence licenses"
+  },
+  {
+   "id": "synaptic-plasticity-c45",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In mouse CA1, inputs arriving seconds before or after a dendritic plateau potential were potentiated enough to form a place field. Why does this matter for the Hebbian timing rule?",
+   "back": "It is a rule that works over seconds, not the milliseconds of classic Hebbian pairing, so the timing rule is not settled.",
+   "quote": "a rule that works over seconds, not the milliseconds of classic Hebbian pairing",
+   "section": "From synapse to memory: what the evidence licenses"
+  },
+  {
+   "id": "synaptic-plasticity-c46",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In rats, auditory inputs to the lateral amygdala are driven by light as a cue. After light-shock pairing, optical LTD of the inputs abolishes the conditioned response, later optical LTP restores it, and LTP alone in never-paired rats does nothing. What does this show about necessity and sufficiency?",
+   "back": "The potentiated state of these inputs was necessary to express the response at testing. LTP alone is not sufficient to create the association; something set up by the pairing had to be there.",
+   "why": "Restoration by LTP argues that LTD turned the response down rather than erasing everything learned.",
+   "quote": "So LTP at these inputs is not sufficient to create the association on its own; something set up by the pairing had to be there.",
+   "section": "Design problem"
+  },
+  {
+   "id": "synaptic-plasticity-c47",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the rat lateral amygdala study where optical LTD of cue inputs abolished a conditioned response, what control would test whether the loss is specific to those inputs?",
+   "back": "Give the same LTD to a different set of inputs; if the response stays intact, the effect is specific to the conditioned inputs.",
+   "why": "The data also do not show that the whole memory lives at one set of synapses, or that the result holds for other fear tasks or for people.",
+   "quote": "A good next control is to test whether a different set of inputs, given the same LTD, leaves the response intact.",
+   "section": "Design problem"
+  }
+ ]
+}

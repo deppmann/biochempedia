@@ -1,0 +1,187 @@
+---
+/**
+ * ShhGradientReadout — how a progenitor in the neural tube reads Sonic hedgehog by level AND
+ * by time. Two sliders (Shh concentration, exposure time) in relative units. The model is the
+ * one the lesson states: cells adapt to the signal (Shh switches on its own receptor Patched1),
+ * so signaling inside the cell fades, more slowly at a higher dose; and identity tracks
+ * something like the total signaling received. The plot of signaling over time shows the
+ * fading curve with the exposed stretch shaded; the map of dose against time shows which
+ * identity each combination gives and where the current cell sits. Cut-offs and units are
+ * relative: a sketch of the logic, not measured values. Nothing is drawn as a molecule.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="sg card" data-shhreadout>
+  <figcaption class="sg-head">Reading Sonic hedgehog: level and time<span class="sg-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="sg-svg" viewBox="0 0 360 400" role="img" aria-label="Top: signaling inside a progenitor cell over time at the chosen Sonic hedgehog concentration, with the exposed stretch shaded. Bottom: a map of concentration against exposure time showing which ventral identity each combination gives, with the current cell marked." data-plot></svg>
+
+  <div class="sg-controls">
+    <label class="sg-slabel"><span>Sonic hedgehog concentration <em data-out="c">4</em> <small>(relative units)</small></span>
+      <input type="range" data-in="c" min="0.5" max="10" step="0.5" value="4" />
+    </label>
+    <label class="sg-slabel"><span>Time exposed to the signal <em data-out="t">5</em> <small>(relative units)</small></span>
+      <input type="range" data-in="t" min="0.5" max="10" step="0.5" value="5" />
+    </label>
+  </div>
+
+  <p class="sg-verdict" data-verdict role="status"></p>
+  <ul class="sg-legend" data-legend aria-label="Identities from least to most ventral"></ul>
+
+  <p class="sg-foot">A progenitor reads both how much Sonic hedgehog it meets and for how long, because adaptation makes signaling fade and a higher dose keeps it going longer; the axes and cut-offs here are relative, a sketch of that logic and not measured values. The lesson gives floor plate only for the higher concentrations Roelink and colleagues tested, a different assay; this sketch stops at p3.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#8a8a96', ACCENT = '#0e7c86', ORANGE = '#e57200';
+
+  // Identities from least to most ventral. `from` is the lower cut-off of total signaling
+  // (relative units); the order is the lesson's: dorsal, p0, p1, p2, pMN, p3 (the sketch stops at p3).
+  const ZONES: { key: string; name: string; out: string; from: number; fill: string }[] = [
+    { key: 'dorsal', name: 'stays dorsal, Pax7 still on', out: 'not yet switched ventral', from: 0, fill: '#e8eef2' },
+    { key: 'p0', name: 'p0', out: 'V0 interneurons', from: 0.3, fill: '#c6e3e6' },
+    { key: 'p1', name: 'p1', out: 'V1 interneurons', from: 0.8, fill: '#9fd0d5' },
+    { key: 'p2', name: 'p2', out: 'V2 interneurons', from: 1.6, fill: '#6fb8c0' },
+    { key: 'pMN', name: 'pMN', out: 'motor neurons', from: 3.0, fill: '#3f9ba5' },
+    { key: 'p3', name: 'p3', out: 'V3 interneurons', from: 8, fill: '#1f7580' },
+  ];
+  const CMIN = 0.5, CMAX = 10, TMIN = 0.5, TMAX = 10;
+
+  // Adaptation: signaling rate = c * exp(-t / tau). tau grows with dose, so a higher dose
+  // keeps signaling going longer. Total signaling is the area under that curve up to T.
+  const tau = (c: number) => 8 * (1 + c / 2);
+  const rate = (c: number, t: number) => c * Math.exp(-t / tau(c));
+  const total = (c: number, T: number) => c * tau(c) * (1 - Math.exp(-T / tau(c)));
+  const zoneIndex = (s: number) => {
+    let i = 0;
+    ZONES.forEach((z, k) => { if (s >= z.from) i = k; });
+    return i;
+  };
+  const fmt = (n: number) => (n < 10 ? n.toFixed(1) : String(Math.round(n)));
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-shhreadout]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const cIn = root.querySelector<HTMLInputElement>('[data-in="c"]')!;
+    const tIn = root.querySelector<HTMLInputElement>('[data-in="t"]')!;
+    const cOut = root.querySelector<HTMLElement>('[data-out="c"]')!;
+    const tOut = root.querySelector<HTMLElement>('[data-out="t"]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const legend = root.querySelector<HTMLElement>('[data-legend]')!;
+
+    ZONES.forEach((z) => {
+      const li = document.createElement('li');
+      li.dataset.zone = z.key;
+      li.innerHTML = `<span class="sg-sw" style="background:${z.fill}"></span><span><strong>${z.name}</strong>${z.name === z.out ? '' : ' <em>' + (z.key === 'dorsal' ? '' : '→ ' + z.out) + '</em>'}</span>`;
+      legend.appendChild(li);
+    });
+    // Order note for screen readers: least to most ventral, top to bottom.
+
+    // Panel A: signaling over time
+    const AX0 = 46, AX1 = 342, AY0 = 34, AY1 = 150;
+    const ax = (t: number) => AX0 + (t / TMAX) * (AX1 - AX0);
+    const ay = (r: number) => AY1 - (r / CMAX) * (AY1 - AY0);
+    // Panel B: dose against time map
+    const BX0 = 46, BX1 = 342, BY0 = 214, BY1 = 358;
+    const bx = (t: number) => BX0 + ((t - 0) / TMAX) * (BX1 - BX0);
+    const by = (c: number) => BY1 - ((c - 0) / CMAX) * (BY1 - BY0);
+
+    function render() {
+      const c = parseFloat(cIn.value), T = parseFloat(tIn.value);
+      cOut.textContent = c.toFixed(1);
+      tOut.textContent = T.toFixed(1);
+      const s = total(c, T), zi = zoneIndex(s), z = ZONES[zi];
+      plot.replaceChildren();
+
+      // ---- Panel A
+      plot.appendChild(el('text', { x: 8, y: 14, 'font-size': 10, 'font-weight': 700, fill: INK }, 'Signaling inside the cell fades as cells adapt'));
+      plot.appendChild(el('line', { x1: AX0, y1: AY0, x2: AX0, y2: AY1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: AX0, y1: AY1, x2: AX1, y2: AY1, stroke: INK, 'stroke-width': 1 }));
+      let full = '', shade = `M${ax(0).toFixed(1)} ${ay(0).toFixed(1)} `, kept = '';
+      for (let t = 0; t <= TMAX + 1e-9; t += 0.25) {
+        const p = `${ax(t).toFixed(1)} ${ay(rate(c, t)).toFixed(1)}`;
+        full += (t === 0 ? 'M' : 'L') + p + ' ';
+        if (t <= T + 1e-9) { kept += (t === 0 ? 'M' : 'L') + p + ' '; shade += 'L' + p + ' '; }
+      }
+      shade += `L${ax(T).toFixed(1)} ${ay(rate(c, T)).toFixed(1)} L${ax(T).toFixed(1)} ${ay(0).toFixed(1)} Z`;
+      plot.appendChild(el('path', { d: full.trim(), fill: 'none', stroke: '#b9b9c2', 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('path', { d: shade, fill: ACCENT, opacity: 0.22 }));
+      plot.appendChild(el('path', { d: kept.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      plot.appendChild(el('line', { x1: ax(T), y1: AY0, x2: ax(T), y2: AY1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('text', { x: Math.min(ax(T) + 4, AX1 - 70), y: AY0 + 8, 'font-size': 9, 'font-weight': 700, fill: ORANGE }, 'signal ends here'));
+      plot.appendChild(el('text', { x: AX1 - 4, y: c <= 3 ? AY0 + 22 : AY1 - 6, 'font-size': 9, 'text-anchor': 'end', fill: INK }, `shaded: total received ${fmt(s)}`));
+      plot.appendChild(el('text', { x: (AX0 + AX1) / 2, y: AY1 + 14, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'time (relative units)'));
+      plot.appendChild(el('text', { x: AX0 - 4, y: AY0 - 4, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'signaling'));
+      plot.appendChild(el('text', { x: AX0 - 4, y: AY1 + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '0'));
+      plot.appendChild(el('text', { x: AX1, y: AY0 - 4, 'font-size': 9, 'text-anchor': 'end', fill: FAINT }, 'dashed: had it continued'));
+
+      // ---- Panel B
+      plot.appendChild(el('text', { x: 8, y: 186, 'font-size': 10, 'font-weight': 700, fill: INK }, 'Identity each dose and exposure time would give'));
+      plot.appendChild(el('text', { x: 8, y: 200, 'font-size': 9, fill: INK }, 'darker = more ventral (see list below)'));
+      const NX = 40, NY = 24, w = (BX1 - BX0) / NX, h = (BY1 - BY0) / NY;
+      for (let i = 0; i < NX; i++) {
+        for (let j = 0; j < NY; j++) {
+          const t = ((i + 0.5) / NX) * TMAX, cc = ((j + 0.5) / NY) * CMAX;
+          const k = zoneIndex(total(cc, t));
+          plot.appendChild(el('rect', { x: (BX0 + i * w).toFixed(2), y: (BY1 - (j + 1) * h).toFixed(2), width: (w + 0.4).toFixed(2), height: (h + 0.4).toFixed(2), fill: ZONES[k].fill }));
+        }
+      }
+      plot.appendChild(el('rect', { x: BX0, y: BY0, width: BX1 - BX0, height: BY1 - BY0, fill: 'none', stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('text', { x: (BX0 + BX1) / 2, y: BY1 + 14, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'time exposed (relative units)'));
+      plot.appendChild(el('text', { x: BX0 - 4, y: BY0 + 8, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'high'));
+      plot.appendChild(el('text', { x: BX0 - 4, y: BY1, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'low'));
+      plot.appendChild(el('text', { x: BX0 - 4, y: BY0 - 4, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'dose'));
+      plot.appendChild(el('text', { x: BX0, y: BY1 + 14, 'font-size': 9, 'text-anchor': 'start', fill: INK }, '0'));
+      // current cell
+      const mx = bx(T), my = by(c);
+      plot.appendChild(el('line', { x1: BX0, y1: my, x2: mx, y2: my, stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('line', { x1: mx, y1: BY1, x2: mx, y2: my, stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('circle', { cx: mx, cy: my, r: 6, fill: '#fff', stroke: ORANGE, 'stroke-width': 2.5 }));
+      const left = mx > (BX0 + BX1) / 2;
+      plot.appendChild(el('rect', { x: left ? mx - 8 - 92 : mx + 10, y: my - 22 < BY0 + 2 ? my + 8 : my - 22, width: 92, height: 14, rx: 3, fill: '#fff', stroke: ORANGE, 'stroke-width': 1 }));
+      plot.appendChild(el('text', { x: (left ? mx - 8 - 92 : mx + 10) + 46, y: (my - 22 < BY0 + 2 ? my + 8 : my - 22) + 10, 'font-size': 9, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, (z.key === 'dorsal' ? 'dorsal' : z.name)));
+
+      // ---- Words
+      legend.querySelectorAll<HTMLElement>('li').forEach((li) => li.classList.toggle('sg-on', li.dataset.zone === z.key));
+      const lastT = ZONES[zoneIndex(total(c, TMAX))], hiC = ZONES[zoneIndex(total(CMAX, T))];
+      let what: string;
+      if (z.key === 'dorsal') what = 'The cell has received too little signal to switch Pax7 off, so in this sketch it keeps its dorsal character.';
+      else what = `In this sketch the cell takes the ${z.name} identity, the domain that makes ${z.out}.`;
+      let more = '';
+      if (lastT.key !== z.key && hiC.key !== z.key) more = ` Holding this dose for longer would give ${lastT.key === 'dorsal' ? 'no change' : lastT.name}; holding this time but raising the dose to the top would give ${hiC.name}.`;
+      else if (lastT.key !== z.key) more = ` Holding this dose for longer would give ${lastT.name}.`;
+      else if (hiC.key !== z.key) more = ` Holding this time but raising the dose to the top would give ${hiC.name}.`;
+      else if (z.key !== 'p3') more = ' Neither more time nor more dose changes the identity here, within this sketch.';
+      verdict.textContent = `At concentration ${c.toFixed(1)} for ${T.toFixed(1)}, the cell receives about ${fmt(s)} relative units of total signaling in this sketch, because signaling fades as cells adapt. ${what}${more}`;
+    }
+    [cIn, tIn].forEach((x) => x.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .sg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sg-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sg-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .sg-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sg-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .sg-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .sg-slabel input { accent-color: var(--ddp-color-accent); }
+  .sg-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 5em; }
+  .sg-legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.15rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sg-legend li { display: flex; align-items: center; gap: 0.4rem; padding: 0.1rem 0.25rem; border-radius: 4px; }
+  .sg-legend li.sg-on { background: color-mix(in srgb, var(--ddp-color-secondary) 18%, transparent); outline: 1px solid var(--ddp-color-secondary); }
+  .sg-legend em { font-style: normal; color: var(--ddp-color-muted); }
+  .sg-sw { flex: none; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--ddp-color-line); }
+  .sg-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .sg-controls, .sg-legend { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,171 @@
+---
+/**
+ * ThreePointOrderFinder — the worked three-point test cross of the "Three-Point Crosses"
+ * lesson (genes p, q, r; 1,000 progeny). The learner picks a candidate gene order. For that
+ * order the tool marks which classes would be double crossovers (the class that differs from
+ * its nearest parental only at the middle gene), says whether they are the rarest classes, and
+ * computes the interval distances, expected doubles, coefficient of coincidence and
+ * interference from the counts with the lesson's own formulas. Labelled bars only; nothing is
+ * drawn as a molecule. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="tpo card" data-tpo>
+  <figcaption class="tpo-head">Three-point order finder: which gene is in the middle?<span class="tpo-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="tpo-pick">
+    <legend>Candidate gene order, left to right</legend>
+    <label><input type="radio" name="tpo-order" value="0" checked /> p – q – r</label>
+    <label><input type="radio" name="tpo-order" value="1" /> q – p – r</label>
+    <label><input type="radio" name="tpo-order" value="2" /> p – r – q</label>
+  </fieldset>
+
+  <svg class="tpo-svg" viewBox="0 0 360 290" role="img" aria-label="Bars for the eight progeny classes of the test cross, coloured by whether each is a parental, a single crossover or a double crossover under the chosen gene order, and a map of the resulting distances" data-stage></svg>
+
+  <p class="tpo-best" data-best></p>
+  <p class="tpo-verdict" data-verdict role="status"></p>
+  <ul class="tpo-list" data-list></ul>
+
+  <p class="tpo-foot">A double crossover swaps only the gene between the two crossovers, and doubles are usually the rarest classes; check them against the parentals, and against viability, before trusting rarity alone. The counts are the lesson’s 1,000 progeny, assumed equally viable and scored without error.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const GENES = ['p', 'q', 'r'];
+  // Each class: mutant (1) or normal (0) at p, q, r. Counts are the lesson's worked problem.
+  const CLASSES: { bits: number[]; n: number }[] = [
+    { bits: [1, 1, 1], n: 350 },
+    { bits: [0, 0, 0], n: 342 },
+    { bits: [1, 1, 0], n: 96 },
+    { bits: [0, 0, 1], n: 92 },
+    { bits: [1, 0, 1], n: 55 },
+    { bits: [0, 1, 0], n: 53 },
+    { bits: [0, 1, 1], n: 7 },
+    { bits: [1, 0, 0], n: 5 },
+  ];
+  // Candidate orders as indices into GENES (outer, middle, outer).
+  const ORDERS: number[][] = [[0, 1, 2], [1, 0, 2], [0, 2, 1]];
+  const TOTAL = CLASSES.reduce((s, c) => s + c.n, 0);
+  const PAR_A = [1, 1, 1], PAR_B = [0, 0, 0];
+  type Role = 'parental' | 'int1' | 'int2' | 'double';
+  const COL: Record<Role, string> = { parental: '#0e7c86', int1: '#e57200', int2: '#7a5ea8', double: '#c0392b' };
+  const INK = '#4b4b55', FAINT = '#8a8a96';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const num = (x: number, d = 1) => x.toFixed(d).replace(/\.0+$/, '');
+  const dist = (a: number[], b: number[]) => a.reduce((s, v, i) => s + (v !== b[i] ? 1 : 0), 0);
+
+  // Which gene (index into GENES) has switched relative to the nearer parental, or -1 for none.
+  function switched(bits: number[]): number {
+    const parent = dist(bits, PAR_A) <= dist(bits, PAR_B) ? PAR_A : PAR_B;
+    return bits.findIndex((v, i) => v !== parent[i]);
+  }
+  function analyse(order: number[]) {
+    const [x, m, y] = order;
+    const roles = CLASSES.map((c): Role => {
+      const s = switched(c.bits);
+      return s < 0 ? 'parental' : s === m ? 'double' : s === x ? 'int1' : 'int2';
+    });
+    const sum = (r: Role) => CLASSES.reduce((t, c, i) => t + (roles[i] === r ? c.n : 0), 0);
+    const dbl = sum('double'), s1 = sum('int1'), s2 = sum('int2');
+    const d1 = (s1 + dbl) / TOTAL, d2 = (s2 + dbl) / TOTAL;
+    const expected = d1 * d2 * TOTAL;
+    const coin = dbl / expected;
+    // Two-point count on the outer genes: a class is recombinant if the outer pair is not parental.
+    const outer = CLASSES.reduce((t, c) => t + (c.bits[x] !== c.bits[y] ? c.n : 0), 0) / TOTAL;
+    return { roles, dbl, s1, s2, d1, d2, expected, coin, interf: 1 - coin, outer };
+  }
+  const label = (o: number[]) => o.map((i) => GENES[i]).join(' – ');
+  const name = (bits: number[], o: number[]) => o.map((i) => (bits[i] ? GENES[i] : '+')).join(' ');
+
+  document.querySelectorAll<HTMLElement>('[data-tpo]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const best = root.querySelector<HTMLElement>('[data-best]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const list = root.querySelector<HTMLElement>('[data-list]')!;
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="tpo-order"]'));
+
+    // The order whose double classes are the rarest (smallest total) is the one rarity points to.
+    const dbls = ORDERS.map((o) => analyse(o).dbl);
+    const bestIdx = dbls.indexOf(Math.min(...dbls));
+
+    function draw(o: number[], a: ReturnType<typeof analyse>) {
+      stage.replaceChildren();
+      const rows = CLASSES.map((c, i) => ({ c, role: a.roles[i] }));
+      stage.appendChild(el('text', { x: 8, y: 14, 'font-size': 9, fill: INK }, 'class, written in this map order (+ = normal allele)'));
+      stage.appendChild(el('text', { x: 352, y: 14, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'progeny of 1,000'));
+      const roleText = (r: Role) => r === 'parental' ? 'parental' : r === 'double' ? 'double crossover' : r === 'int1' ? `single, ${GENES[o[0]]}–${GENES[o[1]]}` : `single, ${GENES[o[1]]}–${GENES[o[2]]}`;
+      rows.forEach(({ c, role }, i) => {
+        const y = 24 + i * 21;
+        stage.appendChild(el('text', { x: 8, y: y + 14, 'font-size': 11, 'font-weight': 700, fill: INK }, name(c.bits, o)));
+        const w = Math.max(2, (c.n / 350) * 130);
+        stage.appendChild(el('rect', { x: 62, y, width: w, height: 17, rx: 3, fill: COL[role] }));
+        stage.appendChild(el('text', { x: 62 + w + 4, y: y + 13, 'font-size': 10, fill: INK }, String(c.n)));
+        stage.appendChild(el('text', { x: 252, y: y + 13, 'font-size': 10, 'font-weight': role === 'double' ? 700 : 400, fill: COL[role] }, roleText(role)));
+      });
+      // Map of the distances this order gives, drawn to those distances.
+      const gy = 232, x0 = 40, span = 280, total = a.d1 + a.d2;
+      const xm = x0 + (a.d1 / total) * span, x2 = x0 + span;
+      stage.appendChild(el('line', { x1: x0, y1: gy, x2, y2: gy, stroke: INK, 'stroke-width': 2 }));
+      [[x0, o[0]], [xm, o[1]], [x2, o[2]]].forEach(([px, g]) => {
+        stage.appendChild(el('circle', { cx: px, cy: gy, r: 6, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+        stage.appendChild(el('text', { x: px, y: gy + 20, 'font-size': 11, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, GENES[g]));
+      });
+      stage.appendChild(el('text', { x: (x0 + xm) / 2, y: gy - 10, 'font-size': 10, 'text-anchor': 'middle', fill: COL.int1 }, `${num(a.d1 * 100)} cM`));
+      stage.appendChild(el('text', { x: (xm + x2) / 2, y: gy - 10, 'font-size': 10, 'text-anchor': 'middle', fill: COL.int2 }, `${num(a.d2 * 100)} cM`));
+      stage.appendChild(el('text', { x: 180, y: 278, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'map for this order, drawn to the distances shown'));
+    }
+
+    function render() {
+      const idx = Math.max(0, radios.findIndex((r) => r.checked));
+      const o = ORDERS[idx];
+      const a = analyse(o);
+      draw(o, a);
+      const [X, M, Y] = o.map((i) => GENES[i]);
+      const bo = ORDERS[bestIdx], ba = analyse(bo);
+      best.textContent = `Order that makes the rarest classes the doubles: ${label(bo)} (doubles ${ba.dbl} of ${TOTAL}). Gene ${GENES[bo[1]]} is the one that differs between those classes and their parentals.`;
+
+      const dblCounts = CLASSES.filter((_, i) => a.roles[i] === 'double').map((c) => c.n).sort((p, q) => q - p);
+      let v: string;
+      if (idx === bestIdx) {
+        v = `Order ${label(o)}: the classes in which only ${M} has switched are the doubles (${dblCounts.join(' and ')}), and they are the two rarest. A double crossover swaps only the gene between the two crossovers, so ${M} is in the middle.`;
+      } else {
+        v = `Order ${label(o)} puts ${M} in the middle, so the classes in which only ${M} has switched (${dblCounts.join(' and ')}) would be the doubles. They are not the two rarest classes, so rarity does not support this order.`;
+      }
+      const cmo = a.interf > 0.005
+        ? `Interference is ${num(a.interf, 2)}: positive, fewer doubles than independence predicts.`
+        : 'Interference is 0: as many doubles as independence predicts.';
+      verdict.textContent = `${v} ${X} to ${M} is ${num(a.d1 * 100)} cM and ${M} to ${Y} is ${num(a.d2 * 100)} cM, each counting the doubles in both intervals. Coincidence is ${num(a.coin, 2)}. ${idx === bestIdx ? cmo : ''}`.trim();
+
+      list.replaceChildren();
+      const add = (html: string) => { const li = document.createElement('li'); li.innerHTML = html; list.appendChild(li); };
+      add(`<strong>${X} to ${M}:</strong> (${a.s1} singles + ${a.dbl} doubles) / ${TOTAL} = ${num(a.d1 * 100)} cM`);
+      add(`<strong>${M} to ${Y}:</strong> (${a.s2} singles + ${a.dbl} doubles) / ${TOTAL} = ${num(a.d2 * 100)} cM`);
+      add(`<strong>${X} to ${Y}:</strong> ${num(a.d1 * 100)} + ${num(a.d2 * 100)} = ${num((a.d1 + a.d2) * 100)} cM; scoring only ${X} and ${Y} would give ${num(a.outer * 100)}%`);
+      add(`<strong>Expected doubles if independent:</strong> ${num(a.d1, 3)} × ${num(a.d2, 3)} × ${TOTAL} = ${num(a.expected)}; <strong>observed:</strong> ${a.dbl}`);
+      add(`<strong>Coincidence</strong> = ${a.dbl} / ${num(a.expected)} = ${num(a.coin, 2)}; <strong>interference</strong> = 1 − ${num(a.coin, 2)} = ${num(a.interf, 2)}`);
+    }
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .tpo { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tpo-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tpo-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tpo-pick { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-3); padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .tpo-pick legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .tpo-pick input { accent-color: var(--ddp-color-accent); }
+  .tpo-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tpo-best { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .tpo-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .tpo-list { margin: 0; padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .tpo-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .tpo-pick input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+</style>

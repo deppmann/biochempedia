@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { discreteItems, cueFree, CATEGORY, SETS } from '../../lib/mcat';
+import { itemId } from '../../lib/progress';
+
+// 20 questions across the biology and biochemistry topics, chosen at build time with a
+// fixed seed (stable between visits), skipping items where the right answer is the
+// longest choice so the diagnostic measures knowledge, not test-taking cues.
+const PLAN: [string, number][] = [['1A', 3], ['1D', 3], ['5D', 2], ['2A', 3], ['1B', 2], ['1C', 1], ['3A', 3], ['3B', 3]];
+let seed = 20261026;
+const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+const all = (await discreteItems()).filter(cueFree);
+const picked = PLAN.flatMap(([t, n]) => {
+  const pool = all.filter((d) => d.topic === t).sort((a, b) => (a.slug + a.idx).localeCompare(b.slug + b.idx));
+  const out: typeof pool = [];
+  while (out.length < n && pool.length) out.push(pool.splice(Math.floor(rand() * pool.length), 1)[0]);
+  return out;
+}).map((d) => ({ id: itemId(d.slug, d.stem), slug: d.slug, title: d.lessonTitle, topic: d.topic, stem: d.stem, choices: d.choices, answer: d.answer, rationale: d.rationale }));
+const setsByTopic = Object.fromEntries(Object.keys(CATEGORY).map((t) => [t, SETS.filter((s) => s.categories.includes(t)).map((s) => ({ id: s.id, title: s.title }))]));
+---
+
+<BaseLayout title="MCAT diagnostic — Biochemistrypedia" description="Twenty original MCAT-style questions across biology and biochemistry, then a topic-by-topic picture of where to focus.">
+  <article class="wrap tc mpr" data-diag data-items={JSON.stringify(picked)} data-names={JSON.stringify(CATEGORY)} data-sets={JSON.stringify(setsByTopic)}>
+    <p class="tc-eyebrow"><a href="/mcat/">MCAT practice</a> · Diagnostic</p>
+    <h1>Diagnostic</h1>
+    <p class="tc-lede">
+      {picked.length} questions across the biology and biochemistry topics. Answer them all without looking anything up;
+      feedback comes at the end, with a topic-by-topic picture and where to go next. About 30 minutes. This is a
+      practice check, not a predictor of your MCAT score.
+    </p>
+    <ol class="dg-list" data-list></ol>
+    <p class="tc-row"><button type="button" class="tc-btn" data-finish>See my results</button><span class="tc-muted" data-left></span></p>
+    <section data-results hidden>
+      <h2>Your results</h2>
+      <p class="dg-score" data-score></p>
+      <div class="tc-scroll"><table class="tc-table"><thead><tr><th>Topic</th><th>Right</th><th>Next</th></tr></thead><tbody data-rows></tbody></table></div>
+      <p class="tc-muted">Every miss is in your review queue. Scroll up to read why each answer is right.</p>
+    </section>
+  </article>
+
+  <script>
+    import { recordFirstTry } from '../../lib/progress';
+
+    interface Q { id: string; slug: string; title: string; topic: string; stem: string; choices: string[]; answer: number; rationale: string }
+    const root = document.querySelector<HTMLElement>('[data-diag]')!;
+    const items: Q[] = JSON.parse(root.dataset.items!);
+    const names: Record<string, string> = JSON.parse(root.dataset.names!);
+    const sets: Record<string, { id: string; title: string }[]> = JSON.parse(root.dataset.sets!);
+    const list = root.querySelector<HTMLElement>('[data-list]')!;
+    const picks: (number | null)[] = items.map(() => null);
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+    const left = root.querySelector<HTMLElement>('[data-left]')!;
+    const updateLeft = () => { const n = picks.filter((p) => p === null).length; left.textContent = n ? `${n} unanswered` : 'All answered.'; };
+
+    items.forEach((q, i) => {
+      const li = el('li', 'mq');
+      li.append(el('p', 'mq-stem', q.stem));
+      const ul = el('ul', 'mq-choices');
+      q.choices.forEach((c, ci) => {
+        const b = el('button', 'mq-choice');
+        b.type = 'button';
+        b.setAttribute('aria-pressed', 'false');
+        b.append(el('span', 'mq-letter', 'ABCD'[ci]), el('span', '', c));
+        b.addEventListener('click', () => {
+          if (root.dataset.finished) return;
+          picks[i] = ci;
+          ul.querySelectorAll('button').forEach((x, xi) => { x.setAttribute('aria-pressed', String(xi === ci)); x.classList.toggle('is-picked', xi === ci); });
+          updateLeft();
+        });
+        const w = el('li'); w.append(b); ul.append(w);
+      });
+      li.append(ul, el('div', 'mq-feedback'));
+      (li.lastElementChild as HTMLElement).hidden = true;
+      list.append(li);
+    });
+    updateLeft();
+
+    root.querySelector('[data-finish]')!.addEventListener('click', () => {
+      if (picks.some((p) => p === null) && !confirm('Some questions are unanswered and will count as wrong. See results anyway?')) return;
+      root.dataset.finished = '1';
+      const byTopic: Record<string, { n: number; r: number }> = {};
+      items.forEach((q, i) => {
+        const ok = picks[i] === q.answer;
+        (byTopic[q.topic] ??= { n: 0, r: 0 }).n++;
+        if (ok) byTopic[q.topic].r++;
+        recordFirstTry(q.id, q.slug, ok);
+        const li = list.children[i] as HTMLElement;
+        li.querySelectorAll('.mq-choice').forEach((x, xi) => { (x as HTMLButtonElement).disabled = true; if (xi === q.answer) x.classList.add('is-correct'); if (xi === picks[i] && !ok) x.classList.add('is-wrong'); });
+        const fb = li.querySelector<HTMLElement>('.mq-feedback')!;
+        fb.hidden = false;
+        fb.append(el('p', `mq-verdict ${ok ? 'is-correct' : 'is-wrong'}`, ok ? '✓ Correct' : `✗ The answer is ${'ABCD'[q.answer]}.`), el('p', '', q.rationale));
+        const a = el('a', '', `Lesson: ${q.title} →`) as HTMLAnchorElement;
+        a.href = `/lessons/${q.slug}/`;
+        const p = el('p', 'mq-meta'); p.append(a); fb.append(p);
+      });
+      const right = items.filter((q, i) => picks[i] === q.answer).length;
+      root.querySelector('[data-score]')!.textContent = `${right} of ${items.length} right.`;
+      const rows = root.querySelector<HTMLElement>('[data-rows]')!;
+      for (const [t, s] of Object.entries(byTopic).sort((a, b) => a[1].r / a[1].n - b[1].r / b[1].n)) {
+        const tr = el('tr');
+        tr.append(el('td', '', `${t} · ${names[t] ?? t}`), el('td', '', `${s.r} of ${s.n}`));
+        const next = el('td');
+        const a = el('a', '', 'Topic practice') as HTMLAnchorElement;
+        a.href = `/mcat/practice/?topic=${t}`;
+        next.append(a);
+        for (const st of (sets[t] ?? []).slice(0, 2)) { const b = el('a', '', st.title) as HTMLAnchorElement; b.href = `/mcat/${st.id}/`; next.append(' · ', b); }
+        tr.append(next);
+        rows.append(tr);
+      }
+      const res = root.querySelector<HTMLElement>('[data-results]')!;
+      res.hidden = false;
+      res.scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
+
+  <style is:global>
+    @import '../../styles/teach.css';
+    .mpr .dg-list { padding-left: 1.4rem; }
+    .mpr .mq { margin: var(--ddp-space-6) 0; max-width: 760px; }
+    .mpr .mq-stem { line-height: 1.55; margin: 0 0 var(--ddp-space-3); }
+    .mpr .mq-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+    .mpr .mq-choice { width: 100%; display: flex; gap: var(--ddp-space-3); text-align: left; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
+    .mpr .mq-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
+    .mpr .mq-choice.is-picked { border-color: var(--ddp-color-primary); box-shadow: inset 0 0 0 1px var(--ddp-color-primary); }
+    .mpr .mq-letter { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-muted); }
+    .mpr .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); }
+    .mpr .mq-choice.is-wrong { border-color: #c0392b; background: #fcebe9; }
+    .mpr .mq-feedback { margin-top: var(--ddp-space-3); padding-top: var(--ddp-space-3); border-top: 1px dashed var(--ddp-color-line); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .mpr .mq-verdict { font-weight: 700; }
+    .mpr .mq-verdict.is-correct { color: var(--ddp-color-verified); }
+    .mpr .mq-verdict.is-wrong { color: #c0392b; }
+    .mpr .mq-meta a { color: var(--ddp-color-accent); font-weight: 600; }
+    .mpr .dg-score { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl, 1.4rem); color: var(--ddp-color-primary); }
+  </style>
+</BaseLayout>

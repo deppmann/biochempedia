@@ -1,0 +1,126 @@
+---
+/**
+ * BmpDefaultFate — the default model of neural induction in a Xenopus animal cap.
+ * One control (the treatment) sets how much BMP signaling reaches each cell of a sheet
+ * of ectoderm; each cell shows its fate. Rules are those of the neural-induction lesson:
+ * intact cap -> epidermis; separated cells -> neural; separated cells + BMP4 -> epidermis;
+ * a cap given a BMP antagonist (Noggin) -> neural, anterior. Counts of BMP are a sketch of
+ * the logic, not measured amounts. Nothing is drawn as a molecular structure.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="bdf card" data-bmpdefault>
+  <figcaption class="bdf-head">Default fate: set BMP signaling in a Xenopus animal cap<span class="bdf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="bdf-svg" viewBox="0 0 360 210" role="img" aria-label="A sheet of Xenopus animal-cap cells, each coloured by its fate, with BMP shown as small dots between the cells" data-stage></svg>
+
+  <fieldset class="bdf-ctl">
+    <legend>Treatment</legend>
+    <label><input type="radio" name="bdf-treat" value="cap" checked /> intact cap</label>
+    <label><input type="radio" name="bdf-treat" value="sep" /> cells separated for hours</label>
+    <label><input type="radio" name="bdf-treat" value="bmp" /> separated cells + BMP4</label>
+    <label><input type="radio" name="bdf-treat" value="nog" /> intact cap + Noggin (a BMP antagonist)</label>
+  </fieldset>
+
+  <p class="bdf-verdict" data-verdict role="status"></p>
+
+  <p class="bdf-foot">Rule to keep: in this frog tissue neural is the default fate, and cell-to-cell BMP signaling suppresses it. The picture is a sketch of the logic, with dots standing for relative amounts of BMP, not for measured ones.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Treat = 'cap' | 'sep' | 'bmp' | 'nog';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const COLS = 6, ROWS = 3;
+  // Deterministic jitter so the picture is stable between redraws.
+  const jit = (i: number, s: number) => Math.sin(i * 12.9898 + s * 78.233) * 0.5;
+  const TEXT: Record<Treat, string> = {
+    cap: 'Intact cap: the cells sit close together and keep passing BMP to one another, so BMP signaling stays on in every cell and the cap becomes epidermis. This is the first result in the lesson.',
+    sep: 'Separated cells: spread through a large volume of fluid, then, on the classic reading, the cells no longer pass BMP to one another and it is diluted away, so BMP signaling is low and the cells become neural. Later work found separated cells also switch on MAPK signaling, so dilution may not be the whole story.',
+    bmp: 'Separated cells given BMP4: the added BMP4 replaces the signal that separation removed, BMP signaling is on again, the neural genes stay off and the cells become epidermis.',
+    nog: 'Cap given Noggin: the cells are still close together, but Noggin binds BMP4 in the fluid between them and keeps it off its receptors. With BMP signaling blocked the cap becomes neural, and anterior in character, because Noggin supplies no posteriorizing signal.',
+  };
+  const NEURAL = '#0e7c86', EPI = '#e57200', INK = '#4b4b55', FAINT = '#8a8a96', BMP = '#7a5ea8';
+  document.querySelectorAll<HTMLElement>('[data-bmpdefault]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const radios = root.querySelectorAll<HTMLInputElement>('input[name="bdf-treat"]');
+    function treat(): Treat {
+      let t: Treat = 'cap';
+      radios.forEach((r) => { if (r.checked) t = r.value as Treat; });
+      return t;
+    }
+    function draw(t: Treat) {
+      stage.replaceChildren();
+      const spread = t === 'sep' || t === 'bmp';
+      const dx = spread ? 54 : 36, dy = spread ? 46 : 32, r = spread ? 14 : 16;
+      const x0 = 180 - ((COLS - 1) * dx) / 2, y0 = spread ? 52 : 62;
+      const signaling = t === 'cap' || t === 'bmp';
+      const pts: { x: number; y: number }[] = [];
+      for (let j = 0; j < ROWS; j++) for (let i = 0; i < COLS; i++) {
+        const n = j * COLS + i, k = spread ? 7 : 0;
+        pts.push({ x: x0 + i * dx + jit(n, 1) * k, y: y0 + j * dy + jit(n, 2) * k });
+      }
+      stage.appendChild(el('text', { x: 8, y: 14, 'font-size': 10, fill: INK }, spread ? 'cells separated, in a large volume of fluid' : 'cells packed together in one sheet'));
+      // BMP dots: many between touching cells, few when spread, many again if BMP4 is added.
+      const dots: { x: number; y: number; added: boolean }[] = [];
+      if (!spread) {
+        for (let j = 0; j < ROWS; j++) for (let i = 0; i < COLS - 1; i++) dots.push({ x: pts[j * COLS + i].x + dx / 2, y: pts[j * COLS + i].y + (j % 2 ? 4 : -4), added: false });
+      } else {
+        [[3, 1], [9, 0], [14, 1]].forEach(([n]) => dots.push({ x: pts[n].x + dx / 2, y: pts[n].y + 20, added: false }));
+        if (t === 'bmp') for (let n = 0; n < COLS * ROWS; n++) dots.push({ x: pts[n].x + dx / 2 + jit(n, 3) * 10, y: pts[n].y + dy / 2 + jit(n, 4) * 8, added: true });
+      }
+      pts.forEach((p) => {
+        stage.appendChild(el('circle', { cx: p.x, cy: p.y, r, fill: signaling ? EPI : NEURAL, opacity: 0.9, stroke: signaling ? '#9a4c00' : '#08565d', 'stroke-width': signaling ? 2.5 : 1 }));
+        stage.appendChild(el('text', { x: p.x, y: p.y + 3, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, signaling ? 'epi' : 'neur'));
+      });
+      dots.forEach((d) => {
+        if (t === 'nog') {
+          stage.appendChild(el('rect', { x: d.x - 6, y: d.y - 6, width: 12, height: 12, rx: 3, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }));
+        }
+        stage.appendChild(el('rect', { x: d.x - 3, y: d.y - 3, width: 6, height: 6, transform: `rotate(45 ${d.x} ${d.y})`, fill: d.added ? '#fff' : BMP, stroke: BMP, 'stroke-width': 1.5 }));
+      });
+      // Legend
+      const ly = 190;
+      stage.appendChild(el('rect', { x: 8, y: ly - 8, width: 9, height: 9, rx: 2, fill: EPI }));
+      stage.appendChild(el('text', { x: 21, y: ly, 'font-size': 9, fill: INK }, 'epidermis (BMP signaling on)'));
+      stage.appendChild(el('rect', { x: 8, y: ly + 7, width: 9, height: 9, rx: 2, fill: NEURAL }));
+      stage.appendChild(el('text', { x: 21, y: ly + 15, 'font-size': 9, fill: INK }, 'neural (BMP low or blocked)'));
+      stage.appendChild(el('rect', { x: 196, y: ly - 7, width: 6, height: 6, transform: `rotate(45 199 ${ly - 4})`, fill: BMP, stroke: BMP }));
+      stage.appendChild(el('text', { x: 208, y: ly, 'font-size': 9, fill: INK }, 'BMP passed between cells'));
+      if (t === 'bmp') {
+        stage.appendChild(el('rect', { x: 196, y: ly + 8, width: 6, height: 6, transform: `rotate(45 199 ${ly + 11})`, fill: '#fff', stroke: BMP, 'stroke-width': 1.5 }));
+        stage.appendChild(el('text', { x: 208, y: ly + 15, 'font-size': 9, fill: INK }, 'BMP4 added to the dish'));
+      } else if (t === 'nog') {
+        stage.appendChild(el('rect', { x: 195, y: ly + 7, width: 8, height: 8, rx: 2, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }));
+        stage.appendChild(el('text', { x: 208, y: ly + 15, 'font-size': 9, fill: INK }, 'Noggin bound to BMP4'));
+      }
+    }
+    function render() {
+      const t = treat();
+      draw(t);
+      verdict.textContent = TEXT[t];
+    }
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .bdf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bdf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bdf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bdf-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .bdf-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bdf-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .bdf-ctl input { accent-color: var(--ddp-color-accent); }
+  .bdf-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 5em; }
+  .bdf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .bdf-ctl { grid-template-columns: 1fr; } }
+</style>

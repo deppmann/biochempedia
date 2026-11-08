@@ -1,0 +1,408 @@
+---
+/**
+ * FollowAnAtom — step one carbon atom or one nitrogen atom between six reservoirs (air,
+ * plant or alga, animal, soil, ocean, microbes; carbon also has fossil fuels) by choosing
+ * the lesson's processes. Each move of the atom lets the whole sketch take one step, so a
+ * counter per reservoir shows how the amounts shift. A switch adds the human change
+ * (burning fossil fuels for carbon, adding fertilizer for nitrogen) and each counter shows
+ * its change from the starting amount. No random draws: every flow is a fixed share of
+ * its source, so the counters are the expected values. Amounts are relative units, not
+ * measurements. Nothing is drawn as a molecule: labelled blocks and arrows only.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fa card" data-followatom>
+  <figcaption class="fa-head">Follow an atom through the cycles<span class="fa-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="fa-row">
+    <span class="fa-label" id="fa-kind-label">Follow a</span>
+    <div class="fa-toggle" role="group" aria-labelledby="fa-kind-label">
+      <button type="button" class="fa-btn fa-kind" data-kind="C" aria-pressed="true">carbon atom</button>
+      <button type="button" class="fa-btn fa-kind" data-kind="N" aria-pressed="false">nitrogen atom</button>
+    </div>
+    <label class="fa-start"><span class="fa-label">Start it in the</span>
+      <select class="fa-select" data-start></select>
+    </label>
+  </div>
+
+  <svg class="fa-svg" viewBox="0 0 340 296" role="img" aria-label="Reservoirs of the cycle as labelled blocks with bars for their relative amounts; the block holding your atom has an orange outline" data-stage></svg>
+
+  <p class="fa-status" data-status role="status"></p>
+
+  <div class="fa-moves-wrap">
+    <p class="fa-label fa-movehead" data-movehead tabindex="-1">Choose a process for your atom</p>
+    <div class="fa-moves" data-moves></div>
+  </div>
+
+  <div class="fa-row fa-controls">
+    <label class="fa-switch"><input type="checkbox" data-switch /> <span data-switchtext>Burn fossil fuels</span></label>
+    <button type="button" class="fa-btn" data-wait="1">Wait 1 step</button>
+    <button type="button" class="fa-btn" data-wait="10">Wait 10 steps</button>
+    <button type="button" class="fa-btn fa-reset" data-reset>Reset</button>
+  </div>
+
+  <p class="fa-assume">In this sketch the amounts are made-up relative units, not measurements. Each step moves a made-up fixed share of a reservoir along the lesson’s processes (the shares are invented for this sketch, and no chance is involved). Each choice you make also runs one step.</p>
+  <p class="fa-path" data-path></p>
+
+  <p class="fa-foot">Atoms are not used up. They move between reservoirs and change form, so extra carbon or nitrogen added in one place has to end up somewhere. The picture is a sketch of the logic, not a prediction.</p>
+</figure>
+
+<script>
+  type Kind = 'C' | 'N';
+  type Res = 'air' | 'plant' | 'animal' | 'soil' | 'ocean' | 'bacteria' | 'fossil';
+  type Move = { to: Res; label: string; text: string; test?: boolean };
+  type Flow = { from: Res; to: Res; amt: number; fixed?: boolean };
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const ORANGE ='#e57200', INK = '#4b4b55', FAINT = '#8a8a96';
+  const NAMES: Record<Res, string> = { air: 'air', plant: 'plant or alga', animal: 'animal', soil: 'soil', ocean: 'ocean', bacteria: 'microbes', fossil: 'fossil fuels' };
+  const FILL: Record<Res, string> = { air: '#eaf4f6', plant: '#e8f3e6', animal: '#f6efe4', soil: '#f1e9e0', ocean: '#e3eef8', bacteria: '#f1e8f3', fossil: '#ececf0' };
+  const BAR: Record<Res, string> = { air: '#0e7c86', plant: '#3d8b37', animal: '#a8641a', soil: '#7a5a3a', ocean: '#2f6f8f', bacteria: '#7a5ea8', fossil: '#4b4b55' };
+  // [x, y, width, height]
+  const BOX: Record<Res, [number, number, number, number]> = {
+    air: [6, 6, 328, 62],
+    plant: [6, 84, 104, 78], animal: [118, 84, 104, 78], fossil: [230, 84, 104, 78],
+    soil: [6, 176, 104, 78], bacteria: [118, 176, 104, 78], ocean: [230, 176, 104, 78],
+  };
+  const BAR_MAX = 70;
+
+  // Starting amounts (relative units) chosen so that every flow below balances.
+  const START: Record<Kind, Partial<Record<Res, number>>> = {
+    C: { air: 20, plant: 20, animal: 10, soil: 20, ocean: 30, bacteria: 10, fossil: 40 },
+    N: { air: 40, plant: 10, animal: 5, soil: 15, ocean: 15, bacteria: 5 },
+  };
+  // Baseline flows per step (relative units), each in balance at the starting amounts.
+  const FLOWS: Record<Kind, Flow[]> = {
+    C: [
+      { from: 'air', to: 'plant', amt: 4.5, fixed: true }, { from: 'air', to: 'bacteria', amt: 0.3, fixed: true }, { from: 'air', to: 'ocean', amt: 3.5 },
+      { from: 'ocean', to: 'air', amt: 3 }, { from: 'ocean', to: 'plant', amt: 0.5, fixed: true },
+      { from: 'plant', to: 'air', amt: 2 }, { from: 'plant', to: 'animal', amt: 1 }, { from: 'plant', to: 'bacteria', amt: 2 },
+      { from: 'animal', to: 'air', amt: 0.4 }, { from: 'animal', to: 'bacteria', amt: 0.6 },
+      { from: 'bacteria', to: 'air', amt: 2.9 }, { from: 'bacteria', to: 'soil', amt: 0.6 },
+      { from: 'soil', to: 'bacteria', amt: 0.6 },
+    ],
+    N: [
+      { from: 'air', to: 'bacteria', amt: 1 }, { from: 'bacteria', to: 'soil', amt: 1 },
+      { from: 'soil', to: 'plant', amt: 2 }, { from: 'soil', to: 'ocean', amt: 0.8 }, { from: 'soil', to: 'air', amt: 0.7 },
+      { from: 'plant', to: 'animal', amt: 0.5 }, { from: 'plant', to: 'soil', amt: 2 }, { from: 'animal', to: 'soil', amt: 0.5 },
+      { from: 'ocean', to: 'plant', amt: 0.5 }, { from: 'ocean', to: 'air', amt: 0.3 },
+    ],
+  };
+  // The human change, per step, while the switch is on.
+  const HUMAN: Record<Kind, Flow> = {
+    C: { from: 'fossil', to: 'air', amt: 2 },
+    N: { from: 'air', to: 'soil', amt: 1.5 },
+  };
+  const SWITCH_TEXT: Record<Kind, string> = { C: 'Burn fossil fuels', N: 'Add fertilizer' };
+  const SWITCH_ON: Record<Kind, string> = { C: 'Burning fossil fuels', N: 'Fertilizer added' };
+  const ATOM_NAME: Record<Kind, string> = { C: 'carbon', N: 'nitrogen' };
+
+  // What the atom can do from each reservoir, in the lesson's words.
+  const MOVES: Record<Kind, Partial<Record<Res, Move[]>>> = {
+    C: {
+      air: [
+        { to: 'plant', label: 'photosynthesis', text: 'Photosynthesis: a plant or alga builds sugar from carbon dioxide, so the carbon becomes part of a living thing.' },
+        { to: 'bacteria', label: 'photosynthesis in some bacteria', text: 'Photosynthesis: some bacteria also build sugar from carbon dioxide, so the carbon enters the microbes.' },
+        { to: 'ocean', label: 'ocean absorption', text: 'Ocean absorption: carbon dioxide dissolves into seawater at the surface.' },
+      ],
+      plant: [
+        { to: 'air', label: 'respiration', text: 'Respiration: cells break down sugar with oxygen and release carbon dioxide into the air.' },
+        { to: 'animal', label: 'eaten by an animal', text: 'An animal eats the plant, so the carbon passes into the animal with its food.' },
+        { to: 'bacteria', label: 'decomposition', text: 'Decomposition: fungi and bacteria break down the dead plant, so its carbon is now in the microbes.' },
+        { to: 'air', label: 'combustion (burning wood)', text: 'Combustion: burning wood joins carbon with oxygen and releases carbon dioxide quickly.' },
+      ],
+      animal: [
+        { to: 'air', label: 'respiration', text: 'Respiration: cells break down sugar with oxygen and release carbon dioxide into the air.' },
+        { to: 'animal', label: 'eaten by another animal', text: 'Another animal eats this one, so the carbon passes on with the food.' },
+        { to: 'bacteria', label: 'decomposition', text: 'Decomposition: fungi and bacteria break down the dead animal and its wastes, so the carbon is in the microbes.' },
+      ],
+      bacteria: [
+        { to: 'air', label: 'respiration', text: 'Respiration of the microbes returns much of the carbon to the air.' },
+        { to: 'soil', label: 'stays in the soil', text: 'Some of the carbon stays in the soil for years.' },
+      ],
+      soil: [
+        { to: 'bacteria', label: 'decomposition', text: 'Decomposition goes on: fungi and bacteria break down the dead matter, so the carbon is in the microbes again.' },
+      ],
+      ocean: [
+        { to: 'air', label: 'carbon dioxide comes back out', text: 'Carbon dioxide also comes back out of the seawater into the air.' },
+        { to: 'plant', label: 'photosynthesis by algae', text: 'Photosynthesis: algae pull carbon out of the water and build it into sugar.' },
+      ],
+      fossil: [
+        { to: 'air', label: 'combustion', text: 'Combustion: burning coal, oil or natural gas adds carbon that was locked underground for millions of years to today’s air.' },
+      ],
+    },
+    N: {
+      air: [
+        { to: 'bacteria', label: 'nitrogen fixation', text: 'Nitrogen fixation: certain bacteria (the microbes here) change nitrogen gas into ammonia, a form plants can use.' },
+        { to: 'soil', label: 'factory fixation (fertilizer)', text: 'Factories also fix nitrogen to make fertilizer, which is spread on fields.' },
+        { to: 'plant', label: 'try: a plant takes it straight from the air', text: 'Most plants lack the enzymes to break the strong bond in nitrogen gas, so your atom stays in the air.', test: true },
+      ],
+      bacteria: [
+        { to: 'soil', label: 'nitrification', text: 'Nitrification: soil microbes change ammonia into nitrite and then nitrate.' },
+        { to: 'soil', label: 'fixed nitrogen stays in roots and soil', text: 'Some of the fixed nitrogen stays in roots and soil for the next crop.' },
+      ],
+      soil: [
+        { to: 'plant', label: 'assimilation', text: 'Assimilation: a plant takes up nitrate or ammonium from the soil and builds it into proteins and DNA.' },
+        { to: 'ocean', label: 'runoff', text: 'Water carries dissolved nitrogen off the land into rivers and the sea, so the water cycle moves nitrogen.' },
+        { to: 'air', label: 'denitrification', text: 'Denitrification: bacteria in wet soil with little oxygen turn nitrate back into nitrogen gas.' },
+        { to: 'soil', label: 'nitrification', text: 'Nitrification: soil microbes change ammonia into nitrite and then nitrate. The atom stays in the soil.' },
+      ],
+      plant: [
+        { to: 'animal', label: 'eaten by an animal', text: 'An animal eats the plant. Animals get nitrogen by eating plants or other animals.' },
+        { to: 'soil', label: 'ammonification', text: 'Ammonification: decomposers turn the nitrogen in dead plants, algae and bodies back into ammonium.' },
+      ],
+      animal: [
+        { to: 'animal', label: 'eaten by another animal', text: 'Another animal eats this one. Animals get nitrogen by eating plants or other animals.' },
+        { to: 'soil', label: 'ammonification', text: 'Ammonification: decomposers turn the nitrogen in wastes, dead plants, algae and bodies back into ammonium.' },
+      ],
+      ocean: [
+        { to: 'plant', label: 'assimilation by algae', text: 'Assimilation: algae take up nitrate or ammonium from the water and build it into proteins and DNA.' },
+        { to: 'air', label: 'denitrification', text: 'Denitrification: bacteria in mud with little oxygen turn nitrate back into nitrogen gas.' },
+      ],
+    },
+  };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const f1 = (n: number) => n.toFixed(1);
+  const signed = (n: number) => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(1);
+
+  document.querySelectorAll<HTMLElement>('[data-followatom]').forEach((root) => {
+    const q = <T extends HTMLElement>(s: string): T | null => root.querySelector<T>(s);
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]');
+    const statusEl = q('[data-status]');
+    const movesEl = q('[data-moves]');
+    const moveHead = q('[data-movehead]');
+    const pathEl = q('[data-path]');
+    const startSel = q<HTMLSelectElement>('[data-start]');
+    const sw = q<HTMLInputElement>('[data-switch]');
+    const swText = q('[data-switchtext]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    if (!stage || !statusEl || !movesEl || !moveHead || !pathEl || !startSel || !sw || !swText || !resetBtn) return;
+
+    let kind: Kind = 'C';
+    let pools: Partial<Record<Res, number>> = {};
+    let at: Res = 'air';
+    let steps = 0;
+    let path: string[] = [];
+    let lastMove: { from: Res; to: Res } | null = null;
+
+    const resList = (): Res[] => (Object.keys(START[kind]) as Res[]);
+    const amount = (r: Res) => pools[r] ?? 0;
+    const startAmt = (r: Res) => START[kind][r] ?? 0;
+
+    function tick() {
+      const delta: Partial<Record<Res, number>> = {};
+      const bump = (r: Res, d: number) => { delta[r] = (delta[r] ?? 0) + d; };
+      for (const f of FLOWS[kind]) {
+        // most flows are a fixed share of the source; the fixed ones are the same amount every step
+        const out = f.fixed ? Math.min(f.amt, amount(f.from)) : (f.amt / startAmt(f.from)) * amount(f.from);
+        bump(f.from, -out); bump(f.to, out);
+      }
+      if (sw && sw.checked) {
+        const h = HUMAN[kind];
+        const out = Math.min(h.amt, amount(h.from));
+        bump(h.from, -out); bump(h.to, out);
+      }
+      for (const r of resList()) pools[r] = Math.max(0, amount(r) + (delta[r] ?? 0));
+      steps += 1;
+    }
+
+    function summary(): string {
+      const ch = resList().map((r) => ({ r, d: amount(r) - startAmt(r) })).filter((x) => x.d >= 0.05).sort((a, b) => b.d - a.d).slice(0, 3);
+      return ch.length ? ch.map((x) => `${NAMES[x.r]} ${signed(x.d)}`).join(', ') : '';
+    }
+
+    function drawStage() {
+      if (!stage) return;
+      stage.replaceChildren();
+      const defs = el('defs', {});
+      const mk = el('marker', { id: 'fa-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+      mk.appendChild(el('path', { d: 'M0,0 L10,5 L0,10 z', fill: ORANGE }));
+      defs.appendChild(mk);
+      stage.appendChild(defs);
+      const list = resList();
+      // blocks first
+      for (const r of list) {
+        const [x, y, w, h] = BOX[r];
+        const here = r === at;
+        stage.appendChild(el('rect', { x, y, width: w, height: h, rx: 8, fill: FILL[r], stroke: here ? ORANGE : '#c9c9d2', 'stroke-width': here ? 3 : 1 }));
+      }
+      // arrow for the last move
+      if (lastMove && lastMove.from !== lastMove.to) {
+        const a = BOX[lastMove.from], b = BOX[lastMove.to];
+        const ac = [a[0] + a[2] / 2, a[1] + a[3] / 2], bc = [b[0] + b[2] / 2, b[1] + b[3] / 2];
+        const edge = (bx: [number, number, number, number], from: number[], to: number[]) => {
+          const dx = to[0]! - from[0]!, dy = to[1]! - from[1]!;
+          const tx = dx === 0 ? Infinity : (bx[2] / 2) / Math.abs(dx);
+          const ty = dy === 0 ? Infinity : (bx[3] / 2) / Math.abs(dy);
+          const t = Math.min(tx, ty);
+          return [from[0]! + dx * t, from[1]! + dy * t];
+        };
+        const p1 = edge(a, ac, bc), p2 = edge(b, bc, ac);
+        stage.appendChild(el('line', { x1: p1[0]!, y1: p1[1]!, x2: p2[0]!, y2: p2[1]!, stroke: ORANGE, 'stroke-width': 3, 'marker-end': 'url(#fa-arrow)', opacity: 0.85 }));
+      }
+      // text, values, bars
+      for (const r of list) {
+        const [x, y, w] = BOX[r];
+        const here = r === at;
+        const v = amount(r), s = startAmt(r), d = v - s;
+        const isAir = r === 'air';
+        stage.appendChild(el('text', { x: x + 10, y: y + 18, 'font-size': 12, 'font-weight': 700, fill: INK }, NAMES[r]));
+        if (here) stage.appendChild(el('circle', { cx: x + w - 14, cy: isAir ? y + 14 : y + 36, r: 7, fill: ORANGE }));
+        stage.appendChild(el('text', { x: x + 10, y: y + 38, 'font-size': 14, 'font-weight': 700, fill: BAR[r] }, f1(v)));
+        const ct = (Math.abs(d) < 0.05 ? '±0.0' : signed(d)) + ' vs start';
+        stage.appendChild(el('text', { x: isAir ? x + 70 : x + 10, y: isAir ? y + 38 : y + 55, 'font-size': 12, fill: Math.abs(d) < 0.05 ? FAINT : (d > 0 ? ORANGE : INK) }, ct));
+        const bx = x + 10, bw = w - 20, by = y + (isAir ? 46 : 63);
+        stage.appendChild(el('rect', { x: bx, y: by, width: bw, height: 7, rx: 3, fill: '#fff', stroke: '#d4d4dc', 'stroke-width': 1 }));
+        stage.appendChild(el('rect', { x: bx, y: by, width: Math.max(0, Math.min(1, v / BAR_MAX)) * bw, height: 7, rx: 3, fill: BAR[r] }));
+        const tx = bx + Math.min(1, s / BAR_MAX) * bw;
+        stage.appendChild(el('line', { x1: tx, y1: by - 3, x2: tx, y2: by + 10, stroke: INK, 'stroke-width': 1.5 }));
+      }
+      stage.appendChild(el('text', { x: 8, y: 276, 'font-size': 12, fill: INK }, 'Orange outline and dot: your atom'));
+      stage.appendChild(el('text', { x: 8, y: 291, 'font-size': 12, fill: INK }, 'Bars: relative units · black tick: start'));
+    }
+
+    function renderMoves() {
+      if (!movesEl || !moveHead) return;
+      movesEl.replaceChildren();
+      moveHead.textContent = `Your ${ATOM_NAME[kind]} atom is in the ${NAMES[at]}. Choose what happens next:`;
+      const list = MOVES[kind][at] ?? [];
+      list.forEach((m) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'fa-move' + (m.test ? ' fa-test' : '');
+        const dest = m.test ? '' : ` → ${NAMES[m.to]}`;
+        b.textContent = m.label + dest;
+        b.addEventListener('click', () => doMove(m));
+        movesEl.appendChild(b);
+      });
+    }
+
+    function renderPath() {
+      if (!pathEl) return;
+      const shown = path.length > 9 ? ['…', ...path.slice(-8)] : path;
+      pathEl.textContent = 'Your atom’s path: ' + shown.join(' → ');
+    }
+
+    function render() {
+      drawStage(); renderMoves(); renderPath();
+      if (sw && swText) swText.textContent = sw.checked ? `${SWITCH_ON[kind]} (switch on)` : SWITCH_TEXT[kind];
+    }
+
+    function setStatus(s: string) { if (statusEl) statusEl.textContent = s; }
+
+    function spent(): boolean { return kind === 'C' && !!sw && sw.checked && amount('fossil') < 0.05; }
+
+    function doMove(m: Move) {
+      if (m.test) { setStatus(m.text); return; }
+      const from = at;
+      tick();
+      at = m.to; lastMove = { from, to: m.to };
+      path.push(`${NAMES[m.to]} (${m.label})`);
+      let s = `${m.text} Now in the ${NAMES[m.to]}.`;
+      render();
+      if (spent()) s += ' Burning on, but the fossil fuels in this sketch are used up.';
+      setStatus(s);
+      const first = movesEl ? movesEl.querySelector<HTMLElement>('.fa-move') : null;
+      if (first) first.focus(); else moveHead && moveHead.focus();
+    }
+
+    function wait(n: number) {
+      for (let i = 0; i < n; i++) tick();
+      lastMove = null;
+      render();
+      const sum = summary();
+      const on = sw ? sw.checked : false;
+      let s = `The sketch ran ${n} step${n === 1 ? '' : 's'} (step ${steps}). Your atom stayed in the ${NAMES[at]}.`;
+      if (sum) s += ` Change vs start: ${sum}.`;
+      else if (!on) s += ' Nothing changes: each reservoir gains and loses the same amount.';
+      if (spent()) s += ' Burning on, but the fossil fuels in this sketch are used up.';
+      setStatus(s);
+    }
+
+    function reset(newKind?: Kind) {
+      if (newKind) kind = newKind;
+      pools = { ...START[kind] };
+      steps = 0; lastMove = null;
+      if (sw) sw.checked = false;
+      // keep the chosen start if it exists for this atom, else air
+      const want = (startSel && startSel.value) as Res;
+      at = (want && want in START[kind]) ? want : 'air';
+      path = [NAMES[at]];
+      if (startSel) {
+        startSel.replaceChildren();
+        resList().forEach((r) => {
+          const o = document.createElement('option');
+          o.value = r; o.textContent = NAMES[r]; o.selected = r === at;
+          startSel.appendChild(o);
+        });
+      }
+      render();
+      setStatus(`Your ${ATOM_NAME[kind]} atom starts in the ${NAMES[at]}. Choose a process to move it.`);
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('.fa-kind').forEach((b) => {
+      b.addEventListener('click', () => {
+        const k = b.dataset.kind === 'N' ? 'N' : 'C';
+        root.querySelectorAll<HTMLButtonElement>('.fa-kind').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+        if (startSel) startSel.value = 'air';
+        reset(k);
+      });
+    });
+    startSel.addEventListener('change', () => {
+      const keep = sw.checked;
+      reset();
+      sw.checked = keep; render();
+    });
+    sw.addEventListener('change', () => {
+      render();
+      if (sw.checked) {
+        setStatus(kind === 'C'
+          ? 'Burning on: each step adds old carbon from fossil fuels to the air. Move your atom or wait to see where it goes.'
+          : 'Fertilizer on: each step adds factory-fixed nitrogen to the soil. Move your atom or wait to see where it goes.');
+      } else {
+        setStatus('Nothing new is added now; the extra already added keeps moving between reservoirs.');
+      }
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-wait]').forEach((b) => b.addEventListener('click', () => wait(Number(b.dataset.wait) || 1)));
+    resetBtn.addEventListener('click', () => {
+      if (startSel) startSel.value = 'air';
+      reset();
+    });
+    reset('C');
+  });
+</script>
+
+<style is:global>
+  .fa { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fa-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fa-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fa-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fa-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.4rem 0; }
+  .fa-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin: 0; }
+  .fa-toggle { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .fa-start { display: flex; align-items: center; gap: 0.4rem; }
+  .fa-select { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0 0.5rem; }
+  .fa-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.35rem 0.8rem; cursor: pointer; }
+  .fa-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 600; }
+  .fa-reset { margin-left: auto; }
+  .fa-moves-wrap { margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .fa-movehead { margin-bottom: 0.3rem; }
+  .fa-moves { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .fa-move { min-height: 44px; border: 1px solid var(--ddp-color-accent); border-radius: 6px; background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); color: var(--ddp-color-primary); font-size: var(--ddp-text-sm); padding: 0.35rem 0.75rem; cursor: pointer; text-align: left; }
+  .fa-move.fa-test { border-style: dashed; border-color: var(--ddp-color-muted); background: transparent; color: var(--ddp-color-ink-soft); }
+  .fa-btn:focus-visible, .fa-move:focus-visible, .fa-select:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .fa-switch { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .fa-switch input { width: 22px; height: 22px; accent-color: var(--ddp-color-accent); }
+  .fa-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3.2em; }
+  .fa-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fa-path { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .fa-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .fa-reset { margin-left: 0; } }
+</style>

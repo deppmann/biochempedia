@@ -1,0 +1,247 @@
+---
+/**
+ * SizePrincipleRamp — three motor neurons S, M, L (input resistance 4.0, 2.0, 1.0 MOhm,
+ * each needing 10 mV) share one ramped synaptic current. Threshold current I = 10 mV / Rin,
+ * recruitment time = threshold / ramp rate, total force = sum of the forces of the units
+ * recruited so far (0.05, 0.30, 1.50 N). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="spr card" data-spr>
+  <figcaption class="spr-head">Size principle — one ramp, three motor neurons<span class="spr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="spr-svg" viewBox="0 0 340 366" role="img" aria-label="Three motor neurons drawn by size, a rising shared current with three threshold lines, and below it the total force as a staircase" data-plot></svg>
+
+  <div class="spr-controls">
+    <label class="spr-slabel"><span>Ramp rate of the shared current <em data-out="rate">1</em> nA/s</span>
+      <input type="range" data-in="rate" min="0.5" max="2" step="0.25" value="1" />
+    </label>
+    <label class="spr-slabel"><span>Time cursor <em data-out="t">3.00</em> s</span>
+      <input type="range" data-in="t" min="0" max="12" step="0.01" value="3" />
+    </label>
+  </div>
+
+  <div class="spr-presets" role="group" aria-label="Move the time cursor to a unit’s recruitment time">
+    <button type="button" class="spr-btn" data-jump="0">Go to S joining</button>
+    <button type="button" class="spr-btn" data-jump="1">Go to M joining</button>
+    <button type="button" class="spr-btn" data-jump="2">Go to L joining</button>
+  </div>
+
+  <dl class="spr-readout">
+    <div><dt>Current now</dt><dd data-r-cur>—</dd></div>
+    <div><dt>Units firing</dt><dd data-r-fire>—</dd></div>
+    <div><dt>Total force</dt><dd data-r-force>—</dd></div>
+    <div><dt>Recruitment time = threshold current ÷ ramp rate</dt><dd data-r-times>—</dd></div>
+  </dl>
+  <p class="spr-why" data-why role="status">—</p>
+  <p class="spr-assume">In this sketch: steady state (the ramp is slow compared with the membrane time constant), every cell needs the same 10 mV depolarization to fire, each unit is simply on or off, and circle area is drawn in proportion to 1/Rin (relative sizes, not to scale). Round numbers, the lesson’s own.</p>
+
+  <p class="spr-foot">I = ΔV / Rin: with the same current in every cell, the one with the highest input resistance reaches 10 mV first. In this sketch, with steady state and equal 10 mV thresholds, the input resistances are illustrative round numbers in the cat lumbar range; the forces are the lesson’s round numbers.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', GRID = '#e4e4ea';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, attrs: Record<string, string | number>, s: string) {
+    const t = el('text', attrs); t.textContent = s; parent.appendChild(t); return t;
+  }
+  document.querySelectorAll<HTMLElement>('[data-spr]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (n: string) => root.querySelector<HTMLInputElement>('[data-in="' + n + '"]')!;
+    const out = (n: string) => root.querySelector<HTMLElement>('[data-out="' + n + '"]')!;
+    const rateIn = inp('rate'), tIn = inp('t');
+    const rateOut = out('rate'), tOut = out('t');
+    const rCur = root.querySelector<HTMLElement>('[data-r-cur]')!;
+    const rFire = root.querySelector<HTMLElement>('[data-r-fire]')!;
+    const rForce = root.querySelector<HTMLElement>('[data-r-force]')!;
+    const rTimes = root.querySelector<HTMLElement>('[data-r-times]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const jumps = root.querySelectorAll<HTMLButtonElement>('[data-jump]');
+
+    const DV = 10, TMAX = 12, IMAX = 24, FMAX = 2.2, EPS = 1e-9;
+    // S, M, L: input resistance (MOhm), unit force (N), colour. Circle area ~ 1/Rin.
+    const U = [
+      { id: 'S', rin: 4.0, force: 0.05, color: '#0e7c86' },
+      { id: 'M', rin: 2.0, force: 0.30, color: '#e57200' },
+      { id: 'L', rin: 1.0, force: 1.50, color: '#7a3e9d' },
+    ].map((u) => ({ ...u, thr: DV / u.rin, rad: 9 * Math.sqrt(4 / u.rin) }));
+
+    const X0 = 40, X1 = 280;
+    const A0 = 106, A1 = 216, B0 = 244, B1 = 334;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const pa = (i: number) => A1 - (i / IMAX) * (A1 - A0);
+    const pb = (f: number) => B1 - (f / FMAX) * (B1 - B0);
+
+    const f2 = (v: number) => v.toFixed(2);
+    const fN = (v: number) => (v >= 10 ? v.toFixed(0) : v.toFixed(1));
+    const fT = (v: number) => { let s = v.toFixed(2).replace(/(\.\d)0$/, '$1'); if (v >= 10) s = s.replace(/\.0$/, ''); return s; };
+    const fF = (v: number) => v.toFixed(2);
+
+    function stair(rate: number, tEnd: number) {
+      let d = `M${X0} ${pb(0)}`, f = 0;
+      for (const u of U) {
+        const tr = u.thr / rate;
+        if (tr > tEnd + EPS || tr > TMAX + EPS) break;
+        d += ` H${px(tr)} V${pb(f + u.force)}`; f += u.force;
+      }
+      return d + ` H${px(tEnd)}`;
+    }
+
+    function render() {
+      const rate = parseFloat(rateIn.value), t = parseFloat(tIn.value);
+      const I = rate * t;
+      rateOut.textContent = String(rate);
+      tOut.textContent = f2(t);
+      tIn.setAttribute('aria-valuetext', f2(t) + ' seconds');
+      const rec = U.map((u) => ({ ...u, tr: u.thr / rate, on: I >= u.thr - EPS }));
+      const firing = rec.filter((u) => u.on);
+      const F = firing.reduce((a, u) => a + u.force, 0);
+      plot.replaceChildren();
+
+      // --- cells (area ~ 1/Rin), state and numbers
+      const cx = [56, 170, 284];
+      rec.forEach((u, i) => {
+        plot.appendChild(el('circle', { cx: cx[i], cy: 27, r: u.rad, fill: u.on ? u.color : '#f3f3f6', stroke: u.color, 'stroke-width': 2 }));
+        txt(plot, { x: cx[i], y: 31, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: u.on ? '#fff' : u.color }, u.id);
+        txt(plot, { x: cx[i], y: 58, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, `${u.id} · Rin ${u.rin.toFixed(1)} MΩ`);
+        txt(plot, { x: cx[i], y: 69, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, `${fN(u.thr)} nA · ${fF(u.force)} N`);
+        txt(plot, { x: cx[i], y: 80, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: u.on ? u.color : INK }, u.on ? 'firing' : 'silent');
+      });
+      txt(plot, { x: 2, y: 96, 'font-size': 9, fill: INK }, 'shared synaptic current (nA); dashed = threshold, I = 10 mV / Rin');
+
+      // --- plot A: current
+      for (const v of [0, 5, 10, 15, 20]) {
+        plot.appendChild(el('line', { x1: X0, y1: pa(v), x2: X1, y2: pa(v), stroke: GRID, 'stroke-width': 0.6 }));
+        txt(plot, { x: X0 - 4, y: pa(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }, String(v));
+      }
+      plot.appendChild(el('line', { x1: X0, y1: A0, x2: X0, y2: A1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: A1, x2: X1, y2: A1, stroke: INK, 'stroke-width': 1 }));
+      rec.forEach((u) => {
+        plot.appendChild(el('line', { x1: X0, y1: pa(u.thr), x2: X1, y2: pa(u.thr), stroke: u.color, 'stroke-width': 1.3, 'stroke-dasharray': '5 3' }));
+        txt(plot, { x: X1 + 4, y: pa(u.thr) + 3, 'font-size': 9, 'font-weight': 700, fill: u.color }, `${u.id} ${fN(u.thr)} nA`);
+      });
+      const iEnd = Math.min(IMAX, rate * TMAX);
+      plot.appendChild(el('line', { x1: X0, y1: pa(0), x2: X1, y2: pa(iEnd), stroke: FAINT, 'stroke-width': 1.6 }));
+      plot.appendChild(el('line', { x1: X0, y1: pa(0), x2: px(t), y2: pa(Math.min(IMAX, I)), stroke: INK, 'stroke-width': 2.6 }));
+      rec.forEach((u) => {
+        if (u.tr <= TMAX + EPS) plot.appendChild(el('circle', { cx: px(u.tr), cy: pa(u.thr), r: 3.6, fill: u.on ? u.color : '#fff', stroke: u.color, 'stroke-width': 1.6 }));
+      });
+
+      // --- plot B: force staircase
+      txt(plot, { x: 2, y: 236, 'font-size': 9, fill: INK }, 'total force (N): the staircase fills in as each unit is recruited');
+      for (const v of [0, 0.5, 1, 1.5, 2]) {
+        plot.appendChild(el('line', { x1: X0, y1: pb(v), x2: X1, y2: pb(v), stroke: GRID, 'stroke-width': 0.6 }));
+        txt(plot, { x: X0 - 4, y: pb(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }, v === 0 ? '0' : v.toFixed(1));
+      }
+      plot.appendChild(el('line', { x1: X0, y1: B0, x2: X0, y2: B1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: B1, x2: X1, y2: B1, stroke: INK, 'stroke-width': 1 }));
+      for (let s = 0; s <= TMAX; s += 2) {
+        plot.appendChild(el('line', { x1: px(s), y1: B1, x2: px(s), y2: B1 + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(plot, { x: px(s), y: B1 + 13, 'text-anchor': s === 0 ? 'start' : s === TMAX ? 'end' : 'middle', 'font-size': 9, fill: INK }, String(s));
+      }
+      txt(plot, { x: (X0 + X1) / 2, y: B1 + 26, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'time since the ramp began (s)');
+      plot.appendChild(el('path', { d: stair(rate, TMAX), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('path', { d: stair(rate, t), fill: 'none', stroke: INK, 'stroke-width': 2.6 }));
+      let acc = 0;
+      rec.forEach((u, i) => {
+        acc += u.force;
+        if (!u.on) return;
+        const lab = `+${fF(u.force)} N`;
+        if (i === 2) txt(plot, { x: px(u.tr) - 4, y: pb(acc) - 3, 'text-anchor': 'end', 'font-size': 9, 'font-weight': 700, fill: u.color }, lab);
+        else if (px(rec[i + 1].tr) - px(u.tr) < 40 && rec[i + 1].tr <= TMAX + EPS) return; // next riser too close: the readout lists the step
+        else txt(plot, { x: px(u.tr) + 4, y: pb(acc) - 3, 'font-size': 9, 'font-weight': 700, fill: u.color }, lab);
+      });
+
+      // --- cursor across both plots
+      plot.appendChild(el('line', { x1: px(t), y1: A0, x2: px(t), y2: B1, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      plot.appendChild(el('circle', { cx: px(t), cy: pa(Math.min(IMAX, I)), r: 4.5, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+      plot.appendChild(el('circle', { cx: px(t), cy: pb(F), r: 4.5, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+
+      // --- readouts
+      rCur.textContent = `I = ${rate} nA/s × ${f2(t)} s = ${I.toFixed(2)} nA`;
+      rFire.textContent = firing.length ? firing.map((u) => u.id).join(', ') : 'none';
+      rForce.textContent = firing.length ? `${fF(F)} N = ${firing.map((u) => fF(u.force)).join(' + ')}` : '0 N (no unit firing)';
+      rTimes.replaceChildren();
+      rec.forEach((u) => {
+        const s = document.createElement('span');
+        s.className = 'spr-line';
+        s.textContent = u.tr <= TMAX + EPS
+          ? `${u.id}: ${fN(u.thr)} nA ÷ ${rate} nA/s = ${fT(u.tr)} s`
+          : `${u.id}: ${fN(u.thr)} nA ÷ ${rate} nA/s = ${fT(u.tr)} s (after the 12 s window)`;
+        rTimes.appendChild(s);
+      });
+
+      // jump buttons
+      jumps.forEach((b) => {
+        const u = rec[parseInt(b.getAttribute('data-jump') as string, 10)];
+        b.disabled = u.tr > TMAX + EPS;
+        b.title = b.disabled ? `${u.id} would join at ${fT(u.tr)} s, after the 12 s window` : '';
+      });
+
+      // --- status
+      let s = `In this sketch, at ${f2(t)} s the shared current is ${I.toFixed(2)} nA. `;
+      const hit = rec.find((u) => Math.abs(I - u.thr) < EPS);
+      if (firing.length === 0) {
+        s += `That is below the lowest threshold, S at ${fN(U[0].thr)} nA (10 mV / ${U[0].rin.toFixed(1)} MΩ), so no unit fires and total force is 0 N. S joins at ${fT(rec[0].tr)} s. `;
+      } else {
+        const names = firing.map((u) => u.id).join(', ');
+        s += `It has reached the threshold of ${names}, so ${firing.length > 1 ? 'those units fire' : 'that unit fires'} and total force is ${fF(F)} N. `;
+        if (hit) s += `The current has just reached ${hit.id}’s threshold, ${fN(hit.thr)} nA, so ${hit.id} joins at this instant. `;
+        const last = firing[firing.length - 1];
+        if (firing.length > 1) {
+          const prev = firing[firing.length - 2];
+          s += `The latest step, ${last.id} adding ${fF(last.force)} N, is bigger than the one before it (${prev.id}, ${fF(prev.force)} N): steps grow as force grows, so the smallest steps come when force is low. `;
+        } else {
+          s += `The first step, S adding ${fF(last.force)} N, is the smallest. `;
+        }
+        const next = rec.find((u) => !u.on);
+        if (next) s += next.tr <= TMAX + EPS ? `${next.id} joins next, at ${fN(next.thr)} nA and ${fT(next.tr)} s. ` : `${next.id} needs ${fN(next.thr)} nA, which this ramp reaches only after ${fT(next.tr)} s, past the 12 s window. `;
+        else s += 'All three units are firing. ';
+      }
+      s += 'Ramp rate changes when each unit joins, never the order S, M, L, because the order comes from the input resistances. ';
+      s += 'That order is a tendency, first measured in cats, that holds under common input; differences in threshold, persistent inward currents or neuromodulation, or separate inputs to parts of a pool, can shift or break it. ';
+      s += 'Rate coding, the other half of grading force, is not drawn.';
+      why.textContent = s;
+    }
+
+    [rateIn, tIn].forEach((x) => x.addEventListener('input', render));
+    jumps.forEach((b) => b.addEventListener('click', () => {
+      const rate = parseFloat(rateIn.value);
+      const u = U[parseInt(b.getAttribute('data-jump') as string, 10)];
+      const tr = u.thr / rate;
+      if (tr > TMAX + EPS) return;
+      const g = Math.ceil(tr * 100 - 1e-6) / 100; // slider grid is 0.01 s; never land below the threshold
+      tIn.value = String(g); render();
+    }));
+    render();
+  });
+</script>
+
+<style is:global>
+  .spr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .spr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .spr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .spr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .spr-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .spr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .spr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .spr-slabel input { accent-color: var(--ddp-color-accent); }
+  .spr-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-2) 0; }
+  .spr-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .spr-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .spr-btn:hover:not(:disabled), .spr-btn:focus-visible { border-color: var(--ddp-color-accent); outline: 2px solid var(--ddp-color-accent); outline-offset: 1px; }
+  .spr-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .spr-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .spr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .spr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .spr-line { display: block; }
+  .spr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 11em; }
+  .spr-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .spr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .spr-controls { grid-template-columns: 1fr; } }
+</style>

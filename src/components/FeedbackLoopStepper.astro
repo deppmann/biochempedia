@@ -1,0 +1,273 @@
+---
+/**
+ * FeedbackLoopStepper — high school Biology, "Homeostasis in Action". The learner picks a
+ * disturbance (exercise, a hot room, dry air around a leaf), steps through the loop one part
+ * at a time (change, sensor, control center, effector, response) and watches a sketch graph of
+ * the variable leave its usual range and come back. A switch breaks the sensor so the loop has
+ * no signal and no response. Every statement is one the lesson makes; the graph is in relative
+ * units and is a sketch of the logic, not a measurement. Self-contained vanilla-TS Astro island.
+ */
+---
+
+<figure class="fls card" data-fls>
+  <figcaption class="fls-head">Feedback loop stepper<span class="fls-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="fls-group" role="group" aria-label="Pick a disturbance">
+    <span class="fls-lab">1. Pick a disturbance</span>
+    <div class="fls-row">
+      <button type="button" class="fls-btn fls-pick" data-pick="exercise" aria-pressed="false">Exercise</button>
+      <button type="button" class="fls-btn fls-pick" data-pick="hot" aria-pressed="false">Hot room</button>
+      <button type="button" class="fls-btn fls-pick" data-pick="dry" aria-pressed="false">Dry air (leaf)</button>
+    </div>
+  </div>
+
+  <div class="fls-row fls-ctl">
+    <button type="button" class="fls-btn fls-switch" role="switch" aria-checked="false" data-switch>
+      <span class="fls-knob" aria-hidden="true"></span><span data-switch-text>Sensor: working</span>
+    </button>
+    <button type="button" class="fls-btn fls-next" data-next aria-disabled="true">2. Next step</button>
+    <button type="button" class="fls-btn" data-reset>Reset</button>
+  </div>
+
+  <ol class="fls-steps" data-steps>
+    <li data-row="0"><span class="fls-num">1</span><span class="fls-name">Change</span><span class="fls-det" data-det>?</span></li>
+    <li data-row="1"><span class="fls-num">2</span><span class="fls-name">Sensor</span><span class="fls-det" data-det>?</span></li>
+    <li data-row="2"><span class="fls-num">3</span><span class="fls-name">Control center</span><span class="fls-det" data-det>?</span></li>
+    <li data-row="3"><span class="fls-num">4</span><span class="fls-name">Effector</span><span class="fls-det" data-det>?</span></li>
+    <li data-row="4"><span class="fls-num">5</span><span class="fls-name">Response</span><span class="fls-det" data-det>?</span></li>
+    <li data-row="5" hidden><span class="fls-num">6</span><span class="fls-name">After you stop</span><span class="fls-det" data-det>?</span></li>
+  </ol>
+
+  <svg class="fls-svg" viewBox="0 0 360 220" role="img" aria-label="A sketch graph of one variable against time, with its usual range shaded" data-plot></svg>
+
+  <p class="fls-status" data-status role="status">Pick a disturbance to begin. Before each step, predict what the graph will do.</p>
+  <p class="fls-note" data-note hidden></p>
+  <p class="fls-assume">In this sketch: the change happens once. With a working sensor, the response pulls the variable back gradually. With a broken sensor there is no signal and no response. The graph is in relative units, not a measurement. A real body has many sensors and effectors, so a loop with one sensor is a simplification.</p>
+  <p class="fls-foot">Rule to keep: in negative feedback, a sensor detects a change, a control center compares it with the usual range, and an effector makes a response that pushes the variable the other way.</p>
+</figure>
+
+<script>
+  type Key = 'exercise' | 'hot' | 'dry';
+  interface Stage { w: string; b: string }
+  interface Scen {
+    name: string;        // variable name for the status line
+    range: string;       // "usual range" or "resting range"
+    ylabel: string;
+    ends: number[];      // time at the end of each stage's drawn curve
+    dev: (t: number, broken: boolean) => number;
+    stages: Stage[];
+    names: string[];
+  }
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#2b2b33', ACCENT = '#0e7c86', ORANGE = '#c2410c', BAND = '#d9eef0';
+  const ss = (x: number) => { const c = Math.max(0, Math.min(1, x)); return c * c * (3 - 2 * c); };
+  const TMAX = 120, PEAK = 3;
+  const NAMES5 = ['Change', 'Sensor', 'Control center', 'Effector', 'Response'];
+
+  const SCEN: Record<Key, Scen> = {
+    exercise: {
+      name: 'Heart rate', range: 'resting range', ylabel: 'Sketch: heart rate (relative units)',
+      ends: [20, 30, 40, 60, 75, 120],
+      names: [...NAMES5, 'After you stop'],
+      dev: (t, broken) => {
+        if (t < 40) return 0;
+        if (t < 60) return PEAK * ss((t - 40) / 20);
+        if (t < 75 || broken) return PEAK;
+        return PEAK * Math.exp(-(t - 75) / 45);
+      },
+      stages: [
+        { w: 'Muscles work harder.', b: 'Muscles work harder.' },
+        { w: 'Sensors in the working muscles, blood vessels and brain detect the change.', b: 'The sensors do not detect the change, so they send no report.' },
+        { w: 'The brain compares the reports with the usual range and sends nerve signals to the heart.', b: 'In this sketch the brain still sends its advance commands, though it gets no report.' },
+        { w: 'The heart speeds up.', b: 'In this sketch the heart still speeds up.' },
+        { w: 'A faster heart moves more blood past the muscles, carrying carbon dioxide away and bringing oxygen.', b: 'A faster heart moves more blood past the muscles.' },
+        { w: 'You stop. The signals change and heart rate falls, but gradually.', b: 'You stop. In this sketch the signals do not change, so heart rate is not pulled back.' },
+      ],
+    },
+    hot: {
+      name: 'Body temperature', range: 'usual range', ylabel: 'Sketch: body temperature (relative units)',
+      ends: [30, 40, 50, 60, 120],
+      names: NAMES5,
+      dev: (t, broken) => {
+        if (t < 10) return 0;
+        if (t < 30) return PEAK * ss((t - 10) / 20);
+        if (t < 60 || broken) return PEAK;
+        return PEAK * Math.exp(-(t - 60) / 14);
+      },
+      stages: [
+        { w: 'The body warms.', b: 'The body warms.' },
+        { w: 'Temperature sensors in the skin and brain detect the warming.', b: 'The sensors do not detect the warming, so no signal goes on.' },
+        { w: 'The brain’s control center compares it with the usual range, near 37 °C, and signals sweating.', b: 'The control center gets no signal, so it has nothing to compare and sends none.' },
+        { w: 'Sweat glands release sweat.', b: 'The sweat glands get no signal, so they release no sweat.' },
+        { w: 'Sweat evaporates and the skin cools.', b: 'No sweat evaporates, so the skin does not cool. In this sketch nothing pulls the temperature back.' },
+      ],
+    },
+    dry: {
+      name: 'Leaf water loss', range: 'usual range', ylabel: 'Sketch: leaf water loss rate (relative units)',
+      ends: [30, 40, 50, 60, 120],
+      names: ['Change', 'Sensor', 'Combined signals', 'Effector', 'Response'],
+      dev: (t, broken) => {
+        if (t < 10) return 0;
+        if (t < 30) return PEAK * ss((t - 10) / 20);
+        if (t < 60 || broken) return PEAK;
+        return PEAK * Math.exp(-(t - 60) / 14);
+      },
+      stages: [
+        { w: 'The air around the leaf is drier, so the leaf loses water faster.', b: 'The air around the leaf is drier, so the leaf loses water faster.' },
+        { w: 'Cells in the leaf detect the drier air.', b: 'The leaf’s cells do not detect the drier air.' },
+        { w: 'Plants have no brain. Several signals act together, including dry air and the water supply.', b: 'With no sensor report, there is no signal to combine.' },
+        { w: 'Guard cells can change shape and narrow the stomata.', b: 'The guard cells do not change shape, so the stomata stay as they were.' },
+        { w: 'Water vapor leaves more slowly. The cost: less carbon dioxide gets in.', b: 'Water vapor keeps leaving fast. In this sketch nothing pulls the water loss back.' },
+      ],
+    },
+  };
+
+  function mk(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fls]').forEach((root) => {
+    const need = <T extends Element>(sel: string): T => {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('FeedbackLoopStepper: missing ' + sel);
+      return e;
+    };
+    const plot = need<SVGSVGElement>('[data-plot]');
+    const status = need<HTMLElement>('[data-status]');
+    const note = need<HTMLElement>('[data-note]');
+    const nextBtn = need<HTMLButtonElement>('[data-next]');
+    const resetBtn = need<HTMLButtonElement>('[data-reset]');
+    const sw = need<HTMLButtonElement>('[data-switch]');
+    const swText = need<HTMLElement>('[data-switch-text]');
+    const picks = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-pick]'));
+    const rows = Array.from(root.querySelectorAll<HTMLElement>('[data-row]'));
+
+    let scen: Key | null = null;
+    let broken = false;
+    let stage = 0; // number of steps shown
+
+    const X0 = 16, X1 = 346, Y0 = 34, Y1 = 176, DMIN = -1.4, DMAX = 4.2;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (d: number) => Y1 - ((d - DMIN) / (DMAX - DMIN)) * (Y1 - Y0);
+    const txt = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) => {
+      const t = mk('text', { x, y, 'font-size': 12, fill: INK, ...extra });
+      t.textContent = s;
+      return t;
+    };
+
+    function draw() {
+      plot.replaceChildren();
+      const S = scen ? SCEN[scen] : null;
+      plot.appendChild(mk('rect', { x: X0, y: py(1), width: X1 - X0, height: py(-1) - py(1), fill: BAND }));
+      plot.appendChild(mk('line', { x1: X0, y1: Y0 - 6, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(mk('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(txt(X0, 18, S ? S.ylabel : 'Sketch: pick a disturbance'));
+      plot.appendChild(txt((X0 + X1) / 2, 204, 'time (relative units, not to scale)', { 'text-anchor': 'middle' }));
+      plot.appendChild(txt(X1 - 4, py(-1) - 3, S ? S.range : 'usual range', { 'text-anchor': 'end', 'font-weight': 700, fill: '#0b5f67', stroke: BAND, 'stroke-width': 3, 'paint-order': 'stroke' }));
+      if (!S) return;
+      const tEnd = S.ends[Math.max(0, stage - 1)];
+      const last = stage === 0 ? 10 : tEnd;
+      let d = '';
+      for (let t = 0; t <= last; t += 1) d += (t === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(S.dev(t, broken)).toFixed(1) + ' ';
+      plot.appendChild(mk('path', { d: d.trim(), fill: 'none', stroke: broken ? ORANGE : ACCENT, 'stroke-width': 3, 'stroke-linejoin': 'round' }));
+      plot.appendChild(mk('circle', { cx: px(last), cy: py(S.dev(last, broken)), r: 5, fill: broken ? ORANGE : ACCENT }));
+    }
+
+    function trendWord(S: Scen, t: number): string {
+      const dv = S.dev(t, broken) - S.dev(Math.max(0, t - 5), broken);
+      return dv > 0.05 ? 'rising' : dv < -0.05 ? 'falling' : 'steady';
+    }
+
+    function update() {
+      const S = scen ? SCEN[scen] : null;
+      const total = S ? S.stages.length : 5;
+      picks.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pick === scen)));
+      sw.setAttribute('aria-checked', String(broken));
+      sw.classList.toggle('fls-on', broken);
+      swText.textContent = broken ? 'Sensor: broken' : 'Sensor: working';
+      rows.forEach((r, i) => {
+        const det = r.querySelector<HTMLElement>('[data-det]');
+        const nm = r.querySelector<HTMLElement>('.fls-name');
+        if (i === 5) r.hidden = !(scen === 'exercise');
+        r.classList.toggle('fls-done', i < stage);
+        r.classList.toggle('fls-act', i === stage - 1);
+        if (i === stage - 1) r.setAttribute('aria-current', 'step'); else r.removeAttribute('aria-current');
+        if (nm) nm.textContent = (S && S.names[i]) || NAMES5[i] || 'After you stop';
+        if (det) det.textContent = S && i < stage ? (broken ? S.stages[i].b : S.stages[i].w) : '?';
+      });
+      const hasNext = !!S && stage < total;
+      nextBtn.setAttribute('aria-disabled', String(!hasNext));
+      nextBtn.textContent = !S ? '2. Next step' : hasNext ? 'Next step: ' + S.names[stage] : 'All steps shown';
+      note.hidden = !S || scen === 'dry';
+      if (S && scen === 'hot') {
+        note.textContent = 'On a cold day the same control center sends different signals: muscles shiver, and blood vessels in the skin narrow.';
+      }
+      if (S && scen === 'exercise') {
+        note.textContent = stage === total && !broken
+          ? 'Published study: 52 healthy adults on a treadmill (Tulumen and colleagues, 2011). Mean heart rate fell 34 beats/min in the first minute and 4 between minutes 4 and 5. At 5 minutes it was 102, still above the resting mean of 75.'
+          : 'In this sketch the graph shows heart rate, which the loop raises. Real exercise control is a little more than one feedback loop.';
+      }
+      if (!S) {
+        status.textContent = 'Pick a disturbance to begin. Before each step, predict what the graph will do.';
+      } else if (stage === 0) {
+        status.textContent = (broken ? 'Sensor broken. ' : '') + 'Predict the graph, then press Next step. ' + S.name + ' starts inside its ' + S.range + '.';
+      } else {
+        const t = S.ends[stage - 1];
+        const dv = S.dev(t, broken);
+        const where = Math.abs(dv) <= 1 ? 'inside' : dv > 0 ? 'above' : 'below';
+        const sent = broken ? S.stages[stage - 1].b : S.stages[stage - 1].w;
+        status.textContent = sent + ' ' + S.name + ': ' + where + ' its ' + S.range + ', ' + trendWord(S, t) + '.';
+      }
+      draw();
+    }
+
+    picks.forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.pick;
+      if (k === 'exercise' || k === 'hot' || k === 'dry') { scen = k; stage = 0; update(); }
+    }));
+    sw.addEventListener('click', () => { broken = !broken; stage = 0; update(); });
+    nextBtn.addEventListener('click', () => {
+      if (!scen) { status.textContent = 'Pick a disturbance first: exercise, hot room or dry air.'; return; }
+      if (stage < SCEN[scen].stages.length) { stage += 1; update(); }
+    });
+    resetBtn.addEventListener('click', () => { scen = null; broken = false; stage = 0; update(); });
+    update();
+  });
+</script>
+
+<style>
+  .fls { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fls-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fls-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fls-lab { display: block; font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-ink-soft); margin-bottom: 0.25rem; }
+  .fls-row { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .fls-ctl { margin: var(--ddp-space-3) 0; align-items: center; }
+  .fls-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 44px; min-width: 44px; padding: 0.4rem 0.9rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); font-size: var(--ddp-text-sm); cursor: pointer; }
+  .fls-btn:hover { border-color: var(--ddp-color-accent); }
+  .fls-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .fls-pick[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .fls-next { background: var(--ddp-color-primary); border-color: var(--ddp-color-primary); color: var(--ddp-color-surface); font-weight: 700; }
+  .fls-next[aria-disabled="true"] { opacity: 0.55; cursor: default; }
+  .fls-knob { width: 34px; height: 18px; border-radius: 9px; background: var(--ddp-color-line); position: relative; flex: none; }
+  .fls-knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left 0.15s; }
+  .fls-on .fls-knob { background: #c2410c; }
+  .fls-on .fls-knob::after { left: 18px; }
+  .fls-steps { list-style: none; margin: 0 0 var(--ddp-space-3); padding: 0; display: grid; gap: 0.3rem; }
+  .fls-steps li { display: grid; grid-template-columns: 1.6rem 8.5rem 1fr; gap: 0.5rem; align-items: baseline; padding: 0.35rem 0.5rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fls-steps li[hidden] { display: none; }
+  .fls-num { font-family: var(--ddp-font-mono); font-weight: 700; }
+  .fls-name { font-weight: 700; }
+  .fls-done { color: var(--ddp-color-ink-soft); }
+  .fls-act { border-color: var(--ddp-color-accent); background: var(--ddp-color-accent-soft); color: var(--ddp-color-ink); }
+  .fls-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fls-status { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; line-height: 1.5; }
+  .fls-note, .fls-assume { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .fls-note[hidden] { display: none; }
+  .fls-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .fls-steps li { grid-template-columns: 1.4rem 1fr; }
+    .fls-det { grid-column: 2; }
+  }
+</style>

@@ -1,0 +1,230 @@
+---
+/**
+ * GastricAcidPhases — "Can the pump afford it?". One idea: the work of moving H+ from the parietal
+ * cell's cytosol against a pH gradient into the canalicular lumen, set against the free energy one
+ * ATP releases. Rule from the lesson's worked problem: free energy per mol H+ = 2.303 x R x T x
+ * (pH cytosol - pH lumen), with R = 8.314 J per mol per K and T = 310 K, so 5,936 J = 5.936 kJ per
+ * mol per pH unit; work per pump cycle = n x that, for n H+ per ATP (the lesson's two measured
+ * stoichiometries, 1 and 2). Two H+ per ATP stay affordable while 2 x 5.936 x delta-pH <= E, so the
+ * crossover luminal pH = pH cytosol - E / (2 x 5.936). Electroneutral exchange, so the membrane
+ * potential drops out; the uphill K+ step is ignored (the lesson: this makes each cost a minimum).
+ * The lesson's defaults: cytosol pH 7.0, lumen pH 1.0, E = 55 kJ per mol (illustrative, from roughly
+ * 50 to 60). Slider ranges are made up for the sketch. Self-contained vanilla-TS Astro island. Original.
+ */
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<figure class="gap card" data-gap>
+  <figcaption class="gap-head">Can the pump afford it? Work per cycle against one ATP<span class="gap-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="gap-svg" viewBox="0 0 340 322" role="img" aria-label="A schematic of the parietal cell cytosol, the H,K-ATPase and the canaliculus lumen with H+ arrows from cytosol to lumen; two horizontal bars comparing work per pump cycle with the energy one ATP releases, in kJ per mol; and a luminal pH strip marking where two H+ per ATP stops being affordable" data-plot></svg>
+
+  <div class="gap-controls">
+    <label class="gap-slabel"><span>Luminal pH (canaliculus) <em data-out="lumen">1.0</em> <small>(the lesson’s stimulated cell: about 1)</small></span>
+      <input type="range" data-in="lumen" min="0.8" max="7" step="0.1" value="1" />
+    </label>
+    <label class="gap-slabel"><span>Cytosolic pH <em data-out="cyt">7.0</em> <small>(the lesson’s example: 7.0)</small></span>
+      <input type="range" data-in="cyt" min="6.8" max="7.4" step="0.1" value="7" />
+    </label>
+    <fieldset class="gap-fieldset">
+      <legend>Protons moved per ATP</legend>
+      <label class="gap-radio"><input type="radio" name={`gap-n-${uid}`} data-in="n" value="1" checked /> <span>1 H<sup>+</sup> per ATP</span></label>
+      <label class="gap-radio"><input type="radio" name={`gap-n-${uid}`} data-in="n" value="2" /> <span>2 H<sup>+</sup> per ATP</span></label>
+    </fieldset>
+    <label class="gap-slabel"><span>Energy released by one ATP <em data-out="e">55</em> kJ per mol <small>(illustrative; the lesson takes 55)</small></span>
+      <input type="range" data-in="e" min="50" max="60" step="1" value="55" />
+    </label>
+  </div>
+
+  <dl class="gap-readout">
+    <div><dt>pH difference, cytosol − lumen</dt><dd data-r="dph"></dd></div>
+    <div><dt>Free energy per mol H<sup>+</sup> = 5.936 × pH difference</dt><dd data-r="perh"></dd></div>
+    <div><dt>Work per cycle = n × free energy per H<sup>+</sup></dt><dd data-r="work"></dd></div>
+    <div><dt>Energy released by one ATP</dt><dd data-r="energy"></dd></div>
+    <div class="gap-wide"><dt>Luminal pH at which 2 H<sup>+</sup> per ATP stops being affordable = pH cytosol − E ÷ (2 × 5.936)</dt><dd data-r="cross"></dd></div>
+  </dl>
+  <p class="gap-why" data-why role="status"></p>
+
+  <p class="gap-assume">Illustrative model, not a measurement. In this sketch (made up for the sketch unless the lesson gives it): each cycle spends one ATP; the cost is 2.303 × 8.314 × 310 × pH difference, at 310 K with electroneutral exchange so the membrane potential drops out, which is the lesson’s rule; the K+ step is ignored, so every cost shown is a minimum; the starting values, cytosolic pH 7.0, luminal pH 1.0 and 55 kJ per mol per ATP, are the lesson’s illustrative worked-problem values (ATP hydrolysis in cells releases roughly 50 to 60 kJ per mol); the slider ranges for pH are made up (the energy range is the lesson’s roughly 50 to 60); the sketch lets you pick 1 or 2 H+ per ATP at any luminal pH, although the lesson’s sources measured 2 at luminal pH 6.1 and 1 below pH 3 and record the ratio, not this reason.</p>
+
+  <p class="gap-foot">Rule to keep: each pH unit of uphill gradient costs about 5.94 kJ per mol of H+ at 310 K, and a cycle pays n times that out of one ATP, so the more protons per cycle, the smaller the pH difference one ATP can pay for; at the lesson’s 55 kJ per mol and cytosol pH 7.0, two protons per ATP stop being affordable below a luminal pH of about 2.4.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', TEAL_LIGHT = '#8fb8bd', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const RED = '#b3261e', RED_LIGHT = '#e07b73', RED_TINT = '#f7dcd9', GREEN_TINT = '#d9eeea', DARKGREEN = '#14595f';
+  const K = 5.936; // kJ per mol per pH unit at 310 K: 2.303 x 8.314 x 310 / 1000
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, s: string, attrs: Record<string, string | number>): void {
+    const t = el('text', { 'font-size': 10, fill: INK, ...attrs });
+    t.textContent = s;
+    parent.appendChild(t);
+  }
+  const f1 = (v: number) => v.toFixed(1);
+
+  document.querySelectorAll<HTMLElement>('[data-gap]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const lumenIn = root.querySelector<HTMLInputElement>('[data-in="lumen"]');
+    const cytIn = root.querySelector<HTMLInputElement>('[data-in="cyt"]');
+    const eIn = root.querySelector<HTMLInputElement>('[data-in="e"]');
+    const nIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="n"]'));
+    const lumenOut = root.querySelector<HTMLElement>('[data-out="lumen"]');
+    const cytOut = root.querySelector<HTMLElement>('[data-out="cyt"]');
+    const eOut = root.querySelector<HTMLElement>('[data-out="e"]');
+    const rDph = root.querySelector<HTMLElement>('[data-r="dph"]');
+    const rPerh = root.querySelector<HTMLElement>('[data-r="perh"]');
+    const rWork = root.querySelector<HTMLElement>('[data-r="work"]');
+    const rEnergy = root.querySelector<HTMLElement>('[data-r="energy"]');
+    const rCross = root.querySelector<HTMLElement>('[data-r="cross"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !lumenIn || !cytIn || !eIn || nIns.length < 2 || !lumenOut || !cytOut || !eOut || !rDph || !rPerh || !rWork || !rEnergy || !rCross || !why) return;
+
+    const BX0 = 20, BX1 = 320, KMAX = 80; // bar axis: 0 to 80 kJ per mol
+    const bx = (kj: number) => BX0 + (Math.max(0, Math.min(KMAX, kj)) / KMAX) * (BX1 - BX0);
+    const PMIN = 0.8, PMAX = 7;
+    const px = (ph: number) => BX0 + ((Math.max(PMIN, Math.min(PMAX, ph)) - PMIN) / (PMAX - PMIN)) * (BX1 - BX0);
+    const clampX = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+
+    function arrow(x1: number, x2: number, y: number, color: string, dashed: boolean): void {
+      const a: Record<string, string | number> = { x1, y1: y, x2: x2 - 6, y2: y, stroke: color, 'stroke-width': 2 };
+      if (dashed) a['stroke-dasharray'] = '4 3';
+      plot!.appendChild(el('line', a));
+      plot!.appendChild(el('polygon', { points: `${x2},${y} ${x2 - 7},${y - 4} ${x2 - 7},${y + 4}`, fill: color }));
+    }
+
+    function render() {
+      const pl = parseFloat(lumenIn!.value);
+      const pc = parseFloat(cytIn!.value);
+      const E = parseFloat(eIn!.value);
+      const checked = nIns.find((r) => r.checked);
+      const n = checked ? parseInt(checked.value, 10) : 1;
+      const d = pc - pl;
+      const uphill = d > 0;
+      const perH = uphill ? K * d : 0;
+      const W = n * perH;
+      const over = W > E;
+      const cross = pc - E / (2 * K);
+      const other = 3 - n;
+      const Wother = other * perH;
+
+      lumenOut!.textContent = f1(pl);
+      cytOut!.textContent = f1(pc);
+      eOut!.textContent = String(E);
+      rDph!.textContent = uphill ? f1(d) + ' pH units' : f1(d) + ' (no uphill step)';
+      rPerh!.textContent = uphill ? perH.toFixed(1) + ' kJ per mol' : 'none (no uphill step)';
+      rWork!.textContent = W.toFixed(1) + ' kJ per mol';
+      rEnergy!.textContent = E + ' kJ per mol';
+      rCross!.textContent = 'about pH ' + cross.toFixed(1) + (cross < PMIN || cross > PMAX ? ' (outside the slider range)' : '');
+
+      plot!.replaceChildren();
+      const bad = uphill && over;
+
+      // schematic: cytosol, pump, canaliculus lumen
+      const box = (x: number, w: number, l1: string, l2: string, bold2: boolean) => {
+        plot!.appendChild(el('rect', { x, y: 12, width: w, height: 58, rx: 5, fill: '#f4f6f7', stroke: INK, 'stroke-width': 1 }));
+        txt(plot!, l1, { x: x + w / 2, y: 36, 'text-anchor': 'middle' });
+        txt(plot!, l2, { x: x + w / 2, y: 53, 'text-anchor': 'middle', 'font-weight': bold2 ? 700 : 400 });
+      };
+      box(6, 84, 'Cytosol', 'pH ' + f1(pc), true);
+      box(130, 80, 'H,K-ATPase', '1 ATP per cycle', false);
+      box(250, 84, 'Canaliculus', 'pH ' + f1(pl), true);
+      const ac = bad ? RED : ORANGE;
+      const ys = n === 1 ? [43] : [37, 49];
+      for (const y of ys) { arrow(90, 130, y, ac, bad); arrow(210, 250, y, ac, bad); }
+      for (const gx of [110, 230]) txt(plot!, n + ' H+', { x: gx, y: 27, 'text-anchor': 'middle', fill: ac, 'font-weight': 700 });
+      txt(plot!, 'K+ step ignored in this sketch', { x: 170, y: 86, 'text-anchor': 'middle' });
+
+      // bars
+      const workColor = bad ? RED : TEAL, energyColor = bad ? RED_LIGHT : TEAL_LIGHT;
+      txt(plot!, uphill ? `Work per cycle, ${n} H+: ${W.toFixed(1)} kJ per mol` : `Work per cycle, ${n} H+: none (no uphill step)`, { x: BX0, y: 112, 'font-weight': 700 });
+      plot!.appendChild(el('rect', { x: BX0, y: 118, width: Math.max(0, bx(W) - BX0), height: 16, fill: workColor }));
+      txt(plot!, `Energy per ATP: ${E} kJ per mol (illustrative)`, { x: BX0, y: 154, 'font-weight': 700 });
+      plot!.appendChild(el('rect', { x: BX0, y: 160, width: bx(E) - BX0, height: 16, fill: energyColor }));
+      for (const [ya, yb] of [[116, 137], [158, 179]]) plot!.appendChild(el('line', { x1: bx(E), y1: ya, x2: bx(E), y2: yb, stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      plot!.appendChild(el('line', { x1: BX0, y1: 180, x2: BX1, y2: 180, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 20, 40, 60, 80]) {
+        plot!.appendChild(el('line', { x1: bx(v), y1: 180, x2: bx(v), y2: 184, stroke: INK, 'stroke-width': 1 }));
+        txt(plot!, String(v), { x: bx(v), y: 195, 'text-anchor': 'middle' });
+      }
+      txt(plot!, 'kJ per mol', { x: (BX0 + BX1) / 2, y: 207, 'text-anchor': 'middle' });
+      if (!uphill) {
+        txt(plot!, 'Within budget: nothing uphill to pay for', { x: BX0, y: 226, 'font-weight': 700, fill: DARKGREEN });
+      } else if (over) {
+        txt(plot!, `Over budget by ${(W - E).toFixed(1)} kJ per mol`, { x: BX0, y: 226, 'font-weight': 700, fill: RED });
+      } else {
+        txt(plot!, `Within budget, ${(E - W).toFixed(1)} kJ per mol to spare`, { x: BX0, y: 226, 'font-weight': 700, fill: DARKGREEN });
+      }
+
+      // luminal pH strip
+      txt(plot!, 'Luminal pH: where 2 H+ per ATP stops being affordable', { x: BX0, y: 246 });
+      const xc = px(cross), x0 = px(PMIN), x1 = px(PMAX);
+      plot!.appendChild(el('rect', { x: x0, y: 266, width: Math.max(0, xc - x0), height: 14, fill: RED_TINT }));
+      plot!.appendChild(el('rect', { x: xc, y: 266, width: Math.max(0, x1 - xc), height: 14, fill: GREEN_TINT }));
+      plot!.appendChild(el('rect', { x: x0, y: 266, width: x1 - x0, height: 14, fill: 'none', stroke: FAINT, 'stroke-width': 1 }));
+      if (xc - x0 >= 90) txt(plot!, '2 H+ not affordable', { x: x0 + 4, y: 276, fill: RED });
+      if (x1 - xc >= 140) txt(plot!, '2 H+ per ATP affordable', { x: x1 - 4, y: 276, 'text-anchor': 'end', fill: DARKGREEN });
+      plot!.appendChild(el('line', { x1: xc, y1: 262, x2: xc, y2: 282, stroke: ORANGE, 'stroke-width': 2 }));
+      txt(plot!, '2 H+ stops at about pH ' + cross.toFixed(1), { x: clampX(xc, 75, 265), y: 259, 'text-anchor': 'middle', fill: ORANGE, 'font-weight': 700 });
+      const xl = px(pl);
+      plot!.appendChild(el('polygon', { points: `${xl},282 ${xl - 5},290 ${xl + 5},290`, fill: TEAL }));
+      for (let p = 1; p <= 7; p++) txt(plot!, String(p), { x: px(p), y: 303, 'text-anchor': 'middle' });
+      txt(plot!, 'luminal pH ' + f1(pl), { x: clampX(xl, 52, 288), y: 316, 'text-anchor': 'middle', fill: TEAL, 'font-weight': 700 });
+
+      // status line
+      const tail = other === 2
+        ? (Wother > E
+          ? ` At 2 H+ per ATP the same gradient would cost at least ${Wother.toFixed(1)} kJ per mol, more than one ATP releases, so 2 H+ per ATP would not be affordable at this luminal pH.`
+          : ` At 2 H+ per ATP the same gradient would cost at least ${Wother.toFixed(1)} kJ per mol, within what one ATP releases.`)
+        : (Wother > E
+          ? ` At 1 H+ per ATP the same gradient would cost at least ${Wother.toFixed(1)} kJ per mol, more than one ATP releases.`
+          : ` At 1 H+ per ATP the same gradient would cost at least ${Wother.toFixed(1)} kJ per mol, within what one ATP releases.`);
+      const stoich = n === 1 && pl < 3 ? ' The lesson’s sources measured 1 H+ per ATP below luminal pH 3; they record the ratio, not this reason.' : (n === 2 && pl < 3 ? ' The lesson’s sources measured 1 H+ per ATP below luminal pH 3, so 2 H+ per ATP here is a setting of the sketch, not a measurement.' : '');
+      let msg: string;
+      if (!uphill) {
+        msg = 'In this sketch the lumen is no more acidic than the cytosol, so the rule gives no uphill step for the pump to pay for. The lesson’s worked example uses a cytosol at pH 7.0 and juice at pH 1.0.';
+      } else if (!over) {
+        msg = `In this sketch, ignoring the K+ step, moving ${n} H+ per ATP across ${f1(d)} pH units costs at least ${W.toFixed(1)} kJ per mol, which the ${E} kJ per mol of one ATP (an illustrative value) covers with ${(E - W).toFixed(1)} kJ per mol to spare.` + tail + stoich;
+      } else {
+        msg = `In this sketch, ignoring the K+ step, moving ${n} H+ per ATP across ${f1(d)} pH units costs at least ${W.toFixed(1)} kJ per mol, which is ${(W - E).toFixed(1)} kJ per mol more than the ${E} kJ per mol of one ATP (an illustrative value), so this setting is not affordable.` + tail + stoich;
+      }
+      why!.textContent = msg;
+    }
+    [lumenIn, cytIn, eIn, ...nIns].forEach((s) => {
+      s.addEventListener('input', render);
+      s.addEventListener('change', render);
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .gap { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gap-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gap-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gap-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gap-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .gap-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gap-slabel small, .gap-readout small { font-size: inherit; color: var(--ddp-color-muted); }
+  .gap-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gap-slabel input[type="range"] { accent-color: var(--ddp-color-accent); width: 100%; }
+  .gap-fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; align-items: baseline; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .gap-fieldset legend { padding: 0; margin-bottom: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gap-radio { display: flex; gap: 0.4rem; align-items: baseline; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gap-radio input { accent-color: var(--ddp-color-accent); }
+  .gap-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gap-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .gap-readout .gap-wide { grid-column: 1 / -1; }
+  .gap-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gap-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .gap .gap-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 8em; }
+  .gap .gap-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .gap .gap-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (min-width: 640px) {
+    .gap-controls { grid-template-columns: 1fr 1fr; }
+  }
+</style>

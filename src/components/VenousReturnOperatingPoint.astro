@@ -1,0 +1,327 @@
+---
+/**
+ * VenousReturnOperatingPoint — where the heart's curve meets the veins' curve. Illustrative linear
+ * model from the lesson's worked problem (not fitted to data): cardiac function curve
+ * Qc = b + k·Pra with k = 1 L per min per mmHg; venous return Qvr = (Pms − Pra) / Rvr; steady
+ * state, so output equals venous return. Operating point: Pra = (Pms − Rvr·b) / (1 + Rvr·k),
+ * Q = b + k·Pra. Optional "venous collapse" caps return at its value at Pra = 0 (Pms / Rvr), an
+ * illustrative cap, not a measured threshold; then Q = Pms / Rvr and Pra = (Q − b) / k.
+ * Pms is shown with the lesson's compliance of 0.2 L per mmHg (stressed volume = Pms × 0.2 L).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<figure class="vro card" data-vro>
+  <figcaption class="vro-head">Where the heart's curve meets the veins' curve: the operating point<span class="vro-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="vro-svg" viewBox="0 0 340 252" role="img" aria-label="Plot of flow in litres per minute against right atrial pressure in mmHg, with the heart's straight line, the veins' straight line, and the point where they cross" data-plot></svg>
+
+  <div class="vro-controls">
+    <label class="vro-slabel"><span>Pms, mean systemic filling pressure <em data-out="pms">7.0</em> mmHg <small data-vol>(stressed volume 1.40 L)</small></span>
+      <input type="range" data-in="pms" min="3" max="12" step="0.5" value="7" />
+    </label>
+    <label class="vro-slabel"><span>Rvr, resistance to venous return <em data-out="rvr">1.0</em> mmHg min per L</span>
+      <input type="range" data-in="rvr" min="0.5" max="2" step="0.1" value="1" />
+    </label>
+    <label class="vro-slabel"><span>Heart's line height b (contractility, afterload) <em data-out="b">3.0</em> L per min <small>(k fixed at 1 L per min per mmHg)</small></span>
+      <input type="range" data-in="b" min="0" max="6" step="0.5" value="3" />
+    </label>
+    <label class="vro-check"><input type="checkbox" data-in="collapse" id={`vro-col-${uid}`} /> <span>Venous collapse: cap return at its value at Pra = 0 mmHg <small>(an illustrative cap, not a measured threshold)</small></span></label>
+    <div class="vro-marks">Set the controls to a row of the lesson’s table:
+      <span class="vro-marklist" data-marks></span>
+    </div>
+  </div>
+
+  <dl class="vro-readout">
+    <div><dt>Right atrial pressure at the crossing</dt><dd data-r-pra></dd></div>
+    <div><dt>Flow, cardiac output = venous return (L per min)</dt><dd data-r-q></dd></div>
+    <div><dt>Veins' side</dt><dd data-r-vr></dd></div>
+    <div><dt>Heart's side</dt><dd data-r-hc></dd></div>
+  </dl>
+  <p class="vro-why" data-why role="status"></p>
+
+  <p class="vro-assume">Illustrative model, not fitted to data. In this sketch (made up for the sketch unless the lesson gives it): steady state, so output equals venous return; the heart's line is Qc = b + k × Pra with the lesson’s k = 1 L per min per mmHg, which the lesson gives only at the positive Pra it uses, so the line is drawn dashed below 0 mmHg; the veins' line is Qvr = (Pms − Pra) / Rvr; the baseline (grey, dashed) is the lesson’s b = 3 L per min, Pms = 7 mmHg and Rvr = 1 mmHg min per L, where 7 mmHg is a dog stop-flow value, not a normal human one; the slider ranges are made up; stressed volume is Pms × the lesson’s 0.2 L per mmHg; the venous collapse cap is a made-up rule (in Guyton’s open-chest dogs return stopped rising near −2 to −4 mmHg, and the lesson shows no human threshold). The lesson’s model ignores reflexes, the waning of a transfusion and the flattening of the heart’s curve at high Pra. Readout arithmetic uses unrounded values.</p>
+
+  <p class="vro-foot">Rule to keep: the circulation runs where the heart’s line and the veins’ line cross, which fixes both flow and Pra; volume and venous tone move the veins’ line sideways, Rvr rotates it, and the heart moves its own line.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', DOT = '#2b2b36';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('VenousReturnOperatingPoint: missing ' + sel);
+    return e;
+  }
+  const num = (x: number, d: number) => {
+    const s = Math.abs(x) < 0.5 * Math.pow(10, -d) ? (0).toFixed(d) : Math.abs(x).toFixed(d);
+    return (x < 0 && Number(s) !== 0 ? '−' : '') + s;
+  };
+  const par = (x: number, d: number) => (x < 0 && Number(Math.abs(x).toFixed(d)) !== 0 ? '(' + num(x, d) + ')' : num(x, d));
+
+  // the lesson's own baseline and its table of changes ("Moving the operating point")
+  const BASE = { pms: 7, rvr: 1, b: 3 };
+  const K = 1;           // L per min per mmHg, from the lesson
+  const COMPLIANCE = 0.2; // L per mmHg, from the lesson
+  const ROWS = [
+    { label: 'Baseline', name: 'Baseline', pms: 7, rvr: 1, b: 3 },
+    { label: 'Transfuse 0.4 L', name: 'Transfuse 0.4 L', pms: 9, rvr: 1, b: 3 },
+    { label: 'Lose 0.4 L', name: 'Lose 0.4 L', pms: 5, rvr: 1, b: 3 },
+    { label: 'Inotrope, b = 5', name: 'Positive inotrope, b = 5', pms: 7, rvr: 1, b: 5 },
+    { label: 'Acute failure, b = 1', name: 'Acute pump failure, b = 1', pms: 7, rvr: 1, b: 1 },
+    { label: 'Compensated failure', name: 'Compensated failure, b = 1', pms: 9, rvr: 1, b: 1 },
+    { label: 'Halve Rvr', name: 'Halve Rvr to 0.5', pms: 7, rvr: 0.5, b: 3 },
+    { label: 'Halve Rvr, b = 4', name: 'Halve Rvr, heart lifted to b = 4', pms: 7, rvr: 0.5, b: 4 },
+  ];
+
+  function solve(pms: number, rvr: number, b: number, collapse: boolean) {
+    let pra = (pms - rvr * b) / (1 + rvr * K);
+    let q = b + K * pra;
+    let capped = false;
+    if (collapse && pra < 0) {
+      q = pms / rvr;
+      pra = (q - b) / K;
+      capped = true;
+    }
+    if (q < 0) q = 0;
+    return { pra, q, capped };
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-vro]').forEach((root) => {
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const pmsIn = must<HTMLInputElement>(root, '[data-in="pms"]');
+    const rvrIn = must<HTMLInputElement>(root, '[data-in="rvr"]');
+    const bIn = must<HTMLInputElement>(root, '[data-in="b"]');
+    const colIn = must<HTMLInputElement>(root, '[data-in="collapse"]');
+    const pmsOut = must<HTMLElement>(root, '[data-out="pms"]');
+    const rvrOut = must<HTMLElement>(root, '[data-out="rvr"]');
+    const bOut = must<HTMLElement>(root, '[data-out="b"]');
+    const volOut = must<HTMLElement>(root, '[data-vol]');
+    const rPra = must<HTMLElement>(root, '[data-r-pra]');
+    const rQ = must<HTMLElement>(root, '[data-r-q]');
+    const rVr = must<HTMLElement>(root, '[data-r-vr]');
+    const rHc = must<HTMLElement>(root, '[data-r-hc]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    const marks = must<HTMLElement>(root, '[data-marks]');
+    const clipId = 'vro-clip-' + Math.random().toString(36).slice(2, 8);
+
+    ROWS.forEach((r) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'vro-mark';
+      btn.textContent = r.label;
+      btn.addEventListener('click', () => {
+        pmsIn.value = String(r.pms);
+        rvrIn.value = String(r.rvr);
+        bIn.value = String(r.b);
+        render();
+      });
+      marks.appendChild(btn);
+    });
+
+    // plot geometry (viewBox units)
+    const X0 = 34, X1 = 328, Y0 = 22, Y1 = 172, XMIN = -6, XMAX = 12;
+    const px = (x: number) => X0 + ((x - XMIN) / (XMAX - XMIN)) * (X1 - X0);
+
+    type Box = { x0: number; y0: number; x1: number; y1: number };
+    function render() {
+      const pms = parseFloat(pmsIn.value);
+      const rvr = parseFloat(rvrIn.value);
+      const b = parseFloat(bIn.value);
+      const collapse = colIn.checked;
+      const res = solve(pms, rvr, b, collapse);
+      const free = solve(pms, rvr, b, false);
+      const base = solve(BASE.pms, BASE.rvr, BASE.b, false);
+      const { pra, q, capped } = res;
+
+      const YMAX = Math.max(q, free.q) > 9.6 ? 15 : 10;
+      const py = (y: number) => Y1 - (y / YMAX) * (Y1 - Y0);
+
+      pmsOut.textContent = pms.toFixed(1);
+      rvrOut.textContent = rvr.toFixed(1);
+      bOut.textContent = b.toFixed(1);
+      volOut.textContent = `(stressed volume ${(pms * COMPLIANCE).toFixed(2)} L at 0.2 L per mmHg)`;
+
+      // ---- plot ----
+      plot.replaceChildren();
+      const taken: Box[] = [];
+      function text(x: number, y: number, s: string, size: number, fill: string, extra: Record<string, string | number> = {}, track = false) {
+        const t = el('text', Object.assign({ x, y, 'font-size': size, fill }, extra));
+        t.textContent = s;
+        plot.appendChild(t);
+        if (track) {
+          const w = s.length * size * 0.58;
+          const anchor = String(extra['text-anchor'] ?? 'start');
+          const x0 = anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x;
+          taken.push({ x0, y0: y - size, x1: x0 + w, y1: y + 2 });
+        }
+        return t;
+      }
+      const hit = (a: Box) => taken.some((t) => a.x0 < t.x1 + 2 && a.x1 > t.x0 - 2 && a.y0 < t.y1 + 2 && a.y1 > t.y0 - 2);
+
+      const defs = el('defs', {});
+      const cp = el('clipPath', { id: clipId });
+      cp.appendChild(el('rect', { x: X0, y: Y0 - 2, width: X1 - X0, height: Y1 - Y0 + 2 }));
+      defs.appendChild(cp);
+      plot.appendChild(defs);
+
+      // gridlines and axes
+      const yticks = YMAX === 10 ? [0, 2, 4, 6, 8, 10] : [0, 5, 10, 15];
+      yticks.forEach((v) => {
+        plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: v === 0 ? INK : '#ececf0', 'stroke-width': 1 }));
+        text(X0 - 8, py(v) + 3, String(v), 9, INK, { 'text-anchor': 'end' });
+      });
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (let x = XMIN; x <= XMAX; x += 2) {
+        plot.appendChild(el('line', { x1: px(x), y1: Y1, x2: px(x), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(px(x), Y1 + 13, x < 0 ? '−' + Math.abs(x) : String(x), 9, INK, { 'text-anchor': 'middle' });
+      }
+      text(px(3), Y1 + 26, 'right atrial pressure, Pra (mmHg)', 9, INK, { 'text-anchor': 'middle' });
+      text(4, 11, 'flow, Q (L per min)', 9, INK);
+
+      // Pra = 0 reference
+      plot.appendChild(el('line', { x1: px(0), y1: Y0, x2: px(0), y2: Y1, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
+      text(px(0) + 3, Y0 + 9, 'Pra = 0', 9, INK, {}, true);
+
+      const g = el('g', { 'clip-path': `url(#${clipId})` });
+      plot.appendChild(g);
+      const venous = (x: number, p: number, r: number, cap: boolean) => {
+        const v = (p - x) / r;
+        return cap && x < 0 ? Math.min(v, p / r) : v;
+      };
+      const venousPath = (p: number, r: number, cap: boolean) => {
+        let d = '';
+        for (let x = XMIN; x <= XMAX + 1e-9; x += 0.25) d += (d ? 'L' : 'M') + px(x).toFixed(1) + ' ' + py(venous(x, p, r, cap)).toFixed(1) + ' ';
+        return d.trim();
+      };
+      const cardPath = (bb: number, from: number, to: number) =>
+        `M${px(from).toFixed(1)} ${py(bb + K * from).toFixed(1)} L${px(to).toFixed(1)} ${py(bb + K * to).toFixed(1)}`;
+
+      // baseline ghosts (the lesson's baseline, for comparison)
+      g.appendChild(el('path', { d: venousPath(BASE.pms, BASE.rvr, false), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      g.appendChild(el('path', { d: cardPath(BASE.b, XMIN, XMAX), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+
+      // the heart's line: solid at Pra >= 0 (where the lesson gives it), dashed below 0
+      g.appendChild(el('path', { d: cardPath(b, XMIN, 0), fill: 'none', stroke: ACCENT, 'stroke-width': 2.4, 'stroke-dasharray': '5 3' }));
+      g.appendChild(el('path', { d: cardPath(b, 0, XMAX), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // the veins' line, with the illustrative cap when the toggle is on
+      g.appendChild(el('path', { d: venousPath(pms, rvr, collapse), fill: 'none', stroke: ORANGE, 'stroke-width': 2.6 }));
+
+      // Pms marker on the axis (zero-flow intercept of the veins' line)
+      plot.appendChild(el('polygon', { points: `${px(pms)},${Y1 - 1} ${px(pms) - 3.5},${Y1 - 8} ${px(pms) + 3.5},${Y1 - 8}`, fill: ORANGE }));
+      const pmsRight = px(pms) < X1 - 40;
+      text(pmsRight ? px(pms) + 6 : px(pms) - 6, Y1 - 3, 'Pms', 9, ORANGE, { 'font-weight': 700, 'text-anchor': pmsRight ? 'start' : 'end' }, true);
+
+      // plateau label
+      if (capped) {
+        text(px(0) + 5, py(pms / rvr) - 5, 'illustrative cap', 9, ORANGE, { 'font-weight': 600, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }, true);
+      }
+
+      // operating point and its label (first free position)
+      const ox = px(pra), oy = py(q);
+      plot.appendChild(el('line', { x1: ox, y1: oy, x2: ox, y2: Y1, stroke: DOT, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('line', { x1: X0, y1: oy, x2: ox, y2: oy, stroke: DOT, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('circle', { cx: ox, cy: oy, r: 5, fill: DOT, stroke: '#fff', 'stroke-width': 1.5 }));
+      const label = 'operating point';
+      const w = label.length * 9 * 0.58;
+      const cands = [
+        { x: ox + 8, y: oy - 8, a: 'start' }, { x: ox - 8, y: oy - 8, a: 'end' },
+        { x: ox + 8, y: oy + 16, a: 'start' }, { x: ox - 8, y: oy + 16, a: 'end' },
+        { x: ox + 8, y: oy - 22, a: 'start' }, { x: ox - 8, y: oy + 30, a: 'end' },
+      ];
+      let pick = cands[0];
+      for (const c of cands) {
+        const x0 = c.a === 'end' ? c.x - w : c.x;
+        const box = { x0, y0: c.y - 9, x1: x0 + w, y1: c.y + 2 };
+        if (box.x0 >= X0 + 2 && box.x1 <= X1 - 2 && box.y0 >= Y0 && box.y1 <= Y1 - 1 && !hit(box)) { pick = c; break; }
+      }
+      text(pick.x, pick.y, label, 9, DOT, { 'font-weight': 700, 'text-anchor': pick.a, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }, true);
+
+      // legend
+      const LY = Y1 + 44;
+      plot.appendChild(el('line', { x1: X0, y1: LY - 3, x2: X0 + 18, y2: LY - 3, stroke: ACCENT, 'stroke-width': 2.6 }));
+      text(X0 + 24, LY, 'heart: Qc = b + k × Pra (dashed below Pra 0)', 9, INK);
+      plot.appendChild(el('line', { x1: X0, y1: LY + 11, x2: X0 + 18, y2: LY + 11, stroke: ORANGE, 'stroke-width': 2.6 }));
+      text(X0 + 24, LY + 14, 'veins: Qvr = (Pms − Pra) / Rvr', 9, INK);
+      plot.appendChild(el('line', { x1: X0, y1: LY + 25, x2: X0 + 18, y2: LY + 25, stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      text(X0 + 24, LY + 28, 'lesson baseline (b 3, Pms 7, Rvr 1)', 9, INK);
+
+      // ---- readouts ----
+      rPra.textContent = `${num(pra, 2)} mmHg`;
+      rQ.textContent = num(q, 2);
+      if (capped) {
+        rVr.textContent = `capped: Pms / Rvr = ${pms.toFixed(1)} / ${rvr.toFixed(1)} = ${num(q, 2)} L per min`;
+      } else {
+        rVr.textContent = `(Pms − Pra) / Rvr = (${pms.toFixed(1)} − ${par(pra, 2)}) / ${rvr.toFixed(1)} = ${num(q, 2)} L per min`;
+      }
+      rHc.textContent = `b + k × Pra = ${b.toFixed(1)} + 1 × ${par(pra, 2)} = ${num(b + K * pra, 2)} L per min`;
+
+      // ---- status line, rebuilt from the current state every time ----
+      const eps = 1e-6;
+      const dir = (a: number, c: number, up: string, down: string, same: string) => (Math.abs(a - c) < 0.005 ? same : a > c ? up : down);
+      const parts: string[] = [];
+      parts.push(`In this sketch, the heart’s line and the veins’ line cross at Pra = ${num(pra, 2)} mmHg and flow = ${num(q, 2)} L per min.`);
+      const row = ROWS.find((r) => Math.abs(r.pms - pms) < eps && Math.abs(r.rvr - rvr) < eps && Math.abs(r.b - b) < eps);
+      const changes: string[] = [];
+      if (Math.abs(pms - BASE.pms) > eps) changes.push(`Pms ${pms > BASE.pms ? 'above' : 'below'} the baseline 7 mmHg (${pms > BASE.pms ? 'more' : 'less'} stressed volume, so the veins’ line sits further ${pms > BASE.pms ? 'right' : 'left'})`);
+      if (Math.abs(rvr - BASE.rvr) > eps) changes.push(`Rvr ${rvr > BASE.rvr ? 'above' : 'below'} the baseline 1 mmHg min per L (the veins’ line rotated about its intercept at Pms)`);
+      if (Math.abs(b - BASE.b) > eps) changes.push(`b ${b > BASE.b ? 'above' : 'below'} the baseline 3 L per min (the heart’s line ${b > BASE.b ? 'higher' : 'lower'})`);
+      if (row) {
+        parts.push(row.pms === 7 && row.rvr === 1 && row.b === 3 ? 'These are the lesson’s baseline settings.' : `These settings are the lesson’s table row “${row.name}”, and the crossing matches that row.`);
+      } else if (changes.length) {
+        parts.push(`Changes from the lesson’s baseline: ${changes.join('; ')}.`);
+      }
+      if (!(Math.abs(pms - BASE.pms) < eps && Math.abs(rvr - BASE.rvr) < eps && Math.abs(b - BASE.b) < eps)) {
+        parts.push(`Compared with the baseline (Pra ${num(base.pra, 2)} mmHg, flow ${num(base.q, 2)} L per min), Pra is ${dir(pra, base.pra, 'higher', 'lower', 'the same')} and flow is ${dir(q, base.q, 'higher', 'lower', 'the same')}.`);
+      }
+      if (collapse && capped) {
+        parts.push(`The cap is on and reached: at this crossing the straight veins’ line would return more than Pms / Rvr = ${num(pms / rvr, 2)} L per min, so return is held at that value. Without the cap the crossing would sit at Pra = ${num(free.pra, 2)} mmHg and flow = ${num(free.q, 2)} L per min, so the cap leaves both lower. The cap is a made-up value for the sketch; in Guyton’s open-chest dogs return stopped rising near −2 to −4 mmHg, and the lesson shows no human threshold.`);
+      } else if (collapse) {
+        parts.push('The cap is on, but the crossing is at Pra of 0 mmHg or above, where the cap does not apply, so it changes nothing here.');
+      }
+      if (pra < 0) {
+        parts.push(`The crossing is at a negative Pra, where the lesson gives the heart’s line only for the positive Pra it uses${collapse ? '' : ' and its model ignores the collapse plateau'}, so treat this part of the sketch as an extension.`);
+      }
+      if (YMAX > 10) parts.push('The flow axis is extended to 15 L per min so the crossing stays on the plot.');
+      why.textContent = parts.join(' ');
+    }
+
+    [pmsIn, rvrIn, bIn].forEach((c) => c.addEventListener('input', render));
+    colIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .vro { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .vro-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .vro-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .vro-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .vro-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .vro-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vro-slabel small, .vro-check small { font-size: inherit; color: var(--ddp-color-muted); }
+  .vro-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .vro-slabel input[type="range"] { accent-color: var(--ddp-color-accent); width: 100%; }
+  .vro-check { display: flex; gap: 0.45rem; align-items: baseline; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vro-check input { accent-color: var(--ddp-color-accent); }
+  .vro-marks { grid-column: 1 / -1; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vro-marklist { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-top: 0.25rem; }
+  .vro-mark { font: inherit; font-size: var(--ddp-text-xs); padding: 0.1rem 0.5rem; border: 1px solid var(--ddp-color-line); border-radius: 999px; background: transparent; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .vro-mark:hover, .vro-mark:focus-visible { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+  .vro-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .vro-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .vro-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .vro-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .vro-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 9em; }
+  .vro-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .vro-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (min-width: 640px) {
+    .vro-controls { grid-template-columns: 1fr 1fr; }
+  }
+</style>

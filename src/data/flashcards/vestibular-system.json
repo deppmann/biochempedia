@@ -1,0 +1,612 @@
+{
+ "slug": "vestibular-system",
+ "title": "Balance: Two Codes for Every Head Movement",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "f225501cc18c",
+ "sectionHashes": {
+  "(opening)": "1668bdfc4bd5",
+  "Two channels for one head movement": "e0dabab360fd",
+  "The signature: two spike trains": "4895a293ad0d",
+  "A paradox: lower gain, better detection": "218f73534fda",
+  "Irregular at rest, precise when it matters": "2bc297a35268",
+  "Where each channel comes from": "bcc7d5a29239",
+  "A synapse that need not wait for vesicles": "59aca0f2280f",
+  "How the cleft can move the calyx": "5fc790340643",
+  "Three kinds of evidence, three animals": "f0e7e7bd4597",
+  "Passing on the surprise": "14874d71cf5b",
+  "Keeping the prediction calibrated": "8fcd70ea757f",
+  "Rebuilding the signal: a vestibular implant": "a0a796b930f1",
+  "Design problem": "4db641699b0a",
+  "Does the vestibulo-ocular reflex need the fast channel?": "1dc02fb9cb76",
+  "Counting vesicles from capacitance": "0766999a77ed",
+  "The three preparations, in numbers": "fbafdfb484f2",
+  "Learning rates in the load experiment": "01dae8c194bb",
+  "A different circuit: how the VOR's gain is taught": "761e8c8405f3",
+  "Reading the implant cohort": "951e43b70f7d"
+ },
+ "cards": [
+  {
+   "id": "vestibular-system-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can severe loss of both vestibular organs make vision blur during walking?",
+   "back": "Reduced vestibular input weakens the vestibulo-ocular reflex, so the eyes compensate less effectively for head rotation and the image moves on the retina.",
+   "quote": "this reflex turns the eyes against head rotation to hold the image still."
+  },
+  {
+   "id": "vestibular-system-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What movements do the semicircular canals and otolith organs sense?",
+   "back": "Canals sense head rotation; otolith organs sense linear acceleration and tilt.",
+   "quote": "the canals, which sense rotation and over ordinary movements report roughly the head's rotational velocity, the otoliths, which sense linear acceleration and tilt"
+  },
+  {
+   "id": "vestibular-system-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A vestibular afferent's {{c1::gain}} is the change in firing rate for a given motion.",
+   "back": "",
+   "quote": "a fibre's gain is how much its rate changes for a given motion.",
+   "section": "Two channels for one head movement"
+  },
+  {
+   "id": "vestibular-system-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does firing at a high resting rate let a vestibular afferent signal motion in either direction?",
+   "back": "Motion can increase or decrease firing relative to the resting rate, allowing changes in both directions.",
+   "quote": "so each can signal motion in either direction by speeding up or slowing down.",
+   "section": "Two channels for one head movement"
+  },
+  {
+   "id": "vestibular-system-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What spike-train measurement distinguishes regular from irregular vestibular afferents at rest?",
+   "back": "The coefficient of variation (CV) of interspike intervals: low for regular afferents, high for irregular afferents. These are ends of a continuum.",
+   "quote": "Regularity at rest is measured by the coefficient of variation (CV) of the intervals between spikes",
+   "section": "Two channels for one head movement"
+  },
+  {
+   "id": "vestibular-system-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How do regular and irregular canal afferents differ in the information they carry?",
+   "back": "Regular afferents mainly encode angular velocity in firing rate. Irregular afferents have higher gain and emphasize rapid changes through precise spike timing.",
+   "quote": "Most of a regular canal fibre's information is in its rate.",
+   "section": "The signature: two spike trains"
+  },
+  {
+   "id": "vestibular-system-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A head rotation continues at steady speed, while a separate trial holds the head tilted relative to gravity. What happens to sustained canal versus regular otolith signalling, and why?",
+   "back": "The canal signal fades; the regular otolith signal persists during the held tilt because gravity continues to act along its preferred direction.",
+   "quote": "so regular otolith fibres keep reporting it for as long as it lasts.",
+   "section": "The signature: two spike trains"
+  },
+  {
+   "id": "vestibular-system-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can a low-gain regular canal afferent detect smaller slow rotations than a high-gain irregular afferent?",
+   "back": "In the lesson’s toy spike-count decoder, threshold = noise/gain. Regular afferents can have sufficiently less rate noise to outweigh their lower gain.",
+   "quote": "The quiet, low-gain fibre wins, because its noise is far smaller and its gain only three times smaller.",
+   "section": "A paradox: lower gain, better detection"
+  },
+  {
+   "id": "vestibular-system-c09",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a toy spike-count decoder, both fibres fire at 100 spikes/s. Regular: CV = 0.05, gain = 0.5 (spikes/s)/(degree/s). Irregular: CV = 0.5, gain = 1.5 in the same units. Using noise = √(CV² × rate/time), estimate noise/gain thresholds over 1 s.",
+   "back": "Regular noise = √(0.05² × 100/1) = 0.5 spikes/s; threshold = 0.5/0.5 = 1 degree/s. Irregular noise = √(0.5² × 100/1) = 5 spikes/s; threshold = 5/1.5 ≈ 3.3 degrees/s. These are rough long-window estimates.",
+   "quote": "A rough rule for long windows puts the rate's standard deviation at √(CV² × rate / time).",
+   "section": "A paradox: lower gain, better detection"
+  },
+  {
+   "id": "vestibular-system-c10",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A toy vestibular decoder must shorten its spike-count window to report rapid changes. Why might adding a spike-timing readout help, even if the regular fibre remains the better rate-based detector?",
+   "back": "Rapid rate estimates become less reliable in short windows. Combining that rule with the irregular channel’s precise timing suggests a timing readout could add rapid-motion information. The rate-threshold ranking alone cannot rank all decoding strategies.",
+   "quote": "In this toy, a fast local rate estimate is much less reliable, which leaves room for the irregular fibre's other strength",
+   "section": "A paradox: lower gain, better detection"
+  },
+  {
+   "id": "vestibular-system-c11",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An afferent has uneven resting spike intervals. How would replaying an identical rapid head-motion waveform distinguish stimulus-locked timing from random spike noise?",
+   "back": "Compare spike times across repeated presentations. Spikes recurring near the same stimulus moments support stimulus-locked timing; pure noise would not show that reproducibility.",
+   "quote": "A fibre whose spikes are locked to the motion fires at nearly the same moments on every repeat",
+   "section": "Irregular at rest, precise when it matters"
+  },
+  {
+   "id": "vestibular-system-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What are the shape and afferent ending of a mammalian type I vestibular hair cell?",
+   "back": "It is flask-shaped, with a cup-shaped calyx almost completely enclosing its basolateral membrane.",
+   "quote": "A type I cell is flask-shaped, and its afferent ending, a cup-shaped calyx, almost completely encloses the basolateral membrane.",
+   "section": "Where each channel comes from"
+  },
+  {
+   "id": "vestibular-system-c13",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What are the shape and afferent endings of a mammalian type II vestibular hair cell?",
+   "back": "It is cylindrical and receives several small bouton endings.",
+   "quote": "A type II cell is cylindrical and receives several small bouton endings.",
+   "section": "Where each channel comes from"
+  },
+  {
+   "id": "vestibular-system-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What distinguishes calyx-only, bouton-only and dimorphic vestibular afferents?",
+   "back": "Calyx-only fibres contact type I cells through calyces; bouton-only fibres contact type II cells through boutons; dimorphic fibres carry both kinds of ending.",
+   "quote": "One afferent can carry more than one kind of ending, which gives three kinds of fibre.",
+   "section": "Where each channel comes from"
+  },
+  {
+   "id": "vestibular-system-c15",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Where are the main populations of calyx-only, bouton-only and dimorphic vestibular afferents found?",
+   "back": "Calyx-only fibres mostly occupy the central zone; bouton-only fibres mostly occupy the peripheral zone; dimorphic fibres occur in both.",
+   "quote": "Each channel has a home in the organ, as a population pattern.",
+   "section": "Where each channel comes from"
+  },
+  {
+   "id": "vestibular-system-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does finding a calyx ending not establish that a vestibular afferent fires irregularly?",
+   "back": "The anatomy-to-firing map describes populations. Regular fibres can carry calyces, and irregular fibres can have only boutons; the calyx alone does not establish regularity.",
+   "quote": "regular discharge can come from fibres with calyx endings, irregular discharge from fibres with only boutons",
+   "section": "Where each channel comes from"
+  },
+  {
+   "id": "vestibular-system-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What is a vestibular-evoked myogenic potential (VEMP), and which afferent pathway does it mainly report?",
+   "back": "A neck- or eye-muscle reflex response to sound or vibration, mainly reporting irregular otolith afferents from the striola.",
+   "quote": "Sound and bone-conducted vibration mostly activate irregular otolith afferents from the striola.",
+   "section": "Where each channel comes from"
+  },
+  {
+   "id": "vestibular-system-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What vesicular signalling mechanism do both vestibular hair-cell types share?",
+   "back": "Both use calcium-dependent quantal glutamate release at ribbon synapses; each quantum is one vesicle.",
+   "quote": "Both hair-cell types release glutamate by calcium-dependent quantal release, in packets of one vesicle each, at ribbon synapses",
+   "section": "A synapse that need not wait for vesicles"
+  },
+  {
+   "id": "vestibular-system-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What defines non-quantal transmission from a vestibular type I hair cell to its calyx?",
+   "back": "A change in calyx potential without vesicular exocytosis and without gap junctions.",
+   "quote": "Formally, it is a change in calyx potential without vesicular exocytosis and without gap junctions",
+   "section": "A synapse that need not wait for vesicles"
+  },
+  {
+   "id": "vestibular-system-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why could the fast electrical component of type I–calyx non-quantal transmission reduce synaptic delay?",
+   "back": "It bypasses vesicle fusion, glutamate diffusion and receptor opening. The potassium-accumulation component builds more slowly.",
+   "quote": "a vesicle has to fuse, glutamate has to cross the cleft, and receptors have to open, and each step adds delay.",
+   "section": "A synapse that need not wait for vesicles"
+  },
+  {
+   "id": "vestibular-system-c21",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Mature mouse utricle type I cells lacking otoferlin or CaV1.3 still drove calyx action potentials in vitro. What does this support, and what does it leave untested?",
+   "back": "It supports a functional route that does not require vesicle fusion. Survival of evoked spikes does not establish that transmission remains normal.",
+   "quote": "The test was whether spikes survive, in vitro, not whether the signal is normal.",
+   "section": "A synapse that need not wait for vesicles"
+  },
+  {
+   "id": "vestibular-system-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can potassium accumulate between a vestibular type I hair cell and its calyx during hair-cell depolarization?",
+   "back": "The enclosing calyx creates a narrow cleft from which ions escape slowly. Depolarization increases potassium efflux from the hair cell into that space.",
+   "quote": "The calyx wraps the type I cell so closely that the cleft between them is very narrow, and ions leave it only slowly.",
+   "section": "How the cleft can move the calyx"
+  },
+  {
+   "id": "vestibular-system-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an illustrative calyx, raising cleft potassium shifts E_K from about −80 to −52 mV. With other conductances fixed, what happens to calyx voltage and why?",
+   "back": "It tends to depolarize. A more positive potassium reversal potential shifts the conductance-weighted balance toward a more positive voltage.",
+   "quote": "Raising cleft potassium moves E_K toward positive, so, with the other conductances fixed, the weighted average moves up and the calyx tends to depolarize.",
+   "section": "How the cleft can move the calyx"
+  },
+  {
+   "id": "vestibular-system-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "For the calyx inner membrane, potassium current is g_K × (V_calyx − V_cleft − E_K), with outward positive. Holding the other terms fixed, what happens immediately when V_cleft becomes more positive?",
+   "back": "Outward-positive potassium current decreases: less potassium leaves the calyx, or some enters. The reduced outward current tends to depolarize the calyx.",
+   "quote": "a more positive cleft, like a higher E_K, shrinks the driving force: less potassium leaves the calyx there, or some enters.",
+   "section": "How the cleft can move the calyx"
+  },
+  {
+   "id": "vestibular-system-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can a single conductance-weighted average of reversal potentials not give the absolute calyx voltage?",
+   "back": "That rule assumes one common outside voltage. The calyx inner face sees the cleft and its outer face the bath, so it only gives directional guidance here.",
+   "quote": "The calyx breaks the common-outside condition, because its inner face sees the cleft and its outer face the bath",
+   "section": "How the cleft can move the calyx"
+  },
+  {
+   "id": "vestibular-system-c26",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A type I hair cell depolarizes and its calyx follows. Why does recording calyx voltage alone fail to distinguish cleft-potassium accumulation from a cleft-potential change?",
+   "back": "Both mechanisms reduce outward potassium driving force and can depolarize the calyx. Combining the two cleft rules means voltage alone cannot separate them; direct cleft potassium and potential measurements would test their contributions.",
+   "quote": "The second consequence needs only a subtraction.",
+   "section": "How the cleft can move the calyx"
+  },
+  {
+   "id": "vestibular-system-c27",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Fast bidirectional coupling was recorded in turtle hair-cell–calyx pairs, while an adult-rat-geometry model predicted cleft potential changing before potassium accumulated. Does this establish that sequence in mature mammals?",
+   "back": "No. The evidence rule is to separate species-specific recordings from model outputs. Turtle coupling is measured, but the proposed mammalian cleft sequence remains a prediction requiring direct measurement.",
+   "quote": "These are turtle recordings, not mammalian latencies.",
+   "section": "Three kinds of evidence, three animals"
+  },
+  {
+   "id": "vestibular-system-c28",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The internal copy of a motor command used to predict neck feedback is called an {{c1::efference copy}}.",
+   "back": "It can be compared with actual neck proprioception.",
+   "quote": "It has an internal copy of the motor command sent to the neck muscles, called an efference copy",
+   "section": "Passing on the surprise"
+  },
+  {
+   "id": "vestibular-system-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why must cancellation of self-generated head-motion responses in the tested monkey vestibular-only neurons occur centrally?",
+   "back": "Canal afferents still respond during both active and passive motion. The reduced active response therefore arises after the peripheral signal reaches the brain.",
+   "quote": "So any cancellation of your own movement must happen centrally.",
+   "section": "Passing on the surprise"
+  },
+  {
+   "id": "vestibular-system-c30",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A macaque makes a voluntary head turn, but imposed neck torque makes proprioceptive feedback differ from the motor command’s prediction. What happens to the tested vestibular-only neurons’ responses, and why?",
+   "back": "Responses become strong rather than largely cancelled. In the neurons tested, cancellation requires actual neck feedback to match predicted feedback; a motor command alone is insufficient.",
+   "quote": "Neither the motor command nor neck feedback alone was enough.",
+   "section": "Passing on the surprise"
+  },
+  {
+   "id": "vestibular-system-c31",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a toy head-motion response, a passive turn peaking at 20 degrees/s evokes 40 spikes/s of modulation; an equally large active turn evokes 4 spikes/s. Calculate both sensitivities and cancellation, defined as 1 − active/passive sensitivity.",
+   "back": "Passive sensitivity = 40/20 = 2.0 (spikes/s)/(degree/s). Active sensitivity = 4/20 = 0.2 in the same units. Cancellation = 1 − 0.2/2.0 = 0.90 = 90%.",
+   "quote": "An active turn of the same size evokes 4 spikes per second, so sensitivity is 0.2",
+   "section": "Passing on the surprise"
+  },
+  {
+   "id": "vestibular-system-c32",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A macaque adapts to turning its head against resistance. What should happen to rostral fastigial vestibular sensitivity when the load is unexpectedly removed, and why?",
+   "back": "Sensitivity should rise again, as on catch trials. The learned prediction no longer matches feedback when the load unexpectedly disappears.",
+   "quote": "On catch trials, when the load was unexpectedly removed, sensitivity rose again.",
+   "section": "Keeping the prediction calibrated"
+  },
+  {
+   "id": "vestibular-system-c33",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A candidate neural prediction-error signal decreases while behaviour adapts to a new load and rebounds on surprise load removal. What further experiment would test whether the signal causes adaptation?",
+   "back": "Perturb the candidate signal while keeping load and sensory conditions comparable, and measure adaptation against a control. This follows the rule that matched neural and behavioural changes in recordings alone cannot establish causation.",
+   "quote": "recordings alone cannot show that these neurons cause the learning.",
+   "section": "Keeping the prediction calibrated"
+  },
+  {
+   "id": "vestibular-system-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What motion signal did the described vestibular implant supply, and what natural vestibular coding did it omit?",
+   "back": "It stimulated three canal-nerve branches to encode rotation, without natural regular/irregular coding or otolith signals for linear acceleration and tilt.",
+   "quote": "it encodes no otolith signal for linear acceleration or tilt.",
+   "section": "Rebuilding the signal: a vestibular implant"
+  },
+  {
+   "id": "vestibular-system-c35",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "An eight-person vestibular implant cohort showed some balance improvements and lower dizziness handicap, alongside hearing loss in most implanted ears. What conclusion is justified?",
+   "back": "The cohort supports feasibility and a benefit–hearing-cost trade-off. Its small single-arm design does not establish population efficacy; the unadjusted balance comparisons also need caution.",
+   "quote": "establishes feasibility and a trade-off, not population efficacy.",
+   "section": "Rebuilding the signal: a vestibular implant"
+  },
+  {
+   "id": "vestibular-system-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Design a test of whether non-quantal transmission speeds calyx-bearing irregular afferents. What controls and result would make the conclusion specific to the synapse?",
+   "back": "Selectively remove non-quantal transmission; compare rapid-stimulus latency and timing before and after. Verify intact quantal release and hair-cell receptor potentials. Use dye-identified bouton-only controls and compare calyx-bearing regular fibres. Unchanged latency and timing in irregular calyx-bearing fibres would count against the hypothesis.",
+   "quote": "Check quantal release by capacitance and record the hair cell's receptor potential, so that any change can be pinned on the synapse.",
+   "section": "Design problem"
+  },
+  {
+   "id": "vestibular-system-c37",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Selective silencing of irregular afferents left the VOR largely unchanged during the head rotations tested in squirrel monkeys. What can be inferred about the regular channel?",
+   "back": "It can support the VOR for those stimuli. The result does not establish that irregular afferents are unnecessary for every stimulus or reflex.",
+   "quote": "the regular channel can carry the VOR, at least for those stimuli.",
+   "section": "Does the vestibulo-ocular reflex need the fast channel?"
+  },
+  {
+   "id": "vestibular-system-c38",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A made-up type II hair-cell recording has a sustained capacitance rise of 74 fF. Assuming 37 aF per vesicle, estimate vesicle release and the count for tenfold smaller exocytosis.",
+   "back": "74 fF = 74,000 aF; 74,000/37 = 2,000 vesicles. Tenfold smaller exocytosis gives 7.4 fF = 7,400 aF, or 200 vesicles. These are estimates under the conversion assumption.",
+   "quote": "They converted capacitance to vesicle number with 37 aF per vesicle.",
+   "section": "Counting vesicles from capacitance"
+  },
+  {
+   "id": "vestibular-system-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why should a large transient capacitance change in type I vestibular hair cells not automatically be counted as vesicle release?",
+   "back": "It can arise from potassium-conductance gating rather than fusion. Only the sustained component counts as release in the described preparation.",
+   "quote": "so only the sustained component counts as release.",
+   "section": "Counting vesicles from capacitance"
+  },
+  {
+   "id": "vestibular-system-c40",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Treat the measured turtle mean coupling, 522 pS, as a simple transfer conductance. With the calyx voltage held fixed, what current-change magnitude follows an assumed 10 mV hair-cell voltage change?",
+   "back": "|ΔI| = G|ΔV| = (522 × 10⁻¹² S)(10 × 10⁻³ V) = 5.22 × 10⁻¹² A ≈ 5.2 pA. The voltage change is assumed; the mean coupling does not describe every pair.",
+   "quote": "Treating the coupling as a simple transfer conductance, the calyx current changes by 522 pS x 10 mV = 5.2 pA.",
+   "section": "The three preparations, in numbers"
+  },
+  {
+   "id": "vestibular-system-c41",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why do time constants of 34 ± 7 trials for head velocity and 24 ± 8 trials for neuronal sensitivity not show that neural learning started first?",
+   "back": "Time constants describe the rate of change, not its onset. The reported constants also did not differ significantly.",
+   "quote": "Time constants measure rate, not onset, so they cannot say whether neurons or behaviour changed first.",
+   "section": "Learning rates in the load experiment"
+  },
+  {
+   "id": "vestibular-system-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the monkey floccular recordings, why was a climbing-fibre error signal not sufficient evidence that Purkinje-cell plasticity occurred on the next trial?",
+   "back": "Climbing fibres responded during both gain-increase and gain-decrease training, but only during gain-increase training did activity predict reduced Purkinje output on the next trial.",
+   "quote": "a climbing-fibre error signal does not always trigger plasticity.",
+   "section": "A different circuit: how the VOR's gain is taught"
+  },
+  {
+   "id": "vestibular-system-c43",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A model predicts that the same climbing-fibre activation must always increase VOR gain, regardless of local inhibition. How do the described interneuron experiments challenge it?",
+   "back": "In awake mice, co-activation with molecular-layer interneurons could yield a gain decrease instead. Combining the gating and inhibition findings shows that the teaching signal’s effect depends on circuit state, not just climbing-fibre activation.",
+   "quote": "added that inhibition shapes the teaching signal.",
+   "section": "A different circuit: how the VOR's gain is taught"
+  },
+  {
+   "id": "vestibular-system-c44",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Dizziness Handicap Inventory group medians are 79 before implantation and 19 afterward. Their difference is compared with a reported median paired improvement of 50 points. Calculate the group-median difference and explain why it need not equal the paired median.",
+   "back": "79 − 19 = 60 points. The paired median is computed by subtracting within each participant first, then taking the median. Medians are nonlinear, so 60 and the reported 50 answer different questions.",
+   "quote": "A median is not a linear summary, so the median of paired changes can differ from the difference of group medians",
+   "section": "Reading the implant cohort"
+  },
+  {
+   "id": "vestibular-system-c45",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an implant study, baseline and six-month scores are compared, then motion-modulated and constant stimulation are compared blindly in randomized order on the same day. What causal question does the second comparison address?",
+   "back": "It tests an immediate effect of motion-modulated stimulation while holding surgery and elapsed time fixed. By the confounding rule, it cannot isolate long-term surgical effects or months of adaptation from the baseline comparison.",
+   "quote": "it holds the surgery and the elapsed time fixed and addresses expectancy and spontaneous recovery",
+   "section": "Reading the implant cohort"
+  }
+ ]
+}

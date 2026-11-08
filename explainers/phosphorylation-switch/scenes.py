@@ -141,18 +141,18 @@ class S01Puzzle(SpokenScene):
         ph = pbadge(1.5).move_to(atp.get_corner(UR) + [-0.05, 0.1, 0])
         site = rim(PC1, 1.2, 270)
         flow = arr([-0.2, -0.35, 0], [2.65, -0.35, 0], GREY, w=6)
-        same = T("the same reaction", 26, GREY).move_to([1.2, 0.2, 0])
+        same = T("most add phosphate", 26, GREY).move_to([1.2, 0.2, 0])
 
         self.add(about, num)
         self.play(UpdateFromAlphaFunc(num, count), run_time=1.9, rate_func=linear)
         self.at("genes for")
         self.play(FadeIn(sub), LaggedStart(*[FadeIn(p, scale=0.6) for p in pills], lag_ratio=0.03), run_time=1.3)
-        self.at("same reaction")
+        self.at("Most")
         self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in dots], lag_ratio=0.02), run_time=0.8)
         self.play(GrowArrow(flow), FadeIn(same), FadeIn(prot), FadeIn(prot_lbl), FadeIn(atp), FadeIn(ph, scale=0.5), run_time=0.8)
-        self.at("takes a")
+        self.at("a phosphate")
         self.play(pop(ph, 1.4), run_time=0.5)
-        self.at("fastens it")
+        self.at("fasten it")
         self.play(ph.animate.move_to(site + [0, 0.02, 0]), run_time=1.0)
         self.play(atp[1].animate.set_stroke(opacity=0.5).set_fill(opacity=0.08), atp[2].animate.set_opacity(0.5), run_time=0.3)
         q = T("?", 72, TEXT, weight=BOLD).move_to([5.75, 0.55, 0])
@@ -196,7 +196,7 @@ class S02Write(SpokenScene):
         self.play(FadeIn(swarm, lag_ratio=0.1), FadeIn(main), run_time=0.9)
         self.at("millimolar")
         self.play(FadeIn(mol, shift=UP * 0.1), LaggedStart(*[pop(c, 1.12) for c in swarm], lag_ratio=0.08), run_time=1.0)
-        self.at("never waits")
+        self.at("rarely waits")
         self.play(main.animate.move_to([kin[1].get_left()[0] - main.width / 2 - 0.02, 0.45, 0]), FadeOut(mol), run_time=0.8)
         self.play(pop(kin, 1.06), run_time=0.4)
 
@@ -214,14 +214,14 @@ class S02Write(SpokenScene):
 
         # the protein and its hydroxyl site
         site = Circle(radius=0.13, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.9).move_to(PSITE).set_z_index(2)
-        self.at("In animals")
+        self.at("In animal")
         self.play(FadeIn(site, scale=0.4), Indicate(prot, color=BLUE, scale_factor=1.04), run_time=0.7)
-        self.at("fastens that")
+        self.at("sites")
         self.play(ph.animate.move_to(PSITE), run_time=0.9)
         self.remove(site)
         lbl = T("side chain", 30, GREY).move_to([2.7, 3.05, 0])
         ptr = Line([2.5, 2.77, 0], PSITE + [0.05, 0.3, 0], color=GREY, stroke_width=3)
-        self.at("side chain")
+        self.at("side chains")
         self.play(FadeIn(lbl, shift=DOWN * 0.1), Create(ptr), run_time=0.5)
         lbl2 = T("hydroxyl group", 30, GREY).move_to([2.7, 3.05, 0])
         self.at("hydroxyl")
@@ -230,7 +230,7 @@ class S02Write(SpokenScene):
         # the three residues that carry it
         names = VGroup(*[bchip(n, BLUE, 28, pad=0.18) for n in ("serine", "threonine", "tyrosine")]).arrange(RIGHT, buff=0.25)
         names.move_to([PC[0], -2.85, 0])
-        self.at("That means")
+        self.at("serine")
         self.play(FadeOut(lbl2), FadeOut(ptr), LaggedStart(*[FadeIn(n, shift=UP * 0.12) for n in names], lag_ratio=0.4), run_time=1.9)
 
         # the charge: the protein comes to the middle of the frame
@@ -283,16 +283,16 @@ class S03Shape(SpokenScene):
         lines.set_z_index(-1)
         rep_a, rep_b = cmark("+", 1.3).move_to([-0.3, -0.15, 0]), cmark("+", 1.3).move_to([0.3, -0.15, 0])
         push = VGroup(arr([-0.45, -0.15, 0], [-1.0, -0.15, 0], GREY, w=4, tip=0.16), arr([0.45, -0.15, 0], [1.0, -0.15, 0], GREY, w=4, tip=0.16))
-        self.at("held in shape")
+        self.at("charges help")
         self.play(LaggedStart(*[FadeIn(m, scale=0.4) for m in (*marks, rep_a, rep_b)], lag_ratio=0.1), run_time=1.1)
-        self.at("attract")
+        self.at("shape")
         self.play(LaggedStart(*[Create(l) for l in lines], lag_ratio=0.25), run_time=0.9)
-        self.at("repel")
+        self.at("contacts")
         self.play(*[GrowArrow(a) for a in push], LaggedStart(*[Indicate(m, color=ORANGE, scale_factor=1.35) for m in marks], lag_ratio=0.1), run_time=1.0)
 
         # a small change, a big disturbance
         shift = [np.array(v) for v in ([0.15, 0.2, 0], [-0.25, 0.1, 0], [-0.2, -0.15, 0], [0.1, -0.25, 0], [0.25, -0.1, 0], [0.2, 0.2, 0])]
-        self.at("disturb")
+        self.at("phosphate can")
         self.play(Transform(prot, body(BC, BR, open_=True, color=BLUE)),
                   *[m.animate.shift(v) for m, v in zip(marks, shift)], FadeOut(lines), FadeOut(push),
                   *[Indicate(x, color=ORANGE, scale_factor=1.25) for x in (m1, m2)], run_time=0.9)
@@ -502,7 +502,7 @@ class S05Balance(SpokenScene):
         lvl2 = VGroup(T("share carrying", 24, GREY), T("a phosphate", 24, GREY)).arrange(DOWN, buff=0.08).move_to([5.0, -0.2, 0])
 
         self.add(T_.tank, *T_.copies, *T_.shown())
-        self.at("phosphatases")
+        self.at("phosphatuses")
         self.play(FadeIn(T_.pho, shift=UP * 0.15), run_time=0.5)
         tap = T("tap", 24, GREY).move_to([TC[0] + 0.55, 2.2, 0])
         drain = T("drain", 24, GREY).move_to([TC[0] + 0.65, -2.2, 0])

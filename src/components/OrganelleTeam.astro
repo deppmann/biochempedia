@@ -1,0 +1,210 @@
+---
+/**
+ * OrganelleTeam — the cell as a team. The learner picks a cell (heart muscle, fat storage,
+ * leaf) and switches off one part at a time (nucleus, cell membrane, endoplasmic reticulum,
+ * mitochondria, vacuole). Six bars show the life processes (growth, repair, reproduction,
+ * gas exchange, metabolism, response). Each process uses certain parts, as the lesson's
+ * "parts work as a team" section says; a part with a bigger share in the cell costs more when
+ * it is off. Only the mitochondria shares (heart large, fat small) and the large central
+ * vacuole of a plant cell come from the lesson; every other share is "ordinary". Bars are
+ * relative units; no chance is used. Labelled blocks only, no molecules. Original.
+ */
+---
+
+<figure class="ot card" data-organelleteam>
+  <figcaption class="ot-head">Cell as a team: switch off one part<span class="ot-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="ot-set">
+    <legend>1. Pick a cell</legend>
+    <div class="ot-opts" data-cells></div>
+  </fieldset>
+  <fieldset class="ot-set">
+    <legend>2. Switch off one part</legend>
+    <div class="ot-opts" data-parts></div>
+  </fieldset>
+
+  <svg class="ot-svg" viewBox="0 0 320 156" role="img" aria-label="A model cell drawn as labelled blocks, one for each part" data-cellsvg></svg>
+  <svg class="ot-svg" viewBox="0 0 320 196" role="img" aria-label="Six bars, one for each life process, in relative units" data-barsvg></svg>
+
+  <p class="ot-status" data-status role="status"></p>
+  <p class="ot-track" data-track></p>
+
+  <div class="ot-row"><button type="button" class="ot-btn" data-reset>Reset</button></div>
+
+  <p class="ot-assume">In this sketch the bars are relative lengths, not measurements. The more a process uses a part and the bigger that part’s share, the more its bar drops. Reproduction also loses part of growth’s drop, because a cell grows before it divides. Block widths show small, ordinary or large only, not to scale. Only the mitochondria shares and the leaf cell’s large vacuole come from the lesson. A leaf cell’s ordinary mitochondria share is a guess here. Every other part is ordinary size. Heart and fat cells are drawn with a vacuole only to keep the three cells alike. A leaf cell also has a cell wall and chloroplasts, which this sketch leaves out. Nothing is chosen by chance.</p>
+  <p class="ot-foot">Rule to keep: the parts work as one system, so trouble in most parts slows several life processes.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Part = 'nucleus' | 'membrane' | 'er' | 'mito' | 'vacuole';
+  type Cell = 'heart' | 'fat' | 'leaf';
+  const PROCS = ['Growth', 'Repair', 'Reproduction', 'Gas exchange', 'Metabolism', 'Response'];
+  const K = 6;
+  const PARTS: { id: Part | 'none'; label: string }[] = [
+    { id: 'none', label: 'All parts on' },
+    { id: 'nucleus', label: 'Nucleus' },
+    { id: 'membrane', label: 'Cell membrane' },
+    { id: 'er', label: 'Endoplasmic reticulum' },
+    { id: 'mito', label: 'Mitochondria' },
+    { id: 'vacuole', label: 'Vacuole' },
+  ];
+  const CELLS: { id: Cell; label: string }[] = [
+    { id: 'heart', label: 'Heart muscle cell' },
+    { id: 'fat', label: 'Fat storage cell' },
+    { id: 'leaf', label: 'Leaf cell' },
+  ];
+  const CELLNAME: Record<Cell, string> = { heart: 'heart muscle cell', fat: 'fat storage cell', leaf: 'leaf cell' };
+  const PARTNAME: Record<Part, string> = { nucleus: 'nucleus', membrane: 'cell membrane', er: 'endoplasmic reticulum', mito: 'mitochondria', vacuole: 'vacuole' };
+  // How much each process uses each part (0 none, 1 helps, 2 main). Order follows PROCS.
+  const USE: Record<Part, number[]> = {
+    nucleus: [2, 2, 2, 0, 1, 1],
+    membrane: [0, 0, 0, 2, 0, 2],
+    er: [2, 2, 0, 0, 1, 0],
+    mito: [2, 2, 0, 1, 2, 1],
+    vacuole: [0, 0, 0, 0, 0, 0],
+  };
+  // Share of the cell a part takes (1 small, 2 ordinary, 3 large).
+  function share(cell: Cell, part: Part): number {
+    if (part === 'mito') return cell === 'heart' ? 3 : cell === 'fat' ? 1 : 2;
+    if (part === 'vacuole' && cell === 'leaf') return 3;
+    return 2;
+  }
+  const WHY: Record<Part, string> = {
+    nucleus: 'The nucleus holds the instructions that guide which proteins and fats the cell makes, and they are copied before a cell divides.',
+    membrane: 'Oxygen and carbon dioxide cross the cell membrane, and a signal touches it.',
+    er: 'The endoplasmic reticulum helps make and move many proteins and fats.',
+    mito: 'Mitochondria release much of the energy stored in food such as sugar, for building, and they use the oxygen.',
+    vacuole: 'A vacuole stores water, food and wastes.',
+  };
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function q<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('OrganelleTeam: missing ' + sel);
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-organelleteam]').forEach((root) => {
+    const cellsBox = q<HTMLElement>(root, '[data-cells]');
+    const partsBox = q<HTMLElement>(root, '[data-parts]');
+    const cellSvg = q<SVGSVGElement>(root, '[data-cellsvg]');
+    const barSvg = q<SVGSVGElement>(root, '[data-barsvg]');
+    const statusEl = q<HTMLElement>(root, '[data-status]');
+    const trackEl = q<HTMLElement>(root, '[data-track]');
+    const resetBtn = q<HTMLButtonElement>(root, '[data-reset]');
+    let cell: Cell = 'heart';
+    let off: Part | 'none' = 'none';
+    const seen: Partial<Record<Cell, string>> = {};
+    const uid = 'ot' + Math.random().toString(36).slice(2, 7);
+
+    function radio(box: HTMLElement, group: string, id: string, label: string, onPick: () => void) {
+      const l = document.createElement('label');
+      l.className = 'ot-opt';
+      const i = document.createElement('input');
+      i.type = 'radio'; i.name = uid + group; i.value = id;
+      i.addEventListener('change', () => { if (i.checked) onPick(); });
+      const s = document.createElement('span');
+      s.textContent = label;
+      l.appendChild(i); l.appendChild(s);
+      box.appendChild(l);
+    }
+    CELLS.forEach((c) => radio(cellsBox, 'cell', c.id, c.label, () => { cell = c.id; render(); }));
+    PARTS.forEach((p) => radio(partsBox, 'part', p.id, p.label, () => { off = p.id; render(); }));
+
+    function drops(): number[] {
+      const d = [0, 0, 0, 0, 0, 0];
+      if (off === 'none') return d;
+      const u = USE[off], sh = share(cell, off);
+      for (let i = 0; i < 6; i++) d[i] = u[i] * sh * K;
+      d[2] += d[0] / 2; // reproduction also loses half of growth's drop
+      return d;
+    }
+    function block(x: number, y: number, w: number, h: number, name: string, isOff: boolean, fill: string, stroke: string, sub: string) {
+      cellSvg.appendChild(el('rect', { x, y, width: w, height: h, rx: 6, fill: isOff ? '#f1f1f4' : fill, stroke: isOff ? '#8a8a96' : stroke, 'stroke-width': 1.5, 'stroke-dasharray': isOff ? '4 3' : '0' }));
+      cellSvg.appendChild(el('text', { x: x + w / 2, y: y + 19, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: isOff ? '#5a5a66' : '#23232b' }, name));
+      cellSvg.appendChild(el('text', { x: x + w / 2, y: y + 36, 'font-size': 12, 'text-anchor': 'middle', 'font-weight': isOff ? 700 : 400, fill: isOff ? '#b3261e' : '#4b4b55' }, sub));
+    }
+    function drawCell() {
+      cellSvg.replaceChildren();
+      const memOff = off === 'membrane';
+      cellSvg.appendChild(el('rect', { x: 3, y: 3, width: 314, height: 150, rx: 18, fill: '#fff', stroke: memOff ? '#b3261e' : '#2f6f8f', 'stroke-width': 3, 'stroke-dasharray': memOff ? '6 5' : '0' }));
+      cellSvg.appendChild(el('text', { x: 16, y: 20, 'font-size': 12, fill: memOff ? '#b3261e' : '#4b4b55', 'font-weight': memOff ? 700 : 400 }, CELLNAME[cell] + (memOff ? ' · membrane OFF' : ' · outline = membrane')));
+      const sub = (p: Part) => (off === p ? 'OFF' : 'on');
+      block(16, 28, 84, 46, 'nucleus', off === 'nucleus', '#e6eef8', '#2f6f8f', sub('nucleus'));
+      block(108, 28, 84, 46, 'ER', off === 'er', '#f3ead9', '#b8860b', sub('er'));
+      const vw = [0, 64, 84, 104][share(cell, 'vacuole')];
+      block(200, 28, vw, 46, 'vacuole', off === 'vacuole', '#eaf3e2', '#4b7f2a', sub('vacuole'));
+      const mw = [0, 92, 136, 200][share(cell, 'mito')];
+      block(16, 82, mw, 46, 'mitochondria', off === 'mito', '#fbe9dc', '#e57200', sub('mito'));
+      if (cell === 'fat') {
+        const x = 16 + mw + 8;
+        cellSvg.appendChild(el('rect', { x, y: 82, width: 304 - x, height: 46, rx: 6, fill: '#fffbe0', stroke: '#b8a000', 'stroke-width': 1.5 }));
+        cellSvg.appendChild(el('text', { x: x + (304 - x) / 2, y: 101, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: '#23232b' }, 'fat drop'));
+        cellSvg.appendChild(el('text', { x: x + (304 - x) / 2, y: 118, 'font-size': 12, 'text-anchor': 'middle', fill: '#4b4b55' }, 'stores fat'));
+      }
+      cellSvg.appendChild(el('text', { x: 160, y: 146, 'font-size': 12, 'text-anchor': 'middle', fill: '#4b4b55' }, 'Cytoplasm fills the gaps between parts.'));
+    }
+    function drawBars(d: number[]) {
+      barSvg.replaceChildren();
+      barSvg.appendChild(el('text', { x: 4, y: 16, 'font-size': 12, 'font-weight': 700, fill: '#23232b' }, 'Life processes (relative bar lengths)'));
+      PROCS.forEach((p, i) => {
+        const y = 28 + i * 27, val = 100 - d[i];
+        barSvg.appendChild(el('text', { x: 4, y: y + 14, 'font-size': 12, fill: '#23232b' }, p));
+        barSvg.appendChild(el('rect', { x: 92, y, width: 150, height: 18, rx: 3, fill: '#fff', stroke: '#8a8a96', 'stroke-width': 1 }));
+        if (d[i] > 0) barSvg.appendChild(el('rect', { x: 92 + val * 1.5, y, width: d[i] * 1.5, height: 18, fill: '#f6d3cd' }));
+        barSvg.appendChild(el('rect', { x: 92, y, width: Math.max(val, 0) * 1.5, height: 18, rx: 3, fill: '#0e7c86' }));
+      });
+    }
+    function render() {
+      const d = drops();
+      drawCell();
+      drawBars(d);
+      root.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((i) => {
+        i.checked = i.name === uid + 'cell' ? i.value === cell : i.value === off;
+      });
+      const nDrop = d.filter((v) => v > 0).length;
+      if (off === 'none') {
+        statusEl.textContent = `In this sketch, all parts of the ${CELLNAME[cell]} are on, so every bar is full. Switch one part off.`;
+      } else {
+        const part: Part = off, sh = share(cell, part), name = PARTNAME[part];
+        if (nDrop === 0) {
+          statusEl.textContent = `In this sketch, ${name} off in the ${CELLNAME[cell]}: 0 of 6 bars drop. No bar drops in this sketch, because storing water and wastes is not one of the six bars.`;
+        } else {
+          const sizeWord = ['', 'small', 'ordinary', 'large'][sh];
+          statusEl.textContent = `In this sketch, ${name} off in the ${CELLNAME[cell]}: ${nDrop} of 6 bars drop. ${WHY[part]} ${sh === 2 ? 'An' : 'A'} ${sizeWord} share gives ${sh === 3 ? 'bigger' : sh === 1 ? 'smaller' : 'middle-sized'} drops.`;
+          if (part === 'mito') seen[cell] = sh === 3 ? 'large' : sh === 1 ? 'small' : 'middle-sized';
+        }
+      }
+      const f = (c: Cell) => seen[c] ?? '–';
+      trackEl.textContent = `Mitochondria off, size of the drops: heart muscle ${f('heart')} · fat storage ${f('fat')} · leaf ${f('leaf')}`;
+    }
+    resetBtn.addEventListener('click', () => { cell = 'heart'; off = 'none'; render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .ot { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ot-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ot-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ot-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-2); padding: 0.3rem 0.6rem 0.5rem; min-width: 0; }
+  .ot-set legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .ot-opts { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .ot-opt { position: relative; display: inline-flex; align-items: center; min-height: 44px; }
+  .ot-opt input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .ot-opt span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.7rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); background: transparent; }
+  .ot-opt input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ot-opt input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ot-svg { display: block; width: 100%; max-width: 600px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ot-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .ot-track { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ot-row { margin: var(--ddp-space-2) 0; }
+  .ot-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0 1rem; cursor: pointer; }
+  .ot-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ot-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ot-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

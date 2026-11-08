@@ -163,7 +163,7 @@ class S01Switch(SpokenScene):
         pb = pbadge().move_to(prot.get_corner(UR) + [0.05, 0.05, 0])
         phos = bchip("phosphatase", RED, 26).move_to([-3.4, -2.2, 0])
         lbl_l = T("remove phosphates", 24, GREY).move_to([-3.4, -3.2, 0])
-        self.at("through phosphatuses")
+        self.at("through phosphatases")
         self.play(FadeIn(prot), FadeIn(pb), FadeIn(phos, shift=UP * 0.2), run_time=0.7)
         self.at("remove phosphates")
         self.play(phos.animate.move_to([-3.4, -1.35, 0]), run_time=0.4)
@@ -237,7 +237,7 @@ class S02Five(SpokenScene):
     """the five-part pipeline across the membrane, plus the sixth: active termination."""
 
     def construct(self):
-        head = T("The same logic in every pathway", 34, font=TITLE_FONT).to_edge(UP, buff=0.5)
+        head = T("The same logic in membrane-receptor pathways", 34, font=TITLE_FONT).to_edge(UP, buff=0.5)
         self.play(Write(head), run_time=1.4)
         mem = membrane_h(0.55)
         out_lbl = T("outside the cell", 24, GREY).move_to([4.7, 1.3, 0])
@@ -253,7 +253,7 @@ class S02Five(SpokenScene):
         a45 = arr(c4.get_right(), c5.get_left(), PURPLE)
         sub = T("hormone or neurotransmitter", 24, GREY).next_to(c1, RIGHT, buff=0.3)
 
-        self.at("shares the same molecular logic")
+        self.at("same molecular logic")
         self.play(Create(mem), FadeIn(out_lbl), FadeIn(in_lbl), run_time=0.8)
         self.at("A primary messenger")
         self.play(FadeIn(c1, shift=DOWN * 0.2), run_time=0.6)
@@ -321,7 +321,7 @@ class S03First(SpokenScene):
         row = VGroup(*[chip(n, YELLOW, 28) for n in names]).arrange(RIGHT, buff=0.3).move_to([0, 2.2, 0])
         self.at("First messengers are")
         self.play(FadeOut(q), FadeIn(label, shift=DOWN * 0.15), run_time=0.6)
-        self.at("the extracellular signals")
+        self.at("are the extracellular")
         sub = T("the extracellular signals", 26, GREY)
         sub.next_to(label, RIGHT, buff=0.25)
         self.play(FadeIn(sub), run_time=0.5)
@@ -438,12 +438,12 @@ class S04Epi(SpokenScene):
                   arr([xs[2], -1.35, 0], [xs[2], -1.8, 0], GREEN)]
         self.at("It breaks down glycogen")
         self.play(GrowArrow(arrows[0]), FadeIn(bots[0], shift=DOWN * 0.15), run_time=0.8)
-        self.at("shuts off glycogen synthesis")
+        self.at("shuts off")
         cx1 = Line([xs[1] - 0.25, -1.4, 0], [xs[1] + 0.25, -1.75, 0], color=RED, stroke_width=7)
         cx2 = Line([xs[1] - 0.25, -1.75, 0], [xs[1] + 0.25, -1.4, 0], color=RED, stroke_width=7)
         self.play(GrowArrow(arrows[1]), FadeIn(bots[1], shift=DOWN * 0.15), run_time=0.5)
         self.play(Create(cx1), Create(cx2), run_time=0.4)
-        self.at("frees stored fat")
+        self.at("frees fat")
         self.play(GrowArrow(arrows[2]), FadeIn(bots[2], shift=DOWN * 0.15), run_time=0.8)
 
         # one hormone arrives at the surface
@@ -516,7 +516,7 @@ class S05Camp(SpokenScene):
 
         pka = bchip("protein kinase A", PURPLE, 26).move_to([-2.3, 1.2, 0])
         a_pka = arr(camp.get_bottom(), pka.get_top(), TEAL)
-        self.at("protein kinase A")
+        self.at("protein")
         self.play(GrowArrow(a_pka), FadeIn(pka), run_time=0.7)
         self.at("hits several targets")
         self.play(pulse(pka, PURPLE, 1.08), run_time=0.7)

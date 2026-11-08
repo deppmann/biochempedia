@@ -1,0 +1,668 @@
+{
+ "slug": "protein-binding-allostery",
+ "title": "Protein Binding and Allostery: How Hemoglobin Loads and Delivers Oxygen",
+ "generated": {
+  "date": "2026-11-06",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "d9c09b625c0a",
+ "sectionHashes": {
+  "The delivery problem: load in the lungs, unload in the tissues": "97fb9e55ba8c",
+  "One site: Kd and the hyperbola": "8e3966d7b5a1",
+  "Why Kd is the concentration at half-saturation": "6370b083148f",
+  "From Kd to P50": "512e6e5779e2",
+  "Two shapes: building the S": "2ba9b8a2743f",
+  "The switch inside the molecule": "8d293ab8a5b4",
+  "Tuning the mix: allosteric regulators": "01cc8a822880",
+  "When the shapes betray you: hemoglobin pathology": "138bd4fabf6d",
+  "How big a shift helps": "e84b7478c19e",
+  "The thalassemias": "eb6be4a931b4"
+ },
+ "cards": [
+  {
+   "id": "protein-binding-allostery-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the approximate pO₂ in the lungs, in blood leaving resting tissue, and in blood leaving hard-working muscle?",
+   "back": "About 100 torr in the lungs, about 40 torr leaving resting tissue, and about 20 torr leaving hard-working muscle.",
+   "quote": "Blood leaving resting tissue is near 40 torr, and blood leaving hard-working muscle is near 20 torr.",
+   "section": "The delivery problem: load in the lungs, unload in the tissues"
+  },
+  {
+   "id": "protein-binding-allostery-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why would an O₂ carrier that binds oxygen more tightly than hemoglobin deliver less oxygen, not more?",
+   "back": "It fills in the lungs but is still nearly full at muscle pO₂, and oxygen that stays bound is not delivered.",
+   "quote": "A tight binder fills up in the lungs, but it is still nearly full when it reaches the muscle, and oxygen that stays aboard is not delivered.",
+   "section": "The delivery problem: load in the lungs, unload in the tissues"
+  },
+  {
+   "id": "protein-binding-allostery-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the two-state picture of hemoglobin, what sets how full hemoglobin is at a given pO₂?",
+   "back": "The average of how full the T shape and the R shape would each be, weighted by the fraction of molecules in each shape.",
+   "quote": "How full hemoglobin is at any pO₂ is the average of how full each shape would be, weighted by how much of each shape is present.",
+   "section": "The delivery problem: load in the lungs, unload in the tissues"
+  },
+  {
+   "id": "protein-binding-allostery-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which ligands shift hemoglobin's T/R mix toward R, and which toward T?",
+   "back": "Toward R: O₂ and CO. Toward T: H⁺, CO₂ and 2,3-BPG.",
+   "quote": "Oxygen and CO favor R; H⁺, CO₂ and 2,3-BPG favor T.",
+   "section": "The delivery problem: load in the lungs, unload in the tissues"
+  },
+  {
+   "id": "protein-binding-allostery-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For the dissociation reaction RL ⇌ R + L, the dissociation constant is Kd = {{c1::[R][L] / [RL]}}.",
+   "back": "Loose over bound; units of concentration.",
+   "quote": "The dissociation constant is the ratio of what is loose to what is bound",
+   "section": "One site: Kd and the hyperbola"
+  },
+  {
+   "id": "protein-binding-allostery-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How are Kd and Ka related, and which direction means tighter binding for each?",
+   "back": "Ka = 1/Kd. A smaller Kd means tighter binding; a bigger Ka means tighter binding.",
+   "quote": "Kd is not Ka, the association constant, which is its reciprocal (Ka = 1/Kd, so a bigger Ka means tighter binding).",
+   "section": "One site: Kd and the hyperbola"
+  },
+  {
+   "id": "protein-binding-allostery-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does Kd equal the free ligand concentration at which a single site is half occupied?",
+   "back": "At half occupancy [R] = [RL], so they cancel in Kd = [R][L]/[RL], leaving Kd = [L].",
+   "why": "So a small Kd means very little ligand fills half the sites: tight binding.",
+   "quote": "At that point the bound and free receptor populations are equal, [R] = [RL], and they cancel",
+   "section": "Why Kd is the concentration at half-saturation"
+  },
+  {
+   "id": "protein-binding-allostery-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A single-site receptor (no cooperativity, ligand in excess) has Kd = 10 nM. What free ligand concentrations give 75% and 90% occupancy?",
+   "back": "Y = [L]/(Kd + [L]). Y = 0.75 when [L] = 3 × Kd = 30 nM; Y = 0.9 when [L] = 9 × Kd = 90 nM.",
+   "why": "Going from half full to 90% full takes nine times the Kd: the slow bend of the hyperbola.",
+   "quote": "Going from half full to 90% full takes nine times as much ligand.",
+   "section": "Why Kd is the concentration at half-saturation"
+  },
+  {
+   "id": "protein-binding-allostery-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why is a single site's P50 for oxygen the same thing as its Kd, expressed in torr?",
+   "back": "Dissolved O₂ concentration is proportional to its partial pressure, so the pO₂ at half-saturation stands in for the ligand concentration at half-saturation.",
+   "quote": "Oxygen is a gas, and the concentration of a dissolved gas is proportional to its partial pressure.",
+   "section": "From Kd to P50"
+  },
+  {
+   "id": "protein-binding-allostery-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is the shape of myoglobin's O₂-binding curve, and its approximate P50?",
+   "back": "A plain hyperbola (non-cooperative, one site), with a P50 of about 2 torr.",
+   "quote": "Its binding curve is a plain hyperbola, the same shape as the Kd plot, with a P50 of about 2 torr.",
+   "section": "From Kd to P50"
+  },
+  {
+   "id": "protein-binding-allostery-c11",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Myoglobin (P50 about 2 torr, hyperbolic) is about 98% saturated at 100 torr. Estimate its saturation at 20 torr and the fraction of O₂ it would unload between 100 and 20 torr.",
+   "back": "Y = 20 / (2 + 20) ≈ 0.91, so about 91% full. Unloaded ≈ 98 − 91 = about 7%.",
+   "why": "20 torr is far above its P50, so the site stays nearly always occupied; this suits a storage protein.",
+   "quote": "Twenty torr is far above its P50, so the site is still nearly always occupied.",
+   "section": "From Kd to P50"
+  },
+  {
+   "id": "protein-binding-allostery-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In hemoglobin, how do the T and R shapes differ in structure and in O₂ affinity?",
+   "back": "T (tense) has extra salt bridges between subunits and binds O₂ weakly; R (relaxed) has fewer bridges and binds O₂ tightly.",
+   "quote": "T (tense) is held together by extra salt bridges (attractions between oppositely charged side chains) between the subunits.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Does hemoglobin need bound oxygen to adopt the R shape?",
+   "back": "No. Even with no O₂ it flickers between T and R, but T is so much more stable that R molecules are almost absent.",
+   "quote": "Even with no oxygen at all, it flickers between T and R, but T is so much more stable that R molecules are almost absent.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Hypothetical two-state carrier at one pO₂: half the molecules are R. An R site would be 99% full and a T site 25% full at that pO₂. What is the overall saturation?",
+   "back": "Y = f_R × Y_R + f_T × Y_T = 0.5 × 0.99 + 0.5 × 0.25 ≈ 0.495 + 0.125 = 0.62, about 62% full.",
+   "why": "The rule averages how full each shape is, weighted by population.",
+   "quote": "Ask how full each shape would be on its own, then average, counting each shape in proportion to how much of it there is.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does binding oxygen shift hemoglobin's T ⇌ R balance toward R?",
+   "back": "R holds O₂ far more tightly, so each bound O₂ makes R more favorable relative to T: Le Chatelier's principle applied to shape.",
+   "quote": "R holds oxygen far more tightly, so every oxygen bound makes R a little more favorable compared with T.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In an illustrative two-state fit of hemoglobin, an R site is half full at about 0.37 torr and a T site at about 110 torr. By what factor does each bound O₂ multiply the odds that the molecule is R?",
+   "back": "110 / 0.37 ≈ 297, about 300.",
+   "why": "The factor equals how much more tightly R holds oxygen than T does.",
+   "quote": "Each oxygen multiplies the odds of R by the same large factor, about 300 in this fit (110 / 0.37)",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the two-state picture, why is hemoglobin's O₂ curve flat at low pO₂, steep in the middle and flat again near full?",
+   "back": "Low pO₂: nearly all T, so the curve follows T's weak hyperbola. Middle: each bound O₂ tips molecules into R, whose empty sites fill easily. High pO₂: nearly all R, near full.",
+   "quote": "Through the middle each bound oxygen tips more molecules into R, and an R molecule's empty sites are suddenly easy to fill.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A four-site protein has two shapes, but both shapes bind O₂ with the same affinity. What shape is its binding curve, and why?",
+   "back": "A plain hyperbola (in the two-state model, Hill coefficient exactly 1). Oxygen gives neither shape an advantage, so the mix never shifts.",
+   "why": "An S needs two shapes that differ in affinity plus a ligand that shifts the mix between them.",
+   "quote": "If both shapes bind equally, oxygen gives neither an advantage, so the mix never shifts, and the curve is just one single-site curve.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the two-state picture, how are hemoglobin's four binding sites coupled without a separate message passing between subunits?",
+   "back": "They share one overall shape, carried across the subunit contacts, so whatever shifts that shape changes all four sites at once.",
+   "quote": "the four sites are coupled because they share one overall shape, carried across the contacts between the subunits",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Human hemoglobin's Hill coefficient is about 2.8. Does that mean about 2.8 sites cooperate? What does it measure, and what limits it?",
+   "back": "No. It scores the steepness of the curve at half-saturation. It is 1 for independent sites and can be no larger than the number of sites (4 for hemoglobin).",
+   "quote": "It can be no larger than the number of sites, so 4 for hemoglobin.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c21",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Hemoglobin's P50 is about {{c1::26 torr}}, against myoglobin's 2 torr.",
+   "back": "",
+   "quote": "Hemoglobin's P50 is about 26 torr, against myoglobin's 2.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c22",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A non-cooperative carrier (n_H = 1) has hemoglobin's P50 of 26 torr. What fraction of its O₂ does it deliver between 100 and 20 torr?",
+   "back": "Y = pO₂/(P50 + pO₂). At 100 torr: 100/126 ≈ 0.79. At 20 torr: 20/46 ≈ 0.43. Delivered ≈ 0.36, about 36%, versus about two-thirds for hemoglobin.",
+   "quote": "Where the steep part sits matters just as much, and P50 sets that.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A carrier is as cooperative as hemoglobin (n_H = 2.8) but has myoglobin's P50 of 2 torr. How much O₂ does it deliver between 100 and 20 torr, and why?",
+   "back": "Almost none. Its steep part sits far below 20 torr, so it is still nearly full in working muscle.",
+   "why": "A good carrier needs an S whose steep part sits between lung and muscle pressures.",
+   "quote": "a steep curve in the wrong place delivers almost nothing, because it is still nearly full at 20 torr.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c24",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two purified O₂-binding proteins (made-up data). Protein P: 99% saturated at 100 torr, 94% at 20 torr. Protein Q: 97% at 100 torr, 33% at 20 torr. Which behaves like a delivery carrier and which like a storage protein?",
+   "back": "Q is the carrier: it unloads about 64% between 100 and 20 torr, so its steep part lies between those pressures. P unloads about 5%, like high-affinity myoglobin.",
+   "quote": "Hemoglobin needs both: an S, and an S whose steep part sits between the lungs and the muscle.",
+   "section": "Two shapes: building the S"
+  },
+  {
+   "id": "protein-binding-allostery-c25",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In heme, the iron makes four bonds to the porphyrin nitrogens, a fifth to the {{c1::proximal histidine}}, and saves its sixth coordination site for oxygen.",
+   "back": "",
+   "quote": "holds a fifth bond to a histidine reaching up from the protein (the proximal histidine), and saves its sixth coordination site for oxygen",
+   "section": "The switch inside the molecule"
+  },
+  {
+   "id": "protein-binding-allostery-c26",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What happens to hemoglobin if its heme iron is oxidized from Fe²⁺ to Fe³⁺?",
+   "back": "It becomes methemoglobin, which cannot carry oxygen at all.",
+   "quote": "The iron must stay Fe²⁺; oxidize it to Fe³⁺ and you get methemoglobin, which cannot carry oxygen at all.",
+   "section": "The switch inside the molecule"
+  },
+  {
+   "id": "protein-binding-allostery-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does the heme iron sit about 0.4 Å out of the porphyrin plane in deoxyhemoglobin, and why does it move into the plane on O₂ binding?",
+   "back": "Deoxy iron is high-spin and slightly too big for the porphyrin hole. O₂ binding makes it low-spin, so it shrinks and moves into the plane.",
+   "quote": "In the deoxy T state the iron is high-spin and slightly too big to fit the porphyrin hole, so it sits about 0.4 Å out of the ring plane, on the side of the proximal histidine.",
+   "section": "The switch inside the molecule"
+  },
+  {
+   "id": "protein-binding-allostery-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does the sub-ångström drop of the heme iron on O₂ binding become hemoglobin's T-to-R switch?",
+   "back": "The iron pulls the proximal histidine, which shifts the F helix against the neighboring subunit; this levers a roughly 15° rotation of one αβ dimer against the other, and T's salt bridges break.",
+   "why": "Read backwards: in T those salt bridges resist the movements, so O₂ binding is less favorable there.",
+   "quote": "The twitch at the iron is levered into roughly a 15° rotation of one αβ dimer against the other, and the salt bridges that held the T state break.",
+   "section": "The switch inside the molecule"
+  },
+  {
+   "id": "protein-binding-allostery-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "By the two-state rule, what does any molecule that binds hemoglobin's T state better than R do to the O₂ curve?",
+   "back": "It shifts the mix toward T, so more O₂ is needed to tip it to R: the curve moves right, P50 rises and affinity falls.",
+   "quote": "If it binds T better than R, it shifts the mix toward T, so it takes more oxygen to tip the population to R",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c30",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Where does 2,3-BPG bind on hemoglobin?",
+   "back": "In a central pocket between the β chains that is wide open only in the T state.",
+   "quote": "It wedges into a central pocket between the β chains that is wide open only in the T state",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A person moves to high altitude and red-cell 2,3-BPG rises over hours to days. What happens to hemoglobin's P50 and to O₂ release at a given tissue pO₂?",
+   "back": "P50 rises (right shift), and more O₂ is released at a given tissue pO₂.",
+   "why": "BPG binds and holds the T state, so more O₂ is needed to tip the mix to R; this is part of acclimatization.",
+   "quote": "It rises in your red cells over hours to days at high altitude, which is part of how you acclimatize",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the Bohr effect, and how does low pH lower hemoglobin's O₂ affinity?",
+   "back": "Protons lower O₂ affinity. Protonated groups, chiefly a histidine near the end of each β chain, form salt bridges that steady the T state.",
+   "quote": "Protonating certain groups on hemoglobin, chiefly a histidine near the end of each β chain, lets them form salt bridges that steady the T state",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c33",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does CO₂ bind hemoglobin directly, and which shape does it favor?",
+   "back": "As carbamate groups on hemoglobin's N-termini, which form T-stabilizing salt bridges.",
+   "quote": "Carbon dioxide binds as carbamate groups (CO₂ bonded to an amino group) on hemoglobin's N-termini, which form their own T-stabilizing salt bridges.",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c34",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "During exercise, working muscle has falling pO₂, falling pH and rising CO₂. What happens to O₂ unloading there, and why?",
+   "back": "More O₂ is unloaded. Low pO₂ moves down the curve, and H⁺ and CO₂ both stabilize T, shifting the curve right exactly where O₂ is needed.",
+   "quote": "During exercise, three fast signals arrive at once in working muscle: falling pO₂, falling pH and rising CO₂.",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c35",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Right-shifting hemoglobin's O₂ curve lowers affinity. Why do H⁺, CO₂ and a modest BPG rise not spoil O₂ loading in the lungs?",
+   "back": "H⁺ and CO₂ are high in tissue, not lungs, so their shift acts where unloading happens. BPG shifts the curve everywhere, but the lung end lies on the flat top, so a modest shift costs little loading.",
+   "quote": "H⁺ and CO₂ are high in tissue, not in the lungs, so their shift happens where unloading happens.",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c36",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the two-state fit of hemoglobin, tripling T's advantage raises delivery (100 to 20 torr) from about 64% to 71%. Predict whether a tenfold increase helps more, and why.",
+   "back": "No. P50 moves to about 48 torr and delivery falls back to about 66%, because the curve no longer fills fully at 100 torr.",
+   "why": "A right shift helps only while the lung end stays on the flat top of the curve.",
+   "quote": "A tenfold increase moves P50 to about 48 torr, and delivery falls back from 71% to about 66%, because the curve no longer fills fully at 100 torr.",
+   "section": "How big a shift helps"
+  },
+  {
+   "id": "protein-binding-allostery-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does fetal hemoglobin (α₂γ₂) have higher O₂ affinity than adult hemoglobin, and what does that allow?",
+   "back": "Its γ chain has serine where adult β has histidine at position 143, so it binds 2,3-BPG weakly. Less BPG holds it in T, so it pulls O₂ across the placenta from maternal blood.",
+   "quote": "With less BPG holding it in T, it stays at higher oxygen affinity and pulls oxygen across the placenta from the mother's blood.",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c38",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A hypothetical adult hemoglobin carries a β143 His→Ser substitution, as in the fetal γ chain. Predict its P50 and its O₂ release to working muscle.",
+   "back": "Lower P50 (left shift, higher affinity) and less O₂ released to tissue.",
+   "why": "By the fetal hemoglobin rule, serine at 143 weakens BPG binding, so less BPG holds the molecule in T.",
+   "quote": "Fetal hemoglobin (α₂γ₂) has a serine where the adult β chain has a histidine at position 143, so it binds 2,3-BPG weakly.",
+   "section": "Tuning the mix: allosteric regulators"
+  },
+  {
+   "id": "protein-binding-allostery-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How much more tightly does CO bind hemoglobin's heme than O₂, and which shape does it favor?",
+   "back": "About 250-fold more tightly; like O₂, it favors R.",
+   "quote": "It binds the heme about 250-fold more tightly than oxygen does, and like oxygen it favors R.",
+   "section": "When the shapes betray you: hemoglobin pathology"
+  },
+  {
+   "id": "protein-binding-allostery-c40",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A hemoglobin tetramer carries CO on one subunit and O₂ on the other three. How tightly are those three O₂ held, and why is CO poisoning a double harm?",
+   "back": "More tightly than usual: CO locks the tetramer in high-affinity R, shifting the curve left. Fewer sites carry O₂, and the O₂ carried is not released in tissue.",
+   "quote": "That is double damage: fewer sites carry oxygen, and the oxygen that is carried stays put in the tissues.",
+   "section": "When the shapes betray you: hemoglobin pathology"
+  },
+  {
+   "id": "protein-binding-allostery-c41",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A patient with CO poisoning is checked with a pulse oximeter. What does it read, and why?",
+   "back": "Falsely normal, while tissues are starved of O₂, because the oximeter cannot tell O₂-hemoglobin from CO-hemoglobin.",
+   "quote": "A pulse oximeter, which cannot tell O₂-hemoglobin from CO-hemoglobin, reads falsely normal while tissues suffocate.",
+   "section": "When the shapes betray you: hemoglobin pathology"
+  },
+  {
+   "id": "protein-binding-allostery-c42",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Sickle-cell hemoglobin carries a {{c1::glutamate-to-valine}} substitution at position 6 of the β chain.",
+   "back": "Glu6→Val.",
+   "quote": "Glutamate to valine, at position 6 of the β chain.",
+   "section": "When the shapes betray you: hemoglobin pathology"
+  },
+  {
+   "id": "protein-binding-allostery-c43",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Val6 of sickle hemoglobin is on the surface in every state. Why does HbS polymerize only when deoxygenated?",
+   "back": "The hydrophobic pocket Val6 docks into (Phe85, Leu88) on a neighboring hemoglobin is open only in the deoxy T shape, so molecules chain into fibers only in T.",
+   "quote": "That valine sits on the surface in every state, but the hydrophobic pocket it docks into (Phe85, Leu88) on a neighboring hemoglobin is open only in the deoxy T shape.",
+   "section": "When the shapes betray you: hemoglobin pathology"
+  },
+  {
+   "id": "protein-binding-allostery-c44",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why do exertion, cold and dehydration each promote sickling crises?",
+   "back": "Exertion (more O₂ use) and cold (slower flow in small vessels) leave more hemoglobin in T for longer. Dehydration concentrates HbS, so fibers form faster.",
+   "quote": "Exertion and cold leave more hemoglobin in T for longer.",
+   "section": "When the shapes betray you: hemoglobin pathology"
+  },
+  {
+   "id": "protein-binding-allostery-c45",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a person with sickle-cell disease, working muscle becomes acidic and CO₂-rich. Predict the effect on sickling in that tissue, and the rule it rests on.",
+   "back": "Sickling is promoted. H⁺ and CO₂ stabilize T, and only in T is the pocket open that lets Val6 of one HbS molecule plug into the next.",
+   "quote": "So in T, the valine of one molecule plugs into the pocket of the next, which plugs into the next.",
+   "section": "When the shapes betray you: hemoglobin pathology"
+  },
+  {
+   "id": "protein-binding-allostery-c46",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does switching fetal hemoglobin back on in red-cell precursors (as the CRISPR therapy Casgevy does) reduce sickling?",
+   "back": "HbF does not join the sickle polymer and dilutes the HbS around it, so cells sickle far less.",
+   "quote": "HbF does not join the sickle polymer and dilutes the HbS around it, so cells sickle far less.",
+   "section": "When the shapes betray you: hemoglobin pathology"
+  },
+  {
+   "id": "protein-binding-allostery-c47",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In α-thalassemia, surplus β chains form β₄ tetramers (HbH) that bind O₂ tightly with no cooperativity. Predict how well HbH delivers O₂ between lungs and working muscle.",
+   "back": "Poorly. It binds tightly with no cooperativity, so it holds on to O₂ rather than releasing it in muscle.",
+   "why": "Rests on the delivery rule: delivery needs an S whose steep part lies between 100 and 20 torr.",
+   "quote": "bind oxygen tightly but with no cooperativity, a delivery truck that forgot how to open its doors",
+   "section": "The thalassemias"
+  }
+ ]
+}

@@ -1,0 +1,251 @@
+---
+/**
+ * FickOxygenUptake — "Fick at work". Whole-body oxygen uptake as a product of four factors:
+ * VO2 = heart rate x stroke volume x arterial oxygen content x extraction fraction.
+ * Sliders for heart rate, stroke volume, hemoglobin and extraction; a schematic loop
+ * (lungs, heart, tissues) and a bar with the lesson's resting value of 250 mL per min.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fk card" data-fick>
+  <figcaption class="fk-head">Fick at work — four factors, one oxygen uptake<span class="fk-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="fk-svg" viewBox="0 0 340 270" role="img" aria-label="A schematic loop: arterial blood flows from the lungs through the heart to the tissues, and mixed-venous blood returns from the tissues to the lungs (right heart omitted). Below it, a bar shows oxygen uptake against the resting value of about 250 millilitres per minute.">
+    <defs>
+      <marker id="fk-arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="15" markerHeight="15" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#b3261e"></path></marker>
+      <marker id="fk-arr-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="15" markerHeight="15" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#2a5db0"></path></marker>
+    </defs>
+    <text x="170" y="12" text-anchor="middle" font-size="10" font-weight="700" fill="#b3261e" data-t="art">Arterial blood: CaO₂ = 200 mL per L</text>
+    <!-- blocks -->
+    <rect x="6" y="22" width="56" height="52" rx="5" fill="#f4f4f6" stroke="#4b4b55" stroke-width="1"></rect>
+    <text x="34" y="52" text-anchor="middle" font-size="10" font-weight="700" fill="#4b4b55">Lungs</text>
+    <rect x="120" y="22" width="100" height="52" rx="5" fill="#f4f4f6" stroke="#4b4b55" stroke-width="1"></rect>
+    <text x="170" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="#4b4b55">Heart (left side)</text>
+    <text x="170" y="52" text-anchor="middle" font-size="9" fill="#4b4b55" data-t="hrsv">195 × 100 mL</text>
+    <text x="170" y="66" text-anchor="middle" font-size="10" font-weight="700" fill="#0e7c86" data-t="q">19.5 L per min</text>
+    <rect x="270" y="22" width="64" height="52" rx="5" fill="#f4f4f6" stroke="#4b4b55" stroke-width="1"></rect>
+    <text x="302" y="42" text-anchor="middle" font-size="10" font-weight="700" fill="#4b4b55">Tissues</text>
+    <text x="302" y="58" text-anchor="middle" font-size="9" fill="#4b4b55" data-t="ext">extract 80%</text>
+    <!-- arterial arrows (lungs to heart to tissues) -->
+    <line x1="64" y1="48" x2="118" y2="48" stroke="#b3261e" stroke-width="4" marker-end="url(#fk-arr-a)" data-flow></line>
+    <line x1="222" y1="48" x2="268" y2="48" stroke="#b3261e" stroke-width="4" marker-end="url(#fk-arr-a)" data-flow></line>
+    <!-- mixed-venous return (tissues to lungs) -->
+    <polyline points="302,76 302,100 34,100 34,77" fill="none" stroke="#2a5db0" stroke-width="4" stroke-linejoin="round" marker-end="url(#fk-arr-v)" data-flow></polyline>
+    <text x="170" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#2a5db0" data-t="ven">Mixed-venous blood: CvO₂ = 40 mL per L</text>
+    <text x="170" y="131" text-anchor="middle" font-size="9" fill="#4b4b55">same flow all round (width follows flow)</text>
+    <text x="170" y="143" text-anchor="middle" font-size="9" fill="#4b4b55">right heart left out (the lesson defines mixed-venous blood</text>
+    <text x="170" y="155" text-anchor="middle" font-size="9" fill="#4b4b55">as pulmonary-artery blood)</text>
+
+    <!-- uptake bar -->
+    <text x="10" y="176" font-size="10" font-weight="700" fill="#4b4b55">Oxygen uptake, VO₂ (L per min)</text>
+    <rect x="10" y="184" width="320" height="16" fill="#eef0f2" stroke="#b9b9c2" stroke-width="1"></rect>
+    <rect x="10" y="184" width="166.4" height="16" fill="#0e7c86" data-bar></rect>
+    <!-- resting marker -->
+    <line x1="23.3" y1="180" x2="23.3" y2="204" stroke="#e57200" stroke-width="2"></line>
+    <text x="28" y="220" font-size="9" font-weight="700" fill="#e57200">rest about 0.25: healthy 70-kg young man</text>
+    <!-- lesson example marker -->
+    <line x1="176.4" y1="184" x2="176.4" y2="204" stroke="#4b4b55" stroke-width="1.5" stroke-dasharray="3 2"></line>
+    <text x="176.4" y="248" text-anchor="middle" font-size="9" fill="#4b4b55">dashed: lesson’s illustrative maximal example, 3.12</text>
+    <!-- axis ticks -->
+    <g data-ticks></g>
+  </svg>
+
+  <div class="fk-controls">
+    <label class="fk-slabel"><span>Heart rate <em data-out="hr">195</em> beats per min</span>
+      <input type="range" data-in="hr" min="60" max="200" step="1" value="195" />
+    </label>
+    <label class="fk-slabel"><span>Stroke volume <em data-out="sv">100</em> mL per beat</span>
+      <input type="range" data-in="sv" min="60" max="140" step="1" value="100" />
+    </label>
+    <label class="fk-slabel"><span>Hemoglobin <em data-out="hb">15.4</em> g per dL (<em data-out="hbl">154</em> g per L)</span>
+      <input type="range" data-in="hb" min="10" max="18" step="0.1" value="15.4" />
+    </label>
+    <label class="fk-slabel"><span>Fraction of arterial oxygen extracted <em data-out="ex">80</em>%</span>
+      <input type="range" data-in="ex" min="25" max="85" step="1" value="80" />
+    </label>
+  </div>
+
+  <div class="fk-presets">
+    <button type="button" class="fk-btn" data-preset="rest">Lesson’s resting example</button>
+    <button type="button" class="fk-btn" data-preset="max">Lesson’s maximal example</button>
+  </div>
+
+  <dl class="fk-readout">
+    <div><dt>Cardiac output</dt><dd><span data-r="q">19.5</span> L per min</dd></div>
+    <div><dt>Arterial content, CaO₂</dt><dd><span data-r="ca">200</span> mL per L</dd></div>
+    <div><dt>Mixed-venous content, CvO₂</dt><dd><span data-r="cv">40</span> mL per L</dd></div>
+    <div><dt>Oxygen extracted per litre</dt><dd><span data-r="avd">160</span> mL per L</dd></div>
+    <div><dt>VO₂</dt><dd><span data-r="vo2">3.12</span> L per min</dd></div>
+    <div><dt>VO₂ for 70 kg</dt><dd><span data-r="perkg">44.6</span> mL per kg per min</dd></div>
+  </dl>
+
+  <p class="fk-why" data-why role="status"></p>
+  <p class="fk-assume"><strong>In this sketch:</strong> steady state, no shunt, a 70-kg person. Arterial content = 1.34 × hemoglobin × 10 × 0.97 mL per L (1.34 mL per g is a common value, and published values run from about 1.34 to 1.39; 97 percent saturated; dissolved oxygen is ignored, which the lesson puts at about 3 mL per L at a PO₂ of 100 mmHg). Mixed-venous content = arterial content × (1 − extraction). Hemoglobin 15.4 g per dL is chosen in this sketch so that CaO₂ is about 200 mL per L, the lesson’s value; the lesson’s own check uses 150 g per L, which gives 195 mL per L. The resting marker, about 250 mL per min, is the lesson’s value for a healthy 70-kg young man; the lesson’s other numbers are illustrative. The lesson gives a resting cardiac output of 5.0 L per min but not its split, so the resting button uses 60 beats per min × 83 mL, made up for this sketch. Slider ranges are made up too, and the sketch does not say which combinations people reach.</p>
+
+  <p class="fk-foot">VO₂ = heart rate × stroke volume × CaO₂ × extraction fraction. A product has the same value for many mixtures of factors, and it falls if any one factor is lowered while the others are held.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55';
+  const MASS = 70;            // kg, the lesson's worked problem
+  const REST_VO2 = 250;       // mL per min, adult at rest (lesson)
+  const REST_Q = 5.0;         // L per min, lesson's resting example
+  const REST_AVD = 50;        // mL per L, lesson's resting example
+  const EX_VO2 = 3120;        // mL per min, the lesson’s maximal example (3,120)
+  const BAR_MAX = 6;          // L per min, axis
+  const X0 = 10, X1 = 330;
+
+  type State = { hr: number; sv: number; hb: number; ex: number };
+  const PRESETS: Record<string, State> = {
+    rest: { hr: 60, sv: 83, hb: 15.4, ex: 25 },
+    max: { hr: 195, sv: 100, hb: 15.4, ex: 80 },
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-fick]').forEach((root) => {
+    const inp = (k: string) => root.querySelector<HTMLInputElement>('[data-in="' + k + '"]');
+    const out = (k: string) => root.querySelector<HTMLElement>('[data-out="' + k + '"]');
+    const rd = (k: string) => root.querySelector<HTMLElement>('[data-r="' + k + '"]');
+    const tx = (k: string) => root.querySelector<SVGTextElement>('[data-t="' + k + '"]');
+    const hrIn = inp('hr'), svIn = inp('sv'), hbIn = inp('hb'), exIn = inp('ex');
+    const hrOut = out('hr'), svOut = out('sv'), hbOut = out('hb'), hblOut = out('hbl'), exOut = out('ex');
+    const rQ = rd('q'), rCa = rd('ca'), rCv = rd('cv'), rAvd = rd('avd'), rVo2 = rd('vo2'), rKg = rd('perkg');
+    const tArt = tx('art'), tHrSv = tx('hrsv'), tQ = tx('q'), tExt = tx('ext'), tVen = tx('ven');
+    const bar = root.querySelector<SVGRectElement>('[data-bar]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const ticks = root.querySelector<SVGGElement>('[data-ticks]');
+    const flows = root.querySelectorAll<SVGElement>('[data-flow]');
+    if (!hrIn || !svIn || !hbIn || !exIn || !hrOut || !svOut || !hbOut || !hblOut || !exOut || !rQ || !rCa || !rCv || !rAvd || !rVo2 || !rKg ||
+        !tArt || !tHrSv || !tQ || !tExt || !tVen || !bar || !why || !ticks) return;
+
+    // axis ticks 0..6 L per min
+    for (let v = 0; v <= BAR_MAX; v++) {
+      const x = X0 + (v / BAR_MAX) * (X1 - X0);
+      const ln = document.createElementNS(NS, 'line');
+      ln.setAttribute('x1', String(x)); ln.setAttribute('x2', String(x));
+      ln.setAttribute('y1', '200'); ln.setAttribute('y2', '205');
+      ln.setAttribute('stroke', INK); ln.setAttribute('stroke-width', '1');
+      ticks.appendChild(ln);
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', String(x)); t.setAttribute('y', '232');
+      t.setAttribute('text-anchor', v === 0 ? 'start' : v === BAR_MAX ? 'end' : 'middle');
+      t.setAttribute('font-size', '9'); t.setAttribute('fill', INK);
+      t.textContent = String(v);
+      ticks.appendChild(t);
+    }
+
+    const f1 = (n: number) => n.toFixed(1);
+    const f0 = (n: number) => Math.round(n).toString();
+    const f2 = (n: number) => n.toFixed(2);
+
+    function read(): State {
+      return { hr: parseInt(hrIn!.value, 10), sv: parseInt(svIn!.value, 10), hb: parseFloat(hbIn!.value), ex: parseInt(exIn!.value, 10) };
+    }
+
+    function render() {
+      const s = read();
+      const e = s.ex / 100;
+      const q = (s.hr * s.sv) / 1000;               // L per min
+      const ca = 1.34 * s.hb * 10 * 0.97;           // mL per L
+      const cv = ca * (1 - e);                      // mL per L
+      const avd = ca * e;                           // mL per L
+      const vo2 = q * avd;                          // mL per min
+      const perKg = vo2 / MASS;
+
+      hrOut!.textContent = String(s.hr);
+      svOut!.textContent = String(s.sv);
+      hbOut!.textContent = f1(s.hb);
+      hblOut!.textContent = f0(s.hb * 10);
+      exOut!.textContent = String(s.ex);
+
+      rQ!.textContent = f1(q);
+      rCa!.textContent = f0(ca);
+      rCv!.textContent = f0(cv);
+      rAvd!.textContent = f0(avd);
+      rVo2!.textContent = f2(vo2 / 1000);
+      rKg!.textContent = f1(perKg);
+
+      tArt!.textContent = 'Arterial blood: CaO₂ = ' + f0(ca) + ' mL per L';
+      tHrSv!.textContent = s.hr + ' × ' + s.sv + ' mL';
+      tQ!.textContent = f1(q) + ' L per min';
+      tExt!.textContent = 'extract ' + s.ex + '%';
+      tVen!.textContent = 'Mixed-venous blood: CvO₂ = ' + f0(cv) + ' mL per L';
+
+      const w = Math.max(0, Math.min(1, vo2 / 1000 / BAR_MAX)) * (X1 - X0);
+      bar!.setAttribute('width', w.toFixed(1));
+      const sw = (2 + (q / 28) * 7).toFixed(1);
+      flows.forEach((f) => f.setAttribute('stroke-width', sw));
+
+      // status sentence
+      const qFold = q / REST_Q, avdFold = avd / REST_AVD, fold = vo2 / REST_VO2;
+      const s1 = 'In this sketch, ' + s.hr + ' beats per min × ' + s.sv + ' mL per beat gives ' + f1(q) +
+        ' L per min of cardiac output; each litre carries ' + f0(ca) + ' mL of oxygen and ' + s.ex +
+        ' percent of it is extracted (' + f0(avd) + ' mL per L), so VO₂ ≈ ' + f1(q) + ' × ' + f0(avd) + ' ≈ ' +
+        f0(vo2) + ' mL per min, ' + f1(perKg) + ' mL per kg per min for 70 kg. ';
+      let s2: string;
+      if (fold >= 0.95 && fold <= 1.05) {
+        s2 = 'That is close to the resting uptake of about 250 mL per min (healthy 70-kg young man).';
+      } else if (fold > 1) {
+        s2 = 'That is ' + f1(fold) + '-fold the resting uptake of about 250 mL per min (healthy 70-kg young man): in this sketch a ' +
+          f1(qFold) + '-fold cardiac-output factor times a ' + f1(avdFold) + '-fold factor for oxygen extracted per litre, against the lesson’s resting example (5.0 L per min, 50 mL per L).';
+      } else {
+        s2 = 'That is ' + f2(fold) + ' of the resting uptake of about 250 mL per min (healthy 70-kg young man): in this sketch a ' +
+          f2(qFold) + ' cardiac-output factor times a ' + f2(avdFold) + ' factor for oxygen extracted per litre, against the lesson’s resting example (5.0 L per min, 50 mL per L).';
+      }
+      const diff = (vo2 - EX_VO2) / EX_VO2;
+      const isPreset = (p: State) => p.hr === s.hr && p.sv === s.sv && Math.abs(p.hb - s.hb) < 0.05 && p.ex === s.ex;
+      let s3 = '';
+      if (isPreset(PRESETS.max)) {
+        s3 = ' These are the lesson’s illustrative numbers for maximal exercise, with hemoglobin chosen so that CaO₂ is about 200 mL per L.';
+      } else if (isPreset(PRESETS.rest)) {
+        s3 = ' These are the lesson’s resting numbers for cardiac output, CaO₂ and extraction, with a heart-rate split made up for the sketch.';
+      } else if (Math.abs(diff) <= 0.02) {
+        s3 = ' That matches the lesson’s illustrative maximal example (3.12 L per min) within 2 percent from a different mixture of the four factors.';
+      } else if (diff < 0) {
+        s3 = ' That is ' + Math.round(-diff * 100) + ' percent below the lesson’s illustrative maximal example (3.12 L per min).';
+      } else {
+        s3 = ' That is ' + Math.round(diff * 100) + ' percent above the lesson’s illustrative maximal example (3.12 L per min).';
+      }
+      const s4 = diff > 0.25 ? ' The sketch does not say whether people reach this combination of factors.' : '';
+      why!.textContent = s1 + s2 + s3 + s4;
+    }
+
+    [hrIn, svIn, hbIn, exIn].forEach((el) => el.addEventListener('input', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const p = PRESETS[b.getAttribute('data-preset') ?? ''];
+        if (!p) return;
+        hrIn.value = String(p.hr); svIn.value = String(p.sv); hbIn.value = String(p.hb); exIn.value = String(p.ex);
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style>
+  .fk { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fk-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fk-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fk-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fk-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .fk-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fk-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fk-slabel input { accent-color: var(--ddp-color-accent); }
+  .fk-presets { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .fk-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; border: 1px solid var(--ddp-color-accent); background: #fff; color: var(--ddp-color-accent); border-radius: 6px; cursor: pointer; }
+  .fk-btn:hover { background: color-mix(in srgb, var(--ddp-color-accent) 10%, transparent); }
+  .fk-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .fk-readout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fk-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .fk-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fk-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .fk-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .fk-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .fk-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .fk-controls { grid-template-columns: 1fr; }
+    .fk-readout { grid-template-columns: 1fr 1fr; }
+  }
+</style>

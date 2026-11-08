@@ -1,0 +1,552 @@
+{
+ "slug": "sensory-prostheses",
+ "title": "Restoring Senses: Implants, Prostheses and Optogenetic Vision",
+ "generated": {
+  "date": "2026-11-04",
+  "pipeline": "extract → Codex draft → Codex accuracy gate + fix (fresh context)",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  },
+  "mode": "Codex-heavy"
+ },
+ "lessonHash": "7fc16dfe72fd",
+ "sectionHashes": {
+  "(opening)": "8329dc2b3674",
+  "Borrowing a map: why place coding is kind to engineers": "c8769950f3be",
+  "Why a retinal electrode does not make a pixel": "ab882d5ce72f",
+  "Putting the signal in with light instead of current": "76b9db4cb5c7",
+  "Writing touch: addresses, then patterns": "58925362b1a7",
+  "The second half: sending the right pattern": "acfc9638606b",
+  "Design problem": "420bc4c03130"
+ },
+ "cards": [
+  {
+   "id": "sensory-prostheses-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which cells does a cochlear implant bypass, and which neural structure does it stimulate directly?",
+   "back": "It bypasses damaged hair cells and directly stimulates the auditory nerve.",
+   "quote": "It skips the damaged hair cells and excites the auditory nerve directly,"
+  },
+  {
+   "id": "sensory-prostheses-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why must usable spatial channels in a sensory prosthesis be measured in users rather than counted from its hardware?",
+   "back": "Detail depends on distinct neural groups in the right map locations. Test what users can distinguish; counting contacts or pixels alone cannot establish that.",
+   "quote": "A prosthesis can deliver detail only as far as it drives distinct groups of neurons, each in the right place on the brain's map."
+  },
+  {
+   "id": "sensory-prostheses-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In cochlear implant frequency maps, higher frequencies are assigned to {{c1::basal}} contacts and lower frequencies to apical contacts.",
+   "back": "The implant borrows the cochlea's frequency place map.",
+   "quote": "Clinical maps assign higher frequencies to more basal contacts and lower frequencies to more apical ones,",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In a cochlear implant, how do a contact and a frequency channel differ?",
+   "back": "A contact is hardware on the array; a channel is a band of frequency information assigned to a contact.",
+   "quote": "A contact is a piece of hardware on the array. A channel, here, is a band of frequency information assigned to a contact.",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does channel interaction limit independent information in a cochlear implant?",
+   "back": "Neighbouring electric fields overlap and excite overlapping auditory-nerve populations, so separate contacts need not provide independent frequency channels.",
+   "quote": "Neighbouring contacts produce overlapping electric fields, called channel interaction, so they excite overlapping groups of neurons,",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A toy cochlear model treats each stimulated neural region as 1.75 mm wide with sharp edges. Along a 16 mm span, approximately how many non-overlapping regions fit?",
+   "back": "16 mm / 1.75 mm = 9.14, or about 9 regions. This illustrates overlap; real fields fade gradually, so it does not predict an individual listener's channel count.",
+   "quote": "About 16 mm ÷ 1.75 mm ≈ 9, far fewer than 22.",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c07",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A cochlear model's stimulation width was chosen to reproduce an observed channel plateau. Why is that match insufficient, and what independent prediction could test the current-spread explanation?",
+   "back": "Rule: test a prediction the model was not tuned to. The fitted match only illustrates overlap. Predict continued improvement with added channels when contacts sit closer to the nerve, then test that prediction.",
+   "quote": "The real test is a prediction the arithmetic was not tuned to.",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Where are the spiral ganglion cell bodies targeted by a cochlear implant?",
+   "back": "In the modiolus, the cochlea's central core.",
+   "quote": "The nerve cell bodies the implant targets, the spiral ganglion, sit in the cochlea's central core, the modiolus.",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c09",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Suppose repositioning a cochlear array brings its contacts closer to auditory-nerve cell bodies. If current spread limits channel separation, what happens as more channels are activated, and why?",
+   "back": "Useful improvement should extend to more channels: nearer contacts should excite narrower, less overlapping neural groups. This is a prediction, not a guaranteed channel count.",
+   "quote": "Contacts closer to the nerve should excite narrower groups of neurons, so these listeners should keep improving past 8 to 10 channels.",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why can extra cochlear contacts help speech recognition in noise even when a simpler speech test has plateaued?",
+   "back": "A plateau depends on the task and listener. Overlapping fields can still convey extra information useful under harder conditions; benefit does not prove each contact is independent.",
+   "quote": "A benefit under hard conditions does not mean each contact is independent, either.",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An absolute change in a cochlear implant user's percent-correct word score is expressed in {{c1::percentage points}}.",
+   "back": "An absolute score change differs from a relative percentage change.",
+   "quote": "mean improvement in CNC word recognition at six months was 40.5 percentage points,",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c12",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hypothetical hearing study, a participant's word-recognition score rises from 40% to 60%. Calculate the absolute gain in percentage points and the relative percentage increase from baseline.",
+   "back": "Absolute gain = 60 − 40 = 20 percentage points. Relative increase = 100 × (60 − 40)/40 = 50%. The relative calculation divides by the baseline score.",
+   "quote": "mean improvement in CNC word recognition at six months was 40.5 percentage points,",
+   "section": "Borrowing a map: why place coding is kind to engineers"
+  },
+  {
+   "id": "sensory-prostheses-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How can stimulation at one epiretinal electrode produce an elongated percept rather than a dot?",
+   "back": "Current can recruit passing ganglion-cell axons representing different visual locations. Activating a bundle can therefore evoke a streak; this explanation is model-supported.",
+   "quote": "Recruiting cells along a bundle of passing axons activates a stretch of visual locations at once,",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c14",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "An axon-pathway model accounts for elongated percept drawings from four retinal-implant users. A report calls this direct evidence that the passing axons fired. Is that justified?",
+   "back": "No. The drawings and model support an axon-of-passage explanation, but they are not direct recordings of those axons.",
+   "quote": "That is a model-supported explanation of the drawings, not a direct recording of the axons.",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c15",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "PRIMA's subretinal photovoltaic pixels convert near-infrared light into current that stimulates {{c1::bipolar cells}}.",
+   "back": "Signals then pass through the surviving inner retinal network to ganglion cells.",
+   "quote": "convert that light into current that stimulates bipolar cells, the first surviving inner retinal neurons,",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why is a local return electrode around each PRIMA pixel expected to improve spatial selectivity?",
+   "back": "Current flows out and back within a small area, which is meant to confine the field. This is a design argument, not proof of superiority.",
+   "quote": "current flows out and back within a small area instead of spreading toward a distant return,",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What does logMAR measure, and does a higher value mean finer or worse acuity?",
+   "back": "The base-10 logarithm of the minimum angle of resolution in arcminutes. Higher values mean worse acuity.",
+   "quote": "A logMAR of 0 is 20/20, 1.0 is 20/200, and higher is worse.",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c18",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "For a 100 µm retinal pixel, assume 288 µm per degree and a minimum resolvable detail one pixel wide. Convert its nominal limit to arcminutes, logMAR and Snellen acuity; use denominator = 20 × 10^logMAR.",
+   "back": "(100/288)° × 60 ≈ 20.8 arcmin; log10(20.8) ≈ 1.32. The denominator is 20 × (100/288) × 60 ≈ 416.7, or about 20/420. This assumes separate pixel channels, not guaranteed performance.",
+   "quote": "That is an ideal sampling estimate, not a guaranteed score.",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c19",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A hypothetical retinal chip halves pixels from 100 µm to 50 µm, but each stimulation field still spans 100 µm. Using 288 µm per degree and Snellen denominator = 20 × detail in arcminutes, calculate the nominal new pixel estimate. Does it establish twice the spatial detail?",
+   "back": "Nominal: 20 × (50/288) × 60 = 208.3, about 20/210. Rule: usable detail requires distinct neural groups. Each field spans 2 pixel widths; overlap breaks the independent-pixel assumption, so finer hardware does not guarantee twice the detail.",
+   "quote": "If each pixel's field stays within that pixel and each pixel acts as a separate channel,",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c20",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "PRIMAvera's mean native acuity matched the nominal pixel estimate near 1.32 logMAR. Does this prove that every pixel drives a separate neural population?",
+   "back": "No. The pixel estimate assumes separate channels, and retinal scale varies between eyes. Agreement of a trial mean with that estimate supports the design aim but does not prove confinement of every field.",
+   "quote": "It fits what the design aims for, pixels that act as separate channels, but one trial's mean does not prove that each field is confined.",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why should a visual implant's acuity with adjustable zoom be reported separately from its native resolution?",
+   "back": "Zoom-assisted performance measures the implant plus magnification. It can improve chart scores without adding pixels, so it does not isolate native implant resolution.",
+   "quote": "A zoom-assisted chart score measures the implant plus a magnifier, not extra pixels.",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c22",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Argus II's best reported grating acuity was about 20/1260, finer than an ideal static-grid spacing estimate near 20/2400. What assumption about the estimate should be rejected?",
+   "back": "Reject treating the nominal spacing estimate as a hard performance limit. Camera mapping, test choice and distorted percepts can change real scores.",
+   "quote": "A conversion like this is a nominal estimate, not a hard limit:",
+   "section": "Why a retinal electrode does not make a pixel"
+  },
+  {
+   "id": "sensory-prostheses-c23",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In optogenetic therapy, a viral vector makes surviving cells express a {{c1::light-sensitive protein}}.",
+   "back": "The cells are changed to respond to light.",
+   "quote": "In an optogenetic therapy, a viral vector makes surviving cells express a light-sensitive protein;",
+   "section": "Putting the signal in with light instead of current"
+  },
+  {
+   "id": "sensory-prostheses-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why did the ChrimsonR vision approach require stimulating goggles rather than relying on ordinary room light?",
+   "back": "ChrimsonR needs much brighter light than photoreceptors do; ordinary room light does not drive it. The goggles provide activating amber-light pulses.",
+   "quote": "Microbial light sensors such as ChrimsonR need far brighter light than photoreceptors do, so ordinary room light does not drive them.",
+   "section": "Putting the signal in with light instead of current"
+  },
+  {
+   "id": "sensory-prostheses-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why must goggles perform some scene encoding when optogenetic stimulation directly targets retinal ganglion cells?",
+   "back": "Direct stimulation of retinal output cells skips processing normally performed by bipolar and amacrine cells, so the goggles must supply part of that encoding.",
+   "quote": "driving the retina's output cells directly skips the processing that bipolar and amacrine cells would normally do,",
+   "section": "Putting the signal in with light instead of current"
+  },
+  {
+   "id": "sensory-prostheses-c26",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "After ChrimsonR treatment, a patient locates objects with the stimulating goggles but detects none without them. What dependence does that comparison establish, and within what scope?",
+   "back": "The response depended on goggle light in that patient and those tasks. It does not establish normal vision or how often the therapy succeeds in others.",
+   "quote": "it shows that, in this patient and in these tasks, the response depended on the goggle light.",
+   "section": "Putting the signal in with light instead of current"
+  },
+  {
+   "id": "sensory-prostheses-c27",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A team claims its light-based vision therapy has more usable spatial channels than a retinal chip because users can locate objects. The chip study measured acuity. What evidence is missing?",
+   "back": "Measure comparable spatial discrimination. Rule: usable channels depend on what users can distinguish; successful object localization alone does not count separately addressable places or support a ranking against an acuity result.",
+   "quote": "The results in this lesson are object tasks and light sensitivity, not acuity, so they do not say how many separate places this approach can address.",
+   "section": "Putting the signal in with light instead of current"
+  },
+  {
+   "id": "sensory-prostheses-c28",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "The hand region where a sensation is felt during somatosensory cortical electrode stimulation is its {{c1::projected field}}.",
+   "back": "It is an approximate address; fields can overlap or change with the stimulus.",
+   "quote": "Stimulating an electrode evoked a sensation felt in a region of the hand, its projected field.",
+   "section": "Writing touch: addresses, then patterns"
+  },
+  {
+   "id": "sensory-prostheses-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can a cortical touch interface vary the felt strength of stimulation at one electrode?",
+   "back": "Changing stimulation amplitude grades perceived intensity, so felt strength can be adjusted through stimulation at that electrode.",
+   "why": "Projected fields can overlap and change with the stimulus, so intensity control does not guarantee an unchanged location.",
+   "quote": "Changing the amplitude graded the perceived intensity, and many percepts remained stable for months.",
+   "section": "Writing touch: addresses, then patterns"
+  },
+  {
+   "id": "sensory-prostheses-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What did reports of natural-feeling phantom-hand sensations from peripheral nerve cuffs establish about normal touch?",
+   "back": "They supported repeatable, useful artificial sensations in the tested participants. Two participants and subjective naturalness ratings did not establish normal touch.",
+   "quote": "Two participants and subjective ratings do not establish normal touch.",
+   "section": "Writing touch: addresses, then patterns"
+  },
+  {
+   "id": "sensory-prostheses-c31",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a robotic-arm study, one participant's median task time changed from 20.9 s without touch feedback to 10.2 s with it. Calculate the absolute and baseline-relative percentage reduction.",
+   "back": "20.9 − 10.2 = 10.7 s. Relative reduction = 100 × 10.7/20.9 = 51.2%. These compare two medians from one participant, not a mean paired effect or a population effect.",
+   "quote": "It is not a mean paired effect and not a population effect.",
+   "section": "Writing touch: addresses, then patterns"
+  },
+  {
+   "id": "sensory-prostheses-c32",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A tactile-feedback study repeats many sessions in one participant, then treats each session as an independent person when estimating a population effect. What design change addresses the problem, and why?",
+   "back": "Recruit independent participants. Rule: repeated trials in one person are not independent replicates. More sessions can characterize that person's performance but cannot substitute for sampling other people.",
+   "quote": "Repeated trials in one person are not independent replicates.",
+   "section": "Writing touch: addresses, then patterns"
+  },
+  {
+   "id": "sensory-prostheses-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A cortical touch interface changes from stimulating separate hand locations to a sequence of stimulation across locations and time. What new percept could become possible, and why?",
+   "back": "Apparent motion with controllable direction and speed could become possible, because spatiotemporal patterns encode more than isolated locations. This does not imply restoration of every touch quality.",
+   "quote": "spatiotemporal patterns evoked apparent motion with controllable speed and direction.",
+   "section": "Writing touch: addresses, then patterns"
+  },
+  {
+   "id": "sensory-prostheses-c34",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Reproducing task-relevant features of a natural neural code as a sensory-prosthesis design strategy is called {{c1::biomimicry}}.",
+   "back": "Test the resulting percept and behaviour.",
+   "quote": "biomimicry: reproduce the task-relevant features of the natural neural code, then test the percept and the behaviour.",
+   "section": "The second half: sending the right pattern"
+  },
+  {
+   "id": "sensory-prostheses-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does the simple biomimetic cortical-touch pulse scheme emphasize contact onset and offset?",
+   "back": "Pulse amplitude changes over the contact to approximate stronger activity at onset and offset, while pulse rate stays fixed.",
+   "quote": "In the simple scheme the pulse amplitude changes over the contact while the pulse rate stays fixed;",
+   "section": "The second half: sending the right pattern"
+  },
+  {
+   "id": "sensory-prostheses-c36",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Biomimetic touch stimulation improved naturalness on 32% of tested single electrodes and 75% of tested four-electrode groups. Can those percentages alone establish a controlled head-to-head advantage of the advanced scheme?",
+   "back": "No. The denominators differ: individual electrodes versus electrode groups. These are not directly comparable fractions from a controlled head-to-head test.",
+   "quote": "The denominators differ (electrodes against electrode groups), so the two percentages are not a controlled head-to-head comparison.",
+   "section": "The second half: sending the right pattern"
+  },
+  {
+   "id": "sensory-prostheses-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A hypothetical natural-code touch pattern feels more natural and needs less charge than a constant pulse train. What additional experiment would test whether it improves prosthesis control?",
+   "back": "Compare task performance under the natural-code and control patterns. Rule: biomimicry calls for testing both percept and behaviour; better naturalness or lower charge alone does not establish better control or prove that closer imitation always improves performance.",
+   "quote": "reproduce the task-relevant features of the natural neural code, then test the percept and the behaviour.",
+   "section": "The second half: sending the right pattern"
+  },
+  {
+   "id": "sensory-prostheses-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can a single-arm visual-implant trial not isolate improvement caused by the device itself?",
+   "back": "Surgery, device use, training and time change together. Without a comparison group, improvement cannot be separated from practice and time.",
+   "quote": "surgery, device use, training and time all change together.",
+   "section": "Design problem"
+  },
+  {
+   "id": "sensory-prostheses-c39",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "At twelve months, 26 of 32 assessed PRIMAvera participants met the ≥0.2 logMAR improvement endpoint with zoom allowed; 38 were implanted. Calculate assessed-only and all-implanted rates, counting all six missing as nonresponders. How does the reported 80% imputation estimate differ?",
+   "back": "Assessed: 100 × 26/32 = 81.3%. All implanted with missing treated as failures: 100 × 26/38 = 68.4%. The 80% estimate instead statistically fills in missing outcomes using assumptions; it is a third result.",
+   "quote": "The multiple-imputation estimate of 80 percent is a third number, built on assumptions about the missing six.",
+   "section": "Design problem"
+  },
+  {
+   "id": "sensory-prostheses-c40",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "PRIMAvera reported 26 serious device- or procedure-related events in 19 participants. Why must both counts appear beside the benefit?",
+   "back": "Events and affected people are different counts: some participants can have multiple events. Reporting both preserves the safety burden rather than treating 26 events as 26 people.",
+   "quote": "Nineteen participants had 26 serious device- or procedure-related events over the twelve months,",
+   "section": "Design problem"
+  },
+  {
+   "id": "sensory-prostheses-c41",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How would you redesign a single-arm visual-implant study to separate improvement from practice and time?",
+   "back": "Include an untreated or deferred-implantation comparison group, masked acuity assessors where feasible, and a prespecified endpoint. Rule: surgery, device use, training and time co-vary in a single arm; a comparison helps distinguish improvement from practice and time.",
+   "quote": "A comparison group, such as an untreated or deferred-implantation group, so the change can be separated from practice and time.",
+   "section": "Design problem"
+  }
+ ]
+}

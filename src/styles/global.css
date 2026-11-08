@@ -28,6 +28,11 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
 }
+/* Smooth scrolling is motion: skip it when the reader has asked for less. The
+   homepage doors scroll thousands of pixels on a phone. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
 
 body {
   margin: 0;
@@ -225,3 +230,87 @@ h4 {
   transition: top 0.15s ease;
 }
 .skip-link:focus { top: 0; }
+
+/* Wide markdown tables in lesson prose scroll inside themselves on narrow screens
+   instead of widening the page (added with the Cell Biology course, 2026-10-18). */
+.prose-col table { display: block; max-width: 100%; overflow-x: auto; }
+
+/* Lesson tables (2026-11-05, Chris: "crowded … particularly on the phone"). The markup comes from
+   src/lib/rehype-table-cards.mjs: a .table-cards wrapper, data-label on each cell, .tc-title on
+   each row's first cell. Wide screens get a quiet ruled table; phones get one card per row, each
+   value labelled by its column. */
+.table-cards { margin: 1.5rem 0 1.75rem; max-width: 100%; overflow-x: auto; }
+.table-cards table { display: table; width: 100%; border-collapse: collapse; font-size: 0.94em; line-height: 1.45; }
+.table-cards thead th {
+  text-align: left; vertical-align: bottom; padding: 0.45em 0.8em 0.55em;
+  font-family: var(--ddp-font-mono); font-size: 0.78em; font-weight: 500; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--ddp-color-muted); border-bottom: 2px solid var(--ddp-color-line);
+}
+.table-cards tbody td, .table-cards tbody th {
+  text-align: left; vertical-align: top; padding: 0.6em 0.8em; border-bottom: 1px solid var(--ddp-color-line);
+  font-weight: 400;
+}
+.table-cards tbody .tc-title { font-weight: 600; color: var(--ddp-color-primary); }
+.table-cards tbody tr:nth-child(even) { background: color-mix(in srgb, var(--ddp-color-line) 22%, transparent); }
+.table-cards tbody tr:last-child td, .table-cards tbody tr:last-child th { border-bottom: 0; }
+
+@media (max-width: 640px) {
+  .table-cards:not(.tc-compact) { overflow: visible; }
+  .table-cards:not(.tc-compact) table, .table-cards:not(.tc-compact) tbody, .table-cards:not(.tc-compact) tr { display: block; width: 100%; }
+  .table-cards:not(.tc-compact) thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .table-cards:not(.tc-compact) tbody tr {
+    margin: 0 0 0.75rem; padding: 0.55rem 0.85rem 0.35rem; border: 1px solid var(--ddp-color-line);
+    border-radius: 10px; background: var(--ddp-color-surface, transparent);
+  }
+  .table-cards:not(.tc-compact) tbody tr:nth-child(even) { background: var(--ddp-color-surface, transparent); }
+  .table-cards:not(.tc-compact) tbody td, .table-cards:not(.tc-compact) tbody th { display: block; padding: 0.35rem 0; border: 0; }
+  .table-cards:not(.tc-compact) tbody td + td, .table-cards:not(.tc-compact) tbody th + td { border-top: 1px dashed var(--ddp-color-line); }
+  .table-cards:not(.tc-compact) tbody .tc-title { font-size: 1.02em; padding-bottom: 0.4rem; }
+  .table-cards:not(.tc-compact) tbody [data-label]::before {
+    content: attr(data-label); display: block; margin-bottom: 0.1rem;
+    font-family: var(--ddp-font-mono); font-size: 0.72em; font-weight: 500; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--ddp-color-muted);
+  }
+  /* The title's column name would repeat on every card, so the title stands alone. */
+  .table-cards:not(.tc-compact) tbody .tc-title::before { display: none; }
+  .table-cards:not(.tc-compact) tbody td:empty { display: none; }
+  /* Compact tables stay tables on a phone, a little tighter. */
+  .table-cards.tc-compact table { font-size: 0.9em; }
+  .table-cards.tc-compact thead th, .table-cards.tc-compact tbody td, .table-cards.tc-compact tbody th { padding: 0.5em 0.55em; }
+}
+
+/* Five or more columns: cards at every width (rehype-table-cards adds .tc-stack). */
+.table-cards.tc-stack { overflow: visible; }
+.table-cards.tc-stack table, .table-cards.tc-stack tbody, .table-cards.tc-stack tr { display: block; width: 100%; }
+.table-cards.tc-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.table-cards.tc-stack tbody tr {
+margin: 0 0 0.75rem; padding: 0.55rem 0.85rem 0.35rem; border: 1px solid var(--ddp-color-line);
+border-radius: 10px; background: var(--ddp-color-surface, transparent);
+}
+.table-cards.tc-stack tbody tr:nth-child(even) { background: var(--ddp-color-surface, transparent); }
+.table-cards.tc-stack tbody td, .table-cards.tc-stack tbody th { display: block; padding: 0.35rem 0; border: 0; }
+.table-cards.tc-stack tbody td + td, .table-cards.tc-stack tbody th + td { border-top: 1px dashed var(--ddp-color-line); }
+.table-cards.tc-stack tbody .tc-title { font-size: 1.02em; padding-bottom: 0.4rem; }
+.table-cards.tc-stack tbody [data-label]::before {
+content: attr(data-label); display: block; margin-bottom: 0.1rem;
+font-family: var(--ddp-font-mono); font-size: 0.72em; font-weight: 500; letter-spacing: 0.05em;
+text-transform: uppercase; color: var(--ddp-color-muted);
+}
+/* The title's column name would repeat on every card, so the title stands alone. */
+.table-cards.tc-stack tbody .tc-title::before { display: none; }
+.table-cards.tc-stack tbody td:empty { display: none; }
+/* Wide screens: cards for 5+ column tables put each label beside its value. */
+@media (min-width: 641px) {
+  .table-cards.tc-stack tbody td, .table-cards.tc-stack tbody th { display: grid; grid-template-columns: 11rem 1fr; gap: 1rem; align-items: baseline; }
+  .table-cards.tc-stack tbody [data-label]::before { margin: 0; }
+  .table-cards.tc-stack tbody .tc-title { display: block; }
+}
+
+/* In-page links (section links from the quiz and review queue, method links) land
+   below the sticky header instead of under it (added 2026-10-25). */
+h2[id], h3[id], :target { scroll-margin-top: 96px; }
+
+/* Subscripts and superscripts from rehype-sub-sup (2026-11-05): keep line spacing even. */
+.prose-col sub, .prose-col sup { font-size: 0.72em; line-height: 0; position: relative; vertical-align: baseline; }
+.prose-col sub { bottom: -0.28em; }
+.prose-col sup { top: -0.5em; }

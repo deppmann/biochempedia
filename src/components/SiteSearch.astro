@@ -1,9 +1,22 @@
 ---
 /**
- * Search across every course, or inside one. The index (/search-index.json) is
- * built with the site and fetched the first time the box is used, so the page
- * pays nothing for it until someone types. Results are lessons, each with the
- * section headings that matched, linked to that section.
+ * Search across every course, or inside one. Two layers, both static, merged into ONE ranked
+ * list of lessons by src/lib/lesson-search.ts (read its header for the ranking):
+ *
+ *  1. The small title index (/search-index.json: titles, hooks, objectives,
+ *     headings, names). Fetched the first time the box is used; it answers the
+ *     first keystrokes at once.
+ *  2. The full text of every lesson, through Pagefind (/pagefind/, built by
+ *     `npm run build` after `astro build`): the prose, the "Explain at my level"
+ *     texts, the stories, the self-test, the "How we measure it" blurbs and the film
+ *     transcripts. Pagefind loads a small entry file and then only the index chunks and
+ *     page fragments a query needs, so a phone never downloads the whole text. If
+ *     /pagefind/ is missing (for example in `astro dev` before any build) the box
+ *     quietly stays a title search.
+ *
+ * When the text answers, the list is re-ranked once (not on every keystroke after that
+ * settles). Each result is a lesson with up to three spots where the words were found,
+ * labelled for where they are and linked there with the words highlighted.
  *
  * `scope` preselects a course; the chips let the reader widen it again.
  * `autofocus` is for the search page, where the box is the point of the page.
@@ -12,8 +25,9 @@ interface Props {
   scope?: string;
   autofocus?: boolean;
   label?: string;
+  placeholder?: string;
 }
-const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro.props;
+const { scope = 'all', autofocus = false, label = 'Search the lessons', placeholder = 'Try “allostery”, “Ras”, “western blot”…' } = Astro.props;
 ---
 
 <div class="ss" data-site-search data-scope={scope}>
@@ -24,37 +38,24 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro
         <circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 L21 21" />
       </svg>
       <input id="ss-q" class="ss-input" type="search" name="q" autocomplete="off" spellcheck="false"
-        placeholder="Try “allostery”, “Ras”, “western blot”…" autofocus={autofocus} />
+        placeholder={placeholder} autofocus={autofocus} />
     </div>
   </form>
   <div class="ss-scope" role="group" aria-label="Where to search" hidden></div>
   <p class="ss-status" role="status" aria-live="polite"></p>
   <ol class="ss-results"></ol>
+  <button type="button" class="ss-more" hidden>Show more lessons</button>
 </div>
 
 <script>
-  interface Rec { s: string; c: string; n: number; t: string; u: string; k: string; h: string; x: string; g: [string, string][] }
-  interface Index { courses: { s: string; t: string }[]; lessons: Rec[] }
+  import { browserEngine, createLessonSearch, TEXT_MIN, type LessonHit, type Ranked, type TextResult, type TitleHit } from '../lib/lesson-search';
 
-  const norm = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[‐-―]/g, '-');
   const esc = (s: string) => s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
-  /* A token matches at the start of a word ("phos" finds "phosphorylation"), so
-     short queries stay precise; "mapk" still finds "Ras-to-MAPK" because a
-     hyphen starts a word. */
-  const hits = (hay: string, tok: string) => {
-    let i = hay.indexOf(tok);
-    while (i !== -1) {
-      if (i === 0 || !/[a-z0-9]/.test(hay[i - 1])) return true;
-      i = hay.indexOf(tok, i + 1);
-    }
-    return false;
-  };
+  const PAGE = 12;       // lessons drawn (and their page fragments fetched) at a time
+  const SETTLE = 220;    // ms after the last keystroke before the lesson text is searched
 
-  let indexPromise: Promise<Index> | null = null;
-  const loadIndex = (): Promise<Index> => (indexPromise ??= fetch('/search-index.json').then((r) => {
-    if (!r.ok) throw new Error(String(r.status));
-    return r.json() as Promise<Index>;
-  }));
+  /* One engine for the page: the index and Pagefind load once however many boxes there are. */
+  const search = createLessonSearch(browserEngine());
 
   document.querySelectorAll<HTMLElement>('[data-site-search]').forEach((root) => {
     const input = root.querySelector<HTMLInputElement>('.ss-input')!;
@@ -62,11 +63,26 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro
     const scopeBox = root.querySelector<HTMLElement>('.ss-scope')!;
     const status = root.querySelector<HTMLElement>('.ss-status')!;
     const list = root.querySelector<HTMLElement>('.ss-results')!;
+    const moreBtn = root.querySelector<HTMLButtonElement>('.ss-more')!;
     let scope = root.dataset.scope || 'all';
-    let prepared: (Rec & { nt: string; nh: string; nx: string; ng: string[] })[] | null = null;
-    let courses: Index['courses'] = [];
+    let ready = false;
+
+    /* State of the current query. `seq` is bumped by every new query; an answer that comes back for
+       an older one is dropped. */
+    let seq = 0;
+    let textTimer = 0;
+    let cur: {
+      key: string;
+      query: string;
+      state: 'wait' | 'ok' | 'off';
+      titles: TitleHit[];
+      ranked: Ranked[];
+      shown: number;
+      hydrated: Map<string, LessonHit>;
+    } | null = null;
 
     const drawScope = () => {
+      const courses = search.courses();
       if (courses.length < 2) return;
       scopeBox.hidden = false;
       scopeBox.innerHTML = [{ s: 'all', t: 'All courses' }, ...courses]
@@ -81,60 +97,118 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro
       run();
     });
 
-    const run = () => {
-      const q = norm(input.value).trim();
-      if (!q) { status.textContent = ''; list.innerHTML = ''; return; }
-      if (!prepared) return;
-      const toks = q.split(/\s+/).filter(Boolean);
-      const out: { r: Rec; score: number; heads: [string, string][] }[] = [];
-      for (const r of prepared) {
-        if (scope !== 'all' && r.c !== scope) continue;
-        let score = 0;
-        let all = true;
-        const heads = new Set<number>();
-        for (const tok of toks) {
-          let s = 0;
-          if (hits(r.nt, tok)) s += 10;
-          r.ng.forEach((g, i) => { if (hits(g, tok)) { s += 4; heads.add(i); } });
-          if (hits(r.nh, tok)) s += 3;
-          if (hits(r.nx, tok)) s += 2;
-          if (s === 0) { all = false; break; }
-          score += s;
-        }
-        if (!all) continue;
-        // The whole phrase in the title is the best answer there is.
-        if (toks.length > 1 && r.nt.includes(q)) score += 15;
-        out.push({ r, score, heads: [...heads].slice(0, 3).map((i) => r.g[i]) });
-      }
-      out.sort((a, b) => b.score - a.score || a.r.c.localeCompare(b.r.c) || a.r.n - b.r.n);
-      const shown = out.slice(0, 24);
-      const where = scope === 'all' ? 'all courses' : courses.find((c) => c.s === scope)?.t ?? scope;
-      status.textContent = out.length === 0
-        ? `No lesson in ${where} matches “${input.value.trim()}”. The search reads titles, section headings, objectives and names, not every sentence.`
-        : `${out.length} ${out.length === 1 ? 'lesson' : 'lessons'} in ${where}${out.length > shown.length ? `, showing the first ${shown.length}` : ''}.`;
-      /* The link is assembled here, not written as href="/lessons/…" in the
-         template: the asset guard reads every quoted href in the built page,
-         inline script included, and would take the template for a real path. */
-      const link = (slug: string, hash?: string) => ['href', `"/lessons/${esc(slug)}/${hash ? `#${esc(hash)}` : ''}"`].join('=');
-      const courseTitle = (s: string) => courses.find((c) => c.s === s)?.t ?? s;
-      list.innerHTML = shown.map(({ r, heads }) => `
+    /* The link is assembled here, not written as href="/lessons/…" in the
+       template: the asset guard reads every quoted href in the built page,
+       inline script included, and would take the template for a real path. */
+    const link = (slug: string, hash?: string) => ['href', `"/lessons/${esc(slug)}/${hash ? `#${esc(hash)}` : ''}"`].join('=');
+    const rawLink = (url: string) => ['href', `"${esc(url)}"`].join('=');
+    const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+    /* A place the words were found: where it is, then the sentence around the match. */
+    const spotItem = (s: LessonHit['spots'][number]) =>
+      `<li class="ss-snip ss-k-${s.kind}"><a ${rawLink(s.url)}><span class="ss-snip-h">${s.kind === 'section' ? '§ ' : ''}${esc(s.label)}</span><span class="ss-snip-x">${s.excerptHtml}</span></a></li>`;
+
+    const card = (e: Ranked, hit: LessonHit | undefined) => {
+      const r = e.rec;
+      const spots = hit?.spots ?? [];
+      // Section headings the title index matched are listed too, unless a spot already points there.
+      const taken = new Set(spots.map((s) => /#(.+)$/.exec(s.url)?.[1]).filter(Boolean));
+      const plain = e.heads.filter(([, a]) => !taken.has(a)).slice(0, Math.max(0, 4 - spots.length));
+      const items = [...spots.map(spotItem), ...plain.map(([t, a]) => `<li><a ${link(r.s, a)}>§ ${esc(t)}</a></li>`)];
+      const partial = e.coverage < 1 ? '<p class="ss-hit-partial">Has some of your words, not all.</p>' : '';
+      return `
         <li class="ss-hit">
           <a class="ss-hit-main" ${link(r.s)}>
-            <span class="ss-hit-where">${esc(courseTitle(r.c))}${r.u ? ` · ${esc(r.u)}` : ''} · Lesson ${r.n}</span>
+            <span class="ss-hit-where">${esc(search.courseTitle(r.c))}${r.u ? ` · ${esc(r.u)}` : ''} · Lesson ${r.n}</span>
             <span class="ss-hit-title">${esc(r.t)}</span>
             <span class="ss-hit-hook">${esc(r.h)}</span>
           </a>
-          ${heads.length ? `<ul class="ss-hit-heads">${heads.map(([t, a]) => `<li><a ${link(r.s, a)}>§ ${esc(t)}</a></li>`).join('')}</ul>` : ''}
-        </li>`).join('');
+          ${partial}
+          ${items.length ? `<ul class="ss-hit-heads">${items.join('')}</ul>` : ''}
+        </li>`;
+    };
+
+    const render = () => {
+      if (!cur) return;
+      const where = scope === 'all' ? 'all courses' : search.courseTitle(scope);
+      const q = cur.query;
+      const shown = cur.ranked.slice(0, cur.shown);
+      list.innerHTML = shown.map((e) => card(e, cur!.hydrated.get(e.slug))).join('');
+      moreBtn.hidden = cur.shown >= cur.ranked.length;
+
+      const n = cur.ranked.length;
+      if (!n) {
+        status.textContent = cur.state === 'wait' ? 'Searching the lesson text…'
+          : cur.state === 'off' ? `No lesson in ${where} matches “${q}” by title or heading. The full-text index is not available here (it is built with the site).`
+          : `No lesson in ${where} matches “${q}”. Try fewer or different words.`;
+        return;
+      }
+      const full = cur.ranked.filter((e) => e.coverage >= 1).length;
+      const none = full === 0;
+      status.textContent = cur.state === 'wait' ? `In ${where}: ${plural(n, 'lesson', 'lessons')} by title or heading so far; searching the lesson text…`
+        : none ? `No lesson in ${where} has every word of “${q}”. These have some of them.`
+        : full < n ? `In ${where}: ${plural(full, 'lesson has', 'lessons have')} every word of “${q}”, best match first. ${n - full} more ${n - full === 1 ? 'has' : 'have'} some of the words.`
+        : `In ${where}: ${plural(n, 'lesson', 'lessons')}, best match first.`;
+    };
+
+    /* Downloads the page fragments for the lessons about to be drawn (their excerpts), then draws. */
+    const hydrateShown = async (my: number) => {
+      if (!cur) return;
+      const need = cur.ranked.slice(0, cur.shown).filter((e) => e.cand && !cur!.hydrated.has(e.slug));
+      if (!need.length) { render(); return; }
+      const got = await search.hydrate(need);
+      if (my !== seq || !cur) return;
+      for (const h of got) cur.hydrated.set(h.slug, h);
+      render();
+    };
+
+    /* The lesson text through Pagefind, scoped by the course filter; ranks once it answers. */
+    const searchText = async (my: number) => {
+      const c = cur;
+      if (!c) return;
+      try {
+        const res: TextResult = await search.textSearch(c.query, scope);
+        if (my !== seq || cur !== c) return;
+        c.state = res.state;
+        c.ranked = search.rank(c.query, c.titles, res);
+        c.shown = PAGE;
+        c.hydrated.clear();
+        await hydrateShown(my);                 // one redraw, with the excerpts in it
+      } catch (err) {
+        // A failed fetch must not stick: clearing the key lets the same query try again.
+        console.warn('Lesson-text search failed', err);
+        if (my === seq && cur === c) { c.state = 'off'; c.key = ''; render(); }
+      }
+    };
+
+    moreBtn.addEventListener('click', () => {
+      if (!cur) return;
+      moreBtn.disabled = true;
+      cur.shown += PAGE;
+      hydrateShown(seq).finally(() => { moreBtn.disabled = false; });
+    });
+
+    const run = () => {
+      const raw = input.value.trim();
+      if (!raw) { window.clearTimeout(textTimer); seq++; cur = null; status.textContent = ''; list.innerHTML = ''; moreBtn.hidden = true; return; }
+      if (!ready) return;
+      const key = `${scope}|${raw}`;
+      if (cur?.key === key) { render(); return; }
+      const my = ++seq;                        // an answer for the old query must not land on the new one
+      window.clearTimeout(textTimer);
+      const titles = search.titleMatches(raw, scope);
+      const textable = raw.length >= TEXT_MIN;
+      cur = { key, query: raw, state: textable ? 'wait' : 'ok', titles, ranked: search.rank(raw, titles, null), shown: PAGE, hydrated: new Map() };
+      render();
+      if (textable) textTimer = window.setTimeout(() => searchText(my), SETTLE);
     };
 
     const start = () => {
-      if (prepared) { run(); return; }
+      if (ready) { run(); return; }
       status.textContent = 'Loading the index…';
-      loadIndex().then((idx: Index) => {
-        courses = idx.courses;
-        if (scope !== 'all' && !courses.some((c) => c.s === scope)) scope = 'all';
-        prepared = idx.lessons.map((r: Rec) => ({ ...r, nt: norm(r.t), nh: norm(`${r.h} ${r.k} ${r.u}`), nx: norm(r.x), ng: r.g.map((g: [string, string]) => norm(g[0])) }));
+      search.load().then(() => {
+        ready = true;
+        if (scope !== 'all' && !search.courses().some((c) => c.s === scope)) scope = 'all';
         drawScope();
         status.textContent = '';
         run();
@@ -143,7 +217,7 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro
 
     let timer = 0;
     input.addEventListener('input', () => { window.clearTimeout(timer); timer = window.setTimeout(start, 90); });
-    input.addEventListener('focus', () => { if (!prepared) loadIndex().catch(() => {}); }, { once: true });
+    input.addEventListener('focus', () => { if (!ready) search.load().catch(() => {}); }, { once: true });
     // With JS the results appear in place; the form only navigates without it.
     form.addEventListener('submit', (e) => { e.preventDefault(); start(); });
 
@@ -217,4 +291,36 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro
   .ss-hit-heads { list-style: none; margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) 0 0; border-top: 1px solid var(--ddp-color-line); display: flex; flex-direction: column; gap: 0.25rem; }
   .ss-hit-heads a { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); text-underline-offset: 3px; }
   .ss-hit-heads a:hover { color: var(--ddp-color-accent); }
+  .ss-hit-partial { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); font-style: italic; color: var(--ddp-color-muted); }
+  .ss-hit-snippet { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
+  .ss-snip a { display: flex; flex-direction: column; gap: 0.15rem; text-decoration: none; }
+  .ss-snip-h { font-weight: 600; }
+  /* Spots outside the lesson's main text carry a small rule so the reader sees at a glance that this is a story, a quiz question, a transcript. */
+  .ss-snip:not(.ss-k-section):not(.ss-k-text) .ss-snip-h { color: var(--ddp-color-accent); }
+  .ss-snip a:hover .ss-snip-h { text-decoration: underline; text-underline-offset: 3px; }
+  .ss-snip-x { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); font-weight: 400; overflow-wrap: anywhere; }
+  .ss mark {
+    background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 0.1em;
+    font-weight: 600;
+  }
+  .ss-more[hidden] { display: none; }
+  .ss-more {
+    align-self: flex-start;
+    margin-top: var(--ddp-space-3);
+    font: inherit;
+    font-size: var(--ddp-text-sm);
+    font-weight: 600;
+    color: var(--ddp-color-primary);
+    background: var(--ddp-color-surface);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 999px;
+    padding: 0.5em 1.1em;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  .ss-more:hover { border-color: var(--ddp-color-accent); }
+  .ss-more:disabled { opacity: 0.6; cursor: progress; }
 </style>

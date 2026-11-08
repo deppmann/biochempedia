@@ -1,0 +1,333 @@
+---
+/**
+ * LivingOrNotChecklist — pick one thing (a bacterium, a virus outside a cell, a virus inside
+ * a cell, a red blood cell, a salt crystal), tick the characteristics of life you think it
+ * shows, then press Check to compare with the living-or-not lesson. Every row, reason and
+ * classification is a statement of that lesson; the shapes are labelled schematics only.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="lc card" data-livingornot>
+  <figcaption class="lc-head">Living-or-not checklist<span class="lc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="lc-svg" viewBox="0 0 340 150" role="img" aria-label="A labelled sketch of the thing you picked" data-stage></svg>
+
+  <fieldset class="lc-pick">
+    <legend>1. Pick one thing</legend>
+    <div class="lc-picks" data-picks></div>
+  </fieldset>
+
+  <fieldset class="lc-list">
+    <legend>2. Tick the characteristics of life it shows</legend>
+    <div data-rows></div>
+  </fieldset>
+
+  <div class="lc-actions">
+    <button type="button" class="lc-btn lc-main" data-check>3. Check my boxes</button>
+    <button type="button" class="lc-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="lc-status" data-status role="status"></div>
+
+  <p class="lc-foot">Rule to keep: no single box decides it. In this sketch, each answer follows the lesson for that thing; the shapes are labelled schematics, not to scale.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Mark = 'Y' | 'N' | 'H' | 'D' | 'O';
+  type Id = 'bacterium' | 'virus-out' | 'virus-in' | 'rbc' | 'crystal';
+  type Ref = [Mark, string];
+  const CRITERIA: { id: string; label: string }[] = [
+    { id: 'cells', label: 'Made of one or more cells' },
+    { id: 'energy', label: 'Takes in and uses energy (metabolism)' },
+    { id: 'grow', label: 'Grows and develops' },
+    { id: 'respond', label: 'Responds to its surroundings' },
+    { id: 'steady', label: 'Keeps its inside conditions steady' },
+    { id: 'reproduce', label: 'Reproduces' },
+    { id: 'evolve', label: 'Changes over many generations (evolves)' },
+  ];
+  const OWN = 'Most bacteria carry out every life process themselves when conditions suit them.';
+  const NOTHING = 'The lesson says only that it does nothing on its own.';
+  const NOLIST = 'The lesson does not say whether a crystal shows this one.';
+  const VIRUS_DEBATE = 'Viruses carry genes and evolve, so scientists still discuss this one.';
+  const THINGS: Record<Id, { name: string; refs: Ref[]; verdict: string; debate: string }> = {
+    bacterium: {
+      name: 'Bacterium',
+      refs: [
+        ['Y', 'One cell with a membrane, cytoplasm and ribosomes.'],
+        ['Y', 'It takes in nutrients and uses energy.'],
+        ['Y', 'It grows.'],
+        ['Y', OWN],
+        ['Y', OWN],
+        ['Y', 'It splits in two by itself.'],
+        ['Y', OWN],
+      ],
+      verdict: 'A bacterium is a living cell. Most carry out the life processes themselves when conditions suit them.',
+      debate: 'Conditions matter: fully dried bacteria do not grow.',
+    },
+    'virus-out': {
+      name: 'Virus outside a cell',
+      refs: [
+        ['N', 'Not a cell: genetic material in a protein coat, with no ribosomes.'],
+        ['N', 'Outside a cell it does not take in food or use energy.'],
+        ['N', 'Outside a cell it does not grow.'],
+        ['O', NOTHING],
+        ['O', NOTHING],
+        ['N', 'It cannot make copies without a host cell.'],
+        ['D', VIRUS_DEBATE],
+      ],
+      verdict: 'The SOL classes it as nonliving: it is not a cell and has no metabolism of its own.',
+      debate: 'This case is debated. Many scientists agree, but the question is still discussed.',
+    },
+    'virus-in': {
+      name: 'Virus inside a cell',
+      refs: [
+        ['N', 'Not a cell: genetic material in a protein coat, with no ribosomes.'],
+        ['N', 'It has no metabolism of its own.'],
+        ['O', 'The lesson says the host cell builds new virus parts; it does not say whether that counts as growth.'],
+        ['O', 'The lesson does not say whether this one applies; it says the cell’s machinery reads the virus’s genes.'],
+        ['O', 'The lesson does not say whether this one applies; it says the cell’s machinery reads the virus’s genes.'],
+        ['H', 'New viruses are built only inside a host cell, and the host cell builds them.'],
+        ['D', VIRUS_DEBATE],
+      ],
+      verdict: 'The SOL still classes it as nonliving. The host cell’s machinery reads the virus’s genes and builds the new viruses.',
+      debate: 'This case is debated. Many scientists agree, but the question is still discussed.',
+    },
+    rbc: {
+      name: 'Red blood cell',
+      refs: [
+        ['Y', 'It is a cell.'],
+        ['O', 'The lesson does not say whether a red blood cell shows this one; it calls the cell living.'],
+        ['O', 'The lesson does not say whether a red blood cell shows this one; it calls the cell living.'],
+        ['O', 'The lesson does not say whether a red blood cell shows this one; it calls the cell living.'],
+        ['O', 'The lesson does not say whether a red blood cell shows this one; it calls the cell living.'],
+        ['N', 'A mature red blood cell cannot divide.'],
+        ['O', 'The lesson does not say whether a red blood cell shows this one; it calls the cell living.'],
+      ],
+      verdict: 'A living cell in a living body, even though it cannot divide.',
+      debate: 'No single box decides it.',
+    },
+    crystal: {
+      name: 'Salt crystal',
+      refs: [
+        ['N', 'It has no cells.'],
+        ['N', 'It has no metabolism.'],
+        ['N', 'It gets bigger, but it has no cells and no metabolism.'],
+        ['O', NOLIST],
+        ['O', NOLIST],
+        ['O', NOLIST],
+        ['O', NOLIST],
+      ],
+      verdict: 'Not alive. A crystal gets bigger, but it has no cells and no metabolism.',
+      debate: 'Getting bigger alone does not make something alive.',
+    },
+  };
+  const ORDER: Id[] = ['bacterium', 'virus-out', 'virus-in', 'rbc', 'crystal'];
+  const BADGE: Record<Mark, string> = { Y: 'Met on its own', N: 'Not shown', H: 'Only with a host cell', D: 'Debated', O: 'Not covered here' };
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', RED = '#b03a3a';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function hex(cx: number, cy: number, r: number): string {
+    const pts: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i + Math.PI / 6;
+      pts.push(`${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`);
+    }
+    return pts.join(' ');
+  }
+  function say(n: number, word: string): string { return `${n} ${word}`; }
+
+  document.querySelectorAll<HTMLElement>('[data-livingornot]').forEach((root) => {
+    const need = <T extends Element>(sel: string): T => {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('LivingOrNotChecklist: missing ' + sel);
+      return e;
+    };
+    const stage = need<SVGSVGElement>('[data-stage]');
+    const picks = need<HTMLElement>('[data-picks]');
+    const rowsEl = need<HTMLElement>('[data-rows]');
+    const status = need<HTMLElement>('[data-status]');
+    const checkBtn = need<HTMLButtonElement>('[data-check]');
+    const resetBtn = need<HTMLButtonElement>('[data-reset]');
+
+    let cur: Id = 'bacterium';
+    let ticks: boolean[] = CRITERIA.map(() => false);
+    let checked = false;
+    let prev: Id | null = null; // last thing that was checked, for the "what changed" line
+
+    const T = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) =>
+      stage.appendChild(el('text', { x, y, 'font-size': 12, 'text-anchor': 'middle', fill: INK, ...extra }, s));
+
+    function drawStage() {
+      stage.replaceChildren();
+      stage.appendChild(el('rect', { x: 0, y: 0, width: 340, height: 150, fill: '#fff' }));
+      T(170, 16, THINGS[cur].name, { 'font-weight': 700 });
+      if (cur === 'bacterium') {
+        stage.appendChild(el('rect', { x: 40, y: 34, width: 180, height: 76, rx: 36, fill: '#e8f4f5', stroke: TEAL, 'stroke-width': 2.5 }));
+        T(130, 62, 'cytoplasm');
+        stage.appendChild(el('rect', { x: 84, y: 72, width: 92, height: 26, rx: 13, fill: '#fff', stroke: TEAL, 'stroke-width': 1.5 }));
+        T(130, 89, 'DNA, nucleoid');
+        stage.appendChild(el('path', { d: 'M220 72 q14 -14 28 0 t28 0', fill: 'none', stroke: TEAL, 'stroke-width': 2.5 }));
+        T(262, 98, 'flagellum', {});
+        T(262, 114, '(sometimes)', {});
+        T(170, 142, 'one cell, labelled sketch, not to scale', {});
+      } else if (cur === 'virus-out') {
+        stage.appendChild(el('polygon', { points: hex(130, 76, 40), fill: '#fdf0e2', stroke: ORANGE, 'stroke-width': 2.5 }));
+        T(130, 80, 'DNA or RNA');
+        stage.appendChild(el('line', { x1: 168, y1: 60, x2: 196, y2: 50, stroke: INK, 'stroke-width': 1.2 }));
+        stage.appendChild(el('text', { x: 200, y: 54, 'font-size': 12, fill: INK }, 'capsid (protein coat)'));
+        T(170, 142, 'outside a cell it does nothing on its own', {});
+      } else if (cur === 'virus-in') {
+        stage.appendChild(el('rect', { x: 14, y: 26, width: 312, height: 90, rx: 22, fill: '#e8f4f5', stroke: TEAL, 'stroke-width': 2.5 }));
+        stage.appendChild(el('text', { x: 28, y: 44, 'font-size': 12, 'font-weight': 700, fill: TEAL }, 'host cell'));
+        stage.appendChild(el('polygon', { points: hex(52, 78, 17), fill: '#fdf0e2', stroke: ORANGE, 'stroke-width': 2 }));
+        T(52, 108, 'virus');
+        stage.appendChild(el('line', { x1: 72, y1: 78, x2: 104, y2: 78, stroke: INK, 'stroke-width': 1.6 }));
+        stage.appendChild(el('polygon', { points: '104,72 112,78 104,84', fill: INK }));
+        stage.appendChild(el('rect', { x: 114, y: 60, width: 112, height: 40, rx: 8, fill: '#fff', stroke: INK, 'stroke-width': 1.4 }));
+        T(170, 77, 'host cell builds');
+        T(170, 93, 'new virus parts');
+        stage.appendChild(el('line', { x1: 226, y1: 78, x2: 250, y2: 78, stroke: INK, 'stroke-width': 1.6 }));
+        stage.appendChild(el('polygon', { points: '250,72 258,78 250,84', fill: INK }));
+        stage.appendChild(el('polygon', { points: hex(274, 70, 12), fill: '#fdf0e2', stroke: ORANGE, 'stroke-width': 2 }));
+        stage.appendChild(el('polygon', { points: hex(302, 88, 12), fill: '#fdf0e2', stroke: ORANGE, 'stroke-width': 2 }));
+        T(282, 112, 'new viruses');
+        T(170, 142, 'schematic: virus copies appear only inside a host cell', {});
+      } else if (cur === 'rbc') {
+        stage.appendChild(el('circle', { cx: 170, cy: 72, r: 38, fill: '#fbe9e9', stroke: RED, 'stroke-width': 2.5 }));
+        T(170, 77, 'a cell');
+        T(170, 132, 'mature red blood cell: cannot divide', {});
+      } else {
+        stage.appendChild(el('rect', { x: 100, y: 28, width: 140, height: 90, fill: 'none', stroke: INK, 'stroke-width': 1.4, 'stroke-dasharray': '5 4' }));
+        T(170, 43, 'size later (schematic)', {});
+        stage.appendChild(el('rect', { x: 124, y: 48, width: 92, height: 56, fill: '#eef0f8', stroke: INK, 'stroke-width': 2.5 }));
+        T(170, 82, 'salt crystal');
+        T(170, 132, 'gets bigger, but has no cells and no metabolism', {});
+      }
+    }
+
+    function render() {
+      const th = THINGS[cur];
+      drawStage();
+      picks.querySelectorAll<HTMLButtonElement>('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === cur)));
+      rowsEl.replaceChildren();
+      CRITERIA.forEach((c, i) => {
+        const [mark, why] = th.refs[i];
+        const row = document.createElement('div');
+        row.className = 'lc-row';
+        const lab = document.createElement('label');
+        lab.className = 'lc-tick';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = ticks[i];
+        cb.addEventListener('change', () => {
+          ticks[i] = cb.checked; render();
+          const again = rowsEl.querySelectorAll<HTMLInputElement>('input[type=checkbox]')[i];
+          if (again) again.focus();
+        });
+        const span = document.createElement('span');
+        span.textContent = c.label;
+        lab.append(cb, span);
+        row.appendChild(lab);
+        if (checked) {
+          const res = document.createElement('div');
+          res.className = 'lc-res lc-m' + mark;
+          const badge = document.createElement('strong');
+          badge.textContent = BADGE[mark] + '. ';
+          const rest = document.createElement('span');
+          let verdict = '';
+          if (mark === 'Y' || mark === 'N' || mark === 'H') {
+            const expect = mark === 'Y';
+            verdict = ticks[i] === expect ? ' Your box matches.' : ' Your box differs.';
+          } else verdict = ' Either answer is accepted here.';
+          rest.textContent = why + verdict;
+          res.append(badge, rest);
+          row.appendChild(res);
+        }
+        rowsEl.appendChild(row);
+      });
+      const n = ticks.filter(Boolean).length;
+      if (!checked) {
+        status.replaceChildren();
+        const p = document.createElement('p');
+        p.textContent = n === 0
+          ? `${th.name}: tick the boxes you think it shows, then press Check. In this sketch, the answers follow the lesson.`
+          : `${th.name}: you ticked ${n} of 7. Press Check to compare with the lesson.`;
+        status.appendChild(p);
+        return;
+      }
+      const marks = th.refs.map((r) => r[0]);
+      const yes = marks.filter((m) => m === 'Y').length;
+      const deb = marks.filter((m) => m === 'D').length;
+      const host = marks.filter((m) => m === 'H').length;
+      const open = marks.filter((m) => m === 'O').length;
+      let line1 = `${th.name}: ${yes} of 7 characteristics ${open > 0 ? 'clearly met in the lesson' : 'met on its own'}.`;
+      if (deb) line1 += ` ${say(deb, 'debated')}.`;
+      if (host) line1 += ' Copies appear only with a host cell.';
+      if (open) line1 += ` ${say(open, 'not covered')} by this lesson.`;
+      const graded = marks.map((m, i) => ({ m, i })).filter((x) => x.m === 'Y' || x.m === 'N' || x.m === 'H');
+      const hit = graded.filter((x) => ticks[x.i] === (x.m === 'Y')).length;
+      const line2 = `Your boxes match the lesson in ${hit} of ${graded.length} clear rows.`;
+      status.replaceChildren();
+      const add = (t: string, cls = '') => { const p = document.createElement('p'); p.textContent = t; if (cls) p.className = cls; status.appendChild(p); };
+      add(line1 + ' ' + line2);
+      add(th.verdict + ' ' + th.debate, 'lc-class');
+      if (prev && prev !== cur) {
+        const pr = THINGS[prev];
+        const changed = CRITERIA.filter((_, i) => pr.refs[i][0] !== th.refs[i][0]).map((c) => c.label.toLowerCase());
+        add(changed.length
+          ? `Compared with ${pr.name.toLowerCase()}, these change: ${changed.join('; ')}.`
+          : `Compared with ${pr.name.toLowerCase()}, no row changes.`, 'lc-diff');
+      }
+    }
+
+    ORDER.forEach((id) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'lc-btn lc-pickbtn'; b.dataset.id = id; b.textContent = THINGS[id].name;
+      b.addEventListener('click', () => {
+        if (checked) prev = cur; // remember what was checked last, then clear the new picture
+        cur = id; ticks = CRITERIA.map(() => false); checked = false;
+        render();
+      });
+      picks.appendChild(b);
+    });
+    checkBtn.addEventListener('click', () => { checked = true; render(); });
+    resetBtn.addEventListener('click', () => { cur = 'bacterium'; ticks = CRITERIA.map(() => false); checked = false; prev = null; render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .lc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .lc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .lc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .lc-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .lc fieldset { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0; padding: 0.4rem 0.7rem; min-width: 0; }
+  .lc legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .lc-picks { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .lc-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.3rem 0.8rem; cursor: pointer; }
+  .lc-btn[aria-pressed="true"].lc-pickbtn { background: var(--ddp-color-primary); color: #fff; border-color: var(--ddp-color-primary); }
+  .lc-main { background: var(--ddp-color-accent); color: #fff; border-color: var(--ddp-color-accent); font-weight: 600; }
+  .lc-btn:focus-visible, .lc-tick input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .lc-row { border-top: 1px solid var(--ddp-color-line); }
+  .lc-row:first-child { border-top: 0; }
+  .lc-tick { display: flex; align-items: center; gap: 0.6rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .lc-tick input { width: 22px; height: 22px; flex: none; accent-color: var(--ddp-color-accent); }
+  .lc-res { font-size: var(--ddp-text-xs); line-height: 1.45; padding: 0 0 0.5rem 2rem; color: var(--ddp-color-ink-soft); }
+  .lc-mY strong { color: #0b6b3a; }
+  .lc-mN strong { color: #8a2f2f; }
+  .lc-mH strong, .lc-mD strong, .lc-mO strong { color: #8a5a00; }
+  .lc-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: var(--ddp-space-3) 0; }
+  .lc-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .lc-status p { margin: 0 0 0.4rem; }
+  .lc-status p:last-child { margin-bottom: 0; }
+  .lc-class { font-weight: 600; }
+  .lc-diff { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

@@ -3,9 +3,10 @@
  * HBondRuler — an interactive weak-bond strength comparator. Pick two chemical
  * groups, set the distance between them, and read the interaction energy in real
  * time; then crank the "how many bonds" slider and watch trivial single-bond
- * energies sum into a folded-protein-scale ΔG. Teaches the chapter's core claims:
- * weak interactions live in the ~4 Å window, and they matter because they ADD.
- * Self-contained Astro island: vanilla TS, no props.
+ * energies add (and their equilibrium constants multiply). A medium selector
+ * (vacuum, protein core, water) shows why water evens the ranking out.
+ * Teaches the chapter's core claims: weak interactions live in the ~4 Å window,
+ * and they matter because they ADD. Self-contained Astro island: vanilla TS, no props.
  */
 ---
 
@@ -39,12 +40,18 @@
           <option value="benzene-pi">aromatic ring (nonpolar)</option>
         </select>
       </label>
+      <div class="hbr-medium" role="radiogroup" aria-label="Medium around the groups">
+        <span class="hbr-lbl">Medium around the groups:</span>
+        <label class="hbr-radio"><input type="radio" name="hbr-medium" data-medium value="vacuum" /> Vacuum (D = 1)</label>
+        <label class="hbr-radio"><input type="radio" name="hbr-medium" data-medium value="core" /> Protein core (D ≈ 4)</label>
+        <label class="hbr-radio"><input type="radio" name="hbr-medium" data-medium value="water" checked /> Water (D ≈ 80)</label>
+      </div>
       <label><span class="hbr-lbl">Distance between the groups: <b data-dlabel>2.8 Å</b></span>
         <input type="range" data-in="dist" min="2.0" max="10.0" step="0.1" value="2.8" aria-describedby="hbr-dist-help" />
         <span class="hbr-help" id="hbr-dist-help">Slide left to push the groups together, right to pull them apart.</span>
       </label>
       <label><span class="hbr-lbl">How many bonds: <b data-nlabel>1</b></span>
-        <input type="range" data-in="n" min="1" max="100" step="1" value="1" />
+        <input type="range" data-in="n" min="1" max="20" step="1" value="1" />
       </label>
       <div class="hbr-presets" role="group" aria-label="Real examples">
         <span class="hbr-lbl">Or load a real example:</span>
@@ -60,11 +67,13 @@
 
     <div class="hbr-side" role="status">
       <div class="hbr-type" data-type>Hydrogen bond</div>
-      <div class="hbr-energy" data-energy>−20 kJ/mol</div>
-      <div class="hbr-energy-lbl">per bond</div>
-      <div class="hbr-total" data-total>×1 = −20 kJ/mol total</div>
+      <div class="hbr-energy" data-energy>−5.0 kJ/mol</div>
+      <div class="hbr-energy-lbl" data-elbl>per bond (net, after trading bonds with water)</div>
+      <div class="hbr-total" data-total>×1 = −5 kJ/mol total</div>
+      <div class="hbr-total" data-rt>per bond ≈ −1.9 RT</div>
+      <div class="hbr-total" data-k>equilibrium constant K ≈ 6.9</div>
       <p class="hbr-context" data-context>One hydrogen bond, at its ideal 2.8 Å.</p>
-      <p class="hbr-approx">Simplified model: approximate energies in water at ~37 °C.</p>
+      <p class="hbr-approx">Simplified model. In water, values are net of the bonds each group already made with water.</p>
     </div>
   </div>
 </figure>
@@ -93,16 +102,23 @@
   }
   // Energy (kJ/mol) vs distance r (Å). Simplified textbook forms, each with a short-range
   // repulsive wall so "closer than that and atoms repel" is visible in the curve itself.
-  //   H-bond: 12-10 potential, minimum −20 kJ/mol at 2.8 Å (N···O).
-  //   van der Waals: Lennard-Jones 12-6, well depth 0.6 kJ/mol (minimum ≈ 4.2 Å).
-  //   ionic: screened Coulomb proxy −32/r (dielectric folded in) plus an r⁻¹² wall, minimum at 2.8 Å.
+  //   H-bond: 12-10 potential, minimum at 2.8 Å (N···O); depth 20 kJ/mol in vacuum, 12 in the
+  //     protein core, 5 in water (net, after trading bonds with water: one to a few RT).
+  //   van der Waals: Lennard-Jones 12-6, well depth 0.6 kJ/mol (minimum ≈ 4.2 Å), any medium.
+  //   ionic: Coulomb's law, −1389/(D·r) kJ/mol for unit charges, plus an r⁻¹² wall rescaled per
+  //     medium so the minimum stays at 2.8 Å. At 4 Å: ≈ 347 (D = 1), 87 (D = 4), 4.3 (D = 80).
   //   none: a very weak 12-6 contact (0.15 kJ/mol).
-  const HB_D = 20, HB_R0 = 2.8, ION_K = 32, ION_A = (ION_K * Math.pow(2.8, 11)) / 12;
-  function energy(kind: Kind, r: number): number {
-    if (kind === 'hbond') { const x = HB_R0 / r; return HB_D * (5 * Math.pow(x, 12) - 6 * Math.pow(x, 10)); }
+  type Medium = 'vacuum' | 'core' | 'water';
+  const DIEL: Record<Medium, number> = { vacuum: 1, core: 4, water: 80 };
+  const HB_DEPTH: Record<Medium, number> = { vacuum: 20, core: 12, water: 5 };
+  const HB_R0 = 2.8, COUL = 1389;
+  const RT = 2.58; // kJ/mol at 37 °C (8.314 × 310.15 / 1000)
+  function energy(kind: Kind, r: number, med: Medium): number {
+    const ionK = COUL / DIEL[med], ionA = (ionK * Math.pow(2.8, 11)) / 12;
+    if (kind === 'hbond') { const x = HB_R0 / r; return HB_DEPTH[med] * (5 * Math.pow(x, 12) - 6 * Math.pow(x, 10)); }
     if (kind === 'vdw') { const x = 3.7 / r; return 4 * 0.6 * (Math.pow(x, 12) - Math.pow(x, 6)); }
-    if (kind === 'ionic') return -ION_K / r + ION_A / Math.pow(r, 12);
-    if (kind === 'ionic-rep') return ION_K / r;    // same-sign repulsion
+    if (kind === 'ionic') return -ionK / r + ionA / Math.pow(r, 12);
+    if (kind === 'ionic-rep') return ionK / r;    // same-sign repulsion
     const x = 3.5 / r; return 4 * 0.15 * (Math.pow(x, 12) - Math.pow(x, 6));
   }
   // distance of the energy minimum; closer than this, the wall takes over
@@ -112,7 +128,7 @@
     'ionic-rep': 'Ionic — repulsive!', none: 'Negligible interaction',
   };
   const PRESET_NOTE: Record<string, string> = {
-    dna: 'An A–T base pair is held by two hydrogen bonds (G–C has three).',
+    dna: 'An A–T base pair is held by two hydrogen bonds (G–C has three). They set which bases pair; stacking between neighbouring bases supplies most of the helix\'s stability.',
     helix: 'In an α-helix, each backbone C=O accepts a hydrogen bond from the N–H four residues along the chain.',
     leu: 'A buried leucine side chain touches its packed neighbors through several tiny van der Waals contacts.',
   };
@@ -125,6 +141,22 @@
   const txt = (s: string, attrs: Record<string, string | number>) => { const t = el('text', { 'font-family': SANS, ...attrs }); t.textContent = s; return t; };
   // proper minus sign, explicit plus for repulsion
   const fmtE = (e: number, d = 1) => (e > 0.05 ? '+' : e < -0.05 ? '−' : '') + Math.abs(e).toFixed(d);
+  // equilibrium constant K = e^(−ΔG/RT), written plainly: 5, 25, 5×10⁶, capped at 10¹²
+  const SUP: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  const sup = (k: number) => String(k).split('').map((c) => SUP[c] || c).join('');
+  function fmtK(dG: number): string {
+    const lg = -dG / RT / Math.LN10; // log10 K
+    if (lg > 12) return '> 10¹²';
+    if (lg < -12) return '< 10⁻¹²';
+    const k = Math.pow(10, lg);
+    if (k >= 1000 || k < 0.01) {
+      let ex = Math.floor(lg), m = Math.round(Math.pow(10, lg - ex));
+      if (m >= 10) { m = 1; ex += 1; }
+      return `${m}×10${sup(ex)}`;
+    }
+    if (k >= 10) return String(Math.round(k));
+    return String(Number(k.toPrecision(2)));
+  }
 
   let uid = 0;
   document.querySelectorAll<HTMLElement>('[data-hbr]').forEach((root) => {
@@ -139,6 +171,13 @@
     const energyEl = root.querySelector<HTMLElement>('[data-energy]')!;
     const totalEl = root.querySelector<HTMLElement>('[data-total]')!;
     const contextEl = root.querySelector<HTMLElement>('[data-context]')!;
+    const elblEl = root.querySelector<HTMLElement>('[data-elbl]')!;
+    const rtEl = root.querySelector<HTMLElement>('[data-rt]')!;
+    const kEl = root.querySelector<HTMLElement>('[data-k]')!;
+    const medIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-medium]'));
+    const medName = `hbr-medium-${uid}`;
+    medIns.forEach((m) => { m.name = medName; });
+    const medium = (): Medium => (medIns.find((m) => m.checked)?.value as Medium) || 'water';
     const clipId = `hbr-clip-${uid++}`;
     let presetNote = '';
 
@@ -152,7 +191,8 @@
     function render() {
       const a = selA.value, b = selB.value, r = parseFloat(dist.value), n = parseInt(nIn.value, 10);
       const kind = classify(a, b);
-      const e = energy(kind, r);
+      const med = medium();
+      const e = energy(kind, r, med);
       const clash = kind !== 'ionic-rep' && e > 0 && r < RMIN[kind];
       dlabel.textContent = r.toFixed(1) + ' Å';
       nlabel.textContent = String(n);
@@ -215,13 +255,17 @@
       let d = '';
       for (let i = 0; i <= 240; i++) {
         const rr = rmin + (i / 240) * (rmax - rmin);
-        const ee = Math.max(emin - 5, Math.min(emax + 40, energy(kind, rr)));
+        const ee = Math.max(emin - 5, Math.min(emax + 40, energy(kind, rr, med)));
         d += (i === 0 ? 'M' : 'L') + px(rr).toFixed(1) + ' ' + py(ee).toFixed(1) + ' ';
       }
       svg.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: TEAL, 'stroke-width': 2.2, 'clip-path': `url(#${clipId})` }));
       // marker at current r; pinned to the top edge (as a caret) when it is off the scale
       if (e > emax) svg.appendChild(el('path', { d: `M${px(r) - 5} ${PY0 + 7} L${px(r)} ${PY0 - 1} L${px(r) + 5} ${PY0 + 7} Z`, fill: RED }));
-      else svg.appendChild(el('circle', { cx: px(r), cy: py(Math.max(emin, e)), r: 4.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.2 }));
+      else if (e < emin) {
+        // far below the scale (vacuum or protein-core salt bridge): caret on the bottom edge
+        svg.appendChild(el('path', { d: `M${px(r) - 5} ${PY1 - 7} L${px(r)} ${PY1 + 1} L${px(r) + 5} ${PY1 - 7} Z`, fill: GREEN }));
+        svg.appendChild(txt(`off scale: ${fmtE(e, 0)}`, { x: Math.min(PX1 - 40, Math.max(PX0 + 40, px(r))), y: PY1 - 14, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: GREEN }));
+      } else svg.appendChild(el('circle', { cx: px(r), cy: py(Math.max(emin, e)), r: 4.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.2 }));
 
       // ---- readouts ----
       typeEl.textContent = clash ? `${LABEL[kind]} — too close` : LABEL[kind];
@@ -230,6 +274,9 @@
       energyEl.style.color = colorFor(e);
       const tot = e * n;
       totalEl.innerHTML = e > 50 ? `×${n} = <b>strongly repulsive</b>` : `×${n} = <b>${fmtE(tot, 0)} kJ/mol</b> total`;
+      elblEl.textContent = med === 'water' && kind === 'hbond' ? 'per bond (net, after trading bonds with water)' : 'per bond';
+      rtEl.textContent = e > 50 ? '' : `per bond ≈ ${fmtE(e / RT)} RT`;
+      kEl.textContent = e > 50 ? '' : `equilibrium constant K ≈ ${fmtK(tot)}`;
       // context line: what just happened, in words
       const polarWord = (g: string) => (CHARGE[g] ? 'charged' : 'polar');
       let ctx = '';
@@ -243,15 +290,18 @@
         } else if (DONOR[a] && DONOR[b]) ctx = 'Two hydrogen-bond donors: both offer an H, but neither has a lone pair to accept it, so no hydrogen bond forms. An H-bond needs one donor and one acceptor.';
         else ctx = 'Two hydrogen-bond acceptors: both have lone pairs, but neither has an H to donate, so no hydrogen bond forms. An H-bond needs one donor and one acceptor.';
         if (clash) ctx += ' At this distance they are also too close, so they repel.';
-      } else if (n > 1 && tot <= -100) ctx = `${n} bonds × ${fmtE(e)} kJ/mol = ${fmtE(tot, 0)} kJ/mol — covalent-bond territory (100–1,000 kJ/mol), yet each contact can still break and re-form on its own. That is how weak bonds hold a double helix or a folded protein together without locking it.`;
-      else if (n > 1) ctx = `${n} bonds × ${fmtE(e)} kJ/mol = ${fmtE(tot, 0)} kJ/mol. They add — keep raising the bond count and watch the total grow toward covalent-bond territory (100–1,000 kJ/mol).`;
+      } else if (n > 1) ctx = `${n} bonds × ${fmtE(e)} kJ/mol = ${fmtE(tot, 0)} kJ/mol, about ${fmtE(tot / RT)} RT. Energies add, so their effects multiply: K grows from about ${fmtK(e)} for one bond to about ${fmtK(tot)} for ${n}. This is an upper bound: in a real fold the chain's lost freedom cancels most of it, leaving a net ΔG of only about −20 to −60 kJ/mol.`;
       else if (kind === 'vdw') ctx = 'One van der Waals contact is almost nothing — well under a kilocalorie per mole. Its power is in the sum: a gecko hangs from millions of them.';
       else if (kind === 'hbond') ctx = r <= 3.2 ? 'A hydrogen bond near its ideal geometry: about 2.8 Å between the donor and acceptor atoms.' : 'Stretch the H-bond and it fades fast — by about 4 Å little is left.';
-      else if (kind === 'ionic') ctx = 'A salt bridge. In water it is heavily screened; buried in a protein it gets far stronger.';
+      else if (kind === 'ionic') ctx = med === 'water'
+        ? 'A salt bridge. In water, screened about 80-fold: no stronger than a hydrogen bond.'
+        : med === 'core'
+          ? 'A salt bridge in the protein core: about 20-fold stronger than in water by Coulomb\'s law alone, but the charges had to leave their water first, and that desolvation penalty can cancel the gain.'
+          : 'A salt bridge in a vacuum: nothing screens the charges, so it beats a hydrogen bond, which beats van der Waals. Water evens this ranking out.';
       contextEl.textContent = presetNote ? `${presetNote} ${ctx}` : ctx;
     }
 
-    [selA, selB, dist, nIn].forEach((c) => c.addEventListener('input', () => { presetNote = ''; render(); }));
+    [selA, selB, dist, nIn, ...medIns].forEach((c) => c.addEventListener('input', () => { presetNote = ''; render(); }));
     root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const p = btn.getAttribute('data-preset')!;
@@ -278,6 +328,8 @@
   .hbr-controls label { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .hbr-controls select { font-family: inherit; font-size: var(--ddp-text-xs); padding: 0.25rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: #fff; color: var(--ddp-color-ink-soft); }
   .hbr-controls input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .hbr-medium { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hbr-controls .hbr-radio { flex-direction: row; align-items: center; gap: 0.35rem; }
   .hbr-help { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .hbr-presets { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem; }
   .hbr-presets .hbr-lbl { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }

@@ -1,0 +1,152 @@
+---
+/**
+ * EffectiveSizeSexRatio — breeding adults coloured by sex, with census N and effective
+ * size Ne shown as bars. Ne = 4 Nm Nf / (Nm + Nf) is the lesson's sex-ratio-only formula.
+ * Original, self-contained, no random draws (nothing to resample).
+ */
+---
+
+<figure class="esr card" data-esr>
+  <figcaption class="esr-head">Effective size from a breeding sex ratio<span class="esr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="esr-svg" viewBox="0 0 340 250" role="img" aria-label="Breeding adults drawn as dots, males and females in different colours, above bars for census size N and effective size Ne" data-plot></svg>
+
+  <div class="esr-controls">
+    <label class="esr-slabel"><span>Breeding males N<sub>m</sub> <em data-out="nm">10</em></span>
+      <input type="range" data-in="nm" min="1" max="100" step="1" value="10" />
+    </label>
+    <label class="esr-slabel"><span>Breeding females N<sub>f</sub> <em data-out="nf">40</em></span>
+      <input type="range" data-in="nf" min="1" max="100" step="1" value="40" />
+    </label>
+    <label class="esr-slabel"><span>Target N<sub>e</sub> <em data-out="t">100</em> <small>(Frankham and colleagues’ short-term guideline is 100; other values are what-ifs)</small></span>
+      <input type="range" data-in="t" min="10" max="200" step="10" value="100" />
+    </label>
+  </div>
+
+  <dl class="esr-readout">
+    <div><dt>Census of breeders N</dt><dd data-r-n>50</dd></div>
+    <div><dt>N<sub>e</sub> = 4 N<sub>m</sub>N<sub>f</sub> / (N<sub>m</sub> + N<sub>f</sub>)</dt><dd data-r-ne>32</dd></div>
+    <div><dt>N<sub>e</sub> / N</dt><dd data-r-ratio>0.64</dd></div>
+    <div><dt>Adults needed for target (exact)</dt><dd data-r-need>156.25</dd></div>
+    <div class="esr-wide"><dt>Smallest whole-animal group at this ratio that reaches the target</dt><dd data-r-whole>32 males + 128 females = 160 adults, N<sub>e</sub> = 102.4</dd></div>
+  </dl>
+  <p class="esr-why" data-why role="status"></p>
+
+  <p class="esr-assume">In this sketch: only the sex ratio lowers N<sub>e</sub>; discrete generations, and other causes of low N<sub>e</sub> are ignored; the sex ratio is held constant as the population grows.</p>
+  <p class="esr-foot">The guideline is an effective size, not a head count: convert it with the N<sub>e</sub>/N of the population in question. Equal numbers of each sex give N<sub>e</sub> = N, and any imbalance gives less.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const MALE = '#0e7c86', FEMALE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+  const fmt = (x: number) => (Math.round(x * 100) / 100).toString();
+  document.querySelectorAll<HTMLElement>('[data-esr]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const nmIn = q('[data-in="nm"]'), nfIn = q('[data-in="nf"]'), tIn = q('[data-in="t"]');
+    const nmOut = o('[data-out="nm"]'), nfOut = o('[data-out="nf"]'), tOut = o('[data-out="t"]');
+    const rN = o('[data-r-n]'), rNe = o('[data-r-ne]'), rRatio = o('[data-r-ratio]'), rNeed = o('[data-r-need]'), rWhole = o('[data-r-whole]');
+    const why = o('[data-why]');
+
+    const BX0 = 70, BX1 = 320, SCALE_MAX = 200;
+    const bx = (v: number) => BX0 + (Math.min(v, SCALE_MAX) / SCALE_MAX) * (BX1 - BX0);
+    function text(x: number, y: number, s: string, size = 10, anchor = 'start', fill = INK, weight = 400) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+      t.textContent = s; plot.appendChild(t);
+    }
+    function render() {
+      const nm = parseInt(nmIn.value, 10), nf = parseInt(nfIn.value, 10), target = parseInt(tIn.value, 10);
+      nmOut.textContent = String(nm); nfOut.textContent = String(nf); tOut.textContent = String(target);
+      const n = nm + nf;
+      const ne = (4 * nm * nf) / (nm + nf);
+      const ratio = ne / n;
+      const need = target / ratio;
+      // whole animals at the same ratio: smallest multiple of the reduced ratio that reaches the target
+      const g = gcd(nm, nf), a = nm / g, b = nf / g;
+      const k = Math.ceil((target * (a + b)) / (4 * a * b) - 1e-9);
+      const wm = k * a, wf = k * b, wn = wm + wf, wne = (4 * wm * wf) / wn;
+
+      plot.replaceChildren();
+      // dots
+      text(6, 14, 'Breeding adults (' + nm + ' male, ' + nf + ' female)', 10, 'start', INK, 700);
+      const cols = 30, step = 10.5, ox = 8, oy = 28;
+      for (let i = 0; i < n; i++) {
+        const cx = ox + (i % cols) * step + 4, cy = oy + Math.floor(i / cols) * step + 4;
+        plot.appendChild(el('circle', { cx, cy, r: 3.6, fill: i < nm ? MALE : FEMALE }));
+      }
+      // legend
+      const ly = 108;
+      plot.appendChild(el('circle', { cx: 12, cy: ly, r: 3.6, fill: MALE }));
+      text(20, ly + 3, 'male', 9);
+      plot.appendChild(el('circle', { cx: 56, cy: ly, r: 3.6, fill: FEMALE }));
+      text(64, ly + 3, 'female', 9);
+      // bars
+      const rows: [string, number, string][] = [['N', n, FAINT], ['Ne', ne, MALE]];
+      rows.forEach(([lab, v, col], i) => {
+        const y = 128 + i * 38;
+        text(BX0 - 8, y + 16, lab === 'Ne' ? 'Ne' : 'N', 11, 'end', INK, 700);
+        plot.appendChild(el('rect', { x: BX0, y, width: bx(v) - BX0, height: 24, fill: col }));
+        const lblIn = bx(v) - BX0 > 60;
+        text(lblIn ? bx(v) - 4 : bx(v) + 4, y + 16, fmt(v), 10, lblIn ? 'end' : 'start', lblIn && col === MALE ? '#fff' : INK, 700);
+      });
+      // axis
+      plot.appendChild(el('line', { x1: BX0, y1: 120, x2: BX0, y2: 202, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: BX0, y1: 202, x2: BX1, y2: 202, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 50, 100, 150, 200]) {
+        plot.appendChild(el('line', { x1: bx(v), y1: 202, x2: bx(v), y2: 205, stroke: INK, 'stroke-width': 1 }));
+        text(bx(v), 215, String(v), 9, 'middle');
+      }
+      text((BX0 + BX1) / 2, 230, 'number of individuals', 10, 'middle');
+      // target line
+      plot.appendChild(el('line', { x1: bx(target), y1: 120, x2: bx(target), y2: 202, stroke: '#a33', 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
+      text(BX0 + (BX1 - BX0) / 2, 245, 'dashed line: target Ne = ' + target, 9, 'middle', '#a33', 700);
+
+      rN.textContent = String(n);
+      rNe.textContent = fmt(ne);
+      rRatio.textContent = ratio.toFixed(2);
+      rNeed.textContent = fmt(need);
+      rWhole.textContent = `${wm} males + ${wf} females = ${wn} adults, Ne = ${fmt(wne)}`;
+
+      let s: string;
+      if (nm === nf) {
+        s = `Equal numbers of each sex: Ne = ${fmt(ne)} equals the census N = ${n}, so Ne/N = 1.00 and you need ${fmt(need)} adults for a target of ${target}.`;
+      } else if (Math.min(nm, nf) === 1) {
+        const rare = nm === 1 ? 'male' : 'female';
+        s = `With one ${rare}, the formula gives Ne below 4 however many of the other sex there are: Ne = ${fmt(ne)} from ${n} adults (Ne/N = ${ratio.toFixed(2)}). Reaching ${target} at this ratio would take ${fmt(need)} adults.`;
+      } else {
+        s = `With ${nm} males and ${nf} females, Ne = ${fmt(ne)} is below the census N = ${n} (Ne/N = ${ratio.toFixed(2)}). If the ratio held, a target of ${target} would need ${fmt(need)} adults, or ${wn} in whole animals at this ratio (Ne = ${fmt(wne)}).`;
+      }
+      if (ne >= target) s += ` This group already meets the target.`;
+      why.textContent = s;
+    }
+    [nmIn, nfIn, tIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .esr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .esr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .esr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .esr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .esr-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .esr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .esr-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .esr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .esr-slabel input { accent-color: var(--ddp-color-accent); }
+  .esr-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .esr-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .esr-wide { grid-column: 1 / -1; }
+  .esr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .esr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .esr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .esr-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .esr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

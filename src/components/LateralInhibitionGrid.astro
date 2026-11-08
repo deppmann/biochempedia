@@ -1,0 +1,163 @@
+---
+/**
+ * LateralInhibitionGrid — a sheet of equivalent cells that signal to their touching
+ * neighbours through Delta and Notch. Each cell's Notch activity is the average Delta
+ * its neighbours send; high Notch activity switches on E(spl)/Hes, which lowers proneural
+ * activity and so lowers that cell's own Delta (the loop in the proneural-and-lateral-
+ * inhibition lesson). The one control that matters is how steeply Delta falls as Notch
+ * activity rises (the feedback strength): the lesson's graduate note says a fine-grained
+ * pattern needs that response to be steep enough, and a shallow response leaves the
+ * uniform state stable. Time is advanced by stepping. Everything is in relative units;
+ * the picture is a sketch of the logic, not a model of a real tissue.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="lig card" data-lig>
+  <figcaption class="lig-head">Lateral inhibition grid: one cell picks, the rest hold back<span class="lig-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="lig-svg" viewBox="0 0 360 254" role="img" aria-label="A sheet of touching cells in a proneural cluster. Each cell is shaded by its Delta level; cells with high Delta are marked N for neural precursor." data-stage></svg>
+
+  <div class="lig-controls">
+    <label class="lig-slabel"><span>Feedback strength: how steeply Delta falls as Notch activity rises <em data-out="h">1.0</em> <small>(relative units)</small></span>
+      <input type="range" data-in="h" min="0.5" max="8" step="0.5" value="1" />
+    </label>
+    <div class="lig-btns">
+      <button type="button" class="lig-btn" data-step="1">Step time ▸</button>
+      <button type="button" class="lig-btn" data-step="25">Step ×25 ▸▸</button>
+      <button type="button" class="lig-btn" data-reset>New random start</button>
+      <span class="lig-time">time: <strong data-time>0</strong> steps</span>
+    </div>
+  </div>
+
+  <p class="lig-verdict" data-verdict role="status"></p>
+
+  <p class="lig-foot">Every cell can become the neural precursor; the feedback makes a small difference grow until some cells are picked and their neighbours are held back, but only if the response is steep enough. Time, strength and the size of the grid are relative units: this is a sketch of the logic, not a prediction for a real tissue. The share of cells picked, and the strength at which patterning appears, are set by this sketch's parameters, not by the lesson.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const COLS = 9, ROWS = 7, DX = 36, DY = 31, R = 16, X0 = 28, Y0 = 24;
+  const HI = 0.62, LO = 0.38; // above HI: neural precursor; below LO: held back
+  const mix = (a: number[], b: number[], t: number) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  const PALE = [236, 244, 245], DEEP = [14, 124, 134];
+
+  document.querySelectorAll<HTMLElement>('[data-lig]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const hIn = root.querySelector<HTMLInputElement>('[data-in="h"]')!;
+    const hOut = root.querySelector<HTMLElement>('[data-out="h"]')!;
+    const timeEl = root.querySelector<HTMLElement>('[data-time]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+
+    const N = COLS * ROWS;
+    const nbrs: number[][] = [];
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const odd = r % 2 === 1;
+      const cand: [number, number][] = [[r, c - 1], [r, c + 1],
+        [r - 1, odd ? c : c - 1], [r - 1, odd ? c + 1 : c], [r + 1, odd ? c : c - 1], [r + 1, odd ? c + 1 : c]];
+      nbrs.push(cand.filter(([rr, cc]) => rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS).map(([rr, cc]) => rr * COLS + cc));
+    }
+    let d: number[] = [];
+    let t = 0;
+    let lastChange = 1;
+    let prevSpread = 0;
+    const h = () => Number(hIn.value);
+
+    function reset() {
+      // every cell starts equivalent; only a tiny random difference separates them
+      d = Array.from({ length: N }, () => 0.5 + (Math.random() - 0.5) * 0.04);
+      t = 0; lastChange = 1; prevSpread = Math.max(...d) - Math.min(...d);
+    }
+    function step() {
+      const k = h(), dt = 0.5;
+      const next = d.map((di, i) => {
+        const notch = nbrs[i].reduce((s, j) => s + d[j], 0) / nbrs[i].length; // Delta received from neighbours
+        const target = 1 / (1 + Math.pow(notch / 0.5, k)); // more Notch activity -> less Delta in this cell
+        return di + (target - di) * dt;
+      });
+      prevSpread = Math.max(...d) - Math.min(...d);
+      lastChange = Math.max(...next.map((v, i) => Math.abs(v - d[i])));
+      d = next; t++;
+    }
+    function counts() {
+      let neural = 0, held = 0;
+      d.forEach((v) => { if (v > HI) neural++; else if (v < LO) held++; });
+      return { neural, held, between: N - neural - held };
+    }
+    function draw() {
+      stage.replaceChildren();
+      const INK = '#4b4b55';
+      d.forEach((v, i) => {
+        const r = Math.floor(i / COLS), c = i % COLS;
+        const x = X0 + c * DX + (r % 2 ? DX / 2 : 0), y = Y0 + r * DY;
+        const rgb = mix(PALE, DEEP, Math.min(1, Math.max(0, v)));
+        const isN = v > HI;
+        stage.appendChild(el('circle', { cx: x, cy: y, r: R, fill: `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`, stroke: isN ? '#e57200' : '#b9b9c2', 'stroke-width': isN ? 2.5 : 1 }));
+        if (isN) stage.appendChild(el('text', { x, y: y + 4, 'font-size': 12, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'N'));
+      });
+      // legend
+      const ly = 236;
+      stage.appendChild(el('circle', { cx: 16, cy: ly - 3, r: 5, fill: `rgb(${PALE.join(',')})`, stroke: '#b9b9c2' }));
+      stage.appendChild(el('text', { x: 25, y: ly, 'font-size': 9, fill: INK }, 'low Delta: held back (epidermis in the fly)'));
+      stage.appendChild(el('circle', { cx: 16, cy: ly + 11, r: 5, fill: `rgb(${DEEP.join(',')})`, stroke: '#e57200', 'stroke-width': 2 }));
+      stage.appendChild(el('text', { x: 25, y: ly + 14, 'font-size': 9, fill: INK }, 'N: high Delta, neural precursor'));
+    }
+    function say() {
+      const { neural, held, between } = counts();
+      const spread = Math.max(...d) - Math.min(...d);
+      const settled = lastChange < 0.001 && spread <= prevSpread;
+      let v: string;
+      if (t === 0) {
+        v = 'All cells start equivalent, with the same Delta except for tiny random differences. Choose a feedback strength and step time forward.';
+      } else if (spread < 0.1) {
+        v = settled
+          ? 'The differences have faded and no cell has been picked: every cell is still equivalent. With a response this shallow, the feedback does not magnify a small difference.'
+          : spread > prevSpread
+            ? 'The small differences are slowly growing, but no cell has been picked yet. Step on (or press Step ×25).'
+            : 'The small differences are shrinking, not growing, so no cell is being picked yet. Step on to see whether they fade (or press Step ×25).';
+      } else if (!settled || between > 0) {
+        v = `The feedback is magnifying small differences: ${neural} cell${neural === 1 ? ' is' : 's are'} gaining Delta and ${held} ${held === 1 ? 'is' : 'are'} being held back, with ${between} still undecided. Step on (or press Step ×25).`;
+      } else {
+        v = neural === 0
+          ? 'The pattern has settled but no cell is marked neural. Press New random start.'
+          : `The pattern has settled: ${neural} cell${neural === 1 ? '' : 's'} won (N) and ${held} neighbouring cell${held === 1 ? ' is' : 's are'} held back. Which cells win is a matter of chance: press New random start for a different pattern.`;
+      }
+      verdict.textContent = v;
+    }
+    function render() {
+      hOut.textContent = h().toFixed(1);
+      timeEl.textContent = String(t);
+      draw(); say();
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => {
+      b.addEventListener('click', () => { const n = Number(b.dataset.step); for (let i = 0; i < n; i++) step(); render(); });
+    });
+    root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => { reset(); render(); });
+    hIn.addEventListener('input', () => { reset(); render(); }); // a new strength restarts from equivalent cells
+    reset(); render();
+  });
+</script>
+
+<style is:global>
+  .lig { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .lig-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .lig-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .lig-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .lig-controls { display: grid; gap: var(--ddp-space-2); }
+  .lig-slabel { display: grid; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lig-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-primary); }
+  .lig-slabel small { color: var(--ddp-color-muted); }
+  .lig-slabel input { width: 100%; accent-color: var(--ddp-color-accent); }
+  .lig-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+  .lig-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .lig-btn:focus-visible, .lig-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .lig-time { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-left: auto; }
+  .lig-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .lig-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

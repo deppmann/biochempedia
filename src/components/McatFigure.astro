@@ -1,0 +1,89 @@
+---
+/**
+ * A figure or table in an MCAT passage, drawn at build time from the numbers in the
+ * set's JSON (no images). Tables become HTML tables; line, bar and scatter plots become
+ * inline SVG with labelled axes, optional error bars, and a legend.
+ */
+import type { McatFigure } from '../lib/mcat';
+interface Props { fig: McatFigure }
+const { fig } = Astro.props;
+
+const W = 560, H = 320, L = 64, R = 16, T = 16, B = 52;
+const pw = W - L - R, ph = H - T - B;
+const series = fig.series ?? [];
+const pts = series.flatMap((s) => s.points.filter((p) => p[1] !== null) as number[][]);
+const errs = series.flatMap((s) => s.points.map((p, i) => (p[1] ?? 0) + (s.error?.[i] ?? 0)));
+const isBar = fig.type === 'bar';
+const xs = pts.map((p) => p[0]);
+const ys = [...pts.map((p) => p[1]), ...errs];
+const nice = (lo: number, hi: number) => {
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const span = hi - lo, step0 = Math.pow(10, Math.floor(Math.log10(span / 5)));
+  const step = [1, 2, 5, 10].map((m) => m * step0).find((s) => span / s <= 6) ?? step0 * 10;
+  const a = Math.floor(lo / step) * step, b = Math.ceil(hi / step) * step;
+  const ticks: number[] = [];
+  for (let v = a; v <= b + step / 2; v += step) ticks.push(+v.toFixed(10));
+  return { a, b, ticks };
+};
+const xr = isBar ? { a: -0.5, b: Math.max(...xs, 0) + 0.5, ticks: [...new Set(xs)].sort((p, q) => p - q) } : nice(Math.min(...xs, 0), Math.max(...xs, 0));
+const yr = nice(Math.min(...ys, 0), Math.max(...ys, 0));
+const sx = (v: number) => L + ((v - xr.a) / (xr.b - xr.a)) * pw;
+const sy = (v: number) => T + ph - ((v - yr.a) / (yr.b - yr.a)) * ph;
+const fmt = (v: number) => (Math.abs(v) >= 1000 || (Math.abs(v) < 0.01 && v !== 0) ? v.toExponential(1) : String(+v.toPrecision(4)));
+const COLORS = ['var(--mcf-1)', 'var(--mcf-2)', 'var(--mcf-3)', 'var(--mcf-4)'];
+const barW = isBar ? Math.min(40, (pw / Math.max(1, xr.ticks.length)) / (series.length + 1)) : 0;
+---
+
+<figure class="mcf">
+  {fig.type === 'table' ? (
+    <div class="mcf-tablewrap">
+      <table class="mcf-table">
+        <thead><tr>{fig.columns!.map((c) => <th scope="col">{c}</th>)}</tr></thead>
+        <tbody>{fig.rows!.map((r) => <tr>{r.map((c) => <td>{c}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  ) : (
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${fig.caption} ${fig.xLabel} on the horizontal axis, ${fig.yLabel} on the vertical axis.`} class="mcf-svg">
+      {yr.ticks.map((t) => (<g><line x1={L} x2={W - R} y1={sy(t)} y2={sy(t)} class="mcf-grid" /><text x={L - 6} y={sy(t) + 4} text-anchor="end" class="mcf-tick">{fmt(t)}</text></g>))}
+      {xr.ticks.map((t) => (<text x={sx(t)} y={H - B + 16} text-anchor="middle" class="mcf-tick">{isBar && fig.xTicks ? fig.xTicks[t] ?? t : fmt(t)}</text>))}
+      <line x1={L} x2={W - R} y1={sy(yr.a)} y2={sy(yr.a)} class="mcf-axis" />
+      <line x1={L} x2={L} y1={T} y2={T + ph} class="mcf-axis" />
+      <text x={L + pw / 2} y={H - 8} text-anchor="middle" class="mcf-label">{fig.xLabel}</text>
+      <text transform={`translate(14 ${T + ph / 2}) rotate(-90)`} text-anchor="middle" class="mcf-label">{fig.yLabel}</text>
+      {series.map((s, si) => {
+        const ok = s.points.filter((p) => p[1] !== null) as number[][];
+        const color = COLORS[si % COLORS.length];
+        if (isBar) return ok.map((p, i) => {
+          const x = sx(p[0]) - (series.length * barW) / 2 + si * barW;
+          const e = s.error?.[s.points.indexOf(p)];
+          return (<g><rect x={x} y={sy(Math.max(p[1], 0))} width={barW - 2} height={Math.abs(sy(p[1]) - sy(0))} fill={color} />{e ? <line x1={x + barW / 2 - 1} x2={x + barW / 2 - 1} y1={sy(p[1] - e)} y2={sy(p[1] + e)} class="mcf-err" /> : null}</g>);
+        });
+        return (<g>
+          {fig.type === 'line' && <polyline points={ok.map((p) => `${sx(p[0])},${sy(p[1])}`).join(' ')} fill="none" stroke={color} stroke-width="2.2" />}
+          {ok.map((p) => { const e = s.error?.[s.points.indexOf(p)]; return (<g>{e ? <line x1={sx(p[0])} x2={sx(p[0])} y1={sy(p[1] - e)} y2={sy(p[1] + e)} class="mcf-err" /> : null}<circle cx={sx(p[0])} cy={sy(p[1])} r="3.6" fill={color} /></g>); })}
+        </g>);
+      })}
+    </svg>
+  )}
+  {series.length > 1 && (
+    <ul class="mcf-legend">{series.map((s, si) => <li><span class="mcf-swatch" style={`background:${COLORS[si % COLORS.length]}`}></span>{s.name}</li>)}</ul>
+  )}
+  <figcaption>{fig.caption}</figcaption>
+</figure>
+
+<style>
+  .mcf { margin: var(--ddp-space-4) 0; --mcf-1: #23756b; --mcf-2: #c06a1f; --mcf-3: #5e3f80; --mcf-4: #8a8f99; }
+  .mcf-svg { width: 100%; height: auto; max-width: 560px; display: block; }
+  .mcf-grid { stroke: var(--ddp-color-line); stroke-width: 1; }
+  .mcf-axis { stroke: var(--ddp-color-ink-soft); stroke-width: 1.4; }
+  .mcf-err { stroke: var(--ddp-color-ink); stroke-width: 1.4; }
+  .mcf-tick { font-size: 12px; fill: var(--ddp-color-ink-soft); font-family: var(--ddp-font-mono); }
+  .mcf-label { font-size: 13px; fill: var(--ddp-color-ink); }
+  .mcf-tablewrap { overflow-x: auto; }
+  .mcf-table { border-collapse: collapse; font-size: var(--ddp-text-sm); min-width: 60%; }
+  .mcf-table th, .mcf-table td { padding: 0.4em 0.8em; border: 1px solid var(--ddp-color-line); text-align: center; }
+  .mcf-table th { background: color-mix(in srgb, var(--ddp-color-line) 45%, transparent); font-weight: 600; }
+  .mcf-legend { list-style: none; display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); padding: 0; margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); }
+  .mcf-swatch { display: inline-block; width: 0.9em; height: 0.9em; border-radius: 2px; margin-right: 0.35em; vertical-align: -0.1em; }
+  figcaption { margin-top: var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+</style>
