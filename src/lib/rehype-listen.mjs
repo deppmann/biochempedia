@@ -12,7 +12,11 @@
  * For lesson files (src/content/lessons/<dir>/lesson.mdx) it also writes .listen/<slug>.json, a list
  * of {hash, text} in reading order (duplicates dropped), which scripts/listen-render.mjs turns into
  * Kokoro clips. .listen/ is gitignored. The hash ties a clip to its exact text: edit a paragraph and
- * its old clip is simply no longer used; the player falls back to the device voice until the next render.
+ * its old clip is simply no longer used, and that paragraph is skipped until the next render.
+ *
+ * It also adds each EquationCard's `say` sentence to the same list (2026-11-06), so the card's
+ * "Read aloud" button plays a Kokoro clip too. The site never uses the device voice (Chris:
+ * "we should never do that").
  */
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -48,6 +52,26 @@ export function speakable(node) {
 }
 
 export const hashOf = (text) => createHash('sha256').update(text).digest('hex').slice(0, 12);
+
+/** What an EquationCard's Read aloud button says: its `say` prop, with notation spoken as words. */
+export const cardSpeakable = (say) => String(say || '')
+  .replace(/_/g, ' sub ')
+  .replace(/×/g, ' times ')
+  .replace(/−/g, ' minus ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+/** Every EquationCard's say sentence, wherever it sits in the tree. */
+function cards(node, out) {
+  for (const c of node.children || []) {
+    if (isJsx(c) && c.name === 'EquationCard') {
+      const a = (c.attributes || []).find((x) => x.type === 'mdxJsxAttribute' && x.name === 'say');
+      const text = cardSpeakable(typeof a?.value === 'string' ? a.value : '');
+      if (text) out.push({ hash: hashOf(text), text });
+    }
+    cards(c, out);
+  }
+}
 
 function mark(node, out) {
   const text = speakable(node);
@@ -87,6 +111,7 @@ export default function rehypeListen() {
   return (tree, file) => {
     const out = [];
     walk(tree, out);
+    cards(tree, out);
     const slug = lessonSlug(file);
     if (!slug) return;
     const seen = new Set();
