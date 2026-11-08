@@ -19,6 +19,12 @@ import '../../styles/teach.css';
         progress the same on every device you use. Accounts are for people 13 and older.
       </p>
 
+      <p class="tc-note" data-class-note hidden>
+        You're in a class on this device<span data-class-name></span>. You don't need an account: your class answers
+        reach your teacher either way. A learner account is separate from your class, your teacher can't see it, and
+        accounts are for people 13 and older.
+      </p>
+
       <label class="tc-check acct-age"><input type="checkbox" data-age /> <span>I am 13 or older.</span></label>
 
       <div class="acct-choices">
@@ -99,6 +105,7 @@ import '../../styles/teach.css';
     getMe, syncNow, registerPasskey, signInWithPasskey, googleStartUrl, signOut, deleteAccount,
     passkeysSupported, lastSyncAt, EXPORT_URL, type Me,
   } from '../../lib/learner';
+  import { enrolled } from '../../lib/classroom';
 
   const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
   const show = (el: HTMLElement, on: boolean) => { el.hidden = !on; };
@@ -128,6 +135,11 @@ import '../../styles/teach.css';
 
   function renderOut(me: Me) {
     show($('[data-out]'), true);
+    const cls = enrolled();
+    if (cls) {
+      $('[data-class-name]').textContent = ` (${cls.className})`;
+      show($('[data-class-note]'), true);
+    }
     show($('[data-in]'), false);
     $('[data-title]').textContent = 'Sign in';
     show($('[data-google-card]'), !!me.googleAvailable);
