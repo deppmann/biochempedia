@@ -394,6 +394,7 @@ draft: false
 
 import NestedSampleCounter from '../../../components/NestedSampleCounter.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **The original Neuropixels probe (2017) carries 960 recording sites along one shank about 10 mm long. Push it into a mouse brain and you can hear spikes from hundreds of neurons at once.**
 
@@ -439,11 +440,15 @@ An **extracellular** electrode sits outside cells and picks up the small voltage
 
 Sites and channels, the first two rungs of the probe's ladder, are hardware. The next rung is an inference. **Spike sorting** software detects spikes and groups them into **units** by the shape of each spike and the sites where it appears. One neuron shows up on several neighbouring sites; one site hears several neurons. So a unit can merge two neurons or split one. Even a "well-isolated" unit is a judgment made from quality scores: treat it as an inference, not as a confirmed single neuron. The Allen Institute's documentation for its own Neuropixels survey warns that spikes from different neurons can be mixed in one unit, and that it does not separate single-unit from multi-unit activity.
 
+<LessonFigure src="/figures/large-scale-neuroscience/sites-channels-units.webp" width={1200} height={800} alt="AI-generated illustration: A probe shank with a column of recording sites, the upper ones read out as channels. One gold neuron is picked up on three neighbouring sites while one site picks up two neurons; an inset shows that a sorted unit may enclose two neurons as easily as one." caption="Sites and channels are hardware, but units are an inference: one neuron can show up on several sites, one site can hear several neurons, and spike sorting can merge two neurons into one unit." />
+
 ## Imaging: light, two steps from a spike
 
 When a neuron fires an [action potential](/lessons/action-potential/), voltage-gated calcium channels open and calcium in the cell body rises for a while after the spike. A genetically encoded sensor turns that rise into light. **GCaMP6** is one protein that joins a green fluorescent protein to calmodulin, the calcium-binding protein you met in [calcium signaling](/lessons/calcium-signaling/). Calcium-bound calmodulin grips a short peptide, M13, built into the same protein, and that change of shape makes the green barrel brighter. The structures panel shows the parts. How the sensor is delivered, by virus or by a transgenic mouse line, belongs to [hacking the cell](/lessons/hacking-the-cell/), and how a two-photon microscope collects the light belongs to [microscopy and images](/lessons/microscopy-and-images/).
 
 So the light is two steps from the spike: the spike lets calcium in, and calcium makes the sensor glow. A spike is over within a few milliseconds, but the calcium and the glow it causes rise and fade far more slowly. It is like reading a kettle's steam to infer when the stove was switched on: the steam is real, but it lags and blurs the moment you care about.
+
+<LessonFigure src="/figures/large-scale-neuroscience/spike-calcium-glow.webp" width={1200} height={676} alt="AI-generated illustration: Three frames show a spike opening calcium channels, calcium rising in the cell body, and calcium-bound calmodulin gripping M13 so the green sensor brightens. An inset shows the soma region drawn on an image and the ring of glowing neuropil around it." caption="Imaging light is two steps from a spike: the spike lets calcium in, calcium makes the sensor brighten, and glowing neuropil around the cell leaks into any soma region drawn on the image." />
 
 Activity is reported as a fractional change from baseline:
 
@@ -502,6 +507,8 @@ It falls further. Huang and colleagues (2021) repeated the calibration in anesth
 The explanation Huang and colleagues gave is **photons**. A larger field of view spreads the same imaging time over more pixels, so each neuron sends back fewer photons. Photon counts flicker at random, and the small glow from one spike sinks into that flicker. For a slowly decaying GCaMP6s transient, dropping from about 158 to 30 frames per second costs little in a simple model, as long as the cell sends back the same photons per second. Frame rate still limits spike timing and matters more for fast sensors and overlapping events (Going deeper has a rough estimate).
 
 </details>
+
+<LessonFigure src="/figures/large-scale-neuroscience/calibration-setup.webp" width={1200} height={800} alt="AI-generated illustration: A side view of cortex shows a microscope objective imaging one gold neuron while a glass pipette pressed against the outside of the same cell records its spikes. Two insets compare a small field, filled by one cell, with a wide field holding many small cells." caption="Calibration records each spike with a cell-attached pipette while imaging the same cell; in a wide field each cell sends back fewer photons, which Huang and colleagues proposed as the reason fewer single spikes are detected." />
 
 So a calibration belongs to its conditions, not to the sensor. Before you turn ΔF/F0 into spikes, ask whether anyone has calibrated it at your field of view, your expression level and your cell type. The spike-to-fluorescence relation also differs from one neuron to the next. GCaMP6s decays slowly, and the fast GCaMP6 variants trade sensitivity for speed. Newer sensors such as jGCaMP8 respond more linearly than earlier GCaMPs, but none of them reports voltage, and none removes the need for an answer key. In population imaging a flat trace does not prove a silent cell: one or a few spikes can hide in it.
 

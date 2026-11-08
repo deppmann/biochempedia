@@ -432,6 +432,7 @@ draft: false
 
 import VesicleDepletionPairedPulse from '../../../components/VesicleDepletionPairedPulse.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **A synapse that stores an association should strengthen when its own input is active at the same moment as the cell it talks to. How could one synapse know what the whole cell is doing?**
 
@@ -456,6 +457,8 @@ Most of the work in this lesson comes from the hippocampus, so start with a map.
 | Mossy fibre → CA3 | the exception: a potentiation that works differently |
 
 One more synapse lies outside the chain: auditory inputs to the lateral amygdala, where the last section tests a link to memory.
+
+<LessonFigure src="/figures/synaptic-plasticity/hippocampal-slice-map.webp" width={1200} height={800} alt="AI-generated illustration: a hippocampal slice map shows perforant-path fibres from the entorhinal cortex reaching dentate gyrus granule cells, mossy fibres running to CA3 pyramidal cells, and gold Schaffer collaterals running from CA3 to CA1 pyramidal cells." caption="The hippocampal chain runs perforant path to dentate gyrus, mossy fibres to CA3 and Schaffer collaterals to CA1, the synapse where most of this lesson's mechanism was worked out." />
 
 ### The first record
 
@@ -524,6 +527,8 @@ Put the two signals together:
 > **Ca2+ entry through NMDA receptors ∝ (glutamate bound) × (fraction of the block cleared by depolarization) × (inward push on Ca2+)**
 
 The active terminal supplies the first factor. The other two are set by the voltage of the postsynaptic membrane: depolarization raises the second and lowers the third. Without glutamate, no Ca2+ enters through these receptors at any voltage, and near rest the Mg2+ block keeps entry small. That makes the receptor a **coincidence detector**.
+
+<LessonFigure src="/figures/synaptic-plasticity/nmda-coincidence-gate.webp" width={1200} height={800} alt="AI-generated illustration: two panels show the same spine receiving glutamate: near rest, a magnesium ion plugs the NMDA receptor pore and only a trace of calcium enters; with the spine depolarized, magnesium is pushed out and a stream of calcium flows through the NMDA receptor into the spine." caption="The NMDA receptor lets substantial calcium into the spine only when glutamate is bound and the spine is depolarized enough to push magnesium out of its pore; near rest, only a little enters." />
 
 | | Spine near rest (−70 mV) | Spine depolarized (−30 mV) |
 | --- | --- | --- |
@@ -607,6 +612,8 @@ No. NMDA antagonists prevented it, so the same receptor that gates LTP is needed
 </details>
 
 What, then, decides the direction? The second half of the lesson's rule: how much Ca2+ comes through, and how fast. In the canonical model the synapse works like a dimmer switch with one input wire. A modest, prolonged Ca2+ rise preferentially recruits protein phosphatases, which lead to receptor removal, rather than CaMKII, which leads to insertion. The model's reason is that the phosphatase pathway (calcineurin, a phosphatase that in turn activates protein phosphatase 1) responds to smaller Ca2+/calmodulin signals than CaMKII does.
+
+<LessonFigure src="/figures/synaptic-plasticity/calcium-direction-ltp-ltd.webp" width={1200} height={800} alt="AI-generated illustration: two panels compare spines: with a dense, fast calcium rise, CaMKII is recruited and AMPA receptors are inserted into the synapse; with a sparse, prolonged rise, phosphatases are recruited and AMPA receptors are removed by endocytosis." caption="In the standard model, a large, fast calcium rise recruits CaMKII and adds AMPA receptors, turning the synapse up, while a modest, prolonged rise recruits phosphatases that remove them, though no single calcium threshold is established." />
 
 The evidence fits. Mulkey, Herron and Malenka found in 1993 that phosphatase inhibitors blocked or reduced LTD induction in rat CA1, whether applied in the bath (okadaic acid, calyculin A) or loaded into the postsynaptic cell (microcystin LR). Expression includes removal of AMPA receptors by endocytosis (see [endocytosis](/lessons/endocytosis/)).
 

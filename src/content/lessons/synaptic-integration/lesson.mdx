@@ -413,6 +413,7 @@ draft: false
 import ShuntingConductanceCell from '../../../components/ShuntingConductanceCell.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **An inhibitory input can leave a resting neuron's voltage exactly where it was and still stop the cell from firing.**
 
@@ -440,6 +441,8 @@ In the action-potential lesson the ropes belonged to ions. Here they belong to k
 In this lesson's illustrative model, one equivalent rope, the leak, stands in for the channels open at rest. It is 10 nS, tied at −65 mV, so the marker sits at −65 mV.
 
 Now a glutamate synapse fires. Its AMPA-type receptors open and add a second rope. For AMPA receptors E is near 0 mV, so at rest their current depolarizes. The marker is pulled up toward 0 mV but held back by the leak, so it settles between the two. That rise is a **postsynaptic potential**. When the transmitter is cleared and the channels close, the new rope goes slack and the marker drifts back to rest.
+
+<LessonFigure src="/figures/synaptic-integration/rope-voltage-scale.webp" width={1200} height={800} alt="AI-generated illustration: two panels show a vertical voltage scale with a ring marker: at rest the marker sits at the leak rope's peg; when an AMPA synapse opens, a thinner gold rope tied far above pulls the marker partway up, so it settles between the two pegs, held back by the thicker leak rope." caption="An opening AMPA synapse adds a rope tied far above rest, which pulls the marker partway up while the leak rope holds it back, so the voltage settles between the two ends." />
 
 The GABA_A receptor passes chloride and some bicarbonate, so E_GABA is set by both ion gradients and by how readily the channel passes each. The Nernst equation gives the chloride equilibrium potential, E_Cl, from the chloride concentrations ([derived in transport across membranes](/lessons/membrane-transport/)). Under ordinary gradients bicarbonate shifts E_GABA positive of E_Cl, more so in cells with low internal chloride; the offset can exceed 10 mV. Where the GABA rope is tied therefore depends on the cell's chloride gradient.
 
@@ -666,6 +669,8 @@ The rope's end can also move during activity. When GABA_A channels let chloride 
 A real neuron is not one compact patch. Each patch of dendrite has its own ropes and capacitance, and it also passes current along the dendrite to its neighbours. So the patches set each other's voltages and must be solved together; the balance point of one isolated patch is only a first guide. Passive cable theory, with λ and the membrane capacitance, describes how a local change spreads and is filtered on its way to the soma. Sublinear summation is what the rule predicts for two inputs in one small patch. Thin dendrites can also do the opposite.
 
 Polsky, Mel and Schiller (2004) used confocal imaging to find thin dendrites of rat neocortical pyramidal neurons in slices. They stimulated inputs at two sites on them, first each alone and then both together.
+
+<LessonFigure src="/figures/synaptic-integration/dendritic-input-sites.webp" width={1200} height={800} alt="AI-generated illustration: a pyramidal neuron is drawn with two gold input sites close together on one thin basal branch and two sage input sites on different branches, the two arrangements compared in the experiment." caption="Polsky, Mel and Schiller asked whether location changes how inputs combine by pairing two sites close together on one thin branch against sites on different branches of the same pyramidal neuron." />
 
 Picture the graph that comparison gives. Along the bottom is the response you would expect if the two inputs simply added: the sum of the two separate responses. Up the side is the response actually measured when both were given together. A point on the 45-degree line means the inputs added linearly.
 
