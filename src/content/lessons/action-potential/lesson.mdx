@@ -395,6 +395,7 @@ draft: false
 
 import SquidSpikeConductances from '../../../components/SquidSpikeConductances.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
 
 **In 1939 Alan Hodgkin and Andrew Huxley pushed a fine electrode down the inside of a squid giant axon and found that, at the peak of the action potential, the inside became positive.**
@@ -467,6 +468,8 @@ The driving force is 0 − (+50) = −50 mV. The current is negative, so it is i
 Notice what that current did: it pulled Vm toward E_Na. The same holds for every ion: open channels pull the voltage toward that ion's equilibrium potential.
 
 Picture a voltage scale running from E_K at −77 mV on the left to E_Na at +50 mV on the right. A marker on the scale shows Vm. A rope for each ion pulls the marker toward that ion's end. How hard a rope pulls is that ion's current, g × (Vm − E): its conductance times the marker's distance from the ion's own end. So a rope pulls harder the more open its channels are and the farther the marker sits from its end.
+
+<LessonFigure src="/figures/action-potential/tug-of-war-scale.webp" width={1200} height={800} alt="AI-generated illustration: a voltage scale with a marker for the membrane potential pulled by a potassium rope toward the left end and a sodium rope toward the right end. Two insets show the marker near the potassium end at rest, with the potassium rope thicker, and near the sodium end at the peak, with the sodium rope thicker." caption="Each ion's open channels pull the voltage toward that ion's end of the scale, harder the more conductance it has, so the marker sits near potassium's end at rest and near sodium's end at the peak." />
 
 The marker settles where the pulls balance. Write I = g × (Vm − E) for each ion, set the sum to zero, and solve for Vm (open “Where it comes from” on the card for the three steps). It comes out as an average of the equilibrium potentials, each weighted by its conductance:
 
@@ -598,6 +601,8 @@ Sodium can pass only while both gates are open. So after a depolarization there 
 
 The squid's delayed potassium channel behaves as if it has **one slow gate**. It opens slowly when the membrane depolarizes and closes slowly when the voltage falls again.
 
+<LessonFigure src="/figures/action-potential/three-gate-states.webp" width={1200} height={676} alt="AI-generated illustration: three sodium channels in a membrane, each with two gates in series: at rest the activation gate is shut, in a brief window both gates are open and sodium passes, and when inactivated the second gate is shut. An inset shows a potassium channel with a single slow gate, shut and then open." caption="Sodium passes only in the brief window after the fast activation gate opens and before the slow inactivation gate shuts, while the potassium channel acts as if it has one slow gate. The gates are a cartoon of the gating processes, not of the channel protein." />
+
 Hodgkin and Huxley's equations track the three processes, not physical gates, with variables that run from 0 to 1. **m** tracks sodium activation, **h** the fraction of sodium channels not inactivated, and **n** potassium activation. Depolarization drives m up fast, h down more slowly, and n up slowly. Sodium conductance follows m³h and potassium conductance n⁴. The exponents were fitted to the S-shaped onset of the currents; they are not counts of gates or subunits.
 
 Hodgkin and Huxley did not know what a channel looked like, and their equations describe conductances without proving how a gate works. Still, the gate picture predicts the right behaviour, and voltage sensors and inactivation machinery were later found in channel proteins; see [ion channels as receptors](/lessons/ion-channels-as-receptors/).
@@ -701,6 +706,8 @@ A wider axon has lower internal resistance, so current spreads farther along it 
 So current from one active gap reaches the next gap fast and still strong.
 
 The gaps are the **nodes of Ranvier**. Sodium channels there regenerate the spike, so the nodes act as boost stations. This is **saltatory conduction**, from the Latin for "leap". Huxley and Robert Stämpfli found evidence for it in single frog fibres in 1949. Excitation skips the internode, but current does not: it flows continuously through the axon from each firing node to the next, which fires in turn. Going deeper adds that the internode is not perfectly sealed.
+
+<LessonFigure src="/figures/action-potential/saltatory-conduction.webp" width={1200} height={676} alt="AI-generated illustration: a myelinated axon with four internodes and the gaps between them. The node that is firing is highlighted, current flows inside the axon from it to the next node ahead, and the node behind is marked refractory." caption="In a myelinated axon the firing node regenerates the spike and current flows on inside the axon to the next node, while the node behind is refractory, so the spike moves only forward." />
 
 In myelinated fibres velocity rises roughly in proportion to diameter. In mammalian peripheral nerves the range is wide, with exact values depending on species and temperature:
 

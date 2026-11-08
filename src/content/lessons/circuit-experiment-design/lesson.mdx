@@ -318,6 +318,7 @@ draft: false
 ---
 
 import PilotEffectSizeSampler from '../../../components/PilotEffectSizeSampler.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Illuminate the dorsal striatum of a mouse that carries no opsin at all, keeping the light on at a power people routinely use, and its firing rate falls. Illuminate one side in a freely moving mouse and it starts turning toward the lit side.** Owen, Liu and Kreitzer reported that in 2019, in vivo and ex vivo, in wild-type animals. If light alone can do that, then your light-on versus light-off comparison was never a comparison between activity and no activity. It was a comparison between light and no light, in animals that happened to express an opsin.
 
@@ -338,6 +339,8 @@ A usable causal claim names four things: the cells, the projection, the timing a
 ## Controls that make a light experiment mean something
 
 The minimum design is a two-by-two: construct crossed with light. Opsin plus light, opsin without light, fluorophore-only plus light, fluorophore-only without light. The quantity you care about is the interaction, the extra effect of light in animals that carry the opsin. Tye and colleagues included a control-virus group receiving the same illumination parameters, and their stimulation used 5 ms pulses at 20 Hz, which is a 10 percent light-on duty cycle, or 100 ms of light in each second.
+
+<LessonFigure src="/figures/circuit-experiment-design/two-by-two-light-design.webp" width={1200} height={800} alt="AI-generated illustration: Four mice with head-mounted optical fibres in a two-by-two grid: opsin or fluorophore only, crossed with light on or light off; the opsin-plus-light arena is outlined in gold." caption="The minimum design crosses opsin or fluorophore with light on or off, so the effect of light in opsin animals can be compared with the same light in animals without the opsin." />
 
 Three failure modes of the manipulation deserve checks rather than assumptions. Long channelrhodopsin-driven depolarization can suppress spikes through depolarization block, so driving harder can silence the cell you meant to drive. Anion-conducting silencers can excite neurons when internal chloride is high, as in some axonal compartments. And abruptly ending a period of silencing can produce rebound firing, so the window after the light is part of the result. Each is a reason to validate the physiology in your own preparation, with recordings during and after the light, rather than infer it from the construct's name.
 
@@ -362,6 +365,8 @@ With d = 1.0 that is 2 × 7.84 / 1 = 15.7, so 16 animals per group, or about 17 
 <PilotEffectSizeSampler />
 
 The n in all of this counts experimental units, and reporting guidelines ask you to say what the unit is: an animal, a litter or a cage. If you illuminate eight mice for 40 trials each, you do not have 320 independent observations. You have eight animals with trials nested inside them, and the analysis has to carry that nesting. Inflating the unit underestimates the real variability, which is an easy route to a significant result that will not replicate.
+
+<LessonFigure src="/figures/circuit-experiment-design/experimental-unit.webp" width={1200} height={800} alt="AI-generated illustration: Left, the trials from eight mice are poured into one loose heap as if each were independent; right, each mouse is outlined in gold together with its own column of trials." caption="Trials from eight mice are not hundreds of independent observations: each animal is one experimental unit, and its trials stay grouped with it in the analysis." />
 
 ## Why small human samples mislead
 

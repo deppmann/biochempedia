@@ -383,6 +383,7 @@ draft: false
 import CableLengthConstant from '../../../components/CableLengthConstant.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In a made-up neuron resting at −71 mV, about 200 picoamperes of potassium current leave the cell all the time, and about 200 picoamperes of sodium current come in. Neither ion is at equilibrium (the voltage at which it would feel no net push), yet the membrane potential does not move.**
 
@@ -465,6 +466,8 @@ Back to the scale. Potassium's rope runs to −95 mV and is 8.47 nS thick. Sodiu
 Nearer E_K. At the balance point the pulls are equal, so the weaker rope must be stretched farther. Potassium's rope is about 5.5 times stronger, so the marker sits about 5.5 times closer to E_K than to E_Na. Split the 155.6 mV gap in that ratio: 23.8 mV from E_K and 131.8 mV from E_Na. That is −71.2 mV, and those two distances are the driving forces from part 1.
 
 </details>
+
+<LessonFigure src="/figures/resting-membrane-passive/leak-tug-of-war.webp" width={1200} height={800} alt="AI-generated illustration: a voltage scale with potassium's mark at the left end and sodium's at the right; a marker for the membrane voltage sits near the potassium end, tied to potassium's mark by a thick rope and to sodium's by a thin one." caption="At rest the thick potassium rope outpulls the thin sodium rope, so the voltage settles near E_K, where the two pulls balance." />
 
 The same answer in algebra is a weighted average, and it works for any conductances, not only this cell's:
 
@@ -584,6 +587,8 @@ Picture a straight-sided tank with a drain. The water level is the size of the v
 
 A wider tank (more capacitance) fills more slowly. A bigger drain (more leak) stops at a lower level, and gets there sooner.
 
+<LessonFigure src="/figures/resting-membrane-passive/rc-tank.webp" width={1200} height={800} alt="AI-generated illustration: a tank filled by a hose and emptied by a drain near its base, beside an inset of a membrane patch whose bilayer stores charge and whose leak channel lets current through." caption="The membrane behaves like a tank with a drain: capacitance sets the tank's width, the leak sets the drain, and together they set how fast and how far the voltage moves when current is injected." />
+
 Now the same thing with the balance point. From here on, keep two things apart: the balance point, where the voltage is heading, and the marker, where the voltage is now. At rest they coincide. The injected current is a steady extra pull on the marker, one that does not depend on where the marker sits. The ropes stretch until together they cancel it. Each rope's pull changes in proportion to its conductance times how far the marker moves, so the marker has to move by I / g_total. That is the plateau. The **input resistance**, Rin, is the steady voltage change divided by the small steady current that caused it:
 
 > **Rin = ΔV / I = 1 / g_total**
@@ -638,6 +643,8 @@ A deflection lingers after its input ends: 37% of it remains one τ later, and 1
 <LessonFilm film={frontmatter.films[2]} />
 
 A dendrite or axon is a thin tube of salty cytoplasm in leaky membrane. Current injected at one point has two paths: along the core, or out through the membrane. Water in a garden hose full of small holes behaves the same way. Some leaks out at every hole, so the farther along you go, the less is left.
+
+<LessonFigure src="/figures/resting-membrane-passive/leaky-hose-cable.webp" width={1200} height={676} alt="AI-generated illustration: a garden hose with a hole in each of six segments; the jets and the flow inside both shrink along the hose, and an inset shows a dendrite where current flows along the core and leaks out through the membrane." caption="Like water in a leaky hose, current injected into a dendrite flows along the core and leaks out through the membrane, so less is left, and the steady voltage change is smaller, the farther along you go." />
 
 How far the current gets depends on which path is easier. A wide core carries it farther. A tight wall loses less on the way. The **length constant**, λ, puts that contest into one number. Take a stretch of cable one λ long: the resistance along its core equals the resistance out through its wall over that same stretch.
 

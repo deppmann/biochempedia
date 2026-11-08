@@ -365,6 +365,7 @@ draft: false
 
 import HopfieldPatternCompletion from '../../../components/HopfieldPatternCompletion.astro';
 import LessonFilm from '../../../components/LessonFilm.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Shine blue light on cells tagged during learning in a mouse's dentate gyrus and the mouse freezes, as it did when it learned to fear a box it is no longer in.**
 
@@ -392,6 +393,8 @@ Correlation is the lowest rung. The upper two are both interventions that answer
 
 Place cells show what the members of a group encode. A four-unit network shows a group wiring itself and completing itself. Replay asks whether the group is re-run after the experience. Engram experiments tag the members and test them.
 
+<LessonFigure src="/figures/memory-consolidation/pattern-completion-group.webp" width={1200} height={676} alt="AI-generated illustration: Three frames of the same ten cells. During learning five cells fire together and the links among them thicken; later a fragment turns on two of them; then the whole group of five is active again." caption="In the lesson's guiding model, learning strengthens the links among cells active together, so later a fragment of the pattern can switch the whole group back on." />
+
 ## Place and grid cells: candidate members of a group
 
 In 1971 John O'Keefe and Jonathan Dostrovsky reported, in a short preliminary paper in Brain Research, single units in the hippocampus of freely moving rats that fired when the animal was in a particular part of a platform, often facing a particular way. These became **place cells**: hippocampal neurons that fire when the animal is in one region of an environment, the cell's **place field**. The paper already framed the findings as support for a hippocampal cognitive, or spatial, map. O'Keefe and Lynn Nadel developed that into a full theory in their 1978 book.
@@ -399,6 +402,8 @@ In 1971 John O'Keefe and Jonathan Dostrovsky reported, in a short preliminary pa
 ### Reading a rate map
 
 You read a place cell from a **rate map**. Picture the raw record first. An electrode picks up one cell's spikes while a camera overhead tracks the rat. Each spike is drawn as a dot at the place the rat was when it fired, on top of the path the rat walked. Dots pile up wherever the rat lingered, whether or not the cell cares about that spot. So divide the floor into bins, and for each bin divide the spikes by the seconds spent there. Colour each bin by that rate, in spikes per second. One hot spot on a cool floor is a place field.
+
+<LessonFigure src="/figures/memory-consolidation/rate-map-from-spikes.webp" width={1200} height={800} alt="AI-generated illustration: On the left, a rat's path across an arena with spike dots clustered in one corner; on the right, the same arena divided into bins, with one hot patch where the cell fires. An inset shows a grid cell's map, whose many hot patches lie on a lattice of triangles." caption="Dividing each bin's spikes by the time the rat spent there turns the raw path record into a rate map, where a place cell shows one hot spot and a grid cell many fields on a triangular lattice." />
 
 **Predict.** In one bin a cell fired 10 spikes while the rat spent 2 s there. In another bin it fired 20 spikes while the rat spent 20 s. Which bin is hotter on the rate map?
 
@@ -553,6 +558,8 @@ To test engram cells you need to label, as selectively as possible, the cells ac
 A drug set the time window. **Doxycycline blocks the tag.** Take it away and a window opens in which active cells get labelled. Give it back and the window closes. Liu's mice came off doxycycline for one or two days before training and went back on it afterwards. That puts the opsin mostly into cells active during learning, with some background labelling of cells active at other times in the window. The tools are in [hacking the cell](/lessons/hacking-the-cell/).
 
 They tagged dentate-gyrus cells active while mice learned fear conditioning in a chamber, where a tone was paired with shock. The authors judged the dentate engram likely contextual, tied to the chamber rather than the tone. Days later, light on those cells evoked freezing in a different context. Picture the result as bars of time spent freezing, light off against light on, for each group. Two controls made it specific: cells tagged in a neutral context did not evoke fear freezing, and conditioned mice expressing EYFP, a fluorescent protein, without the opsin did not freeze to light. So activating these cells is enough to drive the fear behaviour in this preparation. That is **sufficiency**. The authors themselves noted that sufficiency is not necessity.
+
+<LessonFigure src="/figures/memory-consolidation/engram-tagging-design.webp" width={1200} height={676} alt="AI-generated illustration: Three frames: a mouse is fear-conditioned on a grid floor while it is off doxycycline, so active dentate cells take up channelrhodopsin; it then goes back on doxycycline; days later, in a different box, light delivered through an optic fibre to the tagged cells makes it freeze." caption="Liu and colleagues tagged dentate cells active during fear learning, closed the tagging window with doxycycline, and later made the mouse freeze in a different box by shining light on the tagged cells: a test of sufficiency, not necessity." />
 
 One step is easy to miss. The dentate gyrus is not the recurrent network of the guiding idea. It feeds CA3, and its cells have few direct connections to one another. Tagged dentate cells probably bring the memory back by driving CA3, but that is an interpretation, not a measurement.
 
