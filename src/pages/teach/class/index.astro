@@ -16,6 +16,10 @@ const catalog = COURSES
     title: c.title,
     units: unitsFor(c, mine).map((u) => ({ name: u.name, lessons: u.entries.map(({ l, n }) => ({ slug: l.data.slug, title: l.data.title, n })) })),
   }));
+// Lessons with a flashcard deck (static data, src/data/flashcards/), so the picker offers
+// "include flashcards" only where there is a deck.
+const DECKS = import.meta.glob<{ default: { slug: string; cards?: unknown[] } }>('../../../data/flashcards/*.json', { eager: true });
+const deckSlugs = Object.values(DECKS).map((m) => m.default).filter((d) => d.slug && d.cards?.length).map((d) => d.slug);
 const MODES = [
   ['open', 'Open: anyone with the code joins with a nickname'],
   ['approve', 'Approve: students wait until you let them in'],
@@ -25,7 +29,7 @@ const MODES = [
 ---
 
 <BaseLayout title="Class — Biochemistrypedia" description="Your class." noindex>
-  <article class="wrap tc" data-class data-catalog={JSON.stringify(catalog)} data-prices={JSON.stringify(PRICES)}>
+  <article class="wrap tc" data-class data-catalog={JSON.stringify(catalog)} data-prices={JSON.stringify(PRICES)} data-decks={JSON.stringify(deckSlugs)}>
     <p class="tc-eyebrow"><a href="/teach/classes/">My classes</a></p>
     <h1 data-name>Class</h1>
     <p class="tc-row" style="margin-top: var(--ddp-space-3)">
@@ -59,7 +63,7 @@ const MODES = [
 
     <!-- Assign -->
     <section data-pane="assign" hidden>
-      <p class="tc-muted">Tick the lessons you want students to do. A due date is optional; it's how the brief knows who is behind.</p>
+      <p class="tc-muted">Tick the lessons you want students to do. A due date is optional; it's how the brief knows who is behind. Lessons with a flashcard deck can also include flashcards: the brief then lists the three cards your class most often marked "again."</p>
       <label class="tc-row" style="font-weight:600">Show lessons from
         <select data-course-pick></select>
       </label>
@@ -146,14 +150,16 @@ const MODES = [
       ai?: { available: boolean; enabled: boolean; provider: string | null; model: string | null; mode: string; capCents: number; spentMicro: number; hasKey: boolean };
       feedback?: { id: number; lesson: string; kind: string; item: string; answer: string; draft: string | null; final: string | null; status: string; source: string; at: number; studentId: number; student: string; seenAt: number | null }[];
       students: { id: number; nickname: string; status: string; joined: number; lastSeen: number | null }[];
-      assignments: { slug: string; due: string | null }[];
-      lessons: Record<string, { started: number; done: number; notStarted: string[]; ideas: { item: string; idea: string; answer: string; agree: number; disagree: number }[]; quiz: { item: string; n: number; correct: number }[]; cers: { student: string; studentId: number; item: string; task: string; claim: string; evidence: string; reasoning: string; text: string; at: number }[]; stuck: { student: string; studentId: number; text: string; at: number }[] }>;
+      assignments: { slug: string; due: string | null; flashcards?: boolean }[];
+      lessons: Record<string, { cards?: { id: string; again: number; students: number }[]; started: number; done: number; notStarted: string[]; ideas: { item: string; idea: string; answer: string; agree: number; disagree: number }[]; quiz: { item: string; n: number; correct: number }[]; cers: { student: string; studentId: number; item: string; task: string; claim: string; evidence: string; reasoning: string; text: string; at: number }[]; stuck: { student: string; studentId: number; text: string; at: number }[] }>;
       needs: { student: string; reasons: string[] }[];
     }
+    interface DeckFile { cards: { id: string; front: string }[] }
     interface QuizFile { items: { id: string; stem: string; choices: string[]; answer: number; anchor: { id: string; text: string } | null }[] }
 
     const root = document.querySelector<HTMLElement>('[data-class]')!;
     const catalog: Catalog = JSON.parse(root.dataset.catalog!);
+    const hasDeck = new Set<string>(JSON.parse(root.dataset.decks || '[]'));
     const lessonInfo = new Map<string, { title: string; course: string }>();
     for (const c of catalog) for (const u of c.units) for (const l of u.lessons) lessonInfo.set(l.slug, { title: l.title, course: c.title });
     const id = new URLSearchParams(location.search).get('id') || '';
@@ -220,6 +226,12 @@ const MODES = [
       return quizCache.get(slug)!;
     };
 
+    const deckCache = new Map<string, Promise<DeckFile | null>>();
+    const deckFor = (slug: string) => {
+      if (!deckCache.has(slug)) deckCache.set(slug, fetch(`/flashcards/${slug}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      return deckCache.get(slug)!;
+    };
+
     function renderBrief() {
       $('[data-brief-when]').textContent = `As of ${new Date().toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' })}. Reload for the latest.`;
       const needs = $('[data-needs]');
@@ -284,6 +296,20 @@ const MODES = [
           });
         }
 
+        if (a?.flashcards) {
+          // Counted in students' browsers and sent with their answers; no AI.
+          const line = el('p', { style: 'margin:.8rem 0 0' }, el('strong', { textContent: "Flashcards, most marked 'again': " }));
+          det.append(line);
+          const top = L.cards ?? [];
+          if (!top.length) line.append(el('span', { className: 'tc-muted', textContent: 'none yet.' }));
+          else deckFor(slug).then((df) => {
+            top.forEach((c, i) => {
+              const front = df?.cards.find((x) => x.id === c.id)?.front ?? c.id;
+              line.append(i ? '; ' : '', front, el('span', { className: 'tc-muted', textContent: ` (${c.again}× by ${c.students} ${c.students === 1 ? 'student' : 'students'})` }));
+            });
+          });
+        }
+
         if (L.cers.length) {
           det.append(el('h3', { textContent: `Written answers sent to you (${L.cers.length})` }));
           // One group per task (each claim-evidence-reasoning box or design problem).
@@ -316,7 +342,7 @@ const MODES = [
             det.append(q);
           }
         }
-        if (!L.ideas.length && !L.quiz.length && !L.cers.length && !L.stuck.length) det.append(el('p', { className: 'tc-muted', textContent: 'No answers yet.' }));
+        if (!L.ideas.length && !L.quiz.length && !L.cers.length && !L.stuck.length && !a?.flashcards) det.append(el('p', { className: 'tc-muted', textContent: 'No answers yet.' }));
         box.append(det);
       }
     }
@@ -460,10 +486,12 @@ const MODES = [
 
     // ---- assign ----
     const chosen = new Map<string, string | null>();
+    const withCards = new Set<string>();
     let pickCourse = '';
     function renderAssign() {
       chosen.clear();
-      for (const a of brief.assignments) chosen.set(a.slug, a.due);
+      withCards.clear();
+      for (const a of brief.assignments) { chosen.set(a.slug, a.due); if (a.flashcards) withCards.add(a.slug); }
       const sel = $<HTMLSelectElement>('[data-course-pick]');
       if (!sel.options.length) {
         for (const c of catalog) sel.append(el('option', { value: c.slug, textContent: c.title }));
@@ -484,9 +512,22 @@ const MODES = [
           const cb = el('input', { type: 'checkbox', checked: chosen.has(l.slug), id: `as-${l.slug}` });
           const lab = el('label', { htmlFor: `as-${l.slug}`, textContent: `${l.n}. ${l.title}` });
           const due = el('input', { type: 'date', value: chosen.get(l.slug) ?? '', disabled: !chosen.has(l.slug), title: 'Due date (optional)' });
-          cb.addEventListener('change', () => { if (cb.checked) chosen.set(l.slug, due.value || null); else chosen.delete(l.slug); due.disabled = !cb.checked; count(); });
+          // Only lessons with a deck get the flashcards box.
+          const fc = hasDeck.has(l.slug)
+            ? el('input', { type: 'checkbox', checked: withCards.has(l.slug), disabled: !chosen.has(l.slug), id: `fc-${l.slug}` })
+            : null;
+          const fcLab = fc
+            ? el('label', { className: 'tc-fc', htmlFor: `fc-${l.slug}`, title: "The brief lists the three cards your class most often marked 'again'" }, fc, ' include flashcards')
+            : el('span');
+          fc?.addEventListener('change', () => { if (fc.checked) withCards.add(l.slug); else withCards.delete(l.slug); });
+          cb.addEventListener('change', () => {
+            if (cb.checked) chosen.set(l.slug, due.value || null); else chosen.delete(l.slug);
+            due.disabled = !cb.checked;
+            if (fc) fc.disabled = !cb.checked;
+            count();
+          });
           due.addEventListener('change', () => { if (cb.checked) chosen.set(l.slug, due.value || null); });
-          row.append(cb, lab, due);
+          row.append(cb, lab, fcLab, due);
           div.append(row);
         }
         box.append(div);
@@ -501,7 +542,7 @@ const MODES = [
       $('[data-assigned-elsewhere]').textContent = `Also assigned from other courses: ${other.map((s) => lessonInfo.get(s)?.title ?? s).join(', ')}`;
     }
     $('[data-save-assign]').addEventListener('click', async () => {
-      const r = await api(`/api/classes/${id}/assignments`, { assignments: [...chosen].map(([slug, due]) => ({ slug, due })) }, 'PUT');
+      const r = await api(`/api/classes/${id}/assignments`, { assignments: [...chosen].map(([slug, due]) => ({ slug, due, flashcards: withCards.has(slug) && hasDeck.has(slug) })) }, 'PUT');
       $('[data-assign-msg]').textContent = r.ok ? 'Saved.' : r.data.error || 'Could not save.';
       if (r.ok) load();
     });

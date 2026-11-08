@@ -25,15 +25,14 @@ const { slug } = Astro.props;
 </aside>
 
 <script>
-  import { enrolled, setEnrolled, api, report, lessonFeedback } from '../lib/classroom';
+  import { enrolled, report, studentMe, lessonFeedback } from '../lib/classroom';
 
   document.querySelectorAll<HTMLElement>('[data-classbar]').forEach(async (bar) => {
     const slug = bar.dataset.classbar!;
     if (!enrolled()) return;
-    const r = await api<{ nickname: string; className: string; teacherName: string; pending: boolean; assignments: { slug: string; due: string | null }[]; done: string[]; stuck?: string }>(`/api/student/me?lesson=${encodeURIComponent(slug)}`);
-    if (r.status === 401) { setEnrolled(null); return; }
-    if (!r.ok) return;
-    const d = r.data;
+    // Shared, cached call (src/lib/classroom.ts): the flashcard deck and answer boxes reuse it.
+    const d = await studentMe(slug);
+    if (!d) return;
     const text = bar.querySelector<HTMLElement>('[data-cb-text]')!;
     const a = d.assignments.find((x) => x.slug === slug);
     const due = a?.due ? `, due ${new Date(a.due + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}` : '';

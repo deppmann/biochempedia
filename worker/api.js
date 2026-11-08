@@ -28,6 +28,9 @@ const MAX_STUDENTS = 200;
 const MAX_CLASSES = 40;
 const RETENTION_DAYS = 400;   // a class with no activity for this long is deleted
 const NICK = /^[\p{L}\p{N} .'\-]{1,24}$/u;
+const CARD_ID = /^[A-Za-z0-9_-]{1,80}$/;
+const MAX_CARDS_PER_REPORT = 300;   // a deck is well under this
+const MAX_AGAIN = 999;              // per card per student
 
 async function emailLink(env, db, request, teacherId, email, purpose) {
   const token = randomToken();
@@ -69,6 +72,7 @@ async function deleteClass(db, id) {
     db.prepare('DELETE FROM feedback WHERE class_id=?').bind(id),
     db.prepare('DELETE FROM ai_calls WHERE class_id=?').bind(id),
     db.prepare('DELETE FROM answers WHERE student_id IN (SELECT id FROM students WHERE class_id=?)').bind(id),
+    db.prepare('DELETE FROM card_marks WHERE student_id IN (SELECT id FROM students WHERE class_id=?)').bind(id),
     db.prepare('DELETE FROM student_sessions WHERE student_id IN (SELECT id FROM students WHERE class_id=?)').bind(id),
     db.prepare('DELETE FROM students WHERE class_id=?').bind(id),
     db.prepare('DELETE FROM assignments WHERE class_id=?').bind(id),
@@ -82,7 +86,8 @@ function teacherCookie(token, request) { return cookie(TEACHER_COOKIE, token, re
 function studentCookie(token, request) { return cookie(STUDENT_COOKIE, token, request, STUDENT_SESSION_DAYS * 86400); }
 
 async function studentView(db, s) {
-  const assignments = (await db.prepare('SELECT lesson_slug AS slug, due_date AS due FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, assigned_at').bind(s.class_id).all()).results || [];
+  const assignments = ((await db.prepare('SELECT lesson_slug AS slug, due_date AS due, flashcards FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, assigned_at').bind(s.class_id).all()).results || [])
+    .map((a) => ({ ...a, flashcards: !!a.flashcards }));
   const done = (await db.prepare("SELECT lesson_slug FROM answers WHERE student_id=? AND kind='done'").bind(s.id).all()).results || [];
   return {
     nickname: s.nickname, className: s.class_name, teacherName: s.teacher_name,
@@ -93,9 +98,18 @@ async function studentView(db, s) {
 // ---- the morning brief ------------------------------------------------------------
 async function buildBrief(db, cls) {
   const students = (await db.prepare('SELECT id, nickname, status, created_at, last_seen_at FROM students WHERE class_id=? ORDER BY nickname').bind(cls.id).all()).results || [];
-  const assignments = (await db.prepare('SELECT lesson_slug AS slug, due_date AS due, assigned_at FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, assigned_at').bind(cls.id).all()).results || [];
+  const assignments = ((await db.prepare('SELECT lesson_slug AS slug, due_date AS due, assigned_at, flashcards FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, assigned_at').bind(cls.id).all()).results || [])
+    .map((a) => ({ ...a, flashcards: !!a.flashcards }));
   const rows = (await db.prepare(
     'SELECT a.* FROM answers a JOIN students s ON s.id = a.student_id WHERE s.class_id=?').bind(cls.id).all()).results || [];
+  // Flashcards: per lesson with flashcards on, the cards the class marked "Again" most (total
+  // across students), with how many students marked each. Counted in the browser; no AI.
+  const cardRows = (await db.prepare(
+    `SELECT m.lesson_slug AS slug, m.card_id AS id, SUM(m.again) AS again, COUNT(*) AS students
+       FROM card_marks m JOIN students s ON s.id = m.student_id
+       JOIN assignments a ON a.class_id = s.class_id AND a.lesson_slug = m.lesson_slug AND a.flashcards = 1
+      WHERE s.class_id=? AND s.status='active' AND m.again > 0
+      GROUP BY m.lesson_slug, m.card_id ORDER BY again DESC, students DESC`).bind(cls.id).all()).results || [];
   const nick = Object.fromEntries(students.map((s) => [s.id, s.nickname]));
   const active = students.filter((s) => s.status === 'active');
   const today = new Date().toISOString().slice(0, 10);
@@ -129,6 +143,9 @@ async function buildBrief(db, cls) {
       notStarted: active.filter((s) => !started.includes(s.id)).map((s) => s.nickname),
       ideas: Object.values(ideas), quiz: Object.values(quiz).sort((a, b) => a.correct / a.n - b.correct / b.n), cers, stuck,
     };
+    if (assignments.some((a) => a.slug === slug && a.flashcards)) {
+      lessons[slug].cards = cardRows.filter((c) => c.slug === slug).slice(0, 3).map(({ id, again, students }) => ({ id, again, students }));
+    }
   }
 
   // Who needs you: overdue and not started, low first-try accuracy, or a stuck note.
@@ -402,16 +419,16 @@ export async function handleApi(request, env) {
         return json({ ok: true });
       }
       if (sub === 'assignments' && method === 'PUT') {
-        // Replace the whole assignment list: [{slug, due?}]
+        // Replace the whole assignment list: [{slug, due?, flashcards?}]
         const b = await body(request);
         const list = Array.isArray(b?.assignments) ? b.assignments.slice(0, 400) : null;
         if (!list) return fail(400, 'Bad list.');
-        const rows = list.filter((a) => SLUG.test(String(a?.slug || ''))).map((a) => ({ slug: a.slug, due: /^\d{4}-\d{2}-\d{2}$/.test(a?.due || '') ? a.due : null }));
+        const rows = list.filter((a) => SLUG.test(String(a?.slug || ''))).map((a) => ({ slug: a.slug, due: /^\d{4}-\d{2}-\d{2}$/.test(a?.due || '') ? a.due : null, flashcards: a?.flashcards === true ? 1 : 0 }));
         const now = Date.now();
         const old = Object.fromEntries(((await db.prepare('SELECT lesson_slug, assigned_at FROM assignments WHERE class_id=?').bind(cls.id).all()).results || []).map((r) => [r.lesson_slug, r.assigned_at]));
         await db.batch([
           db.prepare('DELETE FROM assignments WHERE class_id=?').bind(cls.id),
-          ...rows.map((r) => db.prepare('INSERT INTO assignments (class_id, lesson_slug, due_date, assigned_at) VALUES (?,?,?,?)').bind(cls.id, r.slug, r.due, old[r.slug] ?? now)),
+          ...rows.map((r) => db.prepare('INSERT INTO assignments (class_id, lesson_slug, due_date, assigned_at, flashcards) VALUES (?,?,?,?,?)').bind(cls.id, r.slug, r.due, old[r.slug] ?? now, r.flashcards)),
         ]);
         await touchClass(db, cls.id);
         return json({ ok: true, count: rows.length });
@@ -453,6 +470,7 @@ export async function handleApi(request, env) {
           await db.batch([
             db.prepare('DELETE FROM feedback WHERE student_id=?').bind(st.id),
             db.prepare('DELETE FROM answers WHERE student_id=?').bind(st.id),
+            db.prepare('DELETE FROM card_marks WHERE student_id=?').bind(st.id),
             db.prepare('DELETE FROM student_sessions WHERE student_id=?').bind(st.id),
             db.prepare('DELETE FROM students WHERE id=?').bind(st.id),
           ]);
@@ -528,6 +546,24 @@ export async function handleApi(request, env) {
       const slug = String(b?.lesson || '');
       const kind = String(b?.kind || '');
       const item = clean(b?.item, 80);
+      // Flashcards: the browser's running "Again" count per card, for a lesson assigned with
+      // flashcards on. Kept in card_marks, not answers. An upsert of the count, so resends are harmless.
+      if (kind === 'cards') {
+        if (!SLUG.test(slug) || !b?.cards || typeof b.cards !== 'object' || Array.isArray(b.cards)) return fail(400, 'Bad answer.');
+        const on = await db.prepare('SELECT 1 FROM assignments WHERE class_id=? AND lesson_slug=? AND flashcards=1').bind(s.class_id, slug).first();
+        if (!on) return json({ ok: true, ignored: true });
+        const entries = Object.entries(b.cards).slice(0, MAX_CARDS_PER_REPORT)
+          .filter(([id, n]) => CARD_ID.test(id) && Number.isFinite(Number(n)))
+          .map(([id, n]) => [id, Math.max(0, Math.min(MAX_AGAIN, Math.round(Number(n))))]);
+        if (!entries.length) return fail(400, 'Bad answer.');
+        const now = Date.now();
+        await db.batch(entries.map(([id, n]) => db.prepare(
+          `INSERT INTO card_marks (student_id, lesson_slug, card_id, again, updated_at) VALUES (?,?,?,?,?)
+             ON CONFLICT (student_id, lesson_slug, card_id) DO UPDATE SET again=MAX(card_marks.again, excluded.again), updated_at=excluded.updated_at`)
+          .bind(s.id, slug, id, n, now)));
+        await touchClass(db, s.class_id);
+        return json({ ok: true });
+      }
       if (!SLUG.test(slug) || !KINDS.includes(kind)) return fail(400, 'Bad answer.');
       const now = Date.now();
       let value = null;
