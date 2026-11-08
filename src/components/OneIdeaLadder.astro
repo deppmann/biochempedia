@@ -1,0 +1,125 @@
+---
+/**
+ * OneIdeaLadder: photosynthesis at six levels, the ladder film, and the three things that hold for
+ * every lesson. Moved from the homepage to /about/ on 2026-11-08 (Chris: the homepage had "a lot of
+ * clutter ... people have to scroll a bit before they get to the lesson"; "you can move some stuff
+ * to the about page").
+ */
+import HomeFilm from './HomeFilm.astro';
+
+const FILM = {
+  src: '/explainers/home/one-idea/explainer.mp4',
+  captions: '/explainers/home/one-idea/explainer.vtt',
+  poster: '/explainers/home/one-idea/poster.jpg',
+  title: 'One idea, six levels',
+  durationSec: 54.57,
+};
+const LEVELS = [
+  { who: 'A small child', line: 'Plants need sun and water to grow.' },
+  { who: 'Elementary school', line: 'Plants make their own food from sunlight.' },
+  { who: 'Middle school', line: 'Leaves use light to turn carbon dioxide and water into sugar, and give off oxygen.' },
+  { who: 'High school', line: 'In chloroplasts, photosynthesis stores light energy as chemical energy in glucose.' },
+  { who: 'College', line: 'The light reactions make ATP and NADPH, and the Calvin cycle uses them to turn carbon dioxide into sugar.' },
+  { who: 'A research lab', line: 'Why does Rubisco so often grab oxygen by mistake?' },
+];
+---
+  <section class="ladder" id="one-idea" aria-labelledby="ladder-h">
+    <h2 id="ladder-h">One idea, six levels</h2>
+    <p>
+      Here is photosynthesis, from a small child’s version to a question researchers are still working on.
+      Every lesson explains its idea at more than one level, so you can step down when you need to and
+      up when you’re ready.
+    </p>
+    <div class="ladder-film"><HomeFilm film={FILM}>A small child, elementary school, middle school, high school, college, research lab. The idea stays the same.</HomeFilm></div>
+    <ol class="levels">
+      {LEVELS.map((l, i) => (
+        <li class="level" style={`--n:${i}`}>
+          <span class="level-n" aria-hidden="true">{i + 1}</span>
+          <span class="level-body"><span class="level-who">{l.who}</span><span class="level-line">{l.line}</span></span>
+        </li>
+      ))}
+    </ol>
+
+    <div class="register">
+      <div class="chip">
+        <span class="chip-ico">
+          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+              <rect x="9" y="30" width="6" height="9" /><rect x="17.5" y="24" width="6" height="15" /><rect x="26" y="18" width="6" height="21" /><rect x="34.5" y="11" width="6" height="28" />
+            </g>
+            <rect x="34.5" y="11" width="6" height="28" style="fill:var(--ddp-color-secondary)" fill-opacity="0.55" />
+          </svg>
+        </span>
+        <p class="chip-lab">Every level</p>
+        <p class="chip-sub">Every lesson explains its idea at more than one level. Most run from a child’s version up to a graduate student’s.</p>
+      </div>
+      <div class="chip">
+        <span class="chip-ico">
+          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="7" y="11" width="34" height="22" rx="3" />
+              <path d="M21 17.5 L29 22 L21 26.5 Z" />
+              <path d="M12 39 H36" /><circle cx="26" cy="39" r="2.4" style="fill:var(--ddp-color-bg)" />
+            </g>
+          </svg>
+        </span>
+        <p class="chip-lab">Films and simulations</p>
+        <p class="chip-sub">Nearly every lesson has a short film, and most have a simulation you can change.</p>
+      </div>
+      <div class="chip">
+        <span class="chip-ico">
+          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M24 9 L37 13 V25 C37 33 31 37 24 40 C17 37 11 33 11 25 V13 Z" stroke-width="1.5" />
+              <path d="M18 24 L22.5 28.5 L31 19" stroke-width="2" />
+            </g>
+          </svg>
+        </span>
+        <p class="chip-lab">Answers explained</p>
+        <p class="chip-sub">Every practice question shows the answer and why.</p>
+      </div>
+    </div>
+  </section>
+
+
+<style>
+    .ladder { margin: var(--ddp-space-6) 0; }
+    .ladder p { margin-top: 0; }
+    .chip-sub, .chip-lab { max-width: none; }
+    /* ---- The six levels, as text: the ladder from the film ---- */
+    .ladder-film { max-width: 640px; margin: 0 0 var(--ddp-space-6); }
+    .ladder-watch { margin: 0 0 var(--ddp-space-4); }
+    .ladder-watch a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ddp-color-accent); font-weight: 700; }
+    .levels { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ddp-space-2); max-width: 62rem; }
+    .level { display: flex; gap: var(--ddp-space-3); align-items: flex-start; padding: var(--ddp-space-3) var(--ddp-space-4); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--ddp-color-accent); border-radius: var(--ddp-radius-sm); }
+    .level:last-child { border-left-color: var(--ddp-color-secondary); background: color-mix(in srgb, var(--ddp-color-secondary) 10%, var(--ddp-color-surface)); }
+    .level-n { flex: none; width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--ddp-color-primary); color: var(--ddp-color-surface); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; margin-top: 0.1rem; }
+    .level-body { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+    .level-who { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+    .level-line { color: var(--ddp-color-ink); line-height: 1.45; }
+    /* A gentle staircase: each level steps in a little further. */
+    @media (min-width: 700px) { .level { margin-left: calc(var(--n) * 2%); } }
+
+    .register {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--ddp-color-line);
+      border-top: 1px solid var(--ddp-color-line);
+      border-bottom: 1px solid var(--ddp-color-line);
+      margin-top: var(--ddp-space-8);
+    }
+    .chip { background: var(--ddp-color-bg); padding: var(--ddp-space-6) var(--ddp-space-4); }
+    .chip-ico { display: block; line-height: 0; color: var(--ddp-color-accent); }
+    .chip-ico svg { transition: transform 0.18s ease, color 0.18s ease; }
+    .chip:hover .chip-ico { color: var(--ddp-color-primary); }
+    .chip:hover .chip-ico svg { transform: rotate(-6deg) scale(1.06); }
+    .chip-lab { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); margin: var(--ddp-space-3) 0 var(--ddp-space-1); }
+    .chip-sub { font-size: var(--ddp-text-sm); line-height: 1.45; color: var(--ddp-color-muted); margin: 0; }
+    @media (max-width: 720px) { .register { grid-template-columns: minmax(0, 1fr); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .chip-ico svg { transition: none; }
+      .chip:hover .chip-ico svg { transform: none; }
+    }
+</style>
