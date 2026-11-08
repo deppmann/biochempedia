@@ -27,6 +27,7 @@ import { feedbackUrl } from '../../lib/feedback';
 import { courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
+import { SETS as MCAT_SETS } from '../../lib/mcat';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -81,6 +82,17 @@ const localSimNames = localSims.map((s) => s.title.split('(')[0].trim());
 const hasQuiz = lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
 const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
 const quizAnchors = hasQuiz ? anchorsFor(entry.body ?? '', headings, [...lesson.practiceQuestions, ...lesson.mcatQuestions]) : [];
+// "In this lesson": the main (##) section headings, as plain links built at deploy time, so the list
+// works on phones and with JavaScript off. Only on long lessons: 3 or more sections and about 10
+// minutes or more of reading (or 4+ sections when no reading time is given).
+const sections = headings.filter((h) => h.depth === 2 && h.slug && h.text.trim());
+const showSections = sections.length >= 3 && (lesson.estMinutes ? lesson.estMinutes >= 10 : sections.length >= 4);
+// MCAT practice, linked forward: the practice page links every question back to its lesson; this
+// inverts that at deploy time. The lesson's own MCAT-style questions (college lessons only, as on
+// /mcat/practice/) plus passage-set questions whose lesson link names this lesson.
+const mcatDiscrete = course.tier !== 'highschool' && course.tier !== 'families' ? lesson.mcatQuestions.length : 0;
+const mcatPassage = MCAT_SETS.reduce((n, st) => n + st.questions.filter((q) => q.lesson.slug === lesson.slug).length, 0);
+const mcatCount = mcatDiscrete + mcatPassage;
 const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
 // Slides without a recording, counted separately so no count calls a silent
 // slide "narrated".
@@ -147,12 +159,18 @@ const lessonLd = {
           {/* Time lives in the heading so hiding the meta row on mobile loses nothing. */}
           <h2 class="orient-pad-left" >What you'll learn{lesson.estMinutes ? ` · ~${lesson.estMinutes} min` : ''}</h2>
           <ul>{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
+          {showSections && (
+            <nav class="lesson-toc" aria-label="In this lesson" data-lesson-toc>
+              <p class="lesson-toc-h">In this lesson</p>
+              <ol>{sections.map((h) => <li><a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a></li>)}</ol>
+            </nav>
+          )}
         </div>
         {/* The reading time is already in the card's heading, so the stats
             column lists only what the lesson contains. */}
         {hasStats && (
           <div class="orient-meta">
-            <p class="orient-meta-h">In this lesson</p>
+            <p class="orient-meta-h">What's included</p>
             <ul>
               {ex && <li><span aria-hidden="true">🎬</span> <b>{exLen}</b> animated explainer</li>}
               {lesson.structures.length > 0 && <li><span aria-hidden="true">🧬</span> <b>{lesson.structures.length}</b> live 3D {lesson.structures.length === 1 ? 'structure' : 'structures'}</li>}
@@ -270,6 +288,10 @@ const lessonLd = {
         )}
 
         <MethodPopout lesson={entry.data.slug} />
+
+        {mcatCount > 0 && (
+          <p class="mcat-forward"><a href={`/mcat/practice/?lesson=${lesson.slug}`}>Practice questions on this lesson ({mcatCount}) →</a> <span>MCAT-style, original, each with an explanation</span></p>
+        )}
 
         <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} />
       </div>
@@ -793,6 +815,16 @@ const lessonLd = {
     .orient-obj ul { margin: 0; padding-left: 1.2rem; list-style: disc; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
     .orient-obj li { font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); padding-left: 0.15em; }
     .orient-obj li::marker { color: var(--ddp-color-muted); }
+    .mcat-forward { margin: var(--ddp-space-6) 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .mcat-forward a { font-weight: 600; color: var(--ddp-color-accent); margin-right: 0.4em; }
+    .lesson-toc { margin-top: var(--ddp-space-4); padding-top: var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); }
+    .lesson-toc-h { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .orient-obj .lesson-toc ol { margin: 0; padding-left: 1.4rem; list-style: decimal; display: flex; flex-direction: column; gap: 0.35rem; }
+    .orient-obj .lesson-toc li { font-size: var(--ddp-text-sm); }
+    .orient-obj .lesson-toc li::marker { font-variant-numeric: tabular-nums; }
+    .lesson-toc a { color: var(--ddp-color-primary); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--ddp-color-primary) 25%, transparent); }
+    .lesson-toc a:hover { border-bottom-color: currentColor; }
+    .lesson-toc a[aria-current='location'] { font-weight: 700; border-bottom-color: #c9a227; }
     /* Stats column: anchored to the card's top edge by a hairline rule and a
        small label, one stat per row, so it reads as the card's companion
        instead of a loose cluster floating beside it. */
@@ -1101,6 +1133,27 @@ const lessonLd = {
       overscroll-behavior: contain;
     }
   </style>
+  <script>
+    // "In this lesson": mark the section being read (aria-current), so the list doubles as a
+    // "you are here" for Listen and the notebook. The links work without this script.
+    {
+      const toc = document.querySelector<HTMLElement>('[data-lesson-toc]');
+      const links = toc ? [...toc.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')] : [];
+      const heads = links.map((a) => document.getElementById(a.dataset.tocLink!)).filter((h): h is HTMLElement => !!h);
+      if (heads.length && 'IntersectionObserver' in window) {
+        const mark = () => {
+          const y = window.innerHeight * 0.3;
+          let cur: HTMLElement | null = null;
+          for (const h of heads) if (h.getBoundingClientRect().top <= y) cur = h;
+          links.forEach((a) => (cur && a.dataset.tocLink === cur.id ? a.setAttribute('aria-current', 'location') : a.removeAttribute('aria-current')));
+          document.dispatchEvent(new CustomEvent('bp-section', { detail: { id: cur?.id ?? null, title: cur?.textContent ?? null } }));
+        };
+        const io = new IntersectionObserver(mark, { rootMargin: '0px 0px -60% 0px' });
+        heads.forEach((h) => io.observe(h));
+      }
+    }
+  </script>
+
   <script>
     /*
     Lock scroll on outside window while elements with "lock-scroll" class are active
