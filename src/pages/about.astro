@@ -6,6 +6,8 @@ import { feedbackUrl } from '../lib/feedback';
 import AnswerSpace from '../components/AnswerSpace.astro';
 import MadeCheckedFixed from '../components/MadeCheckedFixed.astro';
 import OneIdeaLadder from '../components/OneIdeaLadder.astro';
+import { MILESTONES } from '../data/updates';
+import UPDATE_PRS from '../data/updates-prs.json';
 
 /* Counted from the collection so the numbers below cannot go stale. They are shown
    as numerals: the old spelled-out version ran out of words above forty. */
@@ -13,6 +15,7 @@ const { cards, lessonCount } = await courseCards();
 const courseCount = cards.length;
 const bioCount = (await getCollection('lessons', ({ data }) => !data.draft && data.course === 'biochemistry')).length;
 const fmt = (n: number) => n.toLocaleString('en-US');
+const latest = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 3);
 ---
 
 <BaseLayout title="About — Biochemistrypedia" description="What this site is, how it is made with AI, how it is checked, and how to report an error.">
@@ -73,6 +76,15 @@ const fmt = (n: number) => n.toLocaleString('en-US');
       math, engineering, and anything for children under five. The <a href="/paths/mcat/">MCAT path</a> lists the
       parts of the exam the site does not cover yet.
     </p>
+    <aside class="updates-teaser">
+      <p class="updates-teaser-head">
+        <strong>{fmt(UPDATE_PRS.length)} updates since June.</strong>
+        <a href="/updates/">See what’s new and what’s next →</a>
+      </p>
+      <ul>
+        {latest.map((m) => <li><time datetime={m.date}>{new Date(m.date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</time> {m.title}</li>)}
+      </ul>
+    </aside>
 
     <h2>How AI is used</h2>
     <p>I use AI for most of the work, and here is where.</p>
@@ -148,6 +160,18 @@ const fmt = (n: number) => n.toLocaleString('en-US');
   </article>
 
   <style>
+    .updates-teaser {
+      margin: var(--ddp-space-6) 0;
+      padding: var(--ddp-space-4) var(--ddp-space-5);
+      border: 1px solid var(--ddp-color-line);
+      border-left: 4px solid var(--ddp-color-primary);
+      border-radius: 10px;
+      background: var(--ddp-color-surface);
+    }
+    .updates-teaser-head { margin: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; }
+    .updates-teaser ul { margin: var(--ddp-space-2) 0 0; padding: 0; list-style: none; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .updates-teaser li { margin: 0.15rem 0; }
+    .updates-teaser time { display: inline-block; min-width: 3.6em; color: var(--ddp-color-muted); font-variant-numeric: tabular-nums; }
     .eyebrow {
       font-family: var(--ddp-font-mono);
       font-size: var(--ddp-text-xs);

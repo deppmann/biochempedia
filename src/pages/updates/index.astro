@@ -1,0 +1,311 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { courseCards } from '../../lib/catalog';
+import { MILESTONES, ROADMAP, ROADMAP_UNDER_REVIEW, KIND_LABEL, type UpdateKind } from '../../data/updates';
+import PRS from '../../data/updates-prs.json';
+
+/* Everything counted here comes from the live catalog at build time, so the numbers can't go stale. */
+const { cards, lessonCount } = await courseCards();
+const bySlug = new Map(cards.map((k) => [k.c.slug, k]));
+const films = cards.reduce((n, k) => n + k.films, 0);
+const sims = cards.reduce((n, k) => n + k.sims, 0);
+const decks = Object.keys(import.meta.glob('../../data/flashcards/*.json')).length;
+const mcatSets = Object.keys(import.meta.glob('../../content/mcat-sets/*.json')).length;
+const prs = PRS as { n: number; d: string; t: string }[];
+const prByN = new Map(prs.map((p) => [p.n, p]));
+
+for (const m of MILESTONES) {
+  if (m.course && !bySlug.has(m.course)) throw new Error(`updates.ts: no live course "${m.course}"`);
+}
+
+const fmt = (n: number) => n.toLocaleString('en-US');
+const fmtDay = (d: string) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const fmtMonth = (d: string) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+const stats = [
+  { n: cards.length, label: 'courses' },
+  { n: lessonCount, label: 'lessons' },
+  { n: films, label: 'films' },
+  { n: sims, label: 'simulations' },
+  { n: decks, label: 'flashcard decks' },
+  { n: mcatSets, label: 'MCAT practice sets' },
+];
+
+/* ---------- The road so far: newest first, grouped by month ---------- */
+const sorted = [...MILESTONES].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+const months: { key: string; label: string; items: typeof MILESTONES }[] = [];
+for (const m of sorted) {
+  const key = m.date.slice(0, 7);
+  let g = months.at(-1);
+  if (!g || g.key !== key) { g = { key, label: fmtMonth(m.date), items: [] }; months.push(g); }
+  g.items.push(m);
+}
+const kinds = Object.keys(KIND_LABEL) as UpdateKind[];
+const kindCount = (k: UpdateKind) => MILESTONES.filter((m) => m.kind === k).length;
+
+/* ---------- Pace: weekly bins from the first lesson to this week ---------- */
+const DAY = 86400000;
+const toT = (d: string) => Date.parse(d + 'T00:00:00Z');
+const monday = (t: number) => t - ((new Date(t).getUTCDay() + 6) % 7) * DAY;
+const first = monday(toT(MILESTONES.map((m) => m.date).sort()[0]));
+const lastDate = [prs.at(-1)?.d ?? '', ...MILESTONES.map((m) => m.date)].sort().at(-1)!;
+const last = monday(toT(lastDate));
+const weeks: { start: number; lessons: number; prs: number }[] = [];
+for (let t = first; t <= last; t += 7 * DAY) {
+  const end = t + 7 * DAY;
+  const lessons = MILESTONES.filter((m) => m.course && toT(m.date) < end).reduce((n, m) => n + bySlug.get(m.course!)!.lessons, 0);
+  const n = prs.filter((p) => toT(p.d) >= t && toT(p.d) < end).length;
+  weeks.push({ start: t, lessons, prs: n });
+}
+const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
+const W = 640, PAD_L = 40, PAD_R = 12, PAD_T = 14, PAD_B = 26;
+const plotW = W - PAD_L - PAD_R;
+const step = plotW / weeks.length;
+const niceMax = (v: number, by: number) => Math.max(by, Math.ceil(v / by) * by);
+
+function chart(key: 'lessons' | 'prs', H: number, by: number) {
+  const max = niceMax(Math.max(...weeks.map((w) => w[key])), by);
+  const plotH = H - PAD_T - PAD_B;
+  const y = (v: number) => PAD_T + plotH - (v / max) * plotH;
+  const ticks = [0, max / 2, max];
+  return { H, max, y, ticks, plotH };
+}
+const L = chart('lessons', 200, 100);
+const P = chart('prs', 150, 10);
+
+// Cumulative lessons as a step line: flat within a week, rising at the week's end.
+let linePath = '';
+weeks.forEach((w, i) => {
+  const x0 = PAD_L + i * step, x1 = x0 + step;
+  linePath += `${i === 0 ? 'M' : 'L'}${x0.toFixed(1)},${L.y(w.lessons).toFixed(1)} L${x1.toFixed(1)},${L.y(w.lessons).toFixed(1)} `;
+});
+const areaPath = `${linePath} L${(PAD_L + plotW).toFixed(1)},${L.y(0).toFixed(1)} L${PAD_L},${L.y(0).toFixed(1)} Z`;
+// Month ticks on the x axis: the first week that starts in each month.
+const monthTicks: { x: number; label: string }[] = [];
+weeks.forEach((w, i) => {
+  const d = new Date(w.start);
+  const prev = i > 0 ? new Date(weeks[i - 1].start).getUTCMonth() : -1;
+  if (d.getUTCMonth() !== prev) monthTicks.push({ x: PAD_L + i * step, label: d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }) });
+});
+const totalPrs = prs.length;
+const busiest = [...weeks].sort((a, b) => b.prs - a.prs)[0];
+---
+
+<BaseLayout title="Updates — Biochemistrypedia" description="What has changed on Biochemistrypedia since the first lesson, how fast it is being built, and where it is going next.">
+  <article class="wrap prose-col upd">
+    <p class="eyebrow"><a href="/about/">About</a> · Updates</p>
+    <h1>What’s new, and what’s next</h1>
+    <p class="upd-lede">
+      The site is built in public, one change at a time. Since the first lesson on {fmtDay(MILESTONES[0].date)}, 2026,
+      {fmt(totalPrs)} sets of changes have gone live. Here is what they added up to, how fast it is moving, and where it goes next.
+    </p>
+
+    <h2 class="upd-h2">Today</h2>
+    <ul class="upd-stats">
+      {stats.map((s) => <li><strong>{fmt(s.n)}</strong><span>{s.label}</span></li>)}
+    </ul>
+
+    <h2 class="upd-h2">Pace</h2>
+    <p class="upd-muted">
+      Hover or tap a week for its numbers. Lessons are counted from the week each course opened.
+      The busiest week was {fmtDay(iso(busiest.start))}, with {busiest.prs} sets of changes.
+    </p>
+    <figure class="upd-chart" data-chart>
+      <figcaption>Lessons live</figcaption>
+      <svg viewBox={`0 0 ${W} ${L.H}`} role="img" aria-label={`Lessons live by week, rising from 0 to ${fmt(weeks.at(-1)!.lessons)}`}>
+        {L.ticks.map((t) => <g class="grid"><line x1={PAD_L} x2={W - PAD_R} y1={L.y(t)} y2={L.y(t)} /><text x={PAD_L - 6} y={L.y(t) + 4} text-anchor="end">{fmt(t)}</text></g>)}
+        <path class="area" d={areaPath} />
+        <path class="line" d={linePath} />
+        {monthTicks.map((m) => <text class="xlab" x={m.x + 2} y={L.H - 8}>{m.label}</text>)}
+        {weeks.map((w, i) => (
+          <rect class="hit" x={PAD_L + i * step} y={PAD_T} width={step} height={L.plotH}
+            data-tip={`Week of ${fmtDay(iso(w.start))}: ${fmt(w.lessons)} lessons live`} data-i={i} />
+        ))}
+        <line class="cross" x1="0" x2="0" y1={PAD_T} y2={PAD_T + L.plotH} />
+      </svg>
+    </figure>
+    <figure class="upd-chart" data-chart>
+      <figcaption>Sets of changes merged each week</figcaption>
+      <svg viewBox={`0 0 ${W} ${P.H}`} role="img" aria-label={`Sets of changes merged each week; ${totalPrs} in all`}>
+        {P.ticks.map((t) => <g class="grid"><line x1={PAD_L} x2={W - PAD_R} y1={P.y(t)} y2={P.y(t)} /><text x={PAD_L - 6} y={P.y(t) + 4} text-anchor="end">{fmt(t)}</text></g>)}
+        {weeks.map((w, i) => w.prs > 0 && (
+          <path class="bar" d={(() => {
+            const bw = Math.max(2, step - 2), x = PAD_L + i * step + 1, top = P.y(w.prs), base = P.y(0), r = Math.min(4, bw / 2, base - top);
+            return `M${x},${base} L${x},${top + r} Q${x},${top} ${x + r},${top} L${x + bw - r},${top} Q${x + bw},${top} ${x + bw},${top + r} L${x + bw},${base} Z`;
+          })()} />
+        ))}
+        {monthTicks.map((m) => <text class="xlab" x={m.x + 2} y={P.H - 8}>{m.label}</text>)}
+        {weeks.map((w, i) => (
+          <rect class="hit" x={PAD_L + i * step} y={PAD_T} width={step} height={P.plotH}
+            data-tip={`Week of ${fmtDay(iso(w.start))}: ${w.prs} ${w.prs === 1 ? 'set' : 'sets'} of changes`} data-i={i} />
+        ))}
+      </svg>
+    </figure>
+    <div class="upd-tip" data-tip-box role="status" hidden></div>
+    <details class="upd-table">
+      <summary>Show as a table</summary>
+      <table>
+        <thead><tr><th>Week of</th><th>Lessons live</th><th>Sets of changes</th></tr></thead>
+        <tbody>{weeks.filter((w, i) => w.prs > 0 || i === 0 || w.lessons !== weeks[i - 1].lessons).map((w) => <tr><td>{fmtDay(iso(w.start))}</td><td>{fmt(w.lessons)}</td><td>{w.prs}</td></tr>)}</tbody>
+      </table>
+      <p class="upd-muted">Weeks with no change are left out.</p>
+    </details>
+
+    <h2 class="upd-h2">The road so far</h2>
+    <div class="upd-filters" role="group" aria-label="Show only">
+      <button type="button" aria-pressed="true" data-kind="all">All <span>{MILESTONES.length}</span></button>
+      {kinds.map((k) => <button type="button" aria-pressed="false" data-kind={k}><i class={`dot k-${k}`} aria-hidden="true"></i>{KIND_LABEL[k]} <span>{kindCount(k)}</span></button>)}
+    </div>
+    <div class="upd-timeline">
+      {months.map((g) => (
+        <section class="upd-month" data-month>
+          <h3>{g.label}</h3>
+          <ol>
+            {g.items.map((m) => {
+              const c = m.course ? bySlug.get(m.course)! : null;
+              return (
+                <li class="upd-item" data-kind={m.kind}>
+                  <p class="upd-meta"><time datetime={m.date}>{fmtDay(m.date)}</time><span class={`tag k-${m.kind}`}>{KIND_LABEL[m.kind]}</span></p>
+                  <h4>{c ? <a href={`/courses/${c.c.slug}/`}>{m.title}</a> : m.title}{c && <span class="upd-count"> · {fmt(c.lessons)} lessons</span>}</h4>
+                  <p>{m.text}</p>
+                  {m.prs.length > 0 && (
+                    <details>
+                      <summary>{m.prs.length === 1 ? 'The change behind it' : `The ${m.prs.length} changes behind it`}</summary>
+                      <ul>
+                        {m.prs.map((n) => <li><a href={`https://github.com/deppmann/biochempedia/pull/${n}`}>#{n}</a> {prByN.get(n)?.t ?? ''}</li>)}
+                      </ul>
+                    </details>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      ))}
+    </div>
+
+    <h2 class="upd-h2">Where we’re going {ROADMAP_UNDER_REVIEW && <span class="upd-review">Under review</span>}</h2>
+    <p class="upd-muted">A direction, not a schedule. Plans change as we learn what helps.</p>
+    <div class="upd-road">
+      {ROADMAP.map((r) => (
+        <section>
+          <h3>{r.when}</h3>
+          <ul>{r.items.map((it) => <li><strong>{it.title}.</strong> {it.text}</li>)}</ul>
+        </section>
+      ))}
+    </div>
+
+    <p class="upd-muted upd-foot">
+      Every change is a public pull request on <a href="https://github.com/deppmann/biochempedia/pulls?q=is%3Apr+is%3Amerged">GitHub</a>.
+      This page groups them into the changes a visitor would notice and leaves out behind-the-scenes tooling.
+      Something you’d like to see? <a href="/contact">Tell me</a>.
+    </p>
+  </article>
+</BaseLayout>
+
+<script>
+  // Filter chips: show one kind of milestone, hide months left empty.
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('.upd-filters button')];
+  chips.forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.kind!;
+    chips.forEach((c) => c.setAttribute('aria-pressed', String(c === b)));
+    document.querySelectorAll<HTMLElement>('.upd-item').forEach((li) => { li.hidden = k !== 'all' && li.dataset.kind !== k; });
+    document.querySelectorAll<HTMLElement>('[data-month]').forEach((s) => { s.hidden = !s.querySelector('.upd-item:not([hidden])'); });
+  }));
+
+  // Chart hover: one tooltip, positioned over the hovered week; a crosshair on the line chart.
+  const tip = document.querySelector<HTMLElement>('[data-tip-box]')!;
+  document.querySelectorAll<SVGSVGElement>('[data-chart] svg').forEach((svg) => {
+    const cross = svg.querySelector<SVGLineElement>('.cross');
+    const hide = () => { tip.hidden = true; if (cross) cross.classList.remove('on'); svg.querySelectorAll('.hit.on').forEach((r) => r.classList.remove('on')); };
+    svg.querySelectorAll<SVGRectElement>('.hit').forEach((r) => {
+      const show = () => {
+        svg.querySelectorAll('.hit.on').forEach((o) => o.classList.remove('on'));
+        r.classList.add('on');
+        tip.textContent = r.dataset.tip ?? '';
+        tip.hidden = false;
+        const box = r.getBoundingClientRect();
+        const host = svg.getBoundingClientRect();
+        tip.style.left = `${Math.min(window.innerWidth - tip.offsetWidth - 8, Math.max(8, box.left + box.width / 2 - tip.offsetWidth / 2))}px`;
+        tip.style.top = `${host.top + window.scrollY - tip.offsetHeight - 6}px`;
+        if (cross) {
+          const x = Number(r.getAttribute('x')) + Number(r.getAttribute('width')) / 2;
+          cross.setAttribute('x1', String(x)); cross.setAttribute('x2', String(x)); cross.classList.add('on');
+        }
+      };
+      r.addEventListener('pointerenter', show);
+      r.addEventListener('click', show);
+    });
+    svg.addEventListener('pointerleave', hide);
+  });
+</script>
+
+<style>
+  .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .upd { padding-top: var(--ddp-space-12); padding-bottom: var(--ddp-space-12); max-width: 760px; }
+  .upd-lede { font-size: 1.15rem; color: var(--ddp-color-ink-soft); max-width: 62ch; }
+  .upd-h2 { margin-top: var(--ddp-space-12); display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .upd-muted { color: var(--ddp-color-muted); font-size: .95rem; max-width: 62ch; }
+
+  .upd-stats { list-style: none; padding: 0; margin: var(--ddp-space-4) 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-3); }
+  .upd-stats li { border: 1px solid var(--ddp-color-line); border-radius: 10px; padding: var(--ddp-space-3) var(--ddp-space-4); background: var(--ddp-color-surface); }
+  .upd-stats strong { display: block; font-size: 1.8rem; line-height: 1.1; color: var(--ddp-color-ink); font-variant-numeric: tabular-nums; }
+  .upd-stats span { color: var(--ddp-color-muted); font-size: .9rem; }
+
+  .upd-chart { margin: var(--ddp-space-4) 0 0; }
+  .upd-chart figcaption { font-weight: 600; color: var(--ddp-color-ink); font-size: .95rem; margin-bottom: .25rem; }
+  .upd-chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .upd-chart .grid line { stroke: var(--ddp-color-line); stroke-width: 1; }
+  .upd-chart text { fill: var(--ddp-color-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .upd-chart .area { fill: var(--ddp-color-primary); opacity: .12; }
+  .upd-chart .line { fill: none; stroke: var(--ddp-color-primary); stroke-width: 2; stroke-linejoin: round; }
+  .upd-chart .bar { fill: var(--ddp-color-primary); }
+  .upd-chart .hit { fill: transparent; cursor: crosshair; }
+  .upd-chart .hit.on { fill: var(--ddp-color-ink); opacity: .06; }
+  .upd-chart .cross { stroke: var(--ddp-color-ink-soft); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; }
+  .upd-chart .cross.on { opacity: 1; }
+  .upd-tip { position: absolute; z-index: 20; pointer-events: none; background: var(--ddp-color-ink); color: var(--ddp-color-bg); font-size: .85rem; padding: .3rem .55rem; border-radius: 6px; white-space: nowrap; }
+
+  .upd-table { margin-top: var(--ddp-space-3); }
+  .upd-table summary { cursor: pointer; color: var(--ddp-color-primary); font-size: .95rem; }
+  .upd-table table { border-collapse: collapse; margin-top: var(--ddp-space-2); font-size: .9rem; font-variant-numeric: tabular-nums; }
+  .upd-table th, .upd-table td { padding: .25rem .9rem .25rem 0; text-align: left; border-bottom: 1px solid var(--ddp-color-line); }
+
+  .upd-filters { display: flex; flex-wrap: wrap; gap: .4rem; margin: var(--ddp-space-3) 0 var(--ddp-space-4); }
+  .upd-filters button { font: inherit; font-size: .88rem; border: 1px solid var(--ddp-color-line); background: var(--ddp-color-surface); color: var(--ddp-color-ink); border-radius: 999px; padding: .3rem .75rem; cursor: pointer; display: inline-flex; align-items: center; gap: .35rem; }
+  .upd-filters button span { color: var(--ddp-color-muted); font-variant-numeric: tabular-nums; }
+  .upd-filters button[aria-pressed='true'] { border-color: var(--ddp-color-primary); background: var(--ddp-color-primary); color: var(--ddp-color-surface); font-weight: 600; }
+  .upd-filters button[aria-pressed='true'] span { color: inherit; opacity: .8; }
+  .dot { width: .6rem; height: .6rem; border-radius: 50%; display: inline-block; }
+
+  /* One quiet marker color per kind; the text label always carries the meaning. */
+  .k-course { --k: var(--ddp-color-primary); }
+  .k-tools { --k: var(--ddp-color-accent); }
+  .k-teachers { --k: var(--ddp-color-secondary); }
+  .k-media { --k: #a0526e; }
+  .k-quality { --k: var(--ddp-color-verified); }
+  .k-site { --k: var(--ddp-color-muted); }
+  .dot { background: var(--k); }
+
+  .upd-month h3 { font-size: 1rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ddp-color-muted); margin: var(--ddp-space-8) 0 var(--ddp-space-2); }
+  .upd-month ol { list-style: none; padding: 0; margin: 0; border-left: 2px solid var(--ddp-color-line); }
+  .upd-item { position: relative; padding: 0 0 var(--ddp-space-4) var(--ddp-space-5); }
+  .upd-item::before { content: ''; position: absolute; left: -7px; top: .35rem; width: 12px; height: 12px; border-radius: 50%; background: var(--ddp-color-bg); border: 2px solid var(--ddp-color-primary); }
+  .upd-meta { margin: 0; display: flex; gap: .6rem; align-items: center; font-size: .85rem; color: var(--ddp-color-muted); }
+  .tag { border-left: 3px solid var(--k); padding-left: .4rem; }
+  .upd-item h4 { margin: .15rem 0 .2rem; font-size: 1.08rem; }
+  .upd-count { font-weight: 400; color: var(--ddp-color-muted); font-size: .95rem; }
+  .upd-item > p:not(.upd-meta) { margin: 0; color: var(--ddp-color-ink-soft); max-width: 62ch; }
+  .upd-item details { margin-top: .3rem; font-size: .88rem; }
+  .upd-item summary { cursor: pointer; color: var(--ddp-color-primary); }
+  .upd-item details ul { margin: .3rem 0 0; padding-left: 1.1rem; list-style: none; color: var(--ddp-color-ink-soft); }
+
+  .upd-review { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: .15rem .5rem; border-radius: 999px; background: var(--ddp-color-caution-soft); color: var(--ddp-color-ink); border: 1px solid var(--ddp-color-caution); }
+  .upd-road { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--ddp-space-4); }
+  .upd-road section { border: 1px solid var(--ddp-color-line); border-radius: 10px; padding: var(--ddp-space-4); background: var(--ddp-color-surface); }
+  .upd-road h3 { margin: 0 0 var(--ddp-space-2); font-size: 1rem; }
+  .upd-road ul { margin: 0; padding-left: 1.1rem; list-style: disc; }
+  .upd-road li { margin-bottom: .4rem; color: var(--ddp-color-ink-soft); }
+  .upd-road strong { color: var(--ddp-color-ink); }
+  .upd-foot { margin-top: var(--ddp-space-12); }
+</style>
