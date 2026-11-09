@@ -1,0 +1,51 @@
+---
+/* Tap an abbreviation to see what it stands for. rehype-abbr wraps abbreviations in lesson prose in
+   <abbr class="ab" title="full name">; a mouse gets the browser's hover title, and a tap (or click) shows
+   this small note under the word. Esc, a tap elsewhere or scrolling closes it. */
+---
+<div class="ab-note" data-ab-note role="status" hidden></div>
+
+<script>
+  const note = document.querySelector<HTMLElement>('[data-ab-note]');
+  if (note) {
+    let open: HTMLElement | null = null;
+    const close = () => { note.hidden = true; open = null; };
+    document.addEventListener('click', (e) => {
+      const ab = (e.target as HTMLElement).closest<HTMLElement>('abbr.ab');
+      if (!ab || ab === open) { close(); return; }
+      open = ab;
+      note.textContent = '';
+      const b = document.createElement('strong');
+      b.textContent = ab.textContent ?? '';
+      note.append(b, ` ${ab.title}`);
+      note.hidden = false;
+      const r = ab.getBoundingClientRect();
+      const w = note.offsetWidth;
+      note.style.left = `${Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + window.scrollX}px`;
+      note.style.top = `${r.bottom + window.scrollY + 6}px`;
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    window.addEventListener('scroll', () => { if (open) close(); }, { passive: true });
+  }
+</script>
+
+<style is:global>
+  abbr.ab {
+    text-decoration: underline dotted;
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+    text-underline-offset: 0.2em;
+    cursor: help;
+  }
+  .ab-note {
+    position: absolute;
+    z-index: 60;
+    max-width: min(22rem, calc(100vw - 16px));
+    padding: 0.4rem 0.65rem;
+    border-radius: 6px;
+    background: var(--ddp-color-ink);
+    color: var(--ddp-color-bg);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.18);
+  }
+</style>

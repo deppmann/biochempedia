@@ -11,3 +11,11 @@ const prs = JSON.parse(raw)
   .sort((a, b) => a.n - b.n);
 writeFileSync(new URL('../src/data/updates-prs.json', import.meta.url), JSON.stringify(prs) + '\n');
 console.log(`updates-prs.json: ${prs.length} merged pull requests, last ${prs.at(-1)?.d}`);
+
+// Every change listed under a milestone should have a plain-words line for the page.
+import { readFileSync } from 'node:fs';
+const src = readFileSync(new URL('../src/data/updates.ts', import.meta.url), 'utf8');
+const listed = [...src.matchAll(/prs: \[([0-9, ]*)\]/g)].flatMap((m) => m[1].split(',').map((s) => Number(s.trim())).filter(Boolean));
+const notes = JSON.parse(readFileSync(new URL('../src/data/updates-pr-notes.json', import.meta.url), 'utf8'));
+const missing = listed.filter((n) => !notes[String(n)]);
+if (missing.length) console.log(`No plain-words line yet in src/data/updates-pr-notes.json for: ${missing.map((n) => '#' + n).join(', ')}`);
