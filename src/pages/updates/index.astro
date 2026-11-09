@@ -3,6 +3,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { courseCards } from '../../lib/catalog';
 import { MILESTONES, ROADMAP, ROADMAP_UNDER_REVIEW, KIND_LABEL, type UpdateKind } from '../../data/updates';
 import PRS from '../../data/updates-prs.json';
+import NOTES from '../../data/updates-pr-notes.json';
+import { milestoneId } from '../../lib/updates-feed';
 
 /* Everything counted here comes from the live catalog at build time, so the numbers can't go stale. */
 const { cards, lessonCount } = await courseCards();
@@ -13,6 +15,7 @@ const decks = Object.keys(import.meta.glob('../../data/flashcards/*.json')).leng
 const mcatSets = Object.keys(import.meta.glob('../../content/mcat-sets/*.json')).length;
 const prs = PRS as { n: number; d: string; t: string }[];
 const prByN = new Map(prs.map((p) => [p.n, p]));
+const note = (n: number) => (NOTES as Record<string, string>)[String(n)] ?? prByN.get(n)?.t ?? '';
 
 for (const m of MILESTONES) {
   if (m.course && !bySlug.has(m.course)) throw new Error(`updates.ts: no live course "${m.course}"`);
@@ -152,6 +155,7 @@ const busiest = [...weeks].sort((a, b) => b.prs - a.prs)[0];
     </details>
 
     <h2 class="upd-h2">The road so far</h2>
+    <p class="upd-muted">Follow along: add <a href="/updates.xml">the updates feed</a> to any feed reader, or to a service that emails you new entries.</p>
     <div class="upd-filters" role="group" aria-label="Show only">
       <button type="button" aria-pressed="true" data-kind="all">All <span>{MILESTONES.length}</span></button>
       {kinds.map((k) => <button type="button" aria-pressed="false" data-kind={k}><i class={`dot k-${k}`} aria-hidden="true"></i>{KIND_LABEL[k]} <span>{kindCount(k)}</span></button>)}
@@ -164,15 +168,15 @@ const busiest = [...weeks].sort((a, b) => b.prs - a.prs)[0];
             {g.items.map((m) => {
               const c = m.course ? bySlug.get(m.course)! : null;
               return (
-                <li class="upd-item" data-kind={m.kind}>
+                <li class="upd-item" data-kind={m.kind} id={milestoneId(m)}>
                   <p class="upd-meta"><time datetime={m.date}>{fmtDay(m.date)}</time><span class={`tag k-${m.kind}`}>{KIND_LABEL[m.kind]}</span></p>
                   <h4>{c ? <a href={`/courses/${c.c.slug}/`}>{m.title}</a> : m.title}{c && <span class="upd-count"> · {fmt(c.lessons)} lessons</span>}</h4>
                   <p>{m.text}</p>
                   {m.prs.length > 0 && (
                     <details>
                       <summary>{m.prs.length === 1 ? 'The change behind it' : `The ${m.prs.length} changes behind it`}</summary>
-                      <ul>
-                        {m.prs.map((n) => <li><a href={`https://github.com/deppmann/biochempedia/pull/${n}`}>#{n}</a> {prByN.get(n)?.t ?? ''}</li>)}
+                      <ul class="upd-prs">
+                        {m.prs.map((n) => <li>{note(n)} <a class="upd-gh" href={`https://github.com/deppmann/biochempedia/pull/${n}`} title={prByN.get(n)?.t ?? ''}>#{n}</a></li>)}
                       </ul>
                     </details>
                   )}
@@ -298,7 +302,7 @@ const busiest = [...weeks].sort((a, b) => b.prs - a.prs)[0];
   .upd-item > p:not(.upd-meta) { margin: 0; color: var(--ddp-color-ink-soft); max-width: 62ch; }
   .upd-item details { margin-top: .3rem; font-size: .88rem; }
   .upd-item summary { cursor: pointer; color: var(--ddp-color-primary); }
-  .upd-item details ul { margin: .3rem 0 0; padding-left: 1.1rem; list-style: none; color: var(--ddp-color-ink-soft); }
+  .upd-item details ul { margin: .3rem 0 0; padding-left: 1.1rem; list-style: disc; color: var(--ddp-color-ink-soft); }
 
   .upd-review { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: .15rem .5rem; border-radius: 999px; background: var(--ddp-color-caution-soft); color: var(--ddp-color-ink); border: 1px solid var(--ddp-color-caution); }
   .upd-road { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--ddp-space-4); }
@@ -308,4 +312,7 @@ const busiest = [...weeks].sort((a, b) => b.prs - a.prs)[0];
   .upd-road li { margin-bottom: .4rem; color: var(--ddp-color-ink-soft); }
   .upd-road strong { color: var(--ddp-color-ink); }
   .upd-foot { margin-top: var(--ddp-space-12); }
+  .upd-prs li { margin: .2rem 0; }
+  .upd-gh { font-size: .8rem; color: var(--ddp-color-muted); text-decoration: none; margin-left: .2rem; font-variant-numeric: tabular-nums; }
+  .upd-gh:hover { text-decoration: underline; }
 </style>
