@@ -9,7 +9,7 @@ Every lesson goes through the same four steps, and the check is done by somethin
 1. **Write.** A strong AI model drafts the lesson from a packet of source material (twenty years of lectures and, for some courses, research on the scientists involved). The writer is told what is in scope and what must not be invented.
 2. **Check, independently.** A different AI agent, with web access, is told to assume the draft has at least three errors. It rules on every factual claim: confirmed, imprecise, wrong, or could not be checked. It proposes exact edits. Small scripts check what a script can check better than any model: that a protein structure ID points at the right molecule, and that the answer keys are not all in the same order.
 3. **Fix.** A script applies the proposed edits, and the lesson checker runs again to make sure the edits did not break anything (for example, by making a section too long).
-4. **Install, then a human reads it.** The lesson is added to the site. The build refuses to publish a lesson that fails its checks. An expert (here, the course author) reads it, which takes about 1 to 2 hours per lesson. That last step is the bottleneck, not the writing.
+4. **Install. The human read is still pending.** The lesson is added to the site. The build refuses to publish a lesson that fails its checks. An expert read (here, by the course author) takes about 1 to 2 hours per lesson, and not every lesson has had one yet. That last step is the bottleneck, not the writing.
 
 ### What the checking found
 
