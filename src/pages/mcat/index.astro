@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SETS, SECTION, CATEGORY, discreteItems } from '../../lib/mcat';
+import { MCAT_SCOPE_NOTE } from '../../data/paths';
 
 const discrete = await discreteItems();
 const byTopic = new Map<string, number>();
@@ -19,6 +20,7 @@ const sections = ['bb', 'cp'].map((s) => ({ s, sets: SETS.filter((x) => x.sectio
       design and reason from what you know. Every miss links to the lesson section that teaches it and comes back
       for review.
     </p>
+    <p class="mh-scope">This page covers biology and biochemistry. {MCAT_SCOPE_NOTE}</p>
     <p class="mh-honest">
       Everything here is original and written for this site; none of it comes from the AAMC or any prep company.
       Each passage passes a format check, two independent AI solvers from different companies who must agree on
@@ -90,6 +92,7 @@ const sections = ['bb', 'cp'].map((s) => ({ s, sets: SETS.filter((x) => x.sectio
     h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); margin: 0; }
     h2 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); margin: var(--ddp-space-8) 0 var(--ddp-space-3); }
     .mh-lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 66ch; }
+    .mh-scope { color: var(--ddp-color-ink-soft); max-width: 66ch; }
     .mh-honest { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); max-width: 70ch; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 4px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 6px; }
     .mh-honest a, .mh-sets a, .mh-topics a { color: var(--ddp-color-accent); }
     .mh-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: var(--ddp-space-4); margin-top: var(--ddp-space-6); }

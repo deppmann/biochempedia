@@ -24,6 +24,10 @@ export interface LearningPath {
   extras?: { label: string; href: string }[];
 }
 
+/** What the MCAT path and the /mcat/ hub do not cover. One sentence, used in both places. */
+export const MCAT_SCOPE_NOTE =
+  'The exam also tests general and organic chemistry, physics, psychology and sociology, and critical reading (CARS). Those courses are not built here yet.';
+
 export const PATHS: LearningPath[] = [
   {
     id: 'mcat',
@@ -42,7 +46,7 @@ export const PATHS: LearningPath[] = [
     ],
     notes: [
       {
-        text: 'The exam also tests general and organic chemistry, physics, psychology and sociology, and critical reading (CARS). Those courses are not built here yet.',
+        text: MCAT_SCOPE_NOTE,
       },
       {
         text: 'The official practice materials and the fee assistance program come from the exam’s maker, the AAMC.',
