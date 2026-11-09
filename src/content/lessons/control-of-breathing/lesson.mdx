@@ -13,7 +13,7 @@ summary: >-
   variable in acclimatization.
 hook: "Hold your breath and the urge that finally defeats you comes mostly from rising carbon dioxide rather than from falling oxygen. Why is the controller built that way?"
 
-estMinutes: 24
+estMinutes: 26
 objectives:
   - "Locate the mammalian breathing rhythm in the ventral respiratory column, with the pre-Botzinger complex as the main inspiratory rhythm generator, coupled to oscillators for the other phases of the cycle, and name the central chemoreceptor population of the retrotrapezoid nucleus and nearby medullary sites against the peripheral population of the carotid and aortic bodies."
   - "Read a human ventilatory response curve against arterial PCO2 and against alveolar PO2, state in each case whether PCO2 was clamped, and explain from the feedback loop why carbon dioxide and its hydrogen ions set resting ventilation in an adult at rest at sea level."
@@ -139,7 +139,7 @@ simulations:
     ref: "ChemoreflexAltitude"
     title: "Altitude and the alveolar oxygen your breathing buys"
     caption: >-
-      Lower the barometric pressure and change arterial PCO2 to see, from the alveolar gas equation, how much alveolar PO2 hyperventilation buys at altitude before the kidney acts.
+      The same 10 mmHg of carbon dioxide washout is worth 12.5 mmHg of alveolar oxygen at any barometric pressure, but only on the steep part of the hemoglobin curve does it add much oxygen content (model values, not measurements).
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -214,6 +214,26 @@ practiceQuestions:
       duration and oxygenation move in opposite directions. Both options with a higher nadir treat
       the longer hold as better oxygenated. The option pairing shorter apneas with a lower nadir
       reverses the duration effect as well.
+  - stem: "A resting adult at sea level breathes air, with arterial PCO2 near 40 mmHg and arterial PO2 near 100 mmHg. Why does the resting controller answer a 5 mmHg change in PCO2 far more strongly than a 5 mmHg change in PO2?"
+    choices:
+      - "The carotid body is silent at rest and only starts firing once alveolar PO2 falls below about 60 mmHg"
+      - "Hemoglobin is already nearly full, so changing ventilation moves carbon dioxide and pH a great deal and oxygen content very little"
+      - "Oxygen cannot be sampled in the blood, so only carbon dioxide can be sensed"
+      - "Central chemoreceptors answer faster than the carotid body, so oxygen errors are corrected too late to matter"
+    answer: 1
+    rationale: >-
+      Near the resting operating point, 5 mmHg of PCO2 either side of 40 spans about 0.1 pH unit,
+      while hemoglobin, sitting on the flat top of its curve, gives up about 1 percent of oxygen
+      content over the same span. Push the lever harder and the asymmetry holds: doubling alveolar
+      ventilation halves PCO2 and raises pH by roughly 0.2 to 0.3 (0.3 if bicarbonate is held fixed)
+      while content rises only about 1.5 percent.
+      (Large hypoventilation is the case the body pays for: doubling PCO2 costs about 13 percent of
+      content.) The loop's gain is therefore high for carbon
+      dioxide and nearly zero for oxygen, and the oxygen arm matters where the curve steepens.
+      The carotid body is not silent at rest; it reports continuously and the answer simply buys
+      little. Oxygen is sampled in arterial blood by the carotid body, so saying it cannot be sensed
+      is wrong. Speed is not the difference: the carotid body is the fast sensor, and the asymmetry is in what the
+      lever can move.
 
 mcatQuestions:
   - stem: "Healthy volunteers breathe gas whose oxygen fraction is lowered continuously while ventilation is recorded against alveolar PO2. In protocol A, carbon dioxide is added to the inspired gas so that alveolar PCO2 stays at its resting value. In protocol B, no carbon dioxide is added and alveolar PCO2 is allowed to fall as the subject breathes harder. In which protocol is ventilation at an alveolar PO2 of 50 mmHg higher, and why?"
@@ -242,6 +262,21 @@ mcatQuestions:
       tension with the carbon dioxide term dropped. The 55 mmHg value comes from forgetting to
       subtract water vapour pressure before multiplying. The 53 mmHg value comes from subtracting
       arterial PCO2 itself instead of dividing it by the exchange ratio.
+  - stem: "According to the human denervation literature, a patient whose carotid bodies have both been removed breathes gas with a steadily falling oxygen fraction while alveolar PCO2 is held at its resting value. Which result is expected?"
+    choices:
+      - "A normal rise in ventilation, because the central chemoreceptors sense oxygen directly"
+      - "No ventilatory response to the falling oxygen, and a reduced response to carbon dioxide"
+      - "A normal response to oxygen, with the response to carbon dioxide abolished"
+      - "A rise in ventilation, because the aortic bodies fully replace the carotid bodies"
+    answer: 1
+    rationale: >-
+      The human denervation literature reviewed by Timmers and colleagues reports that bilateral
+      carotid chemoreceptor denervation abolishes the normocapnic ventilatory response to hypoxia in
+      the patients reviewed and reduces the response to hypercapnia, so the carotid body carries
+      the oxygen arm and part of the carbon dioxide arm. Central chemoreceptors read carbon dioxide
+      as hydrogen ions in the brain, not oxygen. Preserving the oxygen response while abolishing
+      the carbon dioxide response reverses the two arms. Aortic bodies have oxygen-sensing afferents
+      in the vagus, but a full replacement is not what the denervation data show.
   - stem: "In mice, tyrosine hydroxylase-driven Cre was used to delete Epas1 (HIF-2alpha) embryonically in catecholaminergic tissue. Adult knockouts had virtually no tyrosine hydroxylase-positive glomus cells, their ventilatory response over the first five minutes of 10 percent inspired oxygen was substantially reduced, with saturation (measured separately under isoflurane anesthesia) 50 to 55 percent against 73 percent in littermate controls, and their response to 5 percent inspired carbon dioxide was retained. The matching HIF-1alpha deletion kept its hypoxic response. Which conclusion does this design support?"
     choices:
       - "A requirement for glomus-cell development, with any acute sensor role untested"
@@ -356,78 +391,169 @@ draft: false
 ---
 
 import ChemoreflexAltitude from '../../../components/ChemoreflexAltitude.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Hold your breath for as long as you can and the urge that eventually defeats you comes mostly from carbon dioxide piling up rather than from oxygen running out, though falling oxygen and other signals contribute.** That is an odd way to build a controller for an organ that delivers oxygen. This lesson takes it apart: where the rhythm comes from, what chemistry sets its size, and what happens to the loop when you carry it up a mountain or put your face in cold water. [Gas exchange and breathing](/lessons/gas-exchange/) already showed that carbon dioxide is the resting stimulus; here you find where it is sensed and what it is worth in millimetres of mercury.
+**Hold your breath for as long as you can and the urge that eventually defeats you comes mostly from carbon dioxide piling up rather than from oxygen running out, though falling oxygen and other signals contribute.** That is an odd way to build a controller for an organ that delivers oxygen. The answer is in the gas more than the sensors: at rest, breathing harder cannot add meaningful oxygen to the blood but can swing its acidity a great deal, so the loop watches the gas its one lever can actually move. This lesson builds that loop with numbers, finds its sensors, then carries it up a mountain and into a breath-hold. [Gas exchange and breathing](/lessons/gas-exchange/) already showed that carbon dioxide is the resting stimulus; here you find where it is sensed and what it is worth in millimetres of mercury.
 
-## The rhythm is made in the medulla, its size is set by chemistry
+*About the film above.* It takes the loop as far as the resting operating point. It introduces the rhythm generator first, which this lesson takes up after the chemistry; it has no altitude, where the oxygen arm finally matters; and its last scene quotes breath-hold numbers whose design is in Going deeper.
 
-Two questions sit inside the phrase "control of breathing", and keeping them apart saves much confusion. One is where the alternation of inspiration and expiration comes from. The other is what sets how hard it drives the muscles of [lung mechanics](/lessons/lung-mechanics-surfactant/), the diaphragm and intercostals.
+## The loop: a sensor, a set point, a lever
 
-The rhythm comes from the **ventral respiratory column**, a longitudinal strip of the medulla. Its rostral and caudal ventral respiratory groups contain inspiratory and expiratory premotor neurons respectively, which relay drive onward to the motor neurons. Rhythm generation itself is far more local, and it is carried by coupled oscillators rather than one site: the pre-Botzinger complex generates inspiration, while a parafacial oscillator near the retrotrapezoid nucleus is implicated in active expiration. Smith and colleagues' 1991 experiment, in a neonatal rat brainstem and spinal cord kept working in vitro, removed tissue in serial transverse microsections while recording respiratory motor output. The output survived the loss of tissue rostral and caudal to one small ventrolateral region, stopped when that region came out, and continued in thin slices containing it. They named it the **pre-Botzinger complex**.
+| Part of the loop | In breathing |
+|---|---|
+| Set point | arterial PCO2 about 40 mmHg and pH about 7.40 at rest |
+| Sensors | central chemoreceptors in the medulla (carbon dioxide, read as hydrogen ions); carotid bodies in the neck (arterial oxygen, also carbon dioxide and pH) |
+| Controller | the chemoreflex curves, each turning a gas error into a change in ventilation; a curve's steepness is its **gain** |
+| Effector | the diaphragm and intercostals of [lung mechanics](/lessons/lung-mechanics-surfactant/), driven by the rhythm generator in the medulla |
+| Feedback | ventilation changes alveolar gas, which changes arterial gas, which the sensors read |
 
-Keep the scope of that result. It shows local necessity in a reduced neonatal rodent preparation, and that a slice containing the region suffices. It does not establish the adult human circuit, nor that one intrinsic pacemaker mechanism accounts for every breath. How any of these neurons fires is [the action potential](/lessons/action-potential/)'s business.
+<LessonFigure src="/figures/control-of-breathing/breathing-loop.webp" width={1200} height={800} alt="AI-generated illustration: a closed loop. Alveolar gas in the lung is carried in blood past two sensors, central chemoreceptors in the medulla and the carotid bodies in the neck. Their signals pass through the chemoreflex controller to the medullary rhythm generator, which drives the diaphragm and intercostal muscles. A gold arrow marks ventilation, the lever, feeding back to alveolar gas." caption="Breathing is a feedback loop whose only lever, ventilation, can change carbon dioxide and pH a great deal and oxygen content very little; each part of this lesson is one box in it." />
 
-{/* DIAGRAM: ventral rodent brainstem with the ventral respiratory column marked, pre-Botzinger complex and retrotrapezoid nucleus labelled inside it, arrow from the latter to the former */}
+Every part of this lesson is one part of that loop. Two questions hide in "control of breathing": where the alternation of inspiration and expiration comes from (the rhythm), and what sets how hard it drives the muscles (the **drive**). Drive is read out as minute ventilation: tidal volume times breathing frequency, about 6 L/min in a resting adult, of which about 4.2 L/min reaches the alveoli. At rest, drive is largely chemical: central and peripheral chemoreflexes act together to stabilize arterial PCO2 and pH.
 
-Drive is a separate matter, and at rest it is largely chemical. At rest, central and peripheral respiratory chemoreflexes act together to stabilize arterial PCO2 and pH. The rest of the lesson is those two arms.
+## Why carbon dioxide runs the loop
+
+Ventilation is the controller's only lever, so ask what it is worth for each gas, at rest, at sea level. Two relations do it. Alveolar PCO2 is inversely proportional to alveolar ventilation, for a fixed carbon dioxide production. And the simplified alveolar gas equation, which [ventilation and perfusion](/lessons/ventilation-perfusion/) derives, gives alveolar oxygen:
+
+> **alveolar PO2 = 0.21 x (barometric pressure - 47) - alveolar PCO2 / R**
+
+Here 0.21 is the inspired oxygen fraction (about 20.94 percent; 0.21 is used here for round numbers), 47 mmHg is saturated water vapour pressure, and R is the respiratory exchange ratio, 0.80. At sea level: 0.21 x (760 - 47) = 149.7 mmHg, minus 40/0.80 = 50.0, leaves 99.7 mmHg, the alveolar PO2 of about 100 mmHg you already know.
+
+**Predict.** A resting adult at sea level doubles alveolar ventilation, from about 4.2 to 8.4 L/min. What happens to arterial PCO2, to pH, and to the oxygen content of the blood?
+
+<details>
+<summary>Check your prediction</summary>
+
+Carbon dioxide halves, from about 40 to about 20 mmHg, and pH climbs from 7.40 to roughly 7.6, a severe respiratory alkalosis. (Halving carbon dioxide is worth about 0.3 pH units because pH goes as the logarithm of the ratio, and log 2 is 0.3. The figure is 7.70 if plasma bicarbonate is held at 24 mM, as the model in Going deeper does; acute buffering by cells and proteins takes a little of that back within minutes, before the kidney acts at all.) Alveolar PO2 rises from about 100 to about 125 mmHg, but hemoglobin was already about 97 percent full, so saturation moves only to about 98.5 percent and oxygen content rises by about 1.5 percent. Even at the lever's ceiling (PCO2 at zero, alveolar PO2 equal to the 149.7 mmHg inspired) content rises only about 2.5 percent. (Model values from a standard hemoglobin curve, not measurements.)
+
+</details>
+
+That is the functional answer to the hook: a controller that watched oxygen at rest would hold a lever that does almost nothing for oxygen.
+
+> **The one idea to carry through this lesson.** Breathing is a feedback loop that controls the gas its lever can move. Near the resting operating point, which is simply where the loop normally sits on each curve, a change in ventilation moves arterial PCO2, and so pH, a great deal, and arterial oxygen *content* almost not at all, because hemoglobin is already nearly full. So the loop's gain is high for carbon dioxide and nearly zero for oxygen. The oxygen arm starts to matter where the same lever starts buying real oxygen content: below an alveolar PO2 of about 60 mmHg, on the steep part of both the chemoreflex curve and the hemoglobin curve. Altitude moves the operating point there. A breath-hold takes the lever away.
+>
+> *Scope:* an awake, healthy adult at rest, in a steady state, breathing air at sea level; a statement about gain at that operating point. Altitude is this lesson's case where the operating point moves and the rule stops holding. Exercise, sleep, chronic hypercapnic lung disease, large hypoventilation and any failure of gas exchange sit outside it. The sensor identities and the rhythm come from rodent work; the gains come from human response curves.
+
+The scope matters. Halve alveolar ventilation instead and alveolar PCO2 doubles to about 80 mmHg, alveolar PO2 falls to about 50, saturation to about 85 percent and oxygen content by about 13 percent (model values, arterial taken as alveolar): large hypoventilation is a serious oxygen problem even at sea level. The rule is about gain near the operating point.
+
+There is a second reason the design is not reckless. In the equation, alveolar PO2 moves 1.25 mmHg (1/R) for every 1 mmHg of PCO2 the controller allows, so a loop that holds PCO2 within a couple of millimetres of 40 also holds alveolar PO2 within a few millimetres of 100. The carbon dioxide controller is an oxygen controller by proxy, but only while gas exchange is intact enough for the alveolar gas equation to predict arterial oxygen. A dedicated oxygen arm is needed where that link breaks: at altitude, where inspired PO2 falls, and in lung disease where shunt or ventilation-perfusion mismatch lowers arterial PO2 at a normal PCO2.
 
 ## Carbon dioxide is sensed as hydrogen ions, inside the brain
 
-Carbon dioxide is lipid-soluble and crosses the blood-brain barrier readily. Once in brain extracellular fluid and cerebrospinal fluid it is hydrated and releases hydrogen ions, and brain carbon dioxide is sensed primarily through those hydrogen ion changes rather than as the molecule itself. That fact explains why a controller tuned to carbon dioxide is also a controller of acid-base status: ventilation sets arterial PCO2, and arterial PCO2 is one of the two terms that set pH, as [acid-base balance](/lessons/acid-base-balance/) works out in full.
+Carbon dioxide is lipid-soluble and crosses the blood-brain barrier readily, so the brain can sample it where it sits. Once in brain extracellular fluid and cerebrospinal fluid it is hydrated and releases hydrogen ions, and brain carbon dioxide is sensed primarily through those hydrogen ion changes rather than as the molecule itself. That is why a controller tuned to carbon dioxide is also a controller of acid-base status: ventilation sets arterial PCO2, and arterial PCO2 is one of the two terms that set pH, as [acid-base balance](/lessons/acid-base-balance/) works out in full.
 
-Which cells do the sensing is a live question. In mice, neurons of the **retrotrapezoid nucleus**, a small population on the ventral medullary surface, are proton-sensitive through the potassium channel TASK-2 and the proton-activated receptor GPR4, which is a G protein-coupled receptor of the kind [GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/) covers. In rat and mouse networks, retrotrapezoid neurons project to the pre-Botzinger complex, the nucleus tractus solitarius and pontine nuclei: the route from a pH signal to a bigger breath.
+In mice, neurons of the **retrotrapezoid nucleus**, a small population on the ventral medullary surface, are proton-sensitive through the potassium channel TASK-2 and the proton-activated receptor GPR4, a G protein-coupled receptor of the kind [GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/) covers. In rat and mouse networks they project to the pre-Botzinger complex, the nucleus tractus solitarius and pontine nuclei, the route from a pH signal to a bigger breath.
 
-As of a 2023 review by Gonye and Bayliss, several proposed central chemoreceptor cell types, astrocytes among them, had not been shown to satisfy every criterion that review set out for calling a cell a respiratory chemoreceptor. Showing that a cell is acid-sensitive and that manipulating it changes breathing is weaker than showing it is the sensor.
+Which cells do the sensing is a live question. As of a 2023 review by Gonye and Bayliss, several proposed central chemoreceptor cell types, astrocytes among them, had not been shown to satisfy every criterion for calling a cell a respiratory chemoreceptor. Showing that a cell is acid-sensitive and that manipulating it changes breathing is weaker than showing it is the sensor.
 
 ## The carotid body is the oxygen sensor, and it is fast
 
-The peripheral arm is a set of small, heavily perfused organs beside the great arteries, which is why it can respond within seconds. The **carotid body** is a small mass of tissue, on the order of ten milligrams in an adult human, at the fork of each carotid artery. It is the main peripheral chemoreceptor for arterial oxygen, carbon dioxide and pH, and its chemoreceptive **glomus cells** transmit hypoxic signals through the carotid sinus branch of the glossopharyngeal nerve. **Aortic bodies** contribute too, with oxygen-sensing afferents in the vagus; in anesthetized, paralyzed, artificially ventilated cats, aortic chemoreceptor responses to carbon dioxide were smaller than carotid responses.
+Oxygen has to be read in arterial blood before the tissues take any out. That falls to the **carotid body** at the fork of each carotid artery, the main peripheral chemoreceptor of the table above: small, heavily perfused, and for that reason able to respond within seconds. Its chemoreceptive **glomus cells** depolarize in hypoxia and release transmitter onto sensory afferents that run in the carotid sinus branch of the glossopharyngeal nerve. **Aortic bodies** contribute too, with oxygen-sensing afferents in the vagus.
 
-Two structures at the same fork cause more exam errors than anything else here. The carotid **body** is a chemoreceptor and responds to arterial chemistry. The carotid **sinus**, a stretch-sensitive widening of the arterial wall, is a baroreceptor and responds to pressure; it belongs to [regulating arterial pressure](/lessons/blood-pressure-regulation/). Same bifurcation, same nerve, different organ and stimulus.
+Two structures at the same fork cause more exam errors than anything else here. The carotid **body** is the chemoreceptor. The carotid **sinus**, a stretch-sensitive widening of the arterial wall, is a baroreceptor for pressure ([regulating arterial pressure](/lessons/blood-pressure-regulation/)). Same bifurcation, same nerve, different organ and stimulus.
 
-{/* DIAGRAM: carotid bifurcation, common carotid dividing into internal and external, carotid body at the fork with glomus cells and a labelled afferent to the brainstem, carotid sinus marked separately as a stretch-sensitive wall region */}
+<LessonFigure src="/figures/control-of-breathing/carotid-body-vs-sinus.webp" width={1200} height={800} alt="AI-generated illustration: the common carotid artery splitting into internal and external branches. A small gold cluster at the fork is the carotid body, a chemoreceptor that senses blood gases. A widened section of the internal carotid wall just above the fork is the carotid sinus, a stretch receptor. Both send fibres into the glossopharyngeal nerve. Two insets contrast gas-sensing glomus cells with a wall being stretched." caption="Same fork, same nerve, two organs: the carotid body samples blood gases and drives breathing, while the carotid sinus senses wall stretch and reports pressure." />
 
-How much of the human hypoxic response does this organ carry? Timmers and colleagues' 2003 review reported that bilateral human carotid chemoreceptor denervation permanently abolishes the normocapnic ventilatory response to hypoxia and reduces the response to hypercapnia. For mechanism underneath that, Macias and colleagues deleted Epas1, which encodes the oxygen-sensitive transcription factor HIF-2alpha, embryonically in mouse catecholaminergic tissue using tyrosine hydroxylase-driven Cre. HIF and its oxygen-dependent degradation, with the work of Semenza, Kaelin and Ratcliffe, belong to [ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/). Adult knockouts had virtually no tyrosine hydroxylase-positive glomus cells, and developing knockout carotid bodies showed a progressive rise in TUNEL-positive cells at embryonic day 18.5 and at birth. The response over the first five minutes of 10 percent inspired oxygen was substantially reduced, and in a separate measurement in isoflurane-anesthetized mice, saturation after five minutes of 10 percent oxygen was 50 to 55 percent against 73 percent in littermate controls. The response to 5 percent inspired carbon dioxide was retained, and the matching HIF-1alpha deletion kept its hypoxic response. The design problem below asks what that cannot settle.
+How much of the human hypoxic response does this organ carry? Timmers and colleagues' 2003 review reported that bilateral human carotid chemoreceptor denervation permanently abolishes the normocapnic ventilatory response to hypoxia in the patients reviewed, and reduces the response to hypercapnia. For mechanism, Macias and colleagues deleted Epas1, which encodes HIF-2alpha, embryonically in mouse catecholaminergic tissue: adult animals had virtually no tyrosine hydroxylase-positive glomus cells and a substantially reduced hypoxic ventilatory response, while the response to inspired carbon dioxide was retained, and the matching HIF-1alpha deletion kept its hypoxic response. HIF and its oxygen-dependent degradation, with the work of Semenza, Kaelin and Ratcliffe, belong to [ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/). The design problem at the end asks what that result cannot settle.
 
-## Read the response curves, and say what was clamped
+## Reading the response curves: two gains
 
-A chemoreflex is measured as a curve, and a curve without its conditions is not a measurement. Put ventilation on the vertical axis and the gas tension you are changing on the horizontal axis.
+A chemoreflex is measured as a curve, and a curve without its conditions is not a measurement. Both curves put minute ventilation in L/min on the vertical axis and the gas tension you are changing on the horizontal.
 
-Against arterial PCO2, the human response is increasing and approximately linear over a broad range, with a slope that depends on the prevailing PO2, so a carbon dioxide curve needs its oxygen condition stated as well. Against alveolar PO2 it is strongly non-linear: shallow above about 60 mmHg and steepening as alveolar PO2 enters roughly 50 to 60 mmHg in Weil and colleagues' normal subjects. Those subjects were studied under **isocapnia**, meaning carbon dioxide was added to the inspired gas to hold alveolar PCO2 at its resting value. Without that clamp, breathing harder lowers PCO2, hypocapnia and its alkalosis restrain ventilation both at the medullary chemoreceptors and at the carotid body, and the hypoxic response recorded is a drive and a brake that interact, not a simple sum. The curve itself changes too: in Weil and colleagues' six subjects the fitted shape parameter differed significantly when alveolar PCO2 was held about 5 mmHg above or below control, so the shape depends on the prevailing PCO2.
+**The carbon dioxide curve.** Against arterial PCO2, the human response is increasing and approximately linear over a broad range. In awake adults a representative slope is of the order of 2 to 5 L/min per mmHg by rebreathing, with 2 taken here as the conservative figure. Reported slopes depend on the protocol, rebreathing or steady state, and on the subject, so this is an order of magnitude for comparison rather than a value to quote; for the same reason this lesson gives no universal central-peripheral split either. A resting adult breathes about 6 L/min, so a PCO2 that drifts 1 mmHg high calls for about a third more ventilation. The slope also depends on the prevailing PO2, being steeper at low PO2, so a carbon dioxide curve needs its oxygen condition stated.
 
-So the resting controller in an adult at rest at sea level is a carbon dioxide controller. Arterial PCO2 is about 40 mmHg and arterial PO2 about 100 mmHg, which puts the operating point on the steep part of the carbon dioxide line and the flat part of the oxygen curve. A small PCO2 error produces a large ventilation change; a small PO2 error produces almost none. Oxygen is not irrelevant; its leverage is elsewhere on the axis. This lesson gives no universal central-peripheral split and no single carbon dioxide response slope, because reported values depend on the protocol used to get them.
+**The oxygen curve.** Against alveolar PO2 the response is not a line. It is shallow above about 60 mmHg and steepens as alveolar PO2 enters roughly 50 to 60 mmHg in Weil and colleagues' normal subjects. They fitted a hyperbola, ventilation rising as 1/(PO2 - 32), where the 32 mmHg is the alveolar PO2 at which the fitted slope runs away, obtained by extrapolation and taken as common to subjects. The slope of that curve goes as 1/(PO2 - 32) squared, so within that fitted form the ratio of its steepness at two oxygen tensions is fixed whatever the individual's sensitivity:
 
-**Worked problem: what hyperventilation buys at altitude.** These are stipulated model values, not measurements from any named mountain: barometric pressure 500 mmHg, inspired oxygen fraction 0.21, saturated water vapour pressure 47 mmHg, respiratory exchange ratio 0.80, negligible inspired carbon dioxide, steady state. The simplified alveolar gas equation is the tool, and [ventilation and perfusion](/lessons/ventilation-perfusion/) derives it:
+> slope at PO2 50 / slope at PO2 100 = (100 - 32)² / (50 - 32)² = (68/18)² ≈ 14
 
-> **alveolar PO2 = inspired humidified PO2 minus (arterial PCO2 / R)**
+The oxygen sensor is not weak. It is in the wrong place on its own axis.
+
+**Predict.** At rest at sea level (PCO2 about 40 mmHg, PO2 about 100 mmHg), each gas drifts 5 mmHg from its resting value. Which error does the controller correct, and which does it almost ignore?
+
+<details>
+<summary>Check your prediction</summary>
+
+The carbon dioxide error, by a wide margin. At about 2 L/min per mmHg, 5 mmHg of PCO2 calls for about 10 L/min of extra ventilation, more than doubling resting breathing. On the oxygen curve at 100 mmHg the same 5 mmHg is worth about 0.1 to 0.3 L/min, a slope roughly thirty to ninety times shallower, depending on the sensitivity assumed (Going deeper). At rest the oxygen arm is on and reporting, and its tonic traffic does contribute to resting drive and to part of the carbon dioxide response; what is worth almost nothing is the answer to a few mmHg of PO2 near 100.
+
+</details>
+
+**How the curve was measured.** The clamp that removes the oxygen curve's built-in confound is a method, not part of the mechanism. Without it, breathing harder because oxygen is falling lowers PCO2, and hypocapnia, a PCO2 below its resting value, restrains ventilation through its alkalosis both at the medullary chemoreceptors and at the carotid body. The response recorded is a drive and a brake that interact, not a simple sum: the harder the subject breathes, the harder the brake pulls, so the uncontrolled reading understates the oxygen drive itself. Weil and colleagues' subjects were therefore studied under **isocapnia**: carbon dioxide was added to the inspired gas to hold alveolar PCO2 at its resting value, so ventilation could be plotted against oxygen alone. A hypoxic response must be reported with its carbon dioxide condition attached, because the fitted shape itself depends on the prevailing PCO2 (Going deeper).
+
+## The clock: the rhythm is made in the medulla
+
+The chemistry sets how hard the muscles are driven. The clock that alternates inspiration and expiration sits in the **ventral respiratory column**, a longitudinal strip of the medulla. Its rostral and caudal ventral respiratory groups contain inspiratory and expiratory premotor neurons respectively, which relay drive onward to the motor neurons. Rhythm generation itself is far more local, and it is carried by coupled oscillators rather than one site: the **pre-Botzinger complex** generates inspiration, while a parafacial oscillator near the retrotrapezoid nucleus is implicated in active expiration.
+
+Smith and colleagues found the pre-Botzinger complex in a neonatal rat brainstem and spinal cord kept working in a dish, with no lungs and no blood attached. The rhythm survived removal of tissue on either side of one small ventrolateral region, stopped when that region came out, and continued in thin slices containing it. That shows local necessity, and sufficiency of a slice, in a reduced neonatal rodent preparation. It does not establish the adult human circuit, nor that one intrinsic pacemaker mechanism accounts for every breath. How these neurons fire is [the action potential](/lessons/action-potential/)'s business.
+
+{/* DIAGRAM: ventral rodent brainstem with the ventral respiratory column marked, pre-Botzinger complex and retrotrapezoid nucleus labelled inside it, arrow from the latter to the former */}
+
+## Altitude: the same lever, in a better place
+
+At terrestrial altitude the inspired oxygen fraction stays at 0.21; what falls is barometric pressure, and with it the partial pressure of oxygen in every breath. The loop is unchanged, but its operating point has moved onto the part of the oxygen curve where the lever has authority.
+
+**Worked problem: what hyperventilation buys at altitude.** These are stipulated model values, not measurements from any named mountain: barometric pressure 500 mmHg, inspired oxygen fraction 0.21, water vapour 47 mmHg, R 0.80, negligible inspired carbon dioxide, steady state. Same equation as above, with arterial PCO2 standing in for alveolar:
 
 1. *Humidified inspired oxygen.* 0.21 x (500 - 47) = 0.21 x 453 = 95.1 mmHg.
 2. *Before hyperventilation,* with arterial PCO2 40 mmHg: 95.1 - 40/0.80 = 95.1 - 50.0 = 45.1 mmHg.
 3. *After hypoxic hyperventilation* lowers arterial PCO2 to 30 mmHg: 95.1 - 30/0.80 = 95.1 - 37.5 = 57.6 mmHg.
 4. *Gain from washing out carbon dioxide.* 57.6 - 45.1 = 12.5 mmHg. Independent check: (40 - 30)/0.80 = 12.5 mmHg.
-5. *Sea-level anchor,* same assumptions: 0.21 x (760 - 47) = 149.7 mmHg, minus 50.0 = 99.7 mmHg, close to the alveolar PO2 of about 100 mmHg usually quoted for an adult at rest at sea level.
 
-Three limits. It is **alveolar** PO2; arterial PO2 needs gas-exchange information the calculation does not contain. The 12.5 mmHg is the model's output, not a measured acclimatization benefit. And the hyperventilation is held back at first by the alkalosis it creates. Bicarbonate loss partly corrects that alkalosis, while rising carotid body sensitivity and sensitization of the central pathways let ventilation climb further over days.
+Without hyperventilation the alveolus here sits at 45 mmHg, against about 100 at sea level. Note that this is **alveolar** PO2, since arterial PO2 needs gas-exchange information the calculation lacks, and 12.5 mmHg is the model's output, not a measured acclimatization benefit.
+
+**Predict.** The identical 10 mmHg of carbon dioxide washout buys 12.5 mmHg of alveolar PO2 at sea level and at 500 mmHg alike. Which setting turns that into more oxygen carried in the blood, and by roughly how much?
+
+<details>
+<summary>Check your prediction</summary>
+
+At 500 mmHg, by roughly tenfold. At sea level the 12.5 mmHg takes alveolar PO2 from about 100 to about 112 mmHg, on the flat top of the hemoglobin curve, and oxygen content rises by only about 1 percent. At 500 mmHg the same push (steps 2 and 3 above) lands on the steep part, and content rises by about 10 percent (model values, reading saturation off alveolar PO2 and ignoring the leftward curve shift the alkalosis causes, so an upper bound). Same lever, same push, about ten times the oxygen: that is why hypoxic hyperventilation is worth having at altitude, and why the oxygen arm's response only becomes large below about 60 mmHg.
+
+</details>
 
 <ChemoreflexAltitude />
 
-## Altitude: the same loop, moved
+**Predict.** The loop re-tunes after a rapid ascent from sea level, and its parts move on different clocks. For each of these, give the direction and guess the clock (seconds to minutes, minutes to hours, hours, days, or longer): inspired PO2, arterial PO2 and saturation, carotid body firing and ventilation, arterial PCO2, pH, plasma bicarbonate, erythropoietin, red cell mass.
 
-At terrestrial altitude the inspired oxygen fraction stays at 20.94 percent; what falls is barometric pressure, and with it the partial pressure of oxygen in every breath. The same pathways now work from a lower input, their sensitivity changes over days, and their parts respond on different clocks.
+<details>
+<summary>Check your prediction</summary>
 
-Within seconds to minutes, arterial PO2 and saturation fall, carotid body firing rises and ventilation rises; saturations are read off the curve in [carrying oxygen and carbon dioxide](/lessons/oxygen-transport/). Within minutes to hours, that hyperventilation lowers arterial PCO2 and raises blood pH, and the hypocapnic alkalosis inhibits ventilation both at the medullary chemoreceptors and at the carotid body, holding it below what the hypoxia alone would drive. Over days, renal compensation increases bicarbonate excretion and plasma bicarbonate falls, while carotid body sensitivity rises and the central translation of that input is sensitized, so ventilation can rise further even where cerebrospinal fluid pH stays alkaline; in Zouboules and colleagues' lowlanders sampled by arterial puncture during a ten-day ascent to 5160 m, a derived index of renal compensation plateaued after about five days, a protocol-specific trajectory rather than a universal deadline. On a third clock, hypoxia elicits renal erythropoietin within hours, and erythropoietin raises red cell mass and oxygen-carrying capacity over longer exposure, as [blood cells and hematocrit](/lessons/blood-cells-and-hemostasis/) describes. Tibetan highlanders carry adaptively introgressed variation at EPAS1, the gene for HIF-2alpha, which [human evolution](/lessons/human-evolution/) covers.
+| Variable | Direction | Clock |
+|---|---|---|
+| Inspired PO2 | down (pressure falls, fraction does not) | at once |
+| Arterial PO2 and saturation | down | seconds to minutes |
+| Carotid body firing and ventilation | up | seconds to minutes |
+| Arterial PCO2 | down | minutes to hours |
+| pH | up; the alkalosis inhibits ventilation centrally and at the carotid body, holding it below what hypoxia alone would drive | minutes to hours |
+| Plasma bicarbonate | down, as the kidney increases bicarbonate excretion, which partly corrects the alkalosis | days |
+| Carotid body sensitivity and central sensitization | up, so ventilation can rise further even where cerebrospinal fluid pH stays alkaline | days |
+| Renal erythropoietin | up | within hours |
+| Red cell mass and oxygen-carrying capacity | up | longer exposure |
 
-**Reasoning step: acute mountain sickness as a test of the loop.** After rapid ascent in a non-acclimatized person every arrow above is in play at once, and the syndrome commonly presents as headache accompanied variably by appetite loss, nausea, fatigue or dizziness. A cerebral mechanism for uncomplicated cases is not settled. The 2018 Lake Louise revision, which removed disturbed sleep as a questionnaire item, is a research scoring instrument, and this lesson uses it only as that. What the loop does give you is directions: inspired PO2 down, arterial PO2 and saturation down, ventilation up, arterial PCO2 down, pH up, plasma bicarbonate down over days, erythropoietin up within hours, red cell mass up later.
+Saturations are read off the curve in [carrying oxygen and carbon dioxide](/lessons/oxygen-transport/); erythropoietin and red cell mass are in [blood cells and hematocrit](/lessons/blood-cells-and-hemostasis/). The renal clock has been measured in lowlanders, but as a protocol-specific trajectory rather than a universal deadline (Going deeper).
 
-## Diving: the loop with the air supply cut off
+</details>
 
-Close the airway and the controller keeps running on a sealed store. Carbon dioxide accumulates and oxygen falls, and the **apnea break point**, the moment voluntary breath-holding ends, is influenced by both, and no simple blood-gas rule fully explains it; the relative weight of the two gases varies with the starting gases, the lung volume and the person. Overlaid on it is the **diving response**: in mammals, parasympathetically mediated bradycardia during apnea together with sympathetically mediated peripheral vasoconstriction. The autonomic limbs are [the hypothalamus and autonomic system](/lessons/hypothalamus-autonomic/)'s, the circuit evidence comes predominantly from terrestrial rodents, and the comparative diving-mammal story belongs to [thermoregulation](/lessons/thermoregulation/).
+Tibetan highlanders carry adaptively introgressed variation at EPAS1, the gene for HIF-2alpha, which [human evolution](/lessons/human-evolution/) covers.
 
-In people the response is studied by immersing the face in cold water during a timed apnea. Pernett and colleagues had 18 volunteers with little or no freediving experience perform two series of five maximal prone apneas with cold facial immersion and two-minute recovery intervals, one series preceded each time by 15 seconds of hyperventilation. Hyperventilation lowered mean starting end-tidal PCO2 from 29.0 to 17.4 mmHg (gas data usable in 13 of the 18), lengthened the mean apnea from 111 to 133 seconds, and lowered the mean saturation nadir from 93.6 to 90.6 percent, with no enhancement of bradycardia or vasoconstriction.
+**Acute mountain sickness.** After rapid ascent in a non-acclimatized person every arrow in that table is in play at once, and the syndrome commonly presents as headache accompanied variably by appetite loss, nausea, fatigue or dizziness. A cerebral mechanism for uncomplicated cases is not settled; the loop gives you the directions, not the headache.
 
-Read that as the loop predicts. Hyperventilation lowers the starting carbon dioxide and so delays the urge to breathe, while adding little oxygen to hemoglobin that is already nearly saturated. It does raise lung oxygen somewhat, and starting end-tidal PO2 in that study was higher after hyperventilation. The hold gets longer, the oxygen gets lower, and the diving response is no stronger for it. The mechanistic consequence discussed in that paper is that pre-dive hyperventilation may permit breath-holding to continue until extreme hypoxia produces blackout. Two limits: no blackout rate was measured in that protocol, and finger pulse oximetry reports peripheral hemoglobin saturation, not brain oxygenation. The ventilatory response to exercise is in exercise physiology.
+## Diving: the loop with the lever taken away
+
+Close the airway and the controller keeps running on a sealed store. Carbon dioxide accumulates and oxygen falls. The *urge* to breathe tracks carbon dioxide in the main. The **apnea break point**, the moment voluntary breath-holding ends, is a different thing: both gases influence it, and no simple blood-gas rule fully explains it, because their relative weight varies with the starting gases, the lung volume and the person. Overlaid on it is the **diving response**: in mammals, parasympathetically mediated bradycardia during apnea together with sympathetically mediated peripheral vasoconstriction. The autonomic limbs are [the hypothalamus and autonomic system](/lessons/hypothalamus-autonomic/)'s, the circuit evidence is mostly from terrestrial rodents, and the diving-mammal story belongs to [thermoregulation](/lessons/thermoregulation/).
 
 {/* DIAGRAM: laboratory static-apnea apparatus, prone volunteer with face in a basin of cold water, finger pulse oximeter, laser-Doppler probe on the thumb, mouthpiece line to a gas analyser, clock; no data traces */}
+
+In people it is studied by face immersion in cold water during a timed apnea. Pernett and colleagues had 18 volunteers with little or no freediving experience hold maximal prone apneas this way, once after normal breathing and once after 15 seconds of hyperventilation.
+
+**Predict.** By the loop, what should the hyperventilation do to the length of the hold, and to the lowest oxygen saturation reached? Should the diving response itself get stronger?
+
+<details>
+<summary>Check your prediction</summary>
+
+Hyperventilation lowered the starting carbon dioxide, which delays the urge to breathe, so the hold got longer, by about 22 seconds on average. The store grew only modestly, and almost all of that gain was gas in the lungs, since the extra breathing added little to hemoglobin already nearly saturated; the saturation nadir was lower, by about 3 percentage points. Whether the larger lung store accounts for the longer hold cannot be settled from these data (Going deeper). The diving response was no stronger. Hyperventilation moved the timer far more than it moved the supply.
+
+</details>
+
+The paper discusses that pre-dive hyperventilation may permit breath-holding to continue until extreme hypoxia produces blackout; no blackout rate was measured in that protocol. The ventilatory response to exercise is in exercise physiology.
 
 ### Design problem
 
@@ -436,14 +562,47 @@ From the mouse result above, a colleague concludes that HIF-2alpha is the acute 
 <details>
 <summary>One way to do it</summary>
 
-Start from what makes the published design unable to answer it: a cell that is absent cannot report a sensing defect. The acute question needs an inducible or adult-onset deletion applied after the carotid body has formed, with glomus-cell number counted in the same animals tested physiologically. Without that count, a reduced response cannot separate missing cells from impaired sensing in the cells that remain.
+Start from what makes the published design unable to answer it: a cell that is absent cannot report a sensing defect. The acute question needs an inducible or adult-onset deletion applied after the carotid body has formed, with glomus-cell number counted in the same animals tested physiologically; without that count, a reduced response cannot separate missing cells from impaired sensing.
 
 Second, use a readout that does not depend on ventilation, because ventilation sums the whole reflex: glomus-cell calcium or catecholamine secretion to graded hypoxia in carotid body slices, or carotid sinus nerve afferent recording during a hypoxic step.
 
 Third, keep the published controls: the carbon dioxide response as a control on the ventilatory apparatus, littermate controls, and the HIF-1alpha deletion as an isoform control.
 
-Fourth, control the driver line. Tyrosine hydroxylase-Cre is active in adrenal chromaffin cells and brainstem catecholaminergic groups too, so a deficit could arise outside the carotid body; carotid body-targeted re-expression is the complement.
+Fourth, control the driver line. Tyrosine hydroxylase-Cre is also active in adrenal chromaffin cells and brainstem catecholaminergic groups, so a deficit could arise outside the carotid body; carotid body-targeted re-expression is the complement.
 
 Then say in advance what each outcome means. If a verified adult-onset deletion spares the cells and the hypoxic response holds, that supports a mainly developmental role under the conditions tested, once deletion efficiency, timing and compensation have been checked. If normally numbered cells show an acute deficit, the sensing claim survives. Neither transfers to people without human evidence; the denervation data supply that for the organ's role in breathing, not for HIF-2alpha.
 
 </details>
+
+## Going deeper
+
+The main line above does not depend on these details.
+
+### How the rhythm was found
+
+The rhythm in that dish is readable from cranial nerve or ventral root output, and the tissue was removed in serial transverse microsections, so each cut tested which tissue had to stay for rhythmic output to continue in this preparation (Smith, Ellenberger, Ballanyi, Richter and Feldman, Science 1991). Slice preparations built around the region became the standard material for asking how a breathing rhythm is made.
+
+### The HIF-2alpha knockout in detail
+
+The deletion was driven by tyrosine hydroxylase-Cre, and developing knockout carotid bodies showed a progressive rise in TUNEL-positive cells (a marker of dying cells) at embryonic day 18.5 and at birth. The blunted response was measured over the first five minutes of 10 percent inspired oxygen; in a separate measurement in isoflurane-anesthetized mice, saturation after five minutes of 10 percent oxygen was 50 to 55 percent against 73 percent in littermate controls. The retained carbon dioxide response was to 5 percent inspired carbon dioxide (eLife 2018).
+
+### The carotid and aortic bodies
+
+The organ that carries the oxygen arm is tiny: on the order of ten milligrams in an adult human. Its aortic partner is weaker for the other gas, at least in anesthetized, paralyzed, artificially ventilated cats, where aortic chemoreceptor responses to carbon dioxide were smaller than carotid responses.
+
+### Where the numbers in this lesson come from
+
+The oxygen contents, saturations and pH values are model values: a Hill curve with exponent 2.7 and P50 26 mmHg at 15 g/dL of hemoglobin, the Henderson-Hasselbalch equation with plasma bicarbonate 24 mM, and alveolar PCO2 taken as 863 times carbon dioxide production divided by alveolar ventilation. With PCO2 5 mmHg either side of 40, pH runs from about 7.46 to about 7.35 and content moves by about 1 percent.
+
+The 14-fold ratio holds because the shape parameter cancels; the absolute slope does depend on it. For a hyperbola of the form ventilation = baseline + A/(PO2 - 32), the range of A measured in Weil's ten subjects, from about 100 to 270 with a mean of 180, gives an oxygen slope at 100 mmHg of about 0.02 to 0.06 L/min per mmHg, against a carbon dioxide slope near 2: the "thirty to ninety times shallower" in the text. The carbon dioxide condition attached to that curve matters for the same reason: in six of Weil's subjects the fitted shape parameter differed significantly when alveolar PCO2 was held about 5 mmHg above or below control.
+
+### Acclimatization over days
+
+In Zouboules and colleagues' lowlanders sampled by arterial puncture during an ascent to 5160 m over ten days, a derived index of renal compensation plateaued after about five days. The 2018 revision of the Lake Louise score for acute mountain sickness removed disturbed sleep as a questionnaire item; it is a research scoring instrument, not something this lesson relies on.
+
+### The breath-hold study
+
+The two series were of five maximal prone apneas each, with two-minute recovery intervals. Hyperventilation lowered mean starting end-tidal PCO2 from 29.0 to 17.4 mmHg (gas data usable in 13 of the 18), lengthened the mean apnea from 111 to 133 seconds, and lowered the mean saturation nadir from 93.6 to 90.6 percent, with no enhancement of bradycardia or vasoconstriction (European Journal of Applied Physiology, 2023). Finger pulse oximetry reports peripheral hemoglobin saturation, not brain oxygenation.
+
+A crude store estimate shows that the arithmetic is not clean. With a 3 L lung and 5 L of blood, lowering alveolar PCO2 from 40 to 17.4 mmHg raises alveolar PO2 from about 100 to 128 mmHg and adds about 120 mL of oxygen to the lungs and 17 mL to the blood, roughly half a minute of resting consumption; starting from the study's own control value of 29.0 mmHg it is about 70 mL. The sum is too sensitive to starting gases, consumption during apnea, the leftward shift of the hemoglobin curve in alkalosis and cardiovascular redistribution to say how much of the longer hold is stored oxygen: an order-of-magnitude bound, not a result.
+

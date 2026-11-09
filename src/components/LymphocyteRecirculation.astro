@@ -19,14 +19,14 @@
   <svg class="lr-svg" viewBox="0 0 340 186" role="img" aria-label="Block diagram of three compartments. Blood sends cells to the spleen and to two node parts in series, and each returns cells to blood. Each block shows its steady-state share of the pool." data-scheme></svg>
 
   <div class="lr-controls">
-    <label class="lr-slabel"><span>Spleen exit rate <em data-out="es">0.007</em> per min</span>
+    <label class="lr-slabel"><span>Spleen exit rate <em data-out="es">0.007</em> per min<small data-eff-s></small></span>
       <input type="range" data-in="es" min="0.002" max="0.02" step="0.001" value="0.007" />
     </label>
     <label class="lr-slabel"><span>Node exit rate, each of the two parts <em data-out="en">0.0034</em> per min<small data-eff></small></span>
       <input type="range" data-in="en" min="0.001" max="0.01" step="0.0001" value="0.0034" />
     </label>
-    <label class="lr-toggle"><input type="checkbox" data-in="s1p1" /> <span>Lymphocytes lack S1P1 (mouse finding): node exit rate × 0.1 (schematic, not a measured value)</span></label>
-    <label class="lr-toggle"><input type="checkbox" data-in="inf" /> <span>Node drains a site of immune challenge: node entry × 2 (schematic; the lesson says only that entry may also rise, and the main change is slower exit, so try the node exit slider)</span></label>
+    <label class="lr-toggle"><input type="checkbox" data-in="s1p1" /> <span>Exit gate shut, as when S1P1 is removed (drug like fingolimod, or S1P1-deficient mouse cells): spleen and node exit × 0.1 (schematic factor, not a measured value)</span></label>
+    <label class="lr-toggle"><input type="checkbox" data-in="inf" /> <span>Node drains a site of immune challenge: node entry × 2 (schematic). The lesson says both more entry and slower exit can enlarge a draining node; which dominates is debated, and a rat model put it mainly on entry. Try the node exit slider for the other route.</span></label>
   </div>
 
   <svg class="lr-svg" viewBox="0 0 340 222" role="img" aria-label="Line plot of the share of a labelled cohort in blood, spleen and nodes over 24 hours, after the cohort starts in blood, with dashed lines at the steady-state shares" data-plot></svg>
@@ -37,6 +37,8 @@
     <div><dt>Steady-state ratio blood : spleen : nodes</dt><dd data-r-ratio></dd></div>
     <div><dt>Steady-state shares, blood · spleen · nodes</dt><dd data-r-share></dd></div>
     <div><dt>Shares of the cohort at 24 h, blood · spleen · nodes</dt><dd data-r-24></dd></div>
+    <div><dt>Nodes, relative to defaults: stay × entry flux = held</dt><dd data-r-nrel></dd></div>
+    <div><dt>Spleen, relative to defaults: stay × entry flux = held</dt><dd data-r-srel></dd></div>
   </dl>
   <p class="lr-why" data-why role="status"></p>
 
@@ -49,7 +51,7 @@
   const C_BLOOD = '#b45309', C_SPLEEN = '#0e7c86', C_NODE = '#5b3f9a', INK = '#1f2933', SOFT = '#4b4b55', FAINT = '#b9b9c2';
   // The lesson's rat-model values (per min).
   const K_S = 0.056, E_S0 = 0.007, K_N0 = 0.026, E_N0 = 0.0034;
-  const SHARE_FACTOR = 0.1, ENTRY_FACTOR = 2; // made up for the sketch
+  const EXIT_FACTOR = 0.1, ENTRY_FACTOR = 2; // made up for the sketch
 
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
@@ -113,12 +115,15 @@
     const infIn = need<HTMLInputElement>(root, '[data-in="inf"]');
     const esOut = need<HTMLElement>(root, '[data-out="es"]');
     const effOut = need<HTMLElement>(root, '[data-eff]');
+    const effSOut = need<HTMLElement>(root, '[data-eff-s]');
     const enOut = need<HTMLElement>(root, '[data-out="en"]');
     const rTs = need<HTMLElement>(root, '[data-r-ts]');
     const rTn = need<HTMLElement>(root, '[data-r-tn]');
     const rRatio = need<HTMLElement>(root, '[data-r-ratio]');
     const rShare = need<HTMLElement>(root, '[data-r-share]');
     const r24 = need<HTMLElement>(root, '[data-r-24]');
+    const rNrel = need<HTMLElement>(root, '[data-r-nrel]');
+    const rSrel = need<HTMLElement>(root, '[data-r-srel]');
     const why = need<HTMLElement>(root, '[data-why]');
 
     function drawScheme(eS: number, kN: number, eN: number, st: ReturnType<typeof steady>) {
@@ -208,12 +213,13 @@
     function render() {
       const s1p1 = s1p1In.checked, inf = infIn.checked;
       const eSbase = parseFloat(esIn.value), eNbase = parseFloat(enIn.value);
-      const eS = eSbase;
-      const eN = eNbase * (s1p1 ? SHARE_FACTOR : 1);
+      const eS = eSbase * (s1p1 ? EXIT_FACTOR : 1);
+      const eN = eNbase * (s1p1 ? EXIT_FACTOR : 1);
       const kN = K_N0 * (inf ? ENTRY_FACTOR : 1);
       esOut.textContent = rate(eSbase);
       enOut.textContent = rate(eNbase);
       effOut.textContent = s1p1 ? ' (in use: ' + rate(eN) + ')' : '';
+      effSOut.textContent = s1p1 ? ' (in use: ' + rate(eS) + ')' : '';
 
       const st = steady(K_S, eS, kN, eN);
       const sim = simulate(K_S, eS, kN, eN);
@@ -229,9 +235,16 @@
       rShare.textContent = pct(st.b) + ' · ' + pct(st.s) + ' · ' + pct(st.n) + ' percent';
       r24.textContent = pct(b24) + ' · ' + pct(s24) + ' · ' + pct(n24) + ' percent';
 
+      // Held = entry flux × stay. Steady-state entry flux into an organ = its entry rate × blood share.
+      const x = (v: number) => '× ' + v.toFixed(2);
+      const nStay = tN / (2 / E_N0), nEntry = (kN * st.b) / (K_N0 * BASE.b), nHeld = st.n / BASE.n;
+      const sStay = tS / (1 / E_S0), sEntry = st.b / BASE.b, sHeld = st.s / BASE.s;
+      rNrel.textContent = 'stay ' + x(nStay) + ' · entry flux ' + x(nEntry) + ' · held ' + x(nHeld);
+      rSrel.textContent = 'stay ' + x(sStay) + ' · entry flux ' + x(sEntry) + ' · held ' + x(sHeld);
+
       // Status line: every sentence reports the sketch's own result.
       const parts: string[] = [];
-      if (s1p1) parts.push('node exit rate multiplied by 0.1 (a schematic factor)');
+      if (s1p1) parts.push('spleen and node exit rates multiplied by 0.1 (a schematic factor)');
       if (inf) parts.push(!s1p1 && Math.abs(eNbase - E_N0) < 1e-9 ? 'node entry doubled (schematic, exit unchanged)' : 'node entry doubled (schematic)');
       if (Math.abs(eSbase - E_S0) > 1e-9) parts.push('the spleen exit slider at ' + rate(eSbase) + ' per min');
       if (Math.abs(eNbase - E_N0) > 1e-9) parts.push('the node exit slider at ' + rate(eNbase) + ' per min');
@@ -249,6 +262,11 @@
         };
         const listed = parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : parts[0];
         out.push('In this sketch, with ' + listed + ', the share compared with the defaults is ' + cmp(st.b, BASE.b) + ' in blood, ' + cmp(st.s, BASE.s) + ' in the spleen and ' + cmp(st.n, BASE.n) + ' in the nodes.');
+        if (Math.abs(nStay - 1) > 0.005) {
+          const bloodWord = st.b < BASE.b ? 'blood falls' : 'blood rises';
+          out.push('Nodes: stay ' + x(nStay) + ', but ' + bloodWord + ', so entry flux ' + x(nEntry) + ': held ' + x(nHeld) + ', not ' + x(nStay) + ', because every node changed at once (one node out of hundreds would keep its entry, and its holding would follow its stay, ' + x(nStay) + ').');
+        }
+        if (s1p1) out.push('With the exit gate shut, blood’s share is ' + x(st.b / BASE.b) + ' of the default while the nodes’ share is ' + x(nHeld) + ': the cells held in tissue come out of blood.');
       }
       const settled = Math.abs(b24 - st.b) < 0.01 && Math.abs(s24 - st.s) < 0.01 && Math.abs(n24 - st.n) < 0.01;
       out.push('In this sketch, 24 h after a cohort starts in blood it holds blood ' + pct(b24) + ', spleen ' + pct(s24) + ' and nodes ' + pct(n24) + ' percent, ' + (settled ? 'close to the steady-state shares.' : 'so it has not yet settled at the steady-state shares.'));

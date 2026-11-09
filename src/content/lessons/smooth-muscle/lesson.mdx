@@ -16,7 +16,7 @@ hook: "Raise the pressure inside a small artery and it narrows against the stret
 estMinutes: 25
 objectives:
   - "Compare smooth muscle with skeletal and cardiac muscle in mammals: filaments anchored to dense bodies and dense plaques rather than sarcomeres, calcium from L-type channels and the sarcoplasmic reticulum, and activation by calcium-calmodulin and myosin light-chain kinase rather than troponin."
-  - "Explain how force depends on calcium and on calcium sensitivity, set by the balance of myosin light-chain kinase and myosin light-chain phosphatase, with Rho kinase inhibiting the phosphatase and nitric oxide, cGMP and protein kinase G raising its activity (permeabilized rabbit vascular muscle)."
+  - "Explain how light-chain phosphorylation, and with it force, depends on calcium and on calcium sensitivity, set by the balance of myosin light-chain kinase and myosin light-chain phosphatase, with Rho kinase inhibiting the phosphatase and nitric oxide, cGMP and protein kinase G raising its activity (permeabilized rabbit vascular muscle)."
   - "Explain the latch state as force held at low light-chain phosphorylation (the Hai-Murphy model; purified pig and chicken myosin, 2022), and distinguish single-unit from multi-unit smooth muscle."
   - "Explain the myogenic response of small arteries (Bayliss 1902, dogs, cats and rabbits; mouse mesenteric arteries, 2019) and combine it with nitric oxide, sympathetic input and Poiseuille's law to predict the radius, resistance and flow of a vessel, and contrast it with a filling hollow organ."
 
@@ -120,7 +120,7 @@ simulations:
     ref: "MyogenicArteriole"
     title: "A small narrowing, a large effect"
     caption: >-
-      Move the pressure difference and the radius of an idealized rigid arteriole, or switch on the what-if toggle, to see how a small narrowing can hold flow at baseline against a large rise in pressure.
+      Move the pressure difference and the radius of an idealized rigid arteriole, or switch on the what-if toggle, to see how a small narrowing can hold flow at baseline against a large rise in pressure. The muscle itself senses stretch of the wall, not flow.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -180,6 +180,21 @@ practiceQuestions:
       Calcium does not lock actin in smooth muscle. The latch state is not rigor and does not mean
       the cell has no ATP; phosphorylated cross-bridges still cycle and latch bridges let go slowly. Phosphorylation is falling, not
       rising, in the observation the model explains.
+  - stem: "In a permeabilized rabbit arterial strip, calcium in the bath is clamped. The cGMP analog 8-bromo-cGMP is added and the strip relaxes. Which reading best fits?"
+    choices:
+      - "Calcium inside the cells fell as cGMP closed the release channels"
+      - "The kinase was activated, keeping more light chain phosphorylated"
+      - "Troponin lost its phosphate, so the thin filaments were covered"
+      - "Phosphatase activity rose, removing phosphate at the same calcium"
+    answer: 3
+    rationale: >-
+      Nitric oxide activates soluble guanylate cyclase, cGMP activates protein kinase G, and in
+      permeabilized muscle with calcium clamped the cGMP analog still relaxed the muscle, which the
+      authors read as indirect activation of the phosphatase: a faster drain at the same tap. In
+      intact muscle the same pathway also lowers calcium, but calcium cannot have fallen here,
+      because the bath clamps it, so closed release channels cannot explain the result. Activating
+      the kinase would raise phosphorylation and force, not lower them. Smooth muscle has no
+      troponin.
   - stem: "An isolated mouse mesenteric artery is held at 80 mmHg and pressure is then raised to 120 mmHg. Passive diameter in calcium-free solution increases. What happens to active diameter in calcium-containing solution in a normal artery?"
     choices:
       - "It follows the passive diameter, as the vessel is a tube"
@@ -269,8 +284,9 @@ explainLevels:
       entering through L-type channels (CaV1.2) or released from the sarcoplasmic reticulum through
       IP3 receptors binds calmodulin; calcium-calmodulin activates myosin light-chain kinase, which
       phosphorylates the 20-kDa regulatory light chain (LC20) and activates the motor. Myosin
-      light-chain phosphatase reverses this, so force follows the ratio of kinase to phosphatase
-      activity, not calcium alone. Rho kinase inhibits the phosphatase by phosphorylating its MYPT1
+      light-chain phosphatase reverses this, so phosphorylation follows the ratio of kinase to
+      phosphatase activity, not calcium alone, and because of the latch state force is not
+      proportional to phosphorylation. Rho kinase inhibits the phosphatase by phosphorylating its MYPT1
       subunit (more force at the same calcium); nitric oxide, cGMP and protein kinase G push the
       other way. In small arteries a rise in transmural pressure stretches the wall, depolarizes
       the cells and recruits Rho-dependent sensitization, so the vessel narrows.
@@ -338,74 +354,180 @@ draft: false
 ---
 
 import MyogenicArteriole from '../../../components/MyogenicArteriole.astro';
+import EquationCard from '../../../components/EquationCard.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Push harder on the inside of a small artery and its muscle pushes back.** A garden hose does the opposite: raise the pressure and it bulges. The muscle in an arterial wall answers a rise in pressure by contracting, and that answer is built into the muscle rather than wired in from the brain. The same machinery runs the gut, airways and bladder.
+**Push harder on the inside of a small artery and its muscle pushes back.** A garden hose does the opposite: raise the pressure and it bulges. The artery's answer is built into its muscle rather than wired in from the brain. The same machinery runs the gut, airways and bladder.
 
-## Force without sarcomeres
+So what is the muscle sensing? Stretch of its own wall. Which molecule detects the stretch is still disputed; how the muscle turns stretch into force is not. It runs through two enzymes, one that puts a phosphate on myosin and one that takes it off.
 
-A smooth muscle cell is a spindle, a few micrometres across and roughly 30 to 200 micrometres long, with one nucleus, and it has no stripes, because its actin and myosin are not arranged in sarcomeres. [Skeletal muscle](/lessons/skeletal-muscle-mechanics/) gets its length-tension curve from that regular overlap; smooth muscle has no such register.
+> **The one idea to carry through this lesson.** Each myosin light chain is switched on by a kinase (myosin light-chain kinase, MLCK) and off by a phosphatase (myosin light-chain phosphatase, MLCP), over and over. The fraction carrying a phosphate, p, settles at a balance point where the two rates are equal: **p = k_MLCK / (k_MLCK + k_MLCP)**. Calcium sets the kinase; other signals, Rho kinase above all, set the phosphatase. So the same calcium can buy more force or less, and most stimuli, whether a drug, a nerve or a stretched wall, act by moving calcium, the phosphatase, or both (Going deeper lists the exceptions). The rule sets phosphorylation, not force directly: once force is built, latch lets it outlast the phosphate.
 
-Its thin filaments are anchored instead in **dense bodies**, protein clusters in the cytoplasm, and in **dense plaques** on the inside of the membrane. Myosin filaments run among them at an angle, and intermediate filaments tie the dense bodies together, so when myosin pulls, the whole cell shortens and bulges. Because the filaments are not stacked in sarcomeres, the cell can develop force over a much wider range of lengths than a sarcomere can, which matters for an organ that fills.
+## The switch on myosin
 
- Smooth muscle has no troponin, so calcium cannot act on the thin filament as it does in skeletal and cardiac muscle. The switch sits on myosin: calcium binds **calmodulin**, calcium-calmodulin activates **myosin light-chain kinase** (MLCK), and MLCK puts a phosphate on the 20-kDa regulatory light chain, LC20, after which the motor can cycle on actin. [Muscle and movement](/lessons/muscle-and-movement/) gave this switch its first look, and [calcium signaling](/lessons/calcium-signaling/) covers calmodulin and the stores.
-
-{/* DIAGRAM: smooth muscle cell relaxed and contracted */}
+Smooth muscle has no troponin, so calcium cannot act on the thin filament as it does in skeletal and cardiac muscle. The switch sits on myosin: calcium binds **calmodulin**, calcium-calmodulin activates **myosin light-chain kinase** (MLCK), and MLCK puts a phosphate on the 20-kDa regulatory light chain, **LC20**, after which the motor can cycle on actin. [Muscle and movement](/lessons/muscle-and-movement/) gave this switch its first look, and [calcium signaling](/lessons/calcium-signaling/) covers calmodulin and the stores.
 
 Calcium arrives by two routes. Depolarization opens L-type channels (CaV1.2) and calcium flows in down its electrochemical gradient: **electromechanical coupling**. Or an agonist on a Gq-coupled receptor makes IP3, which opens release channels on the sarcoplasmic reticulum ([phospholipase C, IP3, DAG and PKC](/lessons/plc-ip3-dag-pkc/)). That route can contract the cell with little change in membrane potential: **pharmacomechanical coupling**.
 
-Set the three types side by side. Skeletal muscle links a voltage sensor in the T tubule mechanically to the release channel of the sarcoplasmic reticulum, so it needs no calcium from outside, and calcium acts through troponin. Cardiac muscle needs the calcium entering during the action potential, which triggers a larger release from the store ([cardiac electrophysiology and the ECG](/lessons/cardiac-electrophysiology-ecg/)), and it uses troponin too. Smooth muscle draws on both sources and switches the motor itself; its cross-bridges cycle more slowly, so it generally shortens slowly and, above all in tonic smooth muscle, holds force cheaply.
+Set the three muscle types side by side.
 
-## Calcium sets the switch; sensitivity sets the gain
+| Muscle | Where the calcium comes from | What calcium acts on |
+|---|---|---|
+| Skeletal | The store only: a voltage sensor in the T tubule is linked mechanically to the release channel of the sarcoplasmic reticulum, so no calcium from outside is needed | Troponin, on the thin filament |
+| Cardiac | Calcium entering during the action potential triggers a larger release from the store ([cardiac electrophysiology and the ECG](/lessons/cardiac-electrophysiology-ecg/)) | Troponin, on the thin filament |
+| Smooth | Both: entry through L-type channels and release from the sarcoplasmic reticulum | Calmodulin, which switches on MLCK and so the myosin motor itself |
 
-MLCK is only half the story. **Myosin light-chain phosphatase** (MLCP) takes the phosphate off LC20, and it works the whole time; in permeabilized rabbit arterial strips, where the bath sets calcium inside the cells, that removal can be followed directly. Force therefore follows the balance of kinase and phosphatase activity. Calcium sets the kinase, so anything that changes the phosphatase changes force at the same calcium.
+Smooth muscle's cross-bridges also cycle more slowly, so it generally shortens slowly and, above all in tonic smooth muscle, holds force cheaply (the latch state, below).
 
-That is what **calcium sensitization** means: more force, or more phosphorylation, at an unchanged calcium concentration. 
+The cell's build suits that job. A smooth muscle cell is a spindle, a few micrometres across and roughly 30 to 200 micrometres long, with one nucleus, and it has no stripes, because its actin and myosin are not arranged in sarcomeres. [Skeletal muscle](/lessons/skeletal-muscle-mechanics/) gets its length-tension curve from that regular overlap; smooth muscle has no such register. Its thin filaments are anchored instead in **dense bodies**, protein clusters in the cytoplasm, and in **dense plaques** on the inside of the membrane. Myosin filaments run among them at an angle, and intermediate filaments tie the dense bodies together, so when myosin pulls, the whole cell shortens and bulges. Because the filaments are not stacked in sarcomeres, the cell can develop force over a much wider range of lengths than a sarcomere can, which matters for an organ that fills.
 
-The clearest early evidence came from the Somlyo laboratory. In alpha-toxin-permeabilized rabbit portal vein, with calcium and ATP removed and MLCK blocked by ML-9 so only the phosphatase could act, Kitazawa, Masuo and Somlyo found that GTP-gamma-S, which keeps G proteins active, slowed dephosphorylation and relaxation to about half the control rates: a G protein can raise force by slowing the phosphatase.
+{/* DIAGRAM: smooth muscle cell relaxed and contracted */}
 
-The route is now drawn through RhoA, a GTPase switch ([GTPase switches](/lessons/gtpase-switches/) covers the cycle and its exchange factors, and [integrins and Rho GTPases](/lessons/integrins-and-rho-gtpases/) the same kinase elsewhere), and **Rho kinase** (ROCK), which phosphorylates MYPT1, the targeting subunit of MLCP, and inhibits the phosphatase. Protein kinase C adds a second route, through CPI-17, a protein that inhibits MLCP when it is itself phosphorylated.
+## The balance point: kinase against phosphatase
 
-The opposite arrow runs through nitric oxide. Nitric oxide from endothelium activates soluble guanylate cyclase, a reaction shown with purified bovine enzyme to depend on its heme group, and the cGMP that follows activates protein kinase G ([nitric oxide and cGMP](/lessons/senses-and-cgmp/)). In muscle the result is both a lower calcium and a higher phosphatase activity: in permeabilized rabbit artery with calcium clamped, the analog 8-bromo-cGMP relaxed the muscle, which the authors read as indirect activation of the phosphatase.
+A second enzyme, **myosin light-chain phosphatase** (MLCP), takes the phosphate back off LC20, and it never stops working; in permeabilized rabbit arterial strips that removal can be followed directly. What you measure at any moment is the fraction of light chains that happens to carry a phosphate.
 
-{/* DIAGRAM: MLCK and MLCP balance */}
+Picture a sink with the tap running and the drain open. The water settles at the level where it drains out as fast as it pours in. Light-chain phosphorylation settles the same way: at the level where the kinase adds phosphates exactly as fast as the phosphatase removes them.
 
-## Latch: holding force cheaply
+<EquationCard
+  purpose="What fraction of the regulatory light chains carry a phosphate once the kinase and the phosphatase have balanced."
+  eq="p = k_MLCK / (k_MLCK + k_MLCP)"
+  say="The phosphorylated fraction equals the kinase's activity divided by the kinase's activity plus the phosphatase's activity."
+  symbols={[
+    ["p", "p", "the fraction of LC20 carrying a phosphate", "0 to 1"],
+    ["k_MLCK", "k sub M L C K", "how fast the kinase phosphorylates a light chain that has no phosphate; calcium-calmodulin sets it", "per s"],
+    ["k_MLCP", "k sub M L C P", "how fast the phosphatase removes the phosphate; Rho kinase, PKC and nitric oxide set it", "per s"],
+  ]}
+  toolkit={["ratios"]}
+  check="Only the ratio of the two activities matters: double both and p does not change. In the model, the kinase off means p = 0, and the phosphatase stopped means p climbs toward 1 at any kinase activity above zero. Real muscle keeps a little phosphorylation at rest, from kinases that do not need calcium (Going deeper)."
+>
+  <Fragment slot="example">
+    <p>Illustrative numbers, not measurements. Let the kinase run three times as fast as the phosphatase: k_MLCK = 3 and k_MLCP = 1 per second.</p>
+    <p>p = 3 / (3 + 1) = 0.75, so three light chains in four carry a phosphate at any moment.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, phosphates go on at a rate k_MLCK × (1 − p), because only light chains without a phosphate can receive one, and come off at a rate k_MLCP × p.</p>
+    <p>Step 2, at the balance point the two rates are equal: k_MLCK × (1 − p) = k_MLCP × p.</p>
+    <p>Step 3, collect the p terms, p × (k_MLCK + k_MLCP) = k_MLCK, and divide.</p>
+  </Fragment>
+</EquationCard>
 
-Record LC20 phosphorylation and force together in a stimulated arterial strip. Phosphorylation rises first, then falls back toward low values while force stays near its peak. Something holds the load after the phosphates come off, and that state is called **latch**.
+**Predict.** Start with the kinase and the phosphatase equally active, so p = 0.5. A signal halves the phosphatase and leaves calcium alone. How much would calcium have to raise the kinase to reach the same p?
 
-Hai and Murphy proposed a kinetic model for this in 1988. Myosin heads move among four states: phosphorylated or not, attached or not. Kinase and phosphatase act on heads whether or not they are bound to actin, and a head that loses its phosphate while attached does not release at once. It becomes a **latch bridge**, whose slow detachment is the rate-limiting step, so force per head stays high while cycling rate, and ATP cost, fall. It is a model fitted to phosphorylation and stress data, not a structure anyone has imaged.
+<details>
+<summary>Check your prediction</summary>
 
-Two things often said about latch are wrong. It is not a state without ATP: phosphorylated cross-bridges keep cycling, latch bridges let go slowly, and calcium pumps keep working, so latch is economy, not shutdown. Nor is it rigor, the stiff state of a muscle whose ATP has run out.
+It would have to double it. Halving the phosphatase gives p = 1 / (1 + 0.5) = 0.67. Doubling the kinase gives p = 2 / (2 + 1) = 0.67. Halving the drain does what doubling the tap does. That is why a signal that never touches calcium can still raise force.
 
-In 2022 Hammell and colleagues tested the prediction on a few purified myosin molecules: myosin purified from pig stomach fundus (tonic) and chicken gizzard (phasic) pulled on actin in a laser trap with 200 micromolar MgATP present, and MLCP was injected at plateau force. Force was held for a median of 32 seconds (interquartile range 27 to 48) for the tonic myosin and 21 seconds (15 to 27) for the phasic myosin, five assays each. In the parallel motility assay, the midpoint of the loss of actin movement after injection, an indirect clock for dephosphorylation, came at about 27 seconds for the tonic and 26 seconds for the phasic myosin, so the authors read the tonic hold as force kept during dephosphorylation and the phasic hold less convincingly. Two limits: purified non-human proteins, not an intact vessel, and dephosphorylation followed in a parallel motility assay rather than on the trapped heads.
+</details>
 
-## One unit or many
+**Calcium sensitization** is any change that buys more force, or more phosphorylation, at an unchanged calcium concentration; **desensitization** buys less. The film puts it as "calcium sets the switch, and sensitivity sets the gain": gain here means how much force each level of calcium buys. On a graph of force against calcium, sensitization mainly slides the curve to the left, so less calcium gives the same force.
 
-In **single-unit** (visceral) smooth muscle, gap junctions couple neighbouring cells electrically, so excitation spreads and the cells contract as one mass; the gut and uterus are the usual examples. Bladder and arterial muscle sit between the two types: their cells are less tightly coupled, and in arteries the endothelium carries much of the electrical spread. Some of these tissues also carry pacemaker activity, and the gut's slow waves belong to [gut motility and secretion](/lessons/gut-motility-secretion/).
+**Predict.** Permeabilize a strip of artery so that the bath, not the cell, sets the calcium inside, and hold it at a moderate level. Add a drug that activates the GTPase RhoA. What happens to LC20 phosphorylation and to force, and how do you know calcium did not do it?
 
-In **multi-unit** smooth muscle, cells have little electrical coupling and each is driven by its own nerve terminals, allowing finely graded control; the iris and the piloerector muscles are the usual examples.
+<details>
+<summary>Check your prediction</summary>
 
- A hollow organ that fills is stretched steadily, and visceral smooth muscle can relax after being stretched, a behaviour called **stress relaxation**: tension falls back after the stretch, so pressure inside rises much less during filling than in a stiff container. An artery does the opposite when transmural pressure rises: it contracts. 
+Both rise. RhoA activates **Rho kinase** (ROCK), which phosphorylates MYPT1, the targeting subunit of the phosphatase, and inhibits MLCP. In the ratio, k_MLCP falls while k_MLCK stays put, so p rises. Calcium cannot have risen: the bath holds it constant. That is the experiment that defines sensitization.
 
-Receptors, not nerves in general, set the direction, so "sympathetic input contracts smooth muscle" is wrong as a rule. Norepinephrine on alpha-1 adrenoceptors contracted isolated rat aorta and mesenteric resistance vessels, mobilizing calcium from inside and outside the cell. In isolated human detrusor strips, noradrenaline produced concentration-dependent relaxation, which the authors suggested was mediated mainly through beta-3 adrenoceptors. Beta receptors classically signal through cAMP and protein kinase A, though in rat bladder strips cAMP played only a minor part in relaxation by the beta agonist isoproterenol ([cAMP and PKA](/lessons/camp-and-pka/)), and the receptor families are mapped in [the hypothalamus and the autonomic nervous system](/lessons/hypothalamus-autonomic/). Name the receptor and the preparation, and the contradictions go away.
+</details>
 
-## Arterioles answer pressure
+The clearest early evidence came from the Somlyo laboratory, which ran the mirror image of that experiment in permeabilized rabbit portal vein. With the kinase stopped, so that only the phosphatase could act, Kitazawa, Masuo and Somlyo found that GTP-gamma-S, which keeps G proteins active, slowed dephosphorylation and relaxation to about half the control rates: a G protein can raise force by slowing the drain. The route is now drawn through RhoA, a GTPase switch ([GTPase switches](/lessons/gtpase-switches/) covers the cycle and its exchange factors, and [integrins and Rho GTPases](/lessons/integrins-and-rho-gtpases/) the same kinase elsewhere), and Rho kinase. Protein kinase C gives a second brake on the phosphatase: it phosphorylates **CPI-17**, a protein that inhibits MLCP once it is itself phosphorylated.
 
-Bayliss's 1902 paper in the Journal of Physiology began from a puzzling curve. He had enclosed a rabbit hind leg in a volume recorder, cut the nerves running to the limb, and recorded arterial pressure and limb volume together, lowering systemic pressure by stimulating the central end of the depressor nerve. He then repeated the effect in dogs and cats, raising pressure by stimulating the splanchnic nerves or by asphyxia and lowering it by compressing the aorta, and tried excised arteries, most clearly a dog carotid removed after death. A passive tube with its nerves cut should simply follow pressure. His account, in a paper whose footnote points to a preliminary report of March 1901, was that the muscular coat contracts when stretched and relaxes when tension falls, independently of the central nervous system. Limb volume sums arteries, veins and tissue, so the limb tracings did not say which vessels responded; the excised carotid showed that an artery can respond without the rest. Bayliss appears again, with Starling, in [signals and distance](/lessons/signals-and-distance/).
+Relaxation moves both sides of the ratio at once. Nitric oxide from the endothelium activates soluble guanylate cyclase (through the enzyme's heme group, shown with purified bovine enzyme), and the cGMP that follows activates protein kinase G ([nitric oxide and cGMP](/lessons/senses-and-cgmp/)). In muscle that lowers calcium, which turns the tap down, and raises phosphatase activity, which opens the drain. In permeabilized rabbit artery with calcium clamped, the cGMP analog 8-bromo-cGMP still relaxed the muscle, which the authors read as indirect activation of the phosphatase.
 
-The modern version is a pressure myograph and a mouse. Chennupati, Wirth and colleagues deleted G-protein alpha subunits in smooth muscle of adult mice, mounted mesenteric arteries, and raised intraluminal pressure in 20 mmHg steps from 20 to 140 mmHg, reading active diameter in calcium-containing and passive diameter in calcium-free solution. Control arteries peaked at about 80 to 120 mmHg. Arteries lacking G12 and G13 showed no active myogenic constriction and strongly reduced RhoA activity, yet calcium rose with pressure as normal; a Rho kinase inhibitor blocked the response in controls; arteries lacking Gq and G11 behaved like controls; cerebral arteries kept about half their response. Two requirements, then, in this bed: a calcium rise (which L-type plus TRP channel blockers together cut by about half) and Rho-dependent sensitization. Keep one conflict open. In 2022 Cui and colleagues found that deleting the angiotensin II type 1a receptor in smooth muscle left about 35 percent of wild-type constriction in mouse mesenteric arteries, which still constricted to a depolarizing potassium solution, and that a Gq/11 inhibitor abolished the response in the beds they tested. Deletion and inhibition, and different vessel orders and beds, are not interchangeable, so the upstream wiring is unsettled.
+<LessonFigure src="/figures/smooth-muscle/lc20-tap-and-drain.webp" width={1200} height={800} alt="AI-generated illustration: A sink used as a picture of light-chain phosphorylation. A tap labelled myosin light-chain kinase, switched on by calcium-calmodulin, pours water in; a drain valve labelled myosin light-chain phosphatase lets it out; the water level is the fraction of light chains phosphorylated. Rho kinase and PKC acting through CPI-17 close the drain; nitric oxide acting through cGMP and PKG turns the tap down and opens the drain. An inset shows two sinks with the same tap; the one with a narrowed drain fills higher." caption="Phosphorylation settles where the kinase adds phosphates as fast as the phosphatase removes them, so narrowing the drain (Rho kinase, PKC through CPI-17) raises force at the same calcium, while nitric oxide relaxes the muscle by turning the tap down and opening the drain." />
 
-Why does a 7 percent change in radius matter? Treat an arteriole as a rigid cylinder of fixed length carrying steady laminar flow of a Newtonian fluid, assumptions blood and arterioles both violate, and Poiseuille's law applies ([blood and vessels](/lessons/blood-and-vessels/)).
+In the Hai-Murphy model below, force rises steeply as phosphorylation rises from zero and then levels off, because of latch, so a muscle can hold most of its force with only a modest fraction of its light chains phosphorylated.
 
-> **Q = (pi x delta P x r^4) / (8 x viscosity x length), so Q2 / Q1 = (delta P2 / delta P1) x (r2 / r1)^4**
+## Latch: force outlasts the phosphate
 
-Take made-up but convenient numbers: delta P1 = 60 mmHg across the segment, r1 = 100 micrometres, downstream and outside pressures fixed, so a rise in inlet pressure raises both the driving gradient and the transmural pressure that stretches the wall. Raise the gradient to 80 mmHg. If the vessel were passive and distended by 5 percent, Q2 / Q1 = (80 / 60) x 1.05^4 = 1.62, a 62 percent rise in flow. For flow to stay constant instead, (r2 / r1)^4 = 60 / 80 = 0.75, so r2 = 100 x 0.75^(1/4) = 93.1 micrometres, a 6.9 percent narrowing. Resistance scales as 1 / r^4, so R2 / R1 = 1 / 0.75 = 1.33, the same one-third increase as the pressure gradient, which is what Q = delta P / R requires. Overshoot and flow falls: at r2 = 90 micrometres, Q2 / Q1 = 1.333 x 0.6561 = 0.875, 12.5 percent below baseline. Tone is a separate quantity: 200 micrometres passive and 160 active at one pressure give tone = 100 x (200 - 160) / 200 = 20 percent of diameter, while flow at the same gradient would be 0.8^4 = 0.41 of passive.
+**Predict.** Stimulate a strip of arterial muscle and keep the stimulus on. LC20 phosphorylation rises first, then falls back toward low values. What would you expect force to do?
 
-<MyogenicArteriole />
+<details>
+<summary>Check your prediction</summary>
+
+If force simply tracked phosphorylation, it would follow it down. It does not: force stays near its peak. Something holds the load after the phosphates come off, and that state is called **latch**.
+
+</details>
+
+Hai and Murphy proposed a kinetic model in 1988. Myosin heads move among four states: phosphorylated or not, attached or not. Kinase and phosphatase act on heads whether or not they are bound to actin, so the balance-point rule still sets p. But a head that loses its phosphate while attached does not release at once. It becomes a **latch bridge**, whose slow detachment is the rate-limiting step, so attached heads keep bearing load while the cycling rate, and ATP cost, fall. The slow release is an assumption of a model fitted to phosphorylation and stress data, not a structure anyone has imaged.
+
+Latch is not a state without ATP: phosphorylated cross-bridges keep cycling, latch bridges let go slowly, and calcium pumps keep working, so latch is economy, not shutdown. Nor is it rigor, the stiff state of a muscle whose ATP has run out.
+
+In 2022 Hammell and colleagues tested the prediction on a few purified myosin molecules in a laser trap, injecting the phosphatase once force had reached a plateau. Force was held for a median of 32 seconds with tonic myosin (pig stomach, from muscle that holds tone) and 21 seconds with phasic myosin (chicken gizzard, from muscle that contracts in bursts). Dephosphorylation was timed indirectly, in a parallel motility assay rather than on the trapped heads, with a midpoint near 27 seconds; only the tonic hold outlasted that clock, so it is the more convincing. A further limit: purified non-human proteins, not an intact vessel.
+
+The film says force follows the balance of kinase and phosphatase. That holds while force is being built; after that, latch bridges hold it as the phosphates come off.
+
+## Arterioles answer stretch
+
+In his 1902 paper in the Journal of Physiology, William Bayliss reported that the muscular coat of an artery contracts when stretched and relaxes when tension falls, independently of the central nervous system. He saw it first in a rabbit hind limb with its nerves cut, where a passive tube should simply have followed the pressure, then in dogs and cats. Limb volume sums arteries, veins and tissue, so his tracings could not say which vessels responded, and the tracing from an excised dog carotid he described was spoilt and not reproduced. Bayliss appears again, with Starling, in [signals and distance](/lessons/signals-and-distance/).
+
+The clean answer to the opening question came later, from isolated arteries on a pressure myograph: tied between two glass cannulas and pressurized, with no nerves and no flow, they still narrow. The myogenic response belongs above all to small resistance arteries and arterioles, and stretch moves both sides of the ratio.
+
+The modern version adds a mouse. Chennupati, Wirth and colleagues deleted G-protein alpha subunits in the smooth muscle of adult mice, mounted mesenteric arteries and raised the pressure inside them from 20 to 140 mmHg, measuring diameter, a calcium dye signal and active RhoA.
+
+**Predict.** In arteries lacking G12 and G13, calcium rises with pressure as normal. Does myogenic tone appear?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Arteries lacking G12 and G13 lost their active myogenic constriction and had strongly reduced RhoA activity, yet calcium rose with pressure as normal. In control arteries a Rho kinase inhibitor blocked the response. In the rule's terms, the tap opened but the drain was never narrowed, and calcium alone was not enough.
+
+</details>
+
+Two requirements, then, in this bed: a calcium rise and Rho-dependent sensitization. What senses the stretch, and which G proteins carry the signal, is disputed between mouse studies (see Going deeper).
+
+<LessonFigure src="/figures/smooth-muscle/pressure-myograph-g12-g13.webp" width={1200} height={806} alt="AI-generated illustration: A small artery tied between two glass cannulas in a bath, pressurized from a reservoir with the outlet closed so nothing flows, while its diameter is watched under a microscope. An inset compares two cross-sections: in a control artery calcium rises, Rho kinase is active and the lumen narrows; in an artery lacking G12 and G13, calcium still rises but Rho kinase activity is strongly reduced and the lumen stays wide. A dashed question-marked box notes that the stretch sensor is disputed." caption="An isolated artery with no nerves and no flow still narrows when the pressure inside it rises, and in mouse mesenteric arteries it needs both a calcium rise and Rho-dependent narrowing of the phosphatase drain; which molecule senses the stretch is still disputed." />
+
+### Why a small narrowing matters
+
+Treat an arteriole as a rigid cylinder of fixed length carrying steady laminar flow of a Newtonian fluid, assumptions blood and arterioles both violate, and Poiseuille's law applies ([blood and vessels](/lessons/blood-and-vessels/)). The example shows what a passive vessel would do; the Predict asks what the muscle must do instead.
+
+<EquationCard
+  purpose="How the flow through an idealized arteriole changes when the pressure difference across it and its radius change."
+  eq="Q2 / Q1 = (ΔP2 / ΔP1) × (r2 / r1)⁴"
+  say="The new flow over the old equals the new pressure difference over the old, times the ratio of the radii raised to the fourth power."
+  symbols={[
+    ["Q", "Q", "flow through the segment; from Poiseuille's law, Q = (π × ΔP × r⁴) / (8 × viscosity × length)", "volume per s"],
+    ["ΔP", "delta P", "the pressure difference driving flow along the segment", "mmHg"],
+    ["r", "r", "the radius of the lumen", "µm"],
+  ]}
+  toolkit={["ratios"]}
+  check="Viscosity and length cancel in the ratio because they do not change. Resistance scales as 1 / r⁴, so flow equals ΔP divided by resistance, as Q = ΔP / R requires."
+>
+  <Fragment slot="example">
+    <p>Made-up but convenient numbers: ΔP1 = 60 mmHg across the segment and r1 = 100 µm, with downstream and outside pressures fixed, so a rise in inlet pressure raises both the driving gradient and the transmural pressure (inside minus outside) that stretches the wall.</p>
+    <p>Raise the gradient to 80 mmHg. If the vessel were passive and distended by 5 percent: Q2 / Q1 = (80 / 60) × 1.05⁴ = 1.62, a 62 percent rise in flow.</p>
+  </Fragment>
+</EquationCard>
+
+**Predict.** The pressure difference has risen by a third, from 60 to 80 mmHg. How much must the radius shrink to hold flow at its old value?
+
+<details>
+<summary>Check your prediction</summary>
+
+Only 6.9 percent. For flow to stay constant, (r2 / r1)⁴ = 60 / 80 = 0.75, so r2 = 100 × 0.75^(1/4) = 93.1 µm. Resistance rises as 1 / r⁴, so R2 / R1 = 1 / 0.75 = 1.33, the same one-third increase as the pressure gradient. The fourth power turns a small narrowing into a large change in resistance.
+
+</details>
+
+Steady flow is a result of answering stretch, not the signal the muscle reads: a pressure myograph has no flow at all.
+
+<MyogenicArteriole showBalance />
 
 Holding flow steady across a range of pressures is **autoregulation**, produced by several mechanisms together; its metabolic and endothelial parts belong to [resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/), and the renal version, with tubuloglomerular feedback, to [glomerular filtration](/lessons/glomerular-filtration/). Three inputs act on the same kinase-phosphatase balance: pressure raises calcium and sensitization, endothelial nitric oxide lowers both, sympathetic alpha-1 input raises both. Net diameter reflects their combined effect.
 
-Use that to reason about raised pressure. In hypertensive rodents small arteries often show more myogenic tone at a given pressure, and in people with essential hypertension small arteries show inward remodelling of the wall (how much myogenic tone contributes in people is less settled), so the lumen is narrower at the same transmural pressure; by the fourth-power law that raises segment resistance steeply, and higher resistance at a given cardiac output holds mean arterial pressure up. Practise the directions: tone up, lumen down, resistance up. A fall in pressure runs the loop the other way: after blood loss, pressure in a small artery falls, wall tension falls, the muscle tends to relax and lower segment resistance, while the baroreflex raises sympathetic outflow ([blood pressure regulation](/lessons/blood-pressure-regulation/)) and alpha-1 input pulls the diameter back down.
+Use that to reason about raised pressure. In hypertensive rodents small arteries often show more myogenic tone at a given pressure, and in people with essential hypertension small arteries show inward remodelling of the wall (how much myogenic tone contributes in people is less settled), so the lumen is narrower at the same transmural pressure; by the fourth-power law that raises segment resistance steeply, and higher resistance at a given cardiac output holds mean arterial pressure up. Practise the directions: tone up, lumen down, resistance up.
+
+A fall in pressure runs the loop the other way: after blood loss, pressure in a small artery falls, wall tension falls, the muscle tends to relax and lower segment resistance, while the baroreflex raises sympathetic outflow ([blood pressure regulation](/lessons/blood-pressure-regulation/)) and alpha-1 input pulls the diameter back down.
+
+## Hollow organs and nerves
+
+A hollow organ that fills is stretched steadily, and visceral smooth muscle can relax after being stretched, a behaviour called **stress relaxation**: tension falls back after the stretch, so pressure inside rises much less during filling than in a stiff container. A small resistance artery does the opposite when transmural pressure rises: it contracts.
+
+In **single-unit** (visceral) smooth muscle, gap junctions couple neighbouring cells electrically, so excitation spreads and the cells contract as one mass; the gut and uterus are the usual examples. Some of these tissues also carry pacemaker activity, and the gut's slow waves belong to [gut motility and secretion](/lessons/gut-motility-secretion/). In **multi-unit** smooth muscle, cells have little electrical coupling and each is driven by its own nerve terminals, allowing finely graded control; the iris and the piloerector muscles are the usual examples. Real tissues fall between the two types: bladder and arterial muscle cells are less tightly coupled, and in arteries the endothelium carries much of the electrical spread.
+
+Receptors, not nerves in general, set the direction, so "sympathetic input contracts smooth muscle" is wrong as a rule. Norepinephrine on alpha-1 adrenoceptors contracted isolated rat aorta and mesenteric resistance vessels, while in isolated human detrusor strips noradrenaline relaxed the muscle, mainly through beta-3 adrenoceptors as the authors suggested. The receptor families are mapped in [the hypothalamus and the autonomic nervous system](/lessons/hypothalamus-autonomic/). Name the receptor and the preparation, and the contradictions go away.
 
 ### Design problem
 
@@ -416,10 +538,44 @@ Does nitric oxide relax arterial smooth muscle by lowering calcium, by lowering 
 
 Start with intact, denuded strips, confirming the denudation (acetylcholine no longer relaxes them). Contract them with the alpha-1 agonist, then add the donor while recording force and Fura-2 together. A calcium-force curve in the same strips says what a given fall in calcium should cost in force; more relaxation than that points to lost sensitivity too.
 
-Then clamp calcium: in alpha-toxin-permeabilized strips the bath sets calcium, so if the donor or cGMP still relaxes them, desensitization is part of the mechanism at fixed calcium. Lee, Li and Kitazawa used that design in 1997; 8-bromo-cGMP, a cGMP analog, relaxed the muscle, which they read as indirect activation of the phosphatase.
+Then clamp calcium: in alpha-toxin-permeabilized strips the bath sets calcium, so if the donor or cGMP still relaxes them, desensitization is part of the mechanism at fixed calcium. Lee, Li and Kitazawa used that design in 1997 (the 8-bromo-cGMP result above).
 
 To ask whether the phosphatase speeds up, reverse the 1991 logic: phosphorylate LC20, remove calcium and ATP, block MLCK, and follow dephosphorylation with and without cGMP. Faster dephosphorylation means more phosphatase activity. Follow MYPT1 and CPI-17 too; the 2009 study found CPI-17 phosphorylation at a minimum within 15 seconds of the donor in this preparation, in parallel with the fall in calcium, which the authors read as a consequence of suppressed calcium release.
 
 Controls: time-matched strips with no donor, a guanylate cyclase inhibitor to confirm the cGMP route, the same starting force each time. Limits: a donor on a denuded artery is not endogenous nitric oxide in a flowing arteriole, rabbit is not human, and permeabilization removes ion gradients and voltage control, though receptors and G proteins remain coupled. Expect both arrows at once.
 
 </details>
+
+## Going deeper
+
+### What the balance-point rule leaves out
+
+The rule treats calcium-calmodulin as what sets the kinase and the phosphate on LC20 as the only switch. It leaves out thin-filament proteins such as caldesmon and calponin, and kinases that phosphorylate LC20 without calcium. It also treats each enzyme's rate as proportional to its substrate, which a saturated enzyme does not obey.
+
+### The Somlyo preparation
+
+The portal vein strips were permeabilized with staphylococcal alpha-toxin. After letting the light chain become phosphorylated, Kitazawa, Masuo and Somlyo removed calcium and ATP and blocked MLCK with the inhibitor ML-9, so that any change in dephosphorylation had to come from the phosphatase.
+
+### Latch in numbers
+
+The trap buffer held 200 micromolar MgATP, and the tonic myosin came from pig stomach fundus. The interquartile ranges of the force holds were 27 to 48 seconds for the tonic and 15 to 27 seconds for the phasic myosin, five assays each. In the motility assay, the midpoint of the loss of actin movement came at about 27 seconds for the tonic and 26 seconds for the phasic myosin, so the authors read the tonic hold as force kept during dephosphorylation and the phasic hold less convincingly.
+
+In one illustrative run of the Hai-Murphy model (phosphatase 0.5, attachment 0.4, detachment 0.1 and latch detachment 0.01 per second), a steady 17 percent phosphorylation held about 86 percent of the force held at 67 percent, most of it on latch bridges. The figure depends on the constants: halving or doubling latch detachment moves it to about 92 or 76 percent.
+
+### Bayliss's experiments in detail
+
+In the rabbit, Bayliss lowered systemic pressure by stimulating the central end of the depressor nerve. In dogs and cats he raised pressure by stimulating the splanchnic nerves or by asphyxia, and lowered it by compressing the aorta. A footnote in the 1902 paper points to a preliminary report of March 1901.
+
+### The mouse study and a conflicting result
+
+Chennupati, Wirth and colleagues raised pressure in 20 mmHg steps, reading active diameter in calcium-containing and passive diameter in calcium-free solution. Control arteries peaked at about 80 to 120 mmHg. Arteries lacking Gq and G11 behaved like controls, and cerebral arteries kept about half their response. L-type plus TRP channel blockers together cut the calcium rise by about half.
+
+In 2022 Cui and colleagues found that deleting the angiotensin II type 1a receptor in smooth muscle left about 35 percent of wild-type constriction in mouse mesenteric arteries, which still constricted to a depolarizing potassium solution, and that a Gq/11 inhibitor abolished the response in the beds they tested. Deletion and inhibition, and different vessel orders and beds, are not interchangeable, so the upstream wiring is unsettled.
+
+### More Poiseuille arithmetic
+
+Overshoot and flow falls: at r2 = 90 µm with the gradient at 80 mmHg, Q2 / Q1 = 1.333 × 0.6561 = 0.875, 12.5 percent below baseline. Tone is a separate quantity: 200 µm passive and 160 µm active at one pressure give tone = 100 × (200 − 160) / 200 = 20 percent of diameter, while flow at the same gradient would be 0.8⁴ = 0.41 of passive.
+
+### Receptors by preparation
+
+In the rat vessels, alpha-1 activation mobilized calcium from inside and outside the cell; in the human detrusor strips, relaxation by noradrenaline was concentration-dependent. Beta receptors classically signal through cAMP and protein kinase A ([cAMP and PKA](/lessons/camp-and-pka/)), though in rat bladder strips cAMP played only a minor part in relaxation by the beta agonist isoproterenol.

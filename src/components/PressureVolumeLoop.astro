@@ -20,9 +20,9 @@ const uid = Math.random().toString(36).slice(2, 8);
 
   <ul class="pvl-legend" aria-label="Key to the plot">
     <li><span class="pvl-sw pvl-sw-loop"></span>loop (counterclockwise; shaded area is the area stroke work approximates)</li>
-    <li><span class="pvl-sw pvl-sw-espvr"></span>ESPVR, slope Ees</li>
+    <li><span class="pvl-sw pvl-sw-espvr"></span>ventricle’s line (ESPVR), slope Ees = contractility</li>
     <li><span class="pvl-sw pvl-sw-edpvr"></span>EDPVR (invented curve for this sketch)</li>
-    <li><span class="pvl-sw pvl-sw-ea"></span>Ea line, slope Ea</li>
+    <li><span class="pvl-sw pvl-sw-ea"></span>arteries’ line, starts at EDV, steepness Ea = afterload</li>
     <li data-ref-key><span class="pvl-sw pvl-sw-ref"></span>reference loop (the lesson’s baseline)</li>
   </ul>
   <p class="pvl-corners"><b>1</b> mitral closes · <b>2</b> aortic opens · <b>3</b> aortic closes · <b>4</b> mitral opens, then filling along the bottom</p>
@@ -32,13 +32,13 @@ const uid = Math.random().toString(36).slice(2, 8);
       <input type="range" data-in="edv" min="90" max="160" step="5" value="125" />
     </label>
     <label class="pvl-slabel"><span>Ea, afterload <em data-out="ea">1.5</em> mmHg per mL <small>(effective arterial elastance)</small></span>
-      <input type="range" data-in="ea" min="1" max="3" step="0.1" value="1.5" />
+      <input type="range" data-in="ea" min="0.5" max="3" step="0.05" value="1.5" />
     </label>
     <label class="pvl-slabel"><span>Ees, an index of contractility <em data-out="ees">3.0</em> mmHg per mL <small>(slope of the ESPVR)</small></span>
       <input type="range" data-in="ees" min="1.5" max="5" step="0.1" value="3" />
     </label>
     <label class="pvl-check"><input type="checkbox" data-in="ref" id={`pvl-ref-${uid}`} checked /> <span>Show reference loop <small>(the lesson’s baseline, in grey)</small></span></label>
-    <div class="pvl-marks">Set the sliders to a line of the lesson’s worked problem, part 3:
+    <div class="pvl-marks">Set the sliders to a line of the lesson’s worked problem, part 2:
       <span class="pvl-marklist" data-marks></span>
     </div>
   </div>
@@ -46,7 +46,7 @@ const uid = Math.random().toString(36).slice(2, 8);
   <dl class="pvl-readout">
     <div><dt>Stroke volume, SV = (EDV − V0) / (1 + Ea/Ees)</dt><dd data-r="sv"></dd></div>
     <div><dt>End-systolic volume, ESV = EDV − SV</dt><dd data-r="esv"></dd></div>
-    <div><dt>Ejection fraction, EF = SV / EDV</dt><dd data-r="ef"></dd></div>
+    <div><dt>Ejection fraction, EF = SV / EDV = (1 − V0/EDV) / (1 + Ea/Ees)</dt><dd data-r="ef"></dd></div>
     <div><dt>End-systolic pressure, Pes = Ea × SV</dt><dd data-r="pes"></dd></div>
     <div><dt>Cardiac output, CO = SV × HR (HR fixed at 70 per min)</dt><dd data-r="co"></dd></div>
     <div><dt>Stroke work ≈ SV × mean ejection pressure (aortic opening taken as 2/3 of Pes in this sketch)</dt><dd data-r="sw"></dd></div>
@@ -55,9 +55,9 @@ const uid = Math.random().toString(36).slice(2, 8);
   </dl>
   <p class="pvl-why" data-why role="status"></p>
 
-  <p class="pvl-assume">Illustrative model, not fitted to data. In this sketch (made up for the sketch unless the lesson gives it): a model adult left ventricle at rest, steady state, competent valves, linear ESPVR with the lesson’s V0 = 5 mL, heart rate fixed at the lesson’s 70 per min, and Ea held constant as in the lesson’s part 3; the grey reference loop is the lesson’s baseline (EDV 125 mL, Ea 1.5, Ees 3.0 mmHg per mL); the slider ranges are made up; the EDPVR is an invented convex curve, not a measurement, drawn to pass near the lesson’s about 10 mmHg at 125 mL (the lesson says only that the EDPVR is non-linear); aortic opening at 2/3 of Pes and mean ejection pressure at 5/6 of Pes are scaled from the lesson’s 80 and 120 mmHg and are a made-up rule; the top left corner is drawn at Pes, which the lesson rounds to 120 mmHg for simple numbers; the ejection arc is a smooth curve of made-up shape. Readouts use unrounded values. At the extremes of the sliders, pressures and ejection fractions fall far outside the lesson’s examples.</p>
+  <p class="pvl-assume">Illustrative model, not fitted to data. In this sketch (made up for the sketch unless the lesson gives it): a model adult left ventricle at rest, steady state, competent valves, linear ESPVR with the lesson’s V0 = 5 mL, heart rate fixed at the lesson’s 70 per min, and Ea held constant within each change, as in the lesson’s part 2; the grey reference loop is the lesson’s baseline (EDV 125 mL, Ea 1.5, Ees 3.0 mmHg per mL); the slider ranges are made up; the EDPVR is an invented convex curve, not a measurement, drawn to pass near the lesson’s about 10 mmHg at 125 mL (the lesson says only that the EDPVR is non-linear); aortic opening at 2/3 of Pes and mean ejection pressure at 5/6 of Pes are scaled from the lesson’s 80 and 120 mmHg and are a made-up rule; the top left corner is drawn at Pes, which the lesson rounds to 120 mmHg for simple numbers; the ejection arc is a smooth curve of made-up shape. Readouts use unrounded values. At the extremes of the sliders, pressures and ejection fractions fall far outside the lesson’s examples.</p>
 
-  <p class="pvl-foot">Rule to keep: the end-systolic corner sits where the Ea line, which starts at EDV on the volume axis, meets the ESPVR; preload moves the start of that line, afterload tilts it and contractility tilts the ESPVR, so EF can change without any change in Ees.</p>
+  <p class="pvl-foot">Rule to keep: the end-systolic corner sits where the arteries’ line, which starts at EDV on the volume axis, meets the ventricle’s line (ESPVR); preload moves the start of that line, afterload tilts it and contractility tilts the ventricle’s line, so EF can change without any change in Ees.</p>
 </figure>
 
 <script>
@@ -82,7 +82,7 @@ const uid = Math.random().toString(36).slice(2, 8);
   };
   const fmtInt = (x: number) => Math.round(x).toLocaleString('en-US');
 
-  // the lesson's baseline and the four lines of part 3
+  // the lesson's baseline and the four lines of part 2
   const V0 = 5, HR = 70;
   const BASE = { edv: 125, ea: 1.5, ees: 3.0 };
   const ROWS = [
@@ -192,7 +192,7 @@ const uid = Math.random().toString(36).slice(2, 8);
       const s: S = { edv: parseFloat(edvIn.value), ea: parseFloat(eaIn.value), ees: parseFloat(eesIn.value) };
       const showRef = refIn.checked;
       edvOut.textContent = fmt(s.edv, 0);
-      eaOut.textContent = s.ea.toFixed(1);
+      eaOut.textContent = s.ea.toFixed(Math.abs(s.ea * 10 - Math.round(s.ea * 10)) < 1e-9 ? 1 : 2);
       eesOut.textContent = s.ees.toFixed(1);
       refKey.hidden = !showRef;
 
@@ -232,7 +232,7 @@ const uid = Math.random().toString(36).slice(2, 8);
         plot.appendChild(el('path', { d: gr.d, fill: 'none', stroke: GREY, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
       }
 
-      // Ea line: from (EDV, 0) to the end-systolic corner
+      // arteries' (Ea) line: from (EDV, 0) to the end-systolic corner
       plot.appendChild(el('line', { x1: px(s.edv), y1: py(0), x2: g.xs, y2: g.yTop, stroke: ORANGE, 'stroke-width': 1.6, 'stroke-dasharray': '5 3' }));
 
       // current loop: shaded area and outline
@@ -284,28 +284,28 @@ const uid = Math.random().toString(36).slice(2, 8);
       // status sentence: every sentence is a result of this sketch's arithmetic
       const dir = (now: number, was: number, up: string, down: string, eq: string) => (same(now, was) ? eq : now > was ? up : down);
       const changed = [!same(s.edv, BASE.edv), !same(s.ea, BASE.ea), !same(s.ees, BASE.ees)].filter(Boolean).length;
-      const eqn = `In this sketch, SV = (EDV − V0) / (1 + Ea/Ees) = ${fmt(s.edv - V0)} / (1 + ${fmt(m.ratio, 3)}) = ${fmt(m.sv)} mL, so ESV = ${fmt(m.esv)} mL and Pes = Ea × SV = ${fmt(m.pes)} mmHg, the point where the Ea line meets the ESPVR.`;
+      const eqn = `In this sketch, SV = (EDV − V0) / (1 + Ea/Ees) = ${fmt(s.edv - V0)} / (1 + ${fmt(m.ratio, 3)}) = ${fmt(m.sv)} mL, so ESV = ${fmt(m.esv)} mL and Pes = Ea × SV = ${fmt(m.pes)} mmHg, where the arteries’ line meets the ventricle’s line.`;
       let more: string;
       if (changed === 0) {
-        more = `This is the lesson’s baseline loop, with Ea/Ees = ${m.ratio.toFixed(2)}, which the lesson calls near the efficiency optimum that models predict.`;
+        more = `This is the lesson’s baseline loop: Ea/Ees = ${m.ratio.toFixed(2)}, a little below the roughly 0.6 reported in humans at rest. Here the corner sits where the arteries’ line meets the ventricle’s line.`;
       } else if (changed > 1) {
         more = `In this sketch, more than one control differs from the baseline, so their effects combine. Against the baseline, SV is ${dir(m.sv, b.sv, 'higher', 'lower', 'the same')} (${fmt(m.sv)} against ${fmt(b.sv)} mL), ESV is ${dir(m.esv, b.esv, 'higher', 'lower', 'the same')} (${fmt(m.esv)} against ${fmt(b.esv)} mL) and Pes is ${dir(m.pes, b.pes, 'higher', 'lower', 'the same')} (${fmt(m.pes)} against ${fmt(b.pes)} mmHg).`;
       } else if (!same(s.ea, BASE.ea)) {
         const up = s.ea > BASE.ea;
         more = up
-          ? `In this sketch, higher afterload steepens the Ea line, which meets the same ESPVR at a higher pressure and a larger volume: ESV rises, SV falls and EF falls (${fmt(m.ef * 100)} against ${fmt(b.ef * 100)} percent) with Ees unchanged.`
-          : `In this sketch, lower afterload flattens the Ea line, which meets the same ESPVR at a lower pressure and a smaller volume: ESV falls, SV rises and EF rises (${fmt(m.ef * 100)} against ${fmt(b.ef * 100)} percent) with Ees unchanged.`;
+          ? `In this sketch, higher afterload steepens the arteries’ line, which meets the same ventricle’s line at a higher pressure and a larger volume: ESV rises, SV falls and EF falls (${fmt(m.ef * 100)} against ${fmt(b.ef * 100)} percent) with Ees unchanged. This is the first beats, with EDV held fixed; in an intact heart the blood left behind adds to the next fill, and stroke volume partly recovers within a few beats.`
+          : `In this sketch, lower afterload flattens the arteries’ line, which meets the same ventricle’s line at a lower pressure and a smaller volume: ESV falls, SV rises and EF rises (${fmt(m.ef * 100)} against ${fmt(b.ef * 100)} percent) with Ees unchanged.`;
       } else if (!same(s.edv, BASE.edv)) {
         const up = s.edv > BASE.edv;
         const dsv = Math.abs(m.sv - b.sv), dedv = Math.abs(s.edv - BASE.edv);
         more = up
-          ? `In this sketch, higher preload slides the end-systolic corner up the same ESPVR: SV rises by ${fmt(dsv)} mL, less than the ${fmt(dedv)} mL rise in EDV, because Pes rises too (${fmt(m.pes)} against ${fmt(b.pes)} mmHg).`
-          : `In this sketch, lower preload slides the end-systolic corner down the same ESPVR: SV falls by ${fmt(dsv)} mL, less than the ${fmt(dedv)} mL fall in EDV, because Pes falls too (${fmt(m.pes)} against ${fmt(b.pes)} mmHg).`;
+          ? `In this sketch, higher preload slides the end-systolic corner up the same ventricle’s line: SV rises by ${fmt(dsv)} mL, less than the ${fmt(dedv)} mL rise in EDV, because Pes rises too (${fmt(m.pes)} against ${fmt(b.pes)} mmHg).`
+          : `In this sketch, lower preload slides the end-systolic corner down the same ventricle’s line: SV falls by ${fmt(dsv)} mL, less than the ${fmt(dedv)} mL fall in EDV, because Pes falls too (${fmt(m.pes)} against ${fmt(b.pes)} mmHg).`;
       } else {
         const up = s.ees > BASE.ees;
         more = up
-          ? `In this sketch, higher Ees steepens the ESPVR and lowers ESV (${fmt(m.esv)} against ${fmt(b.esv)} mL); SV and EF rise (EF ${fmt(m.ef * 100)} against ${fmt(b.ef * 100)} percent) with EDV and Ea unchanged.`
-          : `In this sketch, lower Ees flattens the ESPVR and raises ESV (${fmt(m.esv)} against ${fmt(b.esv)} mL); SV and EF fall (EF ${fmt(m.ef * 100)} against ${fmt(b.ef * 100)} percent) with EDV and Ea unchanged.`;
+          ? `In this sketch, higher Ees steepens the ventricle’s line and lowers ESV (${fmt(m.esv)} against ${fmt(b.esv)} mL); SV and EF rise (EF ${fmt(m.ef * 100)} against ${fmt(b.ef * 100)} percent) with EDV and Ea unchanged.`
+          : `In this sketch, lower Ees flattens the ventricle’s line and raises ESV (${fmt(m.esv)} against ${fmt(b.esv)} mL); SV and EF fall (EF ${fmt(m.ef * 100)} against ${fmt(b.ef * 100)} percent) with EDV and Ea unchanged.`;
       }
       why.textContent = eqn + ' ' + more;
     }
