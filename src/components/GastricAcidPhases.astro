@@ -4,12 +4,14 @@
  * cell's cytosol against a pH gradient into the canalicular lumen, set against the free energy one
  * ATP releases. Rule from the lesson's worked problem: free energy per mol H+ = 2.303 x R x T x
  * (pH cytosol - pH lumen), with R = 8.314 J per mol per K and T = 310 K, so 5,936 J = 5.936 kJ per
- * mol per pH unit; work per pump cycle = n x that, for n H+ per ATP (the lesson's two measured
- * stoichiometries, 1 and 2). Two H+ per ATP stay affordable while 2 x 5.936 x delta-pH <= E, so the
+ * mol per pH unit; work per pump cycle = n x that, for n H+ per ATP (the two stoichiometries the
+ * lesson discusses, 1 (favoured) and 2 (debated)). Two H+ per ATP stay affordable while 2 x 5.936 x delta-pH <= E, so the
  * crossover luminal pH = pH cytosol - E / (2 x 5.936). Electroneutral exchange, so the membrane
  * potential drops out; the uphill K+ step is ignored (the lesson: this makes each cost a minimum).
  * The lesson's defaults: cytosol pH 7.0, lumen pH 1.0, E = 55 kJ per mol (illustrative, from roughly
- * 50 to 60). Slider ranges are made up for the sketch. Self-contained vanilla-TS Astro island. Original.
+ * 50 to 60). Slider ranges are made up for the sketch; the luminal slider
+ * reaches 0 so it shows the budget is not the floor (the lesson: isotonic HCl, about 150 to 160 mM,
+ * sets the floor at pH roughly 0.8 to 1, drawn as a dashed band). Self-contained vanilla-TS Astro island. Original.
  */
 const uid = Math.random().toString(36).slice(2, 8);
 ---
@@ -17,11 +19,11 @@ const uid = Math.random().toString(36).slice(2, 8);
 <figure class="gap card" data-gap>
   <figcaption class="gap-head">Can the pump afford it? Work per cycle against one ATP<span class="gap-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="gap-svg" viewBox="0 0 340 322" role="img" aria-label="A schematic of the parietal cell cytosol, the H,K-ATPase and the canaliculus lumen with H+ arrows from cytosol to lumen; two horizontal bars comparing work per pump cycle with the energy one ATP releases, in kJ per mol; and a luminal pH strip marking where two H+ per ATP stops being affordable" data-plot></svg>
+  <svg class="gap-svg" viewBox="0 0 340 336" role="img" aria-label="A schematic of the parietal cell cytosol, the H,K-ATPase and the canaliculus lumen with H+ arrows from cytosol to lumen; two horizontal bars comparing work per pump cycle with the energy one ATP releases, in kJ per mol; and a luminal pH strip marking where two H+ per ATP stops being affordable and the isotonic HCl floor near pH 0.8 to 1" data-plot></svg>
 
   <div class="gap-controls">
     <label class="gap-slabel"><span>Luminal pH (canaliculus) <em data-out="lumen">1.0</em> <small>(the lesson’s stimulated cell: about 1)</small></span>
-      <input type="range" data-in="lumen" min="0.8" max="7" step="0.1" value="1" />
+      <input type="range" data-in="lumen" min="0" max="7" step="0.1" value="1" />
     </label>
     <label class="gap-slabel"><span>Cytosolic pH <em data-out="cyt">7.0</em> <small>(the lesson’s example: 7.0)</small></span>
       <input type="range" data-in="cyt" min="6.8" max="7.4" step="0.1" value="7" />
@@ -45,7 +47,7 @@ const uid = Math.random().toString(36).slice(2, 8);
   </dl>
   <p class="gap-why" data-why role="status"></p>
 
-  <p class="gap-assume">Illustrative model, not a measurement. In this sketch (made up for the sketch unless the lesson gives it): each cycle spends one ATP; the cost is 2.303 × 8.314 × 310 × pH difference, at 310 K with electroneutral exchange so the membrane potential drops out, which is the lesson’s rule; the K+ step is ignored, so every cost shown is a minimum; the starting values, cytosolic pH 7.0, luminal pH 1.0 and 55 kJ per mol per ATP, are the lesson’s illustrative worked-problem values (ATP hydrolysis in cells releases roughly 50 to 60 kJ per mol); the slider ranges for pH are made up (the energy range is the lesson’s roughly 50 to 60); the sketch lets you pick 1 or 2 H+ per ATP at any luminal pH, although the lesson’s sources measured 2 at luminal pH 6.1 and 1 below pH 3 and record the ratio, not this reason.</p>
+  <p class="gap-assume">Illustrative model, not a measurement. In this sketch (made up for the sketch unless the lesson gives it): each cycle spends one ATP; the cost is 2.303 × 8.314 × 310 × pH difference, at 310 K with electroneutral exchange so the membrane potential drops out, which is the lesson’s rule; the K+ step is ignored, so every cost shown is a minimum; the starting values, cytosolic pH 7.0, luminal pH 1.0 and 55 kJ per mol per ATP, are the lesson’s illustrative worked-problem values (ATP hydrolysis in cells releases roughly 50 to 60 kJ per mol); the slider ranges for pH are made up (the energy range is the lesson’s roughly 50 to 60), and the luminal slider goes down to 0 only to show that one ATP could still pay for one proton below the stomach’s real floor, which the lesson puts at pH roughly 0.8 to 1 because the juice is close to isotonic, about 150 to 160 mM HCl (the dashed band); the sketch lets you pick 1 or 2 H+ per ATP at any luminal pH; whether the pump ever moves 2 is debated: one vesicle study reported a fall from 2 to 1 as luminal pH dropped, another found 1 at pH 6.1 to 6.9, and a 2019 structure favours 1 throughout.</p>
 
   <p class="gap-foot">Rule to keep: each pH unit of uphill gradient costs about 5.94 kJ per mol of H+ at 310 K, and a cycle pays n times that out of one ATP, so the more protons per cycle, the smaller the pH difference one ATP can pay for; at the lesson’s 55 kJ per mol and cytosol pH 7.0, two protons per ATP stop being affordable below a luminal pH of about 2.4.</p>
 </figure>
@@ -53,6 +55,7 @@ const uid = Math.random().toString(36).slice(2, 8);
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const TEAL = '#0e7c86', TEAL_LIGHT = '#8fb8bd', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const NAVY = '#232d4b';
   const RED = '#b3261e', RED_LIGHT = '#e07b73', RED_TINT = '#f7dcd9', GREEN_TINT = '#d9eeea', DARKGREEN = '#14595f';
   const K = 5.936; // kJ per mol per pH unit at 310 K: 2.303 x 8.314 x 310 / 1000
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
@@ -86,7 +89,8 @@ const uid = Math.random().toString(36).slice(2, 8);
 
     const BX0 = 20, BX1 = 320, KMAX = 80; // bar axis: 0 to 80 kJ per mol
     const bx = (kj: number) => BX0 + (Math.max(0, Math.min(KMAX, kj)) / KMAX) * (BX1 - BX0);
-    const PMIN = 0.8, PMAX = 7;
+    const PMIN = 0, PMAX = 7;
+    const FLOOR_LO = 0.8, FLOOR_HI = 1.0; // the lesson: isotonic HCl, about 150 to 160 mM, pH roughly 0.8 to 1
     const px = (ph: number) => BX0 + ((Math.max(PMIN, Math.min(PMAX, ph)) - PMIN) / (PMAX - PMIN)) * (BX1 - BX0);
     const clampX = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 
@@ -166,14 +170,17 @@ const uid = Math.random().toString(36).slice(2, 8);
       plot!.appendChild(el('rect', { x: x0, y: 266, width: Math.max(0, xc - x0), height: 14, fill: RED_TINT }));
       plot!.appendChild(el('rect', { x: xc, y: 266, width: Math.max(0, x1 - xc), height: 14, fill: GREEN_TINT }));
       plot!.appendChild(el('rect', { x: x0, y: 266, width: x1 - x0, height: 14, fill: 'none', stroke: FAINT, 'stroke-width': 1 }));
+      plot!.appendChild(el('rect', { x: px(FLOOR_LO), y: 263, width: px(FLOOR_HI) - px(FLOOR_LO), height: 20, fill: 'none', stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '2 2' }));
       if (xc - x0 >= 90) txt(plot!, '2 H+ not affordable', { x: x0 + 4, y: 276, fill: RED });
       if (x1 - xc >= 140) txt(plot!, '2 H+ per ATP affordable', { x: x1 - 4, y: 276, 'text-anchor': 'end', fill: DARKGREEN });
       plot!.appendChild(el('line', { x1: xc, y1: 262, x2: xc, y2: 282, stroke: ORANGE, 'stroke-width': 2 }));
       txt(plot!, '2 H+ stops at about pH ' + cross.toFixed(1), { x: clampX(xc, 75, 265), y: 259, 'text-anchor': 'middle', fill: ORANGE, 'font-weight': 700 });
       const xl = px(pl);
       plot!.appendChild(el('polygon', { points: `${xl},282 ${xl - 5},290 ${xl + 5},290`, fill: TEAL }));
-      for (let p = 1; p <= 7; p++) txt(plot!, String(p), { x: px(p), y: 303, 'text-anchor': 'middle' });
+      for (let p = 0; p <= 7; p++) txt(plot!, String(p), { x: px(p), y: 303, 'text-anchor': 'middle' });
       txt(plot!, 'luminal pH ' + f1(pl), { x: clampX(xl, 52, 288), y: 316, 'text-anchor': 'middle', fill: TEAL, 'font-weight': 700 });
+      plot!.appendChild(el('rect', { x: BX0, y: 323, width: 10, height: 8, fill: 'none', stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '2 2' }));
+      txt(plot!, 'isotonic HCl floor (about 0.8 to 1)', { x: BX0 + 15, y: 331, fill: NAVY });
 
       // status line
       const tail = other === 2
@@ -183,7 +190,10 @@ const uid = Math.random().toString(36).slice(2, 8);
         : (Wother > E
           ? ` At 1 H+ per ATP the same gradient would cost at least ${Wother.toFixed(1)} kJ per mol, more than one ATP releases.`
           : ` At 1 H+ per ATP the same gradient would cost at least ${Wother.toFixed(1)} kJ per mol, within what one ATP releases.`);
-      const stoich = n === 1 && pl < 3 ? ' The lesson’s sources measured 1 H+ per ATP below luminal pH 3; they record the ratio, not this reason.' : (n === 2 && pl < 3 ? ' The lesson’s sources measured 1 H+ per ATP below luminal pH 3, so 2 H+ per ATP here is a setting of the sketch, not a measurement.' : '');
+      const floorNote = n === 1 && pl < FLOOR_LO && !over ? ' One ATP still pays for one proton here; the stomach stops near pH 0.8 to 1 because its juice is close to isotonic, about 150 to 160 mM HCl, not because the pump runs out of energy.' : '';
+      const stoich = (n === 2
+        ? ' Whether the pump ever moves 2 H+ per ATP is debated; a 2019 structure favours 1 throughout, so 2 here is a setting of the sketch, not a measurement.'
+        : (pl < cross ? ' At this luminal pH the budget allows only 1 H+ per ATP.' : '')) + floorNote;
       let msg: string;
       if (!uphill) {
         msg = 'In this sketch the lumen is no more acidic than the cytosol, so the rule gives no uphill step for the pump to pay for. The lesson’s worked example uses a cytosol at pH 7.0 and juice at pH 1.0.';

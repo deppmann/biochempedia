@@ -1,18 +1,20 @@
 ---
 /**
- * HumanHeatBalance — "Can sweat keep up?" The worked problem of the Skin, Sweat and Human
+ * HumanHeatBalance — "Can evaporation keep up?" The worked problem of the Skin, Sweat and Human
  * Thermoregulation lesson as a sketch. Heat storage S = (M - W) + dry exchange - E, with
- * evaporation E the smaller of the requirement E_req = (M - W) + dry exchange and the maximum
- * the air allows, E_max. Sweat to evaporate = E x 3,600 / 2,430 (latent heat 2.43 kJ per g);
+ * evaporation E the smallest of the requirement E_req = (M - W) + dry exchange, the maximum
+ * the air allows, E_max, and the heat the sweat made could carry (sweat x 2,430 / 3,600). Sweat
+ * beyond what evaporates drips and removes no heat. Sweat to evaporate = E x 3,600 / 2,430 (latent heat 2.43 kJ per g);
  * rate of rise = S x 3,600 / (70 kg x specific heat). Defaults reproduce the lesson's worked
- * problem (850 W, 1,259 g per h, 150 W, 2.6 or 2.2 degrees C per hour). Original, illustrative.
+ * problem (850 W, 1,259 g per h, 150 W, 2.6 or 2.2 degrees C per hour) and its Predict box
+ * (1,300 g per h made = about 880 W if all evaporated). Original, illustrative.
  */
 ---
 
 <figure class="hhb card" data-hhb>
-  <figcaption class="hhb-head">Can sweat keep up? Heat balance of a 70 kg adult<span class="hhb-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="hhb-head">Can evaporation keep up? Heat balance of a 70 kg adult<span class="hhb-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="hhb-svg" viewBox="0 0 340 284" role="img" aria-label="Schematic of heat balance: heat made and dry heat exchange arrows, an evaporation arrow out of the body, a dripped-sweat arrow, and bars comparing required evaporation, the maximum the air allows, and evaporated against dripped sweat" data-svg></svg>
+  <svg class="hhb-svg" viewBox="0 0 340 284" role="img" aria-label="Schematic of heat balance: heat made and dry heat exchange arrows, an evaporation arrow out of the body, a dripped-sweat arrow, and bars comparing required evaporation, the maximum the air allows, and sweat made split into evaporated and dripped" data-svg></svg>
 
   <div class="hhb-controls">
     <label class="hhb-slabel"><span>Heat production, M − W <em data-out="m">800</em> W</span>
@@ -24,6 +26,9 @@
     <label class="hhb-slabel"><span>Most evaporation the air allows, E_max <em data-out="e">700</em> W <small>(left = humid air, right = dry air)</small></span>
       <input type="range" data-in="e" min="300" max="1200" step="10" value="700" />
     </label>
+    <label class="hhb-slabel"><span>Sweat made <em data-out="w">1,300</em> g per h <small>(1 g = 1 mL)</small></span>
+      <input type="range" data-in="w" min="0" max="3000" step="50" value="1300" />
+    </label>
     <fieldset class="hhb-fs">
       <legend>Body specific heat (kJ per kg per °C)</legend>
       <label class="hhb-radio"><input type="radio" name="hhb-c" data-c value="2.98" checked /> 2.98 <small>(calculated from tissue masses in four MRI-based virtual humans)</small></label>
@@ -34,17 +39,19 @@
   <dl class="hhb-readout">
     <div><dt>Required evaporation E_req</dt><dd data-r="ereq">850 W</dd><span class="hhb-arith" data-a="ereq"></span></div>
     <div><dt>Sweat to evaporate to meet E_req</dt><dd data-r="sweat">1,259 g per h</dd><span class="hhb-arith" data-a="sweat"></span></div>
-    <div><dt>Evaporation E (smaller of E_req and E_max)</dt><dd data-r="e">700 W</dd><span class="hhb-arith" data-a="e"></span></div>
+    <div><dt>Sweat made</dt><dd data-r="made">1,300 g per h</dd><span class="hhb-arith" data-a="made"></span></div>
+    <div><dt>Evaporation E (smallest of E_req, E_max and what the sweat made could carry)</dt><dd data-r="e">700 W</dd><span class="hhb-arith" data-a="e"></span></div>
+    <div><dt>Dripped</dt><dd data-r="drip">263 g per h</dd><span class="hhb-arith" data-a="drip"></span></div>
     <div><dt>Heat storage S</dt><dd data-r="s">+150 W</dd><span class="hhb-arith" data-a="s"></span></div>
     <div><dt>Rate of rise of body temperature</dt><dd data-r="rise">2.6 °C per h</dd><span class="hhb-arith" data-a="rise"></span></div>
-    <div><dt>State</dt><dd data-r="state">uncompensable</dd><span class="hhb-arith" data-a="state"></span></div>
+    <div><dt>State</dt><dd data-r="state">uncompensable, limited by the air (E_max)</dd><span class="hhb-arith" data-a="state"></span></div>
   </dl>
 
   <p class="hhb-why" data-why role="status"></p>
 
-  <p class="hhb-assume">In this sketch every number is illustrative and made up for practice, except the latent heat of evaporating sweat (2.43 kJ per g) and the two specific heats. Fixed, as in the lesson’s worked problem: a 70 kg adult, no respiratory heat loss, 1 g of sweat = 1 mL, uniform body temperature for storage, skin blood flow unchanged. Invented for the sketch: sweat is made at the rate that would meet E_req; any sweat beyond what E_max can evaporate drips and removes almost no heat (counted as none here); that dripping share is an assumption, not a measurement. The rate holds only while the three sliders stay fixed; it predicts no real person.</p>
+  <p class="hhb-assume">In this sketch every number is illustrative and made up for practice, except the latent heat of evaporating sweat (2.43 kJ per g) and the two specific heats. Fixed, as in the lesson’s worked problem: a 70 kg adult, no respiratory heat loss, 1 g of sweat = 1 mL, uniform body temperature for storage, skin blood flow unchanged. Sweat beyond what the air can take drips and is counted as removing no heat. Invented for the sketch: every gram of sweat evaporates until E_req or E_max is reached, and when E_req is below both limits the surplus is counted as dripping, whereas a real body would sweat less. The rate holds only while the sliders stay fixed; it predicts no real person.</p>
 
-  <p class="hhb-foot">Rule to keep: evaporation is the smaller of E_req and E_max, and storage is what is left, S = (M − W) + dry exchange − E. The bars share one scale, 0 to 1,200 W.</p>
+  <p class="hhb-foot">Rule to keep: given enough sweat, evaporation is the smaller of E_req and E_max, and storage is what is left, S = (M − W) + dry exchange − E. Past that point, more sweat only drips. The first two bars share one scale, 0 to 1,200 W; the sweat bar runs 0 to 3,000 g per h.</p>
 </figure>
 
 <script>
@@ -67,17 +74,19 @@
     const mIn = root.querySelector<HTMLInputElement>('[data-in="m"]');
     const dIn = root.querySelector<HTMLInputElement>('[data-in="d"]');
     const eIn = root.querySelector<HTMLInputElement>('[data-in="e"]');
+    const wIn = root.querySelector<HTMLInputElement>('[data-in="w"]');
     const mOut = root.querySelector<HTMLElement>('[data-out="m"]');
     const dOut = root.querySelector<HTMLElement>('[data-out="d"]');
     const eOut = root.querySelector<HTMLElement>('[data-out="e"]');
+    const wOut = root.querySelector<HTMLElement>('[data-out="w"]');
     const why = root.querySelector<HTMLElement>('[data-why]');
     const cIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-c]'));
-    if (!svg || !mIn || !dIn || !eIn || !mOut || !dOut || !eOut || !why || cIns.length === 0) return;
+    if (!svg || !mIn || !dIn || !eIn || !wIn || !mOut || !dOut || !eOut || !wOut || !why || cIns.length === 0) return;
     const rd = (k: string) => root.querySelector<HTMLElement>('[data-r="' + k + '"]');
     const ar = (k: string) => root.querySelector<HTMLElement>('[data-a="' + k + '"]');
-    const rEreq = rd('ereq'), rSweat = rd('sweat'), rE = rd('e'), rS = rd('s'), rRise = rd('rise'), rState = rd('state');
-    const aEreq = ar('ereq'), aSweat = ar('sweat'), aE = ar('e'), aS = ar('s'), aRise = ar('rise'), aState = ar('state');
-    if (!rEreq || !rSweat || !rE || !rS || !rRise || !rState || !aEreq || !aSweat || !aE || !aS || !aRise || !aState) return;
+    const rEreq = rd('ereq'), rSweat = rd('sweat'), rMade = rd('made'), rE = rd('e'), rDrip = rd('drip'), rS = rd('s'), rRise = rd('rise'), rState = rd('state');
+    const aEreq = ar('ereq'), aSweat = ar('sweat'), aMade = ar('made'), aE = ar('e'), aDrip = ar('drip'), aS = ar('s'), aRise = ar('rise'), aState = ar('state');
+    if (!rEreq || !rSweat || !rMade || !rE || !rDrip || !rS || !rRise || !rState || !aEreq || !aSweat || !aMade || !aE || !aDrip || !aS || !aRise || !aState) return;
 
     function txt(x: number, y: number, s: string, opts: Record<string, string | number> = {}): SVGElement {
       const t = el('text', Object.assign({ x, y, 'font-size': 10, fill: INK }, opts));
@@ -102,16 +111,20 @@
       const mw = parseInt(mIn!.value, 10);
       const dry = parseInt(dIn!.value, 10);
       const emax = parseInt(eIn!.value, 10);
+      const w = parseInt(wIn!.value, 10);            // sweat made, g per h
       const checked = cIns.find((r) => r.checked) || cIns[0];
       const c = parseFloat(checked.value);
       const ereq = mw + dry;                          // E_req = (M - W) + dry gain
-      const e = Math.min(ereq, emax);                 // E = the smaller
+      const sweatW = (w * LATENT) / 3600;             // W the sweat made could carry if all evaporated
+      const e = Math.min(ereq, emax, sweatW);         // E = the smallest
       const s = mw + dry - e;                         // S = (M - W) + dry - E
-      const comp = ereq <= emax;
+      const comp = ereq <= emax && ereq <= sweatW;
+      const airLimited = !comp && emax <= sweatW;     // otherwise sweat-limited
+      const limiter = comp ? 'compensable' : airLimited ? 'uncompensable, limited by the air (E_max)' : 'uncompensable, limited by sweat';
       const sweatReq = (ereq * 3600) / LATENT;        // g per h
       const sweatEvap = (e * 3600) / LATENT;
-      const sweatReqR = Math.round(sweatReq), sweatEvapR = Math.round(sweatEvap);
-      const sweatDrip = sweatReqR - sweatEvapR;
+      const sweatEvapR = Math.round(sweatEvap);
+      const sweatDrip = Math.max(0, w - sweatEvapR);
       const kjPerH = (s * 3600) / 1000;
       const cap = MASS * c;                           // kJ per degree C
       const rise = kjPerH / cap;                      // degrees C per h
@@ -120,20 +133,25 @@
       mOut!.textContent = n0(mw);
       dOut!.textContent = signed(dry) === '' ? '0' : signed(dry);
       eOut!.textContent = n0(emax);
+      wOut!.textContent = n0(w);
 
       // ---- readouts
       rEreq!.textContent = n0(ereq) + ' W';
       aEreq!.textContent = n0(mw) + ' W ' + (dry < 0 ? MINUS : '+') + ' ' + n0(Math.abs(dry)) + ' W = ' + n0(ereq) + ' W';
       rSweat!.textContent = n0(sweatReq) + ' g per h';
       aSweat!.textContent = n0(ereq) + ' W × 3,600 s per h ÷ 2,430 J per g; about ' + (sweatReq / 1000).toFixed(2) + ' L per h';
+      rMade!.textContent = n0(w) + ' g per h';
+      aMade!.textContent = 'could carry ' + n0(w) + ' g per h × 2,430 J per g ÷ 3,600 s per h = ' + n0(sweatW) + ' W if every gram evaporated';
       rE!.textContent = n0(e) + ' W';
-      aE!.textContent = 'smaller of ' + n0(ereq) + ' W and ' + n0(emax) + ' W';
+      aE!.textContent = 'smallest of ' + n0(ereq) + ' W, ' + n0(emax) + ' W and ' + n0(sweatW) + ' W';
+      rDrip!.textContent = n0(sweatDrip) + ' g per h';
+      aDrip!.textContent = n0(w) + ' g per h made ' + MINUS + ' ' + n0(sweatEvapR) + ' g per h evaporated (' + n0(e) + ' W × 3,600 ÷ 2,430)';
       rS!.textContent = (s > 0 ? '+' : '') + n0(s) + ' W';
       aS!.textContent = n0(mw) + ' ' + (dry < 0 ? MINUS : '+') + ' ' + n0(Math.abs(dry)) + ' ' + MINUS + ' ' + n0(e) + ' = ' + (s > 0 ? '+' : '') + n0(s) + ' W';
       rRise!.textContent = riseTxt + ' °C per h';
       aRise!.textContent = n0(kjPerH) + ' kJ per h ÷ (70 kg × ' + c.toFixed(2) + ' kJ per kg per °C = ' + cap.toFixed(1) + ' kJ per °C)';
-      rState!.textContent = comp ? 'compensable' : 'uncompensable';
-      aState!.textContent = comp ? 'E_req is no more than E_max, so S = 0' : 'E_req exceeds E_max, so S is positive';
+      rState!.textContent = limiter;
+      aState!.textContent = comp ? 'E_req is no more than E_max or what the sweat could carry, so S = 0' : airLimited ? 'E_req exceeds E_max, so S is positive' : 'the sweat made carries less than E_req and E_max, so S is positive';
 
       // ---- drawing
       svg!.replaceChildren();
@@ -178,9 +196,9 @@
       txt(284, 112, 'dashed: needed', { 'text-anchor': 'middle', 'font-size': 9.5 });
       txt(284, 124, n0(ereq) + ' W', { 'text-anchor': 'middle', 'font-size': 9.5 });
 
-      // dripped sweat, only when E_req exceeds E_max
-      if (!comp) {
-        vArrow(200, BY1 + 2, 160, thick(ereq - emax) * 0.8 + 1, ORANGE);
+      // dripped sweat, whenever some sweat made does not evaporate
+      if (sweatDrip > 0) {
+        vArrow(200, BY1 + 2, 160, thick((sweatDrip * LATENT) / 3600) * 0.8 + 1, ORANGE);
         txt(212, 140, 'sweat that drips', {});
         txt(212, 152, 'removes almost no heat', {});
       }
@@ -197,24 +215,19 @@
       txt(15, 211, 'Most the air allows, E_max', {});
       txt(325, 211, n0(emax) + ' W', { 'text-anchor': 'end', 'font-weight': 700 });
       svg!.appendChild(el('rect', { x: X0, y: 216, width: px(emax), height: 12, fill: LIGHT, stroke: ACCENT, 'stroke-width': 1 }));
-      // row 3: sweat made, evaporated against dripped
-      txt(15, 245, 'Sweat needed to meet E_req', {});
-      txt(325, 245, n0(sweatReq) + ' g per h', { 'text-anchor': 'end', 'font-weight': 700 });
+      // row 3: sweat made, evaporated against dripped, on a 0 to 3,000 g per h scale
+      const pg = (g: number) => (g / 3000) * XW;
+      txt(15, 245, 'Sweat made (0 to 3,000 g per h)', {});
+      txt(325, 245, n0(w) + ' g per h', { 'text-anchor': 'end', 'font-weight': 700 });
       svg!.appendChild(el('rect', { x: X0, y: 250, width: 310, height: 12, fill: 'none', stroke: FAINT, 'stroke-width': 0.8 }));
-      if (ereq > 0) {
-        svg!.appendChild(el('rect', { x: X0, y: 250, width: Math.max(0.5, px(e)), height: 12, fill: ACCENT }));
-        if (!comp) svg!.appendChild(el('rect', { x: X0 + px(e), y: 250, width: px(ereq - e), height: 12, fill: ORANGE }));
-      }
+      if (sweatEvapR > 0) svg!.appendChild(el('rect', { x: X0, y: 250, width: pg(sweatEvapR), height: 12, fill: ACCENT }));
+      if (sweatDrip > 0) svg!.appendChild(el('rect', { x: X0 + pg(sweatEvapR), y: 250, width: pg(sweatDrip), height: 12, fill: ORANGE }));
+      if (ereq > 0) svg!.appendChild(el('line', { x1: X0 + pg(sweatReq), y1: 248, x2: X0 + pg(sweatReq), y2: 264, stroke: NAVY, 'stroke-width': 2, 'stroke-dasharray': '2 1.5' }));
       svg!.appendChild(el('rect', { x: 15, y: 269, width: 8, height: 8, fill: ACCENT }));
-      if (ereq <= 0) {
-        txt(27, 277, 'no sweat needed in this state', {});
-      } else if (comp) {
-        txt(27, 277, 'all evaporates: ' + n0(sweatEvapR) + ' g per h', {});
-      } else {
-        txt(27, 277, 'evaporated ' + n0(sweatEvapR) + ' g per h', {});
-        svg!.appendChild(el('rect', { x: 160, y: 269, width: 8, height: 8, fill: ORANGE }));
-        txt(172, 277, 'dripped (assumed) ' + n0(sweatDrip) + ' g per h', {});
-      }
+      txt(27, 277, 'evaporated ' + n0(sweatEvapR), {});
+      svg!.appendChild(el('rect', { x: 122, y: 269, width: 8, height: 8, fill: ORANGE }));
+      txt(134, 277, 'dripped ' + n0(sweatDrip), {});
+      txt(325, 277, 'needed ' + n0(sweatReq) + ' (dashed)', { 'text-anchor': 'end', fill: NAVY, 'font-size': 9.5 });
 
       // ---- status line
       const cTxt = c.toFixed(2);
@@ -222,13 +235,15 @@
       if (ereq <= 0) {
         msg = 'In this sketch, the heat made is carried away by dry loss alone, so no evaporation is required, storage is 0 W and body temperature holds steady while the sliders stay fixed.';
       } else if (comp) {
-        msg = 'In this sketch, the air can take up the ' + n0(ereq) + ' W that is required (E_max is ' + n0(emax) + ' W), so evaporation equals E_req and all of the ' + n0(sweatReq) + ' g per h of sweat evaporates. Storage is 0 W: body temperature holds steady, the compensable case, but only while heat production, E_max and skin blood flow stay fixed.';
+        msg = 'In this sketch, the air can take up the ' + n0(ereq) + ' W that is required (E_max is ' + n0(emax) + ' W) and the ' + n0(w) + ' g per h of sweat made is enough, so evaporation equals E_req: ' + n0(sweatEvapR) + ' g per h evaporates' + (sweatDrip > 0 ? ' and the surplus ' + n0(sweatDrip) + ' g per h is counted as dripping' : '') + '. Storage is 0 W: body temperature holds steady, the compensable case, but only while heat production, E_max and skin blood flow stay fixed.';
+      } else if (airLimited) {
+        msg = 'In this sketch, E_req (' + n0(ereq) + ' W) exceeds E_max (' + n0(emax) + ' W), so evaporation is capped at ' + n0(emax) + ' W and ' + n0(s) + ' W is stored: body temperature rises ' + riseTxt + ' °C per h with a specific heat of ' + cTxt + ' kJ per kg per °C. Raising sweat from ' + n0(w) + ' g per h to any higher rate adds only dripping; E stays at E_max. Balance returns only three ways: make less heat, gain less dry heat (shade, cooler air), or raise E_max with drier or faster-moving air or less clothing. A lower specific heat means the same stored heat raises body temperature faster. This is the sketch’s arithmetic only; it predicts no real person.' + (rise > 5 ? ' The rate is far outside the lesson’s example.' : '');
       } else {
-        msg = 'In this sketch, E_req (' + n0(ereq) + ' W) exceeds E_max (' + n0(emax) + ' W), so evaporation is capped at ' + n0(emax) + ' W and ' + n0(s) + ' W is stored: body temperature rises ' + riseTxt + ' °C per h with a specific heat of ' + cTxt + ' kJ per kg per °C. Sweating harder adds dripping, not cooling. Balance returns only with less heat production, more dry loss or drier air. A lower specific heat means the same stored heat raises body temperature faster. This is the sketch’s arithmetic only; it predicts no real person.' + (rise > 5 ? ' The rate is far outside the lesson’s example.' : '');
+        msg = 'In this sketch, the ' + n0(w) + ' g per h of sweat made could carry only ' + n0(sweatW) + ' W, less than E_req (' + n0(ereq) + ' W) and E_max (' + n0(emax) + ' W), so here sweat, not the air, is the limit and ' + n0(s) + ' W is stored: body temperature rises ' + riseTxt + ' °C per h with a specific heat of ' + cTxt + ' kJ per kg per °C. More sweat would help, but only until evaporation reaches E_max or E_req (' + n0((Math.min(ereq, emax) * 3600) / LATENT) + ' g per h). This is the sketch’s arithmetic only; it predicts no real person.' + (rise > 5 ? ' The rate is far outside the lesson’s example.' : '');
       }
       why!.textContent = msg;
     }
-    [mIn, dIn, eIn].forEach((x) => x.addEventListener('input', render));
+    [mIn, dIn, eIn, wIn].forEach((x) => x.addEventListener('input', render));
     cIns.forEach((x) => x.addEventListener('change', render));
     render();
   });

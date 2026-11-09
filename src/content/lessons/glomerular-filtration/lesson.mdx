@@ -155,7 +155,7 @@ practiceQuestions:
       - "The afferent arteriole, whose constriction sets the glomerular capillary pressure"
       - "The macula densa, which senses NaCl delivery and releases renin"
     answer: 0
-    rationale: "NPHS1 encodes nephrin, a component of the podocyte slit diaphragm. Mutations cause congenital nephrotic syndrome of the Finnish type, with heavy protein loss in the urine, so the slit diaphragm is part of how the filter passes water and small solutes but retains plasma protein. The endothelial glycocalyx is not the only barrier to albumin, and size selectivity comes mostly from the cell layers. The afferent arteriole and the macula densa control filtration pressure and feedback, not protein retention."
+    rationale: "NPHS1 encodes nephrin, a component of the podocyte slit diaphragm. Mutations cause congenital nephrotic syndrome of the Finnish type, with heavy protein loss in the urine, so the slit diaphragm is part of how the filter passes water and small solutes but retains plasma protein. The endothelial glycocalyx is not the only barrier to albumin; how the work of holding protein back is shared among the layers is still debated. The afferent arteriole and the macula densa control filtration pressure and feedback, not protein retention."
   - stem: "In a healthy adult at rest, PAH clearance is 600 mL per min, PAH extraction is taken as 0.90 and the hematocrit is 0.40. What is renal blood flow?"
     choices:
       - "About 1,110 mL per min"
@@ -172,15 +172,16 @@ practiceQuestions:
       dividing by it.
   - stem: "In the simple two-resistor model of the glomerular circulation, the afferent arteriole constricts while arterial pressure stays constant. Which set of changes follows?"
     choices:
-      - "P_GC rises, RPF rises, GFR rises, filtration fraction about unchanged"
-      - "P_GC falls, RPF falls, GFR falls, filtration fraction about unchanged"
+      - "P_GC rises, RPF rises, GFR rises, filtration fraction unchanged or higher"
+      - "P_GC falls, RPF falls, GFR falls, filtration fraction unchanged or lower"
       - "P_GC rises, RPF falls, GFR rises, filtration fraction rises"
       - "P_GC falls, RPF rises, GFR falls, filtration fraction falls"
     answer: 1
     rationale: >-
       Raising upstream resistance lowers flow through both arterioles and lowers the pressure
-      left in the glomerulus, so P_GC, RPF and GFR all fall; because GFR and RPF fall roughly
-      together, their ratio changes little in the simple model. The set with P_GC rising, RPF
+      left in the glomerulus, so P_GC, RPF and GFR all fall. The textbook shortcut keeps their
+      ratio unchanged; because oncotic pressure rises as protein concentrates, the lower P_GC
+      lets filtration fraction fall somewhat. The set with P_GC rising, RPF
       falling and filtration fraction rising describes mild efferent constriction. Plasma flow
       rising with P_GC falling describes efferent dilation. Everything rising describes afferent
       dilation, the reverse arrow.
@@ -277,7 +278,8 @@ explainLevels:
       plasma flow. Clearance gives whole-kidney values: inulin clearance is GFR (about 125 mL per
       min in an adult at rest), PAH clearance is effective renal plasma flow, extraction and
       hematocrit corrections give RPF and RBF, and GFR / RPF is the filtration fraction (about
-      0.2). Afferent constriction lowers P_GC, RPF and GFR; efferent constriction raises P_GC and
+      0.2). Afferent constriction lowers P_GC, RPF and GFR; the textbook shortcut leaves
+      filtration fraction unchanged, but because protein concentrates it tends to fall; efferent constriction raises P_GC and
       filtration fraction while lowering RPF, with a biphasic effect on GFR. Autoregulation over
       about 80 to 180 mmHg comes from the myogenic response and tubuloglomerular feedback, both
       acting mainly on the afferent arteriole; high macula densa NaCl constricts it through
@@ -343,74 +345,255 @@ draft: false
 ---
 
 import GlomerularArterioles from '../../../components/GlomerularArterioles.astro';
+import EquationCard from '../../../components/EquationCard.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**At rest, an adult human's two kidneys, well under 1% of body mass, receive about a quarter of the blood the heart pumps, and they extract little of its oxygen.**
+**At rest, an adult human's two kidneys, well under 1% of body mass, receive about a quarter of the blood the heart pumps, and they extract little of its oxygen: blood leaves them still rich in it.**
 
-That flow supplies a filter that passes about 125 mL of plasma a minute in an adult at rest. The filter lets water and small solutes through and holds back plasma protein, and how much it passes depends on net filtration pressure, the ultrafiltration coefficient and the resistance of the afferent and efferent arterioles on either side of the capillary. Autoregulation, acting mainly on the afferent arteriole, holds the rate steady when arterial pressure changes. [The kidney](/lessons/kidney/) traced the nephron and introduced clearance, C = U x V / P. This lesson puts numbers on its pressures, flows and controls.
+That is a clue: the flow far exceeds what feeding kidney cells would need. It supplies a filter. In an adult at rest the glomeruli filter about 125 mL of plasma a minute, about 180 L a day, and the tubules return all but 1 to 2 L of it. [The kidney](/lessons/kidney/) traced the nephron and introduced clearance, C = U × V / P. This lesson puts numbers on the filter's pressures, flows and controls.
 
-## A capillary that stays at high pressure
+The puzzle: squeeze the **efferent arteriole**, the vessel that drains the glomerulus, and filtration can rise or fall, depending on how hard you squeeze. One idea explains why.
 
-Unlike most systemic capillaries ([capillary exchange and lymph](/lessons/capillary-exchange-and-lymph/)), the glomerular capillary sits between two resistances, the afferent and efferent arterioles, and its hydrostatic pressure barely falls along its length.
+> **The one idea to carry through this lesson.** Plasma filters wherever the hydrostatic push out of the glomerular capillary (its pressure less the back-pressure in Bowman's space) still beats the pull of the protein left behind. So GFR depends on two things: how high that pressure is, and how much plasma flows through, which slows the concentrating of the protein. The two arterioles set both. Their **total** resistance sets the flow. The **share** of that resistance in the efferent arteriole, downstream of the glomerulus, sets the pressure. So the afferent arteriole moves pressure and flow the same way, and the efferent arteriole moves them opposite ways.
 
-Four **Starling forces** set net filtration pressure. Glomerular capillary hydrostatic pressure (P_GC) and the oncotic pressure in Bowman's space (pi_BS, normally near zero) favour filtration. Bowman's-space hydrostatic pressure (P_BS) and capillary plasma oncotic pressure (pi_GC) oppose it.
+The rule assumes a steady state, with arterial and renal venous pressure, the filter itself (Kf, defined below), the pressure in Bowman's space and plasma protein held constant.
 
-> **SNGFR = Kf x (P_GC - P_BS - pi_GC + pi_BS)**, averaged along the capillary
+## What passes and what stays
 
-SNGFR is single-nephron GFR. **Kf**, the ultrafiltration coefficient, is filtration per unit net pressure: water permeability times filtering area. The equation treats the wall as almost impermeable to protein. As water leaves and protein stays, pi_GC rises while P_GC stays nearly flat, so net pressure shrinks along the capillary.
+Each **glomerulus** is a tuft of capillaries cupped in **Bowman's capsule**. Plasma is pushed into **Bowman's space**, the start of the tubule, across a capillary wall of three layers.
 
-The direct numbers come from rats. Brenner, Troy and Daugharty (1971) used Munich-Wistar rats, which have some glomeruli at the kidney surface, and measured P_GC with a servo-nulling micropipette: about 60 cmH2O (about 44 mmHg), roughly half of mean arterial pressure, with net filtration pressure averaging about 14 cmH2O (about 10 mmHg). In hydropenic rats (mildly water-deprived, so not volume-expanded), oncotic pressure typically rose to equal the hydrostatic difference before the efferent end: **filtration pressure equilibrium**. Past that point nothing filters, so more plasma flow lengthens the filtering stretch and SNGFR depends strongly on flow. Human P_GC is inferred rather than measured this way, and whether human glomeruli reach equilibrium is unknown.
+- **Fenestrated endothelium**: a capillary lining perforated by pores, coated with a negatively charged glycocalyx.
+- The **basement membrane**, between the endothelium and the podocytes.
+- **Podocytes**: cells that wrap the capillary in foot processes, with the gaps between them bridged by the **slit diaphragm**.
 
-The filter has three layers. **Fenestrated endothelium** is lined by a negatively charged glycocalyx. The **basement membrane** lies between the endothelium and the podocytes. Size selectivity comes mostly from the cell layers. **Podocytes** wrap the capillary in foot processes bridged by the **slit diaphragm**. Human genetics implicates it: NPHS1 mutations (nephrin) cause congenital nephrotic syndrome of the Finnish type, and NPHS2 mutations (podocin) segregate with steroid-resistant nephrotic syndrome, both with heavy protein loss in urine. Basement-membrane charge was long taught as the albumin barrier, but mice with reduced membrane charge did not develop overt proteinuria. Whether charge elsewhere in the barrier, such as the glycocalyx, helps hold back albumin is still debated.
+Water and small solutes pass freely. Plasma protein mostly stays behind. Human genetics implicates the slit diaphragm: NPHS1 mutations (nephrin) cause congenital nephrotic syndrome of the Finnish type, and NPHS2 mutations (podocin) segregate with steroid-resistant nephrotic syndrome, both with heavy protein loss in urine. Size selectivity comes mostly from the cell layers; how the work of holding protein back is shared with the basement membrane and the glycocalyx is still debated. Basement-membrane charge was long taught as the albumin barrier, but mice with reduced membrane charge did not develop overt proteinuria. Whether charge elsewhere in the barrier, such as the glycocalyx, helps hold back albumin is part of that debate.
 
-{/* DIAGRAM: filtration barrier in cross-section, three layers */}
+<LessonFigure src="/figures/glomerular-filtration/glomerular-filtration-barrier.webp" width={1200} height={806} alt="AI-generated illustration: A glomerular capillary tuft inside Bowman's capsule between an afferent and an efferent arteriole, with an inset of the capillary wall in cross-section: fenestrated endothelium with its glycocalyx, basement membrane, and podocyte foot processes bridged by slit diaphragms. Small dots for water and small solutes pass through all three layers; larger protein blobs stay in the capillary." caption="Water and small solutes cross all three layers of the glomerular wall, but plasma protein mostly stays behind, held back largely by the cell layers and the slit diaphragm; how the work is shared among the layers is still debated. Because protein stays, it grows more concentrated as plasma flows along the capillary." />
 
-## Clearance measures the whole kidney
+Filtrate leaves its protein behind, so the plasma flowing on carries the same protein in less water: the protein grows more concentrated along the capillary.
 
-Clearance gives the sum over both kidneys. If a substance is filtered and neither reabsorbed nor secreted, U x V = GFR x P, and its clearance is the filtration rate. In 1926 Poul Brandt Rehberg, in August Krogh's Copenhagen laboratory, tested this on himself with creatinine, and a 2025 review summarises his result as about 180 L of filtrate a day; with 1 to 2 L of urine, about 99% of filtered water must be reabsorbed. That made filtration with massive reabsorption quantitatively workable in one human. His result did not show that creatinine is only filtered, as the worked problem below and Going deeper explain. Homer Smith's work led to inulin (Shannon and Smith, 1935) and to para-aminohippurate, PAH, for plasma flow (Smith and colleagues, 1945); see [osmoregulation](/lessons/osmoregulation/).
+## Push against pull along one capillary
 
-PAH is filtered and secreted, and one pass removes roughly 90% of it from arterial blood, so its clearance is **effective renal plasma flow (ERPF)**. Dividing by the extraction gives **renal plasma flow (RPF)**; dividing by the plasma fraction of blood gives **renal blood flow (RBF)**. The **filtration fraction (FF)** is the fraction of glomerular plasma flow that is filtered.
+Unlike most systemic capillaries ([capillary exchange and lymph](/lessons/capillary-exchange-and-lymph/)), the glomerular capillary sits between two resistances, the afferent and efferent arterioles, so its hydrostatic pressure barely falls along its length.
 
-> **RPF = C_PAH / E_PAH; RBF = RPF / (1 - Hct); FF = GFR / RPF**
+Picture two lines along the capillary. **The push** is the capillary's hydrostatic pressure, **P_GC**, less a small back-pressure in Bowman's space, **P_BS**: a nearly flat line. **The pull** is the **oncotic pressure** of plasma protein, **π_GC**, its tendency to hold water in the capillary: a line that starts lower and rises as the protein is concentrated. Fluid filters wherever the push beats the pull. The gap between the lines is the **net filtration pressure**, and it shrinks along the capillary. A fourth force, oncotic pressure in Bowman's space (π_BS), is normally near zero, because almost no protein gets through. These are the four **Starling forces**: two favour filtration (P_GC and π_BS) and two oppose it (P_BS and π_GC).
 
-### Worked problem: filtration, flow and a drifting marker
+<EquationCard
+  purpose="How fast one nephron filters."
+  eq="SNGFR = Kf × mean(P_GC − P_BS − π_GC + π_BS)"
+  say="Single-nephron filtration equals the filtration coefficient times the net filtration pressure, averaged along the capillary."
+  symbols={[
+    ["SNGFR", "S N G F R", "single-nephron GFR", "nl/min"],
+    ["Kf", "K f", "ultrafiltration coefficient: filtration per unit net pressure (water permeability times filtering area)", "nl/min per mmHg"],
+    ["P_GC", "P sub G C", "capillary hydrostatic pressure (push)", "mmHg"],
+    ["P_BS", "P sub B S", "Bowman's-space hydrostatic pressure", "mmHg"],
+    ["π_GC", "pi sub G C", "capillary oncotic pressure (pull)", "mmHg"],
+    ["π_BS", "pi sub B S", "Bowman's-space oncotic pressure, near zero", "mmHg"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="If the pull matches the push all along the capillary, nothing filters, however large Kf is. The equation treats the wall as almost impermeable to protein."
+>
+  <Fragment slot="example">
+    <p>Illustrative, human-like numbers: P_GC = 55 mmHg throughout, P_BS = 15, π_GC entering = 25, π_BS = 0.</p>
+    <p>Afferent end: 55 − 15 − 25 = +15 mmHg.</p>
+    <p>If 18% of the plasma filters out, the remaining 82% holds the same protein, so protein is concentrated 1 / (1 − 0.18) = 1.22-fold by the efferent end.</p>
+    <p>If oncotic pressure were proportional to concentration, π_GC there would be 30.5 mmHg and net pressure +9.5 mmHg. Real oncotic pressure rises faster than linearly, so this underestimates efferent π_GC.</p>
+  </Fragment>
+</EquationCard>
 
-Made-up round numbers, adult human at rest, steady state, both kidneys. Assume inulin is freely filtered and neither reabsorbed nor secreted, PAH extraction is 0.90 (assumed), hematocrit 0.45 and cardiac output 5.0 L per min.
+If enough water leaves, the pull can rise to meet the push before the efferent end. Beyond that point nothing filters. This is **filtration pressure equilibrium**.
 
-1. *GFR.* U_inulin = 25 mg per mL, V = 1.0 mL per min, P_inulin = 0.20 mg per mL. C = 25 x 1.0 / 0.20 = 125 mL per min, or 125 x 1,440 = 180 L per day, the size of Rehberg's estimate.
-2. *Flows.* U_PAH = 12.5 mg per mL, P_PAH = 0.020 mg per mL. ERPF = 12.5 x 1.0 / 0.020 = 625 mL per min. RPF = 625 / 0.90 = 694 mL per min. RBF = 694 / 0.55 = about 1,260 mL per min, about 25% of cardiac output.
-3. *Filtration fraction.* 125 / 694 = 0.18, or 125 / 625 = 0.20 using ERPF.
-4. *Along one capillary* (illustrative, human-like). P_GC = 55 mmHg throughout, P_BS = 15, afferent pi_GC = 25, pi_BS = 0 (all mmHg). Afferent end: 55 - 15 - 25 = +15 mmHg. Because 18% of the plasma filters out, the remaining 82% holds the same protein, so protein is concentrated 1 / (1 - 0.18) = 1.22-fold by the efferent end; if oncotic pressure were proportional to concentration, pi_GC = 30.5 mmHg and net pressure = +9.5 mmHg. Real oncotic pressure rises faster than linearly, so this underestimates efferent pi_GC.
-5. *Creatinine.* Take production as a constant 1.0 mg per min (illustrative) and creatinine as filtered only. At steady state excretion equals production, so P_cr = 1.0 / 125 = 0.008 mg per mL = 0.8 mg per dL. If GFR halves, P_cr rises over days to 1.6 mg per dL, when excretion again matches production.
+**Predict.** A capillary reaches equilibrium partway along. Now plasma flows through it faster, with the same pressures. Does the protein reach its stopping concentration sooner or later along the capillary, and what happens to filtration?
 
-But creatinine is also secreted. Proximal tubule cells also secrete creatinine through transporters, so creatinine clearance exceeds GFR, and a drug that blocks those transporters, such as cobicistat, raises plasma creatinine without changing GFR. Creatinine-based estimates also depend on muscle mass, and scaling GFR to 1.73 m2 of body surface is a convention.
+<details>
+<summary>Check your prediction</summary>
 
-## Two resistors in series: afferent and efferent arterioles
+Later. Each millilitre of filtrate is drawn from more plasma, so the protein concentrates more slowly. More of the capillary keeps filtering, so SNGFR rises: with equilibrium, SNGFR depends strongly on plasma flow. Without equilibrium flow still matters, only less.
 
-Think of a hose with a tap upstream (afferent) and a nozzle downstream (efferent). RBF = (arterial pressure - renal venous pressure) / (afferent + efferent resistance), and P_GC is arterial pressure minus the drop across the afferent arteriole ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)).
+</details>
 
-- **Afferent constriction:** RPF and P_GC fall, so GFR falls; in the simple model FF changes little. Dilation does the reverse.
-- **Efferent constriction:** RPF falls, P_GC and FF rise, and GFR is biphasic. Mild constriction raises GFR slightly. Severe constriction lowers RPF and GFR, because the rise in oncotic pressure outruns the rise in hydrostatic pressure.
-- **Efferent dilation:** RPF rises; P_GC, GFR and FF fall.
+The measured numbers come from Munich-Wistar rats, which have some glomeruli at the kidney surface: Brenner, Troy and Daugharty (1971) measured P_GC at about 44 mmHg, roughly half of mean arterial pressure and lower than the illustrative 55 above (learn the directions, not either number), with net filtration pressure averaging about 10 mmHg. In **hydropenic** rats (mildly water-deprived, so not volume-expanded), oncotic pressure typically rose to equal the hydrostatic difference before the efferent end: equilibrium. Human P_GC is inferred rather than measured this way, and whether human glomeruli reach equilibrium is unknown.
+
+## Two taps on one hose: the afferent and efferent arterioles
+
+Now the puzzle. Blood enters each glomerulus through the **afferent arteriole** and leaves through the **efferent arteriole**. Smooth muscle in both can narrow them (**constriction**) or widen them (**dilation**).
+
+Picture a garden hose with a tap near the spigot, a nozzle at the far end and a leaky stretch, the glomerulus, in between. Close the tap a little and less water reaches the leaky stretch, at lower pressure, so less leaks out. Close the nozzle a little and pressure builds in the leaky stretch, so it leaks harder, but less water flows through. The hose has no protein to concentrate, so it misses the part that makes a hard squeeze lower GFR; that comes next.
+
+The leaky stretch has a pressure, P_GC, and a flow, the **renal plasma flow (RPF)**. As in any two resistors in series ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)), the total resistance sets the flow and the efferent share sets the pressure left in the glomerulus.
+
+<EquationCard
+  purpose="How the two arterioles set blood flow and glomerular pressure (simple series model)."
+  eq="RBF = (P_a − P_v) / (R_A + R_E)    and    P_GC ≈ P_v + (P_a − P_v) × R_E / (R_A + R_E)"
+  say="Flow is the pressure drop across the kidney divided by the total resistance. The pressure left in the glomerulus is venous pressure plus the part of the drop that still lies ahead, in the efferent arteriole."
+  symbols={[
+    ["RBF", "R B F", "renal blood flow", "mL/min"],
+    ["P_a", "P sub a", "arterial pressure entering the kidney", "mmHg"],
+    ["P_v", "P sub v", "renal venous pressure", "mmHg"],
+    ["R_A", "R sub A", "afferent (upstream) resistance", "mmHg per (mL/min)"],
+    ["R_E", "R sub E", "efferent (downstream) resistance", "mmHg per (mL/min)"],
+    ["P_GC", "P sub G C", "glomerular capillary pressure", "mmHg"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="If R_E were zero, P_GC would fall to venous pressure. If R_A were zero, P_GC would equal arterial pressure. Equal resistances put P_GC halfway between the two."
+>
+  <Fragment slot="example">
+    <p>Round numbers: P_a = 100 mmHg, P_v = 10 mmHg, and each arteriole has 1 unit of resistance.</p>
+    <p>Flow: (100 − 10) / (1 + 1) = 45 units.</p>
+    <p>Pressure: 10 + 90 × 1/2 = 55 mmHg in the glomerulus.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>The same blood passes through both arterioles, so flow = total drop / total resistance. The drop across the efferent arteriole is flow × R_E, and P_GC sits that far above venous pressure. Equivalently, P_GC is arterial pressure minus the drop across the afferent arteriole.</p>
+    <p>The ≈ is there because about a tenth of the blood flow leaves as filtrate before the efferent arteriole, and the capillaries beyond it add resistance. Treat the numbers as round.</p>
+  </Fragment>
+</EquationCard>
+
+**Predict.** Start from the example: 1 unit each, flow 45, P_GC 55 mmHg. Double the efferent resistance to 2 units. Which way do flow and P_GC move? Then put it back and double the afferent resistance instead.
+
+<details>
+<summary>Check your prediction</summary>
+
+Efferent doubled: total resistance 3, so flow = 90 / 3 = 30, down by a third. The efferent share is now 2/3, so P_GC = 10 + 90 × 2/3 = 70 mmHg, up 15.
+
+Afferent doubled: total resistance 3 again, so flow is again 30. The efferent share is now 1/3, so P_GC = 10 + 90 × 1/3 = 40 mmHg, down 15. With the push-and-pull numbers above (P_BS 15, entering π 25), 40 mmHg leaves no net pressure at all: a hard afferent squeeze can stop filtration, which shows how steeply GFR depends on P_GC.
+
+Same loss of flow, opposite change in pressure.
+
+</details>
+
+<LessonFigure src="/figures/glomerular-filtration/two-arterioles-comparison.webp" width={1200} height={670} alt="AI-generated illustration: Three side-by-side circuits of afferent arteriole, glomerulus and efferent arteriole. At baseline both arterioles are medium and the glomerular pressure gauge reads mid. With the afferent arteriole narrowed, blood flow and the gauge both fall. With the efferent arteriole narrowed, blood flow falls by the same amount but the gauge rises, and the filtrate arrow carries a question mark." caption="The two arterioles' total resistance sets plasma flow and the efferent share sets glomerular pressure, so squeezing the afferent arteriole lowers pressure and flow together while squeezing the efferent arteriole lowers flow but raises pressure, which is why its effect on GFR depends on how hard it is squeezed." />
+
+### From pressure and flow to GFR
+
+GFR rises with both P_GC and plasma flow. The **filtration fraction (FF)** is the share of plasma flow that is filtered, GFR / RPF.
+
+- **Afferent constriction** lowers pressure and flow together: two losses, so GFR falls. The textbook shortcut treats GFR and RPF as falling in proportion, leaving FF unchanged. But protein concentrates as water leaves, so with a lower P_GC the pull catches up sooner and FF tends to fall; how much depends on Kf and on how close the capillary runs to equilibrium. **Afferent dilation** does the reverse.
+- **Efferent constriction** sets the two effects against each other. Higher P_GC pushes more fluid out. Lower flow concentrates the protein sooner, so the pull catches up earlier. With a mild squeeze the pressure gain wins and GFR rises slightly. With a hard squeeze the pressure gain levels off, because P_GC can never exceed arterial pressure, while flow keeps falling, so GFR falls. Throughout, a larger share of the plasma is filtered, so **FF rises**. That answers the puzzle: it depends on how hard you squeeze.
+- **Efferent dilation** raises flow and lowers P_GC. From the usual resting state the pressure loss wins, so GFR and FF fall.
+
+| Change | Plasma flow | P_GC | GFR | Filtration fraction |
+|---|---|---|---|---|
+| Afferent constriction | down | down | down | unchanged in the shortcut; tends to fall |
+| Afferent dilation | up | up | up | unchanged in the shortcut; tends to rise |
+| Efferent constriction, mild | down | up | up a little | up |
+| Efferent constriction, severe | down a lot | up | down from its peak (below the starting value only at very high resistance) | up |
+| Efferent dilation | up | down | down | down |
 
 <GlomerularArterioles />
 
-When perfusion pressure falls, angiotensin II is described as acting preferentially on efferent AT1 receptors, supporting GFR better than plasma flow. Blocking its formation (ACE inhibitors) or receptor (ARBs) dilates the efferent arteriole and can lower GFR, most when perfusion pressure is low. Prostaglandins dilate the afferent arteriole; NSAIDs, which block their synthesis, can let it constrict and lower GFR, most when angiotensin II and other constrictors are high.
+In the simulation, raise the efferent resistance step by step and watch GFR climb, level off and start to fall (within the slider's range it stays above its starting value) while FF keeps rising, and see where oncotic pressure catches up. Its numbers are made up and its oncotic pressure is simply proportional to protein concentration, so only the directions, not the sizes, carry over.
+
+### Two drugs as tests of the rule
+
+**Predict.** Angiotensin II constricts both arterioles. When perfusion pressure falls it is usually described as acting more on efferent AT1 receptors, supporting GFR better than plasma flow; treat that preference as a description, not a law. A patient whose kidneys are poorly perfused depends on it, and starts an ACE inhibitor, which blocks angiotensin II formation. What happens to P_GC and GFR?
+
+<details>
+<summary>Check your prediction</summary>
+
+Losing angiotensin II relaxes the efferent arteriole most. Its share of the resistance falls, so P_GC and GFR fall, most when perfusion pressure is already low. An angiotensin receptor blocker (ARB) does the same, which is one reason clinicians check plasma creatinine after starting either drug.
+
+</details>
+
+Prostaglandins dilate the afferent arteriole. NSAIDs block their synthesis, so the afferent arteriole can constrict and GFR can fall, most when angiotensin II and other constrictors are already high.
+
+### Why the controls act upstream
+
+**Predict.** Arterial pressure rises from 100 to 130 mmHg with both arterioles at 1 unit. Which single arteriole could you adjust to bring both flow and P_GC back to where they were?
+
+<details>
+<summary>Check your prediction</summary>
+
+Unadjusted: flow = 120 / 2 = 60 and P_GC = 10 + 120 / 2 = 70 mmHg. Both are too high.
+
+Raise the afferent resistance to 5/3 of a unit. The total is 8/3, so flow = 120 × 3/8 = 45. The efferent share is 3/8, so P_GC = 10 + 120 × 3/8 = 55 mmHg. Both are back.
+
+The efferent arteriole cannot do this. Relaxing it to 0.6 of a unit brings P_GC back to 55 mmHg, but flow rises to 120 / 1.6 = 75. Only the afferent arteriole can cancel a change in arterial pressure on both at once.
+
+</details>
+
+## Measuring it in a person: clearance
+
+In a person we measure both kidneys together, by clearance. If a substance is freely filtered and neither reabsorbed nor secreted, everything filtered reaches the urine, so U × V = GFR × P, and its clearance, U × V / P, is the filtration rate. **Inulin** behaves this way, so inulin clearance is GFR.
+
+In 1926 Poul Brandt Rehberg, in August Krogh's Copenhagen laboratory, tested the idea on himself with creatinine; a 2025 review summarises his result as the 180 L of filtrate a day above, so about 99% of filtered water must be reabsorbed. That made filtration with massive reabsorption quantitatively workable in one human, although creatinine turned out not to be a pure filtration marker.
+
+Plasma flow takes a second marker, **para-aminohippurate (PAH)**. PAH is filtered and also secreted, so one pass through the kidney removes roughly 90% of it from arterial blood; that fraction is the **extraction**. Because extraction is incomplete, PAH clearance slightly underestimates plasma flow and is called **effective renal plasma flow (ERPF)**.
+
+<EquationCard
+  purpose="From PAH clearance to plasma flow, blood flow and filtration fraction."
+  eq="RPF = C_PAH / E_PAH    RBF = RPF / (1 − Hct)    FF = GFR / RPF"
+  say="Plasma flow is PAH clearance divided by the share of PAH removed in one pass. Blood flow is plasma flow divided by the plasma share of blood. Filtration fraction is filtration rate over plasma flow."
+  symbols={[
+    ["C_PAH", "C sub P A H", "PAH clearance (ERPF)", "mL/min"],
+    ["E_PAH", "E sub P A H", "PAH extraction in one pass, about 0.9", "none"],
+    ["RPF", "R P F", "renal plasma flow", "mL/min"],
+    ["Hct", "hematocrit", "fraction of blood that is red cells", "none"],
+    ["RBF", "R B F", "renal blood flow", "mL/min"],
+    ["GFR", "G F R", "filtration rate (inulin clearance)", "mL/min"],
+    ["FF", "F F", "filtration fraction", "none"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="If extraction were complete (E_PAH = 1), PAH clearance would equal plasma flow. FF cannot exceed 1. Only plasma is filtered, so FF uses plasma flow, not blood flow."
+/>
+
+### Worked problem: filtration, flow and a drifting marker
+
+Made-up round numbers, adult human at rest, steady state, both kidneys. Inulin behaves ideally, PAH extraction is 0.90 (assumed), hematocrit 0.45 and cardiac output 5.0 L per min.
+
+1. *GFR.* U_inulin = 25 mg per mL, V = 1.0 mL per min, P_inulin = 0.20 mg per mL. C = 25 × 1.0 / 0.20 = 125 mL per min, or 125 × 1,440 = 180 L per day.
+2. *Flows.* U_PAH = 12.5 mg per mL, P_PAH = 0.020 mg per mL. ERPF = 12.5 × 1.0 / 0.020 = 625 mL per min. RPF = 625 / 0.90 = 694 mL per min. RBF = 694 / 0.55 = about 1,260 mL per min, about 25% of cardiac output.
+3. *Filtration fraction.* 125 / 694 = 0.18, or 125 / 625 = 0.20 using ERPF.
+4. *Creatinine.* Take production as a constant 1.0 mg per min (illustrative) and creatinine as filtered only. At steady state excretion equals production, so P_cr = 1.0 / 125 = 0.008 mg per mL = 0.8 mg per dL. If GFR halves, excretion falls first and creatinine accumulates. Plasma creatinine climbs over days until excretion again matches production, at 1.6 mg per dL.
+
+But proximal tubule cells also secrete creatinine through transporters, so creatinine clearance exceeds GFR, and a drug that blocks those transporters, such as cobicistat, raises plasma creatinine without changing GFR. Creatinine-based estimates also depend on muscle mass, and scaling GFR to 1.73 m2 of body surface is a convention.
 
 ## Holding GFR steady: myogenic response and tubuloglomerular feedback
 
-In mammals RBF and GFR stay nearly constant over renal perfusion pressures of about 80 to 180 mmHg: **autoregulation**. Two mechanisms, both acting mainly on the afferent arteriole, do most of it.
+In mammals RBF and GFR stay nearly constant over renal perfusion pressures of about 80 to 180 mmHg: **autoregulation**. Two mechanisms do most of it, both acting mainly on the afferent arteriole.
 
-In the **myogenic response**, stretch of arteriolar smooth muscle depolarizes it, cytosolic calcium rises and it contracts. Bayliss described the reaction in arteries in 1902 ([smooth muscle](/lessons/smooth-muscle/)); the stretch sensor is still debated.
+In the **myogenic response**, stretch of arteriolar smooth muscle depolarizes it, cytosolic calcium rises and it contracts. Bayliss described the reaction in arteries in 1902 ([smooth muscle](/lessons/smooth-muscle/)). The stretch sensor is still debated.
 
-**Tubuloglomerular feedback** runs through the **macula densa**, a plaque of cells at the end of the thick ascending limb where the tubule touches its own glomerulus. NaCl enters them through NKCC2, the cotransporter loop diuretics block. When NaCl delivery rises, the cells release ATP; adenosine formed from it constricts the afferent arteriole through adenosine A1 receptors (A1 is Gi-coupled; [G proteins](/lessons/gpcrs-and-g-proteins/)), and P_GC and SNGFR fall; in some preparations ATP may also act directly on P2X receptors. When delivery falls, the afferent arteriole dilates and granular cells release renin.
+**Tubuloglomerular feedback** reads the tubule instead of the pressure. It runs through the **macula densa**, a plaque of cells at the end of the thick ascending limb, where each tubule touches its own glomerulus. The direction first: more NaCl arriving constricts the afferent arteriole; less NaCl dilates it, and **granular cells**, the renin-secreting cells in the arteriole wall, release renin. NaCl enters macula densa cells through NKCC2, the cotransporter that loop diuretics block. When NaCl delivery rises, the macula densa cells release ATP. Adenosine formed from it constricts the afferent arteriole through adenosine A1 receptors (A1 is Gi-coupled; [G proteins](/lessons/gpcrs-and-g-proteins/)), so P_GC and SNGFR fall. In some preparations ATP may also act directly on P2X receptors.
 
 {/* DIAGRAM: vascular pole with both arterioles, renin cells and macula densa */}
 
-Sun and colleagues in Schnermann's group (2001) used micropuncture in anesthetized wild-type mice and mice lacking A1 receptors. They perfused the loop of Henle at 0 and then 30 nl per min and recorded proximal stop-flow pressure, which follows P_GC. If A1 receptors carry the signal, stop-flow pressure should fall in wild type only. It fell 6.8 mmHg in wild type and 0.4 mmHg in knockouts; baseline GFR, blood pressure and heart rate did not differ. So A1 receptors are required for the feedback response in these mice, and a mediator bypassing A1 signalling is ruled out in this preparation. It does not show where the adenosine comes from or that feedback sets resting GFR, and tests no human; the knockout is global, and development may compensate.
+Sun and colleagues in Schnermann's group (2001) used micropuncture in anesthetized wild-type mice and mice lacking A1 receptors. They perfused the loop of Henle at 0 and then 30 nl per min and recorded proximal **stop-flow pressure**, the pressure in a proximal tubule blocked downstream, which follows P_GC. If A1 receptors carry the signal, it should fall in wild type only. It fell 6.8 mmHg in wild type and 0.4 mmHg in knockouts, and baseline GFR, blood pressure and heart rate did not differ. So A1 receptors are required for the feedback response in these mice, and a mediator bypassing A1 signalling contributes little in this preparation. The experiment does not say which cell needs the receptor or where the adenosine comes from, does not show that feedback sets resting GFR and tests no human; because the receptor is missing for life, development may compensate.
 
-Diabetes gives a second test. High plasma glucose raises filtered glucose, and the proximal tubule reabsorbs more of it with sodium through SGLT2. Less NaCl reaches the macula densa, the afferent arteriole dilates, and P_GC and GFR rise: **hyperfiltration**. (Whether blunted feedback or other preglomerular dilation dominates is open.) Blocking SGLT2 should reverse the chain. In rats with early streptozotocin diabetes, dapagliflozin raised early distal chloride by about 70% and sharply lowered SNGFR. In Zucker diabetic fatty rats, luseogliflozin reduced afferent dilation without changing efferent diameter, and an A1 antagonist blocked the effect. In adults with type 1 diabetes under clamped glycemia, Cherney and colleagues (2014) measured inulin and PAH clearance before and after eight weeks of empagliflozin; in the high-GFR group GFR fell from about 172 to 139 mL per min per 1.73 m2, ERPF fell and renal vascular resistance rose. That study had no control arm, and clearances cannot say which arteriole changed. SGLT2 at the tubule is in tubular transport and diuretics.
+Diabetes gives a second test. High plasma glucose raises filtered glucose, and the proximal tubule reabsorbs more of it, with sodium, through SGLT2. Less NaCl reaches the macula densa, the afferent arteriole dilates, and P_GC and GFR rise: **hyperfiltration**. Whether blunted feedback or other preglomerular dilation dominates is open.
+
+**Predict.** An SGLT2 inhibitor is given to a rat with early diabetes. Which way do NaCl at the macula densa, the afferent arteriole, P_GC and SNGFR move?
+
+<details>
+<summary>Check your prediction</summary>
+
+More NaCl reaches the macula densa, feedback constricts the afferent arteriole, and P_GC and SNGFR fall. In rats with early streptozotocin diabetes, dapagliflozin raised early distal chloride by about 70% and sharply lowered SNGFR.
+
+</details>
+
+In adults with type 1 diabetes under clamped glycemia, Cherney and colleagues (2014) measured inulin and PAH clearance before and after eight weeks of empagliflozin. In the high-GFR group GFR fell from about 172 to 139 mL per min per 1.73 m2, ERPF fell and renal vascular resistance rose. That study had no control arm, and clearances cannot say which arteriole changed. Vessel diameters can: in Zucker diabetic fatty rats, luseogliflozin reduced afferent dilation without changing efferent diameter, and an A1 antagonist blocked the effect, which fits feedback acting on the afferent arteriole through A1 receptors. SGLT2 at the tubule is in tubular transport and diuretics.
 
 ### Design problem
+
+Three drugs each lower GFR, measured by inulin clearance. Drug A also lowers PAH clearance. Drug B raises it. Drug C leaves it unchanged. For A and B, which arteriole changes fit, and what would the filtration fraction tell you? For C, what could explain it, and what extra measurement would tell the possibilities apart?
+
+<details>
+<summary>One way to do it</summary>
+
+Drug A lowered GFR and PAH clearance together. If PAH extraction is unchanged (check with a renal vein sample: a drug that blocks PAH secretion lowers its clearance without lowering flow), plasma flow fell. Single-arteriole changes that fit: afferent constriction, or hard efferent constriction; constriction of both arterioles also fits. FF tells the two single-arteriole changes apart: it stays the same or falls with afferent constriction, and rises with hard efferent constriction, where plasma flow falls much more than GFR.
+
+Drug B lowered GFR while plasma flow rose. That is what lower P_GC with higher flow looks like, so efferent dilation fits, and FF fell.
+
+Drug C fits neither arteriole alone. It could lower Kf (less filtering area or a less permeable wall), raise Bowman's-space pressure (for example by blocking tubules), or constrict the afferent arteriole while dilating the efferent just enough to keep total resistance, and so flow, the same. P_GC separates the paired arteriole change (P_GC lower) from the other two (P_GC about unchanged). Tubule or Bowman's-space pressure then separates blockage (raised) from a Kf fall (not raised). Neither can be measured in a person, so this needs an animal preparation with micropuncture.
+
+</details>
+
+## Going deeper
+
+### Measuring pressure in a rat glomerulus
+
+In Brenner's servo-nulling method, a pump applies whatever pressure keeps the saline interface at the tip of a capillary pipette from moving; that pressure equals the pressure in the vessel. Brenner, Troy and Daugharty (1971) reported in cmH2O: P_GC about 60 and net filtration pressure about 14, the 44 and 10 mmHg quoted above.
+
+### Design problem: measuring Kf
 
 Filtration pressure equilibrium hides Kf. You study one surface glomerulus in an anesthetized, hydropenic Munich-Wistar rat, as Brenner's group did. Pipettes give P_GC and tubule pressure, arterial and efferent arteriolar blood give oncotic pressures, and a timed proximal collection gives SNGFR. Made-up values: SNGFR 30 nl per min, P_GC 45 mmHg, P_BS 10 mmHg, afferent oncotic pressure 19 mmHg, efferent 35 mmHg. What can you say about Kf? Design a way to measure it.
 
@@ -425,8 +608,6 @@ Limits: compare the same rats before and after; anesthesia and surgery alter hem
 
 </details>
 
-## Going deeper
-
 ### Where the filtrate goes: kidney, ureter and bladder
 
 Each kidney has an outer **cortex**, where the glomeruli lie, and an inner **medulla** of loops and collecting ducts, which drain into the **renal pelvis** and the **ureter**. Peristalsis carries urine down the ureter. Each ureter crosses the bladder wall obliquely, so rising bladder pressure presses it shut and limits backflow.
@@ -439,9 +620,11 @@ During storage, sympathetic fibres in the hypogastric nerve relax the detrusor t
 
 ### How clearance was worked out
 
-The logic of clearance was worked out in a live dispute: does urine begin as a filtrate that the tubules mostly reabsorb (the line from Carl Ludwig), or do kidney cells secrete it (the line of William Bowman and Rudolf Heidenhain)? Arthur Cushny's 1917 book argued for filtration and reabsorption, and Heidenhain's urea-based argument that about 70 L of filtrate a day would have to be reabsorbed already seemed a large objection.
+The logic of clearance was worked out in a live dispute: does urine begin as a filtrate that the tubules mostly reabsorb (the line from Carl Ludwig), or do kidney cells secrete it (the line of William Bowman and Rudolf Heidenhain)? Arthur Cushny's 1917 book argued for filtration and reabsorption against Heidenhain's urea-based objection that about 70 L of filtrate a day would have to be reabsorbed.
 
-Rehberg took a load of creatinine by mouth and measured it in plasma and timed urine hourly. Urea is partly reabsorbed, so its clearance runs low; creatinine is concentrated in urine far more, so it should come closer to the filtration rate. His clearance varied between periods, from about 50 to 200 mL per min. His result did not show that creatinine is only filtered; Rehberg could not exclude tubular handling, and a 2023 history argues that the high plasma creatinine from his oral load caused tubular secretion that inflated the values.
+Rehberg took a load of creatinine by mouth and measured it in plasma and timed urine hourly. Urea is partly reabsorbed, so its clearance runs low; creatinine is concentrated in urine far more, so it should come closer to the filtration rate. His clearance varied between periods, from about 50 to 200 mL per min. He could not exclude tubular handling, and a 2023 history argues that the high plasma creatinine from his oral load caused tubular secretion that inflated the values.
+
+Homer Smith's work led to inulin as the GFR marker (Shannon and Smith, 1935) and to para-aminohippurate, PAH, for plasma flow (Smith and colleagues, 1945); see [osmoregulation](/lessons/osmoregulation/).
 
 ### Barrier, resistance and transporter details
 

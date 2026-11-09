@@ -6,18 +6,19 @@ courseChapter: "Physiology · Unit 8: Defense, skin and temperature"
 order: 1225
 summary: >-
   Lymphocytes are made in bone marrow and thymus, and naive ones then spend their lives touring lymph nodes,
-  spleen and mucosal tissue. This lesson follows a naive lymphocyte around that loop with
-  Gowans's thoracic-duct rats and S1P1-deficient mice, calculates how long it stays in each
-  organ from fitted rate constants, and traces what changes in a node that drains a site of immune
-  challenge. Afterwards you can predict where the recirculating pool sits when entry or exit changes.
+  spleen and mucosal tissue. One rule runs the tour: an organ holds as many lymphocytes as enter it
+  per hour times how long each stays, and the stay is set by the way out. This lesson builds that rule
+  from Gowans's thoracic-duct rats and S1P1-deficient mice, then uses it on a node that drains a site
+  of immune challenge and on a drug that shuts the exit. Afterwards you can predict where the
+  recirculating pool sits when entry or exit changes.
 hook: "Drain a rat's thoracic duct for a few days and its lymph runs short of lymphocytes. Where were they coming from?"
 
-estMinutes: 24
+estMinutes: 30
 objectives:
-  - "Distinguish primary lymphoid organs (bone marrow, thymus) from secondary ones (lymph nodes, spleen, mucosal tissue such as tonsils and Peyer's patches) by what enters each and what happens there, and interpret neonatal thymectomy in mice with its controls."
-  - "Trace a naive lymphocyte around the recirculation loop (blood, high endothelial venule, node, efferent lymph, thoracic duct, blood) using Gowans's rat thoracic-duct experiments, and calculate residence times and pool fractions from first-order rate constants."
+  - "Distinguish primary lymphoid organs (bone marrow, thymus) from secondary ones (lymph nodes, spleen, mucosal tissue such as tonsils and Peyer's patches) by what enters each and what happens there."
+  - "Trace a naive lymphocyte around the recirculation loop (blood, high endothelial venule, node, efferent lymph, thoracic duct, blood) using Gowans's rat thoracic-duct experiments, and use the rule that cells held equal entry times stay, with the stay set by a first-order exit rate constant, to calculate residence times and the number of cells an organ holds."
   - "Explain the steps of entry into a node (L-selectin tethering, chemokine activation of integrins, LFA-1 binding ICAM-1 and ICAM-2) and of exit (S1P1, and its removal by CD69), and how antigen arrives by lymph conduits and migrating dendritic cells, from mouse knockouts and chimeras."
-  - "Predict how a node that drains a site of immune challenge enlarges and holds lymphocytes, from increased entry and a transient shutdown of exit by CD69 and S1P1 downregulation, and how a change in entry or exit rates moves the recirculating pool between blood, nodes and spleen."
+  - "Predict how a node that drains a site of immune challenge enlarges and holds lymphocytes, from increased entry and a transient shutdown of exit by CD69 and S1P1 downregulation, and how a change in entry or exit rates moves the recirculating pool between blood, nodes and spleen, including when the rule's fixed-entry shortcut holds and when it does not."
 
 explainer:
   src: "/explainers/lymphoid-organs-immune-traffic/explainer.mp4"
@@ -139,7 +140,7 @@ simulations:
     ref: "LymphocyteRecirculation"
     title: "Where the recirculating pool sits"
     caption: >-
-      Set the spleen and node exit rates, and see how residence time moves a cohort that starts in blood between blood, spleen and nodes.
+      Exit sets the stay and entry sets how many: slow an organ's exit and its share of the pool rises, but when every node slows at once blood drains and the gain is far smaller than the longer stay.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -196,7 +197,7 @@ practiceQuestions:
     rationale: >-
       The integrin LFA-1 sits in a low-affinity state until chemokine signalling through CCR7
       changes its shape; only then does it bind ICAM-1 and ICAM-2 and stop the cell. L-selectin
-      is constitutively active, which is why it can catch a fast-moving cell from flowing
+      needs no chemokine signal, which is why it can catch a fast-moving cell from flowing
       blood without any prior signal. CCL21 binding CCR7 is the signal itself, not the step it
       enables. CD69 binding S1P1 is an exit-control event in activated cells, unrelated to
       arrest in a venule.
@@ -208,7 +209,7 @@ practiceQuestions:
       - "About 143 h"
     answer: 1
     rationale: >-
-      For first-order exit, the mean residence time is the reciprocal of the exit rate constant:
+      For a compartment with one first-order exit step, the mean residence time is the reciprocal of the exit rate constant:
       1 / 0.007 per min = 143 min, about 2.4 h, close to the model's 144 min. Seven minutes
       is the rate constant scaled by 1,000, not a mean time. About 143 h has the right number but
       reads it in hours, though the rate constant was per minute, so its reciprocal is in
@@ -242,7 +243,8 @@ mcatQuestions:
       At steady state the number in a compartment equals the entry rate times the mean
       residence time (Little's law), and residence time is the reciprocal of the exit rate
       constant. Halving the exit rate doubles residence from 12 h to 24 h, so the node holds
-      600 per h x 24 h = 14,400 cells. About 7,200 cells is the value before the change. About
+      600 per h x 24 h = 14,400 cells. Keeping entry at 600 per hour is fair because only one
+      node changed, so the number of labelled cells in blood barely moves. About 7,200 cells is the value before the change. About
       3,600 cells halves the residence time instead of doubling it, the error of treating a
       slower exit as a shorter stay. About 50 cells divides the entry rate by the residence time
       instead of multiplying.
@@ -305,8 +307,8 @@ explainLevels:
       nodes k = 0.026 with two series sub-compartments each exiting at 0.0034 per min (593 min).
       The model's entry rates sum to about 2.34 per min, most of it into lung and liver vessels,
       giving about 26 s per pass in blood. Exit is controlled: S1P1 on the lymphocyte is needed
-      to leave the thymus and nodes in mice (Matloubian and colleagues, 2004), and CD69 drives
-      S1P1 internalization and degradation, holding activated cells in a node. In mice, naive
+      to leave the thymus and nodes in mice (Matloubian and colleagues, 2004), and CD69 binds
+      S1P1, opposes its function and leads to its internalization and degradation, holding activated cells in a node. In mice, naive
       CD4 T cells cross peripheral nodes in about 12 h and naive CD8 T cells in about 21 h. An
       open question is what sets that difference in dwell time, and how much of it is a property
       of the cells rather than of the node.
@@ -342,76 +344,153 @@ draft: false
 ---
 
 import LymphocyteRecirculation from '../../../components/LymphocyteRecirculation.astro';
+import EquationCard from '../../../components/EquationCard.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Drain the thoracic duct of a rat for a few days and the lymph flowing out of it runs short of lymphocytes.** If lymph nodes were making those cells, drainage should not have used them up. This lesson follows a naive lymphocyte (one that has not yet met the antigen it recognises) around the loop that explains the result, and puts numbers on how long it stays at each stop.
+**Drain the thoracic duct of a rat for a few days and the lymph flowing out of it runs short of lymphocytes.**
+
+If lymph nodes were making those cells, drainage should not have used them up. Most were not made there; they were passing through. A naive lymphocyte (one that has not yet met the antigen it recognises) spends its life on a loop: blood, lymph node, lymph, blood again. It never settles in one place, so how many lymphocytes a node holds is a question about traffic.
+
+> **The one idea to carry through this lesson.** Every secondary lymphoid organ is like a bathtub with the tap and the drain both running. At steady state (entry equals exit, so the count holds still), **the number of lymphocytes an organ holds = the number entering per hour × the average time each one stays.** The stay is set by the way out, not the way in: if cells leave through a single exit step at a fixed rate (for slow exits, the same small fraction of those present per minute), the average stay is 1 / that rate. Entry has its own molecular gate, and so does exit. Open or shut either gate and the cells move.
+>
+> **Where the rule holds.** Naive lymphocytes at steady state, with no cell division or death; it is false in the first hours after something changes. Holding an organ's entry fixed while changing it assumes it is a small part of the pool, such as one node among hundreds (last section).
+
+One real number: in a fitted rat model, about 0.7% of the lymphocytes in the spleen leave per minute, so the average cell stays 1 / 0.007 per min = 143 minutes, about 2.4 hours.
 
 ## Lymphocytes go around a loop, not out of a factory
 
-Lymphocytes are made in the primary lymphoid organs. In humans and mice, B cells develop in the bone marrow from blood-forming stem cells ([stem cells](/lessons/stem-cells/)), and T cells mature in the thymus from marrow-derived precursors. The secondary lymphoid organs (lymph nodes, the spleen, and mucosal tissue such as the tonsils and the Peyer's patches of the gut wall) host mature lymphocytes and are where those cells meet antigen. How the thymus's role was found, by Miller's neonatal thymectomy in mice and by Good's laboratory in rabbits, belongs to [adaptive immunity](/lessons/adaptive-immunity/). Two of Miller's controls carry the logic: sham-operated mice had the same surgery without losing the thymus, and adult mice thymectomized, irradiated and given marrow could not recover immune function, unlike sham-operated controls given the same irradiation and marrow (Cross, Leuchars and Miller, 1964).
-
+Lymphocytes are made in the primary lymphoid organs. In humans and mice, B cells develop in the bone marrow from blood-forming stem cells ([stem cells](/lessons/stem-cells/)), and T cells mature in the thymus from marrow-derived precursors. The secondary lymphoid organs (lymph nodes, the spleen, and mucosal tissue such as the tonsils and the Peyer's patches of the gut wall) host mature lymphocytes and are where those cells meet antigen.
 In the 1950s the usual view was that the lymphocytes in lymph were newly made in the nodes upstream. James Gowans tested it in rats fitted with a chronic cannula in the thoracic duct, the large lymph vessel that empties into the veins at the base of the neck ([capillary exchange and lymph](/lessons/capillary-exchange-and-lymph/) covers how lymph forms and moves). The cannula let him collect lymph for days.
 
-The two views made different predictions. If nodes made the cells and released them once, duct output should have held roughly steady while production continued. If the same cells were going around, removing them should empty the loop. Output fell progressively. When the collected cells were returned by vein, output recovered, and the returned cells were later recovered in duct lymph.
+If nodes made the cells and released them once, duct output should have held roughly steady while production continued. If the same cells were going around, removing them should empty the loop. Output fell progressively.
 
-That ruled in recirculation from blood, through lymphoid tissue, into lymph and back to blood, and ruled out the nodes as the main source of duct lymphocytes in the rat. It did not show which lymphocytes recirculate, how fast each kind does, or what molecules let them cross a vessel wall, and it gave no human values. The duct also samples only part of the pool: in the rat model fitted below it is assumed to collect lymph from the mesenteric nodes and about half of the output of the subcutaneous nodes.
+**Predict.** Gowans then returned the collected cells into a vein. What should happen to duct output if the nodes are a factory? What if the cells go around a loop?
 
-Gowans's 1964 papers asked where the cells leave the blood. Radioactively labelled lymphocytes injected by vein into rats moved quickly into lymph nodes across the walls of high endothelial venules (HEVs), small venules lined by plump, almost cuboidal endothelial cells instead of flat ones. Thome had described their shape in 1898; for decades their role went unrecognised. Gowans concluded that HEVs are the site of large-scale migration of lymphocytes from blood into the secondary organs.
+<details>
+<summary>Check your prediction</summary>
+
+A factory would not care: cells put into blood have no way back into its production line, so output would stay low. A loop would refill: cells put into blood re-enter the nodes and come out in lymph again. Output recovered, and the returned cells were later found in duct lymph.
+
+</details>
+
+**The cells go around**, and the nodes are not the main source of duct lymphocytes in the rat. This is rat data, from a duct that samples only part of the pool (Going deeper, "What Gowans's experiment did not show").
+
+Gowans's 1964 papers asked where the cells leave the blood. Radioactively labelled lymphocytes injected by vein into rats moved quickly into lymph nodes across the walls of high endothelial venules (HEVs), small venules lined by plump, almost cuboidal endothelial cells instead of flat ones. Gowans concluded that HEVs are the site of large-scale migration of lymphocytes from blood into the secondary organs.
 
 {/* DIAGRAM: The recirculation loop: blood to node across HEVs, efferent lymph to the thoracic duct and the left venous angle, back to blood; spleen fed by artery only */}
 
 ## A node samples lymph and blood; the spleen samples blood alone
 
+Why tour at all? Only a tiny fraction of T cells, of the order of one naive T cell in a hundred thousand to a million, can recognise any one antigen, so the antigen has to be brought to a place they all pass through. Dendritic cells carry it there: they pick up antigen in skin or gut and travel in afferent lymph (lymph flowing into the node) to its T-cell zone, a trip that needs the chemokine receptor CCR7 (in CCR7-deficient mice, activated skin dendritic cells fail to reach the nodes). So the lymphocytes touring the node have something to find.
+
 A lymph node is a bean-shaped filter on a lymph vessel. Afferent lymphatics enter its convex surface and empty into the subcapsular sinus, a space under the capsule. Inside lie B-cell follicles in the outer cortex, a T-cell zone (the paracortex) where the HEVs sit, and medullary cords and sinuses. One efferent lymphatic, sometimes two, leaves at the hilum, beside the artery and vein.
 
-Think of the node as a hotel with two entrances, afferent lymph from tissue and HEVs from blood, and one exit, the efferent lymphatic. The blood entrance is much the busier. At rest, afferent lymph has only about 5 to 10 percent of the cell concentration of efferent lymph, and cannulation studies in large animals found that more than 90 percent of the lymphocytes in efferent lymph had entered through HEVs.
+Think of the node as a hotel with two entrances, afferent lymph from tissue and HEVs from blood, and one exit, the efferent lymphatic. The blood entrance is much the busier. At rest, afferent lymph has only about 5 to 10 percent of the cell concentration of efferent lymph, and cannulation studies in large animals found that more than 90 percent of the lymphocytes in efferent lymph of resting nodes had entered through HEVs.
 
-Antigen arrives in afferent lymph, free or carried by cells, and two routes matter most here. Small soluble molecules travel from the subcapsular sinus toward the HEVs through conduits, fine tubes of reticular fibres wrapped in fibroblastic reticular cells; in mice, resident dendritic cells in the T-cell zone pick up soluble antigen this way before migrating dendritic cells arrive from the tissue. Steinman and Cohn described and named dendritic cells in 1973, in mouse spleen, lymph node and Peyer's patch, where they were only 0.1 to 1.6 percent of nucleated cells. Their trip from skin to the draining node depends on the chemokine receptor CCR7: in CCR7-deficient mice, activated skin dendritic cells fail to reach the nodes.
+The hotel also carries the guiding idea: 100 check-ins a night, each staying 3 nights, fills 300 rooms.
 
-The spleen, the largest secondary lymphoid organ, has no afferent lymphatics and no HEVs, so it samples blood, not lymph. Arterial blood brings both antigen and lymphocytes. Its white pulp holds T-cell and B-cell zones around arterioles, and its red pulp removes old red cells ([blood cells and hemostasis](/lessons/blood-cells-and-hemostasis/)). Intravital imaging in mouse spleen showed T cells leaving arterial blood into the red pulp, latching onto perivascular stromal cells without needing CCR7, then moving into the T-cell zones, which does need CCR7.
+The spleen, the largest secondary lymphoid organ, has no afferent lymphatics and no HEVs, so it samples blood, not lymph. Arterial blood brings both antigen and lymphocytes. Its white pulp holds T-cell and B-cell zones around arterioles, and its red pulp removes old red cells ([blood cells and hemostasis](/lessons/blood-cells-and-hemostasis/)).
 
-{/* DIAGRAM: Lymph node in section: afferent lymphatics, subcapsular sinus, follicles, paracortex with HEVs and conduits, medulla, efferent lymphatic at the hilum */}
+<LessonFigure src="/figures/lymphoid-organs-immune-traffic/node-and-spleen.webp" width={1200} height={806} alt="AI-generated illustration: Cross-section of a lymph node with afferent lymphatics entering the outer surface into a sinus under the capsule, B-cell follicles in the outer cortex, a T-cell zone holding high endothelial venules, a medulla and one efferent lymphatic at the hilum. A thick arrow marks lymphocytes entering from the venules, a thin arrow marks entry with afferent lymph, and one arrow leaves by the efferent lymphatic. An inset shows a spleen section where cells arrive only through an artery." caption="A lymph node is a hotel with two entrances and one exit: most lymphocytes check in from blood across high endothelial venules in the T-cell zone, fewer arrive with afferent lymph, and all leave by the efferent lymphatic. The spleen has no lymph entrance and no HEVs; it samples blood alone." />
 
 ## Getting in on chemokines, getting out on S1P
 
-Entry through an HEV in a peripheral lymph node is a sequence. L-selectin (CD62L) on the lymphocyte binds sulfated mucin-like glycoproteins on the HEV, which tethers a fast-moving cell and sets it rolling. L-selectin is active all the time. The integrin LFA-1 is not: it stays in a low-affinity shape until a chemokine (CCL21, CCL19 or CXCL13) signals through its receptor, CCR7 for CCL21 and CCL19. The signal changes LFA-1's shape so it binds ICAM-1 and ICAM-2 on the endothelium, and the cell stops, then crosses the wall. HEVs in the Peyer's patches of the gut also use a second pair: the integrin alpha4beta7 on the lymphocyte binds MAdCAM-1 on the venule. In mice the HEVs make CCL21 themselves; in humans they do not. The HEVs also depend on lymph: tying off a node's afferent lymphatics makes them lose their specialised features.
+### The way in: three steps at the high endothelial venule
 
-The molecules were found in steps. Stamper and Woodruff in 1976 laid rat and mouse lymphocytes over frozen sections of lymph node and found that they stuck to HEVs and not to other vessels. In 1983 Gallatin, Weissman and Butcher described MEL-14, an antibody to a mouse lymphocyte molecule that appeared to be required for homing to nodes; the molecule is L-selectin. In 1994 mice lacking L-selectin had a severe reduction in lymphocytes in their peripheral nodes. Cells do not all stay equally long once inside: in mice, naive CD4 T cells cross nodes about twice as fast as naive CD8 T cells.
+In a peripheral lymph node:
+
+1. **Tether and roll.** L-selectin (CD62L) on the lymphocyte binds sulfated mucin-like glycoproteins on the HEV, which tethers a fast-moving cell and sets it rolling. L-selectin needs no signal before it binds, though its grip is stable only above a minimum shear from flowing blood.
+2. **Switch on the integrin.** The integrin LFA-1 stays in a low-affinity shape until a chemokine (CCL21, CCL19 or CXCL13) signals through its receptor, CCR7 for CCL21 and CCL19. In mice the HEVs make CCL21 themselves; human HEVs carry it but do not make it.
+3. **Arrest and cross.** The signal changes LFA-1's shape so it binds ICAM-1 and ICAM-2 on the endothelium, and the cell stops, then crosses the wall.
+
+**Predict.** L-selectin is already sticky. Why would a lymphocyte need a second adhesion molecule that only grips after a chemokine signal?
+
+<details>
+<summary>Check your prediction</summary>
+
+L-selectin catches and lets go, so the cell rolls but cannot stop. Requiring a chemokine signal before the firm grip means the cell commits to stopping only where that signal is presented, on the HEVs of a lymphoid organ.
+
+</details>
+
+### The way out: S1P1 reads the S1P in lymph
 
 Exit was a later question. The lipid sphingosine 1-phosphate (S1P) is high in blood and lymph and low inside lymphoid tissue, and lymphocytes carry a G protein-coupled receptor for it, S1P1. In 2004 Mehrdad Matloubian, Charles Lo, Guy Cinamon and colleagues in Jason Cyster's laboratory asked whether lymphocytes need it to leave. Mice lacking S1P1 in every cell do not survive embryonic development, so they gave irradiated mice blood-forming cells from S1P1-deficient fetal liver. If S1P1 is needed for exit, cells should enter lymphoid organs and pile up there.
 
-They did. Mature T cells could not leave the thymus, so no T cells reached the periphery. S1P1-deficient T and B cells transferred into normal mice could not leave lymphoid organs, so the requirement lies in the lymphocyte, not its surroundings. The study did not give human values, show how the S1P gradient is kept, or show that every subset depends on S1P1 equally. It also found that S1P1 falls when lymphocytes are activated, which goes with retention. CD69, a surface protein that appears early after activation, causes S1P1 to be internalized and degraded, and T cells expressing it stay in the node.
+They did. Mature T cells could not leave the thymus, so no T cells reached the periphery. S1P1-deficient T and B cells transferred into normal mice could not leave lymphoid organs, so the requirement lies in the lymphocyte, not its surroundings. This is mouse work: the study gave no human values, and did not show how the S1P gradient is kept or that every subset depends on S1P1 equally.
 
-{/* DIAGRAM: HEV entry in four panels: L-selectin tethering, rolling, LFA-1 arrest on ICAM-1, crossing the wall */}
+The exit gate can also be closed from inside. The same study found that S1P1 falls when lymphocytes are activated, which goes with retention. CD69, a surface protein that appears early after activation, binds S1P1 and opposes its function, and the pair is internalized and degraded, so T cells expressing CD69 stay in the node.
 
-## Residence time is set by the exit rate
+<LessonFigure src="/figures/lymphoid-organs-immune-traffic/hev-entry-s1p-exit.webp" width={1200} height={607} alt="AI-generated illustration: Three-step strip of a lymphocyte entering a lymph node across a high endothelial venule: L-selectin catches the cell and it rolls; a chemokine acting through CCR7 switches the integrin LFA-1 to its gripping shape; LFA-1 binds ICAM-1 and ICAM-2, the cell stops and crosses the wall. An inset shows exit: a lymphocyte with S1P1 leaving toward lymph rich in S1P, and an activated lymphocyte held in place because CD69 binds S1P1." caption="Entry and exit are separate gates. In, L-selectin catches a lymphocyte, a chemokine switches on LFA-1, and the cell stops and crosses the venule; out, S1P1 must sense the S1P in lymph, and CD69 on an activated cell binds S1P1 and opposes it and holds it in the node (mouse evidence for the exit gate)." />
 
-Ganusov and Auerbach (2014) fitted a compartment model to data from chromium-51-labelled thoracic duct lymphocytes injected into rats. Assume first-order (constant-fraction) entry and exit, steady state, no cell death or division, and that labelled cells behave like the rest of the pool.
+## Why a cell's stay is set by the way out
 
-> **mean residence time = 1 / exit rate constant**
+With both gates in hand, ask **how long a lymphocyte stays**, starting with the spleen. A lymphocyte there has no scheduled departure. At each moment it either happens to reach a place where it can sense the S1P of blood and leave, or it does not. So the fitted model treats leaving as a matter of chance: the same *fraction* of the cells present leaves each minute, not the same *number*: the rat spleen's 0.7% per minute holds whether it contains a thousand cells or a billion. A process like that is called **first-order**, and the 0.007 per min is its **exit rate constant**. (A lymph node adds a delay before exit becomes possible, so its fit needs two such steps in series; see Going deeper.)
+
+That one property fixes the average stay. If 10% left each hour, the average cell would stay about 10 hours; at 0.007 per min it stays the opening's 143 minutes. The entry rate is not in that calculation: how fast cells arrive has no effect on how long any one of them stays.
+
+At steady state, as many cells leave per hour as arrive, so the two rules combine into the guiding idea:
+
+<EquationCard
+  purpose="How many lymphocytes an organ holds at steady state, from how fast they arrive and how fast they leave."
+  eq="N = J × (1 / e)"
+  say="The number held equals the number entering per unit time, times the mean stay, and the mean stay is one over the exit rate constant."
+  symbols={[
+    ["N", "N", "the number of lymphocytes the organ holds at steady state", "cells"],
+    ["J", "J", "the number of cells entering the organ per unit time (the entry flux)", "cells per h"],
+    ["e", "e", "the exit rate constant: the fraction of the cells present that leaves per unit time, for an organ with a single first-order exit step", "per h"],
+    ["1 / e", "one over e", "the mean stay (mean residence time) of one cell", "h"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="Double J and N doubles, but each cell stays as long as before. Halve e and the mean stay doubles. Entry sets how many; exit sets how long. This is Little's law, a general rule for queues, and it needs a steady state."
 >
-> **number held at steady state = cells entering per unit time x mean residence time (Little's law)**
+  <Fragment slot="example">
+    <p>Made-up entry, to keep the arithmetic clean: 1,000 naive CD4 T cells and 1,000 naive CD8 T cells enter one mouse node per hour.</p>
+    <p>In mice, naive CD4 T cells cross a node in about 12.2 h and naive CD8 T cells in about 21.2 h.</p>
+    <p>CD4: 1,000 per h × 12.2 h = 12,200 cells. CD8: 1,000 per h × 21.2 h = 21,200 cells.</p>
+    <p>The node holds 21.2 / 12.2 = 1.74 times as many CD8 as CD4 cells, and entry did not differ at all: the ratio is the stay and nothing else. What makes CD8 cells linger is still an open question.</p>
+  </Fragment>
+</EquationCard>
 
-(a) Spleen: entry from blood 0.056 per min, exit 0.007 per min. Mean residence = 1 / 0.007 per min = 142.9 min, about 143 min or 2.4 h. The fitted table gives 144 min (115 to 173).
+**Predict.** In the rat model, the spleen receives about twice as many lymphocytes per minute from blood as the subcutaneous nodes (those under the skin) do. Yet at steady state the spleen holds only about half as many. How can that be?
 
-(b) In a made-up cohort of 1,000,000 labelled cells in blood, the initial rate of entry into the spleen is 0.056 per min x 1,000,000 = 56,000 cells per min.
+<details>
+<summary>Check your prediction</summary>
 
-(c) Time in blood. The model's entry rates from blood are 1.83, 0.41, 0.056, 0.026, 0.0106 and 0.0053 per min; the two largest are into the vessels of lung and liver, from which cells return quickly. The sum is 2.338 per min, so the mean time in blood per pass is 1 / 2.338 per min = 0.428 min = 25.7 s, about 26 s, as the model reports. Of cells leaving blood, 0.056 / 2.338 = 2.4 percent go to the spleen and 0.026 / 2.338 = 1.1 percent to the subcutaneous nodes.
+Look at the other side of the rule. A cell stays about 2.4 hours in the spleen but about 10 hours in the subcutaneous nodes, about four times longer. Twice the entry times a quarter of the stay gives about half the holding. Traffic alone does not tell you what an organ holds.
 
-(d) Where the pool sits. Keep only blood (B), spleen (S) and subcutaneous nodes (N). At steady state entry equals exit for each, so S / B = 0.056 / 0.007 = 8.0. The model treats the subcutaneous nodes as two sub-compartments in series, each with exit 0.0034 per min (a mathematical device for the delay before cells leave, not two regions of a node): N1 / B = 0.026 / 0.0034 = 7.65, the second holds the same, so N / B = 15.3. Node residence = 2 / 0.0034 per min = 588 min, about 9.8 h (table: 593 min). Blood's share is 1 / (1 + 8.0 + 15.3) = 1 / 24.3 = 4.1 percent. The spleen receives twice the node's share of cells leaving blood but holds about half as many, because cells leave it four times faster.
+</details>
 
-(e) Mouse nodes, made-up entry: 1,000 naive CD4 and 1,000 naive CD8 T cells enter one peripheral node per hour. With residence times of 12.2 h and 21.2 h, the node holds 1,000 per h x 12.2 h = 12,200 CD4 cells and 21,200 CD8 cells, a ratio of 1.74 from residence time alone.
+**Predict.** A drug strips S1P1 from the surface of a patient's lymphocytes. Entry through the HEVs is untouched. What happens to the number of lymphocytes in the patient's blood, and to the size of their lymph nodes?
 
-Answers: 143 min; 56,000 cells per min; 26 s, 2.4 and 1.1 percent; about 4 percent in blood; 12,200 and 21,200 cells. Checks: 2.338 x 0.428 = 1.00; 0.024 x 2.338 = 0.056; 24.3 x 0.041 = 1.00. The blood share is a teaching value, since lung, liver, other organs and cell loss are left out.
+<details>
+<summary>Check your prediction</summary>
+
+The exit gate is shut, so the stay in lymphoid tissue lengthens, and the extra cells held there come out of blood: the blood lymphocyte count falls steeply. The nodes gain only a little, because blood was a small part of the pool to begin with. Fingolimod, a multiple sclerosis drug that removes S1P1 from lymphocytes, lowers blood lymphocyte counts this way: the cells are held in lymphoid tissue, not killed.
+
+</details>
 
 <LymphocyteRecirculation />
 
+In the sandbox, the sliders start at the fitted values; watch where a cohort starting in blood settles. Then halve the node exit rate: each cell stays twice as long, but because every node slowed at once, blood drains, entry falls, and the nodes hold about 1.23 times as many, not twice.
+
 ## A draining node holds on to its visitors
 
-A node that drains a site of immune challenge changes its traffic. Migrating dendritic cells arrive in afferent lymph and settle in the T-cell zone. More lymphocytes enter from blood through the HEVs, and for a time fewer leave: in mouse studies, lymphocytes in the node express CD69, CD69 removes S1P1 from their surface, and exit slows. The node enlarges and holds more lymphocytes than its partner on the other side of the body. How much of the enlargement comes from more entry and how much from less exit is still debated. A model fitted to rat data (Ganusov and Auerbach, 2014) put it down mainly to increased entry.
+A node that drains a site of immune challenge changes its traffic. Migrating dendritic cells arrive in afferent lymph and settle in the T-cell zone. More lymphocytes enter from blood through the HEVs, and for a time fewer leave: in mouse studies, lymphocytes in the node express CD69, which removes S1P1 from their surface. The node enlarges and holds more lymphocytes than its partner on the other side of the body.
 
-Little's law gives the direction. If entry is unchanged and the exit rate constant halves, residence time doubles and so does the number held. If entry also rises, the node holds more again. The longer stay gives the rare cells that recognise the antigen more time to find it. The shutdown is transient, and exit resumes afterwards.
+**Predict.** A draining node comes to hold twice as many lymphocytes as before. Using the guiding idea, give two different ways that could happen.
 
-### Design problem
+<details>
+<summary>Check your prediction</summary>
+
+Double the entry (each cell staying as long as before), or halve the exit rate constant (the same entry, each cell staying twice as long), or any mix of the two. The rule cannot tell you which happened; only measuring entry and exit separately can. How much of the enlargement comes from more entry and how much from less exit is still debated. A model fitted to rat data (Ganusov and Auerbach, 2014) put it down mainly to increased entry.
+
+</details>
+
+**When halving exit doubles the holding.** The second answer kept entry fixed. That is fair for one draining node out of hundreds: slowing its exit barely changes the blood count, so entry keeps its old rate and halving exit doubles both the stay and the number held. It is not fair if *every* node slows at once, as with fingolimod. Then blood is drained, entry into each node falls with it, and the holding rises by much less than the stay (Going deeper, "When every node slows at once"). The film's line about entry fixed and exit halved is this one-node case.
+
+If entry also rises, the node holds more again. The longer stay gives the rare cells that recognise the antigen more time to find it. The shutdown is transient, and exit resumes afterwards.
+
+### Design problem (extension)
 
 You want to measure how long naive T cells stay in a mouse lymph node and test whether S1P1 sets that time. Design an adoptive-transfer experiment, say what each control rules out, and interpret these made-up results: at the start, one node holds 10,000 labelled normal T cells and 10,000 labelled S1P1-deficient T cells; 6, 12 and 24 h later it holds 6,100, 3,700 and 1,400 normal cells, and 9,800, 9,500 and 9,100 S1P1-deficient cells.
 
@@ -427,3 +506,49 @@ Controls: equal time-zero counts show both populations start from the same cohor
 Interpretation: for first-order exit, cells remaining in the node = N0 x exp(-k t). For normal cells, ln(10,000 / 3,700) = 0.99 over 12 h, so k is about 0.083 per h and mean residence about 12 h; the 6 h and 24 h points fit (10,000 x exp(-0.5) = 6,070; 10,000 x exp(-2) = 1,350). For S1P1-deficient cells, ln(10,000 / 9,100) = 0.094 over 24 h, about 0.004 per h, or roughly 250 h: exit is nearly abolished, and the small loss could be cell death. Limits: one species and one node type, a few red cells may re-enter from blood, and the result shows S1P1 is needed for exit, not that it alone sets the normal residence time.
 
 </details>
+
+## Going deeper
+
+The main line above does not depend on these details.
+
+### Miller's controls
+
+How the thymus's role was found, by Miller's neonatal thymectomy in mice and by Good's laboratory in rabbits, belongs to [adaptive immunity](/lessons/adaptive-immunity/). Two of Miller's controls carry the logic: sham-operated mice had the same surgery without losing the thymus, and adult mice thymectomized, irradiated and given marrow could not recover immune function, unlike sham-operated controls given the same irradiation and marrow (Cross, Leuchars and Miller, 1964).
+
+### What Gowans's experiment did not show
+
+It did not show which lymphocytes recirculate, how fast each kind does, or what molecules let them cross a vessel wall, and it gave no human values. In the rat model below, the duct is assumed to collect lymph from the mesenteric nodes and about half of the output of the subcutaneous nodes.
+
+### How the entry molecules were found
+
+Thome had described the shape of HEVs in 1898; for decades their role went unrecognised, until Gowans's 1964 work. Stamper and Woodruff in 1976 laid rat and mouse lymphocytes over frozen sections of lymph node and found that they stuck to HEVs and not to other vessels. In 1983 Gallatin, Weissman and Butcher described MEL-14, an antibody to a mouse lymphocyte molecule that appeared to be required for homing to nodes; the molecule is L-selectin. In 1994 mice lacking L-selectin had a severe reduction in lymphocytes in their peripheral nodes.
+
+### Other routes in
+
+HEVs in the Peyer's patches of the gut also use a second pair: the integrin alpha4beta7 on the lymphocyte binds MAdCAM-1 on the venule. The HEVs depend on lymph: tying off a node's afferent lymphatics makes them lose their specialised features. L-selectin is shed from the cell surface on activation. The figure of more than 90 percent entry through HEVs is for resting peripheral nodes; afferent lymph contributes more during inflammation.
+
+### How antigen gets into a node
+
+Antigen arrives in afferent lymph, free or carried by cells. Small soluble molecules travel from the subcapsular sinus toward the HEVs through conduits, fine tubes of reticular fibres wrapped in fibroblastic reticular cells; in mice, resident dendritic cells in the T-cell zone pick up soluble antigen this way before migrating dendritic cells arrive from the tissue. Steinman and Cohn described and named dendritic cells in 1973, in mouse spleen, lymph node and Peyer's patch, where they were only 0.1 to 1.6 percent of nucleated cells.
+
+The spleen has its own route. Intravital imaging in mouse spleen showed T cells leaving arterial blood into the red pulp, latching onto perivascular stromal cells without needing CCR7, then moving into the T-cell zones, which does need CCR7.
+
+### The rat model in full
+
+This is where the film's figures come from (about 26 seconds per pass in blood; the spleen holding eight times as many cells as blood and the subcutaneous nodes about fifteen times), and the sandbox's starting values.
+
+Ganusov and Auerbach (2014) fitted a compartment model to data from chromium-51-labelled thoracic duct lymphocytes injected into rats. It assumes first-order entry and exit, steady state, no cell death or division, and that labelled cells behave like the rest of the pool.
+
+(a) Spleen: entry from blood 0.056 per min, exit 0.007 per min. Mean residence = 1 / 0.007 per min = 142.9 min, about 143 min or 2.4 h. The fitted table gives 144 min (115 to 173).
+
+(b) In a made-up cohort of 1,000,000 labelled cells in blood, the initial rate of entry into the spleen is 0.056 per min × 1,000,000 = 56,000 cells per min.
+
+(c) Time in blood. The model's entry rates from blood are 1.83, 0.41, 0.056, 0.026, 0.0106 and 0.0053 per min; the two largest are into the vessels of lung and liver, from which cells return quickly. The sum is 2.338 per min, so the mean time in blood per pass is 1 / 2.338 per min = 0.428 min = 25.7 s, about 26 s, as the model reports. Of cells leaving blood, 0.056 / 2.338 = 2.4 percent go to the spleen and 0.026 / 2.338 = 1.1 percent to the subcutaneous nodes.
+
+(d) Where the pool sits. Keep only blood (B), spleen (S) and subcutaneous nodes (N). At steady state entry equals exit for each, so S / B = 0.056 / 0.007 = 8.0. The model treats the subcutaneous nodes as two sub-compartments in series, each with exit 0.0034 per min. This is a mathematical device for the delay before cells leave, not two regions of a node, and it gives a peaked spread of stays rather than the simple exponential of a one-step compartment. N1 / B = 0.026 / 0.0034 = 7.65, the second holds the same, so N / B = 15.3. With two exit steps in series, node residence = 2 / 0.0034 per min = 588 min, about 9.8 h (table: 593 min), not 1 / 0.0034. Blood's share is 1 / (1 + 8.0 + 15.3) = 1 / 24.3 = 4.1 percent.
+
+Checks: 2.338 × 0.428 = 1.00; 0.024 × 2.338 = 0.056; 24.3 × 0.041 = 1.00. The blood share is a teaching value, since lung, liver, other organs and cell loss are left out.
+
+### When every node slows at once
+
+Take the three-compartment version in (d) and halve the exit rate constant of all the subcutaneous nodes together. The pool is closed, so blood's share falls from 4.12% to 2.53% (× 0.61). Entry into the nodes is proportional to the cells in blood, so it falls by the same factor, and the nodes' share rises from 62.95% to 77.27%: × 1.23, not × 2. Cut exit tenfold from both spleen and nodes, the direction a drug like fingolimod pushes, and in this model blood's share falls about tenfold, from 4.12% to 0.43%, while the nodes' share rises only from 62.95% to 65.38%: the drop in the blood count is the whole-pool effect, not a single-node one. The tenfold cut is made up; fingolimod itself lowers the blood lymphocyte count by about 70 percent, and spares cells that do not need CCR7 to re-enter nodes.

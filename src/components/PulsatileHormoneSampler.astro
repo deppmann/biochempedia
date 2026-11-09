@@ -1,18 +1,21 @@
 ---
 /**
  * PulsatileHormoneSampler — a 24-hour plasma growth-hormone trace built from invented
- * pulses that decay with the one measured number in the lesson, the 27-minute average
- * half-life after intravenous GH (Parker, Utiger and Daughaday, 1962, five people).
- * C(t) = sum over pulses of A_i x 2^(-(t - t_i) / 27 min) for t at or after t_i, with
- * instantaneous release and no baseline secretion. Three controls: pulse interval,
- * sleep-onset time, sampling time. Self-contained vanilla-TS Astro island. Original.
+ * pulses that decay with a measured GH half-life: the 27-minute average after intravenous GH
+ * (Parker, Utiger and Daughaday, 1962, five people) or about 15 minutes from later
+ * deconvolution of naturally secreted GH (the reader picks).
+ * C(t) = sum over pulses of A_i x 2^(-(t - t_i) / H) for t at or after t_i, with
+ * instantaneous release and no baseline secretion. Controls: pulse interval, sleep-onset
+ * time, half-life, sampling time, and an optional invented slow (IGF-1-like) readout, a
+ * first-order low-pass of the trace with a 600-minute time constant.
+ * Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
 <figure class="pgs card" data-pgs>
   <figcaption class="pgs-head">One sample, many answers — a pulsatile hormone<span class="pgs-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="pgs-svg" viewBox="0 0 340 236" role="img" aria-label="A 24-hour plasma growth hormone trace made of invented pulses that each decay with a 27-minute average half-life, with one marked sample and the 24-hour mean" data-plot></svg>
+  <svg class="pgs-svg" viewBox="0 0 340 236" role="img" aria-label="A 24-hour plasma growth hormone trace made of invented pulses that each decay with a measured average half-life, with one marked sample and the 24-hour mean" data-plot></svg>
 
   <div class="pgs-controls">
     <label class="pgs-slabel"><span>Pulse interval <em data-out="int">3.0 h</em> <small>(illustrative)</small></span>
@@ -23,6 +26,12 @@
       <label class="pgs-radio"><input type="radio" name="pgs-sleep" value="960" data-in="sleep" checked /> 23:00</label>
       <label class="pgs-radio"><input type="radio" name="pgs-sleep" value="1140" data-in="sleep" /> 02:00</label>
     </fieldset>
+    <fieldset class="pgs-fs">
+      <legend>GH half-life <small>(two measured averages)</small></legend>
+      <label class="pgs-radio"><input type="radio" name="pgs-half" value="27" data-in="half" checked /> 27 min <small>(1962, IV)</small></label>
+      <label class="pgs-radio"><input type="radio" name="pgs-half" value="15" data-in="half" /> 15 min <small>(later)</small></label>
+    </fieldset>
+    <label class="pgs-check"><input type="checkbox" data-in="igf" /> Show a slow integrated readout <small>(IGF-1-like, invented)</small></label>
     <label class="pgs-slabel pgs-wide"><span>Sampling time <em data-out="samp">09:55</em> <small>(one sample; arrow keys move it one minute)</small></span>
       <input type="range" data-in="samp" min="0" max="1439" step="1" value="175" aria-describedby="pgs-assume" />
     </label>
@@ -33,19 +42,22 @@
     <div><dt>24-hour mean (relative units)</dt><dd data-r-mean>0</dd></div>
     <div><dt>Lowest and highest over the 24 h</dt><dd data-r-range>0</dd></div>
     <div><dt>Same sample drawn 10 min later</dt><dd data-r-later>0</dd></div>
+    <div data-r-slowrow hidden><dt>Slow readout at the sample time (relative)</dt><dd data-r-slow>0</dd></div>
     <div class="pgs-full"><dt>The reading, step by step</dt><dd class="pgs-sum" data-r-sum>0</dd></div>
   </dl>
   <p class="pgs-why" data-why role="status">In this sketch, the status appears here.</p>
 
-  <p class="pgs-assume" id="pgs-assume">In this sketch: the 27-minute average half-life is the only measured number (people, average after large intravenous doses of GH in a 1962 study of five people; individual values 23 to 38 minutes, and not a constant). Everything else is made up for the sketch: a daytime pulse is 1 relative unit and the sleep-onset pulse is 3; pulses come every interval from 07:00 until sleep onset and none follow it; release is instantaneous (real secretion is not instantaneous; in the 1968 study of eight young adults, seven had a major peak at the onset of deep sleep that lasted 1.5 to 3.5 hours); a later onset also adds daytime pulses; there is no baseline secretion and nothing carries over from the day before.</p>
-  <p class="pgs-foot">Keep this: with a 27-minute average half-life, a single sample mostly reflects the last hour, so one reading can depend on when it was drawn as much as on how much was secreted, and a mean from frequent sampling over 24 hours is steadier.</p>
+  <p class="pgs-assume" id="pgs-assume">In this sketch: the half-life is the only measured number, and two measured averages are offered: 27 minutes after large intravenous doses (1962, five people; individual values 23 to 38) and about 15 minutes from later deconvolution of naturally secreted GH; neither is a constant. The slow readout is a made-up smoothing to show the idea (each minute it moves 1/600 of the way toward the GH trace, starting at the 24-hour mean); real IGF-1 also depends on nutrition, liver function and age, and its kinetics are not modelled. Everything else is made up for the sketch: a daytime pulse is 1 relative unit and the sleep-onset pulse is 3; pulses come every interval from 07:00 until sleep onset and none follow it; release is instantaneous (real secretion is not instantaneous; in the 1968 study of eight young adults, seven had a major peak at the onset of deep sleep that lasted 1.5 to 3.5 hours); a later onset also adds daytime pulses; there is no baseline secretion and nothing carries over from the day before.</p>
+  <p class="pgs-foot">Keep this: with a half-life of 15 to 27 minutes, a single sample mostly reflects the last hour, so one reading can depend on when it was drawn as much as on how much was secreted, and a mean from frequent sampling over 24 hours is steadier.</p>
 </figure>
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
-  const HALF = 27;                       // minutes, measured (average, adult humans, IV GH)
-  const TAU = HALF / Math.LN2;           // integral of 2^(-t/HALF) over t >= 0, in minutes
+  let HALF = 27;                         // minutes, measured average; 27 (1962, IV GH) or 15 (later deconvolution)
+  let TAU = HALF / Math.LN2;             // integral of 2^(-t/HALF) over t >= 0, in minutes
+  const TAU_SLOW = 600;                  // minutes, invented time constant of the slow (IGF-1-like) readout
+  const SAGE = '#5e8c61';
   const DAY = 1440;                      // trace runs 07:00 to 07:00 next day
   const START = 7 * 60;                  // clock minute of the trace start
 
@@ -91,6 +103,10 @@
     const intIn = need<HTMLInputElement>(root, '[data-in="int"]');
     const sampIn = need<HTMLInputElement>(root, '[data-in="samp"]');
     const sleepIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="sleep"]'));
+    const halfIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="half"]'));
+    const igfIn = need<HTMLInputElement>(root, '[data-in="igf"]');
+    const rSlowRow = need<HTMLElement>(root, '[data-r-slowrow]');
+    const rSlow = need<HTMLElement>(root, '[data-r-slow]');
     const intOut = need<HTMLElement>(root, '[data-out="int"]');
     const sampOut = need<HTMLElement>(root, '[data-out="samp"]');
     const rRead = need<HTMLElement>(root, '[data-r-read]');
@@ -116,6 +132,10 @@
       const samp = parseInt(sampIn.value, 10);
       const checked = sleepIns.find((r) => r.checked);
       const onset = checked ? parseInt(checked.value, 10) : 960;
+      const halfChecked = halfIns.find((r) => r.checked);
+      HALF = halfChecked ? parseInt(halfChecked.value, 10) : 27;
+      TAU = HALF / Math.LN2;
+      const showSlow = igfIn.checked;
       const pulses = makePulses(intervalH, onset);
       const mean = meanOver(pulses);
 
@@ -160,6 +180,21 @@
       const yl = text(0, 0, 'plasma GH (relative units)', { 'text-anchor': 'middle' });
       yl.setAttribute('transform', `translate(11 ${(Y0 + Y1) / 2}) rotate(-90)`);
 
+      // slow integrated readout (invented first-order smoothing, seeded at the 24-hour mean)
+      let slowAtSamp = mean;
+      if (showSlow) {
+        let y = mean;
+        let ds = 'M' + px(0).toFixed(1) + ' ' + py(y).toFixed(1) + ' ';
+        for (let m = 1; m <= DAY; m++) {
+          y += (conc(pulses, m) - y) / TAU_SLOW;
+          if (m === samp) slowAtSamp = y;
+          if (m % 3 === 0) ds += 'L' + px(m).toFixed(1) + ' ' + py(y).toFixed(1) + ' ';
+        }
+        plot.appendChild(el('path', { d: ds.trim(), fill: 'none', stroke: SAGE, 'stroke-width': 2, 'stroke-dasharray': '6 3' }));
+        const leg2 = 23;
+        plot.appendChild(el('line', { x1: 6, y1: leg2, x2: 20, y2: leg2, stroke: SAGE, 'stroke-width': 2, 'stroke-dasharray': '6 3' }));
+        text(24, leg2 + 3, 'slow integrated readout (IGF-1-like, invented)');
+      }
       // mean line
       plot.appendChild(el('line', { x1: X0, y1: py(mean), x2: X1, y2: py(mean), stroke: INK, 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
       // trace
@@ -177,6 +212,8 @@
       rRead.textContent = fmt(reading);
       rMean.textContent = fmt(mean);
       rRange.textContent = fmtLo(lo) + ' to ' + fmt(hi);
+      rSlowRow.hidden = !showSlow;
+      rSlow.textContent = fmt(slowAtSamp);
       const laterM = samp + 10;
       let laterTxt = '';
       let laterReading = 0;
@@ -202,7 +239,7 @@
       const a3 = Math.round(lastTerm * 1000) / 1000;
       const b3 = Math.round(reading * 1000) / 1000 - a3;
       rSum.textContent =
-        `Most recent pulse: size ${last.a} at ${clock(last.t)}, ${since} min ago = ${n.toFixed(2)} half-lives, ` +
+        `Most recent pulse: size ${last.a} at ${clock(last.t)}, ${since} min ago = ${n.toFixed(2)} half-lives of ${HALF} min, ` +
         `so ${last.a} × 2^−${n.toFixed(2)} = ${a3.toFixed(3)}. Earlier pulses add ${b3.toFixed(3)}. ` +
         `Reading = ${a3.toFixed(3)} + ${b3.toFixed(3)} = ${(a3 + b3).toFixed(3)} relative units.`;
 
@@ -211,11 +248,12 @@
       const s2 = laterTxt ? ` In this sketch, ${laterTxt}.` : '';
       const s3 = ` In this sketch, the trace runs from ${fmtLo(lo)} to ${fmt(hi)} relative units while the 24-hour mean stays ${fmt(mean)} wherever the sample is drawn.`;
       const s4 = ` In this sketch, the large pulse sits at the chosen sleep onset, ${clock(onset)}, and the pulse sizes and times are invented.`;
-      why.textContent = s1 + s2 + s3 + s4;
+      const s5 = showSlow ? ` In this sketch, the slow readout at ${clock(samp)} is ${fmt(slowAtSamp)}, ${(slowAtSamp / mean).toFixed(2)} times the mean: it barely follows the pulses.` : '';
+      why.textContent = s1 + s2 + s3 + s4 + s5;
     }
 
-    [intIn, sampIn, ...sleepIns].forEach((s) => s.addEventListener('input', render));
-    sleepIns.forEach((s) => s.addEventListener('change', render));
+    [intIn, sampIn, ...sleepIns, ...halfIns, igfIn].forEach((s) => s.addEventListener('input', render));
+    [...sleepIns, ...halfIns, igfIn].forEach((s) => s.addEventListener('change', render));
     render();
   });
 </script>
@@ -235,8 +273,13 @@
   .pgs-fs legend { padding: 0; margin-bottom: 0.1rem; }
   .pgs-radio { display: inline-flex; align-items: center; gap: 0.3rem; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-accent); }
   .pgs-radio input { accent-color: var(--ddp-color-accent); }
+  .pgs-radio small { font-family: var(--ddp-font-sans); font-weight: 400; color: var(--ddp-color-muted); }
+  .pgs-check { display: flex; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pgs-check small { font-size: inherit; color: var(--ddp-color-muted); }
+  .pgs-check input { accent-color: var(--ddp-color-accent); }
   .pgs-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .pgs-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .pgs-readout div[hidden] { display: none; }
   .pgs-full { grid-column: 1 / -1; }
   .pgs-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .pgs-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }

@@ -3,7 +3,7 @@
  * ChemoreflexAltitude — "Altitude and the alveolar oxygen your breathing buys". The same
  * feedback loop at lower barometric pressure: the simplified alveolar gas equation,
  * alveolar PO2 = 0.21 x (PB - 47) - PaCO2 / R, with sliders for barometric pressure and
- * arterial PCO2, a toggle for R, and an optional shaded band of about 50 to 60 mmHg of
+ * arterial PCO2, and an optional shaded band of about 50 to 60 mmHg of
  * alveolar PO2 (Weil and colleagues' isocapnic subjects). A stacked bar splits the humidified
  * inspired PO2 into the alveolar PO2 and the carbon dioxide term. Self-contained
  * vanilla-TS Astro island. Original.
@@ -48,11 +48,10 @@
     <label class="cha-slabel"><span>Arterial PCO₂ (PaCO₂) <em data-out="pco2">40</em> mmHg <small>(about 40 in an adult at rest at sea level)</small></span>
       <input type="range" data-in="pco2" min="20" max="50" step="1" value="40" />
     </label>
-    <fieldset class="cha-fs">
-      <legend>Respiratory exchange ratio R</legend>
-      <label class="cha-opt"><input type="radio" data-r-opt value="0.8" checked /> 0.80 <small>(the lesson’s value)</small></label>
-      <label class="cha-opt"><input type="radio" data-r-opt value="1" /> 1.00 <small>(hypothetical, not the lesson’s value)</small></label>
-    </fieldset>
+    <div class="cha-presets">
+      <button type="button" class="cha-btn" data-preset="760,40">Sea level, PaCO₂ 40</button>
+      <button type="button" class="cha-btn" data-preset="500,30">Worked problem, 500 mmHg</button>
+    </div>
     <label class="cha-opt cha-band-opt"><input type="checkbox" data-band-toggle /> Shade the alveolar PO₂ band of about 50 to 60 mmHg</label>
   </div>
 
@@ -61,12 +60,14 @@
     <div><dt>CO₂ term, PaCO₂ ÷ R</dt><dd><span data-r="term">50.0</span> mmHg</dd></div>
     <div><dt>Alveolar PO₂ (calculated)</dt><dd><span data-r="pao2">45.1</span> mmHg</dd></div>
     <div><dt>CO₂ washout gain, (40 − PaCO₂) ÷ R</dt><dd><span data-r="gain">0.0</span> mmHg</dd></div>
+    <div><dt>Model saturation (alveolar PO₂ read off a Hill curve, exponent 2.7, P50 26)</dt><dd><span data-r="sat">0.0</span> percent</dd></div>
+    <div><dt>Oxygen content change versus PaCO₂ 40 at this pressure</dt><dd data-r="dcont">0.0 percent</dd></div>
     <div class="cha-wide"><dt>Calculated alveolar PO₂ against the isocapnic band of about 50 to 60 mmHg (one group of subjects; not a threshold; resting PCO₂ only)</dt><dd data-r="pos">below the band</dd></div>
   </dl>
 
   <p class="cha-why" data-why role="status"></p>
 
-  <p class="cha-assume"><strong>In this sketch:</strong> steady state, a person breathing air, inspired oxygen fraction fixed at 0.21, water vapour pressure fixed at 47 mmHg and negligible inspired carbon dioxide; these are the lesson’s stipulated model values for its worked problem, not measurements from any named mountain. R = 0.80 is the lesson’s value; R = 1.00 is hypothetical, not the lesson’s value, and is invented for this sketch. The slider ranges are made up (760 mmHg is the lesson’s sea-level anchor), and the sketch does not say which combinations a person reaches. The reference PaCO₂ of 40 mmHg is the lesson’s value for an adult at rest at sea level. The band of about 50 to 60 mmHg comes from one group of normal human subjects, Weil and colleagues’, studied under isocapnia (alveolar PCO₂ held at its resting value); it is not a threshold. The values shown are alveolar, not arterial, PO₂. The sketch sets PCO₂ by hand and does not predict how much a person hyperventilates.</p>
+  <p class="cha-assume"><strong>In this sketch:</strong> steady state, a person breathing air, inspired oxygen fraction fixed at 0.21, water vapour pressure fixed at 47 mmHg and negligible inspired carbon dioxide; these are the lesson’s stipulated model values for its worked problem, not measurements from any named mountain. R = 0.80 is the lesson’s value. The slider ranges are made up (760 mmHg is the lesson’s sea-level anchor), and the sketch does not say which combinations a person reaches. The reference PaCO₂ of 40 mmHg is the lesson’s value for an adult at rest at sea level. The band of about 50 to 60 mmHg comes from one group of normal human subjects, Weil and colleagues’, studied under isocapnia (alveolar PCO₂ held at its resting value); it is not a threshold. The values shown are alveolar, not arterial, PO₂. The sketch sets PCO₂ by hand and does not predict how much a person hyperventilates. The oxygen content change is a model upper bound: it ignores the leftward curve shift the alkalosis causes and treats alveolar as arterial.</p>
 
   <p class="cha-foot">Alveolar PO₂ = 0.21 × (PB − 47) − PaCO₂ ÷ R. A lower barometric pressure lowers the first term; washing out carbon dioxide raises the result by (40 − PaCO₂) ÷ R. The rule gives alveolar PO₂, not arterial PO₂.</p>
 </figure>
@@ -82,10 +83,8 @@
   const X0 = 14, X1 = 326;
   const xs = (v: number) => X0 + (Math.max(0, Math.min(AX_MAX, v)) / AX_MAX) * (X1 - X0);
   const MINUS = '−';
-  let uid = 0;
-
+  
   document.querySelectorAll<HTMLElement>('[data-chemoalt]').forEach((root) => {
-    uid += 1;
     const inp = (k: string) => root.querySelector<HTMLInputElement>('[data-in="' + k + '"]');
     const out = (k: string) => root.querySelector<HTMLElement>('[data-out="' + k + '"]');
     const rd = (k: string) => root.querySelector<HTMLElement>('[data-r="' + k + '"]');
@@ -93,7 +92,7 @@
     const rect = (k: string) => root.querySelector<SVGRectElement>('[' + k + ']');
     const pbIn = inp('pb'), coIn = inp('pco2');
     const pbOut = out('pb'), coOut = out('pco2');
-    const rPio2 = rd('pio2'), rTerm = rd('term'), rPao2 = rd('pao2'), rGain = rd('gain'), rPos = rd('pos');
+    const rPio2 = rd('pio2'), rTerm = rd('term'), rPao2 = rd('pao2'), rGain = rd('gain'), rPos = rd('pos'), rSat = rd('sat'), rDc = rd('dcont');
     const tA = tx('a'), tB = tx('b'), tL1 = tx('l1'), tL2 = tx('l2'), tL3 = tx('l3');
     const barA = rect('data-bar-a'), barAlv = rect('data-bar-alv'), barCo2 = rect('data-bar-co2');
     const refLine = root.querySelector<SVGLineElement>('[data-ref]');
@@ -102,12 +101,10 @@
     const bandToggle = root.querySelector<HTMLInputElement>('[data-band-toggle]');
     const why = root.querySelector<HTMLElement>('[data-why]');
     const ticks = root.querySelector<SVGGElement>('[data-ticks]');
-    const rOpts = Array.from(root.querySelectorAll<HTMLInputElement>('[data-r-opt]'));
-    if (!pbIn || !coIn || !pbOut || !coOut || !rPio2 || !rTerm || !rPao2 || !rGain || !rPos ||
+    const presets = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-preset]'));
+    if (!pbIn || !coIn || !pbOut || !coOut || !rPio2 || !rTerm || !rPao2 || !rGain || !rPos || !rSat || !rDc ||
         !tA || !tB || !tL1 || !tL2 || !tL3 || !barA || !barAlv || !barCo2 || !refLine || !bandG || !bandKey ||
-        !bandToggle || !why || !ticks || rOpts.length !== 2) return;
-
-    rOpts.forEach((o) => o.setAttribute('name', 'cha-r-' + uid));
+        !bandToggle || !why || !ticks) return;
 
     // axis ticks every 20 mmHg
     for (let v = 0; v <= AX_MAX; v += 20) {
@@ -128,21 +125,25 @@
     const f1 = (n: number) => n.toFixed(1);
     const f2 = (n: number) => n.toFixed(2);
     const sgn = (n: number) => (n < -0.05 ? MINUS + Math.abs(n).toFixed(1) : n > 0.05 ? '+' + n.toFixed(1) : '0.0');
-    const getR = () => {
-      const sel = rOpts.find((o) => o.checked);
-      return sel && sel.value === '1' ? 1 : 0.8;
+    const R_FIXED = 0.8;  // the lesson's respiratory exchange ratio
+    const P50 = 26, NH = 2.7; // the lesson's model hemoglobin curve (Hill)
+    const sat = (p: number) => {
+      const x = Math.pow(Math.max(p, 0.1), NH);
+      return x / (x + Math.pow(P50, NH));
     };
     const rTxt = (r: number) => r.toFixed(2);
 
     function render() {
       const pb = parseInt(pbIn!.value, 10);
       const pco2 = parseInt(coIn!.value, 10);
-      const r = getR();
+      const r = R_FIXED;
       const pio2 = FIO2 * (pb - PH2O);
       const term = pco2 / r;
       const pao2 = pio2 - term;
       const refPao2 = pio2 - PCO2_REF / r;
       const gain = (PCO2_REF - pco2) / r;
+      const satNow = sat(pao2), satRef = sat(refPao2);
+      const dContent = (satNow - satRef) / satRef * 100;
       const pao2r = Math.round(pao2 * 10) / 10; // classify on the displayed value
       const pos: 'above' | 'inside' | 'below' = pao2r > BAND_HI ? 'above' : pao2r >= BAND_LO ? 'inside' : 'below';
       const bandOn = bandToggle!.checked;
@@ -154,6 +155,8 @@
       rTerm!.textContent = f1(term);
       rPao2!.textContent = f1(pao2);
       rGain!.textContent = sgn(gain);
+      rSat!.textContent = (satNow * 100).toFixed(1);
+      rDc!.textContent = (Math.abs(dContent) < 0.05 ? '0.0' : (dContent > 0 ? '+' : MINUS) + Math.abs(dContent).toFixed(1)) + ' percent (upper bound)';
       rPos!.textContent = pos === 'above' ? 'above the band' : pos === 'inside' ? 'inside the band' : 'below the band';
 
       // SVG
@@ -185,12 +188,14 @@
       } else {
         s += ' In this sketch, an arterial PCO₂ of ' + pco2 + ' mmHg, above 40, gives ' + f1(-gain) + ' mmHg less calculated alveolar PO₂ than at 40 mmHg: the rule run in the other direction.';
       }
-      if (r === 1) {
-        s += ' R = 1.00 is hypothetical, not the lesson’s value (0.80); a larger R makes the CO₂ term, and so the washout gain, smaller.';
+      if (pco2 < PCO2_REF) {
+        s += pb >= 700
+          ? ' At this pressure the washout lands on the flat top of the hemoglobin curve, so it adds little oxygen content.'
+          : ' At this pressure the washout lands on the steep part of the hemoglobin curve, so the same push adds much more oxygen content.';
       }
-      if (pb === 760 && pco2 === 40 && r === 0.8) {
+      if (pb === 760 && pco2 === 40) {
         s += ' This is the lesson’s sea-level anchor, 99.7 mmHg, close to the alveolar PO₂ of about 100 mmHg usually quoted for an adult at rest at sea level.';
-      } else if (pb === 500 && r === 0.8 && (pco2 === 40 || pco2 === 30)) {
+      } else if (pb === 500 && (pco2 === 40 || pco2 === 30)) {
         s += ' This matches the lesson’s worked problem at 500 mmHg (45.1 mmHg at PaCO₂ 40, 57.6 mmHg at 30), which is a model result rather than a measured acclimatization benefit.';
       }
       if (bandOn) {
@@ -212,7 +217,11 @@
       why!.textContent = s;
     }
 
-    [pbIn, coIn, bandToggle, ...rOpts].forEach((el) => {
+    presets.forEach((b) => b.addEventListener('click', () => {
+      const [a, c] = (b.dataset.preset || '').split(',').map((v) => parseInt(v, 10));
+      if (!isNaN(a) && !isNaN(c)) { pbIn!.value = String(a); coIn!.value = String(c); render(); }
+    }));
+    [pbIn, coIn, bandToggle].forEach((el) => {
       el.addEventListener('input', render);
       el.addEventListener('change', render);
     });
@@ -230,8 +239,9 @@
   .cha-slabel small, .cha-opt small { font-size: inherit; color: var(--ddp-color-muted); }
   .cha-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .cha-slabel input { accent-color: var(--ddp-color-accent); }
-  .cha-fs { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
-  .cha-fs legend { padding: 0; margin-bottom: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cha-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+  .cha-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.25rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .cha-btn:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
   .cha-opt { display: flex; align-items: baseline; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .cha-opt input { accent-color: var(--ddp-color-accent); }
   .cha-band-opt { align-self: end; }
@@ -240,12 +250,12 @@
   .cha-wide { grid-column: 1 / -1; }
   .cha-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .cha-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
-  .cha-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 9em; }
+  .cha-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
   .cha-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
   .cha-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
   @media (max-width: 520px) {
     .cha-controls { grid-template-columns: 1fr; }
     .cha-readout { grid-template-columns: 1fr; }
-    .cha-why { min-height: 14em; }
+    .cha-why { min-height: 9em; }
   }
 </style>

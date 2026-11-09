@@ -16,7 +16,7 @@ estMinutes: 26
 objectives:
   - "Define maximal oxygen uptake (VO2max) and use the Fick equation, VO2 = cardiac output x (CaO2 - CvO2), to split the rise from rest to maximal exercise in a healthy young adult into a cardiac-output factor and an oxygen-extraction factor."
   - "Explain the cardiovascular, respiratory, metabolic and thermal responses to dynamic exercise in healthy humans, including the redistribution of blood flow, arterial blood gases, the shift toward carbohydrate, lactate as a fuel and the lactate threshold."
-  - "Weigh the evidence on whether oxygen delivery or muscle oxygen use limits VO2max in healthy humans doing whole-body exercise at sea level, using small-muscle exercise, red-cell manipulation after training and arterial hypoxemia in trained runners."
+  - "Weigh the evidence on whether oxygen delivery or muscle oxygen use limits VO2max in healthy humans doing whole-body exercise at sea level, using small-muscle exercise, red-cell manipulation after training and arterial hypoxemia in trained runners, and say where the conclusion does not apply."
   - "Describe what six weeks of endurance or strength training changed in young healthy men, and predict by mechanism how heart failure with reduced ejection fraction alters the exercise response."
 
 explainer:
@@ -121,7 +121,7 @@ simulations:
     ref: "FickOxygenUptake"
     title: "Oxygen uptake by the Fick principle"
     caption: >-
-      Set heart rate, stroke volume, hemoglobin and the fraction of arterial oxygen extracted, and watch the product give oxygen uptake against the resting value of about 250 mL per min.
+      Set heart rate, stroke volume, hemoglobin and extraction: at the maximal example each litre already gives up 80 percent of its oxygen, so the dashed ceiling shows extraction can add only about a quarter more and a higher VO2max has to come from delivery.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -209,8 +209,7 @@ mcatQuestions:
     rationale: >-
       Flow per kilogram is 5.0 / 2.0 = 2.5 L per kg per min. If 18 kg of muscle took flow at that
       rate during running, they would accept 2.5 x 18 = 45 L per min, more than twice the 20 L per
-      min the heart can pump in total, so in whole-body exercise muscle flow must be held below its
-      capacity and the heart sets the ceiling in this example. Concluding that muscle vessels set
+      min the heart can pump in total, so in whole-body exercise muscle flow must be held below its capacity, and the heart, not the muscle's vessels, is the main limit in this example. Concluding that muscle vessels set
       the ceiling reverses the comparison. 10 L per kg per min multiplies instead of divides, and 0.4
       L per kg per min divides mass by flow.
   - stem: "Sixteen untrained young men train for six weeks. Peak VO2 rises 9 +/- 8 percent, muscle mitochondrial volume density 43 +/- 30 percent and capillaries per fibre 18 +/- 16 percent, and red-cell volume increases. Blood is then removed until red-cell volume equals its pretraining value, and peak VO2 returns to its pretraining level. Assume the muscle adaptations persist. Which conclusion do these data best support?"
@@ -228,7 +227,7 @@ mcatQuestions:
       damage. Phlebotomy lowers blood volume, and with it preload and stroke volume, at the same
       time as oxygen-carrying capacity, so the experiment cannot assign the gain to red-cell oxygen
       capacity apart from volume.
-  - stem: "A person with heart failure with reduced ejection fraction and an age-matched healthy person cycle at the same submaximal work rate, which is above the patient's lactate threshold but below the control's. Assume both reach a steady oxygen uptake of 1.0 L per min with an arterial oxygen content of 200 mL per L. The patient's cardiac output is 7 L per min and the control's is 10 L per min. Compared with the control, how do the patient's mixed-venous oxygen content and blood lactate differ?"
+  - stem: "A person with heart failure with reduced ejection fraction and an age-matched healthy person cycle at the same submaximal work rate. Assume both reach a steady oxygen uptake of 1.0 L per min with an arterial oxygen content of 200 mL per L. The patient's cardiac output is 7 L per min and the control's is 10 L per min. Compared with the control, how do the patient's mixed-venous oxygen content and blood lactate differ?"
     choices:
       - "Mixed-venous content the same, 100 mL per L; lactate the same"
       - "Mixed-venous content lower, near 57 mL per L; lactate lower"
@@ -249,8 +248,7 @@ explainLevels:
     label: "Like I'm five"
     text: >-
       When you run, your muscles burn more oxygen. Your heart beats faster and pushes more blood
-      with each beat, and your muscles grab more oxygen out of each bit of blood. Blood is moved
-      away from your tummy toward your legs. There is a top speed for using oxygen, and in healthy
+      with each beat, and your muscles grab more oxygen out of each bit of blood. Your heart pumps much more blood, and much of that extra goes to your legs; a little is also borrowed from your tummy. There is a top speed for using oxygen, and in healthy
       people it is mostly set by how much blood the heart can pump.
   - level: "highschool"
     label: "High school"
@@ -258,8 +256,8 @@ explainLevels:
       The oxygen your body uses each minute equals the blood your heart pumps each minute times the
       oxygen your tissues take out of each litre of blood. During hard exercise both rise: heart
       rate and the volume of each beat go up, and muscles pull more oxygen from the blood. Nerves
-      narrow the blood vessels of the gut and kidneys while working muscles widen theirs, so more
-      of the blood goes to muscle. Breathing rises to keep blood oxygen and carbon dioxide nearly
+      narrow the blood vessels of the gut and kidneys while working muscles widen theirs, so a bit more
+      of the blood goes to muscle, though most of the extra comes from the heart pumping more. Breathing rises to keep blood oxygen and carbon dioxide nearly
       steady. Muscles get more of their fuel from sugar, and a smaller share from fat, as exercise gets harder, and the lactate they
       make is used as fuel by other cells. The highest oxygen use you can reach is called VO2max.
   - level: "college"
@@ -338,81 +336,187 @@ draft: false
 ---
 
 import FickOxygenUptake from '../../../components/FickOxygenUptake.astro';
+import EquationCard from '../../../components/EquationCard.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **At rest, a healthy young man of about 70 kg takes up about 250 mL of oxygen per minute. At the end of a maximal run he may take up ten or more times as much. That oxygen passes through lungs, heart, blood and capillaries before a mitochondrion uses it. Which link sets the ceiling?**
 
-This lesson splits that rise into its factors, follows each organ system, and weighs the human experiments on the ceiling.
+> **The one idea to carry through this lesson.** Oxygen uptake is flow times extraction: VO2 = cardiac output x (CaO2 - CvO2), the oxygen in each litre of arterial blood minus what is left when it comes back. At maximal whole-body exercise, the extraction fraction is already close to its limit (about 80 percent of each litre's oxygen, against 25 percent at rest), so a higher ceiling needs more oxygen delivered: more flow, or more oxygen in each litre. In healthy people at sea level, the evidence points to delivery, mainly cardiac output, as the main limit, because working muscle could accept far more blood than the heart can send it. Most of the circulatory and respiratory responses in this lesson either change one of the two factors or compete for the flow.
 
-## VO2max is a ceiling, and Fick splits it in two
+The rule is for healthy adults, untrained to moderately trained, running or cycling at sea level. This lesson shows how we know, and where it bends.
 
-**Oxygen uptake (VO2)** is the oxygen the whole body takes up per minute. In an **incremental test** the work rate on a treadmill or cycle ergometer rises in steps, and **expired-gas analysis** of air breathed through a mouthpiece gives VO2 as oxygen breathed in minus oxygen breathed out. VO2 climbs with the work rate until further increases in speed or work rate no longer raise it. Hill and Lupton (Quarterly Journal of Medicine, 1923) described that ceiling in runners as the **maximal oxygen uptake (VO2max)**; without a clear plateau, laboratories report **peak VO2**.
+## Oxygen uptake is flow times extraction
 
-Breath-by-breath values are averaged before the maximum is read, and a 2020 review found that the averaging strategy alone can shift the reported maximum by 4 to 10 percent. Keep **absolute** VO2 (L per min) apart from **mass-specific** VO2 (mL per kg of body mass per min), which compares people of different sizes.
+**Oxygen uptake (VO2)** is the oxygen the whole body takes up per minute. In an **incremental test** the work rate on a treadmill or cycle ergometer rises in steps, and **expired-gas analysis** of air breathed through a mouthpiece gives VO2 as oxygen breathed in minus oxygen breathed out. VO2 climbs with the work rate until further increases no longer raise it. That ceiling is the **maximal oxygen uptake (VO2max)**; without a clear plateau, laboratories report **peak VO2**. Keep **absolute** VO2 (L per min) apart from **mass-specific** VO2 (mL per kg of body mass per min), which compares people of different sizes.
 
-[Cardiac output and venous return](/lessons/cardiac-output-venous-return/) used Fick's principle to measure flow. Here it splits oxygen uptake:
+Picture one litre of blood. At rest it leaves the lungs carrying about 200 mL of oxygen and comes back carrying about 150: the tissues kept 50 mL. The body's uptake is litres pumped per minute times what each litre gave up. This is Fick's principle, which [cardiac output and venous return](/lessons/cardiac-output-venous-return/) used to measure flow.
 
-> **VO2 = cardiac output x (CaO2 - CvO2), and cardiac output = heart rate x stroke volume**
+<EquationCard
+  purpose="How much oxygen the whole body takes up each minute, split into blood flow and the oxygen each litre gives up."
+  eq="VO2 = cardiac output × (CaO2 − CvO2), and cardiac output = heart rate × stroke volume"
+  say="Oxygen uptake equals the litres of blood the heart pumps each minute, times the oxygen each litre gives up on its way round."
+  symbols={[
+    ["VO2", "V O two", "whole-body oxygen uptake", "mL/min"],
+    ["cardiac output", "cardiac output", "blood pumped by the heart each minute", "L/min"],
+    ["CaO2", "C a O two", "oxygen content of arterial blood, bound plus dissolved", "mL O2 per L blood"],
+    ["CvO2", "C v O two", "oxygen content of mixed-venous blood: pulmonary-artery blood, where returns from every organ have mixed", "mL O2 per L blood"],
+    ["CaO2 − CvO2", "the arteriovenous difference", "the oxygen each litre gives up; divided by CaO2 it is the extraction fraction", "mL O2 per L blood"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="If the tissues took no oxygen, CvO2 would equal CaO2 and uptake would be zero however fast the heart pumped. No litre can give up more than all its oxygen, so the difference can never exceed CaO2."
+>
+  <Fragment slot="example">
+    <p>At rest: cardiac output 5.0 L/min, CaO2 200 mL/L, CvO2 150 mL/L.</p>
+    <p>Difference: 200 − 150 = 50 mL/L.</p>
+    <p>Uptake: 5.0 L/min × 50 mL/L = 250 mL/min. Litres cancel, leaving mL of oxygen per minute.</p>
+  </Fragment>
+</EquationCard>
 
-CaO2 is the **oxygen content** of arterial blood and CvO2 that of **mixed-venous blood**, pulmonary-artery blood in which returns from every organ have mixed, in mL of oxygen per L of blood. These are contents, not partial pressures: bound plus dissolved oxygen, read from the curve in [oxygen transport](/lessons/oxygen-transport/). Femoral venous blood from one leg is not mixed-venous. CaO2 - CvO2 is the oxygen extracted per litre; divided by CaO2 it is the **extraction fraction**.
+These are **contents**, read from the curve in [oxygen transport](/lessons/oxygen-transport/), not partial pressures. Why mixed-venous blood? Each organ extracts a different share: femoral venous blood drains one hard-working leg, which extracts more than the body as a whole, so times leg flow it gives the leg's uptake, not the body's.
+
+Here, as in the film, "extraction" means this mL-per-L difference.
+
+**Predict.** From rest to maximal exercise, which factor do you expect to rise more, flow or extraction? And how much room does the extraction fraction have left at the top?
+
+<details>
+<summary>Check your prediction</summary>
+
+Flow rises a little more (step 5 below). The bigger point is the room left (step 6): the extraction fraction cannot pass 100 percent, and in practice stays well below it, because tissues that are not working extract less.
+
+</details>
 
 ### Worked problem: splitting the rise with Fick
 
 Numbers are illustrative, except the resting uptake of about 250 mL per min for a healthy 70-kg young man (Joyner and Casey, 2015). Assume steady state and no shunt.
 
-1. *Rest.* Cardiac output 5.0 L per min, CaO2 200 mL per L, CvO2 150 mL per L. The arteriovenous difference is 200 - 150 = 50 mL per L, so VO2 = 5.0 L per min x 50 mL per L = 250 mL per min.
+1. *Rest.* 5.0 L per min x 50 mL per L = 250 mL per min, as on the card.
 2. *Maximal exercise, cardiac output.* Heart rate 195 beats per min and stroke volume 100 mL per beat give 195 x 100 = 19,500 mL per min, or 19.5 L per min.
-3. *Maximal exercise, extraction.* CaO2 200 mL per L and CvO2 40 mL per L give a difference of 160 mL per L, so VO2max = 19.5 x 160 = 3,120 mL per min, 3.12 L per min.
+3. *Maximal exercise, the oxygen each litre gives up.* CaO2 200 mL per L and CvO2 40 mL per L give a difference of 160 mL per L, so VO2max = 19.5 x 160 = 3,120 mL per min, 3.12 L per min. (Going deeper checks the 200 from hemoglobin.)
 4. *Per kilogram.* 3,120 / 70 = 44.6 mL per kg per min.
-5. *The split.* VO2 rose 3,120 / 250 = 12.5-fold: a 3.9-fold rise in cardiac output (19.5 / 5.0) times a 3.2-fold rise in extraction (160 / 50). Check: 3.9 x 3.2 = 12.48.
-6. *Check CaO2.* Hemoglobin 150 g per L, 97 percent saturated, binding 1.34 mL of oxygen per gram (a common value; published values run from about 1.34 to 1.39): 1.34 x 150 x 0.97 = 195 mL per L. Dissolved oxygen at a PO2 of 100 mmHg adds 0.03 mL per L per mmHg x 100 = 3 mL per L. Total 198 mL per L, close to the 200 used.
+5. *The split.* Fold changes multiply; they do not add. VO2 rose 3,120 / 250 = 12.5-fold: a 3.9-fold rise in cardiac output (19.5 / 5.0) times a 3.2-fold rise in the oxygen each litre gives up (160 / 50). Check: 3.9 x 3.2 = 12.48.
+6. *The room left.* The extraction fraction went from 50 / 200 = 25 percent to 160 / 200 = 80 percent. Even if every litre gave up all 200 mL, uptake at this cardiac output could reach only 19.5 x 200 = 3,900 mL per min, a quarter more. Extraction can add at most that quarter, so any larger rise has to come mostly from delivery.
+
+The split describes the change; it does not give each factor an independent share, because the factors are linked: more flow through a capillary means less time for each litre to unload.
 
 <FickOxygenUptake />
 
-## The heart pumps more, and the flow goes to working muscle
+## Where the extra flow goes
 
 Cardiac output rises through heart rate and stroke volume. Stroke volume rises with **preload**, the end-diastolic stretch of the ventricle, and **contractility**, the strength of contraction at a given stretch ([pressure-volume loops](/lessons/pressure-volume-loops/)). Sympathetic outflow rises ([hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/)), and the baroreflex operates around a higher pressure ([regulating arterial pressure](/lessons/blood-pressure-regulation/)).
 
-Where the flow goes matters as much. In heavy exercise, sympathetic vasoconstriction can reduce renal and splanchnic blood flow. The same nerves reach active muscle, but contraction can blunt their constricting effect there, which is called **functional sympatholysis**. Active muscle also dilates through local signals (**exercise hyperemia**), and a 2015 review concluded that no single vasodilator explains it ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)). Picture a water system at peak demand: the pumps run much harder while the district on fire opens its hydrants, and closing a few suburban valves helps hold the pressure. Most of the extra flow to muscle comes from the larger cardiac output, not from the gut and kidneys.
+Most of the extra flow to muscle comes from that larger cardiac output, not from the gut and kidneys, but where the flow goes still matters. In heavy exercise, sympathetic vasoconstriction can reduce renal and splanchnic (gut, liver and spleen) blood flow. The same nerves reach active muscle, but contraction can blunt their constricting effect there, which is called **functional sympatholysis**. Active muscle also dilates through local signals (**exercise hyperemia**), and a 2015 review concluded that no single vasodilator explains it ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)).
 
-{/* DIAGRAM: body outline at rest and at maximal exercise, flow arrows to brain, heart, gut, kidney, skin and leg muscle; schematic */}
+Picture a water system at peak demand. The pumps run much harder and the district on fire opens its hydrants, but only part way, and the operators close a few suburban valves: open every hydrant and the pressure in the mains would collapse.
 
-How much flow could muscle take if the heart were not the limit? Per Andersen and Bengt Saltin (1985, Journal of Physiology 366:233) had five healthy subjects do dynamic **knee extension with one leg** at 10 to 60 W, so the active muscle was essentially one quadriceps, and measured femoral venous flow by **cold-saline thermodilution**. If muscle vascular capacity set the whole-body ceiling, a small muscle alone should reach no more flow per kilogram than in whole-body exercise. If the heart set it, a muscle too small to strain the heart should take far more. Femoral flow rose with workload to an average of 5.7 L per min, and the estimated maximal perfusion was about 2.5 L per kg of active muscle per min (per kilogram of quadriceps, not of body mass).
+<LessonFigure src="/figures/exercise-physiology/flow-rest-vs-exercise.webp" width={1200} height={806} alt="AI-generated illustration: two body outlines side by side. At rest a small heart sends thin, similar arrows of blood to leg muscle, gut and liver, kidneys and skin. At maximal exercise a larger heart sends a much thicker trunk; the arrow to leg muscle is by far the thickest and highlighted, the arrows to gut and kidneys are slightly thinner, with nerve clamps on their vessels, and the nerve to the muscle vessel is faded to show its constriction is blunted." caption="Most of the extra blood that reaches working muscle comes from a much larger cardiac output; sympathetic nerves can trim gut and kidney flow, contraction can blunt the same constriction in working muscle, and skin needs its own share to shed heat." />
 
-That showed a large reserve of muscle vascular capacity and argued against muscle dilator capacity as the ceiling in these subjects. It did not test whole-body exercise or the dilator mechanism, and the per-kilogram figure depends on the estimated quadriceps mass.
+## How much could muscle take?
 
-{/* DIAGRAM: one-leg knee-extension ergometer, other leg resting, thermodilution catheter in the working leg's femoral vein */}
+If the heart were not the limit, how much flow could muscle take? Per Andersen and Bengt Saltin (1985, Journal of Physiology 366:233) found out by making the working muscle small. Five healthy subjects did dynamic **knee extension with one leg** at 10 to 60 W, so the active muscle was essentially one quadriceps. Femoral venous flow was measured by **cold-saline thermodilution**: cold saline infused into the vein cools the blood less the faster it flows.
+
+**Predict.** A muscle this small cannot strain the heart. If muscle vessels set the whole-body ceiling, how should its flow per kilogram compare with what each kilogram gets in whole-body exercise? What if the heart sets it?
+
+<details>
+<summary>Check your prediction</summary>
+
+If the vessels set the ceiling, the small muscle should reach no more flow per kilogram than in whole-body exercise, since its vessels are already at their limit there. If the heart sets it, the small muscle, freed from sharing the heart, should take far more.
+
+</details>
+
+Femoral flow rose with workload to an average of 5.7 L per min, and the estimated maximal perfusion was about 2.5 L per kg of active muscle per min (per kilogram of quadriceps, not of body mass). That argued against muscle dilator capacity as the ceiling in these subjects. It did not test whole-body exercise or the dilator mechanism, and the per-kilogram figure depends on the estimated quadriceps mass.
+
+<LessonFigure src="/figures/exercise-physiology/one-leg-thermodilution.webp" width={1200} height={806} alt="AI-generated illustration: a seated person on a one-leg knee-extension ergometer: the right quadriceps works while the left leg rests. A catheter in the working leg's femoral vein receives cold saline, and a temperature probe downstream reads the cooling to give flow. An inset compares one heart feeding a single working muscle through a wide-open vessel with the same heart feeding many working muscles through narrower vessels." caption="Working one quadriceps alone, Andersen and Saltin's five subjects reached an estimated 2.5 L of blood per kilogram of muscle per minute, far more per kilogram than the heart could send to every muscle of a run, which argued that in healthy people the muscle's vessels are not the ceiling." />
 
 ### Worked problem, part 2: the argument in numbers
 
-Except for the 2.5 L per kg per min, values are made up. Suppose running uses 20 kg of muscle and 80 percent of part 1's 19.5 L per min maximal cardiac output reaches it. At 2.5 L per kg per min the muscles could accept 2.5 x 20 = 50 L per min; the heart sends 0.80 x 19.5 = 15.6 L per min. The ratio is 50 / 15.6 = 3.2 (check: 15.6 x 3.2 = 49.9). Muscle could accept three times what the heart delivers, so its vessels must be partly constricted, and here the heart sets the ceiling. This assumes the one-leg maximum applies to every working muscle, the active mass is known and arterial pressure matches that of the one-leg test, where it rose from about 100 to 130 mmHg at the higher workloads.
+Except for the 2.5 L per kg per min, values are made up. Suppose running uses 20 kg of muscle and 80 percent of part 1's 19.5 L per min maximal cardiac output reaches it.
 
-## Breathing keeps arterial gases steady, until it does not
+1. *Capacity.* At 2.5 L per kg per min the muscles could accept 2.5 x 20 = 50 L per min.
+2. *Delivery.* The heart sends 0.80 x 19.5 = 15.6 L per min.
+3. *Ratio.* 50 / 15.6 = 3.2 (check: 15.6 x 3.2 = 49.9). Muscle could accept about three times what the heart delivers.
 
-Ventilation rises at once at exercise onset. At low to moderate intensity it keeps pace with carbon dioxide output, and arterial PO2 and PCO2 stay near their resting values of about 100 and 40 mmHg at sea level. In heavy exercise ventilation can outpace carbon dioxide output (**hyperventilation**), and arterial PCO2 falls. The control is in [control of breathing](/lessons/control-of-breathing/).
+Why, then, are its vessels not wide open? Flow equals pressure times conductance (the ease of flow, the inverse of resistance). If every working muscle opened its vessels fully while cardiac output stayed at its maximum, arterial pressure would collapse. A leading explanation is that sympathetic nerves and the baroreflex keep working muscle partly constricted to hold arterial pressure up; how much each contributes is still debated.
 
-The healthy lung usually keeps arterial oxygen up even at maximal work. Jerome Dempsey, P. G. Hanson and K. S. Henderson (1984) sampled arterial blood in 16 highly trained runners during treadmill exercise at sea level. In eight of them, arterial PO2 fell during exercise by 21 to 35 mmHg. The worst falls went with a wide alveolar-arterial oxygen difference and, in some runners, too little hyperventilation. The authors judged uneven ventilation-perfusion and shunt unlikely and proposed, by exclusion, a diffusion limit from very short red-cell transit times in the lung capillaries; the cause is still debated ([ventilation and perfusion](/lessons/ventilation-perfusion/) explains the A-a difference). It is a finding in some highly trained runners, not in healthy people generally.
+The calculation assumes the one-leg maximum applies to every working muscle, the active mass is known and arterial pressure matches that of the one-leg test, where it rose from about 100 to 130 mmHg at the higher workloads.
 
-Whether the hard-working breathing muscles, fed from the same cardiac output, take flow from the legs is the design problem.
+Read the result carefully. Muscle could take more blood, so its **vessels** are not the ceiling; the heart is the main limit here. Whether muscle could also use more oxygen is a separate question, which the training experiments in the next section test. Nor does three times the flow mean three times the uptake: faster blood has less time to unload.
 
-## Fuel shifts toward carbohydrate, and lactate is a fuel
+The film's fifth scene, which says that here the heart sets the ceiling, shows only the flow half of this argument.
 
-Which fuel muscle burns depends on intensity (energy systems are in [skeletal muscle mechanics](/lessons/skeletal-muscle-mechanics/)). Romijn and colleagues (1993) studied five trained subjects at 25, 65 and 85 percent of VO2max with **stable-isotope tracers** and **indirect calorimetry**. Plasma glucose uptake and muscle glycogen oxidation rose with intensity, and total fat oxidation was highest at the middle intensity.
+## Why the evidence points to delivery
 
-During prolonged exercise plasma insulin falls and glucagon rises, favouring glucose release from the liver ([insulin, glucagon and blood glucose](/lessons/insulin-glucagon-glucose/)), while contracting muscle takes up more glucose by a route that does not require insulin ([integration of metabolism](/lessons/integration-of-metabolism/)).
+Recall the guiding idea: each litre already gives up 160 of its 200 mL at maximum, so a higher VO2max needs more oxygen to arrive. Two kinds of human experiment test whether arrival really sets the ceiling.
 
-Lactate is a fuel, not waste. Some glycolytic pyruvate becomes lactate, which leaves the fibres that make it and is oxidized by other fibres and the heart or made into glucose by the liver. The **lactate threshold** is the workload above which blood lactate accumulation speeds up as work rises. It is not where oxygen runs out, and it has no universal value (not a fixed 4 mmol per L, percentage of VO2max or ventilatory threshold). Messonnier and colleagues (2013) used tracers in six trained and six untrained men, and a **lactate clamp**, an infusion of lactate that holds its blood concentration, in the trained men only. At each group's own threshold, lactate clearance was 34 percent higher in the trained men, and clearance reached its peak below the threshold. In a study of six trained and six untrained men, Emhoff and colleagues (2013) estimated with tracers that blood lactate supplied about one-third of carbohydrate-derived energy during 60 minutes of exercise at the lactate threshold. Both studies compared trained with untrained men, so the differences are associations.
+**When the heart has nothing more to give.** Mortensen and colleagues (2008) measured cardiac output and leg blood flow in 13 trained men cycling to exhaustion at a supramaximal work rate, one above the rate that brought out their VO2max. Both peaked after about 60 to 90 seconds and then levelled off, while the work rate stayed the same, although the one-leg experiment suggests the legs could take more flow. The authors read the plateau as cardiac limits plus muscle vasoconstriction, the constriction that holds arterial pressure up.
 
-Early in exercise, heat production can outrun heat loss and core temperature rises. Skin blood flow carries heat from the core to the skin, and sweat cools only when it evaporates ([skin, sweat and human thermoregulation](/lessons/skin-and-human-heat/)). Heat also strains the heart: in 15 endurance-trained cyclists, González-Alonso and colleagues (1997) found that hyperthermia alone or about 4 percent dehydration alone lowered stroke volume by 7 to 8 percent, and the two together lowered cardiac output by 13 percent.
+**Take the gain away.** Training raises peak VO2, but it changes both ends of the chain: more red cells and blood volume on the delivery side, more mitochondria and capillaries on the muscle side. Which change made the gain? Montero, Lundby and colleagues (2015) trained 16 previously untrained healthy men for six weeks, then removed blood (phlebotomy) until each man's red-cell volume was back at its pretraining value. The experiment assumes the muscle adaptations did not disappear in the days between.
 
-## What limits VO2max, and what training changes
+**Predict.** If the gain came from the muscle, what should peak VO2 do after the blood is removed? What if it came from delivery?
 
-In healthy people doing whole-body exercise at sea level, the evidence points to oxygen delivery, mainly cardiac output, rather than muscle oxygen use. Mortensen and colleagues (2008) found that in 13 trained men cycling to exhaustion at a supramaximal work rate, systemic and leg flow peaked after about 60 to 90 seconds and then levelled off, which the authors read as cardiac limits plus muscle vasoconstriction.
+<details>
+<summary>Check your prediction</summary>
 
-The modern test came from training. Montero, Lundby and colleagues (2015) trained 16 previously untrained healthy men for six weeks, measuring peak cardiac output, blood volumes and muscle biopsies. If the gain came from muscle, removing the extra red cells afterwards should leave most of it; if from delivery, removal should erase it. Peak VO2 rose 9 plus or minus 8 percent (mean and SD), mitochondrial volume density 43 plus or minus 30 percent and capillary-to-fibre ratio 18 plus or minus 16 percent. The authors report that returning red-cell volume to baseline by phlebotomy returned peak VO2 to its pretraining level; a later study of 12 untrained adults, seven of them men, after 10 weeks of training (Skattebo and colleagues, 2020) found the gain preserved after phlebotomy, so the result is not settled. It does not show that mitochondria never limit VO2, or anything about women, older adults or athletes; and phlebotomy lowers blood volume and preload too, so it cannot separate oxygen-carrying capacity from volume ([blood cells and hemostasis](/lessons/blood-cells-and-hemostasis/) covers red-cell mass).
+If the muscle made the gain, the new mitochondria and capillaries are still there, so most of the gain should survive. If delivery made the gain, taking away the extra red cells should erase it.
 
-Strength training differs. Jenkins and colleagues (2017) randomized 26 young men to six weeks of leg extension at 80 or 30 percent of their one-repetition maximum. Ultrasound muscle thickness rose similarly in both groups, but strength and **voluntary activation**, how fully the nervous system drives the muscle in a maximal effort ([motor units and reflexes](/lessons/motor-units-reflexes/)), were greater with the heavy load, which suggests a neural contribution. In rats, the MoTrPAC consortium (2024) mapped molecular training responses in blood and 18 solid tissues, with sex differences in many: associations, not causes. Montero and Lundby (2017) found that two extra weekly sessions removed non-response as they defined it (a change in maximal power within the measurement error of plus or minus 3.96 percent).
+</details>
 
-Heart failure with reduced ejection fraction tests the Fick split. Against a healthy person of the same age, peak stroke volume is low and rises little (weak contractility) and peak heart rate is often lower, so peak cardiac output is low. At a given submaximal work rate flow is low for the demand, so extraction is higher and mixed-venous oxygen content falls earlier. Low peak cardiac output is a main reason peak VO2 is low, but oxygen transport from blood into muscle is also reduced (Esposito and colleagues, 2010). Higher sympathetic outflow constricts muscle vessels more, and lactate accumulates at a lower absolute work rate. Chronic heart failure also changes muscle (lower mitochondrial volume and enzymes, in some studies fewer capillaries per fibre, and a shift in fibre type), which contributes a peripheral limit, and ventilation per litre of carbon dioxide output is higher.
+After six weeks (mean plus or minus standard deviation), peak VO2 had risen 9 plus or minus 8 percent, mitochondrial volume density in muscle biopsies 43 plus or minus 30 percent and capillaries per fibre 18 plus or minus 16 percent. The muscle's oxidative machinery grew far more than peak VO2 did. Yet when red-cell volume was returned to baseline by phlebotomy, the authors report that peak VO2 fell back to its pretraining level. In these men, the gain rode on delivery.
+
+Two cautions keep this from being the last word. First, removing blood lowers blood volume, and with it preload and stroke volume, as well as oxygen-carrying capacity ([blood cells and hemostasis](/lessons/blood-cells-and-hemostasis/) covers red-cell mass). Both are delivery, but the experiment cannot say which of the two mattered. Second, a later 10-week training study (Skattebo and colleagues, 2020) found that the gain survived phlebotomy, so the result is not settled. It is one strong result, not a law.
+
+Delivery means cardiac output times CaO2. The film speaks of flow; removing red cells also works on CaO2.
+
+> **Where the rule holds.** Healthy people, whole-body exercise, sea level. Even there, more flow buys less than its full share of extra uptake, because faster blood has less time to unload; in a simple model more hemoglobin does too, though measured VO2max rises close to in proportion with arterial oxygen content in some experiments. The rule does not carry over to small-muscle exercise, where the heart has reserve and the limit lies elsewhere; to some highly trained runners whose arterial oxygen falls; or to heart failure, where changes in the muscle add a limit of their own. At altitude and in anemia delivery still limits, mainly through a lower CaO2.
+
+## Breathing protects the oxygen in each litre
+
+In Fick terms, the lung's job is to keep CaO2 up. Ventilation rises at once at exercise onset. At low to moderate intensity it keeps pace with carbon dioxide output, and arterial PO2 and PCO2 stay near their resting values of about 100 and 40 mmHg at sea level. So you breathe much harder without **hyperventilation**, which means ventilation rising faster than carbon dioxide output. That can happen in heavy exercise, and then arterial PCO2 falls. The control is in [control of breathing](/lessons/control-of-breathing/).
+
+The healthy lung usually keeps arterial oxygen up even at maximal work. The exception is a finding in some highly trained runners, not in healthy people generally: of 16 sampled at sea level by Jerome Dempsey and colleagues (1984), in eight arterial PO2 fell during exercise. There the lung joins the limit through CaO2.
+
+At maximal exercise the breathing muscles work hard too, and they draw on the same cardiac output as the legs. Whether they take flow from the legs is the design problem at the end of this lesson.
+
+## Heat competes for the flow
+
+Early in exercise, heat production can outrun heat loss and core temperature rises. Skin blood flow carries heat from the core to the skin, where sweat cools only when it evaporates ([skin, sweat and human thermoregulation](/lessons/skin-and-human-heat/)), so the skin too needs a share of the cardiac output.
+
+**Predict.** On a hot day, a cyclist rides at the same work rate as on a cool day, and also loses body water as sweat. What happens to stroke volume? What would heart rate have to do to hold cardiac output?
+
+<details>
+<summary>Check your prediction</summary>
+
+Stroke volume falls, so heart rate would have to rise to hold cardiac output. In 15 endurance-trained cyclists (González-Alonso and colleagues, 1997), hyperthermia alone or about 4 percent dehydration alone lowered stroke volume by 7 to 8 percent, and the two together lowered cardiac output by 13 percent: heart rate did not make up the whole loss. Less flow, shared with the skin, means less delivery to muscle.
+
+</details>
+
+## What the ceiling is for: fuel, lactate and the fraction you can hold
+
+No one races for long at the ceiling. Endurance performance rests on three things: VO2max, the fraction of it a person can sustain, and economy, the oxygen cost of moving at a given speed (Joyner and Coyle, 2008, review). The fraction that can be sustained is related to the lactate threshold.
+
+Lactate is a fuel, not waste. Some glycolytic pyruvate becomes lactate, which leaves the fibres that make it and is oxidized by other fibres and the heart or made into glucose by the liver.
+
+Blood lactate is set by appearance minus clearance. As work rises, appearance keeps rising. In trained men in one study (Messonnier and colleagues, 2013), clearance reached its peak below the threshold, which fits blood lactate climbing faster above it, though the study does not prove that plateau causes the bend. The **lactate threshold** is the workload above which blood lactate accumulation speeds up as work rises. It is not where oxygen runs out; muscle keeps consuming oxygen above it. It has no universal value (not a fixed 4 mmol per L, percentage of VO2max or ventilatory threshold).
+
+Which fuel muscle burns depends on intensity (energy systems are in [skeletal muscle mechanics](/lessons/skeletal-muscle-mechanics/)). In trained subjects studied with **stable-isotope tracers** and **indirect calorimetry**, plasma glucose uptake and muscle glycogen oxidation rose with intensity, and total fat oxidation was highest at a middle intensity (Romijn and colleagues, 1993). During prolonged exercise plasma insulin falls and glucagon rises, favouring glucose release from the liver ([insulin, glucagon and blood glucose](/lessons/insulin-glucagon-glucose/)), while contracting muscle takes up more glucose by a route that does not require insulin ([integration of metabolism](/lessons/integration-of-metabolism/)).
+
+## What training changes
+
+For endurance training, the phlebotomy result above points to delivery. Strength training works differently. In six weeks of leg extension, heavy and light loads raised muscle thickness similarly, but strength and **voluntary activation**, how fully the nervous system drives the muscle in a maximal effort ([motor units and reflexes](/lessons/motor-units-reflexes/)), were greater with the heavy load, which suggests a neural contribution. And people classed as non-responders to one dose of endurance training, by the study's definition, no longer met that definition after a higher dose (Going deeper also has a molecular map of training in rats).
+
+## Heart failure: the Fick split as a diagnostic
+
+In heart failure with reduced ejection fraction, peak stroke volume is low and rises little (weak contractility) and peak heart rate is often lower than in a healthy person of the same age, so peak cardiac output is low.
+
+**Predict.** At the same submaximal work rate, a patient and a control both take up 1.0 L of oxygen per min, with CaO2 200 mL per L. Cardiac output is 7 L per min in the patient, 10 in the control. Predict each one's arteriovenous difference and mixed-venous content, and whose lactate is higher.
+
+<details>
+<summary>Check your prediction</summary>
+
+The difference is uptake divided by flow: 1,000 / 7 = 143 mL per L for the patient against 1,000 / 10 = 100 for the control. Mixed-venous content is 200 - 143 = 57 mL per L against 100. Each litre of the patient's smaller flow must give up more oxygen. Lactate is higher in the patient: muscle underperfused for its demand accumulates lactate at a lower absolute work rate.
+
+</details>
+
+Low peak cardiac output is a main reason peak VO2 is low, but oxygen transport from blood into muscle is also reduced (Esposito and colleagues, 2010), partly because higher sympathetic outflow constricts muscle vessels more. Chronic heart failure also changes muscle (lower mitochondrial volume and enzymes, in some studies fewer capillaries per fibre, and a shift in fibre type), which contributes a peripheral limit, and ventilation per litre of carbon dioxide output is higher. Here the guiding rule bends: flow is the first problem, but the muscle adds a limit of its own.
 
 ### Design problem
 
@@ -430,3 +534,33 @@ If breathing competes for flow, unloading should raise leg flow and conductance 
 Harms and colleagues in Dempsey's laboratory (Journal of Applied Physiology 82:1573, 1997) ran a version of this in seven trained male cyclists, measuring leg flow but not cardiac output. Reducing inspiratory work during maximal cycling increased leg blood flow, and a change of about 50 percent in respiratory work went with a change of about 2 L per min in leg flow in the opposite direction. A 1998 follow-up in eight cyclists measured cardiac output and found it about 9 percent lower with unloading, so unloading did not simply move a fixed cardiac output to the legs; the authors estimated that up to 14 to 16 percent of cardiac output goes to the breathing muscles at maximal exercise. In Harms and colleagues' data, leg vascular resistance tracked norepinephrine spillover, which fits a proposed reflex from the working respiratory muscles that raises sympathetic outflow to the legs. Seven trained men at maximal exercise say nothing about moderate exercise or women.
 
 </details>
+
+## Going deeper
+
+### Where VO2max came from, and how the maximum is read
+
+Hill and Lupton (Quarterly Journal of Medicine, 1923) described the ceiling of oxygen uptake in runners. Breath-by-breath values are averaged before the maximum is read, and a 2020 review found that the averaging strategy alone can shift the reported maximum by 4 to 10 percent.
+
+### Checking CaO2
+
+Hemoglobin 150 g per L, 97 percent saturated, binding 1.34 mL of oxygen per gram (a common value; published values run from about 1.34 to 1.39): 1.34 x 150 x 0.97 = 195 mL per L. Dissolved oxygen at a PO2 of 100 mmHg adds 0.03 mL per L per mmHg x 100 = 3 mL per L. Total 198 mL per L, close to the 200 used in the worked problem.
+
+### How much does more flow buy?
+
+In a simple model of capillary unloading (oxygen diffuses out along the capillary toward a mitochondrial PO2 near zero, with the normal oxygen-hemoglobin curve) set up with this lesson's numbers (80 percent of the 19.5 L per min reaching muscle, muscle extraction fraction 90 percent), 10 percent more flow or 10 percent more hemoglobin raised muscle uptake by about 5 to 6 percent, and 10 percent more muscle diffusing capacity by about 3.5 to 4 percent, figures that depend on model details. Tripling muscle flow raised it only about 1.6-fold. The split shifts with the assumptions: at an 85 percent extraction fraction the two sides came out nearly equal, and a simpler exponential model gives delivery more leverage. These are model outputs, not measurements. What holds across them: extra delivery buys less than its full share, once extraction is high delivery has more leverage than the muscle side, and at lower extraction the muscle side gains weight, the better picture for heart failure and small-muscle exercise.
+
+### The phlebotomy studies
+
+Montero, Lundby and colleagues (2015) also measured peak cardiac output and blood volumes. Their result does not show that mitochondria never limit VO2, or anything about women, older adults or athletes. The study that disagrees (Skattebo and colleagues, 2020) followed 12 untrained adults, seven of them men, for 10 weeks.
+
+### Arterial oxygen in trained runners
+
+Dempsey, Hanson and Henderson (1984) sampled arterial blood during treadmill exercise in 16 highly trained runners. In eight of them, arterial PO2 fell during exercise by 21 to 35 mmHg. The worst falls went with a wide alveolar-arterial oxygen difference and, in some runners, too little hyperventilation. The authors judged uneven ventilation-perfusion and shunt unlikely and proposed, by exclusion, a diffusion limit from very short red-cell transit times in the lung capillaries; the cause is still debated ([ventilation and perfusion](/lessons/ventilation-perfusion/) explains the A-a difference).
+
+### Fuel and lactate tracer studies
+
+Romijn and colleagues (1993) studied five trained subjects at 25, 65 and 85 percent of VO2max; total fat oxidation was highest at 65 percent. Messonnier and colleagues (2013) used tracers in six trained and six untrained men, and a **lactate clamp**, an infusion of lactate that holds its blood concentration, in the trained men only. At each group's own threshold, lactate clearance was 34 percent higher in the trained men. In a study of six trained and six untrained men, Emhoff and colleagues (2013) estimated with tracers that blood lactate supplied about one-third of carbohydrate-derived energy during 60 minutes of exercise at the lactate threshold. Both studies compared trained with untrained men, so the differences are associations.
+
+### Strength, non-response and a molecular map
+
+Jenkins and colleagues (2017) randomized 26 young men to six weeks of leg extension at 80 or 30 percent of their one-repetition maximum, and measured muscle thickness by ultrasound. Montero and Lundby (2017) found that two extra weekly sessions removed non-response as they defined it (a change in maximal power within the measurement error of plus or minus 3.96 percent). In rats, the MoTrPAC consortium (2024) mapped molecular training responses in blood and 18 solid tissues, with sex differences in many: associations, not causes.

@@ -3,7 +3,8 @@
  * FickOxygenUptake — "Fick at work". Whole-body oxygen uptake as a product of four factors:
  * VO2 = heart rate x stroke volume x arterial oxygen content x extraction fraction.
  * Sliders for heart rate, stroke volume, hemoglobin and extraction; a schematic loop
- * (lungs, heart, tissues) and a bar with the lesson's resting value of 250 mL per min.
+ * (lungs, heart, tissues) and a bar with the lesson's resting value of 250 mL per min, plus a dashed
+ * outline for the uptake if every litre gave up all its oxygen (cardiac output x CaO2).
  * Self-contained vanilla-TS Astro island. Original.
  */
 ---
@@ -40,6 +41,7 @@
     <!-- uptake bar -->
     <text x="10" y="176" font-size="10" font-weight="700" fill="#4b4b55">Oxygen uptake, VO₂ (L per min)</text>
     <rect x="10" y="184" width="320" height="16" fill="#eef0f2" stroke="#b9b9c2" stroke-width="1"></rect>
+    <rect x="10" y="184" width="208.2" height="16" fill="none" stroke="#0e7c86" stroke-width="1.5" stroke-dasharray="3 2" data-ceil></rect>
     <rect x="10" y="184" width="166.4" height="16" fill="#0e7c86" data-bar></rect>
     <!-- resting marker -->
     <line x1="23.3" y1="180" x2="23.3" y2="204" stroke="#e57200" stroke-width="2"></line>
@@ -47,6 +49,7 @@
     <!-- lesson example marker -->
     <line x1="176.4" y1="184" x2="176.4" y2="204" stroke="#4b4b55" stroke-width="1.5" stroke-dasharray="3 2"></line>
     <text x="176.4" y="248" text-anchor="middle" font-size="9" fill="#4b4b55">dashed: lesson’s illustrative maximal example, 3.12</text>
+    <text x="10" y="262" font-size="9" fill="#0e7c86">dashed outline: uptake if all oxygen were extracted</text>
     <!-- axis ticks -->
     <g data-ticks></g>
   </svg>
@@ -69,6 +72,8 @@
   <div class="fk-presets">
     <button type="button" class="fk-btn" data-preset="rest">Lesson’s resting example</button>
     <button type="button" class="fk-btn" data-preset="max">Lesson’s maximal example</button>
+    <button type="button" class="fk-btn" data-preset="hf">Heart failure example (submaximal)</button>
+    <button type="button" class="fk-btn" data-preset="control">Matched control (submaximal)</button>
   </div>
 
   <dl class="fk-readout">
@@ -81,9 +86,9 @@
   </dl>
 
   <p class="fk-why" data-why role="status"></p>
-  <p class="fk-assume"><strong>In this sketch:</strong> steady state, no shunt, a 70-kg person. Arterial content = 1.34 × hemoglobin × 10 × 0.97 mL per L (1.34 mL per g is a common value, and published values run from about 1.34 to 1.39; 97 percent saturated; dissolved oxygen is ignored, which the lesson puts at about 3 mL per L at a PO₂ of 100 mmHg). Mixed-venous content = arterial content × (1 − extraction). Hemoglobin 15.4 g per dL is chosen in this sketch so that CaO₂ is about 200 mL per L, the lesson’s value; the lesson’s own check uses 150 g per L, which gives 195 mL per L. The resting marker, about 250 mL per min, is the lesson’s value for a healthy 70-kg young man; the lesson’s other numbers are illustrative. The lesson gives a resting cardiac output of 5.0 L per min but not its split, so the resting button uses 60 beats per min × 83 mL, made up for this sketch. Slider ranges are made up too, and the sketch does not say which combinations people reach.</p>
+  <p class="fk-assume"><strong>In this sketch:</strong> steady state, no shunt, a 70-kg person. Arterial content = 1.34 × hemoglobin × 10 × 0.97 mL per L (1.34 mL per g is a common value, and published values run from about 1.34 to 1.39; 97 percent saturated; dissolved oxygen is ignored, which the lesson puts at about 3 mL per L at a PO₂ of 100 mmHg). Mixed-venous content = arterial content × (1 − extraction). Hemoglobin 15.4 g per dL is chosen in this sketch so that CaO₂ is about 200 mL per L, the lesson’s value; the lesson’s own check uses 150 g per L, which gives 195 mL per L. The resting marker, about 250 mL per min, is the lesson’s value for a healthy 70-kg young man; the lesson’s other numbers are illustrative. The lesson gives a resting cardiac output of 5.0 L per min but not its split, so the resting button uses 60 beats per min × 83 mL, made up for this sketch. The two submaximal buttons use the lesson’s heart-failure numbers (cardiac output 7 L per min against 10 L per min for the control, the same uptake of about 1.0 L per min); their heart-rate and stroke-volume split (125 beats per min × 56 or 80 mL) is made up for this sketch, and whole-number extraction gives 142 rather than the lesson’s 143 mL per L. Slider ranges are made up too, and the sketch does not say which combinations people reach.</p>
 
-  <p class="fk-foot">VO₂ = heart rate × stroke volume × CaO₂ × extraction fraction. A product has the same value for many mixtures of factors, and it falls if any one factor is lowered while the others are held.</p>
+  <p class="fk-foot">VO₂ = heart rate × stroke volume × CaO₂ × extraction fraction. A product has the same value for many mixtures of factors, and it falls if any one factor is lowered while the others are held. Here the sliders move independently; in the body they are linked, because faster flow leaves each litre less time to unload, so more flow buys less than its full share of extra uptake.</p>
 </figure>
 
 <script>
@@ -101,6 +106,8 @@
   const PRESETS: Record<string, State> = {
     rest: { hr: 60, sv: 83, hb: 15.4, ex: 25 },
     max: { hr: 195, sv: 100, hb: 15.4, ex: 80 },
+    hf: { hr: 125, sv: 56, hb: 15.4, ex: 71 },       // 7.0 L per min x 142 mL per L = 0.99 L per min
+    control: { hr: 125, sv: 80, hb: 15.4, ex: 50 },  // 10.0 L per min x 100 mL per L = 1.00 L per min
   };
 
   document.querySelectorAll<HTMLElement>('[data-fick]').forEach((root) => {
@@ -113,11 +120,12 @@
     const rQ = rd('q'), rCa = rd('ca'), rCv = rd('cv'), rAvd = rd('avd'), rVo2 = rd('vo2'), rKg = rd('perkg');
     const tArt = tx('art'), tHrSv = tx('hrsv'), tQ = tx('q'), tExt = tx('ext'), tVen = tx('ven');
     const bar = root.querySelector<SVGRectElement>('[data-bar]');
+    const ceilBar = root.querySelector<SVGRectElement>('[data-ceil]');
     const why = root.querySelector<HTMLElement>('[data-why]');
     const ticks = root.querySelector<SVGGElement>('[data-ticks]');
     const flows = root.querySelectorAll<SVGElement>('[data-flow]');
     if (!hrIn || !svIn || !hbIn || !exIn || !hrOut || !svOut || !hbOut || !hblOut || !exOut || !rQ || !rCa || !rCv || !rAvd || !rVo2 || !rKg ||
-        !tArt || !tHrSv || !tQ || !tExt || !tVen || !bar || !why || !ticks) return;
+        !tArt || !tHrSv || !tQ || !tExt || !tVen || !bar || !ceilBar || !why || !ticks) return;
 
     // axis ticks 0..6 L per min
     for (let v = 0; v <= BAR_MAX; v++) {
@@ -151,6 +159,7 @@
       const cv = ca * (1 - e);                      // mL per L
       const avd = ca * e;                           // mL per L
       const vo2 = q * avd;                          // mL per min
+      const ceil = q * ca;                          // mL per min if every litre gave up all its oxygen
       const perKg = vo2 / MASS;
 
       hrOut!.textContent = String(s.hr);
@@ -174,6 +183,8 @@
 
       const w = Math.max(0, Math.min(1, vo2 / 1000 / BAR_MAX)) * (X1 - X0);
       bar!.setAttribute('width', w.toFixed(1));
+      const cw = Math.max(0, Math.min(1, ceil / 1000 / BAR_MAX)) * (X1 - X0);
+      ceilBar!.setAttribute('width', cw.toFixed(1));
       const sw = (2 + (q / 28) * 7).toFixed(1);
       flows.forEach((f) => f.setAttribute('stroke-width', sw));
 
@@ -193,6 +204,8 @@
         s2 = 'That is ' + f2(fold) + ' of the resting uptake of about 250 mL per min (healthy 70-kg young man): in this sketch a ' +
           f2(qFold) + ' cardiac-output factor times a ' + f2(avdFold) + ' factor for oxygen extracted per litre, against the lesson’s resting example (5.0 L per min, 50 mL per L).';
       }
+      const sCeil = ' If every litre gave up all its oxygen, uptake at this cardiac output could reach only ' + f2(ceil / 1000) +
+        ' L per min, ' + Math.round((ceil / vo2 - 1) * 100) + ' percent more; past that, more uptake has to come from delivery (more flow or more oxygen per litre).';
       const diff = (vo2 - EX_VO2) / EX_VO2;
       const isPreset = (p: State) => p.hr === s.hr && p.sv === s.sv && Math.abs(p.hb - s.hb) < 0.05 && p.ex === s.ex;
       let s3 = '';
@@ -200,6 +213,10 @@
         s3 = ' These are the lesson’s illustrative numbers for maximal exercise, with hemoglobin chosen so that CaO₂ is about 200 mL per L.';
       } else if (isPreset(PRESETS.rest)) {
         s3 = ' These are the lesson’s resting numbers for cardiac output, CaO₂ and extraction, with a heart-rate split made up for the sketch.';
+      } else if (isPreset(PRESETS.hf)) {
+        s3 = ' These are the lesson’s submaximal heart-failure numbers (cardiac output 7 L per min, about 1.0 L per min of uptake); the heart-rate and stroke-volume split is made up for the sketch. Lower flow forces each litre to give up more oxygen: about 142 mL per L here, the lesson’s 143 within rounding, against 100 for the control.';
+      } else if (isPreset(PRESETS.control)) {
+        s3 = ' These are the lesson’s submaximal numbers for the matched control (cardiac output 10 L per min, about 1.0 L per min of uptake); the heart-rate and stroke-volume split is made up for the sketch. Each litre gives up 100 mL, against about 143 mL per L for the heart-failure patient at the same uptake.';
       } else if (Math.abs(diff) <= 0.02) {
         s3 = ' That matches the lesson’s illustrative maximal example (3.12 L per min) within 2 percent from a different mixture of the four factors.';
       } else if (diff < 0) {
@@ -208,7 +225,7 @@
         s3 = ' That is ' + Math.round(diff * 100) + ' percent above the lesson’s illustrative maximal example (3.12 L per min).';
       }
       const s4 = diff > 0.25 ? ' The sketch does not say whether people reach this combination of factors.' : '';
-      why!.textContent = s1 + s2 + s3 + s4;
+      why!.textContent = s1 + s2 + sCeil + s3 + s4;
     }
 
     [hrIn, svIn, hbIn, exIn].forEach((el) => el.addEventListener('input', render));

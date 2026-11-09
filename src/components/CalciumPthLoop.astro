@@ -93,6 +93,11 @@
     <text x="170" y="355" text-anchor="middle" font-size="9" fill="#4b4b55">mg per day (a different scale from the bar above)</text>
   </svg>
 
+  <div class="cpl-presets">
+    <button type="button" class="cpl-btn" data-preset="worked">Worked problem</button>
+    <button type="button" class="cpl-btn" data-preset="pthfall">Let PTH fall: 98.15 → 97.0%</button>
+  </div>
+
   <div class="cpl-controls">
     <label class="cpl-slabel"><span>GFR <em data-out="gfr">125</em> mL per min</span>
       <input type="range" data-in="gfr" min="60" max="180" step="1" value="125" />
@@ -115,11 +120,12 @@
     <div><dt>Filtered load = GFR × 1.44 × filterable calcium</dt><dd data-r="fl"></dd></div>
     <div><dt>Urinary excretion = filtered load × (1 − fractional reabsorption)</dt><dd data-r="ex"></dd></div>
     <div><dt>Net intestinal absorption needed = excretion − net bone release</dt><dd data-r="net"></dd></div>
+    <div><dt>Distal step PTH fine-tunes (5–10% of filtered load)</dt><dd data-r="dist"></dd></div>
   </dl>
 
   <p class="cpl-why" data-why role="status"></p>
 
-  <p class="cpl-assume">In this sketch: made-up round numbers for a reference adult at steady state, starting from the lesson’s worked problem (GFR 125 mL per min, filterable calcium 60 mg per L, 98.15 percent reabsorbed, bone formation equal to resorption, no sweat losses). The 1.44 is 1,440 minutes per day divided by 1,000 mL per L. The slider ranges, the 0 to 200 mg per day of net bone release are made up for the sketch. Each slider is moved on its own and filterable calcium is held at the value you set; no hormones are simulated, so the sketch does not show how the body would set or respond to any of these values. A fall of about 1.15 percentage points in reabsorption, from 98.15 to 97.0 percent, moves excretion by 62 percent in the lesson’s example. At whole-body balance, net intestinal absorption equals urinary loss plus net bone accretion (net bone release is negative accretion).</p>
+  <p class="cpl-assume">In this sketch: made-up round numbers for a reference adult at steady state, starting from the lesson’s worked problem (GFR 125 mL per min, filterable calcium 60 mg per L, 98.15 percent reabsorbed, bone formation equal to resorption, no sweat losses). The 1.44 is 1,440 minutes per day divided by 1,000 mL per L. The slider ranges, including the 0 to 200 mg per day of net bone release, are made up for the sketch. Each slider is moved on its own and filterable calcium is held at the value you set; no hormones are simulated, so the sketch does not show how the body would set or respond to any of these values. In life a rise in calcium moves several of these together: it raises the filtered load, lowers PTH and acts on CaSR in the thick ascending limb, and all three raise urine calcium. The 5 to 10 percent distal share is the lesson’s round range; the sketch does not model which segment changes when you move the slider. A fall of about 1.15 percentage points in reabsorption, from 98.15 to 97.0 percent, moves excretion by 62 percent in the lesson’s example. At whole-body balance, net intestinal absorption equals urinary loss plus net bone accretion (net bone release is negative accretion).</p>
 
   <p class="cpl-foot">Rule to keep: filtered load = GFR × filterable calcium, and excretion = filtered load × (1 − fractional reabsorption).</p>
 </figure>
@@ -147,6 +153,7 @@
     const rFl = must<HTMLElement>(root, '[data-r="fl"]');
     const rEx = must<HTMLElement>(root, '[data-r="ex"]');
     const rNet = must<HTMLElement>(root, '[data-r="net"]');
+    const rDist = must<HTMLElement>(root, '[data-r="dist"]');
     const why = must<HTMLElement>(root, '[data-why]');
     const note = must<HTMLElement>(root, '[data-note]');
 
@@ -189,6 +196,9 @@
       rFl.textContent = `${Math.round(gfr)} × 1.44 × ${Math.round(ca)} = ${fmt(filtered)} mg per day (${Math.round(gfr)} mL per min = ${(gfr * 1.44).toFixed(0)} L per day)`;
       rEx.textContent = `${fmt(filtered)} × (1 − ${(fr / 100).toFixed(4)}) = ${fmt(excreted)} mg per day`;
       rNet.textContent = netR < 0 ? NEG : `${fmt(excreted)} − ${fmt(rel)} = ${fmt(net)} mg per day`;
+      // distal, PTH-tuned step: the lesson's round 5 to 10 percent of the filtered load
+      const d5 = filtered * 0.05, d10 = filtered * 0.10;
+      rDist.textContent = `${fmt(d5)}–${fmt(d10)} mg per day, ${(d5 / excreted).toFixed(1)}–${(d10 / excreted).toFixed(1)} times urinary excretion`;
 
       // schematic
       pl3.textContent = `${Math.round(ca)} mg per L`;
@@ -250,8 +260,11 @@
       const isWorked = Math.round(gfr) === 125 && Math.round(ca) === 60 && Math.abs(fr - 98.15) < 0.001 && rel === 0;
       const ratio = excreted / 200;
       let s3: string;
+      const isPthFall = Math.round(gfr) === 125 && Math.round(ca) === 60 && Math.abs(fr - 97.0) < 0.001 && rel === 0;
       if (isWorked) {
         s3 = 'In this sketch, these settings reproduce the lesson’s worked problem: 10,800 mg per day filtered, 98.15 percent reabsorbed, about 200 mg per day excreted.';
+      } else if (isPthFall) {
+        s3 = 'In this sketch, these settings reproduce the lesson’s step 4: with the filtered load held fixed, a fall of about 1.15 points in reabsorption raises excretion from 200 to 324 mg per day, 1.62 times.';
       } else if (Math.abs(ratio - 1) < 0.005) {
         s3 = 'In this sketch, excretion is about the same as the worked problem’s 200 mg per day, reached with different settings.';
       } else {
@@ -259,6 +272,17 @@
       }
       why.textContent = `${s1} ${s2} ${s3}`;
     }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
+      b.addEventListener('click', () => {
+        if (b.dataset.preset === 'worked') {
+          gfrIn.value = '125'; caIn.value = '60'; frIn.value = '98.15'; balIn.checked = true;
+        } else {
+          frIn.value = '97.00';
+        }
+        render();
+      });
+    });
 
     [gfrIn, caIn, frIn, relIn].forEach((s) => s.addEventListener('input', render));
     balIn.addEventListener('change', render);
@@ -271,6 +295,10 @@
   .cpl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
   .cpl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .cpl-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cpl-presets { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 0; }
+  .cpl-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.65rem; border: 1px solid var(--ddp-color-accent); border-radius: 999px; background: transparent; color: var(--ddp-color-accent); cursor: pointer; }
+  .cpl-btn:hover { background: color-mix(in srgb, var(--ddp-color-accent) 10%, transparent); }
+  .cpl-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .cpl-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
   .cpl-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .cpl-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
