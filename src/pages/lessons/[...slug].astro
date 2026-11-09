@@ -29,6 +29,7 @@ import { courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 import { SETS as MCAT_SETS } from '../../lib/mcat';
+import { metaDescription } from '../../lib/meta';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -132,7 +133,8 @@ const lessonLd = {
 };
 ---
 
-<BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}
+<BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={metaDescription(hookFor(entry))} ogType="article" jsonLd={lessonLd}
+  ogImage={ex?.poster ?? lesson.films[0]?.poster}
   alternates={[{ type: 'text/markdown', href: `/lessons/${lesson.slug}.md`, title: 'This lesson as plain Markdown' }]}>
   <article id="top">
     <header class="lesson-hero wrap">
@@ -159,8 +161,8 @@ const lessonLd = {
           <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>.</p>
         </details>
       )}
-      {/* Only the hook shows (2026-11-08, "get to the material quicker"); the full summary stays the page's
-          search and share description. */}
+      {/* Only the hook shows (2026-11-08, "get to the material quicker"). It is also the share and
+          search-result description, cut to 155 characters; the full summary stays in the JSON-LD. */}
       <p class="summary">{hookFor(entry)}</p>
       <ListenPlayer slug={lesson.slug} />
     </header>

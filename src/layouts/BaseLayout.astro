@@ -16,15 +16,19 @@ interface Props {
   noindex?: boolean;
   /** Other forms of this page, e.g. a lesson's plain Markdown copy for AI agents. */
   alternates?: { type: string; href: string; title?: string }[];
+  /** Share-preview image, as a site path ("/explainers/x/poster.jpg") or a full URL. Defaults to /og.png. */
+  ogImage?: string;
+  /** Extra <head> tags as [attribute, name, content] triples, e.g. ['property', 'og:video', url]. */
+  extraMeta?: [('name' | 'property'), string, string][];
 }
-const { title, description, ogType = 'website', jsonLd, noindex = false, alternates = [] } = Astro.props;
+const { title, description, ogType = 'website', jsonLd, noindex = false, alternates = [], ogImage: ogImageProp, extraMeta = [] } = Astro.props;
 const year = 2026;
 const SITE_NAME = 'Biochemistrypedia';
 const DEFAULT_DESC =
   'Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account needed, no ads.';
 const desc = description ?? DEFAULT_DESC;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
-const ogImage = Astro.site ? new URL('/og.png', Astro.site).href : '/og.png';
+const ogImage = Astro.site ? new URL(ogImageProp ?? '/og.png', Astro.site).href : (ogImageProp ?? '/og.png');
 const siteUrl = Astro.site ? Astro.site.href.replace(/\/$/, '') : '';
 const websiteLd = {
   '@context': 'https://schema.org',
@@ -65,12 +69,14 @@ const websiteLd = {
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    {/* The stated size is og.png's; a page that passes its own image leaves it to the crawler. */}
+    {!ogImageProp && <meta property="og:image:width" content="1200" />}
+    {!ogImageProp && <meta property="og:image:height" content="630" />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={ogImage} />
+    {extraMeta.map(([attr, key, content]) => (attr === 'property' ? <meta property={key} content={content} /> : <meta name={key} content={content} />))}
     <meta name="generator" content={Astro.generator} />
     <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
