@@ -136,68 +136,80 @@ const websiteLd = {
     <Footer
       brand="Biochemistrypedia"
       address={[
-        'Free science courses, starting with biology',
-        'Started in the Deppmann Lab at UVA',
+        'Free science courses, from age 5 to graduate school.',
+        'Started in the Deppmann Lab at UVA.',
       ]}
       copyright="Christopher Deppmann"
       tagline=""
       columns={[
         {
-          heading: 'This site',
+          heading: 'Learn',
           links: [
             { label: 'Courses', href: '/courses/' },
             { label: 'Paths', href: '/paths/' },
-            { label: 'About', href: '/about/' },
-            { label: 'The Fun Stuff', href: '/fun' },
+            { label: 'MCAT practice', href: '/mcat/' },
+            { label: 'Methods library', href: '/methods/' },
+            { label: 'Math toolkit', href: '/math-toolkit' },
             { label: 'Metabolism Arcade', href: '/play' },
-            { label: 'Resources for Teachers', href: '/teachers' },
+            { label: 'The Fun Stuff', href: '/fun' },
+          ],
+        },
+        {
+          heading: 'Teach',
+          links: [
+            { label: 'For teachers', href: '/teachers' },
+            { label: 'Run a class', href: '/teach/' },
+            { label: 'Join a class', href: '/join/' },
+          ],
+        },
+        {
+          heading: 'This site',
+          links: [
+            { label: 'About', href: '/about/' },
+            { label: 'What’s new', href: '/updates/' },
+            { label: 'Privacy', href: '/privacy/' },
+            { label: 'Report an error', href: feedbackUrl(), external: true },
             { label: 'Contact', href: '/contact' },
-            { label: 'Grad expedition', href: 'https://grad.biochemistrypedia.com', external: true },
           ],
         },
         {
           heading: 'From the lab',
           links: [
             { label: 'Deppmann Lab', href: 'https://deppmannlab.com', external: true },
-            { label: 'Teaching', href: 'https://deppmannlab.com/teaching', external: true },
+            { label: 'Graduate expedition', href: 'https://grad.biochemistrypedia.com', external: true },
             { label: 'We Are Biochemistry', href: 'https://deppmannlab.com/podcast', external: true },
             { label: 'The Molecule Hunters', href: 'https://deppmannlab.com/book', external: true },
           ],
         },
-        {
-          heading: 'Corrections',
-          links: [
-            { label: 'Report an error', href: feedbackUrl(), external: true },
-            { label: 'deppmann@gmail.com', href: 'mailto:deppmann@gmail.com' },
-          ],
-        },
       ]}
     >
+      {/* Fine print, kept to what a reader needs: how the lessons are made (the detail is on About),
+          where the structures come from, and the licences. 2026-11-09: cut from two long paragraphs. */}
       <p>
-        <strong>A note on the figures.</strong> The illustrations in the lessons are
-        AI-generated. An image model draws each one from a written description, and a second
-        model checks it against the lesson. Each is marked as AI-generated, and none shows a
-        chemical structure or data. Some lecture slides also use AI-assisted illustration, and
-        a few carry a caption flagging a specific artifact on that slide &mdash; a bond drawn
-        wrong, a ring in the wrong chair. For anything you intend to memorize, work from the
-        live 3D structures in the lesson&rsquo;s Explore panel: those load by accession ID from
-        RCSB&nbsp;PDB and PubChem, so no one has drawn them by hand or by model. How each part
-        is made and checked is on the <a href="/about/">About page</a>, and each lesson&rsquo;s
-        Sources &amp; Integrity panel lists what applies to it.
-        <a href="/contact">Found an error? Tell me and I will fix it.</a>
-        <a href="/updates/">See what&rsquo;s new on the site</a>
-        (<a href="/updates.xml">feed</a>).
+        Lessons are written and illustrated with AI under Chris Deppmann&rsquo;s direction, then checked by a
+        second model and against the research literature: <a href="/about/">how it&rsquo;s made and checked</a>.
+        For anything you intend to memorize, use the live 3D structures in a lesson&rsquo;s Explore panel, which
+        load from RCSB&nbsp;PDB and PubChem.
       </p>
       <p>
-        The code is MIT-licensed. AI models drafted most of the lesson text, working from
-        Prof. Deppmann&rsquo;s lectures, <em>The Molecule Hunters</em> and the research
-        literature, under his direction. The lesson narrative and scientist profiles remain the
-        authors&rsquo; own (see the
-        <a href="https://github.com/deppmann/biochempedia/blob/main/NOTICE">NOTICE</a>).
-        Structures load live from RCSB&nbsp;PDB (CC0) and PubChem. Simulations from
-        PhET Interactive Simulations (CC&nbsp;BY&nbsp;4.0).
+        Code: MIT licence. Lesson narrative and scientist profiles: the authors&rsquo; own
+        (<a href="https://github.com/deppmann/biochempedia/blob/main/NOTICE">NOTICE</a>). Structures: RCSB&nbsp;PDB
+        (CC0) and PubChem. Some simulations: PhET Interactive Simulations (CC&nbsp;BY&nbsp;4.0).
+        <a href="/updates.xml">Updates feed</a>.
       </p>
     </Footer>
+
+    {/* Footer layout for this site (the shared brand footer is built for three link columns; this site has four).
+        Wide: brand plus four columns in one row. Tablet and phone: brand on top, links two to a row. */}
+    <style is:global>
+      footer.footer .footer__grid { grid-template-columns: 1.15fr repeat(4, minmax(0, 1fr)); gap: var(--space-2xl, 2.5rem); }
+      footer.footer .footer__grid .footer__links { gap: 0.55rem; }
+      footer.footer .footer__notes { max-width: 72ch; }
+      @media (max-width: 960px) {
+        footer.footer .footer__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xl, 2rem); }
+        footer.footer .footer__grid > :first-child { grid-column: 1 / -1; }
+      }
+    </style>
 
     <style>
       #main {
