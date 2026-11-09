@@ -2,14 +2,17 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { discreteItems, cueFree, CATEGORY, SETS } from '../../lib/mcat';
 import { itemId } from '../../lib/progress';
+import { courseOf } from '../../data/courses';
 
 // 20 questions across the biology and biochemistry topics, chosen at build time with a
 // fixed seed (stable between visits), skipping items where the right answer is the
 // longest choice so the diagnostic measures knowledge, not test-taking cues.
-const PLAN: [string, number][] = [['1A', 3], ['1D', 3], ['5D', 2], ['2A', 3], ['1B', 2], ['1C', 1], ['3A', 3], ['3B', 3]];
+// Advanced-tier courses (Cell Signaling, Developmental Neuroscience, Sensory Systems) are
+// graduate electives, well past what the exam asks, so their questions stay out of the pool.
+const PLAN: [string, number][] = [['1A', 3], ['1D', 3], ['5D', 2], ['2A', 3], ['1B', 2], ['1C', 2], ['3A', 3], ['3B', 2]];
 let seed = 20261026;
 const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
-const all = (await discreteItems()).filter(cueFree);
+const all = (await discreteItems()).filter((d) => courseOf(d.course).tier !== 'advanced').filter(cueFree);
 const picked = PLAN.flatMap(([t, n]) => {
   const pool = all.filter((d) => d.topic === t).sort((a, b) => (a.slug + a.idx).localeCompare(b.slug + b.idx));
   const out: typeof pool = [];
