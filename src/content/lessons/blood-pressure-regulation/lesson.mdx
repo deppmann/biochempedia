@@ -5,16 +5,16 @@ course: "physiology"
 courseChapter: "Physiology · Unit 3: The heart and circulation"
 order: 1210
 summary: >-
-  Arterial pressure in an adult human at rest sits in a narrow band, in Guyton's summary rarely straying more than 10 to 15 percent through a day, though activity, stress and sleep move it more than that. Yet
-  the reflex that corrects a fall acts in seconds and the kidney that sets the level takes days.
+  Resting arterial pressure in an adult human sits in a narrow band, yet the reflex that pushes back on a
+  fall acts in seconds and the kidney that sets the level takes days.
   This lesson traces the arterial baroreflex from the carotid sinus to the medulla and back out to
   the heart and vessels, computes a feedback gain, puts the renal function curve under it, and
   predicts which variables rise and fall on standing, after a loss of blood volume and through the
   phases of a Valsalva strain. Afterwards you can calculate a gain and a renal equilibrium
   pressure, and say what denervated and chronically stimulated dogs each do and do not show.
-hook: "Cut the nerves that sense arterial pressure in a dog and the mean pressure is little changed after the first days. So what sets the level?"
+hook: "A reflex pushes back on every change in arterial pressure within seconds. Cut its nerves in a dog, and what happens to the daily average?"
 
-estMinutes: 26
+estMinutes: 30
 objectives:
   - "Trace the arterial baroreflex in mammals from carotid sinus and aortic arch stretch receptors through glossopharyngeal and vagal afferents to the nucleus of the solitary tract, the caudal and rostral ventrolateral medulla and the vagal motor neurons, and predict the changes in heart rate, total peripheral resistance and venous tone when mean arterial pressure rises or falls in an adult human at rest."
   - "Calculate a feedback gain as correction divided by remaining error, and a renal equilibrium pressure from an illustrative linear pressure-natriuresis curve and a sodium intake, stating the assumptions each calculation needs."
@@ -53,8 +53,7 @@ scientists:
       ground up rabbit kidney, injected the extract, and recorded a rise in blood pressure, which
       placed a pressor material in the kidney itself. In 1898 they named the active material renin,
       after the organ. The claim sat awkwardly for decades, because an extract shows that a
-      substance exists without showing what releases it or when. Renin turned out to be an enzyme rather than a hormone acting on
-      vessels, and the cascade it starts, through angiotensin I and angiotensin-converting enzyme, makes angiotensin II, which does the constricting. Their
+      substance exists without showing what releases it or when. Renin turned out to be an enzyme, not itself a vasoconstrictor, and the cascade it starts, through angiotensin I and angiotensin-converting enzyme, makes angiotensin II, which does the constricting. Their
       experiment is the beginning of the line of work that puts the kidney at the centre of
       long-term pressure control, and the modern version of their question, how renin release is
       controlled by pressure and by salt, is one of the three inputs this lesson works through.
@@ -66,7 +65,7 @@ scientists:
     profileSourceAnchor: "Cowley, Liard and Guyton, Role of baroreceptor reflex in daily control of arterial blood pressure and other variables in dogs, Circulation Research 32:564-576 (1973), PMID 4713198; Cowley, Long-term control of arterial blood pressure, Physiological Reviews 72:231-300 (1992), doi:10.1152/physrev.1992.72.1.231."
     quotes: []
     story: >-
-      A reflex that corrects every deviation of pressure within seconds sounds like the obvious
+      A reflex that pushes back on every deviation of pressure within seconds sounds like the obvious
       candidate for setting pressure over a day. With Jean-Francois Liard and Arthur Guyton, Allen
       Cowley tested it in dogs, comparing pressure before and several days after section of the
       carotid sinus and aortic depressor nerves. As
@@ -217,7 +216,7 @@ mcatQuestions:
       scatter. A fall in the daily mean is not what the record shows, and removal of a buffering
       input has no reason to lower the mean. Nothing in a pressure record speaks to sodium
       excretion, which was not measured here.
-  - stem: "In chronically instrumented conscious dogs, electrical stimulation of both carotid sinuses lowers mean arterial pressure from about 93 to about 75 mmHg on day 1, and the fall is sustained for seven days (about 72 mmHg on day 7). Assume sodium intake is fixed and stays in balance with output, and take an illustrative renal function curve of slope 10 mEq per day per mmHg and an intake of 150 mEq per day. What shift of that curve does the sustained pressure imply?"
+  - stem: "In chronically instrumented conscious dogs, electrical stimulation of both carotid sinuses lowers mean arterial pressure from about 93 to about 75 mmHg on day 1, and the fall is sustained for seven days. Assume sodium intake is fixed and stays in balance with output, and take an illustrative renal function curve of slope 10 mEq per day per mmHg and an intake of 150 mEq per day. What shift of that curve does the sustained pressure imply?"
     choices:
       - "About 1.8 mmHg to the left"
       - "About 18 mmHg to the right"
@@ -254,7 +253,7 @@ explainLevels:
       Your body watches the pressure in your blood with little stretch sensors in two arteries in
       your neck and one near your heart. If the pressure drops, the sensors go quiet, and your
       heart speeds up and your small blood vessels squeeze until the pressure is back. That fix
-      starts within a few heartbeats and finishes over the next several seconds. Over days, your kidneys decide the level, by letting more or less
+      starts within a few heartbeats and finishes over the next several seconds. Over days, your kidneys do most of the deciding about the level, by letting more or less
       salt and water out in your urine.
   - level: "highschool"
     label: "High school"
@@ -279,7 +278,7 @@ explainLevels:
       reflex of gain 2 removes two thirds of a fast disturbance, never all of it. Over days the
       kidney's pressure-natriuresis relation fixes the level: pressure settles where sodium output
       equals intake. Angiotensin II, aldosterone, vasopressin and the natriuretic peptides act by
-      moving that curve, which is why, in Guyton's framework, chronic hypertension requires the curve to be shifted.
+      moving that curve, which is why, in Guyton's framework, chronic hypertension requires the curve to be shifted or flattened (so that it meets the intake at a higher pressure).
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -338,95 +337,308 @@ draft: false
 ---
 
 import BaroreflexGain from '../../../components/BaroreflexGain.astro';
+import EquationCard from '../../../components/EquationCard.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Cut the nerves that report arterial pressure to the brainstem of a conscious dog, and, after the first days, the mean pressure is little changed. Cut them, and the pressure swings wildly from minute to minute.** One reflex, two results: the arc is the fastest controller of arterial pressure, and on this evidence not the main thing that sets its level, though a chronic contribution is still argued. Mean arterial pressure (MAP) in an adult human at rest is about 93 mmHg for a pressure of 120/80 mmHg and, in Guyton's summary, rarely strays more than 10 to 15 percent through a day. Three controllers hold it there, on different clocks.
+**A reflex starts correcting every change in arterial pressure within seconds, though it never removes all of it. Is it also what holds pressure at its daily level?**
 
-## Stretch in the carotid sinus becomes a slower heart and wider arterioles
+**Predict.** In 1973 Allen Cowley, Jean-Francois Liard and Arthur Guyton recorded pressure in conscious dogs before and after **sinoaortic denervation**, the section of the carotid sinus and aortic depressor nerves that carry arterial pressure signals to the brainstem. If this reflex set the daily level, what would cutting it do to the 24-hour mean? What would it do to the minute-to-minute scatter?
 
-**Baroreceptors** are stretch receptors in the walls of the two **carotid sinuses**, where each common carotid artery divides, and in the **aortic arch**; they sense not pressure but the deformation it causes in the wall around them. Low-pressure **cardiopulmonary receptors** in the atria, ventricles and great veins report central blood volume instead. In mice, PIEZO1 and PIEZO2 are together required for baroreception ([vagal sensory neurons](/lessons/vagal-sensory-neurons/), [mechanotransduction channels](/lessons/mechanotransduction-channels/)).
+<details>
+<summary>Check your prediction</summary>
 
-Carotid sinus afferents run in a branch of the glossopharyngeal nerve, cranial nerve IX, which Hering identified in the 1920s; aortic arch afferents run in the vagus. Both end in the **nucleus of the solitary tract**, which excites the **caudal ventrolateral medulla**, which in turn inhibits the **rostral ventrolateral medulla**, the source of tonic sympathetic drive. The same input excites vagal motor neurons in the dorsal motor nucleus and nucleus ambiguus. Autonomic anatomy and transmitters are in [the hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/); the carotid body chemoreceptors at the same bifurcation are in [control of breathing](/lessons/control-of-breathing/).
+If the reflex set the level, the mean would move and stay moved. As later reviews summarize the paper, it was only minimally higher, while the scatter rose dramatically, with large swings on changes of posture and activity. Later dog studies show a rise for a week or two that fades. The reflex was holding the swings small; something else was holding the level.
 
-{/* DIAGRAM: baroreflex arc, sinus and arch to medulla to SA node and arteriole */}
+</details>
 
-A rise in arterial pressure therefore raises afferent firing, raises vagal output and lowers sympathetic output: the interbeat interval lengthens and heart rate falls, arteriolar smooth muscle relaxes and total peripheral resistance falls ([smooth muscle](/lessons/smooth-muscle/)), and venous tone falls, lowering mean systemic filling pressure and venous return ([cardiac output and venous return](/lessons/cardiac-output-venous-return/)). A fall in pressure reverses every arrow. The reflex works through all three effectors because MAP has more than one determinant, and their relative contributions change with timing and conditions:
+**The reflex trims the swings. In Guyton's framework, the textbook account, the kidney sets the level, by balancing salt.** Whether the reflex, or the nervous system more broadly, also sets the level over weeks is still argued (see "Does the reflex also set the level?" below).
+
+Mean arterial pressure (MAP) in an adult human at rest is about 93 mmHg for a pressure of 120/80 mmHg. Guyton's 1991 summary sorts its controllers by their clocks: nerves act within seconds, hormones within minutes, and a kidney-fluid system over hours to days. This lesson follows the fastest and the slowest; the hormones come back as what moves the kidney's setting.
+
+> **The one idea to carry through this lesson.** Two controllers answer two different questions. The **baroreflex** decides *how far* pressure strays. Within seconds it removes part of any disturbance and leaves the rest; how much depends on its gain. The **kidney** decides *where pressure ends up*. It keeps losing or gaining salt and water for as long as sodium output differs from intake, so over days pressure can come to rest only where salt out equals salt in. In Guyton's framework, anything else that pushes on pressure, including the reflex, the hormones and the sympathetic nerves, can change the long-term level only by changing how much salt the kidney excretes at a given pressure (moving its curve) or the intake.
+
+Where it holds:
+
+- At steady state, over days to weeks, with a fixed salt intake and excretion that depends on renal perfusion pressure.
+- If a disturbance moves the curve itself (renal vasoconstriction, angiotensin II, renal sympathetic nerves, a sodium-channel mutation such as Liddle syndrome, below), the level moves with it.
+
+## The fast buffer: the baroreflex
+
+**Baroreceptors** are stretch receptors in the walls of the two **carotid sinuses**, where each common carotid artery divides, and in the **aortic arch**. They sense not pressure but the stretch it causes in the wall. Low-pressure **cardiopulmonary receptors** in the atria, ventricles and great veins report central blood volume instead. For the channels that turn stretch into firing, see [vagal sensory neurons](/lessons/vagal-sensory-neurons/), [mechanotransduction channels](/lessons/mechanotransduction-channels/).
+
+Follow a rise in pressure through the arc:
+
+1. **Stretch.** The sinus and arch walls stretch, and the receptors fire faster.
+2. **Afferents.** Carotid sinus afferents run in a branch of the glossopharyngeal nerve, cranial nerve IX. Aortic arch afferents run in the vagus, cranial nerve X.
+3. **First relay.** Both end in the **nucleus of the solitary tract** (NTS).
+4. **Sympathetic branch.** The NTS excites the **caudal ventrolateral medulla**, which inhibits the **rostral ventrolateral medulla**, the source of tonic sympathetic drive. Sympathetic output falls.
+5. **Vagal branch.** The NTS also excites vagal motor neurons in the dorsal motor nucleus and the nucleus ambiguus. Vagal output to the heart rises.
+
+<LessonFigure src="/figures/blood-pressure-regulation/baroreflex-arc.webp" width={1200} height={806} alt="AI-generated illustration: schematic of the arterial baroreflex: stretch sensors in the carotid sinus and aortic arch send signals through cranial nerves IX and X to the nucleus of the solitary tract in the medulla, which excites the caudal ventrolateral medulla (inhibiting the rostral ventrolateral medulla and so lowering sympathetic output) and excites vagal motor neurons (raising vagal output to the heart). The effectors are heart rate, arteriolar resistance and venous tone; an inset shows all three arrows reversed when pressure falls." caption="When pressure rises, the solitary nucleus turns sympathetic drive down and vagal drive up, so heart rate, resistance and venous tone all fall; a fall in pressure reverses every arrow, within seconds." />
+
+Autonomic anatomy and transmitters are in [the hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/); the carotid body chemoreceptors at the same bifurcation are in [control of breathing](/lessons/control-of-breathing/). The output acts on three effectors, because MAP has two determinants:
 
 > **MAP = cardiac output x total peripheral resistance**, and from a pressure trace, **MAP is about diastolic pressure + pulse pressure / 3**
 
-Both come from [resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/) and are used here, not derived again.
+Both come from [resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/). After a rise in pressure, the interbeat interval lengthens and heart rate falls. Arteriolar smooth muscle relaxes and total peripheral resistance falls ([smooth muscle](/lessons/smooth-muscle/)). Venous tone falls, lowering mean systemic filling pressure and venous return ([cardiac output and venous return](/lessons/cardiac-output-venous-return/)). A fall in pressure reverses every arrow. The share each effector carries changes with timing and conditions.
 
-## Seconds, minutes, days: three controllers and their gains
+### Gain: how much error the reflex leaves
 
-Guyton's 1991 summary sorts the controllers by their clocks: neural receptors act within seconds, hormonal controllers within minutes, a kidney-fluid system over hours to days. A fast controller is judged by how large an error it leaves, not by whether pressure is normal. **Gain** is the measure: at steady state, the correction divided by the error that remains, extending the threshold-and-gain vocabulary of [the hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/). Rearranged, the remaining error equals the open-loop disturbance divided by one plus the gain. 
+A fast controller is judged by how much error it leaves, not by whether pressure ends up normal. Three quantities, all in mmHg:
+
+- The **disturbance**, D, is what pressure would do with the reflex cut, the **open-loop** change.
+- The **remaining error**, E, is how far pressure still sits from its start once the reflex has acted.
+- The **correction**, C, is the part the reflex removed.
+
+**Gain** is correction divided by remaining error at steady state, G = C / E, extending the threshold-and-gain vocabulary of [the hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/). Three lines give what the reflex leaves:
+
+1. In a linear model the reflex's push is proportional to the error it still sees; at steady state that is the definition: C = G × E.
+2. The disturbance is split between what was corrected and what remains: D = C + E.
+3. Substitute the first line into the second: D = G × E + E = (1 + G) × E. So E = D / (1 + G).
+
+The 1 is there because the reflex pushes back only in proportion to an error that still exists. If the error went to zero, so would the correction.
 
 ### Worked problem, part A: how much of a disturbance does the reflex remove?
 
-Illustrative round numbers, not measured values. Assumptions: an adult human at rest, steady state, linear relations, and a step rise in total peripheral resistance as the disturbance.
+Illustrative round numbers, not measured values. Assumptions: an adult human at rest, steady state, linear relations, and a step rise in total peripheral resistance as the disturbance. One illustrative baseline, 100 mmHg (rounded up from the resting value of about 93), runs through the whole lesson.
 
-1. *Baseline.* MAP is 95 mmHg. With the reflex cut, the disturbance would take it to 115 mmHg: an open-loop change of +20 mmHg.
-2. *Close the loop.* With the reflex intact MAP settles at 101.7 mmHg, so the remaining error is 6.7 mmHg and the correction is 20 - 6.7 = 13.3 mmHg.
+1. *Baseline.* MAP is 100 mmHg. With the reflex cut, the disturbance would take it to 120 mmHg: an open-loop change of +20 mmHg.
+2. *Close the loop.* With the reflex intact, MAP settles at 106.7 mmHg, so the remaining error is 6.7 mmHg and the correction is 20 − 6.7 = 13.3 mmHg.
 3. *Gain.* 13.3 / 6.7 = 2.0.
-4. *Check.* Remaining error = open-loop change / (1 + G) = 20 / 3 = 6.67 mmHg, which matches.
+4. *Check.* Remaining error = D / (1 + G) = 20 / 3 = 6.67 mmHg, which matches.
 
-A gain of 2 removes two thirds of a fast disturbance; with the reflex gone the whole 20 mmHg stands. And baroreceptors **reset**, shifting their firing range toward the prevailing pressure, so a steady error is reported more weakly. Resetting can be incomplete, so a sustained change in pressure can still alter reflex output.
+A gain of 2 removes two thirds of a fast disturbance.
 
-## Cut the nerves and the mean rises, then settles back
+**Predict.** Make the reflex more than twice as strong, a gain of 5 instead of 2. How much of the 20 mmHg remains?
 
-Does the arc set the daily mean? Cowley, Liard and Guyton tested it in 1973 in dogs, comparing pressure before and several days after **sinoaortic denervation**, section of the carotid sinus and aortic depressor nerves. If the reflex sets the level, the mean should settle somewhere new and stay. As later reviews summarize the paper, the mean pressure was only minimally increased, while fast variability rose dramatically, with large swings on posture change and activity. The authors concluded that the reflex minimizes variations rather than setting the chronic level.
+<details>
+<summary>Check your prediction</summary>
 
-Ruled in: the baroreflex is the main buffer of second-to-minute swings. Not supported, for this dog preparation: the arc as setter of the daily mean. Not shown: that it has no chronic role, since cutting a nerve invites central reorganization, and the rise that does follow denervation in dogs is described as largely transient and attributed to that plasticity. In Thrasher's 2005 telemetry study, dogs after sinoaortic denervation averaged 124 mmHg in the first week against a control of 94, 103 in the second, and values not different from control in weeks 3 to 5. Species differ: Krieger's group reported chronic increases in rats, and in telemetered normotensive Wistar-Kyoto rats the mean rose above sham for several days, with none in spontaneously hypertensive rats, while the standard deviation rose in both strains. The clean statement is about lability, not level. Cowley's 1992 review generalized it: baroreceptors reset and cannot hold a sustained signal, so neural control is limited to correcting rapid changes.
+20 / (1 + 5) = 3.3 mmHg. Two and a half times the gain only halves the error. Each extra unit buys less; no finite gain reaches zero.
 
-Then the experiment was run the other way around. Lohmeier, Irwin, Rossing, Serdar and Kieval drove electrodes around both carotid sinuses of conscious instrumented dogs from a pulse generator for seven days. Control mean pressure was 93 plus or minus 3 mmHg at 64 plus or minus 4 beats per minute; stimulation took it to 75 mmHg on day 1 and the fall held all seven days. Plasma renin activity did not rise despite the lower pressure, which the authors read as sympathetic inhibition of renin secretion.
+</details>
 
-Ruled in: afferent input can lower pressure for days here. Not shown: that the natural reflex does so, since electrodes bypass resetting at the nerve ending; that it works without the kidney, since, if salt intake was constant and balance was restored, a sustained fall means the renal relation below moved; or anything beyond normotensive dogs over a week. The mirror experiment agrees: Thrasher ligated the common carotid artery below the one intact carotid sinus in dogs whose aortic and other carotid sinus nerves had been cut, and pressure rose about 22 mmHg over the week and normalized when flow was restored; in a five-week repeat the rise waned to about 10 mmHg above control.
+### Resetting: why the reflex may not hold a level
 
-{/* DIAGRAM: dog baroreflex activation setup */}
+Baroreceptors also **reset**: they shift their firing range toward the prevailing pressure, so a steady error is reported more weakly. Resetting can be incomplete, so a sustained change in pressure can still alter reflex output. Part A's model, with a fixed gain and no resetting, leaves pressure at 106.7 mmHg. On Cowley's argument, a sensor that drifts toward whatever pressure it sees cannot be expected to pin pressure to one value for days: as it resets, its correction wanes, so the error it leaves would tend to grow. Whether resetting is complete enough to matter chronically is the open question taken up below. On Guyton's argument, next, the kidney removes the error.
 
-Neither side is settled. The baroreflex is the dominant short-term controller; whether it contributes to the chronic level is open, with dog experiments pointing both ways.
+## The slow setter: the kidney balances salt
 
-## The kidney sets the level: pressure natriuresis
+Put mean arterial pressure along the bottom and the kidney's sodium excretion, in mEq per day, up the side. As pressure rises, the kidney excretes more sodium, and water follows. This is **pressure natriuresis** ([glomerular filtration](/lessons/glomerular-filtration/), [tubular transport](/lessons/tubular-transport-diuretics/)), and the rising line is the **renal function curve**. Now draw what you eat: sodium intake is a flat line, the same at every pressure. The two lines cross at one point.
 
-**Pressure natriuresis** is the rise in renal sodium excretion when renal perfusion pressure rises ([glomerular filtration](/lessons/glomerular-filtration/), [tubular transport](/lessons/tubular-transport-diuretics/)). Plot excretion against mean arterial pressure and you have the **renal function curve**; sodium intake is a horizontal line across it. They cross at one pressure, the long-term set point: anywhere else, intake and output differ, extracellular volume changes, and pressure moves. That is Guyton's **infinite gain** argument. The fast reflex is proportional and leaves an error; the kidney is an integrator, changing volume while any error remains, so for a given curve and intake the steady-state error is zero. The testable corollary: every other controller can set a chronic pressure only by moving the curve.
+{/* DIAGRAM: renal function curve crossing the sodium intake line; salt lost to the right of the crossing, gained to the left */}
 
-### Worked problem, parts B and C: where the kidney puts the pressure
+That crossing is the only pressure at which salt in equals salt out. To the right of it the body loses salt and water; to the left it gains them. The difference piles up, day after day.
 
-Illustrative linear curves, not fitted to data. Assumptions: steady state, intake equals excretion at equilibrium, curve unchanged unless stated.
+<EquationCard
+  purpose="Where the kidney puts the pressure over days: the pressure at which sodium excretion equals intake."
+  eq="excretion = slope × (MAP − threshold); at balance, intake = excretion"
+  say="Sodium excretion rises in proportion to how far mean pressure sits above a threshold. Pressure settles where excretion matches what you eat."
+  symbols={[
+    ["slope", "slope", "extra sodium excreted per day for each mmHg; 10 here", "mEq/day per mmHg"],
+    ["threshold", "threshold", "where the line meets zero excretion; 85 mmHg here", "mmHg"],
+    ["intake", "intake", "sodium eaten per day; 150 here", "mEq/day"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="Solve 150 = 10 × (MAP − 85): MAP − 85 = 15, so MAP = 100 mmHg. A steeper slope or a lower threshold lowers the balance pressure; a higher intake raises it."
+/>
 
-Part B. Renal function curve: excretion = 10 mEq/day per mmHg x (MAP - 85 mmHg). Intake 150 mEq/day.
+### Worked problem, part B: one disturbance, two clocks
 
-1. *Equilibrium.* 150 = 10 x (MAP - 85), so MAP = 100 mmHg.
-2. *Apply a resistance step.* Part B is a separate illustration with its own baseline and a smaller step than part A: MAP rises acutely by 10 mmHg, to 110 mmHg, on an unchanged curve, where excretion is 10 x (110 - 85) = 250 mEq/day, a net loss of 100 mEq/day.
-3. *Consequence.* Extracellular volume falls, mean systemic filling pressure and cardiac output with it, and MAP returns to 100 mmHg, the only pressure where output equals intake. Remaining error zero, over days rather than instantly.
+Illustrative straight lines, not fitted to data. Assumptions: intake held at 150 mEq/day, a resistance rise that spares the renal circulation so the curve is unchanged, and resistance raised the whole time. Follow the part A disturbance over the following days.
 
-Part C. Move the curve instead. (i) Shift it 10 mmHg right, excretion = 10 x (MAP - 95): equilibrium MAP = 95 + 15 = 110 mmHg, sustained, at the same intake. (ii) Flatten it through the same normal point, excretion = 5 x (MAP - 70), which also gives 100 mmHg at an intake of 150. At 250 mEq/day the normal curve gives 110 mmHg, a rise of 10; the flat curve 120 mmHg, a rise of 20. A shallower curve means a larger pressure change per increment of salt, which is what **salt sensitivity** means. (iii) Holding mean pressure 18 mmHg below control for a week at unchanged intake needs the curve about 18 mmHg left, at unchanged slope, once intake and output are balanced again, so a sustained fall of this kind would require some change in how the kidney handles sodium; whether the 2004 dogs reached balance is not stated here.
+| Pressure (mmHg) | Excretion, 10 × (MAP − 85) | Intake | Net, per day |
+|---|---|---|---|
+| 106.7 (the reflex's best) | 217 | 150 | lose 67 |
+| 103 | 180 | 150 | lose 30 |
+| 101 | 160 | 150 | lose 10 |
+| 100 | 150 | 150 | **balance** |
+
+Each day's loss shrinks extracellular volume, which lowers mean systemic filling pressure, venous return and cardiac output, so pressure falls ([cardiac output and venous return](/lessons/cardiac-output-venous-return/)). Lower pressure means less excretion, so the loss slows, but it does not stop until pressure reaches 100 mmHg, the crossing point. Resistance is still raised, so cardiac output is now lower than before (MAP = cardiac output × total peripheral resistance). The reflex left an error of 6.7 mmHg; the kidney leaves none, over days rather than instantly.
+
+The reflex's error is fixed by its gain. The kidney has no fixed gain. It keeps changing volume while any imbalance remains, so over days its effective gain grows without limit and the error shrinks toward zero. Guyton called this the kidney's **infinite gain**. In Guyton's framework it is slow, but it has the final say.
+
+So a push that leaves the curve where it is gets cancelled. To hold a new level, it has to **move the curve** or change the intake.
+
+### Worked problem, part C: move the curve instead
+
+Same assumptions, intake 150 mEq/day unless stated.
+
+1. *Shift it.* Move the curve 10 mmHg to the right: excretion = 10 × (MAP − 95). Balance needs 150 = 10 × (MAP − 95), so MAP = 95 + 15 = 110 mmHg, sustained, at the same intake.
+2. *Flatten it.* Tilt it through the same normal point: excretion = 5 × (MAP − 70). At 150 mEq/day this also gives 100 mmHg (check: 5 × 30 = 150).
+3. *Add salt.* Raise intake to 250 mEq/day. The normal curve now balances at 110 mmHg, a rise of 10. The flat curve balances at 120 mmHg, a rise of 20.
+
+A shallower curve means a larger change in pressure for each increment of salt. That is what **salt sensitivity** means. These slopes are chosen for easy arithmetic; a real normal chronic curve is much steeper, because angiotensin II and aldosterone fall on a high salt intake, so the same salt step raises pressure far less.
+
+Try it below: raise the gain and only the reflex's bar moves; shift the curve or change the intake and the kidney's bar moves.
 
 <BaroreflexGain />
 
-The hormones are how the curve gets moved. **Renin** is an enzyme from **juxtaglomerular cells** around the afferent arteriole; three inputs raise its release, a fall in perfusion pressure, a fall in NaCl delivery sensed at the macula densa, and beta-1 adrenergic input, while angiotensin II feeds back negatively on it. Renin cleaves liver-derived **angiotensinogen** to angiotensin I, and angiotensin-converting enzyme makes **angiotensin II**, which constricts systemic arterioles, releases vasopressin, and stimulates aldosterone secretion from the adrenal zona glomerulosa along with sodium reabsorption. **Aldosterone** binds the mineralocorticoid receptor and brings epithelial sodium channels (ENaC) to the apical membrane of collecting tubule cells ([the adrenal glands](/lessons/adrenal-glands/)). **Vasopressin**, released strongly when circulating volume falls, drives water reabsorption in the collecting duct through V2 receptors and aquaporin-2, which is its main action on volume, and constricts arteries through V1a receptors at the higher concentrations of hypovolemia, both the V1a and the angiotensin II receptor AT1 being G protein-coupled ([G proteins](/lessons/gpcrs-and-g-proteins/)). Pushing the other way, **atrial natriuretic peptide** from the atria and **B-type natriuretic peptide**, released mainly from the ventricles, cause diuresis, natriuresis and a fall in pressure ([the kidney](/lessons/kidney/), [water, sodium and potassium](/lessons/water-sodium-potassium/)). On a high salt intake, angiotensin II and aldosterone fall, steepening pressure natriuresis, so balance is kept with little pressure change while the system works normally. In Guyton's framework these controllers act by moving the curve rather than by a separate route to a chronic pressure.
+## How the curve gets moved
+
+Signals that make the kidney hold more sodium at a given pressure move it right, toward higher pressure. Signals that make it shed sodium move it left.
+
+In order: low pressure at the kidney releases renin, which leads to angiotensin II, which releases aldosterone, and the kidney holds more salt, raising pressure.
+
+**Renin** is an enzyme made by **juxtaglomerular cells** around the afferent arteriole. Three inputs raise its release:
+
+- a fall in renal perfusion pressure;
+- a fall in NaCl delivery sensed at the macula densa;
+- beta-1 adrenergic input, which is how the renal sympathetic nerves act on it.
+
+Angiotensin II feeds back negatively on renin release. Renin cleaves **angiotensinogen**, made in the liver, to angiotensin I, and angiotensin-converting enzyme makes **angiotensin II**.
+
+| Signal | Source and trigger | Main actions | Effect on the curve |
+|---|---|---|---|
+| **Angiotensin II** | Made from angiotensin I | Constricts systemic arterioles; releases vasopressin; stimulates aldosterone secretion and sodium reabsorption | Right |
+| **Aldosterone** | Adrenal zona glomerulosa, stimulated by angiotensin II | Binds the mineralocorticoid receptor and brings epithelial sodium channels (ENaC) to the apical membrane of collecting tubule cells ([the adrenal glands](/lessons/adrenal-glands/)) | Right |
+| **Vasopressin** | Posterior pituitary; released by a rise in plasma osmolality and, strongly, by a large fall in circulating volume or pressure | V2 receptors and aquaporin-2: water reabsorption in the collecting duct, its main action on volume. V1a receptors: arterial constriction at the higher concentrations of hypovolemia | Mainly holds water rather than sodium; on its own shifts the chronic level little |
+| **Atrial and B-type natriuretic peptides** | ANP from the atria, released by atrial stretch; BNP released mainly from the ventricles | Diuresis, natriuresis and a fall in pressure ([the kidney](/lessons/kidney/), [water, sodium and potassium](/lessons/water-sodium-potassium/)) | Left |
+| **Renal sympathetic nerves** | Sympathetic outflow | Raise renin release (beta-1 receptors); raise tubular sodium reabsorption and constrict renal vessels (alpha-1 receptors) | Right, through renin and directly |
+
+The V1a receptor and the angiotensin II receptor AT1 are both G protein-coupled ([G proteins](/lessons/gpcrs-and-g-proteins/)).
 
 {/* DIAGRAM: organ map of RAAS */}
 
-## Standing, losing volume and straining
+### Liddle syndrome: one channel moves the curve
 
-Three perturbations, read as rises and falls. **Standing up**: gravity moves blood into the veins of the legs and abdomen, so venous return, stroke volume, cardiac output and arterial pressure fall for a few beats; carotid sinus stretch falls with them, so sympathetic outflow rises and vagal outflow falls, and heart rate, resistance and venous tone rise until pressure recovers. A 2026 mouse study adds cardiac vagal PIEZO2 volume receptors to this compensation; losing them gives orthostatic hypotension in that species. **A fall in blood volume**: venous return, cardiac output and pressure fall; arterial and cardiopulmonary receptors unload; sympathetic outflow, heart rate and total peripheral resistance rise; renin, angiotensin II, aldosterone and vasopressin rise, atrial stretch and natriuretic peptide release fall, and capillary refill from the interstitium begins ([capillary exchange and lymph](/lessons/capillary-exchange-and-lymph/)). **A Valsalva strain**, a forced expiration against a closed airway: in phase I the sudden rise in intrathoracic pressure briefly raises pressure mechanically, and the loaded baroreceptors slow the heart by reflex; in phase II, the strain lowers venous return, left ventricular dimensions, stroke volume and output, so pressure falls, then recovers late as sympathetic activity raises total peripheral resistance, with heart rate rising as pressure falls; phase III, at release, brings a brief further fall; phase IV overshoots above baseline, loading the baroreceptors, with reflex bradycardia and sympathetic withdrawal.
+In **Liddle syndrome**, gain-of-function mutations in the beta or the gamma subunit of ENaC leave more channels active in the apical membrane of the collecting duct. Sodium reabsorption is higher at any perfusion pressure, so the curve sits to the right. Reabsorption and extracellular volume rise first, then arterial pressure, until pressure natriuresis restores balance at the new, higher level. The lumen-negative potential that sodium entry creates also drives potassium secretion, so plasma potassium is often low.
+
+**Predict.** In Liddle syndrome, is renin high or low? Primary aldosteronism, in which the adrenal makes aldosterone without renin's signal, also raises pressure, partly through ENaC. Which measurement tells the two apart?
+
+<details>
+<summary>Check your prediction</summary>
+
+Renin is low. The high pressure and volume suppress it, and angiotensin II and aldosterone fall with it. In primary aldosteronism renin is also low, but aldosterone is high. So renin alone does not separate them; aldosterone does ([the adrenal glands](/lessons/adrenal-glands/)).
+
+</details>
+
+## One reflex, three tests
+
+Standing up, losing blood and straining follow one rule. **When pressure falls, the baroreceptors are unloaded: sympathetic outflow rises and vagal outflow falls, so heart rate, resistance and venous tone rise. When pressure rises, they are loaded and the reverse happens.** Only the mechanical cause changes.
+
+**Standing up**
+
+1. Gravity moves blood into the veins of the legs and abdomen.
+2. Venous return, stroke volume, cardiac output and arterial pressure fall for a few beats, and carotid sinus stretch falls with them.
+3. Sympathetic outflow rises and vagal outflow falls. Heart rate, resistance and venous tone rise until pressure recovers.
+
+**A fall in blood volume**
+
+1. Venous return, cardiac output and pressure fall.
+2. *Seconds:* arterial and cardiopulmonary receptors unload. Sympathetic outflow, heart rate and total peripheral resistance rise.
+3. *Hormones:* renin, angiotensin II, aldosterone and vasopressin rise. Atrial stretch and natriuretic peptide release fall.
+4. *Fluid:* capillary refill from the interstitium begins ([capillary exchange and lymph](/lessons/capillary-exchange-and-lymph/)).
+
+**A Valsalva strain** is a forced expiration against a closed airway, in four phases. In phase II the raised pressure in the chest lowers venous return, left ventricular size, stroke volume and output, so arterial pressure falls.
+
+**Predict.** Late in phase II the strain is still on and venous return is still low, yet arterial pressure partly recovers. What rose?
+
+<details>
+<summary>Check your prediction</summary>
+
+Total peripheral resistance. The falling pressure unloads the baroreceptors, sympathetic activity rises and the arterioles constrict, while heart rate rises. Not stroke volume: venous return is still low.
+
+</details>
+
+| Phase | Mechanical cause | Arterial pressure | Heart rate | Why |
+|---|---|---|---|---|
+| I, strain begins | Sudden rise in intrathoracic pressure | Rises briefly | May slow slightly | Mechanical push; loaded baroreceptors |
+| II, strain held | Venous return and stroke volume fall | Falls, then recovers late | Rises as pressure falls | Unloaded baroreceptors; sympathetic activity raises resistance |
+| III, release | The strain ends | Brief further fall | Stays high | The phase I push is removed; baroreceptors still unloaded |
+| IV, after release | Stroke volume returns while resistance is still raised | Overshoots above baseline | Falls (reflex bradycardia) | Loaded baroreceptors; sympathetic withdrawal |
+
+## Does the reflex also set the level?
+
+Two dog experiments test whether the reflex moves the curve, from opposite sides.
+
+<LessonFigure src="/figures/blood-pressure-regulation/baroreflex-dog-experiments.webp" width={1200} height={806} alt="AI-generated illustration: two conscious dogs side by side. Left: the carotid sinus and aortic depressor nerves are cut; callouts say the mean pressure was barely higher while the swings were much larger. Right: electrodes around both carotid sinuses are driven by an implanted generator; callouts say mean pressure fell from 93 to 75 mmHg and held for a week without a rise in plasma renin. A dashed bracket with a question mark asks whether the renal curve moved." caption="Cutting the reflex's afferents mainly enlarged the swings, while driving them held pressure lower for a week, so afferent input can lower pressure, but whether the intact reflex sets the long-term level is still open." />
+
+**Denervation.** Cowley, Liard and Guyton concluded from the opening experiment that the reflex minimizes variations rather than setting the chronic level. Cowley's 1992 review in Physiological Reviews generalized this: baroreceptors reset and cannot hold a sustained signal, so neural control is limited to correcting rapid changes. The limit: cutting a nerve invites central reorganization, and the transient rise noted in the opening is attributed to that plasticity.
+
+**Stimulation.** In 2004 Thomas Lohmeier and colleagues ran it the other way round, stimulating both carotid sinuses of conscious dogs through implanted electrodes for seven days. Mean pressure fell from 93 to 75 mmHg on day 1, and the fall held all seven days. Plasma renin activity did not rise despite the lower pressure, which the authors read as sympathetic inhibition of renin secretion. The limit: the electrodes drive the afferent nerve directly, bypassing resetting at the nerve ending, so they show what afferent input *can* do, not what the intact reflex *does*.
+
+**Reading it through the curve.** If salt intake was constant and balance was restored, an 18 mmHg fall held for a week needs the curve about 18 mmHg to the left, at unchanged slope (part C in reverse): some change in how the kidney handles sodium. Whether the 2004 dogs reached balance is not stated here.
+
+The baroreflex is the dominant short-term controller; whether it contributes to the chronic level is open, with dog experiments pointing both ways. Device-based baroreflex activation is now being studied as a treatment for resistant hypertension (Lohmeier and Hall's 2019 review).
 
 ## Why some pressures stay high
 
-About 90 to 95 percent of human hypertension is **essential**, multifactorial and gene-environment in origin, with heritability estimated between 35 and 50 percent in most family and twin studies ([complex traits and GWAS](/lessons/complex-traits-and-gwas/)). Salt sensitivity is continuous rather than two bins, and in salt-sensitive people a flatter effective pressure-excretion relation describes the larger pressure response to salt; its position and its cause vary, and most salt-sensitive people do not retain more of a salt load than others. Guyton and Hall argue that in every form of human and experimental hypertension studied so far the curve sits at higher pressures, though the relation is hard to measure directly in people, while resistance increases that spare it, such as closing an arteriovenous fistula, give only transient rises. Kidney transplantation attenuates or abolishes genetic salt-sensitive hypertension in rodent strains, which points at the organ. 
+About 90 to 95 percent of human hypertension is **essential**: multifactorial, with gene-environment origins ([complex traits and GWAS](/lessons/complex-traits-and-gwas/)). The working model: in essential hypertension the renal function curve is shifted right, flattened, or both. Guyton and Hall argue that in every form of human and experimental hypertension studied so far the curve sits at higher pressures, though the relation is hard to measure directly in people.
 
-A monogenic form makes the logic concrete. In **Liddle syndrome**, gain-of-function mutations in the beta subunit of ENaC, shown by Shimkets and colleagues in 1994, or in the gamma subunit, leave more channels active in the collecting duct apical membrane, so sodium reabsorption is higher at any perfusion pressure and the curve sits to the right. Rising: sodium reabsorption and extracellular volume first, then arterial pressure, until pressure natriuresis restores balance at the new higher level; the lumen-negative potential that sodium entry creates also drives potassium secretion, so plasma potassium is often low. Falling: renin, suppressed by the high pressure and volume, and with it angiotensin II and aldosterone. That separates the mutation from primary aldosteronism, where aldosterone is high and renin low ([the adrenal glands](/lessons/adrenal-glands/)).
+At a fixed intake and in steady balance, a sustained high pressure *must* sit on a curve that crosses that intake line at a higher pressure. A shifted curve does so at every intake; a flattened one only at intakes above the point it pivots on (part C). That is bookkeeping. **A shifted curve tells you where balance lies, not what moved it**: the kidney's own sodium handling, the renal nerves, or hormones. Resistance increases that spare the curve, such as closing an arteriovenous fistula, give only transient rises, which fits the view that a sustained rise needs the curve to move. Kidney transplantation, which attenuates or abolishes genetic salt-sensitive hypertension in rodent strains, points at the organ itself.
 
-### Design problem
+Salt sensitivity is continuous rather than two bins. In salt-sensitive people a flatter effective pressure-excretion relation describes the larger pressure response to salt, but its position and its cause vary (Going deeper, "Does salt sensitivity mean salt retention?").
+
+### Design problem: shifted or flattened?
+
+You can fix a person's or an animal's sodium intake and wait for balance. Design a test that tells a shifted curve from a flattened one.
+
+<details>
+<summary>One way to do it</summary>
+
+1. *Protocol.* Measure the balance pressure at two intakes, say 150 and 250 mEq/day, giving each days to reach balance.
+2. *Shifted.* Pressure is higher at both intakes but rises with salt by the normal amount: 110 to 120 mmHg against 100 to 110 in part C's numbers.
+3. *Flattened.* Pressure rises with salt by more than normal: 100 to 120 mmHg. At the lower intake it need not be raised at all.
+4. *Limits.* A real curve can be both, and sodium output must be measured rather than assumed.
+
+</details>
+
+## Going deeper
+
+### How steady is resting pressure?
+
+In Guyton's summary, arterial pressure in an adult at rest rarely strays more than 10 to 15 percent through a day. That describes resting pressure. Activity, stress and sleep move it more than that.
+
+### Who found the carotid sinus nerve
+
+The glossopharyngeal branch in step 2 of the arc, now called the carotid sinus nerve, was identified by Heinrich Ewald Hering in work published in the 1920s. The vagus runs through the same part of the neck, so vagal fibres had been the natural suspects.
+
+### The sensors
+
+In mice, PIEZO1 and PIEZO2 are together required for baroreception ([vagal sensory neurons](/lessons/vagal-sensory-neurons/), [mechanotransduction channels](/lessons/mechanotransduction-channels/)). A 2026 mouse study adds cardiac vagal PIEZO2 volume receptors to the compensation for standing; losing them gives orthostatic hypotension in that species.
+
+### Gain has a sign
+
+Guyton writes feedback gains as negative numbers, because the correction opposes the disturbance; his textbook example of the baroreflex has a gain of −2. This lesson uses magnitudes, so a gain of 2 here is −2 in his convention.
+
+### Why a strong reflex slows the kidney's return
+
+In a simple linear model of both controllers, the final pressure does not depend on the reflex gain, but the speed of the return does. The reflex resists the fall in pressure that volume loss produces, so the kidney sheds salt more slowly: the return's time constant scales with 1 + G. If it were 2 days with no reflex, it would be 6 days at a gain of 2 and 12 at a gain of 5. Resetting releases the brake. This is a property of the model, which leaves out the reflex's own action on the renal nerves, not a measured time course.
+
+### What denervated animals did, week by week
+
+In Thrasher's 2005 telemetry study, dogs after sinoaortic denervation averaged 124 mmHg in the first week against a control of 94, 103 in the second, and values not different from control in weeks 3 to 5. Species differ. Krieger's group reported chronic increases in rats. In telemetered normotensive Wistar-Kyoto rats the mean rose above sham for several days, with no rise in spontaneously hypertensive rats, while the standard deviation rose in both strains. The clean statement is about lability, not level.
+
+### The mirror experiment: unloading one carotid sinus
+
+Thrasher ligated the common carotid artery below the one intact carotid sinus in dogs whose aortic and other carotid sinus nerves had been cut. Pressure rose about 22 mmHg over the week and normalized when flow was restored. In a five-week repeat the rise waned to about 10 mmHg above control.
+
+### More on the stimulation study
+
+Control mean pressure was 93 plus or minus 3 mmHg, at 64 plus or minus 4 beats per minute; pressure was about 72 mmHg on day 7. Beyond the electrode limit, the study covers only normotensive dogs over one week, and it does not show that the effect works without the kidney.
+
+### Design problem: do the renal nerves carry the fall?
 
 The denervated dogs and the stimulated dogs appear to disagree. You have conscious dogs with arterial telemetry and electrodes around both carotid sinuses. Design the test of whether the sustained fall in pressure during stimulation depends on the renal nerves, then compare your design and prediction with what Lohmeier and colleagues found in 2007.
 
 <details>
 <summary>One way to do it</summary>
 
-1. *Groups.* Intact dogs and dogs after bilateral renal denervation, each with sham-operated controls, all carrying the same electrodes.
-2. *Protocol.* A control period, seven days of stimulation, then recovery, with continuous 24-hour pressure and heart rate, so transient and sustained effects separate.
-3. *Measures.* Fixed sodium and water intake with daily urine collection, so sodium balance is tested rather than assumed, with further controlled intake or pressure conditions needed if the aim is to map the curve, plus plasma renin activity and noradrenaline as indirect indices of renin release and sympathetic outflow, with nerve recording or noradrenaline spillover needed for a direct sympathetic measure.
+1. *Groups.* Intact dogs and dogs after bilateral renal denervation, each with sham-operated controls, all with the same electrodes.
+2. *Protocol.* Control period, seven days of stimulation, recovery, with continuous 24-hour pressure and heart rate, so transient and sustained effects separate.
+3. *Measures.* Fixed sodium and water intake with daily urine collection, so sodium balance is tested rather than assumed (mapping the curve needs further controlled intake or pressure conditions). Plasma renin activity and noradrenaline as indirect indices of renin release and sympathetic outflow; a direct sympathetic measure needs nerve recording or noradrenaline spillover.
 4. *Predictions.* If renal denervation abolishes the fall, those nerves carry the chronic effect; if it persists, something else moves the curve, such as other sympathetic beds or circulating hormones.
-5. *Limits.* Surgically altered normotensive dogs over one week; renal nerves regrow, so confirm denervation afterwards; and the electrodes still bypass the receptor.
+5. *Limits.* Surgically altered normotensive dogs over one week; renal nerves regrow, so confirm denervation afterwards; the electrodes still bypass the receptor.
+
+In 2007, renal denervation did not abolish the fall.
 
 </details>
+
+### Does salt sensitivity mean salt retention?
+
+The flatter curve invites the reading that salt-sensitive people keep more of a salt load. One view, the vasodysfunction hypothesis, holds that most salt-sensitive people do not retain more of a salt load than others, and instead fail to lower peripheral (including renal) resistance on a high salt intake (Morris, Schmidlin, Sebastian, Tanaka and Kurtz, Circulation 2016). The competing renal view holds that impaired pressure natriuresis makes them retain more sodium, raising volume and cardiac output (Hall, Circulation 2016). The question is live.
+
+### Heritability and Liddle's genetics
+
+Heritability of essential hypertension is estimated between 35 and 50 percent in most family and twin studies; estimates differ by source. The beta-subunit mutations in Liddle syndrome were shown by Shimkets and colleagues in 1994.

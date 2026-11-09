@@ -1,0 +1,744 @@
+{
+ "slug": "insulin-glucagon-glucose",
+ "title": "Insulin, Glucagon and Blood Glucose",
+ "generated": {
+  "date": "2026-11-09",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "c372d3e74f22",
+ "sectionHashes": {
+  "Blood glucose is a balance, not a tank": "fc14ebf3dffe",
+  "A beta cell reads glucose by burning it": "9771f7a1a0a5",
+  "Why burning can measure": "cc7e2038ef69",
+  "From fuel to a signal": "24c70ee32991",
+  "Insulin comes in two phases": "251651b85c6a",
+  "Insulin says store, glucagon says release": "b4ca8418001d",
+  "Fasting: the liver supplies": "effdb91b1923",
+  "Fed: the body stores": "b1da7b5ccfd4",
+  "What sets glucagon": "507e1efa1398",
+  "The gut sends word ahead: incretins": "b8dd78c2d2ab",
+  "Measuring it: secretion versus action": "03068fc9e9ff",
+  "The clamp: the balance made into a measurement": "ced16202d9cd",
+  "Worked problem: account for every source": "03aa959c79ef",
+  "Design problem": "89dcb558e30c",
+  "What the rule leaves out": "fe976b0494af"
+ },
+ "cards": [
+  {
+   "id": "insulin-glucagon-glucose-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an adult at a fasting blood glucose of 90 mg/dL, what is that in mM, and about how much glucose does the plasma-plus-interstitial pool hold?",
+   "back": "About 5 mM; the pool holds about 10 to 12 g (the blood itself about 4 to 5 g).",
+   "quote": "At a fasting level of 90 mg/dL (5 mM), that pool holds about 10 to 12 g in an adult",
+   "section": "Blood glucose is a balance, not a tank"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c02",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Glucose spreads over about 1.75 dL of fluid per kg body mass. A 60 kg adult drinks 50 g of glucose. If none left the blood and all arrived at once, how much would blood glucose rise?",
+   "back": "Volume = 1.75 x 60 = 105 dL. Rise = 50,000 mg / 105 dL = about 476 mg/dL. The real peak is far lower because disposal keeps pace with absorption.",
+   "quote": "The pool spreads over about 1.6 to 1.9 dL of fluid per kilogram of body mass",
+   "section": "Blood glucose is a balance, not a tank"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A 75 g glucose drink could raise blood glucose by roughly 600 mg/dL, yet a healthy person peaks near 140 to 160 mg/dL. What mainly holds the peak down?",
+   "back": "Disposal: tissues remove glucose almost as fast as the gut delivers it.",
+   "why": "Slow absorption (about two hours) and first-pass liver uptake help, but removal keeping pace with arrival is the main reason.",
+   "quote": "Still, disposal is what holds the peak down: something removes glucose almost as fast as the gut delivers it.",
+   "section": "Blood glucose is a balance, not a tank"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c04",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After an overnight fast the liver adds about 2 mg glucose per kg per min. In a 70 kg adult with a 10 to 12 g glucose pool, how long does it take to replace the whole pool?",
+   "back": "Supply = 2 x 70 = 140 mg/min. 10,000 / 140 = 71 min; 12,000 / 140 = 86 min. Roughly an hour and a quarter.",
+   "quote": "After an overnight fast the liver adds about 2 mg of glucose per kilogram per minute",
+   "section": "Blood glucose is a balance, not a tank"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Blood glucose is the level where two flows meet. Name and define the two flows.",
+   "back": "Appearance: glucose entering the blood (gut after a meal; otherwise mainly liver, some kidney). Disposal: glucose leaving into tissues that burn or store it.",
+   "quote": "So blood glucose is not a tank. It is the level where two flows meet.",
+   "section": "Blood glucose is a balance, not a tank"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does insulin lower blood glucose from both sides of the balance at once?",
+   "back": "Supply falls (the liver releases less glucose) and removal rises (muscle and fat take up more).",
+   "quote": "Insulin pushes that balance down from both sides at once: the liver releases less, and muscle and fat take up more.",
+   "section": "Blood glucose is a balance, not a tank"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The appearance-equals-disposal rule assumes glucose stays below the kidney's threshold, about {{c1::180 mg/dL}}, so almost none is lost in urine.",
+   "back": "",
+   "quote": "The rule covers adults over minutes to hours with glucose below the kidney's threshold, about 180 mg/dL, so almost none is lost in urine.",
+   "section": "Blood glucose is a balance, not a tank"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "By what transport mode and through which main transporters does glucose enter mouse and human beta cells?",
+   "back": "Facilitated diffusion: mainly GLUT2 in mouse beta cells; GLUT1 predominated over GLUT2 in isolated nondiabetic human beta cells (predominance, not exclusivity).",
+   "quote": "mainly through GLUT2 in mouse beta cells, while GLUT1 predominated over GLUT2 in the isolated nondiabetic human beta cells",
+   "section": "A beta cell reads glucose by burning it"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can glucokinase, but not hexokinase, let a beta cell measure blood glucose by metabolizing it?",
+   "back": "Hexokinase (half-saturated at about 0.05 mM) is nearly saturated at all blood levels, so its rate barely changes. Glucokinase is half-saturated near 8 mM, so its rate tracks glucose across the physiological range.",
+   "quote": "Beta cells use glucokinase, half-saturated near 8 mM.",
+   "section": "Why burning can measure"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c10",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Using a glucokinase half-saturation of 8 mM with a Hill coefficient of 1.7, and hexokinase half-saturated at 0.05 mM (no cooperativity), by what factor does each enzyme's rate change when glucose doubles from 4 to 8 mM?",
+   "back": "Glucokinase: 4^1.7/(8^1.7 + 4^1.7) = 0.235 to 0.50, about x2.1. Hexokinase: (8/8.05)/(4/4.05) = about x1.006, essentially flat.",
+   "quote": "Glucokinase works on the steep middle of its curve: double glucose from 5 to 10 mM and glucokinase nearly doubles its rate (×1.9)",
+   "section": "Why burning can measure"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the standard beta-cell sensing model, why does the rate of glucose metabolism report the blood glucose level?",
+   "back": "Glucokinase's step sets the rate of beta-cell glucose metabolism, so burning follows the blood level.",
+   "quote": "In the standard sensing model glucokinase's step sets the rate of beta-cell glucose metabolism, so burning follows the blood level: a measurement.",
+   "section": "Why burning can measure"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c12",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "List, in order, the triggering pathway from rising glucose to insulin release in a beta cell.",
+   "back": "Faster glucose metabolism, ATP/ADP rises, KATP channels close, membrane depolarizes, voltage-gated calcium channels open, calcium enters, insulin granules undergo exocytosis.",
+   "quote": "Faster glucose metabolism raises ATP relative to ADP.",
+   "section": "From fuel to a signal"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does closing KATP channels depolarize a beta cell?",
+   "back": "Less outward potassium current means less hyperpolarizing drive, so the membrane potential shifts to a less negative value.",
+   "quote": "Less outward potassium current favors depolarization, a shift to a less negative membrane potential.",
+   "section": "From fuel to a signal"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In beta cells, how do amplifying signals such as incretin-driven cAMP differ from the triggering pathway?",
+   "back": "Triggering (KATP closure to calcium entry) starts release. Amplifying signals raise how much insulin a given calcium signal releases.",
+   "quote": "Other signals amplify it: further metabolic signals, and cAMP from hormones such as the incretins, raise how much insulin that calcium releases.",
+   "section": "From fuel to a signal"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c15",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Cell-attached patch clamp on isolated rat beta cells (1984): a potassium channel active at low glucose was recorded as glucose rose. What happened, and what did it show?",
+   "back": "The channel closed when glucose rose, but only if glucose was metabolized. This supported a metabolic link to depolarization rather than glucose binding alone; it did not identify ATP as the messenger.",
+   "quote": "A potassium channel active at low glucose closed when glucose rose, and closure required glucose metabolism.",
+   "section": "From fuel to a signal"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c16",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Reconstitution supports a beta-cell KATP channel built from {{c1::Kir6.2 and SUR1}}.",
+   "back": "",
+   "quote": "Reconstitution supports a channel built from Kir6.2 and SUR1.",
+   "section": "From fuel to a signal"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c17",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A sulfonylurea is given while blood glucose is normal, not high. What happens to insulin release, and why?",
+   "back": "Insulin release rises. The drug closes KATP channels without waiting for ATP to rise, so the cell depolarizes and secretes: it skips the glucose-reading step.",
+   "quote": "Sulfonylureas, type 2 diabetes drugs, close it; diazoxide, used for low blood glucose caused by excess insulin, opens it.",
+   "section": "From fuel to a signal"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Diazoxide is given while blood glucose is high. What happens to insulin release, and why?",
+   "back": "Insulin release falls. Diazoxide holds KATP channels open, so the cell cannot depolarize even though ATP rises.",
+   "quote": "Diazoxide holds the channel open, so the cell cannot depolarize and releases less insulin even when glucose is high.",
+   "section": "From fuel to a signal"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c19",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Isolated beta cells at high glucose are treated with a blocker of voltage-gated calcium channels, then a sulfonylurea is added. Predict ATP, membrane potential and insulin release, and whether the sulfonylurea rescues secretion.",
+   "back": "ATP rises and KATP channels close, so the membrane depolarizes, but calcium cannot enter, so insulin release falls. The sulfonylurea acts upstream (KATP), so it cannot rescue release.",
+   "why": "Rests on the stated order: KATP closure, depolarization, voltage-gated calcium entry, then calcium-triggered exocytosis.",
+   "quote": "Calcium triggers exocytosis: insulin granules fuse with the surface membrane and release insulin.",
+   "section": "From fuel to a signal"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c20",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "During a hyperglycemic clamp in humans, what is the time course of insulin secretion?",
+   "back": "Biphasic: an early burst within the first six minutes, then a progressively increasing second phase while the stimulus remains.",
+   "quote": "an early burst within the first six minutes in their 1979 human experiments, then a progressively increasing second phase while the stimulus remains.",
+   "section": "Insulin comes in two phases"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can glucose supply never switch off between meals?",
+   "back": "The brain takes about 120 g of glucose a day regardless of insulin, about half or more of fasting glucose disposal, so the liver must keep supplying.",
+   "quote": "It draws about 120 g of glucose a day whatever insulin does",
+   "section": "Insulin says store, glucagon says release"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c22",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A 70 kg fasting adult: glucose distributes over 1.6 to 1.9 dL/kg, and tissues remove 140 mg/min. If the liver stopped releasing glucose, how long would glucose take to fall from 90 to 50 mg/dL at that uptake rate?",
+   "back": "Glucose lost = 40 mg/dL x (112 to 133 dL) = 4,480 to 5,320 mg. Divide by 140 mg/min: 32 to 38 min, about half an hour (fastest case, since uptake slows as glucose falls).",
+   "quote": "if the liver stopped while uptake continued at the fasting rate, glucose would fall from 90 to 50 mg/dL in about half an hour",
+   "section": "Insulin says store, glucagon says release"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Between meals, by which two processes does the liver supply glucose, and from what substrates is new glucose made?",
+   "back": "Glycogenolysis (glycogen breakdown) and gluconeogenesis from lactate, amino acids and glycerol.",
+   "quote": "The liver supplies what the tissues use by breaking down glycogen (glycogenolysis) and building new glucose from lactate, amino acids and glycerol",
+   "section": "Fasting: the liver supplies"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c24",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Glucagon drives hepatic glucose output through liver receptors that signal via {{c1::Gs and cAMP–PKA}}; its quick effect is mostly on glycogen breakdown.",
+   "back": "",
+   "quote": "Glucagon drives that output through liver receptors that signal via Gs and cAMP–PKA; its quick effect is mostly on glycogen breakdown.",
+   "section": "Fasting: the liver supplies"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "During fasting, why does low insulin matter as much as high glucagon?",
+   "back": "Low insulin releases lipolysis in fat cells. Muscle and liver burn the fatty acids, sparing glucose for the brain, and the liver makes ketone bodies from part of them.",
+   "quote": "Low insulin matters as much as high glucagon: fat cells then break stored triglyceride into fatty acids and glycerol (lipolysis).",
+   "section": "Fasting: the liver supplies"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "As insulin rises after a meal, which effect appears first: suppression of liver glucose release or stimulation of uptake elsewhere? Why?",
+   "back": "The liver is turned down first, because suppressing hepatic glucose release needs lower insulin concentrations than stimulating uptake elsewhere.",
+   "quote": "A small rise in insulin turns the liver down first: it needs lower concentrations than uptake elsewhere does.",
+   "section": "Fed: the body stores"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c27",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does insulin increase glucose uptake in muscle and fat cells?",
+   "back": "Through its receptor tyrosine kinase and PI3K–Akt signaling, it moves GLUT4 transporters from internal vesicles to the cell surface.",
+   "quote": "insulin moves GLUT4 transporters from internal vesicles to the surface of muscle and fat cells",
+   "section": "Fed: the body stores"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c28",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In insulin-clamp studies, which tissue takes most of the extra glucose uptake, and what is fat's bigger insulin job?",
+   "back": "Muscle takes roughly four-fifths, storing much as glycogen. Fat takes a small share; its bigger insulin job is shutting off lipolysis.",
+   "quote": "Muscle takes roughly four-fifths of the extra uptake in insulin-clamp studies, storing much of it as glycogen.",
+   "section": "Fed: the body stores"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c29",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Muscle holds about 400 g of glycogen, the liver about 100 g. During an overnight fast, can muscle glycogen support blood glucose?",
+   "back": "No. Glycogen breaks down to glucose 6-phosphate, and only cells with glucose-6-phosphatase (liver, kidney) can release free glucose. Muscle lacks it, so its glycogen fuels only the muscle.",
+   "quote": "Glycogen breaks down to glucose 6-phosphate, and only a cell with glucose-6-phosphatase can remove the phosphate and let free glucose out.",
+   "section": "Fed: the body stores"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The liver's glucose transporter needs no insulin. Why does that not mean insulin leaves liver glucose handling unchanged?",
+   "back": "GLUT2 lets glucose cross either way; direction depends on whether the liver is storing or releasing. Insulin changes net hepatic output, which is distinct from transport.",
+   "quote": "The liver's transporter, GLUT2, needs no insulin and lets glucose cross either way",
+   "section": "Fed: the body stores"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In what sense are insulin and glucagon not mirror images in fuel-handling tissues?",
+   "back": "Insulin acts on liver, muscle and fat; glucagon acts essentially on the liver. The liver is where they meet. Brain glucose uptake needs neither.",
+   "quote": "Among the fuel-handling tissues, insulin acts on liver, muscle and fat; glucagon acts essentially on the liver.",
+   "section": "Fed: the body stores"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c32",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A person's liver lacks glucose-6-phosphatase. During an overnight fast, can liver glycogen still supply free glucose to the blood? Explain.",
+   "back": "No. Glycogen breaks down to glucose 6-phosphate, and only a cell with glucose-6-phosphatase can remove the phosphate and release free glucose. Without it, liver glycogen would behave like muscle glycogen and could not supply blood glucose.",
+   "why": "Applies the rule: only cells with glucose-6-phosphatase (liver, kidney) turn glycogen-derived glucose 6-phosphate into free glucose.",
+   "quote": "The liver (and kidney) has it; muscle does not, so muscle glycogen fuels only the muscle.",
+   "section": "Fed: the body stores"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "As glucose rises, which paracrine signals hold back alpha cells in human islet experiments?",
+   "back": "Insulin from beta cells and somatostatin from delta cells, alongside the direct effect of glucose.",
+   "quote": "in human islet experiments, insulin from beta cells and somatostatin from neighboring delta cells did this",
+   "section": "What sets glucagon"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c34",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "When blood glucose falls, in what order do the hormonal defenses come in?",
+   "back": "Insulin secretion falls first; then glucagon and epinephrine rise; cortisol and growth hormone help over hours.",
+   "quote": "When glucose falls, the defenses come in order: insulin secretion falls first, then glucagon and epinephrine rise, and cortisol and growth hormone help over hours.",
+   "section": "What sets glucagon"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c35",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An {{c1::incretin}} is a gut hormone that amplifies glucose-stimulated insulin secretion.",
+   "back": "",
+   "quote": "An incretin is a gut hormone that amplifies glucose-stimulated insulin secretion.",
+   "section": "The gut sends word ahead: incretins"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c36",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "To compare oral and intravenous glucose fairly, why is the intravenous infusion adjusted to copy the oral glucose curve rather than given as the same dose?",
+   "back": "The same dose by vein would give a different glucose curve. Matching the curve (isoglycemic comparison) means any extra insulin after oral glucose cannot be explained by blood glucose.",
+   "quote": "instead an intravenous infusion on another day copies the curve the oral dose produced: an isoglycemic comparison.",
+   "section": "The gut sends word ahead: incretins"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c37",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a made-up isoglycemic comparison, incremental insulin AUC is 8,000 pmol/L x min after oral glucose and 2,800 after matched intravenous glucose. Assuming equal insulin clearance, what is the incretin effect?",
+   "back": "(8,000 - 2,800) / 8,000 x 100% = 5,200 / 8,000 = 65% of the oral insulin response.",
+   "quote": "Incretin effect = (oral AUC minus intravenous AUC) / oral AUC x 100%.",
+   "section": "The gut sends word ahead: incretins"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c38",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Matched-glucose testing finds incretin factors account for about 73% of the insulin response in healthy controls but about 36% in type 2 diabetes. Does this show people with type 2 diabetes secrete less GIP and GLP-1?",
+   "back": "No. It shows reduced oral-route amplification, but cannot say whether hormone supply or beta-cell responsiveness changed.",
+   "quote": "they show reduced oral-route amplification but do not locate the change in hormone supply or beta-cell responsiveness.",
+   "section": "The gut sends word ahead: incretins"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Name the two incretin hormones and the intestinal cells that release each.",
+   "back": "GIP (glucose-dependent insulinotropic polypeptide) from K cells; GLP-1 (glucagon-like peptide 1) from L cells.",
+   "quote": "GIP, glucose-dependent insulinotropic polypeptide, from intestinal K cells, and GLP-1, glucagon-like peptide 1, from L cells",
+   "section": "The gut sends word ahead: incretins"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c40",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "GLP-1 is infused into a healthy person while blood glucose is held at a fasting level. Would it trigger a large insulin release? Why?",
+   "back": "No large release expected. GIP and GLP-1 receptors recruit Gs and cAMP, which amplify glucose-stimulated secretion rather than trigger it alone.",
+   "quote": "Both receptors recruit Gs and cAMP, amplifying glucose-stimulated secretion rather than triggering it alone.",
+   "section": "The gut sends word ahead: incretins"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c41",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Healthy men had oral glucose tests with GIP-receptor blockade, GLP-1-receptor blockade, both, or saline. What did blockade show about the two incretins?",
+   "back": "In these 18 healthy men both contribute, GIP more than GLP-1 in this preparation, and their effects roughly add. GLP-1-receptor blockade also raised glucagon and sped gastric emptying.",
+   "quote": "blocking each receptor (receptor blockade) during oral glucose testing showed that both contribute, GIP more than GLP-1, and that their effects roughly add",
+   "section": "The gut sends word ahead: incretins"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can't an oral glucose tolerance curve alone tell reduced insulin secretion from reduced insulin action?",
+   "back": "The curve integrates absorption, secretion and action, and both defects push glucose the same way: less muscle and fat uptake, more hepatic output.",
+   "quote": "The curve integrates absorption, secretion and insulin action.",
+   "section": "Measuring it: secretion versus action"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c43",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two people have identical raised glucose curves after a 75 g drink. One secretes half the normal insulin; the other secretes normally but responds half as well. In a model where effect = action x insulin, what distinguishes them?",
+   "back": "Their insulin levels. The low-action person's insulin runs about twice the low-secretion person's: below normal in the first, normal or above in the second.",
+   "quote": "halving secretion and halving action give identical glucose curves, but the second person's insulin runs about twice the first's",
+   "section": "Measuring it: secretion versus action"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c44",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does C-peptide track insulin secretion more closely than peripheral insulin does?",
+   "back": "C-peptide is cut from proinsulin and released one-for-one with insulin, but undergoes little hepatic extraction; peripheral insulin also reflects removal by the liver.",
+   "quote": "C-peptide, the connecting peptide cut from proinsulin, is released one-for-one with insulin and undergoes little hepatic extraction, so it tracks secretion more closely.",
+   "section": "Measuring it: secretion versus action"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c45",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why can blood glucose stay normal for years in someone whose tissues respond poorly to insulin?",
+   "back": "The beta cell compensates for low action by secreting more insulin; glucose can stay normal for years until secretion fails.",
+   "quote": "In real people the beta cell also compensates for low action by secreting more, so glucose can stay normal for years until secretion fails.",
+   "section": "Measuring it: secretion versus action"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c46",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In untreated type 1 diabetes insulin is nearly absent. Using the fasting and fed rules, predict hepatic glucose output, fat-cell lipolysis and ketone production, and name the resulting emergency.",
+   "back": "The liver keeps releasing glucose; lipolysis runs unchecked; the liver turns the flood of fatty acids into ketone bodies fast. This is the basis of diabetic ketoacidosis.",
+   "why": "Rests on: insulin cuts hepatic release and shuts off lipolysis; low insulin releases lipolysis and liver ketone production.",
+   "quote": "With almost no insulin, as in untreated type 1 diabetes, the liver keeps releasing glucose and unchecked lipolysis feeds fast ketone-body production",
+   "section": "Measuring it: secretion versus action"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c47",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a hyperinsulinemic-euglycemic clamp at steady state, whole-body disposal equals pump rate plus endogenous glucose production: {{c1::Rd = J + EGP}}.",
+   "back": "Holds when urinary glucose loss is negligible; units mg per kg per min.",
+   "quote": "At steady state: Rd = J + EGP, with every term in mg per kg per min.",
+   "section": "The clamp: the balance made into a measurement"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c48",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a hyperinsulinemic-euglycemic clamp, why must endogenous glucose production be measured (for example with a tracer) rather than assumed to be zero?",
+   "back": "Insulin cuts the liver's output but may not stop it; any remaining EGP adds to disposal, so ignoring it underestimates Rd.",
+   "quote": "Insulin cuts the liver's output but may not stop it, so EGP has to be measured, not assumed.",
+   "section": "The clamp: the balance made into a measurement"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c49",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A made-up clamp at steady state in a 70 kg adult: the pump delivers 350 mg glucose per min, a tracer shows EGP of 0.8 mg/kg/min, urinary loss negligible. What is whole-body disposal (Rd)?",
+   "back": "J = 350 / 70 = 5.0 mg/kg/min. Rd = J + EGP = 5.0 + 0.8 = 5.8 mg/kg/min. Reading J alone underestimates Rd by 0.8.",
+   "quote": "a pump delivering 400 mg per min into a 70 kg adult is 400 / 70 = 5.71 mg per kg per min.",
+   "section": "Worked problem: account for every source"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c50",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Under matched clamp insulin and glucose, adult B's disposal is half of adult A's. Does this identify an intracellular signaling defect in B?",
+   "back": "No. It shows lower insulin-stimulated disposal under those conditions, not where the defect lies.",
+   "quote": "B shows lower insulin-stimulated disposal under these matched conditions; the result does not identify an intracellular defect.",
+   "section": "Worked problem: account for every source"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c51",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The same healthy adult is clamped at euglycemia twice, once at a high and once at a lower insulin plateau. Predict how the glucose infusion rate (J) differs, and give both reasons.",
+   "back": "J is lower at the lower plateau. Less insulin means less muscle and fat uptake (lower Rd) and less suppression of the liver (higher EGP); since J = Rd - EGP, both shrink J.",
+   "why": "Rests on Rd = J + EGP and on insulin acting on both sides of the balance.",
+   "quote": "At fixed Rd, continuing EGP reduces the external input required to hold glucose steady.",
+   "section": "Worked problem: account for every source"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c52",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Donor-islet aliquots from people with and without type 2 diabetes are exposed to identical glucose and matched GLP-1 concentrations. Insulin release is normalized to insulin content and viable beta-cell mass. What result supports reduced beta-cell responsiveness rather than reduced hormone supply?",
+   "back": "Less amplification of insulin release by the hormone at equal hormone availability. A supply effect would instead show as lower hormone concentrations in samples from people with type 2 diabetes. Both can occur.",
+   "quote": "Less amplification at equal hormone availability supports reduced responsiveness",
+   "section": "Design problem"
+  },
+  {
+   "id": "insulin-glucagon-glucose-c53",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Name two influences besides insulin that move glucose uptake or hepatic output, left out of the simple appearance-disposal rule.",
+   "back": "Glucose itself (glucose effectiveness: speeds uptake and slows liver output with insulin fixed) and exercise (contracting muscle moves glucose transporters to its surface without insulin).",
+   "quote": "contracting muscle moves glucose transporters to its surface without insulin",
+   "section": "What the rule leaves out"
+  }
+ ]
+}

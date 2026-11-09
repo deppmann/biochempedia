@@ -5,16 +5,16 @@ course: "physiology"
 courseChapter: "Physiology · Unit 5: Kidney, fluids and acid-base"
 order: 1216
 summary: >-
-  Why does blocking one sodium transporter change glucose handling, while blocking another changes calcium handling?
-  Follow the apical transport proteins along the mammalian nephron, interpret experiments that located their activity, and calculate a glucose titration curve.
+  Each nephron segment brings sodium in through its own apical protein, all driven by the same basolateral pump, and blocking each one has a different effect on potassium, calcium and magnesium.
+  Follow the apical transport proteins along the mammalian nephron, predict what a loop diuretic, a thiazide-type blocker and an ENaC blocker do, and calculate a glucose titration curve for the proximal tubule.
   Use isolated tubules and knockout mice to separate a transport mechanism from its whole-kidney consequences.
-hook: "What can a missing transporter tell you that a urine sample cannot?"
+hook: "Every stretch of the nephron has its own door for sodium, and most of those doors are drug targets. Block a different one and sodium, potassium, calcium and magnesium move in a different, largely predictable pattern."
 estMinutes: 24
 objectives:
-  - "Explain glucose transport maximum, threshold and splay, and calculate a no-splay threshold from Tm and GFR."
   - "Map NHE3, SGLT2, NKCC2, NCC and ENaC along the nephron, state approximate human sodium shares, and identify their dependence on basolateral Na+-K+-ATPase."
-  - "Distinguish what isolated rabbit tubules, rat distal microperfusion, Xenopus expression cloning and gene-targeted mice establish about transport."
   - "Predict sodium, potassium, calcium and magnesium handling after transporter block, specifying the preparation, voltage mechanism and limits of the prediction."
+  - "Explain glucose transport maximum, threshold and splay, and calculate a no-splay threshold from Tm and GFR."
+  - "Distinguish what isolated rabbit tubules, rat distal microperfusion, Xenopus expression cloning and gene-targeted mice establish about transport."
 
 scientists:
   - name: "Fred S. Wright"
@@ -116,15 +116,24 @@ practiceQuestions:
       The different blocker responses locate distinct apical entry mechanisms. They do not establish an absence of basolateral pumps in late segments. Early sodium uptake depends on chloride, so denying chloride transport reverses the evidence. A physiological blocker response does not identify a gene sequence; that requires molecular work.
 
 mcatQuestions:
-  - stem: "In an illustrative isolated rat kidney model, GFR is 1.0 mL per min and glucose Tm is 2.0 mg per min. An experimental change halves GFR while Tm stays constant. Assuming steady state, free filtration, no secretion and sharp saturation without splay, what are the new threshold and excretion at plasma glucose 300 mg/dL?"
+  - stem: "Two patients with intact kidneys take different diuretics for several weeks. Patient 1 takes a loop diuretic that blocks apical NKCC2. Patient 2 takes a thiazide-type blocker of apical NCC. Which pair of changes in urinary calcium is expected, and what is the mechanism in patient 1?"
     choices:
-      - "Threshold 400 mg/dL; excretion 0 mg/min"
-      - "Threshold 400 mg/dL; excretion 1.0 mg/min"
-      - "Threshold 200 mg/dL; excretion 0.5 mg/min"
-      - "Threshold 100 mg/dL; excretion 1.0 mg/min"
+      - "Patient 1 higher and patient 2 lower; loop block removes the lumen-positive voltage that drives paracellular calcium reabsorption"
+      - "Patient 1 lower and patient 2 higher; loop block removes the lumen-positive voltage that drives paracellular calcium reabsorption"
+      - "Both higher, because blocking any sodium entry route leaves more calcium in the lumen"
+      - "Both lower, because less sodium reabsorbed means less calcium reaches the urine"
     answer: 0
     rationale: >-
-      The new threshold is 2.0 mg/min divided by 0.5 mL/min, or 4 mg/mL, equal to 400 mg/dL. At 300 mg/dL, filtration is 1.5 mg/min, below Tm, so excretion is zero. The 100 mg/dL threshold reverses the GFR effect. The 200 mg/dL threshold leaves GFR unchanged and invents excretion. Pairing 400 mg/dL with 1.0 mg/min excretion ignores the new submaximal filtered load.
+      NKCC2 block reduces salt uptake and the lumen-positive voltage that favors paracellular calcium and magnesium reabsorption, so urinary calcium rises in patient 1. Sustained NCC block is expected to lower urinary calcium; the mechanism of that effect is unsettled, with mouse micropuncture supporting enhanced proximal calcium reabsorption and older rat microperfusion a distal effect, but the direction is the one seen in Gitelman syndrome. Patient 1 lower and patient 2 higher swaps the two directions. Both higher and both lower treat all sodium-entry blocks alike, which the segment-specific voltage and calcium handling contradict.
+  - stem: "A patient is found to have loss-of-function variants in both copies of the gene for NCC, the apical Na-Cl cotransporter of the distal convoluted tubule. Which set of findings fits?"
+    choices:
+      - "High plasma potassium and magnesium with high urinary calcium"
+      - "Low plasma potassium and magnesium with low urinary calcium"
+      - "Low plasma potassium with high urinary calcium, as in loss of NKCC2"
+      - "Normal plasma potassium and magnesium with high urinary calcium"
+    answer: 1
+    rationale: >-
+      Loss-of-function variants in the human NCC gene cause Gitelman syndrome, with low plasma potassium and magnesium and low urinary calcium. A global NCC knockout mouse reportedly reproduced low magnesium and low urinary calcium. Low plasma potassium with high urinary calcium is typical of loss of NKCC2 or ROMK, which disrupts the thick-limb voltage, so it describes the wrong segment. High plasma potassium and magnesium with high urinary calcium reverses every direction. Normal plasma potassium and magnesium with high urinary calcium contradicts the low magnesium and the low urinary calcium.
   - stem: "A hypothetical mouse micropuncture data set holds single-nephron filtered glucose at 100 pmol per min. Glucose delivery at early and late collection sites is 22 and 7 pmol per min in wild type, and 100 and 79 pmol per min in Sglt2 knockouts. Assuming steady state and no glucose secretion, how much glucose is reabsorbed between the two sites?"
     choices:
       - "7 pmol/min in wild type; 79 pmol/min in knockout"
@@ -182,26 +191,69 @@ draft: false
 ---
 
 import GlucoseTitrationDiuretics from '../../../components/GlucoseTitrationDiuretics.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**How can blocking a sodium transporter change calcium movement through a different pathway?** You can answer by following the entry proteins along the nephron, then testing the voltages they help generate. A urine sample gives the combined result; a segment experiment separates the steps.
+**Furosemide and hydrochlorothiazide are both diuretics: each blocks a sodium transporter, each makes the body lose salt and water, and each tends to cost potassium. Yet furosemide raises urinary calcium, and hydrochlorothiazide lowers it.**
 
-## One pump supports different apical doors
+How can blocking a sodium transporter change calcium movement through a different pathway? And why does a third diuretic, amiloride, lose salt but keep potassium? The answer lies in where each drug acts, and in what that stretch of tubule was doing besides moving sodium.
 
-Keep the nephron map, countercurrent mechanism and aquaporin-2 background from [the kidney lesson](/lessons/kidney/). Here, **apical** means facing tubular fluid; **basolateral** means facing the surrounding tissue. The basolateral Na+-K+-ATPase exports sodium and maintains the inward sodium gradient used by apical entry proteins. Its membrane energetics belong to [membrane transport](/lessons/membrane-transport/).
+One picture first. If a tubule moves positive charge out of its **lumen** (the fluid-filled inside of the tube) without a partner, the lumen goes negative; if it moves more negative charge out, the lumen goes positive. That electrical potential difference between tubular fluid and surrounding tissue is the **transepithelial voltage**.
 
-Human review estimates assign roughly 60–70% of filtered sodium reabsorption to the proximal tubule, 20–25% to the thick ascending limb, about 5–7% to the distal convoluted tubule and 2–5% to the collecting duct. These are approximate ranges from different accounts, not four measurements whose endpoints should sum to 100%. The apical entry routes are proximal NHE3 (sodium-hydrogen exchanger 3) and SGLT2 (sodium-glucose cotransporter 2), thick-limb NKCC2 (sodium-potassium-chloride cotransporter 2), distal NCC (sodium-chloride cotransporter) and principal-cell ENaC (epithelial sodium channel). SGLT2 carries only about 5% of total renal NaCl reabsorption in non-diabetic conditions, so it matters far more for glucose than for sodium.
+> **The one idea to carry through this lesson.** Every nephron segment brings sodium in through its own apical door, and every door runs on the same basolateral pump. Block a door and the kidney feels it in two places. **Downstream:** more sodium and fluid reach ENaC in the late distal nephron and collecting duct, so more potassium is secreted. **Locally:** if that segment was building a transepithelial voltage, the ions the voltage was moving move much less. Of the doors this lesson tracks, the thick limb's lumen-positive voltage is the one that moves calcium and magnesium (between the cells), and ENaC's lumen-negative voltage is the one that moves potassium (into the urine).
+
+Where the rule stops. It covers sustained dosing in an intact adult kidney and tracks only sodium delivered downstream and those two voltages. The proximal tubule also reabsorbs calcium between its cells, more of it than the thick limb does; the rule leaves that out. The potassium effect scales with how much extra sodium and flow reach ENaC, and aldosterone amplifies it. Effects past its edge: the thiazide drop in urinary calcium and rise in magnesium loss, and the extra distal calcium reabsorption seen with amiloride.
+
+## One pump, five doors
+
+Keep the nephron map, countercurrent mechanism and aquaporin-2 background from [the kidney lesson](/lessons/kidney/). Here, **apical** means facing tubular fluid; **basolateral** means facing the surrounding tissue. In every segment the basolateral Na+-K+-ATPase exports sodium and maintains the inward sodium gradient that every apical door spends. Its membrane energetics belong to [membrane transport](/lessons/membrane-transport/).
+
+| Segment | Apical sodium door | What it carries in | Share of filtered sodium reabsorbed (rounded) | Wall voltage this lesson tracks |
+|---|---|---|---|---|
+| Proximal tubule | NHE3 (sodium-hydrogen exchanger 3) and SGLT2 (sodium-glucose cotransporter 2) | Na+ in exchange for H+; Na+ with glucose | about 65% | not used here |
+| Thick ascending limb | NKCC2 (sodium-potassium-chloride cotransporter 2) | 1 Na+, 1 K+ and 2 Cl- together | about 25% | lumen positive (about +7 mV in isolated rabbit tubules) |
+| Distal convoluted tubule (DCT) | NCC (sodium-chloride cotransporter) | Na+ with Cl- | about 5% | none from NCC, which moves no net charge |
+| Collecting duct, principal cells | ENaC (epithelial sodium channel) | Na+ alone | about 3% | lumen negative |
+
+The shares are rounded from human review estimates of roughly 60–70% proximal, 20–25% thick limb, about 5–7% distal convoluted tubule and 2–5% collecting duct. These ranges come from different accounts, not four matched measurements, so don't expect their endpoints to sum to 100%.
+
+Each door brings sodium in a different way, so each can be blocked by a different drug. Only two rows build a voltage this lesson tracks, and those two rows produce most of the diuretic table at the end.
 
 **Transcellular transport** crosses a cell's apical and basolateral membranes. **Paracellular transport** passes between adjacent cells; [epithelia](/lessons/epithelia/) explains the junctions that select this route. Aquaporins are water channels, not sodium carriers: you must specify water permeability separately from sodium entry.
 
-{/* DIAGRAM: Nephron segments in anatomical order, apical entry proteins and approximate human sodium shares; inset showing the basolateral pump and transcellular versus paracellular routes. */}
+<LessonFigure src="/figures/tubular-transport-diuretics/nephron-sodium-doors.webp" width={1200} height={806} alt="AI-generated illustration: A nephron drawn left to right with four coloured segments, each with a different apical sodium door: NHE3 and SGLT2 in the proximal tubule, NKCC2 in the thick ascending limb, NCC in the distal convoluted tubule and ENaC in the collecting duct, with rounded shares of filtered sodium. Plus signs mark a positive lumen in the thick limb and minus signs a negative lumen in the collecting duct. An inset cell shows the shared basolateral sodium-potassium pump and the through-cell and between-cell routes." caption="Each segment takes sodium through its own apical door, all powered by the same basolateral Na+-K+-ATPase; only the thick limb (lumen positive) and the collecting duct (lumen negative) build the voltages this lesson tracks. Shares are rounded human estimates." />
 
-## Glucose saturation produces a rounded transition
+## Blocking a door: look downstream, then locally
 
-**Transport maximum (Tm)** is the maximal reabsorption rate for a substance under specified conditions. Glucose uptake rises approximately with filtered load before carrier saturation limits it. **Threshold** is the plasma glucose concentration where glucose first appears in urine. **Splay** is the rounding of the reabsorption and excretion curves near saturation. These describe different features of a titration curve.
+**Downstream.** Sodium a blocked segment would have taken flows on until it meets ENaC, in the late distal tubule and collecting duct. ENaC lets sodium in without a partner ion, so the lumen goes negative, and that drives potassium out of the cell into the urine through ROMK, a potassium channel. Aldosterone, raised by sustained salt loss, adds to this, and greater distal acid secretion can also raise plasma bicarbonate. Regulation belongs to [water, sodium and potassium balance](/lessons/water-sodium-potassium/) and [acid-base balance](/lessons/acid-base-balance/).
 
-### Worked problem: follow the glucose mass
+**Locally**, a lost voltage stops moving its passengers; the segment sections below show which.
 
-Use round illustrative values for an adult human at rest, not measurements from a paper. The **glomerular filtration rate (GFR)** is the volume filtered per unit time. Assume steady state at each glucose level, freely filtered glucose, no glucose secretion, constant GFR of 125 mL per min and Tm of 350 mg per min. First assume sharp saturation without splay. Take GFR as given; its measurement belongs to [glomerular filtration](/lessons/glomerular-filtration/).
+The map gives the rough size of the downstream effect. Block the thick limb and up to about a quarter of filtered sodium heads on, toward segments that normally take back only about 8% between them (5% + 3%). Block NCC and about 5% heads on. Block ENaC and little reabsorbing tubule is left downstream, so the extra sodium mostly reaches the urine.
+
+**Predict.** Take three diuretics: a loop diuretic (blocks NKCC2), a thiazide (blocks NCC) and amiloride (blocks ENaC). Which should waste potassium, and which should spare it?
+
+<details>
+<summary>Check your prediction</summary>
+
+The loop diuretic and the thiazide both send extra sodium to ENaC, so both tend toward potassium loss. Amiloride spares potassium: it closes the channel that makes the lumen negative, so potassium secretion falls.
+
+</details>
+
+<LessonFigure src="/figures/tubular-transport-diuretics/enac-romk-downstream.webp" width={1200} height={806} alt="AI-generated illustration: Two views of a collecting duct principal cell. In the main view extra sodium arriving from upstream enters through ENaC, the lumen turns negative, and potassium leaves through ROMK into the urine. In the inset ENaC is plugged by amiloride, the lumen is less negative and only a faint potassium arrow remains." caption="Block a door upstream and the extra sodium enters through ENaC, making the lumen more negative and pushing potassium into the urine; close ENaC itself, as amiloride does, and potassium secretion falls. The size of the potassium effect depends on how much sodium and flow arrive, and aldosterone amplifies it." />
+
+## Proximal tubule: the bulk door and the glucose door
+
+Proximal reabsorption is nearly **isosmotic reabsorption**, meaning removal of fluid with approximately unchanged total solute concentration. Micropuncture samples from living kidneys pointed to this first; the **isolated perfused tubule**, a dissected segment held between glass pipettes with its lumen and surrounding bath controlled separately, confirmed it under controlled conditions. Burg, Grantham, Abramow and Orloff described the rabbit method in their [1966 paper](https://pubmed.ncbi.nlm.nih.gov/5923067/), and Kokko, Burg and Orloff's [1971 rabbit proximal-tubule study](https://www.jci.org/articles/view/106485) reported salt and water absorption without a change in luminal sodium concentration.
+
+**NHE3 does the bulk.** NHE3 exchanges luminal sodium for intracellular hydrogen ions. A human-and-rodent review credits NHE3, directly and indirectly, with more than half of filtered sodium reabsorption. In mice lacking NHE3, in situ microperfusion found proximal bicarbonate and fluid absorption reduced by 54% and 63%, evidence that glucose cotransport cannot account for bulk proximal uptake alone.
+
+**SGLT2 does early glucose.** In mice SGLT2 localizes to the early proximal brush border, the microvillus-rich apical membrane. It carries only about 5% of total renal NaCl reabsorption in non-diabetic conditions, so it matters far more for glucose than for sodium.
+
+### Glucose: a carrier with a ceiling
+
+SGLT2 and SGLT1 have a finite number of carriers, so glucose uptake rises approximately with filtered load until carrier saturation limits it. **Transport maximum (Tm)** is the maximal reabsorption rate for a substance under specified conditions. **Threshold** is the plasma glucose concentration where glucose first appears in urine. **Splay** is the rounding of the reabsorption and excretion curves near saturation.
+
+**Worked problem: follow the glucose mass.** Use round illustrative values for an adult human at rest, not measurements from a paper. The **glomerular filtration rate (GFR)** is the volume filtered per unit time. Assume steady state at each glucose level, freely filtered glucose, no glucose secretion, constant GFR of 125 mL per min and Tm of 350 mg per min. First assume sharp saturation without splay.
 
 > Filtered glucose load = GFR x plasma glucose concentration
 >
@@ -215,73 +267,189 @@ At the model's threshold, filtered load equals Tm:
 
 At 400 mg/dL, or 4.0 mg/mL, filtered load is 500 mg/min. Reabsorption is capped at 350 mg/min, leaving 150 mg/min for excretion. If those conditions persist for 60 min, excretion totals 9,000 mg, or 9.0 g. Check conservation: 350 mg/min returned plus 150 mg/min excreted equals 500 mg/min filtered.
 
-Now change only GFR to 60 mL/min. The no-splay threshold becomes 350 mg/min / 60 mL/min = 5.83 mg/mL, approximately 580 mg/dL. At 400 mg/dL, filtration is only 240 mg/min, so this model excretes no glucose. Lower filtration raises the threshold when capacity stays fixed.
+**Predict.** Change only GFR, to 60 mL/min. Does the threshold rise or fall, and is glucose excreted at 400 mg/dL?
 
-Real healthy adult human curves show low-level glucose spilling around 180–200 mg/dL, roughly 80–100 mg/dL below our illustrative 280 mg/dL. Individual nephrons differ in capacity relative to their filtered loads, and finite carrier affinity rounds uptake near saturation. Tm/GFR therefore gives an idealized upper estimate of threshold, not the measured onset. With GFR 180 L/day and plasma glucose 90 mg/dL, the illustrative daily filtered load is 162 g/day; that large throughput can coexist with very little urinary glucose.
+<details>
+<summary>Check your prediction</summary>
 
-You can compare the sharp model with an illustrative splay curve by varying GFR and Tm independently; the rounded curve represents a teaching model rather than a fit to experimental data.
+The threshold rises. The no-splay threshold becomes 350 mg/min / 60 mL/min = 5.83 mg/mL, approximately 580 mg/dL. At 400 mg/dL, filtration is only 240 mg/min, so this model excretes no glucose. Lower filtration raises the threshold when capacity stays fixed.
+
+Do not carry that into kidney disease: losing whole nephrons lowers Tm too. Scale both by 60/125: Tm falls to 350 x 60/125 = 168 mg/min, and the threshold stays at 168 / 60 = 2.8 mg/mL, or 280 mg/dL.
+
+</details>
+
+Real healthy adult human curves show low-level glucose spilling around 180–200 mg/dL, below our illustrative 280 mg/dL. Individual nephrons differ in capacity relative to their filtered loads, and finite carrier affinity rounds uptake near saturation. Tm/GFR therefore gives an idealized upper estimate of threshold, not the measured onset. With GFR 180 L/day and plasma glucose 90 mg/dL, the illustrative daily filtered load is 162 g/day; that large throughput can coexist with very little urinary glucose.
+
+Vary GFR and Tm below to compare the sharp model with a rounded one; that rounded curve is a teaching model, not a fit to experimental data.
 
 <GlucoseTitrationDiuretics />
 
-## Proximal uptake couples sodium to glucose and bicarbonate
+### The evidence: delete the gene, sample the tubule
 
-An isolated perfused tubule is a dissected segment held between glass pipettes with its lumen and surrounding bath controlled separately; Burg, Grantham, Abramow and Orloff described the rabbit method in their [1966 paper](https://pubmed.ncbi.nlm.nih.gov/5923067/). Kokko, Burg and Orloff's [1971 rabbit proximal-tubule study](https://www.jci.org/articles/view/106485) reported salt and water absorption without a change in luminal sodium concentration: nearly **isosmotic reabsorption**, meaning removal of fluid with approximately unchanged total solute concentration. With poorly reabsorbed raffinose present, luminal sodium instead settled 33–35 mEq/L below the bath; reported rabbit transport rates were only one-half to one-third of rat rates measured in vivo.
+A urine sample gives the combined result; a segment experiment separates the steps. Vallon and colleagues' [2011 Sglt2 knockout experiment](https://pubmed.ncbi.nlm.nih.gov/20616166/) combined whole-kidney measurements with free-flow **micropuncture**, sampling fluid from accessible proximal sites in anesthetized mice. If SGLT2 supplies early glucose uptake, deletion should leave glucose in early tubular fluid. Early collections showed 78% of filtered glucose already reabsorbed in wild type versus none in knockouts. The knockout mice also excreted more glucose and water without a difference in plasma glucose, GFR or urinary sodium excretion.
 
-SGLT2 is the early proximal sodium-glucose cotransporter, localized to the mouse brush border, the microvillus-rich apical membrane. NHE3 exchanges luminal sodium for intracellular hydrogen ions; a human-and-rodent review credits NHE3, directly and indirectly, with more than half of filtered sodium reabsorption. Mice lacking NHE3 have sharply reduced proximal bicarbonate and fluid absorption (in situ microperfusion found bicarbonate and fluid absorption reduced by 54% and 63%), evidence that glucose cotransport cannot account for bulk proximal uptake alone.
+That locates the missing function early. Late collections showed 93% of filtered glucose reabsorbed in wild type versus 21% in knockouts, residual downstream uptake consistent with SGLT1. Those unchanged values argue against increased filtration as the explanation for the glucose loss. The experiment does not directly measure a sodium share, establish human percentages or reproduce acute block: lifelong deletion permits compensation.
 
-For bicarbonate reclamation, secreted hydrogen ions combine with filtered bicarbonate, and luminal carbonic anhydrase facilitates formation of carbon dioxide. Carbon dioxide enters the cell, where cytoplasmic carbonic anhydrase supports bicarbonate formation; bicarbonate then exits basolaterally while hydrogen ions can be secreted again. This recovers filtered bicarbonate rather than generating net new bicarbonate. The rest belongs to [acid-base balance](/lessons/acid-base-balance/).
+In humans, a [glucose titration study of 12 healthy adults](https://pmc.ncbi.nlm.nih.gov/articles/PMC3781504/) found that a week of an SGLT2 inhibitor lowered Tm by about 55%, but the estimated threshold fell much further. The authors concluded that the lowered threshold, not the lower Tm or the changed splay, explained the glucose that appeared in urine at ordinary plasma levels.
 
-Vallon and colleagues' [2011 Sglt2 knockout experiment](https://pubmed.ncbi.nlm.nih.gov/20616166/) combined whole-kidney measurements with free-flow micropuncture, sampling fluid from accessible proximal sites in anesthetized mice. If SGLT2 supplies early glucose uptake, deletion should leave glucose in early tubular fluid. Early collections showed 78% of filtered glucose already reabsorbed in wild type versus none in knockouts; late collections showed 93% versus 21%. The knockout mice also excreted more glucose and water without a difference in plasma glucose or GFR.
+### SGLT2 inhibitors and the rule
 
-That locates the missing function early and leaves residual downstream uptake consistent with SGLT1. Unchanged plasma glucose and GFR argue against increased filtration as the explanation for glucose loss. The experiment does not directly measure a sodium share, establish human percentages or reproduce acute block: lifelong deletion permits compensation.
+An SGLT2 inhibitor sends much glucose to the urine but little sodium, so the downstream half of the rule predicts a small potassium effect; the studies here did not measure it. Human-and-animal reviews link SGLT2 block to greater NaCl delivery at the **macula densa**, sensor cells at the end of the thick limb, and to feedback-mediated reduction of single-nephron GFR, through the loop covered in [glomerular filtration](/lessons/glomerular-filtration/).
 
-In a [glucose titration study of 12 healthy adults](https://pmc.ncbi.nlm.nih.gov/articles/PMC3781504/), investigators estimated the threshold from a model at 171 ± 57 mg/dL (mean ± SD, one outlier excluded). After 7 days of an SGLT2 inhibitor, Tm fell by about 55%, but the estimated threshold fell much further, to about 37 mg/dL, below the lowest glucose level studied. The authors concluded that the lower Tm and the changed splay could not explain the glucose that appeared in urine at ordinary plasma levels; the lowered threshold did. Such stepped glucose clamps hold successive plasma glucose levels approximately steady while renal glucose handling is measured, testing the human curve rather than importing mouse fractions.
+## Thick ascending limb: a salt pump that charges the lumen
 
-Separately, human-and-animal reviews link SGLT2 block to greater NaCl delivery at the macula densa and feedback-mediated reduction of single-nephron GFR, through the loop covered in [glomerular filtration](/lessons/glomerular-filtration/).
+**Start with the record.** In 1973 Rocha and Kokko held single rabbit medullary thick ascending limbs on glass pipettes and [measured what came out](https://www.jci.org/articles/view/107223). Three things stood out:
 
-## NKCC2 and ROMK make salt uptake an electrical circuit
+- **Salt left.** At slow perfusion, outgoing sodium and chloride concentrations were about 0.79 and 0.77 of incoming.
+- **Water stayed.** Even under imposed osmotic gradients, no osmotic water flow occurred, so the fluid grew more dilute: this is the kidney's diluting segment.
+- **The lumen was positive,** about 6.7 mV relative to the bath during stable flow.
 
-Rocha and Kokko's [1973 isolated rabbit medullary thick-limb study](https://www.jci.org/articles/view/107223) reported no osmotic water flow under imposed gradients. At slow perfusion, outgoing sodium and chloride concentrations were about 0.79 and 0.77 of incoming concentrations. The lumen was positive relative to the bath, about 6.7 mV during their stable-flow measurements. Salt left while water stayed.
+NKCC2 is electrically neutral, so where does a voltage come from?
 
-NKCC2 carries one Na+, one K+ and two Cl- into the cell. ROMK, a potassium channel, returns potassium to the lumen; basolateral chloride channels, including ClC-Kb, allow chloride exit. Together with cation-selective junctions, these pathways support a lumen-positive **transepithelial voltage**, the electrical potential difference between tubular fluid and surrounding tissue. That voltage favors paracellular calcium and magnesium reabsorption. Read this as a segment-level summary: recent work describes thick-limb cell types that lack apical potassium channels, including the cortical cells ringed by calcium- and magnesium-transporting claudins, a point returned to near the end of this lesson.
+### Building the voltage, one ion at a time
 
-Greger and Schlatter's [1981 rabbit cortical thick-limb experiments](https://pubmed.ncbi.nlm.nih.gov/7322839/) reduced short-circuit current from 215 to 133 microA/cm2 by removing luminal potassium. **Short-circuit current** is the current that would flow with transepithelial voltage held at zero. In these isolated-tubule studies it was an equivalent current, calculated from the measured voltage and resistance rather than clamped directly. Earlier data from their laboratory had suggested one sodium and two chlorides; these potassium experiments extended that model, tentatively, to a carrier interacting with all three ions. Current alone did not establish the stoichiometry.
+In one cycle of NKCC2, one Na+, one K+ and two Cl- enter together. Now follow each ion out.
 
-A loop diuretic blocks apical NKCC2 from the lumen, reducing salt uptake and the positive voltage. In an intact mammalian kidney, increased sodium delivery downstream can support increased potassium secretion, while loss of the thick-limb voltage reduces calcium and magnesium reabsorption: predict increased urinary sodium, potassium, calcium and magnesium, subject to downstream compensation. Proximal organic anion transporters secrete the blocker into the lumen. Bath exposure and luminal exposure therefore test different steps.
+1. **Sodium** leaves across the basolateral membrane through the Na+-K+-ATPase.
+2. **Chloride** leaves across the basolateral membrane through chloride channels, including ClC-Kb. Negative charge has moved from the lumen side to the blood side.
+3. **Potassium** mostly goes back the way it came, out through ROMK in the apical membrane. Tubular fluid holds little potassium compared with sodium and chloride, so without this recycling NKCC2 would run short of potassium. Positive charge has moved back to the lumen side.
 
-{/* DIAGRAM: Thick ascending limb circuit with apical NKCC2 and ROMK, basolateral Na+-K+-ATPase and chloride exit, and voltage-driven paracellular calcium and magnesium movement. */}
+Negative charge goes to the blood and positive charge back to the lumen, so the lumen ends up a few millivolts positive. This transepithelial voltage is made by the circuit around the door, not by the door alone. In isolated rabbit tubules, removing luminal potassium reduced the transport current, and also blocking potassium recycling with barium almost abolished it, so salt uptake here depends on potassium on the luminal side.
 
-## Distal experiments distinguish NCC from ENaC
+### What the voltage moves: calcium and magnesium
+
+The junctions between thick-limb cells are cation-selective. The positive lumen pushes cations out between the cells toward the blood. Calcium and magnesium carry two charges each, so the same voltage pushes on them twice as hard as on sodium.
+
+> **How hard is a few millivolts? (optional arithmetic)** At body temperature RT/F is about 26.7 mV. For a passive ion at equilibrium, lumen/blood = exp(−zV / 26.7 mV), where z is its charge and V the lumen voltage. At +7 mV a one-charge ion is held at about 0.77 of its blood-side concentration, a two-charge ion at about 0.59. So voltage alone could hold luminal ionized (free) calcium near that fraction of its blood-side ionized level — an equilibrium limit, not a measured luminal value.
+
+That is why this segment matters for divalent ions, magnesium most of all. Textbook estimates credit it with about 60–70% of filtered magnesium and about 20–25% of filtered calcium.
+
+<LessonFigure src="/figures/tubular-transport-diuretics/thick-limb-circuit.webp" width={1200} height={806} alt="AI-generated illustration: A thick ascending limb cell. Sodium, potassium and two chlorides enter together through NKCC2; potassium returns to the lumen through ROMK, chloride leaves to the blood side and sodium leaves through the sodium-potassium pump. The lumen is marked positive, and calcium and magnesium move from lumen to blood through the junction between cells." caption="Potassium recycling to the lumen and chloride exit to the blood leave the thick-limb lumen a few millivolts positive, and that voltage drives calcium and magnesium between the cells. This is the classic one-cell picture; the segment actually contains several cell types." />
+
+**Predict.** Furosemide, a loop diuretic, blocks NKCC2 from the lumen. What happens to the lumen voltage, and to urinary sodium, potassium, calcium and magnesium?
+
+<details>
+<summary>Check your prediction</summary>
+
+With NKCC2 blocked, no potassium comes in to recycle and no chloride comes in to leave, so the lumen-positive voltage largely collapses.
+
+- **Sodium:** that quarter is largely not taken up, so more sodium reaches the urine than with any other class here.
+- **Calcium and magnesium:** the voltage that pushed them between cells is largely gone, so more reaches the urine.
+- **Potassium:** the downstream half of the rule. Extra sodium reaches ENaC, so potassium secretion rises.
+
+So in an intact mammalian kidney all four rise in the urine, subject to downstream compensation. Inherited loss of NKCC2 or ROMK (two forms of Bartter syndrome) causes a similar pattern without a drug: salt wasting and high urinary calcium, usually with low plasma potassium; ROMK loss can raise it at first in newborns.
+
+</details>
+
+This is the classic one-cell picture of the segment. Recent work describes several thick-limb cell types, not all with apical potassium channels; Going deeper explains how that refines the circuit.
+
+## Distal convoluted tubule: the door with no voltage
+
+Thiazides, such as hydrochlorothiazide, block NCC in the distal convoluted tubule. For sustained NCC block, predict increased sodium loss and, downstream, a tendency toward potassium loss. People who lack NCC show the pattern. [Loss-of-function variants in the human NCC gene](https://www.nature.com/articles/ng0196-24) cause Gitelman syndrome, with low plasma potassium and magnesium and low urinary calcium; the authors proposed reduced salt reabsorption as the link. A [global NCC knockout mouse study](https://doi.org/10.1074/jbc.273.44.29150) reportedly reproduced low magnesium and low urinary calcium while maintaining blood pressure on a sodium-replete diet. The rule also runs in reverse. Reported increases in NCC activity through variants in the WNK kinase pathway (WNK1 and WNK4, kinases that regulate NCC) can reduce downstream sodium delivery and favor potassium retention and higher arterial pressure.
+
+**Predict.** Now the local half of the rule. NCC moves one Na+ and one Cl- together. What does the rule predict a thiazide does to urinary calcium?
+
+<details>
+<summary>Check your prediction</summary>
+
+NCC moves no net charge, and this segment builds no lumen-positive voltage to lose, so the rule predicts no change. The real answer is lower urinary calcium, as Gitelman syndrome shows. That is the rule's first edge. Two candidate reasons for the extra calcium recovery:
+
+1. **Proximal.** Salt loss shrinks body fluid volume. The proximal tubule then reabsorbs more sodium and, with it, more calcium.
+2. **Distal.** With NCC blocked, less chloride enters distal cells while chloride keeps leaving across the basolateral membrane, so the cell interior is proposed to become more negative, which would favor calcium entry from the lumen.
+
+The calcium mechanism remains unsettled: [mouse micropuncture](https://www.jci.org/articles/view/24134) supports enhanced proximal calcium reabsorption, whereas older rat microperfusion supported a distal effect.
+
+</details>
+
+The second edge is magnesium. With sustained NCC block, a greater fraction of filtered magnesium escapes reabsorption, although no voltage is lost. That effect involves distal transport adaptation, rather than magnesium passage through NCC itself. Timing matters too: you cannot assume that a chronic deletion and an acute blocker give identical results (Going deeper, "Acute NCC block").
+
+### The evidence: find the function, then the gene
 
 In [1987](https://pubmed.ncbi.nlm.nih.gov/3631283/), David H. Ellison, Hector Velázquez and Fred S. Wright separately microperfused early and late surface distal segments in anesthetized rats, passing controlled fluid through each segment. If one entry mechanism served both regions, chloride removal and a thiazide-type NCC blocker should affect both. Instead, the blocker reduced sodium and chloride transport to zero early, with no significant effect late; removing chloride reduced sodium transport early but not late. This localized a chloride-dependent, thiazide-sensitive function. It neither identified a protein nor tested deep nephrons or other species.
 
-NCC is the apical Na-Cl cotransporter of the distal convoluted tubule. Gamba and colleagues [expression-cloned a thiazide-sensitive transporter in 1993](https://pubmed.ncbi.nlm.nih.gov/8464884/) from winter flounder urinary bladder using Xenopus oocytes. **Expression cloning** identifies genetic material by the function it produces in a host cell. Their carrier was electroneutral, moving no net charge per cycle, and required no potassium. Mammalian renal NCC identity required evidence beyond that fish preparation.
+Gamba and colleagues [expression-cloned a thiazide-sensitive transporter in 1993](https://pubmed.ncbi.nlm.nih.gov/8464884/) from winter flounder urinary bladder using Xenopus oocytes. **Expression cloning** identifies genetic material by the function it produces in a host cell. Their carrier moved no net charge and required no potassium. Mammalian renal NCC identity required evidence beyond that fish preparation.
 
-[Loss-of-function variants in the human NCC gene](https://www.nature.com/articles/ng0196-24) cause Gitelman syndrome, with low plasma potassium and magnesium and low urinary calcium; the authors proposed reduced salt reabsorption as the link. A [global NCC knockout mouse study](https://doi.org/10.1074/jbc.273.44.29150) reportedly reproduced low magnesium and low urinary calcium while maintaining blood pressure on a sodium-replete diet. Loss of NKCC2 or ROMK instead disrupts thick-limb voltage, favoring increased urinary calcium.
+## Collecting duct: the channel that makes the lumen negative
 
-For sustained NCC block, predict increased sodium loss, a tendency toward potassium loss, reduced urinary calcium and a greater fraction of filtered magnesium escaping reabsorption. The calcium mechanism remains unsettled: [mouse micropuncture](https://www.jci.org/articles/view/24134) supports enhanced proximal calcium reabsorption, whereas older rat microperfusion supported a distal effect. NCC block does not remove a thick-limb positive voltage. Its magnesium effect also involves distal transport adaptation, rather than magnesium passage through NCC itself.
+ENaC, the epithelial sodium channel, provides principal-cell sodium entry in the collecting duct and the connecting tubule just before it. Entry of positive charge makes the lumen negative, favoring potassium secretion through ROMK.
 
-ENaC, the epithelial sodium channel, provides principal-cell sodium entry; alpha, beta and gamma subunits were identified using rat cDNA in Xenopus oocytes: alpha by expression cloning, beta and gamma by testing how they contributed to channel function when expressed with alpha. Entry of positive charge makes the lumen negative, favoring potassium secretion through ROMK. Under fixed delivery, ENaC block reduces sodium reabsorption and potassium secretion. ENaC block does not erase the thick-limb voltage, but it does not leave divalent handling untouched either: in rat distal microperfusion, luminal amiloride inhibited sodium reabsorption and increased calcium reabsorption in late distal segments, consistent with apical hyperpolarization favoring calcium entry. Potassium-sparing diuretics also tend to spare magnesium. The size of these effects depends on the preparation and conditions. Reported human gain-of-function variants in the ENaC beta subunit provide a complementary test of excessive sodium entry.
+**Predict.** Amiloride blocks ENaC from the lumen. With sodium and potassium delivery held fixed, what happens to the lumen voltage, sodium reabsorption and potassium secretion?
 
-Extra sodium reaching ENaC after NCC loss can increase potassium secretion; during sustained salt loss, greater distal acid secretion can also raise plasma bicarbonate. Regulation belongs to [water, sodium and potassium balance](/lessons/water-sodium-potassium/) and [acid-base balance](/lessons/acid-base-balance/). However, a rodent report summarized in a review found neither increased ENaC-mediated uptake nor increased potassium excretion after acute NCC block. You cannot assume that a chronic deletion and an acute blocker give identical results. Conversely, reported increases in NCC activity through variants in the WNK kinase pathway (WNK1 and WNK4, kinases that regulate NCC) can reduce downstream sodium delivery and favor potassium retention and higher arterial pressure.
+<details>
+<summary>Check your prediction</summary>
 
-Mouse and cell studies show that WNK4, a kinase (an enzyme that adds phosphate groups to proteins), is sensitive to intracellular chloride and that this sensitivity regulates NCC phosphorylation. A recent review's abstract also suggests three thick-limb cell types besides macula densa cells, only one with apical potassium channels, so the single-cell circuit above remains a segment-level simplification.
+The lumen becomes less negative. Under fixed delivery, ENaC block reduces sodium reabsorption and potassium secretion, so amiloride spares potassium.
+
+Calcium shifts too. In rat distal microperfusion, luminal amiloride inhibited sodium reabsorption and increased calcium reabsorption in late distal segments, consistent with apical hyperpolarization favoring calcium entry. Here the voltage explanation is more direct, because ENaC carries charge; the distal thiazide reason proposes a similar end point. Potassium-sparing diuretics also tend to spare magnesium. The size of these effects depends on the preparation and conditions.
+
+</details>
+
+Reported human gain-of-function variants in the ENaC beta or gamma subunit (Liddle syndrome, an inherited form of high blood pressure) provide a complementary test of excessive sodium entry.
+
+## The table, filled
+
+For each door, ask: how much sodium does blocking it send to ENaC, and did it build a voltage that moved something else?
+
+| Drug class (example) | Door, segment | Urinary sodium | Urinary potassium | Urinary calcium | Urinary magnesium |
+|---|---|---|---|---|---|
+| Loop diuretic (furosemide) | NKCC2, thick limb | Up most | Up | Up | Up |
+| Thiazide (hydrochlorothiazide) | NCC, DCT | Up | Up | Down (edge) | Up (edge) |
+| ENaC blocker (amiloride) | ENaC, collecting duct | Up a little | Down (spared) | Distal reabsorption up (rat) | Tends to be spared |
+| SGLT2 inhibitor | SGLT2, proximal tubule | Up a little; glucose up a lot | Small (predicted, not measured here) | Not covered | Not covered |
+
+The loop diuretic can send more sodium downstream per dose, but thiazides act longer, so at usual doses they cause low plasma potassium at least as often.
+
+Back to the opening: furosemide collapses a voltage that moved calcium; hydrochlorothiazide blocks a door that built none, and a volume-linked proximal effect, a distal effect or both, still unsettled, lower urinary calcium instead. Both send sodium to ENaC and cost potassium; amiloride closes ENaC and keeps it.
 
 ### Design problem
 
-You have isolated rabbit cortical thick ascending limbs held on glass pipettes. You can control lumen and bath separately, measure voltage and short-circuit current, and collect outgoing fluid. Design tests of whether luminal entry requires potassium and whether a loop diuretic blocking NKCC2 acts from the lumen or the bath. Include recovery, nonspecific controls and limits.
+You have isolated rabbit cortical thick ascending limbs held on glass pipettes. You can control lumen and bath separately, measure voltage and **short-circuit current** (the current that would flow with transepithelial voltage held at zero), and collect outgoing fluid. Design tests of whether luminal entry requires potassium and whether a loop diuretic blocking NKCC2 acts from the lumen or the bath. Include recovery, nonspecific controls and limits.
 
 <details>
 <summary>One way to do it</summary>
 
-Use paired baseline, test and washout measurements in each tubule. Recovery supports reversible inhibition rather than progressive damage. Measure transepithelial voltage and resistance, report the equivalent short-circuit current calculated from them, and compare incoming and outgoing sodium and chloride fluxes.
+Use paired baseline, test and washout measurements in each tubule. Recovery supports reversible inhibition rather than progressive damage. Measure transepithelial voltage and resistance, report the equivalent short-circuit current, and compare incoming and outgoing sodium and chloride fluxes.
 
-Replace luminal potassium with an impermeant cation (one that cannot cross the membrane) while matching osmolality and keeping sodium, chloride and bath composition constant. Predict reduced current, not necessarily zero: the rabbit experiment gave 215 to 133 microA/cm2. Returning potassium should restore transport. Separately block the luminal potassium conductance with barium; reduced recycling should weaken the positive voltage. Residual current does not establish potassium-independent NKCC2 transport.
+Replace luminal potassium with an impermeant cation (one that cannot cross the membrane) while matching osmolality and keeping sodium, chloride and bath composition constant. Predict reduced current, not necessarily zero. Returning potassium should restore transport. Separately block the luminal potassium conductance with barium; reduced recycling should weaken the positive voltage. Residual current does not establish potassium-independent NKCC2 transport.
 
 Compare luminal and bath application of the NKCC2 blocker at matched concentrations in separate runs with washout, reversing run order across tubules. Expect luminal application to suppress salt uptake and positive voltage; bath application should lack that immediate effect if the blocker remains confined to that side. In an intact kidney, proximal organic anion secretion supplies luminal access, which this apparatus bypasses.
 
-Include vehicle controls, cooling and a basolateral Na+-K+-ATPase inhibitor. Cooling and pump inhibition should reduce transport by mechanisms distinct from luminal carrier block; they do not establish the blocker's binding site. Match solution conditions and check recovery after each reversible intervention.
+Include vehicle controls, cooling and a basolateral Na+-K+-ATPase inhibitor. Cooling and pump inhibition should reduce transport by mechanisms distinct from luminal carrier block; they do not establish the blocker's binding site.
 
-The conclusions concern rabbit segments in vitro. Voltage and current describe the whole epithelium, not an NKCC2 transport current: NKCC2 itself is electroneutral. Establishing its ion ratio requires ion substitutions and flux measurements, followed by molecular identification; extrapolating rates to rats or humans requires further evidence.
+The conclusions concern rabbit segments in vitro. Voltage and current describe the whole epithelium, not an NKCC2 transport current. Establishing its ion ratio requires ion substitutions and flux measurements, followed by molecular identification; extrapolating rates to rats or humans requires further evidence.
 
 </details>
+
+## Going deeper
+
+### Proximal control experiments in rabbit tubules
+
+In Kokko, Burg and Orloff's rabbit proximal tubules, with poorly reabsorbed raffinose present, luminal sodium settled 33–35 mEq/L below the bath; reported rabbit transport rates were only one-half to one-third of rat rates measured in vivo.
+
+### Bicarbonate recovery
+
+The secreted hydrogen ions also reclaim bicarbonate. They combine with filtered bicarbonate, and luminal carbonic anhydrase facilitates formation of carbon dioxide. Carbon dioxide enters the cell, where cytoplasmic carbonic anhydrase supports bicarbonate formation; bicarbonate then exits basolaterally while hydrogen ions can be secreted again. This recovers filtered bicarbonate rather than generating net new bicarbonate. The rest belongs to [acid-base balance](/lessons/acid-base-balance/).
+
+### Glucose titration in 12 healthy adults
+
+In that study the investigators estimated the threshold from a model at 171 ± 57 mg/dL (mean ± SD, one outlier excluded). After 7 days of an SGLT2 inhibitor, the estimated threshold fell to about 37 mg/dL, below the lowest glucose level studied. Such stepped glucose clamps hold successive plasma glucose levels approximately steady while renal glucose handling is measured, testing the human curve rather than importing mouse fractions.
+
+### Short-circuit current in the rabbit thick limb
+
+Greger and Schlatter's [1981 rabbit cortical thick-limb experiments](https://pubmed.ncbi.nlm.nih.gov/7322839/) reduced short-circuit current from 215 to 133 microA/cm2 by removing luminal potassium. In separate runs, barium, which blocks the luminal potassium conductance, reduced current from 234 to 141 microA/cm2 even with potassium in the incoming fluid, and potassium removal plus barium together reduced it from 237 to 56 microA/cm2. Each pair is a different condition from the same paper. In these isolated-tubule studies short-circuit current was an equivalent current, calculated from the measured voltage and resistance rather than clamped directly. Earlier data from their laboratory had suggested one sodium and two chlorides; these potassium experiments extended that model, tentatively, to a carrier interacting with all three ions.
+
+### More than one kind of thick-limb cell
+
+A recent review's abstract suggests three thick-limb cell types besides macula densa cells, only one with apical potassium channels. Cells lacking them include the cortical cells ringed by calcium- and magnesium-transporting claudins (junction proteins that set which ions pass between cells). So the single-cell circuit in this lesson remains a segment-level simplification.
+
+### Acute NCC block
+
+Extra sodium reaching ENaC after NCC loss can increase potassium secretion. However, a rodent report summarized in a review found neither increased ENaC-mediated uptake nor increased potassium excretion after acute NCC block.
+
+### WNK4 senses chloride
+
+The body noted that variants in the WNK pathway can raise NCC activity. Mouse and cell studies show that WNK4, a kinase (an enzyme that adds phosphate groups to proteins), is sensitive to intracellular chloride and that this sensitivity regulates NCC phosphorylation. That gives the distal cell a way to read its own chloride, the same intracellular chloride invoked in the distal explanation for the thiazide calcium effect.
+
+### Cloning ENaC
+
+ENaC was found the same way the thiazide-sensitive carrier was. Its alpha, beta and gamma subunits were identified using rat cDNA in Xenopus oocytes: alpha by expression cloning, beta and gamma by testing how they contributed to channel function when expressed with alpha. The beta and gamma subunits are the ones carrying the gain-of-function variants of Liddle syndrome.

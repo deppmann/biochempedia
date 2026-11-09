@@ -2,10 +2,11 @@
 /**
  * BaroreflexGain — "Fast reflex, slow kidney". One idea: the baroreflex shrinks a
  * disturbance to D/(1 + G), and the kidney's curve decides where pressure ends up.
- * Three bars on one pressure scale: first seconds with the reflex off (95 + D), minutes
- * with the reflex on (95 + D/(1 + G)), and days (85 + curve shift + intake/10, which
- * does not depend on D or G). All numbers are the lesson's own illustrative values for
- * worked problem parts A, B and C(i). Self-contained vanilla-TS Astro island. Original.
+ * Three bars on one pressure scale, all from one 100 mmHg baseline: first seconds with
+ * the reflex off (100 + D), minutes with the reflex on (100 + D/(1 + G)), and days
+ * (threshold + curve shift + intake/slope, which does not depend on D or G; normal curve
+ * 85 + S + I/10, flattened curve 70 + S + I/5). All numbers are the lesson's own
+ * illustrative values for worked problem parts A, B and C. Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
@@ -19,7 +20,7 @@
       <input type="range" data-in="d" min="0" max="30" step="1" value="20" />
     </label>
     <label class="brx-slabel"><span>Baroreflex gain G <em data-out="g">2</em></span>
-      <input type="range" data-in="g" min="0" max="4" step="0.5" value="2" />
+      <input type="range" data-in="g" min="0" max="8" step="0.5" value="2" />
     </label>
     <label class="brx-slabel"><span>Renal curve shift <em data-out="s">0</em> mmHg <small>(+ right, higher pressure; − left)</small></span>
       <input type="range" data-in="s" min="-20" max="20" step="1" value="0" />
@@ -27,23 +28,28 @@
     <label class="brx-slabel"><span>Sodium intake <em data-out="i">150</em> mEq/day</span>
       <input type="range" data-in="i" min="50" max="250" step="10" value="150" />
     </label>
+    <label class="brx-slabel"><span>Renal curve <em data-out="k">normal</em> <small>(normal 10, flattened 5 mEq/day per mmHg)</small></span>
+      <input type="range" data-in="k" min="0" max="1" step="1" value="0" />
+    </label>
   </div>
 
   <div class="brx-presets">
     <button type="button" class="brx-btn" data-preset="ab">Lesson parts A and B values</button>
+    <button type="button" class="brx-btn" data-preset="g5">Gain 5 (the Predict)</button>
     <button type="button" class="brx-btn" data-preset="c">Lesson part C(i): shift +10</button>
+    <button type="button" class="brx-btn" data-preset="flat">Part C(ii-iii): flattened, 250</button>
   </div>
 
   <dl class="brx-readout">
     <div><dt>Remaining error = D / (1 + G)</dt><dd data-r-err></dd></div>
     <div><dt>Correction = D − remaining error</dt><dd data-r-corr></dd></div>
     <div><dt>Gain = correction / remaining error</dt><dd data-r-gain></dd></div>
-    <div><dt>Kidney: excretion = 10 mEq/day per mmHg × (MAP − intercept) = intake</dt><dd data-r-kid></dd></div>
+    <div><dt>Kidney: excretion = slope × (MAP − threshold) = intake</dt><dd data-r-kid></dd></div>
   </dl>
 
   <div class="brx-why" data-why role="status"></div>
 
-  <p class="brx-assume"><strong>In this sketch:</strong> an illustrative model, not fitted to data, for an adult human at rest in steady state with linear relations and a step rise in total peripheral resistance as the disturbance. The lesson’s own illustrative numbers are the fast baseline of 95 mmHg (part A) and the renal slope of 10 mEq/day per mmHg with an intercept of 85 mmHg (part B). Made up for the sketch: the slider ranges and extending the straight lines beyond the worked values. The lesson gives the fast bars and the kidney bar as separate illustrations (baseline 95 mmHg against a kidney equilibrium of 100 mmHg at an intake of 150), so compare how they move, not their offsets. Baroreceptor resetting is left out.</p>
+  <p class="brx-assume"><strong>In this sketch:</strong> an illustrative model, not fitted to data, for an adult human at rest in steady state with linear relations and a step rise in total peripheral resistance as the disturbance. One illustrative baseline, 100 mmHg, which is also where the unshifted curve balances an intake of 150 mEq/day. The lesson’s own illustrative numbers are the renal slope of 10 mEq/day per mmHg with a threshold of 85 mmHg (part B) and the flattened curve, 5 mEq/day per mmHg with a threshold of 70 mmHg, through the same normal point (part C). Made up for the sketch: the slider ranges and extending the straight lines beyond the worked values. Baroreceptor resetting is left out.</p>
 
   <p class="brx-foot">A reflex of gain G shrinks a disturbance to D / (1 + G) but never to zero, while the pressure the kidney settles at is where excretion equals intake, so it moves only when the curve or the intake moves.</p>
 </figure>
@@ -80,11 +86,16 @@
     const gOut = root.querySelector<HTMLElement>('[data-out="g"]');
     const sOut = root.querySelector<HTMLElement>('[data-out="s"]');
     const iOut = root.querySelector<HTMLElement>('[data-out="i"]');
-    if (!plot || !why || !rErr || !rCorr || !rGain || !rKid || !dIn || !gIn || !sIn || !iIn || !dOut || !gOut || !sOut || !iOut) return;
+    const kIn = root.querySelector<HTMLInputElement>('[data-in="k"]');
+    const kOut = root.querySelector<HTMLElement>('[data-out="k"]');
+    if (!plot || !why || !rErr || !rCorr || !rGain || !rKid || !dIn || !gIn || !sIn || !iIn || !kIn || !dOut || !gOut || !sOut || !iOut || !kOut) return;
 
-    const BASE = 95;       // part A baseline, mmHg
-    const SLOPE = 10;      // part B, mEq/day per mmHg
-    const INTERCEPT = 85;  // part B, mmHg
+    const BASE = 100;      // the lesson's one illustrative baseline, mmHg
+    // renal curves: normal (part B) and flattened through the same normal point (part C)
+    const CURVES = [
+      { slope: 10, thr: 85, name: 'normal' },
+      { slope: 5, thr: 70, name: 'flattened' },
+    ];
     const X0 = 20, PXPER = 3.4, VMIN = 60, VMAX = 140;
     const px = (v: number) => X0 + (v - VMIN) * PXPER;
 
@@ -93,6 +104,9 @@
       const G = parseFloat(gIn!.value);
       const S = parseInt(sIn!.value, 10);
       const I = parseInt(iIn!.value, 10);
+      const flat = kIn!.value === '1';
+      const curve = CURVES[flat ? 1 : 0];
+      kOut!.textContent = curve.name;
       dOut!.textContent = String(D);
       gOut!.textContent = fmt(G);
       sOut!.textContent = (S > 0 ? '+' : S < 0 ? '−' : '') + Math.abs(S);
@@ -102,31 +116,30 @@
       const err = D / (1 + G);
       const closed = BASE + err;
       const corr = D - err;
-      const icpt = INTERCEPT + S;
-      const kid = icpt + I / SLOPE;
+      const icpt = curve.thr + S;
+      const kid = icpt + I / curve.slope;
 
       // readouts, with the lesson's arithmetic and units
       rErr!.textContent = `${D} / (1 + ${fmt(G)}) = ${fmt2(err)} mmHg`;
       rCorr!.textContent = `${D} − ${fmt2(err)} = ${fmt2(corr)} mmHg`;
       rGain!.textContent = D === 0 ? 'no error to correct, so no ratio' : `${fmt2(corr)} / ${fmt2(err)} = ${(corr / err).toFixed(1)}`;
-      rKid!.textContent = `${I} = 10 × (MAP − ${icpt}), so MAP = ${fmt(kid)} mmHg`;
+      rKid!.textContent = `${I} = ${curve.slope} × (MAP − ${icpt}), so MAP = ${fmt(kid)} mmHg`;
 
       // plot
       plot!.replaceChildren();
       const rows = [
-        { title: 'Reflex cut (open loop)', formula: `95 + ${D}`, val: open, color: GREY, y: 24, inside: true },
-        { title: 'Reflex intact (fast loop, steady state)', formula: `95 + ${D}/(1 + ${fmt(G)})`, val: closed, color: TEAL, y: 76, inside: true },
-        { title: 'Days, kidney (pressure natriuresis)', formula: `85 ${signed(S)} + ${I}/10`, val: kid, color: NAVY, y: 142, inside: false },
+        { title: 'Reflex cut (open loop)', formula: `${BASE} + ${D}`, val: open, color: GREY, y: 24, inside: true },
+        { title: 'Reflex intact (fast loop, steady state)', formula: `${BASE} + ${D}/(1 + ${fmt(G)})`, val: closed, color: TEAL, y: 76, inside: true },
+        { title: 'Days, kidney (pressure natriuresis)', formula: `${curve.thr} ${signed(S)} + ${I}/${curve.slope}`, val: kid, color: NAVY, y: 128, inside: false },
       ];
       plot!.appendChild(el('line', { x1: X0, y1: 20, x2: X0, y2: 172, stroke: INK, 'stroke-width': 1 }));
       for (const r of rows) {
-        const ty = r.inside ? r.y - 6 : r.y - 17;
+        const ty = r.y - 6;
         plot!.appendChild(txt(X0, ty, r.title, 10.5, INK, 'start', 700));
         plot!.appendChild(txt(334, ty, r.formula, 9.5, GREY, 'end'));
-        if (!r.inside) plot!.appendChild(txt(X0, r.y - 6, 'separate illustration (part B)', 9, GREY));
         const w = Math.max(1, px(r.val) - X0);
         plot!.appendChild(el('rect', { x: X0, y: r.y, width: w, height: 20, fill: r.color }));
-        if (r.inside) {
+        if (r.inside || X0 + w > 280) {
           plot!.appendChild(txt(X0 + 5, r.y + 14, `${fmt2(r.val)} mmHg`, 10, '#ffffff', 'start', 700));
         } else {
           plot!.appendChild(txt(X0 + w + 5, r.y + 14, `${fmt2(r.val)} mmHg`, 10, INK, 'start', 700));
@@ -137,8 +150,8 @@
       if (showGhost) {
         plot!.appendChild(el('rect', { x: px(closed), y: 76, width: px(open) - px(closed), height: 20, fill: 'none', stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
       }
-      // part A baseline
-      for (const [ya, yb] of [[22, 46], [74, 98]]) plot!.appendChild(el('line', { x1: px(BASE), y1: ya, x2: px(BASE), y2: yb, stroke: ORANGE, 'stroke-width': 1.3, 'stroke-dasharray': '3 2' }));
+      // the shared baseline, on all three bars
+      for (const [ya, yb] of [[22, 46], [74, 98], [126, 150]]) plot!.appendChild(el('line', { x1: px(BASE), y1: ya, x2: px(BASE), y2: yb, stroke: ORANGE, 'stroke-width': 1.3, 'stroke-dasharray': '3 2' }));
       // axis
       plot!.appendChild(el('line', { x1: X0, y1: 172, x2: px(VMAX), y2: 172, stroke: INK, 'stroke-width': 1 }));
       for (const v of [60, 80, 100, 120, 140]) {
@@ -148,35 +161,38 @@
       plot!.appendChild(txt(X0, 202, 'mean arterial pressure, mmHg (bars start at 60)', 10, INK, 'start'));
       // legend
       plot!.appendChild(el('line', { x1: X0, y1: 217, x2: X0 + 18, y2: 217, stroke: ORANGE, 'stroke-width': 1.3, 'stroke-dasharray': '3 2' }));
-      plot!.appendChild(txt(X0 + 24, 220, 'part A baseline, 95 mmHg (top two bars)', 9.5, INK));
+      plot!.appendChild(txt(X0 + 24, 220, 'baseline, 100 mmHg', 9.5, INK));
       if (showGhost) {
         plot!.appendChild(el('rect', { x: X0, y: 226, width: 18, height: 9, fill: 'none', stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
         plot!.appendChild(txt(X0 + 24, 234, 'removed by the reflex (the correction)', 9.5, INK));
       }
-      plot!.setAttribute('aria-label', `Three bars of mean arterial pressure in mmHg: reflex cut (open loop) ${fmt2(open)}, reflex intact (fast loop, steady state) ${fmt2(closed)}, days, kidney (pressure natriuresis) ${fmt2(kid)}. The days bar is a separate illustration.`);
+      plot!.setAttribute('aria-label', `Three bars of mean arterial pressure in mmHg: reflex cut (open loop) ${fmt2(open)}, reflex intact (fast loop, steady state) ${fmt2(closed)}, days, kidney (pressure natriuresis) ${fmt2(kid)}.`);
 
       // status sentences: each follows from the sliders and the lesson's equations
       let fast: string;
       if (D === 0) {
-        fast = 'In this sketch, with no disturbance the reflex has nothing to correct, and both fast bars sit at the 95 mmHg baseline.';
+        fast = 'In this sketch, with no disturbance the reflex has nothing to correct, and both fast bars sit at the 100 mmHg baseline.';
       } else if (G === 0) {
         fast = `In this sketch, with a gain of 0 the reflex is gone: none of the ${D} mmHg disturbance is removed, the whole ${D} mmHg stands, and the reflex-intact bar equals the reflex-cut bar at ${fmt(open)} mmHg.`;
       } else {
         const pct = Math.round((G / (1 + G)) * 100);
         fast = `In this sketch, with the reflex cut a ${D} mmHg open-loop rise would take pressure to ${fmt(open)} mmHg. With the reflex intact (afferent firing up, vagal output up, sympathetic output down, as the lesson describes for a pressure rise) a gain of ${fmt(G)} removes about ${pct} percent of it, ${fmt2(corr)} mmHg, and leaves ${fmt2(err)} mmHg, never all of it.`;
       }
-      let slow = `In this sketch the days bar is the pressure at which sodium excretion equals intake, ${fmt(kid)} mmHg, and it does not depend on D or G: for a given curve and intake the kidney changes volume while any error remains, so the steady-state error is zero (the lesson’s infinite-gain argument).`;
+      let slow = `In this sketch the days bar is the pressure at which sodium excretion equals intake, ${fmt(kid)} mmHg, and it does not depend on D or G: for a given curve and intake the kidney changes volume while any error remains, so the steady-state error is zero (Guyton’s infinite-gain argument, in his framework). Move D or G and this bar does not move: the reflex decides how far pressure strays, the kidney decides where it ends up.`;
       if (S === 0 && I === 150) {
-        slow += ' This is the lesson’s part B: 100 mmHg.';
+        slow += flat ? ' This is the lesson’s part C(ii): the flattened curve also balances at 100 mmHg.' : ' This is the lesson’s part B: 100 mmHg.';
       }
       const parts: string[] = [fast, slow];
-      if (I > 150) {
+      if (flat) {
+        parts.push('A flatter curve balances at the same 100 mmHg at 150 mEq/day but at 120 instead of 110 at 250: a larger pressure change per step of salt, which is what salt sensitivity means.');
+      }
+      if (I > 150 && !flat) {
         parts.push(`In this sketch a higher intake on this fixed-slope curve raises the equilibrium (the lesson’s unshifted curve gives 110 mmHg at 250 mEq/day). The lesson adds that when the system works normally, angiotensin II and aldosterone fall on a high intake and steepen pressure natriuresis, so balance is kept with little pressure change; this sketch leaves that out.`);
       } else if (I < 150) {
         parts.push('In this sketch a lower intake on this fixed-slope curve lowers the equilibrium, because less excretion is needed to balance it.');
       }
       if (S > 0) {
-        parts.push(`Shifting the curve ${S} mmHg to the right raises the equilibrium by ${S} mmHg at the same intake and keeps it raised${S === 10 && I === 150 ? ' (the lesson’s part C(i): 110 mmHg)' : ''}; the lesson says that in every form of human and experimental hypertension studied so far the curve is shifted to higher pressures.`);
+        parts.push(`Shifting the curve ${S} mmHg to the right raises the equilibrium by ${S} mmHg at the same intake and keeps it raised${S === 10 && I === 150 && !flat ? ' (the lesson’s part C(i): 110 mmHg)' : ''}; Guyton and Hall argue that in every form of hypertension studied so far the curve sits at higher pressures (shifted, flattened or both), though it is hard to measure directly in people.`);
       } else if (S < 0) {
         parts.push(`Shifting the curve ${Math.abs(S)} mmHg to the left lowers the equilibrium by ${Math.abs(S)} mmHg at the same intake; the lesson makes the point for a sustained fall in pressure at unchanged intake: it would require some change in how the kidney handles sodium.`);
       }
@@ -188,11 +204,15 @@
       }
     }
 
-    [dIn, gIn, sIn, iIn].forEach((s) => s.addEventListener('input', render));
+    [dIn, gIn, sIn, iIn, kIn].forEach((s) => s.addEventListener('input', render));
     root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
       b.addEventListener('click', () => {
-        dIn!.value = '20'; gIn!.value = '2'; iIn!.value = '150';
-        sIn!.value = b.dataset.preset === 'c' ? '10' : '0';
+        const p = b.dataset.preset;
+        dIn!.value = '20';
+        gIn!.value = p === 'g5' ? '5' : '2';
+        sIn!.value = p === 'c' ? '10' : '0';
+        iIn!.value = p === 'flat' ? '250' : '150';
+        kIn!.value = p === 'flat' ? '1' : '0';
         render();
       });
     });
