@@ -121,10 +121,19 @@ const lessonLd = {
   inLanguage: 'en',
   about: lesson.courseChapter,
   isPartOf: { '@type': 'Course', name: course.slug === 'biochemistry' ? 'Biochemistrypedia' : course.title, provider: { '@type': 'Person', name: 'Christopher Deppmann' } },
+  // For search engines and AI agents (2026-11-09): where it lives, that it is free, what it teaches, and its plain-text copy.
+  url: `https://biochemistrypedia.com/lessons/${lesson.slug}/`,
+  isAccessibleForFree: true,
+  author: { '@type': 'Person', name: 'Christopher Deppmann' },
+  copyrightHolder: { '@type': 'Person', name: 'Christopher Deppmann' },
+  ...(lesson.objectives.length ? { teaches: lesson.objectives } : {}),
+  ...(lesson.estMinutes ? { timeRequired: `PT${lesson.estMinutes}M` } : {}),
+  encoding: { '@type': 'MediaObject', encodingFormat: 'text/markdown', contentUrl: `https://biochemistrypedia.com/lessons/${lesson.slug}.md` },
 };
 ---
 
-<BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}>
+<BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}
+  alternates={[{ type: 'text/markdown', href: `/lessons/${lesson.slug}.md`, title: 'This lesson as plain Markdown' }]}>
   <article id="top">
     <header class="lesson-hero wrap">
       <ClassBar slug={lesson.slug} />

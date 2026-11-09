@@ -14,8 +14,10 @@ interface Props {
   jsonLd?: Record<string, unknown>;
   /** Keep the page out of search results (account and class pages). */
   noindex?: boolean;
+  /** Other forms of this page, e.g. a lesson's plain Markdown copy for AI agents. */
+  alternates?: { type: string; href: string; title?: string }[];
 }
-const { title, description, ogType = 'website', jsonLd, noindex = false } = Astro.props;
+const { title, description, ogType = 'website', jsonLd, noindex = false, alternates = [] } = Astro.props;
 const year = 2026;
 const SITE_NAME = 'Biochemistrypedia';
 const DEFAULT_DESC =
@@ -91,6 +93,7 @@ const websiteLd = {
       </Fragment>
     )}
     <link rel="alternate" type="application/atom+xml" title="Biochemistrypedia: what’s new" href="/updates.xml" />
+    {alternates.map((a) => <link rel="alternate" type={a.type} href={a.href} title={a.title} />)}
   </head>
   <body>
     <a href="#main" class="skip-link">Skip to content</a>

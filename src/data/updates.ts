@@ -112,6 +112,8 @@ export const MILESTONES: Milestone[] = [
     text: 'Every Biochemistry lesson gets the expert-teacher rewrite, with new figures, simulations and flashcards.' },
   { date: '2026-11-08', kind: 'site', title: 'Faster to the lesson', prs: [192, 195, 196],
     text: 'A contents list in every lesson, links from lessons to MCAT practice, a shelf of recently rewritten lessons, and a homepage and lesson page that get you to the material sooner.' },
+  { date: '2026-11-09', kind: 'site', title: 'Easier for AI assistants to read and cite', prs: [203],
+    text: 'Every lesson now has a plain-text copy for AI assistants, with a site guide at /llms.txt and a catalog of every course, so when an assistant answers a question from a lesson it can quote it accurately and link back to it.' },
   { date: '2026-11-09', kind: 'quality', title: 'Physiology being rewritten', prs: [202],
     text: 'Physiology lessons get the expert-teacher rewrite: one guiding idea built step by step, prediction checks, new figures and a flashcard deck. Eleven of 30 lessons are done.' },
   { date: '2026-11-09', kind: 'site', title: 'A plainer headline and a tidier footer', prs: [201],
