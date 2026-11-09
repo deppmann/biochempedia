@@ -3,6 +3,7 @@ import { PATHS } from '../data/paths';
 import { getCollection } from 'astro:content';
 import { METHODS } from '../data/methods';
 import { SETS as MCAT_SETS } from '../lib/mcat';
+import { allFilms } from '../lib/films';
 
 /**
  * Hand-rolled sitemap (no @astrojs/sitemap — Astro deps are pinned). Lists the
@@ -25,6 +26,7 @@ export async function GET(context: APIContext): Promise<Response> {
     ...courses.map((c) => `/courses/${c}/`),
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
     '/methods/', ...METHODS.map((m) => `/methods/${m.slug}/`),
+    '/films/', ...(await allFilms()).map((f) => f.href),
   ];
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
