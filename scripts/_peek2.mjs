@@ -1,0 +1,16 @@
+import { fromHtml } from 'hast-util-from-html';
+import { readFileSync } from 'node:fs';
+const t = fromHtml(readFileSync(process.argv[2], 'utf8'));
+const cls = (n) => (n.properties?.className || []).join(' ');
+const find = (n, pred) => { if (pred(n)) return n; for (const c of n.children || []) { const r = find(c, pred); if (r) return r; } };
+const tx = (n) => n.type === 'text' ? n.value : (n.tagName === 'script' || n.tagName === 'style') ? '' : (n.children || []).map(tx).join('');
+const show = (label, n) => console.log('---', label, n ? tx(n).replace(/\s+/g, ' ').slice(0, 600) : 'NONE');
+show('top', find(t, (n) => n.tagName === 'article' && cls(n) === 'top'));
+show('overview', find(t, (n) => cls(n).includes('overview')));
+show('sources', find(t, (n) => n.tagName === 'section' && cls(n).includes('sources')));
+const tc = find(t, (n) => cls(n).includes('table-cards'));
+console.log('table inside table-cards:', !!find(tc, (n) => n.tagName === 'table'));
+const lf = find(t, (n) => n.tagName === 'figure' && cls(n).includes('lesson-figure'));
+console.log('lesson-figure:', JSON.stringify(find(lf, (n) => n.tagName === 'img')?.properties?.alt), '|', lf && tx(find(lf, (n) => n.tagName === 'figcaption') || {children:[]}).replace(/\s+/g,' ').slice(0,200));
+const jl = find(t, (n) => n.tagName === 'script' && (n.properties?.type === 'application/ld+json'));
+console.log(tx(jl).slice(0, 1500));

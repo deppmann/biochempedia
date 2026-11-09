@@ -112,6 +112,8 @@ export const MILESTONES: Milestone[] = [
     text: 'Every Biochemistry lesson gets the expert-teacher rewrite, with new figures, simulations and flashcards.' },
   { date: '2026-11-08', kind: 'site', title: 'Faster to the lesson', prs: [192, 195, 196],
     text: 'A contents list in every lesson, links from lessons to MCAT practice, a shelf of recently rewritten lessons, and a homepage and lesson page that get you to the material sooner.' },
+  { date: '2026-11-09', kind: 'site', title: 'Easier for AI assistants to read and cite', prs: [202],
+    text: 'Every lesson now has a plain-text copy for AI assistants, with a site guide at /llms.txt and a catalog of every course, so when an assistant answers a question from a lesson it can quote it accurately and link back to it.' },
   { date: '2026-11-09', kind: 'site', title: 'A plainer headline and a tidier footer', prs: [201],
     text: 'The homepage now opens with “From a first question to current research,” and the footer is shorter, with links grouped into Learn, Teach, This site and From the lab.' },
   { date: '2026-11-09', kind: 'tools', title: 'Abbreviations explained, and a feed for this page', prs: [200],

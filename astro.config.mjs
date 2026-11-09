@@ -33,6 +33,10 @@ const pagefindIndex = () => ({
       // Optional: without the map the search fetches the top results' pages instead (slower, same answers).
       const m = spawnSync(process.execPath, ['scripts/pagefind-page-map.mjs', site], { stdio: 'inherit', cwd: process.cwd() });
       if (m.status !== 0) logger.warn('Could not write dist/pagefind/page-map.json; search will fetch result pages to rank them.');
+      // Plain Markdown copies of every lesson, plus llms-full.txt, for AI agents (scripts/agent-markdown.mjs).
+      // Written from the built pages, after Pagefind, so they never enter the search index.
+      const md = spawnSync(process.execPath, ['scripts/agent-markdown.mjs', site], { stdio: 'inherit', cwd: process.cwd() });
+      if (md.status !== 0) throw new Error('agent-markdown failed to write the lesson Markdown copies (see output above).');
     },
   },
 });
