@@ -10,13 +10,14 @@ summary: >-
   the adult human adrenal cortex, separates the ACTH loop from the renin-angiotensin and potassium
   loop, and shows how an enzyme keeps cortisol off the kidney's aldosterone receptor. Afterwards
   you can convert a short-circuit current into sodium transport and predict cortisol, ACTH,
-  aldosterone, renin, potassium and blood pressure in four adrenal disorders.
+  aldosterone, renin, potassium, adrenal androgens and blood pressure across adrenal insufficiency,
+  Cushing syndrome, primary aldosteronism and congenital adrenal hyperplasia.
 hook: "The kidney's aldosterone receptor binds cortisol just as tightly, and plasma carries far more cortisol. So why does aldosterone run sodium transport?"
 
 estMinutes: 25
 objectives:
   - "Relate the three zones of the adult human adrenal cortex to aldosterone, cortisol and adrenal androgens through the enzymes each zone has or lacks, and relate chromaffin cells to adrenaline and noradrenaline released by nicotinic transmission."
-  - "Explain why ACTH controls cortisol and adrenal androgens while angiotensin II and plasma potassium are the main controls of aldosterone, and how cortisol travels bound to cortisol-binding globulin."
+  - "Explain why ACTH controls cortisol and adrenal androgens while angiotensin II and plasma potassium are the main controls of aldosterone, and how cortisol travels bound to corticosteroid-binding globulin."
   - "Explain the actions of cortisol on fuel, inflammation and blood pressure, and of aldosterone on sodium and potassium, and calculate sodium transport from a short-circuit current."
   - "Predict cortisol, ACTH, aldosterone, renin, potassium, adrenal androgens and blood pressure in primary and central adrenal insufficiency, Cushing syndrome by source, primary aldosteronism, and 21- against 11-beta-hydroxylase deficiency."
 
@@ -303,8 +304,8 @@ explainLevels:
       about 2.24 micromol per cm2 per hour. Crabbé's toad bladder responded to 2.8 x 10^-7 mol per L
       aldosterone, several hundred times an illustrative human plasma level near 0.4 nmol per L,
       so the classic establishes a direct epithelial action, not its sensitivity. For the receptor,
-      equal in-vitro affinity for aldosterone and cortisol plus a cortisol concentration
-      roughly a hundredfold higher predicts near-total occupancy by cortisol unless 11-beta-HSD2
+      equal in-vitro affinity for aldosterone and cortisol plus a free cortisol concentration
+      on the order of a hundredfold higher predicts near-total occupancy by cortisol unless 11-beta-HSD2
       lowers local cortisol; its inhibition (liquorice) or loss of function (apparent
       mineralocorticoid excess) produces low-renin, low-aldosterone hypertension. In the
       glomerulosa, somatic KCNJ5 mutations that make the channel sodium-permeable depolarize cells
@@ -350,50 +351,106 @@ draft: false
 ---
 
 import AdrenalEnzymeBlock from '../../../components/AdrenalEnzymeBlock.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Mineralocorticoid receptors bind cortisol as tightly as they bind aldosterone, and adult human plasma carries far more cortisol (a hundredfold molar excess is a commonly cited figure). Yet sodium transport in the kidney follows aldosterone. How?**
+**The kidney's aldosterone receptor (the mineralocorticoid receptor, which switches on sodium transport) binds cortisol as tightly as it binds aldosterone, and adult human plasma carries far more cortisol (a hundredfold or more, counted in molecules). Yet sodium transport in the kidney follows aldosterone. How?**
 
-The answer is an enzyme beside the receptor. On the way you will follow one gland's steroids and catecholamines, then use their controls to predict disease. The first look is in [the endocrine system](/lessons/endocrine-system/).
+The short answer: an enzyme in the kidney inactivates cortisol near the receptor (the main part of the answer; Going deeper asks how much it must do). The rest of the lesson earns that sentence, and the same reasoning predicts adrenal disease. The first look at the gland is in [the endocrine system](/lessons/endocrine-system/).
 
-## Two glands in one capsule: three cortical zones and a medulla
+Each adrenal gland is two glands in one capsule. The outer **cortex** has three zones that make steroids from cholesterol: a salt hormone (aldosterone), a fuel hormone (cortisol) and androgen precursors. The inner **medulla** is a modified sympathetic ganglion that releases adrenaline and noradrenaline into the blood. **Cortisol** shifts fuel toward glucose, restrains inflammation and supports blood pressure. **Aldosterone** makes the kidney keep sodium and lose potassium.
 
-Each adrenal gland, on the upper pole of a kidney, is two organs in one capsule. The outer **cortex** makes steroids from cholesterol. The inner **medulla** is a modified sympathetic ganglion whose **chromaffin cells**, which arise from the [neural crest](/lessons/neural-crest/), release adrenaline (epinephrine) and noradrenaline (norepinephrine) into the blood.
+*The film at the top of the page covers Crabbé's experiment and the guard enzyme, both below.*
 
-Zonation of the adult human cortex is a matter of which enzymes each zone expresses: one assembly line, with stations switched on or off in three workshops. In every zone, the mitochondrial side-chain cleavage enzyme (CYP11A1) cuts cholesterol to pregnenolone. This is the slow step, and ACTH speeds it, within minutes by raising cholesterol delivery to the enzyme (through the StAR protein) and over days by inducing the pathway's enzymes. Then the routes split.
+> **The one idea to carry through this lesson.** Read any adrenal state in three steps, in this order. **One: the enzymes.** A missing enzyme lowers everything after it and backs up the substance just before it. **Two: the receptors.** Ask what the steroids now present can do at a receptor; some backed-up precursors are hormones themselves. **Three: the loops.** Only now let the controls respond. ACTH rises when cortisol falls and drives the shared trunk of the pathway (the tree comes next), so extra flow leaves through any branch still open. Renin rises when volume falls and falls when volume expands. Aldosterone follows mainly angiotensin II and plasma potassium, not ACTH.
+>
+> **Scope.** The rule predicts the *direction* of changes in a steady state, compared with a healthy person, not their size, speed or symptoms. Step three must come last; the 11-beta-hydroxylase case below shows why.
 
-- **Zona glomerulosa** (outer): makes aldosterone, the main **mineralocorticoid** (a steroid acting on sodium and potassium balance). Pregnenolone becomes progesterone, 21-hydroxylase makes 11-deoxycorticosterone (DOC), and aldosterone synthase (CYP11B2), expressed only here, converts DOC through corticosterone to aldosterone. No 17-alpha-hydroxylase, so no cortisol.
-- **Zona fasciculata** (middle): makes cortisol, the main **glucocorticoid** (named for its effect on blood glucose). 17-alpha-hydroxylase (CYP17A1) gives 17-hydroxyprogesterone, 21-hydroxylase gives 11-deoxycortisol, and 11-beta-hydroxylase (CYP11B1) gives cortisol. No aldosterone synthase.
-- **Zona reticularis** (inner): CYP17A1 acts strongly as a 17,20-lyase, giving DHEA, then DHEA sulfate and androstenedione, weak androgens.
+## One trunk, three branches: the cortical zones
 
-So 21-hydroxylase lies on the routes to cortisol and aldosterone but not to the androgens. Species differ: rats and mice express little adrenal 17-alpha-hydroxylase and make corticosterone, with little adrenal DHEA, so the main glucocorticoid a rat or mouse makes is corticosterone, not cortisol.
+Each adrenal gland sits on the upper pole of a kidney. In the adult human cortex, which enzymes a zone has decides what it makes: step one of the rule, in a healthy gland. Picture the pathway as a tree.
 
-{/* DIAGRAM: adrenal gland on a kidney with capsule, three cortical zones and medulla labelled, blood flowing from capsule inward to medulla, a preganglionic fibre on chromaffin cells */}
+- **The trunk, shared by every zone.** Cholesterol is cut to pregnenolone by the mitochondrial side-chain cleavage enzyme (CYP11A1). This is the slow step, and ACTH speeds it: within minutes by raising cholesterol delivery to the enzyme (through the StAR protein, which moves cholesterol to the inner mitochondrial membrane where the enzyme sits), and over days by inducing the pathway's enzymes.
+- **Three branches leave the trunk**, one per zone. A few enzymes decide which branch a cell can use. Learn the names in bold; the CYP numbers are for reference.
 
-Preganglionic sympathetic fibres release acetylcholine onto nicotinic receptors of chromaffin cells, which depolarize and release catecholamines within seconds ([hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/)). In adult humans most of the output, often given as about four-fifths, is adrenaline. Blood drains from cortex to medulla, and work mainly in rats indicates that this glucocorticoid-rich blood supports **PNMT**, the enzyme that converts noradrenaline to adrenaline.
+| Zone (outer to inner) | Main product | The enzyme that decides it |
+|---|---|---|
+| **Glomerulosa** | Aldosterone, the main **mineralocorticoid** (a steroid acting on sodium and potassium balance) | Has **aldosterone synthase** (CYP11B2), found in this zone only (in adults it is patchy, concentrated in small cell clusters under the capsule; see Going deeper). Lacks 17-alpha-hydroxylase, so it cannot make cortisol. |
+| **Fasciculata** | Cortisol, the main **glucocorticoid** (named for its effect on blood glucose) | Has **17-alpha-hydroxylase** (CYP17A1), **21-hydroxylase** and **11-beta-hydroxylase** (CYP11B1). Lacks aldosterone synthase. |
+| **Reticularis** | DHEA and androstenedione, mostly weak androgens | Its CYP17A1 acts strongly as a **17,20-lyase**, cutting off the steroid's side chain. |
+
+Two points carry the rest of the lesson. CYP17A1 has two jobs: adding a 17-hydroxyl group (needed for cortisol) and cutting the side chain (needed for androgens). And 21-hydroxylase lies on the routes to cortisol and aldosterone, not to the androgens.
+
+<details>
+<summary>The full routes, step by step</summary>
+
+- **Glomerulosa:** pregnenolone becomes progesterone (by 3-beta-hydroxysteroid dehydrogenase, 3-beta-HSD2); 21-hydroxylase makes 11-deoxycorticosterone (DOC); aldosterone synthase converts DOC through corticosterone to aldosterone.
+- **Fasciculata:** 17-alpha-hydroxylase gives 17-hydroxyprogesterone; 21-hydroxylase gives 11-deoxycortisol; 11-beta-hydroxylase gives cortisol.
+- **Reticularis:** the 17,20-lyase gives DHEA, then DHEA sulfate and androstenedione.
+
+Rats and mice differ from humans here; see Going deeper.
+
+</details>
+
+<LessonFigure src="/figures/adrenal-glands/adrenal-zones.webp" width={1200} height={806} alt="AI-generated illustration: cut-away of an adrenal gland on the upper pole of a kidney: from outside in, a capsule, the glomerulosa making aldosterone, the fasciculata making cortisol, the reticularis making weak androgens, and the medulla making adrenaline and noradrenaline, with blood flowing from the capsule inward. An inset shows one shared step from cholesterol to pregnenolone branching into aldosterone, cortisol and androgens; a second inset shows a sympathetic nerve fibre on chromaffin cells releasing adrenaline into blood." caption="Each zone of the cortex makes its own steroid because of the enzymes it has; all three share one ACTH-driven trunk, and the medulla inside is a modified sympathetic ganglion that releases mostly adrenaline into blood that has already passed through the cortex." />
+
+### The medulla
+
+The medulla's **chromaffin cells**, which arise from the [neural crest](/lessons/neural-crest/), release adrenaline (epinephrine) and noradrenaline (norepinephrine) into the blood. Preganglionic sympathetic fibres release acetylcholine onto nicotinic receptors of chromaffin cells, which depolarize and release catecholamines within seconds ([hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/)). In adult humans most of the output, often given as about four-fifths, is adrenaline. Blood drains from cortex to medulla, and work mainly in rats indicates that this glucocorticoid-rich blood supports **PNMT**, the enzyme that converts noradrenaline to adrenaline.
 
 ## ACTH drives cortisol; angiotensin II and potassium drive aldosterone
 
-ACTH binds the **MC2 receptor** (melanocortin 2 receptor), found mainly on fasciculata and reticularis cells but also in the glomerulosa, a G-protein-coupled receptor that signals through Gs and cyclic AMP ([cAMP and PKA](/lessons/camp-and-pka/)). The feedback loop and its tests belong to [endocrine axes and testing](/lessons/endocrine-axes-and-testing/) and [emotion and stress](/lessons/emotion-and-stress/).
+The gland has two separate control systems, and keeping them apart is step three of the rule.
 
-Aldosterone answers to **angiotensin II**, the end product of the renin cascade ([blood pressure regulation](/lessons/blood-pressure-regulation/)), and to a rise in **plasma potassium**. ACTH stimulates it too, but less, and with continuous exposure that effect fades, which is why loss of pituitary ACTH leaves aldosterone largely intact.
+### The ACTH loop: cortisol and the androgens
 
-The glomerulosa cell is a voltage sensor. Potassium channels dominate its resting conductance, so it rests near the potassium equilibrium potential, and a rise in plasma potassium depolarizes it ([membrane transport](/lessons/membrane-transport/)). Angiotensin II, through its AT1 receptor, closes potassium channels with the same result. Depolarization opens voltage-gated calcium channels, and calcium drives aldosterone synthase. In mouse adrenal slices, Hu and colleagues (2012) reported spontaneous voltage oscillations in 73 of 85 glomerulosa cells, at a mean of 0.44 Hz at 22 degrees C: an electrical rhythm in mouse cells, not a human hormone pulse rate.
+ACTH, from the anterior pituitary, binds the **MC2 receptor** (melanocortin 2 receptor, the ACTH receptor), found mainly on fasciculata and reticularis cells but also in the glomerulosa. It is a G-protein-coupled receptor that signals through Gs and cyclic AMP ([cAMP and PKA](/lessons/camp-and-pka/)). Cortisol feeds back to lower ACTH. The loop and its tests belong to [endocrine axes and testing](/lessons/endocrine-axes-and-testing/) and [emotion and stress](/lessons/emotion-and-stress/).
 
-In adult human plasma about 90 percent of cortisol is protein-bound, mostly to **cortisol-binding globulin** (CBG). On the **free hormone hypothesis**, only the unbound fraction acts. Aldosterone binds CBG weakly, so more of it circulates free. By **stable-isotope dilution**, Esteban and colleagues (1991) measured a mean cortisol production of 5.7 mg per square metre of body surface per day in 12 normal volunteers, lower than earlier estimates by the authors' account.
+### The second loop: angiotensin II and potassium drive aldosterone
+
+Aldosterone answers to **angiotensin II**, the end product of the renin cascade ([blood pressure regulation](/lessons/blood-pressure-regulation/)), and to a rise in **plasma potassium**. ACTH stimulates it too, but less, and with continuous exposure that effect fades.
+
+How does potassium in the blood reach an enzyme inside the cell? The glomerulosa cell is a voltage sensor, and the link is a chain of four steps ([membrane transport](/lessons/membrane-transport/)).
+
+1. Potassium channels dominate the cell's resting conductance (its open ion paths), so it rests near the potassium equilibrium potential, the voltage at which potassium has no net push in or out.
+2. A rise in plasma potassium moves that equilibrium potential up and depolarizes the cell. Angiotensin II, through its AT1 receptor, closes potassium channels with the same result.
+3. Depolarization opens voltage-gated calcium channels.
+4. Calcium drives aldosterone synthase.
+
+**Predict.** A mutation makes one of the glomerulosa's potassium channels leak sodium as well. Which way does aldosterone go? Then run step three: what happens to renin and plasma potassium?
+
+<details>
+<summary>Check your prediction</summary>
+
+Sodium leaking in depolarizes the cell, as if potassium were high. Calcium channels open and aldosterone is made even when angiotensin II is low. The extra aldosterone retains sodium and raises pressure, which suppresses renin, and it increases potassium secretion, so plasma potassium tends to fall. High aldosterone with low renin, while potassium is normal or low, is a pattern the normal controls do not produce: it points to aldosterone made without regard to renin.
+
+</details>
+
+**The modern experiment.** That mutation is real. Murim Choi, Ute Scholl and colleagues in Richard Lifton's laboratory (2011) sequenced the coding DNA (the exome) of four aldosterone-producing adenomas, benign tumors, against the same patients' blood, then sequenced KCNJ5 in 18 more tumor and blood pairs. Recurrent mutations in **KCNJ5**, a potassium channel gene, appeared in 8 of 22 adenomas and were somatic: in the tumor, not the blood. Expressed with KCNJ3 in cultured 293T cells (a human kidney cell line), the mutant channels conducted sodium and depolarized the cells. Keep apart association, somatic status and function. The study does not show that all primary aldosteronism has this cause (most of these adenomas lacked it), that a cell line behaves like a glomerulosa cell, or why the cells proliferate.
+
+**Primary aldosteronism** is the disease of this loop, from an adenoma or bilateral hyperplasia. Pressure rises; potassium falls in some patients, but many are normokalemic; bicarbonate may rise ([acid-base balance](/lessons/acid-base-balance/)); renin falls. So aldosterone is read against renin: the signature is **aldosterone that is high for a suppressed renin** (a raised aldosterone-to-renin ratio), even when the aldosterone value itself sits near the reference range.
+
+**Predict.** Aldosterone retains sodium, and here it is made without limit. Why is a patient with primary aldosteronism not swollen with fluid?
+
+<details>
+<summary>Check your prediction</summary>
+
+Sodium reabsorption rises and extracellular volume expands, but only modestly. The higher pressure raises sodium excretion (**pressure natriuresis**) until output matches intake again. This return to sodium balance despite continuing aldosterone excess is called **mineralocorticoid escape**, and it involves more than pressure (Going deeper). So edema is not typical: the rise in pressure that limits the sodium retention is itself the clinical cost.
+
+</details>
 
 ## Cortisol shifts fuel, restrains inflammation and supports pressure
 
-Dinneen and colleagues (1993) blocked cortisol synthesis in normal volunteers with metyrapone, an 11-beta-hydroxylase inhibitor, and replaced cortisol by infusion either at a constant basal rate or on a schedule mimicking the night-time rise. After a mixed meal, the variable schedule increased the liver's glucose release, reduced glucose uptake in a way that appeared to reflect insulin resistance, and raised palmitate appearance, suggesting lipolysis. Insulin and glucagon changed too, so not every effect is direct. Simmons and colleagues (1984) found that an eight-hour hydrocortisone infusion increased whole-body **proteolysis** in seven normal subjects. Those amino acids feed **gluconeogenesis** ([integration of metabolism](/lessons/integration-of-metabolism/)). Cortisol thus raises glucose supply and lowers its use by muscle and fat, opposing insulin ([insulin, glucagon and glucose](/lessons/insulin-glucagon-glucose/)).
+Each of cortisol's three actions has been tested by changing cortisol and watching what follows.
 
-On inflammation, cortisol acts through the **glucocorticoid receptor**, a ligand-activated transcription factor ([nuclear receptors](/lessons/nuclear-receptors/)). In mice and cultured cells, Auphan and colleagues (1995) found that glucocorticoids inhibited activation of NF-kappa-B, which switches on many inflammatory genes ([TLRs and NF-kappa-B](/lessons/tlr-and-nf-kb/)), and that inducing its inhibitor, I-kappa-B-alpha, could be a major part of that; Scheinman and colleagues reported a similar mechanism the same year. Later work found that this induction varies between cell types, and that the receptor also represses inflammatory genes in other ways, for example by binding NF-kappa-B and AP-1 proteins directly.
+**Fuel.** In volunteers whose own cortisol was blocked and replaced by infusion, a night-time-like rise in cortisol, compared with a constant basal infusion, increased the liver's glucose release after a meal, reduced glucose uptake in a way that appeared to reflect insulin resistance, and raised the appearance of the fatty acid palmitate, suggesting lipolysis. Insulin and glucagon changed too, so not every effect is direct. In other volunteers, cortisol increased whole-body **proteolysis** (protein breakdown). Those amino acids feed **gluconeogenesis** ([integration of metabolism](/lessons/integration-of-metabolism/)). Cortisol thus raises glucose supply and lowers its use by muscle and fat, opposing insulin ([insulin, glucagon and glucose](/lessons/insulin-glucagon-glucose/)).
 
-On pressure, Whitworth and colleagues (1984) infused cortisol into seven subjects for five days at rates meant to resemble ACTH stimulation, and systolic pressure rose from 108 to 129 mmHg, by a mechanism the authors left unresolved. Part of cortisol's support of pressure is thought to be **permissive**: it keeps vascular smooth muscle responsive to noradrenaline and angiotensin II. Very high cortisol, as in severe Cushing syndrome, can also overwhelm the kidney's guard enzyme (below) and act on the mineralocorticoid receptor itself, retaining sodium and lowering potassium.
+**Inflammation.** Cortisol acts through the **glucocorticoid receptor**, a ligand-activated transcription factor ([nuclear receptors](/lessons/nuclear-receptors/)). In mice and cultured cells, glucocorticoids inhibited activation of NF-kappa-B, which switches on many inflammatory genes ([TLRs and NF-kappa-B](/lessons/tlr-and-nf-kb/)), and inducing its inhibitor, I-kappa-B-alpha, could be a major part of that. Later work found that this induction varies between cell types, and that the receptor also represses inflammatory genes in other ways, for example by binding NF-kappa-B and AP-1 proteins directly.
+
+**Pressure.** Infusing cortisol into volunteers for five days raised systolic pressure, by a mechanism the authors left unresolved. Part of cortisol's support of pressure is thought to be **permissive**: it keeps vascular smooth muscle responsive to noradrenaline and angiotensin II.
 
 ## Aldosterone acts on the epithelium itself, and an enzyme guards its receptor
 
-By the late 1950s aldosterone was known to make mammals retain sodium. Did it act on sodium-transporting cells directly?
-
-Jean Crabbé (1961) used the urinary bladder of the toad *Bufo marinus*, an epithelium that moves sodium from its urine side to its blood (serosal) side. He cut each bladder into paired halves and mounted each as a sheet between two chambers of aerated frog Ringer solution at room temperature. He measured the **short-circuit current**, the current needed to hold the voltage across the sheet at zero, which equals net active ion transport when one ion carries it. One half received d-aldosterone at 2.8 x 10^-7 mol per L on the serosal side; its partner was the control. If the effect required another hormone or blood flow, the sheet should not respond. After a latent period of about one hour, the treated half's current rose above its control's, and in eight bladders bidirectional sodium tracer fluxes confirmed that the extra current was net sodium transport.
+By the late 1950s aldosterone was known to make mammals retain sodium. Did it act on sodium-transporting cells directly? Jean Crabbé (1961) used the urinary bladder of a toad, an epithelium that moves sodium from its urine side to its blood side. He cut each bladder into paired halves, mounted each as a sheet between two chambers, and gave aldosterone to one half only. He measured the **short-circuit current**, the current needed to hold the voltage across the sheet at zero. With the same Ringer solution on both sides and no voltage, nothing drives ions passively, so this current equals net active ion transport when one ion carries it. If the effect required another hormone or blood flow, the isolated sheet should not respond. After about an hour, the treated half's current rose above its partner's, and in eight bladders sodium tracer fluxes measured in both directions confirmed that the extra current was net sodium transport.
 
 That ruled in a direct, delayed action on the epithelium and ruled out, in this preparation, a systemic intermediary; pairing removed differences between animals. It did not show which mammalian nephron segment responds (the distal nephron and collecting duct, from later work: [tubular transport and diuretics](/lessons/tubular-transport-diuretics/)), and the delay suggested, without proving, new protein synthesis, which later toad-bladder work, including from Isidore Edelman's laboratory, supported.
 
@@ -408,34 +465,80 @@ That ruled in a direct, delayed action on the epithelium and ruled out, in this 
 3. Per hour: 6.22 x 10^-10 x 3,600 s = 2.24 x 10^-6 mol, so 2.24 micromol per cm2 per h.
 4. Check: the control alone carries 40 x 10^-6 / 96,485 x 3,600 = 1.49 micromol per cm2 per h and the treated half 3.73; the difference is 2.24, a 2.5-fold rise.
 
-If another ion carried part of the current, step 2 would overstate sodium transport; hence the tracers.
+If another ion carried part of the current, step 2 would overstate sodium transport; hence the tracers. (Going deeper compares his concentration with plasma levels.)
 
-**Part 2: compare the concentration with plasma.** 2.8 x 10^-7 mol per L = 280 nmol per L. Take an illustrative adult plasma aldosterone of 15 ng per dL (made up; real ranges differ by laboratory, posture and salt intake), which is 150 ng per L. With a molar mass of 360.4 g per mol, 150 x 10^-9 / 360.4 = 4.16 x 10^-10 mol per L, or 0.416 nmol per L. The ratio 280 / 0.416 is about 670. The classic shows that the epithelium can respond, not that it responds at physiological concentrations.
+### The guard enzyme: why cortisol does not take the receptor
 
-Now the opening puzzle. Funder, Pearce, Smith and Smith (1988) reported that mineralocorticoid receptors bind aldosterone and the physiological glucocorticoids with equal affinity, and that **11-beta-hydroxysteroid dehydrogenase** (11-beta-HSD) in targets such as kidney, colon and parotid protects them by converting cortisol to inactive cortisone (corticosterone to 11-dehydrocorticosterone in rats). Aldosterone escapes this conversion. Edwards and colleagues reached a similar conclusion that year; the epithelial type 2 isoform was characterized in the 1990s. What the receptor then does is taught in [water, sodium and potassium](/lessons/water-sodium-potassium/).
+Now the opening puzzle. In adult human plasma about 90 percent of cortisol is protein-bound, mostly to **corticosteroid-binding globulin** (CBG, also called transcortin). On the **free hormone hypothesis**, only the unbound fraction acts. Aldosterone binds CBG weakly, so a larger share of it circulates free. Counting only free hormone, the part that can reach a receptor, cortisol still exceeds aldosterone by roughly a hundredfold (Going deeper derives the range); in total hormone the excess is several times larger.
 
-## Reading adrenal disease from the loops
+Even a hundredfold excess should win an equal-affinity receptor nearly every time. Funder, Pearce, Smith and Smith (1988) reported that mineralocorticoid receptors bind aldosterone and the physiological glucocorticoids with equal affinity, and that **11-beta-hydroxysteroid dehydrogenase** (11-beta-HSD) in targets such as kidney, colon and parotid protects them by converting cortisol to inactive cortisone. Aldosterone escapes this conversion. The work was done in rats, where the enzyme converts corticosterone to 11-dehydrocorticosterone. Edwards and colleagues reached a similar conclusion that year; the epithelial type 2 isoform was characterized in the 1990s. What the receptor then does is taught in [water, sodium and potassium](/lessons/water-sodium-potassium/).
 
-**Primary aldosteronism** tests the renin-angiotensin-aldosterone loop: an adenoma or bilateral hyperplasia makes aldosterone without regard to renin. Sodium reabsorption rises and extracellular volume expands only modestly, because higher pressure raises sodium excretion (**pressure natriuresis**) until output matches intake, often called mineralocorticoid escape; edema is not typical. Pressure rises; potassium falls in some patients, but many are normokalemic; bicarbonate may rise ([acid-base balance](/lessons/acid-base-balance/)); renin falls. So aldosterone is read against renin. In a recruited cross-sectional cohort, Brown and colleagues (2020) found renin-independent aldosterone production forming a continuum across blood-pressure categories, and a 2025 Endocrine Society guideline suggests screening everyone with hypertension.
+The film says the receptor is then "left to aldosterone". That is the historical conclusion, and Going deeper tests it. Liquorice in large amounts, which causes sodium retention, low potassium and high blood pressure with renin and aldosterone both low, inhibits the enzyme, so cortisol is no longer inactivated in the kidney and occupies the receptor itself.
 
-**The modern experiment.** Murim Choi, Ute Scholl and colleagues in Richard Lifton's laboratory (2011) exome-sequenced four human aldosterone-producing adenomas against the same patients' blood, then sequenced KCNJ5 in 18 more tumor and blood pairs. Recurrent mutations in **KCNJ5**, a potassium channel gene, appeared in 8 of 22 adenomas and were somatic: in the tumor, not the blood. Expressed with KCNJ3 in cultured 293T cells, the mutant channels conducted sodium and depolarized the cells. A depolarized glomerulosa cell opens calcium channels and keeps making aldosterone even when renin and angiotensin II are suppressed. Keep apart association, somatic status and function. It does not show that all primary aldosteronism has this cause (most of these adenomas lacked it), that a cell line behaves like a glomerulosa cell, or why the cells proliferate.
+**Predict.** In severe Cushing syndrome, cortisol is so high that it overwhelms the kidney's guard enzyme. Apart from cortisol's other effects, what happens to sodium, plasma potassium and renin?
 
-The other disorders follow from the same loops (directions relative to a healthy adult; cases vary).
+<details>
+<summary>Check your prediction</summary>
+
+The excess cortisol gets past the enzyme and acts on the mineralocorticoid receptor itself, retaining sodium and lowering potassium. The retained sodium expands volume, which suppresses renin. This is cortisol's second route to raising pressure.
+
+</details>
+
+The enzyme beside the receptor (step one) decides which steroid reaches it (step two): the lesson's rule, applied at the target instead of in the gland. The film ends on the same point: the enzyme beside a receptor is part of what defines a hormone's target tissue.
+
+## Reading adrenal disease in three steps
+
+You now have what you need to predict an adrenal disease you have never seen. The reminder: **enzymes first, then what reaches a receptor, then the loops.**
+
+### One case all the way through: 21-hydroxylase deficiency
+
+In **congenital adrenal hyperplasia** (CAH), a child is born missing one enzyme of the cortisol pathway. Take classic salt-wasting 21-hydroxylase deficiency, where enzyme activity is near zero. (In the simple-virilizing form enough enzyme remains to keep aldosterone near normal, although renin is often raised; the androgen story is the same.)
+
+*Step one, the enzymes.* Cortisol and aldosterone fall, and 17-hydroxyprogesterone, the substrate just before the block, piles up; it is the screening marker.
+
+*Step two, the receptors.* Nothing piling up is a mineralocorticoid: the block comes before DOC (11-deoxycorticosterone, the aldosterone precursor), so no precursor stands in for the missing aldosterone. Worse, the backed-up progesterone and 17-hydroxyprogesterone act as weak antagonists at the mineralocorticoid receptor and can add to the salt loss.
+
+*Step three, the loops.* Low cortisol releases the brake on ACTH. ACTH drives the trunk of the pathway, and the extra flow spills into the androgen branch, which does not need 21-hydroxylase. Androgens rise and virilize affected children ([sexual differentiation](/lessons/sexual-differentiation-testis/)), and long ACTH drive enlarges the gland: the "hyperplasia". Meanwhile low aldosterone means sodium is lost, so volume and pressure fall, renin rises and potassium is retained; in the salt-wasting form this becomes a crisis.
+
+Read that off as a row: cortisol down, ACTH up, aldosterone down, renin up, potassium up, androgens up, pressure down.
+
+<AdrenalEnzymeBlock />
+
+**Predict.** 11-beta-hydroxylase makes the last step to cortisol (11-deoxycortisol to cortisol) and, in the cortisol-making zone, the step from DOC to corticosterone. It is not the enzyme the glomerulosa uses to finish aldosterone; that is aldosterone synthase, a different gene. Work the three steps for a child missing 11-beta-hydroxylase. Predict cortisol, ACTH, DOC, androgens, renin, aldosterone and blood pressure. Set the block in the simulation above to check yourself.
+
+<details>
+<summary>Check your prediction</summary>
+
+*Step one.* Cortisol falls; 11-deoxycortisol and DOC, the substrates just before the block, pile up.
+
+*Step two.* Here the two diseases differ. **DOC is itself a mineralocorticoid.** It does the job of the missing aldosterone: sodium is retained, potassium secreted, volume expands and pressure tends to rise.
+
+*Step three.* Low cortisol raises ACTH, which drives more flow into the androgens. The expanded volume suppresses renin, and because aldosterone follows angiotensin II, **aldosterone falls too**, in a patient with too much mineralocorticoid activity. Potassium is normal or low.
+
+If you predicted high aldosterone, you read the salt retention as aldosterone's work. Step two says DOC is doing it, and only then do the loops follow: volume expands, renin falls and aldosterone falls with it. The renin loop measures volume and pressure, not which hormone caused them, which is also why aldosterone is always read *against renin*.
+
+</details>
+
+### The rest of the table
+
+The same three steps give the other rows.
+
+- **Primary insufficiency (Addison disease):** the whole cortex is lost. Every product falls and ACTH rises; high ACTH and related peptides from its precursor (POMC) darken skin and mucosa.
+- **Central insufficiency:** only pituitary ACTH is lost. The two inner zones go quiet, but angiotensin II and potassium still drive the glomerulosa, so neither hyperkalemia nor hyperpigmentation appears. Pressure can still fall without cortisol's support.
+- **Cushing syndrome from an adrenal adenoma:** cortisol is made autonomously, so ACTH is suppressed and the androgen-making zone goes quiet with it.
+- **Cushing syndrome from too much ACTH**, from the pituitary or an ectopic tumor: androgens rise with cortisol. **Cushing disease** is only the pituitary form of Cushing syndrome. In either form, cortisol high enough to swamp the guard enzyme can lower renin and potassium.
+
+Cases vary.
 
 | Disorder | Cortisol | ACTH | Aldosterone | Renin | Plasma K+ | Adrenal androgens | Blood pressure |
 |---|---|---|---|---|---|---|---|
 | Primary insufficiency (Addison) | Down | Up | Down | Up | Up | Down | Down |
-| Central insufficiency | Down | Low or normal | Near normal | Normal | Normal | Down | Can fall |
+| Central insufficiency | Down | Low or normal | Near normal | Normal | Normal | Down | Normal or down |
 | Cushing, adrenal adenoma | Up | Down | Normal | Normal or down | Normal or down | Down | Up |
 | Cushing, pituitary or ectopic ACTH | Up | Up or normal | Normal or down | Normal or down | Normal or down | Up or high-normal | Up |
+| Primary aldosteronism | Normal | Normal | Up (or inappropriately normal) | Down | Normal or down | Normal | Up |
 | CAH, 21-hydroxylase, salt-wasting | Down | Up | Down | Up | Up | Up (androstenedione; DHEA and DHEAS can be low) | Down |
 | CAH, 11-beta-hydroxylase | Down | Up | Down | Down | Normal or down | Up | Up in many |
-
-In **primary insufficiency** high ACTH and related peptides from its precursor (POMC) darken skin and mucosa; in **central insufficiency** angiotensin II and potassium still drive the glomerulosa, so neither hyperkalemia nor hyperpigmentation appears. **Cushing disease** is only the pituitary form of **Cushing syndrome**. In **congenital adrenal hyperplasia** (CAH) from 21-hydroxylase deficiency, 17-hydroxyprogesterone piles up and is diverted into androgens, virilizing affected children ([sexual differentiation](/lessons/sexual-differentiation-testis/)). In 11-beta-hydroxylase deficiency DOC acts as a mineralocorticoid; 38 of 70 patients with blood-pressure data in one international cohort were hypertensive (Khattab and colleagues, 2017).
-
-<AdrenalEnzymeBlock />
-
-A recent trial probed this loop from above with crinecerfont, a CRF1 (CRH receptor) antagonist. In 182 randomized adults with classic 21-hydroxylase deficiency, it allowed a 27.3 percent least-squares mean glucocorticoid dose reduction at 24 weeks with androstenedione controlled, against 10.3 percent with placebo (Auchus and colleagues, 2024), consistent with excess CRH-ACTH drive. Replacement was still required.
 
 ### Design problem
 
@@ -452,6 +555,55 @@ Mineralocorticoid receptors extracted from rat kidney bind aldosterone and corti
 
 4. **Controls**: vehicle; the inhibitor alone without glucocorticoid, to exclude a direct action on the receptor; and a glucocorticoid the enzyme cannot inactivate.
 
-Funder and colleagues (1988) concluded that specificity is enzyme-mediated, not receptor-mediated. Limits: rat and corticosterone; the type 2 isoform came later; and saturation of the enzyme by very high cortisol was shown only in later work.
+Funder and colleagues (1988) concluded that specificity is enzyme-mediated, not receptor-mediated. Limits: rat and corticosterone, the type 2 isoform still to come, and enzyme saturation by very high cortisol shown only later.
 
 </details>
+
+## Going deeper
+
+### Rodents differ: corticosterone and a glomerulosa rhythm
+
+Rats and mice express little adrenal 17-alpha-hydroxylase, so their main glucocorticoid is corticosterone, not cortisol, and they make little adrenal DHEA. That is why the guard-enzyme work in rats speaks of corticosterone.
+
+In mouse adrenal slices, Hu and colleagues (2012) reported spontaneous voltage oscillations in 73 of 85 glomerulosa cells, at a mean of 0.44 Hz at 22 degrees C: an electrical rhythm in mouse cells, not a human hormone pulse rate.
+
+### Crabbé's method, and his concentration
+
+Crabbé used the toad *Bufo marinus*. Each half-bladder was mounted between two chambers of aerated frog Ringer solution at room temperature, and one half received d-aldosterone at 2.8 x 10^-7 mol per L on the serosal (blood) side; its partner was the control.
+
+**Compare the concentration with plasma.** 2.8 x 10^-7 mol per L = 280 nmol per L. Take an illustrative adult plasma aldosterone of 15 ng per dL (made up; real ranges differ by laboratory, posture and salt intake), which is 150 ng per L. With a molar mass of 360.4 g per mol, 150 x 10^-9 / 360.4 = 4.16 x 10^-10 mol per L, or 0.416 nmol per L. The ratio 280 / 0.416 is about 670. The classic shows that the epithelium can respond, not that it responds at physiological concentrations.
+
+### How much does the guard enzyme have to do?
+
+First, which excess. Total cortisol of 10 to 20 micrograms per dL (about 280 to 550 nmol per L) against the illustrative aldosterone of 0.416 nmol per L (above) is about 660 to 1,330-fold. If roughly 4 to 10 percent of cortisol and about 37 to 40 percent of aldosterone circulate free (most aldosterone is bound, mainly to albumin), the free ratio is roughly 70 to 360-fold. Total exceeds free by 4 to 10 times.
+
+With equal affinity, each steroid's share of the occupied receptors equals its share of the two free concentrations. Take round illustrative values: free cortisol 20 and free aldosterone 0.15 nmol per L.
+
+- Unprotected, cortisol holds 20 / 20.15 of the occupied receptors, more than 99 percent.
+- For aldosterone to hold half, local cortisol must fall to 0.15 nmol per L: about a 130-fold cut.
+- For aldosterone to hold 90 percent, local cortisol must fall to about 0.017 nmol per L: a cut of about 1,200-fold.
+
+That is a lot to ask of one enzyme. Later work proposes, and it is still debated, that in epithelia a receptor occupied by cortisol is also activated much less effectively than one occupied by aldosterone, partly through the NAD+-consuming chemistry of the type 2 enzyme itself. So concentration alone does not quite deliver "left to aldosterone".
+
+### Where the androgens in CAH come from
+
+Human CYP17A1 cuts the side chain of 17-hydroxyprogesterone inefficiently, so in a healthy adrenal most androgen comes through 17-hydroxypregnenolone and DHEA. In 21-hydroxylase deficiency, though, 17-hydroxyprogesterone accumulates so massively that its direct conversion to androstenedione becomes substantial, which helps explain why androstenedione, not DHEA, is the androgen that tracks control. A 5-alpha-reduced "backdoor" route contributes in fetal life and infancy. DHEA and androstenedione are weak at the androgen receptor, but the adrenal also makes 11-beta-hydroxyandrostenedione, which is converted outside the gland to 11-ketotestosterone, a full agonist. These 11-oxygenated steroids carry much of the androgen excess measured in CAH.
+
+### Two CAH numbers: pressure and the ACTH drive
+
+Raised pressure in 11-beta-hydroxylase deficiency is common but not universal: in one international cohort, 38 of 70 patients who had blood-pressure data were hypertensive (Khattab and colleagues, 2017).
+
+The excess ACTH drive in 21-hydroxylase deficiency has been tested from above with crinecerfont, an antagonist at the CRF1 receptor for CRH (the hypothalamic hormone that releases ACTH). In 182 randomized adults with classic 21-hydroxylase deficiency, it allowed a 27.3 percent least-squares mean glucocorticoid dose reduction at 24 weeks with androstenedione controlled, against 10.3 percent with placebo (Auchus and colleagues, 2024), consistent with excess CRH-ACTH drive. Replacement was still required.
+
+### Primary aldosteronism: escape and how common it is
+
+Mineralocorticoid escape is related to pressure natriuresis but is not just another name for it; it also involves a fall in the thiazide-sensitive NaCl cotransporter of the distal convoluted tubule and a rise in natriuretic peptides, while ENaC stays up.
+
+In a recruited cross-sectional cohort, Brown and colleagues (2020) found renin-independent aldosterone production forming a continuum across blood-pressure categories, and a 2025 Endocrine Society guideline suggests screening everyone with hypertension. Where that production comes from, including small aldosterone-producing cell clusters under the capsule that also express aldosterone synthase, remains under study.
+
+### The cortisol studies
+
+- **Fuel.** Dinneen and colleagues (1993) blocked cortisol synthesis in normal volunteers with metyrapone, an 11-beta-hydroxylase inhibitor, and replaced cortisol by infusion either at a constant basal rate or on a schedule mimicking the night-time rise. The effects in the main text are those of the variable schedule after a mixed meal. Simmons and colleagues (1984) found the rise in proteolysis with an eight-hour hydrocortisone infusion in seven normal subjects.
+- **Inflammation.** The NF-kappa-B findings are from Auphan and colleagues (1995); Scheinman and colleagues reported a similar mechanism the same year.
+- **Pressure.** Whitworth and colleagues (1984) infused cortisol into seven subjects for five days at rates meant to resemble ACTH stimulation, and systolic pressure rose from 108 to 129 mmHg.
+- **Production.** By **stable-isotope dilution**, Esteban and colleagues (1991) measured a mean cortisol production of 5.7 mg per square metre of body surface per day in 12 normal volunteers, lower than earlier estimates by the authors' account.

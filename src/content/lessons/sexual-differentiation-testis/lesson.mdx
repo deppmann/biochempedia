@@ -5,17 +5,20 @@ course: "physiology"
 courseChapter: "Physiology · Unit 9: Reproduction"
 order: 1227
 summary: >-
-  How can a fetal testis control several different anatomical outcomes, and why does an adult
-  testis require a local hormone compartment? Use rabbit fetal surgery and mouse gene deletions
-  to separate AMH from androgen action. Then calculate a human sperm-production delay and
-  trace the signals that relax erectile tissue.
+  A gonad becomes a testis because SRY raises SOX9 and turns supporting cells into Sertoli
+  cells. The testis then sends separate signals: AMH from Sertoli cells removes the Müllerian
+  ducts, testosterone from Leydig cells keeps the Wolffian ducts, and in humans DHT is needed
+  to fully masculinize the external genitalia. Use rabbit fetal surgery and mouse gene
+  deletions to predict what fails when one link breaks. Then see why testosterone injections
+  usually lower sperm production, why a sperm ejaculated today began developing about two and a half months ago, and
+  which nerves control erection and ejaculation.
 hook: "An AMH-null male mouse can make sperm and retain a uterus. Which testicular signals have separated?"
 estMinutes: 22
 objectives:
   - "Trace SRY and SOX9 into Sertoli-cell differentiation, then distinguish the developmental actions of AMH, testosterone and human DHT."
   - "Use fetal rabbit gonadectomy and mouse mutations to predict duct and external-genital development when specific signals fail."
   - "Explain the Leydig and Sertoli compartments, the blood-testis barrier and gonadotropin feedback."
-  - "Calculate human spermatogenic timing, distinguish a cycle from a tracer lag, and explain erection, emission and expulsion."
+  - "Use the 16-day cycle and the 74-day total to explain why a change in sperm production shows up about two to three months after its cause, and assign erection, emission and expulsion to their autonomic or somatic outflow."
 
 scientists:
   - name: "Alfred Jost"
@@ -119,17 +122,20 @@ practiceQuestions:
       androgen response. Müllerian persistence incorrectly makes AMH depend on the androgen
       receptor. Wolffian persistence incorrectly treats testosterone secretion as sufficient
       without receptor function. Persistence of both combines those two errors.
-  - stem: "In a made-up human testis timing model, a lineage spends 64 days in a process whose epithelial cycle lasts 16 days per cycle. How many cycles does that interval contain?"
+  - stem: "An XY mouse embryo lacks a working Sry gene; the rest of its genome is normal. What do the supporting cells of its gonad become?"
     choices:
-      - "2.0 cycles"
-      - "16.0 cycles"
-      - "4.0 cycles"
-      - "0.25 cycles"
-    answer: 2
+      - "Sertoli cells, because testosterone is still made"
+      - "Ovarian supporting cells, because SOX9 is not raised"
+      - "Leydig cells, which then go on to make AMH"
+      - "Sertoli cells, because no ovarian program runs"
+    answer: 1
     rationale: >-
-      Dividing 64 days by 16 days per cycle gives 4.0 cycles. The 0.25-cycle result inverts
-      the ratio. The 2.0-cycle result wrongly halves the interval because meiosis has two
-      divisions. The 16.0-cycle result confuses the cycle's duration with the number of cycles.
+      Without SRY, SOX9 is not raised, so the supporting cells follow the ovarian program
+      instead of becoming Sertoli cells. Crediting testosterone with making Sertoli cells
+      reverses the chain: testosterone comes later, from Leydig cells, and its supply depends
+      on Sertoli cells. Leydig cells making AMH swaps the two cell types, since Sertoli cells
+      make AMH. Saying no ovarian program runs treats the ovary as a default, but it is an
+      active genetic program that takes over when SOX9 stays low.
   - stem: "In an adult mammalian feedback model, inhibin B falls while gonadotropin-releasing hormone (GnRH) input, sex-steroid feedback and pituitary sensitivity are held constant. Which direct pituitary response do you predict?"
     choices:
       - "FSH rises; LH also rises markedly"
@@ -213,7 +219,7 @@ explainLevels:
       LH stimulates interstitial Leydig testosterone production; FSH and local androgen action
       support Sertoli function within seminiferous tubules. Sertoli junctions create basal and
       adluminal compartments. Testosterone participates in gonadotropin negative feedback,
-      while inhibin B is conventionally assigned selective FSH feedback. Human spermatogenesis
+      while inhibin B selectively restrains FSH. Human spermatogenesis
       has a textbook duration of about 74 days; one epithelial cycle is about 16 days. Neither
       number is identical to the lag between DNA labelling and sperm appearance in an ejaculate.
   - level: "grad"
@@ -259,123 +265,248 @@ draft: false
 ---
 
 import SexualDifferentiationSwitches from '../../../components/SexualDifferentiationSwitches.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**An AMH-null male mouse can produce functional sperm and retain a uterus. How can those outcomes coexist?** You can answer by separating testis determination from the signals a testis sends. Then you can use the same distinction between a signal's source and its target to understand adult sperm production.
+**An AMH-null male mouse can produce functional sperm and retain a uterus. How can those outcomes coexist?**
 
-## One gonad, two possible fates
+To answer it you need two steps. First, what turns an embryonic gonad into a testis: one gene on the Y chromosome, **SRY**. Second, what the testis then sends: at least two hormones, each from its own cell to its own target. One is AMH (anti-Müllerian hormone), which removes the ducts that would become a uterus. The adult testis uses the same two cells, and with the feedback loop that explains why a man who injects testosterone usually makes fewer sperm.
 
-A **bipotential gonad** is an embryonic gonad capable of developing into a testis or an ovary. In most mammals, including humans, the Y-linked gene **SRY** initiates testis determination by increasing **SOX9**, a transcription factor that changes gene expression in supporting-cell precursors. Those precursors become **Sertoli cells**, the supporting cells of the testis.
+> **The one idea to carry through this lesson.** Making a male reproductive tract is a chain of separate links, each one a cell, a hormone, an enzyme or a receptor:
+>
+> - SRY → SOX9 → Sertoli cells → AMH → Müllerian ducts (would-be uterus) removed.
+> - Sertoli cells help guide Leydig-cell development → Leydig testosterone → androgen receptor → Wolffian ducts (would-be sperm ducts) kept.
+> - In humans: testosterone → DHT → the same receptor → outside fully masculinized.
+>
+> **Break one link and everything downstream of it fails, while the other developmental branches carry on.** In the adult the same two cells divide the work again: Leydig cells make testosterone under LH, and Sertoli cells support sperm under FSH and *local* testosterone, so blood testosterone is not the same as testicular testosterone.
 
-In the mouse model, positive feedback helps maintain SOX9 expression and reinforce Sertoli differentiation. The opposing ovarian network includes WNT4, RSPO1 and beta-catenin, with FOXL2 contributing to ovarian identity; ovarian development is an active genetic program. Sertoli cells also shape the signals governing developing Leydig cells and germ cells. A gonad's fate and its effects on other organs are separate causal steps.
+The rule describes a link lost completely, early in development; partial loss gives in-between results, and feedback loops (added later) can shift other branches (see Going deeper). Most causal experiments below used rabbits and mice; human findings are labelled.
+
+## Making a testis: SRY flips the supporting cells
+
+Every embryo starts with a **bipotential gonad**, one that can develop into either a testis or an ovary. In most mammals, including humans, the Y-linked gene **SRY** starts testis determination by raising **SOX9**, a transcription factor, in the gonad's supporting-cell precursors, which then become **Sertoli cells**. In the mouse, positive feedback helps keep SOX9 switched on, reinforcing the Sertoli fate.
+
+The ovary is not what is left when SRY is missing: it has its own gene program that pushes the other way, and the two compete in the same supporting cells (genes named in Going deeper). Once Sertoli cells exist, they shape the signals that guide developing Leydig cells and germ cells. A gonad's fate and its effects on other organs are separate causal steps.
 
 For SRY's identification by Sinclair and colleagues in 1990 and Koopman's 1991 mouse work, see [sex linkage and beyond](/lessons/sex-linkage-and-beyond/).
 
-An **enhancer** is regulatory DNA that increases a gene's expression in a particular cellular context. Croft and colleagues' 2018 human SOX9 work implicates enhancer duplication or deletion in altered testis determination, extending the mechanism beyond coding sequences. Their reporter assays tested cloned regulatory fragments in transfected cells; such activity does not establish a whole-gonad expression threshold. [Croft's study](https://pmc.ncbi.nlm.nih.gov/articles/PMC6293998/)
+**Predict.** An XY mouse embryo lacks a working *Sry* gene. What do its supporting cells become, and what happens to everything the chain builds after them?
 
-## Two ducts, two hormones
+<details>
+<summary>Check your prediction</summary>
 
-Early mammalian embryos have both **Wolffian**, or mesonephric, ducts and **Müllerian**, or paramesonephric, ducts. In the standard human developmental map, testosterone from **Leydig cells**, the steroid-producing testicular cells, maintains Wolffian derivatives: epididymis, vas deferens and seminal vesicles. The epididymis is the duct where sperm mature after leaving the testis; the vas deferens carries them onward.
+SOX9 is not raised, so the supporting cells follow the ovarian program and no testis forms. SRY is the first link, so everything downstream fails: no AMH, no Leydig testosterone, no DHT. One missing gene changes the gonad, the ducts and the outside.
 
-Fetal Sertoli cells secrete **anti-Müllerian hormone (AMH)**, which causes Müllerian regression. Without testicular hormones, the reproductive tract develops along the female-typical pathway: Müllerian derivatives include oviducts, uterus and upper vagina. This describes tract development; it does not make ovarian differentiation passive.
+</details>
 
-Alfred Jost removed gonads from rabbit fetuses **in utero**, while they remained in the uterus, and inspected their later anatomy. If both tract patterns required a hormone from their corresponding gonad, removing either gonad should prevent its tract pattern. Instead, early testis removal permitted Müllerian development and loss of most Wolffian structures; removing fetal ovaries did not prevent the female-typical tract pattern.
+## Two ducts, two jobs, two signals
 
-Timing mattered. Jost's 1947 report describes males castrated on fetal day 20 that retained female genital tracts yet still had rudimentary prostatic buds; later operations preserved more established male structures. His results support a requirement for fetal testicular influence during particular developmental intervals in rabbits, rather than continuing hormone dependence of every structure. [Jost's report](https://www.ebm-journal.org/journals/experimental-biology-and-medicine/articles/10.3181/00379727-66-16071/pdf)
+Every early mammalian embryo, XY or XX, builds two pairs of ducts side by side. The **Wolffian ducts** (also called mesonephric ducts) can become the epididymis, where sperm mature after leaving the testis, the vas deferens, which carries them onward, and the seminal vesicles. The **Müllerian ducts** (paramesonephric ducts) can become the oviducts, the uterus and the upper vagina. An adult normally keeps only one set, with at most small remnants of the other.
 
-These experiments ruled against a required ovarian secretion for rabbit female-tract development. Gonad removal alone could not tell the testicular signals apart. Jost's later experiments did: testosterone given in place of a testis maintained Wolffian ducts but did not remove Müllerian ducts, so he inferred a separate Müllerian inhibitor. Molecular work later identified that inhibitor as AMH.
+Which set stays depends on the testis. Alfred Jost showed this in the 1940s by removing the gonads of rabbit fetuses **in utero**, while still in the uterus, and inspecting their ducts later ([Jost's report](https://www.ebm-journal.org/journals/experimental-biology-and-medicine/articles/10.3181/00379727-66-16071/pdf)).
 
-{/* DIAGRAM: Age-matched intact and early-gonadectomized rabbit fetuses, showing Müllerian and Wolffian outcomes; label timing-dependent residual prostate development. */}
+**Predict.** Jost removes the testes from an XY rabbit fetus early, before the ducts have changed. Which ducts does the animal have later?
 
-## Testosterone for the ducts, DHT for the outside
+<details>
+<summary>Check your prediction</summary>
 
-In **humans**, **5-alpha-reductase type 2**, encoded by **SRD5A2**, converts testosterone to **dihydrotestosterone (DHT)**. Human fetal DHT signalling supports masculinization of the external genitalia and prostate development. Testosterone and DHT act through the same **androgen receptor (AR)**, a hormone-responsive transcriptional regulator; see [nuclear receptors](/lessons/nuclear-receptors/).
+It keeps its Müllerian ducts and loses most of its Wolffian ducts, so it develops a female-typical tract. Jost also operated on XX fetuses: removing their ovaries did not prevent a female-typical tract either. So the female-typical tract does not need an ovarian secretion; the male-typical tract needs the testis. (This is about the tract; the ovary itself is built by an active program.)
 
-In the human developmental map, the genital tubercle contributes to the glans penis or clitoris, and the labioscrotal swellings become scrotum or labia majora. With androgen signalling, urethral-fold fusion contributes to the penile urethra. Common embryonic starting structures therefore need not yield the same final anatomy.
+</details>
 
-Read this table as predictions when one component is missing from the start of development, before the relevant signal would act, with the other pathways intact. The species labels matter, particularly for the human SRD5A2 row.
+So, left alone, the Müllerian ducts stay and the Wolffian ducts fade. A testis must do two opposite things: **remove** one pair and **rescue** the other.
 
-| Missing component and system | Müllerian outcome | Wolffian outcome | External outcome |
+<LessonFigure src="/figures/sexual-differentiation-testis/two-ducts-diverge.webp" width={1200} height={806} alt="AI-generated illustration: three stages of the embryonic reproductive tract: both duct pairs present at the indifferent stage; with a testis the Wolffian ducts persist and the Müllerian ducts fade; without a testis the reverse." caption="Both duct pairs are built in every embryo, and only one set is kept: the testis decides which, so it must remove one pair and rescue the other." />
+
+Could one hormone do both? Removing the whole gonad could not tell the signals apart, so Jost gave testosterone in place of a testis. The Wolffian ducts stayed, but so did the Müllerian ducts. If testosterone were the testis's only signal, it should have removed those as well. It rescued one pair but could not remove the other, so he inferred a second signal, a Müllerian inhibitor.
+
+Molecular work later identified it as **anti-Müllerian hormone (AMH)**. It comes from Sertoli cells. Testosterone comes from a different cell, the **Leydig cell**, a steroid-making cell between the developing tubules (the human picture; see Going deeper for the mouse). Two cells, two hormones, two targets:
+
+- Sertoli cell → AMH → Müllerian ducts regress.
+- Leydig cell → testosterone → Wolffian ducts are kept.
+
+Now you can answer the question this lesson opened with.
+
+**Predict.** In 1994, Behringer, Finegold and Cate made male mice that lack only the gene for AMH (also called MIS, Müllerian-inhibiting substance). Their testes form. What do their ducts look like, and can they make sperm?
+
+<details>
+<summary>Check your prediction</summary>
+
+They keep a uterus and oviducts, because nothing removes the Müllerian ducts, and they keep their male (Wolffian) derivatives, because testosterone is still made. Their testes make functional sperm, though most of these males are infertile because the retained organs get in the way of sperm transfer. One broken link changed one branch; the testosterone branch carried on.
+
+</details>
+
+[The experiment](https://pubmed.ncbi.nlm.nih.gov/7954809/) shows that AMH is necessary for Müllerian regression in mice; it does not locate AMH's receptor or measure a human response curve.
+
+## The outside needs DHT (in humans)
+
+The external genitalia start from the same structures in every embryo. In humans, the genital tubercle contributes to the glans penis or clitoris, and the labioscrotal swellings become the scrotum or the labia majora. With androgen signalling, the urethral folds fuse and contribute to the penile urethra.
+
+In **humans**, these tissues first convert testosterone into a stronger androgen. The enzyme **5-alpha-reductase type 2**, encoded by the gene **SRD5A2**, converts testosterone to **dihydrotestosterone (DHT)**. Human fetal DHT signalling is needed for full masculinization of the external genitalia and supports prostate development. Testosterone and DHT act through the same **androgen receptor (AR)**, a hormone-responsive transcriptional regulator (see [nuclear receptors](/lessons/nuclear-receptors/)). Why convert at all? DHT holds the receptor more tightly, so tissues that make DHT amplify the signal.
+
+**Predict.** Use the chain. In an XY embryo whose testes form normally, what happens to the Müllerian ducts, the Wolffian ducts and the outside if (a) the androgen receptor does not work at all, or (b) SRD5A2 does not work?
+
+<details>
+<summary>Check your prediction</summary>
+
+(a) **No AR.** AMH does not act through the androgen receptor, so the Müllerian ducts should still regress. But both androgen branches run through AR, so the Wolffian ducts are not kept and the outside is female-typical. One receptor, two outcomes changed.
+
+(b) **No SRD5A2 (human).** Testosterone still acts on AR, so the Wolffian derivatives are generally kept. Only DHT is missing, so the outside is less masculinized.
+
+</details>
+
+Again, what fails lies downstream of the broken link: one branch (AMH, SRD5A2) or several (SRY, AR). Each row below removes one link from the start of development.
+
+| Missing link and system | Müllerian outcome | Wolffian outcome | External outcome |
 |---|---|---|---|
 | Testis: early rabbit gonadectomy | Retained | Largely lost | Female-typical |
 | AMH: male mouse null mutant | Uterus and oviducts retained | Male derivatives retained | Male-typical |
 | AR: XY Tfm mouse | Regressed | Not maintained | Female-typical |
 | SRD5A2: human mechanism | Usually absent | Generally retained | Reduced masculinization |
 
-Human SRD5A2 deficiency is inherited as an autosomal recessive trait, so affected people carry disease-causing variants in both copies of SRD5A2, usually one from each parent. Some variants abolish enzyme activity; others reduce it. In 46,XY humans (one X and one Y chromosome), complete AR loss likewise separates testis formation and usually intact AMH action from absent androgen response. These are distinct molecular mechanisms.
+The **Tfm mouse** carries an X-linked AR mutation, named for the historical term "testicular feminization"; [Lyon and Hawkes's paper](https://www.nature.com/articles/2271217a0) established its X linkage. In 46,XY humans, complete AR loss likewise leaves testis formation, and usually AMH action, intact while androgen response is absent. Human SRD5A2 deficiency is autosomal recessive: affected people carry disease-causing variants in both copies, usually one from each parent, and some variants abolish enzyme activity while others reduce it. Real cases vary around these typical patterns (see Going deeper).
 
-The X-linked **Tfm mouse**, named for the historical mutation “testicular feminization,” tests receptor failure; [Lyon and Hawkes's paper](https://www.nature.com/articles/2271217a0) established its X linkage. Loss of AR-mediated feedback predicts increased LH drive, but testosterone concentrations depend on species and testis function; normal or high testosterone is a human AR-loss pattern, not a guaranteed Tfm-mouse value.
+Predict each anatomical panel before you change a signal in the "Build the tract" model below; its enzyme toggle represents the **human** SRD5A2 mechanism.
 
-In 1994, Behringer, Finegold and Cate generated mice lacking MIS, another name for AMH, by targeted gene disruption. If AMH is the separable inhibitor, these males should retain Müllerian organs despite having testes: they did, and could produce functional sperm. The experiment establishes AMH's necessity for Müllerian regression in mice; it does not locate AMH's receptor or measure a human response curve. [The AMH-null study](https://pubmed.ncbi.nlm.nih.gov/7954809/)
+<SexualDifferentiationSwitches start="amhOff" />
 
-Try predicting each anatomical panel before changing a signal in the “Build the tract” model below; its enzyme toggle represents the **human** SRD5A2 mechanism.
+## The adult testis: the same two cells, two compartments
 
-<SexualDifferentiationSwitches />
+A man injects testosterone, so his blood testosterone rises. What happens to his sperm production? Many people would guess that it rises. Build the adult testis first, then decide.
 
-## Two compartments in the adult testis
+The **seminiferous tubules** are tubes in which germ cells develop into sperm; the **interstitium** is the tissue between them. The two fetal cell types split the adult work.
 
-The **seminiferous tubules** are tubes containing developing germ cells; the **interstitium** is the tissue between them. Interstitial Leydig cells make testosterone under the pituitary hormone **luteinizing hormone (LH)**. LH-receptor signalling increases cyclic AMP and cholesterol delivery into mitochondria; the shared steroid machinery is covered in [adrenal glands](/lessons/adrenal-glands/) and the cascade in [cAMP and PKA](/lessons/camp-and-pka/).
+- **Outside the tubules:** Leydig cells make testosterone under the pituitary hormone **luteinizing hormone (LH)**. LH-receptor signalling increases cyclic AMP and cholesterol delivery into mitochondria; the shared steroid machinery is covered in [adrenal glands](/lessons/adrenal-glands/) and the cascade in [cAMP and PKA](/lessons/camp-and-pka/).
+- **Inside the tubules:** Sertoli cells nourish the germ cells. They respond to the other pituitary **gonadotropin** (gonad-stimulating hormone), **follicle-stimulating hormone (FSH)**, and to local testosterone. Both gonadotropin receptors use [G-protein signalling](/lessons/gpcrs-and-g-proteins/).
 
-The other pituitary **gonadotropin**, or gonad-stimulating hormone, is **follicle-stimulating hormone (FSH)**; it acts on Sertoli-cell FSH receptors, and both gonadotropin receptors use [G-protein signalling](/lessons/gpcrs-and-g-proteins/). Sertoli cells nourish germ cells and respond to local testosterone. Intratesticular testosterone is far higher than circulating testosterone, so blood concentration alone cannot specify local androgen support.
+Leydig testosterone reaches the tubules directly, so **intratesticular testosterone is far higher than circulating testosterone**.
 
-The **blood-testis barrier** is a junctional seal between neighbouring Sertoli cells, rather than capillary endothelium. It separates a **basal compartment**, containing **spermatogonia** (mitotic germ-cell precursors) and early **spermatocytes** (cells entering meiosis), from an **adluminal compartment**, toward the lumen, containing later meiotic cells and **spermatids** (haploid products of meiosis). Mouse evidence shows junction disassembly and reassembly as spermatocytes cross; [epithelia](/lessons/epithelia/) explains the junction structure.
+Inside each tubule, the **blood-testis barrier** is a junctional seal between neighbouring Sertoli cells, not capillary endothelium. It separates a **basal compartment**, which holds **spermatogonia** (mitotic germ-cell precursors) and early **spermatocytes** (cells entering meiosis), from an **adluminal compartment**, toward the lumen, which holds later meiotic cells and **spermatids** (haploid products of meiosis). Mouse evidence shows the junctions coming apart and re-forming as spermatocytes cross; see [epithelia](/lessons/epithelia/).
 
-{/* DIAGRAM: Seminiferous tubule cross-section with Sertoli-Sertoli junctions, basal and adluminal germ-cell stages, and Leydig cells outside the tubule. */}
+<LessonFigure src="/figures/sexual-differentiation-testis/tubule-compartments.webp" width={1200} height={806} alt="AI-generated illustration: cross-section of a seminiferous tubule: wedge-shaped Sertoli cells with a highlighted junctional seal dividing basal from adluminal germ cells, Leydig cells outside the tubule, and an inset comparing high testosterone inside the testis with lower testosterone in blood." caption="The seal that splits the tubule lies between neighbouring Sertoli cells, not in the capillary wall, and the testosterone the germ cells read is the high local supply from Leydig cells next door, not the amount in blood." />
 
-Testosterone feeds back on the hypothalamic-pituitary axis, restraining LH and FSH output, partly through conversion to estradiol; Sertoli-derived **inhibin B** is conventionally assigned selective inhibition of FSH. Apply the loop logic from [endocrine axes](/lessons/endocrine-axes-and-testing/); the [ovarian axis](/lessons/ovarian-cycle-fertility/) is the next lesson.
+Last, feedback. Testosterone restrains hypothalamic-pituitary LH and FSH output, partly after conversion to estradiol, and Sertoli cells make **inhibin B**, which selectively inhibits FSH. Apply the loop logic from [endocrine axes](/lessons/endocrine-axes-and-testing/); the [ovarian axis](/lessons/ovarian-cycle-fertility/) is next.
 
-In Coviello and colleagues' three-week study of healthy men in 2005, testosterone injections given with a placebo suppressed LH and FSH, and intratesticular testosterone fell by about 94%. Men who also received low-dose hCG, which acts on the LH receptor, kept intratesticular testosterone in the normal range. Circulating and local androgen compartments can therefore move differently.
+**Predict.** Back to the man injecting testosterone. What happens to his LH, to the testosterone inside his testes, and to his sperm production?
 
-Larose and colleagues' 2020 **SCARKO** mice lacked AR specifically in Sertoli cells: surviving spermatocytes could synapse and recombine chromosomes, yet failed to acquire competence for meiotic division. Cytology and single-cell RNA sequencing showed that mutant germ cells stayed in the gene-expression state of early prophase (leptotene and zygotene), a transcriptional block, supporting a Sertoli-mediated requirement without implying that every early meiotic event requires androgen or that humans arrest identically.
+<details>
+<summary>Check your prediction</summary>
 
-## A conveyor belt with a fixed rhythm
+His LH and FSH fall, because the injected testosterone feeds back on the pituitary. With little LH, his Leydig cells make little testosterone, so testosterone *inside the testis* falls steeply while blood testosterone is high. The germ cells lose local androgen and FSH support, so sperm production falls. That is why testosterone therapy and anabolic steroids can suppress sperm production, sometimes to the point of infertility.
 
-**Spermatogenesis** is sperm production through germ-cell proliferation and differentiation. Spermatogonia divide mitotically; a spermatocyte's two meiotic divisions yield four haploid products; **spermiogenesis** reshapes spermatids into spermatozoa; **spermiation** releases them from the seminiferous epithelium. Heller and Clermont's timing work and the cell sequence are in [animal reproduction](/lessons/animal-reproduction/); the chromosome steps are in [meiosis](/lessons/chromosomes-and-meiosis/).
+A 2005 trial in healthy men confirmed the hormone side of this and tested a workaround, low-dose **hCG** (see Going deeper).
 
-An **epithelial cycle** is the interval until the same combination of germ-cell stages reappears at one location in a seminiferous tubule. In humans, it is conventionally about **16 days**, while the textbook total from a differentiating spermatogonial lineage to spermiation is about **74 days**. Heller and Clermont's original 1963 labelling study estimated about 64 days for the whole process. Their 1964 analysis gave about 74 days once spermatogonial divisions were counted, and Amann's 2008 review recommends 74. Some textbooks still give 64, which leaves those divisions out, so always check which starting cell a number uses. Like a conveyor with several batches on it, the epithelium repeats its local pattern before any one lineage completes the whole journey.
+</details>
 
-Misell and colleagues in 2006 labelled DNA with deuterated water in **11 men with normal sperm concentrations**, who drank it daily for three weeks while semen was sampled every two weeks for up to 90 days. Label appeared in ejaculated sperm after **64 ± 8 days**, reported as mean and standard deviation, with a **42–76-day range**. This measured label-to-ejaculate lag includes post-testicular transit and storage; its start and endpoint differ from the textbook total.
+Mouse experiments show that Sertoli cells need androgen even in the adult (see Going deeper).
 
-### Worked problem: count cycles, then add transit
+## A sperm ejaculated today began developing about two and a half months ago
 
-Use the conventional human values above. Assume steady production and a constant cycle length within each individual.
+Why care about a number? Anything that changes sperm production, such as a drug, a fever or the testosterone injections above, shows up in semen weeks to months later.
 
-> **Lineage cycles = 74 days / (16 days per cycle) = 4.625 cycles, about 4.6 cycles.**
+In **spermatogenesis**, spermatogonia divide by mitosis; a spermatocyte's two meiotic divisions yield four haploid products; **spermiogenesis** reshapes spermatids into spermatozoa; and **spermiation** releases them from the tubule's lining into the lumen. The cell sequence is in [animal reproduction](/lessons/animal-reproduction/) and the chromosome steps in [meiosis](/lessons/chromosomes-and-meiosis/).
 
-Check by multiplication: 4.625 cycles x 16 days per cycle = 74 days. A single epithelial cycle therefore does not represent the entire lineage's development.
+Picture a conveyor belt. Stand at one spot in a tubule. Every **16 days** (the conventional human value), a new batch of cells starts its journey there, so the same mix of stages comes round again every 16 days. That repeat is called an **epithelial cycle**. Any one batch needs about **74 days**, the textbook human total from a differentiating spermatogonium to spermiation, to finish. So several batches are on the belt at once. Assuming steady production and a constant cycle length:
 
-For the tracer calculation, make an explicit simplification: label incorporation occurs only during the last premeiotic **S phase**, the DNA-replication phase in preleptotene spermatocytes. Because the water was taken for weeks, real label availability can mark other dividing precursors, such as spermatogonia, too. In this **made-up example**, assume 3.5 cycles remain to spermiation and epididymal transit takes 10 days, with no additional storage delay; neither assumption is a measured result from Misell's study.
+> **Cycles per lineage = 74 days / 16 days per cycle = 4.625, about 4.6 cycles.**
 
-> **Remaining testicular interval = 3.5 cycles x 16 days per cycle = 56 days.**
->
-> **Predicted label-to-ejaculate lag = 56 days + 10 days = 66 days.**
+Check: 4.625 × 16 = 74 days, already about 2.4 months. Add the time sperm then spend passing through the epididymis, and a sperm ejaculated today began developing about two and a half months ago.
 
-The measured mean plus or minus one standard deviation spans 64 − 8 = 56 days to 64 + 8 = 72 days. Your 66-day prediction falls inside that interval. Agreement does not validate the assumed 3.5 cycles or the transit time: different component delays could give the same total. The observed range shows variation in the measured lag, rather than an exact universal sperm-production clock. Because semen was sampled only every two weeks, part of that spread also reflects the sampling interval.
+<LessonFigure src="/figures/sexual-differentiation-testis/sperm-conveyor-belt.webp" width={1200} height={670} alt="AI-generated illustration: a conveyor belt of equal 16-day spans with four staggered batches of germ cells on it at once; one highlighted batch is traced across about 4.6 spans to the lumen, then through a shorter epididymal segment." caption="A new batch starts every 16 days while any one batch needs about 74 days to finish, which is why several batches are in flight at once and why a change in production shows up in semen weeks to months later." />
 
-In scrotal mammals, the testis is cooler than the core, with countercurrent heat exchange between incoming arterial blood and the surrounding **pampiniform plexus**, a network of testicular veins.
+A tracer labels cells partway along the belt, so its lag depends on where it enters: count the cycles left from the labelled stage, multiply by 16 days, then add epididymal transit. The one human deuterium-labelling study, which followed label all the way to ejaculated sperm, measured about two months (worked example in Going deeper).
 
-## Erection and ejaculation: the reflexes
+Some books give 64 days because they leave out the early spermatogonial divisions, so check which starting cell a number uses.
 
-**Erection** is filling and stiffening of erectile tissue as inflow increases and venous drainage is restricted. Pelvic parasympathetic pathways include **nitrergic** nerves, which signal with nitric oxide (NO); endothelium also supplies NO. NO activates guanylyl cyclase, increasing **cyclic GMP (cGMP)**. Protein kinase G links cGMP to lower cytosolic calcium and smooth-muscle relaxation; PDE5 breaks down cGMP, as covered in [cGMP signalling](/lessons/senses-and-cgmp/).
+## Erection and ejaculation: three phases, three outflows
 
-Cavernosal smooth muscle surrounds blood-filled spaces called **sinusoids**. Relaxation of this muscle and arterial smooth muscle increases filling, which compresses veins beneath the tunica, the surrounding fibrous covering. Connect this local response with [smooth-muscle mechanics](/lessons/smooth-muscle/) and [autonomic outflow](/lessons/hypothalamus-autonomic/).
+The testis makes sperm; delivering them takes three more steps, each on its own nerves.
 
-Rajfer and colleagues' 1992 experiments linked electrically evoked relaxation of isolated human cavernosal strips to endogenous NO synthesis. These surgically obtained tissue strips test local signalling, rather than the integrated neural initiation of erection in healthy volunteers.
+**Erection** is filling and stiffening of erectile tissue as inflow increases and venous drainage is restricted. It depends mainly on pelvic **parasympathetic** pathways, including **nitrergic** nerves that signal with nitric oxide (NO); endothelium also supplies NO. NO activates guanylyl cyclase, raising **cyclic GMP (cGMP)**, and protein kinase G links cGMP to lower cytosolic calcium and smooth-muscle relaxation. PDE5 breaks down cGMP, so PDE5 inhibitors keep cGMP high; see [cGMP signalling](/lessons/senses-and-cgmp/).
 
-**Emission** moves sperm and glandular secretions into the urethra through predominantly sympathetic control of the vas deferens and accessory glands, with bladder-neck closure. **Expulsion** is the rhythmic outward movement driven by somatic pudendal motor output to muscles including bulbospongiosus. Ejaculation combines these coordinated events; its motor output differs from the relaxation that permits erection.
+Cavernosal smooth muscle surrounds blood-filled spaces called **sinusoids**. When it and the arterial smooth muscle relax, the tissue fills and compresses the veins beneath the tunica, its fibrous covering. See [smooth-muscle mechanics](/lessons/smooth-muscle/) and [autonomic outflow](/lessons/hypothalamus-autonomic/).
+
+**Emission** moves sperm and glandular secretions into the urethra, mainly under **sympathetic** control of the vas deferens and accessory glands, with the bladder neck closing. **Expulsion** is the rhythmic outward movement driven by **somatic** pudendal motor output to muscles including bulbospongiosus. Ejaculation combines these coordinated events.
+
+Three phases, three separate outflows, so they can fail separately: sympathetic nerve damage or an alpha-blocker can impair emission, while erection, which depends mainly on parasympathetic and nitrergic pathways, is largely preserved.
 
 ### Design problem
 
-Mice lacking Sertoli-cell AR from fetal life make almost no round spermatids and no elongated spermatids. A colleague argues that this reflects failed Sertoli maturation rather than an ongoing adult requirement. Design an experiment that separates those explanations.
+A colleague claims that testosterone alone is enough to give an XY embryo a male-typical tract. Design experiments in fetal rabbits or mice that test the claim.
 
 <details>
 <summary>One way to do it</summary>
 
-Delete AR only after Sertoli maturation in adult mice carrying a conditional AR allele. This allele has receptor DNA between recognition sites for the enzyme Cre. Target Cre to Sertoli cells to remove that DNA; verify AR loss in Sertoli cells and retention in Leydig and peritubular cells. Include conditional-allele mice without Cre, Cre delivery to wild-type testes, and a contralateral control, with matched handling.
+**Replace the testis with testosterone.** Remove the testes from XY rabbit fetuses early and give testosterone. If the claim were right, the tract would be fully male-typical. Instead both duct pairs are kept, so the claim fails for the Müllerian ducts. This is Jost's result.
 
-Collect a time series scaled to mouse development: about 8.6 days per epithelial cycle and roughly 35 days for spermatogenesis, allowing cells already beyond a block and stored sperm to clear. Score stage-specific meiotic markers and epididymal sperm; test barrier integrity with a tracer. Measure serum LH and testosterone: a relatively unchanged Leydig compartment is a prediction to test, rather than an assumption guaranteed by Sertoli specificity.
+**Run the converse in mice.** Delete AMH or its receptor and leave testosterone intact: the Müllerian ducts persist. Delete AR and leave AMH intact: the Müllerian ducts regress but the Wolffian ducts are lost. Together they show two signals with separate targets.
+
+**Controls.** Use littermates, confirm each deletion before reading the anatomy, and sample at matched ages inside the duct-response window.
+
+</details>
+
+## Going deeper
+
+### The ovarian program and SOX9 enhancers
+
+The opposing ovarian network includes WNT4, RSPO1 and beta-catenin, with FOXL2 contributing to ovarian identity.
+
+An **enhancer** is regulatory DNA that increases a gene's expression in a particular cellular context. Croft and colleagues' 2018 human SOX9 work implicates enhancer duplication or deletion in altered testis determination, extending the mechanism beyond coding sequences. Their reporter assays tested cloned fragments in transfected cells; such activity does not establish a whole-gonad expression threshold. [Croft's study](https://pmc.ncbi.nlm.nih.gov/articles/PMC6293998/)
+
+### What Jost's timing showed
+
+Jost's 1947 report describes males castrated on fetal day 20 that retained female genital tracts yet still had rudimentary prostatic buds; later operations preserved more established male structures. His results support a requirement for fetal testicular influence during particular developmental windows in rabbits, rather than continuing hormone dependence of every structure. In experiments that left one testis in place, its influence could be stronger on nearby ducts than across the fetus, a sign that these signals act locally.
+
+### Mouse versus human steroid steps
+
+"Leydig testosterone" is the human picture. In the fetal mouse, Leydig cells make mostly androstenedione, and fetal Sertoli cells convert it to testosterone, so even this link is split between the two cell types. The DHT branch also differs: mouse *Srd5a2* loss gives a much milder phenotype than the human deficiency.
+
+### When a link is only partly broken
+
+Some people with complete AR loss keep Wolffian remnants. In campomelic dysplasia, one working copy of SOX9 is lost, and most, but not all, XY patients show sex reversal. In 5-alpha-reductase type 2 deficiency, the high testosterone of puberty partly masculinizes the external genitalia, so the DHT branch is a matter of potency, not an absolute switch. Partial-function variants give graded outcomes, and each target responds only during its developmental window.
+
+### LH and testosterone after receptor loss
+
+The chain leaves out feedback. Loss of AR-mediated feedback predicts increased LH drive, but testosterone concentrations depend on species and testis function; normal or high testosterone is a human AR-loss pattern, not a guaranteed Tfm-mouse value.
+
+### The testosterone-injection trial
+
+In Coviello and colleagues' three-week study of healthy men in 2005, testosterone injections given with a placebo suppressed LH and FSH, and intratesticular testosterone fell by about 94%. Men who also received low-dose hCG, which acts on the LH receptor, kept intratesticular testosterone in the normal range.
+
+### Sertoli androgen receptor deletions
+
+Larose and colleagues' 2020 **SCARKO** mice lacked AR specifically in Sertoli cells: surviving spermatocytes could synapse and recombine chromosomes, yet failed to acquire competence for meiotic division. Cytology and single-cell RNA sequencing showed that mutant germ cells stayed in the gene-expression state of early prophase (leptotene and zygotene), a transcriptional block. That supports a Sertoli-mediated requirement without implying that every early meiotic event requires androgen, or that humans arrest identically.
+
+**A second design problem.** Mice lacking Sertoli-cell AR from fetal life make almost no round spermatids and no elongated spermatids. A colleague argues that this reflects failed Sertoli maturation rather than an ongoing adult requirement. Design an experiment that separates those explanations.
+
+<details>
+<summary>One way to do it</summary>
+
+Delete AR only after Sertoli maturation, in adult mice carrying a conditional AR allele: receptor DNA sits between recognition sites for the enzyme Cre. Target Cre to Sertoli cells to remove that DNA; verify AR loss in Sertoli cells and retention in Leydig and peritubular cells. Include conditional-allele mice without Cre, Cre delivery to wild-type testes, and a contralateral control, with matched handling.
+
+Collect a time series scaled to mouse development, about 8.6 days per epithelial cycle and roughly 35 days for spermatogenesis, so that cells already beyond a block and stored sperm can clear. Score stage-specific meiotic markers and epididymal sperm; test barrier integrity with a tracer. Measure serum LH and testosterone: a relatively unchanged Leydig compartment is a prediction to test, rather than an assumption guaranteed by Sertoli specificity.
 
 If adult signalling is required, predict meiotic arrest and eventual depletion of epididymal sperm. Willems and colleagues reported adult Sertoli AR deletion with meiotic arrest and no mature epididymal sperm at 40 days, supporting that prediction. [Their adult-deletion experiment](https://www.pure.ed.ac.uk/ws/portalfiles/portal/19839991/Willems_et_al_2015_Molecular_Reproduction_and_Development.pdf)
 
-Quantify mosaic deletion and control for delivery injury. Persistent sperm after incomplete deletion would not establish receptor independence, and one arrest phenotype cannot identify the responsible androgen-regulated genes. The inference remains specific to adult mouse Sertoli function.
+Quantify mosaic deletion and control for delivery injury: persistent sperm after incomplete deletion would not establish receptor independence, and one arrest phenotype cannot identify the responsible androgen-regulated genes. The inference remains specific to adult mouse Sertoli function.
 
 </details>
+
+### Timing: 64 versus 74 days, and the tracer lag
+
+Heller and Clermont's original 1963 labelling study estimated about 64 days for the whole process. Their 1964 analysis gave about 74 days once spermatogonial divisions were counted, and Amann's 2008 review recommends 74. Their timing work is described further in [animal reproduction](/lessons/animal-reproduction/).
+
+A third number measures something else again. Misell and colleagues in 2006 labelled DNA with deuterated water in **11 men with normal sperm concentrations**, who drank it daily for three weeks while semen was sampled every two weeks for up to 90 days. Label appeared in ejaculated sperm after **64 ± 8 days** (mean and standard deviation), with a **42–76-day range**. This label-to-ejaculate lag includes post-testicular transit and storage, so its start and endpoint differ from the textbook total.
+
+**Worked problem: count cycles, then add transit.** Simplify: label incorporation occurs only during the last premeiotic **S phase**, the DNA-replication phase in preleptotene spermatocytes. Because the water was taken for weeks, real label availability can mark other dividing precursors, such as spermatogonia, too. In this **made-up example**, assume 3.5 cycles remain to spermiation and epididymal transit takes 10 days, with no additional storage delay; neither assumption is a measured result from Misell's study.
+
+> **Remaining testicular interval = 3.5 cycles × 16 days per cycle = 56 days.**
+>
+> **Predicted label-to-ejaculate lag = 56 days + 10 days = 66 days.**
+
+The measured mean plus or minus one standard deviation spans 64 − 8 = 56 days to 64 + 8 = 72 days. The 66-day prediction falls inside that interval, but agreement does not validate the assumed 3.5 cycles or the transit time: different component delays could give the same total. The observed range shows variation in the measured lag, not an exact universal clock. Because semen was sampled only every two weeks, part of that spread also reflects the sampling interval.
+
+### Two vascular details
+
+In scrotal mammals, the testis is cooler than the core, with countercurrent heat exchange between incoming arterial blood and the surrounding **pampiniform plexus**, a network of testicular veins.
+
+Rajfer and colleagues' 1992 experiments linked electrically evoked relaxation of isolated human cavernosal strips to endogenous NO synthesis. These surgically obtained strips test local signalling, not the integrated neural initiation of erection.

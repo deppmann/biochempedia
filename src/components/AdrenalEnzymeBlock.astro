@@ -7,6 +7,10 @@
  * if cortisol falls with ACTH feedback intact, ACTH rises and drives the cortisol and androgen branches harder.
  * Rules are those of the adrenal-glands lesson (its pathway text, its disorder table and its
  * 11-beta-hydroxylase item); anything the lesson does not decide is marked unsettled.
+ * A "Read in steps" control follows the lesson's ordered reading: step 1 the enzymes (the block
+ * itself), step 2 the receptors (mineralocorticoid activity), step 3 the loops (ACTH and renin).
+ * Step 3 is the default and shows everything. In 11-beta-hydroxylase deficiency the glomerulosa's
+ * own enzyme (aldosterone synthase) is intact, so aldosterone falls only at step 3, through renin.
  * Self-contained vanilla-TS Astro island. Original.
  */
 const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
@@ -15,7 +19,7 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
 <figure class="aeb card" data-aeb>
   <figcaption class="aeb-head">Block an enzyme, read the loop<span class="aeb-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="aeb-svg" viewBox="0 0 360 304" role="img" aria-label="Boxes for the adrenal steroid pathway in words, from cholesterol to aldosterone, cortisol and the adrenal androgens, each with an arrow showing whether it rises, falls or is unchanged" data-stage></svg>
+  <svg class="aeb-svg" viewBox="0 0 360 312" role="img" aria-label="Boxes for the adrenal steroid pathway in words, from cholesterol to aldosterone, cortisol and the adrenal androgens, each with an arrow showing whether it rises, falls or is unchanged" data-stage></svg>
 
   <div class="aeb-legend" aria-hidden="true">
     <span><i class="aeb-ra" data-dir="up"></i> up</span>
@@ -26,18 +30,27 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
   </div>
 
   <div class="aeb-reads" data-reads>
+    <div class="aeb-r"><span class="aeb-rl" data-rl="cort">cortisol</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="cort"></i><span data-rt="cort">unchanged</span></span></div>
     <div class="aeb-r"><span class="aeb-rl">ACTH</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="acth"></i><span data-rt="acth">unchanged</span></span></div>
+    <div class="aeb-r"><span class="aeb-rl">aldosterone</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="aldo"></i><span data-rt="aldo">unchanged</span></span></div>
     <div class="aeb-r"><span class="aeb-rl">renin</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="renin"></i><span data-rt="renin">unchanged</span></span></div>
     <div class="aeb-r"><span class="aeb-rl">mineralocorticoid activity (aldosterone plus DOC)</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="mr"></i><span data-rt="mr">unchanged</span></span></div>
     <div class="aeb-r"><span class="aeb-rl">plasma potassium</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="k"></i><span data-rt="k">unchanged</span></span></div>
+    <div class="aeb-r"><span class="aeb-rl">adrenal androgens</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="andro"></i><span data-rt="andro">unchanged</span></span></div>
     <div class="aeb-r"><span class="aeb-rl">blood pressure (through the mineralocorticoid route)</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="bp"></i><span data-rt="bp">unchanged</span></span></div>
   </div>
 
   <fieldset class="aeb-ctl">
     <legend>Block one enzyme</legend>
-    <label><input type="radio" name={uid} value="none" checked /> none blocked</label>
-    <label><input type="radio" name={uid} value="h21" /> block 21-hydroxylase</label>
-    <label><input type="radio" name={uid} value="h11" /> block 11-beta-hydroxylase</label>
+    <label><input type="radio" name={uid} value="none" data-blk checked /> none blocked</label>
+    <label><input type="radio" name={uid} value="h21" data-blk /> block 21-hydroxylase</label>
+    <label><input type="radio" name={uid} value="h11" data-blk /> block 11-beta-hydroxylase</label>
+  </fieldset>
+  <fieldset class="aeb-ctl">
+    <legend>Read in steps</legend>
+    <label><input type="radio" name={uid + 's'} value="1" data-step /> 1 enzymes</label>
+    <label><input type="radio" name={uid + 's'} value="2" data-step /> 2 receptors</label>
+    <label><input type="radio" name={uid + 's'} value="3" data-step checked /> 3 loops</label>
   </fieldset>
   <fieldset class="aeb-ctl">
     <legend>The loop</legend>
@@ -47,7 +60,7 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
 
   <p class="aeb-status" data-status role="status"></p>
 
-  <p class="aeb-assume">In this sketch: arrows compare each item with a healthy adult and carry no numbers; one enzyme is blocked at a time; a block lowers its product and everything after it and piles up only its own substrate; ACTH raises or lowers the boxes from pregnenolone to the androgens but not DOC, corticosterone or aldosterone; with the feedback switch off, ACTH ignores cortisol (a switch in the sketch, not a disease or lesion); supplied cortisol with feedback intact lowers ACTH; and blood pressure is shown through the mineralocorticoid route only (cortisol itself also supports pressure, which is left out). These rules are made up to sketch the lesson’s logic. They are not measurements, and cases vary.</p>
+  <p class="aeb-assume">In this sketch: arrows compare each item with a healthy adult and carry no numbers; one enzyme is blocked at a time; a block lowers its product and everything after it and piles up only its own substrate; the steps add effects in order (step 1 the block itself, step 2 mineralocorticoid activity, step 3 the ACTH and renin loops, including the androgen spill), and readouts not reached yet say “not yet”; ACTH raises or lowers the boxes from pregnenolone to the androgens but not aldosterone; with 11-beta-hydroxylase blocked, ACTH also drives the DOC that piles up in the fasciculata; with 11-beta-hydroxylase blocked, aldosterone synthase in the glomerulosa still works, so corticosterone and aldosterone there follow renin; with the feedback switch off, ACTH ignores cortisol (a switch in the sketch, not a disease or lesion); supplied cortisol with feedback intact lowers ACTH; and blood pressure is shown through the mineralocorticoid route only (cortisol itself also supports pressure, which is left out). These rules are made up to sketch the lesson’s logic. They are not measurements, and cases vary.</p>
 
   <p class="aeb-foot">A block lowers what comes after it and piles up what comes before it. If cortisol falls with feedback intact, ACTH rises and drives the cortisol and androgen branches harder, and mineralocorticoid activity (aldosterone plus DOC) sets the direction of renin, potassium and pressure.</p>
 </figure>
@@ -56,6 +69,7 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
   const NS = 'http://www.w3.org/2000/svg';
   type Dir = 'up' | 'down' | 'same' | 'mixed';
   type Blk = 'none' | 'h21' | 'h11';
+  type Step = 1 | 2 | 3;
   type Id = 'preg' | 'prog' | 'ohp' | 'dcort' | 'cort' | 'doc' | 'cstn' | 'aldo' | 'andro';
 
   const COL = { up: '#b3261e', down: '#1f5fa8', same: '#6b6b76', mixed: '#a86a00' };
@@ -97,31 +111,48 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
   }
   function flip(d: Dir): Dir { return d === 'up' ? 'down' : d === 'down' ? 'up' : d; }
 
-  // The whole model. a = the effect of ACTH on the ACTH-driven boxes.
-  function model(blk: Blk, fb: boolean, sup: boolean) {
-    const a = fb ? (sup ? -1 : blk !== 'none' ? 1 : 0) : 0;
+  // The whole model, built in the lesson's step order. a = the effect of ACTH on the ACTH-driven boxes.
+  function model(blk: Blk, fb: boolean, sup: boolean, step: Step) {
+    const loops = step >= 3;
+    // step three supplies ACTH; before it, a = 0 and only the block's own effects show
+    const a = loops && fb ? (sup ? -1 : blk !== 'none' ? 1 : 0) : 0;
     const sub21 = blk === 'h21' ? 1 : 0;
+    // step one: the block lowers its products and piles up its substrates
     const box: Record<Id, Dir> = {
       preg: dirOf([a]),
       prog: dirOf([a, sub21]),
       ohp: dirOf([a, sub21]),
       dcort: blk === 'h21' ? 'down' : blk === 'h11' ? dirOf([1, a]) : dirOf([a]),
       cort: blk !== 'none' ? 'down' : dirOf([a]),
-      doc: blk === 'h21' ? 'down' : blk === 'h11' ? 'up' : 'same',
-      cstn: blk !== 'none' ? 'down' : 'same',
-      aldo: blk !== 'none' ? 'down' : 'same',
-      andro: blk === 'h21' ? dirOf([1, a]) : dirOf([a]),
+      // with 11-beta-hydroxylase blocked, the DOC that piles up is made in the ACTH-driven fasciculata
+      doc: blk === 'h21' ? 'down' : blk === 'h11' ? dirOf([1, a]) : 'same',
+      // 21-hydroxylase is needed on the glomerulosa route; 11-beta-hydroxylase is not (that is aldosterone synthase)
+      cstn: blk === 'h21' ? 'down' : 'same',
+      aldo: blk === 'h21' ? 'down' : 'same',
+      // the androgen spill is driven flow, so it belongs to step three
+      andro: blk === 'h21' && loops ? dirOf([1, a]) : dirOf([a]),
     };
+    // step two: what reaches the mineralocorticoid receptor
+    const mr: Dir = step < 2 ? 'same'
+      : box.doc === 'mixed' ? 'mixed'
+      : box.doc === 'up' || box.aldo === 'up' ? 'up'
+      : box.doc === 'down' && box.aldo === 'down' ? 'down' : 'same';
+    // step three: volume sets renin; an intact glomerulosa follows renin
+    if (loops && blk === 'h11') { box.aldo = flip(mr); box.cstn = flip(mr); }
     const acth: Dir = a > 0 ? 'up' : a < 0 ? 'down' : 'same';
-    const mrHigh = box.doc === 'up' || box.aldo === 'up';
-    const mrLow = box.doc === 'down' && box.aldo === 'down';
-    const mr: Dir = mrHigh ? 'up' : mrLow ? 'down' : 'same';
-    return { box, acth, mr, renin: flip(mr), k: flip(mr), bp: mr };
+    return { box, acth, mr, renin: loops ? flip(mr) : 'same' as Dir, k: loops ? flip(mr) : 'same' as Dir, bp: loops ? mr : 'same' as Dir, step };
   }
 
   function status(blk: Blk, fb: boolean, sup: boolean, m: ReturnType<typeof model>): string {
-    const t = statusCore(blk, fb, sup, m);
-    return sup ? t + ' In this sketch, the cortisol box shows the adrenal’s own output, not the cortisol supplied.' : t;
+    let t = statusCore(blk, fb, sup, m);
+    if (sup && m.step >= 3) t += ' In this sketch, the cortisol box shows the adrenal’s own output, not the cortisol supplied.';
+    return blk !== 'none' || sup ? 'Step ' + m.step + ' of 3: ' + t : t;
+  }
+  function h11Text(step: Step, mr: Dir): string {
+    return 'In this sketch, the 11-beta-hydroxylase block stops 11-deoxycortisol becoming cortisol, and DOC becoming corticosterone in the cortisol-making zone, so cortisol falls and 11-deoxycortisol and DOC pile up. The glomerulosa’s own enzyme, aldosterone synthase, is untouched'
+      + (step < 3 ? ', so aldosterone has not moved yet. It falls only at step three, when the DOC-driven volume rise suppresses renin.'
+        : mr === 'up' ? '; aldosterone falls only because the DOC-driven volume rise suppresses renin.'
+        : '; aldosterone moves only through renin.');
   }
   function statusCore(blk: Blk, fb: boolean, sup: boolean, m: ReturnType<typeof model>): string {
     const s: string[] = [];
@@ -130,11 +161,27 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
       if (!fb) s.push('In this sketch, switching feedback off changes nothing yet, because nothing is moving cortisol.');
       return s.join(' ');
     }
+    if (m.step < 3) {
+      if (blk === 'none') return 'In this sketch, with no enzyme blocked, steps one and two move nothing; supplied cortisol acts through the ACTH loop, which is step three.';
+      if (blk === 'h21') s.push('In this sketch, the 21-hydroxylase block stops progesterone becoming DOC and 17-hydroxyprogesterone becoming 11-deoxycortisol, so DOC, corticosterone, aldosterone, 11-deoxycortisol and cortisol fall, and progesterone and 17-hydroxyprogesterone, the substrates just before the block, pile up.');
+      if (blk === 'h11') s.push(h11Text(m.step, m.mr));
+      if (m.step === 2) {
+        if (blk === 'h21') s.push('In this sketch, nothing piling up is a mineralocorticoid, so with DOC and aldosterone both low, mineralocorticoid activity is low. The backed-up progesterone and 17-hydroxyprogesterone are also weak antagonists at the mineralocorticoid receptor and can add to the salt loss.');
+        if (blk === 'h11') s.push('In this sketch, DOC is itself a mineralocorticoid, so mineralocorticoid activity is high although aldosterone has not risen.');
+        s.push('The loops (ACTH, the androgen spill, renin, potassium and pressure) come at step three.');
+      } else {
+        s.push('What reaches the receptor is step two, and the loops (ACTH, the androgen spill, renin, potassium and pressure) are step three.');
+      }
+      return s.join(' ');
+    }
     if (blk === 'h21') s.push('In this sketch, the 21-hydroxylase block stops progesterone becoming DOC and 17-hydroxyprogesterone becoming 11-deoxycortisol, so DOC, corticosterone, aldosterone, 11-deoxycortisol and cortisol fall, while the block itself pushes progesterone and 17-hydroxyprogesterone up and 17-hydroxyprogesterone is diverted into androgens.');
-    if (blk === 'h11') s.push('In this sketch, the 11-beta-hydroxylase block stops 11-deoxycortisol becoming cortisol, and DOC becoming corticosterone in the cortisol-making zone, so cortisol falls and 11-deoxycortisol and DOC pile up; aldosterone is low in this form (the lesson’s table) as renin falls.');
+    if (blk === 'h11') {
+      s.push(h11Text(3, m.mr));
+      if (m.acth === 'up') s.push('Much of this DOC comes from the fasciculata, driven by the high ACTH.');
+    }
     if (fb && sup) {
-      s.push('In this sketch, cortisol supplied with feedback intact lowers ACTH, which pulls the ACTH-driven boxes down. ACTH stimulates aldosterone less, and that effect fades with continuous exposure, so this sketch leaves DOC, corticosterone and aldosterone unmoved.');
-      const mixed = (Object.keys(m.box) as Id[]).filter((i) => m.box[i] === 'mixed').map((i) => NAME[i]);
+      s.push('In this sketch, cortisol supplied with feedback intact lowers ACTH, which pulls the ACTH-driven boxes down. ACTH stimulates aldosterone less, and that effect fades with continuous exposure, so this sketch leaves aldosterone unmoved by ACTH.');
+      const mixed = (Object.keys(m.box) as Id[]).filter((i) => m.box[i] === 'mixed' && i !== 'aldo' && i !== 'cstn').map((i) => NAME[i]);
       if (mixed.length) s.push('In this sketch, ' + mixed.join(', ') + (mixed.length > 1 ? ' are' : ' is') + ' pulled down by the lower ACTH and pushed up by the block, and the lesson gives no rule for which wins, so ' + (mixed.length > 1 ? 'they are' : 'it is') + ' marked ? (unsettled).');
     } else if (fb && blk !== 'none') {
       s.push('In this sketch, low cortisol with feedback intact raises ACTH, which drives pregnenolone, the precursors on the cortisol and androgen routes, and the androgen branch harder.');
@@ -145,7 +192,8 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
       s.push('In this sketch, with the feedback switch off ACTH does not respond to cortisol' + (sup ? ', so the supplied cortisol leaves it unchanged' : ', so it stays unchanged') + ' and only the block’s own effects show.');
     }
     if (blk === 'h21') s.push('In this sketch, DOC and aldosterone are both low, so mineralocorticoid activity is low: renin rises, plasma potassium rises and blood pressure falls through that route, the picture of the classic salt-wasting form.');
-    if (blk === 'h11') s.push('In this sketch, DOC piles up and acts as a mineralocorticoid, so mineralocorticoid activity is high even though aldosterone is low: renin falls, plasma potassium tends to fall and blood pressure is up in many cases, not all.');
+    if (blk === 'h11' && m.mr === 'up') s.push('In this sketch, DOC piles up and acts as a mineralocorticoid, so mineralocorticoid activity is high: volume expands, renin falls and aldosterone falls with it, plasma potassium tends to fall and blood pressure is up in many cases, not all.');
+    if (blk === 'h11' && m.mr === 'mixed') s.push('In this sketch, the block and the lower ACTH pull DOC in opposite ways, so mineralocorticoid activity, and with it renin, corticosterone, aldosterone, potassium and pressure, is unsettled.');
     if (blk === 'none' && sup) {
       s.push('In this sketch, the readouts for renin, potassium and pressure stay unchanged (through the mineralocorticoid route; cortisol’s own effect on pressure is left out), because angiotensin II and potassium, not ACTH, are the main controls of aldosterone.');
     }
@@ -162,11 +210,16 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
     const statusEl = q<HTMLElement>('[data-status]');
     const fbIn = q<HTMLInputElement>('[data-in="fb"]');
     const supIn = q<HTMLInputElement>('[data-in="sup"]');
-    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-blk]'));
+    const steps = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-step]'));
 
     function blockNow(): Blk {
       const r = radios.find((x) => x.checked);
       return r && (r.value === 'h21' || r.value === 'h11') ? r.value : 'none';
+    }
+    function stepNow(): Step {
+      const r = steps.find((x) => x.checked);
+      return r && (r.value === '1' || r.value === '2') ? (Number(r.value) as Step) : 3;
     }
 
     function arrow(pts: [number, number][], color: string) {
@@ -221,14 +274,15 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
       lab(304, ROW[3] - 4, '17,20-lyase', 'middle');
       lab(190, ROW[4] - 5, '21-hydroxylase', 'start');
       lab(190, ROW[5] - 5, '11-beta-hydroxylase', 'start');
+      lab(64, ROW[4] - 5, 'aldosterone synthase', 'start');
+      lab(64, ROW[5] - 5, 'aldosterone synthase', 'start');
       // block markers
       if (blk === 'h21') {
         blockMark(56, ROW[3] - 13, '21-hydroxylase blocked: progesterone to DOC');
         blockMark(180, ROW[4] - 8, '21-hydroxylase blocked: 17-hydroxyprogesterone to 11-deoxycortisol');
       }
       if (blk === 'h11') {
-        blockMark(56, ROW[4] - 8, '11-beta-hydroxylase blocked: DOC to corticosterone');
-        blockMark(180, ROW[5] - 8, '11-beta-hydroxylase blocked: 11-deoxycortisol to cortisol');
+        blockMark(180, ROW[5] - 8, '11-beta-hydroxylase blocked in the cortisol-making zone: 11-deoxycortisol to cortisol, and DOC to corticosterone');
       }
       // boxes
       for (const b of BOXES) {
@@ -256,15 +310,17 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
         arrow([[XR, ROW[5] + H / 2], [XM + W, ROW[5] + H / 2]], '#0e7c86');
       }
       // zone labels
-      const zone = (x: number, t: string) => stage.appendChild(el('text', { x, y: 298, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, t));
-      zone(56, 'glomerulosa route');
+      const zone = (x: number, t: string, y = 297, anchor = 'middle') => stage.appendChild(el('text', { x, y, 'font-size': 9, 'text-anchor': anchor, fill: FAINT }, t));
+      zone(XL, 'DOC route (glomerulosa;', 297, 'start');
+      zone(XL, 'fasciculata also makes DOC)', 308, 'start');
       zone(180, 'fasciculata route');
       zone(304, 'reticularis route');
     }
 
-    function setRead(key: string, d: Dir) {
+    function setRead(key: string, d: Dir, notYet = false) {
       const a = q<HTMLElement>(`[data-r="${key}"]`);
-      a.dataset.dir = d;
+      a.dataset.dir = notYet ? 'wait' : d;
+      if (notYet) { q<HTMLElement>(`[data-rt="${key}"]`).textContent = 'not yet'; return; }
       let w = WORD[d];
       if (key === 'k' && d === 'down') w = 'down or normal';
       if (key === 'bp' && d === 'up') w = 'up in many';
@@ -272,17 +328,22 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
     }
 
     function render() {
-      const blk = blockNow(), fb = fbIn.checked, sup = supIn.checked;
-      const m = model(blk, fb, sup);
+      const blk = blockNow(), fb = fbIn.checked, sup = supIn.checked, step = stepNow();
+      const m = model(blk, fb, sup, step);
       draw(blk, sup, m);
-      setRead('acth', m.acth);
-      setRead('renin', m.renin);
-      setRead('mr', m.mr);
-      setRead('k', m.k);
-      setRead('bp', m.bp);
+      q<HTMLElement>('[data-rl="cort"]').textContent = sup ? 'the adrenal’s own cortisol' : 'cortisol';
+      setRead('cort', m.box.cort);
+      setRead('acth', m.acth, step < 3);
+      setRead('aldo', m.box.aldo);
+      setRead('renin', m.renin, step < 3);
+      setRead('mr', m.mr, step < 2);
+      setRead('k', m.k, step < 3);
+      setRead('andro', m.box.andro);
+      setRead('bp', m.bp, step < 3);
       statusEl.textContent = status(blk, fb, sup, m);
     }
     radios.forEach((r) => r.addEventListener('change', render));
+    steps.forEach((r) => r.addEventListener('change', render));
     fbIn.addEventListener('change', render);
     supIn.addEventListener('change', render);
     render();
@@ -300,6 +361,7 @@ const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
   .aeb-ra[data-dir="down"] { background: #1f5fa8; clip-path: polygon(0 0, 100% 0, 50% 100%); }
   .aeb-ra[data-dir="same"] { background: #6b6b76; border-radius: 50%; transform: scale(0.7); }
   .aeb-ra[data-dir="mixed"] { color: #a86a00; }
+  .aeb-ra[data-dir="wait"] { visibility: hidden; }
   .aeb-reads { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.4rem; margin: 0 0 var(--ddp-space-3); }
   .aeb-r { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.3rem 0.5rem; display: flex; flex-direction: column; gap: 0.15rem; }
   .aeb-rl { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }

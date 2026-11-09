@@ -5,6 +5,8 @@
  * CH2O = V - Cosm, with V = solute excretion / Uosm. A single bar shows the urine flow split
  * into an osmolar part (a volume at plasma osmolality) and a solute-free part; when CH2O is
  * negative the solute-free part turns into a dashed "water returned to blood" segment.
+ * A collapsible row adds electrolyte-free water clearance, CeH2O = V x (1 - (UNa + UK) / PNa),
+ * to show that CH2O and CeH2O can have opposite signs (the lesson's urea-rich urine).
  * Rule only, no physiology model: it does not predict plasma sodium.
  * Self-contained vanilla-TS Astro island. Original.
  */
@@ -21,9 +23,10 @@
         <option value="custom">My own values</option>
         <option value="1">Case 1: solute 600, Uosm 60, Posm 282</option>
         <option value="2">Case 2: solute 500, Uosm 1,000, Posm 295</option>
-        <option value="3a">Case 3: solute 600, Uosm 1,200 (smallest daily volume)</option>
-        <option value="3b">Case 3: solute 600, Uosm 60 (largest daily volume)</option>
-        <option value="4">Case 4: solute 500, Uosm 500, Posm 265</option>
+        <option value="3">Case 3: solute 500, Uosm 500, Posm 265</option>
+        <option value="4a">Case 4: solute 600, Uosm 1,200 (smallest daily volume)</option>
+        <option value="4b">Case 4: solute 600, Uosm 60 (largest daily volume)</option>
+        <option value="5">Urea-rich urine: solute 600, Uosm 600, Posm 290, Na+K 100</option>
       </select>
     </label>
     <label class="fwc-slabel"><span>Solute excretion <em data-out="s">600</em> µOsm per min</span>
@@ -46,12 +49,29 @@
     <div><dt data-r="tclabel">Water returned to blood, −CH₂O</dt><dd data-r="tc"></dd></div>
   </dl>
 
+  <details class="fwc-efw" data-efw>
+    <summary>Electrolyte-free water: which way is plasma sodium being pushed?</summary>
+    <div class="fwc-controls">
+      <label class="fwc-slabel"><span>Urine Na+ + K+ <em data-out="nk">100</em> mmol per L</span>
+        <input type="range" data-in="nk" min="0" max="300" step="5" value="100" />
+      </label>
+      <label class="fwc-slabel"><span>Plasma Na+ <em data-out="pna">140</em> mmol per L</span>
+        <input type="range" data-in="pna" min="125" max="150" step="1" value="140" />
+      </label>
+    </div>
+    <dl class="fwc-readout">
+      <div><dt>Electrolyte-free water clearance CeH₂O = V × (1 − (UNa + UK) ÷ PNa)</dt><dd data-r="ce"></dd></div>
+      <div><dt>Free-water clearance CH₂O, for comparison</dt><dd data-r="ch2o2"></dd></div>
+    </dl>
+    <p class="fwc-efw-why" data-why-efw role="status"></p>
+  </details>
+
   <div class="fwc-math" data-math></div>
   <div class="fwc-why" data-why role="status">
     <p data-why-main></p>
     <p data-why-range></p>
   </div>
-  <p class="fwc-assume">In this sketch: round illustrative numbers for healthy adults, not measurements; a steady state over each collection with constant plasma osmolality; the urine is treated as two volumes added, one carrying all the solute at plasma osmolality and one of solute-free water; you set solute excretion, Uosm and Posm independently, so some combinations may not occur in a healthy adult. The slider limits are made up for the sketch (solute excretion 300 to 900 µOsm per min, Posm 265 to 295 mOsm per kg), except that Uosm about 50 to about 1,200 is the lesson’s range and Posm 265 is the lesson’s fourth example. Values are shown rounded, so “≈” marks a rounded step. The bar’s scale changes with the numbers, so read the axis.</p>
+  <p class="fwc-assume">In this sketch: round illustrative numbers for healthy adults, not measurements; a steady state over each collection with constant plasma osmolality; the urine is treated as two volumes added, one carrying all the solute at plasma osmolality and one of solute-free water; you set solute excretion, Uosm and Posm independently, so some combinations may not occur in a healthy adult. The slider limits are made up for the sketch (solute excretion 300 to 900 µOsm per min, Posm 265 to 295 mOsm per kg), except that Uosm about 50 to about 1,200 is the lesson’s range and Posm 265 is the lesson’s third example; the electrolyte-free water sliders (urine Na+ + K+ 0 to 300 mmol per L, plasma Na+ 125 to 150 mmol per L) are also made up for the sketch. Values are shown rounded, so “≈” marks a rounded step. The bar’s scale changes with the numbers, so read the axis.</p>
   <p class="fwc-foot">Rule to keep: Cosm = Uosm × V ÷ Posm (divide by plasma osmolality, not urine osmolality) and CH₂O = V − Cosm. Positive means urine more dilute than plasma, zero isosmotic urine, negative concentrated urine, and then minus CH₂O is the solute-free water reabsorbed into blood. This sketch is a rule only and does not predict plasma sodium concentration: free-water clearance is a renal, solute-based index of one collection and cannot say which way plasma sodium will move next, since that depends also on what is drunk and on non-renal losses.</p>
 </figure>
 
@@ -63,13 +83,14 @@
   const W = 340;
   const BX0 = 20, BX1 = 320, BY0 = 46, BY1 = 74;
 
-  type Preset = { s: number; u: number; p?: number };
+  type Preset = { s: number; u: number; p?: number; nk?: number; pna?: number };
   const PRESETS: Record<string, Preset> = {
     '1': { s: 600, u: 60, p: 282 },
     '2': { s: 500, u: 1000, p: 295 },
-    '3a': { s: 600, u: 1200 },
-    '3b': { s: 600, u: 60 },
-    '4': { s: 500, u: 500, p: 265 },
+    '3': { s: 500, u: 500, p: 265 },
+    '4a': { s: 600, u: 1200, p: 282 },
+    '4b': { s: 600, u: 60, p: 282 },
+    '5': { s: 600, u: 600, p: 290, nk: 100, pna: 140 },
   };
 
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
@@ -123,6 +144,14 @@
     const math = need<HTMLElement>(root, '[data-math]');
     const whyMain = need<HTMLElement>(root, '[data-why-main]');
     const whyRange = need<HTMLElement>(root, '[data-why-range]');
+    const efw = need<HTMLDetailsElement>(root, '[data-efw]');
+    const nkIn = need<HTMLInputElement>(root, '[data-in="nk"]');
+    const pnaIn = need<HTMLInputElement>(root, '[data-in="pna"]');
+    const nkOut = need<HTMLElement>(root, '[data-out="nk"]');
+    const pnaOut = need<HTMLElement>(root, '[data-out="pna"]');
+    const rCe = need<HTMLElement>(root, 'dd[data-r="ce"]');
+    const rCh2 = need<HTMLElement>(root, 'dd[data-r="ch2o2"]');
+    const whyEfw = need<HTMLElement>(root, '[data-why-efw]');
 
     function render() {
       const S = parseInt(sIn.value, 10); // microOsm per min
@@ -147,6 +176,22 @@
       rRatio.textContent = f2(ratio);
       rDay.textContent = trim(dayL) + ' L';
       rTc.textContent = sign < 0 ? f2(-ch) + ' mL per min' : 'none (CH₂O is not negative)';
+
+      // electrolyte-free water clearance: the same split, made with urine Na+ + K+ against plasma Na+
+      const NK = parseInt(nkIn.value, 10); // mmol per L
+      const PNa = parseInt(pnaIn.value, 10); // mmol per L
+      nkOut.textContent = String(NK);
+      pnaOut.textContent = String(PNa);
+      const ce = V * (1 - NK / PNa); // mL per min
+      const ceSign = NK < PNa ? 1 : NK > PNa ? -1 : 0;
+      const chText = sign === 0 ? '0 mL per min' : signed(ch, sign < 0) + ' mL per min';
+      rCe.textContent = ceSign === 0 ? '0 mL per min' : signed(ce, ceSign < 0) + ' mL per min';
+      rCh2.textContent = chText;
+      let efwMsg = 'In this sketch, CeH₂O = ' + f2(V) + ' × (1 − ' + NK + ' ÷ ' + PNa + ') ' + eq(ce, 2) + ' ' + (ceSign === 0 ? '0' : signed(ce, ceSign < 0)) + ' mL per min, so this urine ';
+      efwMsg += ceSign > 0 ? 'pushes plasma [Na+] up (it removes water in excess of sodium and potassium).' : ceSign < 0 ? 'pushes plasma [Na+] down (it removes sodium and potassium in excess of water).' : 'leaves plasma [Na+] where it is.';
+      if (ceSign !== 0 && sign !== 0 && ceSign !== sign) efwMsg += ' CH₂O and CeH₂O have opposite signs here: urea and other ineffective osmoles in the urine count in CH₂O but not in CeH₂O.';
+      efwMsg += ' Whole-body balance must also count what is drunk and non-renal losses.';
+      whyEfw.textContent = efwMsg;
 
       // arithmetic, with units
       const dayMl = V * MIN_PER_DAY;
@@ -224,12 +269,12 @@
       } else {
         main = 'In this sketch, urine is more concentrated than plasma (Uosm above Posm), so Cosm of ' + mL(cosm) + ' exceeds the urine flow of ' + mL(V) + ' and CH₂O is negative: ' + mL(-ch) + ' of solute-free water is returned to blood.';
         if (P < 275) {
-          main += ' Plasma osmolality here is below the 275 to 295 mOsm per kg typical of an adult human at rest while the urine is concentrated, as in the lesson’s fourth example, in which vasopressin was given with a water load; the sketch does not say what produced your values.';
+          main += ' Plasma osmolality here is below the 275 to 295 mOsm per kg typical of an adult human at rest while the urine is concentrated, as in the lesson’s third example, in which vasopressin was given with a water load; the sketch does not say what produced your values.';
         }
       }
       whyMain.textContent = main;
       const hi = (S * 1.44) / U_MAX, lo = (S * 1.44) / 60;
-      whyRange.textContent = 'In this sketch, holding solute excretion at ' + thousands(S) + ' µOsm per min, the rule gives ' + trim(hi) + ' L per day at Uosm 1,200 and ' + trim(lo) + ' L per day at Uosm 60 (the lesson’s very dilute example): water excretion is limited by solute delivery as much as by the hormone.';
+      whyRange.textContent = 'In this sketch, holding solute excretion at ' + thousands(S) + ' µOsm per min, the rule gives ' + trim(hi) + ' L per day at Uosm 1,200 and ' + trim(lo) + ' L per day at Uosm 60 (the lesson’s very dilute example): water excretion is limited by solute delivery as well as by vasopressin.';
     }
 
     function applyPreset(key: string) {
@@ -238,9 +283,12 @@
       sIn.value = String(p.s);
       uIn.value = String(p.u);
       if (p.p !== undefined) pIn.value = String(p.p);
+      if (p.nk !== undefined) nkIn.value = String(p.nk);
+      if (p.pna !== undefined) pnaIn.value = String(p.pna);
+      if (p.nk !== undefined || p.pna !== undefined) efw.open = true;
       render();
     }
-    [sIn, uIn, pIn].forEach((g) => g.addEventListener('input', () => { preIn.value = 'custom'; render(); }));
+    [sIn, uIn, pIn, nkIn, pnaIn].forEach((g) => g.addEventListener('input', () => { preIn.value = 'custom'; render(); }));
     preIn.addEventListener('change', () => applyPreset(preIn.value));
     render();
   });
@@ -263,6 +311,9 @@
   .fwc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
   .fwc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .fwc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .fwc-efw { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fwc-efw summary { cursor: pointer; font-weight: 600; color: var(--ddp-color-primary); }
+  .fwc-efw-why { margin: 0 0 var(--ddp-space-2); line-height: 1.5; }
   .fwc-math { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; margin: var(--ddp-space-2) 0; padding-left: 0.55rem; border-left: 3px solid var(--ddp-color-accent); overflow-wrap: anywhere; }
   .fwc-why { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
   .fwc-why p { margin: 0 0 0.4rem; }
