@@ -5,14 +5,13 @@ course: "physiology"
 courseChapter: "Physiology · Unit 3: The heart and circulation"
 order: 1209
 summary: >-
-  How does fluid cross a capillary wall, and if most capillaries filter all along their length,
-  how does the fluid get back? This lesson matches the three kinds of capillary wall to the
-  routes they allow, writes the filtration equation with its reflection coefficient, replaces
-  venous-end reabsorption with the revised Starling principle and the single-vessel evidence
-  behind it, and follows lymph from button junctions to the thoracic duct. Afterwards you can
-  calculate net filtration, predict when edema forms, and tell a pressure cause from a
-  permeability cause in lymph data.
-hook: "Adults born with almost no plasma albumin usually have only mild swelling. Why does the textbook Starling balance not flood their tissues?"
+  Why does fluid leave a capillary all along its length, and how does it get home? This lesson
+  builds the filtration equation as push, hold-back and conductance, shows why the venous end does not
+  reabsorb in the steady state (protein left behind under the glycocalyx switches absorption
+  off), follows lymph from button junctions to the thoracic duct, and sorts the four routes to
+  edema. Afterwards you can calculate net filtration, predict when edema forms, and tell a
+  pressure cause from a permeability cause in lymph data.
+hook: "Adults born with almost no plasma albumin usually have only mild swelling. What keeps their tissues from flooding?"
 
 estMinutes: 26
 objectives:
@@ -210,6 +209,37 @@ practiceQuestions:
       packaged. The right lymphatic duct does not drain the intestine; gut lymph reaches the
       thoracic duct, which empties on the left.
 
+  - stem: "In a leg muscle, capillaries filter a little all along their length. By the revised Starling principle, how does most of that fluid get back to the blood?"
+    choices:
+      - "Through lymph, moved by lymphangions and tissue squeezing"
+      - "Through venous-end capillaries, drawn in by plasma protein"
+      - "Through lymph, pushed along by capillary blood pressure alone"
+      - "Through venous-end capillaries, pushed in by tissue pressure"
+    answer: 0
+    rationale: >-
+      In the steady state the venous ends filter slightly too, so the filtrate returns as lymph.
+      It enters initial lymphatics, and collecting lymphatics move it on by intrinsic pumping of
+      lymphangions, the segments between secondary valves, plus extrinsic squeezing from muscle
+      and breathing. Drawing it back into venous-end capillaries with plasma protein is the
+      textbook reabsorption picture: any absorption leaves protein behind under the glycocalyx
+      and switches itself off. Tissue pressure, about -1 mmHg, is far below even venous-end capillary pressure, so it cannot push fluid into the vessel. Capillary blood pressure alone does not drive lymph
+      along; the lymphatics pump it.
+  - stem: "After a sudden haemorrhage, capillary pressure in skeletal muscle falls and the capillaries start to absorb fluid. If the pressure stays low, what happens next?"
+    choices:
+      - "Absorption continues steadily, as plasma protein is unchanged"
+      - "Absorption speeds up, as filtration washes tissue protein away"
+      - "Absorption stops, as protein builds up beneath the glycocalyx"
+      - "Absorption stops, as the reflection coefficient falls to zero"
+    answer: 2
+    rationale: >-
+      Water drawn into the plasma leaves protein behind in the subglycocalyx space, so pi_g rises,
+      the protein difference shrinks and absorption stops; the vessel then filters slightly
+      again. This temporary absorption is autotransfusion. Steady absorption with unchanged
+      plasma protein is the fixed-force picture, which ignores protein left behind by the
+      absorbed water. Washout of tissue protein happens during filtration, not absorption, so it
+      cannot speed absorption. The reflection coefficient is a property of the wall and does not
+      fall to zero when pressure drops.
+
 mcatQuestions:
   - stem: "A single venule in the mesentery of an anaesthetized rat is perfused with an albumin solution whose oncotic pressure is 36 cmH2O, while the tissue outside is superfused with protein-free saline (take outside oncotic and hydrostatic pressures as 0). Filtration per unit area, measured within seconds of each occlusion, is linear in perfusion pressure: slope 2.0 x 10^-7 cm per s per cmH2O, reaching zero at 33 cmH2O. After an enzyme is perfused, the slope is 4.0 x 10^-7 and filtration reaches zero at 27 cmH2O. Which interpretation fits?"
     choices:
@@ -277,8 +307,8 @@ explainLevels:
       substances like glucose and salt pass through gaps between them, and big proteins mostly
       stay in the blood. Two pressures decide how much water leaks out: blood pressure pushes
       water out, and the pull of blood proteins, called oncotic pressure, holds it in. In most
-      tissues the push wins by a little all along the capillary, so a small amount of fluid
-      leaks out all the time. Lymph vessels collect it and return it to the blood. Swelling,
+      tissues a small amount of fluid leaks out all along the capillary, all the time: the
+      proteins slow the leak but cannot reverse it for long. Lymph vessels collect it and return it to the blood. Swelling,
       called edema, happens when leakage outruns the lymph vessels: when blood pressure in the
       capillaries rises, when blood proteins are low, when the vessel wall becomes leaky, or
       when lymph vessels are blocked.
@@ -367,93 +397,174 @@ draft: false
 ---
 
 import StarlingCapillaryLymph from '../../../components/StarlingCapillaryLymph.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**Adults born with almost no albumin in their plasma usually have only mild edema, and a few have none.** (In newborns and young children the condition can be serious, with fluid retention.) Albumin supplies most of the oncotic pressure that holds water in the blood, and the textbook balance of capillary forces predicts that losing it should flood the tissues. Why it does not is this lesson's question.
+**The diagram in most textbooks shows fluid leaving a capillary at its arterial end and coming back in at its venous end. When physiologists tested it, most of that fluid did not come back that way.**
 
-[Blood vessels, blood and lymph](/lessons/blood-and-vessels/) gave the first look: Starling's balance, Landis's frog capillaries and the arterial-end, venous-end model. Here you take the balance apart, add the leak, and follow the fluid home.
+It was a reasonable model, one Starling himself floated: blood pressure falls along a capillary, so the outward push should win near the arterial end and lose near the venous end. In the reabsorption model as usually taught, about 24 L a day filters out and 20.4 L of it, about 85 percent, comes back in at the venous ends, leaving lymph only the remainder. In fact, in most tissues the microvessels filter a little along their whole length, and lymph carries the fluid home.
 
-## Three kinds of wall, several routes across
+Keep one puzzle for the end. Adults born with almost no albumin in their plasma usually have only mild edema, and a few have none. (In newborns and young children the condition can be serious, with fluid retention.) Albumin supplies most of the pull that holds water in the blood, so what protects them?
 
-Capillary walls differ in how their endothelial cells join ([epithelia](/lessons/epithelia/)).
+[Blood vessels, blood and lymph](/lessons/blood-and-vessels/) gave the first look at Starling's balance. Two terms before the rule. **Oncotic pressure** is the osmotic pull of the plasma proteins, drawing water toward the side with more protein. The **glycocalyx** is a coat of proteoglycans and glycoproteins (sugar-covered proteins) lining every capillary, its fibres covering the openings between and through the cells.
 
-- **Continuous** capillaries (skeletal muscle, skin, lung; the tightest kind in the brain) have an unbroken lining. Cells meet at narrow **intercellular clefts** and, outside the brain, carry many caveolae, small membrane pits and vesicles ([endocytosis](/lessons/endocytosis/)).
-- **Fenestrated** capillaries (intestinal villi, renal peritubular capillaries, endocrine glands) add **fenestrae**, pores through the thinnest parts of the cell. In rat tissues a thin diaphragm across each fenestra is labelled by the protein PV-1 (Stan, Kubitza and Palade, 1999). Glomerular fenestrae have no diaphragms ([glomerular filtration](/lessons/glomerular-filtration/)).
+> **The one idea to carry through this lesson.** Water crossing a capillary wall is pushed out by the pressure difference and held back by the protein difference across the glycocalyx, and that protein difference is set by the flow itself. Filtering rinses protein from under the glycocalyx and keeps the hold-back strong. Absorbing leaves protein behind there and weakens it. So plasma protein can slow filtration but cannot reverse it for long (the no-absorption rule). In the steady state almost every microvessel filters a little along its whole length, lymph carries the fluid home, and edema is filtration outrunning lymph.
+
+The rule covers the steady state in most systemic beds. It does not cover the moments after a sudden fall in pressure, the few beds that absorb steadily, sinusoids, or the glomerulus ([its own balance](/lessons/glomerular-filtration/)). It governs water; nutrients and gases cross mainly by diffusion.
+
+## Push, hold-back and conductance
+
+Take the three forces one at a time, with round values for resting skeletal muscle.
+
+**The push** is the pressure inside the capillary, Pc, minus the pressure in the tissue, Pi. Pc sits between arterial and venous pressure, placed by the ratio of pre- to postcapillary resistance ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)), so a rise in venous pressure moves it more than an equal rise in arterial pressure. Take Pc as 18 mmHg. Pi is slightly below atmospheric in loose tissues such as skin, intestine and lung, about -1 mmHg, though positive in some organs such as liver and kidney. A rise in Pi opposes filtration. Here the push is 18 - (-1) = 19 mmHg.
+
+**The hold-back** comes from the protein difference across the wall. Plasma oncotic pressure, pi_p, is about 26 mmHg in adults by one review. Albumin supplies most of it, about 65 to 80 percent by different reviews, and globulins supply the rest. Some protein reaches the tissue side, and the oncotic pressure of the protein just beyond the glycocalyx, written pi_g and taken here as 6 mmHg, is subtracted. It is not the average for the whole tissue; the next section shows where it sits and why it is not fixed.
+
+A protein can only pull water back across a wall it cannot easily cross. If some albumin can be carried through the wall along with the water, it pulls with only part of its strength. That fraction of its full pull is the **reflection coefficient**, sigma: 1 if the wall passes water and no solute, 0 if it hinders the solute no more than water. For albumin it is high, about 0.8 to 0.96 in the single vessels and tissues measured, varying with the tissue; take 0.9. Here the hold-back is 0.9 x (26 - 6) = 18 mmHg.
+
+**The conductance** is the **hydraulic conductivity**, Lp, times the wall area, S; for whole tissues their product is the **filtration coefficient**, Kf. It sets how much water flow each mmHg of net pressure buys. Push minus hold-back: 19 - 18 = +1 mmHg, outward.
+
+<EquationCard
+  purpose="How fast fluid crosses a capillary wall, and in which direction."
+  eq="Jv = Lp S [(Pc - Pi) - sigma (pi_p - pi_g)]"
+  say="Flow across the wall equals how freely the wall passes water, times the push of pressure minus the hold-back of protein."
+  symbols={[
+    ["Jv", "J v", "volume flow across the wall, positive outward (filtration)", "cm³/s for one vessel; mL/min for a tissue"],
+    ["Lp", "L p", "hydraulic conductivity: water flow per unit area per unit pressure", "cm per s per cmH2O (1 mmHg = 1.36 cmH2O)"],
+    ["S", "S", "wall area; for a whole tissue Lp S is Kf, in mL per min per mmHg per 100 g", "cm²"],
+    ["Pc", "P c", "mean capillary hydrostatic pressure", "mmHg"],
+    ["Pi", "P i", "interstitial hydrostatic pressure", "mmHg"],
+    ["sigma", "sigma", "reflection coefficient for plasma protein", "no unit"],
+    ["pi_p", "pi sub p", "plasma oncotic pressure", "mmHg"],
+    ["pi_g", "pi sub g", "oncotic pressure just beneath the glycocalyx (next section)", "mmHg"],
+  ]}
+  toolkit={["subscripts", "units"]}
+  check="If sigma is 0, protein holds nothing back and the net is just the push. If the push equals sigma times the protein difference, the net is zero and no fluid moves."
+>
+  <Fragment slot="example">
+    <p>Arterial end of a muscle capillary, with pi_g held at 6 mmHg for now (the next section shows it is lower here): Pc = 32, Pi = -1, pi_p = 26, pi_g = 6 (all mmHg), sigma = 0.9.</p>
+    <p>Push 33 mmHg, hold-back 18 mmHg, net +15 mmHg outward. Multiply by Lp S to get the flow.</p>
+  </Fragment>
+</EquationCard>
+
+### Why sigma differs from bed to bed
+
+Capillary walls differ in how their endothelial cells join ([epithelia](/lessons/epithelia/)), and sigma follows the wall.
+
+- **Continuous** capillaries (skeletal muscle, skin, lung; the tightest kind in the brain) have an unbroken lining. Cells meet at narrow **intercellular clefts** and, outside the brain, carry many caveolae, small membrane pits and vesicles ([endocytosis](/lessons/endocytosis/)). They hold back most plasma protein.
+- **Fenestrated** capillaries (intestinal villi, renal peritubular capillaries, endocrine glands) add **fenestrae**, pores through the thinnest parts of the cell, here covered by a thin diaphragm. They pass more water and small solute.
 - **Sinusoidal** capillaries (liver, spleen, bone marrow) have wide openings, large open fenestrae in the liver and gaps between cells elsewhere, and an incomplete or absent basement membrane. They hold back even large molecules little.
 
-Over all of them lies the **glycocalyx**, a luminal coat of proteoglycans and glycoproteins whose fibres cover the cleft entrances and fenestrae.
-
-The routes follow from the wall. Oxygen, carbon dioxide and other lipid-soluble molecules diffuse through the endothelial membranes over the whole surface ([membrane transport](/lessons/membrane-transport/)). Outside the brain, small water-soluble solutes such as glucose, ions and urea diffuse through clefts and fenestrae; brain capillaries close this route, and glucose crosses them on transporters. For them, diffusion moves far more across the wall than filtering water carries, so the forces below govern water and protein, not nutrient supply.
-
-Plasma proteins take a separate, sparser route. In the **two-pore model**, many small pores, thought to be the spaces between glycocalyx fibres over clefts and fenestrae, pass water and small solutes, and rare large pores pass macromolecules. What the large pores are is not settled. Bruns and Palade (1968) found intravenous ferritin inside endothelial vesicles of rat diaphragm-muscle capillaries, not in junctions, and concluded that vesicles are the large pores; a 2021 review lists rare channels or possibly vesicles.
+Oxygen, carbon dioxide and other lipid-soluble molecules diffuse through the endothelial membranes over the whole surface ([membrane transport](/lessons/membrane-transport/)). Outside the brain, small water-soluble solutes such as glucose, ions and urea diffuse through clefts and fenestrae; brain capillaries close this route, and glucose crosses them on transporters. For them, diffusion moves far more across the wall than filtering water carries. In the **two-pore model**, many small pores, thought to be the spaces between glycocalyx fibres over clefts and fenestrae, pass water and small solutes, and rare large pores pass plasma proteins and other macromolecules. What the large pores are is not settled.
 
 {/* DIAGRAM: continuous, fenestrated and sinusoidal walls side by side, each with a thin luminal glycocalyx */}
 
-## Starling's balance, written with a leak term
+## Why the venous end does not reabsorb
 
-Starling showed in 1896, in perfused hind limbs of anaesthetized dogs, that saline injected into the tissues was absorbed into the blood while plasma was not, and argued that capillary pressure and plasma oncotic pressure set fluid exchange. The form used today adds a term he never wrote:
+Now do the textbook picture's arithmetic. Pressure falls from about 32 mmHg where blood enters a capillary to about 12 mmHg where it leaves (round textbook end values; because resistance places the mean nearer the venous end, the resting mean used above is 18 mmHg, not the 22 mmHg midpoint of 32 and 12). Hold everything else at the values above, so the hold-back is 18 mmHg everywhere.
 
-> **Jv = Lp S [(Pc - Pi) - sigma (pi_p - pi_g)]**
+| Point along the capillary | Pc (mmHg) | Push, Pc - Pi | Net, push minus 18 |
+|---|---|---|---|
+| Arterial end | 32 | 33 | +15, filters |
+| | 24 | 25 | +7, filters |
+| | 20 | 21 | +3, filters |
+| | 16 | 17 | -1, absorbs |
+| Venous end | 12 | 13 | -5, absorbs |
 
-- **Jv**: volume flow across the wall, mL per min, positive outward (filtration).
-- **Lp**: **hydraulic conductivity**, water flow per unit area per unit pressure (cm per s per cmH2O); **S** is wall area. Their product, the **filtration coefficient** Kf, is given for whole tissues per 100 g.
-- **Pc**: mean capillary hydrostatic pressure, placed between arterial and venous pressure by the ratio of pre- to postcapillary resistance ([resistance, compliance and local flow](/lessons/resistance-compliance-local-flow/)), so a rise in venous pressure moves it more than an equal rise in arterial pressure.
-- **Pi**: interstitial hydrostatic pressure, slightly below atmospheric in loose tissues such as skin, intestine and lung, though positive in some organs such as liver and kidney; Noddeland found a mean of about -1.4 mmHg in subcutaneous tissue at heart level in 10 people. A rise in Pi opposes filtration.
-- **pi_p**: plasma oncotic pressure, about 26 mmHg in adults by one review. Albumin supplies most of it, about 65 to 80 percent by different reviews, and globulins supply the rest. Oncotic pressure rises more steeply than linearly with protein concentration, so the low-albumin numbers in this lesson are round illustrative values, not a clinical conversion.
-- **pi_g**: oncotic pressure of the fluid just beneath the glycocalyx, on the tissue side of the sieve.
-- **sigma**: the **reflection coefficient**, the fraction of a solute's full osmotic pressure it exerts across this wall: 1 if the wall passes water and no solute, 0 if it hinders the solute no more than water. For albumin it is high, about 0.8 to 0.96 in the single vessels and tissues measured, varies with the tissue, and approaches 0 in sinusoids.
+This is the familiar diagram. It predicts that a venule held at low pressure should keep absorbing for as long as you watch it.
 
-Staverman defined the reflection coefficient, and Kedem and Katchalsky gave the flow equation that uses it. Putting the subglycocalyx oncotic pressure into it came later, from Michel's work on the revised principle. Starling gave the principle.
+**Predict.** The table assumed that the tissue-side protein stays at 6 mmHg wherever water is moving in. But the wall holds protein back. What happens to the protein on the tissue side when water is drawn *into* the blood across that wall?
 
-Two consequences follow. A lower sigma means the same protein gradient opposes filtration less, so a leakier wall passes more water as well as more protein; in a liver sinusoid oncotic pressure barely restrains filtration. And because the wall leaks protein, there is no true Starling equilibrium: if filtration stopped, protein would diffuse out until the oncotic difference vanished.
+<details>
+<summary>Check your prediction</summary>
 
-## Most capillaries filter all along their length
+It is left behind. Water crosses the sieve into the plasma, but most of the protein cannot, so the protein just outside the sieve gets more concentrated. As it rises, the protein difference across the wall shrinks, the hold-back weakens, and absorption slows to a stop. The table's venous rows assumed a hold-back that the absorption itself destroys.
 
-Woodcock and Michel's 2021 review states that the arterial-end, venous-end model has no reproducible experimental evidence behind it, and Levick concluded in 1991 that sustained downstream reabsorption is difficult to uphold.
+</details>
 
-The revised picture puts the sieve at the glycocalyx, like a coffee filter laid over the mouth of a narrow channel. Filtrate passing it is nearly protein-free and flows out through the cleft, washing the small **subglycocalyx space**. Protein reaching the tissue by large pores must diffuse back against that flow, so pi_g is lower than average interstitial oncotic pressure and depends on Jv. Reviews by Levick and Michel (2010) and Michel, Woodcock and Curry (2020) draw four consequences:
+That is the revised Starling principle in one move: **the hold-back is set by the flow**. The sieve is the glycocalyx, lying over the mouths of the clefts between endothelial cells like a coffee filter over a narrow channel. Just outside the filter, inside the cleft, is a thin film of fluid, the **subglycocalyx space**. Its oncotic pressure is pi_g, not the average protein of the whole interstitium.
 
-- **The hockey-stick curve.** Steady-state filtration plotted against Pc is steep above an inflection just below plasma oncotic pressure, and shallow below it.
-- **The no-absorption rule.** The oncotic difference opposes filtration but does not reverse it in the steady state.
-- **Transient absorption.** A sudden fall in Pc gives absorption that concentrates protein beneath the glycocalyx until it stops; after blood loss this is **autotransfusion** (reflexes are in [blood pressure regulation](/lessons/blood-pressure-regulation/)).
-- **Steady absorption only where an independent stream flushes the tissue with protein-poor fluid**: intestinal mucosa ([absorption and the liver](/lessons/absorption-and-liver/)) and renal peritubular capillaries, where an epithelium supplies nearly protein-free fluid, and lymph nodes, where incoming lymph, lower in protein than plasma, does the flushing.
+- **When the vessel filters**, nearly protein-free fluid streams out along the cleft, rinsing the film. Protein reaching the tissue by large pores must diffuse back against this stream, so pi_g stays below average interstitial oncotic pressure and the hold-back stays strong. Faster filtration rinses harder.
+- **When the vessel absorbs**, the stream reverses. Water leaves the film for the plasma and protein is left behind, so pi_g climbs until the hold-back falls to match the push. Then absorption stops.
+- **If water stopped moving**, protein would diffuse out until the difference vanished. So there is no true Starling equilibrium.
 
-**The modern test.** If the glycocalyx is the sieve, stripping part of it should raise Lp and lower sigma in the same vessel. Adamson (1990) found that a minute of pronase, a broad protease, raised Lp of single perfused frog mesenteric capillaries from 2.0 to 4.9 x 10^-7 cm per s per cmH2O with clefts unchanged. Betteridge, Arkill and colleagues (2017) cannulated single mesenteric microvessels in anaesthetized rats and measured Lp by Landis-Michel occlusion (the slope of filtration against pressure), the albumin reflection coefficient, and glycocalyx depth. Lp and sigma were measured in each vessel before and after neuraminidase, which removes sialic acids (n = 7 pairs): Lp rose 1.9-fold, from 1.39 to 2.68 x 10^-7 cm per s per cmH2O, and sigma for albumin fell from 0.96 to 0.87. Depth by electron microscopy was 78 nm in vehicle-treated vessels and 40 nm in neuraminidase-treated vessels, a comparison between different vessels.
+Now let pi_g follow the flow and redo the capillary. The steady-state numbers come from a simple sieving model tuned so that resting muscle (push 19 mmHg) settles at pi_g = 6 mmHg; they are illustrative, not measurements.
 
-That ties sialic acids to water and albumin permeability in rat mesentery. It does not show the effect in human vessels or disease, neuraminidase may act beyond the glycocalyx, and depth estimates in one rat study ranged from 0.17 to 3.02 micrometres with label and method. Dull and Hahn (2022) argue that junctions, not the glycocalyx, limit protein permeability; the debate is open.
+| Pc (mmHg) | Net with pi_g fixed at 6 | pi_g at steady state | Net at steady state |
+|---|---|---|---|
+| 32 | +15 | about 2.6 | about +12 |
+| 24 | +7 | about 3 | about +4 |
+| 20 | +3 | about 4.5 | about +1.6 |
+| 16 | -1 | about 7.8 | about +0.6 |
+| 12 | -5 | about 11.9 | about +0.3 |
+
+Every row filters. Near the arterial end, fast filtration rinses pi_g toward its floor. Near the venous end, where the push is weaker than the plasma proteins' full pull, pi_g rises until only a trickle of filtration is left, and the trickle never becomes absorption.
+
+Plot steady filtration against capillary pressure and you get the **hockey stick**. Above a bend where the push nears sigma x pi_p (0.9 x 26, about 23 mmHg; Pc about 22 mmHg here, just below plasma oncotic pressure), filtration rises steeply, close to a straight line. Below it the filtrate is too slow to wash protein away, so the curve flattens toward zero but stays positive. The old diagram is the straight line continued below zero.
+
+{/* FIGURE: steady-state Jv against Pc. Dashed straight line (fixed hold-back) crossing below zero near Pc = 17; solid hockey stick bending near Pc 22 mmHg and flattening just above zero. Caption: "Plasma protein can slow filtration but, in the steady state, cannot reverse it." */}
 
 {/* DIAGRAM: one cleft in section: glycocalyx over its mouth, low-protein subglycocalyx space, protein-richer interstitium, filtration arrows */}
 
-### Worked problem: one muscle, three states
+Two refinements. **Absorption is real but temporary.** After a sudden fall in capillary pressure, as after blood loss, a vessel absorbs until protein builds up under the glycocalyx, then filters slightly again. That is **autotransfusion** (reflexes in [blood pressure regulation](/lessons/blood-pressure-regulation/); Part C below). And **steady absorption needs a second stream that keeps the tissue side rinsed with protein-poor fluid.** That happens in the intestinal mucosa ([absorption and the liver](/lessons/absorption-and-liver/)) and around renal peritubular capillaries, where an epithelium delivers nearly protein-free fluid, and in lymph nodes, where incoming lymph, lower in protein than plasma, does the rinsing. Everywhere else, absorption switches itself off, and lymph is the way home.
 
-Made-up round numbers for adult human skeletal muscle at rest, steady state unless stated: Kf = 0.005 mL per min per mmHg per 100 g (illustrative, of the order estimated in human limbs), 10 kg of muscle (100 units of 100 g), Pc = 18 mmHg, Pi = -1 mmHg, pi_p = 26 mmHg, pi_g = 6 mmHg, sigma = 0.9. Assume one lumped Pc and constant Kf and sigma.
+**How we know.** Levick concluded in 1991 that sustained downstream reabsorption is difficult to uphold, and Woodcock and Michel's 2021 review states that the arterial-end, venous-end model has no reproducible experimental evidence behind it. In single frog mesenteric capillaries perfused through a micropipette (Michel and Phillips, 1987), a vessel held at low pressure absorbed only briefly; in the steady state, fluid movement fell to near zero or slight filtration. When enzymes strip part of the glycocalyx, the same vessel becomes leakier to water and albumin. Both fit the glycocalyx being the sieve. Whether the glycocalyx or the junctions beneath it are the main barrier to protein is still argued, and nearly all of this evidence comes from animal vessels.
 
-**A, rest.** Hydrostatic difference = 18 - (-1) = 19 mmHg. Oncotic opposition = 0.9 x (26 - 6) = 18 mmHg. Net = +1 mmHg, outward. Jv = 0.005 x 1 x 100 = 0.5 mL per min, or 720 mL per day, returned as lymph.
+## Where the fluid goes: lymph
 
-**B, venous pressure rises so Pc = 28 mmHg** (as in heart failure; [cardiac output and venous return](/lessons/cardiac-output-venous-return/)). At first net = 29 - 18 = 11 mmHg and Jv = 5.5 mL per min. Over hours, in this example, Pi rises to +2 mmHg and pi_g falls to 2 mmHg: net = (28 - 2) - 0.9 x (26 - 2) = 4.4 mmHg, Jv = 2.2 mL per min, 60 percent less. If lymph can carry at most 1.5 mL per min, fluid accumulates at 0.7 mL per min, about 1.0 L per day: edema.
+**Predict.** A resting muscle filters a little all along its capillaries, day and night. Where must that fluid go, and what else must the same route carry?
 
-**C, blood loss lowers Pc to 10 mmHg.** Net = 11 - 18 = -7 mmHg, absorption of 3.5 mL per min at first. It stops when 0.9 x (26 - pi_g) = 11, at pi_g = 13.8 mmHg, and the vessel sits on the shallow arm of the hockey stick.
+<details>
+<summary>Check your prediction</summary>
+
+Into lymph vessels, and through them back to the blood. They must also carry the plasma protein that leaked through the large pores, or protein would build up in the tissue and the hold-back would fail.
+
+</details>
+
+Filtrate enters blind-ended **initial lymphatics**, whose overlapping cells meet at discontinuous **button junctions**, with flap-like openings between the buttons acting as the primary valves. Collecting lymphatics have **secondary valves**, and each segment between two of them is a **lymphangion**, a contractile pump. Lymph moves by this intrinsic pumping plus extrinsic squeezing from muscle and breathing. Lymphatics running inside skeletal muscle are reported to have little or no smooth muscle, so muscle contraction probably drives flow there.
+
+Recent reviews put the fluid filtered from an adult's blood capillaries at about 8 L a day and lymph transport at 8 to 12 L a day. Roughly half of it is thought to be absorbed back into blood within lymph nodes, an estimate resting mainly on animal studies ([lymphoid organs and immune traffic](/lessons/lymphoid-organs-immune-traffic/)). The rest enters the veins by the thoracic duct, at the junction of the left subclavian and left internal jugular veins, and by the right lymphatic duct on the right.
+
+Lymph also carries fat. Long-chain fats leave intestinal cells as chylomicrons, fat-carrying lipoprotein particles, enter the gut's lymph vessels, the **lacteals**, and reach the blood through the thoracic duct, bypassing the liver at first. Medium-chain fatty acids go mostly by the portal vein.
+
+## Worked problem: one muscle, three states
+
+Made-up round numbers for resting adult human skeletal muscle, steady state unless stated: Kf = 0.005 mL per min per mmHg per 100 g (illustrative, of the order estimated in human limbs), 10 kg of muscle (100 units of 100 g), Pc = 18 mmHg, Pi = -1 mmHg, pi_p = 26 mmHg, pi_g = 6 mmHg, sigma = 0.9. Assume one lumped Pc and constant Kf and sigma.
+
+**A, rest.** Push 19 mmHg, hold-back 18 mmHg, net +1 mmHg, as above. Jv = 0.005 x 1 x 100 = 0.5 mL per min, or 720 mL per day, returned as lymph.
+
+**B, venous pressure rises so Pc = 28 mmHg** (as in heart failure; [cardiac output and venous return](/lessons/cardiac-output-venous-return/)). At first net = 29 - 18 = 11 mmHg and Jv = 5.5 mL per min. Over hours, in this example, Pi rises to +2 mmHg and the faster filtrate rinses pi_g down to 3 mmHg: net = (28 - 2) - 0.9 x (26 - 3) = 5.3 mmHg, and Jv = 2.65 mL per min, about half the first value.
+
+**Predict.** Lymph from this muscle can carry at most 1.5 mL per min. Does the muscle swell?
+
+<details>
+<summary>Check your prediction</summary>
+
+Yes. Filtration of 2.65 mL per min beats a lymph ceiling of 1.5 mL per min by 1.15 mL per min, about 1.7 L a day: edema. The rise in Pi and the fall in pi_g roughly halved the filtration, but not enough.
+
+</details>
+
+**C, blood loss lowers Pc to 10 mmHg.** Net = 11 - 18 = -7 mmHg, absorption of 3.5 mL per min at first. It stops when 0.9 x (26 - pi_g) = 11, at pi_g = 13.8 mmHg, and then the vessel goes back to filtering slightly, on the shallow arm of the hockey stick.
 
 <StarlingCapillaryLymph />
 
-## Lymph: buttons, lymphangions and the thoracic duct
-
-Filtrate enters blind-ended **initial lymphatics**, whose overlapping cells meet at discontinuous **button junctions**, with flap-like openings between the buttons acting as the primary valves. Collecting lymphatics have **secondary valves**, and each segment between two is a **lymphangion**, a contractile pump. Lymph moves by this intrinsic pumping plus extrinsic squeezing from muscle and breathing. In isolated rat mesenteric lymphatics and thoracic ducts, imposed flow lowered contraction frequency and amplitude (Gashev, Davis and Zawieja, 2002). Skeletal-muscle lymphatics are reported to lack smooth muscle, so muscle movement probably drives flow there.
-
-Recent reviews estimate that about 8 L of fluid a day filters from an adult's blood capillaries and put lymph transport at 8 to 12 L a day, with roughly half thought to be absorbed into blood within lymph nodes, an estimate resting mainly on animal studies ([lymphoid organs and immune traffic](/lessons/lymphoid-organs-immune-traffic/)); the familiar 24 L filtered and 20.4 L reabsorbed come from the reabsorption model. The rest enters the veins by the thoracic duct, at the junction of the left subclavian and left internal jugular veins, and by the right lymphatic duct on the right, carrying back the plasma protein that leaked.
-
-Long-chain fats leave intestinal cells as chylomicrons, enter lacteals and reach the blood through the thoracic duct, bypassing the liver at first; medium-chain fatty acids go mostly by the portal vein. In mice, endothelial deletion of Nrp1 and Flt1 raised VEGF-A signalling through VEGFR2, zippered lacteal junctions, blocked chylomicron uptake and gave resistance to diet-induced obesity (Zhang and colleagues, 2018).
-
 ## Four ways to make edema, and what holds it back
 
-**Edema** is interstitial fluid accumulation when filtration exceeds lymph drainage. Four routes lead there: raised Pc (Part B), low plasma protein, leaky microvessels, and blocked lymph. In **lymphedema**, chronic impaired drainage, the swelling includes fat deposition; in one family, Milroy disease cosegregated with a VEGFR3 mutation (Irrthum and colleagues, 2000).
+**Edema** is interstitial fluid accumulation when filtration exceeds lymph drainage. Each cause moves mainly one term of the equation, or the lymph.
 
-Where does an inflammatory leak happen? Guido Majno and George Palade (1961) injected histamine or serotonin under the scrotal skin of rats, carried a colloidal mercuric sulfide tracer in the blood, and fixed the cremaster muscle 1 to 12 minutes later for electron microscopy. If leak occurred where exchange normally happens, capillaries should open. Instead, openings about 0.1 to 0.8 micrometres wide appeared between endothelial cells in vessels of 7 to 8 micrometres or larger, venular-sized, while capillary-sized vessels (3 to 5 micrometres) looked intact, and the tracer passed the gaps between endothelial cells but was held back by the intact basement membrane. That located this leak in venules, between cells, and ruled out capillaries as its site in this tissue. It did not show how the gaps form, that every organ and mediator behaves this way, or anything about baseline protein leak ([innate immunity](/lessons/innate-immunity/)).
+| Route | What changes | Example |
+|---|---|---|
+| Raised capillary pressure | The push rises | Heart failure (Part B) |
+| Low plasma protein | pi_p falls, so the hold-back falls | Hypoalbuminemia, as in congenital analbuminemia; a contributor in liver disease and nephrotic syndrome, where renal sodium retention also drives swelling |
+| Leaky microvessels | sigma falls, so the hold-back falls and protein escapes | Inflammation: with histamine in rat cremaster, the leak is at venules, between endothelial cells |
+| Blocked lymph | Drainage fails, and protein may build up in the tissue and shrink the hold-back | Lymphedema, including hereditary forms |
 
-Three **safety factors** limit swelling: Pi rises as fluid collects, washout lowers tissue and subglycocalyx protein, and lymph flow rises.
+The inflammation row comes from Guido Majno and George Palade's electron microscopy of the rat cremaster in 1961 ([innate immunity](/lessons/innate-immunity/)). In **lymphedema**, chronic impaired drainage, the swelling includes fat deposition; one hereditary form is tied to a receptor on lymphatic endothelium.
 
-**Low plasma protein, as mechanism.** Suppose albumin falls from 4 to 2 g per dL and, as a round illustrative value, pi_p falls from 26 to 14 mmHg. With pi_g fixed at 6 mmHg, Part A's net rises from 1 to 19 - 0.9 x 8 = 11.8 mmHg, a large rise in filtration that would cause severe edema if nothing else adjusted. Yet in congenital analbuminemia edema is common but usually mild, and a few people have none. Washout lowers pi_g: at 2 mmHg, net = 19 - 0.9 x 12 = 8.2 mmHg. Pi and lymph flow rise, and globulins may partly stand in for albumin. Directions: pi_p down, Jv up (most at first), lymph flow up, interstitial protein down, Pi up. For nephrotic protein loss, the underfill hypothesis (low oncotic pressure drains the plasma) is debated. By the no-absorption rule, raising plasma oncotic pressure can slow steady filtration but not reverse it.
+Three **safety factors** limit swelling: Pi rises as fluid collects, washout (protein rinsed away by faster filtration) lowers tissue and subglycocalyx protein, and lymph flow rises. Part B used the first two.
 
 ### Design problem
+
+Raised venous pressure and a histamine leak can both raise lymph flow severalfold. What in the lymph tells them apart?
 
 An anaesthetized dog has a cannula in a prenodal lymphatic draining the hind paw, so lymph reports that tissue's capillaries before a node alters it. Plasma protein is 60 g per L. You can raise limb venous pressure, infuse histamine into the femoral artery, or lower plasma protein by plasmapheresis. Predict lymph flow, the lymph-to-plasma protein ratio (L/P) and protein flux for each, and interpret these invented results: baseline 0.05 mL per min, L/P 0.5; raised venous pressure 0.25 mL per min, L/P 0.25; histamine 0.25 mL per min, L/P 0.7.
 
@@ -467,3 +578,53 @@ An anaesthetized dog has a cannula in a prenodal lymphatic draining the hind paw
 5. *Controls.* Reach a new steady state at each step, keep the cannula prenodal, compare the other limb, allow for anaesthesia, measure Pi if you can. A dog's paw does not stand for every tissue or for people.
 
 </details>
+
+## Back to the opening: life without albumin
+
+Start with **hypoalbuminemia**, low plasma albumin. It contributes to edema in liver disease and nephrotic syndrome, where renal sodium retention also plays a large part. Suppose albumin falls from 4 to 2 g per dL and pi_p from 26 to 14 mmHg, a round illustrative value, not a clinical conversion (oncotic pressure rises more steeply than linearly with protein concentration). With pi_g fixed at 6 mmHg, Part A's net rises from 1 to 19 - 0.9 x 8 = 11.8 mmHg, enough for severe edema if nothing else adjusted. Washout lowers pi_g: at 2 mmHg, net = 19 - 0.9 x 12 = 8.2 mmHg. Lower, but still large.
+
+| Quantity | Direction after plasma protein falls |
+|---|---|
+| Plasma oncotic pressure, pi_p | Down |
+| Filtration, Jv | Up, most at first |
+| Lymph flow | Up |
+| Interstitial protein | Down |
+| Interstitial pressure, Pi | Up |
+
+So low protein is not harmless: filtration does rise. What holds the line is the three safety factors above, acting together, and in **congenital analbuminemia**, where albumin is almost absent from birth, globulins, which may partly stand in for albumin. That may be why edema in congenital analbuminemia is common but usually mild, and a few people have none.
+
+By the same rule, raising plasma oncotic pressure can slow steady filtration but not reverse it.
+
+## Going deeper
+
+The main line above does not depend on these details.
+
+### Who wrote the equation
+
+Starling argued in 1896, from perfused hind limbs of anaesthetized dogs, that capillary pressure and plasma oncotic pressure set fluid exchange. Staverman defined the reflection coefficient, and Kedem and Katchalsky gave the flow equation that uses it. Putting the subglycocalyx oncotic pressure into it came later, from Michel's work on the revised principle. The hockey stick, the absence of steady absorption, transient absorption and the steadily absorbing beds are drawn from reviews by Levick and Michel (2010) and Michel, Woodcock and Curry (2020).
+
+### Tissue pressure
+
+The push used above takes Pi as about -1 mmHg, slightly below atmospheric, and that round value rests on few human measurements: Noddeland found a mean Pi of about -1.4 mmHg in subcutaneous tissue at heart level in 10 people.
+
+### Routes across the wall
+
+In rat tissues a thin diaphragm across each fenestra is labelled by the protein PV-1 (Stan, Kubitza and Palade, 1999). Glomerular fenestrae have no diaphragms ([glomerular filtration](/lessons/glomerular-filtration/)). Bruns and Palade (1968) found intravenous ferritin inside endothelial vesicles of rat diaphragm-muscle capillaries, not in junctions, and concluded that vesicles are the large pores; a 2021 review lists rare channels or possibly vesicles.
+
+### Testing the sieve
+
+If the glycocalyx is the sieve, stripping part of it should raise Lp and lower sigma in the same vessel. Adamson (1990) found that a minute of pronase, a broad protease, raised Lp of single perfused frog mesenteric capillaries from 2.0 to 4.9 x 10^-7 cm per s per cmH2O with clefts unchanged. Betteridge, Arkill and colleagues (2017) cannulated single mesenteric microvessels in anaesthetized rats and measured Lp by Landis-Michel occlusion (the slope of filtration against pressure), the albumin reflection coefficient, and glycocalyx depth. Lp and sigma were measured in each vessel before and after neuraminidase, which removes sialic acids (n = 7 pairs): Lp rose 1.9-fold, from 1.39 to 2.68 x 10^-7 cm per s per cmH2O, and sigma for albumin fell from 0.96 to 0.87. Depth by electron microscopy was 78 nm in vehicle-treated vessels and 40 nm in neuraminidase-treated vessels, a comparison between different vessels.
+
+That ties sialic acids to water and albumin permeability in rat mesentery. It does not show the effect in human vessels or disease, neuraminidase may act beyond the glycocalyx, and depth estimates in one rat study ranged from 0.17 to 3.02 micrometres with label and method. Dull and Hahn (2022) argue that junctions, not the glycocalyx, limit protein permeability; the debate is open.
+
+### Where an inflammatory leak happens
+
+Majno and Palade injected histamine or serotonin under the scrotal skin of rats, carried a colloidal mercuric sulfide tracer in the blood, and fixed the cremaster muscle 1 to 12 minutes later for electron microscopy. If leak occurred where exchange normally happens, capillaries should open. Instead, openings about 0.1 to 0.8 micrometres wide appeared between endothelial cells in vessels of 7 to 8 micrometres or larger, venular-sized, while capillary-sized vessels (3 to 5 micrometres) looked intact, and the tracer passed the gaps between endothelial cells but was held back by the intact basement membrane. That located this leak in venules, between cells, and ruled out capillaries as its site in this tissue. It did not show how the gaps form, that every organ and mediator behaves this way, or anything about baseline protein leak.
+
+### More on lymphatics
+
+In isolated rat mesenteric lymphatics and thoracic ducts, imposed flow lowered contraction frequency and amplitude (Gashev, Davis and Zawieja, 2002). In mice, endothelial deletion of Nrp1 and Flt1 raised VEGF-A signalling through VEGFR2, zippered lacteal junctions, blocked chylomicron uptake and gave resistance to diet-induced obesity (Zhang and colleagues, 2018). The hereditary form behind the blocked-lymph row of the edema table has been traced to the same lymphatic endothelium: in one family, Milroy disease, a congenital hereditary lymphedema, cosegregated with a mutation in VEGFR3 (Irrthum and colleagues, 2000).
+
+### Nephrotic protein loss
+
+Low plasma albumin is only part of the story in nephrotic edema: the underfill hypothesis (low oncotic pressure drains the plasma) is debated, and renal sodium retention also drives the swelling.

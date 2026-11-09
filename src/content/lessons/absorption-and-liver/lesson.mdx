@@ -6,10 +6,12 @@ courseChapter: "Physiology · Unit 7: Digestion and absorption"
 order: 1224
 summary: >-
   About nine to eleven litres of water enter the lumen of an adult gut each day and a couple of hundred
-  grams of stool leave it, so the stool is a small difference between two large flows. This
-  lesson sets out that balance with numbers, places chloride secretion in the crypts and sodium
-  absorption on the villi, follows fat out through the lymph rather than the portal vein,
-  and treats the liver as the first organ downstream of most of what is absorbed.
+  grams of stool leave it, and a bile acid pool of a few grams goes round the gut several times a day
+  with only a few hundred milligrams lost. Each residue is a small difference between large flows. This
+  lesson sets out those balances with numbers, places chloride secretion in the crypts and sodium
+  absorption on the villi, explains why a sugar-and-salt drink treats cholera, follows fat out through
+  the lymph rather than the portal vein, and treats the liver as the first organ downstream of most of
+  what is absorbed.
 hook: "Nine to eleven litres enter your gut lumen each day and a couple of hundred grams of stool leave. Which transporters decide the difference?"
 
 estMinutes: 24
@@ -137,6 +139,19 @@ simulations:
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
+  - stem: "At steady state 10 L of fluid enter the gut lumen each day. If overall reabsorption falls from 99 to 97 percent, how does stool water change?"
+    choices:
+      - "From about 9.9 to about 9.7 L a day, a small fall"
+      - "From about 0.1 to about 0.102 L a day, a 2 percent rise"
+      - "From about 0.1 to about 0.3 L a day, three times as much"
+      - "From about 0.1 to about 0.2 L a day, twice as much"
+    answer: 2
+    rationale: >-
+      Stool water is the load times the fraction not reabsorbed: 10 x 0.01 = 0.1 L a day before
+      and 10 x 0.03 = 0.3 L a day after, three times as much. The fall from 9.9 to 9.7 L a day is
+      the water reabsorbed, not what is left in the stool. A 2 percent rise treats a fall of two
+      percentage points in reabsorption as a 2 percent change in the stool. Twice as much would
+      need the unreabsorbed fraction to go from 1 to 2 percent, not from 1 to 3 percent.
   - stem: "In the classic model of mammalian small intestine, how are fluid secretion and fluid absorption arranged along the crypt-villus axis?"
     choices:
       - "Crypt and villus cells both secrete chloride and water"
@@ -165,7 +180,7 @@ practiceQuestions:
       the micelle overcomes unstirred-layer resistance while uptake proceeds from the monomer
       phase. Portal transport of free fatty acid is the route for short- and medium-chain species,
       not the bulk of long-chain fat. Chylomicrons do not enter the portal vein.
-  - stem: "In an intestinal epithelium exposed to an agent that raises intracellular cyclic AMP, apical CFTR opens and net fluid secretion appears. Which absorptive route is least affected by that same signal?"
+  - stem: "In an intestinal epithelium exposed to an agent that raises intracellular cyclic AMP, apical CFTR opens and net fluid secretion appears. Which transport route is left working by that signal and can be used to restore sodium absorption?"
     choices:
       - "Chloride exit through the apical CFTR channel"
       - "Sodium-glucose cotransport on the villus brush border"
@@ -176,7 +191,7 @@ practiceQuestions:
       Cyclic-nucleotide signalling opens CFTR and reduces electroneutral NHE3-mediated sodium
       absorption, but sodium-glucose cotransport is a separate apical route driven by the sodium
       gradient, so adding a transported sugar can still drive sodium and water absorption. NHE3 is
-      the absorptive route the signal does suppress. CFTR is the channel the signal opens, which
+      the absorptive route the signal slows. CFTR is the channel the signal opens, which
       is secretion rather than absorption. NKCC1 loads the chloride that CFTR releases, so it
       belongs to the secretory limb too.
   - stem: "Take a bile acid pool of 3.5 g that recirculates about 5 times a day, and a measured fecal loss of 0.30 g a day at steady state. What fractional reabsorption per cycle do these numbers imply?"
@@ -190,7 +205,7 @@ practiceQuestions:
       Delivery is 3.5 g x 5 per day = 17.5 g a day, so a loss of 0.30 g a day is a fractional
       escape of 0.30/17.5 = 0.017 and reabsorption of 98.3 percent per cycle. The textbook 95
       percent applied to the same delivery predicts 0.875 g a day, about three times the measured
-      loss, which is why the rounded figures do not close. 91.4 percent would give about 1.5 g a
+      loss, so the round 95 percent predicts more loss than is measured. 91.4 percent would give about 1.5 g a
       day, and 99.7 percent about 0.05 g a day, both outside the measured range.
   - stem: "In a hepatocyte preparation in which UGT1A1 conjugating capacity is low but canalicular export is intact, which change in circulating bilirubin follows?"
     choices:
@@ -299,9 +314,8 @@ explainLevels:
       Treat the lumen as a flow-through compartment. With delivery D = pool x cycles per day and
       fractional reabsorption f per cycle, steady-state fecal bile acid loss is D(1 - f) and
       synthesis must equal it. For a 3.5 g pool at 5 cycles a day, D = 17.5 g a day, and a
-      measured loss of 0.2 to 0.4 g a day requires f of about 0.98, not the 0.95 usually quoted;
-      the rounded textbook figures do not close, and dropping f to 0.90 raises loss about
-      six-fold. The same sensitivity governs water: at 11 L a day entering the lumen, moving
+      measured loss of 0.2 to 0.4 g a day requires f of about 0.98; the 0.95 usually quoted is a
+      round figure that predicts more loss than is measured, and dropping f to 0.90 raises loss about six-fold. The same sensitivity governs water: at 11 L a day entering the lumen, moving
       overall reabsorption from 99 to 96 percent quadruples stool water. Open question: how water
       itself crosses the enterocyte is unsettled, since aquaporin abundance varies with isoform, segment and species, and water permeation
       through SGLT1 has been measured in expression systems but not quantified in native
@@ -350,98 +364,229 @@ draft: false
 ---
 
 import BileAcidLoop from '../../../components/BileAcidLoop.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**About 2 litres of drink enter an adult gut each day, the body adds roughly 7 to 9 litres of its own secretions, and about 200 grams of stool comes out the far end.** Stool water is a small difference between two large flows, which makes it a sensitive quantity. This lesson is about the transporters that set it, the route fat takes out of the gut, and the organ that receives everything else first.
+**About 2 litres of drink enter an adult gut each day, the body adds roughly 7 to 9 litres of its own secretions, and about 200 grams of stool comes out the far end.**
+
+Almost all of that water is taken back before the end of the tube. The gut runs a second recycling too: bile acids, the detergents that let fat be absorbed, come from a pool of about 3.5 g sent round about five times a day, and only a few hundred milligrams a day are lost. Which transporters decide what is lost, and what happens to whatever reaches the liver next?
+
+> **The one idea to carry through this lesson.** What leaves is whatever was not taken back: **residue = load × (1 − fraction captured)**. The gut takes back nearly all of about 11 L of water and about 17.5 g of bile acid a day, and the liver removes most of some drugs on their first pass. When the captured fraction sits close to one, the residue is very sensitive to that fraction: lose a few percentage points of capture and the residue multiplies. A bigger load at the same fraction raises the residue only in proportion. Each capture runs through named machinery in a named place, so the step that failed tells you which residue rises.
+
+The rule is bookkeeping for a steady state, with nothing building up or running down. Every capture has a ceiling, and the residue climbs steeply only past it. Fat and bilirubin are not recyclings, so for them only the last clause applies: the step that fails names what builds up.
 
 [Digestive systems](/lessons/digestive-systems/) walks a meal down the tube, [digestion](/lessons/digestion/) has the enzyme chemistry, and [gut motility and secretion](/lessons/gut-motility-secretion/) covers the secretions themselves. Start from the products of hydrolysis in the lumen.
 
-## Eleven litres in, two hundred grams out
+## Eleven litres in, about a tenth of a litre out
 
-Take an adult human at steady state, with no change in the fluid held in the gut. Reviews give intake as about 2 L a day and secretions (saliva, gastric juice, bile, pancreatic juice, intestinal fluid) as roughly 7 to 9 L a day, so the load entering the lumen is about 9 to 11 L a day. About 99 percent of the total is reabsorbed. Daily stool mass varies with diet and population; about 200 g a day is a round illustrative figure, not a fixed adult average. The colon can absorb up to 4 to 5 L a day, reserve capacity rather than routine load.
+Take an adult at steady state, with no change in the fluid held in the gut. Intake plus secretions (saliva, gastric juice, bile, pancreatic juice, intestinal fluid) give a load entering the lumen (the space inside the gut) of about 9 to 11 L a day, and about 99 percent of it is reabsorbed. Daily stool mass varies with diet and population; about 200 g a day is a round illustrative figure, not a fixed adult average.
 
-> stool water = load entering the lumen x (1 - fractional reabsorption)
+For water the rule reads:
 
-**Worked problem: the water balance.** Round illustrative numbers: intake 2.0 L a day plus secretions 9.0 L a day gives a load of 11.0 L a day.
+> stool water = load entering the lumen × (1 − fraction reabsorbed)
 
-1. *At 99 percent reabsorption.* Stool water = 11.0 x 0.01 = 0.11 L a day, consistent with a stool of about 200 g a day.
-2. *At 96 percent.* Stool water = 11.0 x 0.04 = 0.44 L a day, four times as much for a change of three percentage points. Check: 10.56 + 0.44 = 11.0 L a day.
-3. *Read it.* The reabsorbed fraction sits close to one, so what you observe is the residue, which magnifies any shift in transport.
+**Worked problem: the water balance.** Round illustrative numbers: intake 2.0 L a day plus secretions 9.0 L a day gives a load of 11.0 L a day. At 99 percent reabsorption, stool water = 11.0 × 0.01 = 0.11 L a day: about a tenth of a litre, the same order as the water in a 200 g stool.
 
-Circular folds, villi and microvilli give the area that makes 99 percent possible, and secretions lost rather than reabsorbed take their bicarbonate with them, which is how the route of a loss sets the consequence in [acid-base balance](/lessons/acid-base-balance/).
+**Predict.** Reabsorption falls from 99 to 96 percent, a change of three percentage points. What happens to stool water?
+
+<details>
+<summary>Check your prediction</summary>
+
+It quadruples. Stool water = 11.0 × 0.04 = 0.44 L a day (check: 10.56 + 0.44 = 11.0 L). The same three points taken from 50 percent would have raised the residue by only about 6 percent.
+
+</details>
+
+The arithmetic gives the multiplier; physiology gives the ceiling. The colon can absorb up to 4 to 5 L a day, far more than usually reaches it, so a moderate rise in the load can be soaked up with the overall fraction still near 99 percent. Stool water climbs steeply only once that reserve is used up.
+
+Circular folds, villi and microvilli give much of the area that makes 99 percent possible. Secretions lost rather than reabsorbed take their bicarbonate with them, which is how the route of a loss sets the consequence in [acid-base balance](/lessons/acid-base-balance/).
 
 ## Crypts secrete, villi absorb, and the stool is the difference
 
-Along the crypt-villus axis of mammalian small intestine, secretion predominates in the crypts and absorption on the villi. In the classic model crypt cells carry the secretory machinery and villus cells the absorptive machinery, though reviews note that both processes can run in the same cell ([epithelia](/lessons/epithelia/) and [membrane transport](/lessons/membrane-transport/) have the routes, pumps and carriers).
+Along the crypt-villus axis of mammalian small intestine, secretion predominates in the crypts and absorption on the villi, though reviews note that both processes can run in the same cell ([epithelia](/lessons/epithelia/) and [membrane transport](/lessons/membrane-transport/) have the routes, pumps and carriers).
 
-In a crypt cell, the basolateral sodium pump and NKCC1, which brings sodium, potassium and chloride in together, load chloride above its electrochemical gradient. Apical CFTR, a chloride channel regulated mainly by cyclic AMP- and cyclic GMP-dependent protein kinases, is the exit. Open CFTR and chloride leaves, sodium follows paracellularly to balance charge, and water follows the osmotic force of both. On the villus, the apical sodium/hydrogen exchanger NHE3 works with apical chloride/bicarbonate exchange, mainly DRA, to absorb sodium chloride electroneutrally, and SGLT1 carries sodium with sugar. In the distal colon sodium also enters electrogenically through ENaC. Net fluid movement is the sum of secretion and absorption along the small intestine and the colon, together with the luminal solute load and transit time.
+**Crypts push fluid out.** In a crypt cell the basolateral sodium pump and NKCC1, which brings sodium, potassium and chloride in together, pack chloride into the cell until there is more inside than equilibrium would allow. Apical CFTR, a chloride channel regulated mainly by cyclic AMP- and cyclic GMP-dependent protein kinases, is the exit. When CFTR opens, chloride rushes out into the lumen, sodium follows between the cells (the paracellular route) to balance the charge, and water follows both by osmosis.
 
-{/* DIAGRAM: one crypt and one villus in cross-section; basolateral NKCC1 and pump with apical CFTR on the crypt cell, apical NHE3 and SGLT1 on the villus cell, arrows for chloride out and sodium in */}
+**Villi pull fluid back.** Two apical exchangers work as a pair. NHE3 swaps a luminal sodium ion for a hydrogen ion from the cell, and a chloride/bicarbonate exchanger, such as DRA, swaps a luminal chloride ion for a bicarbonate ion from the cell. Each swap is one ion for one of the same charge, so no charge moves, and the hydrogen ion and bicarbonate sent out meet in the lumen as carbon dioxide and water. The net effect is sodium chloride into the cell. Beside them, SGLT1 carries sodium in with sugar. **Water follows the absorbed salt.** In the distal colon sodium also enters electrogenically through ENaC.
 
-**The classic experiment.** Into the 1960s the dominant explanation of cholera diarrhea was a nineteenth-century model from Virchow: fluid leaking from the circulation through a damaged lining. In cholera, clearance of small molecules such as mannitol, a paracellular probe, into the stool was found to be very low, which already made filtration untenable.
+Net fluid movement is the sum of secretion and absorption along the small intestine and the colon, shaped too by the luminal solute load and transit time. So the opening question has a first answer: the difference is set mainly by CFTR in the crypts against NHE3 and SGLT1 on the villi, with the colon's reserve behind them.
 
-Michael Field and colleagues took the question to an isolated sheet: isolated rabbit ileal mucosa in an Ussing-type chamber, voltage clamped at zero so the current supplied measures net electrogenic ion transport, with radioisotopes giving each direction separately. On that picture a sheet with no circulation behind it should not be able to drive ions toward the lumen either; the report was the opposite. Toxin added on the luminal side raised short-circuit current slowly over hours, and at 3 to 4 hours the net chloride flux was secretory and net sodium absorption had been reduced to zero, not reversed. Adding glucose to the lumen then restored a large net sodium absorption, so that route was intact. The authors read this as a cyclic AMP-dependent active secretory process of the epithelial cells, which points to secretion by the epithelium rather than filtration. Separate measurements in living rabbit ileal loops tied the same electrical pattern to fluid movement. Scope: one species, one segment, an isolated sheet with no blood flow or normal motility, with only whatever neural elements survive stripping, at a voltage held fixed rather than free to vary as it does in vivo.
+## Cholera, and why a sugar-and-salt drink works
 
-## Why glucose in the lumen changes the sodium flux
+Cholera pulls both terms of the rule the wrong way at once. The bacterium stays in the lumen and releases a toxin. Part of it gets inside the lining cells and chemically modifies Gs, the G protein that turns on adenylyl cyclase, so that Gs can no longer switch itself off ([GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/)). The cyclase keeps making cyclic AMP, and cyclic AMP does two things:
 
-A messenger that opens CFTR and inhibits NHE3 cuts one absorptive route. It leaves the other working. SGLT1 runs on the inward sodium electrochemical gradient maintained by the basolateral pump, which is why poisoning that pump stalls it ([digestion](/lessons/digestion/) works that through in one cell). Add a transported sugar on the luminal side and sodium absorption through SGLT1 proceeds whether or not the cyclic-nucleotide-sensitive route works.
+- **In the crypts it opens CFTR.** Chloride, sodium and water pour into the lumen, so the **load** goes up.
+- **On the villi it slows NHE3.** Less sodium chloride is absorbed, so less water follows it back. The **fraction reabsorbed** goes down.
 
-Human SGLT1 couples two sodium ions to each sugar, a 2:1 stoichiometry measured in transport studies, with structural work and mutagenesis identifying two likely sodium sites. The 2:1 ratio is the fixed coupling per transport cycle, not a cap on how much is absorbed. Take a sealed litre holding 75 mmol of a transported sugar and 75 mmol of sodium, the figures of the reduced-osmolarity rehydration solution: with no sodium coming in, 75 mmol of sodium can carry only 37.5 mmol of sugar through SGLT1. That is an accounting exercise about a closed compartment. In the gut, where luminal sodium is high and continuously resupplied, sodium is not the limiting partner.
+**Predict.** Put those two changes into stool water = load × (1 − fraction reabsorbed). What happens to stool water?
+
+<details>
+<summary>Check your prediction</summary>
+
+Both terms move the wrong way, so their effects multiply. Try made-up round numbers. Add 5 L a day of secretion to the usual 11 L, and let overall reabsorption drop from 99 to 90 percent as the extra load outruns the colon's reserve. Stool water goes from 11 × 0.01 = 0.11 L a day to 16 × 0.10 = 1.6 L a day, about fifteen times as much. Real cholera can be far worse.
+
+</details>
+
+Is that fluid secreted, or leaking from a damaged gut? In 1972 Michael Field and colleagues mounted a sheet of rabbit ileum in a chamber with no blood supply behind it. With toxin, the sheet itself moved chloride toward the lumen, and its net sodium absorption fell to zero but did not reverse: secretion is something the epithelium does. The second result explained a treatment. Adding glucose to the luminal side brought back a large net sodium absorption, the mechanism behind sugar-and-salt drinks that clinicians were already testing in cholera patients.
+
+**Predict.** Cyclic AMP has slowed NHE3. Why would glucose bring sodium absorption back?
+
+<details>
+<summary>Check your prediction</summary>
+
+Glucose enters through a different door, SGLT1, and cyclic AMP does not shut it. SGLT1 carries two sodium ions in with each glucose and runs on the inward sodium gradient the basolateral pump keeps up, not on the switch the toxin jammed (poisoning the pump does stall it; [digestion](/lessons/digestion/) works that through). Water follows the absorbed solute.
+
+</details>
+
+This is the basis of **oral rehydration therapy**: a drink of water with sodium and glucose in roughly equal amounts. The current reduced-osmolarity solution has 75 mmol of each per litre. A 2024 historical perspective by Al-Awqati, one of the 1972 authors, credits oral rehydration with cutting cholera mortality from 60 percent or more to effectively zero.
+
+Read it through the rule. The drink does not switch off secretion, and stools can stay large; it raises the fraction reabsorbed through SGLT1, so the patient absorbs enough to keep pace. Salt water alone would lean mainly on the slowed NHE3. There is a ceiling here too: glucose beyond what SGLT1 can carry stays in the lumen and holds water there by osmosis, which is why the solution's glucose and total concentration are kept moderate.
+
+<LessonFigure src="/figures/absorption-and-liver/cholera-crypt-villus.webp" width={1200} height={806} alt="AI-generated illustration: Two matching drawings of a crypt and villus. Under normal conditions the crypt cell's CFTR channel lets out a little chloride while the villus cell takes up sodium through NHE3 with its exchanger partner and through SGLT1, and water follows into the tissue. Under cholera toxin, cyclic AMP opens CFTR so chloride and water pour into the lumen, NHE3 is slowed, and SGLT1 still carries sodium in with glucose, with water following." caption="Cholera toxin raises the load by opening CFTR in the crypts and lowers the fraction captured by slowing NHE3 on the villi, but SGLT1 keeps carrying sodium in with glucose, which is the door a sugar-and-salt drink uses. Crypts and villi differ in which process predominates; both can run in one cell." />
 
 ## Fat takes the other door
 
-Sugars and amino acids leave the enterocyte basolaterally into capillaries draining to the portal vein. Most long-chain fat does not. Bile acids combine with the products of lipolysis into mixed micelles about 4 to 5 nm across, small enough to reach the spaces between microvilli. Westergaard and Dietschy, in rabbit jejunum in vitro, corrected for the unstirred layer of water held against the brush border and found the micelle's main role is to beat that resistance, with absorption proceeding from individual lipid molecules in equilibrium with the micelles.
+Sugars and amino acids leave the enterocyte basolaterally into capillaries draining to the portal vein. Most long-chain fat does not.
 
-Uptake is partly protein-assisted: in mice, NPC1L1 lies in the ezetimibe-sensitive sterol pathway, and CD36-null mice with lymph fistulae secrete less lipoprotein into lymph. Inside the cell, products are re-esterified and microsomal triglyceride transfer protein (MTP) assembles lipid with newly made apoB-48 into chylomicrons; MTP activity was absent in intestinal biopsies from four people with abetalipoproteinemia. Chylomicrons pass into the lamina propria, enter the villus lacteal and travel the mesenteric lymphatics to the thoracic duct ([capillary exchange and lymph](/lessons/capillary-exchange-and-lymph/)). Short- and medium-chain fatty acids enter portal blood directly, and some long-chain fatty acids do too, but most dietary long-chain lipid leaves in chylomicrons and bypasses the liver's first pass.
+Bile acids combine with the products of lipolysis into mixed micelles about 4 to 5 nm across, small enough to reach the spaces between the microvilli. The micelles ferry these products across the watery layer next to the brush border, and the lipid molecules then leave the micelle one at a time and enter the cell, partly with protein help. Micelles themselves do not cross the membrane.
+
+Inside the cell the products are re-esterified, and microsomal triglyceride transfer protein (MTP) assembles the lipid with newly made apoB-48 into chylomicrons. Chylomicrons are too large to enter blood capillaries. They pass into the lamina propria, enter the villus lacteal and travel the mesenteric lymphatics to the thoracic duct ([capillary exchange and lymph](/lessons/capillary-exchange-and-lymph/)).
+
+Short- and medium-chain fatty acids enter portal blood directly, and some long-chain fatty acids do too, but most dietary long-chain lipid leaves in chylomicrons and bypasses the liver's first pass. It does not bypass the liver for good: chylomicron remnants reach the liver later, after peripheral tissues have taken most of the triglyceride.
 
 {/* DIAGRAM: one enterocyte with two exits, sugars and amino acids into a capillary draining to the portal vein, a chylomicron into a blind-ended lacteal running to the thoracic duct */}
 
 ## A pool used five times a day
 
-Bile acids are made from cholesterol in the liver, held in the gallbladder between meals, delivered to the duodenum, used, and recovered, mostly actively and mostly in one place: ASBT in the terminal ileum. Returning bile acids are removed efficiently in their first passage through the sinusoids, NTCP carrying most conjugated bile acid uptake, with BSEP the major canalicular export pump. CYP7A1 is the rate-limiting enzyme of the classic synthesis pathway, and gut bacteria make the secondary bile acids deoxycholic and lithocholic acid. Human conjugation is mostly to glycine, about 3:1 over taurine; mice are about 95 percent taurine, so pool composition does not transfer.
+Draw the loop first. Bile acids held in the gallbladder between meals are delivered to the duodenum, used in the upper small intestine to form micelles, and carried from the ileum in portal blood back to the liver. One name per station:
 
-**Worked problem: the bile acid budget.** Human review figures: pool 3.5 g, about 5 cycles a day, about 95 percent reabsorbed per cycle, fecal loss 200 to 400 mg a day. Assume steady state and that the whole pool recirculates each cycle.
+- **Made in the liver.** CYP7A1 is the rate-limiting enzyme of the classic pathway from cholesterol.
+- **Taken back in the ileum.** Recovery is mostly active and mostly in one place: ASBT in the terminal ileum.
+- **Taken up by the liver.** Returning bile acids are removed efficiently in their first passage through the sinusoids, NTCP carrying most conjugated bile acid uptake.
+- **Sent back into bile.** BSEP is the major canalicular export pump.
 
-1. *Delivery to the intestine.* 3.5 g x 5 a day = 17.5 g a day.
-2. *Loss predicted at 95 percent.* 17.5 x 0.05 = 0.875 g a day, two to four times the measured 200 to 400 mg a day, so the textbook numbers do not close.
-3. *Solve for the implied efficiency.* At a mid-range loss of 0.30 g a day, fractional escape = 0.30 / 17.5 = 0.017, so reabsorption is about 98.3 percent per cycle. The 95 percent figure is rounded; use one self-consistent set at a time.
-4. *Synthesis.* It replaces 0.30 g a day, 8.6 percent of the pool; the rest of the delivery is recycled, not made.
-5. *Sensitivity.* At 90 percent reabsorption, loss = 17.5 x 0.10 = 1.75 g a day, six times as much, with synthesis rising to match.
-
-<BileAcidLoop />
-
-The brake on synthesis runs through the gut. Bile acids taken up by ileal ASBT activate FXR, a nuclear receptor ([nuclear receptors](/lessons/nuclear-receptors/)), which induces FGF19; FGF19 reaches the hepatocyte and acts through FGFR4 with beta-klotho to lower CYP7A1. Mice lacking the ortholog FGF15 have more hepatic CYP7A1 and more fecal bile acid.
-
-**The modern experiment.** Dawson and colleagues deleted Slc10a2, the gene for ASBT, in mice. If other routes could take over, the pool would stay roughly intact. Instead fecal bile acid excretion rose 10- to 20-fold, and the pool fell by about 80 percent and was enriched in cholic acid despite increased synthesis, with no steatorrhea on a low-fat diet. The authors concluded that ASBT is needed for efficient intestinal bile acid absorption and that the alternative routes cannot compensate for its loss, even with synthesis increased. It does not show the same consequences in people, or behaviour at a high fat load.
-
-**Reasoning from the lesion.** Interrupt ileal uptake and the loop reads forwards. Delivery to the colon rises, and bile acids there have been shown to induce fluid secretion and raise mucosal permeability, so colonic net fluid absorption falls. Ileal FXR activation and FGF19 fall, the brake on CYP7A1 is released, and synthesis rises. With mild malabsorption the extra synthesis can hold the pool; with severe loss, as in these knockout mice, the pool shrinks anyway, leaving fewer bile acids to form micelles at a meal. Fat absorption need not change: those mice had no steatorrhea at a small fat load, though their cholesterol absorption fell about 20 percent. People with SLC10A2 mutations do present with diarrhea and steatorrhea, so the mouse result is not the human one.
+Gut bacteria make the secondary bile acids deoxycholic and lithocholic acid.
 
 {/* DIAGRAM: the enterohepatic loop, bile duct to duodenum, ileal ASBT, portal vein to hepatic NTCP and canalicular BSEP, a colonic branch with fecal loss, with ileal FGF19 lowering CYP7A1 */}
 
+**The brake on synthesis runs through the gut.** Bile acids taken up by ileal ASBT activate FXR, a nuclear receptor ([nuclear receptors](/lessons/nuclear-receptors/)), which induces FGF19. FGF19 reaches the hepatocyte and acts through FGFR4 with beta-klotho to lower CYP7A1. Mice lacking the ortholog FGF15 have more hepatic CYP7A1 and more fecal bile acid.
+
+**Worked problem: the bile acid budget.** Here the rule reads fecal loss = delivery × (1 − fraction reabsorbed per cycle). Human review figures: pool 3.5 g, about 5 cycles a day, about 95 percent reabsorbed per cycle, fecal loss 200 to 400 mg a day. Assume steady state and that the whole pool recirculates each cycle.
+
+1. *Delivery to the intestine.* 3.5 g × 5 a day = 17.5 g a day.
+2. *Test the textbook 95 percent.* 17.5 × 0.05 = 0.875 g a day, two to four times the measured 200 to 400 mg a day: the round 95 percent overstates loss.
+3. *Solve for the implied efficiency.* At a mid-range loss of 0.30 g a day, fractional escape = 0.30 / 17.5 = 0.017, so reabsorption is about 98.3 percent per cycle. Steps 4 and 5 use this set.
+4. *Synthesis.* At steady state it equals loss: 0.30 g a day, 8.6 percent of the pool. The rest of the delivery is recycled, not made.
+5. *Sensitivity.* At 90 percent reabsorption, loss = 17.5 × 0.10 = 1.75 g a day, about six times as much, with synthesis rising to match.
+
+<BileAcidLoop />
+
+**Where this loop's ceiling is.** Water's ceiling was the colon's reserve. Bile acids have one in synthesis, plus a feedback that water lacks. At steady state, synthesis = loss = pool × cycles × (1 − fraction reabsorbed), so the same rule, rearranged, gives
+
+> pool = synthesis ÷ (cycles × (1 − fraction reabsorbed))
+
+When ileal recovery falls, the brake lifts and synthesis rises. If synthesis rises enough to match the extra loss, the pool holds. If it does not, the pool settles lower, at the size where loss equals synthesis. The brake is graded, so that can happen before any maximum; in the simplest picture, and in people after extensive ileal resection, the shortfall comes as synthesis nears the most the liver can make.
+
+### Lesion problem: block ileal uptake
+
+**Predict.** A drug or a mutation blocks ASBT. What happens to FGF19, CYP7A1, synthesis, the pool and the stool? Answer first for a mild block, then for a near-complete one.
+
+<details>
+<summary>Check your prediction</summary>
+
+- **The colon.** More bile acid reaches it, and bile acids there have been shown to induce fluid secretion and raise mucosal permeability, so colonic net fluid absorption falls and stool water rises.
+- **The brake.** Less bile acid enters ileal cells, so FGF19 falls, the brake on CYP7A1 lifts and synthesis rises.
+- **Mild block.** The pool holds: diarrhea from bile acid in the colon, but enough bile acid for micelles.
+- **Near-complete block.** Synthesis cannot match the loss and the pool settles smaller, leaving fewer bile acids for micelles: at an ordinary fat load steatorrhea (fatty stool) can join the diarrhea; at a small fat load fat absorption may hold.
+
+</details>
+
+The evidence sits on this line. When Dawson and colleagues deleted the ASBT gene in mice, fecal bile acid excretion rose 10- to 20-fold and the pool fell by about 80 percent despite increased synthesis. On a low-fat diet those mice had no steatorrhea, though cholesterol absorption fell about 20 percent; one reading is that a small fat load asks little of the micelles. People with SLC10A2 mutations do present with diarrhea and steatorrhea. The mouse shows how much the loop depends on one ileal step, not the size of the consequences in people or at a high fat load.
+
 ## The liver as the first organ downstream
 
-Textbooks give about 75 percent of hepatic blood flow by the portal vein and about 25 percent by the hepatic artery, in a fasting adult at rest (measured human values vary, and portal flow rises after a meal), so most of what the gut absorbs, long-chain fat excepted, meets hepatocytes first. For a compound completely absorbed with no gut-wall metabolism, systemic availability F = 1 - E_H, where E_H is the fraction removed in one hepatic passage; a measured F of 0.10 to 0.20 gives hepatic extraction of 0.80 to 0.90 if these conditions hold; if they are unverified, these values are only upper bounds.
+About 75 percent of hepatic blood flow arrives by the portal vein and about 25 percent by the hepatic artery, in a fasting adult at rest; that split is a textbook figure, measured human values vary, and portal flow rises after a meal. Either way, most of what the gut absorbs, long-chain fat excepted, meets hepatocytes before it reaches the rest of the body.
 
-> F = 1 - E_H, for a completely absorbed compound with no metabolism in the gut wall
+For a drug, "fraction removed by the liver" replaces "fraction reabsorbed". The hepatic extraction ratio, E_H, is the fraction removed in one passage through the liver (the first pass), and systemic availability, F, is what gets through:
 
-Between meals the liver is a glucose source, by glycogenolysis and gluconeogenesis ([integration of metabolism](/lessons/integration-of-metabolism/), [gluconeogenesis](/lessons/gluconeogenesis/) and [insulin, glucagon and glucose](/lessons/insulin-glucagon-glucose/) hold the pathways and their control). They do not run in sequence. Rothman and colleagues followed liver glycogen in healthy humans by carbon-13 NMR through a 68-hour fast with a labelled tracer for whole-body glucose production: gluconeogenesis already supplied 64 percent of production in the first 22 hours, then 82 and 96 percent in the following 14 and 18 hours.
+> F = 1 − E_H, for a completely absorbed compound with no metabolism in the gut wall
 
-The liver makes about 10.5 g of albumin a day in healthy people, a turnover of about 25 days, and the evidence that it readily doubles this on demand is thin: in one controlled study of a volunteer under daily plasmapheresis, synthesis rose about 25 percent.
+A measured F of 0.10 to 0.20 gives hepatic extraction of 0.80 to 0.90 if those conditions hold. If they are unverified, these values are only upper bounds, because loss in the gut would also lower F.
 
-Hepatic bilirubin handling takes three steps: uptake from blood, conjugation and export into bile. Heme breakdown is in [blood cells and hemostasis](/lessons/blood-cells-and-hemostasis/); begin with unconjugated bilirubin arriving bound to albumin. UGT1A1 conjugates it with glucuronic acid, transporters including MRP2 export the conjugate into bile, and gut bacteria convert it to urobilinogen and urobilin. If heme breakdown outruns conjugating capacity, unconjugated bilirubin rises and does not appear in urine, because albumin-bound bilirubin is not filtered in free form. If conjugating capacity is low, as with the UGT1A1 promoter variant of Gilbert's syndrome, unconjugated bilirubin rises with export intact. If canalicular export fails, through loss of MRP2 or obstruction of bile flow, conjugated bilirubin rises and appears in urine because it is water soluble. When bile flow is blocked, less conjugate reaches the gut, so urobilinogen and stool pigment fall. One caution concerns assays rather than physiology: delta-bilirubin is conjugated bilirubin bound covalently to albumin, so it is part of the conjugated pool but is not freely excretable, and the diazo method also reads a little unconjugated pigment. "Direct" bilirubin is therefore not the same as conjugate the liver can still clear into bile.
+**Predict.** In liver disease some portal blood can bypass the liver through a portosystemic shunt; suppose 30 percent does (an illustrative figure). Drug A has E_H = 0.9 and drug B has E_H = 0.5. Whose availability changes more?
 
-### Design problem
+<details>
+<summary>Check your prediction</summary>
+
+Drug A's. Only the 70 percent that passes the liver loses anything; the 30 percent that skips it all survives, so F = 0.3 + 0.7 × (1 − E_H). Drug A's F rises from 0.10 to 0.37, almost fourfold; drug B's from 0.50 to 0.65, about 30 percent more. A high-extraction drug sits at the rule's sensitive end. (The sketch holds E_H itself fixed.)
+
+</details>
+
+Between meals the liver is a glucose source, by glycogenolysis and gluconeogenesis ([integration of metabolism](/lessons/integration-of-metabolism/), [gluconeogenesis](/lessons/gluconeogenesis/) and [insulin, glucagon and glucose](/lessons/insulin-glucagon-glucose/) hold the pathways). The two do not run in sequence: gluconeogenesis already supplies most glucose production by about 22 hours of a fast (Going deeper, "Glucose output in a fast"). The liver also makes about 10.5 g of albumin a day, and the evidence that it readily doubles this on demand is thin (Going deeper, "Albumin synthesis").
+
+### Bilirubin: the step that fails names what rises
+
+Heme breakdown is in [blood cells and hemostasis](/lessons/blood-cells-and-hemostasis/); begin with unconjugated bilirubin arriving at the liver bound to albumin. The liver handles it in three steps: uptake from blood, conjugation, and export into bile. UGT1A1 conjugates it with glucuronic acid, transporters including MRP2 export the conjugate into bile, and gut bacteria convert it to urobilinogen and urobilin.
+
+| Where the pipeline fails | What rises in blood | In urine? | Why |
+| --- | --- | --- | --- |
+| Supply: heme breakdown outruns conjugating capacity, as in hemolysis | Unconjugated | No | Albumin-bound bilirubin is not filtered in free form |
+| Conjugation: low capacity, as with the UGT1A1 promoter variant of Gilbert's syndrome; export intact | Unconjugated | No | Same reason |
+| Export: loss of MRP2, or obstruction of bile flow | Conjugated | Yes | The conjugate is water soluble. When bile flow is blocked, less conjugate reaches the gut, so urobilinogen and stool pigment fall |
+
+The clinical "direct" bilirubin test does not measure exactly the conjugate the liver can still clear (Going deeper, "Reading direct bilirubin").
+
+That is the lesson in one line: what leaves is a small, sensitive residue, and the step that fails names which residue rises: NHE3 slowed and CFTR opened in cholera, ASBT lost for bile acids, extraction bypassed for a drug, conjugation or export failing for bilirubin.
+
+## Going deeper
+
+### The Field experiment in detail
+
+Into the 1960s the dominant explanation of cholera diarrhea was a nineteenth-century model from Virchow: fluid leaking from the circulation through a damaged lining. In cholera, clearance of small molecules such as mannitol, a paracellular probe, into the stool was found to be very low, which already made filtration untenable.
+
+Field and colleagues mounted isolated rabbit ileal mucosa in an Ussing-type chamber, voltage clamped at zero so the current supplied measures net electrogenic ion transport, with radioisotopes giving each direction separately. Toxin added on the luminal side raised short-circuit current slowly over hours; the secretory chloride flux and the loss of net sodium absorption in the main text were read at 3 to 4 hours. The authors read this as a cyclic AMP-dependent active secretory process of the epithelial cells, not filtration. Separate measurements in living rabbit ileal loops tied the same electrical pattern to fluid movement. Scope: one species, one segment, an isolated sheet with no blood flow or normal motility, with only whatever neural elements survive stripping, at a voltage held fixed rather than free to vary as it does in vivo.
+
+### Sodium–glucose stoichiometry
+
+The two-sodium-per-sugar coupling of human SGLT1 was measured in transport studies, with structural work and mutagenesis identifying two likely sodium sites. The 2:1 ratio is the fixed coupling per transport cycle, not a cap on how much is absorbed. Take a sealed litre holding 75 mmol of a transported sugar and 75 mmol of sodium, the figures of the reduced-osmolarity rehydration solution: with no sodium coming in, 75 mmol of sodium can carry only 37.5 mmol of sugar through SGLT1. In the gut, where luminal sodium is high and continuously resupplied, sodium is not the limiting partner.
+
+### How micelles deliver fat
+
+Next to the brush border lies an unstirred layer, a film of water that mixing in the lumen does not reach, so poorly water-soluble lipid crosses it slowly. Westergaard and Dietschy, in rabbit jejunum in vitro, corrected for this unstirred layer and found that the micelle's main role is to beat its resistance, with absorption proceeding from individual lipid molecules in equilibrium with the micelles.
+
+### Proteins of fat uptake and packaging
+
+The "protein help" with uptake and the MTP packaging step in the main text rest on a few lines of evidence. In mice, NPC1L1 lies in the ezetimibe-sensitive sterol pathway, and CD36-null mice with lymph fistulae secrete less lipoprotein into lymph. MTP activity was absent in intestinal biopsies from four people with abetalipoproteinemia.
+
+### The ASBT knockout in detail
+
+Bile acids are weak acids, and the unconjugated and some glycine-conjugated ones can cross membranes without help, so passive absorption along the whole intestine was a live alternative to the active transporter in the terminal ileum. Dawson and colleagues separated the two by deleting Slc10a2, the gene for ASBT. If other routes could take over, the pool would stay roughly intact. Instead it shrank (main text) and was enriched in cholic acid. The authors concluded that ASBT is needed for efficient intestinal bile acid absorption and that the alternative routes cannot compensate for its loss. Read through the rule, excretion up 10- to 20-fold from a pool one-fifth the size means the fraction of the pool lost each day rose roughly 50- to 100-fold.
+
+Human conjugation is mostly to glycine, about 3:1 over taurine; mice are about 95 percent taurine, so pool composition does not transfer from mouse to human. The loop's dependence on one ileal step does.
+
+### Glucose output in a fast
+
+Rothman and colleagues followed liver glycogen in healthy humans by carbon-13 NMR through a 68-hour fast, with a labelled tracer for whole-body glucose production; subtracting measured glycogen breakdown from total production leaves gluconeogenesis. Gluconeogenesis supplied 64 percent of production by about 22 hours, then 82 and 96 percent in the following 14 and 18 hours.
+
+### Albumin synthesis
+
+The body's albumin divided by the daily output in the main text gives a mean turnover time of about 25 days; that is not the same quantity as the half-life. Textbooks often say a healthy liver can double or triple its output when albumin is lost, but in one controlled study of a volunteer under daily plasmapheresis, synthesis rose about 25 percent.
+
+### Reading direct bilirubin
+
+One caution concerns assays rather than physiology. Delta-bilirubin is conjugated bilirubin bound covalently to albumin, so it is part of the conjugated pool but is not freely excretable, and the diazo method also reads a little unconjugated pigment. "Direct" bilirubin is therefore not the same as conjugate the liver can still clear into bile.
+
+### Design problem (optional)
 
 You have isolated rabbit ileal mucosa in an Ussing-type chamber, sodium and chloride radioisotopes, glucose, mannitol as a paracellular probe, and a cell-free bacterial filtrate that produces secretion. Design measurements that separate three mechanisms for fluid appearing in the luminal bath: active electrogenic anion secretion, loss of barrier integrity, and reversal of the villus absorptive pumps. Then design the one further test that asks whether an absorptive route survives the filtrate.
 
 <details>
 <summary>One way to do it</summary>
 
-Start electrically. Clamp the voltage at zero and record short-circuit current, which reports net electrogenic ion transport, with conductance alongside it. A rise in current with little change in conductance points to electrogenic transport; a large rise in conductance can mean either open channels or a junctional permeability change, so read it with the tracer measurement.
+Start electrically. Clamp the voltage at zero and record short-circuit current, with conductance alongside it. A rise in current with little change in conductance points to electrogenic transport; a large rise in conductance can mean either open channels or a junctional permeability change, so read it with the tracer measurement.
 
-Then resolve the net fluxes. Measure unidirectional sodium and chloride fluxes, one isotope per bath, so that net secretion separates into which flux moved. A rise in serosa-to-mucosa chloride rules in active anion secretion; a fall in net sodium absorption without reversal is a reduced absorptive flux rather than evidence of a reversed pump, and transepithelial fluxes cannot settle the direction of any one membrane pump.
+Then measure unidirectional sodium and chloride fluxes, one isotope per bath, to see which flux moved. A rise in serosa-to-mucosa chloride flux alone is not enough, since a one-way flux can also rise through a leakier junction. What rules in active anion secretion is a net secretory chloride flux with identical solutions on both sides at zero voltage, with mannitol flux unchanged. A fall in net sodium absorption without reversal is a reduced absorptive flux rather than evidence of a reversed pump, and transepithelial fluxes cannot settle the direction of any one membrane pump.
 
 Test the barrier with mannitol clearance, which should not rise if the junctions held, and with resistance over time. Test the messenger with bumetanide serosally, for whether the current depends on NKCC1 chloride loading, and with a membrane-permeant cyclic AMP analogue, for whether the messenger alone reproduces the response.
 
-The further test: add glucose to the mucosal bath and ask whether sodium-coupled absorptive flux still rises, with a non-transported sugar at the same concentration as the control separating an osmotic effect from cotransport. Limits: one species, one segment, an isolated sheet with no blood flow or normal motility, with only whatever neural elements survive stripping, at a voltage held fixed rather than free to vary.
+The further test: add glucose to the mucosal bath and ask whether sodium-coupled absorptive flux still rises, with a non-transported sugar at the same concentration as the control separating an osmotic effect from cotransport. The limits are those of the Field experiment above.
 
 </details>

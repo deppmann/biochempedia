@@ -7,19 +7,21 @@ order: 1218
 summary: >-
   Adult human plasma holds about 24 millimoles of bicarbonate per litre and only about 40
   nanomoles of free hydrogen ions, while metabolism adds tens of milliequivalents of non-volatile
-  acid every day. This lesson works the bicarbonate buffer as a system open to carbon dioxide,
-  follows an acid load to its buffers, and takes apart the kidney's two jobs: reclaiming filtered
-  bicarbonate and making new bicarbonate by excreting ammonium and titratable acid. Afterwards you
+  acid every day. pH follows the ratio of bicarbonate to dissolved carbon dioxide: the lungs set
+  the carbon dioxide term in minutes, and the kidney sets the bicarbonate term over days with two
+  jobs, reclaiming filtered bicarbonate (which makes no new base) and making new bicarbonate by
+  excreting acid, mostly as ammonium. This lesson works the bicarbonate buffer as a system open to
+  carbon dioxide, follows an acid load through its buffers, and takes apart those two jobs. Afterwards you
   can compute pH from pCO2 and bicarbonate, an anion gap and its albumin correction, and an
   expected compensation, and say what each number can and cannot tell you.
-hook: "Plasma carries more than a hundred thousand bicarbonate ions for every free hydrogen ion. What keeps that ratio of buffer to acid so steady?"
+hook: "Plasma holds 24 mmol/L of bicarbonate and only 40 nanomoles of free H+ per litre, and metabolism adds acid every day. pH stays put because one ratio, bicarbonate to dissolved CO2, stays near 20 to 1. What holds it there?"
 
 estMinutes: 25
 objectives:
   - "Use pH = 6.1 + log10([HCO3-] / (0.03 x pCO2)) for human plasma at 37 C to compute pH, [H+] in nmol/L and the bicarbonate-to-dissolved-CO2 ratio, and explain why a buffer pair that is ordinary in a closed bottle is powerful in a body whose lungs remove carbon dioxide."
   - "Say where an acute load of non-volatile acid is buffered (extracellular bicarbonate, plasma proteins and phosphate, hemoglobin in the red cell, intracellular buffers and bone) and why buffering limits a pH change without reversing it."
-  - "Explain how the mammalian nephron reclaims filtered bicarbonate in the proximal tubule and generates new bicarbonate by excreting ammonium made from glutamine and titratable acid, and compare type-A and type-B intercalated cells membrane by membrane."
-  - "From illustrative plasma numbers, name the primary disturbance, compute an anion gap with its albumin correction, compare measured pCO2 with an empirical compensation fit, and explain why compensation is partial and why the fits are regressions rather than laws."
+  - "Explain how the mammalian nephron reclaims filtered bicarbonate in the proximal tubule and generates new bicarbonate by excreting ammonium made from glutamine and titratable acid, say why ammonium carries most of the rise under a sustained acid load, and compare type-A and type-B intercalated cells membrane by membrane."
+  - "From illustrative plasma numbers, name the primary disturbance, compute an anion gap with its albumin correction, compare measured pCO2 with an empirical compensation fit, and explain why compensation moves the other term in the same direction, partway and never past pH 7.40, and why the fits are regressions rather than laws."
 
 scientists:
   - name: "Lawrence J. Henderson"
@@ -108,7 +110,7 @@ simulations:
     ref: "AcidBaseCompensation"
     title: "The open buffer"
     caption: >-
-      Add the same 10 mmol/L of strong acid to a made-up plasma sample open to CO2 or sealed from it, and watch the bicarbonate-to-dissolved-CO2 ratio, and so pH, move much further when the CO2 cannot leave.
+      Add the same 10 mmol/L of strong acid to a made-up plasma sample open to CO2 or sealed from it, and watch the bicarbonate-to-dissolved-CO2 ratio, and so pH, move much further when the CO2 cannot leave; then let the lungs lower pCO2 to see compensation move the other term the same way, partway back.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -182,6 +184,37 @@ practiceQuestions:
       would leave its anion behind and raise the gap. A primary rise in pCO2 raises bicarbonate,
       because hydration of the extra CO2 makes more of it, so the arrow is reversed. A fall in
       albumin lowers the gap and does not by itself lower bicarbonate, so it fits neither number.
+  - stem: "Human kidneys filter about 4,000 mmol of bicarbonate a day. How does the proximal tubule return filtered bicarbonate to the blood?"
+    choices:
+      - "Secreted H+ turns it into CO2 in the lumen, and the cell rebuilds it for the blood"
+      - "The cells make new bicarbonate from glutamine to replace each one filtered"
+      - "Filtered bicarbonate crosses the luminal membrane directly on NBCe1"
+      - "Luminal pendrin carries filtered bicarbonate from the lumen into the cell"
+    answer: 0
+    rationale: >-
+      Reclaiming is indirect. NHE3 and an H+-ATPase secrete H+, luminal carbonic anhydrase IV
+      turns H+ and filtered HCO3- into CO2 and water, the CO2 enters the cell, carbonic anhydrase
+      II rehydrates it, and HCO3- leaves across the basolateral membrane on NBCe1. One bicarbonate
+      vanishes from the lumen and one appears in the blood, so no new base is made. Making new
+      bicarbonate from glutamine is the kidney's other job, tied to ammonium excretion, not to the
+      filtered load. NBCe1 sits on the basolateral membrane, not the luminal one. Pendrin belongs
+      to type-B cells in the collecting duct and secretes bicarbonate into the lumen, the opposite
+      direction.
+  - stem: "A patient has a primary metabolic acidosis, with plasma bicarbonate 12 mmol/L. What does the expected respiratory compensation do?"
+    choices:
+      - "pCO2 rises, which brings pH back toward 7.40"
+      - "pCO2 falls, which brings pH back toward 7.40 but not past it"
+      - "pCO2 falls far enough to restore pH to exactly 7.40"
+      - "pCO2 stays at 40, because only the kidney answers a metabolic change"
+    answer: 1
+    rationale: >-
+      Compensation moves the other term of the ratio in the same direction as the first. Bicarbonate
+      fell, so ventilation begins to rise within minutes and pCO2 falls, bringing the ratio back toward 20; the steady state that Winter's fit describes takes roughly 12 to 24 hours.
+      Winter's fit expects about 26 mmHg here, while restoring pH to exactly 7.40 would need 20, so
+      the fall is partial. A rise in pCO2 would lower the ratio further and deepen the acidemia. A
+      fall all the way to pH 7.40 is more than any standard fit predicts; a pCO2 of 20, below the 24
+      to 28 the fit allows, points to a second, respiratory alkalosis. The lungs, not only the kidney, answer a metabolic change,
+      starting within minutes.
 
 mcatQuestions:
   - stem: "In a bench experiment, two portions of the same made-up plasma (bicarbonate 24 mmol/L, pCO2 40 mmHg, 37 C, no non-bicarbonate buffers) each receive 10 mmol/L of a strong acid. One portion sits in a tonometer whose gas phase holds pCO2 at 40 mmHg; the other is sealed in a syringe, so the CO2 formed stays dissolved. Using pK 6.1 and solubility 0.03 mmol/L per mmHg, what are the final pH values?"
@@ -314,14 +347,30 @@ draft: false
 
 import AcidBaseCompensation from '../../../components/AcidBaseCompensation.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Adult human arterial plasma at rest holds about 24 millimoles of bicarbonate per litre and about 40 nanomoles of free hydrogen ions per litre.** Metabolism in a US adult on a typical diet adds roughly 50 mEq of non-volatile acid a day, yet pH stays near 7.40, held on three clocks: buffers in seconds, lungs in minutes, kidneys over days. [Water, pH and weak bonds](/lessons/water-weak-bonds/) gave you pH = pKa + log([A-]/[HA]), and [the kidney](/lessons/kidney/) the nephron; here both get numbers.
+**Adult human arterial plasma at rest holds about 24 millimoles of bicarbonate per litre and about 40 nanomoles of free hydrogen ions per litre.**
 
-## A buffer that would be unremarkable in a bottle
+Metabolism in a US adult on a typical diet adds roughly 50 mEq of non-volatile acid a day, yet pH stays near 7.40, held on three clocks: buffers in seconds, lungs in minutes, kidneys over days. The lungs control carbon dioxide; the kidney controls bicarbonate with two jobs: it reclaims the bicarbonate it filters, and it makes new bicarbonate by excreting acid, mostly as ammonium made from glutamine. How do two organs on such different clocks hold one ratio?
 
-A **volatile acid** leaves as a gas: carbon dioxide, removed by the lungs. A **non-volatile acid**, such as sulfuric acid from sulfur-containing amino acids or an organic acid such as lactic acid or a ketoacid, cannot be breathed off; it is buffered, and the kidney excretes the net fixed-acid load. Lactate and ketoanions can also be metabolised, which gives bicarbonate back. A disturbance that starts with pCO2 is **respiratory**; one that starts with non-volatile acid or base is **metabolic**.
+[Water, pH and weak bonds](/lessons/water-weak-bonds/) gave you pH = pKa + log([A-]/[HA]), and [the kidney](/lessons/kidney/) the nephron; here both get numbers.
 
-For human plasma at 37 C, with pCO2 in mmHg and bicarbonate in mmol/L:
+> **The one idea to carry through this lesson.** pH follows one ratio: bicarbonate over dissolved CO2, 20 to 1 at pH 7.40. The lungs set the bottom of the ratio, starting within minutes; the kidney sets the top over days. A disturbance pushes one term. Compensation moves the *other* term in the *same direction*, which brings the ratio back toward 20: usually partway, sometimes nearly all the way in chronic respiratory disorders (pH back inside the normal range, 7.35 to 7.45), and never past 7.40 to the other side.
+
+Its scope: human plasma at 37 C, one disturbance at a time, at the steady state the compensating organ reaches. Two limits:
+
+- **The top is not wholly independent of the bottom.** When pCO2 rises, non-bicarbonate buffers, mostly hemoglobin, take up the H+ made from the extra CO2, so bicarbonate rises a little within minutes (numbers below), before the kidney does anything. That is buffering, not compensation. It is why plasma bicarbonate on its own mixes respiratory and metabolic effects.
+- **The ratio says how acidic plasma is, not which acid.** The anion gap, at the end of the lesson, is the tool for that.
+
+## pH follows a ratio
+
+Two kinds of acid load the body. A **volatile acid** leaves as a gas: carbon dioxide, removed by the lungs. A **non-volatile acid**, such as sulfuric acid from sulfur-containing amino acids or an organic acid such as lactic acid or a ketoacid, cannot be breathed off; it is buffered, and the kidney excretes the net fixed-acid load. Lactate and ketoanions can also be metabolised, which gives bicarbonate back. A disturbance that starts with pCO2 is **respiratory**; one that starts with non-volatile acid or base is **metabolic**.
+
+Picture pH as the reading of a fraction. On top sits bicarbonate, the base, which the kidney keeps. On the bottom sits dissolved CO2, the acid, which the lungs keep. Double both and pH does not move; change one alone and it does.
+
+<LessonFigure src="/figures/acid-base-balance/ph-ratio-fraction.webp" width={1200} height={806} alt="AI-generated illustration: a fraction with bicarbonate on top and dissolved carbon dioxide below, 24 over 1.2, a ratio of 20 to 1 at pH 7.40. A kidney points at the top term with a days clock; the lungs point at the bottom term with a minutes stopwatch. An inset shows both terms shrinking in proportion while pH stays the same." caption="pH reads one ratio, bicarbonate over dissolved CO2 (20 to 1 at pH 7.40): the lungs start moving the bottom within minutes, the kidney sets the top over days, and changing both in proportion leaves pH where it was." />
+
+In symbols, for human plasma at 37 C, with pCO2 in mmHg and bicarbonate in mmol/L:
 
 <EquationCard
   purpose="The pH of human plasma at 37 C, from its bicarbonate and its pCO2."
@@ -339,69 +388,155 @@ For human plasma at 37 C, with pCO2 in mmHg and bicarbonate in mmol/L:
   calc={{ fn: "hh-ph", result: "pH", digits: 2, inputs: [["hco3", "[HCO3-]", "mmol/L", 12, 0.1], ["pco2", "pCO2", "mmHg", 27, 1]] }}
 >
   <Fragment slot="example">
-    <p>At rest: bicarbonate 24 mmol/L, pCO2 40 mmHg. Dissolved CO2 = 0.03 × 40 = 1.2 mmol/L, the ratio is 24 / 1.2 = 20, and pH = 6.1 + 1.30 = 7.40.</p>
     <p>The worked problem below: bicarbonate 12 mmol/L, pCO2 27 mmHg. Dissolved CO2 = 0.03 × 27 = 0.81 mmol/L; 12 / 0.81 = 14.8; pH = 6.1 + 1.17 = 7.27.</p>
   </Fragment>
 </EquationCard>
 
-The 0.03 is the solubility of CO2 in plasma, in mmol/L per mmHg. The 6.1 is an apparent pK for the combined reaction CO2 + H2O = HCO3- + H+ in plasma at 37 C, hydration and ionization together; carbonic acid by itself is a much stronger acid. Henderson set out the mass-action relation in 1908, and in 1916 Hasselbalch rewrote it in Sorensen's pH notation ([carrying oxygen and carbon dioxide](/lessons/oxygen-transport/) tells his work with Bohr and Krogh). At a pCO2 of 40 mmHg, dissolved CO2 is 0.03 x 40 = 1.2 mmol/L, the ratio is 24 / 1.2 = 20, and pH = 6.1 + 1.30 = 7.40. pH follows the ratio, not either number alone.
+Because the 6.1 folds hydration and ionization together, it is not the pK of carbonic acid, which by itself is a much stronger acid.
 
-Now the puzzle. A pK of 6.1 sits 1.3 units below 7.40, and in a closed container the pair buffers no better than any other weak acid pair. Its power comes from being open to CO2: added acid turns bicarbonate into CO2, the lungs remove it, and the denominator does not climb. Add 10 mmol/L of strong acid to a made-up plasma with no other buffers. Sealed in a syringe, bicarbonate falls to 14 and dissolved CO2 rises to 11.2 mmol/L, so pH falls to about 6.20. With pCO2 held at 40 mmHg, dissolved CO2 stays at 1.2 and pH falls only to about 7.17. Alveolar ventilation holds that denominator ([ventilation and perfusion](/lessons/ventilation-perfusion/)).
+**Predict.** A sample has a perfectly normal bicarbonate of 24 mmol/L, but its pCO2 has risen to 60 mmHg. What is its pH?
+
+<details>
+<summary>Check your prediction</summary>
+
+Dissolved CO2 is 0.03 × 60 = 1.8 mmol/L. The ratio is 24 / 1.8 = 13.3, and pH = 6.1 + 1.12 = 7.22. A normal bicarbonate does not mean a normal pH: the bottom of the fraction rose, so the ratio fell.
+
+</details>
+
+## Why this buffer works: it is open
+
+Now the puzzle. The pair's pK of 6.1 sits 1.3 units below 7.40, so at pH 7.40 only about one molecule in 21 of the pair is CO2. In a sealed bottle, every proton you add turns a bicarbonate into CO2, so the small bottom of the ratio grows fast and pH crashes. Closed, this would be a poor buffer. In the body the lungs remove that CO2, so the bottom of the ratio stays put and only the top shrinks.
+
+**Predict.** Add 10 mmol/L of strong acid to a made-up plasma with no other buffers (bicarbonate 24, pCO2 40), once sealed in a syringe and once with pCO2 held at 40 mmHg. Where does pH end up in each?
+
+<details>
+<summary>Check your prediction</summary>
+
+In both, the acid turns 10 mmol/L of bicarbonate into CO2, so bicarbonate falls to 14. Sealed, the new CO2 stays dissolved: 1.2 + 10 = 11.2 mmol/L, and pH falls to about 6.20. Open, dissolved CO2 stays at 1.2 and pH falls only to about 7.17.
+
+</details>
+
+As buffering power (the acid needed per unit fall in pH near 7.40), the open system manages about 55 mmol/L per pH unit and the sealed one about 2.6: roughly twentyfold. A closed pair of the same concentration with its pK at 7.4 would manage about 14.5, so in a bottle the CO2/bicarbonate pair is several times worse than a well-matched buffer. Being open is what makes it the dominant buffer of extracellular fluid. Alveolar ventilation holds the bottom term ([ventilation and perfusion](/lessons/ventilation-perfusion/)).
 
 <AcidBaseCompensation />
 
 Uncatalysed interconversion of CO2 and bicarbonate is slow, with a half-time of seconds to tens of seconds, while blood spends about one second in a pulmonary capillary; carbonic anhydrase closes that gap.
 
-Two limits follow. Plasma bicarbonate cannot be set independently of pCO2, so it mixes respiratory and metabolic effects, and the equation says nothing about other acids. **Base excess**, introduced in the late 1950s by Siggaard-Andersen with Astrup's equilibration method, measures the metabolic part of a sample: the acid or base needed to bring whole blood in vitro to pH 7.40 at a pCO2 of 40 mmHg. Standard base excess adjusts it for the whole extracellular space, because in the body base excess still moves with pCO2. Bicarbonate read with pCO2, standard base excess and Stewart's strong-ion difference give nearly the same answer for a given sample but explain it differently, and comparisons of Stewart's approach with the traditional one have been inconsistent.
+Being open also gives the lungs a second role. In a metabolic acidosis bicarbonate falls; within minutes breathing begins to deepen and pCO2 falls too, reaching its full, steady-state extent over about 12 to 24 hours. Both terms fall, so the ratio moves back toward 20. That is **compensation**, and the last section measures how far it goes.
 
-## Where the protons actually go
+## Buffering is not removal: from seconds to days
 
-Follow an acute load of non-volatile acid. Outside cells, bicarbonate takes up protons and becomes CO2 for the lungs, with plasma proteins and phosphate taking a smaller share; over hours cells and bone take up a further share. In a tissue capillary, CO2 entering a red cell is hydrated by carbonic anhydrase, most of the bicarbonate leaves on the Cl-/HCO3- exchanger AE1 as chloride enters, and hemoglobin buffers nearly all of the H+ formed. The Bohr and Haldane effects that couple this to oxygen are in [carrying oxygen and carbon dioxide](/lessons/oxygen-transport/).
+None of the fast steps removes acid. Follow a load of non-volatile acid.
 
-{/* DIAGRAM: red cell in a systemic capillary: CO2 in, carbonic anhydrase, HCO3- out on AE1 as Cl- enters, H+ on hemoglobin */}
+**Seconds.** Outside cells, bicarbonate takes up the protons and becomes CO2 for the lungs, with plasma proteins and phosphate taking a smaller share. A different load, the H+ made from CO2 itself inside red cells, is buffered mainly by hemoglobin ([carrying oxygen and carbon dioxide](/lessons/oxygen-transport/)). Inside cells, buffering only limits how far and how fast intracellular pH moves; returning it to its set point takes acid-base transporters ([membrane transport](/lessons/membrane-transport/)).
 
-Intracellular buffering only limits how far and how fast intracellular pH moves; returning it to its set point takes acid-base transporters ([membrane transport](/lessons/membrane-transport/)). In cultured neonatal mouse calvariae (skull bones) in vitro, acute metabolic acidosis led bone to take up hydrogen ions into its mineral phase, with surface carbonate depleted and sodium and potassium leaving.
+**Minutes.** The lungs breathe off the CO2 the buffering made, then breathe harder (the compensation above).
 
-Buffering is not removal. Every proton a buffer holds is still in the body, and bicarbonate spent on a fixed-acid load is gone until the kidney makes more, or until a retained lactate or ketoanion is metabolised. In a validation study that enrolled 1,082 US adults aged 50 to 74, the 765 who completed both 24-hour urine collections had a mean net endogenous acid production, estimated from urine, of about 47 to 48 mEq per day (interquartile range about 36 to 64); ketoacids add to such loads (insulin, glucagon and glucose). Whether lactate formation itself releases protons in working muscle is contested, and exercise physiology takes up that debate.
+**Hours.** Cells and bone take up a further share, possibly a large one. In cultured neonatal mouse calvariae (skull bones), acute metabolic acidosis led bone to take up hydrogen ions into its mineral phase, with surface carbonate depleted and sodium and potassium leaving.
 
-## The proximal tubule gets the bicarbonate back
+**Days.** Every proton a buffer holds is still in the body, and bicarbonate spent on a fixed-acid load is gone until the kidney makes more, or until a retained lactate or ketoanion is metabolised. Ketoacids add to the daily load ([insulin, glucagon and glucose](/lessons/insulin-glucagon-glucose/)). Whether lactate formation itself releases protons in working muscle is contested, and [exercise physiology](/lessons/exercise-physiology/) takes up that debate.
 
-Human kidneys make about 160 to 170 L of ultrafiltrate a day ([glomerular filtration](/lessons/glomerular-filtration/)). At 24 mmol/L, 165 L carries about 4,000 mmol of bicarbonate, roughly eighty times the day's non-volatile acid; losing 3 percent would cost more base than that acid consumes. The proximal tubule takes back 60 to 70 percent of filtered water and NaCl and a greater proportion of the NaHCO3.
+Laboratories also report **base excess** for the metabolic part of a sample; this lesson reads bicarbonate with pCO2.
 
-Reclaiming is indirect. Apical NHE3 exchanges Na+ in for H+ out, and a V-type H+-ATPase secretes more H+. In the lumen, carbonic anhydrase IV, anchored on the luminal membrane, turns H+ and filtered HCO3- into CO2 and water, fast enough to keep up with the fluid moving past the cells. CO2 enters the cell, cytosolic carbonic anhydrase II rehydrates it, the H+ is secreted again, and the HCO3- leaves across the basolateral membrane on the Na+-dependent cotransporter NBCe1. One bicarbonate vanishes from the lumen and one appears in the blood; no new base is made. The segment table and carbonic anhydrase inhibition as a probe are in tubular transport and diuretics.
+## The kidney's two jobs
+
+Only the kidney can finish the job. **Reclaiming** filtered bicarbonate stops a loss but makes no new base; **making new** bicarbonate by excreting acid is the only way to repay what the day's acid consumed.
+
+Why the first job matters: human kidneys make about 160 to 170 L of ultrafiltrate a day ([glomerular filtration](/lessons/glomerular-filtration/)). At 24 mmol/L, 165 L carries about 4,000 mmol of bicarbonate, roughly eighty times the day's non-volatile acid. Losing just 3 percent, about 119 mmol, would cost more base than that acid consumes.
+
+### Job 1: reclaim filtered bicarbonate
+
+The proximal tubule takes back 60 to 70 percent of filtered water and NaCl and a greater proportion of the NaHCO3. Reclaiming is indirect. Apical NHE3 exchanges Na+ in for H+ out, and a V-type H+-ATPase secretes more H+. Carbonic anhydrase IV, anchored on the luminal membrane, turns H+ and filtered HCO3- into CO2 and water, fast enough to keep up with the fluid moving past the cells. CO2 enters the cell, cytosolic carbonic anhydrase II rehydrates it, the H+ is secreted again, and the HCO3- leaves across the basolateral membrane on the Na+-dependent cotransporter NBCe1. **One bicarbonate vanishes from the lumen and one appears in the blood; no new base is made.**
 
 {/* DIAGRAM: proximal tubule cell, lumen to interstitium: apical NHE3 and V-type pump, luminal carbonic anhydrase IV, CO2 entering, cytosolic carbonic anhydrase II, basolateral NBCe1 */}
 
-NHE3 knockout mice survive mildly acidotic; their in situ microperfused proximal tubules absorbed 54 percent less bicarbonate and 63 percent less fluid, and a significant part of the remainder was carried by a bafilomycin-sensitive H+-ATPase. In humans, William Sly and colleagues identified carbonic anhydrase II deficiency (1983) as the defect in an inherited syndrome that includes failed renal acidification. Boron's group has reported that two Na+-coupled "bicarbonate" transporters, studied in Xenopus oocytes, carry carbonate (CO3 2-), with the quantitative test made on NBCe1.
+NHE3 knockout mice and human carbonic anhydrase II deficiency support this route (Going deeper). The segment table and carbonic anhydrase inhibition as a probe are in [tubular transport and diuretics](/lessons/tubular-transport-diuretics/).
 
-That the tubule secretes acid at all was once in doubt. An older view held that the tubule acidified urine by reabsorbing buffer base, filtered bicarbonate and dibasic phosphate, leaving the acid forms behind; then titratable acid excreted could not exceed what that reabsorption allows. Robert F. Pitts and colleagues tested this in 1945 to 1949, in clearance studies of dogs and of people (as summarised in 1956 by Orloff), setting filtered loads against excretion. In metabolic acidosis, titratable acid excretion exceeded what reabsorbing filtered bicarbonate or dibasic phosphate could explain. H+ was being added to tubular fluid, and Pitts proposed it was extruded in exchange for filtered sodium. Orloff stressed there was no direct evidence yet for ion exchange in tubule cells; these were whole-kidney measurements, and the molecular exchanger came decades later.
+**Predict.** A carbonic anhydrase inhibitor such as acetazolamide blocks the enzyme in the proximal tubule. What happens to bicarbonate in the urine, to plasma bicarbonate, and to the kidney's output of new base?
 
-## New bicarbonate: ammonium and titratable acid
+<details>
+<summary>Check your prediction</summary>
 
-Replacing bicarbonate that acid consumed takes new bicarbonate, made in proportion to acid excreted:
+The indirect route needs carbonic anhydrase, so less filtered bicarbonate is reclaimed. Bicarbonate appears in the urine and plasma bicarbonate falls. The primary failure is reclaiming: base the body already had is lost in the urine. On the balance sheet, net acid excretion falls because its bicarbonate term grows, and the alkaline urine also carries less titratable acid and ammonium. The glutamine-to-ammonium machinery that makes new base is not the drug's main target.
+
+</details>
+
+### Job 2: make new bicarbonate
+
+Why not simply pour H+ into the urine? Urine pH bottoms out near 4.5, about 800 times plasma's free H+, yet a made-up day's urine of 1.5 L at that pH carries only about 0.05 mmol of free H+, against a daily acid load near 50 mEq. Free protons cannot be the cargo. Buffers have to carry the acid out, and the kidney's balance sheet counts them:
 
 > **net acid excretion = titratable acid + NH4+ - HCO3-**
 
-About one-third to one-half is normally **titratable acid**, protons carried on urinary buffers, mainly phosphate. The other half to two-thirds is ammonium: proximal cells metabolise each glutamine to 2 NH4+ and 2 HCO3-, the bicarbonate going to the blood. Only excreted ammonium counts, because ammonium returned to the blood is handled by the liver in a bicarbonate-consuming step ([protein turnover](/lessons/protein-turnover-amino-acid-catabolism/)); here ammonium matters mainly as an acid-base carrier rather than as the nitrogen route of [osmoregulation](/lessons/osmoregulation/), though it does carry some nitrogen. People on a typical Western diet excrete 30 to 40 mmol of ammonium a day. In acidosis the proximal tubule takes up more glutamine and citrate and recovers less phosphate, raising both terms.
+New bicarbonate is made in proportion to that net acid excretion. It has two carriers.
 
-In the collecting duct, **type-A intercalated cells** pump H+ into the lumen through a V-type H+-ATPase and return new HCO3- to the blood on basolateral AE1. **Type-B cells**, the mirror image, secrete bicarbonate through luminal pendrin and keep the H+-ATPase on the basolateral side; isolated cortical collecting ducts from alkali-loaded pendrin-knockout mice failed to secrete bicarbonate (Royaux and colleagues, 2001). A third, non-A/non-B type has both apically, and what it does on balance is unsettled. Urine pH bottoms out near 4.5, a 1000-to-1 H+ gradient from plasma, so buffers must carry the acid. In acute acidosis distal H+ secretion rises at once while ammonium production lags; in chronic acidosis ammonium excretion is high and urine pH can rise to about 6. Urine pH is a poor index of ammonium excretion, and no master renal pH sensor has been identified.
+**Titratable acid** is protons carried on urinary buffers, mainly phosphate. It is normally about one-third to one-half of the total, and it is limited by how much phosphate reaches the urine.
+
+**Ammonium** is the other half to two-thirds. Proximal cells metabolise each glutamine to two ammonium ions and two bicarbonate ions, and the bicarbonate goes to the blood. If the ammonium leaves in the urine, the body keeps that bicarbonate free and clear: it is as if the kidney had excreted an H+ and returned a bicarbonate. If the ammonium goes back to the blood instead, the liver disposes of it in a step that uses up the same bicarbonate, and the gain is cancelled ([protein turnover](/lessons/protein-turnover-amino-acid-catabolism/)). So only excreted ammonium counts. People on a typical Western diet excrete 30 to 40 mmol of ammonium a day.
+
+**Under a sustained acid load, ammonium carries most of the increase.** In acidosis the proximal tubule takes up more glutamine and citrate and recovers less phosphate, raising both terms, but titratable acid is capped by urinary phosphate, so most of the extra acid leaves as ammonium. In acute acidosis distal H+ secretion rises at once while ammonium production lags; in chronic acidosis ammonium excretion is high and urine pH can rise to about 6, so urine pH is a poor index of ammonium excretion.
+
+In the collecting duct, **type-A intercalated cells** pump H+ into the lumen through a V-type H+-ATPase and return the new HCO3- made inside the cell to the blood on the basolateral Cl-/HCO3- exchanger AE1. A second type, type-B, runs the mirror arrangement and secretes bicarbonate. In mice it also does much of the collecting duct's chloride reabsorption, and so affects salt balance and blood pressure; in people its role is known mostly from rare cases (Going deeper). No master renal pH sensor that sets this output has been identified.
 
 {/* DIAGRAM: type-A intercalated cell (luminal V-type H+-ATPase, basolateral AE1) beside a type-B cell (luminal pendrin, basolateral H+-ATPase) */}
 
-The textbook account was diffusion and trapping: NH3 crosses membranes freely and is trapped as NH4+ in acid fluid, so deleting an ammonia transporter should matter little. Sophie Biver and colleagues (2008) acid-loaded Rhcg knockout mice beside wild-type controls and microperfused their collecting ducts. The knockouts could not acidify urine normally because ammonium excretion was impaired, and their ducts showed reduced apical NH3 permeability and impaired transepithelial NH3 transport. Protein-mediated transport is required in the mouse collecting duct. It did not show whether Rhcg carries NH3 or NH4+, says nothing about humans, and, tested under acid loading, does not show what sets baseline excretion.
+How does ammonia reach the collecting-duct lumen? The textbook account was diffusion and trapping: NH3 crosses membranes freely and is trapped as NH4+ in acid fluid, so deleting an ammonia transporter should matter little. Sophie Biver and colleagues (2008) acid-loaded Rhcg knockout mice beside wild-type controls and microperfused their collecting ducts. The knockouts could not acidify urine normally because ammonium excretion was impaired, and their ducts showed reduced apical NH3 permeability and impaired transepithelial NH3 transport. Protein-mediated transport is required in the mouse collecting duct. The result does not show whether Rhcg carries NH3 or NH4+, says nothing about humans, and, tested under acid loading, does not show what sets baseline excretion.
 
-Human genetics reaches the same segment through a different protein, the proton pump's B1 subunit, whose gene Karet and colleagues found mutated in families with distal renal tubular acidosis and hearing loss. Predict the chain. Apical H+ pumping falls, so the duct builds a smaller gradient and urine pH stays higher; less phosphate is titrated and less ammonium held in the lumen, so net acid excretion, new bicarbonate, plasma bicarbonate and pH fall. Rising: retained acid buffered elsewhere, bone included; ventilation, so pCO2 falls; and plasma chloride, replacing lost bicarbonate, so the anion gap is unchanged. In carbonic anhydrase II deficiency, by contrast, the acidosis is proximal, distal or combined, so proximal reclamation can fail as well.
+Human genetics tests the type-A cell directly. Karet and colleagues found the gene for the proton pump's B1 subunit mutated in families with distal renal tubular acidosis and hearing loss.
 
-## Reading the numbers, and what the rules are worth
+**Predict.** Follow a loss-of-function B1 mutation through the system. What happens to urine pH, net acid excretion, plasma bicarbonate and pCO2?
 
-**Worked problem.** In this made-up example for human plasma at 37 C, take pK 6.1, solubility 0.03 and steady state, and compare against bicarbonate 24 mmol/L, pCO2 40 mmHg, pH 7.40 and albumin 4.0 g/dL. The sample: pCO2 27 mmHg, HCO3- 12, Na+ 140 and Cl- 104 mmol/L, albumin 2.0 g/dL.
+<details>
+<summary>Check your prediction</summary>
 
-1. Dissolved CO2 = 0.03 x 27 = 0.81 mmol/L; 12 / 0.81 = 14.8; pH = 6.1 + 1.17 = 7.27. [H+] = 10^-7.27 mol/L, which is 10^(9 - 7.27) = about 54 nmol/L, against 40 at pH 7.40.
-2. pH is low with a low bicarbonate. A primary rise in pCO2 would raise bicarbonate, so this is a metabolic acidosis: acid gained or base lost. The low pCO2 is moving pH back toward 7.40, and the anion gap below narrows the cause.
-3. An empirical fit gives expected pCO2 = 1.5 x 12 + 8 = 26 mmHg; the measured 27 lies within the scatter one review attaches to it. A pCO2 of 36 would mean ventilation below the fit, pointing to a second, respiratory process.
-4. Anion gap = [Na+] - [Cl-] - [HCO3-] = 140 - 104 - 12 = 24 mmol/L. An acid whose anion the panel does not measure, such as a ketoacid or lactate, consumes bicarbonate and leaves its anion, so the gap rises; base lost directly is replaced by chloride, leaving the gap unchanged.
-5. Albumin is the main unmeasured anion. Corrected gap = 24 + 2.5 x (4.0 - 2.0) = 29 mmol/L, the same as 24 + 0.25 x (40 - 20) with albumin in g/L.
-6. Against a made-up comparison gap of 12 (140 - 104 - 24), the gap rose 12 (17 corrected) as bicarbonate fell 12, ratios of 1.0 and 1.4. That ratio genuinely varies, larger for lactate than for ketoacid anions, so alone it cannot establish a second process.
+Apical H+ pumping falls, so the duct builds a smaller gradient and urine pH stays higher. Less phosphate is titrated and less ammonium is held in the lumen, so net acid excretion falls. Less new bicarbonate is made, so plasma bicarbonate and pH fall. The acid that is not excreted is buffered elsewhere, bone included. Ventilation rises, so pCO2 falls: the lungs compensate, as the rule predicts. The last section adds what happens to plasma chloride.
+
+</details>
+
+## Reading a blood gas
+
+### Compensation: the other organ pushes the same way
+
+- **Metabolic acidosis.** Bicarbonate falls first. Breathing deepens and pCO2 falls, as above.
+- **Metabolic alkalosis.** Bicarbonate rises. Breathing slows a little and pCO2 rises.
+- **Respiratory acidosis.** pCO2 rises first. Bicarbonate rises about 1 mmol/L per 10 mmHg at once, by buffering, and about 5 per 10 mmHg over days as the kidney makes new bicarbonate (one prospective study of steady-state chronic hypercapnia, Gonzalez and colleagues, 2018).
+- **Respiratory alkalosis.** pCO2 falls. Bicarbonate falls a little at once, and more over days as the kidney excretes less acid; altitude's falling bicarbonate is told in [control of breathing](/lessons/control-of-breathing/).
+
+How far would the other term have to move to put pH all the way back at 7.40? Far enough to restore 20 to 1. In a metabolic acidosis with bicarbonate at 12 mmol/L, that means pCO2 = 12 / (0.03 × 20) = 20 mmHg. In a respiratory disorder it means bicarbonate changing 6 mmol/L for every 10 mmHg of pCO2, more than the 1 or about 5 observed. Real people fall short of both lines: compensation usually blunts the pH change rather than erasing it.
+
+So two numbers that move in opposite directions, or a compensation far bigger or smaller than expected, mean two things are going on at once.
+
+### A recipe in four steps
+
+1. **Is pH low or high?** That names the problem: acidemia or alkalemia.
+2. **Which term moved in the direction that explains it?** A low pH comes from a fall in bicarbonate (metabolic) or a rise in pCO2 (respiratory). That term is the primary one; the other is usually the compensation.
+3. **Is the compensation the expected size?** Compare the other term with an empirical fit for that disorder.
+4. **For a metabolic acidosis, compute the anion gap,** corrected for albumin, to ask what kind of acid it is.
+
+### Worked problem
+
+A made-up sample of human plasma at 37 C, at steady state, against a normal of bicarbonate 24 mmol/L, pCO2 40 mmHg, pH 7.40 and albumin 4.0 g/dL. The sample: pCO2 27 mmHg, bicarbonate 12, Na+ 140 and Cl- 104 mmol/L, albumin 2.0 g/dL.
+
+**Step 1: pH.** Dissolved CO2 is 0.03 × 27 = 0.81 mmol/L. The ratio is 12 / 0.81 = 14.8, well below 20, and pH = 6.1 + 1.17 = 7.27: an acidemia. In concentration terms, [H+] = 10^-7.27 mol/L, which is 10^(9 - 7.27) = about 54 nmol/L, against 40 at pH 7.40.
+
+**Step 2: which term moved?** Bicarbonate fell, which lowers pH; a primary rise in pCO2 would have raised bicarbonate. So this is a **metabolic acidosis**: acid gained or base lost. pCO2 fell too, but a falling pCO2 raises pH: it is the lungs answering, not the cause.
+
+**Step 3: is the compensation the right size?** For metabolic acidosis the usual fit is Winter's formula: expected pCO2 = 1.5 × bicarbonate + 8, plus or minus 2 mmHg. Here that is 1.5 × 12 + 8 = 26, so anything from 24 to 28 fits, and the measured 27 does, short of the 20 that full compensation needs. Without any compensation, at a pCO2 of 40, pH would have been 7.10; the lungs bought back about 0.17 of a pH unit.
+
+**Predict.** Suppose the same patient's pCO2 were 36 mmHg instead of 27. What would pH be, and what would that tell you?
+
+<details>
+<summary>Check your prediction</summary>
+
+Dissolved CO2 is 0.03 × 36 = 1.08 mmol/L, the ratio is 12 / 1.08 = 11.1, and pH = 6.1 + 1.05 = 7.15. pCO2 is well above the 24 to 28 the fit expects, so ventilation is below the fit. That points to a second, respiratory acidosis on top of the metabolic one: the patient may be tiring, sedated or unable to breathe harder. A pCO2 well below 24 would mean the opposite, an added respiratory alkalosis.
+
+</details>
+
+**Step 4: what kind of acid?** The anion gap compares the main measured cation with the main measured anions: gap = [Na+] − [Cl-] − [HCO3-] = 140 − 104 − 12 = 24 mmol/L, against 12 in this lesson's normal sample (140 − 104 − 24). The gap stands for anions the panel does not measure, less the cations it does not measure; albumin is the largest part. Two kinds of metabolic acidosis behave differently:
+
+- **Acid added with an unmeasured anion**, such as lactic acid or a ketoacid. Its H+ uses up bicarbonate and its anion stays behind, so the gap rises.
+- **Bicarbonate lost directly**, or not replaced, as from the gut or the kidney. Chloride takes its place, so plasma chloride rises and the gap stays normal. The B1 pump failure above is this kind.
+
+A gap of 24 points to an added acid, and this patient's low albumin hides part of it.
 
 <EquationCard
   purpose="The anion gap, with its albumin correction: albumin is the main unmeasured anion, so a low albumin hides part of the gap."
@@ -427,21 +562,78 @@ Human genetics reaches the same segment through a different protein, the proton 
   </Fragment>
 </EquationCard>
 
-The gap's reference range is not fixed either: it shifted down in one laboratory when ion-selective electrodes raised measured chloride (Winter and colleagues, 1990), so each laboratory's own range applies.
+Here the corrected gap is 29 mmol/L: the added acid is larger than the raw gap suggested.
 
-Compensation follows mechanism. In metabolic acidosis pCO2 falls. In respiratory disturbances the kidney moves bicarbonate in the same direction as pCO2, slowly: for a primary rise in pCO2, chemical buffering raises bicarbonate by about 1 mmol/L per 10 mmHg at once, and renal adaptation over days adds more, with one prospective study of chronic hypercapnia giving about 5 mmol/L per 10 mmHg (Gonzalez and colleagues, 2018), and altitude's falling bicarbonate is told in [control of breathing](/lessons/control-of-breathing/). Compensation usually blunts the pH change rather than erasing it, and in chronic hypercapnia pH can sit inside the normal range, so compare the measured values against an expected response and the clinical setting. The fits are regressions on observed people, not laws.
+> **What these rules are, and are not.** Winter's formula and the other compensation rules are lines fitted to observed people, with real scatter, not laws; compare measured values with them and with the clinical setting. Winter's formula is a fit for metabolic acidosis only: at a normal bicarbonate of 24 it returns 44, not 40. Normal anion-gap ranges differ between laboratories (in one, ion-selective electrodes raised measured chloride and shifted the range down; Winter and colleagues, 1990), so each laboratory's own range applies. Comparing the rise in the gap with the fall in bicarbonate is a hint, not a proof (Going deeper).
 
 ### Design problem
+
+A new drug lowers plasma bicarbonate in volunteers. Design an experiment to show whether it impairs reclaiming filtered bicarbonate or making new bicarbonate. What would you measure in urine and plasma, and what result separates the two?
+
+<details>
+<summary>One way to do it</summary>
+
+On a fixed diet, with a placebo period in the same people, measure plasma bicarbonate and pCO2 and, in timed urine, pH, bicarbonate, titratable acid and ammonium, so you can compute net acid excretion. Repeat under a standard acid load.
+
+If the drug impairs **reclaiming**, bicarbonate appears in the urine at first, and again whenever plasma bicarbonate is raised: infuse bicarbonate to bring plasma toward normal and measure fractional bicarbonate excretion, which rises steeply (above about 15 percent in proximal defects). At steady state the urine can still be acidified below pH 5.5, and ammonium and titratable acid rise normally under an acid load.
+
+If it impairs **making new bicarbonate**, urine bicarbonate stays low, but ammonium and titratable acid fail to rise under the acid load, so net acid excretion stays low while plasma bicarbonate falls. Check that filtration is unchanged, since it alters every urinary number.
+
+</details>
+
+## Going deeper
+
+The main line above does not depend on these details.
+
+### Henderson, Hasselbalch and the equation
+
+The equation made blood acidity something to calculate from two measurable quantities. Henderson set out the mass-action relation in 1908, and in 1916 Hasselbalch rewrote it in Sorensen's pH notation ([carrying oxygen and carbon dioxide](/lessons/oxygen-transport/) tells his work with Bohr and Krogh).
+
+### Base excess and the strong-ion view
+
+The equation says nothing about acids other than CO2. **Base excess**, introduced in the late 1950s by Siggaard-Andersen with Astrup's equilibration method, measures the metabolic part of a sample: the acid or base needed to bring whole blood in vitro to pH 7.40 at a pCO2 of 40 mmHg. Standard base excess adjusts it for the whole extracellular space, because in the body base excess still moves with pCO2. Bicarbonate read with pCO2, standard base excess and Stewart's strong-ion difference give nearly the same answer for a given sample but explain it differently, and comparisons of Stewart's approach with the traditional one have been inconsistent.
+
+### Inside the red cell
+
+In a tissue capillary, CO2 entering a red cell is hydrated by carbonic anhydrase, most of the bicarbonate leaves on the Cl-/HCO3- exchanger AE1 as chloride enters, and hemoglobin buffers nearly all of the H+ formed. The Bohr and Haldane effects that couple this to oxygen are in [carrying oxygen and carbon dioxide](/lessons/oxygen-transport/).
+
+{/* DIAGRAM: red cell in a systemic capillary: CO2 in, carbonic anhydrase, HCO3- out on AE1 as Cl- enters, H+ on hemoglobin */}
+
+### The size of the daily acid load
+
+The roughly 50 mEq a day used in this lesson comes from urine studies. In a validation study that enrolled 1,082 US adults aged 50 to 74, the 765 who completed both 24-hour urine collections had a mean net endogenous acid production, estimated from urine, of about 47 to 48 mEq per day (interquartile range about 36 to 64).
+
+### How the tubule was shown to secrete acid
+
+An older view held that the tubule acidified urine by reabsorbing buffer base, filtered bicarbonate and dibasic phosphate, leaving the acid forms behind; then titratable acid excreted could not exceed what that reabsorption allows. Robert F. Pitts and colleagues tested this in 1945 to 1949, in clearance studies of dogs and of people (as summarised in 1956 by Orloff), setting filtered loads against excretion. In metabolic acidosis, titratable acid excretion exceeded what reabsorbing filtered bicarbonate or dibasic phosphate could explain. H+ was being added to tubular fluid, and Pitts proposed it was extruded in exchange for filtered sodium. Orloff stressed there was no direct evidence yet for ion exchange in tubule cells; these were whole-kidney measurements, and the molecular exchanger came decades later.
+
+### Knockouts, an enzyme deficiency and the carbonate question
+
+NHE3 knockout mice survive mildly acidotic; their in situ microperfused proximal tubules absorbed 54 percent less bicarbonate and 63 percent less fluid, and a significant part of the remainder was carried by a bafilomycin-sensitive H+-ATPase. In humans, William Sly and colleagues identified carbonic anhydrase II deficiency (1983) as the defect in an inherited syndrome that includes failed renal acidification. Unlike the B1 pump defect, the acidosis in carbonic anhydrase II deficiency is proximal, distal or combined, so proximal reclamation can fail as well. Boron's group has reported that two Na+-coupled "bicarbonate" transporters, studied in Xenopus oocytes, carry carbonate (CO3 2-), with the quantitative test made on NBCe1.
+
+### Type-B and non-A, non-B cells
+
+Type-B cells secrete bicarbonate through luminal pendrin and keep the H+-ATPase on the basolateral side; isolated cortical collecting ducts from alkali-loaded pendrin-knockout mice failed to secrete bicarbonate (Royaux and colleagues, 2001). Their bicarbonate secretion matters most when the body must excrete an alkali load: people with Pendred syndrome, who lack pendrin, have normal acid-base status at rest but have developed severe metabolic alkalosis on thiazide-type diuretics. A third, non-A/non-B type has both the pump and pendrin apically, and what it does on balance is unsettled.
+
+### Ammonium as a nitrogen carrier
+
+Each glutamine the proximal tubule uses gives up two nitrogens as ammonium, so excreted ammonium also removes nitrogen. In this lesson ammonium matters mainly as an acid-base carrier rather than as the nitrogen route of [osmoregulation](/lessons/osmoregulation/), though it does carry some nitrogen.
+
+### Comparing the rise in the gap with the fall in bicarbonate
+
+In the worked problem, against the made-up comparison gap of 12, the gap rose 12 (17 corrected) as bicarbonate fell 12, ratios of 1.0 and 1.4. That ratio genuinely varies, larger for lactate than for ketoacid anions, so alone it cannot establish a second process.
+
+### An older experiment: one kidney as the other's control
 
 In the chicken, blood from a leg vein drains directly into the peritubular region of the same-side kidney, so an agent infused into one leg reaches one kidney's tubule cells while the other kidney is a control in the same bird. Orloff's 1956 review reported, as unpublished observations, that acetic acid added to blood perfusing one side raised local CO2 tension (it reacts with plasma bicarbonate) and, on that side only, lowered potassium excretion (already raised by a potassium sulfate infusion) and raised urine H+ concentration; it credits the method to Sperber (1946). (a) What does the paired design buy that an intravenous infusion into a mammal cannot? (b) What shows whole-body acid-base state did not change? (c) Which rival explanation remains, and how would you exclude it?
 
 <details>
 <summary>One way to do it</summary>
 
-(a) Each bird is its own control: systemic pH and pCO2, blood pressure and anaesthesia are shared, and the infused side meets the agent first in its peritubular region. Flow, filtration and delivery on each side still have to be measured rather than assumed equal.
+(a) Each bird is its own control: systemic pH and pCO2, blood pressure and anaesthesia are shared, and the infused side meets the agent first in its peritubular region. Flow, filtration, electrolytes and delivery on each side still have to be measured rather than assumed equal.
 
-(b) Arterial pH and pCO2 before, during and after, with urine collected simultaneously and separately from each ureter, and flow and electrolytes measured on each side.
+(b) Arterial pH and pCO2 before, during and after, with urine collected simultaneously and separately from each ureter.
 
-(c) The acid also lowers peritubular bicarbonate and may change sodium delivery and local blood flow. An acid carrying no CO2 still makes CO2 when it meets plasma bicarbonate, so these infusions cannot clamp peritubular pCO2, bicarbonate and pH separately. Measure local pH, pCO2, bicarbonate, filtration and flow on each side, with matched vehicle and salt controls, and then set the bath directly in an isolated perfused tubule. Even then the potassium result only shows that local acid-base conditions shift potassium and proton handling together, without identifying a shared driving force or transporter, and one bird species cannot be generalised to mammals. The modern form of the logic is the isolated perfused tubule, with the bath set directly.
+(c) The acid also lowers peritubular bicarbonate and may change sodium delivery and local blood flow. An acid carrying no CO2 still makes CO2 when it meets plasma bicarbonate, so these infusions cannot clamp peritubular pCO2, bicarbonate and pH separately. Measure these and filtration and flow on each side, with matched vehicle and salt controls, then set the bath directly in an isolated perfused tubule. Even then the potassium result only shows that local acid-base conditions shift potassium and proton handling together, without identifying a shared driving force or transporter, and one bird species cannot be generalised to mammals.
 
 </details>

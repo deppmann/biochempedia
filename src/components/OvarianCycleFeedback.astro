@@ -10,7 +10,7 @@
 ---
 
 <figure class="ocf card" data-ocf>
-  <figcaption class="ocf-head">What the sampling schedule sees — a pulsatile hormone<span class="ocf-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="ocf-head">What the sampling schedule sees — an illustrative pulsatile hormone, not a feedback model<span class="ocf-chip">⚙ original · interactive</span></figcaption>
 
   <svg class="ocf-svg" viewBox="0 0 340 226" role="img" aria-label="A 24-hour illustrative trace of identical hormone pulses with the sampled points drawn over it and the sample-to-sample rises that count as detected pulses" data-plot></svg>
 
@@ -21,12 +21,13 @@
     <fieldset class="ocf-fs">
       <legend>Sampling interval <small>(minutes between samples)</small></legend>
       <label class="ocf-radio"><input type="radio" name="ocf-samp" value="10" data-in="samp" /> 10</label>
-      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="30" data-in="samp" checked /> 30</label>
-      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="60" data-in="samp" /> 60</label>
+      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="30" data-in="samp" /> 30</label>
+      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="60" data-in="samp" checked /> 60</label>
       <label class="ocf-radio"><input type="radio" name="ocf-samp" value="240" data-in="samp" /> 240</label>
+      <label class="ocf-radio"><input type="radio" name="ocf-samp" value="1440" data-in="samp" /> 1440 <small>(one sample)</small></label>
     </fieldset>
     <label class="ocf-slabel ocf-wide"><span>Start-time offset <em data-out="off">0 min</em> <small>(when the first sample is drawn; 0 up to one sampling interval)</small></span>
-      <input type="range" data-in="off" min="0" max="30" step="1" value="0" aria-describedby="ocf-assume" />
+      <input type="range" data-in="off" min="0" max="60" step="1" value="0" aria-describedby="ocf-assume" />
     </label>
   </div>
 
@@ -37,10 +38,11 @@
     <div><dt>Highest single sample</dt><dd data-r-hi>0</dd></div>
     <div><dt>Lowest single sample</dt><dd data-r-lo>0</dd></div>
     <div class="ocf-full"><dt>Highest / lowest sample</dt><dd data-r-ratio>0</dd></div>
+    <div class="ocf-full"><dt>Same trace, any draw time: highest and lowest a single sample can give</dt><dd data-r-span>0</dd></div>
   </dl>
   <p class="ocf-why" data-why role="status">In this sketch, the status appears here.</p>
 
-  <p class="ocf-assume" id="ocf-assume">In this sketch: the pulses are identical, repeat exactly at the chosen interval, and are made up (each rises in 10 minutes and falls with a 25-minute time constant, both invented). The trace is scaled to an invented span of relative units (10 to 100); no real hormone, assay or woman is shown. A detected pulse is a run of consecutive sample-to-sample rises, each larger than 25% of the trace range (an invented rule). There is no assay noise, and no feedback is simulated.</p>
+  <p class="ocf-assume" id="ocf-assume">In this sketch: the pulses are identical, repeat exactly at the chosen interval, and are made up (each rises in 10 minutes and falls with a 25-minute time constant, both invented). The trace is scaled to an invented span of relative units (10 to 100); no real hormone, assay or woman is shown. A detected pulse is a run of consecutive sample-to-sample rises, each larger than 25% of the trace range (an invented rule). At 1440 min the window holds a single draw (two only when the first falls at 0 min, the second at 24 h), so any pulse count there says nothing about pulses. There is no assay noise, and no feedback is simulated.</p>
   <p class="ocf-foot">Keep this: samples per interval = pulse interval / sampling interval. Below about two, pulses cannot be resolved, and even above it peaks can fall between samples; one sample gives no pulse information.</p>
 </figure>
 
@@ -109,6 +111,7 @@
     const rHi = need<HTMLElement>(root, '[data-r-hi]');
     const rLo = need<HTMLElement>(root, '[data-r-lo]');
     const rRatio = need<HTMLElement>(root, '[data-r-ratio]');
+    const rSpan = need<HTMLElement>(root, '[data-r-span]');
     const why = need<HTMLElement>(root, '[data-why]');
 
     const X0 = 40, X1 = 328, Y0 = 44, Y1 = 176, YMAX = 112;
@@ -124,7 +127,7 @@
 
     function currentS(): number {
       const c = sIns.find((r) => r.checked);
-      return c ? parseInt(c.value, 10) : 30;
+      return c ? parseInt(c.value, 10) : 60;
     }
 
     let lastS = 0;
@@ -150,12 +153,17 @@
       const nTrue = Math.ceil(DAY / P);
 
       // detections across every whole-minute start time from 0 to S
-      let dMin = Infinity, dMax = 0;
+      // and the single-sample spread: highest and lowest value any draw time can give
+      let dMin = Infinity, dMax = 0, vMin = Infinity, vMax = 0;
       for (let o = 0; o <= S; o++) {
-        const d = sample(trace, S, o).detected;
+        const s2 = sample(trace, S, o);
+        const d = s2.detected;
         if (d < dMin) dMin = d;
         if (d > dMax) dMax = d;
+        vMin = Math.min(vMin, ...s2.v);
+        vMax = Math.max(vMax, ...s2.v);
       }
+      const oneSample = ser.v.length <= 2;
 
       const hi = Math.max(...ser.v), lo = Math.min(...ser.v);
       const spi = P / S;
@@ -219,11 +227,14 @@
       rHi.textContent = f1(hi) + ' relative units';
       rLo.textContent = f1(lo) + ' relative units';
       rRatio.textContent = `${f1(hi)} / ${f1(lo)} = ${f1(hi / lo)}-fold`;
+      rSpan.textContent = `${f1(vMin)} to ${f1(vMax)} relative units (${f1(vMax / vMin)}-fold)`;
 
       // ---- status
       const parts: string[] = [];
       parts.push(`In this sketch, a pulse every ${P} min sampled every ${S} min gives ${f1(spi)} samples per pulse interval, and the samples meet the detection rule for ${ser.detected} of the ${nTrue} pulses in the 24 h window.`);
-      if (spi < 1) {
+      if (oneSample) {
+        parts.push('In this sketch, one or two samples in 24 h give no information about pulses at all: where the draw falls decides the value, and the same trace can read anywhere from ' + f1(vMin) + ' to ' + f1(vMax) + ' relative units.');
+      } else if (spi < 1) {
         parts.push('In this sketch, with fewer than one sample per pulse interval, many rises and falls happen between samples, so the series cannot resolve most pulses.');
       } else if (spi < 2) {
         parts.push('In this sketch, with fewer than about two samples per pulse interval, the lesson’s rule of thumb is that pulses cannot be resolved.');
@@ -232,7 +243,9 @@
       } else {
         parts.push('In this sketch, with about nine or more samples per pulse interval, the series follows the pulses closely, as the lesson says of its 9.5 and 17.1 samples per interval; a pulse at the edge of the 24 h window can still be missed.');
       }
-      if ((hi - lo) < 0.1 * (HIGH - LOW)) {
+      if (oneSample) {
+        // a single point is not a steady series; the spread across draw times is reported above
+      } else if ((hi - lo) < 0.1 * (HIGH - LOW)) {
         parts.push(`In this sketch, all the samples fall within ${f1(hi - lo)} relative units of each other, so the series looks steady although the trace has ${nTrue} pulses.`);
       } else {
         parts.push(`In this sketch, the highest sample is ${f1(hi)} and the lowest ${f1(lo)} relative units, a ${f1(hi / lo)}-fold ratio, against ${f1(HIGH / LOW)}-fold across the whole trace.`);

@@ -1,21 +1,23 @@
 ---
 /**
  * BileAcidLoop — "the pool that is used five times a day". A bile acid balance
- * calculator for the lesson's worked problem. Three sliders (pool size, cycles per day,
- * fractional reabsorption per cycle) and a toggle (ileal uptake intact or blocked) feed the
- * lesson's rules: delivery = pool x cycles; fecal loss = delivery x (1 - f); at steady state
- * synthesis = fecal loss; pool renewed per day = fecal loss / pool x 100. A log-scale gauge
- * sets the loss against the lesson's human review range of 0.20 to 0.40 g a day and against
- * the textbook 95 percent figure, which does not close with it. Arithmetic on assumed inputs,
- * not a measurement. The component keeps its historical file name; it holds no rehydration
- * content. Self-contained vanilla-TS Astro island. Original.
+ * calculator for the lesson's worked problem. Four sliders (pool size, cycles per day,
+ * fractional reabsorption per cycle, and an optional made-up ceiling on synthesis) and a
+ * three-way toggle (ileal uptake intact, mild block, near-complete block) feed the lesson's
+ * rules: delivery = pool x cycles; fecal loss = delivery x (1 - f); at steady state
+ * synthesis = fecal loss; pool renewed per day = fecal loss / pool x 100. When the required
+ * synthesis exceeds the ceiling, synthesis stops at the ceiling and the pool settles at
+ * ceiling / (cycles x (1 - f)), the lesson's rearranged rule. A log-scale gauge sets the loss
+ * against the lesson's human review range of 0.20 to 0.40 g a day and against the textbook
+ * 95 percent figure, which does not close with it. Arithmetic on assumed inputs, not a
+ * measurement. Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
 <figure class="ora card" data-ora>
-  <figcaption class="ora-head"><span>Bile acid balance — a pool used about five times a day</span><span class="ora-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="ora-head"><span>Bile acid balance: residue = delivery × (1 − fraction reabsorbed)</span><span class="ora-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="ora-svg" viewBox="0 0 340 140" role="img" aria-label="A schematic loop of two labelled blocks, the liver and the gut lumen. An arrow from the liver to the gut carries the delivery to the ileum, an arrow back to the liver carries what is recovered at the ileum, a short arrow out of the gut carries the loss in stool, and a short arrow into the liver carries synthesis from cholesterol" data-loop></svg>
+  <svg class="ora-svg" viewBox="0 0 340 140" role="img" aria-label="A schematic loop of two labelled blocks, the liver and gallbladder holding the circulating pool, and the gut lumen. An arrow from the liver to the gut carries the delivery to the intestine, an arrow back to the liver carries what is recovered at the ileum, a short arrow out of the gut carries the loss in stool, and a short arrow into the liver carries synthesis from cholesterol" data-loop></svg>
 
   <div class="ora-controls">
     <label class="ora-slabel"><span>Pool size <em data-out="pool">3.5</em> g</span>
@@ -27,20 +29,27 @@
     <label class="ora-slabel"><span>Fractional reabsorption per cycle <em data-out="f">98.3</em> percent <small data-capnote></small></span>
       <input type="range" data-in="f" min="850" max="995" step="1" value="983" />
     </label>
+    <label class="ora-slabel"><span>Most the liver can make (illustrative) <em data-out="smax">off</em> <small data-smaxunit></small></span>
+      <input type="range" data-in="smax" min="5" max="51" step="1" value="51" />
+    </label>
     <fieldset class="ora-radios" data-radios>
       <legend>Ileal bile acid uptake</legend>
       <label class="ora-radio"><input type="radio" value="intact" checked /> <span>ileal uptake intact</span></label>
-      <label class="ora-radio"><input type="radio" value="blocked" /> <span>ileal uptake blocked</span></label>
+      <label class="ora-radio"><input type="radio" value="mild" /> <span>mild block</span></label>
+      <label class="ora-radio"><input type="radio" value="near" /> <span>near-complete block</span></label>
     </fieldset>
   </div>
 
   <svg class="ora-svg" viewBox="0 0 340 132" role="img" aria-label="A logarithmic gauge of fecal bile acid loss in grams per day, from 0.01 to 10, with a shaded band for the human review range of 0.20 to 0.40 grams per day, a bar for the loss at the current settings and a marker for the loss at 95 percent reabsorption" data-gauge></svg>
 
   <dl class="ora-readout">
-    <div><dt>Delivery to the ileum = pool × cycles</dt><dd data-r="d"></dd><small data-r="dsub"></small></div>
+    <div><dt>Delivery to the intestine = pool × cycles</dt><dd data-r="d"></dd><small data-r="dsub"></small></div>
     <div><dt>Fecal loss = delivery × (1 − f)</dt><dd data-r="loss"></dd><small data-r="lsub"></small></div>
     <div><dt>Required synthesis, as a share of the pool per day</dt><dd data-r="syn"></dd><small data-r="ssub"></small></div>
     <div><dt>Reabsorption per cycle used by the sketch</dt><dd data-r="fuse"></dd><small data-r="fsub"></small></div>
+    <div><dt>Escape per cycle (1 − f)</dt><dd data-r="esc"></dd><small data-r="escsub"></small></div>
+    <div><dt>Loss compared with the lesson’s default</dt><dd data-r="mult"></dd><small data-r="multsub"></small></div>
+    <div><dt>Pool at steady state</dt><dd data-r="pss"></dd><small data-r="psssub"></small></div>
   </dl>
 
   <div class="ora-math" data-math></div>
@@ -48,14 +57,17 @@
     <p data-why-main></p>
     <p data-why-note></p>
   </div>
-  <p class="ora-assume">In this sketch: steady state, and the whole pool recirculates each cycle, which is the lesson’s own assumption. Pool size, cycles per day and reabsorption per cycle are set independently, so some combinations may not occur in a person. The reference values are the lesson’s human review figures: pool 3.5 g, about 5 cycles a day, about 95 percent reabsorbed per cycle, fecal loss 200 to 400 mg a day. Made up for the sketch: the slider limits (pool 2.0 to 5.0 g, 3 to 8 cycles a day, 85.0 to 99.5 percent), the 90.0 percent cap used when ileal uptake is blocked (the lesson’s sensitivity case uses 90 percent; the ASBT-deleted mice excreted 10- to 20-fold more bile acid in stool, which this sketch does not reproduce), the logarithmic loss scale and the arrow thickness. Values are rounded for display: at the default the loss is 0.2975 g per day, so synthesis reads 8.5 percent of the pool, where the lesson, rounding the loss to 0.30 g first, gets 8.6 percent.</p>
+  <p class="ora-assume">In this sketch: steady state, and the whole pool recirculates each cycle, which is the lesson’s own assumption. Pool size, cycles per day and reabsorption per cycle are set independently, so some combinations may not occur in a person. The reference values are the lesson’s human review figures: pool 3.5 g, about 5 cycles a day, about 95 percent reabsorbed per cycle, fecal loss 200 to 400 mg a day. Made up for the sketch: the slider limits (pool 2.0 to 5.0 g, 3 to 8 cycles a day, 85.0 to 99.5 percent), the reabsorption caps for the two blocks (90.0 percent for a mild block, the lesson’s sensitivity case, and 80.0 percent for a near-complete one; the ASBT-deleted mice excreted 10- to 20-fold more bile acid in stool, which this sketch does not reproduce), the most the liver can make (0.5 to 5.0 g per day, or off, which lets synthesis rise without limit), the logarithmic loss scale and the arrow thickness. Values are rounded for display: at the default the loss is 0.2975 g per day, so synthesis reads 8.5 percent of the pool, where the lesson, rounding the loss to 0.30 g first, gets 8.6 percent.</p>
   <p class="ora-foot">Rule to keep: at steady state synthesis equals fecal loss, and fecal loss is the delivered flux times the fraction that escapes reabsorption, so a small change in a number close to one moves the loss several-fold. The three textbook figures (a 3.5 g pool, about 5 cycles a day, about 95 percent reabsorbed) are rounded and do not close with a measured loss of 200 to 400 mg a day; that mismatch is the point, and the readouts are arithmetic on assumed inputs, not a measurement.</p>
 </figure>
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ACCENT = '#0e7c86', ORANGE = '#c25f00', INK = '#4b4b55', FAINT = '#b9b9c2', BAND = '#f7dcc0';
-  const CAP10 = 900; // reabsorption cap when ileal uptake is blocked, in tenths of a percent (made up for the sketch)
+  // reabsorption caps for the two blocks, in tenths of a percent (made up for the sketch)
+  const CAPS: Record<string, number> = { mild: 900, near: 800 };
+  const SMAX_OFF = 51; // ceiling slider value meaning no ceiling
+  const L0 = (35 * 5 * (1000 - 983)) / 10000; // the lesson's default loss, 0.2975 g per day
   const TEXTBOOK10 = 950; // the lesson's textbook 95 percent
   const BAND_LO = 0.2, BAND_HI = 0.4; // g per day, the lesson's human review range
 
@@ -106,6 +118,9 @@
     const poolIn = need<HTMLInputElement>(root, '[data-in="pool"]');
     const cycIn = need<HTMLInputElement>(root, '[data-in="cyc"]');
     const fIn = need<HTMLInputElement>(root, '[data-in="f"]');
+    const smaxIn = need<HTMLInputElement>(root, '[data-in="smax"]');
+    const smaxOut = need<HTMLElement>(root, '[data-out="smax"]');
+    const smaxUnit = need<HTMLElement>(root, '[data-smaxunit]');
     const poolOut = need<HTMLElement>(root, '[data-out="pool"]');
     const cycOut = need<HTMLElement>(root, '[data-out="cyc"]');
     const fOut = need<HTMLElement>(root, '[data-out="f"]');
@@ -121,6 +136,12 @@
     const rSs = need<HTMLElement>(root, 'small[data-r="ssub"]');
     const rF = need<HTMLElement>(root, 'dd[data-r="fuse"]');
     const rFs = need<HTMLElement>(root, 'small[data-r="fsub"]');
+    const rE = need<HTMLElement>(root, 'dd[data-r="esc"]');
+    const rEs = need<HTMLElement>(root, 'small[data-r="escsub"]');
+    const rM = need<HTMLElement>(root, 'dd[data-r="mult"]');
+    const rMs = need<HTMLElement>(root, 'small[data-r="multsub"]');
+    const rP = need<HTMLElement>(root, 'dd[data-r="pss"]');
+    const rPs = need<HTMLElement>(root, 'small[data-r="psssub"]');
     const math = need<HTMLElement>(root, '[data-math]');
     const whyMain = need<HTMLElement>(root, '[data-why-main]');
     const whyNote = need<HTMLElement>(root, '[data-why-note]');
@@ -129,22 +150,33 @@
     const GX0 = 20, GX1 = 320, LMIN = -2, LMAX = 1;
     const gx = (v: number) => GX0 + ((Math.log10(Math.min(Math.max(v, 0.01), 10)) - LMIN) / (LMAX - LMIN)) * (GX1 - GX0);
 
-    function blocked(): boolean {
-      return radios.some((r) => r.checked && r.value === 'blocked');
+    function mode(): string {
+      const r = radios.find((x) => x.checked);
+      return r ? r.value : 'intact';
     }
 
     function render() {
       const pool10 = parseInt(poolIn.value, 10); // tenths of a gram
       const cyc = parseInt(cycIn.value, 10);
       const fSlider10 = parseInt(fIn.value, 10); // tenths of a percent
-      const isBlocked = blocked();
+      const smax10 = parseInt(smaxIn.value, 10); // tenths of a gram per day
+      const m = mode();
+      const isBlocked = m !== 'intact';
+      const CAP10 = isBlocked ? CAPS[m] : 1000;
+      const blockName = m === 'mild' ? 'a mild block' : 'a near-complete block';
       const capBinds = isBlocked && fSlider10 > CAP10;
       const f10 = isBlocked ? Math.min(fSlider10, CAP10) : fSlider10;
 
-      const pool = pool10 / 10;
-      const D = (pool10 * cyc) / 10; // g per day delivered to the ileum
+      const poolSet = pool10 / 10;
       const escape = (1000 - f10) / 1000;
-      const L = (pool10 * cyc * (1000 - f10)) / 10000; // g per day, fecal loss = synthesis
+      const Lreq = (pool10 * cyc * (1000 - f10)) / 10000; // g per day the set pool would lose
+      const ceilOn = smax10 < SMAX_OFF;
+      const smax = smax10 / 10;
+      const ceilBinds = ceilOn && Lreq > smax + 1e-9;
+      // steady state: if the ceiling binds, synthesis = ceiling and the pool settles where loss equals it
+      const L = ceilBinds ? smax : Lreq; // g per day, fecal loss = synthesis
+      const pool = ceilBinds ? smax / (cyc * escape) : poolSet;
+      const D = pool * cyc; // g per day delivered to the intestine
       const S = (L / pool) * 100; // percent of pool per day
       const recovered = D - L;
       const L95 = (pool10 * cyc * (1000 - TEXTBOOK10)) / 10000;
@@ -153,25 +185,42 @@
       const band = L2 < BAND_LO ? 'below' : L2 > BAND_HI ? 'above' : 'inside';
       const fShown = (n10: number) => (n10 / 10).toFixed(1);
 
-      poolOut.textContent = pool.toFixed(1);
+      poolOut.textContent = poolSet.toFixed(1);
+      smaxOut.textContent = ceilOn ? smax.toFixed(1) : 'off';
+      smaxUnit.textContent = ceilOn ? 'g per day' : '(synthesis can rise without limit)';
       cycOut.textContent = String(cyc);
       fOut.textContent = fShown(fSlider10);
-      capNote.textContent = capBinds ? '(the toggle caps it at ' + fShown(CAP10) + ' percent)' : isBlocked ? '(at or below the toggle’s cap, so unchanged)' : '';
+      capNote.textContent = capBinds ? '(' + blockName + ' caps it at ' + fShown(CAP10) + ' percent)' : isBlocked ? '(at or below the toggle’s cap, so unchanged)' : '';
 
       // readouts
       rD.textContent = f2(D) + ' g per day';
-      rDs.textContent = pool.toFixed(1) + ' g × ' + cyc + ' cycles per day';
+      rDs.textContent = (ceilBinds ? f2(pool) : pool.toFixed(1)) + ' g × ' + cyc + ' cycles per day' + (ceilBinds ? ', from the smaller steady-state pool' : '');
       rL.textContent = f2(L) + ' g per day';
       rLs.textContent = (band === 'inside' ? 'inside' : band === 'above' ? 'above' : 'below') + ' the human review range, 0.20 to 0.40 g per day (loss as displayed)' + (isBlocked ? ' (drawn for comparison only)' : '');
       rS.textContent = S.toFixed(1) + ' percent of the pool';
       rSs.textContent = f2(L) + ' g per day, equal to the fecal loss at steady state';
       rF.textContent = fShown(f10) + ' percent';
-      rFs.textContent = isBlocked ? (capBinds ? 'capped by the toggle (your slider: ' + fShown(fSlider10) + ')' : 'your slider value, already at or below the cap') : 'your slider value';
+      rFs.textContent = isBlocked ? (capBinds ? 'capped by ' + blockName + ' (your slider: ' + fShown(fSlider10) + ')' : 'your slider value, already at or below the cap') : 'your slider value';
+      rE.textContent = fShown(1000 - f10) + ' percent';
+      rEs.textContent = 'of each delivery escapes; the lesson’s default is 1.7 percent';
+      const mult = L / L0;
+      rM.textContent = '×' + (mult >= 10 ? mult.toFixed(0) : mult.toFixed(1));
+      rMs.textContent = 'default: 3.5 g, 5 cycles, 98.3 percent, 0.2975 g per day';
+      rP.textContent = f2(pool) + ' g';
+      rPs.textContent = ceilBinds
+        ? 'smaller than the ' + poolSet.toFixed(1) + ' g you set: synthesis is at the ceiling, so the pool settles where loss equals it'
+        : 'the size you set; synthesis keeps up with the loss';
 
       // arithmetic, with units
       math.replaceChildren();
       const lossStr = dec(L, 4);
-      const lines = [
+      const lines = ceilBinds ? [
+        'required synthesis at the set pool = ' + poolSet.toFixed(1) + ' × ' + cyc + ' × ' + dec(escape, 3) + ' ' + eq(Lreq, 4) + ' ' + dec(Lreq, 4) + ' g per day, above the ceiling of ' + smax.toFixed(1) + ' g per day',
+        'synthesis = fecal loss, at steady state = ' + smax.toFixed(1) + ' g per day',
+        'pool = synthesis ÷ (cycles × (1 − f)) = ' + smax.toFixed(1) + ' ÷ (' + cyc + ' × ' + dec(escape, 3) + ') ' + eq(pool, 2) + ' ' + f2(pool) + ' g',
+        'delivery = pool × cycles = ' + f2(pool) + ' × ' + cyc + ' ' + eq(D, 2) + ' ' + f2(D) + ' g per day',
+        'pool renewed per day = ' + smax.toFixed(1) + ' ÷ ' + f2(pool) + ' × 100 ' + eq(S, 1) + ' ' + S.toFixed(1) + ' percent',
+      ] : [
         'delivery = pool × cycles = ' + pool.toFixed(1) + ' × ' + cyc + ' = ' + f2(D) + ' g per day',
         'fecal loss = delivery × (1 − f) = ' + f2(D) + ' × (1 − ' + trim(f10 / 1000, 3) + ') = ' + f2(D) + ' × ' + dec(escape, 3) + ' ' + eq(L, 4) + ' ' + lossStr + ' g per day ' + (eq(L, 2) === '=' ? '' : '≈ ' + f2(L) + ' g per day'),
         'synthesis = fecal loss, at steady state = ' + lossStr + ' g per day',
@@ -186,29 +235,30 @@
       // loop schematic
       loop.replaceChildren();
       const wOf = (v: number) => 1.5 + 5.5 * Math.min(v / 40, 1);
-      loop.appendChild(el('rect', { x: 14, y: 44, width: 90, height: 40, rx: 4, fill: '#fff', stroke: INK, 'stroke-width': 1.2 }));
-      txt(loop, 59, 62, 'Liver', { 'text-anchor': 'middle', 'font-weight': 700 });
-      txt(loop, 59, 75, 'bile acid pool ' + pool.toFixed(1) + ' g', { 'text-anchor': 'middle' });
+      loop.appendChild(el('rect', { x: 8, y: 40, width: 96, height: 48, rx: 4, fill: '#fff', stroke: INK, 'stroke-width': 1.2, ...(ceilBinds ? { 'stroke-dasharray': '4 2' } : {}) }));
+      txt(loop, 56, 52, 'Liver and gallbladder', { 'text-anchor': 'middle', 'font-weight': 700, 'font-size': 8 });
+      txt(loop, 56, 65, 'pool ' + (ceilBinds ? f2(pool) : pool.toFixed(1)) + ' g', { 'text-anchor': 'middle', 'font-weight': ceilBinds ? 700 : 400, fill: ceilBinds ? ORANGE : INK });
+      txt(loop, 56, 78, ceilBinds ? '(set ' + poolSet.toFixed(1) + ' g)' : '(circulating)', { 'text-anchor': 'middle' });
       loop.appendChild(el('rect', { x: 216, y: 44, width: 110, height: 40, rx: 4, fill: '#fff', stroke: INK, 'stroke-width': 1.2 }));
       txt(loop, 271, 62, 'Gut lumen', { 'text-anchor': 'middle', 'font-weight': 700 });
       txt(loop, 271, 75, 'duodenum to ileum', { 'text-anchor': 'middle' });
       // delivery (liver to gut)
       arrow(loop, 104, 58, 216, 58, wOf(D), ACCENT);
-      txt(loop, 160, 40, 'delivery to ileum', { 'text-anchor': 'middle' });
+      txt(loop, 160, 40, 'delivery to the intestine', { 'text-anchor': 'middle' });
       txt(loop, 160, 51, f2(D) + ' g per day', { 'text-anchor': 'middle', 'font-weight': 700 });
       // recovered (gut to liver)
       arrow(loop, 216, 72, 104, 72, wOf(recovered), ACCENT);
       txt(loop, 160, 87, isBlocked ? 'recovered (capped)' : 'recovered at ileum', { 'text-anchor': 'middle' });
-      txt(loop, 160, 98, isBlocked ? '(ASBT blocked)' : '(ASBT)', { 'text-anchor': 'middle' });
+      txt(loop, 160, 98, isBlocked ? (m === 'mild' ? '(ASBT partly blocked)' : '(ASBT nearly blocked)') : '(ASBT)', { 'text-anchor': 'middle' });
       txt(loop, 160, 109, f2(recovered) + ' g per day', { 'text-anchor': 'middle', 'font-weight': 700 });
       // stool loss (out of gut)
       arrow(loop, 271, 84, 271, 108, wOf(L), ORANGE);
       txt(loop, 271, 119, 'lost in stool', { 'text-anchor': 'middle' });
       txt(loop, 271, 130, f2(L) + ' g per day', { 'text-anchor': 'middle', 'font-weight': 700, fill: ORANGE });
       // synthesis (into liver)
-      arrow(loop, 59, 108, 59, 84, wOf(L), INK);
-      txt(loop, 59, 119, 'made from cholesterol', { 'text-anchor': 'middle' });
-      txt(loop, 59, 130, f2(L) + ' g per day', { 'text-anchor': 'middle', 'font-weight': 700 });
+      arrow(loop, 56, 108, 56, 88, wOf(L), INK);
+      txt(loop, 56, 119, 'made from cholesterol', { 'text-anchor': 'middle' });
+      txt(loop, 56, 130, f2(L) + ' g per day' + (ceilBinds ? ' (at ceiling)' : ''), { 'text-anchor': 'middle', 'font-weight': 700 });
 
       // gauge
       gauge.replaceChildren();
@@ -239,7 +289,7 @@
       txt(gauge, GX0, AY + 28, 'fecal bile acid loss, g per day (log scale, bar starts at 0.01)', { 'text-anchor': 'start' });
       // legend
       gauge.appendChild(el('rect', { x: GX0, y: 107, width: 12, height: 9, fill: isBlocked ? ORANGE : ACCENT }));
-      txt(gauge, GX0 + 17, 115, (isBlocked ? 'lost-uptake case in this sketch: ' : 'your settings: ') + f2(L) + ' g per day', { 'text-anchor': 'start' });
+      txt(gauge, GX0 + 17, 115, (isBlocked ? (m === 'mild' ? 'mild block in this sketch: ' : 'near-complete block in this sketch: ') : 'your settings: ') + f2(L) + ' g per day', { 'text-anchor': 'start' });
       const lx = GX0 + 6;
       gauge.appendChild(el('polygon', { points: `${lx},119 ${lx + 5},124 ${lx},129 ${lx - 5},124`, fill: '#fff', stroke: INK, 'stroke-width': 1.4 }));
       txt(gauge, GX0 + 17, 127, '95 percent reabsorption, same pool and cycles: ' + dec(L95, 3) + ' g per day', { 'text-anchor': 'start' });
@@ -248,15 +298,22 @@
       const fPct = fShown(f10);
       let main: string;
       if (!isBlocked) {
-        main = 'In this sketch, a pool of ' + pool.toFixed(1) + ' g used ' + cyc + ' times a day delivers ' + f2(D) + ' g per day to the ileum; with ' + fPct + ' percent reabsorbed per cycle, ' + f2(L) + ' g per day escapes reabsorption, and at steady state synthesis must replace it, which is ' + S.toFixed(1) + ' percent of the pool per day.';
+        main = 'In this sketch, a pool of ' + poolSet.toFixed(1) + ' g used ' + cyc + ' times a day ' + (ceilBinds ? 'would deliver ' + f2(poolSet * cyc) : 'delivers ' + f2(D)) + ' g per day to the intestine; with ' + fPct + ' percent reabsorbed per cycle, ';
       } else {
-        main = 'In this sketch, with ileal uptake blocked, reabsorption is held at or below ' + fShown(CAP10) + ' percent per cycle' + (capBinds ? ' (your slider says ' + fShown(fSlider10) + ', so the cap applies)' : ' (your slider is already at ' + fPct + ', at or below the cap, so the cap changes nothing)') + ', so ' + f2(L) + ' g per day escapes from a delivery of ' + f2(D) + ' g per day, and at steady state synthesis must replace ' + S.toFixed(1) + ' percent of the pool per day.';
+        main = 'In this sketch, with ' + blockName + ' of ileal uptake, reabsorption is held at or below ' + fShown(CAP10) + ' percent per cycle' + (capBinds ? ' (your slider says ' + fShown(fSlider10) + ', so the cap applies)' : ' (your slider is already at ' + fPct + ', at or below the cap, so the cap changes nothing)') + ', so ';
+      }
+      if (ceilBinds) {
+        main += 'synthesis would have to reach ' + f2(Lreq) + ' g per day to hold the pool, above the ' + smax.toFixed(1) + ' g per day ceiling you set, so synthesis stops at ' + smax.toFixed(1) + ' g per day and the pool settles at ' + f2(pool) + ' g, where loss equals synthesis.';
+      } else if (!isBlocked) {
+        main += f2(L) + ' g per day escapes reabsorption, and at steady state synthesis must replace it, which is ' + S.toFixed(1) + ' percent of the pool per day.';
+      } else {
+        main += f2(L) + ' g per day escapes from a delivery of ' + f2(D) + ' g per day, and at steady state synthesis must replace ' + S.toFixed(1) + ' percent of the pool per day.';
       }
       whyMain.textContent = main;
 
       const parts: string[] = [];
       if (isBlocked) {
-        parts.push('This is not the mouse ASBT-knockout result: those mice, a different species with a pool that fell about 80 percent, excreted 10- to 20-fold more bile acid in stool, and the lesson says the same consequences are not shown in people. Here the lesson’s 90 percent sensitivity case is applied to the human review pool and cycles, and the pool stays at the size you set.');
+        parts.push('This is not the mouse ASBT-knockout result: those mice, a different species with a pool that fell about 80 percent, excreted 10- to 20-fold more bile acid in stool, and the lesson says the same consequences are not shown in people. Here ' + (m === 'mild' ? 'the lesson’s 90 percent sensitivity case' : 'a made-up 80 percent cap') + ' is applied to the human review pool and cycles. Synthesis rises to replace the loss; if it reaches the ceiling you set, the pool settles smaller instead.');
         if (capBinds) parts.push('In this sketch the loss is ' + (Lintact > 0 ? (L / Lintact).toFixed(1) : '—') + ' times the loss with uptake intact at your slider setting.');
         parts.push('The human review range is drawn for comparison only.');
       } else {
@@ -273,11 +330,18 @@
         if (pool10 === 35 && cyc === 5) {
           parts.push('With the lesson’s own 3.5 g pool and 5 cycles a day, 95 percent gives 0.875 g per day, two to four times the measured 200 to 400 mg a day, so the rounded textbook figures do not close.');
         }
+        // which input moved the loss: the escaped fraction or the load
+        const escRatio = (1000 - f10) / 17;
+        const loadRatio = (pool10 * cyc) / 175;
+        const rule: [number, string][] = [];
+        if (f10 !== 983) rule.push([Math.abs(Math.log(escRatio)), 'Moving reabsorption from 98.3 to ' + fPct + ' percent makes the escape per cycle ' + escRatio.toFixed(1) + ' times the default, and the loss moves with it: a few points of capture multiply the residue.']);
+        if (pool10 * cyc !== 175) rule.push([Math.abs(Math.log(loadRatio)), 'Your pool and cycles make the delivery ' + loadRatio.toFixed(1) + ' times the default; a bigger load at the same fraction raises the loss only in proportion.']);
+        rule.sort((a, b) => b[0] - a[0]).forEach((r) => parts.push(r[1]));
       }
       whyNote.textContent = parts.join(' ');
     }
 
-    [poolIn, cycIn, fIn].forEach((g) => g.addEventListener('input', render));
+    [poolIn, cycIn, fIn, smaxIn].forEach((g) => g.addEventListener('input', render));
     radios.forEach((r) => r.addEventListener('change', render));
     render();
   });

@@ -1,0 +1,645 @@
+{
+ "slug": "cardiac-electrophysiology-ecg",
+ "title": "Cardiac Action Potentials and the ECG",
+ "generated": {
+  "date": "2026-11-09",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "87161196c305",
+ "sectionHashes": {
+  "(opening)": "923593e1302c",
+  "One ventricular cell: a long plateau": "68827f77c4f1",
+  "The classic experiment: what carries the plateau?": "6b2affab2166",
+  "Calcium in, more calcium out": "3ee1192a60bc",
+  "Pacemaker cells have no resting potential": "4c35b5d22e30",
+  "The wave spreads, pauses at the AV node, then races": "c1a1b78efc3f",
+  "What the ECG records: cells that disagree": "e0f550ab5e56",
+  "Leads, and why two leads give a direction": "aa48297664b5",
+  "AV block on the tracing": "3c284f74be65",
+  "Worked problem: reading one tracing": "87fd074c46a5",
+  "Potassium moves the resting potential and reshapes the ECG": "8c58bdac1549",
+  "Design problem": "96721a205487"
+ },
+ "cards": [
+  {
+   "id": "cardiac-electrophysiology-ecg-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Between the QRS complex and the T wave nearly every ventricular cell is depolarised on its plateau. Why is the ECG flat then?",
+   "back": "The ECG records only differences between cells, the travelling boundaries between excited and resting tissue. With every cell in the same phase there is no boundary, so the trace is flat.",
+   "why": "Summing all the action potentials would stay high through the plateau, which is why that picture of the ECG is wrong.",
+   "quote": "When every ventricular cell is in the same phase, all at rest or all on the plateau, the trace is flat."
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c02",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a human ventricular cell, where does the phase 4 resting potential sit, and which current holds it there?",
+   "back": "Flat near −90 mV, close to the potassium equilibrium potential (E_K), held by the inward-rectifier potassium current IK1.",
+   "quote": "flat near −90 mV, held close to the potassium equilibrium potential",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which channels carry the phase 0 upstroke of a ventricular action potential?",
+   "back": "Voltage-gated sodium channels (Nav1.5), which open once the membrane reaches threshold; the voltage overshoots well above zero.",
+   "quote": "Phase 0, the upstroke: sodium channels (Nav1.5) open once the membrane is depolarised to threshold",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which currents balance each other during the phase 2 plateau of a ventricular action potential, and why does the voltage change so slowly?",
+   "back": "Inward L-type calcium current (ICaL, Cav1.2), helped by the sodium-calcium exchanger, against outward IKr (hERG) and IKs. They are nearly equal, so the voltage drifts down only as the outward currents gain.",
+   "quote": "The currents are nearly equal, so the voltage changes only slowly, drifting down as the outward currents gain.",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why doesn't the large resting potassium conductance drag a ventricular cell straight back to −90 mV during the plateau?",
+   "back": "IK1 is an inward rectifier: it conducts well near rest but largely shuts at plateau voltages. Total conductance during the plateau is therefore low, and small currents hold the voltage.",
+   "quote": "Because IK1 is an inward rectifier: it passes current well near rest but largely shuts at plateau voltages.",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A drug blocks the hERG channel (IKr) in ventricular cells. What happens to the plateau and to the ECG, and why?",
+   "back": "The plateau lengthens and the QT interval lengthens. With one outward current removed, outward current gains on inward calcium current more slowly, and plateau conductance is low, so the plateau is easy to stretch.",
+   "why": "QT runs from the first cell's phase 0 to the last cell's phase 3, so it tracks action potential duration.",
+   "quote": "Block one of the outward currents, as drugs that block hERG do, and the plateau lengthens, and with it the QT interval on the ECG.",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c07",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Treat the ventricular plateau as two currents balanced at +10 mV: potassium with E_K = −95 mV, and L-type calcium current reversing at +60 mV. Inward equals outward. What is the ratio of calcium to potassium conductance?",
+   "back": "Current = conductance × driving force. K driving force = +10 − (−95) = 105 mV; Ca driving force = +60 − (+10) = 50 mV. g_Ca / g_K = 105 / 50 = 2.1. Check: (2.1 × 60 + 1 × (−95)) / 3.1 = +10 mV.",
+   "quote": "To match a strong push with a weak one, calcium needs about twice the conductance (105 / 50 = 2.1).",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What ends the plateau of a ventricular action potential and completes phase 3?",
+   "back": "L-type calcium channels inactivate (with time at depolarised voltage and as calcium builds up inside), so potassium currents win and the balance point slides down; as voltage falls, IK1 conducts again and finishes repolarisation.",
+   "quote": "Calcium's pull fades, the potassium currents win, and the balance point slides down.",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can rapid stimulation not drive a mammalian ventricle into tetanus, as it can a skeletal muscle fibre?",
+   "back": "Sodium channels stay inactivated while the membrane is depolarised, so the refractory period lasts nearly as long as the action potential, which covers most of the twitch. A new beat cannot sum onto the last, so the ventricle refills.",
+   "quote": "The refractory period lasts nearly as long as the action potential, and in heart muscle the contraction rises and falls within roughly those same few hundred milliseconds, so it covers most of the twitch.",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c10",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In dog ventricular muscle under voltage clamp with the fast sodium current inactivated, a slow inward current remains. It persists in sodium-free solution, is unaffected by tetrodotoxin, and is very sensitive to external calcium. What does this show, and what does it not show?",
+   "back": "Calcium carries the slow inward current; the tetrodotoxin-sensitive sodium channel is ruled out as its carrier. It does not show that the plateau is calcium current alone.",
+   "why": "A sodium current would vanish without sodium, a fast-channel current would be blocked by tetrodotoxin, and neither would care about calcium.",
+   "quote": "It persisted in sodium-free solution, was unaffected by tetrodotoxin and by magnesium, and was very sensitive to external calcium.",
+   "section": "The classic experiment: what carries the plateau?"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c11",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is calcium-induced calcium release (CICR) in a ventricular myocyte, and where does it happen?",
+   "back": "Calcium entering through L-type channels at the dyad (where a T tubule meets the junctional SR) opens ryanodine receptors (RyR2), which release far more calcium from the sarcoplasmic reticulum.",
+   "quote": "There it raises calcium in a narrow space and opens the SR's ryanodine receptors (RyR2), which release far more: calcium-induced calcium release (CICR).",
+   "section": "Calcium in, more calcium out"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Calcium-induced calcium release is positive feedback. Why does it not run away into all-or-none release?",
+   "back": "Release is under local control: each RyR2 cluster responds mainly to the L-type channels next to it, so total release is graded with the L-type current. A smaller trigger gives a smaller release, not none.",
+   "quote": "Each cluster of RyR2 responds mainly to the L-type channels next to it, so total release is graded with the L-type current",
+   "section": "Calcium in, more calcium out"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c13",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After a beat, by which two routes does calcium leave the cytosol of a ventricular myocyte so the muscle relaxes?",
+   "back": "Back into the SR through the pump SERCA, and out of the cell through the sodium-calcium exchanger (NCX).",
+   "quote": "Calcium then returns to the SR through the pump SERCA and leaves the cell through the sodium-calcium exchanger (NCX), and the muscle relaxes.",
+   "section": "Calcium in, more calcium out"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Sympathetic drive raises ventricular contractility through protein kinase A. Name three PKA targets and what each change does.",
+   "back": "Rad: phosphorylation relieves its inhibition of the L-type channel, so more calcium enters. Phospholamban: its brake on SERCA is released, so the SR holds more. Troponin I: relaxation speeds up.",
+   "quote": "It phosphorylates phospholamban, releasing its brake on SERCA so the SR holds more, and troponin I, which speeds relaxation.",
+   "section": "Calcium in, more calcium out"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c15",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A drug partly blocks the L-type calcium current in a beating ventricle, with the SR load unchanged. Predict the effect on the plateau, the force of contraction and the QT interval.",
+   "back": "Shorter plateau, weaker contraction, shorter QT. Less inward current lets outward potassium current win sooner; a smaller trigger gives a smaller, graded SR release; QT tracks action potential duration.",
+   "why": "Rests on three rules: the plateau as an inward-outward balance, local control of CICR, and QT tracking action potential duration.",
+   "quote": "The calcium that holds the plateau also starts the contraction.",
+   "section": "Calcium in, more calcium out"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c16",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a sinoatrial node cell, what is the maximal diastolic potential?",
+   "back": "The most negative point of the cycle, reached after each action potential, from which phase 4 diastolic depolarisation drifts up to threshold.",
+   "quote": "the voltage falls to a maximal diastolic potential, the most negative point of the cycle",
+   "section": "Pacemaker cells have no resting potential"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the funny current (If) in sinoatrial node cells: which channel, what activates it, and which ions does it carry?",
+   "back": "Carried mainly by HCN4 channels; activated by hyperpolarisation; carries both sodium and potassium, a net inward current at diastolic voltages.",
+   "quote": "It is activated by hyperpolarisation and carries both sodium and potassium, a net inward current at diastolic voltages.",
+   "section": "Pacemaker cells have no resting potential"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which channels carry the upstroke of a sinoatrial node action potential, and does it have a plateau?",
+   "back": "L-type calcium channels carry its slow upstroke. There is no plateau.",
+   "quote": "L-type calcium channels carry its slow upstroke, and there is no plateau.",
+   "section": "Pacemaker cells have no resting potential"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does noradrenaline at beta-adrenergic receptors speed the sinoatrial node?",
+   "back": "It raises cyclic AMP. Cyclic AMP binds HCN4 directly and increases If, and through PKA increases L-type calcium current and SR calcium cycling. Both steepen phase 4, so threshold is reached sooner.",
+   "quote": "Cyclic AMP binds HCN4 directly and increases If, and through PKA it increases L-type calcium current and SR calcium cycling; both steepen phase 4.",
+   "section": "Pacemaker cells have no resting potential"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Acetylcholine at muscarinic M2 receptors slows the sinoatrial node in two ways. What are they?",
+   "back": "It lowers cyclic AMP and If, flattening the ramp. It opens a G-protein-gated potassium channel, which pulls the balance point toward E_K, so the maximal diastolic potential is more negative and the ramp has farther to climb.",
+   "quote": "so the maximal diastolic potential becomes more negative and the ramp has farther to climb",
+   "section": "Pacemaker cells have no resting potential"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A made-up sinoatrial cell ramps from −60 to −40 mV at 0.04 mV per ms, and its action potential lasts 200 ms. What is the firing rate?",
+   "back": "Climb = 20 mV / 0.04 mV per ms = 500 ms. Cycle = 500 + 200 = 700 ms. Rate = 60,000 / 700 ≈ 86 per min.",
+   "quote": "one beat is the ramp's climb to threshold plus the action potential itself",
+   "section": "Pacemaker cells have no resting potential"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c22",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "If the funny current were the whole pacemaker, deleting Hcn4 should stop the heart. In adult mice with Hcn4 deleted, heart rate fell by about half and AV block developed, but the rhythm did not stop at once. What do these data show?",
+   "back": "If is a major part of the membrane clock, but the data do not show that it is the whole pacemaker; other mechanisms keep the heart beating.",
+   "why": "Beta-adrenergic stimulation also still sped the isolated pacemaker cells. A mouse heart beats several times faster than a human's.",
+   "quote": "So If is a major part of the membrane clock, and these data do not show that it is the whole pacemaker.",
+   "section": "Pacemaker cells have no resting potential"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Trace the normal path of excitation from the SA node to the ventricular muscle.",
+   "back": "SA node → atria → AV node (where it pauses) → bundle of His → bundle branches → Purkinje fibres.",
+   "quote": "It pauses there, then runs quickly through the bundle of His, the bundle branches and the Purkinje fibres.",
+   "section": "The wave spreads, pauses at the AV node, then races"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The SA node stops firing but the AV node and conducting system are intact. What paces the heart, and at roughly what rate?",
+   "back": "The AV node takes over, at about 40 to 60 per min in a standard textbook account. The fastest remaining site leads, because its wave fires slower sites before their own ramps reach threshold.",
+   "quote": "in a standard textbook account, AV node cells fire about 40 to 60 per min and His-Purkinje cells about 15 to 40.",
+   "section": "The wave spreads, pauses at the AV node, then races"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a boundary between excited and resting ventricular tissue act like a small battery, and which way does it point?",
+   "back": "Positive charge flows through gap junctions from excited to resting cells; the circuit closes outside, where the resting side is positive and the excited side negative. The battery points positive end forward, travelling with the wave.",
+   "why": "An electrode the wave approaches faces the positive side and records an upward deflection.",
+   "quote": "So the boundary acts like a small battery lying in the tissue, positive end forward, travelling with the wave.",
+   "section": "What the ECG records: cells that disagree"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c26",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What do the P wave, the QRS complex and the T wave each record, and where is atrial repolarisation?",
+   "back": "P: atrial depolarisation. QRS: ventricular depolarisation. T: ventricular repolarisation (phase 3 at different times in different regions). Atrial repolarisation is hidden by the much larger QRS.",
+   "quote": "Atrial repolarisation happens now, hidden by the much larger QRS.",
+   "section": "What the ECG records: cells that disagree"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c27",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In healthy adults at rest, the PR interval (start of P to start of QRS, containing the AV delay) typically runs {{c1::0.12 to 0.20 s}}.",
+   "back": "The QRS lasts under 0.12 s.",
+   "quote": "In healthy adults at rest it typically runs 0.12 to 0.20 s.",
+   "section": "What the ECG records: cells that disagree"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What span of ventricular activity does the QT interval cover, and so what does it track?",
+   "back": "From the first ventricular cell's phase 0 to the last cell's phase 3. It tracks ventricular action potential duration, so anything that lengthens the plateau lengthens QT.",
+   "quote": "So it tracks the ventricular action potential duration, and anything that lengthens the plateau lengthens QT.",
+   "section": "What the ECG records: cells that disagree"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c29",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In most leads of a healthy ECG the T wave points the same way as the QRS. What does this imply about the order in which ventricular regions repolarise?",
+   "back": "Repolarisation, on balance, runs opposite to depolarisation: regions excited last finish first, because their action potentials are shorter.",
+   "why": "A repolarisation boundary is the depolarisation battery turned round. Sweeping the same way as the QRS front, it would point T opposite to QRS.",
+   "quote": "So, on balance, repolarisation must run the opposite way to depolarisation: the regions excited last finish first, because their action potentials are shorter.",
+   "section": "What the ECG records: cells that disagree"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c30",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which two electrodes define Einthoven's leads I, II and III (positive minus negative)?",
+   "back": "Lead I: left arm minus right arm. Lead II: left leg minus right arm. Lead III: left leg minus left arm.",
+   "quote": "Lead I is left arm minus right arm, lead II is left leg minus right arm, and lead III is left leg minus left arm.",
+   "section": "Leads, and why two leads give a direction"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c31",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The net QRS deflection is +0.6 mV in lead I and +0.5 mV in lead III. What should it be in lead II?",
+   "back": "+1.1 mV, by Einthoven's law: II = I + III = 0.6 + 0.5.",
+   "why": "(Left leg − right arm) = (left arm − right arm) + (left leg − left arm).",
+   "quote": "lead II always equals lead I plus lead III",
+   "section": "Leads, and why two leads give a direction"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c32",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A made-up net depolarisation front of size 1 travels at +90 degrees. Lead I looks along 0, lead II along +60 and lead III along +120 degrees. What deflection does each lead record?",
+   "back": "Lead I: cos 90 = 0 (isoelectric). Lead II: cos 30 = 0.87. Lead III: cos 30 = 0.87. Check: I + III = 0 + 0.87 = II.",
+   "quote": "in between the size scales with the cosine of the angle",
+   "section": "Leads, and why two leads give a direction"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c33",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On the hexaxial system (angles from the patient's left, positive pointing down), along which angles do leads I, II, III, aVF, aVL and aVR look?",
+   "back": "I at 0, aVL at −30, II at +60, aVF at +90, III at +120, aVR at −150 degrees.",
+   "quote": "lead I at 0 degrees, aVL at −30, II at +60, aVF at +90, III at +120 and aVR at −150",
+   "section": "Leads, and why two leads give a direction"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c34",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On a resting adult ECG, the QRS is isoelectric in lead III (+120 degrees) and clearly positive in lead I (0 degrees). Estimate the mean QRS axis.",
+   "back": "About +30 degrees. Isoelectric in III puts the axis at right angles to +120: +120 − 90 = +30 or +120 + 90 = +210 (−150). A positive lead I picks +30.",
+   "quote": "QRS is isoelectric in aVL, at −30 degrees, so the axis is at right angles to it",
+   "section": "Worked problem: reading one tracing"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do you tell Mobitz I (Wenckebach) from Mobitz II AV block on a tracing?",
+   "back": "Mobitz I: the PR lengthens beat by beat until one P wave has no QRS, then the cycle restarts. Mobitz II: the PR stays constant and a P wave suddenly fails, usually from block below the node.",
+   "quote": "Mobitz II: the PR stays constant and a P wave suddenly fails, usually from block below the node.",
+   "section": "AV block on the tracing"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In Mobitz I (Wenckebach) block, why does the PR interval lengthen beat by beat before a beat drops?",
+   "back": "Each atrial impulse reaches the AV node earlier in its recovery from the last, so it conducts more slowly. Eventually one arrives while the node is still refractory and fails; the pause lets the node recover.",
+   "quote": "Each atrial impulse reaches the AV node earlier in the node's recovery from the last one, so it is conducted more slowly and the PR lengthens.",
+   "section": "AV block on the tracing"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c37",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A made-up tracing shows regular P waves at 75 per min and regular QRS complexes at 45 per min, with no fixed relation between them. Name the rhythm and explain the ventricular rate.",
+   "back": "Third-degree (complete) AV block. No P wave conducts, so a slower escape pacemaker below the block drives the ventricles; 45 per min fits the AV node's range (about 40 to 60 in a standard textbook account), whereas His-Purkinje sites fire about 15 to 40.",
+   "quote": "Third-degree block: no P wave conducts, and a slower escape pacemaker, from the hierarchy of rates described earlier, drives the ventricles.",
+   "section": "AV block on the tracing"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c38",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A healthy endurance athlete at rest has a slow sinus rate and first-degree AV block. If both reflect high vagal tone, predict the effect of blocking muscarinic receptors.",
+   "back": "Heart rate rises and the PR should shorten if the delay is truly vagal, as the lesson says is usual. Removing acetylcholine's action lifts cyclic AMP and If and closes the G-protein-gated potassium channel, so the ramp steepens and starts from a less negative potential.",
+   "why": "Rests on the stated rules that M2 activation slows the node and that resting sinus rate and athletes' AV block are attributed to vagal tone.",
+   "quote": "First-degree and Mobitz I block can be found in healthy endurance athletes and are usually attributed to high vagal tone.",
+   "section": "AV block on the tracing"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c39",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On an ECG recorded at 25 mm per s, one small square (1 mm) is {{c1::0.04 s}}, and one large square (5 mm) is 0.20 s.",
+   "back": "",
+   "quote": "1 small square = 1 mm = 0.04 s; 1 large square = 5 mm = 0.20 s.",
+   "section": "Worked problem: reading one tracing"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c40",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A regular adult ECG at 25 mm per s has R-R = 16 small squares and QT = 9 small squares. Find the heart rate and the QTc by Bazett (QT / square root of RR) and by Fridericia (QT / cube root of RR).",
+   "back": "R-R = 16 × 0.04 = 0.64 s; rate = 60 / 0.64 ≈ 94 per min. QT = 0.36 s. Bazett: 0.36 / 0.80 = 0.45 s. Fridericia: 0.36 / 0.862 = 0.42 s.",
+   "why": "QT shortens as rate rises, so it is corrected to a 1 s cycle; the two formulas drift apart at faster rates.",
+   "quote": "Two formulas do this; they differ only in which root of RR they divide by",
+   "section": "Worked problem: reading one tracing"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c41",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A ventricular myocyte at 37 C has intracellular potassium of 140 mmol per L. Extracellular potassium falls from 4 to 2.5 mmol per L. Using 61.5 mV per tenfold ratio, find the new E_K and say which way the resting potential moves.",
+   "back": "E_K = 61.5 × log10(2.5 / 140) = 61.5 × (−1.748) ≈ −108 mV, more negative than −95 mV at 4 mmol per L. The resting potential, which approximately follows E_K, moves in the negative (hyperpolarising) direction.",
+   "quote": "The Nernst equation (membrane transport) does this; at 37 C it gives 61.5 mV per tenfold ratio.",
+   "section": "Potassium moves the resting potential and reshapes the ECG"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Extracellular potassium rises progressively in a model ventricle. Predict the sequence of ECG changes and the cellular reason for each.",
+   "back": "Early: tall, peaked T waves, because higher potassium conductance makes phase 3 steeper and the action potential shorter. Larger rises: more sodium channels sit inactivated, phase 0 and conduction slow, so the QRS widens and the P wave broadens and flattens.",
+   "why": "In people the potassium level at which these appear varies widely; the sequence comes mainly from models and animal preparations.",
+   "quote": "With larger rises, more sodium channels sit inactivated, so phase 0 slows and conduction slows; propagation fails only far higher.",
+   "section": "Potassium moves the resting potential and reshapes the ECG"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c43",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Extracellular potassium is low. Predict the effect on ventricular action potential duration and the QT interval, and why.",
+   "back": "The action potential lengthens and so does QT. Outward current through potassium channels and the sodium-potassium pump is reduced, and QT tracks action potential duration.",
+   "quote": "Low extracellular potassium does the reverse to duration, lengthening the action potential by reducing outward current through potassium channels and the sodium-potassium pump.",
+   "section": "Potassium moves the resting potential and reshapes the ECG"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c44",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A person carries a gene variant that reduces IKs and then takes a drug that blocks hERG (IKr). Why might the QT lengthen more than with either change alone?",
+   "back": "Several potassium currents repolarise the cell, so losing one is partly covered by the others (repolarisation reserve). Losing two removes much of that cover, the plateau lengthens more, and QT follows.",
+   "why": "Rests on repolarisation reserve, the low conductance that makes the plateau easy to stretch, and QT tracking action potential duration.",
+   "quote": "Several potassium currents can repolarise the cell, so losing one to a gene variant or a drug is partly covered, a margin called the repolarisation reserve.",
+   "section": "One ventricular cell: a long plateau"
+  },
+  {
+   "id": "cardiac-electrophysiology-ecg-c45",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Vagal stimulation stops the beating frog heart. Design intracellular recordings to decide whether the vagus (A) hyperpolarises the pacemaker, (B) flattens the ramp at the same diastolic potential, or (C) blocks spread out of the pacemaker. What is the control?",
+   "back": "Record maximal diastolic potential and ramp slope in the pacemaker (sinus venosus) fibres. A: more negative potential; B: same potential, flat ramp; C: normal pacemaker, silent atrium. Control: auricle fibres with a stable potential. Result: potential about −55 to −65.4 mV, ramp suppressed, auricle unchanged, so A.",
+   "quote": "the ramp was suppressed, and auricle fibres did not change. Hypothesis A fits.",
+   "section": "Design problem"
+  }
+ ]
+}

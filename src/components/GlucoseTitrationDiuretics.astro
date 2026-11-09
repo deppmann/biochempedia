@@ -29,7 +29,7 @@
       <input type="range" data-in="gfr" min="60" max="180" step="5" value="125" />
     </label>
     <label class="gtd-slabel"><span>Tm for glucose <em data-out="tm">350</em> mg/min</span>
-      <input type="range" data-in="tm" min="100" max="400" step="10" value="350" />
+      <input type="range" data-in="tm" min="100" max="400" step="1" value="350" />
     </label>
     <fieldset class="gtd-mode">
       <legend>Carrier model</legend>
@@ -37,7 +37,7 @@
       <label><input type="radio" name="gtd-mode" data-mode value="splay" /> Splay (illustrative rounded curve)</label>
     </fieldset>
   </div>
-  <p class="gtd-resetrow"><button type="button" class="gtd-reset" data-reset>Reset to the lesson’s worked-problem values</button></p>
+  <p class="gtd-resetrow"><button type="button" class="gtd-reset" data-reset>Reset to the lesson’s worked-problem values</button> <button type="button" class="gtd-reset" data-nephrons>Lose nephrons: GFR and Tm × 60/125</button></p>
 
   <dl class="gtd-readout">
     <div><dt>Filtered load</dt><dd data-r-load></dd></div>
@@ -87,6 +87,7 @@
     const why = must(root.querySelector<HTMLElement>('[data-why]'), '[data-why]');
     const ghostKey = must(root.querySelector<HTMLElement>('[data-ghostkey]'), '[data-ghostkey]');
     const resetBtn = must(root.querySelector<HTMLButtonElement>('[data-reset]'), '[data-reset]');
+    const nephronBtn = must(root.querySelector<HTMLButtonElement>('[data-nephrons]'), '[data-nephrons]');
     const modeIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-mode]'));
     if (modeIns.length !== 2) return;
 
@@ -218,6 +219,8 @@
       } else {
         s = `In this sketch, at ${p} mg/dL the rounded curve reabsorbs ${f1(rr)} mg/min, short of Tm (${tm} mg/min), so ${f1(er)} mg/min is excreted. The lesson gives two reasons real uptake rounds near saturation, nephron differences and finite carrier affinity; this one curve stands in for both. Excretion left zero at ${Math.round(tr)} mg/dL, ${gap} mg/dL below the sharp model’s ${Math.round(ts)} mg/dL.`;
       }
+      if (!splay && gfr === 60 && tm === 168) s += ' GFR and Tm fell together, so the threshold stayed at 280 mg/dL, unlike changing GFR alone.';
+      if (splay && tr > 0 && gfr === 125 && tm === 350) s += ' The lesson notes healthy adults show low-level spilling around 180–200 mg/dL; this made-up rounded curve happens to leave zero in that range, which is a property of its invented constant, not a fit.';
       why.textContent = s;
     }
 
@@ -225,6 +228,11 @@
     modeIns.forEach((m) => m.addEventListener('change', render));
     resetBtn.addEventListener('click', () => {
       pIn.value = '400'; gIn.value = '125'; tIn.value = '350';
+      modeIns[0].checked = true; modeIns[1].checked = false;
+      render();
+    });
+    nephronBtn.addEventListener('click', () => {
+      gIn.value = '60'; tIn.value = '168';
       modeIns[0].checked = true; modeIns[1].checked = false;
       render();
     });
