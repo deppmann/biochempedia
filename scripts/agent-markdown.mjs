@@ -13,6 +13,9 @@
  *
  * It reads the BUILT page so the copy says exactly what a reader sees. If a page's layout changes so
  * the lesson body can't be found, the build fails rather than shipping empty copies.
+ *
+ * The copies are linked from each lesson page (<link rel="alternate" type="text/markdown">), from
+ * /llms.txt and /catalog.json, and served as text/markdown with noindex (public/_headers).
  */
 import { fromHtml } from 'hast-util-from-html';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
