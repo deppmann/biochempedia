@@ -381,6 +381,7 @@ Be realistic about what one teacher can maintain. Do not invent tools or product
  * lesson count from the lesson collection, so a count here can never go stale.
  */
 export const COURSE_LINKS = [
+  { slug: 'biology-together', label: 'Biology Together (ages 5 to 10)' },
   { slug: 'life-science', label: 'Life Science (grade 7)' },
   { slug: 'high-school-biology', label: 'Biology (high school)' },
   { slug: 'organismal-biology', label: 'Organismal Biology' },
@@ -389,6 +390,7 @@ export const COURSE_LINKS = [
   { slug: 'ecology-evolution', label: 'Ecology and Evolution' },
   { slug: 'biochemistry', label: 'Biochemistry' },
   { slug: 'neuroscience', label: 'Neuroscience' },
+  { slug: 'physiology', label: 'Physiology' },
   { slug: 'signaling', label: 'Cell Signaling' },
   { slug: 'developmental-neuroscience', label: 'Developmental Neuroscience' },
   { slug: 'sensory-systems', label: 'Sensory Systems' },

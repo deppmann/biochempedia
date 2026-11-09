@@ -173,3 +173,37 @@ export function onChange(fn: () => void) {
   window.addEventListener(CHANGE_EVENT, fn);
   window.addEventListener('storage', (e) => { if (e.key === STORAGE_KEY || e.key === null) fn(); });
 }
+
+/* ---- "Continue at…": the section last read in each lesson --------------------------------
+   Kept in its own entry, on this device only, so it never travels with the progress record.
+   Every read and write is wrapped: with storage blocked, nothing is remembered and nothing breaks. */
+const RESUME_KEY = 'biochempedia:resume:v1';
+const RESUME_MAX = 40;
+type Resume = Record<string, { id: string; title: string; t: number }>;
+
+function loadResume(): Resume {
+  try {
+    const r = JSON.parse(window.localStorage.getItem(RESUME_KEY) ?? '{}');
+    return r && typeof r === 'object' ? (r as Resume) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** The section the reader was last in for this lesson, if any. */
+export function savedSection(slug: string): { id: string; title: string } | null {
+  const r = loadResume()[slug];
+  return r && typeof r.id === 'string' ? { id: r.id, title: String(r.title ?? '') } : null;
+}
+
+/** Remember the section being read. Keeps the 40 most recent lessons. */
+export function saveSection(slug: string, id: string, title: string): void {
+  try {
+    const all = loadResume();
+    all[slug] = { id, title: title.slice(0, 120), t: Date.now() };
+    const keep = Object.entries(all).sort((a, b) => b[1].t - a[1].t).slice(0, RESUME_MAX);
+    window.localStorage.setItem(RESUME_KEY, JSON.stringify(Object.fromEntries(keep)));
+  } catch {
+    /* storage blocked: nothing remembered */
+  }
+}

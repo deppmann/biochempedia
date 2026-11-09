@@ -42,6 +42,13 @@ export async function api<T = unknown>(path: string, body?: unknown, method = bo
   }
 }
 
+/** Today's date where the reader is (YYYY-MM-DD), for due dates. `toISOString()` gives the UTC date,
+ *  which is already tomorrow by early evening in the Americas. */
+export function localToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export type AnswerKind = 'quiz' | 'idea' | 'cer' | 'done' | 'stuck' | 'cards';
 
 /** Send one answer for the current student, if they are in a class. */

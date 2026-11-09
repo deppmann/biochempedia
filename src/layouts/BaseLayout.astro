@@ -16,15 +16,19 @@ interface Props {
   noindex?: boolean;
   /** Other forms of this page, e.g. a lesson's plain Markdown copy for AI agents. */
   alternates?: { type: string; href: string; title?: string }[];
+  /** Share-preview image, as a site path ("/explainers/x/poster.jpg") or a full URL. Defaults to /og.png. */
+  ogImage?: string;
+  /** Extra <head> tags as [attribute, name, content] triples, e.g. ['property', 'og:video', url]. */
+  extraMeta?: [('name' | 'property'), string, string][];
 }
-const { title, description, ogType = 'website', jsonLd, noindex = false, alternates = [] } = Astro.props;
+const { title, description, ogType = 'website', jsonLd, noindex = false, alternates = [], ogImage: ogImageProp, extraMeta = [] } = Astro.props;
 const year = 2026;
 const SITE_NAME = 'Biochemistrypedia';
 const DEFAULT_DESC =
   'Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account needed, no ads.';
 const desc = description ?? DEFAULT_DESC;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
-const ogImage = Astro.site ? new URL('/og.png', Astro.site).href : '/og.png';
+const ogImage = Astro.site ? new URL(ogImageProp ?? '/og.png', Astro.site).href : (ogImageProp ?? '/og.png');
 const siteUrl = Astro.site ? Astro.site.href.replace(/\/$/, '') : '';
 const websiteLd = {
   '@context': 'https://schema.org',
@@ -65,12 +69,14 @@ const websiteLd = {
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    {/* The stated size is og.png's; a page that passes its own image leaves it to the crawler. */}
+    {!ogImageProp && <meta property="og:image:width" content="1200" />}
+    {!ogImageProp && <meta property="og:image:height" content="630" />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={ogImage} />
+    {extraMeta.map(([attr, key, content]) => (attr === 'property' ? <meta property={key} content={content} /> : <meta name={key} content={content} />))}
     <meta name="generator" content={Astro.generator} />
     <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
@@ -103,11 +109,12 @@ const websiteLd = {
           <span class="brand-mark">⬡</span>
           <span class="brand-name">Biochemistrypedia</span>
         </a>
-        {/* The four main links sit in the bar on wide screens; on a phone they are in
-            the Menu button (SiteMenu.astro), which has the same four. */}
+        {/* The five main links sit in the bar on wide screens; on a phone they are in
+            the Menu button (SiteMenu.astro), which has the same five. */}
         <div class="nav-main">
           <a href="/courses/" class="nav-link-main">Courses</a>
           <a href="/paths/" class="nav-link-main">Paths</a>
+          <a href="/mcat/" class="nav-link-main">MCAT</a>
           <a href="/teachers/" class="nav-link-main">Teachers</a>
           <a href="/about/" class="nav-link-main">About</a>
         </div>
@@ -151,6 +158,7 @@ const websiteLd = {
             { label: 'Courses', href: '/courses/' },
             { label: 'Paths', href: '/paths/' },
             { label: 'MCAT practice', href: '/mcat/' },
+            { label: 'Films', href: '/films/' },
             { label: 'Methods library', href: '/methods/' },
             { label: 'Math toolkit', href: '/math-toolkit' },
             { label: 'Metabolism Arcade', href: '/play' },
@@ -206,7 +214,9 @@ const websiteLd = {
         Wide: brand plus four columns in one row. Tablet and phone: brand on top, links two to a row. */}
     <style is:global>
       footer.footer .footer__grid { grid-template-columns: 1.15fr repeat(4, minmax(0, 1fr)); gap: var(--space-2xl, 2.5rem); }
-      footer.footer .footer__grid .footer__links { gap: 0.55rem; }
+      /* Each link is a 44px-tall tap target; the padding replaces the old gap between rows. */
+      footer.footer .footer__grid .footer__links { gap: 0; }
+      footer.footer .footer__grid .footer__links a { display: inline-flex; align-items: center; min-height: 44px; }
       footer.footer .footer__notes { max-width: 72ch; }
       @media (max-width: 960px) {
         footer.footer .footer__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xl, 2rem); }

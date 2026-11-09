@@ -3,6 +3,7 @@
    written after the build by scripts/agent-markdown.mjs). Feeds /catalog.json and /llms.txt. */
 import { getCollection } from 'astro:content';
 import { COURSES, unitsFor, courseHref } from '../data/courses';
+import { lessonMinutes } from './reading-time';
 import REWRITTEN from '../data/recently-rewritten.json';
 
 export const SITE = 'https://biochemistrypedia.com';
@@ -42,7 +43,7 @@ export async function agentCatalog(): Promise<AgentCourse[]> {
           summary: l.data.summary,
           url: `${SITE}/lessons/${l.data.slug}/`,
           markdown: `${SITE}/lessons/${l.data.slug}.md`,
-          minutes: l.data.estMinutes,
+          minutes: lessonMinutes(l)?.core,
           objectives: l.data.objectives ?? [],
           rewritten: rewritten.get(l.data.slug),
         })),

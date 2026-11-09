@@ -1,0 +1,118 @@
+---
+/* One page per film, so a link shared on social media has somewhere to land:
+   /watch/<lesson>/ is the lesson's opening film, /watch/<lesson>/<film-id>/ each further film.
+   The player, captions and transcript are the same component the lesson uses (LessonFilm). */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LessonFilm from '../../components/LessonFilm.astro';
+import { allFilms, filmClock, filmIsoDuration, type FilmEntry } from '../../lib/films';
+import { courseOf, courseHref } from '../../data/courses';
+import { metaDescription } from '../../lib/meta';
+import { feedbackUrl } from '../../lib/feedback';
+
+export async function getStaticPaths() {
+  return (await allFilms()).map((film) => ({
+    params: { path: film.id ? `${film.lesson}/${film.id}` : film.lesson },
+    props: { film },
+  }));
+}
+
+const { film } = Astro.props as { film: FilmEntry };
+const course = courseOf(film.course);
+const site = (Astro.site?.href ?? 'https://biochemistrypedia.com/').replace(/\/$/, '');
+const abs = (p: string) => `${site}${p}`;
+const lessonHref = `/lessons/${film.lesson}/`;
+const others = (await allFilms()).filter((f) => f.lesson === film.lesson && f.href !== film.href);
+const description = metaDescription(film.hook);
+
+const videoLd = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoObject',
+  name: film.title,
+  description: film.hook,
+  thumbnailUrl: abs(film.poster),
+  contentUrl: abs(film.src),
+  duration: filmIsoDuration(film.durationSec),
+  inLanguage: 'en',
+  isAccessibleForFree: true,
+  isPartOf: { '@type': 'LearningResource', name: film.lessonTitle, url: abs(lessonHref) },
+  creator: { '@type': 'Person', name: 'Christopher Deppmann' },
+  // uploadDate is left out: the date each film went up is not recorded anywhere reliable.
+};
+---
+
+<BaseLayout
+  title={`${film.title} — Biochemistrypedia`}
+  description={description}
+  ogType="video.other"
+  ogImage={film.poster}
+  jsonLd={videoLd}
+  extraMeta={[
+    ['property', 'og:video', abs(film.src)],
+    ['property', 'og:video:secure_url', abs(film.src)],
+    ['property', 'og:video:type', 'video/mp4'],
+    ['property', 'video:duration', String(Math.round(film.durationSec))],
+    ['name', 'twitter:image:alt', `Poster for the film “${film.title}”`],
+  ]}
+>
+  <article class="wrap watch" data-pagefind-ignore>
+    <p class="eyebrow"><a href="/films/">Films</a> · <a href={courseHref(course.slug)}>{course.title}</a></p>
+    <h1>{film.title}</h1>
+
+    <LessonFilm film={{ ...film, id: film.id ?? 'explainer' }} />
+
+    <p class="hook">{film.hook}</p>
+    <p class="go"><a class="go-btn" href={lessonHref}>Continue in the lesson: {film.lessonTitle} →</a></p>
+    <p class="note">
+      {filmClock(film.durationSec)} · Free, with captions and a transcript. The lesson has the full text, the
+      questions and the sources.
+    </p>
+
+    {others.length > 0 && (
+      <section class="more" aria-labelledby="more-h">
+        <h2 id="more-h">More films from this lesson</h2>
+        <ul>
+          {others.map((o) => (
+            <li>
+              <a href={o.href}>
+                <img src={o.poster} alt="" width="320" height="180" loading="lazy" decoding="async" />
+                <span class="more-t">{o.title}</span>
+                <span class="more-len">{filmClock(o.durationSec)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {/* The same disclosure the lesson's Sources & Integrity panel gives for this film. */}
+    <p class="disclosure">
+      <strong>How this film was made.</strong> Narration: {film.narration}. Animation:
+      <span class="ai-flag">AI-generated</span> in code (Manim) by Claude, a schematic with no drawn molecular
+      structures{film.factCheckedBy && `; checked by ${film.factCheckedBy}`}. Captions come from the narration
+      script. See something wrong? <a href={feedbackUrl(film.lessonTitle)} target="_blank" rel="noopener">Report it</a>.
+    </p>
+  </article>
+
+  <style>
+    .watch { padding-top: var(--ddp-space-8); max-width: 920px; }
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0 0 var(--ddp-space-2); }
+    .eyebrow a { color: inherit; }
+    h1 { margin: 0 0 var(--ddp-space-4); }
+    .hook { max-width: 62ch; font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); margin: var(--ddp-space-5) 0 var(--ddp-space-4); }
+    .go { margin: 0; }
+    .go-btn { display: inline-flex; align-items: center; min-height: 48px; padding: 0.5em 1.3em; border-radius: 999px; background: var(--color-navy); color: #fff; font-weight: 700; text-decoration: none; }
+    .go-btn:hover { background: var(--ddp-color-accent); }
+    .note { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .more { margin-top: var(--ddp-space-12); }
+    .more h2 { font-size: var(--ddp-text-lg); margin: 0 0 var(--ddp-space-3); }
+    .more ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--ddp-space-4); }
+    .more a { display: grid; gap: 0.3rem; text-decoration: none; color: var(--ddp-color-ink); }
+    .more img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #0f1117; }
+    .more-t { font-weight: 600; font-size: var(--ddp-text-sm); line-height: 1.35; }
+    .more a:hover .more-t { color: var(--ddp-color-accent); }
+    .more-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .disclosure { margin-top: var(--ddp-space-12); padding-top: var(--ddp-space-4); border-top: 1px solid var(--ddp-color-line); max-width: 72ch; font-size: var(--ddp-text-xs); line-height: 1.6; color: var(--ddp-color-muted); }
+    .disclosure a { color: var(--ddp-color-accent); }
+    .ai-flag { --ddp-color-caution-ink: #7f6315; color: var(--ddp-color-caution-ink); background: var(--ddp-color-caution-soft); border-radius: 4px; padding: 0 0.3em; font-weight: 600; }
+  </style>
+</BaseLayout>

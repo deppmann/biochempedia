@@ -60,7 +60,7 @@ const titles = Object.fromEntries((await getCollection('lessons', ({ data }) => 
   </article>
 
   <script>
-    import { api, enrolled, setEnrolled } from '../../lib/classroom';
+    import { api, enrolled, setEnrolled, localToday } from '../../lib/classroom';
 
     type View = { className: string; nickname: string; teacherName: string; pending: boolean; studentCode?: string | null; assignments?: { slug: string; due: string | null }[]; done?: string[] };
     const root = document.querySelector<HTMLElement>('[data-join]')!;
@@ -80,7 +80,7 @@ const titles = Object.fromEntries((await getCollection('lessons', ({ data }) => 
       list.textContent = '';
       const items = v.pending ? [] : (v.assignments ?? []).filter((a) => titles[a.slug]);
       $('[data-assigned-h]').hidden = !items.length;
-      const today = new Date().toISOString().slice(0, 10);
+      const today = localToday();
       for (const a of items) {
         const li = document.createElement('li');
         const link = document.createElement('a');

@@ -14,8 +14,10 @@ interface Props {
   next?: Nav;
   /** The lesson's course page, for "All lessons" after the last one. */
   allHref?: string;
+  /** After the last lesson: the course that follows this one in the suggested order, if any. */
+  nextCourse?: { title: string; tagline: string; href: string };
 }
-const { slug, qCount, prev, next, allHref = '/courses/' } = Astro.props;
+const { slug, qCount, prev, next, allHref = '/courses/', nextCourse } = Astro.props;
 const games = LESSON_GAMES[slug] ?? [];
 const main = games[0];
 const more = games.slice(1);
@@ -57,6 +59,13 @@ const review = unitReviewFor(slug);
         <p class="fl-blurb">{next.hook}</p>
         <a class="fl-go" href={`/lessons/${next.slug}/`}>Continue →</a>
       </div>
+    ) : nextCourse ? (
+      <div class="fl-card fl-next">
+        <p class="fl-kicker">That's the last lesson · Next course</p>
+        <p class="fl-title">{nextCourse.title}</p>
+        <p class="fl-blurb">{nextCourse.tagline}</p>
+        <a class="fl-go" href={nextCourse.href}>Start the next course →</a>
+      </div>
     ) : (
       <div class="fl-card fl-next">
         <p class="fl-kicker">That's the last lesson</p>
@@ -82,6 +91,12 @@ const review = unitReviewFor(slug);
     <p class="fl-also">
       Also in the arcade for this lesson:{' '}
       {more.map((g, i) => (<>{i > 0 ? ', ' : ''}<a href={gameHref(g, slug)}>{g.title}</a></>))}
+    </p>
+  )}
+  {!next && (
+    <p class="fl-also">
+      Before you move on: <a href="/review/">review the questions you missed</a>
+      {nextCourse && <>, or go <a href={allHref}>back to all lessons in this course</a></>}.
     </p>
   )}
   {prev && (
