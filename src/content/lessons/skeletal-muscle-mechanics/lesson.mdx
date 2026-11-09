@@ -15,7 +15,7 @@ hook: "A muscle lifting nothing and a muscle holding a load it cannot move both 
 
 estMinutes: 25
 objectives:
-  - "Explain the length-tension relation of an activated fibre from filament overlap (frog fibres) and the force-velocity relation of shortening muscle (Hill 1938, frog sartorius at about 0 °C), and calculate shortening speed and external power for a stated model muscle."
+  - "Explain the length-tension relation of an activated fibre from filament overlap (frog fibres) and the force-velocity relation of shortening muscle (Hill 1938, frog sartorius at about 0 °C), and calculate shortening speed and external power for a stated model muscle, explaining why power peaks near a third of the isometric force."
   - "Define isometric, isotonic, concentric and eccentric contraction, explain twitch, summation and unfused and fused tetanus, and relate human fibre types I, IIA and IIX to myosin speed, mitochondria, myoglobin and fatigue resistance."
   - "Describe how phosphocreatine, glycolysis and oxidative metabolism supply ATP at the same time, reread the old oxygen debt as excess post-exercise oxygen consumption, and weigh the evidence that inorganic phosphate, failing calcium release and, to a smaller degree near body temperature, protons, rather than the lactate ion, depress force in fatigue."
   - "Explain two whole-body jobs of skeletal muscle: the muscle pump that aids venous return from the legs, and heat production, including shivering."
@@ -131,8 +131,8 @@ practiceQuestions:
     answer: 1
     rationale: >-
       An eccentric contraction is active lengthening: the muscle is stimulated and producing force,
-      but the load is larger than the force it can hold, so it is pulled longer, as the thigh
-      muscles are when you walk downhill. Shortening while lifting a smaller load is a concentric
+      but the load is larger than its isometric force, so it is pulled longer while resisting with
+      more than that force, as the thigh muscles are when you walk downhill. Shortening while lifting a smaller load is a concentric
       contraction. Holding one length while pulling is isometric. Being stretched by an antagonist
       while relaxed is passive lengthening, not a contraction at all; the word eccentric requires
       the muscle to be active.
@@ -145,8 +145,10 @@ practiceQuestions:
     answer: 3
     rationale: >-
       When the second action potential arrives, calcium released by the first has not yet been
-      pumped back into the sarcoplasmic reticulum, so the second release raises cytosolic calcium
-      further and keeps more troponin occupied, and force summates. Recruiting motor units is
+      pumped back into the sarcoplasmic reticulum, so the second release adds to it, raising
+      cytosolic calcium further and keeping it high for longer, with more troponin occupied. The
+      fibre also stays active long enough for the cross-bridges to stretch the elastic parts in
+      series with them, and force summates. Recruiting motor units is
       impossible here: a single fibre is being stimulated directly, and recruitment is a
       whole-muscle mechanism. ATP is not stored up between pulses to make a stronger stroke; its
       concentration is held nearly constant. Stimulation does not lengthen the sarcomeres; an
@@ -265,11 +267,11 @@ explainLevels:
       about 2.05 to 2.2 µm and falls on the descending limb as overlap is lost. Against a load,
       shortening speed is described well by Hill's hyperbola over most of the load range, (F + a)(v + b) = (F0 + a) b, so external power F x v
       is zero at zero load and at F0 and peaks near 0.3 F0 when a/F0 is about 0.25. A twitch follows
-      one action potential; repeated stimulation summates because cytosolic calcium remains high,
-      giving unfused and then fused tetanus. Human fibre types I, IIA and IIX differ mainly in
+      one action potential; repeated stimulation summates because cytosolic calcium stays high long
+      enough for force to build, giving unfused and then fused tetanus. Human fibre types I, IIA and IIX differ mainly in
       myosin speed and oxidative capacity. Phosphocreatine (via creatine kinase), glycolysis and
       oxidative phosphorylation supply ATP concurrently. Recovery oxygen uptake (EPOC) is not a
-      simple repayment of lactate, lactate is an oxidizable fuel, and in fatigue, inorganic
+      simple repayment of lactate, lactate is an oxidizable fuel, and fatigue can lower F0 and often vmax, so power may fall more than isometric force. In fatigue, inorganic
       phosphate and protons depress force at the motor, with the size of the proton effect
       depending strongly on temperature; failure of calcium release from the sarcoplasmic reticulum is another major cause.
   - level: "grad"
@@ -327,54 +329,160 @@ draft: false
 ---
 
 import MuscleLengthVelocity from '../../../components/MuscleLengthVelocity.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**An activated muscle shortens fastest when it lifts nothing and not at all when the load equals the force it can hold, so at both extremes it does no external work.** The [first look at muscle](/lessons/muscle-and-movement/) followed a contraction from T tubule to troponin. This lesson puts numbers on length, load, speed, fuel and fatigue.
+**An activated muscle shortens fastest when it lifts nothing and not at all when the load equals the force it can hold, so at both extremes it does no external work.**
 
-## Overlap sets the force a fibre can hold
+External work is force times the distance the load moves. Lifting nothing, there is no force. Holding a load it cannot move, there is no distance. Yet muscles lift things all day, so power must peak somewhere in between. The [first look at muscle](/lessons/muscle-and-movement/) followed a contraction from T tubule to troponin. This lesson puts numbers on length, load, speed, fuel and fatigue.
 
-Hold a muscle at one length, stimulate it, and the force it develops is its **isometric force**. That force depends on **sarcomere length**, the distance from one Z line to the next. In 1966 Gordon, Andrew Huxley and Julian held the length of a short segment of single isolated frog fibres under servo control and measured tension at each sarcomere length, an experiment told in [molecular motors](/lessons/molecular-motors/).
+> **The one idea to carry through this lesson.** Length sets the ceiling, load sets the speed. At each sarcomere length, filament overlap fixes the most force a fully activated muscle can hold, F0. Below that ceiling the muscle trades force for speed: the lighter the load, the faster it shortens, up to a top speed, vmax, because fast sliding leaves fewer myosin heads holding on. So power is zero at both ends and peaks at a middle load: for the usual curvature (a/F0 near 0.25, defined below), about a third of F0, moving at about a third of vmax.
 
-In those frog fibres, active force was greatest on a **plateau** at about 2.05 to 2.2 µm, where thin filaments reach every myosin head. On the **descending limb**, at longer lengths, force fell roughly in line with lost overlap, extrapolating to zero near 3.65 µm. At short lengths force also fell, more steeply below about 1.67 µm; that loss is usually read as interference, with thin filaments crossing into the opposite half-sarcomere and thick filaments meeting the Z lines, not as too little overlap. Picture rowers whose oars must reach the water: pull the boat ends apart and fewer oars reach; push them together and the oars clash.
+Most of what follows changes one of four things: the ceiling F0 (length, fatigue), how much of the ceiling the muscle reaches (activation: twitch or tetanus), the top speed vmax and how much the curve sags (fibre type, fatigue), or how long the ATP supply lets the muscle keep going. The rule covers a fully activated muscle shortening steadily at one temperature. It does not cover a muscle being stretched while active (Going deeper, "Stretch first, hold more"), and it is about external power, not ATP use.
+
+## Length sets the ceiling
+
+Hold a muscle at one length, stimulate it, and the force it develops is its **isometric force**. That force depends on **sarcomere length**, the distance from one Z line to the next.
+
+Plot active force against sarcomere length. In frog fibres the curve has a flat top, the **plateau**, at about 2.05 to 2.2 µm. To the right, on the **descending limb**, force falls roughly in a straight line, extrapolating to zero near 3.65 µm. To the left, at short lengths, force also falls, as filaments collide.
+
+The measurement was made in 1966 by Gordon, Andrew Huxley and Julian, an experiment told in [molecular motors](/lessons/molecular-motors/). They used a feedback motor to hold the sarcomeres in a short middle segment of a single frog fibre at a fixed length, because sarcomeres at the ends of a fibre stretch unevenly.
+
+On the descending limb, the reason is overlap. On the plateau, thin filaments reach every myosin head. Stretch the sarcomere and fewer heads face actin, so force falls in line with the lost overlap. Picture rowers (heads) whose oars must reach the water (thin filament): spread the rowers along a boat longer than the water they can reach and fewer oars touch it; crowd them where the water is full of other oars and the oars clash.
 
 {/* DIAGRAM: sarcomeres at short, plateau and long lengths */}
 
-Beyond the plateau, even resting muscle resists with **passive tension** from titin and connective tissue. **Active tension** is total tension minus passive tension at the same length, the definition used by Hessel and colleagues in 2024. Force also depends on history: after an active stretch, a fibre settles above the isometric force at the same final length, **residual force enhancement**. In permeabilized fibre bundles from engineered mouse psoas muscle, partly activated at 25 °C, cutting half of the titin lowered that enhancement from 30.7 to 17.4 percent of the reference force (Hessel and colleagues, PNAS 2024). A static overlap diagram misses this. Heart muscle normally works below its optimal length, where stretch raises force, part of the behaviour read from [pressure-volume loops](/lessons/pressure-volume-loops/).
+Beyond the plateau, even resting muscle resists with **passive tension** from titin and connective tissue. **Active tension** is total tension minus passive tension at the same length. Heart muscle normally works below its optimal length, where stretch raises force, part of the behaviour read from [pressure-volume loops](/lessons/pressure-volume-loops/).
 
-## The heavier the load, the slower the shortening
+**Predict.** Assume the descending limb is a straight line from full force at 2.20 µm to zero at 3.65 µm. What fraction of plateau force can a fibre hold at 3.00 µm?
 
-**Isometric**: length held while force develops. **Isotonic**: constant load while length changes. **Concentric**: the active muscle shortens. **Eccentric**: the active muscle lengthens because the load exceeds the force it can hold, as the thigh muscles do when you walk downhill.
+<details>
+<summary>Check your prediction</summary>
 
-**The classic experiment.** In the 1920s W. O. Fenn had reported that a frog muscle allowed to shorten and do work releases more energy than one held isometric, which a stretched spring in a viscous fluid, its energy fixed at stimulation, could not explain; a viscous brake would also make speed fall linearly with load. A. V. Hill (profiled in [protein binding and allostery](/lessons/protein-binding-allostery/)) asked what sets how fast an activated muscle shortens. For his 1938 paper in the Proceedings of the Royal Society B he used isolated frog sartorius muscles at about 0 °C, tetanized each, and let it shorten against a series of loads on a lever while a thermopile recorded the heat. He read speed from the record of shortening, not from the total distance shortened.
+The fibre sits 3.65 − 3.00 = 0.65 µm short of zero on a limb 1.45 µm long: 0.65 / 1.45 = 0.448, a little under half. A muscle with 100 N on the plateau has an F0 of 44.83 N at 3.00 µm.
 
-Shortening released extra heat in proportion to the distance shortened (the heat of shortening, with a coefficient he called a; Hill himself found in 1964 that this heat coefficient rises with load, so it is not the same quantity as the constant a in the speed equation below). Speed fell with load along a rectangular hyperbola, not a line. External power peaked at an intermediate load. He fitted the constants a and b to frog sartorius at 0 °C; the a/F0 of 0.25 used below is close to the usual value he gave for frog sartorius, though the other numbers in the problem are model values. This ruled out a passive viscous-elastic muscle and ruled in a quantitative, load-dependent rule for speed and power. It gave no molecular mechanism (A. F. Huxley's 1957 cross-bridge model later reproduced the hyperbola), and its constants are frog values at 0 °C, not human ones.
+</details>
 
-> **Hill's equation: (F + a)(v + b) = (F0 + a) b, so v = b (F0 − F) / (F + a)**
+## Load sets the speed
 
-F is the load, v the speed, F0 the isometric force at that length and activation; a and b are constants. Extrapolated to zero load, the equation gives the maximal speed, vmax = b F0 / a. Real fibres depart somewhat from a single hyperbola at very light and very heavy loads, so a fitted vmax and a directly measured unloaded speed can differ.
+**Isometric**: length held (as above). **Isotonic**: constant load while length changes. **Concentric**: the active muscle shortens. **Eccentric**: the active muscle is pulled longer because the load exceeds the force it is producing, as the thigh muscles are when you walk downhill. While it is being stretched, an active muscle resists with more than its isometric force at the same activation.
 
-> **P = F x v, in watts (1 W = 1 N x 1 m per s)**
+**Start with the record.** In 1938 A. V. Hill (profiled in [protein binding and allostery](/lessons/protein-binding-allostery/)) fully activated isolated frog sartorius muscles at about 0 °C with a rapid train of stimuli that fuses twitches into one steady contraction (a tetanus, not the disease; explained below), then let each one lift a load on a lever. On the trace of length against time, the muscle jerks briefly at release, then falls along a steady slope: the shortening speed. A heavier load gives a shallower slope. Read the speed early, just after the jerk, before the muscle has shortened enough to change its ceiling F0 much. Plot each speed against its load and you have the **force-velocity curve**.
 
-Power is zero at zero load and at the isometric load. When a/F0 is about 0.25, it peaks near 0.31 F0, a fraction that depends on the curvature.
+You already know its two ends. With no load the muscle shortens at its top speed, **vmax**. With a load equal to F0 it cannot shorten at all.
 
-**Worked problem.** In this made-up example the values are illustrative, not measured human constants; only the frog length landmarks, Hill's equation and a typical frog a/F0 are borrowed. A model fibre bundle produces 100 N on the plateau (2.05 to 2.20 µm). Assume the descending limb is a straight line from full force at 2.20 µm to zero at 3.65 µm, a/F0 = 0.25 and vmax = 0.40 m per s at every length, and quasi-steady shortening at one length with constant activation and temperature. At a sarcomere length of 3.00 µm, find speed and power against 20 N and the best load; then find peak power on the plateau.
+**Predict.** Join the two ends. Is the curve a straight line, so that half of F0 gives half of vmax, or does it sag?
 
-1. *Length.* Fraction of plateau force = (3.65 − 3.00) / (3.65 − 2.20) = 0.65 / 1.45 = 0.448, so F0 = 44.83 N.
-2. *Constants.* a = 0.25 x 44.83 N = 11.21 N. Because vmax = b F0 / a, b = 0.40 x 0.25 = 0.100 m per s.
-3. *Speed.* v = 0.100 x (44.83 − 20) / (20 + 11.21) = 0.100 x 24.83 / 31.21 = 0.0796 m per s.
-4. *Power.* P = 20 N x 0.0796 m per s = 1.59 W.
-5. *Check.* (F + a)(v + b) = 31.21 x 0.1796 = 5.61; (F0 + a) b = 56.04 x 0.100 = 5.60, equal within rounding (both are 5.603 with unrounded values).
-6. *Best load.* With f = F / F0 and q = a / F0, power is proportional to f (1 − f) / (f + q). Setting the derivative to zero gives f² + 2qf − q = 0, so f = √(q² + q) − q = 0.559 − 0.25 = 0.309. Best load 0.309 x 44.83 = 13.85 N; speed 0.100 x 30.98 / 25.06 = 0.1236 m per s; peak power 13.85 x 0.1236 = 1.71 W.
-7. *Plateau.* F0 = 100 N, a = 25 N, best load 30.9 N, speed 0.100 x 69.1 / 55.9 = 0.1236 m per s, peak power 30.9 x 0.1236 = 3.82 W.
+<details>
+<summary>Check your prediction</summary>
 
-Stretching from 2.20 to 3.00 µm cut F0, and peak power with it, by the same factor of 0.448, while the speed at peak power stayed at 0.309 of vmax. This is external power, not ATP turnover: an isometric muscle does no external work yet keeps splitting ATP.
+It sags: speed falls steeply with the first bit of load, then more gently until it reaches zero at F0, and Hill's points lie on a rectangular hyperbola. In the model muscle below, half of F0 gives only one-sixth of vmax. A straight line is what you would expect if muscle were a stretched spring slowed by a viscous brake; Hill's curve, with earlier energy measurements by W. O. Fenn, was evidence against that picture.
+
+</details>
+
+**Why heavier loads mean slower shortening.** Force comes from myosin heads that attach to actin, pull and let go. When the filaments slide fast, each binding site passes a head quickly, so fewer heads catch on. Heads that do catch are carried past the point where they pull, and drag briefly before they let go. Fewer heads pull and some resist, so a fast-shortening muscle carries only a light load, and a heavy load slows sliding until enough heads attach to bear it. **The muscle shortens at the speed at which just enough heads are attached to carry the load.** A. F. Huxley's 1957 cross-bridge model, built on this picture, later reproduced the curve Hill measured.
+
+Hill's equation for the curve; its shape matters more than the formula:
+
+<EquationCard
+  purpose="How fast an activated muscle shortens against a given load."
+  eq="(F + a)(v + b) = (F0 + a) b,  so  v = b (F0 − F) / (F + a)"
+  say="Shortening speed equals b times the spare force, F0 minus the load, divided by the load plus a."
+  symbols={[
+    ["F", "F", "the load the muscle lifts", "N"],
+    ["v", "v", "the shortening speed against that load", "m/s"],
+    ["F0", "F zero", "the isometric force at this length, with the muscle fully activated: the ceiling", "N"],
+    ["a", "a", "a constant in force units; a/F0 sets how sharply the curve sags (smaller a/F0, more sag)", "N"],
+    ["b", "b", "a constant in speed units, equal to vmax × a/F0", "m/s"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="Put F = F0: the top is zero, so v = 0. Put F = 0: v = b F0 / a, which is vmax. Every load in between gives a speed on the sagging curve."
+>
+  <Fragment slot="example">
+    <p>A model muscle: F0 = 100 N, vmax = 0.40 m/s, a/F0 = 0.25. Made-up round numbers, not human constants; only a/F0 is close to Hill's usual value for frog sartorius.</p>
+    <p>So a = 25 N and b = 0.40 × 0.25 = 0.10 m/s.</p>
+    <p>Against 50 N: v = 0.10 × (100 − 50) / (50 + 25) = 0.10 × 50 / 75 = 0.067 m/s.</p>
+  </Fragment>
+</EquationCard>
+
+Hill's equation is a fit to data, not a mechanism. His constants are frog values at 0 °C, and real fibres depart from a single hyperbola at the lightest and heaviest loads.
+
+## Power peaks at a middle load
+
+**Power** is force times speed, P = F × v, in watts (1 W = 1 N × 1 m/s), so it is zero at both ends.
+
+**Predict.** Where in between is power greatest? Most people guess half of F0.
+
+<details>
+<summary>Check your prediction</summary>
+
+Lower than half. For the model muscle, power peaks near a load of 31 N, about a third of F0, where the muscle moves at about a third of its top speed:
+
+| Load (N) | Speed (m/s) | Power (W) |
+| --- | --- | --- |
+| 0 | 0.40 | 0 |
+| 10 | 0.26 | 2.6 |
+| 20 | 0.18 | 3.6 |
+| 30.9 | 0.12 | 3.8 (the peak) |
+| 50 | 0.067 | 3.3 |
+| 75 | 0.025 | 1.9 |
+| 100 | 0 | 0 |
+
+Half of F0 would be right for a straight line, but on the sagging curve speed has already fallen far by then, so the best load comes earlier.
+
+</details>
+
+<EquationCard
+  purpose="Where external power peaks on Hill's curve."
+  eq="F_best / F0 = v_best / vmax = √(q² + q) − q,  with q = a / F0"
+  say="The best load, as a fraction of the ceiling, equals the best speed as a fraction of top speed, and both depend only on the curvature."
+  symbols={[
+    ["F_best", "F best", "the load that gives the most power", "N"],
+    ["v_best", "v best", "the shortening speed at that load", "m/s"],
+    ["q", "q", "the curvature, a / F0", "no units"],
+  ]}
+  toolkit={["powers", "ratios"]}
+  check="For q = 0.25 both fractions are 0.309, about a third, and peak power is 0.309² × F0 × vmax, about a tenth of F0 × vmax. A more curved muscle (smaller q) peaks at a lighter load, so the exact fraction is a model result, not a universal constant."
+>
+  <Fragment slot="example">
+    <p>Model muscle: 0.309 × 100 N = 30.9 N; 0.309 × 0.40 m/s = 0.1236 m/s; power = 30.9 × 0.1236 = 3.82 W.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, write f = F / F0. Hill's equation gives v / vmax = q (1 − f) / (f + q), so power, as a fraction of F0 × vmax, is f × q (1 − f) / (f + q).</p>
+    <p>Step 2, set its derivative with respect to f to zero: f² + 2qf − q = 0, so f = √(q² + q) − q. For q = 0.25 that is 0.559 − 0.25 = 0.309.</p>
+    <p>Step 3, put that f back into v / vmax and it simplifies to the same number, f.</p>
+  </Fragment>
+</EquationCard>
+
+**Now stretch the muscle.** In this model, stretching changes only F0. That is a simplification, not a law: in frog fibres, unloaded speed stays nearly constant only over the middle of the length range, about 1.65 to 2.7 µm (Edman, 1979). Take the same model muscle to the 3.00 µm of the first prediction, and assume that vmax and a/F0 stay the same. The 3.00 µm used here lies beyond that range, so treat the result as an exercise in the model, not a prediction for a frog fibre.
+
+1. F0 = 100 × 0.448 = 44.83 N.
+2. The best load is still 0.309 of F0: 13.85 N, moving at the same 0.1236 m/s.
+3. Peak power = 13.85 × 0.1236 = 1.71 W, which is 0.448 of the 3.82 W on the plateau.
+
+The ceiling fell, peak power fell by the same factor, and the best speed did not move. This is external power: an isometric muscle does no external work, yet it keeps splitting ATP.
 
 <MuscleLengthVelocity />
 
-## One impulse twitches; many fuse
+## Activation: how much of the ceiling you get
 
-A **twitch** is the mechanical response to a single action potential. If a second action potential arrives before relaxation is complete, cytosolic calcium is still raised when more is released, more troponin stays occupied, and force climbs higher: **summation**. At moderate rates the force record shows ripples, an **unfused tetanus**; at higher rates it becomes smooth, a **fused tetanus**. How the nervous system recruits motor units and sets their firing rates belongs to [motor units and reflexes](/lessons/motor-units-reflexes/).
+F0 assumes *full* activation, and one impulse does not get there. A **twitch** is the mechanical response to a single action potential. It falls short of F0 partly because one release may not fill every troponin site and partly because activation is brief. Force at the ends of the fibre builds only as the cross-bridges stretch the elastic parts in series with them (tendon and the heads themselves), and the calcium from a single release is largely pumped back, and activation has declined, before they have done so.
 
-Human fibres fall into three main types: **type I** (slow oxidative), **type IIA** (fast oxidative-glycolytic) and **type IIX** (fast glycolytic); why human "IIb" fibres are really IIx is told in [muscle and movement](/lessons/muscle-and-movement/). Contraction speed follows the rate of the myosin's ATPase and cross-bridge cycle. Type I fibres twitch more slowly, so their twitches fuse at lower firing rates. They are red from **myoglobin** ([oxygen transport](/lessons/oxygen-transport/)) and dense capillaries, rich in mitochondria, and resistant to fatigue; IIX fibres rely mostly on glycolysis and fatigue quickly. Force per cross-sectional area differs much less between types than speed does, and since peak power in Hill's model scales with F0 x vmax at fixed curvature, a fast fibre with several times the maximal speed gives several times the peak power at similar force.
+If a second action potential arrives before relaxation is complete, its calcium adds to what the first left behind: cytosolic calcium rises further and stays high longer, more troponin stays occupied, and the fibre stays active long enough for force to climb higher: **summation**. At moderate rates the force record shows ripples, an **unfused tetanus**. At higher rates it becomes smooth, a **fused tetanus**, and force approaches the ceiling. How the nervous system recruits motor units and sets their firing rates belongs to [motor units and reflexes](/lessons/motor-units-reflexes/).
+
+## Fibre types set the top speed
+
+Human fibres fall into three main types: **type I** (slow oxidative), **type IIA** (fast oxidative-glycolytic) and **type IIX** (fast glycolytic). Why human "IIb" fibres are really IIx is told in [muscle and movement](/lessons/muscle-and-movement/).
+
+Speed follows the rate of the myosin's ATPase and cross-bridge cycle. Type I fibres twitch more slowly, so their twitches fuse at lower firing rates. They are red from **myoglobin** ([oxygen transport](/lessons/oxygen-transport/)) and dense capillaries, rich in mitochondria, and resistant to fatigue. IIX fibres rely mostly on glycolysis and fatigue quickly. Force per cross-sectional area differs much less between types than speed does. So fibre type mainly moves vmax, not the ceiling.
+
+**Predict.** A type IIX and a type I fibre have the same F0 and the same curvature, but suppose the IIX fibre's vmax is four times as high. Which gives more peak power, and by how much?
+
+<details>
+<summary>Check your prediction</summary>
+
+The IIX fibre, by four times. At fixed curvature peak power scales with F0 × vmax: the best load is the same fraction of F0 for both, and the IIX fibre moves it four times faster.
+
+</details>
 
 ## Three ATP supplies, running at once
 
@@ -384,23 +492,38 @@ Resting ATP would last only seconds at a high rate of use, yet it barely falls i
 
 The reaction consumes a proton, which matters below. **Glycolysis**, from muscle glycogen or blood glucose, makes ATP without using oxygen ([glycolysis](/lessons/glycolysis/)). **Oxidative phosphorylation** needs a continuing oxygen supply and burns carbohydrate and fat ([oxidative phosphorylation](/lessons/oxidative-phosphorylation/)). All three run together, with shares that shift with intensity and duration, so fixed "10-second" or "2-minute" windows misdescribe them.
 
-The 1920s **oxygen debt** idea of Hill and colleagues held that the extra oxygen taken up after exercise paid for clearing the lactate made during it: about a fifth of the lactate was to be oxidized to fuel rebuilding the rest into glycogen. In rats exercised to exhaustion, Brooks and Gaesser (1980) found lactate removed within 15 minutes while oxygen consumption stayed above rest for 120 minutes. The time courses came apart. The descriptive term is **excess post-exercise oxygen consumption** (EPOC), which has several sources: resynthesis of phosphocreatine and refilling of oxygen stores early in recovery, and raised temperature and hormones over a longer time (Gaesser and Brooks, 1984). Lactate is a fuel: in six active men cycling at 55 percent of peak oxygen uptake, infused lactate raised lactate oxidation and lowered glucose oxidation (Miller and colleagues, 2002); the whole-body story belongs to [exercise physiology](/lessons/exercise-physiology/).
+The extra oxygen you take up after exercise is not simply a repayment for lactate, as the 1920s **oxygen debt** idea of Hill and colleagues held. In rats exercised to exhaustion, Brooks and Gaesser (1980) found lactate removed within 15 minutes, while oxygen uptake stayed above rest for 120 minutes. The descriptive term now is **excess post-exercise oxygen consumption** (EPOC), which has several sources: resynthesis of phosphocreatine and refilling of oxygen stores early in recovery, and raised temperature and hormones over a longer time (Gaesser and Brooks, 1984). Lactate itself is an oxidizable fuel; the whole-body story belongs to [exercise physiology](/lessons/exercise-physiology/).
+
+## What fails in fatigue
+
+**Fatigue** is a fall in force or power during repeated activity that recovers with rest. In the terms of this lesson, fatigue usually lowers F0, often lowers vmax as well, and in most studies makes the force-velocity curve sag more. Which of these happens depends on the cause: acid alone at 32 °C left vmax unchanged (below). Power depends on all three, so it can fall further than isometric force. As an illustration in the model muscle, a 20 percent fall in F0 cuts peak power by 20 percent; add a 20 percent fall in vmax and it falls 36 percent (0.8 × 0.8 = 0.64); let a/F0 drop from 0.25 to 0.15 as well and the peak shrinks from 0.309² to 0.265² of F0 × vmax, a fall of about 53 percent in all.
+
+The popular story blames lactic acid, but the evidence points away from the lactate ion. In mammalian muscle, the traditional account of lactate and protons impairing the contractile proteins is probably of limited importance near body temperature, though acid and phosphate each lowered the force of purified myosin in a laser trap (see below), which does not show how much either contributes in working mammalian muscle at body temperature; the shares are still debated. Leading alternatives are inorganic phosphate (Pi), which acts on cross-bridges and on calcium release, failure of calcium release from the sarcoplasmic reticulum, and ionic changes that affect the action potential (Allen, Lamb and Westerblad, 2008).
+
+**Temperature matters.** Westerblad, Bruton and Lännergren (1997) acidified intact single mouse fibres by about 0.5 pH unit with carbon dioxide. Tetanic force fell 28 percent at 12 °C but only 10 percent at 32 °C, with no significant change in maximal shortening velocity at 32 °C. Cold preparations overstate the effect of acidosis; the authors concluded that direct inhibition of force by acidification is not a major factor in fatigue at physiological temperatures, although the loss at 32 °C was not zero.
+
+**At the motor itself.** Do protons and phosphate act directly on myosin, and at the same step? Both act on the motor itself, and the evidence points to different steps. Woodward and Debold (2018) let a small group of purified chicken myosin heads pull on one actin filament in a laser trap, with no membrane, sarcoplasmic reticulum or lactate present. Lowering pH from 7.4 to 6.5 cut the group's average peak force by about 20 percent. At pH 6.5, adding 15 mM phosphate largely abolished the high-force events, and events became brief, suggesting that myosin let go of actin sooner. The experiment does not show how much each contributes in working human muscle (Going deeper, "Protons and the laser-trap conditions"). In living rats, twitch force tracked phosphate more consistently than protons, an association rather than a test of cause (Lewis and colleagues, 2025, by phosphorus magnetic resonance spectroscopy).
+
+**A disease as a test.** In **McArdle disease** (glycogen storage disease type V), inherited loss of muscle glycogen phosphorylase (gene PYGM) stops muscle glycogen from feeding glycolysis.
+
+**Predict.** During a brief intense contraction, lactate in an affected muscle barely rises. Does force last longer than normal?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Intracellular pH does not fall, and because creatine kinase consumes protons it may even rise slightly; lactate in muscle and venous blood barely rises. Phosphorus spectroscopy in patients reports an abnormally low phosphocreatine to phosphate ratio at the end of exercise, with no acidosis. Yet force fails early, and painful contractures can occur. Fatigue here develops without acidosis or a rise in lactate, so lactate accumulation cannot be its necessary cause. After several minutes of moderate exercise, more work is often tolerated (the "second wind"), consistent with rising delivery of blood glucose and fatty acids to oxidative metabolism.
+
+</details>
+
+The rule still frames it: fatigue lowers the ceiling and usually the top speed, so power suffers most.
+
+## Two whole-body jobs
 
 Contracting calf muscles squeeze the deep veins between them, and one-way valves let blood move only toward the heart; on relaxation the veins refill from below. This **muscle pump** aids venous return from the legs ([cardiac output and venous return](/lessons/cardiac-output-venous-return/)).
 
 {/* DIAGRAM: calf muscle pump */}
 
 Muscle is also the main adjustable heat source. Only a minority of the energy turned over appears as external work (in cycling, at most about a quarter); the rest is heat. **Shivering** is involuntary, rhythmic contraction that does almost no external work, so nearly all its energy becomes heat ([skin and human heat](/lessons/skin-and-human-heat/)).
-
-## What fails in fatigue
-
-**Fatigue** is a fall in force or power during repeated activity that recovers with rest. Intense glycolysis is accompanied by lactate ions and protons (where the protons come from is debated), but the evidence points away from the lactate ion. In mammalian muscle, the traditional account of lactate and protons impairing the contractile proteins is probably of limited importance. Leading alternatives are inorganic phosphate (Pi), which acts on cross-bridges and on calcium release, failure of calcium release from the sarcoplasmic reticulum, and ionic changes that affect the action potential (Allen, Lamb and Westerblad, 2008). Westerblad, Bruton and Lännergren (1997) acidified intact single mouse fibres by about 0.5 pH unit with carbon dioxide: tetanic force fell 28 percent at 12 °C but only 10 percent at 32 °C, with no significant change in maximal shortening velocity at 32 °C. Cold preparations overstate the effect of acidosis: the authors concluded that direct inhibition of force by acidification is not a major factor in fatigue at physiological temperatures, although the loss at 32 °C was not zero.
-
-**The modern experiment.** Do protons and phosphate act directly on the motor, and by the same step? Woodward and Debold (Frontiers in Physiology, 2018) purified fast skeletal myosin and actin from chicken pectoralis and let a small ensemble of myosin heads pull on one actin filament in a laser trap (stiffness about 0.02 pN per nm), at 100 µM MgATP, in three conditions (pH 7.4; pH 6.5; pH 6.5 with 15 mM added phosphate), and no membrane, sarcoplasmic reticulum or lactate. If both ions acted at the same step, they would be expected to change the pattern of force events in similar ways. Lowering pH to 6.5 cut the ensemble's average peak force by about 20 percent. At pH 6.5, added phosphate largely abolished the high-force events above 2 pN, and events became brief, suggesting faster detachment of myosin from actin. Protons lowered force directly at actomyosin, and phosphate added at low pH removed the high-force events, so the two ions appear to act by distinct mechanisms. It does not show how much each contributes in working human muscle (chicken proteins, low ATP, a fixed buffer), and lactate was simply absent.
-
-In seven anesthetized rats, Lewis and colleagues (2025) found twitch force fell beyond a fitted phosphate breakpoint of 17.1 ± 2.9 mM, measured by phosphorus magnetic resonance spectroscopy, and tracked phosphate more consistently than protons, an association the authors state they did not test causally.
-
-**A disease as a test.** In **McArdle disease** (glycogen storage disease type V), inherited loss of muscle glycogen phosphorylase (gene PYGM) stops muscle glycogen from feeding glycolysis. During a brief intense contraction, lactate in muscle and venous blood barely rises. Intracellular pH does not fall, and because creatine kinase consumes protons it may rise slightly. Phosphorus spectroscopy in patients reports an abnormally low phosphocreatine to phosphate ratio at the end of exercise, with no acidosis. Yet force fails early, and painful contractures can occur. After several minutes of moderate exercise, more work is often tolerated (the "second wind"), consistent with rising delivery of blood glucose and fatty acids to oxidative metabolism. Fatigue here develops without acidosis or a rise in lactate, so lactate accumulation cannot be its necessary cause.
 
 ### Design problem
 
@@ -418,3 +541,33 @@ Controls: same temperature and stimulation; random load order; a repeated refere
 Prediction: similar force per area but higher vmax in EDL, so its power curve peaks higher. Do not predict a direction for a/F0 without data. Limits: whole muscles mix fibre types, one temperature, mouse not human; confirm fibre types by myosin heavy-chain staining or gels.
 
 </details>
+
+## Going deeper
+
+### The viscous-brake theory
+
+In the 1920s W. O. Fenn reported that a frog muscle allowed to shorten and do work releases more energy than one held isometric. A stretched spring in a viscous fluid, its energy fixed at stimulation, could not explain that, and a viscous brake would also make speed fall linearly with load. Fenn and Marsh (1935) had reported a curved force-velocity relation before Hill, whose curve replaced the passive viscous-elastic muscle with a quantitative, load-dependent rule for speed and power.
+
+### Hill's experiment and its constants
+
+In his 1938 paper (Proceedings of the Royal Society B) Hill also recorded heat with a thermopile, and read speed from the record of shortening, not from the total distance shortened. Shortening released extra heat in proportion to the distance shortened, the heat of shortening, with a coefficient he also called a. Hill himself found in 1964 that this heat coefficient rises with load, so it is not the same quantity as the constant a in the speed equation. Because real fibres depart from the hyperbola at the extremes of load, a fitted vmax and a directly measured unloaded speed can differ. The curvature constant also varies with species, fibre type and temperature: with a/F0 near 0.1, the best load falls to about 0.23 of F0.
+
+### Short lengths
+
+Left of the plateau the curve is not a mirror image of the descending limb. On the frog curve, force fell more steeply below about 1.67 µm. That loss is usually read as interference, with thin filaments crossing into the opposite half-sarcomere and thick filaments meeting the Z lines, not as too little overlap.
+
+### Stretch first, hold more
+
+Force also depends on history: after an active stretch, a fibre settles above the isometric force at the same final length, **residual force enhancement**, which a static overlap diagram misses. Titin carries part of it. In permeabilized bundles of engineered mouse psoas fibres at partial calcium activation and 25 °C, cutting half of the titin with a protease lowered the enhancement from 30.7 to 17.4 percent of the reference force (Hessel and colleagues, PNAS 2024; the anecdote "Stretch it first and it holds more" gives the details).
+
+### The same muscle against 20 N
+
+Any load on the stretched curve can be worked the same way. At 3.00 µm the model muscle has F0 = 44.83 N, so a = 0.25 × 44.83 = 11.21 N, and b = 0.40 × 0.25 = 0.100 m/s (b does not depend on F0). Against 20 N: v = 0.100 × (44.83 − 20) / (20 + 11.21) = 0.100 × 24.83 / 31.21 = 0.0796 m/s, and P = 20 × 0.0796 = 1.59 W. Check: (F + a)(v + b) = 31.21 × 0.1796 = 5.61, and (F0 + a) b = 56.04 × 0.100 = 5.60, equal within rounding (both are 5.603 with unrounded values). At the best load, 13.85 N, speed = 0.100 × 30.98 / 25.06 = 0.1236 m/s, the same as on the plateau.
+
+### Oxygen debt and lactate as fuel
+
+The oxygen debt idea held that about a fifth of the lactate made during exercise was oxidized to fuel rebuilding the rest into glycogen. Lactate is instead a fuel: in six active men cycling at 55 percent of peak oxygen uptake, infused lactate raised lactate oxidation and lowered glucose oxidation (Miller and colleagues, 2002).
+
+### Protons and the laser-trap conditions
+
+Intense glycolysis is accompanied by lactate ions and protons, but where the protons come from is debated. Woodward and Debold (Frontiers in Physiology, 2018) used fast skeletal myosin and actin from chicken pectoralis, a trap stiffness of about 0.02 pN per nm and 100 µM MgATP. The high-force events that phosphate removed were those above 2 pN. If both ions acted at the same step, they would be expected to change the pattern of force events in similar ways; the patterns differed. The limits: chicken proteins, low ATP and a fixed buffer, and lactate was simply absent.

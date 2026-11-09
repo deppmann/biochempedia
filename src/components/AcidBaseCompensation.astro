@@ -5,15 +5,16 @@
  * plasma sketch: pH = 6.1 + log10(HCO3- / (0.03 x pCO2)), [H+] = 10^(9 - pH) nmol/L, and a
  * mass balance for a non-volatile acid load. Open: the load removes that much bicarbonate and
  * the gas phase holds pCO2, so dissolved CO2 is unchanged. Closed: total CO2 in the sample is
- * held, so the same amount of dissolved CO2 is added. Controls: pCO2, bicarbonate, open or
- * closed, acid load. Self-contained vanilla-TS Astro island. Original.
+ * held, so the same amount of dissolved CO2 is added. Compensated: open, and the lungs lower
+ * pCO2 to Winter's fit for metabolic acidosis (1.5 x HCO3- + 8 mmHg, never above the start).
+ * Controls: pCO2, bicarbonate, open, closed or compensated, acid load. Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
 <figure class="obf card" data-obf>
   <figcaption class="obf-head">The open buffer — same acid, open or closed<span class="obf-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="obf-svg" viewBox="0 0 340 230" role="img" aria-label="A labelled schematic of a plasma sample receiving an acid load, either open to a gas phase that holds pCO2 or sealed, above log-scale bars of bicarbonate and dissolved CO2 in mmol per litre before and after the load" data-plot></svg>
+  <svg class="obf-svg" viewBox="0 0 340 230" role="img" aria-label="A labelled schematic of a plasma sample receiving an acid load, either open to a gas phase that holds pCO2, sealed, or open with the lungs lowering pCO2, above log-scale bars of bicarbonate and dissolved CO2 in mmol per litre before and after the load" data-plot></svg>
 
   <div class="obf-controls">
     <label class="obf-slabel"><span>pCO<sub>2</sub> before the load <em data-out="pco2">40</em> mmHg</span>
@@ -29,6 +30,7 @@
       <legend>The sample is</legend>
       <label class="obf-radio"><input type="radio" name="obf-mode-0" value="open" data-in="mode" checked /> <span>open to CO<sub>2</sub></span></label>
       <label class="obf-radio"><input type="radio" name="obf-mode-0" value="closed" data-in="mode" /> <span>closed to CO<sub>2</sub></span></label>
+      <label class="obf-radio"><input type="radio" name="obf-mode-0" value="comp" data-in="mode" /> <span>open, lungs compensate (steady state)</span></label>
     </fieldset>
   </div>
 
@@ -40,12 +42,13 @@
     <div><dt>Dissolved CO₂, mmol/L</dt><dd><b data-v="d"></b><span data-a="d"></span></dd></div>
     <div><dt>pCO₂ (dissolved CO₂ ÷ 0.03), mmHg</dt><dd><b data-v="p"></b><span data-a="p"></span></dd></div>
     <div class="obf-wide"><dt>Same load, the other way</dt><dd><b data-v="other"></b><span data-a="other"></span></dd></div>
+    <div class="obf-wide"><dt>pCO₂ that would restore 20:1</dt><dd><b data-v="full"></b><span data-a="full"></span></dd></div>
   </dl>
   <p class="obf-arith" data-arith></p>
   <p class="obf-why" data-why role="status"></p>
 
-  <p class="obf-assume">In this sketch: one made-up compartment of human plasma at 37 C with no hemoglobin, protein, phosphate, cell or bone buffering and no renal response, so it shows direction and rough size and no more. pH = 6.1 + log10(HCO₃⁻ / (0.03 × pCO₂)) with the lesson’s pK of 6.1 and CO₂ solubility of 0.03 mmol/L per mmHg, and [H⁺] = 10^(9 − pH) nmol/L. The acid load takes bicarbonate away mmol for mmol. Open: the gas phase holds pCO₂, so dissolved CO₂ stays where it was. Closed: total CO₂ in the sample (bicarbonate plus dissolved CO₂) stays constant, so dissolved CO₂ rises by the amount of bicarbonate lost. Made up for the sketch: the slider ranges, the starting values you choose, and a floor of 1 mmol/L of bicarbonate (the logarithm fails at zero), so a load is capped at 1 mmol/L below the starting bicarbonate. The equation is applied across the whole slider range without checking that plasma could sit there, and the sketch gives no interpretation, classification or reference range.</p>
-  <p class="obf-foot">Rule to keep: pH follows the ratio of bicarbonate to dissolved CO₂, not either number alone; added acid lowers the numerator either way, but only a system open to CO₂ keeps the denominator from climbing.</p>
+  <p class="obf-assume">In this sketch: one made-up compartment of human plasma at 37 C with no hemoglobin, protein, phosphate, cell or bone buffering and no renal response, so it shows direction and rough size and no more. pH = 6.1 + log10(HCO₃⁻ / (0.03 × pCO₂)) with the lesson’s pK of 6.1 and CO₂ solubility of 0.03 mmol/L per mmHg, and [H⁺] = 10^(9 − pH) nmol/L. The acid load takes bicarbonate away mmol for mmol. Open: the gas phase holds pCO₂, so dissolved CO₂ stays where it was. Closed: total CO₂ in the sample (bicarbonate plus dissolved CO₂) stays constant, so dissolved CO₂ rises by the amount of bicarbonate lost. Compensated: pCO₂ is set to Winter’s fit for metabolic acidosis, 1.5 × bicarbonate + 8 mmHg, never above the starting pCO₂; a fit with real scatter, not a law. Made up for the sketch: the slider ranges, the starting values you choose, and a floor of 1 mmol/L of bicarbonate (the logarithm fails at zero), so a load is capped at 1 mmol/L below the starting bicarbonate. The equation is applied across the whole slider range without checking that plasma could sit there, and the sketch gives no interpretation, classification or reference range.</p>
+  <p class="obf-foot">Rule to keep: pH follows the ratio of bicarbonate to dissolved CO₂, not either number alone; added acid lowers the numerator either way, but only a system open to CO₂ keeps the denominator from climbing, and lungs that lower it move the ratio back toward 20, partway.</p>
 </figure>
 
 <script>
@@ -105,7 +108,7 @@
       return t;
     }
 
-    function bars(y: number, st: State, ghost: State | null, solid: boolean) {
+    function bars(y: number, st: State, ghost: State | null, solid: boolean, target: number | null = null) {
       const H = 11;
       const yB = y, yD = y + 15;
       const tag = (yy: number, s: string) => txt(4, yy + 9, s, { fill: INK });
@@ -123,6 +126,12 @@
         const g = el('rect', { x: X0, y: yD, width: Math.max(1, bx(ghost.d) - X0), height: H, fill: 'none', stroke: DARK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' });
         plot.appendChild(g);
       }
+      if (target !== null && target >= VMIN && target <= VMAX) {
+        const xt = bx(target);
+        plot.appendChild(el('line', { x1: xt, y1: yD - 2, x2: xt, y2: yD + H + 2, stroke: DARK, 'stroke-width': 1.2, 'stroke-dasharray': '2 2' }));
+        const xl = Math.max(bx(st.d), xt, ghost ? bx(ghost.d) : X0) + 4;
+        txt(xl, yD + 9, 'dashed tick: for 20:1', { 'font-size': 8.5 });
+      }
     }
 
     function render() {
@@ -130,6 +139,7 @@
       const b0 = parseInt(hcoIn.value, 10);
       const L = parseInt(loadIn.value, 10);
       const closed = modeIns.some((m) => m.checked && m.value === 'closed');
+      const comp = modeIns.some((m) => m.checked && m.value === 'comp');
       pcoOut.textContent = String(p0);
       hcoOut.textContent = String(b0);
       loadOut.textContent = String(L);
@@ -141,8 +151,14 @@
       const before = calc(b0, d0);
       const open = calc(b0 - applied, d0);
       const sealed = calc(b0 - applied, d0 + applied);
-      const now = closed ? sealed : open;
-      const other = closed ? open : sealed;
+      const bA = b0 - applied;
+      const winter = 1.5 * bA + 8;
+      // lungs never raise pCO2 here; with no load there is nothing to compensate
+      const pComp = applied > 0 ? Math.min(p0, winter) : p0;
+      const compensated = calc(bA, SOL * pComp);
+      const pFull = bA / (SOL * 20);
+      const now = closed ? sealed : comp ? compensated : open;
+      const other = closed ? open : comp ? open : sealed;
 
       // ---- SVG ----
       plot.replaceChildren();
@@ -163,8 +179,13 @@
         plot.appendChild(el('path', { d: 'M200 26 L207 21 L207 31 Z', fill: INK }));
         plot.appendChild(el('path', { d: 'M238 26 L231 21 L231 31 Z', fill: INK }));
         plot.appendChild(el('rect', { x: 240, y: 8, width: 94, height: 36, rx: 4, fill: '#fafafa', stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
-        txt(287, 24, 'gas phase', { 'text-anchor': 'middle', 'font-weight': 700 });
-        txt(287, 36, 'pCO' + SUB2 + ' held at ' + p0, { 'text-anchor': 'middle', 'font-size': 9 });
+        if (comp && pComp < p0) {
+          txt(287, 24, 'lungs', { 'text-anchor': 'middle', 'font-weight': 700 });
+          txt(287, 36, 'pCO' + SUB2 + ' lowered to ' + f0(pComp), { 'text-anchor': 'middle', 'font-size': 9 });
+        } else {
+          txt(287, 24, 'gas phase', { 'text-anchor': 'middle', 'font-weight': 700 });
+          txt(287, 36, 'pCO' + SUB2 + ' held at ' + p0, { 'text-anchor': 'middle', 'font-size': 9 });
+        }
       } else {
         plot.appendChild(el('rect', { x: 198, y: 6, width: 7, height: 40, fill: DARK }));
         txt(214, 24, 'sealed', { 'font-weight': 700 });
@@ -176,8 +197,8 @@
       bars(69, before, null, false);
       txt(4, 108, 'ratio ' + rfmt(before.ratio) + '  ' + DOT + '  log₁₀ ' + sl(Math.log10(before.ratio)) + '  ' + DOT + '  pH ' + sumLog(Math.log10(before.ratio)) + ' = ' + f2(before.ph));
 
-      txt(4, 128, 'After the load, ' + (closed ? 'closed to CO' + SUB2 : 'open to CO' + SUB2), { 'font-weight': 700 });
-      bars(133, now, other, true);
+      txt(4, 128, 'After the load, ' + (closed ? 'closed to CO' + SUB2 : comp ? 'lungs compensate' : 'open to CO' + SUB2), { 'font-weight': 700 });
+      bars(133, now, other, true, comp && applied > 0 ? SOL * pFull : null);
       txt(4, 172, 'ratio ' + rfmt(now.ratio) + '  ' + DOT + '  log₁₀ ' + sl(Math.log10(now.ratio)) + '  ' + DOT + '  pH ' + sumLog(Math.log10(now.ratio)) + ' = ' + f2(now.ph));
 
       // axis
@@ -189,7 +210,7 @@
       txt((X0 + X1) / 2, 206, 'mmol/L, log scale (a bracket’s length is log₁₀ of the ratio)', { 'text-anchor': 'middle' });
       // legend
       plot.appendChild(el('rect', { x: 4, y: 214, width: 16, height: 9, fill: 'none', stroke: DARK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
-      txt(25, 222, 'dashed outline: dissolved CO' + SUB2 + ' if the same load were ' + (closed ? 'open' : 'closed'), { 'font-size': 9 });
+      txt(25, 222, 'dashed outline: dissolved CO' + SUB2 + (comp ? ' if the lungs did not compensate' : ' if the same load were ' + (closed ? 'open' : 'closed')), { 'font-size': 9 });
 
       // ---- readouts ----
       v('ph').textContent = f2(now.ph);
@@ -205,7 +226,9 @@
       v('p').textContent = f0(now.p);
       a('p').textContent = ' (was ' + f0(before.p) + ')';
       v('other').textContent = 'pH ' + f2(other.ph);
-      a('other').textContent = closed ? ' open, dissolved CO₂ ' + f2(other.d) : ' closed, dissolved CO₂ ' + f2(other.d);
+      a('other').textContent = closed ? ' open, dissolved CO₂ ' + f2(other.d) : comp ? ' open, no compensation, dissolved CO₂ ' + f2(other.d) : ' closed, dissolved CO₂ ' + f2(other.d);
+      v('full').textContent = f0(pFull) + ' mmHg';
+      a('full').textContent = '; Winter’s fit expects ' + f0(winter) + ' ± 2';
 
       arith.textContent = 'pH = 6.1 + log₁₀(' + num(now.b) + ' ÷ ' + f2(now.d) + ') = ' + sumLog(Math.log10(now.ratio)) + ' = ' + f2(now.ph)
         + '   ' + DOT + '   [H⁺] = 10^(9 ' + MINUS + ' ' + f2(now.ph) + ') = ' + hfmt(now.h) + ' nmol/L';
@@ -220,7 +243,12 @@
       } else {
         const gap = r2(open.ph) - r2(sealed.ph);
         const gapTxt = gap < 0.005 ? 'about the same' : f2(gap) + ' units ' + (closed ? 'higher' : 'lower');
-        if (!closed) {
+        if (comp) {
+          s = 'In this sketch the lungs compensate: bicarbonate fell from ' + num(b0) + ' to ' + num(bA) + ', and pCO₂ falls from ' + p0 + ' to ' + f0(pComp)
+            + ' mmHg, the same direction, so the ratio climbs back from ' + rfmt(open.ratio) + ' to ' + rfmt(compensated.ratio) + ' and pH from ' + f2(open.ph) + ' to ' + phN
+            + ', partway toward ' + phB + '. Restoring 20:1 would need pCO₂ ' + f0(pFull) + ' mmHg; Winter’s fit is a population regression with scatter and describes a steady state reached over about 12 to 24 hours.'
+            + (pComp >= p0 ? ' Here the fit (' + f0(winter) + ' mmHg) is not below the starting pCO₂, so the sketch leaves pCO₂ where it was.' : '');
+        } else if (!closed) {
           s = 'In this sketch the sample is open: ' + num(applied) + ' mmol/L of acid turns that much bicarbonate into CO₂, the gas phase takes the CO₂ formed and holds pCO₂ at ' + p0
             + ' mmHg, so dissolved CO₂ stays at ' + f2(d0) + ' while bicarbonate falls from ' + num(b0) + ' to ' + num(open.b) + ', and pH falls from ' + phB + ' to ' + phN
             + '. Closed, the same load would give pH ' + f2(sealed.ph) + (gap < 0.005 ? ', about the same.' : ', ' + f2(gap) + ' units lower.');

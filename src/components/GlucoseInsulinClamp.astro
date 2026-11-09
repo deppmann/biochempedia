@@ -10,7 +10,7 @@
 ---
 
 <figure class="gic card" data-gic>
-  <figcaption class="gic-head"><span>Read the clamp: pump rate against disposal</span><span class="gic-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="gic-head"><span>Read the clamp: glucose in equals glucose out</span><span class="gic-chip">⚙ original · interactive</span></figcaption>
 
   <svg class="gic-svg" viewBox="0 0 340 176" role="img" aria-label="Schematic of glucose entering and leaving plasma at steady state in a clamp. Arrows in: external glucose J from the pump, and endogenous production EGP. Arrow out: whole-body disposal Rd. Arrow widths follow the slider values." data-flow></svg>
   <svg class="gic-svg" viewBox="0 0 340 140" role="img" aria-label="Two bars on a scale of mg per kg per min. The upper bar is disposal Rd, made of external glucose J plus endogenous production EGP. The lower bar is J alone, with the missing part equal to EGP." data-bars></svg>
@@ -46,7 +46,7 @@
   </div>
 
   <p class="gic-assume">In this sketch: steady state at matched insulin and glucose in a healthy adult, with negligible urinary glucose loss, as in the lesson’s made-up worked problem; the starting values Rd 6.21 and EGP 0.50 mg per kg per min are that problem’s person A. Made up for the sketch: the slider ranges (the top of the Rd range, 11, follows the 10–11 mg per kg per min maximal utilization that Rizza, Mandarino and Gerich found in healthy humans in 1981, a preparation-specific result), body masses of 50 to 100 kg, and the infusate fixed at 20 percent glucose, 200 mg per mL. The pump rate in mL per min is a unit conversion made up for the sketch; the lesson gives only mg per kg per min. Arrow widths are roughly proportional to flux; there is no time course and no insulin dose-response curve.</p>
-  <p class="gic-foot">At steady state Rd = J + EGP, so the glucose given from outside equals disposal only if endogenous production is suppressed and urinary losses are negligible, and the lesson’s fluxes are mass-normalized, in mg per kg per min.</p>
+  <p class="gic-foot">This is the lesson’s balance with the meal replaced by a pump: glucose holds steady only while what enters (J + EGP) equals what leaves (Rd). Insulin pushes both sides, raising Rd and lowering the liver’s EGP, but may not stop EGP, so the pump rate J equals disposal only if EGP is truly zero and urinary losses are negligible.</p>
 </figure>
 
 <script>
@@ -116,9 +116,9 @@
 
     function drawFlow(j: number, egp: number, rd: number) {
       flow.replaceChildren();
-      // blocks: pump, internal sources, plasma, whole-body disposal
+      // blocks: pump, liver (mostly), plasma, whole-body disposal
       block(flow, 4, 20, 72, 48, '#e6f4f5', ACCENT, ['glucose pump', 'infusate', '200 mg/mL']);
-      block(flow, 4, 116, 72, 48, '#ffe9d1', ORANGE, ['internal', 'sources of', 'glucose']);
+      block(flow, 4, 116, 72, 48, '#ffe9d1', ORANGE, ['liver', '(mostly):', 'EGP']);
       block(flow, 128, 14, 76, 156, '#f4f4f7', INK, ['plasma', 'glucose held', 'near its basal', 'value (steady', 'state)']);
       block(flow, 256, 64, 80, 56, '#fbe9ea', '#b3262e', ['whole-body', 'disposal']);
 
@@ -157,7 +157,7 @@
       bars.appendChild(el('rect', { x: X0, y: 127, width: 9, height: 9, fill: ACCENT }));
       txt(bars, X0 + 13, 135, 'J: glucose from the pump');
       bars.appendChild(el('rect', { x: 186, y: 127, width: 9, height: 9, fill: ORANGE }));
-      txt(bars, 199, 135, 'EGP: from internal sources');
+      txt(bars, 199, 135, 'EGP: mostly from the liver');
     }
 
     function render() {
@@ -198,7 +198,7 @@
       } else if (none) {
         msg = `In this sketch, EGP (${f2(egp)}) equals Rd (${f2(rd)}) mg per kg per min, so J = 0.00 and the pump rate is 0.00 mL per min, yet Rd is ${f2(rd)}. Reading J alone would give 0.00.`;
       } else {
-        msg = `In this sketch, with Rd ${f2(rd)} and EGP ${f2(egp)} mg per kg per min, the external glucose entry is J = ${f2(rd)} − ${f2(egp)} = ${f2(j)} mg per kg per min, or ${f2(pump)} mL per min at ${mass} kg. At fixed Rd, a larger EGP lowers the external input J, and reading J alone underestimates Rd by EGP.`;
+        msg = `In this sketch, with Rd ${f2(rd)} and EGP ${f2(egp)} mg per kg per min, the external glucose entry is J = ${f2(rd)} − ${f2(egp)} = ${f2(j)} mg per kg per min, or ${f2(pump)} mL per min at ${mass} kg. At fixed Rd, a larger EGP lowers the external input J, and reading J alone underestimates Rd by EGP. Lower EGP with the slider to see what fuller suppression of the liver by insulin would mean for the pump.`;
       }
       why.textContent = msg;
 
