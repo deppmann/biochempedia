@@ -25,7 +25,7 @@ import FlashcardDeck from '../../components/FlashcardDeck.astro';
 import HighlightLayer from '../../components/HighlightLayer.astro';
 import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
-import { courseOf, courseHref } from '../../data/courses';
+import { COURSES, courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 import { SETS as MCAT_SETS } from '../../lib/mcat';
@@ -57,6 +57,15 @@ const navOf = (l: (typeof allLessons)[number] | undefined) =>
 const lessonIdx = allLessons.findIndex((l) => l.data.slug === entry.data.slug);
 const prevNav = navOf(allLessons[lessonIdx - 1]);
 const nextNav = navOf(allLessons[lessonIdx + 1]);
+// After a course's last lesson, hand off to the next course in COURSES (its order is the
+// suggested path). Only a course with a published lesson counts, and Biology Together does
+// not hand off: its pages are for the grown-up, and the next course is written for students.
+let nextCourse: { title: string; tagline: string; href: string } | undefined;
+if (!nextNav && courseOf(entry.data.course).tier !== 'families') {
+  const live = new Set((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => l.data.course));
+  const after = COURSES.slice(COURSES.findIndex((c) => c.slug === entry.data.course) + 1).find((c) => live.has(c.slug));
+  if (after && COURSES.some((c) => c.slug === entry.data.course)) nextCourse = { title: after.title, tagline: after.tagline, href: courseHref(after.slug) };
+}
 const games = LESSON_GAMES[entry.data.slug] ?? [];
 const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
@@ -326,7 +335,7 @@ const lessonLd = {
           <p class="mcat-forward"><a href={`/mcat/practice/?lesson=${lesson.slug}`}>Practice questions on this lesson ({mcatCount}) →</a> <span>MCAT-style, original, each with an explanation</span></p>
         )}
 
-        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} />
+        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} nextCourse={nextCourse} />
       </div>
 
       <aside class="rail" id="rail" aria-label="Explore — open any resource">
