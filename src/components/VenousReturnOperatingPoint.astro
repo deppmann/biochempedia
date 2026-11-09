@@ -1,11 +1,13 @@
 ---
 /**
- * VenousReturnOperatingPoint — where the heart's curve meets the veins' curve. Illustrative linear
+ * VenousReturnOperatingPoint — where the heart's line meets the veins' line. Illustrative linear
  * model from the lesson's worked problem (not fitted to data): cardiac function curve
  * Qc = b + k·Pra with k = 1 L per min per mmHg; venous return Qvr = (Pms − Pra) / Rvr; steady
  * state, so output equals venous return. Operating point: Pra = (Pms − Rvr·b) / (1 + Rvr·k),
- * Q = b + k·Pra. Optional "venous collapse" caps return at its value at Pra = 0 (Pms / Rvr), an
- * illustrative cap, not a measured threshold; then Q = Pms / Rvr and Pra = (Q − b) / k.
+ * Q = b + k·Pra. Optional "venous collapse" makes the veins' line flat below Pra = −3 mmHg (the middle
+ * of the −2 to −4 mmHg seen in Guyton's open-chest dogs; no human threshold); then
+ * Q = (Pms − (−3)) / Rvr and Pra = (Q − b) / k. When only one line moves from the lesson's baseline, the
+ * line that did not move gets a halo and an arrow runs from the baseline crossing to the new one.
  * Pms is shown with the lesson's compliance of 0.2 L per mmHg (stressed volume = Pms × 0.2 L).
  * Self-contained vanilla-TS Astro island. Original.
  */
@@ -13,7 +15,7 @@ const uid = Math.random().toString(36).slice(2, 8);
 ---
 
 <figure class="vro card" data-vro>
-  <figcaption class="vro-head">Where the heart's curve meets the veins' curve: the operating point<span class="vro-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="vro-head">Move one line at a time and the crossing slides along the other one<span class="vro-chip">⚙ original · interactive</span></figcaption>
 
   <svg class="vro-svg" viewBox="0 0 340 252" role="img" aria-label="Plot of flow in litres per minute against right atrial pressure in mmHg, with the heart's straight line, the veins' straight line, and the point where they cross" data-plot></svg>
 
@@ -27,7 +29,7 @@ const uid = Math.random().toString(36).slice(2, 8);
     <label class="vro-slabel"><span>Heart's line height b (contractility, afterload) <em data-out="b">3.0</em> L per min <small>(k fixed at 1 L per min per mmHg)</small></span>
       <input type="range" data-in="b" min="0" max="6" step="0.5" value="3" />
     </label>
-    <label class="vro-check"><input type="checkbox" data-in="collapse" id={`vro-col-${uid}`} /> <span>Venous collapse: cap return at its value at Pra = 0 mmHg <small>(an illustrative cap, not a measured threshold)</small></span></label>
+    <label class="vro-check"><input type="checkbox" data-in="collapse" id={`vro-col-${uid}`} /> <span>Venous collapse: flat below −3 mmHg <small>(near the −2 to −4 mmHg seen in Guyton’s open-chest dogs; no human threshold shown)</small></span></label>
     <div class="vro-marks">Set the controls to a row of the lesson’s table:
       <span class="vro-marklist" data-marks></span>
     </div>
@@ -41,9 +43,9 @@ const uid = Math.random().toString(36).slice(2, 8);
   </dl>
   <p class="vro-why" data-why role="status"></p>
 
-  <p class="vro-assume">Illustrative model, not fitted to data. In this sketch (made up for the sketch unless the lesson gives it): steady state, so output equals venous return; the heart's line is Qc = b + k × Pra with the lesson’s k = 1 L per min per mmHg, which the lesson gives only at the positive Pra it uses, so the line is drawn dashed below 0 mmHg; the veins' line is Qvr = (Pms − Pra) / Rvr; the baseline (grey, dashed) is the lesson’s b = 3 L per min, Pms = 7 mmHg and Rvr = 1 mmHg min per L, where 7 mmHg is a dog stop-flow value, not a normal human one; the slider ranges are made up; stressed volume is Pms × the lesson’s 0.2 L per mmHg; the venous collapse cap is a made-up rule (in Guyton’s open-chest dogs return stopped rising near −2 to −4 mmHg, and the lesson shows no human threshold). The lesson’s model ignores reflexes, the waning of a transfusion and the flattening of the heart’s curve at high Pra. Readout arithmetic uses unrounded values.</p>
+  <p class="vro-assume">Illustrative model, not fitted to data. In this sketch (made up for the sketch unless the lesson gives it): steady state, so output equals venous return; the heart's line is Qc = b + k × Pra with the lesson’s k = 1 L per min per mmHg, which the lesson gives only at the positive Pra it uses, so the line is drawn dashed below 0 mmHg; the veins' line is Qvr = (Pms − Pra) / Rvr; the baseline (grey, dashed) is the lesson’s b = 3 L per min, Pms = 7 mmHg and Rvr = 1 mmHg min per L, where 7 mmHg is a dog stop-flow value, not a normal human one; the slider ranges are made up; stressed volume is Pms × the lesson’s 0.2 L per mmHg; the venous collapse option makes the veins’ line flat below −3 mmHg, the middle of the −2 to −4 mmHg where return stopped rising in Guyton’s open-chest dogs (the lesson shows no human threshold). The lesson’s model ignores reflexes, the waning of a transfusion and the flattening of the heart’s line at high Pra. Readout arithmetic uses unrounded values.</p>
 
-  <p class="vro-foot">Rule to keep: the circulation runs where the heart’s line and the veins’ line cross, which fixes both flow and Pra; volume and venous tone move the veins’ line sideways, Rvr rotates it, and the heart moves its own line.</p>
+  <p class="vro-foot">Rule to keep: output and Pra sit where the two lines cross. Ask which line a change moves, then slide along the line that did not move: move the veins’ line (volume, venous tone, Rvr) and output and Pra go the same way; move the heart’s line and they go opposite ways.</p>
 </figure>
 
 <script>
@@ -69,6 +71,7 @@ const uid = Math.random().toString(36).slice(2, 8);
   const BASE = { pms: 7, rvr: 1, b: 3 };
   const K = 1;           // L per min per mmHg, from the lesson
   const COMPLIANCE = 0.2; // L per mmHg, from the lesson
+  const CAP_PRA = -3;     // mmHg, middle of the −2 to −4 mmHg collapse point in Guyton's open-chest dogs
   const ROWS = [
     { label: 'Baseline', name: 'Baseline', pms: 7, rvr: 1, b: 3 },
     { label: 'Transfuse 0.4 L', name: 'Transfuse 0.4 L', pms: 9, rvr: 1, b: 3 },
@@ -84,8 +87,8 @@ const uid = Math.random().toString(36).slice(2, 8);
     let pra = (pms - rvr * b) / (1 + rvr * K);
     let q = b + K * pra;
     let capped = false;
-    if (collapse && pra < 0) {
-      q = pms / rvr;
+    if (collapse && pra < CAP_PRA) {
+      q = (pms - CAP_PRA) / rvr;
       pra = (q - b) / K;
       capped = true;
     }
@@ -110,6 +113,7 @@ const uid = Math.random().toString(36).slice(2, 8);
     const why = must<HTMLElement>(root, '[data-why]');
     const marks = must<HTMLElement>(root, '[data-marks]');
     const clipId = 'vro-clip-' + Math.random().toString(36).slice(2, 8);
+    const arrowId = 'vro-arrow-' + Math.random().toString(36).slice(2, 8);
 
     ROWS.forEach((r) => {
       const btn = document.createElement('button');
@@ -169,6 +173,9 @@ const uid = Math.random().toString(36).slice(2, 8);
       const cp = el('clipPath', { id: clipId });
       cp.appendChild(el('rect', { x: X0, y: Y0 - 2, width: X1 - X0, height: Y1 - Y0 + 2 }));
       defs.appendChild(cp);
+      const mk = el('marker', { id: arrowId, viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+      mk.appendChild(el('path', { d: 'M0 0 L10 5 L0 10 z', fill: DOT }));
+      defs.appendChild(mk);
       plot.appendChild(defs);
 
       // gridlines and axes
@@ -193,7 +200,7 @@ const uid = Math.random().toString(36).slice(2, 8);
       plot.appendChild(g);
       const venous = (x: number, p: number, r: number, cap: boolean) => {
         const v = (p - x) / r;
-        return cap && x < 0 ? Math.min(v, p / r) : v;
+        return cap && x < CAP_PRA ? (p - CAP_PRA) / r : v;
       };
       const venousPath = (p: number, r: number, cap: boolean) => {
         let d = '';
@@ -207,10 +214,18 @@ const uid = Math.random().toString(36).slice(2, 8);
       g.appendChild(el('path', { d: venousPath(BASE.pms, BASE.rvr, false), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
       g.appendChild(el('path', { d: cardPath(BASE.b, XMIN, XMAX), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
 
+      // which line moved from the lesson's baseline; the line that did not move gets a soft halo
+      const eps = 1e-6;
+      const veinsMoved = Math.abs(pms - BASE.pms) > eps || Math.abs(rvr - BASE.rvr) > eps;
+      const heartMoved = Math.abs(b - BASE.b) > eps;
+      const oneMoved = veinsMoved !== heartMoved;
+      if (oneMoved && veinsMoved) g.appendChild(el('path', { d: cardPath(b, XMIN, XMAX), fill: 'none', stroke: ACCENT, 'stroke-width': 8, 'stroke-opacity': 0.22, 'stroke-linecap': 'round' }));
+      if (oneMoved && heartMoved) g.appendChild(el('path', { d: venousPath(pms, rvr, collapse), fill: 'none', stroke: ORANGE, 'stroke-width': 8, 'stroke-opacity': 0.22, 'stroke-linejoin': 'round' }));
+
       // the heart's line: solid at Pra >= 0 (where the lesson gives it), dashed below 0
       g.appendChild(el('path', { d: cardPath(b, XMIN, 0), fill: 'none', stroke: ACCENT, 'stroke-width': 2.4, 'stroke-dasharray': '5 3' }));
       g.appendChild(el('path', { d: cardPath(b, 0, XMAX), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
-      // the veins' line, with the illustrative cap when the toggle is on
+      // the veins' line, flat below −3 mmHg when the collapse toggle is on
       g.appendChild(el('path', { d: venousPath(pms, rvr, collapse), fill: 'none', stroke: ORANGE, 'stroke-width': 2.6 }));
 
       // Pms marker on the axis (zero-flow intercept of the veins' line)
@@ -219,12 +234,28 @@ const uid = Math.random().toString(36).slice(2, 8);
       text(pmsRight ? px(pms) + 6 : px(pms) - 6, Y1 - 3, 'Pms', 9, ORANGE, { 'font-weight': 700, 'text-anchor': pmsRight ? 'start' : 'end' }, true);
 
       // plateau label
-      if (capped) {
-        text(px(0) + 5, py(pms / rvr) - 5, 'illustrative cap', 9, ORANGE, { 'font-weight': 600, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }, true);
+      if (collapse) {
+        text(px(XMIN) + 4, py((pms - CAP_PRA) / rvr) - 5, 'flat: veins collapse', 9, ORANGE, { 'font-weight': 600, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }, true);
       }
 
       // operating point and its label (first free position)
       const ox = px(pra), oy = py(q);
+      // when one line moved: hollow dot at the baseline crossing and an arrow along the unmoved line
+      if (oneMoved) {
+        const bx = px(base.pra), by = py(base.q);
+        const pts: [number, number][] = [[bx, by]];
+        if (heartMoved && capped) pts.push([px(CAP_PRA), py((pms - CAP_PRA) / rvr)]);
+        pts.push([ox, oy]);
+        const [ax, ay] = pts[pts.length - 2];
+        const len = Math.hypot(ox - ax, oy - ay);
+        if (Math.hypot(ox - bx, oy - by) > 14 && len > 8) {
+          const ex = ox - ((ox - ax) / len) * 8, ey = oy - ((oy - ay) / len) * 8;
+          pts[pts.length - 1] = [ex, ey];
+          const d = pts.map((pt, i) => (i ? 'L' : 'M') + pt[0].toFixed(1) + ' ' + pt[1].toFixed(1)).join(' ');
+          plot.appendChild(el('path', { d, fill: 'none', stroke: DOT, 'stroke-width': 1.4, 'marker-end': `url(#${arrowId})` }));
+        }
+        plot.appendChild(el('circle', { cx: bx, cy: by, r: 4.5, fill: '#fff', stroke: DOT, 'stroke-width': 1.5 }));
+      }
       plot.appendChild(el('line', { x1: ox, y1: oy, x2: ox, y2: Y1, stroke: DOT, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
       plot.appendChild(el('line', { x1: X0, y1: oy, x2: ox, y2: oy, stroke: DOT, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
       plot.appendChild(el('circle', { cx: ox, cy: oy, r: 5, fill: DOT, stroke: '#fff', 'stroke-width': 1.5 }));
@@ -256,14 +287,13 @@ const uid = Math.random().toString(36).slice(2, 8);
       rPra.textContent = `${num(pra, 2)} mmHg`;
       rQ.textContent = num(q, 2);
       if (capped) {
-        rVr.textContent = `capped: Pms / Rvr = ${pms.toFixed(1)} / ${rvr.toFixed(1)} = ${num(q, 2)} L per min`;
+        rVr.textContent = `flat part: (Pms − (−3)) / Rvr = (${pms.toFixed(1)} − (−3)) / ${rvr.toFixed(1)} = ${num(q, 2)} L per min`;
       } else {
         rVr.textContent = `(Pms − Pra) / Rvr = (${pms.toFixed(1)} − ${par(pra, 2)}) / ${rvr.toFixed(1)} = ${num(q, 2)} L per min`;
       }
       rHc.textContent = `b + k × Pra = ${b.toFixed(1)} + 1 × ${par(pra, 2)} = ${num(b + K * pra, 2)} L per min`;
 
       // ---- status line, rebuilt from the current state every time ----
-      const eps = 1e-6;
       const dir = (a: number, c: number, up: string, down: string, same: string) => (Math.abs(a - c) < 0.005 ? same : a > c ? up : down);
       const parts: string[] = [];
       parts.push(`In this sketch, the heart’s line and the veins’ line cross at Pra = ${num(pra, 2)} mmHg and flow = ${num(q, 2)} L per min.`);
@@ -280,10 +310,19 @@ const uid = Math.random().toString(36).slice(2, 8);
       if (!(Math.abs(pms - BASE.pms) < eps && Math.abs(rvr - BASE.rvr) < eps && Math.abs(b - BASE.b) < eps)) {
         parts.push(`Compared with the baseline (Pra ${num(base.pra, 2)} mmHg, flow ${num(base.q, 2)} L per min), Pra is ${dir(pra, base.pra, 'higher', 'lower', 'the same')} and flow is ${dir(q, base.q, 'higher', 'lower', 'the same')}.`);
       }
+      if (capped) {
+        parts.push('On the flat part of the veins’ line, flow stays put while Pra moves.');
+      } else if (veinsMoved && !heartMoved) {
+        parts.push('Only the veins’ line moved, so the crossing slid along the unchanged heart’s line (arrow from the hollow baseline dot), which rises: Pra and flow went the same way.');
+      } else if (heartMoved && !veinsMoved) {
+        parts.push('Only the heart’s line moved, so the crossing slid along the unchanged veins’ line (arrow from the hollow baseline dot), which falls: Pra and flow went opposite ways.');
+      } else if (heartMoved && veinsMoved) {
+        parts.push('Both lines moved: work out each shift in turn; where they push a number opposite ways, the larger shift wins.');
+      }
       if (collapse && capped) {
-        parts.push(`The cap is on and reached: at this crossing the straight veins’ line would return more than Pms / Rvr = ${num(pms / rvr, 2)} L per min, so return is held at that value. Without the cap the crossing would sit at Pra = ${num(free.pra, 2)} mmHg and flow = ${num(free.q, 2)} L per min, so the cap leaves both lower. The cap is a made-up value for the sketch; in Guyton’s open-chest dogs return stopped rising near −2 to −4 mmHg, and the lesson shows no human threshold.`);
+        parts.push(`Venous collapse is on and reached: below −3 mmHg the veins’ line is flat at (Pms − (−3)) / Rvr = ${num((pms - CAP_PRA) / rvr, 2)} L per min. Without collapse the crossing would sit at Pra = ${num(free.pra, 2)} mmHg and flow = ${num(free.q, 2)} L per min, so collapse leaves flow lower. The −3 mmHg is the middle of the −2 to −4 mmHg seen in Guyton’s open-chest dogs; the lesson shows no human threshold.`);
       } else if (collapse) {
-        parts.push('The cap is on, but the crossing is at Pra of 0 mmHg or above, where the cap does not apply, so it changes nothing here.');
+        parts.push('Venous collapse is on, but the crossing is at −3 mmHg or above, on the straight part of the veins’ line, so it changes nothing here; the flat part matters only at very low Pra.');
       }
       if (pra < 0) {
         parts.push(`The crossing is at a negative Pra, where the lesson gives the heart’s line only for the positive Pra it uses${collapse ? '' : ' and its model ignores the collapse plateau'}, so treat this part of the sketch as an extension.`);

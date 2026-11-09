@@ -1,32 +1,43 @@
 ---
 /**
  * FluidShiftCompartments — "Where does the litre go?" Conservation of effective osmoles decides
- * how a retained load splits between cells (ICF) and extracellular fluid (ISF + plasma) in a
+ * how a load gained or lost splits between cells (ICF) and extracellular fluid (ISF + plasma) in a
  * closed body at equilibrium. Rule (the lesson's worked problem): start at 300 mOsm per kg;
- * C = (300·TBW + Osm_added) / (TBW + V). A solute that stays outside cells (NaCl): ICF_final =
- * ICF·300/C and ECF_final = TBW + V − ICF_final. A solute treated as entering all body water (urea, in this sketch):
- * every compartment grows in proportion to its share of TBW. Plasma sodium after a NaCl load by
- * sodium balance, (140 × ECF_before + osmoles added / 2) / ECF_after; for urea, the sketch estimate
- * 140 × effective osmolality / 300. Self-contained vanilla-TS Astro island. Original.
+ * C = (300·TBW + Osm_added) / (TBW + V), with V negative for a loss. A solute that stays outside
+ * cells (NaCl): ICF_final = ICF·300/C and ECF_final = TBW + V − ICF_final. The lesson's shortcut is
+ * shown as a readout: isotonic part = Osm_added / 300 (stays in, or comes from, the ECF) and
+ * free-water part = V − isotonic part, shared with cells in the proportion ICF / (TBW + isotonic
+ * part); this reproduces ICF_final exactly. A solute treated as entering all body water (urea, in
+ * this sketch): every compartment changes in proportion to its share of TBW. Plasma sodium after a
+ * NaCl gain by sodium balance, (140 × ECF_before + osmoles added / 2) / ECF_after; for a loss the
+ * lost fluid is taken to carry sodium at 140 × its osmolarity / 300; for urea, the sketch estimate
+ * 140 × effective osmolality / 300. The ECF is drawn as one bar whose after-bar is split ISF
+ * (solid) : plasma (hatched) 3:1 by assumption. Self-contained vanilla-TS Astro island. Original.
  */
 const uid = Math.random().toString(36).slice(2, 8);
 ---
 
 <figure class="fsc card" data-fsc>
-  <figcaption class="fsc-head">Where does the litre go? Compartments after a retained load<span class="fsc-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="fsc-head">Where does the litre go? Compartments after a load gained or lost<span class="fsc-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="fsc-svg" viewBox="0 0 340 228" role="img" aria-label="Paired horizontal bars for intracellular fluid, interstitial fluid and plasma, before and after a retained load, with the change in litres written under each pair" data-plot></svg>
+  <svg class="fsc-svg" viewBox="0 0 340 200" role="img" aria-label="Paired horizontal bars for intracellular fluid and extracellular fluid, before and after a volume is gained or lost, with the change in litres written under each pair. The extracellular after-bar is split into interstitial fluid (solid) and plasma (hatched) by an assumed 3 to 1 ratio, not by the cell-membrane rule." data-plot></svg>
 
   <div class="fsc-controls">
-    <label class="fsc-slabel"><span>Volume retained <em data-out="vol">1.00</em> L</span>
-      <input type="range" data-in="vol" min="0" max="3" step="0.05" value="1" />
-    </label>
+    <div class="fsc-slabel">
+      <label for={`fsc-vol-${uid}`}><span>Volume retained (negative = lost) <em data-out="vol">1.00</em> L</span></label>
+      <input id={`fsc-vol-${uid}`} type="range" data-in="vol" min="-3" max="3" step="0.05" value="1" />
+      <span class="fsc-marks">Losses:
+        <button type="button" class="fsc-mark" data-vol="-2" data-osm="0">pure water loss, −2 L</button>
+        <button type="button" class="fsc-mark" data-vol="-1" data-osm="300" data-mode="nacl">isotonic loss (as plasma), −1 L</button>
+      </span>
+    </div>
 
     <div class="fsc-slabel">
-      <label for={`fsc-osm-${uid}`}><span>Osmolarity of the retained fluid <em data-out="osm">0</em> mOsm per L</span></label>
-      <input id={`fsc-osm-${uid}`} type="range" data-in="osm" min="0" max="900" step="10" value="0" />
+      <label for={`fsc-osm-${uid}`}><span>Osmolarity of the fluid <em data-out="osm">0</em> mOsm per L</span></label>
+      <input id={`fsc-osm-${uid}`} type="range" data-in="osm" min="0" max="900" step="2" value="0" />
       <span class="fsc-marks">Marks:
         <button type="button" class="fsc-mark" data-osm="0">water, 0</button>
+        <button type="button" class="fsc-mark" data-osm="154" data-mode="nacl">half-normal saline, 154</button>
         <button type="button" class="fsc-mark" data-osm="300">isotonic, 300</button>
         <button type="button" class="fsc-mark" data-osm="900">900 (model value)</button>
       </span>
@@ -48,17 +59,19 @@ const uid = Math.random().toString(36).slice(2, 8);
   </div>
 
   <dl class="fsc-readout">
+    <div><dt>Split of the load</dt><dd data-r-split></dd></div>
     <div><dt>ECF (ISF + plasma), before → after</dt><dd data-r-ecf></dd></div>
     <div><dt>Final osmolality, all solutes (mOsm per kg)</dt><dd data-r-osm></dd></div>
     <div><dt>Tonicity, effective osmolality (mOsm per kg)</dt><dd data-r-ton></dd></div>
     <div><dt>Plasma sodium estimate (mmol per L)</dt><dd data-r-na></dd></div>
+    <div><dt>Sodium in the ECF (mmol), before → after</dt><dd data-r-nastock></dd></div>
   </dl>
   <p class="fsc-why" data-why role="status"></p>
 
-  <p class="fsc-assume">In this sketch (all of this is made up for the sketch unless the lesson gives it): start at 300 mOsm per kg, the lesson’s rounded value (measured adult values are about 275 to 295), with plasma sodium 140 mmol per L; a 70-kg body, so total body water is the water fraction × 70 kg (60 percent gives the textbook 42 L; the 0.45 and 0.75 figures are the lesson’s textbook estimates for old age and infants); cells hold about two-thirds of body water; the ECF is about three-quarters ISF and one-quarter plasma (3:1), an added assumption that is also used to split any ECF gain; urea is treated as equilibrating across all water (the lesson works no urea load); 900 mOsm per L is a model value; ideal behaviour, 1 kg of water = 1 L; plasma sodium after a sodium chloride load is found by sodium balance, (140 × ECF before + sodium added) / ECF after, with sodium added = osmoles added / 2 (sodium chloride gives two osmoles per mole), and with urea it is a sketch estimate, 140 × effective osmolality / 300.</p>
+  <p class="fsc-assume">In this sketch (all of this is made up for the sketch unless the lesson gives it): start at 300 mOsm per kg, the lesson’s rounded value (measured adult values are about 275 to 295), with plasma sodium 140 mmol per L; a 70-kg body, so total body water is the water fraction × 70 kg (60 percent gives the textbook 42 L; the 0.45 and 0.75 figures are the lesson’s textbook estimates for old age and infants); cells hold about two-thirds of body water; the ECF is about three-quarters ISF and one-quarter plasma (3:1), an added assumption that is also used to split any ECF change; urea is treated as equilibrating across all water (the lesson works no urea load); 154 mOsm per L is the half-normal saline of the lesson’s question and 900 mOsm per L is a model value; ideal behaviour, 1 kg of water = 1 L; plasma sodium after a sodium chloride gain is found by sodium balance, (140 × ECF before + sodium added) / ECF after, with sodium added = osmoles added / 2 (sodium chloride gives two osmoles per mole); fluid lost is taken to carry sodium at 140 × its osmolarity / 300 mmol per L, like the ECF it leaves; with urea plasma sodium is a sketch estimate, 140 × effective osmolality / 300.</p>
   <p class="fsc-closed">Closed model at equilibrium: no excretion, and cells gain or lose no solute (no cell solute adaptation).</p>
 
-  <p class="fsc-foot">Rule to keep: water crosses cell membranes freely, so each compartment ends up holding water in proportion to its effective osmoles. Only a solute that stays outside cells changes how a load divides between cells and ECF.</p>
+  <p class="fsc-foot">Rule to keep: split any load into an isotonic part, which stays where its solute stays (outside cells for sodium salts), and a free-water part, which all body water shares in proportion to its volumes.</p>
 </figure>
 
 <script>
@@ -76,6 +89,9 @@ const uid = Math.random().toString(36).slice(2, 8);
   }
   const f2 = (x: number) => x.toFixed(2);
   const f1 = (x: number) => x.toFixed(1);
+  const f0 = (x: number) => x.toFixed(0);
+  // signed litres with a true minus sign; tiny values read as 0.00
+  const fs = (x: number) => (Math.abs(x) < 0.005 ? '0.00' : (x < 0 ? '−' : '') + Math.abs(x).toFixed(2));
   const dtxt = (d: number) => (Math.abs(d) < 0.005 ? 'no change' : (d > 0 ? '+' : '−') + Math.abs(d).toFixed(2) + ' L');
 
   document.querySelectorAll<HTMLElement>('[data-fsc]').forEach((root) => {
@@ -87,15 +103,17 @@ const uid = Math.random().toString(36).slice(2, 8);
     const osmOut = must<HTMLElement>(root, '[data-out="osm"]');
     const fracOut = must<HTMLElement>(root, '[data-out="frac"]');
     const tbwOut = must<HTMLElement>(root, '[data-tbw]');
+    const rSplit = must<HTMLElement>(root, '[data-r-split]');
     const rEcf = must<HTMLElement>(root, '[data-r-ecf]');
     const rOsm = must<HTMLElement>(root, '[data-r-osm]');
     const rTon = must<HTMLElement>(root, '[data-r-ton]');
     const rNa = must<HTMLElement>(root, '[data-r-na]');
+    const rNaStock = must<HTMLElement>(root, '[data-r-nastock]');
     const why = must<HTMLElement>(root, '[data-why]');
     const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
+    const hatchId = 'fsc-hatch-' + Math.random().toString(36).slice(2, 8);
 
     const BX0 = 64, BW = 162, RX = 232; // bar region and right-hand value column (viewBox units)
-    const ROW0 = 6, ROWH = 52;
 
     function text(x: number, y: number, s: string, size: number, fill: string, extra: Record<string, string | number> = {}) {
       const t = el('text', Object.assign({ x, y, 'font-size': size, fill }, extra));
@@ -114,7 +132,7 @@ const uid = Math.random().toString(36).slice(2, 8);
       const icf = (2 / 3) * tbw, ecf = tbw / 3;
       const isf = 0.75 * ecf, pl = 0.25 * ecf;
 
-      // closed model: effective-osmole conservation
+      // closed model: effective-osmole conservation (V < 0 is a loss)
       const osmAdded = osm * V;
       const C = (300 * tbw + osmAdded) / (tbw + V);            // final osmolality, all solutes
       let icf1: number, ecf1: number, Ceff: number;
@@ -129,37 +147,63 @@ const uid = Math.random().toString(36).slice(2, 8);
       }
       const dI = icf1 - icf, dE = ecf1 - ecf, dP = dE / 4, dS = dE - dP;
       const isf1 = isf + dS, pl1 = pl + dP;
-      const na = urea && osm > 0 ? 140 * Ceff / 300 : (140 * ecf + osmAdded / 2) / ecf1;
+
+      // the lesson's shortcut: isotonic part + free-water part (equals dI exactly)
+      const isoL = osmAdded / 300, freeL = V - isoL;
+      const cellShare = icf / (tbw + isoL);
+
+      // sodium: a gain of NaCl adds osmoles / 2; a loss carries ECF-like sodium, 140 × osm / 300 per L
+      const naStock0 = 140 * ecf;
+      const naAdded = urea && osm > 0 ? 0 : (V >= 0 ? osmAdded / 2 : 140 * osmAdded / 300);
+      const naStock1 = naStock0 + naAdded;
+      const na = urea && osm > 0 ? 140 * Ceff / 300 : naStock1 / ecf1;
       const naWord = na > 140.05 ? 'rises to' : (na < 139.95 ? 'falls to' : 'stays near');
 
-      volOut.textContent = f2(V);
+      volOut.textContent = fs(V);
       osmOut.textContent = String(osm);
       fracOut.textContent = f2(frac);
       tbwOut.textContent = `Total body water ${f2(frac)} × ${mass} kg = ${f1(tbw)} L: ICF ${f1(icf)} L, ECF ${f1(ecf)} L.`;
 
-      // ---- plot ----
+      // ---- plot: two primary rows, ICF and ECF ----
       plot.replaceChildren();
-      const maxv = Math.max(icf, icf1);
+      const defs = el('defs', {});
+      const pat = el('pattern', { id: hatchId, patternUnits: 'userSpaceOnUse', width: 4, height: 4, patternTransform: 'rotate(45)' });
+      pat.appendChild(el('rect', { x: 0, y: 0, width: 4, height: 4, fill: '#fbe3cf' }));
+      pat.appendChild(el('line', { x1: 0, y1: 0, x2: 0, y2: 4, stroke: PLASMA, 'stroke-width': 2 }));
+      defs.appendChild(pat);
+      plot.appendChild(defs);
+
+      const maxv = Math.max(icf, icf1, ecf, ecf1);
       const nice = Math.max(5, Math.ceil(maxv / 5) * 5);
       const x = (v: number) => BX0 + (v / nice) * BW;
-      const rows = [
-        { name: 'ICF', sub: 'in cells', b: icf, a: icf1, d: dI, col: ACCENT },
-        { name: 'ISF', sub: 'bathes cells', b: isf, a: isf1, d: dS, col: ISFC },
-        { name: 'Plasma', sub: 'of blood', b: pl, a: pl1, d: dP, col: PLASMA },
-      ];
-      rows.forEach((r, i) => {
-        const y0 = ROW0 + i * ROWH;
-        text(4, y0 + 11, r.name, 10, INK, { 'font-weight': 700 });
-        text(4, y0 + 23, r.sub, 9, INK);
-        plot.appendChild(el('rect', { x: BX0, y: y0, width: Math.max(0.5, x(r.b) - BX0), height: 12, fill: BEFORE }));
-        plot.appendChild(el('rect', { x: BX0, y: y0 + 15, width: Math.max(0.5, x(r.a) - BX0), height: 12, fill: r.col }));
-        plot.appendChild(el('line', { x1: x(r.b), y1: y0 - 2, x2: x(r.b), y2: y0 + 29, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
-        text(RX, y0 + 10, `before ${f2(r.b)} L`, 9, INK);
-        text(RX, y0 + 25, `after ${f2(r.a)} L`, 9, INK, { 'font-weight': 700 });
-        text(BX0, y0 + 40, dtxt(r.d), 9, r.d >= 0.005 ? ACCENT : (r.d <= -0.005 ? PLASMA : INK), { 'font-weight': 700 });
-      });
+      const w = (v: number) => Math.max(0.5, (v / nice) * BW);
+
+      function rowFrame(y0: number, name: string, sub: string, b: number, a: number, d: number) {
+        text(4, y0 + 11, name, 10, INK, { 'font-weight': 700 });
+        text(4, y0 + 23, sub, 9, INK);
+        plot.appendChild(el('rect', { x: BX0, y: y0, width: w(b), height: 12, fill: BEFORE }));
+        plot.appendChild(el('line', { x1: x(b), y1: y0 - 2, x2: x(b), y2: y0 + 29, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+        text(RX, y0 + 10, `before ${f2(b)} L`, 9, INK);
+        text(RX, y0 + 25, `after ${f2(a)} L`, 9, INK, { 'font-weight': 700 });
+        text(BX0, y0 + 40, dtxt(d), 9, d >= 0.005 ? ACCENT : (d <= -0.005 ? PLASMA : INK), { 'font-weight': 700 });
+      }
+
+      // ICF row
+      const Y1 = 6;
+      plot.appendChild(el('rect', { x: BX0, y: Y1 + 15, width: w(icf1), height: 12, fill: ACCENT }));
+      rowFrame(Y1, 'ICF', 'in cells', icf, icf1, dI);
+
+      // ECF row: after-bar is ISF (solid) then plasma (hatched), split 3:1 by assumption
+      const Y2 = 60;
+      plot.appendChild(el('rect', { x: BX0, y: Y2 + 15, width: w(isf1), height: 12, fill: ISFC }));
+      plot.appendChild(el('rect', { x: x(isf1), y: Y2 + 15, width: w(pl1), height: 12, fill: `url(#${hatchId})`, stroke: PLASMA, 'stroke-width': 0.75 }));
+      rowFrame(Y2, 'ECF', 'outside cells', ecf, ecf1, dE);
+      text(RX, Y2 + 38, `ISF ${f2(isf1)} L`, 8, ISFC);
+      text(RX, Y2 + 48, `plasma ${f2(pl1)} L`, 8, PLASMA);
+      text(4, Y2 + 60, 'ISF : plasma split 3:1 by assumption, not by this rule', 8, INK, { 'font-style': 'italic' });
+
       // axis
-      const AY = ROW0 + 3 * ROWH + 2;
+      const AY = Y2 + 68;
       plot.appendChild(el('line', { x1: BX0, y1: AY, x2: BX0 + BW, y2: AY, stroke: INK, 'stroke-width': 1 }));
       [0, nice / 2, nice].forEach((v) => {
         plot.appendChild(el('line', { x1: x(v), y1: AY, x2: x(v), y2: AY + 3, stroke: INK, 'stroke-width': 1 }));
@@ -167,48 +211,66 @@ const uid = Math.random().toString(36).slice(2, 8);
       });
       text(RX + 8, AY + 13, 'litres', 9, INK);
       // legend
-      const LY = AY + 28;
+      const LY = AY + 30;
       plot.appendChild(el('rect', { x: 4, y: LY - 8, width: 12, height: 9, fill: BEFORE }));
       text(20, LY, 'before', 9, INK);
       plot.appendChild(el('line', { x1: 78, y1: LY - 10, x2: 78, y2: LY + 2, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
       text(84, LY, 'level before', 9, INK);
-      [ACCENT, ISFC, PLASMA].forEach((c, k) => plot.appendChild(el('rect', { x: 4 + k * 5, y: LY + 6, width: 5, height: 9, fill: c })));
-      text(24, LY + 14, 'after (colour by compartment)', 9, INK);
+      const L2 = LY + 15;
+      text(4, L2, 'after:', 9, INK);
+      plot.appendChild(el('rect', { x: 34, y: L2 - 8, width: 12, height: 9, fill: ACCENT }));
+      text(50, L2, 'ICF', 9, INK);
+      plot.appendChild(el('rect', { x: 74, y: L2 - 8, width: 12, height: 9, fill: ISFC }));
+      text(90, L2, 'ISF', 9, INK);
+      plot.appendChild(el('rect', { x: 112, y: L2 - 8, width: 12, height: 9, fill: `url(#${hatchId})`, stroke: PLASMA, 'stroke-width': 0.75 }));
+      text(128, L2, 'plasma (hatched)', 9, INK);
 
       // ---- readouts ----
+      rSplit.textContent = urea && osm > 0
+        ? 'all of it behaves as free water'
+        : `isotonic part ${fs(isoL)} L (${V < 0 ? 'from' : 'stays in'} ECF) + free water ${fs(freeL)} L (cells take ${Math.round(cellShare * 100)}%)`;
       rEcf.textContent = `${f2(ecf)} → ${f2(ecf1)} L`;
       rOsm.textContent = `300.0 → ${f1(C)}`;
       rTon.textContent = `300.0 → ${f1(Ceff)}`;
       rNa.textContent = `140.0 → ${f1(na)}`;
+      rNaStock.textContent = `${f0(naStock0)} → ${f0(naStock1)}`;
 
       // ---- status line: one sentence set per reachable state ----
       const total = `Cells plus ECF now hold ${f2(icf1 + ecf1)} L.`;
+      const split = `Split: ${fs(isoL)} L isotonic, ${fs(freeL)} L free water.`;
       let s: string;
       const none = '(the solute choice matters only when solute is added)';
       const tiny = Math.abs(dI) < 0.005;
-      if (V < 0.005) {
-        s = `In this sketch, nothing is retained, so every compartment stays at its starting volume, osmolality stays at 300 mOsm per kg and plasma sodium at 140 mmol per L ${none}.`;
+      if (Math.abs(V) < 0.005) {
+        s = `In this sketch, nothing is retained or lost, so every compartment stays at its starting volume, osmolality stays at 300 mOsm per kg and plasma sodium at 140 mmol per L ${none}.`;
+      } else if (V < 0 && urea && osm > 0) {
+        s = `In this sketch, losing ${f2(-V)} L of fluid whose solute is treated as urea: urea is not an effective solute, so the loss is shared by all body water in proportion to its volumes, like pure water (ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)}). Osmolality ends at ${f1(C)} and tonicity at ${f1(Ceff)} mOsm per kg, and the plasma sodium estimate is ${f1(na)} mmol per L. ${total}`;
+      } else if (V < 0) {
+        const bleed = osm === 300 ? ' Acute bleeding also removes red cells with their own water; the model treats the loss as ECF.' : '';
+        s = `In this sketch, losing ${f2(-V)} L at ${osm} mOsm per L: the isotonic part (${fs(isoL)} L) comes only from the ECF; the free-water part (${fs(freeL)} L) is shared by all body water, cells taking ${Math.round(cellShare * 100)} percent. ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)}. Final osmolality is ${f1(C)} mOsm per kg and the plasma sodium estimate ${naWord} ${f1(na)} mmol per L.${bleed} ${total}`;
       } else if (osm === 0) {
-        s = `In this sketch, ${f2(V)} L of solute-free water spreads through all body water ${none}; as in the textbook model, about two-thirds goes to cells (ICF: ${dtxt(dI)}) and about one-third to ECF (ECF: ${dtxt(dE)}, of which plasma gains only ${f2(dP)} L). Final osmolality falls to ${f1(C)} mOsm per kg and the plasma sodium estimate to ${f1(na)} mmol per L. ${total}`;
+        s = `In this sketch, ${f2(V)} L of solute-free water spreads through all body water ${none}; as in the textbook model, about two-thirds goes to cells (ICF: ${dtxt(dI)}) and about one-third to ECF (ECF: ${dtxt(dE)}, of which plasma gains only ${f2(dP)} L). Final osmolality falls to ${f1(C)} mOsm per kg and the plasma sodium estimate to ${f1(na)} mmol per L. The ECF still holds the same sodium; only the water per sodium rose. ${total}`;
       } else if (urea) {
         s = `In this sketch, urea crosses most cell membranes, so it is treated as entering all body water along with the water; its osmoles count toward osmolality without moving water out of cells. Osmolality ends at ${f1(C)} and tonicity at ${f1(Ceff)} mOsm per kg, and each compartment gains in proportion to its share of body water (ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)}), the same split as solute-free water. The plasma sodium estimate is ${f1(na)} mmol per L. ${total}`;
       } else if (osm === 300) {
-        s = `In this sketch, a load at the body’s own 300 mOsm per kg adds osmoles in proportion to its water, so osmolality stays at 300.0 mOsm per kg, ICF does not change and all ${f2(V)} L stays outside cells (ECF: ${dtxt(dE)}, split 3:1 ISF to plasma by assumption). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L, because the load adds ${f1(osm / 2)} mmol of sodium per litre. ${total}`;
+        s = `In this sketch, a load at the body’s own 300 mOsm per kg adds osmoles in proportion to its water, so osmolality stays at 300.0 mOsm per kg, ICF does not change and all ${f2(V)} L stays outside cells (ECF: ${dtxt(dE)}, split 3:1 ISF to plasma by assumption). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L, because the load adds ${f1(osm / 2)} mmol of sodium per litre. ${split} ${total}`;
       } else if (tiny) {
-        s = `In this sketch, this sodium chloride load is so close to 300 mOsm per kg that the change in ICF is under 0.005 L (ICF: no change, ECF: ${dtxt(dE)}); final osmolality is ${f1(C)} mOsm per kg and the plasma sodium estimate by sodium balance ${f1(na)} mmol per L. ${total}`;
+        s = `In this sketch, this sodium chloride load is so close to 300 mOsm per kg that the change in ICF is under 0.005 L (ICF: no change, ECF: ${dtxt(dE)}); final osmolality is ${f1(C)} mOsm per kg and the plasma sodium estimate by sodium balance ${f1(na)} mmol per L. ${split} ${total}`;
       } else if (osm < 300) {
-        s = `In this sketch, the sodium chloride load is less concentrated than the body’s 300 mOsm per kg, so final osmolality falls to ${f1(C)} mOsm per kg and water enters cells until osmolality is equal again: ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)} (less than the ${f2(V)} L retained). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L. ${total}`;
+        s = `In this sketch, the sodium chloride load is less concentrated than the body’s 300 mOsm per kg, so final osmolality falls to ${f1(C)} mOsm per kg and water enters cells until osmolality is equal again: ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)} (less than the ${f2(V)} L retained). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L. ${split} ${total}`;
       } else {
-        s = `In this sketch, the added sodium chloride stays outside cells and raises extracellular osmolality, so final osmolality rises to ${f1(C)} mOsm per kg and water leaves cells until osmolality is equal again: ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)} (more than the ${f2(V)} L retained). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L. Splitting the ECF gain between plasma and ISF needs an added assumption, 3:1 here. ${total}`;
+        s = `In this sketch, the added sodium chloride stays outside cells and raises extracellular osmolality, so final osmolality rises to ${f1(C)} mOsm per kg and water leaves cells until osmolality is equal again: ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)} (more than the ${f2(V)} L retained). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L. Splitting the ECF gain between plasma and ISF needs an added assumption, 3:1 here. ${split} ${total}`;
       }
       why.textContent = s;
     }
 
     [volIn, osmIn, fracIn].forEach((c) => c.addEventListener('input', render));
     radios.forEach((r) => r.addEventListener('change', render));
-    root.querySelectorAll<HTMLButtonElement>('[data-osm]').forEach((b) => {
+    root.querySelectorAll<HTMLButtonElement>('.fsc-mark').forEach((b) => {
       b.addEventListener('click', () => {
-        osmIn.value = b.dataset.osm ?? '0';
+        if (b.dataset.vol !== undefined) volIn.value = b.dataset.vol;
+        if (b.dataset.osm !== undefined) osmIn.value = b.dataset.osm;
+        if (b.dataset.mode !== undefined) radios.forEach((r) => { r.checked = r.value === b.dataset.mode; });
         render();
       });
     });

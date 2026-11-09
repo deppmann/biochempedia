@@ -17,7 +17,7 @@
   <svg class="hc-svg" viewBox="0 0 340 236" role="img" aria-label="A line plot of the percentage of cells with a working target against days after a block. The solid curve is the chosen block: an irreversible block rises in a straight line to 100 percent at one cell lifespan, a reversible block rises quickly as the inhibitor clears. A dashed curve shows the other kind of block for comparison." data-plot></svg>
 
   <div class="hc-controls">
-    <label class="hc-slabel"><span><span data-life-name>Platelet</span> lifespan L <em data-out="life">8</em> days <small data-life-note>(made up for this sketch; the lesson gives none)</small></span>
+    <label class="hc-slabel"><span><span data-life-name>Platelet</span> lifespan L <em data-out="life">8</em> days <small data-life-note>(the lesson says about a week)</small></span>
       <input type="range" data-in="life" min="5" max="12" step="1" value="8" />
     </label>
     <label class="hc-slabel"><span>Fraction blocked at time zero, b <em data-out="b">100</em> %</span>
@@ -28,7 +28,7 @@
       <label class="hc-opt"><input type="radio" name="hc-mode" data-mode value="irrev" checked /> irreversible, covalent <small><span data-irrev-note>(aspirin on COX-1; clopidogrel’s active metabolite on P2Y12)</span></small></label>
       <label class="hc-opt"><input type="radio" name="hc-mode" data-mode value="rev" /> reversible, fades as the inhibitor clears <small>(half-life 12 h, made up for this sketch)</small></label>
     </fieldset>
-    <label class="hc-opt hc-swap"><input type="checkbox" data-in="rbc" /> Swap platelets for red cells <small>(120 days, the lesson’s average)</small></label>
+    <label class="hc-opt hc-swap"><input type="checkbox" data-in="rbc" /> Swap platelets for red cells (120 days, the lesson’s average) <small>the same rule on the lesson’s longer clock: a cell that cannot rebuild what it lost</small></label>
   </div>
 
   <dl class="hc-readout">
@@ -39,9 +39,9 @@
 
   <p class="hc-why" data-why role="status"></p>
 
-  <p class="hc-assume">In this sketch: steady state, constant production, cells removed at a fixed lifespan so their ages are spread evenly, and no drug left to block new cells. Made up for the sketch: the platelet lifespans, the blocked fractions and the 12-hour half-life. <span data-target-note>“Target” means COX-1 for aspirin and the P2Y12 receptor for clopidogrel.</span> The 120-day red cell figure is the lesson’s average, and the lesson notes that red cell survival varies between people. The straight-line and 12-hour half-life curves are this sketch’s own rules, not data.</p>
+  <p class="hc-assume">In this sketch: steady state, constant production, cells removed at a fixed lifespan so their ages are spread evenly, and no drug left to block new cells. The lesson gives platelets about a week; the 5 to 12 day slider brackets that. Made up for the sketch: the blocked fractions and the 12-hour half-life. <span data-target-note>“Target” means COX-1 for aspirin and the P2Y12 receptor for clopidogrel.</span> The 120-day red cell figure is the lesson’s average, and the lesson notes that red cell survival varies between people. The straight-line and 12-hour half-life curves are this sketch’s own rules, not data.</p>
 
-  <p class="hc-foot">Rule to keep: a platelet has no nucleus and makes little protein, so an irreversible block lasts its life and function returns only as new platelets arrive; a reversible block fades as the inhibitor clears. A model of recovery of a blocked target (an enzyme or a receptor), not of bleeding; how many working platelets are enough is not shown.</p>
+  <p class="hc-foot">Rule to keep: a platelet has no nucleus and makes little protein, so an irreversible block lasts its life and function returns only as new platelets arrive; a reversible block fades as the inhibitor clears. A model of recovery of a blocked target (an enzyme or a receptor), not of bleeding; how many working platelets are enough is not shown. A recovery curve for one target in one cell type: it does not say how few working platelets a plug can be built on, which depends on the burst on their surface.</p>
 </figure>
 
 <script>
@@ -103,9 +103,9 @@
       if (lifeLabel) lifeLabel.classList.toggle('hc-off', rbc);
       lifeOut.textContent = String(L);
       lifeName.textContent = rbc ? 'Red cell' : 'Platelet';
-      irrevNote.textContent = rbc ? '(made-up target)' : '(aspirin on COX-1; clopidogrel’s active metabolite on P2Y12)';
-      targetNote.textContent = rbc ? '“Target” in red cells is made up for the sketch; the lesson names none.' : '“Target” means COX-1 for aspirin and the P2Y12 receptor for clopidogrel.';
-      lifeNote.textContent = rbc ? '(fixed while red cells are selected: the lesson’s average, which varies)' : '(made up for this sketch; the lesson gives none)';
+      irrevNote.textContent = rbc ? '(a cell that cannot rebuild what it lost)' : '(aspirin on COX-1; clopidogrel’s active metabolite on P2Y12)';
+      targetNote.textContent = rbc ? 'For red cells this is any capacity the cell cannot rebuild, on the 120-day clock the lesson computes.' : '“Target” means COX-1 for aspirin and the P2Y12 receptor for clopidogrel.';
+      lifeNote.textContent = rbc ? '(fixed while red cells are selected: the lesson’s average, which varies)' : '(the lesson says about a week)';
       bOut.textContent = String(Math.round(b * 100));
 
       const tHalf = rev ? HALF_LIFE_DAYS : L / 2;
@@ -176,9 +176,9 @@
       const bPct = Math.round(b * 100);
       let s: string;
       if (rev) {
-        s = `In this sketch, ${bPct} % of ${cell} are blocked at time zero, but the block is not covalent: it fades as the inhibitor clears, so half of the lost function is back by day ${fmt(HALF_LIFE_DAYS)} and 95 % by about day ${fmt(t95)}. The lifespan plays no part in this rule, so it matters only to the dashed irreversible curve, which needs ${fmt(L)} days to finish${rbc ? ' (on a 140-day axis the 12-hour rise looks almost vertical)' : ''}.${rbc ? ' In this sketch the target is made up; the lesson names none for red cells.' : ''}`;
+        s = `In this sketch, ${bPct} % of ${cell} are blocked at time zero, but the block is not covalent: it fades as the inhibitor clears, so half of the lost function is back by day ${fmt(HALF_LIFE_DAYS)} and 95 % by about day ${fmt(t95)}. The lifespan plays no part in this rule, so it matters only to the dashed irreversible curve, which needs ${fmt(L)} days to finish${rbc ? ' (on a 140-day axis the 12-hour rise looks almost vertical)' : ''}.`;
       } else if (rbc) {
-        s = `In this sketch, if ${bPct} % of red cells were blocked for good and could not rebuild the target (an assumption; the lesson does not say so), function would return only as new cells replace them: half by day ${fmt(L / 2)} and all by day ${L}, the lesson’s average lifespan, which varies between people. By day 14 only ${fmt((14 / L) * 100)} % of the lost function would be back. In this sketch the target is made up; the lesson names none for red cells.`;
+        s = `In this sketch, if ${bPct} % of red cells were blocked for good and could not rebuild what they lost, function would return only as new cells replace them: half by day ${fmt(L / 2)} and all by day ${L}, the lesson’s average lifespan, which varies between people. By day 14 only ${fmt((14 / L) * 100)} % of the lost function would be back. The lesson’s own turnover figure, about 2.4 million new cells a second, is this same straight line read as a rate.`;
       } else if (b >= 1) {
         s = `In this sketch, every platelet is blocked at time zero, so no working target is left. A platelet has no nucleus and makes little protein, so the block lasts its life, and function returns only as new platelets arrive: half by day ${fmt(L / 2)} and all by day ${L}.`;
       } else {

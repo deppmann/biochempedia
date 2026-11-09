@@ -4,22 +4,29 @@
  * worked problem: a skeletal-muscle bed (arteries 4, arterioles 24, capillaries 6, venules and
  * veins 6 mmHg min per L, total 40) and all other beds together (24) fed side by side from the
  * aorta and draining to the right atrium (3 mmHg). Controls: muscle arteriolar radius (Poiseuille
- * scaling for the arterioles only, R = 24 / r^4), cardiac output, and a multiplier on the other
- * beds' resistance. Computes R_muscle, 1/TPR = 1/R_muscle + 1/R_other, MAP = CO x TPR + 3,
- * Q_bed = (MAP - 3) / R_bed and each muscle segment's drop = Q_muscle x R_segment. Lumped,
- * illustrative numbers, no reflexes. Self-contained vanilla-TS Astro island. Original.
+ * scaling for the arterioles only, R = 24 / r^4), a multiplier on the feeding arteries, capillaries
+ * and veins (R = 16 x feed), cardiac output, a multiplier on the other beds' resistance, and a
+ * "Hold MAP" box that stands in for the reflexes by setting CO = 90 / TPR (MAP 93). Presets: rest,
+ * and the lesson's exercise step (feed 0.25, r 1.57: bed 4 + 3.95 = 7.95, about 8; undefended MAP
+ * 38.8, about 39; defended CO 15.1, about 15; muscle share 75 percent). Computes R_muscle,
+ * 1/TPR = 1/R_muscle + 1/R_other, MAP = CO x TPR + 3, Q_bed = (MAP - 3) / R_bed and each muscle
+ * segment's drop = Q_muscle x R_segment. Lumped, illustrative numbers, no reflexes unless the box
+ * is ticked. Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
 <figure class="rn card" data-rn>
   <figcaption class="rn-head">Two beds in parallel<span class="rn-chip">⚙ original · interactive</span></figcaption>
-  <p class="rn-tag">Lumped, illustrative numbers, no reflexes.</p>
+  <p class="rn-tag">Lumped, illustrative numbers, no reflexes unless Hold MAP is ticked.</p>
 
-  <svg class="rn-svg" viewBox="0 0 340 322" role="img" aria-label="A labelled schematic of two vascular beds in parallel between the arterial side and the right atrium. The muscle bed is a chain of arteries, arterioles, capillaries and venules and veins; the other beds are one lumped block. Below it are bars of the flow to each bed and a stacked bar of the pressure drop along the muscle bed." data-plot></svg>
+  <svg class="rn-svg" viewBox="0 0 340 330" role="img" aria-label="A labelled schematic of two vascular beds in parallel between the arterial side and the right atrium. The muscle bed is a chain of arteries, arterioles, capillaries and venules and veins; the other beds are one lumped block. Below it are bars of the flow to each bed and a stacked bar of the pressure drop along the muscle bed on a fixed 0 to 150 mmHg scale." data-plot></svg>
 
   <div class="rn-controls">
     <label class="rn-slabel"><span>Muscle arteriolar radius <em data-out="r">×1.00</em> <small>(resting = ×1.00)</small></span>
-      <input type="range" data-in="r" min="0.7" max="1.6" step="0.05" value="1" />
+      <input type="range" data-in="r" min="0.7" max="1.6" step="0.01" value="1" />
+    </label>
+    <label class="rn-slabel"><span>Feeding arteries, capillary recruitment and veins <em data-out="feed">×1.00</em> <small>(×1.00 = 4 + 6 + 6 = 16)</small></span>
+      <input type="range" data-in="feed" min="0.25" max="1" step="0.05" value="1" />
     </label>
     <label class="rn-slabel"><span>Cardiac output <em data-out="co">6.0</em> L per min <small>(worked problem: 6.0)</small></span>
       <input type="range" data-in="co" min="4" max="15" step="0.5" value="6" />
@@ -27,6 +34,11 @@
     <label class="rn-slabel"><span>Resistance of the other beds <em data-out="k">×1.00</em> <small>(×1.00 = 24; constriction raises it)</small></span>
       <input type="range" data-in="k" min="1" max="2" step="0.05" value="1" />
     </label>
+    <label class="rn-check"><input type="checkbox" data-in="hold" /> <span>Hold MAP at the worked problem’s 93 mmHg (stands in for the reflexes, by raising cardiac output)</span></label>
+  </div>
+  <div class="rn-presets" role="group" aria-label="Set the sketch to a case from the lesson">
+    <button type="button" class="rn-btn" data-preset="rest">Rest</button>
+    <button type="button" class="rn-btn" data-preset="ex">Lesson’s exercise step: muscle bed 8</button>
   </div>
 
   <dl class="rn-readout">
@@ -36,10 +48,11 @@
     <div><dt>Mean arterial pressure, MAP</dt><dd><b data-v="map"></b><span data-a="map"></span></dd></div>
     <div><dt>Flow to the muscle bed</dt><dd><b data-v="qm"></b><span data-a="qm"></span></dd></div>
     <div><dt>Flow to the other beds</dt><dd><b data-v="qo"></b><span data-a="qo"></span></dd></div>
+    <div><dt>Muscle share of cardiac output</dt><dd><b data-v="pm"></b><span data-a="pm"></span></dd></div>
   </dl>
   <div class="rn-why" data-why role="status"></div>
 
-  <p class="rn-assume">In this sketch: steady state, lumped resistances, starting values from the lesson’s worked problem (adult human at rest), right atrial pressure 3 mmHg, and no reflexes, so nothing changes cardiac output or the other beds when pressure changes. Resistances are in mmHg min per L. The worked problem’s made-up round numbers: the muscle bed has arteries 4, arterioles 24, capillaries 6 and venules and veins 6 (total 40), all other beds together are 24, and cardiac output is 6.0 L per min. Poiseuille scaling (R proportional to 1/r⁴) is applied to the muscle arterioles only; the lesson says it holds only approximately in vivo. At the starting setting this sketch gives MAP 93.0 mmHg, where the lesson’s 93.3 comes from the one-third rule with the driving pressure rounded to 90. Made up for the sketch: the slider ranges (radius 0.7 to 1.6 times resting, cardiac output 4 to 15 L per min, other beds 1 to 2 times 24), and that “constricting the other beds” simply multiplies their 24. The lesson’s exercise step lowers the muscle bed to 8 by dilating arterioles and feeding arteries and recruiting capillaries; here only the arterioles change, so the muscle bed cannot go below about 20. Arteriole block height follows radius; all drawings are schematic, not to scale.</p>
+  <p class="rn-assume">In this sketch: steady state, lumped resistances, starting values from the lesson’s worked problem (adult human at rest), right atrial pressure 3 mmHg, and no reflexes, so nothing changes cardiac output or the other beds when pressure changes; ticking “Hold MAP” stands in for the reflexes by setting cardiac output to 90 / TPR (real reflexes also constrict other beds). Resistances are in mmHg min per L. The worked problem’s made-up round numbers: the muscle bed has arteries 4, arterioles 24, capillaries 6 and venules and veins 6 (total 40), all other beds together are 24, and cardiac output is 6.0 L per min. Poiseuille scaling (R proportional to 1/r⁴) is applied to the muscle arterioles only; the lesson says it holds only approximately in vivo. At the starting setting this sketch gives MAP 93.0 mmHg, where the lesson’s 93.3 comes from the one-third rule with the driving pressure rounded to 90. Made up for the sketch: the slider ranges (radius 0.7 to 1.6 times resting, feeding arteries, capillaries and veins 0.25 to 1 times 16, cardiac output 4 to 15 L per min unless MAP is held, other beds 1 to 2 times 24), and that “constricting the other beds” simply multiplies their 24. The lesson’s exercise step lowers the muscle bed to 8 by dilating arterioles and feeding arteries and recruiting capillaries. Here the second slider scales the arteries, capillaries and veins together, an even split made up for the sketch; the exercise-step button sets it to 0.25 and the arteriole radius to 1.57, giving 4 + 24 / 1.57⁴ = 4 + 3.95 = 7.95, about 8. Arteriole block height follows radius; all drawings are schematic, not to scale.</p>
   <p class="rn-foot">Rule to keep: parallel beds share one driving pressure, MAP − 3 mmHg, so every widened parallel path lowers TPR; within the muscle bed the segments are in series with the same flow, so each segment’s share of the pressure drop equals its share of the resistance.</p>
 </figure>
 
@@ -56,7 +69,6 @@
 
   // ---- the lesson's worked-problem numbers (made-up round numbers, adult human at rest) ----
   const R_ART = 4, R_ARL0 = 24, R_CAP = 6, R_VEN = 6, R_OTHER0 = 24, PRA = 3, CO0 = 6;
-  const R_MUSCLE0 = R_ART + R_ARL0 + R_CAP + R_VEN; // 40
   const MAP_WORKED = 93; // lesson: "about 93"
 
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
@@ -71,10 +83,13 @@
     const rIn = root.querySelector<HTMLInputElement>('[data-in="r"]');
     const coIn = root.querySelector<HTMLInputElement>('[data-in="co"]');
     const kIn = root.querySelector<HTMLInputElement>('[data-in="k"]');
+    const feedIn = root.querySelector<HTMLInputElement>('[data-in="feed"]');
+    const holdIn = root.querySelector<HTMLInputElement>('[data-in="hold"]');
+    const feedOut = root.querySelector<HTMLElement>('[data-out="feed"]');
     const rOut = root.querySelector<HTMLElement>('[data-out="r"]');
     const coOut = root.querySelector<HTMLElement>('[data-out="co"]');
     const kOut = root.querySelector<HTMLElement>('[data-out="k"]');
-    if (!plot || !why || !rIn || !coIn || !kIn || !rOut || !coOut || !kOut) return;
+    if (!plot || !why || !rIn || !coIn || !kIn || !feedIn || !holdIn || !rOut || !coOut || !kOut || !feedOut) return;
 
     const V = (n: string): HTMLElement | null => root.querySelector<HTMLElement>(`[data-v="${n}"]`);
     const A = (n: string): HTMLElement | null => root.querySelector<HTMLElement>(`[data-a="${n}"]`);
@@ -102,37 +117,48 @@
 
     function render() {
       const r = parseFloat(rIn!.value);
-      const co = parseFloat(coIn!.value);
+      const feed = parseFloat(feedIn!.value);
       const k = parseFloat(kIn!.value);
+      const hold = holdIn!.checked;
       rOut!.textContent = '×' + f2(r);
-      coOut!.textContent = f1(co);
+      feedOut!.textContent = '×' + f2(feed);
       kOut!.textContent = '×' + f2(k);
 
       // ---- the model ----
       const rArl = R_ARL0 / Math.pow(r, 4);
-      const rMuscle = R_ART + rArl + R_CAP + R_VEN;
+      const rFeed = (R_ART + R_CAP + R_VEN) * feed; // 16 x feed
+      const rMuscle = rFeed + rArl;
       const rOther = R_OTHER0 * k;
       const tpr = 1 / (1 / rMuscle + 1 / rOther);
+      // "Hold MAP" stands in for the reflexes: output rises (or falls) until MAP = 93
+      const co = hold ? (MAP_WORKED - PRA) / tpr : parseFloat(coIn!.value);
+      coIn!.disabled = hold;
+      coOut!.textContent = f1(co);
       const map = co * tpr + PRA;
       const drive = map - PRA; // = co x tpr
       const qMuscle = drive / rMuscle;
       const qOther = drive / rOther;
-      const segR = [R_ART, rArl, R_CAP, R_VEN];
+      const segR = [R_ART * feed, rArl, R_CAP * feed, R_VEN * feed];
       const segDrop = segR.map((x) => qMuscle * x);
       const segPct = segR.map((x) => (100 * x) / rMuscle);
       const pMuscle = (100 * qMuscle) / co;
       // references for the sentences: same other-bed setting with resting arterioles, and same arterioles with other beds at 24
-      const tprRestArl = 1 / (1 / R_MUSCLE0 + 1 / rOther);
-      const pMuscleRestArl = (100 * rOther) / (R_MUSCLE0 + rOther);
+      const rMuscleRestArl = rFeed + R_ARL0;
+      const tprRestArl = 1 / (1 / rMuscleRestArl + 1 / rOther);
+      const pMuscleRestArl = (100 * rOther) / (rMuscleRestArl + rOther);
+      const atRest = Math.abs(r - 1) < 1e-9 && Math.abs(feed - 1) < 1e-9;
       const tprOther24 = 1 / (1 / rMuscle + 1 / R_OTHER0);
 
       // ---- readouts with the lesson's arithmetic ----
-      setRead('rm', f1(rMuscle) + ' mmHg min per L', `4 + 24 / ${f2(r)}⁴ + 6 + 6 = 4 + ${f1(rArl)} + 6 + 6`);
+      setRead('rm', f1(rMuscle) + ' mmHg min per L', Math.abs(feed - 1) < 1e-9
+        ? `4 + 24 / ${f2(r)}⁴ + 6 + 6 = 4 + ${f1(rArl)} + 6 + 6`
+        : `(4 + 6 + 6) × ${f2(feed)} + 24 / ${f2(r)}⁴ = ${f2(rFeed)} + ${f2(rArl)}`);
       setRead('ro', f1(rOther) + ' mmHg min per L', `24 × ${f2(k)}`);
       setRead('tpr', f1(tpr) + ' mmHg min per L', `1/R = 1/${f1(rMuscle)} + 1/${f1(rOther)}`);
-      setRead('map', f1(map) + ' mmHg', `${f1(co)} × ${f1(tpr)} + 3`);
+      setRead('map', f1(map) + ' mmHg', `${f1(co)} × ${f1(tpr)} + 3${hold ? ' (held)' : ''}`);
       setRead('qm', f2(qMuscle) + ' L per min', `(${f1(map)} ${MINUS} 3) / ${f1(rMuscle)}`);
       setRead('qo', f2(qOther) + ' L per min', `(${f1(map)} ${MINUS} 3) / ${f1(rOther)}`);
+      setRead('pm', f0(pMuscle) + ' percent', `${f2(qMuscle)} / ${f1(co)}`);
 
       // ---- drawing ----
       plot!.replaceChildren();
@@ -180,18 +206,26 @@
       }
 
       // pressure drop bar
-      text(8, 222, `Pressure drop along the muscle bed (full bar = ${f1(drive)} mmHg)`, { 'font-weight': 700 });
+      // fixed scale: full width = 150 mmHg, so a fall in MAP shortens the whole bar
+      const P_SCALE = 150, PW = 324;
+      text(8, 222, 'Pressure drop along the muscle bed (scale 0 to 150 mmHg)', { 'font-weight': 700 });
+      plot!.appendChild(el('rect', { x: 8, y: 228, width: PW, height: 18, fill: 'none', stroke: FAINT, 'stroke-width': 1 }));
+      const pxPer = (PW / P_SCALE) * Math.min(1, P_SCALE / drive); // shrink only if the drop runs off the scale
       let x = 8;
       for (let i = 0; i < 4; i++) {
-        const w = (segDrop[i] / drive) * 324;
+        const w = segDrop[i] * pxPer;
         plot!.appendChild(el('rect', { x, y: 228, width: w, height: 18, fill: SEG[i].color, stroke: '#fff', 'stroke-width': 1 }));
         x += w;
       }
-      text(22, 262, 'Segment', { fill: '#6b6b76' });
-      text(210, 262, 'drop, mmHg', { 'text-anchor': 'end', fill: '#6b6b76' });
-      text(290, 262, 'share of drop', { 'text-anchor': 'end', fill: '#6b6b76' });
+      const xTick = 8 + ((MAP_WORKED - PRA) / P_SCALE) * PW;
+      plot!.appendChild(el('line', { x1: xTick, y1: 226, x2: xTick, y2: 250, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      text(xTick + 3, 257, '90: worked problem’s drive', { fill: '#6b6b76' });
+      text(8, 257, drive > P_SCALE ? `Drop ${f1(drive)} mmHg, off scale` : `Drop across the bed ${f1(drive)} mmHg`, { 'font-weight': 700 });
+      text(22, 270, 'Segment', { fill: '#6b6b76' });
+      text(210, 270, 'drop, mmHg', { 'text-anchor': 'end', fill: '#6b6b76' });
+      text(290, 270, 'share of drop', { 'text-anchor': 'end', fill: '#6b6b76' });
       for (let i = 0; i < 4; i++) {
-        const y = 276 + i * 12;
+        const y = 284 + i * 12;
         plot!.appendChild(el('rect', { x: 8, y: y - 8, width: 8, height: 8, fill: SEG[i].color }));
         text(22, y, SEG[i].name);
         text(210, y, f1(segDrop[i]), { 'text-anchor': 'end', 'font-weight': 700 });
@@ -201,27 +235,50 @@
       // ---- status sentences, each computed from the state ----
       const lines: string[] = [];
       lines.push(`In this sketch, the muscle bed carries ${f2(qMuscle)} L per min (${f0(pMuscle)} percent of the ${f1(co)} L per min) and the other beds ${f2(qOther)} L per min. Both beds see the same driving pressure here (the lesson says nearly the same), MAP ${MINUS} 3 = ${f1(drive)} mmHg, and flow = pressure difference / resistance.`);
-      if (Math.abs(r - 1) < 1e-9) {
+      if (atRest) {
         lines.push(`In this sketch, the muscle arterioles are at their resting radius, so their resistance is 24.0 and the muscle bed’s is 40.0 mmHg min per L, as in the lesson’s worked problem (made-up numbers).`);
-      } else if (r > 1) {
-        lines.push(`In this sketch, widening the muscle arterioles to ${f2(r)} times their resting radius lowers their resistance to ${f1(rArl)} (24 / r⁴, Poiseuille scaling, which holds only approximately in vivo) and the muscle bed’s to ${f1(rMuscle)}. TPR is ${f1(tpr)}, against ${f1(tprRestArl)} with resting arterioles at the same other-bed setting, and the muscle bed takes ${f0(pMuscle)} percent of cardiac output, against ${f0(pMuscleRestArl)} percent.`);
+      } else if (Math.abs(r - 1) < 1e-9) {
+        lines.push(`In this sketch, the muscle arterioles are at their resting radius (24.0), and the muscle bed is ${f1(rMuscle)} mmHg min per L because of the second slider.`);
       } else {
-        lines.push(`In this sketch, narrowing the muscle arterioles to ${f2(r)} times their resting radius raises their resistance to ${f1(rArl)} (24 / r⁴, Poiseuille scaling, which holds only approximately in vivo) and the muscle bed’s to ${f1(rMuscle)}. TPR is ${f1(tpr)}, against ${f1(tprRestArl)} with resting arterioles at the same other-bed setting, and the muscle bed takes ${f0(pMuscle)} percent of cardiac output, against ${f0(pMuscleRestArl)} percent.`);
+        lines.push(`In this sketch, ${r > 1 ? 'widening' : 'narrowing'} the muscle arterioles to ${f2(r)} times their resting radius ${r > 1 ? 'lowers' : 'raises'} their resistance to ${f1(rArl)} (24 / r⁴, Poiseuille scaling, which holds only approximately in vivo) and the muscle bed’s to ${f1(rMuscle)}. TPR is ${f1(tpr)}, against ${f1(tprRestArl)} with resting arterioles at the same other settings, and the muscle bed takes ${f0(pMuscle)} percent of cardiac output, against ${f0(pMuscleRestArl)} percent.`);
+      }
+      if (Math.abs(feed - 1) > 1e-9) {
+        lines.push(`In this sketch, dilating the feeding arteries, recruiting capillaries and widening the veins to ${f2(feed)} times their resistance lowers them together from 16.0 to ${f1(rFeed)} mmHg min per L; spreading the change evenly across them is made up for the sketch.`);
+      }
+      if (Math.abs(rMuscle - 8) < 0.15) {
+        lines.push(`This is about the lesson’s exercise step, a muscle bed of 8: the lesson gives MAP 39 mmHg if output stays at 6.0 L per min, and output 15 L per min if MAP is held at 93, with the muscle’s share of output rising from about 38 to 75 percent.`);
       }
       if (Math.abs(k - 1) < 1e-9) {
         lines.push(`In this sketch, the other beds sit at 24.0 mmHg min per L, the lesson’s made-up value for all other beds together.`);
       } else {
         lines.push(`In this sketch, constricting the other beds to ${f2(k)} times their resistance (${f1(rOther)}) gives a TPR of ${f1(tpr)}, against ${f1(tprOther24)} with the other beds at 24.0, and a larger share of cardiac output goes to the muscle bed.`);
       }
-      lines.push(`In this sketch, the arterioles take ${f0(segPct[1])} percent of the muscle bed’s pressure drop and the capillaries ${f0(segPct[2])} percent${Math.abs(r - 1) < 1e-9 ? ' (the lesson’s worked problem gives 60 and 15 percent)' : ''}, because the segments are in series and each one’s share of the drop equals its share of the resistance.`);
-      const cmp = Math.abs(map - MAP_WORKED) <= 5 ? 'close to' : map < MAP_WORKED ? 'below' : 'above';
-      let mapLine = `In this sketch, MAP = CO × TPR + 3 = ${f1(co)} × ${f1(tpr)} + 3 = ${f1(map)} mmHg, ${cmp} the worked problem’s 93 mmHg; no reflex acts here, so it is not held.`;
-      if (map > 200 || map < 50) mapLine += ` A value this far from 93 mmHg is only the arithmetic of the sketch, which has no reflexes and no limits.`;
-      lines.push(mapLine);
+      lines.push(`In this sketch, the arterioles take ${f0(segPct[1])} percent of the muscle bed’s pressure drop and the capillaries ${f0(segPct[2])} percent${atRest ? ' (the lesson’s worked problem gives 60 and 15 percent)' : ''}, because the segments are in series and each one’s share of the drop equals its share of the resistance.`);
+      if (hold) {
+        lines.push(k === 1
+          ? `In this sketch, holding MAP at 93 mmHg needs cardiac output of ${f1(co)} L per min; the other beds keep ${f2(qOther)} L per min, so the muscle takes its larger share without starving them.`
+          : `In this sketch, holding MAP at 93 mmHg needs cardiac output of ${f1(co)} L per min; the other beds get ${f2(qOther)} L per min, set by their own constriction, not by the muscle.`);
+        lines.push(`In this sketch, MAP = CO × TPR + 3 = ${f1(co)} × ${f1(tpr)} + 3 = ${f1(map)} mmHg, held by the box, which stands in for the reflexes by setting output; real reflexes also constrict other beds.`);
+      } else {
+        const cmp = Math.abs(map - MAP_WORKED) <= 5 ? 'close to' : map < MAP_WORKED ? 'below' : 'above';
+        let mapLine = `In this sketch, MAP = CO × TPR + 3 = ${f1(co)} × ${f1(tpr)} + 3 = ${f1(map)} mmHg, ${cmp} the worked problem’s 93 mmHg; no reflex acts here, so it is not held (tick Hold MAP to let output rise).`;
+        if (map > 200 || map < 50) mapLine += ` A value this far from 93 mmHg is only the arithmetic of the sketch, which has no reflexes and no limits.`;
+        lines.push(mapLine);
+      }
       why!.replaceChildren(...lines.map((s) => { const p = document.createElement('p'); p.textContent = s; return p; }));
     }
 
-    [rIn, coIn, kIn].forEach((s) => s.addEventListener('input', render));
+    [rIn, feedIn, coIn, kIn].forEach((s) => s.addEventListener('input', render));
+    holdIn.addEventListener('change', render);
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.preset === 'ex') {
+        // lesson's exercise step: 16 x 0.25 + 24 / 1.57^4 = 4 + 3.95 = 7.95, about 8
+        rIn!.value = '1.57'; feedIn!.value = '0.25'; coIn!.value = '6'; kIn!.value = '1';
+      } else {
+        rIn!.value = '1'; feedIn!.value = '1'; coIn!.value = '6'; kIn!.value = '1'; holdIn!.checked = false;
+      }
+      render();
+    }));
     render();
   });
 </script>
@@ -234,10 +291,16 @@
   .rn-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
   .rn-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
   .rn-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
-  .rn-slabel:last-child { grid-column: 1 / -1; }
-  .rn-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+    .rn-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
   .rn-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .rn-slabel input { accent-color: var(--ddp-color-accent); }
+  .rn-slabel input:disabled { opacity: 0.45; }
+  .rn-check { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rn-check input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .rn-presets { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .rn-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.65rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); cursor: pointer; }
+  .rn-btn:hover { border-color: var(--ddp-color-accent); }
+  .rn-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .rn-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .rn-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
   .rn-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }

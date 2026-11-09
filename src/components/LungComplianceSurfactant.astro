@@ -5,14 +5,16 @@
  * area. Each alveolus is one free spherical air-liquid surface, P = 2T/r (the
  * lesson's Laplace relation, static, 1 cmH2O = 98.07 Pa). Controls: the two radii
  * and a three-way lining toggle (70 mN per m, 20 mN per m, or a made-up rule in
- * which tension falls with area). Self-contained vanilla-TS Astro island. Original.
+ * which tension falls with area; default is no surfactant, so it opens on the problem).
+ * Each pressure is compared with the lesson's about 5 cmH2O of transpulmonary pressure
+ * at FRC. Self-contained vanilla-TS Astro island. Original.
  */
 ---
 
 <figure class="lcs card" data-lcs>
-  <figcaption class="lcs-head">Two alveoli, one airway<span class="lcs-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="lcs-head">Two alveoli, one airway: can 5 cmH₂O hold them open?<span class="lcs-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="lcs-svg" viewBox="0 0 340 290" role="img" aria-label="Two spherical alveoli, a small one on the left and a large one on the right, joined by one airway, with surface tension and Laplace pressure for each and an arrow for the direction gas would move from higher to lower pressure" data-plot></svg>
+  <svg class="lcs-svg" viewBox="0 0 340 304" role="img" aria-label="Two spherical alveoli, a small one on the left and a large one on the right, joined by one airway, with surface tension and Laplace pressure for each an arrow for the direction gas would move from higher to lower pressure, and whether each pressure is within the about 5 cmH2O available at FRC" data-plot></svg>
 
   <div class="lcs-controls">
     <label class="lcs-slabel"><span>Small-alveolus radius <em data-out="rs">50 µm</em></span>
@@ -23,15 +25,15 @@
     </label>
     <fieldset class="lcs-fs">
       <legend>Lining</legend>
-      <label class="lcs-radio"><input type="radio" name="lcs-lining" value="none" data-in="lining" /> No surfactant <small>(70 mN per m)</small></label>
+      <label class="lcs-radio"><input type="radio" name="lcs-lining" value="none" data-in="lining" checked /> No surfactant <small>(70 mN per m)</small></label>
       <label class="lcs-radio"><input type="radio" name="lcs-lining" value="fixed" data-in="lining" /> Fixed tension <small>(20 mN per m)</small></label>
-      <label class="lcs-radio"><input type="radio" name="lcs-lining" value="area" data-in="lining" checked /> Tension falls with area <small>(made-up rule)</small></label>
+      <label class="lcs-radio"><input type="radio" name="lcs-lining" value="area" data-in="lining" /> Tension falls with area <small>(made-up rule)</small></label>
     </fieldset>
   </div>
 
   <p class="lcs-why" data-why role="status">In this sketch, the status appears here.</p>
 
-  <p class="lcs-assume" id="lcs-assume">In this sketch: each alveolus is one free spherical air-liquid surface, static, so P = 2T/r (the lesson’s relation for one surface), with 1 cmH₂O = 98.07 Pa. The values 70 and 20 mN per m are the lesson’s illustrative tensions. The rule T = 20 mN per m × (r / 100 µm)², is made up for the sketch; it gives the lesson’s made-up 5 mN per m at 50 µm. The radius ranges are chosen for the sketch, and the small alveolus is never set larger than the large one (the other slider moves along).</p>
+  <p class="lcs-assume" id="lcs-assume">In this sketch: each alveolus is one free spherical air-liquid surface, static, so P = 2T/r (the lesson’s relation for one surface), with 1 cmH₂O = 98.07 Pa. The values 70 and 20 mN per m are the lesson’s illustrative tensions. The rule T = 20 mN per m × (r / 100 µm)², is made up for the sketch; it gives the lesson’s made-up 5 mN per m at 50 µm. The 5 cmH₂O is the lesson’s transpulmonary pressure for a whole healthy lung at FRC; comparing it with one sphere’s surface term is only a crude sense of scale. The radius ranges are chosen for the sketch, and the small alveolus is never set larger than the large one (the other slider moves along).</p>
   <p class="lcs-tether">Real alveoli are tethered polyhedra: neighbours share walls, so one alveolus cannot shrink alone like a free bubble. The spheres are a simplification. Drawing: circle size is to scale with radius, and a thicker outline means higher tension.</p>
   <p class="lcs-foot">Keep this: at equal tension the smaller alveolus has the higher pressure and would empty into the larger one; whether a film prevents that depends on how steeply tension changes with area.</p>
 </figure>
@@ -40,6 +42,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
   const PA_PER_CMH2O = 98.07;       // lesson: 1 cmH2O = 98.07 Pa
+  const P_FRC_CMH2O = 5;            // lesson: transpulmonary pressure at FRC, about 5 cmH2O
   const T_CAP = 70;                 // mN per m, the lesson's no-surfactant tension
   const SCALE = 0.45;               // drawing px per micrometre of radius
   const CY = 130;                   // circle centre y in the viewBox
@@ -81,7 +84,7 @@
 
     function lining(): Lining {
       const c = radios.find((r) => r.checked);
-      return (c ? c.value : 'area') as Lining;
+      return (c ? c.value : 'none') as Lining;
     }
     function text(x: number, y: number, s: string, size: number, weight: number, fill: string, anchor = 'middle'): SVGElement {
       const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, 'font-weight': weight, fill });
@@ -137,6 +140,8 @@
         plot.appendChild(text(cx, 256, 'P = ' + fmtInt(p) + ' Pa', 10, 700, INK));
         plot.appendChild(text(cx, 269, '= ' + fmtCm(p) + ' cmH₂O', 10, 700, INK));
         plot.appendChild(text(cx, 283, tag, 10, 700, tag === 'higher pressure' ? ORANGE : INK));
+        const within = Number(fmtCm(p)) <= P_FRC_CMH2O;
+        plot.appendChild(text(cx, 298, within ? 'within the 5 cmH₂O at FRC' : 'more than the 5 cmH₂O at FRC', 9.5, 700, within ? ACCENT : ORANGE));
       };
       col(XS, 'Small alveolus', rs, ts, ps, equal ? 'equal pressure' : sHigher ? 'higher pressure' : 'lower pressure');
       col(XL, 'Large alveolus', rl, tl, pl, equal ? 'equal pressure' : sHigher ? 'lower pressure' : 'higher pressure');
@@ -152,6 +157,7 @@
       } else {
         s = `In this sketch, both surfaces have the same tension (${fmtT(ts)} mN per m), so P = 2T/r is higher in the small alveolus (${sp}) than in the large one (${lp}), and gas would move from the small alveolus into the large one: at equal tension the small alveolus would empty into the large one.${mode === 'fixed' ? ' Lower tension lowers both pressures, but the small alveolus stays the higher.' : ''}`;
       }
+      s += ` Compare: a healthy lung’s transpulmonary pressure at FRC is about ${P_FRC_CMH2O} cmH₂O, and it must also cover the tissue recoil.`;
       why.textContent = s;
     }
 

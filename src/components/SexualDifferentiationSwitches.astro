@@ -9,10 +9,15 @@
  * androgen receptor; external genitalia are male-typical only with testis, receptor and the
  * enzyme, with reduced masculinization if the enzyme alone is off. Qualitative only; anatomy
  * is drawn as labelled blocks and arrows. Self-contained vanilla-TS Astro island. Original.
+ *
+ * Optional prop `start` picks the opening state: 'intact' (default, all switches on),
+ * 'amhOff', 'arOff', 'srdOff' or 'noTestis'.
  */
+interface Props { start?: 'intact' | 'amhOff' | 'arOff' | 'srdOff' | 'noTestis' }
+const { start = 'intact' } = Astro.props;
 ---
 
-<figure class="sd card" data-sexdiff>
+<figure class="sd card" data-sexdiff data-start={start}>
   <figcaption class="sd-head">Build the tract: what a testis sends and what each tissue can read<span class="sd-chip">⚙ original · interactive</span></figcaption>
 
   <svg class="sd-svg" viewBox="0 0 360 282" role="img" aria-label="A schematic of an XY embryo: the pituitary sends LH to the testis, the testis sends AMH to the Müllerian ducts and testosterone to the Wolffian ducts and external genitalia, and each of these three tissues is shown as developed or not" data-stage></svg>
@@ -166,6 +171,7 @@
       line(26, 36, 26, lhHigher ? 94 : 98, lhCol, lhW, t ? undefined : '3 3');
       head(26, 104, 'd', lhCol, lhHigher ? 10 : 7, lhHigher ? 6.5 : 4);
       text(36, 56, !t ? 'LH: not shown' : lhHigher ? 'LH drive: higher ↑' : 'LH: reference', { size: 9.5, weight: 700, fill: t ? '#0b6269' : INK });
+      if (t) text(36, 65, 'adult feedback logic', { size: 8, fill: INK });
 
       // testosterone arrow: testis up to pituitary, restraining LH (bar end)
       if (t) {
@@ -209,7 +215,7 @@
       line(14, keyY + 16, 34, keyY + 16, ORANGE, 2.4); head(36, keyY + 16, 'r', ORANGE, 6, 3.5);
       text(44, keyY + 19, 'testosterone (Leydig)', { size: 9, fill: INK });
       line(14, keyY + 32, 34, keyY + 32, TEAL, 2.4); head(36, keyY + 32, 'r', TEAL, 6, 3.5);
-      text(44, keyY + 35, 'LH (pituitary)', { size: 9, fill: INK });
+      text(44, keyY + 35, 'LH (pituitary, adult logic)', { size: 9, fill: INK });
       text(14, keyY + 54, 'Dashed grey: signal absent or not shown.', { size: 9, fill: INK });
 
       why!.textContent = statusFor(s);
@@ -224,7 +230,8 @@
       out.push(`In this sketch, with a testis the Müllerian ducts ${s.amh ? (s.ar && !s.srd ? 'usually regress' : 'regress') : 'are retained'}, the Wolffian ducts are ${s.ar ? (s.srd ? 'maintained' : 'generally maintained') : 'not maintained'} and the external genitalia are ${ext}.`);
       out.push(s.amh
         ? 'In this sketch, Sertoli AMH signalling removes the Müllerian ducts.'
-        : 'In this sketch, without AMH signalling the Müllerian ducts persist, as in the male mouse null mutant, which keeps a uterus and oviducts.');
+        : 'In this sketch, the Sertoli cells are present but their AMH signal is missing, so the Müllerian ducts persist, as in the male mouse null mutant, which keeps a uterus and oviducts'
+          + (s.ar ? '; the Leydig branch is untouched, so the Wolffian derivatives are still kept.' : '.'));
       if (s.ar) {
         out.push('In this sketch, testosterone acting through the androgen receptor maintains the Wolffian derivatives'
           + (s.srd
@@ -241,6 +248,12 @@
     }
 
     [iTestis, iAmh, iAr, iSrd].forEach((c) => c.addEventListener('change', render));
+    // optional opening state from the `start` prop; the default 'intact' leaves every switch on
+    const start = root.dataset.start;
+    if (start === 'amhOff') iAmh.checked = false;
+    else if (start === 'arOff') iAr.checked = false;
+    else if (start === 'srdOff') iSrd.checked = false;
+    else if (start === 'noTestis') iTestis.checked = false;
     render();
   });
 </script>

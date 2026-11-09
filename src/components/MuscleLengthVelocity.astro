@@ -20,37 +20,51 @@
     <span><i class="mlv-sw mlv-sw-load"></i>current load</span>
     <span><i class="mlv-sw mlv-sw-best"></i>best load (most power)</span>
     <span><i class="mlv-sw mlv-sw-zone"></i>load above F₀</span>
+    <span><i class="mlv-sw mlv-sw-plat"></i>power on the plateau (when stretched)</span>
+    <span><i class="mlv-sw mlv-sw-ref"></i>straight-line guess</span>
   </p>
 
+  <div class="mlv-presets" role="group" aria-label="Preset cases">
+    <button type="button" data-preset="2.2,1,0.25,0.4">Plateau</button>
+    <button type="button" data-preset="3,1,0.25,0.4">Stretched to 3.00 µm</button>
+    <button type="button" data-preset="2.2,0.8,0.15,0.32">Fatigued</button>
+  </div>
+
   <div class="mlv-controls">
-    <label class="mlv-slabel"><span>Sarcomere length <em data-out="len">3.00</em> µm</span>
-      <input type="range" data-in="len" min="2.05" max="3.65" step="0.05" value="3" />
+    <label class="mlv-slabel"><span>Sarcomere length <em data-out="len">2.20</em> µm</span>
+      <input type="range" data-in="len" min="2.05" max="3.65" step="0.05" value="2.2" />
     </label>
-    <label class="mlv-slabel"><span>Load F <em data-out="load">20</em> N</span>
-      <input type="range" data-in="load" min="0" max="100" step="1" value="20" />
+    <label class="mlv-slabel"><span>Load F <em data-out="load">31</em> N</span>
+      <input type="range" data-in="load" min="0" max="100" step="1" value="31" />
     </label>
     <label class="mlv-slabel"><span>Curvature a/F₀ <em data-out="q">0.25</em></span>
-      <input type="range" data-in="q" min="0.15" max="0.45" step="0.01" value="0.25" />
+      <input type="range" data-in="q" min="0.10" max="0.45" step="0.01" value="0.25" />
     </label>
     <label class="mlv-slabel"><span>Maximal speed v<sub>max</sub> <em data-out="vmax">0.40</em> m per s</span>
-      <input type="range" data-in="vmax" min="0.2" max="0.6" step="0.01" value="0.4" />
+      <input type="range" data-in="vmax" min="0.1" max="0.6" step="0.01" value="0.4" />
     </label>
+    <label class="mlv-slabel"><span>Fraction of ceiling reached (fatigue) <em data-out="fs">1.00</em></span>
+      <input type="range" data-in="fs" min="0.5" max="1" step="0.05" value="1" />
+    </label>
+    <label class="mlv-check"><input type="checkbox" data-in="lin" /> Compare a straight line (viscous-brake guess)</label>
   </div>
 
   <dl class="mlv-readout">
-    <div><dt>Active isometric force F₀ at this length</dt><dd data-r="f0">44.83 N</dd></div>
+    <div><dt>Active isometric force F₀ at this length</dt><dd data-r="f0">100.00 N</dd></div>
     <div><dt>Constants a and b</dt><dd data-r="ab">—</dd></div>
     <div><dt>Shortening speed at this load</dt><dd data-r="v">—</dd></div>
     <div><dt>External power at this load</dt><dd data-r="p">—</dd></div>
     <div><dt>Best load</dt><dd data-r="best">—</dd></div>
+    <div><dt>Best speed</dt><dd data-r="bv">—</dd></div>
     <div><dt>Peak power at the best load</dt><dd data-r="peak">—</dd></div>
+    <div><dt>Peak power vs the fresh plateau muscle (3.82 W)</dt><dd data-r="rel">—</dd></div>
   </dl>
 
   <p class="mlv-why" data-why role="status">—</p>
 
-  <p class="mlv-assume"><strong>Assumptions, made up for this sketch (not measured):</strong> a model fibre bundle that holds 100 N on the plateau, 2.05 to 2.20 µm; a straight descending limb from full force at 2.20 µm to zero at 3.65 µm (the frog length landmarks); the fall in force at lengths shorter than 2.05 µm (interference, not modelled); a/F₀ and v<sub>max</sub> are the same at every length; quasi-steady shortening at one length with constant activation and temperature. The values are illustrative, not human constants; a/F₀ (0.25) is the usual frog sartorius value Hill gave in 1938; v<sub>max</sub> (0.40 m per s) and the slider ranges are model values. Rule used: F₀ = 100 N × min(1, (3.65 − L) / 1.45), a = (a/F₀) F₀, b = v<sub>max</sub> (a/F₀), v = b (F₀ − F) / (F + a), P = F × v, best load = F₀ (√(q² + q) − q) with q = a/F₀.</p>
+  <p class="mlv-assume"><strong>Assumptions, made up for this sketch (not measured):</strong> a model fibre bundle that holds 100 N on the plateau when fully activated and fresh, 2.05 to 2.20 µm; a straight descending limb from full force at 2.20 µm to zero at 3.65 µm (the frog length landmarks); the fall in force at lengths shorter than 2.05 µm (interference, not modelled); a/F₀ and v<sub>max</sub> are the same at every length; fatigue is modelled only as a smaller fraction of the ceiling reached, plus whatever a/F₀ and v<sub>max</sub> you set; the "fresh plateau muscle" reference is 100 N, a/F₀ 0.25, v<sub>max</sub> 0.40 m per s (3.82 W peak); quasi-steady shortening at one length with constant activation and temperature. The values are illustrative, not human constants; a/F₀ (0.25) is the usual frog sartorius value Hill gave in 1938; v<sub>max</sub> (0.40 m per s) and the slider ranges are model values. Rule used: F₀ = 100 N × fraction reached × min(1, (3.65 − L) / 1.45), a = (a/F₀) F₀, b = v<sub>max</sub> (a/F₀), v = b (F₀ − F) / (F + a), P = F × v, best load = F₀ (√(q² + q) − q) with q = a/F₀, best speed = v<sub>max</sub> (√(q² + q) − q). The straight-line guess is v = v<sub>max</sub> (1 − F/F₀).</p>
 
-  <p class="mlv-foot">Rule to keep: the sarcomere length sets the isometric force F₀ the muscle can hold; against any load below F₀ Hill’s hyperbola sets the speed; power F × v is zero at zero load and at F₀ and peaks at a load in between, whose fraction of F₀ depends on the curvature.</p>
+  <p class="mlv-foot">Length sets the ceiling, load sets the speed: the sarcomere length sets the isometric force F₀ the muscle can hold; against any load below F₀ Hill’s hyperbola sets the speed; power F × v is zero at zero load and at F₀ and peaks at a load in between, whose fraction of F₀ depends on the curvature.</p>
 </figure>
 
 <script>
@@ -73,13 +87,17 @@
     const inp = (k: string) => root.querySelector<HTMLInputElement>('[data-in="' + k + '"]');
     const out = (k: string) => root.querySelector<HTMLElement>('[data-out="' + k + '"]');
     const rd = (k: string) => root.querySelector<HTMLElement>('[data-r="' + k + '"]');
-    const lenIn = inp('len'), loadIn = inp('load'), qIn = inp('q'), vmIn = inp('vmax');
-    const lenOut = out('len'), loadOut = out('load'), qOut = out('q'), vmOut = out('vmax');
-    const rF0 = rd('f0'), rAB = rd('ab'), rV = rd('v'), rP = rd('p'), rBest = rd('best'), rPeak = rd('peak');
-    if (!plot || !why || !lenIn || !loadIn || !qIn || !vmIn || !lenOut || !loadOut || !qOut || !vmOut || !rF0 || !rAB || !rV || !rP || !rBest || !rPeak) return;
+    const lenIn = inp('len'), loadIn = inp('load'), qIn = inp('q'), vmIn = inp('vmax'), fsIn = inp('fs'), linIn = inp('lin');
+    const lenOut = out('len'), loadOut = out('load'), qOut = out('q'), vmOut = out('vmax'), fsOut = out('fs');
+    const rF0 = rd('f0'), rAB = rd('ab'), rV = rd('v'), rP = rd('p'), rBest = rd('best'), rPeak = rd('peak'), rBv = rd('bv'), rRel = rd('rel');
+    if (!plot || !why || !lenIn || !loadIn || !qIn || !vmIn || !fsIn || !linIn || !lenOut || !loadOut || !qOut || !vmOut || !fsOut || !rF0 || !rAB || !rV || !rP || !rBest || !rPeak || !rBv || !rRel) return;
 
     const X0 = 44, X1 = 326;
     const LMIN = 2.05, LMAX = 3.65, PLAT = 2.2, FMAX = 100, VMAX_AX = 0.6, PMAX_AX = 8;
+    // reference: the lesson's fresh model muscle on the plateau (100 N, a/F0 0.25, vmax 0.40 m per s)
+    const REF_Q = 0.25, REF_VMAX = 0.4;
+    const REF_F = Math.sqrt(REF_Q * REF_Q + REF_Q) - REF_Q;
+    const REF_PPK = REF_F * REF_F * FMAX * REF_VMAX; // 3.82 W
     // panel A: F0 against length; B: speed against load; C: power against load
     const A = { y0: 22, y1: 78 }, B = { y0: 132, y1: 200 }, C = { y0: 242, y1: 310 };
     const lx = (L: number) => X0 + ((L - LMIN) / (LMAX - LMIN)) * (X1 - X0);
@@ -111,19 +129,24 @@
       const F = parseFloat(loadIn!.value);
       const q = parseFloat(qIn!.value);
       const vmax = parseFloat(vmIn!.value);
+      const fs = parseFloat(fsIn!.value);
+      const lin = linIn!.checked;
+      fsOut!.textContent = f2(fs);
       lenOut!.textContent = f2(L);
       loadOut!.textContent = String(F);
       qOut!.textContent = f2(q);
       vmOut!.textContent = f2(vmax);
 
       const frac = Math.min(1, (LMAX - L) / (LMAX - PLAT));
-      const F0 = FMAX * Math.max(0, frac);
+      const F0 = FMAX * fs * Math.max(0, frac);
+      const F0plat = FMAX * fs; // the same muscle on the plateau
       const zero = F0 < 0.005;
       const a = q * F0, b = vmax * q;
       const vOf = (load: number) => (b * (F0 - load)) / (load + a);
       const fstar = Math.sqrt(q * q + q) - q;
       const Fb = fstar * F0;
       const vb = zero ? 0 : vOf(Fb), Ppk = Fb * vb;
+      const stretched = L > PLAT + 1e-9;
       const exceeds = !zero && F > F0 + 1e-6;
       const equals = zero ? F === 0 : Math.abs(F - F0) <= 1e-6;
       const v = zero || exceeds || equals ? 0 : vOf(F);
@@ -132,10 +155,13 @@
       plot!.replaceChildren();
 
       // ---- Panel A: F0 against length
-      plot!.appendChild(txt(4, 11, 'Active F₀ at this length (short lengths not modelled)', { 'font-weight': 700 }));
+      plot!.appendChild(txt(4, 11, 'F₀ at this length × fraction reached (short lengths not modelled)', { 'font-weight': 700 }));
       plot!.appendChild(el('rect', { x: lx(LMIN), y: A.y0, width: lx(PLAT) - lx(LMIN), height: A.y1 - A.y0, fill: '#e3f1f2' }));
       axes(A, [[0, '0', yA], [50, '50', yA], [100, '100 N', yA]]);
       plot!.appendChild(el('path', { d: `M${lx(LMIN)} ${yA(100)} L${lx(PLAT)} ${yA(100)} L${lx(LMAX)} ${yA(0)}`, fill: 'none', stroke: ACCENT, 'stroke-width': 2.4 }));
+      if (fs < 1 - 1e-9) {
+        plot!.appendChild(el('path', { d: `M${lx(LMIN)} ${yA(F0plat)} L${lx(PLAT)} ${yA(F0plat)} L${lx(LMAX)} ${yA(0)}`, fill: 'none', stroke: ACCENT, 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
+      }
       for (const [Lt, lab, anc] of [[2.05, '2.05', 'start'], [2.5, '2.5', 'middle'], [3, '3.0', 'middle'], [3.65, '3.65', 'end']] as [number, string, string][]) {
         plot!.appendChild(el('line', { x1: lx(Lt), y1: A.y1, x2: lx(Lt), y2: A.y1 + 3, stroke: INK, 'stroke-width': 1 }));
         plot!.appendChild(txt(lx(Lt), A.y1 + 13, lab, { 'text-anchor': anc }));
@@ -165,6 +191,33 @@
       // re-draw axes lines over the zone
       for (const P2 of [B, C]) {
         plot!.appendChild(el('line', { x1: X0, y1: P2.y1, x2: X1, y2: P2.y1, stroke: INK, 'stroke-width': 1 }));
+      }
+
+      // faint plateau power curve (same muscle, same fraction reached) when stretched
+      if (stretched && F0plat > 0.005) {
+        const aP = q * F0plat;
+        let dref = '';
+        for (let i = 0; i <= 100; i++) {
+          const load = (F0plat * i) / 100;
+          const vv = (b * (F0plat - load)) / (load + aP);
+          dref += (i === 0 ? 'M' : 'L') + fx(load).toFixed(1) + ' ' + yC(load * vv).toFixed(1) + ' ';
+        }
+        plot!.appendChild(el('path', { d: dref.trim(), fill: 'none', stroke: '#b8b8c0', 'stroke-width': 1.6 }));
+      }
+      // straight-line (viscous-brake) comparison
+      if (lin && !zero) {
+        plot!.appendChild(el('line', { x1: fx(0), y1: yB(vmax), x2: fx(F0), y2: yB(0), stroke: GREY, 'stroke-width': 1.4, 'stroke-dasharray': '5 3' }));
+        let dl = '';
+        for (let i = 0; i <= 100; i++) {
+          const load = (F0 * i) / 100;
+          const pp = load * vmax * (1 - load / F0);
+          dl += (i === 0 ? 'M' : 'L') + fx(load).toFixed(1) + ' ' + Math.max(C.y0, yC(pp)).toFixed(1) + ' ';
+        }
+        plot!.appendChild(el('path', { d: dl.trim(), fill: 'none', stroke: GREY, 'stroke-width': 1.4, 'stroke-dasharray': '5 3' }));
+        const linPk = (F0 * vmax) / 4;
+        const off = yC(linPk) < C.y0;
+        plot!.appendChild(el('circle', { cx: fx(F0 / 2), cy: Math.max(C.y0, yC(linPk)), r: 3.2, fill: '#fff', stroke: GREY, 'stroke-width': 1.4 }));
+        plot!.appendChild(txt(fx(F0 / 2) + 6, Math.max(C.y0, yC(linPk)) + 3, `${off ? '↑ ' : ''}straight line ${f2(linPk)} W`, { 'text-anchor': 'start', fill: GREY }));
       }
 
       if (!zero) {
@@ -198,11 +251,20 @@
       rP!.textContent = zero || exceeds ? 'none: not shortening' : f2(P) + ' W';
       rBest!.textContent = zero ? 'none (F₀ = 0)' : `${f2(Fb)} N (${f2(fstar)} of F₀)`;
       rPeak!.textContent = zero ? 'none (F₀ = 0)' : f2(Ppk) + ' W';
+      rBv!.textContent = zero ? 'none (F₀ = 0)' : `${f3(vb)} m per s (${f2(fstar)} of vmax)`;
+      rRel!.textContent = `${Math.round((100 * Ppk) / REF_PPK)} percent`;
 
       // ---- Status
-      const lenPhrase = L <= PLAT + 1e-9
+      const reached = fs < 1 - 1e-9 ? `, and the fatigued muscle reaches only ${Math.round(fs * 100)} percent of that ceiling` : '';
+      const lenPhrase = (!stretched
         ? 'on the plateau, where this model muscle holds its full 100 N'
-        : `${Math.round(frac * 100)} percent of the plateau force, on the descending limb`;
+        : `${Math.round(frac * 100)} percent of the plateau force, on the descending limb`) + reached;
+      const sameSpeed = stretched
+        ? ` The best speed, ${f3(vb)} m per s, is the same as on the plateau; only the ceiling and so the peak power fell.`
+        : '';
+      const linNote = lin
+        ? ` A straight line would put the best load at half of F₀; Hill’s sagging curve puts it at ${f2(fstar)} of F₀.`
+        : '';
       let msg: string;
       if (zero) {
         msg = `In this sketch, F₀ is zero at ${f2(L)} µm, where the straight descending limb reaches zero (the frog fibres’ extrapolated zero near 3.65 µm), so there is no active isometric force to set a speed or power and none is plotted.`;
@@ -211,19 +273,27 @@
       } else if (equals) {
         msg = `In this sketch, the load equals F₀ (${f2(F0)} N at ${f2(L)} µm), so the muscle is isometric: speed is zero and external power is zero. The best load for power is ${f2(Fb)} N.`;
       } else if (F === 0) {
-        msg = `In this sketch, with no load the muscle shortens at its maximal speed, vmax = ${f3(vmax)} m per s, and external power is zero because power is force times speed. F₀ at ${f2(L)} µm is ${f2(F0)} N, ${lenPhrase}; the best load is ${f2(Fb)} N.`;
+        msg = `In this sketch, with no load the muscle shortens at its maximal speed, vmax = ${f3(vmax)} m per s, and external power is zero because power is force times speed. F₀ at ${f2(L)} µm is ${f2(F0)} N, ${lenPhrase}; the best load is ${f2(Fb)} N.${sameSpeed}${linNote}`;
       } else {
         const rel = Math.abs(F - Fb) <= 0.005 * Math.max(F0, 1)
           ? 'The load is at the best load.'
           : F < Fb
             ? 'The load is below the best load: a somewhat heavier load (up to the best load) would lower speed but raise power.'
             : 'The load is above the best load: a heavier load would lower both speed and power.';
-        msg = `In this sketch, F₀ at ${f2(L)} µm is ${f2(F0)} N, ${lenPhrase}. Against ${F} N the muscle shortens at ${f3(v)} m per s and delivers ${f2(P)} W, ${Math.round((P / Ppk) * 100)} percent of the peak of ${f2(Ppk)} W at the best load of ${f2(Fb)} N (${f2(fstar)} of F₀ when a/F₀ = ${f2(q)}; the fraction depends on the curvature). ${rel}`;
+        msg = `In this sketch, F₀ at ${f2(L)} µm is ${f2(F0)} N, ${lenPhrase}. Against ${F} N the muscle shortens at ${f3(v)} m per s and delivers ${f2(P)} W, ${Math.round((P / Ppk) * 100)} percent of the peak of ${f2(Ppk)} W at the best load of ${f2(Fb)} N (${f2(fstar)} of F₀ when a/F₀ = ${f2(q)}; the fraction depends on the curvature). ${rel}${sameSpeed}${linNote}`;
       }
       why!.textContent = msg;
     }
 
-    [lenIn, loadIn, qIn, vmIn].forEach((s) => s.addEventListener('input', render));
+    [lenIn, loadIn, qIn, vmIn, fsIn].forEach((s) => s.addEventListener('input', render));
+    linIn!.addEventListener('change', render);
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const [l, f, qq, vm] = (btn.dataset.preset || '').split(',');
+        lenIn!.value = l; fsIn!.value = f; qIn!.value = qq; vmIn!.value = vm;
+        render();
+      });
+    });
     render();
   });
 </script>
@@ -240,6 +310,12 @@
   .mlv-sw-load { border-left: 2px dashed #e57200; border-radius: 0; width: 0.2rem; height: 0.8rem; }
   .mlv-sw-best { border: 2px solid #6b6b75; border-radius: 50%; width: 0.6rem; height: 0.6rem; background: #fff; }
   .mlv-sw-zone { background: #f6dcdc; border: 1px solid #e3b9b9; }
+  .mlv-sw-plat { border-top: 2px solid #b8b8c0; border-radius: 0; height: 0; }
+  .mlv-sw-ref { border-top: 2px dashed #6b6b75; border-radius: 0; height: 0; }
+  .mlv-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-2) 0 0; }
+  .mlv-presets button { font: inherit; font-size: var(--ddp-text-xs); padding: 0.2rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 999px; background: transparent; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .mlv-presets button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+  .mlv-check { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); grid-column: 1 / -1; }
   .mlv-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
   .mlv-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .mlv-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }

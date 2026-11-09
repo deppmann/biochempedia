@@ -1,16 +1,19 @@
 ---
 /**
- * StarlingCapillaryLymph — filtration, lymph and edema. One idea: edema appears when
- * steady filtration exceeds what lymph can carry. Net = (Pc − Pi) − σ(π_p − π_g) and
- * Jv = Kf × net use the lesson's own equation and its Part A numbers; plasma albumin sets
- * π_p at the lesson's 6 mmHg per g per dL. Lymph flow = min(Jv, capacity). Original.
+ * StarlingCapillaryLymph — filtration, lymph and edema. One idea: the hold-back is set by
+ * the flow, so in the steady state plasma protein slows filtration but does not reverse it,
+ * and edema appears when that filtration exceeds what lymph can carry.
+ * Net = (Pc − Pi) − σ(π_p − π_g) and Jv = Kf × net use the lesson's own equation and its
+ * Part A numbers. In the steady state π_g comes from the same simple sieving model as the
+ * lesson's table (Patlak form, k = 0.4627 per mmHg, tuned so Part A settles at 6 mmHg);
+ * "just after a sudden change" keeps π_g at 6 mmHg. Lymph flow = min(Jv, capacity). Original.
  */
 ---
 
 <figure class="scl card" data-scl>
   <figcaption class="scl-head">Filtration, lymph and edema<span class="scl-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="scl-svg" viewBox="0 0 340 336" role="img" aria-label="Schematic of the forces across a capillary wall as bars, blocks and arrows for capillary, interstitial fluid and lymph, and a bar comparing filtration with lymph capacity" data-plot></svg>
+  <svg class="scl-svg" viewBox="0 0 340 486" role="img" aria-label="Schematic of the forces across a capillary wall as bars, blocks and arrows for capillary, interstitial fluid and lymph, a bar comparing filtration with lymph capacity, and a graph of filtration against capillary pressure" data-plot></svg>
 
   <div class="scl-controls">
     <label class="scl-slabel"><span>Mean capillary pressure Pc <em data-out="pc">18</em> mmHg</span>
@@ -19,9 +22,17 @@
     <label class="scl-slabel"><span>Plasma albumin <em data-out="alb">4</em> g per dL <small>(π<sub>p</sub> = <em data-out="pip">26</em> mmHg)</small></span>
       <input type="range" data-in="alb" min="1" max="5" step="0.5" value="4" />
     </label>
-    <label class="scl-slabel"><span>Reflection coefficient σ <em data-out="sigma">0.90</em> <small>(0.9 or more in most tissues)</small></span>
-      <input type="range" data-in="sigma" min="0.7" max="1" step="0.05" value="0.9" />
+    <label class="scl-slabel"><span>Reflection coefficient σ <em data-out="sigma">0.90</em> <small>(about 0.8 to 0.96 in the tissues measured)</small></span>
+      <input type="range" data-in="sigma" min="0.7" max="0.95" step="0.05" value="0.9" />
     </label>
+    <label class="scl-slabel"><span>Interstitial pressure Pi <em data-out="pi">−1</em> mmHg</span>
+      <input type="range" data-in="pi" min="-2" max="4" step="1" value="-1" />
+    </label>
+    <fieldset class="scl-lymph">
+      <legend>Time after the change</legend>
+      <label><input type="radio" name="scl-mode-0" value="after" data-in="mode" /> Just after a sudden change (π<sub>g</sub> still 6 mmHg)</label>
+      <label><input type="radio" name="scl-mode-0" value="steady" data-in="mode" checked /> Steady state (π<sub>g</sub> follows the flow)</label>
+    </fieldset>
     <fieldset class="scl-lymph">
       <legend>Lymph drainage</legend>
       <label><input type="radio" name="scl-lymph-0" value="normal" data-in="lymph" checked /> Example capacity 1.5 mL per min</label>
@@ -30,26 +41,44 @@
   </div>
 
   <dl class="scl-readout">
+    <div><dt>π<sub>g</sub> beneath the glycocalyx</dt><dd data-r-pig>6.0 mmHg</dd></div>
     <div><dt>Net pressure</dt><dd data-r-net>+1.00 mmHg, outward</dd></div>
-    <div><dt>Steady filtration Jv</dt><dd data-r-jv>0.50 mL per min · 0.72 L per day</dd></div>
+    <div><dt data-r-jvlabel>Steady filtration Jv</dt><dd data-r-jv>0.50 mL per min · 0.72 L per day</dd></div>
     <div><dt>Lymph flow</dt><dd data-r-lymph>0.50 mL per min · 0.72 L per day</dd></div>
     <div><dt>Accumulation in the tissue</dt><dd data-r-acc>0.00 mL per min · 0.00 L per day</dd></div>
   </dl>
   <p class="scl-arith" data-arith></p>
   <p class="scl-why" data-why role="status"></p>
 
-  <p class="scl-assume"><strong>In this sketch:</strong> steady state, adult human skeletal muscle at rest, one lumped Pc. All numbers are made up for the sketch, as in the lesson’s worked problem: Kf = 0.005 mL per min per mmHg per 100 g (illustrative) for 10 kg of muscle, so Jv = 0.5 × net; Pi = −1 mmHg; π<sub>g</sub> = 6 mmHg; π<sub>p</sub> = 2 + 6 × albumin, the lesson’s 6 mmHg per g per dL (26 mmHg at 4 g per dL), a linear simplification; lymph capacity of 1.5 mL per min is the lesson’s example, and the blocked capacity of 0.3 mL per min is invented here. Values of σ below 0.9 and the two lymph states are sketch settings. Safety factors (Pi rising, π<sub>g</sub> falling) are not modelled, so accumulation here is an upper estimate. If net is negative the sketch shows transient absorption and sets steady filtration to zero (a crude stand-in for the no-absorption rule; the hockey stick is shallow below its inflection, not zero).</p>
+  <p class="scl-assume"><strong>In this sketch:</strong> adult human skeletal muscle, one lumped Pc. All numbers are made up for the sketch, as in the lesson’s worked problem: Kf = 0.005 mL per min per mmHg per 100 g (illustrative) for 10 kg of muscle, so Jv = 0.5 × net; Pi = −1 mmHg unless you set it; π<sub>p</sub> = 2 + 6 × albumin (26 mmHg at 4 g per dL), a linear simplification; lymph capacity of 1.5 mL per min is the lesson’s example, and the blocked capacity of 0.3 mL per min is invented here. In the steady state π<sub>g</sub> is computed from a simple sieving model tuned so Part A settles at 6 mmHg (illustrative, the same model as the lesson’s table); just after a sudden change it is still 6 mmHg. Values of σ other than 0.9 and the two lymph states are sketch settings. Lymph capacity does not rise and Pi does not rise on its own as fluid collects, so accumulation here is an upper estimate.</p>
 
-  <p class="scl-foot">Rule to keep: edema forms when filtration exceeds lymph drainage, so a higher Pc, lower plasma protein or lower σ raises filtration, and blocked lymph lowers what can be drained.</p>
+  <p class="scl-foot">Rule to keep: plasma protein can slow filtration but not reverse it in the steady state: the hold-back is set by the flow. Edema forms when that filtration outruns lymph.</p>
 </figure>
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
-  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', LYMPH = '#3d5a99';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', LYMPH = '#3d5a99', GOLD = '#c99700';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
     return e;
+  }
+  // Simple sieving model (the lesson's table): π_g beneath the glycocalyx for a given steady net
+  // filtration pressure, Patlak form with Péclet number Pe = k × net × (1 − σ) / 0.1.
+  const K_SIEVE = 0.4627; // per mmHg, tuned so Part A (push 19 mmHg) settles at π_g = 6 mmHg
+  function pigOf(net: number, pip: number, s: number): number {
+    const pe = (K_SIEVE * net * (1 - s)) / 0.1;
+    return (pip * (1 - s)) / (1 - s * Math.exp(-pe));
+  }
+  // Steady net pressure: solve net = push − σ(π_p − π_g(net)) by bisection; always positive.
+  function steadyNet(push: number, pip: number, s: number): number {
+    let lo = 1e-9, hi = Math.max(push, 1e-6);
+    for (let i = 0; i < 60; i++) {
+      const m = (lo + hi) / 2;
+      if (m - (push - s * (pip - pigOf(m, pip, s))) > 0) hi = m;
+      else lo = m;
+    }
+    return lo;
   }
   document.querySelectorAll<HTMLElement>('[data-scl]').forEach((root) => {
     const q = <T extends Element>(s: string): T => {
@@ -58,18 +87,20 @@
       return e;
     };
     const plot = q<SVGSVGElement>('[data-plot]');
-    const pcIn = q<HTMLInputElement>('[data-in="pc"]'), albIn = q<HTMLInputElement>('[data-in="alb"]'), sigIn = q<HTMLInputElement>('[data-in="sigma"]');
+    const pcIn = q<HTMLInputElement>('[data-in="pc"]'), albIn = q<HTMLInputElement>('[data-in="alb"]'), sigIn = q<HTMLInputElement>('[data-in="sigma"]'), piIn = q<HTMLInputElement>('[data-in="pi"]');
     const lymphIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="lymph"]'));
-    const pcOut = q<HTMLElement>('[data-out="pc"]'), albOut = q<HTMLElement>('[data-out="alb"]'), pipOut = q<HTMLElement>('[data-out="pip"]'), sigOut = q<HTMLElement>('[data-out="sigma"]');
-    const rNet = q<HTMLElement>('[data-r-net]'), rJv = q<HTMLElement>('[data-r-jv]'), rLymph = q<HTMLElement>('[data-r-lymph]'), rAcc = q<HTMLElement>('[data-r-acc]');
+    const modeIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="mode"]'));
+    const pcOut = q<HTMLElement>('[data-out="pc"]'), albOut = q<HTMLElement>('[data-out="alb"]'), pipOut = q<HTMLElement>('[data-out="pip"]'), sigOut = q<HTMLElement>('[data-out="sigma"]'), piOut = q<HTMLElement>('[data-out="pi"]');
+    const rPig = q<HTMLElement>('[data-r-pig]'), rNet = q<HTMLElement>('[data-r-net]'), rJvLabel = q<HTMLElement>('[data-r-jvlabel]'), rJv = q<HTMLElement>('[data-r-jv]'), rLymph = q<HTMLElement>('[data-r-lymph]'), rAcc = q<HTMLElement>('[data-r-acc]');
     const arith = q<HTMLElement>('[data-arith]'), why = q<HTMLElement>('[data-why]');
 
     // The lesson's illustrative numbers (Part A) and sketch settings.
-    const PI = -1, PIG = 6, KF_TOTAL = 0.005 * 100; // mL per min per mmHg, 10 kg muscle
+    const PIG_FIXED = 6, KF_TOTAL = 0.005 * 100; // mL per min per mmHg, 10 kg muscle
     const CAP_NORMAL = 1.5, CAP_BLOCKED = 0.3;
-    const DEF_PC = 18, DEF_ALB = 4, DEF_SIG = 0.9;
+    const DEF_PC = 18, DEF_ALB = 4, DEF_SIG = 0.9, DEF_PI = -1;
 
     const fmt = (n: number, d = 2) => parseFloat(n.toFixed(d)).toString().replace('-', '−');
+    const f1 = (n: number) => n.toFixed(1);
     const f2 = (n: number) => n.toFixed(2);
     const f3 = (n: number) => n.toFixed(3);
     const day = (mlmin: number) => (mlmin * 1.44).toFixed(3); // mL per min x 1440 / 1000 = L per day
@@ -80,6 +111,10 @@
     const ax = (v: number) => AX0 + ((v - LO) / (HI - LO)) * (AX1 - AX0);
     // Panel B geometry.
     const BX0 = 8, BX1 = 332;
+    // Panel C (hockey stick) geometry: Pc 5 to 40 mmHg, Jv −10 to 20 mL per min.
+    const HX0 = 36, HX1 = 332, HY0 = 366, HY1 = 452, PC_LO = 5, PC_HI = 40, JV_LO = -10, JV_HI = 20;
+    const hx = (pc: number) => HX0 + ((pc - PC_LO) / (PC_HI - PC_LO)) * (HX1 - HX0);
+    const hy = (jv: number) => HY1 - ((Math.min(JV_HI, Math.max(JV_LO, jv)) - JV_LO) / (JV_HI - JV_LO)) * (HY1 - HY0);
 
     function text(x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
       const t = el('text', Object.assign({ x, y, 'font-size': 10, fill: INK }, opts));
@@ -100,46 +135,58 @@
     }
 
     function render() {
-      const pc = parseFloat(pcIn.value), alb = parseFloat(albIn.value), sigma = parseFloat(sigIn.value);
+      const pc = parseFloat(pcIn.value), alb = parseFloat(albIn.value), sigma = parseFloat(sigIn.value), pi = parseFloat(piIn.value);
       const blocked = lymphIns.some((r) => r.checked && r.value === 'blocked');
+      const steady = !modeIns.some((r) => r.checked && r.value === 'after');
       const cap = blocked ? CAP_BLOCKED : CAP_NORMAL;
       const pip = 2 + 6 * alb;
-      const push = pc - PI;
-      const opp = sigma * (pip - PIG);
-      let net = push - opp;
-      net = Math.round(net * 1e6) / 1e6;
-      const jv = net > 0 ? KF_TOTAL * net : 0; // steady filtration (zero if net is not positive)
+      const push = pc - pi;
+      // steady state: π_g follows the flow
+      const netS = steadyNet(push, pip, sigma);
+      const pigS = pigOf(netS, pip, sigma);
+      const jvS = KF_TOTAL * netS;
+      // just after a sudden change: π_g still 6 mmHg
+      const netF = Math.round((push - sigma * (pip - PIG_FIXED)) * 1e6) / 1e6;
+      const pig = steady ? pigS : PIG_FIXED;
+      const net = steady ? netS : netF;
+      const opp = sigma * (pip - pig);
+      const jv = net > 0 ? KF_TOTAL * net : 0; // filtration (zero only while absorbing just after a fall)
       const absorb = net < 0 ? KF_TOTAL * -net : 0; // initial transient absorption rate
-      const lymph = Math.min(jv, cap);
-      const acc = Math.max(0, jv - cap);
+      // while absorbing, lymph and tissue are shown for the trickle that follows once it stops
+      const jvShown = net < 0 ? jvS : jv;
+      const lymph = Math.min(jvShown, cap);
+      const acc = Math.max(0, jvShown - cap);
 
       pcOut.textContent = String(pc);
       albOut.textContent = fmt(alb, 1);
       pipOut.textContent = fmt(pip, 1);
       sigOut.textContent = f2(sigma);
+      piOut.textContent = fmt(pi, 0);
 
       // ---- readouts
+      rPig.textContent = steady ? `${f1(pigS)} mmHg (follows the flow)` : `${f1(PIG_FIXED)} mmHg (not yet changed)`;
       rNet.textContent = net > 0 ? `${sgn(net)} mmHg, outward` : net < 0 ? `${sgn(net)} mmHg, inward` : '0.00 mmHg';
+      rJvLabel.textContent = steady ? 'Steady filtration Jv' : 'Filtration Jv just after the change';
       rJv.textContent = net < 0
-        ? `slight, not computed here · transient absorption, initial ${f3(absorb)} mL per min`
+        ? `absorbing ${f3(absorb)} mL per min at first · steady trickle later ${f3(jvS)} mL per min`
         : `${f3(jv)} mL per min · ${day(jv)} L per day`;
-      rLymph.textContent = net < 0 ? 'slight, not computed' : `${f3(lymph)} mL per min · ${day(lymph)} L per day`;
-      rAcc.textContent = net < 0 ? 'none expected from this' : `${f3(acc)} mL per min · ${day(acc)} L per day`;
+      rLymph.textContent = net < 0 ? `${f3(lymph)} mL per min once steady` : `${f3(lymph)} mL per min · ${day(lymph)} L per day`;
+      rAcc.textContent = net < 0 ? `${f3(acc)} mL per min once steady` : `${f3(acc)} mL per min · ${day(acc)} L per day`;
       arith.textContent =
-        `π_p = 2 + 6 × ${fmt(alb, 1)} = ${fmt(pip, 1)} mmHg. Hydrostatic: ${pc} − (−1) = ${push} mmHg. ` +
-        `Oncotic: ${f2(sigma)} × (${fmt(pip, 1)} − ${PIG}) = ${fmt(opp)} mmHg. Net = ${push} − ${fmt(opp)} = ${fmt(net)} mmHg. ` +
-        (net > 0 ? `Jv = 0.5 × ${fmt(net)} = ${f3(jv)} mL per min.` : net < 0 ? `Initial absorption = 0.5 × ${fmt(-net)} = ${f3(absorb)} mL per min; steady filtration not computed (slight).` : 'Jv = 0.');
+        `π_p = 2 + 6 × ${fmt(alb, 1)} = ${fmt(pip, 1)} mmHg. Push: ${pc} − (${fmt(pi, 0)}) = ${push} mmHg. ` +
+        `Hold-back: ${f2(sigma)} × (${fmt(pip, 1)} − ${f1(pig)}) = ${fmt(opp)} mmHg${steady ? ' (π_g from the sieving model)' : ''}. Net = ${push} − ${fmt(opp)} = ${fmt(net)} mmHg. ` +
+        (net > 0 ? `Jv = 0.5 × ${fmt(net)} = ${f3(jv)} mL per min.` : net < 0 ? `Initial absorption = 0.5 × ${fmt(-net)} = ${f3(absorb)} mL per min; once π_g has risen, steady filtration = ${f3(jvS)} mL per min.` : 'Jv = 0.');
 
       // ---- drawing
       plot.replaceChildren();
       text(AX0, 13, 'Forces across the wall, mmHg (bars show size)', { 'font-weight': 700 });
       const rows: [number, string, string, number, number, string][] = [
-        [30, 'Hydrostatic push out: Pc − Pi', `${fmt(push)} mmHg`, 0, push, ORANGE],
-        [60, 'Oncotic opposition: σ × (π_p − π_g)', `${fmt(opp)} mmHg`, 0, opp, ACCENT],
-        [90, 'Net = push − opposition (right = outward)', `${sgn(net)} mmHg`, 0, net, net >= 0 ? ORANGE : ACCENT],
+        [30, 'Push out: Pc − Pi', `${fmt(push)} mmHg`, 0, push, ORANGE],
+        [60, `Hold-back: σ × (π_p − π_g), π_g = ${f1(pig)}`, `${fmt(opp)} mmHg`, 0, opp, ACCENT],
+        [90, 'Net = push − hold-back (right = outward)', `${sgn(net)} mmHg`, 0, net, net >= 0 ? ORANGE : ACCENT],
       ];
       const z = ax(0);
-            for (const [y, label, val, a, b, col] of rows) {
+      for (const [y, label, val, a, b, col] of rows) {
         text(AX0, y, label);
         text(AX1, y, val, { 'text-anchor': 'end', 'font-weight': 700 });
         plot.appendChild(el('line', { x1: z, y1: y + 2, x2: z, y2: y + 18, stroke: INK, 'stroke-width': 1 }));
@@ -163,19 +210,19 @@
         text(108, 209, `${f3(jv)} mL per min`, { 'text-anchor': 'middle' });
       } else if (net < 0) {
         arrow(132, 84, 166, aw(absorb), ACCENT, true);
-        text(108, 197, 'transient absorption (after a fall in Pc)', { 'text-anchor': 'middle' });
+        text(108, 197, 'brief absorption', { 'text-anchor': 'middle' });
         text(108, 209, `initial ${f3(absorb)} mL per min`, { 'text-anchor': 'middle' });
       } else {
         text(108, 197, 'no net flow', { 'text-anchor': 'middle' });
       }
       if (lymph > 0) {
         arrow(208, 256, 166, aw(lymph), LYMPH, false);
-        text(232, 197, 'lymph flow', { 'text-anchor': 'middle' });
+        text(232, 197, net < 0 ? 'lymph, once steady' : 'lymph flow', { 'text-anchor': 'middle' });
         text(232, 209, `${f3(lymph)} mL per min`, { 'text-anchor': 'middle' });
       } else {
         plot.appendChild(el('line', { x1: 208, y1: 166, x2: 256, y2: 166, stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '3 3' }));
         text(232, 197, 'lymph flow', { 'text-anchor': 'middle' });
-        text(232, 209, net < 0 ? 'slight, not computed' : '0.000 mL per min', { 'text-anchor': 'middle' });
+        text(232, 209, '0.000 mL per min', { 'text-anchor': 'middle' });
       }
       if (acc > 0) {
         plot.appendChild(el('line', { x1: 170, y1: 182, x2: 170, y2: 214, stroke: ORANGE, 'stroke-width': aw(acc) }));
@@ -188,8 +235,8 @@
 
       // gauge: filtration against lymph capacity
       const steps = [2, 5, 10, 20];
-      const axMax = steps.find((s) => s >= Math.max(jv, cap)) ?? 20;
-      const gx = (v: number) => BX0 + (v / axMax) * (BX1 - BX0);
+      const axMax = steps.find((s) => s >= Math.max(jvShown, cap)) ?? 20;
+      const gx = (v: number) => BX0 + (Math.min(v, axMax) / axMax) * (BX1 - BX0);
       text(AX0, 264, 'Filtration against lymph capacity, mL per min', { 'font-weight': 700 });
       plot.appendChild(el('rect', { x: 8, y: 271, width: 8, height: 8, fill: LYMPH }));
       text(20, 279, 'carried by lymph');
@@ -197,7 +244,7 @@
       text(142, 279, 'left in tissue (edema)');
       plot.appendChild(el('rect', { x: BX0, y: 285, width: BX1 - BX0, height: 14, fill: '#f4f4f6', stroke: FAINT, 'stroke-width': 1 }));
       if (lymph > 0) plot.appendChild(el('rect', { x: BX0, y: 285, width: gx(lymph) - BX0, height: 14, fill: LYMPH }));
-      if (acc > 0) plot.appendChild(el('rect', { x: gx(cap), y: 285, width: gx(jv) - gx(cap), height: 14, fill: ORANGE }));
+      if (acc > 0) plot.appendChild(el('rect', { x: gx(cap), y: 285, width: gx(jvShown) - gx(cap), height: 14, fill: ORANGE }));
       const cx = gx(cap);
       plot.appendChild(el('line', { x1: cx, y1: 282, x2: cx, y2: 303, stroke: INK, 'stroke-width': 1.6 }));
       const capLabel = `lymph capacity ${f2(cap)}`;
@@ -206,33 +253,69 @@
       text(BX0, 330, '0', { 'font-size': 9.5 });
       text(BX1, 330, `scale 0 to ${axMax}`, { 'text-anchor': 'end', 'font-size': 9.5 });
 
+      // hockey stick: filtration against Pc for the current albumin, σ and Pi
+      text(AX0, 350, 'Filtration Jv against Pc, mL per min (the hockey stick)', { 'font-weight': 700 });
+      plot.appendChild(el('rect', { x: HX0, y: HY0, width: HX1 - HX0, height: HY1 - HY0, fill: 'none', stroke: FAINT, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: HX0, y1: hy(0), x2: HX1, y2: hy(0), stroke: INK, 'stroke-width': 1 }));
+      for (const v of [-10, 0, 10, 20]) text(HX0 - 4, hy(v) + 3, String(v).replace('-', '−'), { 'text-anchor': 'end', 'font-size': 9.5 });
+      for (const v of [5, 10, 20, 30, 40]) {
+        plot.appendChild(el('line', { x1: hx(v), y1: HY1, x2: hx(v), y2: HY1 + 4, stroke: INK, 'stroke-width': 1 }));
+        text(hx(v), HY1 + 14, String(v), { 'text-anchor': 'middle', 'font-size': 9.5 });
+      }
+      text((HX0 + HX1) / 2, HY1 + 27, 'Pc, mmHg', { 'text-anchor': 'middle', 'font-size': 9.5 });
+      const fixedJv = (p: number) => KF_TOTAL * (p - pi - sigma * (pip - PIG_FIXED));
+      // dashed straight line: π_g fixed at 6 (the old diagram), clipped to the panel
+      const dash: string[] = [], solid: string[] = [];
+      for (let p = PC_LO; p <= PC_HI + 1e-9; p += 0.5) {
+        dash.push(`${hx(p).toFixed(1)},${hy(fixedJv(p)).toFixed(1)}`);
+        solid.push(`${hx(p).toFixed(1)},${hy(KF_TOTAL * steadyNet(p - pi, pip, sigma)).toFixed(1)}`);
+      }
+      plot.appendChild(el('polyline', { points: dash.join(' '), fill: 'none', stroke: INK, 'stroke-width': 1.3, 'stroke-dasharray': '5 3' }));
+      plot.appendChild(el('polyline', { points: solid.join(' '), fill: 'none', stroke: ORANGE, 'stroke-width': 2.2 }));
+      text(HX1 - 4, hy(0) + 12, '— steady state (π_g follows the flow)', { fill: ORANGE, 'font-size': 9.5, 'text-anchor': 'end' });
+      text(HX1 - 4, hy(0) + 24, '- - old diagram: straight line continued below zero', { 'font-size': 9.5, 'text-anchor': 'end' });
+      const dotJv = steady ? jvS : (net < 0 ? -absorb : jv);
+      plot.appendChild(el('circle', { cx: hx(pc), cy: hy(dotJv), r: 4.5, fill: GOLD, stroke: INK, 'stroke-width': 1 }));
+
       // ---- status line
       const parts: string[] = [];
       if (net < 0) {
-        parts.push(`In this sketch, net pressure is ${sgn(net)} mmHg, inward. If Pc had just fallen, as in the lesson’s Part C, this net would absorb about ${f3(absorb)} mL per min at first, but absorption is transient: it stops as protein concentrates beneath the glycocalyx. At a steady Pc, the lesson’s no-absorption rule says oncotic pressure slows filtration but does not reverse it. In the steady state the lesson says slight filtration persists and lymph returns it; the sketch does not compute that small amount.`);
+        parts.push(`Just after Pc falls, net pressure is ${sgn(net)} mmHg, inward, so the vessel absorbs about ${f3(absorb)} mL per min at first. That absorption stops as protein builds up under the glycocalyx and π_g rises. Switch to the steady state to see the trickle that follows: π_g settles near ${f1(pigS)} mmHg and filtration of ${f3(jvS)} mL per min returns, which lymph carries home.`);
       } else if (net === 0) {
-        parts.push('In this sketch, net pressure is 0 mmHg, so there is no net filtration or absorption and nothing for lymph to carry or for the tissue to accumulate.');
+        parts.push('Just after the change, net pressure is 0 mmHg, so for the moment there is no net filtration or absorption. In the steady state a small filtration returns.');
       } else if (acc > 0) {
-        parts.push(`In this sketch, filtration (${f3(jv)} mL per min) exceeds what lymph can carry (${f2(cap)} mL per min), so ${f3(acc)} mL per min (${day(acc)} L per day) accumulates in the tissue: edema, which forms when filtration exceeds lymph drainage. Because the safety factors are not modelled, this is an upper estimate.`);
+        parts.push(`Filtration (${f3(jv)} mL per min) exceeds what lymph can carry (${f2(cap)} mL per min), so ${f3(acc)} mL per min (${day(acc)} L per day) accumulates in the tissue: edema, which forms when filtration outruns lymph. Because lymph capacity and Pi do not rise on their own here, this is an upper estimate.`);
       } else {
-        parts.push(`In this sketch, net pressure is ${sgn(net)} mmHg outward, so filtration is ${f3(jv)} mL per min (${day(jv)} L per day), and lymph, which can carry up to ${f2(cap)} mL per min here, returns all of it: nothing accumulates.`);
+        parts.push(`Net pressure is ${sgn(net)} mmHg outward, so filtration is ${f3(jv)} mL per min (${day(jv)} L per day), and lymph, which can carry up to ${f2(cap)} mL per min here, returns all of it: nothing accumulates.`);
       }
+      if (steady && push < sigma * pip) parts.push(`The push (${fmt(push)} mmHg) is weaker than the plasma proteins’ full pull (${fmt(sigma * pip)} mmHg), so π_g has risen until only a trickle of filtration is left; it never becomes absorption.`);
       const ch: string[] = [];
       if (pc > DEF_PC) ch.push('a higher Pc raises the push out');
       if (pc < DEF_PC) ch.push('a lower Pc lowers the push out');
-      if (alb < DEF_ALB) ch.push('lower albumin lowers π_p, so the oncotic opposition falls');
-      if (alb > DEF_ALB) ch.push('higher albumin raises π_p, so the oncotic opposition rises');
-      if (sigma < DEF_SIG - 1e-9) ch.push('a lower σ means the same protein gradient opposes filtration less');
-      if (sigma > DEF_SIG + 1e-9) ch.push('a higher σ means the same protein gradient opposes filtration more');
+      if (pi > DEF_PI) ch.push('a higher Pi lowers the push out');
+      if (pi < DEF_PI) ch.push('a lower Pi raises the push out');
+      if (alb < DEF_ALB) ch.push('lower albumin lowers π_p, so the hold-back falls');
+      if (alb > DEF_ALB) ch.push('higher albumin raises π_p, so the hold-back rises');
+      if (sigma < DEF_SIG - 1e-9) ch.push('a lower σ means the same protein difference holds back less');
+      if (sigma > DEF_SIG + 1e-9) ch.push('a higher σ means the same protein difference holds back more');
       if (blocked) ch.push('blocked lymph lowers the capacity to 0.3 mL per min');
       if (ch.length) parts.push('Against Part A’s settings: ' + ch.join('; ') + '.');
       const sameOnc = alb === DEF_ALB && Math.abs(sigma - DEF_SIG) < 1e-9;
-      if (sameOnc && pc === 18) parts.push('Pc, albumin and σ here are the lesson’s Part A, where Jv is 0.5 mL per min (720 mL per day).');
-      if (sameOnc && pc === 28) parts.push('These are the first step of the lesson’s Part B (net 11 mmHg, Jv 5.5 mL per min); Part B then adds safety factors that this sketch leaves out.');
-      if (sameOnc && pc === 10) parts.push('These are the lesson’s Part C numbers (net −7 mmHg, absorption of 3.5 mL per min at first).');
+      if (sameOnc && pi === DEF_PI && pc === 18) parts.push('These are the lesson’s Part A, where π_g is 6 mmHg and Jv is 0.5 mL per min (720 mL per day) in either mode.');
+      if (sameOnc && pi === DEF_PI && pc === 28) {
+        parts.push(steady
+          ? `This is Part B with Pi still −1 mmHg: in the steady state the faster filtrate rinses π_g down to ${f1(pigS)} mmHg, so net is ${fmt(netS)} mmHg and Jv ${f3(jvS)} mL per min, below the first-step 5.5. Set Pi to +2 for Part B’s later state.`
+          : 'These are the first step of the lesson’s Part B (net 11 mmHg, Jv 5.5 mL per min). Switch to the steady state, then set Pi to +2, to follow Part B over hours.');
+      }
+      if (sameOnc && pi === 2 && pc === 28 && steady) parts.push(`This is close to Part B’s later state: net ${fmt(netS)} mmHg and Jv ${f3(jvS)} mL per min, against the lesson’s 2.65 mL per min worked with π_g rounded to 3 mmHg.`);
+      if (sameOnc && pi === DEF_PI && pc === 10) {
+        parts.push(steady
+          ? `This is Part C after the absorption has stopped: π_g has passed 13.8 mmHg to about ${f1(pigS)} mmHg, and the vessel filters slightly (${f3(jvS)} mL per min), on the shallow arm of the hockey stick.`
+          : 'These are the lesson’s Part C numbers (net −7 mmHg, absorption of 3.5 mL per min at first).');
+      }
       why.textContent = parts.join(' ');
     }
-    [pcIn, albIn, sigIn, ...lymphIns].forEach((s) => {
+    [pcIn, albIn, sigIn, piIn, ...lymphIns, ...modeIns].forEach((s) => {
       s.addEventListener('input', render);
       s.addEventListener('change', render);
     });

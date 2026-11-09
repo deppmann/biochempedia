@@ -35,6 +35,11 @@
     <text x="30" y="192" font-size="9" fill="#4b4b55" data-t="l2">dashed mark: PaO₂ if the difference stayed 7.7 mmHg</text>
   </svg>
 
+  <div class="vpm-presets" role="group" aria-label="Set the calculator to a case from the lesson">
+    <button type="button" class="vpm-btn" data-preset="4.2,0.21,0.8,92">Worked problem</button>
+    <button type="button" class="vpm-btn" data-preset="4.2,0.21,0.8,59">Two-unit lung (lesson)</button>
+  </div>
+
   <div class="vpm-controls">
     <label class="vpm-slabel"><span>Alveolar ventilation VA <em data-out="va">4.2</em> L per min <small>(4.2 in the lesson’s worked problem; range made up)</small></span>
       <input type="range" data-in="va" min="1" max="8" step="0.1" value="4.2" />
@@ -55,13 +60,13 @@
     <div><dt>Inspired PO₂ once humidified, FiO₂ × (PB − 47)</dt><dd data-r="pio2">0.21 × 713 = 149.7 mmHg</dd></div>
     <div><dt>Alveolar PO₂, inspired − PaCO₂ ÷ R</dt><dd data-r="pao2">149.7 − 50.0 = 99.7 mmHg</dd></div>
     <div><dt>A-a difference, PAO₂ − PaO₂</dt><dd data-r="aa">99.7 − 92 = 7.7 mmHg</dd></div>
-    <div class="vpm-wide"><dt data-ref-label>PaO₂ that would keep the difference at the worked problem’s 7.7 mmHg (lesson step 7)</dt><dd data-r="ref">92.0 mmHg</dd></div>
+    <div class="vpm-wide"><dt data-ref-label>PaO₂ that would keep the difference at the worked problem’s 7.7 mmHg</dt><dd data-r="ref">92.0 mmHg</dd></div>
   </dl>
-  <p class="vpm-cap">In a young adult the A-a difference is under about 10 mmHg and it rises with age; it is a difference, not a diffusion gradient.</p>
+  <p class="vpm-cap">A high PaCO₂ with a normal A-a difference points to hypoventilation; a near-normal PaCO₂ with a wide difference points to a spread of ratios, shunt or diffusion limitation, which this calculator cannot tell apart.</p>
 
   <p class="vpm-why" data-why role="status"></p>
 
-  <p class="vpm-assume"><strong>In this sketch:</strong> steady state, near room air, at sea level; no shunt, no ventilation-perfusion spread, no diffusion limitation and no oxygen dissociation curve are modelled. Arterial PCO₂ stands in for alveolar PCO₂, as the lesson’s equation assumes, and is rounded to a whole mmHg as the worked problem does. Held fixed and illustrative: carbon dioxide output VCO₂ 195 mL per min (the worked problem’s made-up value for a healthy young adult at rest, supine), barometric pressure 760 mmHg, water vapour pressure 47 mmHg at 37 °C. R is assumed rather than measured, and is set here by hand independently of VCO₂. The slider ranges, including FiO₂ from 0.21 to 0.30, R from 0.70 to 1.00 and PaO₂ from 40 to 150 mmHg, are made up for the sketch. VA is set by hand; the sketch does not model the controller that, the lesson says, defends arterial PCO₂. PaO₂ is typed in, not calculated. The simplified equation omits a small correction that grows with PaCO₂ and with FiO₂, so treat values as good to a few mmHg.</p>
+  <p class="vpm-assume"><strong>In this sketch:</strong> steady state, near room air, at sea level; no shunt, no diffusion limitation and no oxygen dissociation curve are modelled, and the sketch does not compute the ventilation-perfusion spread; the two-unit preset only enters the lesson’s arterial PO₂ for it. Arterial PCO₂ stands in for alveolar PCO₂, as the lesson’s equation assumes, and is rounded to a whole mmHg as the worked problem does. Held fixed and illustrative: carbon dioxide output VCO₂ 195 mL per min (the worked problem’s made-up value for a healthy young adult at rest, supine), barometric pressure 760 mmHg, water vapour pressure 47 mmHg at 37 °C. R is assumed rather than measured, and is set here by hand independently of VCO₂. The slider ranges, including FiO₂ from 0.21 to 0.30, R from 0.70 to 1.00 and PaO₂ from 40 to 150 mmHg, are made up for the sketch. VA is set by hand; the sketch does not model the controller that, the lesson says, defends arterial PCO₂. PaO₂ is typed in, not calculated. The simplified equation omits a small correction that grows with PaCO₂ and with FiO₂, so treat values as good to a few mmHg.</p>
 
   <p class="vpm-foot">Alveolar PO₂ is calculated from what is breathed in, FiO₂ × (PB − 47), less the carbon dioxide term PaCO₂ ÷ R, and PaCO₂ falls as alveolar ventilation rises; the A-a difference is that calculated value minus the arterial PO₂ from a blood sample.</p>
 </figure>
@@ -154,7 +159,7 @@
         rRef!.textContent = refPa > 0 ? f1(refPa) + ' mmHg' : 'below zero (' + f1(refPa) + ' mmHg)';
       }
 
-      refLabel!.textContent = 'PaO₂ that would keep the difference at the worked problem’s 7.7 mmHg' + (va === 2.1 ? ' (lesson step 7)' : '');
+      refLabel!.textContent = 'PaO₂ that would keep the difference at the worked problem’s 7.7 mmHg';
 
       // SVG text and bars
       tA!.textContent = below0
@@ -225,17 +230,24 @@
 
       const air = fio2 === 0.21 && r === 0.8;
       if (va === 4.2 && air) {
-        s += pa === 92
-          ? ' These are steps 3 to 6 of the lesson’s worked problem, whose values are made up for a healthy young adult at rest, supine, breathing air at sea level.'
-          : ' These values match steps 3 to 5 of the lesson’s worked problem (made-up values for a healthy young adult at rest, supine, breathing air at sea level); its PaO₂ is 92 mmHg.';
-      } else if (va === 2.1 && air) {
-        s += ' This is the lesson’s step 7, halved alveolar ventilation at unchanged carbon dioxide output: PaCO₂ 80 mmHg and PAO₂ 49.7 mmHg. With the difference still 7.7 mmHg the lesson gets a PaO₂ of 42 mmHg.' +
-          (pa === 42 ? ' You have set 42 mmHg.' : ' Set the PaO₂ slider to 42 to see it.');
-      } else if (va === 2.1 && fio2 === 0.3 && r === 0.8) {
-        s += ' This is the lesson’s step 7 at FiO₂ 0.30: PAO₂ 113.9 mmHg and, with the difference still 7.7 mmHg, a PaO₂ of about 106 mmHg, with PaCO₂ staying at 80 mmHg.';
+        if (pa === 92) {
+          s += ' These are steps 3 to 6 of the lesson’s worked problem, whose values are made up for a healthy young adult at rest, supine, breathing air at sea level.';
+        } else if (pa === 59) {
+          s += ' This is the lesson’s two-unit lung at its first instant: PaCO₂ stays near 40, so the calculated alveolar PO₂ is still about 100, yet arterial PO₂ is about 59. The gap of about 40 mmHg comes from a spread of ratios alone, with no shunt and no diffusion limit, because blood mixes oxygen content and the over-ventilated unit could not make up for the under-ventilated one.';
+        } else {
+          s += ' These values match steps 3 to 5 of the lesson’s worked problem (made-up values for a healthy young adult at rest, supine, breathing air at sea level); its PaO₂ is 92 mmHg.';
+        }
+      } else if (va === 2.1 && (air || (fio2 === 0.3 && r === 0.8))) {
+        s += ' This is the setting of the lesson’s step 7, halved alveolar ventilation at unchanged carbon dioxide output; compare your answer there with the readout above.';
       }
       why!.textContent = s;
     }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => b.addEventListener('click', () => {
+      const [v, f, q, p] = (b.getAttribute('data-preset') as string).split(',');
+      vaIn.value = v; fiIn.value = f; rIn.value = q; paIn.value = p;
+      render();
+    }));
 
     [vaIn, fiIn, rIn, paIn].forEach((el) => {
       el.addEventListener('input', render);
@@ -250,6 +262,9 @@
   .vpm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
   .vpm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .vpm-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .vpm-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-3) 0 0; }
+  .vpm-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .vpm-btn:hover, .vpm-btn:focus-visible { border-color: var(--ddp-color-accent); outline: 2px solid var(--ddp-color-accent); outline-offset: 1px; }
   .vpm-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
   .vpm-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .vpm-slabel small { font-size: inherit; color: var(--ddp-color-muted); }

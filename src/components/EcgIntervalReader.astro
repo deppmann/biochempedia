@@ -3,10 +3,12 @@
  * EcgIntervalReader — "Pacemaker slope and heart rate". One idea: in a pacemaker cell the rate is set by
  * how long the diastolic ramp takes to climb from the maximal diastolic potential to threshold. The
  * lesson's own simple description is used: cycle length = (threshold - MDP) / slope of phase 4 +
- * action potential duration. The 400 ms action potential, the -60 / -40 mV / 0.05 mV per ms example and
- * the doubling of the slope are the lesson's made-up example; the slider ranges, the vagal factor 0.8
- * and the 10 mV shift are invented for the sketch. Rate = 60,000 ms per min / cycle length; the tick
- * strip is drawn at the lesson's 25 mm per s (1 small square = 0.04 s). Not an ionic model.
+ * action potential duration. The 200 ms action potential, the -60 / -40 mV / 0.05 mV per ms example and
+ * the doubling of the slope are the lesson's made-up example (cycle 600 ms, 100 per min; doubled 400 ms,
+ * 150 per min); the slider ranges, the vagal factor 0.8 and the 10 mV shift are invented for the sketch.
+ * Rate = 60,000 ms per min / cycle length. The ECG row is schematic (fixed P, QRS and T shapes, made-up
+ * 160 ms from firing to QRS), flat while the pacemaker ramps, drawn at the lesson's 25 mm per s
+ * (1 small square = 0.04 s). Not an ionic model.
  * Self-contained vanilla-TS Astro island. Original.
  */
 ---
@@ -14,16 +16,18 @@
 <figure class="eir card" data-eir>
   <figcaption class="eir-head">Pacemaker slope and heart rate<span class="eir-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="eir-svg" viewBox="0 0 340 232" role="img" aria-label="A schematic pacemaker potential over two seconds with a matching R-R tick strip" data-plot></svg>
+  <svg class="eir-svg" viewBox="0 0 340 232" role="img" aria-label="A schematic pacemaker potential over two seconds with a matching schematic ECG row" data-plot></svg>
 
   <ul class="eir-legend" aria-label="Key to the plot">
     <li><span class="eir-sw eir-sw-ramp"></span>diastolic ramp (phase 4)</li>
     <li><span class="eir-sw eir-sw-ap"></span>action potential (shape and height schematic)</li>
     <li><span class="eir-sw eir-sw-thr"></span>threshold</li>
     <li><span class="eir-sw eir-sw-mdp"></span>maximal diastolic potential (MDP)</li>
-    <li><span class="eir-sw eir-sw-tick"></span>one tick per beat</li>
-    <li><span class="eir-sw eir-sw-ref"></span>the lesson’s made-up example (cycle 800 ms)</li>
+    <li><span class="eir-sw eir-sw-ecg"></span>ECG (schematic P, QRS and T)</li>
+    <li><span class="eir-sw eir-sw-ref"></span>the lesson’s made-up example (cycle 600 ms)</li>
   </ul>
+
+  <p class="eir-note">For much of the time the pacemaker cell’s voltage is climbing, the ECG is flat: the node is too small for its boundary to show at the skin. The trace moves only when the wave spreads across the atria (P) and the ventricles (QRS, and T, which comes later and can fall early in the next climb).</p>
 
   <div class="eir-controls">
     <label class="eir-slabel"><span>Slope of phase 4 diastolic depolarisation <em data-out="slope">0.05</em> mV per ms</span>
@@ -46,7 +50,7 @@
   <dl class="eir-readout">
     <div><dt>Values used in the rule</dt><dd data-r="used"></dd></div>
     <div><dt>Ramp time = (threshold − MDP) / slope</dt><dd data-r="ramp"></dd></div>
-    <div><dt>Action potential duration (fixed in this sketch)</dt><dd data-r="apd">400 ms</dd></div>
+    <div><dt>Action potential duration (fixed in this sketch)</dt><dd data-r="apd">200 ms</dd></div>
     <div><dt>Cycle length = ramp time + action potential</dt><dd data-r="cycle"></dd></div>
     <div><dt>Rate = 60,000 ms per min / cycle length</dt><dd data-r="rate"></dd></div>
     <div><dt>R-R on paper at 25 mm per s (1 small square = 0.04 s, 1 large = 0.20 s)</dt><dd data-r="paper"></dd></div>
@@ -56,7 +60,7 @@
 
   <p class="eir-frog">Hutter and Trautwein’s numbers are frog values: they recorded from sinus venosus fibres of the isolated frog heart, where vagal stimulation moved the mean maximal diastolic potential from about −55 to −65 mV (largest shift 23 mV) and suppressed the ramp, and sympathetic stimulation steepened the ramp with the threshold unchanged. They are not mammalian sinoatrial values, and the sliders here are not fitted to them.</p>
 
-  <p class="eir-assume">Illustrative sketch, not an ionic model and not a measurement. In this sketch (made up for the sketch unless the lesson gives it): one pacemaker cell; the lesson’s simple description, cycle length = (threshold − maximal diastolic potential) / slope of phase 4 + action potential duration, with a straight ramp; a fixed 400 ms action potential, and the lesson’s made-up example of −60 mV, −40 mV and 0.05 mV per ms, are the lesson’s; the sympathetic doubling of the slope is the lesson’s made-up doubling, but the vagal factor 0.8, the 10 mV shift and all slider ranges are invented; threshold is taken as unchanged by autonomic input (as Hutter and Trautwein found for sympathetic stimulation in the frog; the lesson does not say for vagal); the spike’s height and shape are drawn schematically; the window starts at the end of an action potential; every firing gives one beat of a regular rhythm, so R-R equals the cycle length.</p>
+  <p class="eir-assume">Illustrative sketch, not an ionic model and not a measurement. In this sketch (made up for the sketch unless the lesson gives it): one pacemaker cell; the lesson’s simple description, cycle length = (threshold − maximal diastolic potential) / slope of phase 4 + action potential duration, with a straight ramp; a fixed 200 ms action potential (the lesson’s), and the lesson’s made-up example of −60 mV, −40 mV and 0.05 mV per ms, are the lesson’s; the sympathetic doubling of the slope is the lesson’s made-up doubling, but the vagal factor 0.8, the 10 mV shift and all slider ranges are invented; threshold is taken as unchanged by autonomic input (as Hutter and Trautwein found for sympathetic stimulation in the frog; the lesson does not say for vagal); the spike’s height and shape are drawn schematically; the ECG row’s P, QRS and T shapes, the 160 ms from firing to the QRS (inside the lesson’s 0.12 to 0.20 s PR interval) and the T wave’s timing are made up, with no amplitude axis; the window starts at the end of an action potential; every firing gives one beat of a regular rhythm, so R-R equals the cycle length.</p>
 
   <p class="eir-foot">Rule to keep: cycle length = (threshold − maximal diastolic potential) / slope of phase 4 + action potential duration, and rate = 60,000 ms per min / cycle length; a steeper ramp shortens the cycle, a more negative maximal diastolic potential or a less negative threshold lengthens it.</p>
 </figure>
@@ -84,12 +88,13 @@
   const fmtInt = (x: number) => Math.round(x).toLocaleString('en-US');
 
   // the lesson's made-up example and the fixed action potential
-  const APD = 400;
+  const APD = 200;
   const REF = { mdp: -60, thr: -40, slope: 0.05 };
-  const REF_CYCLE = (REF.thr - REF.mdp) / REF.slope + APD; // 800 ms
+  const REF_CYCLE = (REF.thr - REF.mdp) / REF.slope + APD; // 600 ms
   const SYM_FACTOR = 2, VAGAL_FACTOR = 0.8, VAGAL_SHIFT = 10;
   const WINDOW = 2000; // ms drawn, = 50 mm at 25 mm per s
   const PEAK = 10; // schematic spike height, mV
+  const PR_DELAY = 160; // made-up ms from SA firing to the start of the QRS (inside the lesson's 0.12-0.20 s PR)
 
   type Mode = 'none' | 'sym' | 'vagal';
   type Params = { slope: number; mdp: number; thr: number };
@@ -133,11 +138,25 @@
       plot.appendChild(t);
     }
 
-    // schematic action potential, tau ms after threshold, fixed 400 ms
+    // schematic action potential, tau ms after threshold, fixed APD (200 ms)
     function apV(tau: number, mdp: number, thr: number): number {
       if (tau <= 60) return thr + (PEAK - thr) * Math.sin((Math.PI / 2) * (tau / 60));
       const u = Math.min(1, (tau - 60) / (APD - 60));
       return PEAK + (mdp - PEAK) * ((1 - Math.cos(Math.PI * u)) / 2);
+    }
+
+    // schematic ECG deflection (viewBox units, up = positive), tau ms after the SA cell reaches threshold.
+    // Fixed made-up shapes: P 0-80 ms, QRS from PR_DELAY (Q dip, R spike peaking at +30 ms, S dip), T after it.
+    const ECG_BASE = SY1 - 7;
+    function ecgShape(tau: number): number {
+      if (tau >= 0 && tau <= 80) return 3 * Math.sin(Math.PI * (tau / 80));
+      const q = tau - PR_DELAY;
+      if (q >= 0 && q < 10) return -2 * (q / 10);
+      if (q >= 10 && q < 30) return -2 + 18 * ((q - 10) / 20);
+      if (q >= 30 && q < 48) return 16 - 19 * ((q - 30) / 18);
+      if (q >= 48 && q < 62) return -3 + 3 * ((q - 48) / 14);
+      if (q >= 120 && q <= 240) return 5 * Math.sin(Math.PI * ((q - 120) / 120));
+      return 0;
     }
 
     function mode(): Mode {
@@ -209,18 +228,29 @@
       plot.appendChild(el('path', { d: rampD, fill: 'none', stroke: ACCENT, 'stroke-width': 2.6, 'stroke-linecap': 'round' }));
       plot.appendChild(el('path', { d: apD, fill: 'none', stroke: INK, 'stroke-width': 1.8, 'stroke-linejoin': 'round' }));
 
-      // beats: guide from the threshold crossing down to the tick strip, and the tick
+      // beats: guide from the threshold crossing down to the ECG row (where the P wave starts)
       for (const t of beats) {
         const x = px(t);
         plot.appendChild(el('line', { x1: x, y1: yThr, x2: x, y2: SY0, stroke: ORANGE, 'stroke-width': 0.8, 'stroke-dasharray': '1.5 2.5' }));
         plot.appendChild(el('circle', { cx: x, cy: yThr, r: 3, fill: ORANGE }));
-        plot.appendChild(el('line', { x1: x, y1: SY0 + 2, x2: x, y2: SY1 - 2, stroke: ORANGE, 'stroke-width': 2.6 }));
       }
-      text(X0 - 4, (SY0 + SY1) / 2 + 3, 'R-R ticks', { 'text-anchor': 'end' });
+      // schematic ECG: flat baseline except P, QRS and T after each firing (includes the beat before the window)
+      const fires: number[] = [];
+      for (let t = sol.ramp - sol.cycle; t <= WINDOW; t += sol.cycle) fires.push(t);
+      let ecgD = '';
+      for (let t = 0; t <= WINDOW; t += 2) {
+        let v = 0;
+        for (const f of fires) v += ecgShape(t - f);
+        ecgD += `${t === 0 ? 'M' : 'L'}${px(t).toFixed(1)} ${(ECG_BASE - v).toFixed(1)}`;
+      }
+      plot.appendChild(el('path', { d: ecgD, fill: 'none', stroke: ORANGE, 'stroke-width': 1.6, 'stroke-linejoin': 'round' }));
+      text(X0 - 4, (SY0 + SY1) / 2 - 2, 'ECG', { 'text-anchor': 'end' });
+      text(X0 - 4, (SY0 + SY1) / 2 + 9, '(schematic)', { 'text-anchor': 'end', 'font-size': 8.5 });
 
-      // R-R bracket between the first two ticks
-      if (beats.length >= 2) {
-        const xa = px(beats[0]), xb = px(beats[1]), yb = SY0 - 5;
+      // R-R bracket between the first two QRS spikes
+      const rPeaks = fires.map((f) => f + PR_DELAY + 30).filter((t) => t >= 0 && t <= WINDOW);
+      if (rPeaks.length >= 2) {
+        const xa = px(rPeaks[0]), xb = px(rPeaks[1]), yb = SY0 - 5;
         plot.appendChild(el('line', { x1: xa, y1: yb, x2: xb, y2: yb, stroke: INK, 'stroke-width': 1 }));
         plot.appendChild(el('line', { x1: xa, y1: yb - 3, x2: xa, y2: yb + 3, stroke: INK, 'stroke-width': 1 }));
         plot.appendChild(el('line', { x1: xb, y1: yb - 3, x2: xb, y2: yb + 3, stroke: INK, 'stroke-width': 1 }));
@@ -236,19 +266,19 @@
       }
       text((X0 + X1) / 2, 227, 'time (s), 25 mm per s', { 'text-anchor': 'middle' });
 
-      plot.setAttribute('aria-label', `A schematic pacemaker potential over two seconds with a matching R-R tick strip. In this sketch the cycle length is ${fmtInt(sol.cycle)} ms and the rate is ${rateTxt(sol.rate)} per min.`);
+      plot.setAttribute('aria-label', `A schematic pacemaker potential over two seconds with a matching schematic ECG row. In this sketch the cycle length is ${fmtInt(sol.cycle)} ms and the rate is ${rateTxt(sol.rate)} per min.`);
 
       // readouts, with the lesson's arithmetic
       rUsed.textContent = `slope ${fmt(eff.slope, 3)} mV per ms · MDP ${fmt(eff.mdp, 0)} mV · threshold ${fmt(eff.thr, 0)} mV`;
       rRamp.textContent = `(${fmt(eff.thr, 0)} − (${fmt(eff.mdp, 0)})) / ${fmt(eff.slope, 3)} = ${fmtInt(sol.ramp)} ms`;
-      rCycle.textContent = `${fmtInt(sol.ramp)} + 400 = ${fmtInt(sol.cycle)} ms`;
+      rCycle.textContent = `${fmtInt(sol.ramp)} + ${APD} = ${fmtInt(sol.cycle)} ms`;
       rRate.textContent = `60,000 / ${fmtInt(sol.cycle)} = ${rateTxt(sol.rate)} per min`;
       rPaper.textContent = `${fmt(sol.small, 3)} small squares = ${fmt(sol.large, 3)} large squares`;
       rCheck.textContent = `1,500 / ${fmt(sol.small, 3)} = ${rateTxt(1500 / sol.small)}; 300 / ${fmt(sol.large, 3)} = ${rateTxt(300 / sol.large)} per min`;
 
       // status sentences, rebuilt from the current state every time
       const s: string[] = [];
-      s.push(`In this sketch, the ramp from ${fmt(eff.mdp, 0)} to ${fmt(eff.thr, 0)} mV at ${fmt(eff.slope, 3)} mV per ms takes ${fmtInt(sol.ramp)} ms; adding the 400 ms action potential gives a cycle length of ${fmtInt(sol.cycle)} ms, which is ${rateTxt(sol.rate)} per min.`);
+      s.push(`In this sketch, the ramp from ${fmt(eff.mdp, 0)} to ${fmt(eff.thr, 0)} mV at ${fmt(eff.slope, 3)} mV per ms takes ${fmtInt(sol.ramp)} ms; adding the ${APD} ms action potential gives a cycle length of ${fmtInt(sol.cycle)} ms, which is ${rateTxt(sol.rate)} per min.`);
       if (m === 'none') {
         s.push('No autonomic input is applied. In this sketch, a steeper ramp covers the same climb sooner, while a more negative maximal diastolic potential or a less negative threshold lengthens the climb.');
       } else if (m === 'sym') {
@@ -282,7 +312,7 @@
   .eir-sw-ap { border-top: 2px solid #4b4b55; }
   .eir-sw-thr { border-top: 2px dashed #e57200; }
   .eir-sw-mdp { border-top: 2px dashed #6a4c93; }
-  .eir-sw-tick { border-top: 0; width: 0.2rem; height: 0.9rem; background: #e57200; margin: 0 0.6rem; }
+  .eir-sw-ecg { border-top: 2px solid #e57200; }
   .eir-sw-ref { border-top: 0; width: 0; height: 0; border-left: 0.3rem solid transparent; border-right: 0.3rem solid transparent; border-bottom: 0.55rem solid #8d8d98; margin: 0 0.45rem; }
   .eir-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
   .eir-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
@@ -297,6 +327,7 @@
   .eir-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .eir-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
   .eir .eir-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 9em; }
+  .eir .eir-note { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
   .eir .eir-frog { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
   .eir .eir-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
   .eir .eir-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
