@@ -112,6 +112,8 @@ export const MILESTONES: Milestone[] = [
     text: 'Every Biochemistry lesson gets the expert-teacher rewrite, with new figures, simulations and flashcards.' },
   { date: '2026-11-08', kind: 'site', title: 'Faster to the lesson', prs: [192, 195, 196],
     text: 'A contents list in every lesson, links from lessons to MCAT practice, a shelf of recently rewritten lessons, and a homepage and lesson page that get you to the material sooner.' },
+  { date: '2026-11-08', kind: 'site', title: 'This page', prs: [198],
+    text: 'A record of what has changed on the site, how fast it is being built, and where it is going next.' },
   { date: '2026-11-08', kind: 'site', title: 'Privacy for learners and classes, spelled out', prs: [197],
     text: 'The privacy pages explain how an optional learner account and a teacher’s class stay separate, and why a class never needs an account.' },
   { date: '2026-11-08', kind: 'teachers', title: 'Flashcards in the teacher’s brief', prs: [193],
