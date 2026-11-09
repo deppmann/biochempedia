@@ -213,7 +213,9 @@ const websiteLd = {
         Wide: brand plus four columns in one row. Tablet and phone: brand on top, links two to a row. */}
     <style is:global>
       footer.footer .footer__grid { grid-template-columns: 1.15fr repeat(4, minmax(0, 1fr)); gap: var(--space-2xl, 2.5rem); }
-      footer.footer .footer__grid .footer__links { gap: 0.55rem; }
+      /* Each link is a 44px-tall tap target; the padding replaces the old gap between rows. */
+      footer.footer .footer__grid .footer__links { gap: 0; }
+      footer.footer .footer__grid .footer__links a { display: inline-flex; align-items: center; min-height: 44px; }
       footer.footer .footer__notes { max-width: 72ch; }
       @media (max-width: 960px) {
         footer.footer .footer__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xl, 2rem); }

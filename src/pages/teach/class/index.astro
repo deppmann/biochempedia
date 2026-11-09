@@ -141,7 +141,7 @@ const MODES = [
   </article>
 
   <script>
-    import { api } from '../../../lib/classroom';
+    import { api, localToday } from '../../../lib/classroom';
 
     type Catalog = { slug: string; title: string; units: { name: string; lessons: { slug: string; title: string; n: number }[] }[] }[];
     interface Brief {
@@ -186,7 +186,7 @@ const MODES = [
     tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab!)));
 
     async function load() {
-      const r = await api<Brief>(`/api/classes/${encodeURIComponent(id)}/brief`);
+      const r = await api<Brief>(`/api/classes/${encodeURIComponent(id)}/brief?today=${localToday()}`);
       if (r.status === 401) { location.replace('/teach/'); return; }
       if (!r.ok) { $('[data-name]').textContent = r.data.error || 'Could not load this class.'; return; }
       brief = r.data;

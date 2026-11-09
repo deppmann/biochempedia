@@ -96,7 +96,18 @@ async function studentView(db, s) {
 }
 
 // ---- the morning brief ------------------------------------------------------------
-async function buildBrief(db, cls) {
+/* "Today" for overdue flags. The worker has no record of a teacher's time zone, so the class page
+   sends its own local date (?today=YYYY-MM-DD). It is used only if it is the UTC date or one day
+   either side, which every real time zone is; anything else falls back to the UTC date. */
+function briefToday(url) {
+  const utc = new Date().toISOString().slice(0, 10);
+  const asked = url?.searchParams.get('today') || '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(asked)) return utc;
+  const diff = Math.abs(Date.parse(`${asked}T00:00:00Z`) - Date.parse(`${utc}T00:00:00Z`));
+  return diff <= 86400000 ? asked : utc;
+}
+
+async function buildBrief(db, cls, today = new Date().toISOString().slice(0, 10)) {
   const students = (await db.prepare('SELECT id, nickname, status, created_at, last_seen_at FROM students WHERE class_id=? ORDER BY nickname').bind(cls.id).all()).results || [];
   const assignments = ((await db.prepare('SELECT lesson_slug AS slug, due_date AS due, assigned_at, flashcards FROM assignments WHERE class_id=? ORDER BY due_date IS NULL, due_date, assigned_at').bind(cls.id).all()).results || [])
     .map((a) => ({ ...a, flashcards: !!a.flashcards }));
@@ -112,7 +123,6 @@ async function buildBrief(db, cls) {
       GROUP BY m.lesson_slug, m.card_id ORDER BY again DESC, students DESC`).bind(cls.id).all()).results || [];
   const nick = Object.fromEntries(students.map((s) => [s.id, s.nickname]));
   const active = students.filter((s) => s.status === 'active');
-  const today = new Date().toISOString().slice(0, 10);
 
   const slugs = [...new Set([...assignments.map((a) => a.slug), ...rows.map((r) => r.lesson_slug)])];
   const lessons = {};
@@ -376,12 +386,12 @@ export async function handleApi(request, env) {
           const shared = await db.prepare(
             `SELECT c.* FROM classes c JOIN group_members gm ON gm.group_id=c.group_id
               WHERE c.id=? AND c.shared_with_group=1 AND gm.teacher_id=? AND gm.role='admin' AND gm.status='active'`).bind(m[1], t.id).first();
-          if (shared) return json({ ...(await buildBrief(db, shared)), feedback: (await briefAi(env, db, shared)).feedback, viewer: 'group-admin' });
+          if (shared) return json({ ...(await buildBrief(db, shared, briefToday(url))), feedback: (await briefAi(env, db, shared)).feedback, viewer: 'group-admin' });
         }
         return fail(404, 'No such class.');
       }
 
-      if (sub === 'brief' && method === 'GET') return json({ ...(await buildBrief(db, cls)), ...(await briefAi(env, db, cls)), viewer: 'owner' });
+      if (sub === 'brief' && method === 'GET') return json({ ...(await buildBrief(db, cls, briefToday(url))), ...(await briefAi(env, db, cls)), viewer: 'owner' });
       const aiClass = await handleClassAi(request, env, db, cls, sub, method);
       if (aiClass) return aiClass;
 

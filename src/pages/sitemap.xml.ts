@@ -2,6 +2,7 @@ import type { APIContext } from 'astro';
 import { PATHS } from '../data/paths';
 import { getCollection } from 'astro:content';
 import { METHODS } from '../data/methods';
+import { SETS as MCAT_SETS } from '../lib/mcat';
 
 /**
  * Hand-rolled sitemap (no @astrojs/sitemap — Astro deps are pinned). Lists the
@@ -19,6 +20,7 @@ export async function GET(context: APIContext): Promise<Response> {
     '/teachers/do-it-yourself', '/teachers/checklist', '/teachers/sources', '/teachers/talk/',
     '/teachers/life-science', '/teachers/biology',
     '/teach/', '/teach/privacy/', '/join/',
+    '/mcat/', '/mcat/diagnostic/', '/mcat/practice/', ...MCAT_SETS.map((s) => `/mcat/${s.id}/`),
     '/paths/', ...PATHS.map((p) => `/paths/${p.id}/`),
     ...courses.map((c) => `/courses/${c}/`),
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
