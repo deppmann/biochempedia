@@ -32,6 +32,14 @@ GOLD = "#D4A843"         # Biochemistrypedia gold, used sparingly (title rule, o
 
 SAFE_W = 12.6   # Manim frame is 14.22 x 8 units; keep content inside this
 SAFE_H = 7.0
+VERTICAL = os.environ.get("KX_ASPECT") == "vertical"   # render.py --vertical: a 9:16 social cut
+if VERTICAL:
+    # Frame is 8 wide x 14.22 tall. Social apps cover the top ~10% and bottom ~20% with their own
+    # buttons, and make_social.py burns captions at about y = -3.9, so keep the subject in
+    # x -3.5..3.5, y -3.0..5.4 (centre near y = +1.2) and leave y -4.6..-3.2 clear for captions.
+    config.frame_width, config.frame_height = 8.0, 8.0 * 16 / 9
+    SAFE_W, SAFE_H = 7.0, 8.4
+    V_CENTER = UP * 1.2
 
 
 # Spoken number words and the digits a transcriber writes for them are the same token (Kokoro, 2026-10-31).
@@ -55,11 +63,42 @@ class SpokenScene(NarratedScene):
     A log of how late each cue landed goes to sync.log in the video directory.
     """
 
+    def setup(self):
+        """script.json "ambient": true adds a slow field of faint drifting motes behind everything, so a
+        held frame is never a dead frame (a zero-token fix for old films; 2026-11-09). New films should
+        animate their own world instead."""
+        super().setup()
+        try:
+            on = json.loads(Path(os.environ["KX_SCRIPT"]).read_text()).get("ambient")
+        except Exception:
+            on = False
+        if not on:
+            return
+        import random
+        rng = random.Random(os.environ.get("KX_SCENE_ID", "x"))
+        W, H = config.frame_width, config.frame_height
+        motes = VGroup()
+        for _ in range(26):
+            d = Dot(radius=rng.uniform(0.02, 0.05), color=rng.choice([TEAL, GREY, TEXT])).set_opacity(rng.uniform(0.10, 0.28))
+            d.move_to([rng.uniform(-W / 2, W / 2), rng.uniform(-H / 2, H / 2), 0])
+            d.v = (rng.uniform(-0.10, 0.10), rng.uniform(0.04, 0.16))
+
+            def drift(m, dt, W=W, H=H):
+                m.shift([m.v[0] * dt, m.v[1] * dt, 0])
+                if m.get_y() > H / 2 + 0.1:
+                    m.shift(DOWN * (H + 0.2))
+                if abs(m.get_x()) > W / 2 + 0.1:
+                    m.shift(LEFT * (W + 0.2) * (1 if m.get_x() > 0 else -1))
+            d.add_updater(drift)
+            motes.add(d)
+        motes.set_z_index(-10)
+        self.add(motes)
+
     def _words(self):
         if not hasattr(self, "_wl"):
             sid = os.environ["KX_SCENE_ID"]
             vdir = Path(os.environ["KX_SCRIPT"]).parent
-            words = json.loads((vdir / "audio" / "words.json").read_text())[sid]
+            words = json.loads((vdir / os.environ.get("KX_AUDIO", "audio") / "words.json").read_text())[sid]
             # A dash can glue two words into one transcript token ("1155—outward"): split it, both at the token's start.
             self._wl = [(float(w[0]), _norm(p)) for w in words for p in re.split(r"[\u2014\u2013]", w[2]) if _norm(p)]
         return self._wl
@@ -68,6 +107,17 @@ class SpokenScene(NarratedScene):
         toks = [_norm(p) for p in re.split(r"[\s\u2014\u2013]+", phrase) if _norm(p)]
         wl = self._words()
         hits = [wl[i][0] for i in range(len(wl) - len(toks) + 1) if [x[1] for x in wl[i:i + len(toks)]] == toks]
+        if len(hits) <= nth and nth == 0 and toks:
+            # A re-voiced line can be transcribed a little differently ("metabolisms" for "metabolism"): take
+            # the closest run of words if it is a near match, so a re-pace needs no hand edits (2026-11-09).
+            import difflib
+            sim = lambda i: sum(difflib.SequenceMatcher(None, a, b[1]).ratio() for a, b in zip(toks, wl[i:i + len(toks)])) / len(toks)
+            cand = [(sim(i), -i) for i in range(len(wl) - len(toks) + 1)]
+            if cand and max(cand)[0] >= 0.82:
+                i = -max(cand)[1]
+                with open(Path(os.environ["KX_SCRIPT"]).parent / "sync.log", "a") as lg:
+                    lg.write(f"{os.environ.get('KX_SCENE_ID')}  FUZZY {phrase!r} ~ {' '.join(w[1] for w in wl[i:i + len(toks)])!r}\n")
+                return wl[i][0]
         if len(hits) <= nth:
             raise ValueError(f"phrase not spoken in {os.environ.get('KX_SCENE_ID')}: {phrase!r} (nth={nth})")
         return hits[nth]

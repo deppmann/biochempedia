@@ -12,14 +12,16 @@ from pathlib import Path
 import numpy as np
 from faster_whisper import WhisperModel
 
-ap = argparse.ArgumentParser(); ap.add_argument("--dir", required=True); a = ap.parse_args()
-d = Path(a.dir); sp = d / "script.json"; script = json.loads(sp.read_text())
+ap = argparse.ArgumentParser(); ap.add_argument("--dir", required=True)
+ap.add_argument("--script", default="script.json"); ap.add_argument("--audio", default="audio")   # social cuts: social.json / audio_social
+a = ap.parse_args()
+d = Path(a.dir); sp = d / a.script; script = json.loads(sp.read_text())
 m = WhisperModel("small.en", device="cpu", compute_type="int8")
 out = {}
 for s in script["scenes"]:
     if s.get("silent") is not None:
         out[s["id"]] = []; continue
-    raw = subprocess.run(["/Users/deppmann/miniconda3/bin/ffmpeg", "-loglevel", "error", "-i", str(d / "audio" / f"{s['id']}.wav"),
+    raw = subprocess.run(["/Users/deppmann/miniconda3/bin/ffmpeg", "-loglevel", "error", "-i", str(d / a.audio / f"{s['id']}.wav"),
                           "-f", "f32le", "-ac", "1", "-ar", "16000", "-"], capture_output=True).stdout
     segs, _ = m.transcribe(np.frombuffer(raw, dtype=np.float32), word_timestamps=True, beam_size=5)
     words = [[round(w.start, 2), round(w.end, 2), w.word.strip()] for sg in segs for w in sg.words]
@@ -28,6 +30,6 @@ for s in script["scenes"]:
         if "notes" not in s:
             s["notes"] = s.get("narration", "")
         s["narration"] = " ".join(w[2] for w in words)
-(d / "audio" / "words.json").write_text(json.dumps(out))
+(d / a.audio / "words.json").write_text(json.dumps(out))
 sp.write_text(json.dumps(script, indent=1, ensure_ascii=False))
-print(f"aligned {len(out)} scenes -> {d/'audio'/'words.json'}")
+print(f"aligned {len(out)} scenes -> {d/a.audio/'words.json'}")

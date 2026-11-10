@@ -119,7 +119,7 @@ def eleven(text, out_wav):
     ff(["-f", "mp3", "-i", "pipe:0", "-ar", "48000", "-ac", "1", str(out_wav)], mp3)
 
 
-def kokoro(text, out_wav):
+def kokoro(text, out_wav, speed=1.0, gap=0.0):
     """Kokoro-82M (af_heart, 24 kHz), run in its own venv, resampled to 48 kHz mono."""
     raw = out_wav.with_suffix(".24k.wav")
     code = ("import sys, numpy as np, soundfile as sf\n"
@@ -127,7 +127,11 @@ def kokoro(text, out_wav):
             "p = KPipeline(lang_code='a', repo_id='hexgrad/Kokoro-82M')\n"
             "import re\n"
             # One sentence per chunk: a long single chunk can lose its last words (tlr-and-nf-kb s03, 2026-10-31).
-            f"a = np.concatenate([x for _, _, x in p(re.sub(r'(?<=[.!?])\\s+', '\\n', sys.stdin.read().strip()), voice='{KOKORO_VOICE}', speed=1.0)])\n"
+            # speed and gap are the re-pace levers (2026-11-09): script.json "pace": {"speed": 0.92, "gap": 0.35}
+            # slows the voice and adds a breath of silence after each sentence. Cues are word-synced, so no scene edits.
+            f"parts = [np.asarray(x) for _, _, x in p(re.sub(r'(?<=[.!?])\\s+', '\\n', sys.stdin.read().strip()), voice='{KOKORO_VOICE}', speed={float(speed)})]\n"
+            f"sil = np.zeros(int(24000 * {float(gap)}), dtype=parts[0].dtype)\n"
+            "a = np.concatenate([y for i, x in enumerate(parts) for y in ((x, sil) if i < len(parts) - 1 else (x,))])\n"
             "sf.write(sys.argv[1], a, 24000)\n")
     r = subprocess.run([str(KOKORO_PY), "-c", code, str(raw)], input=text.encode(), capture_output=True)
     if r.returncode or not raw.exists():
@@ -208,10 +212,16 @@ def main():
                 s["narration"] = speakable(slide.get("notes"))
             s["slideTitle"] = slide.get("title", "")
         elif "tts" in s:
-            cache = out / {"eleven": ".tts", "gemini": ".tts-gemini", "kokoro": ".tts-kokoro", "say": ".tts-say"}[a.engine] / (hashlib.sha256(s["tts"].encode()).hexdigest()[:16] + ".wav")
+            pace = {**script.get("pace", {}), **s.get("pace", {})} if a.engine == "kokoro" else {}   # film-wide, overridable per scene
+            speed, gap = float(pace.get("speed", 1.0)), float(pace.get("gap", 0.0))
+            tag = "" if (speed, gap) == (1.0, 0.0) else f"|pace {speed} {gap}"
+            cache = out / {"eleven": ".tts", "gemini": ".tts-gemini", "kokoro": ".tts-kokoro", "say": ".tts-say"}[a.engine] / (hashlib.sha256((s["tts"] + tag).encode()).hexdigest()[:16] + ".wav")
             cache.parent.mkdir(exist_ok=True)
             if not cache.exists():
-                {"eleven": eleven, "gemini": gemini, "kokoro": kokoro, "say": say}[a.engine](s["tts"], cache)
+                if tag:
+                    kokoro(s["tts"], cache, speed, gap)
+                else:
+                    {"eleven": eleven, "gemini": gemini, "kokoro": kokoro, "say": say}[a.engine](s["tts"], cache)
             ff(["-i", str(cache), str(w)])
             s["narration"] = speakable(s.get("caption") or s["tts"])   # "caption": the same words spelled for the eye (SOCS, NF-κB) when "tts" spells them for the voice
             if a.engine == "say":
