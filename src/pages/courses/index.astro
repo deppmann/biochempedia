@@ -2,6 +2,8 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import LessonIcon from '../../components/LessonIcon.astro';
 import SiteSearch from '../../components/SiteSearch.astro';
+import Drifters from '../../components/Drifters.astro';
+import Sprout from '../../components/Sprout.astro';
 import { courseHref } from '../../data/courses';
 import { STAGES, stageOf } from '../../data/stages';
 import { courseCards, plural } from '../../lib/catalog';
@@ -16,6 +18,7 @@ const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c)
   title="All courses — Biochemistrypedia"
   description="Every course, from hands-on activities for ages 5 to 10 to courses that end at current research. Free, no account."
 >
+  <Drifters />
   <section class="wrap cat-hero">
     <p class="eyebrow"><a href="/">Home</a> · courses</p>
     <h1>All {cards.length} courses</h1>
@@ -42,7 +45,7 @@ const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c)
   <section class="wrap catalog" id="catalog">
     {bands.map((t) => (
       <section class="tier" id={t.key === 'graduate' ? 'research' : `stage-${t.key}`} aria-labelledby={`tier-${t.key}`}>
-        <h2 class="tier-h" id={`tier-${t.key}`}>{t.title}</h2>
+        <h2 class="tier-h" id={`tier-${t.key}`}><Sprout step={STAGES.findIndex((s) => s.key === t.key)} total={STAGES.length} size={38} />{t.title}</h2>
         <p class="tier-note">{t.note}</p>
         <ul class="course-list" data-n={t.cards.length}>
           {t.cards.map((k) => (
@@ -90,7 +93,7 @@ const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c)
     .tier { margin-top: var(--ddp-space-8); }
     .tier-h {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       gap: var(--ddp-space-3);
       font-family: var(--ddp-font-mono);
       font-size: var(--ddp-text-xs);
@@ -100,7 +103,7 @@ const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c)
       color: var(--ddp-color-muted);
       margin: 0 0 var(--ddp-space-2);
     }
-    .tier-h::after { content: ''; flex: 1; height: 1px; background: var(--ddp-color-line); }
+    .tier-h::after { content: ''; flex: 1; height: 1px; margin-bottom: 0.55em; background: var(--ddp-color-line); }
     .tier-note { margin: 0 0 var(--ddp-space-4); max-width: 60ch; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); }
     .course-list {
       list-style: none;
@@ -130,7 +133,7 @@ const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c)
       border-radius: var(--ddp-radius);
       text-decoration: none;
       color: inherit;
-      transition: transform 0.14s ease, box-shadow 0.14s ease;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
     }
     .course-card::before {
       content: "";
@@ -152,7 +155,14 @@ const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c)
       color: var(--ddp-color-ink-soft);
       letter-spacing: 0.08em;
     }
-    .course-card:hover { transform: translateY(-3px); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .course-card:hover, .course-card:focus-visible { transform: translateY(-4px) rotate(-0.5deg); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .course-list li:nth-child(even) .course-card:hover, .course-list li:nth-child(even) .course-card:focus-visible { transform: translateY(-4px) rotate(0.5deg); }
+    /* The icon wakes up when its card is picked up. */
+    .cc-ico :global(svg) { transform-origin: 50% 60%; }
+    .course-card:hover .cc-ico :global(svg), .course-card:focus-visible .cc-ico :global(svg) { animation: iconWake 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+    @keyframes iconWake { 0% { transform: none; } 30% { transform: rotate(-9deg) scale(1.12); } 60% { transform: rotate(6deg) scale(1.1); } 100% { transform: rotate(0) scale(1.06); } }
+    .cc-go { display: inline-block; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .course-card:hover .cc-go { transform: translateX(4px); }
     .course-card:hover::before { transform: scaleY(1); }
     .cc-ico { flex: none; line-height: 0; margin-top: 2px; display: flex; flex-direction: column; align-items: center; gap: var(--ddp-space-3); }
     @media (max-width: 480px) { .cc-ico { flex-direction: row; align-items: flex-end; } }
@@ -171,7 +181,9 @@ const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c)
     .tier { scroll-margin-top: 5rem; }
     @media (prefers-reduced-motion: reduce) {
       .course-card,
-      .course-card::before { transition: none; }
+      .course-card::before, .cc-go { transition: none; }
+      .course-card:hover, .course-card:focus-visible, .course-card:hover .cc-go { transform: none !important; }
+      .course-card .cc-ico :global(svg) { animation: none !important; }
     }
   </style>
 </BaseLayout>

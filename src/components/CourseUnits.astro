@@ -114,7 +114,9 @@ const metaFor = (l: any) => {
 </script>
 
 <style>
-  .lc-done { margin-left: 0.5em; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-verified-ink); white-space: nowrap; }
+  /* A finished lesson gets a rubber stamp, set a little crooked. */
+  .lc-done { display: inline-block; margin-left: 0.6em; padding: 0.05em 0.5em; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-verified-ink); border: 1.5px solid currentColor; border-radius: 4px; white-space: nowrap; vertical-align: 0.15em; transform: rotate(-5deg); animation: lcStamp 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  @keyframes lcStamp { from { opacity: 0; transform: rotate(-14deg) scale(1.7); } to { opacity: 1; transform: rotate(-5deg) scale(1); } }
   .lc-done[hidden] { display: none; }
   .unit-play {
     display: flex;
@@ -218,7 +220,7 @@ const metaFor = (l: any) => {
     border-radius: var(--ddp-radius);
     text-decoration: none;
     color: inherit;
-    transition: transform 0.14s ease, box-shadow 0.14s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
   }
   .lesson-card::before {
     content: "";
@@ -232,11 +234,19 @@ const metaFor = (l: any) => {
     transform-origin: top;
     transition: transform 0.22s ease;
   }
-  .lesson-card:hover {
-    transform: translateY(-3px);
+  /* Picked up like an index card: a small lift and tilt, alternating left and right. */
+  .lesson-card:hover, .lesson-card:focus-visible {
+    transform: translateY(-4px) rotate(-0.6deg);
     box-shadow: var(--ddp-shadow);
     text-decoration: none;
   }
+  .lesson-list li:nth-child(even) .lesson-card:hover, .lesson-list li:nth-child(even) .lesson-card:focus-visible { transform: translateY(-4px) rotate(0.6deg); }
+  /* The icon wakes up, and the order number turns gold. */
+  .lc-ico :global(svg) { transform-origin: 50% 60%; }
+  .lesson-card:hover .lc-ico :global(svg), .lesson-card:focus-visible .lc-ico :global(svg) { animation: lcIconWake 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  @keyframes lcIconWake { 0% { transform: none; } 30% { transform: rotate(-10deg) scale(1.14); } 60% { transform: rotate(7deg) scale(1.1); } 100% { transform: rotate(0) scale(1.06); } }
+  .lc-order { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease; }
+  .lesson-card:hover .lc-order, .lesson-card:focus-visible .lc-order { transform: scale(1.15) rotate(8deg); background: color-mix(in srgb, var(--ddp-color-secondary) 55%, #fff); border-color: var(--ddp-color-secondary); color: var(--color-navy, #1a2a44); }
   .lesson-card:hover::before { transform: scaleY(1); }
   /* Reading-order number in the card's corner: blue-on-light, reversed in dark mode. */
   .lc-order {
@@ -326,6 +336,8 @@ const metaFor = (l: any) => {
     background: color-mix(in srgb, var(--ddp-color-accent) 8%, var(--ddp-color-surface));
   }
   @media (prefers-reduced-motion: reduce) {
-    .lesson-card, .lesson-card::before { transition: none; }
+    .lesson-card, .lesson-card::before, .lc-order { transition: none; }
+    .lesson-card:hover, .lesson-card:focus-visible, .lesson-card:hover .lc-order { transform: none !important; }
+    .lesson-card .lc-ico :global(svg), .lc-done { animation: none !important; }
   }
 </style>

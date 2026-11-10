@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CourseUnits from '../../components/CourseUnits.astro';
 import SiteSearch from '../../components/SiteSearch.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
+import Drifters from '../../components/Drifters.astro';
 import { COURSES, unitsFor } from '../../data/courses';
 
 /* One page per course, all in the same card layout. A course gets a page only
@@ -26,6 +27,7 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
 ---
 
 <BaseLayout title={`${course.title} — Biochemistrypedia`} description={course.blurb}>
+  <Drifters />
   <section class="wrap course-hero">
     <p class="eyebrow"><a href="/courses/">All courses</a> · {tierLabel}{course.tier === 'highschool' && <DepthLadder step={course.ladderStep ?? 2} size="sm" class="eyebrow-ladder" />}</p>
     <h1>{course.title}</h1>

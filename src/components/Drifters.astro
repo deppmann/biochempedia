@@ -1,0 +1,113 @@
+---
+/**
+ * Pond water behind a page's top section: a few small living things and molecules, drawn in
+ * the engraving style of the lesson icons, drifting slowly and very faintly. Decorative only
+ * (aria-hidden, no pointer events). Used on the homepage, /courses/ and the course pages;
+ * never on a lesson, where it would compete with the reading.
+ *
+ * Under reduced motion the drawings stay but hold still. A screen with no side gutters
+ * (under 1180px) shows three of the seven.
+ */
+---
+
+<div class="drift" aria-hidden="true">
+  {/* Paramecium */}
+  <span class="d d1"><svg viewBox="0 0 56 56" class="wob">
+    <path class="fringe" d="M8 30 C8 18 20 12 34 14 C46 16 50 26 46 34 C42 42 28 44 18 42 C12 41 8 36 8 30 Z" />
+    <path d="M8 30 C8 18 20 12 34 14 C46 16 50 26 46 34 C42 42 28 44 18 42 C12 41 8 36 8 30 Z" />
+    <path d="M22 21 q8 4 6 12" />
+    <circle cx="16" cy="32" r="2.4" />
+    <ellipse class="gold" cx="35" cy="27" rx="5" ry="3.4" />
+  </svg></span>
+  {/* Bacterium with a flagellum */}
+  <span class="d d2"><svg viewBox="0 0 56 56" class="swim">
+    <rect x="22" y="22" width="24" height="12" rx="6" />
+    <path class="tail" d="M22 28 q-4 -6 -8 0 t-8 0" />
+    <circle class="gold" cx="31" cy="28" r="1.6" /><circle class="gold" cx="38" cy="28" r="1.6" />
+  </svg></span>
+  {/* Water molecule */}
+  <span class="d d3"><svg viewBox="0 0 56 56" class="spin">
+    <path d="M24 31 L19.5 35 M32 31 L36.5 35" />
+    <circle class="goldline" cx="28" cy="26" r="7.5" />
+    <circle cx="16" cy="38" r="4.6" /><circle cx="40" cy="38" r="4.6" />
+  </svg></span>
+  {/* DNA */}
+  <span class="d d4"><svg viewBox="0 0 56 56" class="wob">
+    <path d="M18 4 C38 12 38 20 28 28 C18 36 18 44 38 52" />
+    <path d="M38 4 C18 12 18 20 28 28 C38 36 38 44 18 52" />
+    <path class="goldline" d="M23.5 10 H32.5 M21 16 H35 M24 22 H32 M24 34 H32 M21 40 H35 M23.5 46 H32.5" />
+  </svg></span>
+  {/* Volvox */}
+  <span class="d d5"><svg viewBox="0 0 56 56" class="spin slow">
+    <circle class="fringe" cx="28" cy="28" r="19" />
+    <circle cx="28" cy="28" r="19" />
+    <circle class="goldline" cx="22" cy="23" r="4.2" /><circle class="goldline" cx="35" cy="26" r="3.6" /><circle class="goldline" cx="26" cy="36" r="4.6" />
+  </svg></span>
+  {/* Diatom */}
+  <span class="d d6"><svg viewBox="0 0 56 56" class="wob">
+    <ellipse cx="28" cy="28" rx="22" ry="8" />
+    <path class="striae" d="M14 28 H42" />
+    <path class="goldline" d="M10 28 H46" />
+  </svg></span>
+  {/* Amoeba */}
+  <span class="d d7"><svg viewBox="0 0 56 56" class="wob">
+    <path d="M14 22 C10 14 20 8 26 14 C30 8 42 10 40 18 C48 18 50 28 43 31 C47 38 40 46 33 41 C28 48 16 46 18 38 C8 38 6 26 14 22 Z" />
+    <circle class="gold" cx="30" cy="27" r="4" />
+    <circle cx="21" cy="30" r="1.8" /><circle cx="36" cy="35" r="1.4" />
+  </svg></span>
+</div>
+
+<style>
+  /* The layer sits behind everything in <main>. `main` becomes its positioning and stacking
+     context only on pages that include this component. */
+  :global(main:has(> .drift)) { position: relative; isolation: isolate; }
+  .drift {
+    position: absolute; inset: 0 0 auto 0; height: min(46rem, 100%); z-index: -1;
+    overflow: hidden; pointer-events: none;
+    color: var(--ddp-color-primary);
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+    mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  }
+  .d { position: absolute; display: block; opacity: 0.17; will-change: transform; }
+  .d svg { display: block; width: 100%; height: 100%; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .gold { fill: var(--ddp-color-secondary); stroke: none; }
+  .goldline { stroke: var(--ddp-color-secondary); stroke-width: 1.9; }
+  .fringe { stroke-width: 4.5; stroke-dasharray: 0.7 3.3; opacity: 0.8; }
+  .striae { stroke-width: 9; stroke-dasharray: 0.8 3; stroke-linecap: butt; }
+
+  /* Where each one lives. Mostly the side gutters, so little of it passes under text. */
+  .d1 { width: 84px; height: 84px; left: 3%; top: 5.5rem; animation: driftA 70s ease-in-out infinite alternate; }
+  .d2 { width: 60px; height: 60px; right: 8%; top: 2rem; animation: driftB 54s ease-in-out infinite alternate; }
+  .d3 { width: 52px; height: 52px; left: 46%; top: 1rem; animation: driftC 80s ease-in-out infinite alternate; }
+  .d4 { width: 64px; height: 64px; right: 2.5%; top: 17rem; animation: driftA 90s ease-in-out -30s infinite alternate-reverse; }
+  .d5 { width: 96px; height: 96px; left: 1.5%; top: 24rem; animation: driftB 100s ease-in-out -20s infinite alternate; }
+  .d6 { width: 78px; height: 78px; right: 14%; top: 31rem; animation: driftC 75s ease-in-out -40s infinite alternate-reverse; }
+  .d7 { width: 70px; height: 70px; left: 6%; top: 38rem; animation: driftA 85s ease-in-out -55s infinite alternate; }
+
+  @keyframes driftA { 0% { transform: translate(0, 0); } 35% { transform: translate(3.5vw, 26px); } 70% { transform: translate(1vw, 58px); } 100% { transform: translate(5vw, 34px); } }
+  @keyframes driftB { 0% { transform: translate(0, 0); } 40% { transform: translate(-4vw, 30px); } 75% { transform: translate(-1.5vw, -14px); } 100% { transform: translate(-6vw, 18px); } }
+  @keyframes driftC { 0% { transform: translate(0, 0); } 50% { transform: translate(4vw, 22px); } 100% { transform: translate(-3vw, 40px); } }
+
+  /* How each one moves on the spot. */
+  .wob { animation: driftWob 9s ease-in-out infinite alternate; }
+  .spin { animation: driftSpin 48s linear infinite; }
+  .spin.slow { animation-duration: 110s; }
+  .swim { animation: driftWob 3.2s ease-in-out infinite alternate; }
+  .tail { animation: driftTail 0.9s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: right center; }
+  @keyframes driftWob { from { transform: rotate(-9deg); } to { transform: rotate(8deg); } }
+  @keyframes driftSpin { to { transform: rotate(360deg); } }
+  @keyframes driftTail { from { transform: scaleY(1); } to { transform: scaleY(-1); } }
+
+  @media (prefers-color-scheme: dark) { .d { opacity: 0.2; } }
+  /* Narrower than the column plus gutters: keep three, small and near the right edge. */
+  @media (max-width: 1180px) {
+    .d { opacity: 0.12; }
+    .d3, .d5, .d6, .d7 { display: none; }
+    .d1 { width: 56px; height: 56px; left: auto; right: 4%; top: 12rem; }
+    .d2 { width: 44px; height: 44px; right: 2%; top: 0.5rem; }
+    .d4 { width: 46px; height: 46px; top: 26rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .d, .d svg, .tail { animation: none !important; }
+  }
+</style>

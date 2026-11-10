@@ -1,0 +1,71 @@
+---
+/**
+ * A water bear (tardigrade) that walks along the line above the footer, on every page.
+ * Click or tap it and it dries into a "tun", the dormant ball real tardigrades form when
+ * their water goes; click again and it wakes and walks on. A small extra for whoever
+ * scrolls to the bottom: aria-hidden and out of the tab order, so it costs a keyboard or
+ * screen-reader user nothing. Under reduced motion it stands still.
+ */
+---
+
+<div class="wb-strip" aria-hidden="true">
+  <span class="wb-walk" data-water-bear>
+    <span class="wb-note">Dried into a tun. Tap to add water.</span>
+    <svg class="wb" viewBox="0 0 64 36" width="58" height="33" focusable="false">
+      <g class="wb-legs">
+        <path class="leg a" d="M17 25 v6 M15.4 31.6 h3.2" />
+        <path class="leg b" d="M28 25.5 v6 M26.4 32.1 h3.2" />
+        <path class="leg a" d="M39 25.5 v6 M37.4 32.1 h3.2" />
+        <path class="leg b" d="M50 25 v6 M48.4 31.6 h3.2" />
+      </g>
+      <g class="wb-body">
+        <path class="skin" d="M8 20 C8 10 16 7 24 8 C30 5 38 5 44 8 C52 8 58 13 57 20 C56 25 50 27 44 26 L14 26 C10 26 8 24 8 20 Z" />
+        <path d="M24 8.2 q-2.2 9 0 17.6 M34 6.3 q-2.2 10 0 19.6 M44 8.2 q-2.2 9 0 17.6" />
+        <path d="M57 18.5 l3.6 0.8" />
+        <circle class="eye" cx="51.5" cy="15" r="1.5" />
+      </g>
+    </svg>
+  </span>
+</div>
+
+<script>
+  const bear = document.querySelector<HTMLElement>('[data-water-bear]');
+  bear?.addEventListener('click', () => bear.classList.toggle('is-tun'));
+</script>
+
+<style>
+  .wb-strip { position: relative; height: 46px; margin-top: var(--ddp-space-8); overflow: hidden; pointer-events: none; border-bottom: 1px solid var(--ddp-color-line); }
+  .wb-walk {
+    position: absolute; left: 0; bottom: -1px; display: block; padding: 10px 8px 0; cursor: pointer; pointer-events: auto;
+    color: var(--ddp-color-primary); -webkit-tap-highlight-color: transparent;
+    animation: wbCross 95s linear -14s infinite;
+  }
+  @keyframes wbCross { from { transform: translateX(-80px); } to { transform: translateX(100vw); } }
+  .wb { display: block; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75; transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: 50% 100%; }
+  .wb-walk:hover .wb { opacity: 1; }
+  .skin { fill: var(--ddp-color-bg); }
+  .eye { fill: var(--ddp-color-secondary); stroke: none; }
+  .wb-body { animation: wbBob 0.8s ease-in-out infinite alternate; }
+  .leg { transform-box: fill-box; transform-origin: 50% 0; animation: wbStep 0.8s ease-in-out infinite alternate; transition: opacity 0.2s ease; }
+  .leg.b { animation-direction: alternate-reverse; }
+  @keyframes wbStep { from { transform: rotate(-20deg); } to { transform: rotate(20deg); } }
+  @keyframes wbBob { from { transform: translateY(0); } to { transform: translateY(-1px); } }
+
+  /* The tun: legs in, body pulled into a ball, everything stops. */
+  .wb-walk.is-tun, .wb-walk.is-tun .wb-body, .wb-walk.is-tun .leg { animation-play-state: paused; }
+  .wb-walk.is-tun .wb { transform: scale(0.52, 0.8); }
+  .wb-walk.is-tun .leg { opacity: 0; }
+  .wb-note {
+    position: absolute; left: 100%; bottom: 6px; white-space: nowrap; padding: 0.1rem 0.5rem;
+    font-family: var(--ddp-font-mono); font-size: 0.7rem; color: var(--ddp-color-muted);
+    opacity: 0; transition: opacity 0.25s ease;
+  }
+  .wb-walk.is-tun .wb-note { opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wb-walk { animation: none; left: var(--ddp-space-6); }
+    .wb-body, .leg { animation: none; }
+    .wb { transition: none; }
+  }
+  @media print { .wb-strip { display: none; } }
+</style>

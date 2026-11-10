@@ -2,6 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SiteSearch from '../components/SiteSearch.astro';
 import HomeFilm from '../components/HomeFilm.astro';
+import Drifters from '../components/Drifters.astro';
+import Sprout from '../components/Sprout.astro';
 import { courseHref } from '../data/courses';
 import { PATHS } from '../data/paths';
 import { STAGES, stageOf } from '../data/stages';
@@ -84,6 +86,7 @@ const TRY = [
 >
   {/* Hero: what this is, search, and (for a returning visitor) where they left off. On a wide
       screen the film sits beside it; on a phone it is a compact row under it. */}
+  <Drifters />
   <div class="wrap top">
     <section class="hero" aria-labelledby="home-h1">
       <h1 id="home-h1">From a first question <em>to current research.</em></h1>
@@ -118,7 +121,7 @@ const TRY = [
       {bands.map((b) => (
         <li class="band">
           <div class="band-head">
-            <h3 class="band-t">{b.title}</h3>
+            <h3 class="band-t"><Sprout step={STAGES.findIndex((s) => s.key === b.key)} total={STAGES.length} size={38} />{b.title}</h3>
             <p class="band-d">{b.here}</p>
           </div>
           <ul class="band-courses">
@@ -324,11 +327,13 @@ const TRY = [
     /* ---- Where are you starting: one compact row per level ---- */
     .bands { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ddp-color-line); }
     .band { display: grid; grid-template-columns: minmax(12rem, 0.9fr) minmax(0, 2fr); gap: var(--ddp-space-2) var(--ddp-space-6); padding: var(--ddp-space-3) 0; border-bottom: 1px solid var(--ddp-color-line); align-items: center; }
-    .band-t { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); line-height: 1.2; color: var(--ddp-color-primary); margin: 0; }
+    .band-t { display: flex; align-items: flex-end; gap: 0.5rem; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); line-height: 1.2; color: var(--ddp-color-primary); margin: 0; }
+    .band-d { padding-left: calc(27px + 0.5rem); }
     .band-d { margin: 0.15rem 0 0; font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-muted); max-width: 40ch; }
     .band-courses { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
-    .bc { display: inline-flex; align-items: baseline; gap: 0.45em; min-height: 40px; box-sizing: border-box; padding: 0.45rem 0.8rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease; }
-    .bc:hover, .bc:focus-visible { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .bc { display: inline-flex; align-items: baseline; gap: 0.45em; min-height: 40px; box-sizing: border-box; padding: 0.45rem 0.8rem; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px; text-decoration: none; color: inherit; transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .bc:hover, .bc:focus-visible { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; transform: translateY(-2px) rotate(-1.2deg); }
+    .band-courses li:nth-child(even) .bc:hover, .band-courses li:nth-child(even) .bc:focus-visible { transform: translateY(-2px) rotate(1.2deg); }
     .bc-t { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.25; }
     .bc-n { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
     @media (max-width: 720px) {
@@ -368,8 +373,9 @@ const TRY = [
     /* ---- Things to try: one compact row ---- */
     .try-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ddp-space-2); }
     @media (max-width: 900px) { .try-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    .try { display: flex; flex-direction: column; gap: 0.15rem; height: 100%; box-sizing: border-box; min-height: 44px; padding: 0.6rem 0.8rem; background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface)); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); color: inherit; text-decoration: none; }
-    .try:hover, .try:focus-visible { border-color: var(--ddp-color-accent); text-decoration: none; }
+    .try { display: flex; flex-direction: column; gap: 0.15rem; height: 100%; box-sizing: border-box; min-height: 44px; padding: 0.6rem 0.8rem; background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface)); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); color: inherit; text-decoration: none; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease; }
+    .try:hover, .try:focus-visible { border-color: var(--ddp-color-accent); text-decoration: none; transform: translateY(-3px) rotate(-0.8deg); box-shadow: var(--ddp-shadow); }
+    .try-grid li:nth-child(even) .try:hover, .try-grid li:nth-child(even) .try:focus-visible { transform: translateY(-3px) rotate(0.8deg); }
     .try-t { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
     .try-d { font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-ink-soft); }
     @media (max-width: 640px) { .try-d { display: none; } }
@@ -395,7 +401,8 @@ const TRY = [
     .goldrule { animation: drawRule 0.5s ease 0.1s both; }
     @media (prefers-reduced-motion: reduce) {
       .hero h1, .hero .lede, .goldrule { animation: none !important; }
-      .bc { transition: none; }
+      .bc, .try { transition: none; }
+      .bc:hover, .bc:focus-visible, .try:hover, .try:focus-visible { transform: none !important; }
     }
   </style>
 </BaseLayout>
