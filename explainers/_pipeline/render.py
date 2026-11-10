@@ -52,6 +52,7 @@ def main():
     ap.add_argument("--audio", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--quality", choices=QUALITY, default="l")
+    ap.add_argument("--vertical", action="store_true", help="9:16 for social posts (bp_style reads KX_ASPECT=vertical)")
     a = ap.parse_args()
 
     scenes_py, audio, out = Path(a.scenes).resolve(), Path(a.audio).resolve(), Path(a.out).resolve()
@@ -72,15 +73,20 @@ def main():
         sys.exit(f"{MANIM} not found: run setup_video.sh first")
 
     flag, qdir = QUALITY[a.quality]
+    extra = []
+    if a.vertical:   # 9:16: 480x854@15 draft, 720x1280@30, 1080x1920@60. Manim names the folder <height>p<fps>.
+        w, h, fps = {"l": (480, 854, 15), "m": (720, 1280, 30), "h": (1080, 1920, 60)}[a.quality]
+        extra, qdir = ["-r", f"{w},{h}", "--fps", str(fps)], f"{h}p{fps}"
+        os.environ["KX_ASPECT"] = "vertical"
     work = out.parent / f".render-{out.stem}"
     work.mkdir(parents=True, exist_ok=True)
     parts = []
     for n, i in enumerate(ids, 1):
         print(f"[{n}/{len(ids)}] {i} -> {cls[i]} ({durs[i]:.1f}s narration)", flush=True)
-        env = {**os.environ, "KX_DURATION": str(durs[i]), "KX_SCRIPT": str(Path(a.script).resolve()), "KX_SCENE_ID": i,
+        env = {**os.environ, "KX_DURATION": str(durs[i]), "KX_SCRIPT": str(Path(a.script).resolve()), "KX_SCENE_ID": i, "KX_AUDIO": str(audio),
                "PYTHONPATH": os.pathsep.join(filter(None, [str(HERE), str(scenes_py.parent), os.environ.get("PYTHONPATH")]))}
         run([str(MANIM), flag, "--progress_bar", "none", "-v", "WARNING", "--media_dir", str(work / "media"),
-             str(scenes_py), cls[i]], env=env)
+             *extra, str(scenes_py), cls[i]], env=env)
         vid = work / "media/videos" / scenes_py.stem / qdir / f"{cls[i]}.mp4"
         if not vid.exists():
             sys.exit(f"{i}: manim finished but {vid} is missing")
