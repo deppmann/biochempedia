@@ -22,8 +22,8 @@
 //      scripts/upload-media.mjs does (wrangler r2 object put, bucket from wrangler.jsonc, logged
 //      with size and sha256 in media-manifest.json so a second run sends nothing twice).
 //   5. Writes src/data/listen-manifest.json = { "<slug>": [hash, ...] }: the clips that are in the
-//      bucket for the lesson's CURRENT text. The player plays those and uses the device voice for
-//      the rest. The worker serves /listen/* from R2 (run_worker_first in wrangler.jsonc).
+//      bucket for the lesson's CURRENT text. The player plays those and skips a paragraph with no
+//      clip (never the device voice; scripts/check-listen.mjs fails the build if one is missing). The worker serves /listen/* from R2 (run_worker_first in wrangler.jsonc).
 // Env: KOKORO_PARALLEL (default and maximum 5), KOKORO_PY (default ~/.venvs/kokoro/bin/python),
 //      MEDIA_PARALLEL (uploads at once, default 8).
 import { spawn, execFile } from 'node:child_process';

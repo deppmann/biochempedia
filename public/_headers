@@ -1,4 +1,4 @@
-# Cloudflare Pages response headers.
+# Response headers for the static assets (Cloudflare Workers static assets read this file).
 #
 # Deliberately NOT setting Content-Security-Policy here. The site pulls from
 # several third parties at runtime — RCSB PDB and PubChem (structure data and
@@ -17,11 +17,9 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Slides, narration, and the vendored Mol* bundle are content-addressed by path
+# Figures, portraits and the vendored Mol* bundle are addressed by path
 # rather than by hash. A day of caching with a week of stale-while-revalidate
 # keeps them fast without stranding a corrected figure for a year.
-/slides/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 /vendor/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 /scientists/*

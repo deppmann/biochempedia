@@ -1,7 +1,7 @@
 // Biochemistrypedia edge worker.
 //
 // Everything is served as static assets from dist/ exactly as before; this script
-// runs FIRST only for media paths and /api/* (see run_worker_first in wrangler.jsonc). It adds
+// runs FIRST only for media paths, /api/* and /g/* (see run_worker_first in wrangler.jsonc). It adds
 // HTTP byte-range support, which the static-asset server does not provide: Safari
 // (macOS and iOS) refuses to play <video>, and is unreliable with <audio>, unless
 // the server answers "Range: bytes=…" with 206 Partial Content.
@@ -67,7 +67,8 @@ export default {
     headers.set('Cache-Control', MEDIA_CACHE);
     const range = request.headers.get('Range');
     const m = range && /^bytes=(\d*)-(\d*)$/.exec(range.trim());
-    if (!m || (m[1] === '' && m[2] === '')) {
+    // HEAD has no body to measure, so a ranged HEAD gets the plain 200 headers, not a 416.
+    if (!m || (m[1] === '' && m[2] === '') || request.method === 'HEAD') {
       return new Response(request.method === 'HEAD' ? null : res.body, { status: 200, headers });
     }
 
@@ -88,6 +89,6 @@ export default {
     }
     headers.set('Content-Range', `bytes ${start}-${end}/${size}`);
     headers.set('Content-Length', String(end - start + 1));
-    return new Response(request.method === 'HEAD' ? null : body.slice(start, end + 1), { status: 206, headers });
+    return new Response(body.slice(start, end + 1), { status: 206, headers });
   },
 };

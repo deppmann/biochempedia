@@ -5,7 +5,7 @@
  * Node check (scripts/test-search.mjs) and the offline CLI (scripts/search-lessons.mjs) all run this
  * same file against the same index.
  *
- * FOR AI FEATURES. The curiosity router (/api/curious, branch `curiosity-router`, not on main) and
+ * FOR AI FEATURES. The curiosity router (/api/curious, worker/curious.js) and
  * the future course planner can call `searchLessons()` in the browser and send the top passages to
  * Claude as retrieval context, so the model answers from the site's own text and links real
  * sections. Each LessonHit carries `spots`: the passages that matched, each with a plain-text excerpt

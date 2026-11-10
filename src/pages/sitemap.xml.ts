@@ -16,10 +16,11 @@ export async function GET(context: APIContext): Promise<Response> {
   // A course page exists only once the course has a published lesson.
   const courses = [...new Set(lessons.map((l) => l.data.course))];
   const paths = [
-    '/', '/courses/', '/about', '/updates/', '/fun', '/play', '/contact', '/search/',
-    '/teachers', '/teachers/demo', '/teachers/how-its-built',
-    '/teachers/do-it-yourself', '/teachers/checklist', '/teachers/sources', '/teachers/talk/',
-    '/teachers/life-science', '/teachers/biology',
+    '/', '/courses/', '/about/', '/updates/', '/fun/', '/play/', '/contact/', '/search/',
+    '/math-toolkit/', '/privacy/',
+    '/teachers/', '/teachers/demo/', '/teachers/how-its-built/',
+    '/teachers/do-it-yourself/', '/teachers/checklist/', '/teachers/sources/', '/teachers/talk/',
+    '/teachers/life-science/', '/teachers/biology/',
     '/teach/', '/teach/privacy/', '/join/',
     '/mcat/', '/mcat/diagnostic/', '/mcat/practice/', ...MCAT_SETS.map((s) => `/mcat/${s.id}/`),
     '/paths/', ...PATHS.map((p) => `/paths/${p.id}/`),

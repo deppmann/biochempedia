@@ -1,4 +1,4 @@
-// Shared helpers for the classes and groups APIs (worker/api.js, worker/groups.js).
+// Shared helpers for every API module in worker/ (classes, groups, feedback, learners, curiosity router).
 import { sha256Hex } from './auth.js';
 
 export const DAY = 86_400_000;
@@ -10,6 +10,8 @@ export const json = (body, status = 200, headers = {}) =>
 export const fail = (status, error, extra = {}) => json({ error, ...extra }, status);
 
 export const clean = (s, max) => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, max);
+/** Like clean(), but keeps line breaks: for feedback text, which the student page splits into paragraphs. */
+export const cleanText = (s, max) => String(s ?? '').replace(/\r\n?/g, '\n').replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, ' ').trim().slice(0, max);
 
 export async function body(request) {
   try { return await request.json(); } catch { return null; }

@@ -8,7 +8,7 @@
 //                       The box on the page asks this first and hides itself on a 503.
 //   POST /api/curious   {q: "..."} -> {ok, kind, results:[{slug,title,href,reason,order,...}]}
 //
-// OFF BY DEFAULT. It answers 503 unless ROUTER_ENABLED is "1" AND the ANTHROPIC_API_KEY
+// ON in production since 2026-11-03 (ROUTER_ENABLED in wrangler.jsonc). It answers 503 unless ROUTER_ENABLED is "1" AND the ANTHROPIC_API_KEY
 // secret is set (or ROUTER_MOCK is "1", which never calls the API; see below).
 //
 // What stands between a visitor and Chris's credits, in the order a request meets them:

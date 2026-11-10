@@ -3,8 +3,8 @@
 // Teachers self-register and own their classes. Students join a class with its code
 // and a nickname (or a code from the teacher's roster); no email, no real name, no
 // password. Lesson pages report what a joined student does; the teacher reads it as
-// a morning brief. No AI model is called anywhere in here, so nothing here costs
-// money beyond Cloudflare's own (free-tier) Worker and D1 usage.
+// a morning brief. No AI model is called in this file; the two AI routes are handed to
+// worker/feedback.js (a teacher's own API key) and worker/curious.js (the site's capped key).
 //
 // Security: HttpOnly SameSite=Lax cookies; every state-changing request must be
 // JSON from this site's own origin (blocks cross-site form posts); fixed-window rate
@@ -25,6 +25,9 @@ import { handleLearner } from './learner.js';
 
 const KINDS = ['quiz', 'idea', 'cer', 'done', 'stuck'];
 const MAX_STUDENTS = 200;
+// Joins per hour from one address. A whole school shares one address and each student spends two
+// calls (look up the class, then join), so this has to cover several full classes in one period.
+const JOIN_PER_HOUR = 600;
 const MAX_CLASSES = 40;
 const RETENTION_DAYS = 400;   // a class with no activity for this long is deleted
 const NICK = /^[\p{L}\p{N} .'\-]{1,24}$/u;
@@ -492,7 +495,7 @@ export async function handleApi(request, env) {
 
     // ---------- students ----------
     if (path === '/api/join/lookup' && method === 'POST') {
-      if (!(await allow(db, 'join:' + (await clientKey(request)), 60, 3600_000))) return fail(429, 'Too many tries. Ask your teacher for help.');
+      if (!(await allow(db, 'join:' + (await clientKey(request)), JOIN_PER_HOUR, 3600_000))) return fail(429, 'Too many tries. Ask your teacher for help.');
       const b = await body(request);
       const cls = await db.prepare('SELECT c.name, c.join_mode, t.name AS teacher FROM classes c JOIN teachers t ON t.id=c.teacher_id WHERE c.code=?').bind(normCode(b?.code)).first();
       if (!cls) return fail(404, 'No class has that code. Check it with your teacher.');
@@ -500,7 +503,7 @@ export async function handleApi(request, env) {
     }
 
     if (path === '/api/join' && method === 'POST') {
-      if (!(await allow(db, 'join:' + (await clientKey(request)), 60, 3600_000))) return fail(429, 'Too many tries. Ask your teacher for help.');
+      if (!(await allow(db, 'join:' + (await clientKey(request)), JOIN_PER_HOUR, 3600_000))) return fail(429, 'Too many tries. Ask your teacher for help.');
       const b = await body(request);
       const cls = await db.prepare('SELECT c.*, t.email_verified_at FROM classes c JOIN teachers t ON t.id=c.teacher_id WHERE c.code=?').bind(normCode(b?.code)).first();
       if (!cls) return fail(404, 'No class has that code. Check it with your teacher.');

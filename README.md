@@ -9,12 +9,14 @@ drawn by an AI). Every simulation is something a student can poke. Every questio
 carries a verified answer and an explanation. The content is built from twenty
 years of lectures and the scientist stories in *The Molecule Hunters*.
 
-> **Status:** 30 lessons, all published — the one-semester sequence, an opening
-> interlude on vitalism, and two closing supplements (nucleotide metabolism,
-> integration of metabolism). 34 pages, 305 lecture slides, ~60 original
-> interactive islands, 407 live structure references. The AI tutor and "talk to a
-> scientist" features are intentionally **deferred** (see below). The Metabolism
-> Arcade is held back from v1 and lives on `origin/five-game-redesign`.
+> **Status (November 2026):** 414 lessons in 13 courses, all published, from
+> activity guides for ages 5 to 10 up to graduate electives. The original
+> one-semester biochemistry sequence (30 lessons) is one of those courses. Most
+> lessons carry short films, an original simulation and a self-test. The current
+> list of courses and lessons is always at
+> [`/catalog.json`](https://biochemistrypedia.com/catalog.json). A full AI tutor
+> and "talk to a scientist" chat are intentionally **deferred** (see below). The
+> Metabolism Arcade is live at `/play/`.
 
 ## What's in a lesson
 
@@ -24,8 +26,8 @@ against the typed schema in `src/schema.ts`. Copy a folder to start a new one.
 
 - The concept explained plainly (from Chris's lecture notes) plus a generated
   "how we measure it" techniques panel.
-- **An animated explainer** (first ten lessons): a 2–4 minute 3Blue1Brown-style video
-  narrated with the lesson's own slide audio, captioned, and drawn in code as a
+- **Animated explainers**: 2–4 minute 3Blue1Brown-style videos,
+  narrated, captioned, and drawn in code as a
   schematic (never a molecular structure). It is labelled as AI-made on the page;
   see [`IMAGE_POLICY.md`](IMAGE_POLICY.md) rule 7.
 - **Live, rotatable Mol\* structures** loaded by accession ID from RCSB PDB
@@ -38,8 +40,6 @@ against the typed schema in `src/schema.ts`. Copy a folder to start a new one.
 - **Spotify** and **YouTube** media, embedded from source and never rehosted.
 - A self-test of original practice and MCAT-style questions, each with a verified
   key and rationale.
-- **Lecture slides** with presenter notes and narration, each naming the person who
-  screened it for accuracy and copyright.
 - An auto-generated **Sources & Integrity** panel listing every ID, attribution, and
   media source in that lesson.
 
@@ -47,7 +47,7 @@ against the typed schema in `src/schema.ts`. Copy a folder to start a new one.
 
 - **Astro 5** (static-first; islands only where interactive) + `@astrojs/mdx`
 - **Content Collections + Zod** — the typed lesson schema *is* the integrity gate
-- **Tailwind v4** (via `@tailwindcss/vite`) + a stubbed `deppmann-brand` token layer
+- **Tailwind v4** (via `@tailwindcss/vite`) + the `deppmann-brand` token layer (the `brand/` submodule)
 - **Mol\*** for 3D structures · **PhET** (iframe) · YouTube/Spotify (iframe)
 
 ## Run it
@@ -81,8 +81,12 @@ The build **fails** if:
 
 Local asset and link references are checked separately by `scripts/check-assets.mjs`,
 which fails the build on any broken local reference. What the build does **not** do is
-confirm that a remote accession still resolves — that is a periodic manual audit, last
-run 2026-08-12 against the live RCSB and PubChem APIs (378 unique IDs, all resolving).
+confirm that a remote accession still resolves — a weekly GitHub Actions run does that
+(`.github/workflows/external-ids.yml`, which runs `scripts/audit-external-ids.mjs`
+against the live RCSB, PubChem, YouTube, PhET and Spotify endpoints).
+
+CI also runs six more checks after the build (`.github/workflows/ci.yml`): quiz answer-key
+balance, draft routes, lesson figures, scoped styles, flashcards and Listen clips.
 
 See [`IMAGE_POLICY.md`](IMAGE_POLICY.md), [`LICENSING.md`](LICENSING.md), and
 [`src/schema.ts`](src/schema.ts).
@@ -98,6 +102,11 @@ The **AI tutor** and **scientist-persona chat** are intentionally not built yet 
 tutor that is confidently wrong would do real harm. When added, they will be
 RAG-grounded in the course material, carry an "AI — verify" banner, and reuse the
 research project's retrieval module.
+
+Two narrow AI features do exist, both in `worker/`: the curiosity router
+(`/curious/`, one question in, up to three lesson links out, with a hard spending
+cap) and optional AI feedback in teacher classes, which runs only on the teacher's
+own API key.
 
 ## Deploy target
 

@@ -10,7 +10,7 @@
 //    In 'show' mode it goes straight to the student. The teacher sees every exchange.
 
 import { getTeacher, getStudent } from './auth.js';
-import { DAY, json, fail, clean, body, allow } from './util.js';
+import { DAY, json, fail, clean, cleanText, body, allow } from './util.js';
 import { PROVIDERS, aiAvailable, encryptKey, decryptKey, complete, costMicro, feedbackPrompt, summaryPrompt, replyPrompt } from './ai.js';
 
 const MODEL_RE = /^[A-Za-z0-9._:\-]{2,80}$/;
@@ -38,17 +38,19 @@ async function classAiReady(env, db, cls) {
 }
 
 async function meteredCall(env, db, cls, purpose, apiKey, system, user, maxOut) {
+  let r;
   try {
-    const r = await complete(env, cls.ai_provider, cls.ai_model, apiKey, system, user, maxOut);
-    await db.prepare('INSERT INTO ai_calls (class_id, teacher_id, purpose, provider, model, tokens_in, tokens_out, cost_micro, ok, created_at) VALUES (?,?,?,?,?,?,?,?,1,?)')
-      .bind(cls.id, cls.teacher_id, purpose, cls.ai_provider, cls.ai_model, r.tin, r.tout, costMicro(cls.ai_provider, cls.ai_model, r.tin, r.tout), Date.now()).run();
-    if (!r.text) throw new Error('The model returned an empty reply.');
-    return r.text;
+    r = await complete(env, cls.ai_provider, cls.ai_model, apiKey, system, user, maxOut);
   } catch (e) {
     await db.prepare('INSERT INTO ai_calls (class_id, teacher_id, purpose, provider, model, ok, created_at) VALUES (?,?,?,?,?,0,?)')
       .bind(cls.id, cls.teacher_id, purpose, cls.ai_provider, cls.ai_model, Date.now()).run();
     throw e;
   }
+  // One row per call: an empty reply was still billed, so it is logged once, as a success with its cost.
+  await db.prepare('INSERT INTO ai_calls (class_id, teacher_id, purpose, provider, model, tokens_in, tokens_out, cost_micro, ok, created_at) VALUES (?,?,?,?,?,?,?,?,1,?)')
+    .bind(cls.id, cls.teacher_id, purpose, cls.ai_provider, cls.ai_model, r.tin, r.tout, costMicro(cls.ai_provider, cls.ai_model, r.tin, r.tout), Date.now()).run();
+  if (!r.text) throw new Error('The model returned an empty reply.');
+  return r.text;
 }
 
 async function lessonData(env, request, slug) {
@@ -163,7 +165,7 @@ export async function handleClassAi(request, env, db, cls, sub, method) {
       return json({ ok: true });
     }
     if (b?.action === 'release') {
-      const text = clean(b?.text ?? row.draft ?? row.final, 3000);
+      const text = cleanText(b?.text ?? row.draft ?? row.final, 3000);
       if (!text) return fail(400, 'The feedback is empty.');
       await db.prepare("UPDATE feedback SET status='released', final=?, released_at=COALESCE(released_at, ?) WHERE id=?").bind(text, Date.now(), row.id).run();
       return json({ ok: true });
@@ -174,7 +176,7 @@ export async function handleClassAi(request, env, db, cls, sub, method) {
   if (sub === 'notes' && method === 'POST') {
     // A note the teacher writes (free, no AI): to one student, about one lesson.
     const b = await body(request);
-    const text = clean(b?.text, 3000);
+    const text = cleanText(b?.text, 3000);
     const slug = String(b?.lesson || '');
     const st = await db.prepare('SELECT id FROM students WHERE id=? AND class_id=?').bind(Number(b?.studentId) || 0, cls.id).first();
     if (!st || !text || !/^[a-z0-9][a-z0-9-]{0,80}$/.test(slug)) return fail(400, 'Pick a student and write a note.');
