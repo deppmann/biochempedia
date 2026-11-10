@@ -45,8 +45,6 @@ export function costMicro(provider, model, tin, tout) {
   return Math.round(tin * p.in + tout * p.out);
 }
 
-export const knownModel = (provider, model) => PRICES.models.some((x) => x.provider === provider && x.model === model);
-
 // ---- provider adapters --------------------------------------------------------------
 /** One completion. Returns { text, tin, tout } or throws an Error with a teacher-readable message. */
 export async function complete(env, provider, model, apiKey, system, user, maxOut = 2000) {

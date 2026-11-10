@@ -25,6 +25,14 @@ const FLOW_COOKIE = 'bp_learner_flow';
 const SESSION_DAYS = 365;
 const FLOW_MS = 10 * 60 * 1000;
 const MAX_SYNC_BYTES = 1024 * 1024;
+// What one learner may hold on the server, in bytes as stored. D1 refuses a row over 2,000,000 bytes,
+// so the cap sits under that and a full notebook gets a clear 413, not a database error.
+const MAX_STORED_BYTES = 1_800_000;
+// New passkey accounts from one address in a day (a school shares one address, so this is roomy),
+// and across the whole site as a backstop. An account can hold MAX_STORED_BYTES, so sign-ups are
+// what bounds the database.
+const NEW_PER_IP_PER_DAY = 40;
+const NEW_PER_DAY = 2000;
 const MAX_ITEMS = 10_000;
 const NAME_MAX = 40;
 const DELETE_WORD = 'DELETE';
@@ -201,7 +209,7 @@ async function mergeAndStore(db, learnerId, incoming) {
     const progress = mergeProgress(cur.progress, incoming.progress);
     const nb = JSON.stringify(items);
     const pr = JSON.stringify(progress);
-    if (nb.length + pr.length > MAX_SYNC_BYTES * 2) return { error: 'too big' };
+    if (enc.encode(nb).length + enc.encode(pr).length > MAX_STORED_BYTES) return { error: 'too big' };
     const now = Date.now();
     let res;
     if (!cur.exists) {
@@ -403,6 +411,9 @@ export async function handleLearner(request, env, db, path, method, url) {
       const current = await getLearner(db, request);
       if (!current || current.id !== learnerId) return withCookies(fail(401, 'Please sign in again.'), [clear]);
     } else {
+      if (!(await allow(db, 'lnew:' + ip, NEW_PER_IP_PER_DAY, 86_400_000)) || !(await allow(db, 'lnew:all', NEW_PER_DAY, 86_400_000))) {
+        return withCookies(fail(429, 'Too many new accounts from here today. Please try again tomorrow.'), [clear]);
+      }
       learnerId = await createLearner(db, { id: flow.extra, name: flow.display_name || 'Learner' });
     }
     await db.prepare('INSERT INTO learner_passkeys (credential_id, learner_id, public_key, counter, transports, created_at) VALUES (?,?,?,?,?,?)')

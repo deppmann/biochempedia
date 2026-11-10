@@ -11,13 +11,14 @@
 //    names. Never emails, never students.
 
 import { sha256Hex, randomToken, getTeacher } from './auth.js';
-import { DAY, JOIN_MODES, json, fail, clean, body, allow, clientKey, mailOn, sendMail } from './util.js';
+import { DAY, JOIN_MODES, json, fail, clean, body, allow, allowN, clientKey, mailOn, sendMail } from './util.js';
 
 const GSLUG = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/;
 const RESERVED = new Set(['admin', 'api', 'teach', 'join', 'new', 'www', 'help', 'about', 'g', 'group', 'groups', 'login', 'signup']);
 const DOMAIN = /^(?=.{3,190}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 const MAX_GROUPS_MADE = 5;
 const INVITE_DAYS = 14;
+const INVITE_EMAILS_PER_DAY = 60;   // invitation emails one teacher may send in a day
 
 /** Does this teacher's email satisfy the group's domain rule? Verified addresses only once email is on. */
 function domainOk(env, group, teacher) {
@@ -217,7 +218,12 @@ export async function handleGroups(request, env, db, path, method, url) {
       .bind(await sha256Hex(token), g.id, role, teacher.id, now, now + INVITE_DAYS * DAY, role === 'admin' ? 3 : 50, clean(b?.note, 120)).run();
     const link = `${new URL(request.url).origin}/teach/invite/?t=${token}`;
     // Optional emails: from the site's address, with the inviting teacher's name and reply-to.
-    const emails = (Array.isArray(b?.emails) ? b.emails : []).map((e) => String(e).trim().toLowerCase()).filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)).slice(0, 30);
+    const emails = [...new Set((Array.isArray(b?.emails) ? b.emails : []).map((e) => String(e).trim().toLowerCase()).filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)))].slice(0, 30);
+    // A daily budget of invitation emails per teacher, so an account cannot be used to send mail in bulk.
+    // The link is made either way; over budget, the teacher shares it themselves.
+    if (emails.length && mailOn(env) && !(await allowN(db, 'gmail:' + teacher.id, emails.length, INVITE_EMAILS_PER_DAY, DAY))) {
+      return json({ ok: true, link, sent: 0, mailOn: true, emailLimit: `You can email ${INVITE_EMAILS_PER_DAY} invitations a day. Share the link yourself, or try again tomorrow.` });
+    }
     let sent = 0;
     for (const to of emails) {
       const ok = await sendMail(env, to, `${teacher.name} invited you to ${g.name} on Biochemistrypedia`,

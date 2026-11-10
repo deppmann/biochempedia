@@ -200,12 +200,12 @@ const MODES = [
       const f = e.target as HTMLFormElement;
       const v = Object.fromEntries(new FormData(f).entries()) as Record<string, string>;
       const emails = (v.emails || '').split(/[\s,;]+/).filter(Boolean);
-      const r = await api<{ link: string; sent: number; mailOn: boolean }>(`/api/groups/${id}/invites`, { role: v.role, note: v.note, emails });
+      const r = await api<{ link: string; sent: number; mailOn: boolean; emailLimit?: string }>(`/api/groups/${id}/invites`, { role: v.role, note: v.note, emails });
       $('[data-inv-err]').textContent = r.ok ? '' : r.data.error || 'Could not make the link.';
       if (!r.ok) return;
       $('[data-inv-result]').hidden = false;
       $<HTMLInputElement>('[data-inv-link]').value = r.data.link;
-      $('[data-inv-msg]').textContent = emails.length ? (r.data.sent ? `Emailed to ${r.data.sent}.` : 'The emails did not go out; copy the link instead.') : '';
+      $('[data-inv-msg]').textContent = emails.length ? (r.data.sent ? `Emailed to ${r.data.sent}.` : (r.data.emailLimit ?? 'The emails did not go out; copy the link instead.')) : '';
       f.reset();
       load();
     });
