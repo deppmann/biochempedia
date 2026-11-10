@@ -1389,7 +1389,7 @@ class S00Hook(WorldScene):
         W = self.world(cam=TIGHT_SKY, pips=N_PIPS, gauge=1.0, scrub=False, ph=PH_TODAY, readout=None)
         self.at("next breath")
         self.play(self.zoom((P(0.9, 2.5), 4.5)), run_time=2.7)
-        self.at("Leftovers from")
+        self.at("What it was")
         q = self.hudput(T("?", size=130, weight=BOLD), at=(3.25, 0.5))
         self.play(FadeIn(q, scale=0.4), run_time=0.45)
         self.play(q.animate.scale(1.15), rate_func=there_and_back, run_time=1.5)
