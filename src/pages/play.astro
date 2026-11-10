@@ -4,8 +4,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/arcade.css';
 
 // slug -> {title, n, next} for the "from the lesson" context (client can't query content).
+// Biochemistry only: every arcade game belongs to that course (src/data/lesson-games.ts), so the
+// lesson number and the "Next" button must count and stay inside it.
 const ordered = (await getCollection('lessons'))
-  .filter((l) => !l.data.draft)
+  .filter((l) => !l.data.draft && l.data.course === 'biochemistry')
   .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
 const lessonMap = Object.fromEntries(
   ordered.map((l, i) => [

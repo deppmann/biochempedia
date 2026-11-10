@@ -1,8 +1,8 @@
 {
   // Cloudflare Workers config. The site is static (Astro output in dist/); the
-  // worker script runs first ONLY for media paths, to answer HTTP range requests
-  // (Safari will not play video without them). Everything else is served straight
-  // from the static assets, as before this file existed.
+  // worker script runs first only for the paths in run_worker_first: media (HTTP range
+  // requests, which Safari needs to play video, and files kept in R2), the API, and
+  // group pages. Everything else is served straight from the static assets.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "biochempedia",
   "compatibility_date": "2026-07-03",
@@ -11,7 +11,7 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/explainers/*", "/slides/*/audio/*", "/api/*", "/g/*", "/listen/*"]
+    "run_worker_first": ["/explainers/*", "/api/*", "/g/*", "/listen/*"]
   },
   // Film files also live in this R2 bucket under the same paths they have on the site
   // (uploaded with `node scripts/upload-media.mjs`). The worker serves them from here and
@@ -25,10 +25,10 @@
   // email verification and password-reset links. Without it, teachers use a recovery code.
   "vars": {
     "MAIL_FROM": "Biochemistrypedia <classes@biochemistrypedia.com>",
-    // Curiosity router (worker/curious.js, POST /api/curious). OFF by default. To turn it on, set
-    // the ANTHROPIC_API_KEY secret (`npx wrangler secret put ANTHROPIC_API_KEY`) and change
-    // ROUTER_ENABLED to "1". To turn it off in one step, set ROUTER_ENABLED back to "0" and deploy
-    // (or delete the secret). Setup and cost: docs/expansion/mission-2026-10/CURIOSITY_ROUTER.md.
+    // Curiosity router (worker/curious.js, POST /api/curious). Currently ON: it needs both
+    // ROUTER_ENABLED "1" and the ANTHROPIC_API_KEY secret (`npx wrangler secret put ANTHROPIC_API_KEY`).
+    // To turn it off in one step, set ROUTER_ENABLED to "0" and deploy (or delete the secret).
+    // Setup and cost notes are in Chris's private working notes, not this repository.
     // ROUTER_MOCK is for local tests only (canned answers, no API call); never set it here.
     "ROUTER_ENABLED": "1",
     "ROUTER_DAILY_CAP_USD": "0.50",
