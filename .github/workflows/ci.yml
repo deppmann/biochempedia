@@ -35,3 +35,7 @@ jobs:
       - run: node scripts/check-scoped-styles.mjs
       - run: node scripts/check-flashcards.mjs
       - run: node scripts/check-listen.mjs
+      # Lesson search against the index this build just wrote (needs Node 22.18+ to import the .ts file).
+      - run: node scripts/test-search.mjs
+      # Curiosity router, offline (node:sqlite needs no flag from Node 22.13).
+      - run: node scripts/test-curious.mjs

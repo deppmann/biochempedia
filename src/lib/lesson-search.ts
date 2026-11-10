@@ -33,6 +33,13 @@
  *      match is 1; when fewer than PARTIAL_BELOW lessons have every word, lessons with all but one
  *      word are added with C = (n-1)/n so a misspelled word does not empty the list.
  *
+ * Words nobody wrote. When no word in the index starts with a query word, Pagefind does not answer
+ * "nothing": it shortens the word until some indexed word starts with what is left, down to one
+ * letter ("qzxjvk" becomes every page with a word starting with "q", "xylophone" every page with
+ * "XY"). `realMatches` below reads the words that were actually matched and keeps a page only when
+ * each query word is really there: as a prefix, as the same word with another ending, or one or two
+ * letters off ("departmnt" still finds "department"). See REAL MATCHES.
+ *
  *   score = C^2 * (W.pf * P + W.near * X + W.title * T)
  *
  * Why these numbers: see RANKING and W below, and scripts/test-search.mjs, which holds the queries
@@ -53,8 +60,16 @@ export interface PfSub {
   anchor?: { id: string };
   weighted_locations?: { weight: number; balanced_score: number }[];
 }
-export interface PfData { url: string; meta: { title?: string }; excerpt: string; sub_results: PfSub[] }
-export interface PfResult { id: string; score: number; words: number[]; data(): Promise<PfData> }
+export interface PfData {
+  url: string;
+  meta: Record<string, string | undefined> & { title?: string };
+  excerpt: string;
+  sub_results: PfSub[];
+  /** The page text. `words` of a result are positions in it, split the way Pagefind's excerpts split it. */
+  content?: string;
+  raw_content?: string;
+}
+export interface PfResult { id: string; score: number; words: number[]; matchedMetaFields?: string[]; data(): Promise<PfData> }
 export interface Pf {
   options(o: object): Promise<void>;
   search(q: string | null, o?: object): Promise<{ results: PfResult[] }>;
@@ -133,6 +148,9 @@ export const PARTIAL_MAX = 10;
 export const RANKED_MAX = 80;
 /** Characters before the lesson text is searched. */
 export const TEXT_MIN = 3;
+/** When Pagefind fell back to a shortened word, this many of its best pages are read to see which
+ *  of them hold a word close to the one typed; the rest are dropped. */
+export const TYPO_CHECK = 12;
 
 // ---------------------------------------------------------------- text helpers
 
@@ -179,6 +197,59 @@ const dropLeadingTitle = (html: string, title: string): string => {
 
 const stripMarks = (html: string): string =>
   html.replace(/<\/?mark>/g, '').replace(/&(amp|lt|gt|quot|#39);/g, (_m, e: string) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" }[e] ?? _m));
+
+// ---------------------------------------------------------------- real matches
+
+/** Letters and digits only, lower case, accents removed: how a query word and a page word are compared. */
+const bare = (s: string): string => norm(s).replace(/[^\p{L}\p{N}]+/gu, '');
+
+/** Common English endings, longest first. Not a stemmer: only an estimate of how much of a query word
+ *  is its stem, so "running" is seen to match "run" and "organizational" to match "organized". */
+const ENDINGS = 'izations ization ational fulness ousness iveness ations ation ments ment ness ings ing edly ied ies ers est ed es er ly al is s e y'.split(' ');
+export const stemBase = (w: string): string => {
+  for (const e of ENDINGS) {
+    if (w.length - e.length >= 3 && w.endsWith(e)) {
+      const b = w.slice(0, -e.length);
+      // "running" -> "runn" -> "run"
+      return b.length > 3 && b[b.length - 1] === b[b.length - 2] ? b.slice(0, -1) : b;
+    }
+  }
+  return w;
+};
+
+const commonPrefix = (a: string, b: string): number => {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return i;
+};
+
+/** Fewest single-letter edits that turn `term` into the START of `word` (so a different ending is free). */
+const prefixDistance = (term: string, word: string): number => {
+  let prev = Array.from({ length: word.length + 1 }, (_v, j) => j);
+  for (let i = 1; i <= term.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= word.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (term[i - 1] === word[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return Math.min(...prev);
+};
+
+/** Is the page word `word` a real match for the query word `term` (both from `bare`)?
+ *  'yes'   the page word starts with the query word, or is the same word with another ending;
+ *  'close' a misspelling: same first letter and one letter off (two for words of 8 letters or more);
+ *  'no'    it only shares a first letter or two, which is what Pagefind's shortening returns. */
+export const wordMatch = (term: string, word: string): 'yes' | 'close' | 'no' => {
+  if (!term || !word) return 'no';
+  if (word.startsWith(term)) return 'yes';
+  const cp = commonPrefix(term, word);
+  const base = stemBase(term);
+  if (base.length < term.length && cp >= base.length) return 'yes';
+  const allowed = term.length >= 8 ? 2 : term.length >= 5 ? 1 : 0;
+  if (allowed && cp >= 1 && prefixDistance(term, word) <= allowed) return 'close';
+  return 'no';
+};
 
 // ---------------------------------------------------------------- the engine in a browser
 
@@ -304,6 +375,42 @@ export function createLessonSearch(engine: Engine, defaults: { excerptLength?: n
     return out;
   }
 
+  /** The page words one result matched, as `bare` words. A page word such as "X+Y," or
+   *  "health-department" gives its pieces and the whole. */
+  async function matchedWords(r: PfResult): Promise<Set<string>> {
+    const d = await fetchData(r);
+    const text = d.raw_content ?? d.content ?? '';
+    const all = text.includes('\u200B') ? text.split('\u200B') : text.split(/[\r\n\s]+/g);   // as Pagefind's build_excerpt
+    const out = new Set<string>();
+    const add = (w: string | undefined) => {
+      if (!w) return;
+      for (const piece of norm(w).split(/[^\p{L}\p{N}]+/u)) if (piece) out.add(piece);
+      out.add(bare(w));
+    };
+    for (const i of r.words) add(all[i]);
+    // A match in the page's title (or other meta) has no position in the text.
+    for (const f of r.matchedMetaFields ?? []) for (const w of (d.meta?.[f] ?? '').split(/\s+/)) add(w);
+    return out;
+  }
+
+  /** REAL MATCHES. Drops what Pagefind returns for a word that is not in the index (see the header).
+   *  The best page is read first: Pagefind needs every query word on a page, so if each word is really
+   *  matched there, it was matched as typed everywhere and the list is returned whole. If not, some
+   *  word was shortened: the best TYPO_CHECK pages are read and only those where every query word has
+   *  a real or a close match are kept, which is an empty list for a made-up word. */
+  async function realMatches(results: PfResult[], terms: string[]): Promise<PfResult[]> {
+    const want = terms.map(bare).filter(Boolean);
+    if (!results.length || !want.length) return results;
+    const check = async (r: PfResult, close: boolean): Promise<boolean> => {
+      const words = [...(await matchedWords(r))];
+      return want.every((t) => words.some((w) => { const m = wordMatch(t, w); return m === 'yes' || (close && m === 'close'); }));
+    };
+    if (await check(results[0], false)) return results;
+    const top = results.slice(0, TYPO_CHECK);
+    const keep = await Promise.all(top.map((r) => check(r, true)));
+    return top.filter((_r, i) => keep[i]);
+  }
+
   /** Turns Pagefind results into candidates. The lesson of each is known from the page map; without
    *  one, the fragments of the best RANKED_MAX are fetched to learn it and the rest are dropped. */
   async function toCands(results: PfResult[], cov: number): Promise<Cand[]> {
@@ -345,13 +452,15 @@ export function createLessonSearch(engine: Engine, defaults: { excerptLength?: n
     const pf = await pagefind();
     if (!pf) return { state: 'off', terms, cands: [], rest: [] };
     const opts = scope === 'all' ? {} : { filters: { course: scope } };
+    // An exact phrase is never shortened by Pagefind, so it needs no check.
+    const real = (results: PfResult[], ts: string[]) => (raw.includes('"') ? Promise.resolve(results) : realMatches(results, ts));
     const full = await pf.search(q, opts);
-    const cands = await toCands(full.results, 1);
+    const cands = await toCands(await real(full.results, terms), 1);
     // Few lessons have every word: also offer the ones that lack a single word (not for an exact phrase).
     if (!raw.includes('"') && terms.length >= 2 && terms.length <= 4 && cands.length < PARTIAL_BELOW) {
       const subsets = terms.length === 2 ? terms.map((t) => [t]) : terms.map((_, i) => terms.filter((_x, j) => j !== i));
       const seen = new Set(cands.map((c) => c.slug));
-      const parts = await Promise.all(subsets.map((s) => pf.search(s.join(' '), opts).then((r) => toCands(r.results.slice(0, 40), s.length / terms.length))));
+      const parts = await Promise.all(subsets.map((s) => pf.search(s.join(' '), opts).then((r) => real(r.results, s)).then((r) => toCands(r.slice(0, 40), s.length / terms.length))));
       let added = 0;
       for (const c of parts.flat().sort((a, b) => b.rel * b.cov - a.rel * a.cov)) {
         if (seen.has(c.slug) || added >= PARTIAL_MAX) continue;
