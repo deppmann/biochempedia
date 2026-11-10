@@ -28,6 +28,8 @@ export interface FilmEntry {
   durationSec: number;
   narration: string;
   factCheckedBy?: string;
+  /** One sentence, set when the lesson text was corrected after the film was made. */
+  predatesCorrection?: string;
 }
 
 export const watchHref = (lesson: string, id?: string | null) => (id ? `/watch/${lesson}/${id}/` : `/watch/${lesson}/`);
@@ -53,7 +55,7 @@ export async function allFilms(): Promise<FilmEntry[]> {
       };
       const pick = (f: NonNullable<typeof d.explainer>) => ({
         src: f.src, captions: f.captions, poster: f.poster, title: f.title, durationSec: f.durationSec,
-        narration: f.narration, factCheckedBy: f.factCheckedBy,
+        narration: f.narration, factCheckedBy: f.factCheckedBy, predatesCorrection: f.predatesCorrection,
       });
       return [
         ...(d.explainer ? [{ ...base, id: null, href: watchHref(d.slug), ...pick(d.explainer) }] : []),

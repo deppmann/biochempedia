@@ -169,11 +169,12 @@ const lessonLd = {
       )}
       <h1>{lesson.title}</h1>
       {lesson.underReview.length > 0 && (
-        <details class="under-review">
-          <summary><span class="under-review-tag">Under review</span> Parts of this lesson are still being checked.</summary>
+        <div class="under-review" role="note">
+          {/* The notes are in the open (2026-11-09): a reader sees what is being checked without a tap. */}
+          <p><span class="under-review-tag">Under review</span> Parts of this lesson are still being checked.</p>
           <ul>{lesson.underReview.map((r) => <li>{r}</li>)}</ul>
-          <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>.</p>
-        </details>
+          <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>. <a href="/under-review/">All lessons under review</a>.</p>
+        </div>
       )}
       {/* Only the hook shows (2026-11-08, "get to the material quicker"). It is also the share and
           search-result description, cut to 155 characters; the full summary stays in the JSON-LD. */}
@@ -245,6 +246,9 @@ const lessonLd = {
             <track kind="captions" src={ex.captions} srclang="en" label="English" />
             Your browser cannot play this video. <a href={ex.src}>Download the explainer (MP4)</a>.
           </video>
+          {ex.predatesCorrection && (
+            <p class="film-predates"><strong>This film was made before a correction to the lesson text.</strong> {ex.predatesCorrection}</p>
+          )}
         </figure>
         {/* The film's words as text, closed until asked for. Its own search region: see the note at the prose column. */}
         <div data-pagefind-body><FilmTranscript captions={ex.captions} title={ex.title} id="explainer" /></div>
@@ -841,8 +845,7 @@ const lessonLd = {
 
   <style>
     .under-review { margin: 0 0 var(--ddp-space-3); max-width: 60ch; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
-    .under-review > summary { cursor: pointer; list-style: none; }
-    .under-review > summary::-webkit-details-marker { display: none; }
+    .film-predates { margin: var(--ddp-space-2) 0 0; max-width: 72ch; padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 4px; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
     .under-review-tag { display: inline-block; margin-right: 0.4rem; padding: 0.1rem 0.5rem; border: 1px dashed var(--ddp-color-caution); border-radius: 999px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; }
     .under-review ul { margin: var(--ddp-space-2) 0; padding-left: 1.2rem; }
     .under-review p { margin: 0; }

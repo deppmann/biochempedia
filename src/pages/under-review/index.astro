@@ -1,0 +1,63 @@
+---
+/* Every lesson that carries an `underReview` note in its frontmatter, with the note. Counted and
+   listed from the lesson collection at build time, so the page cannot drift from the lessons. */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COURSES, courseOf, courseHref } from '../../data/courses';
+import { feedbackUrl } from '../../lib/feedback';
+
+const tagged = (await getCollection('lessons', ({ data }) => !data.draft && data.underReview.length > 0))
+  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99) || a.data.title.localeCompare(b.data.title));
+const order = COURSES.map((c) => c.slug);
+const groups = [...new Set(tagged.map((l) => l.data.course))]
+  .sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  .map((slug) => ({ course: courseOf(slug), lessons: tagged.filter((l) => l.data.course === slug) }));
+const n = tagged.length;
+---
+
+<BaseLayout
+  title="Under review — Biochemistrypedia"
+  description="Every lesson with a part that is still being checked, and what is being checked in each."
+>
+  <article class="wrap prose-col ur" style="padding-top: var(--ddp-space-12)">
+    <p class="ur-eyebrow"><a href="/about/#work-in-progress">About</a> / under review</p>
+    <h1>Lessons under review</h1>
+    <p>
+      Some lessons have a part that is still being checked. Each one carries an
+      <strong>Under review</strong> tag at the top, with a note that says what is being checked. The
+      text stays up while the check is done. This page lists every one.
+    </p>
+    {n === 0
+      ? <p>No lesson is under review right now.</p>
+      : <p>{n === 1 ? 'One lesson is' : `${n} lessons are`} under review right now.</p>}
+
+    {groups.map((g) => (
+      <section>
+        <h2><a href={courseHref(g.course.slug)}>{g.course.title}</a></h2>
+        <ul class="ur-list">
+          {g.lessons.map((l) => (
+            <li>
+              <a class="ur-title" href={`/lessons/${l.data.slug}/`}>{l.data.title}</a>
+              <ul>{l.data.underReview.map((r) => <li>{r}</li>)}</ul>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    <p>
+      If you spot a problem in any lesson, tagged or not,
+      <a href={feedbackUrl('Under review page')} target="_blank" rel="noopener">report it</a>.
+      <a href="/about/#work-in-progress">How the lessons are checked</a>.
+    </p>
+  </article>
+
+  <style>
+    .ur-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .ur-eyebrow a { color: inherit; }
+    .ur-list { list-style: none; padding: 0; }
+    .ur-list > li { margin: 0 0 var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--ddp-color-caution); border-radius: var(--ddp-radius); background: var(--ddp-color-surface); }
+    .ur-title { font-weight: 600; }
+    .ur-list ul { margin: var(--ddp-space-2) 0 0; padding-left: 1.2rem; list-style: disc; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  </style>
+</BaseLayout>

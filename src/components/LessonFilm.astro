@@ -9,7 +9,7 @@
  */
 import FilmTranscript from './FilmTranscript.astro';
 interface Props {
-  film: { src: string; captions: string; poster: string; title: string; durationSec: number; id?: string };
+  film: { src: string; captions: string; poster: string; title: string; durationSec: number; id?: string; predatesCorrection?: string };
 }
 const { film } = Astro.props;
 const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durationSec % 60)).padStart(2, '0')}`;
@@ -22,6 +22,9 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
     Your browser cannot play this video. <a href={film.src}>Download the film (MP4)</a>.
   </video>
   <figcaption><span class="lf-kicker">Watch</span> {film.title} <span class="lf-len">· {len}</span></figcaption>
+  {film.predatesCorrection && (
+    <p class="lf-predates"><strong>This film was made before a correction to the lesson text.</strong> {film.predatesCorrection}</p>
+  )}
 </figure>
 {/* The captions as readable text, closed until asked for (and searchable). */}
 <FilmTranscript captions={film.captions} title={film.title} id={film.id ?? film.src.split('/').slice(-2, -1)[0] + '-' + film.src.split('/').pop()!.replace(/\.mp4$/, '')} />
@@ -31,5 +34,6 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
   .lf video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; border-radius: 10px; }
   .lf figcaption { margin-top: var(--ddp-space-2); font-family: var(--ddp-font-serif); font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
   .lf-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin-right: 0.4rem; }
+  .lf-predates { margin: var(--ddp-space-2) 0 0; max-width: 72ch; padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 4px; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
   .lf-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 </style>
