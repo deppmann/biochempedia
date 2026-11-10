@@ -1,0 +1,162 @@
+---
+/**
+ * Hex, the site's mascot: the hexagon from the logo, with a face and limbs. A hexagon is a
+ * benzene ring, a honeycomb cell, a sheet of graphene, the shape that tiles a plane and the
+ * head of a bolt, so Hex belongs to every subject the site will teach. Hex is "it".
+ *
+ * Six poses and four props (one per subject area). Usage rules are on /hex/: Hex appears
+ * where something happens (the header, a finished quiz, an empty search, a 404), never in
+ * the reading column of a lesson. Decorative by default; pass `label` where Hex is the only
+ * thing carrying a meaning.
+ */
+import type { HexPose, HexProp } from '../data/hex';
+interface Props {
+  pose?: HexPose;
+  /** What Hex holds: leaf (biology), flask (chemistry), pendulum (physics), compass (math). */
+  prop?: HexProp;
+  /** Rendered height in px. */
+  size?: number;
+  /** Blink, and move the pose a little (wave, bounce, snore). Off under reduced motion. */
+  alive?: boolean;
+  /** Accessible name. Leave it out and Hex is hidden from screen readers. */
+  label?: string;
+  class?: string;
+}
+const { pose = 'stand', prop, size = 72, alive = false, label, class: cls } = Astro.props;
+const w = prop ? 82 : 64;
+const armUp = prop === 'pendulum';
+---
+
+<svg
+  class:list={['hex', `hex-${pose}`, alive && 'is-alive', cls]}
+  viewBox={`0 0 ${w} 72`}
+  width={Math.round((size * w) / 72)}
+  height={size}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
+>
+  <g class="hex-all">
+    {/* Legs and feet */}
+    <path class="hex-ink" d={pose === 'lean' ? 'M27 48 L31 60 M37 48 L34 60' : 'M27 48 L25.5 60 M37 48 L38.5 60'} />
+    <path class="hex-goldline" d={pose === 'lean' ? 'M29 61 H34 M32 61.2 H37.5' : 'M22.5 61 H27.5 M36.5 61 H41.5'} />
+
+    {/* Arms. The right arm carries the prop when there is one. */}
+    {pose === 'cheer'
+      ? <path class="hex-ink hex-arm-l" d="M14.7 26 L6 15" />
+      : <path class="hex-ink" d="M14.7 32 L8 39" />}
+    {prop ? (
+      <path class="hex-ink" d={armUp ? 'M49.3 27 L60 15' : 'M49.3 30 L59.5 32.5'} />
+    ) : pose === 'wave' ? (
+      <path class="hex-ink hex-arm-r" d="M49.3 27 L58 17" />
+    ) : pose === 'cheer' ? (
+      <path class="hex-ink hex-arm-r" d="M49.3 26 L58 15" />
+    ) : pose === 'lean' ? (
+      <path class="hex-ink" d="M49.3 28 L59 29.5" />
+    ) : pose === 'think' ? null : (
+      <path class="hex-ink" d="M49.3 32 L56 39" />
+    )}
+
+    {/* Body: the hexagon, with a benzene ring's three inner bonds in gold */}
+    <path class="hex-ink hex-body" d="M32 10 L49.3 20 L49.3 40 L32 50 L14.7 40 L14.7 20 Z" />
+    <path class="hex-goldline hex-bonds" d="M32 14.8 L45.2 22.4 M45.2 37.6 L32 45.2 M18.8 37.6 L18.8 22.4" />
+
+    {/* Face */}
+    <g class="hex-eyes">
+      {pose === 'sleep' ? (
+        <path class="hex-ink hex-thin" d="M24.3 28 q2.2 2.2 4.4 0 M35.3 28 q2.2 2.2 4.4 0" />
+      ) : pose === 'cheer' ? (
+        <path class="hex-ink hex-thin" d="M24.3 29 q2.2 -2.8 4.4 0 M35.3 29 q2.2 -2.8 4.4 0" />
+      ) : pose === 'think' ? (
+        <><circle class="hex-fill" cx="27.6" cy="26.6" r="2.2" /><circle class="hex-fill" cx="38.6" cy="26.6" r="2.2" /></>
+      ) : (
+        <><circle class="hex-fill" cx="26.5" cy="28" r="2.2" /><circle class="hex-fill" cx="37.5" cy="28" r="2.2" /></>
+      )}
+    </g>
+    {pose === 'cheer' ? (
+      <path class="hex-fill" d="M27.5 34 Q32 41.5 36.5 34 Z" />
+    ) : pose === 'think' ? (
+      <path class="hex-ink hex-thin" d="M29.5 36 H34.5" />
+    ) : pose === 'sleep' ? (
+      <circle class="hex-ink hex-thin" cx="32" cy="36" r="1.4" />
+    ) : (
+      <path class="hex-ink hex-thin" d="M28 34.5 Q32 38.5 36 34.5" />
+    )}
+
+    {/* Pose extras */}
+    {pose === 'think' && (
+      <>
+        <path class="hex-ink" d="M49.3 34 Q51 45 39.5 39.5" />
+        <g class="hex-dots"><circle class="hex-gold" cx="53" cy="13" r="1.5" /><circle class="hex-gold" cx="57.5" cy="7.5" r="2.3" /></g>
+      </>
+    )}
+    {pose === 'cheer' && (
+      <path class="hex-goldline hex-sparks" d="M32 6 V2 M21 8 L19 4.5 M43 8 L45 4.5" />
+    )}
+    {pose === 'sleep' && (
+      <path class="hex-goldline hex-zz" d="M50 12 h4.5 l-4.5 5 h4.5 M57 3.5 h3.4 l-3.4 3.8 h3.4" />
+    )}
+  </g>
+
+  {/* Props */}
+  {prop === 'leaf' && (
+    <g>
+      <path class="hex-ink hex-body" d="M59 33 C59 21 67 15 78 15 C78 27 72 33 59 33 Z" />
+      <path class="hex-goldline" d="M59.5 32.5 L72 20.5" />
+    </g>
+  )}
+  {prop === 'flask' && (
+    <g>
+      <path class="hex-gold" d="M62.4 31 H75.6 L77.6 34.8 Q78.6 38 75.6 38 H62.4 Q59.4 38 60.4 34.8 Z" />
+      <path class="hex-ink" d="M65.5 14 H72.5 M66.5 14 V22 L60.4 34.8 Q59.4 38 62.4 38 H75.6 Q78.6 38 77.6 34.8 L71.5 22 V14" />
+    </g>
+  )}
+  {prop === 'pendulum' && (
+    <g>
+      <path class="hex-ink" d="M60 14 H78" />
+      <path class="hex-ink hex-thin" d="M69 14 L74.5 32" />
+      <path class="hex-ink hex-thin hex-ghost" d="M69 14 L63.5 32" />
+      <circle class="hex-gold" cx="75.3" cy="35" r="3.4" />
+    </g>
+  )}
+  {prop === 'compass' && (
+    <g>
+      <path class="hex-ink" d="M68 15 L61.5 38 M68 15 L74.5 38" />
+      <path class="hex-goldline" d="M61.5 40 Q68 45.5 74.5 40" />
+      <circle class="hex-gold" cx="68" cy="14" r="2.2" />
+    </g>
+  )}
+</svg>
+
+<style>
+  .hex { flex: none; overflow: visible; color: var(--ddp-color-primary); }
+  /* Beside a heading's text (the site's reset makes every svg a block). */
+  .hex-inline { display: inline-block; margin-left: 0.3em; vertical-align: -0.1em; }
+  .hex-ink { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .hex-thin { stroke-width: 1.6; }
+  .hex-body { fill: color-mix(in srgb, currentColor 7%, transparent); }
+  .hex-fill { fill: currentColor; stroke: none; }
+  .hex-gold { fill: var(--ddp-color-secondary); stroke: none; }
+  .hex-goldline { fill: none; stroke: var(--ddp-color-secondary); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .hex-ghost { opacity: 0.3; stroke-dasharray: 1.5 2.5; }
+  .hex-lean .hex-all { transform-box: view-box; transform-origin: 32px 61px; transform: rotate(9deg); }
+
+  /* ---- Alive: a blink for every pose, and one small movement that suits the pose ---- */
+  .hex-eyes, .hex-arm-r, .hex-arm-l, .hex-all, .hex-zz, .hex-dots { transform-box: view-box; }
+  .is-alive .hex-eyes { transform-origin: 32px 28px; animation: hexBlink 5.5s ease-in-out 1.2s infinite; }
+  .is-alive.hex-sleep .hex-eyes, .is-alive.hex-cheer .hex-eyes { animation: none; }
+  .is-alive.hex-wave .hex-arm-r { transform-origin: 49.3px 27px; animation: hexWave 0.5s ease-in-out 6 alternate; }
+  .is-alive.hex-cheer .hex-all { transform-origin: 32px 61px; animation: hexJump 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 4 alternate; }
+  .is-alive.hex-sleep .hex-zz { animation: hexZz 2.6s ease-in-out infinite; }
+  .is-alive.hex-sleep .hex-all { transform-origin: 32px 61px; animation: hexBreathe 2.6s ease-in-out infinite alternate; }
+  .is-alive.hex-think .hex-dots { animation: hexZz 2.2s ease-in-out infinite; }
+  @keyframes hexBlink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+  @keyframes hexWave { from { transform: rotate(-14deg); } to { transform: rotate(18deg); } }
+  @keyframes hexJump { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+  @keyframes hexZz { 0%, 100% { opacity: 0.25; transform: translateY(1.5px); } 50% { opacity: 1; transform: translateY(-1.5px); } }
+  @keyframes hexBreathe { from { transform: scale(1, 1); } to { transform: scale(1.02, 0.98); } }
+  @media (prefers-reduced-motion: reduce) {
+    .is-alive .hex-eyes, .is-alive .hex-arm-r, .is-alive .hex-all, .is-alive .hex-zz, .is-alive .hex-dots { animation: none !important; }
+  }
+</style>
