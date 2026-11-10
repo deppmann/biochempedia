@@ -3,6 +3,7 @@ import '../styles/global.css';
 import SiteMenu from '../components/SiteMenu.astro';
 import AccountLink from '../components/AccountLink.astro';
 import WaterBear from '../components/WaterBear.astro';
+import Hex from '../components/Hex.astro';
 import Footer from '../../brand/Footer.astro';
 import { feedbackUrl } from '../lib/feedback';
 
@@ -59,6 +60,9 @@ const websiteLd = {
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {/* Hex hops into the header once per visit, not on every page. Inline so the flag is set
+        before first paint. */}
+    <script is:inline>try{if(sessionStorage.getItem("hexSeen"))document.documentElement.setAttribute("data-hex-seen","");else sessionStorage.setItem("hexSeen","1")}catch(e){}</script>
     <title>{title}</title>
     <meta name="description" content={desc} />
     <link rel="canonical" href={canonical} />
@@ -108,7 +112,7 @@ const websiteLd = {
     <header class="site-header">
       <nav class="wrap">
         <a href="/" class="brand" aria-label="Biochemistrypedia home">
-          <span class="brand-mark">⬡</span>
+          <Hex pose="lean" size={42} class="brand-hex" />
           <span class="brand-name">Biochemistrypedia</span>
         </a>
         {/* The five main links sit in the bar on wide screens; on a phone they are in
@@ -183,6 +187,7 @@ const websiteLd = {
           heading: 'This site',
           links: [
             { label: 'About', href: '/about/' },
+            { label: 'Meet Hex', href: '/hex/' },
             { label: 'What’s new', href: '/updates/' },
             { label: 'Privacy', href: '/privacy/' },
             { label: 'Licence', href: '/license/' },
@@ -260,9 +265,17 @@ const websiteLd = {
         font-weight: 700;
         font-size: var(--ddp-text-lg);
       }
-      .brand-mark {
-        color: var(--ddp-color-accent);
-        font-size: 1.2em;
+      /* Hex, the mascot, leans on the wordmark. On the first page of a visit it drops in,
+         settles and blinks twice; after that it is simply there. */
+      .brand :global(.brand-hex) { margin: -10px -2px -8px -4px; transform-origin: 50% 85%; }
+      :global(html:not([data-hex-seen])) .brand :global(.brand-hex) { animation: hexArrive 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both; }
+      :global(html:not([data-hex-seen])) .brand :global(.brand-hex .hex-eyes) { transform-box: view-box; transform-origin: 32px 28px; animation: hexHeaderBlink 2.4s ease-in-out 1.6s 2; }
+      .brand:hover :global(.brand-hex) { animation: hexNod 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+      @keyframes hexArrive { 0% { opacity: 0; transform: translateY(-30px) rotate(-24deg); } 55% { opacity: 1; transform: translateY(0) rotate(-10deg); } 100% { opacity: 1; transform: none; } }
+      @keyframes hexHeaderBlink { 0%, 88%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.1); } }
+      @keyframes hexNod { 0% { transform: none; } 40% { transform: translateY(-3px) rotate(-8deg); } 100% { transform: none; } }
+      @media (prefers-reduced-motion: reduce) {
+        .brand :global(.brand-hex), .brand :global(.brand-hex .hex-eyes) { animation: none !important; }
       }
       /* Main links: wide screens only; the Menu button carries them elsewhere. */
       .nav-main { display: none; margin-left: var(--ddp-space-4); gap: var(--ddp-space-1); align-self: center; }

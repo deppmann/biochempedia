@@ -1,11 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Hex from '../components/Hex.astro';
 ---
 
 <BaseLayout title="Page not found — Biochemistrypedia" description="The page you're looking for doesn't exist.">
   <article class="wrap prose-col" style="padding-top: var(--ddp-space-12)">
+    <p class="lost-hex"><Hex pose="think" size={120} alive /></p>
     <p class="eyebrow">404</p>
     <h1>This page does not exist.</h1>
+    <p class="lost-line">Hex looked everywhere.</p>
 
     <p>
       The link you followed is broken, or the page has moved. Here is how to
@@ -22,6 +25,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </article>
 
   <style>
+    .lost-hex { margin: 0 0 var(--ddp-space-2); line-height: 0; }
+    .lost-line { margin: calc(var(--ddp-space-3) * -1) 0 var(--ddp-space-4); font-family: var(--ddp-font-serif); font-style: italic; color: var(--ddp-color-ink-soft); }
     .eyebrow {
       font-family: var(--ddp-font-mono);
       font-size: var(--ddp-text-xs);

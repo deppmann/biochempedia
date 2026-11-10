@@ -1,0 +1,92 @@
+---
+/**
+ * Meet Hex (2026-11-10): who the mascot is, the six poses and four props, and the rules for
+ * using it. The drawing is src/components/Hex.astro; the subject-to-prop map is src/data/hex.ts.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hex from '../../components/Hex.astro';
+import { HEX_POSES, HEX_PROPS } from '../../data/hex';
+
+const POSE_NOTE: Record<string, string> = {
+  stand: 'The default. Holds a subject’s prop on course pages.',
+  wave: 'A hello: the progress page, once you have started.',
+  lean: 'Leaning on the site’s name in the header.',
+  think: 'Something was not found: a 404, a search with no match.',
+  cheer: 'You finished something: a quiz, a review session.',
+  sleep: 'Nothing here yet: an empty progress page.',
+};
+const SHAPES = [
+  ['Chemistry', 'a benzene ring, six carbons in a loop. The three gold lines inside Hex are its double bonds.'],
+  ['Biology', 'a cell of honeycomb, and the facets of an insect’s eye.'],
+  ['Physics', 'a sheet of graphene, and the six-fold symmetry of every snowflake.'],
+  ['Math', 'the shape that tiles a flat surface with the least edge for the area it encloses.'],
+  ['Engineering', 'the head of a bolt, made to be gripped from six sides.'],
+];
+---
+
+<BaseLayout title="Meet Hex — Biochemistrypedia" description="Hex is the site's mascot: the hexagon from the logo, with a face. Why a hexagon, its poses, and how it is used.">
+  <article class="wrap prose-col hx" style="padding-top: var(--ddp-space-12)">
+    <p class="eyebrow">The mascot</p>
+    <h1>Meet Hex</h1>
+    <p class="hx-hero"><Hex pose="wave" size={150} alive label="Hex, a hexagon with a face, two arms and two legs, waving" /></p>
+    <p class="lede">
+      Hex is the hexagon from the site’s logo, with a face. It turns up when something happens: you
+      finish a quiz, a search finds nothing, a page is missing. It stays out of the lessons themselves.
+      Hex is an “it”.
+    </p>
+
+    <h2>Why a hexagon</h2>
+    <p>The same shape shows up in every science the site teaches or plans to teach.</p>
+    <ul>
+      {SHAPES.map(([field, what]) => <li><strong>{field}:</strong> {what}</li>)}
+    </ul>
+
+    <h2>Six poses</h2>
+    <ul class="hx-grid">
+      {HEX_POSES.map((p) => (
+        <li>
+          <Hex pose={p} size={96} alive />
+          <strong>{p}</strong>
+          <span>{POSE_NOTE[p]}</span>
+        </li>
+      ))}
+    </ul>
+
+    <h2>One prop per subject</h2>
+    <p>On a course page Hex holds the tool of that course’s subject. Physics and math are drawn and waiting for their courses.</p>
+    <ul class="hx-grid hx-props">
+      {HEX_PROPS.map(({ prop, subject }) => (
+        <li>
+          <Hex prop={prop} size={96} />
+          <strong>{subject}</strong>
+          <span>{prop}</span>
+        </li>
+      ))}
+    </ul>
+
+    <h2>The rules</h2>
+    <ul>
+      <li>Hex appears where something happens, never as wallpaper, and never in the reading column of a lesson.</li>
+      <li>One Hex in view at a time (this page is the exception).</li>
+      <li>Navy line, gold accents, nothing else. No shading, no other colours.</li>
+      <li>Hex does not speak in speech bubbles. A short line of text beside it is enough.</li>
+      <li>Movement is small and stops: a blink, a wave, a hop. None of it plays for readers who have asked their device for reduced motion.</li>
+    </ul>
+
+    <h2>Files</h2>
+    <p>
+      <a href="/hex/hex.svg">Hex as an SVG</a> ·
+      <a href="/hex/hex-avatar.png">Square avatar, 512 px</a>
+    </p>
+  </article>
+
+  <style>
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+    .hx-hero { margin: 0 0 var(--ddp-space-4); line-height: 0; }
+    .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); }
+    .hx-grid { list-style: none; margin: var(--ddp-space-4) 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--ddp-space-3); }
+    .hx-grid li { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; margin: 0; padding: var(--ddp-space-4) var(--ddp-space-3); text-align: center; background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); }
+    .hx-grid strong { margin-top: var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-primary); }
+    .hx-grid span { font-size: var(--ddp-text-sm); line-height: 1.4; color: var(--ddp-color-ink-soft); }
+  </style>
+</BaseLayout>

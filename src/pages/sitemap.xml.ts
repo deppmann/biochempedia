@@ -17,7 +17,7 @@ export async function GET(context: APIContext): Promise<Response> {
   const courses = [...new Set(lessons.map((l) => l.data.course))];
   const paths = [
     '/', '/courses/', '/about/', '/updates/', '/fun/', '/play/', '/contact/', '/search/', '/license/', '/under-review/',
-    '/math-toolkit/', '/privacy/',
+    '/math-toolkit/', '/privacy/', '/hex/',
     '/teachers/', '/teachers/talk-notes/', '/teachers/demo/', '/teachers/how-its-built/',
     '/teachers/do-it-yourself/', '/teachers/checklist/', '/teachers/sources/', '/teachers/talk/',
     '/teachers/life-science/', '/teachers/biology/',

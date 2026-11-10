@@ -19,6 +19,7 @@ const items = [
   ...mcat.map((q) => ({ q, badge: 'MCAT-style · original' })),
 ];
 const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+import Hex from './Hex.astro';
 ---
 
 <section class="quiz card" data-quiz data-lesson={slug} aria-label="Self-test">
@@ -28,6 +29,7 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
   <div class="quiz-top">
     <span class="quiz-progress" aria-live="polite">Question <strong data-qnum>1</strong> of {items.length}</span>
     <span class="quiz-score">Score <strong data-correct>0</strong> / <span data-answered>0</span></span>
+    <span class="quiz-hex" data-quiz-hex hidden><Hex pose="cheer" size={40} alive /> Finished!</span>
   </div>
   <div class="quiz-bar"><span class="quiz-bar-fill" data-bar style={`width: ${(1 / items.length) * 100}%`}></span></div>
 
@@ -98,6 +100,8 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
       if (correctEl) correctEl.textContent = String(correct);
       if (answeredEl) answeredEl.textContent = String(answered.size);
       if (bar) bar.style.width = `${((idx + 1) / total) * 100}%`;
+      const hex = root.querySelector<HTMLElement>('[data-quiz-hex]');
+      if (hex && hex.hidden && answered.size === total) hex.hidden = false;
       // At either end the button used to stay live and silently do nothing.
       if (prevBtn) prevBtn.disabled = idx === 0;
       if (nextBtn) nextBtn.disabled = idx === total - 1;
@@ -329,4 +333,6 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
   .quiz-reset {
     color: var(--ddp-color-muted);
   }
+  .quiz-hex { display: inline-flex; align-items: flex-end; gap: 0.4rem; margin-left: auto; font-family: var(--ddp-font-serif); font-style: italic; font-weight: 600; color: var(--ddp-color-primary); line-height: 1; }
+  .quiz-hex[hidden] { display: none; }
 </style>

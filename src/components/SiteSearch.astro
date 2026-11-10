@@ -28,6 +28,7 @@ interface Props {
   placeholder?: string;
 }
 const { scope = 'all', autofocus = false, label = 'Search the lessons', placeholder = 'Try “allostery”, “Ras”, “western blot”…' } = Astro.props;
+import Hex from './Hex.astro';
 ---
 
 <div class="ss" data-site-search data-scope={scope}>
@@ -42,6 +43,7 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons', placehol
     </div>
   </form>
   <div class="ss-scope" role="group" aria-label="Where to search" hidden></div>
+  <div class="ss-none" hidden><Hex pose="think" size={64} alive /></div>
   <p class="ss-status" role="status" aria-live="polite"></p>
   <ol class="ss-results"></ol>
   <button type="button" class="ss-more" hidden>Show more lessons</button>
@@ -62,6 +64,9 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons', placehol
     const form = root.querySelector<HTMLFormElement>('.ss-form')!;
     const scopeBox = root.querySelector<HTMLElement>('.ss-scope')!;
     const status = root.querySelector<HTMLElement>('.ss-status')!;
+    const none = root.querySelector<HTMLElement>('.ss-none');
+    /* Hex shows only beside a finished search that found nothing. */
+    new MutationObserver(() => { if (none) none.hidden = !/^No lesson in .* matches/.test(status.textContent ?? ''); }).observe(status, { childList: true, characterData: true, subtree: true });
     const list = root.querySelector<HTMLElement>('.ss-results')!;
     const moreBtn = root.querySelector<HTMLButtonElement>('.ss-more')!;
     let scope = root.dataset.scope || 'all';
@@ -278,6 +283,8 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons', placehol
   }
   .ss-status { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); min-height: 1.2em; }
   .ss-status:empty { display: none; }
+  .ss-none { margin: var(--ddp-space-4) 0 0; line-height: 0; }
+  .ss-none[hidden] { display: none; }
   .ss-results { list-style: none; margin: var(--ddp-space-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--ddp-space-3); }
   .ss-results:empty { display: none; }
   .ss-hit { background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); padding: var(--ddp-space-3) var(--ddp-space-4); min-width: 0; }

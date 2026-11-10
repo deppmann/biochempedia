@@ -12,6 +12,7 @@ const courses = COURSES
 // Lesson titles for "continue where you left off", keyed by slug.
 const titles = Object.fromEntries(lessons.map((l) => [l.data.slug, l.data.title]));
 const pathNames = Object.fromEntries(PATHS.map((p) => [p.id, p.label]));
+import Hex from '../../components/Hex.astro';
 ---
 
 <BaseLayout
@@ -46,6 +47,8 @@ const pathNames = Object.fromEntries(PATHS.map((p) => [p.id, p.label]));
       </div>
       <div class="card">
         <p class="k">Pick up where you left off</p>
+        <span class="prog-hex" data-hex-asleep><Hex pose="sleep" size={56} alive /></span>
+        <span class="prog-hex" data-hex-awake hidden><Hex pose="wave" size={56} alive /></span>
         <p class="big" data-last>Nothing yet</p>
         <p class="small"><span data-done-total>0</span> lessons done · <span data-answered>0</span> questions answered</p>
       </div>
@@ -118,6 +121,11 @@ const pathNames = Object.fromEntries(PATHS.map((p) => [p.id, p.label]));
         } else last.textContent = 'Nothing yet';
       }
       $('[data-done-total]')!.textContent = String(Object.values(p.lessons).filter((l) => l.d).length);
+      /* Hex sleeps until there is something to show. */
+      const started = Object.keys(p.lessons).length > 0 || Object.keys(p.items).length > 0;
+      const asleep = $('[data-hex-asleep]'), awake = $('[data-hex-awake]');
+      if (asleep) asleep.hidden = started;
+      if (awake) awake.hidden = !started;
       $('[data-answered]')!.textContent = String(Object.values(p.items).reduce((n, it) => n + it.n, 0));
 
       root.querySelectorAll<HTMLElement>('[data-course]').forEach((row) => {
@@ -184,5 +192,8 @@ const pathNames = Object.fromEntries(PATHS.map((p) => [p.id, p.label]));
     .file input { position: absolute; width: 1px; height: 1px; opacity: 0; }
     .file:focus-within { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
     @media (max-width: 560px) { .course { grid-template-columns: 1fr auto; } .c-bar { grid-column: 1 / -1; grid-row: 2; } }
-  </style>
+      .card:has(.prog-hex) { position: relative; }
+    .prog-hex { position: absolute; right: var(--ddp-space-3); top: var(--ddp-space-3); line-height: 0; }
+    .prog-hex[hidden] { display: none; }
+</style>
 </BaseLayout>

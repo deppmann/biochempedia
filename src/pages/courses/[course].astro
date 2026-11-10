@@ -5,6 +5,8 @@ import CourseUnits from '../../components/CourseUnits.astro';
 import SiteSearch from '../../components/SiteSearch.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
 import Drifters from '../../components/Drifters.astro';
+import Hex from '../../components/Hex.astro';
+import { hexPropFor } from '../../data/hex';
 import { COURSES, unitsFor } from '../../data/courses';
 
 /* One page per course, all in the same card layout. A course gets a page only
@@ -30,7 +32,7 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
   <Drifters />
   <section class="wrap course-hero">
     <p class="eyebrow"><a href="/courses/">All courses</a> · {tierLabel}{course.tier === 'highschool' && <DepthLadder step={course.ladderStep ?? 2} size="sm" class="eyebrow-ladder" />}</p>
-    <h1>{course.title}</h1>
+    <h1>{course.title}<Hex pose="stand" prop={hexPropFor(course.slug)} size={64} alive class="hex-inline" /></h1>
     <p class="lede">{course.blurb}</p>
     {drafts > 0 && (
       <p class="draft-banner" role="note">
