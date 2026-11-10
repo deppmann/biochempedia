@@ -19,11 +19,12 @@ arrangement of those tiles, sickle/healthy hemoglobin are colored spots on an ap
 the beta chain is a row of plain boxes.
 """
 import math
+from pathlib import Path
 
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PORTRAIT = "/Users/deppmann/biochempedia/public/scientists/linus-pauling.png"
+PORTRAIT = str(Path(__file__).resolve().parents[2] / "public/scientists/linus-pauling.png")
 CAPTION = "illustration · AI-generated"
 PLACE = "#B39DDB"       # places and institutions
 

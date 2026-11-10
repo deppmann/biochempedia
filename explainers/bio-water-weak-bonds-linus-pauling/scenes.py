@@ -16,11 +16,12 @@ No molecular structure is drawn: the chain is a row of residue tiles; the helix 
 placed on a helical track (side view, front tiles bright, back tiles dim); the rise is a bracket.
 """
 import math
+from pathlib import Path
 
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PORTRAIT = "/Users/deppmann/biochempedia/public/scientists/linus-pauling.png"
+PORTRAIT = str(Path(__file__).resolve().parents[2] / "public/scientists/linus-pauling.png")
 CAPTION = "illustration · AI-generated"
 
 INSET_C = np.array([-4.6, 1.15, 0.0])

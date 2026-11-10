@@ -17,11 +17,13 @@ COLOR MAP (one color per concept, whole video)
 No molecular structure is drawn: the enzyme is two jaws on a base, the substrate a plain block, water small dots.
 """
 import numpy as np
+from pathlib import Path
+
 from bp_style import *  # noqa: F401,F403
 
 config.disable_caching = True
 
-PORTRAIT = "/Users/deppmann/mission-control/work/explainers/2026-10-09-biochempedia/bio-enzyme-kinetics-daniel-koshland/portrait.png"
+PORTRAIT = str(Path(__file__).resolve().parent / "portrait.png")
 CAPTION = "illustration · AI-generated"
 NAME = "Daniel Koshland"
 DATES = "1920–2007"

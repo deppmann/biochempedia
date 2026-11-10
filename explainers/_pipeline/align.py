@@ -11,6 +11,7 @@ import argparse, json, subprocess
 from pathlib import Path
 import numpy as np
 from faster_whisper import WhisperModel
+from fftools import FFMPEG
 
 ap = argparse.ArgumentParser(); ap.add_argument("--dir", required=True)
 ap.add_argument("--script", default="script.json"); ap.add_argument("--audio", default="audio")   # social cuts: social.json / audio_social
@@ -21,7 +22,7 @@ out = {}
 for s in script["scenes"]:
     if s.get("silent") is not None:
         out[s["id"]] = []; continue
-    raw = subprocess.run(["/Users/deppmann/miniconda3/bin/ffmpeg", "-loglevel", "error", "-i", str(d / a.audio / f"{s['id']}.wav"),
+    raw = subprocess.run([FFMPEG, "-loglevel", "error", "-i", str(d / a.audio / f"{s['id']}.wav"),
                           "-f", "f32le", "-ac", "1", "-ar", "16000", "-"], capture_output=True).stdout
     segs, _ = m.transcribe(np.frombuffer(raw, dtype=np.float32), word_timestamps=True, beam_size=5)
     words = [[round(w.start, 2), round(w.end, 2), w.word.strip()] for sg in segs for w in sg.words]

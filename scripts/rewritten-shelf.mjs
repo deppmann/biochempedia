@@ -10,9 +10,10 @@
 // work began (the saved original or the review), i.e. the day the rewrite reached the site.
 import { readFileSync, writeFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-const NOTES = process.env.LEVELUP_NOTES || '/Users/deppmann/biochempedia/docs/expansion/levelup';
+const NOTES = process.env.LEVELUP_NOTES || fileURLToPath(new URL('../docs/expansion/levelup', import.meta.url));
 if (!existsSync(NOTES)) { console.error(`rewritten-shelf: no level-up notes at ${NOTES}`); process.exit(1); }
 const out = [];
 for (const course of readdirSync(NOTES)) {

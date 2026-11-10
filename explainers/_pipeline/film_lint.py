@@ -12,7 +12,7 @@ over 12 s), THIN (median ink under 6%), EMPTY (over 15% of frames nearly empty),
 """
 import json, re, subprocess, sys
 import numpy as np
-FF, FP = "/Users/deppmann/miniconda3/bin/ffmpeg", "/Users/deppmann/miniconda3/bin/ffprobe"
+from fftools import FFMPEG as FF, FFPROBE as FP
 
 
 def lint(mp4, vtt=None):
