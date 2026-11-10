@@ -24,7 +24,7 @@ explainer:
   captions: "/explainers/vesicle-traffic/explainer.vtt"
   poster: "/explainers/vesicle-traffic/poster.jpg"
   title: "A Vesicle Needs Three Separate Steps"
-  durationSec: 171.6
+  durationSec: 297.2
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
 
@@ -188,8 +188,8 @@ practiceQuestions:
       A coat gathers cargo, through binding sites such as those on Sec24, and its assembly curves
       the membrane into a bud; purified COPII proteins bud chemically defined liposomes. A coat does
       not pump cargo across the bilayer or use ATP to do so; cargo is already in the lumen or the
-      membrane. Tethering and fusion are later steps carried out by Rabs, tethers and SNAREs, though a COPII
-      coat can stay on until the vesicle reaches the Golgi. Recycling SNAREs is the work of NSF and SNAP, not of a coat.
+      membrane. Tethering and fusion are later steps carried out by Rabs, tethers and SNAREs, though COPII
+      begins to come off after Sar1 hydrolyzes GTP, and parts of it can stay on long enough to help the vesicle be caught at the Golgi. Recycling SNAREs is the work of NSF and SNAP, not of a coat.
   - stem: "Which description of the SNARE bundle that drives fusion is correct?"
     choices:
       - "Four helices that assemble in one membrane before docking"
@@ -260,7 +260,7 @@ mcatQuestions:
       150 units instead of by the trapped pool. The 33% choice is the fraction still inside (45 of
       135), and the total stays at 150, so nothing points to degradation. The 90% choice mistakes 90 units
       for a percentage.
-  - stem: "In a made-up yeast cell-free ER-to-Golgi assay, vesicle release from ER is complete by 5 min. Inhibitor X is added at different times after the start. Added at 0 min it blocks 95% of fusion, at 10 min 50%, and at 20 min 5%. Vesicle binding to Golgi membranes is half complete at about 10 min and nearly complete by 20 min. Which interpretation fits best?"
+  - stem: "In a made-up yeast cell-free ER-to-Golgi assay, vesicle release from ER is complete by 5 min. Inhibitor X is added at different times after the start. Added at 0 min it blocks 95% of fusion, at 10 min 50%, and at 20 min 5%. Vesicle binding to Golgi membranes is half complete at about 10 min and nearly complete by 20 min. Fusion, measured separately, is only 20% complete at 20 min. Which interpretation fits best?"
     choices:
       - "X has no specific target, since its effect fades with time"
       - "X acts on budding, since budding comes before docking occurs"
@@ -270,7 +270,7 @@ mcatQuestions:
     rationale: >-
       Resistance to X appears on the same schedule as docking, which fits a step that is passed once a
       vesicle has docked; this is the pattern Cao, Ballew and Barlowe reported for GDI. If X blocked
-      only a fusion step that follows complete docking, adding it at 20 min would still block that fusion. If X blocked budding,
+      only the fusion step, adding it at 20 min would still block most fusion, since only 20% of fusion is done by then. If X blocked budding,
       resistance would appear by 5 min, ahead of docking. An effect that fades in step with a
       measured reaction points to a specific step, not to a lack of target.
   - stem: "A purified tethering complex and a truncated form are tested with liposomes carrying an active Rab. Both cluster liposomes to the same extent. In a content-mixing assay with SNARE-bearing proteoliposomes, the full complex supports fusion, but the truncated form gives no more signal than a no-tether control. Which conclusion is best supported?"
@@ -387,45 +387,92 @@ draft: false
 import SecMutantSecretionReader from '../../../components/SecMutantSecretionReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A yeast mutant called sec1 grows at 25 °C. At 37 °C it keeps making secretory enzymes, but they stay inside: the internal pool rises up to eightfold, packed into membrane-bound vesicles that never fuse with the surface.**
+**Yeast secrete enzymes along a route from ER to Golgi to vesicles to the cell surface. A mutant called sec1 grows at 25 °C. At 37 °C it keeps making secretory enzymes, but they stay inside: the internal pool rises up to eightfold, packed into membrane-bound vesicles that never fuse with the surface.**
 
-Novick and Schekman reported that result in 1979. The vesicles had formed, so budding worked. Something later had failed. This lesson asks what a vesicle needs at each stage: a way to pick its cargo and bend off a membrane, a way to recognize the right target, and a way to merge with it. It also asks how anyone worked out which protein acts at which stage.
+Novick and Schekman reported that in 1979. Back at 25 °C, even with protein synthesis blocked, the cells secreted the stored enzymes: the vesicles held stalled cargo. Each vesicle on that route has three jobs: **budding** (pick up cargo and pinch off), **targeting** (be caught by the right membrane) and **fusion** (merge with it).
 
-A few terms first. The **cytosol** is the fluid of the cell outside organelles; the **lumen** is the inside of a membrane-bound compartment. A **vesicle** is a small membrane sphere, often 50 to 100 nm across, that carries lumenal cargo and membrane proteins from a donor compartment to a target. Because the vesicle's lumen is topologically outside the cytosol (see [membrane topology](/lessons/membrane-organization-topology/)), everything that steers it has to act from the cytosolic face.
+**Predict.** In sec1 cells at 37 °C, which of the three jobs worked for the last vesicle on the route, and which could have failed?
 
-## Two problems, choosing cargo and bending membrane: coats
+<details>
+<summary>Check your prediction</summary>
 
-A **coat** is a lattice of cytosolic proteins that assembles on a patch of membrane. Think of a coat as a cookie cutter with hands: the cutter shapes the bud, and the hands grab the cargo that belongs inside. One coat does both jobs, though different parts of it often grab the cargo and build the cage.
+Budding worked: the vesicles exist. Targeting or fusion failed, and a pile of vesicles alone cannot say which.
 
-Each coat is started by a switch. At the ER it is **Sar1**, a small GTPase (the GTP switch cycle, with its GEFs and GAPs, is covered in [GTPase switches](/lessons/gtpase-switches/)). Sar1-GTP binds the ER membrane and recruits the Sec23/24 complex, which in turn recruits Sec13/31, the outer cage. Together these make **COPII**. With purified yeast proteins, Matsuoka and colleagues showed in 1998 that Sar1, Sec23/24 and Sec13/31 alone bud coated vesicles from chemically defined liposomes that contain PI4P or PI(4,5)P2, so the coat can bend membrane without help from other ER proteins. Cargo choice sits in Sec24: yeast mutant studies support a model in which Sec24 has several independent cargo-binding sites.
+</details>
 
-At the Golgi, **Arf1**-GTP recruits coatomer, a seven-subunit complex, to form **COPI** vesicles. COPI works within the Golgi and from Golgi back to ER. Its α- and β′-COP subunits bind cytosolic dilysine (KKXX) motifs, so ER membrane proteins that escape are fetched back.
+*The film at the top of the page stops at "a later step failed"; the fusion section names that step.*
 
-At the plasma membrane, **clathrin** forms the outer lattice. Clathrin does not bind cargo itself; the adaptor **AP2** does. Crystal structures of recombinant AP2 show a locked form in which part of the β2 subunit covers both cargo-binding sites. On membranes containing PI(4,5)P2, a phosphoinositide concentrated in the plasma membrane (see [lipid anchors and addresses](/lessons/lipid-anchors-and-addresses/)), AP2 opens and exposes them. The lipid and the cargo together tell the adaptor where it is.
+> **The one idea to carry through this lesson.** A vesicle's trip is three handoffs, and each can fail on its own. A **coat** buds the vesicle and picks its cargo. A **Rab-GTP with a tether** catches it at the right membrane (targeting). A **SNARE bundle, guided by an SM protein**, fuses it. On a linear route, when one handoff fails, cargo piles up in the last place it reached, and a fast, specific inhibitor stops working once the state it targets is past.
 
-<LessonFigure src="/figures/vesicle-traffic/three-coats-compared.webp" width={1200} height={800} alt="AI-generated illustration: three membrane buds side by side in schematic style. A large ER bud shows Sar1-GTP, an inner Sec23/24 layer holding cargo and an outer Sec13/31 cage (COPII). A smaller Golgi bud shows Arf1-GTP and a coatomer layer grabbing a KKXX tail (COPI). A plasma-membrane bud shows a clathrin lattice over AP2 adaptors gripping cargo on a PI(4,5)P2 patch." caption="Each coat is started by a switch or a lipid and does two jobs, choosing cargo and bending the membrane. COPII is built from Sar1, Sec23/24 and Sec13/31, COPI from Arf1 and coatomer, and clathrin works with the cargo adaptor AP2." />
+<LessonFigure src="/figures/vesicle-traffic/handoff-strip.webp" width={1200} height={676} alt="AI-generated illustration: a three-panel strip. Left, a coated bud pinches off a donor membrane carrying cargo. Middle, an uncoated vesicle is held above a target membrane by a long tether rising from a Rab-GTP, its SNARE not yet touching the target's SNAREs. Right, the vesicle sits on the target membrane on a wound SNARE bundle, with an SM protein beside it." caption="A vesicle's trip is three separate handoffs: a coat buds it and picks its cargo, a Rab-GTP and a tether catch it at the right membrane, and a SNARE bundle guided by an SM protein fuses it. Each can fail on its own, which is why mutants and inhibitors can tell them apart." />
 
-Two cautions keep the cartoon honest. In cultured BSC-1 cells, clathrin lattices began to curve only at around 70% of their final clathrin content, and raised membrane tension stalled the change, so a coat does not always curve from the start. And in mammalian cells, whole-cell imaging in 2021 found ER export through an interwoven tubular network, not only through separate small spheres.
+This picture fits the coat-dependent routes in this lesson. Some endocytosis uses other budding machinery, and tubular carriers and lipid transfer without a vesicle fall outside it.
 
-## Getting an address: Rabs and tethers
+A few terms. The **cytosol** is the cell's fluid outside organelles; the **lumen** is the inside of a membrane-bound compartment. A **vesicle** is a small membrane sphere, often 50 to 100 nm across, that carries lumenal cargo and membrane proteins from a donor compartment to a target. Its lumen never mixes with the cytosol (see [membrane topology](/lessons/membrane-organization-topology/)), so every protein that steers it works on its cytosolic face. A coat grabs a membrane protein's cytosolic tail directly. A soluble cargo, such as the secretory enzyme invertase measured below, cannot touch the coat: it is caught by a membrane-spanning receptor that the coat grabs (Erv29 in yeast, ERGIC-53 in mammals), or rides along in the fluid a bud encloses.
 
-Once it has budded, a vesicle must find its target among many membranes. Part of the answer is **Rab** proteins, a large family of small GTPases anchored to membranes by prenyl groups. A GDP-bound Rab is held in the cytosol by **GDI** (GDP dissociation inhibitor). A GEF on the right membrane loads GTP, and the GTP-bound Rab recruits effectors. Picture a Rab-GTP as a lit sign over one loading bay.
+## Step 1, budding: a coat picks the cargo and bends the membrane
 
-Among the effectors are **tethers**: long coiled-coil proteins or large complexes that capture a vesicle before its SNAREs engage. In yeast, the tether Uso1p works with the Rab Ypt1p on ER-to-Golgi vesicles. On the yeast vacuole, the six-subunit HOPS complex binds the Rab Ypt7; the purified complex is about 43 nm tall, and a structural working model places its Vps39 and Vps41 subunits at the Ypt7 contacts. HOPS also contains an **SM protein** (Sec1/Munc18 family), Vps33, which with Vps16 binds SNAREs.
+A **coat** is a lattice of cytosolic proteins that assembles on a patch of membrane. Think of a coat as a cookie cutter with hands: the cutter shapes the bud, and the hands grab the cargo that belongs inside, though different parts of a coat often grab the cargo and build the cage.
 
-No single molecule is the address. Rab, phosphoinositide, tether and SNARE each narrow the choice, and the evidence fits a combination better than any one label.
+Take **COPII**, the ER's coat. It is started by a switch, **Sar1**, a small GTPase (see [GTPase switches](/lessons/gtpase-switches/)). Sar1-GTP grabs the ER membrane and pulls in an inner layer, **Sec23/24**, which holds cargo and in turn recruits an outer cage, **Sec13/31**. Cargo choice sits mainly in Sec24: yeast mutant studies support a model in which Sec24 has several independent cargo-binding sites. Sar1's GTP is also a timer. When Sar1 hydrolyzes it, the coat begins to let go, and the vesicle can go on to be caught and fused.
 
-## Fusion: SNAREs zipper, NSF resets
+| Coat | Started by | Where it works | Cargo signal it reads |
+|---|---|---|---|
+| COPII | Sar1-GTP | ER to Golgi | signals read by Sec24 |
+| COPI | Arf1-GTP, recruiting coatomer (seven subunits) | within the Golgi, and Golgi back to ER | dilysine (KKXX) tails, read by α- and β′-COP |
+| Clathrin with AP2 | the lipid PI(4,5)P2, which opens AP2 | plasma membrane | motifs read by AP2; clathrin binds no cargo |
 
-Two bilayers resist merging because their water-coated surfaces repel at close range. **SNAREs** supply the force. Most SNAREs have a SNARE motif of about 60 to 70 residues next to a membrane anchor. Four motifs, classed **Qa, Qb, Qc and R**, wind into a parallel four-helix bundle. At the synapse, syntaxin-1 gives Qa, SNAP-25 gives both Qb and Qc, and synaptobrevin gives R.
+A KKXX tail is a return label: COPI fetches escaped ER membrane proteins back from the Golgi. Crystal structures of recombinant AP2 show it locked, part of its β2 subunit covering both cargo sites; it opens on membranes with PI(4,5)P2, a phosphoinositide concentrated in the plasma membrane (see [lipid anchors and addresses](/lessons/lipid-anchors-and-addresses/)), so the lipid and the cargo together tell it where it is (compare the locked and open structures on this page). **Dynamin**, a GTPase, pinches the finished clathrin bud off.
 
-While the motifs come from two membranes, the bundle is a **trans-SNARE complex**. It zippers from the N-terminal end toward the membrane anchors, drawing the bilayers together until they fuse. Afterwards all four sit in one membrane as a **cis-SNARE complex**. NSF (Sec18 in yeast), an ATPase, binds that complex through its adaptor SNAP (Sec17) and uses ATP to pull it apart for reuse.
+<LessonFigure src="/figures/vesicle-traffic/three-coats-compared.webp" width={1200} height={800} alt="AI-generated illustration: three membrane buds in schematic style. A large ER bud shows a row of Sar1-GTP on the membrane under an inner Sec23/24 layer that holds cargo tails and a cargo receptor carrying soluble cargo, all under an outer Sec13/31 cage (COPII). A smaller Golgi bud shows Arf1-GTP under a coatomer layer gripping a KKXX tail (COPI). A plasma-membrane bud shows AP2 on a PI(4,5)P2 patch gripping cargo, a clathrin cage outside it, and a dynamin ring at the neck." caption="Each coat is started by a switch or a lipid (Sar1-GTP, Arf1-GTP, PI(4,5)P2) and does two jobs, choosing cargo and bending the membrane. In COPII, Sec23/24 holds cargo under a Sec13/31 cage; coatomer grips KKXX return tails; AP2 grips cargo while clathrin only builds the cage, and dynamin pinches the bud off." />
 
-How much can SNAREs do alone? In 1998 Weber and colleagues put recombinant v-SNAREs (vesicle) and t-SNAREs (target) into separate liposomes, and the docked liposomes mixed their lipids at physiological temperature, which the authors read as fusion. That shows SNAREs can merge those bilayers on their own, though lipid mixing alone cannot tell full fusion from hemifusion. It does not show they supply specificity or speed in a cell. Purified yeast HOPS makes the gap visible: truncated forms lacking parts of Vps11 or Vps18 still tethered Ypt7 liposomes but failed to promote fusion. NSF may do more than recycle SNAREs. In a 2024 yeast vacuole reconstitution, Sec18 still promoted fusion with Sec17 fixed to the membrane; whether this holds at other fusion steps is not yet known.
+**Predict.** In 1994 Barlowe and colleagues made ER vesicles in a test tube with GMP-PNP, a GTP analogue that cannot be hydrolyzed. Do the vesicles bud? Can they fuse with the Golgi?
 
-## Ordering a pathway with mutants and test tubes
+<details>
+<summary>Check your prediction</summary>
 
-The 1980 Novick, Field and Schekman screen enriched dense yeast cells on a Ludox gradient and recovered 188 clones that trapped invertase at 37 °C. They fell into 23 complementation groups (see [complementation and pathways](/lessons/complementation-and-pathways/)). That is the screen's yield, not the number of genes secretion needs, and the SEC numbers carry no information about order. Order came from double mutants in 1981.
+They bud, but the timer never runs out. The vesicles kept their coat proteins and failed to target and fuse with the Golgi. Making a vesicle and delivering it are separate steps, and the coat must start to come off before the next handoff.
+
+</details>
+
+Real coats and ER exit sites are messier than this picture (Going deeper, "Coats that curve late, and tubes as well as spheres").
+
+## Step 2, targeting: a Rab and a tether catch the vesicle
+
+A budded vesicle must find its target among many membranes. Part of the answer is **Rab** proteins, a large family of small GTPases. A Rab has a lipid tail (prenyl groups) that can anchor it in a membrane. When the Rab carries GDP, a protein called **GDI** (GDP dissociation inhibitor) can wrap that tail and carry the Rab in the cytosol. At the right membrane the Rab leaves GDI, its tail enters the bilayer, and a GEF (an exchange factor) there loads GTP, which holds it on. Rab-GTP recruits proteins called effectors, which generally prefer the active, GTP-bound form. The film's Rab "anchored in a membrane" and "held in the cytosol by GDI" are these two states, simplified: a Rab-GDP can also sit briefly on a membrane.
+
+Among the effectors are **tethers**: long coiled-coil proteins or large complexes that capture a vesicle before its SNAREs engage. In yeast, the tether Uso1p works with the Rab Ypt1p on ER-to-Golgi vesicles. On the yeast vacuole, a six-subunit tether called HOPS binds the Rab Ypt7.
+
+<LessonFigure src="/figures/vesicle-traffic/rab-tether-catch.webp" width={1200} height={800} alt="AI-generated illustration: on a target membrane, an active Rab-GTP anchored by its lipid tail recruits a long tether that holds an incoming vesicle, next to a phosphoinositide patch and target SNAREs. An inset shows a Rab-GDP with its lipid tail wrapped by GDI in the cytosol, and a dashed arrow through a GEF to the membrane-bound Rab-GTP." caption="GDI carries Rab-GDP in the cytosol; at the right membrane a GEF loads GTP, and Rab-GTP recruits effectors such as a tether that catches the vesicle. No single molecule is the address: the Rab, the membrane's lipid and the SNAREs each narrow the choice." />
+
+Picture a Rab-GTP as one lit sign over a loading bay. The film shows only that sign; the tether, the membrane's phosphoinositide and the SNAREs are other signs. No single molecule is the address: each narrows the choice, and the evidence fits a combination better than any one label.
+
+## Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them
+
+A caught vesicle still has to merge, and bilayers resist merging: their water-coated surfaces repel at close range. **SNAREs** supply the pull. Most have a **SNARE motif** of about 60 to 70 amino acids next to a membrane anchor; **v-SNAREs** sit in the vesicle and **t-SNAREs** in the target. A lone motif is floppy. Four of the right kind wind into a parallel four-helix bundle, one rope of four strands. The strands are named by the amino acid each places at the bundle's centre: three give a glutamine (Q) and one an arginine (R), so they are **Qa, Qb, Qc and R**. Often the vesicle gives R and the target gives the three Q strands, though not at every step. At a nerve terminal, syntaxin-1 gives Qa, SNAP-25 gives both Qb and Qc, and synaptobrevin on the vesicle gives R.
+
+The bundle zips from the N-terminal end toward the membrane anchors. With the vesicle's strand and the target's three strands each tied to their own membrane, zippering pulls the bilayers closer, until they fuse. Four strands are not four anchors: SNAP-25 gives two strands and attaches by lipid chains on the loop between them. While the strands come from two membranes, the bundle is a **trans-SNARE complex**. Afterwards the whole bundle sits in one membrane: a **cis-SNARE complex**.
+
+**Predict.** Does the moment of fusion use ATP?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Four floppy strands folding into one tight rope releases free energy, and the zip turns it into a pull on the membranes. The zip itself uses no ATP; ATP pays to get SNAREs ready. A cis bundle is stable and useless, since both ends are already in one membrane. **NSF** (Sec18 in yeast), an ATPase, binds cis bundles through its adaptor **SNAP** (Sec17) and spends ATP to pull the strands apart, after one fusion and before the next. NSF cocks the spring that the next zip releases.
+
+</details>
+
+<LessonFigure src="/figures/vesicle-traffic/snare-cycle.webp" width={1200} height={800} alt="AI-generated illustration: a three-frame strip in which one vesicle SNARE and three target SNARE strands wind together between two membranes with an SM protein beside them, the membranes merge, and the finished bundle lies in one membrane. An inset shows NSF, bound through SNAP adaptors, pulling the cis bundle apart, with ATP used only at that step." caption="SNARE strands from two membranes zip into one four-helix bundle, and the zip itself pulls the bilayers together without ATP. The spent cis bundle sits in one membrane until NSF, through SNAP, spends ATP to pull it apart for the next round." />
+
+In a cell, SNAREs do not work alone. The main fusion steps that have been studied also need an **SM protein**, named for its first two members, Sec1 and Munc18, which binds SNAREs and helps the right four zip together. On the yeast vacuole the SM protein Vps33 is built into the tether HOPS, so one complex both catches and helps fuse.
+
+That answers the opening puzzle. **Sec1 is the SM protein for the last step of secretion: fusion of secretory vesicles with the plasma membrane.** In sec1 cells at 37 °C budding and everything upstream worked, so invertase-laden vesicles budded from the Golgi and piled up. Back at 25 °C, Sec1 works again and the stored vesicles fuse.
+
+Sec1's known job, not the pile, names fusion. The same pile of 80 to 100 nm vesicles appears when the secretory-vesicle Rab (Sec4), its tether (the exocyst) or a SNARE (Sec9, the yeast relative of SNAP-25) fails; a pile cannot tell a vesicle never caught from one caught but unable to fuse. Here, test tubes split them; imaging single vesicles in living cells can too.
+
+## Putting the handoffs in order: mutants
+
+In 1980 Novick, Field and Schekman enriched dense yeast cells on a Ludox gradient and sorted 188 clones that trapped invertase at 37 °C, the restrictive temperature, into 23 complementation groups (see [complementation and pathways](/lessons/complementation-and-pathways/)): the screen's yield, not the number of genes secretion needs. The SEC numbers carry no information about order; order came from double mutants in 1981.
 
 Here is the logic with made-up numbers. Invertase is measured in arbitrary units after 1 h at 37 °C.
 
@@ -435,23 +482,79 @@ Here is the logic with made-up numbers. Invertase is measured in arbitrary units
 
 **Step 2.** Is the trapped invertase dead protein or a stalled intermediate? Shift secX back to 25 °C with cycloheximide to stop new synthesis. After 60 min external is 150 and internal 50, total still 200. The pool released is (188 − 50)/188 = 138/188 = 73.4%. External rose by the same 138 units. The trapped material was deliverable.
 
-**Step 3.** Electron microscopy at 37 °C shows secX accumulates ER, secY accumulates Golgi-like stacks (Berkeley bodies), and secZ accumulates 80 to 100 nm vesicles. The secX secZ double mutant accumulates ER, so X acts before Z. The secY secZ double accumulates Golgi-like membranes, so Y acts before Z. ER precedes Golgi on the secretory route, which places X before Y; a secX secY double accumulating ER would test that directly. Order: ER (X), Golgi (Y), vesicles (Z), surface. The assumption is a linear pathway with distinguishable arrest states; a gene product could still act early and be needed only later.
+**Step 3.** Electron microscopy at 37 °C shows secX accumulates ER, secY accumulates Golgi-like stacks (Berkeley bodies), and secZ accumulates 80 to 100 nm vesicles. The secX secZ double mutant accumulates ER. The secY secZ double accumulates Golgi-like membranes.
+
+**Predict.** Put X, Y and Z in order. Which double mutant would test the one link the data leave open?
+
+<details>
+<summary>Check your prediction</summary>
+
+Cargo piles up at the first block it meets, so a double mutant looks like the earlier single block: X acts before Z, and Y before Z. ER precedes Golgi on the secretory route, which places X before Y; a secX secY double accumulating ER would test that directly. Order: ER (X), Golgi (Y), vesicles (Z), surface.
+
+</details>
+
+The rule assumes a linear pathway with arrest states you can tell apart. It orders where transport is blocked, not when a protein acts: a gene product could still act early and be needed only later. And a gene needed at several steps shows only its earliest blocked one. NSF recycles SNAREs at many steps, and in classical sec18 experiments at 37 °C, ER and small ER-derived vesicles piled up, not the late secretory vesicles.
 
 <SecMutantSecretionReader />
 
-Test tubes split the steps further. In Barlowe's 1994 yeast assay, vesicles made with GMP-PNP, a GTP analogue that cannot be hydrolyzed, formed but did not target or fuse with Golgi, so budding and delivery are separate. In 1998 Cao, Ballew and Barlowe added GDI at different times: once vesicles had docked, fusion no longer cared. Timed addition places a step.
+## Splitting catch from fuse: test tubes
+
+Mutants show where cargo stops. Cell-free assays, which mix donor membranes, acceptor membranes, cytosol and ATP, show when each step finishes. Here, docking means vesicles bound to the acceptor membrane, the tethered state.
+
+**Predict.** In 1998 Cao, Ballew and Barlowe ran a yeast ER-to-Golgi assay and added GDI, which pulls Rabs off membranes, at different times. Added at the start, GDI blocked fusion. What happens to its effect if it is added after the vesicles have docked?
+
+<details>
+<summary>Check your prediction</summary>
+
+It fades. Once vesicles had docked, fusion was no longer sensitive to GDI, so the GDI-sensitive step is passed by docking. That does not show the Rab left or stopped mattering: GDI pulls off GDP-bound Rabs, and an active Rab-GTP resists it. In general, losing sensitivity to a fast, specific inhibitor shows that an inhibitor-sensitive state has been passed; it times the end of a whole step only if the inhibitor can still reach and act on its target later, which is why budding, docking and fusion are measured separately. The authors proposed that this first docking needs the tether Uso1p and the Rab Ypt1p but not SNARE proteins.
+
+</details>
+
+Purified yeast HOPS shows that catching is not fusing: truncated forms lacking parts of Vps11 or Vps18 still tethered Ypt7 liposomes but failed to promote fusion.
 
 ### Design problem
 
-You have a cell-free assay with donor yeast ER membranes, acceptor Golgi, cytosol and ATP. You want to know whether GDI, which strips Rabs from membranes, acts before or after vesicles dock, and whether a purified tether is enough for fusion. Design the experiment.
+You have this cell-free assay, with yeast ER as donor and Golgi as acceptor. You want to know whether GDI acts before or after vesicles dock, and whether a purified tether is enough for fusion. Design the experiment.
 
 <details>
 <summary>One way to do it</summary>
 
 Use three readouts. Budding: vesicles released from ER, collected after spinning out large membranes. Docking: vesicles that sediment with the acceptor Golgi. Fusion: cargo that gains an acceptor-only sugar, or lumenal content mixing.
 
-Start the reaction and add GDI at 0, 5, 10, 15 and 20 minutes. Plot fusion still blocked against time of addition, with docking measured on the same schedule. If GDI acts at the Rab-dependent docking step, sensitivity is lost as docking completes, as Cao, Ballew and Barlowe found. If it acts at fusion itself, additions made after docking but before fusion still block. Measure when fusion itself happens on the same schedule, or hold vesicles docked but unfused before adding GDI, to tell the two apart.
+Start the reaction and add GDI at 0, 5, 10, 15 and 20 minutes. Plot fusion still blocked against time of addition, with docking measured on the same schedule. If GDI acts at docking, sensitivity is lost as docking completes, as Cao, Ballew and Barlowe found. If it acts at fusion itself, additions made after docking but before fusion still block. Measure when fusion itself happens on the same schedule, or hold vesicles docked but unfused before adding GDI, to tell the two apart (Going deeper, "Why the fusion time course matters").
 
-For the tether, run docking and fusion separately with the purified tether, matched SNARE proteoliposomes and an active Rab. Tethering without fusion is possible: HOPS truncations that still tethered failed to fuse. Controls: no ATP, no cytosol, no tether, and a leakage check so that content released by broken membranes is not read as fusion.
+For the tether, run docking and fusion separately with the purified tether, matched SNARE proteoliposomes and an active Rab, since tethering without fusion is possible. Controls: no ATP, no cytosol, no tether, and a leakage check so that content released by broken membranes is not read as fusion.
 
 </details>
+
+In one line: coat buds, Rab and tether catch, SNAREs with an SM protein fuse, NSF resets; where cargo stops and when an inhibitor stops mattering point to the handoff. Sec1 cells fill with vesicles because the last handoff, fusion at the surface, fails.
+
+## Going deeper
+
+### A coat from three parts
+
+With purified yeast proteins, Matsuoka and colleagues showed in 1998 that Sar1, Sec23/24 and Sec13/31 alone bud coated vesicles from chemically defined liposomes that contain PI4P or PI(4,5)P2, so the coat can bend membrane without help from other ER proteins. After Sar1 hydrolyzes GTP, parts of the coat can stay on long enough to help the vesicle be caught at the Golgi.
+
+### Coats that curve late, and tubes as well as spheres
+
+In cultured BSC-1 cells, clathrin lattices began to curve only at around 70% of their final clathrin content, and raised membrane tension stalled the change, so a coat does not always curve from the start. And in mammalian cells, whole-cell imaging in 2021 found ER export through an interwoven tubular network, not only through separate small spheres.
+
+### HOPS up close
+
+The purified six-subunit HOPS complex is about 43 nm tall, and a structural working model places its Vps39 and Vps41 subunits at the Ypt7 contacts. Its SM protein, Vps33, is held in the complex by Vps16 and binds SNAREs.
+
+### Paying for fusion
+
+Assembly of one neuronal SNARE bundle releases about 65 kT, about 170 kJ/mol at body temperature (Gao and colleagues, 2012). In a single-molecule assay, NSF took one complex apart in one round of hydrolysis of the ATP already bound to it, at most six (Ryu and colleagues, 2015); other assays report more ATP per complex. As an illustration, six ATP at 50 to 57 kJ/mol each supply 300 to 342 kJ/mol, about 116 to 133 kT at 310 K, more than this construct's assembly releases. Reversing the same assembly under the same conditions must cost at least what it released, but these separate experiments do not measure a matched reset cycle or a universal ATP budget.
+
+### Can SNAREs fuse membranes alone?
+
+In 1998 Weber and colleagues put recombinant v-SNAREs and t-SNAREs into separate liposomes, and the docked liposomes mixed their lipids at physiological temperature, which the authors read as fusion. That shows SNAREs can merge those bilayers on their own, though lipid mixing alone cannot tell full fusion from hemifusion. It does not show they supply specificity or speed in a cell.
+
+### What NSF might do before fusion
+
+NSF may do more than recycle SNAREs. In a 2024 yeast vacuole reconstitution, Sec18 still promoted fusion with Sec17 fixed to the membrane; whether this holds at other fusion steps is not yet known.
+
+### Why the fusion time course matters
+
+Take a simple model: a batch of vesicles, all undocked at time zero, docks with a first-order half-time of 10 min (75% docked by 20 min), each docked vesicle then fuses with its own first-order half-time, and each inhibitor instantly and completely blocks its step. If the fusion half-time is about 2 min, a docking inhibitor and a fusion inhibitor added at 20 min block about 25% and 31% of eventual fusion: nearly the same. With a 15 min fusion half-time they block about 25% and 69%, and the steps separate clearly.

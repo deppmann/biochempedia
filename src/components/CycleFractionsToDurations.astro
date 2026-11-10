@@ -43,16 +43,19 @@
     <tbody data-rows></tbody>
   </table>
 
-  <svg class="cfd-svg cfd-bars" viewBox="0 0 340 112" role="img" aria-label="Two stacked bars of equal length T: the naive split of the doubling time and the split from the formula" data-bars></svg>
+  <svg class="cfd-svg cfd-bars" viewBox="0 0 340 120" role="img" aria-label="Cells lined up by age, newborn on the left: the count falls to half its height at division, and the area under the line is split into the four phases" data-age></svg>
+  <p class="cfd-note">Same area, different width: young phases are tall, so they hold more cells per hour.</p>
+
+  <svg class="cfd-svg cfd-bars" viewBox="0 0 340 144" role="img" aria-label="Two stacked bars of equal length T: the naive split of the doubling time and the split from the formula, with a schematic band of CDK activity under the formula bar" data-bars></svg>
 
   <p class="cfd-why" data-why role="status">Defaults reproduce the worked problem.</p>
 
-  <p class="cfd-foot">Keep the rule: a phase’s share of the cells is not its share of the cycle, because a growing culture holds twice as many newborn cells as cells about to divide; use t = −T × log₂(1 − F/2) on the cumulative fraction. This is the lesson’s illustrative culture (every cell cycling, none dying, identical phase lengths), assuming the phospho-H3 stain marks only mitotic cells. The histogram’s peak shapes are a sketch, and slider ranges go beyond the worked problem.</p>
+  <p class="cfd-foot">Keep the rule: a phase’s share of the cells is not its share of the cycle, because a growing culture holds twice as many newborn cells as cells about to divide; use t = −T × log₂(1 − F/2) on the cumulative fraction. This is the lesson’s illustrative culture (every cell cycling, none dying, identical phase lengths), assuming the phospho-H3 stain marks only mitotic cells. The histogram’s peak shapes are a sketch, and slider ranges go beyond the worked problem. The gold band is a cartoon of the lesson’s one idea, not a measurement.</p>
 </figure>
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
-  const C_G1 = '#0e7c86', C_S = '#e57200', C_G2 = '#6a4c93', C_M = '#b3261e', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const C_G1 = '#0e7c86', C_S = '#e57200', C_G2 = '#6a4c93', C_M = '#b3261e', INK = '#4b4b55', FAINT = '#b9b9c2', GOLD = '#c9a227';
   const N = 10000;
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
@@ -77,6 +80,7 @@
     const cG1 = o('[data-c="g1"]'), cS = o('[data-c="s"]'), cG2M = o('[data-c="g2m"]'), cEdu = o('[data-c="edu"]');
     const hist = root.querySelector<SVGSVGElement>('[data-hist]')!;
     const bars = root.querySelector<SVGSVGElement>('[data-bars]')!;
+    const age = root.querySelector<SVGSVGElement>('[data-age]')!;
     const rows = o('[data-rows]'), why = o('[data-why]');
 
     // Histogram frame: DNA content 1.4C to 4.6C in bins of 0.1C.
@@ -185,6 +189,35 @@
       }
       rows.appendChild(tot);
 
+      // ---- age line: cells lined up by age, density proportional to 2^(1 - a/T),
+      // from 2 (newborn) to 1 (about to divide). Each band's width is the phase's
+      // duration from the formula and its area is the phase's fraction.
+      age.replaceChildren();
+      const AX0 = 14, AX1 = 326, AYB = 90, AU = 34; // baseline y, px per unit of height
+      const ax = (a: number) => AX0 + (a / T) * (AX1 - AX0);
+      const ay = (a: number) => AYB - AU * Math.pow(2, 1 - a / T);
+      const cuts = [0, tOf(F1, T), tOf(F2, T), tOf(F3, T), T];
+      for (let i = 0; i < 4; i++) {
+        const a0 = cuts[i], a1 = cuts[i + 1];
+        if (a1 - a0 <= 1e-9) continue;
+        const pts: string[] = [`${ax(a0).toFixed(1)},${AYB}`];
+        const K = 24;
+        for (let k = 0; k <= K; k++) { const a = a0 + ((a1 - a0) * k) / K; pts.push(`${ax(a).toFixed(1)},${ay(a).toFixed(1)}`); }
+        pts.push(`${ax(a1).toFixed(1)},${AYB}`);
+        age.appendChild(el('polygon', { points: pts.join(' '), fill: cols[i] }));
+        const w = ax(a1) - ax(a0);
+        if (w >= 22) age.appendChild(txt((ax(a0) + ax(a1)) / 2, AYB - 8, names[i], 10, 'middle', '#ffffff', 700));
+      }
+      const curve: string[] = [];
+      for (let k = 0; k <= 60; k++) { const a = (T * k) / 60; curve.push(`${ax(a).toFixed(1)},${ay(a).toFixed(1)}`); }
+      age.appendChild(el('polyline', { points: curve.join(' '), fill: 'none', stroke: INK, 'stroke-width': 1.2 }));
+      age.appendChild(el('line', { x1: AX0, y1: AYB, x2: AX1, y2: AYB, stroke: INK, 'stroke-width': 1 }));
+      age.appendChild(txt(AX0, 14, 'Cells lined up by age (formula’s phase lengths)', 10, 'start', INK, 700));
+      age.appendChild(txt(AX0, AYB + 13, 'newborn', 9, 'start'));
+      age.appendChild(txt(AX1, AYB + 13, 'about to divide', 9, 'end'));
+      age.appendChild(txt((AX0 + AX1) / 2, AYB + 13, 'age →', 9, 'middle'));
+      age.appendChild(txt(AX1, ay(T) - 12, 'half the height', 9, 'end'));
+
       // ---- stacked bars: same total T, different split
       bars.replaceChildren();
       const BX0 = 12, BX1 = 328, bpx = (h: number) => BX0 + (h / T) * (BX1 - BX0);
@@ -200,9 +233,19 @@
       };
       draw(18, 'Naive: fraction × T', naive);
       draw(66, 'Lesson’s formula', form);
-      bars.appendChild(el('line', { x1: BX0, y1: 96, x2: BX1, y2: 96, stroke: INK, 'stroke-width': 1 }));
-      bars.appendChild(txt(BX0, 108, '0 h', 9, 'start'));
-      bars.appendChild(txt(BX1, 108, T + ' h = one doubling', 9, 'end'));
+      // Schematic CDK activity along the formula bar: low in G1, rising through S and G2,
+      // a step up at G2/M, falling to its lowest at the end of M. No numbers on purpose.
+      const tG1 = form[0], tS = tG1 + form[1], tG2 = tS + form[2];
+      const GB = 120, GH = 18; // band baseline and full height
+      const lvl: [number, number][] = [
+        [0, 0.12], [tG1, 0.12], [tS, 0.4], [tG2, 0.6], [tG2, 1], [tG2 + 0.7 * form[3], 1], [T, 0.08],
+      ];
+      const gpts = [`${bpx(0).toFixed(1)},${GB}`, ...lvl.map(([h, v]) => `${bpx(h).toFixed(1)},${(GB - v * GH).toFixed(1)}`), `${bpx(T).toFixed(1)},${GB}`];
+      bars.appendChild(el('polygon', { points: gpts.join(' '), fill: GOLD, 'fill-opacity': 0.85 }));
+      bars.appendChild(txt(BX0, 100, 'CDK activity (schematic)', 9, 'start'));
+      bars.appendChild(el('line', { x1: BX0, y1: 124, x2: BX1, y2: 124, stroke: INK, 'stroke-width': 1 }));
+      bars.appendChild(txt(BX0, 136, '0 h', 9, 'start'));
+      bars.appendChild(txt(BX1, 136, T + ' h = one doubling', 9, 'end'));
 
       // ---- status
       const diffG1 = naive[0] - form[0];
@@ -245,6 +288,7 @@
   .cfd-table td { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
   .cfd-table td:last-child { font-weight: 700; color: var(--ddp-color-accent); }
   :global(.cfd-total th), :global(.cfd-total td) { border-top: 2px solid var(--ddp-color-line); }
+  .cfd-note { margin: var(--ddp-space-1) auto 0; max-width: 560px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); text-align: center; }
   .cfd-why { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
   .cfd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
   @media (max-width: 480px) { .cfd-controls { grid-template-columns: 1fr; } .cfd-counts { grid-template-columns: 1fr 1fr; } }
