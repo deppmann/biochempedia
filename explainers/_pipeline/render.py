@@ -23,8 +23,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 MANIM = Path.home() / ".venvs/manim/bin/manim"
-FFMPEG = shutil.which("ffmpeg") or "/Users/deppmann/miniconda3/bin/ffmpeg"
-FFPROBE = shutil.which("ffprobe") or "/Users/deppmann/miniconda3/bin/ffprobe"
+FFMPEG = shutil.which("ffmpeg") or str(Path.home() / "miniconda3/bin/ffmpeg")
+FFPROBE = shutil.which("ffprobe") or str(Path.home() / "miniconda3/bin/ffprobe")
 QUALITY = {"l": ("-ql", "480p15"), "m": ("-qm", "720p30"), "h": ("-qh", "1080p60")}
 
 

@@ -14,8 +14,7 @@ import argparse, difflib, hashlib, json, re, subprocess, sys
 from pathlib import Path
 import numpy as np
 
-FFMPEG = "/Users/deppmann/miniconda3/bin/ffmpeg"
-FFPROBE = "/Users/deppmann/miniconda3/bin/ffprobe"
+from fftools import FFMPEG, FFPROBE
 SHARED = Path(__file__).resolve().parent
 _model = None
 

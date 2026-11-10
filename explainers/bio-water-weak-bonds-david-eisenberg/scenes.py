@@ -21,9 +21,11 @@ generic source, beam, crystal square and detector plate. No equation or number i
 entry names none.
 """
 import numpy as np
+from pathlib import Path
+
 from bp_style import *  # noqa: F401,F403
 
-PORTRAIT = "/Users/deppmann/biochempedia/public/scientists/david-eisenberg.png"
+PORTRAIT = str(Path(__file__).resolve().parents[2] / "public/scientists/david-eisenberg.png")
 CAPTION = "illustration · AI-generated"
 NAME = "David Eisenberg"
 DATES = "1939–"

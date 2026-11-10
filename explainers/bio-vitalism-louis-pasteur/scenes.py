@@ -20,12 +20,13 @@ No molecular structure is drawn: flasks are schematic apparatus, yeast cells are
 the orthodoxy is forty bricks (one per year).
 """
 import math
+from pathlib import Path
 import random
 
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PORTRAIT = "/Users/deppmann/biochempedia/public/scientists/louis-pasteur.png"
+PORTRAIT = str(Path(__file__).resolve().parents[2] / "public/scientists/louis-pasteur.png")
 CAPTION = "illustration · AI-generated"
 JUICE = "#A78BDB"       # grape juice
 

@@ -6,7 +6,7 @@ Loads the model once, then reads jobs from stdin, one JSON object per line:
 For each job it writes a 24 kHz mono 16-bit WAV to "out" and prints one line to stdout:
     {"out": "...", "seconds": 12.3}            on success
     {"out": "...", "error": "message"}          on failure
-It exits when stdin closes. Same call as /Users/deppmann/expedition-v2/scripts/kokoro_tts.py
+It exits when stdin closes. Same call as ~/expedition-v2/scripts/kokoro_tts.py
 (text -> PCM16), kept in this repo so the render does not depend on another project.
 Run with ~/.venvs/kokoro/bin/python.
 """

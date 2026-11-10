@@ -18,11 +18,12 @@ No molecular structure is drawn: the chain is a strip of numbered residue tiles,
 end-on arrangement of those tiles, and the numbers are plotted as plain bars.
 """
 import math
+from pathlib import Path
 
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PORTRAIT = "/Users/deppmann/biochempedia/public/scientists/linus-pauling.png"
+PORTRAIT = str(Path(__file__).resolve().parents[2] / "public/scientists/linus-pauling.png")
 CAPTION = "illustration · AI-generated"
 PLACE = "#B39DDB"       # places and institutions
 

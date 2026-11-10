@@ -17,11 +17,12 @@ COLOR MAP (one color per concept, whole video)
 No molecular structure is drawn: everything is labelled chips, arrows, a battery circuit symbol and plain dots.
 """
 import math
+from pathlib import Path
 
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PORTRAIT = "/Users/deppmann/mission-control/work/explainers/2026-10-09-biochempedia/bio-vitalism-hermann-kolbe/kolbe_crop.png"
+PORTRAIT = str(Path(__file__).resolve().parent / "kolbe_crop.png")
 CROP_AR = 837 / 944.0
 CAPTION = "illustration · AI-generated"
 NAME = "Hermann Kolbe"
