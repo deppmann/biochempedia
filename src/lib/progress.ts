@@ -7,7 +7,7 @@
    What is kept:
      path     the "I'm here for…" choice (an id from src/data/paths.ts)
      last     the last lesson opened, for "continue where you left off"
-     lessons  slug -> { v: first visit, d?: marked done }   (timestamps, ms)
+     lessons  slug -> { v: first visit, d?: marked done, u?: done unticked }   (timestamps, ms)
      items    question id -> review state for questions answered in a quiz
 
    Review schedule: a question missed on the first try comes back after 1 day.
@@ -39,8 +39,12 @@ export interface ItemState {
 export interface Progress {
   v: 1;
   path?: string;
+  /** When the path was last chosen or cleared, so the choice syncs (learner-merge.mjs). */
+  pathAt?: number;
   last?: string;
-  lessons: Record<string, { v: number; d?: number }>;
+  /** When "reset progress" was last pressed, so a signed-in reset syncs. */
+  reset?: number;
+  lessons: Record<string, { v: number; d?: number; u?: number }>;
   items: Record<string, ItemState>;
 }
 
@@ -91,7 +95,7 @@ function update(fn: (p: Progress) => void): Progress {
 }
 
 export function setPath(id: string | null) {
-  update((p) => { if (id) p.path = id; else delete p.path; });
+  update((p) => { if (id) p.path = id; else delete p.path; p.pathAt = Date.now(); });
 }
 
 export function markVisited(slug: string) {
@@ -104,7 +108,8 @@ export function markVisited(slug: string) {
 export function setDone(slug: string, done: boolean) {
   update((p) => {
     const rec = (p.lessons[slug] ??= { v: Date.now() });
-    if (done) rec.d ??= Date.now(); else delete rec.d;
+    // Unticking leaves a timestamp `u`, so a signed-in learner's sync carries the undo.
+    if (done) { rec.d ??= Date.now(); delete rec.u; } else if (rec.d !== undefined) { delete rec.d; rec.u = Date.now(); }
   });
 }
 
@@ -155,16 +160,20 @@ export function importText(text: string): boolean {
   try {
     const p = JSON.parse(text);
     if (!valid(p)) return false;
-    const { v, path, last, lessons, items } = p;
-    return save({ v, path, last, lessons, items });
+    const { v, path, pathAt, last, reset, lessons, items } = p;
+    return save({ v, path, pathAt, last, reset, lessons, items });
   } catch {
     return false;
   }
 }
 
+/** Reset progress. What stays is one timestamp, so a signed-in learner's next sync clears the
+ *  synced copy and the other devices too, where it used to bring everything back. */
 export function clearAll() {
-  try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* nothing stored */ }
-  window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+  if (!save({ ...empty(), reset: Date.now() })) {
+    try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* nothing stored */ }
+    window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+  }
 }
 
 /** Run `fn` now and whenever progress changes, in this tab or another. */

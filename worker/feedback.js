@@ -116,8 +116,8 @@ export async function handleAi(request, env, db, path, method, url) {
     return json({ available: aiAvailable(env), keys });
   }
 
-  let m = /^\/api\/ai\/keys\/(gemini|anthropic|openai)(\/test)?$/.exec(path);
-  if (m && !m[2] && method === 'PUT') {
+  let m = /^\/api\/ai\/keys\/(gemini|anthropic|openai)$/.exec(path);
+  if (m && method === 'PUT') {
     if (!aiAvailable(env)) return fail(503, 'AI feedback is not switched on for the site yet.');
     const b = await body(request);
     const key = String(b?.key || '').trim();
@@ -128,26 +128,12 @@ export async function handleAi(request, env, db, path, method, url) {
       .bind(t.id, m[1], enc.key_enc, enc.key_iv, key.slice(-4), Date.now()).run();
     return json({ ok: true });
   }
-  if (m && !m[2] && method === 'DELETE') {
+  if (m && method === 'DELETE') {
     await db.batch([
       db.prepare('DELETE FROM teacher_ai_keys WHERE teacher_id=? AND provider=?').bind(t.id, m[1]),
       db.prepare('UPDATE classes SET ai_enabled=0 WHERE teacher_id=? AND ai_provider=?').bind(t.id, m[1]),
     ]);
     return json({ ok: true });
-  }
-  if (m && m[2] && method === 'POST') {
-    if (!(await allow(db, `aitest:${t.id}`, 10, 3600_000))) return fail(429, 'Too many tests. Try again later.');
-    const b = await body(request);
-    const model = String(b?.model || '');
-    if (!MODEL_RE.test(model)) return fail(400, 'Pick a model.');
-    const apiKey = await keyFor(env, db, t.id, m[1]);
-    if (!apiKey) return fail(404, 'No key saved for that provider.');
-    try {
-      const r = await complete(env, m[1], model, apiKey, 'Reply with the single word: ready', 'Are you ready?', 200);
-      await db.prepare('INSERT INTO ai_calls (teacher_id, purpose, provider, model, tokens_in, tokens_out, cost_micro, ok, created_at) VALUES (?,?,?,?,?,?,?,1,?)')
-        .bind(t.id, 'test', m[1], model, r.tin, r.tout, costMicro(m[1], model, r.tin, r.tout), Date.now()).run();
-      return json({ ok: true, reply: r.text.slice(0, 40) });
-    } catch (e) { return fail(400, e.message); }
   }
   return fail(404, 'Not found.');
 }

@@ -43,6 +43,17 @@ export async function allow(db, key, limit, windowMs) {
   return true;
 }
 
+/** Like allow(), for a budget spent `n` at a time (emails sent, say). True if all `n` fit; then they are counted. */
+export async function allowN(db, key, n, limit, windowMs) {
+  const now = Date.now();
+  const row = await db.prepare('SELECT count, window_start FROM rate_limits WHERE key=?').bind(key).first();
+  const fresh = !row || now - row.window_start > windowMs;
+  if ((fresh ? 0 : row.count) + n > limit) return false;
+  if (fresh) await db.prepare('INSERT OR REPLACE INTO rate_limits (key, count, window_start) VALUES (?,?,?)').bind(key, n, now).run();
+  else await db.prepare('UPDATE rate_limits SET count=count+? WHERE key=?').bind(n, key).run();
+  return true;
+}
+
 // ---- email (Resend). Without RESEND_API_KEY nothing is sent and callers fall back. ----
 // Mail always comes from the site's own address, never a person's. A teacher's
 // invitation shows their name ("Ms. Rivera via Biochemistrypedia") and replies go
