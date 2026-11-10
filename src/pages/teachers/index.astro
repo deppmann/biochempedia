@@ -2,11 +2,32 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { feedbackUrl } from '../../lib/feedback';
+import { COURSES, courseHref } from '../../data/courses';
+import { stageOf } from '../../data/stages';
+import { readingRange } from '../../lib/readability';
 
 // Lesson counts come from the lesson collection, so they can never go stale.
 const lessons = await getCollection('lessons', (l) => !l.data.draft);
 const n = (slug: string) => lessons.filter((l) => l.data.course === slug).length;
 const courseCount = new Set(lessons.map((l) => l.data.course)).size;
+
+// "How hard each course reads": who each course was written for, and a reading-grade range
+// worked out from the lesson text at build (src/lib/readability.ts), so it follows every rewrite.
+const WRITTEN_FOR: Record<string, string> = {
+  'ages-5-10': 'Parents and teachers of children aged 5 to 10. The adult reads the page.',
+  'grade-7': 'Grade 7 students',
+  'high-school': 'High school students, grades 9 and 10',
+  'starting-college': 'First- and second-year college students',
+  'college-core': 'College biology majors',
+  'college-further': 'College students who have taken the core courses',
+  'graduate': 'Advanced undergraduates and graduate students',
+};
+const grade = (g: number) => g.toFixed(1);
+const reading = COURSES.map((c) => ({
+  c,
+  writtenFor: WRITTEN_FOR[stageOf(c)],
+  range: readingRange(lessons.filter((l) => l.data.course === c.slug).map((l) => l.body)),
+})).filter((r) => r.range);
 ---
 
 <BaseLayout
@@ -93,8 +114,33 @@ const courseCount = new Set(lessons.map((l) => l.data.course)).size;
         <li>
           <a href="/courses/">All {courseCount} courses</a>.
           The courses after Biology were written for college students, so read ahead before assigning.
+          The table below shows <a href="#reading-level">how hard each course reads</a>.
         </li>
       </ul>
+
+      <h2 id="reading-level">How hard each course reads</h2>
+      <p>
+        Each course is listed with the readers it was written for and the reading grade of its
+        lessons. The grade is a range: half of the course&rsquo;s lessons fall inside it.
+      </p>
+      <table class="tl-read">
+        <thead><tr><th scope="col">Course</th><th scope="col">Written for</th><th scope="col">Reading grade</th></tr></thead>
+        <tbody>
+          {reading.map(({ c, writtenFor, range }) => (
+            <tr>
+              <th scope="row"><a href={courseHref(c.slug)}>{c.title}</a></th>
+              <td>{writtenFor}</td>
+              <td class="tl-read-n">{grade(range!.low) === grade(range!.high) ? grade(range!.low) : `${grade(range!.low)} to ${grade(range!.high)}`}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="tl-read-note">
+        Reading grade is the Flesch-Kincaid grade level, worked out from the text of each lesson
+        every time the site is built. It measures sentence length and word length, not how hard
+        the ideas are. The college courses use short sentences too, so their grades are not far
+        above Biology&rsquo;s, but they assume background that a school course teaches from the start.
+      </p>
 
       <h2>Tell us</h2>
       <p>
@@ -116,6 +162,13 @@ const courseCount = new Set(lessons.map((l) => l.data.course)).size;
     .tl-links a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
     .tl-more { padding-left: 1.3rem; list-style: disc; }
     .tl-more li { margin-bottom: var(--ddp-space-2); }
+    .tl-read { width: 100%; border-collapse: collapse; margin: var(--ddp-space-3) 0; }
+    .tl-read th, .tl-read td { text-align: left; vertical-align: top; padding: var(--ddp-space-2) var(--ddp-space-3) var(--ddp-space-2) 0; border-top: 1px solid var(--ddp-color-line); line-height: 1.45; font-size: var(--ddp-text-sm); }
+    .tl-read thead th { border-top: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .tl-read tbody th { font-weight: 600; }
+    .tl-read th:last-child, .tl-read td:last-child { padding-right: 0; }
+    .tl-read-n { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .tl-read-note { font-size: var(--ddp-text-sm) !important; color: var(--ddp-color-muted); }
     .tl-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font-weight: 600; text-decoration: none; }
     .tl-btn:hover { filter: brightness(1.1); color: #fff; text-decoration: none; }
     .tl :focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
