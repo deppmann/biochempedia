@@ -16,8 +16,8 @@ export async function GET(context: APIContext): Promise<Response> {
   // A course page exists only once the course has a published lesson.
   const courses = [...new Set(lessons.map((l) => l.data.course))];
   const paths = [
-    '/', '/courses/', '/about', '/updates/', '/fun', '/play', '/contact', '/search/',
-    '/teachers', '/teachers/demo', '/teachers/how-its-built',
+    '/', '/courses/', '/about', '/updates/', '/fun', '/play', '/contact', '/search/', '/license/', '/under-review/',
+    '/teachers', '/teachers/talk-notes', '/teachers/demo', '/teachers/how-its-built',
     '/teachers/do-it-yourself', '/teachers/checklist', '/teachers/sources', '/teachers/talk/',
     '/teachers/life-science', '/teachers/biology',
     '/teach/', '/teach/privacy/', '/join/',
