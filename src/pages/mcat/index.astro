@@ -1,9 +1,16 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { SETS, SECTION, CATEGORY, discreteItems } from '../../lib/mcat';
+import { SETS, SECTION, CATEGORY, discreteItems, BEYOND_COURSES, BEYOND_LABEL, DIAGNOSTIC_LENGTH } from '../../lib/mcat';
+import { courseOf } from '../../data/courses';
 import { MCAT_SCOPE_NOTE } from '../../data/paths';
 
-const discrete = await discreteItems();
+// Every number on this page is counted here. Questions from the graduate courses do not count as
+// MCAT practice: they are left out of the totals and the topic list, and reported on their own line.
+const everything = await discreteItems();
+const discrete = everything.filter((d) => !d.beyond);
+const beyondCount = everything.length - discrete.length;
+const examCourses = new Set(discrete.map((d) => d.course)).size;
+const beyondNames = BEYOND_COURSES.map((c) => courseOf(c).title).join(' and ');
 const byTopic = new Map<string, number>();
 for (const d of discrete) byTopic.set(d.topic, (byTopic.get(d.topic) ?? 0) + 1);
 const topics = [...byTopic.entries()].sort((a, b) => a[0].localeCompare(b[0]));
@@ -21,6 +28,11 @@ const sections = ['bb', 'cp'].map((s) => ({ s, sets: SETS.filter((x) => x.sectio
       for review.
     </p>
     <p class="mh-scope">This page covers biology and biochemistry. {MCAT_SCOPE_NOTE}</p>
+    <p class="mh-scope">
+      Topic practice has {discrete.length} questions from {examCourses} courses.
+      {beyondCount > 0 && <>Another {beyondCount}, from the graduate courses {beyondNames}, go past what the exam asks.
+      They are not counted here. To see them, turn on &ldquo;{BEYOND_LABEL}&rdquo; on the <a href="/mcat/practice/">practice page</a>.</>}
+    </p>
     <p class="mh-honest">
       Everything here is original and written for this site; none of it comes from the AAMC or any prep company.
       Each passage passes a format check, two independent AI solvers from different companies who must agree on
@@ -34,7 +46,7 @@ const sections = ['bb', 'cp'].map((s) => ({ s, sets: SETS.filter((x) => x.sectio
       <a class="mh-card" href="/mcat/diagnostic/">
         <span class="mh-k">Start here · about 30 minutes</span>
         <span class="mh-t">Diagnostic</span>
-        <span class="mh-d">20 questions across the biology and biochemistry topics, then a topic-by-topic picture of where to focus.</span>
+        <span class="mh-d">{DIAGNOSTIC_LENGTH} questions across the biology and biochemistry topics, then a topic-by-topic picture of where to focus.</span>
       </a>
       <a class="mh-card" href="/mcat/practice/">
         <span class="mh-k">{discrete.length} questions</span>
@@ -94,7 +106,7 @@ const sections = ['bb', 'cp'].map((s) => ({ s, sets: SETS.filter((x) => x.sectio
     .mh-lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 66ch; }
     .mh-scope { color: var(--ddp-color-ink-soft); max-width: 66ch; }
     .mh-honest { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); max-width: 70ch; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 4px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 6px; }
-    .mh-honest a, .mh-sets a, .mh-topics a { color: var(--ddp-color-accent); }
+    .mh-honest a, .mh-scope a, .mh-sets a, .mh-topics a { color: var(--ddp-color-accent); }
     .mh-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: var(--ddp-space-4); margin-top: var(--ddp-space-6); }
     .mh-card { display: flex; flex-direction: column; gap: var(--ddp-space-2); padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); text-decoration: none; }
     .mh-card:hover { border-color: var(--ddp-color-accent); text-decoration: none; }

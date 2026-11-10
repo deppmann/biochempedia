@@ -1,14 +1,23 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { discreteItems, CATEGORY, SETS } from '../../lib/mcat';
+import { discreteItems, CATEGORY, SETS, BEYOND_COURSES, BEYOND_LABEL, beyondTopic } from '../../lib/mcat';
+import { courseOf } from '../../data/courses';
 
 // Which lessons hold MCAT-style questions on each topic; the questions themselves are
 // fetched from each lesson's /quiz/<slug>.json when a practice round starts.
 const items = await discreteItems();
 const index: Record<string, string[]> = {};
 for (const d of items) (index[d.topic] ??= []).includes(d.slug) || index[d.topic].push(d.slug);
-const topics = Object.keys(index).sort();
-const names = Object.fromEntries(topics.map((t) => [t, CATEGORY[t] ?? t]));
+// The graduate courses sit under their own "beyond:<course>" topics (src/lib/mcat.ts). They are
+// offered only when the reader turns on "Beyond the exam"; the choice is kept in this browser.
+const beyondTopics = BEYOND_COURSES.map(beyondTopic).filter((t) => index[t]);
+const topics = Object.keys(index).filter((t) => !beyondTopics.includes(t)).sort();
+const names = Object.fromEntries([
+  ...topics.map((t) => [t, CATEGORY[t] ?? t]),
+  ...BEYOND_COURSES.map((c) => [beyondTopic(c), courseOf(c).title]),
+]);
+const beyondCount = items.filter((d) => d.beyond).length;
+const beyondNames = BEYOND_COURSES.map((c) => courseOf(c).title).join(' and ');
 // ?lesson=<slug> (linked from the end of each lesson): that lesson's own questions, and the
 // passage sets with questions on it. Built here at deploy time; no model, nothing to run.
 const lessons: Record<string, { title: string; topic: string; n: number; sets: { id: string; title: string; n: number }[] }> = {};
@@ -24,13 +33,20 @@ for (const st of SETS) {
 ---
 
 <BaseLayout title="MCAT topic practice — Biochemistrypedia" description="Ten original MCAT-style questions at a time from one topic, each linked to the lesson that teaches it.">
-  <article class="wrap tc mpr" data-mpr data-index={JSON.stringify(index)} data-names={JSON.stringify(names)} data-lessons={JSON.stringify(lessons)}>
+  <article class="wrap tc mpr" data-mpr data-index={JSON.stringify(index)} data-names={JSON.stringify(names)} data-beyond={JSON.stringify(beyondTopics)} data-beyond-label={BEYOND_LABEL} data-lessons={JSON.stringify(lessons)}>
     <p class="tc-eyebrow"><a href="/mcat/">MCAT practice</a> · Topic practice</p>
     <h1>Topic practice</h1>
     <p class="tc-lede">Pick a topic for ten questions. These are the stand-alone kind; for passages with data, use the <a href="/mcat/">passage sets</a>.</p>
     <p class="tc-row" style="margin-top: var(--ddp-space-4)">
       <label>Topic <select data-topic>{topics.map((t) => <option value={t}>{t} · {names[t]}</option>)}</select></label>
       <button type="button" class="tc-btn" data-start>Start ten questions</button>
+    </p>
+    <p class="mpr-beyond">
+      <label><input type="checkbox" data-beyond-toggle /> <span><strong>{BEYOND_LABEL}</strong> (off by default)</span></label>
+      <span class="tc-muted">
+        Adds {beyondCount} questions from the graduate courses {beyondNames}. They go past what the MCAT asks, so they are
+        not counted as MCAT practice. Turn this on to see them as their own topics.
+      </span>
     </p>
     <div class="mpr-lesson" data-lesson-box hidden></div>
     <p class="tc-muted" data-status role="status"></p>
@@ -48,7 +64,32 @@ for (const st of SETS) {
     const round = root.querySelector<HTMLElement>('[data-round]')!;
     const params = new URLSearchParams(location.search);
     const want = params.get('topic');
-    if (want && index[want]) sel.value = want;
+
+    // "Beyond the exam": graduate-course questions, as extra topics at the end of the list. Off by
+    // default. The choice is remembered in this browser; if storage is blocked it lasts for the page.
+    const BEYOND_KEY = 'bcp:mcat-beyond';
+    const beyond: string[] = JSON.parse(root.dataset.beyond || '[]');
+    const names: Record<string, string> = JSON.parse(root.dataset.names || '{}');
+    const toggle = root.querySelector<HTMLInputElement>('[data-beyond-toggle]')!;
+    const readBeyond = () => { try { return localStorage.getItem(BEYOND_KEY) === '1'; } catch { return false; } };
+    const writeBeyond = (on: boolean) => { try { if (on) localStorage.setItem(BEYOND_KEY, '1'); else localStorage.removeItem(BEYOND_KEY); } catch { /* storage blocked: the choice lasts for this page */ } };
+    function showBeyond(on: boolean) {
+      let group = sel.querySelector('optgroup');
+      if (on && !group && beyond.length) {
+        group = document.createElement('optgroup');
+        group.label = root.dataset.beyondLabel || 'Beyond the exam';
+        for (const t of beyond) { const o = document.createElement('option'); o.value = t; o.textContent = names[t] ?? t; group.append(o); }
+        sel.append(group);
+      } else if (!on && group) {
+        if (beyond.includes(sel.value)) sel.selectedIndex = 0;
+        group.remove();
+      }
+    }
+    toggle.checked = readBeyond();
+    showBeyond(toggle.checked);
+    toggle.addEventListener('change', () => { writeBeyond(toggle.checked); showBeyond(toggle.checked); });
+    const offered = (t: string | null): t is string => !!t && !!index[t] && (!beyond.includes(t) || toggle.checked);
+    if (offered(want)) sel.value = want;
     type LessonInfo = { title: string; topic: string; n: number; sets: { id: string; title: string; n: number }[] };
     const lessonsIdx: Record<string, LessonInfo> = JSON.parse(root.dataset.lessons || '{}');
     const wantLesson = params.get('lesson');
@@ -104,7 +145,7 @@ for (const st of SETS) {
     root.querySelector('[data-start]')!.addEventListener('click', () => { lessonMode = false; start(); });
     if (only) {
       const info = lessonsIdx[only];
-      if (info.topic && index[info.topic]) sel.value = info.topic;
+      if (offered(info.topic)) sel.value = info.topic;
       const box = root.querySelector<HTMLElement>('[data-lesson-box]')!;
       box.hidden = false;
       const h = el('p', 'mpr-lesson-h');
@@ -112,6 +153,7 @@ for (const st of SETS) {
       a.href = `/lessons/${only}/`;
       h.append('Questions on ', a);
       box.append(h);
+      if (beyond.includes(info.topic)) box.append(el('p', 'tc-muted', 'This lesson is from a graduate course. Its questions go past what the MCAT asks.'));
       if (info.sets.length) {
         const p = el('p', 'tc-muted', 'Passage sets with questions on this lesson: ');
         info.sets.forEach((st, i) => { if (i) p.append(' · '); const l = el('a', '', `${st.title} (${st.n})`) as HTMLAnchorElement; l.href = `/mcat/${st.id}/`; p.append(l); });
@@ -119,12 +161,15 @@ for (const st of SETS) {
       }
       if (info.n > 0) { lessonMode = true; start(); }
       else status.textContent = 'This lesson\'s questions are in the passage sets above.';
-    } else if (want) start();
+    } else if (offered(want)) start();
   </script>
 
   <style is:global>
     @import '../../styles/teach.css';
     .mpr .mpr-lesson { margin-top: var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); max-width: 760px; }
+    .mpr .mpr-beyond { display: flex; flex-direction: column; gap: var(--ddp-space-1); max-width: 760px; margin-top: var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); }
+    .mpr .mpr-beyond label { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 44px; cursor: pointer; }
+    .mpr .mpr-beyond input { width: 1.15rem; height: 1.15rem; accent-color: var(--ddp-color-accent); }
     .mpr .mpr-lesson-h { margin: 0; font-weight: 600; }
     .mpr .mpr-lesson a { color: var(--ddp-color-accent); }
     .mpr .mq { margin: var(--ddp-space-6) 0; max-width: 760px; }
