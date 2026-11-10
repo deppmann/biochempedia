@@ -75,8 +75,7 @@ The build **fails** if:
 - a question is missing its `answer` or `rationale`, or points at a choice index
   that doesn't exist,
 - a structure's `id` isn't well-formed for its `source` (a 4-character PDB code for
-  `rcsb`, an all-digit CID for `pubchem`),
-- a lecture slide doesn't name who screened it, or
+  `rcsb`, an all-digit CID for `pubchem`), or
 - a PhET sim isn't attributed to PhET.
 
 Local asset and link references are checked separately by `scripts/check-assets.mjs`,

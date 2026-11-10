@@ -140,5 +140,3 @@ export const PATHS: LearningPath[] = [
     ],
   },
 ];
-
-export const pathOf = (id: string | undefined) => PATHS.find((p) => p.id === id);

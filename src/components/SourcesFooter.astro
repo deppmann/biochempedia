@@ -14,16 +14,10 @@ const phet = lesson.simulations.filter((s) => s.type === 'phet');
 const local = lesson.simulations.filter((s) => s.type === 'local');
 
 // The figures claim has to answer for EVERY raster collection, not just
-// `images`. Lecture slides are raster too, and every lesson currently ships
-// `images: []` — so keying the message off `images` alone told the reader
-// there was nothing to fact-check on 27 lessons that carry 305 slides between
-// them.
-const slideCount = lesson.lectureSlides.length;
-const flaggedSlides = lesson.lectureSlides.filter((s) => s.aiNote).length;
-// Scientist portraits are raster too (illustrated, engraved-style, from the
-// book's profile set) — the same claim once ignored them the way it ignored
-// slides, telling `vitalism` readers the lesson had "no raster figures" while
-// the page rendered four portrait PNGs.
+// `images`. Scientist portraits are raster too (illustrated, engraved-style,
+// from the book's profile set) — the claim once ignored them, telling
+// `vitalism` readers the lesson had "no raster figures" while the page
+// rendered four portrait PNGs.
 const portraitCount = lesson.scientists.filter((s) => s.photo).length;
 // Many structure notes open with "PDB 1HKG · …" or "CID 1176 · …", which repeated the ID printed
 // just before it. Drop that echo; keep the rest of the note verbatim.
@@ -38,7 +32,7 @@ const pubchemNote = idEcho('CID');
     so opening the dialog showed an empty box and a second "tap to open". */}
 <section class="sources" aria-label="Sources and integrity">
   <p class="sources-intro">
-    Every structure, slide, simulation, and clip on this page is listed below with
+    Every structure, simulation, and clip on this page is listed below with
     the source it came from. None of the 3D structures is drawn by hand or by AI:
     each one loads by accession ID from RCSB&nbsp;PDB or PubChem. This panel is
     generated from the lesson's own data file, so what it lists is what the page loads.
@@ -170,21 +164,6 @@ const pubchemNote = idEcho('CID');
       </div>
     )}
 
-    {lesson.lectureSlides.length > 0 && (
-      <div class="src-block">
-        <h3>Lecture slides</h3>
-        <ul>
-          {lesson.lectureSlides.map((s) => (
-            <li>
-              <strong>{s.title}</strong>
-              <span class="src-meta"> · {s.source} · {s.credit} · reviewed by {s.reviewedBy}</span>
-            </li>
-          ))}
-        </ul>
-        <p class="src-meta">Instructor's own slides; screened for accuracy and to exclude reproduced publisher figures.</p>
-      </div>
-    )}
-
     <div class="src-block">
       <h3>Images &amp; figures</h3>
       {figures.length > 0 && (
@@ -202,11 +181,10 @@ const pubchemNote = idEcho('CID');
       )}
       {lesson.images.length === 0 && figures.length > 0 ? (
         <p class="src-meta">
-          {slideCount > 0 && `Its ${slideCount} lecture slides are listed above with their credits. `}
           {portraitCount > 0 && `Its ${portraitCount} scientist portrait${portraitCount === 1 ? ' is an' : 's are'} AI-generated illustration${portraitCount === 1 ? '' : 's'}, disclosed under Scientist profiles & quotes. `}
           Every 3D structure is rendered live from an accession ID, and every plot is drawn from its equation in the browser.
         </p>
-      ) : lesson.images.length === 0 && slideCount === 0 && portraitCount === 0 ? (
+      ) : lesson.images.length === 0 && portraitCount === 0 ? (
         <p class="src-meta">
           This lesson carries <strong>no raster figures</strong>. Every structure is
           rendered live from RCSB&nbsp;PDB or PubChem, and every plot is drawn from
@@ -216,10 +194,7 @@ const pubchemNote = idEcho('CID');
         <p class="src-meta">
           This lesson carries <strong>no standalone raster figures</strong> beyond
           the ones itemized in this panel:
-          {slideCount > 0 && ` its ${slideCount} lecture slides (each listed above with its deck, its credit, and the person who screened it for accuracy and copyright)`}
-          {slideCount > 0 && portraitCount > 0 && ' and'}
           {portraitCount > 0 && ` its ${portraitCount} scientist portrait${portraitCount === 1 ? '' : 's'} (AI-generated illustrations from the book's profiles, disclosed under Scientist profiles & quotes)`}.
-          {flaggedSlides > 0 && ` ${flaggedSlides} slide${flaggedSlides === 1 ? ' carries' : 's carry'} a caption flagging a known illustration artifact.`}
           {' '}Every 3D structure is rendered live from an accession ID.
         </p>
       ) : (
@@ -242,18 +217,10 @@ const pubchemNote = idEcho('CID');
   <p class="integrity-statement">
     <span class="verified-chip">integrity</span>
     <span>
-      {slideCount > 0 && 'Two different things are checked here, and they are worth telling apart. '}
       <strong>Machines check the mechanics.</strong> The build confirms that every
       local file exists and that every question's answer key points at a real choice;
       a weekly job re-resolves every accession ID against its database.
       {portraitCount > 0 && ' The scientist portraits are AI-generated artwork, labeled as such above. They depict the person and carry no science, and nothing on this site asks you to trust a picture of a face.'}
-      {slideCount > 0 && (
-        <>
-          {' '}<strong>A person checks the science.</strong> Prof.&nbsp;Deppmann cleared
-          each lecture slide for accuracy and for copyright, and his name is on every
-          one of them in the list above.
-        </>
-      )}
       {' '}Questions are original; MCAT-style items are written for this site and are
       not real AAMC questions. Banned sources (the Tymoczko textbook, publisher
       decks, copyrighted figures) are not used.

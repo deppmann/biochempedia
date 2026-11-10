@@ -2,7 +2,7 @@
 /**
  * Post-build asset + internal-link checker (the regression gate the site eval asked for).
  * Scans every built dist/**.html for local src/href/srcset/poster references and fails the
- * build if any points at a file that does not exist in dist/. Catches missing slide WebP,
+ * build if any points at a file that does not exist in dist/. Catches missing figure WebP,
  * narration MP3, scientist portraits, OG image, and broken internal links before they ship.
  *
  * External (http/https/protocol-relative), data:, mailto:, tel:, and #fragment refs are skipped.

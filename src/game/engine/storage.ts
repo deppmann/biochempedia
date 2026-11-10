@@ -63,23 +63,6 @@ export function getBest(pathwayId: string, mode: ModeId): { score: number; medal
   return load().best[pathwayId]?.[mode];
 }
 
-/** Highest medal earned across a pathway's four modes (for the cabinet ring). */
-export function pathwayMedal(pathwayId: string): Medal {
-  const forPath = load().best[pathwayId];
-  if (!forPath) return 'none';
-  let best: Medal = 'none';
-  for (const v of Object.values(forPath)) {
-    if (v && MEDAL_RANK[v.medal] > MEDAL_RANK[best]) best = v.medal;
-  }
-  return best;
-}
-
-export function modesCleared(pathwayId: string): number {
-  const forPath = load().best[pathwayId];
-  if (!forPath) return 0;
-  return Object.values(forPath).filter((v) => v && MEDAL_RANK[v.medal] > 0).length;
-}
-
 export function totalAtp(): number {
   return load().atp;
 }
