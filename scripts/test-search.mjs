@@ -51,7 +51,9 @@ console.log('\nText in one place only: found, and labelled for where it is');
 const PROBES = [
   ['agnathan', 'adaptive-immunity', 'story', 'a story: "An immune system with no antibodies"'],
   ['lipolytic', 'absorption-and-liver', 'level', 'an "Explain at my level" text'],
-  ['insemination', 'animal-development', 'quiz', 'a self-test question'],
+  // Was 'insemination' in animal-development until that question was rewritten (commit a13dba63a,
+  // 2026-11-01); the word is no longer anywhere on the site.
+  ['unengaged', 'antigen-receptors-and-checkpoints', 'quiz', 'a self-test question'],
   ['synteny', 'animal-body-plans', 'method', 'a "How we measure it" technique blurb'],
   ['burette', 'amino-acids', 'film', 'a film transcript: "pH Sets an Amino Acid\'s Charge"'],
 ];
@@ -121,8 +123,15 @@ await expect('the', () => null);
 await expect('cell', (h) => (h.length >= 5 ? null : 'a common word should return ranked lessons'));
 await expect('the cell of a', () => null);
 await expect('"membrane potential"', (h) => (h.length ? null : 'a quoted phrase should match'));
+// Pagefind shortens a word it does not know until something matches ("qzxjvk" -> "q", "xylophone" ->
+// "XY", "glycolsis" -> "gl"): lesson-search.ts drops those (REAL MATCHES), and keeps a near miss.
 await expect('qzxjvk', (h) => (h.length === 0 ? null : 'a made-up word should match nothing'));
+await expect('xylophone', (h) => (h.length === 0 ? null : 'a real word that is in no lesson should match nothing'));
+await expect('glycolsis', (h) => (h.length === 0 ? null : 'a misspelling should not match lessons that share only its first two letters'));
 await expect('health departmnt', (h) => (h.length ? null : 'one misspelled word should still offer lessons with the other'));
+await expect('departmnt', first('sleep-or-travel'));
+await expect('apoptosys', first('cell-death'));
+await expect('running', (h) => (h.length >= 5 ? null : 'a word with another ending ("run", "runs") should still match'));
 await expect('a', () => null);
 await expect('   ', (h) => (h.length === 0 ? null : 'blank query'));
 await expect('C++ (!) [x]', () => null);
