@@ -7,6 +7,7 @@
  */
 import LessonIcon from './LessonIcon.astro';
 import { unitsFor, type Course } from '../data/courses';
+import { lessonMinutes, minutesLabel } from '../lib/reading-time';
 import { unitReviewByUnit, unitReviewHref } from '../data/lesson-games';
 
 interface Props {
@@ -31,7 +32,7 @@ const metaFor = (l: any) => {
     films > 0 && plural(films, 'film', 'films'),
     d.simulations.length > 0 && plural(d.simulations.length, 'simulation', 'simulations'),
     plural(d.practiceQuestions.length + d.mcatQuestions.length, 'question', 'questions'),
-    d.estMinutes && `~${d.estMinutes} min`,
+    minutesLabel(lessonMinutes(l)),
   ].filter(Boolean) as string[];
 };
 ---
@@ -113,7 +114,7 @@ const metaFor = (l: any) => {
 </script>
 
 <style>
-  .lc-done { margin-left: 0.5em; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-verified); white-space: nowrap; }
+  .lc-done { margin-left: 0.5em; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-verified-ink); white-space: nowrap; }
   .lc-done[hidden] { display: none; }
   .unit-play {
     display: flex;

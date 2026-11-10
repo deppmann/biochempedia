@@ -129,7 +129,8 @@ h4 {
 .prose-col code {
   font-family: var(--ddp-font-mono);
   font-size: 0.9em;
-  background: #f1efe9;
+  /* A tint of the ink colour, so it follows dark mode (a fixed cream box made the text unreadable there). */
+  background: color-mix(in srgb, var(--ddp-color-ink) 9%, transparent);
   padding: 0.1em 0.35em;
   border-radius: 4px;
 }
@@ -171,7 +172,9 @@ h4 {
   gap: 0.4em;
   font-size: var(--ddp-text-xs);
   font-weight: 600;
-  color: var(--ddp-color-verified);
+  /* The soft tint stays light in dark mode, so the text keeps the dark ink in both. */
+  --ddp-color-verified-ink: #1f6b45;
+  color: var(--ddp-color-verified-ink);
   background: var(--ddp-color-verified-soft);
   border-radius: 999px;
   padding: 0.2em 0.7em;

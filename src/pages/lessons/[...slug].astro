@@ -25,10 +25,12 @@ import FlashcardDeck from '../../components/FlashcardDeck.astro';
 import HighlightLayer from '../../components/HighlightLayer.astro';
 import type { Deck } from '../../lib/flashcards';
 import { feedbackUrl } from '../../lib/feedback';
-import { courseOf, courseHref } from '../../data/courses';
+import { COURSES, courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 import { SETS as MCAT_SETS } from '../../lib/mcat';
+import { metaDescription } from '../../lib/meta';
+import { lessonMinutes } from '../../lib/reading-time';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -56,6 +58,15 @@ const navOf = (l: (typeof allLessons)[number] | undefined) =>
 const lessonIdx = allLessons.findIndex((l) => l.data.slug === entry.data.slug);
 const prevNav = navOf(allLessons[lessonIdx - 1]);
 const nextNav = navOf(allLessons[lessonIdx + 1]);
+// After a course's last lesson, hand off to the next course in COURSES (its order is the
+// suggested path). Only a course with a published lesson counts, and Biology Together does
+// not hand off: its pages are for the grown-up, and the next course is written for students.
+let nextCourse: { title: string; tagline: string; href: string } | undefined;
+if (!nextNav && courseOf(entry.data.course).tier !== 'families') {
+  const live = new Set((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => l.data.course));
+  const after = COURSES.slice(COURSES.findIndex((c) => c.slug === entry.data.course) + 1).find((c) => live.has(c.slug));
+  if (after && COURSES.some((c) => c.slug === entry.data.course)) nextCourse = { title: after.title, tagline: after.tagline, href: courseHref(after.slug) };
+}
 const games = LESSON_GAMES[entry.data.slug] ?? [];
 const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
@@ -87,7 +98,9 @@ const quizAnchors = hasQuiz ? anchorsFor(entry.body ?? '', headings, [...lesson.
 // works on phones and with JavaScript off. Only on long lessons: 3 or more sections and about 10
 // minutes or more of reading (or 4+ sections when no reading time is given).
 const sections = headings.filter((h) => h.depth === 2 && h.slug && h.text.trim());
-const showSections = sections.length >= 3 && (lesson.estMinutes ? lesson.estMinutes >= 10 : sections.length >= 4);
+// Reading time is worked out from the text at build (src/lib/reading-time.ts), not hand-set.
+const minutes = lessonMinutes(entry);
+const showSections = sections.length >= 3 && (minutes ? minutes.core >= 10 : sections.length >= 4);
 // MCAT practice, linked forward: the practice page links every question back to its lesson; this
 // inverts that at deploy time. The lesson's own MCAT-style questions (college lessons only, as on
 // /mcat/practice/) plus passage-set questions whose lesson link names this lesson.
@@ -127,12 +140,13 @@ const lessonLd = {
   author: { '@type': 'Person', name: 'Christopher Deppmann' },
   copyrightHolder: { '@type': 'Person', name: 'Christopher Deppmann' },
   ...(lesson.objectives.length ? { teaches: lesson.objectives } : {}),
-  ...(lesson.estMinutes ? { timeRequired: `PT${lesson.estMinutes}M` } : {}),
+  ...(minutes ? { timeRequired: `PT${minutes.core}M` } : {}),
   encoding: { '@type': 'MediaObject', encodingFormat: 'text/markdown', contentUrl: `https://biochemistrypedia.com/lessons/${lesson.slug}.md` },
 };
 ---
 
-<BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}
+<BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={metaDescription(hookFor(entry))} ogType="article" jsonLd={lessonLd}
+  ogImage={ex?.poster ?? lesson.films[0]?.poster}
   alternates={[{ type: 'text/markdown', href: `/lessons/${lesson.slug}.md`, title: 'This lesson as plain Markdown' }]}>
   <article id="top">
     <header class="lesson-hero wrap">
@@ -159,9 +173,12 @@ const lessonLd = {
           <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>.</p>
         </details>
       )}
-      {/* Only the hook shows (2026-11-08, "get to the material quicker"); the full summary stays the page's
-          search and share description. */}
+      {/* Only the hook shows (2026-11-08, "get to the material quicker"). It is also the share and
+          search-result description, cut to 155 characters; the full summary stays in the JSON-LD. */}
       <p class="summary">{hookFor(entry)}</p>
+      {/* "Continue at…": filled in by the script at the foot of the page from this device's storage,
+          when the reader left this lesson part-way. Hidden, and simply absent, without JavaScript. */}
+      <p class="resume" data-resume={lesson.slug} hidden><a data-resume-link href="#top">Continue at: <span data-resume-title></span> →</a></p>
       <ListenPlayer slug={lesson.slug} />
     </header>
 
@@ -174,7 +191,7 @@ const lessonLd = {
             <span class="ov-k">Overview</span>
             {lesson.objectives.length > 0 && <span>{lesson.objectives.length} {lesson.objectives.length === 1 ? 'goal' : 'goals'}</span>}
             {showSections && <span>{sections.length} sections</span>}
-            {lesson.estMinutes && <span>~{lesson.estMinutes} min</span>}
+            {minutes && <span>~{minutes.core} min{minutes.optional > 0 && `, plus ${minutes.optional} optional`}</span>}
           </summary>
           <div class="ov-body">
             {lesson.objectives.length > 0 && (
@@ -187,7 +204,7 @@ const lessonLd = {
               {showSections && (
                 <nav class="lesson-toc" aria-label="In this lesson" data-lesson-toc>
                   <p class="ov-h">In this lesson</p>
-                  <ol>{sections.map((h) => <li><a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a></li>)}</ol>
+                  <ol>{sections.map((h) => <li><a href={`#${h.slug}`} data-toc-link={h.slug}>{h.text}</a>{h.slug === 'going-deeper' && <span class="toc-opt"> (optional)</span>}</li>)}</ol>
                 </nav>
               )}
               {hasStats && (
@@ -324,7 +341,7 @@ const lessonLd = {
           <p class="mcat-forward"><a href={`/mcat/practice/?lesson=${lesson.slug}`}>Practice questions on this lesson ({mcatCount}) →</a> <span>MCAT-style, original, each with an explanation</span></p>
         )}
 
-        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} />
+        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} nextCourse={nextCourse} />
       </div>
 
       <aside class="rail" id="rail" aria-label="Explore — open any resource">
@@ -842,6 +859,11 @@ const lessonLd = {
     .hs-review a { color: var(--ddp-color-accent); font-weight: 600; text-underline-offset: 3px; }
     .lesson-hero h1 { font-size: var(--ddp-text-3xl); max-width: 20ch; margin-bottom: var(--ddp-space-3); }
     .summary { max-width: 60ch; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
+    .resume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
+    .resume[hidden] { display: none; }
+    .resume a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1em; border: 1.5px solid var(--ddp-color-accent); border-radius: 999px; color: var(--ddp-color-accent); font-weight: 600; text-decoration: none; }
+    .resume a:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
+    .toc-opt { color: var(--ddp-color-muted); font-size: var(--ddp-text-sm); }
 
     .orient {
       display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--ddp-space-6);
@@ -1215,6 +1237,31 @@ const lessonLd = {
     }
   </style>
   <script>
+    import { savedSection, saveSection } from '../../lib/progress';
+    // "Continue at…": remember the section being read (on this device only) and, on a later visit,
+    // offer a link to it when the reader is not already there.
+    {
+      const box = document.querySelector<HTMLElement>('[data-resume]');
+      const slug = box?.dataset.resume;
+      if (box && slug) {
+        const saved = savedSection(slug);
+        document.addEventListener('bp-section', (e) => {
+          const d = (e as CustomEvent<{ id: string | null; title: string | null }>).detail;
+          if (d?.id) saveSection(slug, d.id, (d.title ?? '').trim());
+        });
+        const target = saved ? document.getElementById(saved.id) : null;
+        if (saved && target && !location.hash) {
+          // Wait a frame so the browser's own scroll restoration has happened; offer the link only
+          // if the saved section is still below the screen.
+          requestAnimationFrame(() => {
+            if (target.getBoundingClientRect().top < window.innerHeight) return;
+            box.querySelector<HTMLAnchorElement>('[data-resume-link]')!.href = `#${saved.id}`;
+            box.querySelector<HTMLElement>('[data-resume-title]')!.textContent = saved.title || 'where you left off';
+            box.hidden = false;
+          });
+        }
+      }
+    }
     // "In this lesson": mark the section being read (aria-current), so the list doubles as a
     // "you are here" for Listen and the notebook. The links work without this script.
     {
