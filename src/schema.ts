@@ -264,6 +264,10 @@ const explainer = z.object({
   aiGenerated: z.literal(true),
   /** A real human who checked the animation against the science. */
   factCheckedBy: z.string().min(1).optional(),
+  /** Set when the lesson's text was corrected after this film was made and the film still says
+   *  the old thing. One reader-facing sentence naming what changed; it shows as a small note
+   *  under the film on the lesson page and on its /watch/ page. Remove it when the film is redone. */
+  predatesCorrection: z.string().min(1).optional(),
 });
 
 export const lessonSchema = z.object({

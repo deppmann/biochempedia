@@ -8,7 +8,9 @@ lesson. When in doubt, ask before adding a source.
 | Layer | License |
 |---|---|
 | Site code, components, build scripts, original simulations | **MIT** (see [LICENSE](LICENSE)) |
-| Lesson narrative & scientist profiles | **Authors' IP** — *The Molecule Hunters* / Deppmann lectures (see [NOTICE](NOTICE)). Not MIT. |
+| Lesson text, the site's own figures, its films | **CC BY-NC-SA 4.0** (see [NOTICE](NOTICE) and https://biochemistrypedia.com/license/). Not MIT. |
+| Scientist profiles from *The Molecule Hunters* | **All rights reserved** (see [NOTICE](NOTICE)). Not MIT, not CC. |
+| Site name and logo | Not licensed. |
 
 ## ✅ Allowed source material
 
