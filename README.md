@@ -135,7 +135,8 @@ aliases those tokens onto the components' `--ddp-*` names.
 
 ## License
 
-Code: **MIT** ([LICENSE](LICENSE)). Lesson narrative & scientist profiles are the
-authors' IP ([NOTICE](NOTICE)) — fork the code, bring your own content.
+Code: **MIT** ([LICENSE](LICENSE)). Lesson text, the site's own figures and its
+films: **CC BY-NC-SA 4.0**. Scientist profiles from *The Molecule Hunters*: all
+rights reserved. See [NOTICE](NOTICE) and https://biochemistrypedia.com/license/.
 
 🤖 Scaffolded with [Claude Code](https://claude.com/claude-code).

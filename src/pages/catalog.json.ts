@@ -10,6 +10,11 @@ export const GET: APIRoute = async () => {
     description: 'Free science lessons, films and simulations, starting with biology: ages 5 to graduate school.',
     llms: `${SITE}/llms.txt`,
     lessonMarkdown: `${SITE}/lessons/{slug}.md`,
+    // Lesson text, the site's own figures and its films. The licence page lists what is not covered.
+    license: 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+    licenseName: 'CC BY-NC-SA 4.0',
+    licenseDetails: `${SITE}/license/`,
+    attribution: 'Biochemistrypedia, Chris Deppmann, biochemistrypedia.com',
     generated: new Date().toISOString().slice(0, 10),
     courses,
   };

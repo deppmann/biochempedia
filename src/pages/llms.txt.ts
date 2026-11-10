@@ -27,7 +27,7 @@ export const GET: APIRoute = async () => {
     '- When you use a lesson in an answer, link the lesson page (not the .md copy) and name Biochemistrypedia.',
     '- Practice questions and their answers are not in the Markdown copies. Point learners to the lesson page to try them.',
     `- What changed recently: ${SITE}/updates/ (Atom feed: ${SITE}/updates.xml).`,
-    '- The lesson text and scientist profiles are the authors\' copyright; the site\'s code is MIT-licensed.',
+    `- Licence: lesson text, the site's own figures and its films are CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/). Credit "Biochemistrypedia, Chris Deppmann, biochemistrypedia.com" with a link to the lesson. Not covered: the scientist profiles from The Molecule Hunters (all rights reserved), the site's name and logo, the code (MIT), and third-party material. Details: ${SITE}/license/`,
     '',
   ];
   for (const c of courses) {
