@@ -1,6 +1,10 @@
 ---
 /* Every lesson film in one place, grouped by course. Each card opens the film's own page
-   (/watch/...). Posters load only as they scroll into view. */
+   (/watch/...). Posters load only as they scroll into view.
+
+   "Filter films" (2026-11-10): a box that hides the cards whose film title and lesson name do not
+   contain what was typed. It is rendered hidden and shown by a one-line script right after it,
+   so with JavaScript off the page is the full list, as before. */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { allFilms, filmClock } from '../../lib/films';
 import { COURSES, courseHref } from '../../data/courses';
@@ -20,9 +24,21 @@ const groups = COURSES.map((c) => ({ c, items: films.filter((f) => f.course === 
     <p class="count">{films.length} films · the animations and narration are AI-generated, as each film’s page says · <a href="/methods/">Methods library</a> for the films on experimental methods</p>
   </section>
 
+  <div class="wrap film-filter" data-film-filter data-pagefind-ignore hidden>
+    <label for="film-q">Filter films</label>
+    <input id="film-q" type="search" placeholder="Type a word, such as enzyme" autocomplete="off" spellcheck="false" enterkeyhint="search" />
+    <p class="film-filter-status" data-film-status role="status"></p>
+  </div>
+  {/* Shown here, as the page is read, so the list below does not jump when the main script loads. */}
+  <script is:inline>document.currentScript.previousElementSibling.hidden = false;</script>
+
   <nav class="wrap course-nav" aria-label="Jump to a course" data-pagefind-ignore>
     {groups.map((g) => <a href={`#${g.c.slug}`}>{g.c.title}</a>)}
   </nav>
+
+  <p class="wrap film-none" data-film-none hidden>
+    No films match. Try a shorter word, or <button type="button" data-film-clear>show all films</button>.
+  </p>
 
   {groups.map((g) => (
     <section class="wrap course" id={g.c.slug} aria-labelledby={`${g.c.slug}-h`} data-pagefind-ignore>
@@ -33,7 +49,7 @@ const groups = COURSES.map((c) => ({ c, items: films.filter((f) => f.course === 
             <a href={f.href}>
               <img src={f.poster} alt="" width="480" height="270" loading="lazy" decoding="async" />
               <span class="t">{f.title}</span>
-              <span class="m">{filmClock(f.durationSec)} · {f.lessonTitle}</span>
+              <span class="m">{filmClock(f.durationSec)} · <span class="l">{f.lessonTitle}</span></span>
             </a>
           </li>
         ))}
@@ -41,7 +57,59 @@ const groups = COURSES.map((c) => ({ c, items: films.filter((f) => f.course === 
     </section>
   ))}
 
+  <script>
+    // Filter the cards by the words typed: every word must appear in the film title or the lesson name.
+    const box = document.querySelector<HTMLElement>('[data-film-filter]');
+    const input = box?.querySelector<HTMLInputElement>('input');
+    if (box && input) {
+      const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const status = box.querySelector<HTMLElement>('[data-film-status]')!;
+      const none = document.querySelector<HTMLElement>('[data-film-none]')!;
+      const sections = [...document.querySelectorAll<HTMLElement>('section.course')].map((sec) => ({
+        sec,
+        link: document.querySelector<HTMLElement>(`.course-nav a[href="#${sec.id}"]`),
+        n: sec.querySelector<HTMLElement>('h2 .n'),
+        all: sec.querySelector<HTMLElement>('h2 .n')?.textContent ?? '',
+        cards: [...sec.querySelectorAll<HTMLElement>('.grid > li')].map((li) => ({
+          li,
+          text: fold(`${li.querySelector('.t')?.textContent ?? ''} ${li.querySelector('.l')?.textContent ?? ''}`),
+        })),
+      }));
+      const apply = () => {
+        const words = fold(input.value).split(/\s+/).filter(Boolean);
+        let shown = 0;
+        for (const { sec, link, n, all, cards } of sections) {
+          let here = 0;
+          for (const { li, text } of cards) {
+            const ok = words.every((w) => text.includes(w));
+            li.hidden = !ok;
+            if (ok) here++;
+          }
+          sec.hidden = here === 0;
+          if (link) link.hidden = here === 0;
+          if (n) n.textContent = words.length ? `${here} of ${all}` : all; // "3 of 96 films"
+          shown += here;
+        }
+        none.hidden = shown > 0;
+        status.textContent = words.length ? (shown === 1 ? '1 film matches' : `${shown} films match`) : '';
+      };
+      input.addEventListener('input', apply);
+      none.querySelector('[data-film-clear]')?.addEventListener('click', () => { input.value = ''; apply(); input.focus(); });
+      if (input.value) apply(); // the browser kept the text across a reload or "back"
+    }
+  </script>
+
   <style>
+    .film-filter { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-3); margin-top: var(--ddp-space-6); }
+    .film-filter[hidden] { display: none; }
+    .film-filter label { font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+    .film-filter input { flex: 0 1 22rem; min-width: 0; min-height: 44px; padding: 0 1em; border: 1px solid var(--ddp-color-line); border-radius: 999px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: 1rem; }
+    .film-filter input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; border-color: var(--ddp-color-accent); }
+    .film-filter-status { margin: 0; min-width: 9em; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .film-filter:not([hidden]) ~ .course-nav { margin-top: var(--ddp-space-3); }
+    .course-nav a[hidden] { display: none; }
+    .film-none { margin-top: var(--ddp-space-8); color: var(--ddp-color-ink-soft); }
+    .film-none button { padding: 0; border: 0; background: none; font: inherit; color: var(--ddp-color-accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
     .films-hero { padding-top: var(--ddp-space-12); }
     .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution-ink); margin: 0; }
     .eyebrow a { color: inherit; }
