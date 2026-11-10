@@ -181,7 +181,7 @@ export const googleStartUrl = (ret = '/account/', age13 = false) =>
 export const EXPORT_URL = '/api/learner/export';
 
 /** Remove this device's own copy of the notebook and progress. */
-export function clearDevice() {
+function clearDevice() {
   try { window.localStorage.removeItem(NOTEBOOK_KEY); window.localStorage.removeItem(PROGRESS_KEY); } catch { /* blocked */ }
   window.dispatchEvent(new CustomEvent(NOTEBOOK_EVENT));
   window.dispatchEvent(new CustomEvent(PROGRESS_EVENT));

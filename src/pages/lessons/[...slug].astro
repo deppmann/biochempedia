@@ -5,7 +5,6 @@ import MolViewer from '../../components/MolViewer.astro';
 import PhetEmbed from '../../components/PhetEmbed.astro';
 import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
-import LectureSlides from '../../components/LectureSlides.astro';
 import QuizBlock from '../../components/QuizBlock.astro';
 import ClassBar from '../../components/ClassBar.astro';
 import DesignAnswer from '../../components/DesignAnswer.astro';
@@ -107,15 +106,9 @@ const showSections = sections.length >= 3 && (minutes ? minutes.core >= 10 : sec
 const mcatDiscrete = course.tier !== 'highschool' && course.tier !== 'families' ? lesson.mcatQuestions.length : 0;
 const mcatPassage = MCAT_SETS.reduce((n, st) => n + st.questions.filter((q) => q.lesson.slug === lesson.slug).length, 0);
 const mcatCount = mcatDiscrete + mcatPassage;
-const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
-// Slides without a recording, counted separately so no count calls a silent
-// slide "narrated".
-const slidesSilent = lesson.lectureSlides.length - narratedSlides;
-const slidesTag =
-  narratedSlides === 0 ? '' : narratedSlides === lesson.lectureSlides.length ? ' · narrated' : ` · ${narratedSlides} narrated`;
 const ex = lesson.explainer;
 const exLen = ex ? `${Math.floor(ex.durationSec / 60)}:${String(Math.round(ex.durationSec % 60)).padStart(2, '0')}` : '';
-const hasStats = (ex ? 1 : 0) + lesson.structures.length + lesson.lectureSlides.length + qCount + lesson.scientists.length > 0;
+const hasStats = (ex ? 1 : 0) + lesson.structures.length + qCount + lesson.scientists.length > 0;
 
 // Thumbnail helpers for the rail.
 const rcsbThumb = (id: string) => `https://cdn.rcsb.org/images/structures/${id.toLowerCase()}_assembly-1.jpeg`;
@@ -213,8 +206,6 @@ const lessonLd = {
                   <ul>
               {ex && <li><span aria-hidden="true">🎬</span> <b>{exLen}</b> animated explainer</li>}
               {lesson.structures.length > 0 && <li><span aria-hidden="true">🧬</span> <b>{lesson.structures.length}</b> live 3D {lesson.structures.length === 1 ? 'structure' : 'structures'}</li>}
-              {narratedSlides > 0 && <li><span aria-hidden="true">🎧</span> <b>{narratedSlides}</b> narrated {narratedSlides === 1 ? 'slide' : 'slides'}</li>}
-              {slidesSilent > 0 && <li><span aria-hidden="true">🖼</span> <b>{slidesSilent}</b> lecture {slidesSilent === 1 ? 'slide' : 'slides'}</li>}
               {qCount > 0 && <li><span aria-hidden="true">📝</span> <b>{qCount}</b> self-test {qCount === 1 ? 'question' : 'questions'}</li>}
               {lesson.scientists.length > 0 && <li><span aria-hidden="true">👤</span> <b>{lesson.scientists.length}</b> scientist {lesson.scientists.length === 1 ? 'profile' : 'profiles'}</li>}
             </ul>
@@ -254,7 +245,7 @@ const lessonLd = {
         resource rail lands after the whole narrative — on a long lesson that is
         thousands of pixels down, which effectively hides the best part of the
         page. These chips reuse the same [data-open] dialogs as the rail, so a
-        reader reaches the slides, the self-test, and the sources from the first
+        reader reaches the self-test and the sources from the first
         screen. The desktop rail is untouched. */}
     <nav class="wrap mobile-explore" aria-label="Explore this lesson">
       <p class="me-title">Explore this lesson</p>
@@ -267,9 +258,6 @@ const lessonLd = {
         )}
         {methods.length > 0 && (
           <li><a href="#methods">🔬 Methods <em>{methods.length}</em></a></li>
-        )}
-        {lesson.lectureSlides.length > 0 && (
-          <li><button type="button" data-open="lb-slides">🖼 Slides <em>{lesson.lectureSlides.length}</em></button></li>
         )}
         {lesson.structures.length > 0 && (
           <li><a href="#rail">🧬 3D molecules <em>{lesson.structures.length}</em></a></li>
@@ -305,7 +293,7 @@ const lessonLd = {
             prose outranks the extras). The title and course filter ride on this div. Each extra region
             opens with a heading whose id starts sx- (sx-level-, sx-story-, sx-q-, sx-tech-, sx-film-);
             that id is what a search result links to, and the script below opens the dialog or fold that
-            holds it. The nav, rail, slides, 3D viewers, sources and footer are not indexed. Worked
+            holds it. The nav, rail, 3D viewers, sources and footer are not indexed. Worked
             answers (bare <details>) and the answer boxes are skipped by exclude_selectors in pagefind.yml. */}
         <div class="prose-col" data-pagefind-body data-pagefind-meta="title[data-lesson-title]" data-pagefind-filter="course[data-lesson-course]"
           data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>
@@ -363,16 +351,6 @@ const lessonLd = {
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {lesson.lectureSlides.length > 0 && (
-          <div class="rail-group">
-            <h3>Lecture slides</h3>
-            <button type="button" class="rail-slidepreview" data-open="lb-slides">
-              <img src={lesson.lectureSlides[0].src.replace(/\.png$/, '.thumb.webp')} alt={`Preview: ${lesson.lectureSlides[0].title}`} loading="lazy" decoding="async" />
-              <span class="rail-label">Lecture slides <em>{lesson.lectureSlides.length}{slidesTag} · tap to open</em></span>
-            </button>
           </div>
         )}
 
@@ -536,13 +514,6 @@ const lessonLd = {
     </div>
 
     {/* ---- Lightboxes (one per resource; hidden until opened) ---- */}
-    {lesson.lectureSlides.length > 0 && (
-      <dialog id="lb-slides" class="lightbox lock-scroll">
-        <div class="lightbox-head"><span>From the lecture</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
-        <div class="lightbox-body"><LectureSlides slides={lesson.lectureSlides} /></div>
-      </dialog>
-    )}
-
     {lesson.structures.map((s) => (
       <dialog id={structId(s)} class="lightbox lock-scroll">
         <div class="lightbox-head"><span>{s.label}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
@@ -672,10 +643,6 @@ const lessonLd = {
         const d = document.getElementById(btn.getAttribute('data-open')!) as HTMLDialogElement | null;
         if (!d?.showModal) return;
         d.showModal();
-        // Auto-play the visible slide's narration when the slideshow opens
-        // (within this click gesture, so the browser allows it).
-        const slideAudio = d.querySelector<HTMLAudioElement>('.deck-slide:not([hidden]) audio');
-        if (slideAudio) slideAudio.play().catch(() => {});
         // A PhET sim opened from the rail: the reader already asked for it, so
         // start loading it rather than asking for a second "Launch" click.
         d.querySelector<HTMLButtonElement>('.phet-launch')?.click();
@@ -1095,16 +1062,6 @@ const lessonLd = {
     .rail-player:not([open]) > summary:hover { border-color: var(--ddp-color-accent); }
     .rail-player-body { padding: 0 var(--ddp-space-2) var(--ddp-space-2); }
     .rail-player-body .rail-note { margin-top: var(--ddp-space-2); }
-
-    /* Lecture-slides rail item: an actual mini slide viewer (preview the slide). */
-    .rail-slidepreview {
-      display: block; width: 100%; text-align: left; padding: 0; cursor: pointer; overflow: hidden;
-      border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
-      background: var(--ddp-color-surface); transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
-    }
-    .rail-slidepreview:hover { border-color: var(--ddp-color-accent); transform: translateY(-1px); box-shadow: var(--ddp-shadow); }
-    .rail-slidepreview img { display: block; width: 100%; aspect-ratio: 22 / 17; object-fit: cover; background: #fff; }
-    .rail-slidepreview .rail-label { padding: var(--ddp-space-2) var(--ddp-space-3); }
 
     /* Styling for collapsible rail elements */
     .rail-group h3 { margin: 0; }

@@ -200,34 +200,6 @@ const image = z
     }
   });
 
-/** A lecture slide reproduced from the instructor's own deck, with presenter
- *  notes shown beneath it. These are the author's original teaching work — but
- *  because lecture decks can carry publisher figures (banned from this public
- *  site), every slide must be screened for BOTH accuracy and copyright and name
- *  the human who cleared it. The build FAILS without `reviewedBy`. */
-const lectureSlide = z.object({
-  /** Path to the rendered slide image (under /public). */
-  src: z.string().min(1),
-  alt: z.string().min(1, 'Every slide needs descriptive alt text.'),
-  title: z.string().min(1),
-  /** The instructor's presenter notes, shown below the slide. */
-  notes: z.string().min(1),
-  /** Optional narrated voiceover (mp3 under /public) — lets students listen
-   *  to the slide instead of (or alongside) reading the notes. */
-  audio: z.string().optional(),
-  /** Optional caveat flagging a known AI-image-generation artifact on THIS slide
-   *  (e.g. a chemically-incorrect structure orientation). Rendered as a visible
-   *  warning so students treat the figure as conceptual, not authoritative. */
-  aiNote: z.string().optional(),
-  /** Provenance: which deck + slide (e.g. "CH07 Kinetics · slide 9"). */
-  source: z.string().min(1),
-  /** Authorship/credit for the slide (the instructor's original work). */
-  credit: z.string().min(1),
-  /** REQUIRED: the human who confirmed it is accurate AND copyright-clean
-   *  (their own content, no reproduced publisher figures). No reviewer → no build. */
-  reviewedBy: z.string().min(1, 'A lecture slide must name who reviewed it for accuracy + copyright.'),
-});
-
 /** A multi-level explanation of the lesson's core idea ("explain it like I'm…"). */
 const explainLevel = z.object({
   /** grade7 and bio2 are depth-ladder steps: the same idea at Life Science (grade 7) level and
@@ -309,8 +281,6 @@ export const lessonSchema = z.object({
 
   images: z.array(image).default([]),
 
-  /** Instructor lecture slides (own work; copyright-screened) with presenter notes. */
-  lectureSlides: z.array(lectureSlide).default([]),
 
   /** "Explain it like I'm…" — the same idea at escalating depth. */
   explainLevels: z.array(explainLevel).default([]),
@@ -374,8 +344,4 @@ export const lessonSchema = z.object({
 });
 
 export type Lesson = z.infer<typeof lessonSchema>;
-export type ScientistCard = z.infer<typeof scientist>;
-export type StructureRef = z.infer<typeof structure>;
 export type Question = z.infer<typeof question>;
-export type SimulationRef = z.infer<typeof simulation>;
-export type LectureSlide = z.infer<typeof lectureSlide>;
