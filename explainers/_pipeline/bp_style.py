@@ -16,6 +16,7 @@ Rules every scene follows:
 - No burned-in subtitles: captions ship as a separate .vtt track.
 """
 import json, os, re
+import numpy as np
 from pathlib import Path
 from manim import *  # noqa: F401,F403
 from kx_manim import NarratedScene, BG, BLUE, YELLOW, GREEN, RED, GREY, TEXT  # noqa: F401
@@ -175,15 +176,47 @@ class TitleCard(NarratedScene):
         self.finish()
 
 
+def hex_mascot(height=1.5):
+    """Hex, the site's mascot (src/components/Hex.astro), drawn for a film's dark ground: a pale
+    outline, gold for the three inner bonds and the feet. `.arm` is the waving arm and `.shoulder`
+    the point it turns about. A hexagon with a face is a character, not a molecular structure."""
+    P = lambda x, y: np.array([x - 32.0, 36.0 - y, 0.0])   # the component's 64 x 72 drawing, y up
+    ink, gold = 4.2 * height, 3.6 * height
+    body = Polygon(*[P(*q) for q in [(32, 10), (49.3, 20), (49.3, 40), (32, 50), (14.7, 40), (14.7, 20)]],
+                   color=TEXT, stroke_width=ink, fill_color=TEXT, fill_opacity=0.07)
+    bonds = VGroup(Line(P(32, 14.8), P(45.2, 22.4)), Line(P(45.2, 37.6), P(32, 45.2)), Line(P(18.8, 37.6), P(18.8, 22.4))).set_stroke(GOLD, gold)
+    eyes = VGroup(Dot(P(26.5, 28), radius=2.2, color=TEXT), Dot(P(37.5, 28), radius=2.2, color=TEXT))
+    smile = ArcBetweenPoints(P(28, 34.5), P(36, 34.5), angle=1.5).set_stroke(TEXT, ink * 0.8)
+    legs = VGroup(Line(P(27, 48), P(25.5, 60)), Line(P(37, 48), P(38.5, 60))).set_stroke(TEXT, ink)
+    feet = VGroup(Line(P(22.5, 61), P(27.5, 61)), Line(P(36.5, 61), P(41.5, 61))).set_stroke(GOLD, gold)
+    arm_l = Line(P(14.7, 32), P(8, 39)).set_stroke(TEXT, ink)
+    arm_r = Line(P(49.3, 27), P(58, 17)).set_stroke(TEXT, ink)
+    g = VGroup(legs, feet, arm_l, arm_r, body, bonds, eyes, smile)
+    for m in g.family_members_with_points():
+        try:
+            m.set_cap_style(CapStyleType.ROUND)
+            m.joint_type = LineJointType.ROUND
+        except Exception:
+            pass
+    g.set_height(height)
+    g.arm = arm_r
+    return g
+
+
 class EndCard(NarratedScene):
-    """Closing card: the take-home line. Subclass and set LINE (<= 12 words)."""
+    """Closing card: Hex waves over the take-home line. Subclass and set LINE (<= 12 words).
+    Hex was added 2026-11-10; a film rendered before that keeps its plain card until it is re-rendered."""
     LINE = "Try the interactive in the lesson."
 
     def construct(self):
+        hexm = hex_mascot(1.5)
         line = T(self.LINE, size=40, font=TITLE_FONT)
         fit(line, max_w=11.5)
         sub = T("biochemistrypedia.com", size=22, color=TEAL)
-        g = VGroup(line, sub).arrange(DOWN, buff=0.4)
-        self.play(FadeIn(line, shift=UP * 0.15), run_time=self.beat(0.3))
+        g = VGroup(hexm, line, sub).arrange(DOWN, buff=0.4)
+        self.play(FadeIn(hexm, shift=UP * 0.2), FadeIn(line, shift=UP * 0.15), run_time=self.beat(0.3))
         self.play(FadeIn(sub), run_time=self.beat(0.15))
+        shoulder = hexm.arm.get_start()
+        for _ in range(2):
+            self.play(Rotate(hexm.arm, angle=-0.55, about_point=shoulder), rate_func=there_and_back, run_time=self.beat(0.14))
         self.finish()
