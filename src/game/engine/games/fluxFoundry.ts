@@ -82,7 +82,6 @@ export function bestYield(drawn: FoFuel[], state: FuelState, owned: Set<string>,
 export function quotaFor(round: number, state: FuelState, drawn: FoFuel[], owned: Set<string>, relics: Relic[]): number {
   return Math.min(baseQuota(round, state), bestYield(drawn, state, owned, relics));
 }
-export const __test = { FUELS, RELICS, DRAFT_NODES, computeYield, drawFuels, baseQuota };
 
 /** The draw ALWAYS includes glucose (the universal fuel) + 2 others, so a bad draw
  *  can't instantly starve you — the choice is which fuel is best for THIS state. */

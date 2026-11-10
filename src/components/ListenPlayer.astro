@@ -62,8 +62,6 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
   const root = document.querySelector<HTMLElement>('[data-listen-root]');
   const player = document.querySelector<HTMLElement>('[data-listen-player]');
   const prose = document.querySelector<HTMLElement>('.prose-col[data-lesson-title]');
-  // Never the device voice (Chris, 2026-11-06). The speech code below stays inert with synth null.
-  const synth: SpeechSynthesis | null = null;
 
   if (root && player && prose) init(root, player, prose);
 
@@ -72,7 +70,7 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
     const clips = new Set((root.dataset.clips || '').split(' ').filter(Boolean));
     // Only the build's 12-hex hashes: EquationCard's own "Read aloud" button also carries data-say (its text).
     const all = Array.from(prose.querySelectorAll<HTMLElement>('[data-say]')).filter((el) => /^[0-9a-f]{12}$/.test(el.dataset.say || ''));
-    if (!all.length || (!synth && !all.some((b) => clips.has(b.dataset.say || '')))) return;
+    if (!all.length || !all.some((b) => clips.has(b.dataset.say || ''))) return;
 
     const $ = (k: string) => player.querySelector<HTMLElement>(`[data-lp="${k}"]`)!;
     const toggleBtn = $('toggle'), statusEl = $('status');
@@ -86,62 +84,20 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
     let list: HTMLElement[] = [];     // the paragraphs being read, in order (visible ones only)
     let idx = -1;                     // which paragraph
     let playing = false;
-    let gen = 0;                      // bumps on every stop, so late callbacks from old audio/speech are ignored
-    let mode: 'clip' | 'device' | null = null;
-    let chunks: string[] = [];        // device voice: the paragraph split into sentences
-    let chunkIdx = 0;
-    let utter: SpeechSynthesisUtterance | null = null;   // kept referenced: Chrome drops events of collected utterances
+    let gen = 0;                      // bumps on every stop, so late callbacks from old audio are ignored
+    let mode: 'clip' | null = null;   // 'clip' once a recorded clip has been started
     const audio = new Audio();
     audio.preload = 'auto';
     const prefetch = new Audio();
     prefetch.preload = 'auto';
 
-    // ---- voice -------------------------------------------------------------------------------
-    let voice: SpeechSynthesisVoice | null = null;
-    const pickVoice = () => {
-      if (!synth) return;
-      const en = synth.getVoices().filter((v) => /^en([-_]|$)/i.test(v.lang));
-      const score = (v: SpeechSynthesisVoice) =>
-        (/^en[-_]us/i.test(v.lang) ? 4 : /^en[-_]gb/i.test(v.lang) ? 3 : 1) +
-        (/natural|neural|premium|enhanced|samantha|google us/i.test(v.name) ? 4 : 0) + (v.localService ? 1 : 0);
-      voice = en.sort((a, b) => score(b) - score(a))[0] || null;
-    };
-    if (synth) { pickVoice(); synth.addEventListener?.('voiceschanged', pickVoice); }
-
-    // ---- text the device voice reads (same rules as the build: sub, sup, ×, −) ------------------
-    const speakable = (el: Element): string => {
-      let s = '';
-      el.childNodes.forEach((n) => {
-        if (n.nodeType === Node.TEXT_NODE) s += n.textContent;
-        else if (n instanceof Element) {
-          const t = n.tagName;
-          if (/^(UL|OL|BUTTON|SCRIPT|STYLE|svg)$/.test(t) || n.getAttribute('aria-hidden') === 'true') return;
-          if (t === 'SUB') s += ` sub ${speakable(n)}`;
-          else if (t === 'SUP') s += ` to the ${speakable(n)}`;
-          else if (t === 'BR') s += ' ';
-          else s += speakable(n);
-        }
-      });
-      return s;
-    };
-    const textOf = (el: Element) => speakable(el).replace(/×/g, ' times ').replace(/−/g, ' minus ').replace(/\s+/g, ' ').trim();
-    const sentences = (t: string) => {
-      const out: string[] = [];
-      for (const s of t.split(/(?<=[.!?:;])\s+(?=[A-Z0-9“"(‘'])/)) {
-        if (out.length && (out[out.length - 1].length + s.length < 120)) out[out.length - 1] += ' ' + s;
-        else out.push(s);
-      }
-      return out;
-    };
-
     // ---- display ------------------------------------------------------------------------------
     const visible = (el: HTMLElement) => el.getClientRects().length > 0 && !el.closest('[hidden], details:not([open])');
     const setStatus = (msg?: string) => {
       if (msg !== undefined) { statusEl.textContent = msg; return; }
-      const voiceName = mode === 'clip' ? 'Recorded narration' : 'Device voice';
       statusEl.replaceChildren();
       if (idx < 0) return;
-      for (const t of [`${idx + 1} of ${list.length}`, voiceName]) {
+      for (const t of [`${idx + 1} of ${list.length}`, 'Recorded narration']) {
         const s = document.createElement('span');
         s.textContent = t;
         statusEl.appendChild(s);
@@ -171,31 +127,11 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       gen += 1;
       audio.onended = audio.onerror = null;
       audio.pause();
-      if (synth && (synth.speaking || synth.pending)) synth.cancel();
     };
     const clipUrl = (h: string) => `/listen/${slug}/${h}.mp3`;
 
-    const speakFrom = (k: number) => {
-      if (!synth) { playAt(idx + 1); return; }
-      const g = gen;
-      chunkIdx = k;
-      if (k >= chunks.length) { playAt(idx + 1); return; }
-      const u = new SpeechSynthesisUtterance(chunks[k]);
-      u.rate = rate;
-      if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = 'en-US';
-      u.onend = () => { if (g === gen) speakFrom(k + 1); };
-      u.onerror = (e) => {
-        if (g !== gen) return;
-        // Our own stops bump gen first, so an interruption here came from something else on the page
-        // (another read-aloud button): treat it as a pause.
-        if (e.error === 'interrupted' || e.error === 'canceled') { gen += 1; setPlaying(false); }
-        else speakFrom(k + 1);
-      };
-      utter = u;
-      synth.speak(u);
-    };
-    // No clip for this paragraph (or it failed to load): skip it rather than use the device voice.
-    const useDevice = (_el: HTMLElement) => { playAt(idx + 1); };
+    // No clip for this paragraph (or it failed to load): skip it. The device voice is never used.
+    const skip = () => { playAt(idx + 1); };
 
     const playAt = (i: number) => {
       silence();
@@ -216,19 +152,19 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
         audio.playbackRate = rate;
         audio.onended = () => { if (g === gen) playAt(i + 1); };
         // A missing or broken clip is skipped.
-        audio.onerror = () => { if (g === gen) useDevice(el); };
+        audio.onerror = () => { if (g === gen) skip(); };
         audio.play().catch((err) => {
           if (g !== gen) return;
           if (err && err.name === 'NotAllowedError') { setPlaying(false); setStatus('Press play to listen.'); }
-          else useDevice(el);
+          else skip();
         });
-      } else useDevice(el);
+      } else skip();
     };
 
     const pause = () => {
       if (!playing) return;
       if (mode === 'clip') { audio.pause(); }
-      else { gen += 1; if (synth) synth.cancel(); }   // pause() is unreliable on phones; resume restarts the sentence
+      else gen += 1;
       setPlaying(false);
     };
     const resume = () => {
@@ -236,8 +172,8 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       setPlaying(true);
       if (mode === 'clip' && audio.src) {
         audio.playbackRate = rate;
-        audio.play().catch(() => useDevice(list[idx]));
-      } else speakFrom(chunkIdx);
+        audio.play().catch(() => skip());
+      } else skip();
     };
     const start = (from: number | HTMLElement) => {
       list = all.filter(visible);
@@ -275,7 +211,6 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
       rate = Number(speedSel.value) || 1;
       try { localStorage.setItem(RATE_KEY, String(rate)); } catch { /* storage blocked */ }
       audio.playbackRate = rate;
-      if (playing && mode === 'device') { gen += 1; synth?.cancel(); speakFrom(chunkIdx); }
     });
 
     // A ▶ at each section heading: read from that section's first paragraph.
@@ -303,7 +238,7 @@ const clips: string[] = (manifest as Record<string, string[]>)[slug] ?? [];
 
     // For tests and debugging: window.__bpListen.state()
     (window as unknown as { __bpListen: unknown }).__bpListen = {
-      state: () => ({ idx, total: list.length, playing, mode, rate, src: audio.src, audioPaused: audio.paused, speaking: !!synth?.speaking, voice: voice?.name ?? null, chunk: chunkIdx, chunks: chunks.length }),
+      state: () => ({ idx, total: list.length, playing, mode, rate, src: audio.src, audioPaused: audio.paused }),
     };
   }
 </script>
