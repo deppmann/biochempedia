@@ -112,6 +112,8 @@ export const MILESTONES: Milestone[] = [
     text: 'Every Biochemistry lesson gets the expert-teacher rewrite, with new figures, simulations and flashcards.' },
   { date: '2026-11-08', kind: 'site', title: 'Faster to the lesson', prs: [192, 195, 196],
     text: 'A contents list in every lesson, links from lessons to MCAT practice, a shelf of recently rewritten lessons, and a homepage and lesson page that get you to the material sooner.' },
+  { date: '2026-11-10', kind: 'teachers', title: 'A QR code for every lesson, and reading levels', prs: [220],
+    text: 'Each lesson has a “Share with your class” button that shows a QR code to put the lesson on students’ phones. The Teachers page lists who each course was written for and its reading grade, and the Films page has a box to find a film by word.' },
   { date: '2026-11-10', kind: 'media', title: 'More figures in Signaling and Developmental Neuroscience', prs: [218],
     text: 'About a hundred new illustrations across 50 lessons that had one picture or none, each drawn for one section and checked against the lesson by a second reviewer before it went in.' },
   { date: '2026-11-09', kind: 'site', title: 'Easier for AI assistants to read and cite', prs: [203],
