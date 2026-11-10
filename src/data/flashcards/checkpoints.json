@@ -1,0 +1,644 @@
+{
+ "slug": "checkpoints",
+ "title": "Checkpoints and Irreversible Transitions",
+ "generated": {
+  "date": "2026-11-10",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "4e50a1b4fd88",
+ "sectionHashes": {
+  "The idea: a checkpoint makes one event wait for another": "630ed33d0177",
+  "The map: three checkpoints, two engines": "04167d8f6d20",
+  "Damage and replication: kinases that keep a CDK off": "48ae8a0bc73e",
+  "The spindle checkpoint: one kinetochore says wait": "71087d3a5c94",
+  "Anaphase: APC/C-Cdc20 destroys securin and cyclin B": "d89f796b6c1d",
+  "Why it does not run backwards": "760a1c4fa464",
+  "Feedback: the Cdk1 switch": "0af9ce30ad4f",
+  "G1/S: SCF destroys Sic1": "a10e7b5a942b",
+  "A worked problem: timing securin destruction": "f6efc2a6429e",
+  "Design problem": "b10a456066e5",
+  "When checkpoint proteins are needed in every cycle": "a179bd08895f"
+ },
+ "cards": [
+  {
+   "id": "checkpoints-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A {{c1::checkpoint}} is a control mechanism that enforces dependency between cell-cycle events.",
+   "back": "It makes one event wait until another is finished.",
+   "quote": "A checkpoint is a control mechanism that enforces dependency between cell-cycle events.",
+   "section": "The idea: a checkpoint makes one event wait for another"
+  },
+  {
+   "id": "checkpoints-c02",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Irradiated rad9 budding yeast do not delay in G2. When a microtubule poison holds them in G2 for several hours, they repair the damage efficiently. What does this show about Rad9?",
+   "back": "Rad9 is needed for waiting, not for repair. Supplying the delay from outside rescued repair, so control and repair are separable.",
+   "quote": "When a microtubule poison held irradiated rad9 cells in G2 for several hours, repair could occur efficiently.",
+   "section": "The idea: a checkpoint makes one event wait for another"
+  },
+  {
+   "id": "checkpoints-c03",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the rad9 yeast experiment, what result would have pointed to RAD9 being a repair gene, and why would it not have proved it?",
+   "back": "The held cells still failing to repair. That would point to repair but not prove it: the block might have been too short, or the damage beyond repair.",
+   "why": "More time rescues means a waiting defect; no rescue means perhaps a repair defect.",
+   "quote": "Had the held cells still failed to repair, that would have pointed to repair, though not proved it",
+   "section": "The idea: a checkpoint makes one event wait for another"
+  },
+  {
+   "id": "checkpoints-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A checkpoint is a brake wired to a sensor. What kinds of unfinished job does the sensor detect, and what does the brake restrain?",
+   "back": "A broken DNA end, a stretch of single-stranded DNA, or an unattached kinetochore. It restrains the next transition's regulators: particular cyclin-CDKs, or APC/C-Cdc20-dependent destruction of securin and cyclin B.",
+   "quote": "A checkpoint is a brake wired to a sensor.",
+   "section": "The idea: a checkpoint makes one event wait for another"
+  },
+  {
+   "id": "checkpoints-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Name the two ways a cell-cycle transition is made hard to undo, with an example of each.",
+   "back": "Destroying proteins that must then be made again (securin and cyclin B at anaphase, Sic1 at yeast G1/S), or flipping a positive-feedback switch that resists reversal (Cdk1 at entry into mitosis).",
+   "quote": "Depending on the step, it destroys proteins (securin and cyclin B at anaphase, Sic1 at yeast G1/S), which must be made again",
+   "section": "The idea: a checkpoint makes one event wait for another"
+  },
+  {
+   "id": "checkpoints-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Cdk1's inhibitory phosphates are added by the kinases {{c1::Wee1 and Myt1}} and removed by Cdc25 phosphatases.",
+   "back": "The cell enters mitosis only when the Cdc25 side wins.",
+   "quote": "For Cdk1, the kinases Wee1 and Myt1 add those phosphates and Cdc25 phosphatases remove them.",
+   "section": "The map: three checkpoints, two engines"
+  },
+  {
+   "id": "checkpoints-c07",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What activator does the ubiquitin ligase APC/C need to pick its mitotic targets?",
+   "back": "Cdc20.",
+   "quote": "To pick its mitotic targets it needs the activator Cdc20.",
+   "section": "The map: three checkpoints, two engines"
+  },
+  {
+   "id": "checkpoints-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A budding-yeast mad mutant is grown under ideal conditions, then under conditions where spindle assembly is slow. Predict its phenotype in each.",
+   "back": "Ideal: it often grows normally. Slow spindle: it moves on anyway, and the cost shows up as broken or missing chromosomes in the next generation.",
+   "why": "A checkpoint mutant divides on time instead of on completion. This holds for the classic yeast mutants, not every checkpoint protein.",
+   "quote": "A yeast rad9, mad or bub mutant often grows normally when nothing goes wrong.",
+   "section": "The map: three checkpoints, two engines"
+  },
+  {
+   "id": "checkpoints-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which complex binds the ends of a DNA double-strand break, and which kinase does it recruit?",
+   "back": "The MRN complex (Mre11, Rad50 and Nbs1); it recruits ATM.",
+   "quote": "The MRN complex (Mre11, Rad50 and Nbs1) binds the ends and recruits the kinase ATM.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which protein coats single-stranded DNA, and which kinase and partner does it help bring in?",
+   "back": "RPA, the single-strand binding protein; it helps bring in ATR with its partner ATRIP.",
+   "quote": "RPA helps bring in the kinase ATR with its partner ATRIP.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the DNA checkpoints, ATM mainly switches on the messenger kinase {{c1::Chk2}}, and ATR mainly switches on Chk1.",
+   "back": "",
+   "quote": "Each switches on a smaller messenger kinase: ATM mainly Chk2, ATR mainly Chk1.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does single-stranded DNA appear at a stalled replication fork?",
+   "back": "The polymerase stops but the helicase keeps unwinding, leaving unpaired single strands.",
+   "quote": "Single strands appear at a stalled replication fork, when the polymerase stops but the helicase keeps unwinding.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "A double-strand break in S or G2 activates ATR as well as ATM. How?",
+   "back": "ATM promotes trimming of the broken ends, started by the Mre11 nuclease. Trimming exposes single strands, RPA coats them, and ATR joins in.",
+   "quote": "Trimming exposes single strands, RPA coats them, and ATR joins in.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Is reaching RPA-coated DNA enough to switch ATR on? What else is needed?",
+   "back": "No. The protein TopBP1 strongly stimulates ATR's kinase activity, and ETAA1 can do so too.",
+   "quote": "Reaching the DNA is not enough to switch ATR on: the protein TopBP1 strongly stimulates its kinase activity, and ETAA1 can do so too.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "After DNA damage in G2, Chk1 and Chk2 inhibit the Cdc25 phosphatases. Predict what happens to Cdk1 and to the cell, and whether this brake can lift without new protein.",
+   "back": "Cdk1 keeps its inhibitory phosphates and stays off, so the cell waits in G2. Nothing was destroyed, so the brake can lift once the signal stops.",
+   "why": "The brake is a shift in the phosphate balance between Wee1/Myt1 and Cdc25.",
+   "quote": "Cdk1 keeps its inhibitory phosphates and stays off, so the cell waits in G2.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After DNA damage in G1, how do the checkpoint kinases keep Cdk2 off quickly, without new gene expression?",
+   "back": "They trigger rapid ubiquitin-dependent destruction of Cdc25A, the phosphatase that activates Cdk2. Cdk2 keeps its inhibitory phosphate and S phase does not start.",
+   "quote": "The checkpoint kinases trigger rapid ubiquitin-dependent destruction of Cdc25A, the phosphatase that activates Cdk2.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Describe the slow route by which p53 keeps a damaged G1 cell out of S phase.",
+   "back": "Activated p53, a transcription factor, induces the gene for p21, a CDK inhibitor. In biochemical assays, p21 blocks cyclin E-Cdk2 from phosphorylating Rb, so S phase stays off.",
+   "quote": "in biochemical assays p21 blocks cyclin E-Cdk2 from phosphorylating Rb, so S phase stays off.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Isogenic human colon cancer cells with and without p21 are given DNA damage in G1. Predict the difference.",
+   "back": "Cells lacking p21 lose the G1 arrest after damage altogether; cells with p21 arrest. This was found in those cells, not every cell type.",
+   "quote": "In isogenic human colon cancer lines, Waldman, Kinzler and Vogelstein found that losing p21 abolished the G1 arrest after DNA damage altogether",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Once DNA breaks are resolved or replication is finished, how is CDK activity restored in a cell that can still recover?",
+   "back": "Checkpoint signalling is silenced, then phosphatases and the remaking of destroyed proteins such as Cdc25A restore CDK activity.",
+   "quote": "In a cell still able to recover, phosphatases and the remaking of destroyed proteins such as Cdc25A then restore CDK activity.",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  },
+  {
+   "id": "checkpoints-c20",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What defect identified the budding-yeast mad and bub mutants?",
+   "back": "They kept going (failed to arrest) when a drug destroyed their microtubules. Mad: mitotic arrest deficient; bub: budding uninhibited by benzimidazole.",
+   "quote": "isolated budding-yeast mutants that kept going when a drug destroyed their microtubules.",
+   "section": "The spindle checkpoint: one kinetochore says wait"
+  },
+  {
+   "id": "checkpoints-c21",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a PtK1 cell, one chromosome is attached to only one pole. A laser destroys its unattached kinetochore, and the chromosome stays stranded near the pole. Anaphase follows about 20 minutes later. What does this show?",
+   "back": "The spindle checkpoint does not check alignment. An unattached kinetochore emits a wait signal, and removing the kinetochore removed the signal.",
+   "quote": "It was listening to a wait signal from an unattached kinetochore, and removing the kinetochore removed the signal.",
+   "section": "The spindle checkpoint: one kinetochore says wait"
+  },
+  {
+   "id": "checkpoints-c22",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Unattached kinetochores promote assembly of the mitotic checkpoint complex (MCC), made of {{c1::Mad2, Cdc20, BubR1 and Bub3}}.",
+   "back": "The MCC holds APC/C-Cdc20 back.",
+   "quote": "Unattached kinetochores promote assembly of the mitotic checkpoint complex (MCC): Mad2, Cdc20, BubR1 and Bub3.",
+   "section": "The spindle checkpoint: one kinetochore says wait"
+  },
+  {
+   "id": "checkpoints-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does the mitotic checkpoint complex keep securin and cyclin B away from APC/C-Cdc20?",
+   "back": "Like a decoy key: BubR1 sequences that mimic a substrate's destruction signal sit in Cdc20's substrate-gripping slots. BubR1 also blocks the E2 enzyme UbcH10.",
+   "quote": "BubR1 carries sequences that look like a substrate's destruction signal, and they sit in the slots on Cdc20 that would grip a real substrate",
+   "section": "The spindle checkpoint: one kinetochore says wait"
+  },
+  {
+   "id": "checkpoints-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An antibody that blocks Mad2 is injected into a cell in prometaphase, while some kinetochores are still unattached. Does anaphase come earlier or later, and why?",
+   "back": "Earlier (premature anaphase). Without Mad2 no MCC forms, APC/C-Cdc20 is free, and the wait is gone.",
+   "quote": "Injecting an anti-Mad2 antibody into PtK1 cells or primary human keratinocytes in prophase or prometaphase brought on premature anaphase.",
+   "section": "The spindle checkpoint: one kinetochore says wait"
+  },
+  {
+   "id": "checkpoints-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Cells held in nocodazole, with the spindle checkpoint still active, can eventually leave mitosis. Why?",
+   "back": "The brake leaks: cyclin B is still slowly destroyed by a proteasome-dependent route, so the cells slip out.",
+   "quote": "PtK and human RPE1 cells held in nocodazole can slip out of mitosis while the checkpoint is still active, because cyclin B is slowly destroyed by a proteasome-dependent route.",
+   "section": "The spindle checkpoint: one kinetochore says wait"
+  },
+  {
+   "id": "checkpoints-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Trace the steps from active APC/C-Cdc20 to the separation of sister chromatids.",
+   "back": "APC/C-Cdc20 ubiquitinates securin (and cyclin B, which in vertebrate cells must also be destroyed); the proteasome destroys them; freed separase cuts Scc1, the cohesin subunit holding sisters together; anaphase begins.",
+   "quote": "Freed separase cuts Scc1, the cohesin subunit that holds sister chromatids together, and anaphase begins.",
+   "section": "Anaphase: APC/C-Cdc20 destroys securin and cyclin B"
+  },
+  {
+   "id": "checkpoints-c27",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "HeLa cells at metaphase are treated with the proteasome inhibitor MG132 after the spindle checkpoint is satisfied. Predict what happens to securin, and why.",
+   "back": "Securin is not broken down. APC/C only ubiquitinates it; the proteasome does the destroying.",
+   "quote": "APC/C is the ubiquitin ligase; the proteasome does the destroying (in HeLa cells, the proteasome inhibitor MG132 blocked securin breakdown).",
+   "section": "Anaphase: APC/C-Cdc20 destroys securin and cyclin B"
+  },
+  {
+   "id": "checkpoints-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is a brake made by removing a protein harder to reverse than a brake made by phosphorylation?",
+   "back": "A phosphate can be removed and put back within seconds to minutes because the protein is still there. A destroyed protein comes back only by being made again.",
+   "quote": "A phosphate can be removed and put back within seconds to minutes, depending on the substrate, because the protein is still there.",
+   "section": "Why it does not run backwards"
+  },
+  {
+   "id": "checkpoints-c29",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Mitotic cells are forced out of mitosis with a Cdk1 inhibitor while cyclin B is kept intact; in other cells cyclin B is destroyed first. The inhibitor is then washed out. Predict both outcomes and the conclusion.",
+   "back": "Cyclin B intact: many cells return to mitosis, since Cdk1 switches back on. Cyclin B destroyed: they stay out, since Cdk1 has no partner until new cyclin is made. Destruction makes exit stick.",
+   "why": "Inhibitory Cdk1 phosphorylation after exit can also act as a second lock in G1.",
+   "quote": "Cells whose cyclin B had been destroyed before washout did not return, because Cdk1 had no partner until new cyclin was made.",
+   "section": "Why it does not run backwards"
+  },
+  {
+   "id": "checkpoints-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What positive feedback makes entry into mitosis switch-like?",
+   "back": "Active Cdk1 activates its activator Cdc25 and inhibits its inhibitor Wee1, so once Cdk1 activity starts to rise, the rise feeds itself.",
+   "quote": "Active Cdk1 activates its activator Cdc25 and inhibits its inhibitor Wee1, so once Cdk1 activity starts to rise, the rise feeds itself.",
+   "section": "Feedback: the Cdk1 switch"
+  },
+  {
+   "id": "checkpoints-c31",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "The Cdk1 switch is {{c1::bistable}}: over a middle range of cyclin B, it can sit stably off or on, depending on where it came from.",
+   "back": "",
+   "quote": "A switch like this is bistable: over a middle range of cyclin B, it can sit stably off or on, depending on where it came from.",
+   "section": "Feedback: the Cdk1 switch"
+  },
+  {
+   "id": "checkpoints-c32",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Cdk1 switch with other regulators held fixed, a mitotic cell's cyclin B falls from high to a middle level, still above the lower threshold. Is Cdk1 on or off?",
+   "back": "Still on. The switch turns off only below the lower threshold; the gap between thresholds gives it memory, so entering mitosis takes more cyclin B than staying in it.",
+   "quote": "If cyclin B is the only input varied and other regulators are held fixed, the switch turns on above an upper threshold and off below a lower one.",
+   "section": "Feedback: the Cdk1 switch"
+  },
+  {
+   "id": "checkpoints-c33",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A checkpoint cuts Cdc25 activity by the same amount in two cells: one in G2 with the Cdk1 switch off, one just after the switch has flipped on. Predict the effect in each.",
+   "back": "G2 cell: Cdk1 stays off and the cell waits. Switched-on cell: Cdk1 may stay on, because the on state is held up by its own feedback.",
+   "why": "This suggests why the damage brake normally acts in G2, before the switch flips.",
+   "quote": "a cut in Cdc25 activity that keeps an off switch off may not turn an on switch off, because the on state is held up by its own feedback.",
+   "section": "Feedback: the Cdk1 switch"
+  },
+  {
+   "id": "checkpoints-c34",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In budding yeast, the SCF subunit Hrt1 is inactivated. Predict what happens to the CDK inhibitor Sic1 and to the cell cycle, and why.",
+   "back": "Sic1 stays stable and the cells arrest at G1/S. Without SCF ubiquitination, phosphorylated Sic1 is not destroyed, so the S-phase cyclin-CDK stays off.",
+   "quote": "When the SCF subunit Hrt1 was inactivated, Sic1 stayed stable and cells arrested at G1/S.",
+   "section": "G1/S: SCF destroys Sic1"
+  },
+  {
+   "id": "checkpoints-c35",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Compare the one-way step at budding-yeast G1/S with the one at anaphase: which ligase acts, what it targets, and what that releases.",
+   "back": "G1/S: SCF destroys phosphorylated Sic1, releasing the S-phase cyclin-CDK. Anaphase: APC/C-Cdc20 destroys securin (freeing separase) and cyclin B (a major way Cdk1 is turned off). Both stick because destroyed proteins must be made again.",
+   "quote": "The same logic runs at the budding-yeast G1/S transition through a second ligase, SCF.",
+   "section": "G1/S: SCF destroys Sic1"
+  },
+  {
+   "id": "checkpoints-c36",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In made-up HeLa data, fluorescent securin (percent of metaphase value) is 100, 71, 50, 35 and 25 at 0, 5, 10, 15 and 20 minutes after metaphase. Assuming first-order decay and negligible synthesis, find the rate constant and half-life.",
+   "back": "At 10 min F = 50: ln(100/50) = 0.693 = k × 10, so k = 0.0693 per minute. Half-life = 0.693 / 0.0693 = 10 minutes. Check: 100 × e^(-0.0693 × 15) = 35.",
+   "quote": "Suppose HeLa cells express fluorescent securin, and fluorescence (as percent of its metaphase value) is measured at 0, 5, 10, 15 and 20 minutes after metaphase: 100, 71, 50, 35, 25.",
+   "section": "A worked problem: timing securin destruction"
+  },
+  {
+   "id": "checkpoints-c37",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Securin in a made-up HeLa cell decays with k = 0.0693 per minute from metaphase. If sister separation waits until securin is below 10 percent, about when does anaphase begin?",
+   "back": "t = ln 10 / k = 2.303 / 0.0693 = about 33 minutes after metaphase.",
+   "why": "The data alone do not say when anaphase begins; the 10 percent threshold is an assumption.",
+   "quote": "t = ln 10 / k = 2.303 / 0.0693 = 33 minutes.",
+   "section": "A worked problem: timing securin destruction"
+  },
+  {
+   "id": "checkpoints-c38",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a variant made-up cell, fluorescent securin falls to 50 percent of its metaphase value 5 minutes after metaphase and keeps decaying exponentially. How long until it is below 10 percent?",
+   "back": "k = 0.693 / 5 = 0.139 per minute. t = ln 10 / k = 2.303 / 0.139 = about 16.6 minutes.",
+   "why": "Same first-order method as the 10-minute half-life example, which gave 33 minutes.",
+   "quote": "Half-life: 0.693 / 0.0693 = 10 minutes.",
+   "section": "A worked problem: timing securin destruction"
+  },
+  {
+   "id": "checkpoints-c39",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the made-up securin time course (half-life 10 minutes), the spindle poison nocodazole is added at 10 minutes, when fluorescence is 50. Predict fluorescence over the next 20 minutes.",
+   "back": "It should stay near 50 if the checkpoint switches back on quickly: kinetochores are unattached again, the MCC holds APC/C-Cdc20 back, and destruction stops. With no stop it would reach 12.5 by 30 minutes.",
+   "quote": "It should stay near 50, if the checkpoint switches back on quickly.",
+   "section": "A worked problem: timing securin destruction"
+  },
+  {
+   "id": "checkpoints-c40",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "HeLa cells express a securin with a mutated destruction box (D-box), the short sequence APC/C recognizes. Predict its fluorescence at metaphase and the effect on sister chromatids.",
+   "back": "It does not fall at metaphase, and sister chromatid separation is inhibited.",
+   "why": "It was degraded later, in anaphase, through a second APC/C recognition sequence, the KEN box.",
+   "quote": "A D-box mutant securin would not fall at metaphase; in HeLa cells such a mutant inhibited sister chromatid separation.",
+   "section": "A worked problem: timing securin destruction"
+  },
+  {
+   "id": "checkpoints-c41",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "RNAi against protein Z lengthens mitosis. The delay disappears when Mad2 is also depleted, and Z-depleted cells still arrest in nocodazole. Is Z a checkpoint component or an attachment protein?",
+   "back": "An attachment protein. Unattached kinetochores keep signalling, so mitosis lengthens; the delay needs the checkpoint, so removing Mad2 collapses it, and the nocodazole arrest stays intact.",
+   "quote": "That delay should collapse if Mad2 is depleted as well, because the delay needs the checkpoint.",
+   "section": "Design problem"
+  },
+  {
+   "id": "checkpoints-c42",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "RNAi against protein Z shortens mitosis, and Z-depleted cells leave nocodazole arrest. What does this suggest about Z, and what control guards against a misleading weak arrest?",
+   "back": "Z behaves like Mad2, a checkpoint component. Measure how long cells stay arrested, not only whether they leave, since a strong checkpoint can look weak when cells slip out by slow cyclin B loss.",
+   "why": "Rescue with an RNAi-resistant Z shows the effect is Z's.",
+   "quote": "Mitosis may get shorter, as it did after anti-Mad2 injection, and Z-depleted cells cannot stay arrested in nocodazole.",
+   "section": "Design problem"
+  },
+  {
+   "id": "checkpoints-c43",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What happens to mouse embryo cells lacking Mad2, even without spindle damage?",
+   "back": "They grow normally at first, but once the epiblast divides rapidly they missegregate chromosomes and die. Mad2 is needed in every cycle, not only in emergencies.",
+   "quote": "Mouse embryo cells lacking Mad2 grow normally at first, but once the epiblast starts dividing rapidly they missegregate chromosomes and die, even without spindle damage.",
+   "section": "When checkpoint proteins are needed in every cycle"
+  },
+  {
+   "id": "checkpoints-c44",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In budding yeast, MEC1 and RAD53 are essential. Deleting SML1, an inhibitor of ribonucleotide reductase, suppresses their lethality. What does this show?",
+   "back": "Their essential job is mainly supplying DNA building blocks (dNTPs), not making the cell wait.",
+   "quote": "Their lethality is suppressed by deleting SML1, an inhibitor of ribonucleotide reductase, so their essential job is mainly supplying DNA building blocks (dNTPs) rather than making the cell wait.",
+   "section": "When checkpoint proteins are needed in every cycle"
+  },
+  {
+   "id": "checkpoints-c45",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Cultured human cells with no added damage are treated with an ATR inhibitor during ordinary S phase. Predict their mitotic timing.",
+   "back": "They enter mitosis early with under-replicated DNA. ATR, activated by ETAA1, normally holds back a CDK1-driven switch on FOXM1 until S phase ends.",
+   "quote": "when ATR was inhibited, cells entered mitosis early with under-replicated DNA.",
+   "section": "When checkpoint proteins are needed in every cycle"
+  },
+  {
+   "id": "checkpoints-c46",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A human cell expresses a Cdc25A that cannot be ubiquitinated but has normal p53. It is irradiated in G1. Predict the early and later response.",
+   "back": "The fast G1 arrest should fail, since Cdc25A is not destroyed and keeps activating Cdk2. By inference from the two routes, a slower arrest could still come from p53 inducing p21, which blocks cyclin E-Cdk2.",
+   "why": "G1 has two routes: fast Cdc25A destruction with no new gene expression, and slow p53-p21 transcription.",
+   "quote": "This step needs no new gene expression and, in the classic experiment, no p53 (Going deeper).",
+   "section": "Damage and replication: kinases that keep a CDK off"
+  }
+ ]
+}

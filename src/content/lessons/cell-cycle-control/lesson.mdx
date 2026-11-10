@@ -4,13 +4,13 @@ slug: "cell-cycle-control"
 course: "cell-biology"
 courseChapter: "Cell Biology · Unit 4: Division and cell loss"
 order: 417
-summary: "Every eukaryotic cell cycle runs on one conserved engine: a cyclin-dependent kinase (CDK) switched on by a cyclin partner whose level rises and falls. This lesson builds that engine first: which cyclin-CDK pairs act where, how Wee1, Cdc25 and inhibitor proteins hold it off, how checkpoints keep it waiting until growth signals are present, DNA is copied and intact and chromosomes are attached, and how the SCF and APC/C destroy regulators so each step runs one way. It then shows the evidence: cell fusion, which revealed that a genome is copied once per cycle, and the frog, yeast and sea-urchin experiments that met in one complex, CDK1 with cyclin B. Last, it measures the phases with DNA content, EdU and a mitotic marker, and shows why the fraction of cells in a phase is not the length of that phase."
+summary: "Every eukaryotic cell cycle runs on one conserved engine: a cyclin-dependent kinase (CDK) switched on by a cyclin partner. This lesson starts from the record that revealed it, a cyclin that builds up and is destroyed at every division, and follows one organizing idea: CDK activity rises and falls once per cycle. Rising activity, held back by Wee1, inhibitor proteins and checkpoints, carries the cell into mitosis. At the metaphase-to-anaphase transition the APC/C tags securin, so the sisters separate, and cyclin B, so activity falls; low activity carries the cell out of mitosis and lets the replication origins reset, so the genome is copied once. It then shows how frog, yeast and sea-urchin work found the engine, and measures the phases with DNA content, EdU and a mitotic marker, showing why the fraction of cells in a phase is not the length of that phase."
 hook: "From yeast to humans, one kinase family drives every cell cycle, and it works only while a partner protein is present. Why would a cell destroy that partner every time it divides?"
 
 estMinutes: 24
 objectives:
   - "Explain the cyclin-CDK engine: CDKs are the kinases and are inactive alone, cyclins rise and fall to switch them on, and in mammals particular cyclin-CDK pairs usually act in G1, at G1/S, in S and in G2 and M."
-  - "Explain how the engine is held and reset: Wee1 and Cdc25 set and remove an inhibitory phosphate, CDK inhibitors bind, checkpoints hold progression when growth signals are lacking, DNA is damaged or incompletely copied, or chromosomes are unattached, and the SCF and APC/C ubiquitin ligases destroy regulators so transitions run one way."
+  - "Explain how the engine is held and reset: Wee1 and Cdc25 set and remove an inhibitory phosphate, CDK inhibitors bind, a commitment point in G1 waits for growth signals, checkpoints hold progression when DNA is damaged or incompletely copied or chromosomes are unattached, and the SCF and APC/C ubiquitin ligases destroy regulators so the big transitions run one way."
   - "Interpret cell-fusion, cytoplasm-transfer and temperature-sensitive mutant experiments, including why a replicated nucleus does not copy again and the difference between an execution point and an arrest point."
   - "Describe G1, S, G2, M and G0, and identify them by DNA content (2C and 4C in a diploid cell), EdU incorporation and phosphorylated histone H3, saying which states a DNA histogram alone cannot separate."
   - "Calculate phase durations from phase fractions in an exponentially growing culture, and explain why multiplying a fraction by the doubling time gives the wrong answer."
@@ -20,7 +20,7 @@ explainer:
   captions: "/explainers/cell-cycle-control/explainer.vtt"
   poster: "/explainers/cell-cycle-control/poster.jpg"
   title: "The Cyclin-CDK Engine"
-  durationSec: 151.2
+  durationSec: 314.6
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
 
@@ -363,42 +363,138 @@ draft: false
 
 import CycleFractionsToDurations from '../../../components/CycleFractionsToDurations.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**Every eukaryotic cell, from yeast to human, runs its cycle on one conserved engine: a cyclin-dependent kinase, or CDK, that works only while a cyclin partner is bound. The cell makes cyclin and the kinase switches on; it destroys cyclin and the kinase switches off.**
+**In the summer of 1982, at Woods Hole, Tim Hunt's group found a protein in dividing sea-urchin eggs that built up through each cell cycle and vanished at every division.**
 
-That engine has two jobs to get right. The genome must be copied exactly once, and the copies must be split safely between two cells. So the engine comes with brakes that hold it off, checkpoints that keep it waiting until a step is done, and protein destruction that resets it and makes each step one way. This lesson builds that model first, then shows the experiments that found it, and ends with how you measure which phase a cell is in.
+They named it cyclin. Every eukaryotic cell, from yeast to human, runs its cycle on the engine that protein belongs to: a cyclin-dependent kinase, or CDK, that works only while a cyclin is bound. So why would a cell destroy its engine's partner every time it divides? The answer is how a cell makes its cycle run forwards only, and copy its genome exactly once.
 
-## One engine: a kinase whose partner rises and falls
+## The record: a sawtooth and a snap
+
+Picture two schematic traces on one time axis, for a cycle with strong brake control, such as the first cycle of a frog embryo or the frog egg extracts met below. The exact waveform depends on organism and stage; later rapid frog cleavage cycles show smoother kinase oscillations.
+
+- **Cyclin.** The level climbs steadily through each interphase and drops sharply at each division: a sawtooth. The eggs make it all the time. It falls because it is destroyed.
+- **Kinase activity.** The activity of the mitotic kinase that cyclin switches on (first measured as an activity called MPF, maturation-promoting factor) does not follow the ramp. It stays low through most of interphase, can snap up abruptly just before mitosis, and crashes as cyclin is destroyed.
+
+<LessonFigure src="/figures/cell-cycle-control/sawtooth-and-snap.webp" width={1200} height={676} alt="AI-generated illustration: two schematic traces over three cell cycles on one time axis. The upper trace, cyclin level, climbs steadily through each interphase and drops sharply at each M. The lower gold trace, CDK1 activity, stays low through most of interphase, jumps abruptly just before M, and crashes at the same moment cyclin drops." caption="Cyclin climbs steadily and is destroyed at each division, but the kinase it switches on stays low, then snaps on just before mitosis and crashes as cyclin goes. A schematic, not data: the exact waveform depends on organism and stage." />
+
+The two traces pose three puzzles.
+
+1. Why does the kinase need cyclin at all?
+2. If cyclin climbs steadily, why does activity lag behind and then jump?
+3. Why does the cell destroy cyclin to end mitosis, instead of simply switching the kinase off?
+
+One idea answers all three.
+
+> **The one idea to carry through this lesson.** CDK activity rises and falls once per cycle. Rising activity carries the cell from G1 through S and into mitosis; brakes and checkpoints decide when it may rise. At the metaphase-to-anaphase transition one enzyme, the APC/C, tags two targets for destruction: securin, so the sister chromatids separate, and cyclin B, so activity falls and the cell can leave mitosis. Low activity resets the replication origins and high activity starts copying, so the genome is copied once per cycle.
+
+This is an organizing model, not a single dial. "CDK activity" stands for several cyclin-CDK pairs that rise in turn (the table below), and phosphatases, checkpoints and protein destruction shape each step. The closest thing to a single dial is a fission-yeast cell engineered to run on one fused cyclin-CDK: S phase starts at a lower level of its activity and mitosis at a higher one. Meiosis and endocycles (cycles that copy DNA without dividing) bend the pattern, and endocycles turn out to test it (Copy once, below). The two-and-a-half-minute film at the top recaps the whole engine; it works best after The fall.
+
+## The engine: a kinase and a partner that comes and goes
 
 The cycle has four phases. G1 is the gap between mitosis and the start of DNA replication. In S phase the genome is copied (the mechanics belong to [DNA replication](/lessons/dna-replication/)). G2 is the gap after copying and before mitosis. In M phase, mitosis sorts the duplicated chromosomes into two nuclei, and cytokinesis, the split of the cell itself, usually follows. Mammalian cells can also leave G1 for G0, a resting state they enter when conditions change and can leave again.
 
-**CDKs** (cyclin-dependent kinases) are the catalytic subunits, and they are inactive alone. **Cyclins** are regulatory subunits that switch them on and steer them to targets. Full activity also needs an activating phosphate added by a CDK-activating kinase (CAK). Cyclin levels rise and fall through the cycle while CDK levels stay fairly even, so the rise and fall of each cyclin switches its kinase on and off.
+**CDKs** (cyclin-dependent kinases) are the catalytic subunits, and they are inactive alone. **Cyclins** are regulatory subunits that switch them on and steer them to targets. That answers the first puzzle. CDK levels stay fairly even while most cyclin levels rise and fall (cyclin D tracks growth signals most closely), so the rise and fall of each cyclin switches its kinase on and off. A bound cyclin is needed but not enough.
 
-In mammals, cyclin D with CDK4 or CDK6 acts in G1, cyclin E with CDK2 at the G1/S transition, cyclin A with CDK2 in S, and cyclins A and B with CDK1 in G2 and M. This is the usual division of labour, not a strict requirement: CDKs can stand in for one another (see Going deeper). Growth-factor signals reach cyclin D (see [Ras to MAPK](/lessons/ras-to-mapk/)), and the Rb brake it releases is in [cancer genetics](/lessons/cancer-genetics/).
+Different cyclin-CDK pairs carry the rise through different stretches of the cycle. In mammals:
 
-<LessonFigure src="/figures/cell-cycle-control/cyclin-cdk-ring-map.webp" width={1200} height={747} alt="AI-generated illustration: a ring of four phases G1, S, G2 and M with a cyclin-CDK block pair at each stage and two ubiquitin ligases, SCF near G1/S and APC/C at the end of M." caption="Which cyclin-CDK pair acts where, in mammals. Cyclin levels rise and fall while CDK levels stay fairly even; the SCF acts at several points, notably around G1/S, and the APC/C ends M phase by destroying cyclin B." />
+| Stretch of the cycle | Cyclin | CDK |
+|---|---|---|
+| G1 | D | CDK4 or CDK6 |
+| G1/S transition | E | CDK2 |
+| S | A | CDK2 |
+| G2 and M | A and B | CDK1 |
 
-The mitotic pair has an older name. Maturation-promoting factor, or MPF, the activity that makes frog oocytes mature and is also found in mitotic cells, is CDK1 (first named Cdc2, from fission yeast) bound to cyclin B. The engine is conserved: a budding-yeast gene and a human gene can each stand in for the fission-yeast one. The experiments that showed this come later in the lesson.
+This is the usual division of labour, not a strict requirement: CDKs can stand in for one another (Going deeper).
 
-## Brakes, checkpoints and a one-way reset
+<LessonFigure src="/figures/cell-cycle-control/cyclin-cdk-ring-map.webp" width={1200} height={800} alt="AI-generated illustration: the cell cycle as a ring of four phases, G1, S, G2 and M, with a gold band for CDK activity that widens through G1, S and G2, steps wider just before mitosis and is cut off late in M. Cyclin-CDK pairs sit at their stages; Wee1 holds CDK1 in G2, the SCF destroys p27 near G1/S, and the APC/C tags securin and cyclin B in M." caption="CDK activity rises and falls once per cycle: successive cyclin-CDK pairs carry the rise, brakes such as Wee1 and the inhibitor p27 (destroyed by the SCF around G1/S) hold it back, it can snap on to enter mitosis, and the APC/C ends it by tagging securin and cyclin B. A schematic of mammalian cells; the pairings are the usual division of labour, not a strict rule." />
 
-**Brakes.** Wee1 (with the related kinase Myt1 in animal cells) adds an inhibitory phosphate to CDK1, holding the complex off while cyclin accumulates; the phosphatase Cdc25 removes it (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)). CDK inhibitor proteins, such as p21 and p27 in mammals, bind CDK2 and CDK1 complexes and block them. (With cyclin D-CDK4/6 they act differently; see Going deeper.)
+The mitotic pair has an older name. MPF, the activity that makes frog oocytes mature and is also found in mitotic cells, is CDK1 (first named Cdc2, from fission yeast) bound to cyclin B.
 
-**A switch.** Active CDK1 also activates Cdc25 and inhibits Wee1, two positive loops that make mitotic entry a switch ([signaling circuits](/lessons/signaling-circuits/)). Once entry starts, the switch is all or none. In frog egg extracts, entering mitosis took more cyclin B than staying in it, so the extract's state depended on where it had come from.
+## Holding the rise back, and letting it go
 
-**Checkpoints.** Brakes let a cell wait; checkpoints decide when it must. Leland Hartwell and Ted Weinert named them checkpoints: controls that hold the cycle until a step is finished. At the restriction point in G1 (Start in yeast), a cell commits to dividing only if it has enough nutrients and growth factors. In G2, if DNA is damaged or replication is incomplete, checkpoint pathways act on Wee1 and Cdc25 and keep CDK1 off, so the cell does not enter mitosis; in frog egg extracts, unreplicated DNA raised the amount of cyclin needed to enter. In mitosis, the spindle assembly checkpoint holds back the APC/C until every chromosome is attached to the spindle. Each checkpoint works by acting on the engine.
+Now the second puzzle: if cyclin B climbs steadily and switches CDK1 on, why does activity lag and then jump? Because a cyclin-CDK pair can be built and still be held off. To be active, CDK1 needs four things at once:
 
-**Destruction.** Two ubiquitin ligases tag regulators for destruction by the proteasome ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)). The SCF acts at several points, notably around G1/S. The APC/C acts from mitosis through G1: with Cdc20 it targets securin, which lets sister chromatids separate, and then cyclin B, which ends M phase; with Cdh1 it keeps mitotic cyclins low through G1. A destroyed protein cannot be switched back on; it has to be made again. That is what makes each transition one way and resets the engine for the next cycle.
+- a cyclin bound;
+- an **activating phosphate**, which a CDK-activating kinase (CAK) adds to a loop near the active site;
+- **no inhibitory phosphates**: Wee1 adds one near the ATP site, on tyrosine 15, and in animal cells the related kinase Myt1 adds one on threonine 14 as well as tyrosine 15;
+- **no inhibitor protein** bound.
 
-The evidence is direct. In frog egg extracts that cycle in a tube, a cyclin that could not be destroyed held the extract in mitosis. Making cyclin drives entry; destroying it permits exit.
+The names to hold on to are the brake, Wee1, and its release, Cdc25; the rest is detail.
 
-## Copy once: what cell fusion revealed
+**The inhibitory phosphate is a brake.** All through G2, Wee1 keeps phosphorylating the new CDK1-cyclin B complexes as they form, so inactive complexes pile up, loaded and waiting. The phosphatase Cdc25 takes the phosphates off and releases them (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)).
 
-Fuse a cell that is copying its DNA with a cell that has not started yet, and the second nucleus begins copying early. Fuse it with a cell that has already finished, and that nucleus refuses. Something in the cytoplasm says "copy now", and something in the nucleus remembers whether it already has.
+**Inhibitor proteins are a second brake.** In mammals, p21 and p27 bind CDK2 and CDK1 complexes and block them without any chemistry; the structure of p27 lying across cyclin A-CDK2 is in the 3D viewer on this page. (With cyclin D-CDK4/6 they act differently; Going deeper.) One important way to remove an inhibitor is to destroy it. Around G1/S, cyclin E-CDK2 phosphorylates p27, the SCF ubiquitin ligase tags it for the proteasome (Sic1 is the yeast counterpart), and with its brake gone cyclin E-CDK2 switches fully on.
 
-In 1970 Rao and Johnson fused cultured HeLa cells taken from different phases, so that two nuclei shared one cytoplasm. As later reviews describe the results, a G1 nucleus in a cell fused with an S-phase cell started replicating early, while a G2 nucleus in the same situation did not. Two conclusions follow. S-phase cytoplasm carries an activity that can start replication. And a nucleus that has already replicated cannot respond until it has been through mitosis, which is how DNA gets copied once per cycle and no more. Part of the molecular basis is licensing: replication origins are licensed only in late mitosis and G1. In yeast, high CDK activity from S phase to mitosis blocks relicensing, and animal cells add other blocks, so a replicated nucleus cannot be licensed again until it has been through mitosis (the details belong to [DNA replication](/lessons/dna-replication/)).
+**The release is a switch.** Once a little CDK1 escapes its brake, it phosphorylates Cdc25, making it more active, and Wee1, making it less active. These two positive loops mean each active complex frees more, so activity does not creep up; it snaps, all or none. That is the jump in the trace. A switch built this way also has memory: once mitosis starts, a small dip in cyclin will not reverse it ([signaling circuits](/lessons/signaling-circuits/)).
 
-Fusing a mitotic cell with an interphase cell had a different outcome: the interphase nucleus condensed its chromosomes prematurely (Johnson and Rao, 1970), and how the chromosomes looked depended on the phase of that nucleus. Mitotic cytoplasm is dominant. Read this in light of the engine: mitotic cytoplasm is full of active CDK1-cyclin B, which, with the kinases and phosphatases it controls, can condense an interphase nucleus from G1, S or G2.
+**Predict.** A fission-yeast cell is engineered to make much more Cdc25 than normal. When does it divide, and at what size?
+
+<details>
+<summary>Check your prediction</summary>
+
+Earlier and smaller. With more of the phosphatase, the brake comes off before the cell reaches its usual size, CDK1 snaps on early, and the cell enters mitosis small. Losing Wee1 gives the same result, which is how that gene got its name: *wee*.
+
+</details>
+
+### A decision in G1
+
+Before any of this, a cell in G1 has to decide whether to divide at all. That decision is the **restriction point** (in yeast, **Start**), and a cell passes it only if it has enough nutrients and growth factors. Growth-factor signals raise cyclin D ([Ras to MAPK](/lessons/ras-to-mapk/)). Cyclin D-CDK4/6 begins to phosphorylate **Rb**, a protein that holds the E2F transcription factors off. Freed E2F switches on genes for S phase, including cyclin E, and cyclin E-CDK2 phosphorylates Rb further. In the classical model that loop is another switch: once it flips, the cell finishes the cycle even if the growth factors are taken away (later work adds a second switch; see Going deeper). Rb's role in cancer is in [cancer genetics](/lessons/cancer-genetics/). The film lists this decision among the checkpoints; strictly, it is a commitment point, not a check that a step is finished.
+
+### Checkpoints pull the same levers
+
+A **checkpoint**, in Leland Hartwell and Ted Weinert's term, holds the cycle until an earlier step is finished or repaired. The three you need all act on the engine:
+
+- **DNA damage in G1.** p53 builds up and switches on the gene for p21. p21 binds and blocks CDK2 complexes, and the cell waits in G1.
+- **Damaged or unfinished DNA in G2.** The sensor kinases ATM and ATR, through Chk1 and Chk2, inactivate Cdc25 (and Chk1 activates Wee1), so CDK1 keeps its inhibitory phosphate and the cell waits in G2. In frog egg extracts, unreplicated DNA raised the amount of cyclin needed to enter mitosis.
+- **An unattached chromosome in mitosis.** Unattached kinetochores, the sites where chromosomes grip the spindle, switch on the spindle assembly checkpoint. It stops the APC/C and its partner Cdc20 from destroying securin and cyclin B, so the cell waits before anaphase, often in prometaphase. Attachment normally silences the signal, but some errors escape it: a merotelic kinetochore, gripped from both poles, can silence it and enter anaphase misattached. (Some other APC/C targets, such as cyclin A, are still destroyed.)
+
+**Predict.** Cells lacking p53 are irradiated in G1. What happens to them?
+
+<details>
+<summary>Check your prediction</summary>
+
+They lose the main burst of p21, so the lasting G1 stop fails and many enter S phase with damaged DNA. Other damage responses can delay them briefly, and they can still be stopped later, at the G2 checkpoint, which acts through Cdc25 and Wee1. Losing the G1 stop is one reason p53 is the most often mutated gene in human cancers.
+
+</details>
+
+## The fall: destruction makes it one way
+
+Falling activity carries the cell out of mitosis. The G1 and G2 brakes and checkpoints act on the rise, and the spindle checkpoint holds back the fall. Each is a pause: a phosphate can be removed, an inhibitor let go, a checkpoint silenced. The way down is different, and it answers the third puzzle. Two ubiquitin ligases tag regulators for destruction by the proteasome ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)): the SCF, met above, and the APC/C, which acts from mitosis through G1. Once kinetochore checkpoint signaling has been silenced, the APC/C with Cdc20 tags securin and cyclin B. Losing securin frees separase, the enzyme that cuts cohesin, the protein ring holding sister chromatids together, so the sisters separate (in vertebrates, losing cyclin B also lifts CDK1's own block on separase). Losing cyclin B drops CDK1 activity, phosphatases strip the mitotic phosphates, and the cell leaves mitosis. Then the APC/C with Cdh1 keeps mitotic cyclins low through G1, so activity starts the next cycle from the bottom.
+
+<LessonFigure src="/figures/cell-cycle-control/apcc-two-targets.webp" width={1200} height={676} alt="AI-generated illustration: three steps. First, a metaphase cell with every chromosome attached to the spindle. Second, the APC/C with Cdc20 adding ubiquitin chains to two targets, securin bound to separase and cyclin B bound to CDK1. Third, freed separase cuts the cohesin ring so sister chromatids separate, and cyclin B is broken down in the proteasome, leaving CDK1 inactive." caption="Once the spindle checkpoint is silenced, the APC/C with Cdc20 tags two targets: securin, so separase cuts cohesin and the sisters separate, and cyclin B, so CDK1 activity falls and the cell leaves mitosis. A destroyed protein has to be made again, which helps make the step run one way." />
+
+A destroyed protein cannot be switched back on; it has to be made again. Destruction, together with feedback switches, is a main reason the cycle's big transitions run one way (at G1/S the Rb-E2F switch adds its own memory). Destroying a brake drives the cycle forward; destroying cyclin resets it.
+
+In frog egg extracts that cycle in a tube, a cyclin that could not be destroyed held the extract in mitosis. Making cyclin drives entry; destroying it permits exit. A second test asks whether low activity alone would do.
+
+**Predict.** Vertebrate cells in mitosis are blocked from destroying cyclin B. A drug that inhibits CDK1 is added briefly, and they start to leave mitosis. Then the drug is washed out. What happens?
+
+<details>
+<summary>Check your prediction</summary>
+
+They go back toward mitosis. Cyclin B was never destroyed, so once the drug was gone CDK1 switched back on. After a short treatment, low activity on its own was only a pause; destroying cyclin is what normally keeps activity low and makes the exit one way. Longer inhibition can lock cells out of mitosis even with cyclin B present, so feedback helps too (Potapova and colleagues: Nature, 2006, and 2009).
+
+</details>
+
+## Copy once: low activity licenses, high activity fires
+
+Before an origin of replication can fire, it must be **licensed**: loaded with the helicase that will later unwind the DNA there. Licensing happens only while CDK activity is low, in late mitosis and G1. Firing a licensed origin needs S-phase CDK activity, together with a second kinase, DDK. High CDK activity from S phase to mitosis also blocks relicensing in yeast, and contributes in animal cells, which add further locks, such as the protein geminin and destruction of the licensing protein Cdt1 (the details belong to [DNA replication](/lessons/dna-replication/)). So an origin can fire at most once per cycle; many licensed origins never fire and are copied by forks from their neighbours. In an ordinary cycle the way back to low activity, and to new licences, is through mitosis, where cyclin is destroyed. The prediction below shows another way.
+
+<LessonFigure src="/figures/cell-cycle-control/licensing-low-vs-high.webp" width={1200} height={800} alt="AI-generated illustration: two panels. Left, under low CDK activity in G1, helicase rings are loaded onto replication origins along a DNA strand. Right, under high CDK activity from S to M, two origins have fired and opened replication bubbles, a third licensed origin is passed over by a neighbouring fork, and no new helicase can be loaded." caption="Licensing needs low CDK activity and firing needs high activity, so an origin can fire at most once per cycle; new licences wait until activity falls again, normally at the exit from mitosis." />
+
+**Predict.** Fission-yeast cells lack their mitotic B-cyclin, Cdc13. They finish S phase, but CDK activity then falls without any mitosis. What happens to their DNA?
+
+<details>
+<summary>Check your prediction</summary>
+
+They copy it again. With activity low, the origins are licensed afresh; when activity rises, they fire, and the cells run through repeated S phases without dividing. Cells that overproduce the CDK inhibitor Rum1 do the same (Hayles and colleagues, 1994; Moreno and Nurse, 1994). Some normal cells use this on purpose: endocycles are the natural version.
+
+</details>
+
+Before anyone knew of CDKs, cell fusion showed that a replicated nucleus does not simply start again. In 1970 Rao and Johnson fused cultured HeLa cells taken from different phases, so that two nuclei shared one cytoplasm. As later reviews describe the results, a G1 nucleus in a cell fused with an S-phase cell started replicating early, while a G2 nucleus in the same situation did not. Two conclusions follow. S-phase cytoplasm carries an activity that can start replication, which in the rule's terms fires the origins a G1 nucleus has licensed. And under these fusion conditions a G2 nucleus did not start another round, which fits licensing: its fired origins cannot be licensed again until activity falls, normally at mitotic exit (the Cdc13 and Rum1 cells and endocycles show it can happen without mitosis).
+
+Fusing a mitotic cell with an interphase cell had a different outcome: the interphase nucleus condensed its chromosomes prematurely (Johnson and Rao, 1970), and how the chromosomes looked depended on the phase of that nucleus. Mitotic cytoplasm is dominant: it is full of active CDK1-cyclin B, which, with the kinases and phosphatases it controls, can condense an interphase nucleus from G1, S or G2.
 
 ### Design problem
 
@@ -413,7 +509,7 @@ Fuse S with G1, and S with G2. Give a short pulse of a DNA precursor (radioactiv
 
 Controls: same-phase fusions, where G1 with G1 and G2 with G2 test whether fusion itself starts replication and S with S tests whether fusion blocks it, plus unfused neighbours on the same slide.
 
-Interpretation: S cytoplasm carries a replication-starting activity, and a nucleus that has replicated cannot answer it again before mitosis. A third pairing, mitotic with interphase, should give premature chromosome condensation, with an appearance that depends on the phase of the interphase nucleus.
+Interpretation: S cytoplasm carries a replication-starting activity, and under these fusion conditions a replicated G2 nucleus does not initiate another round in S-phase cytoplasm. A third pairing, mitotic with interphase, should give premature chromosome condensation.
 
 Limit: fusion identifies an activity and a nuclear competence, not the molecules. Naming them needs biochemistry or genetics.
 
@@ -421,19 +517,11 @@ Limit: fusion identifies an activity and a nuclear competence, not the molecules
 
 ## How the engine was found: frogs, yeast and sea urchins
 
-The model came from three lines of work that began apart and met in one complex.
+The model came from three lines of work that began apart and met in one complex. Frog oocytes gave an activity: in 1971 Yoshio Masui and Clement Markert injected cytoplasm from progesterone-treated oocytes into untreated ones, which then matured, and named the activity maturation-promoting factor (MPF). Like cell fusion, this revealed an activity, not a molecule. Yeast genetics gave the genes: budding-yeast *CDC28*, needed at Start, and fission-yeast *cdc2*, an accelerator needed both in G1 and in G2, with *wee1* as its brake; *CDC28* and then a human gene could each stand in for *cdc2*. Sea urchins gave cyclin (published in 1983), which the frog egg-extract tests in The fall confirmed in 1989. The lines met in 1988, when highly purified MPF from *Xenopus* eggs proved to contain the frog relative of Cdc2, and in 1990, when its other component proved to be cyclin B.
 
-A frog oocyte waits in prophase of its first meiotic division until progesterone tells it to resume. In 1971 Yoshio Masui and Clement Markert took cytoplasm from progesterone-treated oocytes of the leopard frog *Rana pipiens* and injected it into untreated oocytes, which then matured. Removing the donor's nucleus did not prevent the activity. They called it maturation-promoting factor (MPF), and it was later found in mitotic cells too. Like cell fusion, this revealed an activity, not a molecule.
+One idea from the yeast work is still how mutants are read. In 1970 Leland Hartwell, Joseph Culotti and Brian Reid described temperature-sensitive mutants of budding yeast, *Saccharomyces cerevisiae*, that grow at a low temperature and stop at a higher one, each with a uniform shape. They called them cdc, for cell division cycle. The bud reports the stage: none in G1, small in S, large by mitosis.
 
-In 1970 Leland Hartwell, Joseph Culotti and Brian Reid described temperature-sensitive mutants of budding yeast, *Saccharomyces cerevisiae*, that grow at a low temperature and stop at a higher one, each with a uniform shape. They called them cdc, for cell division cycle. The bud reports the stage: none in G1, small in S, large by mitosis.
-
-Their key idea was to separate two times. A car that runs out of fuel stops where the tank ran dry, not at the station you drove past. The **execution point** is when a gene's function is normally performed. The **termination point**, or arrest point, is where cells collect when it is not. Shift a growing culture to the restrictive temperature and follow single cells: cells already past the execution point finish this cycle and stop in the next, while cells not yet past it stop in this one. The fraction that finishes tells you where the execution point lies. The budding-yeast gene that matters here is *CDC28*, needed at Start, the commitment point in G1.
-
-Paul Nurse used fission yeast, *Schizosaccharomyces pombe*, a rod that divides in the middle, so length tells you its age. In 1975 he described a mutant that divided at a smaller size than normal. The mutation changed when division happened, not whether. Most later small-cell mutants mapped to a gene named *wee1*; one mapped to *cdc2*, whose other alleles block mitosis. So *cdc2* behaves as an accelerator and *wee1* as a brake. *cdc2* acts both in G1 and in G2. In 1982 budding-yeast DNA carrying *CDC28* rescued a fission-yeast *cdc2* mutant: two distant yeasts, one job. In 1987 a human gene did the same.
-
-In 1983 Tim Hunt's group followed new proteins in dividing embryos of the sea urchin *Arbacia punctulata*. One built up through each cycle and was destroyed at each division; they named it cyclin. Disappearing at division is a correlation, so tests came next. In *Xenopus* egg extracts that cycle in a tube, destroying the messenger RNA stopped the cycles in interphase and adding back cyclin mRNA restored them (Murray and Kirschner, 1989), and the nondegradable cyclin described above held the extract in mitosis.
-
-The lines met in 1988, when highly purified MPF from *Xenopus* eggs proved to contain the frog relative of Cdc2. In 1990 its other component proved to be cyclin B. MPF is Cdc2, now called CDK1, bound to cyclin B.
+Their key idea was to separate two times. Picture a car that must fill up at one station on every lap. If the station closes just after the car has filled up, it finishes this lap and stalls on the next; if it closes just before, the car stalls later on this lap, well past the station. The station is the **execution point**: the last time in the cycle the gene's function is needed. Where the car stalls is the **termination point**, or arrest point: where cells collect when the function fails. Shift a growing culture to the restrictive temperature and follow single cells: the fraction that finishes this cycle tells you where the execution point lies.
 
 ## Measuring the states
 
@@ -449,17 +537,49 @@ The numbers here are illustrative. Suppose an asynchronous culture of a diploid 
 
 **Step 1.** Fractions: G1 0.55, S 0.25, G2 plus M 0.20, of which M is 0.03.
 
-**Step 2.** The tempting move is to multiply by 24 h: 13.2, 6.0 and 4.8 h. That is wrong. Each division turns one old cell into two newborn ones, so a growing culture always holds twice as many cells just born as cells about to divide. Early phases are overrepresented.
+**Predict.** G1 holds 55% of the cells, and the culture doubles every 24 h. Does G1 last 13.2 h (0.55 × 24), more, or less?
 
-**Step 3.** For a culture in steady exponential growth, the time a cell takes to pass the first fraction F of the population, ordered by age, is
+<details>
+<summary>Check your prediction</summary>
 
-> t = -T × log2(1 - F/2), where T is the doubling time
+Less: about 11.1 h. Multiplying by 24 h (13.2, 6.0 and 4.8 h for the three fractions) is the tempting move, and it is wrong. Each division turns one old cell into two newborn ones, so a growing culture always holds twice as many cells just born as cells about to divide. Early phases are overrepresented, so G1's share of the cells is bigger than its share of the time.
 
-- End of G1 (F = 0.55): t = -24 × log2(0.725) = 24 × 0.464 = 11.13 h.
+</details>
+
+**Step 2.** Line the cells up by age, newborn on the left: the line slopes down to half its height at division, and that slope gives a formula.
+
+<EquationCard
+  purpose="How long after birth a cell takes to get past the youngest fraction F of a steadily growing culture, which turns a phase fraction into a time."
+  eq="t = −T × log2(1 − F/2)"
+  say="The time to pass the youngest fraction F equals minus the doubling time, times the base-two log of one minus half of F."
+  symbols={[
+    ["t", "t", "the time from a cell's birth to the boundary that has the fraction F of all cells younger than it", "h"],
+    ["T", "T", "the doubling time of the culture, which here is also the length of one cycle", "h"],
+    ["F", "F", "the fraction of the population younger than the boundary; for the end of G1, the fraction in G1", "0 to 1"],
+    ["log2", "log base two", "the power you must raise 2 to in order to get the number in brackets", ""],
+  ]}
+  toolkit={["powers", "log-scales"]}
+  check="At F = 0, t = 0. At F = 1 the bracket is one half, log2(0.5) = −1, and t = T: the oldest cells are just dividing. At F = 0.5, t is about 0.415 × T, less than half the cycle, because young cells are overrepresented."
+>
+  <Fragment slot="example">
+    <p>End of G1 in the worked problem: F = 0.55 and T = 24 h.</p>
+    <p>1 − F/2 = 1 − 0.275 = 0.725, and log2(0.725) = −0.464.</p>
+    <p>t = −24 × (−0.464) = 11.13 h.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, the picture: cells of age a were born when the culture was smaller by a factor of 2^(a/T), so the number of cells of age a is proportional to 2^(−a/T). Newborns (a = 0) are twice as common as cells about to divide (a = T).</p>
+    <p>Step 2, add up the cells younger than t and divide by all cells: F = 2 × (1 − 2^(−t/T)).</p>
+    <p>Step 3, solve for t: 2^(−t/T) = 1 − F/2, so t = −T × log2(1 − F/2).</p>
+  </Fragment>
+</EquationCard>
+
+**Step 3.** Apply it at each boundary, using the cumulative fraction of cells younger than that boundary.
+
+- End of G1 (F = 0.55): 11.13 h, as in the example above.
 - End of S (F = 0.80): t = -24 × log2(0.600) = 17.69 h, so S lasts about 6.55 h (working from unrounded values).
 - Start of M (F = 0.97): t = -24 × log2(0.515) = 22.98 h. M lasts 24 - 22.98 = 1.02 h, and G2 lasts 22.98 - 17.69 = 5.29 h.
 
-Check: 11.13 + 6.55 + 5.29 + 1.02 = 23.99 h, 24 h within rounding. The naive estimate made G1 two hours too long and G2 plus M (6.31 h) one and a half hours too short. The model assumes identical phase lengths in every cell and no resting or dying cells, so treat these as estimates.
+Check: 11.13 + 6.55 + 5.29 + 1.02 = 23.99 h, 24 h within rounding. The naive estimate made G1 two hours too long and G2 plus M (6.31 h) one and a half hours too short. In this model the first phase, G1, always looks longer than it is and the last, G2 plus M, shorter; a middle phase can go either way (here S looks about half an hour short). The model assumes identical phase lengths in every cell and no resting or dying cells, so treat these as estimates.
 
 <CycleFractionsToDurations />
 
@@ -467,7 +587,11 @@ Check: 11.13 + 6.55 + 5.29 + 1.02 = 23.99 h, 24 h within rounding. The naive est
 
 ### The extract thresholds
 
-In *Xenopus* egg extracts with protein synthesis blocked, entry into mitosis needed about 32 to 40 nM of added nondegradable cyclin B, but an extract already in mitosis stayed there down to about 16 to 24 nM (Sha and colleagues, 2003). Unreplicated DNA raised the entry threshold. Two thresholds with a gap between them are the mark of a switch with memory; the numbers belong to that assay, not to every cell.
+In *Xenopus* egg extracts with protein synthesis blocked, entry into mitosis needed about 32 to 40 nM of added nondegradable cyclin B, but an extract already in mitosis stayed there down to about 16 to 24 nM (Sha and colleagues, 2003). Two thresholds with a gap between them are the mark of a switch with memory; the numbers belong to that assay, not to every cell.
+
+### A second switch in G1
+
+The Rb-E2F loop is not the only memory at the restriction point. Recall that the APC/C with Cdh1 keeps mitotic cyclins low through G1. In human MCF10A cells, Cappell and colleagues (2018) found a second G1 switch with memory: the switching-off of APC/C-Cdh1, held in place by a double-negative loop with EMI1 (knocking down EMI1 abolished the memory).
 
 ### Beyond the usual pairings
 
@@ -476,6 +600,14 @@ Mouse embryos lacking CDK2, CDK3, CDK4 and CDK6 still develop to mid-gestation, 
 ### Marker fine print
 
 Cells out of the cycle lose Ki67, a protein made in cycling cells, but its level falls gradually through G1 and G0, so it does not mark G0 cleanly. Saldivar and colleagues combined DNA content, EdU and phospho-H3, read by image-based cytometry rather than flow, to separate phases in human RPE-1 and MCF10A cells (Science, 2018).
+
+### The three lines in full
+
+**Frogs.** A frog oocyte waits in prophase of its first meiotic division until progesterone tells it to resume. Masui and Markert's oocytes were from the leopard frog *Rana pipiens*, and removing the donor's nucleus did not prevent the activity.
+
+**Fission yeast.** Paul Nurse used *Schizosaccharomyces pombe*, a rod that divides in the middle, so length tells you its age. In 1975 he described a mutant that divided at a smaller size than normal. The mutation changed when division happened, not whether. Most later small-cell mutants mapped to a gene named *wee1*; one mapped to *cdc2*, whose other alleles block mitosis. In 1982 budding-yeast DNA carrying *CDC28* rescued a fission-yeast *cdc2* mutant: two distant yeasts, one job. In 1987 a human gene did the same.
+
+**Sea urchins.** In work done in the summer of 1982 and published in 1983, Tim Hunt's group followed new proteins in dividing embryos of the sea urchin *Arbacia punctulata*. Cyclin's disappearance at division was a correlation, so tests came next. In *Xenopus* egg extracts, destroying the messenger RNA stopped the cycles in interphase and adding back cyclin mRNA restored them (Murray and Kirschner, 1989).
 
 ### Yeast names and early mutants
 

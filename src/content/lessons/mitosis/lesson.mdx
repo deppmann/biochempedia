@@ -5,13 +5,15 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 4: Division and cell loss"
 order: 419
 summary: >-
-  How does a dividing cell give each daughter exactly one copy of every chromosome? It attaches each pair of sister chromatids to opposite poles of a spindle, corrects wrong attachments, and then cuts the cohesin that holds the sisters together. This lesson builds the spindle from several microtubule sources, shows how kinetochores are attached, tested and corrected, and follows the one-way protease switch that releases sister chromatids. Afterwards you can measure anaphase A and B from a time-lapse movie and keep lagging chromosomes and micronuclei apart by their denominators.
+  How does a dividing cell give each daughter exactly one copy of every chromosome? It grips each pair of sister chromatids from opposite poles of a spindle, tends to keep the grips that come under tension and remake the rest, waits until every kinetochore is attached, and then cuts the cohesin that holds the sisters together. This lesson names the phases of mitosis, shows why tension usually marks a right attachment, explains what the checkpoint actually reads, and follows the one-way protease switch that releases the sisters. Afterwards you can measure anaphase A and B from a time-lapse movie, see why one kind of error slips past the checkpoint, and keep lagging chromosomes and micronuclei apart by their denominators.
 hook: "How does a dividing cell give each daughter exactly one sister of every chromosome, and what happens when one attachment goes wrong?"
 
 estMinutes: 24
 objectives:
   - "Explain how a cell gives each daughter one sister of every chromosome: biorientation of sister kinetochores, correction of wrong attachments by Aurora B with tension stabilizing right ones, and release of sister cohesion at anaphase."
-  - "Describe how a bipolar spindle is assembled from centrosomes, chromatin, kinetochores and augmin branching, and define kinetochore, k-fibre, biorientation, syntelic and merotelic attachment."
+  - "Name the phases of mitosis and count chromosomes and chromatids at each."
+  - "Describe how a bipolar spindle is assembled from centrosomes, chromatin, kinetochores and augmin branching, and define kinetochore, k-fibre, biorientation, monotelic, syntelic and merotelic attachment."
+  - "Explain how biorientation normally generates opposing forces across sister kinetochores, how syntelic and monotelic arrangements lack that usual source of inter-sister tension, why tension alone does not prove correct attachment, and why the checkpoint reads attachment rather than correct pole choice."
   - "Trace how sister cohesion is released, from APC/C-Cdc20 and securin to separase cutting Scc1, including the vertebrate prophase pathway and shugoshin, while keeping the evidence from living cells apart from the evidence in vitro."
   - "Calculate anaphase A and anaphase B rates from time-lapse measurements, and combine cell-level and chromosome-level error frequencies correctly."
 
@@ -20,7 +22,7 @@ explainer:
   captions: "/explainers/mitosis/explainer.vtt"
   poster: "/explainers/mitosis/poster.jpg"
   title: "The Cut That Cannot Be Undone"
-  durationSec: 177.7
+  durationSec: 305.8
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
 
@@ -262,7 +264,9 @@ mcatQuestions:
       cell, the fraction of all cells is 0.44 x 0.09 = 0.0396, about 4%. Quoting 9% treats a
       chromosome-level frequency as if it applied to every cell. Subtracting or adding the two
       percentages mixes denominators and has no meaning here. If affected cells had more than
-      one laggard, the true figure could be higher, so the assumption has to be stated.
+      one laggard, the true figure could be higher (if the extra laggards are independent) or
+      lower (if micronuclei cluster in a few cells with many laggards), so the assumption has to
+      be stated.
   - stem: "Investigators replace the securin of a cultured human cell line with a mutant that cannot be ubiquitylated by the APC/C. The cells align their chromosomes normally and the checkpoint is satisfied. Which outcome is most likely?"
     choices:
       - "Sisters separate early because cohesin is unprotected"
@@ -291,21 +295,24 @@ explainLevels:
     text: >-
       In mitosis a cell divides its copied chromosomes between two new nuclei. A spindle made of
       microtubules forms, and each chromosome's two sister copies attach to fibres from opposite
-      ends. Protein rings called cohesin hold the sisters together until every chromosome is
-      attached. Then an enzyme called separase cuts the rings, and the sisters move to
+      ends. Protein rings called cohesin hold the sisters together while the cell waits for both
+      sister kinetochores of every chromosome to be firmly attached. Then an enzyme called separase cuts the rings, and the sisters move to
       opposite poles while the poles themselves move apart.
   - level: "college"
     label: "College"
     text: >-
-      Spindle microtubules are nucleated at centrosomes, near chromatin and kinetochores, and by
-      augmin-dependent branching from existing microtubules. Kinetochores capture microtubule
-      plus ends; biorientation puts sister kinetochores under tension. Aurora B destabilizes
-      attachments that lack tension, such as syntelic ones, and tension stabilizes correct ones.
-      Once no kinetochore is unattached, the checkpoint releases APC/C-Cdc20, which ubiquitylates
-      securin and cyclin B. Freed separase cuts the cohesin kleisin Scc1 (Rad21). In vertebrates
+      Biorientation, sister kinetochores attached to opposite poles, normally generates opposing
+      pulls across the sisters; syntelic and monotelic attachments lack those opposing sister
+      k-fibres, although their kinetochores can still bear force from chromosome-arm ejection and
+      other loads. Aurora B promotes turnover of
+      attachments that lack tension, such as syntelic ones, and tension tends to stabilize
+      correct ones. The checkpoint reads attachment, not correct pole choice: once every
+      kinetochore has enough end-on attachment, it releases APC/C-Cdc20, which ubiquitylates securin and cyclin B. Freed separase cuts the cohesin kleisin Scc1 (Rad21). In vertebrates
       most arm cohesin has already left by the prophase pathway, while shugoshin protects
       centromeric cohesin. Chromosomes then move poleward (anaphase A) and poles separate
-      (anaphase B).
+      (anaphase B). Kinetochores capture microtubule plus ends from a spindle nucleated at
+      centrosomes, near chromatin and kinetochores, and by augmin-dependent branching from
+      existing microtubules. Merotelic kinetochores are attached, so they escape the checkpoint.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -374,57 +381,141 @@ draft: false
 import AnaphaseRateReader from '../../../components/AnaphaseRateReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A dividing cell must give each daughter exactly one sister of every duplicated chromosome. It does this by attaching each pair of sisters to opposite poles of a spindle, correcting wrong attachments, and then cutting the cohesin that holds the sisters together.** This lesson builds the spindle, shows how every chromosome is attached and tested, follows the cut that releases the sisters, and then measures what happens from a movie.
+**In 1995 Conly Rieder and colleagues watched a dividing rat kangaroo (PtK1) cell that was stuck. A cell normally delays anaphase while even one kinetochore lacks firm end-on attachment to the spindle. Here one chromosome was attached to only one pole, and the whole cell waited for it.**
 
-You arrive at mitosis with each chromosome duplicated into two sister chromatids held together by cohesin, a protein ring that encircles DNA. CDK1-cyclin B has driven the cell into mitosis (see [cell-cycle control](/lessons/cell-cycle-control/)) and the nuclear envelope has broken down. The task now is to partition them. How chromosomes pair and separate in meiosis, and what happens to an organism when the count goes wrong, belong to [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) and [chromosome changes](/lessons/chromosome-changes/).
+They aimed a laser at that chromosome's one unattached kinetochore, the patch where spindle fibres grip, and destroyed it. About 20 minutes later the cell entered anaphase and pulled its chromosomes apart. The damaged chromosome never reached the middle of the spindle. So the cell had not been waiting for it to line up. What was it waiting for? The answer explains how a cell gives each daughter exactly one copy of every chromosome, and why it sometimes fails.
 
-## Building a bipolar spindle from several sources
+**About the film above.** It skips how wrong attachments are corrected ("Test and correct"). Where it says "in vertebrates so is cyclin B", note that the APC/C destroys cyclin B at this step in other eukaryotes too; what has been shown in vertebrates is that its loss also lifts a second brake on separase.
 
-The spindle is a bipolar array of microtubules, the dynamic polymers described in [cytoskeletal polymers and dynamics](/lessons/cytoskeleton-dynamics/). Their minus ends gather at the two poles and many plus ends point toward the chromosomes. A kinetochore is the protein machine built on each sister's centromere that couples the chromosome to growing and shrinking microtubule tips. A k-fibre is the bundle of microtubules that connects one kinetochore to a pole.
+## The picture: one duplicated chromosome, five phases
 
-The classic model, search-and-capture, has centrosomes fire microtubules in random directions until a plus end happens to hit a kinetochore and is stabilized. Like casting fishing lines at random, it works, but alone it would be slow. Other sources add microtubules:
+You arrive at mitosis with every chromosome already copied. Picture one as a pair of rods lying side by side.
 
-- **Near chromatin and kinetochores.** In human RPE1 cells, Sikirzhytski and colleagues used correlative light and electron microscopy and found short non-centrosomal microtubules near kinetochores from the start of spindle assembly. End-on attachments formed within the first three minutes of prometaphase. Inhibiting CENP-E, a kinetochore kinesin (see [molecular motors](/lessons/molecular-motors/)), impeded the conversion of side-on contacts into end-on attachments.
-- **Branching on existing microtubules.** Augmin is a protein complex that recruits the gamma-tubulin ring complex (gamma-TuRC), the template that starts new microtubules, onto the side of an existing one, so a new microtubule branches off in the same direction. In HeLa and RPE1 cells, David and colleagues tracked growing ends and found that most spindle microtubules nucleated away from centrosomes; augmin-dependent amplification almost entirely explained where the growing ends were. In vitro, purified human augmin and gamma-TuRC were sufficient for branching.
+- Each rod is a **sister chromatid**, one complete DNA copy.
+- The sisters are held together by **cohesin**, a protein ring that encircles DNA.
+- At one constriction, the **centromere**, each sister carries a **kinetochore**, a protein machine that will grip spindle fibres. A pair of sisters therefore has two kinetochores, facing opposite ways.
 
-Keep the scope: these results come from two human cell lines and a test tube. Some cells, such as many oocytes, build spindles without centrosomes at all, and the share from each route differs between cell types.
+CDK1-cyclin B has driven the cell into mitosis (see [cell-cycle control](/lessons/cell-cycle-control/)). In a typical animal cell, mitosis has five named phases. (Budding yeast keeps its nuclear envelope through mitosis, so the envelope events below do not apply there.)
 
-<LessonFigure src="/figures/mitosis/spindle-microtubule-sources.webp" width={1200} height={637} alt="AI-generated illustration: a schematic spindle with microtubules starting at the two poles, near kinetochores and as branches off existing microtubules, with an inset showing augmin and gamma-TuRC on the side of a microtubule starting a new one in the same direction." caption="Spindle microtubules start at centrosomes, near chromatin and kinetochores, and by augmin-dependent branching off existing microtubules. Augmin brings gamma-TuRC to the side of a microtubule, so the new one grows in the same direction. The shares differ between cell types." />
+| Phase | What you would see | What the cell is solving |
+|---|---|---|
+| Prophase | Chromosomes condense into visible rods; the spindle starts to form | Package the sisters; start building the machine |
+| Prometaphase | The nuclear envelope breaks down; microtubules reach kinetochores | Grip every pair, correct wrong grips, and wait while any kinetochore is empty |
+| Metaphase | Chromosomes lined up in the middle, at the metaphase plate | Keep every pair bioriented while the last wait signal clears |
+| Anaphase | Sisters part and move to opposite poles; the poles move apart | Cut cohesin, then move |
+| Telophase | Chromosomes reach the poles; a nuclear envelope forms around each set | Rebuild two nuclei; the cell itself splits in [cytokinesis](/lessons/cytokinesis/) |
 
-## Attaching and correcting: kinetochores, Aurora B and tension
+**Predict.** A normal diploid human cell in metaphase: how many chromosomes, and how many chromatids? How many chromosomes does each daughter get?
 
-The right outcome is biorientation: sister kinetochores attached to opposite poles. Three other arrangements are common in early mitosis. In a monotelic attachment one sister is attached and the other is free, often a normal step on the way to biorientation. In a syntelic attachment both sisters face the same pole. In a merotelic attachment a single kinetochore is bound by microtubules from both poles. These last two are errors that must be corrected.
+<details>
+<summary>Check your prediction</summary>
 
-<LessonFigure src="/figures/mitosis/four-attachment-states.webp" width={1200} height={751} alt="AI-generated illustration: four panels, each a cell with a pole at either end and a pair of sister chromatids at the center. Biorientation: each sister kinetochore is attached to the nearer pole and arrows mark the sisters under tension. Monotelic: one sister is attached to the left pole and the other kinetochore is labeled free. Syntelic: both sister kinetochores are attached to the left pole. Merotelic: one kinetochore is attached to both poles." caption="The right outcome is biorientation, sisters attached to opposite poles and under tension. In monotelic attachment one sister is free, in syntelic both face the same pole, and in merotelic one kinetochore is bound from both poles." />
+46 chromosomes and 92 chromatids; each daughter gets 46 chromosomes. While two sisters are joined, they count as one duplicated chromosome, even though each sister already has its own centromere and kinetochore. Once anaphase separates them, each sister counts as a chromosome in its own right. The DNA did not double at anaphase; only the counting rule changed.
 
-Biorientation, unlike syntelic or monotelic attachment, puts the sisters under tension, because the two poles pull against the cohesin that holds the sisters together. Two mechanisms use that difference.
+</details>
 
-**Aurora B destabilizes.** Aurora B is a kinase of the chromosomal passenger complex. Much of it sits at the inner centromere, between the sister kinetochores, and smaller pools sit closer to the kinetochores. It phosphorylates outer kinetochore proteins, including the microtubule-binding Ndc80 complex, which lowers their grip on microtubules. Lampson and colleagues blocked Aurora kinase activity in living vertebrate cells with a reversible inhibitor, let wrong attachments pile up, then washed the inhibitor out. Reactivated Aurora kinase corrected the errors by selectively disassembling kinetochore-microtubule fibres. How tension turns Aurora B's effect off is still argued. One popular model says stretching pulls the outer kinetochore out of reach of the kinase at the inner centromere; other evidence points to changes in kinetochore structure under force.
+Meiosis is in [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/); what a wrong count does to an organism is in [chromosome changes](/lessons/chromosome-changes/).
 
-**Tension stabilizes.** Akiyoshi and colleagues removed the cell entirely. Purified budding-yeast kinetochore particles, held on microtubules in a laser trap, stayed attached longer at higher force, with no detectable Aurora B and no ATP.
+> **The one idea to carry through this lesson.** Keep what is pulled from both sides, remake what is not, and cut only when no kinetochore is left empty. Pulls from opposite poles put a right pair under tension, which tends to stabilize its grip; Aurora B keeps remaking grips that lack tension. A kinetochore without enough end-on microtubule attachment is **empty**, and the checkpoint holds the cell before anaphase while even one is empty. When none is, a protease cuts cohesin, and a cut cannot be undone.
 
-Keep the evidence separate: the in vitro result shows that force can stabilize attachment directly. It does not show that Aurora B is unnecessary in cells, where both mechanisms act together.
+Three limits on that rule:
 
-Correct attachment also satisfies the spindle-assembly checkpoint. An unattached kinetochore produces a signal that restrains APC/C-Cdc20 until every kinetochore is attached; the wiring of that signal belongs to [checkpoints](/lessons/checkpoints/).
+- **The checkpoint reads emptiness, not correctness, and tension is a strong sign, not proof.** That gap lets some errors through and produces lagging chromosomes (last section).
+- **"Cannot be undone" refers to sister cohesion**, not to cohesin itself ("Cut").
+- **In vertebrates most arm cohesin leaves earlier**, so the final cut acts mainly at the centromere ("Cut").
 
-## The one-way switch: securin, separase and cohesin
+## Grip: the spindle and the kinetochore
 
-The APC/C, or anaphase-promoting complex/cyclosome, is an E3 ubiquitin ligase: it tags target proteins with chains of ubiquitin that send them to the proteasome (the chemistry is in [ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)). When the checkpoint releases it, APC/C bound to its coactivator Cdc20 tags two key targets.
+The spindle is a two-poled array of microtubules, the dynamic polymers described in [cytoskeletal polymers and dynamics](/lessons/cytoskeleton-dynamics/). Their minus ends gather at the two poles and many plus ends point toward the chromosomes. The kinetochore couples the chromosome to growing and shrinking microtubule tips. A **k-fibre** is the bundle of microtubules that connects one kinetochore to a pole.
+
+In the classic model, search-and-capture, centrosomes at the poles fire microtubules in random directions until a plus end happens to hit a kinetochore and is stabilized. Like casting fishing lines at random, it works, but alone it would be slow. Cells speed it up by also starting microtubules near chromatin and kinetochores and as branches off existing microtubules.
+
+<LessonFigure src="/figures/mitosis/spindle-microtubule-sources.webp" width={1200} height={637} alt="AI-generated illustration: a schematic spindle with microtubules starting at the two poles, near kinetochores and as branches off existing microtubules, with an inset showing augmin and gamma-TuRC on the side of a microtubule starting a new one in the same direction." caption="Spindle microtubules start at the poles, near chromatin and kinetochores, and as branches off existing microtubules. The shares differ between cell types." />
+
+## Test and correct: how tension helps stabilize biorientation
+
+In prometaphase microtubules reach kinetochores at random. Four common ways a pair of sisters can end up gripped are worth knowing (there are in-between states too, such as side-on contacts).
+
+- **Biorientation**, the goal: each sister's kinetochore is attached to the opposite pole.
+- **Monotelic**: one sister is attached and the other is still free. This is often a normal step on the way to biorientation.
+- **Syntelic**: both sisters are attached to the same pole. This is an error.
+- **Merotelic**: one kinetochore is bound by microtubules from both poles. This is also an error, and the last section returns to it.
+
+<LessonFigure src="/figures/mitosis/four-attachment-states.webp" width={1200} height={800} alt="AI-generated illustration: four panels, each a cell with a pole at either end and a pair of sister chromatids at the center. Biorientation: each sister is attached to the opposite pole, the pair is stretched under tension and the grip tends to be kept. Monotelic: one kinetochore is empty and gives off a wait signal, so the cell waits. Syntelic: both sisters are attached to the left pole, with no opposing pull, and the wrong fibre is being released by Aurora B. Merotelic: one kinetochore is bound from both poles; it is attached, so the checkpoint is silent." caption="Pulled from both sides, a bioriented pair is under tension and its grip tends to be kept. An empty kinetochore makes the cell wait, a syntelic grip lacks opposing pull and is loosened by Aurora B and remade, but a merotelic kinetochore is attached, so the checkpoint stays silent." />
+
+How can a cell tell which is right? It does not need to know which pole a microtubule comes from: it can sense force.
+
+Think of the sister pair as a short rope held together by cohesin, with one sister at each end. Two people pulling from opposite ends make it taut. Two people pulling the same end just drag it along. A bioriented pair is the first case: one pole pulls each sister, cohesin resists, and the pair is under **tension**. You see it as stretch between the two kinetochores.
+
+**Predict.** A pair is syntelic: both kinetochores face the left pole. Is it under tension? What should the cell do with it?
+
+<details>
+<summary>Check your prediction</summary>
+
+In the rope picture, no: same-direction pulls do not stretch the pair between its two ends, so the cell should let go and try again. A monotelic pair also lacks the opposing pull. Real syntelic and monotelic attachments can still bear load, from pushes on the chromosome arms and other forces, so biorientation is the usual source of opposed sister tension, not the only way to load a grip.
+
+</details>
+
+Cells act on that difference in two ways.
+
+**Without tension, Aurora B loosens the grip.** Aurora B is a protein kinase that sits mostly at the inner centromere, between the two sister kinetochores. It phosphorylates the outer-kinetochore proteins that grip microtubules, including the Ndc80 complex, and that weakens their grip. Lampson and colleagues blocked Aurora kinase in living vertebrate cells with a reversible inhibitor, let wrong attachments pile up, then washed the inhibitor out. The reactivated kinase selectively took apart the wrong k-fibres, and the chromosomes went on to biorient. Under tension Aurora B weakens the grip less; exactly how is still being worked out (Going deeper).
+
+**Under tension, the grip holds.** Force also stabilizes attachment directly. In a laser trap, with no detectable Aurora B and no ATP, purified budding-yeast kinetochore particles stayed attached to microtubules longer when Akiyoshi and colleagues pulled harder. In cells both mechanisms are thought to act together.
+
+So wrong attachments tend to be remade and right ones tend to stay. The sorting is probabilistic: right grips still turn over, and some errors last into anaphase. It matters because first tries are unreliable. If each of 46 duplicated chromosomes independently had a one-in-two chance of biorienting on the first try (a crude toy number), all 46 would be right at once about 1 time in 70 trillion. Error correction gives wrong grips another try.
+
+**The link to the checkpoint.** Wrong grip → little tension → Aurora B turns it over → kinetochore empty → wait. An empty kinetochore sends the wait-anaphase signal of the spindle-assembly checkpoint, which holds back the APC/C-Cdc20 (see "Cut"). A kinetochore with enough end-on attachment stops sending it, whether its attachment is right or wrong; side-on contacts are not enough. Correction can also strip only the wrong microtubules from a kinetochore without emptying it, as in merotely (last section); then the checkpoint never hears about the error.
+
+## Wait: the checkpoint reads emptiness
+
+Return to Rieder's cell. When the laser removed its one empty kinetochore, the wait signal went with it. Destroying an attached kinetochore instead, while a different chromosome stayed unattached, did not release the delay. So the signal comes from in or near an unattached kinetochore. Whether tension also feeds the checkpoint directly is the question of the design problem at the end.
+
+**Predict.** A diploid human cell before anaphase has 92 kinetochores. Suppose 91 are attached and one is empty. Does the cell go?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. One empty kinetochore is 1 in 92, about 1.1% of the total, so a majority vote would miss it. The checkpoint's logic is the opposite: any empty kinetochore means wait, as one did in Rieder's cell.
+
+</details>
+
+Why a sensor, and not a timer? Take a toy model: each of the 46 duplicated chromosomes finishes attaching both sisters after its own random, exponentially distributed wait with average τ, independently of the others, and stays attached. The last one finishes at about 4.4 τ on average. A timer set to that average would start anaphase with an empty kinetochore in about 43% of cells; to be safe in 99% of cells it would have to wait about 8.4 τ. In this model, waiting for the last kinetochore is both faster and safer.
+
+Note what the checkpoint does *not* read: alignment. In a normal cell bioriented pairs gather at the metaphase plate, so lining up comes with biorientation, but it is a symptom, not the signal. Rieder's damaged chromosome never aligned, yet anaphase followed. How the signal is made and relayed to the APC/C belongs to [checkpoints](/lessons/checkpoints/).
+
+## Cut: securin, separase and cohesin
+
+Once no kinetochore is empty and the wait signal already made has cleared, the brake comes off the APC/C, or anaphase-promoting complex/cyclosome, an E3 ubiquitin ligase: it tags target proteins with chains of ubiquitin that send them to the proteasome (the chemistry is in [ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)). APC/C bound to its coactivator Cdc20 tags two key targets.
 
 1. **Securin.** Securin binds separase and keeps it inactive. Once securin is destroyed, separase is released from it.
-2. **Cyclin B.** Its destruction inactivates CDK1, which lets the cell leave mitosis and, in vertebrates, removes a second brake on separase.
+2. **Cyclin B.** Its destruction inactivates CDK1, which lets the cell leave mitosis. In vertebrates it also removes a second brake on separase, because CDK1-cyclin B inhibits separase there.
 
-Separase is a cysteine protease. It cuts the kleisin subunit of cohesin, Scc1 (called Rad21 in vertebrates), and the ring opens. Note the division of labour: the APC/C and the proteasome destroy securin; separase cuts cohesin. Separase does not degrade securin.
+Separase is a cysteine protease. It cuts the kleisin subunit of cohesin, Scc1 (called Rad21 in vertebrates), and the ring opens. Keep the division of labour straight: the APC/C and the proteasome destroy securin; separase cuts cohesin.
 
-Uhlmann and colleagues tested whether cutting Scc1 is enough. In budding yeast arrested at metaphase, where separase is held inactive, causing Scc1 to be cleaved was sufficient to separate and segregate the sisters. A cut protein cannot be rejoined, so anaphase cannot be reversed.
+<LessonFigure src="/figures/mitosis/checkpoint-to-cut-relay.webp" width={1200} height={676} alt="AI-generated illustration: a three-frame strip. First, one kinetochore without microtubules gives off a dashed wait signal that blocks APC/C-Cdc20, while securin holds separase and a cohesin ring holds the sisters. Second, every kinetochore is attached, and APC/C-Cdc20 tags securin and cyclin B with ubiquitin for the proteasome. Third, freed separase cuts the cohesin ring open and the sisters move apart." caption="While even one kinetochore is empty, its wait signal holds APC/C-Cdc20 back. Once none is, APC/C-Cdc20 tags securin and cyclin B for the proteasome, freed separase cuts the cohesin kleisin Scc1, and the cut ring cannot be rejoined." />
 
-Vertebrates do not wait for separase to remove all their cohesin. During prophase and prometaphase the bulk of cohesin on chromosome arms leaves without Scc1 cleavage. Hauf and colleagues showed in human cultured cells, including HeLa, that phosphorylation of the cohesin subunit SA2 was essential for this prophase pathway. It also needs a cohesin-bound protein called Wapl: when Kueng and colleagues depleted Wapl from human cells, cohesin stayed on the arms until anaphase. Centromeric cohesin is protected by shugoshin. When McGuinness and colleagues depleted shugoshin from HeLa cells, centromeric cohesin was lost early, and their results suggested that shugoshin works by preventing SA2 phosphorylation at centromeres. So in a vertebrate metaphase chromosome the sisters are held mainly at the centromere, and separase cuts that cohesin along with the small amount left on the arms. In budding yeast, by contrast, most cohesin is cleaved at anaphase.
+Is the cut enough by itself? Uhlmann and colleagues caused Scc1 to be cleaved in budding yeast arrested at metaphase, where separase is held inactive, and the sisters separated and segregated. That sufficiency test is stronger than watching a protein vanish.
 
-<LessonFigure src="/figures/mitosis/cohesin-arms-versus-centromere.webp" width={1200} height={632} alt="AI-generated illustration: a three-frame strip of one chromosome showing cohesin rings along the arms and centromere in prophase, only protected centromeric rings left in metaphase, and separase opening the centromeric rings in anaphase as the sisters part." caption="In vertebrates most arm cohesin leaves in prophase and prometaphase without Scc1 cleavage, while shugoshin protects the centromere. The sisters are held mainly at the centromere, and separase cuts that cohesin along with the small amount left on the arms." />
+Why is the step one-way? A cut cohesin ring cannot be rejoined. Cohesin can load onto DNA again in the next G1, but in a normal cycle sister cohesion is set up only during replication, so the next S phase pairs new sisters, not these. (Cells can build some cohesion after DNA damage, but that does not reverse anaphase.) The cyclin B destroyed at the same step commits the cell to leaving mitosis.
 
-## Anaphase A and B, read from a movie
+**Predict.** A human cell's securin is replaced with a mutant that the APC/C cannot ubiquitylate. Its chromosomes align and the checkpoint is satisfied. What happens to the sisters?
 
-Anaphase has two movements. **Anaphase A** is the movement of chromosomes toward their poles. **Anaphase B** is the separation of the poles themselves. In anaphase A, the k-fibres shorten. Gorbsky, Sammak and Borisy bleached a mark on kinetochore microtubules in cultured mammalian cells and found that the chromosomes moved toward the mark: the fibres lost subunits mainly at the kinetochore, though a small loss elsewhere was not excluded. In anaphase B, in many animal cells, motors slide apart the overlapping microtubules in the spindle midzone and dynein at the cell cortex pulls on astral microtubules.
+<details>
+<summary>Check your prediction</summary>
+
+They stay joined at their centromeres. Securin is never destroyed, so separase stays off and the protected centromeric cohesin is never cut. A silent checkpoint is not enough: the go signal acts through the destruction of securin.
+
+</details>
+
+Why "centromeric"? Vertebrates do not wait for separase to remove all their cohesin. During prophase and prometaphase most arm cohesin leaves without a cut, by a phosphorylation route called the prophase pathway. A protector called shugoshin keeps centromeric cohesin in place until separase cuts it, along with the small amount left on the arms. In budding yeast, by contrast, most cohesin is cleaved at anaphase.
+
+<LessonFigure src="/figures/mitosis/cohesin-arms-versus-centromere.webp" width={1200} height={676} alt="AI-generated illustration: a three-frame strip of one duplicated chromosome. In prophase cohesin rings line the arms and centromere, with shugoshin at the centromere. In metaphase most arm rings are gone and the centromeric rings remain. In anaphase separase has cut the centromeric rings open and the sisters move apart." caption="In vertebrates most arm cohesin leaves in prophase and prometaphase without Scc1 cleavage, while shugoshin protects the centromere. The sisters are held mainly at the centromere, and separase cuts that cohesin along with the small amount left on the arms." />
+
+## Move: anaphase A and B, read from a movie
+
+After the cut, two different things move. In **anaphase A** the chromosomes move toward their poles: each kinetochore-to-pole distance shrinks. In **anaphase B** the poles themselves move apart. Ask "what is moving relative to what?" and the two never blur.
+
+In anaphase A the k-fibres shorten. In the mammalian cells Gorbsky and colleagues studied, the fibres lost subunits mainly at the kinetochore; in some other cells poleward flux, with subunits lost at the poles, contributes much more. In anaphase B, in many animal cells, motors slide apart the overlapping microtubules in the spindle midzone, and dynein at the cell cortex pulls on astral microtubules (see [molecular motors](/lessons/molecular-motors/)).
 
 ### Worked problem: two rates from one movie
 
@@ -448,22 +539,35 @@ A movie that tracks only chromosomes cannot tell you how much of their separatio
 
 <AnaphaseRateReader />
 
-## When segregation fails: merotely, laggards and micronuclei
+## The rule's blind spot: merotely, laggards and micronuclei
 
-A merotelic kinetochore is attached, so it produces no checkpoint signal. Cimini and colleagues showed in PtK1 cells, a rat kangaroo kidney line, that merotelic attachment escaped the checkpoint. Lagging single chromatids became far more frequent after recovery from a nocodazole block than in untreated cells, and electron microscopy confirmed microtubules from both poles on the lagging kinetochores.
+A checkpoint that reads attachment, and a correction system that trusts tension, leave one gap. Here is the price.
 
-A lagging chromosome is a trajectory, not an outcome. It can reach the main nucleus late or end up in a micronucleus, a small separate nucleus. In human RPE1 and U2OS cells, Orr and colleagues found that most transient laggards rejoined the main nucleus; a midzone Aurora B mechanism helped correct errors in anaphase and delayed the completion of nuclear-envelope assembly on laggards. How persistent segregation errors feed chromosomal instability in tumours belongs to [cancer genetics](/lessons/cancer-genetics/); how spindle orientation sets cell fate is in [asymmetric division](/lessons/asymmetric-division/), and how mitotic defects in neural progenitors shrink the brain is in [microcephaly and malformations](/lessons/microcephaly-and-malformations/). The final split of the cell is [cytokinesis](/lessons/cytokinesis/).
+**Predict.** One kinetochore is merotelic: it is bound by microtubules from both poles, while its sister is bound to one pole. Does the checkpoint see it? Does Aurora B?
 
-**Worked problem, continued: watch the denominators.** Orr and colleagues saw at least one transient laggard in 9% of RPE1 cells. That number is per cell. They found that 6% of lagging chromosomes formed micronuclei. That number is per chromosome. If every affected cell had exactly one laggard, the fraction of all cells with a laggard-derived micronucleus would be 0.09 x 0.06 = 0.0054, about 0.5%. If some cells had two or more laggards, the true figure could be higher or lower, depending on how the micronuclei are spread among cells. Say the assumption out loud whenever you multiply rates with different denominators.
+<details>
+<summary>Check your prediction</summary>
+
+The checkpoint does not: the kinetochore is attached, so it sends no wait signal. Aurora B can miss it too, because the pair is partly under tension. The cell can enter anaphase on time with the error in place, and that kinetochore is then pulled toward both poles at once.
+
+</details>
+
+Cimini and colleagues showed this in PtK1 cells. Lagging single chromatids appeared in 1.16% of untreated anaphases and 17.55% after recovery from a nocodazole block, and electron microscopy confirmed microtubules from both poles on the lagging kinetochores.
+
+<LessonFigure src="/figures/mitosis/merotelic-laggard-fates.webp" width={1200} height={800} alt="AI-generated illustration: an anaphase cell in which one lagging chromatid stays in the middle because its kinetochore is attached to both poles, with two small daughter nuclei beside it, one in which the laggard has rejoined the main nucleus and one in which it sits in a separate small micronucleus." caption="A merotelic kinetochore is attached, so the checkpoint lets anaphase start, and its chromatid lags between the poles. In human RPE1 and U2OS cells most transient laggards rejoined the main nucleus; a minority ended up in micronuclei." />
+
+A lagging chromosome seen in one frame is late, but its fate is open. It can reach the main nucleus late or end up in a **micronucleus**, a small separate nucleus. In human RPE1 and U2OS cells, Orr and colleagues found that most transient laggards rejoined the main nucleus; a midzone Aurora B mechanism helped correct errors in anaphase and delayed the completion of nuclear-envelope assembly on laggards. Where this leads: persistent errors and chromosomal instability in tumours ([cancer genetics](/lessons/cancer-genetics/)), spindle orientation and cell fate ([asymmetric division](/lessons/asymmetric-division/)), and mitotic defects in neural progenitors that shrink the brain ([microcephaly and malformations](/lessons/microcephaly-and-malformations/)).
+
+**Worked problem, continued: watch the denominators.** Orr and colleagues saw at least one transient laggard in 9% of RPE1 cells. That number is per cell. They found that 6% of lagging chromosomes formed micronuclei. That number is per chromosome. If every affected cell had exactly one laggard, the fraction of all cells with a laggard-derived micronucleus would be 0.09 x 0.06 = 0.0054, about 0.5%. If some cells had two or more laggards, the true figure could be higher (if the extra laggards are independent) or lower (if micronuclei cluster in a few cells with many laggards). Say the assumption out loud whenever you multiply rates with different denominators.
 
 ### Design problem
 
-Is anaphase held back by a signal from unattached kinetochores, or by lack of tension? Rieder and colleagues destroyed the last unattached kinetochore in PtK1 cells, and anaphase followed in a reported 20 plus or minus 2.5 minutes, without the damaged chromosome moving to the spindle middle. Li and Nicklas pulled on a mono-oriented chromosome with a microneedle in praying-mantis spermatocytes, and the delay ended. Do these results contradict each other, and what experiment would separate the two ideas?
+Is anaphase held back by a signal from unattached kinetochores, or by lack of tension? Rieder and colleagues destroyed the last unattached kinetochore in PtK1 cells, and anaphase followed in a reported 20 plus or minus 2.5 minutes. Li and Nicklas pulled on a mono-oriented chromosome with a microneedle in praying-mantis spermatocytes, and the delay ended. Do these results contradict each other, and what experiment would separate the two ideas?
 
 <details>
 <summary>One way to do it</summary>
 
-They need not contradict each other. Tension stabilizes attachment, so in a cell, pulling on a kinetochore also tends to keep microtubules bound to it, and an attached kinetochore stops signalling. Attachment and tension are coupled.
+They need not contradict each other. Tension stabilizes attachment, so in a cell, pulling on a kinetochore can change how many microtubules stay bound as well as the force. Firm end-on attachment normally silences a kinetochore, whereas a side-on attachment can keep signalling even under tension. Attachment and tension are coupled.
 
 To separate them, change one while holding the other fixed. In vitro, reconstituted yeast kinetochores in a laser trap (Akiyoshi 2010) let you set force while the number of attached microtubules is known. In cells, you could ablate the last unattached kinetochore and compare it with a cell in which that kinetochore is held attached but under low tension, for example after a drug that dampens spindle forces.
 
@@ -473,14 +577,23 @@ Readout: time from last attachment, or from the lesion, to anaphase onset in sin
 
 ## Going deeper
 
-### Branching: the NEDD1 link
+### Where spindle microtubules come from
 
-In the in vitro branching reconstitution, NEDD1 bridged augmin and gamma-TuRC, and phosphorylation by CDK1 and PLK1 was needed for NEDD1 to bind augmin.
+- **Near chromatin and kinetochores.** In human RPE1 cells, Sikirzhytski and colleagues used correlative light and electron microscopy and found short non-centrosomal microtubules near kinetochores from the start of spindle assembly. End-on attachments formed within the first three minutes of prometaphase. Inhibiting CENP-E, a kinetochore kinesin (see [molecular motors](/lessons/molecular-motors/)), impeded the conversion of side-on contacts into end-on attachments.
+- **Branching on existing microtubules.** Augmin is a protein complex that recruits the gamma-tubulin ring complex (gamma-TuRC), the template that starts new microtubules, onto the side of an existing one, so a new microtubule branches off in the same direction. In HeLa and RPE1 cells, David and colleagues tracked growing ends and found that most spindle microtubules nucleated away from centrosomes; augmin-dependent amplification almost entirely explained where the growing ends were. In vitro, purified human augmin and gamma-TuRC were sufficient for branching. In that reconstitution NEDD1 bridged augmin and gamma-TuRC, and phosphorylation by CDK1 and PLK1 was needed for NEDD1 to bind augmin.
 
-### How long attachments lasted under force
+Keep the scope: these results come from two human cell lines and a test tube. Some cells, such as many oocytes, build spindles without centrosomes at all, and the share from each route differs between cell types.
 
-In the laser-trap experiment, purified budding-yeast kinetochore particles stayed attached for a mean of 21 plus or minus 5 minutes at 1 piconewton and 50 plus or minus 17 minutes at 5 piconewtons.
+### How tension switches off Aurora B
 
-### Lagging chromatid frequencies in PtK1 cells
+Aurora B is a kinase of the chromosomal passenger complex. Much of it sits at the inner centromere, and smaller pools sit closer to the kinetochores. How tension turns its effect off is still argued. One popular model says stretching pulls the outer kinetochore out of reach of the kinase at the inner centromere; other evidence points to changes in kinetochore structure under force.
 
-In PtK1 cells, lagging single chromatids appeared in 1.16% of untreated anaphases and 17.55% after recovery from a nocodazole block.
+In the laser-trap experiment, purified budding-yeast kinetochore particles stayed attached for a mean of 21 plus or minus 5 minutes at 1 piconewton and 50 plus or minus 17 minutes at 5 piconewtons, means from only 15 and 9 detachments. The result does not show that Aurora B is unnecessary in cells.
+
+### Cohesin removal in vertebrate prophase
+
+Hauf and colleagues showed in human cultured cells, including HeLa, that phosphorylation of the cohesin subunit SA2 was essential for the prophase pathway. It also needs a cohesin-bound protein called Wapl: when Kueng and colleagues depleted Wapl from human cells, cohesin stayed on the arms until anaphase. When McGuinness and colleagues depleted shugoshin from HeLa cells, centromeric cohesin was lost early, and their results suggested that shugoshin works by preventing SA2 phosphorylation at centromeres.
+
+### Where k-fibres lose subunits
+
+Gorbsky, Sammak and Borisy bleached a mark on kinetochore microtubules in cultured mammalian cells and found that the chromosomes moved toward the mark, though a small loss of subunits away from the kinetochore was not excluded. In the cells where poleward flux contributes much more, for example *Drosophila* embryos and *Xenopus* egg-extract spindles, the microtubule lattice moves toward the poles while subunits are lost from the minus ends there.

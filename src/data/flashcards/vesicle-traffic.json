@@ -1,0 +1,596 @@
+{
+ "slug": "vesicle-traffic",
+ "title": "Vesicle Budding, Targeting and Fusion",
+ "generated": {
+  "date": "2026-11-10",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "22414bff9815",
+ "sectionHashes": {
+  "(opening)": "5b2476e88f3d",
+  "Step 1, budding: a coat picks the cargo and bends the membrane": "3de17b8afb09",
+  "Step 2, targeting: a Rab and a tether catch the vesicle": "b587dd0050f3",
+  "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them": "78e8aae7f91d",
+  "Putting the handoffs in order: mutants": "d3e17f0b4455",
+  "Splitting catch from fuse: test tubes": "054f30cb967b",
+  "Design problem": "6102368458bd",
+  "A coat from three parts": "b89447daa77c",
+  "Paying for fusion": "db20b6ab07f6",
+  "Can SNAREs fuse membranes alone?": "e448fb91ebd6",
+  "Why the fusion time course matters": "f585af23df95"
+ },
+ "cards": [
+  {
+   "id": "vesicle-traffic-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What are the three jobs of a vesicle on the yeast secretory route?",
+   "back": "Budding (pick up cargo and pinch off), targeting (be caught by the right membrane) and fusion (merge with it).",
+   "quote": "Each vesicle on that route has three jobs: budding (pick up cargo and pinch off), targeting (be caught by the right membrane) and fusion (merge with it)."
+  },
+  {
+   "id": "vesicle-traffic-c02",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Yeast sec1 cells at 37 °C pile secretory enzymes into vesicles that never fuse with the surface. Shifted back to 25 °C with protein synthesis blocked, they secrete the stored enzymes. What does the recovery show?",
+   "back": "The trapped enzymes were stalled cargo in deliverable vesicles, not dead protein: the block was reversible.",
+   "quote": "Back at 25 °C, even with protein synthesis blocked, the cells secreted the stored enzymes: the vesicles held stalled cargo."
+  },
+  {
+   "id": "vesicle-traffic-c03",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Yeast sec1 cells at 37 °C fill with vesicles that never fuse with the surface. For that last vesicle on the route, which job worked, and which could have failed?",
+   "back": "Budding worked, since the vesicles exist. Targeting or fusion failed; a pile of vesicles alone cannot say which.",
+   "quote": "Budding worked: the vesicles exist. Targeting or fusion failed, and a pile of vesicles alone cannot say which."
+  },
+  {
+   "id": "vesicle-traffic-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why do the coats, Rabs and SNAREs that steer a vesicle all work on its cytosolic face?",
+   "back": "A vesicle's lumen never mixes with the cytosol, so the cytosolic face is the only side the steering machinery can reach.",
+   "quote": "Its lumen never mixes with the cytosol (see membrane topology), so every protein that steers it works on its cytosolic face."
+  },
+  {
+   "id": "vesicle-traffic-c05",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A soluble lumenal cargo such as invertase cannot touch a coat. How does it get into a budding vesicle?",
+   "back": "A membrane-spanning receptor that the coat grabs binds it (Erv29 in yeast, ERGIC-53 in mammals), or it rides along in the fluid the bud encloses.",
+   "quote": "it is caught by a membrane-spanning receptor that the coat grabs (Erv29 in yeast, ERGIC-53 in mammals), or rides along in the fluid a bud encloses."
+  },
+  {
+   "id": "vesicle-traffic-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On a linear route, when one vesicle handoff fails, cargo piles up in {{c1::the last place it reached}}.",
+   "back": "",
+   "quote": "On a linear route, when one handoff fails, cargo piles up in the last place it reached"
+  },
+  {
+   "id": "vesicle-traffic-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The ER's COPII coat is started by the small GTPase {{c1::Sar1}}, which in its GTP form recruits Sec23/24 and then the outer cage Sec13/31.",
+   "back": "Sec24 does most of the cargo choosing.",
+   "quote": "Sar1-GTP grabs the ER membrane and pulls in an inner layer, Sec23/24, which holds cargo and in turn recruits an outer cage, Sec13/31.",
+   "section": "Step 1, budding: a coat picks the cargo and bends the membrane"
+  },
+  {
+   "id": "vesicle-traffic-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which coat returns escaped ER membrane proteins from the Golgi, and what tail signal does it read?",
+   "back": "COPI, started by Arf1-GTP. It reads dilysine (KKXX) tails through α- and β′-COP.",
+   "quote": "A KKXX tail is a return label: COPI fetches escaped ER membrane proteins back from the Golgi.",
+   "section": "Step 1, budding: a coat picks the cargo and bends the membrane"
+  },
+  {
+   "id": "vesicle-traffic-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At the plasma membrane, what opens the AP2 adaptor, and which part of the clathrin coat binds cargo?",
+   "back": "The lipid PI(4,5)P2 opens AP2, and AP2 reads the cargo motifs. Clathrin itself binds no cargo.",
+   "why": "Locked AP2 has part of its β2 subunit covering both cargo sites, so the lipid and the cargo together tell it where it is.",
+   "quote": "it opens on membranes with PI(4,5)P2, a phosphoinositide concentrated in the plasma membrane",
+   "section": "Step 1, budding: a coat picks the cargo and bends the membrane"
+  },
+  {
+   "id": "vesicle-traffic-c10",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Dynamin}}, a GTPase, pinches the finished clathrin bud off the plasma membrane.",
+   "back": "",
+   "quote": "Dynamin, a GTPase, pinches the finished clathrin bud off.",
+   "section": "Step 1, budding: a coat picks the cargo and bends the membrane"
+  },
+  {
+   "id": "vesicle-traffic-c11",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "ER vesicles are made in a cell-free system with GMP-PNP, a GTP analogue that cannot be hydrolyzed. Do they bud? Do they fuse with the Golgi?",
+   "back": "They bud, but they keep their coat and fail to target and fuse. Sar1's GTP hydrolysis is the timer that starts coat release, and that must happen before the next handoff.",
+   "quote": "The vesicles kept their coat proteins and failed to target and fuse with the Golgi.",
+   "section": "Step 1, budding: a coat picks the cargo and bends the membrane"
+  },
+  {
+   "id": "vesicle-traffic-c12",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In yeast, the ER cargo receptor Erv29 is deleted. Predict ER export of a soluble cargo that normally depends on it.",
+   "back": "Its export falls and more stays in the ER, because the coat cannot grab it without the receptor. Some may still leave in the fluid a bud encloses.",
+   "why": "Rests on the rule that soluble cargo reaches a coat only through a membrane-spanning receptor, or by bulk flow.",
+   "quote": "A soluble cargo, such as the secretory enzyme invertase measured below, cannot touch the coat"
+  },
+  {
+   "id": "vesicle-traffic-c13",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A phosphatase targeted to the plasma membrane removes its PI(4,5)P2. Predict clathrin-coated bud formation there.",
+   "back": "It falls. Without PI(4,5)P2, AP2 is expected to stay locked with its cargo sites covered, so cargo motifs are not read and uptake of AP2 cargo is expected to drop.",
+   "why": "Rests on AP2 opening only on membranes that carry PI(4,5)P2.",
+   "quote": "Crystal structures of recombinant AP2 show it locked, part of its β2 subunit covering both cargo sites",
+   "section": "Step 1, budding: a coat picks the cargo and bends the membrane"
+  },
+  {
+   "id": "vesicle-traffic-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Dynamin's GTPase activity is blocked in a cultured cell. Predict what happens to clathrin-coated buds at the plasma membrane.",
+   "back": "Buds still form around cargo but are not pinched off, so coated buds stay attached to the plasma membrane and clathrin-mediated uptake stalls.",
+   "why": "Rests on dynamin being the GTPase that pinches the finished bud off.",
+   "quote": "Dynamin, a GTPase, pinches the finished clathrin bud off.",
+   "section": "Step 1, budding: a coat picks the cargo and bends the membrane"
+  },
+  {
+   "id": "vesicle-traffic-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does a Rab move between the cytosol and its target membrane?",
+   "back": "Rab-GDP has its prenyl tail wrapped by GDI and travels in the cytosol. At the right membrane it leaves GDI, its tail enters the bilayer, and a GEF loads GTP, which holds it on.",
+   "quote": "At the right membrane the Rab leaves GDI, its tail enters the bilayer, and a GEF (an exchange factor) there loads GTP, which holds it on.",
+   "section": "Step 2, targeting: a Rab and a tether catch the vesicle"
+  },
+  {
+   "id": "vesicle-traffic-c16",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Rab-GTP effectors called {{c1::tethers}} are long coiled-coil proteins or large complexes that capture a vesicle before its SNAREs engage.",
+   "back": "Examples in yeast: Uso1p with the Rab Ypt1p, and HOPS with Ypt7.",
+   "quote": "Among the effectors are tethers: long coiled-coil proteins or large complexes that capture a vesicle before its SNAREs engage.",
+   "section": "Step 2, targeting: a Rab and a tether catch the vesicle"
+  },
+  {
+   "id": "vesicle-traffic-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Is a single Rab-GTP a vesicle's target address?",
+   "back": "No. The Rab, the tether, the membrane's phosphoinositide and the SNAREs each narrow the choice; the evidence fits a combination better than any one label.",
+   "quote": "No single molecule is the address: each narrows the choice, and the evidence fits a combination better than any one label.",
+   "section": "Step 2, targeting: a Rab and a tether catch the vesicle"
+  },
+  {
+   "id": "vesicle-traffic-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The GEF that loads GTP onto a Rab at its target membrane is lost. Predict where the Rab sits and whether vesicles are captured there.",
+   "back": "The Rab stays GDP-bound, so GDI can carry it back to the cytosol, and tethering effectors, which generally prefer Rab-GTP, are recruited less. Vesicle capture at that membrane falls.",
+   "why": "Rests on GTP loading holding the Rab on the membrane and on effectors preferring the GTP-bound form.",
+   "quote": "Rab-GTP recruits proteins called effectors, which generally prefer the active, GTP-bound form.",
+   "section": "Step 2, targeting: a Rab and a tether catch the vesicle"
+  },
+  {
+   "id": "vesicle-traffic-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "SNARE strands are named by the amino acid each places at the bundle's centre: three give a glutamine (Q) and one gives an {{c1::arginine (R)}}.",
+   "back": "So the four strands are Qa, Qb, Qc and R.",
+   "quote": "three give a glutamine (Q) and one an arginine (R), so they are Qa, Qb, Qc and R.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c20",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At a nerve terminal, which proteins give the Qa, Qb, Qc and R strands of the SNARE bundle?",
+   "back": "Syntaxin-1 gives Qa, SNAP-25 gives both Qb and Qc, and synaptobrevin on the vesicle gives R.",
+   "quote": "At a nerve terminal, syntaxin-1 gives Qa, SNAP-25 gives both Qb and Qc, and synaptobrevin on the vesicle gives R.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does SNARE zippering bring two bilayers to fuse?",
+   "back": "The four-helix bundle zips from the N-terminal end toward the membrane anchors. With strands tied to the vesicle and to the target, zipping pulls the bilayers together until they fuse.",
+   "quote": "With the vesicle's strand and the target's three strands each tied to their own membrane, zippering pulls the bilayers closer, until they fuse.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is the difference between a trans- and a cis-SNARE complex, and why can a cis complex not drive fusion?",
+   "back": "Trans: the strands come from two membranes. Cis: after fusion the whole bundle sits in one membrane. A cis bundle is stable and has both ends in one membrane, so it cannot pull two together.",
+   "quote": "A cis bundle is stable and useless, since both ends are already in one membrane.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Does the moment of SNARE-driven fusion use ATP? Where in the SNARE cycle is ATP spent?",
+   "back": "No. Four floppy strands folding into one bundle release free energy that pulls the membranes. ATP is spent by NSF, with its adaptor SNAP, to pull cis bundles apart before the next fusion.",
+   "quote": "The zip itself uses no ATP; ATP pays to get SNAREs ready.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "NSF's ATPase is blocked in a cell that must fuse vesicles repeatedly at one membrane. Predict fusion over time.",
+   "back": "Fusion continues only while unpaired SNAREs remain. Each fusion leaves a cis bundle that cannot be pulled apart, so cis complexes build up and fusion runs down.",
+   "why": "Rests on NSF being the ATPase that resets cis bundles between one fusion and the next.",
+   "quote": "NSF (Sec18 in yeast), an ATPase, binds cis bundles through its adaptor SNAP (Sec17) and spends ATP to pull the strands apart, after one fusion and before the next.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c25",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does an SM protein (the Sec1/Munc18 family) do in vesicle fusion?",
+   "back": "It binds SNAREs and helps the right four zip together. The main fusion steps studied need one.",
+   "quote": "named for its first two members, Sec1 and Munc18, which binds SNAREs and helps the right four zip together.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c26",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Yeast mutants in the secretory-vesicle Rab Sec4, the exocyst tether, and Sec1 all pile up 80 to 100 nm vesicles. Why is the sec1 block assigned to fusion?",
+   "back": "Because Sec1 is known to be the SM protein for secretory-vesicle fusion with the plasma membrane. The pile alone cannot tell a vesicle never caught from one caught but unable to fuse.",
+   "quote": "Sec1's known job, not the pile, names fusion.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c27",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A yeast sec4 (Rab) mutant and a sec9 (SNARE) mutant both pile up secretory vesicles. Design a way to tell a targeting failure from a fusion failure.",
+   "back": "Measure docking and fusion separately, in a cell-free assay or by imaging single vesicles in living cells. A Rab or tether failure is expected to leave vesicles undocked; a SNARE failure, docked but unfused.",
+   "why": "Rests on budding, targeting and fusion being separate handoffs that can each fail on their own.",
+   "quote": "Here, test tubes split them; imaging single vesicles in living cells can too.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c28",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How is the fraction of invertase secreted calculated from yeast measurements?",
+   "back": "fraction secreted = external / (external + internal)",
+   "quote": "fraction secreted = external / (external + internal)",
+   "section": "Putting the handoffs in order: mutants"
+  },
+  {
+   "id": "vesicle-traffic-c29",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a made-up test, wild-type yeast after 1 h at 37 °C have 270 units of invertase outside and 30 inside. A sec mutant has 20 outside and 380 inside. Compare the fractions secreted.",
+   "back": "Wild type: 270 / (270 + 30) = 270/300 = 90%. Mutant: 20 / (20 + 380) = 20/400 = 5%. The mutant's secretion block is real.",
+   "quote": "Wild type: external 180, internal 20, total 200, so 180/200 = 90% secreted.",
+   "section": "Putting the handoffs in order: mutants"
+  },
+  {
+   "id": "vesicle-traffic-c30",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "The same made-up sec mutant (20 units outside, 380 inside) is shifted to 25 °C with cycloheximide. After 60 min, 305 units are outside and 95 inside. What fraction of the trapped pool was released, and what does it show?",
+   "back": "(380 − 95)/380 = 285/380 = 75%. External rose by the same 285 units with the total fixed at 400, so the trapped invertase was a deliverable intermediate, not dead protein.",
+   "why": "Cycloheximide stops new synthesis, so any new external invertase must come from the trapped pool.",
+   "quote": "The pool released is (188 − 50)/188 = 138/188 = 73.4%.",
+   "section": "Putting the handoffs in order: mutants"
+  },
+  {
+   "id": "vesicle-traffic-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "On a linear pathway, which single-mutant phenotype does a double mutant show, and why?",
+   "back": "The earlier block's phenotype: cargo piles up at the first block it meets and never reaches the later step.",
+   "quote": "Cargo piles up at the first block it meets, so a double mutant looks like the earlier single block",
+   "section": "Putting the handoffs in order: mutants"
+  },
+  {
+   "id": "vesicle-traffic-c32",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Made-up yeast sec mutants at 37 °C: secM accumulates 80 to 100 nm vesicles, secN accumulates Golgi-like stacks, and the secM secN double accumulates Golgi-like stacks. Order the two steps.",
+   "back": "N acts before M. The double shows the earlier single block, the Golgi stacks, which fits a route of Golgi (N), then vesicles (M), then surface.",
+   "why": "Assumes one linear route with arrest states that can be told apart.",
+   "quote": "The secY secZ double accumulates Golgi-like membranes.",
+   "section": "Putting the handoffs in order: mutants"
+  },
+  {
+   "id": "vesicle-traffic-c33",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A yeast gene is needed both at ER exit and at a later secretory step. Its temperature-sensitive mutant accumulates only ER at 37 °C. A student concludes the gene acts only at ER exit. What is wrong?",
+   "back": "A gene needed at several steps shows only its earliest blocked step; the ordering rule shows where transport stops, not every place a product acts. NSF (sec18) recycles SNAREs at many steps, yet in classical sec18 experiments at 37 °C it piles up ER and ER-derived vesicles.",
+   "quote": "And a gene needed at several steps shows only its earliest blocked one.",
+   "section": "Putting the handoffs in order: mutants"
+  },
+  {
+   "id": "vesicle-traffic-c34",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a yeast cell-free ER-to-Golgi assay, GDI, which pulls Rabs off membranes, blocks fusion when added at the start. Predict its effect when added after the vesicles have docked.",
+   "back": "The block fades: once vesicles have docked, fusion is no longer GDI-sensitive, so the GDI-sensitive step is passed by docking.",
+   "why": "This does not show the Rab stopped mattering: GDI pulls off GDP-bound Rabs, and an active Rab-GTP resists it.",
+   "quote": "Once vesicles had docked, fusion was no longer sensitive to GDI, so the GDI-sensitive step is passed by docking.",
+   "section": "Splitting catch from fuse: test tubes"
+  },
+  {
+   "id": "vesicle-traffic-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a timed-addition assay, what does it show when a fast, specific inhibitor stops working if added later?",
+   "back": "That the inhibitor-sensitive state has been passed. It times the end of a whole step only if the inhibitor can still reach and act on its target later.",
+   "quote": "losing sensitivity to a fast, specific inhibitor shows that an inhibitor-sensitive state has been passed",
+   "section": "Splitting catch from fuse: test tubes"
+  },
+  {
+   "id": "vesicle-traffic-c36",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What result with purified yeast HOPS showed that catching a vesicle is not the same as fusing it?",
+   "back": "Truncated HOPS lacking parts of Vps11 or Vps18 still tethered liposomes carrying the Rab Ypt7 but failed to promote fusion.",
+   "quote": "truncated forms lacking parts of Vps11 or Vps18 still tethered Ypt7 liposomes but failed to promote fusion.",
+   "section": "Splitting catch from fuse: test tubes"
+  },
+  {
+   "id": "vesicle-traffic-c37",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "On the yeast vacuole, HOPS is built with a Vps33 that cannot bind SNAREs. Predict tethering and fusion in a liposome assay with active Ypt7 and matched SNAREs.",
+   "back": "Model expectation, if the mutation leaves HOPS assembled: tethering persists, since the Rab-binding tether is intact, but fusion falls, since the built-in SM protein can no longer help the right four SNAREs zip.",
+   "why": "Rests on HOPS both catching (as a tether) and helping fuse (through Vps33, an SM protein that binds SNAREs).",
+   "quote": "On the yeast vacuole the SM protein Vps33 is built into the tether HOPS, so one complex both catches and helps fuse.",
+   "section": "Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them"
+  },
+  {
+   "id": "vesicle-traffic-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a yeast ER-to-Golgi cell-free assay, design an experiment to tell whether an inhibitor acts at docking or at fusion itself.",
+   "back": "Measure budding, docking (vesicles sedimenting with Golgi) and fusion (acceptor-only sugar or content mixing). Add the inhibitor at 0, 5, 10, 15 and 20 min. Docking-acting: sensitivity is lost as docking completes. Fusion-acting: additions after docking but before fusion still block. Measure when fusion itself happens on the same schedule, or hold vesicles docked but unfused before adding the inhibitor. Controls: no ATP, no cytosol, leakage check.",
+   "quote": "If it acts at fusion itself, additions made after docking but before fusion still block.",
+   "section": "Design problem"
+  },
+  {
+   "id": "vesicle-traffic-c39",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Purified Sar1, Sec23/24 and Sec13/31 are added to chemically defined liposomes containing PI4P or PI(4,5)P2, and coated vesicles bud. What does this show?",
+   "back": "The COPII coat alone can bend membrane into vesicles, without help from other ER proteins.",
+   "quote": "so the coat can bend membrane without help from other ER proteins",
+   "section": "A coat from three parts"
+  },
+  {
+   "id": "vesicle-traffic-c40",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Assembly of one neuronal SNARE bundle releases about 65 kT. Convert to kJ/mol at 310 K, then compare with six ATP at 50 to 57 kJ/mol each.",
+   "back": "65 × RT = 65 × 8.314 J/(mol·K) × 310 K ≈ 168 kJ/mol, about 170. Six ATP: 6 × 50 to 57 = 300 to 342 kJ/mol, more than the assembly releases.",
+   "why": "Reversing an assembly must cost at least what it released; these separate experiments do not set a universal ATP budget.",
+   "quote": "As an illustration, six ATP at 50 to 57 kJ/mol each supply 300 to 342 kJ/mol, about 116 to 133 kT at 310 K",
+   "section": "Paying for fusion"
+  },
+  {
+   "id": "vesicle-traffic-c41",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Recombinant v-SNAREs and t-SNAREs are put into separate liposomes, and the docked liposomes mix their lipids. What does this show, and what does it leave open?",
+   "back": "SNAREs alone can merge those bilayers. Lipid mixing cannot tell full fusion from hemifusion, and it does not show that SNAREs supply specificity or speed in a cell.",
+   "quote": "That shows SNAREs can merge those bilayers on their own, though lipid mixing alone cannot tell full fusion from hemifusion.",
+   "section": "Can SNAREs fuse membranes alone?"
+  },
+  {
+   "id": "vesicle-traffic-c42",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a model where vesicles dock with a 10 min half-time, a docking inhibitor and a fusion inhibitor are both added at 20 min. Why can a fast fusion step make them look alike?",
+   "back": "With a fusion half-time of about 2 min, nearly every docked vesicle has already fused, so they block about 25% and 31% of eventual fusion. With a 15 min fusion half-time they block about 25% and 69%.",
+   "why": "Timed addition separates two steps only if fusion lags docking, which is why the fusion time course must be measured.",
+   "quote": "If the fusion half-time is about 2 min, a docking inhibitor and a fusion inhibitor added at 20 min block about 25% and 31% of eventual fusion",
+   "section": "Why the fusion time course matters"
+  }
+ ]
+}

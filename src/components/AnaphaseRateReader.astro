@@ -93,6 +93,7 @@
         stage.appendChild(el('rect', { x: xk - 3, y: YL - 8, width: 6, height: 16, fill: ORANGE }));
         stage.appendChild(el('text', { x: xk + sgn * 6, y: 82, 'font-size': 10, 'text-anchor': sgn < 0 ? 'end' : 'start', fill: ORANGE }, 'kinetochore'));
       }
+      if (K * S > 40) stage.appendChild(el('text', { x: CX - (P / 2 - K / 2) * S, y: YL - 10, 'font-size': 9, 'text-anchor': 'middle', fill: TEAL }, 'k-fibre'));
       // bracket across the sister kinetochores
       const xl = CX - (P / 2 - K) * S, xr = CX + (P / 2 - K) * S;
       stage.appendChild(el('line', { x1: xl, y1: 92, x2: xr, y2: 92, stroke: ORANGE, 'stroke-width': 1.2 }));
@@ -120,7 +121,7 @@
       stage.appendChild(el('line', { x1: X0 + 10, y1: 192, x2: X0 + 26, y2: 192, stroke: INK, 'stroke-width': 2.4 }));
       stage.appendChild(el('text', { x: X0 + 31, y: 195, 'font-size': 9, fill: INK }, 'pole to pole'));
       stage.appendChild(el('line', { x1: X0 + 10, y1: 205, x2: X0 + 26, y2: 205, stroke: TEAL, 'stroke-width': 2.4 }));
-      stage.appendChild(el('text', { x: X0 + 31, y: 208, 'font-size': 9, fill: INK }, 'kinetochore to pole'));
+      stage.appendChild(el('text', { x: X0 + 31, y: 208, 'font-size': 9, fill: INK }, 'kinetochore to pole (k-fibre)'));
       // cursor
       stage.appendChild(el('line', { x1: px(t), y1: Y0, x2: px(t), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
       stage.appendChild(el('circle', { cx: px(t), cy: py(P), r: 4, fill: INK }));
