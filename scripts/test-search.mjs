@@ -55,7 +55,9 @@ const PROBES = [
   // 2026-11-01); the word is no longer anywhere on the site.
   ['unengaged', 'antigen-receptors-and-checkpoints', 'quiz', 'a self-test question'],
   ['synteny', 'animal-body-plans', 'method', 'a "How we measure it" technique blurb'],
-  ['burette', 'amino-acids', 'film', 'a film transcript: "pH Sets an Amino Acid\'s Charge"'],
+  // Was 'burette' in amino-acids until that film was remade (2026-11-11); film words get remade, so
+  // this one is from a course outside the current film level-up.
+  ['outproduces', 'biodiversity-ecosystem-function', 'film', 'a film transcript: "More Species, More Biomass"'],
 ];
 for (const [word, slug, kind, where] of PROBES) {
   await expect(word, (hits) => {
