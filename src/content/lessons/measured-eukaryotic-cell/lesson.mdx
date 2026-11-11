@@ -4,25 +4,30 @@ slug: "measured-eukaryotic-cell"
 course: "cell-biology"
 courseChapter: "Cell Biology · Unit 1: Seeing and testing cells"
 order: 401
-summary: 'Growing eukaryotic cells control their size by coupling growth to division, and size matters because it sets how much a cell can make and how much room each part gets. This lesson shows how yeast cells sense their size, what goes wrong when a cell grows too big for its own synthesis, and how the parts of animal, plant and fungal cells scale, using real measurements tied to the cell they came from. It then works through surface-to-volume arithmetic as one limited physical cost, and asks what yeast, cultured cells, flies, worms and plants can and cannot tell you.'
-hook: 'Cells do not just end up a size. A fission yeast cell born small grows more before it divides, and its nucleus keeps pace with it.'
+summary: 'Many of a cell''s processes depend on concentrations, amount divided by volume, so growth dilutes anything whose amount does not keep pace. This lesson presents the leading, still-debated model in which budding yeast reads its size from the dilution of a brake called Whi5; shows why most of what a growing cell makes must keep pace with its volume, as the fission-yeast nucleus does; and asks where a cell can fall behind: a single genome appears to become limiting for transcription in greatly enlarged cells, and surface area grows more slowly than volume when a cell of fixed shape gets bigger. It works the surface arithmetic to the radius where supply meets demand, shows how plant cells add volume as vacuole instead of contents, and ends with a compact reference to animal, plant and fungal parts, with measured shares tied to named cells.'
+hook: 'A cell has no ruler. In a leading model, budding yeast reads its size from how diluted a brake protein has become, and the same arithmetic shows some costs of being big.'
 
-estMinutes: 24
+estMinutes: 27
 objectives:
-  - 'Explain how proliferating cells hold their size by coupling growth to division, and predict how a cell born small or large behaves under a size-sensing rule such as Whi5 dilution.'
-  - 'Explain why a growing cell must scale up RNA and protein synthesis, and what happens to its cytoplasm when it grows too large for that synthesis.'
-  - 'Compare animal, plant and fungal cells part by part, state how much of a cell each part occupies in a named, measured cell type, and describe how the nucleus scales with cell size in fission yeast and how plant cells add volume mostly as vacuole.'
-  - 'Calculate surface area, volume and their ratio for a model spherical cell, use a stated uptake and demand to find the radius at which supply just meets need, and say what that arithmetic leaves out.'
-  - 'Say what budding and fission yeast, cultured mammalian lines, flies, worms and plants can and cannot tell us, with one concrete example each.'
+  - 'Explain the leading, debated model in which budding yeast reads its size from the dilution of the brake Whi5, and use it to predict what a cell born small or large, or a cell given a different Whi5 dose, does at Start.'
+  - 'Explain why a growing cell must make RNA and protein in step with its volume, why their steady concentrations carry no size signal, and what happens to its cytoplasm when it grows too large for its synthesis.'
+  - 'State a measured compartment share together with its cell type, explain why a share measured in one cell type does not transfer to another, and describe how fission-yeast experiments showed that the nucleus scales with the cell rather than with its DNA.'
+  - 'Calculate surface area, volume and their ratio for a model spherical cell, find the radius at which a stated uptake just meets a stated demand, and say what that arithmetic leaves out, including how a plant vacuole changes it.'
+  - 'Compare animal, plant and fungal cells by wall, plastids and vacuole, and say what a result in a model organism, such as humanized yeast, does and does not show.'
 
 explainer:
   src: "/explainers/measured-eukaryotic-cell/explainer.mp4"
   captions: "/explainers/measured-eukaryotic-cell/explainer.vtt"
   poster: "/explainers/measured-eukaryotic-cell/poster.jpg"
-  title: "Cells Hold Their Size"
-  durationSec: 154.9
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Amount over Volume"
+  durationSec: 213.0
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In a leading but debated model, budding-yeast daughters get about the same dose of the brake Whi5, so a small one must grow more to dilute it before Start, closing only part of the size gap."
+    - "Most growing cells make RNA and protein roughly in step with their volume, so their concentrations stay about steady, and a steady concentration cannot tell a cell its size."
+    - "Yeast held so they grow without dividing fell behind in synthesis and their cytoplasm was diluted; at such sizes one genome copy appears to become a limit."
+    - "For a sphere, doubling the radius halves the membrane available to each unit of volume."
 
 scientists:
   - name: "Sydney Brenner"
@@ -152,7 +157,7 @@ practiceQuestions:
     - Both divide after the same time, so their sizes stay apart
     answer: 2
     rationale: Under a sizer, a cell divides on reaching a set size, so a cell born small has to grow more and a cell born large grows less, and both divide at a similar size. Adding the same volume each cycle is an adder, which shrinks a size difference only over several generations. Dividing after a fixed time is a timer, which does not correct size differences on its own. The larger-born cell growing more has the correction backwards.
-  - stem: In budding yeast, every newborn cell receives about the same amount of the cell-cycle inhibitor Whi5, which is diluted as the cell grows in G1. Compared with a cell born large, what does a cell born small do?
+  - stem: Under the leading, debated Whi5-dilution model, two budding-yeast daughters begin G1 with about the same amount of Whi5. Compared with a daughter born large, what does a daughter born small tend to do?
     choices:
     - It stays longer in G1 and grows more before committing to division
     - It commits to division sooner, since it holds less Whi5
@@ -241,7 +246,7 @@ explainLevels:
       the vacuole rises from about 30 to 40% of the cell to 80 to 90% during elongation, so most of
       a roughly 14-fold volume gain is vacuole. For a sphere A/V = 3/r; with uptake capped at J per
       unit area and demand q per unit volume, supply meets demand only up to r = 3J/q. That gives a
-      scaling penalty, not a universal maximum, because real cells change shape, fill space with
+      cost that grows with size, not a universal maximum, because real cells change shape, fill space with
       vacuoles, and must also scale their biosynthesis with volume.
   - level: "grad"
     label: "Graduate"
@@ -301,30 +306,142 @@ draft: false
 
 import CellSizeSupplyLimit from '../../../components/CellSizeSupplyLimit.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**Growing eukaryotic cells hold their size: they couple growth to division, so division depends on how much a cell has grown.**
+**In 1977 Leland Hartwell and Michael Unger followed budding yeast as it divided unequally, into a large mother cell and a small daughter. The daughter waited longer before starting its next cycle, as if it first had to reach a size.**
 
-Size matters because it sets how much a cell can make and how much room each part gets. Most of a cell's machinery grows in step with its volume, and so do many of its organelles, including the nucleus. This lesson follows that idea in order. How do cells control their size? What happens when a cell outgrows its own synthesis? How do the parts of animal, plant and fungal cells share the space, in measured cells? What physical cost does size carry? And which organism should you study to answer a given question?
+The film above showed one idea: amount over volume. The rest of the page asks four questions about that same ratio. What is the evidence for the Whi5 ruler? How do we know that bulk RNA and protein usually keep pace with growth, and that the nucleus keeps pace with the cell in fission yeast? How far can a single genome and the surface fall behind (the genome section answers the film's "a limit?")? And how do plant cells grow large while easing both costs? A short reference to animal, plant and fungal parts closes the page.
 
-## Cells control their size by coupling growth to division
+> **The one idea to carry through this lesson.** Many of a cell's processes depend on concentrations: amount divided by volume. Growth raises the volume, so anything whose amount does not keep pace is diluted. In the leading model, budding yeast reads its size from one such dilution, of a brake called Whi5. Most other contents a growing cell must make in step with its volume. Two things can fall behind and set costs of being big: a single genome, which appears to serve only so much cytoplasm, and the surface, which grows more slowly than the volume when a cell keeps its shape.
 
-A cell that kept growing without dividing would get ever bigger; one that divided without growing would shrink. Proliferating cells avoid both by linking the decision to divide to their size. Fission yeast, a rod that grows at its ends, divides only once it reaches a set size. A cell born small grows more before it divides, and a cell born large grows less, so sizes at division come out similar. A rule like this is called a sizer. Mutants that divide too early or too late are the size mutants used later in this lesson; the genes behind them are covered in [cell-cycle control](/lessons/cell-cycle-control/).
+A note on units: cell volumes are given in femtolitres (fL) or cubic micrometres (µm³), and the two are the same, 1 fL = 1 µm³.
 
-To follow such a rule, a cell has to sense its own size. One way is dilution. In budding yeast, every newborn cell gets about the same amount of a cell-cycle inhibitor called Whi5, and Whi5 is diluted as the cell grows in G1. A big cell dilutes it sooner, so it is more likely to commit to division; a cell born small stays longer in G1 and grows more first.
+## Reading size: the brake that growth dilutes
 
-Growth rate feeds in too. In bacteria, yeasts and mammalian cells alike, the faster cells grow, the larger they are.
+The film's ruler needs a few terms, then its evidence. The budding-yeast cycle runs through G1 (growth before the DNA is copied), S (DNA synthesis), G2 and M (mitosis). **Start**, the film's green line, is the point in G1 where the cell commits to a full cycle of copying its DNA and dividing (the mammalian version, the restriction point, is in [cell-cycle control](/lessons/cell-cycle-control/)). Whi5 is a protein that holds back the transcription factor (a gene-switching protein) that turns on the genes for Start; as Whi5's concentration falls, the brake weakens. A rule under which cells divide at about the same size, whatever size they were born, is a **sizer**.
 
-Geometry, which comes later in this lesson, sets a cost on being big. It does not choose a cell's size. The coupling of growth to division does.
+The film's red dots stand for a measurement. In 2015 Kurt Schmoller, Jan Skotheim and colleagues tagged Whi5 with a fluorescent protein and measured it in single living cells. Whi5 was made mostly in S, G2 and M, in an amount that hardly depended on the cell's size. A small daughter therefore began G1 with about as many Whi5 molecules as a larger cell, at a higher concentration. That premise does all the work: if the dose at birth grew in proportion to birth size, every cell would start at the same concentration, and dilution would tell it nothing about its size.
 
-## Size sets how much a cell can make
+**Predict.** A strain carries two copies of the *WHI5* gene instead of one, so each newborn cell gets about twice the usual dose. Do these cells pass Start at their normal size, a smaller size, or a larger one? And what would deleting *WHI5* do?
 
-The rate of a reaction depends on the concentration of the molecules that carry it out. So as a cell grows, it has to make more RNA and protein to keep their concentrations steady. In most cells it does: total RNA and protein rise roughly in step with volume, because larger cells transcribe and translate faster.
+<details>
+<summary>Check your prediction</summary>
 
-That scaling has a limit. When budding-yeast cells were held in G1 so that they kept growing without dividing, they reached many times their normal volume, and macromolecule synthesis failed to keep pace. Their cytoplasm became diluted. In enlarged human fibroblasts the same study could not measure protein and RNA directly, but found a sign of reduced crowding that fits dilution. Recent work suggests that excess size itself helps drive senescence, the permanent exit from division. A cell can be too big for its own synthesis machinery, not only for its membrane.
+Larger. In the idealized model, if the Whi5 dose stays fixed during G1 and Start occurs at the same Whi5 concentration, doubling the dose doubles the volume at that threshold. Experimentally, adding *WHI5* copies made cells larger, though not by a guaranteed twofold amount. Cells lacking Whi5 pass Start small.
 
-## The parts scale with the cell: a set of measured compartments
+</details>
 
-A eukaryotic cell keeps most of its DNA inside a membrane-bounded nucleus; mitochondria, and plastids in plants, carry small genomes of their own. Its interior is divided into compartments, regions enclosed by a membrane. The space inside an organelle is its lumen; the fluid outside the organelles but inside the plasma membrane is the cytosol. Think of a floor plan. A sketch tells you there is a kitchen and a bedroom; a floor plan with square metres tells you how the house is used.
+The film's picture was the simple case: a hard line that every cell crosses at the same size. Here is the fuller one. The budding-yeast sizer is weak and noisy: cells pass Start over a range of sizes, though the chance rises as they grow, so a cell born small makes up only part of its shortfall in one G1. And how much of size control Whi5 dilution explains is still argued (Going deeper).
+
+Fission yeast, a rod that grows at its ends, reads size another way, before mitosis. It divides only once it reaches a set size, so a cell born small grows more first, a cell born large grows less, and sizes at division come out similar. Its mutants that divide too early or too late are the size mutants in the design problem below.
+
+## Keeping pace: contents and the nucleus
+
+The ruler works because Whi5 does not keep pace; nearly everything else has to. The rate of a reaction depends on the concentration of the molecules that carry it out, so a growing cell has to make more RNA and protein to keep their concentrations steady. In most cells it does: total RNA and protein rise roughly in step with volume, because larger cells transcribe and translate faster. The film's flat orange gauge showed concentration only: the total amount still grows with the cell, but the concentration carries no size signal.
+
+Some organelles scale with cell size too, but the relation depends on the organelle and cell type. Within one cell type the nucleus grows with the cell, and many other organelles also scale in size or number with the cell, in ways that depend on the cell type. The cleanest test was on the nucleus, which the film never drew: its purple block was the DNA alone. Does the nucleus follow its DNA or its cell?
+
+### Design problem
+
+Does DNA content or cell size set the size of the nucleus? You work with fission yeast and have size mutants that divide at very different sizes, a way to raise DNA content without division (switching off Cdc13, the cyclin the cell needs to enter mitosis, so the genome is copied again and again), a fluorescent nuclear-envelope marker, and images that outline each cell. Design the experiment and say what each model predicts before you look.
+
+<details>
+<summary>One way to do it</summary>
+
+First, measure nuclear and cell volume in each cell, across the widest size range you can get from the mutants. If cell size sets nuclear size, the nuclear-to-cell ratio stays constant as cells get bigger. If DNA alone sets it, nuclear volume stays roughly fixed in cells with the same DNA content, so the ratio falls as cells grow.
+
+Second, change DNA content without changing the rule for cell size. Switch off Cdc13 so the genome is copied several times, and compare cells with 2C and with much higher DNA content (C is the DNA of one haploid genome). The DNA model predicts a relatively larger nucleus in the high-DNA cells; the cell-size model predicts the same ratio.
+
+Controls: measure wild-type cells in the same conditions, use the same marker and thresholds for every strain, and measure enough cells per strain to see the spread.
+
+Neumann and Nurse did this in 2007. The ratio stayed roughly constant, near 0.08, across a 35-fold range of average cell sizes, and a 16-fold difference in DNA content (2C against 32C) left relative nuclear size unchanged. In cells with several nuclei, a nucleus surrounded by more cytoplasm grew faster. The answer in fission yeast is cell size, probably through something in the cytoplasm.
+
+</details>
+
+So in fission yeast the nuclear share holds as the cell grows, while between cell types shares differ. Carry the cell type with each number.
+
+- **Chinese hamster V79-S171 cells, log phase, in culture:** mean volume 710 µm³, nucleus 190 µm³, total mitochondria 37.5 µm³, about 90 mitochondria per cell (an estimate from electron-microscope sections that depends on how a mitochondrion is counted; see Going deeper). In 1972 D. W. Ross and H. C. Mel took whole-cell volume from electronic cell sizing and apportioned it among nucleus, cytoplasm and mitochondria by electron microscopy.
+- **Wild-type fission yeast, growing:** nuclear-to-cell volume ratio 0.080 ± 0.013, measured by Frank Neumann and Paul Nurse with a fluorescent nuclear-envelope marker.
+
+**Reading a volume table.** From the V79 means:
+
+> nuclear fraction = 190 / 710 = 0.27;  mitochondrial fraction = 37.5 / 710 = 0.053
+
+So the nucleus is about 27% of a V79 cell and mitochondria about 5%, against a nucleus of 0.08 of a fission-yeast cell. Each value is real for its own cell; there is no universal nuclear fraction. Treated as a sphere of the same volume, a V79 cell has r³ = 3 × 710 / (4π) = 169.5 µm³, so r = 5.5 µm and the diameter is about 11.1 µm. That is a calculation, not a measured diameter; cells spread on a dish are flatter. How these volumes are measured comes in [microscopy and quantitative images](/lessons/microscopy-and-images/).
+
+## What can fall behind: the genome
+
+The film's first cost, the genome, ended on a question. Its swelling cells come from a 2019 study by Gabriel Neurohr, Angelika Amon and colleagues: held in G1, budding-yeast cells grew from about 65 fL to about 600 fL in six hours, and their cytoplasm was diluted.
+
+**Predict.** After six hours these cells are both much bigger and much longer arrested. How could you tell whether the dilution comes from their size or from the time spent arrested?
+
+<details>
+<summary>Check your prediction</summary>
+
+Hold some cells for the same time but let them grow less. The team did this by limiting glucose during the arrest, so these cells spent as long arrested but stayed smaller. If dilution comes from time, they should be diluted too; if from size, they should be spared. The comparison pointed to size: it was the enlarged cells that failed to scale up synthesis.
+
+</details>
+
+Why the genome? RNA is copied from DNA, so a cell with one genome copy has a fixed set of templates. At very large sizes the nuclear DNA itself appears to become limiting for transcription; if so, one genome can serve only so much cytoplasm. Cells that copy their genome without dividing, or carry extra genome sets, tend to be larger, which fits that idea. In enlarged human fibroblasts (connective-tissue cells) the same study could not measure protein and RNA directly, but found a sign of reduced crowding that fits dilution. Recent work suggests that excess size itself helps drive senescence, the permanent exit from division. A cell can be too big for its own synthesis machinery, not only for its membrane.
+
+## What falls behind: the surface
+
+The film's second cost, now with numbers. For its sphere going from 5 to 10 µm in radius, A = 314.2 → 1256.6 µm² and V = 523.6 → 4188.8 µm³, so A/V = 3/r falls from 0.6 to 0.3 µm⁻¹. The surface still grows, only more slowly than the volume while the shape stays the same. A rate on each side, uptake J per unit of surface and use q per unit of volume, shows where that bites.
+
+<EquationCard
+  purpose="The largest radius at which a spherical cell's surface can take in as much of a nutrient as its volume uses."
+  eq="r_max = 3J / q"
+  say="The largest radius is three times the uptake per unit of surface, divided by the use per unit of volume."
+  symbols={[
+    ["r_max", "r max", "the radius at which supply just meets demand", "µm"],
+    ["J", "J", "the most nutrient the membrane can take up, per unit area per second", "molecules µm⁻² s⁻¹"],
+    ["q", "q", "the nutrient each unit of volume uses per second, evenly through the cell", "molecules µm⁻³ s⁻¹"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="Units: J/q leaves µm, a length, as a radius must be. The 3 comes from A/V = 3/r for a sphere."
+>
+  <Fragment slot="example">
+    <p>Invent two rates; they are made-up inputs, not measurements. Let J = 20 molecules µm⁻² s⁻¹ and q = 6 molecules µm⁻³ s⁻¹, with the whole surface taking up nutrient and nothing else limiting the cell. Then r_max = 3 × 20 / 6 = 10 µm.</p>
+    <p>The ratio of capacity to demand is (J/q) × (3/r) = 10/r. At 5 µm it is 2 (supply 6,283 molecules per second against demand of 3,142), and at 10 µm it is exactly 1. Change J, q or the shape and the answer changes.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Supply meets demand when J × A ≥ q × V, with A = 4πr² and V = 4πr³/3. Divide both sides by J × V: A/V ≥ q/J. For a sphere A/V = 3/r, so 3/r ≥ q/J, which gives r ≤ 3J/q.</p>
+  </Fragment>
+</EquationCard>
+
+**Predict.** Keep J = 20, but let the cell's demand double to q = 12. Where is the new r_max, and what does a 10 µm cell now face? Then check with the sliders below.
+
+<details>
+<summary>Check your prediction</summary>
+
+r_max halves, to 3 × 20 / 12 = 5 µm. A 10 µm cell now takes in only half of what it uses: the capacity-to-demand ratio is 5/r, which is 0.5 at 10 µm. Doubling demand moves r_max exactly as halving uptake would.
+
+</details>
+
+<CellSizeSupplyLimit />
+
+So the sphere gives a cost that grows with size (the simulation calls it a scaling penalty), not a fixed largest size. The film's sphere was also the simple case. A flat or long thin cell keeps much more surface per volume than a sphere, and diffusion time grows with the square of distance, which also favours cells where no point is far from the surface. "Eukaryotic cells are 10 to 100 µm across" is a guide, not a bound: a 65 fL yeast cell has a sphere-equivalent diameter of about 5 µm. Geometry sets a cost on being big; the coupling of growth to division chooses the size.
+
+## Plants add volume mostly as vacuole, not cytoplasm
+
+Both costs bite hardest when the added volume is full of cytoplasm, so one way to ease them is to add volume that is mostly vacuole rather than cytoplasm. A plant cell does this by putting much of its new volume into the vacuole. In Arabidopsis root epidermis, the vacuole fills about 30 to 40% of young cells and 80 to 90% after elongation. Across that comparison the cells grew about 14-fold in volume, while the space between vacuole and cell boundary grew only about two- to threefold. Little new cytoplasm means little new RNA and protein to make.
+
+**Predict.** Treat the growing cell as a sphere whose volume rises 14-fold. What happens to membrane area per unit of volume? And per unit of cytoplasm, if the cytoplasm grows only two- to threefold?
+
+<details>
+<summary>Check your prediction</summary>
+
+A sphere's area grows as its volume to the power two-thirds, so a 14-fold rise in volume gives 14^(2/3) ≈ 5.8-fold more area. Per unit of volume, membrane therefore falls to 5.8 / 14 ≈ 0.4 of its starting value: the surface cost is still there. Per unit of cytoplasm it rises about two- to threefold (5.8 divided by 2 to 3). A real root cell elongates rather than swelling as a sphere, which keeps even more surface. For the cytoplasm, the vacuole turns the surface cost around.
+
+</details>
+
+The vacuole cannot do this alone. The cell wall has to loosen so the cell can stretch, and vacuole expansion and wall loosening must be coordinated. Which one leads, and exactly what the vacuole contributes, is still being worked out.
+
+## Same parts, different shares
+
+This last section is a reference tool, not a new step: the shares above only mean something if you know which parts each kind of cell has.
+
+A eukaryotic cell keeps most of its DNA inside a membrane-bounded nucleus; mitochondria, and plastids in plants, carry small genomes of their own. Its interior is divided into compartments, regions enclosed by a membrane. The space inside an organelle is its lumen; the fluid outside the organelles but inside the plasma membrane is the cytosol.
 
 Animal, plant and fungal cells share a plasma membrane, a nucleus and a cytoskeleton, the network of protein filaments that shapes the cell and moves things within it. All three have an endoplasmic reticulum (ER) and Golgi apparatus, which sort and transport proteins headed for secretion, and mitochondria, which carry out [oxidative phosphorylation](/lessons/oxidative-phosphorylation/). The bilayer that bounds all of these is covered in [membrane structure and function](/lessons/membrane-structure-function/), and the broad picture of the cell in [the introduction to biochemistry and cell biology](/lessons/intro-biochemistry-cell-biology/).
 
@@ -336,116 +453,44 @@ The differences are where students slip:
 | Plastids | none | chloroplasts in photosynthetic cells; in nonphotosynthetic tissues, leucoplasts without pigment or, in many fruits and flowers, pigmented chromoplasts | none |
 | Vacuole | small or absent | often large, can fill most of the cell | acidic, with degradative and storage roles |
 
-Chloroplasts carry out the [light reactions](/lessons/light-reactions/), but only in cells that photosynthesize. A root cell deep in soil is a plant cell without them. Yeasts are unicellular fungi, and budding yeast has the same core organelles as your cells, which is why it is so useful.
+Chloroplasts carry out the [light reactions](/lessons/light-reactions/), but only in cells that photosynthesize. A root cell deep in soil is a plant cell without them. Their number is a measured share too: wild-type Arabidopsis leaf mesophyll (Wassilewskija) holds a mean of 83 chloroplasts per cell, a figure for one tissue of one plant. Yeasts are unicellular fungi, and budding yeast has the same core organelles as your cells, which is why it is so useful.
 
 <LessonFigure src="/figures/measured-eukaryotic-cell/animal-plant-fungal-cell-compared.webp" width={1200} height={734} alt="AI-generated illustration: three schematic cells side by side. An animal cell with no wall, a plant cell with a cellulose wall, green chloroplasts and a large vacuole, and a yeast cell with a wall and a small vacuole; all share a nucleus, ER and Golgi, mitochondria and cytoskeleton." caption="Animal, plant and fungal cells share a plasma membrane, nucleus, ER, Golgi, mitochondria and cytoskeleton. The slips are in the wall, the plastids and the vacuole, and a root cell is usually a plant cell with no chloroplasts." />
-
-A textbook drawing of "the animal cell" gives you the parts but not the shares. Each number below belongs to one cell type. Carry the label with the number.
-
-- **Chinese hamster V79-S171 cells, log phase, in culture:** mean volume 710 µm³, nucleus 190 µm³, total mitochondria 37.5 µm³, about 90 mitochondria per cell (an estimate from EM sections that depends on how a mitochondrion is counted; see Going deeper). In 1972 D. W. Ross and H. C. Mel took whole-cell volume from electronic cell sizing and apportioned it among nucleus, cytoplasm and mitochondria by electron microscopy.
-- **Wild-type fission yeast, growing:** nuclear-to-cell volume ratio 0.080 ± 0.013, measured by Frank Neumann and Paul Nurse with a fluorescent nuclear-envelope marker.
-- **Arabidopsis leaf mesophyll, wild type (Wassilewskija):** a mean of 83 chloroplasts per cell. That is one tissue of one plant, not every plant cell.
-
-Now read the hamster data as you would a results table.
-
-**Worked problem, part 1: reading a volume table.** Using the V79 means:
-
-> nuclear fraction = 190 / 710 = 0.27;  mitochondrial fraction = 37.5 / 710 = 0.053
-
-So the nucleus is a little more than a quarter of the cell, about 27%, and mitochondria about 5%. If you treat the cell as a sphere of the same volume, r³ = 3 × 710 / (4π) = 169.5 µm³, so r = 5.5 µm and the sphere-equivalent diameter is about 11.1 µm. That is a calculation, not a measured diameter; cells spread on a dish are flatter than that.
-
-Compartment shares differ between cell types: 0.27 of a V79 cell is nucleus, against 0.08 of a fission yeast cell. Each value is real for its own cell, so there is no universal nuclear fraction. Within one cell type, though, the nucleus grows with the cell, and many other organelles also scale in size or number with the cell, in ways that depend on the cell type. The design problem below shows how the nuclear result was tested. How these volumes are measured, and what limits each method, comes in [microscopy and quantitative images](/lessons/microscopy-and-images/).
-
-### Design problem
-
-Does DNA content or cell size set the size of the nucleus? You work with fission yeast and have size mutants that divide at very different sizes, a way to raise DNA content without division (switching off the mitotic cyclin Cdc13 so the genome is copied repeatedly), a fluorescent nuclear-envelope marker, and images that outline each cell. Design the experiment and say what each model predicts before you look.
-
-<details>
-<summary>One way to do it</summary>
-
-First, measure nuclear and cell volume in each cell, across the widest size range you can get from the mutants. If cell size sets nuclear size, the nuclear-to-cell ratio stays constant as cells get bigger. If DNA alone sets it, nuclear volume stays roughly fixed in cells with the same DNA content, so the ratio falls as cells grow.
-
-Second, change DNA content without changing the rule for cell size. Switch off Cdc13 so the genome is copied several times, and compare cells with 2C and with much higher DNA content. The DNA model predicts a relatively larger nucleus in the high-DNA cells; the cell-size model predicts the same ratio.
-
-Controls: measure wild-type cells in the same conditions, use the same marker and thresholds for every strain, and measure enough cells per strain to see the spread.
-
-Neumann and Nurse did this in 2007. The ratio stayed roughly constant, near 0.08, across a 35-fold range of average cell sizes, and a 16-fold difference in DNA content (2C against 32C) left relative nuclear size unchanged. In cells with several nuclei, a nucleus surrounded by more cytoplasm grew faster. The answer in fission yeast is cell size, probably through something in the cytoplasm.
-
-</details>
-
-## Plant cells grow by filling a vacuole
-
-A plant cell can grow large without making much new cytoplasm, because it puts most of its new volume into the vacuole. In Arabidopsis root epidermis, the vacuole fills about 30 to 40% of young cells and 80 to 90% after elongation. Across that comparison the cells grew about 14-fold in volume, while the space between vacuole and cell boundary grew only about two- to threefold.
-
-The vacuole cannot do this alone. The cell wall has to loosen so the cell can stretch, and vacuole expansion and wall loosening must be coordinated. Which one leads, and exactly what the vacuole contributes, is still being worked out.
-
-## A physical cost: surface, volume and supply
-
-Everything a cell takes in crosses its surface, while everything it uses is spread through its volume. Picture a city fed by trucks entering at its border: double the city's width and the border doubles, but the area to feed goes up fourfold.
-
-**Worked problem, part 2: geometry.** Take a hypothetical smooth spherical cell that grows from radius 5 µm to 10 µm.
-
-> A = 4πr²    V = 4πr³/3    A/V = 3/r
-
-At r = 5 µm: A = 314.2 µm², V = 523.6 µm³, A/V = 0.6 µm⁻¹.
-At r = 10 µm: A = 1256.6 µm², V = 4188.8 µm³, A/V = 0.3 µm⁻¹.
-
-The radius doubles, the area rises fourfold, the volume eightfold, and the ratio halves.
-
-**Worked problem, part 3: supply against demand.** Now invent two rates; they are made-up inputs, not measurements. Suppose the membrane can take up a nutrient at no more than J = 20 molecules µm⁻² s⁻¹, and the cell uses q = 6 molecules µm⁻³ s⁻¹ evenly through its volume. Assume the whole surface takes up nutrient and nothing else limits the cell.
-
-> supply meets demand when J × A ≥ q × V, that is, 3/r ≥ q/J, so r_max = 3J/q
-
-Here r_max = 3 × 20 / 6 = 10 µm. The ratio of capacity to demand is (J/q) × (3/r) = 10/r: at 5 µm it is 2 (supply 6,283 molecules per second against demand of 3,142), and at 10 µm it is exactly 1. Change J, q or the shape and the answer changes.
-
-<CellSizeSupplyLimit />
-
-So the arithmetic gives a scaling penalty, not a universal maximum. It leaves out several things.
-
-**Shape.** A flat or long thin cell keeps much more surface per volume than a sphere. Diffusion time grows with the square of distance, which also favours cells where no point is far from the surface.
-
-**Vacuoles.** A vacuole-filled plant cell grows its cytoplasm far less than the cell, as the previous section showed, so surface per unit of cytoplasm falls more slowly than the sphere model says.
-
-**Biosynthetic scaling.** A cell can outgrow its own synthesis machinery before it outgrows its membrane, as the enlarged-yeast experiment above showed.
-
-**The size guide itself.** "Eukaryotic cells are 10 to 100 µm across" is a guide, not a bound. A 65 fL yeast cell has a sphere-equivalent diameter of about 5 µm.
-
-## Model systems and the limits of transfer
-
-Choose the organism for the question, and remember what a result in it does and does not show.
-
-**Budding yeast** (*Saccharomyces cerevisiae*) is fast and easy to manipulate genetically; how genes are deleted is covered in [CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/). Many of its genes still do their job when swapped for the human version: when human orthologs were tested in place of 414 essential yeast genes, 176 (43%) restored growth. That shows a conserved function in those genes. It does not show that the rest are unconserved, since failure can have several causes, and growth rescue says nothing about tissue roles.
-
-<LessonFigure src="/figures/measured-eukaryotic-cell/human-ortholog-rescue-test.webp" width={1200} height={807} alt="AI-generated illustration: two side-by-side frames of budding yeast whose own copy of an essential gene is shut off. With an empty plasmid a single cell does not grow; with a plasmid carrying the human ortholog the cells bud and grow." caption="With the yeast copy of an essential gene shut off, cells with an empty plasmid cannot grow, while cells given the human ortholog can. Growth rescue shows a conserved function; failure alone does not say why." />
-
-**Fission yeast** (*Schizosaccharomyces pombe*) is a rod that grows at its ends, which makes size easy to measure; its size control and nuclear scaling appear earlier in this lesson.
-
-**Cultured mammalian lines** give precise numbers, like the V79 volumes, but a line is not an animal, and a line's name is not a guarantee: strains of the breast cancer line MCF7 have diverged genetically and can respond very differently to the same drugs. Report the strain and conditions.
-
-**Flies** (*Drosophila*): many human disease genes have apparent fly counterparts (see Going deeper for the tallies), but conservation is gene by gene. No fly counterpart of α-synuclein was found, yet a missing gene can sometimes be added back: flies made to express human α-synuclein are used to model Parkinson's disease.
-
-**Worms** (*C. elegans*): the worm is transparent, so its cells can be watched in a living animal, and most worms fertilize themselves, so a mutation breeds true without a mate. Sydney Brenner's mutant screens showed how to go from a visible defect in a whole animal to a mapped gene. Human effects need more evidence.
-
-**Plants** (*Arabidopsis*): the *arc6* mutant, with one to three chloroplasts per mesophyll cell against 83 in wild type, and the root vacuole measurements show control of chloroplast number and vacuole size that animal cells do not offer. Leaf and root data are not interchangeable.
 
 ## Going deeper
 
 ### Sizers, adders and timers
 
-A sizer, as in fission yeast, divides at a set size, so it can correct a size error within one cycle. An adder adds about the same volume each cycle whatever the birth size, so a size error shrinks only over several generations. A timer keeps cycle time constant; on its own it cannot correct size in cells that grow exponentially, though it can hold the sizes a sizer has set. Real cells mix these. Budding yeast shows a weak sizer in G1 and a timer for the rest of the cycle, so its whole cycle behaves roughly like an adder; fission yeast behaves as a sizer overall. Many cultured mammalian cell lines behave as adders, partly because cancer mutations disrupt their G1/S control. Size control is also noisy: budding-yeast cells pass the commitment point over a range of sizes, but the chance of passing rises as they grow. Whi5 works much like the mammalian brake Rb, and plants use dilution too: in Arabidopsis the inhibitor KRP4 is diluted with growth. Fission yeast reads several inputs at once, among them the activator Cdc25, which is made in step with cell volume.
+A sizer can correct a size error within one cycle. An adder adds about the same volume each cycle whatever the birth size, so a size error shrinks only over several generations. A timer keeps cycle time constant; on its own it cannot correct size in cells that grow exponentially, though it can hold the sizes a sizer has set. Budding yeast shows a weak sizer in G1 and a timer for the rest of the cycle, so its whole cycle behaves roughly like an adder; fission yeast behaves as a sizer overall. Many cultured mammalian cell lines behave close to adders; one proposal, not settled, is that cancer mutations disrupt their G1/S control. Whi5 works much like the mammalian brake Rb, and plants use dilution too: in Arabidopsis the inhibitor KRP4 is diluted with growth.
+
+### Debates over what is measured
+
+Whi5 dilution is the leading model, not a closed case: later measurements disagree about how far Whi5 concentration falls during G1 and how much of size control it explains (for example, Litsios and colleagues in 2019 and Barber, Amir and Murray in 2020, with follow-ups from the Schmoller and Skotheim groups). Fission yeast reads several inputs at once. One is the activator Cdc25, whose concentration rises as the cell grows, the mirror image of Whi5. Whether it measures its length, surface area or volume is debated; a sensor at the cell cortex built around the protein Cdr2 has been proposed to read surface area.
+
+Growth rate feeds in too. In bacteria and yeasts, cells that grow faster, in richer media, are larger; a similar trend is reported in mammalian cells, but it is weaker and depends on how growth is changed.
 
 ### The enlarged-yeast experiment
 
-In 2019 Gabriel Neurohr, Angelika Amon and colleagues held budding-yeast cells in G1 of the cell cycle with a temperature-sensitive *cdc28-13* allele. The cells kept growing, from about 65 fL to about 600 fL in six hours. When macromolecule synthesis failed to keep pace with volume, the cytoplasm became diluted. At very large sizes the nuclear DNA itself appears to become limiting for transcription. In primary human fibroblasts (IMR90) enlarged by senescence induction, the evidence was faster diffusion of tracer nanoparticles, the indirect sign of reduced crowding mentioned above.
+The arrest used a temperature-sensitive *cdc28-13* allele. In primary human fibroblasts (IMR90) enlarged by senescence induction, the evidence was faster diffusion of tracer nanoparticles, the indirect sign of reduced crowding mentioned above.
 
 ### Counting organelles
 
-Counts need a definition too. The figure of about 90 mitochondria per V79 cell is an estimate from EM sections, and mammalian mitochondria can also join into branched networks. In budding yeast, image analysis shows that mitochondria can form one interconnected network or many separate tubules, so the count depends on the rule: counting each connected structure as one object makes a single network one mitochondrion. This lesson gives no census of organelle numbers across animals, plants and fungi.
+The count of about 90 mitochondria per V79 cell depends on the counting rule, since mammalian mitochondria can also join into branched networks. In budding yeast, image analysis shows that mitochondria can form one interconnected network or many separate tubules, so the count depends on the rule: counting each connected structure as one object makes a single network one mitochondrion. This lesson gives no census of organelle numbers across animals, plants and fungi.
 
-### Gene tallies in flies and worms
+### Model organisms and the limits of transfer
 
-A 2000 survey by Fortini and colleagues found apparent fly counterparts for 178 of 287 human disease genes, but none for α-synuclein; a larger 2001 search by Reiter and colleagues matched 714 of 929 disease genes (77%) to fly sequences. Sydney Brenner's 1974 paper linked about 300 EMS-induced mutants to about 100 genes, establishing gene-to-phenotype links in a whole animal.
+This lesson's numbers come from two yeasts, a hamster line and Arabidopsis; each model answers some questions and not others.
 
-### Humanized yeast and cell-line strains
+**Budding yeast** (*Saccharomyces cerevisiae*) is fast and easy to manipulate genetically ([CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/)). In 2015 Aashiq Kachroo, Edward Marcotte and colleagues tested human orthologs (the matching human genes) in place of 414 essential yeast genes, and 176 (43%) restored growth in their own assays; adding earlier published cases brought the rate to 47%. That shows a conserved function in those genes. It does not show that the rest are unconserved, since failure can have several causes, and growth rescue says nothing about tissue roles.
 
-The humanization test was reported in 2015 by Aashiq Kachroo, Edward Marcotte and colleagues. The 43% comes from their own assays, judged by rescue of growth; adding earlier published cases brought the rate to 47%. The MCF7 comparison is from Uri Ben-David and colleagues, who characterized 27 strains of the line in 2018. They found rapid genetic diversification, and at least 75% of the compounds that strongly inhibited some strains were completely inactive in others.
+<LessonFigure src="/figures/measured-eukaryotic-cell/human-ortholog-rescue-test.webp" width={1200} height={807} alt="AI-generated illustration: two side-by-side frames of budding yeast whose own copy of an essential gene is shut off. With an empty plasmid a single cell does not grow; with a plasmid carrying the human ortholog the cells bud and grow." caption="With the yeast copy of an essential gene shut off, cells with an empty plasmid cannot grow, while cells given the human ortholog can. Growth rescue shows a conserved function; failure alone does not say why." />
+
+**Fission yeast** (*Schizosaccharomyces pombe*) grows at its ends, which makes size easy to measure.
+
+**Cultured mammalian lines** give precise numbers, like the V79 volumes, but a line is not an animal, and a line's name is not a guarantee. Uri Ben-David and colleagues characterized 27 strains of the breast cancer line MCF7 in 2018 and found rapid genetic diversification: at least 75% of the compounds that strongly inhibited some strains were completely inactive in others. Report the strain and conditions.
+
+**Flies** (*Drosophila*): a 2000 survey by Fortini and colleagues found apparent fly counterparts for 178 of 287 human disease genes, and a larger 2001 search by Reiter and colleagues matched 714 of 929 (77%). Conservation is gene by gene: no fly counterpart of α-synuclein was found, yet flies made to express human α-synuclein are used to model Parkinson's disease.
+
+**Worms** (*C. elegans*) are transparent and mostly self-fertilizing, so cells can be watched in a living animal and a mutation breeds true without a mate. Sydney Brenner's 1974 paper linked about 300 EMS-induced mutants to about 100 genes, from visible defect to mapped gene. Human effects need more evidence.
+
+**Plants** (*Arabidopsis*): the *arc6* mutant, with one to three chloroplasts per mesophyll cell against 83 in wild type, and the root vacuole measurements show control of chloroplast number and vacuole size that animal cells do not offer. Leaf and root data are not interchangeable.

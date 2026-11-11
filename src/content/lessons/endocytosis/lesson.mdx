@@ -6,16 +6,16 @@ courseChapter: "Cell Biology · Unit 3: Traffic and movement"
 order: 413
 summary: >-
   How does a cell take in a particle it needs, keep the receptor that caught it, and destroy the
-  particle? This lesson builds a clathrin-coated vesicle step by step, names the other routes into
-  a cell, and follows LDL and its receptor into maturing endosomes, where the receptor returns to the
-  surface in recycling tubules and LDL goes on to the lysosome. Afterwards you can read cell data from familial hypercholesterolaemia and say whether
-  a receptor fails at binding, at entry or at return.
-hook: "Why can a patient's cells grip cholesterol-carrying LDL normally and still leave it outside?"
+  particle? For the LDL receptor, the receptor runs a loop and its LDL makes a one-way trip to the
+  lysosome; the two part in the mildly acid early endosome. Afterwards you can read cell data from
+  familial hypercholesterolaemia and say whether a receptor fails at binding, at entry or at
+  return, and contrast receptors sent for destruction and the other routes into a cell.
+hook: "Why can a patient's cells grip cholesterol-carrying LDL normally and still leave most of it on the surface?"
 
 estMinutes: 24
 objectives:
   - "Describe clathrin-mediated endocytosis step by step, from adaptor binding to PI(4,5)P2 and cargo through dynamin scission and uncoating, and name the other routes into a cell."
-  - "Trace the LDL receptor through the early endosome, Rab5-to-Rab7 conversion, recycling tubules, multivesicular bodies and the lysosome, saying what happens to receptor and to LDL at each step."
+  - "Trace the LDL receptor and its LDL from the coated pit to the acid early endosome where they part, follow each to its destination (recycling tubules; Rab5-to-Rab7 conversion and the lysosome), and contrast a receptor sent for destruction through a multivesicular body."
   - "Calculate binding, fraction internalized and coated-pit enrichment from cell data, and use them to classify a familial hypercholesterolaemia receptor defect."
   - "Design an experiment that shows a receptor recycling defect, choosing a ligand the mutant receptor can still bind."
 
@@ -23,10 +23,16 @@ explainer:
   src: "/explainers/endocytosis/explainer.mp4"
   captions: "/explainers/endocytosis/explainer.vtt"
   poster: "/explainers/endocytosis/poster.jpg"
-  title: "The Receptor Makes a Round Trip"
-  durationSec: 186.1
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "A Loop and a One-Way Trip"
+  durationSec: 199.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "For the LDL receptor, the receptor runs a loop and its LDL makes a one-way trip to the lysosome."
+    - "Adaptors hold the receptor tails and the membrane; clathrin builds the cage, and dynamin cuts the neck."
+    - "In the mildly acid early endosome, LDL lets go of its receptor, and their paths split."
+    - "Empty receptors return to the surface in tubules; the LDL goes on to a lysosome to be broken down."
+    - "Follow one batch of LDL receptors round the loop: losing binding or entry stops its later handling, but a release defect only reduces return."
 
 scientists:
   - name: "Michael S. Brown"
@@ -110,8 +116,8 @@ scientists:
 techniques:
   - name: "Cold binding, warm uptake"
     blurb: >-
-      Cells are given labelled ligand at 4 °C, where it binds but membrane traffic stops, then
-      washed and warmed to 37 °C for a set time. An acid or heparin wash strips what is still on
+      Cells are given labelled ligand at 4 °C, where it binds while membrane traffic is largely
+      arrested, then washed and warmed to 37 °C for a set time. An acid or heparin wash strips what is still on
       the surface, so binding and internalization are measured separately in the same cells.
   - name: "Ferritin-LDL electron microscopy"
     blurb: >-
@@ -244,7 +250,7 @@ practiceQuestions:
     rationale: >-
       ESCRT-I, working after ESCRT-0, recognizes ubiquitinated cargo and helps sort it into the vesicles that bud into the lumen
       of the multivesicular body; without it the protein stays in the limiting membrane, out of
-      reach of full digestion: after fusion, enzymes in the lumen digest the inner vesicles but cannot digest a whole protein held in the limiting membrane, so less of it is degraded.
+      reach of full digestion: after fusion, enzymes in the lumen digest the inner vesicles, but of a protein held in the limiting membrane only the part facing the lumen is exposed to them, so less of it is degraded.
       Faster entry into internal vesicles is the opposite of losing the sorter. ESCRT-I reads the
       ubiquitin tag rather than adding it, and internalization from the surface happens before
       the ESCRT step. A membrane protein is not released as soluble protein by losing a sorting
@@ -395,77 +401,34 @@ draft: false
 import LdlBindingEntryReader from '../../../components/LdlBindingEntryReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Cells from one patient with familial hypercholesterolaemia carry LDL receptors that grip LDL normally, yet the LDL stays outside the cell.**
+**The film ended by asking which step of the loop breaks in a patient's cells. In one patient with familial hypercholesterolaemia (FH), the LDL receptors grip LDL normally, yet most of the LDL stays on the cell surface.**
 
-LDL, low-density lipoprotein, is the particle that carries much of the cholesterol in human blood, and cells take it in through a receptor. In the 1970s Michael Brown and Joseph Goldstein grew skin fibroblasts from people with familial hypercholesterolaemia (FH), an inherited disease of very high blood LDL. The homozygous cultures they first tested lacked normal high-affinity LDL binding. Cells from a patient known as J.D. were different: they bound LDL but did not take it in. A receptor has to do more than bind. It must be gathered into the right patch of membrane, carried inside, let go of its cargo and come back.
+LDL, low-density lipoprotein, carries much of the cholesterol in human blood. In the 1970s Michael Brown and Joseph Goldstein grew skin fibroblasts (connective-tissue cells that grow well in a dish) from people with FH, an inherited disease of very high blood LDL. The homozygous cultures they first tested (two defective gene copies) lacked normal high-affinity LDL binding, the tight binding that fills normal cells' receptors at low LDL levels. Cells from a patient known as J.D. bound LDL but took little of it in.
 
-This lesson follows that cycle: the doors into a cell, the building of a clathrin-coated vesicle, the sorting stations inside, and FH cell data that separate one step from another.
+The rest of the page answers that question, and each part comes back to the loop: first an assay that measures binding and entry separately, then the film's steps (entry, the acid fork, return), each with a receptor that fails there, J.D.'s at entry. Last come receptors meant to be destroyed, which never finish the loop, and, for contrast, the other doors into a cell.
 
-## Ways into a cell: several doors, each with its own machinery
+> **The one idea to carry through this lesson.** The film follows four assayable jobs: bind, enter, release and return. For one matched batch, loss of binding or entry prevents later handling of that batch; a release defect can reduce return and promote degradation, so each transition must be measured, not assumed all-or-none. So measure the steps in order in matched cells and find the earliest one that falls; then test that step directly, because a low reading tells you where, not why.
 
-Endocytosis is the taking-in of outside material in membrane-bound carriers made from the plasma membrane. The cargo sits in the carrier's lumen, the space enclosed by its membrane, which is topologically outside the cytosol, the fluid part of the cytoplasm. Nothing has yet crossed a membrane. (The [membrane topology lesson](/lessons/membrane-organization-topology/) sets out this logic.)
+## The record: binding, then uptake, read in order
 
-Cells have several doors.
+First, the tool the rest of the page reads: one assay that measures the loop's first two steps separately. Cells are given labelled LDL at 4 °C, where it binds while membrane traffic is largely arrested: that is **bound**. They are washed free of unbound LDL and warmed to 37 °C for a set time, so the loop runs. An acid or heparin wash then strips LDL still on the surface; what resists the strip is **internal**.
 
-- **Phagocytosis** takes large particles, such as bacteria or dead cells, into phagosomes. In animals it is mostly the work of specialized cells such as macrophages and neutrophils, and actin drives it.
-- **Macropinocytosis** makes large vacuoles when sheet-like membrane projections fold back onto the cell surface and enclose a gulp of fluid. Growth factors stimulate it in many mammalian cells.
-- **Clathrin-mediated endocytosis** concentrates chosen receptors into small coated pits. It is the best-understood route for receptors such as the LDL receptor and the transferrin receptor.
-- **Caveolae** are small flask-shaped pits built around the protein caveolin. They are often drawn as a major entry route, but a 2020 review cautions that few if any cargoes are shown to rely on caveolae to enter. Their clearest job is mechanical: they flatten when the membrane is stretched, which buffers the tension.
-- **FEME** (fast endophilin-mediated endocytosis) is triggered when ligands activate selected surface receptors, and it needs dynamin. The **CLIC/GEEC** route does not need dynamin.
+> binding relative to normal = bound (strain) ÷ bound (normal)
+>
+> fraction internalized = internal ÷ bound at 4 °C
 
-One trap: clathrin-independent does not mean caveolar. FEME and CLIC/GEEC are separate routes with their own machinery.
+**Predict.** A receptor binds LDL normally but is never gathered into pits. Before reading the table, predict LDL bound at 4 °C, LDL still on the surface after warming, and LDL internal.
 
-<LessonFigure src="/figures/endocytosis/five-doors-into-a-cell.webp" width={1200} height={731} alt="AI-generated illustration: a cross-section of a cell's plasma membrane with five different entry events side by side: a pair of membrane arms closing over a large particle, a sheet-like fold enclosing fluid, a small clathrin-coated pit, a flask-shaped caveola, and two uncoated folds, one with a dynamin collar and one without." caption="Cells have several doors, and each has its own machinery. Clathrin-independent does not mean caveolar: FEME and CLIC/GEEC are separate routes." />
+<details>
+<summary>Check your prediction</summary>
 
-## Building and cutting a clathrin-coated vesicle
+Bound near normal, most of it still on the surface after warming, and little internal. That is strain Y below.
 
-A coat is a protein lattice that assembles on one face of a membrane, bends it and selects cargo. Here the coat is clathrin. Its unit is the triskelion: three heavy chains and three light chains joined at a hub, with three legs that interlock with neighbours into a cage of hexagons and pentagons. Picture a geodesic dome built from three-legged pieces.
-
-Clathrin binds neither membrane nor cargo. Adaptors do that. In mammalian cells the steps run:
-
-1. **Initiation.** The adaptor complex AP2 and other clathrin-associated sorting proteins bind PI(4,5)P2, a phosphoinositide in the inner leaflet of the plasma membrane (see [lipids](/lessons/lipids/)).
-2. **Cargo capture.** Adaptors read short sorting motifs in cargo tails. AP2 binds YXXΦ motifs (tyrosine, any two residues, then a bulky hydrophobic residue), such as the one in the transferrin receptor. The LDL receptor carries an NPXY motif, which the adaptors Dab2 and ARH can recognize.
-3. **Coat assembly.** Membrane-bound adaptors recruit clathrin triskelia. The lattice grows and the membrane curves into a pit.
-4. **Scission.** Dynamin, a GTPase, assembles as a collar around the narrow neck and, using GTP hydrolysis, drives the membrane to split.
-5. **Uncoating.** The chaperone Hsc70, recruited by auxilin, pulls the lattice apart, so the triskelia can be reused and the vesicle can fuse with an endosome.
-
-<LessonFigure src="/figures/endocytosis/building-a-clathrin-coated-vesicle.webp" width={1200} height={800} alt="AI-generated illustration: a coated pit on a cell membrane with receptors carrying cargo, AP2 adaptors linking receptor tails and the membrane's inner leaflet to a dome-like clathrin lattice of hexagons and pentagons, and a dynamin collar around the narrow neck; an inset shows one three-legged triskelion." caption="Clathrin builds the cage, but adaptors do the binding: AP2 reaches the membrane lipid PI(4,5)P2 and the cargo tail, and the cage is made of three-legged triskelia. Dynamin gathers at the narrow neck." />
-
-Not every clathrin cargo leans on AP2 the same way. In HeLaM cells depleted of AP2, a chimeric protein carrying the LDL receptor's tail was still taken up, consistent with other adaptors reading its NPXY motif. That result is about one construct in one cell line; it does not make AP2 dispensable in general.
-
-How the coat bends is still argued. Live imaging in human SK-MEL-2 cells found curvature appearing early in some selected events and only after much of the clathrin had arrived in others. A 2023 analysis of fixed coats in three cell lines inferred that coats, on average, gain about half their final area before bending, with a fitted preferred radius of about 72 nm in SK-MEL-2 cells. The [vesicle traffic lesson](/lessons/vesicle-traffic/) treats coats in general.
-
-## Sorting stations: maturing endosomes, recycling and the lysosome
-
-Uncoated vesicles fuse with early endosomes, whose lumen is mildly acid, roughly pH 6 (reported values run from about 5.6 to 6.5; proton pumps set it, as the [organelles lesson](/lessons/organelles-as-environments/) explains). For LDL, acid is the sorting signal: at this pH LDL comes off its receptor. A crystal structure of the receptor's outer part at acid pH suggests one way. The ligand-binding repeats fold back over a propeller-shaped domain, which binds two of them and so takes the place of LDL.
-
-Receptor and cargo now part.
-
-**The receptor recycles.** Empty receptors collect in narrow tubules that pinch off and return to the plasma membrane, directly or through a recycling endosome. These compartments are labelled by Rabs. A Rab is a small GTPase that, bound to GTP, sits on one membrane and marks its identity by recruiting the tethers and enzymes that belong there. In human A431 cells, Rab4-positive recycling tubules were seen to separate from Rab5-positive early endosomes by fission.
-
-**LDL goes to the lysosome.** It stays in the lumen while the endosome matures. Lysosomal enzymes digest its protein and hydrolyse its cholesteryl esters, releasing cholesterol. That cholesterol in turn damps the cell's own synthesis through HMG-CoA reductase, as the [lipid synthesis lesson](/lessons/lipid-synthesis/) describes.
-
-How does an early endosome become a late one? Either cargo moves between permanent compartments, or the compartment itself changes. In 2005 Marino Zerial's laboratory imaged A431 cells expressing fluorescent Rab5 and Rab7 as they took up LDL. On single endosomes carrying LDL, Rab5 was replaced by Rab7, which the authors read as Rab conversion: the compartment matures. Recycling tubules still left along the way, so maturation and carriers coexist.
-
-Membrane proteins meant for destruction take one more step. As the endosome matures, starting at the early endosome, patches of its limiting membrane bud inward into the lumen. An endosome full of these inner vesicles is called a multivesicular body. ESCRT complexes sort proteins tagged with [ubiquitin](/lessons/ubiquitin-and-proteolysis/) into those inner vesicles; ESCRT-0 binds the ubiquitinated cargo first and passes it to ESCRT-I and ESCRT-II, which also bind ubiquitin, and ESCRT-III cuts the inner vesicles free. These complexes were first worked out in yeast and also work in mammalian cells. When the multivesicular body fuses with a lysosome, the inner vesicles are digested. This is how many activated growth-factor receptors are switched off, covered in [turning signals off](/lessons/turning-signals-off/), [receptor tyrosine kinases](/lessons/receptor-tyrosine-kinases/) and [signalling endosomes](/lessons/endocytosis-and-signaling-endosomes/).
-
-<LessonFigure src="/figures/endocytosis/multivesicular-body-and-lysosome.webp" width={1200} height={651} alt="AI-generated illustration: a multivesicular body with patches of its limiting membrane budding inward as vesicles that carry gold-tagged proteins, an ESCRT block beside a tagged protein, and a lysosome fusing with it so the inner vesicles are digested; an inset contrasts a tagged protein sorted inside with an untagged one left behind." caption="In a multivesicular body, ESCRT complexes sort ubiquitin-tagged proteins into vesicles that bud into the lumen. When the body fuses with a lysosome, those inner vesicles are digested." />
-
-A receptor can also be diverted. PCSK9, a secreted protein, binds the LDL receptor and in the cultured human cells tested sends it to the lysosome instead of back to the surface.
-
-## Familial hypercholesterolaemia: three defects, three experiments
-
-FH is usually inherited as a dominant trait, and people with two defective copies are rarer and more severely affected (see [pedigrees](/lessons/pedigrees/)). Patients' cells split the receptor cycle into steps, because different mutations break different steps. This section follows three of them. Many other FH mutations make little or no receptor, or a receptor held in the endoplasmic reticulum, and some FH comes from changes in other genes, such as APOB or PCSK9.
-
-**Binding.** In 1974 Brown and Goldstein reported that fibroblasts from five unrelated homozygous FH subjects lacked the high-affinity LDL binding of normal fibroblasts.
-
-**Entry.** In 1977 Richard Anderson, with Brown and Goldstein, gave cultured fibroblasts ferritin-LDL at 4 °C and found 60 to 70 percent of the bound label over coated segments covering no more than 2 percent of the surface; on warming, it entered through coated vesicles. In J.D.'s cells the receptors failed to become incorporated into coated pits. In 1986 Davis and colleagues traced J.D.'s receptor to a tyrosine-to-cysteine substitution at residue 807 (in the numbering of that paper) in the tail. Rebuilt in receptor-deficient hamster cells, it bound LDL normally but entered slowly.
-
-**Return.** A receptor engineered without its EGF-precursor-like domain could not release ligand at acid pH and recycled poorly. A patient receptor lacking exons 7 to 14 failed to recycle efficiently, but it also could not bind LDL; it was tested with beta-VLDL, which it still bound. It is a mixed defect, not a pure recycling one.
+</details>
 
 ### Worked problem: reading binding and entry
 
-These numbers are illustrative, made up for practice. Cultured fibroblasts bind 125I-LDL at 4 °C, where nothing enters. They are washed and warmed to 37 °C for 10 minutes. An acid or heparin wash then strips LDL still on the surface; what remains counts as internal. Assume the strip removes all surface LDL and none of the internal LDL, and that nothing is degraded in 10 minutes.
+The numbers are made up for practice. Cultured fibroblasts bind LDL labelled with radioactive iodine (125I-LDL) at 4 °C, are washed, warmed to 37 °C for 10 minutes and stripped. Assume no labelled LDL is gained or lost while the cells are warm, the strip removes all surface LDL and none of the internal LDL, and nothing is degraded.
 
 | Cells | Bound at 4 °C | Surface after warming | Internal after warming |
 |---|---|---|---|
@@ -473,19 +436,27 @@ These numbers are illustrative, made up for practice. Cultured fibroblasts bind 
 | Strain X | 1.0 | | |
 | Strain Y | 38 | 35 | 3 |
 
-(ng LDL per mg cell protein)
+(ng LDL per mg cell protein; because strain X binds very little LDL and no warm-uptake values are shown, its entry fraction is not estimated here)
 
-> binding relative to normal = bound (strain) ÷ bound (normal)
->
-> fraction internalized = internal ÷ bound at 4 °C
+**Step 1.** Strain X binds 1.0 ÷ 40 = 2.5 percent of normal. Binding is the earliest step that fails: a binding defect. Cold binding measures ligand (the molecule a receptor binds, here LDL), not receptor, so the receptor may be absent from the surface or unable to bind; an antibody to its outer part tells the two apart. Brown and Goldstein's 1974 fibroblasts from five unrelated homozygous FH subjects showed this pattern.
 
-**Step 1.** Strain X binds 1.0 ÷ 40 = 2.5 percent of normal. This is a binding defect: the receptor is absent from the surface or cannot bind.
-
-**Step 2.** Normal cells internalize 30 ÷ 40 = 75 percent in 10 minutes. Strain Y binds nearly normally (38) but internalizes 3 ÷ 38 = 7.9 percent. This is an entry defect, like J.D.'s receptor. Check: 35 + 3 = 38, so no LDL went missing.
+**Step 2.** Normal cells internalize 30 ÷ 40 = 75 percent in 10 minutes. Strain Y binds nearly normally (38) but internalizes 3 ÷ 38 = 7.9 percent. Binding passes and entry is the earliest step that fails: an entry defect, like J.D.'s receptor. Check: 35 + 3 = 38, so no LDL went missing.
 
 <LdlBindingEntryReader />
 
-**Step 3.** Electron microscopy of cold-bound ferritin-LDL: suppose 60 percent of the label lies in coated pits covering 2 percent of the surface. Set total label and area to 1.
+## Entry: adaptors choose, clathrin cages, dynamin cuts
+
+The film built the coated vesicle, whose lumen is topologically outside the cytosol ([membrane topology](/lessons/membrane-organization-topology/)); here is what it leaves out, for mammalian cells.
+
+- **The cage.** Clathrin is a coat, a protein lattice that assembles on one face of a membrane and bends it. The film's three-legged piece is the triskelion, three heavy and three light chains joined at a hub; the legs interlock into hexagons and pentagons, like a geodesic dome.
+- **The adaptors.** AP2 and other clathrin-associated sorting proteins bind PI(4,5)P2, a phosphorylated lipid of the inner leaflet ([lipids](/lessons/lipids/)), and read short sorting motifs in cargo tails. AP2 anchors the coat and binds YXXΦ motifs (tyrosine, any two residues, then a bulky hydrophobic residue), such as the transferrin receptor's. The LDL receptor's tail carries NPXY instead, which two other adaptors, Dab2 and ARH, can recognize; they also bind clathrin and AP2. The film's adaptors stand for the whole set.
+- **The cut and the uncoating.** Dynamin is a GTPase, an enzyme that hydrolyses GTP; using that hydrolysis, its collar drives the neck to split. The chaperone Hsc70, recruited by its helper auxilin, then pulls the lattice apart, so the triskelia can be reused and the vesicle can fuse with an endosome.
+
+<LessonFigure src="/figures/endocytosis/building-a-clathrin-coated-vesicle.webp" width={1200} height={800} alt="AI-generated illustration: a coated pit on a cell membrane with receptors carrying cargo, AP2 adaptors linking receptor tails and the membrane's inner leaflet to a dome-like clathrin lattice of hexagons and pentagons, and a dynamin collar around the narrow neck; an inset shows one three-legged triskelion." caption="Clathrin builds the cage, but adaptors do the binding: AP2 reaches the membrane lipid PI(4,5)P2 and cargo tails, and the cage is made of three-legged triskelia. Dynamin gathers at the narrow neck." />
+
+### J.D.'s receptors, seen and counted
+
+In 1977 Richard Anderson, with Brown and Goldstein, bound LDL coupled to ferritin (an iron-storage protein that shows as a dot in the electron microscope) to cultured fibroblasts at 4 °C. In normal cells 60 to 70 percent of the label lay over coated segments covering no more than 2 percent of the surface, and on warming it entered through coated vesicles. Take 60 percent, and set total label and area to 1.
 
 > density in pits ÷ whole-surface density = 0.60 ÷ 0.02 = 30
 >
@@ -493,7 +464,54 @@ These numbers are illustrative, made up for practice. Cultured fibroblasts bind 
 >
 > density in pits ÷ uncoated density = 30 ÷ 0.408 = 73.5
 
-Check: 0.02 × 30 + 0.98 × 0.408 = 0.60 + 0.40 = 1. The two answers differ only in the reference. These are calculated ratios, not binding constants.
+Check: 0.02 × 30 + 0.98 × 0.408 = 0.60 + 0.40 = 1. Both are right; they differ only in the reference (whole surface or uncoated membrane), so say which you mean. These are calculated ratios, not binding constants.
+
+**Predict.** Ferritin-LDL is bound to J.D.'s cells in the cold. If the receptors are spread at random over the surface, what fraction of the label lies over coated pits, and what is the density ratio over pits?
+
+<details>
+<summary>Check your prediction</summary>
+
+About 2 percent of the label, so the density over pits matches the whole-surface average: a ratio near 1, not 30. The reported result fits: in J.D.'s cells the receptors that bound LDL failed to become incorporated into coated pits (Anderson, Goldstein and Brown, 1977).
+
+</details>
+
+The cause was inside the cell. In 1986 Davis and colleagues traced J.D.'s receptor to a single tyrosine-to-cysteine substitution in its short tail in the cytosol. Rebuilt in receptor-deficient hamster cells, it bound LDL normally but entered slowly.
+
+## The fork: acid parts receptor from cargo
+
+The film's fork is the early endosome's lumen, mildly acid at roughly pH 6 (reported values run from about 5.6 to 6.5) and kept so by proton pumps ([organelles as environments](/lessons/organelles-as-environments/)). For LDL, acid is the sorting signal: at this pH LDL comes off its receptor. A crystal structure of the receptor's outer part at acid pH suggests one way (3D viewer): the arc of ligand-binding repeats folds back over a propeller-shaped domain, which binds two of them and so takes the place of LDL. The receptor grips itself and lets the cargo go.
+
+The film's picture was the simple case, one cargo that lets go. Letting go does not by itself decide where a thing goes; the sorting machinery, reading each cargo and receptor, does. A cargo that holds on shows this.
+
+**Predict.** Transferrin carries iron in the blood and enters cells on the transferrin receptor by the same route. In the acid endosome the iron comes off, but transferrin itself stays bound to its receptor. Where does transferrin go?
+
+<details>
+<summary>Check your prediction</summary>
+
+Back to the surface, still on its receptor. Outside, at neutral pH, transferrin without iron binds its receptor only weakly, so it lets go and can pick up iron again. The iron, which let go in acid, stays in the cell.
+
+</details>
+
+## Return: the loop closes, or runs down
+
+The film closed the loop; this section asks what happens when release fails, and how that fools the assay. Returning receptors reach the plasma membrane directly or by way of a recycling endosome. In the lysosome, enzymes digest LDL's protein and hydrolyse its cholesteryl esters, releasing cholesterol, which damps the cell's own synthesis through the enzyme HMG-CoA reductase ([lipid synthesis](/lessons/lipid-synthesis/)).
+
+**Predict.** A receptor engineered without its EGF-precursor domain (an outer stretch resembling the precursor of epidermal growth factor) still enters cells, but cannot let go of its bound ligand at acid pH. Follow it through several rounds of uptake. What happens to it, and to the amount of receptor on the surface?
+
+<details>
+<summary>Check your prediction</summary>
+
+It returns inefficiently. Still carrying its ligand, much of it is rapidly degraded instead (Davis and colleagues, 1987), so surface receptor falls round by round. A release defect cuts return and raises degradation: the rule at work.
+
+</details>
+
+The film's picture was the simple case: one batch of receptors through one round. Over hours the cell also makes and destroys receptor, so a late block can show up early. Suppose, for illustration, that with protein synthesis blocked half the receptors return each round: surface receptor falls to 0.5, 0.25 and 0.125 of the start over three rounds (a normal cell returning 99 percent keeps 0.99, 0.98, 0.97). Hours in, a cold-binding assay on the defective line reads like a binding defect, so measure binding before uptake starts.
+
+One defect can also hide another. A patient receptor lacking exons 7 to 14 failed to recycle efficiently, but it also could not bind LDL, which hid the return defect until it was tested with beta-VLDL, another lipoprotein that it still bound. That is why the rule asks for the earliest step that fails, not the only broken one.
+
+### Does the LDL move, or the endosome change?
+
+The film said the endosome matures. How do we know? LDL appears first in early endosomes and later in late ones, and fixed cells cannot tell whether it moved between permanent compartments or its compartment changed. Compartments carry name tags, **Rabs**: small GTPases that, bound to GTP, sit on one membrane and mark its identity by recruiting the tethers and enzymes that belong there. In 2005 Marino Zerial's laboratory imaged live human A431 cells with fluorescent Rab5 (early) and Rab7 (late) taking up LDL. On single endosomes carrying LDL, Rab5 was replaced by Rab7, which the authors read as Rab conversion: the compartment matures. Rab4-positive recycling tubules separated from Rab5-positive endosomes by fission, so maturation and carriers coexist.
 
 ### Design problem
 
@@ -502,10 +520,63 @@ A patient's receptor appears to reach the cell surface, but the cells lose surfa
 <details>
 <summary>One way to do it</summary>
 
-First choose a ligand the mutant still binds. If it cannot bind LDL, as with the receptor lacking exons 7 to 14, test beta-VLDL. Measure surface receptor with an antibody to its outer part, surface biotinylation or Pronase sensitivity, and total receptor by immunoblot.
+Choose a ligand the mutant still binds (beta-VLDL if, like the exons 7 to 14 receptor, it cannot bind LDL). Measure surface receptor with an antibody to its outer part, surface biotinylation (tagging surface proteins with biotin) or Pronase sensitivity (an outside protease clips only surface receptor), and total receptor by immunoblot.
 
-Add cycloheximide to block protein synthesis, so new receptor cannot refill the surface. Then run rounds of ligand uptake and measure surface receptor after each. A recycling defect predicts normal entry with surface receptor falling round by round, while normal cells hold it nearly steady. Surface loss alone could also come from faster destruction, so follow the receptor directly: label it at the surface, let it enter, strip the surface, and measure how fast labelled receptor comes back and how much is degraded. Measure release of bound ligand at acid pH as well, since failure to release can keep the receptor from returning.
+With protein synthesis blocked by cycloheximide, so no new receptor refills the surface, measure surface receptor after each round of uptake: a recycling defect predicts normal entry with surface receptor falling round by round, while normal cells hold it nearly steady. Faster destruction could also explain the loss, so label the receptor at the surface, let it enter, strip the surface, and measure how fast it returns and how much is degraded. Also measure acid release of bound ligand, since failure to release can keep the receptor from returning.
 
-Controls: normal cells, mutant and normal cells matched for starting surface receptor, and a line whose receptor cannot bind the ligand used in the experiment, which should show no ligand-driven loss.
+Controls: normal cells, mutant and normal cells matched for starting surface receptor, and a line whose receptor cannot bind the ligand used (it should show no ligand-driven loss).
 
 </details>
+
+## When the receptor itself is the cargo
+
+The film's receptor escaped by leaving before the end. Some, such as many activated growth-factor receptors, are meant to be destroyed: tagged with the small protein [ubiquitin](/lessons/ubiquitin-and-proteolysis/), the receptor itself rides to the lysosome. From the early endosome on, patches of the endosome's outer (limiting) membrane bud into the lumen; an endosome full of these inner vesicles is a multivesicular body. ESCRT complexes (endosomal sorting complexes required for transport), ESCRT-I among them, recognize the ubiquitin tag and sort the tagged protein into the inner vesicles. When the multivesicular body fuses with a lysosome, the inner vesicles are digested. This is how those receptors are switched off ([turning signals off](/lessons/turning-signals-off/), [receptor tyrosine kinases](/lessons/receptor-tyrosine-kinases/), [signalling endosomes](/lessons/endocytosis-and-signaling-endosomes/)).
+
+<LessonFigure src="/figures/endocytosis/multivesicular-body-and-lysosome.webp" width={1200} height={651} alt="AI-generated illustration: a multivesicular body with patches of its limiting membrane budding inward as vesicles that carry gold-tagged proteins, an ESCRT block beside a tagged protein, and a lysosome fusing with it so the inner vesicles are digested; an inset contrasts a tagged protein sorted inside with an untagged one left behind." caption="In a multivesicular body, ESCRT complexes sort ubiquitin-tagged proteins into vesicles that bud into the lumen. When the body fuses with a lysosome, those inner vesicles are digested." />
+
+A recycling receptor can also be pulled out of its loop. PCSK9, a secreted protein, binds the EGF-A part of the LDL receptor's EGF-precursor domain (the 3D viewer shows the pair), and in the cultured human cells tested it sends the receptor to the lysosome instead of back to the surface.
+
+**Predict.** An antibody that blocks PCSK9 is given. What should happen to the LDL receptor on liver cells, and to blood LDL?
+
+<details>
+<summary>Check your prediction</summary>
+
+More receptors finish the loop, so surface receptor rises, the liver takes up more LDL, and blood LDL falls. People who carry loss-of-function PCSK9 variants have lower LDL, and PCSK9-blocking antibodies are approved LDL-lowering drugs.
+
+</details>
+
+## Other doors into a cell
+
+The film followed one door, the clathrin-coated pit, the best-understood route for receptors. Cells have others, each with its own machinery.
+
+| Route | Typical cargo or defining feature | Machinery |
+|---|---|---|
+| Phagocytosis | Large particles, such as bacteria or dead cells, into phagosomes | Actin; in animals mostly specialized cells, such as macrophages and neutrophils |
+| Macropinocytosis | Gulps of fluid, in large vacuoles | Sheet-like projections fold back onto the surface; stimulated by growth factors in many mammalian cells |
+| Clathrin-mediated | Chosen receptors, such as the LDL and transferrin receptors | Adaptors, clathrin and dynamin (this lesson) |
+| Caveolae | Small flask-shaped pits; cargo disputed (Going deeper) | Caveolin |
+| FEME and CLIC/GEEC | Distinct clathrin-independent routes | FEME (fast endophilin-mediated endocytosis) needs dynamin; CLIC/GEEC does not |
+
+<LessonFigure src="/figures/endocytosis/five-doors-into-a-cell.webp" width={1200} height={731} alt="AI-generated illustration: a cross-section of a cell's plasma membrane with five different entry events side by side: a pair of membrane arms closing over a large particle, a sheet-like fold enclosing fluid, a small clathrin-coated pit, a flask-shaped caveola, and two uncoated folds, one with a dynamin collar and one without." caption="Cells have several doors, and each has its own machinery. Clathrin-independent does not mean caveolar: FEME and CLIC/GEEC are separate routes." />
+
+## Going deeper
+
+### How the coat bends
+
+This is still argued. Live imaging in human SK-MEL-2 cells found curvature appearing early in some selected events and only after much of the clathrin had arrived in others. A 2023 analysis of fixed coats in three cell lines inferred that coats, on average, gain about half their final area before bending, with a fitted preferred radius of about 72 nm in SK-MEL-2 cells. The [vesicle traffic lesson](/lessons/vesicle-traffic/) treats coats in general.
+
+### Not every clathrin cargo leans on AP2
+
+In HeLaM cells depleted of AP2, a chimeric protein carrying the LDL receptor's tail was still taken up, consistent with other adaptors reading its NPXY motif. That result is about one construct in one cell line; it does not make AP2 dispensable in general.
+
+### FH beyond the three defects
+
+FH is usually inherited as a dominant trait, and people with two defective copies are rarer and more severely affected (see [pedigrees](/lessons/pedigrees/)). Many FH mutations make little or no receptor, or a receptor held in the endoplasmic reticulum; a cold-binding assay reads these as binding defects. Some FH comes from changes in other genes, such as APOB, or gain-of-function changes in PCSK9. J.D.'s substitution is at residue 807, in the numbering of the 1986 paper.
+
+### Caveolae and the clathrin-independent routes
+
+Caveolae are often drawn as a major entry route, but a 2020 review cautions that few if any cargoes are shown to rely on caveolae to enter. Their clearest job is mechanical: they flatten when the membrane is stretched, which buffers the tension. FEME is triggered when ligands activate selected surface receptors.
+
+### The ESCRT hand-off
+
+ESCRT-0 binds the ubiquitinated cargo first and passes it to ESCRT-I and ESCRT-II, which also bind ubiquitin, and ESCRT-III cuts the inner vesicles free. These complexes were first worked out in yeast and also work in mammalian cells.
