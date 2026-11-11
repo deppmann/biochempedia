@@ -35,6 +35,22 @@ explainer:
     - "For a positive ion, a voltage above that potential sends net flow out; below it, in."
     - "Channels and passive carriers choose which solute and how fast, never which way; climbing needs a steeper downhill partner."
 
+films:
+  - id: "chapter-2"
+    src: "/explainers/membrane-transport/chapter-2.mp4"
+    captions: "/explainers/membrane-transport/chapter-2.vtt"
+    poster: "/explainers/membrane-transport/chapter-2-poster.jpg"
+    title: "Read the Traffic"
+    durationSec: 214.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "An open channel forms a continuous pore, while a carrier completes an alternating-access cycle."
+      - "A single-channel trace separates unitary current from open probability."
+      - "A rate that saturates at low substrate concentrations points toward a carrier."
+      - "Tracer entry can be exchange rather than net uptake."
+      - "Mechanism comes from combined functional evidence, not a protein family name."
+
 scientists:
   - name: "Jens Skou"
     contribution: >-
@@ -382,10 +398,9 @@ draft: false
 import SingleChannelRecord from '../../../components/SingleChannelRecord.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**The film above holds a cell at −70 and then −100 millivolts, and potassium reverses direction although its concentrations never change.**
-
-"Hold" means a voltage clamp: an amplifier fixes the membrane voltage at a value you choose, whatever current flows. Why the voltage can win is the first thing this lesson teaches you to calculate. The second is how to tell which kind of protein carries a solute across, from a recording of one channel and a count of labelled molecules.
+The first film used a voltage clamp, an amplifier that fixes the membrane voltage at a chosen value whatever current flows, to show potassium reversing direction while its concentrations stayed fixed. It left open how measurements reveal the route a solute takes.
 
 ## The wall and the one rule
 
@@ -395,11 +410,11 @@ So ions and sugars cross the bilayer in useful amounts only through proteins, an
 
 > **The one idea to carry through this lesson** is the film's hill. Any solute, charged or not, flows on its own only downhill in its own electrochemical energy, the sum of a concentration push and a voltage push. Channels and passive carriers decide *which* solute crosses and *how fast*, never *which way*. Uphill transport is coupled to something running further downhill: ATP splitting (a pump), light or electron flow in some pumps, or another ion's gradient (a symporter or antiporter, such as SGLT1). The coupled total must still be downhill.
 
-The rule sets the direction of *net* flow at a given moment, treating concentrations as if they were activities (effective concentrations). It does not set the rate, which is the protein's business, or where a cell permeable to several ions will rest (that is [the resting membrane](/lessons/resting-membrane-passive/)). Water follows it too: aquaporins open the path, and water's own energy difference, set mainly by the solutes on each side (and by pressure, in walled cells), decides the direction.
+The rule sets the direction of *net* flow at a given moment. Here, concentrations stand in for **activities**, meaning effective concentrations. Separate questions are how fast transport runs and where a cell permeable to several ions will rest (that is [the resting membrane](/lessons/resting-membrane-passive/)). Water follows the rule too: aquaporins open a path, and water's own energy difference, set mainly by the solutes on each side (and by pressure, in walled cells), decides the direction.
 
 ## Two pushes, one number
 
-The film above draws the two pushes as two slopes of one hill. Here they are as numbers, for moving one mole of a solute from outside to inside. The **concentration push** runs downhill from high concentration to low. The **voltage push** depends on Vm, inside minus outside: a negative Vm makes entering downhill for cations and uphill for anions. The sum is one number:
+Now calculate the hill for moving one mole of solute from outside to inside. The **concentration push** runs from high concentration to low. The **voltage push** depends on Vm, inside minus outside: a negative Vm favours entry for cations and opposes it for anions. Their sum is one number:
 
 <EquationCard
   purpose="Which way any solute will flow on its own: negative means in, positive means out."
@@ -482,7 +497,7 @@ For an ion you can fold the two pushes into one gap. The gap between Vm and E_X 
   </Fragment>
 </EquationCard>
 
-So "compare Vm with E_X" is just the downhill rule, written for one ion.
+So comparing Vm with E_X is the downhill rule, written for one ion.
 
 **Worked problem.** Take a membrane permeable only to K+, at 37 °C (310.15 K), with [K+]in = 140 mM and [K+]out = 5 mM. These are teaching values close to those of a typical mammalian cell.
 
@@ -522,7 +537,7 @@ Do not conclude that a cell rests at E_K. A real membrane is permeable to severa
 
 ## The machinery, sorted by the rule
 
-Two kinds of protein carry solutes across: **channels** and **carriers**. ("Carrier" and "transporter" mean the same thing here. A pump is a carrier with its own power supply.) The rule cuts across those two kinds with one question: does the protein only open a path, or does it pay for uphill transport?
+The first film used the simplest case; here is the fuller machinery. Two kinds of protein carry solutes across: **channels** and **carriers**. ("Carrier" and "transporter" mean the same thing here. A pump is a carrier with its own power supply.)
 
 ### Downhill only: channels and uniporters
 
@@ -540,7 +555,7 @@ A **uniporter** is a carrier that moves one solute, as GLUT1 moves glucose into 
 
 Carriers that move two or more solutes can do the same with no ATP. A **symporter** moves them the same way. An **antiporter** (or exchanger) moves them opposite ways, as the Na+/Ca2+ exchanger brings sodium in and sends calcium out. Spending one solute's gradient to move another is **secondary active transport**.
 
-SGLT1 in intestinal cells, the symporter at the end of the film, brings glucose in with sodium. You will see SGLT1 again in [digestion](/lessons/digestion/), and the same logic with protons instead of sodium in [the proton-motive force](/lessons/proton-motive-force/).
+SGLT1 in intestinal cells brings glucose in with sodium. You will see SGLT1 again in [digestion](/lessons/digestion/), and the same logic with protons instead of sodium in [the proton-motive force](/lessons/proton-motive-force/).
 
 <LessonFigure src="/figures/membrane-transport/pump-pays-for-symporter.webp" width={1200} height={800} alt="AI-generated illustration: a cell membrane with the Na+/K+-ATPase on the left moving three Na+ out and two K+ in using one ATP, and on the right the transporter SGLT1 carrying two Na+ and one glucose into the cell down the sodium gradient." caption="The Na+/K+-ATPase spends ATP to keep sodium high outside. SGLT1 then lets sodium run downhill into the cell, and that downhill run pays for glucose to go uphill; the pump never touches the glucose." />
 
@@ -575,9 +590,13 @@ How far uphill can that payment carry glucose?
   </Fragment>
 </EquationCard>
 
+Downhill flow cannot tell a channel from a carrier, since both carry it; net uphill flow points to a coupled carrier. The second film picks up here: for downhill flow, read the traffic pattern to tell a channel from a carrier.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Telling a channel from a carrier from the data
 
-Downhill flow cannot tell a channel from a carrier, since both carry it; net uphill flow points to a coupled carrier. Beyond that, weigh rate, saturation and exchange.
+The chapter gave the signatures: rate, single-channel steps, saturation and exchange. The numbers and controls below show their limits and put them to work.
 
 ### Rate
 
@@ -585,11 +604,9 @@ The worked problem's one open K+ channel carried about 6.1 million ions per seco
 
 ### Watching one channel
 
-In 1976 Erwin Neher and Bert Sakmann recorded a small patch of frog muscle membrane switching between levels in square steps of a few picoamperes, each the current through one open channel. The 1981 gigaseal methods made such records routine.
+In 1976 Erwin Neher and Bert Sakmann recorded square steps of a few picoamperes (trillionths of an ampere) from a small patch of frog muscle membrane, each step the current through one open channel. The 1981 **gigaseal** methods made such records routine; a gigaseal is an extremely high-resistance seal between glass and membrane. Each opening lasts a random time and openings come at irregular intervals. In a patch with one simple channel every opening has the same height, though some channels also show lower sub-levels.
 
-The record looks like this: the trace sits at zero while the channel is closed, jumps to a fixed level when it opens, stays there for a random time, and jumps back. In a patch with one simple channel, every opening has the same height (some channels also show lower sub-levels); the openings come at irregular intervals.
-
-From a one-channel record you read two numbers. The **unitary current**, i, is the height of the step, set by the channel's conductance and the driving force. The **open probability**, P_o, is the fraction of time the channel is open. A drug that changes P_o without changing i alters gating; one that changes i alters conduction or driving force. Across N identical channels, the mean current combines all three:
+The **unitary current**, i, the step height, is set by the channel's conductance and the driving force. The **open probability**, P_o, is the fraction of time the channel is open. A drug that changes P_o without changing i alters gating; one that changes i alters conduction or driving force. Across N identical channels, the mean current combines the chapter's two readouts with channel number:
 
 <EquationCard
   purpose="The current from a whole population of identical channels, built from what one channel does."
@@ -620,7 +637,7 @@ Orientation matters. In an **inside-out** patch, pulled off the cell, the cytopl
 
 ### Counting molecules: tracer flux
 
-One carrier moves too few molecules per second to show up as a current step, so carriers are often studied by counting. In a **tracer-flux** experiment you add radiolabelled substrate outside cells or vesicles, stop uptake at timed points by filtering and washing, and count the label inside. The early, straight part of the time course gives the initial rate. The numbers in the two experiments below are invented for teaching.
+One carrier moves too few molecules per second to show up as a current step, so carriers are often studied by counting. In a **tracer-flux** experiment you add radiolabelled substrate outside cells or vesicles, stop uptake at timed points by filtering and washing, and count the label inside. The early, straight part of the time course gives the initial rate. Apply the chapter's signatures to these two invented teaching experiments.
 
 **Does the rate level off?** Two unknown proteins, A and B, are each put into matched vesicles. You measure the initial rate of uptake at six substrate concentrations and subtract the rate into protein-free vesicles.
 
@@ -662,7 +679,7 @@ No. The total inside did not rise. C is swapping: labelled molecules come in as 
 
 Did the label enter *against* a gradient, 1 mM outside and 10 mM inside? At first, no. Labelled molecules have a gradient of their own, 1 mM outside and none inside, and they ran down it. Given time, an exchanger can even pile label up inside well above 1 mM, the classic counterflow test for a carrier, because each labelled molecule that enters is paid for by an unlabelled one leaving down its own gradient.
 
-Two rules for tracer data: **a rate that levels off at low substrate concentrations points to a carrier.** **Label entering is not net uptake until you measure the total.** A carrier's Km is not a simple binding constant either (Going deeper, "Km is not a binding constant").
+A carrier's Km is not a simple binding constant (Going deeper, "Km is not a binding constant").
 
 ### Family does not decide mechanism
 
