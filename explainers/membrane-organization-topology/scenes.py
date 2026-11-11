@@ -1,428 +1,541 @@
-"""Membrane organization and topology: a membrane's faces never swap  (Biochemistrypedia explainer)
+"""Which Side Is Outside? — membrane topology as one carried visual world.
 
-COLOR MAP (one color per concept, whole video)
-  GREY   = membranes (walls, bilayer bars) and neutral labels; the cytosol side has no tint
-  TEAL   = lumen / outside of the cell (the exoplasmic side), tinted
-  BLUE   = the membrane-spanning segment of the protein
-  YELLOW = the N terminus (and its N-terminal domain)
-  GREEN  = the C terminus
-  ORANGE = the sugar (glycan)
-  PURPLE = a lipid
-  RED    = blocked / not allowed (a crossing that does not happen)
-Rule of the drawing: in every picture the N end of the protein points to the teal side.
+COLOR MAP
+  GREY   membranes and neutral structure
+  GOLD   cytosol and the cytosol-facing membrane edge
+  TEAL   route lumens and outside
+  BLUE   the membrane-spanning protein
+  YELLOW the N terminus
+  GREEN  the C terminus
+  ORANGE sugar
+  RED    a forbidden membrane crossing
 """
 import math
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PURPLE = "#B58CD9"
 ORANGE = "#F29E4C"
-LUM = TEAL
-R = 1.5          # vesicle radius
-PS = 1.0         # protein scale inside vesicles
-WALL_W = 7
-HW = R * math.sin(math.radians(20))      # half width of the fusion gap
-DOCK = R * math.cos(math.radians(20))    # centre sits this far below the wall when docked
+CYTO = GOLD
+LUMEN = TEAL
+MEM = GREY
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
 def P(x, y):
     return np.array([x, y, 0.0])
 
 
-def corners(pts, color=GREY, w=WALL_W):
-    m = VMobject()
-    m.set_points_as_corners([P(*p) for p in pts])
-    m.set_stroke(color, w)
-    m.set_fill(opacity=0)
-    return m
+def double_line(x0, x1, y, gap=0.16, color=MEM, width=6):
+    return VGroup(Line(P(x0, y - gap / 2), P(x1, y - gap / 2), color=color, stroke_width=width),
+                  Line(P(x0, y + gap / 2), P(x1, y + gap / 2), color=color, stroke_width=width))
 
 
-class Comp:
-    """A compartment (or the outside of the cell) lying above a wall at y=yb. Lumen is teal."""
+def moving_specks(seed=1, count=72, area=(-6.5, 6.5, -3.45, 2.2)):
+    """One visual object: a continuously drifting cytosol field."""
+    rng = np.random.RandomState(seed)
+    x0, x1, y0, y1 = area
+    dots = VGroup()
+    for _ in range(count):
+        d = Dot(P(rng.uniform(x0, x1), rng.uniform(y0, y1)), radius=rng.uniform(.045, .085), color=CYTO)
+        d.set_opacity(rng.uniform(.24, .52))
+        d.v = P(rng.uniform(-.18, .20), rng.uniform(.11, .24))
 
-    def __init__(self, x0, x1, yb, yt, gx, boxed=True):
-        self.gx, self.yb = gx, yb
-        self.fill = Rectangle(width=x1 - x0, height=yt - yb, stroke_width=0, fill_color=LUM,
-                              fill_opacity=0.16).move_to(P((x0 + x1) / 2, (yb + yt) / 2))
-        if boxed:
-            self.outline = corners([(gx - HW, yb), (x0, yb), (x0, yt), (x1, yt), (x1, yb), (gx + HW, yb)])
-        else:
-            self.outline = VGroup(corners([(x0, yb), (gx - HW, yb)]), corners([(gx + HW, yb), (x1, yb)]))
-        self.cap = corners([(gx - HW, yb), (gx + HW, yb)])
-        self.base = VGroup(self.fill, self.outline, self.cap)
+        def drift(m, dt, x0=x0, x1=x1, y0=y0, y1=y1):
+            m.shift(m.v * dt)
+            if m.get_y() > y1: m.shift(DOWN * (y1 - y0))
+            if m.get_x() > x1: m.shift(LEFT * (x1 - x0))
+            if m.get_x() < x0: m.shift(RIGHT * (x1 - x0))
+        d.add_updater(drift)
+        dots.add(d)
+    return dots
 
 
-def protein(c, s=1.0, sugar=True):
-    """N end up (toward the teal side), C end down. c is where the spanning bar crosses the wall."""
-    c = np.array(c, float)
-    fs = max(22, int(26 * s))
-    bar = Line(c + DOWN * 0.75 * s, c + UP * 0.7 * s, color=BLUE, stroke_width=14 * s)
-    ccap = Circle(radius=0.27 * s, stroke_width=0, fill_color=GREEN, fill_opacity=1).move_to(c + DOWN * 0.95 * s)
-    ctxt = T("C", fs, BG, weight=BOLD).move_to(ccap)
-    nbl = Circle(radius=0.33 * s, stroke_width=0, fill_color=YELLOW, fill_opacity=1).move_to(c + UP * 0.95 * s)
-    ntxt = T("N", fs, BG, weight=BOLD).move_to(nbl)
-    g = VGroup(bar, ccap, ctxt, nbl, ntxt)
-    g.bar, g.C, g.N = bar, VGroup(ccap, ctxt), VGroup(nbl, ntxt)
+def schematic_tag():
+    return T("schematic", 28, GREY).to_corner(DR, buff=.26)
+
+
+def protein(pos=P(0, 0), scale=1.0, sugar=True, vertical=True):
+    """N points into teal, C into gold.  The membrane is horizontal."""
+    if vertical:
+        bar = RoundedRectangle(width=.34 * scale, height=1.48 * scale, corner_radius=.12,
+                               stroke_width=0, fill_color=BLUE, fill_opacity=1).move_to(pos)
+        npos, cpos = pos + UP * .93 * scale, pos + DOWN * .93 * scale
+    else:
+        bar = RoundedRectangle(width=1.48 * scale, height=.34 * scale, corner_radius=.12,
+                               stroke_width=0, fill_color=BLUE, fill_opacity=1).move_to(pos)
+        npos, cpos = pos + LEFT * .93 * scale, pos + RIGHT * .93 * scale
+    def terminal(letter, center, color):
+        circ = Circle(radius=.29 * scale, stroke_width=0, fill_color=color, fill_opacity=1).move_to(center)
+        lab = T(letter, max(22, int(27 * scale)), BG, weight=BOLD).move_to(circ)
+        return VGroup(circ, lab)
+    n, c = terminal("N", npos, YELLOW), terminal("C", cpos, GREEN)
+    g = VGroup(bar, n, c)
+    g.bar, g.N, g.C = bar, n, c
     if sugar:
-        o = nbl.get_center()
-        stem = Line(o + np.array([0.2 * s, 0.26 * s, 0]), o + np.array([0.55 * s, 0.62 * s, 0]), color=ORANGE, stroke_width=5)
-        sq = Square(side_length=0.3 * s, stroke_width=0, fill_color=ORANGE, fill_opacity=1).move_to(o + np.array([0.7 * s, 0.77 * s, 0]))
-        g.S = VGroup(stem, sq)
-        g.add(stem, sq)
+        stem = Line(npos + RIGHT * .18 * scale, npos + P(.52, .42) * scale,
+                    color=ORANGE, stroke_width=max(3, 5 * scale))
+        if scale >= .70:
+            flag = RoundedRectangle(width=1.05 * scale, height=.48 * scale, corner_radius=.08,
+                                    stroke_color=ORANGE, stroke_width=2, fill_color=ORANGE,
+                                    fill_opacity=.22).move_to(npos + P(.86, .50) * scale)
+            label = T("sugar", 28, ORANGE).move_to(flag)
+            g.sugar = VGroup(stem, flag, label)
+        else:
+            flag = Square(side_length=.28 * scale, stroke_width=0, fill_color=ORANGE,
+                          fill_opacity=1).move_to(npos + P(.58, .46) * scale)
+            g.sugar = VGroup(stem, flag)
+        g.add(g.sugar)
     return g
 
 
-def vesicle(cx, cy, s=PS):
-    c = P(cx, cy)
-    v = VGroup()
-    v.fill = Circle(radius=R, stroke_width=0, fill_color=LUM, fill_opacity=0.16).move_to(c)
-    v.bot = Arc(radius=R, start_angle=110 * DEGREES, angle=320 * DEGREES, arc_center=c, color=GREY, stroke_width=WALL_W)
-    v.top = Arc(radius=R, start_angle=70 * DEGREES, angle=40 * DEGREES, arc_center=c, color=GREY, stroke_width=WALL_W)
-    v.prot = protein(P(cx, cy - R), s)
-    v.add(v.fill, v.bot, v.top, v.prot)
-    return v
+def whole_world(seed=2, proteins=False):
+    """Stable whole-cell layout reused without lateral drift."""
+    outside = Rectangle(width=13.3, height=1.18, stroke_width=0, fill_color=LUMEN,
+                        fill_opacity=.20).move_to(P(0, 3.05))
+    cyt = Rectangle(width=13.3, height=5.9, stroke_width=0, fill_color=CYTO,
+                    fill_opacity=.075).move_to(P(0, -.45))
+    pm = double_line(-6.6, 6.6, 2.43, .16)
+    er = RoundedRectangle(width=4.15, height=2.05, corner_radius=.65, stroke_color=MEM,
+                          stroke_width=7, fill_color=LUMEN, fill_opacity=.18).move_to(P(-3.75, .25))
+    er2 = er.copy().scale(.88)
+    erwall = VGroup(er, er2)
+    golgi = VGroup()
+    for i, (w, y) in enumerate([(3.05, .82), (2.75, .19), (2.42, -.44)]):
+        sac = RoundedRectangle(width=w, height=.43, corner_radius=.20, stroke_color=MEM,
+                               stroke_width=5, fill_color=LUMEN, fill_opacity=.20).move_to(P(1.50, y))
+        golgi.add(sac)
+    endo = Circle(radius=.72, stroke_color=MEM, stroke_width=6, fill_color=LUMEN,
+                  fill_opacity=.20).move_to(P(4.35, -.90))
+    labels = VGroup(T("outside", 28, LUMEN).move_to(P(-5.45, 3.05)),
+                    T("ER lumen", 28, LUMEN).move_to(P(-4.78, .55)),
+                    T("Golgi", 28, LUMEN).move_to(P(1.5, 1.42)),
+                    T("cytosol", 28, CYTO).move_to(P(-.25, -2.75)))
+    motes = moving_specks(seed)
+    world = VGroup(cyt, outside, motes, pm, erwall, golgi, endo, labels)
+    world.outside, world.cyt, world.pm, world.er, world.golgi, world.endo = outside, cyt, pm, erwall, golgi, endo
+    world.motes, world.labels = motes, labels
+    if proteins:
+        ves = Circle(radius=.52, stroke_color=MEM, stroke_width=4, fill_color=LUMEN,
+                     fill_opacity=.18).move_to(P(3.15, 1.30))
+        ps = VGroup(protein(P(-3.72, -.74), .62), protein(P(1.5, -.67), .55),
+                    protein(P(3.15, .78), .52), protein(P(4.4, 2.43), .62),
+                    protein(P(4.35, -1.60), .50))
+        world.proteins = ps
+        world.add(ves, ps)
+    return world
 
 
-def key_item(text, color, pos, size=24):
-    dot = Circle(radius=0.12, stroke_width=0, fill_color=color, fill_opacity=1)
-    lab = T(text, size, color)
-    g = VGroup(dot, lab).arrange(RIGHT, buff=0.15)
-    g.move_to(pos)
-    g.shift(RIGHT * (pos[0] - g.get_left()[0]))   # pos[0] is the LEFT edge
+def local_membrane(y=0, top_teal=True, seed=5):
+    teal_y, gold_y = (1.85, -1.85) if top_teal else (-1.85, 1.85)
+    teal = Rectangle(width=13.3, height=3.65, stroke_width=0, fill_color=LUMEN,
+                     fill_opacity=.18).move_to(P(0, teal_y))
+    gold = Rectangle(width=13.3, height=3.65, stroke_width=0, fill_color=CYTO,
+                     fill_opacity=.075).move_to(P(0, gold_y))
+    wall = double_line(-6.5, 6.5, y, .20)
+    motes_area = (-6.5, 6.5, -3.5, -.15) if top_teal else (-6.5, 6.5, .15, 3.5)
+    return VGroup(gold, teal, moving_specks(seed, area=motes_area), wall)
+
+
+def sac(center=P(0, -1.0), radius=1.25, with_protein=False):
+    fill = Circle(radius=radius, stroke_width=0, fill_color=LUMEN, fill_opacity=.20).move_to(center)
+    outer = Circle(radius=radius, stroke_color=MEM, stroke_width=8).move_to(center)
+    inner = Circle(radius=radius-.15, stroke_color=MEM, stroke_width=4).move_to(center)
+    g = VGroup(fill, outer, inner)
+    g.fill = fill
+    if with_protein:
+        # At the bottom wall, N points up into the teal lumen and C out to gold.
+        p = protein(center + DOWN * radius, .62)
+        g.prot = p
+        g.add(p)
     return g
 
 
-def cross(center, size=0.3, color=RED):
-    c = np.array(center, float)
-    return VGroup(Line(c + P(-size, -size), c + P(size, size), color=color, stroke_width=8),
-                  Line(c + P(-size, size), c + P(size, -size), color=color, stroke_width=8))
+def question_card():
+    q = T("Contents?  Which face meets cytosol?", 31, TEXT)
+    box = RoundedRectangle(width=q.width + .55, height=q.height + .42, corner_radius=.15,
+                           stroke_color=TEXT, stroke_width=2, fill_color=BG, fill_opacity=.92)
+    return VGroup(box, q).move_to(P(2.35, 2.72))
 
 
-def pulse(m, color=None, s=1.25):
-    if color:
-        return Indicate(m, scale_factor=s, color=color)
-    start = m.copy()
-    return UpdateFromAlphaFunc(m, lambda mob, a: mob.become(start.copy().scale(1 + (s - 1) * math.sin(math.pi * a))))
+def pulse(m, color=None, scale=1.15):
+    return Indicate(m, color=color or m.get_color(), scale_factor=scale)
 
 
-YB, YT = 1.6, 3.6
-CY0 = -0.5                   # vesicle centre while it travels
-DOWN_TRAVEL = (YB - DOCK) - CY0   # from docked to travelling
-
-
-class S00Title(TitleCard):
+class S00Hook(SpokenScene, TitleCard):
     LESSON = "Membrane organization and topology"
-    TITLE = "A membrane's faces never swap"
+    TITLE = "Which Side Is Outside?"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
     def construct(self):
-        yb, yt = 0.0, 3.3
-        er = Comp(-6.2, -0.7, yb, yt, -3.45)
-        er_l = T("ER lumen", 24, TEAL).move_to(P(-5.0, 2.9))
-        p = protein(P(-3.45, yb), 1.4)
-        self.at("A sugar is added")
-        self.play(FadeIn(er.base), FadeIn(er_l), run_time=0.6)
-        self.play(FadeIn(p.bar), FadeIn(p.C), FadeIn(p.N), run_time=0.5)
-        self.play(FadeIn(p.S, shift=DOWN * 0.15), run_time=0.5)
-        self.play(pulse(p.S, ORANGE, 1.4), run_time=0.6)
-        self.at("cultured mammalian cell")
-        cm = T("cultured mammalian cell", 24, GREY).move_to(P(0, -3.1))
-        self.play(FadeIn(cm), run_time=0.5)
-
-        self.at("Later")
-        pm = Comp(0.7, 6.3, yb, yt, 3.45, boxed=False)
-        out_l = T("outside the cell", 24, TEAL).move_to(P(4.6, 1.2))
-        pm_l = T("plasma membrane", 22, GREY).move_to(P(4.9, -0.45))
-        self.play(FadeIn(pm.base), FadeIn(out_l), FadeIn(pm_l), run_time=0.7)
-        self.at("sits on the outside")
-        osq = Square(side_length=0.4, stroke_width=0, fill_color=ORANGE, fill_opacity=1).move_to(P(3.0, 2.4))
-        olab = T("sugar", 26, ORANGE).move_to(P(4.0, 2.4))
-        self.play(FadeIn(osq, scale=0.5), FadeIn(olab), run_time=0.6)
-        d1 = DashedLine(P(-2.2, 2.55), P(-0.35, 2.45), color=GREY, stroke_width=4)
-        d2 = DashedLine(P(0.85, 2.42), P(2.7, 2.4), color=GREY, stroke_width=4)
-        q = chip("?", TEXT, size=34).move_to(P(0.25, 2.45))
-        self.play(Create(d1), run_time=0.5)
-        self.play(FadeIn(q, scale=0.6), Create(d2), run_time=0.5)
-
-        self.at("never crossed a membrane")
-        x = cross(P(-0.7, 2.5), 0.3)
-        self.play(GrowFromCenter(x), run_time=0.45)
-        self.at("how does a sugar")
-        self.play(pulse(q, TEXT, 1.3), run_time=0.8)
-
-        self.at("The answer is one rule")
-        bars = VGroup(
-            RoundedRectangle(corner_radius=0.1, width=0.36, height=6.4, stroke_color=GREY, stroke_width=3,
-                             fill_color=GREY, fill_opacity=0.35).move_to(P(-0.2, 0)),
-            RoundedRectangle(corner_radius=0.1, width=0.36, height=6.4, stroke_color=GREY, stroke_width=3,
-                             fill_color=GREY, fill_opacity=0.35).move_to(P(0.2, 0)))
-        everything = VGroup(er.base, er_l, p, cm, pm.base, out_l, pm_l, osq, olab, d1, d2, q, x)
-        self.play(FadeOut(everything), run_time=0.6)
-        self.play(GrowFromCenter(bars), run_time=0.7)
+        # First class is a TitleCard subclass, but the spoken hook leads with the promised picture.
+        w = whole_world(10)
+        tag = schematic_tag()
+        p = protein(P(-3.72, -.74), .72, sugar=False)
+        self.add(w, tag, p)
+        self.at("sugar added")
+        ps = protein(P(-3.72, -.74), .72).sugar
+        self.play(GrowFromPoint(ps, p.N.get_center()), run_time=.65)
+        self.at("inside its ER")
+        self.play(w.er.animate.set_stroke(width=9), run_time=.65)
+        self.at("outside the cell")
+        ghost = protein(P(4.4, 2.43), .72).sugar.set_opacity(.48)
+        self.play(FadeIn(ghost, scale=.7), run_time=.45)
+        route = DashedLine(ps.get_center(), ghost.get_center(), color=ORANGE, stroke_width=5)
+        self.play(Create(route), run_time=1.15)
+        self.at("across a membrane")
+        x = T("×", 68, RED, weight=BOLD).move_to(P(-1.25, 2.43))
+        mark = T("?", 74, TEXT, weight=BOLD).next_to(ghost, LEFT, buff=.35)
+        self.play(GrowFromCenter(x), FadeIn(mark, shift=UP*.25), run_time=.55)
+        self.play(route.animate.set_opacity(.25), rate_func=there_and_back, run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S01Title(Scene):
+    def construct(self):
+        w = whole_world(11)
+        title = T("Which Side Is Outside?", 54, TEXT, font=TITLE_FONT)
+        rule = Line(LEFT*1.25, RIGHT*1.25, color=GOLD, stroke_width=4).next_to(title, DOWN, buff=.3)
+        plate = RoundedRectangle(width=title.width+.8, height=title.height+1.0,
+                                 corner_radius=.18, stroke_width=0,
+                                 fill_color=BG, fill_opacity=.86).move_to(VGroup(title, rule))
+        self.add(w)
+        self.play(FadeIn(plate), FadeIn(title, shift=UP*.15), GrowFromCenter(rule), run_time=.65)
+        self.wait(.85)
+        self.play(FadeOut(VGroup(plate, title, rule)), run_time=.45)
+
+
 class S02Faces(SpokenScene):
     def construct(self):
-        left = RoundedRectangle(corner_radius=0.1, width=0.36, height=6.4, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.35).move_to(P(-0.2, 0))
-        right = left.copy().move_to(P(0.2, 0))
-        self.add(left, right)
-
-        self.at("two sheets of lipid")
-        self.play(pulse(left, None, 1.06), run_time=0.5)
-        self.play(pulse(right, None, 1.06), run_time=0.5)
-        self.at("called a leaflet")
-        ll = T("leaflet", 26, GREY).move_to(P(-1.8, 2.7))
-        lr = T("leaflet", 26, GREY).move_to(P(1.8, 2.7))
-        ln1 = Line(P(-1.15, 2.7), P(-0.5, 2.7), color=GREY, stroke_width=3)
-        ln2 = Line(P(1.15, 2.7), P(0.5, 2.7), color=GREY, stroke_width=3)
-        self.play(FadeIn(ll), FadeIn(lr), Create(ln1), Create(ln2), run_time=0.7)
-
+        bg = local_membrane(seed=12)
+        self.add(bg, schematic_tag())
+        heads_top = VGroup(*[Dot(P(x, .12), radius=.09, color=MEM) for x in np.linspace(-6.2, 6.2, 25)])
+        heads_bot = VGroup(*[Dot(P(x, -.12), radius=.09, color=MEM) for x in np.linspace(-6.2, 6.2, 25)])
+        tails = VGroup(*[Line(P(x, .02), P(x, -.02), color=MEM, stroke_width=3) for x in np.linspace(-6.2, 6.2, 25)])
+        self.add(heads_top, heads_bot, tails)
+        self.at("two sheets")
+        self.play(LaggedStart(pulse(heads_top, LUMEN, 1.08), pulse(heads_bot, CYTO, 1.08), lag_ratio=.45), run_time=1.1)
         self.at("two faces")
-        fl = T("face", 26, TEXT).move_to(P(-1.8, 2.7))
-        fr = T("face", 26, TEXT).move_to(P(1.8, 2.7))
-        self.play(FadeOut(ll), FadeOut(lr), run_time=0.3)
-        self.play(FadeIn(fl), FadeIn(fr), run_time=0.4)
-
-        self.at("One face looks at the cytosol")
-        cyt = chip("cytosol", GREY, size=26).move_to(P(-3.6, 1.8))
-        a1 = Arrow(P(-2.55, 1.8), P(-0.6, 1.8), buff=0, color=GREY, stroke_width=5, tip_length=0.22)
-        self.play(FadeIn(cyt), GrowArrow(a1), run_time=0.7)
-        self.at("the fluid that fills")
-        rng = np.random.RandomState(3)
-        dots = VGroup(*[Circle(radius=0.07, stroke_width=0, fill_color=GREY, fill_opacity=0.7).move_to(
-            P(rng.uniform(-6.0, -1.2), rng.uniform(-3.0, 0.9))) for _ in range(26)])
-        self.play(FadeIn(dots, lag_ratio=0.05), run_time=1.2)
-        self.play(*[d.animate.shift(P(rng.uniform(-0.4, 0.4), rng.uniform(-0.4, 0.4))) for d in dots], run_time=2.0)
-
-        self.at("The other faces")
-        tint = Rectangle(width=5.95, height=7.0, stroke_width=0, fill_color=LUM, fill_opacity=0.14).move_to(P(3.375, 0))
-        outc = chip("outside the cell", TEAL, size=26).move_to(P(3.6, 1.8))
-        orr = T("or", 24, GREY).move_to(P(3.6, 0.95))
-        lum = chip("lumen (ER)", TEAL, size=26).move_to(P(3.6, 0.1))
-        a2 = Arrow(P(2.2, 1.8), P(0.6, 1.8), buff=0, color=TEAL, stroke_width=5, tip_length=0.22)
-        self.play(FadeIn(tint), FadeIn(outc), FadeIn(a2), run_time=0.7)
-        self.play(FadeIn(orr), FadeIn(lum), run_time=0.5)
-
-        self.at("slide sideways")
-        self.play(FadeOut(dots), run_time=0.4)
-        dot = Circle(radius=0.2, stroke_width=0, fill_color=PURPLE, fill_opacity=1).move_to(P(0.2, -1.6))
-        prot = RoundedRectangle(corner_radius=0.12, width=1.2, height=0.3, stroke_color=BLUE, stroke_width=3,
-                                fill_color=BLUE, fill_opacity=0.9).move_to(P(0, 0.6))
-        dl = T("lipid", 24, PURPLE).move_to(P(1.2, -1.6))
-        pl = T("protein", 24, BLUE).move_to(P(-1.7, 0.6))
-        self.play(FadeIn(dot), FadeIn(prot), FadeIn(dl), FadeIn(pl), run_time=0.5)
-        self.play(dot.animate.move_to(P(0.2, -2.6)), dl.animate.move_to(P(1.2, -2.6)),
-                  prot.animate.move_to(P(0, -0.5)), pl.animate.move_to(P(-1.7, -0.5)), run_time=0.7)
-        self.play(dot.animate.move_to(P(0.2, -1.2)), dl.animate.move_to(P(1.2, -1.2)),
-                  prot.animate.move_to(P(0, 0.9)), pl.animate.move_to(P(-1.7, 0.9)), run_time=0.7)
-
-        self.at("cannot easily flip")
-        jump = Arrow(P(0.2 + 0.25, -1.2), P(-1.0, -1.2), buff=0, color=RED, stroke_width=5, tip_length=0.22)
-        x = cross(P(0.0, -1.2), 0.26)
-        self.play(GrowArrow(jump), run_time=0.5)
-        self.play(GrowFromCenter(x), run_time=0.4)
+        arrows = VGroup(Arrow(P(-5.5,.55), P(5.5,.55), color=LUMEN, buff=0),
+                        Arrow(P(5.5,-.55), P(-5.5,-.55), color=CYTO, buff=0))
+        self.play(*[GrowArrow(a) for a in arrows], run_time=.9)
+        self.at("touches the cytosol")
+        cyt = T("cytosol", 38, CYTO).move_to(P(-4.8, -2.25))
+        self.play(FadeIn(cyt, shift=UP*.2), bg[0].animate.set_fill(opacity=.12), run_time=.8)
+        flow = VGroup(*[ArcBetweenPoints(P(-4.7, y), P(2.8, y), angle=.12,
+                                         color=CYTO, stroke_width=8).set_opacity(.42)
+                        for y in (-1.25, -1.75, -2.25)])
+        self.play(Create(flow), run_time=.8)
+        self.play(flow.animate.shift(RIGHT*1.6), run_time=1.35)
+        self.play(FadeOut(flow), run_time=.35)
+        self.at("outside of the cell")
+        outside = T("outside", 38, LUMEN).move_to(P(3.9, 2.25))
+        self.play(FadeIn(outside), run_time=.55)
+        self.at("or a lumen")
+        lumen = T("lumen", 38, LUMEN).move_to(outside)
+        self.play(Transform(outside, lumen), bg[1].animate.set_fill(opacity=.26), run_time=.75)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Protein(SpokenScene):
+class S03Color(SpokenScene):
     def construct(self):
-        yb, S = 0.0, 1.8
-        er = Comp(-6.2, 6.2, yb, 3.65, 0.0)
-        er_l = T("ER lumen", 26, TEAL).move_to(P(-4.9, 3.15))
-        cy_l = T("cytosol", 26, GREY).move_to(P(-4.9, -3.0))
-        p = protein(P(0, yb), S)
-        self.add(er.base, er_l, cy_l)
-        ny, cyy = 0.95 * S, -0.95 * S
-
-        self.at("Take a protein")
-        seg = T("membrane-spanning segment", 24, BLUE).move_to(P(-3.0, -0.45))
-        self.play(Create(p.bar), FadeIn(seg), run_time=0.9)
-        self.at("is in the lumen")
-        nl = T("N terminus", 28, YELLOW).move_to(P(-2.9, ny))
-        self.play(FadeIn(p.N, shift=DOWN * 0.3), FadeIn(nl), run_time=0.8)
-        self.at("is in the cytosol")
-        cl = T("C terminus", 28, GREEN).move_to(P(-2.9, cyy))
-        self.play(FadeIn(p.C, shift=UP * 0.3), FadeIn(cl), run_time=0.8)
-        self.at("makes it a")
-        tc = chip("single-pass type I", BLUE, size=26).move_to(P(4.1, -2.0))
-        self.play(FadeIn(tc), FadeOut(seg), run_time=0.6)
-        self.at("carries a sugar")
-        sl = T("sugar", 28, ORANGE).move_to(P(2.9, 3.1))
-        self.play(FadeIn(p.S, shift=DOWN * 0.2), FadeIn(sl), run_time=0.6)
-        self.play(pulse(p.S, ORANGE, 1.3), run_time=0.6)
-        self.at("set once")
-        self.play(pulse(VGroup(p.bar, p.N, p.C), None, 1.06), run_time=0.7)
-        self.at("when the protein enters")
-        tr = RoundedRectangle(corner_radius=0.2, width=2.0, height=1.2, stroke_color=GOLD, stroke_width=4).move_to(P(0, yb))
-        trl = T("translocon", 26, GOLD).move_to(P(3.0, -0.5))
-        trline = Line(P(1.75, -0.45), P(1.0, -0.15), color=GOLD, stroke_width=3)
-        self.play(Create(tr), FadeIn(trl), Create(trline), run_time=0.9)
+        w = whole_world(13)
+        self.add(w, schematic_tag())
+        self.at("is gold")
+        # Keep the colour cue local: a bounded swatch marks open cytosol without tinting
+        # the organelles, their labels, or the full frame.
+        cyt_region = RoundedRectangle(width=7.4, height=1.18, corner_radius=.24,
+                                      stroke_color=CYTO, stroke_width=4,
+                                      fill_color=CYTO, fill_opacity=.10).move_to(P(-.25, -2.55))
+        brush = Rectangle(width=.42, height=.96, fill_color=CYTO,
+                          fill_opacity=.24, stroke_width=0).move_to(P(-3.65, -2.55))
+        self.play(Create(cyt_region), brush.animate.move_to(P(3.15, -2.55)), run_time=1.15)
+        self.play(FadeOut(brush), cyt_region.animate.set_fill(opacity=.05), run_time=.25)
+        self.at("is teal")
+        self.play(LaggedStart(pulse(w.er, LUMEN, 1.03), pulse(w.golgi, LUMEN, 1.05),
+                              pulse(w.endo, LUMEN, 1.08), pulse(w.outside, LUMEN, 1.02), lag_ratio=.25), run_time=1.65)
+        self.at("one gold face")
+        gold_edge = Line(P(-6.4, 2.22), P(6.4, 2.22), color=CYTO, stroke_width=7)
+        self.play(Create(gold_edge), run_time=.65)
+        self.at("one teal face")
+        teal_edge = Line(P(-6.4, 2.62), P(6.4, 2.62), color=LUMEN, stroke_width=7)
+        self.play(Create(teal_edge), run_time=.65)
+        self.play(Succession(gold_edge.animate.set_opacity(.35), gold_edge.animate.set_opacity(1)),
+                  Succession(teal_edge.animate.set_opacity(.35), teal_edge.animate.set_opacity(1)), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def bud(scene, wall_cap, ves, prot, run=1.0):
-    """The wall bulges into a cup below it, carrying the protein to the cup's bottom."""
-    ves.top.set_opacity(0)
-    scene.play(FadeOut(wall_cap), Create(ves.bot), FadeIn(ves.fill), prot.animate.shift(DOWN * (R + DOCK)), run_time=run)
-
-
-class S04Rule(SpokenScene):
+class S04PredictQ(SpokenScene):
     def construct(self):
-        er = Comp(-6.2, -0.7, YB, YT, -3.45)
-        go = Comp(0.7, 6.2, YB, YT, 3.45)
-        er_l = T("ER lumen", 24, TEAL).move_to(P(-5.0, 3.15))
-        go_l = T("Golgi lumen", 24, TEAL).move_to(P(5.0, 3.15))
-        p = protein(P(-3.45, YB), PS)
-        self.add(er.base, go.base, er_l, go_l, p)
+        bg = local_membrane(y=2.15, top_teal=True, seed=14)
+        self.add(bg, schematic_tag())
+        pocket = Circle(radius=1.28, stroke_color=MEM, stroke_width=8, fill_color=LUMEN,
+                        fill_opacity=.20).move_to(P(-2.1, .45))
+        self.at("dimples inward")
+        self.play(ReplacementTransform(bg[3].copy(), pocket), run_time=1.15)
+        self.at("pinches off")
+        self.play(pocket.animate.shift(DOWN*.55), run_time=.65)
+        veil = Circle(radius=1.16, fill_color=GREY, fill_opacity=.42, stroke_width=0).move_to(pocket)
+        qm = T("?", 62, TEXT).move_to(veil)
+        self.play(FadeIn(VGroup(veil, qm)), run_time=.35)
+        self.at("Predict")
+        card = question_card()
+        self.play(FadeIn(card, shift=LEFT*.4), run_time=.55)
+        self.play(VGroup(pocket, veil, qm).animate.shift(UP*.12), rate_func=there_and_back, run_time=1.1)
+        self.finish()
 
+
+class S05PredictPause(Scene):
+    def construct(self):
+        bg = local_membrane(y=2.15, top_teal=True, seed=15)
+        s = sac(P(-2.1, -.10))
+        veil = Circle(radius=1.12, fill_color=GREY, fill_opacity=.42, stroke_width=0).move_to(s)
+        q = T("?", 62, TEXT).move_to(s)
+        card = question_card()
+        self.add(bg, s, veil, q, card, schematic_tag())
+        self.play(VGroup(s, veil, q).animate.shift(UP*.14), rate_func=there_and_back, run_time=2.15)
+        self.play(VGroup(s, veil, q).animate.shift(DOWN*.10), rate_func=there_and_back, run_time=2.15)
+        self.wait(.2)
+
+
+class S06PredictA(SpokenScene):
+    def construct(self):
+        bg = local_membrane(y=2.15, top_teal=True, seed=16)
+        s = sac(P(-2.1, -.10))
+        veil = Circle(radius=1.12, fill_color=GREY, fill_opacity=.42, stroke_width=0).move_to(s)
+        q = T("?", 62, TEXT).move_to(s)
+        card = question_card()
+        self.add(bg, s, veil, q, card, schematic_tag())
+        self.at("outside fluid")
+        self.play(FadeOut(VGroup(card, veil, q)), s.fill.animate.set_fill(opacity=.34), run_time=.75)
+        self.at("gold face")
+        edge = Circle(radius=1.34, color=CYTO, stroke_width=8).move_to(s)
+        self.play(Create(edge), run_time=.65)
+        self.at("Nothing crossed")
+        mini = s.copy().scale(.54).move_to(P(3.45, -.25))
+        arrow = Arrow(s.get_right()+RIGHT*.25, mini.get_left()-RIGHT*.25, color=TEXT, buff=0)
+        self.play(FadeIn(mini), GrowArrow(arrow), run_time=.65)
+        x = T("×", 58, RED, weight=BOLD).move_to(P(.65, 1.1))
+        self.play(GrowFromCenter(x), run_time=.4)
+        self.at("changed shape")
+        oval = mini.copy().stretch(1.35, 0).stretch(.75, 1)
+        self.play(Transform(mini, oval), run_time=.75)
+        self.play(Transform(mini, s.copy().scale(.54).move_to(P(3.45, -.25))), run_time=.75)
+        self.finish()
+
+
+class S07Rule(SpokenScene):
+    def construct(self):
+        w = whole_world(17)
+        self.add(w, schematic_tag())
+        route = T("route lumens", 38, LUMEN)
+        eq = M("=", 42, TEXT)
+        out = T("outside", 38, LUMEN)
+        banner = VGroup(route, eq, out).arrange(RIGHT, buff=.32).move_to(P(0, 3.05))
         self.at("Here is the rule")
-        b1 = chip("lumen", TEAL, size=28)
-        eq = M("=", 36, TEXT)
-        b2 = chip("outside the cell", TEAL, size=28)
-        banner = VGroup(b1, eq, b2).arrange(RIGHT, buff=0.35).move_to(P(0, -1.0))
-        self.play(FadeIn(b1), run_time=0.5)
-        self.at("equivalent to")
-        self.play(FadeIn(eq), FadeIn(b2, shift=LEFT * 0.2), run_time=0.7)
-
-        self.at("A transport vesicle buds")
-        v = vesicle(-3.45, YB - DOCK)
-        v.remove(v.prot)
-        v.prot = p
-        self.play(FadeOut(banner), run_time=0.3)
-        bud(self, er.cap, v, p, run=1.0)
-        v.top.set_opacity(1)
-        grp = VGroup(v.fill, v.bot, v.top, p)
-        self.play(FadeIn(v.top), FadeIn(er.cap), run_time=0.3)
-        self.play(grp.animate.shift(DOWN * DOWN_TRAVEL), run_time=0.5)
-        self.play(grp.animate.shift(RIGHT * 6.9), run_time=1.0)
-        self.play(grp.animate.shift(UP * DOWN_TRAVEL), run_time=0.5)
-        self.play(FadeOut(go.cap), FadeOut(v.top), run_time=0.5)
-
-        self.at("the donor lumen")
-        self.play(pulse(er_l, TEAL, 1.2), run_time=0.7)
-        self.at("and then with the target")
-        self.play(pulse(go_l, TEAL, 1.2), run_time=0.7)
-
-        self.at("Nothing crosses a membrane")
-        ar = Arrow(P(4.2, -0.3), P(4.2, -2.0), buff=0, color=RED, stroke_width=5, tip_length=0.22)
-        x = cross(P(4.2, -1.11), 0.25)
-        self.play(GrowArrow(ar), run_time=0.5)
-        self.play(GrowFromCenter(x), run_time=0.4)
-        self.at("The face that pointed")
-        self.play(FadeOut(ar), FadeOut(x), run_time=0.4)
-        fl = T("faces the cytosol", 24, GREEN).move_to(P(1.2, -2.4))
-        self.play(FadeIn(fl), pulse(p.C, GREEN, 1.3), run_time=0.8)
+        self.play(Write(route), run_time=.7)
+        self.at("lumens count as outside")
+        self.play(FadeIn(eq), Write(out), run_time=.8)
+        dot = Dot(P(5.2, 3.05), radius=.16, color=LUMEN)
+        self.add(dot)
+        self.at("budding and fusing")
+        path = VMobject(color=LUMEN, stroke_width=6).set_points_smoothly([P(5.2,3.05), P(4.9,1.8), P(4.35,-.9)])
+        self.play(MoveAlongPath(dot, path), run_time=1.2)
+        rev = VMobject(color=LUMEN, stroke_width=6).set_points_smoothly([P(-3.75,.3), P(1.5,.2), P(4.4,2.8)])
+        dot2 = Dot(P(-3.75,.3), radius=.16, color=LUMEN)
+        self.add(dot2)
+        self.play(MoveAlongPath(dot2, rev), Create(rev.copy().set_stroke(opacity=.4)), run_time=1.5)
+        self.at("without crossing")
+        self.play(pulse(VGroup(dot, dot2), LUMEN, 1.5), run_time=.65)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Surface(SpokenScene):
+class S08Set(SpokenScene):
     def construct(self):
-        go = Comp(-6.2, -0.7, YB, YT, -3.45)
-        pm = Comp(0.2, 6.3, YB, YT, 2.1, boxed=False)
-        go_l = T("Golgi lumen", 24, TEAL).move_to(P(-5.0, 3.15))
-        out_l = T("outside the cell", 24, TEAL).move_to(P(2.6, 3.15))
-        pm_l = T("plasma membrane", 22, GREY).move_to(P(4.9, 2.0))
-        self.add(go.base, pm.base, go_l, out_l, pm_l)
-
-        v = vesicle(-3.45, YB - DOCK)
-        self.at("Follow the protein")
-        self.play(FadeIn(v), run_time=0.5)
-        self.at("by vesicles")
-        self.play(v.animate.shift(DOWN * DOWN_TRAVEL), run_time=0.35)
-        self.play(v.animate.shift(RIGHT * 5.55), run_time=0.9)
-        self.at("face stays")
-        self.play(pulse(v.fill, TEAL, 1.06), pulse(v.prot.N, None, 1.3), run_time=0.8)
-        self.at("A secretory vesicle")
-        self.play(v.animate.shift(UP * DOWN_TRAVEL), run_time=0.7)
-        self.at("Its lumen opens")
-        self.play(FadeOut(pm.cap), FadeOut(v.top), pulse(out_l, TEAL, 1.15), run_time=0.9)
-
-        self.at("the sugar now face")
-        ecf = T("extracellular fluid", 24, TEAL).move_to(out_l)
-        k1 = key_item("N terminus", YELLOW, P(4.3, 0.4))
-        k2 = key_item("sugar", ORANGE, P(4.3, -0.3))
-        self.play(FadeOut(out_l), run_time=0.25)
-        self.play(FadeIn(ecf), FadeIn(k1), FadeIn(k2), run_time=0.6)
-        self.play(pulse(v.prot.N, None, 1.3), pulse(v.prot.S, ORANGE, 1.3), run_time=0.8)
-        self.at("stays in the cytosol")
-        k3 = key_item("C terminus", GREEN, P(4.3, -1.0))
-        cy = T("cytosol", 24, GREY).move_to(P(5.0, -2.2))
-        self.play(FadeIn(k3), FadeIn(cy), pulse(v.prot.C, GREEN, 1.3), run_time=0.8)
+        bg = local_membrane(seed=18)
+        trans = RoundedRectangle(width=1.15, height=.72, corner_radius=.16, stroke_color=MEM,
+                                 stroke_width=4, fill_color=MEM, fill_opacity=.34).move_to(P(0,0))
+        tl = T("translocon", 32, TEXT).move_to(P(3.05, .95))
+        tl_leader = Line(tl.get_corner(DL) + P(.08, .03), trans.get_corner(UR),
+                         color=TEXT, stroke_width=2)
+        rib = chip("ribosome", CYTO, 30).move_to(P(0,-2.35))
+        self.add(bg, schematic_tag(), trans, tl_leader, tl, rib)
+        self.at("direction")
+        arrow = CurvedArrow(P(-2.2,-1.2), P(-.45,.85), angle=-.5, color=YELLOW)
+        self.play(Create(arrow), run_time=.7)
+        self.at("set once")
+        once = chip("set once", YELLOW, 36).move_to(P(3.9, 2.4))
+        self.play(FadeIn(once, scale=.7), run_time=.5)
+        self.at("chain is made")
+        chain = VMobject(color=BLUE, stroke_width=12).set_points_smoothly([P(0,-1.95),P(-.2,-1.0),P(.05,-.25)])
+        self.play(Create(chain), run_time=.8)
+        self.at("channel called the translocon")
+        self.play(pulse(VGroup(trans, tl), TEXT, 1.08), run_time=.55)
+        self.at("threads one end")
+        n = VGroup(Circle(radius=.3, fill_color=YELLOW, fill_opacity=1, stroke_width=0), T("N",25,BG,weight=BOLD)).move_to(P(.05,-.15))
+        self.add(n)
+        self.play(n.animate.move_to(P(.05,1.15)), chain.animate.set_points_smoothly([P(0,-1.95),P(-.2,-1),P(.05,.65)]), run_time=.85)
+        bar = RoundedRectangle(width=.34, height=1.35, corner_radius=.1, fill_color=BLUE, fill_opacity=1, stroke_width=0).move_to(P(1.2,0))
+        self.play(FadeIn(bar), run_time=.45)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Endo(SpokenScene):
+class S09Type1(SpokenScene):
     def construct(self):
-        px = -2.0
-        pm = Comp(-6.3, 6.3, YB, YT, px, boxed=False)
-        out_l = T("outside the cell", 24, TEAL).move_to(P(3.5, 3.15))
-        cy = T("cytosol", 24, GREY).move_to(P(5.2, 1.0))
-        p = protein(P(px, YB), PS)
-        self.add(pm.base, out_l, cy, p)
+        bg = local_membrane(seed=19)
+        p = protein(P(0,0), 1.15, sugar=False)
+        self.add(bg, schematic_tag(), p.bar, p.N)
+        self.at("N terminus")
+        self.play(pulse(p.N, YELLOW, 1.25), bg[1].animate.set_fill(opacity=.28), run_time=.7)
+        self.at("C terminus")
+        self.play(FadeIn(p.C, shift=UP*.3), pulse(p.C, GREEN, 1.2),
+                  bg[0].animate.set_fill(opacity=.14), run_time=.8)
+        self.at("type I")
+        typ = chip("type I", BLUE, 36).move_to(P(3.6,-2.15))
+        self.play(FadeIn(typ, shift=LEFT*.3), run_time=.55)
+        self.at("an enzyme adds")
+        enzyme = chip("sugar-adding enzyme", LUMEN, 34).move_to(P(-4.1,2.35))
+        self.play(FadeIn(enzyme), enzyme.animate.move_to(P(-2.7,2.15)), run_time=.8)
+        self.at("the sugar")
+        sug = protein(P(0,0), 1.15).sugar
+        self.play(GrowFromPoint(sug, p.N.get_center()), run_time=.65)
+        self.play(pulse(sug, ORANGE, 1.2), run_time=.55)
+        self.finish()
 
-        v = vesicle(px, YB - DOCK)
-        v.remove(v.prot)
-        v.prot = p
-        self.at("Endocytosis pinches")
-        bud(self, pm.cap, v, p, run=1.3)
-        self.at("becomes the lumen")
-        v.top.set_opacity(1)
-        grp = VGroup(v.fill, v.bot, v.top, p)
-        el = T("endosome lumen", 24, TEAL).move_to(P(0.0, -0.5)); el.shift(RIGHT * (-0.1 - el.get_left()[0]))
-        self.play(FadeIn(v.top), FadeIn(pm.cap), run_time=0.4)
-        self.play(grp.animate.shift(DOWN * (YB - DOCK - (-0.5))), FadeIn(el), run_time=0.9)
 
-        self.at("face that lumen")
-        k1 = key_item("N terminus", YELLOW, P(3.0, 0.4))
-        k2 = key_item("sugar", ORANGE, P(3.0, -0.3))
-        self.play(FadeIn(k1), FadeIn(k2), run_time=0.5)
-        self.play(pulse(p.N, None, 1.3), pulse(p.S, ORANGE, 1.3), run_time=0.8)
-        self.at("still faces the cytosol")
-        k3 = key_item("C terminus", GREEN, P(3.0, -1.0))
-        self.play(FadeIn(k3), pulse(p.C, GREEN, 1.3), run_time=0.8)
+class S09bWatch(Scene):
+    def construct(self):
+        w = whole_world(20)
+        p = protein(P(-3.72,-.74), .65)
+        bud = Arc(radius=.62, start_angle=25*DEGREES, angle=130*DEGREES, arc_center=P(-2.95,-.95), color=MEM, stroke_width=7)
+        self.add(w, p, schematic_tag())
+        self.play(Create(bud), p.animate.shift(P(.3,.22)), run_time=1.7)
+        self.play(bud.animate.scale(1.08), rate_func=there_and_back, run_time=.8)
+
+
+class S10Golgi(SpokenScene):
+    def construct(self):
+        w = whole_world(21)
+        p = protein(P(-3.72,-.74), .62)
+        v = sac(P(-2.85,-.95), .68, with_protein=False)
+        self.add(w, p, schematic_tag())
+        self.at("vesicle buds")
+        self.play(FadeIn(v), p.animate.move_to(P(-2.85,-1.63)), run_time=.75)
+        vp = VGroup(v,p)
+        self.at("fuses with the Golgi")
+        self.play(vp.animate.move_to(P(.25,-.45)), run_time=1.25)
+        self.play(FadeOut(v), p.animate.move_to(P(1.50,-.67)), run_time=.75)
+        self.at("lumen joins first")
+        erglow = w.er.copy().set_stroke(LUMEN, 9)
+        self.play(FadeIn(erglow), run_time=.5)
+        self.at("then the Golgi lumen")
+        self.play(ReplacementTransform(erglow, w.golgi.copy().set_stroke(LUMEN, 8)), run_time=.75)
+        self.at("never leaves teal")
+        trail = VMobject(color=LUMEN, stroke_width=8).set_points_smoothly([P(-3.72,-.6),P(-1.5,-1.0),P(1.5,-.45)])
+        self.play(Create(trail), pulse(p.sugar, ORANGE, 1.25), run_time=.85)
+        self.finish()
+
+
+class S10bWatch(Scene):
+    def construct(self):
+        w = whole_world(22)
+        v = sac(P(2.45,1.15), .62, with_protein=True)
+        self.add(w, schematic_tag())
+        self.play(FadeIn(v, scale=.7), run_time=.55)
+        self.play(v.animate.move_to(P(3.25,1.72)), run_time=1.4)
+
+
+class S11Surface(SpokenScene):
+    def construct(self):
+        w = whole_world(23)
+        v = sac(P(3.25,1.55), .68, with_protein=True)
+        self.add(w, v, schematic_tag())
+        self.at("fuses with the plasma membrane")
+        self.play(v.animate.move_to(P(4.4,1.82)), run_time=.85)
+        self.at("opens to the outside")
+        pfinal = protein(P(4.4,2.43), .65)
+        self.play(FadeOut(v), FadeIn(pfinal), w.outside.animate.set_fill(opacity=.30), run_time=.8)
+        self.at("sugar now faces")
+        ghost = pfinal.sugar.copy().set_opacity(.28).shift(LEFT*1.0)
+        qm = T("?", 55, TEXT).next_to(ghost, LEFT, buff=.2)
+        self.play(FadeIn(VGroup(ghost,qm)), run_time=.4)
+        self.play(Transform(ghost, pfinal.sugar.copy()), FadeOut(qm), pulse(pfinal.sugar, ORANGE, 1.3), run_time=.75)
+        self.at("inside a lumen")
+        trail = VMobject(color=LUMEN, stroke_width=8).set_points_smoothly([P(-3.75,.2),P(1.5,.2),P(3.2,1.5),P(4.4,3.0)])
+        self.play(Create(trail), run_time=1.05)
+        self.play(trail.animate.set_opacity(.25), rate_func=there_and_back, run_time=.8)
+        self.finish()
+
+
+class S12Back(SpokenScene):
+    def construct(self):
+        w = whole_world(24)
+        p = protein(P(4.4,2.43), .62)
+        self.add(w, p, schematic_tag())
+        s = sac(P(4.4,1.72), .72)
+        self.play(GrowFromPoint(s, P(4.4,2.43)), p.animate.shift(DOWN*.10), run_time=1.15)
+        self.at("bring the protein back in")
+        self.play(s.animate.move_to(P(4.4,1.55)), p.animate.move_to(P(4.4,2.18)), run_time=.8)
+        self.play(s.animate.move_to(P(4.35,-.90)), p.animate.move_to(P(4.35,-1.62)), run_time=1.05)
+        self.at("endosome lumen")
+        self.play(pulse(w.endo, LUMEN, 1.15), pulse(p.sugar, ORANGE, 1.2), run_time=.7)
         self.at("At no step")
-        nb = chip("always in the cytosol", GREEN, size=24).move_to(P(3.9, -2.1))
-        self.play(FadeIn(nb), pulse(p.C, GREEN, 1.3), run_time=0.8)
-
-        self.at("That is how")
-        self.play(FadeOut(VGroup(pm.base, out_l, cy, grp, el, k1, k2, k3, nb)), run_time=0.6)
-        names = ["ER lumen", "Golgi lumen", "outside the cell", "endosome lumen"]
-        chips = [chip(n, TEAL, size=26) for n in names]
-        row = VGroup(*chips).arrange(RIGHT, buff=0.7).move_to(P(0, -0.3))
-        fit(row, max_w=12.4)
-        arrows = [Arrow(chips[i].get_right(), chips[i + 1].get_left(), buff=0.05, color=GREY, stroke_width=4, tip_length=0.18)
-                  for i in range(3)]
-        sqs = [Square(side_length=0.36, stroke_width=0, fill_color=ORANGE, fill_opacity=1).next_to(c, UP, buff=0.35) for c in chips]
-        lbl = T("sugar", 26, ORANGE).next_to(sqs[0], UP, buff=0.15)
-        self.play(LaggedStart(*[FadeIn(c) for c in chips], lag_ratio=0.25), run_time=1.2)
-        self.play(*[GrowArrow(a) for a in arrows], run_time=0.5)
-        self.play(*[FadeIn(s, scale=0.5) for s in sqs], FadeIn(lbl), run_time=0.6)
-
-        self.at("Keep the rule")
-        self.play(FadeOut(VGroup(*chips, *arrows, *sqs, lbl)), run_time=0.5)
-        wall = corners([(-3.2, 0.0), (3.2, 0.0)])
-        up = Rectangle(width=6.4, height=2.2, stroke_width=0, fill_color=LUM, fill_opacity=0.16).move_to(P(0, 1.1))
-        pr = protein(P(0, 0.0), 1.3)
-        l1 = T("Orientation is set once, at the ER", 40, font=TITLE_FONT).move_to(P(0, 3.0))
-        self.play(FadeIn(up), FadeIn(wall), FadeIn(pr), run_time=0.6)
-        self.play(FadeIn(l1, shift=DOWN * 0.1), run_time=0.7)
-        self.at("never flips it")
-        l2 = T("Traffic never flips it", 40, font=TITLE_FONT).move_to(P(0, -2.9))
-        self.play(FadeIn(l2, shift=UP * 0.1), run_time=0.7)
+        self.play(FadeOut(w.labels[3]), run_time=.25)
+        mini = VGroup()
+        xs = [-4.5,-1.5,1.5,4.5]
+        names = ["ER","Golgi","surface","endosome"]
+        for x,nm in zip(xs,names):
+            box = RoundedRectangle(width=2.35,height=1.12,corner_radius=.12,stroke_color=GREY,stroke_width=2)
+            c = Circle(radius=.13,fill_color=GREEN,fill_opacity=1,stroke_width=0).move_to(box.get_bottom()+UP*.22)
+            lab = T(nm,24,TEXT).move_to(box.get_top()+DOWN*.28)
+            mini.add(VGroup(box,c,lab).move_to(P(x,-2.78)))
+        self.play(LaggedStart(*[FadeIn(m) for m in mini], lag_ratio=.18), run_time=1.1)
+        underline = Line(P(-5.65,-3.52),P(5.65,-3.52),color=CYTO,stroke_width=7)
+        self.play(Create(underline), run_time=.75)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Orientation is set once at the ER. Traffic never flips it."
+class S12bWatch(Scene):
+    def construct(self):
+        w = whole_world(25)
+        self.add(w, schematic_tag())
+        ves = Circle(radius=.50, stroke_color=MEM, stroke_width=4, fill_color=LUMEN,
+                     fill_opacity=.18).move_to(P(3.1,1.3))
+        ps = VGroup(protein(P(-3.72,-.74),.58), protein(P(1.5,-.67),.52),
+                    protein(P(3.1,.80),.48), protein(P(4.4,2.43),.58), protein(P(4.35,-1.6),.48))
+        self.add(ves)
+        self.play(LaggedStart(*[FadeIn(p, scale=.7) for p in ps], lag_ratio=.18), run_time=1.8)
+        self.play(ps.animate.set_opacity(.72), rate_func=there_and_back, run_time=.2)
+
+
+class S13Return(SpokenScene):
+    def construct(self):
+        w = whole_world(26, proteins=True)
+        self.add(w, schematic_tag())
+        self.at("once")
+        self.play(pulse(w.proteins[0], YELLOW, 1.25), run_time=.65)
+        self.at("at the ER")
+        self.play(pulse(w.er, LUMEN, 1.06), run_time=.55)
+        self.at("from lumen to lumen")
+        route = VMobject(color=LUMEN, stroke_width=10).set_points_smoothly([P(-3.75,.2),P(1.5,.2),P(3.2,1.5),P(4.4,3.0),P(4.35,-.9)])
+        self.play(Create(route), run_time=1.3)
+        self.at("Secretory and endocytic lumens")
+        self.play(LaggedStart(pulse(w.er,LUMEN,1.03), pulse(w.golgi,LUMEN,1.05),
+                              pulse(w.outside,LUMEN,1.02), pulse(w.endo,LUMEN,1.08), lag_ratio=.22), run_time=1.5)
+        self.at("Traffic never flips")
+        locks = VGroup(*[T("↕", 34, TEXT).next_to(p, LEFT, buff=.08) for p in w.proteins])
+        self.play(LaggedStart(*[FadeIn(x) for x in locks], lag_ratio=.12), run_time=.85)
+        self.play(w.proteins.animate.set_opacity(.62), rate_func=there_and_back, run_time=1.0)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "Secretory and endocytic lumens count as outside; traffic never flips proteins."
+
+    def construct(self):
+        w = whole_world(27, proteins=True)
+        line = T(self.LINE, 40, TEXT, font=TITLE_FONT)
+        fit(line, max_w=11.7)
+        plate = RoundedRectangle(width=line.width+.7,height=line.height+.65,corner_radius=.18,
+                                 fill_color=BG,fill_opacity=.88,stroke_color=GOLD,stroke_width=3)
+        self.add(w)
+        self.play(FadeIn(VGroup(plate,line), shift=UP*.15), run_time=.75)
+        self.play(w.proteins.animate.set_opacity(.7), rate_func=there_and_back, run_time=1.5)
+        self.finish()
