@@ -1,639 +1,550 @@
-"""Where the nitrogen goes  (Biochemistrypedia explainer, lesson: protein turnover and amino acid catabolism)
+"""Choose, Recycle, Split — Biochemistrypedia teaching film.
 
-Timed to the SPOKEN words (audio/words.json, from the real slide audio): every self.at("phrase") waits
-until the narrator starts that phrase, minus a short lead.
+COLOR MAP (one meaning throughout)
+  BLUE   carbon skeletons, proteins, and the main material stream
+  YELLOW ubiquitin, ATP/energy, and nitrogen tokens
+  GREEN  reuse, safe urea, and productive destinations
+  RED    toxicity, danger, and rejected choices
+  GREY   machinery, lanes, and de-emphasized structure
 
-COLOR MAP (one color per concept, whole video)
-  PURPLE = the nitrogen itself: the round "N" tokens that hop from carrier to carrier
-  BLUE   = the nitrogen CARRIERS: glutamate, alanine, glutamine
-  YELLOW = the CARBON side: carbon skeletons, pyruvate, glucose, the TCA wheel
-  RED    = free ammonia (toxic), and stop / blocked
-  GREEN  = urea and the urea cycle (the safe end point)
-  ORANGE = the shared intermediates that link the two wheels (fumarate, aspartate)
-  GREY   = compartments, frame, structure, de-emphasized labels
-No molecular structures are drawn: molecules are labelled chips; nitrogen is a purple "N" token.
+Everything is a schematic mechanical cartoon.  No molecular structures are drawn.
 """
 import math
 
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PURPLE = "#B58CD9"
-ORANGE = "#F2994A"
-
-
-# ---------------------------------------------------------------- helpers
-def arrow(a, b, color=GREY, w=3.5, tip=0.2):
-    return Arrow(a, b, buff=0.05, color=color, stroke_width=w, max_tip_length_to_length_ratio=0.3,
-                 tip_length=tip)
-
-
-def heading(text, size=36):
-    return T(text, size, font=TITLE_FONT).to_edge(UP, buff=0.4)
-
-
-def ndot(r=0.27):
-    """The nitrogen token: a purple disc with an N."""
-    return VGroup(Circle(radius=r, stroke_width=0, fill_color=PURPLE, fill_opacity=1.0),
-                  T("N", 22, BG, weight=BOLD))
-
-
-def akg_chip(size=30, color=YELLOW, pad=0.22):
-    """chip("α-ketoglutarate") with the α set in Georgia: Avenir Next's α reads as a plain "a"."""
-    label = Text("α-ketoglutarate", font=FONT, font_size=size, color=color, t2f={"α": TITLE_FONT})
-    box = RoundedRectangle(corner_radius=0.14, width=label.width + 2 * pad, height=label.height + 2 * pad,
-                           stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.16)
-    return VGroup(box, label.move_to(box))
-
-
-def pulse(mob, s=1.4):
-    """Grow and shrink back without recoloring (Indicate would paint the N letter the disc color)."""
-    return mob.animate(rate_func=there_and_back).scale(s)
-
-
-def at_pt(mob, p):
-    mob.move_to([p[0], p[1], 0])
-    return mob
-
-
-def hop(dot, target, angle=-PI / 3):
-    """MoveAlongPath that carries a token along a shallow arc to `target`."""
-    t = np.array([target[0], target[1], 0.0])
-    return MoveAlongPath(dot, ArcBetweenPoints(dot.get_center(), t, angle=angle))
-
 
 def pt(x, y):
     return np.array([x, y, 0.0])
 
 
-class Spin:
-    """Dots circling a ring at an adjustable speed (deg/s), clockwise."""
-
-    def __init__(self, scene, c, R, n=3, color=BLUE, speed=70, r=0.12, phase0=90):
-        self.phase = ValueTracker(0)
-        self.speed = ValueTracker(speed)
-        self.driver = Mobject()
-        self.driver.add_updater(lambda m, dt: self.phase.increment_value(self.speed.get_value() * dt))
-        self.dots = VGroup(*[Dot(radius=r, color=color) for _ in range(n)])
-        for i, d in enumerate(self.dots):
-            d.add_updater(lambda m, i=i: m.move_to(
-                pt(c[0] + R * math.cos(math.radians(phase0 - self.phase.get_value() - (360 / n) * i)),
-                   c[1] + R * math.sin(math.radians(phase0 - self.phase.get_value() - (360 / n) * i)))))
-        scene.add(self.driver, self.dots)
-
-    def stop(self):
-        self.speed.set_value(0)
+def heading(text, size=38):
+    return fit(T(text, size=size, font=TITLE_FONT), max_w=12.0).to_edge(UP, buff=0.32)
 
 
-# --------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
+def arr(a, b, color=GREY, width=4, buff=0.08):
+    return Arrow(a, b, buff=buff, color=color, stroke_width=width, tip_length=0.22)
+
+
+def protein(label="one protein", n=7, scale=1.0):
+    blocks = VGroup(*[
+        RoundedRectangle(corner_radius=0.13, width=0.62, height=0.68,
+                         stroke_color=BLUE, stroke_width=3,
+                         fill_color=BLUE, fill_opacity=0.22)
+        for _ in range(n)
+    ]).arrange(RIGHT, buff=0.08)
+    blocks.set_y(-0.82)
+    blocks.scale(scale)
+    lab = T(label, 28, BLUE, weight=BOLD).next_to(blocks, UP, buff=0.18)
+    return VGroup(blocks, lab)
+
+
+def badge(text="", radius=0.22):
+    c = Circle(radius=radius, color=YELLOW, stroke_width=3,
+               fill_color=YELLOW, fill_opacity=0.35)
+    return VGroup(c, T(text, 22, YELLOW, weight=BOLD).move_to(c)) if text else c
+
+
+def atp_token():
+    return chip("ATP", YELLOW, 28, pad=0.16, fill_opacity=0.22)
+
+
+def conveyor(y=-1.58, x1=-6.25, x2=6.25, color=GREY):
+    top = Line(pt(x1, y + 0.23), pt(x2, y + 0.23), color=color, stroke_width=4)
+    bot = Line(pt(x1, y - 0.23), pt(x2, y - 0.23), color=color, stroke_width=4)
+    rollers = VGroup(*[
+        VGroup(Circle(radius=0.17, color=color, stroke_width=2),
+               Line(LEFT * 0.13, RIGHT * 0.13, color=color, stroke_width=2)).move_to(pt(x, y))
+        for x in np.linspace(x1 + 0.3, x2 - 0.3, 16)
+    ])
+    return VGroup(top, bot, rollers)
+
+
+def gate(x=1.9, y=-0.55, scale=1.0):
+    posts = VGroup(
+        RoundedRectangle(corner_radius=0.13, width=0.4, height=2.65,
+                         stroke_color=GREY, fill_color=GREY, fill_opacity=0.14),
+        RoundedRectangle(corner_radius=0.13, width=0.4, height=2.65,
+                         stroke_color=GREY, fill_color=GREY, fill_opacity=0.14),
+    )
+    posts[0].move_to(pt(x - 0.8, y)); posts[1].move_to(pt(x + 0.8, y))
+    bar = Line(pt(x - 0.62, y + 0.82), pt(x + 0.62, y - 0.35),
+               color=YELLOW, stroke_width=9)
+    geometry = VGroup(posts, bar).scale(scale, about_point=pt(x, y))
+    label = T("sorting gate", 28, TEXT).next_to(geometry, UP, buff=.18)
+    return VGroup(*geometry, label)
+
+
+def proteasome(center=pt(2.9, -0.45), scale=1.0):
+    cap = RoundedRectangle(corner_radius=0.35, width=2.0, height=1.25,
+                           stroke_color=YELLOW, stroke_width=4,
+                           fill_color=YELLOW, fill_opacity=0.12)
+    core = RoundedRectangle(corner_radius=0.25, width=2.35, height=2.45,
+                            stroke_color=BLUE, stroke_width=4,
+                            fill_color=BLUE, fill_opacity=0.10)
+    cap.move_to(UP * 1.38); core.move_to(DOWN * 0.48)
+    geometry = VGroup(core, cap).scale(scale)
+    cap_text = "regulatory cap" if scale >= .8 else "cap"
+    lab1 = T(cap_text, 28, YELLOW).move_to(cap.get_center() + UP * .28 * scale)
+    lab2 = T("core", 28, BLUE, weight=BOLD).move_to(core.get_center())
+    gears = VGroup(*[
+        Circle(radius=0.13 * scale, color=YELLOW, stroke_width=3)
+        .move_to(pt((-0.35 + i * .35) * scale, .82 * scale))
+        for i in range(3)
+    ])
+    return VGroup(geometry[0], geometry[1], lab1, lab2, gears).move_to(center)
+
+
+def scope_label():
+    return chip("adult · nitrogen balance", GREY, 28, pad=0.16).to_edge(UP, buff=0.68)
+
+
+def factory_backdrop(scene):
+    """The same large, quiet recycling-room shell behind every close view."""
+    room = RoundedRectangle(corner_radius=.32, width=13.25, height=6.75,
+                            stroke_color=GREY, stroke_width=3,
+                            fill_color=GREY, fill_opacity=.045).move_to(DOWN*.08)
+    beams = VGroup(*[
+        Line(pt(x,-3.25), pt(x,3.15), color=GREY, stroke_width=2).set_opacity(.17)
+        for x in [-5.2, -3.45, -1.72, 0, 1.72, 3.45, 5.2]
+    ])
+    grid = VGroup(*[
+        Line(pt(-6.35,y), pt(6.35,y), color=GREY, stroke_width=2).set_opacity(.13)
+        for y in [-2.25, -1.1, .05, 1.2, 2.35]
+    ])
+    floor = VGroup(*[
+        Line(pt(-6.35,-2.95+i*.18),pt(6.35,-2.95+i*.18),color=GREY,stroke_width=2).set_opacity(.16)
+        for i in range(3)
+    ])
+    # Solid machinery bays occupy a minority of the image, so the room reads as a
+    # working place rather than an empty outline while the dark ground stays dominant.
+    bays = VGroup(
+        RoundedRectangle(corner_radius=.18,width=1.05,height=5.55,stroke_width=0,
+                         fill_color=GREY,fill_opacity=.22).move_to(pt(-5.75,-.05)),
+        RoundedRectangle(corner_radius=.18,width=1.05,height=5.55,stroke_width=0,
+                         fill_color=GREY,fill_opacity=.22).move_to(pt(5.75,-.05)),
+        RoundedRectangle(corner_radius=.12,width=10.35,height=.72,stroke_width=0,
+                         fill_color=GREY,fill_opacity=.22).move_to(pt(0,-2.62)),
+    )
+    shell = VGroup(room, bays, beams, grid, floor).set_z_index(-8)
+    scene.add(shell)
+    return shell
+
+
+def moving_dots(scene, a, b, color, n=6, speed=0.10, radius=0.08, z=-1):
+    """Continuously moving material on a straight lane."""
+    phase = ValueTracker(0)
+    driver = Mobject()
+    driver.add_updater(lambda m, dt: phase.increment_value(speed * dt))
+    dots = VGroup(*[Dot(radius=radius, color=color) for _ in range(n)])
+    av, bv = np.array(a), np.array(b)
+    for i, d in enumerate(dots):
+        d.add_updater(lambda m, i=i: m.move_to(av + (((phase.get_value() + i / n) % 1.0)) * (bv - av)))
+    dots.set_z_index(z)
+    scene.add(driver, dots)
+    return Group(driver, dots)
+
+
+class S00Hook(TitleCard):
+    """The spoken hook doubles as the compact title card required for the opening scene."""
     LESSON = "Protein turnover and amino acid catabolism"
-    TITLE = "Where the nitrogen goes"
-
-
-# --------------------------------------------------------------------------------------------
-class S01Split(SpokenScene):
-    """An amino acid has two problems: carbon (fuel) and nitrogen (toxic). Split them; track the N."""
+    TITLE = "Choose, Recycle, Split"
+    _words = SpokenScene._words
+    t_of = SpokenScene.t_of
+    at = SpokenScene.at
 
     def construct(self):
-        head = heading("Every amino acid has two fates")
-        cx = -3.5
-        carbon = chip("carbon skeleton", YELLOW, 28).move_to([cx, -1.25, 0])
-        nblk = chip("amino N", PURPLE, 28).move_to([cx, -0.48, 0])
-        lab_aa = T("amino acid", 28, GREY).move_to([cx, 0.3, 0])
-        self.play(FadeIn(head, shift=DOWN * 0.15), run_time=0.5)
-
-        # --- the amino acid is one block: a carbon skeleton carrying an amino nitrogen
-        self.at("amino acid")
-        self.play(FadeIn(carbon, shift=UP * 0.1), FadeIn(nblk, shift=DOWN * 0.1), FadeIn(lab_aa), run_time=0.9)
-        self.at("two separate problems")
-        self.play(Indicate(carbon, color=YELLOW, scale_factor=1.1), run_time=0.6)
-        self.play(Indicate(nblk, color=PURPLE, scale_factor=1.1), run_time=0.6)
-
-        # --- problem 1: the carbon skeleton is fuel
-        self.at("carbon skeleton")
-        self.play(Indicate(carbon, color=YELLOW, scale_factor=1.12), run_time=0.7)
-        self.at("burned in the TCA cycle")
-        d1 = chip("burned in the TCA cycle", YELLOW, 28).move_to([-0.6, -0.6, 0], aligned_edge=LEFT)
-        a1 = arrow(carbon.get_right(), d1.get_left(), YELLOW)
-        self.play(GrowArrow(a1), FadeIn(d1, shift=RIGHT * 0.2), run_time=0.8)
-        self.at("rebuilt into glucose")
-        d2 = chip("rebuilt: glucose, fatty acids", YELLOW, 28).move_to([-0.6, -2.0, 0], aligned_edge=LEFT)
-        a2 = arrow(carbon.get_right(), d2.get_left(), YELLOW)
-        self.play(GrowArrow(a2), FadeIn(d2, shift=RIGHT * 0.2), run_time=0.8)
-
-        # --- problem 2: the nitrogen is a liability (free ammonia is toxic)
-        self.at("liability")
-        self.play(Indicate(nblk, color=PURPLE, scale_factor=1.15), run_time=0.8)
-        self.at("Free ammonia is toxic")
-        tox = T("free ammonia: toxic", 28, RED).move_to([cx, 0.3, 0])
-        self.play(FadeOut(lab_aa), FadeIn(tox), nblk[0].animate.set_stroke(RED).set_fill(RED, opacity=0.25),
-                  run_time=0.6)
-        self.play(Indicate(nblk, color=RED, scale_factor=1.15), run_time=0.8)
-
-        # --- so the cell splits the molecule: the nitrogen lifts off into its own lane
-        self.at("splits the molecule")
-        lane_y = 1.7
-        n_tok = ndot().move_to([-5.45, lane_y, 0])
-        self.play(nblk.animate.move_to([cx, lane_y, 0]), FadeOut(tox), run_time=0.9)
-        self.play(Transform(nblk, n_tok), run_time=0.6)
-        divider = DashedLine([-6.2, 0.55, 0], [6.2, 0.55, 0], color=GREY, stroke_width=2.5, dash_length=0.12)
-        self.play(Create(divider), run_time=0.6)
-
-        # --- nitrogen lane: glutamate -> blood (alanine, glutamine) -> liver -> urea cycle -> urine
-        names = [("glutamate", BLUE), ("blood", TEXT), ("liver", TEXT), ("urea cycle", GREEN), ("urine", TEXT)]
-        chips = [chip(n, c, 28) for n, c in names]
-        lane = VGroup(*chips).arrange(RIGHT, buff=0.6).move_to([-4.85, lane_y, 0], aligned_edge=LEFT)
-        arrows = [arrow(chips[i].get_right(), chips[i + 1].get_left(), PURPLE) for i in range(len(chips) - 1)]
-        sub = T("alanine, glutamine", 26, BLUE).next_to(chips[1], DOWN, buff=0.18)
-
-        self.at("collected onto glutamate")
-        self.play(FadeIn(chips[0], shift=RIGHT * 0.2), run_time=0.5)
-        self.play(hop(nblk, chips[0].get_top() + UP * 0.32), run_time=0.7)
-        self.at("through the blood")
-        self.play(GrowArrow(arrows[0]), FadeIn(chips[1], shift=RIGHT * 0.2), run_time=0.5)
-        self.play(hop(nblk, chips[1].get_top() + UP * 0.32), run_time=0.7)
-        self.at("alanine and glutamine")
-        self.play(FadeIn(sub, shift=UP * 0.1), run_time=0.6)
-        self.at("funneled to the liver")
-        self.play(GrowArrow(arrows[1]), FadeIn(chips[2], shift=RIGHT * 0.2), run_time=0.5)
-        self.play(hop(nblk, chips[2].get_top() + UP * 0.32), run_time=0.7)
-        self.at("urea cycle")
-        self.play(GrowArrow(arrows[2]), FadeIn(chips[3], shift=RIGHT * 0.2), run_time=0.5)
-        self.play(hop(nblk, chips[3].get_top() + UP * 0.32), run_time=0.7)
-        self.at("excreted in urine")
-        self.play(GrowArrow(arrows[3]), FadeIn(chips[4], shift=RIGHT * 0.2), run_time=0.5)
-        self.play(hop(nblk, chips[4].get_top() + UP * 0.32), run_time=0.7)
-
-        # --- the two summaries
-        self.at("Carbon can be burned or rebuilt")
-        b1 = chip("carbon: burn or rebuild", YELLOW, 28)
-        b2 = chip("nitrogen: collect, transport, excrete", PURPLE, 28)
-        banner = VGroup(b1, b2).arrange(RIGHT, buff=0.35).move_to([0, -3.15, 0])
-        fit(banner, max_w=12.4)
-        self.play(FadeIn(b1, shift=UP * 0.15), Indicate(d1, color=YELLOW), Indicate(d2, color=YELLOW), run_time=0.9)
-        self.at("Nitrogen must be collected")
-        self.play(FadeIn(b2, shift=UP * 0.15), run_time=0.9)
-        self.at("Keeping these two fates separate")
-        self.play(Indicate(divider, color=TEXT), run_time=1.0)
+        factory_backdrop(self)
+        conv = conveyor()
+        g = gate(2.65, -0.52)
+        p = protein().move_to(pt(-3.3, -0.55))
+        schematic = T("schematic", 24, GREY).to_corner(DR, buff=0.3)
+        self.add(conv, schematic)
+        moving_dots(self, pt(-6.1, -1.58), pt(6.1, -1.58), BLUE, 12, .08, .055)
+        self.play(FadeIn(p, shift=RIGHT * .3), run_time=.7)
+        self.at("dismantles roughly")
+        counter = M("roughly 250 g/day", 40, TEXT).move_to(pt(-2.4, 2.45))
+        self.play(FadeIn(counter, shift=UP * .15), p.animate.shift(RIGHT * .5), run_time=1.0)
+        ghosts = VGroup(*[protein("", 5, .45).set_opacity(.22).move_to(pt(-5.2 + i * 1.2, .55)) for i in range(5)])
+        self.play(LaggedStart(*[FadeIn(x, shift=RIGHT * .35) for x in ghosts], lag_ratio=.12), run_time=1.2)
+        self.at("Why spend")
+        self.play(Create(g), p.animate.move_to(pt(.05, -.55)), run_time=1.2)
+        token = atp_token().move_to(pt(2.65, 1.45))
+        q = T("?", 76, YELLOW, font=TITLE_FONT).move_to(pt(4.55, 1.35))
+        self.play(FadeIn(token, scale=.7), FadeIn(q, shift=UP * .3), run_time=.8)
+        self.play(MoveAlongPath(token, Arc(radius=1.0, start_angle=PI, angle=TAU).move_arc_center_to(pt(2.65, .4))), run_time=1.4)
+        self.at("Follow one protein")
+        title = T(self.TITLE, 48, TEXT, font=TITLE_FONT).to_edge(UP, buff=.28).shift(DOWN*.12)
+        self.remove(counter, ghosts)
+        self.play(Write(title), p.animate.shift(RIGHT * .55), run_time=1.1)
+        self.at("selection matters")
+        self.play(Indicate(g, color=YELLOW, scale_factor=1.03), run_time=.8)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S02Twosteps(SpokenScene):
-    """Step 1 transamination funnels N onto glutamate; step 2 deamination frees ammonia."""
-
+class S01Turnover(SpokenScene):
     def construct(self):
-        head = heading("Two moves strip the nitrogen")
-        self.play(FadeIn(head, shift=DOWN * 0.15), run_time=0.6)
-
-        # ---- the amino acid column
-        names = ["alanine", "aspartate", "leucine", "valine"]
-        ys = [0.45, 1.35, -0.45, -1.35]
-        col_x = -3.2
-        aas = [chip(n, TEXT, 28, pad=0.16).move_to([col_x, y, 0]) for n, y in zip(names, ys)]
-        dots = [ndot().move_to(a.get_right() + RIGHT * 0.3) for a in aas]
-        self.at("amino acids")
-        self.play(FadeIn(aas[0], shift=RIGHT * 0.2), FadeIn(dots[0], scale=0.6), run_time=0.7)
-
-        # ---- step 1
-        self.at("is transamination")
-        step1 = heading("Step 1: transamination")
-        self.play(Transform(head, step1), run_time=0.7)
-        self.at("transferase")
-        tag = chip("aminotransferase", GREY, 26, pad=0.14).move_to([-0.6, 2.4, 0])
-        self.play(FadeIn(tag, shift=DOWN * 0.1), run_time=0.6)
-        self.at("many different amino acids")
-        self.play(*[FadeIn(a, shift=RIGHT * 0.2) for a in aas[1:]], *[FadeIn(d, scale=0.6) for d in dots[1:]],
-                  run_time=0.9)
-        self.at("-cataglutarate to")
-        hub = akg_chip(30).move_to([2.55, 0, 0])
-        self.play(FadeIn(hub, shift=LEFT * 0.2), run_time=0.6)
-        arrs = [arrow(d.get_right(), hub.get_left() + np.array([0, 0.18 * (1.5 - i) * 1.0, 0]), GREY, 3)
-                for i, d in enumerate(dots)]
-        self.play(*[GrowArrow(a) for a in arrs], run_time=0.5)
-        self.at("off")
-        landing = hub.get_top() + UP * 0.28
-        flights = []
-        for i, d in enumerate(dots):
-            flights.append(AnimationGroup(hop(d, landing + RIGHT * (0.62 * (i - 1.5)), angle=-PI / 4),
-                                          aas[i].animate.set_color(GREY).set_opacity(0.45), lag_ratio=0.0))
-        self.play(LaggedStart(*flights, lag_ratio=0.3), run_time=2.0)
-        self.at("single carrier")
-        self.play(Indicate(hub, color=BLUE, scale_factor=1.12), run_time=0.8)
-        self.at("glutamine")
-        glu = chip("glutamate", BLUE, 30).move_to(hub.get_center())
-        carried = ndot().move_to(glu.get_corner(UR) + np.array([-0.05, 0.12, 0]))
-        self.play(Transform(hub, glu), *[FadeOut(d) for d in dots], FadeIn(carried, scale=0.6), run_time=0.8)
-        self.at("reversible")
-        rev = VGroup(DoubleArrow(LEFT * 0.45, RIGHT * 0.45, color=TEXT, stroke_width=4, buff=0,
-                                 tip_length=0.18), T("reversible", 28, TEXT)).arrange(RIGHT, buff=0.25)
-        rev.move_to([2.55, -0.95, 0])
-        self.play(FadeIn(rev, shift=UP * 0.1), run_time=0.6)
-        self.at("one channel")
-        one = T("many inputs, one channel", 28, GREY).move_to([2.55, -1.75, 0])
-        self.play(FadeIn(one, shift=UP * 0.1), *[Indicate(a, color=PURPLE) for a in arrs], run_time=1.0)
-
-        # ---- step 2: clear the stage; glutamate moves left
-        self.at("oxidative deamination")
-        step2 = heading("Step 2: oxidative deamination", 36)
-        stage1 = VGroup(*aas, *arrs, tag, rev, one)
-        self.play(FadeOut(stage1), Transform(head, step2), run_time=0.9)
-        pair = VGroup(hub, carried)
-        self.play(pair.animate.shift(LEFT * 6.35), run_time=0.8)
-        amm = chip("free ammonia (NH₄⁺)", RED, 30).move_to([3.45, 0, 0])
-        a_main = arrow(pt(-2.0, 0), amm.get_left(), TEXT, 4)
-        self.at("Glutamate dehydrogenase")
-        gdh = chip("glutamate dehydrogenase", GREY, 26, pad=0.14).move_to([-0.1, 1.15, 0])
-        self.play(FadeIn(gdh, shift=DOWN * 0.1), GrowArrow(a_main), run_time=0.8)
-        self.at("releases the nitrogen")
-        self.play(hop(carried, [-0.1, 0.0], angle=-PI / 3), run_time=0.8)
-        self.at("free ammonia")
-        self.play(hop(carried, amm.get_left() + LEFT * 0.35, angle=-PI / 4), FadeIn(amm, scale=0.8), run_time=0.8)
-        self.play(FadeOut(carried), run_time=0.3)
-        self.at("regenerating")
-        kg = akg_chip(30).move_to(hub.get_center())
-        self.play(Transform(hub, kg), run_time=0.8)
-        self.at("to do it all again")
-        loop = ArcBetweenPoints(hub.get_bottom() + RIGHT * 0.7 + DOWN * 0.05, hub.get_bottom() + LEFT * 0.7 + DOWN * 0.05,
-                                angle=-PI * 0.9, color=YELLOW, stroke_width=4)
-        loop.add_tip(tip_length=0.2, tip_width=0.2)
-        again = T("ready for more nitrogen", 26, GREY).next_to(loop, DOWN, buff=0.15)
-        self.play(Create(loop), FadeIn(again), run_time=1.0)
-
-        # ---- reversible, with the urea cycle pulling the ammonia off
-        # lay out the real equilibrium: glutamate <-> alpha-ketoglutarate + NH4+ (alpha-KG is a product, not the substrate)
-        self.at("can run both ways")
-        glu2 = chip("glutamate", BLUE, 30).move_to(hub.get_center())
-        plus = T("+", 40, GREY).move_to([3.45, 0.84, 0])
-        self.play(FadeOut(loop), FadeOut(again), hub.animate.scale(26 / 30).move_to([3.45, 1.6, 0]),
-                  FadeIn(glu2), FadeIn(plus), gdh.animate.move_to([-0.9, 1.15, 0]), run_time=0.9)
-        a_back = arrow(amm.get_left() + LEFT * 0.1 + DOWN * 0.45, pt(-2.0, -0.45), TEXT, 4)
-        both = T("the reaction runs both ways", 28, TEXT).move_to([0.5, -1.05, 0])
-        self.play(GrowArrow(a_back), FadeIn(both, shift=UP * 0.1), run_time=0.9)
-        self.at("the urea cycle")
-        urea = chip("urea cycle (liver)", GREEN, 28).move_to([3.45, -2.55, 0])
-        draw = arrow(amm.get_bottom(), urea.get_top(), GREEN, 4)
-        self.play(FadeIn(urea, shift=UP * 0.1), GrowArrow(draw), run_time=0.8)
-        self.at("drawing the ammonia off")
-        pulled = ndot().move_to(amm.get_bottom())
-        self.play(FadeIn(pulled, scale=0.6), run_time=0.25)
-        self.play(pulled.animate.move_to(urea.get_top() + UP * 0.35), run_time=0.9)
-        self.play(FadeOut(pulled), Indicate(urea, color=GREEN, scale_factor=1.1), run_time=0.4)
-        self.at("so the nitrogen flows")
-        net = T("net flow: toward disposal", 28, TEXT).move_to([0.5, -1.05, 0])
-        self.play(a_main.animate.set_stroke(width=9), a_back.animate.set_stroke(width=2).set_opacity(0.4),
-                  Transform(both, net), run_time=0.9)
-        self.play(Indicate(urea, color=GREEN, scale_factor=1.12), run_time=0.8)
-
-        # ---- recap row
-        self.at("Many amino acids in")
-        self.play(FadeOut(VGroup(hub, glu2, plus, amm, a_main, a_back, gdh, both, urea, draw)),
-                  Transform(head, heading("Many in, two moves, ammonia out")), run_time=0.6)
-        r1 = chip("amino acids", TEXT, 28)
-        r2 = chip("glutamate", BLUE, 28)
-        r3 = chip("free ammonia", RED, 28)
-        r4 = chip("urea or glutamine", TEXT, 28)
-        row = VGroup(r1, r2, r3, r4).arrange(RIGHT, buff=0.8).move_to([0, -0.2, 0])
-        fit(row, max_w=12.2)
-        links = [arrow(row[i].get_right(), row[i + 1].get_left(), GREY, 4) for i in range(3)]
-        self.play(FadeIn(r1, shift=UP * 0.1), run_time=0.6)
-        self.at("two moves", nth=1)
-        self.play(GrowArrow(links[0]), FadeIn(r2, shift=LEFT * 0.1), run_time=0.7)
-        self.play(GrowArrow(links[1]), FadeIn(r3, shift=LEFT * 0.1), run_time=0.7)
-        n1 = T("move 1", 26, GREY).move_to([links[0].get_center()[0], row.get_top()[1] + 0.45, 0])
-        n2 = T("move 2", 26, GREY).move_to([links[1].get_center()[0], row.get_top()[1] + 0.45, 0])
-        self.play(FadeIn(n1), FadeIn(n2), run_time=0.5)
-        self.at("as glutamine")
-        self.play(GrowArrow(links[2]), FadeIn(r4, shift=LEFT * 0.1), run_time=0.9)
+        factory_backdrop(self)
+        conv, g = conveyor(), gate(2.65, -.52)
+        p = protein().move_to(pt(-3.45, -.55))
+        self.add(conv, g, p, T("schematic", 24, GREY).to_corner(DR, buff=.3))
+        moving_dots(self, pt(-6.1, -1.58), pt(6.1, -1.58), BLUE, 12, .08, .055)
+        self.at("different expiration dates")
+        clocks = VGroup()
+        for x, lab in zip([-3.8, -1.2, 1.0], ["minutes", "months", "lifetime"]):
+            c = Circle(radius=.68, color=TEXT, stroke_width=3).move_to(pt(x, 1.55))
+            hand = Line(c.get_center(), c.get_center() + UP * .46, color=YELLOW, stroke_width=4)
+            grp = VGroup(c, hand, T(lab, 28, TEXT).next_to(c, DOWN, buff=.14))
+            clocks.add(grp)
+        self.play(LaggedStart(*[FadeIn(c, shift=DOWN*.15) for c in clocks], lag_ratio=.2), p.animate.shift(RIGHT*.55), run_time=1.4)
+        for i, rate in enumerate([2.2, .8, .25]):
+            clocks[i][1].add_updater(lambda m, dt, r=rate: m.rotate(-r*dt, about_point=m.get_start()))
+        self.at("Turnover removes")
+        damaged = protein("damaged", 5, .75).move_to(pt(-2.9, -.45))
+        damaged[0][2].shift(DOWN*.22).set_color(RED)
+        self.play(FadeOut(clocks), Transform(p, damaged), run_time=.9)
+        self.play(p.animate.move_to(pt(1.25, -.45)), run_time=1.0)
+        self.at("changes signals")
+        lamp = VGroup(Circle(radius=.38, color=GREEN, fill_color=GREEN, fill_opacity=.65), T("signal", 28, GREEN).next_to(ORIGIN, DOWN, buff=.52)).move_to(pt(-2.6, 1.25))
+        self.play(FadeIn(lamp), run_time=.5)
+        self.play(lamp[0].animate.set_fill(opacity=.05).set_stroke(GREY), run_time=.7)
+        self.at("hydrolysis is downhill")
+        ramp = Line(pt(-4.7, .35), pt(-1.15, -1.0), color=BLUE, stroke_width=7)
+        rlab = T("peptide-bond hydrolysis", 28, BLUE).next_to(ramp, UP, buff=.2)
+        self.play(FadeOut(lamp), Create(ramp), FadeIn(rlab), run_time=1.0)
+        self.at("What is")
+        tok = atp_token().move_to(pt(-3.0, 1.55)); q=T("?", 72, YELLOW).move_to(pt(4.65, 1.2))
+        self.play(FadeIn(tok), FadeIn(q, shift=UP*.2), run_time=.7)
+        self.play(tok.animate.shift(RIGHT*.45), rate_func=there_and_back, run_time=1.2)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S03Alanine(SpokenScene):
-    """Muscle -> blood -> liver: alanine carries N one way, glucose carries fuel back."""
-
+class S02Choose(SpokenScene):
     def construct(self):
-        head = heading("The glucose-alanine cycle")
-        BW, BH, CY = 3.8, 4.9, -0.15
-        mus = RoundedRectangle(corner_radius=0.2, width=BW, height=BH, stroke_color=GREY, stroke_width=3
-                               ).move_to([-4.3, CY, 0])
-        liv = RoundedRectangle(corner_radius=0.2, width=BW, height=BH, stroke_color=GREY, stroke_width=3
-                               ).move_to([4.3, CY, 0])
-        mus_l = T("skeletal muscle", 28, TEXT).move_to([-4.3, 2.05, 0])
-        liv_l = T("liver", 28, TEXT).move_to([4.3, 2.05, 0])
-        Y_ALA, Y_GLC = -0.4, -1.55
-        self.at("Working muscle")
-        self.play(FadeIn(head, shift=DOWN * 0.15), Create(mus), FadeIn(mus_l), run_time=0.9)
-        self.at("nitrogen home")
-        blood_l = T("blood", 28, GREY).move_to([0, 1.0, 0])
-        lane_a = arrow(pt(-2.35, Y_ALA), pt(2.35, Y_ALA), GREY, 2.5)
-        lane_g = arrow(pt(2.35, Y_GLC), pt(-2.35, Y_GLC), GREY, 2.5)
-        self.play(Create(liv), FadeIn(liv_l), FadeIn(blood_l), GrowArrow(lane_a), GrowArrow(lane_g), run_time=1.1)
-
-        # ---- in muscle: amino acids -> N onto pyruvate -> alanine
-        self.at("As muscle breaks down amino acids")
-        aa = chip("amino acids", TEXT, 28).move_to([-4.3, 1.0, 0])
-        n_tok = ndot().move_to(aa.get_top() + np.array([0.7, 0.18, 0]))
-        self.play(FadeIn(aa, shift=DOWN * 0.1), FadeIn(n_tok, scale=0.6), run_time=0.8)
-        self.at("transaminates")
-        ttag = T("transamination", 26, GREY).move_to([-4.3, 0.38, 0])
-        self.play(FadeIn(ttag), run_time=0.5)
-        self.at("onto pyruvate")
-        pyr = chip("pyruvate", YELLOW, 28).move_to([-4.3, Y_ALA, 0])
-        self.play(FadeIn(pyr, shift=UP * 0.1), hop(n_tok, pyr.get_right() + np.array([0.36, 0.0, 0]), angle=-PI / 3),
-                  run_time=0.9)
-        self.at("to make alanine")
-        ala = chip("alanine", BLUE, 28).move_to(pyr.get_center())
-        self.play(Transform(pyr, ala), FadeOut(ttag), aa.animate.set_opacity(0.35), run_time=0.8)
-        self.at("non toxic")
-        nt = T("non-toxic", 26, GREY).move_to([-4.3, -0.98, 0])
-        self.play(FadeIn(nt, shift=UP * 0.1), run_time=0.6)
-
-        # ---- alanine rides the blood to the liver
-        self.at("through the blood")
-        sign_a = T("alanine →", 26, BLUE).move_to([0, 0.2, 0])
-        grp = VGroup(pyr, n_tok)
-        self.play(FadeOut(nt), FadeIn(sign_a), grp.animate.shift(RIGHT * 8.6), run_time=2.0)
-        # the group moved as one: pyr center now at liver
-
-        # ---- liver strips the nitrogen, urea cycle takes it, leftover pyruvate -> glucose
-        self.at("strips the nitrogen")
-        pyr2 = chip("pyruvate", YELLOW, 28).move_to(pyr.get_center())
-        urea = chip("urea cycle", GREEN, 28).move_to([4.3, 0.75, 0])
-        self.play(Transform(pyr, pyr2), run_time=0.5)
-        self.at("feeding it into the urea cycle")
-        self.play(FadeIn(urea, shift=DOWN * 0.1), hop(n_tok, urea.get_top() + np.array([0.0, 0.2, 0]),
-                                                      angle=PI / 3), run_time=1.0)
-        self.at("converts the leftover pyruvate")
-        glc = chip("glucose", YELLOW, 28).move_to([4.3, Y_GLC, 0])
-        down = arrow(pyr.get_bottom(), glc.get_top(), YELLOW, 3)
-        self.play(GrowArrow(down), FadeIn(glc, shift=UP * 0.15), pyr.animate.set_opacity(0.4), run_time=1.0)
-
-        # ---- glucose returns to muscle as fuel
-        self.at("glucose returns")
-        sign_g = T("← glucose", 26, YELLOW).move_to([0, -2.1, 0])
-        self.play(FadeIn(sign_g), glc.animate.move_to([-4.3, Y_GLC, 0]), FadeOut(down), run_time=1.6)
-        self.at("as fuel")
-        fuel = T("fuel", 28, YELLOW).move_to([-4.3, -2.2, 0])
-        self.play(FadeIn(fuel, shift=UP * 0.1), Indicate(glc, color=YELLOW), run_time=0.8)
-
-        # ---- the two shuttles, opposite directions
-        self.at("alanine is the nitrogen shuttle")
-        c1 = chip("alanine = nitrogen shuttle", BLUE, 28)
-        c2 = chip("glucose = energy shuttle", YELLOW, 28)
-        shut = VGroup(c1, c2).arrange(RIGHT, buff=0.35).move_to([0, -3.15, 0])
-        fit(shut, max_w=12.4)
-        self.play(FadeIn(c1, shift=UP * 0.15), Indicate(sign_a, color=BLUE, scale_factor=1.25), run_time=0.9)
-        self.at("glucose is the energy shuttle")
-        self.play(FadeIn(c2, shift=UP * 0.15), Indicate(sign_g, color=YELLOW, scale_factor=1.25), run_time=0.9)
-        self.at("opposite directions")
-        ga = chip("alanine", BLUE, 26, pad=0.12).move_to([-1.9, Y_ALA, 0])
-        gg = chip("glucose", YELLOW, 26, pad=0.12).move_to([1.9, Y_GLC, 0])
-        self.add(ga, gg)
-        self.play(ga.animate.move_to([1.9, Y_ALA, 0]), gg.animate.move_to([-1.9, Y_GLC, 0]), run_time=1.8)
-        self.play(FadeOut(ga), FadeOut(gg), run_time=0.3)
-        self.at("offloads its waste nitrogen")
-        self.play(Indicate(mus, color=TEXT, scale_factor=1.03), run_time=0.9)
-        self.at("round trip")
-        self.play(Indicate(lane_a, color=BLUE), Indicate(lane_g, color=YELLOW), run_time=1.0)
+        factory_backdrop(self)
+        g = gate(3.9, -.45)
+        p = protein().move_to(pt(-3.65, -.55))
+        exits = VGroup(T("reuse", 28, GREEN).move_to(pt(4.9, 1.5)), T("burn", 28, RED).move_to(pt(5.05, -2.35)))
+        self.add(g, p, exits, T("schematic", 24, GREY).to_corner(DR,buff=.3))
+        self.at("Ubiquitin is")
+        ub = badge().move_to(pt(-1.5, .25))
+        self.play(FadeIn(ub, scale=.5), run_time=.45)
+        ulab = T("ubiquitin", 28, YELLOW).next_to(ub, UP, buff=.18)
+        self.play(FadeIn(ulab), run_time=.55)
+        self.at("E1 spends")
+        e1 = chip("E1 activation", BLUE, 28).move_to(pt(-3.0, 1.7)); atp=atp_token().next_to(e1, LEFT, buff=.3)
+        self.play(FadeIn(e1), FadeIn(atp), run_time=.7)
+        products = VGroup(chip("AMP", GREY, 28), chip("PPi", GREY, 28)).arrange(RIGHT,buff=.15).move_to(pt(-4.65,2.5))
+        self.play(Transform(atp, products), ub.animate.set_fill(YELLOW, opacity=.8), run_time=.8)
+        self.at("E2 carries")
+        e2 = chip("E2 cart", BLUE, 28).move_to(pt(-1.4, 1.7))
+        self.remove(ulab, e1, atp)
+        self.play(FadeIn(e2), ub.animate.next_to(e2, DOWN, buff=.18), run_time=.8)
+        self.play(VGroup(e2,ub).animate.shift(RIGHT*2.25), run_time=.9)
+        self.at("E3 ligase recognizes")
+        e3 = Arc(radius=.72,start_angle=-PI/2,angle=PI,color=BLUE,stroke_width=9).move_to(pt(1.75,.1))
+        e3_lab = T("E3",28,BLUE,weight=BOLD).next_to(e3, RIGHT, buff=.32)
+        notch = Triangle(color=BLUE, fill_color=BLUE, fill_opacity=.25).scale(.22).move_to(p[0].get_right()+LEFT*.5+UP*.36)
+        self.play(FadeIn(notch), FadeIn(e3), FadeIn(e3_lab), run_time=.65)
+        self.play(FadeOut(e3_lab), e3.animate.move_to(notch.get_center()+UP*.15),
+                  ub.animate.move_to(notch.get_center()+UP*.48), run_time=.8)
+        self.at("Hundreds of")
+        fan = VGroup(*[
+            Arc(radius=.28,start_angle=-PI/2,angle=PI,color=BLUE,stroke_width=5)
+            .move_to(pt(-.4+i*.55,2.55)) for i in range(7)
+        ])
+        self.play(FadeIn(fan), FadeOut(e2), run_time=.7)
+        self.at("classic lysine")
+        chain = VGroup(*[badge("",.19).move_to(pt(.55+i*.43,.35+i*.16)) for i in range(4)], T("K48",26,YELLOW).move_to(pt(1.35,1.05)))
+        self.play(FadeOut(ub), FadeOut(e3), FadeIn(chain), run_time=.7)
+        self.at("toward the proteasome")
+        pm = proteasome(pt(5.15,-.2),.65)
+        self.play(FadeOut(fan), FadeOut(g), FadeOut(exits), FadeIn(pm),
+                  p.animate.move_to(pt(2.25,-.55)), chain.animate.shift(RIGHT*1.35), run_time=1.1)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S04Glutamine(SpokenScene):
-    """Glutamine: abundant, carries two N, delivered to liver / kidney / gut + immune cells."""
+def prediction_layout(scene, animate=True):
+    pm=proteasome(pt(4.65,-.45),.82)
+    p=protein("tagged protein",6,.8).move_to(pt(-2.9,-1.0))
+    tags=VGroup(*[badge("",.15).move_to(pt(-1.95+i*.3,-.48+i*.1)) for i in range(4)])
+    a=chip("cut bonds?", RED, 30).move_to(pt(-3.1,1.35))
+    b=chip("something else?", YELLOW,30).move_to(pt(.55,1.35))
+    q=T("Where does ATP energy go?",40,TEXT,font=TITLE_FONT).to_edge(UP,buff=.28)
+    tok=atp_token().move_to(pt(-1.35,.35))
+    conv=conveyor(-1.85)
+    scene.add(conv, pm, p, tags, a, b, q, tok, T("schematic",24,GREY).to_corner(DR,buff=.3))
+    moving_dots(scene,pt(-6.1,-1.85),pt(3.4,-1.85),BLUE,10,.07,.05)
+    return pm,p,tags,a,b,q,tok
 
+
+class S03Predict(SpokenScene):
     def construct(self):
-        head = heading("Glutamine, the nitrogen courier")
-
-        # ---- the courier
-        gln = chip("glutamine", BLUE, 34, pad=0.3).move_to([0, 0.2, 0])
-        d1, d2 = ndot(), ndot()
-        d1.move_to(gln.get_top() + np.array([-0.55, 0.25, 0]))
-        d2.move_to(gln.get_top() + np.array([0.55, 0.25, 0]))
-        self.play(FadeIn(head, shift=DOWN * 0.15), FadeIn(gln, scale=0.85), run_time=0.6)
-        self.at("workhorse of nitrogen transport")
-        self.play(FadeIn(d1, scale=0.6), FadeIn(d2, scale=0.6), run_time=0.5)
-        self.play(Indicate(gln, color=BLUE, scale_factor=1.1), run_time=0.7)
-
-        # ---- the most abundant free amino acid in blood: relative bars (approximate plasma values)
-        self.at("most abundant")
-        self.play(FadeOut(gln), FadeOut(d1), FadeOut(d2), run_time=0.3)
-        data = [("glutamine", 600, BLUE), ("alanine", 350, GREY), ("glycine", 250, GREY), ("valine", 230, GREY),
-                ("proline", 200, GREY), ("lysine", 180, GREY), ("serine", 120, GREY), ("leucine", 120, GREY)]
-        x0, scale = -2.6, 5.4 / 600
-        bars, names = [], []
-        for i, (n, v, c) in enumerate(data):
-            y = 1.95 - i * 0.55
-            r = Rectangle(width=v * scale, height=0.38, stroke_width=0, fill_color=c, fill_opacity=0.9 if c == BLUE else 0.55)
-            r.move_to([x0 + v * scale / 2, y, 0])
-            t = T(n, 24, BLUE if c == BLUE else TEXT).move_to([x0 - 0.2, y, 0], aligned_edge=RIGHT)
-            bars.append(r)
-            names.append(t)
-        axis = Line([x0, 2.3, 0], [x0, 2.3 - 8 * 0.55 + 0.1, 0], color=GREY, stroke_width=3)
-        caption = T("free amino acids in blood plasma (relative, approximate)", 26, GREY).move_to([0.2, -2.75, 0])
-        self.play(Create(axis), *[FadeIn(n) for n in names], *[GrowFromEdge(b, LEFT) for b in bars],
-                  FadeIn(caption, shift=UP * 0.1), run_time=0.8)
-        mm = M("≈ 0.6 mM", 24, BLUE).next_to(bars[0], RIGHT, buff=0.2)
-        self.at("in your blood")
-        self.play(FadeIn(mm), Indicate(bars[0], color=BLUE, scale_factor=1.05), run_time=0.6)
-
-        # ---- made everywhere: ammonia goes onto glutamate's side chain
-        # the chart stays up through "Tissues everywhere" (it was on screen ~1 s); cross-fade on the next words
-        glu = chip("glutamate", BLUE, 32, pad=0.26).move_to([-1.0, 0.1, 0])
-        g1 = ndot().move_to(glu.get_top() + np.array([0, 0.28, 0]))
-        tis = T("tissues everywhere", 28, GREY).move_to([-1.0, -1.45, 0])
-        g2 = ndot().move_to([-5.4, 1.4, 0])
-        lab2 = T("ammonia", 28, PURPLE).next_to(g2, UP, buff=0.18)
-        self.at("Tissues everywhere", lead=-0.4)
-        self.play(FadeOut(VGroup(*bars, *names, axis, caption, mm)),
-                  FadeIn(glu, shift=UP * 0.1), FadeIn(g1, scale=0.6), FadeIn(tis), run_time=0.5)
-        self.at("add ammonia")
-        self.play(FadeIn(g2, scale=0.6), FadeIn(lab2), run_time=0.4)
-        self.at("side chain")
-        self.play(hop(g2, glu.get_top() + np.array([1.0, 0.28, 0]), angle=-PI / 5), FadeOut(lab2), run_time=1.0)
-        self.at("make glutamine")
-        gln2 = chip("glutamine", BLUE, 32, pad=0.26).move_to(glu.get_center())
-        self.play(Transform(glu, gln2), g1.animate.move_to(gln2.get_top() + np.array([-0.6, 0.28, 0])),
-                  g2.animate.move_to(gln2.get_top() + np.array([0.6, 0.28, 0])), FadeOut(tis), run_time=0.9)
-        self.at("two nitrogens")
-        self.play(pulse(g1), pulse(g2), run_time=1.0)
-        self.at("without toxicity")
-        safe = T("non-toxic", 28, GREY).move_to([-1.0, -1.5, 0])
-        self.play(FadeIn(safe, shift=UP * 0.1), run_time=0.6)
-
-        # ---- delivery
-        self.at("The bloodstream")
-        src = VGroup(glu, g1, g2)
-        self.play(FadeOut(safe), src.animate.move_to([-4.3, 0.2, 0]), run_time=0.9)
-        blood = T("in the blood", 28, GREY).next_to(glu, DOWN, buff=0.45)
-        self.play(FadeIn(blood), run_time=0.4)
-        rows = [("liver", "urea synthesis", GREEN, 1.9), ("kidney", "acid-base balance", TEXT, 0.3),
-                ("gut and immune cells", "fuel, building block", YELLOW, -1.3)]
-        row_objs = {}
-
-        def add_row(i, t_name):
-            name, desc, dc, y = rows[i]
-            c = chip(name, TEXT, 32).move_to([0.0, y, 0], aligned_edge=LEFT)
-            a = arrow(glu.get_right() + RIGHT * 0.05, c.get_left(), BLUE, 3)
-            d = T(desc, 28, dc).move_to([c.get_left()[0] + 0.1, y - 0.62, 0], aligned_edge=LEFT)
-            row_objs[i] = (c, a, d) if i < 2 else (c, a)
-            return c, a, d
-
-        self.at("The liver")
-        c, a, d = add_row(0, "liver")
-        self.play(GrowArrow(a), FadeIn(c, shift=RIGHT * 0.2), run_time=0.7)
-        self.play(FadeIn(d, shift=RIGHT * 0.1), run_time=0.5)
-        self.at("the kidney")
-        c, a, d = add_row(1, "kidney")
-        self.play(GrowArrow(a), FadeIn(c, shift=RIGHT * 0.2), run_time=0.7)
-        self.play(FadeIn(d, shift=RIGHT * 0.1), run_time=0.5)
-        self.at("rapidly dividing cells")
-        c, a, d = add_row(2, "gut")
-        self.play(GrowArrow(a), FadeIn(c, shift=RIGHT * 0.2), run_time=0.7)
-        d_fuel = T("fuel", 28, YELLOW)
-        d_bb = T("building block", 28, YELLOW)
-        d_fuel.move_to([c.get_left()[0] + 0.1, rows[2][3] - 0.62, 0], aligned_edge=LEFT)
-        d_bb.move_to([c.get_left()[0] + 0.1, rows[2][3] - 1.07, 0], aligned_edge=LEFT)
-        self.at("as fuel")
-        self.play(FadeIn(d_fuel, shift=RIGHT * 0.1), run_time=0.5)
-        self.at("building block")
-        self.play(FadeIn(d_bb, shift=RIGHT * 0.1), run_time=0.6)
-
-        # ---- ammonia stays low in general blood; nitrogen travels as glutamine
-        self.at("Ammonia is toxic")
-        every = VGroup(src, blood, *[o for t in row_objs.values() for o in t], d_fuel, d_bb)
-        self.play(FadeOut(every), run_time=0.7)
-        amm = chip("high ammonia", RED, 30).move_to([-3.6, 1.0, 0])
-        bl = chip("blood", TEXT, 30).move_to([3.8, 0.0, 0])
-        a_x = arrow(amm.get_right(), bl.get_top() + LEFT * 0.4, RED, 4)
-        cross = VGroup(Line(UL * 0.3, DR * 0.3, color=RED, stroke_width=8), Line(UR * 0.3, DL * 0.3, color=RED, stroke_width=8))
-        cross.move_to(a_x.point_from_proportion(0.5))
-        self.play(FadeIn(amm, shift=RIGHT * 0.2), FadeIn(bl), run_time=0.7)
-        self.at("keeps it low")
-        self.play(GrowArrow(a_x), run_time=0.6)
-        self.play(FadeIn(cross, scale=1.4), run_time=0.4)
-        self.at("Much nitrogen")
-        gl3 = chip("glutamine", BLUE, 30).move_to([-3.6, -1.0, 0])
-        k1 = ndot(0.24).move_to(gl3.get_top() + np.array([-0.5, 0.22, 0]))
-        k2 = ndot(0.24).move_to(gl3.get_top() + np.array([0.5, 0.22, 0]))
-        a_ok = arrow(gl3.get_right(), bl.get_bottom() + LEFT * 0.4, BLUE, 6)
-        self.play(FadeIn(gl3, shift=RIGHT * 0.2), FadeIn(k1, scale=0.6), FadeIn(k2, scale=0.6), run_time=0.7)
-        self.play(GrowArrow(a_ok), run_time=0.7)
-        self.at("the safe")
-        row_t = T("safe      abundant      two nitrogens", 30, TEXT).move_to([0, -2.75, 0])
-        assert len(row_t) == 24, len(row_t)
-        t1, t2, t3 = row_t[0:4], row_t[4:12], row_t[12:24]
-        self.play(FadeIn(t1, shift=UP * 0.1), run_time=0.4)
-        self.at("abundant", nth=1)
-        self.play(FadeIn(t2, shift=UP * 0.1), run_time=0.4)
-        self.at("two nitrogen")
-        self.play(FadeIn(t3, shift=UP * 0.1), pulse(k1), pulse(k2), run_time=0.8)
+        factory_backdrop(self)
+        pm,p,tags,a,b,q,tok=prediction_layout(self)
+        self.remove(a,b,q,tok)
+        self.at("Predict where")
+        self.play(FadeIn(q), p.animate.shift(RIGHT*.35), run_time=.6)
+        self.at("peptide bond cutting")
+        self.play(FadeIn(a,shift=UP*.15), p.animate.shift(RIGHT*.35), run_time=.7)
+        self.at("something else")
+        self.play(FadeIn(b,shift=UP*.15), FadeIn(tok), run_time=.7)
+        self.play(tok.animate.move_to(a.get_bottom()+DOWN*.4), rate_func=there_and_back, run_time=1.2)
+        self.at("Hold your answer")
+        self.play(tok.animate.move_to(b.get_bottom()+DOWN*.4), p.animate.shift(RIGHT*.55), run_time=1.4)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S05Bicycle(SpokenScene):
-    """Two wheels, one chain: urea cycle + TCA cycle linked by fumarate and aspartate."""
-
+class S04Think(Scene):
     def construct(self):
-        head = heading("The Krebs bicycle")
-        self.play(FadeIn(head, shift=DOWN * 0.15), run_time=0.6)
-        box = RoundedRectangle(corner_radius=0.25, width=12.2, height=5.7, stroke_color=TEXT, stroke_width=2.5
-                               ).move_to([0, -0.6, 0])
-        box.set_stroke(opacity=0.5)
-        liv = T("liver", 28, TEXT).move_to([-5.4, 1.8, 0])
-        self.at("liver's chemistry")
-        self.play(Create(box), FadeIn(liv), run_time=1.0)
-        HL, HR, R = pt(-3.2, -0.45), pt(3.2, -0.45), 1.5
-        ST, HT, BB = pt(-1.9, 1.9), pt(1.9, 1.9), pt(0.0, 0.25)
-        fcol = GREY
-        frame = VGroup(Line(HL, ST), Line(ST, HT), Line(HT, HR), Line(ST, BB), Line(BB, HT), Line(HL, BB),
-                       Line(ST + LEFT * 0.35, ST + RIGHT * 0.3 + UP * 0.12), Line(HT, HT + RIGHT * 0.55 + UP * 0.1)
-                       ).set_stroke(color=fcol, width=5, opacity=0.55)
-        crank = Circle(radius=0.28, color=fcol, stroke_width=4).move_to(BB).set_stroke(opacity=0.7)
+        factory_backdrop(self)
+        pm,p,tags,a,b,q,tok=prediction_layout(self)
+        timer=Circle(radius=.48,color=YELLOW,stroke_opacity=.25).move_to(pt(2.55,1.25))
+        arc=Arc(radius=.48,start_angle=PI/2,angle=-TAU,color=YELLOW,stroke_width=6).move_to(timer)
+        self.add(timer)
+        self.play(Create(arc), tok.animate.move_to(a.get_bottom()+DOWN*.4), p.animate.shift(RIGHT*.25), run_time=2.15, rate_func=linear)
+        self.play(tok.animate.move_to(b.get_bottom()+DOWN*.4), p.animate.shift(RIGHT*.2), run_time=2.15, rate_func=linear)
+        self.wait(.2)
 
-        self.at("Picture a bicycle")
-        self.play(Create(frame, lag_ratio=0.15), Create(crank), run_time=0.9)
-        self.at("two wheels")
-        ring_l = Circle(radius=R, color=GREY, stroke_width=6).move_to(HL)
-        ring_r = Circle(radius=R, color=GREY, stroke_width=6).move_to(HR)
-        self.play(Create(ring_l), Create(ring_r), run_time=0.8)
-        self.at("share a chain")
-        ch1 = DashedLine(pt(-1.7, -1.5), pt(1.7, -1.5), color=ORANGE, stroke_width=4, dash_length=0.14)
-        ch2 = DashedLine(pt(-1.7, -0.8), pt(1.7, -0.8), color=ORANGE, stroke_width=4, dash_length=0.14)
-        self.play(Create(ch1), Create(ch2), run_time=0.9)
 
-        # ---- the wheels get names
-        self.at("urea cycle")
-        self.play(ring_l.animate.set_color(GREEN), run_time=0.5)
-        lab_l = T("urea\ncycle", 28, GREEN, weight=BOLD).move_to(HL + DOWN * 0.6)
-        self.play(FadeIn(lab_l), run_time=0.5)
-        self.at("TCA cycle")
-        self.play(ring_r.animate.set_color(YELLOW), run_time=0.5)
-        lab_r = T("TCA\ncycle", 28, YELLOW, weight=BOLD).move_to(HR + DOWN * 0.6)
-        self.play(FadeIn(lab_r), run_time=0.5)
-
-        # ---- shared intermediates on the chain
-        self.at("fumarate")
-        fum = chip("fumarate", ORANGE, 26, pad=0.14).move_to([0, -1.5, 0])
-        self.play(FadeOut(ch1), FadeIn(fum, scale=0.8), run_time=0.4)
-        a_f = arrow(pt(-1.7, -1.5), fum.get_left(), ORANGE, 4)
-        a_f2 = arrow(fum.get_right(), pt(1.7, -1.5), ORANGE, 4)
-        self.play(GrowArrow(a_f), GrowArrow(a_f2), run_time=0.4)
-        self.at("aspartate")
-        asp = chip("aspartate", ORANGE, 26, pad=0.14).move_to([0, -0.8, 0])
-        self.play(FadeOut(ch2), FadeIn(asp, scale=0.8), run_time=0.4)
-        a_a = arrow(pt(1.7, -0.8), asp.get_right(), ORANGE, 4)
-        a_a2 = arrow(asp.get_left(), pt(-1.7, -0.8), ORANGE, 4)
-        self.play(GrowArrow(a_a), GrowArrow(a_a2), run_time=0.5)
-
-        # ---- pedal: both wheels turn together
-        self.at("When you pedal")
-        sp_l = Spin(self, HL, R, n=3, color=PURPLE, speed=0, r=0.13)
-        sp_r = Spin(self, HR, R, n=3, color=YELLOW, speed=0, r=0.13)
-        pedal = Line(BB, BB + UP * 0.5, color=TEXT, stroke_width=6)
-        ph = ValueTracker(0)
-        pedal.add_updater(lambda m: m.put_start_and_end_on(BB, pt(0.5 * math.sin(math.radians(ph.get_value())) + 0.0,
-                                                               0.25 + 0.5 * math.cos(math.radians(ph.get_value())))))
-        drv = Mobject()
-        drv.add_updater(lambda m, dt: ph.increment_value(sp_l.speed.get_value() * dt * 1.0))
-        self.add(drv, pedal)
-        sp_l.speed.set_value(80)
-        sp_r.speed.set_value(80)
-        self.at("both wheels turn together")
-        self.wait(1.0)
-
-        # ---- urea out one side, glucose-building carbon out the other
-        self.at("Urea comes out")
-        urea = chip("urea", GREEN, 30).move_to([-3.6, -2.95, 0])
-        a_u = arrow(HL + DOWN * (R + 0.02), urea.get_top(), GREEN, 5)
-        self.play(GrowArrow(a_u), FadeIn(urea, shift=DOWN * 0.1), run_time=0.8)
-        waste = T("nitrogen waste", 26, GREEN).next_to(urea, RIGHT, buff=0.25)
-        self.at("nitrogen waste product")
-        self.play(FadeIn(waste, shift=RIGHT * 0.1), run_time=0.6)
-        self.at("and glucose building carbon")
-        glc = chip("glucose-building carbon", YELLOW, 26).move_to([3.5, -2.95, 0])
-        a_g = arrow(HR + DOWN * (R + 0.02) + RIGHT * 0.6, glc.get_top() + LEFT * 0.4, YELLOW, 5)
-        self.play(GrowArrow(a_g), FadeIn(glc, shift=DOWN * 0.1), run_time=0.8)
-
-        # ---- the liver runs both wheels at once
-        self.at("The liver runs both wheels")
-        self.play(Indicate(box, color=TEXT, scale_factor=1.01), Indicate(liv, color=TEXT), run_time=1.0)
-        self.at("Dispose of nitrogen as urea")
-        self.play(Indicate(urea, color=GREEN, scale_factor=1.2), run_time=0.9)
-        self.at("reclaiming carbon")
-        self.play(Indicate(glc, color=YELLOW, scale_factor=1.07), run_time=0.9)
-        self.at("Nitrogen out one side")
-        self.play(Indicate(urea, color=GREEN, scale_factor=1.2), run_time=0.9)
-        self.at("glucose out the other")
-        self.play(Indicate(glc, color=YELLOW, scale_factor=1.07), run_time=0.9)
-        self.at("one connected machine")
-        self.play(Indicate(box, color=TEXT, scale_factor=1.01), run_time=1.0)
+class S05Answer(SpokenScene):
+    def construct(self):
+        factory_backdrop(self)
+        pm=proteasome(pt(2.9,-.25),1.05)
+        p=protein("tagged protein",7,.82).move_to(pt(-3.8,-.65))
+        tags=VGroup(*[badge("",.16).move_to(pt(-2.85+i*.31,-.1+i*.1)) for i in range(4)])
+        cut=chip("cut bonds?",RED,28).move_to(pt(-3.8,2.35)); tok=atp_token().move_to(pt(-1.55,1.55))
+        ramp=Line(pt(-4.9,-2.65),pt(-2.2,-3.15),color=BLUE,stroke_width=6)
+        self.add(pm,p,tags,cut,tok,ramp,T("hydrolysis: downhill",26,BLUE).next_to(ramp,UP,buff=.12),T("schematic",24,GREY).to_corner(DR,buff=.3))
+        self.at("Not to cutting")
+        cross=T("×",52,RED,weight=BOLD).next_to(cut,RIGHT,buff=.25)
+        self.play(FadeIn(cross), tok.animate.shift(RIGHT*.15), run_time=.7)
+        self.at("regulatory cap recognizes")
+        self.play(FadeOut(cut),FadeOut(cross),p.animate.move_to(pt(-1.15,-.35)),tags.animate.shift(RIGHT*2.55),run_time=1.1)
+        self.play(Indicate(pm[1],color=YELLOW,scale_factor=1.05),run_time=.55)
+        self.at("uses a TP")
+        self.play(tok.animate.move_to(pm[1].get_top()+UP*.4),run_time=.65)
+        self.at("unfold and thread")
+        strand=VGroup(*[RoundedRectangle(corner_radius=.1,width=.42,height=.48,stroke_color=BLUE,fill_color=BLUE,fill_opacity=.25).move_to(pt(-1.25+i*.48,-.2)) for i in range(7)])
+        self.play(Transform(p[0],strand),FadeOut(p[1]),run_time=1.0)
+        self.play(p[0].animate.shift(RIGHT*2.45),run_time=1.1)
+        self.at("core cuts")
+        peps=VGroup(*[chip("peptide",BLUE,28,pad=.12).move_to(pt(4.8,-1.35+i*.66)) for i in range(3)])
+        self.play(FadeOut(p[0]),LaggedStart(*[FadeIn(x,shift=RIGHT*.3) for x in peps],lag_ratio=.25),run_time=1.1)
+        no=chip("no ATP",GREEN,28).move_to(pt(4.9,1.4))
+        self.play(FadeIn(no),run_time=.5)
+        self.at("Dubiquitinases recover")
+        arm=arr(pt(1.75,.75),pt(-.1,1.9),YELLOW,4)
+        self.play(GrowArrow(arm),tags.animate.move_to(pt(-.4,2.0)),run_time=.9)
+        self.at("Energy buys choice")
+        choose=VGroup(Circle(radius=.7,color=YELLOW,stroke_width=7),T("choose",28,YELLOW)).move_to(pt(-2.3,.75))
+        handle=VGroup(Circle(radius=.7,color=YELLOW,stroke_width=7),T("handle",28,YELLOW)).move_to(pt(-.55,.75))
+        self.play(FadeOut(tags),FadeOut(arm),Transform(tok,choose),FadeIn(handle),run_time=.9)
+        self.at("not favorable")
+        self.play(Indicate(ramp,color=BLUE,scale_factor=1.03),run_time=.7)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S06End(EndCard):
-    LINE = "Collect the nitrogen, ship it safely, burn or rebuild the carbon."
+class S06Recycle(SpokenScene):
+    def construct(self):
+        factory_backdrop(self)
+        pm=proteasome(pt(-4.8,.3),.68)
+        pool=Circle(radius=1.55,color=BLUE,stroke_width=5,fill_color=BLUE,fill_opacity=.08).move_to(pt(-.5,-.25))
+        plab=T("amino acids",36,BLUE,weight=BOLD).move_to(pool)
+        reuse=Arc(radius=2.35,start_angle=-PI*.3,angle=PI*1.55,color=GREEN,stroke_width=8).move_arc_center_to(pt(.1,-.15)); reuse.add_tip(tip_length=.25)
+        burn=arr(pt(1.0,-.85),pt(5.55,-2.2),RED,7)
+        self.add(pm,scope_label(),T("schematic",24,GREY).to_corner(DR,buff=.3))
+        self.at("Peptidases release")
+        peps=VGroup(*[chip("peptide",BLUE,28,pad=.1).move_to(pt(-3.15,-.9+i*.7)) for i in range(3)])
+        station=chip("peptidases",GREY,28).move_to(pt(-2.35,1.65))
+        self.play(FadeIn(peps),FadeIn(station),run_time=.7)
+        tiles=VGroup(*[RoundedRectangle(corner_radius=.08,width=.42,height=.42,stroke_color=BLUE,fill_color=BLUE,fill_opacity=.28).move_to(pt(-2.8+i*.5,-.25)) for i in range(7)])
+        self.play(Transform(peps,tiles),run_time=.9)
+        self.at("shared pool")
+        self.play(Create(pool),FadeIn(plab),FadeOut(peps),run_time=1.0)
+        pool.add_updater(lambda m,dt:m.rotate(.12*dt))
+        pool_tiles=VGroup(*[Dot(radius=.10,color=BLUE).move_to(pool.point_at_angle(i*TAU/9)) for i in range(9)])
+        pool_tiles.add_updater(lambda m,dt:m.rotate(.35*dt,about_point=pool.get_center()))
+        self.add(pool_tiles)
+        self.at("most return")
+        self.play(Create(reuse),run_time=.9)
+        moving_dots(self,pt(.2,1.8),pt(4.7,1.55),GREEN,7,.08,.09)
+        newp=protein("new protein",6,.72).move_to(pt(4.6,1.75))
+        self.play(FadeIn(newp,shift=RIGHT*.2),run_time=.8)
+        self.at("surplus is burned")
+        self.play(GrowArrow(burn),run_time=.8)
+        moving_dots(self,pt(1.0,-.85),pt(5.55,-2.2),RED,4,.07,.09)
+        self.at("cell selects proteins")
+        g=gate(-5.45,-.35,.55)
+        self.play(FadeOut(station),pm.animate.move_to(pt(-3.8,.15)),FadeIn(g),run_time=.7)
+        self.play(Indicate(pm,color=YELLOW),run_time=.45)
+        self.at("reuses most")
+        self.play(Indicate(reuse,color=GREEN,scale_factor=1.02),run_time=.7)
+        self.at("separates surplus")
+        fork=T("Y",64,RED,weight=BOLD).rotate(PI).move_to(pt(4.95,-2.05))
+        self.play(FadeIn(fork),run_time=.7)
+        self.finish()
+
+
+class S07Split(SpokenScene):
+    def construct(self):
+        factory_backdrop(self)
+        aa=chip("burned amino acid",BLUE,34).move_to(pt(-4.6,.15))
+        fork=VGroup(Line(pt(-2.55,.1),pt(-1.2,1.75),color=GREY,stroke_width=7),Line(pt(-2.55,.1),pt(-1.2,-1.75),color=GREY,stroke_width=7))
+        n=chip("nitrogen",YELLOW,30).move_to(pt(-.25,1.75)); c=chip("carbon skeleton",BLUE,30).move_to(pt(-.1,-1.75))
+        self.add(scope_label(),aa)
+        self.at("poses two problems")
+        self.play(Create(fork),aa.animate.move_to(pt(-3.05,.1)),run_time=1.0)
+        self.at("Nitrogen can be toxic")
+        self.play(FadeIn(n,shift=RIGHT*.25),run_time=.65)
+        danger=VGroup(RoundedRectangle(corner_radius=.12,width=.55,height=2.0,color=RED),Rectangle(width=.34,height=1.45,stroke_width=0,fill_color=RED,fill_opacity=.65).align_to(ORIGIN,DOWN),T("danger",28,RED)).arrange(RIGHT,buff=.2).move_to(pt(2.05,1.55))
+        self.play(FadeIn(danger),run_time=.6)
+        self.at("carbon remains valuable")
+        self.play(FadeIn(c,shift=RIGHT*.25),run_time=.65)
+        value=VGroup(Circle(radius=.55,color=GREEN,stroke_width=5),T("value",28,GREEN)).move_to(pt(2.75,-1.65))
+        self.play(FadeIn(value),run_time=.6)
+        self.at("passes onto glutamate")
+        carriers=VGroup(chip("glutamate",YELLOW,28),chip("alanine",YELLOW,28),chip("glutamine",YELLOW,28)).arrange(RIGHT,buff=.38).move_to(pt(2.35,1.2))
+        self.play(FadeOut(danger),FadeOut(n),FadeIn(carriers[0]),run_time=.8)
+        self.at("alanine or glutamine")
+        blood=RoundedRectangle(corner_radius=.3,width=5.8,height=1.45,color=GREY,stroke_width=3).move_to(pt(3.0,1.2))
+        bl=T("blood",28,GREY).next_to(blood,UP,buff=.12)
+        carriers[1:].shift(RIGHT*.65)
+        self.play(Create(blood),FadeIn(bl),FadeIn(carriers[1:]),carriers[0].animate.shift(RIGHT*.65),run_time=.8)
+        self.play(carriers[0].animate.shift(RIGHT*.08),carriers[1].animate.shift(RIGHT*.1),carriers[2].animate.shift(RIGHT*.12),run_time=.8)
+        self.at("carbon skeleton moves")
+        hub=VGroup(Circle(radius=.8,color=BLUE,stroke_width=6),T("central\nmetabolism",28,BLUE,line_spacing=.8)).move_to(pt(4.75,-1.65))
+        lane=arr(c.get_right(),hub.get_left(),BLUE,6)
+        self.play(FadeOut(value),GrowArrow(lane),FadeIn(hub),run_time=.7)
+        self.play(c.animate.move_to(hub.get_left()+LEFT*.5),run_time=.8)
+        self.play(FadeOut(c),Indicate(hub,color=BLUE,scale_factor=1.05),run_time=.45)
+        self.finish()
+
+
+class S08Nitrogen(SpokenScene):
+    def construct(self):
+        factory_backdrop(self)
+        blood=Line(pt(-6.1,2.4),pt(6.1,2.4),color=GREY,stroke_width=8)
+        liver=RoundedRectangle(corner_radius=.55,width=8.3,height=5.2,color=GREY,stroke_width=4,fill_color=GREY,fill_opacity=.05).move_to(pt(.6,-.35))
+        wheel=VGroup(Circle(radius=1.45,color=GREEN,stroke_width=8),T("urea cycle",32,GREEN,weight=BOLD)).move_to(pt(.4,-.35))
+        stations=VGroup(*[Dot(wheel[0].point_at_angle(i*TAU/5),radius=.13,color=GREEN) for i in range(5)])
+        stations.add_updater(lambda m,dt:m.rotate(-.22*dt,about_point=wheel.get_center()))
+        wheel.add(stations)
+        self.add(blood,T("blood",28,GREY).move_to(pt(-5.35,2.75)),liver,T("liver",32,TEXT).move_to(pt(-2.8,1.75)),T("schematic",24,GREY).to_corner(DR,buff=.3))
+        self.at("packaged as urea")
+        self.play(FadeIn(wheel,scale=.8),run_time=.8)
+        self.at("comes from ammonium")
+        amm=chip("ammonium",YELLOW,28).move_to(pt(-4.1,.65)); n1=badge("N",.27).next_to(amm,RIGHT,buff=.22)
+        self.play(FadeIn(amm),FadeIn(n1),run_time=.7)
+        self.at("other comes from aspartate")
+        asp=chip("aspartate",YELLOW,28).move_to(pt(-4.1,-1.25)); n2=badge("N",.27).next_to(asp,RIGHT,buff=.22)
+        self.play(FadeIn(asp),FadeIn(n2),run_time=.7)
+        self.play(n1.animate.move_to(wheel.get_center()+UP*.65),n2.animate.move_to(wheel.get_center()+DOWN*.65),run_time=1.0)
+        self.at("spends four")
+        marks=VGroup(*[T("⚡",34,YELLOW).move_to(pt(2.65+i*.58,.65)) for i in range(4)])
+        self.play(LaggedStart(*[FadeIn(x,scale=.6) for x in marks],lag_ratio=.18),run_time=.8)
+        self.at("per urea")
+        self.play(LaggedStart(*[FadeOut(x,shift=DOWN*.15) for x in marks],lag_ratio=.15),run_time=.8)
+        urea=VGroup(RoundedRectangle(corner_radius=.45,width=1.65,height=.85,color=GREEN,fill_color=GREEN,fill_opacity=.18),T("urea",30,GREEN,weight=BOLD)).move_to(pt(3.5,-.55))
+        self.play(FadeOut(n1),FadeOut(n2),FadeIn(urea),run_time=.6)
+        self.at("dangerous load")
+        gauge=VGroup(RoundedRectangle(corner_radius=.12,width=.55,height=2.2,color=RED),Rectangle(width=.34,height=1.55,stroke_width=0,fill_color=RED,fill_opacity=.7).align_to(ORIGIN,DOWN),T("danger",28,RED).next_to(ORIGIN,DOWN,buff=1.3)).move_to(pt(5.35,.35))
+        chute=arr(pt(4.1,-1.0),pt(5.65,-2.45),GREEN,7)
+        self.play(FadeIn(gauge),GrowArrow(chute),run_time=.7)
+        self.at("excretible product")
+        self.play(FadeOut(chute),urea.animate.move_to(pt(5.35,-2.15)),
+                  gauge[1].animate.set_height(.25).align_to(gauge[0],DOWN),run_time=1.1)
+        self.finish()
+
+
+class S09Carbon(SpokenScene):
+    def construct(self):
+        factory_backdrop(self)
+        hub=VGroup(Circle(radius=1.15,color=BLUE,stroke_width=7),T("central\nmetabolism",28,BLUE,line_spacing=.8)).move_to(pt(-4.55,-.2))
+        door=RoundedRectangle(corner_radius=.18,width=1.05,height=2.25,color=BLUE,stroke_width=5).move_to(pt(-2.25,-.2))
+        self.add(hub,door,T("schematic",24,GREY).to_corner(DR,buff=.3))
+        self.at("seven metabolic doors")
+        cards=VGroup(*[chip(str(i),BLUE,28,pad=.14).move_to(pt(-5.7+i*.62,2.45)) for i in range(1,8)])
+        self.play(LaggedStart(*[FadeIn(c,shift=DOWN*.2) for c in cards],lag_ratio=.12),run_time=1.2)
+        count=M("7",52,BLUE).move_to(pt(-2.25,1.65)); self.play(FadeIn(count),run_time=.4)
+        self.at("Five can supply")
+        five=VGroup(*[cards[i].copy() for i in range(5)]).arrange(RIGHT,buff=.12).scale(.85).move_to(pt(.65,1.85))
+        self.play(FadeOut(cards),FadeIn(five),run_time=.7)
+        oaa=chip("oxaloacetate",GREEN,28).move_to(pt(.7,.6)); glucose=chip("net glucose",GREEN,30).move_to(pt(4.85,.6))
+        path=arr(oaa.get_right(),glucose.get_left(),GREEN,6)
+        self.play(FadeIn(oaa),GrowArrow(path),FadeIn(glucose),run_time=1.0)
+        self.at("acetyl coenzyme A")
+        ac=chip("acetyl-CoA",YELLOW,28).move_to(pt(.0,-.85))
+        self.play(FadeOut(five),FadeOut(count),FadeOut(door),FadeIn(ac),run_time=.6)
+        self.at("acetoacetyl")
+        aac=chip("acetoacetyl-CoA",YELLOW,28).move_to(pt(.0,-1.75)); self.play(FadeIn(aac),run_time=.6)
+        ket=VGroup(chip("ketones",YELLOW,28),chip("fat storage",YELLOW,28)).arrange(DOWN,buff=.25).move_to(pt(4.75,-1.25))
+        p1=arr(ac.get_right(),ket[0].get_left(),YELLOW,5); p2=arr(aac.get_right(),ket[1].get_left(),YELLOW,5)
+        self.play(GrowArrow(p1),GrowArrow(p2),FadeIn(ket),run_time=.9)
+        block=T("×",48,RED,weight=BOLD).next_to(glucose,UP,buff=.12); self.play(FadeIn(block),run_time=.45)
+        self.at("Only leucine")
+        ll=VGroup(chip("leucine",TEXT,28),chip("lysine",TEXT,28)).arrange(DOWN,buff=.18).move_to(pt(-2.2,-2.15))
+        self.play(FadeIn(ll),run_time=.6)
+        self.at("purely ketogenic")
+        self.play(ll[0].animate.next_to(ac,LEFT,buff=.25),ll[1].animate.next_to(aac,LEFT,buff=.25),run_time=1.0)
+        self.finish()
+
+
+class S10Return(SpokenScene):
+    def construct(self):
+        factory_backdrop(self)
+        g=gate(-4.9,.25,.7)
+        pm=proteasome(pt(-2.6,.05),.55)
+        pool=VGroup(Circle(radius=1.0,color=GREEN,stroke_width=7),T("reuse",28,GREEN,weight=BOLD)).move_to(pt(.0,.25))
+        fork=VGroup(Line(pt(1.5,.2),pt(2.65,1.55),color=GREY,stroke_width=7),Line(pt(1.5,.2),pt(2.65,-1.55),color=GREY,stroke_width=7))
+        urea=VGroup(Circle(radius=.75,color=YELLOW,stroke_width=6),T("urea",28,YELLOW)).move_to(pt(4.15,1.65))
+        carbon=VGroup(Circle(radius=.75,color=BLUE,stroke_width=6),T("7 doors",28,BLUE)).move_to(pt(4.15,-1.65))
+        title=heading("The recycling center's logic",42).shift(DOWN*.42)
+        self.add(title,g,pm,pool,fork,urea,carbon,T("schematic",24,GREY).to_corner(DR,buff=.3))
+        moving_dots(self,pt(-5.8,-2.65),pt(5.5,-2.65),BLUE,12,.07,.06)
+        self.at("Select the protein")
+        self.play(Indicate(g,color=YELLOW,scale_factor=1.06),run_time=.8)
+        self.at("before dismantling")
+        self.play(Indicate(pm,color=BLUE,scale_factor=1.08),run_time=.8)
+        self.at("Reuse most")
+        self.play(Indicate(pool,color=GREEN,scale_factor=1.1),run_time=.8)
+        self.at("surplus is burned")
+        self.play(Indicate(fork,color=RED,scale_factor=1.05),run_time=.7)
+        self.at("cage its nitrogen")
+        self.play(Indicate(urea,color=YELLOW,scale_factor=1.1),run_time=.7)
+        self.at("keep its carbon")
+        self.play(Indicate(carbon,color=BLUE,scale_factor=1.1),run_time=.7)
+        self.at("Choose what dies")
+        choose=VGroup(g.copy().scale(1.25),T("choose",34,YELLOW,weight=BOLD)).arrange(DOWN,buff=.25)
+        recycle=VGroup(Circle(radius=.8,color=GREEN,stroke_width=8),T("recycle most",34,GREEN,weight=BOLD)).arrange(DOWN,buff=.25)
+        split=VGroup(fork.copy().scale(.75),T("split surplus",34,BLUE,weight=BOLD)).arrange(DOWN,buff=.25)
+        icons=VGroup(choose,recycle,split).arrange(RIGHT,buff=.75).move_to(pt(0,-.25)); fit(icons,12.0,5.0)
+        old=VGroup(g,pm,pool,fork,urea,carbon,title)
+        self.play(FadeOut(old),FadeIn(icons,shift=UP*.15),run_time=1.1)
+        self.at("split surplus amino acids")
+        self.play(Indicate(icons[2],color=BLUE,scale_factor=1.04),run_time=.8)
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "Choose what dies, recycle most, then split surplus amino acids by atom."
+
+    def construct(self):
+        factory_backdrop(self)
+        hexm=hex_mascot(1.35).move_to(pt(0,1.6))
+        line1=T("Choose what dies, recycle most,",38,TEXT,font=TITLE_FONT)
+        line2=T("then split surplus amino acids by atom.",38,TEXT,font=TITLE_FONT)
+        lines=VGroup(line1,line2).arrange(DOWN,buff=.16).move_to(pt(0,.15))
+        choose=VGroup(Line(LEFT*.42,RIGHT*.42,color=YELLOW,stroke_width=7),T("choose",28,YELLOW)).arrange(DOWN,buff=.14)
+        recycle=VGroup(Circle(radius=.38,color=GREEN,stroke_width=6),T("recycle",28,GREEN)).arrange(DOWN,buff=.14)
+        split=VGroup(Line(LEFT*.38,RIGHT*.38+UP*.5,color=BLUE,stroke_width=6),Line(LEFT*.38,RIGHT*.38+DOWN*.5,color=BLUE,stroke_width=6),T("split",28,BLUE)).arrange(DOWN,buff=.12)
+        icons=VGroup(choose,recycle,split).arrange(RIGHT,buff=1.25).move_to(pt(0,-1.7))
+        sub=T("biochemistrypedia.com",28,TEAL).to_edge(DOWN,buff=.28)
+        self.play(FadeIn(hexm,shift=UP*.15),FadeIn(lines,shift=UP*.12),run_time=.9)
+        self.play(LaggedStart(*[FadeIn(x,shift=UP*.15) for x in icons],lag_ratio=.18),FadeIn(sub),run_time=.8)
+        self.play(icons.animate.shift(UP*.08),rate_func=there_and_back,run_time=1.0)
+        shoulder=hexm.arm.get_start()
+        self.play(Rotate(hexm.arm,angle=-.5,about_point=shoulder),rate_func=there_and_back,run_time=.55)
+        self.finish()
+

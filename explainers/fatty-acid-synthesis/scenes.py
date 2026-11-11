@@ -1,657 +1,681 @@
-"""Fatty acid synthesis: building fat, two carbons at a time  (Biochemistrypedia explainer)
+"""The carbon fatty acid synthesis throws away.
 
-Timed to the SPOKEN words (audio/words.json, from the real slide audio): every self.at("phrase") waits
-until the narrator starts that phrase, minus a short lead.
+COLOR MAP (one color per concept throughout)
+  BLUE    machinery: ACC and fatty acid synthase
+  YELLOW  bicarbonate carbon / temporary carboxyl handle / CO2
+  GREEN   acetyl units and the growing fatty-acid chain
+  TEAL    ATP
+  PURPLE  NADPH
+  RED     blocked or uphill route
+  GREY    assembly-floor structure
 
-COLOR MAP (one color per concept, whole video)
-  BLUE    = enzymes (ATP-citrate lyase, acetyl CoA carboxylase, fatty acid synthase)
-  YELLOW  = acetyl CoA, the two-carbon units, and the growing fatty-acid chain made of them
-  GREEN   = malonyl CoA (the activated three-carbon extender)   [also Stage 2 tab]
-  RED     = CO2 and bicarbonate (the carbon we pay for and then throw away)
-  TEAL    = ATP (energy paid)
-  PURPLE  = biotin, the CO2 carrier
-  ORANGE  = citrate (the shuttle carrier)                         [also Stage 1 tab]
-  GOLD    = the decision / drive: committed step, regulation valve, the CO2-driven push
-  GREY    = structure, axes, de-emphasized labels
-No molecular structures are drawn: everything is labelled chips, blocks, arrows, a lever and schematic energy levels.
+Everything is a labelled block, badge, machine, track, or counter.  No molecular
+structures are drawn.  The energy track in S07 is explicitly marked schematic.
 """
 import math
 
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F2994A"
 PURPLE = "#B58CD9"
 
 
-# ---------------------------------------------------------------- helpers
-def arrow(a, b, color=GREY, w=4, tip=0.22):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, max_tip_length_to_length_ratio=0.3,
-                 tip_length=tip)
+# ---------------------------------------------------------------------------
+# Shared assembly-floor vocabulary.  Reusing these coordinates is deliberate:
+# the viewer stays in one world as ACC feeds the same FAS loop.
+ACC_X = -3.75
+FAS_C = np.array([2.25, 0.25, 0.0])
+LOOP_R = 1.72
+TRAVEL_R = 0.72
 
 
-def heading(text, size=36):
-    return T(text, size, font=TITLE_FONT).to_edge(UP, buff=0.4)
+def label_box(text, color, width=2.15, height=0.86, size=28):
+    box = RoundedRectangle(
+        corner_radius=0.14, width=width, height=height,
+        stroke_color=color, stroke_width=3,
+        fill_color=color, fill_opacity=0.18,
+    )
+    lab = T(text, size=size, color=color, weight=BOLD).move_to(box)
+    return VGroup(box, lab)
 
 
-def P(c, R, deg):
-    a = math.radians(deg)
-    return np.array([c[0] + R * math.cos(a), c[1] + R * math.sin(a), 0.0])
+def carbon_block(text="2C", width=1.65, color=GREEN, size=28):
+    return label_box(text, color, width=width, height=0.9, size=size)
 
 
-def block(color=YELLOW, w=0.5):
-    return Square(side_length=w, stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.4)
+def badge(text="CO₂", size=28):
+    return chip(text, YELLOW, size=size, pad=0.17, fill_opacity=0.25)
 
 
-def hco3(size=26):
-    return chip("HCO₃⁻", RED, size=size, pad=0.16)
+def coin(text="ATP", size=28):
+    disk = Circle(radius=0.43, stroke_color=TEAL, stroke_width=3,
+                  fill_color=TEAL, fill_opacity=0.22)
+    return VGroup(disk, T(text, size=size, color=TEAL, weight=BOLD).move_to(disk))
 
 
-def co2(size=24):
-    return chip("CO₂", RED, size=size, pad=0.14)
+def battery(text="NADPH", size=28):
+    body = RoundedRectangle(corner_radius=0.1, width=1.65, height=0.72,
+                            stroke_color=PURPLE, stroke_width=3,
+                            fill_color=PURPLE, fill_opacity=0.2)
+    nub = Rectangle(width=0.16, height=0.28, stroke_color=PURPLE,
+                    fill_color=PURPLE, fill_opacity=1).next_to(body, RIGHT, buff=0)
+    lab = T(text, size=size, color=PURPLE, weight=BOLD).move_to(body)
+    return VGroup(body, nub, lab)
 
 
-def atp(size=26):
-    return chip("ATP", TEAL, size=size, pad=0.16)
+def gear(radius=0.48, color=BLUE, speed=0.38):
+    ring = Circle(radius=radius, stroke_color=color, stroke_width=4,
+                  fill_color=color, fill_opacity=0.08)
+    spokes = VGroup(*[
+        Line(LEFT * radius * 0.82, RIGHT * radius * 0.82,
+             color=color, stroke_width=3).rotate(a)
+        for a in (0, PI / 4, PI / 2, 3 * PI / 4)
+    ])
+    g = VGroup(ring, spokes)
+    g.add_updater(lambda m, dt: m.rotate(speed * dt))
+    return g
 
 
-def acetyl(size=28, label="acetyl CoA"):
-    return chip(label, YELLOW, size=size)
+def conveyor(y=-3.25, x=0, width=11.8, speed=0.48):
+    """A continuously moving belt; its broad ticks register in the motion lint."""
+    base = RoundedRectangle(corner_radius=0.18, width=width, height=0.68,
+                            stroke_color=GREY, stroke_width=3,
+                            fill_color=GREY, fill_opacity=0.12).move_to([x, y, 0])
+    left = x - width / 2 + 0.28
+    right = x + width / 2 - 0.28
+    ticks = VGroup(*[
+        Line(DOWN * 0.22, UP * 0.22, color=TEXT, stroke_width=6).set_opacity(0.58)
+        .move_to([xx, y, 0])
+        for xx in np.arange(left, right + 0.01, 0.65)
+    ])
+
+    def crawl(m, dt):
+        for tick in m:
+            tick.shift(RIGHT * speed * dt)
+            if tick.get_x() > right:
+                tick.set_x(left)
+
+    ticks.add_updater(crawl)
+    rollers = VGroup(
+        Circle(radius=0.2, stroke_color=GREY, stroke_width=3).move_to([left, y, 0]),
+        Circle(radius=0.2, stroke_color=GREY, stroke_width=3).move_to([right, y, 0]),
+    )
+    rollers.add_updater(lambda m, dt: m.rotate(-speed * dt * 2.2))
+    return VGroup(base, ticks, rollers)
 
 
-def malonyl(size=28, label="malonyl CoA"):
-    return chip(label, GREEN, size=size)
+def floor_world(scene, dim=1.0):
+    belt = conveyor()
+    motes = VGroup(*[
+        Dot([x, y, 0], radius=0.035, color=GREY).set_opacity(0.28)
+        for x, y in [(-6, 2.7), (-4.8, 1.1), (-2.7, 3.1), (-0.5, 2.5),
+                     (1.2, 3.15), (3.5, 2.55), (5.7, 1.2), (4.8, -1.5)]
+    ])
+
+    def drift(m, dt):
+        for d in m:
+            d.shift(UP * 0.075 * dt + RIGHT * 0.025 * dt)
+            if d.get_y() > 3.55:
+                d.set_y(-2.2)
+
+    motes.add_updater(drift)
+    world = VGroup(belt, motes).set_opacity(dim)
+    scene.add(world)
+    return world
 
 
-def chip2(lines, color=BLUE, size=26, pad=0.22, fill_opacity=0.16):
-    """Chip with centered multi-line label."""
-    label = VGroup(*[T(l, size, color) for l in lines]).arrange(DOWN, buff=0.08)
-    box = RoundedRectangle(corner_radius=0.14, width=label.width + 2 * pad, height=label.height + 2 * pad,
-                           stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=fill_opacity)
-    return VGroup(box, label.move_to(box))
+def acc_gate(pos=np.array([ACC_X, 0.15, 0]), scale=1.0):
+    body = RoundedRectangle(corner_radius=0.28, width=2.15, height=2.65,
+                            stroke_color=BLUE, stroke_width=4,
+                            fill_color=BLUE, fill_opacity=0.14).move_to(pos)
+    slot = RoundedRectangle(corner_radius=0.08, width=1.38, height=0.34,
+                            stroke_color=GREY, stroke_width=2).move_to(pos + DOWN * 0.56)
+    g = gear(0.45, BLUE, 0.4).move_to(pos + UP * 0.42)
+    lab = T("ACC", size=31, color=BLUE, weight=BOLD).next_to(body, UP, buff=0.16)
+    return VGroup(body, slot, g, lab).scale(scale)
 
 
-# --------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
+def fas_machine(center=FAS_C, compact=False):
+    w, h = (4.45, 4.65) if not compact else (4.1, 4.25)
+    shell = RoundedRectangle(corner_radius=0.42, width=w, height=h,
+                             stroke_color=BLUE, stroke_width=4,
+                             fill_color=BLUE, fill_opacity=0.1).move_to(center)
+    mouth = RoundedRectangle(corner_radius=0.12, width=1.1, height=0.58,
+                             stroke_color=GREY, stroke_width=3,
+                             fill_color=BG, fill_opacity=1).move_to(shell.get_left())
+    chute = Arrow(center + UP * 1.0, center + UP * 2.75, buff=0.08,
+                  color=YELLOW, stroke_width=6, tip_length=0.22)
+    lab = T("fatty acid synthase", size=28, color=BLUE, weight=BOLD)
+    lab.next_to(shell, DOWN, buff=0.16)
+    g1 = gear(0.38, BLUE, -0.42).move_to(center + RIGHT * 1.15 + DOWN * 1.15)
+    g2 = gear(0.30, BLUE, 0.5).move_to(center + RIGHT * 0.35 + DOWN * 1.35)
+    return VGroup(shell, mouth, chute, lab, g1, g2)
+
+
+def prediction_layout(scene):
+    """Exact same construction in the spoken prediction and its silent hold."""
+    floor_world(scene)
+    fas = fas_machine(center=np.array([2.35, -0.05, 0]))
+    ext = carbon_block("2C EXTENDER", width=2.45).move_to([-1.15, -0.45, 0])
+    handle = badge("CO₂").scale(0.86).next_to(ext, UP, buff=0.08)
+    question = T("Where does this carbon go?", size=38, font=TITLE_FONT)
+    question.move_to([0, 3.18, 0])
+    chain_target = carbon_block("CHAIN", width=2.0).move_to([4.6, 1.25, 0])
+    out_target = badge("CO₂").move_to([1.0, 2.0, 0])
+    a_chain = Arrow(handle.get_right(), chain_target.get_left(), buff=0.12,
+                    color=GREEN, stroke_width=6, tip_length=0.24)
+    a_out = Arrow(handle.get_top(), out_target.get_bottom(), buff=0.12,
+                  color=YELLOW, stroke_width=6, tip_length=0.24)
+    return fas, ext, handle, question, chain_target, out_target, a_chain, a_out
+
+
+def loop_world(scene, show_acc=False):
+    floor_world(scene)
+    shell = RoundedRectangle(corner_radius=0.4, width=4.7, height=4.95,
+                             stroke_color=BLUE, stroke_width=4,
+                             fill_color=BLUE, fill_opacity=0.09).move_to(FAS_C)
+    # Cargo travels on the inner rail so it never covers the C/R/D/R station labels.
+    path = Circle(radius=TRAVEL_R, color=GREY, stroke_width=5).move_to(FAS_C)
+    path.add_tip(tip_length=0.22, tip_width=0.22)
+    angles = [135, 45, -45, -135]
+    letters = ["C", "R", "D", "R"]
+    stations = VGroup()
+    for a, letter in zip(angles, letters):
+        p = FAS_C + LOOP_R * np.array([math.cos(math.radians(a)), math.sin(math.radians(a)), 0])
+        station = VGroup(
+            Circle(radius=0.39, stroke_color=BLUE, stroke_width=3,
+                   fill_color=BG, fill_opacity=1),
+            T(letter, size=30, color=BLUE, weight=BOLD),
+        ).move_to(p)
+        station[1].move_to(station[0])
+        station.add_updater(lambda m, dt: m[0].rotate(0.28 * dt))
+        stations.add(station)
+    lab = T("fatty acid synthase", size=28, color=BLUE, weight=BOLD)
+    lab.next_to(shell, DOWN, buff=0.1)
+    group = VGroup(shell, path, stations, lab)
+    if show_acc:
+        acc = acc_gate()
+        group.add(acc)
+    scene.add(group)
+    return group, path, stations
+
+
+def spring(center=np.array([0, 0, 0]), width=2.2, height=0.55, turns=8, color=TEAL):
+    pts = []
+    for i in range(turns * 2 + 1):
+        x = -width / 2 + width * i / (turns * 2)
+        y = (height / 2) * (1 if i % 2 else -1)
+        if i in (0, turns * 2):
+            y = 0
+        pts.append(center + np.array([x, y, 0]))
+    return VMobject(color=color, stroke_width=6).set_points_as_corners(pts)
+
+
+# ---------------------------------------------------------------------------
+class S00Hook(SpokenScene):
+    def construct(self):
+        floor_world(self)
+        gate = acc_gate(pos=np.array([-1.3, 0.2, 0]), scale=1.1)
+        chute = Arrow([2.1, 0.7, 0], [3.45, 1.65, 0], buff=0.1,
+                      color=YELLOW, stroke_width=7, tip_length=0.28)
+        block = carbon_block("2C acetyl CoA", width=2.55).move_to([-4.7, -0.55, 0])
+        atp = coin().move_to([-2.0, 2.25, 0])
+        handle = badge().move_to([0.15, 1.5, 0])
+        question = T("Why add, then discard?", size=40, font=TITLE_FONT).move_to([1.45, 3.12, 0])
+
+        self.play(FadeIn(gate), FadeIn(block, shift=RIGHT * 0.3), run_time=0.8)
+        self.at("pay to attach")
+        self.play(atp.animate.move_to([-3.05, 1.35, 0]),
+                  block.animate.move_to([-2.6, -0.55, 0]), run_time=1.0)
+        self.at("carbon dioxide")
+        self.play(FadeIn(handle, shift=DOWN * 0.2), Rotate(gate[2], PI / 2), run_time=0.85)
+        self.play(handle.animate.next_to(block, UP, buff=0.08), FadeOut(atp, scale=0.5), run_time=0.55)
+        self.at("throw it away")
+        self.play(block.animate.move_to([1.2, -0.55, 0]),
+                  handle.animate.move_to([1.2, 0.35, 0]), GrowArrow(chute), run_time=1.1)
+        self.play(handle.animate.move_to([3.55, 2.45, 0]), run_time=0.75)
+        self.at("That apparent waste")
+        self.play(Write(question), block.animate.shift(LEFT * 0.35), run_time=0.8)
+        self.at("the trick")
+        self.play(block.animate.shift(RIGHT * 0.7), Indicate(chute, color=YELLOW), run_time=1.0)
+        self.at("move forward")
+        self.play(block.animate.shift(RIGHT * 1.5), run_time=0.8)
+        self.finish()
+
+
+class S01Title(TitleCard):
     LESSON = "Fatty acid synthesis"
-    TITLE = "Building fat, two carbons at a time"
-
-
-# --------------------------------------------------------------------------------------------
-class S01Stages(SpokenScene):
-    """Three stages: transport (citrate leaves the mitochondrion, lyase frees acetyl CoA), activation
-    (ACC makes malonyl CoA, the committed step), elongation (FAS cycles to C16); then the logic of the order."""
+    TITLE = "The carbon fatty acid synthesis throws away"
 
     def construct(self):
-        specs = [("1  Transport", ORANGE), ("2  Activation", GREEN), ("3  Elongation", YELLOW)]
-        tabs = VGroup(*[chip(n, c, size=30) for n, c in specs]).arrange(RIGHT, buff=0.45).move_to([0, 3.05, 0])
-
-        def bar_at(i, y_off=0.14):
-            t = tabs[i]
-            return Line([t.get_left()[0], t.get_bottom()[1] - y_off, 0], [t.get_right()[0], t.get_bottom()[1] - y_off, 0],
-                        color=specs[i][1], stroke_width=7)
-
-        self.at("three stages")
-        self.play(LaggedStart(*[FadeIn(t, shift=DOWN * 0.15) for t in tabs], lag_ratio=0.3), run_time=1.1)
-
-        # ---------------- stage 1: transport
-        self.at("Stage", nth=0)
-        bar = bar_at(0)
-        mito = RoundedRectangle(corner_radius=0.3, width=5.0, height=4.2, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.08).move_to([-3.7, -0.6, 0])
-        mito_l = T("mitochondrion", 26, GREY).move_to(mito.get_bottom() + UP * 0.4)
-        cyto = RoundedRectangle(corner_radius=0.3, width=6.2, height=4.2, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.04).move_to([3.0, -0.6, 0])
-        cyto_l = T("cytoplasm", 26, GREY).move_to(cyto.get_bottom() + UP * 0.4)
-        citrate = chip("citrate", ORANGE, 30).move_to([-3.7, 0.2, 0])
-        self.play(Create(bar), FadeIn(mito), FadeIn(mito_l), FadeIn(cyto), FadeIn(cyto_l), FadeIn(citrate), run_time=1.0)
-        self.at("citrate")
-        lyase = chip("ATP-citrate lyase", BLUE, 28).move_to([3.0, 0.85, 0])
-        self.play(citrate.animate.move_to([3.0, -0.05, 0]), FadeIn(lyase, shift=DOWN * 0.2), run_time=1.3)
-        self.at("cleave")
-        ac = acetyl(30).move_to([1.6, -1.15, 0])
-        oaa = chip("oxaloacetate", GREY, 28).move_to([4.5, -1.15, 0])
-        self.play(FadeOut(citrate, scale=0.6), FadeIn(ac, shift=LEFT * 0.4), FadeIn(oaa, shift=RIGHT * 0.4), run_time=0.8)
-        self.at("deliver acetyl CoA")
-        self.play(Indicate(ac, color=YELLOW, scale_factor=1.2), run_time=0.9)
-        self.at("into the cytoplasm")
-        ring = SurroundingRectangle(cyto, color=ORANGE, buff=0.06, corner_radius=0.3, stroke_width=4)
-        self.play(Create(ring), run_time=0.7)
-
-        # ---------------- stage 2: activation
-        self.at("Stage", nth=1)
-        st1 = VGroup(mito, mito_l, cyto, cyto_l, lyase, ac, oaa, ring)
-        self.play(FadeOut(st1), Transform(bar, bar_at(1)), run_time=0.7)
-        ac2 = acetyl(28, "acetyl CoA (2C)").move_to([-4.4, -0.5, 0])
-        self.at("Activation")
-        self.play(FadeIn(ac2, shift=RIGHT * 0.3), run_time=0.6)
-        self.at("The committed step")
-        tag = chip("committed step", GOLD, 28).move_to([0, -2.4, 0])
-        self.play(FadeIn(tag, shift=UP * 0.2), run_time=0.6)
-        self.at("Acetyl CoA carboxylase")
-        acc = chip("acetyl CoA carboxylase", BLUE, 24).move_to([-0.1, -0.5, 0])
-        a1 = arrow(ac2.get_right() + RIGHT * 0.05, acc.get_left(), GREY)
-        self.play(FadeIn(acc, scale=0.8), GrowArrow(a1), run_time=0.8)
-        self.at("spends an ATP")
-        at = atp(28).move_to([-0.9, 1.3, 0])
-        cg = hco3(26).move_to([0.9, 1.3, 0])
-        d1 = arrow(at.get_bottom(), acc.get_top() + LEFT * 0.7, TEAL, 3)
-        d2 = arrow(cg.get_bottom(), acc.get_top() + RIGHT * 0.7, RED, 3)
-        self.play(FadeIn(at, shift=DOWN * 0.2), GrowArrow(d1), run_time=0.7)
-        self.play(FadeIn(cg, shift=DOWN * 0.2), GrowArrow(d2), run_time=0.6)
-        self.at("to make malonyl CoA")
-        mal = malonyl(28, "malonyl CoA (3C)").move_to([4.3, -0.5, 0])
-        a2 = arrow(acc.get_right(), mal.get_left(), GREY)
-        self.play(GrowArrow(a2), FadeIn(mal, shift=RIGHT * 0.3), run_time=0.8)
-        self.at("locking the cell into building fat")
-        self.play(Indicate(tag, color=GOLD, scale_factor=1.2), run_time=0.9)
-        self.play(tag[0].animate.set_fill(GOLD, opacity=0.4), run_time=0.3)
-
-        # ---------------- stage 3: elongation
-        self.at("Stage", nth=2)
-        st2 = VGroup(ac2, tag, acc, a1, at, cg, d1, d2, mal, a2)
-        self.play(FadeOut(st2), Transform(bar, bar_at(2)), run_time=0.7)
-        C = np.array([-3.3, -0.7, 0])
-        RR = 1.8
-        names = ["C", "R", "D", "R"]
-        angs = [90, 0, -90, 180]
-        arcs = VGroup(*[
-            Arc(radius=RR, start_angle=math.radians(a - 22), angle=-math.radians(46), arc_center=C, color=GREY,
-                stroke_width=5).add_tip(tip_length=0.2, tip_width=0.2)
-            for a in angs])
-        nodes = VGroup(*[VGroup(Circle(radius=0.34, stroke_color=GREY, stroke_width=3, fill_color=BG, fill_opacity=1),
-                                 T(n, 30, GREY, weight=BOLD)).move_to(P(C, RR, a)) for n, a in zip(names, angs)])
-        for nd in nodes:
-            nd[1].move_to(nd[0])
-        nodes.set_z_index(3)
-        fas = chip2(["fatty acid", "synthase"], BLUE, 28).move_to(C)
-        self.at("Fatty acid synthase")
-        self.play(FadeIn(fas, scale=0.8), run_time=0.7)
-        self.at("four step cycle")
-        self.play(Create(arcs, lag_ratio=0.2), FadeIn(nodes), run_time=1.0)
-        dot = Dot(radius=0.14, color=YELLOW).move_to(P(C, RR, 90))
-        k = [1]
-        counter = always_redraw(lambda: VGroup(M(str(2 * k[0]), 44, YELLOW), T("carbons", 30, GREY))
-                                .arrange(RIGHT, buff=0.25, aligned_edge=DOWN).move_to([3.75, 0.85, 0]))
-        slots = [np.array([1.5 + 0.6 * i, -0.55, 0]) for i in range(8)]
-        blocks = [block(YELLOW, 0.5).move_to(s) for s in slots]
-        chain_l = T("the growing chain", 26, GREY).move_to([3.75, 1.75, 0])
-        self.at("over and over")
-        self.play(FadeIn(dot), FadeIn(chain_l), FadeIn(counter), FadeIn(blocks[0], scale=0.6), run_time=0.5)
-        for i in range(1, 8):
-            k[0] = i + 1
-            self.play(UpdateFromAlphaFunc(dot, lambda m, a: m.move_to(P(C, RR, 90 - 360 * a))),
-                      FadeIn(blocks[i], scale=0.5, shift=DOWN * 0.3), run_time=0.42, rate_func=linear)
-        self.at("palmitate")
-        pal = chip("palmitate", YELLOW, 30).move_to([3.75, -2.2, 0])
-        br = Brace(VGroup(*blocks), DOWN, buff=0.15, color=YELLOW)
-        self.play(FadeIn(pal, shift=UP * 0.2), GrowFromCenter(br), Indicate(counter, color=YELLOW), run_time=1.0)
-
-        # ---------------- the logic of the order
-        self.at("Notice the logic")
-        st3 = VGroup(fas, arcs, nodes, dot, chain_l, counter, pal, br, *blocks)
-        caps_txt = ["get the bricks\nto the site", "commit\nirreversibly", "then\nbuild"]
-        self.play(FadeOut(st3), FadeOut(bar), tabs.animate.move_to([0, 0.7, 0]), run_time=0.9)
-        caps = VGroup(*[T(t, 28, c, line_spacing=0.9).next_to(tabs[i], DOWN, buff=0.45)
-                        for i, (t, c) in enumerate(zip(caps_txt, [ORANGE, GREEN, YELLOW]))])
-        for cp in caps[1:]:
-            cp.set_y(caps[0].get_y())
-        self.at("get the bricks")
-        self.play(FadeIn(caps[0], shift=UP * 0.15), run_time=0.7)
-        self.at("commit irreversibly")
-        self.play(FadeIn(caps[1], shift=UP * 0.15), run_time=0.7)
-        self.at("then build")
-        self.play(FadeIn(caps[2], shift=UP * 0.15), run_time=0.7)
-        for i in range(3):
-            self.at(["transport", "activation", "elongation"][i], nth=1)
-            self.play(Indicate(tabs[i], color=specs[i][1], scale_factor=1.12), run_time=0.7)
-        self.at("in that order")
-        arrs = VGroup(arrow(tabs[0].get_right(), tabs[1].get_left(), TEXT, 4, 0.2),
-                      arrow(tabs[1].get_right(), tabs[2].get_left(), TEXT, 4, 0.2))
-        self.play(LaggedStart(*[GrowArrow(a) for a in arrs], lag_ratio=0.5), run_time=0.8)
+        floor_world(self, dim=0.5)
+        gate = acc_gate(pos=np.array([-4.7, -0.15, 0]), scale=0.72).set_opacity(0.45)
+        attached = carbon_block("2C", width=1.3).move_to([-0.1, -0.85, 0])
+        handle = badge().scale(0.82).next_to(attached, UP, buff=0.08)
+        title = VGroup(
+            T("The carbon fatty acid synthesis", size=47, font=TITLE_FONT),
+            T("throws away", size=52, color=YELLOW, font=TITLE_FONT),
+        ).arrange(DOWN, buff=0.16).move_to([0.8, 1.45, 0])
+        self.add(gate, attached, handle)
+        self.play(FadeIn(title, shift=UP * 0.16), run_time=0.75)
+        self.play(attached.animate.shift(RIGHT * 0.8), handle.animate.shift(RIGHT * 0.8), run_time=0.8)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S02Commit(SpokenScene):
-    """ACC: acetyl CoA + bicarbonate + ATP -> malonyl CoA (committed); biotin as a swinging arm carrying CO2;
-    one-way arrow; regulation valve."""
-
+class S02Scope(SpokenScene):
     def construct(self):
-        head = heading("The decision point")
-        self.play(FadeIn(head, shift=DOWN * 0.15), run_time=0.8)
+        floor_world(self)
+        small_title = T("The carbon fatty acid synthesis throws away", size=28,
+                        font=TITLE_FONT, color=GREY).to_edge(UP, buff=0.25)
+        clamp = RoundedRectangle(corner_radius=0.22, width=3.0, height=1.5,
+                                 stroke_color=BLUE, stroke_width=4,
+                                 fill_color=BLUE, fill_opacity=0.1).move_to([-4.2, 0.55, 0])
+        gate = acc_gate(pos=np.array([2.85, 0.35, 0]), scale=0.9)
+        primer = carbon_block("2C PRIMER", width=2.45).move_to([-4.2, 0.55, 0])
+        pair = carbon_block("2C", width=1.35).move_to([-4.9, -1.65, 0])
+        self.add(small_title, clamp, gate)
 
-        # ---------------- phase 1: the reaction
+        self.at("begin with acetyl")
+        self.play(FadeIn(primer, shift=RIGHT * 0.35), run_time=0.8)
+        self.at("already in the cytoplasm")
+        cyt = T("cytoplasm", size=28, color=GREY).move_to([-4.2, 1.75, 0])
+        self.play(FadeIn(cyt), clamp.animate.set_stroke(GREEN, width=4), run_time=0.8)
+        self.at("two carbons")
+        self.play(Indicate(primer, color=GREEN, scale_factor=1.08), run_time=0.8)
+        self.at("Every later pair")
+        self.play(FadeIn(pair), pair.animate.move_to([0.6, -1.65, 0]), run_time=1.25)
+        self.at("malonyl")
+        self.play(pair.animate.move_to([1.05, -0.25, 0]), Rotate(gate[2], PI), run_time=0.9)
+        extender = carbon_block("2C EXTENDER", width=2.55).move_to([5.0, -1.2, 0])
+        self.at("the extender")
+        self.play(ReplacementTransform(pair, extender), run_time=0.9)
         self.at("carboxylase")
-        acc = chip("ACC", BLUE, 32).move_to([-1.6, 0.1, 0])
-        acc_l = T("acetyl CoA carboxylase", 24, BLUE).next_to(acc, DOWN, buff=0.25)
-        self.play(FadeIn(acc, scale=0.8), FadeIn(acc_l), run_time=0.7)
-        self.at("takes acetyl CoA")
-        ac = acetyl(28).move_to([-5.0, 0.1, 0])
-        a1 = arrow(ac.get_right(), acc.get_left(), GREY)
-        self.play(FadeIn(ac, shift=RIGHT * 0.3), GrowArrow(a1), run_time=0.7)
-        self.at("bicarbonate")
-        hc = hco3(28).move_to([-2.5, 2.0, 0])
-        d1 = arrow(hc.get_bottom(), acc.get_top() + LEFT * 0.3, RED, 3)
-        self.play(FadeIn(hc, shift=DOWN * 0.2), GrowArrow(d1), run_time=0.6)
-        self.at("and")
-        at = atp(28).move_to([-0.7, 2.0, 0])
-        d2 = arrow(at.get_bottom(), acc.get_top() + RIGHT * 0.3, TEAL, 3)
-        self.play(FadeIn(at, shift=DOWN * 0.2), GrowArrow(d2), run_time=0.6)
-        self.at("produces malonyl CoA")
-        mal = malonyl(28).move_to([1.8, 0.1, 0])
-        a2 = arrow(acc.get_right(), mal.get_left(), GREY)
-        adp = T("ADP + Pᵢ", 26, GREY).move_to([-1.6, -1.15, 0])
-        d3 = arrow(acc.get_bottom(), [-1.6, -0.85, 0], GREY, 3)
-        self.play(GrowArrow(a2), FadeIn(mal, shift=RIGHT * 0.3), run_time=0.8)
-        self.play(FadeOut(acc_l), FadeIn(adp, shift=DOWN * 0.2), GrowArrow(d3), run_time=0.5)
-        self.at("This is the committed step")
-        tag = chip("committed step", GOLD, 30).move_to([-1.6, -2.75, 0])
-        brace = Brace(VGroup(ac, mal), DOWN, buff=1.05, color=GOLD)
-        self.play(FadeIn(tag, shift=UP * 0.2), GrowFromCenter(brace), run_time=0.8)
-        self.at("new fatty acids")
-        fat = chip2(["fatty", "acids"], YELLOW, 24).move_to([5.4, 0.1, 0])
-        a3 = arrow(mal.get_right(), fat.get_left(), YELLOW, 6)
-        self.play(GrowArrow(a3), FadeIn(fat, shift=RIGHT * 0.3), run_time=0.9)
-
-        # ---------------- phase 2: biotin, a swinging arm
-        self.at("The enzyme depends on biotin")
-        ph1 = VGroup(acc, ac, a1, hc, d1, at, d2, mal, a2, adp, d3, tag, brace, a3, fat)
-        blob = RoundedRectangle(corner_radius=0.35, width=8.0, height=3.6, stroke_color=BLUE, stroke_width=4,
-                                fill_color=BLUE, fill_opacity=0.10).move_to([0, -1.4, 0])
-        blob_l = T("acetyl CoA carboxylase", 24, BLUE).move_to([-1.9, 0.05, 0])
-        slotA = RoundedRectangle(corner_radius=0.15, width=2.9, height=1.0, stroke_color=GREY, stroke_width=2.5,
-                                 fill_opacity=0).move_to([-2.5, -2.4, 0])
-        slotA.move_to([-2.4, -2.4, 0])
-        slotB = slotA.copy().move_to([2.4, -2.4, 0])
-        hcA = hco3(24).move_to(slotA.get_center() + LEFT * 0.7)
-        atA = atp(24).move_to(slotA.get_center() + RIGHT * 0.65)
-        acB = acetyl(26).move_to(slotB)
-        PIV = np.array([0.0, -0.3, 0.0])
-        TIPA, TIPB = np.array([-2.4, -1.15, 0.0]), np.array([2.4, -1.15, 0.0])
-        angA = math.atan2(TIPA[1] - PIV[1], TIPA[0] - PIV[0])
-        angB = math.atan2(TIPB[1] - PIV[1], TIPB[0] - PIV[0])
-        Larm = float(np.linalg.norm(TIPA - PIV))
-        ang = ValueTracker(angA)
-
-        def tip():
-            a = ang.get_value()
-            return PIV + Larm * np.array([math.cos(a), math.sin(a), 0])
-
-        arm = always_redraw(lambda: Line(PIV, tip(), color=PURPLE, stroke_width=9))
-        tipdot = always_redraw(lambda: Dot(tip(), radius=0.2, color=PURPLE))
-        pivot = Dot(PIV, radius=0.14, color=GREY)
-        biotin_l = T("biotin: a vitamin cofactor", 26, PURPLE).move_to([0, -3.65, 0])
-        self.play(FadeOut(ph1), Transform(head, heading("Biotin: the CO₂ carrier")), FadeIn(blob), FadeIn(blob_l),
-                  FadeIn(slotA), FadeIn(slotB), FadeIn(hcA), FadeIn(atA), FadeIn(acB), run_time=1.1)
-        self.at("biotin", nth=0)
-        self.play(FadeIn(pivot), Create(arm), FadeIn(tipdot), run_time=0.6)
-        self.at("a vitamin cofactor")
-        self.play(FadeIn(biotin_l, shift=UP * 0.15), run_time=0.7)
-        self.at("carry carbon dioxide")
-        self.play(Transform(biotin_l, T("biotin: carries CO₂", 26, PURPLE).move_to(biotin_l)),
-                  Indicate(hcA, color=RED, scale_factor=1.2), run_time=0.8)
-        self.at("swinging arm")
-        self.play(ang.animate.set_value(angA + 0.18), run_time=0.45)
-        self.play(ang.animate.set_value(angA), run_time=0.45)
-        self.at("grabs a carboxyl group")
-        cg = co2(26).move_to(TIPA + UP * 0.42)
-        adpA = T("ADP + Pᵢ", 22, GREY).move_to(atA)
-        self.play(ReplacementTransform(hcA, cg), Transform(atA, adpA), run_time=0.6)
-        cg.add_updater(lambda m: m.move_to(tip() + UP * 0.42))
-        self.at("delivers it")
-        self.play(ang.animate.set_value(angB), run_time=1.1, rate_func=smooth)
-        cg.clear_updaters()
-        mal2 = malonyl(26).move_to(slotB)
-        self.play(cg.animate.move_to(acB.get_top() + UP * 0.05).scale(0.7), run_time=0.3)
-        self.play(FadeOut(cg), ReplacementTransform(acB, mal2), run_time=0.4)
-
-        # ---------------- phase 3: irreversible, so this is where regulation sits
-        self.at("committed and irreversible")
-        s_ac = acetyl(26).move_to([-5.0, 2.45, 0])
-        s_mal = malonyl(26).move_to([-1.2, 2.45, 0])
-        s_a = arrow(s_ac.get_right(), s_mal.get_left(), TEXT, 5)
-        back = DashedLine(s_mal.get_left() + DOWN * 0.9, s_ac.get_right() + DOWN * 0.9, color=GREY, stroke_width=4, dash_length=0.14)
-        back.add_tip(tip_length=0.2, tip_width=0.2)
-        x = Cross(Square(side_length=0.4), stroke_color=RED, stroke_width=6).move_to(back.get_center())
-        irrev = T("irreversible", 24, GOLD).next_to(x, DOWN, buff=0.12)
-        self.play(Transform(head, heading("Irreversible, so regulated here")),
-                  FadeIn(s_ac), FadeIn(s_mal), GrowArrow(s_a), run_time=0.7)
-        self.at("irreversible")
-        self.play(Create(back), Create(x), FadeIn(irrev), run_time=0.8)
-        self.at("exactly where regulation should sit")
-        wheel = VGroup(Circle(radius=0.5, stroke_color=GOLD, stroke_width=5),
-                       Line(UP * 0.5, DOWN * 0.5, color=GOLD, stroke_width=5), Line(LEFT * 0.5, RIGHT * 0.5, color=GOLD, stroke_width=5))
-        wheel.move_to([3.0, 1.7, 0])
-        stem = Line([3.0, 1.2, 0], [3.0, 0.4, 0], color=GOLD, stroke_width=6)
-        reg = T("regulation", 26, GOLD).move_to([5.3, 1.7, 0])
-        self.play(FadeIn(wheel, shift=DOWN * 0.2), Create(stem), FadeIn(reg), run_time=0.8)
-        self.at("master control valve")
-        self.play(Rotate(wheel, angle=PI, about_point=wheel.get_center()),
-                  Transform(reg, VGroup(T("master", 26, GOLD), T("control valve", 26, GOLD)).arrange(DOWN, buff=0.06).move_to([5.3, 1.7, 0])),
-                  run_time=1.8)
+        self.play(Indicate(gate[3], color=BLUE, scale_factor=1.15), run_time=0.8)
+        self.at("a CC")
+        self.play(gate[2].animate.rotate(PI), extender.animate.shift(RIGHT * 0.35), run_time=0.7)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S03Crdr(SpokenScene):
-    """FAS: the four-step CRDR cycle, run seven times, adding two carbons per pass to reach C16 palmitate."""
-
+class S03Acc(SpokenScene):
     def construct(self):
-        head = heading("Building the chain")
-        self.play(FadeIn(head, shift=DOWN * 0.15), run_time=0.8)
-        C = np.array([-4.2, -0.35, 0])
-        RR = 1.55
-        names = ["C", "R", "D", "R"]
-        words = ["condensation", "reduction", "dehydration", "reduction"]
-        angs = [90, 0, -90, 180]
-        arcs = VGroup(*[
-            Arc(radius=RR, start_angle=math.radians(a - 22), angle=-math.radians(46), arc_center=C, color=GREY,
-                stroke_width=5).add_tip(tip_length=0.2, tip_width=0.2)
-            for a in angs])
-        nodes = VGroup(*[VGroup(Circle(radius=0.3, stroke_color=GREY, stroke_width=3, fill_color=BG, fill_opacity=1),
-                                 T(n, 28, GREY, weight=BOLD)).move_to(P(C, RR, a)) for n, a in zip(names, angs)])
-        for nd in nodes:
-            nd[1].move_to(nd[0])
-        nodes.set_z_index(3)
-        fas = chip2(["fatty acid", "synthase"], BLUE, 26).move_to(C)
-        legend = VGroup(*[VGroup(T(n, 28, GREY, weight=BOLD), T(w, 28, GREY)).arrange(RIGHT, buff=0.3)
-                          for n, w in zip(names, words)]).arrange(DOWN, aligned_edge=LEFT, buff=0.3).move_to([-0.3, -0.35, 0])
-        for row in legend:
-            row[0].set_x(legend.get_left()[0] + 0.15)
-            row[1].next_to(row[0], RIGHT, buff=0.3)
+        floor_world(self)
+        gate = acc_gate(pos=np.array([0, 0.1, 0]), scale=1.28)
+        acetyl = carbon_block("acetyl CoA", width=2.45).move_to([-4.6, 0.2, 0])
+        bicarbonate = badge("bicarbonate", size=28).move_to([-2.3, 2.3, 0])
+        atp = coin().move_to([0.1, 2.55, 0])
+        crank = gear(0.65, TEAL, 0).move_to([2.0, 0.25, 0])
+        arm = Line([0.8, 0.25, 0], [1.35, 0.25, 0], color=TEAL, stroke_width=6)
+        self.add(gate, crank, arm)
 
-        self.at("Fatty acid synthase")
-        self.play(FadeIn(fas, scale=0.8), run_time=0.7)
-        self.at("one enzyme complex")
-        self.play(Indicate(fas, color=BLUE, scale_factor=1.12), run_time=0.8)
-        self.at("four step cycle")
-        self.play(Create(arcs, lag_ratio=0.2), FadeIn(nodes), run_time=1.0)
-
-        def light(i, color=YELLOW):
-            return AnimationGroup(nodes[i][0].animate.set_stroke(color, width=5), nodes[i][1].animate.set_color(color),
-                                  legend[i][0].animate.set_color(color), legend[i][1].animate.set_color(TEXT))
-
-        self.at("condensation")
-        self.play(FadeIn(legend[0]), light(0), run_time=0.6)
-        self.at("reduction")
-        self.play(FadeIn(legend[1]), light(1), run_time=0.6)
-        self.at("dehydration")
-        self.play(FadeIn(legend[2]), light(2), run_time=0.6)
-        self.at("reduction", nth=1)
-        self.play(FadeIn(legend[3]), light(3), run_time=0.6)
-        self.at("Remember it as")
-        crdr = T("CRDR", 44, YELLOW, weight=BOLD).move_to([C[0], -3.0, 0])
-        self.play(LaggedStart(*[Circumscribe(n, color=YELLOW, shape=Circle, run_time=0.6) for n in nodes], lag_ratio=0.15), run_time=0.9)
-        self.at("CRDR")
-        self.play(FadeIn(crdr, shift=UP * 0.15), run_time=0.6)
-
-        # ---- the chain it builds
-        k = [1]
-        CX = 3.97
-        counter = always_redraw(lambda: VGroup(M(str(2 * k[0]), 44, YELLOW), T("carbons", 30, GREY))
-                                .arrange(RIGHT, buff=0.25, aligned_edge=DOWN).move_to([CX, 1.1, 0]))
-        slots = [np.array([2.15 + 0.52 * i, -0.55, 0]) for i in range(8)]
-        blocks = [block(YELLOW, 0.44).move_to(s) for s in slots]
-        chain_l = T("the growing chain", 26, GREY).move_to([CX, 2.0, 0])
-        dot = Dot(radius=0.14, color=YELLOW).move_to(P(C, RR, 90))
-        self.at("Each turn of the cycle")
-        self.play(FadeIn(chain_l), FadeIn(counter), FadeIn(blocks[0], scale=0.6), FadeIn(dot), run_time=0.7)
-        self.at("joins the growing chain")
-        self.play(Circumscribe(nodes[0], color=YELLOW, shape=Circle, run_time=0.6), run_time=0.6)
-        self.at("a fresh two carbon unit")
-        new = block(YELLOW, 0.44).move_to([slots[1][0], 0.15, 0])
-        plus = T("+2", 28, YELLOW).next_to(new, UP, buff=0.1)
-        self.play(FadeIn(new), FadeIn(plus), run_time=0.4)
-        k[0] = 2
-        self.play(new.animate.move_to(slots[1]), FadeOut(plus), run_time=0.7)
-        self.remove(new)
-        self.add(blocks[1])
-        self.at("chemically grooms the new linkage")
-        self.play(UpdateFromAlphaFunc(dot, lambda m, a: m.move_to(P(C, RR, 90 - 270 * a))), run_time=1.8, rate_func=linear)
-        self.at("saturated stretch")
-        sat = VGroup(Brace(VGroup(blocks[0], blocks[1]), DOWN, buff=0.12, color=YELLOW),)
-        sat_l = T("saturated", 26, YELLOW).next_to(sat, DOWN, buff=0.08)
-        self.play(GrowFromCenter(sat), FadeIn(sat_l), run_time=0.7)
-        self.play(UpdateFromAlphaFunc(dot, lambda m, a: m.move_to(P(C, RR, -180 - 90 * a))),
-                  run_time=0.4, rate_func=linear)
-
-        # ---- seven turns
-        self.at("not run once")
-        self.play(FadeOut(sat), FadeOut(sat_l), run_time=0.4)
-        self.at("seven times")
-        turn_l = always_redraw(lambda: T(f"turn {min(k[0] - 1, 7)} of 7", 28, GREY).move_to([CX, -2.4, 0]))
-        self.add(turn_l)
-        for i in range(2, 8):
-            if i == 4:
-                self.at("each pass adds two carbons")
-                plus2 = T("+2 carbons each pass", 26, YELLOW).move_to([CX, 0.3, 0])
-                self.play(FadeIn(plus2), run_time=0.3)
-            k[0] = i + 1
-            self.play(UpdateFromAlphaFunc(dot, lambda m, a: m.move_to(P(C, RR, 90 - 360 * a))),
-                      FadeIn(blocks[i], scale=0.5, shift=DOWN * 0.3), run_time=0.45, rate_func=linear)
-        self.at("16 carbon product")
-        self.play(Indicate(counter, color=YELLOW, scale_factor=1.15), FadeOut(plus2), run_time=0.9)
-        self.at("palmitate")
-        pal = chip("palmitate", YELLOW, 30).move_to([CX, -1.75, 0])
-        br = Brace(VGroup(*blocks), DOWN, buff=0.15, color=YELLOW)
-        self.play(FadeOut(turn_l), GrowFromCenter(br), FadeIn(pal, shift=UP * 0.2), run_time=0.9)
-
-        # ---- one assembly line
-        self.at("single enzyme assembly")
-        self.play(Indicate(fas, color=BLUE, scale_factor=1.15), run_time=0.9)
-        self.at("same four moves")
-        self.play(LaggedStart(*[Circumscribe(n, color=YELLOW, shape=Circle, run_time=0.6) for n in nodes], lag_ratio=0.25), run_time=1.4)
-        self.at("stamping out identical parts")
-        self.play(LaggedStart(*[Indicate(b, color=YELLOW, scale_factor=1.3) for b in blocks], lag_ratio=0.18), run_time=2.0)
-        self.finish()
-
-
-# --------------------------------------------------------------------------------------------
-class S04Engine(SpokenScene):
-    """Primer + extender -> joined chain; the extra carboxyl leaves as CO2 and that drop in free energy is the
-    engine (schematic energy levels, then a weight-and-rope analogy); the CO2 was paid for in stage two."""
-
-    def construct(self):
-        banner = heading("The chemical trick")
-        self.play(FadeIn(banner, shift=DOWN * 0.15), run_time=0.8)
-        Y = 0.7
-        # ---- the two reactants
-        self.at("We have a primer")
-        primer = chip2(["acetyl", "(primer)"], YELLOW, 28).move_to([-4.7, Y, 0])
-        self.play(FadeIn(primer, shift=RIGHT * 0.3), run_time=0.7)
-        self.at("an extender")
-        plus = T("+", 40).move_to([-3.4, Y, 0])
-        ext = chip2(["malonyl", "(extender)"], GREEN, 28).move_to([-1.8, Y, 0])
-        extra = chip("extra carboxyl", RED, 24, pad=0.14).next_to(ext, UP, buff=0.04)
-        self.play(FadeIn(plus), FadeIn(ext, shift=LEFT * 0.3), run_time=0.7)
-        self.play(FadeIn(extra, shift=DOWN * 0.1), run_time=0.5)
-        self.at("When they condense")
-        a1 = arrow([-0.5, Y, 0], [2.0, Y, 0], TEXT, 5)
-        prod = chip("joined chain", YELLOW, 28).move_to([3.4, Y, 0])
-        self.play(GrowArrow(a1), FadeIn(prod, shift=RIGHT * 0.3), run_time=0.9)
-        self.at("loses its extra carboxyl")
-        cg = chip("CO₂", RED, 28).move_to([0.75, Y + 0.95, 0])
-        self.play(Transform(extra, cg), run_time=1.0, path_arc=-0.5)
-        # ---- decarboxylation is the engine
-        self.at("decarboxylation is the engine")
-        row = VGroup(primer, plus, ext, a1, prod, extra)
-        self.play(Transform(banner, heading("Decarboxylation is the engine")), row.animate.shift(UP * 0.7), run_time=0.8)
-        ox, oy = -5.2, -3.4
-        ax_y = Arrow([ox, oy, 0], [ox, -0.55, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.2, max_tip_length_to_length_ratio=1)
-        ax_l = T("free energy", 24, GREY).rotate(PI / 2).move_to([ox - 0.45, -2.0, 0])
-        yr, yp = -1.3, -3.0
-        lvl_r = Line([-4.5, yr, 0], [-2.0, yr, 0], color=TEXT, stroke_width=6)
-        lvl_p = Line([0.2, yp, 0], [2.7, yp, 0], color=TEXT, stroke_width=6)
-        curve = CubicBezier([-2.0, yr, 0], [-0.9, yr, 0], [-0.9, yp, 0], [0.2, yp, 0], color=TEXT, stroke_width=5)
-        lab_r = T("acetyl + malonyl", 26, TEXT).next_to(lvl_r, UP, buff=0.12)
-        lab_p = T("joined chain + CO₂", 26, TEXT).next_to(lvl_p, DOWN, buff=0.12)
-        self.play(Create(ax_y), FadeIn(ax_l), Create(lvl_r), FadeIn(lab_r), run_time=0.9)
-        self.at("so thermodynamically favorable")
-        self.play(Create(curve), Create(lvl_p), FadeIn(lab_p), run_time=1.2)
-        drop = Arrow([3.4, yr, 0], [3.4, yp, 0], buff=0, color=GOLD, stroke_width=7, tip_length=0.25)
-        dash = DashedLine([-2.0, yr, 0], [3.4, yr, 0], color=GREY, stroke_width=3)
-        drop_l = T("big drop in\nfree energy", 26, GOLD, line_spacing=0.9).next_to(drop, RIGHT, buff=0.2)
-        self.play(Create(dash), GrowArrow(drop), FadeIn(drop_l), run_time=0.9)
-        self.at("drags the otherwise sluggish condensation")
-        self.play(Indicate(drop, color=GOLD, scale_factor=1.2), Indicate(prod, color=YELLOW), run_time=1.0)
-        # ---- weight and rope
-        self.at("the way letting go of a heavy weight")
-        diagram = VGroup(ax_y, ax_l, lvl_r, lvl_p, curve, lab_r, lab_p, drop, dash, drop_l)
-        self.play(FadeOut(diagram), run_time=0.5)
-        cart = chip("condensation", YELLOW, 30)
-        d = ValueTracker(0.0)
-        cart_y = -0.55
-        cart.move_to([-3.8, cart_y, 0])
-        track = Line([-5.8, cart_y - cart.height / 2 - 0.03, 0], [2.3, cart_y - cart.height / 2 - 0.03, 0],
-                     color=GREY, stroke_width=4)
-        cart.add_updater(lambda m: m.move_to([-3.8 + d.get_value(), cart_y, 0]))
-        PX, PR = 3.0, 0.5
-        pul = VGroup(Circle(radius=PR, stroke_color=GREY, stroke_width=4), Dot(radius=0.07, color=GREY)).move_to([PX, cart_y - PR, 0])
-        rope1 = always_redraw(lambda: Line([cart.get_right()[0], cart_y, 0], [PX, cart_y, 0], color=TEXT, stroke_width=4))
-        wt = chip("CO₂ lets go", RED, 28)
-        wt.move_to([PX + PR, -2.5, 0])
-        wt.add_updater(lambda m: m.move_to([PX + PR, -2.5 - d.get_value(), 0]))
-        rope2 = always_redraw(lambda: Line([PX + PR, cart_y - PR, 0], [PX + PR, wt.get_top()[1], 0], color=TEXT, stroke_width=4))
-        self.play(FadeIn(track), FadeIn(cart), FadeIn(pul), FadeIn(rope1), FadeIn(rope2), FadeIn(wt), run_time=0.8)
-        self.at("pulls the whole rope along")
-        self.play(d.animate.set_value(1.1), run_time=1.3, rate_func=smooth)
-        # ---- the product
+        self.at("combines acetyl")
+        self.play(FadeIn(acetyl), acetyl.animate.move_to([-2.8, -0.65, 0]), run_time=1.0)
+        self.at("with bicarbonate")
+        self.play(FadeIn(bicarbonate), bicarbonate.animate.move_to([-2.55, 1.15, 0]), run_time=0.85)
+        self.at("spends 1 ATP")
+        acetyl_token = Dot(radius=0.18, color=GREEN).move_to([-0.45, -0.6, 0])
+        bicarbonate_token = Dot(radius=0.18, color=YELLOW).move_to([-0.45, 0.65, 0])
+        self.play(ReplacementTransform(acetyl, acetyl_token),
+                  ReplacementTransform(bicarbonate, bicarbonate_token),
+                  FadeIn(atp), atp.animate.move_to([2.95, 1.25, 0]),
+                  Rotate(crank, PI), run_time=0.9)
+        product = carbon_block("2C EXTENDER", width=2.55).move_to([4.5, -0.45, 0])
+        handle = badge().scale(0.84).next_to(product, UP, buff=0.08)
         self.at("The product")
-        rig = Group(track, cart, pul, rope1, rope2, wt)
-        cart.clear_updaters(); wt.clear_updaters()
-        self.play(FadeOut(rig), run_time=0.6)
-        self.at("acetosityl")
-        prod2 = chip("acetoacetyl-ACP", YELLOW, 28)
-        prod2.move_to(prod).align_to(prod, LEFT)
-        self.play(ReplacementTransform(prod, prod2), run_time=0.8)
-        self.at("forms readily")
-        ready = T("forms readily", 28, YELLOW).next_to(prod2, DOWN, buff=0.2)
-        self.play(FadeIn(ready, shift=UP * 0.1), run_time=0.6)
-        self.at("because the cell paid")
-        left = chip2(["stage two:", "ATP spent, CO₂ added"], TEAL, 26).move_to([-3.4, -2.3, 0])
-        right = chip2(["this step:", "CO₂ leaves, powers it"], RED, 26).move_to([3.0, -2.3, 0])
-        link = arrow(left.get_right(), right.get_left(), GREY, 4)
-        self.play(FadeIn(left, shift=UP * 0.2), run_time=0.7)
-        self.at("the carbon we added")
-        dotc = chip("CO₂", RED, 24).move_to(left.get_top() + UP * 0.45)
-        self.play(FadeIn(dotc, scale=0.7), GrowArrow(link), FadeIn(right, shift=UP * 0.2), run_time=0.8)
-        self.play(dotc.animate.move_to(right.get_top() + UP * 0.45 + RIGHT * 1.0), run_time=1.0, path_arc=-0.6)
-        self.at("its purpose was always")
-        up = arrow([right.get_top()[0] - 0.9, right.get_top()[1] + 0.1, 0], [0.9, a1.get_bottom()[1] - 0.05, 0], GOLD, 7)
-        self.play(GrowArrow(up), Indicate(a1, color=GOLD, scale_factor=1.3), run_time=1.0)
+        self.play(FadeOut(acetyl_token), FadeOut(bicarbonate_token), FadeOut(atp, scale=0.4),
+                  FadeIn(product, shift=RIGHT * 0.5), FadeIn(handle), run_time=1.0)
+        self.at("extra carboxyl group")
+        self.play(Indicate(handle, color=YELLOW, scale_factor=1.18), run_time=0.85)
+        alt1 = Line([3.1, -0.5, 0], [5.5, 1.35, 0], color=GREY, stroke_width=4)
+        alt2 = Line([3.1, -0.5, 0], [5.5, -2.0, 0], color=GREY, stroke_width=4)
+        route = Arrow([3.1, -1.25, 0], [5.7, -1.25, 0], buff=0.05,
+                      color=GREEN, stroke_width=7, tip_length=0.25)
+        self.at("Because the malonyl")
+        self.play(product.animate.shift(RIGHT * 0.35), handle.animate.shift(RIGHT * 0.35),
+                  Rotate(crank, PI), run_time=1.35)
+        self.at("essentially one fate")
+        self.play(Create(alt1), Create(alt2), run_time=0.45)
+        self.play(Uncreate(alt1), Uncreate(alt2), GrowArrow(route), run_time=0.9)
+        committed = chip("COMMITTED STEP", GOLD, size=29).move_to([0, -1.9, 0])
+        self.at("committed step")
+        self.play(FadeIn(committed, shift=UP * 0.2), product.animate.shift(RIGHT * 0.35),
+                  handle.animate.shift(RIGHT * 0.35), run_time=0.85)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S05Gambit(SpokenScene):
-    """Why pay ATP to attach CO2 only to throw it away: two schematic energy diagrams, direct vs pay-first."""
+class S04Predict(SpokenScene):
+    def construct(self):
+        fas, ext, handle, question, chain, out, a_chain, a_out = prediction_layout(self)
+        self.add(fas, ext, handle)
+        self.at("Now predict")
+        self.play(ext.animate.move_to([0.2, -0.45, 0]), handle.animate.shift(RIGHT * 1.35), run_time=1.0)
+        self.at("fatty acid synthase")
+        self.play(Indicate(fas[0], color=BLUE, scale_factor=1.03), run_time=0.75)
+        self.at("newly attached carboxyl")
+        self.play(Indicate(handle, color=YELLOW, scale_factor=1.22), run_time=0.8)
+        self.at("carbon end up")
+        self.play(Write(question), run_time=0.7)
+        self.at("In the chain")
+        self.play(GrowArrow(a_chain), FadeIn(chain), run_time=0.65)
+        self.at("somewhere else")
+        self.play(GrowArrow(a_out), FadeIn(out), run_time=0.65)
+        self.play(a_chain.animate.set_opacity(0.45), a_out.animate.set_opacity(1), run_time=0.35)
+        self.finish()
+
+
+class S05PredictHold(Scene):
+    def construct(self):
+        fas, ext, handle, question, chain, out, a_chain, a_out = prediction_layout(self)
+        self.add(fas, ext, handle, question, chain, out, a_chain, a_out)
+        self.play(Indicate(handle, color=YELLOW, scale_factor=1.2),
+                  a_chain.animate.set_opacity(0.42), run_time=1.1)
+        self.play(Indicate(out, color=YELLOW, scale_factor=1.15),
+                  a_out.animate.set_opacity(0.45), a_chain.animate.set_opacity(1), run_time=1.1)
+        self.play(Indicate(handle, color=YELLOW, scale_factor=1.2),
+                  a_out.animate.set_opacity(1), a_chain.animate.set_opacity(0.45), run_time=1.1)
+        self.wait(1.2)
+
+
+class S06Condense(SpokenScene):
+    def construct(self):
+        floor_world(self)
+        fas = fas_machine(center=np.array([1.55, -0.05, 0]))
+        primer = carbon_block("2C PRIMER", width=2.25).move_to([-4.8, 0.25, 0])
+        extender = carbon_block("2C EXTENDER", width=2.45).move_to([-4.8, -1.15, 0])
+        handle = badge().scale(0.84).next_to(extender, UP, buff=0.05)
+        self.add(fas, primer, extender, handle)
+
+        self.at("joins the extender")
+        self.play(primer.animate.move_to([0.35, 0.85, 0]), run_time=0.65)
+        self.play(extender.animate.move_to([0.35, -0.75, 0]),
+                  handle.animate.move_to([0.35, -0.05, 0]), run_time=0.75)
+        chain = carbon_block("4C CHAIN", width=3.7).move_to([1.8, -0.3, 0])
+        self.at("During condensation")
+        self.play(ReplacementTransform(VGroup(primer, extender), chain), run_time=0.9)
+        correct = Arrow(handle.get_center(), [2.4, 2.0, 0], buff=0.2,
+                        color=YELLOW, stroke_width=7, tip_length=0.25)
+        self.at("leaves as carbon dioxide")
+        self.play(GrowArrow(correct), handle.animate.move_to([2.4, 2.7, 0]), run_time=1.1)
+        star = T("★", size=34, color=YELLOW).move_to(handle)
+        self.at("labeled bicarbonate")
+        self.play(FadeIn(star, scale=0.5), handle.animate.shift(UP * 0.45),
+                  star.animate.shift(UP * 0.45), run_time=0.8)
+        clean = chip("NO LABEL IN CHAIN", GREEN, size=28).move_to([-3.8, 2.05, 0])
+        self.at("remains in palmitate")
+        self.play(FadeIn(clean), Indicate(chain, color=GREEN, scale_factor=1.05),
+                  FadeOut(VGroup(handle, star), shift=UP * 0.4), run_time=1.0)
+        self.finish()
+
+
+class S07Why(SpokenScene):
+    def construct(self):
+        floor_world(self)
+        schematic = chip("SCHEMATIC ENERGY TRACK", GREY, size=28).move_to([0, 3.2, 0])
+        # Piecewise linear track: the height is explanatory, not quantitative.
+        track = VMobject(color=GREY, stroke_width=8).set_points_as_corners([
+            [-5.8, -1.4, 0], [-2.7, -1.4, 0], [-0.6, 1.2, 0],
+            [1.0, 1.2, 0], [3.0, -1.6, 0], [5.8, -1.6, 0],
+        ])
+        a = carbon_block("acetyl", width=1.55).move_to([-5.0, -0.85, 0])
+        b = carbon_block("acetyl", width=1.55).move_to([-3.3, -0.85, 0])
+        self.add(schematic, track, a, b)
+        self.at("That loss is useful")
+        self.play(Indicate(track, color=YELLOW), run_time=0.8)
+        self.at("Joining two acetyl")
+        self.play(a.animate.move_to([-5.0, 0.2, 0]),
+                  b.animate.move_to([-3.3, 1.9, 0]), run_time=0.4)
+        self.play(a.animate.move_to([-2.2, 0.2, 0]),
+                  b.animate.move_to([-0.9, 1.9, 0]), run_time=0.6)
+        self.at("is uphill")
+        self.play(a.animate.move_to([-5.0, 0.2, 0]),
+                  b.animate.move_to([-3.3, 1.9, 0]), run_time=0.45)
+        self.play(a.animate.move_to([-5.0, -0.85, 0]),
+                  b.animate.move_to([-3.3, -0.85, 0]), run_time=0.4)
+        spr = spring(center=np.array([-0.4, -2.0, 0]), width=2.8)
+        atp = coin().move_to([-2.7, 2.0, 0])
+        loaded = carbon_block("malonyl", width=1.9).move_to([0.3, 1.95, 0])
+        co = badge().scale(0.82).next_to(loaded, UP, buff=0.05)
+        self.at("Releasing carbon dioxide")
+        self.play(FadeIn(loaded), FadeIn(co), FadeIn(spr), run_time=0.8)
+        self.at("strongly downhill")
+        self.play(co.animate.move_to([2.7, 1.8, 0]), loaded.animate.move_to([3.3, -1.05, 0]), run_time=1.0)
+        joined = carbon_block("new C–C bond", width=2.65).move_to([4.35, -1.0, 0])
+        self.at("coupling the events")
+        self.play(ReplacementTransform(VGroup(a, b, loaded), joined),
+                  spr.animate.stretch(1.35, 0), run_time=1.05)
+        self.at("bond forward")
+        self.play(joined.animate.shift(RIGHT * 0.7), FadeOut(co, shift=UP * 0.3), run_time=0.75)
+        self.at("spend a TP")
+        self.play(FadeIn(atp), atp.animate.move_to(spr.get_left() + LEFT * 0.25), run_time=0.75)
+        self.at("load this molecular spring")
+        self.play(Transform(spr, spring(center=spr.get_center(), width=1.5)),
+                  FadeOut(atp, scale=0.5), run_time=1.0)
+        self.finish()
+
+
+class S08Crdr(SpokenScene):
+    def construct(self):
+        group, path, stations = loop_world(self)
+        cargo = RoundedRectangle(corner_radius=0.1, width=0.78, height=0.42,
+                                 stroke_color=GREEN, stroke_width=3,
+                                 fill_color=GREEN, fill_opacity=0.28).move_to(FAS_C + UP * TRAVEL_R)
+        cap = Dot(radius=0.1, color=YELLOW).move_to(cargo.get_top() + DOWN * 0.05)
+        chain_label = carbon_block("4C CHAIN", width=2.0).move_to([-3.75, 0.35, 0])
+        carbonyl = chip("carbonyl", YELLOW, size=28).move_to([-3.75, 1.5, 0])
+        self.add(cargo, cap, chain_label, carbonyl)
+        self.at("Condensation leaves")
+        self.play(Indicate(cargo, color=GREEN), Indicate(chain_label, color=GREEN), run_time=0.9)
+        self.at("carbonyl")
+        self.play(Indicate(carbonyl, color=YELLOW, scale_factor=1.12),
+                  Indicate(cap, color=YELLOW, scale_factor=1.6), run_time=0.75)
+        crdr = T("C   R   D   R", size=40, color=TEXT, weight=BOLD).move_to([-3.4, 2.6, 0])
+        self.at("fatty acid synthase")
+        self.remove(chain_label, carbonyl)
+        self.play(FadeIn(crdr, shift=DOWN * 0.15), run_time=0.75)
+        self.at("finishes CRDR")
+        self.play(VGroup(cargo, cap).animate.move_to(FAS_C + RIGHT * TRAVEL_R), run_time=0.9)
+        n1 = battery().move_to([-3.7, 0.8, 0])
+        n2 = battery().move_to([-3.7, -0.4, 0])
+        self.at("reduction", nth=0)
+        self.play(FadeIn(n1), Indicate(stations[1], color=PURPLE), run_time=0.7)
+        self.at("dehydration")
+        self.play(VGroup(cargo, cap).animate.move_to(FAS_C + DOWN * TRAVEL_R),
+                  FadeOut(n1, scale=0.5), run_time=0.8)
+        self.at("reduction", nth=1)
+        self.play(FadeIn(n2), VGroup(cargo, cap).animate.move_to(FAS_C + LEFT * TRAVEL_R),
+                  Indicate(stations[3], color=PURPLE), run_time=0.8)
+        electrons = VGroup(*[Dot(radius=0.1, color=PURPLE) for _ in range(4)]).arrange(RIGHT, buff=0.18)
+        electrons.move_to([-3.7, -1.5, 0])
+        self.at("four electrons")
+        self.play(FadeIn(electrons), electrons.animate.move_to(cargo), FadeOut(n2, scale=0.5), run_time=0.9)
+        saturated = chip("saturated segment", GREEN, size=28).move_to([-3.45, 0.25, 0])
+        self.at("saturated segment")
+        self.play(FadeIn(saturated), FadeOut(electrons), FadeOut(cap),
+                  cargo.animate.move_to(FAS_C + UP * TRAVEL_R), run_time=1.0)
+        self.finish()
+
+
+class S09Rule(SpokenScene):
+    def construct(self):
+        group, path, stations = loop_world(self, show_acc=True)
+        rule = T("ONE TURN", size=34, font=TITLE_FONT).move_to([0, 3.25, 0])
+        primer = carbon_block("P", width=0.78).move_to(FAS_C + UP * TRAVEL_R)
+        primer_label = carbon_block("primer", width=1.55).move_to([-1.0, 2.1, 0])
+        extender = carbon_block("2C", width=1.25).move_to([-5.65, -0.85, 0])
+        self.add(rule, primer, primer_label)
+        self.at("Here is the rule")
+        self.play(Indicate(rule, color=GOLD, scale_factor=1.08), run_time=0.75)
+        self.at("After the primer")
+        self.play(Indicate(primer_label, color=GREEN, scale_factor=1.1),
+                  Indicate(primer, color=GREEN, scale_factor=1.1), run_time=0.75)
+        self.at("each CRDR turn")
+        self.play(FadeOut(primer_label), MoveAlongPath(primer, path), run_time=1.1, rate_func=linear)
+        self.at("adds two carbons")
+        self.play(FadeIn(extender), extender.animate.move_to([-1.0, 0.1, 0]), run_time=0.9)
+        counter = label_box("+2 CARBONS", GREEN, width=2.65).move_to([-5.3, 2.35, 0])
+        self.at("one malonyl")
+        self.play(ReplacementTransform(extender, counter), Indicate(primer, color=GREEN), run_time=0.85)
+        atp = coin().move_to([-5.5, 1.2, 0])
+        n1 = battery().move_to([-1.2, -1.15, 0])
+        n2 = battery().move_to([-1.2, -2.05, 0])
+        self.at("costs one ATP")
+        self.play(FadeIn(atp), Indicate(group[-1][2], color=TEAL), run_time=0.75)
+        bill1 = label_box("−1 ATP", TEAL, width=1.8).move_to([-4.65, -1.85, 0])
+        self.at("at a CC")
+        self.play(ReplacementTransform(atp, bill1), run_time=0.65)
+        self.at("two NADPH")
+        self.play(FadeIn(n1), FadeIn(n2), Indicate(stations[1], color=PURPLE),
+                  Indicate(stations[3], color=PURPLE), run_time=0.8)
+        bill2 = label_box("−2 NADPH", PURPLE, width=2.35).move_to([-1.4, -1.9, 0])
+        self.at("fatty acid synthase")
+        self.play(ReplacementTransform(VGroup(n1, n2), bill2),
+                  MoveAlongPath(primer, path), run_time=1.0, rate_func=linear)
+        self.finish()
+
+
+class S10Repeat(SpokenScene):
+    def construct(self):
+        group, path, stations = loop_world(self, show_acc=True)
+        chain = carbon_block("4C", width=0.85).move_to(FAS_C + UP * TRAVEL_R)
+        counter = M("4 C", size=44, color=GREEN).move_to([-3.8, 2.55, 0])
+        atp_used = M("ATP used  1", size=29, color=TEAL).move_to([-3.8, -1.55, 0])
+        nadph_used = M("NADPH used  2", size=29, color=PURPLE).move_to([-3.8, -2.05, 0])
+        self.add(chain, counter, atp_used, nadph_used)
+        self.at("chain returns")
+        self.play(MoveAlongPath(chain, path), run_time=1.25, rate_func=linear)
+        self.at("same machine repeats")
+        counts = [6, 8, 10, 12, 14, 16]
+        for i, count in enumerate(counts, start=2):
+            mal = carbon_block("malonyl", width=1.55, size=28).move_to([-6.0, 0.05, 0])
+            new_chain = carbon_block(f"{count}C", width=0.95).move_to(chain)
+            new_count = M(f"{count} C", size=44, color=GREEN).move_to(counter)
+            new_atp = M(f"ATP used  {i}", size=29, color=TEAL).move_to(atp_used)
+            new_nad = M(f"NADPH used  {2*i}", size=29, color=PURPLE).move_to(nadph_used)
+            self.play(FadeIn(mal, shift=RIGHT * 0.2), mal.animate.move_to([-1.0, 0.05, 0]),
+                      MoveAlongPath(chain, path), run_time=0.46, rate_func=linear)
+            self.play(FadeOut(mal, scale=0.4), Transform(chain, new_chain),
+                      Transform(counter, new_count), Transform(atp_used, new_atp),
+                      Transform(nadph_used, new_nad), run_time=0.38)
+        self.at("Fatty acid synthase then releases")
+        self.play(chain.animate.move_to([0, 3.3, 0]), run_time=0.9)
+        pal = chip("PALMITATE", GREEN, size=34).move_to([0, 3.3, 0])
+        self.at("palmitate")
+        self.remove(chain)
+        self.play(FadeIn(pal), run_time=0.8)
+        self.at("saturated 16")
+        self.play(Indicate(counter, color=GREEN, scale_factor=1.14),
+                  pal.animate.set_fill(GREEN, opacity=0.28), run_time=0.9)
+        self.finish()
+
+
+class S11ScopeReturn(SpokenScene):
+    def construct(self):
+        group, path, stations = loop_world(self, show_acc=True)
+        pal = chip("PALMITATE  ·  16C SATURATED", GREEN, size=31).move_to([0, 3.3, 0])
+        stop = VGroup(RegularPolygon(n=8, radius=0.62, color=RED,
+                                     fill_color=RED, fill_opacity=0.2),
+                      T("STOP", size=28, color=RED, weight=BOLD)).move_to([5.45, 0.05, 0])
+        stop[1].move_to(stop[0])
+        self.add(pal)
+        self.at("mostly stops there")
+        self.play(FadeIn(stop, scale=0.7), pal.animate.shift(RIGHT * 0.25), run_time=0.85)
+        longer = Arrow([3.9, 1.35, 0], [5.85, 1.35, 0], buff=0.05,
+                       color=GREY, stroke_width=4, tip_length=0.2)
+        double = Arrow([3.9, -1.1, 0], [5.85, -1.1, 0], buff=0.05,
+                       color=GREY, stroke_width=4, tip_length=0.2)
+        longer_l = T("longer later", size=28, color=TEXT).next_to(longer, UP, buff=0.12)
+        double_l = T("double bonds later", size=28, color=TEXT).next_to(double, DOWN, buff=0.12)
+        self.at("Longer chains")
+        self.remove(stop)
+        self.play(GrowArrow(longer), FadeIn(longer_l), run_time=0.8)
+        self.at("double bonds")
+        self.play(GrowArrow(double), FadeIn(double_l), run_time=0.8)
+        frame = RoundedRectangle(corner_radius=0.3, width=12.3, height=6.45,
+                                 stroke_opacity=0, fill_color=GOLD,
+                                 fill_opacity=0.035).move_to([0, -0.05, 0])
+        frame.set_z_index(-1)
+        tag = chip("THIS FILM'S RULE", GOLD, size=28).move_to([-4.7, 2.75, 0])
+        self.at("this film's rule")
+        self.remove(longer, longer_l, double, double_l)
+        self.play(Create(frame), FadeIn(tag), run_time=0.85)
+        self.at("saturated chain")
+        self.remove(tag)
+        self.play(Indicate(pal, color=GREEN, scale_factor=1.08), run_time=0.8)
+        input_block = carbon_block("acetyl CoA", width=2.15).move_to([-5.3, -2.0, 0])
+        self.at("starts from acetyl")
+        self.play(FadeIn(input_block, shift=RIGHT * 0.25), run_time=0.75)
+        self.at("in the cytoplasm")
+        cyt = T("cytoplasm", size=28, color=GREY).move_to([-5.3, -1.35, 0])
+        marker = RoundedRectangle(corner_radius=0.08, width=0.62, height=0.42,
+                                  stroke_color=GREEN, stroke_width=3,
+                                  fill_color=GREEN, fill_opacity=0.25).move_to([-5.2, -0.7, 0])
+        self.play(FadeIn(cyt), ReplacementTransform(input_block, marker), run_time=0.8)
+        self.finish()
+
+
+class S12Return(SpokenScene):
+    def construct(self):
+        group, path, stations = loop_world(self, show_acc=True)
+        chain = carbon_block("C", width=0.78).move_to(FAS_C + UP * TRAVEL_R)
+        additions = label_box("ADDITIONS  4", GREEN, width=2.8).move_to([-5.1, 2.65, 0])
+        gains = label_box("CARBONS  +8", GREEN, width=2.7).move_to([-1.55, 3.2, 0])
+        costs = VGroup(
+            label_box("ATP  4", TEAL, width=2.15),
+            label_box("NADPH  8", PURPLE, width=2.35),
+        ).arrange(RIGHT, buff=0.2).move_to([-3.6, -2.2, 0])
+        handle = badge().scale(0.78).move_to([-1.4, 1.5, 0])
+        self.add(chain, additions, gains, costs, handle)
+        self.at("discarded carbon")
+        self.play(Indicate(handle, color=YELLOW), run_time=0.9)
+        self.at("never a building block")
+        hdot = Dot(radius=0.18, color=YELLOW).move_to(handle)
+        self.play(ReplacementTransform(handle, hdot), run_time=0.3)
+        self.play(hdot.animate.move_to([1.1, 2.45, 0]),
+                  Indicate(chain, color=GREEN), run_time=0.5)
+        temp = chip("TEMPORARY HANDLE", YELLOW, size=28).move_to([3.0, 3.2, 0])
+        self.at("temporary handle")
+        self.play(ReplacementTransform(hdot, temp), run_time=0.75)
+        atp = coin().move_to([-5.65, 0.35, 0])
+        self.at("bought with a TP")
+        self.play(FadeIn(atp), Indicate(group[-1][2], color=TEAL), run_time=0.8)
+        self.at("release drives")
+        self.play(FadeOut(temp, shift=UP * 0.4), FadeOut(atp, scale=0.4),
+                  MoveAlongPath(chain, path), run_time=1.0, rate_func=linear)
+        # Three representative cycles: attach handle, release it, transfer electrons, +2.
+        for idx, total in enumerate((5, 6, 7), start=1):
+            h = Dot(radius=0.18, color=YELLOW).move_to([-1.2, 1.3, 0])
+            electrons = VGroup(*[Dot(radius=0.08, color=PURPLE) for _ in range(4)])
+            electrons.arrange(RIGHT, buff=0.1).move_to([-1.25, -1.15, 0])
+            self.play(FadeIn(h), FadeIn(electrons), h.animate.move_to([1.0, 1.6, 0]), run_time=0.48)
+            new_add = label_box(f"ADDITIONS  {total}", GREEN, width=2.8).move_to(additions)
+            new_gain = label_box(f"CARBONS  +{total*2}", GREEN, width=2.7).move_to(gains)
+            new_costs = VGroup(
+                label_box(f"ATP  {total}", TEAL, width=2.15),
+                label_box(f"NADPH  {total*2}", PURPLE, width=2.35),
+            ).arrange(RIGHT, buff=0.2).move_to(costs)
+            self.play(h.animate.shift(UP * 1.3), electrons.animate.move_to(chain), FadeOut(electrons),
+                      MoveAlongPath(chain, path), Transform(additions, new_add),
+                      Transform(gains, new_gain), Transform(costs, new_costs),
+                      run_time=0.72, rate_func=linear)
+            self.remove(h)
+        self.at("Count the malonyl additions")
+        self.play(Indicate(additions, color=GREEN, scale_factor=1.1), run_time=0.75)
+        self.at("two carbon gains")
+        self.play(Indicate(gains, color=GREEN, scale_factor=1.1), run_time=0.75)
+        self.at("their cost")
+        self.play(Indicate(costs, color=GOLD, scale_factor=1.06), run_time=0.85)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "Each two-carbon addition costs one ATP and two NADPH."
 
     def construct(self):
-        q = heading("A fair question", 34)
-        ac = acetyl(26).move_to([-4.8, 0.9, 0])
-        mal = malonyl(26).move_to([-0.2, 0.9, 0])
-        jn = chip("joined chain", YELLOW, 26).move_to([4.5, 0.9, 0])
-        a1 = arrow(ac.get_right(), mal.get_left(), GREY, 4)
-        a2 = arrow(mal.get_right(), jn.get_left(), GREY, 4)
-        self.play(FadeIn(q, shift=DOWN * 0.15), FadeIn(ac), run_time=0.8)
-        self.at("Why spend an ATP")
-        atp_c = atp(24).move_to([-2.8, 1.85, 0])
-        co_c = co2(24).move_to([-1.7, 1.85, 0])
-        st2 = T("stage two", 24, GREY).next_to(a1, DOWN, buff=0.15)
-        self.play(Transform(q, heading("Why spend ATP to throw CO₂ away?", 34)), GrowArrow(a1), FadeIn(mal),
-                  FadeIn(atp_c, shift=DOWN * 0.15), run_time=0.8)
-        self.at("to attach a carbon dioxide")
-        self.play(FadeIn(co_c, shift=DOWN * 0.15), run_time=0.5)
-        self.at("in stage two")
-        self.play(FadeIn(st2), run_time=0.4)
-        self.at("throw that same carbon dioxide away")
-        co_out = co2(24).move_to([2.2, 1.85, 0])
-        cond = T("condensation", 24, GREY).next_to(a2, DOWN, buff=0.15)
-        self.play(GrowArrow(a2), FadeIn(jn), FadeIn(co_out, shift=UP * 0.15), FadeIn(cond), run_time=1.0)
-        self.at("It looks wasteful")
-        waste = T("looks wasteful…", 30, GOLD).move_to([0, -0.5, 0])
-        self.play(FadeIn(waste, shift=UP * 0.1), run_time=0.7)
-
-        # ---- the answer: two energy diagrams
-        self.at("buying thermodynamics")
-        row = VGroup(ac, mal, jn, a1, a2, atp_c, co_c, st2, co_out, cond, waste)
-        self.play(FadeOut(row), Transform(q, heading("The cell is buying thermodynamics", 34)), run_time=0.8)
-        self.at("Direct condensation")
-        ox, oy = -6.2, -3.3
-        axL = Arrow([ox, oy, 0], [ox, 1.6, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.2, max_tip_length_to_length_ratio=1)
-        axL_l = T("free energy", 24, GREY).rotate(PI / 2).move_to([ox - 0.4, -0.8, 0])
-        tL = T("Direct condensation", 28, TEXT).move_to([-3.9, 2.3, 0])
-        yst, yup = -2.2, -0.5
-        lv1 = Line([-5.4, yst, 0], [-4.4, yst, 0], color=TEXT, stroke_width=6)
-        lv2 = Line([-3.1, yup, 0], [-2.0, yup, 0], color=TEXT, stroke_width=6)
-        cv1 = CubicBezier([-4.4, yst, 0], [-3.9, yst, 0], [-3.7, yup, 0], [-3.1, yup, 0], color=TEXT, stroke_width=5)
-        l1 = T("2 acetyl CoA", 24, YELLOW).next_to(lv1, DOWN, buff=0.12)
-        l2 = T("joined chain", 24, YELLOW).next_to(lv2, UP, buff=0.12)
-        self.play(FadeIn(tL), Create(axL), FadeIn(axL_l), Create(lv1), FadeIn(l1), run_time=0.9)
-        self.at("is unfavorable")
-        self.play(Create(cv1), Create(lv2), FadeIn(l2), run_time=1.1)
-        self.at("would barely proceed")
-        stall = T("uphill: barely goes", 26, GREY).move_to([-3.9, -3.25, 0])
-        xx = Cross(Square(side_length=0.45), stroke_color=RED, stroke_width=6).move_to([-3.8, -1.35, 0])
-        self.play(FadeIn(stall), Create(xx), run_time=0.8)
-
-        # right panel: pay first
-        self.at("By investing one ATP")
-        tR = T("Carboxylate first", 28, TEXT).move_to([2.5, 2.3, 0])
-        r0, r1, r2 = -2.2, 0.7, -2.9
-        rs = Line([-0.9, r0, 0], [0.3, r0, 0], color=TEXT, stroke_width=6)
-        rm = Line([1.7, r1, 0], [2.9, r1, 0], color=TEXT, stroke_width=6)
-        re = Line([4.4, r2, 0], [5.6, r2, 0], color=TEXT, stroke_width=6)
-        ls = T("2 acetyl CoA", 24, YELLOW).next_to(rs, DOWN, buff=0.12)
-        lm = T("malonyl CoA:\nenergy stored", 24, GREEN, line_spacing=0.9).next_to(rm, UP, buff=0.12)
-        le = T("joined chain\n+ CO₂", 24, YELLOW, line_spacing=0.9).next_to(re, DOWN, buff=0.12)
-        up_a = Arrow([1.0, r0, 0], [1.0, r1, 0], buff=0, color=TEAL, stroke_width=7, tip_length=0.25)
-        up_l = T("+1 ATP", 26, TEAL).next_to(up_a, RIGHT, buff=0.12).shift(DOWN * 0.5)
-        self.play(FadeIn(tR), Create(rs), FadeIn(ls), run_time=0.7)
-        self.play(GrowArrow(up_a), FadeIn(up_l), run_time=0.9)
-        self.at("stores")
-        self.play(Create(rm), FadeIn(lm), run_time=0.9)
-        self.at("that carbon dioxide is released")
-        co_l = co2(24).move_to([4.9, r1 + 0.65, 0])
-        co_arrow = arrow([3.5, r1 + 0.3, 0], [4.35, r1 + 0.55, 0], RED, 3)
-        self.play(FadeIn(co_l, shift=LEFT * 0.4), GrowArrow(co_arrow), run_time=0.7)
-        self.at("strongly downhill")
-        cv2 = CubicBezier([2.9, r1, 0], [3.7, r1, 0], [3.6, r2, 0], [4.4, r2, 0], color=GOLD, stroke_width=7)
-        dl = T("strongly\ndownhill", 26, GOLD, line_spacing=0.9).move_to([5.4, -0.9, 0])
-        self.play(Create(cv2), Create(re), FadeIn(le), FadeIn(dl), run_time=1.2)
-
-        # ---- gambit
-        self.at("It is a gambit")
-        self.play(Transform(q, heading("The gambit", 34)), run_time=0.5)
-        left_stuff = VGroup(axL, axL_l, tL, lv1, lv2, cv1, l1, l2, stall, xx, tR, rs, rm, re, ls, lm, le, up_a, up_l, co_l, co_arrow, cv2, dl)
-        self.play(FadeOut(left_stuff), run_time=0.7)
-        c1 = chip("pay up front", TEAL, 32).move_to([-4.3, 0.4, 0])
-        c2 = chip("release on demand", RED, 32).move_to([0.0, 0.4, 0])
-        c3 = chip("gain control", GOLD, 32).move_to([4.3, 0.4, 0])
-        ar1 = arrow(c1.get_right(), c2.get_left(), TEXT, 4)
-        ar2 = arrow(c2.get_right(), c3.get_left(), TEXT, 4)
-        self.at("Pay up front")
-        self.play(FadeIn(c1, shift=UP * 0.2), run_time=0.6)
-        self.at("release on demand")
-        self.play(GrowArrow(ar1), FadeIn(c2, shift=UP * 0.2), run_time=0.7)
-        self.at("gain control")
-        self.play(GrowArrow(ar2), FadeIn(c3, shift=UP * 0.2), run_time=0.7)
-        self.at("otherwise would not run")
-        cap = T("a reaction that otherwise would not run", 28, GREY).move_to([0, -1.2, 0])
-        self.play(FadeIn(cap, shift=UP * 0.1), run_time=0.6)
-        # ---- every carbon traces back to acetyl CoA
-        self.at("Every carbon still traces")
-        self.play(Transform(q, heading("Where every carbon comes from", 34)), FadeOut(VGroup(c1, c2, c3, ar1, ar2, cap)), run_time=0.4)
-        bl = VGroup(*[chip("2C", YELLOW, 26, pad=0.16) for _ in range(8)]).arrange(RIGHT, buff=0.12).move_to([0, 0.4, 0])
-        brc = Brace(bl, DOWN, buff=0.2, color=YELLOW)
-        cap2 = T("palmitate: 16 carbons, every one from acetyl CoA", 28, YELLOW).next_to(brc, DOWN, buff=0.2)
-        self.play(LaggedStart(*[FadeIn(b, scale=0.6) for b in bl], lag_ratio=0.08), run_time=0.9)
-        self.at("traces")
-        self.play(GrowFromCenter(brc), FadeIn(cap2, shift=UP * 0.1), run_time=0.9)
+        floor_world(self, dim=0.34)
+        line = T(self.LINE, size=43, font=TITLE_FONT)
+        fit(line, max_w=11.7)
+        line.move_to([0, 1.0, 0])
+        block = carbon_block("+2C", width=1.45).move_to([-5.4, -1.15, 0])
+        rule = Line([-5.8, 0.25, 0], [5.8, 0.25, 0], color=GOLD, stroke_width=4)
+        self.play(FadeIn(line, shift=UP * 0.15), Create(rule), run_time=0.8)
+        self.play(FadeIn(block), block.animate.move_to([5.25, -1.15, 0]), run_time=2.15, rate_func=linear)
         self.finish()
-
-
-# --------------------------------------------------------------------------------------------
-class S06End(EndCard):
-    LINE = "Pay one ATP up front; let CO₂ pull the chain forward."

@@ -116,14 +116,14 @@ def gauge(pointer_y=0.0, low_y=-1.25, high_y=1.25, show_ticks=False):
 
 
 def tick_pair_labels():
-    lo = label("tight Cc", GREEN, 28, BOLD).move_to([3.92, -1.25, 0])
-    hi = label("loose Cc", RED, 28, BOLD).move_to([3.90, 1.25, 0])
+    lo = label("tight Cc", GREEN, 28, BOLD).move_to([3.72, -1.25, 0])
+    hi = label("loose Cc", RED, 28, BOLD).move_to([3.70, 1.25, 0])
     return lo, hi
 
 
-def arrow_with_label(start, end, text, color):
+def arrow_with_label(start, end, text, color, side=UP):
     a = Arrow(start, end, buff=0.05, color=color, stroke_width=7, tip_length=0.28)
-    t = label(text, color, 30, BOLD).next_to(a, UP, buff=0.12)
+    t = label(text, color, 30, BOLD).next_to(a, side, buff=0.12)
     return VGroup(a, t)
 
 
@@ -198,7 +198,7 @@ class S02Doorway(SpokenScene):
         door = doorway()
         self.play(Create(door), run_time=0.7)
         arrive = arrow_with_label([3.0, 0.85, 0], [1.48, 0.85, 0], "arrive  0", GOLD_FRESH)
-        leave = arrow_with_label([1.48, -1.3, 0], [3.0, -1.3, 0], "leave  0", BLUE)
+        leave = arrow_with_label([1.48, -1.3, 0], [3.0, -1.3, 0], "leave  0", BLUE, side=DOWN)
 
         self.at("Subunits arrive")
         arriving = VGroup(*[Dot([3.0 + 0.35 * i, 0.25 + 0.22 * (-1) ** i, 0], radius=0.09, color=GOLD_FRESH) for i in range(4)])
@@ -243,7 +243,7 @@ class S02Doorway(SpokenScene):
 
         self.at("critical concentration")
         cc = Line([GAUGE_X - 0.58, 0, 0], [GAUGE_X + 0.58, 0, 0], color=TEAL, stroke_width=7)
-        ccl = label("Cc", TEAL, 32, BOLD).next_to(cc, LEFT, buff=0.15)
+        ccl = label("Cc", TEAL, 32, BOLD).next_to(cc, RIGHT, buff=0.12)
         self.play(Create(cc), FadeIn(ccl), run_time=0.6)
         self.finish()
 
@@ -256,7 +256,7 @@ class S03Settle(SpokenScene):
         door = doorway()
         g = gauge(0.0)
         cc = Line([GAUGE_X - 0.58, 0, 0], [GAUGE_X + 0.58, 0, 0], color=TEAL, stroke_width=7)
-        ccl = label("Cc", TEAL, 32, BOLD).next_to(cc, LEFT, buff=0.15)
+        ccl = label("Cc", TEAL, 32, BOLD).next_to(cc, RIGHT, buff=0.12)
         self.add(dots, fil, door, g, cc, ccl)
 
         self.at("Above it")
@@ -366,7 +366,7 @@ class S05Idea(SpokenScene):
         tight = chip("tight", GREEN, 30).move_to([2.05, 1.15, 0])
         lo, hi = tick_pair_labels()
         link_r = VMobject(color=GREEN, stroke_width=3).set_points_as_corners(
-            [tight.get_right(), [2.8, -1.95, 0], [4.3, -1.95, 0], [4.55, -1.25, 0]])
+            [tight.get_bottom(), [tight.get_center()[0], 0.5, 0], [3.7, 0.5, 0], [3.7, -0.95, 0]])
         self.play(FadeIn(tight), Create(link_r), FadeIn(lo), run_time=0.8)
         incoming = VGroup(*[subunit(2.6 + i * BX, FY, GOLD_FRESH) for i in range(2)])
         self.play(LaggedStart(*[FadeIn(b, shift=LEFT * 0.22) for b in incoming], lag_ratio=0.5), run_time=0.8)
@@ -374,7 +374,7 @@ class S05Idea(SpokenScene):
         self.at("A loose end")
         loose = chip("loose", RED, 30).move_to([-5.15, 1.15, 0])
         link_l = VMobject(color=RED, stroke_width=3).set_points_as_corners(
-            [loose.get_right(), [-4.25, 2.05, 0], [4.3, 2.05, 0], [4.55, 1.25, 0]])
+            [loose.get_right(), [-4.25, 2.05, 0], [3.7, 2.05, 0], [3.7, 1.5, 0]])
         self.play(FadeIn(loose), Create(link_l), FadeIn(hi), run_time=0.8)
         self.play(fil[0].animate.shift(LEFT * 0.2).rotate(0.1), run_time=0.3, rate_func=there_and_back)
         self.finish()
@@ -496,7 +496,7 @@ class S09Cap(SpokenScene):
         cap = VGroup(*tube[-3:])
         br = Brace(cap, UP, color=GOLD_FRESH, buff=0.15)
         capl = label("GTP cap", GOLD_FRESH, 30, BOLD).next_to(br, UP, buff=0.1)
-        tight = chip("tight", GREEN, 28).move_to([4.3, 1.9, 0])
+        tight = chip("tight", GREEN, 28).move_to([5.3, 1.9, 0])
         new = tube_columns(3.16, 3, fresh=3, y=0.0, rows=5, dx=0.56, dy=0.50)
         self.play(GrowFromCenter(br), FadeIn(capl), FadeIn(tight),
                   LaggedStart(*[FadeIn(c, shift=LEFT * 0.25) for c in new], lag_ratio=0.45),
@@ -525,7 +525,7 @@ class S10Catastrophe(SpokenScene):
         cap = VGroup(*tube[-3:])
         br = Brace(cap, UP, color=GOLD_FRESH, buff=0.12)
         capl = label("GTP cap", GOLD_FRESH, 28, BOLD).next_to(br, UP, buff=0.08)
-        tight = chip("tight", GREEN, 28).move_to([4.5, 2.25, 0])
+        tight = chip("tight", GREEN, 28).move_to([5.4, 2.25, 0])
         self.add(dots, tube, br, capl, tight)
 
         self.at("lost by chance")
@@ -574,7 +574,7 @@ class S10Catastrophe(SpokenScene):
 
         self.at("starting again is a rescue")
         rescue_dot = Dot(pts[2], radius=0.12, color=GREEN)
-        rescue = label("rescue", GREEN, 28, BOLD).next_to(rescue_dot, DOWN, buff=0.1)
+        rescue = label("rescue", GREEN, 28, BOLD).move_to(rescue_dot.get_center() + DOWN * 0.62 + RIGHT * 0.15)
         newcap = tube_columns(0.92, 2, fresh=2, y=0.65, rows=5, dx=0.56, dy=0.46)
         tight2 = chip("tight", GREEN, 28).move_to(loose)
         self.play(Create(rise2), FadeIn(rescue_dot), FadeIn(rescue), ReplacementTransform(loose, tight2),
@@ -606,7 +606,7 @@ class S11Return(SpokenScene):
         settles = label("crystal settles", GOLD_FRESH, 30, BOLD).move_to([-3.8, -1.15, 0])
         mt = tube_columns(0.65, 10, fresh=2, y=1.25, rows=3, dx=0.47, dy=0.42)
         act = filament(np.arange(0.7, 5.55, 0.47), [BLUE] * 7 + [GOLD_FRESH] * 4, y=-1.15)
-        tags = VGroup(chip("tight", GREEN, 24).move_to([5.5, 2.15, 0]),
+        tags = VGroup(chip("tight", GREEN, 24).move_to([6.0, 2.15, 0]),
                       chip("loose", RED, 24).move_to([0.75, -2.05, 0]))
         self.play(Create(divider), FadeIn(cube), FadeIn(settles), FadeIn(mt), FadeIn(act), FadeIn(tags), run_time=0.9)
 
@@ -641,8 +641,3 @@ class S11Return(SpokenScene):
 
 class S12End(EndCard):
     LINE = "Hydrolysis gives tight and loose ends, so the polymer cannot simply settle."
-
-    def construct(self):
-        dots = drifting_field(13, 28, 0.20, 0.8)
-        self.add(dots)
-        super().construct()

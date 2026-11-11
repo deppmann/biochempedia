@@ -24,9 +24,14 @@ explainer:
   src: "/explainers/protein-purification-techniques/explainer.mp4"
   captions: "/explainers/protein-purification-techniques/explainer.vtt"
   poster: "/explainers/protein-purification-techniques/poster.jpg"
-  title: "Purify it, then prove it"
-  durationSec: 141.6
-  narration: "this lesson's narrated lecture slides, read by an AI narrator voice (Kokoro, af_heart)"
+  title: "Purity Through Selective Loss"
+  durationSec: 195.8
+  takeaways:
+    - "An assay tracks the target through every purification step."
+    - "Specific activity rises when a step retains a larger fraction of target activity than total protein."
+    - "Yield tracks retained activity, while fold-purification tracks enrichment from the start."
+    - "Choose a method using a property that distinguishes the target from contaminants."
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
 scientists:
   - name: "Frederick Sanger"
@@ -578,13 +583,9 @@ import ChromatographyColumn from '../../../components/ChromatographyColumn.astro
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
 
-**Many of the clinical tests you will order as a physician run on the techniques in this lesson.** The pregnancy test detects a hormone with an antibody, the troponin test that helps confirm a heart attack does the same, and the classic confirmatory HIV test was a western blot. Getting one protein out pure is harder. In this lesson's purification, the enzyme starts as roughly 1 part in 3,000 of the protein in the tube, and you cannot see it. So you find it with an assay, judge every step with a ledger, enrich it by sorting on its properties, and then prove what you have.
+**Many of the clinical tests you will order as a physician run on the techniques in this lesson.** The pregnancy test detects a hormone with an antibody, the troponin test that helps confirm a heart attack does the same, and the classic confirmatory HIV test was a western blot. The film above shows why purification can improve even while it loses target enzyme. In the table below, that enzyme begins at roughly 1 part in 3,000 of the protein in the tube.
 
-*About the film above:* it is a short preview, and the text below qualifies four of its lines. Specific activity rises at a good step only while the enzyme keeps its activity per milligram. What you know about the protein picks the methods; load, volume and any tag or ligand you can capture on set their order. A single band (one per kind of subunit) is needed for purity but does not prove it. And MALDI-TOF weighs small peptides too, not only proteins above ten kilodaltons.
-
-> **The one idea to carry through this lesson.** Judge every step by two fractions: the fraction of your target's activity it kept, and the fraction of total protein it kept. Specific activity rises by their ratio. A step helps only when it keeps more of your target than of everything else, and it does that by sorting on a property where your target differs from most other proteins: solubility, charge, size or a binding partner. Across steps the gains multiply, and so do the losses, so purity climbs while quantity falls.
-
-This holds for any assay that counts the target: an enzyme reaction, a binding signal or an antibody signal. Reading it as purity assumes constant activity per milligram of enzyme (Going deeper, "When the ledger lies"). What the protein *is* is a separate question, answered at the end.
+The film's fraction logic holds for any assay that counts the target: an enzyme reaction, a binding signal or an antibody signal. Reading it as purity assumes constant activity per milligram of enzyme (Going deeper, "When the ledger lies"). What the protein *is* is a separate question, answered at the end.
 
 ## Find it: the assay and the unit
 
@@ -614,9 +615,7 @@ A slope is a rate. To turn a rate into an amount of enzyme, biochemists count in
 
 ## Judge it: specific activity, yield and fold
 
-Now weigh all the protein in the same sample. **Specific activity** is units divided by milligrams of total protein.
-
-Picture a jar of mixed marbles. The number of gold marbles is the activity. The *fraction* of marbles that are gold is the purity. Specific activity tracks that fraction: as long as your enzyme stays fully active, doubling the fraction of gold doubles the specific activity.
+The film above uses its gold-and-grey sample to build **specific activity**: units of activity divided by milligrams of total protein. While the enzyme stays fully active, it tracks the gold fraction in the figure below.
 
 <LessonFigure src="/figures/protein-purification-techniques/purification-step-marbles.webp" width={1200} height={800} alt="AI-generated illustration: a jar of 40 marbles, 4 gold and 36 grey, passes through one purification step into a jar of 10 marbles, 3 gold and 7 grey; a tray below holds the discarded 1 gold and 29 grey marbles." caption="One step, counted. It kept 3 of 4 enzyme marbles (75%) but only 10 of 40 marbles overall (25%), so the gold fraction rose 0.75 ÷ 0.25 = 3-fold. Losing some enzyme is fine if you lose far more of everything else." />
 
@@ -638,7 +637,7 @@ Three columns are computed from the other two:
 - **Yield** = total activity now ÷ total activity at the start: how much enzyme you still have.
 - **Fold-purification** = specific activity now ÷ specific activity at the start: how much purer the sample is.
 
-Work the salt cut by hand. It kept 90,000 of 100,000 units (90% of the enzyme) and 3,000 of 10,000 mg (30% of the protein). 0.90 ÷ 0.30 = 3, and specific activity went from 10 to 30. The ratio is exact, because specific activity is activity over protein.
+The film above works the salt cut from the retained fractions; the table keeps the underlying totals.
 
 **Predict.** The affinity step kept about 55% of the activity it was given (36,000 of 66,000 units) and 2% of the protein (1.2 of 60 mg). Is that a good step?
 
@@ -668,7 +667,7 @@ Run the simulator to fill the table one step at a time. On its gel, lane one is 
 
 ## Enrich it: one property per row
 
-Each row of that table was earned by sorting on one property. Step zero: break the cells open into a homogenate, then spin; what sinks is the pellet, and the liquid above it is the supernatant. **Differential centrifugation** uses force as a sieve. A gentle spin drops the heavy nuclei; crank it harder and mitochondria pellet; harder still and the smallest vesicles go down, leaving cytosol in the final supernatant. Each spin trades one mixture for two cleaner ones.
+The film's selector wheel previews the four properties below. Step zero: break the cells open into a homogenate, then spin; what sinks is the pellet, and the liquid above it is the supernatant. **Differential centrifugation** uses force as a sieve. A gentle spin drops the heavy nuclei; crank it harder and mitochondria pellet; harder still and the smallest vesicles go down, leaving cytosol in the final supernatant. Each spin trades one mixture for two cleaner ones.
 
 <LessonFigure src="/figures/protein-purification-techniques/differential-centrifugation-series.webp" width={1200} height={573} alt="AI-generated illustration: four centrifuge tubes in a row, a cloudy homogenate and then three successive spins of increasing force, each leaving a pellet enriched in nuclei, mitochondria or small vesicles, with the supernatant carried on to the next tube and a clear cytosol supernatant in the last tube." caption="Sedimentation depends on size and density. After each spin the supernatant moves to a fresh tube and the pellet is set aside. The fractions are enriched, not pure." />
 

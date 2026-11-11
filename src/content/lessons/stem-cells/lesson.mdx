@@ -4,8 +4,8 @@ slug: "stem-cells"
 course: "cell-biology"
 courseChapter: "Cell Biology · Unit 5: Cells in tissues"
 order: 424
-summary: "Tissues that wear out are kept going by stem cells, which do two jobs at once: they make the tissue's specialized cells, and they keep up their own numbers (self-renewal). A stem cell is defined by those jobs, tested over time, not by how it looks or which marker it carries. This lesson shows how lineage tracing identified the stem cells in the mouse gut crypt. It then shows how local niche signals set the balance between staying a stem cell and differentiating, how other cells can refill the stem pool after injury, and how a specialized cell can be reset all the way to pluripotency. Afterwards you can read a lineage-tracing result, tell sufficiency from requirement in a niche experiment, and say what reprogramming does and does not show."
-hook: "The lining of a mouse's small intestine is replaced every few days, yet it lasts for life. Stem cells do it by making new specialized cells while keeping up their own numbers. How would you prove it?"
+summary: "A stem cell is defined by two jobs tested over time, making a tissue's specialized cells and keeping up its own numbers (self-renewal), not by how it looks or which marker it carries. Those jobs keep tissues that wear out going. This lesson shows how lineage tracing identified the stem cells in the mouse gut crypt. It then shows how local niche signals set the balance between staying a stem cell and differentiating, how other cells can refill the stem pool after injury, and how a specialized cell can be reset all the way to pluripotency. Afterwards you can read a lineage-tracing result, tell sufficiency from requirement in a niche experiment, and say what reprogramming does and does not show."
+hook: "The lining of a mouse's small intestine is replaced every few days, yet it lasts for life. Stem cells do it by making new specialized cells while keeping up their own numbers. How would you prove which cells are the stem cells, and what keeps them that way?"
 
 estMinutes: 22
 objectives:
@@ -28,6 +28,22 @@ explainer:
     - "A permanent lineage mark follows descendants even after they stop expressing Lgr5."
     - "In the normally renewing mouse small intestine, Lgr5-high stem cells appear to compete for limited crypt-base positions."
     - "The stem-cell pool can stay balanced while most clones vanish and one may take over."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/stem-cells/chapter-2.mp4"
+    captions: "/explainers/stem-cells/chapter-2.vtt"
+    poster: "/explainers/stem-cells/chapter-2-poster.jpg"
+    title: "What Keeps a Cell a Stem Cell?"
+    durationSec: 174.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A stem-cell niche is the local environment whose contact and signals bias whether a daughter stays a stem cell."
+      - "In the mouse gut, Wnt is strongest at the crypt base and promotes self-renewal; BMP is strongest higher up and suppresses it."
+      - "Cells that move up, away from the base signals, become more likely to leave the stem-cell state."
+      - "Single Lgr5 cells grew into organoids when a matrix and added factors stood in for the niche."
+      - "Injury asks whether cells can regain a tissue stem-cell state; reprogramming asks how far resetting can go."
 
 scientists:
   - name: "James Till and Ernest McCulloch"
@@ -373,26 +389,25 @@ draft: false
 
 import NeutralDriftCrypts from '../../../components/NeutralDriftCrypts.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-The film showed how an inherited mark reveals sustained output and how clone colours can change while a stem-cell pool persists.
-
-The rest of the page first tests what those observations establish and predicts the number of labelled winners. It then asks what limits the positions, who can refill them after injury and whether a specialized nucleus can be reset beyond its tissue; throughout, the rule is to follow descendants over time and keep the experimental conditions attached to the conclusion.
+The first film followed an inherited mark and changing clone colours in one crypt; it did not judge what that evidence establishes, what limits the positions, who can refill them after injury or whether a specialized nucleus can be reset beyond its tissue. Throughout, the rule is to follow descendants over time and keep the experimental conditions attached to the conclusion.
 
 ## What the lineage trace proves—and what it does not
 
-The film supplies the moving evidence; the first task here is to judge it. A stem-cell population produces differentiated descendants and **self-renews**, meaning that a stem-cell pool persists over long periods. One division proves little because **transit-amplifying cells**, short-lived progenitors that divide a few times and then differentiate, also copy themselves briefly. Repeated growth and replating from one cultured cell or transplantation through successive hosts can test persistence.
+A stem-cell population produces differentiated descendants and **self-renews**, meaning that a stem-cell pool persists over long periods. One division proves little because **transit-amplifying cells**, short-lived progenitors that divide a few times and then differentiate, also copy themselves briefly. Repeated growth and replating from one cultured cell or transplantation through successive hosts can test persistence.
 
 The small-intestinal **epithelium**, its cellular lining, folds into finger-like villi above pocket-like crypts (see [epithelia](/lessons/epithelia/)). Absorptive, mucus-secreting goblet and hormone-secreting enteroendocrine cells move up from crypts and are shed at villus tips. Paneth cells instead move down, live for weeks and secrete antibacterial proteins; slender crypt-base columnar cells sit between them.
 
 <LessonFigure src="/figures/stem-cells/crypt-villus-cell-map.webp" width={1200} height={800} alt="AI-generated illustration: a cutaway of a small-intestine villus above a crypt, with absorptive, goblet and enteroendocrine cells on the villus, cells shed at the tip, and an inset of the crypt base showing slender gold columnar cells wedged between granule-filled Paneth cells." caption="Cells are born in the crypt, move up the villus as they differentiate, and are shed at the tip. At the crypt base sit long-lived Paneth cells, which move down rather than up, with slender crypt-base columnar cells squeezed between them." />
 
-In 2007 Nick Barker, Hans Clevers and colleagues found that *Lgr5*, a gene activated by Wnt signalling, is expressed in these cycling columnar cells in mouse small intestine and colon. Expression is a marker, not a fate test. In *Lgr5*-CreERT2 mice, one tamoxifen pulse permanently marks cells expressing *Lgr5* at that moment, and every daughter inherits the mark (the construct is explained in Going deeper; more in [tools for development](/lessons/tools-for-development/)). Label began at the crypt base and, over 60 days, filled ribbons containing every epithelial lineage.
+In 2007 Nick Barker, Hans Clevers and colleagues found that *Lgr5*, a gene activated by Wnt signalling (a local signal that supports stem cells, described in the niche section), is expressed in these cycling columnar cells in mouse small intestine and colon. Expression is a marker, not a fate test. In *Lgr5*-CreERT2 mice, one tamoxifen pulse permanently marks cells expressing *Lgr5* at that moment, and every daughter inherits the mark (the construct is explained in Going deeper; more in [tools for development](/lessons/tools-for-development/)). Label began at the crypt base and, over 60 days, filled ribbons containing every epithelial lineage.
 
 That sustained, multilineage output supports the conclusion that the labelled population contains stem cells; it does not mean every initially marked cell survives. It shows **multipotency**, production of several cell types within one tissue, not **pluripotency**, the ability to make all lineages of the embryo proper. Stem cells need not be dormant, and their definition does not require one stem and one differentiated daughter from every division.
 
 ## Put neutral drift to work
 
-The film's changing colours suggest a population rule; a prediction makes that rule quantitative. If every division produced one stem cell and one transit-amplifying cell, pool size would be fixed by asymmetric division. In 2010 Hugo Snippert, Clevers and colleagues tested that idea, and a fixed hierarchy, with Confetti: a reporter that switches on one of four fluorescent proteins so neighbouring clones usually differ in colour. Mouse small-intestinal Lgr5-high cells divided about once a day, most divisions were symmetric, and over 1 to 6 months surviving clones grew while others vanished. The dynamics are consistent with daughters stochastically retaining a stem-cell position or entering the transit-amplifying pool.
+The first film's changing colours suggest a population rule; a prediction makes that rule quantitative. If every division produced one stem cell and one transit-amplifying cell, pool size would be fixed by asymmetric division. In 2010 Hugo Snippert, Clevers and colleagues tested that idea, and a fixed hierarchy, with Confetti: a reporter that switches on one of four fluorescent proteins so neighbouring clones usually differ in colour. Mouse small-intestinal Lgr5-high cells divided about once a day, most divisions were symmetric, and over 1 to 6 months surviving clones grew while others vanished. The dynamics are consistent with daughters stochastically retaining a stem-cell position or entering the transit-amplifying pool.
 
 **Predict.** A low tamoxifen dose labels 100 crypts, each starting with one marked stem cell. Suppose each crypt has an effective pool of five equivalent competitors—an illustrative number smaller than the number of Lgr5-high cells counted per crypt. After every labelled clone has vanished or filled its crypt, how many fully labelled crypts do you expect?
 
@@ -405,17 +420,19 @@ Only one equivalent competitor eventually fills a crypt, so each of the five is 
 
 The point of the arithmetic is population balance on average. The start has 100 × 1 = 100 labelled stem cells, and the expected end has 20 × 5 = 100. At an intermediate time with 50 surviving clones, their mean size is 100/50 = 2 cells: survivors grow because others disappear. This is not a promise about any one crypt.
 
-That pattern is **neutral drift**, chance competition among equivalent lineages for limited stem-cell positions. The film's handful of positions was the simple case; the fuller picture includes unequal short-term odds and a distinction between cells counted and cells effectively competing, developed in Going deeper.
+That pattern is **neutral drift**, chance competition among equivalent lineages for limited stem-cell positions. The first film's handful of positions was the simplest case; the fuller picture includes unequal short-term odds and a distinction between cells counted and cells effectively competing, developed in Going deeper.
 
 <NeutralDriftCrypts />
 
+Every one of those drift calculations assumes a limited number of stem-cell positions. The second film picks up here: what limits those positions, and what keeps a cell in the stem-cell state?
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## The niche: what limits a stem-cell position
 
-The film treated positions as limited; this section supplies the mechanism. A stem-cell **niche** is the local environment whose contact and signals bias whether a daughter retains a stem-cell position or differentiates. Wnt signalling is strongest at the crypt base and promotes self-renewal; R-spondin, EGF and Notch also support the base, whereas BMP is strongest higher among differentiated cells and suppresses self-renewal. As daughters move up, they become more likely to leave the stem state. Paneth cells in the epithelium and **stromal cells**, connective-tissue cells beneath it, both contribute.
+The second film showed the **niche** and its opposing Wnt and BMP signals (**stromal cells** are the connective-tissue cells beneath the epithelium); it did not show how to test which source of support matters. The experimental distinction is simple: adding support tests **sufficiency**, whereas removing it in the animal tests **requirement**. Loss followed by rescue is especially strong; no failure after removal can mean that another source compensated.
 
-The experimental distinction is simple: adding support tests **sufficiency**, whereas removing it in the animal tests **requirement**. Loss followed by rescue is especially strong; no failure after removal can mean that another source compensated.
-
-In 2009 Toshiro Sato and colleagues grew single sorted mouse Lgr5 cells into **organoids**, small crypt-villus structures made in culture. The cells sat in Matrigel, a basement-membrane matrix, with EGF, R-spondin 1 and Noggin, a BMP inhibitor, and could be replated repeatedly. No stromal cells were present, although matrix and added factors still supplied a niche (see [organoids](/lessons/organoids/)).
+In 2009 Toshiro Sato and colleagues reported the second film's organoid result: the matrix was Matrigel, a basement-membrane matrix, and the added factors were EGF, R-spondin 1 and Noggin, a BMP inhibitor (see [organoids](/lessons/organoids/)).
 
 **Predict.** In 2011 Sato and colleagues found that Paneth cells express Wnt3, EGF, TGF-alpha and the Notch ligand Dll4. Paneth co-culture greatly improved organoid formation, and a Wnt pulse could substitute for Paneth cells. What does that show, and what does it not show?
 
@@ -443,7 +460,7 @@ Controls include toxin in mice without the receptor, receptor mice without toxin
 
 ## After injury, other cells can refill the stem pool
 
-The film tested normal renewal; injury asks whether cells outside that usual pool can regain its two jobs. This is a distinct condition, not an exception to the film's homeostatic result.
+The second film ended on whether a cell that left the stem-cell state can return. Injury is a distinct condition from the first film's normal renewal, not an exception to that homeostatic result.
 
 **Predict.** Secretory precursors are permanently labelled, and immediate staining finds no labelled Lgr5-positive cells. Lgr5-positive-cell killing is then confirmed. Weeks later, labelled Lgr5-positive cells and labelled epithelial ribbons appear. What is the narrowest conclusion?
 
@@ -458,7 +475,7 @@ In 2020 Murata and colleagues found that after lethal injury to Lgr5 cells in mo
 
 ## Resetting beyond one tissue: Gurdon to Yamanaka
 
-Injury shows that committed gut progenitors can regain a tissue stem-cell state. Nuclear transfer and reprogramming use different tools to ask a broader question: can a specialized nucleus be reset beyond its tissue?
+Injury shows that committed gut progenitors can regain a tissue stem-cell state. Nuclear transfer and reprogramming use different tools to ask the second film's broader question.
 
 **Potency** is the range of cell types a cell can produce. A **unipotent** cell makes one type; a multipotent cell makes several types within one tissue; a pluripotent cell makes the embryo proper's lineages; and a **totipotent** cell can make an entire conceptus, including placenta and other extra-embryonic tissues. The strongest test begins with one cell and measures its descendants.
 
@@ -473,7 +490,7 @@ No. Each normal tadpole directed by a transplanted nucleus shows that at least t
 
 </details>
 
-<LessonFigure src="/figures/stem-cells/gurdon-nuclear-transfer.webp" width={1200} height={585} alt="AI-generated illustration: three-step nuclear transfer in a frog. An egg whose nucleus has been destroyed by ultraviolet light, a gold nucleus from a tadpole intestinal cell injected into it with a fine pipette, and a normal tadpole developing from a small fraction of such eggs while most fail." caption="Gurdon's experiment in Xenopus. A nucleus from a feeding tadpole's intestinal cell goes into an egg whose own nucleus was destroyed by ultraviolet light; most eggs failed, but a small fraction became normal feeding tadpoles." />
+<LessonFigure src="/figures/stem-cells/gurdon-nuclear-transfer.webp" width={1200} height={585} alt="AI-generated illustration: three-step nuclear transfer in a frog. An egg whose nucleus has been destroyed by ultraviolet light, a gold nucleus from a tadpole intestinal cell injected into it with a fine pipette, and a normal tadpole developing from a small fraction of such eggs while most fail." caption="In Gurdon's Xenopus experiment, a nucleus from a feeding tadpole's intestinal cell, put into an egg whose own nucleus was destroyed by ultraviolet light, sometimes directed a normal tadpole: most eggs failed, but a small fraction became normal feeding tadpoles." />
 
 In 2006 Kazutoshi Takahashi and Shinya Yamanaka used four transcription factors—Oct3/4, Sox2, Klf4 and c-Myc—to turn mouse fibroblasts into induced pluripotent stem (iPS) cells under embryonic-stem-cell culture conditions (see [eukaryotic regulation](/lessons/eukaryotic-regulation/)). The cells formed tumours containing tissues from all three **germ layers**, the foundational layers of the embryo, and contributed to mouse embryos. In 2007 Yamanaka's laboratory reprogrammed adult human skin fibroblasts with the same factors, and James Thomson's laboratory reported human iPS cells made with a different set.
 
@@ -490,13 +507,13 @@ At least some specialized nuclei therefore retain the instructions needed for de
 
 ## Going deeper
 
-The film and main text use functional results first; this separate toolbox holds the historical assay, molecular mechanics and refinements needed to inspect those results closely.
+The film chapters and main text use functional results first; this separate toolbox holds the historical assay, molecular mechanics and refinements needed to inspect those results closely.
 
 ### The functional definition came before Lgr5
 
 In 1961 James Till and Ernest McCulloch injected marrow cells into irradiated mice and found that spleen nodule counts rose with the number of cells injected. In 1963, with Andrew Becker, chromosome markers showed that each colony was a clone. One cell, its descendants and a count of lineages set the pattern; later work from the group found new colony-forming cells inside colonies, evidence of self-renewal.
 
-<LessonFigure src="/figures/stem-cells/spleen-colony-assay.webp" width={1200} height={576} alt="AI-generated illustration: three steps of the spleen colony assay. A mouse exposed to radiation, donor bone-marrow cells in a syringe injected into it, and a bean-shaped spleen with small round nodules on its surface." caption="The spleen colony assay of Till and McCulloch. Marrow cells go into an irradiated mouse, and the nodules that form in the spleen are counted; the count rose in proportion to the cells injected." />
+<LessonFigure src="/figures/stem-cells/spleen-colony-assay.webp" width={1200} height={576} alt="AI-generated illustration: three steps of the spleen colony assay. A mouse exposed to radiation, donor bone-marrow cells in a syringe injected into it, and a bean-shaped spleen with small round nodules on its surface." caption="In Till and McCulloch's spleen colony assay, nodule counts in an irradiated mouse rose in proportion to the marrow cells injected, which made stem cells countable." />
 
 ### How Cre lineage tracing works
 

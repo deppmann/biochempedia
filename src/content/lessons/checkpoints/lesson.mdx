@@ -21,7 +21,7 @@ explainer:
   poster: "/explainers/checkpoints/poster.jpg"
   title: "A Brake Wired to a Sensor"
   durationSec: 303.3
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
   takeaways:
     - "A checkpoint is a brake wired to a sensor: while the sensor sees an unfinished job, the brake holds back the next step. Without it, a cell divides on time, not on completion."
@@ -29,6 +29,21 @@ explainer:
     - "In G2, Chk1 and Chk2 (switched on by ATR and ATM) inhibit Cdc25, so Cdk1 keeps its inhibitory phosphates and the cell waits."
     - "One unattached kinetochore is enough to hold anaphase: it builds the MCC, a decoy key that fills Cdc20's slots and keeps APC/C from tagging securin and cyclin B."
     - "The step that follows is hard to undo, because destroyed securin and cyclin B must be made again and the Cdk1 feedback switch resists reversal."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/checkpoints/chapter-2.mp4"
+    captions: "/explainers/checkpoints/chapter-2.vtt"
+    poster: "/explainers/checkpoints/chapter-2-poster.jpg"
+    title: "Timing Securin's Destruction"
+    durationSec: 141.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A fluorescent tag on securin lets you time its destruction in one living cell; in HeLa cells it starts to fall at metaphase, once the checkpoint is satisfied."
+      - "If securin is destroyed at a constant fractional rate and none is made, each half-life halves what is left."
+      - "The loss is a steady fraction, not a steady amount: in the made-up data, 100 falls to 50 in 10 minutes and to 25 in 20."
+      - "The rate constant k is ln 2 divided by the half-life; a 10-minute half-life gives k of about 0.069 per minute."
 
 scientists:
   - name: "Leland Hartwell"
@@ -355,6 +370,7 @@ draft: false
 import SecurinDecayTimer from '../../../components/SecurinDecayTimer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **The film above opens with a budding-yeast cell that lacks *RAD9*: irradiated, it does not wait in G2, yet held back with a drug it repairs itself.**
 
@@ -442,7 +458,7 @@ Now place Rad9 from the opening. Later work showed that it is an adaptor at step
 
 <LessonFigure src="/figures/checkpoints/damage-checkpoint-two-arms.webp" width={1200} height={676} alt="AI-generated illustration: a left-to-right circuit. A broken DNA double line with MRN on its ends feeds the kinase ATM; a dashed arrow shows trimmed ends exposing single-stranded DNA coated with RPA, which feeds ATR-ATRIP. ATM activates Chk2 and ATR activates Chk1; ATM also acts on p53 directly. The messenger kinases feed three outputs: in G1, p53 makes p21, which blocks cyclin E-Cdk2; in G1, Cdc25A is destroyed so cyclin E-Cdk2 is not activated; in G2, Cdc25 phosphatases are inhibited so cyclin B-Cdk1 keeps its inhibitory phosphates. An inset titled 'Let go' shows the brake on a cyclin-CDK fading once the signal is silenced and Cdc25A is remade, and the cycle resuming if the cell can recover." caption="Both DNA checkpoints run one circuit: something finds the damage (MRN at broken ends, RPA on single strands), an upstream kinase switches on (ATM, ATR), a messenger kinase passes the signal on (mainly Chk2, Chk1), and a cyclin-CDK is held off. In G2, Cdc25 phosphatases are inhibited and Cdk1 stays off; in G1, Cdc25A is destroyed fast, and p53 makes p21 more slowly. When the signal is silenced, the brake can lift." />
 
-<LessonFigure src="/figures/checkpoints/stalled-fork-atr.webp" width={1200} height={604} alt="AI-generated illustration: a replication fork where the polymerase has stalled but the helicase keeps unwinding, exposing single-stranded DNA coated with RPA, which recruits ATRIP and the kinase ATR to activate Chk1." caption="When a polymerase stalls but the helicase keeps unwinding, single-stranded DNA appears and is coated with RPA. RPA helps ATRIP and ATR reach it, activators such as TopBP1 switch ATR on, and ATR then activates Chk1." />
+<LessonFigure src="/figures/checkpoints/stalled-fork-atr.webp" width={1200} height={604} alt="AI-generated illustration: a replication fork where the polymerase has stalled but the helicase keeps unwinding, exposing single-stranded DNA coated with RPA, which recruits ATRIP and the kinase ATR to activate Chk1." caption="A stalled fork raises its own alarm: when a polymerase stalls but the helicase keeps unwinding, single-stranded DNA appears and is coated with RPA. RPA helps ATRIP and ATR reach it, activators such as TopBP1 switch ATR on, and ATR then activates Chk1." />
 
 ## The spindle checkpoint: one kinetochore says wait
 
@@ -521,9 +537,13 @@ That is the *move* half of the rule.
 
 The same logic runs at the budding-yeast G1/S transition through a second ligase, SCF. Sic1 is a CDK inhibitor that holds the S-phase cyclin-CDK off. Once phosphorylated, Sic1 is gripped by Cdc4 (the SCF subunit that recognizes it, assembled with Skp1) and ubiquitinated. When the SCF subunit Hrt1 was inactivated, Sic1 stayed stable and cells arrested at G1/S. In human cells, commitment to a new cycle also rests on a feedback switch. How destruction and feedback turn a gradual input into an all-or-none switch is taught in [that lesson](/lessons/signaling-circuits/).
 
+Each of these one-way steps is a destruction, and a destruction has a speed. The second film picks up here: how fast does securin go once the brake lifts, and how do you read that from one living cell?
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## A worked problem: timing securin destruction
 
-The following data are made up for practice, in the style of the live-imaging work by Hagting and colleagues, who showed in HeLa cells that securin destruction begins at metaphase once the checkpoint is satisfied. Suppose HeLa cells express fluorescent securin, and fluorescence (as percent of its metaphase value) is measured at 0, 5, 10, 15 and 20 minutes after metaphase: 100, 71, 50, 35, 25. Assume fluorescence is proportional to securin and synthesis is negligible.
+The following data are made up for practice, in the style of the live-imaging work by Hagting and colleagues, who showed in HeLa cells that securin destruction begins at metaphase once the checkpoint is satisfied. Suppose HeLa cells express fluorescent securin, and fluorescence (as percent of its metaphase value) is measured at 0, 5, 10, 15 and 20 minutes after metaphase: 100, 71, 50, 35, 25. Assume fluorescence is proportional to securin and synthesis is negligible. The film read the half-life; the steps below go past it.
 
 <EquationCard
   purpose="How much of a protein is left at time t when it is destroyed at a constant fractional rate and none is made."

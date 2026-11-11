@@ -1,675 +1,577 @@
-"""The Calvin cycle: fixing carbon from air  (Biochemistrypedia explainer)
+"""The Carbon Count Pays the Bill — Calvin-cycle teaching film.
 
-Four narrated slide clips, one arc: fixation counts the carbons (S01) -> what the cycle costs in ATP and NADPH
-(S02) -> why a hot day makes Rubisco react with oxygen instead (S03) -> what that costs in carbon (S04).
+COLOR MAP
+  GREEN  = RuBP / returning carbon catcher
+  BLUE   = carbon arriving from CO2
+  GOLD   = G3P / net carbon product
+  YELLOW = ATP
+  PURPLE = NADPH
+  TEAL   = stroma / light-reaction input
+  TEXT   = counted carbon; GREY = conveyor and supporting structure
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = carbon in sugar phosphates (RuBP, 3-PGA, G3P, the carbon pool)
-  ORANGE = carbon that comes from CO2 (CO2 itself, a newly fixed carbon)
-  TEAL   = Rubisco, the enzyme
-  YELLOW = ATP            PURPLE = NADPH
-  GREEN  = net gain: sugar leaving the cycle
-  RED    = oxygen, oxygenase activity, carbon lost
-  GOLD   = heat, and the one number to remember (3 ATP + 2 NADPH per CO2)
-  TEXT   = plain words, totals       GREY = structure, de-emphasized
-No molecular structures are drawn. A molecule is a labelled capsule or a block of dots, and each dot
-is only a count of one carbon (no bonds, no atom geometry); phosphates are labelled tags.
+Every molecule is represented only as a labelled carrier containing carbon counters.
+No molecular structures are drawn.
 """
-import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F09A55"
 PURPLE = "#B58CD9"
-config.disable_caching = True
+CO2_BLUE = BLUE
+RUBP_GREEN = GREEN
+SUGAR_GOLD = GOLD
 
 
-# ----------------------------------------------------------------------------- helpers
-def capsule(colors, step=0.46, r=0.14, pl=False, pr=False, color=BLUE):
-    """A molecule as a count of carbons: capsule + one dot per carbon + optional labelled phosphate tags."""
-    n = len(colors)
-    body = RoundedRectangle(corner_radius=0.2, width=n * step + 0.2, height=0.54, stroke_color=color,
-                            stroke_width=2.5, fill_color=color, fill_opacity=0.12)
-    dots = VGroup(*[Dot(radius=r, color=c).move_to(body.get_left() + RIGHT * (0.1 + step * (i + 0.5)))
-                    for i, c in enumerate(colors)])
+# Shared geometry: every continuing scene uses this same loop and landmarks.
+LOOP_W, LOOP_H = 8.4, 4.7
+LOOP_C = np.array([-0.35, 0.15, 0.0])
+OUTPUT_X = 5.25
 
-    def ptag():
-        c = Circle(radius=0.2, stroke_color=GREY, stroke_width=2.5, fill_color=GREY, fill_opacity=0.3)
-        return VGroup(c, T("P", 22, TEXT, weight=BOLD).move_to(c))
-    g = VGroup(body, dots)
-    g.body, g.dots, g.pl, g.pr = body, dots, None, None
-    if pl:
-        g.pl = ptag().move_to(body.get_left() + LEFT * 0.22)
-        g.add(g.pl)
-    if pr:
-        g.pr = ptag().move_to(body.get_right() + RIGHT * 0.22)
-        g.add(g.pr)
+
+def loop_point(a, center=LOOP_C, w=LOOP_W, h=LOOP_H):
+    return center + np.array([0.5 * w * np.cos(a), 0.5 * h * np.sin(a), 0.0])
+
+
+def conveyor(opacity=1.0, lanes=1):
+    tracks = VGroup()
+    for k in range(lanes):
+        e = Ellipse(width=LOOP_W - 0.34 * k, height=LOOP_H - 0.34 * k,
+                    color=GREY, stroke_width=11 if k == 0 else 4,
+                    fill_color=TEAL, fill_opacity=0.16 * opacity if k == 0 else 0).move_to(LOOP_C)
+        e.set_stroke(opacity=0.72 * opacity)
+        tracks.add(e)
+    arrow = Triangle(color=GREY, fill_color=GREY, fill_opacity=0.9 * opacity,
+                     stroke_width=0).scale(0.16).rotate(-PI / 2).move_to(loop_point(PI / 2))
+    return VGroup(tracks, arrow)
+
+
+def carbon_carrier(n, label, color, blue=0, width=None):
+    width = width or max(2.0, 0.48 * n + 0.55)
+    body = RoundedRectangle(corner_radius=0.18, width=width, height=1.05,
+                            stroke_color=color, stroke_width=3,
+                            fill_color=color, fill_opacity=0.14)
+    dots = VGroup(*[Circle(radius=0.145, stroke_width=0,
+                           fill_color=CO2_BLUE if i < blue else TEXT, fill_opacity=1)
+                    for i in range(n)]).arrange(RIGHT, buff=0.16)
+    dots.move_to(body.get_center() + UP * 0.17)
+    lab = T(label, 28, color, weight=BOLD).move_to(body.get_center() + DOWN * 0.31)
+    g = VGroup(body, dots, lab)
+    g.body, g.dots, g.label = body, dots, lab
     return g
 
 
-def block(colors, cols=6, r=0.07, sp=0.19):
-    """A block of dots, one per carbon, filled row by row."""
-    n = len(colors)
-    rows = -(-n // cols)
-    g = VGroup()
-    for i, c in enumerate(colors):
-        rr, cc = divmod(i, cols)
-        g.add(Dot(radius=r, color=c).move_to([(cc - (cols - 1) / 2) * sp, ((rows - 1) / 2 - rr) * sp, 0]))
+def compact_carrier(n, label, color, scale, blue=0, width=None):
+    """Shrink the carrier geometry while preserving a readable 28 pt label."""
+    g = carbon_carrier(n, label, color, blue=blue, width=width).scale(scale)
+    g.label.scale(1 / scale)
+    g.label.next_to(g.body, DOWN, buff=0.04)
     return g
 
 
-def two_line(x, y, name, count=None, color=BLUE, size=24):
-    parts = VGroup(T(name, size, color) if isinstance(name, str) else name)
-    if count:
-        parts.add(M(count, 22, GREY))
-    return parts.arrange(DOWN, buff=0.06).move_to([x, y, 0])
+def energy_chip(name, color):
+    return chip(name, color, size=28, pad=0.18, fill_opacity=0.22)
 
 
-def atp_tokens(n, per_row, r=0.12, sp=0.3):
-    g = VGroup()
+def meter(name, value, color, x):
+    box = RoundedRectangle(corner_radius=0.15, width=2.15, height=0.88,
+                           stroke_color=color, fill_color=color, fill_opacity=0.12)
+    lab = T(name, 28, color, weight=BOLD).move_to(box.get_center() + LEFT * 0.42)
+    num = M(str(value), 34, TEXT).move_to(box.get_center() + RIGHT * 0.68)
+    g = VGroup(box, lab, num).move_to([x, -3.18, 0])
+    g.num = num
+    return g
+
+
+def output_tray():
+    tray = RoundedRectangle(corner_radius=0.18, width=2.55, height=1.55,
+                            stroke_color=SUGAR_GOLD, stroke_width=3,
+                            fill_color=SUGAR_GOLD, fill_opacity=0.08).move_to([5.15, 0.15, 0])
+    lab = T("sugar output", 28, SUGAR_GOLD, weight=BOLD).next_to(tray, UP, buff=0.12)
+    return VGroup(tray, lab)
+
+
+def compact_output_tray(scale=0.85, center=np.array([5.0, 0.45, 0.0])):
+    """Shrink tray geometry without shrinking its required 28 pt label."""
+    g = output_tray().scale(scale)
+    g[1].scale(1 / scale)
+    g[1].next_to(g[0], UP, buff=0.12)
+    g.shift(center - g[0].get_center())
+    return g
+
+
+def moving_highlight(scene, color=TEAL, phase=0.0, center=LOOP_C, w=LOOP_W, h=LOOP_H,
+                     speed=0.42, inset=0.82, radius=0.12):
+    """Keep the world alive without letting the traveling marker cross its labels."""
+    path_w, path_h = w - inset, h - inset
+    trail = VGroup(*[Dot(radius=radius, color=color).set_opacity(0.82 - 0.07 * i)
+                     for i in range(8)])
+    trail.phase = phase
+    for i, dot in enumerate(trail):
+        dot.move_to(loop_point(phase - 0.045 * i, center, path_w, path_h))
+        dot.set_z_index(-1)
+
+    def travel(m, dt):
+        m.phase = (m.phase + speed * dt) % TAU
+        for i, d in enumerate(m):
+            d.move_to(loop_point(m.phase - 0.045 * i, center, path_w, path_h))
+    trail.add_updater(travel)
+
+    # A slow continuous wash changes a broad area, so motion remains measurable even
+    # though the marker is deliberately small enough to stay clear of all text.
+    wash = Ellipse(width=max(0.4, path_w - 0.22), height=max(0.4, path_h - 0.22),
+                   stroke_width=0, fill_color=color, fill_opacity=0.018).move_to(center)
+    wash.t = phase
+    wash.set_z_index(-4)
+
+    def breathe(m, dt):
+        m.t += dt
+        m.set_fill(opacity=0.018 + 0.012 * (0.5 + 0.5 * np.sin(1.1 * m.t)))
+    wash.add_updater(breathe)
+    scene.add(wash)
+    scene.add(trail)
+    return trail
+
+
+def stroma_motes(scene, n=12):
+    motes = VGroup()
     for i in range(n):
-        rr, cc = divmod(i, per_row)
-        g.add(Circle(radius=r, stroke_width=0, fill_color=YELLOW, fill_opacity=0.95).move_to([cc * sp, -rr * sp, 0]))
-    return g
+        d = Dot(radius=0.025 + 0.008 * (i % 3), color=TEAL).set_opacity(0.22)
+        d.move_to([-5.8 + (i * 1.07) % 11.4, -2.6 + (i * 0.73) % 5.3, 0])
+        d.v = 0.07 + 0.015 * (i % 4)
+
+        def drift(m, dt):
+            m.shift(RIGHT * m.v * dt)
+            if m.get_x() > 6.3:
+                m.shift(LEFT * 12.4)
+        d.add_updater(drift)
+        motes.add(d)
+    motes.set_z_index(-5)
+    scene.add(motes)
+    return motes
 
 
-def nadph_tokens(n, per_row, side=0.22, sp=0.3):
-    g = VGroup()
-    for i in range(n):
-        rr, cc = divmod(i, per_row)
-        g.add(Square(side_length=side, stroke_width=0, fill_color=PURPLE, fill_opacity=0.95)
-              .move_to([cc * sp, -rr * sp, 0]))
-    return g
+def question_layout():
+    q = T("Can both leave?", 48, TEXT, font=TITLE_FONT)
+    q.move_to([0, 2.85, 0])
+    carrier = carbon_carrier(5, "RuBP · 5C", RUBP_GREEN).move_to([0, -0.65, 0])
+    carrier.dots.set_opacity(0.16)
+    counters = VGroup(*[Dot(radius=0.19, color=TEXT) for _ in range(6)]).arrange(RIGHT, buff=0.33)
+    counters.move_to([0, 0.75, 0])
+    return q, carrier, counters
 
 
-def pop(group, run=0.7):
-    return LaggedStart(*[FadeIn(m, scale=0.4) for m in group], lag_ratio=0.12, run_time=run)
+class S01Hook(SpokenScene):
+    def construct(self):
+        shell = Ellipse(width=12.6, height=7.0, color=TEAL, stroke_width=3,
+                        fill_color=TEAL, fill_opacity=0.035)
+        loop = conveyor()
+        rubp = compact_carrier(5, "RuBP · 5C", RUBP_GREEN, 0.9).move_to(loop_point(PI))
+        co2 = compact_carrier(1, "CO2", CO2_BLUE, 0.9, width=1.45).move_to([-6.0, 2.15, 0])
+        tray = output_tray()
+        self.add(shell, loop, rubp, tray)
+        stroma_motes(self)
+        moving_highlight(self, phase=0.4)
+        self.at("pull carbon from air")
+        self.play(co2.animate.move_to([-4.65, 1.6, 0]), run_time=1.1)
+        self.at("build sugar")
+        q1 = T("?", 54, SUGAR_GOLD).move_to([5.15, 0.2, 0])
+        self.play(FadeIn(q1, scale=0.5), tray.animate.set_opacity(1), run_time=0.7)
+        self.at("carbon catching machine")
+        q2 = T("?", 54, RUBP_GREEN).move_to([-3.65, -1.7, 0])
+        self.play(FadeIn(q2, scale=0.5), rubp.animate.move_to(loop_point(1.25 * PI)), run_time=1.0)
+        self.at("Follow the carbon count")
+        bracket = BraceBetweenPoints([-4.5, -2.55, 0], [3.8, -2.55, 0], color=TEXT)
+        self.play(GrowFromCenter(bracket), co2.animate.move_to([-3.95, 1.1, 0]), run_time=0.9)
+        self.at("energy bill")
+        atp, nad = meter("ATP", 0, YELLOW, -1.25), meter("NADPH", 0, PURPLE, 1.35)
+        self.play(FadeIn(atp, shift=UP * 0.25), FadeIn(nad, shift=UP * 0.25), run_time=0.8)
+        self.finish()
 
 
-# ============================================================================================
-class S00Title(TitleCard):
+class S02Title(TitleCard):
     LESSON = "The Calvin cycle"
-    TITLE = "Fixing carbon from air"
-
-
-# ============================================================================================
-class S01Fixation(SpokenScene):
-    """RuBP (5 C) + CO2 (1 C) -> six-carbon intermediate -> two 3-PGA (3 C each): count the carbons."""
+    TITLE = "The Carbon Count Pays the Bill"
 
     def construct(self):
-        head = T("Step 1: fixation", 34, font=TITLE_FONT).move_to([0, 3.4, 0])
-        legend = VGroup(Dot(radius=0.14, color=BLUE), T("= one carbon", 24, GREY)).arrange(RIGHT, buff=0.15)
-        legend.move_to([4.9, 3.4, 0])
-        self.play(FadeIn(head), run_time=0.8)
-        self.at("beads")
-        self.play(FadeIn(legend), run_time=0.5)
-
-        # --- RuBP: five carbons, a phosphate at each end -----------------------------------------------
-        rubp = capsule([BLUE] * 5, pl=True, pr=True).move_to([-1.9, 2.55, 0])
-        rubp_l = VGroup(T("RuBP", 28, BLUE), T("ribulose 1,5-bisphosphate", 22, GREY)).arrange(DOWN, buff=0.06)
-        rubp_l.move_to([-1.9, 1.85, 0])
-        self.at("Ribulose")
-        self.play(FadeIn(rubp.body), FadeIn(rubp_l), run_time=0.8)
-        self.at("backbone")
-        self.play(pop(rubp.dots, 1.0))
-        self.at("capped")
-        self.play(FadeIn(rubp.pl, scale=0.5), FadeIn(rubp.pr, scale=0.5), run_time=0.8)
-
-        # --- Rubisco grabs CO2 ------------------------------------------------------------------------
-        plus = T("+", 36, GREY).move_to([0.3, 2.55, 0])
-        co2 = capsule([ORANGE]).move_to([1.7, 2.55, 0])
-        co2_l = T("CO₂", 28, ORANGE).move_to([1.7, 1.95, 0])
-        arrow = Arrow([-0.1, 1.35, 0], [-0.1, 0.78, 0], buff=0, stroke_width=7, color=GREY, tip_length=0.25)
-        rub = chip("Rubisco", TEAL, size=28).move_to([1.5, 1.05, 0])
-        self.at("enzyme")
-        self.play(FadeIn(rub, shift=LEFT * 0.2), GrowArrow(arrow), run_time=0.9)
-        self.at("single")
-        self.play(FadeIn(plus), FadeIn(co2), FadeIn(co2_l), run_time=0.8)
-
-        inter = capsule([BLUE, BLUE, ORANGE, BLUE, BLUE, BLUE], pl=True, pr=True).move_to([-0.1, 0.35, 0])
-        self.at("attaches")
-        self.play(FadeTransform(VGroup(rubp.copy(), co2.copy()), inter), run_time=1.3)
-        inter_l = VGroup(T("six-carbon intermediate", 24, GREY), T("unstable", 24, TEXT)).arrange(DOWN, buff=0.08)
-        inter_l.move_to([4.3, 0.35, 0])
-        self.at("intermediate")
-        self.play(FadeIn(inter_l[0]), run_time=0.6)
-        self.at("unstable")
-        self.play(FadeIn(inter_l[1]), run_time=0.5)
-
-        # --- it splits down the middle -------------------------------------------------------------------
-        xs = inter.body.get_center()[0]
-        cut = DashedLine([xs, 0.0, 0], [xs, 0.72, 0], color=TEXT, stroke_width=3)
-        dots = inter.dots
-        bodyA = RoundedRectangle(corner_radius=0.2, width=1.58, height=0.54, stroke_color=BLUE, stroke_width=2.5,
-                                 fill_color=BLUE, fill_opacity=0.12)
-        bodyB = bodyA.copy()
-        bodyA.move_to(inter.body.get_left() + RIGHT * 0.79)
-        bodyB.move_to(inter.body.get_right() + LEFT * 0.79)
-        self.at("splits")
-        self.play(Create(cut), run_time=0.5)
-        self.play(FadeOut(inter.body), FadeIn(bodyA), FadeIn(bodyB), run_time=0.2)
-        pgaA = VGroup(bodyA, *dots[:3], inter.pl)
-        pgaB = VGroup(bodyB, *dots[3:], inter.pr)
-        tgtA, tgtB = np.array([-2.2, -1.0, 0]), np.array([2.0, -1.0, 0])
-        self.play(FadeOut(cut), FadeOut(inter_l), pgaA.animate.shift(tgtA - pgaA.get_center()),
-                  pgaB.animate.shift(tgtB - pgaB.get_center()), run_time=1.1)
-        self.at("two identical")
-        self.play(dots[2].animate.set_color(BLUE), run_time=0.6)
-        labA = VGroup(T("3-PGA", 28, BLUE), T("3-phosphoglycerate", 22, GREY)).arrange(DOWN, buff=0.06)
-        labA.move_to([-2.2, -1.72, 0])
-        labB = labA.copy().move_to([2.0, -1.72, 0])
-        self.at("phosphoglycerate")
-        self.play(FadeIn(labA), FadeIn(labB), run_time=0.8)
-
-        # --- the bookkeeping -----------------------------------------------------------------------------
-        e5, ep, e1 = M("5", 44, BLUE), M("+", 44, GREY), M("1", 44, ORANGE)
-        eq1, e6, eq2 = M("=", 44, GREY), M("6", 44, TEXT), M("=", 44, GREY)
-        e3a, ep2, e3b = M("3", 44, BLUE), M("+", 44, GREY), M("3", 44, BLUE)
-        ec = T("carbons", 30, GREY)
-        eq = VGroup(e5, ep, e1, eq1, e6, eq2, e3a, ep2, e3b, ec).arrange(RIGHT, buff=0.22)
-        eq.move_to([0, -3.1, 0])
-        ec.align_to(e3b, DOWN)
-        self.at("bookkeeping")
-        self.play(FadeIn(T("carbon bookkeeping", 24, GREY).move_to([0, -2.6, 0])), run_time=0.5)
-        self.at("sugar")
-        self.play(FadeIn(e5, scale=0.6), Indicate(rubp.body, color=BLUE, scale_factor=1.06), run_time=0.35)
-        self.at("plus")
-        self.play(FadeIn(ep), FadeIn(e1, scale=0.6), Indicate(co2.body, color=ORANGE, scale_factor=1.15),
-                  run_time=0.8)
-        self.at("carbons total")
-        self.play(FadeIn(eq1), FadeIn(e6, scale=0.6), run_time=0.7)
-        self.at("cleanly")
-        self.play(FadeIn(eq2), FadeIn(e3a, scale=0.6), FadeIn(ep2), FadeIn(e3b, scale=0.6), FadeIn(ec),
-                  Indicate(bodyA, color=BLUE, scale_factor=1.08), Indicate(bodyB, color=BLUE, scale_factor=1.08),
-                  run_time=1.0)
+        loop = conveyor(opacity=0.38)
+        co2 = compact_carrier(1, "CO2", CO2_BLUE, 0.78, width=1.45).move_to([-4.8, 1.45, 0])
+        q = VGroup(T("?", 50, SUGAR_GOLD), T("?", 50, RUBP_GREEN)).arrange(RIGHT, buff=2.6)
+        q.move_to([0, 0.25, 0])
+        title = T(self.TITLE, 48, TEXT, font=TITLE_FONT)
+        fit(title, 11.6, 1.1)
+        rule = Line(LEFT * 1.55, RIGHT * 1.55, color=GOLD, stroke_width=4).next_to(title, DOWN, buff=0.3)
+        self.add(loop, co2, q)
+        moving_highlight(self, phase=0.8, speed=0.35)
+        self.play(ReplacementTransform(q, title), GrowFromCenter(rule), co2.animate.shift(RIGHT * 0.5), run_time=0.65)
+        self.wait(0.65)
+        self.play(FadeOut(title), FadeOut(rule), co2.animate.shift(RIGHT * 0.45), run_time=0.55)
         self.finish()
 
 
-# ============================================================================================
-class S02Ledger(SpokenScene):
-    """Pyramid of cost: 1 CO2 -> 3 CO2 (9 ATP + 6 NADPH, 1 net G3P) -> 6 CO2 (18 + 12, glucose);
-    then the same bill by phase (per 3 CO2): fixation 0, reduction 6 ATP + 6 NADPH, regeneration 3 ATP."""
-
+class S03World(SpokenScene):
     def construct(self):
-        head = T("The energy bill", 34, font=TITLE_FONT).move_to([0, 3.4, 0])
-        PX = -3.0
-
-        def tier(yc, wb, wt, h=1.4):
-            pts = [[PX - wb / 2, yc - h / 2, 0], [PX + wb / 2, yc - h / 2, 0],
-                   [PX + wt / 2, yc + h / 2, 0], [PX - wt / 2, yc + h / 2, 0]]
-            return Polygon(*pts, stroke_color=GREY, stroke_width=2.5, fill_opacity=0)
-        tb, tm, tt = tier(-1.5, 6.4, 4.95), tier(-0.05, 4.95, 3.5), tier(1.4, 3.5, 2.05)
-        lab_b = T("1 CO₂", 28, ORANGE).move_to([PX, -1.5, 0])
-        lab_m = T("3 CO₂", 28, ORANGE).move_to([PX, -0.05, 0])
-        lab_m_sub = T("→ 1 net G3P", 22, BLUE).move_to([PX, -0.3, 0])
-        lab_t0 = T("6 CO₂", 28, ORANGE).move_to([PX, 1.6, 0])
-        lab_t_sub = T("→ 1 glucose", 22, GREEN).move_to([PX, 1.2, 0])
-
-        self.play(FadeIn(head), run_time=0.8)
-        self.at("pyramid")
-        self.play(LaggedStart(Create(tb), Create(tm), Create(tt), lag_ratio=0.5, run_time=1.5))
-
-        # --- base: 1 CO2 enters ----------------------------------------------------------------------------
-        self.at("base")
-        self.play(tb.animate.set_fill(ORANGE, 0.13), run_time=0.5)
-        self.at("one carbon dioxide")
-        self.play(FadeIn(lab_b), run_time=0.6)
-
-        # --- middle tier: 3 turns -> 9 ATP + 6 NADPH -> 1 net G3P -------------------------------------------
-        def place_ul(g, x, y):
-            g.shift([x - g.get_left()[0], y - g.get_top()[1], 0])
-            return g
-
-        def cost(yc, na, nn, per_a, per_n):
-            x0 = 0.95
-            h_atp = T(f"{na} ATP", 28, YELLOW, weight=BOLD)
-            h_plus = T("+", 28, GREY)
-            h_nadph = T(f"{nn} NADPH", 28, PURPLE, weight=BOLD)
-            hdr = VGroup(h_atp, h_plus, h_nadph).arrange(RIGHT, buff=0.2)
-            hdr.move_to([x0 + hdr.width / 2, yc + 0.5, 0])
-            ta = place_ul(atp_tokens(na, per_a), x0, yc + 0.18)
-            tn = place_ul(nadph_tokens(nn, per_n), x0 + per_a * 0.3 + 0.3, yc + 0.18)
-            return h_atp, h_plus, h_nadph, ta, tn
-        a_mid = cost(-0.05, 9, 6, 9, 6)
-        self.at("Three turns")
-        self.play(tm.animate.set_fill(BLUE, 0.13), FadeIn(lab_m), run_time=0.6)
-        self.at("nine")
-        self.play(FadeIn(a_mid[0], shift=RIGHT * 0.15), pop(a_mid[3], 1.0))
-        self.at("six NADPH")
-        self.play(FadeIn(a_mid[1]), FadeIn(a_mid[2], shift=RIGHT * 0.15), pop(a_mid[4], 0.9))
-        self.at("yield")
-        self.play(lab_m.animate.shift(UP * 0.2), FadeIn(lab_m_sub, shift=UP * 0.1), run_time=0.6)
-
-        # --- top tier: six turns doubles everything ---------------------------------------------------------
-        a_top = cost(1.4, 18, 12, 9, 6)
-        times2 = M("×2", 30, GOLD)
-        self.at("assemble")
-        self.play(tt.animate.set_fill(GREEN, 0.13), FadeIn(lab_t0), FadeIn(lab_t_sub), run_time=0.7)
-        self.at("doubling")
-        times2.next_to(a_top[0], LEFT, buff=0.2)
-        self.play(FadeIn(times2, scale=0.6), run_time=0.5)
-        self.at("Eighteen")
-        self.play(FadeIn(a_top[0], shift=RIGHT * 0.15), pop(a_top[3], 1.0))
-        self.at("twelve")
-        self.play(FadeIn(a_top[1]), FadeIn(a_top[2], shift=RIGHT * 0.15), pop(a_top[4], 0.9))
-        self.at("per glucose")
-        self.play(Indicate(tt, color=GREEN, scale_factor=1.03), run_time=0.8)
-
-        # --- by phase ------------------------------------------------------------------------------------------
-        A = VGroup(tb, tm, tt, lab_b, lab_m, lab_m_sub, lab_t0, lab_t_sub, times2, *a_mid, *a_top)
-        head2 = VGroup(T("Where the energy goes", 34, font=TITLE_FONT), T("(per 3 CO₂)", 28, GREY)).arrange(RIGHT, buff=0.3)
-        head2[1].align_to(head2[0], DOWN)
-        head2.move_to([0, 3.4, 0])
-        cols = [-4.15, 0.0, 4.15]
-        panels = VGroup(*[RoundedRectangle(corner_radius=0.2, width=3.8, height=3.7, stroke_color=GREY, stroke_width=2.5,
-                                           fill_color=GREY, fill_opacity=0.06).move_to([cx, 0.98, 0]) for cx in cols])
-        h1, h2, h3 = [T(t, 30, TEXT, weight=BOLD).move_to([cx, 2.3, 0])
-                      for t, cx in zip(["Fixation", "Reduction", "Regeneration"], cols)]
-        s1, s2, s3 = [T(t, 22, GREY).move_to([cx, 1.8, 0])
-                      for t, cx in zip(["Rubisco fixes CO₂", "acid → sugar", "RuBP rebuilt"], cols)]
-        self.at("Breaking it down")
-        self.play(FadeOut(A), ReplacementTransform(head, head2), run_time=1.0)
-        self.play(FadeIn(panels), run_time=0.6)
-        self.at("fixation")
-        self.play(FadeIn(h1), FadeIn(s1), run_time=0.6)
-        free = T("free", 44, GREEN).move_to([cols[0], 0.85, 0])
-        free2 = M("0 ATP · 0 NADPH", 22, GREY).move_to([cols[0], 0.2, 0])
-        self.at("energetically free")
-        self.play(FadeIn(free, scale=0.7), FadeIn(free2), run_time=0.8)
-
-        self.at("reduction")
-        self.play(FadeIn(h2), FadeIn(s2), run_time=0.6)
-        cx = cols[1]
-        l2a = T("6 ATP", 28, YELLOW, weight=BOLD).move_to([cx, 1.05, 0])
-        t2a = atp_tokens(6, 6).move_to([cx, 0.6, 0])
-        l2n = T("6 NADPH", 28, PURPLE, weight=BOLD).move_to([cx, -0.05, 0])
-        t2n = nadph_tokens(6, 6).move_to([cx, -0.5, 0])
-        self.at("costs")
-        self.play(FadeIn(l2a), pop(t2a, 0.9))
-        self.at("NADPH", nth=2)
-        self.play(FadeIn(l2n), pop(t2n, 0.9))
-
-        self.at("regenerating")
-        self.play(FadeIn(h3), FadeIn(s3), run_time=0.6)
-        cx = cols[2]
-        l3 = T("3 ATP", 28, YELLOW, weight=BOLD).move_to([cx, 1.05, 0])
-        t3 = atp_tokens(3, 6).move_to([cx, 0.6, 0])
-        self.at("additional")
-        self.play(FadeIn(l3), pop(t3, 0.8))
-
-        # --- the ledger totals -----------------------------------------------------------------------------------
-        tot = VGroup(T("total", 26, GREY), T("9 ATP", 30, YELLOW, weight=BOLD), T("+", 30, GREY),
-                     T("6 NADPH", 30, PURPLE, weight=BOLD), T("per 3 CO₂", 26, GREY)).arrange(RIGHT, buff=0.22)
-        tot.move_to([0, -1.85, 0])
-        one = VGroup(T("3 ATP", 36, YELLOW, weight=BOLD), T("+", 36, GREY),
-                     T("2 NADPH", 36, PURPLE, weight=BOLD), T("per CO₂", 30, TEXT)).arrange(RIGHT, buff=0.25)
-        box = RoundedRectangle(corner_radius=0.18, width=one.width + 0.7, height=one.height + 0.5, stroke_color=GOLD,
-                               stroke_width=3).move_to([0, -2.85, 0])
-        one.move_to(box)
-        div = M("÷ 3", 30, GOLD).next_to(box, LEFT, buff=0.35)
-        self.at("Sugar is expensive")
-        self.play(FadeIn(tot, shift=UP * 0.1), run_time=0.8)
-        self.at("ledger")
-        self.play(FadeIn(div, scale=0.6), FadeIn(box), TransformFromCopy(tot[1], one[0]), FadeIn(one[1]),
-                  TransformFromCopy(tot[3], one[2]), FadeIn(one[3]), run_time=1.1)
+        shell = Ellipse(width=12.6, height=7.0, color=TEAL, stroke_width=3,
+                        fill_color=TEAL, fill_opacity=0.03)
+        loop = conveyor()
+        carrier = compact_carrier(5, "RuBP · 5C", RUBP_GREEN, 0.9).move_to(loop_point(PI))
+        co2 = compact_carrier(1, "CO2", CO2_BLUE, 0.8, width=1.45).move_to([-4.55, 1.45, 0])
+        thyl = VGroup(*[RoundedRectangle(corner_radius=0.13, width=0.55, height=1.1,
+                                        color=TEAL, fill_color=TEAL, fill_opacity=0.18)
+                        for _ in range(3)]).arrange(DOWN, buff=0.1).move_to([-5.95, 0, 0])
+        self.add(loop, carrier, co2)
+        moving_highlight(self, phase=0.2)
+        self.at("runs in")
+        self.play(Create(shell), FadeIn(thyl), run_time=0.8)
+        self.at("chloroplastroma")
+        stroma = T("stroma", 34, TEAL, weight=BOLD).move_to([0, 3.05, 0])
+        self.play(shell.animate.set_fill(TEAL, 0.09), FadeIn(stroma), carrier.animate.move_to(loop_point(1.18 * PI)), run_time=0.8)
+        self.at("using")
+        atp = energy_chip("ATP", YELLOW).move_to([-3.65, 2.55, 0])
+        self.play(FadeIn(atp), thyl.animate.set_fill(TEAL, 0.32), run_time=0.55)
+        self.at("NADPH")
+        nad = energy_chip("NADPH", PURPLE).move_to([-3.65, -2.45, 0])
+        self.play(FadeIn(nad), run_time=0.55)
+        self.at("light reactions")
+        self.play(atp.animate.move_to([-2.75, 1.15, 0]), nad.animate.move_to([-2.7, -1.2, 0]),
+                  carrier.animate.move_to(loop_point(1.45 * PI)), run_time=0.9)
         self.finish()
 
 
-# ============================================================================================
-class DotField(VGroup):
-    """Gas molecules wobbling in a fixed set of spots; `level` (0..1) sets how many are visible."""
-
-    def __init__(self, pts, color, level, r=0.095, seed=0):
-        super().__init__(*[Dot(radius=r, color=color) for _ in pts])
-        self.pts = [np.array([p[0], p[1], 0.0]) for p in pts]
-        self.level, self.t = level, 0.0
-        self.ph = np.random.RandomState(seed).rand(len(pts), 2) * 6.28
-        self.add_updater(self._u)
-        self._u(self, 0)
-
-    def _u(self, m, dt):
-        self.t += dt
-        L = self.level.get_value() * len(self.pts)
-        for i, d in enumerate(self):
-            off = np.array([np.sin(self.t * 1.3 + self.ph[i, 0]), np.cos(self.t * 1.1 + self.ph[i, 1]), 0]) * 0.05
-            d.move_to(self.pts[i] + off)
-            d.set_opacity(float(np.clip(L - i, 0, 1)))
-
-
-class Inflow(VGroup):
-    """CO2 molecules drifting down through the pore to Rubisco; pile up outside when the pore is shut."""
-
-    def __init__(self, n, x, y_top, y_pore, y_end, open_t, speed=0.16, y_stop=1.98):
-        super().__init__(*[Dot(radius=0.095, color=ORANGE) for _ in range(n)])
-        self.n, self.x, self.open_t, self.speed = n, x, open_t, speed
-        self.y_top, self.y_pore, self.y_end, self.y_stop = y_top, y_pore, y_end, y_stop
-        self.s = 0.0
-        self.blocked = [False] * n   # once the pore shuts, a molecule that reaches it stays outside
-        self.piled = [False] * n
-        self.jit = np.linspace(-0.55, 0.55, n)
-        np.random.RandomState(4).shuffle(self.jit)
-        self.add_updater(self._u)
-        self._u(self, 0)
-
-    def _u(self, m, dt):
-        self.s = (self.s + dt * self.speed) % 1.0
-        L = self.y_top - self.y_end
-        u_pore = (self.y_top - self.y_pore) / L
-        shut = self.open_t.get_value() < 0.5
-        for k, d in enumerate(self):
-            u = (k / self.n + self.s) % 1.0
-            jx = self.jit[k]
-            y = self.y_top - u * L
-            if shut and u < u_pore:
-                self.blocked[k] = True
-            if not shut:
-                self.blocked[k] = self.piled[k] = False
-            if self.blocked[k]:
-                pile = self.y_stop + 0.13 * (k % 3)
-                if y <= pile or u >= u_pore:
-                    self.piled[k] = True
-                y = pile if self.piled[k] else max(y, pile)
-                x = self.x + jx
-                op = 1.0 if self.piled[k] else float(np.clip(u / 0.06, 0, 1))
-            else:
-                x = self.x + jx * float(np.clip((u_pore - u) / 0.1, 0, 1))
-                op = float(np.clip((1 - u) / 0.1, 0, 1)) * float(np.clip(u / 0.06, 0, 1))
-            d.move_to([x, y, 0])
-            d.set_opacity(op)
-
-
-def frac_o2(c_um, s=80.0, o_um=265.0):
-    """Fraction of Rubisco events that take O2: v_o/v_c = (1/S)(O/C)  ->  f = 1 / (1 + S*C/O)."""
-    return 1.0 / (1.0 + s * c_um / o_um)
-
-
-class S03Hot(SpokenScene):
-    """Heat -> stomata close -> internal CO2 drops -> O2 wins -> oxygenase -> carbon and energy lost."""
-
+class S04Fixation(SpokenScene):
     def construct(self):
-        head = T("The hot weather problem", 34, font=TITLE_FONT).move_to([-2.9, 3.4, 0])
-        CX = -2.75
-        BX0, BX1, BY0, BY1 = -5.0, -0.5, -1.9, 1.5
-
-        # --- the leaf (a schematic, not a cross-section drawing) -----------------------------------------------
-        box_sides = VGroup(Line([BX0, BY1, 0], [BX0, BY0, 0]), Line([BX0, BY0, 0], [BX1, BY0, 0]),
-                           Line([BX1, BY0, 0], [BX1, BY1, 0]))
-        wall = VGroup(Line([BX0, BY1, 0], [CX - 0.6, BY1, 0]), Line([CX + 0.6, BY1, 0], [BX1, BY1, 0]))
-        leaf = VGroup(box_sides, wall).set_stroke(GREY, 3)
-        open_t = ValueTracker(1.0)
-
-        def guards():
-            g = 0.26 * open_t.get_value()
-            out = VGroup()
-            for sgn in (-1, 1):
-                e = Ellipse(width=0.52, height=0.62, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.35)
-                e.move_to([CX + sgn * (g + 0.26), BY1, 0])
-                out.add(e)
-            return out
-        guard_m = always_redraw(guards)
-        stoma_lab = T("stomata", 22, GREY).move_to([BX1 - 0.65, BY1 + 0.35, 0])
-
-        rub_box = RoundedRectangle(corner_radius=0.14, width=1.9, height=0.62, stroke_color=TEAL, stroke_width=2.5,
-                                   fill_color=TEAL, fill_opacity=0.16)
-        rub_txt = T("Rubisco", 26, TEAL)
-        rub = VGroup(rub_box, rub_txt).move_to([CX, -1.0, 0])
-        oxy_tag = T("oxygenase", 24, RED).move_to([CX, -1.55, 0])
-
-        # --- gases ------------------------------------------------------------------------------------------------
-        rs = np.random.RandomState(7)
-        pts = []
-        while len(pts) < 24:
-            p = [rs.uniform(-4.75, -0.75), rs.uniform(-0.35, 1.2)]
-            if abs(p[0] - CX) < 0.3:
-                continue
-            if all(np.hypot(p[0] - q[0], p[1] - q[1]) > 0.42 for q in pts):
-                pts.append(p)
-        co2_in, o2_in = ValueTracker(1.0), ValueTracker(1.0)
-        co2_field = DotField(pts[:10], ORANGE, co2_in, seed=1)
-        o2_field = DotField(pts[10:24], RED, o2_in, seed=2)
-        inflow = Inflow(7, CX, 2.95, BY1, -0.7, open_t)
-        leg = VGroup(VGroup(Dot(radius=0.09, color=ORANGE), T("CO₂", 24, ORANGE)).arrange(RIGHT, buff=0.1),
-                     VGroup(Dot(radius=0.09, color=RED), T("O₂", 24, RED)).arrange(RIGHT, buff=0.1)
-                     ).arrange(DOWN, buff=0.15, aligned_edge=LEFT)
-        leg.move_to([BX0 + 0.65, 2.25, 0])
-
-        # --- thermometer (heat) -----------------------------------------------------------------------------------
-        heat = ValueTracker(0.15)
-        th_out = RoundedRectangle(corner_radius=0.12, width=0.3, height=3.0, stroke_color=GREY, stroke_width=3)
-        th_out.move_to([-5.75, 0.0, 0])
-        bulb = Circle(radius=0.26, stroke_color=GREY, stroke_width=3, fill_color=GOLD, fill_opacity=0.95)
-        bulb.move_to([-5.75, -1.7, 0])
-
-        def fill():
-            h = 0.12 + 2.7 * heat.get_value()
-            return Rectangle(width=0.16, height=h, stroke_width=0, fill_color=GOLD, fill_opacity=0.95).move_to(
-                [-5.75, -1.5 + h / 2, 0])
-        th_fill = always_redraw(fill)
-
-        # --- who binds the active site ------------------------------------------------------------------------------
-        c_um = ValueTracker(8.0)
-        BAR_W = 4.5
-
-        def bar():
-            fo = frac_o2(c_um.get_value())
-            wc, wo = BAR_W * (1 - fo), BAR_W * fo
-            x0 = CX - BAR_W / 2
-            a = Rectangle(width=wc, height=0.42, stroke_width=0, fill_color=ORANGE, fill_opacity=0.95).move_to([x0 + wc / 2, -3.0, 0])
-            b = Rectangle(width=wo, height=0.42, stroke_width=0, fill_color=RED, fill_opacity=0.95).move_to([x0 + wc + wo / 2, -3.0, 0])
-            la = T("CO₂", 22, BG, weight=BOLD).move_to(a)
-            lb = T("O₂", 22, BG, weight=BOLD).move_to(b)
-            return VGroup(a, b, la, lb)
-        bar_m = always_redraw(bar)
-        bar_cap = T("who binds Rubisco's active site", 22, GREY).move_to([CX, -2.5, 0])
-
-        # --- the chain of dominoes ------------------------------------------------------------------------------------
-        def link_chip(text, color, y):
-            r = RoundedRectangle(corner_radius=0.14, width=5.7, height=0.72, stroke_color=color, stroke_width=2.5,
-                                 fill_color=color, fill_opacity=0.16)
-            t = T(text, 26, color).move_to(r)
-            return VGroup(r, t).move_to([3.4, y, 0])
-        ys = [2.5, 1.5, 0.5, -0.5, -1.5, -2.5]
-        chips = [link_chip("Hot, dry day", GOLD, ys[0]), link_chip("Stomata close", GREY, ys[1]),
-                 link_chip("Internal CO₂ drops", ORANGE, ys[2]), link_chip("O₂ wins the competition", RED, ys[3]),
-                 link_chip("Rubisco acts as an oxygenase", RED, ys[4]), link_chip("Carbon and energy lost", RED, ys[5])]
-        arrows = [Arrow([3.4, ys[i] - 0.38, 0], [3.4, ys[i + 1] + 0.38, 0], buff=0, stroke_width=3, color=GREY,
-                        tip_length=0.12, max_tip_length_to_length_ratio=0.5) for i in range(5)]
-
-        # ------------------------------------------------------------------------------------------------------------
-        self.add(co2_field, o2_field, inflow, guard_m)
-        self.play(FadeIn(head), FadeIn(leaf), FadeIn(rub), FadeIn(stoma_lab), FadeIn(leg), run_time=1.2)
-        self.at("plant gets")
-        self.add(th_fill)
-        self.play(FadeIn(th_out), FadeIn(bulb), run_time=0.7)
-
-        self.at("hot dry day")
-        self.play(FadeIn(chips[0], shift=DOWN * 0.15), heat.animate.set_value(1.0), run_time=1.5)
-        self.at("closes")
-        self.play(FadeIn(arrows[0]), FadeIn(chips[1], shift=DOWN * 0.15), open_t.animate.set_value(0.0), run_time=1.3)
-        self.at("Fresh carbon dioxide")
-        self.play(Indicate(guard_m, color=RED, scale_factor=1.15), run_time=1.0)
-        self.at("internal")
-        self.play(FadeIn(arrows[1]), FadeIn(chips[2], shift=DOWN * 0.15), co2_in.animate.set_value(0.3), run_time=2.4)
-        self.at("oxygen stays high")
-        self.play(Indicate(o2_field, color=RED, scale_factor=1.0), run_time=1.6)
-        self.at("Now oxygen")
-        self.play(FadeIn(arrows[2]), FadeIn(chips[3], shift=DOWN * 0.15), FadeIn(bar_cap), FadeIn(bar_m), run_time=0.8)
-        self.play(c_um.animate.set_value(2.8), run_time=2.2)
-        self.at("misfires")
-        self.play(FadeIn(arrows[3]), FadeIn(chips[4], shift=DOWN * 0.15),
-                  rub_box.animate.set_stroke(RED, 3).set_fill(RED, 0.2), rub_txt.animate.set_color(RED),
-                  FadeIn(oxy_tag), run_time=0.9)
-        self.at("burns carbon")
-        loss_c = Dot(radius=0.08, color=ORANGE).move_to(rub.get_left() + LEFT * 0.3 + UP * 0.2)
-        loss_a = VGroup(Circle(radius=0.2, stroke_width=0, fill_color=YELLOW, fill_opacity=0.95),
-                        T("ATP", 18, BG, weight=BOLD)).move_to(rub.get_left() + LEFT * 0.35 + DOWN * 0.1)
-        loss_a[1].move_to(loss_a[0])
-        self.add(loss_c, loss_a)
-        self.play(FadeIn(arrows[4]), FadeIn(chips[5], shift=DOWN * 0.15),
-                  loss_c.animate.shift(LEFT * 1.0 + UP * 0.5).set_opacity(0),
-                  loss_a.animate.shift(LEFT * 1.1 + DOWN * 0.1).set_opacity(0), run_time=1.6)
-        self.at("Each step feeds")
-        self.play(LaggedStart(*[Indicate(c, color=TEXT, scale_factor=1.04) for c in chips], lag_ratio=0.25, run_time=2.6))
-        self.at("lost productivity")
-        self.play(chips[5][0].animate.set_fill(RED, 0.4).set_stroke(width=4), run_time=0.8)
-        climate = T("hot, dry climates: hard on ordinary plants", 22, GOLD).move_to([3.4, -3.28, 0])
-        self.at("hot dry climates")
-        self.play(FadeIn(climate, shift=UP * 0.1), Indicate(VGroup(th_out, bulb), color=GOLD, scale_factor=1.08),
-                  run_time=1.0)
-
-        # --- the two fixes ---------------------------------------------------------------------------------------------
-        spatial = chip("spatial", GOLD, size=44)
-        temporal = chip("temporal", GOLD, size=44)
-        spatial.move_to([-3.2, 0.3, 0])
-        temporal.move_to([3.2, 0.3, 0])
-        sp_sub = T("C₄ plants", 28, GREY).next_to(spatial, DOWN, buff=0.3)
-        tp_sub = T("CAM plants", 28, GREY).next_to(temporal, DOWN, buff=0.3)
-        fade_all = [head, leaf, rub, stoma_lab, leg, th_out, bulb, th_fill, guard_m, co2_field, o2_field,
-                    inflow, bar_m, bar_cap, oxy_tag, climate, *chips, *arrows]
-        two = T("two evolutionary fixes", 36, font=TITLE_FONT).move_to([0, 2.0, 0])
-        self.at("evolutionary")
-        self.play(*[FadeOut(m) for m in fade_all], FadeIn(two), run_time=1.0)
-        self.at("spatial")
-        self.play(FadeIn(spatial, shift=UP * 0.15), FadeIn(sp_sub), run_time=0.7)
-        self.at("temporal")
-        self.play(FadeIn(temporal, shift=UP * 0.15), FadeIn(tp_sub), run_time=0.7)
+        arc = Arc(radius=3.25, start_angle=0.15, angle=PI * 1.35, color=GREY, stroke_width=10).move_to([0, 0.1, 0])
+        rubp = carbon_carrier(5, "RuBP · 5C", RUBP_GREEN).move_to([-2.6, 0.45, 0])
+        co2 = carbon_carrier(1, "CO2 · 1C", CO2_BLUE, width=1.7).move_to([3.9, 1.75, 0])
+        clamp = VGroup(Arc(radius=1.32, start_angle=-1.12, angle=2.24, color=TEAL, stroke_width=12),
+                       Arc(radius=1.32, start_angle=PI-1.12, angle=2.24, color=TEAL, stroke_width=12))
+        clamp.move_to([-0.2, 0.45, 0])
+        rubisco = T("Rubisco", 32, TEAL, weight=BOLD).next_to(clamp, UP, buff=0.18)
+        atp, nad = meter("ATP", 0, YELLOW, -1.25), meter("NADPH", 0, PURPLE, 1.35)
+        self.add(arc, rubp, co2, atp, nad)
+        moving_highlight(self, phase=3.7, center=np.array([0, 0.1, 0]), w=6.5, h=6.5)
+        self.at("joins one carbon dioxide")
+        self.play(FadeIn(clamp), FadeIn(rubisco), co2.animate.move_to([-0.2, 1.12, 0]),
+                  rubp.animate.move_to([-0.2, -0.18, 0]), run_time=1.25)
+        self.at("5 carbon acceptor")
+        self.play(clamp.animate.scale(0.82), run_time=0.6)
+        six = carbon_carrier(6, "6C · brief", TEXT, blue=1, width=3.75).move_to([-0.2, 0.25, 0])
+        self.at("brief 6 carbon")
+        self.play(FadeOut(clamp), FadeOut(rubisco), ReplacementTransform(VGroup(rubp, co2), six), run_time=0.8)
+        left = carbon_carrier(3, "3-PGA · 3C", BLUE, blue=1).move_to([-2.4, -0.15, 0])
+        right = carbon_carrier(3, "3-PGA · 3C", BLUE).move_to([2.1, -0.15, 0])
+        self.at("immediately splits")
+        self.play(ReplacementTransform(six, VGroup(left, right)), run_time=1.1)
+        self.at("3 phosphoglycerate")
+        self.play(left.animate.shift(LEFT * 0.55 + DOWN * 0.55), right.animate.shift(RIGHT * 0.55 + DOWN * 0.55), run_time=0.8)
+        stamp = chip("ATP 0 · NADPH 0", GREEN, size=32, fill_opacity=0.24).move_to([0, 2.65, 0])
+        self.at("Fixation itself")
+        self.play(FadeIn(stamp, scale=1.18), Indicate(atp), Indicate(nad), run_time=0.8)
+        self.at("no ATP")
+        self.play(left.animate.shift(RIGHT * 0.2), right.animate.shift(LEFT * 0.2), run_time=0.6)
         self.finish()
 
 
-# ============================================================================================
-class S04Photoresp(SpokenScene):
-    """Carbon count, normal cycle vs photorespiration. Each dot is one carbon."""
-
+class S05Reduction(SpokenScene):
     def construct(self):
-        SP = 0.19
-        leg = VGroup(Dot(radius=0.07, color=BLUE), T("= one carbon", 22, GREY)).arrange(RIGHT, buff=0.12)
-        leg.move_to([5.2, 3.35, 0])
-        divider = Line([-6.3, -0.05, 0], [6.3, -0.05, 0], color=GREY, stroke_width=1.5).set_opacity(0.6)
-        ytop, ybot = 1.95, -1.45
-        X1, X2, X3, X4a, X4b = -5.1, -2.4, 0.1, 2.6, 5.2
-        XB2a, XB2b, XB3, XB4 = -2.4, -0.1, 2.45, 5.0
-
-        def arrow_between(xa, xb, y, color=GREY):
-            return Arrow([xa + 0.62, y, 0], [xb - 0.62, y, 0], buff=0, stroke_width=4, color=color, tip_length=0.18)
-
-        self.at("Compare")
-        self.play(Create(divider), run_time=0.8)
-        self.at("counting")
-        self.play(FadeIn(leg), run_time=0.5)
-
-        # ---- top: the normal cycle ------------------------------------------------------------------------------------
-        t_top = T("Normal cycle", 30, TEXT, weight=BOLD).move_to([-5.0, 3.3, 0])
-        self.at("On top")
-        self.play(FadeIn(t_top), run_time=0.5)
-        s1 = block([BLUE] * 30, sp=SP).move_to([X1, ytop + SP / 2, 0])
-        lab1 = two_line(X1, 0.95, "6 RuBP", "30 C", BLUE, size=22)
-        self.at("normal")
-        self.play(pop(s1, 1.0), FadeIn(lab1), run_time=1.0)
-        co2_dots = block([ORANGE] * 6, sp=SP).move_to([X1, ytop - 2.5 * SP, 0])
-        lab1b = VGroup(T("6 RuBP", 22, BLUE), T("+ 6 CO₂", 22, ORANGE)).arrange(RIGHT, buff=0.12)
-        lab1b = VGroup(lab1b, M("36 C", 22, GREY)).arrange(DOWN, buff=0.06).move_to([X1, 0.95, 0])
-        self.at("six carbon")
-        self.play(FadeIn(co2_dots, shift=DOWN * 0.5), ReplacementTransform(lab1[0], lab1b[0][0]),
-                  FadeIn(lab1b[0][1], shift=LEFT * 0.1), ReplacementTransform(lab1[1], lab1b[1]), run_time=1.0)
-        s1_all = VGroup(*s1, *co2_dots)
-
-        s2 = block([BLUE] * 36, sp=SP).move_to([X2, ytop, 0])
-        a12 = arrow_between(X1, X2, ytop)
-        rub_lab = T("Rubisco", 22, TEAL).next_to(a12, UP, buff=0.12)
-        lab2 = two_line(X2, 0.95, "12 3-PGA", "36 C", BLUE, size=22)
-        self.at("Robisco")
-        self.play(GrowArrow(a12), FadeIn(rub_lab), run_time=0.7)
-        self.at("molecules")
-        self.play(TransformFromCopy(s1_all, s2), FadeIn(lab2), run_time=1.3)
-
-        s3 = block([BLUE] * 36, sp=SP).move_to([X3, ytop, 0])
-        a23 = arrow_between(X2, X3, ytop)
-        lab3 = two_line(X3, 0.95, "12 G3P", "36 C", BLUE, size=22)
-        self.at("which become")
-        self.play(GrowArrow(a23), TransformFromCopy(s2, s3), FadeIn(lab3), run_time=1.3)
-
-        s4a = block([BLUE] * 30, sp=SP).move_to([X4a, ytop + SP / 2, 0])
-        s4b = block([GREEN] * 6, sp=SP).move_to([X4b, ytop, 0])
-        lab4a = two_line(X4a, 0.95, "10 G3P", "30 C", BLUE, size=22)
-        a34 = arrow_between(X3, X4a, ytop)
-        self.at("10G3P")
-        self.play(GrowArrow(a34), TransformFromCopy(VGroup(*s3[:30]), s4a), FadeIn(lab4a), run_time=1.2)
-        loop = ArcBetweenPoints([X4a, ytop + 0.72, 0], [X1, ytop + 0.72, 0], angle=0.5, stroke_color=BLUE,
-                                stroke_width=4)
-        loop.add_tip(tip_length=0.2, tip_width=0.2)
-        loop_lab = T("regenerates RuBP", 22, BLUE).move_to([(X1 + X4a) / 2, ytop + 0.95, 0])
-        self.at("regenerate")
-        self.play(Create(loop), FadeIn(loop_lab), run_time=1.2)
-
-        lab4b = two_line(X4b, 0.95, "1 glucose", "6 C", GREEN, size=22)
-        self.at("two exit")
-        self.play(TransformFromCopy(VGroup(*s3[30:]), s4b), run_time=1.0)
-        self.at("one glucose")
-        self.play(FadeIn(lab4b), run_time=0.6)
-        net_top = T("net: +6 fixed carbons", 28, GREEN).move_to([3.7, 0.35, 0])
-        self.at("a gain of")
-        self.play(FadeIn(net_top, shift=UP * 0.1), Indicate(s4b, color=GREEN, scale_factor=1.3), run_time=1.0)
-
-        # ---- bottom: photorespiration ----------------------------------------------------------------------------------
-        t_bot = T("All oxygenation", 30, TEXT, weight=BOLD).move_to([-4.6, -0.5, 0])
-        self.at("On the bottom")
-        self.play(FadeIn(t_bot), run_time=0.5)
-        b1 = block([BLUE] * 30, sp=SP).move_to([X1, ybot, 0])
-        lab_b1 = VGroup(VGroup(T("6 RuBP", 22, BLUE), T("+ 6 O₂", 22, RED)).arrange(RIGHT, buff=0.12),
-                        M("30 C", 22, GREY)).arrange(DOWN, buff=0.06).move_to([X1, -2.3, 0])
-        self.at("respiration")
-        self.play(pop(b1, 0.9), FadeIn(lab_b1), run_time=0.9)
-
-        b2a = block([BLUE] * 18, sp=SP).move_to([XB2a, ybot, 0])
-        b2b = block([BLUE] * 12, sp=SP).move_to([XB2b, ybot, 0])
-        a_b = arrow_between(X1, XB2a, ybot)
-        rub_lab2 = T("Rubisco", 22, TEAL).next_to(a_b, UP, buff=0.12)
-        lab_b2a = two_line(XB2a, -2.3, "6 3-PGA", "18 C", BLUE, size=22)
-        lab_b2b = two_line(XB2b, -2.3, "6 phosphoglycolate", "12 C", RED, size=22)
-        self.at("producing")
-        self.play(GrowArrow(a_b), FadeIn(rub_lab2), run_time=0.6)
-        self.at("plus")
-        self.play(TransformFromCopy(VGroup(*b1[:18]), b2a), FadeIn(lab_b2a), run_time=1.0)
-        self.at("phosphoglycolate")
-        self.play(TransformFromCopy(VGroup(*b1[18:]), b2b), FadeIn(lab_b2b), run_time=1.0)
-
-        # salvage: 12 C -> 9 C back as 3-PGA, 3 C leave as CO2
-        b3 = block([BLUE] * 9, cols=3, sp=SP).move_to([XB3, ybot, 0])
-        lost = block([RED] * 3, cols=3, sp=SP)
-        a_s = Arrow([XB2b + 0.62, ybot, 0], [XB3 - 0.4, ybot, 0], buff=0, stroke_width=4, color=GREY, tip_length=0.18)
-        sal_lab = T("salvage", 22, GREY).next_to(a_s, UP, buff=0.12)
-        lab_b3 = two_line(XB3, -2.3, "3 3-PGA", "9 C", BLUE, size=22)
-        self.at("salvage")
-        self.play(GrowArrow(a_s), FadeIn(sal_lab), run_time=0.7)
-        self.at("recovers")
-        self.play(TransformFromCopy(VGroup(*b2b[:9]), b3), FadeIn(lab_b3), run_time=1.0)
-        self.at("releases")
-        lost_lab = T("3 CO₂", 24, RED)
-        VGroup(lost, lost_lab).arrange(RIGHT, buff=0.15).move_to([a_s.get_center()[0], -0.62, 0])
-        self.play(TransformFromCopy(VGroup(*b2b[9:]), lost), FadeIn(lost_lab), run_time=0.9)
-        net_bot = T("net: −3 fixed carbons", 28, RED).move_to([-1.0, -3.25, 0])
-        self.at("lose three")
-        self.play(FadeIn(net_bot, shift=UP * 0.1), Indicate(lost, color=RED, scale_factor=1.3), run_time=1.0)
-
-        # not enough carbons to rebuild the 6 RuBP, so no glucose
-        b4 = block([BLUE] * 27 + [BG] * 3, sp=SP).move_to([XB4, ybot, 0])
-        hollow = VGroup(*[Circle(radius=0.07, stroke_color=RED, stroke_width=2.5, fill_opacity=0).move_to(d.get_center())
-                          for d in b4[27:]])
-        a_g = Arrow([XB3 + 0.4, ybot, 0], [XB4 - 0.7, ybot, 0], buff=0, stroke_width=4, color=GREY, tip_length=0.18)
-        lab_b4 = two_line(XB4, -2.3, "9 G3P", "27 C", BLUE, size=22)
-        need = T("30 C needed", 22, RED).move_to([XB4, -2.95, 0])
-        self.at("every reaction")
-        self.play(GrowArrow(a_g), TransformFromCopy(VGroup(*b2a, *b3), VGroup(*b4[:27])), FadeIn(lab_b4), run_time=0.9)
-        self.at("carbons would")
-        self.play(FadeIn(hollow, scale=1.6), FadeIn(need), run_time=0.9)
-        self.at("starting sugar")
-        nog = T("no glucose made", 26, RED).move_to([XB4 - 0.25, -0.6, 0])
-        self.play(FadeIn(nog, shift=DOWN * 0.1), run_time=0.7)
-        self.at("contrast")
-        self.play(Indicate(net_top, color=GREEN, scale_factor=1.08), Indicate(net_bot, color=RED, scale_factor=1.08),
-                  run_time=1.2)
+        lanes = VGroup(Line([-5.6, 1.25, 0], [4.3, 1.25, 0], color=GREY, stroke_width=7),
+                       Line([-5.6, -1.1, 0], [4.3, -1.1, 0], color=GREY, stroke_width=7))
+        pga1 = carbon_carrier(3, "3-PGA · 3C", BLUE, blue=1).move_to([-4.35, 1.25, 0])
+        pga2 = carbon_carrier(3, "3-PGA · 3C", BLUE).move_to([-4.35, -1.1, 0])
+        atpm, nadm = meter("ATP", 2, YELLOW, -1.25), meter("NADPH", 2, PURPLE, 1.35)
+        self.add(lanes, pga1, pga2, atpm, nadm)
+        self.at("become the triose sugar")
+        self.play(pga1.animate.move_to([-2.25, 1.25, 0]), pga2.animate.move_to([-2.25, -1.1, 0]), run_time=1.0)
+        a1, a2 = energy_chip("ATP", YELLOW), energy_chip("ATP", YELLOW)
+        a1.move_to([0.1, 1.85, 0]); a2.move_to([0.1, -0.5, 0])
+        self.at("Each conversion")
+        self.play(FadeIn(a1, shift=DOWN * 0.2), FadeIn(a2, shift=DOWN * 0.2), run_time=0.6)
+        self.at("1 ATP")
+        self.remove(a1, a2)
+        self.play(Transform(atpm.num, M("0", 34, TEXT).move_to(atpm.num)), run_time=0.75)
+        n1, n2 = energy_chip("NADPH", PURPLE), energy_chip("NADPH", PURPLE)
+        n1.move_to([1.5, 1.85, 0]); n2.move_to([1.5, -0.5, 0])
+        self.at("1 NADPH")
+        self.play(FadeIn(n1), FadeIn(n2), run_time=0.55)
+        g1 = carbon_carrier(3, "G3P · 3C", SUGAR_GOLD, blue=1).move_to([2.7, 1.25, 0])
+        g2 = carbon_carrier(3, "G3P · 3C", SUGAR_GOLD).move_to([2.7, -1.1, 0])
+        self.at("reduce it")
+        self.remove(n1, n2)
+        self.play(ReplacementTransform(pga1, g1), ReplacementTransform(pga2, g2),
+                  Transform(nadm.num, M("0", 34, TEXT).move_to(nadm.num)), run_time=1.0)
+        ledger = VGroup(T("1 CO2 so far", 30, CO2_BLUE),
+                        T("2 ATP + 2 NADPH", 36, TEXT, weight=BOLD)).arrange(DOWN, buff=0.18)
+        ledger.move_to([0, 2.85, 0])
+        self.at("So far")
+        self.play(FadeIn(ledger, shift=UP * 0.15), g1.animate.shift(RIGHT * 0.35), g2.animate.shift(RIGHT * 0.35), run_time=0.8)
+        self.at("2 ATP")
+        self.play(Indicate(ledger[1], color=YELLOW), run_time=0.65)
         self.finish()
 
 
-# ============================================================================================
-class S05End(EndCard):
-    LINE = "Fixing carbon costs energy, and Rubisco's oxygen slip wastes it."
+class S06Predict(SpokenScene):
+    def construct(self):
+        loop = conveyor(opacity=0.58)
+        tray = output_tray()
+        g1 = compact_carrier(3, "G3P · 3C", SUGAR_GOLD, 0.86, blue=1).move_to([2.8, 0.9, 0])
+        g2 = compact_carrier(3, "G3P · 3C", SUGAR_GOLD, 0.86).move_to([2.8, -0.85, 0])
+        self.add(loop, tray, g1, g2)
+        moving_highlight(self, phase=2.5, speed=0.32)
+        self.at("can both new trioses leave")
+        self.play(g1.animate.move_to([2.9, 0.8, 0]), g2.animate.move_to([2.9, -0.8, 0]), run_time=1.0)
+        q, carrier, counters = question_layout()
+        self.at("conveyor keeps turning")
+        self.play(FadeIn(q), run_time=0.65)
+        self.at("Count the carbons")
+        self.remove(g1, g2, tray)
+        self.play(FadeIn(carrier),
+                  LaggedStart(*[FadeIn(d, scale=0.5) for d in counters], lag_ratio=0.08), run_time=0.9)
+        self.at("rebuild each")
+        self.play(LaggedStart(*[d.animate.shift(UP * 0.16) for d in counters], lag_ratio=0.08,
+                              rate_func=there_and_back, run_time=0.9))
+        self.finish()
+
+
+class S07PredictPause(Scene):
+    def construct(self):
+        config.background_color = BG
+        loop = conveyor(opacity=0.35)
+        q, carrier, counters = question_layout()
+        self.add(loop, q, carrier, counters)
+        moving_highlight(self, phase=2.8, speed=0.34)
+        self.play(LaggedStart(*[d.animate.shift(UP * 0.18) for d in counters], lag_ratio=0.16,
+                              rate_func=there_and_back, run_time=2.0))
+        self.play(LaggedStart(*[d.animate.shift(DOWN * 0.15) for d in counters], lag_ratio=0.16,
+                              rate_func=there_and_back, run_time=2.0))
+        self.wait(0.5)
+
+
+class S08ThreeTurns(SpokenScene):
+    def construct(self):
+        loop = conveyor(lanes=3)
+        self.add(loop)
+        moving_highlight(self, phase=2.9, speed=0.42, inset=1.7, radius=0.27)
+        self.at("Scale up to three turns")
+        self.play(loop.animate.scale(1.02), run_time=0.7)
+        rubps = VGroup(*[compact_carrier(5, "RuBP · 5C", RUBP_GREEN, 0.58)
+                         .move_to([-3.75, 1.55 - i * 1.55, 0]) for i in range(3)])
+        co2s = VGroup(*[compact_carrier(1, "CO2 · 1C", CO2_BLUE, 0.58, width=1.55)
+                        .move_to([-5.85, 1.55 - i * 1.55, 0]) for i in range(3)])
+        self.at("Three RuBP")
+        self.play(LaggedStart(*[FadeIn(x, shift=RIGHT * 0.2) for x in rubps], lag_ratio=0.12), run_time=0.7)
+        self.at("three carbon dioxides")
+        self.play(LaggedStart(*[FadeIn(x, shift=RIGHT * 0.2) for x in co2s], lag_ratio=0.12), run_time=0.7)
+        counter = VGroup(T("carbon count", 28, GREY), M("15", 52, TEXT)).arrange(DOWN, buff=0.08).move_to([4.95, 2.55, 0])
+        self.play(FadeIn(counter), run_time=0.4)
+        gs = VGroup()
+        positions = [loop_point(a) for a in np.linspace(0, TAU, 6, endpoint=False)]
+        for i, p in enumerate(positions):
+            gs.add(compact_carrier(3, "G3P", SUGAR_GOLD, 0.56, blue=0).move_to(p))
+        self.at("make six trioses")
+        self.remove(rubps, co2s, *rubps, *co2s)
+        self.play(LaggedStart(*[FadeIn(g, scale=0.6) for g in gs], lag_ratio=0.08),
+                  Transform(counter[1], M("18", 52, TEXT).move_to(counter[1])), run_time=1.0)
+        self.at("Only three carbons")
+        self.play(*[gs[i].dots[i % 3].animate.set_color(CO2_BLUE) for i in range(3)], run_time=0.75)
+        tray = output_tray()
+        self.at("only one triose")
+        self.play(FadeIn(tray), gs[0].animate.move_to([5.15, 0.1, 0]).scale(1.25),
+                  *[gs[i].animate.rotate(0.12, about_point=LOOP_C) for i in range(1, 6)], run_time=1.0)
+        self.finish()
+
+
+class S09Regeneration(SpokenScene):
+    def construct(self):
+        loop = conveyor(lanes=3, opacity=0.52)
+        tray = output_tray()
+        net = compact_carrier(3, "G3P · net", SUGAR_GOLD, 0.72, blue=1).move_to([5.15, 0.1, 0])
+        five = VGroup(*[compact_carrier(3, "G3P", SUGAR_GOLD, 0.52)
+                        .move_to([-4.8 + i * 1.35, 1.7, 0]) for i in range(5)])
+        self.add(loop, tray, net, five)
+        moving_highlight(self, phase=3.0, speed=0.38)
+        drum = RoundedRectangle(corner_radius=0.5, width=6.2, height=3.15, color=TEAL,
+                                fill_color=TEAL, fill_opacity=0.1).move_to([-0.4, -0.2, 0])
+        drum_lab = T("15-carbon shuffle", 32, TEAL, weight=BOLD).next_to(drum, UP, buff=0.12)
+        self.at("hold 15 carbons")
+        self.play(FadeIn(drum), FadeIn(drum_lab),
+                  *[five[i].animate.move_to([-2.7 + 1.15 * i, 0.1, 0]) for i in range(5)], run_time=1.0)
+        dots = VGroup(*[Dot(radius=0.14, color=TEXT).move_to([-2.6 + 0.37 * (i % 8),
+                                                               -0.65 + 0.5 * (i // 8), 0]) for i in range(15)])
+        self.at("exactly enough")
+        self.remove(five, *five)
+        self.play(LaggedStart(*[FadeIn(d) for d in dots], lag_ratio=0.03), run_time=0.7)
+        self.at("counters are reshuffled")
+        self.play(LaggedStart(*[d.animate.shift(UP * (0.25 if i % 2 else -0.1) + RIGHT * (0.12 if i % 3 else -0.15))
+                                for i, d in enumerate(dots)], lag_ratio=0.025, rate_func=there_and_back, run_time=1.2))
+        rebuilt = VGroup(*[compact_carrier(5, "5C sugar", RUBP_GREEN, 0.66)
+                            .move_to([-2.65 + i * 2.25, -0.15, 0]) for i in range(3)])
+        self.at("not discarded")
+        self.remove(dots, *dots, drum, drum_lab)
+        self.play(LaggedStart(*[FadeIn(r, scale=0.7) for r in rebuilt], lag_ratio=0.1), run_time=0.9)
+        atps = VGroup(*[energy_chip("ATP", YELLOW).next_to(r, UP, buff=0.15) for r in rebuilt])
+        self.at("spends three more ATP")
+        self.play(LaggedStart(*[FadeIn(a, shift=DOWN * 0.2) for a in atps], lag_ratio=0.12), run_time=0.7)
+        final = VGroup(*[compact_carrier(5, "RuBP · 5C", RUBP_GREEN, 0.54).move_to(r) for r in rebuilt])
+        self.at("remake RuBP")
+        self.play(FadeOut(atps), ReplacementTransform(rebuilt, final), run_time=0.8)
+        self.at("close all three loops")
+        targets = [loop_point(PI + x) for x in (-0.55, 0, 0.55)]
+        self.play(*[final[i].animate.move_to(targets[i]) for i in range(3)], run_time=1.0)
+        self.finish()
+
+
+class S10GuidingRule(SpokenScene):
+    def construct(self):
+        loop = conveyor(lanes=3).scale(0.72).move_to([0, 1.55, 0])
+        self.add(loop)
+        moving_highlight(self, phase=2.4, center=np.array([0, 1.55, 0]), w=LOOP_W*0.72, h=LOOP_H*0.72, speed=0.44)
+        red = VGroup(T("reduction", 28, BLUE), T("6 ATP + 6 NADPH", 34, TEXT, weight=BOLD)).arrange(DOWN, buff=0.12)
+        reg = VGroup(T("regeneration", 28, RUBP_GREEN), T("3 ATP", 34, YELLOW, weight=BOLD)).arrange(DOWN, buff=0.12)
+        totals = VGroup(red, reg).arrange(RIGHT, buff=1.1).move_to([0, -0.85, 0])
+        self.at("three turn bill")
+        self.play(LaggedStart(FadeIn(red), FadeIn(reg), lag_ratio=0.2), run_time=0.55)
+        bar = Line([-4.5, -1.7, 0], [4.5, -1.7, 0], color=TEXT, stroke_width=4)
+        div = M("÷ 3", 40, TEXT).next_to(bar, DOWN, buff=0.18)
+        self.at("by three")
+        self.play(Create(bar), FadeIn(div), run_time=0.7)
+        result = chip("per CO2: 3 ATP + 2 NADPH", GOLD, size=38, fill_opacity=0.18).move_to([0, -2.5, 0])
+        self.at("ordinary C3 cycle")
+        self.remove(totals, red, reg, div, bar)
+        self.play(FadeIn(result, shift=UP * 0.12), run_time=0.8)
+        self.at("3 ATP")
+        self.play(Indicate(result, color=YELLOW, scale_factor=1.04), run_time=0.7)
+        self.at("2 NADPH")
+        self.play(Indicate(result, color=PURPLE, scale_factor=1.04), run_time=0.7)
+        icons = VGroup(energy_chip("ATP", YELLOW), energy_chip("ATP", YELLOW), energy_chip("ATP", YELLOW),
+                       energy_chip("NADPH", PURPLE), energy_chip("NADPH", PURPLE)).arrange(RIGHT, buff=0.15)
+        icons.move_to([0, -0.8, 0])
+        self.at("One extra ATP")
+        self.play(FadeIn(icons), run_time=0.6)
+        return_arrow = CurvedArrow([3.0, 0.85, 0], [3.55, 1.3, 0], angle=0.55, color=RUBP_GREEN)
+        self.at("rebuild the acceptor")
+        self.play(icons[2].animate.move_to([3.0, 0.15, 0]), Create(return_arrow), run_time=0.8)
+        bracket = SurroundingRectangle(loop, color=TEXT, buff=0.18, corner_radius=0.25)
+        self.at("Count the carbons")
+        self.play(Create(bracket), loop.animate.set_color(TEXT), run_time=0.8)
+        self.finish()
+
+
+class S11Scale(SpokenScene):
+    def construct(self):
+        loop = conveyor().scale(0.75).move_to([-1.0, 0.7, 0])
+        tray = compact_output_tray(0.85, np.array([5.05, 0.55, 0]))
+        laps = chip("3 turns", TEAL, size=34).move_to([-4.9, 2.75, 0])
+        atpm, nadm = meter("ATP", 9, YELLOW, -1.25), meter("NADPH", 6, PURPLE, 1.35)
+        self.add(loop, tray, laps, atpm, nadm)
+        moving_highlight(self, phase=2.6, center=np.array([-1.0, 0.7, 0]),
+                         w=LOOP_W*.75, h=LOOP_H*.75, speed=0.55, radius=0.27)
+        self.at("spend 9 ATP")
+        self.play(Indicate(atpm, color=YELLOW), run_time=0.7)
+        self.at("6 NADPH")
+        self.play(Indicate(nadm, color=PURPLE), run_time=0.7)
+        g1 = compact_carrier(3, "G3P", SUGAR_GOLD, 0.62, blue=1).move_to([5.15, 0.55, 0])
+        self.at("one net G3P")
+        self.play(FadeIn(g1, shift=RIGHT * 0.25), run_time=0.75)
+        laps6 = chip("6 turns", TEAL, size=34).move_to(laps)
+        self.at("Six turns")
+        self.play(Transform(laps, laps6), loop.animate.set_stroke(width=11), run_time=0.75)
+        self.at("18 ATP")
+        self.play(Transform(atpm.num, M("18", 34, TEXT).move_to(atpm.num)), run_time=0.6)
+        self.at("12 NADPH")
+        self.play(Transform(nadm.num, M("12", 34, TEXT).move_to(nadm.num)), run_time=0.6)
+        g2 = compact_carrier(3, "G3P", SUGAR_GOLD, 0.62).move_to([5.15, -0.45, 0])
+        self.at("two net trioses")
+        self.play(g1.animate.move_to([5.15, 0.65, 0]), FadeIn(g2, shift=RIGHT * 0.25), run_time=0.8)
+        supply_box = DashedVMobject(RoundedRectangle(corner_radius=0.2, width=3.8, height=2.0, color=SUGAR_GOLD))
+        supply_box.move_to([4.0, 0.1, 0])
+        supply_lab = T("hexose phosphate supply", 28, SUGAR_GOLD, weight=BOLD).next_to(supply_box, UP, buff=0.12)
+        self.at("supply one hexose phosphate")
+        self.play(FadeOut(tray), Create(supply_box), FadeIn(supply_lab),
+                  g1.animate.move_to([3.25, 0.2, 0]), g2.animate.move_to([4.75, 0.2, 0]), run_time=0.9)
+        no = VGroup(Line(LEFT * 0.22 + UP * 0.22, RIGHT * 0.22 + DOWN * 0.22, color=RED, stroke_width=6),
+                    Line(LEFT * 0.22 + DOWN * 0.22, RIGHT * 0.22 + UP * 0.22, color=RED, stroke_width=6))
+        wrong = VGroup(no, T("free glucose directly", 30, RED)).arrange(RIGHT, buff=0.2).move_to([0, -2.25, 0])
+        self.at("does not directly release")
+        self.play(FadeIn(wrong), run_time=0.7)
+        self.finish()
+
+
+class S13Scope(SpokenScene):
+    def construct(self):
+        loop = conveyor().scale(0.76).move_to([0, 0.05, 0])
+        badge = chip("simplest steady state", TEAL, size=32).move_to([0, 3.05, 0])
+        self.add(loop)
+        moving_highlight(self, phase=2.7, center=np.array([0, 0.05, 0]),
+                         w=LOOP_W*.76, h=LOOP_H*.76, speed=0.4, radius=0.27)
+        self.at("simplest steady state")
+        self.play(FadeIn(badge, shift=DOWN * 0.15), run_time=0.65)
+        dawn = VGroup(Rectangle(width=1.8, height=0.85, color=YELLOW),
+                      Line([-0.65, -0.2, 0], [0.55, 0.2, 0], color=YELLOW, stroke_width=5))
+        startup = VGroup(T("startup", 28, YELLOW, weight=BOLD), dawn).arrange(DOWN, buff=0.12).move_to([-5.0, 1.65, 0])
+        photo = VGroup(T("photorespiration", 28, RED, weight=BOLD),
+                       VGroup(Line(DOWN*.45, UP*.45, color=RED, stroke_width=5),
+                              Line(ORIGIN, RIGHT*.65+UP*.35, color=RED, stroke_width=5),
+                              Line(ORIGIN, RIGHT*.65+DOWN*.35, color=RED, stroke_width=5))).arrange(DOWN, buff=0.12).move_to([4.8, 1.55, 0])
+        pump = VGroup(T("C4 / CAM", 28, CO2_BLUE, weight=BOLD),
+                      Circle(radius=0.45, color=CO2_BLUE), Arrow(LEFT*.35, RIGHT*.35, color=CO2_BLUE, buff=0)).arrange(DOWN, buff=0.12).move_to([-5.0, -1.65, 0])
+        self.at("Startup")
+        self.play(FadeIn(startup), startup[1][1].animate.shift(UP * 0.14), run_time=0.24)
+        self.at("photo respiration")
+        self.play(FadeIn(photo), Rotate(photo[1], 0.18, rate_func=there_and_back), run_time=0.7)
+        self.at("carbon concentrating pathways")
+        self.play(FadeIn(pump), Rotate(pump[1], PI), run_time=0.7)
+        deeper = VGroup(Arrow(UP * 0.35, DOWN * 0.35, color=TEXT), T("deeper below", 30, TEXT)).arrange(DOWN, buff=0.12).move_to([4.85, -2.35, 0])
+        self.at("page below")
+        self.play(FadeOut(startup, target_position=deeper[0]), FadeOut(photo, target_position=deeper[0]),
+                  FadeOut(pump, target_position=deeper[0]), FadeIn(deeper), run_time=0.9)
+        self.finish()
+
+
+class S14Return(SpokenScene):
+    def construct(self):
+        shell = Ellipse(width=12.6, height=7.0, color=TEAL, stroke_width=3,
+                        fill_color=TEAL, fill_opacity=0.035)
+        loop = conveyor(lanes=3)
+        tray = output_tray()
+        self.add(shell, loop, tray)
+        stroma_motes(self)
+        moving_highlight(self, phase=2.4, speed=0.5)
+        six = VGroup(*[compact_carrier(3, "G3P", SUGAR_GOLD, 0.5, blue=1 if i == 0 else 0)
+                       .move_to(loop_point(PI / 6 + i * TAU / 6)) for i in range(6)])
+        self.add(six)
+        net = six[0]
+        drum = RoundedRectangle(corner_radius=0.35, width=3.6, height=2.1, color=TEAL,
+                                fill_color=TEAL, fill_opacity=0.1).move_to([-0.2, -0.1, 0])
+        self.at("builds carbon product")
+        self.remove(*[six[i].body for i in range(1, 6)], *[six[i].label for i in range(1, 6)])
+        self.play(net.animate.move_to([5.15, 0.1, 0]).scale(1.35), FadeIn(drum),
+                  *[six[i].dots.animate.move_to([-1.45 + 0.65*i, -0.1, 0]) for i in range(1, 6)], run_time=1.0)
+        rebuilt = VGroup(*[compact_carrier(5, "RuBP", RUBP_GREEN, 0.54)
+                            .move_to(loop_point(PI + (i-1)*0.55)) for i in range(3)])
+        self.at("rebuilding its carbon catcher")
+        returning_dots = [six[i].dots for i in range(1, 6)]
+        self.remove(*six[1:], *returning_dots,
+                    *[d for group in returning_dots for d in group], drum)
+        self.play(LaggedStart(*[FadeIn(r) for r in rebuilt], lag_ratio=0.1), run_time=0.9)
+        one = chip("1 of 6 is net", SUGAR_GOLD, size=34).move_to([2.9, 3.05, 0])
+        self.at("one trios in six")
+        self.play(FadeIn(one), *[r.animate.rotate(0.14, about_point=LOOP_C) for r in rebuilt], run_time=0.75)
+        atp, nad = meter("ATP", 3, YELLOW, -1.25), meter("NADPH", 2, PURPLE, 1.35)
+        self.at("ATP demand")
+        self.play(FadeIn(atp, shift=UP * 0.2), FadeIn(nad, shift=UP * 0.2), run_time=0.7)
+        bracket = Brace(VGroup(atp, nad), UP, color=TEXT, buff=0.12)
+        self.at("exceeds NADPH")
+        self.play(GrowFromCenter(bracket), Indicate(atp, color=YELLOW), run_time=0.8)
+        self.finish()
+
+
+class S15End(EndCard):
+    LINE = "Count the carbons, and the bill follows."
+
+    def construct(self):
+        loop = conveyor(opacity=0.22)
+        line = T(self.LINE, 46, TEXT, font=TITLE_FONT)
+        fit(line, 11.6, 1.2)
+        rule = Line(LEFT * 1.55, RIGHT * 1.55, color=GOLD, stroke_width=4).next_to(line, DOWN, buff=0.32)
+        self.add(loop)
+        moving_highlight(self, color=GOLD, phase=PI, speed=0.42, inset=-0.18)
+        self.play(FadeIn(line, shift=UP * 0.12), GrowFromCenter(rule), run_time=0.8)
+        self.wait(2.8)
+        self.finish()
