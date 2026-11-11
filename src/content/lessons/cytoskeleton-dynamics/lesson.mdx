@@ -19,9 +19,15 @@ explainer:
   src: "/explainers/cytoskeleton-dynamics/explainer.mp4"
   captions: "/explainers/cytoskeleton-dynamics/explainer.vtt"
   poster: "/explainers/cytoskeleton-dynamics/poster.jpg"
-  title: "Why Microtubule Ends Fall Apart"
-  durationSec: 160.3
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Tight Ends, Loose Ends"
+  durationSec: 190.2
+  takeaways:
+    - "Each filament end has a critical concentration: above it the end grows, below it the end shrinks."
+    - "If subunits never hydrolysed their nucleotide, both ends would share one critical concentration and the polymer would simply settle."
+    - "Hydrolysis after joining gives a polymer tight ends, with a low critical concentration, and loose ends, with a high one."
+    - "At treadmilling steady state, actin grows at its tight barbed end and shrinks at its loose pointed end."
+    - "A microtubule end is tight while it keeps its GTP cap and collapses many times faster when it loses it."
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
 
 scientists:
@@ -379,9 +385,9 @@ import DynamicInstabilityTrace from '../../../components/DynamicInstabilityTrace
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
 
-**Watch one microtubule grow from a seed in a dish of purified tubulin and it will not settle down. It lengthens slowly for minutes, then shrinks many times faster, and sometimes starts growing again.**
+**The film above opens on a microtubule that will not settle down, where a crystal would grow until crystal and solution balance and then stop.**
 
-A crystal in its solution does not behave like this: it grows until crystal and solution reach a balance, then stops growing. And the instability is not a defect. Ends that grow and collapse by themselves let a microtubule array search the cell interior, keep the ends that find a target, and rebuild quickly when the cell changes shape or divides; regulated actin turnover lets a cell build and take down protrusions. This lesson asks what the three filament systems are made of, what decides whether an end grows or shrinks, and why two of them spend nucleotide energy in a way that keeps them unstable.
+The instability is not a defect. Ends that grow and collapse by themselves let a microtubule array search the cell interior, keep the ends that find a target, and rebuild quickly when the cell changes shape or divides; regulated actin turnover lets a cell build and take down protrusions. This lesson asks what the three filament systems are made of, what decides whether an end grows or shrinks, and why two of them spend nucleotide energy in a way that keeps them unstable.
 
 ## Three polymers built for different jobs
 
@@ -401,11 +407,9 @@ In comparisons of purified filaments, microtubules are the stiffest in bending, 
 
 <LessonFigure src="/figures/cytoskeleton-dynamics/three-polymers-side-by-side.webp" width={1200} height={591} alt="AI-generated illustration: three filament segments side by side at the same scale; a thin actin filament with an arrowhead end, a thick hollow microtubule with a plus end, and a rope-like intermediate filament built from antiparallel tetramers." caption="Three polymers drawn to the same scale. Actin and microtubules have two different ends; the intermediate filament's building block points both ways, so its two ends are alike." />
 
-> **The one idea to carry through this lesson.** Each filament end, in a given state, has a critical concentration, Cc = koff / kon: the free subunit concentration at which subunits join the end as fast as they leave. Above it the end grows; below it the end shrinks. If subunits never hydrolysed their nucleotide, every end of a polymer would share one Cc, and the polymer would simply settle. Hydrolysis after assembly makes old subunits hold on less tightly, so a polymer gets two kinds of end. A **tight** end carries fresh nucleotide and has a low Cc. A **loose** end carries old nucleotide and has a high Cc. When the free subunit concentration sits between the two Ccs, the polymer cannot come to rest with nothing moving. **Actin** puts the two kinds at its two ends, so it treadmills: the difference is in *space*. **A microtubule end** switches between the two kinds over *time*: it grows while it keeps its GTP cap and collapses when it loses the cap. That is dynamic instability.
+> **The one idea to carry through this lesson**, the one the film above animates. Each filament end, in a given state, has a critical concentration, Cc = koff / kon. Hydrolysis after assembly gives a polymer a **tight** end (fresh nucleotide, low Cc) and a **loose** end (old nucleotide, high Cc). Between the two Ccs the polymer cannot come to rest with nothing moving. **Actin** separates the two kinds in *space* (treadmilling); **a microtubule end** switches between them over *time* (dynamic instability).
 
 This rule is for single ends with purified proteins. It says *whether* a polymer can settle and *which way* each end moves, not the rates in a cell, where accessory proteins (profilin, formins, cofilin, capping protein, EB proteins and others) change them, some by an order of magnitude or more. It does not say *when* a capped end loses its cap. Intermediate filaments, with no nucleotide and one kind of end, are the contrast case: the rule predicts neither treadmilling nor instability.
-
-*The film at the top covers the microtubule half of this idea: lose the cap and the end collapses.*
 
 ## One end: the doorway and its critical concentration
 
@@ -416,7 +420,7 @@ Start with a measurement. Let tubes of pure actin at a range of total concentrat
 
 The flat level of free actin is the critical concentration, Cc, and it is also the total where the line bends. (For real ATP-actin, whose two ends differ, free actin settles between the two ends' values; next section.) Followed over time, one tube shows a lag, then growth, then a plateau. The lag is there because starting a filament is hard: a few subunits must come together before an end exists. So cells control *where* filaments start, with formins and the Arp2/3 complex for actin and γ-tubulin at the centrosome for microtubules. Rho-family GTPases decide where actin assembles ([that lesson](/lessons/integrins-and-rho-gtpases/)).
 
-Why does free actin stop at one value? Treat a filament end as a doorway. Subunits arrive at a rate proportional to the free subunit concentration C, and leave at a rate that does not depend on C.
+Why does free actin stop at one value? Treat a filament end as the film's doorway: subunits arrive at a rate proportional to the free subunit concentration C, and leave at a rate that does not depend on C.
 
 <EquationCard
   purpose="Whether one filament end grows or shrinks, and the free subunit concentration at which it does neither."
@@ -485,7 +489,7 @@ So "the barbed end grows and the pointed end shrinks" is true only in the window
 
 </details>
 
-Only the middle zone is new. Left alone, filaments use up free actin until the barbed end's gain matches the pointed end's loss. With Pollard's constants, that happens at about 0.17 µM, close to the barbed end's value rather than halfway, because the barbed end's ninefold larger kon gives its value more weight. Now the filament's length holds steady while subunits flow through it, joining at the barbed end, aging along the filament and leaving at the pointed end. This is **treadmilling**, like a queue that holds its length while everyone moves through. Single purified actin filaments watched by microscopy show barbed-end growth and pointed-end shortening at approximately equal rates at steady state.
+Only the middle zone is new. Left alone, filaments use up free actin until the barbed end's gain matches the pointed end's loss. With Pollard's constants, that happens at about 0.17 µM, close to the barbed end's value rather than halfway, because the barbed end's ninefold larger kon gives its value more weight. There the filament keeps its length while subunits flow through it, as the film shows: **treadmilling**. Single purified actin filaments watched by microscopy show barbed-end growth and pointed-end shortening at approximately equal rates at steady state.
 
 <LessonFigure src="/figures/cytoskeleton-dynamics/treadmilling-flux.webp" width={1200} height={646} alt="AI-generated illustration: a ten-bead actin filament with a new bead joining at the barbed end and an older bead leaving the pointed end, a broad arrow showing subunits flowing front to back, and a second strip showing the same length a moment later." caption="Treadmilling: at steady state the barbed end gains subunits as fast as the pointed end loses them, so the filament keeps its length while subunits flow through it." />
 
@@ -495,16 +499,14 @@ Binding drives assembly; hydrolysis afterwards turns the steady state into a flu
 
 A microtubule end switches between steady growth and rapid shortening. The switch to shortening is a **catastrophe**; the switch back is a **rescue**. This **dynamic instability**, a property of individual ends, is the rule's *time* version: one end alternates between a tight (capped) and a loose (uncapped) state. (Microtubules can treadmill too, in vitro and in some cells, so treadmilling is not limited to actin.)
 
-The standard explanation is the **GTP cap**. A dimer joins with GTP on its β-tubulin, and the GTP is hydrolysed soon after, inside the lattice. GDP-tubulin is held in the straight lattice only by its neighbours; the end stays intact while a cap of not-yet-hydrolysed dimers remains.
+The standard explanation is the **GTP cap** that the film animates. The GTP sits on β-tubulin and is hydrolysed soon after the dimer joins, inside the lattice, so the end stays intact only while a cap of not-yet-hydrolysed dimers remains.
 
 - **Capped, the end is tight.** Its critical concentration is about 5 µM in one purified preparation (the worked example in the box above), so at typical test concentrations it grows.
 - **Uncapped, the end is loose.** It sheds dimers so fast that its critical concentration is, by a rough estimate, far above any tubulin concentration tested (Going deeper, "Who first watched the switching").
 
-Picture strips of bent plastic held straight side by side, with a clamp at the tip made from the newest piece added to each strip. Lose the clamp and each strip curls away from its neighbours, peeling from the end. GDP-tubulin protofilaments are curved in the same way, and once the cap is gone they curl outward.
+GDP-tubulin protofilaments are curved, which is why they peel outward once the cap is gone.
 
-The cap can be lost by chance, or because addition slows and hydrolysis catches up. Slowing hydrolysis lengthens the cap, as recombinant human tubulin mutants show (Roostalu and colleagues, 2020). Exactly what the cap looks like, and what final event commits an end to shortening, is still argued.
-
-*The film shows only one route, addition slowing. A cap can also be lost by chance at a steady growth rate, which is why catastrophes are random events.*
+Because a cap can be lost by chance even at a steady growth rate, catastrophes are random events. Slowing hydrolysis lengthens the cap, as recombinant human tubulin mutants show (Roostalu and colleagues, 2020). Exactly what the cap looks like, and what final event commits an end to shortening, is still argued.
 
 Mitchison and Kirschner inferred dynamic instability in 1984 from populations of microtubules; microscopy of single ends soon showed the switching directly, at both ends of purified microtubules (Going deeper). In cells, minus ends are often capped or anchored, for example at the centrosome.
 
