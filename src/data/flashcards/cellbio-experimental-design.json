@@ -1,0 +1,580 @@
+{
+ "slug": "cellbio-experimental-design",
+ "title": "Designing a Cell Biology Experiment",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract -> Codex draft -> Codex accuracy gate and fix",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  }
+ },
+ "lessonHash": "f9473dd9c71e",
+ "sectionHashes": {
+  "(opening)": "76bc3762a553",
+  "Make the models disagree": "20c336da8c6d",
+  "Read the endpoint before interpreting it": "969d6dc61d56",
+  "Read repeatability at the independent-unit level": "617afdbe6589",
+  "Worked problem: six hundred cells, three runs": "90cdd6484c15",
+  "Controls that rule out the boring explanations": "c1de2aeb24ab",
+  "Design problem": "c584663c0736",
+  "Reporter limits and biological scope": "a3b3975b29c8",
+  "The paired calculation": "f2da91f1b395"
+ },
+ "cards": [
+  {
+   "id": "cellbio-experimental-design-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is a dish containing 600 measured cells still one experiment when the whole dish receives one condition?",
+   "back": "All cells share the assigned condition and are not independent experimental units; the dish is the single experimental unit.",
+   "quote": "The film's opening dish was one experiment per condition, not 600: every cell shared its dish"
+  },
+  {
+   "id": "cellbio-experimental-design-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A p-value measures incompatibility with a specified {{c1::no-effect model}}.",
+   "back": "",
+   "quote": "the reported p-value—a measure of incompatibility with a specified no-effect model—used the wrong units"
+  },
+  {
+   "id": "cellbio-experimental-design-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Quiescent}} cells are not actively cycling.",
+   "back": "",
+   "quote": "Quiescent cells are not actively cycling. Wnt proteins are secreted signals.",
+   "section": "Make the models disagree"
+  },
+  {
+   "id": "cellbio-experimental-design-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why should completed division, rather than S-phase entry, be the primary endpoint when testing the two stretch models?",
+   "back": "Both models predict S-phase entry, but only Model A predicts completion without Wnt; division is where their predictions disagree.",
+   "quote": "Because the models agree at S-phase entry and disagree at division, completion is the primary endpoint.",
+   "section": "Make the models disagree"
+  },
+  {
+   "id": "cellbio-experimental-design-c05",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Before collecting data, how should competing models and an inconclusive outcome be built into an experimental test?",
+   "back": "Give each model a numerical prediction for the chosen endpoint and predefine the range that favors neither. This makes disconfirmation possible.",
+   "why": "The design rests on the rule that an experiment able only to confirm a model is not a test.",
+   "quote": "Before collecting an image, write each model's numerical prediction for the chosen endpoint and the range that would favour neither.",
+   "section": "Make the models disagree"
+  },
+  {
+   "id": "cellbio-experimental-design-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Wnt3A alone produces as many completed divisions as stretch plus Wnt3A. What happens to Model B's cooperation claim, and why?",
+   "back": "It fails. Stretch adds nothing in Wnt3A medium, whereas Model B predicts that stretch should add at least 10 percentage points more there than in control medium.",
+   "quote": "If Wnt3A alone matches stretch plus Wnt3A, stretch adds nothing in Wnt3A medium.",
+   "section": "Make the models disagree"
+  },
+  {
+   "id": "cellbio-experimental-design-c07",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why must a two-by-two test of stretch and Wnt3A include a Wnt3A-alone arm?",
+   "back": "It distinguishes Wnt3A merely adding divisions on its own from Wnt3A cooperating with stretch to complete the cycle.",
+   "quote": "This is why the Wnt3A-alone arm is required.",
+   "section": "Make the models disagree"
+  },
+  {
+   "id": "cellbio-experimental-design-c08",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Fucci means {{c1::fluorescent ubiquitination-based cell-cycle indicator}}.",
+   "back": "",
+   "quote": "Fucci means fluorescent ubiquitination-based cell-cycle indicator.",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c09",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the described MDCK cells, red mKO2-Cdt1 marks {{c1::G0 and G1}}.",
+   "back": "Green mAG-Geminin marks cells from S phase until mitosis.",
+   "quote": "In these MDCK cells, red mKO2-Cdt1 marks G0 and G1",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c10",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the described MDCK cells, green mAG-Geminin marks cells from {{c1::S phase until mitosis}}.",
+   "back": "",
+   "quote": "green mAG-Geminin marks cells from S phase, when DNA is copied, until mitosis",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a green Fucci cell not by itself show that cell division was completed?",
+   "back": "Green roughly marks entry into S phase through mitosis; only tracking the cell to an observed division directly shows completion here.",
+   "quote": "a green cell has roughly entered S, while only the path to an observed division directly shows completion here",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "During its labelling window, cells incorporate the thymidine analogue {{c1::EdU}} into DNA.",
+   "back": "EdU is an endpoint for DNA synthesis, not a direct division count.",
+   "quote": "EdU supplies a separate endpoint: it is a thymidine analogue that cells build into DNA during the labelling window.",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What does agreement between green Fucci and EdU support, and what does it not establish?",
+   "back": "It supports entry into S phase, but neither measure becomes a count of completed divisions.",
+   "quote": "agreement between green Fucci and EdU supports entry into S without turning either measure into a division count",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Green cells begin rising after about 8 hours. A cell enters S at hour 20, and observation stops at hour 24. Can the record rule out its later division, and why?",
+   "back": "No. It cannot finish S, G2, and mitosis within the remaining four hours, so the negative result applies only to the observed window.",
+   "quote": "A cell that enters S at 20 hours cannot finish S, G2 and mitosis by 24 hours.",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c15",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two circular tissues have initial radii 850 and 1,700 micrometres. Each edge moves outward 30 micrometres per hour for 10 hours. What are their percentage area increases?",
+   "back": "The radii become 1,150 and 2,000 micrometres. Thus (1150/850)² - 1 = 0.83, or 83%, and (2000/1700)² - 1 = 0.38, or 38%.",
+   "quote": "Their radii move from 850 to 1,150 micrometres and from 1,700 to 2,000.",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c16",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two circular tissues expand at the same constant edge speed, but the smaller one has a larger percentage area increase. Does that prove faster proliferation, and why?",
+   "back": "No. Radius enters area quadratically, so geometry alone can create different percentage area increases; no division rate appears in that calculation.",
+   "quote": "Geometry alone creates the difference, so percent area growth does not prove proliferation.",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c17",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A spreading epithelial tissue shows a large increase in area. What measurements would distinguish geometric spreading from proliferation?",
+   "back": "Count nuclei and track individual divisions in addition to measuring area. The rule is that area growth alone contains no division rate.",
+   "why": "This combines the geometry warning with direct cell-number and division endpoints.",
+   "quote": "Count nuclei, as microscopy and images describes, and track divisions.",
+   "section": "Read the endpoint before interpreting it"
+  },
+  {
+   "id": "cellbio-experimental-design-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is an experimental unit?",
+   "back": "The thing independently assigned to a condition, such as a dish, stretch device, or mouse.",
+   "quote": "the experimental unit is the thing independently assigned to a condition: a dish, stretch device or mouse",
+   "section": "Read repeatability at the independent-unit level"
+  },
+  {
+   "id": "cellbio-experimental-design-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is an observational unit?",
+   "back": "The thing measured, such as a cell or field.",
+   "quote": "The observational unit is what is measured: a cell or field.",
+   "section": "Read repeatability at the independent-unit level"
+  },
+  {
+   "id": "cellbio-experimental-design-c20",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "N is the number of {{c1::experimental units}}.",
+   "back": "It is not the number of cells or fields measured within a shared treatment unit.",
+   "quote": "N is the number of experimental units (Lazic and colleagues, 2018).",
+   "section": "Read repeatability at the independent-unit level"
+  },
+  {
+   "id": "cellbio-experimental-design-c21",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is treating cells from one dish as independent replicates pseudoreplication?",
+   "back": "The cells share one independently assigned treatment unit, so they do not provide independent treatment repetitions.",
+   "quote": "Treating cells that share a dish as independent replicates is pseudoreplication.",
+   "section": "Read repeatability at the independent-unit level"
+  },
+  {
+   "id": "cellbio-experimental-design-c22",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A drug is assigned to whole wells, and 300 cells are imaged per well. What is the experimental unit, and what are the observational units?",
+   "back": "Each well is an experimental unit because treatment was assigned by well; the imaged cells are observational units.",
+   "quote": "The observational unit is what is measured: a cell or field.",
+   "section": "Read repeatability at the independent-unit level"
+  },
+  {
+   "id": "cellbio-experimental-design-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Three independent days each contain one control and one treated dish, with 200 cells scored per dish. What is N per condition?",
+   "back": "N = 3 per condition. Each day supplies one independently treated dish per condition; the 200 cells are observations within that unit.",
+   "quote": "Each of three independent days has one control dish and one treated dish, with 200 cells scored per dish for EdU.",
+   "section": "Worked problem: six hundred cells, three runs"
+  },
+  {
+   "id": "cellbio-experimental-design-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why should dish summaries retain their run labels instead of pooling all scored cells?",
+   "back": "Dish summaries preserve run-to-run disagreement, while pooling erases it and can hide poor repeatability.",
+   "quote": "Pooling erases the run labels. Runs 1 and 3 show large differences; run 2 barely moves.",
+   "section": "Worked problem: six hundred cells, three runs"
+  },
+  {
+   "id": "cellbio-experimental-design-c25",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A paired analysis gives p = 0.13 with a wide interval. Is 'there is no effect' justified, and what should be concluded?",
+   "back": "No. The runs leave the effect uncertain; a non-significant result does not demonstrate no effect, and the wide interval displays that uncertainty.",
+   "quote": "A non-significant result does not show no effect, and the wide interval makes the uncertainty visible.",
+   "section": "Worked problem: six hundred cells, three runs"
+  },
+  {
+   "id": "cellbio-experimental-design-c26",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "If each of three dishes is rescored from 200 to 2,000 cells, what happens to N and to run-to-run uncertainty?",
+   "back": "N remains 3. Counting noise may shrink, but extra cells from the same dishes do not remove run-to-run variation; more independent runs address it.",
+   "quote": "Scoring 2,000 cells per dish would shrink some counting noise, but N would remain three and run-to-run variation would remain.",
+   "section": "Worked problem: six hundred cells, three runs"
+  },
+  {
+   "id": "cellbio-experimental-design-c27",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What handling control is needed for a stretch-device experiment, and what alternative explanation does it address?",
+   "back": "Assemble, mount, and image unstretched devices identically. This separates stretch from differences caused by handling.",
+   "quote": "Handling: assemble, mount and image unstretched devices identically, or \"stretch\" includes every handling difference.",
+   "section": "Controls that rule out the boring explanations"
+  },
+  {
+   "id": "cellbio-experimental-design-c28",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is the correct control for a drug dissolved in a vehicle?",
+   "back": "Use the solvent without drug at the same concentration.",
+   "quote": "Drug: match the vehicle—the drug's solvent without drug—at the same concentration.",
+   "section": "Controls that rule out the boring explanations"
+  },
+  {
+   "id": "cellbio-experimental-design-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does copying an inhibitor concentration from a paper not establish the drug's potency in a new experiment?",
+   "back": "A copied concentration is only an experimental condition; it is not itself a measurement of potency.",
+   "quote": "A concentration copied from a paper is a condition, not a measure of potency.",
+   "section": "Controls that rule out the boring explanations"
+  },
+  {
+   "id": "cellbio-experimental-design-c30",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Which observer controls reduce condition-dependent scoring bias?",
+   "back": "Fix positivity thresholds before analysis, score blind to condition, and apply the same thresholds to every condition.",
+   "quote": "fix positivity thresholds before analysis, score blind to condition and keep thresholds the same across conditions",
+   "section": "Controls that rule out the boring explanations"
+  },
+  {
+   "id": "cellbio-experimental-design-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why must investigators measure the strain cells actually experience and restrict analysis to the strained region?",
+   "back": "Measure the strain cells actually experience, analyze only the strained region, and do not merge devices that impose different strains.",
+   "quote": "Stretch: measure the strain cells actually feel and analyze only the strained region.",
+   "section": "Controls that rule out the boring explanations"
+  },
+  {
+   "id": "cellbio-experimental-design-c32",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "TOPdGFP reports {{c1::beta-catenin-dependent transcription}}.",
+   "back": "It is a destabilized GFP driven by beta-catenin-responsive sites.",
+   "quote": "TOPdGFP is a destabilized GFP driven by beta-catenin-responsive sites; it reports beta-catenin-dependent transcription",
+   "section": "Controls that rule out the boring explanations"
+  },
+  {
+   "id": "cellbio-experimental-design-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "One inhibitor yields the expected phenotype. What addition best tests whether loss of the intended target caused it, and why?",
+   "back": "Perturb the target genetically, then rescue with a version the perturbation cannot touch. This tests the target independently of the drug's off-target effects.",
+   "quote": "Use an independent genetic perturbation of the target, then restore the target with a rescue version the perturbation cannot touch.",
+   "section": "Controls that rule out the boring explanations"
+  },
+  {
+   "id": "cellbio-experimental-design-c34",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Design the treatment structure and assignment for testing whether stretch and Wnt3A cooperate in MDCK cells.",
+   "back": "Use a 2 × 2 factorial: no stretch or stretch crossed with parental L-cell or Wnt3A-conditioned medium. Run all arms each day and randomly assign devices within day.",
+   "why": "The four arms estimate each input alone and together; within-day randomization supports a day-paired comparison.",
+   "quote": "Run all four arms on each day, assigning devices to arms at random within the day.",
+   "section": "Design problem"
+  },
+  {
+   "id": "cellbio-experimental-design-c35",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Define a primary endpoint that directly tests whether initially quiescent cells complete division after stretch.",
+   "back": "Predefine Q as the fraction red at the start that are tracked through green to an observed division in a window covering delayed S entry plus S, G2, and M.",
+   "why": "This applies the rule that cycle entry is not completion and that the observation window must cover the relevant delay.",
+   "quote": "The fraction of cells red at the start that are tracked through green (S/G2) to an observed division within a set window",
+   "section": "Design problem"
+  },
+  {
+   "id": "cellbio-experimental-design-c36",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Using Q as completed division, what numerical outcomes favor Model A, Model B, or neither?",
+   "back": "Model A: stretch minus control is at least 10 points. Model B: stretch minus control is at most 2, and the stretch effect in Wnt3A medium is at least 10 points larger than in control medium. Between 2 and 10 favors neither.",
+   "why": "These are the lesson's invented teaching thresholds for making the competing models falsifiable.",
+   "quote": "Inconclusive: a stretch-alone difference between 2 and 10 points, or confidence intervals wide enough to fit both models.",
+   "section": "Design problem"
+  },
+  {
+   "id": "cellbio-experimental-design-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "How should independent runs be analyzed and displayed in the redesigned four-arm experiment?",
+   "back": "Analyze day-paired device means and display the independent run summaries as a SuperPlot; N is the number of independent days.",
+   "why": "This combines the unit rule with the paired design: cells are observations, whereas independent days supply repeatability.",
+   "quote": "Analysis. Day-paired device means, shown as a SuperPlot.",
+   "section": "Design problem"
+  },
+  {
+   "id": "cellbio-experimental-design-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A result supports Model B in quiescent canine MDCK-II monolayers under static strain. Can it be generalized directly to another epithelium or stretch regime?",
+   "back": "No. A different starting state, stretch type, epithelium, or tissue requires a separate experiment.",
+   "why": "The conclusion's scope is limited by the biological system and perturbation actually tested.",
+   "quote": "Whether the same holds with another starting state, another kind of stretch, another epithelium or in tissue is a separate experiment.",
+   "section": "Design problem"
+  },
+  {
+   "id": "cellbio-experimental-design-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can red Fucci fluorescence not prove that a cell is quiescent?",
+   "back": "Red Fucci does not distinguish G0 from G1.",
+   "quote": "Red Fucci does not distinguish G0 from G1, so red alone cannot prove that a cell is quiescent.",
+   "section": "Reporter limits and biological scope"
+  },
+  {
+   "id": "cellbio-experimental-design-c40",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does the Fucci dark period bias a snapshot taken after mitosis?",
+   "back": "Neither color is bright just after mitosis, so the snapshot undercounts cells that have just divided.",
+   "quote": "The construct also has a dark period after mitosis, when neither color is bright",
+   "section": "Reporter limits and biological scope"
+  },
+  {
+   "id": "cellbio-experimental-design-c41",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Independent paired differences are 6, 10, 2, and 6 percentage points. What are the mean difference and its standard error?",
+   "back": "Mean = 24/4 = 6 points. Deviations are 0, 4, -4, 0; sample variance = 32/3, SD = 3.27, and SE = 3.27/√4 = 1.63 points.",
+   "quote": "With the dish as the unit, the last column of the table has mean 29 / 3 = 9.67 points.",
+   "section": "The paired calculation"
+  },
+  {
+   "id": "cellbio-experimental-design-c42",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For paired dish differences 14, 2, and 13 percentage points, calculate the mean, sample SD, and standard error.",
+   "back": "Mean = 29/3 = 9.67 points. Squared deviations sum to 88.7; SD = √(88.7/2) = 6.66, and SE = 6.66/√3 = 3.84 points.",
+   "quote": "Dividing by n − 1 gives variance 44.3, SD 6.66 and SE 6.66 / sqrt(3) = 3.84.",
+   "section": "The paired calculation"
+  }
+ ]
+}
