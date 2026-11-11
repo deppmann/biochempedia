@@ -25,9 +25,14 @@ explainer:
   src: "/explainers/amino-acids/explainer.mp4"
   captions: "/explainers/amino-acids/explainer.vtt"
   poster: "/explainers/amino-acids/poster.jpg"
-  title: "pH Sets an Amino Acid's Charge"
-  durationSec: 171.5
-  narration: "this lesson's narrated lecture slides, read by an AI narrator voice (Kokoro, af_heart)"
+  title: "Add Up the Proton Switches"
+  durationSec: 185.1
+  takeaways:
+    - "Each ionizable group is a proton switch: below its pKa it mostly holds its proton, above it mostly lets go."
+    - "Holding a proton makes a group one charge more positive: acid-type switches go from 0 to −1, base-type from +1 to 0."
+    - "An amino acid's net charge is the sum of its switches; at pH 7.4, glycine is a net-zero zwitterion."
+    - "The pI is the pH of zero net charge; for glycine it is the average of its two pKa values, about 5.97."
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
 scientists:
   - name: "Emil Fischer"
@@ -537,7 +542,7 @@ import EquationCard from '../../../components/EquationCard.astro';
 
 For two molecules of the same size and shape, only a charge difference explains that. The difference turned out to be one amino acid: at position 6 of each beta chain, a valine where a glutamate belongs. Why does that swap change the charge, and why does it make red cells sickle? The answers differ, and by the end you can work out both.
 
-*The film above is a preview.* It uses pKa and pI, defined below; this page adds polarity, which the sickle story also needs.
+*The film above builds the charge half of the answer: proton switches, pKa and pI.* This page adds the numbers behind them and a second property, polarity, which the sickle story also needs.
 
 ## One backbone, twenty side chains
 
@@ -547,13 +552,13 @@ With four different groups, the alpha-carbon is **chiral**: it has two mirror im
 
 ## Proton switches: the one rule for charge
 
-Both ends of the backbone are **proton switches**: groups that hold a hydrogen ion, H⁺ (**protonated**), or let it go (**deprotonated**), depending on how acidic the surroundings are. Each switch has a set point, its **pKa**: the pH at which half of those groups hold a proton.
+Both ends of the backbone are **proton switches**, as the film shows: groups that hold a hydrogen ion, H⁺ (**protonated**), or let it go (**deprotonated**), depending on how acidic the surroundings are. Each has a set point, its **pKa**, where half of those groups hold a proton.
 
-> **The one idea to carry through this lesson.**
+> **The one idea to carry through this lesson** (the film's, in three lines).
 >
-> 1. Below a group's pKa it mostly holds its proton; above it the group mostly lets go. Each pH unit away from the pKa makes the winning form ten times more common.
-> 2. A proton carries +1, so holding it always makes a group one charge more positive.
-> 3. An amino acid's net charge is the sum of its switches: two on the backbone, and one or none on the side chain. The pI is the pH where they sum to zero.
+> 1. Below a group's pKa it mostly holds its proton; above it, it mostly lets go. Each pH unit from the pKa changes the ratio of the two forms tenfold.
+> 2. Holding a proton always makes a group one charge more positive.
+> 3. Net charge is the sum of the switches: two on the backbone, one or none on the side chain. The pI is where they sum to zero.
 
 This holds for free amino acids in water; inside a protein, neighbors can shift a pKa (Going deeper). Point 2 matters most, because switches come in two kinds:
 
@@ -579,7 +584,7 @@ How much is "mostly"? The Henderson–Hasselbalch equation gives the ratio.
     ["[with H⁺]", "", "the form holding the proton (written HA)", "M"],
   ]}
   toolkit={["log-scales", "powers"]}
-  check="At pH = pKa the split is 50:50. One unit above gives 10:1 (about 91% without H⁺), two units 100:1 (99%). Within about half a unit of the pKa the minority form is about a quarter or more, so there the short form of the rule (the film's ‘pH above pKa, proton off’) is not enough."
+  check="At pH = pKa the split is 50:50. One unit above gives 10:1 (about 91% without H⁺), two units 100:1 (99%). Within about half a unit of the pKa the minority form is about a quarter or more, so there the short form of the rule (above the pKa, most let go) is not enough."
 >
   <Fragment slot="example">
     <p>Glutamate's side chain at blood pH: 7.4 − 4.25 = 3.15 units, more than two, so over 99% have let go: negative for all practical purposes. (Exactly, 10 to the power 3.15 is about 1400 to one.)</p>
@@ -614,7 +619,7 @@ Stack the three forms from most positive to most negative, with a pKa between ea
 
 A molecule carrying both a positive and a negative charge is a **zwitterion** (which does not mean net zero: aspartate at 7.4 has both charges and is net −1). Glycine's net-zero zwitterion is more than 90% of it from about pH 3.3 to 8.6, one unit inside each pKa. That includes blood pH, about **7.4** (the inside of a cell runs a little lower).
 
-The pH where the net charge is exactly zero is the **isoelectric point, pI**: the average of the two pKa values on either side of the net-zero rung. For glycine, (2.34 + 9.60) / 2 = **5.97**.
+The pH of zero net charge is the **isoelectric point, pI**: the average of the two pKa values around the net-zero rung. For glycine, (2.34 + 9.60) / 2 = **5.97**.
 
 Why the average? Near the pI almost all glycine is the zwitterion, with a little +1 and a little −1 form, and zero net charge needs equal amounts of those two. By the rule, the +1 form's ratio to the zwitterion is 10 to the power (pKa₁ − pH), and the −1 form's is 10 to the power (pH − pKa₂). Set them equal and pH = (pKa₁ + pKa₂) / 2.
 

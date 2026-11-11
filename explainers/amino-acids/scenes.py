@@ -1,540 +1,556 @@
-"""Amino acids: pH sets an amino acid's charge.
+"""Add Up the Proton Switches.
 
-COLOR MAP (kept for the whole video)
-  YELLOW = pH (the dial that moves)        GREEN = pKa (the fixed property of a group)
-  RED    = positive charge / protonated    BLUE  = negative charge / deprotonated, and the base (OH-) in the burette
-  GOLD   = net-zero / the pI               TEAL  = R group, side chain, histidine
-  GREY   = backbone, neutral, labels       TEXT  = the proton token
-No molecular structures are drawn anywhere: amino acids are labelled chips, the rest is plots from equations.
+COLOR MAP
+  GOLD   proton token
+  ORANGE acid-type switch
+  BLUE   base-type switch
+  TEAL   net charge
+  TEXT   pH cursor and primary labels
+
+All quantitative pictures use Henderson-Hasselbalch occupancies.  Amino acids and
+proteins are labelled blocks/blobs, never molecular structures.
 """
 import numpy as np
 from bp_style import *
 
-# ---------------------------------------------------------------- word times (seconds into each clip)
-# taken from a word-level transcript of the actual slide audio
+ORANGE = "#F28E52"
+PKA_C, PKA_N = 2.34, 9.60
+AX_Y, AX_L, AX_R = -2.75, -5.75, 5.75
 
 
-class AA(NarratedScene):
-    def at(self, t):
-        rem = t - self.elapsed()
-        if rem > 0.02:
-            self.wait(rem)
-
-    def do(self, t, *anims, run=0.8, **kw):
-        self.at(t)
-        self.play(*anims, run_time=run, **kw)
+def px(p):
+    return AX_L + (AX_R - AX_L) * p / 14.0
 
 
-def box(text, color, size=26, pad=0.2, fill=0.14, tcolor=TEXT, font=FONT, w=None):
-    """Chip whose label stays readable white while the outline carries the concept colour."""
-    label = Text(text, font=font, font_size=size, color=tcolor)
-    width = max(label.width + 2 * pad, w or 0)
-    r = RoundedRectangle(corner_radius=0.14, width=width, height=label.height + 2 * pad + 0.04,
-                         stroke_color=color, stroke_width=2.8, fill_color=color, fill_opacity=fill)
-    return VGroup(r, label.move_to(r))
+def acid_charge(p, pka=PKA_C):
+    return -1.0 / (1.0 + 10.0 ** (pka - p))
 
 
-def dim(mob, a):
-    """Scale every fill/stroke opacity by a (set_opacity would flatten translucent fills to solid)."""
-    for sm in mob.family_members_with_points():
-        sm.set_fill(opacity=sm.get_fill_opacity() * a)
-        sm.set_stroke(opacity=sm.get_stroke_opacity() * a)
-    return mob
+def base_charge(p, pka=PKA_N):
+    return 1.0 / (1.0 + 10.0 ** (p - pka))
 
 
-def smooth01(x):
-    x = min(1.0, max(0.0, x))
-    return x * x * (3 - 2 * x)
+def gly_charge(p):
+    return acid_charge(p) + base_charge(p)
 
 
-# ================================================================== TITLE
-class S00Title(TitleCard):
+def motes(scene, n=16):
+    rng = np.random.default_rng(sum(map(ord, scene.__class__.__name__)))
+    field = VGroup()
+    for _ in range(n):
+        d = Dot([rng.uniform(-6.6, 6.6), rng.uniform(-3.6, 3.6), 0],
+                radius=rng.uniform(.018, .035), color=GREY).set_opacity(rng.uniform(.10, .24))
+        d.v = np.array([rng.uniform(-.045, .045), rng.uniform(.035, .09), 0])
+        def drift(m, dt):
+            m.shift(m.v * dt)
+            if m.get_y() > 3.8:
+                m.shift(DOWN * 7.6)
+        d.add_updater(drift)
+        field.add(d)
+    field.set_z_index(-20)
+    scene.add(field)
+    return field
+
+
+def stage_panel(color=GREY):
+    """A dark filled field makes the active diagram read as one landscape."""
+    return RoundedRectangle(corner_radius=.35, width=12.2, height=6.35, stroke_width=0,
+                            fill_color=color, fill_opacity=.18).move_to([0,.15,0]).set_z_index(-5)
+
+
+def ph_axis(cursor=None, compact=False):
+    y = AX_Y
+    line = Line([AX_L, y, 0], [AX_R, y, 0], color=GREY, stroke_width=6)
+    ticks = VGroup(*[Line([px(i), y-.10, 0], [px(i), y+.10, 0], color=GREY, stroke_width=2)
+                     for i in range(15)])
+    labels = VGroup(M("0", 28, TEXT).next_to(line.get_left(), DOWN, buff=.18),
+                    M("14", 28, TEXT).next_to(line.get_right(), DOWN, buff=.18),
+                    T("pH", 30, TEXT, weight=BOLD).next_to(line, LEFT, buff=.25))
+    g = VGroup(line, ticks, labels)
+    if cursor is not None:
+        cur = always_redraw(lambda: VGroup(
+            Triangle(fill_color=TEXT, fill_opacity=1, stroke_width=0).scale(.16).rotate(PI)
+                .move_to([px(cursor.get_value()), y+.28, 0]),
+            M(f"{cursor.get_value():.1f}", 28, TEXT).move_to([px(cursor.get_value()), y-.52, 0])))
+        return g, cur
+    return g
+
+
+def token(scale=1.0, label=True):
+    radius = max(.30, .32*scale) if label else .32*scale
+    c = Circle(radius=radius, color=GOLD, fill_color=GOLD, fill_opacity=.95, stroke_width=2)
+    if not label:
+        return c
+    return VGroup(c, M("H+", max(28, int(28*scale)), BG, weight=BOLD).move_to(c))
+
+
+def socket(pos, color=GREY, scale=1.0):
+    cup = Arc(radius=.43*scale, start_angle=PI, angle=PI, color=color, stroke_width=8*scale)
+    stem = Line(DOWN*.15*scale, DOWN*.72*scale, color=color, stroke_width=8*scale)
+    return VGroup(cup, stem).move_to(pos)
+
+
+def switch_card(title, color, charge, x):
+    box = RoundedRectangle(corner_radius=.28, width=5.35, height=5.0,
+                           color=color, stroke_width=4, fill_color=color, fill_opacity=.18).move_to([x,.25,0])
+    lab = T(title, 32, color, weight=BOLD).move_to([x,2.15,0])
+    sock = socket([x,.55,0], color, 1.45)
+    tok = token(1.15).move_to([x,1.15,0])
+    badge = chip(charge, color, 42, .28, .22).move_to([x,-1.45,0])
+    return VGroup(box, lab, sock, tok, badge)
+
+
+def gly_world(cursor_value=0.0, questions=False, name="glycine"):
+    p = ValueTracker(cursor_value)
+    axis, cur = ph_axis(p)
+    body = RoundedRectangle(corner_radius=.35, width=10.8, height=3.55, color=GREY,
+                            stroke_width=4, fill_color=GREY, fill_opacity=.18).move_to([0,.25,0])
+    name_m = T(name, 38, TEXT, weight=BOLD).move_to([0,1.55,0])
+    left = socket([-3.35,.35,0], ORANGE, 1.05)
+    right = socket([1.25,.35,0], BLUE, 1.05)
+    lb = chip("?" if questions else "0", ORANGE, 36, .25, .18).move_to([-3.35,-.80,0])
+    rb = chip("?" if questions else "+1", BLUE, 36, .25, .18).move_to([1.25,-.80,0])
+    read_box = RoundedRectangle(corner_radius=.2, width=2.55, height=1.25, color=TEAL,
+                                stroke_width=3, fill_color=TEAL, fill_opacity=.12).move_to([4.25,.15,0])
+    read_lab = T("net charge", 28, TEAL).move_to([4.25,.52,0])
+    read_val = M("?" if questions else "+1", 42, TEAL, weight=BOLD).move_to([4.25,-.02,0])
+    return dict(p=p, axis=axis, cursor=cur, body=body, name=name_m, left=left, right=right,
+                lb=lb, rb=rb, read_box=read_box, read_lab=read_lab, read_val=read_val)
+
+
+def add_world(scene, w):
+    scene.add(w["axis"], w["cursor"], w["body"], w["name"], w["left"], w["right"],
+              w["lb"], w["rb"], w["read_box"], w["read_lab"], w["read_val"])
+
+
+class S01Hook(SpokenScene):
+    def construct(self):
+        motes(self)
+        p = ValueTracker(1.0)
+        axis, cur = ph_axis(p)
+        body = RoundedRectangle(corner_radius=.35, width=10.8, height=3.55, color=GREY,
+                                stroke_width=4, fill_color=GREY, fill_opacity=.18).move_to([0,.25,0])
+        name = T("glycine", 38, TEXT, weight=BOLD).move_to([0,1.55,0])
+        sockets = VGroup(socket([-3.35,.25,0], ORANGE,1.1), socket([1.15,.25,0],BLUE,1.1))
+        read_box = RoundedRectangle(corner_radius=.22, width=2.8, height=1.55, color=TEAL,
+                                    stroke_width=4, fill_color=TEAL, fill_opacity=.14).move_to([4.15,.2,0])
+        read_lab = T("net charge", 30, TEAL).move_to([4.15,.65,0])
+        def value():
+            q = gly_charge(p.get_value())
+            s = "+1" if q > .5 else ("−1" if q < -.5 else "0")
+            return M(s, 52, TEAL, weight=BOLD).move_to([4.15,-.03,0])
+        val = always_redraw(value)
+        self.add(axis, cur, body, name, sockets, read_box, read_lab, val)
+        self.at("One amino acid")
+        self.play(p.animate.set_value(7.0), run_time=2.9, rate_func=linear)
+        self.play(p.animate.set_value(12.0), run_time=2.0, rate_func=linear)
+        self.at("What decides")
+        q = T("?", 64, TEXT, weight=BOLD).next_to(read_box, UP, buff=.05)
+        self.play(FadeIn(q, scale=.4), read_box.animate.scale(1.08), run_time=.55)
+        self.play(p.animate.set_value(5.5), run_time=2.0, rate_func=linear)
+        self.at("proton switch")
+        self.play(Indicate(sockets, color=TEXT, scale_factor=1.12), run_time=.65)
+        self.finish()
+
+
+class S02Title(TitleCard):
     LESSON = "Amino acids"
-    TITLE = "pH Sets an Amino Acid's Charge"
+    TITLE = "Add Up the Proton Switches"
 
-
-# ================================================================== 1 ROADMAP
-class S01Roadmap(AA):
     def construct(self):
-        W, H, Y = 3.85, 4.9, -0.1
-        xs = [-4.3, 0, 4.3]
-        cards = [RoundedRectangle(corner_radius=0.22, width=W, height=H, stroke_color=GREY, stroke_width=2.5,
-                                  fill_color=GREY, fill_opacity=0.07).move_to([x, Y, 0]) for x in xs]
-        heads = [T(h, size=38, weight=BOLD).move_to(c.get_top() + DOWN * 0.65)
-                 for h, c in zip(["1  Structure", "2  Charge", "3  Behavior"], cards)]
-        backbone = box("backbone", GREY, 34).move_to(cards[0].get_center() + UP * 0.3)
-        rgrp = box("R group", TEAL, 40, fill=0.25).move_to(cards[0].get_center() + DOWN * 1.1)
-        plus = VGroup(Circle(radius=0.5, color=RED, fill_opacity=0.22, stroke_width=3), T("+", 56, RED, weight=BOLD))
-        minus = VGroup(Circle(radius=0.5, color=BLUE, fill_opacity=0.22, stroke_width=3), T("−", 56, BLUE, weight=BOLD))
-        tokens = VGroup(plus, minus).arrange(RIGHT, buff=0.5).move_to(cards[1].get_center() + UP * 0.45)
-        phtag = box("pH 7.4", YELLOW, 36, tcolor=YELLOW, font=MONO).move_to(cards[1].get_center() + DOWN * 1.1)
-        behs = VGroup(*[box(t, GREY, 34) for t in ["folding", "binding", "catalysis"]]).arrange(DOWN, buff=0.32)
-        behs.move_to(cards[2].get_center() + DOWN * 0.55)
-        arrows = [Arrow(cards[0].get_right() + LEFT * 0.0, cards[1].get_left() + RIGHT * 0.0, buff=0,
-                        color=TEXT, stroke_width=6, max_tip_length_to_length_ratio=0.6),
-                  Arrow(cards[1].get_right(), cards[2].get_left(), buff=0,
-                        color=TEXT, stroke_width=6, max_tip_length_to_length_ratio=0.6)]
-        caption = T("Structure → charge → function", 42, TEXT, font=TITLE_FONT).move_to([0, -3.4, 0])
-
-        self.do(1.5, LaggedStart(*[FadeIn(c, scale=0.95) for c in cards], lag_ratio=0.25), run=1.4)
-        self.do(2.14, Write(heads[0]), run=0.6)
-        self.do(3.96, Write(heads[1]), run=0.6)
-        self.do(4.74, Write(heads[2]), run=0.6)
-        self.do(7.2, FadeIn(backbone, shift=UP * 0.15), run=0.7)
-        self.do(8.7, FadeIn(rgrp, scale=0.6), run=0.6)
-        self.play(Indicate(rgrp, color=TEAL, scale_factor=1.12), run_time=0.7)
-        self.do(9.9, GrowArrow(arrows[0]), run=0.4)
-        self.do(10.0, FadeIn(tokens, scale=0.5), run=0.6)
-        self.do(10.5, FadeIn(phtag, shift=UP * 0.1), run=0.6)
-        self.do(12.76, GrowArrow(arrows[1]), run=0.5)
-        self.do(15.3, FadeIn(behs[0], shift=UP * 0.1), run=0.5)
-        self.do(16.9, FadeIn(behs[1], shift=UP * 0.1), run=0.5)
-        self.do(17.8, FadeIn(behs[2], shift=UP * 0.1), run=0.5)
-        self.do(19.06, FadeIn(caption, shift=UP * 0.1), run=0.8)
-        self.do(20.76, cards[0].animate.set_stroke(GOLD, 5), run=0.4)
-        self.do(21.74, cards[1].animate.set_stroke(GOLD, 5), run=0.4)
-        self.do(22.52, cards[2].animate.set_stroke(GOLD, 5), run=0.4)
+        p = ValueTracker(5.0)
+        ghost = RoundedRectangle(corner_radius=.35, width=10.8, height=3.5, color=GREY,
+                                 fill_color=GREY, fill_opacity=.025, stroke_opacity=.22).move_to([0,.15,0])
+        axis, cur = ph_axis(p)
+        axis.set_opacity(.18); cur.set_opacity(.25)
+        brand = T("AMINO ACIDS", 28, TEAL, weight=BOLD)
+        title = T(self.TITLE, 52, TEXT, font=TITLE_FONT)
+        fit(title, 11.5)
+        rule = Line(LEFT*1.3, RIGHT*1.3, color=GOLD, stroke_width=5)
+        group = VGroup(brand,title,rule).arrange(DOWN,buff=.35).move_to(UP*.3)
+        self.add(ghost,axis,cur)
+        self.play(FadeIn(group,shift=UP*.15), p.animate.set_value(8.0), run_time=1.0)
+        self.play(p.animate.set_value(10.0), run_time=.7, rate_func=linear)
         self.finish()
 
 
-# ================================================================== 2 ZWITTERION
-class S02Zwitterion(AA):
-    PKA1, PKA2 = 2.3, 9.6
-
+class S03Switch(SpokenScene):
     def construct(self):
-        pH = ValueTracker(7.4)
-        show_net, show_zw = ValueTracker(0), ValueTracker(0)
-        X0, SC, SY = -5.6, 0.8, 2.55
-
-        def px(p):
-            return X0 + SC * p
-
-        strip = Line([px(0), SY, 0], [px(14), SY, 0], color=GREY, stroke_width=7)
-        ticks = VGroup(*[Line([px(i), SY - 0.12, 0], [px(i), SY + 0.12, 0], color=GREY, stroke_width=3)
-                         for i in range(15)])
-        nums = VGroup(*[M(str(n), 26, GREY).move_to([px(n), SY - 0.45, 0]) for n in (0, 14)])
-        phlab = T("pH", 34, YELLOW, weight=BOLD).move_to([px(0) - 0.6, SY, 0])
-        strip_g = VGroup(strip, ticks, nums, phlab)
-
-        marker = always_redraw(lambda: VGroup(
-            Triangle(color=YELLOW, fill_opacity=1, stroke_width=0).scale(0.2).rotate(PI)
-            .move_to([px(pH.get_value()), SY + 0.3, 0]),
-            M(f"pH {pH.get_value():.1f}", 34, YELLOW).move_to([px(pH.get_value()), SY + 0.85, 0])))
-
-        XA, XM, XC, YR = -3.7, 0.0, 3.7, -0.35
-        container = RoundedRectangle(corner_radius=0.3, width=11.6, height=3.1, stroke_color=GREY, stroke_width=2.5,
-                                     fill_color=GREY, fill_opacity=0.05).move_to([0, YR - 0.15, 0])
-        ctitle = T("glycine", 28, GREY).move_to([0, YR + 1.1, 0])
-
-        def row():
-            p = pH.get_value()
-            amino = box("NH₃⁺", RED, 44, fill=0.25, font=MONO) if p < self.PKA2 else box("NH₂", GREY, 44, font=MONO)
-            carb = box("COOH", GREY, 44, font=MONO) if p < self.PKA1 else box("COO⁻", BLUE, 44, fill=0.25, font=MONO)
-            amino.move_to([XA, YR, 0]); carb.move_to([XC, YR, 0])
-            mid = box("R group", TEAL, 38).move_to([XM, YR, 0])
-            la = T("amino group", 28, GREY).move_to([XA, YR - 1.0, 0])
-            lc = T("carboxyl group", 28, GREY).move_to([XC, YR - 1.0, 0])
-            return VGroup(amino, mid, carb, la, lc)
-
-        chips = always_redraw(row)
-
-        def net():
-            p = pH.get_value()
-            n = (1 if p < self.PKA2 else 0) + (-1 if p >= self.PKA1 else 0)
-            col = {1: RED, 0: GOLD, -1: BLUE}[n]
-            txt = {1: "+1", 0: "0", -1: "−1"}[n]
-            g = VGroup(T("net charge", 38, TEXT), M(txt, 56, col, weight=BOLD)).arrange(RIGHT, buff=0.4)
-            g.move_to([-2.4, -3.1, 0]).set_opacity(show_net.get_value())
-            return g
-
-        netg = always_redraw(net)
-
-        def zw():
-            p = pH.get_value()
-            on = self.PKA1 <= p < self.PKA2
-            return T("zwitterion", 44, GOLD, weight=BOLD).move_to([3.7, -3.1, 0]).set_opacity(
-                show_zw.get_value() * (1 if on else 0))
-
-        zwtag = always_redraw(zw)
-
-        plus = T("+", 56, RED, weight=BOLD).move_to([XA, YR + 0.92, 0])
-        minus = T("−", 56, BLUE, weight=BOLD).move_to([XC, YR + 0.92, 0])
-
-        self.do(0.3, FadeIn(strip_g), FadeIn(marker), run=1.2)
-        self.do(2.0, FadeIn(container), FadeIn(ctitle), FadeIn(chips), run=1.2)
-        self.add(netg, zwtag)
-        self.do(3.86, show_net.animate.set_value(1), run=0.6)
-        self.do(5.54, show_zw.animate.set_value(1), run=0.7)
-        self.do(7.22, FadeIn(plus, scale=0.5), run=0.5)
-        self.do(9.48, FadeIn(minus, scale=0.5), run=0.5)
-        self.do(11.0, FadeOut(plus), FadeOut(minus), run=0.5)
-        self.do(11.8, pH.animate.set_value(1.0), run=1.6, rate_func=linear)
-        self.do(15.4, pH.animate.set_value(11.0), run=2.5, rate_func=linear)
-        band = Rectangle(width=px(self.PKA2) - px(self.PKA1), height=0.22, stroke_width=0, fill_color=GOLD,
-                         fill_opacity=0.55).move_to([(px(self.PKA1) + px(self.PKA2)) / 2, SY, 0])
-        self.do(18.6, pH.animate.set_value(5.97), FadeIn(band), run=2.0, rate_func=smooth)
-        pi_tick = VGroup(Line([px(5.97), SY - 0.2, 0], [px(5.97), SY - 0.7, 0], color=GOLD, stroke_width=5),
-                         T("pI", 38, GOLD, weight=BOLD).move_to([px(5.97), SY - 1.0, 0]))
-        self.do(21.4, Create(pi_tick[0]), run=0.5)
-        self.do(22.9, FadeIn(pi_tick[1], scale=0.5), run=0.5)
+        motes(self,20)
+        plate = RoundedRectangle(corner_radius=.35,width=9.2,height=4.8,color=GREY,stroke_width=4,
+                                 fill_color=GREY,fill_opacity=.18).move_to(UP*.3)
+        pivot = Dot([0,-.15,0],radius=.22,color=TEXT)
+        lever = Line([-2.7,.25,0],[2.2,.25,0],color=TEXT,stroke_width=14)
+        cup = socket([2.2,.55,0],GOLD,1.55)
+        h = token(1.55).move_to([2.2,1.42,0])
+        label = T("proton switch",38,TEXT,weight=BOLD).move_to([0,2.15,0])
+        self.at("A proton switch")
+        self.play(FadeIn(plate),GrowFromCenter(lever),FadeIn(pivot),FadeIn(cup),FadeIn(h),FadeIn(label),run_time=1.1)
+        self.at("holds")
+        self.play(cup.animate.scale(.82).shift(UP*.08),h.animate.shift(DOWN*.18),run_time=.55)
+        self.at("lets it go")
+        self.play(cup.animate.scale(1.22).shift(DOWN*.08),h.animate.shift(UP*1.45+RIGHT*.45),run_time=.8)
+        self.at("protonated")
+        state=T("protonated",38,GOLD,weight=BOLD).move_to([0,-2.55,0])
+        self.play(h.animate.move_to([2.2,1.25,0]),Write(state),run_time=.75)
+        self.at("deprotonated")
+        new=T("deprotonated",38,TEXT,weight=BOLD).move_to(state)
+        self.play(h.animate.shift(UP*1.5+RIGHT*.5),Transform(state,new),run_time=.75)
         self.finish()
 
 
-# ================================================================== 3 SEESAW
-class S03Seesaw(AA):
-    PKA = 6.0
-
+class S04Pka(SpokenScene):
     def construct(self):
-        pH = ValueTracker(6.0)
-        w_ph, w_pka, grp, st = ValueTracker(0), ValueTracker(0), ValueTracker(0), ValueTracker(0)
-        off = ValueTracker(0)   # 0 = proton on the group, 1 = proton released
-        PV = np.array([0.0, -1.0, 0.0])
-        HALF = 3.9
-
-        def ang():
-            return float(np.clip(0.15 * (pH.get_value() - self.PKA), -0.42, 0.42))
-
-        def rot(v, a):
-            c, s = np.cos(a), np.sin(a)
-            return np.array([c * v[0] - s * v[1], s * v[0] + c * v[1], 0.0])
-
-        fulcrum = VGroup(Polygon([-0.65, -1.9, 0], [0.65, -1.9, 0], PV + DOWN * 0.1, color=GREY, fill_opacity=0.5,
-                                 stroke_width=3),
-                         Line([-1.6, -1.9, 0], [1.6, -1.9, 0], color=GREY, stroke_width=5))
-
-        def seesaw():
-            a = ang()
-            l, r = PV + rot(np.array([-HALF, 0, 0]), a), PV + rot(np.array([HALF, 0, 0]), a)
-            beam = Line(l, r, color=TEXT, stroke_width=10)
-            pc = PV + rot(np.array([-2.7, 1.0, 0]), a)
-            kc = PV + rot(np.array([2.7, 1.0, 0]), a)
-            wph = box(f"pH {pH.get_value():.1f}", YELLOW, 32, fill=0.3, font=MONO, w=2.4).move_to(pc)
-            wpk = box(f"pKa {self.PKA:.1f}", GREEN, 32, fill=0.3, font=MONO, w=2.4).move_to(kc)
-            dim(wph, w_ph.get_value()); dim(wpk, w_pka.get_value())
-            return VGroup(beam, wph, wpk)
-
-        see = always_redraw(seesaw)
-
-        GX, GY = -1.4, 2.7
-
-        def group():
-            p = pH.get_value()
-            s = off.get_value()
-            go = grp.get_value()
-            g = box("ionizable group", GREY, 34).move_to([GX, GY, 0])
-            hx = GX + g.width / 2 + 0.6 + s * 2.4
-            hy = GY + s * 0.2
-            proton = VGroup(Circle(radius=0.34, color=TEXT, fill_color=TEXT, fill_opacity=1, stroke_width=0),
-                            T("H⁺", 28, BG, weight=BOLD)).move_to([hx, hy, 0])
-            dim(g, go); dim(proton, go)
-            if p > self.PKA + 0.35:
-                msg, col = "deprotonated", BLUE
-            elif p < self.PKA - 0.35:
-                msg, col = "protonated", RED
-            else:
-                msg, col = " ", TEXT
-            lab = dim(T(msg, 34, col, weight=BOLD).move_to([GX, GY - 0.85, 0]), st.get_value() * go)
-            return VGroup(g, proton, lab)
-
-        gg = always_redraw(group)
-
-        rule1 = M("pH > pKa  →  H⁺ off", 32, TEXT, t2c={"pH": YELLOW, "pKa": GREEN}).move_to([-3.4, -3.0, 0])
-        rule2 = M("pH < pKa  →  H⁺ on", 32, TEXT, t2c={"pH": YELLOW, "pKa": GREEN}).move_to([3.4, -3.0, 0])
-
-        self.do(0.3, FadeIn(fulcrum), run=1.0)
-        self.add(see)
-        self.do(4.3, w_ph.animate.set_value(1), run=0.6)
-        self.do(5.4, w_pka.animate.set_value(1), run=0.6)
-        self.add(gg)
-        self.do(6.0, grp.animate.set_value(1), run=0.6)
-        self.do(6.72, pH.animate.set_value(8.0), run=1.8, rate_func=smooth)
-        self.do(9.4, off.animate.set_value(1), run=0.9, rate_func=smooth)
-        self.do(11.0, st.animate.set_value(1), run=0.5)
-        self.do(12.3, st.animate.set_value(0), run=0.3)
-        self.do(12.68, pH.animate.set_value(4.0), run=1.9, rate_func=smooth)
-        self.do(15.1, off.animate.set_value(0), run=0.8, rate_func=smooth)
-        self.do(16.3, st.animate.set_value(1), run=0.5)
-        self.do(19.0, pH.animate.set_value(8.0), FadeIn(rule1, shift=UP * 0.1), run=1.4, rate_func=smooth)
-        self.do(21.2, off.animate.set_value(1), run=0.6, rate_func=smooth)
-        self.do(22.3, pH.animate.set_value(4.0), FadeIn(rule2, shift=UP * 0.1), run=1.4, rate_func=smooth)
-        self.do(24.3, off.animate.set_value(0), run=0.6, rate_func=smooth)
-        self.do(25.6, pH.animate.set_value(8.0), off.animate.set_value(1), run=0.8, rate_func=smooth)
-        self.do(26.5, pH.animate.set_value(4.0), off.animate.set_value(0), run=0.8, rate_func=smooth)
-        self.do(27.4, pH.animate.set_value(6.0), grp.animate.set_value(0), st.animate.set_value(0), run=0.9,
-                rate_func=smooth)
-        cons = [box("titration curve", YELLOW, 32), box("buffer", GREEN, 32), box("charged side chain", TEAL, 32)]
-        cg = VGroup(*cons).arrange(RIGHT, buff=0.45).move_to([0, 3.0, 0])
-        frame = RoundedRectangle(corner_radius=0.25, width=10.6, height=3.9, stroke_color=GOLD, stroke_width=4).move_to(
-            [0, -0.45, 0])
-        for c in cons:
-            c.save_state()
-        self.do(28.2, FadeIn(cons[0], shift=DOWN * 0.15), run=0.6)
-        self.do(29.4, FadeIn(cons[1], shift=DOWN * 0.15), run=0.6)
-        self.do(30.8, FadeIn(cons[2], shift=DOWN * 0.15), run=0.6)
-        arrs = [Arrow(c.get_bottom() + DOWN * 0.05, [c.get_center()[0], frame.get_top()[1] + 0.02, 0], buff=0,
-                      color=GOLD, stroke_width=5, max_tip_length_to_length_ratio=0.35) for c in cons]
-        self.do(34.1, LaggedStart(*[GrowArrow(a) for a in arrs], lag_ratio=0.2), Create(frame), run=1.0)
+        motes(self)
+        p=ValueTracker(4.0); held=ValueTracker(.5)
+        axis,cur=ph_axis(p)
+        line=DashedLine([px(4),AX_Y+.1,0],[px(4),2.45,0],color=ORANGE,dash_length=.14)
+        tag=T("pKa (example)",30,ORANGE,weight=BOLD).move_to([px(4)-1.25,2.85,0])
+        bases=VGroup(); toks=VGroup()
+        for i in range(20):
+            x=-4.9+(i%5)*1.35; y=2.15-(i//5)*.82
+            bases.add(socket([x,y,0],GREY,.45)); toks.add(token(.42,False).move_to([x,y+.27,0]))
+        gauge_box=RoundedRectangle(corner_radius=.22,width=3.1,height=3.8,color=TEAL,stroke_width=3,
+                                   fill_color=TEAL,fill_opacity=.07).move_to([4.35,.65,0])
+        gauge_bg=Rectangle(width=.72,height=2.45,color=GREY,stroke_width=2).move_to([4.35,.65,0])
+        fill=always_redraw(lambda: Rectangle(width=.66,height=2.35*held.get_value(),stroke_width=0,
+                            fill_color=TEAL,fill_opacity=.9).align_to(gauge_bg,DOWN).shift(UP*.05))
+        read=always_redraw(lambda:T(f"holding H+: {int(round(100*held.get_value()))}%",28,TEAL,weight=BOLD)
+                           .move_to([4.35,-1.55,0]))
+        panel=RoundedRectangle(corner_radius=.3,width=7.35,height=4.3,stroke_width=0,
+                               fill_color=GREY,fill_opacity=.18).move_to([-2.2,.65,0]).set_z_index(-5)
+        self.at("Each switch")
+        self.play(FadeIn(panel),LaggedStart(*[FadeIn(b,scale=.5) for b in bases],lag_ratio=.025),FadeIn(axis),FadeIn(cur),run_time=1.0)
+        self.play(FadeIn(toks[:10]),run_time=.55)
+        self.at("setpoint")
+        self.play(Create(line),FadeIn(tag),panel.animate.set_fill(ORANGE,opacity=.18),run_time=.7)
+        self.at("half the groups")
+        self.play(FadeIn(gauge_box),FadeIn(gauge_bg),FadeIn(fill),FadeIn(read),run_time=.7)
+        self.at("Below it")
+        self.play(p.animate.set_value(3),held.animate.set_value(1/(1+10**-1)),FadeIn(toks[10:18]),run_time=1.0)
+        self.at("Above it")
+        self.play(p.animate.set_value(5),held.animate.set_value(1/(1+10**1)),FadeOut(toks[2:18]),run_time=1.0)
         self.finish()
 
 
-# ================================================================== 4 TITRATION
-class S04Titration(AA):
-    PKA1, PKA2, C = 2.34, 9.60, 0.1
-
-    def e_of(self, h):
-        d1 = 1 / (1 + 10 ** (self.PKA1 - h)); d2 = 1 / (1 + 10 ** (self.PKA2 - h))
-        return d1 + d2 + (10 ** (h - 14) - 10 ** (-h)) / self.C
-
-    def ph_of(self, e):
-        lo, hi = 0.5, 13.5
-        for _ in range(50):
-            mid = (lo + hi) / 2
-            if self.e_of(mid) < e:
-                lo = mid
-            else:
-                hi = mid
-        return (lo + hi) / 2
-
+class S05Tenfold(SpokenScene):
     def construct(self):
-        e = ValueTracker(0.0)
-        drip = ValueTracker(0.0)
-        clock = ValueTracker(0.0)
-        a1, a2, a3 = ValueTracker(0), ValueTracker(0), ValueTracker(0)
-        EMAX = 2.1
-        ax = Axes(x_range=[0, 2.4, 0.5], y_range=[0, 13, 2], x_length=7.6, y_length=4.8,
-                  axis_config={"include_numbers": False, "color": GREY, "stroke_width": 3, "include_tip": False,
-                               "include_ticks": False}).move_to([2.35, -0.5, 0])
-        ytl = VGroup(*[M(str(v), 26, GREY).next_to(ax.c2p(0, v), LEFT, 0.15) for v in (0, 4, 8, 12)])
-        xtl = VGroup(*[M(str(v), 26, GREY).next_to(ax.c2p(v, 0), DOWN, 0.15) for v in (0, 1, 2)])
-        ylab = T("pH", 34, YELLOW, weight=BOLD).next_to(ax.c2p(0, 13), UP, 0.1)
-        xlab = T("base added (equivalents)", 28, BLUE).next_to(ax, DOWN, 0.55)
-        axg = VGroup(ax, ytl, xtl, ylab, xlab)
-
-        labels = [("1  add base", BLUE), ("2  monitor pH", YELLOW), ("3  plot the curve", YELLOW)]
-        sizes = [box(t, c, 32) for t, c in labels]
-        total = sum(b.width for b in sizes) + 0.5 * 2
-        xs, x = [], -total / 2
-        for b in sizes:
-            xs.append(x + b.width / 2); x += b.width + 0.5
-
-        def mkstep(i, tr):
-            def f():
-                b = box(labels[i][0], labels[i][1], 32).move_to([xs[i], 3.15, 0])
-                return dim(b, tr.get_value())
-            return always_redraw(f)
-
-        steps = [mkstep(0, a1), mkstep(1, a2), mkstep(2, a3)]
-
-        BX = -4.55
-        burette = RoundedRectangle(corner_radius=0.08, width=0.7, height=2.3, stroke_color=GREY, stroke_width=3,
-                                   fill_color=BLUE, fill_opacity=0.35).move_to([BX, 1.4, 0])
-        tip = Polygon([BX - 0.15, 0.25, 0], [BX + 0.15, 0.25, 0], [BX, -0.1, 0], color=GREY, stroke_width=3)
-        blabel = T("base", 30, BLUE).next_to(burette, RIGHT, 0.2)
-        beaker_pts = [[BX - 1.4, -0.95, 0], [BX - 1.4, -3.0, 0], [BX + 1.4, -3.0, 0], [BX + 1.4, -0.95, 0]]
-        beaker = VMobject(color=GREY, stroke_width=4).set_points_as_corners(beaker_pts)
-        liquid = Rectangle(width=2.78, height=1.3, stroke_width=0, fill_color=TEXT, fill_opacity=0.12)
-        liquid.move_to([BX, -2.35, 0])
-        sample = T("glycine", 28, GREY).move_to([BX, -3.4, 0])
-        readout = always_redraw(lambda: M(f"pH {self.ph_of(e.get_value()):.1f}", 36, YELLOW).move_to([BX, -2.35, 0]))
-        drop = always_redraw(lambda: Dot([BX, 0.1 - 1.1 * ((clock.get_value() * 1.6) % 1) ** 2, 0], radius=0.1,
-                                          color=BLUE).set_opacity(drip.get_value()))
-        appar = VGroup(burette, tip, blabel, beaker, liquid, sample)
-
-        def curve():
-            ec = max(e.get_value(), 0.01)
-            c = ax.plot(lambda x: self.ph_of(x), x_range=[0.0, ec, 0.02], color=YELLOW, stroke_width=7)
-            head = Dot(ax.c2p(ec, self.ph_of(ec)), radius=0.13, color=YELLOW)
-            return VGroup(c, head)
-
-        live = always_redraw(curve)
-        clock.add_updater(lambda m, dt: m.set_value(m.get_value() + dt))
-        self.add(clock)
-
-        self.do(0.3, FadeIn(appar), FadeIn(readout), run=1.2)
-        self.add(*steps)
-        self.do(1.44, LaggedStart(a1.animate.set_value(0.4), a2.animate.set_value(0.4), a3.animate.set_value(0.4),
-                                  lag_ratio=0.3), run=1.2)
-        self.add(drop)
-        self.do(2.62, a1.animate.set_value(1), drip.animate.set_value(1), run=0.4)
-        self.do(2.9, e.animate.set_value(0.18), run=2.0, rate_func=linear)
-        self.do(5.0, a2.animate.set_value(1), e.animate.set_value(0.3), run=1.2, rate_func=linear)
-        self.play(Indicate(readout, color=YELLOW, scale_factor=1.15), run_time=0.7)
-        self.do(7.04, a3.animate.set_value(1), FadeIn(axg), run=0.6)
-        self.add(live)
-        self.play(e.animate.set_value(EMAX), run_time=4.4, rate_func=linear)
-        self.do(11.5, drip.animate.set_value(0), run=0.2)
-
-        def band(e0, e1, pad=0.5):
-            y0, y1 = self.ph_of(e0) - pad, self.ph_of(e1) + pad
-            r = Rectangle(width=ax.c2p(e1, 0)[0] - ax.c2p(e0, 0)[0], height=ax.c2p(0, y1)[1] - ax.c2p(0, y0)[1],
-                          stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.18)
-            return r.move_to([(ax.c2p(e0, 0)[0] + ax.c2p(e1, 0)[0]) / 2, (ax.c2p(0, y0)[1] + ax.c2p(0, y1)[1]) / 2, 0])
-
-        p1, p2 = band(0.2, 0.7), band(1.3, 1.7)
-        buf1 = T("buffering", 26, GREEN).next_to(p1, UP, 0.12)
-        buf2 = T("buffering", 26, GREEN).next_to(p2, DOWN, 0.12)
-        self.do(12.74, FadeIn(p1), FadeIn(p2), FadeIn(buf1), FadeIn(buf2), run=0.8)
-
-        def hline(y, col):
-            return DashedLine(ax.c2p(0, y), ax.c2p(2.4, y), color=col, dash_length=0.12, stroke_width=3.5)
-
-        l1, l2 = hline(self.PKA1, GREEN), hline(self.PKA2, GREEN)
-        d1 = Dot(ax.c2p(self.e_of(self.PKA1), self.PKA1), radius=0.12, color=GREEN)
-        d2 = Dot(ax.c2p(self.e_of(self.PKA2), self.PKA2), radius=0.12, color=GREEN)
-        rx = ax.c2p(2.4, 0)[0] + 0.1
-        t1 = M("pKa₁ = 2.3", 26, GREEN); t1.next_to(ax.c2p(2.4, self.PKA1), UP, 0.1).align_to([rx, 0, 0], RIGHT)
-        t2 = M("pKa₂ = 9.6", 26, GREEN); t2.next_to(ax.c2p(2.4, self.PKA2), DOWN, 0.1).align_to([rx, 0, 0], RIGHT)
-        self.do(14.4, Create(l1), Create(l2), FadeIn(d1), FadeIn(d2), run=1.0)
-        self.do(15.4, FadeIn(t1), FadeIn(t2), FadeOut(buf1), FadeOut(buf2), run=0.6)
-
-        ypi = self.ph_of(1.0)
-        mid_dot = Dot(ax.c2p(1.0, ypi), radius=0.15, color=GOLD)
-        l3 = DashedLine(ax.c2p(0, ypi), ax.c2p(2.4, ypi), color=GOLD, dash_length=0.12, stroke_width=4)
-        t3 = M("pI ≈ 6.0", 32, GOLD); t3.next_to(ax.c2p(2.4, ypi), UP, 0.1).align_to([rx, 0, 0], RIGHT)
-        t4 = T("avg net charge = 0", 30, GOLD); t4.next_to(ax.c2p(2.4, ypi), DOWN, 0.1).align_to([rx, 0, 0], RIGHT)
-        self.do(18.4, FadeIn(mid_dot, scale=2.0), run=0.6)
-        self.do(19.6, Create(l3), run=0.8)
-        self.do(20.1, FadeIn(t3, shift=UP * 0.1), run=0.6)
-        self.do(21.7, FadeIn(t4, shift=UP * 0.1), run=0.6)
+        motes(self)
+        p=ValueTracker(5.0); released=ValueTracker(10/11)
+        axis,cur=ph_axis(p)
+        bases=VGroup(); toks=VGroup()
+        for i in range(20):
+            x=-4.9+(i%5)*1.35; y=2.15-(i//5)*.82
+            bases.add(socket([x,y,0],GREY,.45)); toks.add(token(.42,False).move_to([x,y+.27,0]))
+        line=DashedLine([px(4),AX_Y+.1,0],[px(4),2.9,0],color=ORANGE,dash_length=.14)
+        labels=VGroup(T("pKa",28,ORANGE).move_to([px(4)-.62,-2.20,0]),T("pKa + 1",28,TEXT).move_to([px(5)+.72,-2.20,0]))
+        panel=RoundedRectangle(corner_radius=.22,width=3.3,height=3.9,color=TEAL,stroke_width=3,
+                               fill_color=TEAL,fill_opacity=.08).move_to([4.35,.65,0])
+        ratio_lab=T("let go : hold",28,TEXT).move_to([4.35,1.85,0])
+        ratio=always_redraw(lambda:M(f"{max(1,int(round(released.get_value()/(1-released.get_value()))))} : 1",42,TEAL,weight=BOLD).move_to([4.35,1.25,0]))
+        barbg=Rectangle(width=2.25,height=.58,color=GREY).move_to([4.35,.15,0])
+        bar=always_redraw(lambda:Rectangle(width=2.15*released.get_value(),height=.48,stroke_width=0,fill_color=TEAL,
+                           fill_opacity=.9).align_to(barbg,LEFT).move_to([barbg.get_left()[0]+1.075*released.get_value(),.15,0]))
+        pct=always_redraw(lambda:T(f"let go: {int(round(100*released.get_value()))}%",30,TEAL,weight=BOLD).move_to([4.35,-.55,0]))
+        computed=T("computed",28,GREY).move_to([4.35,-1.15,0])
+        grid_panel=RoundedRectangle(corner_radius=.3,width=7.35,height=4.3,stroke_width=0,
+                                    fill_color=GREY,fill_opacity=.18).move_to([-2.2,.65,0]).set_z_index(-5)
+        self.add(grid_panel,axis,cur,bases,line,labels,panel,ratio_lab,ratio,barbg,bar,pct,computed,toks[:2])
+        self.at("Each pH unit")
+        self.play(p.animate.set_value(4),released.animate.set_value(.5),FadeIn(toks[2:10]),
+                  Indicate(labels,color=TEXT,scale_factor=1.08),run_time=1.1)
+        self.at("tenfold")
+        self.play(p.animate.set_value(5),released.animate.set_value(10/11),FadeOut(toks[2:10]),run_time=1.35,rate_func=smooth)
+        self.at("91 percent")
+        self.play(Indicate(pct,color=TEAL,scale_factor=1.15),run_time=.7)
         self.finish()
 
 
-# ================================================================== 5 pI LADDER
-class S05PiLadder(AA):
+class S06Twokinds(SpokenScene):
     def construct(self):
-        CX = -2.6
-        ys = [2.1, 0.4, -1.3, -3.0]
-        data = [("+2", "H₃A²⁺", RED), ("+1", "H₂A⁺", RED), ("0", "HA", GOLD), ("−1", "A⁻", BLUE)]
-
-        def rung(i):
-            q, name, col = data[i]
-            a = M(q, 42, col, weight=BOLD)
-            b = M(name, 30, GREY)
-            inner = VGroup(a, b).arrange(RIGHT, buff=0.5)
-            r = RoundedRectangle(corner_radius=0.16, width=3.5, height=0.9, stroke_color=col, stroke_width=3,
-                                 fill_color=col, fill_opacity=0.14)
-            inner.move_to(r)
-            return VGroup(r, inner).move_to([CX, ys[i], 0])
-
-        rungs = [rung(i) for i in range(4)]
-        pkas = [1.8, 6.0, 9.2]
-        steps, pk_labels = [], []
-        for k in range(3):
-            y0, y1 = ys[k] - 0.45, ys[k + 1] + 0.45
-            steps.append(Arrow([CX - 1.2, y0, 0], [CX - 1.2, y1, 0], buff=0.02, color=GREY, stroke_width=5,
-                               max_tip_length_to_length_ratio=0.5))
-            pk_labels.append(M(f"pKa{'₁₂₃'[k]} = {pkas[k]:.1f}", 28, GREEN).move_to([CX + 0.5, (y0 + y1) / 2, 0]))
-
-        c_amino = box("amino acid", GREY, 34)
-        c_side = box("ionizable side chain", TEAL, 34, fill=0.22)
-        intro = VGroup(c_amino, c_side).arrange(RIGHT, buff=0.4).move_to([-2.65, 0.9, 0])
-        piq = M("pI = ?", 60, GOLD, weight=BOLD).move_to([4.35, 1.4, 0])
-
-        title = T("charge ladder: histidine", 36, TEXT).move_to([CX, 3.35, 0])
-        tag_top = T("most\npositive", 26, GREY, line_spacing=0.8).move_to([-5.55, ys[0], 0])
-        tag_bot = T("most\nnegative", 26, GREY, line_spacing=0.8).move_to([-5.55, ys[3], 0])
-        zw_tag = T("net zero\nzwitterion", 32, GOLD, line_spacing=0.8).move_to([0.7, ys[2], 0])
-        glow = SurroundingRectangle(rungs[2], color=GOLD, buff=0.1, stroke_width=5, corner_radius=0.2)
-
-        eq1 = VGroup(M("pI = average of", 30, GOLD), M("pKa₂ and pKa₃", 30, GREEN)).arrange(DOWN, buff=0.18, aligned_edge=LEFT)
-        eq1.move_to([4.35, 1.4, 0])
-        eq2 = M("= (6.0 + 9.2) / 2", 28, TEXT).move_to([4.35, -0.15, 0])
-        eq3 = M("= 7.6", 60, GOLD, weight=BOLD).move_to([4.35, -1.5, 0])
-
-        self.do(0.3, FadeIn(intro, shift=DOWN * 0.1), run=1.3)
-        self.do(3.24, Write(piq), run=0.9)
-        self.do(6.7, FadeOut(intro), run=0.4)
-        self.do(7.5, FadeIn(title, shift=DOWN * 0.1), run=0.6)
-        self.do(9.4, FadeIn(rungs[0], shift=RIGHT * 0.2), run=0.5)
-        self.do(10.4, FadeIn(rungs[1], shift=RIGHT * 0.2), FadeIn(steps[0]), run=0.5)
-        self.do(11.2, FadeIn(rungs[2], shift=RIGHT * 0.2), FadeIn(steps[1]), FadeIn(tag_top), run=0.5)
-        self.do(12.9, FadeIn(rungs[3], shift=RIGHT * 0.2), FadeIn(steps[2]), FadeIn(tag_bot), run=0.5)
-        self.do(14.7, Create(glow), run=0.6)
-        self.do(15.9, FadeIn(zw_tag, shift=LEFT * 0.1), run=0.6)
-        self.do(17.9, LaggedStart(*[FadeIn(p, shift=LEFT * 0.1) for p in pk_labels], lag_ratio=0.3), run=1.2)
-        self.do(19.5, Transform(piq, eq1), run=0.8)
-        self.do(21.1, pk_labels[0].animate.set_opacity(0.25), steps[0].animate.set_opacity(0.25),
-                steps[1].animate.set_color(GREEN).set_stroke(width=8),
-                steps[2].animate.set_color(GREEN).set_stroke(width=8), run=0.8)
-        self.do(22.9, Indicate(rungs[2], color=GOLD, scale_factor=1.1), run=0.9)
-        self.do(25.4, FadeIn(eq2, shift=UP * 0.1), run=0.6)
-        self.do(26.7, FadeIn(eq3, scale=0.7), run=0.6)
+        motes(self)
+        left=switch_card("acid type (carboxyl)",ORANGE,"0",-3.0)
+        right=switch_card("base type (amino)",BLUE,"+1",3.0)
+        plus=T("+1",28,BG,weight=BOLD).move_to(left[3]); plus2=plus.copy().move_to(right[3])
+        self.at("A proton carries")
+        self.play(FadeIn(left[0]),FadeIn(right[0]),FadeIn(left[2]),FadeIn(right[2]),
+                  FadeIn(left[3]),FadeIn(right[3]),FadeIn(plus),FadeIn(plus2),run_time=1.0)
+        self.play(left[3].animate.shift(UP*.32),right[3].animate.shift(UP*.32),run_time=.65,rate_func=there_and_back)
+        self.at("holding it")
+        self.play(left[0].animate.set_fill(GOLD,opacity=.18),right[0].animate.set_fill(GOLD,opacity=.18),run_time=.55)
+        self.at("one charge")
+        self.play(Indicate(VGroup(plus,plus2),color=GOLD,scale_factor=1.35),run_time=.65)
+        self.at("acid type")
+        self.play(FadeIn(left[1]),FadeIn(left[4]),run_time=.6)
+        self.at("goes from zero")
+        minus=chip("−1",ORANGE,42,.28,.22).move_to(left[4])
+        self.play(left[3].animate.shift(UP*1.6+LEFT*.4),plus.animate.shift(UP*1.6+LEFT*.4),Transform(left[4],minus),run_time=.9)
+        self.at("base type")
+        self.play(FadeIn(right[1]),FadeIn(right[4]),run_time=.6)
+        self.at("goes from plus")
+        zero=chip("0",BLUE,42,.28,.22).move_to(right[4])
+        self.play(right[3].animate.shift(UP*1.6+RIGHT*.4),plus2.animate.shift(UP*1.6+RIGHT*.4),Transform(right[4],zero),run_time=.9)
+        self.at("letting go")
+        self.play(right[0].animate.set_fill(BLUE,opacity=.32),run_time=.75)
+        self.at("not always negative")
+        note=T("let go = neutral",34,BLUE,weight=BOLD).next_to(right[4],DOWN,buff=.32)
+        self.play(Indicate(right[4],color=BLUE,scale_factor=1.18),Write(note),run_time=.75)
         self.finish()
 
 
-# ================================================================== 6 HISTIDINE
-class S06Histidine(AA):
-    PKA = 6.0
-
-    def f(self, ph):
-        return 1 / (1 + 10 ** (ph - self.PKA))
-
+class S07Glycine(SpokenScene):
     def construct(self):
-        s = ValueTracker(0.0)        # 0 = neutral, 1 = protonated
-        ax = Axes(x_range=[2, 12, 2], y_range=[0, 1, 0.5], x_length=7.4, y_length=4.5,
-                  axis_config={"include_numbers": False, "color": GREY, "stroke_width": 3, "include_tip": False,
-                               "include_ticks": False}).move_to([-2.4, -0.5, 0])
-        xtl = VGroup(*[M(str(v), 26, GREY).next_to(ax.c2p(v, 0), DOWN, 0.15) for v in (2, 4, 6, 8, 10, 12)])
-        ytl = VGroup(M("0", 26, GREY).next_to(ax.c2p(2, 0), LEFT, 0.15), M("1", 26, GREY).next_to(ax.c2p(2, 1), LEFT, 0.15))
-        xlab = T("pH", 34, YELLOW, weight=BOLD).next_to(ax.c2p(12, 0), DOWN, 0.6)
-        ylab = T("fraction protonated (+)", 30, RED).next_to(ax.c2p(2, 1), UP, 0.25).align_to(ax.c2p(2, 1), LEFT)
-        axg = VGroup(ax, xtl, ytl, xlab, ylab)
-        curve = ax.plot(lambda x: self.f(x), x_range=[2, 12, 0.05], color=TEAL, stroke_width=7)
-
-        p74 = ax.c2p(7.4, self.f(7.4))
-        yl = DashedLine(ax.c2p(7.4, 0), ax.c2p(7.4, 0.85), color=YELLOW, dash_length=0.1, stroke_width=4)
-        yd = Dot(p74, radius=0.11, color=YELLOW)
-        yt = M("pH 7.4", 30, YELLOW).next_to(ax.c2p(7.4, 0.85), RIGHT, 0.12)
-        gl = DashedLine(ax.c2p(6.0, 0), ax.c2p(6.0, 0.85), color=GREEN, dash_length=0.1, stroke_width=4)
-        gd = Dot(ax.c2p(6.0, 0.5), radius=0.13, color=GREEN)
-        gt = M("pKa ≈ 6.0", 30, GREEN).next_to(ax.c2p(6.0, 0.22), LEFT, 0.15)
-        gap = DoubleArrow(ax.c2p(6.0, 0.68), ax.c2p(7.4, 0.68), buff=0, color=TEXT, stroke_width=4,
-                          max_tip_length_to_length_ratio=0.2, tip_length=0.15)
-        gaplab = M("+1.4", 26, TEXT).next_to(gap, UP, 0.08)
-
-        RX = 4.15
-        hischip = box("His side chain", TEAL, 34, fill=0.22).move_to([RX, 3.0, 0])
-        pill = RoundedRectangle(corner_radius=0.5, width=2.8, height=1.0, stroke_color=GREY, stroke_width=4,
-                                fill_color=GREY, fill_opacity=0.12).move_to([RX, 1.05, 0])
-        KL, KR = RX - 0.9, RX + 0.9
-
-        def knob():
-            v = s.get_value()
-            col = interpolate_color(ManimColor(GREY), ManimColor(RED), v)
-            return Circle(radius=0.38, color=col, fill_color=col, fill_opacity=1, stroke_width=0).move_to(
-                [KL + (KR - KL) * v, 1.05, 0])
-
-        knobm = always_redraw(knob)
-        l_neu = T("neutral", 26, GREY).move_to([RX - 1.0, 0.2, 0])
-        l_pos = T("protonated", 26, RED).move_to([RX + 1.1, 0.2, 0])
-        roles = [box("enzyme active sites", TEAL, 26), box("metal coordination", TEAL, 26), box("pH sensing", TEAL, 26)]
-        rg = VGroup(*roles).arrange(DOWN, buff=0.3).move_to([RX, -1.7, 0])
-        switchlab = T("molecular switch", 34, GOLD, weight=BOLD).move_to([RX, 2.05, 0])
-        proton = VGroup(Circle(radius=0.3, color=TEXT, fill_color=TEXT, fill_opacity=1, stroke_width=0),
-                        T("H⁺", 24, BG, weight=BOLD)).move_to([RX + 1.0, 1.05, 0]).set_opacity(0)
-
-        self.do(0.2, FadeIn(axg), FadeIn(hischip), run=0.9)
-        self.do(1.2, Create(curve), run=1.8, rate_func=smooth)
-        self.do(3.1, Create(yl), FadeIn(yd), FadeIn(yt), run=0.9)
-        self.do(5.76, Create(gl), FadeIn(gd, scale=2), FadeIn(gt), run=0.9)
-        self.do(7.7, FadeIn(pill), FadeIn(knobm), FadeIn(l_neu), FadeIn(l_pos), run=0.8)
-        self.do(9.3, GrowFromCenter(gap), FadeIn(gaplab), run=0.8)
-        for t0, v in [(11.3, 1), (11.9, 0), (12.5, 1), (13.0, 0), (13.5, 1), (14.0, 0)]:
-            self.do(t0, s.animate.set_value(v), run=0.3)
-        self.do(15.1, s.animate.set_value(1), run=0.3)
-        self.do(15.7, s.animate.set_value(0), run=0.3)
-        self.do(17.9, FadeIn(roles[0], shift=LEFT * 0.15), run=0.5)
-        self.do(19.8, FadeIn(roles[1], shift=LEFT * 0.15), run=0.5)
-        self.do(21.1, FadeIn(roles[2], shift=LEFT * 0.15), run=0.5)
-        self.do(22.5, FadeIn(switchlab, shift=DOWN * 0.1), run=0.6)
-        self.play(Indicate(pill, color=GOLD, scale_factor=1.1), run_time=0.8)
-        self.do(24.8, s.animate.set_value(0.04), run=0.8)
-        self.do(26.9, proton.animate.set_opacity(1), run=0.3)
-        self.play(proton.animate.move_to([RX + 2.0, 1.75, 0]), run_time=0.8)
-        self.do(28.2, proton.animate.move_to([RX + 1.0, 1.05, 0]), run=0.8)
+        motes(self)
+        w=gly_world(0.4)
+        self.at("Glycine has two")
+        self.play(FadeIn(w["body"]),FadeIn(w["name"]),FadeIn(w["axis"]),FadeIn(w["cursor"]),
+                  w["left"].animate.shift(RIGHT*0),w["right"].animate.shift(LEFT*0),run_time=.9)
+        self.play(FadeIn(w["left"],shift=LEFT*.8),FadeIn(w["right"],shift=RIGHT*.8),FadeIn(w["lb"]),FadeIn(w["rb"]),run_time=.7)
+        lc=DashedLine([px(PKA_C),AX_Y+.1,0],[px(PKA_C),1.70,0],color=ORANGE,dash_length=.12)
+        rc=DashedLine([px(PKA_N),AX_Y+.1,0],[px(PKA_N),1.70,0],color=BLUE,dash_length=.12)
+        ltag=T("pKa 2.3",28,ORANGE).move_to([px(PKA_C)-.78,2.28,0]); rtag=T("pKa 9.6",28,BLUE).move_to([px(PKA_N)+.78,2.28,0])
+        left_glow=Rectangle(width=4.55,height=3.35,stroke_width=0,fill_color=ORANGE,fill_opacity=.22).move_to([-2.25,.25,0]).set_z_index(-.5)
+        right_glow=Rectangle(width=4.55,height=3.35,stroke_width=0,fill_color=BLUE,fill_opacity=.22).move_to([2.35,.25,0]).set_z_index(-.5)
+        self.at("carboxyls")
+        self.play(Create(lc),FadeIn(ltag),FadeIn(left_glow),run_time=.75)
+        self.at("amino groups")
+        self.play(Create(rc),FadeIn(rtag),FadeIn(right_glow),run_time=.75)
+        self.at("whole idea")
+        self.play(FadeIn(w["read_box"]),FadeIn(w["read_lab"]),run_time=.5)
+        self.at("sum of the switches")
+        eq=M("0 + +1 = +1",34,TEAL,weight=BOLD).move_to(w["read_val"])
+        a1=Arrow(w["lb"].get_right(),w["read_box"].get_left()+UP*.2,buff=.12,color=ORANGE,stroke_width=4)
+        a2=Arrow(w["rb"].get_right(),w["read_box"].get_left()+DOWN*.2,buff=.12,color=BLUE,stroke_width=4)
+        self.play(GrowArrow(a1),GrowArrow(a2),FadeIn(eq),run_time=.8)
         self.finish()
 
 
-# ================================================================== END
-class S07End(EndCard):
-    LINE = "Now try the titrator and watch charge follow pH."
+class S08Predict(SpokenScene):
+    def construct(self):
+        motes(self)
+        w=gly_world(0.4,True); add_world(self,w)
+        lc=DashedLine([px(PKA_C),AX_Y+.1,0],[px(PKA_C),1.75,0],color=ORANGE,dash_length=.12)
+        rc=DashedLine([px(PKA_N),AX_Y+.1,0],[px(PKA_N),1.75,0],color=BLUE,dash_length=.12)
+        self.add(lc,rc)
+        self.at("Your turn")
+        self.play(w["p"].animate.set_value(7.4),run_time=1.8,rate_func=smooth)
+        self.at("blood pH")
+        blood=T("blood, about 7.4",30,TEXT,weight=BOLD).move_to([px(7.4),-1.95,0])
+        self.play(FadeIn(blood,shift=UP*.1),run_time=.55)
+        h1=token(.75).move_to([-3.35,1.0,0]); h2=token(.75).move_to([1.25,1.0,0])
+        self.at("check each switch")
+        self.play(FadeIn(h1),FadeIn(h2),Indicate(VGroup(w["lb"],w["rb"]),color=TEXT),run_time=.8)
+        self.at("net charge")
+        question=T("Glycine at pH 7.4: net charge?",40,TEXT,font=TITLE_FONT).move_to([0,3.15,0])
+        self.play(Write(question),run_time=.75)
+        self.finish()
+
+
+class S09Hold(Scene):
+    def construct(self):
+        motes(self)
+        w=gly_world(7.4,True); add_world(self,w)
+        lc=DashedLine([px(PKA_C),AX_Y+.1,0],[px(PKA_C),1.75,0],color=ORANGE,dash_length=.12)
+        rc=DashedLine([px(PKA_N),AX_Y+.1,0],[px(PKA_N),1.75,0],color=BLUE,dash_length=.12)
+        q=T("Glycine at pH 7.4: net charge?",40,TEXT,font=TITLE_FONT).move_to([0,3.15,0])
+        h=VGroup(token(.75).move_to([-3.35,1.0,0]),token(.75).move_to([1.25,1.0,0]))
+        self.add(lc,rc,q,h)
+        self.play(Indicate(VGroup(w["lb"],w["rb"]),color=TEXT,scale_factor=1.13),h.animate.shift(UP*.13),run_time=2.1,rate_func=there_and_back)
+        self.play(Indicate(VGroup(w["lb"],w["rb"]),color=TEXT,scale_factor=1.13),h.animate.shift(UP*.13),run_time=2.1,rate_func=there_and_back)
+        self.wait(.3)
+
+
+class S10Answer(SpokenScene):
+    def construct(self):
+        motes(self)
+        w=gly_world(7.4,True); add_world(self,w)
+        lc=DashedLine([px(PKA_C),AX_Y+.1,0],[px(PKA_C),1.75,0],color=ORANGE,dash_length=.12)
+        rc=DashedLine([px(PKA_N),AX_Y+.1,0],[px(PKA_N),1.75,0],color=BLUE,dash_length=.12)
+        q=T("Glycine at pH 7.4: net charge?",40,TEXT,font=TITLE_FONT).move_to([0,3.15,0])
+        h1=token(.75).move_to([-3.35,1.0,0]); h2=token(.75).move_to([1.25,1.0,0])
+        self.add(lc,rc,q,h1,h2)
+        self.at("above the carboxyl's")
+        arr=Arrow([px(PKA_C),2.05,0],[px(7.4),2.05,0],color=ORANGE,stroke_width=5)
+        self.play(FadeOut(q),GrowArrow(arr),run_time=.65)
+        self.at("lets go")
+        minus=chip("−1",ORANGE,36,.25,.18).move_to(w["lb"])
+        self.play(h1.animate.shift(UP*1.5+LEFT*.4),Transform(w["lb"],minus),
+                  w["body"].animate.set_fill(ORANGE,opacity=.30),run_time=.75)
+        self.at("below the amino")
+        arr2=Arrow([px(7.4),2.55,0],[px(PKA_N),2.55,0],color=BLUE,stroke_width=5)
+        self.play(GrowArrow(arr2),run_time=.55)
+        self.at("holds on")
+        plus=chip("+1",BLUE,36,.25,.18).move_to(w["rb"])
+        self.play(h2.animate.shift(DOWN*.35),Transform(w["rb"],plus),
+                  w["body"].animate.set_fill(BLUE,opacity=.30),run_time=.7)
+        self.at("sum is zero")
+        equation=VGroup(M("−1 + +1",28,TEAL,weight=BOLD),M("= 0",32,TEAL,weight=BOLD)).arrange(DOWN,buff=.02).move_to(w["read_val"])
+        self.play(Transform(w["read_val"],equation),Indicate(w["read_box"],color=TEAL),
+                  w["body"].animate.set_fill(TEAL,opacity=.30),run_time=.75)
+        self.at("zwitterion")
+        zw=T("zwitterion",36,TEAL,weight=BOLD).move_to([0,-1.72,0])
+        signs=VGroup(T("−",44,ORANGE,weight=BOLD).move_to([-3.35,1.45,0]),T("+",44,BLUE,weight=BOLD).move_to([1.25,1.45,0]))
+        self.play(w["body"].animate.set_stroke(TEAL,6),FadeIn(signs,scale=.5),Write(zw),run_time=.75)
+        self.finish()
+
+
+class S11Sweep(SpokenScene):
+    def construct(self):
+        motes(self)
+        panel=stage_panel(TEAL)
+        axes=Axes(x_range=[0,14,2],y_range=[-1.1,1.1,.5],x_length=10.8,y_length=5.3,
+                  axis_config={"color":GREY,"stroke_width":3,"include_tip":False}).move_to([.25,.15,0])
+        xlab=T("pH",30,TEXT,weight=BOLD).next_to(axes.x_axis,DOWN,buff=.22)
+        ylab=T("average net charge",28,TEAL,weight=BOLD).rotate(PI/2).next_to(axes.y_axis,LEFT,buff=.22)
+        tag=T("computed",28,GREY).move_to([5.15,3.12,0])
+        p=ValueTracker(0.0)
+        curve=axes.plot(lambda x:gly_charge(x),x_range=[0,14,.03],color=TEAL,stroke_width=6)
+        reveal=always_redraw(lambda:axes.plot(lambda x:gly_charge(x),x_range=[0,max(.01,p.get_value()),.03],color=TEAL,stroke_width=6))
+        dot=always_redraw(lambda:Dot(axes.c2p(p.get_value(),gly_charge(p.get_value())),radius=.10,color=TEXT))
+        scan=always_redraw(lambda:Line(axes.c2p(p.get_value(),-1.05),axes.c2p(p.get_value(),1.05),
+                                       color=TEXT,stroke_width=6).set_opacity(.32))
+        self.add(panel,axes,xlab,ylab,tag,dot,scan)
+        self.at("Sweep")
+        self.add(reveal)
+        self.play(p.animate.set_value(14),run_time=3.25,rate_func=linear)
+        self.at("steps down")
+        labs=VGroup(T("about +1",28,TEAL).move_to(axes.c2p(1,.82)),T("about 0",28,TEAL).move_to(axes.c2p(6,.34)),T("about −1",28,TEAL).move_to(axes.c2p(12,-.82)))
+        bands=VGroup(Rectangle(width=2.2,height=1.05,stroke_width=0,fill_color=TEAL,fill_opacity=.22).move_to(axes.c2p(1,.86)),
+                     Rectangle(width=4.0,height=1.0,stroke_width=0,fill_color=TEAL,fill_opacity=.22).move_to(axes.c2p(6,0)),
+                     Rectangle(width=2.2,height=1.05,stroke_width=0,fill_color=TEAL,fill_opacity=.22).move_to(axes.c2p(12,-.86)))
+        self.play(LaggedStart(*[FadeIn(x) for pair in zip(bands,labs) for x in pair],lag_ratio=.10),run_time=1.15)
+        self.at("centered on")
+        lines=VGroup(DashedLine(axes.c2p(PKA_C,-1.05),axes.c2p(PKA_C,1.05),color=ORANGE,dash_length=.12),
+                     DashedLine(axes.c2p(PKA_N,-1.05),axes.c2p(PKA_N,1.05),color=BLUE,dash_length=.12))
+        self.play(Create(lines),panel.animate.set_fill(ORANGE,opacity=.34),run_time=.9)
+        self.at("zero crossing")
+        pi=(PKA_C+PKA_N)/2
+        pdot=Dot(axes.c2p(pi,0),radius=.15,color=TEAL)
+        plab=T("pI",34,TEAL,weight=BOLD).move_to(axes.c2p(pi-.75,-.36))
+        halo=Circle(radius=.7,color=TEAL,stroke_width=8).move_to(pdot)
+        self.play(FadeIn(pdot,scale=.3),FadeIn(plab),ShowPassingFlash(halo,time_width=.8),
+                  panel.animate.set_fill(TEAL,opacity=.34),run_time=.8)
+        self.finish()
+
+
+class S12Pi(SpokenScene):
+    def construct(self):
+        motes(self)
+        panel=stage_panel(TEAL)
+        axes=Axes(x_range=[0,14,2],y_range=[-1.1,1.1,.5],x_length=10.8,y_length=5.3,
+                  axis_config={"color":GREY,"stroke_width":3,"include_tip":False}).move_to([.25,.15,0])
+        curve=axes.plot(lambda x:gly_charge(x),x_range=[0,14,.03],color=TEAL,stroke_width=6)
+        l1=M("2.34",30,ORANGE).move_to(axes.c2p(PKA_C+.85,.72)); l2=M("9.60",30,BLUE).move_to(axes.c2p(PKA_N-.85,-.72))
+        pi=(PKA_C+PKA_N)/2; dot=Dot(axes.c2p(pi,0),radius=.15,color=TEAL)
+        values=VGroup(l1,l2)
+        self.add(panel,axes,curve,values,dot)
+        self.play(ShowPassingFlash(curve.copy().set_stroke(TEXT,14),time_width=.35),
+                  panel.animate.set_fill(TEAL,opacity=.34),run_time=1.15)
+        self.at("averaging")
+        ans=M("(2.34 + 9.60) / 2 = 5.97",36,TEAL,weight=BOLD).move_to([0,3.15,0])
+        self.play(l1.animate.move_to([-1.1,3.15,0]),l2.animate.move_to([1.1,3.15,0]),
+                  panel.animate.set_fill(GREY,opacity=.18),run_time=.75)
+        self.play(Transform(values,ans),run_time=.75)
+        self.at("gives")
+        self.play(panel.animate.set_fill(TEAL,opacity=.32),run_time=.65)
+        self.at("simplest form")
+        self.play(FadeOut(axes),FadeOut(curve),FadeOut(dot),FadeOut(values),
+                  panel.animate.set_fill(GREY,opacity=.18),run_time=.7)
+        rungs=VGroup(*[Line([-3.7,y,0],[3.7,y,0],color=GREY,stroke_width=9) for y in (1.65,0,-1.65)])
+        charges=VGroup(M("+1",40,TEXT).next_to(rungs[0],LEFT,buff=.35),M("0",40,TEAL).next_to(rungs[1],LEFT,buff=.35),M("−1",40,TEXT).next_to(rungs[2],LEFT,buff=.35))
+        note=T("predominant charge (schematic)",28,GREY).move_to([0,2.75,0])
+        gaps=VGroup(M("2.34",34,ORANGE).move_to([2.5,.82,0]),M("9.60",34,BLUE).move_to([2.5,-.82,0]))
+        self.play(LaggedStart(*[Create(r) for r in rungs],lag_ratio=.2),FadeIn(charges),FadeIn(note),FadeIn(gaps),run_time=1.0)
+        self.at("latter's net zero rung")
+        br=VGroup(BraceBetweenPoints([3.25,1.45,0],[3.25,.2,0],direction=RIGHT,color=ORANGE),
+                  BraceBetweenPoints([3.25,-.2,0],[3.25,-1.45,0],direction=RIGHT,color=BLUE))
+        self.play(rungs[1].animate.set_color(TEAL).set_stroke(width=13),FadeIn(br),run_time=.7)
+        self.finish()
+
+
+class S13Sidechain(SpokenScene):
+    def construct(self):
+        motes(self)
+        p=ValueTracker(7.4); axis,cur=ph_axis(p)
+        body=RoundedRectangle(corner_radius=.35,width=9.5,height=3.45,color=GREY,stroke_width=4,fill_color=GREY,fill_opacity=.18).move_to([0,.25,0])
+        name=T("amino acid",36,TEXT,weight=BOLD).move_to([0,1.25,0])
+        top=socket([0,.25,0],GREY,1.15); side=T("side chain",28,TEXT).move_to([0,-.95,0])
+        self.at("A side chain")
+        self.play(FadeIn(axis),FadeIn(cur),FadeIn(body),FadeIn(name),GrowFromCenter(top),FadeIn(side),run_time=1.0)
+        tok=token(.8).move_to([0,.95,0]); badge=chip("?",GREY,36).move_to([3.6,.15,0]); self.add(tok,badge)
+        self.at("Glutamate's")
+        gl=T("glutamate",36,TEXT,weight=BOLD).move_to(name); gb=chip("−1",ORANGE,38).move_to(badge)
+        line=DashedLine([px(4),AX_Y+.1,0],[px(4),-1.58,0],color=ORANGE,dash_length=.12)
+        self.play(Transform(name,gl),top.animate.set_color(ORANGE),Create(line),tok.animate.shift(UP*1.5),Transform(badge,gb),
+                  body.animate.set_fill(ORANGE,opacity=.18),run_time=.9)
+        self.at("negative")
+        self.play(Indicate(body,color=ORANGE,scale_factor=1.02),run_time=.65)
+        self.at("Lysine's")
+        ly=T("lysine",36,TEXT,weight=BOLD).move_to(name); lb=chip("+1",BLUE,38).move_to(badge)
+        line2=DashedLine([px(10.5),AX_Y+.1,0],[px(10.5),-1.58,0],color=BLUE,dash_length=.12)
+        self.play(Transform(name,ly),top.animate.set_color(BLUE),ReplacementTransform(line,line2),tok.animate.move_to([0,.85,0]),Transform(badge,lb),
+                  body.animate.set_fill(BLUE,opacity=.18),run_time=.9)
+        self.at("positive")
+        self.play(Indicate(body,color=BLUE,scale_factor=1.02),run_time=.65)
+        self.at("Histidine's")
+        hi=T("histidine",36,TEXT,weight=BOLD).move_to(name); hb=chip("0  mostly",BLUE,34).move_to(badge)
+        line3=DashedLine([px(6),AX_Y+.1,0],[px(6),-1.58,0],color=BLUE,dash_length=.12)
+        self.play(Transform(name,hi),ReplacementTransform(line2,line3),tok.animate.shift(UP*1.4),Transform(badge,hb),run_time=.9)
+        self.at("mostly neutral")
+        self.play(Indicate(badge,color=BLUE,scale_factor=1.12),run_time=.65)
+        self.at("Inside a protein")
+        protein=RoundedRectangle(corner_radius=1.0,width=11.2,height=4.5,color=TEAL,stroke_width=3,fill_color=TEAL,fill_opacity=.04).move_to([0,.25,0])
+        pl=T("protein (schematic)",28,TEAL).move_to([0,2.95,0]); shift=T("can shift",28,BLUE).move_to([4.45,1.85,0])
+        self.play(Create(protein),FadeIn(pl),line3.animate.shift(RIGHT*.85),FadeIn(shift),run_time=1.2)
+        self.finish()
+
+
+class S15Return(SpokenScene):
+    def construct(self):
+        motes(self)
+        p=ValueTracker(7.4); axis,cur=ph_axis(p)
+        body=RoundedRectangle(corner_radius=.35,width=10.8,height=3.55,color=GREY,stroke_width=4,fill_color=GREY,fill_opacity=.18).move_to([0,.25,0])
+        sw=VGroup(socket([-3,.3,0],ORANGE,1),socket([0,.3,0],BLUE,1),socket([3,.3,0],BLUE,1))
+        badges=VGroup(chip("−1",ORANGE,32),chip("+1",BLUE,32),chip("0",BLUE,32)).arrange(RIGHT,buff=1.55).move_to([0,-.8,0])
+        read=chip("sum = 0",TEAL,36).move_to([4.2,1.55,0])
+        self.add(axis,cur,body,sw,badges,read)
+        self.at("list")
+        self.play(LaggedStart(*[Indicate(x,color=TEXT,scale_factor=1.12) for x in sw],lag_ratio=.18),run_time=.75)
+        self.at("compare")
+        marks=VGroup(DashedLine([px(2.34),AX_Y,0],[px(2.34),1.9,0],color=ORANGE,dash_length=.12),DashedLine([px(9.6),AX_Y,0],[px(9.6),1.9,0],color=BLUE,dash_length=.12))
+        self.play(Create(marks),Indicate(cur,color=TEXT),run_time=.7)
+        self.at("add")
+        total=chip("−1 + +1 + 0 = 0",TEAL,28).move_to(read)
+        self.play(FadeOut(badges,shift=UP*.22),Transform(read,total),run_time=.8)
+        self.at("sickle cell")
+        self.play(FadeOut(VGroup(axis,cur,body,sw,badges,read,marks)),run_time=.55)
+        strip=Arrow([-5.5,-2.2,0],[5.5,-2.2,0],buff=0,color=GREY,stroke_width=5)
+        signs=VGroup(T("−",42,TEXT).move_to([-5.6,-2.7,0]),T("+",42,TEXT).move_to([5.6,-2.7,0]),T("schematic",28,GREY).move_to([0,-2.75,0]))
+        normal=Ellipse(width=4.5,height=2.7,color=TEAL,fill_color=TEAL,fill_opacity=.18,stroke_width=4).move_to([-3,0,0])
+        sickle=Ellipse(width=4.5,height=2.7,color=ORANGE,fill_color=ORANGE,fill_opacity=.18,stroke_width=4).move_to([3,0,0])
+        nl=T("normal hemoglobin",30,TEAL,weight=BOLD).move_to(normal); sl=T("sickle hemoglobin",30,ORANGE,weight=BOLD).move_to([3,.82,0])
+        self.play(GrowArrow(strip),FadeIn(signs),FadeIn(normal),FadeIn(sickle),FadeIn(nl),FadeIn(sl),run_time=1.0)
+        self.at("A valine")
+        acids=VGroup(chip("Glu switch",ORANGE,28).move_to([2.25,.12,0]),chip("Glu switch",ORANGE,28).move_to([3.75,-.62,0]))
+        vals=VGroup(chip("Val (no switch)",GREY,28).move_to(acids[0]),chip("Val (no switch)",GREY,28).move_to(acids[1]))
+        self.play(FadeIn(acids),run_time=.4)
+        self.play(ReplacementTransform(acids,vals),sickle.animate.shift(RIGHT*.8),sl.animate.shift(RIGHT*.8),run_time=.85)
+        self.at("beta chain")
+        self.play(normal.animate.shift(RIGHT*.55),nl.animate.shift(RIGHT*.55),sickle.animate.shift(RIGHT*.45),sl.animate.shift(RIGHT*.45),vals.animate.shift(RIGHT*.45),run_time=.7)
+        self.finish()
+
+
+class S16End(EndCard):
+    LINE = "Net charge is the sum of switches: pH against each pKa."
+
+    def construct(self):
+        left=Ellipse(width=4.4,height=2.5,color=TEAL,fill_opacity=.04,stroke_opacity=.18).move_to([-3,0,0])
+        right=Ellipse(width=4.4,height=2.5,color=ORANGE,fill_opacity=.04,stroke_opacity=.18).move_to([3,0,0])
+        line=T(self.LINE,40,TEXT,font=TITLE_FONT); fit(line,11.8)
+        sub=T("biochemistrypedia.com",28,TEAL)
+        g=VGroup(line,sub).arrange(DOWN,buff=.55)
+        h=token(.75).move_to([-5.8,2.5,0])
+        self.add(left,right,h)
+        self.play(FadeIn(g,shift=UP*.15),h.animate.shift(RIGHT*3.5),run_time=1.4)
+        self.play(h.animate.shift(RIGHT*3.5),run_time=1.4,rate_func=linear)
+        self.finish()
