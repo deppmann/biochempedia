@@ -1,0 +1,110 @@
+---
+/**
+ * /lessons/<slug>/skim/ — the skim version of a lesson (2026-11-11).
+ *
+ * For the student revising the night before: the guiding idea, every main section heading, each
+ * figure with its take-home caption, and the film's take-home bullets. Built at deploy time from
+ * the lesson's MDX (src/lib/skim.ts), with no scripts, so it works on phones and with JavaScript
+ * off. Linked beside Listen on the lesson page. noindex: it is a subset of the lesson, and search
+ * should send people to the full page. No data-pagefind-body, so site search skips it too.
+ */
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { courseOf, courseHref } from '../../../data/courses';
+import { skimOf } from '../../../lib/skim';
+import { rewrittenFor } from '../../../lib/rewritten';
+
+export async function getStaticPaths() {
+  // Same rule as the lesson route: drafts only in `astro dev`.
+  const lessons = await getCollection('lessons', ({ data }) => import.meta.env.DEV || !data.draft);
+  return lessons.map((entry) => ({ params: { slug: entry.data.slug }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const lesson = entry.data;
+const course = courseOf(lesson.course);
+const { headings } = await render(entry);
+const skim = skimOf(entry.body ?? '', headings);
+const idea = lesson.summary.split(/(?<=[.?!])\s+/)[0];
+const hook = (lesson as { hook?: string }).hook;
+// Film take-homes: the lesson film, or each chapter film that has them.
+const films = [...(lesson.explainer ? [lesson.explainer] : []), ...lesson.films].filter((f) => f.takeaways?.length);
+const filmWords = films.reduce((n, f) => n + (f.takeaways ?? []).join(' ').split(/\s+/).length, 0);
+const minutes = Math.max(1, Math.round((skim.words + filmWords + idea.split(/\s+/).length) / 200));
+const rewritten = rewrittenFor(lesson.slug);
+const full = `/lessons/${lesson.slug}/`;
+---
+
+<BaseLayout title={`Skim: ${lesson.title} — Biochemistrypedia`} description={`The take-home messages of ${lesson.title}: section headings, figures and their captions.`} noindex>
+  <article class="skim wrap">
+    <p class="eyebrow"><a href={courseHref(course.slug)}>{course.title}</a> · Skim version</p>
+    <h1>{lesson.title}</h1>
+    <p class="skim-meta">
+      About {minutes} min to skim · {skim.figureCount} {skim.figureCount === 1 ? 'figure' : 'figures'}
+      {rewritten && <> · Rewritten on <time datetime={rewritten.date}>{rewritten.label}</time></>}
+    </p>
+    <p class="skim-back"><a href={full}>Read the full lesson →</a></p>
+
+    <section class="skim-idea" aria-labelledby="idea-h">
+      <h2 id="idea-h">The guiding idea</h2>
+      {hook && <p class="skim-q">{hook}</p>}
+      <p>{idea}</p>
+    </section>
+
+    {films.map((f) => (
+      <section class="skim-film" aria-label={`Take-homes from the film ${f.title}`}>
+        <h2>From the film{films.length > 1 && `: ${f.title}`}</h2>
+        <ul>{(f.takeaways ?? []).map((t) => <li>{t}</li>)}</ul>
+      </section>
+    ))}
+
+    <ol class="skim-sections">
+      {skim.sections.map((s) => (
+        <li>
+          {s.text && <h2>{s.slug ? <a href={`${full}#${s.slug}`}>{s.text}</a> : s.text}</h2>}
+          {s.figures.map((f) => (
+            <figure>
+              <a href={s.slug ? `${full}#${s.slug}` : full}>
+                <img src={f.src} alt={f.alt} width={f.width} height={f.height} loading="lazy" decoding="async" />
+              </a>
+              <figcaption>
+                {f.keyItems.length > 0 && <ol class="skim-key">{f.keyItems.map((k) => <li>{k}</li>)}</ol>}
+                {f.caption}
+                <span class="skim-ai">AI-generated illustration</span>
+              </figcaption>
+            </figure>
+          ))}
+        </li>
+      ))}
+    </ol>
+
+    <p class="skim-back"><a href={full}>Read the full lesson →</a></p>
+  </article>
+
+  <style>
+    .skim { max-width: 46rem; padding: var(--ddp-space-12) var(--ddp-space-4) var(--ddp-space-16); }
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin: 0 0 var(--ddp-space-2); }
+    .eyebrow a { color: inherit; text-underline-offset: 3px; }
+    h1 { font-size: var(--ddp-text-3xl); margin: 0 0 var(--ddp-space-2); }
+    .skim-meta { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .skim-back { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
+    .skim-back a { color: var(--ddp-color-accent); font-weight: 600; text-underline-offset: 3px; }
+    h2 { font-size: var(--ddp-text-xl); margin: 0 0 var(--ddp-space-2); }
+    h2 a { color: inherit; text-decoration-color: var(--ddp-color-line); text-underline-offset: 4px; }
+    h2 a:hover { color: var(--ddp-color-accent); }
+    .skim-idea, .skim-film { margin-top: var(--ddp-space-6); padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); border-radius: 4px; }
+    .skim-idea h2, .skim-film h2 { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin-bottom: var(--ddp-space-1); }
+    .skim-idea p { margin: 0; line-height: 1.55; }
+    .skim-q { font-style: italic; color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-2) !important; }
+    .skim-film ul { margin: 0; padding-left: 1.2rem; list-style: disc; line-height: 1.55; }
+    .skim-film li + li { margin-top: 0.25rem; }
+    .skim-sections { list-style: none; margin: var(--ddp-space-8) 0 0; padding: 0; counter-reset: none; }
+    .skim-sections > li { padding: var(--ddp-space-4) 0; border-top: 1px solid var(--ddp-color-line); }
+    figure { margin: var(--ddp-space-3) 0 0; }
+    img { display: block; width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--ddp-color-line); background: var(--ddp-color-surface); }
+    figcaption { margin-top: var(--ddp-space-2); line-height: 1.5; color: var(--ddp-color-ink); }
+    .skim-key { margin: 0 0 var(--ddp-space-2); padding-left: 1.4rem; list-style: decimal; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .skim-ai { display: inline-block; margin-left: 0.5rem; padding: 0.05em 0.55em; border: 1px solid var(--ddp-color-line); border-radius: 999px; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); white-space: nowrap; color: var(--ddp-color-ink-soft); }
+    @media print { .skim-back { display: none; } img { max-height: 9cm; width: auto; } }
+  </style>
+</BaseLayout>
