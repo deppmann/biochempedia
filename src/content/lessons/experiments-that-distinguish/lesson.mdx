@@ -4,13 +4,13 @@ slug: "experiments-that-distinguish"
 course: "cell-biology"
 courseChapter: "Cell Biology · Unit 1: Seeing and testing cells"
 order: 403
-summary: "How do you find out where an enzyme lives, in what order a protein visits the compartments of a cell, and whether a protein causes the defect you see when it is lost? This lesson reads three kinds of evidence: a fractionation table, a pulse-chase time course, and a perturbation with rescue. Each answers one kind of question and is easily pushed to answer another. Afterwards you can calculate enrichment and recovery, say what a time course can and cannot show, and design controls that tell two competing models apart."
-hook: "Where does a protein live, in what order does it travel, and does it cause the defect you see? Each question needs a different experiment, and a pellet named 'mitochondria' is never only mitochondria."
+summary: "How do you find out where an enzyme lives, in what order a protein visits the compartments of a cell, and whether a protein causes the defect you see when it is lost? This lesson reads three kinds of evidence: a fractionation table, a pulse-chase time course, and a perturbation with rescue. Each is best at one kind of question and is easily pushed to answer another; a test can distinguish two models only when their predictions differ by enough to resolve experimentally. Afterwards you can calculate enrichment and recovery, say what a time course can and cannot show, and design controls that tell two competing models apart."
+hook: "Where does a protein live, in what order does it travel, and does it cause the defect you see? Each question is best answered by a different experiment, and a pellet named 'mitochondria' is never only mitochondria."
 
 estMinutes: 24
 objectives:
   - "Calculate relative specific activity, enrichment and recovery from a fractionation table, use latency as a test of membrane enclosure, and explain why enrichment is not purity."
-  - "Read a pulse-chase time course as an order of events, and state what it cannot show about mechanism."
+  - "Read a pulse-chase time course as an order of events, and state what the order alone cannot show about mechanism."
   - "Argue cause rather than correlation using perturbation and rescue: drugs, RNAi, CRISPR knockout, an RNAi-resistant rescue construct and separation-of-function mutants."
   - "Design controls that separate two competing models, including controls for off-target drug effects and for genetic compensation."
 
@@ -18,10 +18,16 @@ explainer:
   src: "/explainers/experiments-that-distinguish/explainer.mp4"
   captions: "/explainers/experiments-that-distinguish/explainer.vtt"
   poster: "/explainers/experiments-that-distinguish/poster.jpg"
-  title: "Experiments That Distinguish Mechanisms"
-  durationSec: 154.6
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Where the Twins Disagree"
+  durationSec: 228.0
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A result can choose between two models only where the twins disagree."
+    - "In the lesson's made-up table, enrichment in tube L cannot choose, because both models predict it; matching a marker across all five tubes is stronger evidence, though not proof."
+    - "Tagging one batch of protein (a pulse-chase) gives the order, ER then Golgi then granules; carriers and maturing Golgi compartments predict the same order, so the order alone cannot choose."
+    - "In these cancer-cell assays, removing MELK barely moved the drug's growth curve, so its effect there mostly runs through other targets."
+    - "RNAi can silence other messages too, so rescue with an RNAi-resistant copy is strong evidence the intended protein caused the effect."
 
 scientists:
   - name: "Christian de Duve"
@@ -228,24 +234,24 @@ practiceQuestions:
       - "The granule fraction makes the protein and sends it back to the endoplasmic reticulum"
       - "The route cannot be known unless protein synthesis is also blocked"
     answer: 1
-    rationale: "A pulse-chase gives the order in which one labelled batch visits compartments. The same order fits vesicles that bud and fuse, and it also fits compartments that mature into one another, so it does not choose between them. The protein is made on the ER, not in granules, so the reverse direction is wrong. Blocking synthesis is a separate test of whether newly made protein is pushed along by later protein; it is not needed to read the order."
+    rationale: "A pulse-chase gives the order in which one labelled batch visits compartments. The same order fits vesicles that bud and fuse, and it also fits compartments that mature into one another, so the order alone does not choose between them. The protein is made on the ER, not in granules, so the reverse direction is wrong. Blocking synthesis is a separate test of whether newly made protein is pushed along by later protein; it is not needed to read the order."
 
 mcatQuestions:
   - stem: "In a made-up experiment, a liver homogenate contains 200 mg protein and 800 units of an enzyme. After centrifugation, one fraction contains 8 mg protein and 240 units of the enzyme, and all fractions together contain 800 units. What are the enzyme's relative specific activity and recovery in that fraction?"
     choices:
       - "Relative specific activity 7.5, recovery 30%"
       - "Relative specific activity 7.5, recovery 4%"
-      - "Relative specific activity 3.0, recovery 30%"
+      - "Relative specific activity 0.13, recovery 30%"
       - "Relative specific activity 30, recovery 7.5%"
     answer: 0
     rationale: >-
       The fraction holds 240/800 = 30% of the activity and 8/200 = 4% of the protein, so its
-      relative specific activity is 30/4 = 7.5 and its recovery is 30%. The pairing of 3.0 with
-      30% does not follow from any correct step, so it can only come from an arithmetic slip. The pairing
+      relative specific activity is 30/4 = 7.5 and its recovery is 30%. The pairing of 0.13 with
+      30% turns the ratio upside down, dividing the share of protein by the share of activity (4/30). The pairing
       of 30 with 7.5% treats units per milligram in the fraction (240/8 = 30) as the ratio and then
       misplaces recovery. The pairing of 7.5 with 4% mistakes the share of protein for the share of
       activity.
-  - stem: "Pancreatic slices are pulse-labelled with radioactive leucine, then chased with unlabelled leucine, with or without a drug that blocks over 95% of new protein synthesis from the start of the chase. With the drug, labelled protein still leaves rough microsomes and reaches the secretory-granule fraction, at about 80% of the control efficiency over 40 minutes. What does this result best support?"
+  - stem: "Pancreatic slices are pulse-labelled with radioactive leucine, then chased with unlabelled leucine, with or without a drug that blocks over 95% of new protein synthesis from the start of the chase. With the drug, labelled protein still leaves rough microsomes and reaches the secretory-granule fraction, at about 80% of the control efficiency over a 37-minute chase. What does this result best support?"
     choices:
       - "The drug has failed to enter the cells, so transport and synthesis both continue"
       - "Movement of protein already made does not need continued synthesis behind it"
@@ -254,10 +260,10 @@ mcatQuestions:
     answer: 1
     rationale: >-
       Synthesis was measured as blocked and transport still went on, so newly made protein is not
-      pushed along by the protein made after it, at least over the 40 minutes tested; Jamieson and
+      pushed along by the protein made after it, at least over the 37-minute chase tested; Jamieson and
       Palade drew this conclusion from cycloheximide experiments in guinea pig pancreatic slices, where transport efficiency was about 80% of control.
-      The drug did enter, since synthesis fell by over 95%. A pulse-chase gives order, not the
-      means of transfer, so it cannot show fusion of the ER with granules. Synthesis during the
+      The drug did enter, since synthesis fell by over 95%. The order of labelling alone does not reveal the
+      means of transfer, and nothing in this result shows fusion of the ER with granules. Synthesis during the
       pulse is what labels the cohort and says nothing about whether transport needs it.
   - stem: "A drug said to inhibit kinase K inhibits growth of a cancer cell line with a GI50 (the concentration that halves growth) of 20 nM. Investigators use CRISPR to make K-null clones, confirmed by immunoblots with two antibodies to different parts of K. The K-null clones grow normally, and the drug inhibits their growth with a GI50 of 22 nM. What is the best conclusion?"
     choices:
@@ -300,7 +306,7 @@ explainLevels:
       recovery, and latency (activity revealed only after the membrane is opened) shows that an
       enzyme is enclosed. Enrichment is never purity, so several markers are read together. A
       pulse-chase labels a cohort of new protein and shows the order of compartments it visits,
-      but not the machinery of transfer. Perturbation with RNAi, CRISPR or a drug suggests that a
+      but the order alone does not show the machinery of transfer. Perturbation with RNAi, CRISPR or a drug suggests that a
       protein is needed, once off-target effects and compensation are controlled; rescue with an RNAi-resistant construct is strong evidence that the phenotype came from that
       protein, and separation-of-function mutants show which of its activities is needed.
   - level: "grad"
@@ -373,31 +379,33 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In 1955 a group in Louvain proposed a new organelle, the lysosome, from numbers in a table of centrifuge fractions, before anyone could say what it looked like.**
 
-They broke rat liver, spun it into five fractions, and measured enzymes in every one. One enzyme, acid phosphatase, did not quite travel with the mitochondria: it peaked in a lighter fraction. That table is the first of three kinds of evidence in this lesson. A cell cannot be watched doing everything at once, so cell biologists ask three different questions, and each needs its own experiment. Where does a protein live? Break the cell apart and read a fractionation table. In what order does it visit compartments? Label one batch and follow it in a pulse-chase. Does it cause the defect you see when it is lost? Remove it, then put it back in a rescue experiment. Each approach is easily pushed to answer a question it cannot, so what you learn here is which question each one answers.
+They broke rat liver, spun it into five fractions, and measured enzymes in every one. Acid phosphatase did not quite travel with the mitochondria: it peaked in a lighter fraction. The film showed the logic; the text adds the arithmetic, the controls and the cases the film skips.
 
-## The idea: a cell is tested by breaking it carefully
+> **The film's rule, with one addition.** The predictions must also differ by more than the result's own noise. So before you read a result, write down what each model predicts. If the predictions are the same, the result cannot choose between the models, however clean the data.
 
-Think of a library hit by a flood. You cannot read every book where it fell, but you can sort the wet pages into piles by size, then look for a stamp that tells you which shelf each page came from. Fractionation does this with a cell. The [lesson on a measured eukaryotic cell](/lessons/measured-eukaryotic-cell/) gave you the sizes involved; here they become the basis of separation.
+Each method below is best at one kind of question and is easily pushed to answer one it cannot. The rule says whether a test *can* decide, not that your two models are the only ones; the strongest designs make them predict opposite results.
 
-First the tissue is broken gently in a sucrose solution, so that the plasma membrane tears but organelles stay mostly whole. Then comes **differential centrifugation**: spin at low force and the largest, densest particles (nuclei, unbroken cells) form a pellet, a packed sediment at the bottom of the tube. Spin the liquid above at higher force and smaller particles pellet, and so on. In de Duve's modified rat-liver scheme, which added a light mitochondrial fraction to the older four-fraction scheme, this gives five fractions: N (nuclear), M (heavy mitochondrial), L (light mitochondrial), P (microsomal, small membrane fragments) and S (soluble, mostly the cytosol). The [biochemistry lesson on purification](/lessons/protein-purification-techniques/) covers centrifugation itself.
+## Where: breaking the cell carefully
 
-Differential spins separate by size and density together, and particle populations overlap, so every pellet is a mixture. **Density-gradient centrifugation** refines a fraction: in a tube whose sucrose concentration rises toward the bottom, each particle, given long enough, settles where the solution matches its own buoyant density, whatever its size.
+First the tissue is broken gently in a sucrose solution, so that the plasma membrane tears but organelles stay mostly whole; this suspension is the **homogenate**. Then comes **differential centrifugation**: spin at low force and the largest, densest particles (nuclei, unbroken cells) form a pellet, a packed sediment at the bottom of the tube. Spin the liquid above at higher force and smaller particles pellet, and so on. In de Duve's rat-liver scheme this gives five fractions: N (nuclear), M (heavy mitochondrial), L (light mitochondrial), P (microsomal: microsomes are small sealed fragments of membrane) and S (soluble, mostly the cytosol). The names come from the spin, not the contents: the "light mitochondrial" fraction is where de Duve found lysosomes, so a fraction's name is itself a model. (Sizes: [a measured eukaryotic cell](/lessons/measured-eukaryotic-cell/); centrifugation: [purification](/lessons/protein-purification-techniques/).)
+
+Differential spins separate by size and density together, and particle populations overlap, so every pellet is a mixture. **Density-gradient centrifugation** refines a fraction: in a tube whose sucrose concentration rises toward the bottom, each particle settles, given long enough, where the solution matches its own buoyant density, whatever its size.
 
 <LessonFigure src="/figures/experiments-that-distinguish/density-gradient-settling.webp" width={1200} height={747} alt="AI-generated illustration: a tube after a differential spin with a mixed pellet beside a tube with a rising sucrose gradient where particles of different sizes sit at levels set by their buoyant density." caption="A differential spin gives a mixed pellet; in a sucrose gradient each particle, given long enough, settles at its own buoyant density whatever its size." />
 
-The stamp on each page is a **marker enzyme**, one assumed to belong to a single compartment. In rat liver the standard markers are cytochrome oxidase for mitochondria, acid phosphatase for lysosomes, and glucose-6-phosphatase for the endoplasmic reticulum (ER), the membrane network where most secreted proteins and many membrane proteins are made.
+To tell which particles went where, you measure a **marker enzyme**, one assumed to belong to a single compartment. In rat liver the standard markers are cytochrome oxidase for mitochondria, acid phosphatase for lysosomes, and glucose-6-phosphatase for the endoplasmic reticulum (ER), where most secreted and many membrane proteins are made.
 
-## Reading a fractionation table
+### Reading a fractionation table
 
-Three quantities do most of the work.
+Three quantities do most of the work. The first compares a fraction's share of an enzyme with its share of the protein: hold 45% of the enzyme in 5% of the protein, and the enzyme is nine times more concentrated there than in the homogenate.
 
 > **relative specific activity = (% of total enzyme activity in the fraction) / (% of total protein in the fraction)**
 
-A value above 1 means the fraction is **enriched** for that enzyme compared with the starting homogenate. **Recovery** in a fraction is the percent of the homogenate's activity found there. Summed over all fractions, recovery checks that no activity was lost or gained; de Duve's group usually found totals between 90 and 110%. **Latency** is activity that cannot be measured until a membrane is opened, usually with detergent, because the substrate cannot reach an enzyme sealed inside a compartment.
+Both numbers are percentages, so the ratio has no units; it is not the specific activity of biochemistry (units per mg). A value above 1 means the fraction is **enriched**. **Recovery** in a fraction is the percent of the homogenate's activity found there; summed over all fractions, it checks that none was lost or gained. **Latency** is activity that cannot be measured until a membrane is opened, usually with detergent, because the substrate cannot reach an enzyme sealed inside a compartment.
 
-### Worked problem
+### Worked problem: lysosome or mitochondrion?
 
-Here is a made-up data set for rat liver, invented for teaching. Each row gives the percent of the total (homogenate) amount found in each fraction, and every row adds up to 100.
+Here is a made-up rat-liver data set; the film's tracks were computed from it. Each row gives the percent of the homogenate's total found in each fraction, and every row adds to 100. Model 1: the unknown enzyme X is lysosomal. Model 2: X is mitochondrial.
 
 | | N | M | L | P | S |
 |---|---|---|---|---|---|
@@ -408,43 +416,93 @@ Here is a made-up data set for rat liver, invented for teaching. Each row gives 
 | Unknown enzyme X | 9 | 24 | 44 | 13 | 10 |
 
 **Step 1: relative specific activity.** Divide each activity by the protein in the same column.
-- Cytochrome oxidase: M is 70/20 = 3.5 and L is 15/5 = 3.0. It peaks in M.
+- Cytochrome oxidase: M is 70/20 = 3.5 and L is 15/5 = 3.0. It peaks in M but is enriched in L as well.
 - Acid phosphatase: L is 45/5 = 9.0 and M is 25/20 = 1.25. It peaks in L.
 - Glucose-6-phosphatase: P is 65/20 = 3.25. It peaks in P.
-- Enzyme X: L is 44/5 = 8.8 and M is 24/20 = 1.2. Its whole profile, fraction by fraction, follows acid phosphatase, not cytochrome oxidase.
+- Enzyme X: L is 44/5 = 8.8 and M is 24/20 = 1.2. Its whole profile, fraction by fraction, is close to acid phosphatase's and far from cytochrome oxidase's.
 
-**Step 2: enrichment, recovery and purity.** Fraction L holds 45% of the acid phosphatase in 5% of the protein: a 9-fold enrichment with 45% recovery. More than half the acid phosphatase is elsewhere, so a pure lysosome preparation would be a low-yield one. And L also carries 15% of the cell's cytochrome oxidase, which is a relative specific activity of 3.0 for mitochondria in the same fraction. L is enriched in lysosomes, not pure.
+**Step 2: enrichment, recovery and purity.** Fraction L holds 45% of the acid phosphatase in 5% of the protein: a 9-fold enrichment with 45% recovery. More than half is elsewhere, so a pure lysosome preparation would be a low-yield one. But L also holds 15% of the cytochrome oxidase, a 3-fold enrichment for mitochondria.
+
+**Predict.** Is L at least mostly lysosomes, 9-fold against 3-fold? What else would you need to know?
+
+<details>
+<summary>Check your prediction</summary>
+
+Enrichment alone cannot say: you also need each organelle's share of the homogenate's protein, which the table does not give. Suppose lysosomes hold 2% of it and mitochondria 18% (invented values that the table allows), and that each marker is confined to its organelle, fully measured and equally active per mg of that organelle's protein. Then L is about 9 × 2% = 18% lysosomal protein and 3 × 18% = 54% mitochondrial protein: on these assumptions the fraction most enriched in lysosomes is mostly mitochondria. Enrichment says which way a fraction leans, not what it is made of.
+
+</details>
 
 <FractionationTableReader />
 
-**Step 3: latency.** Suppose that in intact L particles only 10% of X's activity can be measured, and detergent raises it to 100%. X is 90% latent, so it sits behind a membrane, inside a particle, rather than stuck to the outside.
+**Step 3: latency.** Latency answers a different question: inside or outside? Suppose that in intact L particles only 10% of X's activity can be measured, and detergent raises it to 100%. X is 90% latent, so it sits behind a membrane, inside a particle, rather than stuck to the outside. It cannot say which particle: a mitochondrial matrix enzyme can also look latent when its substrate cannot cross intact membranes.
 
-**Conclusion.** X is provisionally lysosomal. To confirm it you would want a second lysosomal marker that tracks X on a density gradient, and imaging of the protein in intact cells (see the [lesson on microscopy](/lessons/microscopy-and-images/)). A shared peak alone can come from two organelles that happen to sediment together.
+**Conclusion.** X is provisionally lysosomal. A whole-profile match is stronger evidence than a shared peak, but two organelles can happen to sediment together, so to confirm it you would want a second lysosomal marker that tracks X on a density gradient, and imaging in intact cells ([microscopy](/lessons/microscopy-and-images/)).
 
-## Pulse and chase: putting events in order
+## When: pulse and chase
 
-A fractionation table is a snapshot. To learn the order in which a protein visits compartments, you need to label one batch of it and follow that batch. This is a **pulse-chase**: give cells radioactive amino acid for a short time (the pulse), then flood them with the unlabelled amino acid (the chase), so that only proteins made during the pulse are labelled.
+A fractionation table is a snapshot; to learn the order of compartments, label one batch of protein and follow it. This is a **pulse-chase**: give cells radioactive amino acid for a short time (the pulse), then flood them with the unlabelled amino acid (the chase), so only proteins made during the pulse are labelled.
 
-In 1967 James Jamieson and George Palade did this with slices of guinea pig pancreas, whose acinar cells make large amounts of digestive enzymes for export. After a three-minute pulse of carbon-14 leucine, label was in the rough microsomes, the ribosome-studded ER fragments. Smooth microsomes, which these experiments identified as the peripheral elements of the Golgi complex, held the label next. Later the label reached the zymogen-granule fraction, the storage granules that release enzyme from the cell.
+The film's order came from this experiment. In 1967 James Jamieson and George Palade did it with slices of guinea pig pancreas, whose acinar cells make large amounts of digestive enzymes for export. After a three-minute pulse of carbon-14 leucine, label was in the rough microsomes, the ribosome-studded ER fragments. Smooth microsomes, which these experiments identified as peripheral elements of the Golgi complex, held it next, and later it reached the zymogen-granule fraction, the storage granules that release enzyme from the cell (times in Going deeper).
 
-<LessonFigure src="/figures/experiments-that-distinguish/pulse-chase-order.webp" width={1200} height={672} alt="AI-generated illustration: three frames of a pancreatic cell; labelled protein is first in rough ER during the pulse, then in Golgi vesicles during the chase, then in zymogen granules." caption="A short pulse tags one batch of protein; after the chase begins, where that batch sits tells you the order of compartments, though not how it moves between them." />
+<LessonFigure src="/figures/experiments-that-distinguish/pulse-chase-order.webp" width={1200} height={672} alt="AI-generated illustration: three frames of a pancreatic cell; labelled protein is first in rough ER during the pulse, then in Golgi vesicles during the chase, then in zymogen granules." caption="A short pulse tags one batch of protein; after the chase begins, where that batch sits tells you the order of compartments, though the order alone does not show how it moves between them." />
 
-Two cautions came from the same work. First, the granule fraction was half-maximally labelled at 17 minutes, but when Jamieson and Palade examined that pellet by autoradiography, the early label sat largely in condensing vacuoles of the Golgi complex that sediment with granules. In intact cells, labelled mature granules appeared at the earliest at 57 minutes. A labelled pellet dates the label's arrival in the pellet, not in the organelle it is named for. Second, in 1968 they added cycloheximide, a drug that blocks protein synthesis, during the chase. Synthesis fell sharply, yet transport continued at a large fraction of the control efficiency. Newly made protein is not pushed along by the protein made after it, at least over the chase interval and in that tissue.
+As the film's twins showed, that order fits carriers moving cargo between fixed Golgi compartments and also Golgi compartments that themselves mature, cis to trans, so the order alone cannot choose (the *shape* of the time course can, in principle; Going deeper). Other models do disagree.
 
-What a pulse-chase cannot show is how the protein moves. The order ER, then Golgi, then granules fits vesicles budding and fusing, and it also fits compartments that mature into one another. The full secretory story belongs to the [lesson on the secretory pathway](/lessons/secretory-pathway/).
+**Predict.** Is a batch of new protein pushed along by the protein made after it? Model 1: yes, like a queue. Model 2: no, it moves on its own. If you block protein synthesis during the chase, what does each model predict?
 
-## Breaking and fixing: perturbation and rescue
+<details>
+<summary>Check your prediction</summary>
 
-Localization and timing show that a protein is in the right place at the right time. They do not show that it causes anything. For cause you remove the protein and look for a defect, then put it back and see the defect go away.
+Model 1: transport stalls. Model 2: transport goes on. In 1968 Jamieson and Palade added cycloheximide, a drug that blocks protein synthesis, during the chase. Synthesis fell sharply, yet transport continued at a large fraction of the control efficiency. Newly made protein is not pushed along by protein made after it, at least over that chase and in that tissue: a pulse-chase answering a question about cause.
 
-The tools come from other courses. RNA interference uses a short RNA, delivered as an siRNA or made inside the cell as an shRNA, to guide destruction of a matching mRNA, reducing the protein. CRISPR uses the nuclease Cas9 and a guide RNA to cut a gene. Error-prone repair of the cut usually breaks the gene, but some edits leave in-frame or partial protein, so loss of the protein must be checked. Both are taught in the [lesson on CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/), and building rescue constructs in the [lesson on recombinant DNA](/lessons/recombinant-dna-and-pcr/). Drugs are faster still, as the [lesson on drugs against a part](/lessons/drugs-against-a-part/) shows.
+</details>
 
-Each tool has its own way of misleading.
-- **RNAi has off-target effects.** A short stretch of the guide strand can match, and silence, unintended mRNAs. The answer is a second shRNA against a different part of the same mRNA, and above all **rescue**: a construct whose mRNA carries silent mutations, synonymous codon changes that the shRNA cannot pair with, while the protein stays the same.
-- **Drugs can hit more than their target.** OTS167 was described as an inhibitor of the kinase MELK. In 2017 Ann Lin, Jason Sheltzer and colleagues made MELK-null breast cancer clones by CRISPR; the clones grew well in their assays and were still sensitive to OTS167. Whether those cells need MELK depends on the assay and is still debated.
-- **Knockouts can be compensated.** In selected zebrafish and mouse models, decay of a mutant mRNA switched on related genes, and alleles that made no mRNA at all lacked this response. A mild knockout phenotype does not prove the gene unimportant.
+**A pellet's name is a model too.** The granule fraction picked up label early, but electron-microscope autoradiography, which shows where radioactive label sits in a thin section, put that early label largely in condensing vacuoles of the Golgi complex, the large forerunners of granules, which sediment with granules. Labelled mature granules appeared much later in intact cells. A labelled pellet dates the label's arrival in the pellet, not in the organelle it is named for (more in the [secretory pathway](/lessons/secretory-pathway/)).
 
-The cleanest test of mechanism is a **separation-of-function mutant**, one that keeps one activity of a protein and loses another. Stephen Royle, Nicholas Bright and Leon Lagnado found in 2005 that depleting clathrin heavy chain in HEK293 cells prolonged mitosis. Clathrin also coats endocytic vesicles, so the defect could have been indirect. Full-length shRNA-resistant clathrin rescued mitosis; the N-terminal fragment did not. In 2006 Royle and Lagnado reported that a shortened construct partly rescued mitosis while failing to support transferrin uptake, the standard readout of clathrin-mediated [endocytosis](/lessons/endocytosis/). A protein that cannot do one job but can partly do the other argues that the two jobs are separate.
+## Cause: remove it, then put it back
+
+Being in the right place at the right time fits a protein that does the job and one that only happens to be there. To choose, take it away and see whether the job fails, then put it back.
+
+A direct small-molecule inhibitor can block a protein within minutes, often faster than RNAi or gene editing, though phenotype timing varies. RNA interference uses a short RNA, delivered as an siRNA or made inside the cell as an shRNA, to guide destruction of a matching mRNA over a few days. CRISPR uses the nuclease Cas9 and a guide RNA to cut the gene; the cell's error-prone repair of the cut usually breaks it, but some edits keep the reading frame or leave partial protein, so loss of the protein must be checked. (Tools: [CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/), [recombinant DNA](/lessons/recombinant-dna-and-pcr/), [drugs against a part](/lessons/drugs-against-a-part/).) Each can mislead, and each has a control that makes the models disagree again.
+
+**A drug can hit more than its target.** The film's drug is OTS167, developed as an inhibitor of the kinase MELK; Ann Lin, Jason Sheltzer and colleagues ran its test in 2017. In their MELK-null breast cancer clones, made by CRISPR, in Cal51 populations the mean GI50, the concentration that halves growth, was 10 nM with control guides and 11 nM with MELK guides. Whether these cells need MELK at all depends on the assay and is still debated (see the anecdote "A drug that did not need its target"). This **genotype-by-drug** comparison is a chemical-genetic test of target dependence, not a rescue: if the drug effect persists without the target, the target is not required for it; resistance supports the target if the cells are viable and controls hold. A functional drug-resistant target allele is the rescue-like test.
+
+**Predict.** Suppose you give cells a version of MELK that OTS167 cannot bind. What does each model predict?
+
+<details>
+<summary>Check your prediction</summary>
+
+If the drug works through MELK, cells with an active, normally expressed drug-proof MELK should keep growing in it; if through something else, growth still falls. Growth would support MELK as a target that matters, not the only one; a fall means little until the drug-proof MELK is shown to be active.
+
+</details>
+
+**RNAi can silence the wrong mRNA.** A short stretch of the guide strand can pair with, and silence, mRNAs it was never meant for (Going deeper). One control is a second shRNA against another part of the same mRNA, since a shared off-target is unlikely. The stronger one is **rescue**: put back a copy whose mRNA the shRNA cannot touch. If the phenotype came from losing the protein, rescue should cure it; if from an off-target, it should stay. A rescue that fails means little until the construct is shown to be made at about the normal level, folded and correctly placed.
+
+**Predict.** How can a rescue construct make the same protein and still escape an shRNA that pairs with that protein's mRNA?
+
+<details>
+<summary>Check your prediction</summary>
+
+Change the codons in the shRNA's target site to synonymous ones, codons for the same amino acid. These silent mutations alter the mRNA, so the shRNA no longer pairs with it, but leave the amino-acid sequence the same. Check by immunoblot (an antibody test for the protein) that the rescue protein is made at about the normal level, since far too much can cause effects of its own.
+
+</details>
+
+**A knockout can be quietly compensated.** In selected zebrafish and mouse models, decay of a mutant mRNA switched on related genes (Going deeper), so a mild knockout phenotype does not prove the gene unimportant.
+
+### Two jobs, one protein: separation of function
+
+Rescue says the defect came from losing the protein, not which of its jobs mattered. Stephen Royle, Nicholas Bright and Leon Lagnado found in 2005 that depleting clathrin heavy chain in HEK293 cells prolonged mitosis. Clathrin also coats endocytic vesicles, so it might act in mitosis itself (Model 1) or through [endocytosis](/lessons/endocytosis/) (Model 2). Full-length shRNA-resistant clathrin rescued mitosis, as both predict; the N-terminal fragment, the front part of the protein alone, did not.
+
+**Predict.** What does each model predict for a resistant clathrin construct that cannot support endocytosis?
+
+<details>
+<summary>Check your prediction</summary>
+
+Model 1: it can still rescue mitosis. Model 2: it cannot, because the route that matters is still broken. In 2006 Royle and Lagnado reported that a shortened construct partly rescued mitosis while failing to support transferrin uptake, the standard readout of clathrin-mediated endocytosis. Keeping part of one job while losing the other argues that the jobs are separate.
+
+</details>
+
+The sharpest test of whether two jobs are separate is a **separation-of-function mutant** like this, which keeps one activity and loses another; like any rescue construct, it needs the checks above.
 
 <LessonFigure src="/figures/experiments-that-distinguish/silent-mutation-rescue.webp" width={1200} height={787} alt="AI-generated illustration: two cells; in the depleted cell an shRNA pairs with clathrin mRNA and little protein is made, in the rescued cell an extra mRNA with silent mutations escapes the shRNA and makes the same clathrin protein; an inset compares the two mRNAs." caption="Silent mutations change the mRNA but not the protein, so the shRNA cannot pair with it. If the rescue construct restores normal mitosis, the defect most likely came from losing clathrin." />
 
@@ -455,26 +513,30 @@ Depleting protein C by shRNA prolongs mitosis in cultured human cells. Model 1: 
 <details>
 <summary>One way to do it</summary>
 
-Start by making the phenotype trustworthy. Use a non-targeting control shRNA, and a second shRNA against a different region of C's mRNA; if both prolong mitosis, an off-target effect is unlikely. Confirm loss of C by immunoblot.
+**1. Make the phenotype trustworthy.** Use a non-targeting control shRNA and a second shRNA against another region of C's mRNA; if both prolong mitosis, an off-target effect is unlikely. Confirm loss of C by immunoblot.
 
-Next, rescue. Express full-length C from a construct with silent mutations in the shRNA target site, alongside an empty-vector control. Mitosis should return to normal. Check by immunoblot that the rescue protein is made at about the normal level, since heavy overexpression can create effects of its own.
+**2. Rescue.** Express full-length C, at about the normal level, from a construct with silent mutations in the shRNA target site, alongside an empty-vector control. Mitosis should return to normal.
 
-Now separate the models. Score every condition for two things: time in mitosis (by live imaging) and endocytosis (transferrin uptake). Then express shRNA-resistant mutants of C, each designed to keep one activity and lose the other, such as a mutant that cannot bind the endocytic adaptors and one that cannot reach the spindle. Model 1 predicts that a mutant that fails at endocytosis can still rescue mitosis. Model 2 predicts that mitosis is rescued only by versions that restore endocytosis, and that blocking endocytosis another way, without touching C, also prolongs mitosis.
+**3. Make the models disagree.** Score every condition for two things: time in mitosis (by live imaging) and endocytosis (transferrin uptake). Then express shRNA-resistant mutants of C, each keeping one activity and losing the other, such as one that cannot bind the endocytic adaptors (proteins linking the coat to the membrane) and one that cannot reach the spindle. Model 1 predicts that a mutant failing at endocytosis can still rescue mitosis. Model 2 predicts rescue only by versions that restore endocytosis, and that blocking endocytosis another way, without touching C, also prolongs mitosis. RNAi phenotypes are usually scored after a day or more, so indirect effects have time to build. To ask whether C is needed acutely in mitosis, rapid removal at mitotic entry is a sharper complementary test; earlier direct roles need separate tests.
 
-Do not decide on localization. Seeing C on the spindle fits Model 1 but does not exclude Model 2; a fragment can reach the spindle and still fail to rescue. This is the logic of Royle's clathrin experiments: full-length rescue, failed fragments, and a construct that separated the mitotic and endocytic readouts.
+Do not decide on localization: seeing C on the spindle fits Model 1 but does not exclude Model 2, and a fragment can reach the spindle and still fail to rescue.
 
 </details>
 
 ## Going deeper
 
+### Fractionation fine print
+
+De Duve's modified scheme added the light mitochondrial fraction, L, to the older four-fraction one. Summed over all fractions, his group's recoveries usually came to between 90 and 110%.
+
 ### The pulse-chase numbers
 
-In the Jamieson and Palade pancreas experiments, smooth microsomes peaked at seven minutes of chase. In the 1968 experiment, cycloheximide was added at 0.5 mM during a 37-minute chase. Synthesis fell by up to 98%, yet transport continued with about 80% of the control efficiency.
+Times are minutes of chase, from the end of the three-minute pulse. In the Jamieson and Palade pancreas experiments, smooth microsomes peaked at 7 minutes. The isolated zymogen-granule fraction was half-maximally labelled at 17 minutes, mostly in condensing vacuoles; in intact cells, labelled mature granules appeared at the earliest at 57 minutes. In the 1968 experiment, cycloheximide was added at 0.5 mM during a 37-minute chase: synthesis fell by up to 98%, yet transport continued with about 80% of the control efficiency.
 
-### The MELK numbers and the dispute
+### Order versus shape
 
-In Cal51 cells the mean GI50, the concentration that halves growth, was 10 nM with control guides and 11 nM with MELK guides. Another group later found MELK dependency in MDA-MB-231 cells in a low-density colony assay, so whether those cells need MELK is still debated.
+Take a toy model with an instantaneous, synchronous pulse: every labelled molecule enters the ER at time zero and spends exactly 10 minutes there and exactly 15 in the Golgi. No label reaches the granules before 25 minutes, and then all of it arrives together; a finite pulse would broaden that step. If each molecule instead leaves each compartment with a steady chance per minute, with the same average stays, some label arrives within minutes and the rise is smooth: same order, different shapes, so measured kinetics can test such models.
 
 ### RNAi off-targets and compensation in detail
 
-In HeLa-cell profiling, unintended targets were enriched for 3′ untranslated regions matching positions 2 to 7 of the guide strand. In selected zebrafish and mouse models, decay of a mutant mRNA switched on related genes, and alleles that made no mRNA at all lacked this response (El-Brolosy and colleagues, 2019).
+In HeLa-cell profiling, unintended targets were enriched for 3′ untranslated regions matching positions 2 to 7 of the guide strand. In the compensation studies, alleles that made no mutant mRNA at all lacked the response (El-Brolosy and colleagues, 2019).

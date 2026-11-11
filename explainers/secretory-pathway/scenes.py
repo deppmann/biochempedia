@@ -1,509 +1,676 @@
-"""Sugar chains record the route: the secretory pathway  (Biochemistrypedia explainer)
+"""Forward Is the Default — secretory-pathway teaching film.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP (kept constant throughout)
+  BLUE   membranes and secretory-pathway compartments
+  GOLD   the pulse-labelled cargo cohort
+  GREY   unlabelled protein and secondary structure
+  TEAL   ER chaperones, KDEL, and the retrieval route
+  WHITE  KDEL receptor and questions
+  RED    the mannosidase-II threshold
+  SAND   constitutive carriers
+  GREEN  mannose circles
+  BLUE   glucose circles and GlcNAc squares (shape distinguishes them)
+  YELLOW galactose circles
+  PURPLE sialic-acid diamonds
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = membranes and compartments: the cell outline, ER, ERGIC, Golgi cisternae, granules
-  YELLOW = the radioactively labelled protein (the cohort, the protein we follow)
-  ORANGE = high-mannose / hybrid sugar chains: Endo H sensitive
-  GREEN  = a complex sugar chain: the one Endo H does not cut (resistant)
-  PURPLE = the late sugars, galactose and sialic acid
-  TEAL   = Endo H, the enzyme that reads the stamp
-  RED    = a cut, a blocked step
-  TEXT   = ER residents, receptors, and neutral highlights
-  GOLD   = early Golgi resident-enzyme markers
-  PURPLE also marks late Golgi resident enzymes (distinct from cargo)
-  GREY   = labels, axes, unlabelled protein, not-the-subject
+All glycans are explicitly schematic symbol trees, never molecular structures.
 """
-import math
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
 PURPLE = "#B58AE6"
-LANE = "#1a1d27"
+SAND = "#D9C3A0"
+INK = "#202531"
 
-CY = 0.1                       # vertical centre of the cell
-ER_X = -5.2
-ERGIC_X = -3.55
-GX = [-2.3, -1.3, -0.3]        # cis, medial, trans
-ER_Y = [CY + 0.85, CY, CY - 0.85]
-LABEL_Y = -1.8
+# The shared world.  These coordinates never drift between whole-world scenes.
+ER_X, ERGIC_X = -5.15, -3.48
+GOLGI_X = (-2.15, -1.18, -0.21)
+TGN_X, MEM_X = 1.18, 5.75
+WORLD_Y = 0.0
 
 
-# ---------------------------------------------------------------------------------------------
-# the cell
-# ---------------------------------------------------------------------------------------------
+def label(text, p, color=TEXT, size=28):
+    return T(text, size=size, color=color).move_to(p)
+
+
 def cell_outline():
-    return RoundedRectangle(corner_radius=0.7, width=12.4, height=5.0, stroke_color=BLUE, stroke_width=5,
-                            fill_opacity=0).move_to([0, CY, 0])
+    return RoundedRectangle(width=12.5, height=5.65, corner_radius=0.75,
+                            stroke_color=BLUE, stroke_width=4, fill_opacity=0).move_to([0, -0.05, 0])
 
 
-def er_stack():
-    bars = VGroup(*[RoundedRectangle(corner_radius=0.25, width=1.7, height=0.5, stroke_color=BLUE, stroke_width=3,
-                                     fill_color=BLUE, fill_opacity=0.12).move_to([ER_X, y, 0]) for y in ER_Y])
-    ribo = VGroup()
-    for y in ER_Y:
-        for k in range(5):
-            ribo.add(Dot([ER_X - 0.64 + k * 0.32, y + 0.31, 0], radius=0.04, color=GREY))
-    return VGroup(bars, ribo)
-
-
-def golgi_stack():
-    return VGroup(*[RoundedRectangle(corner_radius=0.3, width=0.7, height=2.6, stroke_color=BLUE, stroke_width=3,
-                                     fill_color=BLUE, fill_opacity=0.12).move_to([x, CY, 0]) for x in GX])
+def er_stack(scale=1.0, center=np.array([ER_X, WORLD_Y, 0.0])):
+    bars = VGroup(*[
+        RoundedRectangle(width=1.55, height=0.43, corner_radius=0.18,
+                         stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.14)
+        .move_to(center + UP * y)
+        for y in (0.72, 0.0, -0.72)
+    ])
+    ribosomes = VGroup(*[
+        Dot(center + np.array([-0.58 + 0.29 * k, y + 0.27, 0]), radius=0.045, color=GREY)
+        for y in (0.72, 0.0, -0.72) for k in range(5)
+    ])
+    return VGroup(bars, ribosomes).scale(scale, about_point=center)
 
 
 def ergic():
-    return VGroup(*[Circle(radius=0.3, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.1)
-                    .move_to([ERGIC_X, y, 0]) for y in (CY + 0.8, CY, CY - 0.8)])
+    return VGroup(*[
+        Circle(radius=0.27, stroke_color=BLUE, stroke_width=3,
+               fill_color=BLUE, fill_opacity=0.12).move_to([ERGIC_X, y, 0])
+        for y in (0.65, 0, -0.65)
+    ])
 
 
-GRAN_P = [np.array([x, y, 0.0]) for y in (0.75, -0.55) for x in (3.0, 4.2, 5.4)]
+def golgi():
+    return VGroup(*[
+        RoundedRectangle(width=0.58, height=2.35, corner_radius=0.25,
+                         stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.13)
+        .move_to([x, 0, 0]) for x in GOLGI_X
+    ])
 
 
-def granules():
-    return VGroup(*[Circle(radius=0.38, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.12)
-                    .move_to(p) for p in GRAN_P])
+def tgn():
+    return VGroup(
+        Arc(radius=0.66, start_angle=-PI / 2, angle=PI, color=BLUE, stroke_width=4).move_to([TGN_X, 0.35, 0]),
+        Arc(radius=0.55, start_angle=PI / 2, angle=PI, color=BLUE, stroke_width=4).move_to([TGN_X, -0.45, 0]),
+        Line([TGN_X, -0.95, 0], [TGN_X + 0.25, -1.25, 0], color=BLUE, stroke_width=4),
+    )
 
 
-def lab(text, x, y=LABEL_Y, color=GREY, size=22):
-    return T(text, size, color).move_to([x, y, 0])
+def membrane():
+    # Two bars leave a visible secretion door at y=1.0.
+    return VGroup(
+        Line([MEM_X, -2.65, 0], [MEM_X, 0.55, 0], color=BLUE, stroke_width=8),
+        Line([MEM_X, 1.45, 0], [MEM_X, 2.65, 0], color=BLUE, stroke_width=8),
+    )
 
 
-ER_ROW = [np.array([ER_X - 0.6 + k * 0.24, CY, 0.0]) for k in range(6)]
-GOLGI_ROW = [np.array([-1.3 - 0.6 + k * 0.24 + 0.12, CY, 0.0]) for k in range(6)]
+def shelf():
+    line = Line([2.25, -1.55, 0], [5.25, -1.55, 0], color=GREY, stroke_width=4)
+    gs = VGroup(*[
+        Circle(radius=0.31, stroke_color=BLUE, stroke_width=3, fill_color=INK, fill_opacity=0.55)
+        .move_to([2.65 + 0.62 * i, -1.13, 0]) for i in range(5)
+    ])
+    return VGroup(line, gs)
 
 
-def dot(p, color=YELLOW, r=0.1):
-    return Dot(np.array(p, float), radius=r, color=color)
+def routes():
+    return VGroup(
+        VMobject(color=GREY, stroke_width=3).set_points_smoothly([
+            [TGN_X + 0.35, 0.35, 0], [2.7, 1.05, 0], [4.3, 1.0, 0], [MEM_X - 0.15, 1.0, 0]]),
+        VMobject(color=GREY, stroke_width=3).set_points_smoothly([
+            [TGN_X + 0.3, -0.3, 0], [2.0, -0.75, 0], [2.45, -1.1, 0]]),
+    )
 
 
-# ---------------------------------------------------------------------------------------------
-# the protein and its sugar chain (a schematic knob, never a structure)
-# ---------------------------------------------------------------------------------------------
-def glycan(kind, p, s=1.0):
-    """Sugar-chain stand-in drawn above the point p. kind: core, complex, tips."""
-    p = np.array(p, float)
-    col = ORANGE if kind == "core" else GREEN
-    stalk = Line(p + UP * 0.12 * s, p + UP * 0.36 * s, color=col, stroke_width=4 * s)
-    knob = Circle(radius=0.12 * s, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.55) \
-        .move_to(p + UP * 0.48 * s)
-    g = VGroup(stalk, knob)
-    if kind in ("complex", "tips"):
-        for sx in (-1, 1):
-            b = Circle(radius=0.085 * s, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.55) \
-                .move_to(p + UP * 0.6 * s + RIGHT * sx * 0.2 * s)
-            g.add(b)
-    if kind == "tips":
-        for sx in (-1, 1):
-            t = Circle(radius=0.06 * s, stroke_color=PURPLE, stroke_width=2, fill_color=PURPLE, fill_opacity=0.9) \
-                .move_to(p + UP * 0.7 * s + RIGHT * sx * 0.34 * s)
-            g.add(t)
+def flow_arrow():
+    base = Arrow([-5.5, -2.15, 0], [4.9, -2.15, 0], buff=0, color=GREY,
+                 stroke_width=2.5, tip_length=0.18).set_opacity(0.65)
+    chevs = VGroup(*[
+        VGroup(Line([-0.25, 0.16, 0], [0, 0, 0]), Line([0, 0, 0], [-0.25, -0.16, 0]))
+        .set_stroke(GREY, 4).move_to([-4.7 + i * 1.05, -2.15, 0]) for i in range(10)
+    ])
+    # The flow is part of the scientific picture, not decorative ambient motion.
+    # It keeps travelling during narrated holds and wraps seamlessly.
+    for chev in chevs:
+        def move_right(m, dt):
+            m.shift(RIGHT * 1.8 * dt)
+            if m.get_x() > 5.1:
+                m.shift(LEFT * 10.5)
+        chev.add_updater(move_right)
+    return VGroup(base, chevs)
+
+
+def world(with_clock=True, with_gel=True):
+    organelles = VGroup(cell_outline(), er_stack(), ergic(), golgi(), tgn(), membrane(), shelf(), routes(), flow_arrow())
+    extras = VGroup()
+    if with_clock:
+        extras.add(clock(0))
+    if with_gel:
+        extras.add(gel_panel(small=True))
+    return VGroup(organelles, extras)
+
+
+def station_labels():
+    return VGroup(
+        label("rough ER", [ER_X, -1.38, 0], BLUE),
+        label("ERGIC", [ERGIC_X, -1.38, 0], BLUE),
+        label("Golgi stack", [GOLGI_X[1], -1.55, 0], BLUE),
+        label("TGN", [TGN_X, -1.55, 0], BLUE),
+    )
+
+
+def clock(minutes):
+    box = RoundedRectangle(width=1.45, height=0.58, corner_radius=0.12,
+                           stroke_color=TEXT, stroke_width=2, fill_color=INK, fill_opacity=0.85)
+    txt = M(f"min {minutes}", size=28).move_to(box)
+    return VGroup(box, txt).move_to([-5.55, 3.18, 0])
+
+
+def gel_panel(small=False):
+    w, h = (2.35, 1.45) if small else (5.4, 4.15)
+    panel = RoundedRectangle(width=w, height=h, corner_radius=0.12,
+                             stroke_color=GREY, stroke_width=2, fill_color=INK, fill_opacity=0.82)
+    lanes = VGroup()
+    xs = np.linspace(-0.72 * w / 2, 0.72 * w / 2, 4)
+    for i, x in enumerate(xs):
+        lanes.add(Line([x, -0.28 * h, 0], [x, 0.27 * h, 0], color=GREY, stroke_width=1.2).set_opacity(0.35))
+        lanes.add(M(str((0, 15, 30, 60)[i]), size=22 if small else 28, color=TEXT).move_to([x, 0.38 * h, 0]))
+    g = VGroup(panel, lanes)
+    if small:
+        g.scale(0.82).move_to([4.35, -2.75, 0])
     return g
 
 
-def protein(kind, p, s=1.0, r=0.12):
-    p = np.array(p, float)
-    body = Dot(p, radius=r * s, color=YELLOW)
-    g = VGroup(body, glycan(kind, p, s))
-    g.kind, g.s = kind, s
-    return g
+def cargo_dot(p, color=GOLD, r=0.105):
+    return Dot(p, radius=r, color=color)
 
 
-def step(prot, p, kind=None):
-    """Animations moving the protein body to p and (re)drawing its chain there (as kind)."""
-    p = np.array(p, float)
-    kind = kind or prot.kind
-    prot.kind = kind
-    return [prot[0].animate.move_to(p), Transform(prot[1], glycan(kind, p, prot.s))]
+def cargo_cloud(center, spread=0.55, n=11, color=GOLD):
+    offsets = [(-0.9, .1), (-.65, -.3), (-.45, .38), (-.25, -.12), (0, .05),
+               (.18, .35), (.35, -.25), (.55, .15), (.75, -.38), (.92, .28), (1.1, 0)]
+    return VGroup(*[cargo_dot(np.array(center) + [x * spread, y * spread, 0], color, .07 + .035 * (1 - min(abs(x), 1)))
+                    for x, y in offsets[:n]])
 
 
-def stage_static(scene, with_gran=True, ergic_on=False, labels=("rough ER", "Golgi", "granules")):
-    """Rebuild the standing cell for scenes that continue the story (no animation)."""
-    parts = [cell_outline(), er_stack(), golgi_stack()]
-    if with_gran:
-        parts.append(granules())
-    if ergic_on:
-        parts.append(ergic())
-    labs = []
-    if "rough ER" in labels:
-        labs.append(lab("rough ER", ER_X))
-    if "Golgi" in labels:
-        labs.append(lab("Golgi", GX[1]))
-    if "granules" in labels and with_gran:
-        labs.append(lab("granules", 4.2))
-    scene.add(*parts, *labs)
-    return parts, labs
+def protein_blob(p, color=GOLD, scale=1.0):
+    return RoundedRectangle(width=0.72 * scale, height=0.42 * scale, corner_radius=0.19 * scale,
+                            stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.35).move_to(p)
 
 
-class Plot:
-    """Tiny axes with no LaTeX: maps data (x, y) onto the frame."""
-
-    def __init__(self, origin, w, h, xmax, ymax):
-        self.o = np.array([origin[0], origin[1], 0.0]); self.w, self.h, self.xm, self.ym = w, h, xmax, ymax
-
-    def p(self, x, y):
-        return self.o + np.array([x / self.xm * self.w, y / self.ym * self.h, 0.0])
-
-    def axes(self):
-        return VGroup(Line(self.o, self.o + RIGHT * self.w, color=GREY, stroke_width=3),
-                      Line(self.o, self.o + UP * self.h, color=GREY, stroke_width=3))
-
-    def curve(self, f, x0, x1, color, n=120, width=6):
-        m = VMobject(color=color, stroke_width=width)
-        m.set_points_smoothly([self.p(x, f(x)) for x in np.linspace(x0, x1, n)])
-        return m
-
-    def xtick(self, x, label, size=22):
-        t = T(label, size, GREY).next_to(self.p(x, 0), DOWN, buff=0.14)
-        k = Line(self.p(x, 0), self.p(x, 0) + DOWN * 0.1, color=GREY, stroke_width=3)
-        return VGroup(k, t)
-
-    def ytick(self, y, label, size=22):
-        t = M(label, size, GREY).next_to(self.p(0, y), LEFT, buff=0.14)
-        k = Line(self.p(0, y), self.p(0, y) + LEFT * 0.1, color=GREY, stroke_width=3)
-        return VGroup(k, t)
+def glycan_tree(center=np.array([0., 0., 0.]), scale=1.0, late=False):
+    """A labelled-symbol tree; lines are only hierarchy connectors, not chemical bonds."""
+    c = np.array(center, float)
+    pts = [c + scale * np.array(v) for v in (
+        (0, 0, 0), (-.24, .32, 0), (.24, .32, 0),
+        (-.46, .65, 0), (-.14, .68, 0), (.14, .68, 0), (.46, .65, 0),
+        (-.55, .98, 0), (-.28, 1.02, 0), (0, 1.0, 0), (.28, 1.02, 0), (.55, .98, 0)
+    )]
+    links = VGroup(*[Line(pts[a], pts[b], color=GREY, stroke_width=2) for a, b in
+                     ((0,1),(0,2),(1,3),(1,4),(2,5),(2,6),(3,7),(4,8),(5,9),(6,10),(6,11))])
+    nodes = VGroup(Square(side_length=.17 * scale, color=BLUE, fill_opacity=.9).move_to(pts[0]),
+                   Square(side_length=.17 * scale, color=BLUE, fill_opacity=.9).move_to(pts[1]))
+    for p in pts[2:10]:
+        nodes.add(Circle(radius=.085 * scale, color=GREEN, fill_opacity=.9).move_to(p))
+    tips = VGroup(*[Circle(radius=.08 * scale, color=BLUE, fill_opacity=.9).move_to(p) for p in pts[9:12]])
+    tree = VGroup(links, nodes, tips)
+    if late:
+        tree.add(Circle(radius=.08 * scale, color=YELLOW, fill_opacity=.9).move_to(pts[7] + LEFT * .18 * scale),
+                 Square(side_length=.13 * scale, color=PURPLE, fill_opacity=.9).rotate(PI/4).move_to(pts[11] + RIGHT * .2 * scale))
+    return tree
 
 
-# ---------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
-    LESSON = "The secretory pathway"
-    TITLE = "The Secretory Pathway"
+def drift_chevrons(scene, flow, seconds, distance=0.8):
+    """Visible, slow rightward motion tied to pathway direction."""
+    scene.play(flow[1].animate.shift(RIGHT * distance), rate_func=linear, run_time=max(.2, seconds))
 
 
-def heading(text):
-    return T(text, 34, font=TITLE_FONT).move_to([0, 3.15, 0])
-
-
-def arrow(a, b, color=GREY):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=4, tip_length=0.18)
-
-
-def route_diagram():
-    """The old organelle shapes, with a compact pair of exits on the right."""
-    er = VGroup(er_stack(), lab("rough ER", ER_X))
-    intermediate = VGroup(ergic(), lab("ERGIC", ERGIC_X))
-    golgi = VGroup(golgi_stack(), lab("Golgi", GX[1]))
-    surface = VGroup(Line([6.0, -2.3, 0], [6.0, 2.3, 0], color=BLUE, stroke_width=6),
-                     T("surface", 22, BLUE).move_to([5.8, 2.7, 0]))
-    gran = VGroup(Circle(radius=0.48, color=BLUE, fill_color=BLUE, fill_opacity=0.12)
-                 .move_to([3.5, -0.8, 0]), lab("granule", 3.5, -1.8))
-    forward = VGroup(arrow([-4.2, 0.1, 0], [-3.9, 0.1, 0]),
-                     arrow([-3.15, 0.1, 0], [-2.75, 0.1, 0]),
-                     arrow([0.25, 0.1, 0], [5.8, 1.3, 0]),
-                     arrow([0.25, 0.1, 0], [2.95, -0.8, 0]),
-                     arrow([4.05, -0.8, 0], [5.8, -0.8, 0]))
-    return VGroup(er, intermediate, golgi, surface, gran, forward)
-
-
-def recycling():
-    return VGroup(arrow([-0.2, -2.55, 0], [-5.1, -2.55, 0], BLUE),
-                  arrow([-0.3, 2.0, 0], [-2.3, 2.0, 0], BLUE))
-
-
-class S01Timetable(SpokenScene):
+class S00Hook(SpokenScene):
     def construct(self):
-        cell = cell_outline()
-        cargo = dot([5.6, 0.6, 0], r=0.15)
-        self.at("Cells send")
-        self.play(FadeIn(cell), FadeIn(cargo), run_time=0.7)
-        self.at("release them outside")
-        self.play(cargo.animate.move_to([6.6, 0.6, 0]), run_time=0.7)
-        examples = T("Examples: digestive enzymes • hormones", 28, YELLOW).move_to([0, 3.1, 0])
-        self.at("Think of")
-        self.play(FadeIn(examples), run_time=0.6)
-        route = route_diagram()
-        self.at("The conventional route")
-        self.play(FadeOut(cell), FadeOut(cargo), FadeIn(route[0]), run_time=0.6)
-        cargo = dot([ER_X, CY, 0], r=0.15)
-        self.at("rough endoplasmic reticulum")
-        self.play(FadeIn(cargo), Indicate(route[0][0], color=BLUE), run_time=0.8)
-        self.at("Cargo travels")
-        self.play(FadeIn(route[1]), FadeIn(route[2]), FadeIn(route[5][:2]),
-                  cargo.animate.move_to([ERGIC_X, CY, 0]), run_time=0.65)
-        self.play(cargo.animate.move_to([GX[0], CY, 0]), run_time=0.65)
-        self.at("processed and sorted")
-        self.play(cargo.animate.move_to([GX[-1], CY, 0]), run_time=0.7)
-        self.at("This pathway connects")
-        self.play(FadeIn(route[3]), FadeIn(route[4]), FadeIn(route[5][2:]), run_time=0.7)
-        stored = dot([GX[-1], CY, 0], r=0.13)
-        self.at("straight away")
-        self.play(FadeIn(stored), cargo.animate.move_to([6.5, 1.3, 0]), run_time=0.75)
-        self.at("after storage")
-        self.play(stored.animate.move_to([3.5, -0.8, 0]), run_time=0.75)
+        w = world()
+        self.play(FadeIn(w[0]), run_time=.8)
+        pulse = label("pulse", [-4.05, 1.45, 0], GOLD)
+        gold = cargo_cloud([ER_X, 0, 0], .62, 9)
+        self.at("Label the new proteins")
+        self.add(pulse)
+        self.play(LaggedStart(*[FadeIn(d, scale=.2) for d in gold], lag_ratio=.08), run_time=2.4)
+        self.at("hours later")
+        c60 = clock(60)
+        smear = cargo_cloud([-1.0, 0.1, 0], 2.4, 11)
+        self.remove(pulse)
+        self.play(ReplacementTransform(w[1][0], c60), ReplacementTransform(gold, smear), run_time=1.2)
+        q = T("?", size=92, color=TEXT).move_to([0, .9, 0])
+        self.at("where are they")
+        self.play(FadeIn(q, scale=.4), smear.animate.shift(RIGHT * .45), run_time=.8)
+        bubble = Circle(radius=.78, color=TEXT, stroke_width=3).move_to([2.4, .65, 0])
+        tree = glycan_tree([2.4, .15, 0], .62)
+        treeq = T("?", size=40).move_to([2.95, 1.0, 0])
+        question = T("Where are they?  Can they tell you?", size=34).move_to([0, 3.18, 0])
+        self.at("proteins themselves")
+        self.play(FadeOut(q), Create(bubble), FadeIn(tree), FadeIn(treeq), run_time=1.0)
+        self.at("how far")
+        self.play(FadeIn(question), smear.animate.shift(RIGHT * .4), run_time=.8)
         self.finish()
 
 
-class S02Cohort(SpokenScene):
+class S01Title(Scene):
     def construct(self):
-        parts, labels = stage_static(self)
-        title = heading("How do we know the order?")
-        self.at("How do we")
-        self.play(FadeIn(title), run_time=0.6)
-        yellow = VGroup(*[dot(p) for p in ER_ROW])
-        pulse = T("PULSE: labelled proteins", 28, YELLOW).move_to([0, 1.95, 0])
-        self.at("A pulse chase")
-        self.play(FadeIn(yellow, scale=0.5), FadeIn(pulse), run_time=0.7)
-        grey = VGroup(*[dot(p + DOWN * 0.8, GREY) for p in ER_ROW])
-        chase = T("CHASE: unlabelled proteins", 28, GREY).move_to([0, 1.95, 0])
-        self.at("then supplies")
-        self.play(ReplacementTransform(pulse, chase), FadeIn(grey, scale=0.5), run_time=0.7)
-        pancreas = heading("Guinea-pig pancreas")
-        self.at("In guinea pig pancreas")
-        self.play(ReplacementTransform(title, pancreas), run_time=0.6)
-        self.at("rough ER")
-        self.play(Indicate(parts[1], color=YELLOW), run_time=0.6)
-        self.at("to Golgi")
-        self.play(*[c.animate.move_to(p) for c,p in zip(yellow, GOLGI_ROW)],
-                  Indicate(parts[2], color=YELLOW), run_time=0.6)
-        self.at("to granules")
-        self.play(*[c.animate.move_to(p) for c,p in zip(yellow, GRAN_P)],
-                  Indicate(parts[3], color=YELLOW), run_time=0.8)
-        self.at("The experiment establishes")
+        # Keep the hook's world visible: this is a title overlay, not a cut to an empty card.
+        w = world()
+        title = T("Forward Is the Default", size=54, font=TITLE_FONT)
+        rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4)
+        backing = RoundedRectangle(width=8.0, height=1.65, corner_radius=.2,
+                                   stroke_width=0, fill_color=INK, fill_opacity=.94)
+        card = VGroup(backing, title, rule)
+        title.move_to([0, .28, 0])
+        rule.move_to([0, -.42, 0])
+        self.add(w)
+        self.play(FadeIn(card), run_time=.35)
+        self.wait(1.3)
+        self.play(FadeOut(card), run_time=.35)
+
+
+class S02Pulse(SpokenScene):
+    def construct(self):
+        w = world()
+        self.add(w)
+        pulse = label("pulse", [-4.05, 1.55, 0], GOLD, 40)
+        gold = cargo_cloud([ER_X, 0, 0], .62, 9).scale(1.65, about_point=[ER_X,0,0])
+        self.at("pulse chase")
+        self.add(pulse)
+        self.play(LaggedStart(*[FadeIn(d, scale=.2) for d in gold], lag_ratio=.08), run_time=2.0)
+        chase = label("chase", [-4.05, 1.55, 0], GREY, 40)
+        grey = cargo_cloud([ER_X - .15, -.15, 0], .75, 11, GREY).scale(1.55, about_point=[ER_X,0,0])
+        self.at("then a flood")
+        self.remove(pulse)
+        self.add(chase)
+        self.play(gold.animate.shift(RIGHT * .55),
+                  LaggedStart(*[FadeIn(d, scale=.2) for d in grey], lag_ratio=.06), run_time=2.2)
+        cohort = label("cohort", [ER_X, 1.55, 0], GOLD)
+        self.at("Only the batch")
+        self.play(Indicate(gold, color=GOLD), grey.animate.shift(RIGHT * .18), run_time=1.0)
+        self.at("the cohort")
+        self.remove(chase)
+        self.play(FadeIn(cohort), gold.animate.shift(RIGHT * .3), run_time=.7)
         self.finish()
 
 
-class S03Stamp(SpokenScene):
+class S03Grains(SpokenScene):
     def construct(self):
-        er = RoundedRectangle(width=4.5, height=3.8, corner_radius=0.25,
-                              color=BLUE, fill_color=BLUE, fill_opacity=0.12).move_to([0, 0, 0])
-        erlab = lab("ER lumen", 0, -2.6, BLUE, 28)
-        cargo = protein("core", [0, -0.6, 0], 2.3)
-        cargo[0].stretch(2, 0)
-        self.at("Processing starts")
-        self.play(FadeIn(er), FadeIn(erlab), FadeIn(cargo[0]), run_time=0.7)
-        corelab = T("core sugar chain", 30, ORANGE).move_to([0, 2.3, 0])
-        tips = VGroup(*[Square(side_length=0.13, color=ORANGE, fill_opacity=1)
-                        .move_to([-0.22+i*0.22, 0.95, 0]) for i in range(3)])
-        self.at("A core sugar chain")
-        self.play(FadeIn(cargo[1]), FadeIn(tips), FadeIn(corelab), run_time=0.7)
-        folded = T("glucoses trimmed • cargo folds", 26, TEXT).move_to([0, 3.15, 0])
-        self.at("glucoses are trimmed")
-        self.play(tips.animate.shift(UP*0.6).set_opacity(0),
-                  cargo[0].animate.stretch(0.5, 0), FadeIn(folded), run_time=1.0)
-        intermediate = VGroup(Circle(radius=0.65, color=BLUE, fill_opacity=0.1),
-                              lab("ERGIC", 0, -2.0)).move_to([-2.4, -0.5, 0])
-        # Keep the compartment centre on the cargo route, its label below it.
-        intermediate[0].move_to([-2.4, 0, 0]); intermediate[1].move_to([-2.4, -2.0, 0])
-        sacs = VGroup(*[RoundedRectangle(width=0.7, height=2.8, corner_radius=0.3,
-                          color=BLUE, fill_color=BLUE, fill_opacity=0.12).move_to([x, 0, 0])
-                          for x in (0, 2, 4)])
-        labs = VGroup(*[lab(t, x, -2.0, BLUE, 24) for t,x in zip(("cis Golgi", "medial", "trans"), (0,2,4))])
-        regions = VGroup(*[RoundedRectangle(width=3.0, height=3.2, corner_radius=0.4,
-                            stroke_width=0, fill_color=c, fill_opacity=0.10).move_to([x, 0, 0])
-                            for x,c in zip((0,2,4), (ORANGE,GREEN,PURPLE))])
-        self.at("Folded cargo passes")
-        cargo.s = 1.6
-        small_er = RoundedRectangle(width=2.7, height=2.8, corner_radius=0.25,
-                                   color=BLUE, fill_color=BLUE, fill_opacity=0.12).move_to([-4.8,0,0])
-        self.play(FadeOut(folded), FadeOut(corelab), run_time=0.25)
-        self.play(FadeIn(intermediate[0]), Transform(er, small_er),
-                  erlab.animate.move_to([-4.8,-2.0,0]),
-                  cargo[0].animate.scale(1.6/2.3).move_to([-2.4,-0.6,0]),
-                  Transform(cargo[1],glycan("core",[-2.4,-0.6,0],1.6)),run_time=0.65)
-        self.play(FadeIn(intermediate[1]), FadeIn(heading("Processing along the route")), run_time=0.25)
-        self.at("to the cis")
-        self.play(FadeIn(sacs), FadeIn(labs), *step(cargo, [0,-0.6,0]), run_time=0.9)
-        self.at("enzymes rebuild")
-        regions.set_z_index(-1)
-        self.play(FadeIn(regions), *step(cargo, [2,-0.6,0], "complex"), run_time=1.2)
-        late = T("galactose", 26, PURPLE).move_to([2, -2.9, 0])
-        self.at("adding galactose")
-        self.play(*step(cargo, [4,-0.6,0], "tips"), FadeIn(late), run_time=0.8)
-        sialic = T("sialic acid", 26, PURPLE).move_to([5.0, -2.9, 0])
-        cap = RoundedRectangle(width=0.24, height=0.16, corner_radius=0.05,
-                               color=PURPLE, fill_opacity=1).move_to([4, 0.75, 0])
-        self.at("sialic acid")
-        self.play(FadeIn(sialic), FadeIn(cap), run_time=0.6)
+        w = world(with_gel=False)
+        self.add(w)
+        credit = label("Lucien Caro & George Palade, 1964", [0, 3.2, 0], TEXT, 28)
+        self.at("Caro and Pallade")
+        self.play(FadeIn(credit), run_time=.8)
+        layer = RoundedRectangle(width=12.15, height=5.25, corner_radius=.65, stroke_color=TEXT,
+                                 stroke_width=2, fill_color=TEXT, fill_opacity=.035).move_to([0, -.05, 0])
+        layerlab = label("photographic layer", [3.6, 2.25, 0], TEXT)
+        grains = VGroup(*[Dot([-5.7 + .22*i, (-.38, .05, .55)[i%3], 0], radius=.105, color=TEXT) for i in range(8)])
+        self.at("Silver grains")
+        self.play(FadeIn(layer), FadeIn(layerlab), LaggedStart(*[FadeIn(g) for g in grains], lag_ratio=.08), run_time=1.8)
+        note = label("grain positions: schematic", [3.7, -2.35, 0], TEXT, 28)
+        self.play(FadeIn(note), grains.animate.shift(RIGHT * .35), run_time=.7)
+        c5 = clock(5)
+        self.at("five minutes")
+        self.play(ReplacementTransform(w[1][0], c5), grains.animate.shift(RIGHT * .25), run_time=1.0)
+        golgi_grains = VGroup(*[Dot([-2.6 + .23*i, (-.7, -.25, .2, .65)[i%4], 0], radius=.105, color=TEXT) for i in range(10)])
+        c20 = clock(20)
+        self.at("about 20")
+        self.play(ReplacementTransform(grains, golgi_grains), ReplacementTransform(c5, c20), run_time=1.25)
+        gran_grains = VGroup(*[Dot([2.5 + .35*(i%8), -1.08 + .14*(i%3), 0], radius=.095, color=TEXT) for i in range(15)])
+        fills = VGroup(*[cargo_dot([2.65 + .62*i, -1.13, 0], GOLD, .18) for i in range(5)])
+        c60 = clock(60)
+        self.at("an hour")
+        self.play(ReplacementTransform(golgi_grains, gran_grains), ReplacementTransform(c20, c60), FadeIn(fills), run_time=1.4)
+        self.play(gran_grains.animate.shift(RIGHT * .15), run_time=.6)
         self.finish()
 
 
-class S04Retrieval(SpokenScene):
+class S04Route(SpokenScene):
     def construct(self):
-        er = RoundedRectangle(width=3.0, height=2.8, corner_radius=0.3, color=BLUE,
-                              fill_color=BLUE, fill_opacity=0.12).move_to([-4.4,0,0])
-        later = RoundedRectangle(width=4.4, height=2.8, corner_radius=0.3, color=BLUE,
-                                 fill_color=BLUE, fill_opacity=0.12).move_to([2.6,0,0])
-        labels = VGroup(lab("ER",-4.4,-2.0,BLUE,28), lab("ERGIC / Golgi",2.6,-2.0,BLUE,28))
-        resident = VGroup(Square(side_length=0.35, color=TEXT, fill_opacity=0.7),
-                          T("ER resident",22,TEXT).move_to([0,-0.65,0])).move_to([-4.4,0,0])
-        cargo = dot([-4.4,0.75,0], r=0.14)
-        self.at("ER residents")
-        self.play(FadeIn(er), FadeIn(later), FadeIn(labels), FadeIn(resident), FadeIn(cargo), run_time=0.6)
-        self.at("escape with cargo")
-        self.play(resident.animate.move_to([2.2,0,0]), cargo.animate.move_to([4.25,-0.85,0]), run_time=1.0)
-        tag = chip("KDEL", TEXT, size=24, pad=0.1).move_to([2.2,0.65,0])
-        taglabel = heading("KDEL: return to sender")
-        self.at("The KDEL tag")
-        self.play(FadeIn(tag), FadeIn(taglabel), run_time=0.6)
-        # A cup on the lumenal face of a schematic membrane receptor.
-        receptor = VGroup(Arc(radius=0.38, start_angle=PI, angle=PI, color=TEXT, stroke_width=6),
-                           Line([0,-0.38,0],[0,-0.8,0],color=TEXT,stroke_width=6)).move_to([3.45,0.05,0])
-        self.at("Its receptor binds")
-        self.play(FadeIn(receptor), resident[0].animate.move_to([3.45,0.15,0]),
-                  resident[1].animate.move_to([1.6,0.15,0]),
-                  tag.animate.move_to([3.45,0.8,0]), run_time=0.8)
-        ph = T("slightly acidic: binds",26,TEXT).move_to([2.6,-2.8,0])
+        w = world(with_gel=False)
+        self.add(w)
+        cloud = cargo_cloud([ER_X, 0, 0], .55, 11)
+        self.add(cloud)
+        labs = station_labels()
+        self.at("peak moves forward")
+        self.play(cloud.animate.move_to([ERGIC_X, 0, 0]), FadeIn(labs[0]), run_time=1.4)
+        wide = cargo_cloud([GOLGI_X[0], 0, 0], 1.1, 11)
+        self.at("spreads out")
+        self.play(ReplacementTransform(cloud, wide), FadeIn(labs[1]), run_time=1.1)
+        self.at("The ER")
+        self.play(Indicate(w[0][1], color=GOLD), wide.animate.shift(RIGHT * .3), run_time=.7)
+        self.at("sorting dock")
+        self.play(Indicate(w[0][2], color=GOLD), FadeIn(labs[2]), wide.animate.move_to([-1.1, 0, 0]), run_time=1.0)
+        self.at("Golgi stack")
+        self.play(Indicate(w[0][3], color=GOLD), wide.animate.shift(RIGHT * .55), run_time=.8)
+        self.at("routes split")
+        self.play(FadeIn(labs[3]), Indicate(w[0][7], color=GOLD), wide.animate.move_to([1.2, 0, 0]), run_time=.8)
+        self.finish()
+
+
+def focused_processing_world():
+    er = RoundedRectangle(width=2.35, height=4.4, corner_radius=.3, color=BLUE,
+                          fill_color=BLUE, fill_opacity=.1).move_to([-5.15, 0, 0])
+    sacs = VGroup(*[RoundedRectangle(width=1.25, height=4.4, corner_radius=.32, color=BLUE,
+                                     fill_color=BLUE, fill_opacity=.1).move_to([x, 0, 0]) for x in (-2.0, 0, 2.0)])
+    labels = VGroup(label("ER", [-5.15, -2.65, 0], BLUE), label("cis", [-2, -2.65, 0], BLUE),
+                    label("medial", [0, -2.65, 0], BLUE), label("trans", [2, -2.65, 0], BLUE))
+    return VGroup(er, sacs, labels)
+
+
+class S05Tree(SpokenScene):
+    def construct(self):
+        stage = focused_processing_world()
+        self.add(stage)
+        p = protein_blob([-5.15, -1.2, 0], GOLD, 1.25)
+        self.at("follow one protein")
+        self.play(FadeIn(p, scale=.5), run_time=.9)
+        tree = glycan_tree([-5.15, -.75, 0], .9)
+        schematic = label("14-sugar core • schematic", [-4.45, 2.8, 0], TEXT, 28)
+        self.at("ready made tree")
+        self.add(schematic)
+        self.play(FadeIn(tree, shift=DOWN*.3), run_time=1.3)
+        folding = label("folding", [-5.15, -2.1, 0], GOLD)
+        self.at("trimmed as it folds")
+        self.play(FadeOut(tree[2], shift=UP*.35), p.animate.stretch(.68, 0), FadeIn(folding), run_time=1.25)
+        self.at("In the Golgi")
+        unit = VGroup(p, tree)
+        self.remove(schematic)
+        self.play(FadeOut(folding), unit.animate.shift(RIGHT * 3.15), run_time=1.15)
+        washes = VGroup(*[RoundedRectangle(width=2.5, height=4.65, corner_radius=.35, stroke_width=0,
+                                           fill_color=c, fill_opacity=.10).move_to([x, 0, 0])
+                           for x, c in ((-2, GREEN), (0, BLUE), (2, PURPLE))])
+        self.at("enzymes in successive")
+        self.play(FadeIn(washes), unit.animate.shift(RIGHT * 1.8), run_time=1.15)
+        newtree = glycan_tree([0, -.75, 0], .82, late=True)
+        self.at("cut and rebuild")
+        self.play(Transform(tree, newtree), p.animate.move_to([0, -1.2, 0]), run_time=1.0)
+        redline = DashedLine([0, -2.3, 0], [0, 2.3, 0], color=RED, stroke_width=5)
+        redlab = label("mannosidase II", [.05, 2.75, 0], RED)
+        self.at("Manicidase II")
+        self.play(Create(redline), FadeIn(redlab), run_time=.8)
+        late_tree = glycan_tree([2, -.75, 0], .82, late=True)
+        self.at("red line")
+        self.play(Transform(tree, late_tree), p.animate.move_to([2, -1.2, 0]), run_time=1.05)
+        self.finish()
+
+
+class S06Odometer(SpokenScene):
+    def construct(self):
+        stage = focused_processing_world()
+        self.add(stage)
+        washes = VGroup(*[RoundedRectangle(width=3.0, height=4.55, corner_radius=.35, stroke_width=0,
+                                           fill_color=c, fill_opacity=.12).move_to([x, 0, 0])
+                           for x, c in ((-1.6, GREEN), (0, BLUE), (1.6, PURPLE))])
+        p = protein_blob([0, -1.2, 0])
+        tree = glycan_tree([0, -.75, 0], .82, late=True)
+        self.at("enzymes overlap")
+        self.play(FadeIn(washes), washes.animate.shift(RIGHT*.3), run_time=1.4)
+        which = label("which sac?", [0, 2.75, 0], TEXT, 34)
+        self.at("cannot say which sac")
+        self.play(FadeIn(which), VGroup(p, tree).animate.shift(RIGHT*.65), washes.animate.shift(LEFT*.2), run_time=1.1)
+        self.play(FadeOut(which), VGroup(p, tree).animate.shift(LEFT*.65), run_time=.6)
+        early_steps = label("glucoses off  •  mannoses off  •  GlcNAc on", [0, 3.28, 0], TEXT, 28)
+        late_steps = label("mannosidase II  •  galactose  •  sialic acid", [0, 2.73, 0], TEXT, 28)
+        self.at("records the enzymes")
+        self.play(FadeIn(early_steps), VGroup(p, tree).animate.shift(UP*.25), run_time=1.0)
+        self.at("it has met")
+        self.play(FadeIn(late_steps), Indicate(VGroup(early_steps, late_steps), color=GOLD), run_time=1.3)
+        verdict = label("enzymes met — not an address", [0, 3.2, 0], TEXT, 32)
+        self.at("rough odometer")
+        self.play(FadeOut(early_steps), FadeOut(late_steps), FadeIn(verdict), washes.animate.shift(RIGHT*.25), run_time=.8)
+        self.finish()
+
+
+class S07Gel(SpokenScene):
+    def construct(self):
+        # Sampling world above, large readable gel below/right.
+        cell = RoundedRectangle(width=6.2, height=2.6, corner_radius=.45, color=BLUE,
+                                fill_color=BLUE, fill_opacity=.04).move_to([-3.25, 1.45, 0])
+        samples = VGroup(*[RoundedRectangle(width=1.02, height=1.42, corner_radius=.15, color=TEXT,
+                                            fill_color=INK, fill_opacity=.9).move_to([-5.05 + i*1.28, -.78, 0])
+                           for i in range(4)])
+        nums = VGroup(*[M(str(t), size=30).next_to(samples[i], DOWN, buff=.14) for i,t in enumerate((0,15,30,60))])
+        pip = VGroup(Line([0,.35,0],[0,-.4,0], color=TEXT, stroke_width=5),
+                     Triangle(color=TEXT, fill_opacity=.3).scale(.16).rotate(PI).move_to([0,-.48,0])).move_to([-5.0, 1.65, 0])
+        cell_cargo = cargo_cloud([-3.25, 1.45, 0], 1.7, 11)
+        for dot_ in cell_cargo:
+            def stream(m, dt):
+                m.shift(RIGHT * 1.45 * dt)
+                if m.get_x() > -.55:
+                    m.shift(LEFT * 5.35)
+            dot_.add_updater(stream)
+        self.add(cell, cell_cargo)
+        self.at("sample at each")
+        self.play(FadeIn(samples), FadeIn(nums), FadeIn(pip), run_time=1.1)
+        sample_dots = VGroup()
+        for i in range(4):
+            aliquot = cargo_dot(samples[i].get_center() + DOWN*.42, GOLD, .11)
+            sample_dots.add(aliquot)
+            self.play(pip.animate.move_to(samples[i].get_top()+UP*.55),
+                      FadeIn(aliquot), run_time=.55)
+        scissors = VGroup(Circle(radius=.16, color=TEAL), Circle(radius=.16, color=TEAL),
+                           Line([-.08,-.05,0],[.34,-.43,0], color=TEAL, stroke_width=4),
+                           Line([.08,-.05,0],[-.34,-.43,0], color=TEAL, stroke_width=4))
+        scissors.scale(.58).move_to(samples[3].get_center() + UP*.25)
+        endoh = label("Endo H", [-.05, -.60, 0], TEAL, 30)
+        self.at("endoH")
+        self.play(FadeIn(scissors), FadeIn(endoh), run_time=.9)
+        mannose_box = RoundedRectangle(width=2.0, height=.85, corner_radius=.15, color=GREEN,
+                                       fill_color=INK, fill_opacity=.94).move_to([-2.05, 2.12, 0])
+        mannose = VGroup(*[Circle(radius=.1, color=GREEN, fill_opacity=.9).move_to([-2.42+.25*i, 2.12,0]) for i in range(4)])
+        resistant_box = RoundedRectangle(width=2.0, height=.85, corner_radius=.15, color=BLUE,
+                                         fill_color=INK, fill_opacity=.94).move_to([.35,2.12,0])
+        resistant = VGroup(Square(side_length=.2, color=BLUE, fill_opacity=.9),
+                           Circle(radius=.1, color=YELLOW, fill_opacity=.9)).arrange(RIGHT,buff=.18).move_to([.35,2.12,0])
+        self.at("cuts chains still")
+        self.play(FadeIn(mannose_box), FadeIn(mannose), Indicate(scissors, color=TEAL), run_time=.8)
+        self.at("not those rebuilt")
+        self.play(mannose.animate.shift(DOWN*.18).set_opacity(.25),
+                  FadeIn(resistant_box), FadeIn(resistant), Indicate(resistant, color=TEXT), run_time=1.0)
+        self.at("Cut protein loses sugar")
+        sample_group = VGroup(samples, nums, sample_dots)
+        self.play(FadeOut(cell), FadeOut(cell_cargo), FadeOut(pip), FadeOut(scissors), FadeOut(endoh),
+                  FadeOut(mannose_box), FadeOut(mannose), FadeOut(resistant_box), FadeOut(resistant),
+                  sample_group.animate.scale(.78).to_edge(LEFT,buff=.4).shift(UP*.2), run_time=.9)
+        panel = RoundedRectangle(width=7.2, height=5.5, corner_radius=.15, color=GREY,
+                                 fill_color=INK, fill_opacity=.92).move_to([2.25,0,0])
+        xs = [.45, 1.65, 2.85, 4.05]
+        heads = VGroup(*[M(str(t), size=32).move_to([x,2.1,0]) for x,t in zip(xs,(0,15,30,60))])
+        cut_vals, uncut_vals = (1.0,.67,.45,.20), (.07,.33,.55,.80)
+        cuts = VGroup(*[Line([x,-1.0,0],[x+.88,-1.0,0], color=GOLD, stroke_width=18).set_opacity(1.0) for x in xs])
+        uncuts = VGroup(*[Line([x,.55,0],[x+.88,.55,0], color=GOLD, stroke_width=18).set_opacity(.07) for x in xs])
+        labs = VGroup(label("uncut", [-.55,.55,0], TEXT, 30), label("cut: faster", [-.35,-1,0], TEXT, 28),
+                      label("illustrative data", [2.25,-2.25,0], TEXT, 28))
+        self.play(FadeIn(panel), FadeIn(heads), FadeIn(labs), FadeIn(cuts), run_time=1.0)
+        self.at("runs faster")
+        fast = Arrow([5.25,.4,0],[5.25,-1.3,0], color=TEXT, stroke_width=4, tip_length=.18)
+        self.play(GrowArrow(fast), cuts.animate.set_stroke(width=13), run_time=.8)
+        self.at("Over the chase")
+        shift = AnimationGroup(
+            *[b.animate.set_opacity(v) for b, v in zip(cuts, cut_vals)],
+            *[b.animate.set_opacity(v) for b, v in zip(uncuts, uncut_vals)],
+            lag_ratio=.08,
+        )
+        self.play(shift, run_time=1.45)
+        self.at("gives way")
+        self.play(LaggedStart(*[Indicate(b,color=GOLD) for b in cuts], *[Indicate(b,color=GOLD) for b in uncuts], lag_ratio=.08), run_time=1.5)
+        self.finish()
+
+
+def chaperone(p, tagged=True):
+    body = RoundedRectangle(width=1.0, height=.56, corner_radius=.24, color=TEAL,
+                            fill_color=TEAL, fill_opacity=.25).move_to(p)
+    parts = VGroup(body)
+    if tagged:
+        tail = Line(body.get_right(), body.get_right()+RIGHT*.45, color=TEAL, stroke_width=5)
+        tag = label("KDEL", body.get_right()+RIGHT*.82, TEAL, 28)
+        parts.add(tail,tag)
+    return parts
+
+
+class S08Kdel(SpokenScene):
+    def construct(self):
+        w = world(with_gel=False)
+        self.add(w)
+        chap_start = np.array([-4.95, 1.35, 0.0])
+        chap = chaperone(chap_start).scale(1.28, about_point=chap_start)
+        helper = label("ER chaperone", [-4.95,2.35,0], TEAL)
+        self.at("ER chaperones")
+        self.play(FadeIn(chap), FadeIn(helper), run_time=.8)
+        self.at("leak forward")
+        self.play(chap.animate.shift(RIGHT*1.15), FadeOut(helper), run_time=1.1)
+        self.at("end in a tag")
+        self.play(Indicate(chap[2], color=TEAL), chap.animate.shift(RIGHT*.35), run_time=.8)
+        acidic = label("acidic compartment: KDEL receptor", [0, 3.12,0], TEXT, 28)
+        receptor = VGroup(Arc(radius=.34,start_angle=PI,angle=PI,color=TEXT,stroke_width=6),
+                           Line([0,-.34,0],[0,-.75,0],color=TEXT,stroke_width=6)).move_to([-3.05,1.1,0])
         self.at("slightly acidic")
-        self.play(FadeIn(ph),run_time=0.6)
-        coat = DashedVMobject(Circle(radius=1.0,color=BLUE,stroke_width=5).move_to([3.45,0.2,0]), num_dashes=20)
-        cop = T("COPI return vesicle",26,BLUE).move_to([0,2.25,0])
-        self.at("COP1 vesicles")
-        self.play(FadeIn(coat), FadeIn(cop), FadeOut(resident[1]), run_time=0.5)
-        complex_ = VGroup(resident[0],tag,receptor,coat)
-        self.play(complex_.animate.shift(LEFT*7.85), run_time=1.2)
-        neutral = T("near-neutral: releases",26,TEXT).move_to([-4.4,-2.8,0])
-        self.at("conditions let them go")
-        self.play(FadeOut(coat), resident[0].animate.shift(LEFT*0.65),
-                  tag.animate.shift(LEFT*0.65), FadeIn(neutral), run_time=0.6)
-        inset = VGroup(golgi_stack()).scale(0.6).move_to([2.6,0,0])
-        back = VGroup(arrow([3.4,0.4,0],[2.7,0.4,0],BLUE),
-                      arrow([2.5,-0.4,0],[1.8,-0.4,0],BLUE))
-        enzyme = Square(side_length=0.16,color=PURPLE,fill_opacity=1).move_to([3.4,0.6,0])
-        model = T("One model: enzyme recycling",26,TEXT).move_to([2.3,2.2,0])
-        self.at("In one model")
-        self.play(FadeOut(taglabel),FadeOut(cop),FadeOut(ph),FadeOut(cargo),
-                  FadeOut(later),FadeIn(inset),FadeIn(model),run_time=0.6)
-        self.at("Golgi enzymes also")
-        self.play(FadeIn(back),FadeIn(enzyme),run_time=0.4)
-        self.at("recycle backward")
-        self.play(enzyme.animate.shift(LEFT*1.5),run_time=0.8)
+        self.play(FadeIn(acidic), FadeIn(receptor), chap.animate.move_to([-3.15,1.42,0]), run_time=1.2)
+        self.at("receptor grabs")
+        self.play(receptor.animate.scale(.8), Indicate(chap[2],color=TEXT), run_time=.8)
+        ves = DashedVMobject(Circle(radius=.78,color=BLUE,stroke_width=4).move_to([-3.1,1.25,0]),num_dashes=18)
+        cop = label("COPI vesicle", [-3.1,2.65,0], BLUE)
+        ret = CurvedArrow([-2.8,-1.5,0],[-4.75,-1.45,0],angle=-.35,color=TEAL,stroke_width=4)
+        self.at("vesicle carries both")
+        self.remove(acidic)
+        self.play(FadeIn(ves), FadeIn(cop), Create(ret), run_time=.8)
+        complex_ = VGroup(chap,receptor,ves)
+        self.play(complex_.animate.shift(LEFT*1.55), run_time=1.15)
+        neutral = label("near neutral", [-4.65,2.65,0], TEXT)
+        self.at("near neutral")
+        self.play(FadeOut(cop), FadeIn(neutral), FadeOut(ves),
+                  chap.animate.shift(LEFT*.4), receptor.animate.shift(RIGHT*.25), run_time=.85)
+        self.at("receptor lets go")
+        self.play(chap.animate.shift(LEFT*.55), receptor.animate.shift(RIGHT*.45), ret.animate.set_opacity(.35), run_time=.8)
         self.finish()
 
 
-class S05Maturation(SpokenScene):
+class S09Predict(SpokenScene):
     def construct(self):
-        title=heading("Cisternal maturation")
-        sac=RoundedRectangle(width=4.0,height=2.4,corner_radius=0.4,color=BLUE,
-                             fill_color=BLUE,fill_opacity=0.12).move_to([-2.8,0.3,0])
-        cargo=VGroup(*[dot([-3.35+i*0.55,0.3,0],r=0.12) for i in range(3)])
-        early=VGroup(*[Square(side_length=0.2,color=GOLD,fill_opacity=1)
-                       .move_to([-3.5+i*0.7,0.8,0]) for i in range(3)])
-        key=T("early enzymes",26,GOLD).move_to([-2.8,-1.5,0])
-        self.at("In cisternal maturation")
-        self.play(FadeIn(title),FadeIn(sac),run_time=0.8)
-        self.at("carries cargo")
-        self.play(FadeIn(cargo),run_time=0.6)
-        self.at("resident enzymes change")
-        self.play(FadeIn(early),FadeIn(key),run_time=0.6)
-        back=arrow([-1.8,1.8,0],[-5.4,1.8,0],BLUE)
-        self.at("Enzymes recycle backward")
-        self.play(GrowArrow(back),early.animate.shift(LEFT*2).set_opacity(0),run_time=1.0)
-        late=VGroup(*[Square(side_length=0.2,color=PURPLE,fill_opacity=1)
-                      .move_to([0.5+i*0.7,0.8,0]) for i in range(3)])
-        self.at("sac changes")
-        self.play(sac.animate.shift(RIGHT*4),cargo.animate.shift(RIGHT*4),FadeIn(late),
-                  Transform(key,T("late enzymes",26,PURPLE).move_to([1.2,-1.5,0])),run_time=1.2)
-        yeast=heading("Budding yeast: direct imaging evidence")
-        scattered=VGroup(*[RoundedRectangle(width=1.2,height=0.55,corner_radius=0.2,color=BLUE,
-                         fill_color=BLUE,fill_opacity=0.1).move_to(p)
-                         for p in ([-4.5,-1.6,0],[4.6,1.4,0])])
-        self.at("In budding yeast")
-        self.play(ReplacementTransform(title,yeast),FadeOut(back),FadeIn(scattered),
-                  late.animate.set_color(GOLD),
-                  Transform(key,T("early marker",26,GOLD).move_to([1.2,-1.5,0])),run_time=0.7)
-        self.at("imaging shows this change")
-        self.play(late.animate.set_color(PURPLE),
-                  Transform(key,T("late marker",26,PURPLE).move_to([1.2,-1.5,0])),run_time=1.2)
-        self.at("cargo staying inside")
-        self.play(Indicate(cargo,color=YELLOW),run_time=0.8)
-        caveat=T("Mammalian Golgi\nNo single model explains every observation",26,TEXT,
-                  line_spacing=0.8).move_to([-1.0,-2.65,0])
-        stack=golgi_stack().scale(0.45).move_to([4.7,-2.65,0])
-        self.at("Maturation is a leading framework")
-        self.play(FadeOut(scattered),FadeOut(key),
-                  Transform(yeast,heading("Maturation: a leading framework")),run_time=0.5)
-        self.at("no single model")
-        self.play(FadeIn(caveat),FadeIn(stack),run_time=0.8)
+        w = world(with_gel=False)
+        self.add(w)
+        chap_start = np.array([-4.95, 1.1, 0.0])
+        chap = chaperone(chap_start).scale(1.25, about_point=chap_start)
+        name = label("grp78", [-4.95,2.0,0], TEAL)
+        self.add(chap,name)
+        scissors = VGroup(Line([-.25,.25,0],[.25,-.25,0],color=TEXT,stroke_width=5),
+                          Line([.25,.25,0],[-.25,-.25,0],color=TEXT,stroke_width=5)).move_to([-3.55,1.1,0])
+        self.at("snip the tag")
+        self.play(FadeIn(scissors), chap[1:].animate.shift(RIGHT*.45).set_opacity(0), run_time=.9)
+        deleted = label("grp78 • KDEL deleted", [-4.35,1.95,0], TEAL)
+        self.play(ReplacementTransform(name,deleted), FadeOut(scissors), run_time=.55)
+        credit = label("Munro & Pelham, 1987 • COS cells", [0,3.15,0], TEXT,28)
+        self.at("Sean Munro")
+        self.play(FadeIn(credit), chap[0].animate.shift(RIGHT*.35), run_time=1.0)
+        self.at("cultured monkey cells")
+        self.play(chap[0].animate.shift(RIGHT*.45), run_time=.85)
+        q = label("Where does it end up?", [0,2.45,0], TEXT,38)
+        self.at("Where does it")
+        self.play(FadeOut(credit), FadeIn(q), chap[0].animate.shift(RIGHT*.35), run_time=.8)
         self.finish()
 
 
-class S06Exits(SpokenScene):
+class S10Think(Scene):
     def construct(self):
-        tgn=chip("trans-Golgi\nnetwork",BLUE,size=28).move_to([-4.7,0,0])
-        surface=VGroup(Line([5.2,-2.4,0],[5.2,2.4,0],color=BLUE,stroke_width=6),
-                       T("cell surface",24,BLUE).move_to([5.1,3.0,0]))
-        branches=VGroup(arrow([-3.2,0.1,0],[4.9,1.4,0]),arrow([-3.2,-0.1,0],[0.6,-1.4,0]))
-        self.at("At the")
-        self.play(FadeIn(tgn),FadeIn(surface),run_time=0.6)
-        self.at("split")
-        self.play(Create(branches),run_time=0.7)
-        direct=T("constitutive secretion",28,YELLOW).move_to([0.3,2.65,0])
-        flow=VGroup(*[dot([-2.6+i*1.9,0.3+i*0.3,0],r=0.13) for i in range(3)])
-        self.at("Constitutive secretion")
-        self.play(FadeIn(direct),FadeIn(flow),run_time=0.5)
-        self.at("as fast as")
-        self.play(*[d.animate.move_to([5.8,1.1+i*0.3,0]) for i,d in enumerate(flow)],run_time=1.2)
-        nearly=T("nearly every eukaryotic cell",24,GREY).move_to([0.2,3.35,0])
-        self.at("Nearly every")
-        self.play(FadeIn(nearly),run_time=0.6)
-        gran=Circle(radius=0.65,color=BLUE,fill_color=BLUE,fill_opacity=0.12).move_to([1.4,-1.4,0])
-        packed=VGroup(*[dot([1.15+i*0.25,-1.5+j*0.25,0],r=0.09) for j in range(2) for i in range(3)])
-        store=T("specialized cells: storage",26,GREY).move_to([0.5,-3.25,0])
-        reg=T("regulated secretion",28,YELLOW).move_to([0.5,-2.6,0])
-        self.at("Specialized cells")
-        self.play(FadeOut(flow),FadeIn(gran),FadeIn(packed),FadeIn(store),FadeIn(reg),run_time=0.5)
-        self.at("store cargo")
-        self.play(Indicate(packed,color=YELLOW),run_time=0.7)
-        stim=chip("stimulus",TEXT,size=26).move_to([2.8,0,0])
-        self.at("a stimulus triggers")
-        self.play(FadeIn(stim),gran.animate.move_to([4.35,-1.4,0]),packed.animate.shift(RIGHT*2.95),run_time=0.6)
-        self.play(FadeOut(gran),*[d.animate.move_to([5.8+i*0.05,-1.8+i*0.15,0]) for i,d in enumerate(packed)],run_time=0.65)
-        self.at("That is regulated secretion")
-        self.play(FadeOut(store),FadeOut(stim),Indicate(reg,color=YELLOW),run_time=0.5)
-        # A separate inset returns to the immature stage when sorting is mentioned.
-        self.at("Sorting can continue")
-        self.play(FadeOut(packed),FadeOut(branches),FadeOut(tgn),FadeOut(direct),FadeOut(nearly),
-                  FadeOut(surface),FadeOut(reg),run_time=0.35)
-        immature=VGroup(Circle(radius=0.62,color=BLUE,fill_opacity=0.12),
-                       *[dot([-0.25+i*0.25,0,0],r=0.1) for i in range(3)]).move_to([0,0.6,0])
-        sortlabel=T("immature granule: sorting continues",26,TEXT).move_to([0,2.5,0])
-        self.play(FadeIn(immature),FadeIn(sortlabel),run_time=0.35)
-        self.play(immature[3].animate.shift(RIGHT*1.2),run_time=0.45)
-        whole=route_diagram(); back=recycling()
-        self.play(FadeOut(immature),FadeOut(sortlabel),FadeIn(whole),FadeIn(back),run_time=0.7)
-        self.finish()
+        w = world(with_gel=False)
+        q = label("Where does it end up?", [0,2.45,0], TEXT,38)
+        chap_start = np.array([ER_X+.8, 1.05, 0.0])
+        chap = chaperone(chap_start,tagged=False).scale(1.55, about_point=chap_start)
+        receptors = VGroup(*[VGroup(Arc(radius=.25,start_angle=PI,angle=PI,color=TEXT,stroke_width=5),
+                                      Line([0,-.25,0],[0,-.62,0],color=TEXT,stroke_width=5)).move_to([ERGIC_X,y,0])
+                             for y in (.55,-.55)])
+        self.add(w,q,chap,receptors)
+        self.play(chap.animate.shift(UP*.45+RIGHT*.35), w[0][8][1].animate.shift(RIGHT*.65), rate_func=there_and_back, run_time=2.2)
+        self.play(chap.animate.shift(DOWN*.45+RIGHT*.35), w[0][8][1].animate.shift(RIGHT*.65), rate_func=there_and_back, run_time=2.2)
 
 
-class S04Endoh(SpokenScene):
+class S11Rule(SpokenScene):
     def construct(self):
-        route=route_diagram().set_opacity(0.5)
-        # Keep the route visible without competing background text in the assay inset.
-        for i in (0,1,2,3,4):
-            route[i][1].set_opacity(0)
-        back=recycling().set_opacity(0.5)
-        self.add(route,back)
-        panel=RoundedRectangle(width=12.5,height=5.1,corner_radius=0.25,
-                               stroke_color=GREY,fill_color=BG,fill_opacity=0.8).move_to([0,0,0])
-        title=heading("Smaller point: Endo H assay")
-        proteins=VGroup(*[protein(k,[x,-0.4,0],1.8) for k,x in zip(("core","core","complex"),(-4,0,4))])
-        labels=VGroup(*[T(t,26,c).move_to([x,-1.5,0]) for t,c,x in
-                       (("high-mannose",ORANGE,-4),("hybrid",ORANGE,0),("complex",GREEN,4))])
-        # These are the same schematic sugar-chain knobs used throughout the old film.
-        self.at("A smaller point")
-        self.play(FadeIn(panel),FadeIn(title),FadeIn(proteins),FadeIn(labels),run_time=0.8)
-        scissors=VGroup(Line([-0.25,-0.2,0],[0.25,0.2,0],color=TEAL,stroke_width=5),
-                        Line([-0.25,0.2,0],[0.25,-0.2,0],color=TEAL,stroke_width=5),
-                        Circle(radius=0.12,color=TEAL).move_to([-0.34,-0.26,0]),
-                        Circle(radius=0.12,color=TEAL).move_to([-0.34,0.26,0])).move_to([-4,-0.05,0])
-        self.at("It cuts")
-        self.play(FadeIn(scissors),run_time=0.25)
-        self.play(proteins[0][1].animate.shift(UP*0.6).set_opacity(0),run_time=0.45)
-        self.at("and hybrid")
-        self.play(scissors.animate.move_to([0,-0.05,0]),run_time=0.3)
-        self.play(proteins[1][1].animate.shift(UP*0.6).set_opacity(0),run_time=0.45)
-        spared=T("not cut",26,GREEN).move_to([4,1.5,0])
-        self.at("but not complex")
-        self.play(scissors.animate.move_to([4.8,-0.05,0]),FadeIn(spared),run_time=0.7)
-        history=T("Past: relevant Golgi enzymes have acted",28,GREEN).move_to([0,-2.9,0])
-        self.at("Resistance records passage")
-        self.play(FadeOut(scissors),FadeIn(history),Indicate(proteins[2][1],color=GREEN),run_time=0.8)
-        location=T("Current location?",30,TEXT).move_to([0,2.05,0])
-        self.at("It does not tell")
-        self.play(FadeIn(location),run_time=0.7)
+        w = world(with_gel=False)
+        self.add(w)
+        chap = chaperone([ER_X+.8,0,0],tagged=False)
+        cargo = cargo_cloud([ER_X+.35,.2,0],.42,7)
+        q = label("Where does it end up?", [0,2.45,0], TEXT,38)
+        self.add(chap,cargo,q)
+        self.at("secreted with the cargo")
+        self.play(FadeOut(q), VGroup(chap,cargo).animate.move_to([ERGIC_X,0,0]), run_time=1.0)
+        receptors = VGroup(*[VGroup(Arc(radius=.25,start_angle=PI,angle=PI,color=TEXT,stroke_width=5),
+                                      Line([0,-.25,0],[0,-.62,0],color=TEXT,stroke_width=5)).move_to([ERGIC_X,y,0])
+                             for y in (.55,-.55)])
+        self.play(FadeIn(receptors), VGroup(chap,cargo).animate.move_to([-1.1,.2,0]), run_time=1.2)
+        self.play(VGroup(chap,cargo).animate.move_to([2.4,1.0,0]), run_time=1.1)
+        self.play(VGroup(chap,cargo).animate.move_to([6.35,1.0,0]), run_time=1.1)
+        secreted = label("secreted", [5.7,2.0,0], TEAL)
+        self.play(FadeIn(secreted), run_time=.45)
+        rule = label("Forward is the default", [0,3.18,0], TEXT,40)
+        self.at("forward is the default")
+        self.play(FadeIn(rule), w[0][8][1].animate.shift(RIGHT*.6), run_time=.8)
+        held = VGroup(protein_blob([ER_X,.1,0],GOLD), label("held: not folded",[-4.25,1.75,0],GOLD,28))
+        ret = CurvedArrow([-2.7,-1.75,0],[-4.75,-1.65,0],angle=-.3,color=TEAL,stroke_width=5)
+        self.at("protein is held")
+        self.play(FadeIn(held), run_time=.55)
+        self.at("fetched back")
+        self.play(Create(ret), run_time=.55)
+        self.at("sorted out")
+        self.play(Indicate(w[0][6],color=GOLD), run_time=.55)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Cargo moves ER to Golgi to release, at once or after storage."
+class S12Fork(SpokenScene):
+    def construct(self):
+        # Same right-hand world, enlarged without changing landmark relationships.
+        t = tgn().scale(1.45).move_to([-4.4,.2,0])
+        mem = VGroup(Line([5.45,-3.0,0],[5.45,.45,0],color=BLUE,stroke_width=10),
+                     Line([5.45,1.55,0],[5.45,3.0,0],color=BLUE,stroke_width=10))
+        upper = VMobject(color=GREY,stroke_width=4).set_points_smoothly([[-3.7,.45,0],[-1.2,1.1,0],[2.0,1.0,0],[5.3,1.0,0]])
+        lower = VMobject(color=GREY,stroke_width=4).set_points_smoothly([[-3.7,-.25,0],[-1.7,-1.4,0],[.3,-1.65,0]])
+        shelfline = Line([-.2,-2.0,0],[4.8,-2.0,0],color=GREY,stroke_width=5)
+        self.add(t,mem,upper,lower,shelfline)
+        self.at("split the roots")
+        self.play(Indicate(VGroup(upper,lower),color=TEXT), run_time=1.0)
+        carriers = VGroup(*[Circle(radius=.33,color=SAND,fill_color=SAND,fill_opacity=.18).move_to([-3.2+.45*i,.65+.08*i,0]) for i in range(4)])
+        self.at("Some carriers")
+        self.play(LaggedStart(*[FadeIn(c,scale=.4) for c in carriers],lag_ratio=.12), run_time=.8)
+        self.at("straight to the surface")
+        self.play(carriers.animate.move_to([3.9,1.0,0]), run_time=1.7)
+        door = label("constitutive: the door", [2.8,2.15,0], SAND)
+        self.at("default door")
+        self.play(FadeIn(door), carriers.animate.shift(RIGHT*2).set_opacity(0), run_time=.9)
+        grans = VGroup(*[Circle(radius=.43,color=BLUE,fill_color=INK,fill_opacity=.85).move_to([.5+i*.82,-1.52,0]) for i in range(5)])
+        fill = VGroup(*[VGroup(*[cargo_dot([.35+i*.82+.14*(j%3),-1.65+.17*(j//3),0],GOLD,.07) for j in range(6)]) for i in range(5)])
+        self.at("digestive enzymes")
+        self.play(LaggedStart(*[FadeIn(x) for x in fill],lag_ratio=.08), FadeIn(grans), run_time=1.2)
+        regulated = label("regulated: the shelf", [2.1,-2.65,0], GOLD)
+        self.at("regulated secretion")
+        self.play(FadeIn(regulated), grans.animate.shift(RIGHT*.2), fill.animate.shift(RIGHT*.2), run_time=.8)
+        self.at("wait on a shelf")
+        self.play(VGroup(grans,fill).animate.shift(LEFT*.2), run_time=1.0)
+        ring = Circle(radius=.35,color=TEXT,stroke_width=5).move_to([5.8,-.8,0])
+        stim = label("stimulus", [4.3,-.55,0], TEXT)
+        self.at("a stimulus")
+        self.play(FadeIn(stim), Create(ring), ring.animate.scale(3.5).set_opacity(0), run_time=1.0)
+        self.play(VGroup(grans,fill).animate.move_to([5.0,-.1,0]), run_time=1.2)
+        self.play(grans.animate.set_opacity(0), fill.animate.shift(RIGHT*1.5), run_time=.8)
+        q = label("Speed up the line?", [-1.1,2.8,0], TEXT,36)
+        self.at("speed up the line")
+        self.play(FadeIn(q), Indicate(t,color=TEXT), run_time=.8)
+        self.finish()
+
+
+class S13Return(SpokenScene):
+    def construct(self):
+        w = world(with_gel=False)
+        self.add(w)
+        q = label("Where are they?  Can they tell you?", [0,3.18,0], TEXT,34)
+        self.add(q)
+        self.at("hour later")
+        self.play(FadeIn(clock(60)), w[0][8][1].animate.shift(RIGHT*.6), run_time=.9)
+        packed = VGroup(*[cargo_dot([2.65+.62*i,-1.13,0],GOLD,.19) for i in range(5)])
+        tail = cargo_cloud([.2,-.1,0],1.1,8,GOLD).set_opacity(.35)
+        grey = cargo_cloud([-2.7,.2,0],1.2,9,GREY)
+        self.at("Mostly in storage")
+        self.play(FadeIn(packed), FadeIn(tail), FadeIn(grey), run_time=1.0)
+        tree = glycan_tree([3.0,.2,0],.75,late=True)
+        rec = label("enzymes met", [3.0,1.75,0],TEXT,28)
+        self.at("sugar record")
+        self.play(FadeIn(tree), FadeIn(rec), tail.animate.shift(RIGHT*.25), run_time=1.0)
+        default = label("GOING ON", [-.5,2.2,0], GOLD,32)
+        self.at("going on is")
+        self.play(FadeIn(default), w[0][8][1].animate.shift(RIGHT*.65), run_time=.9)
+        held = protein_blob([ER_X,.1,0],GOLD)
+        ret = CurvedArrow([-2.7,-1.75,0],[-4.75,-1.65,0],angle=-.3,color=TEAL,stroke_width=5)
+        self.at("Staying means")
+        self.play(FadeIn(held), Create(ret), run_time=1.0)
+        self.at("fetched back")
+        self.play(Indicate(ret,color=TEAL), grey.animate.shift(RIGHT*.25), run_time=.75)
+        self.at("Storing means")
+        self.play(Indicate(w[0][6],color=GOLD), packed.animate.scale(1.12), run_time=.8)
+        self.at("ways still argued")
+        self.remove(q)
+        self.play(packed.animate.scale(1/1.12), w[0][8][1].animate.shift(RIGHT*.55), run_time=.9)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "Forward is the default unless cargo is held, retrieved, or sorted."
