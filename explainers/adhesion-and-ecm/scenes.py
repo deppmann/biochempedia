@@ -625,20 +625,3 @@ class S14Return(SpokenScene):
 class S15End(EndCard):
     LINE = "Each grip is a chain, outside partner to inside cable."
 
-    def construct(self):
-        w=world(False,with_label=False).set_opacity(.22)
-        w[4].set_opacity(0)
-        d=chain_parts(y=-1.0)
-        one_chain=VGroup(d["cables"][0],d["adaptors"][:2],d["connectors"][:2],
-                         d["tails"][0],d["membranes"][0],d["arms"],d["calcium"])
-        one_chain.scale(.62).move_to([0,-1.65,0])
-        line=T(self.LINE,size=40,font=TITLE_FONT).move_to([0,1.65,0])
-        fit(line,max_w=11.5)
-        backing=RoundedRectangle(width=12.4,height=1.0,corner_radius=.12,stroke_width=0,
-                                 fill_color=BLACK,fill_opacity=.82).move_to([0,1.65,0])
-        self.add(w,backing)
-        self.play(FadeIn(line,shift=UP*.12),FadeIn(one_chain),run_time=.75)
-        self.wait(2.45)
-        self.play(FadeOut(VGroup(w,backing,line,one_chain)),run_time=.4)
-        self.finish()
-

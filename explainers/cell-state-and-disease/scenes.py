@@ -466,26 +466,3 @@ class S13Handoff(SpokenScene):
 class S14End(EndCard):
     LINE = "In this lining, a clone spreads by fate, not by speed."
 
-    def construct(self):
-        line = T(self.LINE, 40, font=TITLE_FONT).move_to([0.9, 0, 0])
-        fit(line, max_w=9.8)
-        patch = VGroup(*[
-            RegularPolygon(6, radius=0.30, color=GOLDEN, stroke_width=2,
-                           fill_color=GOLDEN, fill_opacity=0.42)
-            for _ in range(7)
-        ])
-        for h, p in zip(patch, [(-0.36, 0, 0), (0.36, 0, 0), (0, 0.53, 0),
-                                (0, -0.53, 0), (-0.72, 0.53, 0), (-0.72, -0.53, 0),
-                                (0.72, 0.53, 0)]):
-            h.move_to(p)
-        patch.move_to([-5.55, 0, 0])
-        phase = [0.0]
-
-        def shimmer(group, dt):
-            phase[0] += dt
-            group.set_stroke(opacity=0.72 + 0.20 * np.sin(phase[0] * 1.5))
-
-        patch.add_updater(shimmer)
-        self.play(FadeIn(patch, shift=RIGHT * 0.15), FadeIn(line, shift=UP * 0.1),
-                  run_time=self.beat(0.35))
-        self.finish()

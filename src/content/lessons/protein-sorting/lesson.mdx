@@ -35,6 +35,21 @@ explainer:
     - "To enter the mitochondrial matrix a protein must be at least partly unfolded, as methotrexate-locked DHFR shows; peroxisomes can import cargo that stays folded."
     - "An exposed address helps specify where a protein goes; where and how its reader works helps decide when it is read, as the chain grows or after release."
 
+films:
+  - id: "chapter-2"
+    src: "/explainers/protein-sorting/chapter-2.mp4"
+    captions: "/explainers/protein-sorting/chapter-2.vtt"
+    poster: "/explainers/protein-sorting/chapter-2-poster.jpg"
+    title: "How Do You Know It Went In?"
+    durationSec: 199.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "The added protease cannot cross an intact microsome membrane, so a protected protein is inside; if detergent removes that protection, the membrane was the shield."
+      - "In 1975 an antibody light chain was trimmed and protected only when ER vesicles were present while it was made; globin was not protected."
+      - "Moving a stretch onto a passenger that stays in the cytosol tests whether it is sufficient; deleting it from its own protein tests whether it is necessary."
+      - "A signal that works for one passenger may not work for every passenger, and when a protein carries two signals, only an experiment can say where it goes."
+
 scientists:
   - name: "Günter Blobel"
     contribution: >-
@@ -392,12 +407,13 @@ draft: false
 
 import ProtectionGelReader from '../../../components/ProtectionGelReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Made in a test tube with no membranes, a secretory protein comes out longer than the one the cell secretes.**
 
-The film answered why; here is what it leaves out. The text uses the field's words for the film's: the "address" is a **signal sequence**, reading "as the chain grows" is **cotranslational**, and reading "after release" is **post-translational**.
+Chapter 1 of the film answered why; here is what it leaves out. The text uses the field's words for the film's: the "address" is a **signal sequence**, reading "as the chain grows" is **cotranslational**, and reading "after release" is **post-translational**.
 
-## The address, and how to test it
+## The address
 
 Almost every protein in a eukaryotic cell starts on a ribosome in the **cytosol**, the fluid outside the organelles (a few are made inside mitochondria and chloroplasts from their own genes), yet thousands must reach the ER, mitochondria, chloroplasts, peroxisomes or the nucleus. The inside of a membrane-bound organelle is its **lumen** (in mitochondria and chloroplasts the innermost space is called the matrix and the stroma, respectively).
 
@@ -407,11 +423,11 @@ Which way a membrane protein faces, its **topology**, is set at insertion ([memb
 
 ## Into the ER while being made
 
-The amino terminus leaves the ribosome first ([translation](/lessons/genetic-code-and-translation/)), and the ER signal is a hydrophobic stretch, usually near the amino terminus. Here is the experiment behind each of the film's four steps.
+The amino terminus leaves the ribosome first ([translation](/lessons/genetic-code-and-translation/)), and the ER signal is a hydrophobic stretch, usually near the amino terminus. Here is the experiment behind each of chapter 1's four steps.
 
 1. **Recognition.** SRP is a complex of six proteins and an RNA. *Evidence:* in a translation extract made from wheat germ, SRP stopped the growth of preprolactin chains at about 70 residues: the 30-residue signal, just clear of the ribosome, plus roughly 40 residues still hidden in its tunnel. Adding ER vesicles released the stop. (In other extracts SRP only slows chain growth for a while; Going deeper.)
 2. **Docking.** *Evidence:* washing dog-pancreas ER vesicles in high salt removed their ability to bind ribosomes making prolactin, and purified SRP restored it (Walter and Blobel).
-3. **Handover.** The film's two "hands" are **GTPases**, subunits of SRP and of its receptor that bind GTP and then hydrolyse it. *Evidence:* in the bacterial versions of the two GTPases (3D viewer), the GTP sites face each other, so each helps the other hydrolyse GTP and the complex comes apart.
+3. **Handover.** Chapter 1's two "hands" are **GTPases**, subunits of SRP and of its receptor that bind GTP and then hydrolyse it. *Evidence:* in the bacterial versions of the two GTPases (3D viewer), the GTP sites face each other, so each helps the other hydrolyse GTP and the complex comes apart.
 4. **Cleavage.** **Signal peptidase** works on the lumenal side of the membrane. Many membrane proteins keep an uncleaved signal that stays in the membrane as an anchor.
 
 **Predict.** A signal's position sets the earliest moment it can be read. A secretory protein is only 60 residues long, with its signal at residues 1 to 20, and about 40 residues stay hidden in the ribosome. When has the whole signal cleared the ribosome, and what does that leave SRP?
@@ -423,48 +439,11 @@ Only when the chain is about 60 residues long (20 + 40), that is, when it is fin
 
 </details>
 
-### Worked problem: reading a protection gel
-
-Here is a made-up data set, patterned on the Blobel and Dobberstein experiments. A secretory protein's messenger RNA is translated in reticulocyte lysate, an extract of immature rabbit red blood cells that makes protein from added messenger RNA. Some reactions include **microsomes**, sealed vesicles formed from ER membrane when cells are broken up. You read band intensity in arbitrary units. The precursor, still carrying its signal, runs at 26 kDa and a processed form at 23 kDa.
-
-- **Lane 1, no microsomes.** 26 kDa = 100. After protease: nothing.
-- **Lane 2, microsomes present during translation.** 26 kDa = 40, 23 kDa = 60. After protease: 23 kDa = 57, 26 kDa = 0. After protease plus detergent: nothing.
-- **Lane 3, microsomes added after translation.** 26 kDa = 100, no 23 kDa. After protease: nothing.
-
-Assume the protease cannot cross an intact membrane and that the bands are proportional to the amount of protein.
-
-**Predict.** In lane 2, 40 units kept the full 26 kDa size. Were those chains inside the vesicles?
-
-<details>
-<summary>Check your prediction</summary>
-
-No. After protease no 26 kDa band survives, so every unprocessed chain was outside and was digested. Those chains kept their signal because they never entered: the scissors are on the inside.
-
-</details>
-
-**Step 1: how much was processed, and was it protected?** In lane 2, 60 of 100 units are processed, so 60 percent of chains lost their signal. Of those 60, 57 survive protease:
-
-> protected fraction = 57 / 60 = 0.95, or 95 percent
-
-So nearly all processed chains are inside sealed vesicles.
-
-**Step 2: was it the membrane?** Detergent dissolves the vesicles and the 23 kDa band vanishes. The protein is not resistant to protease on its own; the membrane protected it.
-
-**Step 3: does timing matter?** This is the film's predict, as data. In lane 3 there is no processing and no protection. In this assay, translocation needs ongoing translation.
-
-**Step 4: how big was the signal?** The shift is 26 − 23 = 3 kDa. With an average residue mass of about 110 Da:
-
-> residues removed ≈ 3,000 Da / 110 Da per residue ≈ 27 residues
-
-That fits a signal of the usual size; preprolactin's is 30 residues.
-
-<ProtectionGelReader />
-
 SRP is the main reader at the ribosome, not the only one, and some ER proteins, such as tail-anchored ones, enter after release (Going deeper).
 
 ## After release: mitochondria, chloroplasts, peroxisomes
 
-The film gave the idea and its mitochondrial and peroxisomal cases; here are the readers for all three organelles. They work away from the ribosome's exit: **TOM** on the mitochondrial outer membrane, **TOC** on the chloroplast outer envelope, and **PEX5** in the cytosol. Their cargo is usually read after release. The reader's place does not settle the timing alone; the exceptions are in Going deeper.
+Chapter 1 gave the idea and its mitochondrial and peroxisomal cases; here are the readers for all three organelles. They work away from the ribosome's exit: **TOM** on the mitochondrial outer membrane, **TOC** on the chloroplast outer envelope, and **PEX5** in the cytosol. Their cargo is usually read after release. The reader's place does not settle the timing alone; the exceptions are in Going deeper.
 
 The table sets the four routes side by side; they differ most in the last two rows.
 
@@ -480,7 +459,7 @@ The table sets the four routes side by side; they differ most in the last two ro
 
 Helices are explained in [protein structure](/lessons/protein-3d-structure/); the 3D viewer shows a presequence helix lying in a groove on Tom20, one of the TOM receptors.
 
-**Mitochondria: what the methotrexate result proves.** In the film's experiment (Eilers and Schatz, 1986), methotrexate binds the passenger, the enzyme dihydrofolate reductase (DHFR), and holds it folded. The control is what makes it decisive: the authentic precursor still entered the same mitochondria, so the organelles and their membrane potential were working and the block was in the passenger. Inner-membrane carriers with internal signals take another route (Going deeper).
+**Mitochondria: what the methotrexate result proves.** In chapter 1's experiment (Eilers and Schatz, 1986), methotrexate binds the passenger, the enzyme dihydrofolate reductase (DHFR), and holds it folded. The control is what makes it decisive: the authentic precursor still entered the same mitochondria, so the organelles and their membrane potential were working and the block was in the passenger. Inner-membrane carriers with internal signals take another route (Going deeper).
 
 <LessonFigure src="/figures/protein-sorting/mito-import-needs-unfolding.webp" width={1200} height={800} alt="AI-generated illustration: a cutaway of the two mitochondrial membranes with TOM in the outer and TIM23 in the inner membrane. A precursor protein threads through as an unfolded chain, its gold presequence already in the matrix, pulled by the membrane potential and gripped by Hsp70 with ATP. An inset shows a methotrexate-locked folded passenger stuck at TOM." caption="A matrix protein crosses both membranes as an at least partly unfolded chain, drawn in by the membrane potential and held by ATP-using Hsp70. Hold the DHFR passenger folded with methotrexate, and import stops (Eilers and Schatz, 1986)." />
 
@@ -493,7 +472,7 @@ Only without the uncoupler. Then the presequence is pulled through the TIM23 com
 
 </details>
 
-**Predict.** The film left a question. Some ribosomes making mitochondrial proteins sit on the mitochondrial surface. Could their presequences be read before the chain is finished?
+**Predict.** Chapter 1 left a question. Some ribosomes making mitochondrial proteins sit on the mitochondrial surface. Could their presequences be read before the chain is finished?
 
 <details>
 <summary>Check your prediction</summary>
@@ -517,7 +496,52 @@ Most likely it stays in the cytosol. PEX5 holds the free carboxyl end of a PTS1 
 
 </details>
 
-## Reading and rewriting signals
+Every claim so far rests on an experiment. Start by reading the protection test as numbers.
+
+## How do you know where a protein went?
+
+Here is the protection logic as numbers.
+
+### Worked problem: reading a protection gel
+
+Here is a made-up data set, patterned on the Blobel and Dobberstein experiments. A secretory protein's messenger RNA is translated in reticulocyte lysate, an extract of immature rabbit red blood cells that makes protein from added messenger RNA. Some reactions include **microsomes**, sealed vesicles formed from ER membrane when cells are broken up. You read band intensity in arbitrary units. The precursor, still carrying its signal, runs at 26 kDa and a processed form at 23 kDa.
+
+- **Lane 1, no microsomes.** 26 kDa = 100. After protease: nothing.
+- **Lane 2, microsomes present during translation.** 26 kDa = 40, 23 kDa = 60. After protease: 23 kDa = 57, 26 kDa = 0. After protease plus detergent: nothing.
+- **Lane 3, microsomes added after translation.** 26 kDa = 100, no 23 kDa. After protease: nothing.
+
+Assume the added protease cannot cross an intact microsome membrane and that the bands are proportional to the amount of protein.
+
+**Predict.** In lane 2, 40 units kept the full 26 kDa size. Were those chains inside the vesicles?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. After protease no 26 kDa band survives, so every unprocessed chain was outside and was digested. Those chains kept their signal because they never entered: the scissors are on the inside.
+
+</details>
+
+**Step 1: how much was processed, and was it protected?** In lane 2, 60 of 100 units are processed, so 60 percent of chains lost their signal. Of those 60, 57 survive protease:
+
+> protected fraction = 57 / 60 = 0.95, or 95 percent
+
+So nearly all processed chains are inside sealed vesicles.
+
+**Step 2: was it the membrane?** Detergent dissolves the vesicles and the 23 kDa band vanishes. The protein is not resistant to protease on its own; the membrane protected it.
+
+**Step 3: does timing matter?** This is chapter 1's predict, as data. In lane 3 there is no processing and no protection. In this assay, translocation needs ongoing translation.
+
+**Step 4: how big was the signal?** The shift is 26 − 23 = 3 kDa. With an average residue mass of about 110 Da:
+
+> residues removed ≈ 3,000 Da / 110 Da per residue ≈ 27 residues
+
+That fits a signal of the usual size; preprolactin's is 30 residues.
+
+<ProtectionGelReader />
+
+Chapter 2 of the film now connects that protection test to experiments that identify a sorting signal.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 Each classic result is one of the two tests. **Sufficient:** the first 53 residues of a yeast mitochondrial precursor carried mouse DHFR into the matrix of yeast mitochondria (the film's mouse enzyme), and SKL added to the end of a bacterial enzyme sent it into peroxisomes of mammalian cells. **Necessary:** deleting the short region at luciferase's tail, at most twelve residues, left luciferase in the cytosol.
 
