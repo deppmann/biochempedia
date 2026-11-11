@@ -144,8 +144,8 @@ structures:
     note: "Halobacterium salinarum bacteriorhodopsin, X-ray crystal structure at 1.55 Å (Luecke et al., J. Mol. Biol., 1999)"
     caption: >-
       Seven helices cross the membrane, joined by loops that alternate between the two faces. Each
-      crossing flips which side the next loop lies on, which is why the orientation of the first
-      segment fixes the rest.
+      crossing flips which side the next loop lies on, which is why, in the simplest case, the
+      orientation of the first segment sets the rest.
   - label: "SecY translocon — the channel where topology is decided"
     source: "rcsb"
     id: "1RHZ"
@@ -215,8 +215,9 @@ practiceQuestions:
       Flippases, such as ATP11C working with CDC50A in human cells, use ATP to move
       aminophospholipids to the cytoplasmic leaflet against their gradient. Scramblases, such as
       calcium-activated TMEM16F, let lipids cross in both directions with no energy input, which
-      collapses asymmetry. Swapping the two descriptions is the commonest mix-up. Saying both use ATP
-      confuses lateral diffusion, which needs no protein, with transverse movement. Saying neither uses
+      collapses asymmetry. Swapping the two descriptions is the commonest mix-up. Saying both use ATP,
+      one sideways and one across, is wrong twice: flippases do use ATP but scramblases do not, and
+      both move lipid across the bilayer, not sideways; sideways diffusion needs no protein at all. Saying neither uses
       ATP and splitting them by lipid type invents a distinction neither enzyme has.
   - stem: "In a FRAP experiment on a membrane protein, corrected intensities are 100 before the bleach, 30 immediately after, and a plateau of 65. What is the mobile fraction?"
     choices:
@@ -378,85 +379,92 @@ draft: false
 
 import FrapCurveReader from '../../../components/FrapCurveReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**A cell membrane has two different faces, and the cell spends energy to keep them different.** Its two layers of lipid carry different lipids, and every membrane protein sits with some parts on the cytosolic side and others on the far side. Pumps build the lipid difference, and scramblases can erase it on cue, for example to put phosphatidylserine on the surface of an activated platelet, where it supports blood clotting. Vesicles carry membrane from compartment to compartment without ever turning it inside out, so a protein's two sides stay as they were first set. This lesson asks three questions. Who puts lipids where? Which way does a protein face, and why does traffic never flip it? And how do you measure how fast molecules move within the plane of the membrane?
+**A cell adds a sugar to a protein deep inside its endoplasmic reticulum (ER), and later that same sugar sits on the outside of the cell, though no vesicle ever carried it across a membrane.**
 
-## The idea: a membrane has two different faces
+The answer is a rule about the two faces of every membrane, which proteins and lipids obey in different ways.
 
-The bilayer is two sheets of lipid, each sheet called a leaflet, with tails meeting in an oily core. Its chemistry and physics are covered in [lipids](/lessons/lipids/) and [membrane structure and function](/lessons/membrane-structure-function/). Here you need one consequence of that core: a polar head group, or a polar stretch of protein, crosses it only rarely. Lipids and proteins can slide sideways within their own leaflet but cannot easily flip to the other one.
+> **The one idea to carry through this lesson.** Moving a protein or a phospholipid across a bilayer at a useful speed takes a dedicated machine. For most membrane and secreted proteins the cell uses that machine once, normally at the ER: as the chain is made, the translocon (the channel it threads through) decides which parts go into the lumen, the space inside the organelle. After that, membrane traffic carries it between compartments, and budding and fusion move nothing across a bilayer. So the face that met the cytosol always meets the cytosol, and the lumen of every compartment on the secretory and endocytic routes counts as "outside the cell." Phospholipids the cell moves across all the time, on purpose: flippases pump some inward and scramblases let them mix, so the lipid difference between the faces is *maintained*, not frozen. Sliding sideways within a leaflet needs no machine, and a photobleaching experiment measures it.
 
-Think of a jacket with a lining. You can slide a badge anywhere on the outside, but it never ends up on the lining unless someone unpicks it and sews it back.
+The rule covers the ER and nuclear envelope, Golgi, secretory vesicles, plasma membrane, endosomes and lysosomes, not mitochondria, chloroplasts or peroxisomes. The few things that cross a membrane later on these routes each have their own machine (Going deeper, "Exceptions, and why they fit").
 
-Every membrane in the cell therefore has two faces. For the plasma membrane and the membranes of the ER, Golgi and endosomes, one faces the cytosol, the fluid that fills the cell outside the organelles. The other faces either the outside of the cell or the lumen, the space enclosed by an organelle such as the ER or Golgi. That second face is called the exoplasmic or noncytosolic face, and it is the key to the second half of this lesson.
+## Two faces of every membrane
 
-## Asymmetry: who puts lipids where
+The bilayer is two sheets of lipid, each sheet called a **leaflet**, with tails meeting in an oily core. Its chemistry and physics are covered in [lipids](/lessons/lipids/) and [membrane structure and function](/lessons/membrane-structure-function/). Here you need one consequence of that core: a polar head group, or a polar stretch of protein, crosses it only rarely. Phospholipids and proteins can slide sideways within their own leaflet, but on their own they cannot easily flip to the other one. (Cholesterol, ceramide and diacylglycerol, with small uncharged head groups, flip quickly on their own, so the lipid half of this lesson's rule is about phospholipids with polar head groups.)
 
-In human erythrocytes, studies summarized in a recent review place phosphatidylserine (PS) and phosphatidylethanolamine (PE) mainly in the cytoplasmic leaflet, and phosphatidylcholine (PC) and sphingomyelin mainly in the outer leaflet. These are erythrocyte findings. Other cells and organelles have their own, less completely measured. A 2020 study of intact erythrocytes also found that the two halves differ in how unsaturated their lipid tails are; the numbers are in Going deeper.
+So every membrane has two faces. In the plasma membrane and the membranes of the ER, Golgi and endosomes, one face touches the **cytosol**, the fluid that fills the cell outside the organelles. The other touches either the outside of the cell or a **lumen**, the space enclosed by an organelle such as the ER or Golgi. That second face is the **exoplasmic face** (or noncytosolic face): the one that never touches cytosol.
 
-Left alone, a phospholipid moves between leaflets slowly, on a scale of hours or longer for most species. That slowness lets asymmetry last, but something has to create it. Two classes of protein matter most here, and they act in opposite directions. A third class, floppases, uses ATP to move some lipids outward; ABC transporters appear to do this job.
+## The rule: a lumen counts as outside
 
-- **Flippases** use ATP to move chosen lipids, chiefly PS and PE, from the outer to the cytoplasmic leaflet, against their gradient. Most are P4-type ATPases; in human cells, ATP11C with its partner CDC50A is one example.
-- **Scramblases** let lipids cross in both directions down their gradients and, unlike flippases, generally need no energy input. Switching one on collapses asymmetry far faster than spontaneous flip-flop would.
+*The film at the top of the page tells this section's story; its "never crossed a membrane on the way" means after the ER.*
 
-TMEM16F is the best-studied calcium-activated scramblase. Its activity can expose PS on the surface of activated platelets, where the negatively charged lipid supports blood clotting. A different route exposes PS on dying cells, where it serves as a signal for engulfment; that pathway belongs to [death receptors, BCL-2 and caspases](/lessons/death-receptors-bcl2-caspases/).
+Start with the easy case. When a cell takes something in by **endocytosis**, a patch of plasma membrane dimples inward and pinches off as a small sac, an endocytic vesicle, which soon joins an endosome inside the cell.
 
-So plasma-membrane asymmetry is a steady state: pumps push one way, slow leakage and regulated scramblases push the other. The ER membrane is thought to be much closer to symmetric, because lipids there are largely scrambled between the leaflets. Cholesterol, which flips quickly, is a harder case, and how it divides between the leaflets of the plasma membrane is still argued.
+**Predict.** What is in the fresh vesicle? And which face of its membrane touches the cytosol?
 
-<LessonFigure src="/figures/membrane-organization-topology/flippase-scramblase-leaflets.webp" width={1200} height={534} alt="AI-generated illustration: a membrane bilayer with a flippase using ATP to move lipids from the outer to the cytoplasmic leaflet and a scramblase letting lipids cross both ways; an inset shows the two lipid types mixed after the scramblase is on." caption="In the red blood cell, PS and PE sit mainly in the cytoplasmic leaflet and PC and sphingomyelin mainly in the outer one. ATP-driven flippases push lipid inward; a switched-on scramblase lets it cross both ways with no energy input and collapses the pattern." />
+<details>
+<summary>Check your prediction</summary>
 
-## Topology and why vesicles preserve it
+A gulp of extracellular fluid: the sac closed around fluid that was outside the cell a moment earlier. The face that touched the cytosol still touches the cytosol, and the face that met the outside now faces the lumen. Nothing crossed the membrane. It just changed shape.
 
-A membrane protein's **topology** is which of its parts face the cytosol and which face the other side. Four common arrangements:
+</details>
 
-- **Single-pass type I**: one membrane-spanning segment, N terminus in the lumen or outside, C terminus in the cytosol.
-- **Single-pass type II**: one segment, N terminus in the cytosol, C terminus in the lumen or outside.
-- **Multipass**: several segments, with loops alternating between the two faces.
-- **GPI-anchored**: no spanning segment; the protein is attached by a glycolipid, glycosylphosphatidylinositol (GPI), to the lumenal leaflet. Proteins held by myristoyl or prenyl groups on the cytosolic face are a different class, covered in [lipids as anchors and addresses](/lessons/lipid-anchors-and-addresses/).
+Textbooks say the endosome lumen is "topologically equivalent" to the outside of the cell. In plain words: **you can get from one space to the other by budding and fusing alone, without ever passing through a membrane.** The endosome lumen is equivalent to the outside because it *was* the outside.
+
+Now run it backwards. When a sac fuses with the plasma membrane, its lumen opens to the outside and its contents spill out: **exocytosis**, the way cells secrete. Follow the sacs back through the Golgi to the ER and each vesicle step works the same way: a transport vesicle buds from one membrane and fuses with the next, its lumen continuous first with the lumen it came from, then with the one it joins. Within the Golgi, cargo can also stay in one sac while the sac itself matures, which keeps sides too. So the lumens of the ER, Golgi, secretory vesicles, endosomes and lysosomes all sit on the same side as the outside of the cell. Color the cytosol (and the nucleus, which connects to it through pores) one color and all those spaces another, and every membrane on these routes has one color on each face.
+
+Budding and fusion never swap the colors: when a vesicle fuses with its target, the two cytosol-facing leaflets merge, and the two lumens (or a lumen and the outside) join.
+
+So where does a protein's orientation come from? For a protein of the secretory pathway, it is normally set when the protein enters the ER membrane, usually through the **translocon**, the protein channel that threads new chains into or across the membrane and lets each membrane-spanning stretch slip sideways into the lipid.
+
+**Worked problem, part 1: trace one protein.** A protein with one membrane-spanning stretch is made in the ER of a cultured mammalian cell, N terminus in the lumen and C terminus in the cytosol: the arrangement called **type I**. Its N-terminal domain gets an N-linked glycan (a sugar chain attached to an asparagine), added in the lumen because the enzyme that adds it, oligosaccharyl transferase, has its active site on the lumenal side.
+
+1. **ER to Golgi.** Vesicles bud and fuse. The sugar stays lumenal; the C terminus stays in the cytosol.
+2. **Golgi to plasma membrane.** A secretory vesicle carrying the protein fuses with the plasma membrane.
+
+**Predict.** Where are the sugar and the C terminus now?
+
+<details>
+<summary>Check your prediction</summary>
+
+The sugar faces the extracellular fluid, because the vesicle lumen it sat in opened to the outside. The C terminus is still in the cytosol. That solves the opening puzzle: the sugar's part of the chain crossed once, in the ER, as it was made, and never again.
+
+</details>
+
+3. **Back in by endocytosis.** The sugar and N terminus face the endosome lumen; the C terminus faces the cytosol.
+
+At no step did the C terminus leave the cytosol.
+
+A secreted protein, such as insulin, is threaded all the way into the ER lumen, so it ends up outside. Even viruses obey it: an influenza virus buds outward from the plasma membrane, so its spike proteins, made in the ER with their sugar-carrying ends in the lumen, stud the outside of the virus.
+
+## Four arrangements, one rule
+
+A membrane protein's **topology** is which of its parts face the cytosol and which face the other side. Because a lumen counts as outside, "in the lumen or outside" below is one side, not two.
+
+- **Single-pass type I**: one membrane-spanning segment, N terminus in the lumen or outside, C terminus in the cytosol. Glycophorin A of the red blood cell (its structure is on this page) and the EGF receptor are type I.
+- **Single-pass type II**: one segment, N terminus in the cytosol, C terminus in the lumen or outside. The transferrin receptor and many Golgi glycosyltransferases, the enzymes that build sugar chains, are type II.
+- **Multipass**: several segments, with loops alternating between the two faces. The glucose transporter GLUT1 is one; the bacteriorhodopsin structure on this page shows the alternating loops.
+- **GPI-anchored**: no spanning segment; the protein is attached by a glycolipid, glycosylphosphatidylinositol (GPI), to the lumenal leaflet, because the anchor is attached in the ER lumen. Prion protein and alkaline phosphatase are held this way. Proteins held by myristoyl or prenyl groups on the cytosolic face are a different class, covered in [lipids as anchors and addresses](/lessons/lipid-anchors-and-addresses/).
 
 <LessonFigure src="/figures/membrane-organization-topology/four-topology-classes.webp" width={1200} height={796} alt="AI-generated illustration: four membrane proteins along one bilayer, a type I and a type II single-pass protein facing opposite ways, a multipass protein with alternating loops, and a GPI-anchored protein held on the lumenal leaflet." caption="Four common arrangements, drawn with the lumen or outside above and the cytosol below. A single-pass protein's two ends sit on opposite faces, a multipass protein's loops alternate, and a GPI-anchored protein has no spanning segment." />
 
-The rule that makes these predictable: **the lumen of a compartment of the secretory or endocytic pathway is topologically equivalent to the outside of the cell.** Mitochondria and chloroplasts follow different rules. A transport vesicle buds from one membrane and fuses with another, and its lumen is continuous first with the donor lumen and then with the target lumen or the outside. Nothing crosses a membrane during the trip, so the face that pointed at the cytosol keeps pointing at the cytosol.
+**Predict.** The transferrin receptor is type II. When it reaches the plasma membrane, which end is outside the cell? After endocytosis, which end faces the endosome lumen?
 
-For a protein of the secretory pathway, orientation is normally set when it enters the ER membrane, usually through the translocon, the protein channel that threads new chains into or across the membrane. How the signals for that decision work is the job of [protein sorting](/lessons/protein-sorting/). The decision can be close. Positive charges are statistically enriched on the cytosolic side of membrane segments, a bias first described for bacterial inner-membrane proteins; it is a tendency, not a law. Goder, Bieri and Spiess showed in COS-1 cells that engineered chains with competing signals can reorient within the translocon, and that glycosylation can shift the outcome. Reorientation normally happens during insertion, though a few proteins rearrange later in the ER membrane. A finished protein is not flipped by traffic.
+<details>
+<summary>Check your prediction</summary>
 
-**Worked problem, part 1: trace a protein.** A type I protein is made in the ER of a cultured mammalian cell. It has an N-linked glycan on its N-terminal domain, and it reaches the plasma membrane, then is taken back in by endocytosis.
+The C terminus both times. Type II puts the C terminus in the ER lumen, and every lumen on the route counts as outside. The N terminus stays in the cytosol throughout.
 
-1. In the ER: N terminus in the lumen, C terminus in the cytosol. The glycan was added in the lumen, because the oligosaccharyl transferase has its active site on the lumenal side.
-2. Through the Golgi by vesicles: the lumenal face stays lumenal.
-3. A secretory vesicle fuses with the plasma membrane. Its lumen opens to the outside. N terminus and glycan now face the extracellular fluid; C terminus stays in the cytosol.
-4. Endocytosis pinches the plasma membrane inward. The outside face becomes the endosome's lumen. N terminus and glycan face the endosomal lumen; C terminus still faces the cytosol.
+</details>
 
-At no step did the C terminus leave the cytosol. That is how a sugar made in the ER ends up on the cell surface.
+Which arrangement a chain takes is normally decided at the translocon by signals in the chain itself, the subject of [protein sorting](/lessons/protein-sorting/). Reorientation normally happens during insertion, though a few proteins rearrange later in the ER membrane; a finished protein is not flipped by traffic.
 
-## Measuring motion: FRAP and domains
+## How we know which way a protein faces
 
-In fluorescence recovery after photobleaching (FRAP), a laser destroys the fluorescence of labelled molecules in a small spot. If they are mobile, unbleached ones diffuse in and the spot brightens. The bleached molecules are still there and still moving; they are simply dark. The imaging side of the method is covered in [microscopy and quantitative images](/lessons/microscopy-and-images/).
+The standard test uses **microsomes**: sealed vesicles of ER membrane, made by breaking cells, with the lumen still inside. Tag the protein's two ends with different epitopes, short tags an antibody recognizes, and add a protease. On the gel, an antibody to one tag still finds a protected fragment, while the other tag is gone. Add detergent before the protease and both tags are gone.
 
-**Worked problem, part 2: read a FRAP curve.** In this made-up data set, a fluorescent protein in the plasma membrane of a cultured cell is bleached in a circular spot of radius w = 2.0 µm. Assume the bleach is instantaneous and uniform, the membrane is flat, the unbleached reservoir is large, and recovery is by two-dimensional diffusion alone. The values are already corrected for background and for bleaching during imaging.
-
-- Before the bleach, Fi = 100. Immediately after, F0 = 20. At 4.0 s, 50. Final plateau, F∞ = 80.
-
-Step 1, mobile fraction:
-
-> **mobile fraction = (F∞ - F0) / (Fi - F0) = (80 - 20) / (100 - 20) = 60 / 80 = 0.75**
-
-The denominator is 80, not 100: only what was bleached can recover. The immobile fraction is 1 - 0.75 = 0.25.
-
-Step 2, half-time. Half the recoverable increment is 60 / 2 = 30, so half recovery is reached at 20 + 30 = 50. The curve reads 50 at 4.0 s, so t½ = 4.0 s. It is not the time to reach half the prebleach value.
-
-Step 3, diffusion coefficient, valid only for this model:
-
-> **D ≈ 0.224 w² / t½ = 0.224 × (2.0 µm)² / 4.0 s = 0.224 × 4.0 / 4.0 = 0.22 µm²/s**
-
-<FrapCurveReader />
-
-That sits in the range tabulated for membrane-bound molecules; Day and colleagues list about 0.2 µm²/s for cholera toxin B bound to the plasma membrane of COS-7 and mouse embryonic fibroblast cells at 37 °C. EGFP free in the cytoplasm of COS-7 cells moves more than a hundred times faster, at about 40 µm²/s.
-
-Two cautions. The formula assumes a circular, instantaneous bleach; a scanning confocal bleach lets molecules move during the bleach and needs a different analysis. And a 25% immobile fraction does not say why. Anchoring to the cytoskeleton, bleaching a large share of the cell's total pool, or bleaching during imaging can each lower the plateau.
-
-Recovery is also not always free diffusion. The plasma membrane has **domains**, regions that differ in composition or mobility. Tight junctions separate apical from basolateral membrane in epithelia. In a FRAP study of cholera toxin B on cultured cells, Day and Kenworthy found its slow diffusion was impeded by actin- and ATP-dependent processes, as expected if an actin meshwork restrains it (PLoS ONE 2012).
-
-**Lipid rafts**, proposed ordered domains rich in cholesterol and sphingolipid, are where care matters most. Membrane material that resists cold detergent was long called raft material, but a detergent-resistant fraction is not a native raft; detergent can create or rearrange domains. Reviews now describe the existence, size and composition of rafts in living cells as unresolved, not as one settled universal structure. Super-resolution imaging in one mouse B-cell line supports phase-like sorting near clustered B-cell receptors: a probe preferring ordered membrane gathered there and one preferring disordered membrane was excluded. It does not give a raft's composition, and it does not show that every cell has them.
+Now read it. A protease cannot enter a sealed vesicle, so the tag that survived was in the lumen. The detergent control shows that tag could be digested once the membrane was opened, so its survival was protection, not a protease-proof tag. A second test uses sugars: a glycosylation site placed in one end receives a sugar only if that end reaches the lumen (step 3 below).
 
 ### Design problem
 
@@ -465,10 +473,10 @@ You have cloned T, a new protein with one predicted membrane-spanning segment. D
 <details>
 <summary>One way to do it</summary>
 
-Write the predictions first. N-out (type I): N-terminal parts lumenal or extracellular, C terminus cytosolic. N-in (type II): the reverse.
+The quiz uses step 2; steps 3 and 4 are lab detail for a second pass. Write the predictions first. N-out (type I): N-terminal parts lumenal or extracellular, C terminus cytosolic. N-in (type II): the reverse.
 
 1. **Tag both ends** with different epitopes, and check that the tags do not change localization.
-2. **Protease protection.** Make sealed microsomes from transfected cells. Treat with protease, with and without detergent. The epitope that survives without detergent is lumenal; with detergent both should be lost, which shows the protease could reach them.
+2. **Protease protection.** Make sealed microsomes from transfected cells and treat with protease, with and without detergent, read as above.
 3. **Glycosylation reporters.** Place an N-X-S/T site (X not proline) in each end domain, one construct at a time, at least 12 to 14 residues from the membrane-spanning segment; a site closer than that is not used even in the lumen, and sites at the very C terminus can be skipped. A site becomes glycosylated only in the lumen. On the ER form of the protein, endoglycosidase H should remove the gel shift the sugar causes; sugars trimmed and rebuilt into complex forms in the Golgi resist endoglycosidase H, so use PNGase F for those. The construct whose site is used tells you which end crossed. A site that is not used does not by itself prove that end stayed in the cytosol.
 4. **Antibody access in intact cells.** Low digitonin permeabilizes the cholesterol-rich plasma membrane but leaves ER and Golgi membranes largely closed; Triton X-100 opens all membranes. An epitope seen after digitonin, but not on unpermeabilized cells, is cytosolic. One seen only after Triton is lumenal. On unpermeabilized cells, an antibody that labels the surface marks the extracellular end.
 5. **Alkaline extraction.** High pH strips peripheral proteins; an integrated protein stays in the membrane pellet.
@@ -479,16 +487,126 @@ If the methods disagree, suspect the tags or a mixed population of orientations,
 
 </details>
 
+## Lipids: the side the cell has to keep pumping
+
+Proteins keep their sides with no upkeep; phospholipids keep theirs only with constant help: where each is made sets part of the pattern, and pumps keep restoring the rest. (The film's "cannot easily flip" means on their own.)
+
+In the red blood cell, the best-measured case, phosphatidylserine (PS) and phosphatidylethanolamine (PE) sit mainly on the inner, cytoplasmic leaflet, and phosphatidylcholine (PC) and sphingomyelin mainly on the outer leaflet. Other cells and organelles are less completely measured. The leaflets also differ in how unsaturated their tails are.
+
+Left alone, a phospholipid moves between leaflets slowly, on a scale of hours or longer for most species. Slow is not zero: over the months a red blood cell lives, leakage alone would wear away any pattern set up at the start. Three kinds of protein move lipid across the bilayer, and their names differ by a letter: flip is in, flop is out, scramble is both ways.
+
+| Protein | Moves lipid | Uses ATP? | Example |
+| --- | --- | --- | --- |
+| **Flippase** | Outer leaflet to cytoplasmic leaflet, against the gradient; chiefly PS and PE | Yes | Most are P4-type ATPases; in human cells, for example ATP11A or ATP11C with their partner CDC50A |
+| **Floppase** | Cytoplasmic leaflet to outer leaflet | Yes | ABC transporters appear to do this job |
+| **Scramblase** | Both ways, down the gradients | Generally no | TMEM16F, switched on by calcium |
+
+So plasma-membrane asymmetry is a steady state: pumps push one way, slow leakage and regulated scramblases push the other, and switching on a scramblase collapses it far faster than spontaneous flip-flop would.
+
+<LessonFigure src="/figures/membrane-organization-topology/flippase-scramblase-leaflets.webp" width={1200} height={534} alt="AI-generated illustration: a membrane bilayer with a flippase using ATP to move lipids from the outer to the cytoplasmic leaflet and a scramblase letting lipids cross both ways; an inset shows the two lipid types mixed after the scramblase is on." caption="In the red blood cell, PS and PE sit mainly in the cytoplasmic leaflet and PC and sphingomyelin mainly in the outer one. ATP-driven flippases push lipid inward; a switched-on scramblase lets it cross both ways with no energy input and collapses the pattern." />
+
+TMEM16F is the best-studied calcium-activated scramblase. Its activity can expose PS on the surface of activated platelets, where the negatively charged lipid supports blood clotting. A different route exposes PS on dying cells, where it serves as a signal for engulfment; that pathway belongs to [death receptors, BCL-2 and caspases](/lessons/death-receptors-bcl2-caspases/).
+
+**Predict.** Two red blood cells lose their pattern in different ways. In one, ATP runs out and nothing else changes. In the other, calcium floods in while ATP stays normal. Which puts PS on its surface faster, and why?
+
+<details>
+<summary>Check your prediction</summary>
+
+The calcium-loaded cell, by far. With no ATP the flippases stop, but PS can still only leak outward by spontaneous flip-flop, so it creeps out over hours or longer. Calcium opens a scramblase, which carries PS across within minutes, and high calcium also inhibits the flippases, so nothing pumps it back. Pump off is slow; a hole opened is fast.
+
+</details>
+
+The ER membrane is thought to be much closer to symmetric, because lipids there are largely scrambled between the leaflets. Cholesterol, which flips quickly, is a harder case, and how it divides between the leaflets of the plasma membrane is still argued.
+
+## Along the membrane, freely: FRAP
+
+In 1972 Singer and Nicolson's fluid mosaic model predicted the split this lesson has followed: proteins keep a fixed orientation across the membrane but are free to move within its plane. Fluorescence recovery after photobleaching (FRAP) measures the sideways motion. A laser destroys the fluorescence of labelled molecules in a small spot. If they are mobile, unbleached ones diffuse in and the spot brightens. The bleached molecules are still there and still moving; they are simply dark. The imaging side of the method is covered in [microscopy and quantitative images](/lessons/microscopy-and-images/).
+
+**Worked problem, part 2: read a FRAP curve.** In this made-up data set, a fluorescent protein in the plasma membrane of a cultured cell is bleached in a circular spot of radius w = 2.0 µm. Assume the bleach is instantaneous and uniform, the membrane is flat, the unbleached reservoir is large, and recovery is by two-dimensional diffusion alone. The values are already corrected for background and for bleaching during imaging.
+
+- Before the bleach, Fi = 100. Immediately after, F0 = 20. At 4.0 s, 50. Final plateau, F∞ = 80, not 100.
+
+Step 1, mobile fraction:
+
+> **mobile fraction = (F∞ - F0) / (Fi - F0) = (80 - 20) / (100 - 20) = 60 / 80 = 0.75**
+
+The denominator is 80, not 100: only what was bleached can recover. The immobile fraction is 1 - 0.75 = 0.25. That number does not say why a quarter stayed dark. Anchoring to the cytoskeleton, bleaching a large share of the cell's total pool, or bleaching during imaging can each lower the plateau.
+
+Step 2, half-time. Half the recoverable increment is 60 / 2 = 30, so half recovery is reached at 20 + 30 = 50. The curve reads 50 at 4.0 s, so t½ = 4.0 s. Half the prebleach value is also 50 here, by coincidence: with a plateau of 70, half recovery would be at 20 + 25 = 45, not 50. Always halve the recovered increase, not the prebleach value.
+
+Step 3, diffusion coefficient, valid only for this model:
+
+<EquationCard
+  purpose="Estimate how fast a membrane molecule diffuses sideways from how long a bleached spot takes to get halfway back."
+  eq="D ≈ 0.224 × w^2 / t½"
+  say="The diffusion coefficient is about 0.224 times the spot radius squared, divided by the half-time of recovery."
+  symbols={[
+    ["D", "D", "the diffusion coefficient: how fast molecules spread in the plane of the membrane", "µm²/s"],
+    ["w", "w", "the radius of the bleached spot", "µm"],
+    ["t½", "t half", "the time to reach half of the recoverable increase", "s"],
+  ]}
+  toolkit={["powers", "units"]}
+  check="Units: µm² divided by s gives µm²/s, the units of a diffusion coefficient."
+>
+  <Fragment slot="example">
+    <p>For the curve above: D ≈ 0.224 × (2.0 µm)² / 4.0 s = 0.224 × 4.0 / 4.0 = 0.22 µm²/s.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Diffusion time grows with distance squared, not distance, so t½ is proportional to w² / D. The factor 0.224 comes from solving the recovery curve for an instantaneous, evenly bleached disk (Soumpasis, 1983).</p>
+  </Fragment>
+</EquationCard>
+
+**Predict.** The same cells are bleached again, this time with a spot of radius 4.0 µm. If recovery is pure diffusion, about how long is the new half-time?
+
+<details>
+<summary>Check your prediction</summary>
+
+About 16 s. The radius doubled, so w² grew four times, and with D unchanged t½ grows four times: 4 × 4.0 s. If the half-time had stayed near 4.0 s, that would point to recovery limited by binding and release rather than diffusion, so bleaching at two spot sizes tests the model.
+
+</details>
+
+<FrapCurveReader />
+
+A D of 0.22 µm²/s sits in the range tabulated for membrane-bound molecules, more than a hundred times slower than a protein free in the cytoplasm. In a table by Day and colleagues, cholera toxin B bound to the plasma membrane of COS-7 and mouse embryonic fibroblast cells at 37 °C diffuses at about 0.2 µm²/s, and EGFP free in the cytoplasm of COS-7 cells at about 40 µm²/s.
+
+Sideways freedom has limits. The plasma membrane has **domains**, regions that differ in composition or mobility. Tight junctions separate apical from basolateral membrane in epithelia, and an actin meshwork under the membrane can slow some molecules. **Lipid rafts**, proposed ordered domains rich in cholesterol and sphingolipid, are where care matters most: reviews describe their existence, size and composition in living cells as unresolved, not as one settled universal structure (Going deeper).
+
 ## Going deeper
 
-### The red-cell unsaturation measurement
+### Exceptions, and why they fit
 
-Lorent and colleagues digested away the outer leaflet's lipids of intact human red blood cells and analysed what was left. The two halves of the membrane differed: the outer half's phospholipids carry about 1.6 double bonds each, the inner half's about 3.4. The measurement was made in 2020 on erythrocytes, so these are erythrocyte numbers. It is one recent addition to the old finding that lipid composition differs between the leaflets, and it is an active area of work on how that difference changes membrane physical properties.
+The rule is about a membrane's own parts: small uncharged molecules such as oxygen, carbon dioxide and water cross bilayers without machines. The nuclear envelope is part of the ER, and its lumen is the space between its two membranes; the nucleoplasm is on the cytosol side, joined to it through pores. Mitochondria and chloroplasts import most of their proteins from the cytosol across their own membranes and are not joined to the secretory pathway by the ordinary vesicle routes. Peroxisomes receive some membrane proteins from the ER in vesicles, but they import their matrix proteins, already folded, straight from the cytosol, so the lumen rule does not describe their contents.
+
+On the vesicle routes, whatever crosses a membrane after the ER is moved by a dedicated machine, which fits the rule's first clause. ER-associated degradation (ERAD) pulls misfolded proteins back to the cytosol to be destroyed. Chaperone-mediated autophagy threads cytosolic proteins into lysosomes. Some toxins escape to the cytosol. Hyaluronan synthase pushes its sugar chain out across the plasma membrane. And a few proteins change topology after insertion, while still in the ER membrane, aquaporin-1 being the textbook case. So the film's "orientation is set once, at the ER" is the usual case, not a law, though vesicle traffic itself still never flips a protein.
+
+Wrapping is not an exception. Autophagosomes, the vesicles that bud into multivesicular bodies, and enveloped viruses budding from the cell each enclose a pocket of cytosol, and the membrane wrapped directly around each pocket keeps its cytosolic face toward it.
+
+Sugars follow the same logic: where a sugar is added decides where it ends up. N-linked and mucin-type O-linked sugars face outside because they are added in the ER or Golgi lumen; O-GlcNAc added in the cytosol and nucleus stays there. So "glycans always face outside" is wrong.
+
+### Other names for single-pass proteins
+
+This lesson sorts single-pass proteins by orientation only. Some textbooks add "type III" (N terminus outside, no cleaved signal sequence) and tail-anchored proteins, which are inserted after translation without the translocon; hence "usually" through the translocon.
+
+### How close the topology decision can be
+
+Positive charges are statistically enriched on the cytosolic side of membrane segments, a bias first described for bacterial inner-membrane proteins; it is a tendency, not a law. Goder, Bieri and Spiess showed in COS-1 cells that engineered chains with competing signals can reorient within the translocon, and that glycosylation can shift the outcome (details on the Martin Spiess card). Marginally hydrophobic segments can also fail to insert or can reorient, which is why "the first segment sets the rest" holds only in the simplest multipass case.
+
+### The red-cell lipid measurements
+
+The leaflet pairs in the main text come from human erythrocytes, in studies summarized in a recent review. Lorent and colleagues then digested away the outer leaflet's lipids of intact human red blood cells and analysed what was left. The two halves of the membrane differed: the outer half's phospholipids carry about 1.6 double bonds each, the inner half's about 3.4. These 2020 erythrocyte numbers are one recent addition to the old finding that lipid composition differs between the leaflets, an active area of work on how that difference changes membrane physical properties.
 
 ### How the transporters were found
 
 In a haploid genetic screen in human cells, Segawa and colleagues found ATP11C and its partner CDC50A required for inward movement of lipid. Alvadia and colleagues purified the mouse TMEM16F protein and showed that, in artificial vesicles, it scrambled both labelled PS and labelled PE when calcium was added. That reconstitution shows the protein can scramble lipid on its own. Its role in exposing PS on activated platelets is a separate, physiological finding.
 
-### The B-cell raft study
+### When the FRAP formula fails
 
-Stone and colleagues used super-resolution imaging in the CH27 mouse B-cell lymphoma line. A peptide probe preferring ordered membrane gathered near clustered B-cell receptors and one preferring disordered membrane was excluded, in live and fixed cells; fixed primary mouse B cells agreed. That supports phase-like sorting in that system. It does not give a raft's composition, and it does not show that every cell has them.
+The 0.224 w²/t½ relation holds only under the assumptions of worked problem part 2. A scanning confocal bleach lets molecules move during the bleach and needs a different analysis, and binding-limited recovery breaks the w² scaling, as the spot-size Predict box showed.
+
+Part of that slowness in the plasma membrane is the cell's doing. In a FRAP study of cholera toxin B on cultured cells, Day and Kenworthy found its slow diffusion was impeded by actin- and ATP-dependent processes, as expected if an actin meshwork restrains it (PLoS ONE 2012).
+
+### What is and is not known about rafts
+
+Membrane material that resists cold detergent was long called raft material, but a detergent-resistant fraction is not a native raft; detergent can create or rearrange domains.
+
+The best support comes from particular systems. Stone and colleagues used super-resolution imaging in the CH27 mouse B-cell lymphoma line. A peptide probe preferring ordered membrane gathered near clustered B-cell receptors and one preferring disordered membrane was excluded, in live and fixed cells; fixed primary mouse B cells agreed. That supports phase-like sorting in that system. It does not give a raft's composition, and it does not show that every cell has them.

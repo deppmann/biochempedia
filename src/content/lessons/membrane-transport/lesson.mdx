@@ -379,37 +379,49 @@ import EquationCard from '../../../components/EquationCard.astro';
 
 **Hold a cell at −70 millivolts with 140 mM potassium inside and 5 mM outside, open potassium channels, and potassium leaves. Hold it at −100 millivolts and potassium comes in, against a 28-fold concentration difference.**
 
-The concentrations did not change between those two cases. Only the voltage did. That is the first thing this lesson will teach you to calculate. The second is how to tell what kind of protein is carrying an ion or a sugar across a membrane, using the two kinds of data that answer that question: a recording from one channel, and a count of labelled molecules.
+"Hold" means a voltage clamp: an amplifier fixes the membrane voltage at a value you choose, whatever current flows. The concentrations did not change between the two cases; only the voltage did. Why the voltage can win is the first thing this lesson teaches you to calculate. The second is how to tell which kind of protein carries a solute across, from a recording of one channel and a count of labelled molecules.
 
-## The idea: a bilayer is a wall with designed doors
+## The wall and the one rule
 
 A lipid bilayer has an oily core about as thick as two lipid tails. Gases such as oxygen and carbon dioxide and small nonpolar molecules dissolve in that core and cross it by simple diffusion, needing no protein. Water crosses too, though slowly. Ions and larger polar molecules such as glucose cross almost not at all, because leaving water for oil costs them too much energy. You met the chemistry behind this in [membrane structure and function](/lessons/membrane-structure-function/).
 
-So a cell is a walled town, and every door is a protein. The doors are specific: a potassium channel passes potassium and almost no sodium, and the glucose carrier GLUT1 passes glucose and not fructose. A cell decides what crosses by choosing which doors to build, where to put them and when to open them. The sidedness of those proteins in the membrane, covered in [membrane organization and topology](/lessons/membrane-organization-topology/), fixes which face of each door looks into the cell. For a pump that orientation sets which way it pushes; for a channel or a passive carrier, the gradients decide which way net flow goes.
+So ions and sugars cross the bilayer in useful amounts only through proteins, and the proteins are specific: a potassium channel passes potassium and almost no sodium, and the glucose carrier GLUT1 passes glucose and not fructose. A cell decides what crosses by choosing which proteins to build, where to put them and when to open them. The sidedness of those proteins in the membrane, covered in [membrane organization and topology](/lessons/membrane-organization-topology/), fixes which face of each protein looks into the cell. For a pump that orientation sets which way it pushes; for a channel or a passive carrier, the gradients decide.
 
-## Doors, ferries and pumps
+> **The one idea to carry through this lesson.** Any solute, charged or not, flows on its own only downhill in its own electrochemical energy. That energy has two parts, a concentration push and a voltage push. Channels and passive carriers only open a path: they decide *which* solute crosses and *how fast*, never *which way*. To move something uphill, a protein has to couple it to something else running further downhill: ATP splitting (a pump), another downhill process such as light or electron flow in some pumps, or another ion's gradient (a symporter or antiporter, such as the sodium-glucose carrier SGLT1). The coupled total must still be downhill.
 
-Membrane transport proteins are usually sorted into three groups.
+The rule sets the direction of *net* flow at a given moment, treating concentrations as if they were activities (effective concentrations). It does not set the rate, which is the protein's business, or where a cell permeable to several ions will rest (that is [the resting membrane](/lessons/resting-membrane-passive/)). Water follows it too: aquaporins open the path, and water's own energy difference, set mainly by the solutes on each side (and by pressure, in walled cells), decides the direction.
 
-**Channels** form an aqueous pore that, when open, connects both sides at once. Ions flow through, often in single file, down their electrochemical gradient. A channel can switch between open and closed (gating) in response to voltage, a ligand or stretch, but while open it has no cycle to complete, so it is fast: millions of ions per second through one pore. Water channels, the aquaporins, are channels for water.
+## Two pushes, one number
 
-**Carriers** (also called transporters) are ferries. A carrier binds its solute on one side, changes shape, and releases it on the other; in the ideal cycle its binding site is never open to both sides at once, though some carriers also have a small channel-like leak. This is alternating access. Because each crossing needs a shape change, a carrier works far more slowly than a channel, and because it has a limited number of binding sites, its rate saturates as solute rises, like an enzyme with [Michaelis-Menten kinetics](/lessons/enzyme-kinetics/). A **uniporter** moves one solute, as GLUT1 moves glucose into red blood cells. A **symporter** moves two or more solutes the same way. An **antiporter** moves them opposite ways, as the Na+/Ca2+ exchanger brings sodium in and sends calcium out.
+The film at the top of the page works this section's potassium example.
 
-<LessonFigure src="/figures/membrane-transport/channel-vs-carrier-access.webp" width={1200} height={541} alt="AI-generated illustration: three panels of a plasma membrane. In the first, an open channel has a pore running straight through it with ions in single file. In the second, a carrier's binding site is open only to the outside with one solute bound. In the third, the carrier has changed shape and its site is open only to the inside." caption="An open channel is one pathway joining both sides at once, so ions stream through. A carrier's binding site is open to one side at a time: it binds its solute on one side, changes shape and releases it on the other, which is why it is slower and can saturate." />
+Picture moving one mole of a solute from outside to inside as a walk over a hill made of two slopes. The **concentration push**: from high concentration to low is downhill. The **voltage push**: membrane potential, Vm, is the inside minus the outside, so a negative Vm makes the inside downhill for cations and uphill for anions. The sum is one number:
 
-**Pumps** couple transport to a direct energy source, usually ATP hydrolysis, and so move ions uphill. This is primary active transport. Pumps work by alternating access too, so in mechanism a pump is a carrier with its own power supply, and many books group both as transporters. The Na+/K+-ATPase in the plasma membrane of animal cells exports three Na+ and imports two K+ for each ATP it splits. It moves one net charge out per cycle, so it makes the inside more negative directly. In most cells that direct effect is small, but in some it is large. Mostly it builds the sodium and potassium gradients that other proteins spend.
+<EquationCard
+  purpose="Which way any solute will flow on its own: negative means in, positive means out."
+  eq="ΔG_in = RT × ln([X]in / [X]out) + zF × Vm"
+  say="Delta G in equals R T times the natural log of inside over outside concentration, plus z F times the membrane potential."
+  symbols={[
+    ["ΔG_in", "delta G in", "the free energy change for moving one mole of X from outside to inside. Negative means downhill.", "J/mol"],
+    ["RT × ln([X]in / [X]out)", "the concentration push", "the ln measures the concentration difference on a log scale; negative when X is moving to the side where it is scarcer", "J/mol"],
+    ["zF × Vm", "the voltage push", "charge z (with its sign) times F times Vm. Zero for an uncharged solute.", "J/mol"],
+    ["R", "R, the gas constant", "8.314 J per mol per K", "J/(mol·K)"],
+    ["T", "T", "the absolute temperature, in kelvin (37 °C = 310.15 K)", "K"],
+    ["F", "F, the Faraday constant", "the charge on one mole of +1 ions, 96 485 C per mol", "C/mol"],
+    ["Vm", "V m", "the membrane potential, inside minus outside", "V"],
+  ]}
+  toolkit={["e-and-ln", "units"]}
+  check="Equal concentrations and Vm = 0 give ΔG_in = 0: nothing pushes either way."
+>
+  <Fragment slot="example">
+    <p>Sodium entering a cell at −70 mV, with teaching values of 145 mM outside and 12 mM inside, at 37 °C.</p>
+    <p>Concentration push: RT × ln(12/145) = 2579 J/mol × (−2.49) = −6.4 kJ/mol.</p>
+    <p>Voltage push: (+1) × 96 485 × (−0.070) = −6.75 kJ/mol.</p>
+    <p>Total: about −13.2 kJ/mol. Both slopes run inward, so sodium is steeply downhill into the cell. Keep this number; SGLT1 spends it below.</p>
+  </Fragment>
+</EquationCard>
 
-Spending a gradient is **secondary active transport**. SGLT1 in intestinal cells is a symporter that brings glucose in with sodium. Sodium runs down its steep inward gradient, and that downhill run pays for glucose to go uphill. The pump never touches glucose, but block the pump and glucose uptake fails as the sodium gradient runs down. You will see SGLT1 again in [digestion](/lessons/digestion/), and the same logic with protons instead of sodium in [the proton-motive force](/lessons/proton-motive-force/).
-
-<LessonFigure src="/figures/membrane-transport/pump-pays-for-symporter.webp" width={1200} height={800} alt="AI-generated illustration: a cell membrane with the Na+/K+-ATPase on the left moving three Na+ out and two K+ in using one ATP, and on the right the transporter SGLT1 carrying two Na+ and one glucose into the cell down the sodium gradient." caption="The Na+/K+-ATPase spends ATP to keep sodium high outside. SGLT1 then lets sodium run downhill into the cell, and that downhill run pays for glucose to go uphill; the pump never touches the glucose." />
-
-Two cautions. A protein's family does not tell you its mechanism: CFTR, the chloride channel mutated in cystic fibrosis, belongs to the ABC family, most of whose members are ATP-driven transporters, yet it is a channel. And ligand-gated channels that act as receptors belong to [ion channels as receptors](/lessons/ion-channels-as-receptors/) in the signaling course.
-
-## Electrochemical driving force and the Nernst equation
-
-An ion feels two pushes: its concentration difference, and the voltage across the membrane. Membrane potential, Vm, is defined as the inside minus the outside. A negative Vm pulls cations in and pushes anions out.
-
-For each ion there is one voltage at which the two pushes balance. That is its equilibrium potential, given by the Nernst equation. The log in it turns a concentration ratio into a voltage.
+For each ion there is one voltage at which the two pushes cancel exactly. That is its **equilibrium potential**, E_X. Set ΔG_in to zero and solve for Vm, and you have the Nernst equation:
 
 <EquationCard
   purpose="The voltage at which an ion’s concentration push and electrical push cancel: its equilibrium potential."
@@ -417,10 +429,8 @@ For each ion there is one voltage at which the two pushes balance. That is its e
   say="E sub X equals R T over z F, times the natural log of the outside concentration over the inside concentration."
   symbols={[
     ["E_X", "E sub X", "the equilibrium potential of ion X", "V or mV"],
-    ["R", "R, the gas constant", "8.314 J per mol per K", "J/(mol·K)"],
-    ["T", "T", "the absolute temperature, in kelvin (37 °C = 310.15 K)", "K"],
+    ["R, T, F", "R, T and F", "as in the card above: the gas constant, the absolute temperature and the Faraday constant", "—"],
     ["z", "z", "the ion’s charge, with its sign: +1 for K+, −1 for Cl−", "no unit"],
-    ["F", "F, the Faraday constant", "the charge on one mole of +1 ions, 96 485 C per mol", "C/mol"],
     ["ln", "natural log", "the logarithm to base e. ln(1) = 0; a ratio below 1 gives a negative ln, above 1 a positive one.", "no unit"],
     ["[X]out", "X out", "the ion’s concentration outside the cell", "mM"],
     ["[X]in", "X in", "the ion’s concentration inside the cell", "mM"],
@@ -429,14 +439,19 @@ For each ion there is one voltage at which the two pushes balance. That is its e
   check="If the concentrations are equal, the ratio is 1, ln(1) = 0, and E_X = 0: with no concentration push, no voltage is needed to balance it. For a cation that is more concentrated inside, like K+, the ratio is below 1, the ln is negative, and E_X is negative. Flip the sign of z (an anion) and E_X flips sign too."
 >
   <Fragment slot="example">
-    <p>Where the “61.5 mV per tenfold” shortcut comes from. At 37 °C, RT/F = (8.314 × 310.15) / 96 485 = 26.73 mV (the worked problem below does this division).</p>
+    <p>Where the “61.5 mV per tenfold” shortcut comes from. At 37 °C, RT/F = (8.314 × 310.15) / 96 485 = 26.73 mV.</p>
     <p>A tenfold ratio has ln(10) = 2.303. So for a +1 ion, a tenfold ratio gives 26.73 mV × 2.303 = about 61.5 mV. That is why E = 61.5 mV × log10(ratio) gives the same answer as the ln form.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, at equilibrium nothing is downhill: 0 = RT × ln([X]in / [X]out) + zF × E_X.</p>
+    <p>Step 2, move the concentration term across: zF × E_X = −RT × ln([X]in / [X]out) = RT × ln([X]out / [X]in), because flipping a ratio flips the sign of its ln.</p>
+    <p>Step 3, divide by zF.</p>
   </Fragment>
 </EquationCard>
 
 At E_X the ion's net passive flux is zero. Ions still cross; equal numbers cross each way.
 
-To predict direction, compare Vm with E_X. The gap between them, Vm − E_X, is the driving force; multiplying it by the charge turns it into a free energy change for moving one mole of the ion from outside to inside:
+For an ion you can fold the two pushes into one gap. The gap between Vm and E_X is the **driving force**, and multiplying it by the charge gives the same ΔG_in as before:
 
 <EquationCard
   purpose="Which way an ion will flow on its own: in, out, or neither."
@@ -453,39 +468,124 @@ To predict direction, compare Vm with E_X. The gap between them, Vm − E_X, is 
   check="If Vm equals E_X, ΔG_in is zero: no net flow, which is what equilibrium potential means. If ΔG_in is negative, net passive flow is inward; if positive, outward. Units: coulombs per mole times volts gives joules per mole."
 >
   <Fragment slot="example">
-    <p>Keep z’s sign. Take chloride (z = −1) with Vm − E_Cl = +10 mV, a round value to keep the arithmetic easy.</p>
-    <p>ΔG_in = (−1) × 96 485 × 0.010 = −965 J/mol, about −0.96 kJ/mol. It is negative, so net chloride flow is inward.</p>
-    <p>A cation with the same +10 mV gap would get +0.96 kJ/mol and flow outward. Because z is negative for an anion, the same Vm − E_X gives ΔG_in the opposite sign.</p>
+    <p>Keep z’s sign. Take a cation (z = +1) with Vm − E_X = +10 mV.</p>
+    <p>ΔG_in = (+1) × 96 485 × 0.010 = +965 J/mol, about +0.96 kJ/mol. It is positive, so net flow of the cation is outward.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1, from the Nernst derivation, the concentration push equals −zF × E_X.</p>
+    <p>Step 2, substitute it into the two-push form: ΔG_in = −zF × E_X + zF × Vm.</p>
+    <p>Step 3, take out the common factor: ΔG_in = zF × (Vm − E_X).</p>
   </Fragment>
 </EquationCard>
 
-**Worked problem.** Take a membrane permeable only to K+, at 37 °C (310.15 K), with [K+]in = 140 mM and [K+]out = 5 mM. These are teaching values close to those of a typical mammalian cell, and you may use concentrations in place of activities.
+So "compare Vm with E_X" is just the downhill rule, written for one ion.
 
-*Step 1: find E_K.* RT/F = (8.314 × 310.15) / 96 485 = 0.02673 V = 26.73 mV. The ratio 5/140 = 0.0357, and ln(0.0357) = −3.332 (a calculator’s ln key; see [e and ln](/math-toolkit/#e-and-ln)). Here z = +1, so RT/zF = RT/F. So
+**Worked problem.** Take a membrane permeable only to K+, at 37 °C (310.15 K), with [K+]in = 140 mM and [K+]out = 5 mM. These are teaching values close to those of a typical mammalian cell.
+
+*Step 1: find E_K.* RT/F = 26.73 mV (from the Nernst card). The ratio 5/140 = 0.0357, and ln(0.0357) = −3.332 (a calculator’s ln key; see [e and ln](/math-toolkit/#e-and-ln)). Here z = +1, so RT/zF = RT/F. So
 
 > E_K = 26.73 mV × (−3.332) = −89.1 mV
 
-Using base-10 logs gives the same answer: 61.5 mV × log10(5/140) = 61.5 × (−1.447) = −89.0 mV, the small difference being rounding.
+**Predict.** Clamp the membrane at −70 mV and open the channels. Does net K+ flow in or out? Now clamp at −100 mV.
 
-*Step 2: clamp at −70 mV.* Vm − E_K = −70 − (−89.1) = +19.1 mV. ΔG_in = (+1)(96 485)(+0.0191) = +1.84 kJ/mol. Moving K+ in is uphill, so net K+ flux is outward. The inside is not negative enough to hold potassium in against its concentration gradient.
+<details>
+<summary>Check your prediction</summary>
 
-*Step 3: clamp at −100 mV.* Vm − E_K = −10.9 mV, so ΔG_in = −1.06 kJ/mol, and net K+ flux is inward. This is the reversal promised at the top: the voltage now outweighs the concentration gradient.
+*At −70 mV,* out. Vm − E_K = −70 − (−89.1) = +19.1 mV, so ΔG_in = (+1)(96 485)(+0.0191) = +1.84 kJ/mol. Moving K+ in is uphill. In two-push terms, the concentration push on entering K+ is +8.59 kJ/mol and the voltage push only −6.75 kJ/mol: the inside is not negative enough to hold potassium in.
 
-*Step 4: one channel.* Suppose a single K+ channel has a conductance γ of 20 pS and behaves ohmically. At Vm = −40 mV its current is
+*At −100 mV,* in. Vm − E_K = −10.9 mV, so ΔG_in = −1.06 kJ/mol. The voltage push has grown to −9.65 kJ/mol and now outweighs the same +8.59. This is the reversal promised at the top.
+
+</details>
+
+*One channel.* Suppose a single K+ channel has a conductance γ (how easily current passes) of 20 picosiemens (pS) and behaves ohmically: its current is proportional to the driving force, Vm − E_K, and is zero at E_K. By convention, **positive current is outward movement of positive charge**. At Vm = −40 mV its current is
 
 > i = γ × (Vm − E_K) = 20 pS × 49.1 mV = 0.98 pA, outward
 
-Dividing by the charge on one ion (1.602 × 10^−19 C) gives about 6.1 × 10^6 ions per second. A carrier cycling hundreds or a few thousand times per second could not carry that. Rate is one way to tell a channel from a carrier.
+A current of 0.98 pA is 0.98 × 10^−12 coulombs per second; dividing by the charge on one ion (1.602 × 10^−19 C) gives about 6.1 × 10^6 ions per second through one pore.
 
-*Step 5: a shortcut to watch.* Many books quote 58 mV per tenfold change in concentration. That figure holds near room temperature. At 37 °C it is 61.5 mV.
+**Predict.** Now take chloride (z = −1) with the same gap, Vm − E_Cl = +10 mV. Which way does net chloride flow?
 
-Do not conclude that a cell rests at E_K. A real membrane is permeable to several ions, and the resting potential usually lies between their equilibrium potentials, nearest the one with the highest permeability. The pump's own current shifts it a little further. Many cells rest less negative than E_K for exactly this reason.
+<details>
+<summary>Check your prediction</summary>
 
-## Watching one channel and counting tracer
+Inward. ΔG_in = (−1) × 96 485 × 0.010 = −965 J/mol, negative. Because z is negative for an anion, the same Vm − E_X gives ΔG_in the opposite sign.
 
-In 1976 Erwin Neher and Bert Sakmann recorded current from a small patch of membrane on denervated frog muscle and saw it switch between levels in square steps of a few picoamperes. Each step is a current through one open channel: a flow of millions of ions per second, not one ion. The 1981 gigaseal methods of Hamill, Neher, Sakmann and colleagues made such records clean enough to use routinely.
+The physical reading, for the usual case of chloride more concentrated outside and a negative inside: the negative inside pushes chloride out. When Vm is less negative than E_Cl, that outward electrical push is weaker than chloride's inward concentration push, so chloride comes in.
 
-From a one-channel record you read two numbers. The **unitary current**, i, is the height of the step, set by the channel's conductance and the driving force. The **open probability**, P_o, is the fraction of time the channel is open. A drug that changes P_o without changing i alters gating; one that changes i alters conduction or driving force. Across many identical channels, the mean current adds up those three things:
+</details>
+
+Do not conclude that a cell rests at E_K. A real membrane is permeable to several ions, and the resting potential usually lies between their equilibrium potentials, pulled toward each according to its share of the membrane's conductance (see [the resting membrane](/lessons/resting-membrane-passive/)). Many cells rest less negative than E_K for exactly this reason.
+
+## The machinery, sorted by the rule
+
+Two kinds of protein carry solutes across: **channels** and **carriers**. ("Carrier" and "transporter" mean the same thing here. A pump is a carrier with its own power supply.) The rule cuts across those two kinds with one question: does the protein only open a path, or does it pay for uphill transport?
+
+### Downhill only: channels and uniporters
+
+**Channels** form an aqueous pore that, when open, connects both sides at once. Ions flow through, often in single file, down their electrochemical gradient. A channel can switch between open and closed (gating) in response to voltage, a ligand or stretch, but while open it has no cycle to complete, so it is fast: millions of ions per second through one pore. Aquaporins are water channels. Ligand-gated channels that act as receptors belong to [ion channels as receptors](/lessons/ion-channels-as-receptors/) in the signaling course.
+
+**Carriers** work differently. A carrier binds its solute on one side, changes shape, and releases it on the other; in the ideal cycle its binding site is never open to both sides at once, though some carriers also have a small channel-like leak. This is **alternating access**. Because each crossing needs a shape change, a carrier works far more slowly than a channel, and because it has a limited number of binding sites, its rate saturates as solute rises, like an enzyme with [Michaelis-Menten kinetics](/lessons/enzyme-kinetics/).
+
+<LessonFigure src="/figures/membrane-transport/channel-vs-carrier-access.webp" width={1200} height={541} alt="AI-generated illustration: three panels of a plasma membrane. In the first, an open channel has a pore running straight through it with ions in single file. In the second, a carrier's binding site is open only to the outside with one solute bound. In the third, the carrier has changed shape and its site is open only to the inside." caption="An open channel is one pathway joining both sides at once, so ions stream through. A carrier's binding site is open to one side at a time: it binds its solute on one side, changes shape and releases it on the other, which is why it is slower and can saturate." />
+
+A **uniporter** is a carrier that moves one solute, as GLUT1 moves glucose into red blood cells. Glucose has no charge, so only the concentration push counts: GLUT1 can speed glucose across, but with glucose alone, only until inside and outside are equal; it can never concentrate it.
+
+### Uphill by coupling: pumps, symporters and antiporters
+
+**Pumps** couple transport to a direct energy source, usually ATP hydrolysis, and so move ions uphill. This is **primary active transport**. Pumps work by alternating access too. The Na+/K+-ATPase in the plasma membrane of animal cells exports three Na+ and imports two K+ for each ATP it splits. At −70 mV both moves are uphill, but together they cost less than one ATP supplies (Going deeper, "The pump's bill"). It moves one net charge out per cycle, so it makes the inside more negative directly. In most cells that direct effect is small, a few millivolts, but in some it is large. Mostly it builds the sodium and potassium gradients that other proteins spend.
+
+Carriers that move two or more solutes can do the same with no ATP. A **symporter** moves them the same way. An **antiporter** (or exchanger) moves them opposite ways, as the Na+/Ca2+ exchanger brings sodium in and sends calcium out. Spending one solute's gradient to move another is **secondary active transport**.
+
+SGLT1 in intestinal cells is a symporter that brings glucose in with sodium. Sodium's steep downhill run inward pays for glucose to go uphill. You will see SGLT1 again in [digestion](/lessons/digestion/), and the same logic with protons instead of sodium in [the proton-motive force](/lessons/proton-motive-force/).
+
+<LessonFigure src="/figures/membrane-transport/pump-pays-for-symporter.webp" width={1200} height={800} alt="AI-generated illustration: a cell membrane with the Na+/K+-ATPase on the left moving three Na+ out and two K+ in using one ATP, and on the right the transporter SGLT1 carrying two Na+ and one glucose into the cell down the sodium gradient." caption="The Na+/K+-ATPase spends ATP to keep sodium high outside. SGLT1 then lets sodium run downhill into the cell, and that downhill run pays for glucose to go uphill; the pump never touches the glucose." />
+
+**Predict.** Block the pump with a drug. What happens to glucose uptake through SGLT1, and does it happen at once?
+
+<details>
+<summary>Check your prediction</summary>
+
+Uphill glucose uptake fails, but not at once. SGLT1 needs only that the coupled total, sodium's payment plus glucose's cost, is still downhill. With the pump blocked, the sodium gradient runs down as sodium keeps leaking in, the payment shrinks, and SGLT1 can no longer pull glucose uphill.
+
+</details>
+
+How far uphill can that payment carry glucose?
+
+<EquationCard
+  purpose="The most that a sodium-glucose symporter can concentrate glucose, set by how much sodium pays per trip."
+  eq="n × ΔG_in(Na+) + RT × ln([glucose]in / [glucose]out) ≤ 0"
+  say="n times the free energy for one mole of sodium entering, plus R T times the natural log of the glucose ratio, must be zero or less."
+  symbols={[
+    ["n", "n", "the number of Na+ carried with each glucose: 2 for SGLT1", "no unit"],
+    ["ΔG_in(Na+)", "delta G in for sodium", "the free energy for one mole of Na+ entering: about −13.2 kJ/mol in the two-push example", "J/mol"],
+    ["RT × ln(...)", "glucose's push", "concentration only, since glucose has no charge. Positive when glucose piles up inside.", "J/mol"],
+  ]}
+  toolkit={["e-and-ln", "log-scales"]}
+  check="With n = 0 the glucose term alone must be zero or less, so glucose can never be concentrated inside: that is the uniporter."
+>
+  <Fragment slot="example">
+    <p>At 37 °C, each tenfold step uphill costs glucose RT × ln(10) = 5.94 kJ/mol.</p>
+    <p>With 2 Na+ per glucose, the payment is 2 × 13.2 = 26.4 kJ/mol. That buys 26.4 / 5.94 = 4.44 tenfold steps: 10^4.44, about 27,500-fold.</p>
+    <p>With 1 Na+ per glucose, 13.2 / 5.94 = 2.22 steps: about 166-fold.</p>
+    <p>One extra sodium per trip multiplies the ceiling by about 166. These are thermodynamic ceilings, not measured ratios: leaks, and glucose leaving the cell by other carriers, keep real cells far below them.</p>
+  </Fragment>
+</EquationCard>
+
+## Telling a channel from a carrier from the data
+
+Downhill flow cannot tell a channel from a carrier, since both carry it; net uphill flow points to a coupled carrier. Beyond that, weigh rate, saturation and exchange.
+
+### Rate
+
+The worked problem's one open K+ channel carried about 6.1 million ions per second. Carriers typically cycle from tens to a few thousand times a second, and even the fastest known reach only tens of thousands, far below a million, so millions per second through one protein points to a pore.
+
+### Watching one channel
+
+In 1976 Erwin Neher and Bert Sakmann recorded a small patch of frog muscle membrane switching between levels in square steps of a few picoamperes, each the current through one open channel. The 1981 gigaseal methods made such records routine.
+
+The record looks like this: the trace sits at zero while the channel is closed, jumps to a fixed level when it opens, stays there for a random time, and jumps back. In a patch with one simple channel, every opening has the same height (some channels also show lower sub-levels); the openings come at irregular intervals.
+
+From a one-channel record you read two numbers. The **unitary current**, i, is the height of the step, set by the channel's conductance and the driving force. The **open probability**, P_o, is the fraction of time the channel is open. A drug that changes P_o without changing i alters gating; one that changes i alters conduction or driving force. Across N identical channels, the mean current combines all three:
 
 <EquationCard
   purpose="The current from a whole population of identical channels, built from what one channel does."
@@ -498,27 +598,71 @@ From a one-channel record you read two numbers. The **unitary current**, i, is t
     ["P_o", "P sub o", "the open probability: the fraction of time a channel is open, from 0 to 1", "no unit"],
   ]}
   toolkit={["subscripts"]}
-  check="If P_o is 0, there is no current however many channels there are. I is proportional to each of N, i and P_o, so the same whole-cell current can come from many different mixes."
+  check="If P_o is 0, there is no current however many channels there are."
 >
   <Fragment slot="example">
-    <p>Round values to keep the arithmetic easy: 100 channels, a 1 pA unitary current, and P_o = 0.5. I = 100 × 1 pA × 0.5 = 50 pA.</p>
+    <p>Round values: 100 channels, a 1 pA unitary current, and P_o = 0.5. I = 100 × 1 pA × 0.5 = 50 pA.</p>
     <p>Fifty channels that are always open (P_o = 1) give the same 50 pA: 50 × 1 × 1 = 50. That is why a whole-cell current alone cannot separate N, i and P_o.</p>
   </Fragment>
 </EquationCard>
 
+The sandbox below is the worked problem's 20 pS K+ channel. Move the clamp voltage first: the step height follows Vm − E_K and flips to inward below −89.1 mV. Then move P_o: only the time spent open changes.
+
 <SingleChannelRecord />
 
-Orientation matters. In an **inside-out** patch, pulled off the cell, the cytoplasmic face meets the bath; in an **outside-out** patch, the outer face does. Applying a substance that cannot cross the membrane, such as ATP, to the bath of each tells you which side it acts from. Bandwidth matters too: brief closures shorter than the recording can resolve vanish from the trace.
+Orientation matters. In an **inside-out** patch, pulled off the cell, the cytoplasmic face meets the bath; in an **outside-out** patch, the outer face does. A substance that cannot cross, such as ATP, added to each bath shows which side it acts from. Closures briefer than the recording can resolve vanish from the trace, so openings look longer than they are.
 
 <LessonFigure src="/figures/membrane-transport/patch-inside-out-vs-outside-out.webp" width={1200} height={443} alt="AI-generated illustration: three panels showing a glass pipette sealed to a patch of a cell's membrane, then an inside-out patch whose cytoplasmic face meets the bath, then an outside-out patch whose outer face meets the bath." caption="In an inside-out patch the cytoplasmic face meets the bath; in an outside-out patch the outer face does. Applying a substance that cannot cross the membrane to the bath of each shows which side it acts from." />
 
-Carriers are slower and are often studied by **tracer flux**: add radioactive substrate, stop at timed points, wash and count. Three traps follow.
+### Counting molecules: tracer flux
 
-First, tracer entry is not net uptake. A carrier can swap a labelled molecule outside for an unlabelled one inside, so label enters while total substrate stays put. In 2023 a study of the E. coli carrier DgoT found a mutant, E133Q, that kept robust substrate exchange although Glu133 is needed for net flux.
+One carrier moves too few molecules per second to show up as a current step, so carriers are often studied by counting. In a **tracer-flux** experiment you add radiolabelled substrate outside cells or vesicles, stop uptake at timed points by filtering and washing, and count the label inside. The early, straight part of the time course gives the initial rate. The numbers in the two experiments below are invented for teaching.
 
-Second, saturation points to a carrier. Initial rates fit v = Vmax[S] / (Km + [S]), levelling off at high substrate, while flux through a simple pore rises roughly in proportion to concentration over a wide range, though channels too can saturate at high ion concentrations.
+**Does the rate level off?** Two unknown proteins, A and B, are each put into matched vesicles. You measure the initial rate of uptake at six substrate concentrations and subtract the rate into protein-free vesicles.
 
-Third, a carrier's Km is not a binding constant. It depends on the conditions on the far side, on the voltage and on any coupled ion, and different protocols give different values for the same protein.
+| Substrate outside (mM) | A: rate (pmol/min) | B: rate (pmol/min) |
+| --- | --- | --- |
+| 0.5 | 20 | 2.5 |
+| 1 | 33 | 5 |
+| 2 | 50 | 10 |
+| 5 | 71 | 25 |
+| 10 | 83 | 50 |
+| 20 | 91 | 100 |
+
+Look at the last two rows first: doubling substrate from 10 to 20 mM doubles B's rate but raises A's by about a tenth.
+
+**Predict.** Which protein behaves like a carrier?
+
+<details>
+<summary>Check your prediction</summary>
+
+A. Its rate climbs steeply at first, then levels off toward a ceiling near 100 pmol/min (its Vmax), and it reaches half that ceiling at 2 mM (its Km). This is the Michaelis-Menten curve, v = Vmax[S] / (Km + [S]): once the few binding sites are nearly always occupied, more substrate cannot speed them up. B's rate stays proportional to concentration across the whole range, which is what a pore or simple diffusion does. Channels can saturate too, but usually only at tens to hundreds of millimolar, while carriers often level off at micromolar to low millimolar substrate.
+
+</details>
+
+**Is label going in the same as substrate building up?** Now a third protein, C. Preload one batch of C vesicles with 10 mM unlabelled substrate and leave another batch unloaded. Add 1 mM labelled substrate outside both. After a minute, measure the label inside and, by chemical assay, the *total* substrate inside.
+
+| Vesicles | Label inside | Total substrate inside |
+| --- | --- | --- |
+| Unloaded | little | little |
+| Preloaded with 10 mM | a lot | unchanged |
+
+**Predict.** Label pours into the preloaded vesicles. Are they taking up substrate?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The total inside did not rise. C is swapping: labelled molecules come in as unlabelled ones go out, one for one overall, so the total stays put. At first, label counts only inward traffic; the outgoing molecules were unlabelled, so the counter missed them. The unloaded vesicles take up little label because C moves quickly only when it has something to carry back on the return trip. That is the mark of an **exchanger** (though preloading can also speed up some uniporters; Going deeper, "Trans-stimulation and exchange").
+
+</details>
+
+Did the label enter *against* a gradient, 1 mM outside and 10 mM inside? At first, no. Labelled molecules have a gradient of their own, 1 mM outside and none inside, and they ran down it. Given time, an exchanger can even pile label up inside well above 1 mM, the classic counterflow test for a carrier, because each labelled molecule that enters is paid for by an unlabelled one leaving down its own gradient.
+
+Two rules for tracer data: **a rate that levels off at low substrate concentrations points to a carrier.** **Label entering is not net uptake until you measure the total.** A carrier's Km is not a simple binding constant either (Going deeper, "Km is not a binding constant").
+
+### Family does not decide mechanism
+
+CFTR, the chloride channel mutated in cystic fibrosis, belongs to the ABC family, most of whose members are ATP-driven transporters, yet it is a channel. It still binds and splits ATP, but to open and close its gate, not to push chloride uphill: chloride flows through it downhill. The reverse surprise came in the ClC family of chloride channels: its bacterial member ClC-ec1, from *E. coli*, proved in reconstituted vesicles to be a carrier that exchanges protons for chloride. Only functional tests like those above decide.
 
 ### Design problem
 
@@ -531,8 +675,30 @@ Start with controls: compare Q-injected oocytes with oocytes injected with the s
 
 Then take Q out of the oocyte. Purify it, put it into lipid vesicles and fuse them with a planar bilayer. If chloride current appears with purified Q and no other protein, Q is enough to form the pathway. This is how Christine Bear, John Riordan and colleagues showed in 1992 that purified CFTR is itself a regulated chloride channel.
 
-Next, look for single-channel events: square current steps of fixed height whose reversal potential tracks E_Cl as you change chloride on one side. Then mutate residues you suspect line the pore. If a mutation changes the unitary conductance or which anions pass, Q most likely forms the pore. A mutation that changes only P_o is consistent with Q being a regulator, or a channel whose gating you hit, so it decides less.
+Next, look for single-channel events: square current steps of fixed height whose reversal potential (the voltage at which the current changes direction) tracks E_Cl as you change chloride on one side. Then mutate residues you suspect line the pore. If a mutation changes the unitary conductance or which anions pass, Q most likely forms the pore. A mutation that changes only P_o is consistent with Q being a regulator, or a channel whose gating you hit, so it decides less.
 
-To separate a channel from a carrier, weigh rate (millions of ions per second points to a pore), saturation (a carrier usually levels off at far lower concentrations than a channel does), discrete unitary events, and exchange (does chloride entry need another ion leaving?). Remember ClC-ec1: a family name will not answer this for you.
+To separate a channel from a carrier, weigh rate, saturation, discrete unitary events, and exchange (does chloride entry need another ion leaving?). Remember ClC-ec1: a family name will not answer this for you.
 
 </details>
+
+## Going deeper
+
+### 58 or 61.5 mV per tenfold
+
+Using base-10 logs gives the same E_K as the worked problem: 61.5 mV × log10(5/140) = 61.5 × (−1.447) = −89.0 mV, the small difference being rounding. Many books quote 58 mV per tenfold change in concentration. That figure holds near room temperature. At 37 °C it is 61.5 mV.
+
+### Resting with several ions
+
+With two ions, in the simple conductance picture (passive currents only, no pump current), the resting potential sits nearer the equilibrium potential of the ion with the larger conductance. With three or more, that can fail: if a second ion's conductance nearly matches potassium's and a third ion pulls the same way, the voltage can end up nearer the second ion's equilibrium potential than E_K, as [the resting membrane](/lessons/resting-membrane-passive/) works through.
+
+### The pump's bill
+
+At −70 mV, with the lesson's teaching values, pushing Na+ out costs about +13.2 kJ/mol (the two-push example, reversed) and bringing K+ in +1.84 kJ/mol. Three Na+ out and two K+ in cost about 3 × 13.2 + 2 × 1.84 ≈ +43 kJ/mol. Splitting ATP in a cell releases roughly 50 to 60 kJ/mol, so the coupled total is downhill, with a margin, as the rule requires.
+
+### Km is not a binding constant
+
+A carrier's Km depends on the conditions on the far side (trans conditions), on the membrane voltage and on any coupled ion. Different protocols, such as zero-trans uptake (nothing inside to start) and equilibrium exchange (the same substrate on both sides), give different values for the same protein.
+
+### Trans-stimulation and exchange
+
+The preloaded-vesicle test above read fast label entry as exchange. A uniporter whose empty return step is slow also speeds up when preloaded, so faster label entry into preloaded vesicles alone does not prove an obligate exchanger. Exchange and net flux can even be pulled apart within one protein: in 2023 a study of the E. coli carrier DgoT found a mutant, E133Q (glutamate 133 replaced by glutamine), that kept robust substrate exchange although Glu133 is needed for net flux.

@@ -1,0 +1,599 @@
+{
+ "slug": "molecular-motors",
+ "title": "Molecular Motors and Cargo",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "e5a50abeabb3",
+ "sectionHashes": {
+  "(opening)": "fa8979dcb9fb",
+  "Tracks with a direction, and three families of walkers": "8009a330671a",
+  "One cycle, seen in one myosin head": "b9e986b4293a",
+  "Walking alone versus working in a crowd": "6a793841dc4a",
+  "How we know: gliding assays and optical traps": "eee06b64cf19",
+  "Worked problem: steps, force and the energy budget": "6f79a18d87b2",
+  "What sets direction and step: the swing": "2439b2bcd48f",
+  "Crowds I: muscle, where filaments slide and do not shrink": "b7178c546988",
+  "Crowds II: dynein teams": "dbb6e2045127",
+  "Design problem": "aeb697465330",
+  "Why the two heads must take turns": "f5ccb61cdf04"
+ },
+ "cards": [
+  {
+   "id": "molecular-motors-c01",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can a protein made in a motor neuron's cell body not reach a synapse a metre away by diffusion?",
+   "back": "Diffusion time grows with the square of distance (t ≈ x²/2D), so even small GFP would need about 600 years for one metre.",
+   "quote": "Diffusion time grows with the square of the distance, t ≈ x²/2D."
+  },
+  {
+   "id": "molecular-motors-c02",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "GFP diffuses in cytoplasm with D ≈ 25 µm²/s. Using t ≈ x²/2D, about how long does it take to diffuse 1 mm (1000 µm)? How does that compare with one metre?",
+   "back": "t = (1000 µm)² / (2 × 25 µm²/s) = 20,000 s ≈ 5.6 hours. A metre is 1000 times farther, so it takes 10⁶ times longer: about 600 years.",
+   "why": "Time scales with the square of distance, so diffusion works over micrometres but fails over the length of an axon.",
+   "quote": "Even a small protein like GFP (D ≈ 25 µm²/s in cytoplasm) would need about 600 years for one metre"
+  },
+  {
+   "id": "molecular-motors-c03",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Motor proteins are enzymes that turn {{c1::ATP hydrolysis}} into steps along actin filaments or microtubules.",
+   "back": "",
+   "quote": "So cells load cargo onto motor proteins, enzymes that turn ATP hydrolysis into steps along actin filaments or microtubules."
+  },
+  {
+   "id": "molecular-motors-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does it mean that actin filaments and microtubules are polar, and why are they?",
+   "back": "Their two ends differ, because every subunit in the filament faces the same way.",
+   "quote": "Both are polar: their two ends differ, because every subunit in the filament faces the same way.",
+   "section": "Tracks with a direction, and three families of walkers"
+  },
+  {
+   "id": "molecular-motors-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In most animal cells, where do microtubule plus and minus ends sit? Which way do plus ends point in an axon?",
+   "back": "Plus ends point out toward the cell edge; minus ends usually sit near the centrosome. In an axon nearly every plus end points away from the cell body.",
+   "quote": "In an axon, nearly every microtubule has its plus end pointing away from the cell body.",
+   "section": "Tracks with a direction, and three families of walkers"
+  },
+  {
+   "id": "molecular-motors-c06",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Give the track and usual direction of myosins, kinesins and dyneins.",
+   "back": "Myosins: actin, toward the barbed (+) end. Kinesins: microtubules, toward the plus end (outward). Dyneins: microtubules, toward the minus end (inward).",
+   "quote": "A motor needs a track, and the cell has two: actin filaments and microtubules",
+   "section": "Tracks with a direction, and three families of walkers"
+  },
+  {
+   "id": "molecular-motors-c07",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Name a myosin and a kinesin that move the opposite way to their family's usual direction.",
+   "back": "Purified myosin VI moves to the pointed (−) end of actin; ncd, a fruit-fly kinesin, moves to the minus end of microtubules in vitro.",
+   "quote": "ncd, a fruit-fly kinesin, moves to the minus end in vitro",
+   "section": "Tracks with a direction, and three families of walkers"
+  },
+  {
+   "id": "molecular-motors-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A drug blocks cytoplasmic dynein but not kinesin-1 in a motor neuron. Which direction of axonal transport fails, and what cargo is stranded?",
+   "back": "Transport toward the cell body (retrograde) fails, so signals from the axon tip cannot return. Kinesin-1 still carries new cargo outward.",
+   "why": "Axon microtubules point plus end out; dynein walks to the minus end, kinesin-1 to the plus end.",
+   "quote": "In a nerve cell, kinesin-1 carries new cargo out to the axon tip, and dynein brings signals from the tip back to the cell body",
+   "section": "Tracks with a direction, and three families of walkers"
+  },
+  {
+   "id": "molecular-motors-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What are the four stages of the ATP-driven cycle each foot of a motor runs on its track?",
+   "back": "Grip the track, swing while gripping, let go, re-cock.",
+   "quote": "each foot runs one ATP-driven cycle: grip the track, swing while gripping, let go, re-cock.",
+   "section": "Tracks with a direction, and three families of walkers"
+  },
+  {
+   "id": "molecular-motors-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the general rule for molecular motors, what sets the direction a motor walks and what sets its step size?",
+   "back": "The direction of the swing sets direction. The swing's reach, together with the spacing of binding sites on the track, sets the step size.",
+   "quote": "The direction of the swing sets which way the motor goes; its reach, together with the spacing of binding sites on the track, sets the step size.",
+   "section": "Tracks with a direction, and three families of walkers"
+  },
+  {
+   "id": "molecular-motors-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is a motor's force × step size capped at about 80–100 pN·nm, if it uses one ATP per step?",
+   "back": "One step's work (force × distance) cannot exceed the energy released by one ATP, about 80–100 pN·nm.",
+   "why": "The cap assumes one ATP per step, which was shown for kinesin at low load.",
+   "quote": "One step's work cannot exceed the energy of one ATP, so force × step is at most about 80–100 pN·nm.",
+   "section": "Tracks with a direction, and three families of walkers"
+  },
+  {
+   "id": "molecular-motors-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Starting from a cocked myosin II head carrying ADP and phosphate, list the cross-bridge cycle in order.",
+   "back": "Head binds actin → phosphate leaves as the lever swings (power stroke) → ADP leaves, head stays tightly bound → ATP binds, head releases actin → ATP is split, re-cocking the lever.",
+   "quote": "Start with a cocked head that has just split an ATP and still carries the ADP and phosphate.",
+   "section": "One cycle, seen in one myosin head"
+  },
+  {
+   "id": "molecular-motors-c13",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the myosin II cycle, the lever arm swings as {{c1::phosphate}} leaves.",
+   "back": "This is the power stroke. Exams often teach phosphate release as its trigger; whether phosphate leaves just before or after the swing is still debated.",
+   "quote": "The lever arm swings as phosphate leaves.",
+   "section": "One cycle, seen in one myosin head"
+  },
+  {
+   "id": "molecular-motors-c14",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the myosin II cycle, which needs a new ATP: the pull (power stroke) or letting go of actin?",
+   "back": "Letting go. ATP binding releases the head from actin; the power stroke itself needs no new ATP.",
+   "quote": "So the pull itself needs no new ATP; letting go does.",
+   "section": "One cycle, seen in one myosin head"
+  },
+  {
+   "id": "molecular-motors-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Hours after death, ATP in skeletal muscle runs out. Predict the state of the myosin heads and of the muscle, and explain.",
+   "back": "The heads finish their stroke and stay tightly bound to actin, so the muscle stiffens (rigor mortis). ATP binding is the step that lets go, so without ATP no head can release.",
+   "quote": "This is the rigor state, and it is why muscles stiffen after death (rigor mortis).",
+   "section": "One cycle, seen in one myosin head"
+  },
+  {
+   "id": "molecular-motors-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "When kinesin-1 takes one hand-over-hand step, its cargo moves 8 nm. Why does the stepping head move about 16 nm?",
+   "back": "The back head swings forward past its partner to the next site ahead, so it moves twice as far as the cargo riding at the 'hips', like your back foot when you walk.",
+   "quote": "The cargo, riding at kinesin's \"hips\", moves 8 nm; the stepping head moves about 16 nm",
+   "section": "Walking alone versus working in a crowd"
+  },
+  {
+   "id": "molecular-motors-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What makes a single kinesin-1 molecule processive, able to take about 100 steps without falling off?",
+   "back": "One head is nearly always holding on: the bound head almost never lets go until the stepping head has landed ahead of it.",
+   "why": "This coordination between heads is called gating.",
+   "quote": "The head that stays put almost never lets go until the stepping head has landed ahead of it",
+   "section": "Walking alone versus working in a crowd"
+  },
+  {
+   "id": "molecular-motors-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Myosin V walks hand over hand along actin with a stride of about {{c1::36 nm}}.",
+   "back": "Kinesin-1's cargo moves 8 nm per step.",
+   "quote": "Myosin V walks the same way along actin, with a much longer stride of about 36 nm.",
+   "section": "Walking alone versus working in a crowd"
+  },
+  {
+   "id": "molecular-motors-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can muscle myosin II, though it has two heads, not carry a vesicle along actin on its own?",
+   "back": "Each head spends most of its cycle off actin and the two heads largely act independently, with no turn-taking, so one molecule falls off almost at once. Myosin II works only in crowds of hundreds to millions of heads.",
+   "quote": "Myosin II works only in crowds: a thick filament carries hundreds of heads, and a muscle millions, so at any moment some are gripping.",
+   "section": "Walking alone versus working in a crowd"
+  },
+  {
+   "id": "molecular-motors-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A two-headed motor's heads act independently, each bound to the track 50% of the time. What fraction of the time are both heads off? What does this imply for processivity?",
+   "back": "0.5 × 0.5 = 0.25, so a quarter of the time the motor is detached: runs of only about 1 step. A high bound fraction alone is not enough; the heads must be coordinated.",
+   "why": "A run of about 100 steps needs the partner head unbound at release only about 1% of the time.",
+   "quote": "If two heads acted independently, a head bound half the time would give runs of about 1 step",
+   "section": "Why the two heads must take turns"
+  },
+  {
+   "id": "molecular-motors-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A single kinesin lets go after about 100 steps (under a micrometre). How can cargo still travel a metre down an axon?",
+   "back": "Cargo often carries more than one motor, so while one has let go another can still be bound, and a released motor can rebind.",
+   "why": "How much each contributes in cells is still being worked out.",
+   "quote": "Cargo in a cell often carries more than one motor, so while one kinesin has let go another can still be bound",
+   "section": "Walking alone versus working in a crowd"
+  },
+  {
+   "id": "molecular-motors-c23",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Describe the setup of a gliding assay for motor proteins, and what must be added for movement.",
+   "back": "Motors are stuck by their tails to a coverslip, fluorescent filaments are added on top, and filaments are watched by fluorescence microscopy. Movement needs ATP.",
+   "why": "Gliding measures many motors at once; seeing one needs an optical trap.",
+   "quote": "Stick motors by their tails to a coverslip, add fluorescent filaments and ATP, and watch with a fluorescence microscope",
+   "section": "How we know: gliding assays and optical traps"
+  },
+  {
+   "id": "molecular-motors-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Myosin V walks toward the barbed (+) end of actin. Many myosin V molecules are fixed by their tails to glass, and polarity-marked actin filaments are added with ATP. Which end of each filament leads?",
+   "back": "The pointed (−) end leads. The fixed motors cannot move, so each one, trying to walk toward the barbed end, pushes the filament the opposite way.",
+   "why": "In a gliding assay the track moves opposite to the motor's walking direction, like a loose rug under your feet.",
+   "quote": "The motors are stuck, so each one, trying to walk toward the plus end, pushes the microtubule the other way, like the rug.",
+   "section": "How we know: gliding assays and optical traps"
+  },
+  {
+   "id": "molecular-motors-c25",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an optical trap, the restoring force on a bead is F = κx, where κ is the {{c1::trap stiffness}} and x is the bead's distance from the trap centre.",
+   "back": "κ is in pN per nm. Written fully, F = −κx: the force points back toward the centre.",
+   "quote": "force = trap stiffness × the bead's distance from the trap centre, or F = κx",
+   "section": "How we know: gliding assays and optical traps"
+  },
+  {
+   "id": "molecular-motors-c26",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At low load, a bead carried by one kinesin moves 240 nm in 0.4 s in 8-nm steps. Near zero load kinesin uses one ATP per step. Find the velocity, step rate and ATP use.",
+   "back": "Velocity = 240 / 0.4 = 600 nm/s. Steps = 600 / 8 = 75 per second, so about 75 ATP per second.",
+   "quote": "Near zero load kinesin uses one ATP per 8-nm step, so this motor burns about 100 ATP per second.",
+   "section": "Worked problem: steps, force and the energy budget"
+  },
+  {
+   "id": "molecular-motors-c27",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "One kinesin stalls with its bead 150 nm from the centre of a trap of stiffness 0.04 pN/nm. Find the stall force, the work of one 8-nm step at that force, and its share of an 83 pN·nm ATP budget.",
+   "back": "F = 0.04 × 150 = 6 pN. Work = 6 pN × 8 nm = 48 pN·nm. 48 / 83 ≈ 58% of the budget.",
+   "why": "Read 58% as an upper estimate: at true stall the motor makes no net progress.",
+   "quote": "At stall, one step would do 6 pN × 8 nm = 48 pN·nm.",
+   "section": "Worked problem: steps, force and the energy budget"
+  },
+  {
+   "id": "molecular-motors-c28",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Under cell-like concentrations, one mole of ATP releases about 55 kJ. Convert this to energy per molecule in pN·nm (1 pN·nm = 10⁻²¹ J; Avogadro's number 6.022 × 10²³).",
+   "back": "55,000 J / 6.022 × 10²³ = 9.1 × 10⁻²⁰ J = about 91 pN·nm per ATP.",
+   "why": "The worked problem's round 50 kJ/mol gives 83 pN·nm; the true value depends on ATP, ADP and phosphate concentrations.",
+   "quote": "Per molecule: 50,000 J / (6.022 × 10^23) = 8.3 × 10^-20 J, and since 1 pN·nm = 10^-21 J, that is 83 pN·nm.",
+   "section": "Worked problem: steps, force and the energy budget"
+  },
+  {
+   "id": "molecular-motors-c29",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Engineered myosin V with four light chains per lever steps 24 nm. If it uses one ATP (about 83 pN·nm) per step, what is the most force it could exert? Compare with an 8-nm kinesin step.",
+   "back": "83 / 24 ≈ 3.5 pN, versus 83 / 8 ≈ 10 pN for kinesin. A longer stride buys distance at the cost of force, like a bicycle gear.",
+   "why": "Force × step cannot exceed the energy of one ATP when one ATP is used per step.",
+   "quote": "A longer stride buys distance at the cost of maximum force, like a bicycle gear.",
+   "section": "Worked problem: steps, force and the energy budget"
+  },
+  {
+   "id": "molecular-motors-c30",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A kinesin stalls at 6 pN in a trap of stiffness 0.05 pN/nm. The trap is softened to 0.025 pN/nm. Does the stall force change? Where does the bead stall?",
+   "back": "No, in the ideal picture the stall force stays 6 pN. The bead now stalls 6 / 0.025 = 240 nm from the centre instead of 120 nm.",
+   "why": "Stall force is set by the motor at a given ATP; the trap only changes how far the motor gets.",
+   "quote": "the stall force is set by the motor (at a given ATP), not by the trap.",
+   "section": "Worked problem: steps, force and the energy budget"
+  },
+  {
+   "id": "molecular-motors-c31",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Myosin V steps 36 nm with six light chains per lever and 24 nm with four. Predict the step of a version with five light chains per lever.",
+   "back": "About 30 nm: both data points give 6 nm per light chain, so step size follows lever length over the tested range.",
+   "why": "The data do not show that ever-longer levers give ever-longer steps, so do not extrapolate beyond six.",
+   "quote": "In a 2002 study, engineered myosin V with six light chains per lever stepped 36 nm, and a version with four stepped 24 nm",
+   "section": "What sets direction and step: the swing"
+  },
+  {
+   "id": "molecular-motors-c32",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "The kinesin ncd moves to the minus end although its catalytic core resembles kinesin-1's. What experiment showed which part sets its direction?",
+   "back": "Changing ncd's neck residues reversed its direction, so the neck joining core to stalk, more than the core, sets direction.",
+   "quote": "Changing the neck residues reversed ncd's direction, so the neck, more than the core, sets direction.",
+   "section": "What sets direction and step: the swing"
+  },
+  {
+   "id": "molecular-motors-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Can you tell which way a newly found motor walks from its family or sequence alone?",
+   "back": "No. The family gives the track, but the design of the swing gives the direction, and sequence does not predict it reliably enough to skip the experiment.",
+   "quote": "So the family gives you the track, and the design of the swing gives the direction.",
+   "section": "What sets direction and step: the swing"
+  },
+  {
+   "id": "molecular-motors-c34",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a skeletal muscle sarcomere, the {{c1::A band}} is the length of the thick filaments.",
+   "back": "",
+   "quote": "the A band is the length of the thick filaments;",
+   "section": "Crowds I: muscle, where filaments slide and do not shrink"
+  },
+  {
+   "id": "molecular-motors-c35",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a sarcomere, which band is thin filament only, and which zone is thick filament with no thin filament?",
+   "back": "The I band is thin filament only, on either side of a Z line. The H zone is the middle stretch of thick filament with no thin filament.",
+   "quote": "the I band is thin filament only, on either side of a Z line;",
+   "section": "Crowds I: muscle, where filaments slide and do not shrink"
+  },
+  {
+   "id": "molecular-motors-c36",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "During contraction, what happens to the I band, the H zone, the A band and the distance between Z lines? Explain.",
+   "back": "I band and H zone narrow and Z lines come together; the A band keeps its width. Thin filaments slide between thick filaments, and no filament gets shorter.",
+   "quote": "The thin filaments slide between them; no filament gets shorter.",
+   "section": "Crowds I: muscle, where filaments slide and do not shrink"
+  },
+  {
+   "id": "molecular-motors-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "According to the sliding-filament model, what should active tension track as sarcomere length changes?",
+   "back": "The number of myosin heads within reach of a thin filament, that is, the overlap between thin filaments and heads.",
+   "quote": "tension should track the number of heads within reach of a thin filament.",
+   "section": "Crowds I: muscle, where filaments slide and do not shrink"
+  },
+  {
+   "id": "molecular-motors-c38",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A frog muscle fibre is stretched from a sarcomere length of 2.2 µm to 3.0 µm and stimulated. Predict the A band, I band and H zone widths, and the tension, compared with 2.2 µm.",
+   "back": "A band unchanged; I band and H zone wider. Tension is lower, falling roughly in line with the lost overlap between thin filaments and myosin heads.",
+   "why": "Combines sliding (filaments keep their length) with the length-tension curve's plateau at 2.05–2.2 µm.",
+   "quote": "Stretched further, tension fell roughly in line with the lost overlap between thin filaments and myosin heads.",
+   "section": "Crowds I: muscle, where filaments slide and do not shrink"
+  },
+  {
+   "id": "molecular-motors-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In living skeletal muscle, what decides when myosin heads may bind the thin filament, and through which proteins?",
+   "back": "Calcium, acting through troponin and tropomyosin on the thin filament.",
+   "quote": "In living muscle, calcium decides when heads may bind, through troponin and tropomyosin on the thin filament",
+   "section": "Crowds I: muscle, where filaments slide and do not shrink"
+  },
+  {
+   "id": "molecular-motors-c40",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Purified human dynein becomes a fast, processive motor when it binds {{c1::dynactin}} together with an activating adaptor that also binds cargo.",
+   "back": "Adaptor examples: BICD2, BICDR1, HOOK3.",
+   "quote": "purified human dynein becomes a fast, processive motor when it binds a second large complex, dynactin",
+   "section": "Crowds II: dynein teams"
+  },
+  {
+   "id": "molecular-motors-c41",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why do more dyneins on a cargo not necessarily make it move faster?",
+   "back": "More dyneins can give more pull and longer runs, but speed depended on which adaptor was bound; teams can also pull against each other.",
+   "quote": "More motors can give more pull and longer runs, but they need not mean faster cargo.",
+   "section": "Crowds II: dynein teams"
+  },
+  {
+   "id": "molecular-motors-c43",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "You test which way a new motor walks using a gliding assay with polarity-marked microtubules (bright seed at the minus end). Give the result for a plus-end motor and three controls.",
+   "back": "A plus-end motor glides microtubules bright minus end first. Controls: no ATP stops movement; a no-motor chamber gives none; conventional kinesin side by side glides minus end first, checking the marking.",
+   "why": "The track moves opposite to the motor's walking direction. Confirm in the other frame with motor-coated beads on fixed microtubules.",
+   "quote": "The track moves opposite to the motor's walking direction, so a plus-end motor glides microtubules with the bright minus end leading",
+   "section": "Design problem"
+  },
+  {
+   "id": "molecular-motors-c44",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a kinesin gliding assay, ATP is replaced with the non-hydrolysable analogue AMP-PNP. Predict what the microtubules do.",
+   "back": "They stop moving and stay attached: AMP-PNP locks kinesin onto the microtubule, so the motor cannot complete its cycle.",
+   "quote": "the non-hydrolysable analogue AMP-PNP if the motor behaves like kinesin, which AMP-PNP locks onto the microtubule",
+   "section": "Design problem"
+  }
+ ]
+}
