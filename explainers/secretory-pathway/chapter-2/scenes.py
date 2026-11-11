@@ -847,4 +847,4 @@ class S13Return(SpokenScene):
 
 
 class S14End(EndCard):
-    LINE = "Fixed sacs and moving vesicles, or moving sacs and recycled enzymes."
+    LINE = "Cargo crosses the Golgi by vesicles or maturation; the question remains open."

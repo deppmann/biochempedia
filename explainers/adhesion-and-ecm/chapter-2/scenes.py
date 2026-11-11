@@ -1131,4 +1131,4 @@ class S14Return(SpokenScene):
 
 
 class S15End(EndCard):
-    LINE = "Pull can open sites and recruit ties; engineered release bypasses force."
+    LINE = "Adhesion links do not just hold; pull opens sites that reinforce them."

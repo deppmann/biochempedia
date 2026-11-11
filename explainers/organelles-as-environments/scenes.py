@@ -580,5 +580,5 @@ class S18Return(FilmScene):
 
 
 class S19End(EndCard):
-    LINE = "The gradients shown here need ongoing energy-dependent transport."
+    LINE = "Each compartment's chemistry sits where pumping in meets leaking out."
 

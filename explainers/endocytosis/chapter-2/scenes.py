@@ -804,4 +804,4 @@ class S12Close(SpokenScene):
 
 
 class S13End(EndCard):
-    LINE = "Inward budding puts the whole receptor within lysosomal reach."
+    LINE = "A cell can destroy a receptor itself by budding it toward lysosomes."
