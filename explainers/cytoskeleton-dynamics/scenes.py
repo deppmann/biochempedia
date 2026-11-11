@@ -1,424 +1,648 @@
-"""Why microtubule ends fall apart: the GTP cap  (Biochemistrypedia explainer)
+"""Tight Ends, Loose Ends — one carried schematic world.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP
+  GOLD   fresh ATP/GTP-bearing subunits
+  BLUE   old ADP/GDP-bearing subunits
+  GREEN  a tight end / low critical concentration
+  RED    a loose end / high critical concentration
+  TEAL   the free-subunit gauge
+  TEXT   labels and neutral structure
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the microtubule lattice behind the end (GDP-tubulin; also a microtubule drawn whole)
-  ORANGE = tubulin that still carries GTP: free dimers about to join, and the GTP cap
-  GREEN  = growth (growth line on the trace, "grows")
-  RED    = shortening (shortening line on the trace, the peeling end)
-  YELLOW = events and the question: catastrophe, rescue, the highlighted ratio, the "?"
-  GREY   = seed, axes, labels, not-the-subject
+All curves in this film are schematic and explicitly labelled as such.  Molecular
+subunits are represented only as blocks or dots, never as molecular structures.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
+GOLD_FRESH = GOLD
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def beadcol(x, y, color, r=0.17, dy=0.36, rows=5):
-    """one column of beads across the protofilaments (a tube seen from the side)."""
-    return VGroup(*[Dot([x, y + (k - (rows - 1) / 2) * dy, 0], radius=r, color=color) for k in range(rows)])
+# Shared geometry: carried scenes rebuild these landmarks exactly.
+FY = -0.35
+BX = 0.56
+BH = 0.90
+BW = 0.50
+DOOR_X = 1.15
+GAUGE_X = 5.35
 
 
-def tube(x0, y, colors, r=0.17, dx=0.5, dy=0.36):
-    return [beadcol(x0 + i * dx, y, c, r, dy) for i, c in enumerate(colors)]
-
-
-def peel(cols, y, lag=0.12, rt=0.8, spread=0.55):
-    """beads of the last columns swing outward from the axis and fade: protofilaments peeling."""
-    anims = []
-    for col in cols:
-        sub = []
-        for d in col:
-            off = d.get_center()[1] - y
-            sgn = 0 if abs(off) < 1e-3 else np.sign(off)
-            sub.append(d.animate.shift([0.45, sgn * (spread + 0.9 * abs(off)), 0]).set_opacity(0))
-        anims.append(AnimationGroup(*sub, run_time=rt))
-    return LaggedStart(*anims, lag_ratio=lag)
-
-
-def lab(text, color=GREY, size=26, weight=NORMAL):
-    return T(text, size, color, weight=weight)
-
-
-class Plot:
-    """Tiny axes with no LaTeX: maps data (x, y) onto the frame."""
-
-    def __init__(self, origin, w, h, xmax, ymax):
-        self.o = np.array([origin[0], origin[1], 0.0]); self.w, self.h, self.xm, self.ym = w, h, xmax, ymax
-
-    def p(self, x, y):
-        return self.o + np.array([x / self.xm * self.w, y / self.ym * self.h, 0.0])
-
-    def axes(self):
-        xa = Line(self.o, self.o + RIGHT * self.w, color=GREY, stroke_width=3)
-        ya = Line(self.o, self.o + UP * self.h, color=GREY, stroke_width=3)
-        return VGroup(xa, ya)
-
-    def xtick(self, x, label, size=24):
-        t = T(label, size, GREY).next_to(self.p(x, 0), DOWN, buff=0.14)
-        k = Line(self.p(x, 0), self.p(x, 0) + DOWN * 0.1, color=GREY, stroke_width=3)
-        return VGroup(k, t)
-
-    def ytick(self, y, label, size=22):
-        t = M(label, size, GREY).next_to(self.p(0, y), LEFT, buff=0.14)
-        k = Line(self.p(0, y), self.p(0, y) + LEFT * 0.1, color=GREY, stroke_width=3)
-        return VGroup(k, t)
-
-    def seg(self, a, b, color, w=7):
-        return Line(self.p(*a), self.p(*b), color=color, stroke_width=w)
-
-
-PL = Plot((-5.6, -2.5), 11.0, 5.0, 330, 10)
-A, B, C = (0, 5.0), (180, 9.5), (192, 3.5)      # start, peak, trough of the lesson's made-up trace
-D, E = (312, 6.5), (325, 0.0)
-
-
-def plot_frame():
-    ax = PL.axes()
-    ticks = VGroup(*[PL.ytick(v, s) for v, s in [(0, "0"), (3.5, "3.5"), (5.0, "5.0"), (9.5, "9.5")]],
-                   PL.xtick(0, "0"), PL.xtick(180, "180 s"))
-    yl = T("length from the seed (µm)", 24, GREY).move_to([-3.4, PL.o[1] + PL.h + 0.4, 0])
-    xl = T("time (s)", 24, GREY).move_to([4.9, PL.o[1] - 0.55, 0])
-    return ax, ticks, yl, xl
-
-
-# tube geometry shared by the large side-view scenes
-TX0, TY = -6.0, 0.1
-BIG = dict(r=0.32, dx=0.72, dy=0.68)
-
-
-def big_tube(n_blue, n_cap, y=TY):
-    return tube(TX0, y, [BLUE] * n_blue + [ORANGE] * n_cap, **BIG)
-
-
-def until(scene, phrase, margin=0.35, floor=0.4, nth=0):
-    """seconds from now until just before the narrator says `phrase` (so an animation can fill the gap)."""
+def until(scene, phrase, margin=0.25, floor=0.35, nth=0):
+    """Time available for an animation before a spoken cue."""
     return max(floor, scene.t_of(phrase, nth) - 0.2 - scene.elapsed() - margin)
 
 
-class S00Title(TitleCard):
-    LESSON = "Cytoskeletal polymers and dynamics"
-    TITLE = "Why microtubule ends fall apart"
+def label(text, color=TEXT, size=30, weight=NORMAL):
+    return T(text, size=size, color=color, weight=weight)
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """the puzzle: a tube grows slowly, shrinks many times faster, grows again. Why built to fail?"""
+def subunit(x, y=FY, color=BLUE, w=BW, h=BH):
+    return RoundedRectangle(
+        corner_radius=0.07, width=w, height=h,
+        stroke_color=color, stroke_width=2.4,
+        fill_color=color, fill_opacity=0.42,
+    ).move_to([x, y, 0])
 
+
+def filament(xs, colors, y=FY):
+    return VGroup(*[subunit(x, y, c) for x, c in zip(xs, colors)])
+
+
+def tube_columns(x0, count, fresh=0, y=0.05, rows=5, dx=0.56, dy=0.48):
+    cols = VGroup()
+    for i in range(count):
+        c = GOLD_FRESH if i >= count - fresh else BLUE
+        col = VGroup(*[subunit(x0 + i * dx, y + (r - (rows - 1) / 2) * dy,
+                                     c, w=0.47, h=0.39) for r in range(rows)])
+        cols.add(col)
+    return cols
+
+
+def drifting_field(seed=1, n=34, opacity=0.55, speed=1.0):
+    """Gold free subunits with slow, deterministic wraparound drift."""
+    rng = np.random.RandomState(seed)
+    dots = VGroup()
+    # A dense field is part of the puzzle: free building blocks remain abundant.
+    n = int(round(n * 1.2))
+    for _ in range(n):
+        d = Dot([rng.uniform(-6.55, 6.55), rng.uniform(-3.55, 3.55), 0],
+                radius=rng.uniform(0.065, 0.115), color=GOLD_FRESH)
+        d.set_opacity(opacity)
+        d.v = np.array([rng.uniform(-0.16, 0.18), rng.uniform(0.10, 0.24), 0]) * speed
+
+        def drift(m, dt):
+            m.shift(m.v * dt)
+            if m.get_y() > 3.72:
+                m.shift(DOWN * 7.35)
+            if m.get_x() > 6.92:
+                m.shift(LEFT * 13.75)
+            elif m.get_x() < -6.92:
+                m.shift(RIGHT * 13.75)
+
+        d.add_updater(drift)
+        dots.add(d)
+    dots.set_z_index(-8)
+    return dots
+
+
+def doorway(x=DOOR_X, y=FY):
+    posts = VGroup(
+        Line([x, y - 0.72, 0], [x, y + 0.72, 0], color=TEXT, stroke_width=7),
+        Line([x, y + 0.72, 0], [x + 0.42, y + 0.72, 0], color=TEXT, stroke_width=7),
+        Line([x, y - 0.72, 0], [x + 0.42, y - 0.72, 0], color=TEXT, stroke_width=7),
+    )
+    return posts
+
+
+def gauge(pointer_y=0.0, low_y=-1.25, high_y=1.25, show_ticks=False):
+    x = GAUGE_X
+    body = RoundedRectangle(corner_radius=0.12, width=1.15, height=5.0,
+                            stroke_color=TEAL, stroke_width=3,
+                            fill_color=TEAL, fill_opacity=0.08).move_to([x, 0, 0])
+    fill = Rectangle(width=0.72, height=max(0.18, pointer_y + 2.25),
+                     stroke_width=0, fill_color=TEAL, fill_opacity=0.38)
+    fill.move_to([x, -2.25 + fill.height / 2, 0])
+    pointer = Triangle(color=TEAL, fill_color=TEAL, fill_opacity=1).scale(0.12).rotate(-PI / 2)
+    pointer.move_to([x - 0.72, pointer_y, 0])
+    title = label("free subunits", TEAL, 28, BOLD).next_to(body, UP, buff=0.18)
+    schematic = label("schematic", TEXT, 22).set_opacity(0.72).next_to(body, DOWN, buff=0.14)
+    g = VGroup(body, fill, pointer, title, schematic)
+    g.pointer, g.fill, g.body = pointer, fill, body
+    if show_ticks:
+        lo = Line([x - 0.58, low_y, 0], [x + 0.58, low_y, 0], color=GREEN, stroke_width=6)
+        hi = Line([x - 0.58, high_y, 0], [x + 0.58, high_y, 0], color=RED, stroke_width=6)
+        g.add(lo, hi)
+        g.low, g.high = lo, hi
+    return g
+
+
+def tick_pair_labels():
+    lo = label("tight Cc", GREEN, 28, BOLD).move_to([3.92, -1.25, 0])
+    hi = label("loose Cc", RED, 28, BOLD).move_to([3.90, 1.25, 0])
+    return lo, hi
+
+
+def arrow_with_label(start, end, text, color):
+    a = Arrow(start, end, buff=0.05, color=color, stroke_width=7, tip_length=0.28)
+    t = label(text, color, 30, BOLD).next_to(a, UP, buff=0.12)
+    return VGroup(a, t)
+
+
+class S00Hook(SpokenScene):
     def construct(self):
-        y = -0.1
-        dx, x0 = 0.62, -5.2
-        kw = dict(r=0.3, dy=0.62)
-        seed = Rectangle(width=0.7, height=3.4, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                         fill_opacity=0.4).move_to([-5.7, y, 0])
-        seed_l = lab("seed", GREY, 26).move_to([-5.7, y - 2.05, 0])
-        rng = np.random.RandomState(4)
-        dots = VGroup()
-        while len(dots) < 26:
-            px, py = rng.uniform(-6.0, 6.0), rng.choice([rng.uniform(2.35, 3.3), rng.uniform(-3.3, -2.5)])
-            if py < 0 and abs(px) < 2.4:
-                continue
-            dots.add(Dot([px, py, 0], radius=0.09, color=ORANGE))
-        dish = lab("purified tubulin", ORANGE, 26).move_to([0, -3.0, 0])
-        cols = [beadcol(x0 + i * dx, y, BLUE, **kw) for i in range(16)]
+        dots = drifting_field(2, 42, 0.62, 1.25)
+        seed = RoundedRectangle(corner_radius=0.12, width=0.75, height=2.0,
+                                stroke_color=GREY, fill_color=GREY, fill_opacity=0.42).move_to([-5.9, -0.25, 0])
+        cols = tube_columns(-5.35, 16, fresh=3, y=-0.25, rows=3, dx=0.55, dy=0.52)
+        cols.scale(1.35, about_point=np.array([-5.35, -0.25, 0]))
+        tube_lab = label("microtubule, schematic", TEXT, 28).move_to([-2.35, -1.65, 0])
+        q = label("?", TEXT, 94, BOLD).move_to([-1.4, 2.45, 0])
+        clock_box = RoundedRectangle(corner_radius=0.12, width=1.75, height=0.82,
+                                     stroke_color=TEXT, stroke_width=2).move_to([5.55, 2.86, 0])
+        clock = M("0:00", 30, TEXT).move_to(clock_box)
+        clock_note = label("schematic", TEXT, 22).set_opacity(0.75).next_to(clock_box, DOWN, buff=0.1)
+        self.add(dots, seed, VGroup(*cols[:5]), tube_lab, q)
 
         self.at("Watch one microtubule")
-        self.play(FadeIn(seed), FadeIn(seed_l), run_time=0.8)
-        self.at("grow from")
-        self.play(LaggedStart(*[FadeIn(c, shift=LEFT * 0.4) for c in cols[:3]], lag_ratio=1.0, run_time=1.8))
-        self.at("purified tubulin")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in dots], lag_ratio=0.03), FadeIn(dish), run_time=1.4)
+        self.play(FadeIn(clock_box), FadeIn(clock), FadeIn(clock_note), run_time=0.55)
+        self.play(LaggedStart(*[FadeIn(c, shift=LEFT * 0.22) for c in cols[5:12]],
+                              lag_ratio=0.45),
+                  Transform(clock, M("2:20", 30, TEXT).move_to(clock_box)),
+                  run_time=until(self, "It lengthens slowly", floor=2.2), rate_func=linear)
+        self.at("It lengthens slowly")
+        self.play(LaggedStart(*[FadeIn(c, shift=LEFT * 0.18) for c in cols[12:]], lag_ratio=0.65),
+                  Transform(clock, M("3:00", 30, TEXT).move_to(clock_box)),
+                  run_time=until(self, "then collapses", floor=1.5), rate_func=linear)
 
-        slow = lab("slow growth", GREEN, 32, BOLD).move_to([-1.0, 2.0, 0])
-        self.at("lengthens slowly")
-        self.play(FadeIn(slow), LaggedStart(*[FadeIn(c, shift=LEFT * 0.3) for c in cols[3:15]], lag_ratio=1.0,
-                                             run_time=until(self, "then shrinks many times faster")))
-        fast = lab("rapid shortening", RED, 32, BOLD).move_to([-1.0, 2.0, 0])
-        self.at("then shrinks many times faster")
-        self.play(ReplacementTransform(slow, fast),
-                  LaggedStart(*[FadeOut(c, shift=RIGHT * 0.1) for c in reversed(cols[5:15])], lag_ratio=0.1, run_time=0.9))
-        again = lab("growing again", GREEN, 32, BOLD).move_to([-1.0, 2.0, 0])
-        self.at("starts growing again")
-        self.play(ReplacementTransform(fast, again),
-                  LaggedStart(*[FadeIn(c, shift=LEFT * 0.3) for c in cols[5:11]], lag_ratio=1.0,
-                              run_time=until(self, "Why would a polymer", margin=0.2)))
-        q = T("?", 140, YELLOW, weight=BOLD).move_to([4.9, y, 0])
-        self.at("Why would a polymer")
-        self.play(FadeOut(again), FadeIn(q, scale=0.5), run_time=0.6)
-        head = T("Why build a polymer to fail?", 40, font=TITLE_FONT).move_to([-0.5, 1.9, 0])
-        self.play(Write(head), run_time=1.2)
+        self.at("then collapses")
+        peel = VGroup(*[c.copy() for c in cols[6:]])
+        self.add(peel)
+        self.remove(*cols[6:])
+        anims = []
+        for i, col in enumerate(reversed(peel)):
+            for j, block in enumerate(col):
+                sgn = j - 1
+                anims.append(block.animate.shift(RIGHT * 0.65 + UP * sgn * (0.35 + 0.06 * i)).rotate(-0.12 * sgn).set_opacity(0))
+        self.play(LaggedStart(*anims, lag_ratio=0.025), run_time=1.85)
+
+        self.at("A crystal")
+        cube = Square(1.05, color=GOLD_FRESH, fill_color=GOLD_FRESH, fill_opacity=0.28, stroke_width=4).move_to([5.45, -1.15, 0])
+        crystal_lab = label("crystal: settles", GOLD_FRESH, 28, BOLD).next_to(cube, DOWN, buff=0.16)
+        self.play(FadeIn(cube, shift=LEFT * 0.6), FadeIn(crystal_lab), run_time=0.75)
+        regrow = tube_columns(-0.895, 4, fresh=2, y=-0.25, rows=3, dx=0.55, dy=0.52)
+        regrow.scale(1.35, about_point=np.array([-0.895, -0.25, 0]))
+        self.play(LaggedStart(*[FadeIn(c, shift=LEFT * 0.2) for c in regrow], lag_ratio=0.6),
+                  run_time=until(self, "does not do this", floor=1.2), rate_func=linear)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Trace(SpokenScene):
-    """length versus time: slow growth, then a drop 20 times faster."""
+class S01Title(TitleCard):
+    LESSON = "Cytoskeletal Polymers and Dynamics"
+    TITLE = "Tight Ends, Loose Ends"
 
     def construct(self):
-        ax, ticks, yl, xl = plot_frame()
-        head = T("One plus end: a made-up trace", 34, font=TITLE_FONT).to_edge(UP, buff=0.35)
-        self.at("Plot the length")
-        self.play(Create(ax), FadeIn(ticks), FadeIn(yl), FadeIn(xl), run_time=1.4)
+        dots = drifting_field(3, 38, 0.28, 0.9)
+        self.add(dots)
+        super().construct()
 
-        g1 = PL.seg(A, B, GREEN)
-        tip = Dot(PL.p(*A), radius=0.13, color=YELLOW)
-        pe = lab("plus end", YELLOW, 28, BOLD).move_to(PL.p(45, 7.6))
-        pe_a = Arrow(pe.get_bottom() + DOWN * 0.05, PL.p(3, 5.2), buff=0, color=YELLOW, stroke_width=4, tip_length=0.2,
-                     max_tip_length_to_length_ratio=0.5)
-        self.at("plus end")
-        self.play(FadeIn(tip, scale=2.0), FadeIn(pe), GrowArrow(pe_a), run_time=0.6)
-        self.at("made up")
-        self.play(Write(head), run_time=1.2)
-        self.at("It grows")
-        self.play(FadeOut(pe), FadeOut(pe_a), run_time=0.3)
-        self.play(Create(g1), MoveAlongPath(tip, g1), run_time=until(self, "That is", margin=0.9), rate_func=linear)
-        drop_ref = DashedLine(PL.p(180, 0), PL.p(180, 9.5), color=GREY, stroke_width=2)
-        self.play(Create(drop_ref), run_time=0.4)
-        self.at("That is")
-        gl = lab("growth: 1.5 µm per min", GREEN, 28, BOLD).move_to(PL.p(95, 2.6))
-        self.play(FadeIn(gl, shift=UP * 0.15), run_time=0.5)
 
-        g2 = PL.seg(B, C, RED)
-        self.at("Then it loses")
-        self.play(Create(g2), tip.animate.move_to(PL.p(*C)), run_time=0.5, rate_func=linear)
-        l6 = lab("loses 6 µm in 12 s", RED, 28).move_to([3.5, 1.3, 0])
-        self.at("loses six")
-        self.play(FadeIn(l6, shift=LEFT * 0.15), run_time=0.5)
-        self.at("and the line")
-        self.play(Indicate(g2, color=YELLOW, scale_factor=1.3), run_time=0.8)
-        self.at("That is", nth=1)
-        sl = lab("shortening: 30 µm per min", RED, 28, BOLD).move_to([3.5, 0.6, 0])
-        self.play(FadeIn(sl, shift=LEFT * 0.15), run_time=0.5)
-        self.at("times faster")
-        ff = lab("20 times faster", YELLOW, 32, BOLD).move_to([3.5, -0.1, 0])
-        self.play(FadeIn(ff, scale=0.8), Indicate(sl, color=YELLOW, scale_factor=1.05), run_time=0.7)
+class S02Doorway(SpokenScene):
+    def construct(self):
+        dots = drifting_field(4, 28, 0.44, 1.0)
+        xs = np.arange(-5.7, 0.75, BX)
+        fil = filament(xs, [BLUE] * (len(xs) - 3) + [GOLD_FRESH] * 3)
+        end_glow = SurroundingRectangle(VGroup(*fil[-3:]), color=GOLD_FRESH, buff=0.12, stroke_width=2)
+        g = gauge(-0.55)
+        self.add(dots, fil, end_glow, g)
+
+        self.at("treat it as a doorway")
+        door = doorway()
+        self.play(Create(door), run_time=0.7)
+        arrive = arrow_with_label([3.0, 0.85, 0], [1.48, 0.85, 0], "arrive  0", GOLD_FRESH)
+        leave = arrow_with_label([1.48, -1.3, 0], [3.0, -1.3, 0], "leave  0", BLUE)
+
+        self.at("Subunits arrive")
+        arriving = VGroup(*[Dot([3.0 + 0.35 * i, 0.25 + 0.22 * (-1) ** i, 0], radius=0.09, color=GOLD_FRESH) for i in range(4)])
+        self.play(GrowArrow(arrive[0]), FadeIn(arrive[1]), FadeIn(arriving), run_time=0.55)
+        dock = subunit(0.97, FY, GOLD_FRESH)
+        self.play(arriving.animate.move_to([1.05, 0.05, 0]).set_opacity(0), FadeIn(dock, shift=RIGHT * 0.25),
+                  Transform(arrive[1], label("arrive  1", GOLD_FRESH, 30, BOLD).move_to(arrive[1])), run_time=0.9)
+
+        self.at("how many are free")
+        high = gauge(1.25)
+        high.move_to(g)
+        self.play(Transform(g, high), arrive[0].animate.set_stroke(width=13),
+                  dots.animate.set_opacity(0.72), run_time=1.0)
+        for num in (2, 3):
+            b = subunit(0.97 + (num - 1) * BX, FY, GOLD_FRESH)
+            self.play(FadeIn(b, shift=RIGHT * 0.25),
+                      Transform(arrive[1], label(f"arrive  {num}", GOLD_FRESH, 30, BOLD).move_to(arrive[1])), run_time=0.42)
+
+        self.at("They leave")
+        self.play(GrowArrow(leave[0]), FadeIn(leave[1]), run_time=0.5)
+        loose = fil[-1].copy()
+        self.add(loose)
+        self.play(loose.animate.shift(RIGHT * 1.55).set_opacity(0),
+                  Transform(leave[1], label("leave  1", BLUE, 30, BOLD).move_to(leave[1])), run_time=0.8)
+
+        self.at("does not depend")
+        low = gauge(-1.45)
+        low.move_to(g)
+        self.play(Transform(g, low), dots.animate.set_opacity(0.3), run_time=0.65)
+        high2 = gauge(1.1)
+        high2.move_to(g)
+        self.play(Transform(g, high2), dots.animate.set_opacity(0.68), run_time=0.65)
+        self.play(Indicate(leave[0], color=BLUE, scale_factor=1.0),
+                  Transform(leave[1], label("leave  2", BLUE, 30, BOLD).move_to(leave[1])), run_time=0.55)
+
+        self.at("the two balance")
+        mid = gauge(0.0)
+        mid.move_to(g)
+        self.play(Transform(g, mid), arrive[0].animate.set_stroke(width=7),
+                  Transform(arrive[1], label("arrive  4", GOLD_FRESH, 30, BOLD).move_to(arrive[1])),
+                  Transform(leave[1], label("leave  4", BLUE, 30, BOLD).move_to(leave[1])), run_time=0.9)
+
+        self.at("critical concentration")
+        cc = Line([GAUGE_X - 0.58, 0, 0], [GAUGE_X + 0.58, 0, 0], color=TEAL, stroke_width=7)
+        ccl = label("Cc", TEAL, 32, BOLD).next_to(cc, LEFT, buff=0.15)
+        self.play(Create(cc), FadeIn(ccl), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Cap(SpokenScene):
-    """zoom on the plus end: dimers join with GTP, the ones behind turn to GDP, the cap holds the end."""
+class S03Settle(SpokenScene):
+    def construct(self):
+        dots = drifting_field(5, 31, 0.5, 1.0)
+        xs = np.arange(-5.7, 0.75, BX)
+        fil = filament(xs, [BLUE] * (len(xs) - 3) + [GOLD_FRESH] * 3)
+        door = doorway()
+        g = gauge(0.0)
+        cc = Line([GAUGE_X - 0.58, 0, 0], [GAUGE_X + 0.58, 0, 0], color=TEAL, stroke_width=7)
+        ccl = label("Cc", TEAL, 32, BOLD).next_to(cc, LEFT, buff=0.15)
+        self.add(dots, fil, door, g, cc, ccl)
+
+        self.at("Above it")
+        high = gauge(1.25); high.move_to(g)
+        grows = arrow_with_label([0.0, 1.7, 0], [2.2, 1.7, 0], "grows", GREEN)
+        extra = VGroup(*[subunit(0.97 + i * BX, FY, GOLD_FRESH) for i in range(3)])
+        self.play(Transform(g, high), GrowArrow(grows[0]), FadeIn(grows[1]),
+                  LaggedStart(*[FadeIn(b, shift=LEFT * 0.2) for b in extra], lag_ratio=0.5), run_time=1.0)
+
+        self.at("Below it")
+        low = gauge(-1.25); low.move_to(g)
+        shrinks = arrow_with_label([2.2, 1.7, 0], [0.0, 1.7, 0], "shrinks", RED)
+        self.play(Transform(g, low), ReplacementTransform(grows, shrinks),
+                  LaggedStart(*[FadeOut(b, shift=RIGHT * 0.4) for b in reversed(extra)], lag_ratio=0.35), run_time=1.0)
+
+        self.at("If subunits never use")
+        neutral = filament(np.arange(-5.7, 2.25, BX), [TEXT] * len(np.arange(-5.7, 2.25, BX)))
+        left_door = doorway(-6.0, FY).rotate(PI)
+        self.play(FadeOut(shrinks), FadeOut(door), FadeOut(fil), FadeIn(neutral), Create(left_door),
+                  Create(doorway(2.52, FY)), run_time=1.0)
+
+        self.at("share one critical concentration")
+        lcc = chip("Cc", TEAL, 28).move_to([-5.75, 1.45, 0])
+        rcc = chip("Cc", TEAL, 28).move_to([2.52, 1.45, 0])
+        lcc[0].set_fill(BG, opacity=1.0)
+        rcc[0].set_fill(BG, opacity=1.0)
+        self.play(FadeIn(lcc), FadeIn(rcc), Indicate(cc, color=TEAL), run_time=0.75)
+
+        self.at("would grow until")
+        high2 = gauge(1.55); high2.move_to(g)
+        ext_l = VGroup(*[subunit(-5.98 - i * BX, FY, TEXT) for i in range(2)])
+        ext_r = VGroup(*[subunit(2.52 + i * BX, FY, TEXT) for i in range(2)])
+        self.play(Transform(g, high2), dots.animate.set_opacity(0.68),
+                  LaggedStart(*[FadeIn(b) for b in [*ext_l, *ext_r]], lag_ratio=0.35), run_time=1.25)
+        mid = gauge(0.0); mid.move_to(g)
+        self.play(Transform(g, mid), dots.animate.set_opacity(0.34), run_time=1.1)
+
+        self.at("simply settle")
+        full = VGroup(ext_l, neutral, ext_r)
+        br = Brace(full, UP, color=TEXT, buff=0.2)
+        settled = label("settled", TEXT, 32, BOLD).next_to(br, UP, buff=0.12)
+        self.play(GrowFromCenter(br), FadeIn(settled), FadeOut(lcc), FadeOut(rcc), run_time=0.7)
+        self.play(Indicate(full, color=TEXT, scale_factor=1.01), run_time=0.8)
+        self.finish()
+
+
+class S04Fresh(SpokenScene):
+    def construct(self):
+        dots = drifting_field(6, 34, 0.48, 1.1)
+        xs = np.arange(-5.9, 3.0, BX)
+        neutral = filament(xs, [TEXT] * len(xs))
+        br = Brace(neutral, UP, color=TEXT, buff=0.2)
+        settled = label("settled", TEXT, 32, BOLD).next_to(br, UP, buff=0.12)
+        self.add(dots, neutral, br, settled)
+
+        self.at("actin and tubulin differ")
+        old = filament(xs[:-4], [BLUE] * (len(xs) - 4))
+        fresh = filament(xs[-4:], [GOLD_FRESH] * 4)
+        self.play(FadeOut(br), FadeOut(settled), ReplacementTransform(neutral, VGroup(old, fresh)), run_time=0.9)
+
+        self.at("arrives carrying fresh")
+        fresh_chip = chip("fresh: ATP or GTP", GOLD_FRESH, 28).move_to([-3.9, 2.55, 0])
+        dots.set_color(GOLD_FRESH)
+        new = VGroup(*[subunit(3.0 + i * BX, FY, GOLD_FRESH) for i in range(3)])
+        self.play(FadeIn(fresh_chip), LaggedStart(*[FadeIn(b, shift=LEFT * 0.25) for b in new], lag_ratio=0.5), run_time=1.2)
+
+        self.at("after joining")
+        old_chip = chip("old: ADP or GDP", BLUE, 28).move_to([-3.9, 1.75, 0])
+        wave = VGroup(fresh, new)
+        blocks = [b for grp in [fresh, new] for b in grp]
+        self.play(FadeIn(old_chip), LaggedStart(*[b.animate.set_color(BLUE) for b in blocks[:4]], lag_ratio=0.55), run_time=1.45)
+
+        self.at("releases the phosphate")
+        phosphate = chip("phosphate leaves", TEXT, 28).move_to([3.9, 2.35, 0])
+        self.play(FadeIn(phosphate, shift=UP * 0.25),
+                  LaggedStart(*[b.animate.set_color(BLUE) for b in blocks[4:6]], lag_ratio=0.5), run_time=0.9)
+        self.play(FadeOut(phosphate, shift=UP * 0.3), blocks[-1].animate.set_color(BLUE), run_time=0.65)
+
+        self.at("hold on less tightly")
+        old_all = VGroup(old, wave)
+        self.play(old_all.animate.shift(UP * 0.08), run_time=0.28, rate_func=there_and_back)
+        self.play(old_all.animate.shift(DOWN * 0.08), run_time=0.28, rate_func=there_and_back)
+        self.play(Indicate(old_chip, color=BLUE, scale_factor=1.04), run_time=0.7)
+        self.finish()
+
+
+class S05Idea(SpokenScene):
+    def construct(self):
+        dots = drifting_field(7, 34, 0.48, 1.0)
+        xs = np.arange(-5.8, 2.6, BX)
+        fil = filament(xs, [BLUE] * (len(xs) - 4) + [GOLD_FRESH] * 4)
+        g0 = gauge(0.0)
+        self.add(dots, fil, g0)
+
+        self.at("Hydrolysis")
+        wave = SurroundingRectangle(VGroup(*fil[-5:-3]), color=TEXT, buff=0.08, stroke_width=3)
+        self.play(Create(wave), fil[-5].animate.set_color(BLUE), run_time=0.65)
+        self.play(Transform(wave, SurroundingRectangle(VGroup(*fil[-4:-2]), color=TEXT, buff=0.08, stroke_width=3)),
+                  fil[-4].animate.set_color(BLUE), run_time=0.65)
+
+        self.at("two kinds of end")
+        g = gauge(0.0, show_ticks=True)
+        g.move_to(g0)
+        self.play(FadeOut(wave), Transform(g0, g), run_time=0.85)
+
+        self.at("A tight end")
+        tight = chip("tight", GREEN, 30).move_to([2.05, 1.15, 0])
+        lo, hi = tick_pair_labels()
+        link_r = VMobject(color=GREEN, stroke_width=3).set_points_as_corners(
+            [tight.get_right(), [2.8, -1.95, 0], [4.3, -1.95, 0], [4.55, -1.25, 0]])
+        self.play(FadeIn(tight), Create(link_r), FadeIn(lo), run_time=0.8)
+        incoming = VGroup(*[subunit(2.6 + i * BX, FY, GOLD_FRESH) for i in range(2)])
+        self.play(LaggedStart(*[FadeIn(b, shift=LEFT * 0.22) for b in incoming], lag_ratio=0.5), run_time=0.8)
+
+        self.at("A loose end")
+        loose = chip("loose", RED, 30).move_to([-5.15, 1.15, 0])
+        link_l = VMobject(color=RED, stroke_width=3).set_points_as_corners(
+            [loose.get_right(), [-4.25, 2.05, 0], [4.3, 2.05, 0], [4.55, 1.25, 0]])
+        self.play(FadeIn(loose), Create(link_l), FadeIn(hi), run_time=0.8)
+        self.play(fil[0].animate.shift(LEFT * 0.2).rotate(0.1), run_time=0.3, rate_func=there_and_back)
+        self.finish()
+
+
+class S06Predict(SpokenScene):
+    def construct(self):
+        dots = drifting_field(8, 34, 0.48, 1.0)
+        xs = np.arange(-5.8, 2.6, BX)
+        fil = filament(xs, [BLUE] * (len(xs) - 4) + [GOLD_FRESH] * 4)
+        g = gauge(0.0, show_ticks=True)
+        lo, hi = tick_pair_labels()
+        tight = chip("tight", GREEN, 28).move_to([2.05, 0.85, 0])
+        loose = chip("loose", RED, 28).move_to([-5.15, 0.85, 0])
+        self.add(dots, fil, g, lo, hi, tight, loose)
+
+        self.at("between the two levels")
+        band = Rectangle(width=0.78, height=2.5, stroke_width=0,
+                         fill_color=TEAL, fill_opacity=0.24).move_to([GAUGE_X, 0, 0])
+        pointer = Triangle(color=TEAL, fill_color=TEAL, fill_opacity=1).scale(0.14).rotate(-PI / 2).move_to([GAUGE_X - 0.72, 0, 0])
+        self.play(FadeIn(band), FadeIn(pointer), run_time=0.65)
+        self.at("above the tight ends")
+        self.play(Indicate(g.low, color=GREEN, scale_factor=1.15), pointer.animate.shift(UP * 0.35), run_time=0.55)
+        self.at("below the loose ends")
+        self.play(Indicate(g.high, color=RED, scale_factor=1.15), pointer.animate.shift(DOWN * 0.35), run_time=0.55)
+        self.at("What can the polymer do")
+        q = label("Between the levels: what happens?", TEXT, 36, BOLD).move_to([-0.6, -2.75, 0])
+        self.play(FadeIn(q, shift=UP * 0.2), run_time=0.65)
+        self.finish()
+
+
+class S07Think(Scene):
+    def construct(self):
+        config.background_color = BG
+        dots = drifting_field(8, 34, 0.48, 1.0)
+        xs = np.arange(-5.8, 2.6, BX)
+        fil = filament(xs, [BLUE] * (len(xs) - 4) + [GOLD_FRESH] * 4)
+        g = gauge(0.0, show_ticks=True)
+        lo, hi = tick_pair_labels()
+        band = Rectangle(width=0.78, height=2.5, stroke_width=0,
+                         fill_color=TEAL, fill_opacity=0.24).move_to([GAUGE_X, 0, 0])
+        pointer = Triangle(color=TEAL, fill_color=TEAL, fill_opacity=1).scale(0.14).rotate(-PI / 2).move_to([GAUGE_X - 0.72, 0, 0])
+        q = label("Between the levels: what happens?", TEXT, 36, BOLD).move_to([-0.6, -2.75, 0])
+        tight = chip("tight", GREEN, 28).move_to([2.05, 0.85, 0])
+        loose = chip("loose", RED, 28).move_to([-5.15, 0.85, 0])
+        self.add(dots, fil, g, lo, hi, band, pointer, q, tight, loose)
+        self.play(pointer.animate.shift(UP * 0.32), run_time=1.1, rate_func=there_and_back)
+        self.play(pointer.animate.shift(DOWN * 0.32), run_time=1.1, rate_func=there_and_back)
+        self.wait(2.3)
+
+
+class S08Actin(SpokenScene):
+    def construct(self):
+        dots = drifting_field(9, 34, 0.44, 1.05)
+        xs = np.arange(-5.6, 3.4, BX)
+        colors = [BLUE] * (len(xs) - 4) + [GOLD_FRESH] * 4
+        fil = filament(xs, colors)
+        q = label("Between the levels: what happens?", TEXT, 36, BOLD).move_to([-0.6, -2.75, 0])
+        self.add(dots, fil, q)
+
+        self.at("cannot come to rest")
+        self.play(FadeOut(q), fil[0].animate.shift(LEFT * 0.22).rotate(0.12),
+                  fil[-1].animate.shift(RIGHT * 0.22), run_time=0.7, rate_func=there_and_back)
+        self.at("answers in space")
+        head = label("actin filament", TEXT, 36, BOLD).move_to([0, 2.55, 0])
+        barbed = VGroup(label("barbed", TEXT, 28), chip("tight", GREEN, 28)).arrange(DOWN, buff=0.08).move_to([3.25, 1.25, 0])
+        pointed = VGroup(label("pointed", TEXT, 28), chip("loose", RED, 28)).arrange(DOWN, buff=0.08).move_to([-5.2, 1.25, 0])
+        self.play(FadeIn(head), FadeIn(barbed), FadeIn(pointed), run_time=0.75)
+
+        self.at("adds subunits fast")
+        added = VGroup(*[subunit(3.4 + i * BX, FY, GOLD_FRESH) for i in range(4)])
+        self.play(LaggedStart(*[FadeIn(b, shift=LEFT * 0.25) for b in added], lag_ratio=0.35), run_time=1.2)
+        self.at("tight end that grows")
+        grow_a = Arrow([2.35, -1.35, 0], [4.45, -1.35, 0], color=GREEN, stroke_width=7, tip_length=0.28)
+        self.play(GrowArrow(grow_a), run_time=0.55)
+
+        self.at("loose end that shrinks")
+        leaving = VGroup(*[fil[i].copy() for i in range(4)])
+        self.add(leaving)
+        self.play(LaggedStart(*[b.animate.shift(LEFT * 0.9 + DOWN * (0.15 + i * 0.06)).set_opacity(0)
+                                for i, b in enumerate(leaving)], lag_ratio=0.3), run_time=1.0)
+
+        self.at("gain and loss match")
+        all_fil = VGroup(fil, added)
+        br = Brace(all_fil, UP, color=TEXT, buff=0.22)
+        same = label("same length", TEXT, 30, BOLD).next_to(br, UP, buff=0.1)
+        tracked = fil[-3].copy().set_stroke(TEXT, width=5).set_fill(opacity=0.15)
+        self.play(FadeOut(grow_a), GrowFromCenter(br), FadeIn(same), FadeIn(tracked), run_time=0.75)
+        # A fixed-length window advances right while a marked subunit stays in the world.
+        self.play(all_fil.animate.shift(RIGHT * 0.95), barbed.animate.shift(RIGHT * 0.45),
+                  pointed.animate.shift(RIGHT * 0.95), br.animate.shift(RIGHT * 0.95), same.animate.shift(RIGHT * 0.95),
+                  run_time=1.6, rate_func=linear)
+
+        self.at("subunits flow through")
+        self.play(tracked.animate.set_color(BLUE).shift(LEFT * 2.0), run_time=1.0)
+        self.play(tracked.animate.shift(LEFT * 1.0 + DOWN * 0.5).set_opacity(0), run_time=0.6)
+        self.at("That is treadmilling")
+        word = label("treadmilling", TEXT, 42, BOLD).move_to([0, -2.55, 0])
+        self.play(FadeIn(word, shift=UP * 0.2), run_time=0.65)
+        self.finish()
+
+
+class S09Cap(SpokenScene):
+    def construct(self):
+        dots = drifting_field(10, 36, 0.46, 1.05)
+        # Start as the carried single actin row, in the same band.
+        xs = np.arange(-5.6, 3.4, BX)
+        actin = filament(xs, [BLUE] * (len(xs) - 4) + [GOLD_FRESH] * 4)
+        self.add(dots, actin)
+
+        self.at("A microtubule")
+        tube = tube_columns(-5.8, 16, fresh=3, y=0.0, rows=5, dx=0.56, dy=0.50)
+        tubel = label("microtubule, schematic", TEXT, 30, BOLD).move_to([-1.2, -1.75, 0])
+        clock = VGroup(RoundedRectangle(corner_radius=0.1, width=1.5, height=0.7, color=TEXT),
+                       M("0:00", 27, TEXT)).move_to([5.65, 2.9, 0])
+        self.play(ReplacementTransform(actin, tube), FadeIn(tubel), FadeIn(clock), run_time=0.95)
+
+        self.at("wears a cap")
+        cap = VGroup(*tube[-3:])
+        br = Brace(cap, UP, color=GOLD_FRESH, buff=0.15)
+        capl = label("GTP cap", GOLD_FRESH, 30, BOLD).next_to(br, UP, buff=0.1)
+        tight = chip("tight", GREEN, 28).move_to([4.3, 1.9, 0])
+        new = tube_columns(3.16, 3, fresh=3, y=0.0, rows=5, dx=0.56, dy=0.50)
+        self.play(GrowFromCenter(br), FadeIn(capl), FadeIn(tight),
+                  LaggedStart(*[FadeIn(c, shift=LEFT * 0.25) for c in new], lag_ratio=0.45),
+                  Transform(clock[1], M("1:40", 27, TEXT).move_to(clock[0])), run_time=1.5)
+
+        self.at("Behind the cap")
+        lattice = label("GDP lattice", BLUE, 30, BOLD).move_to([-2.2, 2.45, 0])
+        self.play(FadeIn(lattice), tube[-3].animate.set_color(BLUE), new[0].animate.set_color(BLUE), run_time=0.75)
+
+        self.at("held straight only")
+        ties = VGroup()
+        ghosts = VGroup()
+        for c in tube[3:10:2]:
+            ties.add(Line(c[1].get_center(), c[3].get_center(), color=TEXT, stroke_width=2).set_opacity(0.65))
+            ghost = Arc(radius=0.7, start_angle=-PI / 2, angle=PI / 2, color=BLUE, stroke_width=3).move_to(c.get_center() + RIGHT * 0.22)
+            ghost.set_opacity(0.24); ghosts.add(ghost)
+        self.play(Create(ties), FadeIn(ghosts), run_time=0.75)
+        self.play(ties.animate.set_stroke(width=5), run_time=0.35, rate_func=there_and_back)
+        self.finish()
+
+
+class S10Catastrophe(SpokenScene):
+    def construct(self):
+        dots = drifting_field(11, 36, 0.48, 1.05)
+        tube = tube_columns(-5.8, 18, fresh=3, y=0.65, rows=5, dx=0.56, dy=0.46)
+        cap = VGroup(*tube[-3:])
+        br = Brace(cap, UP, color=GOLD_FRESH, buff=0.12)
+        capl = label("GTP cap", GOLD_FRESH, 28, BOLD).next_to(br, UP, buff=0.08)
+        tight = chip("tight", GREEN, 28).move_to([4.5, 2.25, 0])
+        self.add(dots, tube, br, capl, tight)
+
+        self.at("lost by chance")
+        self.play(cap.animate.set_opacity(0.28), br.animate.set_opacity(0.28), capl.animate.set_opacity(0.28), run_time=0.4)
+        self.play(cap.animate.set_opacity(1), br.animate.set_opacity(1), capl.animate.set_opacity(1), run_time=0.4)
+
+        self.at("growth slows")
+        self.play(dots.animate.set_opacity(0.28), cap[-1].animate.set_color(BLUE), run_time=0.65)
+        self.play(cap[-2].animate.set_color(BLUE), cap[-3].animate.set_color(BLUE), FadeOut(br), FadeOut(capl), run_time=0.85)
+
+        self.at("turns loose")
+        loose = chip("loose", RED, 28).move_to(tight)
+        self.play(ReplacementTransform(tight, loose), run_time=0.55)
+
+        self.at("peel outward")
+        peeling = VGroup(*[c.copy() for c in tube[-6:]])
+        self.add(peeling); self.remove(*tube[-6:])
+        anims = []
+        for ci, col in enumerate(reversed(peeling)):
+            for ri, b in enumerate(col):
+                sgn = ri - 2
+                anims.append(b.animate.shift(RIGHT * (0.45 + 0.08 * ci) + UP * sgn * 0.42)
+                             .rotate(-0.16 * sgn).set_opacity(0.05))
+        self.play(LaggedStart(*anims, lag_ratio=0.02), run_time=1.2)
+
+        # Bottom strip is schematic length versus time, computed from explicit piecewise rates.
+        origin = np.array([-5.4, -3.0, 0])
+        xaxis = Line(origin, origin + RIGHT * 10.5, color=TEXT, stroke_width=2)
+        yaxis = Line(origin, origin + UP * 1.25, color=TEXT, stroke_width=2)
+        note = label("length vs time — schematic", TEXT, 24).move_to([-2.7, -3.34, 0])
+        times = np.array([0.0, 7.0, 8.4, 11.0])
+        lengths = np.array([0.15, 0.95, 0.22, 0.58])
+        pts = [origin + RIGHT * (t / 11.0 * 10.2) + UP * (l * 1.15) for t, l in zip(times, lengths)]
+        rise1 = Line(pts[0], pts[1], color=GREEN, stroke_width=6)
+        drop = Line(pts[1], pts[2], color=RED, stroke_width=6)
+        rise2 = Line(pts[2], pts[3], color=GREEN, stroke_width=6)
+
+        self.at("shortens many times faster")
+        self.play(Create(xaxis), Create(yaxis), FadeIn(note), Create(rise1), run_time=0.65)
+        self.play(Create(drop), LaggedStart(*[FadeOut(c, shift=LEFT * 0.15) for c in reversed(tube[8:12])], lag_ratio=0.18), run_time=0.7)
+
+        self.at("switch is a catastrophe")
+        catdot = Dot(pts[1], radius=0.12, color=RED)
+        cat = label("catastrophe", RED, 28, BOLD).next_to(catdot, UP, buff=0.1)
+        self.play(FadeIn(catdot), FadeIn(cat), run_time=0.55)
+
+        self.at("starting again is a rescue")
+        rescue_dot = Dot(pts[2], radius=0.12, color=GREEN)
+        rescue = label("rescue", GREEN, 28, BOLD).next_to(rescue_dot, DOWN, buff=0.1)
+        newcap = tube_columns(0.92, 2, fresh=2, y=0.65, rows=5, dx=0.56, dy=0.46)
+        tight2 = chip("tight", GREEN, 28).move_to(loose)
+        self.play(Create(rise2), FadeIn(rescue_dot), FadeIn(rescue), ReplacementTransform(loose, tight2),
+                  LaggedStart(*[FadeIn(c, shift=LEFT * 0.25) for c in newcap], lag_ratio=0.45), run_time=0.9)
+        self.finish()
+
+
+class S11Return(SpokenScene):
+    def construct(self):
+        dots = drifting_field(12, 32, 0.38, 1.0)
+        tube = tube_columns(-5.7, 15, fresh=0, y=0.0, rows=5, dx=0.55, dy=0.46)
+        fray = VGroup(*[c.copy() for c in tube[-3:]])
+        self.add(dots, tube)
+
+        self.at("commits an end")
+        q = chip("?  debated", RED, 30).move_to([3.2, 2.45, 0])
+        self.play(FadeIn(q), fray.animate.shift(RIGHT * 0.35), run_time=0.7)
+
+        self.at("other proteins")
+        proteins = VGroup(*[chip("accessory protein", TEXT, 24) for _ in range(3)]).arrange(DOWN, buff=0.12).move_to([4.65, 0.15, 0])
+        clocks = VGroup(M("rate  ×2", 26, GREEN), M("rate  ×0.5", 26, RED)).arrange(DOWN, buff=0.16).move_to([4.7, -1.6, 0])
+        self.play(FadeIn(proteins, shift=LEFT * 0.25), FadeIn(clocks), run_time=0.8)
+        self.play(Indicate(clocks[0], color=GREEN), Indicate(clocks[1], color=RED), run_time=0.65)
+
+        self.at("Hydrolysis gives tight")
+        self.play(FadeOut(VGroup(tube, q, proteins, clocks)), run_time=0.5)
+        divider = Line([0, -2.8, 0], [0, 2.8, 0], color=TEXT, stroke_width=2).set_opacity(0.5)
+        cube = Square(1.25, color=GOLD_FRESH, fill_color=GOLD_FRESH, fill_opacity=0.28, stroke_width=4).move_to([-3.8, 0.1, 0])
+        settles = label("crystal settles", GOLD_FRESH, 30, BOLD).move_to([-3.8, -1.15, 0])
+        mt = tube_columns(0.65, 10, fresh=2, y=1.25, rows=3, dx=0.47, dy=0.42)
+        act = filament(np.arange(0.7, 5.55, 0.47), [BLUE] * 7 + [GOLD_FRESH] * 4, y=-1.15)
+        tags = VGroup(chip("tight", GREEN, 24).move_to([5.5, 2.15, 0]),
+                      chip("loose", RED, 24).move_to([0.75, -2.05, 0]))
+        self.play(Create(divider), FadeIn(cube), FadeIn(settles), FadeIn(mt), FadeIn(act), FadeIn(tags), run_time=0.9)
+
+        self.at("cannot simply settle")
+        self.play(mt[-1].animate.shift(RIGHT * 0.4).set_opacity(0),
+                  act[0].animate.shift(LEFT * 0.5).set_opacity(0),
+                  Indicate(tags, color=TEXT, scale_factor=1.04), run_time=0.8)
+
+        self.at("search their interior")
+        self.play(FadeOut(VGroup(divider, cube, settles, mt, act, tags)), run_time=0.45)
+        cell = Ellipse(width=11.8, height=6.3, color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.025)
+        center = RoundedRectangle(corner_radius=0.12, width=1.15, height=0.85,
+                                  color=GREY, fill_color=GREY, fill_opacity=0.35)
+        target = RoundedRectangle(corner_radius=0.1, width=0.8, height=0.8,
+                                  color=GOLD_FRESH, fill_color=GOLD_FRESH, fill_opacity=0.35).move_to([5.0, 1.5, 0])
+        angles = np.linspace(-2.3, 2.3, 9)
+        rays = VGroup(*[Line(center.get_center(), 1.0 * np.array([np.cos(a), np.sin(a), 0]),
+                            color=BLUE, stroke_width=6) for a in angles])
+        self.play(Create(cell), FadeIn(center), FadeIn(target), Create(rays), run_time=0.8)
+        ends = [4.8, 4.2, 5.0, 3.8, 5.0, 4.0, 4.7, 4.1, 4.9]
+        long_rays = VGroup(*[Line(ORIGIN, r * np.array([np.cos(a), np.sin(a), 0]), color=BLUE, stroke_width=6)
+                             for a, r in zip(angles, ends)])
+        self.play(Transform(rays, long_rays), run_time=1.5, rate_func=linear)
+        hit = Line(ORIGIN, target.get_center(), color=GREEN, stroke_width=7)
+        self.play(Transform(rays[6], hit), Indicate(target, color=GREEN, scale_factor=1.2),
+                  rays[1].animate.scale(0.55, about_point=ORIGIN), rays[3].animate.scale(0.65, about_point=ORIGIN), run_time=0.8)
+        self.at("and rebuild")
+        self.play(rays[0].animate.scale(0.65, about_point=ORIGIN),
+                  rays[5].animate.scale(1.18, about_point=ORIGIN), run_time=0.75)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "Hydrolysis gives tight and loose ends, so the polymer cannot simply settle."
 
     def construct(self):
-        head = T("The growing plus end", 38, font=TITLE_FONT).to_edge(UP, buff=0.4)
-        cols = big_tube(9, 0)
-        self.at("Why does an end")
-        self.play(Write(head), FadeIn(VGroup(*cols)), run_time=1.0)
-        tipx = TX0 + 8 * BIG["dx"]
-        pe = lab("plus end", TEXT, 30, BOLD).move_to([tipx + 2.2, TY + 1.7, 0])
-        pe_a = Arrow([tipx + 1.9, TY + 1.4, 0], [tipx + 0.5, TY + 0.6, 0], buff=0, color=TEXT, stroke_width=4,
-                     tip_length=0.2, max_tip_length_to_length_ratio=0.5)
-        self.play(FadeIn(pe), GrowArrow(pe_a), run_time=0.5)
-
-        new = [beadcol(TX0 + (9 + i) * BIG["dx"], TY, ORANGE, BIG["r"], BIG["dy"]) for i in range(5)]
-        chip_d = chip("tubulin dimer with GTP", ORANGE, 26).move_to([4.0, 2.55, 0])
-        self.at("Each tubulin dimer")
-        self.play(FadeIn(chip_d), FadeOut(pe), FadeOut(pe_a), run_time=0.4)
-        self.play(LaggedStart(*[FadeIn(c, shift=LEFT * 2.0) for c in new], lag_ratio=0.5,
-                              run_time=until(self, "soon after", margin=1.2)))
-
-        gdp_chip = chip("GDP-tubulin", BLUE, 26).move_to([-3.2, -2.55, 0])
-        self.at("soon after")
-        self.play(new[0].animate.set_color(BLUE), run_time=0.6)
-        self.at("once the dimer")
-        self.play(new[1].animate.set_color(BLUE), run_time=0.6)
-        self.at("behind the end")
-        self.play(FadeOut(chip_d), FadeIn(gdp_chip), Indicate(VGroup(*cols[6:], new[0], new[1]), color=BLUE, scale_factor=1.06),
-                  run_time=0.9)
-
-        lat = VGroup(*cols[:9])
-        br1 = Brace(lat, UP, color=BLUE, buff=0.15)
-        t1 = lab("held only by its neighbours", BLUE, 28).next_to(br1, UP, buff=0.12)
-        self.at("held in")
-        self.play(GrowFromCenter(br1), run_time=0.7)
-        self.at("only by")
-        self.play(FadeIn(t1), run_time=0.6)
-
-        cap = VGroup(*new[2:])
-        br2 = Brace(cap, DOWN, color=ORANGE, buff=0.15)
-        t2 = lab("GTP cap", ORANGE, 32, BOLD).next_to(br2, DOWN, buff=0.12)
-        self.at("stays intact")
-        self.play(FadeOut(br1), FadeOut(t1), FadeOut(gdp_chip), run_time=0.3)
-        self.play(GrowFromCenter(br2), FadeIn(t2), run_time=0.7)
-        self.at("cap of dimers")
-        self.play(Indicate(cap, color=ORANGE, scale_factor=1.15), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Catastrophe(SpokenScene):
-    """cap lost -> peeling -> catastrophe, rescue, dynamic instability on the trace."""
-
-    def construct(self):
-        cols = tube(TX0, TY, [BLUE] * 11 + [ORANGE] * 3, **BIG)
-        cap = VGroup(*cols[11:])
-        br2 = Brace(cap, DOWN, color=ORANGE, buff=0.15)
-        t2 = lab("GTP cap", ORANGE, 32, BOLD).next_to(br2, DOWN, buff=0.12)
-        tipx = TX0 + 13 * BIG["dx"]
-        add_a = Arrow([tipx + 2.8, TY, 0], [tipx + 0.8, TY, 0], buff=0, color=ORANGE, stroke_width=7, tip_length=0.28,
-                      max_tip_length_to_length_ratio=0.5)
-        add_l = VGroup(lab("dimers", ORANGE, 26), lab("added", ORANGE, 26)).arrange(DOWN, buff=0.08).next_to(add_a, UP, buff=0.15)
-        self.add(VGroup(*cols), br2, t2, add_a, add_l)
-
-        self.at("addition slows")
-        slow_l = VGroup(lab("addition", ORANGE, 26), lab("slows", ORANGE, 26)).arrange(DOWN, buff=0.08).move_to(add_l)
-        self.play(add_a.animate.set_opacity(0.25), ReplacementTransform(add_l, slow_l), run_time=0.7)
-        lost = lab("cap lost", RED, 32, BOLD).move_to(t2)
-        self.at("hydrolysis")
-        self.play(LaggedStart(*[c.animate.set_color(BLUE) for c in cols[11:]], lag_ratio=1.0,
-                              run_time=until(self, "cap is lost", margin=0.1, floor=1.0)))
-        self.at("cap is lost")
-        self.play(FadeOut(br2), ReplacementTransform(t2, lost), run_time=0.5)
-        self.at("comes apart")
-        self.play(FadeOut(slow_l), FadeOut(add_a), FadeOut(lost), run_time=0.3)
-        self.play(peel(cols[12:][::-1], TY, lag=0.5, rt=0.8, spread=0.8), run_time=1.6)
-        self.at("peeling outward")
-        self.play(peel(cols[8:12][::-1], TY, lag=0.5, rt=0.8, spread=0.8),
-                  run_time=until(self, "shortens fast", margin=0.3, floor=1.0))
-        sf = lab("shortens fast", RED, 34, BOLD).move_to([0.0, 2.6, 0])
-        self.at("shortens fast")
-        self.play(FadeIn(sf, scale=0.9), run_time=0.5)
-
-        # --- the whole trace comes back -------------------------------------------------------
-        ax, ticks, yl, xl = plot_frame()
-        g1, g2 = PL.seg(A, B, GREEN), PL.seg(B, C, RED)
-        g3, g4 = PL.seg(C, D, GREEN), PL.seg(D, E, RED)
-        self.at("That switch")
-        self.play(FadeOut(sf), FadeOut(VGroup(*cols[:8])), Create(ax), FadeIn(ticks), FadeIn(yl), FadeIn(xl), run_time=0.6)
-        self.play(Create(g1), run_time=0.7, rate_func=linear)
-        self.play(Create(g2), run_time=0.25, rate_func=linear)
-        cat1 = chip("catastrophe", YELLOW, 26).move_to([2.8, 2.3, 0])
-        self.at("is a catastrophe")
-        self.play(FadeIn(cat1, shift=LEFT * 0.2), run_time=0.5)
-        self.at("The switch back")
-        self.play(Create(g3), run_time=0.9, rate_func=linear)
-        res = chip("rescue", YELLOW, 26).move_to([0.8, -1.2, 0])
-        self.at("a rescue")
-        self.play(FadeIn(res, shift=UP * 0.2), run_time=0.5)
-        self.play(Create(g4), run_time=0.3, rate_func=linear)
-        cat2 = chip("catastrophe", YELLOW, 24).move_to([4.7, 1.45, 0])
-        self.play(FadeIn(cat2), run_time=0.4)
-        path = VMobject()
-        path.set_points_as_corners([PL.p(*q) for q in (A, B, C, D, E)])
-        tip = Dot(PL.p(*A), radius=0.14, color=YELLOW)
-        self.at("Each end switches")
-        self.add(tip)
-        self.play(MoveAlongPath(tip, path), run_time=until(self, "dynamic instability", margin=0.2, floor=2.0), rate_func=linear)
-        head = T("dynamic instability", 40, font=TITLE_FONT, color=YELLOW).to_edge(UP, buff=0.3)
-        self.at("dynamic instability")
-        self.play(Write(head), run_time=1.0)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Tests(SpokenScene):
-    """two tests of the cap: slowed hydrolysis lengthens it; more tubulin makes catastrophes rarer."""
-
-    def row(self, y, n_blue, n_cap, x0=-6.2):
-        return tube(x0, y, [BLUE] * n_blue + [ORANGE] * n_cap, r=0.22, dx=0.58, dy=0.46)
-
-    def construct(self):
-        y1, y2 = 1.35, -1.45
-        head = T("Human tubulin with slowed hydrolysis", 34, font=TITLE_FONT).to_edge(UP, buff=0.35)
-        r1 = self.row(y1, 7, 3)
-        r2 = self.row(y2, 7, 3)
-        l1 = lab("normal hydrolysis", TEXT, 32, BOLD).move_to([3.4, y1 + 0.25, 0])
-        l1c = lab("a short GTP cap", ORANGE, 28).next_to(l1, DOWN, buff=0.15)
-        self.at("The cap idea")
-        self.play(FadeIn(VGroup(*r1)), FadeIn(VGroup(*r2)), run_time=0.8)
-        self.at("a team used")
-        self.play(Write(head), run_time=0.7)
-        self.at("recombinant human")
-        self.play(FadeIn(l1), FadeIn(l1c), run_time=0.8)
-        l2 = lab("slowed hydrolysis", TEXT, 32, BOLD).move_to([3.4, y2 + 0.25, 0])
-        self.at("mutations that slow")
-        self.play(FadeIn(l2), run_time=0.5)
-        l2c = lab("a longer GTP cap", ORANGE, 28).next_to(l2, DOWN, buff=0.15)
-        self.at("grew longer")
-        self.play(LaggedStart(*[c.animate.set_color(ORANGE) for c in r2[3:7]], lag_ratio=0.4,
-                              run_time=until(self, "Earlier work", margin=0.3, floor=0.8)),
-                  FadeIn(l2c))
-
-        # --- part B: more tubulin ---------------------------------------------------------------
-        self.at("Earlier work")
-        self.play(FadeOut(VGroup(*r1, *r2, l1, l1c, l2, l2c, head)), run_time=0.5)
-        head2 = T("Pig brain tubulin, free of other proteins", 34, font=TITLE_FONT).to_edge(UP, buff=0.35)
-        b1 = self.row(y1, 8, 2)
-        b2 = self.row(y2, 6, 4)
-        rng = np.random.RandomState(7)
-        d1 = VGroup(*[Dot([0.0 + i * 0.9 + rng.uniform(-0.15, 0.15), y1 + rng.uniform(-0.6, 0.6), 0], radius=0.11,
-                          color=ORANGE) for i in range(3)])
-        d2 = VGroup(*[Dot([-0.1 + (i % 5) * 0.55, y2 + (i // 5 - 0.5) * 0.55, 0], radius=0.11, color=ORANGE)
-                      for i in range(10)])
-        m1 = VGroup(lab("less tubulin", TEXT, 30, BOLD)).move_to([4.9, y1, 0])
-        m2 = VGroup(lab("more tubulin", TEXT, 30, BOLD), lab("catastrophes rarer", GREEN, 26),
-                    lab("(fits a larger cap)", ORANGE, 26)).arrange(DOWN, buff=0.1).move_to([4.9, y2, 0])
-        self.play(FadeIn(head2), FadeIn(VGroup(*b1)), FadeIn(VGroup(*b2)), run_time=0.9)
-        self.at("free of other")
-        self.play(FadeIn(d1), FadeIn(d2), run_time=0.8)
-        self.at("more tubulin")
-        self.play(FadeIn(m1[0]), FadeIn(m2[0]), run_time=0.4)
-        self.play(Indicate(d2, color=ORANGE, scale_factor=1.15), run_time=0.5)
-        self.at("rarer")
-        self.play(FadeIn(m2[1], shift=LEFT * 0.15), run_time=0.6)
-        self.at("larger cap")
-        cb = Brace(VGroup(*b2[6:]), DOWN, color=ORANGE, buff=0.12)
-        self.play(GrowFromCenter(cb), FadeIn(m2[2]), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """the rule: assembly, hydrolysis behind, cap holds the end; lose the cap and it shortens fast."""
-
-    def construct(self):
-        cols = big_tube(9, 0)
-        tipx = TX0 + 8 * BIG["dx"]
-        self.add(VGroup(*cols))
-        new = [beadcol(TX0 + (9 + i) * BIG["dx"], TY, ORANGE, BIG["r"], BIG["dy"]) for i in range(5)]
-        a1 = Arrow([tipx + 6.2, TY, 0], [tipx + 5.0, TY, 0], buff=0, color=ORANGE, stroke_width=7, tip_length=0.28,
-                   max_tip_length_to_length_ratio=0.5)
-        self.at("Binding drives")
-        self.play(GrowArrow(a1), LaggedStart(*[FadeIn(c, shift=LEFT * 1.6) for c in new], lag_ratio=0.35,
-                                              run_time=until(self, "hydrolysis comes", margin=0.2)))
-        self.at("hydrolysis comes")
-        self.play(new[0].animate.set_color(BLUE), FadeOut(a1), run_time=0.6)
-        self.at("afterwards")
-        self.play(new[1].animate.set_color(BLUE), run_time=0.6)
-        self.at("old lattice")
-        self.play(Indicate(VGroup(*cols[6:], new[0], new[1]), color=BLUE, scale_factor=1.05), run_time=0.9)
-        cap = VGroup(*new[2:])
-        br = Brace(cap, DOWN, color=ORANGE, buff=0.15)
-        t = lab("GTP cap", ORANGE, 32, BOLD).next_to(br, DOWN, buff=0.12)
-        self.at("A cap of dimers")
-        self.play(GrowFromCenter(br), FadeIn(t), run_time=0.7)
-        self.at("holds the end")
-        self.play(Indicate(cap, color=ORANGE, scale_factor=1.12), run_time=0.7)
-
-        ql = lab("what commits an end to shortening?", YELLOW, 32, BOLD).move_to([0.0, 2.7, 0])
-        self.at("Exactly what commits")
-        self.play(FadeIn(ql, shift=DOWN * 0.15), run_time=0.7)
-        self.at("still argued")
-        self.play(Indicate(ql, color=YELLOW, scale_factor=1.06), run_time=0.8)
-        self.at("Keep the rule")
-        self.play(FadeOut(ql), run_time=0.4)
-        self.at("Lose the cap")
-        lost = lab("cap lost", RED, 32, BOLD).move_to(t)
-        self.play(*[c.animate.set_color(BLUE) for c in new[2:]], FadeOut(br), ReplacementTransform(t, lost), run_time=0.7)
-        allc = cols + new
-        self.play(FadeOut(lost), run_time=0.2)
-        sf = lab("shortens rapidly", RED, 40, BOLD).move_to([0.0, 2.4, 0])
-        self.play(peel(allc[-8:][::-1], TY, lag=0.2, rt=0.7, spread=0.8),
-                  run_time=until(self, "shortens rapidly", margin=0.2, floor=1.2))
-        self.at("shortens rapidly")
-        self.play(FadeIn(sf, scale=0.9), run_time=0.6)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "Lose the GTP cap, and a microtubule end shortens fast."
+        dots = drifting_field(13, 28, 0.20, 0.8)
+        self.add(dots)
+        super().construct()
