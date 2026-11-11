@@ -106,7 +106,7 @@ def whole_world(seed=2, proteins=False):
     endo = Circle(radius=.72, stroke_color=MEM, stroke_width=6, fill_color=LUMEN,
                   fill_opacity=.20).move_to(P(4.35, -.90))
     labels = VGroup(T("outside", 28, LUMEN).move_to(P(-5.45, 3.05)),
-                    T("ER lumen", 28, LUMEN).move_to(P(-4.78, .55)),
+                    T("ER lumen", 28, LUMEN).move_to(P(-4.5, .85)),
                     T("Golgi", 28, LUMEN).move_to(P(1.5, 1.42)),
                     T("cytosol", 28, CYTO).move_to(P(-.25, -2.75)))
     motes = moving_specks(seed)
@@ -176,7 +176,7 @@ class S00Hook(SpokenScene, TitleCard):
         self.at("inside its ER")
         self.play(w.er.animate.set_stroke(width=9), run_time=.65)
         self.at("outside the cell")
-        ghost = protein(P(4.4, 2.43), .72).sugar.set_opacity(.48)
+        ghost = protein(P(4.4, 2.43), .72).sugar.set_opacity(.48).shift(DOWN*.5)
         self.play(FadeIn(ghost, scale=.7), run_time=.45)
         route = DashedLine(ps.get_center(), ghost.get_center(), color=ORANGE, stroke_width=5)
         self.play(Create(route), run_time=1.15)
@@ -482,12 +482,12 @@ class S12Back(SpokenScene):
         xs = [-4.5,-1.5,1.5,4.5]
         names = ["ER","Golgi","surface","endosome"]
         for x,nm in zip(xs,names):
-            box = RoundedRectangle(width=2.35,height=1.12,corner_radius=.12,stroke_color=GREY,stroke_width=2)
+            box = RoundedRectangle(width=2.35,height=.95,corner_radius=.12,stroke_color=GREY,stroke_width=2)
             c = Circle(radius=.13,fill_color=GREEN,fill_opacity=1,stroke_width=0).move_to(box.get_bottom()+UP*.22)
             lab = T(nm,24,TEXT).move_to(box.get_top()+DOWN*.28)
-            mini.add(VGroup(box,c,lab).move_to(P(x,-2.78)))
+            mini.add(VGroup(box,c,lab).move_to(P(x,-2.92)))
         self.play(LaggedStart(*[FadeIn(m) for m in mini], lag_ratio=.18), run_time=1.1)
-        underline = Line(P(-5.65,-3.52),P(5.65,-3.52),color=CYTO,stroke_width=7)
+        underline = Line(P(-5.65,-3.5),P(4.9,-3.5),color=CYTO,stroke_width=7)
         self.play(Create(underline), run_time=.75)
         self.finish()
 
@@ -527,15 +527,4 @@ class S13Return(SpokenScene):
 
 
 class S14End(EndCard):
-    LINE = "Secretory and endocytic lumens count as outside; traffic never flips proteins."
-
-    def construct(self):
-        w = whole_world(27, proteins=True)
-        line = T(self.LINE, 40, TEXT, font=TITLE_FONT)
-        fit(line, max_w=11.7)
-        plate = RoundedRectangle(width=line.width+.7,height=line.height+.65,corner_radius=.18,
-                                 fill_color=BG,fill_opacity=.88,stroke_color=GOLD,stroke_width=3)
-        self.add(w)
-        self.play(FadeIn(VGroup(plate,line), shift=UP*.15), run_time=.75)
-        self.play(w.proteins.animate.set_opacity(.7), rate_func=there_and_back, run_time=1.5)
-        self.finish()
+    LINE = "Lumens count as outside; traffic never flips proteins."

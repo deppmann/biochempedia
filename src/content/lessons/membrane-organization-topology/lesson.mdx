@@ -25,7 +25,7 @@ explainer:
   captions: "/explainers/membrane-organization-topology/explainer.vtt"
   poster: "/explainers/membrane-organization-topology/poster.jpg"
   title: "Which Side Is Outside?"
-  durationSec: 172.6
+  durationSec: 172.5
   takeaways:
     - "Membranes on the ordinary secretory and endocytic routes have two faces: one touches the cytosol, the other a lumen or the outside."
     - "Lumens on these routes count as outside, because budding and fusing connect them to the outside without crossing a membrane."
@@ -34,6 +34,21 @@ explainer:
     - "Vesicle traffic never flips a protein, so a sugar added in the ER lumen can face outside after the protein reaches the cell surface."
   narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/membrane-organization-topology/chapter-2.mp4"
+    captions: "/explainers/membrane-organization-topology/chapter-2.vtt"
+    poster: "/explainers/membrane-organization-topology/chapter-2-poster.jpg"
+    title: "Across or Along the Membrane?"
+    durationSec: 222.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "In red blood cells, PS and PE sit mainly on the cytoplasmic leaflet, PC and sphingomyelin mainly on the outer leaflet."
+      - "ATP-driven flippases move selected lipids inward; scramblases let lipids cross both ways without energy."
+      - "Sliding sideways within a leaflet needs no transporter."
+      - "FRAP recovery size reports mobile fraction, while recovery speed helps estimate diffusion under a stated model."
 
 scientists:
   - name: "Michael Edidin"
@@ -386,6 +401,7 @@ draft: false
 import FrapCurveReader from '../../../components/FrapCurveReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **A cell adds a sugar to a protein deep inside its endoplasmic reticulum (ER), and later that same sugar sits on the outside of the cell, though no vesicle ever carried it across a membrane.**
 
@@ -403,7 +419,7 @@ So every membrane has two faces, as the film above draws them: one touches the *
 
 ## The rule: a lumen counts as outside
 
-*The film above follows one protein from the ER to the cell surface and back. This section gives the reasoning behind the rule and the cases the film skips.*
+*The first film above follows one protein from the ER to the cell surface and back. This section gives the reasoning behind the rule and the cases the film skips.*
 
 Start with the easy case. When a cell takes something in by **endocytosis**, a patch of plasma membrane dimples inward and pinches off as a small sac, an endocytic vesicle, which soon joins an endosome inside the cell.
 
@@ -492,6 +508,10 @@ If the methods disagree, suspect the tags or a mixed population of orientations,
 
 </details>
 
+The second film picks up here: fast crossing of a bilayer needs a machine, while sliding sideways does not.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Lipids: the side the cell has to keep pumping
 
 Proteins keep their sides with no upkeep; phospholipids keep theirs only with constant help: where each is made sets part of the pattern, and pumps keep restoring the rest.
@@ -502,8 +522,8 @@ Left alone, a phospholipid moves between leaflets slowly, on a scale of hours or
 
 | Protein | Moves lipid | Uses ATP? | Example |
 | --- | --- | --- | --- |
-| **Flippase** | Outer leaflet to cytoplasmic leaflet, against the gradient; chiefly PS and PE | Yes | Most are P4-type ATPases; in human cells, for example ATP11A or ATP11C with their partner CDC50A |
-| **Floppase** | Cytoplasmic leaflet to outer leaflet | Yes | ABC transporters appear to do this job |
+| **Flippase** | Outer leaflet to cytoplasmic leaflet, against the gradient; chiefly PS and PE | Yes | Most are P4-type ATPases, a family of lipid pumps; in human cells, for example ATP11A or ATP11C with their partner CDC50A |
+| **Floppase** | Cytoplasmic leaflet to outer leaflet | Yes | ABC transporters, a family of ATP-powered transporters, appear to do this job |
 | **Scramblase** | Both ways, down the gradients | Generally no | TMEM16F, switched on by calcium |
 
 So plasma-membrane asymmetry is a steady state: pumps push one way, slow leakage and regulated scramblases push the other, and switching on a scramblase collapses it far faster than spontaneous flip-flop would.
@@ -525,7 +545,7 @@ The ER membrane is thought to be much closer to symmetric, because lipids there 
 
 ## Along the membrane, freely: FRAP
 
-In 1972 Singer and Nicolson's fluid mosaic model predicted the split this lesson has followed: proteins keep a fixed orientation across the membrane but are free to move within its plane. Fluorescence recovery after photobleaching (FRAP) measures the sideways motion. A laser destroys the fluorescence of labelled molecules in a small spot. If they are mobile, unbleached ones diffuse in and the spot brightens. The bleached molecules are still there and still moving; they are simply dark. The imaging side of the method is covered in [microscopy and quantitative images](/lessons/microscopy-and-images/).
+In 1972 Singer and Nicolson's fluid mosaic model predicted the split this lesson has followed: proteins keep a fixed orientation across the membrane but are free to move within its plane. Fluorescence recovery after photobleaching (FRAP) measures the sideways motion. A laser destroys the fluorescence of labelled molecules in a small spot. If they are mobile, unbleached ones diffuse in and the spot brightens. The bleached molecules are still there and still moving; they are simply dark. The imaging side of the method is covered in [microscopy and quantitative images](/lessons/microscopy-and-images/). The second film worked the mobile fraction and half-time of the data set below; the page adds the diffusion coefficient, its assumptions and its limits.
 
 **Worked problem, part 2: read a FRAP curve.** In this made-up data set, a fluorescent protein in the plasma membrane of a cultured cell is bleached in a circular spot of radius w = 2.0 µm. Assume the bleach is instantaneous and uniform, the membrane is flat, the unbleached reservoir is large, and recovery is by two-dimensional diffusion alone. The values are already corrected for background and for bleaching during imaging.
 
@@ -574,7 +594,7 @@ About 16 s. The radius doubled, so w² grew four times, and with D unchanged t½
 
 A D of 0.22 µm²/s sits in the range tabulated for membrane-bound molecules, more than a hundred times slower than a protein free in the cytoplasm. In a table by Day and colleagues, cholera toxin B bound to the plasma membrane of COS-7 and mouse embryonic fibroblast cells at 37 °C diffuses at about 0.2 µm²/s, and EGFP free in the cytoplasm of COS-7 cells at about 40 µm²/s.
 
-Sideways freedom has limits. The plasma membrane has **domains**, regions that differ in composition or mobility. Tight junctions separate apical from basolateral membrane in epithelia, and an actin meshwork under the membrane can slow some molecules. **Lipid rafts**, proposed ordered domains rich in cholesterol and sphingolipid, are where care matters most: reviews describe their existence, size and composition in living cells as unresolved, not as one settled universal structure (Going deeper).
+Sideways freedom has limits. The plasma membrane has **domains**, regions that differ in composition or mobility. Tight junctions separate the **apical** membrane, which faces the free surface or the cavity of an organ such as the gut, from the **basolateral** membrane facing neighbours and underlying tissue in epithelia. An actin meshwork under the membrane can slow some molecules. **Lipid rafts**, proposed ordered domains rich in cholesterol and sphingolipid, are where care matters most: reviews describe their existence, size and composition in living cells as unresolved, not as one settled universal structure (Going deeper).
 
 ## Going deeper
 
@@ -582,7 +602,7 @@ Sideways freedom has limits. The plasma membrane has **domains**, regions that d
 
 The rule is about a membrane's own parts: small uncharged molecules such as oxygen, carbon dioxide and water cross bilayers without machines. The nuclear envelope is part of the ER, and its lumen is the space between its two membranes; the nucleoplasm is on the cytosol side, joined to it through pores. Mitochondria and chloroplasts import most of their proteins from the cytosol across their own membranes and are not joined to the secretory pathway by the ordinary vesicle routes. Peroxisomes receive some membrane proteins from the ER in vesicles, but they import their matrix proteins, already folded, straight from the cytosol, so the lumen rule does not describe their contents.
 
-On the vesicle routes, whatever crosses a membrane after the ER is moved by a dedicated machine, which fits the rule's first clause. ER-associated degradation (ERAD) pulls misfolded proteins back to the cytosol to be destroyed. Chaperone-mediated autophagy threads cytosolic proteins into lysosomes. Some toxins escape to the cytosol. Hyaluronan synthase pushes its sugar chain out across the plasma membrane. And a few proteins change topology after insertion, while still in the ER membrane, aquaporin-1 being the textbook case. So the film's "orientation is set once, at the ER" is the usual case, not a law, though vesicle traffic itself still never flips a protein.
+On the vesicle routes, whatever crosses a membrane after the ER is moved by a dedicated machine, which fits the rule's first clause. ER-associated degradation (ERAD) pulls misfolded proteins back to the cytosol to be destroyed. Chaperone-mediated autophagy threads cytosolic proteins into lysosomes. Some toxins escape to the cytosol. Hyaluronan synthase pushes its sugar chain out across the plasma membrane. And a few proteins change topology after insertion, while still in the ER membrane, aquaporin-1 being the textbook case. So the first film's "orientation is set once, at the ER" is the usual case, not a law, though vesicle traffic itself still never flips a protein.
 
 Wrapping is not an exception. Autophagosomes, the vesicles that bud into multivesicular bodies, and enveloped viruses budding from the cell each enclose a pocket of cytosol, and the membrane wrapped directly around each pocket keeps its cytosolic face toward it.
 

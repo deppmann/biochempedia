@@ -94,13 +94,13 @@ def shimmer(track, color=TEXT):
 def cycle_dial(center=(4.65, 2.15, 0), radius=1.18, size=25):
     ring = Circle(radius=radius, color=GREY, stroke_width=2).move_to(center)
     labs = VGroup(
-        T("GRIP", size, ORANGE).move_to(np.array(center)+UP*radius),
-        T("SWING", size, ORANGE).move_to(np.array(center)+RIGHT*radius),
-        T("LET GO", size, ORANGE).move_to(np.array(center)+DOWN*radius),
-        T("RE-COCK", size, ORANGE).move_to(np.array(center)+LEFT*radius),
+        T("GRIP", size, ORANGE).next_to(ring, UP, buff=.12),
+        T("SWING", size, ORANGE).next_to(ring, RIGHT, buff=.14),
+        T("LET GO", size, ORANGE).next_to(ring, DOWN, buff=.12),
+        T("RE-COCK", size, ORANGE).next_to(ring, LEFT, buff=.14),
     )
-    pointer = Arrow(center, np.array(center)+UP*(radius-.18), buff=0, color=YELLOW,
-                    stroke_width=4, tip_length=.18)
+    pointer = Arrow(center, np.array(center)+UP*(radius-.12), buff=0, color=YELLOW,
+                    stroke_width=4, tip_length=min(.18, radius*.3))
     return VGroup(ring, labs, pointer)
 
 
@@ -212,7 +212,7 @@ class S03Cycle(SpokenScene):
                                 fill_color=ORANGE,fill_opacity=.42).move_to([-2.55,-1.48,0])
         neck = Line(foot.get_top(),[-2.55,.65,0],color=ORANGE,stroke_width=12)
         load = cargo((-2.55,1.35,0),.62)
-        dial = cycle_dial((4.55,1.7,0),1.25,28)
+        dial = cycle_dial((4.4,2.0,0),.8,28)
         glint = shimmer(tr[0], BLUE)
         self.add(tr, foot, neck, load, dial, glint)
         self.at("Watch one foot")
@@ -239,7 +239,7 @@ class S03Cycle(SpokenScene):
 class S04Idea(SpokenScene):
     def construct(self):
         tr=microtubule(-1.25); ends=polarity(-2.08); glint=shimmer(tr[0],BLUE)
-        kin=two_foot_motor(-3.7,-1.25,ORANGE,.95); dial=cycle_dial((4.75,2.25,0),1.0,28)
+        kin=two_foot_motor(-3.7,-1.25,ORANGE,.95); dial=cycle_dial((4.3,2.2,0),.8,28)
         self.add(tr,ends,kin,dial,glint)
         self.at("motor has feet")
         self.play(Indicate(kin.feet,color=YELLOW),run_time=.55)
@@ -301,7 +301,7 @@ class S06Numbers(SpokenScene):
         hipbr=VGroup(Line([-4.0,2.22,0],[-3.1,2.22,0],color=YELLOW,stroke_width=4),
                      Line([-4.0,2.05,0],[-4.0,2.39,0],color=YELLOW,stroke_width=4),
                      Line([-3.1,2.05,0],[-3.1,2.39,0],color=YELLOW,stroke_width=4),
-                     T("cargo / centre: 8 nm",30,YELLOW).move_to([-1.25,2.22,0]))
+                     T("cargo / centre: 8 nm",30,YELLOW).move_to([-0.9,2.22,0]))
         self.play(FadeIn(hipbr),m.animate.shift(RIGHT*.9),run_time=1.0)
         self.at("Each foot moves")
         footbr=VGroup(Line([-3.6,-2.5,0],[-1.8,-2.5,0],color=ORANGE,stroke_width=4),
@@ -416,7 +416,7 @@ def sarcomere():
 
 class S11Muscle(SpokenScene):
     def construct(self):
-        zl,thin,thick,heads=sarcomere(); dial=cycle_dial((4.15,2.45,0),.90,28)
+        zl,thin,thick,heads=sarcomere(); dial=cycle_dial((2.9,2.45,0),.65,28)
         zlabs=VGroup(T("Z",28,TEXT).move_to([-6.15,2.65,0]),T("Z",28,TEXT).move_to([6.15,2.65,0]))
         self.add(zl,thin,thick,heads,zlabs,dial)
         self.add(shimmer(thin[0],GREEN),shimmer(thin[1],GREEN))
@@ -471,7 +471,7 @@ class S13Rule(SpokenScene):
         heads=VGroup(*[Line([x,-2.55,0],[x+.12,-2.15,0],color=RED,stroke_width=4) for x in np.linspace(-3.4,3.4,14)])
         labels=VGroup(T("one foot down: walks alone",28,ORANGE).move_to([2.5,2.95,0]),
                       T("feet mostly off: a crowd",28,RED).move_to([2.5,-3.25,0]))
-        dial=cycle_dial((-4.75,-.80,0),.80,28)
+        dial=cycle_dial((-3.0,2.95,0),.4,24)
         self.add(top,bottom,divider,kin,thick,heads,labels,dial)
         self.add(shimmer(top[0],BLUE),shimmer(bottom[0],GREEN))
         self.at("repeating one small cycle")
@@ -494,14 +494,3 @@ class S13Rule(SpokenScene):
 class S14End(EndCard):
     LINE = "Keep one foot down to walk alone."
 
-    def construct(self):
-        tr=microtubule(-2.45,11.5); m=two_foot_motor(-4.5,-2.45,ORANGE,.48,False)
-        world=VGroup(tr,m).set_opacity(.28)
-        line=T("Grip, swing, let go, re-cock:",42,TEXT,font=TITLE_FONT)
-        takeaway=T(self.LINE,42,ORANGE,font=TITLE_FONT)
-        sub=T("biochemistrypedia.com",24,TEAL)
-        card=VGroup(line,takeaway,sub).arrange(DOWN,buff=.38).shift(UP*.75)
-        self.add(world)
-        self.play(FadeIn(card),run_time=.65)
-        self.play(m.animate.shift(RIGHT*7.5),run_time=2.3,rate_func=linear)
-        self.finish()
