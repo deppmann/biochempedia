@@ -5,30 +5,36 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 2: Membranes and compartments"
 order: 406
 summary: >-
-  A eukaryotic cell keeps several chemistries running side by side: an acid lysosome, a
-  near-neutral and oxidizing ER, a calcium-rich ER store and an alkaline mitochondrial matrix,
-  all sharing one cytosol. This lesson maps those differences with measured values and the cells
-  they were measured in, shows how pumps such as the V-ATPase and SERCA hold them in place, and
-  weighs the evidence that mitochondria and plastids began as bacteria. Afterwards you can
-  convert pH values into proton ratios and assign a protein to a compartment from fractionation
-  profiles.
-hook: "In HeLa cells the mitochondrial matrix measured near pH 8 and the medial/trans Golgi near pH 6.6. How does one cell keep both?"
+  A eukaryotic cell keeps several chemistries side by side: an acid lysosome, a calcium-rich ER
+  store and an alkaline mitochondrial matrix, all sharing one cytosol near pH 7.2. A membrane is a
+  leaky wall, so the acid, calcium-rich and alkaline gradients here are steady states that last only
+  while energy-dependent transport keeps working against the leak. The lesson uses that idea to predict what bafilomycin, thapsigargin and
+  ionophores do, reads the pH ladder in free protons, and explains why the matrix and stroma, once
+  bacterial cytoplasm, are alkaline while their pumps run. It then weighs the evidence that
+  mitochondria and plastids began as bacteria and assigns a protein to a compartment from
+  fractionation profiles.
+hook: "A lysosome near pH 4.7 and a mitochondrial matrix near pH 8 share one cytosol near 7.2. What holds each at its own number?"
 
 estMinutes: 24
 objectives:
-  - "Map the main organelles to the chemistry each keeps, giving measured pH, calcium and redox values with the cell or review they come from."
-  - "Explain how the V-ATPase and SERCA build and keep luminal differences against leak, and predict the effect of blocking each."
-  - "Weigh the evidence that mitochondria and plastids descend from bacteria, including gene transfer to the nucleus."
-  - "Assign a protein to a compartment by comparing its fractionation profile with marker profiles, and say what further evidence is needed."
+  - "Use a pump-and-opposing-flux model to explain acid-lumen pH and the ER calcium store, and predict the scoped effects of bafilomycin, thapsigargin, suitable calibration ionophores and reduced counterion conductance."
+  - "Read the cell's pH ladder, with the system each value comes from, and convert pH differences to free-proton ratios."
+  - "Explain why the mitochondrial matrix and chloroplast stroma are alkaline, and weigh the evidence that both organelles descend from bacteria, including gene transfer to the nucleus."
+  - "Assign a protein to a compartment from fractionation profiles and a latency test, and say what further evidence is needed."
 
 explainer:
   src: "/explainers/organelles-as-environments/explainer.mp4"
   captions: "/explainers/organelles-as-environments/explainer.vtt"
   poster: "/explainers/organelles-as-environments/poster.jpg"
-  title: "Pumps Hold Each Room Apart"
-  durationSec: 161.0
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "A Tap, a Hole, a Level"
+  durationSec: 236.2
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "For the gradients in this lesson, a membrane leaks, so ongoing energy-dependent transport must keep working against the leak."
+    - "Block the pump and the gradient runs down: bafilomycin made the HeLa Golgi less acid, and thapsigargin, by blocking SERCA, lets the ER's calcium store drain."
+    - "Small ions pass quickly through nuclear pores, so the nucleus stays close to the cytosol's pH."
+    - "While respiration runs, and in chloroplasts in the light, pumps push protons out of the matrix and stroma, once a bacterium's cytoplasm, so those spaces are alkaline."
 
 scientists:
   - name: "Lynn Margulis"
@@ -175,7 +181,7 @@ simulations:
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
-  - stem: "Using the values in the lesson's chemical map, which compartment has the most acidic lumen?"
+  - stem: "Using the values in the lesson's pH ladder, which compartment has the most acidic lumen?"
     choices:
       - "The early endosome"
       - "The lysosome"
@@ -303,7 +309,7 @@ explainLevels:
   - level: "college"
     label: "College"
     text: >-
-      Each ion gradient across an organelle membrane is a steady state between pumping and leak. The V-ATPase pumps protons into
+      The acid-lumen and ER-calcium gradients in this lesson are nonequilibrium steady states, with active transport balanced by opposing fluxes (a general ion-gradient model must add voltage, fixed charge and coupled transport). The V-ATPase pumps protons into
       endosomes, lysosomes and the Golgi (pH 6.58 in the HeLa medial/trans Golgi; 4.5 to 5.0 in
       mammalian lysosomes), and needs counterion movement to keep going. SERCA fills the ER to
       about 0.5 to 1 mM free Ca2+ against about 100 nM in the cytosol. The ER is oxidizing yet near
@@ -322,9 +328,10 @@ explainLevels:
       maps) treats localization as classification of profiles. A multi-localized protein gives a mixed
       profile, which may be assigned to its most likely compartment with a secondary location noted, or left unclassified. On origins, composition-aware
       models in one 2022 analysis placed mitochondria as sister to sampled Alphaproteobacteria, though other analyses disagree and the exact branch is still debated; Gloeomargarita is
-      the closest cultured relative of primary plastids. Open question: what sets the different
-      steady-state pH of each compartment along the endocytic route, given that one pump family
-      acidifies them all?
+      the closest cultured relative of primary plastids. Open question: one pump family acidifies
+      every compartment along the endocytic route, so which combination of pump number and
+      regulation, proton leak, counterion and other electrogenic transport, and lumenal ionic
+      properties sets each compartment's steady-state pH?
 
 anecdotes:
   - title: "An enzyme that hid behind a membrane"
@@ -374,57 +381,141 @@ draft: false
 
 import CompartmentPhRatio from '../../../components/CompartmentPhRatio.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**In cultured HeLa cells, the inside of the mitochondrion measured close to pH 8.0 and the medial and trans Golgi close to pH 6.6. In mammalian cells the lysosome sits at pH 4.5 to 5.0. All three share one cytosol.**
+**The film's lysosome near pH 4.7 and mitochondrial matrix near pH 8 differ about 2,000-fold in free protons.**
 
-That spread is larger than it looks, because pH is a logarithm. A cell keeps compartments that differ a thousandfold or more in free protons, and others that differ several thousandfold in free calcium, side by side. This lesson asks how it does that, what each compartment keeps, how you would find out where an unknown protein lives, and why two of these compartments carry their own DNA.
+The film built the picture; this text puts numbers on it, tests it with drugs and asks where the outward-facing pumps came from.
 
-## The idea: membranes let a cell run several chemistries at once
+> **The one idea to carry through this lesson.** A membrane is a leaky wall, so for the acid-lumen, ER-calcium, respiring-matrix and illuminated-stroma gradients considered here, ongoing energy-dependent transport is balanced by opposing fluxes at steady state, and the gradient runs down when that input stops.
 
-Think of a building in which every room has its own thermostat. The walls do not make a room warm. They slow the loss of heat, so a heater can hold the room at a set point. An organelle works the same way. Its **lumen**, the space enclosed by its membrane, is kept different from the **cytosol**, the fluid part of the cell outside all organelles, by pumps in the membrane working against leak.
+## A toy model with numbers
 
-The wall here is the lipid bilayer, which ions cross only slowly unless a channel or carrier lets them through (see [the lesson on membrane transport](/lessons/membrane-transport/)). The ion differences you meet below are therefore steady states. Each lasts only as long as a pump keeps paying, in ATP or, in mitochondria and chloroplasts, in electron transport. Stop the pump and the difference runs down. Redox differences are also steady states, but they are kept by ongoing reactions rather than by a pump.
+The **lumen** is the space enclosed by an organelle's membrane; the **cytosol** is the fluid part of the cell outside all organelles. As the film said, a lipid bilayer lets ions through only slowly ([membrane transport](/lessons/membrane-transport/)).
 
-Why bother? Because different jobs need different chemistry. Lysosomal hydrolases such as the protease cathepsin D work best in acid. Disulfide bonds form in an oxidizing lumen. A calcium store is useful only if its calcium is far above the cytosol's, so that opening a channel sends a signal (that release is covered in [the lesson on calcium signalling](/lessons/calcium-signaling/)). And ATP synthesis in the mitochondrion depends on a proton gradient across the inner membrane (see [oxidative phosphorylation](/lessons/oxidative-phosphorylation/)).
+<EquationCard
+  title="A toy model"
+  purpose="Where a lumen's free protons settle if a fixed pump flux is balanced by a leak that grows with the gap."
+  eq="[H+]lumen = [H+]cytosol + push / leak"
+  say="In this toy model, the lumen's free protons equal the cytosol's, plus the pump's push divided by how leaky the wall is."
+  symbols={[
+    ["[H+]lumen", "H plus in the lumen", "free-proton activity, approximated here by an effective molar concentration; pH = −log10 of the activity", "effective M"],
+    ["[H+]cytosol", "H plus in the cytosol", "free proton concentration of the cytosol, about 6.3 × 10⁻⁸ M at pH 7.2, held fixed", "M"],
+    ["push / leak", "push over leak", "the extra free protons the pump holds above the cytosol's; a rate divided by a rate per unit of concentration, so a concentration", "M"],
+  ]}
+  toolkit={["ratios", "log-scales"]}
+  check="No push, or a huge leak: the lumen matches the cytosol. Double the push or halve the leak: the extra free protons double. The model ignores voltage, counterions, other transporters and a pump that slows as its gradient grows: it shows directions, not real pump strengths."
+>
+  <Fragment slot="example">
+    <p>Golgi at pH 6.58: [H+] = 10^−6.58 = 2.6 × 10⁻⁷ M. Subtract the cytosol's 0.6 × 10⁻⁷ M: in the model, push/leak ≈ 2.0 × 10⁻⁷ M.</p>
+  </Fragment>
+  <Fragment slot="derivation">
+    <p>Step 1 (the assumptions): protons pumped in per second = push, a constant. Protons leaking out per second = leak × ([H+]lumen − [H+]cytosol).</p>
+    <p>Step 2: at steady state, in = out, so push = leak × ([H+]lumen − [H+]cytosol).</p>
+    <p>Step 3: divide by leak and add [H+]cytosol to both sides.</p>
+  </Fragment>
+</EquationCard>
 
-## A chemical map of the cell
+- **A level costs energy for as long as it lasts.** It is a *steady state*: flow in matches flow out, and the pump pays in ATP or electron transport the whole time. An *equilibrium* has no net flow and costs nothing; things drift toward it once the paying stops. No sensor or set point is needed, though cells do regulate pumps, for example by assembling and disassembling the V-ATPase.
+- **Different jobs need different levels.** Lysosomal hydrolases such as the protease cathepsin D work best in acid. A calcium store sends a signal only if its calcium is far above the cytosol's, so that opening a channel releases it ([calcium signalling](/lessons/calcium-signaling/)). ATP synthesis needs a proton gradient across the inner mitochondrial membrane ([oxidative phosphorylation](/lessons/oxidative-phosphorylation/)).
 
-Here is what has been measured. Each value keeps its source, because the map combines single-cell measurements with review ranges.
+This is a first, qualitative model of ion gradients; real organelles add membrane voltage, counterions and other transporters. Redox is the exception: the ER lumen is oxidizing, which lets disulfide bonds form, yet near neutral. Redox describes electrons, not protons, and is kept by ongoing reactions rather than a pump against a leak (Going deeper).
 
-| Compartment | Value | System |
-|---|---|---|
-| Nucleus | pH near 7.2 | Mammalian cells, review |
-| ER lumen | pH near neutral | HeLa cells, targeted reporter |
-| Medial/trans Golgi | pH 6.58 | HeLa cells, targeted reporter |
-| Early and recycling endosomes | pH about 6.3 to 6.5 | Mammalian cells, review |
-| Late endosomes | pH about 5.5 | Mammalian cells, review |
-| Lysosomes | pH 4.5 to 5.0; Ca2+ about 0.5 mM; Cl− 80 to 100 mM | Mammalian cells, review |
-| Mitochondrial matrix | pH about 7.98 (estimated) | HeLa cells, targeted reporter |
-| ER lumen | free Ca2+ about 0.5 to 1 mM | Mammalian cells, review |
-| Cytosol | free Ca2+ about 100 nM at rest | Mammalian cells, review |
-| Chloroplast stroma, in light | pH about 7.8 to 8.0 | Older plant measurements, reviewed |
+**Predict.** To calibrate a pH reporter inside cells, you bathe them in buffers of known pH and add **ionophores**, suitable H+/alkali-cation carriers, which under matched ionic conditions increase proton exchange across the relevant membranes. Where does the reporter's compartment settle, and why does that give you a calibration?
 
-The nucleus shares much of the cytosol's ionic chemistry, because its envelope is perforated by pores through which small ions pass freely.
+<details>
+<summary>Check your prediction</summary>
 
-Two traps sit in this table. First, not every organelle is acidic. The ER is near neutral, and the matrix is alkaline. Second, oxidizing does not mean acidic. In cultured CHO cells, a redox reporter called CY-RL7 was about 88% oxidized in the ER lumen and fully reduced in the cytosol, while the ER's pH stays near neutral. Redox describes electrons; pH describes protons.
+Near the bath's pH. With a huge leak, push/leak shrinks toward zero, so no pump can hold a gap. Read the reporter at several bath pH values and you have a curve that turns its signal into pH. The clamp needs matched conditions: these ionophores trade protons for potassium or sodium (nigericin plus monensin is one pair used), so the bath is high in potassium like the cell's inside, and the cells need time to equilibrate.
 
-Redox also depends on which chemical couple you measure. In budding yeast, a reporter coupled to glutathione estimated the cytosol at about −306 mV and the matrix at about −301 mV, so the matrix pool was strongly reducing even though mitochondria make reactive oxygen species. In the same yeast study, the glutathione pool of the intermembrane space exchanged with the cytosol through porins, but no appreciable exchange with the matrix was detected. In mammalian cultured cells, the redox state of the peroxisome depended strongly on growth conditions. No reliable peroxisomal pH is given here, so none is stated.
+</details>
 
-### Worked problem: reading the map and placing a protein
+## The pH ladder
 
-**Part 1. How many more free protons are in the Golgi than in the matrix?** Use the two HeLa means, 6.58 for the Golgi and 7.98 for the matrix. They come from separate measurements, not one cell read twice.
+| Compartment | pH | Main proton pump, direction | System |
+|---|---|---|---|
+| Mitochondrial matrix | about 7.98 (estimated) | respiratory chain, out of the matrix | HeLa cells, targeted reporter |
+| Chloroplast stroma, in light | about 7.8 to 8.0 | photosynthetic chain, out of the stroma | Older plant measurements, reviewed |
+| **Cytosol (the line)** | about 7.2 | | Reference value |
+| Nucleus | near 7.2 | none needed: pores pass small ions quickly | Mammalian cells, review |
+| ER lumen | near neutral | none named here | HeLa cells, targeted reporter |
+| Medial/trans Golgi | 6.58 | V-ATPase, into the lumen | HeLa cells, targeted reporter |
+| Early and recycling endosomes | about 6.3 to 6.5 | V-ATPase, into the lumen | Mammalian cells, review |
+| Late endosomes | about 5.5 | V-ATPase, into the lumen | Mammalian cells, review |
+| Lysosomes | 4.5 to 5.0 | V-ATPase, into the lumen | Mammalian cells, review |
 
-> pH = −log10(aH+), where aH+ is the activity of free protons, so aH+(Golgi) / aH+(matrix) = 10^(pH matrix − pH Golgi)
+This is the film's ladder with the source system for each value; the film's 4.7 is the middle of the lysosomal range. For calcium, free Ca2+ is about 100 nM in the resting cytosol and about 0.5 to 1 mM in the ER lumen, a 5,000- to 10,000-fold difference; lysosomes hold Ca2+ about 0.5 mM and Cl− 80 to 100 mM (mammalian reviews).
+
+Two traps: not every organelle is acidic, and a small gap in pH hides a large gap in protons.
+
+### Worked problem: reading the ladder in free protons
+
+**How many more free protons are in the Golgi than in the matrix?** A gap of 1.4 pH units looks small; the ratio shows how large it is. Use the two HeLa means, 6.58 and 7.98. They come from separate measurements, not one cell read twice.
+
+> pH = −log10(aH+), where aH+ is the activity of free protons (their effective concentration), so aH+(Golgi) / aH+(matrix) = 10^(pH matrix − pH Golgi)
 
 1. Subtract: 7.98 − 6.58 = 1.40.
 2. Raise ten to that power: 10^1.40 = 25.1.
-3. Check by computing each side, treating activity as concentration: 10^−6.58 = 2.63 × 10^−7 M (0.263 µM) and 10^−7.98 = 1.05 × 10^−8 M (0.0105 µM). Then 0.263 / 0.0105 ≈ 25, the same answer within rounding.
+3. Check, treating activity as concentration: 2.63 × 10^−7 M / 1.05 × 10^−8 M ≈ 25.
 
-The Golgi lumen has about 25 times the free proton activity of the matrix. This is free activity only. It says nothing about the total protons held by buffers or how fast protons move.
+The Golgi lumen has about 25 times the free proton activity of the matrix. This is free activity only; it says nothing about protons held by buffers or how fast protons move. The same arithmetic puts a lysosome at 4.7 about 300 times above the cytosol.
 
 <CompartmentPhRatio />
 
-**Part 2. Which compartment holds protein X?** Suppose a lab breaks cells and separates them into four fractions, F1 to F4, and measures each protein's share in each fraction. These numbers are made up for practice. The three markers are ones used in a real HeLa map.
+## Turning the knobs
+
+The film predicted bafilomycin's effect; here is what it leaves out. Bafilomycin A1 blocks the **V-ATPase**, a rotary pump that spends ATP to move protons from the cytosol into a lumen. A mammalian review names the V-ATPase the main mechanism keeping endosomes and lysosomes acid. How far a lumen drifts depends on its other fluxes: predict "less acid", not "exactly 7.2".
+
+**Charge is part of the push.** Each proton pumped in makes the lumen more positive, and a positive lumen pushes back on the pump. So acidification is thought to need a **counterion**, an ion whose movement cancels that charge: chloride following the protons in, or another cation moving out.
+
+**Predict.** A lysosome loses most of its counterion flow, no other path makes up for it, and its V-ATPase is untouched. Where does its pH settle?
+
+<details>
+<summary>Check your prediction</summary>
+
+Less acid, closer to the cytosol line: the charge the pump builds holds it back, so its effective push falls against the same leak. Real lysosomes have several counterion paths, some of them exchangers rather than simple channels, so blocking one need not do this; an experiment must check whether another path took over.
+
+</details>
+
+**SERCA**, the sarco/endoplasmic reticulum Ca2+-ATPase, pumps calcium from the cytosol into the ER and builds that 5,000- to 10,000-fold gradient.
+
+**Predict.** After thapsigargin has emptied the ER, a hormone opens the ER's calcium-release channels. What signal does the cytosol see?
+
+<details>
+<summary>Check your prediction</summary>
+
+Little or none from the ER: an empty store has nothing to release. Emptying the store also switches on store-operated calcium entry across the plasma membrane ([calcium signalling](/lessons/calcium-signaling/)).
+
+</details>
+
+## Same pump, different rungs
+
+The film left open why one pump family puts the Golgi, endosomes and lysosome on different rungs. That is still studied: the candidates include how many pumps a membrane carries and how they are regulated, how leaky the membrane is to protons, how easily counterions move, and the lumen's own ionic properties.
+
+**Predict.** In the toy model, could pH readings alone tell you whether the lysosome has more pumps or a tighter wall than the Golgi?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. In the model only push/leak sets the level, so a strong pump with a leaky wall and a weak pump with a tight wall give the same pH. You need a second measurement: count the pumps, say, or block them with bafilomycin and time the drift back, which in the model depends on the leak and the lumen's buffering. Real pumps also slow as their gradient grows (Going deeper).
+
+</details>
+
+## Pumps facing out, because they were bacteria
+
+Do not over-read the matrix's alkaline rung. The pH difference across the inner mitochondrial membrane is under one unit, and most of the mitochondrial **proton-motive force**, the pH difference plus the voltage across the membrane, is voltage ([the proton-motive force](/lessons/proton-motive-force/)). In chloroplasts, light drives protons from the stroma into the thylakoid lumen, and there too the proton-motive force includes both a pH difference and a voltage ([the light reactions](/lessons/light-reactions/)).
+
+The outward direction is a bacterial inheritance: the inner mitochondrial membrane was the bacterium's plasma membrane. The evidence for that ancestry is strong. Unlike most organelles, mitochondria and plastids have their own DNA and ribosomes, inside two envelope membranes (three or four around some algal plastids). Konstantin Mereschkowski proposed a bacterial origin for plastids early in the twentieth century; in 1967 Lynn Margulis, writing as Lynn Sagan, made the case for both (her spirochete origin for flagella has not been supported).
+
+Molecular sequences tested the idea. Trees of mitochondrial ribosomal RNA placed mitochondrial sequences within the Bacteria rather than with archaea or the eukaryotic cytosol, and later protein data pointed to the Alphaproteobacteria; the exact branch is still debated (Going deeper). Trees built from many proteins supported a cyanobacterial origin for plastids, and in 2017 the closest cultured relative was *Gloeomargarita lithophora*, a cousin of the plastid line, not its ancestor.
+
+Many ancestral mitochondrial genes were lost, and many others moved to the nucleus by endosymbiotic gene transfer. Most mitochondrial proteins are now encoded in the nucleus, made in the cytosol and imported ([protein sorting](/lessons/protein-sorting/)); human mitochondrial DNA encodes 13 proteins, of more than a thousand that work in mitochondria. Even the respiratory chain's outward-facing pumps are built mostly from imported parts. The proteome is a mosaic, with many proteins of origins outside the Alphaproteobacteria. Peroxisomes, by contrast, have no genome; they share fatty acid breakdown with mitochondria ([fatty acid degradation](/lessons/fatty-acid-degradation/)).
+
+<LessonFigure src="/figures/organelles-as-environments/endosymbiosis-gene-transfer.webp" width={1200} height={789} alt="AI-generated illustration: a cell cut-away with a nucleus and a mitochondrion that has two envelope membranes, its own DNA and ribosomes. An arrow shows much of its genome moved to the nucleus, and another shows proteins made in the cytosol being imported. A small inset shows a plastid with the same features." caption="Mitochondria and plastids keep their own DNA and ribosomes inside two envelope membranes (more around some algal plastids), but much of the ancestral genome was lost or moved to the nucleus, and most mitochondrial proteins are made in the cytosol and imported. The DNA is drawn as a loop for simplicity; some mitochondrial genomes are linear." />
+
+## Which compartment holds a protein?
+
+Every argument above assumed you knew which compartment a protein sits in. Suppose a lab breaks cells into four fractions, F1 to F4, and measures each protein's share in each. The numbers are made up for practice; the three markers are ones used in a real HeLa map.
 
 | Protein | F1 | F2 | F3 | F4 |
 |---|---|---|---|---|
@@ -433,31 +524,14 @@ The Golgi lumen has about 25 times the free proton activity of the matrix. This 
 | Pyruvate kinase (cytosol) | 0.05 | 0.05 | 0.10 | 0.80 |
 | Unknown X | 0.06 | 0.18 | 0.61 | 0.15 |
 
-1. Compare whole shapes, not one peak. X differs from cathepsin D by 0.01, 0.02, 0.01 and 0.00, a total of 0.04.
-2. Against histone H3 the differences are 0.74, 0.08, 0.56 and 0.10, a total of 1.48.
-3. Against pyruvate kinase they are 0.01, 0.13, 0.51 and 0.65, a total of 1.30.
+**Predict.** Which marker does X travel with, and why is its F3 peak alone not enough to say?
 
-X is provisionally lysosomal. Before concluding, you would want a second lysosomal marker that matches, replicate fractionations and an imaging check in intact cells. Large studies leave some proteins unclassified because they live in more than one compartment (for the logic of markers, see [the lesson on experiments that distinguish](/lessons/experiments-that-distinguish/)).
+<details>
+<summary>Check your prediction</summary>
 
-## How pumps keep the differences
+Compare whole shapes, not one peak. Summed fraction-by-fraction differences: 0.04 against cathepsin D (0.01, 0.02, 0.01, 0.00), 1.48 against histone H3 and 1.30 against pyruvate kinase. X is provisionally lysosomal. Before concluding, you would want a second lysosomal marker that matches, replicate fractionations and an imaging check in intact cells. Large studies leave some proteins unclassified because they live in more than one compartment ([experiments that distinguish](/lessons/experiments-that-distinguish/)).
 
-The **V-ATPase** is a rotary pump that spends ATP to move protons from the cytosol into a lumen. A mammalian review names it the main mechanism keeping endosomes and lysosomes acid. In HeLa cells, the V-ATPase inhibitor bafilomycin A1 made the Golgi less acid, which shows that Golgi acidity is actively kept. Pumping protons alone would also build up positive charge in the lumen and slow the pump, so acidification is thought to need a counterion: chloride moving in, or another cation moving out. Why each compartment along the route from early endosome to lysosome settles at a different pH, with one pump family acidifying them all, is still studied.
-
-**SERCA**, the sarco/endoplasmic reticulum Ca2+-ATPase, pumps calcium from the cytosol into the ER and builds the gradient across the ER membrane. From the table, 0.5 to 1 mM against 100 nM is a 5,000- to 10,000-fold difference. Block SERCA with thapsigargin and calcium leaks out of the ER faster than it is replaced.
-
-Mitochondria and chloroplasts run the pumps in other directions. The respiratory chain pumps protons out of the matrix, which is why the matrix is alkaline (see [the proton-motive force](/lessons/proton-motive-force/)). In chloroplasts, light drives protons into the thylakoid lumen and the stroma becomes alkaline. The proton-motive force there includes both a pH difference and a voltage (see [the light reactions](/lessons/light-reactions/)).
-
-A pump that sets one gradient need not set another. In one HEK293 assay, the lysosome's calcium store refilled after release even with the V-ATPase blocked, but failed to refill when ER calcium was depleted or chelated. That result holds for that cell line and assay, and the transporter that takes calcium up was not identified. The lysosome also serves as a platform for nutrient signals, which [the lesson on mTOR and AMPK](/lessons/mtor-and-ampk/) covers.
-
-## Bacteria inside: the endosymbiotic evidence
-
-Mitochondria and plastids differ from most other organelles in having their own DNA and ribosomes, inside two envelope membranes (three or four around some algal plastids). The idea that they descend from bacteria taken into a host cell was proposed for plastids by Konstantin Mereschkowski early in the twentieth century. In 1967, writing as Lynn Sagan, Lynn Margulis assembled the case for both organelles. Her further proposal that eukaryotic flagella came from spirochetes has not been supported.
-
-Molecular sequences tested the idea. Trees of mitochondrial ribosomal RNA placed mitochondrial sequences within the Bacteria rather than with archaea or the eukaryotic cytosol, and later protein data pointed to the Alphaproteobacteria. A 2022 analysis of 108 mitochondrial proteins, using a model that allows for changes in amino-acid composition across sites and branches, favoured mitochondria as sister to the Alphaproteobacteria, excluding two related lineages (MarineProteo1 and Magnetococcia), rather than inside any living group. Other analyses have placed mitochondria inside the Alphaproteobacteria, near the Rickettsiales, or deeper still, so the exact branch is still debated. For plastids, phylogenomic analyses supported a cyanobacterial origin, and in 2017 the closest cultured relative was *Gloeomargarita lithophora*. That species is a cousin of the plastid line, not its ancestor.
-
-The genomes tell the rest. Many ancestral mitochondrial genes were lost, and many others moved to the nucleus by endosymbiotic gene transfer. Most mitochondrial proteins are now encoded in the nucleus, made in the cytosol and imported (see [protein sorting](/lessons/protein-sorting/)). The modern mitochondrial proteome is a mosaic, with many proteins of origins outside the Alphaproteobacteria. Nor are mitochondrial genomes all circles: that of *Proteromonas lacertae* is linear. Peroxisomes, by contrast, have no genome; they share the work of breaking down fatty acids with mitochondria (see [fatty acid degradation](/lessons/fatty-acid-degradation/)).
-
-<LessonFigure src="/figures/organelles-as-environments/endosymbiosis-gene-transfer.webp" width={1200} height={789} alt="AI-generated illustration: a cell cut-away with a nucleus and a mitochondrion that has two envelope membranes, its own DNA and ribosomes. An arrow shows much of its genome moved to the nucleus, and another shows proteins made in the cytosol being imported. A small inset shows a plastid with the same features." caption="Mitochondria and plastids keep their own DNA and ribosomes inside two envelope membranes (more around some algal plastids), but much of the ancestral genome was lost or moved to the nucleus, and most mitochondrial proteins are made in the cytosol and imported. The DNA is drawn as a loop for simplicity; some mitochondrial genomes are linear." />
+</details>
 
 ### Design problem
 
@@ -466,14 +540,30 @@ You suspect that a protein lives in the lysosome lumen and needs low pH to work.
 <details>
 <summary>One way to do it</summary>
 
-Start by confirming the environment. Express a pH reporter targeted to lysosomes, calibrate it in the cells with ionophores, and check that it reads in the expected acid range for your cell type.
+Confirm the environment with a lysosome-targeted pH reporter, calibrated in the cells with ionophores.
 
-Next, place the protein. Fractionate the cells and compare its profile with at least two lysosomal markers, such as cathepsin D, and with markers of nearby compartments. Test latency: if the protein is inside the lumen, its activity on an added substrate that cannot cross the membrane should rise when membranes are opened with detergent, provided detergent does not change the protein's own activity. Imaging against a lysosomal marker in intact cells shows that the protein is at lysosomes but not that it is inside them; a protease-protection test on isolated lysosomes, with and without detergent, tests the lumen.
+Place the protein: compare its fractionation profile with at least two lysosomal markers, such as cathepsin D, and with markers of nearby compartments. Test **latency**, activity hidden behind a membrane: a lumenal protein's activity on an added substrate that cannot cross the membrane should rise when detergent opens it (if detergent does not change the protein's own activity). Imaging shows the protein is at lysosomes, not inside them; on isolated lysosomes, a protease added outside reaches a lumenal protein only once detergent opens the membrane (protease protection).
 
 <LessonFigure src="/figures/organelles-as-environments/latency-sealed-enzyme.webp" width={1200} height={615} alt="AI-generated illustration: two lysosomes side by side. On the left the membrane is intact and external substrate cannot reach the enzyme inside; on the right the membranes are opened with detergent and the substrate reaches the enzyme, producing product." caption="Latency as a test of location. An enzyme sealed inside a lumen cannot act on a substrate outside; when detergent opens the membranes its activity rises." />
 
-Then test the pH requirement. Add bafilomycin A1 to block the V-ATPase, and measure both the rise in lysosomal pH and the protein's activity over time. Include a control showing that bafilomycin has not simply stopped the protein from reaching lysosomes, for example that its amount in the lysosomal fraction is unchanged. In fly cells bafilomycin also inhibits SERCA, so repeat the test with a second way of raising lysosomal pH, such as depleting a V-ATPase subunit. A stronger test measures the purified protein's activity across a pH range in vitro.
-
-Keep the language of evidence. Activity that falls as pH rises is a correlation; the in vitro pH curve and a rescue (restoring activity by restoring acidity) are what argue for cause.
+Test the pH requirement: add bafilomycin A1 and follow lysosomal pH and the protein's activity, checking that the protein still reaches lysosomes (its lysosomal-fraction amount is unchanged). In fly cells bafilomycin also inhibits SERCA, so repeat with a second way of raising lysosomal pH, such as depleting a V-ATPase subunit. Activity that falls as pH rises is a correlation; the purified protein's activity across a pH range in vitro, and a rescue (restoring activity by restoring acidity), argue for cause.
 
 </details>
+
+## Going deeper
+
+### Redox: a level of a different kind
+
+In cultured CHO cells, a redox reporter called CY-RL7 was about 88% oxidized in the ER lumen and fully reduced in the cytosol. Redox also depends on which chemical couple you measure. In budding yeast, a glutathione-coupled reporter estimated the cytosol at about −306 mV and the matrix at about −301 mV, so the matrix pool was strongly reducing even though mitochondria make reactive oxygen species; the intermembrane-space pool exchanged with the cytosol through porins, but no appreciable exchange with the matrix was detected. In mammalian cultured cells, the redox state of the peroxisome depended strongly on growth conditions. No reliable peroxisomal pH is given here, so none is stated.
+
+### When the pump slows as the gradient grows
+
+The toy model holds the push fixed and ignores membrane voltage. A real V-ATPase moves fewer protons as the electrochemical gradient it works against grows, so a tenfold change in the pump's capacity, or in the leak, need not shift the pH by a full unit. The direction of each change still follows the balance; the card's exact numbers do not.
+
+### Calcium that rides on another pump's gradient
+
+A pump that sets one gradient need not set another. In one HEK293 assay, the lysosome's calcium store refilled after release even with the V-ATPase blocked, but failed to refill when ER calcium was depleted or chelated. That holds for that cell line and assay, and the transporter that takes calcium up was not identified. The lysosome is also a platform for nutrient signals ([mTOR and AMPK](/lessons/mtor-and-ampk/)).
+
+### Where on the bacterial tree
+
+A 2022 analysis of 108 mitochondrial proteins, using a model that allows for changes in amino-acid composition across sites and branches, favoured mitochondria as sister to the Alphaproteobacteria, excluding two related lineages (MarineProteo1 and Magnetococcia), rather than inside any living group. Other analyses have placed mitochondria inside the Alphaproteobacteria, near the Rickettsiales, or deeper still.

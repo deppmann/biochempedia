@@ -5,10 +5,10 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 4: Division and cell loss"
 order: 421
 summary: >-
-  Death is a normal, genetically controlled part of building a body: in a worm, the same 131 cells die on schedule, and the dead cells are cleared so quickly that corpses are rarely seen. This lesson separates apoptosis from necrotic deaths by appearance and by machinery, follows the worm genetics that showed death can be a genetic program, and shows how to read annexin V, propidium iodide, TUNEL, caspase and LDH assays together over time. It ends with how a dying cell calls a phagocyte, flags itself to be eaten, and is digested. The way a dying cell looks does not tell you what killed it.
-hook: "In a developing worm, 131 of the cells made in the hermaphrodite body die on schedule. Who decides?"
+  Death is a normal, genetically controlled part of building a body: in a worm, the same 131 cells die on schedule, yet in healthy tissue dead cells are cleared so fast that corpses are rarely seen. One idea ties the lesson together: in apoptosis the plasma membrane stays intact early, often until a phagocyte eats the cell, while necrotic deaths generally open it early and spill. The lesson follows the worm genetics that showed the cell's own genes do the killing, the experiments behind each clearance step (find-me, eat-me, engulfment), the necrotic deaths that are programs too, and how annexin V, propidium iodide, TUNEL, caspase and LDH assays each report one event that more than one kind of death can produce. The way a dying cell looks does not by itself tell you which machinery killed it.
+hook: "In a developing worm, the same 131 cells die on schedule, yet in healthy tissue you rarely see a corpse. How does a cell die without leaving a mess?"
 
-estMinutes: 24
+estMinutes: 20
 objectives:
   - "Explain how the invariant C. elegans lineage and the ced-3, ced-4 and ced-9 mutants showed that developmental death is genetically programmed."
   - "Distinguish apoptotic from necrotic morphology, and name necroptosis, pyroptosis and ferroptosis by the machinery each depends on."
@@ -19,10 +19,16 @@ explainer:
   src: "/explainers/cell-death/explainer.mp4"
   captions: "/explainers/cell-death/explainer.vtt"
   poster: "/explainers/cell-death/poster.jpg"
-  title: "Cell Death Is a Genetic Program"
-  durationSec: 167.5
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Sealed or Torn"
+  durationSec: 197.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In apoptosis, the cell's own caspases take it apart while its plasma membrane is still intact, at least at first."
+    - "While still sealed, an apoptotic cell can send find-me signals and expose phosphatidylserine, an eat-me flag, on its outer face."
+    - "In healthy tissue, a phagocyte usually eats the cell before it leaks, so nothing spills."
+    - "In a dish with no phagocyte, an apoptotic cell often leaks later: secondary necrosis."
+    - "In necrotic deaths the membrane generally opens early, and spilled alarm signals can cause inflammation."
 
 scientists:
   - name: "John Kerr"
@@ -36,7 +42,7 @@ scientists:
       Kerr was a pathologist who looked at dying cells under the microscope and noticed that not
       all of them died the same way. In rat liver deprived of part of its blood supply, he saw some cells
       shrink into dense, compact fragments that neighbouring cells
-      took up. He called this shrinkage necrosis. Working with Andrew Wyllie and
+      took up. He first called this shrinkage necrosis, a name he later replaced. Working with Andrew Wyllie and
       Alastair Currie in Aberdeen, he found the same orderly pattern in normal development, in
       tissues shrinking after hormone withdrawal, and in tumours. In 1972 the three published a
       long paper in the British Journal of Cancer that described the morphology in detail, argued
@@ -162,7 +168,7 @@ simulations:
     ref: "AnnexinPiQuadrants"
     title: "Reading annexin V and PI"
     caption: >-
-      Pick a sample, read its four quadrants against the expected counts, and Resample to see how the caspase-dependent share of the annexin-positive excess (about 85% here) scatters around the lesson's value.
+      Pick a sample, read its four quadrants against the expected counts, and Resample to see how the inhibitor-sensitive share of the annexin-positive excess (about 85% here) scatters around the lesson's value.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -299,7 +305,7 @@ explainLevels:
     text: >-
       Apoptosis is a caspase-driven death with shrinkage, chromatin condensation, nuclear
       fragmentation and blebbing, and an intact plasma membrane until late. Regulated necrotic
-      deaths end in swelling and rupture and are named by machinery: necroptosis needs RIPK3 and
+      deaths generally culminate in loss of plasma-membrane integrity, but their morphology differs (necroptosis and pyroptosis commonly swell; ferroptosis shows mitochondrial shrinkage), and they are named by machinery: necroptosis needs RIPK3 and
       MLKL, pyroptosis needs gasdermin pores, and ferroptosis is iron-dependent lipid peroxidation
       held off mainly by GPX4. In C. elegans an invariant lineage loses 131 of the 1,090 somatic cells made
       in the hermaphrodite; ced-3 (a caspase) and ced-4 (Apaf-1-like) are needed for those deaths,
@@ -373,100 +379,71 @@ draft: false
 import AnnexinPiQuadrants from '../../../components/AnnexinPiQuadrants.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**In the hermaphrodite worm *Caenorhabditis elegans*, development makes 1,090 somatic cells and then kills 131 of them, leaving 959 in the adult body. The same cells die in every animal.**
+> **The one idea to carry through this lesson.** In apoptosis the cell's own caspases take it apart while its plasma membrane is still intact, which gives a phagocyte time to find and eat it before anything leaks. Necrotic deaths generally open the membrane early and spill. Its limits: an uneaten apoptotic cell often leaks later (secondary necrosis), and some tearing deaths are genetic programs too.
 
-A death that happens to the same cell, at the same time, in every animal is hard to call an accident. It looks like a fate, as much as becoming a neuron or a muscle cell is a fate. Cells that die on schedule are part of how a body is built, and in healthy tissue the dead cells are cleared so fast that you rarely see a corpse. This lesson asks three questions about it. How do you tell one kind of death from another? How was it shown that the cell's own genes do the killing? And what happens to the body once the cell is dead? A lesson in Cell Signaling covers the protein cascade of apoptosis; here you will see the cell-level evidence, the assays and their traps, and the cleanup.
+The film showed what happens; the rest of the page asks how we know, one piece of the film's idea at a time. The worm shows who takes the cell apart, clearance experiments show what happens while the membrane holds, necrotic programs show what opens it early, and two dyes tell these apart in a dish.
 
-## What a dying cell looks like, and why looks are not mechanism
+## The worm shows the cell kills itself
 
-In 1972 John Kerr, Andrew Wyllie and Alastair Currie described a kind of death they saw in many tissues and named it **apoptosis**. The cell shrinks. Its chromatin condenses against the nuclear envelope, the nucleus breaks into fragments, and the surface throws out blebs, bubbles of membrane that can pinch off as membrane-bound pieces. Through all of this the plasma membrane stays intact until late, and in a tissue a neighbouring cell usually eats the fragments first.
+The evidence that the cell's *own* caspases do the killing came from a worm. In the hermaphrodite *Caenorhabditis elegans*, development makes 1,090 somatic cells and kills 131 of them, leaving 959 in the adult (males have a different lineage and count). In living transparent embryos every division can be followed, and the lineage and its fates, including which cells die, are highly invariant. But an invariant pattern says death is reproducible, not that a gene causes it: a cell might die because it is squeezed or starved at the same place every time. The test is genetic: find mutants in which those cells fail to die.
 
-The older picture of death was **necrosis**: the cell and its organelles swell, and the plasma membrane ruptures and spills the contents. For decades the two were taught as a pair, one orderly and programmed, the other accidental.
+Hilary Ellis and H. Robert Horvitz did that. Their 1986 paper reported that wild-type function of two genes, *ced-3* and *ced-4* (*ced* for cell death abnormal), is needed for the deaths they examined.
 
-<LessonFigure src="/figures/cell-death/apoptotic-vs-necrotic-look.webp" width={1200} height={766} alt="AI-generated illustration: two cells side by side. The apoptotic cell is small, with a fragmented nucleus, condensed chromatin, surface blebs and an intact membrane. The necrotic cell is swollen, with swollen organelles and a ruptured membrane spilling its contents." caption="Late apoptosis (left) and necrosis (right) as they look under the microscope. The lesson's point is that these looks name an endpoint, not a cause: a cell can die with necrotic looks through dedicated machinery." />
+**Predict.** Suppose all you knew was that worms lacking *ced-3* show fewer cell corpses. Does that show the cells did not die? What observation would?
 
-That pairing has not survived. A cell can die with necrotic looks through dedicated machinery that genes or drugs can turn up or down, which is the working definition of regulated death. Three such deaths are now named by what they depend on:
+<details>
+<summary>Check your prediction</summary>
 
-- **Necroptosis** needs the kinase RIPK3 and its substrate MLKL. In the mammalian model, activated RIPK3 phosphorylates MLKL, and MLKL oligomers move to the plasma membrane.
-- **Pyroptosis** needs gasdermins, proteins whose cut fragments form pores in the plasma membrane. It often, but not always, follows activation of inflammatory caspases.
-- **Ferroptosis** is driven by severe lipid peroxidation that depends on iron. It is held off mainly by GPX4, an enzyme that reduces lipid hydroperoxides, and also by parallel systems such as FSP1, which works through coenzyme Q10. In cultured cells it is blocked by iron chelators and lipophilic antioxidants.
+No. Fewer corpses alone could mean corpses were cleared too fast to count (the corpse-count problem below puts numbers on this). Ellis and Horvitz saw more: cells normally fated to die survived, and some differentiated into recognizable cell types. A living, differentiated cell shows the death itself did not happen.
 
-Apoptosis itself has a defined engine. In the intrinsic route BAX and BAK permeabilize the mitochondrial outer membrane, cytochrome c escapes, and caspases (proteases that cut after aspartate) are activated in a cascade. The lesson on [death receptors, BCL-2 and caspases](/lessons/death-receptors-bcl2-caspases/) teaches that cascade, and [stress signals](/lessons/stress-signals/) covers how p53 can push a damaged cell toward it.
-
-The lesson for an experimenter is that appearance names an endpoint, not a cause. To say which death happened, you have to perturb the machinery and see the death change. That is the logic of [experiments that distinguish](/lessons/experiments-that-distinguish/), applied to a dying cell.
-
-## The worm shows death is a program
-
-Watching was the first step. In living transparent embryos, every division can be followed from the fertilized egg to the hatched larva, and the lineage and the fates it produces are highly invariant, including which cells die. These numbers are for the standard hermaphrodite; males have a different lineage and a different count.
-
-An invariant pattern says death is reproducible. It does not say a gene causes it. A cell might die because it is squeezed or starved at the same place every time. The test is genetic: find mutants in which those cells fail to die.
-
-Hilary Ellis and H. Robert Horvitz did that. Their 1986 paper reported that wild-type function of two genes, *ced-3* and *ced-4* (*ced* for cell death abnormal), is needed for the deaths they examined. In the mutants, cells normally fated to die survived, and some differentiated into recognizable cell types. That last observation matters. Fewer corpses alone could mean corpses were being cleared too fast to count. Surviving, differentiated cells show the death itself did not happen.
+</details>
 
 <LessonFigure src="/figures/cell-death/ced-mutants-survive.webp" width={1200} height={800} alt="AI-generated illustration: a row of cells in which one is fated to die. In the wild type it shrinks and disappears. When ced-3 or ced-4 is lost it survives and differentiates, shown in gold. A small inset contrasts an empty gap, which could mean fast clearance, with a living differentiated cell." caption="In worms lacking ced-3 or ced-4, cells normally fated to die survived, and some differentiated. A missing corpse could mean fast clearance; a living, differentiated cell shows the death did not happen." />
 
-A third gene acted the other way. In 1992 Michael Hengartner, Ronald Ellis and Horvitz reported that an activating mutation in *ced-9* prevented the normal developmental deaths, while inactivating mutations made cells that normally live die. Genetic ordering placed a fourth gene, *egl-1*, upstream of *ced-9*, then *ced-4*, then *ced-3*. When the genes were cloned, CED-3 proved to be a caspase, CED-4 resembled human Apaf-1 and CED-9 resembled BCL-2. A worm screen had found the core of the human machinery. In a human cell-free system, Li and colleagues showed in 1997 that cytochrome c and dATP let Apaf-1 bind and activate caspase-9, which then cleaves and activates caspase-3.
+A third gene acted the other way. In 1992 Michael Hengartner, Ronald Ellis and Horvitz reported that an activating mutation in *ced-9* prevented the normal developmental deaths, while inactivating mutations made cells that normally live die.
 
-One caution. The textbook cartoon has CED-9 simply holding CED-4 until EGL-1 releases it. That is a simplification: the genetic phenotypes stand, but the mechanism by which CED-9 protects is less settled than the cartoon suggests. For how the same logic shapes the nervous system, see [naturally occurring death](/lessons/naturally-occurring-death/) and [death machinery in neurons](/lessons/death-machinery-in-neurons/).
+Geneticists order genes like these by **epistasis**: in a linear pathway, when two loss-of-function mutations have opposite effects, the double mutant usually shows the effect of the gene that acts later.
 
-## Reading death assays without fooling yourself
+**Predict.** If *ced-3*, the killer, acts after *ced-9*, the protector, what does a worm lacking both do?
 
-Each common marker reports one event, and each event can occur in more than one kind of death.
+<details>
+<summary>Check your prediction</summary>
 
-- **Annexin V** is a calcium-dependent protein that binds phosphatidylserine (PS), a lipid normally kept on the inner leaflet of the plasma membrane (see [lipids](/lessons/lipids/) and [membrane organization and topology](/lessons/membrane-organization-topology/)). Annexin V binding means PS is reachable from outside. PS is also exposed in necrosis.
-- **Propidium iodide (PI)** is a DNA dye that live cells exclude. PI entry means the plasma membrane is leaky, whatever made it so.
-- **TUNEL** labels free DNA ends in fixed cells. In rat liver it labelled necrotic and autolytic cells as well as apoptotic ones.
-- **Cleaved caspase-3** on an immunoblot shows the protease was activated, not that the cell died or that caspase-3 killed it.
-- **LDH release** into the medium reports rupture. NINJ1-null mouse macrophages died yet stayed swollen and released little LDH.
+It lives and keeps the cells that normally die, as the real double mutant does. The killing that follows loss of *ced-9* needs *ced-3*, so *ced-3* acts downstream, carrying out the death that *ced-9* normally prevents.
 
-The way out is to combine markers and follow them in time. An apoptotic cell exposes PS first and stays PI-negative for a while. In culture, with no phagocyte to eat it, it then generally becomes leaky, which is called secondary necrosis.
+</details>
 
-### A worked problem: what share of the annexin signal needs caspases?
+Ordering of this kind placed a fourth gene, *egl-1*, upstream of *ced-9*, then *ced-4*, then *ced-3*. When the genes were cloned, CED-3 proved to be a caspase, CED-4 resembled human Apaf-1 and CED-9 resembled BCL-2 (Going deeper has a caution about how CED-9 works). In human cells this machinery runs as a cascade: in the intrinsic route BAX and BAK permeabilize the mitochondrial outer membrane, cytochrome c escapes, and caspases (proteases that cut after aspartate) are activated in turn. You do not need those names here: [death receptors, BCL-2 and caspases](/lessons/death-receptors-bcl2-caspases/) teaches them, [stress signals](/lessons/stress-signals/) covers how p53 can push a damaged cell toward this death, and for the nervous system see [naturally occurring death](/lessons/naturally-occurring-death/) and [death machinery in neurons](/lessons/death-machinery-in-neurons/).
 
-Here is a made-up data set. A flow cytometer reads 10,000 Jurkat cells (a human T-cell line) per sample, after annexin V and PI staining. The quadrant counts are given in the order AnnV−PI−, AnnV+PI−, AnnV+PI+, AnnV−PI+.
+## Clearance: separating each step from the death
 
-- Untreated: 9,300 / 400 / 200 / 100
-- Drug, 6 hours: 5,800 / 2,900 / 1,000 / 300
-- Drug plus a pan-caspase inhibitor, 6 hours: 8,600 / 600 / 500 / 300
+The film's idea needs the membrane to hold while the cell is found and eaten. Each step was shown by blocking it without stopping the death. Clearance of apoptotic cells is often called efferocytosis.
 
-Assume the inhibitor does not affect the cells on its own, and that the untreated sample is the baseline for every condition.
+**Find me.** The film's channel is PANX1. In apoptotic Jurkat cells (a human T-cell line), the effector caspases 3 and 7, the ones that dismantle the cell, cut PANX1 and open it. ATP and UTP leave through it and attract monocytes, blood cells that can become macrophages. Knocking PANX1 down cut nucleotide release without slowing caspase activity, so the signal can be separated from the death. Nucleotides are one of several find-me signals; dying cells also release the lipids lysophosphatidylcholine and sphingosine-1-phosphate and the chemokine CX3CL1.
 
-**Step 1. Check the totals.** 9,300 + 400 + 200 + 100 = 10,000. 5,800 + 2,900 + 1,000 + 300 = 10,000. 8,600 + 600 + 500 + 300 = 10,000. Every cell is counted once.
+**Eat me.** Valerie Fadok, Peter Henson and colleagues reported in 1992 that macrophages recognize exposed phosphatidylserine (PS) on apoptotic lymphocytes. PS is normally kept on the inner leaflet, the inner layer of the plasma membrane (see [lipids](/lessons/lipids/) and [membrane organization and topology](/lessons/membrane-organization-topology/)). The film's caspases cut the membrane proteins that set which face PS sits on, and there are two kinds. A **flippase** is a pump that keeps returning PS to the inner face. A **scramblase** is a door that lets lipids mix between the two faces. Caspases cut and activate the scramblase Xkr8, and in mouse cells lacking Xkr8, apoptotic cells failed to expose PS and were engulfed poorly.
 
-**Step 2. Total annexin-positive cells** (both AnnV+ quadrants). Untreated: 400 + 200 = 600, or 6%. Drug: 2,900 + 1,000 = 3,900, or 39%. Drug plus inhibitor: 600 + 500 = 1,100, or 11%.
+**Predict.** Caspases also cut the flippase ATP11C, and cutting switches it off. A cell carries an ATP11C that caspases cannot cut, so the pump keeps running, while Xkr8 is switched on as usual. Does PS reach the outer face during apoptosis?
 
-**Step 3. Drug-induced excess.** Drug alone: 39 − 6 = 33 percentage points. With the inhibitor: 11 − 6 = 5 points.
+<details>
+<summary>Check your prediction</summary>
 
-**Step 4. The caspase-dependent share of the induced annexin-positive cells.**
+No. Cells carrying a caspase-resistant ATP11C did not expose PS during apoptosis. With the pump still running, the door alone is not enough. Exposure needs both steps: the scramblase on and the flippase off.
 
-> caspase-dependent share = (33 − 5) / 33 = 28 / 33 = 0.85, about 85%
+</details>
 
-**Step 5. Interpret.** About 85% of the drug-induced excess of annexin-positive cells is inhibitor-sensitive under the stated assumptions. That is a share of the PS-exposing cells, not of the death: PS exposure itself needs caspases, so the inhibitor can lower the annexin signal even in cells that still die. To say the death needs caspases, also follow PI uptake or viability at later times. The AnnV+PI− cells are the clearest apoptotic signal: PS is out and the membrane still holds. The AnnV+PI+ cells could be late apoptotic cells in secondary necrosis or cells that died by necrosis from the start, and one time point cannot tell them apart. A time course helps but cannot settle it alone: apoptotic cells should pass through AnnV+PI− before becoming double positive, but necroptotic cells can expose PS before they leak too.
-
-<AnnexinPiQuadrants />
-
-## Find me, eat me: clearance
-
-A tissue loses many cells, and in healthy tissue you rarely see a corpse. That is because clearance is fast and comes in steps. Clearance of apoptotic cells is often called efferocytosis.
-
-**Find me.** In apoptotic human Jurkat cells, the effector caspases 3 and 7 cut the plasma membrane channel PANX1 and open it. ATP and UTP leave through it and attract monocytes. Knocking PANX1 down cut nucleotide release without slowing caspase activity, so the signal can be separated from the death. Nucleotides are one of several find-me signals; dying cells also release the lipids lysophosphatidylcholine and sphingosine-1-phosphate and the chemokine CX3CL1.
-
-**Eat me.** Caspases also cut and activate Xkr8, a scramblase, an enzyme that moves phospholipids between the two leaflets. In mouse cells lacking Xkr8, apoptotic cells failed to expose PS and were engulfed poorly. Caspases also cut and switch off the flippase ATP11C, which normally pumps PS back to the inner leaflet; cells carrying a caspase-resistant ATP11C did not expose PS during apoptosis. Exposure needs both steps: the scramblase on and the flippase off. Valerie Fadok, Peter Henson and colleagues had reported in 1992 that macrophages recognize exposed PS on apoptotic lymphocytes.
-
-**Hold, then swallow.** In resident mouse peritoneal macrophages, the receptor Tim4 binds PS directly and tethers the dying cell. MerTK, a receptor tyrosine kinase, binds PS through the bridging proteins Gas6 or Protein S and drives the engulfment. The engulfed cell is enclosed in a phagosome, which fuses with lysosomes and is digested, the same route described in the lesson on [endocytosis](/lessons/endocytosis/).
+**Hold, then swallow.** The film's single gulp was the simple picture; in resident mouse peritoneal macrophages it takes two receptors. Tim4 binds PS directly and tethers the dying cell. MerTK, a receptor tyrosine kinase (it signals by phosphorylating proteins on tyrosine), binds PS through the bridging proteins Gas6 or Protein S and drives the engulfment. The phagosome then fuses with lysosomes, which digest the cell, as in [endocytosis](/lessons/endocytosis/).
 
 <LessonFigure src="/figures/cell-death/clearance-steps.webp" width={1200} height={671} alt="AI-generated illustration: a numbered plate of clearance. An apoptotic cell releases nucleotides through a PANX1 channel and exposes phosphatidylserine through Xkr8; a macrophage tethers it with Tim4 and engulfs it with MerTK." caption="Clearance in steps: nucleotides released through PANX1 call a phagocyte, Xkr8 exposes phosphatidylserine, and Tim4 tethers while MerTK drives engulfment (shown in resident mouse peritoneal macrophages)." />
 
-Two cautions. Apoptosis and its clearance are not always immunologically silent; outcomes depend on context, as the lesson on [TLRs and NF-κB](/lessons/tlr-and-nf-kb/) helps explain. And phagocytes differ: microglia also clear dying cells and pruned synapses (see [microglia and complement pruning](/lessons/microglia-complement-pruning/)).
-
 ### Design problem
 
-Mouse resident peritoneal macrophages are mixed with apoptotic cells. Macrophages lacking Tim4 bind fewer apoptotic cells. Macrophages lacking MerTK bind them normally but take few inside. Design an assay that separates binding from engulfment, and say what each receptor does.
+Mouse resident peritoneal macrophages are mixed with apoptotic cells. Macrophages lacking Tim4 bind fewer apoptotic cells. Macrophages lacking MerTK bind them normally but take few inside. Design an assay that separates binding from engulfment, and say what each receptor does. (Hint: you need one readout for "stuck to the outside" and another for "inside".)
 
 <details>
 <summary>One way to do it</summary>
 
-Score bound and internalized targets separately. Label targets with a pH-sensitive dye that brightens in acidic compartments, so targets inside acidified phagosomes glow and surface-bound ones do not, and count total contacts by microscopy. Acidification takes time, so a target engulfed moments ago may still be dim. Alternatively, quench or strip the surface signal after incubation. Run a parallel incubation at 4 °C, where binding still occurs but uptake stops.
+Score bound and internalized targets separately. Label targets with a pH-sensitive dye that brightens in acidic compartments, so targets inside acidified phagosomes glow and surface-bound ones do not (acidification takes time, so a target engulfed moments ago may still be dim), and count total contacts by microscopy. Or quench or strip the surface signal after incubation. Run a parallel incubation at 4 °C, where binding still occurs but uptake stops.
 
 Controls: mask PS on the targets with annexin V, which should block both binding and uptake; use live, non-apoptotic targets, which should be ignored. Then put each receptor alone, and both together, into a cell line that does not normally eat cells, and ask which confers binding and which confers engulfment.
 
@@ -474,16 +451,100 @@ The expected answer from Nishi and colleagues (2014) is two steps in this macrop
 
 </details>
 
+### Worked problem: why you rarely see a corpse
+
+The numbers are illustrative. At steady state, corpses on view = death rate × time each stays visible. If a tissue replaces 1% of its cells a day, 10,000 per million die daily, about 417 an hour; if each corpse is visible for 1 hour, about 417 per million (0.04%) are on view.
+
+**Predict.** Clearance slows, so each corpse stays visible for 12 hours. The death rate does not change. How many corpses do you see now?
+
+<details>
+<summary>Check your prediction</summary>
+
+About 417 × 12 = 5,000 per million, or 0.5%: twelve times as many corpses with no extra death. So a corpse count cannot tell faster clearance from death that failed, which is why the *ced-3* evidence had to be living, differentiated cells.
+
+</details>
+
+**Why it matters: inflammation.** The film's alarm signals are spilled molecules, such as the protein HMGB1, that can call in immune cells, so apoptosis is usually the quieter death. Usually, not always: apoptosis and its clearance are not always immunologically silent; outcomes depend on context, as the lesson on [TLRs and NF-κB](/lessons/tlr-and-nf-kb/) helps explain. Phagocytes differ too: microglia also clear dying cells and pruned synapses (see [microglia and complement pruning](/lessons/microglia-complement-pruning/)).
+
+## Necrotic deaths can be programs too
+
+The film's second cell tore open, and the film said tearing does not always mean accident. Here are those programs.
+
+The film's first cell has the look John Kerr, Andrew Wyllie and Alastair Currie described in many tissues in 1972, when they named **apoptosis**: chromatin condenses against the nuclear envelope, and blebs can pinch off as membrane-bound pieces. **Necrosis**, the older picture, is the film's second cell: swollen organelles, a ruptured membrane. For decades they were taught as a pair, one programmed, the other accidental.
+
+<LessonFigure src="/figures/cell-death/apoptotic-vs-necrotic-look.webp" width={1200} height={766} alt="AI-generated illustration: two cells side by side. The apoptotic cell is small, with a fragmented nucleus, condensed chromatin, surface blebs and an intact membrane. The necrotic cell is swollen, with swollen organelles and a ruptured membrane spilling its contents." caption="Apoptosis before the membrane fails (left) and necrosis (right) as they look under the microscope. These looks name an endpoint, not a cause: a cell can die with necrotic looks through dedicated machinery." />
+
+That pairing has not survived. A death is called **regulated** when it runs on dedicated machinery that genes or drugs can turn up or down, and a cell can die this way with necrotic looks. Three such deaths are named by what they depend on:
+
+- **Necroptosis** needs the kinase RIPK3 and its substrate MLKL. In the mammalian model, activated RIPK3 phosphorylates MLKL, and MLKL oligomers move to the plasma membrane.
+- **Pyroptosis** needs gasdermins, proteins whose cut fragments form pores in the plasma membrane. It often, but not always, follows activation of inflammatory caspases.
+- **Ferroptosis** is driven by severe lipid peroxidation (oxidative damage to membrane lipids) that depends on iron. It is held off mainly by GPX4, an enzyme that reduces lipid hydroperoxides, and also by parallel systems such as FSP1, which works through coenzyme Q10. In cultured cells it is blocked by iron chelators and lipophilic antioxidants.
+
+So appearance names an endpoint, not a cause. To say which death happened, perturb the machinery and see the death change: the logic of [experiments that distinguish](/lessons/experiments-that-distinguish/), applied to a dying cell.
+
+## Reading the film's flag and leak with two dyes
+
+Cells in a culture dish, like the film's, have no phagocyte to eat them. There, two dyes read the film's two membrane events.
+
+- **Annexin V reads the flag.** It is a calcium-dependent protein that binds PS, as Tim4 does on a macrophage. Binding means PS is reachable from outside.
+- **Propidium iodide (PI) reads the leak.** It is a DNA dye that an intact membrane keeps out. PI entry means the membrane is leaky, whatever made it so.
+
+A flow cytometer, which reads the fluorescence of single cells streaming past a laser, places each cell in one of four boxes:
+
+| | PI negative: membrane intact | PI positive: membrane leaky |
+|---|---|---|
+| **Annexin V negative: no PS seen outside** | neither signal (AnnV−PI−) | leaky, no flag seen (AnnV−PI+) |
+| **Annexin V positive: PS accessible to annexin V** | external PS detected, membrane PI-impermeable (AnnV+PI−) | annexin-accessible PS, membrane PI-permeable (AnnV+PI+) |
+
+The boxes are staining states, not verdicts on life or death: a cell with neither signal may already be committed to die, and some living cells expose PS too.
+
+**Predict.** An apoptotic cell in a dish with no phagocyte starts in flagged, intact and, after secondary necrosis, ends in flagged, leaky. Where does a cell sit that tore open in the first minutes of a necrotic death? Can one time point tell the two apart?
+
+<details>
+<summary>Check your prediction</summary>
+
+The torn cell lets PI in, and annexin V gets inside and finds PS on the inner face. So it goes straight to flagged, leaky. **Both deaths end in the same box**; one time point cannot tell them apart. The flagged, intact box fits the apoptotic order but does not prove it: necroptotic cells can also expose PS before they leak, and how long cells stay there must be measured in each system.
+
+</details>
+
+### Worked problem: does this death need caspases?
+
+Made-up data: 10,000 Jurkat cells per sample, counted as neither / flagged, intact / flagged, leaky / leaky only.
+
+- Untreated: 9,300 / 400 / 200 / 100
+- Drug, 6 hours: 5,800 / 2,900 / 1,000 / 300
+- Drug plus a pan-caspase inhibitor (a drug that blocks many caspases at once), 6 hours: 8,600 / 600 / 500 / 300
+
+Each row adds up to 10,000. Assume the inhibitor does not affect the cells on its own, and that the untreated sample is the baseline for every condition.
+
+**Step 1. How much of the flag needed caspases?** Annexin-positive cells (both flagged boxes): 6%, 39% and 11%. The excess is 33 points with the drug and 5 with the inhibitor.
+
+> inhibitor-sensitive share of the drug-induced annexin-positive excess = (33 − 5) / 33 = 28 / 33 = 0.85, about 85%
+
+That is a share of the PS-exposing cells, not of the death. In apoptosis, PS exposure itself needs caspases, so the inhibitor can lower the annexin signal even in cells that still die. The remaining 5 points are caspase-independent PS exposure or incomplete inhibition; these data cannot tell which.
+
+**Step 2. Is the pattern flag-first?** With the drug, the excess is 2,500 flagged, intact and 800 flagged, leaky, about three to one; with the inhibitor it is 200 and 300. That shape is compatible with a flag-first death, but one snapshot cannot show cells moving between boxes, since the ratio also depends on how fast cells enter each box and how long they stay; repeated time points or single-cell tracking would test it. The leaky-only box (200 above baseline in both treated samples, unchanged by the inhibitor) means nothing until you check that its events are whole cells, not debris.
+
+**Step 3. What 6 hours cannot tell you.** Under these assumptions, most of the drug-induced annexin signal is inhibitor-sensitive, which is compatible with caspase-dependent PS exposure but does not by itself establish caspase dependence or show that caspases did the killing. The inhibitor may only *delay* death, or *reroute* it: in cells that make RIPK3, blocking caspase-8 can open the necroptosis route. So follow PI uptake or viability to, say, 24 hours, with and without a RIPK3 or MLKL inhibitor, and add a direct caspase readout and a test of whether the cells can still recover and grow.
+
+<AnnexinPiQuadrants />
+
+The other common markers each report one event that can occur in more than one kind of death:
+
+- **TUNEL** labels free DNA ends in fixed cells. In rat liver it labelled necrotic and autolytic (self-digested after death) cells as well as apoptotic ones.
+- **Cleaved caspase-3** on an immunoblot shows the protease was activated, not that the cell died or that caspase-3 killed it.
+- **LDH release** into the medium reports rupture. The film drew the tear as one event, the simple case. In fuller form, the final rupture that lets out large molecules such as the cytosolic enzyme lactate dehydrogenase (LDH) is its own step: mouse macrophages lacking NINJ1, a small plasma membrane protein, died yet stayed swollen and released little LDH.
+
+So the film's idea holds, with its limits: an apoptotic membrane stays intact early, often until the cell is eaten. Each marker reports a state that more than one death can reach, in no fixed order, so combine markers over time, then perturb.
+
 ## Going deeper
 
 ### The hermaphrodite lineage counts
 
-John Sulston, Einhard Schierenberg, John White and Nichol Thomson traced every division from the fertilized egg to the hatched larva using a light microscope on living transparent embryos. They reported in 1983 that the lineage and the fates it produced were highly invariant, and that 113 cells die during embryogenesis in the hermaphrodite. The rest of the 131 die after hatching.
+John Sulston, Einhard Schierenberg, John White and Nichol Thomson followed every embryonic division under a light microscope. They reported in 1983 that 113 cells die during embryogenesis in the hermaphrodite; the rest of the 131 die after hatching.
 
-### What the 2024 CED-9 study found
+### From worm genes to the human cascade
 
-A 2024 study of CED-9 mutants that cannot bind CED-4 found that the binding was needed for a pro-apoptotic role of CED-9 but not for its protective role, in their assays.
+In a human cell-free system, Li and colleagues showed in 1997 that cytochrome c and dATP let Apaf-1 bind and activate caspase-9, which then cleaves and activates caspase-3.
 
-### Reading the remaining 5 points
-
-In the worked problem, the remaining 5 points above background are caspase-independent PS exposure or incomplete inhibition, and the data cannot decide between them.
+The textbook cartoon has CED-9 simply holding CED-4 until EGL-1 releases it. That is a simplification: the genetic phenotypes stand, but the mechanism by which CED-9 protects is less settled. A 2024 study of CED-9 mutants that cannot bind CED-4 found that the binding was needed for a pro-apoptotic role of CED-9 but not for its protective role, in their assays.
