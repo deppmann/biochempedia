@@ -1,678 +1,707 @@
-# Same destination, faster arrival  (Enzyme action basics)
-#
-# COLOR MAP (one color per concept, kept for every scene):
-#   YELLOW  substrate / reactants / the thing that moves      (also the "car" and the ball)
-#   GREEN   product / destination / thermodynamics, DG        (the green light means "favorable")
-#   RED     the uncatalyzed barrier / kinetics, DG-double-dagger (and the red light / "stop")
-#   BLUE    the enzyme and everything catalyzed
-#   PURPLE  the transition state
-#   GOLD    binding energy
-#   GREY    structure, axes, de-emphasized things
-#   AMBER   only the amber lamp of the traffic light (equilibrium)
+"""Lower the Ridge, Not the Valleys — enzyme-action-basics teaching film.
+
+All energy profiles in this film are computed from the function specified in
+script.json.  The picture is explicitly schematic; no molecular structures are
+drawn.
+
+COLOR MAP
+    YELLOW  substrate / forward trip
+    GREEN   product / reverse trip / thermodynamic difference
+    RED     uncatalysed pass / activation barrier / impossible push
+    TEAL    enzyme / catalysed pass
+    PURPLE  transition state
+    GOLD    active-site contacts / binding energy
+"""
 from bp_style import *
-import json
-import os
 import numpy as np
 
+
 PURPLE = "#B58CF0"
-AMBER = "#F0A93B"
+X0, X1 = -6.2, 6.2
+Y_SCALE, Y_SHIFT = 1.08, -0.55
 
 
-# ---------------------------------------------------------------- helpers
-class Base(NarratedScene):
-    """NarratedScene plus: until("some phrase") waits until the narration reaches that phrase."""
-
-    def narr(self):
-        if not hasattr(self, "_narr"):
-            sid = os.environ.get("KX_SCENE_ID")
-            sc = [s for s in json.load(open(os.environ["KX_SCRIPT"]))["scenes"] if s["id"] == sid][0]
-            self._narr = sc.get("narration", "")
-        return self._narr
-
-    def at(self, phrase):
-        n = self.narr()
-        i = n.find(phrase)
-        assert i >= 0, phrase
-        return i / len(n)
-
-    def tm(self, phrase):
-        """Start time of `phrase` in the spoken words (audio/words.json, first occurrence), so cues follow
-        re-voiced audio (Kokoro, 2026-10-31). Falls back to the character-proportional estimate."""
-        if not hasattr(self, "_wl"):
-            from bp_style import _norm
-            wp = os.path.join(os.path.dirname(os.environ["KX_SCRIPT"]), "audio", "words.json")
-            ws = json.load(open(wp)).get(os.environ.get("KX_SCENE_ID"), []) if os.path.exists(wp) else []
-            self._wl = [(float(w[0]), _norm(w[2])) for w in ws if _norm(w[2])]
-        from bp_style import _norm
-        q = [_norm(x) for x in phrase.replace("ΔG", "delta G").split() if _norm(x)]
-        wl = self._wl
-        for i in range(len(wl) - len(q) + 1):
-            if [w[1] for w in wl[i:i + len(q)]] == q:
-                return wl[i][0]
-        print(f"[cue] {os.environ.get('KX_SCENE_ID')}: {phrase!r} not in words.json, estimating")
-        return self.at(phrase) * self.narration_s
-
-    def until(self, phrase, lead=0.25):
-        rem = self.tm(phrase) - lead - self.elapsed()
-        if rem > 0.02:
-            self.wait(rem)
-
-    def span(self, a, b=None):
-        """Seconds between the narration positions of two phrases (b=None -> end of narration)."""
-        tb = self.narration_s if b is None else self.tm(b)
-        return tb - self.tm(a)
+def energy_y(x, height=4.2, reverse=False):
+    """Computed energy profile, affinely mapped to fill the teaching frame."""
+    step = -1.3 - 0.7 * np.tanh(x / 1.6)
+    if reverse:
+        step = -1.3 + 0.7 * np.tanh(x / 1.6)
+    raw = step + height * np.exp(-((x / 1.1) ** 2))
+    return Y_SCALE * raw + Y_SHIFT
 
 
-def smooth(s):
-    return s * s * (3 - 2 * s)
+def profile(height=4.2, color=RED, width=6, reverse=False, x0=X0, x1=X1):
+    return ParametricFunction(
+        lambda x: np.array([x, energy_y(x, height, reverse), 0]),
+        t_range=[x0, x1, 0.025], color=color, stroke_width=width,
+    )
 
 
-def prof(s, h, dg):
-    """Free-energy profile along the reaction coordinate: a step of dg plus a barrier of height ~h."""
-    return dg * smooth(s) + h * np.exp(-((s - 0.43) / 0.16) ** 2)
+def dashed_profile(height=4.2, color=RED, width=4, reverse=False):
+    return DashedVMobject(profile(height, color, width, reverse), num_dashes=42)
 
 
-class Curve:
-    """A free-energy profile mapped into screen space."""
-
-    def __init__(self, x0, x1, y0, h, dg):
-        self.x0, self.x1, self.y0, self.h, self.dg = x0, x1, y0, h, dg
-
-    def pt(self, s):
-        return np.array([self.x0 + (self.x1 - self.x0) * s, self.y0 + prof(s, self.h, self.dg), 0.0])
-
-    def mob(self, color, w=6):
-        return ParametricFunction(lambda t: self.pt(t), t_range=[0, 1, 0.01], color=color, stroke_width=w)
-
-    def peak_s(self):
-        ss = np.linspace(0, 1, 2001)
-        return ss[np.argmax(prof(ss, self.h, self.dg))]
-
-    def peak(self):
-        return self.pt(self.peak_s())
+def peak_x(height=4.2, reverse=False):
+    xs = np.linspace(X0, X1, 4001)
+    return float(xs[np.argmax([energy_y(x, height, reverse) for x in xs])])
 
 
-def ball_on(curve, tr, color=YELLOW, r=0.17):
-    d = Dot(radius=r, color=color)
-    d.add_updater(lambda m: m.move_to(curve.pt(tr.get_value()) + UP * r))
-    d.move_to(curve.pt(tr.get_value()) + UP * r)
-    return d
+def peak_point(height=4.2, reverse=False):
+    x = peak_x(height, reverse)
+    return np.array([x, energy_y(x, height, reverse), 0])
 
 
-def cross(center, size=0.28, color=RED, w=7):
-    c = np.array(center, dtype=float)
-    a = Line(c + np.array([-size, size, 0]), c + np.array([size, -size, 0]), color=color, stroke_width=w)
-    b = Line(c + np.array([-size, -size, 0]), c + np.array([size, size, 0]), color=color, stroke_width=w)
-    return VGroup(a, b)
+def schematic_tag():
+    return T("schematic", 28, TEXT).move_to([5.25, -3.42, 0])
 
 
-def check(center, size=0.24, color=GREEN, w=7):
-    c = np.array(center, dtype=float)
-    return VMobject(color=color, stroke_width=w).set_points_as_corners(
-        [c + np.array([-size, 0.0, 0]), c + np.array([-size * 0.25, -size * 0.8, 0]), c + np.array([size, size * 0.9, 0])])
+def ground_fill(height=4.2, reverse=False, opacity=.18):
+    return Polygon(
+        *[np.array([x, energy_y(x, height, reverse), 0]) for x in np.linspace(X0, X1, 180)],
+        [X1, -3.42, 0], [X0, -3.42, 0], stroke_width=0,
+        fill_color=GREY, fill_opacity=opacity,
+    )
 
 
-def vbrace(x, y_lo, y_hi, color, label=None, label_dx=0.55, size=30, w=4):
-    """Vertical double arrow between two heights, with an optional mono label."""
-    arr = DoubleArrow([x, y_lo, 0], [x, y_hi, 0], color=color, buff=0, stroke_width=w,
-                      tip_length=0.2, max_tip_length_to_length_ratio=0.45)
-    g = VGroup(arr)
-    if label:
-        g.add(M(label, size, color).move_to([x + label_dx, (y_lo + y_hi) / 2, 0]))
+def landscape(height=4.2, color=RED, dashed=False, reverse=False, tag=True):
+    curve = dashed_profile(height, color, 4, reverse) if dashed else profile(height, color, 6, reverse)
+    ground = ground_fill(height, reverse, .22)
+    parts = VGroup(ground, curve)
+    if tag:
+        parts.add(schematic_tag())
+    return parts
+
+
+def power_text(prefix="", base="10", exponent="17", color=TEAL, size=34):
+    """Plain-text scientific notation with a real raised exponent (no caret glyph)."""
+    lead = M(prefix + base, size, color)
+    exp = M(exponent, int(size * .62), color).next_to(lead, UR, buff=.03).shift(DOWN * .03)
+    return VGroup(lead, exp)
+
+
+def counter_chip():
+    label = VGroup(T("speed-up about", 30, TEAL), power_text(size=32)).arrange(RIGHT, buff=.18)
+    box = RoundedRectangle(corner_radius=.14, width=label.width + .42, height=label.height + .34,
+                           stroke_color=TEAL, stroke_width=2.5, fill_color=TEAL, fill_opacity=.16)
+    return VGroup(box, label.move_to(box)).scale(.88).move_to([4.55, 3.18, 0])
+
+
+def question_chips():
+    a = chip("which way?", GREEN, 28, fill_opacity=0.05)
+    b = chip("how fast?", RED, 28, fill_opacity=0.05)
+    return VGroup(a, b).arrange(RIGHT, buff=0.28).move_to([-3.75, 3.25, 0])
+
+
+def valley_dots(n=8, side="left", color=None, height=4.2, reverse=False, moving=True):
+    """Small living particles, constrained to the selected valley floor."""
+    if color is None:
+        color = YELLOW if side == "left" else GREEN
+    xs = np.linspace(-5.5, -2.35, n) if side == "left" else np.linspace(2.35, 5.5, n)
+    g = VGroup()
+    for i, x in enumerate(xs):
+        d = Dot(radius=0.15, color=color)
+        phase = i * 0.83
+        base_x = float(x)
+        if moving:
+            clock = [0.0]
+            def drift(m, dt, bx=base_x, ph=phase, tm=clock):
+                tm[0] += dt
+                xx = bx + 0.18 * np.sin(1.45 * tm[0] + ph)
+                m.move_to([xx, energy_y(xx, height, reverse)
+                           + 0.19 + 0.11 * np.sin(2.1 * tm[0] + ph), 0])
+            d.add_updater(drift)
+        else:
+            d.move_to([base_x, energy_y(base_x, height, reverse) + 0.16, 0])
+        g.add(d)
     return g
 
 
-def blob(rfun, scale=1.0, n=160, center=ORIGIN):
-    """A closed schematic shape (NOT a molecule: an abstract silhouette used as a shape-fit cartoon)."""
-    th = np.linspace(0, TAU, n, endpoint=False)
-    pts = [np.array([scale * rfun(t) * np.cos(t), scale * rfun(t) * np.sin(t), 0.0]) + center for t in th]
-    return Polygon(*pts, stroke_width=0)
+def crossing_path(height=1.8, reverse=False, lift=.22):
+    a, b = (5.35, -5.35) if reverse else (-5.35, 5.35)
+    path = VMobject()
+    path.set_points_smoothly([
+        np.array([x, energy_y(x, height, reverse) + lift, 0])
+        for x in np.linspace(a, b, 140)
+    ])
+    return path
 
 
-def r_ts(t):
-    return 1.0 + 0.26 * np.cos(3 * t) + 0.12 * np.cos(2 * t + 0.8)
+def stream_animation(dots, height=1.8, reverse=False, run_time=2.5):
+    """Staggered, visible crossings that occupy the whole sentence."""
+    anims = []
+    for i, d in enumerate(dots):
+        anims.append(Succession(Wait(i * .18), MoveAlongPath(d, crossing_path(height, reverse),
+                                                             rate_func=linear), Wait((len(dots)-i-1)*.18)))
+    return AnimationGroup(*anims, lag_ratio=0, run_time=run_time)
 
 
-def r_sub(t):
-    return 0.74 + 0.03 * np.cos(2 * t)
+def moving_dot(height=1.8, color=YELLOW, start=-5.3):
+    tr = ValueTracker(start)
+    dot = Dot(radius=0.15, color=color)
+    dot.add_updater(lambda m: m.move_to([tr.get_value(), energy_y(tr.get_value(), height) + 0.17, 0]))
+    return tr, dot
 
 
-def make_cup(shape, gap, color=BLUE, w=8):
-    c = VMobject()
-    c.pointwise_become_partial(shape, gap, 1 - gap)
-    c.set_stroke(color, w).set_fill(opacity=0)
+def route_arrow(a, b, color, height=1.8, reverse=False):
+    xs = np.linspace(a, b, 80)
+    path = VMobject(color=color, stroke_width=7)
+    path.set_points_smoothly([np.array([x, energy_y(x, height, reverse) + 0.22, 0]) for x in xs])
+    tip = Triangle(color=color, fill_color=color, fill_opacity=1, stroke_width=0).scale(0.12)
+    tip.rotate(-PI / 2 if b > a else PI / 2).move_to(path.get_end())
+    return VGroup(path, tip)
+
+
+def vbracket(x, y0, y1, color, label=None, dx=0.52):
+    arr = DoubleArrow([x, y0, 0], [x, y1, 0], buff=0, color=color,
+                      stroke_width=4, tip_length=0.17)
+    g = VGroup(arr)
+    if label:
+        g.add(M(label, 34, color).move_to([x + dx, (y0 + y1) / 2, 0]))
+    return g
+
+
+def pin(point, color=TEAL):
+    return VGroup(Line(point + UP * 0.35, point, color=color, stroke_width=5),
+                  Dot(point, radius=0.09, color=color))
+
+
+def cup(center=ORIGIN, scale=1.0):
+    """Abstract active-site cleft: a cartoon protein block, never a molecule."""
+    c = Arc(radius=1.65, start_angle=PI * 0.08, angle=PI * 0.84,
+            color=TEAL, stroke_width=22).rotate(PI).scale(scale).move_to(center)
     return c
 
 
-def dots_row(active, n=4, y=3.15):
+def contacts(center=ORIGIN, n=8, scale=1.0):
     g = VGroup()
-    for i in range(n):
-        on = (i == active)
-        c = Circle(radius=0.26, stroke_color=TEXT if on else GREY, stroke_width=3,
-                   fill_color=TEXT if on else BG, fill_opacity=1 if on else 0)
-        t = T(str(i + 1), 24, BG if on else GREY, weight=BOLD).move_to(c)
-        g.add(VGroup(c, t))
-    return g.arrange(RIGHT, buff=0.45).move_to([0, y, 0])
+    for ang in np.linspace(0.16 * PI, 0.84 * PI, n):
+        p = center + scale * np.array([1.22 * np.cos(ang), -0.72 + 0.92 * np.sin(ang), 0])
+        q = center + scale * np.array([0.94 * np.cos(ang), -0.72 + 0.64 * np.sin(ang), 0])
+        g.add(Line(p, q, color=GOLD, stroke_width=5))
+    return g
 
 
-# ---------------------------------------------------------------- title and end cards
-class S00Title(TitleCard):
-    LESSON = "Enzyme action basics"
-    TITLE = "Same destination, faster arrival"
+def ts_oval(center=ORIGIN, scale=1.0):
+    return Ellipse(width=2.05 * scale, height=0.78 * scale, color=PURPLE,
+                   fill_color=PURPLE, fill_opacity=0.34, stroke_width=5).move_to(center)
 
 
-class S07End(EndCard):
-    LINE = "An enzyme changes the speed, never the destination."
+def breathing_grip(cup_mob):
+    """Keep the active-site grip visibly flexing while its energetic effect is explained."""
+    clock = [0.0]
+    base_w = cup_mob.width
+    def flex(m, dt):
+        clock[0] += dt
+        m.stretch_to_fit_width(base_w * (1 + .055 * np.sin(5.2 * clock[0])))
+    cup_mob.add_updater(flex)
+    return cup_mob
 
 
-# ---------------------------------------------------------------- s01: two GPS questions
-class S01Gps(Base):
-
+class S00Hook(SpokenScene):
     def construct(self):
-        cxl, cxr = -3.35, 3.35
-        py, ph = 0.2, 4.6          # panel centre y, height
-        top = py + ph / 2
+        land = landscape()
+        dots = valley_dots()
+        self.add(land, dots)
 
-        q = T("Does this reaction work?", 40).move_to([0, 3.05, 0])
-        self.play(FadeIn(q, shift=DOWN * 0.15), run_time=1.0)
+        self.at("impossible reaction")
+        uphill = CurvedArrow([4.7, -1.75, 0], [-2.0, 0.2, 0], angle=-0.35,
+                             color=RED, stroke_width=7)
+        badge1 = chip("?", RED, 40).scale(0.72).move_to([0.9, 0.0, 0])
+        self.play(Create(uphill), run_time=0.9)
+        self.play(FadeIn(badge1, scale=0.6), run_time=0.35)
 
-        def panel(cx, col):
-            return RoundedRectangle(corner_radius=0.2, width=5.9, height=ph, stroke_color=col, stroke_width=3,
-                                    fill_color=col, fill_opacity=0.06).move_to([cx, py, 0])
+        self.at("possible one fast")
+        downhill = route_arrow(-5.0, 5.0, YELLOW, 4.2)
+        badge2 = chip("?", TEAL, 40).scale(0.72).move_to([1.25, 2.45, 0])
+        self.play(Create(downhill[0]), FadeIn(downhill[1]), run_time=1.0)
+        self.play(FadeIn(badge2, scale=0.6), run_time=0.35)
 
-        # --- first question: will it get there? (thermodynamics)
-        self.until("First:")
-        lbox = panel(cxl, GREEN)
-        lhead = T("Will it get there?", 34, GREEN, weight=BOLD).move_to([cxl, top - 0.5, 0])
-        A = np.array([cxl - 2.0, 0.45, 0]); B = np.array([cxl + 2.0, -0.5, 0])
-        dA = Dot(A, radius=0.16, color=YELLOW); dB = Dot(B, radius=0.16, color=GREEN)
-        lA = T("reactants", 24, YELLOW).next_to(dA, UP, buff=0.15)
-        lB = T("products", 24, GREEN).next_to(dB, DOWN, buff=0.15)
-        route = Arrow(A, B, color=GREEN, buff=0.22, stroke_width=7)
-        self.play(Create(lbox), FadeIn(lhead), run_time=1.0)
-        self.play(FadeIn(dA), FadeIn(lA), FadeIn(dB), FadeIn(lB), run_time=0.8)
-        self.play(GrowArrow(route), run_time=1.6)
-        self.until("That's thermodynamics")
-        lfoot = VGroup(T("THERMODYNAMICS", 26, GREEN, weight=BOLD), M("ΔG", 30, GREEN)).arrange(RIGHT, buff=0.3)
-        lfoot.move_to([cxl, py - ph / 2 + 0.5, 0])
-        self.play(FadeIn(lfoot, shift=UP * 0.1), run_time=0.8)
-        self.until("whether the reaction is favorable")
-        fav = T("favorable", 28, GREEN).move_to([cxl + 0.35, 1.2, 0])
-        ck = check([cxl + 1.65, 1.2, 0])
-        self.play(FadeIn(fav), Create(ck), run_time=0.9)
-
-        # --- second question: how congested is the road? (kinetics)
-        self.until("Second:")
-        rbox = panel(cxr, RED)
-        rhead = T("How congested?", 34, RED, weight=BOLD).move_to([cxr, top - 0.5, 0])
-        curve = Curve(cxr - 2.0, cxr + 2.0, 0.45, 1.35, -1.0)
-        cmob = curve.mob(RED)
-        dA2 = Dot(curve.pt(0), radius=0.16, color=YELLOW)
-        dB2 = Dot(curve.pt(1), radius=0.16, color=GREEN)
-        lA2 = T("reactants", 24, YELLOW).next_to(dA2, UP, buff=0.15)
-        lB2 = T("products", 24, GREEN).next_to(dB2, DOWN, buff=0.15)
-        self.play(Create(rbox), FadeIn(rhead), run_time=1.0)
-        self.play(FadeIn(dA2), FadeIn(lA2), FadeIn(dB2), FadeIn(lB2), run_time=0.6)
-        self.play(Create(cmob), run_time=1.6)
-        self.until("That's kinetics")
-        pk = curve.peak()
-        ba = vbrace(pk[0], 0.45, pk[1] - 0.04, RED)
-        bl = M("ΔG‡", 30, RED).move_to([pk[0] + 1.05, 1.05, 0])
-        rfoot = VGroup(T("KINETICS", 26, RED, weight=BOLD), M("ΔG‡", 30, RED)).arrange(RIGHT, buff=0.3)
-        rfoot.move_to([cxr, py - ph / 2 + 0.5, 0])
-        tr = ValueTracker(0)
-        ball = ball_on(curve, tr)
-        self.play(FadeIn(rfoot, shift=UP * 0.1), GrowFromCenter(ba), FadeIn(bl), FadeIn(ball), FadeOut(dA2), run_time=1.0)
-        # a slow, labored crossing of the hill while the narration says "how fast you'll get there"
-        tt = max(3.0, self.span("That's kinetics", "Here's the line") - 1.8)
-        self.play(tr.animate.set_value(0.38), run_time=tt * 0.4, rate_func=rate_functions.ease_out_quad)
-        self.play(tr.animate.set_value(0.47), run_time=tt * 0.35, rate_func=linear)
-        self.play(tr.animate.set_value(1.0), run_time=tt * 0.25, rate_func=rate_functions.ease_in_quad)
-        self.play(FadeOut(ball), run_time=0.3)          # arrived: the product dot stays, the ball goes
-
-        # --- the line to remember: enzyme answers only the second question
-        self.until("Here's the line")
-        enz = chip("enzyme", BLUE, 30).move_to([0, -3.0, 0])
-        a_r = Arrow([0.6, -2.62, 0], [cxr - 0.7, py - ph / 2 - 0.05, 0], color=BLUE, buff=0, stroke_width=6)
-        a_l = DashedLine([-0.6, -2.62, 0], [cxl + 0.7, py - ph / 2 - 0.05, 0], color=GREY, stroke_width=5)
-        x_l = cross([cxl + 0.05 - 0.9 + 0.0, -2.62, 0], 0.2, RED, 6)
-        x_l.move_to((np.array([-0.6, -2.62, 0]) + np.array([cxl + 0.7, py - ph / 2 - 0.05, 0])) / 2)
-        self.play(FadeIn(enz, shift=UP * 0.2), run_time=0.8)
-        # dim the thermodynamics panel (stroke and contents only; keep its fill faint, not brighter)
-        self.play(GrowArrow(a_r), Create(a_l), Create(x_l),
-                  lbox.animate.set_stroke(opacity=0.3).set_fill(opacity=0.03),
-                  VGroup(lhead, dA, lA, dB, lB, route, lfoot, fav, ck).animate.set_opacity(0.3), run_time=1.2)
-        self.until("It never changes")
-        # lower the hill: same ends, lower barrier, faster crossing
-        new = Curve(cxr - 2.0, cxr + 2.0, 0.45, 0.8, -1.0)
-        pk2 = new.peak()
-        ba2 = vbrace(pk2[0], 0.45, pk2[1] - 0.04, BLUE)
-        bl2 = M("ΔG‡", 30, BLUE).move_to([pk2[0] + 0.85, pk2[1] + 0.35, 0])
-        tr2 = ValueTracker(0)
-        ball2 = ball_on(new, tr2)                        # rides the LOWERED curve
-        self.play(Transform(cmob, new.mob(BLUE)), Transform(ba, ba2), Transform(bl, bl2), FadeIn(ball2), run_time=1.4)
-        self.play(tr2.animate.set_value(1.0), run_time=1.1, rate_func=linear)
-        self.play(FadeOut(ball2), run_time=0.3)
+        self.at("Start with a reaction")
+        step = chip("one step toward RNA", YELLOW, 30).move_to([-3.9, 0.25, 0])
+        self.play(FadeOut(VGroup(uphill, badge1, downhill, badge2)), FadeIn(step, shift=DOWN * 0.2), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------- s02: the traffic light
-class S02Light(Base):
-
+class S01Title(NarratedScene):
     def construct(self):
-        cx = -5.3
-        housing = RoundedRectangle(corner_radius=0.3, width=1.5, height=5.3, stroke_color=GREY, stroke_width=3,
-                                   fill_color="#171a23", fill_opacity=1).move_to([cx, -0.1, 0])
-        ys = [1.55, -0.1, -1.75]
-        cols = [GREEN, AMBER, RED]
-        lamps = [Circle(radius=0.55, stroke_width=0, fill_color=c, fill_opacity=0.16).move_to([cx, y, 0])
-                 for c, y in zip(cols, ys)]
-        self.play(FadeIn(housing), *[FadeIn(l) for l in lamps], run_time=1.0)
-
-        def row(dg, words, col, y):
-            a = M(dg, 36, col)
-            a.move_to([-3.9 + a.width / 2, y, 0])
-            b = T(words, 30)
-            b.move_to([-1.35 + b.width / 2, y, 0])
-            return VGroup(a, b)
-
-        rows = [row("ΔG < 0", "go: spontaneous", GREEN, ys[0]),
-                row("ΔG = 0", "equilibrium: no net movement", AMBER, ys[1]),
-                row("ΔG > 0", "stop: the cell must spend energy", RED, ys[2])]
-
-        def light_on(i, run=0.6):
-            anims = []
-            for j, l in enumerate(lamps):
-                if j == i:
-                    anims.append(l.animate.set_fill(opacity=1).set_stroke(cols[j], width=8, opacity=0.35))
-                else:
-                    anims.append(l.animate.set_fill(opacity=0.16).set_stroke(width=0))
-            self.play(*anims, run_time=run)
-
-        self.until("Green")
-        light_on(0)
-        self.play(FadeIn(rows[0], shift=RIGHT * 0.2), run_time=0.8)
-        self.until("Yellow")
-        light_on(1)
-        self.play(FadeIn(rows[1], shift=RIGHT * 0.2), run_time=0.8)
-        self.until("Red")
-        light_on(2)
-        self.play(FadeIn(rows[2], shift=RIGHT * 0.2), run_time=0.8)
-
-        # the enzyme cannot change the colour of the light
-        self.until("The crucial part")
-        light_on(0, 0.8)
-        self.play(FadeOut(rows[1]), FadeOut(rows[2]), run_time=0.8)
-        self.until("an enzyme cannot")
-        self.play(FadeOut(rows[0]), run_time=0.5)
-        enz = chip("enzyme", BLUE, 32).move_to([0.6, 1.55, 0])
-        push = Arrow([-0.6, 1.55, 0], [-4.35, 1.55, 0], color=BLUE, buff=0, stroke_width=6)
-        x = cross([-3.2, 1.55, 0], 0.26, RED, 8)
-        cap = T("can't change the color", 30, GREY).move_to([-1.6, 0.8, 0])
-        self.play(FadeIn(enz, shift=LEFT * 0.2), GrowArrow(push), run_time=1.0)
-        self.play(Create(x), FadeIn(cap), run_time=0.7)
-        self.until("It speeds")
-        # ... it speeds the trip both ways toward the same equilibrium
-        road = Line([-3.4, -1.4, 0], [6.0, -1.4, 0], color=GREY, stroke_width=8)
-        mark = Line([-3.4, -1.4, 0], [-3.4, -1.0, 0], color=GREEN, stroke_width=4)
-        end = Line([6.0, -1.4, 0], [6.0, -1.0, 0], color=GREEN, stroke_width=4)
-        car = Dot(radius=0.2, color=YELLOW).move_to([-3.4, -1.15, 0])
-        self.play(FadeOut(push), FadeOut(x), FadeOut(cap), Create(road), FadeIn(car), run_time=0.6)
-        slow = T("slow", 30, GREY).move_to([1.2, -2.0, 0])
-        self.play(FadeIn(slow), car.animate.move_to([-1.6, -1.15, 0]), run_time=1.6, rate_func=linear)
-        fast = T("fast", 30, BLUE).move_to([1.2, -2.0, 0])
-        self.play(enz.animate.move_to([2.4, -0.45, 0]), FadeOut(slow), FadeIn(fast),
-                  car.animate.move_to([-1.3, -1.15, 0]), run_time=0.6, rate_func=linear)
-        self.play(car.animate.move_to([5.9, -1.15, 0]), run_time=0.7, rate_func=linear)
-        self.until("Spontaneity belongs")
-        sp = T("set by ΔG, not by the catalyst", 30, GREEN).move_to([0.7, 1.55, 0])
-        self.play(FadeIn(sp, shift=UP * 0.1), run_time=0.8)
+        land = landscape()
+        land[0].set_fill(opacity=.055)
+        land[1].set_stroke(opacity=.25)
+        land[2].set_opacity(.25)
+        dots = valley_dots().set_opacity(0.25)
+        self.add(land, dots)
+        brand = T("BIOCHEMISTRYPEDIA", 20, TEAL, weight=BOLD)
+        title = T("Lower the Ridge, Not the Valleys", 50, font=TITLE_FONT)
+        fit(title, 11.4)
+        rule = Line(LEFT * 1.35, RIGHT * 1.35, color=GOLD, stroke_width=4)
+        card = VGroup(brand, title, rule).arrange(DOWN, buff=0.34)
+        self.play(FadeIn(brand), Write(title), GrowFromCenter(rule), run_time=0.9)
+        self.wait(0.7)
+        self.play(FadeOut(card), land[0].animate.set_fill(opacity=.22),
+                  land[1].animate.set_stroke(opacity=1), land[2].animate.set_opacity(1),
+                  dots.animate.set_opacity(1), run_time=0.4)
         self.finish()
 
 
-# ---------------------------------------------------------------- s03: the mountain shortcut
-class S03Mountain(Base):
-
+class S02Slow(SpokenScene):
     def construct(self):
-        hi = Curve(-5.0, 5.0, -0.6, 3.4, -1.0)
-        lo = Curve(-5.0, 5.0, -0.6, 1.4, -1.0)
-        hi_m, lo_m = hi.mob(RED, 6), lo.mob(BLUE, 6)
-        pts = [hi.pt(s) for s in np.linspace(0, 1, 160)] + [np.array([5.0, -2.9, 0]), np.array([-5.0, -2.9, 0])]
-        rock = Polygon(*pts, stroke_width=0, fill_color=GREY, fill_opacity=0.2)
-        tr = ValueTracker(0)
-        ball = ball_on(hi, tr)
-        lab_r = T("reactants", 28, YELLOW).next_to(ball, UP, buff=0.3)
-        end_dot = Dot(hi.pt(1.0), radius=0.17, color=GREEN)
-        lab_p = T("products", 28, GREEN).next_to(end_dot, UP, buff=0.3)
+        world = VGroup(landscape(tag=False), valley_dots()).scale(0.67).shift(UP * 1.72)
+        timeline_tag = T("schematic", 28, TEXT).move_to([5.25, -.92, 0])
+        self.add(world, timeline_tag)
+        axis_y, xa, xb = -2.72, -5.45, 5.45
+        axis = Arrow([xa, axis_y, 0], [xb, axis_y, 0], buff=0, color=TEXT, stroke_width=4)
+        def xpos(seconds):
+            return xa + (np.log10(seconds) + 3) / 19 * (xb - xa)
+        ticks = VGroup()
+        for power in range(-3, 17, 3):
+            x = xpos(10 ** power)
+            ticks.add(Line([x, axis_y - .12, 0], [x, axis_y + .12, 0], color=TEXT, stroke_width=3))
+        labels = VGroup(T("a second", 28).move_to([xpos(1), -3.25, 0]),
+                        T("a year", 28).move_to([xpos(3.156e7), -3.25, 0]),
+                        T("a million years", 28).move_to([xpos(3.156e13), -3.25, 0]))
+        self.play(Create(axis), Create(ticks), FadeIn(labels), run_time=1.4)
+        scanner = Line([xa, -1.82, 0], [xa, -3.42, 0], color=TEAL, stroke_width=10).set_opacity(.55)
+        self.add(scanner)
+        self.play(scanner.animate.move_to([xpos(3.156e7), -2.62, 0]), run_time=2.05, rate_func=linear)
+        self.remove(scanner)
 
-        self.play(FadeIn(rock), FadeIn(ball), FadeIn(lab_r), FadeIn(end_dot), FadeIn(lab_p), run_time=1.2)
-        self.until("Without an enzyme")
-        self.play(Create(hi_m), run_time=1.4)
-        pkh = hi.peak()
-        lab_hi = T("high mountain", 28, RED).move_to([pkh[0] + 2.2, pkh[1] + 0.05, 0])
-        self.play(FadeIn(lab_hi), FadeOut(lab_r), run_time=0.5)
-        self.play(tr.animate.set_value(1.0), run_time=2.8, rate_func=smooth)
-        self.play(FadeOut(ball), run_time=0.3)
-        # the enzyme: a lower pass
-        self.until("With an enzyme")
-        tr.set_value(0)
-        ball = ball_on(lo, tr)
-        lab_lo = T("lower pass (enzyme)", 28, BLUE).move_to([3.1, 0.55, 0])
-        self.play(hi_m.animate.set_stroke(opacity=0.4), lab_hi.animate.set_opacity(0.4), FadeIn(ball), FadeIn(lab_r),
-                  Create(lo_m), FadeIn(lab_lo), run_time=1.4)
-        pkl = lo.peak()
-        self.play(lab_r.animate.set_opacity(0), tr.animate.set_value(1.0), run_time=1.8, rate_func=smooth)
-        self.play(FadeOut(ball), run_time=0.3)
-        # both routes end at the same place: send one traveller down each route at once
-        self.until("Notice")
-        t2 = ValueTracker(0)
-        b_hi = ball_on(hi, t2, RED, 0.13)
-        b_lo = ball_on(lo, t2, BLUE, 0.13)
-        self.play(FadeIn(b_hi), FadeIn(b_lo), run_time=0.3)
-        self.play(t2.animate.set_value(1.0), run_time=2.4, rate_func=smooth)
-        self.play(FadeOut(b_hi), FadeOut(b_lo), Indicate(end_dot, scale_factor=1.8, color=GREEN),
-                  Indicate(lab_p, color=GREEN), run_time=1.2)
-        self.until("the enzyme doesn't move")
-        same = T("same destination", 28, GREEN).move_to([3.0, -2.3, 0])
-        self.play(FadeIn(same, shift=UP * 0.1), Flash(end_dot, color=GREEN, flash_radius=0.45), run_time=0.9)
-        # how does it lower the pass?
-        self.until("So how exactly")
-        q = T("?", 64, PURPLE, weight=BOLD).move_to([pkl[0], pkl[1] - 1.0, 0])
-        ring = Circle(radius=0.35, color=PURPLE, stroke_width=4).move_to(pkl + UP * 0.02)
-        self.play(FadeOut(same), Create(ring), FadeIn(q, scale=0.5), run_time=0.9)
-        self.until("transition")
-        self.play(Indicate(ring, color=PURPLE, scale_factor=1.4), run_time=1.0)
+        self.at("Half the molecules")
+        half_s = 78e6 * 3.156e7
+        marker = Dot([xa, axis_y, 0], radius=0.13, color=RED)
+        half_label = T("half-life: 78 million years", 30, RED).move_to([2.35, -2.08, 0])
+        blink = world[1][:4]
+        self.add(marker)
+        self.play(marker.animate.move_to([xpos(half_s), axis_y, 0]),
+                  blink.animate.set_opacity(0.18), run_time=2.0, rate_func=rate_functions.ease_out_cubic)
+        self.play(FadeIn(half_label), blink.animate.set_opacity(1), run_time=0.45)
+
+        self.at("With its enzyme")
+        em = Dot([xpos(1e-2), axis_y, 0], radius=0.13, color=TEAL)
+        el = T("with enzyme: milliseconds", 30, TEAL).move_to([-2.85, -2.08, 0])
+        gap = DoubleArrow([xpos(1e-2), axis_y + .35, 0], [xpos(half_s), axis_y + .35, 0],
+                          buff=0, color=TEAL, stroke_width=4, tip_length=.16)
+        self.play(FadeIn(em, shift=UP * .3), FadeIn(el), GrowFromCenter(gap), run_time=0.9)
         self.finish()
 
 
-# ---------------------------------------------------------------- s04: lowers the barrier, not DG
-class S04Barrier(Base):
-
+class S03Split(SpokenScene):
     def construct(self):
-        X0, X1, Y0 = -4.4, 4.1, -1.2
-        unc = Curve(X0, X1, Y0, 3.3, -1.0)
-        cat = Curve(X0, X1, Y0, 1.3, -1.0)
-        ax_y = Arrow([-5.0, -2.75, 0], [-5.0, 2.75, 0], color=GREY, buff=0, stroke_width=4, tip_length=0.2)
-        ax_x = Arrow([-5.0, -2.75, 0], [5.9, -2.75, 0], color=GREY, buff=0, stroke_width=4, tip_length=0.2)
-        ylab = T("Free energy, G", 26, GREY).rotate(PI / 2).move_to([-5.6, 0.0, 0])
-        xlab = T("Reaction progress", 26, GREY).move_to([0.4, -3.2, 0])
-        self.play(Create(ax_y), Create(ax_x), FadeIn(ylab), FadeIn(xlab), run_time=1.6)
-
-        # both curves: same substrate, same product
-        self.until("Both curves")
-        c_u, c_c = unc.mob(RED), cat.mob(BLUE)
-        sub = Dot(unc.pt(0), radius=0.17, color=YELLOW)
-        prod = Dot(unc.pt(1), radius=0.17, color=GREEN)
-        l_sub = T("substrate", 26, YELLOW).next_to(sub, DOWN, buff=0.2).shift(RIGHT * 0.45)
-        l_prod = T("product", 26, GREEN).next_to(prod, UP, buff=0.2).shift(LEFT * 0.35)
-        l_unc = T("without enzyme", 26, RED).move_to([2.9, 0.5, 0])
-        l_cat = T("with enzyme", 26, BLUE).move_to([2.9, -0.55, 0])
-        self.play(FadeIn(sub), FadeIn(l_sub), run_time=0.6)
-        self.play(Create(c_u), FadeIn(l_unc), FadeIn(prod), FadeIn(l_prod), run_time=2.4)
-        self.play(Create(c_c), FadeIn(l_cat), run_time=1.6)
-        # so DG is identical
-        self.until("delta")
-        d_sub = DashedLine([X0, Y0, 0], [4.85, Y0, 0], color=YELLOW, stroke_width=2.5).set_opacity(0.55)
-        d_prod = DashedLine([X1 - 1.2, unc.pt(1)[1], 0], [4.85, unc.pt(1)[1], 0], color=GREEN, stroke_width=2.5).set_opacity(0.55)
-        dg = vbrace(4.85, unc.pt(1)[1], Y0, GREEN, "ΔG", 0.65, 32, 5)
-        self.play(Create(d_sub), Create(d_prod), run_time=0.8)
-        self.play(GrowFromCenter(dg), run_time=1.0)
-        # the hill is what changes
-        self.until("What changes")
-        self.play(FadeOut(l_unc), FadeOut(l_cat), run_time=0.5)
-        pu, pc = unc.peak(), cat.peak()
-        d_top = DashedLine([-2.9, pu[1], 0], [pu[0], pu[1], 0], color=RED, stroke_width=2.5).set_opacity(0.6)
-        b_u = vbrace(-2.9, Y0, pu[1], RED, "ΔG‡", -0.7, 30, 5)
-        self.play(Create(d_top), GrowFromCenter(b_u), run_time=1.2)
-        self.until("far lower")
-        b_c = vbrace(pc[0], Y0, pc[1], BLUE, None, 0, 30, 5)
-        # label sits inside the blue hump, left of its arrow, so the TS arrow above has room later
-        t_c = M("ΔG‡", 26, BLUE).move_to([pc[0] - 0.52, (Y0 + pc[1]) / 2 - 0.1, 0])
-        self.play(GrowFromCenter(b_c), FadeIn(t_c), run_time=1.2)
-        # transition state at the top of the hill
-        self.until("speed")
-        ts_u = Dot(pu, radius=0.16, color=PURPLE)
-        ts_c = Dot(pc, radius=0.16, color=PURPLE)
-        l_ts = T("transition state", 26, PURPLE).move_to([pu[0] + 2.25, pu[1] - 0.05, 0])
-        self.play(FadeIn(ts_u, scale=1.6), FadeIn(l_ts), run_time=0.9)
-        self.until("by stabilizing")
-        self.play(FadeIn(ts_c, scale=1.6), run_time=0.5)
-        st = Arrow(pu + DOWN * 0.3, pc + UP * 0.35, color=PURPLE, buff=0.0, stroke_width=5)
-        self.play(GrowArrow(st), run_time=0.9)
-        self.until("not by changing")
-        self.play(FadeOut(st), Indicate(dg, color=GREEN, scale_factor=1.25), Indicate(prod, color=GREEN, scale_factor=2.0),
-                  run_time=1.4)
+        land = landscape()
+        dots = valley_dots()
+        self.add(land, dots)
+        self.at("speedup of about")
+        count = counter_chip()
+        self.play(FadeIn(count, shift=UP * .25), run_time=.7)
+        self.at("push a reaction uphill")
+        tr, dot = moving_dot(4.2, YELLOW, 4.8)
+        self.add(dot)
+        self.play(FadeOut(count), tr.animate.set_value(1.0), run_time=1.05, rate_func=rate_functions.ease_out_quad)
+        self.play(tr.animate.set_value(4.8), run_time=.65, rate_func=rate_functions.ease_in_quad)
+        self.play(tr.animate.set_value(1.25), run_time=.65, rate_func=rate_functions.ease_out_quad)
+        self.at("No")
+        cross = VGroup(Line([-.35,.35,0],[.35,-.35,0],color=RED,stroke_width=9),
+                       Line([-.35,-.35,0],[.35,.35,0],color=RED,stroke_width=9)).move_to([1.1,-.15,0])
+        self.play(Create(cross), tr.animate.set_value(4.8), run_time=.55)
+        self.at("split one question")
+        qs = question_chips()
+        self.play(FadeOut(VGroup(dot, cross)), FadeIn(qs, shift=DOWN * .2), run_time=.75)
         self.finish()
 
 
-# ---------------------------------------------------------------- s05: what is the transition state
-class S05Ts(Base):
-
+class S04Valleys(SpokenScene):
     def construct(self):
-        OFF = 1.7                      # the curve starts low on screen and moves to the "top row" later
-        cv = Curve(-4.5, 4.5, 0.95, 2.0, -0.5)
-        dy = ValueTracker(-OFF)
-        cm = cv.mob(RED, 5)
-        pk = cv.peak()
-        tr = ValueTracker(0)
-        ball = Dot(radius=0.17, color=YELLOW)
-        ball.add_updater(lambda m: m.move_to(cv.pt(tr.get_value()) + UP * (0.17 + dy.get_value())))
-        ball.move_to(cv.pt(0) + UP * (0.17 - OFF))
-        l_sub = T("substrate", 26, YELLOW).move_to([cv.pt(0)[0] + 0.1, 0.35, 0])
-        l_prod = T("product", 26, GREEN).move_to([cv.pt(1)[0] - 0.1, -0.1, 0])
-        top = VGroup(cm, l_sub, l_prod)
-        top.shift(DOWN * OFF)
-        # "neither substrate nor product": both ends are named from the start
-        self.play(Create(cm), FadeIn(ball), FadeIn(l_sub), FadeIn(l_prod), run_time=1.6)
-
-        # fleeting, highest-energy: the ball reaches the top and flashes
-        self.until("it's a fleeting")
-        self.play(tr.animate.set_value(cv.peak_s()), run_time=2.2, rate_func=smooth)
-        ts = Dot(pk + DOWN * OFF, radius=0.2, color=PURPLE)
-        l_ts = T("transition state", 28, PURPLE).move_to([pk[0] + 2.1, pk[1] + 0.1 - OFF, 0])
-        top.add(ts, l_ts)
-        self.play(FadeIn(ts, scale=2.0), Flash(ts, color=PURPLE, flash_radius=0.5), FadeIn(l_ts), run_time=0.9)
-        self.until("lasts only")
-        fs = M("femtoseconds", 30, PURPLE).move_to([pk[0] - 2.0, pk[1] + 0.1 - OFF, 0])
-        top.add(fs)
-        self.play(FadeIn(fs, shift=RIGHT * 0.15), run_time=0.7)
-        # the arc: substrate in, transition state, product out
-        self.until("The top row")
-        self.play(tr.animate.set_value(1.0), run_time=1.5, rate_func=smooth)
-        self.until("substrate in", 0.1)
-        self.play(Indicate(l_sub, color=YELLOW), run_time=0.7)
-        self.until("transition state, product", 0.1)
-        self.play(Indicate(l_ts, color=PURPLE), Indicate(ts, color=PURPLE), run_time=0.7)
-        self.until("product out", 0.1)
-        self.play(Indicate(l_prod, color=GREEN), run_time=0.7)
-
-        # zoom in on the chemistry: bond fractions (not drawn as atoms)
-        self.until("The bottom row")
-        tr.set_value(0)
-        s_ts = cv.peak_s()
-        frac = lambda: 1 / (1 + np.exp(-(tr.get_value() - s_ts) * 14))   # exactly 50/50 at the barrier top
-        zoom = T("zooming in on the chemistry", 26, GREY).move_to([0, -0.75, 0])
-        BX, BW = -1.6, 6.0
-
-        def bar(y, col, getter):
-            return always_redraw(lambda: Rectangle(width=max(0.001, BW * getter()), height=0.5, stroke_width=0,
-                                                   fill_color=col, fill_opacity=0.9).align_to([BX, 0, 0], LEFT).set_y(y))
-
-        y1, y2 = -1.55, -2.5
-        frame1 = Rectangle(width=BW, height=0.5, stroke_color=GREY, stroke_width=2).move_to([BX + BW / 2, y1, 0])
-        frame2 = Rectangle(width=BW, height=0.5, stroke_color=GREY, stroke_width=2).move_to([BX + BW / 2, y2, 0])
-        n1 = T("old bond", 28, YELLOW).move_to([BX - 0.35, y1, 0]).align_to([BX - 0.3, 0, 0], RIGHT)
-        n2 = T("new bond", 28, GREEN).move_to([BX - 0.35, y2, 0]).align_to([BX - 0.3, 0, 0], RIGHT)
-        b1 = bar(y1, YELLOW, lambda: 1 - frac())
-        b2 = bar(y2, GREEN, lambda: frac())
-        p1 = always_redraw(lambda: M(f"{int(round(100 * (1 - frac())))}%", 26, YELLOW).move_to([BX + BW + 0.75, y1, 0]))
-        p2 = always_redraw(lambda: M(f"{int(round(100 * frac()))}%", 26, GREEN).move_to([BX + BW + 0.75, y2, 0]))
-        # the curve moves up to become the top row; the ball's offset tracker follows it
-        self.play(top.animate.shift(UP * OFF), dy.animate.set_value(0), FadeOut(fs), run_time=1.0)
-        self.play(FadeIn(zoom), Create(frame1), Create(frame2), FadeIn(n1), FadeIn(n2),
-                  FadeIn(b1), FadeIn(b2), FadeIn(p1), FadeIn(p2), run_time=1.2)
-        ts_c = ts.get_center()
-        self.play(tr.animate.set_value(cv.peak_s()), run_time=1.6, rate_func=smooth)
-        half = T("half-broken, half-formed", 28, PURPLE).move_to([0, -3.2, 0])
-        self.play(FadeIn(half, shift=UP * 0.1), Flash(ts, color=PURPLE, flash_radius=0.5), run_time=0.9)
-        self.until("key")
-        self.play(FadeOut(half), run_time=0.4)          # the 50/50 caption only belongs at the top
-        self.play(tr.animate.set_value(1.0), run_time=1.1, rate_func=smooth)
-        self.play(FadeOut(ball), FadeOut(VGroup(zoom, frame1, frame2, n1, n2, b1, b2, p1, p2)), run_time=0.6)
-
-        # the key insight: the TS has a specific shape and the enzyme is tuned to it
-        BC = np.array([-3.3, -2.0, 0])
-        shape = blob(r_ts, 0.8, center=BC)
-        shape.set_fill(PURPLE, 0.85).set_stroke(PURPLE, 2)
-        outline = blob(r_ts, 0.8 * 1.2, center=BC)
-        gap = ValueTracker(0.16)
-        cup = always_redraw(lambda: make_cup(outline, gap.get_value(), BLUE, 8))
-        line = DashedLine(pk + DOWN * 0.25, BC + UP * 1.2, color=PURPLE, stroke_width=3).set_opacity(0.7)
-        l_geo = T("a specific geometry", 30, PURPLE)
-        l_geo.move_to([-0.9 + l_geo.width / 2, -1.55, 0])
-        l_en = T("the enzyme is tuned to grip it", 30, BLUE)
-        l_en.move_to([-0.9 + l_en.width / 2, -2.5, 0])
-        self.play(Create(line), FadeIn(shape, scale=0.5), run_time=1.0)
-        self.play(FadeIn(l_geo, shift=RIGHT * 0.15), run_time=0.7)
-        self.until("tuned the enzyme")
-        self.add(cup)
-        self.play(FadeIn(cup), FadeIn(l_en, shift=RIGHT * 0.15), run_time=0.8)
-        self.play(gap.animate.set_value(0.05), run_time=1.2)
+        land, dots, qs = landscape(), valley_dots(), question_chips()
+        self.add(land, dots, qs)
+        yl, yr = energy_y(-5.2), energy_y(5.2)
+        left = T("substrate", 30, YELLOW).move_to([-4.65, yl + .55, 0])
+        right = T("product", 30, GREEN).move_to([4.75, yr + .55, 0])
+        self.play(Indicate(land[1], color=YELLOW, scale_factor=1.01), FadeIn(left), FadeIn(right), run_time=.8)
+        self.at("thermodynamics")
+        dg = vbracket(5.55, yr, yl, GREEN)
+        self.play(GrowFromCenter(dg), qs[0][0].animate.set_fill(GREEN, opacity=.18), run_time=.6)
+        self.at("delta G")
+        dgl = M("ΔG", 34, GREEN).move_to([6.02, (yl + yr) / 2, 0])
+        self.play(FadeIn(dgl), run_time=.35)
+        self.at("How high the ridge")
+        peak = peak_point()
+        barrier = vbracket(-.7, yl, peak[1], RED)
+        self.play(GrowFromCenter(barrier), run_time=.65)
+        self.at("how fast")
+        self.play(qs[1][0].animate.set_fill(RED, opacity=.18), run_time=.4)
+        self.play(FadeOut(qs), run_time=.35)
         self.finish()
 
 
-# ---------------------------------------------------------------- s06: binding energy facilitates catalysis
-class S06Binding(Base):
+class S05Top(SpokenScene):
+    def construct(self):
+        land, dots = landscape(), valley_dots()
+        self.add(land, dots)
+        peak = peak_point()
+        br = vbracket(-.75, energy_y(-5.2), peak[1], RED)
+        self.add(br)
+        self.at("activation energy")
+        lab = M("ΔG‡", 34, RED).move_to([-.12, .75, 0])
+        self.play(FadeIn(lab), run_time=.45)
+        self.at("very top")
+        # Recompute a bounded close-up instead of scaling the full curve beyond the frame.
+        close_curve = ParametricFunction(
+            lambda x: np.array([2.35 * x, energy_y(x, 4.2) - .15, 0]),
+            t_range=[-2.75, 2.75, .02], color=RED, stroke_width=7,
+        )
+        close_dots = VGroup(*[
+            Dot([x, energy_y(x / 2.35, 4.2) + .04, 0], radius=.15, color=YELLOW)
+            for x in np.linspace(-6.0, -4.9, 5)
+        ])
+        self.play(FadeOut(VGroup(land, dots, br, lab)), FadeIn(close_curve), FadeIn(close_dots), run_time=.65)
+        p = np.array([2.35 * peak[0], peak[1] - .15, 0])
+        ball = Dot([-4.65, energy_y(-4.65 / 2.35, 4.2) + .04, 0], radius=.18, color=YELLOW)
+        oval = ts_oval(p, .55)
+        climb = VMobject().set_points_smoothly([
+            np.array([2.35*x, energy_y(x, 4.2) + .04, 0]) for x in np.linspace(-2.0, peak[0], 70)
+        ])
+        self.play(FadeIn(ball), MoveAlongPath(ball, climb), run_time=.75, rate_func=smooth)
+        self.play(ReplacementTransform(ball, oval), run_time=.25)
+        self.at("transition state")
+        tl = T("transition state", 30, PURPLE).next_to(oval, UP, .22)
+        self.play(FadeIn(tl), run_time=.35)
+        self.at("bonds are partly")
+        b1 = chip("bond breaking", PURPLE, 28).scale(.75).next_to(oval, LEFT, .3)
+        b2 = chip("bond forming", PURPLE, 28).scale(.75).next_to(oval, RIGHT, .3)
+        self.play(oval.animate.stretch(1.22, 0), FadeIn(b1), FadeIn(b2), run_time=.55)
+        self.at("femtoseconds")
+        green = Dot([5.4, energy_y(5.4 / 2.35) + .04, 0], radius=.18, color=GREEN)
+        self.play(Wiggle(oval, scale_value=1.08), run_time=.45)
+        self.play(FadeOut(VGroup(b1,b2,tl)), ReplacementTransform(oval, green), run_time=.6)
+        whole = landscape()
+        whole_dots = valley_dots()
+        self.play(FadeOut(VGroup(close_curve, close_dots, green)), FadeIn(whole), FadeIn(whole_dots), run_time=.55)
+        self.finish()
+
+
+class S06Idea(SpokenScene):
+    def construct(self):
+        old = dashed_profile(4.2, RED)
+        fill = landscape(4.2, RED)
+        dots = valley_dots()
+        self.add(fill, dots)
+        self.at("whole idea")
+        self.play(Transform(fill[1], old), run_time=.55)
+        h = ValueTracker(4.2)
+        low = always_redraw(lambda: profile(h.get_value(), TEAL, 7))
+        self.add(low)
+        self.at("lowers the ridge")
+        self.play(h.animate.set_value(1.8), run_time=1.25, rate_func=smooth)
+        yl, yr = energy_y(-5.2, 1.8), energy_y(5.2, 1.8)
+        self.at("never moves the valleys")
+        pins = VGroup(pin(np.array([-5.2, yl, 0])), pin(np.array([5.2, yr, 0])))
+        self.play(FadeIn(pins, shift=DOWN*.25), Flash([-5.2,yl,0], color=TEAL), Flash([5.2,yr,0], color=TEAL), run_time=.65)
+        runners = VGroup(*[Dot(radius=.16, color=YELLOW) for _ in range(4)])
+        self.add(runners)
+        self.play(stream_animation(runners, run_time=1.75), run_time=1.75)
+        self.at("a lower pass")
+        pp = peak_point(1.8)
+        ll = T("lower pass", 30, TEAL).next_to(pp, UP, .25)
+        self.play(FadeIn(ll, shift=DOWN*.15), run_time=.4)
+        self.at("still a highest point")
+        top = Dot(pp, radius=.14, color=PURPLE)
+        tr, traveler = moving_dot(1.8)
+        self.play(FadeIn(top), FadeIn(traveler), run_time=.3)
+        self.play(tr.animate.set_value(5.25), run_time=1.1, rate_func=linear)
+        self.remove(runners)
+        self.finish()
+
+
+class S07Rate(SpokenScene):
+    def construct(self):
+        # Match the carried landscape exactly: full-width profiles, unchanged
+        # valley floors, and the lowered TEAL ridge from the end of s06.
+        old = dashed_profile(4.2, RED)
+        h = ValueTracker(1.8)
+        low = always_redraw(lambda: profile(h.get_value(), TEAL, 7))
+        dots = valley_dots()
+        ground = ground_fill(4.2)
+        self.add(ground, old, low, dots, schematic_tag())
+
+        # The previous scene finishes at H=1.8. Briefly restore the comparison
+        # baseline without moving any other part of the landscape.
+        self.play(h.animate.set_value(4.2), run_time=.42, rate_func=smooth)
+
+        bar = RoundedRectangle(width=.78, height=2.45, corner_radius=.12,
+                               stroke_color=TEAL, stroke_width=3,
+                               fill_color=TEAL, fill_opacity=.06).move_to([5.42,.18,0])
+
+        def gauge_fill():
+            drop_fraction = np.clip((4.2 - h.get_value()) / 2.0, 0, 1)
+            fill_height = max(.001, 2.15 * drop_fraction)
+            return Rectangle(
+                width=.60, height=fill_height, stroke_width=0,
+                fill_color=TEAL, fill_opacity=.78,
+            ).move_to([bar.get_x(), bar.get_bottom()[1] + .14 + fill_height / 2, 0])
+
+        labels = ["×1", "×10", "×100", "×1,000", "×10,000", "×100,000"]
+
+        def gauge_number():
+            step = int(np.clip(round((4.2 - h.get_value()) / .4), 0, 5))
+            return M(labels[step], 32, TEAL).move_to([5.42,-1.42,0])
+
+        fillbar = always_redraw(gauge_fill)
+        number = always_redraw(gauge_number)
+        gl = T("times faster", 28, TEAL).move_to([5.02,1.82,0])
+        self.play(Create(bar), FadeIn(fillbar), FadeIn(gl), FadeIn(number), run_time=.68)
+        self.at("At 25")
+        self.play(Indicate(bar, color=TEAL, scale_factor=1.025), run_time=.45)
+        self.at("every 5")
+        note = chip("5.7 kJ/mol = ten times", TEAL, 30).scale(.82).move_to([3.05,3.25,0])
+        self.play(FadeIn(note), run_time=.35)
+        for hh in np.linspace(3.8, 2.2, 5):
+            self.play(h.animate.set_value(float(hh)), run_time=.72, rate_func=smooth)
+        self.finish()
+
+
+class S08OmpBack(SpokenScene):
+    def construct(self):
+        old = dashed_profile(4.2, RED)
+        h = ValueTracker(2.2)
+        low = always_redraw(lambda: profile(h.get_value(), TEAL, 7))
+        dots = valley_dots()
+        number = M("×100,000", 32, TEAL).move_to([4.9,1.45,0])
+        self.add(ground_fill(1.8), old, low, dots, schematic_tag(), number)
+        self.at("about 97")
+        drop = chip("97 kJ/mol", TEAL, 30).move_to([3.7,.55,0])
+        final = power_text("×", size=35).move_to(number)
+        self.play(h.animate.set_value(1.8), ReplacementTransform(number, final), FadeIn(drop), run_time=1.0)
+        self.play(Indicate(final, color=TEAL, scale_factor=1.07), run_time=.45)
+        self.at("flip the trip")
+        rev = route_arrow(5.0, -5.0, GREEN, 1.8)
+        self.play(FadeOut(VGroup(final,drop)), Create(rev[0]), FadeIn(rev[1]), run_time=1.0)
+        self.finish()
+
+
+class S09Predict(SpokenScene):
+    def construct(self):
+        old, low = dashed_profile(4.2, RED), profile(1.8, TEAL, 7)
+        dots = VGroup(valley_dots(5), valley_dots(4,"right",GREEN,1.8))
+        self.add(ground_fill(1.8), old, low, dots, schematic_tag())
+        fwd = route_arrow(-5,5,YELLOW,1.8)
+        rev = route_arrow(5,-5,GREEN,1.8)
+        fl = chip("× 1,000,000", YELLOW, 30).scale(.8).move_to([-2.6,.55,0])
+        rl = chip("× ?", GREEN, 38).scale(.8).move_to([2.8,-.2,0])
+        self.at("forward trip")
+        self.play(FadeIn(fl), FadeIn(rl), run_time=.45)
+        self.at("Watch both arrows")
+        self.play(Create(fwd[0]), FadeIn(fwd[1]), Create(rev[0]), FadeIn(rev[1]), run_time=1.1)
+        self.at("backward trip")
+        q = chip("Backward: faster, slower, unchanged?", TEXT, 34, fill_opacity=.12).move_to([0,-2.82,0])
+        fit(q, 11.8)
+        self.play(FadeIn(q, shift=UP*.25), rl.animate.scale(1.08), run_time=.55)
+        self.finish()
+
+
+class S10Think(Scene):
+    def construct(self):
+        old, low = dashed_profile(4.2, RED), profile(1.8, TEAL, 7)
+        dots = VGroup(valley_dots(5), valley_dots(4,"right",GREEN,1.8))
+        fwd, rev = route_arrow(-5,5,YELLOW,1.8), route_arrow(5,-5,GREEN,1.8)
+        fl = chip("× 1,000,000", YELLOW, 30).scale(.8).move_to([-2.6,.55,0])
+        rl = chip("× ?", GREEN, 38).scale(.8).move_to([2.8,-.2,0])
+        q = chip("Backward: faster, slower, unchanged?", TEXT, 34, fill_opacity=.12).move_to([0,-2.82,0])
+        fit(q, 11.8)
+        self.add(ground_fill(1.8),old,low,dots,schematic_tag(),fwd,rev,fl,rl,q)
+        self.play(rl.animate.scale(1.06), run_time=1.0, rate_func=there_and_back)
+        self.wait(1.2)
+        self.play(rl.animate.scale(1.06), run_time=1.0, rate_func=there_and_back)
+        self.wait(1.3)
+
+
+class S11Answer(SpokenScene):
+    def construct(self):
+        old, low = dashed_profile(4.2, RED), profile(1.8, TEAL, 7)
+        dots = VGroup(valley_dots(5), valley_dots(4,"right",GREEN,1.8))
+        fwd, rev = route_arrow(-5,5,YELLOW,1.8), route_arrow(5,-5,GREEN,1.8)
+        fl = chip("× 1,000,000", YELLOW, 30).scale(.8).move_to([-2.6,.55,0])
+        rl = chip("× ?", GREEN, 38).scale(.8).move_to([2.8,-.2,0])
+        self.add(ground_fill(1.8),old,low,dots,schematic_tag(),fwd,rev,fl,rl)
+        self.at("Also a million")
+        ans = chip("× 1,000,000", GREEN, 30).scale(.8).move_to(rl)
+        self.play(ReplacementTransform(rl,ans), run_time=.6)
+        yl, yr, pp = energy_y(-5.2,1.8), energy_y(5.2,1.8), peak_point(1.8)
+        self.at("two valleys")
+        pins = VGroup(pin(np.array([-5.2,yl,0])),pin(np.array([5.2,yr,0])))
+        self.play(FadeIn(pins), Flash([-5.2,yl,0],color=TEAL), Flash([5.2,yr,0],color=TEAL), run_time=.6)
+        self.at("same lowered top")
+        brs = VGroup(vbracket(-.6,yl,pp[1],YELLOW), vbracket(.65,yr,pp[1],GREEN),
+                     Dot(pp,radius=.13,color=PURPLE))
+        self.play(GrowFromCenter(brs[0]), GrowFromCenter(brs[1]), FadeIn(brs[2]), run_time=.75)
+        self.at("their ratio")
+        keq = chip("Keq: unchanged", TEXT, 34).move_to([0,2.65,0])
+        self.play(ReplacementTransform(VGroup(fl,ans),keq), run_time=.75)
+        self.finish()
+
+
+class S12Uphill(SpokenScene):
+    def construct(self):
+        h = ValueTracker(1.8)
+        revflag = ValueTracker(0)
+        curve = always_redraw(lambda: profile(h.get_value(),TEAL,7,revflag.get_value()>.5))
+        old = always_redraw(lambda: dashed_profile(4.2,RED,4,revflag.get_value()>.5))
+        left = VGroup(*[Dot(radius=.11,color=YELLOW).move_to([-5.3+i*.34,energy_y(-5.3+i*.34,1.8)+.17,0]) for i in range(6)])
+        right = VGroup(*[Dot(radius=.11,color=GREEN).move_to([3.8+i*.34,energy_y(3.8+i*.34,1.8)+.17,0]) for i in range(2)])
+        counts = VGroup(M("6",32,YELLOW),T(":",30),M("2",32,GREEN)).arrange(RIGHT,.18).move_to([0,-3.05,0])
+        ground = always_redraw(lambda: ground_fill(h.get_value(),revflag.get_value()>.5))
+        self.add(ground,old,curve,schematic_tag(),left,right)
+        self.at("same equilibrium")
+        self.play(FadeIn(counts), run_time=.4)
+        movers = VGroup(*[Dot(radius=.23,color=YELLOW) for _ in range(7)])
+        self.add(movers)
+        self.play(stream_animation(movers, run_time=2.25), run_time=2.25)
+        self.remove(movers)
+        noenz = VGroup(dashed_profile(4.2,RED).scale(.22), T("no enzyme: same end, later",28,RED)).arrange(DOWN,.1)
+        noenz.move_to([-4.55,2.55,0])
+        self.play(FadeIn(noenz), run_time=.4)
+        self.at("cannot push")
+        blocked = CurvedArrow([4.8, energy_y(4.8,1.8)+.25, 0],
+                              [-1.3, energy_y(-1.3,1.8)+.45, 0], angle=-.18,
+                              color=RED, stroke_width=11)
+        self.play(FadeOut(noenz), Create(blocked), Indicate(old,color=RED,scale_factor=1.01), run_time=2.15)
+        self.play(Uncreate(blocked), run_time=.6)
+        self.at("far valley is higher")
+        self.play(revflag.animate.set_value(1), run_time=1.15)
+        self.at("other way")
+        flows = VGroup(*[route_arrow(4.7-i*.3,-4.7+i*.3,GREEN,1.8,True)[0] for i in range(3)])
+        self.play(LaggedStart(*[Create(p) for p in flows],lag_ratio=.18), run_time=1.0)
+        self.finish()
+
+
+class S13How(SpokenScene):
+    def construct(self):
+        old_bg, low_bg, bg_tag = dashed_profile(4.2,RED), profile(1.8,TEAL,7), schematic_tag()
+        old_bg.set_stroke(opacity=.3); low_bg.set_stroke(opacity=.3); bg_tag.set_opacity(.3)
+        bg_ground = ground_fill(1.8, opacity=.08)
+        bg = VGroup(bg_ground, old_bg, low_bg, bg_tag)
+        self.add(bg)
+        self.at("protein lower the top")
+        c = cup([0,-.15,0],1.55)
+        label = T("active site",30,TEAL).move_to([0,2.75,0])
+        self.play(Create(c), FadeIn(label), old_bg.animate.set_stroke(opacity=.12),
+                  low_bg.animate.set_stroke(opacity=.12), bg_tag.animate.set_opacity(.12), run_time=.9)
+        self.at("better matches")
+        oval = ts_oval([0,.25,0],1.35)
+        gold = contacts([0,.25,0],8,1.35)
+        snug_c = c.copy().stretch(.9, 0)
+        self.play(FadeIn(oval), Transform(c, snug_c),
+                  LaggedStart(*[Create(x) for x in gold],lag_ratio=.13), run_time=3.75)
+        self.at("substrate more loosely")
+        ball = Circle(radius=.48,color=YELLOW,fill_color=YELLOW,fill_opacity=.35,stroke_width=5).move_to([0,.15,0])
+        two = VGroup(gold[1],gold[-2]).copy()
+        self.play(FadeOut(VGroup(oval,gold)),FadeIn(ball),FadeIn(two),run_time=.55)
+        self.play(ball.animate.shift(LEFT*.22),run_time=.25,rate_func=there_and_back)
+        self.at("transition state more snugly")
+        oval2 = ts_oval([0,.25,0],1.35)
+        gold2 = contacts([0,.25,0],8,1.35)
+        self.play(ReplacementTransform(ball,oval2),FadeOut(two),LaggedStart(*[FadeIn(x) for x in gold2],lag_ratio=.04),run_time=.75)
+        self.finish()
+
+
+class S14Grip(SpokenScene):
+    def construct(self):
+        c = breathing_grip(cup([-3.5,-.15,0],1.05))
+        oval = ts_oval([-3.5,.15,0],.92)
+        gold = contacts([-3.5,.15,0],8,.92)
+        self.add(c,oval,gold)
+        # Computed zoom of the same energy profile, not a hand-sketched curve.
+        zoom = ParametricFunction(
+            lambda x: np.array([3.5 + 1.1*x, .55*energy_y(x,1.8) - .45, 0]),
+            t_range=[-2.2,2.2,.02], color=TEAL, stroke_width=7,
+        )
+        self.add(zoom,schematic_tag())
+        self.at("extra grip")
+        sparks = VGroup(*[Dot(x.get_center(),radius=.07,color=GOLD) for x in gold[2:]])
+        self.play(LaggedStart(*[
+            s.animate(rate_func=smooth).move_to([2.9+(i%3)*.3,1.25-(i//3)*.28,0])
+            for i,s in enumerate(sparks)
+        ],lag_ratio=.14), zoom.animate.shift(DOWN*.28), run_time=3.85)
+        self.play(FadeOut(sparks), run_time=.35)
+        self.at("bound substrate")
+        base_y=-1.6; top_y=1.0
+        br=vbracket(4.55,base_y,top_y,YELLOW)
+        self.play(GrowFromCenter(br),run_time=.45)
+        short=vbracket(4.55,base_y,top_y-.5,YELLOW)
+        self.play(Transform(br,short), zoom.animate.shift(DOWN*.5), run_time=3.55, rate_func=smooth)
+        self.at("how many times tighter")
+        num=T("grip on transition state",34,PURPLE)
+        den=T("grip on substrate",34,YELLOW)
+        frac=VGroup(num,Line(LEFT*1.75,RIGHT*1.75,color=TEXT),den).arrange(DOWN,.12)
+        eq=T("= speed-up",36,TEAL)
+        formula=VGroup(frac,eq).arrange(RIGHT,.35).scale(.82).move_to([0,-2.7,0])
+        self.play(FadeIn(formula,shift=UP*.2),run_time=.6)
+        self.finish()
+
+
+class S15SameGrip(SpokenScene):
+    def construct(self):
+        c=breathing_grip(cup([-3.5,-.15,0],1.05))
+        ball=Circle(radius=.42,color=YELLOW,fill_color=YELLOW,fill_opacity=.3,stroke_width=5).move_to([-3.5,.1,0])
+        two=contacts([-3.5,.15,0],8,.92)
+        self.add(c,ball,two[1],two[-2])
+        base=Line([1.0,-1.15,0],[5.1,-1.15,0],color=YELLOW,stroke_width=6)
+        top=Line([1.0,1.25,0],[5.1,1.25,0],color=PURPLE,stroke_width=6)
+        br=vbracket(5.55,-1.15,1.25,YELLOW)
+        self.add(base,top,br,schematic_tag())
+        self.at("just as hard")
+        extra = VGroup(*[two[i] for i in [0,2,3,4,5,7]])
+        self.play(LaggedStart(*[FadeIn(x) for x in extra],lag_ratio=.09),run_time=.9)
+        self.play(LaggedStart(*[Indicate(x, color=GOLD, scale_factor=1.25) for x in extra],
+                              lag_ratio=.1), run_time=1.65)
+        self.at("Both would sink together")
+        self.play(base.animate.shift(DOWN*.65),top.animate.shift(DOWN*.65),br.animate.shift(DOWN*.65),run_time=1.65)
+        no=chip("no faster",RED,30).move_to([3.0,2.15,0])
+        self.play(FadeIn(no),run_time=.35)
+        self.at("stay the same")
+        self.play(FadeOut(VGroup(*[two[i] for i in [0,2,3,4,5,7]])),Indicate(br,color=YELLOW),run_time=.55)
+        self.finish()
+
+
+class S16Return(SpokenScene):
+    def construct(self):
+        old,low=dashed_profile(4.2,RED),profile(1.8,TEAL,7)
+        dots=VGroup(valley_dots(6),valley_dots(3,"right",GREEN,1.8))
+        pins=VGroup(pin(np.array([-5.2,energy_y(-5.2,1.8),0])),pin(np.array([5.2,energy_y(5.2,1.8),0])))
+        qs=question_chips()
+        self.add(ground_fill(1.8),old,low,dots,pins,schematic_tag())
+        self.at("valleys decide")
+        self.play(FadeIn(qs[0]),Flash([-5.2,energy_y(-5.2,1.8),0],color=YELLOW),Flash([5.2,energy_y(5.2,1.8),0],color=GREEN),run_time=.7)
+        self.at("ridge decides")
+        self.play(FadeIn(qs[1]),Indicate(low,color=TEAL,scale_factor=1.015),run_time=.65)
+        runners=VGroup(*[Dot(radius=.16,color=YELLOW) for _ in range(5)])
+        self.add(runners)
+        self.play(stream_animation(runners,run_time=3.95),run_time=3.95)
+        self.remove(runners)
+        self.at("gripping the top hardest")
+        pp=peak_point(1.8)
+        c=cup(pp+UP*.05,.36)
+        oval=ts_oval(pp+UP*.08,.32)
+        gold=contacts(pp+UP*.08,8,.32)
+        self.play(FadeIn(c),FadeIn(oval),LaggedStart(*[Create(x) for x in gold],lag_ratio=.04),run_time=.7)
+        tr,d=moving_dot(1.8)
+        self.add(d)
+        self.play(tr.animate.set_value(5.2),run_time=.95,rate_func=linear)
+        self.finish()
+
+
+class S17End(EndCard):
+    LINE = "An enzyme lowers the ridge. It never moves the valleys."
 
     def construct(self):
-        X0, X1, Y0 = -4.4, 4.4, -1.5
-        unc = Curve(X0, X1, Y0, 3.0, -0.8)
-        cat = Curve(X0, X1, Y0, 1.1, -0.8)
-
-        # ---- 1. energy landscape
-        tags = dots_row(0)
-        self.play(FadeIn(tags), run_time=0.8)
-        c_u, c_c = unc.mob(RED, 6), cat.mob(BLUE, 6)
-        pu, pc = unc.peak(), cat.peak()
-        sub = Dot(unc.pt(0), radius=0.16, color=YELLOW)
-        prod = Dot(unc.pt(1), radius=0.16, color=GREEN)
-        l_sub = T("substrate", 26, YELLOW).next_to(sub, UP, buff=0.2).shift(RIGHT * 0.3)
-        l_prod = T("product", 26, GREEN).next_to(prod, UP, buff=0.2)
-        ax_y = Arrow([-5.0, -2.75, 0], [-5.0, 2.5, 0], color=GREY, buff=0, stroke_width=4, tip_length=0.2)
-        ax_x = Arrow([-5.0, -2.75, 0], [5.4, -2.75, 0], color=GREY, buff=0, stroke_width=4, tip_length=0.2)
-        l_yax = T("Free energy, G", 26, GREY).rotate(PI / 2).move_to([-5.5, 0.0, 0])
-        l_xax = T("Reaction progress", 26, GREY).move_to([0.2, -3.15, 0])
-        l_unc = T("without enzyme", 26, RED).move_to([-3.2, 2.25, 0])
-        l_cat = T("with enzyme", 26, BLUE).move_to([-3.2, 1.7, 0])
-        ts_u = Dot(pu, radius=0.17, color=PURPLE)
-        ts_c = Dot(pc, radius=0.17, color=PURPLE)
-        self.play(Create(ax_y), Create(ax_x), FadeIn(l_yax), FadeIn(l_xax), run_time=1.0)
-        self.until("First,", 0.2)
-        self.play(FadeIn(sub), FadeIn(l_sub), FadeIn(prod), FadeIn(l_prod), Create(c_u), FadeIn(l_unc), run_time=1.6)
-        self.play(FadeIn(ts_u, scale=1.6), run_time=0.4)
-        self.until("releasing binding energy", 0.6)
-        self.play(Create(c_c), FadeIn(l_cat), run_time=1.0)
-        self.play(FadeIn(ts_c, scale=1.6), run_time=0.4)
-        bind = Arrow(pu + DOWN * 0.3, pc + UP * 0.28, color=GOLD, buff=0, stroke_width=8)
-        l_bind = T("binding energy released", 28, GOLD).move_to([pu[0] + 3.2, (pu[1] + pc[1]) / 2 + 0.45, 0])
-        l_at = T("at the transition state", 26, PURPLE).move_to([pu[0] + 3.2, (pu[1] + pc[1]) / 2 - 0.05, 0])
-        self.play(GrowArrow(bind), FadeIn(l_bind), run_time=1.0)
-        self.play(FadeIn(l_at), run_time=0.6)
-
-        # ---- 2. shape complementarity
-        self.until("Second,", 0.2)
-        stage1 = VGroup(c_u, c_c, sub, prod, l_sub, l_prod, ax_y, ax_x, l_yax, l_xax, l_unc, l_cat, ts_u, ts_c,
-                        bind, l_bind, l_at)
-        self.play(FadeOut(stage1), Transform(tags, dots_row(1)), run_time=0.9)
-        C = np.array([0.0, -0.2, 0.0])
-        ts_shape = blob(r_ts, 1.25, center=C)
-        ts_shape.set_fill(PURPLE, 0.85).set_stroke(PURPLE, 2)
-        outline = blob(r_ts, 1.25 * 1.17, center=C)
-        cup = make_cup(outline, 0.07, BLUE, 9)
-        sub_shape = blob(r_sub, 1.25, center=C).set_fill(YELLOW, 0.9).set_stroke(YELLOW, 2)
-        l_site = T("active site", 28, BLUE).move_to([C[0], C[1] - 2.45, 0])
-        self.play(Create(cup), FadeIn(l_site), run_time=1.2)
-        self.until("fits the transition state better", 0.3)
-        l_t = T("transition state", 28, PURPLE).move_to([-3.6, 1.5, 0])
-        snug = T("snug fit", 28, GREEN).move_to([3.8, 0.2, 0])
-        self.play(FadeIn(ts_shape, scale=0.4), FadeIn(l_t, shift=RIGHT * 0.1), FadeIn(snug), run_time=1.2)
-        self.until("than", 0.2)
-        l_s = T("ground-state substrate", 28, YELLOW).move_to([-3.6, 1.5, 0])
-        loose = T("loose fit", 28, GREY).move_to([3.8, 0.2, 0])
-        self.play(Transform(ts_shape, sub_shape), FadeOut(l_t), FadeOut(snug), run_time=0.9)
-        self.play(FadeIn(l_s, shift=RIGHT * 0.1), FadeIn(loose), run_time=0.6)
-        sub_shape = ts_shape
-
-        # ---- 3. the bookkeeping: extra transition-state grip lowers the barrier relative to substrate
-        self.until("Third,", 0.2)
-        self.play(FadeOut(VGroup(cup, sub_shape, l_s, loose, l_site)), Transform(tags, dots_row(2)), run_time=0.9)
-        base_y = -2.3
-        BWID = 1.4
-        hu, hb = 3.6, 2.3
-        hc = hu - hb
-        XU, XB = -1.6, 1.6
-        eq = VGroup(T("Barrier falls", 30, BLUE), T("by the", 30, TEXT), T("extra grip", 30, GOLD), T("on the", 30, TEXT), T("transition state", 30, PURPLE))
-        eq.arrange(RIGHT, buff=0.18)
-        fit(eq, max_w=11.5)
-        eq.move_to([0, 2.25, 0])
-        base = Line([-3.6, base_y, 0], [3.6, base_y, 0], color=GREY, stroke_width=3)
-        bar_low = Rectangle(width=BWID, height=hc, stroke_width=0, fill_color=RED, fill_opacity=0.9).move_to([XU, base_y + hc / 2, 0])
-        bar_top = Rectangle(width=BWID, height=hb, stroke_width=0, fill_color=RED, fill_opacity=0.9).move_to([XU, base_y + hc + hb / 2, 0])
-        n_u = T("uncatalyzed ΔG‡", 26, RED).next_to(bar_low, DOWN, buff=0.2)
-        self.until("barrier falls", 0.2)
-        self.play(FadeIn(eq[0], shift=DOWN * 0.1), run_time=0.6)
-        self.until("extra grip", 0.2)
-        self.play(FadeIn(eq[1]), FadeIn(eq[2], shift=DOWN * 0.1), Create(base),
-                  GrowFromEdge(VGroup(bar_low, bar_top), DOWN), FadeIn(n_u), run_time=1.1)
-        self.until("over", 0.2)
-        # the top slab is extra transition-state stabilization over substrate: it turns gold, then is carried away
-        self.play(FadeIn(eq[3]), FadeIn(eq[4], shift=DOWN * 0.1), bar_top.animate.set_fill(GOLD), run_time=0.8)
-        n_b = T("extra grip over\nsubstrate", 26, GOLD)
-        n_b.move_to([XB + BWID / 2 + 0.25 + n_b.width / 2, base_y + hc + hb / 2, 0])
-        n_c = T("catalyzed ΔG‡", 26, BLUE).next_to(bar_low, DOWN, buff=0.2)
-        self.play(bar_top.animate.move_to([XB, base_y + hc + hb / 2, 0]), FadeIn(n_b),
-                  bar_low.animate.set_fill(BLUE), ReplacementTransform(n_u, n_c), run_time=1.3)
-        self.play(Indicate(eq[0], color=BLUE, scale_factor=1.06), Indicate(bar_low, color=BLUE, scale_factor=1.08), run_time=0.9)
-
-        # ---- 4. the payoff in medicine
-        self.until("Fourth,", 0.2)
-        self.play(FadeOut(VGroup(eq, base, bar_low, bar_top, n_b, n_c)), Transform(tags, dots_row(3)), run_time=0.9)
-        # two rows: a transition-state analog drug (snug) and a substrate mimic (loose), with binding-strength bars
-        rows_y = [1.1, -1.3]
-        cups, items, lbls, bars = [], [], [], []
-        for k, (yy, col, name, rf, length) in enumerate([
-                (rows_y[0], PURPLE, "transition-state analog (drug)", r_ts, 6.2),
-                (rows_y[1], YELLOW, "substrate mimic", r_sub, 0.9)]):
-            c = np.array([-5.0, yy, 0.0])
-            outl = blob(r_ts, 0.6 * 1.17, center=c)
-            cups.append(make_cup(outl, 0.07, BLUE, 6))
-            sh = blob(rf, 0.6, center=c).set_fill(col, 0.9).set_stroke(col, 2)
-            items.append(sh)
-            lb = T(name, 28, col)
-            lb.move_to([-3.6 + lb.width / 2, yy + 0.65, 0])
-            lbls.append(lb)
-            bars.append(Rectangle(width=length, height=0.5, stroke_width=0, fill_color=col, fill_opacity=0.9)
-                        .move_to([-3.6 + length / 2, yy - 0.15, 0]))
-        l_ax = T("how tightly it binds the enzyme", 26, GREY).move_to([0.5, -2.75, 0])
-        self.until("drugs shaped", 0.2)
-        drug_home = items[0].get_center()
-        items[0].shift(UP * 1.5)
-        self.play(Create(cups[0]), FadeIn(items[0]), FadeIn(lbls[0]), run_time=1.0)
-        self.until("exploit that tight fit", 0.2)
-        self.play(items[0].animate.move_to(drug_home), run_time=0.8, rate_func=rate_functions.ease_in_quad)
-        self.play(Indicate(cups[0], color=BLUE, scale_factor=1.12), run_time=0.6)
-        self.until("binding far harder", 0.2)
-        self.play(GrowFromEdge(bars[0], LEFT), FadeIn(l_ax), run_time=1.1)
-        self.until("than substrate mimics", 0.3)
-        self.play(Create(cups[1]), FadeIn(items[1]), FadeIn(lbls[1]), GrowFromEdge(bars[1], LEFT), run_time=0.8)
-        far = T("far tighter", 30, PURPLE).move_to([4.6, rows_y[0] - 0.15, 0])
-        self.play(FadeIn(far), run_time=0.4)
-
-        # ---- the enzyme's job, in one line (the comparison stays up through "The enzyme's job, in one line:")
-        self.until("bind the transition state", 0.5)
-        self.play(FadeOut(VGroup(*cups, *items, *lbls, *bars, l_ax, far)), FadeOut(tags), run_time=0.6)
-        line = T("Bind the transition state\ntighter than the substrate.", 46, TEXT, font=TITLE_FONT,
-                 t2c={"transition state": PURPLE, "substrate": YELLOW}, line_spacing=0.9)
-        fit(line, max_w=11.5)
-        self.play(Write(line), run_time=1.6)
+        old, low = dashed_profile(4.2,RED), profile(1.8,TEAL,7)
+        old.set_stroke(opacity=.2); low.set_stroke(opacity=.2)
+        ld, rd, tag = valley_dots(5), valley_dots(3,"right",GREEN,1.8), schematic_tag()
+        ld.set_opacity(.2); rd.set_opacity(.2); tag.set_opacity(.2)
+        ground = ground_fill(1.8, opacity=.045)
+        living=VGroup(ground,old,low,ld,rd,tag)
+        self.add(living)
+        line=T(self.LINE,40,font=TITLE_FONT)
+        fit(line,11.6)
+        sub=T("biochemistrypedia.com",22,TEAL)
+        card=VGroup(line,sub).arrange(DOWN,.42)
+        self.play(FadeIn(line,shift=UP*.15),FadeIn(sub),run_time=.8)
         self.finish()
