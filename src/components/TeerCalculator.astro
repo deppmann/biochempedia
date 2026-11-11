@@ -16,7 +16,7 @@
   <div class="tc-controls">
     <label class="tc-check"><input type="checkbox" data-in="claudin" /> <span>Edit the claudin-2 monolayer (off: control)</span></label>
     <label class="tc-slabel"><span data-lab-reading>Control monolayer reading (ohm)</span>
-      <input type="number" data-in="reading" min="0" max="1000" step="1" value="250" inputmode="decimal" />
+      <input type="number" data-in="reading" min="0" max="5000" step="1" value="3000" inputmode="decimal" />
     </label>
     <label class="tc-slabel"><span>Blank insert reading (ohm)</span>
       <input type="number" data-in="blank" min="0" max="1000" step="1" value="120" inputmode="decimal" />
@@ -43,7 +43,7 @@
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GREY = '#8d8d99';
-  const CTRL_DEFAULT = 250, CLAUD_DEFAULT = 126;
+  const CTRL_DEFAULT = 3000, CLAUD_DEFAULT = 250;
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
@@ -170,7 +170,7 @@
       render();
     });
     readIn.addEventListener('input', () => {
-      const v = num(readIn, claudIn.checked ? claud : ctrl, 0, 1000);
+      const v = num(readIn, claudIn.checked ? claud : ctrl, 0, 5000);
       if (claudIn.checked) claud = v; else ctrl = v;
       render();
     });
