@@ -21,10 +21,15 @@ explainer:
   src: "/explainers/enzyme-kinetics/explainer.mp4"
   captions: "/explainers/enzyme-kinetics/explainer.vtt"
   poster: "/explainers/enzyme-kinetics/poster.jpg"
-  title: "Why enzymes hit a speed limit"
-  durationSec: 134.9
-  narration: "this lesson's narrated lecture slides, read by an AI narrator voice (Kokoro, af_heart)"
+  title: "Why doubling substrate stops doubling speed"
+  durationSec: 204.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In the simplest model, velocity equals kcat times the amount of busy enzyme."
+    - "More substrate adds speed only by filling empty enzymes."
+    - "Km is the substrate concentration at half Vmax, not automatically binding affinity."
+    - "Vmax equals kcat times total enzyme concentration in the simplest model."
 scientists:
   - name: "Emil Fischer"
     dates: "1852–1919"
@@ -484,11 +489,11 @@ import EquationCard from '../../../components/EquationCard.astro';
 import InhibitionExplorer from '../../../components/InhibitionExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Give an enzyme 12 mM substrate and it makes 45 µmol of product a minute. Double the substrate to 24 mM. Does it now make 90?**
+The film above follows an enzyme from 12 to 24 mM substrate and shows why velocity rises far less than twofold. Here we derive that curve, then extend it to assays, kcat/Km, reciprocal plots and inhibitors.
 
-It does not; by mid-lesson you can work out what it does make. At any instant, each enzyme molecule is either **empty**, waiting for substrate, or **busy**, holding one substrate molecule. Only busy enzymes make product, and each works at its own fixed pace, its **turnover number, kcat**: how many substrate molecules one busy enzyme converts per second.
+At any instant each enzyme is **empty** or **busy** (holding one substrate), and only busy ones make product, each at its fixed **turnover number, kcat**: substrate molecules one busy enzyme converts per second.
 
-> **The one idea to carry through this lesson.** An enzyme's velocity is how fast one busy enzyme works times how much of the enzyme is busy: in the simplest scheme, v = kcat × [ES]. The busy fraction works out to [S]/(Km + [S]). Saturation is that fraction climbing toward 1; Vmax is every enzyme busy; Km is the substrate concentration at which half the enzyme is busy. An inhibitor pulls enzyme out of the working pool, and *which* pool it pulls from (free enzyme, busy enzyme, or both) decides how the curve changes.
+For inhibitors, the key extension is which pool they remove: free enzyme, busy enzyme or both.
 
 ## Measuring the reaction: the assay and V₀
 
@@ -519,7 +524,7 @@ The velocity you measured is v = kcat × [ES], so the shape of the curve comes d
 - **Out, no product:** the substrate falls back off, at k₋₁[ES].
 - **Out, with product:** the enzyme converts it and lets the product go, at k₂[ES], and is empty again. In this simple scheme k₂ is kcat.
 
-Adding substrate speeds up the way in but does nothing to the ways out. That is why velocity levels off: once nearly every enzyme is busy (**saturated**), no empty ones are left to fill.
+The film above shows the consequence: as empty enzyme becomes scarce and nearly every enzyme is busy (**saturated**), added substrate produces diminishing returns. Mechanistically, substrate speeds only the way in; it does nothing to either way out.
 
 <LessonFigure src="/figures/enzyme-kinetics/enzyme-busy-cycle.webp" width={1200} height={800} alt="AI-generated illustration: an empty enzyme binds a substrate to become busy; the busy enzyme either lets the substrate fall back off or converts it and releases product, becoming empty again. An inset shows rows of ten enzymes: one busy with little substrate, five busy at a substrate concentration equal to Km, and nine busy at nine times Km." caption="Every enzyme is empty or busy, and only busy ones make product. Substrate opens the one way in; falling off and turnover are the two ways out. Velocity is kcat times the number busy, so it saturates as the busy fraction, [S]/(Km + [S]), approaches 1: half busy at Km, 90% busy only at 9 Km." />
 
@@ -554,7 +559,7 @@ Its scope: one substrate, far more substrate than enzyme (so free [S] is about t
   </Fragment>
 </EquationCard>
 
-**Try the plotter at the top of this section:** slide Km and Vmax and watch the half-max point. (The film calls Km the curve's midpoint: it is the [S] at half of Vmax, the midpoint of the velocity range, not the middle of the [S] axis.)
+**Try the plotter at the top of this section:** slide Km and Vmax and watch the half-max point. (The film marks Km as the half-speed point: it is the [S] at half of Vmax, the midpoint of the velocity range, not the middle of the [S] axis.)
 
 **Predict.** What substrate concentration puts 90% of the enzyme to work?
 
@@ -565,7 +570,7 @@ Nine times Km: set [S]/(Km + [S]) = 0.9 and solve. Nine times the half-busy subs
 
 </details>
 
-If you like the film's toll booth, give it **no waiting lane**: a car that finds the booth busy drives on. Substrate does the same; it bounces off and diffuses away, never queuing. A booth with a queue would rise in a straight line to capacity and stop at a sharp corner. Without one, the curve bends gradually toward the booth's ceiling, **Vmax**.
+The film's no-waiting-lane toll plaza shows why the approach to **Vmax** is gradual: real substrate that finds busy enzyme bounces off and diffuses away. A booth with a queue would instead rise linearly to capacity and stop at a sharp corner.
 
 ### Km is the half-busy point, not the affinity
 
@@ -594,9 +599,9 @@ kcat is only top speed. When substrate is scarce, almost every enzyme is empty, 
 
 > v ≈ (kcat/Km) × [E]ₜ × [S]
 
-So **kcat/Km** is the rate constant for an encounter that ends in product, in M⁻¹s⁻¹. It cannot exceed how often enzyme and substrate collide in water, the diffusion limit, typically about 10⁸–10⁹ M⁻¹s⁻¹; enzymes that come close, where nearly every encounter is productive, are called "kinetically perfect". The film calls kcat/Km "catalytic efficiency"; more precisely it is the specificity constant, which sets an enzyme's preference among competing substrates. It is safest for comparing substrates of one enzyme: ranking different enzymes by it can mislead, because it describes only the low-substrate regime.
+So **kcat/Km** is the rate constant for an encounter that ends in product, in M⁻¹s⁻¹. It cannot exceed how often enzyme and substrate collide in water, the diffusion limit, typically about 10⁸–10⁹ M⁻¹s⁻¹; enzymes that come close, where nearly every encounter is productive, are called "kinetically perfect". This ratio is often called "catalytic efficiency"; more precisely it is the specificity constant, which sets an enzyme's preference among competing substrates. It is safest for comparing substrates of one enzyme: ranking different enzymes by it can mislead, because it describes only the low-substrate regime.
 
-The film notes that in *E. coli*, most measured substrate levels exceed the Km of the enzyme that uses them. Above Km means more than half busy, not flat out: at 3 Km an enzyme runs at three-quarters of Vmax and still tracks changes in substrate. Regulation, covered in other lessons, also sets its pace.
+In *E. coli*, most measured substrate levels exceed the Km of the enzyme that uses them. Above Km means more than half busy, not flat out: at 3 Km an enzyme runs at three-quarters of Vmax and still tracks changes in substrate. Regulation, covered in other lessons, also sets its pace.
 
 ## Reading the curve a second way: Lineweaver–Burk
 
