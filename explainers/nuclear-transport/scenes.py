@@ -134,7 +134,7 @@ def receptor(text, pos, color=BLUE, side=LEFT, scale=1.0):
 
 def ran(pos, gtp=True, scale=1.0, text=True):
     col = GREEN if gtp else GREY
-    radius = 0.38 / scale if text else 0.27
+    radius = 0.47 / scale if text else 0.27
     dot = Circle(radius=radius, stroke_color=col, stroke_width=3,
                  fill_color=col, fill_opacity=0.82)
     pos = [pos[0], pos[1], 0] if len(pos) == 2 else pos
@@ -160,7 +160,7 @@ def ran_field(scene, equal=False, labelled=True):
     g = VGroup(ng, cg)
     g.nuclear, g.cytoplasmic = ng, cg
     if labelled:
-        l1 = label("RanGTP high", [4.55, 2.95, 0], GREEN, 28, BOLD)
+        l1 = label("RanGTP high", [3.0, 2.95, 0], GREEN, 28, BOLD)
         l2 = label("RanGTP equal" if equal else "RanGDP high", [-4.35, 2.95, 0],
                    GREEN if equal else GREY, 28, BOLD)
         g.add(l1, l2)
@@ -300,8 +300,8 @@ class S04Gradient(SpokenScene):
     def construct(self):
         w = world(self)
         self.add(w)
-        switch = VGroup(ran([-0.65, 0, 0], False, 1.2), DoubleArrow([-0.15, 0, 0], [0.95, 0, 0],
-                        buff=0, color=TEAL, stroke_width=4, tip_length=0.18), ran([1.45, 0, 0], True, 1.2))
+        switch = VGroup(ran([-2.0, 0, 0], False, 1.2), DoubleArrow([-1.05, 0, 0], [1.05, 0, 0],
+                        buff=0, color=TEAL, stroke_width=4, tip_length=0.18), ran([2.0, 0, 0], True, 1.2))
         self.at("difference between")
         self.play(FadeIn(switch), run_time=0.7)
         self.at("small switch protein")
@@ -310,8 +310,8 @@ class S04Gradient(SpokenScene):
         self.play(switch.animate.shift(UP * 0.32), run_time=0.65)
         self.play(switch.animate.shift(DOWN * 0.32), run_time=0.65)
         self.at("on with")
-        on = label("ON", [2.25, 0, 0], GREEN, 30, BOLD)
-        off = label("OFF", [-1.55, 0, 0], GREY, 30, BOLD)
+        on = label("ON", [3.45, 0, 0], GREEN, 30, BOLD)
+        off = label("OFF", [-3.45, 0, 0], GREY, 30, BOLD)
         self.play(FadeIn(on), FadeIn(off), run_time=0.5)
         self.play(FadeOut(VGroup(switch, on, off)), run_time=0.35)
         field = ran_field(self, equal=False)
@@ -326,7 +326,7 @@ class S04Gradient(SpokenScene):
         self.at("Gray RAN")
         self.play(FadeIn(field.cytoplasmic), FadeIn(gap), run_time=0.9)
         turn = ran([-3.45, -0.05, 0], True, 0.92)
-        self.play(turn.animate.move_to(gap.get_right() + RIGHT * 0.35), run_time=0.55)
+        self.play(turn.animate.move_to(gap.get_right() + RIGHT * 0.7), run_time=0.55)
         off_turn = ran(turn.get_center(), False, 0.92)
         self.play(ReplacementTransform(turn, off_turn), off_turn.animate.shift(DOWN * 0.65), run_time=0.55)
         self.at("unequal distribution")
@@ -334,7 +334,7 @@ class S04Gradient(SpokenScene):
         grad_bg = RoundedRectangle(corner_radius=0.10, width=grad_text.width + 0.34,
                                    height=grad_text.height + 0.16, stroke_width=0,
                                    fill_color=BG, fill_opacity=0.94)
-        grad = VGroup(grad_bg, grad_text.move_to(grad_bg)).move_to([0, 2.72, 0])
+        grad = VGroup(grad_bg, grad_text.move_to(grad_bg)).move_to([0, -3.0, 0])
         grad.set_z_index(10)
         self.play(FadeOut(VGroup(rcc, gap, green, off_turn)), FadeIn(field[2:]), FadeIn(grad), run_time=0.7)
         self.finish()
@@ -481,7 +481,7 @@ class S10SameRule(SpokenScene):
                      receptor("importin", [-3.9, 0.85, 0], BLUE, side=LEFT, scale=0.56))
         exp = VGroup(cargo([4.8, -0.85, 0], "NES", ORANGE, 0.64),
                      receptor("CRM1", [3.75, -0.85, 0], PURPLE, side=RIGHT, scale=0.61),
-                     ran([4.25, -1.75, 0], True, 0.68))
+                     ran([5.4, -1.75, 0], True, 0.68))
         self.at("Blue importance carry")
         self.play(FadeIn(imp), run_time=0.35)
         self.play(MoveAlongPath(imp, ArcBetweenPoints([-4.35, 0.85, 0], [4.15, 0.85, 0], angle=-0.15)),
@@ -529,15 +529,18 @@ class S11EnergyScope(SpokenScene):
         self.at("no direction of its own")
         self.play(Create(two), FadeOut(imp_c), run_time=0.65)
         rna = VGroup(RoundedRectangle(corner_radius=0.12, width=1.45, height=0.72,
+                                      stroke_width=0, fill_color=BG, fill_opacity=1),
+                     RoundedRectangle(corner_radius=0.12, width=1.45, height=0.72,
                                       stroke_color=GREY, stroke_width=3, fill_color=GREY,
                                       fill_opacity=0.45), T("RNA", size=28, color=TEXT, weight=BOLD))
-        rna[1].move_to(rna[0])
+        rna[2].move_to(rna[1])
         rna.move_to([4.4, -1.25, 0])
+        rna.set_z_index(6)
         other_text = label("another receptor", ORIGIN, TEXT, 28)
         other_bg = RoundedRectangle(corner_radius=0.08, width=other_text.width + 0.24,
                                     height=other_text.height + 0.14, stroke_width=0,
                                     fill_color=NUC_TINT, fill_opacity=0.98)
-        other = VGroup(other_bg, other_text.move_to(other_bg)).move_to([3.9, -2.72, 0])
+        other = VGroup(other_bg, other_text.move_to(other_bg)).move_to([4.4, -0.45, 0])
         path = DashedVMobject(Arrow([3.55, -1.25, 0], [-3.55, -1.25, 0], buff=0,
                                      color=GREY, stroke_width=3, tip_length=0.2), num_dashes=18)
         self.at("Most messenger")
@@ -548,20 +551,3 @@ class S11EnergyScope(SpokenScene):
 
 class S12End(EndCard):
     LINE = "Ran mainly sets where cargo loads and unloads."
-
-    def construct(self):
-        w = world(self)
-        field = ran_field(self, equal=False, labelled=False)
-        veil = Rectangle(width=13.5, height=7.1, stroke_width=0, fill_color=BG, fill_opacity=0.48)
-        line = T("IN RAN-DEPENDENT TRANSPORT,", size=34, color=TEXT, font=TITLE_FONT)
-        rule = T("RAN MAINLY SETS LOADING AND UNLOADING.", size=42, color=GREEN,
-                 font=TITLE_FONT, weight=BOLD)
-        fit(rule, max_w=11.8)
-        card = VGroup(line, rule).arrange(DOWN, buff=0.34)
-        panel = RoundedRectangle(corner_radius=0.18, width=card.width + 0.65,
-                                 height=card.height + 0.55, stroke_width=0,
-                                 fill_color=BG, fill_opacity=0.93).move_to(card)
-        self.add(w, field, veil)
-        self.play(FadeIn(panel), FadeIn(card, shift=UP * 0.18), run_time=0.55)
-        self.wait(2.45)
-        self.play(card.animate.scale(1.025), run_time=0.5)

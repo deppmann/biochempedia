@@ -133,7 +133,7 @@ def pool_panel(center_x, title_text, arrival_text, lc3=True):
     arrival = Arrow(p(center_x - 2.45, -0.2), p(center_x - 1.55, -0.2), buff=0,
                     color=BLUE, stroke_width=8 if "fast" in arrival_text else 4,
                     max_tip_length_to_length_ratio=0.22)
-    arrival_label = label(arrival_text, 28, BLUE).move_to(p(center_x - 1.95, 1.5))
+    arrival_label = label(arrival_text, 28, BLUE).move_to(p(center_x - 1.6, 1.5))
     ly = Circle(radius=0.72, color=ORANGE, stroke_width=4,
                 fill_color=ORANGE, fill_opacity=0.1).move_to(p(center_x + 1.78, -0.2))
     exit_arrow = Arrow(p(center_x + 0.95, -0.2), p(center_x + 1.25, -0.2), buff=0,
@@ -267,27 +267,27 @@ class S03ErRoute(SpokenScene):
         lumen = RoundedRectangle(width=11.7, height=4.2, corner_radius=0.45,
                                  stroke_color=GREY, stroke_width=5,
                                  fill_color=GREY, fill_opacity=0.18).move_to(p(0, 0.65))
-        er_lab = label("ER lumen", 34, GREY).move_to(p(-4.75, 2.15))
+        er_lab = label("ER lumen", 34, GREY).move_to(p(-4.2, 2.15))
         cyt_lab = label("cytosol", 30, GREY).move_to(p(-4.9, -2.35))
         client = VMobject(color=GREY, stroke_width=7).set_points_smoothly([
             p(-2.7, 0.8), p(-2.1, 1.4), p(-1.6, 0.2), p(-0.9, 1.25), p(-0.25, 0.55)
         ])
         client_lab = label("client", 28, GREY).next_to(client, UP, buff=0.25)
-        helpers = VGroup(chip("helper", TEAL, 28), chip("helper", TEAL, 28)).arrange(RIGHT, buff=2.4).move_to(p(-1.45, -0.25))
+        helpers = VGroup(chip("helper", TEAL, 28), chip("helper", TEAL, 28)).arrange(RIGHT, buff=2.4).move_to(p(-1.45, -0.8))
         self.at("endoplasmic reticulum")
         self.play(Create(lumen), FadeIn(er_lab), FadeIn(cyt_lab), run_time=0.9)
         self.play(Create(client), FadeIn(client_lab), run_time=0.65)
         self.at("uses helpers to retry")
-        retry_sweep = Dot(p(-5.1, -1.0), radius=0.13, color=TEAL).set_opacity(0.8)
+        retry_sweep = Dot(p(-5.1, -1.27), radius=0.13, color=TEAL).set_opacity(0.8)
         def retry_flow(m, dt):
             m.shift(RIGHT * 4.0 * dt)
             if m.get_x() > 5.1:
-                m.move_to(p(-5.1, -1.0))
+                m.move_to(p(-5.1, -1.27))
         retry_sweep.add_updater(retry_flow)
         self.add(retry_sweep)
         self.play(FadeIn(helpers, shift=UP * 0.25), run_time=0.5)
         self.play(helpers.animate.arrange(RIGHT, buff=0.25).move_to(client), run_time=0.7)
-        self.play(helpers.animate.arrange(RIGHT, buff=2.4).move_to(p(-1.45, -0.25)), run_time=0.55)
+        self.play(helpers.animate.arrange(RIGHT, buff=2.4).move_to(p(-1.45, -0.8)), run_time=0.55)
         loop = CurvedArrow(p(1.2, 1.45), p(-3.7, 1.3), radius=-2.7,
                            color=TEAL, stroke_width=4)
         self.play(VGroup(client, client_lab).animate.shift(RIGHT * 2.25), Create(loop), run_time=0.7)
@@ -334,14 +334,14 @@ class S03ErRoute(SpokenScene):
 class S04LysosomeRoute(SpokenScene):
     def construct(self):
         cell = cell_outline()
-        machine = proteasome(p(4.75, 2.1), 0.9)
+        machine = proteasome(p(4.75, 1.7), 0.9)
         mito = mitochondrion(p(-3.5, 0), 2.65, 1.4, with_label=True)
         self.at("damaged mitochondrion")
         self.play(Create(cell), FadeIn(machine), FadeIn(mito), run_time=0.85)
         self.at("cannot enter")
-        self.play(mito.animate.move_to(p(3.0, 1.7)), run_time=0.85)
+        self.play(mito.animate.move_to(p(2.7, 1.7)), run_time=0.85)
         self.play(mito.animate.shift(LEFT * 0.65), Wiggle(machine, scale_value=1.03), run_time=0.65)
-        narrow = label("too wide", 30, RED).move_to(p(0.15, 1.7))
+        narrow = label("too wide", 30, RED).move_to(p(-0.5, 1.7))
         self.play(FadeIn(narrow), run_time=0.35)
         self.at("different physical solution")
         mito_label = mito[-1]
@@ -445,8 +445,8 @@ class S05Starvation(SpokenScene):
                   run_time=0.8)
         normal = yeast(p(3.1, 0.4), True)
         defective = yeast(p(5.0, 0.4), False)
-        labs = VGroup(label("autophagy", 28, BLUE).move_to(p(3.1, -0.95)),
-                      label("defective", 28, RED).move_to(p(5.0, -0.95)))
+        labs = VGroup(label("autophagy", 28, BLUE).move_to(p(2.85, -0.95)),
+                      label("defective", 28, RED).move_to(p(5.25, -0.95)))
         self.play(FadeIn(normal), FadeIn(defective), FadeIn(labs), run_time=0.75)
         self.at("lose viability faster")
         self.play(defective.animate.set_opacity(0.25).shift(DOWN * 0.35),
@@ -496,7 +496,7 @@ class S06Rule(SpokenScene):
         self.at("over the interval")
         self.play(FadeOut(flow_in), Indicate(arr, color=BLUE), Indicate(clr, color=ORANGE), run_time=0.75)
         level = ValueTracker(0.52)
-        gauge_mob = gauge(5.65, level, "pool", BLUE, height=1.65, center_y=-2.0)
+        gauge_mob = gauge(4.95, level, "pool", BLUE, height=1.4, center_y=-2.05)
         moving_in = carrier(p(-5.2, -0.25), 0.25)
         moving_out = pool[-1].copy()
         self.at("Matching rates")
@@ -512,7 +512,7 @@ class S06Rule(SpokenScene):
         extra = VGroup(carrier(p(-5.0, 0.1), 0.24), carrier(p(-5.0, -0.6), 0.24))
         self.play(Transform(arr, thick_arr), FadeIn(extra), run_time=0.45)
         self.play(extra.animate.move_to(p(-1.1, -0.25)), level.animate.set_value(0.9), run_time=1.0)
-        high_mark = DashedLine(p(4.95, -1.35), p(6.35, -1.35), color=YELLOW, dash_length=0.12)
+        high_mark = DashedLine(p(4.2, -1.55), p(5.7, -1.55), color=YELLOW, dash_length=0.12)
         self.play(FadeIn(high_mark), run_time=0.35)
         self.at("Slower clearance")
         arrival_stream.speed = 3.2
@@ -654,7 +654,7 @@ class S09Reveal(SpokenScene):
         self.play(baf[0].animate.scale(1.12), baf[1].animate.scale(1.12), run_time=0.55)
         self.play(baf[0].animate.scale(1 / 1.12), baf[1].animate.scale(1 / 1.12), run_time=0.55)
         self.at("formation unchanged")
-        condition = chip("formation unchanged", BLUE, 28).scale(0.80).move_to(p(0, 3.50))
+        condition = chip("formation unchanged", BLUE, 28).scale(0.72).move_to(p(0, 3.62))
         continuing = VGroup(*[
             carrier(p(x, 0.1), 0.22) for x in (-5.5, -4.9, 4.9, 5.5)
         ])
@@ -742,19 +742,3 @@ class S10Return(SpokenScene):
 
 class S11End(EndCard):
     LINE = "Follow the flow, not the pile."
-
-    def construct(self):
-        outline = cell_outline(opacity=0).set_stroke(GREY, width=3, opacity=0.28)
-        arrival = Arrow(p(-5.7, -2.25), p(-1.0, -2.25), buff=0,
-                        color=BLUE, stroke_width=6).set_opacity(0.45)
-        clearance = Arrow(p(1.0, -2.25), p(5.7, -2.25), buff=0,
-                          color=ORANGE, stroke_width=6).set_opacity(0.45)
-        line = T(self.LINE, size=48, font=TITLE_FONT, color=TEXT)
-        fit(line, max_w=11.5)
-        self.add(outline, arrival, clearance)
-        self.play(FadeIn(line, shift=UP * 0.15),
-                  arrival.animate.set_opacity(0.9), clearance.animate.set_opacity(0.9),
-                  run_time=1.0)
-        self.play(Indicate(arrival, color=BLUE, scale_factor=1.02),
-                  Indicate(clearance, color=ORANGE, scale_factor=1.02), run_time=1.4)
-        self.finish()

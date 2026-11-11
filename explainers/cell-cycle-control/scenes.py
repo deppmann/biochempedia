@@ -17,6 +17,25 @@ def label(s, p, color=TEXT, size=30, width=12.5):
     return fit(T(s, size=size, color=color), max_w=width).move_to(p)
 
 
+def chip(text, color=BLUE, size=26, pad=.12):
+    lab = T(text, size=size, color=color)
+    box = RoundedRectangle(corner_radius=.12, width=lab.width+2*pad, height=lab.height+2*pad,
+        stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=.18)
+    back = box.copy().set_fill(BG, 1).set_stroke(width=0)
+    g = VGroup(back, box, lab.move_to(box))
+    g.set_z_index(6)
+    return g
+
+
+def tag(s, p, color, size=28):
+    lab = label(s, p, color, size=size)
+    back = Rectangle(width=lab.width+.16, height=lab.height+.14, stroke_width=0,
+        fill_color=BG, fill_opacity=1).move_to(lab)
+    g = VGroup(back, lab)
+    g.set_z_index(5)
+    return g
+
+
 def protein(cyclin=True, active=False, badge=False, name=False):
     body = RoundedRectangle(width=1.05, height=.62, corner_radius=.17,
         stroke_color=GREEN if active else BLUE, stroke_width=5,
@@ -77,7 +96,7 @@ class World(SpokenScene):
         self.cell.add_updater(lambda m: m.become(base.copy().scale(1+.018*np.sin(self.clock.get_value()*.85))))
         self.nuc=Circle(radius=1.15,color=GREY,stroke_width=3,fill_opacity=.04).move_to(C+UP*.35)
         self.cellname=label(cellname,[-3.25,2.64,0],width=6.1)
-        self.phase=label(phase,[-5.6,2.08,0],GREEN)
+        self.phase=label(phase,[-6.2,2.08,0],GREEN)
         self.head=label(question,[0,3.35,0],size=37)
         self.axes=VGroup(Line([X0,Y0,0],[X1+.15,Y0,0],color=GREY),
                          Line([X0,Y0,0],[X0,Y1,0],color=GREY),
@@ -120,7 +139,10 @@ class World(SpokenScene):
         if anims: self.play(*anims,run_time=d)
 
     def heading(self,s,color=TEXT):
-        return Transform(self.head,label(s,[0,3.35,0],color,size=37))
+        new=label(s,[0,3.35,0],color,size=37)
+        old=self.head;self.head=new
+        if not old.has_points() and not old.submobjects: return FadeIn(new)
+        return FadeTransform(old,new)
 
     def caption(self,s,color=TEXT):
         # Below the record, clear of axis and cell. Explicit line breaks keep size >=28.
@@ -133,7 +155,10 @@ class World(SpokenScene):
         return FadeTransform(old,target)
 
     def phase_to(self,s):
-        return Transform(self.phase,label(s,[-5.6,2.08,0],GREEN))
+        new=label(s,[-6.2,2.08,0],GREEN)
+        old=self.phase;self.phase=new
+        if not old.has_points() and not old.submobjects: return FadeIn(new)
+        return FadeTransform(old,new)
 
     def trace_to_scrubber(self,points):
         # A rising record is drawn only as the scrubber reaches each moment.
@@ -189,8 +214,8 @@ class World(SpokenScene):
     def license_bands(self):
         self.bands=VGroup(DashedLine([X0,Y0+.4,0],[X1,Y0+.4,0],color=TEAL),
             DashedLine([X0,Y0+1.45,0],[X1,Y0+1.45,0],color=TEAL),
-            label("license",[5.25,Y0+.67,0],TEAL,size=28),
-            label("fire",[5.55,Y0+1.72,0],TEAL,size=28))
+            tag("license",[5.25,Y0+.4,0],TEAL),
+            tag("fire",[5.5,Y0+1.45,0],TEAL))
         self.add(self.bands)
 
     def fire(self):
@@ -266,7 +291,7 @@ class S03Engine(World):
         cap=cyclin().move_to([-3.2,.7,0]);self.add(cap)
         self.cue("needed to switch it on",cap.animate.move_to(self.pairs[1].get_center()+UP*.43),d=.8)
         self.play(self.pairs[1][0].animate.set_stroke(GREEN,width=6),self.pos.animate.set_value(.6),run_time=.8)
-        self.cue("from yeast to human",Transform(self.cellname,label("any eukaryotic cell",[-3.25,2.64,0],width=6.1)))
+        self.cue("from yeast to human",FadeTransform(self.cellname,label("any eukaryotic cell",[-3.25,2.64,0],width=6.1)))
         self.finish()
 
 
@@ -303,7 +328,7 @@ class S06Think(World):
 class S07Brake(World):
     def construct(self):
         self.world(paired=True,chart="low",phase="G2")
-        self.wee=chip("Wee1",PURPLE,size=30).move_to([-3.25,1.2,0])
+        self.wee=chip("Wee1",PURPLE).move_to([-3.25,1.65,0])
         self.cue("a pair can be built",self.heading("Built, but held off"))
         self.cue("the mitotic pair",self.caption("CDK1 + cyclin B"))
         self.cue("adds an inhibitory phosphate",FadeIn(self.wee),self.caption("Inhibitory phosphate",GOLD))
@@ -318,13 +343,13 @@ class S07Brake(World):
 class S08Release(World):
     def construct(self):
         self.world(paired=True,badges=True,chart="low",phase="G2")
-        wee=chip("Wee1",PURPLE,size=30).move_to([-4.5,1.2,0])
-        cdc=chip("Cdc25",PURPLE,size=30).move_to([-2,1.2,0]);self.add(wee)
+        wee=chip("Wee1",PURPLE).move_to([-4.05,1.65,0])
+        cdc=chip("Cdc25",PURPLE).move_to([-2.65,1.65,0]);self.add(wee)
         self.cue("a phosphatase",FadeIn(cdc),self.heading("Release becomes a cascade"))
         self.pairs[0].clear_updaters()
         self.cue("takes the phosphate off",self.pairs[0][-1].animate.shift(UP*.7).set_opacity(0),self.pairs[0][0].animate.set_stroke(GREEN,width=6))
-        a=Arrow([-4,-.5,0],[-2.2,.7,0],color=GREEN,buff=.1)
-        b=VGroup(Line([-3.8,-.5,0],[-4.4,.65,0],color=GREEN),Line([-4.65,.65,0],[-4.15,.65,0],color=GREEN))
+        a=Arrow([-3.9,-.5,0],[-2.7,1.3,0],color=GREEN,buff=.1)
+        b=VGroup(Line([-3.9,-.5,0],[-4.1,1.2,0],color=GREEN),Line([-4.35,1.2,0],[-3.85,1.2,0],color=GREEN))
         self.cue("it boosts",GrowArrow(a),Indicate(cdc,color=GREEN))
         self.cue("and slows",Create(b),wee.animate.set_opacity(.32))
         self.cue("each active pair",FadeOut(a),FadeOut(b))
@@ -339,11 +364,11 @@ class S09Checkpoint(World):
         self.cue("checkpoints pull",self.phase_to("G2"),*self.set_pairs(badges=True),Transform(self.g,trace(LOW,GREEN)),Transform(self.o,trace(RAMP,ORANGE)),self.pos.animate.set_value(.65),self.heading("A checkpoint holds the brake"))
         self.dna_setup()
         damage=VGroup(Line([-3.4,-.05,0],[-3.15,.25,0],color=RED,stroke_width=6),Line([-3.4,.25,0],[-3.15,-.05,0],color=RED,stroke_width=6))
-        cdc=chip("Cdc25",PURPLE,size=30).move_to([-1.9,1.4,0])
-        sensor=label("sensor kinases",[-3.7,.85,0],RED,size=28)
-        bar=VGroup(Line([-3,.8,0],[-2.15,1.05,0],color=RED,stroke_width=4),Line([-2.2,.85,0],[-2.1,1.25,0],color=RED,stroke_width=4))
+        cdc=chip("Cdc25",PURPLE).move_to([-2.65,1.65,0])
+        sensor=label("sensor kinases",[-3.25,2.64,0],RED,size=28)
+        bar=VGroup(Line([-2.65,2.35,0],[-2.65,2.05,0],color=RED,stroke_width=4),Line([-2.95,2.05,0],[-2.35,2.05,0],color=RED,stroke_width=4))
         self.cue("dna is damaged",FadeIn(damage),FadeIn(cdc))
-        self.cue("sensor kinases",FadeIn(sensor),Create(bar),cdc.animate.set_color(GREY))
+        self.cue("sensor kinases",FadeIn(sensor),Create(bar),cdc[1].animate.set_color(GREY),cdc[2].animate.set_color(GREY))
         self.cue("the cell waits",self.caption("wait",GOLD))
         self.play(FadeOut(damage),FadeOut(sensor),FadeOut(bar),self.pos.animate.set_value(.69),run_time=.8)
         self.finish()
@@ -374,9 +399,9 @@ class Spindle(World):
         self.spindle=VGroup(*[Line([x,.35,0],[cx,.35,0],color=GREY,stroke_width=2)
             for x,cx in [(-5.2,-3.9),(-1.3,-2.6)]])
         self.coh=VGroup(*[Circle(radius=.22,color=GREY,stroke_width=4).move_to([x,.35,0]) for x in [-3.9,-2.6]])
-        self.sec=chip("securin",PINK,size=28).move_to([-3.5,1.45,0])
-        self.apc=chip("APC",RED,size=30).move_to([-1.6,.65,0])
-        self.tether=Line([-1.6,1.05,0],[-1.6,1.9,0],color=TEXT,stroke_width=3)
+        self.sec=chip("securin",PINK).move_to([-4.0,1.55,0])
+        self.apc=chip("APC",RED).move_to([-2.5,1.55,0])
+        self.tether=Line([-2.5,1.88,0],[-2.5,2.2,0],color=TEXT,stroke_width=3)
         self.add(self.spindle,self.coh,self.sec,self.apc,self.tether)
 
 
@@ -431,7 +456,7 @@ class S14Predict(World):
     def construct(self):
         self.world(paired=True)
         self.cell.clear_updaters();self.halo.clear_updaters()
-        self.cue("frog egg extracts",Transform(self.cell,tube()),FadeOut(self.halo),Transform(self.cellname,label("frog egg extract",[-3.25,2.64,0],width=6.1)))
+        self.cue("frog egg extracts",Transform(self.cell,tube()),FadeOut(self.halo),FadeTransform(self.cellname,label("frog egg extract",[-3.25,2.64,0],width=6.1)))
         self.cue("cycle in a tube",self.pos.animate.set_value(.95),d=1)
         lock=VGroup(RoundedRectangle(width=.5,height=.4,corner_radius=.07,color=ORANGE,fill_opacity=.3),Arc(radius=.18,start_angle=0,angle=PI,color=ORANGE).shift(UP*.2)).move_to([-3.2,.8,0])
         lock.add(cyclin().move_to(lock.get_center()+DOWN*.5))
@@ -457,9 +482,9 @@ class S16Answer(World):
         lock=VGroup(RoundedRectangle(width=.5,height=.4,corner_radius=.07,color=ORANGE,fill_opacity=.3),Arc(radius=.18,start_angle=0,angle=PI,color=ORANGE).shift(UP*.2)).move_to([-3.2,.8,0]);lock.add(cyclin().move_to(lock.get_center()+DOWN*.5))
         self.add(lock)
         self.cue("went into mitosis",*self.set_pairs(active=True),self.phase_to("M"),Transform(self.g,trace([(0,.02),(.5,.02),(.52,.9),(1,.9)],GREEN)),Transform(self.o,trace([(0,.04),(.68,.95),(1,.95)],ORANGE)),self.pos.animate.set_value(.7))
-        apc=chip("APC",RED,size=30).move_to([-3.2,1.6,0])
+        apc=chip("APC",RED).move_to([-3.25,1.7,0])
         self.cue("the kinase stayed active",FadeIn(apc),self.heading("Activity stays high"))
-        self.play(apc.animate.shift(DOWN*.4),run_time=.4);self.play(apc.animate.shift(UP*.4),run_time=.4)
+        self.play(apc.animate.shift(LEFT*.3),run_time=.4);self.play(apc.animate.shift(RIGHT*.3),run_time=.4)
         self.cue("did not come out",self.pos.animate.set_value(.98),self.caption("Mitosis: no exit",RED))
         self.cue("making cyclin drives entry",self.caption("Making cyclin → entry",GREEN))
         down=DashedLine([5.7,1.3,0],[5.7,-1.6,0],color=RED,stroke_width=5)
@@ -501,7 +526,7 @@ class S19Test(World):
         self.world(dna=True,chart="low",phase="S")
         self.o.set_opacity(0);self.legend[0].set_opacity(0)
         self.license_bands();self.cell.clear_updaters();self.halo.clear_updaters()
-        self.cue("fission yeast",Transform(self.cell,rod()),FadeOut(self.halo),Transform(self.cellname,label("fission yeast",[-3.25,2.64,0],width=6.1)),self.heading("Copy again, without division"))
+        self.cue("fission yeast",Transform(self.cell,rod()),FadeOut(self.halo),FadeTransform(self.cellname,label("fission yeast",[-3.25,2.64,0],width=6.1)),self.heading("Copy again, without division"))
         self.cue("without their mitotic cyclin",self.caption("No mitotic cyclin",ORANGE))
         self.cue("activity falls",Transform(self.g,trace([(0,.02),(.2,.6),(.35,.6),(.4,.02)],GREEN)),self.pos.animate.set_value(.4),d=.8)
         self.play(TransformFromCopy(self.strand,self.strand.copy().shift(UP*.3)),run_time=.5)
@@ -531,11 +556,3 @@ class S20Return(World):
 
 class S21End(EndCard):
     LINE="Make cyclin to enter mitosis; destroy it to reset, once per cycle."
-    def construct(self):
-        line=VGroup(label("Make cyclin to enter mitosis;",[0,.55,0],size=42),
-                    label("destroy it to reset, once per cycle.",[0,-.35,0],size=42))
-        fit(line,max_w=12.5)
-        rule=Line([-3,-1.3,0],[3,-1.3,0],color=ORANGE,stroke_width=5)
-        self.play(FadeIn(line),Create(rule),run_time=.6)
-        rule.add_updater(lambda m,dt:m.set_stroke(width=5+1.5*np.sin(self.elapsed()*1.2)))
-        self.finish()
