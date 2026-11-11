@@ -19,10 +19,16 @@ explainer:
   src: "/explainers/checkpoints/explainer.mp4"
   captions: "/explainers/checkpoints/explainer.vtt"
   poster: "/explainers/checkpoints/poster.jpg"
-  title: "Checkpoints Make Cells Wait, Then Commit"
+  title: "A Brake Wired to a Sensor"
   durationSec: 303.3
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
+  takeaways:
+    - "A checkpoint is a brake wired to a sensor: while the sensor sees an unfinished job, the brake holds back the next step. Without it, a cell divides on time, not on completion."
+    - "RAD9 was needed for waiting, not for repair: held in G2 with a drug, irradiated rad9 cells repaired their DNA."
+    - "In G2, Chk1 and Chk2 (switched on by ATR and ATM) inhibit Cdc25, so Cdk1 keeps its inhibitory phosphates and the cell waits."
+    - "One unattached kinetochore is enough to hold anaphase: it builds the MCC, a decoy key that fills Cdc20's slots and keeps APC/C from tagging securin and cyclin B."
+    - "The step that follows is hard to undo, because destroyed securin and cyclin B must be made again and the Cdk1 feedback switch resists reversal."
 
 scientists:
   - name: "Leland Hartwell"
@@ -350,7 +356,7 @@ import SecurinDecayTimer from '../../../components/SecurinDecayTimer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
 
-**Irradiate a budding-yeast cell that lacks a gene called *RAD9* and it does not pause in G2; it keeps dividing for several generations and dies. Hold the same cell back with a drug for a few hours, and it repairs the damage.**
+**The film above opens with a budding-yeast cell that lacks *RAD9*: irradiated, it does not wait in G2, yet held back with a drug it repairs itself.**
 
 So the defect in *rad9* cells was not in repair. *RAD9* was needed for waiting. That result, from Ted Weinert and Leland Hartwell in 1988, opened a question you can ask of every step in the cycle: what makes one event hold off until another is done, and once the cell moves on, what stops it going back?
 
@@ -358,11 +364,11 @@ So the defect in *rad9* cells was not in repair. *RAD9* was needed for waiting. 
 
 In 1989 Hartwell and Weinert gave these controls a name. A **checkpoint** is a control mechanism that enforces dependency between cell-cycle events.
 
-Think of a train whose doors report to the driver. The train can run perfectly well with the doors open, so a separate circuit must hold it at the platform until they close. Map it onto the cell: the doors are the job (copying DNA, repairing it, attaching chromosomes to the spindle), the motor is the enzyme that drives the next step, and the circuit is the checkpoint. Remove the circuit and the cell can still divide, but it divides on time instead of on completion.
+The film draws it as a brake wired to a job bar. The job is what the cell has to finish (copying DNA, repairing it, attaching chromosomes to the spindle), the engine is the enzyme that drives the next step, and the checkpoint is the wire and brake between them. Snip the wire and the cell can still divide, but on time instead of on completion.
 
-The rad9 experiment is the test for such a circuit. After irradiation, wild-type haploid yeast arrested or delayed in G2, the gap between DNA synthesis and mitosis; rad9 cells did not. When a microtubule poison held irradiated rad9 cells in G2 for several hours, repair could occur efficiently.
+The rad9 experiment is the test for such a wire. After irradiation, wild-type haploid yeast arrested or delayed in G2, the gap between DNA synthesis and mitosis; rad9 cells did not. When a microtubule poison held irradiated rad9 cells in G2 for several hours, repair could occur efficiently.
 
-**Predict.** The opening gave the result away, so run the logic the other way. What result would have told Weinert and Hartwell that *RAD9* is a repair gene after all?
+**Predict.** Run the logic the other way. What result would have told Weinert and Hartwell that *RAD9* is a repair gene after all?
 
 <details>
 <summary>Check your prediction</summary>
@@ -422,7 +428,7 @@ A break in S or G2 uses both rows. ATM promotes trimming of the broken ends, whi
 <details>
 <summary>Check your prediction</summary>
 
-Cdk1 keeps its inhibitory phosphates and stays off, so the cell waits in G2. In this branch nothing was destroyed and nothing new had to be made: the brake is a shift in a phosphate balance, so it can lift once the signal stops. The full damage response also destroys Cdc25A and makes p21 (below).
+Cdk1 keeps its inhibitory phosphates and stays off, so the cell waits in G2. Nothing was destroyed or had to be made anew, so the brake lifts once the signal stops. The full damage response also destroys Cdc25A and makes p21 (below).
 
 </details>
 
@@ -444,7 +450,7 @@ For the chromosomes to separate correctly, every pair of sister chromatids shoul
 
 The genes came from yeast. In 1991 Rong Li and Andrew Murray, and in the same issue of *Cell* Hoyt, Totis and Roberts, isolated budding-yeast mutants that kept going when a drug destroyed their microtubules. These were named *mad* (mitotic arrest deficient) and *bub* (budding uninhibited by benzimidazole).
 
-Where does the signal come from? Conly Rieder's group used PtK1 cells, flat rat-kangaroo cells whose chromosomes can be seen one by one. They waited for a cell with a single chromosome still attached to only one pole, then destroyed its unattached kinetochore with a laser. The chromosome was left stranded near the pole.
+Where does the signal come from? The film shows Conly Rieder's laser experiment. PtK1 cells are flat, so chromosomes can be seen one by one; the group waited for a cell with a single chromosome attached to only one pole and destroyed its unattached kinetochore.
 
 **Predict.** Every other chromosome is lined up at the spindle's equator, and this one never will be. Does anaphase wait?
 
@@ -455,7 +461,7 @@ No. Anaphase followed about 20 minutes later, although that chromosome never mov
 
 </details>
 
-The signal is a protein complex. Unattached kinetochores promote assembly of the **mitotic checkpoint complex (MCC)**: Mad2, Cdc20, BubR1 and Bub3. The MCC holds APC/C-Cdc20 back. Think of it as a decoy key. BubR1 carries sequences that look like a substrate's destruction signal, and they sit in the slots on Cdc20 that would grip a real substrate, so securin and cyclin B are kept out, and BubR1 also blocks the E2 enzyme UbcH10. Once proper attachments silence the checkpoint, kinetochore-driven MCC production subsides, and continued disassembly of the MCC lets APC/C-Cdc20 target securin and cyclin B efficiently.
+The signal is a protein complex. Unattached kinetochores promote assembly of the **mitotic checkpoint complex (MCC)**: Mad2, Cdc20, BubR1 and Bub3. The MCC holds APC/C-Cdc20 back. The film's decoy key is BubR1: it carries sequences that look like a substrate's destruction signal, and it also blocks the E2 enzyme UbcH10. Once proper attachments silence the checkpoint, kinetochore-driven MCC production subsides, and continued disassembly of the MCC lets APC/C-Cdc20 target securin and cyclin B efficiently.
 
 **Predict.** Inject an antibody that blocks Mad2 into a cell in prometaphase, while some kinetochores are still unattached. Does anaphase come earlier or later?
 
@@ -479,11 +485,10 @@ Now the cell moves on, and the move is hard to undo.
 Freed APC/C-Cdc20 ubiquitinates securin and cyclin B. APC/C is the ubiquitin ligase; the proteasome does the destroying (in HeLa cells, the proteasome inhibitor MG132 blocked securin breakdown). Ubiquitin chemistry is in [that lesson](/lessons/ubiquitin-and-proteolysis/).
 
 - **Securin** binds and inactivates **separase**, a protease. In vertebrate cells cyclin B-Cdk1 also inhibits separase, and Hagting and colleagues found that both securin and cyclin B1 have to be degraded before sister chromatids can separate. Freed separase cuts Scc1, the cohesin subunit that holds sister chromatids together, and anaphase begins.
-- **Cyclin B.** Losing it is a major way Cdk1 is turned off at mitotic exit.
 
 ### Why it does not run backwards
 
-Compare the two kinds of brake. A phosphate can be removed and put back within seconds to minutes, depending on the substrate, because the protein is still there. A destroyed protein can come back only by being made again. But is destruction what actually stops a cell from going back?
+The film contrasts the two kinds of brake: a phosphate is quickly put back (seconds to minutes, depending on the substrate), a destroyed protein must be made again. But is destruction what actually stops a cell from going back?
 
 **Predict.** Potapova and colleagues forced cultured Xenopus and human cells out of mitosis with a Cdk1 inhibitor, while keeping cyclin B intact. Then they washed the inhibitor out. Did the cells stay out of mitosis?
 
@@ -498,7 +503,7 @@ No. Many cells returned to mitosis: the cyclin B was still there, so Cdk1 switch
 
 ### Feedback: the Cdk1 switch
 
-Entry into mitosis is switched on by positive feedback. Active Cdk1 activates its activator Cdc25 and inhibits its inhibitor Wee1, so once Cdk1 activity starts to rise, the rise feeds itself.
+The film shows Cdk1 switching on Cdc25 and switching off Wee1, so entry into mitosis rests on positive feedback.
 
 A switch like this is **bistable**: over a middle range of cyclin B, it can sit stably off or on, depending on where it came from. If cyclin B is the only input varied and other regulators are held fixed, the switch turns on above an upper threshold and off below a lower one. That gap gives it memory: wobbles that stay short of the thresholds do not flip it. Changing Cdk1 inhibition or other regulators can still turn it off without lowering cyclin B. The table is a cartoon of that fixed-regulator case, with feedback strong enough to give a switch.
 

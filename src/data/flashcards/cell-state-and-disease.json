@@ -1,0 +1,625 @@
+{
+ "slug": "cell-state-and-disease",
+ "title": "Cell Identity, Cell State and Disease",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract -> Codex draft -> Codex accuracy gate and fix",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  }
+ },
+ "lessonHash": "e8aa51d9b9a0",
+ "sectionHashes": {
+  "(opening)": "fa69e1e8af98",
+  "Fate, not speed: the bookkeeping": "d12be572c8f5",
+  "Rate or fate? The mouse experiment": "6cdf79ef816a",
+  "Neighbours keep the count": "2834096265e7",
+  "Back to the puzzle": "edbf32434cd0",
+  "Seeing the mixture": "42dd342e1a95",
+  "Type, state or artifact?": "0c83d9cd906f",
+  "From description to cause": "6247f740a993",
+  "From counts to clusters": "66f6ab24d369",
+  "Weighting by RNA content": "7b65157896ed",
+  "Chance in single clones": "8d50d05b6f0f"
+ },
+ "cards": [
+  {
+   "id": "cell-state-and-disease-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A tissue can change because {{c1::which cells are there}} changes, not only because its cells behave differently.",
+   "back": "A change in cell composition can change the tissue without a change within any cell type.",
+   "quote": "A tissue can change because which cells are there changes, not only because its cells behave differently."
+  },
+  {
+   "id": "cell-state-and-disease-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the simple branching model, the expected progenitor multiplier per division is {{c1::m = 2p(PP) + p(PD)}}.",
+   "back": "PP contributes two progenitors, PD one and DD none.",
+   "quote": "each round of division multiplies a clone's expected progenitors by m = 2 × p(PP) + p(PD)."
+  },
+  {
+   "id": "cell-state-and-disease-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the simple branching model, how do daughter fate and division rate affect progenitor-clone growth differently?",
+   "back": "Daughter fate sets m and therefore growth per round; division rate sets how often that multiplication occurs.",
+   "quote": "Daughter fate sets m, so it decides whether the clone grows; division rate sets only how often the multiplying happens."
+  },
+  {
+   "id": "cell-state-and-disease-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How many progenitors remain after PP, PD and DD divisions, respectively?",
+   "back": "Two, one and zero progenitors, respectively.",
+   "quote": "A PP division leaves two progenitors, a PD division one and a DD division none",
+   "section": "Fate, not speed: the bookkeeping"
+  },
+  {
+   "id": "cell-state-and-disease-c05",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A progenitor has PP, PD and DD probabilities of 0.25, 0.50 and 0.25. What is m, and what happens to the expected pool per round?",
+   "back": "m = 2(0.25) + 0.50 = 1.0. Each round leaves the expected progenitor pool unchanged.",
+   "quote": "Balanced outcomes of 0.25, 0.50 and 0.25 (PP, PD, DD) give m = 0.50 + 0.50 = 1.0.",
+   "section": "Fate, not speed: the bookkeeping"
+  },
+  {
+   "id": "cell-state-and-disease-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A mutant has PP, PD and DD probabilities of 0.35, 0.50 and 0.15. Starting with 100 progenitors, how many are expected after three rounds with no death?",
+   "back": "m = 2(0.35) + 0.50 = 1.2; 100(1.2)^3 = 172.8, or about 173 progenitors.",
+   "quote": "Start with 100 mutant progenitors and no death: after three rounds there are about 100 × 1.2 × 1.2 × 1.2 ≈ 173",
+   "section": "Fate, not speed: the bookkeeping"
+  },
+  {
+   "id": "cell-state-and-disease-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A progenitor population has m = 1 but divides twice as often as its neighbours. Over the same time, what happens to its expected progenitor pool, and why?",
+   "back": "It stays unchanged on average. Every round multiplies the pool by 1, so performing more rounds still leaves the expectation at its starting value.",
+   "quote": "With m = 1, dividing twice as often leaves the expected pool unchanged.",
+   "section": "Fate, not speed: the bookkeeping"
+  },
+  {
+   "id": "cell-state-and-disease-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A population starts with 100 progenitors and has m = 1.2. How many are expected after six rounds rather than three?",
+   "back": "After six rounds: 100(1.2)^6 = 298.6, about 300. After three: 100(1.2)^3 = 172.8, about 173.",
+   "quote": "at m = 1.2, six rounds instead of three give about 300 expected progenitors instead of about 173.",
+   "section": "Fate, not speed: the bookkeeping"
+  },
+  {
+   "id": "cell-state-and-disease-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why can clones with the same fixed daughter-fate probabilities reach very different sizes?",
+   "back": "The rule is an average over clones. Early DD outcomes can eliminate one clone, whereas early PP outcomes can make another large.",
+   "quote": "A single clone is a run of chance: one whose first divisions are DD vanishes; one that rolls PP early grows large.",
+   "section": "Fate, not speed: the bookkeeping"
+  },
+  {
+   "id": "cell-state-and-disease-c10",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Only surviving wild-type clones are measured late, and they are larger than at labelling. Does that show wild-type m exceeds 1? Explain.",
+   "back": "No. Even with m = 1, chance eliminates some clones while early PP outcomes enlarge survivors. The rule is that m describes the average over all clones.",
+   "quote": "So surviving wild-type clones grow too, and mutant clone growth shows an advantage only against wild-type clones labelled the same way.",
+   "section": "Fate, not speed: the bookkeeping"
+  },
+  {
+   "id": "cell-state-and-disease-c11",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "EdU is incorporated into DNA only during {{c1::S phase}}, while a cell copies its DNA.",
+   "back": "A short EdU pulse marks cells synthesizing DNA at that moment.",
+   "quote": "EdU, a mimic of the DNA building block thymidine, is built into DNA only during S phase",
+   "section": "Rate or fate? The mouse experiment"
+  },
+  {
+   "id": "cell-state-and-disease-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What different questions do an EdU pulse and an EdU pulse-chase answer in basal epithelium?",
+   "back": "The pulse estimates which cells are copying DNA; the chase reveals whether labelled daughters remain basal or move up.",
+   "quote": "A pulse-chase labels them, then waits to see where their daughters end up: still basal, or moved up.",
+   "section": "Rate or fate? The mouse experiment"
+  },
+  {
+   "id": "cell-state-and-disease-c13",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Design an experiment to distinguish faster division from altered daughter fate in expanding Notch1-mutant mouse oesophageal clones.",
+   "back": "Compare sparse mutant and wild-type labelled clones. Use a one-hour EdU pulse for division and a pulse-chase for fate, while following clone sizes over time.",
+   "why": "Faster division predicts more pulse labelling; a fate tilt predicts similar pulse labelling but more labelled mutant daughters remaining basal after the chase.",
+   "quote": "Estimate division rate with a one-hour EdU pulse, and fate with a pulse-chase. Follow clone sizes over time.",
+   "section": "Rate or fate? The mouse experiment"
+  },
+  {
+   "id": "cell-state-and-disease-c14",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Mutant clones expand but have the same one-hour EdU-labelled basal fraction as wild-type clones. If daughter fate is tilted, what should an EdU chase show?",
+   "back": "More labelled mutant daughters should remain basal. Equal pulse labelling argues against faster division, while basal retention supports reduced differentiation.",
+   "quote": "A fate tilt predicts similar labelling after the pulse but, after the chase, more labelled mutant daughters still basal.",
+   "section": "Rate or fate? The mouse experiment"
+  },
+  {
+   "id": "cell-state-and-disease-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why is the fraction of cells labelled by a short EdU pulse only a proxy for division rate?",
+   "back": "It also depends on S-phase duration and on how many basal cells remain cycling progenitors.",
+   "quote": "the fraction in S phase also depends on how long S phase lasts and on how many basal cells are still cycling progenitors.",
+   "section": "Rate or fate? The mouse experiment"
+  },
+  {
+   "id": "cell-state-and-disease-c16",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the mouse experiment, what does inducible Cre lineage tracing allow researchers to follow?",
+   "back": "It marks a few cells and all descendants, can delete floxed Notch1, and activates a visible YFP reporter.",
+   "quote": "Inducible Cre lineage tracing marks a few cells and all their descendants.",
+   "section": "Rate or fate? The mouse experiment"
+  },
+  {
+   "id": "cell-state-and-disease-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What explained the expansion of mouse oesophageal clones lacking one or both Notch1 copies?",
+   "back": "They expanded without a higher division rate; tracking supported more progenitor and fewer differentiating daughters per division.",
+   "quote": "mouse clones lacking one or both copies of Notch1 expanded without a higher division rate",
+   "section": "Rate or fate? The mouse experiment"
+  },
+  {
+   "id": "cell-state-and-disease-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why must a neighbour leave when an extra progenitor is retained in a full basal epithelial layer?",
+   "back": "Space is balanced alongside daughter fate: the basal layer has no spare room, so an added cell requires another cell to leave.",
+   "quote": "a basal layer has no spare room, so an extra cell needs a neighbour to leave.",
+   "section": "Neighbours keep the count"
+  },
+  {
+   "id": "cell-state-and-disease-c19",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Crowding increases epithelial-cell extrusion, and most extruding cells lack active caspase-3. What conclusion does this support?",
+   "back": "Crowding can extrude cells before apoptosis. Increased extrusion links the event to crowding, while absent active caspase-3 argues the cells were not yet apoptotic.",
+   "quote": "Crowding pushed out living cells, which then died, probably because they lost the survival signals that attachment to the sheet provides.",
+   "section": "Neighbours keep the count"
+  },
+  {
+   "id": "cell-state-and-disease-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "If normal-looking clones surrounding early oesophageal lesions become more competitive for space, what should happen to lesion persistence?",
+   "back": "Fewer lesions should persist because stronger surrounding clones remove early lesions more often through competition for space.",
+   "quote": "Competition for space can protect the tissue.",
+   "section": "Neighbours keep the count"
+  },
+  {
+   "id": "cell-state-and-disease-c21",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In zebrafish epidermis, Piezo1 knockdown blocks crowding-induced extrusion and produces epidermal cell masses. What role does this support for Piezo1?",
+   "back": "Piezo1 is needed for this crowding-responsive extrusion in zebrafish: blocking it prevents the exit that normally relieves excess cell density.",
+   "quote": "Knocking down Piezo1, a channel opened by membrane stretch, blocked this extrusion in zebrafish and produced masses of epidermal cells.",
+   "section": "Neighbours keep the count"
+  },
+  {
+   "id": "cell-state-and-disease-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does filling normal oesophageal lining with Notch1-mutant cells not by itself mean that a tumour has formed?",
+   "back": "Losing Notch1 can confer a space-winning fate tilt in normal lining yet reduce tumour growth in the mouse tumour model.",
+   "quote": "Winning space in normal lining is not the same as growing as a tumour.",
+   "section": "Back to the puzzle"
+  },
+  {
+   "id": "cell-state-and-disease-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For amounts expressed per cell, what does a bulk tissue measurement average?",
+   "back": "It is a weighted average of each cell type's per-cell level, weighted by the type's abundance.",
+   "quote": "an average over every cell, weighted by how many of each kind there are.",
+   "section": "Seeing the mixture"
+  },
+  {
+   "id": "cell-state-and-disease-c24",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Type T expresses X at 50 units per cell and other cells at 5. T rises from 20% to 40%, with no per-cell change. What bulk fold change results?",
+   "back": "Before: 0.20(50) + 0.80(5) = 14. After: 0.40(50) + 0.60(5) = 23. Fold change = 23/14 = 1.64, about 1.6-fold.",
+   "quote": "A bulk experiment would report gene X up 1.6-fold, although no cell regulated it.",
+   "section": "Seeing the mixture"
+  },
+  {
+   "id": "cell-state-and-disease-c25",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Bulk RNA for a gene rises, but expression within every single-cell cluster is unchanged. What population-level change could explain the bulk result?",
+   "back": "The proportions of clusters changed. More cells from a high-expressing type can raise the bulk average without regulation within any type.",
+   "quote": "Single-cell data would show the same expression inside each cluster and a changed proportion of clusters.",
+   "section": "Seeing the mixture"
+  },
+  {
+   "id": "cell-state-and-disease-c26",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Keratinocytes and macrophages differ largely in {{c1::which genes they transcribe}}, not in their genomes.",
+   "back": "Transcription factors and chromatin help maintain these expression patterns.",
+   "quote": "What makes a keratinocyte differ from a macrophage is which genes it transcribes",
+   "section": "Seeing the mixture"
+  },
+  {
+   "id": "cell-state-and-disease-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does single-cell RNA sequencing turn dissociated cells into gene-by-cell counts?",
+   "back": "Each cell's RNA is copied into DNA with a shared cell barcode; pooled DNA is sequenced, sorted by barcode and counted.",
+   "quote": "Each cell's RNA is captured and copied into DNA tagged with a cell barcode, a short sequence shared by every molecule from that cell.",
+   "section": "Seeing the mixture"
+  },
+  {
+   "id": "cell-state-and-disease-c28",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a single-cell RNA-seq count matrix, each entry is the {{c1::number of molecules or reads for one gene in one cell}}.",
+   "back": "Rows are genes and columns are cells.",
+   "quote": "one row per gene, one column per cell, each entry the number of molecules (or reads) counted.",
+   "section": "Seeing the mixture"
+  },
+  {
+   "id": "cell-state-and-disease-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can tissue dissociation create a false difference in cluster proportions between conditions?",
+   "back": "If fragile cell types survive the enzymes differently between samples, their measured proportions change before counting.",
+   "quote": "if dissociation loses fragile cells preferentially, cluster proportions are biased before you count",
+   "section": "Seeing the mixture"
+  },
+  {
+   "id": "cell-state-and-disease-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A stable identity is a cell {{c1::type}}, whereas cycling, stress or activation are cell states within an identity.",
+   "back": "The type-state boundary depends on the question and the resolution used.",
+   "quote": "A cell state is variation within that identity: cycling, stressed, activated, early or late in differentiation.",
+   "section": "Type, state or artifact?"
+  },
+  {
+   "id": "cell-state-and-disease-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why should a single-cell RNA-seq cluster not automatically be called a cell type?",
+   "back": "States within one type can form separate clusters, and technical artifacts can also create clusters.",
+   "quote": "So a cluster is an observation to explain, not a type by definition.",
+   "section": "Type, state or artifact?"
+  },
+  {
+   "id": "cell-state-and-disease-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A known gene has a zero count in one single-cell RNA-seq cell. What is the most defensible interpretation?",
+   "back": "No molecule of that RNA was captured and counted in that cell; the zero alone does not establish that the gene was off.",
+   "quote": "only some RNA molecules are captured",
+   "section": "Type, state or artifact?"
+  },
+  {
+   "id": "cell-state-and-disease-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A small cluster expresses full T-cell and epithelial keratin programmes. What should be checked before proposing a new hybrid cell type?",
+   "back": "Check for a doublet: high RNA counts and doublet scores, both programmes in the same barcodes, and a plausible T-cell–epithelial pairing frequency.",
+   "quote": "The likeliest reading is a doublet, a T cell and an epithelial cell under one barcode",
+   "section": "Type, state or artifact?"
+  },
+  {
+   "id": "cell-state-and-disease-c34",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A putative cell type appears in several separately processed samples. How would you test whether its cluster reflects biology rather than batch?",
+   "back": "Check whether cells of that population mix across batches. The rule is that batch effects split cells by processing, whereas a shared biological population can contain cells from several samples.",
+   "quote": "Batch effects: technical differences between samples processed separately",
+   "section": "Type, state or artifact?"
+  },
+  {
+   "id": "cell-state-and-disease-c35",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Increasing clustering resolution splits T cells into two clusters, one rich in S-phase and mitosis RNAs. What is the best interpretation?",
+   "back": "A cycling state within the T-cell type likely formed its own cluster. Higher resolution can separate states rather than reveal new types.",
+   "quote": "Turned up, a type splits into states or noise; turned down, types merge",
+   "section": "Type, state or artifact?"
+  },
+  {
+   "id": "cell-state-and-disease-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Markers were found by testing the same expression data used to define clusters. How should the claimed marker support be tested?",
+   "back": "Confirm it with independent evidence, such as protein. The rule is that selecting and testing on the same differences makes P values too small.",
+   "quote": "Markers look better supported than they are: P values too small, because the clusters were drawn to differ",
+   "section": "Type, state or artifact?"
+  },
+  {
+   "id": "cell-state-and-disease-c37",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A stress-associated cluster appears only after enzymatic tissue dissociation. How can you test whether the state existed in the tissue?",
+   "back": "Compare with fixed tissue or stain in situ. Evidence from intact tissue tests whether dissociation created the stress state in the dish.",
+   "quote": "Dissociation stress: breaking up tissue perturbs state before capture",
+   "section": "Type, state or artifact?"
+  },
+  {
+   "id": "cell-state-and-disease-c38",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Pseudotime is a cell's {{c1::distance along an inferred expression path from the chosen start}}.",
+   "back": "It orders different cells; it does not follow one cell through time.",
+   "quote": "it arranges cells along a path and gives each a pseudotime, its distance along that inferred path from the start.",
+   "section": "From description to cause"
+  },
+  {
+   "id": "cell-state-and-disease-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is a pseudotime trajectory neither a movie of one maturing cell nor proof of direction?",
+   "back": "Sequencing destroys each cell, so different cells are ordered; direction is assumed by choosing which end is the start.",
+   "quote": "Its direction is an assumption, usually set by choosing which end is the start.",
+   "section": "From description to cause"
+  },
+  {
+   "id": "cell-state-and-disease-c40",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A single-cell cluster and pseudotime path suggest a developmental transition driven by factor F. What complementary evidence would test ancestry, causality and annotation?",
+   "back": "Use lineage tracing for ancestry, perturb F and restore it for causality, and measure defining proteins for annotation. Each test addresses a different inference.",
+   "quote": "Lineage shows ancestry, perturbation tests cause, and protein checks the annotation.",
+   "section": "From description to cause"
+  },
+  {
+   "id": "cell-state-and-disease-c41",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Sister blood progenitors share fate biases that their initial RNA profiles do not reveal. What does this show about expression-based trajectory predictions?",
+   "back": "They can miss fate information. The rule is that inherited lineage barcodes can reveal related cells and later outcomes that initial RNA profiles did not distinguish.",
+   "quote": "Sister cells shared fate biases that the RNA profiles had not detected.",
+   "section": "From description to cause"
+  },
+  {
+   "id": "cell-state-and-disease-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can CITE-seq test a proposed surface-marker annotation more directly than RNA counts alone?",
+   "back": "RNA does not measure protein; CITE-seq uses DNA-tagged antibodies to measure a surface marker alongside RNA in the same cell.",
+   "quote": "a surface marker can be measured in the same cell rather than inferred.",
+   "section": "From description to cause"
+  },
+  {
+   "id": "cell-state-and-disease-c43",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "A {{c1::unique molecular identifier}} lets later copies be collapsed back into one original molecule.",
+   "back": "It distinguishes original molecules from copies made later.",
+   "quote": "each molecule also gets a unique molecular identifier, so copies made later can be collapsed back into one original molecule.",
+   "section": "From counts to clusters"
+  },
+  {
+   "id": "cell-state-and-disease-c44",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "After quality control and dimension reduction, how are cells converted into clusters in the described workflow?",
+   "back": "Cells are linked to similar neighbours in a graph; tightly linked groups become clusters.",
+   "quote": "Cells are linked to their most similar neighbours in a graph, and groups of tightly linked cells become clusters.",
+   "section": "From counts to clusters"
+  },
+  {
+   "id": "cell-state-and-disease-c45",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the T-versus-other example, T has twice the total RNA per cell. T rises from 20% to 40%; X levels are 50 in T and 5 in others. What RNA-normalized fold change results?",
+   "back": "Normalize the per-cell gene averages by total RNA. Before: 14/[0.20(2)+0.80(1)] = 11.67. After: 23/[0.40(2)+0.60(1)] = 16.43. Fold = 16.43/11.67 = 1.41.",
+   "quote": "If bulk data are normalized per unit of RNA, each type also counts in proportion to its RNA content.",
+   "section": "Weighting by RNA content"
+  },
+  {
+   "id": "cell-state-and-disease-c46",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a balanced m = 1 model, surviving clones average 6.5 progenitors after 20 rounds, yet the average over all labelled clones remains 1. How can both be true?",
+   "back": "Most clones disappeared, so the larger survivors are balanced by zeros. The rule is that m = 1 fixes the all-clone expectation, not the size conditional on survival.",
+   "quote": "about 15 in 100 labelled clones survive 20 rounds and average about 6.5 progenitors",
+   "section": "Chance in single clones"
+  }
+ ]
+}

@@ -9,25 +9,31 @@ summary: >-
   nucleoplasm holds bodies with different jobs. This lesson describes chromosome territories and
   the two Hi-C compartments, the nucleolus and its smaller neighbours, and the proposal that many
   such bodies form by phase separation. Afterwards you can state what phase separation predicts,
-  work a mass-balance test on concentration data, and say why round shapes, FRAP and hexanediol
-  do not settle the mechanism.
+  compare an ideal one-protein phase with a fixed set of binding sites by asking where extra
+  protein goes, work a mass-balance test on concentration data, and say why round shapes, FRAP and hexanediol do not settle the mechanism.
 hook: "How does a nucleus keep things apart with no walls around its compartments?"
 
 estMinutes: 22
 objectives:
   - "Describe how interphase chromosomes occupy territories that intermingle at their edges, and how Hi-C sorts chromatin into open and closed compartments."
   - "Identify the nucleolus and its three parts, nuclear speckles, Cajal bodies, PML bodies and paraspeckles by what each holds."
-  - "Explain the phase-separation hypothesis and the predictions (a threshold, a buffered dilute phase, exchange across a boundary) that separate it from binding to clustered sites or polymer bridging."
+  - "Explain the phase-separation hypothesis and its ideal one-protein predictions at equilibrium under fixed conditions (a threshold, fixed concentrations inside and outside the bodies, exchange across a boundary), and compare it with binding to fixed sites and polymer bridging by asking where extra protein goes, a comparison that supports a model rather than proving it."
   - "Separate what is well supported about nuclear bodies from what is still contested, and design an experiment that tests the mechanism in a living cell."
 
 explainer:
   src: "/explainers/nuclear-architecture-condensates/explainer.mp4"
   captions: "/explainers/nuclear-architecture-condensates/explainer.vtt"
   poster: "/explainers/nuclear-architecture-condensates/poster.jpg"
-  title: "A Nucleus Without Walls"
-  durationSec: 144.8
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Bigger or Brighter?"
+  durationSec: 214.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A bright spot in the nucleus shows only that a protein is concentrated there, not how."
+    - "Both kinds of spot look round and refill after bleaching, and site clusters that drift together can look fused."
+    - "At equilibrium under fixed conditions, one protein forming a phase on its own adds droplet volume while the outside stays at saturation."
+    - "On a fixed array of sites that does not change size, extra protein mainly brightens the spots until the sites are full."
+    - "Where the extra goes is a clue, not a proof: mixtures, chromatin and tiny spots can blur it."
 
 scientists:
   - name: "Clifford Brangwynne"
@@ -135,7 +141,7 @@ techniques:
       The protein is tagged at its own genomic locus, then its level is raised or lowered, for
       example by inducible expression or induced degradation. Measuring concentrations inside and
       outside the bodies at each level tests whether there is a threshold and a buffered dilute
-      phase.
+      phase, and whether the extra protein makes the bodies bigger or only brighter.
 
 structures:
   - label: "Nucleosome core particle — the unit of chromatin that territories and compartments are made of"
@@ -168,7 +174,7 @@ simulations:
     ref: "CondensateLeverRule"
     title: "Condensate lever rule"
     caption: >-
-      Slide the total nuclear concentration of a made-up protein and watch the dilute phase hold at 1 μM while the dense bodies grow by φ = (c − 1)/49, from 2.0% at 2 μM to 14.3% at 8 μM.
+      Slide the total nuclear concentration of a made-up protein and watch the dilute phase hold at 1 μM while the dense bodies' total volume grows by φ = (c − 1)/49, from 2.0% at 2 μM to 14.3% at 8 μM.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -254,26 +260,30 @@ mcatQuestions:
     answer: 2
     rationale: >-
       The right half dims while the left half recovers, and the nucleoplasm is unchanged, so
-      molecules are moving between the halves more readily than they are entering from outside,
-      the pattern expected for a droplet whose boundary slows exchange. If crossing the edge were
+      molecules are moving between the halves more readily than they are entering from outside.
+      That is the pattern half-body FRAP was designed to detect, which a droplet predicts; molecules
+      rebinding sites inside a dense cluster can mix internally too, so it favours a phase without
+      proving one. If crossing the edge were
       faster, the bleached half would refill from the nucleoplasm and the right half would stay
       bright. Fixed molecules would not let the right half lose fluorescence. New synthesis
       inside one half of a body within a minute is not a plausible source, and it would not dim
       the other half.
-  - stem: "A tagged nuclear protein is expressed at three levels. As the total nuclear concentration rises from 2 to 4 to 8 μM, its nucleoplasmic concentration outside the foci rises from 1.5 to 2.8 to 5.9 μM, and the foci grow brighter in proportion. Which model do these data favour?"
+  - stem: "A tagged nuclear protein is expressed at a series of levels. As the total nuclear concentration rises from 2 to 5 μM, its nucleoplasmic concentration outside the foci stays near 1 μM (0.8 to 1.1 μM), and the foci grow brighter without growing larger. Above 5 μM the nucleoplasmic concentration starts to climb, reaching 2 μM at a total of 8 μM, by which point the foci have stopped getting brighter. Which model do these data favour?"
     choices:
-      - "Partitioning onto binding sites that are far from saturated"
-      - "Phase separation that begins only above a total of 8 μM"
-      - "Phase separation with a buffered dilute phase near 1.5 μM"
+      - "Cooperative binding to a fixed set of sites that fill up"
+      - "Phase separation of one protein with a saturation concentration near 1 μM"
+      - "Binding to sites far from full, with a constant fraction left outside"
       - "No assembly at all, because the protein is evenly spread"
     answer: 0
     rationale: >-
-      The nucleoplasmic concentration stays a near-constant fraction of the total (about 0.70 to
-      0.75) instead of holding at one value, which is what partitioning onto binding sites
-      predicts. A buffered dilute phase would keep the outside concentration near one value while
-      the foci grew in volume, and here it nearly quadruples. Assembly that begins only above 8 μM cannot explain these data,
-      because foci are already present at 2 μM. The protein is not evenly spread, since part of it
-      is in foci at every level.
+      The foci got brighter, not bigger, up to a ceiling, and only then did the outside
+      concentration climb, which is what binding sites that fill predict; when many molecules
+      must bind together before a site holds any, the outside can stay nearly flat while the sites
+      fill. A one-protein phase at fixed conditions, with 8 μM still inside its two-phase range,
+      would also hold the outside near 1 μM, but the extra protein would go into more total body
+      volume at the same brightness, so the outside would not climb at 8 μM. Sites far from full would leave a constant fraction outside, so the outside would
+      rise in proportion from 2 μM on instead of holding near 1 μM. The protein is not evenly spread,
+      since part of it is in foci at every level.
 
 explainLevels:
   - level: "eli5"
@@ -281,9 +291,11 @@ explainLevels:
     text: >-
       Inside the middle of a cell there are no walls, but things still stay in their own places.
       Each long string of DNA keeps to its own patch, like balls of yarn in a box. Some helpers
-      also gather into little blobs, a bit like drops of oil in salad dressing. Scientists are
-      still checking which blobs really are like oil drops and which are held together some other
-      way.
+      also gather into little blobs. Some blobs may be drops, and some may be helpers holding on
+      to special spots, like cars in parking spaces. One clue: add more helpers. If nothing else
+      changes and the blobs have settled, drops take up more room, while helpers parked in a fixed set of spaces that does not move or grow just make their
+      blobs brighter until every space is full. A clue is not a proof, so scientists still check
+      other ways too.
   - level: "highschool"
     label: "High school"
     text: >-
@@ -291,10 +303,14 @@ explainLevels:
       region, called a territory, though neighbouring territories mix at their edges. Open,
       active DNA and closed, quiet DNA tend to sit in different places. The nucleus also holds
       bodies without membranes: the nucleolus, where ribosomes are built, and smaller bodies that
-      store splicing factors (the proteins and small RNAs that cut introns out of RNA and rejoin the pieces) or other proteins. One idea is that some of these bodies form the
-      way oil separates from vinegar, when enough of their molecules stick weakly to one another.
-      That idea makes testable predictions, and many experiments that seemed to support it turn
-      out to fit other explanations too.
+      store splicing factors (the proteins and small RNAs that cut introns out of RNA and rejoin the pieces) or other proteins. One idea is that some of these bodies form
+      the way extra salt stops dissolving in salt water that is already saturated: past a threshold,
+      molecules that stick weakly to one another form a separate, denser phase, here a liquid drop
+      rather than a crystal. A useful comparison is to add more of the protein: at equilibrium
+      under fixed conditions, one protein forming drops on its own takes up more total volume while the
+      concentration outside stays the same, whereas binding to a fixed set of sites whose extent does not change
+      mainly makes spots brighter until the sites fill. The pattern is a clue, not a proof. Many experiments that seemed to
+      support the idea turn out to fit other explanations too.
   - level: "college"
     label: "College"
     text: >-
@@ -309,7 +325,11 @@ explainLevels:
       interactions. In its simplest one-component form, phase separation predicts a saturation concentration, a dilute phase buffered
       at that concentration as bodies grow, and a boundary across which exchange is slower than
       mixing inside. Binding to clustered sites and polymer bridging can also make round,
-      recovering, hexanediol-sensitive foci.
+      recovering, hexanediol-sensitive foci, and cooperative binding can also give a threshold and
+      a nearly flat dilute concentration. What the ideal equilibrium one-protein phase model
+      predicts is that extra protein increases the dense-phase volume fraction at fixed dilute- and
+      dense-phase concentrations, whereas a fixed set of sites mainly gains occupancy; observing
+      either pattern supports, but does not by itself prove, that model.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -338,7 +358,7 @@ anecdotes:
       measured what the alcohol does to chromatin itself. Tracking single nucleosomes in live
       human cells, they found that 5% hexanediol for 5 minutes strongly suppressed chromatin
       motion in HeLa cells. In the same treatment, coilin-labelled Cajal-body foci fell from a
-      mean of 2.98 to 0.84 per cell. A reagent that changes chromatin this much cannot tell you
+      mean of 2.98 to 0.84 per cell, a 71.8% drop. A reagent that changes chromatin this much cannot tell you
       which mechanism held a body together.
   - title: "A knockout with no paraspeckles and no obvious problem"
     source: "Nakagawa et al., J. Cell Biol. 193:31-39 (2011)."
@@ -365,66 +385,159 @@ draft: false
 
 import CondensateLeverRule from '../../../components/CondensateLeverRule.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**A human nucleus is only several micrometres across and holds roughly two metres of DNA, but it has no membrane-bound compartments inside it, and it is still not a uniform soup.** Chromosomes keep to their own regions, and open, active chromatin sorts apart from closed, quiet chromatin. Membraneless bodies concentrate the machinery for particular jobs: the nucleolus builds ribosomal subunits, and other bodies gather splicing and RNA-processing components. So what holds things apart when there are no walls? One proposal, phase separation, may explain some of the bodies and makes predictions you can test. This lesson separates the parts of the answer that are well supported from the parts that are still argued over.
+**A human nucleus is only several micrometres across and holds roughly two metres of DNA, but it has no membrane-bound compartments inside it, and it is still not a uniform soup.**
 
-## Chromosomes keep to territories, mostly
+The short answer to the hook: chromosomes keep to territories, bodies gather molecules by binding them to scaffolds, and some bodies may form by phase separation. Any membraneless body that concentrates proteins and nucleic acids is a **biomolecular condensate**, whatever made it. The film's droplets are one proposed way to make one, **liquid-liquid phase separation**: above a certain concentration a solution demixes into a **dense phase** (the droplets) and a **dilute phase** (here the **nucleoplasm**, the nuclear interior around them). For proteins it is thought to be driven by the film's **multivalency**, many weak, reversible binding sites per molecule (repeated domains, disordered regions, RNA; [that lesson](/lessons/water-weak-bonds/)). The film's sites are **clustered sites**: many copies of a DNA or RNA sequence in one place, bound with no demixing.
 
-During mitosis each chromosome is a compact rod. Afterwards it partly unpacks, but it does not spread through the whole nucleus. When whole chromosomes are labelled with fluorescent DNA probes, a method called chromosome painting, each one fills a region of its own, a **chromosome territory**. The DNA is packed as **chromatin**, DNA wound on histone proteins, and how tightly it is packed affects whether its genes are used, a topic covered in [that lesson](/lessons/eukaryotic-regulation/).
+> **The one idea to carry through this lesson.** A bright spot shows that something is concentrated, not how. Add more protein and ask where the extra goes. For one protein demixing on its own, at equilibrium under fixed conditions, the extra adds dense-phase volume (bigger drops or more of them) while the inside and outside concentrations stay fixed. On a fixed set of sites that does not grow, the extra raises occupancy: spots brighten until the sites fill, and only then does the outside climb. Each pattern supports its model; neither proves it alone.
 
-Picture balls of yarn packed in a box. Each ball keeps its own space, but where two balls press together, loose loops of one poke into the other. Whether territories really work that way was hard to see, because a conventional light microscope blurs everything below a few hundred nanometres, as explained in [that lesson](/lessons/microscopy-and-images/). In 2006 Miguel Branco and Ana Pombo painted thin frozen sections of fixed human lymphocytes. The thin section removes most of the blur from above and below. Neighbouring territories overlapped at their edges, and how much two chromosomes overlapped correlated with how often that pair takes part in translocations measured in human lymphocytes after ex vivo irradiation. That is a correlation, not proof that overlap causes any given translocation.
+The film showed that comparison in its simplest form. The rest of the page asks what the imaging checks really measure and why the graphs have their shapes, then turns to the bodies a real nucleus holds, two of them put to the test, and the film's closing complications (Where the test is weaker). All of it returns to the film's question, because every structure here is a bright spot someone had to explain.
 
-<LessonFigure src="/figures/nuclear-architecture-condensates/thin-section-territories.webp" width={1200} height={678} alt="AI-generated illustration: a nucleus with three painted chromosome territories whose edges interleave, cut by a thin frozen section, with an inset contrasting a blurred whole-nucleus edge against a sharp thin-section edge." caption="Each chromosome fills a territory, but where two meet, loops of one poke into the other. A frozen section about 150 nm thick removes most of the blur, so the overlap can be seen." />
+## Why looking harder does not help
 
-A second view comes from **Hi-C**, a sequencing method. Chromatin is cross-linked in the cell, cut, and the ends are joined so that segments lying close in space become joined in one DNA molecule. Sequencing millions of these junctions gives a map of which parts of the genome touch. The 2009 Hi-C maps of human cells, at a resolution of one megabase, showed that open and closed chromatin segregate into two genome-wide compartments, now called A (open, gene-rich, mostly active) and B (closed, mostly quiet). Deeper maps in 2014, at kilobase resolution, also found smaller contact domains and thousands of chromatin loops whose anchors usually bind the protein CTCF. Closed chromatin often lies against the nuclear lamina, the protein mesh under the nuclear envelope described in [that lesson](/lessons/nuclear-transport/). Remember that these Hi-C maps average over millions of cells: they report how often two regions are near each other, not where they sit in one nucleus. Later single-cell versions map one nucleus at a time.
+Why did the film's usual checks pass both kinds of spot? Look at what each one measures. **Roundness** alone shows neither softness nor mechanism, because clusters below the resolution of the microscope look round too. Real **fusion**, two bodies merging and relaxing into one round body, is what drops do, but clusters that drift together can look merged unless that relaxation is seen. **FRAP**, fluorescence recovery after photobleaching ([that lesson](/lessons/membrane-organization-topology/)), measures turnover, which binding and unbinding also give.
 
-<LessonFigure src="/figures/nuclear-architecture-condensates/hi-c-four-steps.webp" width={1200} height={414} alt="AI-generated illustration: four steps of Hi-C, from cross-linking two chromatin stretches that lie close in space, to cutting, joining their ends into one piece, and sequencing that junction." caption="In Hi-C, chromatin is cross-linked, cut and re-joined so that regions close in space end up in one molecule; each sequenced junction records two regions that were near each other. Standard Hi-C data average over millions of cells." />
+**Predict.** 1,6-Hexanediol, an alcohol thought to weaken hydrophobic contacts, dissolves a nuclear body. What would you want to know before calling the body a liquid?
 
-## Bodies without membranes: the nucleolus and its neighbours
+<details>
+<summary>Check your prediction</summary>
 
-A **nuclear body** is a region of the nucleoplasm where particular molecules are concentrated, with no membrane around it. The largest is the **nucleolus**, whose main job is ribosome biogenesis. It forms around the repeated genes for ribosomal RNA and, in mammalian cells, has three parts, like an assembly line read from the inside out. The **fibrillar centre** holds the rDNA and the RNA polymerase I machinery. The **dense fibrillar component** around it, rich in fibrillarin, is where the newly made pre-rRNA begins to be processed. The outer **granular component**, rich in nucleophosmin (NPM1), is where ribosomal subunits are assembled before export. In nucleoli of Xenopus laevis oocytes, the fibrillarin-rich and NPM1-rich layers behave as two liquids that coexist without mixing.
+What else the alcohol does. Itoh and colleagues found that 5% hexanediol for 5 minutes strongly suppressed chromatin motion in live HeLa cells, and foci of one nuclear body, the Cajal body (below), fell in number in the same treatment. A reagent that changes chromatin this much cannot tell you which mechanism held a body together.
 
-Smaller bodies sit in the nucleoplasm around it. You can learn them by what they hold.
+</details>
 
-- **Nuclear speckles** are enriched in pre-mRNA splicing factors. Their contents exchange with the surrounding nucleoplasm. In mouse embryonic stem cells, genes near speckles showed more co-transcriptional splicing than genes farther away, and in human HEK293T cells, tethering a reporter pre-mRNA to speckles increased its splicing. Splicing itself is covered in [that lesson](/lessons/rna-processing/).
-- **Cajal bodies** are marked by the protein coilin and contain components of the small nuclear ribonucleoproteins (snRNPs) that splice pre-mRNA. In an engineered mammalian cell system, tethering Cajal-body components to chromatin was enough to start apparently functional Cajal bodies from scratch.
-- **PML bodies** are built from the PML protein. In cultured mammalian cells and mouse experiments, oxidation drove PML to multimerize and nucleate the bodies, which then enhanced stress-induced SUMO modification of partner proteins held inside them. The name comes from promyelocytic leukaemia, in which a fusion of PML with a retinoic acid receptor is associated with disrupted bodies.
-- **Paraspeckles** are built on a long noncoding RNA, NEAT1. Mice lacking Neat1 have no paraspeckles yet were reported viable and fertile in the laboratory. Later work found defects in pregnancy and lactation, so the bodies are not needed for survival under those conditions, which is not the same as doing nothing.
+**Half-body FRAP** has more power: bleach half of a large body and follow both halves and the nucleoplasm beside it. A droplet has a boundary, so molecules are expected to mix inside it faster than they cross its edge. That pattern favours a phase without proving one: the weak interfaces of real condensates may slow crossing only a little, and molecules that rebind sites inside a dense cluster can also mix internally.
 
-These facts are well supported: the bodies exist, they exchange molecules with the nucleoplasm, and several of them help with a job. How they form is a different question.
+## Add more protein: the numbers
 
-<LessonFigure src="/figures/nuclear-architecture-condensates/nuclear-bodies-and-nucleolus.webp" width={1200} height={754} alt="AI-generated illustration: a cross-section of a nucleus with no membrane-bound compartments holding a large nucleolus and smaller speckles, Cajal bodies, PML bodies and a paraspeckle, each labelled by what it holds, with an inset showing the nucleolus as three nested layers." caption="The nucleus holds bodies with no membrane, each known by what it concentrates. The nucleolus has three parts, read from the inside out: fibrillar centre, dense fibrillar component, granular component." />
+The film's picture was the simple case; here is the fuller one: why each graph has its shape, and where it stops. **Total** (along the bottom) is averaged over the whole nucleus; **outside** (up the side) is measured between the spots.
 
-## The phase-separation hypothesis and what it predicts
+- **A phase of one protein.** Below the **saturation concentration**, c_sat, there are no bodies and outside equals total: a 45° line. Above it the line goes flat: like salt past its solubility, extra protein forms more dense phase, whose own concentration, c_dense, also stays fixed. That holds at equilibrium and fixed conditions, until the dense phase fills the nucleus (φ = 1, below).
+- **Sites.** While they are far from full, each molecule has the same chance of being bound at any moment, so a fixed fraction stays outside: a straight line through zero, below the 45° line. Once every parking space is taken, extra protein stays outside and the line bends up. This assumes fixed sites; if added protein brought in new sites or reshaped the chromatin that carries them, the spots could grow too.
 
-A **biomolecular condensate** is a membraneless body that concentrates proteins and nucleic acids. One proposed way to make one is **liquid-liquid phase separation**: above a certain concentration, a solution of molecules demixes into a dense phase and a dilute phase, as salad dressing separates into oil and vinegar. For proteins the driving force is thought to be **multivalency**, molecules with many weak binding sites (repeated domains, disordered regions, RNA) that stick to many partners at once. These are the weak, reversible bonds described in [that lesson](/lessons/water-weak-bonds/). The idea took hold after Brangwynne, Hyman and colleagues reported in 2009 that P granules of the worm C. elegans behave like liquid drops: they fuse in the early embryo, and in dissected gonads they flow and drip.
+A flat outside line alone is weaker evidence than it looks: cooperative binding can flatten it too (Where the test is weaker).
 
-Liquid-liquid phase separation is one way to make a local high concentration, not the only one. A protein can **bind clustered sites**, many copies of a DNA or RNA sequence in one place, and pile up there with no demixing. A protein can also **bridge** chromatin, cross-linking distant segments so the fibre collapses into a dense globule. Physicists count this collapse as a phase transition of the chromatin polymer, but it makes a compact globule, not a liquid drop. All three make a bright spot in a microscope. They differ in what happens when you change the amount of protein.
+For a phase, the amounts must add up: the protein in the dilute phase plus the protein in the dense phase is all of it.
 
-In the simplest case, one protein demixing on its own at fixed conditions, phase separation predicts three things. There is a **threshold**, the saturation concentration, below which no dense phase forms. Above it, the **dilute phase is buffered**: extra protein goes into the bodies, which grow, while the concentration outside stays at the threshold. And there is a **boundary**, so molecules are expected to mix inside a body faster than they cross its edge, though the weak interfaces of real condensates may slow crossing only a little. A simple mass balance turns the second prediction into numbers.
+<EquationCard
+  purpose="What fraction of the nucleus the dense bodies fill, once the protein is above its saturation concentration."
+  eq="φ = (c_total − c_sat) / (c_dense − c_sat)"
+  say="The bodies' share of the nucleus is the excess over saturation, divided by the gap between the dense and dilute concentrations."
+  symbols={[
+    ["φ", "phi", "the fraction of nuclear volume taken up by the dense phase", "0 to 1"],
+    ["c_total", "c sub total", "the protein's average concentration over the whole nucleus", "μM"],
+    ["c_sat", "c sub sat", "the saturation concentration, where the dilute phase stays", "μM"],
+    ["c_dense", "c sub dense", "the concentration inside the bodies", "μM"],
+  ]}
+  toolkit={["subscripts", "ratios"]}
+  check="At c_total = c_sat, φ = 0: the coexistence boundary, with a nonzero dense fraction just above it. At c_total = c_dense, φ = 1: the dense phase fills the nucleus. In between, at equilibrium and fixed conditions, c_sat and c_dense stay fixed, so only φ grows."
+>
+  <Fragment slot="derivation">
+    <p>Step 1: c_total = c_sat × (1 − φ) + c_dense × φ (the dilute volume times its concentration, plus the dense volume times its).</p>
+    <p>Step 2: multiply out: c_total = c_sat + φ × (c_dense − c_sat).</p>
+    <p>Step 3: solve for φ.</p>
+  </Fragment>
+</EquationCard>
+
+**Predict.** A protein has c_sat = 1 μM and c_dense = 50 μM. Its total rises fourfold, from 2 to 8 μM. Do its bodies double, quadruple or more than quadruple in volume?
+
+<details>
+<summary>Check your prediction</summary>
+
+More: sevenfold. φ goes from 1/49 = 2.0% of the nucleus at 2 μM, through 3/49 = 6.1% at 4 μM, to 7/49 = 14.3% at 8 μM. Volume tracks the excess over c_sat, which goes from 1 to 7, not the total, which goes from 2 to 8. The nucleoplasm stays at 1 μM.
+
+</details>
+
+**Worked problem (made-up data).** Two proteins, each tagged at its own gene, are set to total nuclear concentrations of 2, 4 and 8 μM.
+
+1. **Protein A:** outside 1.0, 1.0 and 1.1 μM, while the total body volume grows at the same brightness. Bigger, not brighter: consistent with the simple phase model.
+2. **Protein B:** outside 1.5, 2.8 and 5.9 μM, or 1.5/2 = 0.75, 2.8/4 = 0.70 and 5.9/8 = 0.74 of the total, while its foci brighten in proportion. A constant fraction outside is the straight line through zero: sites far from full.
 
 <CondensateLeverRule />
 
-> **c_total = c_sat × (1 − φ) + c_dense × φ, so φ = (c_total − c_sat) / (c_dense − c_sat)**
+Below 1 μM, the outside follows the total and φ stays zero; above 1 μM, watch φ grow while the outside stays at 1 μM.
 
-Here φ is the fraction of nuclear volume taken up by the dense phase.
+## What the nucleus holds
 
-**Worked problem (made-up data, for illustration).** A GFP-tagged nuclear protein is expressed in a cell line at total nuclear concentrations of 2, 4 and 8 μM. Assume one dense phase at 50 μM, a saturation concentration of 1 μM, and a dilute phase held at that value.
+The film's spots were generic. A real nucleus holds particular ones, each a candidate for the test, and some of its order needs no spot at all.
 
-1. The denominator is c_dense − c_sat = 50 − 1 = 49 μM.
-2. At 2 μM, φ = (2 − 1)/49 = 1/49 = 0.020, so bodies fill 2.0% of the nucleus. At 4 μM, φ = 3/49 = 6.1%. At 8 μM, φ = 7/49 = 14.3%.
-3. So the model predicts that the bodies grow sevenfold in volume between 2 and 8 μM while the nucleoplasm stays near 1 μM.
-4. Now compare two proteins. For protein A, the measured nucleoplasm is 1.0, 1.0 and 1.1 μM: it fits. For protein B it is 1.5, 2.8 and 5.9 μM. Divide by the totals: 1.5/2 = 0.75, 2.8/4 = 0.70, 5.9/8 = 0.74. Protein B keeps a roughly constant fraction outside the bodies, which fits partitioning onto binding sites better.
+### Chromosomes keep to territories, mostly
 
-Treat the result with care. A protein that fails this test may still phase separate as one part of a mixture of several components, which need not buffer each one. A protein that passes has not been shown to need the body for any function.
+During mitosis each chromosome is a compact rod. Afterwards it partly unpacks, but it does not spread through the whole nucleus. Labelled with fluorescent DNA probes, a method called chromosome painting, each one fills a region of its own, a **chromosome territory**. The DNA is packed as **chromatin**, DNA wound on histone proteins, and how tightly it is packed affects whether its genes are used ([that lesson](/lessons/eukaryotic-regulation/)). Picture balls of yarn in a box: each keeps its own space, but where two press together, loose loops of one poke into the other.
 
-## Evidence that is not enough: round shapes, fusion, FRAP, hexanediol
+**Predict.** Why can painting a whole nucleus not show whether neighbouring territories mix at their edges?
 
-Many early claims rested on three observations, and none of them separates the models. Round shapes and fusion arise for any soft body pulled by surface forces, and clusters on chromatin can look the same. FRAP, recovery of fluorescence after photobleaching (see [that lesson](/lessons/membrane-organization-topology/)), measures turnover: molecules that bind and unbind fixed sites also refill a bleached spot. And 1,6-hexanediol, an alcohol thought to weaken hydrophobic contacts, at 5% for 5 minutes strongly suppressed chromatin motion in live HeLa cells. A body that dissolves in it has not been shown to be a liquid.
+<details>
+<summary>Check your prediction</summary>
 
-Heterochromatin shows why the system matters. Purified Drosophila HP1a demixed in the test tube, and HP1a foci in early Drosophila embryos looked liquid-like, with mature domains proposed to contain liquid and stable parts. In mouse fibroblasts, by contrast, chromocentres, dense clusters of heterochromatin, behaved like collapsed chromatin globules rather than HP1 liquid pools. Purified mouse HP1α mixed with DNA turned turbid in the test tube, and a GFP tag alone shifted the result, so test-tube numbers are not saturation concentrations in a cell. Neither study speaks for all heterochromatin.
+A conventional light microscope blurs everything below a few hundred nanometres ([that lesson](/lessons/microscopy-and-images/)), and in a whole nucleus light from above and below blurs every edge. In 2006 Miguel Branco and Ana Pombo painted thin frozen sections of fixed human lymphocytes, which removes most of that blur. Neighbouring territories overlapped at their edges, and how much two chromosomes overlapped correlated with how often that pair takes part in translocations (exchanges of pieces between chromosomes) measured in human lymphocytes after ex vivo irradiation. That is a correlation, not proof that overlap causes any given translocation.
 
-The threshold test has its own catch. In engineered Corelet experiments in living cells, local capture of a protein on a seed triggered phase separation below the global concentration needed for it, so if chromatin acts as a seed in the same way, a body could form on it where the average level looks too low.
+</details>
+
+<LessonFigure src="/figures/nuclear-architecture-condensates/thin-section-territories.webp" width={1200} height={678} alt="AI-generated illustration: a nucleus with three painted chromosome territories whose edges interleave, cut by a thin frozen section, with an inset contrasting a blurred whole-nucleus edge against a sharp thin-section edge." caption="Each chromosome fills a territory, but where two meet, loops of one poke into the other. A frozen section about 150 nm thick removes most of the blur, so the overlap can be seen." />
+
+**Hi-C**, a sequencing method, gives a second view: chromatin is cross-linked in the cell, cut and re-joined, so segments lying close in space end up in one DNA molecule, and sequencing millions of these junctions maps which parts of the genome touch. The 2009 maps of human cells, at a resolution of one megabase, showed that open and closed chromatin segregate into two genome-wide compartments, A (open, gene-rich, mostly active) and B (closed, mostly quiet). Closed chromatin often lies against the nuclear lamina, the protein mesh under the nuclear envelope ([that lesson](/lessons/nuclear-transport/)). The maps average over millions of cells: they report how often two regions are near each other, not where they sit in one nucleus. Later single-cell versions map one nucleus at a time.
+
+<LessonFigure src="/figures/nuclear-architecture-condensates/hi-c-four-steps.webp" width={1200} height={414} alt="AI-generated illustration: four steps of Hi-C, from cross-linking two chromatin stretches that lie close in space, to cutting, joining their ends into one piece, and sequencing that junction." caption="In Hi-C, chromatin is cross-linked, cut and re-joined so that regions close in space end up in one molecule; each sequenced junction records two regions that were near each other. Standard Hi-C data average over millions of cells." />
+
+### Bodies without membranes
+
+A **nuclear body** is a region of the nucleoplasm where particular molecules are concentrated, with no membrane around it. The largest, the **nucleolus**, carries out ribosome biogenesis. It forms around the repeated genes for ribosomal RNA (the rDNA) and, in mammalian cells, has three parts, like an assembly line read from the inside out. The **fibrillar centre** holds the rDNA and the machinery of RNA polymerase I, the enzyme that transcribes it. In the **dense fibrillar component** around it, rich in fibrillarin, the newly made ribosomal RNA precursor (pre-rRNA) begins to be processed. The outer **granular component**, rich in nucleophosmin (NPM1), is where ribosomal subunits are assembled before export.
+
+Smaller bodies sit around it, each known by what it holds:
+
+| Body | What it holds | One key experiment |
+|---|---|---|
+| **Nuclear speckles** | Pre-mRNA splicing factors, which exchange with the nucleoplasm ([splicing](/lessons/rna-processing/)) | Mouse embryonic stem cells: genes near speckles showed more co-transcriptional splicing than genes farther away. Human HEK293T cells: tethering a reporter pre-mRNA to speckles increased its splicing |
+| **Cajal bodies** | Coilin, their marker, and components of the small nuclear ribonucleoproteins (snRNPs) that splice pre-mRNA | Engineered mammalian cells: tethering Cajal-body components to chromatin started apparently functional Cajal bodies from scratch |
+| **PML bodies** | The PML protein that builds them, SUMO and partner proteins | Cultured mammalian cells and mice: oxidation drove PML to multimerize and nucleate the bodies, which then enhanced stress-induced SUMO modification of partners inside |
+| **Paraspeckles** | Their scaffold, the long noncoding RNA NEAT1, and its bound proteins | Mice lacking Neat1 have no paraspeckles yet were reported viable and fertile in the laboratory; later work found defects in pregnancy and lactation |
+
+These facts are well supported: the bodies exist, they exchange molecules with the nucleoplasm, and several of them help with a job. How each forms is the film's question, and few have been put to it.
+
+<LessonFigure src="/figures/nuclear-architecture-condensates/nuclear-bodies-and-nucleolus.webp" width={1200} height={754} alt="AI-generated illustration: a cross-section of a nucleus with no membrane-bound compartments holding a large nucleolus and smaller speckles, Cajal bodies, PML bodies and a paraspeckle, each labelled by what it holds, with an inset showing the nucleolus as three nested layers." caption="The nucleus holds bodies with no membrane, each known by what it concentrates. The nucleolus has three parts, read from the inside out: fibrillar centre, dense fibrillar component, granular component." />
+
+## Real bodies: one strong case, one split verdict
+
+Here is the film's question asked of two real bodies. The strongest case that a nuclear body is a liquid phase is the nucleolus in oocytes of the frog Xenopus laevis. There the fibrillarin-rich and NPM1-rich layers behave as two liquids that coexist without mixing, and purified nucleolar proteins mixed with RNA reproduce the layering (see Marina Feric's card).
+
+**Heterochromatin**, densely packed, mostly silent chromatin, needs a third mechanism the film did not show. A protein can **bridge** chromatin, cross-linking distant segments so the fibre collapses into a compact globule. Physicists count this collapse as a phase transition of the chromatin polymer, but the result is a globule of chromatin, not a liquid drop of the protein.
+
+**Predict.** A protein makes a focus by bridging one stretch of chromatin. If you double the protein, must the focus act like the film's sites?
+
+<details>
+<summary>Check your prediction</summary>
+
+Not necessarily. If the chromatin stretch, its compaction and its sites are fixed and nearly full, extra protein mostly raises occupancy, like sites. But more bridges can pull in and compact more chromatin, changing the size of the focus. Bridging is its own mechanism, which the comparison does not sort automatically.
+
+</details>
+
+The verdict on heterochromatin splits by system. Purified Drosophila HP1a demixed in the test tube, and HP1a foci in early Drosophila embryos looked liquid-like, with mature domains proposed to contain liquid and stable parts. In mouse fibroblasts, by contrast, chromocentres, dense clusters of heterochromatin, behaved like collapsed chromatin globules rather than HP1 liquid pools, and half-body FRAP favoured the globules. Test-tube numbers for mouse HP1α do not settle it either (Going deeper). Neither study speaks for all heterochromatin.
+
+## Where the test is weaker
+
+The film ended on three complications. Here is what each changes, after a look-alike the film did not show.
+
+**A flat outside line can mislead.** If many molecules must bind together before a site holds any (cooperative binding), the sites stay nearly empty at low concentration and then fill over a narrow range, like a threshold, so the outside stays nearly flat while they fill.
+
+**Predict.** A protein's outside concentration creeps only from 1.6 to 2.2 μM while its total triples, from 3 to 9 μM. Is it a phase?
+
+<details>
+<summary>Check your prediction</summary>
+
+Not yet. A made-up model of cooperative sites gives just these numbers; its outside climbs (to 4 μM at a total of 14 μM) only once the sites are full. Ask where the extra went: more body volume at the same brightness supports a phase, brighter foci of the same size support sites.
+
+</details>
+
+**Mixtures.** A protein that fails the test may still phase separate as one part of a mixture of several components, which need not buffer each one. In human cells, the dilute-phase concentration of the nucleolar protein NPM1 rose with its total expression, which was explained by its interactions with other nucleolar components (Riback and colleagues, 2020).
+
+**Seeds.** In engineered Corelet experiments in living cells, local capture of a protein on a small engineered seed triggered phase separation below the global concentration needed for it. If chromatin acts as a seed in the same way, a body could form on it where the average level looks too low.
+
+**Tiny spots.** Below the blur of the microscope, a few hundred nanometres, size and brightness cannot be told apart.
+
+**Function.** A protein that passes has not been shown to need the body for any function. Speckle tethering shows that location matters, not that phase separation is the reason, and that mice without paraspeckles survive in the laboratory does not mean the bodies do nothing.
 
 What is contested, then, is whether phase separation is the mechanism for a given body in a given living cell, and whether its material state matters for its job.
 
@@ -435,22 +548,18 @@ A laboratory reports that protein X forms round nuclear foci that fuse, recover 
 <details>
 <summary>One way to do it</summary>
 
-None of the three observations is diagnostic. Roundness, fusion and FRAP recovery also fit binding to clustered sites or chromatin bridging. Hexanediol at 5% for 5 minutes suppresses chromatin motion in live HeLa cells. In that system, Cajal-body foci fell from 2.98 to 0.84 per cell, a drop of (2.98 − 0.84)/2.98 = 2.14/2.98 = 71.8%, yet that drop says nothing about mechanism.
+None of the three observations is diagnostic: roundness, apparent fusion and FRAP recovery also fit binding to clustered sites or chromatin bridging, and hexanediol also suppresses chromatin motion.
 
-Instead, tag X at its endogenous locus so its own gene sets its level, and check that the tag does not change its amount or behaviour. Raise and lower that level and measure concentrations inside and outside the foci, testing for a threshold and a buffered dilute phase as in the worked problem. Use half-body FRAP to ask whether X mixes inside a focus faster than it crosses the edge. Make a mutant that keeps DNA binding but loses its multivalent region, and see whether foci and transcription change together. Finally, test transcription separately from assembly, with a control that moves the same genes to or from the foci by another route, much as Bhat and colleagues tethered a reporter pre-mRNA to speckles to test splicing. Only then can you ask whether the foci themselves, rather than protein X alone, are needed.
+Instead, tag X at its own gene (its endogenous locus) and check that the tag does not change its amount or behaviour. Raise and lower its level, measure concentrations inside and outside the foci, and ask where the extra goes: into more focus volume at a steady outside concentration, or into brighter foci of fixed size (support for a model, not proof). Use half-body FRAP to ask whether X mixes inside a focus faster than it crosses the edge. Make a mutant that keeps DNA binding but loses its multivalent region, and see whether foci and transcription change together. Finally, test transcription separately from assembly, with a control that moves the same genes to or from the foci by another route, much as Bhat and colleagues tethered a reporter pre-mRNA to speckles to test splicing. Only then can you ask whether the foci themselves, rather than protein X alone, are needed.
 
 </details>
 
 ## Going deeper
 
-### The thin-section experiment on territories
+### More on territories, compartments and bodies
 
-Branco and Pombo (2006) used fixed human lymphocytes activated with phytohemagglutinin, cut into frozen sections about 150 nm thick before painting them.
-
-### How many speckles
-
-Immunofluorescence usually shows about 20 to 50 nuclear speckles per nucleus in mammalian cells.
+Branco and Pombo (2006) activated their human lymphocytes with phytohemagglutinin before fixing and sectioning them. Deeper Hi-C maps in 2014, at kilobase resolution, also found smaller contact domains and thousands of chromatin loops whose anchors usually bind the protein CTCF. Immunofluorescence usually shows about 20 to 50 nuclear speckles per nucleus in mammalian cells. PML bodies take their name from promyelocytic leukaemia, in which a fusion of PML with a retinoic acid receptor is associated with disrupted bodies.
 
 ### The HP1α turbidity numbers
 
-Purified mouse HP1α mixed with DNA turned turbid, reaching half-maximal turbidity at 45 μM untagged and 23 μM with a GFP tag. These are in vitro values.
+Purified mouse HP1α mixed with DNA turned cloudy (turbid), a sign that droplets may be forming, reaching half-maximal turbidity at 45 μM untagged and 23 μM with a GFP tag. These are in vitro values: a number that a tag alone can roughly halve, measured in a tube, cannot be read as the protein's saturation concentration in a nucleus.
