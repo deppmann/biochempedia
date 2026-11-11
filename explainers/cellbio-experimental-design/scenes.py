@@ -121,7 +121,7 @@ def branch_world():
                     Circle(radius=0.22, color=GREEN, stroke_width=3)).move_to([1.2, 1.65, 0])
     ds = daughters(1.25).move_to([3.7, -1.65, 0])
     q = T("Which observation separates the models?", 38, TEXT, weight=BOLD).move_to([0, 3.05, 0])
-    schematic = T("schematic", 28, GREY).move_to([-5.15, -2.9, 0])
+    schematic = T("schematic", 28, GREY).move_to([5.15, -2.9, 0])
     return start, fork, top, low, camera, ds, q, schematic
 
 
@@ -159,9 +159,9 @@ class S01Hook(SpokenScene):
             self.play(Transform(counter, nxt), Rotate(qs, angle=0.16), run_time=0.38)
 
         self.at("inside one dish")
-        one = VGroup(d.copy().scale(0.22).set_fill(BLUE, 0.08), T("one dish", 34, BLUE, weight=BOLD))
-        one[1].next_to(one[0], DOWN, buff=0.18)
-        one.move_to([0, 2.7, 0])
+        one = VGroup(d.copy().scale(0.16).set_fill(BLUE, 0.08), T("one dish", 34, BLUE, weight=BOLD))
+        one.arrange(RIGHT, buff=0.25)
+        one.move_to([0, 2.95, 0])
         self.play(ReplacementTransform(counter, one), qs.animate.rotate(0.22), run_time=0.9)
 
         self.at("Watch one bench")
@@ -192,9 +192,9 @@ class S02Title(TitleCard):
 
 class S03Models(SpokenScene):
     def model_card(self, which, x):
-        box = RoundedRectangle(corner_radius=0.3, width=5.75, height=5.25,
+        box = RoundedRectangle(corner_radius=0.3, width=5.75, height=4.7,
                                stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.04)
-        box.move_to([x, -0.2, 0])
+        box.move_to([x, 0.05, 0])
         head = T(f"MODEL {which}", 34, TEXT, weight=BOLD).move_to([x, 2.72, 0])
         red = cell_icon(RED).move_to([x - 1.8, 0.65, 0])
         green = cell_icon(GREEN).move_to([x, 0.65, 0])
@@ -211,7 +211,7 @@ class S03Models(SpokenScene):
 
     def construct(self):
         self.add(bench_mat())
-        d = dish(center=(0, -2.85), width=4.2, height=1.05).set_opacity(0.45)
+        d = dish(center=(0, -3.05), width=4.2, height=0.6).set_opacity(0.45)
         self.add(d)
         a = self.model_card("A", -3.15).shift(LEFT * 6)
         b = self.model_card("B", 3.15).shift(RIGHT * 6)
@@ -243,9 +243,9 @@ class S04PredictionLock(SpokenScene):
         headings = VGroup(T("MODEL A", 30, TEXT), T("MODEL B", 30, TEXT)).arrange(RIGHT, buff=4.2).move_to([0, 2.95, 0])
         shared_lab = T("green cells", 34, GREY).move_to([-4.75, 1.25, 0])
         shared = VGroup(cell_icon(GREEN), cell_icon(GREEN)).arrange(RIGHT, buff=3.2).move_to([1.2, 1.25, 0])
-        diff_lab = T("completed division", 38, GOLD, weight=BOLD).move_to([-4.3, -1.0, 0])
+        diff_lab = T("completed division", 28, GOLD, weight=BOLD).move_to([-4.1, -1.0, 0])
         diff = VGroup(daughters(1.2), VGroup(cell_icon(GREEN), Rectangle(width=0.16, height=1.15, color=GREY, fill_opacity=1)).arrange(RIGHT, buff=0.35))
-        diff.arrange(RIGHT, buff=3.0).move_to([1.55, -1.0, 0])
+        diff.arrange(RIGHT, buff=2.6).move_to([1.9, -1.0, 0])
         grid = VGroup(headings, shared_lab, shared, diff_lab, diff)
         gently_drift(shared, amplitude=0.08, speed=1.05, direction=UP)
         gently_drift(diff, amplitude=0.08, speed=0.9, direction=UP)
@@ -475,7 +475,7 @@ class S10Superplot(SpokenScene):
     def construct(self):
         self.add(bench_mat())
         axes, ticks, xlab, ylabel, dots, means, joins = superplot()
-        title = T("SuperPlot", 42, TEXT, weight=BOLD).move_to([0, 3.25, 0])
+        title = T("SuperPlot", 36, TEXT, weight=BOLD).move_to([0, 3.0, 0])
         self.add(title, axes, ticks, xlab, ylabel)
         self.play(ShowPassingFlash(axes.copy().set_stroke(GOLD, 10), time_width=0.35),
                   Indicate(title, color=TEXT, scale_factor=1.04), run_time=3.55)
@@ -495,7 +495,7 @@ class S10Superplot(SpokenScene):
         self.at("Run 2 now")
         self.play(Indicate(joins[1], color=PURPLE, scale_factor=1.05),
                   VGroup(means[2], means[3]).animate.scale(1.35), run_time=1.15)
-        flat = T("run 2: nearly flat", 30, PURPLE).move_to([0, 2.65, 0])
+        flat = T("run 2: nearly flat", 30, PURPLE).move_to([0, 2.45, 0])
         self.play(FadeIn(flat), ShowPassingFlash(joins[1].copy().set_stroke(PURPLE, 11)), run_time=0.85)
         self.at("A SuperPlot keeps cell variation")
         self.play(dots.animate.set_opacity(0.75), run_time=0.85)
@@ -510,7 +510,7 @@ class S11Rule(SpokenScene):
         locks = VGroup(lock_icon("prediction", "different outcomes"),
                        lock_icon("endpoint", "tracked division"),
                        lock_icon("independent unit", "dish summaries"))
-        locks.arrange(RIGHT, buff=0.45).move_to([0, 2.25, 0])
+        locks.arrange(RIGHT, buff=0.8).scale(0.88).move_to([0, 2.25, 0])
         d = dish(center=(0, -1.3), width=6.8, height=2.0, color=BLUE)
         cs = cells_in_dish(center=(0, -1.3), cols=10, rows=3, width=5.7, height=1.35,
                            green_count=9, radius=0.08)
@@ -534,8 +534,8 @@ class S11Rule(SpokenScene):
         links = VGroup(Line(locks[0].get_right(), locks[1].get_left(), color=GOLD, stroke_width=7),
                        Line(locks[1].get_right(), locks[2].get_left(), color=GOLD, stroke_width=7))
         self.play(Create(links), run_time=0.55)
-        broken = VGroup(Line([-0.22, 0.22, 0], [0.22, -0.22, 0], color=RED, stroke_width=8),
-                        Line([-0.22, -0.22, 0], [0.22, 0.22, 0], color=RED, stroke_width=8)).move_to(links[1])
+        broken = VGroup(Line([-0.14, 0.14, 0], [0.14, -0.14, 0], color=RED, stroke_width=8),
+                        Line([-0.14, -0.14, 0], [0.14, 0.14, 0], color=RED, stroke_width=8)).move_to(links[1])
         self.play(FadeOut(links[1]), FadeIn(broken), locks[2].animate.shift(RIGHT * 0.35), run_time=0.85)
 
         self.at("With all three aligned")
@@ -550,9 +550,9 @@ class S11Rule(SpokenScene):
         self.play(Indicate(claim, color=TEXT, scale_factor=1.08), cs.animate.shift(LEFT * 0.08), run_time=0.85)
 
         self.at("Controls then test")
-        control = chip("dull explanation?", GREY, 30).move_to([4.4, -1.55, 0])
-        probe = arrow([3.25, -1.55, 0], [3.7, -1.55, 0], GREY)
-        self.play(d.animate.shift(LEFT * 0.7), cs.animate.shift(LEFT * 0.7), FadeIn(control), GrowArrow(probe), run_time=1.0)
+        control = chip("dull explanation?", GREY, 28).move_to([4.3, -1.55, 0])
+        self.play(d.animate.shift(LEFT * 1.2), cs.animate.shift(LEFT * 1.2), run_time=0.6)
+        self.play(FadeIn(control), run_time=0.4)
         self.finish()
 
 
@@ -579,22 +579,23 @@ class S12Return(SpokenScene):
                          T("ONE TREATED UNIT", 32, BLUE, weight=BOLD).move_to([0, -3.12, 0]))
         self.play(Create(bracket), run_time=1.0)
         self.at("and green still marks")
-        phase = chip("S-phase entry", GREEN, 30).move_to([-4.85, 2.8, 0])
+        phase = chip("S-phase entry", GREEN, 30).move_to([-4.3, 2.8, 0])
         self.play(FadeOut(count), FadeIn(phase), dots[:178].animate.set_opacity(1), run_time=0.85)
 
         self.at("More dots cannot repair")
-        path = arrow([3.9, 1.25, 0], [5.05, 1.25, 0], GOLD, 6)
-        kids = daughters(0.9).move_to([5.65, 1.25, 0])
-        mismatch = T("endpoint", 28, GOLD).next_to(kids, DOWN, buff=0.15)
+        path = arrow([3.95, 1.25, 0], [4.7, 1.25, 0], GOLD, 6)
+        kids = daughters(0.9).move_to([5.3, 1.25, 0])
+        mismatch = T("endpoint", 24, GOLD).next_to(kids, DOWN, buff=0.15)
         self.play(GrowArrow(path), FadeIn(kids), FadeIn(mismatch), run_time=1.0)
         self.play(ShowPassingFlash(path.copy().set_stroke(RED, 11)), run_time=0.7)
 
         self.at("Trust the conclusion")
-        locks = VGroup(lock_icon("prediction", width=3.3), lock_icon("endpoint", width=3.3), lock_icon("independent unit", width=3.3))
-        locks.arrange(RIGHT, buff=0.35).scale(0.82).move_to([0, 2.85, 0])
-        self.play(FadeOut(phase), FadeOut(path), FadeOut(kids), FadeOut(mismatch), FadeIn(locks), run_time=1.05)
+        locks = VGroup(lock_icon("prediction", width=3.5), lock_icon("endpoint", width=3.5), lock_icon("independent unit", width=3.5))
+        locks.arrange(RIGHT, buff=0.35).scale(0.86).move_to([0, 2.85, 0])
+        self.play(FadeOut(phase), FadeOut(path), FadeOut(kids), FadeOut(mismatch), run_time=0.5)
+        self.play(FadeIn(locks), run_time=0.55)
         self.at("all three locks fit")
-        checks = VGroup(*[T("✓", 42, GREEN, weight=BOLD).move_to(l) for l in locks])
+        checks = VGroup(*[T("✓", 34, GREEN, weight=BOLD).move_to(l[0].get_corner(UR) + LEFT * 0.12 + DOWN * 0.02) for l in locks])
         self.play(LaggedStart(*[FadeIn(c, scale=0.7) for c in checks], lag_ratio=0.2),
                   d.animate.set_stroke(GOLD, 7), run_time=1.35)
         self.finish()
@@ -602,17 +603,3 @@ class S12Return(SpokenScene):
 
 class S13End(EndCard):
     LINE = "Lock prediction, endpoint, and independent unit before the data."
-
-    def construct(self):
-        hexm = hex_mascot(1.5)
-        line = VGroup(T("Lock prediction, endpoint, and", 40, TEXT, font=TITLE_FONT),
-                      T("independent unit before the data.", 40, TEXT, font=TITLE_FONT))
-        line.arrange(DOWN, buff=0.16)
-        sub = T("biochemistrypedia.com", 28, TEAL)
-        g = VGroup(hexm, line, sub).arrange(DOWN, buff=0.38)
-        self.play(FadeIn(hexm, shift=UP * 0.2), FadeIn(line, shift=UP * 0.15), run_time=self.beat(0.3))
-        self.play(FadeIn(sub), run_time=self.beat(0.15))
-        shoulder = hexm.arm.get_start()
-        for angle in (0.28, -0.28, 0.22, -0.22):
-            self.play(Rotate(hexm.arm, angle=angle, about_point=shoulder), run_time=self.beat(0.08))
-        self.finish()

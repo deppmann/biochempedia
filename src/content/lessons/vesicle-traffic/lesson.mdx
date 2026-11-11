@@ -5,12 +5,12 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 3: Traffic and movement"
 order: 411
 summary: >-
-  How does a membrane-bound carrier pick up the right cargo, find the right compartment and merge
-  with it? This lesson follows a vesicle through budding by a coat, capture by a Rab and a tether,
-  and fusion by SNARE proteins that NSF later pulls apart. Afterwards you can read yeast sec-mutant
+  A vesicle delivers cargo in three handoffs that can each fail on its own: a coat buds it, a Rab
+  and a tether catch it, and SNARE proteins, which NSF later pulls apart, fuse it. This lesson
+  follows one vesicle through budding, capture and fusion. Afterwards you can read yeast sec-mutant
   and cell-free data to put the steps in order and to tell budding from targeting and tethering
   from fusion.
-hook: "A yeast mutant keeps making secretory enzymes at 37 °C but cannot release them. Where do they go?"
+hook: "A yeast mutant keeps making secretory enzymes at 37 °C but cannot release them. Which step of delivery broke, and how could you tell?"
 
 estMinutes: 24
 objectives:
@@ -24,15 +24,31 @@ explainer:
   captions: "/explainers/vesicle-traffic/explainer.vtt"
   poster: "/explainers/vesicle-traffic/poster.jpg"
   title: "Three Handoffs for a Vesicle"
-  durationSec: 297.2
+  durationSec: 297.6
   takeaways:
     - "The sec1 mutant keeps making enzymes at 37 °C, but they pile up inside vesicles that fail to fuse with the surface."
     - "A vesicle's trip has three handoffs: a coat buds it, a Rab-GTP with a tether catches it, and SNAREs guided by an SM protein fuse it."
     - "Zipping the four SNARE strands pulls the membranes together, and the zip itself uses no ATP."
     - "A pile of vesicles alone cannot name the failed step, but Sec1's known job as the fusion SM protein does."
     - "A fast inhibitor such as GDI stops working once its target state is past, which helps time the steps."
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/vesicle-traffic/chapter-2.mp4"
+    captions: "/explainers/vesicle-traffic/chapter-2.vtt"
+    poster: "/explainers/vesicle-traffic/chapter-2-poster.jpg"
+    title: "Reading Where Cargo Stops"
+    durationSec: 151.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "The fraction secreted is the enzyme outside the cell divided by all of it, so a block can be measured."
+      - "If trapped enzyme leaves once the cells return to 25 °C with synthesis blocked, it was waiting to be delivered, not dead."
+      - "Double mutants put the blocks in order, but a pile shows where transport stops, not when or where else a protein acts."
+      - "Because NSF acts at several steps, a sec18 mutant reveals only its earliest blocked step."
+      - "HOPS forms lacking the Vps11 or Vps18 beta propeller still caught Ypt7-bearing lipid spheres but failed to promote fusion."
 
 scientists:
   - name: "Randy Schekman"
@@ -392,8 +408,9 @@ draft: false
 
 import SecMutantSecretionReader from '../../../components/SecMutantSecretionReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A yeast mutant called sec1 grows at 25 °C, but at 37 °C it keeps making secretory enzymes and cannot release them.** Novick and Schekman reported it in 1979. The film above follows those enzymes along the route and through the vesicles that never fuse with the surface; the three jobs it names are **budding** (pick up cargo and pinch off), **targeting** (be caught by the right membrane) and **fusion** (merge with it).
+**A yeast mutant called sec1 grows at 25 °C, but at 37 °C it keeps making secretory enzymes and cannot release them.** Novick and Schekman reported it in 1979. The first film above follows those enzymes along the route and through the vesicles that never fuse with the surface; the three jobs it names are **budding** (pick up cargo and pinch off), **targeting** (be caught by the right membrane) and **fusion** (merge with it).
 
 **Predict.** In sec1 cells at 37 °C, which of the three jobs worked for the last vesicle on the route, and which could have failed?
 
@@ -403,8 +420,6 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 Budding worked: the vesicles exist. Targeting or fusion failed, and a pile of vesicles alone cannot say which.
 
 </details>
-
-In sec1 cells at 37 °C, budding worked, because the vesicles exist. Targeting or fusion failed, and a pile of vesicles alone cannot say which. The fusion section below names the step.
 
 > **The one idea to carry through this lesson.** A vesicle's trip is three handoffs, and each can fail on its own. A **coat** buds the vesicle and picks its cargo. A **Rab-GTP with a tether** catches it at the right membrane (targeting). A **SNARE bundle, guided by an SM protein**, fuses it. On a linear route, when one handoff fails, cargo piles up in the last place it reached, and a fast, specific inhibitor stops working once the state it targets is past.
 
@@ -449,7 +464,7 @@ Among the effectors are **tethers**: long coiled-coil proteins or large complexe
 
 <LessonFigure src="/figures/vesicle-traffic/rab-tether-catch.webp" width={1200} height={800} alt="AI-generated illustration: on a target membrane, an active Rab-GTP anchored by its lipid tail recruits a long tether that holds an incoming vesicle, next to a phosphoinositide patch and target SNAREs. An inset shows a Rab-GDP with its lipid tail wrapped by GDI in the cytosol, and a dashed arrow through a GEF to the membrane-bound Rab-GTP." caption="GDI carries Rab-GDP in the cytosol; at the right membrane a GEF loads GTP, and Rab-GTP recruits effectors such as a tether that catches the vesicle. No single molecule is the address: the Rab, the membrane's lipid and the SNAREs each narrow the choice." />
 
-The film's lit sign over a loading bay is one signal; the tether, the membrane's phosphoinositide and the SNAREs are other signs. No single molecule is the address: each narrows the choice, and the evidence fits a combination better than any one label.
+The film's lit sign over a loading bay is one of several: the tether, the membrane's phosphoinositide and the SNAREs also narrow the choice, and the evidence fits a combination better than any one label.
 
 ## Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them
 
@@ -470,21 +485,25 @@ No. Four floppy strands folding into one tight rope releases free energy, and th
 
 In a cell, SNAREs do not work alone. The main fusion steps that have been studied also need an **SM protein**, named for its first two members, Sec1 and Munc18, which binds SNAREs and helps the right four zip together. On the yeast vacuole the SM protein Vps33 is built into the tether HOPS, so one complex both catches and helps fuse.
 
-That answers the opening puzzle. **Sec1 is the SM protein for the last step of secretion: fusion of secretory vesicles with the plasma membrane.** Everything upstream worked at 37 °C, so invertase-laden vesicles budded from the Golgi and piled up, then fused once Sec1 worked again at 25 °C.
+That answers the opening puzzle. **Sec1 is the SM protein for the last step of secretion: fusion of secretory vesicles with the plasma membrane.** Upstream, invertase-laden vesicles still budded from the Golgi at 37 °C. They piled up, then fused after Sec1 worked again at 25 °C.
 
-Sec1's known job, not the pile, names fusion. The same pile of 80 to 100 nm vesicles appears when the secretory-vesicle Rab (Sec4), its tether (the exocyst) or a SNARE (Sec9, the yeast relative of SNAP-25) fails; a pile cannot tell a vesicle never caught from one caught but unable to fuse. Here, test tubes split them; imaging single vesicles in living cells can too.
+Sec1's known job, not the pile, names fusion. The same pile of 80 to 100 nm vesicles appears when the secretory-vesicle Rab (Sec4), its tether (the exocyst) or a SNARE (Sec9, the yeast relative of SNAP-25) fails; a pile cannot tell a vesicle never caught from one caught but unable to fuse. Test tubes split them; imaging single vesicles in living cells can too. Before that, the steps had to be found and put in order.
+
+The second film picks up here: how a pile of stuck cargo puts the handoffs in order, and how test tubes split catching from fusing.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Putting the handoffs in order: mutants
 
-In 1980 Novick, Field and Schekman enriched dense yeast cells on a Ludox gradient and sorted 188 clones that trapped invertase at 37 °C, the restrictive temperature, into 23 complementation groups (see [complementation and pathways](/lessons/complementation-and-pathways/)): the screen's yield, not the number of genes secretion needs. The SEC numbers carry no information about order; order came from double mutants in 1981.
+In 1980 the density screen from the second film used a Ludox gradient, and Novick, Field and Schekman sorted 188 clones that trapped invertase at 37 °C, the restrictive temperature, into 23 complementation groups (see [complementation and pathways](/lessons/complementation-and-pathways/)): the screen's yield, not the number of genes secretion needs. The SEC numbers carry no information about order; order came from double mutants in 1981.
 
-Here is the logic with made-up numbers. Invertase is measured in arbitrary units after 1 h at 37 °C.
+Now the numbers, made up for practice. Invertase is measured in arbitrary units after 1 h at 37 °C.
 
 > **fraction secreted = external / (external + internal)**
 
 **Step 1.** Wild type: external 180, internal 20, total 200, so 180/200 = 90% secreted. Mutant secX: external 12, internal 188, total 200, so 12/200 = 6%. The block is real.
 
-**Step 2.** Is the trapped invertase dead protein or a stalled intermediate? Shift secX back to 25 °C with cycloheximide to stop new synthesis. After 60 min external is 150 and internal 50, total still 200. The pool released is (188 − 50)/188 = 138/188 = 73.4%. External rose by the same 138 units. The trapped material was deliverable.
+**Step 2.** The recovery test: shift secX back to 25 °C with cycloheximide to stop new synthesis. After 60 min external is 150 and internal 50, total still 200. The pool released is (188 − 50)/188 = 138/188 = 73.4%. External rose by the same 138 units, so the trapped material was deliverable.
 
 **Step 3.** Electron microscopy at 37 °C shows secX accumulates ER, secY accumulates Golgi-like stacks (Berkeley bodies), and secZ accumulates 80 to 100 nm vesicles. The secX secZ double mutant accumulates ER. The secY secZ double accumulates Golgi-like membranes.
 
@@ -497,13 +516,13 @@ Cargo piles up at the first block it meets, so a double mutant looks like the ea
 
 </details>
 
-The rule assumes a linear pathway with arrest states you can tell apart. It orders where transport is blocked, not when a protein acts: a gene product could still act early and be needed only later. And a gene needed at several steps shows only its earliest blocked one. NSF recycles SNAREs at many steps, and in classical sec18 experiments at 37 °C, ER and small ER-derived vesicles piled up, not the late secretory vesicles.
+The rule assumes a linear pathway with arrest states you can tell apart. It orders where transport is blocked, not when a protein acts: a gene product could still act early and be needed only later. A gene needed at several steps shows only its earliest blocked one. NSF resets SNAREs at many steps, and in classical sec18 experiments at 37 °C, ER and small ER-derived vesicles piled up, not late secretory vesicles.
 
 <SecMutantSecretionReader />
 
 ## Splitting catch from fuse: test tubes
 
-Mutants show where cargo stops. Cell-free assays, which mix donor membranes, acceptor membranes, cytosol and ATP, show when each step finishes. Here, docking means vesicles bound to the acceptor membrane, the tethered state.
+Mutants show where cargo stops. Cell-free assays mix donor membranes, acceptor membranes, cytosol and ATP so that individual steps can be timed, removed or rebuilt. In the assays of the second film, docking means vesicles bound to the acceptor membrane, the tethered state.
 
 **Predict.** In 1998 Cao, Ballew and Barlowe ran a yeast ER-to-Golgi assay and added GDI, which pulls Rabs off membranes, at different times. Added at the start, GDI blocked fusion. What happens to its effect if it is added after the vesicles have docked?
 
@@ -514,7 +533,7 @@ It fades. Once vesicles had docked, fusion was no longer sensitive to GDI, so th
 
 </details>
 
-Purified yeast HOPS shows that catching is not fusing: truncated forms lacking parts of Vps11 or Vps18 still tethered Ypt7 liposomes but failed to promote fusion.
+Purified yeast HOPS shows that catching is not fusing: separate forms lacking the beta-propeller domain of Vps11 or Vps18 still tethered Ypt7-bearing liposomes but failed to promote fusion.
 
 ### Design problem
 
@@ -531,7 +550,7 @@ For the tether, run docking and fusion separately with the purified tether, matc
 
 </details>
 
-In one line: coat buds, Rab and tether catch, SNAREs with an SM protein fuse, NSF resets. As the film closes, where cargo stops and when an inhibitor stops mattering point to the failed handoff; Sec1 cells fill with vesicles because the last one, fusion at the surface, fails.
+In one line: coat buds, Rab and tether catch, SNAREs with an SM protein fuse, NSF resets; where cargo stops and when an inhibitor stops mattering point to the failed handoff.
 
 ## Going deeper
 

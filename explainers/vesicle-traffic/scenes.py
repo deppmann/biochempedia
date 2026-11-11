@@ -89,9 +89,9 @@ class TrafficScene(SpokenScene):
             (2.4, .25), (2.5, -.85), (1.6, -1.2), (2.2, 1.25)]])
         self.add(self.cell, self.surface, self.er, self.golgi, self.thermo, self.gauge,
                  self.lamps, names,
-                 label('ER', -4.4, -1.65, TEXT, 28),
+                 label('ER', -4.1, -1.5, TEXT, 28),
                  label('Golgi', -1.5, -1.65, TEXT, 28),
-                 label('surface', 3.3, -2.1, TEXT, 28))
+                 label('surface', 3.6, -2.2, TEXT, 28))
         # A slow membrane contour wave and drifting cisternae keep the actual
         # cell alive while a spoken sentence lands (no decorative particle field).
         self.sway(self.pile)
@@ -149,14 +149,14 @@ class TrafficScene(SpokenScene):
     def bracket(self, fusion_only=False):
         x0 = 2.8 if fusion_only else -.6
         return VGroup(Line([x0, -3.45, 0], [4.4, -3.45, 0], color=RED),
-                      Line([x0, -3.45, 0], [x0, -3.25, 0], color=RED),
-                      Line([4.4, -3.45, 0], [4.4, -3.25, 0], color=RED),
+                      Line([x0, -3.45, 0], [x0, -3.35, 0], color=RED),
+                      Line([4.4, -3.45, 0], [4.4, -3.35, 0], color=RED),
                       label('?', (x0+4.4)/2, -3.64, RED, 28))
 
     def assay(self, wide=False):
-        self.box = DashedVMobject(RoundedRectangle(width=9.3 if wide else 6.2, height=3.6, corner_radius=.15),
-                                 num_dashes=45).set_color(GREY).move_to([-.7 if wide else -2.6, -.15, 0])
-        self.add(self.box, label('cell-free', -3.5, 2.05, TEXT, 28))
+        self.box = DashedVMobject(RoundedRectangle(width=9.3 if wide else 6.2, height=3.6 if wide else 4.2, corner_radius=.15),
+                                 num_dashes=45).set_color(GREY).move_to([-.7 if wide else -2.6, -.15 if wide else .05, 0])
+        self.add(self.box, label('cell-free', -.7 if wide else 1.7, -2.22 if wide else -.15, TEXT, 28))
 
     def clock(self):
         self.remove(self.gauge)
@@ -177,7 +177,7 @@ class TrafficScene(SpokenScene):
         panel.add_updater(lambda m, dt: (setattr(m, 'phase', m.phase+dt), m.set_fill(color=interpolate_color(ManimColor(BG),ManimColor('#24313D'),.13+.11*np.sin(m.phase*1.5))).set_stroke(opacity=.8)))
         if mode == 'coat':
             mem = Line([-5, -.8, 0], [3.5, -.8, 0], color=GREY, stroke_width=9)
-            self.add(mem, label('ER lumen', -4, -1.5, GREY), label('cytosol', 2.6, .8, GREY))
+            self.add(mem, label('ER lumen', -4, -1.5, GREY), label('cytosol', 2.8, .2, GREY))
             return mem
         v = packet(-2.5, -.15, r=.8)
         target = Line([2.3, -1.7, 0], [2.3, 1.4, 0], color=GREY, stroke_width=10)
@@ -249,7 +249,7 @@ class TrafficScene(SpokenScene):
             self.at('the enzymes sit');self.play(Indicate(self.pile,color=YELLOW),run_time=1)
             self.at('back at 25 degrees');self.temperature(False)
             self.at('with protein synthesis blocked')
-            self.add(label('protein synthesis blocked',-.7,2.1,RED,28))
+            self.add(label('protein synthesis blocked',-1.3,1.6,RED,28))
             self.at('the cells secrete them');self.release_pile()
         elif n == 5:
             self.at('every vesicle')
@@ -305,7 +305,7 @@ class TrafficScene(SpokenScene):
                     self.at('pulls it on');self.play(coat.animate.shift(DOWN*.2),run_time=.6)
                 else:
                     self.assay(wide=True);self.at('gtp analog')
-                    badge=chip('GTP analogue · locked',GREEN,size=28).move_to([.4,1.35,0]);self.add(badge)
+                    badge=chip('GTP analogue · locked',GREEN,size=28).move_to([1.6,1.15,0]);self.add(badge)
                     self.at('still butted')
                 v=packet(-.8,-.1,.55)
                 ring=DashedVMobject(Circle(radius=.72,color=BLUE,stroke_width=6),num_dashes=15).move_to(v)
@@ -350,7 +350,7 @@ class TrafficScene(SpokenScene):
                 self.at('at the right membrane')
                 self.play(FadeOut(cup,shift=UP*.7),FadeOut(gdil),VGroup(rab,tail,badge).animate.shift(LEFT*.5),run_time=.7)
                 self.at('an exchange factor')
-                exchange=chip('exchange factor',TEXT,size=28).move_to([.8,-1.3,0]);self.add(exchange)
+                exchange=chip('exchange factor',TEXT,size=28).move_to([0,-1.3,0]);self.add(exchange)
                 self.at('loads gtp')
                 self.play(Transform(badge,chip('GTP',GREEN,size=28).move_to(badge)),run_time=.6)
             else:
@@ -396,20 +396,20 @@ class TrafficScene(SpokenScene):
                     self.at('no atp');self.play(Create(Cross(atp,stroke_color=GOLD)),run_time=.4)
         elif n==18:
             self.at('sec1 is the sm protein')
-            self.add(chip('Sec1 · SM protein',PURPLE,size=28,fill_opacity=0).move_to([.2,1.75,0]))
+            self.add(chip('Sec1 · SM protein',PURPLE,size=28,fill_opacity=0).move_to([-1.2,1.65,0]))
             self.lamp(0);b=self.bracket();self.add(b)
             self.at('that step is fusion');self.play(Transform(b,self.bracket(True)),run_time=.9)
         elif n==19:
             self.temperature(True,False)
-            sm=chip('Sec1',RED,size=28).move_to([.3,1.75,0]);self.add(sm)
+            sm=chip('Sec1',RED,size=28).move_to([-1.2,1.65,0]);self.add(sm)
             self.at('vesicles still bud');self.lamp(0)
             self.play(self.level.animate.set_value(8),run_time=.7)
             self.at('back at 25');self.temperature(False)
             self.at('sec 1 works again');self.play(sm.animate.set_color(PURPLE),run_time=.4)
             self.at('the stored vesicles fuse');self.release_pile();self.lamp(2)
         elif n==20:
-            self.at('but the pile alone');self.add(label('docking unknown',-.8,2.1,TEXT,28))
-            badge=chip('Rab',TEAL,size=28).move_to([-.4,1.4,0]);fault=label('×',1.2,1.4,RED,40)
+            self.at('but the pile alone');self.add(label('docking unknown',-.8,1.95,TEXT,28))
+            badge=chip('Rab',TEAL,size=28).move_to([.5,1.25,0]);fault=label('×',1.55,1.8,RED,40)
             self.at('a failed rab');self.add(badge,fault)
             self.at('tether');self.play(Transform(badge,chip('tether',TEAL,size=28).move_to(badge)),run_time=.2)
             self.at('or snare');self.play(Transform(badge,chip('SNARE',PURPLE,size=28).move_to(badge)),run_time=.3)
@@ -424,12 +424,12 @@ class TrafficScene(SpokenScene):
         elif n in (22,23,24):
             self.assay();self.clock()
             v=packet(-2.8,-.15,.3);self.add(v)
-            rab=chip('Rab · GDP' if n==22 else 'Rab · GTP',TEAL,size=28).move_to([-2.2,1.15,0]);self.add(rab)
+            rab=chip('Rab · GDP' if n==22 else 'Rab · GTP',TEAL,size=28).move_to([-2.0,1.55,0]);self.add(rab)
             tether=Line([-2.3,-.15,0],[-1.65,-.15,0],color=TEAL,stroke_width=6)
             if n==22:
                 self.at('gdi which pulls')
-                gdi=chip('GDI',PINK,size=28).move_to([-4.6,1.2,0]);self.add(gdi)
-                self.play(VGroup(gdi,rab).animate.shift(UP*.25),run_time=1)
+                gdi=chip('GDI',PINK,size=28).move_to([-3.8,1.55,0]);self.add(gdi)
+                self.play(VGroup(gdi,rab).animate.shift(RIGHT*.2),run_time=1)
                 self.at('blocks fusion');self.lamp(2,RED)
                 self.at('what if it is added')
                 self.remove(gdi,rab);self.lamps[2].set_color(GREY).set_fill(BG,opacity=1)
@@ -440,9 +440,9 @@ class TrafficScene(SpokenScene):
             else:
                 v.move_to([-2,-.15,0]);self.add(tether);self.lamps[1].set_color(GREEN).set_fill(GREEN,opacity=1)
                 self.at('its effect fades')
-                gdi=chip('GDI',PINK,size=28).move_to([-.2,.8,0]);self.add(gdi)
-                self.play(gdi.animate.shift(DOWN*.4),run_time=.6)
-                self.play(gdi.animate.shift(UP*.4),run_time=.6)
+                gdi=chip('GDI',PINK,size=28).move_to([-.1,1.55,0]);self.add(gdi)
+                self.play(gdi.animate.shift(DOWN*.2),run_time=.6)
+                self.play(gdi.animate.shift(UP*.2),run_time=.6)
                 self.at('once vesicles had docked')
                 self.play(v.animate.move_to([-1.65,-.15,0]),run_time=.7)
                 self.at('fusion was no longer sensitive')
@@ -557,14 +557,3 @@ class S25Return(TrafficScene):
 
 class S26End(EndCard):
     LINE = 'Bud, catch, fuse: three handoffs, and each can fail alone.'
-
-    def construct(self):
-        line=VGroup(T('Bud, catch, fuse: three handoffs,',size=42,font=TITLE_FONT),
-                    T('and each can fail alone.',size=42,font=TITLE_FONT)).arrange(DOWN,buff=.35)
-        fit(line,max_w=12.5)
-        lamps=VGroup(*[Circle(radius=.2,color=c,fill_color=c,fill_opacity=1) for c in [BLUE,TEAL,PURPLE]]).arrange(RIGHT,buff=1.4).shift(DOWN*1.6)
-        self.add(line,lamps)
-        for lamp in lamps:
-            lamp.phase=0
-            lamp.add_updater(lambda m,dt:(setattr(m,'phase',m.phase+dt),m.set_fill(opacity=.7+.3*np.sin(m.phase*2))))
-        self.wait(4)

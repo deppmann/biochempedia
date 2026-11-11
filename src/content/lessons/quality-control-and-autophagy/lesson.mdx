@@ -9,7 +9,7 @@ summary: >-
   follows failed proteins from the endoplasmic reticulum to the proteasome, follows cytoplasmic
   cargo to the lysosome by autophagy, and uses one mass-balance rule to interpret LC3-II flux.
   Afterwards you can decide whether a mutant or drug changes folding, disposal or signalling.
-hook: "A starving yeast cell eats pieces of itself. Why does a mutant that cannot do so die sooner?"
+hook: "When material piles up in a cell, is more arriving or less leaving, and how can you tell?"
 
 estMinutes: 24
 objectives:
@@ -32,6 +32,22 @@ explainer:
     - "In macroautophagy, autophagosomes carry bulk cytoplasm and whole organelles to lysosomes."
     - "During starvation, autophagy recycles cell material into reusable building blocks."
     - "Under a complete lysosomal block that leaves carrier formation unchanged, the extra LC3-II estimates lysosomal turnover."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/quality-control-and-autophagy/chapter-2.mp4"
+    captions: "/explainers/quality-control-and-autophagy/chapter-2.vtt"
+    poster: "/explainers/quality-control-and-autophagy/chapter-2-poster.jpg"
+    title: "When the ER Falls Behind"
+    durationSec: 165.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Many secreted and membrane protein chains enter the ER and fold with chaperones such as BiP; folded clients can leave for the Golgi."
+      - "A persistently misfolded client can enter ERAD: it is moved toward the cytosol, ubiquitinated, extracted and destroyed by the proteasome."
+      - "When unfolded proteins arrive faster than the ER can clear them, the unfolded protein response slows arrival and raises capacity."
+      - "Mammals have three UPR branches, IRE1, PERK and ATF6; budding yeast relies on one ER-stress sensor, Ire1."
+      - "If ER stress is not relieved, the response can also drive cell death."
 
 scientists:
   - name: "Yoshinori Ohsumi"
@@ -384,10 +400,11 @@ draft: false
 
 import AutophagyFluxBlot from '../../../components/AutophagyFluxBlot.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Starve a yeast cell of nitrogen and it starts to digest pieces of its own cytoplasm. A mutant that cannot do this loses viability faster than normal yeast during the starvation. Why?**
 
-The film showed one moving map: quality-control cargo arrives, takes a disposal route and leaves, so a pile alone cannot reveal its flow. The rest of the page first tests that rule on LC3-II data, then asks how the ER retries or rejects a client and how a damaged mitochondrion is selected; each case comes back to arrival versus clearance. The film's closing questions—how fast does material arrive, and how fast does it leave?—are answered first in the worked problem below.
+The first film followed cargo to two exits and ended on two questions: how fast does material arrive, and how fast does it leave? What it left out is how to measure those rates, which the worked problem below does with numbers, and how the ER and a damaged mitochondrion are handled, which come after.
 
 In 1993, Miki Tsukada and Yoshinori Ohsumi found that the autophagy-defective yeast mutant *apg1* failed to induce protein degradation in the vacuole, the yeast counterpart of a lysosome, and lost viability faster during nitrogen starvation. The experiment supports a role in survival without establishing a sole cause.
 
@@ -395,15 +412,15 @@ In 1993, Miki Tsukada and Yoshinori Ohsumi found that the autophagy-defective ye
 
 ## Physical constraints on the two exits
 
-The film's two routes have different physical jobs because they admit cargo differently. The **26S proteasome**, found in the cytosol and nucleus, has a hollow 20S core whose active sites face inward. Its regulatory caps recognise ubiquitin chains, remove ubiquitin for reuse, and use ATP to unfold and thread an engaged protein into the core. The tagging system is covered in [ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/), and the chemistry in [protein turnover](/lessons/protein-turnover-amino-acid-catabolism/).
+The two exits have different physical jobs because they admit cargo differently. The **26S proteasome**, found in the cytosol and nucleus, has a hollow 20S core whose active sites face inward. Its regulatory caps recognise ubiquitin chains, remove ubiquitin for reuse, and use ATP to unfold and thread an engaged protein into the core. The tagging system is covered in [ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/), and the chemistry in [protein turnover](/lessons/protein-turnover-amino-acid-catabolism/).
 
 In a **lysosome**, a V-ATPase—an ATP-powered proton pump—acidifies the lumen so digestive enzymes called hydrolases work well (see [organelles as environments](/lessons/organelles-as-environments/)). Material also arrives from outside by endocytosis. In macroautophagy, the main form of autophagy, a cup-shaped membrane grows around a portion of cytoplasm and closes into an autophagosome bounded by two membranes. The autophagosome fuses with a lysosome, and the inner membrane and its contents are digested; the building blocks return to the cytosol. Starvation can raise this through nutrient-sensing kinases such as mTOR (see [mTOR and AMPK](/lessons/mtor-and-ampk/)). Ohsumi's yeast genes, later renamed *ATG* genes, encode much of the machinery, including a system that attaches LC3 (Atg8 in yeast) to phosphatidylethanolamine; this lipid-linked **LC3-II** coats autophagosome membranes, and inner-membrane copies are destroyed in the lysosome.
 
-The film's individual-protein-versus-bulk contrast follows from these physical constraints, but it is a scoped model rather than a rule that cargo size alone determines fate. Going deeper gives the overlap that qualifies this comparison.
+The first film used the simplest case, single proteins to one exit and bulk cargo to the other; cargo size alone does not decide fate, and Going deeper gives the overlap.
 
 ## Read a flow, not a still picture
 
-The film's arrival-minus-clearance rule becomes useful when an experiment turns one of those rates down. Counting LC3 dots or measuring one LC3-II band still cannot distinguish faster carrier formation from slower destruction.
+Arrival minus clearance becomes useful when an experiment turns one of those rates down. Counting LC3 dots or measuring one LC3-II band still cannot distinguish faster carrier formation from slower destruction.
 
 **Worked problem: autophagic flux.** Cultured cells are immunoblotted for LC3-II, with each band normalized to actin and control set to 1.0. Bafilomycin A1 inhibits the V-ATPase, suppressing lysosomal degradation under these assay conditions. It is added for the last few hours. Assume a saturating dose, high enough for a complete block, plus linear LC3-II accumulation and no change in carrier formation over that interval.
 
@@ -430,11 +447,13 @@ LC3-II marks the carrier, not its cargo, so confirm the interpretation with carg
 
 For a real LC3-II turnover assay, use the inhibitor at a saturating dose for a short enough time that accumulation stays in its linear range and secondary effects are limited. The estimate remains conditional on the inhibitor not changing carrier formation; Going deeper gives one way that assumption can fail.
 
+The same two questions apply upstream, where proteins are made rather than destroyed. The second film picks up here: what the ER does when unfinished proteins arrive faster than it can fold or remove them.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## The ER: retry, remove, raise capacity
 
-The same moving-pool logic applies upstream: the ER can retry a folding client, remove it or raise capacity. Its lumen is a folding compartment for secreted and membrane proteins (see [protein sorting](/lessons/protein-sorting/)). A new chain enters through the translocon, a protein-conducting channel. BiP, an Hsp70-family chaperone, binds exposed hydrophobic stretches and helps it fold.
-
-The film's picture was the simple case; here is the fuller one: the sugar tag that runs the retry loop. Many entering proteins receive an **N-linked glycan**, a branched sugar tree attached to asparagine with three glucose residues at its tip. Glucosidases remove two. When one remains, the **lectin chaperones** calnexin, which is membrane-bound, and calreticulin, which is soluble, bind that sugar and hold the client for another folding attempt. Glucosidase II removes the last glucose and releases the protein.
+The same moving-pool logic applies upstream: the ER can retry a folding client, remove it, slow new arrival or raise capacity. Its lumen is the folding compartment for secreted and membrane proteins (see [protein sorting](/lessons/protein-sorting/)). A new chain enters through the translocon, a protein-conducting channel. BiP, an Hsp70-family chaperone, binds exposed hydrophobic stretches and helps it fold. What the second film left out is the sugar code its other chaperones read. Many entering proteins receive an **N-linked glycan**, a branched sugar tree attached to asparagine with three glucose residues at its tip. Glucosidases remove two. When one remains, the **lectin chaperones** calnexin, which is membrane-bound, and calreticulin, which is soluble, bind that sugar and hold the client for another folding attempt. Glucosidase II removes the last glucose and releases the protein.
 
 Now comes the test. UGGT recognizes features of a still-non-native client and adds one glucose back. That glucose is not a permanent label for a bad protein; it is a ticket for another round with calnexin or calreticulin. A client that has reached its native state is not reglucosylated and can leave for the Golgi.
 
@@ -447,11 +466,9 @@ UGGT adds one glucose back. The client can bind calnexin or calreticulin again a
 
 </details>
 
-A client that cycles too long can be diverted to **ER-associated degradation**, or **ERAD**. In the standard account, trimming mannose residues from its glycan helps mark it. ERAD must then move a failed protein from the ER lumen to a proteasome in the cytosol.
+A client that cycles too long can be diverted to **ER-associated degradation** (**ERAD**). In the standard account, trimming mannose residues from its glycan helps mark it. ERAD must move the failed client from the ER lumen toward a proteasome in the cytosol. The return trip across the ER membrane is called **retrotranslocation**. Hrd1 is a yeast ER-membrane E3 ligase that adds a ubiquitin chain as the client moves toward the cytosol. The ATP-powered extraction machine Cdc48—p97 or VCP in mammals—pulls out the ubiquitinated client for delivery to the proteasome. The exact channel and the limits of the yeast reconstitution are in Going deeper.
 
-Moving back across the ER membrane is called **retrotranslocation**. An ER-membrane E3 ligase, an enzyme that transfers ubiquitin, adds a ubiquitin chain; Hrd1 is one such ligase in yeast. The ATP-powered extraction machine Cdc48—p97 or VCP in mammals—pulls the client out and passes it to the proteasome. The exact channel and the limits of the yeast reconstitution are in Going deeper.
-
-<LessonFigure src="/figures/quality-control-and-autophagy/erad-route-hrd1-cdc48.webp" width={1200} height={790} alt="AI-generated illustration: an ER membrane with a misfolded protein moving from the lumen through a dashed, questioned Hrd1 block, pulled out by a Cdc48 ring and fed into a proteasome barrel, with a small inset of a lipid vesicle used in the reconstitution experiment." caption="The ER membrane separates a failed luminal client from cytosolic ubiquitin, Cdc48 and the proteasome; the dashed Hrd1 block marks a proposed passage." />
+<LessonFigure src="/figures/quality-control-and-autophagy/erad-route-hrd1-cdc48.webp" width={1200} height={790} alt="AI-generated illustration: an ER membrane with a misfolded protein moving from the lumen through a dashed, questioned Hrd1 block, pulled out by a Cdc48 ring and fed into a proteasome barrel, with a small inset of a lipid vesicle used in the reconstitution experiment." caption="As a failed ER client returns toward the cytosol, it is ubiquitinated, pulled out by Cdc48 and destroyed; the dashed Hrd1 passage is only proposed." />
 
 **Predict.** In a cycloheximide chase, the drug cycloheximide stops protein synthesis so disappearance of an existing protein can be followed. An ERAD substrate falls by half every 20 minutes in wild-type yeast. What remains after 60 minutes, and what should happen if Hrd1 is required for its degradation?
 
@@ -462,21 +479,21 @@ Three half-lives leave one eighth, or 12.5%, in wild type. If Hrd1 is required f
 
 </details>
 
-When failures arrive faster than the ER can handle them, the **unfolded protein response**, or **UPR**, changes capacity. It raises folding and disposal machinery and, through PERK in mammals, slows the incoming load of new proteins. If stress is not relieved, it can also drive cell death (see [cell death](/lessons/cell-death/)). Budding yeast has one branch: the sensor Ire1 cuts an intron from *HAC1* mRNA so the Hac1 transcription factor can be made. Mammals have three overlapping branches:
+When failures arrive faster than the ER can handle them, the **unfolded protein response** (**UPR**) raises folding and disposal machinery and, through PERK in mammals, slows the incoming load of new proteins. If stress is not relieved, the response can also drive cell death; how it does so is covered in [cell death](/lessons/cell-death/). In budding yeast, the single ER-stress sensor Ire1 cuts an intron from *HAC1* mRNA so the Hac1 transcription factor can be made. The three mammalian branches:
 
 - **IRE1** removes a 26-nucleotide intron from *XBP1* mRNA, as shown for mouse XBP1, producing the active transcription factor XBP1s.
 - **PERK** phosphorylates eIF2α on serine 51, slowing most translation while permitting preferential translation of ATF4 (see [stress signals](/lessons/stress-signals/)).
 - **ATF6** travels to the Golgi, where Site-1 and Site-2 proteases cut it to release a transcription factor.
 
-<LessonFigure src="/figures/quality-control-and-autophagy/upr-branches-yeast-and-mammal.webp" width={1200} height={791} alt="AI-generated illustration: an ER membrane with three sensors; IRE1 removes an intron from XBP1 mRNA, PERK phosphorylates eIF2alpha, and ATF6 travels to the Golgi to be cut, with a small inset of the single yeast sensor Ire1 acting on HAC1 mRNA." caption="Yeast Ire1 and the three mammalian sensor branches connect ER stress to cytosolic outputs." />
+<LessonFigure src="/figures/quality-control-and-autophagy/upr-branches-yeast-and-mammal.webp" width={1200} height={791} alt="AI-generated illustration: an ER membrane with three sensors; IRE1 removes an intron from XBP1 mRNA, PERK phosphorylates eIF2alpha, and ATF6 travels to the Golgi to be cut, with a small inset of the single yeast sensor Ire1 acting on HAC1 mRNA." caption="Yeast relies on one ER stress sensor, Ire1, while mammals spread the alarm across three overlapping branches." />
 
 ## Selective autophagy: choosing a mitochondrion
 
-The film treated a damaged mitochondrion as cargo ready to wrap; selective autophagy explains how that cargo is chosen. In **selective autophagy**, receptors link chosen cargo to the LC3 family. **Mitophagy** is selective autophagy of mitochondria.
+The first film wrapped a damaged mitochondrion without asking how it was picked; selective autophagy is how that cargo is chosen. In **selective autophagy**, receptors link chosen cargo to the LC3 family. **Mitophagy** is selective autophagy of mitochondria.
 
 One well-tested route begins when a mitochondrion loses its membrane potential, the voltage across its inner membrane. In cultured cells, the kinase PINK1 is broken down on healthy, polarized mitochondria but builds up on depolarized ones and recruits Parkin, a ubiquitin ligase. Parkin adds ubiquitin to outer-membrane proteins, and ubiquitin-binding receptors recruit the autophagy machinery that engulfs the mitochondrion.
 
-<LessonFigure src="/figures/quality-control-and-autophagy/pink1-parkin-mitophagy-limits.webp" width={1200} height={722} alt="AI-generated illustration: two mitochondria side by side; on the healthy one PINK1 is cut into fragments and Parkin floats free, while on the depolarized one PINK1 builds up, Parkin arrives and ubiquitin tags the surface before a membrane cup engulfs it, with a questioned side arrow for other routes." caption="Ubiquitin provides a surface signal that links a depolarized mitochondrion to engulfing autophagy machinery." />
+<LessonFigure src="/figures/quality-control-and-autophagy/pink1-parkin-mitophagy-limits.webp" width={1200} height={722} alt="AI-generated illustration: two mitochondria side by side; on the healthy one PINK1 is cut into fragments and Parkin floats free, while on the depolarized one PINK1 builds up, Parkin arrives and ubiquitin tags the surface before a membrane cup engulfs it, with a questioned side arrow for other routes." caption="In cultured cells, a depolarized mitochondrion is chosen for autophagy once PINK1 builds up, Parkin arrives and ubiquitin coats its surface." />
 
 **Predict.** In mouse fibroblasts lacking Atg5, a protein needed for conventional autophagosome building, Parkin still gathers on depolarized mitochondria, but the mitochondria remain. Which step needs Atg5: Parkin recruitment, mitochondrial clearance, or both?
 
@@ -491,7 +508,7 @@ PINK1 and Parkin are a well-proven route for damaged mitochondria in cultured ce
 
 ### Design problem
 
-The film's question of arrival versus clearance also helps distinguish a broken disposal route from a broken stress alarm.
+The ER's two systems from the second film, a disposal route and a stress alarm, can fail separately, and telling which one broke is a design problem.
 
 A mutant yeast strain accumulates a misfolded ER membrane protein. Is ERAD blocked, or is the UPR broken? Design experiments that tell the two apart, and write down what each model predicts before you run them.
 
@@ -520,7 +537,7 @@ If the chase, the ubiquitin blot and the rescue all point to *HRD1*, and splicin
 
 ## Going deeper
 
-The film's route map and the main text use deliberately simple cases. These refinements show where that picture is client-dependent, where routes overlap and where an assay can mislead.
+These refinements show where the picture is client-dependent, where routes overlap and where an assay can mislead.
 
 ### UPR discovery and branch overlap
 
