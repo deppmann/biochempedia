@@ -29,6 +29,22 @@ explainer:
     - "Under the usual gut gradients, apical SGLT1 and basolateral GLUT2 bias glucose flow toward the blood."
     - "The seal between the cells does not choose the direction; it decides what can slip between them, and so what can leak back."
 
+films:
+  - id: "the-seal-and-the-sides"
+    src: "/explainers/epithelia/the-seal-and-the-sides.mp4"
+    captions: "/explainers/epithelia/the-seal-and-the-sides.vtt"
+    poster: "/explainers/epithelia/the-seal-and-the-sides-poster.jpg"
+    title: "The Seal and the Sides"
+    durationSec: 207.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "The tight junction is a selective gate near the apical edge, not a watertight plug."
+      - "Claudin proteins build the branching strands of the tight junction."
+      - "TEER measures how freely ions cross the whole sheet, not which ion or route, or whether larger molecules leak."
+      - "Polarity proteins and targeted traffic help keep apical and basolateral faces distinct."
+      - "Other junctions grip neighbours, connect their cytosols or anchor cells to the basement membrane."
+
 scientists:
   - name: "Marilyn G. Farquhar"
     contribution: >-
@@ -388,14 +404,13 @@ draft: false
 import TeerCalculator from '../../../components/TeerCalculator.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-The film followed glucose through one gut cell. The lining is an **epithelium**, a sheet of cells that covers a surface or lines a tube. In a simple epithelium, one cell thick like this, each cell's **apical** face looks toward a lumen (the space inside a tube) or the outside world, and its **basolateral** face toward its neighbours and the basement membrane, a mat of extracellular matrix ([adhesion and the extracellular matrix](/lessons/adhesion-and-ecm/)). The faces' different proteins and lipids are its **apicobasal polarity**.
+Film 1 followed glucose through one gut cell; what it left out is the sheet itself and the real seal. The lining is an **epithelium**, a sheet of cells that covers a surface or lines a tube. In a simple epithelium, one cell thick like this, each cell's **apical** face looks toward a lumen (the space inside a tube) or the outside world, and its **basolateral** face toward its neighbours and the basement membrane, a mat of extracellular matrix ([adhesion and the extracellular matrix](/lessons/adhesion-and-ecm/)). The faces' different proteins and lipids are its **apicobasal polarity**.
 
 > **The one idea.** For glucose in the gut under the usual gradients, apical SGLT1 and basolateral GLUT2 bias transport toward the blood. The seal does not orient that pathway; it decides what can slip between the cells, and so what can leak back.
 >
-> *Scope:* glucose across a simple vertebrate epithelium. Other epithelia also secrete and place their carriers differently, and a carrier's direction also depends on the gradients it meets. The film's glucose-leaking seal was a thought experiment; the real one is in The seal, below.
-
-The rest of the page asks how far uphill the carriers can push and at what cost, then what the real seal passes and how it is measured, then what keeps each carrier on its face and holds the sheet together. Each is about the carriers, the seal or the faces, so each comes back to the film. Plants close the page as a contrast.
+> *Scope:* glucose across a simple vertebrate epithelium. Other epithelia also secrete and place their carriers differently, and a carrier's direction also depends on the gradients it meets. Film 1 used the simplest case of the seal, the tight junction; the real seal is below.
 
 ## How far uphill, and at what cost
 
@@ -453,9 +468,13 @@ The toxin leaves SGLT1 working. Each glucose taken up brings two sodium ions in 
 
 </details>
 
+Salt and water follow glucose through the cells, but some also cross between them; chapter 2 of the film turns to the seal that governs that route and the sides that keep the faces apart.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## The seal: what passes between the cells
 
-The film's seal was the simple case, a thought experiment in which glucose slipped between the cells. Here is the fuller picture: much of the water and some of the salt that follow glucose do cross between the cells, through a seal that is choosy.
+Film 2 showed the seal as a selective gate; here is what the experiments behind it show. Much of the water and some of the salt that follow glucose do cross between the cells.
 
 The seal is the **tight junction**, the most apical junction between neighbours. In 1963 Marilyn Farquhar and George Palade surveyed epithelia from rat and guinea-pig organs by electron microscopy ([microscopy and images](/lessons/microscopy-and-images/)). In rat kidney tubules filled with hemoglobin, the tracer stopped at the zonula occludens, the junction now called the tight junction. That placed a barrier there for a protein-sized tracer. It did not show that the junction is closed to ions.
 
@@ -472,13 +491,13 @@ What the strands are made of. In 2001 Furuse's group found that MDCK II cells ma
 
 </details>
 
-So the seal is choosy: for small ions, which claudins a tissue makes largely decides what passes. This is the **gate** function. Claudin-2 is thought to form a **paracellular pore**, a channel through the strands that favours cations; the 2001 experiment fits that idea but does not test it (the design problem below shows how).
+So for small ions, which claudins a tissue makes largely decides what passes: the **gate** function. Claudin-2 is thought to form a **paracellular pore**, a channel through the strands that favours cations; the 2001 experiment fits that idea but does not test it (the design problem below shows how).
 
-The small intestine is a **leaky** epithelium, like the kidney's proximal tubule: its seal strongly restricts bacteria and large molecules but lets sodium and water through claudin pores. The distal colon, urinary bladder and collecting duct are **tight**. A leaky epithelium uses both routes at once. Claudin pores are narrow, though: claudin-2 pores do not pass even mannitol, an uncharged molecule about glucose's size. So for glucose the seal mainly governs the ions and water that travel with it, not the direction; only a larger, glucose-permeable leak would let much glucose slip back, as in the film.
+Like the small intestine, the kidney's proximal tubule is a **leaky** epithelium; the distal colon, urinary bladder and collecting duct are **tight**. A leaky epithelium uses both routes at once. Claudin pores are narrow, though: claudin-2 pores do not pass even mannitol, an uncharged molecule about glucose's size. So for glucose the seal mainly governs the ions and water that travel with it, not the direction; only a larger, glucose-permeable leak would let much glucose slip back, as in the film.
 
 ## Measuring the seal: TEER
 
-Saying how leaky a seal is takes a number, and the claudin results above rest on this one. TEER, transepithelial electrical resistance, is measured on cells grown as a sheet on a porous filter insert. Here are made-up numbers. MDCK monolayers grow on inserts of area 1.12 cm². A blank insert with no cells reads 120 ohm. A control MDCK I monolayer reads 3,000 ohm, and one expressing claudin-2 reads 250 ohm.
+The claudin results above rest on film 2's measurement, TEER (transepithelial electrical resistance), taken on cells grown as a sheet on a porous filter insert. Here are made-up numbers. MDCK monolayers grow on inserts of area 1.12 cm². A blank insert with no cells reads 120 ohm. A control MDCK I monolayer reads 3,000 ohm, and one expressing claudin-2 reads 250 ohm.
 
 1. Subtract the blank, because the filter and fluid add resistance of their own. Control: 3,000 − 120 = 2,880 ohm. Claudin-2: 250 − 120 = 130 ohm.
 
@@ -493,7 +512,7 @@ Lower: resistors in parallel pass more current together. So multiply by area, ne
 
 2. Multiply by area. Control: 2,880 × 1.12 = 3,225.6 ohm·cm². Claudin-2: 130 × 1.12 = 145.6 ohm·cm².
 3. Compare: 3,225.6 / 145.6 = 22.2-fold drop, the size of effect Furuse and colleagues reported.
-4. Know the limit. TEER measures how easily ions carry current through and between the cells (often mostly between, in leaky sheets). It does not say which route or ion, or whether sugars or proteins leak.
+4. Know the limit film 2 gave: TEER measures how easily ions carry current through and between the cells (often mostly between, in leaky sheets).
 
 > **TEER (ohm·cm²) = (R monolayer − R blank) × area of insert**
 
@@ -539,7 +558,7 @@ What keeps SGLT1 on the apical face and the pump on the basolateral one? In the 
 
 ## Holding the sheet together: the rest of the stack
 
-The faces and the seal matter only while the sheet stays in one piece. Below the seal, more junctions are stacked down the side of the cell in a characteristic order; all but the gap junction link inside to the cytoskeleton.
+The faces and the seal matter only while the sheet stays in one piece. Below the seal, more junctions are stacked down the side of the cell in a characteristic order: the adherens junction (a belt coupling neighbours' actin), desmosomes (spot welds), gap junctions (channels between cytosols) and, at the base, hemidesmosomes (anchors to the basement membrane). All but the gap junction link inside to the cytoskeleton.
 
 | Junction, top to bottom | Transmembrane protein | Inside partner | Job |
 |---|---|---|---|
