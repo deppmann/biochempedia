@@ -377,52 +377,145 @@ draft: false
 
 import DynamicInstabilityTrace from '../../../components/DynamicInstabilityTrace.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
 **Watch one microtubule grow from a seed in a dish of purified tubulin and it will not settle down. It lengthens slowly for minutes, then shrinks many times faster, and sometimes starts growing again.**
 
-A crystal in its solution does not behave like this. The instability is not a defect. A cell uses it: ends that grow and collapse by themselves let a microtubule array search the cell interior, keep the ends that find a target, and rebuild quickly when the cell changes shape or divides. Actin is turned over in a regulated way too, which lets a cell build and take down protrusions. This lesson asks what the cell's three filament systems are made of, what decides whether an end grows or shrinks, and why two of the three spend nucleotide energy in a way that keeps them unstable.
+A crystal in its solution does not behave like this: it grows until crystal and solution reach a balance, then stops growing. And the instability is not a defect. Ends that grow and collapse by themselves let a microtubule array search the cell interior, keep the ends that find a target, and rebuild quickly when the cell changes shape or divides; regulated actin turnover lets a cell build and take down protrusions. This lesson asks what the three filament systems are made of, what decides whether an end grows or shrinks, and why two of them spend nucleotide energy in a way that keeps them unstable.
 
 ## Three polymers built for different jobs
 
 The cytoskeleton is the set of protein filaments in the cytosol, the fluid part of the cytoplasm outside organelles. It has three classes.
 
-**Actin filaments** are about 7 nm wide. Each subunit is a globular actin molecule that joins the filament carrying ATP. Subunits add head to tail, so the filament has two different ends, called the barbed end and the pointed end after the arrowhead pattern seen when myosin fragments decorate a filament in the electron microscope.
+| | Actin filament | Microtubule | Intermediate filament |
+| --- | --- | --- | --- |
+| Subunit | globular actin | α/β-tubulin heterodimer | fibrous proteins (vimentin in fibroblasts, keratins in epithelial cells) |
+| Width | about 7 nm | about 25 nm, a hollow tube of (usually) 13 protofilaments | about 10 nm |
+| Two different ends? | yes: barbed and pointed | yes: plus (β-tubulin exposed) and minus | no |
+| Nucleotide | ATP | GTP | none, and no enzyme activity |
+| Bending | in between | stiffest | most flexible |
 
-**Microtubules** are hollow tubes about 25 nm wide, built from α/β-tubulin heterodimers that bind GTP. Dimers stack head to tail into protofilaments, and usually 13 protofilaments lie side by side to close the tube. Thirteen is usual, not universal. Every dimer points the same way, so the tube has a plus end, where β-tubulin is exposed, and a minus end.
+Actin's barbed and pointed ends are named after the arrowhead pattern seen when myosin fragments decorate a filament in the electron microscope. Actin subunits add head to tail, which is why the filament has two different ends. Tubulin dimers also stack head to tail, into rows called protofilaments, and usually (not always) 13 rows lie side by side to close the tube. Every dimer points the same way, so the tube has a plus end and a minus end. In vimentin and other cytoplasmic intermediate filaments, two coiled-coil dimers line up antiparallel and half staggered to form a tetramer, and a building block that points both ways gives a filament with no polarity. These filaments are not permanent: they exchange subunits slowly, and cells take them apart by phosphorylation, as with the nuclear lamins at mitosis.
 
-**Intermediate filaments** are about 10 nm wide and are built from a family of related fibrous proteins, such as vimentin in fibroblasts and keratins in epithelial cells. In vimentin and other cytoplasmic intermediate filaments, two coiled-coil dimers line up antiparallel and half staggered to form a tetramer. A building block that points both ways gives a filament with no polarity. The proteins also bind no nucleotide and have no enzyme activity of their own.
-
-In comparisons of purified filaments, microtubules are the stiffest in bending, which suits them to serve as tracks and struts. Intermediate filaments are the most flexible in bending, yet a single filament can be stretched beyond two or three times its resting length without breaking. Think of a rope beside a fishing rod: the rope bends at a touch and is far harder to snap. Flexible is not the same as weak, because bending and stretching are different tests.
+In comparisons of purified filaments, microtubules are the stiffest in bending, which suits them to serve as tracks and struts. Intermediate filaments are the most flexible in bending, yet a single filament can be stretched beyond two or three times its resting length without breaking. Think of a rope beside a fishing rod: the rope bends at a touch and is far harder to snap. Flexible is not weak; bending and stretching are different tests.
 
 <LessonFigure src="/figures/cytoskeleton-dynamics/three-polymers-side-by-side.webp" width={1200} height={591} alt="AI-generated illustration: three filament segments side by side at the same scale; a thin actin filament with an arrowhead end, a thick hollow microtubule with a plus end, and a rope-like intermediate filament built from antiparallel tetramers." caption="Three polymers drawn to the same scale. Actin and microtubules have two different ends; the intermediate filament's building block points both ways, so its two ends are alike." />
 
-## Polymer arithmetic: critical concentration and treadmilling
+> **The one idea to carry through this lesson.** Each filament end, in a given state, has a critical concentration, Cc = koff / kon: the free subunit concentration at which subunits join the end as fast as they leave. Above it the end grows; below it the end shrinks. If subunits never hydrolysed their nucleotide, every end of a polymer would share one Cc, and the polymer would simply settle. Hydrolysis after assembly makes old subunits hold on less tightly, so a polymer gets two kinds of end. A **tight** end carries fresh nucleotide and has a low Cc. A **loose** end carries old nucleotide and has a high Cc. When the free subunit concentration sits between the two Ccs, the polymer cannot come to rest with nothing moving. **Actin** puts the two kinds at its two ends, so it treadmills: the difference is in *space*. **A microtubule end** switches between the two kinds over *time*: it grows while it keeps its GTP cap and collapses when it loses the cap. That is dynamic instability.
 
-Treat a filament end as a doorway. Subunits arrive at a rate proportional to the free subunit concentration C, and leave at a rate that does not depend on C:
+This rule is for single ends with purified proteins. It says *whether* a polymer can settle and *which way* each end moves, not the rates in a cell, where accessory proteins (profilin, formins, cofilin, capping protein, EB proteins and others) change them, some by an order of magnitude or more. It does not say *when* a capped end loses its cap. Intermediate filaments, with no nucleotide and one kind of end, are the contrast case: the rule predicts neither treadmilling nor instability.
 
-> net rate at one end (subunits per second) = kon × C − koff
+*The film at the top covers the microtubule half of this idea: lose the cap and the end collapses.*
 
-Set the net rate to zero and you get the concentration at which the end neither grows nor shrinks:
+## One end: the doorway and its critical concentration
 
-> critical concentration, Cc = koff / kon
+Start with a measurement. Let tubes of pure actin at a range of total concentrations settle, then measure how much is in filaments and how much is free, and plot free actin against total actin.
 
-Above Cc the end grows; below it, the end shrinks. In a tube of pure actin, filaments form until the free monomer falls to near Cc, and extra actin beyond that goes into polymer.
+- **Below a certain total**, nothing polymerizes, so free actin rises in step with total actin.
+- **Above that total**, free actin stays flat and every extra subunit goes into polymer, one for one.
 
-Now the role of the nucleotide. If subunits never hydrolysed their ATP, both ends would have to share one critical concentration, because a subunit makes the same bonds whichever end it joins. Actin does hydrolyse its ATP, after it has joined the filament, and phosphate is released slowly, so the older lattice holds ADP-actin. The two ends then see different mixtures of subunits and can have different critical concentrations. Pollard measured this directly in 1986: with purified actin at 22 °C, elongation at each end rose linearly with ATP-actin concentration up to 20 micromolar, and the slopes and intercepts gave separate rate constants for each end. For ATP-actin the barbed end has the lower critical concentration.
+The flat level of free actin is the critical concentration, Cc, and it is also the total where the line bends. (For real ATP-actin, whose two ends differ, free actin settles between the two ends' values; next section.) Followed over time, one tube shows a lag, then growth, then a plateau. The lag is there because starting a filament is hard: a few subunits must come together before an end exists. So cells control *where* filaments start, with formins and the Arp2/3 complex for actin and γ-tubulin at the centrosome for microtubules. Rho-family GTPases decide where actin assembles ([that lesson](/lessons/integrins-and-rho-gtpases/)).
 
-When free actin sits between the two critical concentrations, the barbed end grows while the pointed end shrinks. At steady state the two rates match, the length stays constant, and subunits flow through the filament from front to back. This is treadmilling. Think of a queue that people join at the back and leave at the front: its length holds while everyone moves. Single purified actin filaments watched by microscopy show barbed-end growth and pointed-end shortening at approximately equal rates at steady state.
+Why does free actin stop at one value? Treat a filament end as a doorway. Subunits arrive at a rate proportional to the free subunit concentration C, and leave at a rate that does not depend on C.
+
+<EquationCard
+  purpose="Whether one filament end grows or shrinks, and the free subunit concentration at which it does neither."
+  eq="net rate = kon × C − koff;  Cc = koff / kon"
+  say="Net rate equals k on times C, minus k off. Setting it to zero gives the critical concentration, k off divided by k on."
+  symbols={[
+    ["net rate", "net rate", "subunits gained per second at one end; negative means shrinking", "per s"],
+    ["kon", "k on", "joining rate per micromolar of free subunit", "per µM per s"],
+    ["C", "C", "the free subunit concentration", "µM"],
+    ["koff", "k off", "how fast subunits leave the end, whatever C is", "per s"],
+    ["Cc", "C c", "the critical concentration, where the end neither grows nor shrinks", "µM"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="At C = Cc, joining and leaving balance. Above Cc, kon × C beats koff and the end grows; below Cc, loss wins and it shrinks."
+>
+  <Fragment slot="example">
+    <p>A growing microtubule plus end in one purified preparation: kon = 8.9 per µM per s and koff = 44 per s.</p>
+    <p>At 10 µM tubulin: 8.9 × 10 − 44 = 89 − 44 = +45 dimers per s, so the end grows.</p>
+    <p>Its critical concentration: 44 / 8.9 ≈ 4.9 µM.</p>
+  </Fragment>
+</EquationCard>
+
+**Predict.** A tube holds total actin at twice the critical concentration. How much is free, and how much is polymer?
+
+<details>
+<summary>Check your prediction</summary>
+
+For an end with one Cc: one Cc is free and the other Cc's worth is polymer. Any free actin above Cc joins filament ends until gain and loss match again.
+
+</details>
+
+## Two ends: why hydrolysis makes them differ
+
+So far, one end. A filament has two, and they are built differently: the barbed end adds subunits much faster than the pointed end does (about nine times faster for ATP-actin). Does that give the two ends different critical concentrations?
+
+**Predict.** Imagine actin that never hydrolysed its ATP. Could the barbed end have a lower critical concentration than the pointed end?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Adding one subunit at the barbed end, or one at the pointed end, gives exactly the same result: the same filament, one subunit longer. The energy change is the same, so the balance point, koff/kon, must be the same. The barbed end can be faster at *both* adding and losing, but the ratio cannot differ. Actin holding ADP, which cannot be hydrolysed further, shows this: its two ends have critical concentrations of about 1.9 and 1.7 µM, equal within measurement error.
+
+</details>
+
+So a difference between the ends needs a step that spends energy, and that step is hydrolysis. An actin subunit joins carrying ATP. A little while after joining it hydrolyses the ATP, and later, slowly, it releases the phosphate, so the older lattice holds ADP-actin. ATP-actin binds a filament end more tightly than ADP-actin does (it has a lower critical concentration). Hydrolysis by itself barely loosens a subunit; release of the phosphate does.
+
+In the standard, simplified picture:
+
+- The **barbed end** grows fast, so new ATP-actin keeps arriving before the subunits there have hydrolysed. Its fresh tip makes it a **tight** end, with a low critical concentration.
+- The **pointed end** adds subunits slowly, and in the window where treadmilling happens it is losing them, so its tip exposes older subunits that have hydrolysed their ATP and released the phosphate. It is a **loose** end, with a higher critical concentration.
+
+Measured with ATP-actin in solution, the critical concentrations are about 0.1 µM at the barbed end and about 0.6 µM at the pointed end (Pollard, 1986; constants in Going deeper). Put them on a line:
+
+> 0 ─── **0.1 µM** (barbed Cc) ─── **0.6 µM** (pointed Cc) ───→ free ATP-actin
+
+**Predict.** What does each end do with free actin at 0.05 µM, at 0.3 µM and at 1 µM?
+
+<details>
+<summary>Check your prediction</summary>
+
+- At 0.05 µM, below both: both ends shrink.
+- At 1 µM, above both: both ends grow, the barbed end about twenty times faster (+10.2 against +0.5 subunits per s).
+- At 0.3 µM, between them: the barbed end grows and the pointed end shrinks.
+
+So "the barbed end grows and the pointed end shrinks" is true only in the window between the two values.
+
+</details>
+
+Only the middle zone is new. Left alone, filaments use up free actin until the barbed end's gain matches the pointed end's loss. With Pollard's constants, that happens at about 0.17 µM, close to the barbed end's value rather than halfway, because the barbed end's ninefold larger kon gives its value more weight. Now the filament's length holds steady while subunits flow through it, joining at the barbed end, aging along the filament and leaving at the pointed end. This is **treadmilling**, like a queue that holds its length while everyone moves through. Single purified actin filaments watched by microscopy show barbed-end growth and pointed-end shortening at approximately equal rates at steady state.
 
 <LessonFigure src="/figures/cytoskeleton-dynamics/treadmilling-flux.webp" width={1200} height={646} alt="AI-generated illustration: a ten-bead actin filament with a new bead joining at the barbed end and an older bead leaving the pointed end, a broad arrow showing subunits flowing front to back, and a second strip showing the same length a moment later." caption="Treadmilling: at steady state the barbed end gains subunits as fast as the pointed end loses them, so the filament keeps its length while subunits flow through it." />
 
-Binding above the critical concentration drives assembly. Hydrolysis comes afterwards and makes the old polymer less stable, which turns the steady state into a flux.
+Binding drives assembly; hydrolysis afterwards turns the steady state into a flux. Pure treadmilling is slow, a small fraction of a micrometre per minute, so cells that rebuild actin quickly add proteins that start, speed, cap and sever filaments (see the design problem).
 
-## Dynamic instability: a cap that is lost
+## One end, two states: dynamic instability
 
-Microtubule ends do something different. Each end switches between steady growth and rapid shortening. The switch from growth to shortening is a **catastrophe**; the switch back is a **rescue**. This is dynamic instability, a property of individual ends, and a different behaviour from treadmilling. Microtubules can treadmill too, in vitro and in some cells, so treadmilling is not limited to actin.
+A microtubule end switches between steady growth and rapid shortening. The switch to shortening is a **catastrophe**; the switch back is a **rescue**. This **dynamic instability**, a property of individual ends, is the rule's *time* version: one end alternates between a tight (capped) and a loose (uncapped) state. (Microtubules can treadmill too, in vitro and in some cells, so treadmilling is not limited to actin.)
 
-Mitchison and Kirschner inferred dynamic instability in 1984 from populations of microtubules, and video microscopy of single ends soon showed the switching directly. In the 1988 video study of purified pig brain tubulin, both ends were dynamic. Rapid shortening did not change with tubulin concentration over 7 to 15.5 µM, and more tubulin made catastrophes rarer at both ends. In cells, minus ends are often capped or anchored, for example at the centrosome.
+The standard explanation is the **GTP cap**. A dimer joins with GTP on its β-tubulin, and the GTP is hydrolysed soon after, inside the lattice. GDP-tubulin is held in the straight lattice only by its neighbours; the end stays intact while a cap of not-yet-hydrolysed dimers remains.
 
-The standard explanation is the **GTP cap**. A dimer joins with GTP on its β-tubulin, and the GTP is hydrolysed soon after, inside the lattice. GDP-tubulin is held in the straight lattice only by its neighbours; the end stays intact while a cap of not-yet-hydrolysed dimers remains. Picture a stack of compressed springs held by a lid built from the newest springs. If addition slows and hydrolysis catches up, the lid is lost and the stack flies apart, with protofilaments peeling outward from the end. Roostalu and colleagues tested this in 2020 with recombinant human tubulin carrying mutations that slow hydrolysis, and the caps grew longer. Exactly what the cap looks like, and what final event commits an end to shortening, is still argued.
+- **Capped, the end is tight.** Its critical concentration is about 5 µM in one purified preparation (the worked example in the box above), so at typical test concentrations it grows.
+- **Uncapped, the end is loose.** It sheds dimers so fast that its critical concentration is, by a rough estimate, far above any tubulin concentration tested (Going deeper, "Who first watched the switching").
+
+Picture strips of bent plastic held straight side by side, with a clamp at the tip made from the newest piece added to each strip. Lose the clamp and each strip curls away from its neighbours, peeling from the end. GDP-tubulin protofilaments are curved in the same way, and once the cap is gone they curl outward.
+
+The cap can be lost by chance, or because addition slows and hydrolysis catches up. Slowing hydrolysis lengthens the cap, as recombinant human tubulin mutants show (Roostalu and colleagues, 2020). Exactly what the cap looks like, and what final event commits an end to shortening, is still argued.
+
+*The film shows only one route, addition slowing. A cap can also be lost by chance at a steady growth rate, which is why catastrophes are random events.*
+
+Mitchison and Kirschner inferred dynamic instability in 1984 from populations of microtubules; microscopy of single ends soon showed the switching directly, at both ends of purified microtubules (Going deeper). In cells, minus ends are often capped or anchored, for example at the centrosome.
+
+**Predict.** A microtubule end has lost its cap and is shortening. Will doubling the free tubulin, say from 7 to 14 µM, slow the shortening?
+
+<details>
+<summary>Check your prediction</summary>
+
+Barely. An uncapped end's critical concentration is out of reach, so a bit more tubulin cannot turn loss into gain. A 1988 study of purified pig brain tubulin saw exactly this: rapid shortening did not change with tubulin concentration over 7 to 15.5 µM. The cap model also fits its second finding, that more tubulin made catastrophes rarer at both ends: a capped end grows faster with more tubulin and is thought to build a bigger cap that is harder to lose, though catastrophe also depends on the age of the end.
+
+</details>
 
 ### A worked problem: reading one trace
 
@@ -436,41 +529,54 @@ The data below are made up for teaching. They describe one plus end grown from a
 
 **Step 2, shortening velocity.** 6.0 µm in 12 s = 0.5 µm per s = 30 µm per min, twenty times faster than growth. The second shortening phase, 6.5 µm in 13 s, gives the same 0.5 µm per s.
 
-**Step 3, switching frequencies.** The end spent 180 + 120 = 300 s growing and had 2 catastrophes: 2/300 = 0.0067 per s, or 0.4 per min. It spent 12 + 13 = 25 s shortening and had 1 rescue: 1/25 = 0.04 per s.
+**Step 3, switching frequencies.** Each frequency is the number of switches divided by the time spent in the state they leave. The end spent 180 + 120 = 300 s growing and had 2 catastrophes: 2/300 = 0.0067 per s, × 60 s = 0.4 per min. It spent 12 + 13 = 25 s shortening and had 1 rescue: 1/25 = 0.04 per s.
 
-**Step 4, dimers per second.** Assume 13 protofilaments and 8 nm per dimer, so one micrometre holds 125 × 13 = 1,625 dimers. Growth of 1.5 µm per min is 0.025 µm per s, times 1,625 = about 41 dimers per s.
+**Step 4, dimers per second.** Assume 13 protofilaments and 8 nm per dimer, so one micrometre holds 1,000 nm ÷ 8 nm = 125 dimers per protofilament, and 125 × 13 = 1,625 dimers in all. Growth of 1.5 µm per min is 0.025 µm per s, times 1,625 = about 41 dimers per s.
 
-Check against real data. With Walker's plus-end constants (kon = 8.9 per µM per s, koff = 44 per s) at 10 µM tubulin, net growth is 89 − 44 = 45 dimers per s, about 1.7 µm per min by the same conversion. Their rapid shortening, 733 dimers per s, is about 27 µm per min. The made-up trace is in the right range. These constants come from one purified preparation; in cells, associated proteins change them.
+Check against real data. The box's example, the 1988 study's plus-end constants at 10 µM tubulin, gives +45 dimers per s, about 1.7 µm per min by the same conversion. The study's rapid shortening, 733 dimers per s, is about 27 µm per min. The made-up trace is in the right range.
 
 <DynamicInstabilityTrace />
 
 ## Drugs as tests
 
-A drug tests a mechanism only if you know its target, its dose and the system.
+A drug tests a mechanism only if you know its target, its dose and the system. Each drug below acts on one piece of the rule: free subunits, ends, or the lattice.
 
-- **Taxol (paclitaxel)** binds β-tubulin in the assembled lattice. With purified microtubule protein, Schiff and Horwitz found in 1981 that taxol-treated microtubules resisted disassembly on dilution and that taxol drove extra assembly after an apparent steady state. Dose matters. In HeLa cells, taxol did not raise microtubule polymer mass below 10 nM but did at higher doses, and submicromolar taxol suppressed both growing and shortening of purified brain microtubules (Jordan and colleagues, 1993). On a trace at a low dose, predict slower growth and slower, shorter shortening events rather than more polymer.
-- **Colchicine** binds free tubulin dimers; the drug-dimer complex adds to an end and blocks further growth there, so small amounts suppress dynamics.
-- **Nocodazole** also binds tubulin dimers. Its effect depends on dose and on the cell type. In the cultured cells tested, nanomolar doses paused microtubules and slowed their growth and shortening, while the micromolar doses commonly used on cultured mammalian cells remove most microtubules.
-- **Phalloidin** binds along actin filaments and slows their disassembly, as shown with purified muscle actin. It enters living cells poorly, so fluorescent phalloidin is mainly used to stain filaments in fixed cells.
-- **Cytochalasin B** binds filament ends. Brown and Spudich showed this in 1981 by changing the number of ends on actin-coated beads while holding total actin constant: binding followed the ends.
-- **Latrunculin A** forms a 1:1 complex with actin monomers and so sequesters them. It can also speed disassembly at filament ends, so sequestration is not the whole story.
+| Drug | Binds | Effect on the polymer | Evidence and caveats |
+| --- | --- | --- | --- |
+| **Taxol (paclitaxel)** | β-tubulin in the assembled lattice | stabilizes microtubules; drives extra assembly | low doses damp dynamics without adding polymer; higher doses add polymer (worked below) |
+| **Colchicine** | free tubulin dimers | the drug-dimer complex adds to an end and blocks further growth there | small amounts suppress dynamics |
+| **Nocodazole** | tubulin dimers | depends on dose and cell type | in the cultured cells tested, nanomolar doses pause microtubules and slow growth and shortening; the micromolar doses common on cultured mammalian cells remove most of them |
+| **Phalloidin** | along actin filaments | slows disassembly (shown with purified muscle actin) | enters living cells poorly, so fluorescent phalloidin mainly stains filaments in fixed cells |
+| **Cytochalasin B** | barbed ends of actin filaments | inhibits addition there | its binding follows the number of filament ends, not the amount of actin |
+| **Latrunculin A** | actin monomers, 1:1 | sequesters them (holds them so they cannot join), lowering polymer | can also speed disassembly at filament ends, so sequestration is not the whole story |
 
-Intermediate filaments have no standard poison. Withaferin A redistributes vimentin in human fibroblasts, but it is not selective and did not alter the assembly of purified vimentin, so removing vimentin genetically and then adding it back is the cleaner test ([experiments that distinguish](/lessons/experiments-that-distinguish/)). In cells, Rho-family GTPases decide where actin assembles ([that lesson](/lessons/integrins-and-rho-gtpases/)), and neurons use both polar polymers in the [growth cone](/lessons/growth-cone/) and for [neuronal polarity](/lessons/neuronal-polarity/).
+The experiments behind most rows are in Going deeper.
+
+**Predict.** Add taxol to growing microtubules at a dose too low to raise the total polymer. Sketch the new length-versus-time trace.
+
+<details>
+<summary>Check your prediction</summary>
+
+Slower growth and slower, shorter shortening events, not more polymer: the sawtooth flattens. Taxol binds the assembled lattice, including the old GDP-tubulin behind the cap.
+
+</details>
+
+Intermediate filaments have no standard poison. Withaferin A redistributes vimentin in human fibroblasts, but it is not selective and did not alter the assembly of purified vimentin, so removing vimentin genetically and then adding it back is the cleaner test ([experiments that distinguish](/lessons/experiments-that-distinguish/)). Neurons use both polar polymers in the [growth cone](/lessons/growth-cone/) and for [neuronal polarity](/lessons/neuronal-polarity/).
 
 <LessonFigure src="/figures/cytoskeleton-dynamics/drug-targets-map.webp" width={1200} height={529} alt="AI-generated illustration: on the left, a cutaway microtubule lattice with a yellow tag inside the wall facing the lumen labelled taxol, and free tubulin dimers beside it with a pink tag labelled colchicine and nocodazole; on the right, a beaded actin filament with a yellow tag along its side labelled phalloidin, a pink tag at one end labelled cytochalasin B, and loose actin monomers, one with a pink tag labelled latrunculin A." caption="Where each drug binds: taxol inside the assembled lattice, facing the lumen, colchicine and nocodazole on free tubulin dimers, phalloidin along actin filaments, cytochalasin B at their ends, latrunculin A on actin monomers. Effects depend on dose and system." />
 
 ### Design problem
 
-In a cultured fibroblast, the total actin fluorescence in the lamellipodium, the thin sheet at the leading edge, looks constant over 5 minutes. Design an experiment to decide whether the filaments there are static or treadmilling.
+In a cultured fibroblast, the total actin fluorescence in the lamellipodium, the thin sheet at the leading edge, looks constant over 5 minutes. Design an experiment to decide whether the filaments there are static or treadmilling. First ask: why can't the total intensity decide?
 
 <details>
 <summary>One way to do it</summary>
 
-Total intensity cannot decide: a treadmilling network and a static one can hold the same polymer. Mark part of it and follow the mark (see [microscopy and images](/lessons/microscopy-and-images/) and FRAP in [membrane organization](/lessons/membrane-organization-topology/)).
+A treadmilling network and a static one can hold the same polymer. Mark part of it and follow the mark (see [microscopy and images](/lessons/microscopy-and-images/) and FRAP in [membrane organization](/lessons/membrane-organization-topology/)).
 
 1. Express fluorescent actin and either bleach a narrow stripe across the lamellipodium, photoactivate a small patch of photoactivatable actin, or label sparsely so the network shows random speckles.
 2. Image every few seconds while the edge holds still. Treadmilling: the mark moves rearward and fades at the back while fresh fluorescence appears at the front. Static filaments: the mark stays put and does not recover. Exchange all along the filaments: the mark recovers in place without moving.
-3. Predict that, with the edge stationary, the mark's rearward speed equals the net rate of assembly at the front.
+3. Predict that, with the edge stationary, the mark's rearward speed equals the speed at which new network is added at the front.
 
 Controls: a fixed cell, where the mark should neither move nor recover; an unbleached region, to measure bleaching by imaging alone; and jasplakinolide, which stabilizes actin filaments and should slow the mark. With the edge still, a rearward-moving mark shows that the network flows back while new network is added in front; assembly pushing and myosin pulling both drive that flow. Fading of the mark, after correcting for bleaching, shows polymer being lost as it moves back. A lamellipodium is a branched network of short filaments rather than single long filaments, and in cells its fast turnover depends on accessory proteins such as ADF/cofilin, profilin and capping protein. Neither observation says which proteins drive either step.
 
@@ -478,14 +584,24 @@ Controls: a fixed cell, where the mark should neither move nor recover; an unble
 
 ## Going deeper
 
+### Checking the rule against measured constants
+
+Pollard (1986) measured elongation at each end of purified actin at 22 °C, using Limulus acrosomal seeds. Elongation at each end rose linearly with ATP-actin concentration up to 20 micromolar, and the slopes and intercepts gave separate rate constants for each end. For ATP-actin: barbed kon 11.6 per µM per s, koff 1.4 per s (Cc 0.12 µM); pointed 1.3 and 0.8 (Cc 0.62 µM). For ADP-actin: barbed 3.8 and 7.2 (Cc 1.9 µM); pointed 0.16 and 0.27 (Cc 1.7 µM). The ADP-actin pair checks the one-Cc argument. The steady-state concentration, (1.4 + 0.8)/(11.6 + 1.3) ≈ 0.17 µM, is an average of the two critical concentrations weighted by each end's kon. The flux there is about 0.6 subunits per second, under a tenth of a micrometre per minute, likely an upper estimate, since real pointed ends carry older, ADP-containing subunits. (These constants are as tabulated in Pollard and Borisy, 2003.)
+
 ### Who first watched the switching, and in what preparation
 
-Mitchison and Kirschner proposed dynamic instability in 1984 from measurements on populations of microtubules in vitro: the way numbers and lengths changed over time fitted growing and shrinking microtubules that coexist and interconvert rather infrequently. Single microtubules were watched switching in real time soon after, by dark-field microscopy (Horio and Hotani, 1986) and by video light microscopy in Ted Salmon's laboratory (Walker and colleagues, 1988). The Walker study used pig brain tubulin free of associated proteins, grown from axoneme fragments at 37 °C.
+Mitchison and Kirschner proposed dynamic instability in 1984 from measurements on populations of microtubules in vitro: the way numbers and lengths changed over time fitted growing and shrinking microtubules that coexist and interconvert rather infrequently. Single microtubules were watched switching in real time soon after, by dark-field microscopy (Horio and Hotani, 1986) and by video light microscopy in Ted Salmon's laboratory (Walker and colleagues, 1988). The Walker study used pig brain tubulin free of associated proteins, grown from axoneme fragments at 37 °C, and found both ends dynamic; rapid shortening at the plus end ran at 733 dimers per second.
+
+If an uncapped end accepted dimers no faster than a capped one (kon no more than 8.9 per µM per s), its Cc would be at least 733 / 8.9 ≈ 82 µM plus the tubulin concentration itself, a rough bound far above the 7 to 15.5 µM tested.
 
 ### How fast does the cap mature
 
-In the Roostalu experiment, the binding of end-binding (EB) proteins, which recognize the cap region, suggested that the cap matures gradually, with a wild-type rate estimated near 0.2 per second. This is an estimate in one recombinant system.
+In the 2020 mutant-tubulin study that lengthened the cap (Roostalu and colleagues), the binding of end-binding (EB) proteins, which recognize the cap region, suggested that the cap matures gradually, with a wild-type rate estimated near 0.2 per second. This is an estimate in one recombinant system.
 
 ### Drug effects that depend on the system
 
-In cultured newt lung epithelial cells, 4 to 400 nM nocodazole introduced a paused state, slowed both growth and shortening and made catastrophes more frequent (Vasquez and colleagues, 1997); in BSC-1 monkey kidney cells after an hour the effects were similar, except that catastrophes became less frequent. So the direction of one switching parameter depends on the system. Latrunculin A binds actin monomers with an apparent Kd of about 0.2 µM in pure actin. Single-filament imaging in 2018 found it binds ATP-actin far more tightly than ADP-actin (0.1 versus 4.7 µM) and also speeds disassembly at the ends of freshly assembled ATP-actin filaments and slowly severs them.
+**Taxol.** With purified microtubule protein, Schiff and Horwitz found in 1981 that taxol-treated microtubules resisted disassembly on dilution and that taxol drove extra assembly after an apparent steady state. In HeLa cells, taxol did not raise microtubule polymer mass below 10 nM but did at higher doses, and submicromolar taxol suppressed both growing and shortening of purified brain microtubules (Jordan and colleagues, 1993).
+
+**Cytochalasin B.** Brown and Spudich showed in 1981 that its binding follows the number of filament ends, by changing the number of ends on actin-coated beads while holding total actin constant. That experiment shows end binding; it does not by itself show which end. That the bound end is the barbed end came from other experiments.
+
+**Nocodazole and latrunculin A.** In cultured newt lung epithelial cells, 4 to 400 nM nocodazole introduced a paused state, slowed both growth and shortening and made catastrophes more frequent (Vasquez and colleagues, 1997); in BSC-1 monkey kidney cells after an hour the effects were similar, except that catastrophes became less frequent. So the direction of one switching parameter depends on the system. Latrunculin A binds actin monomers with an apparent Kd of about 0.2 µM in pure actin. Single-filament imaging in 2018 found it binds ATP-actin far more tightly than ADP-actin (0.1 versus 4.7 µM) and also speeds disassembly at the ends of freshly assembled ATP-actin filaments and slowly severs them.

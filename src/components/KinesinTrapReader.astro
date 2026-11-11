@@ -2,7 +2,7 @@
 /**
  * KinesinTrapReader — read the lesson's made-up optical-trap kinesin data. The learner sets
  * the load (0 to the 6 pN stall force) and a time cursor, and reads the position trace in 8-nm
- * steps, the velocity, steps per second, work per step (force x 8 nm) and efficiency against
+ * steps, the velocity, steps per second, work per step (force x 8 nm) and energy share against
  * the lesson's assumed 50 kJ/mol per ATP. The lesson gives 800 nm/s at low load and zero at
  * the 6 pN stall, and says speed fell "roughly in proportion to the load", so the straight line
  * between them is labelled "in this sketch". Step times are drawn at random; the expected
@@ -12,7 +12,7 @@
 ---
 
 <figure class="ktr card" data-ktr>
-  <figcaption class="ktr-head">Kinesin in an optical trap: steps, force and efficiency<span class="ktr-chip">⚙ original · interactive</span></figcaption>
+  <figcaption class="ktr-head">Kinesin in an optical trap: steps, force and energy share<span class="ktr-chip">⚙ original · interactive</span></figcaption>
 
   <svg class="ktr-svg" viewBox="0 0 360 230" role="img" aria-label="Position of the bead against time: a staircase of 8-nanometre steps and a dashed line for the expected position" data-plot></svg>
 
@@ -32,7 +32,7 @@
 
   <p class="ktr-verdict" data-verdict role="status"></p>
 
-  <p class="ktr-foot">Rule to keep: work per step is force times 8 nm, and efficiency is that work divided by the energy of one ATP (83 pN·nm from the assumed 50 kJ/mol). The numbers are the lesson’s made-up numbers. The lesson ties one ATP per step to near-zero load and works out efficiency only near stall, so efficiency at other loads holds only if each step costs one ATP. The straight force-velocity line and the random timing of steps are a sketch of the logic, not data.</p>
+  <p class="ktr-foot">Rule to keep: work per step is force times 8 nm, and the energy share is that work divided by the energy of one ATP, an upper estimate rather than a measured efficiency (83 pN·nm from the assumed 50 kJ/mol). The numbers are the lesson’s made-up numbers. The lesson ties one ATP per step to near-zero load and works out efficiency only near stall, so efficiency at other loads holds only if each step costs one ATP. The straight force-velocity line and the random timing of steps are a sketch of the logic, not data.</p>
 </figure>
 
 <script>
@@ -144,7 +144,7 @@
         ['Position by the cursor: observed (8 nm × steps) | expected (v × t)', `${fmt(obsPos)} | ${fmt(expPos)} nm`],
         ['Work per step (force × 8 nm)', `${fmt(work, 1)} pN·nm`],
         ['Energy of one ATP, assuming 50 kJ/mol (÷ 6.022 × 10²³)', `${fmt(ATP_PN_NM)} pN·nm`],
-        ['Efficiency, if one ATP per step (work per step ÷ energy of one ATP)', `${fmt(eff * 100)}%`],
+        ['Energy share, if one ATP per step (work per step ÷ energy of one ATP; an upper estimate)', `${fmt(eff * 100)}%`],
       ];
       read.replaceChildren();
       for (const [k, val] of rows) {
