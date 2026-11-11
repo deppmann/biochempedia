@@ -23,8 +23,14 @@ explainer:
   src: "/explainers/vesicle-traffic/explainer.mp4"
   captions: "/explainers/vesicle-traffic/explainer.vtt"
   poster: "/explainers/vesicle-traffic/poster.jpg"
-  title: "A Vesicle Needs Three Separate Steps"
+  title: "Three Handoffs for a Vesicle"
   durationSec: 297.2
+  takeaways:
+    - "The sec1 mutant keeps making enzymes at 37 °C, but they pile up inside vesicles that fail to fuse with the surface."
+    - "A vesicle's trip has three handoffs: a coat buds it, a Rab-GTP with a tether catches it, and SNAREs guided by an SM protein fuse it."
+    - "Zipping the four SNARE strands pulls the membranes together, and the zip itself uses no ATP."
+    - "A pile of vesicles alone cannot name the failed step, but Sec1's known job as the fusion SM protein does."
+    - "A fast inhibitor such as GDI stops working once its target state is past, which helps time the steps."
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
 
@@ -387,9 +393,7 @@ draft: false
 import SecMutantSecretionReader from '../../../components/SecMutantSecretionReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Yeast secrete enzymes along a route from ER to Golgi to vesicles to the cell surface. A mutant called sec1 grows at 25 °C. At 37 °C it keeps making secretory enzymes, but they stay inside: the internal pool rises up to eightfold, packed into membrane-bound vesicles that never fuse with the surface.**
-
-Novick and Schekman reported that in 1979. Back at 25 °C, even with protein synthesis blocked, the cells secreted the stored enzymes: the vesicles held stalled cargo. Each vesicle on that route has three jobs: **budding** (pick up cargo and pinch off), **targeting** (be caught by the right membrane) and **fusion** (merge with it).
+**A yeast mutant called sec1 grows at 25 °C, but at 37 °C it keeps making secretory enzymes and cannot release them.** Novick and Schekman reported it in 1979. The film above follows those enzymes along the route and through the vesicles that never fuse with the surface; the three jobs it names are **budding** (pick up cargo and pinch off), **targeting** (be caught by the right membrane) and **fusion** (merge with it).
 
 **Predict.** In sec1 cells at 37 °C, which of the three jobs worked for the last vesicle on the route, and which could have failed?
 
@@ -400,7 +404,7 @@ Budding worked: the vesicles exist. Targeting or fusion failed, and a pile of ve
 
 </details>
 
-*The film at the top of the page stops at "a later step failed"; the fusion section names that step.*
+In sec1 cells at 37 °C, budding worked, because the vesicles exist. Targeting or fusion failed, and a pile of vesicles alone cannot say which. The fusion section below names the step.
 
 > **The one idea to carry through this lesson.** A vesicle's trip is three handoffs, and each can fail on its own. A **coat** buds the vesicle and picks its cargo. A **Rab-GTP with a tether** catches it at the right membrane (targeting). A **SNARE bundle, guided by an SM protein**, fuses it. On a linear route, when one handoff fails, cargo piles up in the last place it reached, and a fast, specific inhibitor stops working once the state it targets is past.
 
@@ -412,7 +416,7 @@ A few terms. The **cytosol** is the cell's fluid outside organelles; the **lumen
 
 ## Step 1, budding: a coat picks the cargo and bends the membrane
 
-A **coat** is a lattice of cytosolic proteins that assembles on a patch of membrane. Think of a coat as a cookie cutter with hands: the cutter shapes the bud, and the hands grab the cargo that belongs inside, though different parts of a coat often grab the cargo and build the cage.
+A **coat** is a lattice of cytosolic proteins that assembles on a patch of membrane. The film's cookie cutter with hands is a simplification: the cutter shapes the bud and the hands grab the cargo, but different parts of a coat often do each job.
 
 Take **COPII**, the ER's coat. It is started by a switch, **Sar1**, a small GTPase (see [GTPase switches](/lessons/gtpase-switches/)). Sar1-GTP grabs the ER membrane and pulls in an inner layer, **Sec23/24**, which holds cargo and in turn recruits an outer cage, **Sec13/31**. Cargo choice sits mainly in Sec24: yeast mutant studies support a model in which Sec24 has several independent cargo-binding sites. Sar1's GTP is also a timer. When Sar1 hydrolyzes it, the coat begins to let go, and the vesicle can go on to be caught and fused.
 
@@ -445,13 +449,13 @@ Among the effectors are **tethers**: long coiled-coil proteins or large complexe
 
 <LessonFigure src="/figures/vesicle-traffic/rab-tether-catch.webp" width={1200} height={800} alt="AI-generated illustration: on a target membrane, an active Rab-GTP anchored by its lipid tail recruits a long tether that holds an incoming vesicle, next to a phosphoinositide patch and target SNAREs. An inset shows a Rab-GDP with its lipid tail wrapped by GDI in the cytosol, and a dashed arrow through a GEF to the membrane-bound Rab-GTP." caption="GDI carries Rab-GDP in the cytosol; at the right membrane a GEF loads GTP, and Rab-GTP recruits effectors such as a tether that catches the vesicle. No single molecule is the address: the Rab, the membrane's lipid and the SNAREs each narrow the choice." />
 
-Picture a Rab-GTP as one lit sign over a loading bay. The film shows only that sign; the tether, the membrane's phosphoinositide and the SNAREs are other signs. No single molecule is the address: each narrows the choice, and the evidence fits a combination better than any one label.
+The film's lit sign over a loading bay is one signal; the tether, the membrane's phosphoinositide and the SNAREs are other signs. No single molecule is the address: each narrows the choice, and the evidence fits a combination better than any one label.
 
 ## Step 3, fusion: SNAREs zip, an SM protein guides them, NSF resets them
 
-A caught vesicle still has to merge, and bilayers resist merging: their water-coated surfaces repel at close range. **SNAREs** supply the pull. Most have a **SNARE motif** of about 60 to 70 amino acids next to a membrane anchor; **v-SNAREs** sit in the vesicle and **t-SNAREs** in the target. A lone motif is floppy. Four of the right kind wind into a parallel four-helix bundle, one rope of four strands. The strands are named by the amino acid each places at the bundle's centre: three give a glutamine (Q) and one an arginine (R), so they are **Qa, Qb, Qc and R**. Often the vesicle gives R and the target gives the three Q strands, though not at every step. At a nerve terminal, syntaxin-1 gives Qa, SNAP-25 gives both Qb and Qc, and synaptobrevin on the vesicle gives R.
+A caught vesicle still has to merge, and bilayers resist merging: their water-coated surfaces repel at close range. **SNAREs** supply the pull. Most have a **SNARE motif** of about 60 to 70 amino acids next to a membrane anchor; **v-SNAREs** sit in the vesicle and **t-SNAREs** in the target. A lone motif is floppy. Four of the right kind wind into a parallel four-helix bundle. The strands are named by the amino acid each places at the bundle's centre: three give a glutamine (Q) and one an arginine (R), so they are **Qa, Qb, Qc and R**. Often the vesicle gives R and the target gives the three Q strands, though not at every step. At a nerve terminal, syntaxin-1 gives Qa, SNAP-25 gives both Qb and Qc, and synaptobrevin on the vesicle gives R.
 
-The bundle zips from the N-terminal end toward the membrane anchors. With the vesicle's strand and the target's three strands each tied to their own membrane, zippering pulls the bilayers closer, until they fuse. Four strands are not four anchors: SNAP-25 gives two strands and attaches by lipid chains on the loop between them. While the strands come from two membranes, the bundle is a **trans-SNARE complex**. Afterwards the whole bundle sits in one membrane: a **cis-SNARE complex**.
+The film shows the zip, which runs from the N-terminal end toward the membrane anchors. Four strands are not four anchors: SNAP-25 gives two strands and attaches by lipid chains on the loop between them. While the strands come from two membranes, the bundle is a **trans-SNARE complex**. Afterwards the whole bundle sits in one membrane: a **cis-SNARE complex**.
 
 **Predict.** Does the moment of fusion use ATP?
 
@@ -466,7 +470,7 @@ No. Four floppy strands folding into one tight rope releases free energy, and th
 
 In a cell, SNAREs do not work alone. The main fusion steps that have been studied also need an **SM protein**, named for its first two members, Sec1 and Munc18, which binds SNAREs and helps the right four zip together. On the yeast vacuole the SM protein Vps33 is built into the tether HOPS, so one complex both catches and helps fuse.
 
-That answers the opening puzzle. **Sec1 is the SM protein for the last step of secretion: fusion of secretory vesicles with the plasma membrane.** In sec1 cells at 37 °C budding and everything upstream worked, so invertase-laden vesicles budded from the Golgi and piled up. Back at 25 °C, Sec1 works again and the stored vesicles fuse.
+That answers the opening puzzle. **Sec1 is the SM protein for the last step of secretion: fusion of secretory vesicles with the plasma membrane.** Everything upstream worked at 37 °C, so invertase-laden vesicles budded from the Golgi and piled up, then fused once Sec1 worked again at 25 °C.
 
 Sec1's known job, not the pile, names fusion. The same pile of 80 to 100 nm vesicles appears when the secretory-vesicle Rab (Sec4), its tether (the exocyst) or a SNARE (Sec9, the yeast relative of SNAP-25) fails; a pile cannot tell a vesicle never caught from one caught but unable to fuse. Here, test tubes split them; imaging single vesicles in living cells can too.
 
@@ -527,7 +531,7 @@ For the tether, run docking and fusion separately with the purified tether, matc
 
 </details>
 
-In one line: coat buds, Rab and tether catch, SNAREs with an SM protein fuse, NSF resets; where cargo stops and when an inhibitor stops mattering point to the handoff. Sec1 cells fill with vesicles because the last handoff, fusion at the surface, fails.
+In one line: coat buds, Rab and tether catch, SNAREs with an SM protein fuse, NSF resets. As the film closes, where cargo stops and when an inhibitor stops mattering point to the failed handoff; Sec1 cells fill with vesicles because the last one, fusion at the surface, fails.
 
 ## Going deeper
 
