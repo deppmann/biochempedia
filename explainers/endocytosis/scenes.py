@@ -351,7 +351,7 @@ class S06Topology(SpokenScene):
         self.play(VGroup(ves,rs,cargo).animate.scale(1.28, about_point=[1.05,.25,0]), run_time=1.0)
         self.at("colour of the outside")
         link = Line([1.05,1.30,0],[1.05,2.72,0],color=TEXT,stroke_width=3)
-        same = label("same as outside",30,TEXT).move_to([3.85,.25,0])
+        same = label("same as outside",30,TEXT).move_to([4.5,.25,0])
         self.play(Create(link), FadeIn(same), Indicate(ves, color=TEXT), run_time=.9)
         self.at("inside the cell")
         self.play(Indicate(ves, color=GREY, scale_factor=1.04), run_time=.8)
@@ -385,7 +385,7 @@ class S07Fuse(SpokenScene):
         self.add(ves,vrs,vls)
         self.at("fuses with an early endosome")
         recs,cargo=endo_receptors(True)
-        lab=label("early endosome",30,TEXT).move_to([-1.75,-2.35,0])
+        lab=label("early endosome",30,TEXT).move_to([-1.75,-2.7,0])
         sorting_sweep=Arc(radius=ENDO_R+0.13,start_angle=0,angle=2.25,color=TEXT,stroke_width=4).move_arc_center_to(ENDO_C)
         sorting_sweep.set_opacity(.55)
         sorting_sweep.add_updater(lambda m,dt: m.rotate(.34*dt,about_point=ENDO_C))
@@ -428,7 +428,7 @@ class S10Acid(SpokenScene):
         acid=compartment(ENDO_C,ENDO_R,ROSE,ROSE,.22)
         acid_sweep=Arc(radius=ENDO_R+.10,start_angle=0,angle=2.4,color=ROSE,stroke_width=7).move_arc_center_to(ENDO_C)
         acid_sweep.add_updater(lambda m,dt:m.rotate(.42*dt,about_point=ENDO_C))
-        acidlab=label("mildly acid  •  pH about 6",30,ROSE).move_to([-1.75,-2.36,0])
+        acidlab=label("mildly acid  •  pH about 6",30,ROSE).move_to([-1.75,-2.7,0])
         self.play(ReplacementTransform(w["endo"],acid),FadeIn(acid_sweep),FadeIn(acidlab),run_time=1.0)
         pumps=VGroup(*[RoundedRectangle(corner_radius=.04,width=.28,height=.18,color=ROSE,
                                        fill_color=ROSE,fill_opacity=.8).move_to(ENDO_C+ENDO_R*np.array([np.cos(a),np.sin(a),0]))
@@ -479,7 +479,7 @@ class S12Oneway(SpokenScene):
     def construct(self):
         w,_,cargo=acid_world(self,with_receptors=False)
         surf,_=surface_pairs((-.6,-.2,.2,.6),False);self.add(surf)
-        lab=label("early endosome",30,TEXT).move_to([-1.75,-2.35,0])
+        lab=label("early endosome",30,TEXT).move_to([-1.75,-2.7,0])
         self.add(lab)
         self.at("LDL stays behind")
         self.play(Indicate(cargo,color=LDL,scale_factor=1.2),run_time=.8)
@@ -559,7 +559,7 @@ class S15Order(SpokenScene):
         self.at("complete block")
         block=RoundedRectangle(corner_radius=.08,width=1.55,height=.48,color=GREY,stroke_width=3,
                                fill_color=GREY,fill_opacity=.92).move_to([-1.0,2.15,0])
-        bt=label("blocked",30,GREY).move_to([-.85,2.88,0])
+        bt=label("blocked",30,GREY).move_to([-2.9,1.55,0])
         self.play(FadeIn(block,shift=DOWN*.35),FadeIn(bt,shift=DOWN*.35),run_time=.7)
         self.at("stops its later handling")
         self.play(*[l.animate.set_opacity(.25) for l in labs[1:]],FadeOut(gold),run_time=1.1)
@@ -605,20 +605,3 @@ class S16Close(SpokenScene):
 class S17End(EndCard):
     LINE = "The receptor runs a loop; its LDL makes a one-way trip."
 
-    def construct(self):
-        world_base(self, acid=True, dim=.28, ambient=False)
-        hexm = hex_mascot(1.25).move_to([0,1.15,0])
-        line = VGroup(T("The receptor runs a",40,TEXT,font=TITLE_FONT),
-                      T("loop;",40,TEAL,font=TITLE_FONT),
-                      T("its LDL makes a",40,TEXT,font=TITLE_FONT),
-                      T("one-way trip.",40,LDL,font=TITLE_FONT)).arrange(RIGHT,buff=.16)
-        fit(line,max_w=11.7)
-        line.move_to([0,-.15,0])
-        sub=T("biochemistrypedia.com",22,TEAL).move_to([0,-1.0,0])
-        self.play(FadeIn(hexm,shift=UP*.15),FadeIn(line,shift=UP*.1),run_time=self.beat(.3))
-        self.play(FadeIn(sub),run_time=self.beat(.15))
-        shoulder=hexm.arm.get_start()
-        for _ in range(2):
-            self.play(Rotate(hexm.arm,angle=-.55,about_point=shoulder),rate_func=there_and_back,
-                      run_time=self.beat(.14))
-        self.finish()

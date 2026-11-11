@@ -133,7 +133,7 @@ def reveal_chain(scene, chain, run_time=1.5):
 
 
 def question_card():
-    return T("Membranes added after release: does it get in?", 36, TEXT, weight=BOLD).move_to([0, 3.25, 0])
+    return T("Membranes added after release: does it get in?", 30, TEXT, weight=BOLD).move_to([.9, 3.25, 0])
 
 
 def padlock():
@@ -208,17 +208,17 @@ class S02Address(SpokenScene):
 
 class S04Srp(SpokenScene):
     def construct(self):
-        self.add(world(5))
+        w = world(5); self.add(w)
         ch = bead_chain(9, 4, r=.15, vertical=True).move_to([-.82, -.5, 0])
         self.add(ch)
-        srp = RoundedRectangle(width=1.25, height=.72, corner_radius=.2, stroke_color=TEAL,
-                               fill_color=TEAL, fill_opacity=.35, stroke_width=4).move_to([.15, -.78, 0])
+        srp = RoundedRectangle(width=1.6, height=.78, corner_radius=.2, stroke_color=TEAL,
+                               fill_color=TEAL, fill_opacity=.35, stroke_width=4).move_to([.55, -.78, 0])
         self.play(FadeIn(srp, shift=RIGHT*.7), run_time=.7)
         self.at("SRP binds")
         sl = T("SRP", 30, TEAL, weight=BOLD).move_to(srp)
         self.play(FadeIn(sl), run_time=.45)
         self.at("reads the address")
-        self.play(srp.animate.move_to([-.18, -.7, 0]), Indicate(VGroup(*ch[:4]), color=GOLD), run_time=.7)
+        self.play(srp.animate.move_to([.2, -.7, 0]), sl.animate.move_to([.2, -.7, 0]), Indicate(VGroup(*ch[:4]), color=GOLD), run_time=.7)
         self.play(ch.animate.shift(DOWN*.18), rate_func=there_and_back, run_time=1.8)
         gauge = RoundedRectangle(width=2.2, height=.75, corner_radius=.15, stroke_color=GREY,
                                  stroke_width=2).move_to([2.4, 2.35, 0])
@@ -230,7 +230,7 @@ class S04Srp(SpokenScene):
         self.play(fill.animate.stretch_to_fit_width(.35).set_color(RED).align_to(gauge, LEFT).shift(RIGHT*.18), run_time=1.0)
         self.at("membranes arrived")
         moving = VGroup(ribosome(), ch, srp, sl)
-        self.play(moving.animate.shift(DOWN*1.05 + RIGHT*2.65), run_time=1.25)
+        self.play(moving.animate.shift(DOWN*1.05 + RIGHT*2.65), FadeOut(w[4]), FadeOut(w[5]), run_time=1.25)
         self.finish()
 
 
@@ -240,7 +240,7 @@ class S05Hands(SpokenScene):
         r = ribosome(pos=(.4, -.15, 0), scale=.82)
         ch = bead_chain(7, 4, r=.13, vertical=True).move_to([1.58, -1.2, 0])
         srp = chip("SRP", TEAL, 28).move_to([.6, -1.25, 0])
-        rec = dark_chip("SRP receptor", TEAL).move_to([-.95, -1.82, 0])
+        rec = dark_chip("SRP receptor", TEAL).move_to([-2.5, -1.95, 0])
         self.add(r, ch, srp, rec)
         self.at("docks on its receptor")
         self.play(srp.animate.next_to(rec, UP, buff=.08), run_time=.65)
@@ -252,8 +252,8 @@ class S05Hands(SpokenScene):
         h2 = ArcBetweenPoints([-.25,-1.5,0],[-1.2,-1.85,0],angle=-1.3,color=TEAL,stroke_width=12)
         self.play(ReplacementTransform(VGroup(srp,rec), VGroup(h1,h2)), run_time=.7)
         self.at("both hold GTP")
-        discs = VGroup(*[VGroup(Circle(radius=.32, color=PINK, fill_color=PINK, fill_opacity=1),
-                                     T("GTP", 28, BG, weight=BOLD)).move_to(p) for p in ((-.35,-1.15,0),(-1.05,-2.0,0))])
+        discs = VGroup(*[VGroup(Circle(radius=.42, color=PINK, fill_color=PINK, fill_opacity=1),
+                                     T("GTP", 24, BG, weight=BOLD)).move_to(p) for p in ((-.35,-1.15,0),(-1.05,-2.0,0))])
         self.play(FadeIn(discs, scale=.5), run_time=.55)
         self.at("hand the ribosome")
         self.play(VGroup(r,ch).animate.shift(RIGHT*1.0 + DOWN*.2), run_time=1.0)
@@ -277,7 +277,7 @@ class S06Thread(SpokenScene):
         self.play(chain.animate.shift(DOWN*.6), FadeOut(used), run_time=.8)
         self.at("Signal peptidase")
         scissors = T("✂", 50, RED).move_to([2.1,-2.55,0])
-        pl = T("signal peptidase", 28, RED).move_to([4.15,-2.65,0])
+        pl = dark_chip("signal peptidase", RED).move_to([4.15,-2.65,0])
         self.play(FadeIn(scissors), FadeIn(pl), run_time=.55)
         self.at("snips off the address")
         self.play(VGroup(*chain[:4]).animate.shift(LEFT*1.1).set_opacity(0), Rotate(scissors,.4), run_time=.7)
@@ -340,10 +340,10 @@ class S11Rule(SpokenScene):
     def construct(self):
         self.add(world(11))
         self.at("here is the idea")
-        line1=VGroup(T("WHERE:",34,TEXT,weight=BOLD),T("the address",34,GOLD,weight=BOLD)).arrange(RIGHT,buff=.18).move_to([0,2.8,0])
+        line1=VGroup(T("WHERE:",34,TEXT,weight=BOLD),T("the address",34,GOLD,weight=BOLD)).arrange(RIGHT,buff=.18).move_to([2.6,3.1,0])
         self.play(Write(line1),run_time=.75)
         self.at("Where and how")
-        line2=VGroup(T("WHEN:",34,TEXT,weight=BOLD),T("where its reader works",34,TEAL,weight=BOLD)).arrange(RIGHT,buff=.18).move_to([0,2.15,0])
+        line2=VGroup(T("WHEN:",34,TEXT,weight=BOLD),T("where its reader works",34,TEAL,weight=BOLD)).arrange(RIGHT,buff=.18).move_to([2.6,2.5,0])
         self.play(Write(line2),run_time=.8)
         self.at("as the chain grows")
         ch=bead_chain(7,3,r=.13,vertical=True).move_to([-.85,-.75,0]); srp=dark_chip("SRP",TEAL).move_to([.1,-.75,0])
@@ -363,16 +363,16 @@ class S12Mito(SpokenScene):
         pluses=VGroup(*[T("+",20,GOLD,weight=BOLD).next_to(ch[i],RIGHT,buff=.08) for i in range(4)])
         ch.add(pluses)
         reveal_chain(self,ch,1.1)
-        poslab=T("positive on one face",28,GOLD).move_to([2.05,1.25,0]); self.play(FadeIn(poslab),run_time=.45)
+        poslab=T("positive on one face",28,GOLD).move_to([1.55,1.25,0]); self.play(FadeIn(poslab),run_time=.45)
         self.play(ch.animate.shift(DOWN*.18), rate_func=there_and_back, run_time=1.2)
         self.at("import gate")
         tom=dark_chip("TOM",BLUE).move_to([4.15,.45,0]); self.play(FadeIn(tom),run_time=.5)
         self.at("released before")
-        loose=ch.copy().arrange_in_grid(rows=3,buff=.04).move_to([1.65,.0,0])
+        loose=ch.copy().arrange_in_grid(rows=3,buff=.04).move_to([2.5,.0,0])
         self.play(Transform(ch,loose),FadeOut(poslab),run_time=.7)
-        self.play(ch.animate.move_to([3.05,.15,0]),run_time=.75)
+        self.play(ch.animate.move_to([2.5,.15,0]),run_time=.75)
         self.at("ribosome sitting")
-        r2=ribosome(pos=(5.1,1.15,0),scale=.45); q=T("?",38,TEXT).next_to(r2,LEFT,buff=.1)
+        r2=ribosome(pos=(5.1,1.5,0),scale=.45); q=T("?",38,TEXT).next_to(r2,LEFT,buff=.1)
         self.play(FadeIn(r2),FadeIn(q),run_time=.55)
         self.at("Hold that question")
         self.play(FadeOut(r2),FadeOut(q),run_time=.5)
@@ -397,7 +397,7 @@ class S13Unfold(SpokenScene):
         dots=VGroup(*[VGroup(Dot(radius=.14,color=GREY),T("C",15,BG,weight=BOLD)).move_to(p) for p in ((-4,.8,0),(-3.3,.1,0),(-3.8,-.3,0))])
         lab=T("chaperones",28,GREY).move_to([-3.55,-1.1,0]); self.play(FadeIn(dots),FadeIn(lab),run_time=.6)
         self.at("To cross Tom")
-        self.play(loose.animate.move_to([-.45,.65,0]),FadeOut(dots),FadeOut(lab),run_time=.7)
+        self.play(loose.animate.move_to([-.95,.3,0]),FadeOut(dots),FadeOut(lab),run_time=.7)
         self.at("TIM23 complex")
         self.play(Indicate(mc[3],color=ORANGE),run_time=.5)
         self.at("partly unfolded")
@@ -412,17 +412,17 @@ class S13bPull(SpokenScene):
         self.add(ambient(14),mito_close(),T("schematic, not to scale",22,TEXT).move_to([5.05,-3.48,0]))
         thread=bead_chain(17,4,r=.13).move_to([1.55,.15,0]).rotate(-.2); self.add(thread)
         self.at("membrane potential")
-        signs=VGroup(*[T("+",25,GOLD).move_to([1.0,y,0]) for y in (-1.8,1.45,2.0)],
-                     *[T("−",25,TEXT).move_to([1.65,y,0]) for y in (-1.8,1.45,2.0)])
+        signs=VGroup(*[T("+",25,GOLD).move_to([.85,y,0]) for y in (-.5,.95,2.0)],
+                     *[T("−",25,TEXT).move_to([1.7,y,0]) for y in (-.5,.95,2.0)])
         lab=T("membrane potential",28,TEXT).move_to([-2.8,2.5,0]); self.play(FadeIn(signs),FadeIn(lab),run_time=.55)
         self.at("pulls on")
         arrow=Arrow([-.6,.7,0],[2.0,.35,0],color=GOLD,stroke_width=6); self.play(GrowArrow(arrow),thread.animate.shift(RIGHT*.7),run_time=.7)
         self.at("HSB70")
-        clamps=VGroup(dark_chip("Hsp70 (ATP)",GREY).move_to([3.0,.0,0]),
-                      dark_chip("Hsp70",GREY).move_to([4.25,-.55,0]))
+        clamps=VGroup(dark_chip("Hsp70 (ATP)",GREY).move_to([3.0,-.6,0]),
+                      dark_chip("Hsp70",GREY).move_to([4.3,-1.05,0]))
         self.play(FadeIn(clamps[0]),run_time=.5)
         self.play(thread.animate.shift(RIGHT*.65),ReplacementTransform(clamps[0],clamps[1]),run_time=.8)
-        back=Arrow([3.0,-1.6,0],[2.15,-1.6,0],color=GREY); cross=T("×",40,RED).move_to(back)
+        back=Arrow([3.0,-1.85,0],[2.15,-1.85,0],color=GREY); cross=T("×",40,RED).move_to(back)
         self.at("grip the chain")
         self.play(FadeIn(back),FadeIn(cross),Indicate(clamps[1],color=GREY),run_time=.55)
         self.finish()
@@ -440,7 +440,7 @@ class S14Mtx(SpokenScene):
         locked=VGroup(bead_chain(4,4,r=.13),dark_chip("DHFR",GREY),padlock()).arrange(RIGHT,buff=.12).move_to([-3.0,-.55,0])
         drug=T("methotrexate (drug)",28,RED).move_to([-3.0,-1.5,0]); self.play(FadeIn(locked),FadeIn(drug),run_time=.55)
         self.at("import stops")
-        self.play(locked.animate.move_to([-.45,-.35,0]),run_time=.65)
+        self.play(locked.animate.move_to([-.6,-.1,0]),run_time=.65)
         blocked=dark_chip("complete import blocked",RED).move_to([-2.5,-2.55,0]); self.play(FadeIn(blocked),run_time=.45)
         control=bead_chain(10,3,r=.1).move_to([-2.4,2.25,0]); ctl=T("normal precursor: still enters",28,GREEN).move_to([-2.25,2.9,0])
         self.play(FadeIn(control),FadeIn(ctl),run_time=.35); self.play(control.animate.shift(RIGHT*2.0),run_time=.7)
@@ -451,13 +451,14 @@ class S14Mtx(SpokenScene):
 
 class S15Skl(SpokenScene):
     def construct(self):
-        self.add(world(16,er_opacity=.3))
+        w=world(16,er_opacity=.3); self.add(w)
         rcut=ribosome(cutaway=True); self.add(rcut)
         chain=bead_chain(14,0,r=.14,vertical=True).move_to([-.82,-.55,0])
         hidden=bead_chain(3,3,r=.13,vertical=True,gold_at_end=True).move_to([-2.0,1.1,0]); self.add(hidden)
         self.at("last three amino acids")
         skl=T("SKL",30,GOLD,weight=BOLD).move_to([-4.55,1.45,0]); self.play(FadeIn(skl),run_time=.5)
         self.at("leave the tunnel")
+        self.play(FadeOut(w[5]),run_time=.3)
         reveal_chain(self,chain,1.0)
         self.at("chain is released")
         gold=bead_chain(3,3,r=.14,vertical=True).next_to(chain,UP,buff=.03)
@@ -482,7 +483,7 @@ class S16Pex5(SpokenScene):
         self.at("stays folded")
         tick=T("✓  can stay folded",30,GREEN,weight=BOLD).move_to([1.8,-1.2,0]); self.play(FadeIn(tick),run_time=.5)
         self.at("still debated")
-        debate=dark_chip("crossing: debated, not settled",MAGENTA).move_to([-3.75,-1.7,0]); blur=Circle(radius=.55,color=MAGENTA,fill_color=MAGENTA,fill_opacity=.18).move_to([-3.6,.55,0])
+        debate=dark_chip("crossing: debated, not settled",MAGENTA).move_to([-3.75,-1.35,0]); blur=Circle(radius=.55,color=MAGENTA,fill_color=MAGENTA,fill_opacity=.18).move_to([-3.6,.55,0])
         self.play(FadeOut(pex),FadeIn(blur),FadeIn(debate),run_time=.55)
         self.play(VGroup(ball,skl).animate.move_to([-4.7,.55,0]),run_time=.8)
         self.finish()
@@ -505,7 +506,7 @@ class S17Return(SpokenScene):
         self.at("Mitochondria need")
         self.play(Transform(mito,bead_chain(10,3,r=.08).move_to([4.2,.3,0])),run_time=.6)
         self.at("take them folded")
-        chlor=T("chloroplasts: mostly like mitochondria",28,GREEN).move_to([3.75,-3.3,0]); self.play(FadeIn(chlor),Indicate(pball,color=GREEN),run_time=.7)
+        chlor=VGroup(T("chloroplasts:",28,GREEN),T("mostly like mitochondria",28,GREEN)).arrange(DOWN,buff=.06).move_to([1.7,-.85,0]); self.play(FadeIn(chlor),Indicate(pball,color=GREEN),run_time=.7)
         self.finish()
 
 

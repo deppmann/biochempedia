@@ -175,7 +175,8 @@ class S01Title(TitleCard):
         gold = [i for p in patch_indices() for i in p]
         sheet = top_sheet(gold, label="")
         sheet.remove(sheet.label, sheet.note)
-        sheet.set_opacity(0.34)
+        sheet.cells.clear_updaters()
+        sheet.set_opacity(0.14)
         title = T(self.TITLE, 58, font=TITLE_FONT)
         lesson = T(self.LESSON.upper(), 24, TEAL)
         rule = Line(LEFT * 1.4, RIGHT * 1.4, color=GOLD, stroke_width=4)
@@ -306,7 +307,7 @@ class S06Gold(SpokenScene):
         self.at("family of cells")
         outline = DashedVMobject(SurroundingRectangle(VGroup(stay, rise), buff=0.22, color=GOLDEN), num_dashes=18)
         clone = T("clone", 34, GOLDEN).move_to([4.65, 0.25, 0])
-        self.play(Create(outline), FadeIn(clone), run_time=0.55)
+        self.play(Create(outline), FadeIn(clone), FadeOut(arrow), run_time=0.55)
         self.finish()
 
 
@@ -410,7 +411,7 @@ class S11Room(SpokenScene):
         nofast = T("clocks: no faster", 28, BLUE).move_to([4.65, -1.65, 0])
         self.play(FadeIn(nofast), run_time=0.35)
         self.at("Fate not speed")
-        idea = T("Fate, not speed", 40, GOLDEN).move_to([4.65, -2.65, 0])
+        idea = T("Fate, not speed", 34, GOLDEN).move_to([5.0, -2.65, 0])
         self.play(FadeIn(idea, shift=UP * 0.12), run_time=0.55)
         self.finish()
 
@@ -438,7 +439,7 @@ class S12Pullback(SpokenScene):
         self.play(Indicate(gold_cells, color=GOLDEN, scale_factor=1.025), run_time=0.65)
         self.at("divided no faster")
         nofast = T("same clock rate", 32).move_to([4.55, 3.15, 0])
-        self.play(FadeIn(nofast), Indicate(sheet.clocks, color=TEXT), run_time=0.55)
+        self.play(FadeIn(nofast), *[Indicate(c, color=TEXT) for c in sheet.clocks], run_time=0.55)
         self.finish()
 
 
@@ -447,8 +448,8 @@ class S13Handoff(SpokenScene):
         gold = [i for p in patch_indices()[:3] for i in p]
         sheet = top_sheet(gold, label="mouse oesophagus")
         sheet.remove(sheet.label, sheet.note)
-        sheet.scale(0.62).move_to([-3.15, -0.15, 0])
-        context = T("mouse oesophagus • schematic", 28).move_to([-3.15, 2.25, 0])
+        sheet.scale(0.56).move_to([-3.0, -0.15, 0])
+        context = T("mouse oesophagus • schematic", 28).move_to([-3.0, 2.25, 0])
         self.add(sheet, context)
         self.at("clones dangerous")
         q1 = T("Dangerous?", 38).move_to([3.65, 1.5, 0])
@@ -466,26 +467,3 @@ class S13Handoff(SpokenScene):
 class S14End(EndCard):
     LINE = "In this lining, a clone spreads by fate, not by speed."
 
-    def construct(self):
-        line = T(self.LINE, 40, font=TITLE_FONT).move_to([0.9, 0, 0])
-        fit(line, max_w=9.8)
-        patch = VGroup(*[
-            RegularPolygon(6, radius=0.30, color=GOLDEN, stroke_width=2,
-                           fill_color=GOLDEN, fill_opacity=0.42)
-            for _ in range(7)
-        ])
-        for h, p in zip(patch, [(-0.36, 0, 0), (0.36, 0, 0), (0, 0.53, 0),
-                                (0, -0.53, 0), (-0.72, 0.53, 0), (-0.72, -0.53, 0),
-                                (0.72, 0.53, 0)]):
-            h.move_to(p)
-        patch.move_to([-5.55, 0, 0])
-        phase = [0.0]
-
-        def shimmer(group, dt):
-            phase[0] += dt
-            group.set_stroke(opacity=0.72 + 0.20 * np.sin(phase[0] * 1.5))
-
-        patch.add_updater(shimmer)
-        self.play(FadeIn(patch, shift=RIGHT * 0.15), FadeIn(line, shift=UP * 0.1),
-                  run_time=self.beat(0.35))
-        self.finish()
