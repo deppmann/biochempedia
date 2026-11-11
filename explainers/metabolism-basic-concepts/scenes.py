@@ -1,762 +1,731 @@
-"""Metabolism: the cell's energy economy.
+"""How cells pull reactions uphill.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = molecules / reactant A / the material being built or broken (circles, chains)
-  PINK   = product B of the A <-> B reaction (scene 4 only)
-  YELLOW = ATP and usable cellular energy currency (ATP chips, ion gradient chips)
-  GREEN  = energy released / downhill / favorable / catabolism flux
-  RED    = energy required / uphill / unfavorable / strain / anabolism flux
-  ORANGE = ADP          PURPLE = AMP
-  TEAL   = water (hydration dots)
-  GREY   = neutral labels, axes, frames       TEXT = plain text, enzyme chip
-No molecular structures are drawn: molecules are circles, chains of circles, and labelled chips.
+COLOR MAP (one meaning throughout)
+  BLUE   = glucose / pathway material / reactants
+  YELLOW = ATP, phosphoryl transfer, and activated carriers
+  GREEN  = favorable actual delta G / forward flux / products
+  RED    = unfavorable actual delta G / broken coupling / heat loss
+  GREY   = tracks, frames, and neutral structure
+  TEXT   = enzymes and ordinary labels
+
+All landscapes are explicitly schematic.  Molecules are labelled carts, badges,
+blocks, or beads; no molecular structures are drawn.
 """
 import math
-import random
+import numpy as np
+
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F0A04B"
-PURPLE = "#B58CE0"
-PINK = "#E58FC4"
+
+# ---------------------------------------------------------------------------
+# Shared world.  Every continuing scene uses these exact coordinates.
+HILL_POINTS = [
+    np.array([-6.15, -2.45, 0]),
+    np.array([-4.45, -1.95, 0]),
+    np.array([-2.45, -0.30, 0]),
+    np.array([-0.45, 2.15, 0]),
+    np.array([1.35, 1.45, 0]),
+    np.array([3.15, 0.15, 0]),
+    np.array([5.95, -0.90, 0]),
+]
 
 
-# ----------------------------------------------------------------------------- helpers
-def dot(color=BLUE, r=0.26, op=0.9):
-    return Circle(radius=r, stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=op)
+def schematic_tag(pos=(-5.45, 3.35, 0)):
+    return T("SCHEMATIC", 28, GREY, weight=BOLD).move_to(pos)
 
 
-def chain(n, color=BLUE, r=0.26):
-    """n touching circles = one large molecule (schematic, no bonds)."""
-    return VGroup(*[dot(color, r) for _ in range(n)]).arrange(RIGHT, buff=-0.02)
+def hill_track(color=GREY, opacity=1.0):
+    p = VMobject(color=color, stroke_width=9).set_points_smoothly(HILL_POINTS)
+    p.set_opacity(opacity)
+    return p
 
 
-def spread(n, color=BLUE, r=0.26, buff=0.5):
-    return VGroup(*[dot(color, r) for _ in range(n)]).arrange(RIGHT, buff=buff)
+def cart(label, color=BLUE, width=2.25, scale=1.0):
+    body = RoundedRectangle(
+        corner_radius=0.16, width=width, height=0.76,
+        stroke_color=color, stroke_width=4, fill_color=BG, fill_opacity=0.94,
+    )
+    lab = fit(T(label, 28, color, weight=BOLD), max_w=width - 0.22, max_h=0.50).move_to(body)
+    wheels = VGroup(
+        Circle(radius=0.18, color=TEXT, stroke_width=4).move_to([-width * 0.31, -0.52, 0]),
+        Circle(radius=0.18, color=TEXT, stroke_width=4).move_to([width * 0.31, -0.52, 0]),
+    )
+    for w in wheels:
+        w.add(Line(w.get_center(), w.get_center() + UP * 0.14, color=TEXT, stroke_width=3))
+    g = VGroup(body, lab, wheels).scale(scale)
+    g.body, g.label, g.wheels = body, lab, wheels
+    return g
 
 
-def mini(text, color, size=24, pad=0.12):
-    return chip(text, color, size=size, pad=pad)
+def dg_gauge(value=0.65, center=(5.25, 2.0, 0), scale=1.0, title="actual ΔG"):
+    """A large readout. value is -1..1 and controls both needle and fill."""
+    cx, cy, _ = center
+    box = RoundedRectangle(
+        corner_radius=0.16 * scale, width=2.55 * scale, height=2.35 * scale,
+        color=TEXT, stroke_width=3, fill_color=BG, fill_opacity=0.92,
+    ).move_to(center)
+    zero = Line([cx - 0.88 * scale, cy - 0.16 * scale, 0],
+                [cx + 0.88 * scale, cy - 0.16 * scale, 0], color=GREY, stroke_width=3)
+    plus = T("+", 30 * scale, RED, weight=BOLD).move_to([cx - 0.92 * scale, cy + 0.38 * scale, 0])
+    minus = T("−", 34 * scale, GREEN, weight=BOLD).move_to([cx - 0.92 * scale, cy - 0.68 * scale, 0])
+    ttl = fit(T(title, 28 * scale, TEXT, weight=BOLD), max_w=2.15 * scale).move_to([cx, cy + 0.82 * scale, 0])
+    tracker = ValueTracker(value)
+    fill = always_redraw(lambda: Rectangle(
+        width=1.45 * scale,
+        height=max(0.05, abs(tracker.get_value()) * 0.60 * scale),
+        stroke_width=0,
+        fill_color=RED if tracker.get_value() >= 0 else GREEN,
+        fill_opacity=0.65,
+    ).move_to([cx + 0.18 * scale, cy - 0.16 * scale + tracker.get_value() * 0.30 * scale, 0]))
+    needle = always_redraw(lambda: Arrow(
+        [cx - 0.48 * scale, cy - 0.16 * scale, 0],
+        [cx + 0.60 * scale, cy - 0.16 * scale + tracker.get_value() * 0.74 * scale, 0],
+        buff=0, stroke_width=5, tip_length=0.18 * scale,
+        color=RED if tracker.get_value() >= 0 else GREEN,
+    ))
+    g = VGroup(box, zero, fill, plus, minus, ttl, needle)
+    g.tracker = tracker
+    return g
 
 
-def lane_frame(center_y, label, w=12.4, h=2.5):
-    box = RoundedRectangle(corner_radius=0.2, width=w, height=h, stroke_color=GREY, stroke_width=2,
-                           fill_color=GREY, fill_opacity=0.06).move_to([0, center_y, 0])
-    lab = T(label, 24, TEXT, weight=BOLD).rotate(PI / 2).move_to([-w / 2 + 0.38, center_y, 0])
-    return box, lab
+def balance_arrow(center=(-3.0, 2.65, 0)):
+    line = Line(LEFT * 1.2, RIGHT * 1.2, color=TEXT, stroke_width=7)
+    tri = Triangle(color=GREY, fill_color=GREY, fill_opacity=1).scale(0.15).rotate(PI).next_to(line, DOWN, buff=0.02)
+    left = T("start", 28, BLUE).next_to(line.get_left(), UP, buff=0.12)
+    right = T("G6P", 28, GREEN).next_to(line.get_right(), UP, buff=0.12)
+    return VGroup(line, tri, left, right).move_to(center)
 
 
-def sig(x, c, w):
-    return 0.5 * (1 + math.tanh((x - c) / w))
+def marker_stream(y=-2.72, color=GREY):
+    """Slow track markers prevent a long narrated hold from becoming a frozen frame."""
+    marks = VGroup(*[
+        Line(LEFT * 0.28, RIGHT * 0.28, color=color, stroke_width=5).move_to([-5.8 + i * 1.15, y, 0])
+        for i in range(11)
+    ])
+
+    def drift(m, dt):
+        m.shift(LEFT * 1.65 * dt)
+        if m.get_x() < -6.25:
+            m.shift(RIGHT * 12.65)
+
+    for m in marks:
+        m.add_updater(drift)
+    return marks
 
 
-def gauss(x, c, w):
-    return math.exp(-((x - c) / w) ** 2)
+def hill_world(cart_label="glucose + Pi", cart_x=-4.7, gauge_value=0.65, dim=1.0):
+    track = hill_track(opacity=dim)
+    ground = Polygon(
+        HILL_POINTS[0], *HILL_POINTS[1:], [6.15, -3.2, 0], [-6.15, -3.2, 0],
+        stroke_width=0, fill_color=GREY, fill_opacity=0.07 * dim,
+    )
+    c = cart(cart_label).move_to([cart_x, -1.63, 0]).set_opacity(dim)
+    target = chip("G6P", GREEN, size=30, pad=0.24).move_to([4.70, -0.10, 0]).set_opacity(dim)
+    gauge = dg_gauge(gauge_value).set_opacity(dim)
+    tag = schematic_tag().set_opacity(dim)
+    marks = marker_stream().set_opacity(dim)
+    return VGroup(ground, track, marks, c, target, gauge, tag), c, gauge
 
 
-def make_axes(y_lo, y_hi, width, height, y_step=10):
-    """Axes with no numbers or ticks."""
-    return Axes(x_range=[0, 10, 1], y_range=[y_lo, y_hi, y_step], x_length=width, y_length=height,
-                axis_config={"include_numbers": False, "include_ticks": False, "color": GREY,
-                             "stroke_width": 3, "tip_width": 0.16, "tip_height": 0.16}, tips=True)
+def heat_waves(center=(3.3, 1.0, 0)):
+    waves = VGroup()
+    for i in range(3):
+        wave = Arc(radius=0.36 + i * 0.23, start_angle=0.10, angle=PI * 0.82,
+                   color=RED, stroke_width=5).move_to(center)
+        waves.add(wave)
+    return waves
 
 
-def place_axes(ax, left, bottom):
-    ax.shift(np.array([left, bottom, 0]) - ax.c2p(0, ax.y_range[0]))
-    return ax
+def site_block(label, center, color=TEXT, width=2.3):
+    box = RoundedRectangle(corner_radius=0.2, width=width, height=1.25,
+                           color=color, stroke_width=4, fill_color=color, fill_opacity=0.12)
+    lab = fit(T(label, 28, color, weight=BOLD), max_w=width - 0.25).move_to(box)
+    return VGroup(box, lab).move_to(center)
 
 
-# ============================================================================= scenes
-class S00Title(TitleCard):
+def rope_between(a, b, color=YELLOW, loose=False):
+    if loose:
+        pts = [a, a + RIGHT * 0.8, (a + b) / 2 + DOWN * 0.75, b + LEFT * 0.8, b]
+        return VMobject(color=color, stroke_width=8).set_points_smoothly(pts)
+    return Line(a, b, color=color, stroke_width=8)
+
+
+def sway_rope(rope, a, b):
+    """Keep a broken connector visibly loose without implying energy transfer."""
+    rope.phase = 0.0
+
+    def update(m, dt):
+        m.phase += dt
+        sag = 0.68 + 0.16 * math.sin(1.7 * m.phase)
+        pts = [a, a + RIGHT * 0.55, (a + b) / 2 + DOWN * sag, b + LEFT * 0.55, b]
+        m.set_points_smoothly(pts)
+
+    rope.add_updater(update)
+    return rope
+
+
+def pulse_forever(mob, lo=0.45, hi=0.9, speed=1.4):
+    mob.phase = 0.0
+
+    def update(m, dt):
+        m.phase += dt
+        m.set_opacity(lo + (hi - lo) * (0.5 + 0.5 * math.sin(speed * m.phase)))
+
+    mob.add_updater(update)
+    return mob
+
+
+def rock_forever(mob, direction=RIGHT * 0.34 + UP * 0.10, speed=1.35):
+    """Gentle bounded rocking for a cart awaiting an unresolved outcome."""
+    mob.rock_phase = 0.0
+
+    def update(m, dt):
+        m.rock_phase += speed * dt
+        m.shift(direction * math.cos(m.rock_phase) * dt)
+
+    mob.add_updater(update)
+    return mob
+
+
+# ---------------------------------------------------------------------------
+# s00: required TitleCard subclass, overridden with the hook-first picture.
+class S00Hook(TitleCard, SpokenScene):
     LESSON = "Metabolism: basic concepts"
-    TITLE = "The cell's energy economy"
+    TITLE = "How cells pull reactions uphill"
 
-
-# ----------------------------------------------------------------------------- s01: two camps
-class S01TwoCamps(SpokenScene):
     def construct(self):
-        top, top_lab = lane_frame(2.25, "CATABOLISM")
-        bot, bot_lab = lane_frame(-2.25, "ANABOLISM")
+        world, c, gauge = hill_world()
+        # Before the first word: the cart is already climbing.
+        self.add(world)
+        self.play(c.animate.move_to([-2.65, -0.25, 0]), run_time=2.4, rate_func=rate_functions.ease_out_cubic)
 
-        # ---- catabolism lane contents
-        big = chain(4).move_to([-3.9, 2.75, 0])
-        fuel_cap = T("carbohydrates, fats", 24, GREY).next_to(big, DOWN, buff=0.22)
-        arr_c = Arrow([-2.4, 2.75, 0], [-0.6, 2.75, 0], color=TEXT, stroke_width=6, buff=0, tip_length=0.28)
-        small = spread(4, BLUE, 0.2, 0.55).move_to([1.6, 2.75, 0])
-        prod = VGroup(mini("CO₂", TEXT, 26), mini("H₂O", TEXT, 26)).arrange(RIGHT, buff=0.35).move_to([1.6, 2.75, 0])
-        e_lab = T("energy released", 26, GREEN).move_to([-3.0, 1.5, 0])
-        e_arr = Arrow([-1.55, 1.5, 0], [-0.85, 1.5, 0], color=GREEN, stroke_width=5, buff=0, tip_length=0.2)
-        atp_c = mini("ATP", YELLOW, 26).move_to([0.0, 1.5, 0])
-        or_t = T("or", 24, GREY).move_to([1.05, 1.5, 0])
-        ion_c = mini("ion gradients", YELLOW, 26).move_to([2.8, 1.5, 0])
+        self.at("without breaking thermodynamics")
+        self.play(c.animate.shift(RIGHT * 0.45 + UP * 0.30), run_time=1.2, rate_func=rate_functions.ease_out_sine)
+        self.at("glucose receives a phosphate")
+        self.play(Indicate(c, color=YELLOW, scale_factor=1.07), run_time=1.0)
+        # The cart visibly loses momentum throughout the concentration sentence.
+        self.play(c.animate.shift(LEFT * 0.42 + DOWN * 0.20), run_time=4.7,
+                  rate_func=rate_functions.ease_in_out_sine)
 
-        # ---- anabolism lane contents
-        pre = spread(4, BLUE, 0.2, 0.3).move_to([-4.1, -1.75, 0])
-        pre_cap = T("simple precursors", 24, GREY).next_to(pre, DOWN, buff=0.22)
-        arr_a = Arrow([-2.4, -1.75, 0], [-0.6, -1.75, 0], color=TEXT, stroke_width=6, buff=0, tip_length=0.28)
-        built = chain(4).move_to([1.6, -1.75, 0])
-        built_cap = T("complex biomolecules", 24, GREY).next_to(built, DOWN, buff=0.22)
-        atp_a = mini("ATP", YELLOW, 26).move_to([-4.6, -3.0, 0])
-        red_a = mini("reducing power", YELLOW, 26).move_to([-2.45, -3.0, 0])
-        e_need = T("energy required", 26, RED).move_to([-1.5, -3.0, 0])
-        e_need_arr = Arrow([-1.5, -2.65, 0], [-1.5, -2.0, 0], color=RED, stroke_width=5, buff=0, tip_length=0.2)
+        self.at("favors the starting side")
+        bal = balance_arrow()
+        self.play(FadeIn(bal, shift=DOWN * 0.15), run_time=0.6)
+        self.play(Rotate(bal[0], angle=0.24, about_point=bal[1].get_top()), run_time=1.0)
 
-        # opening: one pathway = a chain of conversions, which then sorts into two camps
-        pw_dots = VGroup(*[dot(BLUE, 0.3) for _ in range(5)]).arrange(RIGHT, buff=0.9)
-        pw_arrows = VGroup(*[Arrow(pw_dots[i].get_right(), pw_dots[i + 1].get_left(), color=TEXT, buff=0.08,
-                                   stroke_width=4, tip_length=0.2) for i in range(4)])
-        pathway = VGroup(pw_dots, pw_arrows).move_to([0, 0, 0])
-        self.at("Most metabolic pathways", 0.0)
-        seq = []
-        for i in range(5):
-            seq.append(FadeIn(pw_dots[i], scale=0.6))
-            if i < 4:
-                seq.append(GrowArrow(pw_arrows[i]))
-        self.play(LaggedStart(*seq, lag_ratio=0.15), run_time=1.6)
-        self.at("two camps", 0.4)
-        self.play(FadeOut(pathway, scale=0.7), FadeIn(top), FadeIn(bot), FadeIn(top_lab), FadeIn(bot_lab), run_time=0.8)
-
-        # ---- catabolism
-        self.at("Catabolic pathways", 0.3)
-        self.play(Indicate(top_lab, color=GREEN, scale_factor=1.15), run_time=0.8)
-        self.at("break large molecules down", 0.2)
-        self.play(FadeIn(big, scale=0.8), run_time=0.5)
-        self.play(FadeIn(arr_c), TransformFromCopy(big, small), run_time=1.2)
-        self.at("carbohydrates and fats", 0.4)
-        self.play(FadeIn(fuel_cap, shift=UP * 0.1), run_time=0.6)
-        self.at("carbon dioxide and water", 0.3)
-        self.play(ReplacementTransform(small, prod), run_time=1.0)
-        self.at("capture the released energy", 0.2)
-        self.play(FadeIn(e_lab, shift=RIGHT * 0.1), GrowArrow(e_arr), run_time=0.8)
-        self.at("as a", 0.2)
-        self.play(FadeIn(atp_c, scale=0.7), run_time=0.5)
-        self.at("or as ion gradients", 0.2)
-        self.play(FadeIn(or_t), FadeIn(ion_c, scale=0.7), run_time=0.7)
-
-        # ---- anabolism
-        self.at("Anabolic pathways", 0.3)
-        self.play(Indicate(bot_lab, color=RED, scale_factor=1.15), run_time=0.8)
-        self.at("They take simple precursors", 0.2)
-        self.play(FadeIn(pre, shift=RIGHT * 0.1), FadeIn(pre_cap), FadeIn(arr_a), run_time=0.8)
-        self.at("spend energy and reducing power", 0.2)
-        self.play(FadeIn(atp_a, shift=UP * 0.1), FadeIn(red_a, shift=UP * 0.1), run_time=0.7)
-        mid = np.array([-1.5, -1.75, 0])
-        self.play(atp_a.animate.move_to(mid).scale(0.5).set_opacity(0),
-                  red_a.animate.move_to(mid).scale(0.4).set_opacity(0), run_time=1.0)
-        self.play(FadeIn(e_need, shift=UP * 0.1), GrowArrow(e_need_arr), run_time=0.6)
-        self.at("build complex biomolecules", 0.2)
-        self.play(TransformFromCopy(pre, built), FadeIn(built_cap), run_time=1.2)
-
-        # ---- summary
-        self.at("So catabolism releases energy", 0.2)
-        self.play(Indicate(e_lab, color=GREEN, scale_factor=1.12), Indicate(top_lab, color=GREEN), run_time=1.2)
-        self.at("Anabolism consumes energy", 0.2)
-        self.play(Indicate(e_need, color=RED, scale_factor=1.12), Indicate(bot_lab, color=RED), run_time=1.2)
-
-        # ---- both at once, products feed each other
-        self.at("The cell is constantly running both", 0.2)
-        self.play(Indicate(top, color=GREEN, scale_factor=1.02), Indicate(bot, color=RED, scale_factor=1.02), run_time=1.2)
-        # catabolism's products (ATP, reducing power) feed anabolism; anabolism's products (stored fuel) feed catabolism
-        a1 = Arrow([-0.6, 0.92, 0], [-0.6, -0.92, 0], color=YELLOW, stroke_width=6, buff=0, tip_length=0.25)
-        a2 = Arrow([0.6, -0.92, 0], [0.6, 0.92, 0], color=BLUE, stroke_width=6, buff=0, tip_length=0.25)
-        l1 = T("ATP, reducing power", 26, YELLOW)
-        l1.next_to(a1, LEFT, buff=0.3)
-        l2 = T("stored fuel, macromolecules", 26, BLUE)
-        l2.next_to(a2, RIGHT, buff=0.3)
-        self.at("with the products of one feeding", 0.2)
-        self.play(GrowArrow(a1), FadeIn(l1, shift=DOWN * 0.1), run_time=0.8)
-        self.play(GrowArrow(a2), FadeIn(l2, shift=UP * 0.1), run_time=0.8)
+        self.at("actual delta G is positive")
+        self.play(gauge.tracker.animate.set_value(0.95), Indicate(gauge, color=RED, scale_factor=1.04), run_time=1.2)
+        self.at("cart rolls backward")
+        self.play(FadeOut(bal), c.animate.move_to([-4.72, -1.63, 0]), run_time=2.6, rate_func=rate_functions.ease_in_out_cubic)
         self.finish()
 
 
-# ----------------------------------------------------------------------------- s02: coupling
-class S02Coupling(SpokenScene):
+# ---------------------------------------------------------------------------
+class S01Title(NarratedScene):
     def construct(self):
-        y_lo, y_hi = -20, 50
-        axL = make_axes(y_lo, y_hi, 5.0, 4.5)
-        place_axes(axL, -6.0, -2.6)
-        axR = make_axes(y_lo, y_hi, 5.0, 4.5)
-        place_axes(axR, 1.0, -2.6)
-
-        xlabL = T("reaction coordinate", 24, GREY).move_to([axL.c2p(5, y_lo)[0], axL.c2p(0, y_lo)[1] - 0.5, 0])
-        xlabR = T("reaction coordinate", 24, GREY).move_to([axR.c2p(5, y_lo)[0], axR.c2p(0, y_lo)[1] - 0.5, 0])
-        ylabL = T("free energy (kJ/mol)", 24, GREY).rotate(PI / 2).move_to([-6.45, -0.35, 0])
-        ylabR = T("free energy (kJ/mol)", 24, GREY).rotate(PI / 2).move_to([0.55, -0.35, 0])
-
-        # one smooth hill up to B + C (barrier peak ~ +29), then the coupled path continues downhill
-        fL = lambda x: 21 * sig(x, 5.4, 0.9) + 26 * gauss(x, 4.7, 1.0)
-        fR1 = lambda x: 21 * sig(x, 3.0, 0.65) + 26 * gauss(x, 2.4, 0.75)
-        fR = lambda x: fR1(x) - 34 * sig(x, 7.0, 0.5)
-
-        curveL = axL.plot(fL, x_range=[0, 10], color=RED, stroke_width=6)
-        curveR_up = axR.plot(fR1, x_range=[0, 6.0], color=RED, stroke_width=6)
-        curveR_dn = axR.plot(fR, x_range=[5.9, 10], color=GREEN, stroke_width=6)
-
-        zeroL = DashedLine(axL.c2p(0, 0), axL.c2p(10, 0), color=GREY, stroke_width=2, dash_length=0.1)
-        zeroR = DashedLine(axR.c2p(0, 0), axR.c2p(10, 0), color=GREY, stroke_width=2, dash_length=0.1)
-
-        titL = T("ALONE", 26, TEXT, weight=BOLD).move_to([axL.c2p(5, 0)[0], 3.15, 0])
-        titR = T("COUPLED", 26, TEXT, weight=BOLD).move_to([axR.c2p(5, 0)[0], 3.15, 0])
-
-        # markers
-        A_L = T("A", 30, TEXT, weight=BOLD).move_to(axL.c2p(0.7, 0) + UP * 0.38)
-        BC_L = T("B + C", 30, TEXT, weight=BOLD).move_to(axL.c2p(8.4, 21) + UP * 0.42)
-        A_R = T("A", 30, TEXT, weight=BOLD).move_to(axR.c2p(0.7, 0) + UP * 0.38)
-        B_R = T("B", 30, TEXT, weight=BOLD).move_to(axR.c2p(4.9, 21) + UP * 0.42)
-        CD_R = T("C + D", 30, TEXT, weight=BOLD).move_to(axR.c2p(8.4, -18.5))
-
-        # delta-G arrows
-        up21 = Arrow(axL.c2p(9.0, 0), axL.c2p(9.0, 21), color=RED, buff=0, stroke_width=6, tip_length=0.22)
-        up21_t = T("+21", 28, RED, weight=BOLD).next_to(up21, LEFT, buff=0.12)
-        r21 = Arrow(axR.c2p(4.2, 0), axR.c2p(4.2, 21), color=RED, buff=0, stroke_width=6, tip_length=0.22)
-        r21_t = T("+21", 28, RED, weight=BOLD).next_to(r21, RIGHT, buff=0.12).shift(DOWN * 0.25)
-        top_dash = DashedLine(axR.c2p(4.2, 21), axR.c2p(9.1, 21), color=GREY, stroke_width=2, dash_length=0.1)
-        g34 = Arrow(axR.c2p(9.1, 21), axR.c2p(9.1, -13), color=GREEN, buff=0, stroke_width=6, tip_length=0.22)
-        g34_t = T("−34", 28, GREEN, weight=BOLD).next_to(g34, LEFT, buff=0.12).shift(UP * 0.8)
-        net = Arrow(axR.c2p(0.5, 0), axR.c2p(0.5, -13), color=GREEN, buff=0, stroke_width=7, tip_length=0.22)
-        net_dash = DashedLine(axR.c2p(0.5, -13), axR.c2p(10, -13), color=GREEN, stroke_width=2.5, dash_length=0.12)
-        net_t = T("net −13", 28, GREEN, weight=BOLD).move_to(axR.c2p(0.5, -13) + RIGHT * 1.15 + DOWN * 0.38)
-        eq = M("+21 + (−34) = −13", 26, TEXT).move_to([axR.c2p(5, 0)[0], 1.5, 0])
-        eq_u = T("kJ/mol", 22, GREY).next_to(eq, DOWN, buff=0.08)
-
-        ball = Dot(radius=0.14, color=TEXT).move_to(axL.c2p(0, 0))
-
-        # ---- left panel
-        self.play(Create(axL), FadeIn(xlabL), FadeIn(ylabL), run_time=0.6)
-        self.add(ball)
-        self.at("won't go on its own", 0.2)
-        self.play(FadeIn(zeroL), Create(curveL), FadeIn(A_L), run_time=1.6)
-        self.at("forced uphill", 0.0)
-        self.play(Indicate(curveL, color=RED, scale_factor=1.0), run_time=1.0)
-        self.at("On the left", 0.2)
-        self.play(FadeIn(titL), run_time=0.5)
-        self.at("A to B plus C", 0.2)
-        self.play(FadeIn(BC_L, shift=UP * 0.1), run_time=0.5)
-        self.at("positive delta G of plus", 0.2)
-        self.play(GrowArrow(up21), FadeIn(up21_t), run_time=0.8)
-        self.at("so alone it stalls", 0.3)
-        # the ball climbs toward the barrier and rolls back
-        self.play(ball.animate.move_to(axL.c2p(4.2, fL(4.2))), run_time=0.7, rate_func=smooth)
-        self.play(ball.animate.move_to(axL.c2p(0, 0)), run_time=0.45, rate_func=rush_into)
-
-        # ---- right panel
-        self.at("On the right", 0.2)
-        self.play(Create(axR), FadeIn(xlabR), FadeIn(ylabR), FadeIn(titR), FadeIn(zeroR), run_time=0.7)
-        self.at("we couple it to", 0.2)
-        self.play(Create(curveR_up), FadeIn(A_R), FadeIn(B_R), run_time=1.0)
-        self.at("strongly favorable reaction", 0.2)
-        self.play(GrowArrow(r21), FadeIn(r21_t), run_time=0.4)
-        self.play(Create(curveR_dn), FadeIn(CD_R), FadeIn(top_dash), run_time=1.0)
-        self.at("with a delta G of minus", 0.2)
-        self.play(GrowArrow(g34), FadeIn(g34_t), run_time=0.8)
-
-        # ---- add them
-        self.at("Add them", 0.1)
-        self.play(FadeIn(eq), FadeIn(eq_u), run_time=0.8)
-        self.at("the net delta G is minus", 0.2)
-        self.play(GrowArrow(net), Create(net_dash), FadeIn(net_t), run_time=1.0)
-        self.at("so the combined pathway proceeds", 0.2)
-        rball = Dot(radius=0.14, color=TEXT).move_to(axR.c2p(0, 0))
-        self.add(rball)
-        tr = ValueTracker(0.0)
-        rball.add_updater(lambda m: m.move_to(axR.c2p(tr.get_value(), fR(tr.get_value()))))
-        self.play(tr.animate.set_value(10.0), run_time=3.0, rate_func=linear)
-        rball.clear_updaters()
-
-        # ---- the principle
-        self.at("This is the central trick", 0.2)
-        self.play(Indicate(net_t, color=GREEN, scale_factor=1.2), Indicate(net, color=GREEN), run_time=1.3)
-        self.at("Individual steps must be specific", 0.2)
-        s1 = T("specific step", 24, RED).move_to([axR.c2p(2.6, 0)[0], 1.25, 0])
-        s2 = T("specific step", 24, GREEN).move_to([axR.c2p(7.6, 0)[0], 1.25, 0])
-        self.play(FadeOut(eq), FadeOut(eq_u), FadeIn(s1, shift=DOWN * 0.1), FadeIn(s2, shift=DOWN * 0.1), run_time=0.9)
-        self.at("each", 0.2)
-        path_all = axR.plot(fR, x_range=[0, 10], color=GREEN, stroke_width=11)
-        whole_t = fit(T("every step must be favorable", 26, GREEN), max_w=4.8).move_to([3.8, 1.5, 0])
-        self.play(FadeOut(s1), FadeOut(s2), FadeIn(whole_t), ShowPassingFlash(path_all, time_width=0.5), run_time=1.4)
-        self.play(Indicate(net_t, color=GREEN, scale_factor=1.15), run_time=0.8)
-        self.at("Coupling is how the cell pays", 0.2)
-        pay = fit(T("coupling pays for the uphill step", 26, TEXT), max_w=4.8).move_to([3.8, 1.5, 0])
-        self.play(FadeOut(whole_t), Indicate(g34, color=GREEN), Indicate(g34_t, color=GREEN),
-                  FadeIn(pay), run_time=1.3)
+        world, c, gauge = hill_world(dim=0.26)
+        title = fit(T("How cells pull reactions uphill", 54, font=TITLE_FONT), max_w=11.6)
+        rule = Line(LEFT * 1.35, RIGHT * 1.35, color=GOLD, stroke_width=5).next_to(title, DOWN, buff=0.34)
+        self.add(world)
+        self.play(FadeIn(title, shift=UP * 0.12), GrowFromCenter(rule),
+                  gauge.tracker.animate.set_value(0.85), run_time=0.75)
+        self.play(c.animate.shift(RIGHT * 0.35 + UP * 0.10), run_time=0.75)
+        self.play(FadeOut(VGroup(title, rule), shift=UP * 0.20), run_time=0.45)
         self.finish()
 
 
-# ----------------------------------------------------------------------------- s03: why ATP hydrolysis releases energy
-class S03WhyAtp(SpokenScene):
+# ---------------------------------------------------------------------------
+class S02Rule(SpokenScene):
     def construct(self):
-        CW, CH = 6.15, 2.4
-        centers = [(-3.1, 1.2), (3.1, 1.2), (-3.1, -1.5), (3.1, -1.5)]
-        titles = ["1  Charge repulsion drops", "2  Resonance stabilization", "3  Entropy rises", "4  Better hydration"]
-        frames, ttl = [], []
-        for (cx, cy), tx in zip(centers, titles):
-            f = RoundedRectangle(corner_radius=0.16, width=CW, height=CH, stroke_color=GREY, stroke_width=2,
-                                 fill_color=GREY, fill_opacity=0.06).move_to([cx, cy, 0])
-            t = T(tx, 26, TEXT, weight=BOLD).move_to([cx, cy + 0.88, 0])
-            frames.append(f); ttl.append(t)
+        world, c, gauge = hill_world(cart_label="reaction", cart_x=-4.7, gauge_value=-0.75)
+        self.add(world)
 
-        rx = VGroup(T("ATP + H₂O", 32, YELLOW), T("→", 32, TEXT), T("ADP + Pi", 32, ORANGE)).arrange(RIGHT, buff=0.35)
-        dg = M("ΔG°′ = −30.5 kJ/mol", 28, GREEN)
-        rx.move_to([-2.9, 3.1, 0]); dg.move_to([3.4, 3.1, 0])
+        self.at("reaction runs forward")
+        self.play(gauge.tracker.animate.set_value(-0.80), c.animate.move_to([-1.25, 1.12, 0]),
+                  run_time=2.0, rate_func=linear)
+        self.at("actual delta G is negative")
+        self.play(Indicate(gauge, color=GREEN, scale_factor=1.05), run_time=1.0)
+        self.play(gauge.tracker.animate.set_value(0.65), c.animate.move_to([-3.15, -0.05, 0]),
+                  run_time=1.6, rate_func=linear)
 
-        def P(label="P", color=YELLOW, w=0.46, fs=22):
-            sq = RoundedRectangle(corner_radius=0.08, width=w, height=0.46, stroke_color=color, stroke_width=2.5,
-                                  fill_color=color, fill_opacity=0.18)
-            return VGroup(sq, T(label, fs, color).move_to(sq))
+        self.at("Enzymes lower activation barriers")
+        hump = ArcBetweenPoints([-2.7, -0.42, 0], [1.45, 1.32, 0], angle=-PI / 1.7,
+                               color=RED, stroke_width=8)
+        # Keep the readable gate label clear of the activation-hump stroke.
+        gate = site_block("enzyme", [-0.65, 2.72, 0], BLUE, width=2.15)
+        flags = VGroup(
+            T("start", 28, BLUE).move_to([-5.10, -2.92, 0]),
+            T("finish", 28, GREEN).move_to([4.15, -1.48, 0]),
+        )
+        self.play(FadeOut(world[2]), Create(hump), FadeIn(gate, shift=DOWN * 0.2), FadeIn(flags), run_time=1.1)
+        self.play(hump.animate.scale(1, 0.45, about_point=hump.get_bottom()), run_time=1.4)
+        self.at("speed traffic")
+        self.play(c.animate.move_to([2.65, 0.35, 0]), run_time=1.2, rate_func=linear)
 
-        def ado():
-            return P("Ado", GREY, w=0.8, fs=22)
+        self.at("cannot change the sign")
+        self.play(Indicate(gate, color=BLUE), Indicate(gauge, color=RED), run_time=0.9)
+        self.play(c.animate.move_to([-4.72, -1.63, 0]), run_time=1.7, rate_func=linear)
 
-        def charge(color, r=0.12):
-            c = Circle(radius=r, stroke_color=color, stroke_width=2.5, fill_opacity=0)
-            return VGroup(c, Line(LEFT * r * 0.55, RIGHT * r * 0.55, color=color, stroke_width=3))
-
-        def arrow_at(x, y, w=0.7):
-            return Arrow([x - w / 2, y, 0], [x + w / 2, y, 0], color=GREY, buff=0, stroke_width=4, tip_length=0.2)
-
-        # ---- card 1: charge repulsion
-        c1x, c1y = centers[0]
-        ry = c1y - 0.12
-        a_ado, a_p = ado(), [P(), P(), P()]
-        atpG = VGroup(a_ado, *a_p).arrange(RIGHT, buff=0.08).move_to([c1x - 1.7, ry - 0.15, 0])
-        minus1 = VGroup(*[charge(RED).next_to(p, UP, buff=0.08) for p in a_p])
-        arcs1 = VGroup(*[ArcBetweenPoints(minus1[i].get_top() + UP * 0.03, minus1[i + 1].get_top() + UP * 0.03,
-                                          angle=-PI / 1.3, color=RED, stroke_width=3) for i in range(2)])
-        cap1a = T("strained", 22, RED).move_to([c1x - 1.7, c1y - 0.88, 0])
-        r_ado = ado()
-        r_p1, r_p2 = P(color=ORANGE), P(color=ORANGE)
-        adpG = VGroup(r_ado, r_p1, r_p2).arrange(RIGHT, buff=0.08)
-        piG = P("Pi", ORANGE)
-        rightG = VGroup(adpG, piG).arrange(RIGHT, buff=0.35).move_to([c1x + 1.6, ry - 0.15, 0])
-        minus1b = VGroup(*[charge(GREEN).next_to(p, UP, buff=0.08) for p in (r_p1, r_p2, piG)])
-        cap1b = T("relaxed", 22, GREEN).move_to([c1x + 1.6, c1y - 0.88, 0])
-        arr1 = arrow_at(c1x - 0.1, ry - 0.15, 0.45)
-        left1 = VGroup(a_ado, *a_p, *minus1)
-        right1 = VGroup(r_ado, r_p1, r_p2, piG, *minus1b)
-
-        # ---- card 2: resonance
-        c2x, c2y = centers[1]
-        ry2 = c2y - 0.12
-        lockbox = RoundedRectangle(corner_radius=0.1, width=0.95, height=0.95, stroke_color=GREY, stroke_width=3,
-                                   fill_opacity=0).move_to([c2x - 1.7, ry2, 0])
-        lockP = P("P", YELLOW).move_to(lockbox)
-        cap2a = T("locked in ATP", 22, GREY).move_to([c2x - 1.7, c2y - 0.88, 0])
-        arr2 = arrow_at(c2x - 0.1, ry2, 0.6)
-        piF = P("Pi", ORANGE, w=0.66).move_to([c2x + 1.4, ry2, 0])
-        corners = VGroup(*[Dot(radius=0.075, color=ORANGE).move_to(piF.get_center() + np.array([0.52 * sx, 0.44 * sy, 0]))
-                           for sx, sy in [(-1, 1), (1, 1), (1, -1), (-1, -1)]])
-        cap2b = T("more resonance forms", 22, GREEN).move_to([c2x + 1.3, c2y - 0.88, 0])
-
-        # ---- card 3: entropy
-        c3x, c3y = centers[2]
-        ry3 = c3y - 0.12
-        one = chip("ATP", YELLOW, size=24, pad=0.13).move_to([c3x - 1.7, ry3, 0])
-        arr3 = arrow_at(c3x - 0.45, ry3, 0.7)
-        two_a = chip("ADP", ORANGE, size=24, pad=0.13).move_to([c3x + 0.85, ry3 + 0.1, 0])
-        two_b = chip("Pi", ORANGE, size=24, pad=0.13).move_to([c3x + 2.25, ry3 - 0.15, 0])
-        cap3 = T("one molecule becomes two", 22, GREEN).move_to([c3x, c3y - 0.88, 0])
-
-        # ---- card 4: hydration
-        c4x, c4y = centers[3]
-        ry4 = c4y - 0.12
-        atp4 = chip("ATP", YELLOW, size=24, pad=0.13).move_to([c4x - 2.2, ry4, 0])
-
-        def shell(center, n, a, b, phase=0.0):
-            return VGroup(*[Dot(radius=0.07, color=TEAL).move_to(
-                center + np.array([a * math.cos(2 * PI * k / n + phase), b * math.sin(2 * PI * k / n + phase), 0]))
-                for k in range(n)])
-        sh_atp = shell(atp4.get_center(), 3, 0.68, 0.45, 0.4)
-        arr4 = arrow_at(c4x - 0.95, ry4, 0.5)
-        adp4 = chip("ADP", ORANGE, size=24, pad=0.13).move_to([c4x + 0.5, ry4, 0])
-        pi4 = chip("Pi", ORANGE, size=24, pad=0.13).move_to([c4x + 2.2, ry4, 0])
-        sh_adp = shell(adp4.get_center(), 8, 0.78, 0.45)
-        sh_pi = shell(pi4.get_center(), 6, 0.55, 0.45, 0.3)
-        cap4 = T("better solvated by water", 22, GREEN).move_to([c4x, c4y - 0.88, 0])
-
-        # ---- intro
-        self.at("hydrolysis", 0.0)
-        self.play(FadeIn(rx, shift=UP * 0.1), run_time=0.8)
-        self.at("exergonic", 0.2)
-        self.play(FadeIn(dg, shift=LEFT * 0.1), run_time=0.8)
-        self.at("four distinct effects", 0.2)
-        self.play(LaggedStart(*[FadeIn(f) for f in frames], lag_ratio=0.15), run_time=1.2)
-
-        # ---- 1 charge repulsion
-        self.at("First, charge repulsion", 0.2)
-        self.play(FadeIn(ttl[0]), run_time=0.4)
-        self.play(FadeIn(left1), run_time=0.6)
-        self.at("closely packed negative charges", 0.2)
-        self.play(Create(arcs1), FadeIn(cap1a), run_time=0.9)
-        self.at("cutting it apart", 0.2)
-        self.play(FadeIn(arr1), FadeOut(arcs1), TransformFromCopy(left1, right1), run_time=1.2)
-        self.play(FadeIn(cap1b), run_time=0.4)
-
-        # ---- 2 resonance
-        self.at("Second, resonance", 0.2)
-        self.play(FadeIn(ttl[1]), FadeIn(lockbox), FadeIn(lockP), FadeIn(cap2a), run_time=0.7)
-        self.at("inorganic phosphate", 0.2)
-        self.play(FadeIn(arr2), FadeIn(piF), FadeIn(corners), FadeIn(cap2b), run_time=0.8)
-        self.at("more equivalent resonance forms", 0.0)
-        for k in range(4):
-            self.play(Indicate(corners[k], color=ORANGE, scale_factor=2.2), run_time=0.45)
-        self.at("locked", 0.4)
-        self.play(Indicate(lockbox, color=GREY, scale_factor=1.1), run_time=0.7)
-
-        # ---- 3 entropy
-        self.at("Third, entropy", 0.2)
-        self.play(FadeIn(ttl[2]), FadeIn(one), run_time=0.6)
-        self.at("one molecule becomes two", 0.2)
-        self.play(FadeIn(arr3), TransformFromCopy(one, two_a), TransformFromCopy(one, two_b),
-                  FadeIn(cap3), run_time=1.0)
-        t0 = self.elapsed()
-        for m, ph in [(two_a, 0.0), (two_b, 1.7)]:
-            base = m.get_center().copy()
-            m.add_updater(lambda mm, base=base, ph=ph: mm.move_to(
-                base + np.array([0.12 * math.sin(2.6 * (self.elapsed() - t0) + ph),
-                                 0.08 * math.cos(3.1 * (self.elapsed() - t0) + ph), 0])))
-
-        # ---- 4 hydration
-        self.at("Fourth, the products", 0.2)
-        self.play(FadeIn(ttl[3]), FadeIn(atp4), FadeIn(sh_atp), run_time=0.7)
-        self.at("better stabilized by water", 0.2)
-        self.play(FadeIn(arr4), TransformFromCopy(atp4, adp4), TransformFromCopy(atp4, pi4), run_time=0.8)
-        self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in [*sh_adp, *sh_pi]], lag_ratio=0.05), FadeIn(cap4),
-                  run_time=1.2)
-
-        # ---- combined effects
-        self.at("Together", 0.2)
-        self.play(*[Indicate(f, color=GREY, scale_factor=1.03) for f in frames], run_time=1.4)
-        self.at("make hydrolysis favorable", 0.2)
-        self.play(Indicate(dg, color=GREEN, scale_factor=1.15), *[f.animate.set_stroke(GREEN, width=3) for f in frames],
-                  run_time=1.2)
-
-        # ---- thermodynamically unstable, kinetically stable
-        for mob in (two_a, two_b):
-            mob.clear_updaters()
-        everything = Group(*self.mobjects)
-        self.play(FadeOut(everything), run_time=0.6)
-
-        y_lo, y_hi = -10, 65
-        ax = make_axes(y_lo, y_hi, 7.6, 5.2)
-        place_axes(ax, -5.8, -3.2)
-        yl = T("free energy", 24, GREY).rotate(PI / 2).move_to([-6.3, -0.6, 0])
-        xl = T("reaction coordinate", 24, GREY).move_to([ax.c2p(5, y_lo)[0], -3.55, 0])
-        bar = ValueTracker(26.0)                                  # activation barrier height above ATP's level
-        f = lambda x: 30 * (1 - sig(x, 7.6, 0.7)) + bar.get_value() * gauss(x, 5.0, 1.1)
-        curve = always_redraw(lambda: ax.plot(f, x_range=[0, 10], color=TEXT, stroke_width=6))
-        atp_l = mini("ATP + H₂O", YELLOW, 26).move_to(ax.c2p(1.9, 30) + UP * 0.6)
-        adp_l = mini("ADP + Pi", ORANGE, 26).move_to(ax.c2p(8.4, -5.5))
-        drop = Arrow(ax.c2p(9.8, 30), ax.c2p(9.8, 0), color=GREEN, buff=0, stroke_width=6, tip_length=0.22)
-        dg_a = T("ΔG°′ = −30.5", 26, GREEN, weight=BOLD)
-        dg_b = T("kJ/mol", 24, GREEN)
-        dg_t = VGroup(dg_a, dg_b).arrange(DOWN, buff=0.05, aligned_edge=LEFT).next_to(drop, RIGHT, buff=0.25)
-        thermo = VGroup(T("thermodynamically", 26, GREEN), T("unstable", 26, GREEN)).arrange(DOWN, buff=0.05, aligned_edge=LEFT)
-        thermo.next_to(dg_t, DOWN, buff=0.5).align_to(dg_t, LEFT)
-        barrier = always_redraw(lambda: Arrow(ax.c2p(5.0, 30), ax.c2p(5.0, 30 + bar.get_value()), color=RED, buff=0,
-                                              stroke_width=6, tip_length=0.2))
-        kin = T("kinetically stable", 26, RED).move_to([ax.c2p(5.0, 0)[0], 2.45, 0])
-        ball = Dot(radius=0.14, color=YELLOW).move_to(ax.c2p(0.4, f(0.4)))
-
-        self.play(Create(ax), FadeIn(xl), FadeIn(yl), run_time=0.5)
-        self.add(curve)
-        self.play(FadeIn(atp_l), FadeIn(adp_l), FadeIn(ball), run_time=0.5)
-        self.at("thermodynamically unstable", 0.2)
-        self.play(GrowArrow(drop), FadeIn(dg_t), FadeIn(thermo), run_time=0.9)
-        self.at("kinetically stable", 0.2)
-        self.play(FadeIn(kin, shift=DOWN * 0.1), FadeIn(barrier), run_time=0.5)
-        self.play(ball.animate.move_to(ax.c2p(3.2, f(3.2))), run_time=0.6)
-        self.play(ball.animate.move_to(ax.c2p(0.4, f(0.4))), run_time=0.4)
-        self.at("until an enzyme calls on it", 0.5)
-        enz = chip("enzyme", TEXT, size=26).move_to(kin)
-        self.play(FadeTransform(kin, enz), bar.animate.set_value(5.0), run_time=1.0)
-        self.remove(barrier)
-        tr = ValueTracker(0.4)
-        ball.add_updater(lambda mob: mob.move_to(ax.c2p(tr.get_value(), f(tr.get_value()))))
-        self.play(tr.animate.set_value(9.2), run_time=1.5, rate_func=smooth)
-        ball.clear_updaters()
+        self.at("change the chemical journey")
+        fork1 = Arrow([-3.1, -2.15, 0], [0.75, 0.85, 0], color=YELLOW, stroke_width=7, buff=0)
+        fork2 = Arrow([-3.1, -2.35, 0], [1.65, -1.45, 0], color=TEAL, stroke_width=7, buff=0)
+        l1 = chip("joined chemistry", YELLOW, size=28).move_to([1.95, 1.20, 0])
+        l2 = chip("change concentrations", TEAL, size=28).move_to([2.90, -1.75, 0])
+        self.play(FadeOut(VGroup(hump, gate, flags)), GrowArrow(fork1), FadeIn(l1), run_time=1.0)
+        self.at("concentrations along it")
+        self.play(GrowArrow(fork2), FadeIn(l2), run_time=1.0)
+        self.play(ShowPassingFlash(fork1.copy().set_stroke(width=13), time_width=0.45),
+                  ShowPassingFlash(fork2.copy().set_stroke(width=13), time_width=0.45), run_time=1.4)
         self.finish()
 
 
-# ----------------------------------------------------------------------------- s04: equilibrium shift
-class S04Shift(SpokenScene):
+# ---------------------------------------------------------------------------
+def joined_world():
+    left_track = VMobject(color=GREY, stroke_width=9).set_points_smoothly([
+        [-6.1, -2.20, 0], [-4.4, -1.60, 0], [-2.45, 0.75, 0], [-1.15, 1.55, 0]
+    ])
+    right_track = VMobject(color=GREY, stroke_width=9).set_points_smoothly([
+        [1.15, 2.20, 0], [2.35, 1.20, 0], [4.1, -0.85, 0], [6.05, -2.10, 0]
+    ])
+    gc = cart("glucose", BLUE, width=1.9, scale=0.92).move_to([-4.65, -1.20, 0])
+    ac = cart("ATP", YELLOW, width=1.75, scale=1.12).move_to([2.10, 1.55, 0])
+    enzyme = site_block("hexokinase", [0, 0.2, 0], TEXT, width=2.55)
+    enzyme[1].shift(DOWN * 0.22)
+    rope = VMobject(color=YELLOW, stroke_width=9).set_points_smoothly([
+        gc.get_top() + RIGHT * 0.25, [-2.35, 1.72, 0],
+        enzyme.get_top() + DOWN * 0.16, [2.0, 2.45, 0], ac.get_top() + LEFT * 0.25
+    ])
+    tag = schematic_tag()
+    marks = marker_stream(y=-3.42)
+    return VGroup(left_track, right_track, marks, rope, gc, ac, enzyme, tag), gc, ac, enzyme, rope
+
+
+def live_joined_rope(gc, ac, enzyme):
+    """A taut connector that follows cart tops without ever crossing their labels."""
+    return always_redraw(lambda: VMobject(color=YELLOW, stroke_width=9).set_points_smoothly([
+        gc.get_top() + RIGHT * 0.25, [-2.35, 1.72, 0],
+        enzyme.get_top() + DOWN * 0.16, [2.0, 2.45, 0], ac.get_top() + LEFT * 0.25,
+    ]))
+
+
+class S03Joined(SpokenScene):
     def construct(self):
-        RT = 2.479   # kJ/mol at 25 C
-        K0, K1 = 0.001, 267.0
-        dG0 = -RT * math.log(K0)       # +17.1
-        dG1 = -RT * math.log(K1)       # -13.9
+        world, gc, ac, enzyme, rope = joined_world()
+        self.add(world)
+        self.play(gc.animate.shift(RIGHT * 0.45 + UP * 0.25), ac.animate.shift(RIGHT * 0.55 + DOWN * 0.35),
+                  run_time=1.4, rate_func=linear)
 
-        rxn = VGroup(T("A", 40, BLUE, weight=BOLD), T("⇌", 40, TEXT), T("B", 40, PINK, weight=BOLD)).arrange(RIGHT, buff=0.35)
-        rxn.move_to([0, 3.3, 0])
+        self.at("uphill reaction to a downhill")
+        self.play(Indicate(rope, color=YELLOW, scale_factor=1.0), run_time=1.0)
+        self.play(gc.animate.shift(RIGHT * 0.32 + UP * 0.15),
+                  ac.animate.shift(RIGHT * 0.28 + DOWN * 0.18),
+                  run_time=2.45, rate_func=there_and_back)
+        self.at("directly transfers")
+        badge = chip("phosphoryl", YELLOW, size=28, pad=0.16).move_to([2.25, 3.15, 0])
+        self.play(FadeIn(badge, scale=0.65), run_time=0.45)
+        self.play(FadeOut(enzyme[1]), badge.animate.move_to(enzyme.get_center() + UP * 0.38),
+                  run_time=1.1, rate_func=linear)
+        self.play(FadeIn(enzyme[1]), badge.animate.move_to(gc.get_center() + UP * 0.92),
+                  run_time=1.1, rate_func=linear)
+        self.at("not through free phosphate")
+        self.play(Indicate(badge, color=YELLOW), run_time=0.8)
 
-        # particle fields at equilibrium: 1000 A : 1 B   versus   1 A : 267 B (counts follow K = [B]/[A])
-        rnd = random.Random(7)
+        self.at("becomes")
+        new_a = cart("ADP", YELLOW, width=1.75, scale=1.12).move_to(ac)
+        new_g = cart("G6P", GREEN, width=1.9, scale=0.92).move_to(gc)
+        self.play(ReplacementTransform(ac, new_a), ReplacementTransform(gc, new_g),
+                  FadeOut(badge), FadeOut(rope), run_time=1.2)
+        ac, gc = new_a, new_g
+        rope = live_joined_rope(gc, ac, enzyme)
+        self.add(rope)
+        self.bring_to_front(gc, ac, enzyme)
+        self.play(gc.animate.shift(RIGHT * 0.30 + UP * 0.16),
+                  ac.animate.shift(RIGHT * 0.30 + DOWN * 0.18),
+                  run_time=2.3, rate_func=there_and_back)
 
-        def field(nA, nB, cols, cx, cy, sp=0.1):
-            n = nA + nB
-            rows = math.ceil(n / cols)
-            cells = [(c, r) for r in range(rows) for c in range(cols)][:n]
-            kinds = ["A"] * nA + ["B"] * nB
-            rnd.shuffle(kinds)
-            dots_, odd = VGroup(), None
-            for (c, r), k in zip(cells, kinds):
-                p = np.array([cx + (c - (cols - 1) / 2) * sp, cy + (r - (rows - 1) / 2) * sp, 0])
-                d = Dot(p, radius=0.034, color=BLUE if k == "A" else PINK)
-                dots_.add(d)
-                if (k == "B" and nB == 1) or (k == "A" and nA == 1):
-                    odd = d
-            frame = SurroundingRectangle(dots_, color=GREY, buff=0.12, stroke_width=2)
-            return dots_, odd, frame
+        self.at("one chemical reaction")
+        one = T("ONE CHEMICAL REACTION", 32, TEXT, weight=BOLD).move_to([0, -2.65, 0])
+        self.play(FadeIn(one, shift=UP * 0.12), Indicate(enzyme, color=TEXT), run_time=0.9)
+        self.at("changes add")
+        a_up = Arrow([-4.4, -2.55, 0], [-2.7, -2.55, 0], color=RED, stroke_width=7, buff=0)
+        a_dn = Arrow([2.5, -2.55, 0], [0.9, -2.55, 0], color=GREEN, stroke_width=9, buff=0)
+        net = Arrow([-1.35, -2.55, 0], [1.35, -2.55, 0], color=GREEN, stroke_width=10, buff=0)
+        self.play(FadeOut(one), GrowArrow(a_up), GrowArrow(a_dn), run_time=0.8)
+        self.play(ReplacementTransform(VGroup(a_up, a_dn), net), run_time=0.9)
 
-        fl, oddL, frL = field(999, 1, 40, -3.4, 1.05)
-        fr, oddR, frR = field(1, 267, 20, 3.4, 1.05)
-        ringL = Circle(radius=0.2, color=TEXT, stroke_width=4).move_to(oddL)
-        ringR = Circle(radius=0.2, color=TEXT, stroke_width=4).move_to(oddR)
-        cntL = VGroup(T("about 1000 A", 26, BLUE, weight=BOLD), T(":", 26), T("1 B", 26, PINK, weight=BOLD)).arrange(RIGHT, buff=0.2)
-        cntR = VGroup(T("1 A", 26, BLUE, weight=BOLD), T(":", 26), T("267 B", 26, PINK, weight=BOLD)).arrange(RIGHT, buff=0.2)
-        cntL.move_to([-3.4, 2.8, 0]); cntR.move_to([3.4, 2.8, 0])
-        capL = T("A alone", 28, TEXT, weight=BOLD).move_to([-3.4, 3.3, 0])
-        capR = T("A coupled to ATP", 28, TEXT, weight=BOLD).move_to([3.4, 3.3, 0])
-        keL = M("K = 0.001", 30, TEXT).move_to([-3.4, -0.85, 0])
-        dgL = M(f"ΔG°′ ≈ +{dG0:.0f} kJ/mol", 26, RED).move_to([-3.4, -1.45, 0])
-        keR = M("K = 267", 30, TEXT).move_to([3.4, -0.85, 0])
-        dgR = M(f"ΔG°′ ≈ −{abs(dG1):.0f} kJ/mol", 26, GREEN).move_to([3.4, -1.45, 0])
-        nopL = T("almost no product", 26, PINK).move_to([-3.4, -2.2, 0])
-        domR = T("product dominates", 26, PINK).move_to([3.4, -2.2, 0])
-        atp_use = VGroup(mini("ATP", YELLOW, 28), T("→", 28), mini("ADP + Pi", ORANGE, 28)).arrange(RIGHT, buff=0.25).move_to([3.4, -3.15, 0])
-        key = VGroup(VGroup(Dot(radius=0.07, color=BLUE), T("A", 24, BLUE)).arrange(RIGHT, buff=0.12),
-                     VGroup(Dot(radius=0.07, color=PINK), T("B", 24, PINK)).arrange(RIGHT, buff=0.12)).arrange(RIGHT, buff=0.6)
-        key.move_to([-3.4, -3.15, 0])
-
-        # ---- intro
-        self.at("Here's the payoff of coupling", 0.0)
-        self.play(FadeIn(rxn, shift=DOWN * 0.1), run_time=0.8)
-        self.at("under standard conditions", 0.2)
-        self.play(FadeIn(key), run_time=0.6)
-
-        # ---- alone
-        self.at("An unfavorable reaction sitting alone", 0.2)
-        self.play(FadeIn(capL), Create(frL), FadeIn(fl), run_time=1.0)
-        self.at("equilibrium constant of about", 0.2)
-        self.play(FadeIn(cntL, shift=DOWN * 0.1), FadeIn(keL, shift=UP * 0.1), run_time=0.6)
-        self.play(FadeIn(dgL, shift=UP * 0.1), run_time=0.6)
-        self.at("so almost no product forms", 0.2)
-        self.play(FadeIn(nopL), Create(ringL), run_time=1.0)
-
-        # ---- coupled
-        self.at("Now couple that same reaction", 0.2)
-        self.play(FadeIn(capR), run_time=0.6)
-        self.at("hydrolysis", 0.2)
-        self.play(FadeIn(atp_use, shift=UP * 0.1), run_time=0.8)
-        self.at("The favorable energy of hydrolysis adds in", 0.2)
-        self.play(FadeIn(dgR, shift=UP * 0.1), Indicate(atp_use, color=GREEN, scale_factor=1.1), run_time=1.0)
-        self.at("the combined equilibrium constant jumps", 0.2)
-        self.play(FadeIn(keR, shift=UP * 0.1), Create(frR), FadeIn(fr), FadeIn(cntR, shift=DOWN * 0.1), run_time=1.0)
-        self.at("product now dominates", 0.2)
-        self.play(FadeIn(domR), Create(ringR), run_time=1.0)
-
-        # ---- 10^5 on a log axis
-        self.at("That's a shift of about", 0.2)
-        self.play(*[FadeOut(mob) for mob in (fl, frL, fr, frR, ringL, ringR, cntL, cntR, capL, capR, nopL, domR, atp_use,
-                                              key, keL, keR, dgL, dgR, rxn)], run_time=0.6)
-
-        ax_x = -3.0
-        yb, yt = -2.5, 2.3           # log10 K = -3 .. +3
-        ly = lambda logk: yb + (logk + 3) / 6 * (yt - yb)
-        axis = Line([ax_x, yb - 0.1, 0], [ax_x, yt + 0.1, 0], color=GREY, stroke_width=3)
-        ticks, tl = VGroup(), VGroup()
-        for lk, lab in [(-3, "1/1000"), (0, "1"), (3, "1000")]:
-            ticks.add(Line([ax_x - 0.12, ly(lk), 0], [ax_x + 0.12, ly(lk), 0], color=GREY, stroke_width=3))
-            tl.add(M(lab, 24, GREY).next_to([ax_x - 0.2, ly(lk), 0], LEFT, buff=0.1))
-        ktitle = T("equilibrium constant K", 24, GREY).rotate(PI / 2).move_to([-6.4, -0.1, 0])
-        fav = T("favors B", 26, PINK).move_to([ax_x, yt + 0.55, 0])
-        unf = T("favors A", 26, BLUE).move_to([ax_x, yb - 0.6, 0])
-        p0 = Dot(radius=0.17, color=RED).move_to([ax_x, ly(math.log10(K0)), 0])
-        p1 = Dot(radius=0.17, color=GREEN).move_to([ax_x, ly(math.log10(K1)), 0])
-        k0l = M("K = 0.001", 26, RED).next_to(p0, RIGHT, buff=0.3)
-        k0s = T("A alone", 24, RED).next_to(k0l, RIGHT, buff=0.25)
-        k1l = M("K = 267", 26, GREEN).next_to(p1, RIGHT, buff=0.3)
-        k1s = T("coupled to ATP", 24, GREEN).next_to(k1l, RIGHT, buff=0.25)
-        span = DoubleArrow([2.1, p0.get_center()[1], 0], [2.1, p1.get_center()[1], 0], color=YELLOW,
-                           buff=0, stroke_width=5, tip_length=0.22)
-        big = VGroup(T("about 10⁵-fold", 38, YELLOW, weight=BOLD),
-                     VGroup(M("267 / 0.001", 26, TEXT), M("≈ 2.7 × 10⁵", 26, TEXT)).arrange(DOWN, buff=0.12)
-                     ).arrange(DOWN, buff=0.25)
-        big.move_to([4.35, -0.1, 0])
-
-        self.play(Create(axis), Create(ticks), FadeIn(tl), FadeIn(ktitle), FadeIn(fav), FadeIn(unf), run_time=0.6)
-        self.play(FadeIn(p0, scale=0.5), FadeIn(k0l), FadeIn(k0s), run_time=0.4)
-        self.play(FadeIn(p1, scale=0.5), FadeIn(k1l), FadeIn(k1s), run_time=0.4)
-        self.at("a hundred thousand fold change", 0.4)
-        self.play(GrowFromCenter(span), FadeIn(big[0], shift=LEFT * 0.1), run_time=0.9)
-        self.play(FadeIn(big[1]), run_time=0.6)
-
-        # ---- ATP as the coupling agent
-        self.at("This single idea", 0.2)
-        marker = Dot(radius=0.2, color=YELLOW).move_to(p0)
-        pull = mini("ATP", YELLOW, 30, pad=0.18)
-        self.play(Indicate(p0, color=RED, scale_factor=1.6), run_time=0.8)
-        pull.next_to(marker, LEFT, buff=1.5)
-        self.at("why", 0.2)
-        self.play(FadeIn(marker, scale=0.5), FadeIn(pull, scale=0.7), run_time=0.6)
-        self.at("universal coupling agent", 0.2)
-        self.play(Indicate(pull, color=YELLOW, scale_factor=1.2), run_time=0.9)
-        self.at("Spending one", 0.2)
-        pull.add_updater(lambda mob: mob.next_to(marker, LEFT, buff=1.5))
-        self.play(marker.animate.move_to(p1), run_time=2.2, rate_func=smooth)
-        pull.clear_updaters()
-        self.at("far toward products", 0.0)
-        self.play(Indicate(p1, color=GREEN, scale_factor=1.6), run_time=1.0)
+        self.at("actual delta G is negative")
+        gauge = dg_gauge(-0.85, center=(5.15, 2.12, 0), scale=0.92)
+        self.play(FadeIn(gauge, shift=LEFT * 0.15), run_time=0.7)
+        self.play(Indicate(gauge, color=GREEN), run_time=0.8)
+        self.at("joined carts move forward")
+        self.play(gc.animate.move_to([-1.45, 1.35, 0]), ac.animate.move_to([5.05, -1.52, 0]),
+                  run_time=2.5, rate_func=linear)
         self.finish()
 
 
-# ----------------------------------------------------------------------------- s05: energy charge
-class S05Charge(SpokenScene):
+# ---------------------------------------------------------------------------
+def separated_world():
+    lt = VMobject(color=GREY, stroke_width=8).set_points_smoothly([
+        [-6.1, -2.2, 0], [-4.8, -1.5, 0], [-3.7, 0.2, 0], [-2.6, 1.15, 0]
+    ])
+    rt = VMobject(color=GREY, stroke_width=8).set_points_smoothly([
+        [2.6, 1.7, 0], [3.6, 0.65, 0], [4.8, -1.2, 0], [6.1, -2.2, 0]
+    ])
+    up = site_block("attach Pi", [-1.55, 0.40, 0], BLUE, 2.15)
+    down = site_block("hydrolyze ATP", [1.65, 0.40, 0], YELLOW, 2.55)
+    rope = rope_between(up.get_right(), down.get_left(), loose=True)
+    gc = cart("glucose", BLUE, 1.9, 0.90).move_to([-4.85, -1.05, 0])
+    ac = cart("ATP", YELLOW, 1.65, 0.95).move_to([4.10, 1.52, 0])
+    marks = marker_stream(y=-3.42)
+    return VGroup(lt, rt, marks, rope, gc, ac, up, down, schematic_tag()), gc, ac, up, down, rope
+
+
+class S04Predict(SpokenScene):
     def construct(self):
-        a = ValueTracker(0.0)    # ATP (relative units)
-        d = ValueTracker(0.0)    # ADP
-        m = ValueTracker(0.0)    # AMP
+        # Begin with the joined block and split it in place.
+        base, gc, ac, enzyme, rope = joined_world()
+        self.add(base)
+        rock_forever(gc)
+        rock_forever(ac, direction=RIGHT * 0.28 + DOWN * 0.10, speed=1.25)
+        self.at("separates the jobs")
+        up = site_block("attach Pi", [-1.55, 0.40, 0], BLUE, 2.15)
+        down = site_block("hydrolyze ATP", [1.65, 0.40, 0], YELLOW, 2.55)
+        loose = rope_between(up.get_right(), down.get_left(), loose=True)
+        sway_rope(loose, up.get_right(), down.get_left())
+        self.play(FadeOut(rope), ReplacementTransform(enzyme.copy(), up), ReplacementTransform(enzyme, down),
+                  FadeIn(loose), run_time=1.3)
+        self.play(gc.animate.move_to([-4.85, -1.05, 0]), ac.animate.move_to([4.10, 1.52, 0]), run_time=1.1)
 
-        def ec():
-            A, D, Mm = a.get_value(), d.get_value(), m.get_value()
-            tot = A + D + Mm
-            return (A + 0.5 * D) / tot if tot > 1e-6 else 0.0
+        self.at("One site hydrolyzes")
+        water = T("H₂O", 30, TEAL, weight=BOLD).move_to([5.25, 2.35, 0])
+        self.play(FadeIn(water, shift=LEFT * 0.15), ac.animate.move_to([4.10, 1.30, 0]), run_time=0.9)
+        adp = chip("ADP", YELLOW, size=28).move_to([3.45, -0.95, 0])
+        pi = chip("Pi", YELLOW, size=28).move_to([4.85, -1.35, 0])
+        self.play(FadeOut(ac), FadeOut(water), FadeIn(adp), FadeIn(pi), run_time=0.9)
 
-        # ---- gauge (semicircle, 0 on the left, 1 on the right)
-        GC = np.array([-3.2, -1.0, 0])
-        R = 2.8
-        ang = lambda v: PI * (1 - v)
-        pt = lambda v, r: GC + r * np.array([math.cos(ang(v)), math.sin(ang(v)), 0])
-        segs = VGroup()
-        N = 40
-        for i in range(N):
-            v0, v1 = i / N, (i + 1) / N
-            vm = (v0 + v1) / 2
-            col = interpolate_color(ManimColor(RED), ManimColor(GREEN), min(1, max(0, (vm - 0.55) / 0.25)))
-            segs.add(Arc(radius=R, start_angle=ang(v0), angle=-(ang(v0) - ang(v1)), arc_center=GC, color=col, stroke_width=24))
-        ticks = VGroup(); tlabs = VGroup()
-        for v in (0, 0.5, 1):
-            ticks.add(Line(pt(v, R - 0.32), pt(v, R + 0.32), color=TEXT, stroke_width=3))
-            tlabs.add(M(f"{v:g}", 26, TEXT).move_to(pt(v, R + 0.65)))
-        needle = always_redraw(lambda: Line(GC, pt(ec(), R - 0.28), color=YELLOW, stroke_width=7))
-        hub = Dot(GC, radius=0.14, color=YELLOW)
-        g_title = T("ENERGY CHARGE", 28, TEXT, weight=BOLD).move_to([GC[0], 3.15, 0])
-        readout = always_redraw(lambda: M(f"{ec():.2f}", 44, YELLOW, weight=BOLD).move_to(GC + DOWN * 0.95))
+        self.at("tries to attach free phosphate")
+        pi2 = chip("Pi", YELLOW, size=28).move_to([-4.0, -0.25, 0])
+        target = chip("G6P?", GREEN, size=30).move_to([-3.0, 1.45, 0])
+        rock_forever(pi2, direction=RIGHT * 0.25 + UP * 0.08, speed=1.35)
+        self.play(FadeIn(pi2), FadeIn(target, shift=DOWN * 0.15), run_time=0.7)
+        self.play(gc.animate.shift(RIGHT * 0.65 + UP * 0.30), pi2.animate.shift(RIGHT * 0.45 + UP * 0.30),
+                  run_time=1.1, rate_func=there_and_back)
 
-        show_normal = ValueTracker(0.0)    # switched on for the final "balancing" beat
+        self.at("no shared intermediate")
+        broken = VGroup(Line(LEFT * 0.35, RIGHT * 0.35, color=RED, stroke_width=8).rotate(0.7),
+                        Line(LEFT * 0.35, RIGHT * 0.35, color=RED, stroke_width=8).rotate(-0.7)).move_to([0, 1.55, 0])
+        self.play(FadeIn(broken, scale=0.6), Indicate(loose, color=RED), run_time=0.9)
 
-        def state():
-            e = ec()
-            if show_normal.get_value() > 0.5 and 0.84 <= e <= 0.91:
-                return T("normally held near 0.85–0.90", 26, GREEN)
-            if e > 0.88:
-                return T("loaded with ATP", 26, GREEN)
-            if e < 0.7:
-                return T("depleted", 26, RED)
-            return T(" ", 26, GREY)
-        state_lab = always_redraw(lambda: state().move_to(GC + DOWN * 1.65))
+        self.at("add on paper")
+        card = VGroup(
+            RoundedRectangle(corner_radius=0.12, width=2.65, height=1.05, color=GREEN,
+                             fill_color=BG, fill_opacity=0.95),
+            M("sum < 0", 32, GREEN),
+        ).move_to([0, -1.85, 0])
+        self.play(FadeIn(card, shift=UP * 0.15), run_time=0.8)
 
-        # ---- formula
-        fA = T("ATP", 30, YELLOW, weight=BOLD)
-        fD = T("ADP", 30, ORANGE, weight=BOLD)
-        fM = T("AMP", 30, PURPLE, weight=BOLD)
-        EC_t = T("EC", 32, TEXT, weight=BOLD)
-        eqs = T("=", 32)
-        num = VGroup(fA.copy(), T("+ ½", 30), fD.copy()).arrange(RIGHT, buff=0.15)
-        den = VGroup(fA.copy(), T("+", 30), fD.copy(), T("+", 30), fM.copy()).arrange(RIGHT, buff=0.15)
-        bar_l = Line(LEFT, RIGHT, color=TEXT, stroke_width=3).set_width(den.width + 0.2)
-        frac = VGroup(num, bar_l, den).arrange(DOWN, buff=0.14)
-        formula = VGroup(EC_t, eqs, frac).arrange(RIGHT, buff=0.25).move_to([3.3, 2.5, 0])
-
-        # ---- adenylate pool bars (relative amounts)
-        BX = {"ATP": 1.4, "ADP": 3.3, "AMP": 5.2}
-        BASE = -1.7
-        SC = 0.5   # world units per relative unit
-
-        def bar(key, col, tr):
-            return always_redraw(lambda: Rectangle(width=1.1, height=max(0.02, tr.get_value() * SC), stroke_color=col,
-                                                   stroke_width=2, fill_color=col, fill_opacity=0.85)
-                                 .move_to([BX[key], BASE + max(0.02, tr.get_value() * SC) / 2, 0]))
-        bA, bD, bM = bar("ATP", YELLOW, a), bar("ADP", ORANGE, d), bar("AMP", PURPLE, m)
-        base_line = Line([0.5, BASE, 0], [6.1, BASE, 0], color=GREY, stroke_width=3)
-        lA = T("ATP", 26, YELLOW).move_to([BX["ATP"], BASE - 0.4, 0])
-        lD = T("ADP", 26, ORANGE).move_to([BX["ADP"], BASE - 0.4, 0])
-        lM = T("AMP", 26, PURPLE).move_to([BX["AMP"], BASE - 0.4, 0])
-        pool_brace = Brace(VGroup(lA, lM), DOWN, color=GREY, buff=0.05)
-        pool_t = T("adenylate pool", 26, GREY).next_to(pool_brace, DOWN, buff=0.1)
-
-        # ---- flux panel (appears later)
-        FX0, FX1 = 0.9, 6.1
-
-        def flux(y, color, f):
-            def build():
-                s = f(ec())
-                h = 0.12 + 0.62 * s
-                body = Rectangle(width=FX1 - FX0 - 0.55, height=h, stroke_width=0, fill_color=color, fill_opacity=0.35 + 0.6 * s)
-                body.move_to([(FX0 + FX1 - 0.55) / 2, y, 0])
-                hh = max(0.4, h + 0.25) / 2
-                tip = Polygon([FX1 - 0.55, y + hh, 0], [FX1 - 0.55, y - hh, 0], [FX1, y, 0], stroke_width=0,
-                              fill_color=color, fill_opacity=0.35 + 0.6 * s)
-                return VGroup(body, tip)
-            return always_redraw(build)
-        s_cat = lambda e: min(1, max(0, (0.97 - e) / 0.22))
-        s_ana = lambda e: min(1, max(0, (e - 0.75) / 0.22))
-        fcat = flux(1.0, GREEN, s_cat)
-        fana = flux(-1.5, RED, s_ana)
-        cat_t = T("catabolism: makes ATP", 26, GREEN).move_to([3.5, 1.9, 0])
-        ana_t = T("anabolism: spends ATP", 26, RED).move_to([3.5, -0.6, 0])
-
-        # ---- intro
-        self.at("The cell monitors its own energy state", 0.0)
-        self.play(Create(segs), run_time=1.2)
-        self.at("energy charge", 0.2)
-        self.play(FadeIn(g_title), Create(ticks), FadeIn(tlabs), run_time=0.8)
-        self.at("fuel gauge running from zero to one", 0.3)
-        a.set_value(0.0); d.set_value(1.0); m.set_value(4.0)   # EC low -> needle starts at the left
-        self.add(needle, hub)
-        self.play(FadeIn(hub), run_time=0.3)
-        self.play(a.animate.set_value(10), d.animate.set_value(0.0), m.animate.set_value(0.0), run_time=1.8, rate_func=smooth)
-
-        # ---- formula
-        self.at("formula", 0.2)
-        self.play(FadeIn(EC_t), FadeIn(eqs), FadeIn(bar_l), FadeIn(num[0]), run_time=0.8)
-        self.at("half", 0.2)
-        self.play(FadeIn(num[1]), FadeIn(num[2]), run_time=0.6)
-        self.at("divides by the total adenylate pool", 0.2)
-        self.play(FadeIn(den), run_time=0.8)
-
-        # healthy pool
-        self.at("loaded", 0.2)
-        self.add(base_line, bA, bD, bM)
-        self.play(FadeIn(base_line), FadeIn(lA), FadeIn(lD), FadeIn(lM), FadeIn(pool_brace), FadeIn(pool_t), run_time=0.4)
-        self.play(a.animate.set_value(7.0), d.animate.set_value(1.0), m.animate.set_value(0.2), run_time=1.2)
-        self.add(readout, state_lab)
-        self.at("reads near the top", 0.2)
-        self.play(Indicate(needle, color=YELLOW, scale_factor=1.1), run_time=1.0)
-        self.at("a depleted cell reads low", 0.2)
-        self.play(a.animate.set_value(2.0), d.animate.set_value(2.2), m.animate.set_value(1.8), run_time=1.8)
-
-        # ---- regulation
-        self.at("This value", 0.2)
-        self.play(FadeOut(formula), FadeOut(bar_l), FadeOut(base_line), FadeOut(lA), FadeOut(lD), FadeOut(lM),
-                  FadeOut(pool_brace), FadeOut(pool_t), FadeOut(bA), FadeOut(bD), FadeOut(bM), run_time=0.8)
-        self.play(FadeIn(cat_t), FadeIn(ana_t), FadeIn(fcat), FadeIn(fana), run_time=0.9)
-        self.at("When the charge is high", 0.2)
-        self.play(a.animate.set_value(7.0), d.animate.set_value(1.0), m.animate.set_value(0.2), run_time=1.6)
-        self.at("throttles down catabolic", 0.2)
-        self.play(Indicate(cat_t, color=GREEN, scale_factor=1.08), run_time=1.0)
-        self.at("turns up anabolic", 0.2)
-        self.play(Indicate(ana_t, color=RED, scale_factor=1.08), run_time=1.0)
-        self.at("When the charge falls", 0.2)
-        self.play(a.animate.set_value(2.0), d.animate.set_value(2.2), m.animate.set_value(1.8), run_time=1.8)
-        self.at("it does the reverse", 0.2)
-        self.play(Indicate(cat_t, color=GREEN, scale_factor=1.08), Indicate(ana_t, color=RED, scale_factor=1.08), run_time=1.0)
-        self.at("key signal", 0.2)
-        self.play(Indicate(g_title, color=YELLOW, scale_factor=1.12), Indicate(needle, color=YELLOW), run_time=0.8)
-        self.at("balancing energy production", 0.2)
-        show_normal.set_value(1.0)
-        self.play(a.animate.set_value(7.5), d.animate.set_value(1.5), m.animate.set_value(0.5), run_time=1.8)
+        self.at("Will glucose")
+        question = fit(T("Will glucose-6-phosphate form?", 45, TEXT, weight=BOLD), max_w=12.0).move_to([0, 2.72, 0])
+        self.play(FadeOut(broken), FadeIn(question, shift=DOWN * 0.12), run_time=0.8)
+        self.play(gc.animate.shift(RIGHT * 0.25 + UP * 0.10), pi2.animate.shift(RIGHT * 0.18 + UP * 0.10),
+                  run_time=1.0, rate_func=there_and_back)
         self.finish()
 
 
-# ----------------------------------------------------------------------------- end
-class S06End(EndCard):
-    LINE = "Coupling to ATP lets the cell pay for what it builds."
+# ---------------------------------------------------------------------------
+class S05PredictHold(NarratedScene):
+    def construct(self):
+        world, gc, ac, up, down, rope = separated_world()
+        question = fit(T("Will glucose-6-phosphate form?", 45, TEXT, weight=BOLD), max_w=12.0).move_to([0, 2.72, 0])
+        dots = VGroup(*[Circle(radius=0.13, color=YELLOW, stroke_width=3) for _ in range(4)])
+        dots.arrange(RIGHT, buff=0.28).move_to([0, -2.55, 0])
+        self.add(world, question, dots)
+        sway_rope(rope, up.get_right(), down.get_left())
+        for i in range(4):
+            self.play(dots[i].animate.set_fill(YELLOW, opacity=1),
+                      gc.animate.shift((RIGHT if i % 2 == 0 else LEFT) * 0.13),
+                      ac.animate.shift((RIGHT if i % 2 == 0 else LEFT) * 0.10), run_time=1.0)
+        self.finish()
+
+
+# ---------------------------------------------------------------------------
+class S06Answer(SpokenScene):
+    def construct(self):
+        world, gc, ac, up, down, rope = separated_world()
+        self.add(world)
+        sway_rope(rope, up.get_right(), down.get_left())
+        rock_forever(gc, direction=RIGHT * 0.22 + UP * 0.07, speed=1.15)
+        rock_forever(ac, direction=LEFT * 0.18 + DOWN * 0.06, speed=1.25)
+        no = T("NO", 62, RED, weight=BOLD).move_to([-3.75, 2.25, 0])
+        self.play(FadeIn(no, scale=1.35), run_time=0.55)
+
+        self.at("hydrolysis runs downhill")
+        adp = cart("ADP", YELLOW, 1.65, 0.95).move_to(ac)
+        self.play(ReplacementTransform(ac, adp), run_time=0.55)
+        self.play(adp.animate.move_to([5.15, -1.55, 0]), run_time=0.95)
+        self.at("leaves as heat")
+        heat = heat_waves([3.25, 1.65, 0])
+        self.play(Create(heat), run_time=0.8)
+        self.play(heat.animate.shift(UP * 0.75).set_opacity(0), run_time=1.2)
+
+        self.at("glucose cart still rolls backward")
+        self.play(gc.animate.move_to([-5.35, -1.55, 0]), run_time=1.7, rate_func=rate_functions.ease_in_cubic)
+
+        self.at("Arithmetic alone")
+        card_l = VGroup(RoundedRectangle(corner_radius=0.1, width=1.5, height=0.9, color=GREEN), M("sum", 28, GREEN)).move_to([-0.85, -2.15, 0])
+        card_r = VGroup(RoundedRectangle(corner_radius=0.1, width=1.5, height=0.9, color=GREEN), M("< 0", 28, GREEN)).move_to([0.85, -2.15, 0])
+        self.play(FadeIn(card_l), FadeIn(card_r), run_time=0.55)
+        self.at("not coupling")
+        self.play(card_l.animate.shift(LEFT * 0.65 + DOWN * 0.18).rotate(0.16),
+                  card_r.animate.shift(RIGHT * 0.65 + DOWN * 0.18).rotate(-0.16), run_time=0.75)
+        self.play(FadeOut(VGroup(card_l, card_r, no, heat)), run_time=0.4)
+
+        center = np.array([0, -1.35, 0])
+        self.at("direct transfer")
+        badge = chip("phosphoryl", YELLOW, size=28).move_to([-2.25, 2.42, 0])
+        direct = Arrow([-2.2, 1.68, 0], [2.2, 1.68, 0], color=YELLOW, stroke_width=8, buff=0)
+        self.play(FadeOut(rope), GrowArrow(direct), FadeIn(badge),
+                  up.animate.shift(RIGHT * 0.22 + DOWN * 0.48),
+                  down.animate.shift(LEFT * 0.22 + DOWN * 0.48), run_time=0.8)
+        self.play(badge.animate.move_to([2.25, 2.42, 0]), run_time=0.8)
+
+        self.at("shared intermediate")
+        inter = chip("intermediate", TEAL, size=28).move_to(center)
+        self.play(FadeOut(VGroup(direct, badge)), FadeIn(inter, shift=RIGHT * 0.2), run_time=0.55)
+        self.play(inter.animate.shift(RIGHT * 1.4), up.animate.shift(LEFT * 0.22 + UP * 0.48),
+                  down.animate.shift(RIGHT * 0.22 + UP * 0.48), run_time=0.8)
+
+        self.at("linked shape changes")
+        gear1 = Circle(radius=0.60, color=BLUE, stroke_width=8).move_to([-0.52, -1.30, 0])
+        gear2 = Circle(radius=0.60, color=YELLOW, stroke_width=8).move_to([0.52, -1.30, 0])
+        for g in (gear1, gear2):
+            for ang in np.linspace(0, TAU, 8, endpoint=False):
+                tooth = Line(g.point_at_angle(ang), g.point_at_angle(ang) + 0.18 * np.array([math.cos(ang), math.sin(ang), 0]),
+                             color=g.get_color(), stroke_width=7)
+                g.add(tooth)
+        self.play(FadeOut(inter), FadeIn(gear1), FadeIn(gear2), run_time=0.55)
+        self.play(Rotate(gear1, PI * 1.2), Rotate(gear2, -PI * 1.2), run_time=1.0, rate_func=linear)
+
+        taut = Line(up.get_right(), down.get_left(), color=YELLOW, stroke_width=9)
+        self.play(FadeOut(VGroup(gear1, gear2)), FadeIn(taut), run_time=0.7)
+        pulse_forever(taut, 0.65, 1.0, 1.7)
+        self.finish()
+
+
+# ---------------------------------------------------------------------------
+def pathway_world():
+    # Same broad hill footprint, relabelled as a pathway.
+    track = hill_track()
+    A = chip("A", BLUE, size=32).move_to([-5.45, -1.75, 0])
+    Bbox = RoundedRectangle(corner_radius=0.25, width=2.35, height=2.10,
+                            color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.08).move_to([0.0, 1.15, 0])
+    Blab = T("B basin", 28, BLUE, weight=BOLD).move_to([0, 2.55, 0])
+    C = chip("+ C", BLUE, size=28).move_to([2.10, 2.40, 0])
+    D = chip("D", GREEN, size=32).move_to([5.35, -1.45, 0])
+    beads = VGroup(*[Dot(radius=0.16, color=BLUE).move_to([
+        -0.70 + (i % 4) * 0.46, 0.42 + (i // 4) * 0.43, 0
+    ]) for i in range(12)])
+    wheel = Circle(radius=0.43, color=GREEN, stroke_width=7).move_to([3.25, -0.10, 0])
+    wheel.add(Line(wheel.get_left(), wheel.get_right(), color=GREEN, stroke_width=5),
+              Line(wheel.get_top(), wheel.get_bottom(), color=GREEN, stroke_width=5))
+    chute = Arrow([3.70, -0.40, 0], [4.85, -1.12, 0], color=GREEN, stroke_width=8, buff=0)
+    marks = marker_stream(y=-3.42)
+    return VGroup(track, marks, A, Bbox, Blab, C, D, beads, wheel, chute, schematic_tag()), beads, wheel, A
+
+
+class S07ProductDrain(SpokenScene):
+    def construct(self):
+        world, beads, wheel, A = pathway_world()
+        self.add(world)
+        wheel.add_updater(lambda m, dt: m.rotate(-0.55 * dt))
+        self.play(A.animate.shift(RIGHT * 0.25 + UP * 0.12), run_time=0.8, rate_func=there_and_back)
+        self.play(Wiggle(beads, scale_value=1.02, rotation_angle=0.04, n_wiggles=5), run_time=2.8)
+
+        self.at("A to B plus C")
+        first = chip("+21 kJ/mol standard", RED, size=28).move_to([-1.90, 3.18, 0])
+        self.play(FadeIn(first, shift=DOWN * 0.15), run_time=0.7)
+        self.play(beads.animate.shift(RIGHT * 0.40), run_time=2.3, rate_func=there_and_back)
+        self.at("B to D")
+        second = chip("−34 kJ/mol standard", GREEN, size=28).move_to([4.30, 3.15, 0])
+        self.play(FadeIn(second, shift=DOWN * 0.15), run_time=0.7)
+        total = chip("pathway total −13", GREEN, size=30).move_to([0, -2.72, 0])
+        self.play(beads.animate.shift(LEFT * 0.30), TransformFromCopy(VGroup(first, second), total),
+                  run_time=1.9, rate_func=linear)
+        self.play(FadeOut(first), FadeOut(second), run_time=0.35)
+
+        self.at("Draining B")
+        self.play(Rotate(wheel, -TAU), run_time=0.75, rate_func=linear)
+        drain_beads = VGroup(*[beads[i] for i in range(5)])
+        self.play(drain_beads.animate.move_to([4.85, -1.10, 0]).set_opacity(0),
+                  Rotate(wheel, -TAU), run_time=0.85, rate_func=linear)
+
+        self.at("actual delta G below zero")
+        gauge = dg_gauge(0.40, center=(-4.85, 0.85, 0), scale=0.88, title="step 1 actual ΔG")
+        self.play(FadeIn(gauge, shift=RIGHT * 0.1), run_time=0.55)
+        self.play(gauge.tracker.animate.set_value(-0.75), run_time=1.1)
+        self.play(A.animate.move_to([-2.15, 0.28, 0]), Rotate(wheel, -TAU), run_time=1.5, rate_func=linear)
+
+        self.at("pathway total is minus")
+        self.play(Indicate(total, color=GREEN, scale_factor=1.08), run_time=0.8)
+        self.at("that is not enough")
+        pile = VGroup(*[Dot(radius=0.16, color=BLUE).move_to([
+            -0.72 + (i % 4) * 0.47, 0.40 + (i // 4) * 0.38, 0
+        ]) for i in range(16)])
+        self.play(FadeIn(pile), gauge.tracker.animate.set_value(0.0), A.animate.shift(LEFT * 0.25), run_time=1.2)
+        stop = T("STOP", 34, RED, weight=BOLD).move_to([-3.00, 1.55, 0])
+        self.play(FadeIn(stop, scale=1.2), run_time=0.55)
+
+        self.at("Every step carrying forward flux")
+        self.play(FadeOut(VGroup(pile, stop)), gauge.tracker.animate.set_value(-0.70),
+                  Rotate(wheel, -TAU), run_time=1.2, rate_func=linear)
+        arrows = VGroup(
+            Arrow([-5.0, -1.25, 0], [-3.25, -0.18, 0], color=GREEN, stroke_width=8, buff=0),
+            Arrow([1.65, 0.85, 0], [3.0, 0.0, 0], color=GREEN, stroke_width=8, buff=0),
+            Arrow([3.6, -0.45, 0], [4.85, -1.15, 0], color=GREEN, stroke_width=8, buff=0),
+        )
+        self.at("negative actual delta G")
+        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.22), run_time=1.3)
+        self.play(A.animate.shift(RIGHT * 0.70 + UP * 0.34),
+                  beads.animate.move_to([4.45, -0.82, 0]).set_opacity(0.18),
+                  Rotate(wheel, -TAU), run_time=1.6, rate_func=linear)
+        pulse_forever(arrows, 0.55, 1.0, 1.8)
+        self.finish()
+
+
+# ---------------------------------------------------------------------------
+class S08EquilibriumShift(SpokenScene):
+    def construct(self):
+        track = hill_track(opacity=0.55)
+        tag = chip("separate example, not glucose", TEAL, size=28).move_to([-3.00, 2.65, 0])
+        reaction = cart("A → B", BLUE, 2.0, 0.9).move_to([-4.65, -1.00, 0])
+        atp = chip("ATP", YELLOW, size=30).move_to([-4.55, 1.58, 0])
+        marks = marker_stream(y=-3.42)
+
+        dial = RoundedRectangle(corner_radius=0.25, width=5.75, height=3.25,
+                                color=TEXT, stroke_width=4, fill_color=BG, fill_opacity=0.96).move_to([2.60, 1.35, 0])
+        dial_title = fit(T("COMPUTED FROM STATED K VALUES", 28, TEXT, weight=BOLD), max_w=5.05).move_to([2.60, 2.52, 0])
+        arc = Arc(radius=1.38, start_angle=PI, angle=-PI, color=GREY, stroke_width=8).move_to([2.60, 1.25, 0])
+        tracker = ValueTracker(0.04)
+        needle = always_redraw(lambda: Arrow(
+            [2.60, 1.25, 0],
+            [2.60 + 1.15 * math.cos(PI - PI * tracker.get_value()),
+             1.25 + 1.15 * math.sin(PI - PI * tracker.get_value()), 0],
+            color=YELLOW, stroke_width=7, buff=0, tip_length=0.20,
+        ))
+        readout = M("K = 0.001", 36, RED).move_to([2.60, 0.10, 0])
+        self.add(track, marks, tag, reaction, atp, dial, arc, dial_title, needle, readout, schematic_tag())
+
+        react_tray = RoundedRectangle(corner_radius=0.20, width=3.6, height=1.20, color=BLUE,
+                                      fill_color=BLUE, fill_opacity=0.08).move_to([-3.70, -2.35, 0])
+        prod_tray = RoundedRectangle(corner_radius=0.20, width=3.6, height=1.20, color=GREEN,
+                                     fill_color=GREEN, fill_opacity=0.08).move_to([3.70, -2.35, 0])
+        rs = VGroup(*[Dot(radius=0.14, color=BLUE).move_to([-5.05 + (i % 7) * 0.43, -2.62 + (i // 7) * 0.42, 0]) for i in range(21)])
+        ps = VGroup(Dot(radius=0.14, color=GREEN).move_to([3.7, -2.35, 0]))
+        self.play(FadeIn(react_tray), FadeIn(prod_tray), FadeIn(rs), FadeIn(ps), run_time=0.7)
+        self.play(rs.animate.shift(UP * 0.28), run_time=1.1, rate_func=there_and_back)
+        self.play(reaction.animate.shift(RIGHT * 0.50 + UP * 0.27), run_time=3.0,
+                  rate_func=rate_functions.ease_in_out_sine)
+
+        self.at("one thousandth")
+        self.play(FadeOut(tag), Indicate(readout, color=RED), run_time=0.65)
+        self.at("two hundred sixty")
+        new_readout = M("K = 267", 40, GREEN).move_to(readout)
+        rope = Arrow(atp.get_right(), dial.get_left(), color=YELLOW, stroke_width=9, buff=0.10)
+        self.play(GrowArrow(rope), tracker.animate.set_value(0.92), ReplacementTransform(readout, new_readout),
+                  run_time=1.7, rate_func=linear)
+        self.play(rs.animate.move_to(prod_tray).set_color(GREEN), reaction.animate.move_to([3.7, -0.95, 0]),
+                  run_time=2.0, rate_func=linear)
+
+        self.at("more than two hundred thousand")
+        counter = M("×1", 48, TEXT).move_to([-1.65, 0.10, 0])
+        self.play(FadeIn(counter), run_time=0.35)
+        for txt in ("×100", "×10,000", ">×200,000"):
+            nxt = M(txt, 46, GREEN, weight=BOLD).move_to(counter)
+            self.play(ReplacementTransform(counter, nxt), run_time=0.50)
+            counter = nxt
+        pulse_forever(prod_tray, 0.55, 1.0, 1.8)
+        self.finish()
+
+
+# ---------------------------------------------------------------------------
+class S09Return(SpokenScene):
+    def construct(self):
+        world, gc, ac, enzyme, rope = joined_world()
+        self.add(world)
+        self.at("answer to our puzzle")
+        self.play(Indicate(enzyme, color=TEXT), run_time=0.8)
+        self.at("direct phosphoryl transfer")
+        badge = chip("phosphoryl", YELLOW, size=28).move_to([2.25, 3.15, 0])
+        self.play(FadeIn(badge, scale=0.65), run_time=0.35)
+        self.play(FadeOut(enzyme[1]), badge.animate.move_to(enzyme.get_center() + UP * 0.38), run_time=0.75)
+        self.play(FadeIn(enzyme[1]), badge.animate.move_to(gc.get_center() + UP * 0.92), run_time=0.75)
+        self.play(ShowPassingFlash(rope.copy().set_stroke(width=24), time_width=0.65), run_time=1.15)
+        self.at("glucose phosphorylation can run forward")
+        new_gc = cart("G6P", GREEN, 1.9, 0.92).move_to(gc)
+        new_ac = cart("ADP", YELLOW, 1.75, 1.12).move_to(ac)
+        self.play(ReplacementTransform(gc, new_gc), ReplacementTransform(ac, new_ac),
+                  FadeOut(badge), FadeOut(rope), run_time=0.7)
+        rope = live_joined_rope(new_gc, new_ac, enzyme)
+        self.add(rope)
+        self.bring_to_front(new_gc, new_ac, enzyme)
+        self.play(new_gc.animate.move_to([-1.35, 1.35, 0]), new_ac.animate.move_to([5.05, -1.55, 0]),
+                  run_time=1.7, rate_func=linear)
+
+        self.at("following step may instead")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.45)
+        pworld, beads, wheel, A = pathway_world()
+        self.play(FadeIn(pworld), run_time=0.55)
+        self.at("keep a product scarce")
+        drain = VGroup(*[beads[i] for i in range(5)])
+        self.play(drain.animate.move_to([4.85, -1.10, 0]).set_opacity(0), Rotate(wheel, -TAU),
+                  A.animate.shift(RIGHT * 1.15 + UP * 0.60), run_time=1.5, rate_func=linear)
+
+        self.at("same rule governs")
+        carrier = chip("ATP", YELLOW, size=32).move_to([-3.9, 2.55, 0])
+        gauge = dg_gauge(-0.78, center=(4.75, 1.55, 0), scale=0.86)
+        self.play(FadeIn(carrier), FadeIn(gauge), run_time=0.55)
+        for name in ("activated carrier", "energy carrier"):
+            nxt = chip(name, YELLOW, size=28).move_to(carrier)
+            self.play(ReplacementTransform(carrier, nxt), run_time=0.55)
+            carrier = nxt
+
+        self.at("Uphill chemistry runs only")
+        gauge[2].clear_updaters()
+        gauge[6].clear_updaters()
+        dim_track = hill_track(opacity=0.16)
+        dim_marks = marker_stream(y=-3.42).set_opacity(0.28)
+        dim_cart = cart("", GREEN, 1.5, 0.55).set_opacity(0.18).move_to([-4.8, -1.55, 0])
+        self.play(FadeOut(VGroup(pworld, carrier, gauge)), FadeIn(VGroup(dim_track, dim_marks, dim_cart)), run_time=0.65)
+        line1 = T("Uphill chemistry runs only when coupling", 40, TEXT, weight=BOLD)
+        line2 = T("makes its actual ΔG negative.", 44, GREEN, weight=BOLD)
+        takeaway = VGroup(line1, line2).arrange(DOWN, buff=0.22).move_to([0, 0.15, 0])
+        panel = RoundedRectangle(corner_radius=0.18, width=11.7, height=1.65,
+                                 stroke_width=0, fill_color=BG, fill_opacity=1.0).move_to(takeaway)
+        self.play(FadeIn(panel), FadeIn(takeaway, shift=UP * 0.12),
+                  dim_cart.animate.move_to([-1.5, 0.75, 0]), run_time=0.9)
+        underline = Line(line2.get_left(), line2.get_right(), color=GREEN, stroke_width=6).next_to(line2, DOWN, buff=0.12)
+        self.at("actual delta G negative")
+        self.play(Create(underline), dim_cart.animate.move_to([4.85, -1.25, 0]), run_time=1.0)
+        self.finish()
+
+
+# ---------------------------------------------------------------------------
+class S10End(EndCard):
+    LINE = "Uphill chemistry runs only when coupling makes its actual ΔG negative."
+
+    def construct(self):
+        track = hill_track(opacity=0.18)
+        faint = cart("", GREEN, 1.5, 0.55).set_opacity(0.18).move_to([-4.8, -1.55, 0])
+        hexm = hex_mascot(1.35)
+        line1 = T("Uphill chemistry runs only when coupling", 40, font=TITLE_FONT)
+        line2 = T("makes its actual ΔG negative.", 43, GREEN, font=TITLE_FONT)
+        line = VGroup(line1, line2).arrange(DOWN, buff=0.18).move_to([0, 1.05, 0])
+        panel = RoundedRectangle(corner_radius=0.18, width=11.7, height=1.6,
+                                 stroke_width=0, fill_color=BG, fill_opacity=1.0).move_to(line)
+        hexm.move_to([0, -1.45, 0])
+        self.add(track, faint)
+        self.play(FadeIn(panel), FadeIn(line, shift=UP * 0.12), FadeIn(hexm), run_time=0.75)
+        self.play(faint.animate.move_to([4.85, -1.25, 0]), run_time=2.7, rate_func=linear)
+        shoulder = hexm.arm.get_start()
+        for _ in range(2):
+            self.play(Rotate(hexm.arm, angle=-0.55, about_point=shoulder), rate_func=there_and_back, run_time=0.35)
+        self.finish()
