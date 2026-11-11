@@ -23,10 +23,15 @@ explainer:
   src: "/explainers/cellbio-experimental-design/explainer.mp4"
   captions: "/explainers/cellbio-experimental-design/explainer.vtt"
   poster: "/explainers/cellbio-experimental-design/poster.jpg"
-  title: "Count the Dishes, Not the Cells"
-  durationSec: 199.0
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Before the Data Arrive"
+  durationSec: 208.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In shared-dish cell experiments, lock the prediction, endpoint and independent unit before the data arrive."
+    - "For division claims, track cells to division instead of counting green cells."
+    - "When treatment is applied to a whole dish, the dish is the experimental unit."
+    - "A SuperPlot keeps cell variation visible while comparing independent runs."
 
 scientists:
   - name: "Stanley Lazic"
@@ -212,8 +217,8 @@ practiceQuestions:
       - "Measuring the mean green intensity of each cell"
     answer: 1
     rationale: >-
-      Only tracking each cell through the reporter sequence to an observed division scores
-      completion. Mean green intensity reports how much Geminin reporter a cell holds, not
+      Tracking each cell through the reporter sequence to an observed division directly shows
+      completion here. Mean green intensity reports how much Geminin reporter a cell holds, not
       whether it divided. A single late red fraction cannot tell cells that divided and returned
       to G1 from cells that never left it. Monolayer area can change through spreading or
       migration without any division.
@@ -364,85 +369,114 @@ draft: false
 import ReplicateSuperPlot from '../../../components/ReplicateSuperPlot.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A student images one stretched dish and one unstretched dish, scores 600 cells in each, and reports a difference with a p-value below 0.0001. How many experiments did the student do?**
+The film's opening dish was one experiment per condition, not 600: every cell shared its dish, so the reported p-value—a measure of incompatibility with a specified no-effect model—used the wrong units. The running case below uses MDCK cells—Madin-Darby canine kidney cells grown as an epithelial sheet—to ask whether stretch makes cells proliferate. All findings below are from those cultured cells.
 
-One. Every cell in the stretched dish shared the same dish, the same pipetting, the same afternoon on the stretcher. If anything about that dish was odd, all 600 cells carry the oddity together. This lesson is about designing an experiment that can actually tell you something, using one running case: does stretching an epithelium make its cells proliferate? The cells are MDCK cells, a line derived from dog kidney epithelium (Madin-Darby canine kidney), grown in culture as a sheet. Everything described here was measured in those cultured cells.
+The film gave the three-lock map. The rest of the page tests where two models disagree, then asks whether the endpoint, independent runs and controls support the claim; the final design brings those decisions back together.
 
-## Start from two models, not one hypothesis
+## Make the models disagree
 
-"Stretch makes cells proliferate" sounds like a hypothesis, but it is hard to fail. Almost any rise in almost any measurement can be read as support. A sharper start is two models that predict different things.
+The film's Model A said stretch alone is sufficient for division; Model B said stretch starts the cycle but a Wnt signal is needed to finish. Now turn that disagreement into a numerical test. **Quiescent** cells are not actively cycling.
 
-- **Model A:** stretch is sufficient. Stretched quiescent cells re-enter the cycle and go on to divide.
-- **Model B:** stretch lets cells start the cycle, but a second signal, from the Wnt pathway, is needed to finish it.
+Wnt proteins are secreted signals. Here, Wnt3A stabilizes beta-catenin, which switches on target genes; the [lesson on Wnt signaling](/lessons/wnt-signaling/) covers the pathway. Because the models agree at S-phase entry and disagree at division, completion is the primary endpoint.
 
-Wnt proteins are secreted signals. In the canonical pathway studied here, Wnt3A stabilizes beta-catenin, a protein that then switches on target genes; the [lesson on Wnt signaling](/lessons/wnt-signaling/) covers the pathway. The two models agree that stretch should push cells into S phase. They disagree about division. That is where the experiment has to look.
+Before collecting an image, write each model's numerical prediction for the chosen endpoint and the range that would favour neither. An experiment that can only confirm is not a test. The [lesson on experiments that distinguish](/lessons/experiments-that-distinguish/) develops the same logic.
 
-Think of two suspects with the same alibi for the morning and different alibis for the afternoon. Questioning them about the morning gets you nowhere. Before you collect a single image, write down what each model predicts, as a number, on a measurement you choose in advance. Also write down what result would favour neither. An experiment that can only confirm is not a test. The [lesson on experiments that distinguish](/lessons/experiments-that-distinguish/) made the same point about perturbation and rescue.
+**Predict.** In a two-by-two design, Wnt3A alone raises completed divisions as much as stretch plus Wnt3A. What happens to Model B's claim that stretch and Wnt cooperate?
 
-## What counts as N
+<details>
+<summary>Check your prediction</summary>
 
-The **experimental unit** is the thing independently assigned to a treatment: a dish, a stretch device, a mouse. The **observational unit** is the thing you measure: a cell, a field of view. N, the sample size, is the number of experimental units (Lazic and colleagues, 2018). Measuring more cells adds observational units and no experimental units. Treating cells as independent replicates when they share a dish is called **pseudoreplication**. Repeating the whole procedure on separate days is what supplies independent information; Lazic and colleagues call the choice of days rather than wells a scientific judgement, made because it tests whether an effect survives a fresh run. They also name a third unit, the biological unit the conclusion is about; with one cell line, the conclusion is about that line.
+It fails Model B's prediction. If Wnt3A alone matches stretch plus Wnt3A, stretch adds nothing in Wnt3A medium. Model B instead predicts that stretch adds at least 10 percentage points more in Wnt3A medium than in control medium. The result points to Wnt3A adding divisions on its own, not to stretch starting the cycle and Wnt finishing it. This is why the Wnt3A-alone arm is required.
 
-### Worked problem
+</details>
 
-Here is a made-up data set, invented for teaching. Three independent runs, on different days. Each run has one control dish and one treated dish, and 200 cells are scored per dish for EdU, a thymidine analogue that cells build into DNA as they replicate it.
+## Read the endpoint before interpreting it
 
-| Run | Control (% EdU+) | Treated (% EdU+) | Difference |
-|---|---|---|---|
-| 1 | 20 | 34 | 14 |
-| 2 | 25 | 27 | 2 |
-| 3 | 15 | 28 | 13 |
+The film's Fucci picture was the simple case; here is the fuller one. **Fucci** means fluorescent ubiquitination-based cell-cycle indicator. In these MDCK cells, red mKO2-Cdt1 marks G0 and G1, while green mAG-Geminin marks cells from S phase, when DNA is copied, until mitosis (see [cell-cycle control](/lessons/cell-cycle-control/)). The green signal can switch on a little before or after DNA replication starts: a green cell has roughly entered S, while only the path to an observed division directly shows completion here.
 
-**The wrong analysis: pool the cells.** Control: 40 + 50 + 30 = 120 of 600 cells, 20.0%. Treated: 68 + 54 + 56 = 178 of 600, 29.7%. The difference is 9.7 points. Treating each cell as independent, the standard error of the difference is
+<LessonFigure src="/figures/cellbio-experimental-design/fucci-entry-vs-completion.webp" width={1200} height={640} alt="AI-generated illustration: a left-to-right strip of one epithelial cell followed over time, first with a red nucleus, then a green nucleus, then rounding up to divide, then two pale daughter cells, with a gold arrow beneath marking the path a tracked cell follows and a small inset contrasting a single snapshot with tracking." caption="A tracked Fucci record keeps one cell's identity attached to its color changes and eventual outcome." />
 
-> **SE = sqrt(0.20 × 0.80 / 600 + 0.297 × 0.703 / 600) = 0.0248, about 2.5 points**
+Benham-Pyle and colleagues found in 2016 that about 10% of cells in unstretched, quiescent MDCK-II monolayers were Geminin-positive. Strain alone increased cells in S and G2—the interval before mitosis—without increasing cells tracked from G1 through S to division. Wnt3A alone did not move quiescent cells into S phase in this preparation. Strain plus Wnt3A raised mitotic entry above either input alone. Thus more green meant more cells in S and G2, not more divisions within the 24 hours watched.
 
-so z = 9.7 / 2.5, about 3.9. It looks decisive.
+EdU supplies a separate endpoint: it is a thymidine analogue that cells build into DNA during the labelling window. Because the Fucci transition is approximate, agreement between green Fucci and EdU supports entry into S without turning either measure into a division count.
 
-**The right analysis: the dish is the unit, and each run pairs its two dishes.**
+**Predict.** Green cells start to rise only after about 8 hours and keep rising through the 24 hours watched. Can that 24-hour window rule out extra divisions later?
 
-1. Paired differences: 14, 2, 13. Mean = 29 / 3 = 9.67 points.
-2. Deviations from the mean: 4.33, -7.67, 3.33. Sum of squares = 18.8 + 58.8 + 11.1 = 88.7. Divide by n - 1 = 2: variance 44.3, so SD = 6.66.
-3. SE = 6.66 / sqrt(3) = 3.84.
-4. t = 9.67 / 3.84 = 2.51, with 2 degrees of freedom. The two-sided p is about 0.13.
-5. 95% interval, using the critical t value for 2 degrees of freedom (4.303): 9.67 ± 4.303 × 3.84 = 9.67 ± 16.5, about -6.9 to 26.2 points.
+<details>
+<summary>Check your prediction</summary>
 
-**Conclusion.** The effect is suggestive, not shown. The interval runs from a small decrease to a large increase. Notice what p = 0.13 does not say: it does not show "no effect". Scoring 2,000 cells per dish would help somewhat, by shrinking the counting noise in each dish, but it cannot remove run-to-run variation, and N would still be three. More independent runs would.
+No. A cell that enters S at 20 hours cannot finish S, G2 and mitosis by 24 hours. A negative division result holds only for the period watched; the window must cover the delay plus the time S, G2 and mitosis take.
 
-A **SuperPlot** (Lord and colleagues, 2020) shows this in one figure. Each cell is a small dot, colored by run; each run's mean is a large symbol of the same color; the comparison uses the large symbols. Here run 2 would stand out at once as the run where treatment barely moved the mean.
+</details>
+
+Area creates a second endpoint trap. Suppose two circular MDCK tissues, 1.7 and 3.4 mm across—the sizes Heinrich and colleagues used in 2020—each have an edge moving outward at a constant 30 micrometres per hour for an idealized 10 hours. Their radii move from 850 to 1,150 micrometres and from 1,700 to 2,000.
+
+**Predict.** With the same edge speed, which tissue has the larger percentage area increase? Does that prove faster proliferation?
+
+<details>
+<summary>Check your prediction</summary>
+
+The smaller tissue. Its area ratio is (1150/850)² = 1.83, an 83% increase; the larger tissue gives (2000/1700)² = 1.38, a 38% increase. No division rate appears in the calculation. Geometry alone creates the difference, so percent area growth does not prove proliferation.
+
+</details>
+
+Count nuclei, as [microscopy and images](/lessons/microscopy-and-images/) describes, and track divisions. Heinrich and colleagues measured tissue area and cell number and found different changes: over 46 hours, small tissues grew about 6.4-fold in area but about 9.2-fold in cell number.
+
+## Read repeatability at the independent-unit level
+
+The film collapsed hundreds of cell dots into the dish that received treatment. Formally, the **experimental unit** is the thing independently assigned to a condition: a dish, stretch device or mouse. The **observational unit** is what is measured: a cell or field. N is the number of experimental units (Lazic and colleagues, 2018). Treating cells that share a dish as independent replicates is **pseudoreplication**.
+
+Repeating the whole procedure on separate days supplies information that extra cells from one dish cannot. Lazic and colleagues call choosing days rather than wells a scientific judgement because it asks whether an effect survives a fresh run. They also distinguish the **biological unit**, the entity the conclusion concerns; with one cell line, the conclusion is about that line.
+
+### Worked problem: six hundred cells, three runs
+
+Here is a made-up data set, invented for teaching. Each of three independent days has one control dish and one treated dish, with 200 cells scored per dish for EdU.
+
+| Run | Control (% EdU-positive) | Treated (% EdU-positive) | Treated − control |
+| --- | ---: | ---: | ---: |
+| 1 | 20 | 34 | +14 |
+| 2 | 25 | 27 | +2 |
+| 3 | 15 | 28 | +13 |
+
+Pooling erases the run labels. Runs 1 and 3 show large differences; run 2 barely moves. Summarizing each dish preserves that disagreement, and the dish-level interval spans a small decrease to a large increase; the calculation is in Going deeper.
+
+**Predict.** The paired analysis gives p = 0.13. Which statement is justified: “there is no effect,” or “these runs leave the effect uncertain”?
+
+<details>
+<summary>Check your prediction</summary>
+
+These runs leave the effect uncertain. A non-significant result does not show no effect, and the wide interval makes the uncertainty visible. Scoring 2,000 cells per dish would shrink some counting noise, but N would remain three and run-to-run variation would remain. More independent runs address that uncertainty.
+
+</details>
+
+Use the **SuperPlot** below (Lord and colleagues, 2020) to switch between pooled cells and run summaries. Only the independently treated run summaries supply N for the comparison.
 
 <ReplicateSuperPlot />
 
-## Measuring the right thing: entry versus completion, area versus cell number
-
-The student's evidence for proliferation was more green cells. In MDCK cells carrying **Fucci** reporters (fluorescent ubiquitination-based cell-cycle indicator), red mKO2-Cdt1 marks G0 and G1, and green mAG-Geminin marks cells from S phase until mitosis (see the [lesson on cell-cycle control](/lessons/cell-cycle-control/)). A green cell has, roughly, entered S; the green signal can switch on a little before or after DNA replication starts, which is why EdU is a separate measure. It has not necessarily divided.
-
-<LessonFigure src="/figures/cellbio-experimental-design/fucci-entry-vs-completion.webp" width={1200} height={640} alt="AI-generated illustration: a left-to-right strip of one epithelial cell followed over time, first with a red nucleus, then a green nucleus, then rounding up to divide, then two pale daughter cells, with a gold arrow beneath marking the path a tracked cell follows and a small inset contrasting a single snapshot with tracking." caption="Fucci cells are red in G0 and G1 and green from S phase until mitosis, then dim for a while after division. A green cell has roughly entered S; only following the cell to an observed division shows that it completed the cycle." />
-
-This is exactly what Benham-Pyle and colleagues found in 2016. In quiescent MDCK-II monolayers, about 10% of unstretched cells were Geminin-positive. Strain alone, at a maximum of about 8.5% in their live-imaging device, increased the number of cells in S and G2 without increasing the number tracked from G1 through S to division. Wnt3A alone did not move quiescent cells into S phase in this preparation. Strain plus Wnt3A raised mitotic entry above either input alone. More green, then, meant more cells sitting in S and G2, not more divisions within the 24 hours watched. Most of the rise in green cells came after a delay of about 8 hours, so a window that closes soon after cannot rule out later divisions.
-
-Two more limits of the reporter matter. Red does not distinguish G0 from G1, so red alone cannot prove a cell is quiescent. And the construct has a dark period after mitosis, when neither color is bright, so a snapshot undercounts cells that have just divided.
-
-Area has its own trap. Suppose two circular MDCK tissues, 1.7 and 3.4 mm across (the sizes Heinrich and colleagues used in 2020), each with an edge moving outward at a constant 30 micrometres per hour for 10 hours, an idealized interval. The radii go from 850 to 1,150 micrometres and from 1,700 to 2,000.
-
-> **area ratio = (R + vt)² / R²: (1150/850)² = 1.83 and (2000/1700)² = 1.38**
-
-The small tissue grows 83% in area and the large one 38%, with identical edges and no division rate in the calculation at all. Percent area growth is not proliferation. Count nuclei, as the [lesson on microscopy and images](/lessons/microscopy-and-images/) describes, and track divisions.
-
 ## Controls that rule out the boring explanations
 
-Each control answers one dull explanation.
+The film's three locks are necessary, not sufficient: controls test whether a dull alternative could produce the result.
 
-- **Handling.** Unstretched devices assembled, mounted and imaged identically. Otherwise "stretch" includes everything done to the stretched device.
-- **The medium.** Wnt3A-conditioned medium comes from mouse L cells engineered to make Wnt3A, so the control is medium conditioned in the same way by parental L cells. That matches how the medium was made, but it cannot guarantee that Wnt3A is the only difference, so a Wnt-pathway readout or blocker is needed to show that Wnt3A did the work.
-- **The drug.** Vehicle (usually DMSO) at the same concentration. Benham-Pyle and colleagues used SU6656 at 10 µM to inhibit Src-family kinases and found it blocked strain-induced EdU incorporation. A concentration used in a paper is a condition, not a measure of potency.
-- **Off-target effects.** A casein kinase I inhibitor, which allows beta-catenin to build up, raised mitotic entry when combined with strain, and iCRT3, which blocks beta-catenin-dependent transcription, prevented that rise. The authors themselves flagged possible off-target effects of the casein kinase I inhibitor. One inhibitor never proves its nominal target. Add an independent genetic perturbation with rescue ([CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/); [drugs against a part](/lessons/drugs-against-a-part/)).
-- **The observer.** Positivity thresholds kept the same across conditions, as the 2016 authors did, ideally fixed before analysis, and scoring blind to condition.
-- **The stretch itself.** Measure the strain the cells actually feel and analyze only the strained region. The two devices in the 2016 study reached different maxima, about 8.5% and 15%, so their results should not be merged.
+- **Handling:** assemble, mount and image unstretched devices identically, or “stretch” includes every handling difference.
+- **Medium:** match how the medium was prepared; a pathway readout then tests whether the intended signal was engaged.
+- **Drug:** match the vehicle—the drug's solvent without drug—at the same concentration. A concentration copied from a paper is a condition, not a measure of potency.
+- **Observer:** fix positivity thresholds before analysis, score blind to condition and keep thresholds the same across conditions, as the 2016 authors did.
+- **Stretch:** measure the strain cells actually feel and analyze only the strained region. Do not merge devices that impose different strains.
 
-A pathway reporter checks engagement: TOPdGFP, a destabilized GFP driven by beta-catenin-responsive sites, asks whether Wnt3A did anything at the level of transcription ([hacking the cell](/lessons/hacking-the-cell/) covers reporters).
+A pathway readout asks whether the intended signal was engaged. TOPdGFP is a destabilized GFP driven by beta-catenin-responsive sites; it reports beta-catenin-dependent transcription ([hacking the cell](/lessons/hacking-the-cell/) covers reporters).
+
+**Predict.** One inhibitor produces the expected phenotype. What addition best tests whether inhibiting its intended target caused that phenotype?
+
+<details>
+<summary>Check your prediction</summary>
+
+Use an independent genetic perturbation of the target, then restore the target with a **rescue** version the perturbation cannot touch. A second dish of the same drug or a higher dose still carries the same off-target concern. See [CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/) and [drugs against a part](/lessons/drugs-against-a-part/).
+
+</details>
 
 ## Putting it together
+
+Now the prediction, endpoint and independent unit return as one design, with controls added to test alternative explanations.
 
 ### Design problem
 
@@ -451,7 +485,7 @@ A student claims "stretch makes epithelial cells proliferate" from more green Fu
 <details>
 <summary>One way to do it</summary>
 
-**Design.** A 2 × 2 factorial: no stretch or stretch, crossed with control (parental L-cell) or Wnt3A-conditioned medium. Run all four arms on each day, assigning devices to arms at random within the day. N is the number of independent days, chosen from a pilot's run-to-run variation.
+**Design.** A 2 × 2 factorial—every combination of no stretch or stretch with control (parental L-cell) or Wnt3A-conditioned medium. Run all four arms on each day, assigning devices to arms at random within the day. N is the number of independent days, chosen from a pilot's run-to-run variation.
 
 **Primary endpoint, fixed in advance.** The fraction of cells red at the start that are tracked through green (S/G2) to an observed division within a set window, long enough to cover the delay before S entry plus the time S, G2 and M take. Call it Q.
 
@@ -466,8 +500,34 @@ A student claims "stretch makes epithelial cells proliferate" from more green Fu
 
 **Analysis.** Day-paired device means, shown as a SuperPlot.
 
-**Compare with the published result.** In Benham-Pyle and colleagues' 2016 study, strain alone raised S/G2 without more completed cycles, and strain plus Wnt3A raised mitotic entry: the pattern Model B predicts, in quiescent canine MDCK-II monolayers held under static strain in culture. Other work in MDCK cells points the other way: stretch alone pushed cells paused in G2 into mitosis within about an hour, through the channel Piezo1 (Gudipaty and colleagues, 2017). The answer depends on the cells' starting state and on the kind of stretch, so a design has to state both. Whether the same holds in other epithelia, or in tissue, is a separate experiment.
+**Compare with the published result.** The evidence above fits Model B's pattern in quiescent canine MDCK-II monolayers held under static strain in culture. Whether the same holds with another starting state, another kind of stretch, another epithelium or in tissue is a separate experiment.
 
 </details>
+
+## Going deeper
+
+The film and the first pass used the simple case. These details show where reporter timing, arithmetic, pathway tools and biological context limit that picture.
+
+### Reporter limits and biological scope
+
+Red Fucci does not distinguish G0 from G1, so red alone cannot prove that a cell is quiescent. The construct also has a dark period after mitosis, when neither color is bright, so a snapshot undercounts cells that have just divided. These limits are why reporter fractions are not rates and why the main design tracks individual cells.
+
+Other work in MDCK cells points the other way: stretch alone pushed cells paused in G2 into mitosis within about an hour through the channel Piezo1 (Gudipaty and colleagues, 2017). The answer depends on the cells' starting state and the kind of stretch, so a design must state both.
+
+### The paired calculation
+
+Pooling the invented data gives 120 of 600 control cells and 178 of 600 treated cells: 20.0% and 29.7%, a 9.7-point difference. If all cells are wrongly treated as independent, the standard error is
+
+> **SE = sqrt(0.20 × 0.80 / 600 + 0.297 × 0.703 / 600) = 0.0248, about 2.5 points**
+
+and z is about 3.9, which looks decisive. With the dish as the unit, the last column of the table has mean 29 / 3 = 9.67 points. Its deviations from the mean are 4.33, −7.67 and 3.33; their squared sum is 88.7. Dividing by n − 1 gives variance 44.3, SD 6.66 and SE 6.66 / sqrt(3) = 3.84. Thus t = 2.51 with 2 degrees of freedom, and the two-sided p is about 0.13. Using the critical t value 4.303, the 95% interval is 9.67 ± 16.5, or about −6.9 to 26.2 points.
+
+### Pathway controls and device details
+
+Wnt3A-conditioned medium comes from mouse L cells engineered to make Wnt3A. Parental L-cell medium matches its preparation, but cannot guarantee that Wnt3A is the only difference; a Wnt-pathway readout or blocker tests whether the pathway did the work.
+
+Benham-Pyle and colleagues compared SU6656 at 10 µM, which inhibits Src-family kinases, with a DMSO vehicle control and found that it blocked strain-induced EdU incorporation. A casein kinase I inhibitor, which allows beta-catenin to build up, raised mitotic entry with strain; iCRT3, which blocks beta-catenin-dependent transcription, prevented that rise. The authors flagged possible off-target effects of the casein kinase I inhibitor, so one inhibitor does not prove its nominal target.
+
+The two devices in the 2016 study reached different strain maxima, about 8.5% and 15%. Their results should not be merged.
 
 These habits carry into the rest of the unit. The [lessons on epithelia](/lessons/epithelia/), [stem cells](/lessons/stem-cells/) and [cell state and disease](/lessons/cell-state-and-disease/) all rest on claims about proliferation and identity, and each claim is only as good as its unit, its endpoint and its controls. For the probability behind the statistics, see the [lesson on probability and crosses](/lessons/probability-and-crosses/).

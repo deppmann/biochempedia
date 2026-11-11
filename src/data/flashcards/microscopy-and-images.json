@@ -1,0 +1,579 @@
+{
+ "slug": "microscopy-and-images",
+ "title": "Microscopy and Quantitative Images",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract -> Codex draft -> Codex accuracy gate and fix",
+  "models": {
+   "draft": "OpenAI via Codex",
+   "gate": "OpenAI via Codex"
+  }
+ },
+ "lessonHash": "c1e50f224456",
+ "sectionHashes": {
+  "Put numbers on the blur": "a686f501e53a",
+  "Change the measurement, not the zoom": "f851ebc14e83",
+  "Remove out-of-focus haze": "73de068e6a15",
+  "Use electrons for finer structural detail": "9ad6eeba6124",
+  "Encode close fluorescent emitters": "b440049b6439",
+  "1. Is the signal the claimed target?": "61e9e02dcf1a",
+  "2. Are the channels separate?": "9f40a4d71e02",
+  "3. Are intensities comparable?": "29674e95a2c5",
+  "4. What does overlap support?": "e9f1f9f281c6",
+  "Design problem": "5e9b6cae0d39",
+  "Where NA and the Airy pattern come from": "263092f7e278",
+  "Rayleigh and Nyquist are different questions": "de3ccd2f5dd0",
+  "Labelling can move the target": "ace6264533f3"
+ },
+ "cards": [
+  {
+   "id": "microscopy-and-images-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Resolution}} is the smallest separation at which two point objects can be distinguished under a stated criterion.",
+   "back": "",
+   "quote": "Resolution is the smallest separation at which two point objects can be distinguished under a stated criterion.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "A {{c1::point-spread function}} is an instrument's response to a point source.",
+   "back": "Measured point-spread functions may be worse than ideal calculations because of aberrations and thick samples.",
+   "quote": "These are exercise values, not a measured point-spread function (the instrument's response to a point); aberrations and thick samples can do worse.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the ideal widefield resolution formula, what do λ and NA represent?",
+   "back": "λ is the label's fluorescence emission wavelength; NA describes the cone of light collected by the objective.",
+   "quote": "Here λ is the label's fluorescence emission wavelength, and numerical aperture (NA) describes the cone of light the objective collects.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Under the Rayleigh criterion, when are two point sources considered resolved?",
+   "back": "When the centre of one source's Airy pattern falls on the first dark ring of the other source's pattern.",
+   "quote": "The Rayleigh criterion calls them resolved when one Airy pattern's centre falls on the other's first dark ring.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c05",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For λ = 520 nm and NA = 1.40, what is the ideal lateral Rayleigh resolution d = 0.61λ/NA?",
+   "back": "d = 0.61 × 520 / 1.40 = 317.2 / 1.40 = 226.6 nm, about 0.23 µm.",
+   "quote": "d = 0.61 × 520 / 1.40 = 317.2 / 1.40 = 226.6 nm, about 0.23 µm",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Two vesicles are 150 nm apart, but ideal lateral resolution is 226.6 nm. What will software enlargement show, and why?",
+   "back": "One enlarged, merged spot. The vesicles are below the resolvable separation, and enlargement adds no new recorded detail.",
+   "quote": "The vesicles are 150 nm apart, below 226.6 nm, so they are unresolved by this criterion.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An introductory camera-sampling rule requires at least {{c1::two camera pixels}} across one resolved distance.",
+   "back": "Fewer pixels can discard detail that the optics preserve.",
+   "quote": "A useful introductory rule is at least two camera pixels across one resolved distance.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For d = 226.6 nm, do 100 nm and 150 nm specimen pixels meet the introductory two-pixel sampling rule?",
+   "back": "100 nm: 226.6/100 = 2.27 pixels, so yes. 150 nm: 226.6/150 = 1.51 pixels, so no.",
+   "quote": "The 150 nm camera gives only 1.51 pixels across d, so the camera loses detail that the optics could pass.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c09",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At λ = 520 nm, how does lowering NA from 1.40 to 1.00 change ideal lateral resolution?",
+   "back": "d becomes 0.61 × 520/1.00 = 317.2 nm, about 90 nm worse than 226.6 nm.",
+   "quote": "With the same 520 nm emission but NA 1.00, d = 317.2 nm.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c10",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For λ = 520 nm, n = 1.515, and NA = 1.40, estimate axial resolution using dz ≈ 2λn/NA².",
+   "back": "dz ≈ (2 × 520 × 1.515)/(1.40²) = 1,575.6/1.96 ≈ 804 nm.",
+   "quote": "With immersion index n = 1.515, the approximate axial estimate is dz ≈ 2λn/NA²",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is a point's three-dimensional diffraction blur elongated along the optical axis in the worked example?",
+   "back": "Axial resolution is about 804 nm, roughly 3.5 times the 226.6 nm lateral resolution, so depth is resolved less finely.",
+   "quote": "That is about 3.5 times the lateral value. A point's three-dimensional blur is therefore elongated along the optical axis.",
+   "section": "Put numbers on the blur"
+  },
+  {
+   "id": "microscopy-and-images-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is software zoom called empty magnification once an image is adequately sampled?",
+   "back": "It enlarges the existing record without improving optical resolution or adding detail.",
+   "quote": "Once the camera samples finely enough, further magnification and software zoom only enlarge the record: magnification without resolution is empty magnification.",
+   "section": "Change the measurement, not the zoom"
+  },
+  {
+   "id": "microscopy-and-images-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why do thick, densely labelled specimens look hazy in widefield fluorescence microscopy?",
+   "back": "Widefield collects fluorescence throughout the illuminated depth, including light from above and below the focal plane.",
+   "quote": "Widefield collects fluorescence throughout the illuminated depth, producing haze above and below focus in thick, densely labelled specimens.",
+   "section": "Remove out-of-focus haze"
+  },
+  {
+   "id": "microscopy-and-images-c14",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a confocal microscope, a detector {{c1::pinhole}} blocks most out-of-focus light.",
+   "back": "This produces optical sections with improved contrast.",
+   "quote": "A confocal microscope scans a focused spot; a detector pinhole blocks most out-of-focus light.",
+   "section": "Remove out-of-focus haze"
+  },
+  {
+   "id": "microscopy-and-images-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A confocal pinhole is closed below one Airy unit. What happens to resolution and signal, and why not close it indefinitely?",
+   "back": "Resolution may improve modestly, but signal falls. Its main benefit is sectioning and contrast, and conventional confocal remains diffraction limited.",
+   "quote": "Below one Airy unit—a pinhole as wide as the Airy pattern's central disc—a smaller opening can buy modest resolution but costs signal.",
+   "section": "Remove out-of-focus haze"
+  },
+  {
+   "id": "microscopy-and-images-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How can confocal microscopy produce a three-dimensional reconstruction of a cell?",
+   "back": "Each scan is an optical section; stacking sections reconstructs the cell in three dimensions.",
+   "quote": "Each scan is an optical section, and a stack can reconstruct a three-dimensional cell, one way to measure organelle volumes.",
+   "section": "Remove out-of-focus haze"
+  },
+  {
+   "id": "microscopy-and-images-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does scanning electron microscopy show, and how does it acquire the image?",
+   "back": "SEM rasters a coated specimen surface to show its shape.",
+   "quote": "Scanning EM (SEM) rasters a coated surface to show its shape.",
+   "section": "Use electrons for finer structural detail"
+  },
+  {
+   "id": "microscopy-and-images-c18",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A feature appears in a conventional TEM image of a fixed, dehydrated, plastic-embedded cell. Why should its native existence be tested independently?",
+   "back": "Preparation can create artifacts, and the image is a two-dimensional projection of dead, prepared tissue.",
+   "quote": "TEM can show membranes and organelles, but its image is a two-dimensional projection of dead, prepared tissue; fixation can create artifacts.",
+   "section": "Use electrons for finer structural detail"
+  },
+  {
+   "id": "microscopy-and-images-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What specimen-preparation advantage does rapid freezing provide in cryo-EM?",
+   "back": "It traps water as glass-like vitreous ice rather than as crystals.",
+   "quote": "In cryo-EM, rapid freezing traps water as glass-like vitreous ice rather than crystals.",
+   "section": "Use electrons for finer structural detail"
+  },
+  {
+   "id": "microscopy-and-images-c20",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can averaging many purified copies yield near-atomic cryo-EM structures without providing an atom-by-atom image of a whole cell?",
+   "back": "Most near-atomic structures come from averaging many images of purified particles; molecules in thinned frozen cells are usually resolved less finely, and this has not yielded an atom-by-atom whole cell.",
+   "quote": "Most near-atomic cryo-EM structures come from averaging many images of purified particles.",
+   "section": "Use electrons for finer structural detail"
+  },
+  {
+   "id": "microscopy-and-images-c21",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "{{c1::STED}} leaves a smaller fluorescent centre by using a ring-shaped depletion beam to drive surrounding excited dyes dark.",
+   "back": "It changes what reaches the record rather than eliminating diffraction.",
+   "quote": "STED uses a ring-shaped depletion beam to force excited dyes around the focus back to the dark state by stimulated emission",
+   "section": "Encode close fluorescent emitters"
+  },
+  {
+   "id": "microscopy-and-images-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does structured illumination microscopy reveal detail beyond the ordinary objective passband?",
+   "back": "Striped illumination shifts finer detail into the range the objective can pass, and computation reconstructs the image.",
+   "quote": "SIM uses striped illumination to shift finer detail into the range the objective can pass, then computes an image.",
+   "section": "Encode close fluorescent emitters"
+  },
+  {
+   "id": "microscopy-and-images-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How do PALM and STORM separate fluorescent molecules that are too close to resolve when glowing together?",
+   "back": "They activate sparse subsets, localize each isolated blur's centre, and combine positions over thousands of cycles.",
+   "quote": "PALM and STORM switch on sparse fluorophores so nearby molecules do not glow together, estimate each isolated blur's centre",
+   "section": "Encode close fluorescent emitters"
+  },
+  {
+   "id": "microscopy-and-images-c24",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "An isolated molecule's centre is localized to 10 nm. Will two molecules 50 nm apart be resolved if they glow simultaneously, and why?",
+   "back": "No. Ten nanometres is uncertainty in one isolated centre, not resolution between simultaneous emitters; localization microscopy separates neighbours in time.",
+   "quote": "The 10 nm value is localization precision, the uncertainty in one isolated centre, not resolution between simultaneous emitters.",
+   "section": "Encode close fluorescent emitters"
+  },
+  {
+   "id": "microscopy-and-images-c25",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Localization uncertainty is 10 nm with 400 photons and scales as 1/√N. What is it with 1,600 photons?",
+   "back": "N increases fourfold, so uncertainty falls by √4 = 2: 10 nm/2 = 5 nm.",
+   "quote": "With enough photons, an isolated centre can be found to a few nanometres, and shot-noise-limited uncertainty falls as 1/√N for N detected photons.",
+   "section": "Encode close fluorescent emitters"
+  },
+  {
+   "id": "microscopy-and-images-c26",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A PALM analysis equates 1,200 localizations with 1,200 tagged proteins. In which direction can blinking bias the count, and why?",
+   "back": "It can bias the count upward because one fluorescent protein may blink and be localized several times.",
+   "quote": "Final resolution also depends on label density and size, drift and blinking; one fluorescent protein may be counted several times.",
+   "section": "Encode close fluorescent emitters"
+  },
+  {
+   "id": "microscopy-and-images-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which controls test whether antibody fluorescence comes from the intended target and not the fluorescent secondary?",
+   "back": "Target knockout or knockdown should remove the signal; a secondary-only sample tests the fluorescent secondary.",
+   "quote": "A strong specificity control is signal loss after target knockout or knockdown; a secondary-only sample checks the fluorescent secondary.",
+   "section": "1. Is the signal the claimed target?"
+  },
+  {
+   "id": "microscopy-and-images-c28",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An antibody gives the same mitochondrial pattern after target-gene deletion; a blot finds no target, and secondary-only cells are dark. What failed?",
+   "back": "Primary-antibody specificity failed. The primary detects something other than the target at mitochondria; the dark secondary-only control excludes the secondary as the source.",
+   "quote": "The primary antibody is detecting something other than the target at mitochondria.",
+   "section": "1. Is the signal the claimed target?"
+  },
+  {
+   "id": "microscopy-and-images-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does replacing antibody staining with a GFP tag not automatically guarantee native localization?",
+   "back": "A genetic tag avoids antibodies but can itself alter the protein's location.",
+   "quote": "A genetic tag such as GFP avoids antibodies but can alter protein location",
+   "section": "1. Is the signal the claimed target?"
+  },
+  {
+   "id": "microscopy-and-images-c30",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Use single-label samples to measure {{c1::bleed-through}}, light from one dye leaking into another channel.",
+   "back": "This tests whether apparent colour overlap is optical channel leakage.",
+   "quote": "Use single-label samples to measure bleed-through, light from one dye leaking into another channel.",
+   "section": "2. Are the channels separate?"
+  },
+  {
+   "id": "microscopy-and-images-c31",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What control tests whether colour channels are spatially registered?",
+   "back": "Multicolour beads.",
+   "quote": "Multicolour beads test whether channels are aligned, or registered.",
+   "section": "2. Are the channels separate?"
+  },
+  {
+   "id": "microscopy-and-images-c32",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For quantitative fluorescence comparisons, acquire every condition {{c1::identically}} and keep relevant pixels below the detector maximum.",
+   "back": "Matched acquisition and unsaturated pixels preserve comparability.",
+   "quote": "Acquire every condition identically and keep relevant pixels below the detector maximum.",
+   "section": "3. Are intensities comparable?"
+  },
+  {
+   "id": "microscopy-and-images-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Treated cells contain many pixels at the detector maximum. Can their mean fluorescence be compared quantitatively with unsaturated controls, and why?",
+   "back": "No. Saturated pixels no longer increase with incoming light, so they no longer report label amount; subtraction cannot recover clipped values.",
+   "quote": "A saturated pixel has stopped increasing with the light that reaches it, so its value no longer reports how much label is present.",
+   "section": "3. Are intensities comparable?"
+  },
+  {
+   "id": "microscopy-and-images-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does background subtraction not remove all uncertainty from a fluorescence image?",
+   "back": "It removes average background but not the background's photon noise.",
+   "quote": "Background subtraction removes average background, not its photon noise.",
+   "section": "3. Are intensities comparable?"
+  },
+  {
+   "id": "microscopy-and-images-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What can colocalization of two fluorescence colours support, and what can it not establish?",
+   "back": "It supports proximity within a resolution volume, not molecular binding.",
+   "quote": "Two colours in one pixel are, at best, within one resolution volume",
+   "section": "4. What does overlap support?"
+  },
+  {
+   "id": "microscopy-and-images-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Design the first specificity test for a claim that protein P localizes to mitochondria by antibody staining.",
+   "back": "Image P-knockout or knockdown cells identically: mitochondrial signal should fall, while a blot confirms loss of P. Add a secondary-only control.",
+   "quote": "In P knockout or knockdown cells imaged identically, mitochondrial signal should fall with P on a blot.",
+   "section": "Design problem"
+  },
+  {
+   "id": "microscopy-and-images-c37",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Before treating yellow overlap as real protein proximity, which controls protect the overlap measurement itself?",
+   "back": "Use single-label samples for bleed-through, registration beads for alignment, identical acquisition, and unsaturated raw images so the coefficient uses real intensities.",
+   "quote": "Then test proximity with single-label samples, registration beads and unsaturated raw images, so any overlap coefficient uses real intensities.",
+   "section": "Design problem"
+  },
+  {
+   "id": "microscopy-and-images-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "How would you test direct binding while checking that a loss-of-interaction mutation did not merely change protein abundance or location?",
+   "back": "Test purified proteins for direct binding, then require an interaction-breaking mutation to remove binding without changing protein amount or location.",
+   "quote": "Purified-protein binding tests direct interaction, and interaction-breaking mutations should remove binding without changing protein amount or location.",
+   "section": "Design problem"
+  },
+  {
+   "id": "microscopy-and-images-c39",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Numerical aperture is {{c1::NA = n × sin θ}}, where θ is half the collected cone angle.",
+   "back": "n is the refractive index between the sample and lens.",
+   "quote": "Numerical aperture is NA = n × sin θ Here n is the refractive index between sample and lens",
+   "section": "Where NA and the Airy pattern come from"
+  },
+  {
+   "id": "microscopy-and-images-c40",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why can immersion oil permit NA near 1.4 while an objective in air cannot exceed NA 1?",
+   "back": "By NA = n sin θ, air has n = 1.00 and sin θ cannot exceed 1; oil has n ≈ 1.515, permitting NA above 1.",
+   "quote": "In air n = 1.00, so NA cannot exceed 1. Immersion oil has n ≈ 1.515, allowing high-NA oil objectives near 1.4.",
+   "section": "Where NA and the Airy pattern come from"
+  },
+  {
+   "id": "microscopy-and-images-c41",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A camera has 100 nm specimen pixels. Compare its sampling against the introductory Rayleigh rule and the stricter stated Nyquist calculation.",
+   "back": "It gives 226.6/100 = 2.27 pixels per Rayleigh distance, so it passes that rule. Nyquist calls for about 93 nm or smaller, so it slightly under-samples.",
+   "quote": "Thus 100 nm pixels give more than two pixels across the 226.6 nm Rayleigh distance but still slightly under-sample by this stricter rule",
+   "section": "Rayleigh and Nyquist are different questions"
+  },
+  {
+   "id": "microscopy-and-images-c42",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "An antibody appears to cluster a surface receptor after labelling. How could fixation be tested as the cause rather than accepted as native organization?",
+   "back": "Repeat with altered fixation and compare clustering. The lesson's example found that adding glutaraldehyde largely prevented clustering seen with formaldehyde alone.",
+   "quote": "Fixation is an experimental variable, and incomplete fixation can let labelling move proteins.",
+   "section": "Labelling can move the target"
+  }
+ ]
+}
