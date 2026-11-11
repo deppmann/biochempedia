@@ -1,582 +1,625 @@
-"""Fat, two carbons at a time: the three stages of fatty acid degradation (Biochemistrypedia fatty-acid-degradation explainer)
+"""The Two-Carbon Ledger — fatty-acid degradation explainer.
 
-Four narrated slide clips, one arc: fat is released and unpacked in three stages (s01) -> an activated
-fatty acid cannot cross the inner mitochondrial membrane without carnitine (s02) -> the chemistry happens
-at the beta carbon, and every round hands out acetyl-CoA, NADH and FADH2 (s03) -> the energy ledger for
-palmitate: -2 up front, +28 from the spiral, +80 from the acetyl-CoA, 106 net (s04).
+COLOR MAP (kept constant throughout)
+  BLUE   fatty-acid carbon chain / water
+  ORANGE coenzyme A handles
+  YELLOW carnitine and moving attention cues
+  PINK   reduced electron carriers (FADH2 and NADH)
+  GREEN  acetyl-CoA and ATP earned
+  RED    activation cost
+  PURPLE workshop enzymes / processing wheel
+  GREY   membranes, blood lane, supporting structure
+  GOLD   the beta carbon and final 106 total
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the fatty acid / acyl group / the fatty-acid chain (the fuel)
-  GREY   = glycerol, membranes, neutral labels, glucose label text
-  GREEN  = acetyl-CoA (two-carbon product) and the ATP it earns through the citric acid cycle
-  ORANGE = coenzyme A (the CoA tag)
-  YELLOW = carnitine (the passport)
-  PURPLE = enzymes (lipase, CPT I, CPT II, translocase)
-  PINK   = reduced carriers NADH and FADH2 (and the ATP they earn)
-  RED    = ATP spent (activation cost)
-  GOLD   = one highlight at a time (the beta carbon, the checkpoint, the 106 total)
-  TEXT   = glucose bars (neutral, the comparison)
-No molecular structures are drawn: carbons are numbered tiles, enzymes and carriers are labelled chips, the
-membranes are bands, and the ledger is a bar computed from the slide's own arithmetic (1.5 ATP per FADH2,
-2.5 per NADH, 8 GTP + 24 NADH + 8 FADH2 from eight acetyl-CoA).
+All chemistry is a labelled-block schematic.  No molecular structure is drawn.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-config.disable_caching = True
 
-PURPLE = "#B58CE0"
 ORANGE = "#E8903A"
 PINK = "#E26AA8"
-CARBON_LABELS = None
+PURPLE = "#B58CE0"
 
 
-def tile(label="", color=BLUE, size=0.5, fs=22, fill=0.16, filled=False, stroke=3):
-    sq = RoundedRectangle(corner_radius=0.08, width=size, height=size, stroke_color=color, stroke_width=stroke,
-                          fill_color=color, fill_opacity=0.9 if filled else fill)
-    if label:
-        return VGroup(sq, M(label, fs, BG if filled else color).move_to(sq))
-    return VGroup(sq)
+def chip(text, color=BLUE, size=28, pad=0.22, fill_opacity=0.16):
+    """Readable label chip with an opaque dark field so workshop lines cannot cross its text."""
+    label = T(text, size=size, color=color)
+    box = RoundedRectangle(
+        corner_radius=0.14, width=label.width + 2 * pad, height=label.height + 2 * pad,
+        stroke_color=color, stroke_width=2.5, fill_color=BG, fill_opacity=0.94,
+    )
+    return VGroup(box, label.move_to(box))
 
 
-def enz(text, size=24, w=None):
-    """Enzyme chip: opaque dark purple so things can pass 'through' it (it sits above them)."""
-    lab = T(text, size, PURPLE)
-    box = RoundedRectangle(corner_radius=0.14, width=w or lab.width + 0.44, height=lab.height + 0.34,
-                           stroke_color=PURPLE, stroke_width=2.5, fill_color="#2a2140", fill_opacity=1)
-    g = VGroup(box, lab.move_to(box))
-    g.set_z_index(5)
+def carbon_tile(n=None, size=0.54, color=BLUE, filled=False):
+    box = RoundedRectangle(
+        corner_radius=0.09, width=size, height=size,
+        stroke_color=color, stroke_width=3,
+        fill_color=color, fill_opacity=0.82 if filled else 0.18,
+    )
+    if n is None:
+        return VGroup(box)
+    lab = M(str(n), 28, BG if filled else color).move_to(box)
+    return VGroup(box, lab)
+
+
+def chain16(y=0.72, scale=1.0, numbered=True):
+    """Canonical 16-carbon chain; every carried rebuild uses these coordinates."""
+    tiles = VGroup(*[
+        carbon_tile(i + 1 if numbered else None, size=0.54 * scale)
+        for i in range(16)
+    ])
+    tiles.arrange_in_grid(rows=2, cols=8, buff=(0.12 * scale, 0.18 * scale))
+    tiles.move_to([-1.25, y, 0])
+    return tiles
+
+
+def chain_row(count=16, y=1.35, width=10.6, numbered=True):
+    s = min(0.62, (width - 0.15 * (count - 1)) / count)
+    g = VGroup(*[carbon_tile(i + 1 if numbered else None, s) for i in range(count)])
+    g.arrange(RIGHT, buff=0.15).move_to([0, y, 0])
     return g
 
 
-def acyl_coa(size=24):
-    return VGroup(chip("acyl", BLUE, size=size, pad=0.14), chip("CoA", ORANGE, size=size, pad=0.14)).arrange(RIGHT, buff=0)
+def handle(text="CoA", color=ORANGE, size=28):
+    return chip(text, color, size=size, pad=0.17)
 
 
-def acyl_carn(size=24):
-    return VGroup(chip("acyl", BLUE, size=size, pad=0.14), chip("carnitine", YELLOW, size=size, pad=0.14)).arrange(RIGHT, buff=0)
+def workshop_wheel(center=(0.0, -0.65, 0), radius=1.05, label=True):
+    c = np.array(center, dtype=float)
+    ring = Circle(radius=radius, stroke_color=PURPLE, stroke_width=6,
+                  fill_color=PURPLE, fill_opacity=0.08).move_to(c)
+    spokes = VGroup(*[
+        Line(c + 0.25 * radius * np.array([np.cos(a), np.sin(a), 0]),
+             c + 0.82 * radius * np.array([np.cos(a), np.sin(a), 0]),
+             color=PURPLE, stroke_width=5)
+        for a in (0, TAU / 3, 2 * TAU / 3)
+    ])
+    hub = Dot(c, radius=0.15, color=PURPLE)
+    g = VGroup(ring, spokes, hub)
+    if label:
+        g.add(T("β-oxidation", 28, TEXT).move_to(c))
+    return g
 
 
-def band(y, x0, x1, gap=None, h=0.3):
-    """Membrane band from x0 to x1 (optionally with a gap [gx, gw] where an enzyme sits)."""
-    def rect(a, b):
-        return Rectangle(width=b - a, height=h, stroke_color=GREY, stroke_width=2, fill_color=GREY,
-                         fill_opacity=0.32).move_to([(a + b) / 2, y, 0])
-    if gap is None:
-        return VGroup(rect(x0, x1))
-    gx, gw = gap
-    return VGroup(rect(x0, gx - gw / 2), rect(gx + gw / 2, x1))
+def add_slow_rotation(mob, speed=0.16):
+    mob.add_updater(lambda m, dt: m.rotate(speed * dt))
+    return mob
 
 
-def num(n):
-    return str(n).replace("-", "−")
+def matrix_motes(seed=1, count=58):
+    rng = np.random.default_rng(seed)
+    motes = VGroup()
+    for _ in range(count):
+        d = Dot(radius=float(rng.uniform(0.10, 0.15)), color=TEAL)
+        d.set_opacity(float(rng.uniform(0.35, 0.60)))
+        d.move_to([float(rng.uniform(-6.5, 6.5)), float(rng.uniform(-3.45, 3.45)), 0])
+        d.vx = float(rng.uniform(0.75, 1.10))
+        d.vy = float(rng.uniform(0.20, 0.45))
+
+        def drift(m, dt):
+            m.shift([m.vx * dt, m.vy * dt, 0])
+            if m.get_x() > 6.7:
+                m.shift(LEFT * 13.3)
+            if m.get_y() > 3.6:
+                m.shift(DOWN * 7.1)
+        d.add_updater(drift)
+        motes.add(d)
+    motes.set_z_index(-8)
+    return motes
 
 
-# =====================================================================================================
-class S00Title(TitleCard):
+def workshop_frame(seed=1, wheel_center=(0, -0.75, 0), wheel_radius=1.0):
+    shell = RoundedRectangle(corner_radius=0.85, width=13.0, height=7.0,
+                             stroke_color=GREY, stroke_width=3,
+                             fill_color=GREY, fill_opacity=0.035)
+    shell.set_z_index(-9)
+    # Faint panel seams make the persistent world read as one full-frame workshop.
+    grid = VGroup(
+        *[DashedLine([x, -3.35, 0], [x, 3.35, 0], dash_length=0.18,
+                     color=GREY, stroke_width=3.5).set_opacity(0.38) for x in (-5.2, -3.5, -1.75, 0, 1.75, 3.5, 5.2)],
+        *[DashedLine([-6.25, y, 0], [6.25, y, 0], dash_length=0.18,
+                     color=GREY, stroke_width=3.5).set_opacity(0.38) for y in (-2.25, -0.75, 0.75, 2.25)],
+    ).set_z_index(-9)
+    wheel = add_slow_rotation(workshop_wheel(wheel_center, wheel_radius, label=False))
+    return VGroup(shell, grid, matrix_motes(seed), wheel), wheel
+
+
+def counter_box(title, value="?", color=TEXT, width=2.7, height=1.25):
+    box = RoundedRectangle(corner_radius=0.2, width=width, height=height,
+                           stroke_color=color, stroke_width=3,
+                           fill_color=color, fill_opacity=0.08)
+    head = T(title, 28, color).move_to(box.get_top() + DOWN * 0.28)
+    val = M(str(value), 40, color, weight=BOLD).move_to(box.get_bottom() + UP * 0.38)
+    return VGroup(box, head, val)
+
+
+def atp_gauge(value="?", center=(4.9, 0.75, 0), color=GREEN, width=2.35, height=4.7):
+    c = np.array(center, dtype=float)
+    body = RoundedRectangle(corner_radius=0.25, width=width, height=height,
+                            stroke_color=color, stroke_width=4,
+                            fill_color=color, fill_opacity=0.045).move_to(c)
+    inner = Rectangle(width=width - 0.38, height=0.08, stroke_width=0,
+                      fill_color=color, fill_opacity=0.75).move_to(body.get_bottom() + UP * 0.27)
+    title = T("ATP total", 28, color).next_to(body, UP, buff=0.15)
+    read = M(str(value), 40, color, weight=BOLD).move_to(c)
+    return VGroup(body, inner, title, read)
+
+
+def prediction_layout(with_timer=False):
+    chain = chain_row(16, y=1.45, width=11.2)
+    title = T("PALMITATE LEDGER", 34, TEAL, weight=BOLD).move_to([0, 3.1, 0])
+    c1 = counter_box("turns", "?", PURPLE, 3.7, 1.55).move_to([-2.35, -1.15, 0])
+    c2 = counter_box("acetyl-CoA", "?", GREEN, 3.7, 1.55).move_to([2.35, -1.15, 0])
+    q = T("How many two-carbon units — after how many turns?", 30, TEXT)
+    fit(q, 11.8).move_to([0, -2.55, 0])
+    bracket = Brace(VGroup(chain[0], chain[1]), DOWN, color=YELLOW, buff=0.08)
+    group = VGroup(title, chain, c1, c2, q, bracket)
+    timer = None
+    if with_timer:
+        timer = Arc(radius=0.34, start_angle=PI / 2, angle=TAU - 0.15,
+                    color=TEAL, stroke_width=5).move_to([5.75, -2.55, 0])
+        group.add(timer)
+    return group, chain, c1, c2, q, bracket, timer
+
+
+def sweep_bracket(scene, bracket, chain, run_time=2.2):
+    target = Brace(VGroup(chain[-2], chain[-1]), DOWN, color=YELLOW, buff=0.08)
+    scene.play(Transform(bracket, target), run_time=run_time, rate_func=linear)
+
+
+def acetyl_cart(label=True, scale=1.0):
+    blocks = VGroup(carbon_tile(None, 0.42, GREEN, True), carbon_tile(None, 0.42, GREEN, True)).arrange(RIGHT, buff=0.05)
+    coa = (handle("CoA", ORANGE, 36).scale(0.78) if label else
+           RoundedRectangle(corner_radius=0.07, width=0.42, height=0.42,
+                            stroke_color=ORANGE, stroke_width=3,
+                            fill_color=ORANGE, fill_opacity=0.45))
+    cart = VGroup(blocks, coa).arrange(RIGHT, buff=0.08).scale(scale)
+    if label:
+        lab = T("acetyl-CoA", 28, GREEN).next_to(cart, DOWN, buff=0.14)
+        cart.add(lab)
+    return cart
+
+
+# -------------------------------------------------------------------------------------------------
+class S00Hook(SpokenScene, TitleCard):
     LESSON = "Fatty acid degradation"
-    TITLE = "Fat, two carbons at a time"
-
-
-# =====================================================================================================
-class S01Stages(SpokenScene):
-    """Three stages as a journey: adipocyte (release) -> blood -> mitochondrion (activate + import, degrade)."""
+    TITLE = "The Two-Carbon Ledger"
 
     def construct(self):
-        A = np.array([-4.5, -0.2, 0.0])
-        adip = Circle(radius=1.65, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.08).move_to(A)
-        adip_lab = T("adipose tissue", 24, GREY).next_to(adip, DOWN, buff=0.22)
-
-        # triacylglycerol: grey glycerol backbone + three blue fatty-acid bars (schematic blocks)
-        back = RoundedRectangle(corner_radius=0.06, width=0.2, height=1.0, stroke_width=0, fill_color=GREY, fill_opacity=0.95)
-        bars = VGroup(*[RoundedRectangle(corner_radius=0.06, width=1.0, height=0.2, stroke_width=0, fill_color=BLUE, fill_opacity=0.95)
-                        for _ in range(3)])
-        for i, b in enumerate(bars):
-            b.move_to([0.6, 0.4 - 0.4 * i, 0])
-        tag = VGroup(back, bars).move_to(A + np.array([0, 0.1, 0]))
-        tag_lab = T("triacylglycerol", 24, GREY).move_to(A + np.array([0, -0.9, 0]))
-
-        lipase = chip("lipase", PURPLE, size=26, pad=0.16).move_to(A + np.array([0, 1.0, 0]))
-
-        # stage badges
-        def badge(n, text, x):
-            c = Circle(radius=0.27, stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=1)
-            nn = T(str(n), 26, BG, weight=BOLD).move_to(c)
-            lab = T(text, 26, TEXT)
-            g = VGroup(VGroup(c, nn), lab).arrange(RIGHT, buff=0.18)
-            g.move_to([x, 2.85, 0])
-            return g
-        b1, b2, b3 = badge(1, "Release", -4.5), badge(2, "Activate + import", 0.7), badge(3, "Degrade", 4.5)
-
-        # blood pipe
-        pipe = VGroup(Line([-2.75, 0.4, 0], [1.9, 0.4, 0], color=GREY, stroke_width=3),
-                      Line([-2.75, -0.6, 0], [1.9, -0.6, 0], color=GREY, stroke_width=3))
-        blood = T("blood", 24, GREY).move_to([-0.4, -1.05, 0])
-
-        # mitochondrion (schematic compartments)
-        MC = np.array([4.2, -0.3, 0.0])
-        mito = RoundedRectangle(corner_radius=0.6, width=4.0, height=4.0, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.06).move_to(MC)
-        inner = RoundedRectangle(corner_radius=0.45, width=3.4, height=3.2, stroke_color=GREY, stroke_width=2,
-                                 fill_opacity=0).move_to(MC)
-        mito_lab = T("mitochondrion", 24, GREY).move_to(MC + np.array([0, 2.3, 0]))
-        matrix_lab = T("matrix", 24, GREY).move_to(MC + np.array([0, 1.25, 0]))
-
-        # pieces after hydrolysis
-        gly = chip("glycerol", GREY, size=24, pad=0.14)
-        fas = [chip("FA", BLUE, size=26, pad=0.14) for _ in range(3)]
-
-        # ---------------------------------------------------------------- stage 1
-        self.at("Before a fat can fuel anything")
-        self.play(FadeIn(adip), FadeIn(adip_lab), FadeIn(tag), FadeIn(tag_lab), run_time=1.0)
-        self.at("unpacked in three deliberate stages")
-        self.play(Indicate(tag, color=BLUE, scale_factor=1.12), run_time=1.0)
-        self.at("First,")
-        self.play(FadeIn(b1, shift=DOWN * 0.15), run_time=0.6)
-        self.at("hydrolyzed by lipase")
-        self.play(FadeIn(lipase, shift=DOWN * 0.1), run_time=0.6)
-        self.at("splitting each molecule")
-        gly.move_to(A + np.array([-0.55, 0.2, 0]))
-        for i, f in enumerate(fas):
-            f.move_to(A + np.array([0.75, 0.65 - 0.6 * i, 0]))
-        self.play(FadeOut(tag_lab), ReplacementTransform(back, gly),
-                  *[ReplacementTransform(bars[i], fas[i]) for i in range(3)], FadeOut(lipase), run_time=1.5)
-        pieces_cap = T("3 fatty acids + glycerol", 24, TEXT).move_to([-4.5, 1.95, 0])
-        self.play(FadeIn(pieces_cap), run_time=0.5)
-        self.at("which travel out into the blood")
-        self.play(FadeOut(pieces_cap), Create(pipe), FadeIn(blood), run_time=0.8)
-        tx = {0: -1.95, 1: -0.6, 2: 0.4, 3: 1.4}
-        anims = [gly.animate.move_to([tx[0], -0.1, 0])]
-        for i, f in enumerate(fas):
-            anims.append(f.animate.move_to([tx[i + 1], -0.1, 0]))
-        self.play(*anims, run_time=2.0)
-        # ---------------------------------------------------------------- stage 2
-        self.at("Second,")
-        self.play(FadeIn(b2, shift=DOWN * 0.15), FadeIn(mito), FadeIn(inner), FadeIn(mito_lab), FadeIn(matrix_lab),
-                  FadeOut(gly), FadeOut(fas[0]), FadeOut(fas[1]), FadeOut(pipe), FadeOut(blood), run_time=1.0)
-        fa = fas[2]
-        self.play(fa.animate.move_to([1.0, -0.1, 0]), run_time=0.6)
-        self.at("activated—long")
-        coa = chip("CoA", ORANGE, size=26, pad=0.14).next_to(fa, RIGHT, buff=0)
-        self.play(FadeIn(coa, shift=LEFT * 0.2), run_time=0.6)
-        grp = VGroup(fa, coa)
-        self.at("the mitochondria")
-        self.play(grp.animate.move_to(MC + np.array([0, 0.65, 0])), run_time=1.6)
-        # ---------------------------------------------------------------- stage 3
-        self.at("Third,")
-        self.play(FadeIn(b3, shift=DOWN * 0.15), run_time=0.6)
-        self.at("dismantled")
-        pairs = VGroup(*[VGroup(tile("", GREEN, 0.34, filled=True), tile("", GREEN, 0.34, filled=True)).arrange(RIGHT, buff=0.04)
-                         for _ in range(3)]).arrange(RIGHT, buff=0.45).move_to(MC + np.array([0, 0.65, 0]))
-        self.play(ReplacementTransform(grp, pairs), run_time=1.1)
-        self.at("acetyl")
-        acet_lab = T("acetyl-CoA", 24, GREEN).move_to(MC + np.array([0, 0.0, 0]))
-        self.play(FadeIn(acet_lab), run_time=0.5)
-        self.at("citric acid cycle")
-        cyc = VGroup(Circle(radius=0.3, stroke_color=GREEN, stroke_width=4),
-                     Triangle(color=GREEN, fill_opacity=1, stroke_width=0).scale(0.11).rotate(-PI / 2 - 0.4).move_to([0.3, 0.02, 0]))
-        cyc.move_to(MC + np.array([-1.05, -0.85, 0]))
-        cyc_lab = T("citric acid cycle", 22, GREEN).next_to(cyc, RIGHT, buff=0.2)
-        self.play(FadeIn(cyc), FadeIn(cyc_lab), run_time=0.6)
-        self.play(cyc.animate.rotate(-TAU), run_time=1.6, rate_func=linear)
-        # roadmap recap
-        self.at("Release,")
-        self.play(Indicate(b1[0][0], color=GOLD, scale_factor=1.4), run_time=0.8)
-        self.at("activation and import")
-        self.play(Indicate(b2[0][0], color=GOLD, scale_factor=1.4), run_time=0.8)
-        self.at("then degradation")
-        self.play(Indicate(b3[0][0], color=GOLD, scale_factor=1.4), run_time=0.8)
-        self.at("Everything that follows")
-        self.play(*[Indicate(b[0], color=GOLD, scale_factor=1.12) for b in (b1, b2, b3)], run_time=1.2)
+        bg, wheel = workshop_frame(0, wheel_center=(0.25, -0.35, 0), wheel_radius=1.15)
+        chain = chain16(y=1.0, scale=1.0)
+        droplet = Circle(radius=1.05, color=BLUE, stroke_width=4,
+                         fill_color=BLUE, fill_opacity=0.17).move_to([-5.25, 0.9, 0])
+        droplet.add(T("fat", 30, BLUE).move_to(droplet))
+        gauge = atp_gauge("?", center=(5.15, 0.15, 0), height=4.4)
+        counters = VGroup(
+            counter_box("turns", "?", PURPLE, 1.65, 1.0),
+            counter_box("pairs", "?", PINK, 1.65, 1.0),
+            counter_box("acetyl", "?", GREEN, 1.65, 1.0),
+        ).arrange(RIGHT, buff=0.18).move_to([1.25, -2.75, 0])
+        question = T("How can one fatty acid become roughly 106 ATP?", 38, TEXT)
+        fit(question, 11.7).move_to([0, 3.12, 0])
+        self.add(bg)
+        self.play(FadeIn(droplet), LaggedStart(*[FadeIn(t, shift=RIGHT * 0.08) for t in chain], lag_ratio=0.04),
+                  run_time=1.6)
+        self.at("become roughly")
+        self.play(FadeIn(question, shift=DOWN * 0.12), FadeIn(gauge), run_time=0.8)
+        self.play(Indicate(gauge[3], color=YELLOW, scale_factor=1.18), run_time=0.7)
+        self.at("Watch")
+        title = T(self.TITLE, 42, font=TITLE_FONT, color=GOLD).move_to(question)
+        self.play(ReplacementTransform(question, title), chain.animate.shift(RIGHT * 0.8), run_time=1.0)
+        self.at("chain enter")
+        self.play(chain.animate.shift(RIGHT * 0.75 + DOWN * 0.1), Rotate(wheel, -PI / 2), run_time=1.2)
+        self.at("then count")
+        self.play(FadeIn(counters, shift=UP * 0.15),
+                  LaggedStart(*[Indicate(c[0], color=c[0].get_color(), scale_factor=1.07) for c in counters], lag_ratio=0.25),
+                  run_time=1.0)
         self.finish()
 
 
-# =====================================================================================================
-class S02Shuttle(SpokenScene):
-    """Carnitine passport: a cross-section of the two mitochondrial membranes."""
-
+class S01Scope(SpokenScene):
     def construct(self):
-        X0, X1 = -3.4, 6.3
-        Y_OUT, Y_IN = 1.1, -0.9
-        G_CPT1, G_TR, G_CPT2 = -1.5, 0.9, 3.0
-        outer = band(Y_OUT, X0, X1, gap=(G_CPT1, 1.5))
-        inner = band(Y_IN, X0, X1, gap=(G_TR, 2.1))
-        lab_cyt = T("cytosol", 24, GREY).move_to([-6.2 + 0.55, 2.35, 0])
-        lab_out = T("outer\nmembrane", 22, GREY, line_spacing=0.6).move_to([-6.2 + 0.7, Y_OUT, 0])
-        lab_ims = T("intermembrane\nspace", 22, GREY, line_spacing=0.6).move_to([-6.2 + 0.95, 0.1, 0])
-        lab_inn = T("inner\nmembrane", 22, GREY, line_spacing=0.6).move_to([-6.2 + 0.7, Y_IN, 0])
-        lab_mat = T("matrix", 24, GREY).move_to([-6.2 + 0.55, -2.4, 0])
-
-        cpt1 = enz("CPT I").move_to([G_CPT1, Y_OUT, 0])
-        tr = enz("translocase", 22).move_to([G_TR, Y_IN, 0])
-        cpt2 = enz("CPT II").move_to([G_CPT2, Y_IN - 0.15, 0])
-        cpt2.shift(DOWN * (cpt2.get_top()[1] - (Y_IN - 0.15)))  # hangs on the matrix face of the inner membrane
-
-        def step_label(text):
-            return T(text, 26, TEXT).move_to([1.6, 3.15, 0])
-
-        # ---------------- the wall
-        ac = acyl_coa().move_to([-1.2, 1.5, 0])
-        inner_only = band(Y_IN, X0, X1)
-        self.at("acyl")
-        self.play(FadeIn(ac, shift=DOWN * 0.1), run_time=0.6)
-        self.at("faces a wall")
-        self.play(FadeIn(inner_only), FadeIn(lab_inn), FadeIn(lab_mat), run_time=0.8)
-        self.at("cannot cross")
-        self.play(ac.animate.move_to([-1.2, -0.45, 0]), run_time=1.4)
-        cross = VGroup(Line([-0.2, -0.2, 0], [0.2, 0.2, 0]), Line([-0.2, 0.2, 0], [0.2, -0.2, 0])).set_color(RED).set_stroke(width=7)
-        cross.move_to([-1.2 + 1.35, -0.62, 0])
-        self.play(FadeIn(cross, scale=1.5), ac.animate.shift(UP * 0.12), run_time=0.4)
-        self.play(ac.animate.shift(RIGHT * 0.12), rate_func=there_and_back, run_time=0.3)
-        # ---------------- passport
-        self.at("needs a different passport")
-        self.play(FadeOut(cross), FadeOut(ac[1]), Indicate(ac[0], color=BLUE, scale_factor=1.15), run_time=0.7)
-        pp = chip("passport", YELLOW, size=24, pad=0.14, fill_opacity=0.0).next_to(ac[0], RIGHT, buff=0.15)
-        self.at("passport")
-        self.play(FadeIn(pp, shift=LEFT * 0.15), run_time=0.6)
-        self.at("carnitine")
-        carn_intro = chip("carnitine", YELLOW, size=24, pad=0.14).move_to(pp)
-        self.play(FadeOut(pp), FadeIn(carn_intro), run_time=0.6)
-        ac = VGroup(ac[0])
-        self.wait(0.6)
-        # ---------------- step 1: activation
-        self.at("In step one")
-        st = step_label("1  ·  activate in the cytosol")
-        self.play(FadeOut(ac), FadeOut(carn_intro), FadeIn(st), FadeIn(outer), FadeIn(lab_cyt), FadeIn(lab_out), FadeIn(lab_ims),
-                  run_time=0.9)
-        fa = chip("fatty acid", BLUE, size=24, pad=0.14).move_to([-2.0, 2.2, 0])
-        coa = chip("CoA", ORANGE, size=24, pad=0.14).move_to([-0.2, 2.2, 0])
-        self.at("the fatty acid")
-        self.play(FadeIn(fa), FadeIn(coa), run_time=0.6)
-        self.at("activated")
-        atp = T("ATP → AMP + PPi", 22, RED).move_to([-1.3, 1.6, 0])
-        ac1 = acyl_coa().move_to([-1.3, 2.2, 0])
-        self.play(ReplacementTransform(fa, ac1[0]), ReplacementTransform(coa, ac1[1]), FadeIn(atp), run_time=1.1)
-        # ---------------- step 2: CPT I
-        self.at("Then carnitine")
-        st2 = step_label("2  ·  CPT I swaps CoA for carnitine")
-        carn = chip("carnitine", YELLOW, size=24, pad=0.14).move_to([2.4, 2.2, 0])
-        self.play(FadeOut(st), FadeIn(st2), FadeOut(atp), FadeIn(carn), FadeIn(cpt1), ac1.animate.move_to([G_CPT1, 2.0, 0]), run_time=1.3)
-        st = st2
-        self.at("for")
-        self.play(ac1[1].animate.move_to([-3.3, 2.75, 0]), carn.animate.move_to([G_CPT1 + 0.9, 2.0, 0]), run_time=0.7)
-        prod = acyl_carn().move_to([G_CPT1, 2.0, 0])
-        self.play(ReplacementTransform(VGroup(ac1[0], carn), prod), run_time=0.5)
-        self.at("acyl carnitine,")
-        self.play(prod.animate.move_to([G_CPT1, 0.15, 0]), run_time=1.1)
-        # ---------------- step 3: translocase
-        self.at("which the translocase")
-        st3 = step_label("3  ·  translocase carries it across")
-        self.play(FadeOut(st), FadeIn(st3), FadeIn(tr), run_time=0.6)
-        st = st3
-        self.play(prod.animate.move_to([G_TR, 0.15, 0]), run_time=0.6)
-        self.at("ferries")
-        self.play(prod.animate.move_to([G_TR, -1.85, 0]), run_time=1.5)
-        # ---------------- step 4: CPT II
-        self.at("On the matrix side")
-        st4 = step_label("4  ·  CPT II swaps back inside")
-        self.play(FadeOut(st), FadeIn(st4), FadeIn(cpt2), FadeOut(ac1[1]), prod.animate.move_to([G_CPT2, -2.75, 0]), run_time=1.2)
-        st = st4
-        self.at("reverses the swap")
-        coa2 = chip("CoA", ORANGE, size=24, pad=0.14).move_to([6.0 - 0.2, -2.75, 0])
-        self.play(FadeIn(coa2), run_time=0.4)
-        self.at("handing the acyl group back")
-        # acyl-carnitine -> acyl-CoA + carnitine: carnitine steps aside, a fresh CoA takes its place
-        carn_free = prod[1]
-        self.play(carn_free.animate.move_to([G_CPT2 - 1.6, -2.2, 0]), run_time=0.6)
-        self.play(coa2.animate.next_to(prod[0], RIGHT, buff=0), run_time=0.6)
-        new_ac = VGroup(prod[0], coa2)
-        self.at("beta oxidation can begin")
-        arrow = Arrow(new_ac.get_right() + RIGHT * 0.15, new_ac.get_right() + RIGHT * 0.8, buff=0, color=TEXT, stroke_width=5, max_tip_length_to_length_ratio=0.5)
-        boxl = T("β-oxidation", 24, TEXT).next_to(arrow, RIGHT, buff=0.12)
-        self.play(GrowArrow(arrow), FadeIn(boxl), run_time=0.8)
-        self.at("Carnitine itself is recycled")
-        self.play(carn_free.animate.move_to([G_TR, -1.85, 0]), run_time=0.7)
-        self.play(carn_free.animate.move_to([G_TR, 0.15, 0]), run_time=0.9)
-        self.play(carn_free.animate.move_to([2.4, 2.2, 0]), run_time=1.0)
-        # ---------------- checkpoint
-        self.at("This shuttle")
-        ring = SurroundingRectangle(cpt1, color=GOLD, buff=0.1, corner_radius=0.18, stroke_width=4)
-        ck = T("regulatory checkpoint", 26, GOLD).move_to([G_CPT1 + 0.2, 2.6, 0])
-        self.play(Create(ring), FadeOut(carn_free), FadeOut(st), FadeIn(ck), run_time=0.9)
-        self.at("controlling entry")
-        ent = T("controls long-chain entry", 24, GOLD).next_to(ck, DOWN, buff=0.12)
-        self.play(FadeIn(ent), run_time=0.6)
+        bg, wheel = workshop_frame(1, wheel_center=(1.15, -0.85, 0), wheel_radius=1.15)
+        chain = chain16(y=1.0)
+        gauge = atp_gauge("?", center=(5.15, 0.15, 0), height=4.4)
+        schematic = T("schematic", 28, GREY).move_to([-5.35, -3.15, 0])
+        self.add(bg, chain, gauge, schematic)
+        self.at("simplest form")
+        brace = Brace(chain, UP, color=BLUE, buff=0.15)
+        scope = T("saturated · even chain", 32, BLUE).next_to(brace, UP, buff=0.13)
+        self.play(GrowFromCenter(brace), FadeIn(scope, shift=DOWN * 0.1), run_time=0.9)
+        self.at("Fat stores")
+        dots = VGroup(*[Dot(chain[i].get_center(), radius=0.07, color=YELLOW) for i in range(0, 16, 2)])
+        self.play(LaggedStart(*[FadeIn(d, scale=1.5) for d in dots], lag_ratio=0.1), run_time=0.8)
+        self.at("electrons")
+        self.play(LaggedStart(*[d.animate.move_to(wheel.get_center()) for d in dots], lag_ratio=0.08), run_time=1.8)
+        self.play(FadeOut(dots), Indicate(gauge[0], color=GREEN, scale_factor=1.03), run_time=0.6)
+        self.at("removing two carbons")
+        pair_brace = Brace(VGroup(chain[0], chain[1]), DOWN, color=YELLOW, buff=0.12)
+        pair_lab = T("two carbons", 28, YELLOW).next_to(pair_brace, DOWN, buff=0.1)
+        self.play(GrowFromCenter(pair_brace), FadeIn(pair_lab), Rotate(wheel, -PI / 2), run_time=0.9)
+        self.play(Indicate(VGroup(chain[0], chain[1]), color=YELLOW, scale_factor=1.06), run_time=0.7)
+        self.at("First however")
+        self.play(FadeOut(brace), FadeOut(scope), FadeOut(pair_brace), FadeOut(pair_lab), FadeOut(gauge),
+                  chain.animate.shift(LEFT * 2.0), wheel.animate.shift(RIGHT * 1.2), run_time=1.3)
+        self.at("reach the machinery")
+        arrow = Arrow(chain.get_right() + RIGHT * 0.2, wheel.get_left() + LEFT * 0.15,
+                      color=YELLOW, stroke_width=6, buff=0.05)
+        self.play(GrowArrow(arrow), chain.animate.shift(RIGHT * 0.45), run_time=1.0)
         self.finish()
 
 
-# =====================================================================================================
-class S03Beta(SpokenScene):
-    """Number the carbons, find the beta carbon, then one round's outputs."""
-
+class S02Access(SpokenScene):
     def construct(self):
-        title = T("β-oxidation", 52, font=TITLE_FONT).move_to([0, 3.0, 0])
-        TY = 0.2
-        xs = [-4.5, -2.8, -1.1]
-        tl = [tile("", BLUE, 1.0, fill=0.18).move_to([x, TY, 0]) for x in xs]
-        rest = RoundedRectangle(corner_radius=0.14, width=4.6, height=0.7, stroke_color=BLUE, stroke_width=3,
-                                fill_color=BLUE, fill_opacity=0.18).move_to([2.9, TY, 0])
-        rest_lab = T("rest of the chain", 24, BLUE).move_to(rest)
-        carb_lab = T("carboxyl\ncarbon", 24, TEXT, line_spacing=0.6).move_to([xs[0], TY - 1.05, 0])
-        alpha_lab = T("α carbon", 26, TEXT).move_to([xs[1], TY - 1.05, 0])
-        beta_lab = T("β carbon", 26, GOLD).move_to([xs[2], TY - 1.05, 0])
-
-        def nlab(n, i, color):
-            return M(str(n), 32, color).move_to(tl[i])
-
-        self.at("The name beta")
-        self.play(FadeIn(title, shift=DOWN * 0.15), run_time=0.8)
-        self.at("where the chemistry happens")
-        self.play(Indicate(title[0][0], color=GOLD, scale_factor=1.5), run_time=1.0)
-        self.at("Number", lead=0.1)
-        self.play(LaggedStart(*[FadeIn(t, shift=UP * 0.1) for t in tl], FadeIn(rest), FadeIn(rest_lab), lag_ratio=0.2), run_time=0.9)
-        self.at("starting from the carboxyl")
-        self.play(tl[0][0].animate.set_stroke(TEXT).set_fill(TEXT, 0.2), FadeIn(carb_lab), run_time=0.7)
-        n1 = nlab(1, 0, TEXT)
-        self.at("as carbon 1", lead=0.0)
-        self.play(FadeIn(n1, scale=1.3), run_time=0.5)
-        self.at("Carbon 2 is the alpha")
-        n2 = nlab(2, 1, TEXT)
-        self.play(tl[1][0].animate.set_stroke(TEXT).set_fill(TEXT, 0.2), FadeIn(n2, scale=1.3), FadeIn(alpha_lab), run_time=0.8)
-        self.at("and carbon 3")
-        n3 = nlab(3, 2, GOLD)
-        self.play(tl[2][0].animate.set_stroke(GOLD).set_fill(GOLD, 0.25), FadeIn(n3, scale=1.3), FadeIn(beta_lab), run_time=0.8)
-        self.at("attack and oxidize")
-        halo = SurroundingRectangle(tl[2], color=GOLD, buff=0.14, corner_radius=0.18, stroke_width=5)
-        self.play(Create(halo), run_time=0.7)
-        self.at("converting it to a keto group", lead=0.1)
-        keto = chip("keto group", GOLD, size=26, pad=0.16).move_to([xs[2], TY + 1.4, 0])
-        stub = Line(keto.get_bottom(), tl[2].get_top() + UP * 0.14, color=GOLD, stroke_width=4)
-        self.play(FadeIn(keto, shift=DOWN * 0.15), Create(stub), tl[2][0].animate.set_fill(GOLD, 0.9), n3.animate.set_color(BG), run_time=1.0)
-        self.at("so the chain can be cleaved there", lead=0.0)
-        cut = DashedLine([xs[1] + 0.85, TY + 0.75, 0], [xs[1] + 0.85, TY - 0.75, 0], color=GOLD, stroke_width=4)
-        self.play(Create(cut), run_time=0.5)
-        left = VGroup(tl[0], tl[1], n1, n2, carb_lab, alpha_lab)
-        right = VGroup(tl[2], n3, rest, rest_lab, beta_lab, keto, stub, halo)
-        gone = T("2 carbons leave", 24, GREEN).move_to([-3.65, TY + 1.4, 0])
-        self.play(tl[0][0].animate.set_stroke(GREEN).set_fill(GREEN, 0.3), tl[1][0].animate.set_stroke(GREEN).set_fill(GREEN, 0.3),
-                  FadeIn(gone), run_time=0.5)
-        self.play(left.animate.shift(LEFT * 0.55), right.animate.shift(RIGHT * 0.55), run_time=0.8)
-        # ----------------- delta notation
-        self.at("The delta notation")
-        self.play(*[FadeOut(m) for m in [left, right, cut, gone]], FadeOut(title), run_time=0.7)
-        sub = T("delta notation: a companion convention", 28, GREY).move_to([0, 2.7, 0])
-        row = VGroup(*[tile("", BLUE, 1.0, fill=0.18) for _ in range(4)]).arrange(RIGHT, buff=0.6).move_to([-0.5, 0.5, 0])
-        rowN = VGroup(*[M(str(i + 1), 32, BLUE).move_to(row[i]) for i in range(4)])
-        restn = T("···", 40, BLUE).next_to(row, RIGHT, buff=0.3)
-        self.play(FadeIn(sub), FadeIn(row), FadeIn(rowN), FadeIn(restn), run_time=0.9)
-        self.at("Delta N marks the first carbon")
-        dn = M("Δⁿ", 44, GOLD).move_to([-3.3, 2.0, 0])
-        dn_t = T("= first carbon of a double bond", 28, TEXT).next_to(dn, RIGHT, buff=0.25)
-        self.play(FadeIn(dn), FadeIn(dn_t), run_time=0.8)
-        self.at("delta 2 means a double bond between", lead=0.3)
-        d2 = M("Δ²", 44, GOLD).move_to(dn)
-        d2_t = T("= double bond between C2 and C3", 28, TEXT).next_to(d2, RIGHT, buff=0.25)
-        x_a, x_b = row[1].get_left()[0] + 0.05, row[2].get_right()[0] - 0.05
-        yb = row.get_bottom()[1] - 0.3
-        br = VMobject(stroke_color=GOLD, stroke_width=5).set_points_as_corners(
-            [[x_a, yb + 0.2, 0], [x_a, yb, 0], [x_b, yb, 0], [x_b, yb + 0.2, 0]])
-        self.play(Transform(dn, d2), Transform(dn_t, d2_t), run_time=0.7)
-        self.play(Create(br), row[1][0].animate.set_stroke(GOLD), row[2][0].animate.set_stroke(GOLD), run_time=0.9)
-        # ----------------- one round's outputs
-        self.at("Each round of oxidation", lead=0.25)
-        self.play(*[FadeOut(m) for m in [sub, row, rowN, restn, dn, dn_t, br]], run_time=0.5)
-        inp = chip("acyl-CoA", BLUE, size=28).move_to([-5.5, 0.4, 0])
-        box = RoundedRectangle(corner_radius=0.2, width=2.2, height=1.6, stroke_color=GREY, stroke_width=3,
-                               fill_color=GREY, fill_opacity=0.1).move_to([-2.1, 0.4, 0])
-        box_t = T("one round", 28, TEXT).move_to(box)
-        a_in = Arrow(inp.get_right(), box.get_left(), buff=0.12, color=TEXT, stroke_width=5)
-        self.play(FadeIn(inp), FadeIn(box), FadeIn(box_t), GrowArrow(a_in), run_time=0.7)
-        outs_x, ys = 1.3, [1.9, 0.75, -0.4, -1.55]
-        short = chip("acyl-CoA", BLUE, size=26).move_to([outs_x, ys[0], 0])
-        short_t = T("2 carbons shorter", 24, GREY).next_to(short, RIGHT, buff=0.2)
-        acet = chip("acetyl-CoA", GREEN, size=26).move_to([outs_x, ys[1], 0])
-        nadh = chip("NADH", PINK, size=26).move_to([outs_x, ys[2], 0])
-        fadh = chip("FADH₂", PINK, size=26).move_to([outs_x, ys[3], 0])
-
-        def arr(c):
-            return Arrow(box.get_right(), c.get_left(), buff=0.12, color=c[0].get_stroke_color(), stroke_width=4)
-        self.at("generates")
-        self.play(FadeIn(short, shift=RIGHT * 0.2), GrowArrow(arr(short)), FadeIn(short_t), run_time=0.7)
-        self.at("acetyl CoA, along")
-        self.play(FadeIn(acet, shift=RIGHT * 0.2), GrowArrow(arr(acet)), run_time=0.7)
-        self.at("FADH2")
-        self.play(FadeIn(nadh, shift=RIGHT * 0.2), GrowArrow(arr(nadh)), run_time=0.6)
-        self.at("FADH2")
-        self.play(FadeIn(fadh, shift=RIGHT * 0.2), GrowArrow(arr(fadh)), run_time=0.6)
-        loop = CurvedArrow([outs_x + 0.3, ys[0] + 0.4, 0], [-5.5, 1.0, 0], angle=PI / 6, color=BLUE, stroke_width=4)
-        self.play(Create(loop), run_time=0.8)
-        self.at("the energy currency")
-        cur = T("the energy currency", 24, PINK).next_to(VGroup(nadh, fadh), RIGHT, buff=0.3)
-        br2 = Brace(VGroup(nadh, fadh), direction=RIGHT, color=PINK, buff=0.1)
-        cur.next_to(br2, RIGHT, buff=0.1)
-        self.play(GrowFromCenter(br2), FadeIn(cur), Indicate(nadh, color=PINK), Indicate(fadh, color=PINK), run_time=1.0)
+        bg, _ = workshop_frame(2, wheel_center=(5.25, -2.3, 0), wheel_radius=0.65)
+        droplet = Circle(radius=1.15, color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.18).move_to([-5.15, 1.35, 0])
+        droplet.add(T("fat droplet", 28, BLUE).move_to(droplet))
+        blood = VGroup(Line([-6.25, 0.0, 0], [0.15, 0.0, 0], color=RED, stroke_width=4),
+                       Line([-6.25, -1.1, 0], [0.15, -1.1, 0], color=RED, stroke_width=4),
+                       T("blood", 28, RED).move_to([-3.0, -1.48, 0]))
+        chain = VGroup(*[carbon_tile(None, 0.4) for _ in range(8)]).arrange(RIGHT, buff=0.07).move_to([-4.1, 1.3, 0])
+        self.add(bg, droplet, blood, T("schematic", 28, GREY).move_to([-5.25, -3.25, 0]))
+        self.at("fat droplets release")
+        self.play(LaggedStart(*[FadeIn(t, shift=RIGHT * 0.1) for t in chain], lag_ratio=0.08),
+                  droplet.animate.scale(1.04), run_time=1.2)
+        self.play(chain.animate.move_to([-3.65, -0.55, 0]), droplet.animate.scale(1 / 1.04), run_time=1.2)
+        self.at("Albumin")
+        cart_box = RoundedRectangle(corner_radius=0.25, width=4.1, height=1.0,
+                                    color=YELLOW, fill_color=YELLOW, fill_opacity=0.12, stroke_width=4).move_to(chain)
+        albumin = T("albumin", 30, YELLOW).next_to(cart_box, UP, buff=0.15)
+        wheels = VGroup(Dot(cart_box.get_corner(DL) + [0.55, -0.12, 0], 0.14, color=YELLOW),
+                        Dot(cart_box.get_corner(DR) + [-0.55, -0.12, 0], 0.14, color=YELLOW))
+        cart = VGroup(cart_box, albumin, wheels)
+        self.play(FadeIn(cart, shift=UP * 0.1), run_time=0.7)
+        self.at("energy using tissues")
+        self.play(VGroup(cart, chain).animate.shift(RIGHT * 3.0), run_time=1.5)
+        self.at("Activation")
+        coa = handle("CoA", ORANGE, 28).next_to(chain, RIGHT, buff=0.08)
+        toll = chip("ATP", RED, size=28).move_to([0.1, 1.25, 0])
+        slot = RoundedRectangle(corner_radius=0.12, width=2.4, height=1.15, color=RED,
+                                fill_color=RED, fill_opacity=0.08).move_to([1.2, 1.25, 0])
+        self.play(FadeOut(cart), FadeIn(coa, shift=LEFT * 0.15), FadeIn(slot), FadeIn(toll), run_time=0.9)
+        self.at("spends two")
+        products = VGroup(chip("AMP", RED, 28), chip("P", RED, 28), chip("P", RED, 28)).arrange(RIGHT, buff=0.1).move_to(slot)
+        cost = T("−2 ATP equivalents", 30, RED).next_to(slot, UP, buff=0.15)
+        self.play(ReplacementTransform(toll, products), FadeIn(cost), run_time=1.0)
+        self.at("Long chain cargo")
+        outer = Rectangle(width=0.28, height=5.4, color=GREY, fill_color=GREY, fill_opacity=0.35).move_to([2.7, -0.2, 0])
+        inner = Rectangle(width=0.28, height=5.4, color=GREY, fill_color=GREY, fill_opacity=0.35).move_to([4.25, -0.2, 0])
+        labs = VGroup(T("outer", 28, GREY).next_to(outer, UP, buff=0.14), T("inner", 28, GREY).next_to(inner, UP, buff=0.14))
+        self.play(FadeOut(blood), FadeOut(droplet), FadeOut(products), FadeOut(slot), FadeOut(cost),
+                  FadeIn(outer), FadeIn(inner), FadeIn(labs),
+                  VGroup(chain, coa).animate.move_to([1.65, -0.25, 0]), run_time=1.0)
+        self.at("through the carnitine")
+        carn = handle("carnitine", YELLOW, 28).move_to(coa)
+        coa_out = coa.copy().move_to([1.55, -1.6, 0])
+        self.play(ReplacementTransform(coa, carn), FadeIn(coa_out), run_time=0.65)
+        cargo = VGroup(chain, carn)
+        self.play(cargo.animate.move_to([3.45, -0.25, 0]), run_time=1.0)
+        matrix_coa = handle("CoA", ORANGE, 28).move_to([5.55, -0.25, 0])
+        self.play(FadeIn(matrix_coa), run_time=0.35)
+        self.play(carn.animate.move_to([3.5, -1.55, 0]), matrix_coa.animate.next_to(chain, RIGHT, buff=0.08), run_time=0.55)
+        self.play(carn.animate.move_to([2.0, -1.55, 0]), chain.animate.shift(RIGHT * 1.15), matrix_coa.animate.shift(RIGHT * 1.15), run_time=0.9)
         self.finish()
 
 
-# =====================================================================================================
-class S04Ledger(SpokenScene):
-    """Palmitate's ATP ledger as a bar: -2, +28, +80 -> 106; then per-carbon vs glucose."""
-
+class S03Handle(SpokenScene):
     def construct(self):
-        # --------------------------- strip of 16 carbons
-        PITCH = 0.5
-        x_first = -5.75
-        tiles = VGroup(*[tile("", BLUE, 0.42, fill=0.25, stroke=2).move_to([x_first + PITCH * i, 2.9, 0]) for i in range(16)])
-        head = T("palmitate, 16 carbons", 26, BLUE).move_to([4.2, 2.9, 0])
+        bg, wheel = workshop_frame(3, wheel_center=(2.85, 2.25, 0), wheel_radius=0.65)
+        chain = chain_row(10, y=0.15, width=9.5)
+        chain.shift(RIGHT * 0.7)
+        coa = handle("CoA", ORANGE, 30).next_to(chain, LEFT, buff=0.1)
+        conveyor = Line([-5.8, -0.65, 0], [5.8, -0.65, 0], color=GREY, stroke_width=7)
+        schematic = T("schematic blocks", 28, GREY).move_to([-4.75, -3.2, 0])
+        self.add(bg, conveyor, chain, coa, schematic)
+        self.at("count from")
+        cursor = Triangle(color=YELLOW, fill_color=YELLOW, fill_opacity=1).scale(0.16).next_to(chain[0], DOWN, buff=0.05)
+        self.play(FadeIn(cursor), run_time=0.35)
+        self.play(cursor.animate.next_to(chain[1], DOWN, buff=0.05), run_time=0.45)
+        self.play(cursor.animate.next_to(chain[2], DOWN, buff=0.05), run_time=0.45)
+        self.at("Carbon 2")
+        alpha = chip("α", TEXT, 32).next_to(chain[1], UP, buff=0.15)
+        self.play(FadeIn(alpha, shift=DOWN * 0.1), cursor.animate.next_to(chain[1], DOWN, buff=0.05), run_time=0.65)
+        self.at("carbon 3")
+        beta = chip("β", GOLD, 32).next_to(chain[2], UP, buff=0.15)
+        self.play(FadeIn(beta, shift=DOWN * 0.1), cursor.animate.next_to(chain[2], DOWN, buff=0.05), run_time=0.65)
+        self.at("plain chain")
+        jaws = VGroup(
+            Line([0, 0, 0], [0.7, 0.45, 0], color=PURPLE, stroke_width=10),
+            Line([0, 0, 0], [0.7, -0.45, 0], color=PURPLE, stroke_width=10),
+        ).move_to(chain[2].get_center() + UP * 1.65)
+        self.play(FadeOut(alpha), FadeOut(cursor), FadeIn(jaws, shift=DOWN * 0.2), run_time=0.6)
+        self.at("no cutting handle")
+        self.play(jaws.animate.shift(DOWN * 0.85), run_time=0.55)
+        self.play(jaws.animate.shift(UP * 0.35 + RIGHT * 0.35).rotate(0.22), rate_func=there_and_back, run_time=0.65)
+        self.at("Three moves")
+        stations = VGroup(*[
+            Circle(radius=0.55, color=PURPLE, stroke_width=4, fill_color=PURPLE, fill_opacity=0.1)
+            for _ in range(3)
+        ])
+        for i, s in enumerate(stations):
+            a = PI / 2 + i * TAU / 3
+            s.move_to(chain[2].get_center() + 1.65 * np.array([np.cos(a), np.sin(a), 0]))
+            s.add(M(str(i + 1), 32, PURPLE).move_to(s))
+        self.play(FadeOut(jaws), LaggedStart(*[FadeIn(s, scale=0.7) for s in stations], lag_ratio=0.2), run_time=1.0)
+        self.at("rebuild the beta")
+        self.play(Rotate(stations, -TAU / 3, about_point=chain[2].get_center()), beta.animate.set_color(YELLOW), run_time=1.2)
+        self.at("bond beside it")
+        mark = DashedLine(chain[1].get_right() + UP * 0.5, chain[1].get_right() + DOWN * 0.5, color=GOLD, stroke_width=5)
+        self.play(Create(mark), Rotate(wheel, -PI / 2), run_time=0.8)
+        self.finish()
 
-        # --------------------------- ledger geometry
-        X0 = -6.0
-        S = 0.1   # units per ATP: -10 .. 110 -> 12 wide
-        xv = lambda v: X0 + (v + 10) * S
-        BY = -0.75
-        axis = Line([xv(-10), BY - 0.45, 0], [xv(110), BY - 0.45, 0], color=GREY, stroke_width=2)
-        ticks = VGroup(*[Line([xv(v), BY - 0.45, 0], [xv(v), BY - 0.55, 0], color=GREY, stroke_width=2) for v in (0, 50, 100)])
-        tick_l = VGroup(*[M(str(v), 22, GREY).move_to([xv(v), BY - 0.82, 0]) for v in (0, 50, 100)])
-        axis_t = T("ATP", 22, GREY).move_to([xv(110) - 0.2, BY - 0.82, 0])
-        scaffold = VGroup(axis, ticks, tick_l, axis_t)
 
-        a = ValueTracker(0)   # activation 0..1 -> -2
-        p = ValueTracker(0)   # beta-oxidation carriers 0..1 -> +28 (7 FADH2 x1.5 + 7 NADH x2.5)
-        g = ValueTracker(0)   # acetyl-CoA via citric acid cycle + oxphos 0..1 -> +80
+class S04Prepare(SpokenScene):
+    def construct(self):
+        bg, wheel = workshop_frame(4, wheel_center=(0, 0.05, 0), wheel_radius=2.15)
+        chain = chain_row(8, y=0.05, width=8.0)
+        coa = handle("CoA", ORANGE, 28).next_to(chain, LEFT, buff=0.12)
+        beta = chip("β", GOLD, 28).next_to(chain[2], UP, buff=0.12)
+        station_labs = VGroup(
+            chip("1", PURPLE, 32).move_to([-2.25, 2.65, 0]),
+            chip("2", PURPLE, 32).move_to([2.25, 2.65, 0]),
+            chip("3", PURPLE, 32).move_to([0, -2.65, 0]),
+        )
+        self.add(bg, chain, coa, beta, station_labs, T("schematic", 28, GREY).move_to([-5.25, -3.25, 0]))
+        self.at("First oxidation")
+        db = chip("double bond", YELLOW, 28).move_to(station_labs[0])
+        self.play(ReplacementTransform(station_labs[0], db), Rotate(wheel, -TAU / 3), run_time=0.9)
+        self.at("reduces FAD")
+        fad = chip("FAD", PINK, 28).move_to([4.7, 2.25, 0])
+        fadh = chip("FADH₂", PINK, 28).move_to([4.7, 2.25, 0])
+        self.play(FadeIn(fad), run_time=0.35)
+        self.play(ReplacementTransform(fad, fadh), fadh.animate.shift(DOWN * 0.55), run_time=0.7)
+        self.at("Hydration")
+        drop = VGroup(Circle(radius=0.18, color=BLUE, fill_color=BLUE, fill_opacity=0.75),
+                      Triangle(color=BLUE, fill_color=BLUE, fill_opacity=0.75, stroke_width=0).scale(0.18).rotate(PI).shift(UP * 0.22))
+        water = VGroup(drop, T("water", 28, BLUE)).arrange(DOWN, buff=0.12).move_to(station_labs[1])
+        self.play(FadeOut(fadh), ReplacementTransform(station_labs[1], water), Rotate(wheel, -TAU / 3), run_time=0.8)
+        self.at("placing an OH")
+        oh = chip("OH", BLUE, 28).next_to(chain[2], DOWN, buff=0.15)
+        self.play(water[0].animate.move_to(chain[2]), FadeOut(water[1]), FadeIn(oh), FadeOut(db), run_time=0.8)
+        self.at("Second oxidation")
+        ketone = chip("ketone handle", GOLD, 28).move_to(station_labs[2])
+        self.play(ReplacementTransform(VGroup(oh, station_labs[2]), ketone), FadeOut(water[0]), Rotate(wheel, -TAU / 3), run_time=0.9)
+        self.at("reduces NAD")
+        nad = chip("NAD⁺", PINK, 28).move_to([4.7, 0.45, 0])
+        nadh = chip("NADH", PINK, 28).move_to([4.7, 0.45, 0])
+        self.play(FadeIn(nad), run_time=0.35)
+        self.play(ReplacementTransform(nad, nadh), nadh.animate.shift(DOWN * 0.55), run_time=0.65)
+        self.at("thiolase can cut")
+        jaws = VGroup(Line([0, 0, 0], [0.75, 0.5, 0], color=PURPLE, stroke_width=11),
+                       Line([0, 0, 0], [0.75, -0.5, 0], color=PURPLE, stroke_width=11)).move_to(chain[1].get_right() + UP * 0.95)
+        self.play(FadeOut(nadh), FadeIn(jaws), ketone.animate.move_to(chain[2].get_center() + DOWN * 0.85), run_time=0.7)
+        self.play(jaws.animate.shift(DOWN * 0.55).scale(0.82), run_time=0.65)
+        self.finish()
 
-        def total():
-            return -2 * a.get_value() + 28 * p.get_value() + 80 * g.get_value()
 
-        def seg(v0, v1, color):
-            lo, hi = min(v0, v1), max(v0, v1)
-            if hi - lo < 1e-3:
-                return VMobject()
-            return Rectangle(width=(hi - lo) * S, height=0.5, stroke_width=0, fill_color=color, fill_opacity=0.95
-                             ).move_to([xv((lo + hi) / 2), BY, 0])
+class S05Rule(SpokenScene):
+    def construct(self):
+        bg, wheel = workshop_frame(5, wheel_center=(0.6, 0.0, 0), wheel_radius=1.75)
+        chain = chain_row(16, y=0.1, width=10.2)
+        old_coa = handle("CoA", ORANGE, 28).next_to(chain, LEFT, buff=0.08)
+        fresh = handle("fresh CoA", ORANGE, 28).move_to([0.7, 2.7, 0])
+        cut = DashedLine(chain[1].get_right() + UP * 0.55, chain[1].get_right() + DOWN * 0.55, color=GOLD, stroke_width=5)
+        self.add(bg, chain, old_coa, cut)
+        self.at("fresh coenzyme")
+        arm = Arrow([3.0, 2.7, 0], fresh.get_right(), color=PURPLE, stroke_width=6, buff=0.1)
+        self.play(FadeIn(fresh, shift=LEFT * 0.15), GrowArrow(arm), run_time=0.8)
+        self.at("releases one")
+        cart = acetyl_cart(True, 1.0).move_to([-3.8, -1.55, 0])
+        shortened = VGroup(*[chain[i] for i in range(2, 16)])
+        self.play(ReplacementTransform(VGroup(chain[0], chain[1], old_coa), cart),
+                  fresh.animate.next_to(shortened, LEFT, buff=0.08), FadeOut(cut), FadeOut(arm), run_time=1.2)
+        self.at("remaining chain")
+        fourteen = T("14 carbons remain", 30, BLUE).move_to([-4.55, 2.45, 0])
+        self.play(FadeIn(fourteen), cart.animate.shift(RIGHT * 7.6), run_time=1.25)
+        self.at("returns to the first")
+        loop = CurvedArrow(shortened.get_right() + UP * 0.15, shortened.get_left() + UP * 0.15,
+                           angle=PI / 2, color=YELLOW, stroke_width=5)
+        turn = counter_box("turns", "1", PURPLE, 2.2, 1.2).move_to([-4.8, 2.6, 0])
+        self.play(FadeOut(fourteen), Create(loop), Rotate(wheel, -TAU), FadeIn(turn), run_time=1.2)
+        self.at("converts chain length")
+        self.play(FadeOut(loop), FadeOut(shortened), FadeOut(fresh), FadeOut(cart), run_time=0.6)
+        columns = VGroup(
+            counter_box("turns", "1", PURPLE, 2.6, 2.5),
+            counter_box("carrier pairs", "1", PINK, 3.2, 2.5),
+            counter_box("acetyl-CoA", "1", GREEN, 3.2, 2.5),
+        ).arrange(RIGHT, buff=0.35).move_to([0.6, -0.1, 0])
+        self.play(ReplacementTransform(turn, columns[0]), FadeOut(wheel), run_time=0.75)
+        self.at("carrier pairs")
+        self.play(FadeIn(columns[1], shift=UP * 0.15), run_time=0.65)
+        self.at("and acetyl coenzyme")
+        self.play(FadeIn(columns[2], shift=UP * 0.15), run_time=0.65)
+        self.play(LaggedStart(*[Indicate(c, color=c[0].get_color(), scale_factor=1.03) for c in columns], lag_ratio=0.2), run_time=1.0)
+        self.finish()
 
-        red_seg = always_redraw(lambda: seg(0, -2 * a.get_value(), RED))
-        pink_seg = always_redraw(lambda: seg(-2, -2 + 28 * p.get_value(), PINK))
-        green_seg = always_redraw(lambda: seg(26, 26 + 80 * g.get_value(), GREEN))
-        track = Rectangle(width=120 * S, height=0.5, stroke_color=GREY, stroke_width=1.5, fill_opacity=0).move_to([xv(50), BY, 0])
-        zero = Line([xv(0), BY + 0.4, 0], [xv(0), BY - 0.4, 0], color=TEXT, stroke_width=2)
 
-        tot_lab = T("running total", 24, GREY).move_to([-4.6, 0.55, 0])
-        tot = always_redraw(lambda: M(f"{num(round(total()))} ATP", 40, TEXT).next_to(tot_lab, RIGHT, buff=0.3))
-        cap_red = T("activation  −2", 24, RED).move_to([xv(-2) + 1.0, BY + 0.55, 0])
-        cap_pink = T("7 FADH₂ + 7 NADH  +28", 24, PINK).move_to([xv(12), BY - 1.7, 0])
-        cap_green = T("8 acetyl-CoA: cycle + oxphos  +80", 24, GREEN).move_to([xv(66) + 0.6, BY - 1.7, 0])
+class S06Predict(SpokenScene):
+    def construct(self):
+        bg, _ = workshop_frame(6, wheel_center=(0, 0.25, 0), wheel_radius=0.45)
+        layout, chain, c1, c2, question, bracket, _ = prediction_layout()
+        toll = T("activation toll  −2", 28, RED).move_to([4.85, 3.1, 0])
+        self.add(bg)
+        self.at("Predict")
+        self.play(FadeIn(layout[0]), LaggedStart(*[FadeIn(t, shift=UP * 0.1) for t in chain], lag_ratio=0.035), run_time=1.0)
+        self.at("16 carbon chain")
+        self.play(FadeIn(bracket), sweep_bracket_animation(bracket, chain), run_time=2.0, rate_func=linear)
+        self.at("after how many turns")
+        self.play(FadeIn(c1, shift=UP * 0.12), FadeIn(c2, shift=UP * 0.12), run_time=0.75)
+        self.at("Place your answer")
+        self.play(FadeIn(question), FadeIn(toll), run_time=0.65)
+        bracket.become(Brace(VGroup(chain[0], chain[1]), DOWN, color=YELLOW, buff=0.08))
+        sweep_bracket(self, bracket, chain, 1.5)
+        self.finish()
 
-        # --------------------------- tallies
-        cnt = {k: ValueTracker(0) for k in ("f", "n", "a")}
-        fch = chip("FADH₂", PINK, size=26).move_to([-4.6, 1.5, 0])
-        nch = chip("NADH", PINK, size=26).move_to([-1.2, 1.5, 0])
-        ach = chip("acetyl-CoA", GREEN, size=26).move_to([2.2, 1.5, 0])
-        fv = always_redraw(lambda: M(f"× {int(round(cnt['f'].get_value()))}", 30, PINK).next_to(fch, RIGHT, buff=0.2))
-        nv = always_redraw(lambda: M(f"× {int(round(cnt['n'].get_value()))}", 30, PINK).next_to(nch, RIGHT, buff=0.2))
-        av = always_redraw(lambda: M(f"× {int(round(cnt['a'].get_value()))}", 30, GREEN).next_to(ach, RIGHT, buff=0.2))
 
-        # --------------------------- narration
-        self.at("Let's tally")
-        self.add(red_seg, pink_seg, green_seg)
-        self.play(FadeIn(scaffold), Create(track), FadeIn(zero), run_time=0.9)
-        self.at("palmitate,")
-        self.play(FadeIn(head), run_time=0.6)
-        self.at("16 carbon", lead=0.0)
-        self.play(LaggedStart(*[FadeIn(t, scale=0.6) for t in tiles], lag_ratio=0.08), run_time=1.6)
-        self.at("Activation costs")
-        self.play(FadeIn(tot_lab), run_time=0.4)
-        self.add(tot)
-        self.play(FadeIn(cap_red), a.animate.set_value(1), run_time=1.3)
-        self.at("minus 2")
-        self.play(Indicate(tot, color=RED, scale_factor=1.15), run_time=0.8)
+def sweep_bracket_animation(bracket, chain):
+    target = Brace(VGroup(chain[-2], chain[-1]), DOWN, color=YELLOW, buff=0.08)
+    return Transform(bracket, target)
 
-        # seven rounds peel two carbons off the carboxyl end each
-        pairs = [VGroup(tiles[2 * i], tiles[2 * i + 1]) for i in range(8)]
-        self.at("Seven rounds")
-        self.play(FadeIn(fch), FadeIn(nch), FadeIn(ach), FadeIn(fv), FadeIn(nv), FadeIn(av), run_time=0.6)
 
-        def peel(i, dur):
-            anims = [pairs[i].animate.shift(DOWN * 0.55).set_stroke(GREEN).set_fill(GREEN, 0.9)]
-            anims += [cnt["a"].animate.set_value(i + 1)]
-            self.play(*anims, run_time=dur)
+class S07Think(Scene):
+    def construct(self):
+        config.background_color = BG
+        bg, _ = workshop_frame(7, wheel_center=(0, 0.25, 0), wheel_radius=0.45)
+        layout, chain, _, _, _, bracket, timer = prediction_layout(with_timer=True)
+        toll = T("activation toll  −2", 28, RED).move_to([4.85, 3.1, 0])
+        self.add(bg, layout, toll)
+        self.play(Rotate(timer, -TAU), sweep_bracket_animation(bracket, chain), run_time=2.2, rate_func=linear)
+        bracket.become(Brace(VGroup(chain[0], chain[1]), DOWN, color=YELLOW, buff=0.08))
+        self.play(Rotate(timer, -TAU), sweep_bracket_animation(bracket, chain), run_time=2.3, rate_func=linear)
 
-        self.at("of beta oxidation", lead=0.0)
-        peel(0, 0.7)
-        self.at("yield", lead=0.0)
-        self.play(cnt["f"].animate.set_value(1), Indicate(fch, color=PINK), run_time=0.6)
-        self.at("and", lead=0.0)
-        self.play(cnt["n"].animate.set_value(1), Indicate(nch, color=PINK), run_time=0.6)
-        self.at("those seven rounds", lead=1.2)
-        for i in range(1, 6):
-            self.play(pairs[i].animate.shift(DOWN * 0.55).set_stroke(GREEN).set_fill(GREEN, 0.9),
-                      cnt["a"].animate.set_value(i + 1), cnt["f"].animate.set_value(i + 1), cnt["n"].animate.set_value(i + 1),
-                      run_time=0.4)
-        # round 7 splits the last four carbons into TWO acetyl-CoA: 7 rounds, 8 acetyl-CoA
-        self.at("produce eight")
-        self.play(VGroup(pairs[6], pairs[7]).animate.shift(DOWN * 0.55).set_stroke(GREEN).set_fill(GREEN, 0.9),
-                  cnt["a"].animate.set_value(8), cnt["f"].animate.set_value(7), cnt["n"].animate.set_value(7),
-                  Indicate(ach, color=GREEN), run_time=0.8)
-        # citric acid cycle -> oxphos
-        self.at("Feed all eight")
-        cyc = chip("citric acid cycle", GREEN, size=26).move_to([4.3, 0.35, 0])
-        self.play(FadeIn(cyc, shift=DOWN * 0.15), run_time=0.7)
-        self.at("run the reduced carriers")
-        ox = chip("oxidative phosphorylation", PINK, size=24).move_to([3.7, 0.35, 0])
-        self.play(Transform(cyc, ox), FadeIn(cap_pink), p.animate.set_value(1), run_time=1.0)
-        self.at("oxidative phosphorylation")
-        self.play(FadeIn(cap_green), g.animate.set_value(1), run_time=2.0)
-        self.at("books close")
-        self.play(Indicate(tot, color=GOLD, scale_factor=1.15), run_time=1.0)
+
+class S08Reveal(SpokenScene):
+    def construct(self):
+        bg, wheel = workshop_frame(8, wheel_center=(0, 0.25, 0), wheel_radius=0.45)
+        layout, chain, c1, c2, question, bracket, _ = prediction_layout()
+        self.add(bg, layout)
+        self.at("Eight acetyl")
+        groups = VGroup(*[
+            SurroundingRectangle(VGroup(chain[2 * i], chain[2 * i + 1]), color=GREEN,
+                                 buff=0.055, corner_radius=0.08, stroke_width=4)
+            for i in range(8)
+        ])
+        self.play(FadeOut(bracket), LaggedStart(*[Create(g) for g in groups], lag_ratio=0.08),
+                  Transform(c2[2], M("8", 40, GREEN, weight=BOLD).move_to(c2[2])), run_time=1.2)
+        self.at("only seven")
+        cuts = VGroup(*[
+            Line(chain[2 * i + 1].get_right() + UP * 0.42, chain[2 * i + 1].get_right() + DOWN * 0.42,
+                 color=YELLOW, stroke_width=4)
+            for i in range(7)
+        ])
+        self.play(LaggedStart(*[Create(x) for x in cuts], lag_ratio=0.1),
+                  Transform(c1[2], M("7", 40, PURPLE, weight=BOLD).move_to(c1[2])), run_time=1.2)
+        self.at("Seven cuts")
+        equation = M("7 cuts  →  8 pieces", 34, TEXT).move_to(question)
+        self.play(ReplacementTransform(question, equation), LaggedStart(*[Indicate(g, color=GREEN, scale_factor=1.06) for g in groups], lag_ratio=0.08), run_time=1.2)
+        self.at("last turn")
+        final4 = VGroup(chain[-4], chain[-3], chain[-2], chain[-1])
+        self.play(FadeOut(groups), FadeOut(cuts), FadeOut(equation), final4.animate.scale(1.35).move_to([0, 0.0, 0]),
+                  FadeOut(VGroup(*chain[:-4])), run_time=0.9)
+        two_carts = VGroup(acetyl_cart(False, 0.9), acetyl_cart(False, 0.9)).arrange(RIGHT, buff=0.65).move_to([0, 1.35, 0])
+        self.play(Rotate(wheel, -TAU), ReplacementTransform(final4, two_carts), run_time=1.0)
+        self.at("Therefore")
+        self.play(FadeOut(two_carts), c1.animate.shift(LEFT * 1.35), c2.animate.shift(LEFT * 1.35), run_time=0.55)
+        fcol = counter_box("FADH₂", "7", PINK, 2.4, 1.55).move_to([4.15, 0.55, 0])
+        ncol = counter_box("NADH", "7", PINK, 2.4, 1.55).move_to([4.15, -1.45, 0])
+        tokens_f = VGroup(*[Dot(wheel.get_center(), radius=0.09, color=PINK) for _ in range(7)])
+        self.play(FadeIn(fcol), FadeIn(tokens_f), run_time=0.45)
+        self.at("seven NADH")
+        tokens_n = VGroup(*[Dot(wheel.get_center(), radius=0.09, color=PINK) for _ in range(7)])
+        self.play(LaggedStart(*[d.animate.move_to(fcol.get_left() + LEFT * 0.15) for d in tokens_f], lag_ratio=0.08),
+                  FadeIn(ncol), FadeIn(tokens_n), run_time=0.8)
+        self.play(LaggedStart(*[d.animate.move_to(ncol.get_left() + LEFT * 0.15) for d in tokens_n], lag_ratio=0.08), run_time=0.7)
+        self.finish()
+
+
+class S09Total(SpokenScene):
+    def construct(self):
+        bg, _ = workshop_frame(9, wheel_center=(-4.7, -2.65, 0), wheel_radius=0.5)
+        gauge = atp_gauge("0", center=(4.85, 0.15, 0), height=5.25)
+        toll = chip("−2", RED, 30).move_to([4.85, -2.95, 0])
+        pair_tokens = VGroup(*[VGroup(Dot(radius=0.11, color=PINK), Dot(radius=0.11, color=PINK)).arrange(RIGHT, buff=0.08) for _ in range(7)])
+        pair_tokens.arrange_in_grid(rows=2, cols=4, buff=(0.35, 0.3)).move_to([-4.8, 1.75, 0])
+        turbine = VGroup(Circle(radius=0.72, color=PINK, stroke_width=5),
+                         VGroup(*[Line(ORIGIN, RIGHT * 0.55, color=PINK, stroke_width=5).rotate(i * TAU / 4) for i in range(4)]))
+        turbine.move_to([-1.35, 1.65, 0])
+        t_lab = T("oxidative\nphosphorylation", 28, PINK, line_spacing=0.75).next_to(turbine, DOWN, buff=0.15)
+        self.add(bg, gauge, toll, pair_tokens)
+        self.at("Each carrier pair")
+        self.play(FadeIn(turbine), FadeIn(t_lab), run_time=0.65)
+        self.at("about 4 ATP")
+        four = M("× 4 ATP", 32, PINK).next_to(pair_tokens, DOWN, buff=0.2)
+        self.play(FadeIn(four), Rotate(turbine[1], -TAU), run_time=0.9)
+        self.at("Each acetyl")
+        carts = VGroup(*[acetyl_cart(False, 0.58) for _ in range(8)]).arrange_in_grid(rows=2, cols=4, buff=(0.22, 0.28)).move_to([-4.75, -1.25, 0])
+        cycle = VGroup(Circle(radius=0.82, color=GREEN, stroke_width=5),
+                       Triangle(color=GREEN, fill_color=GREEN, fill_opacity=1, stroke_width=0).scale(0.12).rotate(-PI / 2).move_to([0.82, 0, 0]))
+        cycle.move_to([-1.2, -1.25, 0])
+        c_lab = T("citric acid cycle +\noxidative phosphorylation", 28, GREEN, line_spacing=0.75).next_to(cycle, DOWN, buff=0.14)
+        self.play(FadeIn(carts), FadeIn(cycle), FadeIn(c_lab), run_time=0.75)
+        self.at("about 10")
+        ten = M("× 10 ATP", 32, GREEN).next_to(carts, DOWN, buff=0.15)
+        self.play(FadeIn(ten), Rotate(cycle, -TAU), run_time=1.0)
+        self.at("Seven pairs give")
+        fill28 = Rectangle(width=gauge[1].width, height=1.2, stroke_width=0, fill_color=PINK, fill_opacity=0.72)
+        fill28.move_to(gauge[0].get_bottom() + UP * (0.27 + 0.6))
+        read28 = M("28", 42, PINK, weight=BOLD).move_to(gauge[3])
+        self.play(LaggedStart(*[p.animate.move_to(turbine.get_center()) for p in pair_tokens], lag_ratio=0.06),
+                  Rotate(turbine[1], -TAU), run_time=1.0)
+        self.play(Transform(gauge[1], fill28), Transform(gauge[3], read28), FadeOut(pair_tokens), run_time=0.55)
+        self.at("eight acetyl")
+        fill108 = Rectangle(width=gauge[1].width, height=4.25, stroke_width=0, fill_color=GREEN, fill_opacity=0.72)
+        fill108.move_to(gauge[0].get_bottom() + UP * (0.27 + 2.125))
+        read108 = M("108", 42, GREEN, weight=BOLD).move_to(gauge[3])
+        self.play(LaggedStart(*[c.animate.move_to(cycle.get_center()) for c in carts], lag_ratio=0.05), Rotate(cycle, -TAU), run_time=1.0)
+        self.play(Transform(gauge[1], fill108), Transform(gauge[3], read108), FadeOut(carts), run_time=0.55)
+        self.at("Subtract")
+        self.play(toll.animate.move_to(gauge[3].get_center() + DOWN * 0.8), run_time=0.65)
         self.at("roughly 106")
-        box = SurroundingRectangle(VGroup(tot_lab, tot), color=GOLD, buff=0.18, corner_radius=0.16, stroke_width=4)
-        self.play(Create(box), tot.animate.set_color(GOLD), run_time=0.8)
-        self.wait(0.6)
-
-        # --------------------------- comparison with glucose
-        self.at("Compare that to glucose", lead=0.4)
-        for m in (red_seg, pink_seg, green_seg, tot, fv, nv, av):
-            m.clear_updaters()
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.8)
-
-        BX0, BY1, BY2 = -5.8, 0.75, -0.65
-        head2 = T("ATP per molecule", 32, TEXT).move_to([0, 2.7, 0])
-        scale_m = 0.085
-        pal_bar = Rectangle(width=106 * scale_m, height=0.7, stroke_width=0, fill_color=BLUE, fill_opacity=0.95
-                            ).move_to([BX0 + 106 * scale_m / 2, BY1, 0])
-        glc_bar = Rectangle(width=32 * scale_m, height=0.7, stroke_width=0, fill_color=TEXT, fill_opacity=0.95
-                            ).move_to([BX0 + 32 * scale_m / 2, BY2, 0])
-        pal_name = T("palmitate (16 carbons)", 26, BLUE).move_to([BX0, BY1 + 0.7, 0]).align_to(BX0 * RIGHT, LEFT)
-        glc_name = T("glucose (6 carbons)", 26, GREY).move_to([BX0, BY2 + 0.7, 0]).align_to(BX0 * RIGHT, LEFT)
-        pal_val = M("106 ATP", 30, BLUE).next_to(pal_bar, RIGHT, buff=0.2)
-        glc_val = M("32 ATP", 30, TEXT).next_to(glc_bar, RIGHT, buff=0.2)
-        self.play(FadeIn(head2), FadeIn(pal_name), FadeIn(glc_name), FadeIn(pal_bar), FadeIn(pal_val), run_time=0.8)
-        self.at("which nets around")
-        self.play(GrowFromEdge(glc_bar, LEFT), run_time=1.0)
-        self.play(FadeIn(glc_val), run_time=0.4)
-        self.at("Per carbon")
-        head3 = T("ATP per carbon", 32, TEXT).move_to([0, 2.7, 0])
-        sc = 1.25
-        pal2 = Rectangle(width=6.625 * sc, height=0.7, stroke_width=0, fill_color=BLUE, fill_opacity=0.95
-                         ).move_to([BX0 + 6.625 * sc / 2, BY1, 0])
-        glc2 = Rectangle(width=5.33 * sc, height=0.7, stroke_width=0, fill_color=TEXT, fill_opacity=0.95
-                         ).move_to([BX0 + 5.33 * sc / 2, BY2, 0])
-        pal_val2 = M("106 ÷ 16 = 6.6", 28, BLUE).next_to(pal2, RIGHT, buff=0.2)
-        glc_val2 = M("32 ÷ 6 = 5.3", 28, TEXT).next_to(glc2, RIGHT, buff=0.2)
-        self.play(Transform(head2, head3), Transform(pal_bar, pal2), Transform(glc_bar, glc2),
-                  Transform(pal_val, pal_val2), Transform(glc_val, glc_val2), run_time=1.6)
-        self.at("about 25")
-        xa, xb = glc2.get_right()[0], pal2.get_right()[0]
-        guide = DashedLine([xa, BY2 + 0.4, 0], [xa, BY1 + 0.55, 0], color=GOLD, stroke_width=3)
-        dbl = DoubleArrow([xa, BY1 + 0.55, 0], [xb, BY1 + 0.55, 0], buff=0, color=GOLD, stroke_width=4, tip_length=0.18)
-        more = T("about 25% more", 28, GOLD).next_to(dbl, UP, buff=0.12)
-        # move palmitate name away from arrow (name sits above bar-left, arrow above bar-right)
-        self.play(Create(guide), GrowFromCenter(dbl), FadeIn(more), run_time=1.0)
-        self.at("That density")
-        self.play(Indicate(VGroup(pal_bar, pal_val), color=BLUE, scale_factor=1.02), run_time=1.0)
-        self.at("stores long")
-        store = T("long-term energy store: fat", 30, BLUE).move_to([0, -2.2, 0])
-        self.play(FadeIn(store), run_time=0.6)
-        self.at("rather than carbohydrate")
-        self.play(glc_bar.animate.set_opacity(0.3), glc_val.animate.set_opacity(0.3), glc_name.animate.set_opacity(0.4), run_time=0.8)
+        final_read = VGroup(M("≈ 106", 45, GOLD, weight=BOLD), T("ATP", 30, GOLD)).arrange(DOWN, buff=0.08).move_to(gauge[3])
+        final_fill = fill108.copy().set_color(GOLD).stretch_to_fit_height(4.12).align_to(gauge[0].get_bottom() + UP * 0.27, DOWN)
+        self.play(Transform(gauge[1], final_fill), ReplacementTransform(VGroup(gauge[3], toll), final_read),
+                  Indicate(gauge[0], color=GOLD, scale_factor=1.02), run_time=1.0)
         self.finish()
 
 
-# =====================================================================================================
-class S05End(EndCard):
-    LINE = "Palmitate nets about 106 ATP after the activation cost."
+class S10ScopeReturn(SpokenScene):
+    def construct(self):
+        bg, wheel = workshop_frame(10, wheel_center=(-3.8, -0.35, 0), wheel_radius=1.15)
+        ribbon = chip("saturated · even · complete oxidation", BLUE, 30).move_to([0, 2.95, 0])
+        gauge = atp_gauge("≈106", center=(5.4, 0.25, 0), color=GOLD, height=4.7)
+        ledger = VGroup(counter_box("turns", "7", PURPLE, 2.1, 1.25),
+                        counter_box("acetyl-CoA", "8", GREEN, 2.7, 1.25)).arrange(DOWN, buff=0.3).move_to([0.65, 0.25, 0])
+        self.add(bg, ribbon, gauge, ledger)
+        self.at("saturated")
+        self.play(Indicate(ribbon, color=BLUE, scale_factor=1.04), run_time=0.8)
+        self.at("burned completely")
+        co2 = T("complete oxidation → CO₂", 30, TEXT).move_to([0.65, -2.1, 0])
+        self.play(FadeIn(co2, shift=UP * 0.1), Rotate(wheel, -PI), run_time=0.9)
+        self.at("Double bonds")
+        side1_blocks = VGroup(*[carbon_tile(None, 0.35) for _ in range(5)]).arrange(RIGHT, buff=0.04).set_opacity(0.55)
+        side1 = VGroup(side1_blocks, T("double bonds  ?", 28, GREY)).arrange(DOWN, buff=0.14).move_to([-4.7, 2.15, 0])
+        self.play(FadeIn(side1, shift=RIGHT * 0.12), run_time=0.65)
+        self.at("odd chains")
+        side2_blocks = VGroup(*[carbon_tile(None, 0.35) for _ in range(5)]).arrange(RIGHT, buff=0.04).set_opacity(0.55)
+        side2 = VGroup(side2_blocks, T("odd chains  ?", 28, GREY)).arrange(DOWN, buff=0.14).move_to([-4.7, -2.2, 0])
+        self.play(FadeIn(side2, shift=RIGHT * 0.12), run_time=0.65)
+        self.at("reusable rule")
+        self.play(FadeOut(side1), FadeOut(side2), FadeOut(co2), FadeOut(ribbon), FadeOut(ledger), run_time=0.55)
+        icon_wheel = workshop_wheel((-3.65, 0.0, 0), 0.75, False)
+        wheel_lab = T("turns", 30, PURPLE).next_to(icon_wheel, DOWN, buff=0.18)
+        carts = VGroup(acetyl_cart(False, 0.78), acetyl_cart(False, 0.78)).arrange(UP, buff=0.18).move_to([-0.55, 0.15, 0])
+        carts_lab = T("acetyl-CoA", 30, GREEN).next_to(carts, DOWN, buff=0.18)
+        cost = VGroup(chip("ATP", RED, 30), Arrow(LEFT * 0.3, RIGHT * 0.3, color=RED, buff=0), chip("AMP", RED, 30)).arrange(RIGHT, buff=0.15).move_to([2.35, 0.15, 0])
+        cost_lab = T("activation toll  −2", 30, RED).next_to(cost, DOWN, buff=0.18)
+        self.play(ReplacementTransform(wheel, icon_wheel), FadeIn(wheel_lab), FadeIn(carts), FadeIn(carts_lab), FadeIn(cost), FadeIn(cost_lab), run_time=1.0)
+        self.at("Count the turns")
+        self.play(Rotate(icon_wheel, -TAU), Indicate(wheel_lab, color=PURPLE, scale_factor=1.08), run_time=0.8)
+        self.at("the acetyl")
+        self.play(carts.animate.shift(UP * 0.18), rate_func=there_and_back, run_time=0.65)
+        self.at("activation toll")
+        self.play(Indicate(cost, color=RED, scale_factor=1.08), Indicate(gauge, color=GOLD, scale_factor=1.02), run_time=0.75)
+        self.finish()
+
+
+class S11End(EndCard):
+    LINE = "Count the turns, the acetyl-CoA, and the activation toll."
+
+    def construct(self):
+        hexm = hex_mascot(1.35).move_to([0, 2.25, 0])
+        line = T(self.LINE, 40, font=TITLE_FONT)
+        fit(line, 11.7).move_to([0, 0.85, 0])
+        wheel = add_slow_rotation(workshop_wheel((-3.2, -1.45, 0), 0.62, False), 0.28)
+        carts = VGroup(acetyl_cart(False, 0.65), acetyl_cart(False, 0.65)).arrange(UP, buff=0.12).move_to([0, -1.45, 0])
+        cost = VGroup(chip("ATP", RED, 28), Arrow(LEFT * 0.25, RIGHT * 0.25, color=RED, buff=0), chip("AMP", RED, 28)).arrange(RIGHT, buff=0.12).move_to([3.2, -1.45, 0])
+        sub = T("biochemistrypedia.com", 28, TEAL).move_to([0, -3.2, 0])
+        self.play(FadeIn(hexm, shift=UP * 0.15), FadeIn(line), run_time=0.9)
+        self.play(FadeIn(wheel), FadeIn(carts), FadeIn(cost), FadeIn(sub), run_time=0.65)
+        shoulder = hexm.arm.get_start()
+        self.play(Rotate(hexm.arm, -0.55, about_point=shoulder), rate_func=there_and_back, run_time=0.55)
+        self.play(carts.animate.shift(UP * 0.14), rate_func=there_and_back, run_time=0.65)
+        self.play(Rotate(hexm.arm, -0.55, about_point=shoulder), rate_func=there_and_back, run_time=0.55)
+        self.finish()

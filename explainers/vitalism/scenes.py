@@ -1,615 +1,670 @@
-"""How the vital force ran out of places to hide  (Biochemistrypedia, Vitalism interlude)
+"""Where Could Life Hide? — a continuous laboratory film.
 
-COLOR MAP (kept for the whole video)
-  GREEN   organic / living: cells, yeast, urea, sugar, fats, acetic acid, "organic"
-  BLUE    inorganic / lifeless chemistry: rocks, salts, charcoal, sulfur, "lab-made"
-  RED     the vital force, and the claims made on its behalf (spark, fence, vitalist objection, gauge)
-  YELLOW  an action or a dated person: heat, "1845 . Kolbe", experimental controls
-  TEAL    the enzyme / the soluble agent
-  TEXT/GREY  neutral: wall, atom tallies, glassware
+COLOR MAP
+  GREEN       living material, cells, fermentation products
+  BLUE        inorganic / lifeless starting material
+  RED / GOLD  the claimed vital force and its last hiding place
+  YELLOW      experimental action, heat, controls
+  TEAL        evidence established by an experiment
+  TEXT/GREY   laboratory structure and neutral labels
 
-No molecular structure is drawn anywhere: chips, blobs, bars, beakers and arrows only.
+Every substance is a labelled block or schematic region; no molecular structure is drawn.
 """
-import json
 import math
-import re
 import random
-from pathlib import Path
 
-import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-HERE = Path(__file__).parent
-_SCRIPT = json.loads((HERE / "script.json").read_text())
-TEXTS = {s["id"]: s["tts"] for s in _SCRIPT["scenes"] if s.get("tts")}
-DUR = json.loads((HERE / "audio" / "durations.json").read_text())
 
-GAUGE_W = 9.0
-GAUGE_Y = 2.85
+# ---------- one fixed laboratory world ----------
 
-
-class VS(NarratedScene):
-    """Narrated scene with phrase-timed beats. ANCH pins phrase ends to measured silences."""
-    SID = None
-    ANCH = []
-
-    def _anchor_time(self, ph, fallback):
-        """End time of `ph` in the spoken words (audio/words.json), so anchors follow re-voiced audio."""
-        wp = HERE / "audio" / "words.json"
-        if not wp.exists():
-            return fallback
-        norm = lambda w: re.sub(r"[^a-z0-9']", "", w.lower())
-        words = [(w[1], norm(w[2])) for w in json.loads(wp.read_text()).get(self.SID, []) if norm(w[2])]
-        toks = [norm(x) for x in ph.split() if norm(x)]
-        for i in range(len(words) - len(toks) + 1):
-            if [w[1] for w in words[i:i + len(toks)]] == toks:
-                return float(words[i + len(toks) - 1][0])
-        print(f"[anchor] {self.SID}: {ph!r} not in words.json, interpolating")
-        return None
-
-    def _map(self):
-        text = TEXTS[self.SID]
-        pts = [(0, 0.0)]
-        for ph, t in self.ANCH:
-            i = text.find(ph)
-            assert i >= 0, (self.SID, ph)
-            at = self._anchor_time(ph, t)
-            if at is not None:
-                pts.append((i + len(ph), at))
-        pts.append((len(text), DUR[self.SID]))
-        pts.sort()
-        return text, np.array([p[0] for p in pts], float), np.array([p[1] for p in pts], float)
-
-    def t_of(self, phrase, end=False):
-        text, xs, ys = self._map()
-        i = text.find(phrase)
-        assert i >= 0, (self.SID, phrase)
-        return float(np.interp(i + (len(phrase) if end else 0), xs, ys))
-
-    def at(self, phrase, end=False, lead=0.0):
-        """Wait until the narrator reaches `phrase` (start, or end if end=True)."""
-        target = self.t_of(phrase, end) - lead
-        d = target - self.elapsed()
-        if d > 0:
-            self.wait(d)
-        elif d < -0.35:
-            print(f"[drift] {self.SID}: {phrase!r} late by {-d:.2f}s")
-
-    def at_s(self, secs):
-        d = secs - self.elapsed()
-        if d > 0:
-            self.wait(d)
+CELL_X = -4.25
+FLASK_X = 4.25
+BENCH_Y = -2.72
+WALL_X = 0.0
 
 
-# ---------- shared pieces ----------
-
-def gauge(frac):
-    label = T("ground left for a vital force", 24, GREY).move_to([0, GAUGE_Y + 0.5, 0])
-    track = Rectangle(width=GAUGE_W, height=0.3, stroke_color=GREY, stroke_width=2, fill_opacity=0)
-    track.move_to([0, GAUGE_Y, 0])
-    fill = gauge_fill(frac)
-    return VGroup(label, track), fill
-
-
-def gauge_fill(frac):
-    w = max(GAUGE_W * frac, 0.02)
-    r = Rectangle(width=w, height=0.3, stroke_width=0, fill_color=RED, fill_opacity=0.9)
-    r.move_to([-GAUGE_W / 2 + w / 2, GAUGE_Y, 0])
-    return r
-
-
-def spark(radius=0.17, color=RED):
-    return Star(n=4, outer_radius=radius, inner_radius=radius * 0.38, color=color,
-                fill_color=color, fill_opacity=1, stroke_width=1)
-
-
-def arrow(a, b, color=GREY, **kw):
-    return Arrow(a, b, buff=0.12, color=color, stroke_width=4, max_tip_length_to_length_ratio=0.35,
-                 max_stroke_width_to_length_ratio=8, **kw)
-
-
-def beaker(w=1.7, h=2.2, level=0.72, liquid=GOLD, fill_op=0.72):
-    wall = VMobject(stroke_color=TEXT, stroke_width=4, fill_opacity=0)
-    wall.set_points_as_corners([[-w / 2, h / 2, 0], [-w / 2, -h / 2, 0], [w / 2, -h / 2, 0], [w / 2, h / 2, 0]])
-    liq = Rectangle(width=w - 0.1, height=h * level, stroke_width=0, fill_color=liquid, fill_opacity=fill_op)
-    liq.move_to([0, -h / 2 + h * level / 2 + 0.05, 0])
-    g = VGroup(liq, wall)
-    g.surface_y = -h / 2 + h * level + 0.05
-    g.bottom_y = -h / 2 + 0.2
+def lab_backdrop():
+    """The same high-contrast nineteenth-century laboratory wall in every scene."""
+    wall = Rectangle(width=13.35, height=6.25, stroke_width=0,
+                     fill_color="#262B35", fill_opacity=1).move_to([0, 0.28, 0])
+    dado = Line([-6.65, -2.35, 0], [6.65, -2.35, 0], color=GREY, stroke_width=3).set_opacity(0.45)
+    crown = Line([-6.65, 3.17, 0], [6.65, 3.17, 0], color=GREY, stroke_width=3).set_opacity(0.35)
+    g = VGroup(wall, dado, crown).set_z_index(-20)
     return g
 
 
-class Fizz(VGroup):
-    """Rising CO2 bubbles for a beaker (positions are relative; call move_to on the beaker first via anchor)."""
-    def __init__(self, cx, y_lo, y_hi, width=1.2, n=9, color=GREEN, seed=1):
+class LabSpokenScene(SpokenScene):
+    def setup(self):
+        super().setup()
+        self.add(lab_backdrop())
+
+
+def schematic():
+    return T("SCHEMATIC", 22, GREY, weight=BOLD).move_to([5.72, -3.42, 0])
+
+
+def bench():
+    top = Line([-6.3, BENCH_Y, 0], [6.3, BENCH_Y, 0], color=GREY, stroke_width=5)
+    legs = VGroup(
+        Line([-5.65, BENCH_Y, 0], [-5.65, -3.55, 0], color=GREY, stroke_width=5),
+        Line([5.65, BENCH_Y, 0], [5.65, -3.55, 0], color=GREY, stroke_width=5),
+    )
+    return VGroup(top, legs).set_opacity(0.7)
+
+
+def yeast_cell(scale=1.0, center=(CELL_X, -0.25, 0)):
+    body = Ellipse(width=3.35, height=4.5, color=GREEN, stroke_width=5,
+                   fill_color=GREEN, fill_opacity=0.10)
+    inner = Ellipse(width=1.15, height=0.82, color=GREEN, stroke_width=3,
+                    fill_color=GREEN, fill_opacity=0.14).shift(UP * 0.45 + LEFT * 0.25)
+    label = T("YEAST CELL", 30, GREEN, weight=BOLD).next_to(body, DOWN, buff=0.18)
+    g = VGroup(body, inner, label).scale(scale).move_to(center)
+    return g
+
+
+def lab_flask(center=(FLASK_X, -0.55, 0), scale=1.0, liquid=BLUE):
+    outline = VMobject(color=TEXT, stroke_width=5)
+    outline.set_points_as_corners([
+        [-0.45, 2.1, 0], [-0.45, 0.75, 0], [-1.5, -1.55, 0],
+        [-1.35, -1.8, 0], [1.35, -1.8, 0], [1.5, -1.55, 0],
+        [0.45, 0.75, 0], [0.45, 2.1, 0],
+    ])
+    lip = Line([-0.62, 2.1, 0], [0.62, 2.1, 0], color=TEXT, stroke_width=6)
+    fluid = Polygon([-1.34, -1.45, 0], [1.34, -1.45, 0], [0.95, -0.55, 0],
+                    [-0.95, -0.55, 0], stroke_width=0, fill_color=liquid, fill_opacity=0.35)
+    g = VGroup(fluid, outline, lip).scale(scale).move_to(center)
+    return g
+
+
+class RisingBubbles(VGroup):
+    """A steady schematic bubble stream whose motion is visible during spoken holds."""
+    def __init__(self, cx=FLASK_X, y0=-1.75, y1=1.35, width=1.5, n=11,
+                 color=GREEN, seed=7, speed=0.24):
         super().__init__()
-        rnd = random.Random(seed)
-        self.cx, self.y_lo, self.y_hi, self.width = cx, y_lo, y_hi, width
-        self.ph = [rnd.random() for _ in range(n)]
-        self.xs = [rnd.uniform(-width / 2, width / 2) for _ in range(n)]
-        self.sp = [rnd.uniform(0.22, 0.38) for _ in range(n)]
-        self.rs = [rnd.uniform(0.05, 0.1) for _ in range(n)]
-        self.t = 0.0
-        for r in self.rs:
-            self.add(Circle(radius=r, stroke_color=color, stroke_width=2.5, fill_color=color, fill_opacity=0.25))
+        rng = random.Random(seed)
+        self.cx, self.y0, self.y1, self.width = cx, y0, y1, width
+        self.phase = [rng.random() for _ in range(n)]
+        self.xoff = [rng.uniform(-width / 2, width / 2) for _ in range(n)]
+        self.rate = [rng.uniform(speed * 0.8, speed * 1.2) for _ in range(n)]
+        self.clock = 0.0
+        for _ in range(n):
+            self.add(Circle(radius=rng.uniform(0.055, 0.11), color=color,
+                            stroke_width=2.5, fill_color=color, fill_opacity=0.12))
         self._place()
-        self.add_updater(lambda m, dt: m._tick(dt))
+        self.add_updater(lambda m, dt: m._advance(dt))
 
     def _place(self):
-        for i, b in enumerate(self.submobjects):
-            f = (self.t * self.sp[i] + self.ph[i]) % 1.0
-            y = self.y_lo + f * (self.y_hi - self.y_lo)
-            x = self.cx + self.xs[i] + 0.07 * math.sin(7 * f + i)
-            b.move_to([x, y, 0])
-            o = min(1.0, f * 6) * min(1.0, (1 - f) * 6)
-            b.set_stroke(opacity=o)
-            b.set_fill(opacity=0.25 * o)
+        span = self.y1 - self.y0
+        for i, bubble in enumerate(self.submobjects):
+            f = (self.phase[i] + self.clock * self.rate[i]) % 1
+            bubble.move_to([self.cx + self.xoff[i] + 0.06 * math.sin(9 * f + i),
+                            self.y0 + span * f, 0])
+            opacity = min(1, f * 7) * min(1, (1 - f) * 7)
+            bubble.set_stroke(opacity=opacity).set_fill(opacity=0.12 * opacity)
 
-    def _tick(self, dt):
-        self.t += dt
+    def _advance(self, dt):
+        self.clock += dt
         self._place()
 
 
-def dashed_wall(x=0.0, y0=-3.2, y1=2.6):
-    return DashedLine([x, y0, 0], [x, y1, 0], color=GREY, stroke_width=6, dash_length=0.22, dashed_ratio=0.65)
+class OrbitSpecks(VGroup):
+    def __init__(self, center=(CELL_X, -0.2, 0), rx=1.15, ry=1.55, n=7,
+                 color=GOLD, speed=0.30, seed=4):
+        super().__init__()
+        rng = random.Random(seed)
+        self.center, self.rx, self.ry, self.speed = np.array(center), rx, ry, speed
+        self.phase = [rng.random() * TAU for _ in range(n)]
+        self.clock = 0
+        for _ in range(n):
+            self.add(Dot(radius=0.075, color=color))
+        self._place()
+        self.add_updater(lambda m, dt: m._advance(dt))
+
+    def _place(self):
+        for dot, p in zip(self.submobjects, self.phase):
+            a = p + self.clock * self.speed
+            dot.move_to(self.center + [self.rx * math.cos(a), self.ry * math.sin(a), 0])
+
+    def _advance(self, dt):
+        self.clock += dt
+        self._place()
 
 
-# ============================================================ scenes
+def life_wall(height=5.55, label="LIFE\nREQUIRED?"):
+    bar = RoundedRectangle(width=0.62, height=height, corner_radius=0.16,
+                           color=GOLD, stroke_width=4, fill_color=GOLD, fill_opacity=0.16)
+    lab = T(label, 30, GOLD, weight=BOLD, line_spacing=0.78).rotate(PI / 2)
+    lab.move_to(bar)
+    return VGroup(bar, lab).move_to([WALL_X, -0.05, 0])
 
-class S00Title(TitleCard):
-    LESSON = "Opening interlude · Vitalism"
-    TITLE = "The Fall of the Vital Force"
+
+def crack_on_wall():
+    return VMobject(color=RED, stroke_width=6).set_points_as_corners([
+        [0.02, 2.35, 0], [-0.18, 1.45, 0], [0.16, 0.65, 0],
+        [-0.20, -0.25, 0], [0.14, -1.15, 0], [-0.08, -2.25, 0],
+    ])
 
 
-# ------------------------------------------------------------------ 1
-class S01Claim(VS):
-    SID = "s01_claim"
-    ANCH = [("make them.", 7.43), ("vital force.", 11.13), ("drew the line.", 13.76),
-            ("rocks and salts,", 17.52), ("in the lab.", 19.2), ("Organic matter,", 20.57),
-            ("living bodies,", 22.4)]
+def ruler(lit=0):
+    names = ("MAKE MOLECULE", "START LIFELESS", "REMOVE CELLS")
+    parts = VGroup()
+    for i, name in enumerate(names):
+        color = TEAL if i < lit else GREY
+        box = RoundedRectangle(width=3.75, height=1.45, corner_radius=0.14,
+                               color=color, stroke_width=4,
+                               fill_color=TEAL, fill_opacity=0.16 if i < lit else 0.02)
+        num = M(str(i + 1), 32, color, weight=BOLD).move_to(box.get_top() + DOWN * 0.34)
+        lab = T(name, 28, color, weight=BOLD).move_to(box.get_bottom() + UP * 0.37)
+        parts.add(VGroup(box, num, lab))
+    parts.arrange(RIGHT, buff=0.22).move_to([0, -0.78, 0])
+    title = T("HOW FAR DOES THE EVIDENCE REACH?", 32, TEXT, weight=BOLD).move_to([0, 2.9, 0])
+    return VGroup(title, parts)
+
+
+def test_card(name, pos, width=3.5):
+    cell_lab = T("CELL", 28, GREY)
+    chem_lab = T("CHEMICAL", 28, GREY)
+    cells = RoundedRectangle(width=cell_lab.width + 0.28, height=0.72,
+                             corner_radius=0.1, color=GREY, stroke_width=2)
+    chem = RoundedRectangle(width=chem_lab.width + 0.28, height=0.72,
+                            corner_radius=0.1, color=GREY, stroke_width=2)
+    windows = VGroup(cells, chem).arrange(RIGHT, buff=0.18)
+    width = max(width, windows.width + 0.38)
+    box = RoundedRectangle(width=width, height=2.05, corner_radius=0.18,
+                           color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.07)
+    title = T(name, 28, YELLOW, weight=BOLD).move_to(box.get_top() + DOWN * 0.32)
+    windows.move_to(box.get_bottom() + UP * 0.55)
+    labs = VGroup(cell_lab.move_to(cells), chem_lab.move_to(chem))
+    return VGroup(box, title, windows, labs).move_to(pos)
+
+
+def tiny_scraps():
+    scraps = VGroup(*[Ellipse(width=0.22, height=0.12, color=GREEN, fill_color=GREEN,
+                              fill_opacity=0.7, stroke_width=2) for _ in range(2)])
+    scraps[0].move_to([4.0, 0.9, 0]); scraps[1].move_to([4.48, 1.22, 0])
+    return scraps
+
+
+# ---------- scenes ----------
+
+class S01Hook(LabSpokenScene):
+    def construct(self):
+        b = bench(); cell = yeast_cell(); flask = lab_flask(); wall = life_wall()
+        specks = OrbitSpecks(); failed = RisingBubbles(color=GREY, n=5, speed=0.10)
+        failed.set_opacity(0.45)
+        self.play(FadeIn(b), GrowFromCenter(cell), FadeIn(schematic()), run_time=0.9)
+        self.play(FadeIn(specks), run_time=0.5)
+        self.at("special force")
+        self.play(Create(wall[0]), run_time=0.8)
+        self.play(FadeIn(flask), FadeIn(failed), run_time=0.8)
+        self.play(failed.animate.set_opacity(0), flask[0].animate.set_fill(opacity=0.18), run_time=1.2)
+        self.at("many early")
+        self.play(Write(wall[1]), run_time=0.9)
+        self.at("called it")
+        vital = T("VITAL FORCE", 34, RED, weight=BOLD).move_to([0, 2.98, 0])
+        self.play(FadeIn(vital, shift=DOWN * 0.12),
+                  wall[0].animate.set_stroke(RED).set_fill(RED, opacity=0.18), run_time=0.8)
+        self.play(Indicate(specks, color=GOLD, scale_factor=1.05), run_time=1.1)
+        self.finish()
+
+
+class S02Title(TitleCard):
+    LESSON = "Vitalism"
+    TITLE = "Where Could Life Hide?"
 
     def construct(self):
-        cx = 0.0
-        cell = VGroup(Circle(radius=0.88, color=GREEN, fill_color=GREEN, fill_opacity=0.18, stroke_width=3.5),
-                      T("living\ncell", 26, GREEN, line_spacing=0.7)).move_to([cx, -1.4, 0])
-        cell[1].move_to(cell[0])
-        chips = VGroup(*[chip(n, GREEN, 28) for n in ("sugar", "fat", "urea")])
-        for c, x in zip(chips, (-2.0, 0.0, 2.0)):
-            c.move_to([x, 1.0, 0])
-        arrows = VGroup(*[arrow([cx, -0.5, 0], c.get_bottom(), GREEN) for c in chips])
+        self.add(lab_backdrop())
+        wall = life_wall(); wall[1].set_opacity(0)
+        specks = OrbitSpecks(center=(0, -0.1, 0), rx=0.24, ry=2.2, n=9, speed=0.45)
+        title = T(self.TITLE.upper(), 48, TEXT, font=TITLE_FONT, weight=BOLD)
+        fit(title, 11.2, 1.4); title.move_to([0, 0.15, 0])
+        self.add(wall[0], specks)
+        self.play(Write(title), run_time=0.9)
+        q = T("?", 54, GOLD, font=TITLE_FONT, weight=BOLD).move_to([0, 3.05, 0])
+        self.play(ReplacementTransform(title, q), run_time=0.75)
+        self.finish()
 
-        self.wait(0.3)
-        self.play(GrowFromCenter(cell), run_time=1.0)
-        self.at("molecules of living things")
-        self.play(LaggedStart(*[AnimationGroup(GrowArrow(a), FadeIn(c, shift=UP * 0.15))
-                                for a, c in zip(arrows, chips)], lag_ratio=0.35), run_time=2.4)
-        self.at("needed living things")
-        self.play(Indicate(cell, color=GREEN, scale_factor=1.08), run_time=1.3)
 
-        # the vital force: a spark rides each arrow up into each molecule
-        self.at("all of it was supposed")
-        label = VGroup(spark(0.17), T("vital\nforce", 26, RED, line_spacing=0.7)).arrange(RIGHT, buff=0.15)
-        label.next_to(cell, RIGHT, buff=0.3)
-        dots = VGroup(*[spark(0.16) for _ in chips])
-        for d in dots:
-            d.move_to(cell.get_top() + UP * 0.1)
-        self.add(dots)
-        self.play(FadeIn(label, shift=LEFT * 0.2), run_time=0.7)
-        self.play(*[MoveAlongPath(d, Line(cell.get_top() + UP * 0.1, c.get_bottom() + DOWN * 0.02))
-                    for d, c in zip(dots, chips)], run_time=1.3)
-        self.play(*[c[0].animate.set_stroke(RED, 3.5) for c in chips],
-                  *[d.animate.move_to(c.get_corner(UR) + RIGHT * 0.05) for d, c in zip(dots, chips)], run_time=0.8)
-        org = VGroup(cell, chips, arrows, label, dots)
-
-        # Berzelius draws the line
-        self.at("The chemist Berzelius")
-        wall = dashed_wall(0)
-        wlabel = T("Berzelius's line", 28, YELLOW).move_to([0, 3.15, 0])
-        self.play(org.animate.shift(RIGHT * 3.4), Create(wall), FadeIn(wlabel, shift=DOWN * 0.1), run_time=1.8)
-
-        self.at("organic")
-        h_in = T("INORGANIC", 30, BLUE, weight=BOLD).move_to([-3.5, 2.1, 0])
-        self.play(FadeIn(h_in, shift=RIGHT * 0.2), run_time=0.7)
+class S03Wall(LabSpokenScene):
+    def construct(self):
+        b = bench(); wall = life_wall(); cell = yeast_cell()
+        cell[0].stretch(1.25, 0)
+        cell[1].set_opacity(0)
+        specks = OrbitSpecks(center=(CELL_X, 0.35, 0), rx=0.62, ry=0.34)
+        belt = VGroup(Line([2.3, -1.72, 0], [6.05, -1.72, 0], color=GREY, stroke_width=7),
+                      T("INORGANIC", 28, BLUE, weight=BOLD).move_to([4.18, -2.15, 0]))
+        self.add(b, wall, cell, specks, belt, schematic())
+        self.play(ShowPassingFlash(belt[0].copy().set_stroke(BLUE, 12), time_width=0.7),
+                  run_time=1.5)
         self.at("rocks and salts")
-        rocks = chip("rocks", BLUE, 26).move_to([-4.6, 1.0, 0])
-        salts = chip("salts", BLUE, 26).move_to([-2.4, 1.0, 0])
-        self.play(FadeIn(rocks, shift=UP * 0.15), FadeIn(salts, shift=UP * 0.15), run_time=1.0)
-        self.at("in the lab")
-        law = chip("lab-made", BLUE, 26).move_to([-3.5, -3.0, 0])
-        a1 = arrow(rocks.get_bottom(), law.get_top() + LEFT * 0.6, BLUE)
-        a2 = arrow(salts.get_bottom(), law.get_top() + RIGHT * 0.6, BLUE)
-        self.play(FadeIn(law, shift=UP * 0.15), GrowArrow(a1), GrowArrow(a2), run_time=1.2)
-
-        self.at("chemistry of living")
-        h_org = T("ORGANIC", 30, GREEN, weight=BOLD).move_to([3.4, 2.1, 0])
-        self.play(FadeIn(h_org, shift=LEFT * 0.2), run_time=0.7)
-        self.at("bodies")
-        ghost = chip("lab-made", GREY, 26, fill_opacity=0.0).move_to([3.4, -3.0, 0])
-        ghost[0].set_stroke(GREY, 2.5).set_stroke(opacity=0.8)
-        cross = Line(ghost.get_left() + LEFT * 0.12, ghost.get_right() + RIGHT * 0.12, color=RED, stroke_width=6)
-        self.play(FadeIn(ghost, shift=UP * 0.15), run_time=0.7)
-        self.at("needed life")
-        self.play(Create(cross), run_time=0.4)
-        self.finish()
-
-
-# ------------------------------------------------------------------ 2
-class S02Flask(VS):
-    SID = "s02_flask"
-    ANCH = [("In February 1828,", 2.17), ("an inorganic salt,", 5.26), ("ammonium cyanate.", 6.88),
-            ("dispose of nitrogen.", 13.22), ("in the room.", 15.32), ("same formula:", 17.87),
-            ("one carbon,", 18.88), ("connected differently.", 24.33)]
-
-    def construct(self):
-        tag = T("Wöhler · February 1828", 32, YELLOW).move_to([0, 3.15, 0])
-        cy = chip("ammonium cyanate", BLUE, 32).move_to([-4.1, 0.6, 0])
-        ur = chip("urea", GREEN, 32).move_to([4.6, 0.6, 0])
-        sub_cy = T("inorganic salt", 26, BLUE).next_to(cy, UP, buff=0.3)
-        sub_ur = T("body's nitrogen disposal", 26, GREEN).next_to(ur, UP, buff=0.3).align_to(ur, RIGHT)
-        heat = T("heat", 28, YELLOW)
-        arr = arrow(cy.get_right(), ur.get_left(), YELLOW)
-        heat.next_to(arr, DOWN, buff=0.2)
-
-        self.wait(0.3)
-        self.play(FadeIn(tag, shift=DOWN * 0.15), run_time=1.0)
-        self.at("an inorganic salt")
-        self.play(FadeIn(cy, shift=UP * 0.15), FadeIn(sub_cy), run_time=1.0)
-        self.at("What crystallized")
-        self.play(GrowArrow(arr), FadeIn(heat), run_time=1.0)
-        self.play(FadeIn(ur, shift=UP * 0.15), run_time=0.9)
-        self.at("the molecule the body makes")
-        self.play(FadeIn(sub_ur, shift=UP * 0.1), run_time=0.8)
-
-        self.at("There was no kidney")
-        kid = chip("kidney", GREEN, 28, fill_opacity=0.0).move_to([0.2, 1.95, 0])
-        kid[0].set_stroke(GREEN, 2.5, opacity=0.6)
-        kid[1].set_opacity(0.7)
-        cross = Line(kid.get_left() + LEFT * 0.15, kid.get_right() + RIGHT * 0.15, color=RED, stroke_width=6)
-        self.play(FadeIn(kid, shift=DOWN * 0.1), run_time=0.6)
-        self.play(Create(cross), run_time=0.5)
-
-        self.at("Both compounds")
-        f1 = M("CH₄N₂O", 32).move_to([-4.3, -0.6, 0])
-        f2 = M("CH₄N₂O", 32).move_to([4.6, -0.6, 0])
-        eq = M("=", 40, TEXT).move_to([0.2, -0.6, 0])
-        self.play(FadeOut(VGroup(kid, cross)), run_time=0.4)
-        self.play(FadeIn(f1, shift=UP * 0.1), FadeIn(f2, shift=UP * 0.1), FadeIn(eq), run_time=1.0)
-
-        # atom tallies: identical bars under both
-        counts = [("C", 1), ("H", 4), ("N", 2), ("O", 1)]
-        unit = 0.32
-        base_y = -3.0
-
-        def tally(cx):
-            bars, labs, nums = VGroup(), VGroup(), VGroup()
-            for i, (el, n) in enumerate(counts):
-                x = cx + (i - 1.5) * 0.72
-                b = Rectangle(width=0.5, height=n * unit, stroke_width=0, fill_color=TEXT, fill_opacity=0.75)
-                b.move_to([x, base_y + n * unit / 2, 0])
-                bars.add(b)
-                labs.add(M(el, 26, GREY).move_to([x, base_y - 0.33, 0]))
-                nums.add(M(str(n), 26, TEXT).move_to([x, base_y + n * unit + 0.28, 0]))
-            return bars, labs, nums
-
-        L = tally(-4.3)
-        R = tally(4.6)
-        base_l = Line([-5.6, base_y, 0], [-3.0, base_y, 0], color=GREY, stroke_width=2)
-        base_r = Line([3.3, base_y, 0], [5.9, base_y, 0], color=GREY, stroke_width=2)
-        self.play(Create(base_l), Create(base_r), FadeIn(L[1]), FadeIn(R[1]), run_time=0.6)
-        for i, ph in enumerate(["one carbon,", "four hydrogens,", "two nitrogens,", "one oxygen."]):
-            self.at(ph, lead=0.1)
-            self.play(GrowFromEdge(L[0][i], DOWN), GrowFromEdge(R[0][i], DOWN),
-                      FadeIn(L[2][i]), FadeIn(R[2][i]), run_time=0.6)
-
-        self.at("Same atoms,")
-        same = T("same atoms,\ndifferent connections", 28, TEXT, line_spacing=0.8).move_to([0.2, -2.0, 0])
-        self.play(FadeIn(same, shift=UP * 0.1), run_time=0.9)
-        self.at("Heat rearranged")
-        self.play(ShowPassingFlash(Line(cy.get_right(), ur.get_left(), color=YELLOW, stroke_width=10), time_width=0.6),
-                  Indicate(heat, color=YELLOW), run_time=1.6)
-        self.finish()
-
-
-# ------------------------------------------------------------------ 3
-class S03Retreat(VS):
-    SID = "s03_retreat"
-    ANCH = [("that afternoon.", 3.39), ("not a refutation,", 5.56), ("organic sources.", 9.26),
-            ("somewhere to stand.", 12.88), ("in the chain.", 22.05)]
-
-    def construct(self):
-        gl, fill = gauge(1.0)
-        self.play(FadeIn(gl), FadeIn(fill), run_time=0.8)
-
-        # --- Wohler's row
-        cy = chip("ammonium cyanate", BLUE, 30).move_to([-1.9, 0.1, 0])
-        ur = chip("urea", GREEN, 30).move_to([3.9, 0.1, 0])
-        a_main = arrow(cy.get_right(), ur.get_left(), YELLOW)
-        wtag = T("Wöhler · 1828", 28, YELLOW).move_to([1.0, -0.6, 0])
-        self.play(FadeIn(cy, shift=UP * 0.1), GrowArrow(a_main), FadeIn(ur, shift=UP * 0.1), FadeIn(wtag), run_time=1.2)
-        self.at("did not kill")
-        self.play(Transform(fill, gauge_fill(0.92)), run_time=1.2)
-
-        self.at("Chemists")
-        src = chip("organic source", GREEN, 30).move_to([-1.9, -2.3, 0])
-        a_back = DashedLine(cy.get_bottom(), src.get_top(), color=RED, stroke_width=4, dash_length=0.15)
-        q = T("inorganic?", 28, RED).next_to(cy, UP, buff=0.25)
-        self.at("skeptics could trace")
-        back_lbl = T("traced back", 26, RED).next_to(a_back, RIGHT, buff=0.2)
-        self.play(FadeIn(q, shift=DOWN * 0.1), Create(a_back), run_time=1.0)
-        self.play(FadeIn(src, shift=UP * 0.15), FadeIn(back_lbl), run_time=0.9)
-
-        self.at("The vital force pulled back")
-        self.play(Transform(fill, gauge_fill(0.8)), run_time=1.6)
-        self.wait(self.t_of("In 1845") - self.elapsed() - 0.7 if self.t_of("In 1845") - self.elapsed() > 0.7 else 0)
-        self.play(FadeOut(VGroup(cy, ur, a_main, wtag, q, a_back, src, back_lbl)), run_time=0.6)
-
-        # --- Kolbe, 1845
-        self.at("In 1845")
-        ktag = T("1845 · Kolbe", 32, YELLOW).move_to([0, 1.35, 0])
-        ac = chip("acetic acid", GREEN, 30).move_to([4.8, -0.5, 0])
-        cd = chip("carbon disulfide", BLUE, 30).move_to([-0.5, -0.5, 0])
-        charc = chip("charcoal", BLUE, 30).move_to([-4.7, 0.4, 0])
-        sulf = chip("sulfur", BLUE, 30).move_to([-4.6, -1.4, 0])
-        a_ac = arrow(cd.get_right(), ac.get_left(), GREY)
-        a_c = arrow(charc.get_right(), cd.get_left() + UP * 0.2, BLUE)
-        a_s = arrow(sulf.get_right(), cd.get_left() + DOWN * 0.2, BLUE)
-        self.play(FadeIn(ktag, shift=DOWN * 0.1), FadeIn(ac, shift=UP * 0.1), run_time=1.2)
-        self.at("from carbon disulfide")
-        self.play(FadeIn(cd, shift=RIGHT * 0.15), GrowArrow(a_ac), run_time=1.1)
-        self.at("charcoal with sulfur")
-        self.play(FadeIn(charc, shift=RIGHT * 0.15), FadeIn(sulf, shift=RIGHT * 0.15), GrowArrow(a_c), GrowArrow(a_s),
-                  run_time=1.3)
-        self.at("with nothing alive")
-        br = Brace(VGroup(charc, sulf, cd), DOWN, color=BLUE, buff=0.2)
-        brl = T("nothing alive in the chain", 28, BLUE).next_to(br, DOWN, buff=0.15)
-        self.play(GrowFromCenter(br), FadeIn(brl, shift=UP * 0.1), run_time=1.0)
-        self.play(Transform(fill, gauge_fill(0.55)), run_time=1.3)
-        self.at_s(self.t_of("A decade later") - 0.6)
-        self.play(FadeOut(VGroup(ktag, ac, cd, charc, sulf, a_ac, a_c, a_s, br, brl)), run_time=0.6)
-
-        # --- Berthelot
-        self.at("decade")
-        btag = T("a decade later · Berthelot", 32, YELLOW).move_to([0, 1.35, 0])
-        fats = chip("fats", GREEN, 30).move_to([4.6, -0.5, 0])
-        gly = chip("glycerol", GREEN, 30).move_to([-4.2, 0.4, 0])
-        fa = chip("fatty acids", GREEN, 30).move_to([-4.2, -1.4, 0])
-        a_g = arrow(gly.get_right(), fats.get_left() + UP * 0.2, GREY)
-        a_f = arrow(fa.get_right(), fats.get_left() + DOWN * 0.2, GREY)
-        self.play(FadeIn(btag, shift=DOWN * 0.1), FadeIn(fats, shift=UP * 0.1), run_time=1.1)
-        self.at("from glycerol")
-        self.play(FadeIn(gly, shift=RIGHT * 0.15), FadeIn(fa, shift=RIGHT * 0.15), GrowArrow(a_g), GrowArrow(a_f),
-                  Transform(fill, gauge_fill(0.4)), run_time=1.4)
-        self.finish()
-
-
-# ------------------------------------------------------------------ 4
-class S04Redoubt(VS):
-    SID = "s04_redoubt"
-    ANCH = [("One redoubt remained.", 1.83), ("living yeast.", 6.24), ("living cell.", 13.64),
-            ("for decades.", 16.76), ("pepsin and invertase.", 25.5)]
-
-    def construct(self):
-        gl, fill = gauge(0.4)
-        self.add(gl, fill)
-        cy_ = -0.7
-        cell = VGroup(Circle(radius=1.65, color=GREEN, fill_color=GREEN, fill_opacity=0.16, stroke_width=3.5),
-                      T("yeast cell", 30, GREEN)).move_to([0, cy_, 0])
-        cell[1].move_to(cell[0].get_center() + UP * 0.7)
-        sugar = chip("sugar", GREEN, 30).move_to([-4.9, cy_, 0])
-        prod = chip("alcohol\n+ CO₂", GREEN, 28).move_to([4.9, cy_, 0])
-        a_in = arrow(sugar.get_right(), [-1.75, cy_, 0], GREEN)
-        a_out = arrow([1.75, cy_, 0], prod.get_left(), GREEN)
-
-        self.play(Indicate(fill, color=RED, scale_factor=1.0), GrowFromCenter(cell), run_time=1.5)
-        self.at("Louis Pasteur")
-        ptag = T("Pasteur", 32, YELLOW).move_to([-4.6, 0.55, 0])
-        self.play(FadeIn(ptag, shift=DOWN * 0.1), run_time=0.7)
-        self.at("fermentation depends")
-        self.play(FadeIn(sugar, shift=RIGHT * 0.15), GrowArrow(a_in), run_time=0.9)
-        self.play(GrowArrow(a_out), FadeIn(prod, shift=RIGHT * 0.15), run_time=1.0)
-
-        self.at("a stronger line")
-        fence = DashedVMobject(Circle(radius=2.1, color=RED, stroke_width=5), num_dashes=40).move_to([0, cy_, 0])
-        self.play(Create(fence), run_time=3.0)
-        self.at("inseparable")
-        flab = T("inseparable from the living cell", 30, RED).move_to([0, -3.3, 0])
-        self.play(FadeIn(flab, shift=UP * 0.1), run_time=1.0)
-
-        self.at("That argument")
-        years = chip("debated", YELLOW, 30).move_to([4.9, 0.6, 0])
-        self.play(FadeIn(years, shift=DOWN * 0.1), fence.animate.set_stroke(width=8), run_time=1.0)
-        self.play(Indicate(fence, color=RED, scale_factor=1.03), run_time=1.0)
-
-        self.at("In 1877")
-        ktag = T("1877 · Kühne", 32, YELLOW).move_to([-4.6, 0.55, 0])
-        self.play(FadeOut(years), Transform(ptag, ktag), run_time=0.9)
-        self.at("proposed the word enzyme")
-        enz = chip("enzyme", TEAL, 32).move_to([0, cy_ - 0.35, 0])
-        self.play(FadeIn(enz, scale=0.6), run_time=0.9)
-        self.at("from the Greek")
-        greek = T("Greek: “in leaven”", 28, TEAL).move_to([4.7, 0.6, 0])
-        self.play(FadeIn(greek, shift=DOWN * 0.1), run_time=0.8)
-        self.at("soluble ferments")
-        self.play(Indicate(enz, color=TEAL, scale_factor=1.15), run_time=1.4)
-        self.finish()
-
-
-# ------------------------------------------------------------------ 5
-class S05Buchner(VS):
-    SID = "s05_buchner"
-    ANCH = [("no intact cells in it.", 7.93), ("preserve it.", 9.98), ("began to ferment,", 11.54),
-            ("dead yeast.", 14.97), ("must have survived.", 18.28), ("two controls.", 20.4),
-            ("still fermented.", 24.54)]
-
-    def construct(self):
-        gl, fill = gauge(0.4)
-        self.add(gl, fill)
-
-        yeast = chip("brewer's\nyeast", GREEN, 26).move_to([-5.0, 0.9, 0])
-        sand = chip("sand", GREY, 26).move_to([-5.0, -0.8, 0])
-        press = chip("grind\n& press", YELLOW, 26).move_to([-1.9, 0.05, 0])
-        bk = beaker().move_to([2.4, -0.1, 0])
-        a1 = arrow(yeast.get_right(), press.get_left() + UP * 0.2, GREEN)
-        a2 = arrow(sand.get_right(), press.get_left() + DOWN * 0.2, GREY)
-        a3 = arrow(press.get_right(), [1.35, 0.0, 0], YELLOW)
-        jlab = T("clear golden juice", 26, GOLD).move_to([2.4, -1.85, 0])
-        nocell = VGroup(Circle(radius=0.2, color=GREEN, stroke_width=3),
-                        VGroup(Line(UL, DR), Line(UR, DL)).scale(0.22).set_color(RED).set_stroke(width=5))
-        nocell_t = T("almost no\nintact cells", 26, GREEN, line_spacing=0.7)
-        nocell_g = VGroup(nocell, nocell_t).arrange(RIGHT, buff=0.2).move_to([5.2, 0.5, 0])
-
-        self.wait(0.3)
-        self.play(FadeIn(yeast, shift=RIGHT * 0.15), FadeIn(sand, shift=RIGHT * 0.15), run_time=1.0)
-        self.at("with sand")
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(press, scale=0.8), run_time=1.0)
-        self.at("pressed out")
-        self.play(GrowArrow(a3), FadeIn(bk, shift=LEFT * 0.2), run_time=1.0)
-        self.play(FadeIn(jlab, shift=UP * 0.1), run_time=0.7)
-        self.at("with almost no intact cells")
-        self.play(FadeIn(nocell_g, shift=LEFT * 0.15), run_time=0.9)
-
-        self.at("He added sugar")
-        sg = chip("sugar", GREEN, 26).move_to([2.4, 1.9, 0])
-        self.play(FadeIn(sg, shift=DOWN * 0.15), run_time=0.7)
-        self.play(sg.animate.move_to([2.4, bk.surface_y - 0.25 - 0.1, 0]).scale(0.7), run_time=1.0)
-        self.play(FadeOut(sg, scale=0.5), run_time=0.4)
-
-        self.at("The sugar began to ferment")
-        fz = Fizz(2.4, bk.bottom_y - 0.1, bk.surface_y - 0.1, width=1.1, n=9, seed=3)
-        self.add(fz)
-        self.at("carbon dioxide rising")
-        co2 = T("CO₂", 30, GREEN).move_to([2.4, 1.55, 0])
-        self.play(FadeIn(co2, shift=DOWN * 0.1), run_time=0.8)
-        self.at("a flask of dead yeast")
-        self.play(Indicate(jlab, color=GOLD, scale_factor=1.1), run_time=1.0)
-
-        # the vitalist objection
-        self.at("Vitalists said", lead=0.2)
-        vit = chip("vitalists:\nliving scraps?", RED, 28).move_to([-3.4, 0.2, 0])
-        a_v = DashedLine(vit.get_right(), [1.35, 0.1, 0], color=RED, stroke_width=4, dash_length=0.14)
-        self.play(FadeOut(VGroup(yeast, sand, press, a1, a2, a3, nocell_g)), FadeIn(vit, shift=RIGHT * 0.15),
-                  Create(a_v), run_time=0.9)
-
-        # two controls
-        self.at("ran")
-        self.play(FadeOut(VGroup(vit, a_v, co2, jlab)), run_time=0.5)
-        ctitle = T("two controls", 32, YELLOW).move_to([0, 1.75, 0])
-        bk2 = bk.copy()
-        fz.clear_updaters()
-        self.play(FadeOut(fz), run_time=0.35)
-        self.play(Write(ctitle), bk.animate.move_to([-3.6, -0.3, 0]), run_time=1.2)
-        bk2.move_to([3.6, -0.3, 0])
-        fz2 = Fizz(3.6, -0.3 + bk.bottom_y - 0.1, -0.3 + bk.surface_y - 0.1, width=1.1, n=9, seed=5)
-        lab_b = T("chloroform", 28, YELLOW).move_to([-3.6, -1.95, 0])
-        lab_f = T("filtered juice", 28, YELLOW).move_to([3.6, -1.95, 0])
-        funnel = Polygon([-0.7, 0.4, 0], [0.7, 0.4, 0], [0.12, -0.2, 0], [0.12, -0.5, 0], [-0.12, -0.5, 0], [-0.12, -0.2, 0],
-                         color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to([3.6, 1.25, 0])
-        self.play(FadeIn(bk2, shift=LEFT * 0.2), FadeIn(funnel, shift=DOWN * 0.2), FadeIn(lab_b), FadeIn(lab_f), run_time=1.0)
-
-        # chloroform: still fizzing
-        self.at("Juice with chloroform")
-        fz1 = Fizz(-3.6, -0.3 + bk.bottom_y - 0.1, -0.3 + bk.surface_y - 0.1, width=1.1, n=9, seed=7)
-        self.add(fz1)
-        fizz_label = T("fizz", 28, GREEN).move_to([-3.6, -2.55, 0])
-        self.play(FadeIn(fizz_label, shift=UP * 0.1), run_time=0.6)
-        self.at("antiseptic")
-        agent = chip("antiseptic", TEAL, 26).move_to([-3.6, -3.25, 0])
-        self.play(FadeIn(agent, shift=UP * 0.1), run_time=0.9)
-
-        # filtered: still fizzing
-        self.at("a sterile filter")
-        self.add(fz2)
-        t0 = self.elapsed()
-        fill.add_updater(lambda m: m.become(gauge_fill(max(0.0, 0.4 * (1 - (self.elapsed() - t0) / 2.2)))))
-        self.play(Indicate(lab_f, color=GREEN), run_time=0.9)
-        self.at("so no cells", lead=0.3)
-        nocell2 = T("no cells needed", 28, GREEN).move_to([3.6, -2.55, 0])
-        self.play(FadeIn(nocell2, shift=UP * 0.1), run_time=0.7)
-        self.finish()
-
-
-# ------------------------------------------------------------------ 6
-class S06Course(VS):
-    SID = "s06_course"
-    ANCH = [("one process at a time.", 7.6), ("law of its own.", 17.46)]
-
-    def construct(self):
-        # --- timeline of syntheses
-        x0, x1 = -5.5, 5.5
-        yr = lambda y: x0 + (y - 1828) / (1897 - 1828) * (x1 - x0)
-        N = 40
-        line = VGroup(*[Line([x0 + (x1 - x0) * i / N, 0.2, 0], [x0 + (x1 - x0) * (i + 1) / N, 0.2, 0], stroke_width=9,
-                             color=interpolate_color(ManimColor(RED), ManimColor(GREY), i / N)).set_opacity(1 - 0.75 * i / N)
-                       for i in range(N)])
-        vf = VGroup(spark(0.2), T("vital force", 26, RED)).arrange(RIGHT, buff=0.15).move_to([-4.3, -0.55, 0])
-        marks = [
-            (1828, "urea\n1828", UP, 2.0),
-            (1845, "acetic acid\n1845", DOWN, -1.7),
-            (1854, "fats\n1854", UP, 2.0),
-            (1897, "fermentation\n1897", DOWN, -1.7),
-        ]
-        items = []
-        for y, txt, d, ty in marks:
-            x = yr(y)
-            tick = Dot([x, 0.2, 0], radius=0.1, color=TEXT)
-            cx = min(x, 4.9)
-            c = chip(txt, GREEN, 26).move_to([cx, ty, 0])
-            stem = Line([x, 0.2, 0], c.get_top() if ty < 0 else c.get_bottom(), color=GREY, stroke_width=2)
-            items.append(VGroup(stem, tick, c))
-
-        for g in [line, vf, *items]:
-            g.shift(DOWN * 0.5)
-        self.wait(0.3)
-        self.play(Create(line), FadeIn(vf), run_time=1.3)
-        self.at("Seventy years")
-        self.play(FadeIn(items[0], shift=UP * 0.1), run_time=0.7)
-        self.at("made the vital force")
-        # the molecule milestones land early, so the process milestone gets its own moment
-        self.play(LaggedStart(FadeIn(items[1], shift=DOWN * 0.1), FadeIn(items[2], shift=UP * 0.1), lag_ratio=0.5),
+        rocks = chip("ROCKS + SALTS", BLUE, 30).move_to([3.75, -1.15, 0])
+        self.play(FadeIn(rocks, shift=RIGHT * 0.3), run_time=0.7)
+        self.play(rocks.animate.shift(RIGHT * 0.7), run_time=1.2, rate_func=linear)
+        self.play(ShowPassingFlash(belt[0].copy().set_stroke(BLUE, 12), time_width=0.7),
                   run_time=1.2)
-        self.at("one molecule")
-        self.play(*[Indicate(it[2], color=GREEN, scale_factor=1.08) for it in items[:3]], run_time=0.9)
-        self.at("one process")
-        self.play(FadeIn(items[3], shift=DOWN * 0.1), vf.animate.set_opacity(0.15), run_time=0.7)
-        self.play(Indicate(items[3][2], color=GREEN, scale_factor=1.08), run_time=0.8)
-        self.at("What replaced it")
-        self.play(FadeOut(VGroup(line, vf, *items)), run_time=0.5)
-
-        # --- the two kingdoms from the start, walled
-        rocks = chip("rocks", BLUE, 28).move_to([-4.6, 0.2, 0])
-        salts = chip("salts", BLUE, 28).move_to([-2.6, 0.2, 0])
-        cell = VGroup(Circle(radius=1.3, color=GREEN, fill_color=GREEN, fill_opacity=0.18, stroke_width=3.5),
-                      T("living cell", 26, GREEN)).move_to([3.6, 0.1, 0])
-        cell[1].move_to(cell[0].get_center() + UP * 0.6)
-        vf2 = VGroup(spark(0.17), T("vital force", 26, RED)).arrange(RIGHT, buff=0.15).move_to([3.6, -1.6, 0])
-        wall = dashed_wall(0, -1.6, 1.9)
-        self.play(FadeIn(rocks), FadeIn(salts), GrowFromCenter(cell), FadeIn(wall), FadeIn(vf2), run_time=1.4)
-
-        self.at("a living cell obeys")
-        self.play(Indicate(cell, color=GREEN, scale_factor=1.1), run_time=1.0)
-        self.at("the same chemistry")
-        box = RoundedRectangle(corner_radius=0.3, width=12.2, height=4.8, stroke_color=TEXT, stroke_width=3.5,
-                               fill_opacity=0).move_to([0, 0.0, 0])
-        head = T("the same chemistry", 34, TEXT).move_to([0, 1.9, 0])
-        self.play(FadeOut(wall, shift=UP * 0.3), Create(box), FadeIn(head, shift=DOWN * 0.1), run_time=1.6)
-        self.at("with no separate law")
-        self.play(FadeOut(vf2, shift=DOWN * 0.2), run_time=1.2)
-
-        # --- the enzyme
-        self.at("The catalysts")
-        enz = chip("enzyme", TEAL, 26).move_to(cell.get_center() + DOWN * 0.45)
-        self.play(FadeIn(enz, scale=0.6), run_time=0.8)
-        self.at("Kühne")
-        kn = T("named by Kühne", 26, YELLOW).move_to([3.6, -1.9, 0])
-        self.play(FadeIn(kn, shift=UP * 0.1), run_time=0.7)
-        self.at("Buchner")
-        bn = T("freed by Buchner", 26, YELLOW).move_to([0.1, -0.65, 0])
-        self.play(enz.animate.move_to([0.1, 0.1, 0]), FadeOut(kn), FadeIn(bn), run_time=1.5)
-        self.at("ordinary proteins")
-        prot = T("ordinary proteins", 36, TEAL).move_to([0, -1.5, 0])
-        self.play(FadeIn(prot, shift=UP * 0.1), run_time=0.6)
+        self.at("sugar fat")
+        organics = chip("SUGAR · FAT · UREA", GREEN, 28).move_to([-4.25, -0.72, 0])
+        self.play(FadeIn(organics, scale=0.9), run_time=0.7)
+        self.play(Rotate(organics, angle=0.13, about_point=cell[0].get_center(), rate_func=there_and_back), run_time=1.5)
+        self.play(cell.animate.scale(1.035), run_time=0.9, rate_func=there_and_back)
+        self.at("only life")
+        taller = life_wall(6.35)
+        self.play(Transform(wall, taller), specks.animate.set_opacity(1), run_time=1.1)
+        self.play(rocks.animate.shift(RIGHT * 0.55),
+                  Rotate(organics, angle=-0.13, about_point=cell[0].get_center(), rate_func=there_and_back),
+                  run_time=1.8)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Step through the seventy-year retreat in the lesson's timeline."
+class S04Wohler(LabSpokenScene):
+    def construct(self):
+        b = bench(); wall = life_wall(6.35); cell = yeast_cell(); flask = lab_flask()
+        salt = chip("AMMONIUM CYANATE", BLUE, 28).move_to([3.15, 1.85, 0])
+        swirl = OrbitSpecks(center=(FLASK_X, -0.8, 0), rx=0.75, ry=0.45, n=7,
+                           color=BLUE, speed=0.8, seed=11)
+        self.add(b, wall, cell, flask, salt, schematic())
+        self.at("tried to make")
+        salt_block = RoundedRectangle(width=1.55, height=0.52, corner_radius=0.1,
+                                      color=BLUE, fill_color=BLUE, fill_opacity=0.28).move_to(salt)
+        self.play(ReplacementTransform(salt, salt_block), run_time=0.45)
+        self.play(salt_block.animate.move_to([3.9, 0.9, 0]).rotate(-0.22), run_time=1.0)
+        self.play(FadeOut(salt_block, shift=DOWN * 0.7), FadeIn(swirl), run_time=0.8)
+        self.at("urea crystallized")
+        crystals = VGroup(*[Square(side_length=0.30, color=GREEN,
+                                   fill_color=GREEN, fill_opacity=0.7).stretch(1.35, 1).rotate(PI / 4)
+                            for _ in range(7)])
+        for c, p in zip(crystals, [(3.7,-1.55),(4.05,-1.45),(4.4,-1.52),(4.72,-1.4),
+                                   (3.9,-1.12),(4.3,-1.12),(4.58,-1.03)]): c.move_to([*p,0])
+        urea = chip("UREA", GREEN, 30).move_to([5.55, 0.25, 0])
+        self.play(FadeOut(swirl), FadeIn(crystals, shift=UP * 0.15), run_time=0.8)
+        self.play(FadeIn(urea, shift=UP * 0.12), run_time=0.6)
+        self.at("without a body")
+        self.play(cell.animate.shift(LEFT * 3.2).set_opacity(0), run_time=1.0)
+        self.at("wall cracked")
+        crack = crack_on_wall()
+        self.play(Create(crack), FadeOut(wall[1]),
+                  wall[0].animate.set_stroke(opacity=0.55), run_time=0.9)
+        self.play(crystals.animate.shift(UP * 0.07), run_time=1.0, rate_func=there_and_back)
+        self.finish()
+
+
+class S05Loophole(LabSpokenScene):
+    def construct(self):
+        b = bench(); wall = life_wall(6.35); wall[1].set_opacity(0)
+        crack = crack_on_wall(); flask = lab_flask()
+        urea = chip("UREA", GREEN, 30).move_to([5.55, 0.25, 0])
+        cyanate = chip("AMMONIUM CYANATE", BLUE, 28).move_to([2.2, 2.25, 0])
+        source = chip("BLOOD · HORN · HOOF", GREEN, 28).move_to([-4.25, 1.25, 0])
+        ribbon = CubicBezier(source.get_right(), [-1.5,1.25,0], [0.5,2.2,0], cyanate.get_left(),
+                             color=RED, stroke_width=4)
+        spark = Star(n=4, outer_radius=0.16, inner_radius=0.06, color=GOLD,
+                     fill_color=GOLD, fill_opacity=1).move_to(source.get_right())
+        self.add(b, wall, crack, flask, urea, schematic())
+        # Show the provenance chain before naming it, and keep the large ribbon moving.
+        self.play(FadeIn(cyanate), Create(ribbon), run_time=1.4)
+        self.play(FadeIn(source, shift=RIGHT * 0.2),
+                  ShowPassingFlash(ribbon.copy().set_stroke(GOLD, 11), time_width=0.6), run_time=1.3)
+        self.play(source.animate.shift(DOWN * 0.34), run_time=0.9, rate_func=there_and_back)
+        provenance_world = VGroup(b, wall, crack, flask, urea, cyanate, source, ribbon)
+        self.play(provenance_world.animate.shift(RIGHT * 0.14), run_time=1.0, rate_func=there_and_back)
+        self.at("traced to animal")
+        self.add(spark)
+        self.play(MoveAlongPath(spark, ribbon), run_time=1.6, rate_func=linear)
+        self.play(spark.animate.move_to([0.02, 0.3, 0]), run_time=0.8)
+        self.at("a skeptic")
+        patch = RoundedRectangle(width=0.68, height=3.7, corner_radius=0.15, color=RED,
+                                 fill_color=RED, fill_opacity=0.12, stroke_width=4).move_to([0,-0.2,0])
+        tag = T("LOOPHOLE", 30, RED, weight=BOLD).rotate(0.06).move_to([1.25, 0.35, 0])
+        self.play(FadeIn(patch), FadeOut(crack), FadeIn(tag, shift=UP * 0.2), run_time=0.9)
+        self.play(ShowPassingFlash(ribbon.copy().set_stroke(GOLD, 9), time_width=0.5), run_time=1.5)
+        self.finish()
+
+
+class S06Rule(LabSpokenScene):
+    def construct(self):
+        r = ruler(1); spark = Star(n=4, outer_radius=0.18, inner_radius=0.07, color=GOLD,
+                                  fill_color=GOLD, fill_opacity=1)
+        spark.move_to(r[1][0].get_top() + UP * 0.45)
+        trace = Dot(radius=0.12, color=GOLD).move_to(r[1][2].get_top() + UP * 0.55)
+        self.play(FadeIn(r[0]), LaggedStart(*[GrowFromCenter(x) for x in r[1]], lag_ratio=0.18), run_time=1.4)
+        self.play(Circumscribe(r[1][0], color=TEAL, stroke_width=7), run_time=1.2)
+        self.play(r[1][1].animate.shift(UP * 0.10), run_time=0.7, rate_func=there_and_back)
+        self.at("remove life")
+        self.play(FadeIn(trace),
+                  spark.animate.move_to(trace.get_center() + UP * 0.75),
+                  r.animate(rate_func=there_and_back).shift(RIGHT * 0.14), run_time=1.4)
+        self.at("prove it is gone")
+        lens = Circle(radius=0.42, color=TEAL, stroke_width=5).move_to(trace)
+        handle = Line(lens.get_corner(DR), lens.get_corner(DR) + [0.55,-0.55,0], color=TEAL, stroke_width=6)
+        cross = Cross(stroke_color=RED, stroke_width=6).scale(0.24).move_to(trace)
+        self.play(Create(lens), GrowFromPoint(handle, lens.get_corner(DR)),
+                  r.animate(rate_func=there_and_back).shift(LEFT * 0.14), run_time=0.7)
+        self.play(Create(cross), trace.animate.set_opacity(0.2),
+                  r.animate(rate_func=there_and_back).shift(RIGHT * 0.14), run_time=0.9)
+        self.at("only as far")
+        reach = Line(r[1][0].get_left(), r[1][0].get_right(), color=TEAL, stroke_width=8)
+        self.play(Create(reach), spark.animate.move_to(r[1][1].get_top() + UP * 0.45), run_time=1.2)
+        self.play(spark.animate.shift(RIGHT * 0.25), run_time=0.8, rate_func=there_and_back)
+        self.play(VGroup(lens, handle).animate.shift(LEFT * 0.3), run_time=1.1, rate_func=there_and_back)
+        self.play(VGroup(r, lens, handle, cross, trace, reach).animate.shift(DOWN * 0.12),
+                  run_time=1.0, rate_func=there_and_back)
+        self.finish()
+
+
+class S07Kolbe(LabSpokenScene):
+    def construct(self):
+        r = ruler(1); r.scale(0.78); r[0].set_opacity(0); r[1].move_to([0, -2.72, 0])
+        furnace = Circle(radius=0.65, color=RED, stroke_width=8).move_to([-2.15, 1.2, 0])
+        pipe = VMobject(color=GREY, stroke_width=12).set_points_as_corners([
+            [-1.45,1.2,0], [0.0,1.2,0], [0.0,0.4,0], [2.15,0.4,0]])
+        charcoal = chip("CHARCOAL", BLUE, 28).move_to([-5.25, 1.7, 0])
+        sulfur = chip("SULFUR", BLUE, 28).move_to([-5.25, 0.7, 0])
+        self.add(r, charcoal, sulfur, furnace, schematic())
+        self.play(charcoal.animate.shift(RIGHT * 0.32), sulfur.animate.shift(RIGHT * 0.32), run_time=1.2)
+        self.play(furnace.animate.scale(1.12), run_time=0.7, rate_func=there_and_back)
+        self.at("built acetic acid")
+        pellets = VGroup(
+            RoundedRectangle(width=0.72, height=0.28, corner_radius=0.08,
+                             color=BLUE, fill_color=BLUE, fill_opacity=0.35),
+            RoundedRectangle(width=0.72, height=0.28, corner_radius=0.08,
+                             color=BLUE, fill_color=BLUE, fill_opacity=0.35),
+        )
+        pellets[0].move_to(charcoal); pellets[1].move_to(sulfur)
+        self.play(ReplacementTransform(charcoal, pellets[0]),
+                  ReplacementTransform(sulfur, pellets[1]), run_time=0.6)
+        self.play(pellets[0].animate.move_to([-2.15,1.38,0]),
+                  pellets[1].animate.move_to([-2.15,1.02,0]), run_time=1.0)
+        cs = chip("CARBON DISULFIDE", BLUE, 28).move_to([0.25, 2.35, 0])
+        self.play(FadeOut(pellets), FadeIn(cs, shift=RIGHT * 0.2), run_time=0.8)
+        self.play(Create(pipe), run_time=0.8)
+        power_label = T("POWER", 28, YELLOW, weight=BOLD)
+        power_box = RoundedRectangle(width=power_label.width + 0.3, height=0.72,
+                                     corner_radius=0.12, color=YELLOW,
+                                     fill_color=YELLOW, fill_opacity=0.15)
+        battery = VGroup(power_box, power_label.move_to(power_box)).move_to([1.05, 1.75, 0])
+        acid = chip("ACETIC ACID", GREEN, 28).move_to([3.65, 0.4, 0])
+        self.play(FadeOut(cs), FadeIn(battery),
+                  ShowPassingFlash(pipe.copy().set_stroke(YELLOW, 18), time_width=0.6),
+                  run_time=1.4)
+        self.play(FadeIn(acid, shift=RIGHT * 0.3), run_time=0.7)
+        self.play(acid.animate.shift(RIGHT * 0.45), run_time=0.9, rate_func=there_and_back)
+        self.at("counted those starting")
+        lifeless = T("LIFELESS INPUTS", 28, BLUE, weight=BOLD).move_to([-4.55, 2.75, 0])
+        self.play(FadeIn(lifeless, shift=DOWN * 0.1), run_time=0.7)
+        self.at("second segment")
+        target = ruler(2); target.scale(0.78); target[0].set_opacity(0); target[1].move_to([0, -2.72, 0])
+        self.play(Transform(r, target), FadeOut(lifeless), FadeOut(acid),
+                  FadeOut(battery), FadeOut(pipe), FadeOut(furnace), run_time=0.9)
+        self.play(r[1][1].animate.shift(UP * 0.14),
+                  run_time=1.1, rate_func=there_and_back)
+        self.play(r.animate.shift(LEFT * 0.14), run_time=1.0, rate_func=there_and_back)
+        self.finish()
+
+
+class S08CellClaim(LabSpokenScene):
+    def construct(self):
+        r = ruler(2); r.scale(0.68); r[0].set_opacity(0); r[1].move_to([0, -3.02, 0])
+        cell = yeast_cell(scale=0.9, center=(0, 0.35, 0))
+        cell[1].set_opacity(0); cell[2].set_opacity(0)
+        yeast_label = T("YEAST CELL", 30, GREEN, weight=BOLD).move_to([0, 2.7, 0])
+        specks = OrbitSpecks(center=(0.45, 1.05, 0), rx=0.34, ry=0.24)
+        sugar_in = chip("SUGAR", GREEN, 28).move_to([-0.5, 0.62, 0])
+        rotor = VGroup(Circle(radius=0.72, color=YELLOW, stroke_width=5),
+                       *[Line([0,0,0], [0.62*math.cos(a),0.62*math.sin(a),0],
+                              color=YELLOW, stroke_width=3) for a in np.linspace(0, TAU, 8, endpoint=False)])
+        rotor.move_to([0.45, -0.18, 0])
+        fermentation = T("FERMENTATION", 28, YELLOW, weight=BOLD).move_to([0, -1.78, 0])
+        wheel = VGroup(rotor, fermentation)
+        outside = chip("SUGAR", GREEN, 28).move_to([4.55, 0.3, 0])
+        bubbles = RisingBubbles(cx=0.72, y0=-0.2, y1=2.35, width=0.5, n=7, seed=14)
+        self.add(r, cell, yeast_label, specks, sugar_in, schematic())
+        self.play(cell[0].animate.scale(1.05), run_time=1.1, rate_func=there_and_back)
+        self.play(cell[1].animate.shift(RIGHT * 0.35), run_time=1.0, rate_func=there_and_back)
+        self.play(VGroup(r, cell, specks, sugar_in).animate.shift(RIGHT * 0.14),
+                  run_time=1.0, rate_func=there_and_back)
+        self.at("fermentation appeared")
+        self.play(FadeIn(wheel), FadeIn(bubbles), run_time=0.8)
+        self.play(Rotate(wheel[0], angle=PI, rate_func=linear),
+                  cell.animate.scale(1.045), run_time=1.8, rate_func=there_and_back)
+        self.at("sugar to alcohol")
+        self.play(FadeIn(outside, shift=LEFT * 0.2), run_time=0.7)
+        self.play(cell.animate.shift(LEFT * 0.24), run_time=1.1, rate_func=there_and_back)
+        self.at("could not be separated")
+        fence = Circle(radius=2.45, color=RED, stroke_width=7).move_to([0,0.25,0])
+        self.play(FadeOut(yeast_label), FadeOut(fermentation), run_time=0.35)
+        self.play(Create(fence), run_time=0.65)
+        self.play(Rotate(wheel[0], angle=PI, rate_func=linear),
+                  cell.animate.scale(1.04), run_time=1.6, rate_func=there_and_back)
+        self.finish()
+
+
+class S09Buchner(LabSpokenScene):
+    def construct(self):
+        mortar = ArcBetweenPoints([-2.5,-0.6,0], [2.5,-0.6,0], angle=PI/2,
+                                  color=TEXT, stroke_width=8).shift(UP * 1.1)
+        pestle = RoundedRectangle(width=0.42, height=3.2, corner_radius=0.18, color=GREY,
+                                  fill_color=GREY, fill_opacity=0.35).rotate(-0.55).move_to([0.65,1.15,0])
+        cells = VGroup(*[Circle(radius=0.38, color=GREEN, fill_color=GREEN, fill_opacity=0.2)
+                         for _ in range(5)])
+        grains = VGroup(*[Dot(radius=0.085, color=YELLOW) for _ in range(12)])
+        rng = random.Random(21)
+        for m in [*cells, *grains]: m.move_to([rng.uniform(-1.35,1.35), rng.uniform(-0.15,0.75),0])
+        self.add(mortar, pestle, cells, grains, schematic())
+        self.play(Rotate(pestle, angle=0.55, about_point=[0,-0.15,0], rate_func=there_and_back),
+                  cells.animate.shift(RIGHT * 0.35), grains.animate.shift(LEFT * 0.3), run_time=1.5)
+        self.at("pressed out a juice")
+        press = VGroup(Rectangle(width=3.4, height=0.32, color=GREY, fill_color=GREY, fill_opacity=0.5),
+                       Line([0,2.9,0],[0,1.1,0], color=GREY, stroke_width=12)).move_to([-3.95,0.65,0])
+        flask = lab_flask(center=(3.85,-0.75,0), scale=0.88, liquid=GOLD)
+        stream = CubicBezier([-2.4,0.2,0], [-1.0,-0.4,0], [1.8,0.3,0], [3.55,-0.3,0],
+                             color=GOLD, stroke_width=10)
+        press.shift(UP * 1.0)
+        self.play(FadeOut(VGroup(pestle,cells,grains)), FadeIn(press), FadeIn(flask), Create(stream), run_time=1.2)
+        self.play(press.animate.shift(DOWN * 1.0), mortar.animate.scale(0.94), run_time=1.0)
+        self.at("added sugar")
+        sugar = chip("SUGAR", GREEN, 28).move_to([3.85,1.8,0])
+        self.play(FadeIn(sugar), sugar.animate.move_to([3.85,-0.35,0]).scale(0.7), run_time=1.0)
+        self.play(press.animate.shift(DOWN * 0.45), mortar.animate.scale(0.96),
+                  run_time=0.9, rate_func=there_and_back)
+        self.at("bubbles rose")
+        bubbles = RisingBubbles(cx=3.85, y0=-1.75, y1=1.25, width=1.2, n=10, seed=22)
+        scraps = tiny_scraps()
+        self.play(FadeIn(bubbles), FadeIn(scraps), FadeOut(stream), FadeOut(sugar), run_time=0.8)
+        self.play(flask.animate.scale(1.055), scraps.animate.shift(UP * 0.16),
+                  run_time=1.2, rate_func=there_and_back)
+        self.at("living scraps survived")
+        circle = Ellipse(width=1.25, height=1.15, color=RED, stroke_width=5).move_to([4.22,1.02,0])
+        q = T("?", 52, GOLD, font=TITLE_FONT, weight=BOLD).move_to([5.25,1.55,0])
+        self.play(Create(circle), FadeIn(q, shift=DOWN * 0.15), run_time=0.8)
+        self.finish()
+
+
+class S10Predict(LabSpokenScene):
+    def construct(self):
+        flask = lab_flask(center=(0,-0.35,0), scale=0.82, liquid=GOLD)
+        bubbles = RisingBubbles(cx=0, y0=-1.25, y1=1.35, width=1.0, n=8, seed=31, speed=0.14)
+        scraps = VGroup(*[Ellipse(width=0.20, height=0.11, color=GREEN, fill_color=GREEN,
+                                  fill_opacity=0.7) for _ in range(2)])
+        scraps[0].move_to([-0.25,0.85,0]); scraps[1].move_to([0.3,1.08,0])
+        question = T("WHAT DISTINGUISHES CELLS FROM A CHEMICAL?", 31, TEXT, weight=BOLD).move_to([0,3.2,0])
+        self.add(flask, bubbles, scraps, schematic())
+        self.play(Write(question), run_time=0.8)
+        self.play(VGroup(flask, scraps).animate.scale(1.06), run_time=1.0, rate_func=there_and_back)
+        self.play(Circumscribe(question, color=TEAL, stroke_width=7), run_time=1.0)
+        cards = [test_card("WARM", (-4.65,0.8,0), 3.2),
+                 test_card("FILTER", (-3.5,-2.1,0), 3.2),
+                 test_card("ANTISEPTIC", (3.5,-2.1,0), 3.5)]
+        self.at("warming")
+        self.play(FadeIn(cards[0], shift=RIGHT * 0.2), run_time=0.65)
+        self.at("cell trapping filter")
+        self.play(FadeIn(cards[1], shift=UP * 0.2), run_time=0.65)
+        self.at("an antiseptic")
+        self.play(FadeIn(cards[2], shift=UP * 0.2), run_time=0.65)
+        self.play(scraps.animate.shift(UP * 0.15), run_time=1.2, rate_func=there_and_back)
+        self.finish()
+
+
+class S11PredictHold(Scene):
+    def construct(self):
+        flask = lab_flask(center=(0,-0.35,0), scale=0.82, liquid=GOLD)
+        bubbles = RisingBubbles(cx=0, y0=-1.25, y1=1.35, width=1.0, n=8, seed=31, speed=0.14)
+        scraps = VGroup(*[Ellipse(width=0.20, height=0.11, color=GREEN, fill_color=GREEN,
+                                  fill_opacity=0.7) for _ in range(2)])
+        scraps[0].move_to([-0.25,0.85,0]); scraps[1].move_to([0.3,1.08,0])
+        question = T("WHAT DISTINGUISHES CELLS FROM A CHEMICAL?", 31, TEXT, weight=BOLD).move_to([0,3.2,0])
+        cards = [test_card("WARM", (-4.65,0.8,0), 3.2),
+                 test_card("FILTER", (-3.5,-2.1,0), 3.2),
+                 test_card("ANTISEPTIC", (3.5,-2.1,0), 3.5)]
+        self.add(lab_backdrop(), flask, bubbles, scraps, question, *cards, schematic())
+        for card in cards:
+            self.play(ShowPassingFlash(card[0].copy().set_stroke(TEAL, 8), time_width=0.7), run_time=1.25)
+        self.wait(0.75)
+
+
+class S12Controls(LabSpokenScene):
+    def construct(self):
+        title = T("THREE CONTROLS", 34, TEXT, weight=BOLD).move_to([0,3.2,0])
+        cards = [test_card("WARM", (-4.45,0.65,0), 3.6),
+                 test_card("FILTER", (0,0.65,0), 3.6),
+                 test_card("ANTISEPTIC", (4.45,0.65,0), 3.75)]
+        self.add(title, *cards, schematic())
+        self.at("warming stopped")
+        self.play(cards[0][2][0].animate.set_fill(RED, opacity=0.35),
+                  cards[0][2][1].animate.set_fill(RED, opacity=0.35),
+                  cards[0][3][0].animate.set_color(RED),
+                  cards[0][3][1].animate.set_color(RED), run_time=0.8)
+        self.at("could stop either")
+        self.play(cards[0].animate.shift(UP * 0.16), run_time=0.8, rate_func=there_and_back)
+        self.at("could not decide")
+        undecided = T("CANNOT DECIDE", 28, RED, weight=BOLD).move_to([-4.45,-0.85,0])
+        self.play(FadeIn(undecided, shift=UP * 0.1), run_time=0.7)
+        self.play(cards[0].animate.scale(1.045), run_time=0.9, rate_func=there_and_back)
+        self.at("filtered juice")
+        mesh = VGroup(*[Line([-0.65+i*0.22,-1.45,0],[-0.65+i*0.22,-0.75,0], color=TEAL, stroke_width=2)
+                        for i in range(7)])
+        caught = Circle(radius=0.22, color=GREEN, fill_color=GREEN,
+                        fill_opacity=0.25).move_to([-0.5,-1.03,0])
+        pass_arrow = Arrow([0.55,-0.78,0],[0.55,-1.75,0], color=GOLD, buff=0, stroke_width=5)
+        mini_bubbles = RisingBubbles(cx=0.55, y0=-2.75, y1=-1.78, width=0.6, n=6, seed=40)
+        self.play(cards[1][0].animate.set_fill(TEAL, opacity=0.22), FadeIn(mesh), FadeIn(caught),
+                  GrowArrow(pass_arrow), FadeIn(mini_bubbles), run_time=1.1)
+        self.play(cards[1].animate.shift(UP * 0.22), run_time=0.9, rate_func=there_and_back)
+        self.at("treated with chloroform")
+        drops = VGroup(*[Dot(radius=0.11, color=YELLOW) for _ in range(3)])
+        for d, x in zip(drops, [4.15,4.45,4.75]): d.move_to([x,-0.85,0])
+        scraps = VGroup(*[Ellipse(width=0.18,height=0.1,color=GREEN) for _ in range(2)])
+        scraps[0].move_to([4.25,-1.35,0]); scraps[1].move_to([4.7,-1.25,0])
+        cross = Cross(stroke_color=RED, stroke_width=5).scale(0.28).move_to([4.47,-1.3,0])
+        right_bubbles = RisingBubbles(cx=4.45, y0=-2.75, y1=-1.65, width=0.7, n=6, seed=41)
+        self.play(FadeIn(drops, shift=DOWN*0.2), FadeIn(scraps), run_time=0.7)
+        self.play(cards[2][0].animate.set_fill(TEAL, opacity=0.22), Create(cross),
+                  FadeIn(right_bubbles), run_time=1.0)
+        self.play(cards[2].animate.scale(1.045), run_time=0.9, rate_func=there_and_back)
+        self.at("together those controls")
+        bracket = Brace(VGroup(cards[1],cards[2]), DOWN, color=TEAL)
+        verdict = T("NO LIVING CELLS", 30, TEAL, weight=BOLD).next_to(bracket, DOWN, buff=0.12)
+        apparatus = VGroup(undecided, mesh, caught, pass_arrow, mini_bubbles,
+                           drops, scraps, cross, right_bubbles)
+        self.play(FadeOut(apparatus), GrowFromCenter(bracket),
+                  FadeIn(verdict, shift=UP*0.1), run_time=0.9)
+        self.play(ShowPassingFlash(Line([-1.7,-2.75,0],[6.0,-2.75,0], color=TEAL, stroke_width=8), time_width=0.7), run_time=1.4)
+        self.finish()
+
+
+class S13Result(LabSpokenScene):
+    def construct(self):
+        r = ruler(2).scale(0.82).shift(LEFT * 0.65)
+        wall = life_wall(3.5).move_to([5.15,0.85,0])
+        flask = lab_flask(center=(5.55,-2.0,0), scale=0.48)
+        cell_trace = Circle(radius=0.18, color=GREEN, stroke_width=4,
+                            fill_color=GREEN, fill_opacity=0.15)
+        cell_trace.move_to(r[1][2].get_top() + UP * 0.42)
+        spark = Star(n=4, outer_radius=0.16, inner_radius=0.06, color=GOLD,
+                     fill_color=GOLD, fill_opacity=1).move_to(cell_trace.get_center() + RIGHT * 0.65)
+        self.add(r, wall, flask, cell_trace, spark, schematic())
+        self.at("removed the cell")
+        cross = Cross(stroke_color=RED, stroke_width=6).scale(0.25).move_to(cell_trace)
+        self.play(Create(cross), run_time=0.7)
+        self.play(r[1][2].animate.shift(UP * 0.32), run_time=1.0, rate_func=there_and_back)
+        self.play(VGroup(r, wall, flask, cell_trace, spark, cross).animate.shift(LEFT * 0.14),
+                  run_time=1.0, rate_func=there_and_back)
+        self.at("final segment")
+        target = ruler(3).scale(0.82).shift(LEFT * 0.65)
+        self.play(Transform(r, target), FadeOut(cross), FadeOut(cell_trace), run_time=1.0)
+        self.play(r[1][2].animate.shift(UP * 0.16), run_time=0.8, rate_func=there_and_back)
+        self.at("across 70 years")
+        sweep = Line(r[1].get_left(), r[1].get_right(), color=TEAL, stroke_width=10)
+        self.play(Create(sweep), run_time=1.1)
+        for part in r[1]:
+            path = Line(part.get_top(), wall.get_center(), color=TEAL)
+            pulse = Dot(radius=0.10, color=TEAL).move_to(path.get_start())
+            self.add(pulse)
+            self.play(MoveAlongPath(pulse,path), run_time=0.7)
+            self.remove(pulse)
+        self.at("became unnecessary")
+        bubbles = RisingBubbles(cx=5.55, y0=-2.4, y1=1.45, width=0.7, n=8, seed=51)
+        self.play(FadeOut(wall, scale=1.2), FadeOut(spark), run_time=0.5)
+        self.play(FadeIn(bubbles), run_time=0.5)
+        self.finish()
+
+
+class S14Course(LabSpokenScene):
+    def construct(self):
+        platform = RoundedRectangle(width=11.7, height=1.25, corner_radius=0.18, color=TEAL,
+                                    stroke_width=4, fill_color=TEAL, fill_opacity=0.12).move_to([0,-2.15,0])
+        label = T("ORDINARY CHEMISTRY", 32, TEAL, weight=BOLD).move_to(platform)
+        rock = chip("ROCK", BLUE, 28).move_to([-4.9,-0.75,0])
+        salt = chip("SALT", BLUE, 28).move_to([-2.85,-0.75,0])
+        cell = yeast_cell(scale=0.45, center=(-0.4,-0.45,0))
+        cell[2].set_opacity(0)
+        cell_lab = T("YEAST", 28, GREEN, weight=BOLD).move_to([-0.4, 0.85, 0])
+        flask = lab_flask(center=(3.8,-0.25,0), scale=0.62, liquid=GOLD)
+        bubbles = RisingBubbles(cx=3.8, y0=-1.05, y1=1.15, width=0.8, n=8, seed=61)
+        self.add(platform, label, rock, salt, cell, cell_lab, flask, bubbles)
+        self.play(Indicate(platform, color=TEAL, scale_factor=1.015), run_time=0.9)
+        self.play(rock.animate(rate_func=there_and_back).shift(UP * 0.1),
+                  salt.animate(rate_func=there_and_back).shift(UP * 0.1),
+                  cell.animate(rate_func=there_and_back).shift(UP * 0.1),
+                  flask.animate(rate_func=there_and_back).shift(UP * 0.1), run_time=1.3)
+        self.at("reactions can be isolated")
+        self.play(flask.animate.shift(UP*0.55), bubbles.animate.shift(UP*0.55), run_time=0.8)
+        self.at("measured")
+        counter_box = RoundedRectangle(width=2.1,height=1.2,corner_radius=0.12,color=YELLOW,
+                                       fill_color=YELLOW,fill_opacity=0.08).move_to([5.25,2.25,0])
+        counter = M("8 bubbles", 28, YELLOW).move_to(counter_box)
+        link = Arrow([4.45,1.2,0], counter_box.get_bottom() + LEFT * 0.3,
+                     color=YELLOW,buff=0.1,stroke_width=4)
+        self.play(GrowArrow(link), FadeIn(counter_box), FadeIn(counter), run_time=0.8)
+        self.at("explained")
+        elbow = Line(counter_box.get_left(), [2.35, 2.25, 0], color=TEAL, stroke_width=5)
+        back = Arrow([2.35, 2.25, 0], platform.get_top()+RIGHT*1.4,
+                     color=TEAL, buff=0.12, stroke_width=5)
+        self.play(Create(elbow), GrowArrow(back),
+                  ShowPassingFlash(platform.copy().set_stroke(TEAL,10), time_width=0.7), run_time=1.1)
+        self.at("requires proving life")
+        rule = T("REMOVE LIFE  →  PROVE IT IS GONE", 32, TEXT, weight=BOLD).move_to([0,3.15,0])
+        self.play(FadeIn(rule, shift=DOWN*0.12), run_time=0.8)
+        self.play(bubbles.animate.shift(UP*0.08), run_time=1.0, rate_func=there_and_back)
+        self.finish()
+
+
+class S15End(EndCard):
+    LINE = "Testing a claim that chemistry needs life requires proving life is gone."
+
+    def construct(self):
+        self.add(lab_backdrop())
+        b = bench().set_opacity(0.3)
+        flask = lab_flask(center=(5.25,-0.95,0), scale=0.52, liquid=GOLD).set_opacity(0.65)
+        bubbles = RisingBubbles(cx=5.25, y0=-1.75, y1=0.55, width=0.65, n=8, seed=71)
+        hexm = hex_mascot(1.55).move_to([-5.25,-0.85,0])
+        line = T("TESTING A CLAIM THAT CHEMISTRY NEEDS LIFE\nREQUIRES PROVING LIFE IS GONE.",
+                 32, TEXT, font=TITLE_FONT, weight=BOLD, line_spacing=0.9)
+        fit(line, 8.0, 1.6); line.move_to([0,0.75,0])
+        rule = Line([-2.3,-0.55,0],[2.3,-0.55,0],color=GOLD,stroke_width=4)
+        self.add(b, flask, bubbles)
+        self.play(FadeIn(hexm,shift=UP*0.15),FadeIn(line,shift=UP*0.12),GrowFromCenter(rule),run_time=0.9)
+        shoulder = hexm.arm.get_start()
+        for _ in range(2):
+            self.play(Rotate(hexm.arm,angle=-0.5,about_point=shoulder),rate_func=there_and_back,run_time=0.35)
+        self.finish()

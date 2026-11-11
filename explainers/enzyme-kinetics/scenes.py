@@ -1,706 +1,623 @@
-"""Enzyme kinetics: why enzymes hit a speed limit  (Biochemistrypedia explainer)
+"""Why doubling substrate stops doubling speed.
 
-Timed to the SPOKEN words: every cue below is looked up in the faster-whisper word timestamps in
-_shared/stt/enzyme-kinetics__<clip>.json (self.at("phrase") waits until that phrase starts, minus a lead).
+COLOR MAP
+  BLUE   enzyme booths, busy fraction, velocity curve
+  YELLOW substrate and [S]
+  GREEN  product and measured velocity
+  RED    Vmax ceiling / rejected prediction
+  GOLD   Km and the half-speed construction
+  GREY   axes and supporting structure
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the enzyme, and the velocity curve v (the enzyme's output)
-  YELLOW = substrate, [S], the cars
-  GREEN  = product, and kcat (reactions completed per second)
-  RED    = Vmax, the ceiling
-  GOLD   = Km, the half-max marker
-  GREY   = axes, structure, de-emphasized
-  (Km scene only: three substrate curves use BLUE / TEAL / PURPLE as a legend.)
+The film stays in one schematic toll-plaza world.  All plotted values are computed with
+v = 60[S]/(4+[S]); nothing is drawn as a molecular structure.
 """
-import json
-import os
-import re
-from pathlib import Path
-
-import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-# Manim's partial-movie cache reused stale clips here (S01 came out 1.2 s long with cues shifted), so
-# every render is from scratch. Cheap at -ql.
-config.disable_caching = True
 
-PURPLE = "#B58CD9"
-STT_DIR = Path(__file__).resolve().parent.parent / "_shared" / "stt"
+K_M = 4.0
+V_MAX = 60.0
+GOLD_KM = GOLD
 
 
-from bp_style import _norm  # noqa: E402  numbers as digits, as the transcript writes them
+def mm(s, vmax=V_MAX, km=K_M):
+    return vmax * s / (km + s)
 
 
-class Scn(NarratedScene):
-    """NarratedScene + at(): wait until a spoken phrase starts (word timestamps from speech-to-text)."""
-
-    def _words(self):
-        """Spoken words of this scene with start times (audio/words.json, from the Kokoro re-voice, 2026-10-31)."""
-        if not hasattr(self, "_wl"):
-            sid = os.environ["KX_SCENE_ID"]
-            d = json.loads((Path(os.environ["KX_SCRIPT"]).resolve().parent / "audio" / "words.json").read_text())
-            self._wl = [(float(w[0]), _norm(w[2])) for w in d.get(sid, []) if _norm(w[2])]
-        return self._wl
-
-    def t_of(self, phrase, nth=0):
-        toks = [_norm(p) for p in phrase.split() if _norm(p)]
-        wl = self._words()
-        hits = [wl[i][0] for i in range(len(wl) - len(toks) + 1) if [x[1] for x in wl[i:i + len(toks)]] == toks]
-        if len(hits) <= nth:
-            raise ValueError(f"phrase not spoken: {phrase!r} (nth={nth})")
-        return hits[nth]
-
-    def at(self, phrase, lead=0.2, nth=0):
-        target = self.t_of(phrase, nth) - lead
-        rest = target - self.elapsed()
-        with open(Path(__file__).parent / "lateness.log", "a") as lg:
-            lg.write(f"{os.environ.get('KX_SCENE_ID')}  {phrase[:28]!r:34} spoken {target + lead:5.1f}  "
-                     f"now {self.elapsed():5.1f}  late {-rest:+5.1f}\n")
-        if rest > 0.02:
-            self.wait(rest)
-
-    def step(self, anims, run_time):
-        """play() that tolerates an empty animation list."""
-        anims = [a for a in anims if a is not None]
-        if anims:
-            self.play(*anims, run_time=run_time)
-        else:
-            self.wait(run_time)
+def booth_row(y=-0.35, scale=1.0, busy=2, x0=-3.9, spacing=2.6):
+    """Four large schematic enzyme booths, kept at identical landmarks between scenes."""
+    booths = VGroup()
+    for i in range(4):
+        box = RoundedRectangle(
+            width=1.75 * scale, height=1.72 * scale, corner_radius=0.16,
+            stroke_color=BLUE, stroke_width=4, fill_color=BLUE,
+            fill_opacity=0.28 if i < busy else 0.08,
+        )
+        gate = Line(LEFT * 0.58 * scale, RIGHT * 0.58 * scale,
+                    color=GREEN if i >= busy else RED, stroke_width=7)
+        gate.move_to(box.get_bottom() + UP * 0.34 * scale)
+        state = T("BUSY" if i < busy else "EMPTY", 28,
+                  BLUE if i < busy else TEXT, weight=BOLD).scale(scale)
+        state.move_to(box.get_center() + UP * 0.30 * scale)
+        b = VGroup(box, gate, state).move_to([x0 + i * spacing * scale, y, 0])
+        b.box, b.gate, b.state = box, gate, state
+        booths.add(b)
+    return booths
 
 
-def mm(S, V=1.0, K=2.0):
-    return V * S / (K + S)
+def set_booth_state(booth, busy):
+    box = booth[0].copy().set_fill(BLUE, 0.28 if busy else 0.08)
+    gate = booth[1].copy().set_color(RED if busy else GREEN)
+    state = T("BUSY" if busy else "EMPTY", 28, BLUE if busy else TEXT, weight=BOLD)
+    state.move_to(booth[2])
+    return VGroup(box, gate, state)
 
 
-def make_axes(x_max, y_max, w, h, origin, x_step=2, y_step=1):
-    ax = Axes(x_range=[0, x_max, x_step], y_range=[0, y_max, y_step], x_length=w, y_length=h,
-              axis_config={"include_numbers": False, "include_ticks": False, "color": GREY,
-                           "stroke_width": 3, "tip_width": 0.16, "tip_height": 0.16}, tips=True)
+def car(label="S", color=YELLOW, scale=1.0):
+    body = RoundedRectangle(width=0.74, height=0.42, corner_radius=0.11,
+                            stroke_width=0, fill_color=color, fill_opacity=1)
+    parts = VGroup(body)
+    if label:
+        parts.add(T(label, 30, BG, weight=BOLD).move_to(body))
+    return parts.scale(scale)
+
+
+def add_flow(scene, y_values=(-2.2, -1.55), speed=1.0, opacity=0.85, x_range=(-6.5, 6.5)):
+    """Autonomous substrate traffic: visible motion continues through cue waits."""
+    flow = VGroup()
+    for row, y in enumerate(y_values):
+        for j in range(5):
+            c = car(label=None, scale=0.70).set_opacity(opacity)
+            c.move_to([x_range[0] + j * 2.8 + row * 0.8, y, 0])
+            c.vx = speed * (0.82 + 0.08 * j)
+
+            def drift(m, dt, lo=x_range[0], hi=x_range[1]):
+                m.shift(RIGHT * m.vx * dt)
+                if m.get_left()[0] > hi:
+                    m.shift(LEFT * (hi - lo + m.width + 0.4))
+
+            c.add_updater(drift)
+            flow.add(c)
+    scene.add(flow)
+    return flow
+
+
+def pulse_gates(booths, speed=2.2):
+    """Give each working booth a staggered, slow gate cadence."""
+    for i, booth in enumerate(booths):
+        booth[1].phase = i * 0.9
+
+        def breathe(m, dt, phase=i * 0.9):
+            m.phase += dt * speed
+            m.set_stroke(opacity=0.55 + 0.45 * (0.5 + 0.5 * np.sin(m.phase + phase)))
+
+        booth[1].add_updater(breathe)
+    return booths
+
+
+def counter_box(title, value, color, center, width=2.45):
+    box = RoundedRectangle(width=width, height=1.05, corner_radius=0.14,
+                           stroke_color=color, stroke_width=3,
+                           fill_color=color, fill_opacity=0.10)
+    lab = T(title, 28, color, weight=BOLD).next_to(box.get_top(), DOWN, buff=0.12)
+    num = M(value, 30, TEXT).next_to(box.get_bottom(), UP, buff=0.12)
+    g = VGroup(box, lab, num).move_to(center)
+    return g
+
+
+def busy_gauge(frac, center=(5.4, -0.2, 0), height=4.0, label=True):
+    box = RoundedRectangle(width=0.72, height=height, corner_radius=0.10,
+                           stroke_color=GREY, stroke_width=3)
+    fh = max(0.06, (height - 0.12) * frac)
+    fill = Rectangle(width=0.60, height=fh, stroke_width=0,
+                     fill_color=BLUE, fill_opacity=0.9)
+    fill.move_to(box.get_bottom() + UP * (0.06 + fh / 2))
+    pct = M(f"{round(frac * 100):d}%", 28, BLUE, weight=BOLD).next_to(box, DOWN, buff=0.14)
+    parts = VGroup(box, fill, pct).move_to(center)
+    if label:
+        lab = T("busy fraction", 28, BLUE).rotate(PI / 2).next_to(box, LEFT, buff=0.18)
+        parts.add(lab)
+    return parts
+
+
+def fraction_booths(busy, center=(4.6, 0.5, 0), label=None):
+    """Four compact, unlabelled booths plus one readable summary label.
+
+    The full plaza labels become too small when squeezed beside a graph.  These boxes carry
+    the same blue/empty visual language without creating unreadable or colliding text.
+    """
+    boxes = VGroup()
+    for i in range(4):
+        box = RoundedRectangle(
+            width=0.68, height=0.82, corner_radius=0.10,
+            stroke_color=BLUE, stroke_width=3, fill_color=BLUE,
+            fill_opacity=0.55 if i < busy else 0.06,
+        )
+        gate = Line(LEFT * 0.22, RIGHT * 0.22,
+                    color=RED if i < busy else GREEN, stroke_width=5)
+        gate.move_to(box.get_bottom() + UP * 0.16)
+        boxes.add(VGroup(box, gate))
+    boxes.arrange(RIGHT, buff=0.18).move_to(center)
+    if label is None:
+        label = f"{busy} of 4 busy"
+    summary = T(label, 30, BLUE, weight=BOLD).next_to(boxes, UP, buff=0.22)
+    return VGroup(boxes, summary)
+
+
+def low_s_comparison(center=(4.75, 0.15, 0)):
+    """Readable computed comparison for the crowded low-[S] end of the main graph."""
+    panel = RoundedRectangle(width=3.35, height=3.45, corner_radius=0.16,
+                             stroke_color=GREY, stroke_width=2,
+                             fill_color=GREY, fill_opacity=0.16)
+    title = T("LOW [S] (mM)", 28, YELLOW, weight=BOLD)
+    title.move_to(panel.get_top() + DOWN * 0.32)
+    baseline = Line(LEFT * 1.18, RIGHT * 1.18, color=GREY, stroke_width=3)
+    baseline.move_to(panel.get_bottom() + UP * 0.60)
+    bars = VGroup()
+    for x, substrate, velocity in [(-0.62, 0.2, mm(0.2)), (0.62, 0.4, mm(0.4))]:
+        h = 1.65 * velocity / mm(0.4)
+        bar = Rectangle(width=0.56, height=h, stroke_width=0,
+                        fill_color=GREEN, fill_opacity=0.9)
+        bar.move_to(baseline.get_center() + RIGHT * x + UP * h / 2)
+        value = M(f"{velocity:.1f}", 28, GREEN, weight=BOLD).next_to(bar, UP, buff=0.10)
+        amount = M(f"{substrate:.1f}", 28, YELLOW).next_to(
+            baseline.get_center() + RIGHT * x, DOWN, buff=0.14
+        )
+        bars.add(bar, value, amount)
+    group = VGroup(panel, title, baseline, bars).move_to(center)
+    return group
+
+
+def graph_world(vmax=V_MAX, y_max=70, origin=(-5.0, -2.55), width=10.5, height=5.0):
+    ax = Axes(
+        x_range=[0, 32, 4], y_range=[0, y_max, 10], x_length=width, y_length=height,
+        axis_config={"include_numbers": False, "include_ticks": False, "color": GREY,
+                     "stroke_width": 3, "tip_width": 0.16, "tip_height": 0.16}, tips=True,
+    )
     ax.shift(np.array([origin[0], origin[1], 0]) - ax.c2p(0, 0))
-    return ax
+    # A single dark plotting field keeps the computed world visually substantial without
+    # adding a new claim.  It also matches the broad roadway used by the toll-plaza scenes.
+    panel = RoundedRectangle(width=min(12.35, width + 1.55), height=min(6.65, height + 1.35),
+                             corner_radius=0.18, stroke_color=GREY, stroke_width=2,
+                             fill_color=GREY, fill_opacity=0.24).move_to(ax)
+    panel.set_z_index(-2)
+    ax.add_to_back(panel)
+    cv = ax.plot(lambda x: mm(x, vmax), x_range=[0, 32], color=BLUE, stroke_width=7)
+    xl = T("substrate concentration [S]", 28, YELLOW).next_to(ax, DOWN, buff=0.25)
+    yl = T("initial velocity", 28, GREEN).rotate(PI / 2).next_to(ax, LEFT, buff=0.25)
+    return ax, cv, xl, yl
 
 
-def axis_labels(ax, xtext, ytext, size=26, x_dy=0.55, y_dx=0.6):
-    xl = T(xtext, size)
-    xl.move_to([ax.c2p(0, 0)[0] + ax.x_length / 2, ax.c2p(0, 0)[1] - x_dy, 0])
-    yl = T(ytext, size).rotate(PI / 2)
-    yl.move_to([ax.c2p(0, 0)[0] - y_dx, ax.c2p(0, 0)[1] + ax.y_length / 2, 0])
-    return xl, yl
+def moving_curve_dot(scene, ax, vmax=V_MAX, lo=1.0, hi=30.0, period=4.0):
+    # The travelling booth is intentionally large enough to read as the carried plaza icon,
+    # rather than as a decorative pulse on a mostly still graph.
+    box = RoundedRectangle(width=1.12, height=0.86, corner_radius=0.12,
+                           stroke_color=BLUE, stroke_width=4,
+                           fill_color=BLUE, fill_opacity=0.38)
+    tag = T("E", 28, TEXT, weight=BOLD).move_to(box)
+    dot = VGroup(box, tag).move_to(ax.c2p(lo, mm(lo, vmax)))
+    dot.clock = 0.0
+    stem = DashedLine(ax.c2p(lo, 0), ax.c2p(lo, mm(lo, vmax)),
+                      color=YELLOW, stroke_width=5, dash_length=0.12).set_opacity(0.58)
+
+    def travel(m, dt):
+        m.clock += dt
+        u = 0.5 + 0.5 * np.sin(TAU * m.clock / period - PI / 2)
+        s = lo + (hi - lo) * u
+        m.move_to(ax.c2p(s, mm(s, vmax)))
+
+    def follow(m, dt):
+        m.put_start_and_end_on([dot.get_x(), ax.c2p(0, 0)[1], 0], dot.get_center())
+
+    dot.add_updater(travel)
+    stem.add_updater(follow)
+    scene.add(stem, dot)
+    return dot
 
 
-def curve(ax, V=1.0, K=2.0, x_max=None, color=BLUE, width=6):
-    return ax.plot(lambda x: V * x / (K + x), x_range=[0, x_max if x_max else ax.x_range[1]],
-                   color=color, stroke_width=width)
-
-
-def dline(a, b, color=GREY, w=3, **kw):
-    return DashedLine(a, b, color=color, stroke_width=w, dash_length=0.12, **kw)
-
-
-def vband(ax, a, b, color=YELLOW, op=0.09):
-    r = Rectangle(width=ax.c2p(b, 0)[0] - ax.c2p(a, 0)[0], height=ax.y_length, stroke_width=0,
-                  fill_color=color, fill_opacity=op)
-    r.move_to([(ax.c2p(a, 0)[0] + ax.c2p(b, 0)[0]) / 2, ax.c2p(0, 0)[1] + ax.y_length / 2, 0])
-    return r
-
-
-def eq_kcat(size=40):
-    """kcat = Vmax / [E]T, built by hand (no LaTeX)."""
-    kcat = T("kcat", size, GREEN, weight=BOLD)
-    eq = T("=", size)
-    vmax = T("Vmax", size, RED, weight=BOLD)
-    sl = T("/", size)
-    e = T("[E]", size, BLUE, weight=BOLD)
-    sub = T("T", int(size * 0.6), BLUE, weight=BOLD)
-    g = VGroup(kcat, eq, vmax, sl, e).arrange(RIGHT, buff=0.22)
-    sub.next_to(e, RIGHT, buff=0.03).align_to(e, DOWN).shift(DOWN * 0.1)
-    return VGroup(g, sub), kcat, vmax, e, sub
-
-
-# --------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
+class S00Hook(SpokenScene, TitleCard):
+    """The required first TitleCard class is used as the narrated visual hook."""
     LESSON = "Enzyme kinetics"
-    TITLE = "Why enzymes hit a speed limit"
-
-
-# --------------------------------------------------------------------------------------------
-class S01Tollbooth(Scn):
-    """Spoken: toll booth -> light traffic (v proportional to [S]) -> [S] = Km is half capacity ->
-    heavy traffic, saturated, flat out at Vmax -> more cars don't help -> saturation is not stopping."""
+    TITLE = "Why doubling substrate stops doubling speed"
 
     def construct(self):
-        K, XM = 2.0, 16
-        heading = T("A toll booth is an enzyme", 36, font=TITLE_FONT).to_edge(UP, buff=0.45)
-
-        # --- the toll booth (enzyme, one active site) -------------------------------------
-        booth = RoundedRectangle(corner_radius=0.2, width=2.5, height=1.7, stroke_color=BLUE, stroke_width=4,
-                                 fill_color=BLUE, fill_opacity=0.14).move_to([-2.6, 0.5, 0])
-        slot = RoundedRectangle(corner_radius=0.1, width=0.85, height=0.55, stroke_color=GREY, stroke_width=2.5,
-                                fill_opacity=0).move_to(booth)
-        booth_lbl = T("toll booth = enzyme", 26, BLUE).next_to(booth, UP, buff=0.22)
-        STATE_POS = np.array([-3.8, -1.0, 0])
-        cur = [None]
-
-        # --- substrate pool: a grid of waiting cars (more cars = more substrate) -----------
-        # queue front sits level with the booth slot (row 4, y = 0.45) so a car rolls straight in and never
-        # crosses the state text; columns at 0.58 spacing keep the grid inside the safe frame and clear of the meter
-        slots = [np.array([-6.05 + 0.58 * c, -1.55 + 0.5 * r, 0]) for r in (4, 3, 2, 1, 0, 5) for c in (3, 2, 1, 0)]
-
-        def car(color=YELLOW):
-            return RoundedRectangle(corner_radius=0.09, width=0.5, height=0.3, stroke_width=0,
-                                    fill_color=color, fill_opacity=0.95)
-
-        pool = []
-        sub_lbl = T("substrate", 26, YELLOW).move_to([-5.0, -2.35, 0])
-        prod_lbl = T("product", 26, GREEN).move_to([-0.55, 1.15, 0])
-        exit_pt = np.array([-0.55, 0.5, 0])
-
-        # --- how busy the worker is = v / Vmax = fraction of booth time occupied -------------
-        MW = 2.5
-        meter_box = RoundedRectangle(corner_radius=0.08, width=MW, height=0.28, stroke_color=GREY,
-                                     stroke_width=2.5).move_to([-3.8 + MW / 2, -1.55, 0])
-        meter_lbl = T("worker busy (average)", 24, GREY).move_to([-3.8, -2.05, 0], aligned_edge=LEFT)
-
-        def mrect(frac):
-            w = max(0.02, (MW - 0.08) * frac)
-            return Rectangle(width=w, height=0.2, stroke_width=0, fill_color=BLUE, fill_opacity=0.9
-                             ).move_to(meter_box.get_left() + RIGHT * (0.04 + w / 2))
-
-        meter_fill = mrect(0.0)
-
-        def set_meter(frac):
-            return Transform(meter_fill, mrect(frac))
-
-        # --- plot: velocity vs substrate ----------------------------------------------------
-        ax = make_axes(XM, 1.25, 4.9, 4.3, origin=(1.55, -1.95), x_step=4, y_step=0.5)
-        xl, yl = axis_labels(ax, "substrate [S]", "velocity v", size=26, x_dy=0.55, y_dx=0.5)
-
-        def set_state(txt, size=26, bold=False):
-            new = T(txt, size, TEXT, weight=BOLD if bold else NORMAL).move_to(STATE_POS, aligned_edge=LEFT)
-            old = cur[0]
-            cur[0] = new
-            if old is None:
-                return [FadeIn(new)]
-            # old label leaves before the new one arrives, so the two never overlap
-            return [AnimationGroup(FadeOut(old), FadeIn(new), lag_ratio=1.0)]
-
-        def add_cars(n):
-            new = []
-            for _ in range(n):
-                if len(pool) >= len(slots):
-                    break
-                c = car()
-                c.move_to(slots[len(pool)])
-                pool.append(c)
-                new.append(c)
-            return [FadeIn(c, scale=0.6) for c in new]
-
-        def shift_pool():
-            return [c.animate.move_to(slots[i]) for i, c in enumerate(pool)]
-
-        inside = [None]
-
-        def load(f=1.0, color_busy=0.55):
-            c = pool.pop(0)
-            inside[0] = c
-            self.play(c.animate.move_to(slot.get_center()), booth.animate.set_fill(BLUE, color_busy),
-                      *shift_pool(), run_time=0.45 * f)
-
-        def unload(f=1.0, idle_after=True):
-            c = inside[0]
-            inside[0] = None
-            self.play(c.animate.set_fill(GREEN, 1.0), run_time=0.25 * f)
-            anims = [c.animate.move_to(exit_pt)]
-            if idle_after:
-                anims.append(booth.animate.set_fill(BLUE, 0.14))
-            self.play(*anims, run_time=0.4 * f)
-            self.play(FadeOut(c, scale=0.6), run_time=0.15 * f)
-
-        def serve(f=1.0):
-            load(f)
-            unload(f)
-
-        def flow(until, f=0.6):
-            """Booth works non-stop (queue never empty) until time `until`."""
-            if inside[0] is None and pool:
-                load(f)
-            while pool and self.elapsed() + 1.25 * f + 0.2 < until:
-                unload(f, idle_after=False)
-                self.step(add_cars(1), 0.2)
-                load(f)
-
-        def dot_at(S, color=BLUE, r=0.11):
-            return Dot(ax.c2p(S, mm(S, 1.0, K)), radius=r, color=color)
-
-        self.play(FadeIn(heading), FadeIn(booth), FadeIn(slot), FadeIn(booth_lbl), FadeIn(sub_lbl),
-                  FadeIn(prod_lbl), Create(ax), FadeIn(xl), FadeIn(yl), FadeIn(meter_box), FadeIn(meter_fill),
-                  FadeIn(meter_lbl), run_time=1.6)
-
-        # ---- "When traffic is light, low substrate, every car gets processed as fast as it arrives,
-        #      so velocity is proportional to substrate."
-        self.at("When traffic", 0.1)
-        self.play(*add_cars(1), *set_state("light traffic"), set_meter(0.13), run_time=0.5)
-        self.at("low substrate", 0.1)
-        band_low = vband(ax, 0, 1.2)
-        self.play(*set_state("light traffic = low [S]"), FadeIn(band_low), run_time=0.5)
-        self.at("every car", 0.15)
-        serve(1.0)
-        self.at("as fast as", 0.1)
-        self.step(add_cars(1), 0.3)
-        serve(0.8)
-        self.at("velocity", 0.1)
-        tan = dline(ax.c2p(0, 0), ax.c2p(1.2, 0.6), GREEN, 5)
-        self.play(Create(tan), run_time=0.9)
-        self.at("proportional", 0.1)
-        prop = T("v ∝ [S]", 28, GREEN, weight=BOLD).next_to(ax.c2p(1.2, 0.6), UP, buff=0.12).shift(RIGHT * 0.5)
-        self.play(FadeIn(prop, shift=UP * 0.1), run_time=0.6)
-
-        # ---- "When substrate equals Km, you're at half capacity."
-        self.at("When substrate", 0.1)
-        full = curve(ax, 1.0, K, XM)
-        self.play(FadeOut(VGroup(band_low, tan, prop)), *set_state("[S] = Km"), set_meter(0.5),
-                  booth.animate.set_fill(BLUE, 0.35), Create(full), run_time=1.3)
-        self.at("km", 0.2)
-        km_dot = dot_at(K, GOLD, 0.13)
-        km_v = dline(ax.c2p(K, 0), ax.c2p(K, 0.5), GOLD, 3)
-        km_h = dline(ax.c2p(0, 0.5), ax.c2p(K, 0.5), GOLD, 3)
-        km_lbl = T("Km", 28, GOLD, weight=BOLD).next_to(ax.c2p(K, 0), DOWN, buff=0.12)
-        half_lbl = T("½Vmax", 26, GOLD, weight=BOLD).next_to(ax.c2p(K, 0.5), DOWN + RIGHT, buff=0.12).shift(RIGHT * 0.1)
-        self.play(Create(km_v), Create(km_h), FadeIn(km_dot, scale=0.5), FadeIn(km_lbl), run_time=0.9)
-        self.at("half capacity", 0.1)
-        self.play(*set_state("half capacity", 26, True), FadeIn(half_lbl), run_time=0.6)
-
-        # ---- "And when traffic is heavy, high substrate, the booth is saturated, working flat out at Vmax."
-        self.at("And when traffic", 0.1)
-        self.play(FadeOut(VGroup(km_dot, km_v, km_h, km_lbl, half_lbl)), *set_state("heavy traffic = high [S]"),
-                  *add_cars(18), set_meter(0.86), run_time=0.8)
-        self.at("high substrate", 0.1)
-        band_hi = vband(ax, 10, XM)
-        d_hi = dot_at(12)
-        self.play(FadeIn(band_hi), FadeIn(d_hi, scale=0.5), run_time=0.5)
-        self.at("The booth", 0.1)
-        self.play(*set_state("saturated", 28, True), booth.animate.set_fill(BLUE, 0.55), run_time=0.4)
-        load(0.6)
-        flow(self.t_of("VMAX") - 0.15, 0.6)
-        self.at("Adding", 0.1)
-        vmax_line = dline(ax.c2p(0, 1), ax.c2p(XM, 1), RED, 4)
-        vmax_lbl = T("Vmax", 28, RED, weight=BOLD).next_to(ax.c2p(XM, 1), UP, buff=0.12).shift(LEFT * 0.7)
-        self.play(Create(vmax_line), FadeIn(vmax_lbl), set_meter(1.0), FadeOut(band_hi), run_time=0.7)
-
-        # ---- "Adding more cars doesn't make the worker any faster."
-        flow(self.t_of("more") - 0.15, 0.6)
-        self.at("Adding more", 0.1)
-        da, db = dot_at(8), dot_at(XM)
-        arr = Arrow(da.get_center(), db.get_center() + LEFT * 0.12, buff=0.12, color=YELLOW, stroke_width=4,
-                    max_tip_length_to_length_ratio=0.2)
-        more = T("2x substrate", 26, YELLOW).next_to(ax.c2p(12, 0.5), DOWN, buff=0.05)
-        self.play(*set_state("more cars, same speed"), *add_cars(12), FadeIn(da), run_time=0.6)
-        self.play(GrowArrow(arr), FadeIn(db), FadeIn(more), run_time=0.9)
-        self.at("faster", 0.3)
-        same = T("barely faster", 26, BLUE).next_to(more, DOWN, buff=0.1)
-        self.play(FadeIn(same, shift=UP * 0.1), run_time=0.5)
-        flow(self.t_of("Saturation") - 0.15, 0.6)
-
-        # ---- "Saturation doesn't mean the enzyme stops. It means it's already going as fast as it possibly can."
-        self.at("Saturation", 0.1)
-        self.play(*set_state("saturated ≠ stopped", 28, True), run_time=0.4)
-        flow(self.t_of("It means") - 0.15, 0.6)
-        self.at("means", 0.1)
-        self.play(*set_state("working flat out: Vmax", 28, True), Indicate(vmax_line, color=RED, scale_factor=1.0),
-                  run_time=0.8)
-        flow(self.narration_s - 0.5, 0.6)
+        booths = booth_row(y=-0.25, scale=0.92, busy=3, x0=-4.25, spacing=2.8)
+        pulse_gates(booths)
+        heading = T("ONE ENZYME ASSAY", 28, TEAL, weight=BOLD).to_edge(UP, buff=0.30)
+        sub = counter_box("[S]", "12 mM", YELLOW, (-2.0, 2.35, 0))
+        vel = counter_box("velocity", "45 micromoles/min", GREEN, (2.25, 2.35, 0), width=3.8)
+        self.play(FadeIn(heading), FadeIn(booths), run_time=1.0)
+        add_flow(self, y_values=(-2.65,), speed=1.25)
+        self.at("Watch this enzyme")
+        self.play(FadeIn(sub, shift=DOWN * 0.15), run_time=0.6)
+        self.at("make 45")
+        self.play(FadeIn(vel, shift=DOWN * 0.15), run_time=0.7)
+        self.at("What happens")
+        sub24 = counter_box("[S]", "24 mM", YELLOW, sub.get_center())
+        q = counter_box("velocity", "?", GREEN, vel.get_center(), width=3.8)
+        self.play(Transform(sub, sub24), Transform(vel, q), run_time=1.1)
+        self.play(Indicate(vel, color=YELLOW, scale_factor=1.05), run_time=0.7)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S02Curve(Scn):
-    """Spoken: Rosetta Stone -> low [S] nearly linear, kcat/Km -> diminishing returns -> high [S] saturated,
-    Vmax = kcat times [E] -> Km at the midpoint, v = half Vmax -> Km: how much substrate to get going, not affinity."""
-
+class S01Predict(Scene):
     def construct(self):
-        K, VM = 1.5, 1.0
-        ax = make_axes(12, 1.25, 10.4, 4.3, origin=(-4.6, -2.0), x_step=2, y_step=0.5)
-        xl, yl = axis_labels(ax, "substrate concentration [S]", "initial velocity v₀", size=26, x_dy=1.25, y_dx=0.55)
-        yl.rotate(-PI / 2).move_to([ax.c2p(0, 0)[0] + 1.5, ax.c2p(0, 1.25)[1] + 0.3, 0])
-        eq = T("v = Vmax·[S] / (Km + [S])", 34, TEXT, font=MONO,
-               t2c={"Vmax": RED, "[S]": YELLOW, "Km": GOLD, "v": BLUE}).to_edge(UP, buff=0.5)
-        cv = curve(ax, VM, K, 12)
+        booths = booth_row(y=-0.45, scale=0.90, busy=3, x0=-4.2, spacing=2.8)
+        pulse_gates(booths)
+        question = T("At 24 mM: 90 micromoles/min?", 48, TEXT, font=TITLE_FONT)
+        fit(question, max_w=11.8)
+        question.to_edge(UP, buff=0.45)
+        q = M("?", 58, YELLOW).move_to([0, 2.0, 0])
+        self.add(booths, question, q)
+        add_flow(self, y_values=(-2.7, -2.15), speed=1.35)
+        q.add_updater(lambda m, dt: m.set_opacity(0.62 + 0.38 * (0.5 + 0.5 * np.sin(self.renderer.time * 3))))
+        self.wait(4.5)
 
-        def region(a, b, label):
-            bd = vband(ax, a, b)
-            br = Brace(Line(ax.c2p(a, 0), ax.c2p(b, 0)), DOWN, buff=0.08, color=YELLOW)
-            tx = T(label, 28, YELLOW).next_to(br, DOWN, buff=0.1)
-            return bd, br, tx
 
-        # ---- "This curve is the Rosetta Stone of enzyme kinetics."
-        self.play(Create(ax), FadeIn(xl), FadeIn(yl), run_time=1.2)
-        self.play(Create(cv), run_time=1.8)
-        # ---- "Almost every idea you'll meet maps onto it."
-        self.at("kinetics—almost", 0.2)
-        self.play(FadeIn(eq, shift=DOWN * 0.15), run_time=0.8)
+class S02Title(Scene):
+    def construct(self):
+        booths = booth_row(y=-1.20, scale=0.82, busy=3, x0=-4.1, spacing=2.7).set_opacity(0.28)
+        pulse_gates(booths)
+        title = T("Why doubling substrate\nstops doubling speed", 52, TEXT,
+                  font=TITLE_FONT, line_spacing=0.9).move_to(UP * 1.05)
+        rule = Line(LEFT * 1.5, RIGHT * 1.5, color=GOLD, stroke_width=5).next_to(title, DOWN, buff=0.32)
+        self.add(booths)
+        add_flow(self, y_values=(-2.75,), speed=1.2, opacity=0.30)
+        self.play(Write(title), GrowFromCenter(rule), run_time=1.2)
+        self.wait(0.8)
 
-        # ---- "At low substrate concentration, the rate rises nearly linearly,
-        #      and the enzyme's performance depends on kcat over Km."
-        self.at("At low substrate", 0.3)
-        bd, br, tx = region(0, 1.2, "low [S]")
-        self.play(FadeIn(bd), GrowFromCenter(br), FadeIn(tx), run_time=0.8)
-        self.at("the rate rises", 0.2)
-        tan = dline(ax.c2p(0, 0), ax.c2p(1.65, 1.1), GREEN, 4)
-        tip = ax.c2p(1.65, 1.1)
-        nl = T("nearly linear", 28, GREEN).next_to(tip, RIGHT, buff=0.15)
-        self.play(Create(tan), run_time=1.1)
-        self.play(FadeIn(nl, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("cat", 0.3)
-        kk = T("slope ∝ kcat/Km", 30, GREEN, weight=BOLD).next_to(tip, RIGHT, buff=0.15)
-        self.play(ReplacementTransform(nl, kk), run_time=0.7)
 
-        # ---- "Push higher, and you hit diminishing returns."
-        self.at("Push higher", 0.3)
-        self.play(FadeOut(VGroup(bd, br, tx, tan, kk)), run_time=0.4)
-        bd, br, tx = region(1.5, 8.5, "diminishing returns")
-        steps = VGroup()
-        for a, b in [(1.5, 3.5), (4, 6), (6.5, 8.5)]:
-            h = Line(ax.c2p(a, mm(a, 1, K)), ax.c2p(b, mm(a, 1, K)), color=YELLOW, stroke_width=5)
-            v = Line(ax.c2p(b, mm(a, 1, K)), ax.c2p(b, mm(b, 1, K)), color=BLUE, stroke_width=9)
-            steps.add(h, v)
-        self.play(FadeIn(bd), GrowFromCenter(br), run_time=0.5)
-        self.at("diminishing", 0.3)
-        self.play(FadeIn(tx), LaggedStart(*[Create(m) for m in steps], lag_ratio=0.45), run_time=1.7)
-
-        # ---- "At high substrate, the enzyme is saturated."
-        self.at("At high substrate", 0.3)
-        self.play(FadeOut(VGroup(bd, br, tx, steps)), run_time=0.4)
-        bd, br, tx = region(9.5, 12, "high [S]")
-        self.play(FadeIn(bd), GrowFromCenter(br), FadeIn(tx), run_time=0.7)
-        self.at("saturated", 0.3)
-        tx2 = T("high [S]: saturated", 28, YELLOW).move_to(tx)
-        if tx2.get_right()[0] > 6.15:   # keep the wider label inside the safe frame
-            tx2.shift(LEFT * (tx2.get_right()[0] - 6.15))
-        self.play(Transform(tx, tx2), run_time=0.5)
-
-        # ---- "Adding more barely changes the rate, and you're at Vmax, which equals kcat times the enzyme concentration."
-        self.at("Adding more", 0.2)
-        s_arr = Arrow(ax.c2p(9.8, 0.55), ax.c2p(11.8, 0.55), buff=0, color=YELLOW, stroke_width=5,
-                      max_tip_length_to_length_ratio=0.2)
-        s_t1 = T("more [S]", 26, YELLOW).next_to(s_arr, UP, buff=0.1)
-        s_t2 = T("barely faster", 26, BLUE).next_to(s_arr, DOWN, buff=0.12)
-        s3 = VGroup(s_arr, s_t1, s_t2)
-        self.play(Create(s3), run_time=1.1)
-        self.at("max", 0.4)
-        vline = dline(ax.c2p(0, VM), ax.c2p(12, VM), RED, 4)
-        vm_t = T("Vmax", 30, RED, weight=BOLD)
-        kc_t = T("= kcat·[E]", 30, GREEN, weight=BOLD)
-        vlab = VGroup(vm_t, kc_t).arrange(RIGHT, buff=0.18).next_to(ax.c2p(7.0, VM), UP, buff=0.18)
-        self.play(Create(vline), FadeIn(vm_t, shift=DOWN * 0.1), run_time=0.8)
-        self.at("times", 0.3)
-        self.play(FadeIn(kc_t, shift=RIGHT * 0.1), run_time=0.7)
-
-        # ---- "Km sits at the midpoint of the curve, where velocity is half of Vmax."
-        self.at("sits", 0.3)
-        self.play(FadeOut(VGroup(bd, br, tx, s3)), run_time=0.4)
-        pt = Dot(ax.c2p(K, VM / 2), radius=0.13, color=GOLD)
-        vl = dline(ax.c2p(K, 0), ax.c2p(K, VM / 2), GOLD, 3)
-        kmlab = T("Km", 30, GOLD, weight=BOLD).next_to(ax.c2p(K, 0), DOWN, buff=0.15)
-        self.play(Create(vl), FadeIn(pt, scale=0.5), FadeIn(kmlab), run_time=1.0)
-        self.at("where velocity", 0.2)
-        hl = dline(ax.c2p(0, VM / 2), ax.c2p(K, VM / 2), GOLD, 3)
-        halflab = T("½Vmax", 28, GOLD, weight=BOLD).next_to(ax.c2p(0, VM / 2), LEFT, buff=0.15)
-        self.play(Create(hl), FadeIn(halflab), run_time=0.9)
-
-        # ---- "Read it as how much substrate the enzyme needs to get going, not automatically as a measure of affinity."
-        self.at("Read it", 0.3)
-        note = T("Km: how much substrate the enzyme needs", 30, GOLD).move_to(ax.c2p(7.0, 0.3))
-        self.play(FadeIn(note, shift=UP * 0.1), run_time=0.9)
-        self.at("not automatically", 0.2)
-        aff = T("not automatically a measure of affinity", 28, GREY).next_to(note, DOWN, buff=0.25)
-        self.play(FadeIn(aff, shift=UP * 0.1), run_time=0.8)
+class S03NoQueue(SpokenScene):
+    def construct(self):
+        schematic = T("SCHEMATIC", 28, GREY, weight=BOLD).to_edge(UP, buff=0.28)
+        booths = booth_row(y=0.15, scale=1.0, busy=2, x0=-4.0, spacing=2.65)
+        pulse_gates(booths)
+        self.play(FadeIn(schematic), LaggedStart(*[FadeIn(b, shift=UP * 0.2) for b in booths], lag_ratio=0.15), run_time=1.4)
+        self.at("picture each enzyme")
+        labels = VGroup(*[T("E", 30, BLUE, weight=BOLD).next_to(b, UP, buff=0.12) for b in booths])
+        self.play(FadeIn(labels), run_time=0.5)
+        self.at("with no waiting lane")
+        no_queue = T("NO WAITING LANE", 32, RED, weight=BOLD).move_to([0, -2.7, 0])
+        self.play(FadeIn(no_queue), run_time=0.5)
+        self.at("A substrate car")
+        s = car().move_to([-6.1, -1.55, 0])
+        self.play(FadeIn(s), s.animate.move_to(booths[2].get_center()), run_time=1.0)
+        self.at("only an empty booth")
+        self.play(Transform(booths[2], set_booth_state(booths[2], True)), run_time=0.55)
+        self.at("converts that car")
+        p = car("P", GREEN).move_to(s)
+        self.play(Transform(s, p), run_time=0.45)
+        self.at("to product")
+        self.play(s.animate.move_to([6.2, -1.55, 0]), run_time=0.8)
+        self.at("then opens again")
+        rejected = car().move_to([-6.0, -2.0, 0])
+        loop = ArcBetweenPoints([-2.8, -1.8, 0], [-5.6, -2.55, 0], angle=-1.2, color=YELLOW, stroke_width=4)
+        self.play(Transform(booths[2], set_booth_state(booths[2], False)), FadeIn(rejected), Create(loop), run_time=0.65)
+        self.play(MoveAlongPath(rejected, loop), run_time=0.8)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S03Km(Scn):
-    """One enzyme, several substrates; Km sets half-max concentration, while preference
-    depends on kcat/Km. Most measured E. coli substrate levels exceed Km."""
-
+class S04LowSubstrate(SpokenScene):
     def construct(self):
-        KM = [0.5, 2.0, 5.0]
-        CC = [BLUE, TEAL, PURPLE]
-        heading = T("Why Km is so useful", 34, font=TITLE_FONT).to_edge(UP, buff=0.45)
-        enz = chip("enzyme", BLUE, size=34).move_to([-4.4, 0, 0])
-        ys = [1.9, 0.0, -1.9]
-        subs = [chip(f"S{i + 1}", YELLOW, size=32).move_to([1.6, y, 0]) for i, y in enumerate(ys)]
-        kms = [T(f"Km = {k:g} mM", 28, GOLD).move_to([3.5, y, 0], aligned_edge=LEFT) for y, k in zip(ys, KM)]
-        # Equal arrows show possible substrates without implying preference from Km alone.
-        arrows = [Arrow(enz.get_right() + RIGHT * 0.1, s.get_left() + LEFT * 0.1, buff=0.05, color=BLUE,
-                        stroke_width=5, max_tip_length_to_length_ratio=0.12) for s in subs]
-        self.play(FadeIn(heading), FadeIn(enz, shift=RIGHT * 0.2), run_time=1.2)
-        self.at("One enzyme", 0.1)
-        self.play(LaggedStart(*[AnimationGroup(FadeIn(s), FadeIn(k)) for s, k in zip(subs, kms)], lag_ratio=0.3),
-                  run_time=0.8)
-        self.at("several substrates", 0.1)
-        self.play(*[GrowArrow(a) for a in arrows], run_time=0.6)
-
-        self.at("A lower", 0.1)
-        ax = make_axes(12, 1.15, 8.0, 4.4, origin=(-5.3, -2.0), x_step=2, y_step=0.5)
-        xl, yl = axis_labels(ax, "substrate concentration [S] (mM)", "velocity v₀", size=26, x_dy=0.95, y_dx=0.55)
-        legend_y = [1.35, -0.15, -1.65]
-        self.play(FadeOut(VGroup(*arrows)), FadeOut(enz),
-                  *[s.animate.move_to([4.9, y, 0]).set_color(c) for s, y, c in zip(subs, legend_y, CC)],
-                  *[k.animate.move_to([4.9, y - 0.62, 0]) for k, y in zip(kms, legend_y)],
-                  Create(ax), FadeIn(xl), FadeIn(yl), run_time=0.6)
-        curves = [curve(ax, 1.0, k, 12, c) for k, c in zip(KM, CC)]
-        self.play(LaggedStart(*[Create(cv) for cv in curves], lag_ratio=0.3), run_time=0.6)
-        self.at("means reaching", 0.1)
-        half = dline(ax.c2p(0, 0.5), ax.c2p(12, 0.5), GOLD, 3)
-        halflab = T("½Vmax", 28, GOLD, weight=BOLD).next_to(ax.c2p(12, 0.5), UP, buff=0.08, aligned_edge=RIGHT)
-        self.play(Create(half), FadeIn(halflab), run_time=0.6)
-        self.at("a lower concentration", 0.1)
-        marks = VGroup()
-        for k in KM:
-            marks.add(Dot(ax.c2p(k, 0.5), radius=0.11, color=GOLD), dline(ax.c2p(k, 0), ax.c2p(k, 0.5), GOLD, 3))
-        tick_labels = VGroup(*[T(f"{k:g}", 26, GOLD, weight=BOLD).next_to(ax.c2p(k, 0), DOWN, buff=0.12)
-                               for k in KM])
-        self.play(LaggedStart(*[Create(m) for m in marks], lag_ratio=0.2), FadeIn(tick_labels), run_time=0.7)
-
-        self.at("But preference", 0.1)
-        keep = {id(heading)}
-        self.play(*[FadeOut(m) for m in list(self.mobjects) if id(m) not in keep], run_time=0.5)
-        preference = T("competing substrates", 32, YELLOW).move_to([0, 1.2, 0])
-        self.play(FadeIn(preference), run_time=0.5)
-        self.at("depends on", 0.1)
-        efficiency = T("preference: kcat/Km", 40, GREEN, weight=BOLD).move_to([0, 0, 0])
-        self.play(FadeIn(efficiency), run_time=0.6)
-        self.at("counts turnover too", 0.1)
-        turnover = T("includes turnover", 30, GREEN).move_to([0, -1.0, 0])
-        self.play(FadeIn(turnover), run_time=0.6)
-
-        self.at("In", 0.1)
-        self.play(FadeOut(VGroup(preference, efficiency, turnover)), run_time=0.4)
-        line_y = -0.2
-        nline = Arrow([-5.4, line_y, 0], [5.4, line_y, 0], buff=0, color=GREY, stroke_width=4,
-                      max_tip_length_to_length_ratio=0.03)
-        conc = T("substrate concentration", 26, GREY).move_to([-5.4, line_y - 0.5, 0], aligned_edge=LEFT)
-        cell = RoundedRectangle(corner_radius=0.5, width=11.6, height=4.0, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.06).move_to([0, line_y - 0.1, 0])
-        cell_lbl = T("in E. coli", 28, GREY).move_to(cell.get_corner(UL) + RIGHT * 0.5 + DOWN * 0.4,
-                                                   aligned_edge=LEFT)
-        self.play(Create(cell), FadeIn(cell_lbl), Create(nline), FadeIn(conc), run_time=0.7)
-        self.at("most", 0.1)
-        # Above the line: "Km, [S]"; separated points illustrate levels exceeding Km.
-        gx, yx = -1.8, 1.8
-        g_dot = Dot([gx, line_y, 0], radius=0.14, color=GOLD)
-        g_lbl = T("Km", 34, GOLD, weight=BOLD).move_to([gx, line_y + 0.6, 0])
-        comma = T(",", 44).move_to([(gx + yx) / 2, line_y + 0.6, 0])
-        y_dot = Dot([yx, line_y, 0], radius=0.14, color=YELLOW)
-        y_lbl = T("[S]", 34, YELLOW, weight=BOLD).move_to([yx, line_y + 0.6, 0])
-        self.play(FadeIn(g_dot), FadeIn(g_lbl), FadeIn(comma), FadeIn(y_dot), FadeIn(y_lbl), run_time=0.6)
-        self.at("substrate levels exceed", 0.1)
-        sees = T("most measured [S] > Km", 26, YELLOW).move_to([0, line_y - 1.1, 0])
-        self.play(FadeIn(sees, shift=UP * 0.1), run_time=0.6)
-        self.at("enzyme that uses", 0.1)
-        self.play(Indicate(g_lbl, color=GOLD, scale_factor=1.1), run_time=0.5)
+        booths = booth_row(y=0.25, scale=0.92, busy=1, x0=-4.15, spacing=2.75)
+        pulse_gates(booths)
+        inc = counter_box("substrate in", "2", YELLOW, (-2.1, 2.4, 0))
+        out = counter_box("product out", "2", GREEN, (2.1, 2.4, 0))
+        self.add(booths)
+        flow = add_flow(self, y_values=(-2.5,), speed=0.75)
+        self.play(FadeIn(inc), FadeIn(out), run_time=0.8)
+        self.at("most booths stand empty")
+        self.play(LaggedStart(*[Indicate(b, color=TEXT, scale_factor=1.03) for b in booths[1:]], lag_ratio=0.18), run_time=1.1)
+        self.at("Nearly every extra car")
+        extra = car().move_to([-6.0, -1.45, 0])
+        self.play(extra.animate.move_to(booths[1].get_center()), run_time=0.8)
+        self.play(Transform(extra, car("P", GREEN).move_to(extra)), extra.animate.move_to([6.0, -1.45, 0]), run_time=0.8)
+        self.at("adding substrate")
+        inc4 = counter_box("substrate in", "4", YELLOW, inc.get_center())
+        out4 = counter_box("product out", "4", GREEN, out.get_center())
+        self.play(Transform(inc, inc4), Transform(out, out4), flow.animate.set_opacity(1), run_time=0.8)
+        self.at("almost proportionally")
+        together = DoubleArrow(inc.get_right(), out.get_left(), color=TEXT, stroke_width=4, buff=0.15)
+        self.play(GrowArrow(together), run_time=0.6)
+        self.at("limiting factor is arrivals")
+        limit = T("LIMIT: ARRIVALS", 34, YELLOW, weight=BOLD).move_to([0, -3.1, 0])
+        self.play(FadeIn(limit, shift=UP * 0.1), run_time=0.6)
+        self.at("not the booth's working speed")
+        self.play(Indicate(VGroup(*[b[1] for b in booths]), color=BLUE, scale_factor=1.0), run_time=0.8)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S04Kcat(Scn):
-    """Spoken: Vmax depends on [E] -> use kcat, the turnover number -> reactions per enzyme per second when
-    saturated: top speed -> carbonic anhydrase 600,000/s, lysozyme 1 per 2 s -> kcat is only top speed, silent on
-    scarce substrate -> that is kcat/Km, the catalytic efficiency."""
-
+class S05FillingUp(SpokenScene):
     def construct(self):
-        heading = T("kcat: the turnover number", 36, font=TITLE_FONT).to_edge(UP, buff=0.45)
-
-        # ================= phase 1: Vmax scales with enzyme; divide it out =================
-        def tube(n, cx):
-            box = RoundedRectangle(corner_radius=0.15, width=2.2, height=2.6, stroke_color=GREY, stroke_width=3)
-            box.move_to([cx, -0.4, 0])
-            dots = VGroup(*[Dot(radius=0.14, color=BLUE) for _ in range(n)])
-            dots.arrange(RIGHT, buff=0.35).move_to(box.get_center() + DOWN * 0.7)
-            return VGroup(box, dots), box, dots
-
-        eq, kcat_t, vmax_t, e_t, sub_t = eq_kcat(40)
-        eq.move_to([0, 2.5, 0])
-        tA, boxA, dotsA = tube(1, -3.4)
-        tB, boxB, dotsB = tube(2, 2.0)
-        lblA = T("1 enzyme", 28, BLUE).next_to(boxA, DOWN, buff=0.2)
-        lblB = T("2 enzymes", 28, BLUE).next_to(boxB, DOWN, buff=0.2)
-        unit = 1.1
-
-        def bar(h, color=RED):
-            return Rectangle(width=0.8, height=h, stroke_width=0, fill_color=color, fill_opacity=0.9)
-
-        barA, barB = bar(unit), bar(2 * unit)
-        barA.next_to(boxA, RIGHT, buff=1.0).align_to(boxA, DOWN)
-        barB.next_to(boxB, RIGHT, buff=1.0).align_to(boxB, DOWN)
-        vA = T("Vmax", 26, RED, weight=BOLD).next_to(barA, UP, buff=0.12)
-        vB = T("2 × Vmax", 26, RED, weight=BOLD).next_to(barB, UP, buff=0.12)
-
-        # "Vmax depends on how much enzyme you added."
-        self.play(FadeIn(heading), FadeIn(tA), FadeIn(tB), FadeIn(lblA), FadeIn(lblB), run_time=0.7)
-        self.play(GrowFromEdge(barA, DOWN), GrowFromEdge(barB, DOWN), FadeIn(vA), FadeIn(vB), run_time=0.8)
-        self.at("how much enzyme", 0.1)
-        self.play(Indicate(dotsA, color=BLUE, scale_factor=1.4), Indicate(dotsB, color=BLUE, scale_factor=1.4),
-                  run_time=1.0)
-
-        # "So to describe the enzyme molecule itself, we use kcat, the turnover number."
-        self.at("So to describe", 0.2)
-        div = T("÷ [E]", 30, BLUE, weight=BOLD)
-        div.move_to([(barA.get_right()[0] + boxB.get_left()[0]) / 2, 0.8, 0])
-        self.play(FadeIn(div, scale=0.7), run_time=0.5)
-        self.at("molecule", 0.4)
-        newA = bar(unit).move_to(barA, aligned_edge=DOWN)
-        newB = bar(unit).move_to(barB, aligned_edge=DOWN)
-        vA2 = T("Vmax ÷ [E]", 26, RED, weight=BOLD).next_to(newA, UP, buff=0.12)
-        vB2 = T("Vmax ÷ [E]", 26, RED, weight=BOLD).next_to(newB, UP, buff=0.12)
-        self.play(Transform(barA, newA), Transform(barB, newB), FadeTransform(vA, vA2), FadeTransform(vB, vB2),
-                  run_time=1.2)
-        same = T("same for 1 or 2: a property of the molecule", 28, TEXT).move_to([0, -2.85, 0])
-        self.play(FadeIn(same, shift=UP * 0.1), run_time=0.6)
-        self.at("use", 0.25)
-        gA = bar(unit, GREEN).move_to(barA, aligned_edge=DOWN)
-        gB = bar(unit, GREEN).move_to(barB, aligned_edge=DOWN)
-        nA = T("kcat", 26, GREEN, weight=BOLD).next_to(gA, UP, buff=0.12)
-        nB = T("kcat", 26, GREEN, weight=BOLD).next_to(gB, UP, buff=0.12)
-        self.play(Transform(barA, gA), Transform(barB, gB), FadeTransform(vA2, nA), FadeTransform(vB2, nB),
-                  FadeIn(eq, shift=DOWN * 0.15), run_time=0.8)
-        self.at("turnover number", 0.2)
-        turn = T("the turnover number", 30, GREEN).next_to(eq, DOWN, buff=0.2)
-        self.play(FadeIn(turn, shift=UP * 0.1), run_time=0.6)
-
-        # ================= phase 2: one saturated enzyme, reactions per second =================
-        self.at("It's the number", 0.4)
-        self.play(FadeOut(VGroup(tA, tB, lblA, lblB, barA, barB, nA, nB, div, same, eq, turn)), run_time=0.5)
-        enz = chip("one enzyme", BLUE, size=34, pad=0.35).move_to([-0.6, 0.1, 0])
-        feed = VGroup(*[Square(0.3, stroke_width=0, fill_color=YELLOW, fill_opacity=0.95) for _ in range(5)])
-        feed.arrange(RIGHT, buff=0.18).next_to(enz, LEFT, buff=0.5)
-        sub_lbl = T("substrate waiting", 26, YELLOW).next_to(feed, DOWN, buff=0.35)
-        out_pts = [enz.get_right() + RIGHT * 0.5, enz.get_right() + RIGHT * 2.0]
-        prod_lbl = T("product", 26, GREEN).move_to([out_pts[1][0] - 0.6, -0.55, 0])
-        clock = VGroup(Circle(radius=0.7, color=GREY, stroke_width=4), Dot(radius=0.05, color=GREY))
-        hand = Line(ORIGIN, UP * 0.55, color=GREEN, stroke_width=5)
-        clock_g = VGroup(clock, hand)
-        clock_g.move_to([5.0, 0.1, 0])
-        one_s = T("1 second", 26, GREEN).next_to(clock, DOWN, buff=0.25)
-        defin = T("reactions per enzyme per second", 30, GREEN).move_to([0, -2.4, 0])
-        centre = clock.get_center()
-        hand.move_to(centre + UP * 0.275)
-
-        slots_x = [m.get_center().copy() for m in feed]
-        queue = list(feed)
-
-        def react(until):
-            """One substrate in, one product out, repeatedly (schematic of an enzyme running flat out)."""
-            while self.elapsed() + 0.44 <= until:
-                front = queue.pop(0)
-                newc = Square(0.3, stroke_width=0, fill_color=YELLOW, fill_opacity=0.95).move_to(slots_x[-1])
-                newc.set_opacity(0)
-                queue.append(newc)
-                self.add(newc)
-                self.play(front.animate.move_to(enz.get_left() + LEFT * 0.05).set_opacity(0),
-                          *[q.animate.move_to(slots_x[i]) for i, q in enumerate(queue[:-1])],
-                          newc.animate.set_opacity(0.95), run_time=0.22, rate_func=linear)
-                self.remove(front)
-                p = Square(0.3, stroke_width=0, fill_color=GREEN, fill_opacity=0.95).move_to(out_pts[0])
-                self.add(p)
-                self.play(p.animate(rate_func=linear).move_to(out_pts[1]), run_time=0.22)
-                self.remove(p)
-
-        self.at("reactions", 0.0)
-        self.play(FadeIn(enz), FadeIn(feed), FadeIn(sub_lbl), FadeIn(prod_lbl), FadeIn(defin, shift=UP * 0.1),
-                  run_time=0.7)
-        react(self.t_of("per second", nth=0) - 0.6)
-        self.at("Lysosine", 0.5)
-        hand.add_updater(lambda m, dt: m.rotate(-TAU * dt / 1.0, about_point=centre))
-        self.play(FadeIn(clock_g), FadeIn(one_s), run_time=0.6)
-        react(self.t_of("substrate") - 0.1)
-        self.at("fully saturated", 0.1)
-        sat = T("saturated: always waiting", 26, YELLOW).move_to(sub_lbl)
-        self.play(Transform(sub_lbl, sat), run_time=0.5)
-        react(self.t_of("top speed", nth=0) - 0.45)
-        self.at("top speed", 0.35, nth=0)
-        top_lbl = T("top speed", 34, GREEN, weight=BOLD).next_to(enz, UP, buff=0.5)
-        self.play(FadeIn(top_lbl, shift=DOWN * 0.1), run_time=0.5)
-        react(self.t_of("scarce") - 0.75)
-
-        # ================= phase 3: log scale, carbonic anhydrase vs lysozyme =================
-        # (built below; the swap from phase 2 is one staggered move so "top speed" stays up while it is spoken)
-        x0, per = -5.4, 1.55
-        pos = lambda v: x0 + (np.log10(v) + 1) * per
-        line = Arrow(LEFT * 5.9 + DOWN * 0.7, RIGHT * 6.3 + DOWN * 0.7, buff=0, color=GREY, stroke_width=4,
-                     max_tip_length_to_length_ratio=0.04)
-        ticks = VGroup()
-        for e in range(-1, 7):
-            x = x0 + (e + 1) * per
-            tk = Line([x, -0.82, 0], [x, -0.58, 0], color=GREY, stroke_width=3)
-            lab = M("0.1" if e == -1 else ("1" if e == 0 else ("10" if e == 1 else f"10{'⁰¹²³⁴⁵⁶'[e]}")), 24, GREY)
-            lab.move_to([x, -1.2, 0])
-            ticks.add(tk, lab)
-        axis_name = T("kcat (reactions per second), each tick is 10x faster", 26, GREY).move_to([0, -2.0, 0])
-        pin_lz = Dot([pos(0.5), -0.7, 0], radius=0.14, color=GREEN)
-        lz_name = T("lysozyme", 28, TEXT, weight=BOLD)
-        lz_val = M("~0.5 per second", 26, GREEN)
-        lz_note = T("(one every 2 seconds)", 24, GREY)
-        lz_lbl = VGroup(lz_name, lz_val, lz_note).arrange(DOWN, buff=0.08).move_to([pos(0.5) + 0.9, 0.7, 0])
-        lz_stem = Line(pin_lz.get_center(), [pos(0.5), 0.12, 0], color=GREY, stroke_width=2)
-        pin_ca = Dot([pos(6e5), -0.7, 0], radius=0.14, color=GREEN)
-        ca_name = T("carbonic anhydrase", 28, TEXT, weight=BOLD)
-        ca_val = M("~600,000 per second", 26, GREEN)
-        ca_lbl = VGroup(ca_name, ca_val).arrange(DOWN, buff=0.1).move_to([5.9, 0.55, 0])
-        ca_lbl.shift(LEFT * (ca_lbl.get_right()[0] - 6.2) if ca_lbl.get_right()[0] > 6.2 else ORIGIN)
-        ca_stem = Line(pin_ca.get_center(), [pos(6e5), 0.12, 0], color=GREY, stroke_width=2)
-        self.play(AnimationGroup(
-            FadeOut(VGroup(enz, VGroup(*queue), sub_lbl, prod_lbl, clock_g, one_s, defin, top_lbl)),
-            AnimationGroup(Create(line), FadeIn(ticks), FadeIn(axis_name)), lag_ratio=0.5), run_time=0.7)
-        hand.clear_updaters()
-        self.at("Carbonic", 0.2)
-        self.play(FadeIn(pin_ca, scale=0.4), Create(ca_stem), FadeIn(ca_name, shift=DOWN * 0.1), run_time=0.8)
-        self.at("clocks", 0.1)
-        self.play(FadeIn(ca_val, shift=DOWN * 0.1), run_time=0.7)
-        self.at("plods", 0.6)
-        self.play(FadeIn(pin_lz, scale=0.4), Create(lz_stem), FadeIn(lz_name, shift=DOWN * 0.1), run_time=0.9)
-        self.at("one reaction", 0.2)
-        self.play(FadeIn(lz_val, shift=DOWN * 0.1), FadeIn(lz_note, shift=DOWN * 0.1), run_time=0.8)
-        gap = DoubleArrow([pos(0.5) + 0.2, 2.2, 0], [pos(6e5) - 0.2, 2.2, 0], buff=0, color=GREY,
-                          stroke_width=3, tip_length=0.2)
-        gap_t = T("about a million-fold apart", 28, GREY).next_to(gap, UP, buff=0.12)
-        self.play(GrowFromCenter(gap), FadeIn(gap_t), run_time=0.7)
-
-        # ================= phase 4: kcat is only top speed =================
-        self.at("over", 0.0)
-        self.play(FadeOut(VGroup(line, ticks, axis_name, pin_lz, lz_lbl, lz_stem, pin_ca, ca_lbl, ca_stem, gap,
-                                 gap_t)), run_time=0.3)
-        ax = make_axes(12, 1.25, 10.2, 3.9, origin=(-5.4, -2.3), x_step=2, y_step=0.5)
-        xl, yl = axis_labels(ax, "substrate concentration [S]", "velocity v", size=26, x_dy=0.55, y_dx=0.55)
-        cv = curve(ax, 1.0, 1.5, 12)
-        vline = dline(ax.c2p(0, 1), ax.c2p(12, 1), RED, 4)
-        top = VGroup(T("top speed", 28, TEXT),
-                     VGroup(T("Vmax", 30, RED, weight=BOLD), T("= kcat·[E]", 30, GREEN, weight=BOLD)
-                            ).arrange(RIGHT, buff=0.16)
-                     ).arrange(DOWN, buff=0.12, aligned_edge=RIGHT).next_to(ax.c2p(12, 1), UP, buff=0.15)
-        top.align_to(ax.c2p(12, 1), RIGHT)
-        self.play(Create(ax), FadeIn(xl), FadeIn(yl), Create(cv), run_time=0.6)
-        self.at("only top speed", 0.1)
-        self.play(Create(vline), FadeIn(top, shift=DOWN * 0.1), run_time=0.9)
-        # "It doesn't tell you how the enzyme performs when substrate is scarce."
-        self.at("when substrate", 0.2)
-        bd = vband(ax, 0, 1.2)
-        rare = T("substrate scarce", 28, YELLOW).move_to(ax.c2p(3.6, 0.2))
-        self.play(FadeIn(bd), FadeIn(rare), run_time=0.7)
-        # "For that, you want kcat over Km, the catalytic efficiency."
-        self.at("For that", 0.1)
-        tan = dline(ax.c2p(0, 0), ax.c2p(1.65, 1.1), GREEN, 5)
-        self.play(Create(tan), run_time=0.9)
-        self.at("catalytic", 0.2)
-        kk = T("slope ∝ kcat/Km", 30, GREEN, weight=BOLD).next_to(ax.c2p(1.65, 1.1), RIGHT, buff=0.15
-                                                                 ).shift(UP * 0.22)
-        self.play(FadeIn(kk, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("efficiency", 0.1)
-        eff = T("catalytic efficiency", 28, GREEN).next_to(kk, UP, buff=0.12, aligned_edge=LEFT)
-        self.play(FadeIn(eff, shift=DOWN * 0.1), run_time=0.6)
+        booths = booth_row(y=0.25, scale=0.88, busy=1, x0=-4.2, spacing=2.8)
+        pulse_gates(booths)
+        inc = counter_box("substrate in", "4", YELLOW, (-2.2, 2.45, 0))
+        out = counter_box("product out", "4", GREEN, (1.7, 2.45, 0))
+        gauge = busy_gauge(0.25, center=(5.65, 0.65, 0), height=3.35)
+        self.add(booths, inc, out, gauge)
+        thin = add_flow(self, y_values=(-2.55,), speed=1.0)
+        self.at("Add more substrate")
+        thick = add_flow(self, y_values=(-2.05,), speed=1.35)
+        inc12 = counter_box("substrate in", "12", YELLOW, inc.get_center())
+        self.play(Transform(inc, inc12), FadeIn(thick), run_time=0.7)
+        self.at("empty booths become scarce")
+        target = booth_row(y=0.25, scale=0.88, busy=3, x0=-4.2, spacing=2.8)
+        self.play(Transform(booths, target), Transform(gauge, busy_gauge(0.75, gauge.get_center(), 3.35)), run_time=1.0)
+        self.at("Cars finding busy booths")
+        rejected = car().move_to([-5.9, -1.35, 0])
+        loop = ArcBetweenPoints([-1.9, -1.25, 0], [-5.7, -2.75, 0], angle=-1.0, color=YELLOW, stroke_width=5)
+        self.play(FadeIn(rejected), Create(loop), run_time=0.5)
+        self.play(MoveAlongPath(rejected, loop), run_time=1.0)
+        self.at("Product still flows")
+        out9 = counter_box("product out", "9", GREEN, out.get_center())
+        self.play(Transform(out, out9), run_time=0.6)
+        self.at("each added car")
+        taper = T("+8 arrivals  →  +5 products", 32, TEXT, weight=BOLD,
+                  t2c={"+8": YELLOW, "+5": GREEN}).move_to([0, -3.15, 0])
+        self.play(FadeIn(taper, shift=UP * 0.1), run_time=0.7)
+        self.at("less extra speed")
+        self.play(Indicate(out, color=GREEN, scale_factor=1.06), run_time=0.7)
         self.finish()
 
 
-# --------------------------------------------------------------------------------------------
-class S05End(EndCard):
-    LINE = "Drag Km and Vmax yourself in the lesson's plotter."
+class S06GuidingIdea(SpokenScene):
+    def construct(self):
+        booths = booth_row(y=-0.55, scale=0.62, busy=2, x0=-5.4, spacing=1.7)
+        pulse_gates(booths, speed=2.0)
+        flow = add_flow(self, y_values=(-2.55,), speed=1.2, x_range=(-6.5, 0.5))
+        self.add(booths)
+        title = T("THE GUIDING IDEA", 30, TEAL, weight=BOLD).move_to([3.4, 2.6, 0])
+        self.at("Here is the guiding idea")
+        self.play(FadeIn(title), run_time=0.5)
+        self.at("Velocity equals")
+        v = T("velocity", 42, GREEN, weight=BOLD).move_to([1.35, 1.35, 0])
+        eq = M("=", 42).next_to(v, RIGHT, buff=0.25)
+        self.play(FadeIn(v), FadeIn(eq), run_time=0.6)
+        self.at("kcat")
+        kcat = T("kcat", 42, GREEN, weight=BOLD).next_to(eq, RIGHT, buff=0.25)
+        metro = VGroup(*[Line(ORIGIN, UP * 0.55, color=GREEN, stroke_width=6).rotate(a) for a in (-0.35, 0.35)])
+        metro.next_to(kcat, DOWN, buff=0.35)
+        self.play(FadeIn(kcat), Create(metro), run_time=0.6)
+        self.at("one busy enzyme's turnover pace")
+        self.play(Indicate(booths[0], color=GREEN, scale_factor=1.08), run_time=0.8)
+        self.at("times the amount")
+        times = M("×", 42).next_to(kcat, RIGHT, buff=0.25)
+        busy = T("busy enzyme", 42, BLUE, weight=BOLD).next_to(times, RIGHT, buff=0.25)
+        formula = VGroup(v, eq, kcat, times, busy)
+        fit(formula, max_w=6.2)
+        formula.move_to([3.25, 1.25, 0])
+        self.play(FadeIn(times), FadeIn(busy), run_time=0.7)
+        self.at("Substrate changes the busy amount")
+        more = booth_row(y=-0.55, scale=0.62, busy=4, x0=-5.4, spacing=1.7)
+        self.play(Transform(booths, more), flow.animate.set_opacity(1), run_time=1.0)
+        self.at("cannot make each busy enzyme")
+        same = T("same turnover pace", 32, GREEN, weight=BOLD).move_to([3.4, -1.0, 0])
+        self.play(FadeIn(same), Indicate(metro, color=GREEN, scale_factor=1.0), run_time=0.7)
+        self.at("work faster")
+        self.play(Indicate(booths[0], color=BLUE, scale_factor=1.04), run_time=0.7)
+        self.finish()
+
+
+class S07CurveEmerges(SpokenScene):
+    def construct(self):
+        booths = booth_row(y=-1.55, scale=0.45, busy=2, x0=-5.75, spacing=1.2)
+        self.add(booths)
+        self.at("transform the toll plaza")
+        ax, cv, xl, yl = graph_world()
+        tiny_plaza = fraction_booths(2, center=(-4.55, -1.90, 0), label="toll plaza")
+        tiny_plaza.remove(tiny_plaza[1])
+        tiny_plaza.scale(0.72)
+        self.play(Transform(booths, tiny_plaza), Create(ax), run_time=0.8)
+        self.play(FadeOut(booths), run_time=0.3)
+        icon = moving_curve_dot(self, ax, period=3.5)
+        self.at("Substrate concentration")
+        self.play(FadeIn(xl, shift=UP * 0.1), run_time=0.55)
+        self.at("Initial velocity")
+        self.play(FadeIn(yl, shift=RIGHT * 0.1), run_time=0.55)
+        samples = [0.5, 1, 2, 4, 8, 12, 20, 32]
+        dots = VGroup(*[Dot(ax.c2p(s, mm(s)), radius=0.10, color=GREEN) for s in samples])
+        self.at("moving car counter becomes points")
+        self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in dots], lag_ratio=0.12), run_time=1.5)
+        self.at("Michaelis")
+        self.play(Create(cv), run_time=1.5)
+        self.at("computed from the equation")
+        tag = T("COMPUTED", 30, TEAL, weight=BOLD).move_to([4.7, 2.85, 0])
+        self.play(FadeIn(tag), run_time=0.6)
+        self.finish()
+
+
+class S08Equation(SpokenScene):
+    def construct(self):
+        ax, cv, xl, yl = graph_world(origin=(-5.25, -2.70), width=8.15, height=4.05)
+        self.add(ax, cv, xl, yl)
+        moving_curve_dot(self, ax, period=3.5)
+        self.at("Velocity equals")
+        equation = M("v = Vmax × [S] / (Km + [S])", 34, TEXT,
+                     t2c={"Vmax": RED, "[S]": YELLOW, "Km": GOLD_KM})
+        equation.to_edge(UP, buff=0.25)
+        self.play(Write(equation), run_time=1.5)
+        self.at("The fraction")
+        fraction = M("[S] / (Km + [S])", 32, BLUE, weight=BOLD).move_to([4.55, 1.55, 0])
+        self.play(FadeIn(fraction), run_time=0.6)
+        self.at("share of enzyme")
+        row = fraction_booths(1, center=(4.55, 0.15, 0))
+        self.play(FadeIn(row), run_time=0.6)
+        self.at("As that share approaches one")
+        self.play(Transform(row, fraction_booths(4, center=(4.55, 0.15, 0))), run_time=1.0)
+        self.at("velocity approaches Vmax")
+        ceiling = DashedLine(ax.c2p(0, V_MAX), ax.c2p(32, V_MAX), color=RED, stroke_width=4)
+        lab = T("Vmax = 60", 28, RED, weight=BOLD).next_to(ceiling, UP, buff=0.10).align_to(ceiling, RIGHT)
+        self.play(Create(ceiling), FadeIn(lab), run_time=0.8)
+        self.finish()
+
+
+class S09Km(SpokenScene):
+    def construct(self):
+        ax, cv, xl, yl = graph_world(origin=(-5.25, -2.65), width=8.15, height=4.25)
+        ceiling = DashedLine(ax.c2p(0, 60), ax.c2p(32, 60), color=RED, stroke_width=3)
+        self.add(ax, cv, xl, yl, ceiling)
+        self.at("Km marks")
+        point = Dot(ax.c2p(4, 30), radius=0.14, color=GOLD_KM)
+        vline = DashedLine(ax.c2p(4, 0), ax.c2p(4, 30), color=GOLD_KM, stroke_width=4)
+        hline = DashedLine(ax.c2p(0, 30), ax.c2p(4, 30), color=GOLD_KM, stroke_width=4)
+        self.play(Create(vline), FadeIn(point), run_time=0.75)
+        km = T("Km = 4 mM", 30, GOLD_KM, weight=BOLD).next_to(ax.c2p(4, 0), DOWN, buff=0.12)
+        self.play(FadeIn(km), run_time=0.5)
+        self.at("busy fraction is one")
+        row = fraction_booths(2, center=(4.55, 1.45, 0))
+        self.play(FadeIn(row), run_time=0.7)
+        self.at("Therefore")
+        self.play(Create(hline), run_time=0.65)
+        self.at("half of Vmax")
+        half = T("30 = one half Vmax", 30, GOLD_KM, weight=BOLD).next_to(hline, UP, buff=0.12).shift(RIGHT * 0.7)
+        self.play(FadeIn(half), run_time=0.6)
+        self.at("half speed point")
+        meaning = chip("half-speed point", GOLD_KM, size=30).move_to([4.55, -0.35, 0])
+        self.play(FadeIn(meaning), run_time=0.6)
+        self.at("not automatically")
+        affinity = chip("affinity", RED, size=30).move_to([4.55, -1.65, 0])
+        cross = Cross(affinity, stroke_color=RED, stroke_width=6)
+        self.play(FadeIn(affinity), Create(cross), run_time=0.7)
+        self.finish()
+
+
+class S10Vmax(SpokenScene):
+    def construct(self):
+        ax, cv, xl, yl = graph_world(origin=(-5.25, -2.65), width=8.0, height=4.15, y_max=130)
+        # graph_world computes the curve at the requested Vmax; here start at 60 on a 130 scale
+        cv60 = ax.plot(lambda x: mm(x, 60), x_range=[0, 32], color=BLUE, stroke_width=7)
+        cv.become(cv60)
+        ceiling = DashedLine(ax.c2p(0, 60), ax.c2p(32, 60), color=RED, stroke_width=4)
+        self.add(ax, cv, xl, yl, ceiling)
+        moving_curve_dot(self, ax, 60, lo=14, hi=31, period=5.0)
+        self.at("nearly every enzyme is busy")
+        row = fraction_booths(4, center=(4.55, 1.85, 0))
+        self.play(FadeIn(row), run_time=0.7)
+        self.at("It equals")
+        equation = T("Vmax = kcat ×\ntotal enzyme", 32, TEXT, weight=BOLD,
+                     line_spacing=0.82,
+                     t2c={"Vmax": RED, "kcat": GREEN, "enzyme": BLUE})
+        equation.move_to([4.55, 0.75, 0])
+        self.play(FadeIn(equation), run_time=0.75)
+        self.at("More substrate")
+        cars = VGroup(*[car(label=None, scale=0.55).move_to([3.05 + i * 0.78, -0.35, 0]) for i in range(5)])
+        self.play(LaggedStart(*[FadeIn(c, shift=RIGHT * 0.3) for c in cars], lag_ratio=0.10), run_time=0.8)
+        self.at("cannot raise that ceiling")
+        self.play(Indicate(ceiling, color=RED, scale_factor=1.0), run_time=0.7)
+        self.at("adding enzyme can")
+        cv120 = ax.plot(lambda x: mm(x, 120), x_range=[0, 32], color=BLUE, stroke_width=7)
+        ceiling120 = DashedLine(ax.c2p(0, 120), ax.c2p(32, 120), color=RED, stroke_width=4)
+        gauge = counter_box("enzyme amount", "1×  →  2×", BLUE, (4.55, -1.65, 0), width=3.4)
+        self.play(FadeOut(cars), FadeOut(row), FadeIn(gauge), Transform(cv, cv120), Transform(ceiling, ceiling120), run_time=1.3)
+        self.finish()
+
+
+class S11Calculation(SpokenScene):
+    def construct(self):
+        ax, cv, xl, yl = graph_world(origin=(-5.35, -2.60), width=7.75, height=4.0)
+        vmax = DashedLine(ax.c2p(0, 60), ax.c2p(32, 60), color=RED, stroke_width=3)
+        self.add(ax, cv, xl, yl, vmax)
+        moving_curve_dot(self, ax, lo=12, hi=24, period=3.5)
+        self.at("Vmax is 60")
+        constants = VGroup(T("Vmax = 60", 30, RED, weight=BOLD), T("Km = 4 mM", 30, GOLD_KM, weight=BOLD)).arrange(DOWN, aligned_edge=LEFT, buff=0.20).move_to([4.65, 2.45, 0])
+        self.play(FadeIn(constants), run_time=0.7)
+        self.at("At 12")
+        p12 = Dot(ax.c2p(12, mm(12)), radius=0.14, color=GREEN)
+        l12 = T("12 mM → 45", 30, GREEN, weight=BOLD).move_to([-0.25, 2.65, 0])
+        row = fraction_booths(3, center=(4.65, 0.75, 0), label="3/4 busy")
+        strip = M("60 × 12 /\n(4 + 12) = 45", 28, TEXT, line_spacing=0.75).move_to([4.65, -1.25, 0])
+        self.play(FadeIn(p12), FadeIn(l12), FadeIn(row), FadeIn(strip), run_time=1.0)
+        self.at("three")
+        self.play(Indicate(row, color=BLUE, scale_factor=1.03), run_time=0.55)
+        self.at("At 24")
+        p24 = Dot(ax.c2p(24, mm(24)), radius=0.14, color=YELLOW)
+        l24 = T("24 mM → about 51", 30, YELLOW, weight=BOLD).move_to([-0.10, 2.65, 0])
+        strip24 = M("60 × 24 /\n(4 + 24) ≈ 51", 28, TEXT, line_spacing=0.75).move_to(strip)
+        gauge = busy_gauge(6/7, center=(5.15, 0.55, 0), height=2.15, label=False)
+        self.remove(row)
+        l12.become(l24)
+        self.play(FadeIn(p24), FadeIn(gauge), Transform(strip, strip24), run_time=1.1)
+        self.at("six")
+        six = T("about 6/7\nbusy", 30, BLUE, weight=BOLD,
+                line_spacing=0.82).move_to([3.65, 0.55, 0])
+        self.play(FadeIn(six), run_time=0.55)
+        self.at("roughly 51")
+        self.play(Indicate(l12, color=GREEN, scale_factor=1.04), run_time=0.7)
+        self.finish()
+
+
+class S12Payoff(SpokenScene):
+    def construct(self):
+        ax, cv, xl, yl = graph_world(origin=(-5.35, -2.55), width=8.15, height=4.55)
+        self.add(ax, cv, xl, yl)
+        moving_curve_dot(self, ax, lo=0.2, hi=24, period=3.5)
+        low_a, low_b = 0.2, 0.4
+        self.at("Doubling substrate")
+        p12 = Dot(ax.c2p(12, mm(12)), radius=0.14, color=YELLOW)
+        p24 = Dot(ax.c2p(24, mm(24)), radius=0.14, color=YELLOW)
+        bracket = DoubleArrow(ax.c2p(12, 8), ax.c2p(24, 8), color=YELLOW, stroke_width=5, buff=0)
+        self.play(FadeIn(p12), FadeIn(p24), GrowArrow(bracket), run_time=0.8)
+        self.at("only about 14 percent")
+        gain = T("45 → 51\n+14%", 38, GREEN, weight=BOLD, line_spacing=0.85).move_to([4.65, 2.15, 0])
+        self.play(FadeIn(gain, shift=UP * 0.1), run_time=0.65)
+        self.at("one quarter")
+        gauge = busy_gauge(0.75, center=(5.25, -0.25, 0), height=2.7, label=False)
+        empty = T("1/4 empty", 30, BLUE, weight=BOLD).move_to([3.85, -0.25, 0])
+        self.play(FadeIn(gauge), FadeIn(empty), run_time=0.7)
+        self.at("Far below Km")
+        pa = Dot(ax.c2p(low_a, mm(low_a)), radius=0.14, color=GREEN)
+        pb = Dot(ax.c2p(low_b, mm(low_b)), radius=0.14, color=GREEN)
+        low = low_s_comparison(center=(4.65, 0.15, 0))
+        self.play(FadeOut(bracket), FadeOut(gain), FadeOut(gauge), FadeOut(empty), FadeIn(pa), FadeIn(pb), FadeIn(low), run_time=0.9)
+        self.at("nearly doubles velocity")
+        almost = T("NEARLY 2×", 32, GREEN, weight=BOLD).move_to([4.65, -2.05, 0])
+        self.play(FadeIn(almost), run_time=0.6)
+        self.at("Near saturation")
+        self.play(FadeOut(VGroup(pa, pb, low, almost)), FadeIn(p12), FadeIn(p24), run_time=0.7)
+        self.at("barely helps")
+        small = T("45 → 51\nsmall gain", 34, GREEN, weight=BOLD, line_spacing=0.85).move_to([4.65, 0.25, 0])
+        self.play(FadeIn(small), run_time=0.6)
+        self.finish()
+
+
+class S13Return(SpokenScene):
+    def construct(self):
+        question = T("How much enzyme is still empty?", 46, TEXT, font=TITLE_FONT).to_edge(UP, buff=0.35)
+        booths = booth_row(y=0.0, scale=0.95, busy=1, x0=-4.2, spacing=2.8)
+        pulse_gates(booths)
+        self.at("ask how much enzyme")
+        self.play(FadeIn(question), FadeIn(booths), run_time=1.1)
+        add_flow(self, y_values=(-2.35,), speed=1.0)
+        self.at("before predicting")
+        predict = T("PREDICT THE SUBSTRATE EFFECT", 30, YELLOW, weight=BOLD).move_to([0, -3.15, 0])
+        self.play(FadeIn(predict), run_time=0.55)
+        self.at("The curve bends")
+        more = booth_row(y=0.0, scale=0.95, busy=3, x0=-4.2, spacing=2.8)
+        self.play(Transform(booths, more), run_time=1.0)
+        self.at("busy fraction approaches one")
+        frac = T("busy fraction → 1", 34, BLUE, weight=BOLD).move_to([0, 2.4, 0])
+        self.play(Transform(question, frac), run_time=0.7)
+        self.at("not because catalysis stops")
+        working = T("STILL WORKING", 32, GREEN, weight=BOLD).move_to([0, -2.8, 0])
+        self.play(FadeOut(predict), FadeIn(working), Indicate(booths, color=GREEN, scale_factor=1.02), run_time=0.8)
+        self.at("More substrate adds speed")
+        takeaway = T("More substrate adds speed only by filling empty enzymes.", 36, TEXT, font=TITLE_FONT)
+        fit(takeaway, max_w=12.1)
+        takeaway.move_to([0, -3.15, 0])
+        self.play(FadeOut(working), FadeIn(takeaway), run_time=0.75)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "More substrate adds speed only by filling empty enzymes."
+
+    def construct(self):
+        booths = booth_row(y=-1.0, scale=0.72, busy=3, x0=-4.0, spacing=2.65)
+        pulse_gates(booths)
+        line = T(self.LINE, 43, TEXT, font=TITLE_FONT)
+        fit(line, max_w=11.8)
+        line.move_to([0, 1.6, 0])
+        sub = T("biochemistrypedia.com", 28, TEAL).next_to(line, DOWN, buff=0.35)
+        self.add(booths)
+        add_flow(self, y_values=(-2.9,), speed=1.05)
+        self.play(FadeIn(line, shift=UP * 0.15), FadeIn(sub), run_time=0.8)
+        self.finish()
