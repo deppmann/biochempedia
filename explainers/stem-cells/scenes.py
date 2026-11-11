@@ -1,389 +1,592 @@
-"""Stem cells: chance decides which stem cell wins  (Biochemistrypedia explainer)
+"""Stem-cell pools: stable positions, changing clones.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP
+  BLUE   stem cells before lineage marking
+  GREY   crypt, epithelium, differentiated daughters
+  GREEN  permanent lineage mark / one Confetti clone
+  YELLOW tamoxifen pulse / one Confetti clone
+  RED    loss, short-lived outcome / one Confetti clone
+  TEAL   niche-supported pool / cyan Confetti clone
+  GOLD   questions and the chance spinner
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = a stem cell, unlabelled (plain)
-  GREY   = crypt outline, differentiated / short-lived cells, structure
-  GREEN  = the label: the tamoxifen-induced mark, a labelled clone, labelled cells in the model
-  YELLOW = tamoxifen (the drug) and the highlighted dividing step
-  PURPLE, ORANGE, PINK = the other reporter colours (clones of a different colour)
-  RED    = lost / crossed out / not shown
-  TEAL   = the arithmetic and the plotted curve
-  GOLD   = the open question
+All crypt scenes use the same geometry.  The picture is a simplified schematic;
+no curve or quantitative readout is invented.
 """
-import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-PINK = "#E87FB0"
-CLONE = [GREEN, PURPLE, ORANGE, PINK]
 
-CX = -3.3                 # crypt centre x
-R = 2.0                   # crypt half width
-CC = -1.3                 # y of the centre of the crypt's rounded bottom
-TOP = CC + 3.6            # top of the crypt walls
+CX = -2.35
+CRYPT_R = 2.15
+CRYPT_CC = -1.0
+CRYPT_TOP = 3.15
+BASE_ANGLES = (200, 235, 270, 305, 340)
+CONFETTI = [GREEN, YELLOW, RED, TEAL, GREEN]
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def crypt(cx=CX, k=1.0, h=3.6):
-    r_ = R * k
-    cc = -3.3 + r_
-    left = Line([cx - r_, cc + h, 0], [cx - r_, cc, 0], color=GREY, stroke_width=5)
-    arc = Arc(radius=r_, start_angle=PI, angle=PI, arc_center=[cx, cc, 0], color=GREY, stroke_width=5)
-    right = Line([cx + r_, cc, 0], [cx + r_, cc + h, 0], color=GREY, stroke_width=5)
-    return VGroup(left, arc, right)
+def cell(color=BLUE, radius=0.38, opacity=0.68, stroke=3.5):
+    return Circle(radius=radius, color=color, stroke_width=stroke,
+                  fill_color=color, fill_opacity=opacity)
 
 
-def base_pos(cx=CX, k=1.0):
-    cc = -3.3 + R * k
-    return [np.array([cx + 1.45 * k * np.cos(np.radians(a)), cc + 1.45 * k * np.sin(np.radians(a)), 0]) for a in (190, 230, 270, 310, 350)]
+def base_positions():
+    return [np.array([CX + 1.48 * np.cos(a * DEGREES),
+                      CRYPT_CC + 1.48 * np.sin(a * DEGREES), 0])
+            for a in BASE_ANGLES]
 
 
-def cell(color=BLUE, r=0.4, fill=0.35, sw=4):
-    return Circle(radius=r, stroke_color=color, stroke_width=sw, fill_color=color, fill_opacity=fill)
+def crypt_shape():
+    """Large, high-ink U-shaped pocket, open at the top."""
+    back = VGroup(
+        Rectangle(width=2 * CRYPT_R, height=CRYPT_TOP - CRYPT_CC,
+                  stroke_width=0, fill_color=GREY, fill_opacity=0.20)
+        .move_to([CX, (CRYPT_TOP + CRYPT_CC) / 2, 0]),
+        Circle(radius=CRYPT_R, stroke_width=0, fill_color=GREY, fill_opacity=0.20)
+        .move_to([CX, CRYPT_CC, 0]),
+    ).set_z_index(-5)
+    walls = VGroup(
+        Line([CX - CRYPT_R, CRYPT_TOP, 0], [CX - CRYPT_R, CRYPT_CC, 0],
+             color=GREY, stroke_width=6),
+        Arc(radius=CRYPT_R, start_angle=PI, angle=PI,
+            arc_center=[CX, CRYPT_CC, 0], color=GREY, stroke_width=6),
+        Line([CX + CRYPT_R, CRYPT_CC, 0], [CX + CRYPT_R, CRYPT_TOP, 0],
+             color=GREY, stroke_width=6),
+    )
+    return VGroup(back, walls)
 
 
-def rise_pos(cx=CX):
-    return [[np.array([cx + dx, CC + 1.05 + 0.75 * k, 0]) for dx in (-1.2, -0.4, 0.4, 1.2)] for k in range(4)]
+def moving_stream(color=GREY, green_patch=False, speed=0.34):
+    """A continuously renewing stream; the wrap makes every spoken hold alive."""
+    xs = (-1.18, -0.38, 0.40, 1.15, -0.78, 0.05, 0.82)
+    ys = (-0.20, 0.35, 0.86, 1.35, 1.82, 2.32, 2.78)
+    dots = VGroup()
+    for i, (dx, y) in enumerate(zip(xs, ys)):
+        c = GREEN if green_patch and i in (1, 3, 5) else color
+        d = cell(c, 0.29 if i % 2 else 0.32, 0.48, 2.8).move_to([CX + dx, y, 0])
+        d.vy = speed * (0.82 + 0.08 * (i % 4))
+
+        def rise(m, dt):
+            m.shift(UP * m.vy * dt)
+            if m.get_y() > CRYPT_TOP + 0.42:
+                m.move_to([m.get_x(), -0.25, 0])
+
+        d.add_updater(rise)
+        dots.add(d)
+    return dots
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def simplified_label(text="simplified schematic"):
+    return T(text, 28, TEXT, weight=BOLD).move_to([3.65, -3.42, 0])
 
 
-def bchip(text, color=BLUE, size=26, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def pool_bracket(label=True):
+    y = -3.16
+    line = VGroup(
+        Line([CX - 1.92, y, 0], [CX + 1.92, y, 0], color=TEAL, stroke_width=6),
+        Line([CX - 1.92, y, 0], [CX - 1.92, y + 0.24, 0], color=TEAL, stroke_width=6),
+        Line([CX + 1.92, y, 0], [CX + 1.92, y + 0.24, 0], color=TEAL, stroke_width=6),
+    )
+    if label:
+        line.add(T("stem-cell pool", 28, TEAL, weight=BOLD).next_to(line, DOWN, buff=0.08))
+    return line
 
 
-def cross(mob, color=RED, w=7):
-    d = 0.5 * mob.width
-    h = 0.5 * mob.height
-    c = mob.get_center()
-    return VGroup(Line(c + [-d, h, 0], c + [d, -h, 0], color=color, stroke_width=w),
-                  Line(c + [-d, -h, 0], c + [d, h, 0], color=color, stroke_width=w))
+def niche_glow():
+    return Ellipse(width=4.05, height=1.65, color=TEAL, stroke_width=3,
+                   fill_color=TEAL, fill_opacity=0.12).move_to([CX, -2.25, 0]).set_z_index(-2)
 
 
+def crypt_world(colors=None, stream_color=GREY, green_patch=False,
+                show_simple=True, bracket=False, niche=False):
+    colors = colors or [BLUE] * 5
+    cr = crypt_shape()
+    cells = VGroup(*[cell(c).move_to(p) for c, p in zip(colors, base_positions())])
+    flow = moving_stream(stream_color, green_patch)
+    items = [cr]
+    if niche:
+        items.append(niche_glow())
+    items.extend([flow, cells])
+    if bracket:
+        items.append(pool_bracket())
+    if show_simple:
+        items.append(simplified_label())
+    return VGroup(*items), cells, flow
 
-MINI_W, MINI_H = 0.68, 0.46
-PITCH_X, PITCH_Y = 0.76, 0.58
 
-def division(cx, ytop, c_parent, c1, c2, r=0.6, dx=1.0, drop=2.3):
-    p = cell(c_parent, r).move_to([cx, ytop, 0])
-    d1 = cell(c1, r).move_to([cx - dx, ytop - drop, 0])
-    d2 = cell(c2, r).move_to([cx + dx, ytop - drop, 0])
-    a1 = arr(p.get_bottom(), d1.get_top(), GREY, w=4, tip=0.2)
-    a2 = arr(p.get_bottom(), d2.get_top(), GREY, w=4, tip=0.2)
-    return p, d1, d2, a1, a2
+def question_text():
+    return T("What happens to green\nafter its descendants\nleave the lining?",
+             34, GOLD, weight=BOLD, line_spacing=0.9).move_to([3.35, 1.85, 0])
 
-def bars_for(colors_state, x0=1.4):
-    """rows of horizontal bars: cells per clone colour (computed from the crypt's current state)."""
-    order = [GREEN, PURPLE, ORANGE, PINK, BLUE]
-    g = VGroup()
-    for i, c_ in enumerate(order):
-        n = sum(1 for s in colors_state if s == c_)
-        w = max(0.001, 0.62 * n)
-        b = Rectangle(width=w, height=0.38, stroke_width=0 if n == 0 else 2, stroke_color=c_, fill_color=c_, fill_opacity=0.55)
-        b.move_to([x0 + w / 2, 1.05 - 0.62 * i, 0])
-        g.add(b)
+
+def time_arrow():
+    a = Arrow([1.0, -0.55, 0], [5.75, -0.55, 0], buff=0,
+              color=TEXT, stroke_width=5, tip_length=0.22)
+    return VGroup(a, T("now", 28).next_to(a.get_start(), DOWN, buff=0.16),
+                  T("later", 28).next_to(a.get_end(), DOWN, buff=0.16))
+
+
+def ghost_patch():
+    return VGroup(*[
+        cell(GREEN, 0.30, 0.20, 2.2).move_to([CX + dx, y, 0])
+        for dx, y in ((-0.65, 0.55), (0.20, 1.05), (-0.32, 1.62), (0.52, 2.18))
+    ])
+
+
+def green_ribbon():
+    return RoundedRectangle(width=2.25, height=5.95, corner_radius=0.5,
+                            stroke_color=GREEN, stroke_width=3,
+                            fill_color=GREEN, fill_opacity=0.20).move_to([CX, 0.03, 0]).set_z_index(-3)
+
+
+def chance_spinner(center=(3.8, 1.8, 0), size=0.58):
+    ring = Circle(radius=size, color=GOLD, stroke_width=4).move_to(center)
+    hand = Arrow(ring.get_center(), ring.get_center() + UP * size * 0.72,
+                 buff=0, color=GOLD, stroke_width=4, tip_length=0.16)
+    g = VGroup(ring, hand, T("chance", 28, GOLD, weight=BOLD).next_to(ring, DOWN, buff=0.18))
+    hand.spin_t = 0.0
+
+    def spin(m, dt):
+        m.rotate(-0.75 * dt, about_point=ring.get_center())
+
+    hand.add_updater(spin)
     return g
 
-def swatches(x0=0.9):
-    return VGroup(*[Circle(radius=0.17, stroke_color=c_, stroke_width=3, fill_color=c_, fill_opacity=0.35).move_to([x0, 1.05 - 0.62 * i, 0])
-                    for i, c_ in enumerate([GREEN, PURPLE, ORANGE, PINK, BLUE])])
 
-def mini_crypt():
-    box = RoundedRectangle(corner_radius=0.1, width=MINI_W, height=MINI_H, stroke_color=GREY, stroke_width=2)
-    dots = VGroup(*[Dot([(i - 2) * 0.118, 0, 0], radius=0.05, color=BLUE) for i in range(5)])
-    return VGroup(box, dots)
-
-def small_base():
-    """Three illustrative cells, using the original crypt geometry."""
-    return VGroup(*[cell(BLUE, 0.38).move_to(base_pos()[i]) for i in (1, 2, 3)])
+def outcome_strip(colors, y):
+    box = RoundedRectangle(width=4.25, height=0.92, corner_radius=0.18,
+                           color=GREY, stroke_width=3).move_to([3.65, y, 0])
+    dots = VGroup(*[cell(c, 0.23, 0.72, 2.5).move_to([2.18 + i * 0.72, y, 0])
+                    for i, c in enumerate(colors)])
+    bracket = Line([1.95, y - 0.34, 0], [5.35, y - 0.34, 0], color=TEAL, stroke_width=4)
+    return VGroup(box, dots, bracket)
 
 
-def stream():
-    return VGroup(*[cell(GREY, 0.32).move_to([CX, y, 0]) for y in (-0.6, 0.8, 2.2)])
-
-
-def tag(text, x, y, color=TEXT, size=28):
-    return T(text, size, color, line_spacing=0.85).move_to([x, y, 0])
-
-
-class S00Title(TitleCard):
+class S01Hook(SpokenScene, TitleCard):
     LESSON = "Stem cells and tissue renewal"
-    TITLE = "How Stem Cells Keep a Tissue New"
+    TITLE = "How a Stem-Cell Pool Persists While Its Clones Come and Go"
 
-
-class S01Lead(SpokenScene):
     def construct(self):
-        cr, flow = crypt(), stream()
-        name = tag("mouse small intestine", 3.3, 2.9, GREY, 26)
-        renew = tag("new lining\nevery few days", 3.3, 1.3, size=36)
-        self.at("The lining")
-        self.play(Create(cr), FadeIn(flow), FadeIn(name), FadeIn(renew), run_time=0.8)
-        self.at("replaced every few days")
-        self.play(flow.animate.shift(UP * 0.7), run_time=0.65)
-        self.play(FadeOut(flow[-1], shift=UP * 0.5), run_time=0.4)
-        self.at("Yet the animal")
-        life = tag("kept for life", 3.3, -0.5, size=36)
-        self.play(FadeIn(life), run_time=0.6)
-        base = small_base()
-        self.at("Stem cells make")
-        self.play(FadeIn(base, scale=0.8), run_time=0.6)
-        self.at("bottom of pockets")
-        cryptlabel = tag("crypt", -3.3, 3, GREY)
-        self.play(FadeIn(cryptlabel), Indicate(base, color=GOLD), run_time=0.6)
-        self.at("They keep making")
-        up = arr([-1.0, -2.1, 0], [0.4, 0.8, 0], BLUE)
-        output = tag("makes specialized cells", 3.3, 0.9, GREY, 28)
-        self.play(FadeOut(VGroup(renew, life, name)), GrowArrow(up), FadeIn(output),
-                  flow[0].animate.move_to([CX, 0, 0]), flow[1].animate.move_to([CX, 1.6, 0]), run_time=0.8)
-        self.at("And they keep")
-        loop = CurvedArrow([-2.5, -2.0, 0], [-2.7, -2.8, 0], angle=-PI*1.5, color=BLUE)
-        own = tag("makes more stem cells", 3.3, -1.6, BLUE)
-        self.play(Create(loop), FadeIn(own), Indicate(base, color=BLUE), run_time=0.8)
-        self.at("tested over time")
-        time = bchip("tested over time", TEAL, 28).move_to([3.3, -3, 0])
-        self.play(FadeIn(time), run_time=0.6)
+        world, cells, flow = crypt_world()
+        self.play(FadeIn(world[0]), FadeIn(flow), FadeIn(cells),
+                  FadeIn(world[-1]), run_time=0.5)
+        self.at("replaces its intestinal")
+        self.play(flow.animate.set_opacity(0.88), run_time=0.7)
+        self.at("How can its")
+        q = T("How can the pool last\nwhen clones vanish?", 36, GOLD,
+              weight=BOLD, line_spacing=0.9).move_to([3.45, 1.15, 0])
+        self.play(FadeIn(q, shift=UP * 0.15), run_time=0.7)
+        self.at("Watch one crypt")
+        label = T("intestinal crypt", 30, TEXT, weight=BOLD).move_to([3.45, -0.25, 0])
+        arrow = Arrow([2.1, -0.42, 0], [0.0, -0.72, 0], color=TEXT,
+                      stroke_width=4, tip_length=0.2)
+        self.play(FadeIn(label), GrowArrow(arrow), run_time=0.65)
+        self.at("new lining cells")
+        self.play(Indicate(flow, color=TEXT, scale_factor=1.03), run_time=0.7)
         self.finish()
 
 
-class S02Trace(SpokenScene):
+class S02Title(TitleCard):
+    LESSON = "Stem cells and tissue renewal"
+    TITLE = "How a Stem-Cell Pool Persists While Its Clones Come and Go"
+
     def construct(self):
-        cr, base, flow = crypt(), small_base(), stream()
-        self.add(cr, base, flow)
-        question = tag("Which cells do it?", 3.3, 1.6, GOLD, 36)
-        self.at("How would you prove")
-        self.play(FadeIn(question), run_time=0.6)
-        note = tag("gene expression\nis not fate", 3.3, 0, size=32)
-        self.at("Expressing a gene")
-        self.play(FadeIn(note), run_time=0.6)
-        self.at("scientists trace cells")
-        self.play(Indicate(base[1], color=GREEN), run_time=0.7)
-        tam = bchip("tamoxifen", YELLOW, 28).move_to([3.3, -2.3, 0])
-        a = arr(tam.get_left(), [-2.8, -2.7, 0], YELLOW)
-        self.at("drug tamoxifen")
-        self.play(FadeOut(note), FadeIn(tam), GrowArrow(a), run_time=0.65)
-        mark = tag("Lgr5 cell: permanent mark", 3.3, -0.4, GREEN, 26)
-        self.at("permanent mark")
-        self.play(base[1].animate.set_stroke(GREEN).set_fill(GREEN, 0.65), FadeIn(mark), run_time=0.6)
+        world, cells, flow = crypt_world()
+        self.add(world)
+        title = T("How a Stem-Cell Pool Persists\nWhile Its Clones Come and Go",
+                  38, font=TITLE_FONT, weight=BOLD, line_spacing=0.92)
+        title.move_to([1.55, 2.35, 0])
+        panel = BackgroundRectangle(title, color=BG, fill_opacity=0.88, buff=0.22)
+        # Keep every sampled title frame readable; Write() exposes partial glyphs.
+        self.play(FadeIn(panel), FadeIn(title), run_time=0.45)
+        corner = T("STEM-CELL POOL", 28, TEAL, weight=BOLD).move_to([3.75, 3.28, 0])
+        # A text-to-text Transform leaves a briefly unreadable knot of glyphs.
+        # Clear the long title before the compact carried label appears.
+        self.play(FadeOut(VGroup(panel, title), shift=UP * 0.08), run_time=0.28)
+        self.play(FadeIn(corner, shift=UP * 0.08), run_time=0.32)
+        self.finish()
+
+
+class S03Positions(SpokenScene):
+    def construct(self):
+        world, cells, flow = crypt_world(niche=True)
+        self.add(world[0], flow, world[-1])
+        self.at("handful")
+        self.play(LaggedStart(*[FadeIn(c, scale=0.75) for c in cells], lag_ratio=0.12),
+                  run_time=1.0)
+        self.at("The epithelium")
+        epi = T("epithelium = intestinal lining", 30, TEXT, weight=BOLD).move_to([3.45, 1.25, 0])
+        shapes = VGroup(
+            RoundedRectangle(width=0.55, height=0.88, corner_radius=0.12, color=GREY,
+                             fill_color=GREY, fill_opacity=0.38),
+            Circle(radius=0.35, color=GREY, fill_color=GREY, fill_opacity=0.38),
+            Triangle(color=GREY, fill_color=GREY, fill_opacity=0.38).scale(0.38),
+        ).arrange(RIGHT, buff=0.42).move_to([3.45, 0.25, 0])
+        self.play(FadeIn(epi), FadeIn(shapes, shift=UP * 0.25), run_time=0.75)
+        self.play(shapes.animate.shift(UP * 0.35), run_time=0.55)
+        self.at("Cells need niche")
+        support = T("niche support", 32, TEAL, weight=BOLD).move_to([3.45, -1.45, 0])
+        self.play(FadeIn(world[1]), FadeIn(support), run_time=0.65)
+        self.at("keep a base")
+        self.play(Indicate(cells, color=TEAL, scale_factor=1.04), run_time=0.75)
+        self.finish()
+
+
+class S04Pool(SpokenScene):
+    def construct(self):
+        world, cells, flow = crypt_world(bracket=True)
+        self.add(world)
+        jobs = T("TWO JOBS", 32, TEXT, weight=BOLD).move_to([3.55, 2.72, 0])
+        self.play(FadeIn(jobs), run_time=0.45)
+        self.at("First")
+        output = T("1  make specialized descendants", 30, TEXT, weight=BOLD).move_to([3.55, 1.45, 0])
+        up = Arrow([0.35, -0.7, 0], [0.35, 2.15, 0], color=GREY, stroke_width=8, tip_length=0.28)
+        self.play(GrowArrow(up), FadeIn(output), flow.animate.set_opacity(1), run_time=0.85)
+        self.at("Second")
+        maintain = T("2  maintain the pool", 30, TEAL, weight=BOLD).move_to([3.55, 0.35, 0])
+        # The carried world already contains the pool bracket.  Reusing it avoids
+        # a second bracket sweeping across the base cells during the transition.
+        bracket = world[-2]
+        self.play(FadeOut(up), FadeIn(maintain),
+                  Indicate(bracket, color=TEAL, scale_factor=1.02), run_time=0.8)
+        self.at("Neighbors can fill")
+        leaving = cells[3]
+        gap = leaving.get_center().copy()
+        replacement = cells[2].copy()
+        self.play(leaving.animate.shift(UP * 1.1).set_opacity(0), run_time=0.65)
+        self.play(replacement.animate.move_to(gap), cells[2].animate.shift(RIGHT * 0.14), run_time=0.75)
+        self.at("pool may persist")
+        result = T("same pool  •  changing cells", 31, TEAL, weight=BOLD).move_to([3.55, -1.45, 0])
+        self.play(FadeOut(VGroup(jobs, output, maintain)), FadeIn(result),
+                  Indicate(world[-2], color=TEAL, scale_factor=1.02), run_time=0.8)
+        self.finish()
+
+
+class S04PermanentMark(SpokenScene):
+    def construct(self):
+        world, cells, flow = crypt_world()
+        self.add(world)
+        proof = T("shape or Lgr5 now", 31, TEXT, weight=BOLD).move_to([3.55, 2.35, 0])
+        alone = T("cannot prove ancestry", 31, RED, weight=BOLD).next_to(proof, DOWN, buff=0.25)
+        self.play(FadeIn(proof), FadeIn(alone), run_time=0.65)
+        self.at("Scientists give")
+        target = cells[2]
+        tag = chip("Lgr5 now", BLUE, 28).move_to([3.55, 1.15, 0])
+        pulse = Ellipse(width=0.7, height=5.7, color=YELLOW, stroke_width=0,
+                        fill_color=YELLOW, fill_opacity=0.34).move_to([-4.7, -0.2, 0])
+        self.play(FadeIn(tag), FadeIn(pulse), run_time=0.35)
+        self.play(pulse.animate.shift(RIGHT * 4.7), run_time=0.75)
+        self.play(FadeOut(pulse), target.animate.set_color(GREEN).set_fill(GREEN, 0.72), run_time=0.45)
         self.at("Every daughter inherits")
-        self.play(*[c.animate.set_stroke(GREEN).set_fill(GREEN, 0.6) for c in flow], run_time=0.9)
-        bar = Line([0.6, 2.2, 0], [6.0, 2.2, 0], color=GREY)
-        ends = VGroup(tag("day 0", 1, 2.7, GREY, 24), tag("day 60", 5.5, 2.7, GREY, 24))
-        dot = Dot([0.6, 2.2, 0], color=GREEN)
-        self.at("Over 60 days")
-        self.play(FadeOut(VGroup(question, tam, a, mark)), Create(bar), FadeIn(ends), FadeIn(dot), run_time=0.6)
-        ribbon = RoundedRectangle(width=0.8, height=5.0, corner_radius=0.3, stroke_width=0,
-                                  fill_color=GREEN, fill_opacity=0.2).move_to([CX, -0.2, 0]).set_z_index(-1)
-        self.at("label filled ribbons")
-        self.play(dot.animate.move_to([6.0, 2.2, 0]), FadeIn(ribbon), run_time=1.3)
-        # Schematic epithelial cell icons; each carries its own type label.
-        icons = VGroup()
-        for y, label, shape in zip((0.95, 0.0, -0.95, -1.9),
-                                   ("absorptive", "goblet", "enteroendocrine", "Paneth"),
-                                   (Rectangle(width=.45, height=.6), Circle(radius=.28), Triangle().scale(.28), Square(side_length=.48))):
-            shape.set_stroke(GREEN, 3).set_fill(GREEN, .35).move_to([1.2, y, 0])
-            icons.add(VGroup(shape, T(label, 24, GREEN).next_to(shape, RIGHT, buff=.3)))
-        self.at("every kind of epithelial")
-        self.play(FadeIn(icons), run_time=0.8)
-        multi = bchip("multipotent within the gut", GREEN, 26).move_to([3.3, -0.1, 0])
-        self.at("That shows multipotency")
-        self.play(FadeOut(icons), FadeIn(multi), run_time=0.6)
-        plu = bchip("pluripotent", RED, 28).move_to([3.3, -1.7, 0])
-        self.at("It does not show")
-        self.play(FadeIn(plu), Create(cross(plu)), run_time=0.7)
+        d1, d2 = target.copy(), target.copy()
+        self.play(target.animate.scale(0.78), run_time=0.3)
+        self.play(d1.animate.move_to(base_positions()[1]),
+                  d2.animate.move_to([CX + 0.35, -0.15, 0]), run_time=0.85)
+        self.add(d1, d2)
+        self.at("even after it stops")
+        family = VGroup(d1, d2)
+        self.play(FadeOut(tag, shift=UP * 0.15), d2.animate.shift(UP * 1.15), run_time=0.8)
+        self.at("mark follows ancestry")
+        brace = Brace(family, RIGHT, color=GREEN)
+        ancestry = T("ancestry", 32, GREEN, weight=BOLD).next_to(brace, RIGHT, buff=0.18)
+        self.play(FadeOut(VGroup(proof, alone)), GrowFromCenter(brace), FadeIn(ancestry), run_time=0.7)
         self.finish()
 
 
-class S03Pool(SpokenScene):
+class S05Predict(SpokenScene):
     def construct(self):
-        cr = crypt(-3.4, 1.25, 2.6)
-        pos = base_pos(-3.4, 1.25)
-        state = [GREEN, PURPLE, ORANGE, PINK, GREEN]
-        cells = [cell(c, .45).move_to(p) for c, p in zip(state, pos)]
-        head = tag("How does the pool\nstay the same size?", 3.1, 2.3, size=32)
-        self.at("How does the pool")
-        self.play(Create(cr), FadeIn(VGroup(*cells)), FadeIn(head), run_time=.8)
-        clock = VGroup(Circle(radius=.36, color=GREY), Line(ORIGIN, UP*.26, color=TEXT),
-                       Line(ORIGIN, RIGHT*.18, color=TEXT)).move_to([-5.7, 2.8, 0])
-        clock_t = tag("about once a day", -3.1, 2.8, GREY, 24)
-        self.at("divide about once a day")
-        self.play(FadeIn(clock), FadeIn(clock_t), run_time=.5)
-        self.play(Rotate(clock[1], -TAU, about_point=clock[0].get_center()), run_time=.6)
-        p, d1, d2, a1, a2 = division(3.1, 1.1, BLUE, BLUE, BLUE, r=.42, dx=.9, drop=1.4)
-        sym = tag("symmetric division", 3.1, -1.2, BLUE, 26)
-        self.at("most divisions are symmetric")
-        self.play(FadeOut(head), FadeIn(p), run_time=.3)
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(d1), FadeIn(d2), FadeIn(sym), run_time=.7)
-        chance = tag("stay or leave\nby chance", 3.1, .7, size=32)
-        self.at("Daughters stay or leave")
-        self.play(FadeOut(VGroup(p,d1,d2,a1,a2,sym)), FadeIn(chance), run_time=.5)
-        # An illustrative neighbour-copy trajectory, not a measured time series.
-        def replace(src, dst):
-            new = cells[src].copy().move_to(cells[dst])
-            moving = cells[src].copy()
-            self.add(moving)
-            self.play(moving.animate.move_to(cells[dst]), FadeOut(cells[dst], shift=UP*.7), run_time=.4)
-            self.remove(moving)
-            self.add(new)
-            cells[dst] = new
-        self.at("Some clones take over")
-        replace(0,1); replace(4,3)
-        self.at("while others vanish")
-        replace(1,2)
-        self.play(Indicate(VGroup(*cells), color=GREEN, scale_factor=1.04), run_time=.5)
-        balance = bchip("population balance", TEAL, 30).move_to([3.1, -1.4, 0])
-        self.at("The population keeps the balance")
-        self.play(FadeOut(chance), FadeIn(balance), run_time=.6)
+        world, cells, flow = crypt_world(colors=[BLUE, GREEN, BLUE, BLUE, BLUE])
+        patch = ghost_patch()
+        q = question_text()
+        timeline = time_arrow()
+        self.add(world)
+        self.at("only a short lived")
+        short = T("short-lived precursor", 31, GREEN, weight=BOLD).move_to([3.4, 2.95, 0])
+        self.play(FadeIn(short), FadeIn(patch, shift=UP * 0.2), run_time=0.75)
+        self.at("limited output")
+        self.play(patch.animate.shift(UP * 0.45).set_opacity(0.48), run_time=0.65)
+        self.at("What should happen")
+        self.play(FadeOut(short), FadeIn(q), FadeIn(timeline), run_time=0.75)
+        self.at("descendants leave")
+        self.play(patch.animate.shift(UP * 0.45).set_opacity(0.28), run_time=0.7)
         self.finish()
 
 
-class S04Niche(SpokenScene):
+class S06Pause(Scene):
     def construct(self):
-        cr, base = crypt(), small_base()
-        self.add(cr, base)
-        q = tag("Stay or leave?", 3.2, 2.6, GOLD, 36)
-        self.at("What tells a daughter")
-        self.play(FadeIn(q), run_time=.6)
-        niche = bchip("niche = neighbours", TEXT, 28).move_to([3.2, 1.1, 0])
-        self.at("Its neighbors")
-        self.play(FadeIn(niche), run_time=.6)
-        # Signals use labelled translucent fields rather than molecular drawings.
-        wnt = VGroup(*[Rectangle(width=3.3, height=.55, stroke_width=0, fill_color=BLUE,
-                                 fill_opacity=.3*(1-i/6)).move_to([CX, -2.25+i*.55, 0]) for i in range(6)]).set_z_index(-2)
-        wt = tag("Wnt: stay stem", 3.2, -.3, BLUE, 28)
-        self.at("signals keep cells")
-        self.play(FadeIn(wnt), FadeIn(wt), Indicate(base, color=BLUE), run_time=.7)
-        bmp = VGroup(*[Rectangle(width=3.3, height=.5, stroke_width=0, fill_color=GREY,
-                                 fill_opacity=.05+i*.045).move_to([CX, -.1+i*.5, 0]) for i in range(5)]).set_z_index(-1)
-        bt = tag("BMP: specialize", 3.2, -1.4, GREY, 28)
-        self.at("Higher up")
-        self.play(FadeIn(bmp), FadeIn(bt), run_time=.7)
-        self.at("cells help stem cells grow")
-        self.play(FadeOut(VGroup(q,niche,wt,bt,wnt,bmp)), run_time=.35)
-        dish = Arc(radius=1.25, start_angle=PI, angle=PI, color=GREY).move_to([3.2,-.2,0])
-        pan = cell(GREY, .35).move_to([2.6,-.2,0])
-        sc = cell(BLUE,.35).move_to([3.7,-.2,0])
-        dishlabel = tag("Paneth + stem cell\nin a dish",3.2,1.5,size=28)
-        self.play(Create(dish), FadeIn(pan), FadeIn(sc), FadeIn(dishlabel), run_time=.6)
-        self.play(sc.animate.scale(1.25), run_time=.5)
-        self.at("But in the living gut")
-        living = tag("living gut",3.2,2.4,size=32)
-        pan2 = cell(GREY,.3).move_to([-3.3,-1.6,0])
-        pl = tag("Paneth",-3.3,-.7,GREY,24)
-        self.play(FadeOut(VGroup(dish,pan,sc,dishlabel)),FadeIn(living),FadeIn(pan2),FadeIn(pl),run_time=.6)
-        self.at("survived without them")
-        survives = tag("stem cells persist",3.2,1.1,BLUE,28)
-        self.play(FadeOut(VGroup(pan2,pl)),FadeIn(survives),Indicate(base,color=BLUE),run_time=.7)
-        tel = Ellipse(width=3.3,height=.28,color=BLUE,fill_opacity=.25).move_to([CX,-3.55,0])
-        source = tag("Wnt from beneath the lining",2.8,-1.4,BLUE,26)
-        a = arr([-1.7,-3.4,0],[-1,-2.3,0],BLUE)
-        self.at("cells beneath the lining")
-        self.play(FadeIn(tel),FadeIn(source),GrowArrow(a),run_time=.6)
-        off = cross(a,w=4)
-        drop = tag("Wnt off → less proliferation",2.8,-2.7,RED,24)
-        self.at("was needed")
-        self.play(FadeOut(survives), Create(off),a.animate.set_opacity(.15),FadeIn(drop),run_time=.5)
-        self.at("more than one source")
-        self.play(Indicate(source,color=BLUE),run_time=.6)
-        self.finish()
+        self.camera.background_color = BG
+        world, cells, flow = crypt_world(colors=[BLUE, GREEN, BLUE, BLUE, BLUE])
+        patch = ghost_patch().shift(UP * 0.9).set_opacity(0.24)
+        self.add(world, patch, question_text(), time_arrow())
+        self.wait(4.5)
 
 
-class S05Injury(SpokenScene):
+class S07RibbonReveal(SpokenScene):
     def construct(self):
-        cr,base = crypt(),small_base()
-        progenitors = VGroup(*[cell(GREY,.38).move_to([x,-.5,0]) for x in (-4.3,-3.3,-2.3)])
-        label = tag("progenitor cells",3.2,1.3,GREY,30)
-        self.at("Fates are less fixed")
-        self.play(Create(cr),FadeIn(base),FadeIn(progenitors),run_time=.7)
-        self.at("stem cells were killed")
-        self.play(base.animate.set_opacity(.15),run_time=.2)
-        self.play(base.animate.set_opacity(1),run_time=.2)
-        self.play(FadeOut(base),run_time=.3)
-        self.at("Progenitor cells")
-        self.play(FadeIn(label),Indicate(progenitors,color=GREY),run_time=.6)
-        fates = tag("toward absorptive\nor secretory cells",3.2,-.1,GREY,28)
-        self.at("on their way to becoming")
-        self.play(progenitors.animate.shift(UP*.45),FadeIn(fates),run_time=.7)
-        back = CurvedArrow([-1.8,.1,0],[-2.5,-2.7,0],angle=-PI/2,color=BLUE)
-        reset = tag("back to stem state",3.2,-1.6,BLUE,28)
-        self.at("went back and rebuilt")
-        self.play(Create(back),FadeIn(reset),run_time=.4)
-        self.play(*[c.animate.move_to(p).set_stroke(BLUE).set_fill(BLUE,.35)
-                    for c,p in zip(progenitors,[base_pos()[i] for i in (1,2,3)])],run_time=1)
-        injury = bchip("after injury only",YELLOW,30).move_to([3.2,2.8,0])
-        self.at("That is an injury result")
-        self.play(FadeIn(injury),run_time=.6)
-        caution = tag("not an everyday role\nfor mature cells",3.2,.4,TEXT,28)
-        self.at("It does not mean")
-        self.play(FadeOut(VGroup(label,fates)),FadeIn(caution),run_time=.6)
+        world, cells, flow = crypt_world(colors=[BLUE, GREEN, BLUE, BLUE, BLUE])
+        patch = ghost_patch().shift(UP * 1.15).set_opacity(0.35)
+        self.add(world, patch)
+        self.at("fade away")
+        short = T("short-lived", 31, RED, weight=BOLD).move_to([3.45, 2.75, 0])
+        self.play(FadeIn(short), patch.animate.shift(UP * 1.0).set_opacity(0), run_time=0.7)
+        self.at("Instead")
+        ribbon = green_ribbon()
+        marker = VGroup(
+            Arrow([1.15, 1.75, 0], [5.65, 1.75, 0], buff=0, color=TEXT, stroke_width=5),
+            T("0", 28).move_to([1.15, 1.34, 0]),
+            T("60 days", 30, GREEN, weight=BOLD).move_to([5.25, 1.30, 0]),
+            Dot([1.15, 1.75, 0], radius=0.13, color=GREEN),
+        )
+        self.play(FadeOut(short), FadeIn(ribbon), FadeIn(marker), run_time=0.65)
+        self.at("persisted for 60")
+        self.play(marker[-1].animate.move_to([5.65, 1.75, 0]),
+                  cells[1].animate.set_color(GREEN).set_fill(GREEN, 0.72), run_time=1.1)
+        self.at("contained every epithelial")
+        kinds = []
+        specs = [
+            (RoundedRectangle(width=.48, height=.72, corner_radius=.1), "absorptive", 0.72),
+            (Circle(radius=.28), "goblet", -0.05),
+            (Triangle().scale(.28), "enteroendocrine", -0.82),
+        ]
+        for shape, name, y in specs:
+            shape.set_color(GREEN).set_fill(GREEN, 0.45).move_to([2.05, y, 0])
+            kinds.append(VGroup(shape, T(name, 28, GREEN, weight=BOLD).next_to(shape, RIGHT, buff=.22)))
+        kinds = VGroup(*kinds)
+        paneth_shape = Square(side_length=.52, color=GREEN, fill_color=GREEN,
+                              fill_opacity=.45).move_to(base_positions()[0])
+        paneth_label = T("Paneth", 28, GREEN, weight=BOLD).move_to([-5.35, -2.18, 0])
+        paneth_arrow = Arrow(paneth_label.get_right(), paneth_shape.get_left(), buff=.12,
+                             color=GREEN, stroke_width=4, tip_length=.16)
+        paneth = VGroup(paneth_shape, paneth_label, paneth_arrow)
+        self.remove(marker)
+        self.play(LaggedStart(*[FadeIn(k, shift=RIGHT * .18) for k in kinds],
+                              FadeIn(paneth), lag_ratio=.12), run_time=1.0)
+        self.at("A lineage is")
+        lineage = T("lineage = descendant family", 30, GREEN, weight=BOLD).move_to([3.65, 2.15, 0])
+        self.play(FadeIn(lineage), run_time=0.55)
+        self.at("multipotent output")
+        multi = chip("multipotent output", GREEN, 30).move_to([3.65, -2.65, 0])
+        schematic = T("schematic reconstruction", 28, TEXT, weight=BOLD).move_to([3.65, -3.42, 0])
+        self.play(FadeOut(lineage), FadeIn(multi), ReplacementTransform(world[-1], schematic), run_time=0.75)
         self.finish()
 
 
-class S06Reset(SpokenScene):
+class S08InferenceLimit(SpokenScene):
     def construct(self):
-        question = tag("How far back can a cell go?",0,3.1,GOLD,36)
-        self.at("How far back")
-        self.play(FadeIn(question),run_time=.6)
-        gh = tag("Gurdon · 1962",-3.4,2.1,GREY,28)
-        egg = cell(GREY,.85).move_to([-3.4,.1,0])
-        el = tag("egg without\nits own nucleus",-3.4,-1.3,GREY,24)
-        nucleus = Dot([-5.7,1.2,0],radius=.18,color=BLUE)
-        nl = tag("gut-cell nucleus",-4.8,2.65,BLUE,24)
-        pipette = VGroup(Line([-6.1,1.55,0],[-4.7,.55,0],color=GREY,stroke_width=5),
-                         Line([-6.2,1.35,0],[-4.7,.55,0],color=GREY,stroke_width=3))
-        self.at("In 1962")
-        self.play(FadeIn(gh),FadeIn(egg),FadeIn(el),run_time=.6)
-        self.at("put a nucleus")
-        self.play(FadeIn(nucleus),FadeIn(nl),Create(pipette),run_time=.6)
-        self.at("into a frog egg")
-        self.play(nucleus.animate.move_to(egg.get_center()),pipette.animate.shift(RIGHT*.4+DOWN*.2),run_time=.9)
-        # Qualitative outcomes: no invented numerical success fraction.
-        failed = VGroup(*[VGroup(cell(GREY,.23),cross(cell(GREY,.23),w=3)).move_to([x,-2.5,0])
-                          for x in (-5,-4.2,-3.4)])
-        outcome = tag("most failed",-4.2,-3.15,RED,24)
-        tad = VGroup(Ellipse(width=.55,height=.32,color=BLUE,fill_opacity=.5),
-                     CubicBezier([.2,0,0],[.5,.4,0],[.8,-.3,0],[1,.1,0],color=BLUE)).move_to([-2,-2.4,0])
-        self.at("A small fraction")
-        self.play(FadeOut(VGroup(pipette,nl)),FadeIn(failed),FadeIn(outcome),FadeIn(tad),run_time=.7)
-        self.play(tad.animate.shift(RIGHT*.4),run_time=.6)
-        yh = tag("Yamanaka lab · 2006",3.3,2.1,GREY,28)
-        fibro = Ellipse(width=2,height=.7,color=GREY,fill_opacity=.3).rotate(.25).move_to([3.2,.2,0])
-        fl = tag("mouse fibroblast",3.2,-.9,GREY,26)
-        self.at("In 2006")
-        self.play(FadeOut(VGroup(egg,el,nucleus,failed,outcome)),FadeIn(yh),FadeIn(fibro),FadeIn(fl),run_time=.6)
-        factors = VGroup(*[bchip(str(i+1),YELLOW,22).move_to([1.6+i*1.05,1.15,0]) for i in range(4)])
-        ft = tag("four transcription factors",3.2,2.9,YELLOW,24)
-        self.at("four transcription factors")
-        self.play(FadeOut(question),FadeIn(factors),FadeIn(ft),run_time=.6)
-        self.at("turn mouse fibroblasts")
-        self.play(*[f.animate.move_to(fibro.get_center()).set_opacity(0) for f in factors],run_time=.9)
-        plur = cell(BLUE,.7).move_to([3.2,.2,0])
-        layers = VGroup(*[VGroup(cell(GREY,.2).move_to([x,-1.6,0]),
-                                tag(t,x,-2.1,GREY,22))
-                          for x,t in ((1.2,"ectoderm"),(3.2,"mesoderm"),(5.2,"endoderm"))])
-        self.at("into pluripotent cells")
-        self.play(Transform(fibro,plur),ReplacementTransform(fl,tag("pluripotent",3.2,-.9,BLUE,26)),FadeIn(layers),run_time=.7)
-        self.at("Specialized cells can be reset")
-        reset = tag("specialized state → reset",-3.2,.4,BLUE,30)
-        self.play(FadeOut(VGroup(gh,tad)),FadeIn(reset),run_time=.7)
-        no = bchip("not totipotent",RED,28).move_to([-3.2,-1.2,0])
-        self.at("Pluripotent is not totipotent")
-        self.play(FadeIn(no),run_time=.6)
-        safe = bchip("not proof of safety",RED,28).move_to([-3.2,-2.6,0])
-        self.at("passing these tests")
-        self.play(FadeIn(safe),run_time=.6)
+        world, cells, flow = crypt_world(colors=[BLUE, GREEN, GREEN, BLUE, BLUE], green_patch=True)
+        ribbon = green_ribbon()
+        halo = Circle(radius=0.58, color=YELLOW, stroke_width=6).move_to(cells[2])
+        start = T("starting cell", 30, YELLOW, weight=BOLD).move_to([3.6, 2.5, 0])
+        brace = Brace(cells[2], RIGHT, color=YELLOW)
+        self.add(ribbon, world, halo, start, brace)
+        self.at("does not mean")
+        replacement = cells[1].copy()
+        self.play(FadeOut(halo), FadeOut(cells[2], shift=UP * .7),
+                  replacement.animate.move_to(cells[2]), run_time=0.8)
+        self.add(replacement)
+        self.at("trace identifies")
+        pop_brace = Brace(VGroup(ribbon, cells), RIGHT, color=GREEN)
+        pop = T("population tested\nover time", 31, GREEN, weight=BOLD,
+                line_spacing=.9).move_to([4.05, 1.25, 0])
+        self.play(ReplacementTransform(brace, pop_brace), ReplacementTransform(start, pop), run_time=0.8)
+        self.at("descendant output")
+        self.play(flow.animate.set_color(GREEN).set_opacity(0.75), run_time=0.7)
+        self.at("not a marker alone")
+        card = chip("marker alone", TEXT, 30).move_to([3.9, -1.35, 0])
+        x = VGroup(Line(card.get_corner(UL), card.get_corner(DR), color=RED, stroke_width=7),
+                   Line(card.get_corner(DL), card.get_corner(UR), color=RED, stroke_width=7))
+        self.play(FadeIn(card), Create(x), run_time=0.7)
+        self.at("supplies the evidence")
+        evidence = T("descendants over time", 31, GREEN, weight=BOLD).move_to([3.9, -2.55, 0])
+        self.play(FadeIn(evidence), Indicate(flow, color=GREEN, scale_factor=1.03), run_time=0.7)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Stem cells make every lining cell type and keep their numbers."
+class S09Confetti(SpokenScene):
+    def construct(self):
+        world, cells, flow = crypt_world()
+        self.add(world)
+        self.at("permanent confetti")
+        new_cells = VGroup(*[cell(c).move_to(p) for c, p in zip(CONFETTI, base_positions())])
+        self.play(ReplacementTransform(cells, new_cells), run_time=0.8)
+        cells = new_cells
+        self.at("green")
+        legend = VGroup(*[VGroup(cell(c, .18), T(n, 28, c, weight=BOLD)).arrange(RIGHT, buff=.16)
+                          for c, n in ((GREEN, "green"), (YELLOW, "yellow"),
+                                       (RED, "red"), (TEAL, "cyan"))])
+        legend.arrange(DOWN, aligned_edge=LEFT, buff=.22).move_to([3.6, 1.65, 0])
+        self.play(LaggedStart(*[FadeIn(x) for x in legend], lag_ratio=.15), run_time=1.1)
+        self.at("divide about once")
+        clock = VGroup(Circle(radius=.58, color=TEXT, stroke_width=4),
+                       Line(ORIGIN, UP*.37, color=TEXT, stroke_width=4),
+                       Line(ORIGIN, RIGHT*.25, color=TEXT, stroke_width=4)).move_to([3.65, -.55, 0])
+        daily = T("about once daily", 30, TEXT, weight=BOLD).next_to(clock, DOWN, buff=.18)
+        self.play(FadeOut(legend), FadeIn(clock), FadeIn(daily), run_time=.55)
+        self.play(Rotate(clock[1], -TAU, about_point=clock[0].get_center()), run_time=.75)
+        self.at("Most divisions")
+        parent = cells[0]
+        twins = VGroup(parent.copy().scale(.78), parent.copy().scale(.78))
+        twins.arrange(RIGHT, buff=.1).move_to(parent)
+        symmetric = T("symmetric", 32, GREEN, weight=BOLD).move_to([3.65, 1.15, 0])
+        self.play(ReplacementTransform(parent, twins), FadeIn(symmetric), run_time=.75)
+        self.at("both daughters retain")
+        self.play(twins.animate.arrange(RIGHT, buff=.35).move_to([CX - 1.0, -2.05, 0]), run_time=.7)
+        self.at("or both leave")
+        exiting = cells[2].copy()
+        two_out = VGroup(exiting.copy(), exiting.copy()).arrange(RIGHT, buff=.18).move_to(cells[2])
+        gap = cells[2].get_center().copy()
+        neighbour = cells[3].copy()
+        self.play(ReplacementTransform(cells[2], two_out), run_time=.35)
+        self.play(two_out.animate.shift(UP * 1.35).set_opacity(0),
+                  neighbour.animate.move_to(gap), FadeOut(VGroup(clock, daily, symmetric)), run_time=.8)
+        self.finish()
+
+
+class S10Exchange(SpokenScene):
+    def construct(self):
+        world, cells, flow = crypt_world(colors=CONFETTI, bracket=True)
+        spinner = chance_spinner()
+        self.add(world)
+        self.at("appear to compete")
+        self.play(FadeIn(spinner), Indicate(cells, color=GOLD, scale_factor=1.04), run_time=.75)
+        self.at("Green expands")
+        gap = cells[2].get_center().copy()
+        green_copy = cells[1].copy()
+        self.play(cells[2].animate.shift(UP * 1.0).set_opacity(0), run_time=.55)
+        self.play(green_copy.animate.move_to(gap), run_time=.65)
+        self.add(green_copy)
+        self.at("Red disappears")
+        gone = T("red disappears", 30, RED, weight=BOLD).move_to([3.75, -.05, 0])
+        self.play(FadeIn(gone), run_time=.5)
+        self.at("cyan pushes")
+        cyan_copy = cells[3].copy()
+        green_target = cells[4]
+        self.play(green_target.animate.shift(UP * .9).set_opacity(0),
+                  cyan_copy.animate.move_to(green_target), FadeOut(gone), run_time=.75)
+        self.add(cyan_copy)
+        self.at("Color shares change")
+        changing = T("colour shares change", 31, GOLD, weight=BOLD).move_to([3.75, -.1, 0])
+        constrained = T("pool stays constrained", 31, TEAL, weight=BOLD).move_to([3.75, -1.15, 0])
+        self.play(FadeIn(changing), FadeIn(constrained), run_time=.7)
+        self.at("pool stays constrained")
+        self.play(Indicate(world[-2], color=TEAL, scale_factor=1.02), run_time=.7)
+        self.finish()
+
+
+class S10Winner(SpokenScene):
+    def construct(self):
+        world, cells, flow = crypt_world(colors=CONFETTI, bracket=True)
+        spinner = chance_spinner((3.65, 2.55, 0), .48)
+        self.add(world, spinner)
+        yellow = cells[1]
+        self.at("erase most colors")
+        for i in (2, 0):
+            repl = yellow.copy()
+            self.play(FadeOut(cells[i], shift=UP*.65), repl.animate.move_to(cells[i]), run_time=.48)
+            self.add(repl)
+        self.at("one clone fills")
+        targets = [c for i, c in enumerate(cells) if i not in (0, 1, 2)]
+        new = [yellow.copy() for _ in targets]
+        self.play(*[FadeOut(c, shift=UP*.55) for c in targets], run_time=.4)
+        self.play(*[n.animate.move_to(t) for n, t in zip(new, targets)], run_time=.65)
+        self.add(*new)
+        self.at("Different repeats")
+        strips = VGroup(outcome_strip([GREEN]*5, .65),
+                        outcome_strip([RED]*5, -.55),
+                        outcome_strip([TEAL]*5, -1.75))
+        self.play(FadeOut(simplified_label()), FadeIn(strips, shift=RIGHT*.18), run_time=.9)
+        self.at("different winners")
+        self.play(LaggedStart(*[Indicate(s[1], scale_factor=1.05) for s in strips], lag_ratio=.15), run_time=.9)
+        self.at("takeover by one")
+        result = T("one-clone takeover", 32, YELLOW, weight=BOLD).move_to([3.65, -2.85, 0])
+        self.play(FadeOut(strips), FadeIn(result), run_time=.65)
+        self.at("not survival")
+        lost = T("most starting clones vanish", 30, RED, weight=BOLD).move_to([3.65, -1.45, 0])
+        self.play(FadeIn(lost), run_time=.65)
+        self.finish()
+
+
+class S11PopulationBalance(SpokenScene):
+    def construct(self):
+        world, cells, flow = crypt_world(colors=[YELLOW]*5, bracket=True)
+        strips = VGroup(outcome_strip([GREEN, GREEN, RED, GREEN, TEAL], 1.35),
+                        outcome_strip([RED, YELLOW, YELLOW, TEAL, YELLOW], .15),
+                        outcome_strip([TEAL, GREEN, TEAL, TEAL, RED], -1.05))
+        self.add(world)
+        self.at("clone identities change")
+        self.play(FadeIn(strips, shift=RIGHT*.18), run_time=.85)
+        # Shares change, but each teal baseline (the supported pool) is identical.
+        finals = VGroup(outcome_strip([GREEN]*5, 1.35),
+                        outcome_strip([YELLOW]*5, .15),
+                        outcome_strip([TEAL]*5, -1.05))
+        self.play(Transform(strips, finals), run_time=1.0)
+        self.at("Balance belongs")
+        balance = T("balance = population property", 31, TEAL, weight=BOLD).move_to([3.7, 2.55, 0])
+        self.play(FadeIn(balance), run_time=.6)
+        self.at("not every division")
+        division = chip("every division", TEXT, 28).move_to([3.7, -2.15, 0])
+        slash = Line(division.get_corner(UL), division.get_corner(DR), color=RED, stroke_width=7)
+        self.play(FadeIn(division), Create(slash), run_time=.65)
+        self.at("No cell is appointed")
+        crown = T("no appointed winner", 30, GOLD, weight=BOLD).move_to([3.7, -2.95, 0])
+        self.play(FadeOut(VGroup(division, slash)), FadeIn(crown), run_time=.6)
+        self.at("neutral drift")
+        neutral = chip("neutral drift", GOLD, 34).move_to([3.7, .05, 0])
+        self.play(FadeOut(VGroup(strips, balance, crown)), run_time=.28)
+        self.play(FadeIn(neutral), run_time=.42)
+        self.at("chance competition")
+        spinner = chance_spinner((3.7, -1.45, 0), .48)
+        self.play(FadeIn(spinner), Indicate(neutral, color=GOLD, scale_factor=1.04), run_time=.75)
+        self.finish()
+
+
+class S12Takeaway(SpokenScene):
+    def construct(self):
+        world, cells, flow = crypt_world(colors=CONFETTI, bracket=True)
+        self.add(world)
+        self.at("follow descendants")
+        follow = T("FOLLOW DESCENDANTS\nOVER TIME", 31, GREEN, weight=BOLD,
+                   line_spacing=.9).move_to([3.55, 2.35, 0])
+        self.play(FadeIn(follow), flow.animate.set_opacity(.9), run_time=.7)
+        self.at("pool can make specialized")
+        output = T("specialized output", 30, TEXT, weight=BOLD).move_to([3.55, 1.35, 0])
+        self.play(FadeIn(output), Indicate(flow, color=TEXT, scale_factor=1.03), run_time=.75)
+        self.at("most clones vanish")
+        winner = cells[1]
+        for i in (2, 3, 0):
+            repl = winner.copy()
+            self.play(FadeOut(cells[i], shift=UP*.55), repl.animate.move_to(cells[i]), run_time=.42)
+            self.add(repl)
+        self.at("one may take over")
+        last = winner.copy()
+        self.play(FadeOut(cells[4], shift=UP*.55), last.animate.move_to(cells[4]), run_time=.6)
+        self.add(last)
+        self.at("population persists")
+        pop = T("POPULATION PERSISTS", 34, TEAL, weight=BOLD).move_to([3.55, .1, 0])
+        self.remove(follow, output)
+        self.play(FadeIn(pop), Indicate(world[-2], color=TEAL, scale_factor=1.02),
+                  run_time=.55)
+        self.at("membership changes")
+        membership = T("membership changes", 32, YELLOW, weight=BOLD).move_to([3.55, -1.0, 0])
+        self.play(FadeIn(membership), run_time=.65)
+        self.at("stable stem cell pool")
+        rule = T("A stable stem-cell pool\npersists while most of its\nclones vanish.",
+                 32, TEXT, font=TITLE_FONT, weight=BOLD, line_spacing=.86).move_to([3.35, -2.05, 0])
+        self.remove(pop, membership, world[-1])
+        self.play(FadeIn(rule), run_time=.55)
+        self.finish()
+
+
+class S13End(EndCard):
+    LINE = "A stable stem-cell pool persists while most of its clones vanish."
+
+    def construct(self):
+        world, cells, flow = crypt_world(colors=[YELLOW]*5, bracket=True, show_simple=False)
+        self.add(world)
+        line = T("A stable stem-cell pool persists\nwhile most of its clones vanish.",
+                 42, TEXT, font=TITLE_FONT, weight=BOLD, line_spacing=.9).move_to([2.2, .55, 0])
+        panel = BackgroundRectangle(line, color=BG, fill_opacity=.88, buff=.3)
+        sub = T("biochemistrypedia.com", 28, TEAL, weight=BOLD).move_to([3.3, -1.25, 0])
+        self.play(FadeIn(panel), FadeIn(line, shift=UP*.12), FadeIn(sub), run_time=.75)
+        # A breathing bracket plus the continuing stream keeps the final world alive.
+        bracket = world[-1]
+        self.play(bracket.animate.set_opacity(.55), rate_func=there_and_back, run_time=.8)
+        self.finish()

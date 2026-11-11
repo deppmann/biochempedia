@@ -5,8 +5,8 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 2: Membranes and compartments"
 order: 408
 summary: >-
-  Every protein in the nucleus is made in the cytoplasm, yet the nucleus keeps its own set and
-  sends RNA the other way. This lesson builds the nuclear envelope and its pores, then explains
+  In an ordinary eukaryotic cell, soluble nuclear proteins are synthesized on cytosolic ribosomes,
+  yet the nucleus keeps its own set and sends RNA the other way. This lesson builds the nuclear envelope and its pores, then explains
   how short signals, receptors and a gradient of the small GTPase Ran make transport selective and
   directional. Afterwards you can read a nuclear-exchange time course and interpret the classic
   injection, gold-tracing, signal-transfer and leptomycin B experiments.
@@ -23,10 +23,15 @@ explainer:
   src: "/explainers/nuclear-transport/explainer.mp4"
   captions: "/explainers/nuclear-transport/explainer.vtt"
   poster: "/explainers/nuclear-transport/poster.jpg"
-  title: "A Gradient Sets the Direction"
-  durationSec: 163.1
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "One Pore, Two Directions"
+  durationSec: 227.4
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "For soluble protein cargo, the nuclear pore is a selective passage, not a one-way motor."
+    - "In Ran-dependent protein transport, nuclear RanGTP tells importins to unload and exportins to load."
+    - "Importins carry NLS cargo inward, while CRM1 carries many NES cargoes outward."
+    - "In Ran-dependent transport, GTP hydrolysis maintains the gradient; it does not push cargo through the pore."
 
 scientists:
   - name: "Ronald Laskey"
@@ -383,27 +388,32 @@ draft: false
 import PoreLeakTimer from '../../../components/PoreLeakTimer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Every protein in the nucleus was made in the cytoplasm.** Proteins are made on ribosomes in the cytoplasm, so histones, polymerases and transcription factors all have to be brought in, while messenger RNAs and ribosomal subunits made inside have to be sent out. The border is busy in both directions at once. How does a nucleus collect the right proteins, keep them, and make traffic run the right way?
+**A protein sits mostly in the cytoplasm. Add one export-blocking drug, and within an hour it piles up in the nucleus.** The simplest explanation is that it has been crossing the border all along. In an ordinary eukaryotic cell, soluble nuclear proteins are synthesized on cytosolic ribosomes, while messenger RNA and ribosomal subunits made inside must leave. How can one border sort traffic moving both ways?
 
-## The idea: a gated border with a one-way rule
-
-Think of a border with open gates. Anyone small can stroll across. Anything large crosses only slowly on its own; to cross quickly it needs a passport and a licensed courier who reads it. The couriers do not push anyone through: they walk the same open gates. What makes courier traffic one-way is a rule about where couriers put their loads down, and that rule depends on a chemical that is abundant on one side of the border and scarce on the other.
-
-In the cell the gates are nuclear pore complexes, the passport is a short amino-acid signal, the couriers are transport receptors, and the chemical is Ran, a small GTPase, bound to GTP. Ran works like the GTPase switches in [that lesson](/lessons/gtpase-switches/): on with GTP, off with GDP. The rest of this lesson builds each part and then looks at the experiments that found them.
+The film gave a first picture of Ran-dependent soluble-protein traffic. The page now maps the border, measures its leak, tests signals and classic experiments, then returns to the drug puzzle.
 
 ## The envelope, lamina and pore
 
-The nuclear envelope is two lipid bilayers, an inner and an outer nuclear membrane, described as about 20 to 40 nm apart in animal cells. The outer membrane is continuous with the endoplasmic reticulum. So the narrow perinuclear space between the two membranes is ER lumen (a lumen is the space enclosed by an organelle's membrane), topologically on the same side as the inside of the ER, as in [that lesson](/lessons/membrane-organization-topology/). The inner and outer membranes meet at the pores, where the bilayer bends round to line a water-filled channel.
+To test a two-compartment transport model, first map the physical border and the spaces it separates.
 
-Under the inner membrane of animal cells lies the lamina, a meshwork of proteins called lamins that gives the nucleus mechanical stability and bridges the envelope and chromatin. Lamins belong to the intermediate-filament family, but in cryo-electron tomograms of extracted mouse fibroblasts lacking vimentin (a cytoplasmic intermediate-filament protein) they formed filaments only about 3.5 nm thick. Mutations in LMNA, the gene for A-type lamins, cause human diseases called laminopathies; a mechanically weaker nucleus is one proposed mechanism, and why one gene gives such varied diseases is still argued. Budding yeast has no lamins.
+The nuclear envelope's inner and outer lipid bilayers are described as about 20 to 40 nm apart in animal cells. The outer membrane is continuous with the endoplasmic reticulum, so the **perinuclear space** between them is ER lumen, the space enclosed by the ER membrane. The membranes meet around each pore's water-filled channel.
 
-Each nuclear pore complex is built from roughly 30 different proteins, called nucleoporins, each present in multiple copies. Its scaffold has eightfold rotational symmetry. Lining the central channel are nucleoporins with long, disordered stretches rich in phenylalanine-glycine repeats, the FG repeats. Measurements of passive entry of inert probes into digitonin-permeabilized HeLa cells supported a model in which FG domains form the permeability barrier, with a dominant mesh radius of about 2.6 nm and a small fraction of wider channels. How the FG domains do this, as a cohesive gel or as a brush of waving chains, is still debated. Nor is the scaffold rigid: in fission yeast, pores constricted reversibly during energy depletion and under hypertonic stress.
+**Predict.** A soluble tracer is placed in the perinuclear space. Without crossing a membrane, which space can it reach: the cytosol, nucleoplasm or ER lumen?
+
+<details>
+<summary>Check your prediction</summary>
+
+The ER lumen. It and the perinuclear space are **topologically equivalent**: they are continuous without crossing a membrane. The pore instead joins cytosol to nucleoplasm. See [membrane organization and topology](/lessons/membrane-organization-topology/).
+
+</details>
+
+Under the inner membrane lies the **lamina**, a lamin meshwork that gives the nucleus mechanical stability and bridges envelope and chromatin. Each pore has an eightfold-symmetric scaffold built from multiple copies of roughly 30 kinds of **nucleoporin**. Nucleoporins with disordered phenylalanine-glycine, or **FG**, repeats line the channel and form its selective barrier.
 
 <LessonFigure src="/figures/nuclear-transport/envelope-lamina-pore.webp" width={1200} height={800} alt="AI-generated illustration: cut-away of the nuclear envelope showing outer and inner membranes with the gap between them continuous with an ER tube, a thin lamina under the inner membrane, and a nuclear pore where the membranes join around a channel lined with FG-repeat chains; an inset shows a ring of eight identical blocks." caption="The outer nuclear membrane is continuous with the ER, so the space between the two membranes is ER lumen. The membranes meet at the pore, whose scaffold has eightfold symmetry and whose channel is lined with FG repeats; the lamina lies under the inner membrane." />
 
-### Worked problem: how soft is the barrier?
+## A soft barrier, measured
 
-Textbooks once gave a sharp limit, often 40 kDa, above which proteins could not diffuse through the pore. Timney and colleagues tested this in 2016 in live budding yeast. They expressed fluorescent reporters of different size, bleached the cytoplasmic signal, and followed nuclear fluorescence as it returned to equilibrium. Model the excess nuclear signal above equilibrium as a single exponential:
+The film's picture was the simple case; here is the fuller one: passive passage slows continuously rather than stopping at one size. Textbooks once proposed a sharp 40 kDa limit. In 2016 Timney and colleagues bleached cytoplasmic fluorescence from different-sized reporters in live budding yeast and followed the excess nuclear signal relaxing, or returning, toward equilibrium. Model that excess as one exponential:
 
 > **x(t) / x(0) = exp(-t / τ)**
 
@@ -411,55 +421,106 @@ Their normalized time constants were τ = 15 s for 27 kDa GFP and τ = 413 s for
 
 <PoreLeakTimer />
 
-1. **Half-times.** Setting x/x(0) = 0.5 gives t½ = τ × ln 2. For GFP, 15 × 0.693 = 10.4 s. For the 67 kDa reporter, 413 × 0.693 = 286 s.
-2. **After one minute.** For GFP, 60/15 = 4, and exp(-4) = 0.018, so 1.8% of the excess is left. For the large reporter, 60/413 = 0.145, and exp(-0.145) = 0.865, so 86.5% is left.
-3. **Does the large reporter cross at all?** At 826 s, 826/413 = 2, and exp(-2) = 0.135. Only 13.5% of the excess remains, so it does cross, slowly.
-4. **What the ratio says.** 413/15 = 27.5. A 2.5-fold rise in mass (67/27 = 2.48) slowed exchange about 27-fold. Permeability falls steeply but continuously with size: a soft barrier, not a cutoff.
+**Predict.** After one minute, will the larger reporter have relaxed by half? Estimate the fraction of excess signal left for each reporter before opening the calculation.
 
-These are fractions of excess signal in a yeast nucleus, not the time one molecule spends in one pore. For comparison, single NLS-carrying molecules were seen to interact with pores for about 10 ms on average in permeabilized HeLa cells.
+<details>
+<summary>Check your prediction</summary>
 
-## Signals, receptors and the Ran gradient
+No. For GFP, 60/15 = 4, so exp(-4) = 0.018: 1.8% remains. For the 67 kDa reporter, 60/413 = 0.145, so exp(-0.145) = 0.865: 86.5% remains. The larger reporter is far from halfway to equilibrium.
 
-A **nuclear localization signal** (NLS) is a short stretch of a protein that marks it for import. Classical NLSs are basic. A monopartite NLS has one cluster of basic residues, such as Pro-Lys-Lys-Lys-Arg-Lys-Val from SV40 large T antigen. A bipartite NLS has two basic clusters separated by a spacer, as in nucleoplasmin. Unlike the ER signal sequences in [that lesson](/lessons/protein-sorting/), an NLS is not cut off, so a protein can be imported again. The signal also depends on context: the same sequence works better in some proteins than in others.
+</details>
 
-In the classical pathway, importin α binds the NLS and importin β binds importin α. Importin β docks the complex at the pore and moves it through by binding FG repeats as it goes.
+The half-time is t½ = τ × ln 2. It is 15 × 0.693 = 10.4 s for GFP and 413 × 0.693 = 286 s for the 67 kDa reporter. At 826 s, two time constants for the larger reporter, exp(-2) = 0.135, so only 13.5% remains. A 2.5-fold rise in mass (67/27 = 2.48) increased the time constant about 27-fold (413/15 = 27.5), yet did not stop exchange. Passive permeability falls steeply but continuously with size: this is a soft barrier, not a cutoff.
 
-Now the one-way rule. RCC1, Ran's exchange factor, sits on chromatin and loads GTP onto Ran, so RanGTP is made in the nucleus. RanGAP1 in the cytoplasm, helped by RanBP1, stimulates Ran to hydrolyse its GTP, so cytoplasmic RanGTP stays low. NTF2 carries RanGDP back into the nucleus to be recharged. The receptors read this gradient:
+These values describe relaxation of excess signal in a yeast nucleus, not the time one molecule spends in one pore. The pore's physical fine print comes in Going deeper.
 
-- **Import.** Importins load cargo where RanGTP is low. In the nucleus RanGTP binds importin β and frees it from importin α. Importin α then lets go of the cargo, helped by nucleoporins on the nuclear face of the pore such as Nup50. Importin β returns with RanGTP, and the exportin CAS returns importin α, also with RanGTP.
-- **Export.** An exportin binds its cargo only together with RanGTP. CRM1, also called exportin 1, carries proteins with a leucine-rich nuclear export signal (NES), a short pattern of spaced hydrophobic residues, often leucines. In the cytoplasm Ran-binding proteins such as RanBP1 help release the cargo, and RanGAP-stimulated hydrolysis then turns Ran off and frees the exportin.
+## Signals: what an experiment can prove
 
-Where is the energy spent? Not on pushing. In an in vitro assay, transportin, another importin, carried its cargo across pores with no Ran or nucleotide present; RanGTP, but not its hydrolysis, was needed to release the cargo and send the receptor back, and GTP hydrolysis appeared necessary only to reset the receptor for further rounds. Passage is best described as facilitated diffusion. GTP hydrolysis builds and resets the gradient that decides where loads are picked up and dropped.
+The film named two cargo labels; experiments are needed to show what a candidate label actually does.
 
-Not all export uses this machinery. Most messenger RNA leaves through the receptor NXF1 (also called TAP), largely independent of Ran, and export of spliced mRNA proceeded without Ran in a Xenopus oocyte assay. What happens to RNA before it leaves belongs to [that lesson](/lessons/rna-processing/). Cells also regulate import itself, which is how many transcription factors are switched on: see [that lesson](/lessons/signaling-to-the-nucleus/).
+A **classical nuclear localization signal** (NLS) is a basic amino-acid sequence recognized by importin α. It can have one basic cluster, such as SV40 large T antigen's Pro-Lys-Lys-Lys-Arg-Lys-Val, or two clusters separated by a spacer, as in nucleoplasmin. Unlike many ER signal sequences in [protein sorting](/lessons/protein-sorting/), it is ordinarily not cut off. Its effect depends on protein context.
 
-## The experiments that found them
+In the classical pathway, importin α binds the NLS, importin β binds importin α, and importin β engages FG repeats in the pore. A **nuclear export signal** (NES) recognized by CRM1, also called exportin 1, is a pattern of spaced hydrophobic residues, often leucines.
 
-**Entry is not retention.** In 1982 Dingwall, Sharnick and Laskey clipped the tails off nucleoplasmin, a pentameric nuclear protein of Xenopus oocytes, by partial proteolysis. Cores injected into oocyte cytoplasm stayed out, but a pentamer with one remaining tail entered. Cores injected into the nucleus stayed there. Entry information was in the tail.
+### Entry is not retention
+
+In 1982 Dingwall, Sharnick and Laskey clipped the tails from pentameric nucleoplasmin while leaving its core. Tail-less cores injected into *Xenopus* oocyte cytoplasm stayed out; a larger one-tail pentamer entered. Tail-less cores injected into the nucleus stayed there.
+
+**Predict.** Why is the nuclear injection essential? What conclusion would be unsafe without it?
+
+<details>
+<summary>Check your prediction</summary>
+
+It shows that the tail is needed for entry, not simply for retention. Without the nuclear injection, a cytoplasmic core might have entered and leaked back out. The larger one-tail pentamer entering also argues against size alone deciding passage.
+
+</details>
 
 <LessonFigure src="/figures/nuclear-transport/nucleoplasmin-entry-vs-retention.webp" width={1200} height={585} alt="AI-generated illustration: three oocyte-like cells show a needle injecting nucleoplasmin; a core with no tails injected into the cytoplasm stays out of the nucleus, a core with one tail injected into the cytoplasm enters, and a core with no tails injected into the nucleus stays inside." caption="Cores without tails stay in the cytoplasm when injected there, a pentamer with one tail enters, and cores injected into the nucleus stay there. So the tail carries the information for entry, and the core is enough for staying." />
 
-**The route is the pore.** In 1984 Feldherr, Kallenbach and Schultz injected nucleoplasmin-coated gold particles, about 5 to 20 nm across including the coat, into oocytes. By electron microscopy, they concluded the gold crossed through pores. Gold coated with transport-deficient nucleoplasmin or with polyvinylpyrrolidone was largely excluded.
+### Route and signal
 
-**A signal you can move.** In 1984 Kalderon, Roberts, Richardson and Smith transferred the SV40 large-T signal region to β-galactosidase and pyruvate kinase, which then went to the nucleus; changing lysine 128 to threonine abolished this. Earlier the same year Lanford and Butel had found that T antigen with lysine 128 changed to asparagine stays in the cytoplasm.
+In 1984 Feldherr, Kallenbach and Schultz injected nucleoplasmin-coated gold particles, about 5 to 20 nm across including the coat. Electron microscopy placed transported gold at pores. Transport-deficient nucleoplasmin or inert-polymer coatings were largely excluded, showing that entry depended on a transport-competent coat, not gold itself.
 
-**Receptors and gradient.** In 1991 Adam and Gerace purified cytosolic proteins that bind the SV40 NLS and stimulate import, and in 1993 Moore and Blobel showed that import also needs Ran. In 1995 Görlich, Laskey and colleagues reported that importin α recognizes the NLS and importin β docks at the pore. In 1997 Izaurralde, Mattaj, Görlich and colleagues collapsed the Ran asymmetry in oocyte nuclei with RanGAP1, RanBP1 or a Ran mutant unable to hold GTP stably, and major import and export pathways were blocked, export more readily than import. The same year Fornerod, Ohno, Yoshida and Mattaj showed in oocytes that extra CRM1 stimulated export of Rev and U snRNAs, that leptomycin B inhibited it, and that CRM1 binds NES cargo and RanGTP cooperatively in vitro.
+That same year Kalderon, Roberts, Richardson and Smith transferred the SV40 large-T signal region to β-galactosidase and pyruvate kinase; both reporters became nuclear. Changing lysine 128 to threonine abolished accumulation. Earlier that year Lanford and Butel had found a cytoplasmic T-antigen mutant with lysine 128 changed to asparagine.
 
-### Design problem
+**Predict.** A transferred signal makes a cytoplasmic reporter nuclear, while a one-residue mutant does not. What has this shown, and what remains unproved?
 
-Protein Z is cytoplasmic at steady state in cultured cells. Within an hour of adding leptomycin B it is nuclear. Interpret the result and design experiments to test your interpretation.
+<details>
+<summary>Check your prediction</summary>
+
+The sequence is sufficient for nuclear accumulation in those reporters, and that residue matters. The transfer test does not by itself show that the sequence is necessary in its original protein; for T antigen, deletions and Lanford and Butel's lysine-128 mutant supplied that evidence. Nor does transfer show that importin α binds the sequence directly or that every protein context exposes it equally.
+
+</details>
+
+## Crossing is not direction
+
+The next experiments separate passage through the film's pore from the directional accumulation seen across many transport rounds.
+
+Ran is a small GTPase that works like the switches in [GTPase switches](/lessons/gtpase-switches/): on with GTP and off with GDP. In an in vitro experiment, transportin, another import receptor, carried cargo across pores without Ran or nucleotide. Nuclear RanGTP, but not its hydrolysis, was needed to release cargo and return the receptor; hydrolysis appeared necessary to restore import competence for further rounds. Receptor-assisted crossing is best described as **facilitated diffusion**: a receptor speeds diffusive passage through the pore rather than delivering a power stroke. Repeated directional accumulation still requires energy to maintain and reset the Ran system.
+
+The receptors read the Ran gradient. Importins load cargo where RanGTP is low, in the cytoplasm, and release it when nuclear RanGTP binds. Exportins such as CRM1 bind cargo only together with RanGTP in the nucleus and release it in the cytoplasm, after Ran-binding proteins and GTP hydrolysis take the complex apart.
+
+The evidence accumulated in steps. Adam and Gerace purified import-stimulating NLS binders in 1991; Moore and Blobel showed import needs Ran in 1993; and Görlich, Laskey and colleagues assigned NLS recognition to importin α and pore docking to importin β in 1995. In 1997 Izaurralde, Mattaj, Görlich and colleagues collapsed Ran asymmetry in oocyte nuclei with RanGAP1, RanBP1 or a Ran mutant unable to hold GTP. Major import and export pathways stopped, export more readily than import.
+
+The same year Fornerod, Ohno, Yoshida and Mattaj found three converging results in oocytes and in vitro: extra CRM1 stimulated export of Rev and U snRNAs; leptomycin B inhibited that export; and CRM1 bound NES cargo cooperatively with RanGTP.
+
+This rule is scoped to Ran-dependent transport. Most messenger RNA leaves through NXF1, also called TAP, largely independently of Ran; spliced mRNA export proceeded without Ran in a *Xenopus* oocyte assay. RNA preparation before export belongs to [RNA processing](/lessons/rna-processing/). Cells can also regulate import, for example by masking or exposing an NLS, to switch transcription factors on or off; see [signaling to the nucleus](/lessons/signaling-to-the-nucleus/).
+
+## Predict and design: the drug puzzle
+
+The film's loading-and-unloading rule now becomes a way to interpret a perturbation without claiming more than the result shows.
+
+Leptomycin B inhibits CRM1-dependent export. Protein Z is cytoplasmic at steady state in cultured cells, but within an hour of adding the drug it is nuclear.
+
+**Predict.** What is the simplest interpretation, and what does nuclear accumulation fail to prove?
 
 <details>
 <summary>One way to do it</summary>
 
-**Interpretation.** Z must be able to enter the nucleus, and fast enough to fill it within an hour once export is blocked. The simplest reading is that Z shuttles: it gets in through an NLS, by riding on a protein that has one, or, if it is small, by diffusion, and it leaves through CRM1, with its own NES or with a partner that has one, and export is normally more efficient than import, so at steady state you see it mostly in the cytoplasm.
+Z must enter the nucleus fast enough to accumulate within an hour once export is blocked. The simplest interpretation is that Z shuttles: it enters through its own NLS, rides on a partner with one or, if small enough, diffuses; it leaves through CRM1 using its own NES or a partner's. Export normally wins at steady state. The drug result alone proves neither that Z has its own NLS nor that it binds CRM1 directly.
 
-**Tests.**
+Test the model in five ways:
 
-1. **Necessity of the NES.** Find a candidate leucine-rich stretch and mutate its key leucines to alanine. Prediction: Z becomes nuclear without the drug.
-2. **Necessity of the NLS.** Mutate a candidate basic cluster and measure import. Prediction: if this is Z's main route in, Z stays cytoplasmic even with leptomycin B. Some entry may remain if Z has a second signal, rides on a partner or is small enough to diffuse.
-3. **Sufficiency.** Fuse each candidate signal alone to a large inert reporter, such as a multi-GFP fusion too big to diffuse quickly. The NLS fusion should go nuclear; adding the NES to that NLS fusion should shift it toward the cytoplasm, and leptomycin B should reverse the shift.
-4. **Shuttling directly.** Use a heterokaryon assay (fuse cells so two nuclei share one cytoplasm, block new protein synthesis, and ask whether Z moves from a labelled nucleus to an unlabelled one), or photoactivate Z in the nucleus and watch it leave.
-5. **Controls.** Check that the cells are healthy over the treatment, use a known CRM1 cargo as a positive control, and, if available, a CRM1 mutant resistant to leptomycin B to show the effect runs through CRM1.
+1. **NES necessity.** Mutate key hydrophobic residues in a candidate leucine-rich signal. Z should become nuclear without drug. Check expression, folding and partner binding, because the mutation could disrupt more than export.
+2. **NLS necessity.** Mutate a candidate basic cluster. If it is Z's main route in, Z should stay cytoplasmic even with leptomycin B. Remaining entry could reflect another signal, a partner or passive diffusion.
+3. **Signal sufficiency.** Attach each candidate signal to a large inert reporter, such as a multi-GFP fusion that diffuses only slowly. The NLS fusion should become nuclear. Adding the NES should shift it toward the cytoplasm, and leptomycin B should reverse that shift.
+4. **Direct shuttling.** Fuse cells so two nuclei share one cytoplasm, block new protein synthesis and ask whether Z moves from a labelled nucleus to an unlabelled one. Alternatively, photoactivate nuclear Z and watch it leave.
+5. **Controls.** Check cell health, include a known CRM1 cargo, and, if available, rescue with a leptomycin-resistant CRM1 mutant.
 
 </details>
+
+## Going deeper
+
+The film's picture was the simple case; these details give the fuller machinery and pore structure.
+
+### The receptor-recycling machinery
+
+RCC1, Ran's exchange factor, sits on chromatin and loads GTP onto Ran, making RanGTP in the nucleus. Cytoplasmic RanGAP1, helped by RanBP1, stimulates hydrolysis and keeps cytoplasmic RanGTP low. NTF2 returns RanGDP to the nucleus. During classical import, nuclear RanGTP separates importin β from importin α; Nup50 helps α release cargo. Importin β returns with RanGTP, while CAS returns α with RanGTP. During export, RanBP1 helps dismantle cytoplasmic CRM1-cargo-RanGTP before RanGAP-stimulated hydrolysis frees the receptor.
+
+### The pore is not one fixed mesh
+
+Passive entry of inert probes into digitonin-permeabilized HeLa cells, whose plasma membranes had been selectively opened with detergent, supported a model with a dominant FG-domain mesh radius of about 2.6 nm and a small fraction of wider channels. That is a model-dependent description, not a literal universal hole size. Whether FG domains behave more like a cohesive gel or a brush of waving chains remains debated. Nor is the scaffold rigid: fission-yeast pores constricted reversibly during energy depletion and hypertonic stress. In permeabilized HeLa cells, single NLS-carrying molecules interacted with pores for about 10 ms on average.
+
+### Lamina fine print
+
+Lamins belong to the intermediate-filament family. In cryo-electron tomograms of extracted mouse fibroblasts lacking vimentin, a cytoplasmic intermediate-filament protein, A- and B-type lamins formed tetrameric filaments only about 3.5 nm thick. Mutations in *LMNA*, which encodes A-type lamins, cause laminopathies. A mechanically weaker nucleus is one proposed mechanism, and why one gene produces such varied diseases remains argued. Budding yeast has no lamins.
