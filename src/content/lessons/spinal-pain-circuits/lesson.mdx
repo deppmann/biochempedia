@@ -4,8 +4,6 @@ slug: "spinal-pain-circuits"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 3: Temperature, pain and itch"
 order: 812
-underReview:
-  - "This lesson has not yet had the teaching update the rest of the course received: a step-by-step rewrite with chaptered films. The content here is the earlier, fact-checked version."
 summary: "Inhibitory circuits in the spinal dorsal horn normally keep light touch from reaching pain pathways, and losing that control can make touch painful. In 1965 Melzack and Wall proposed a spinal gate; genetic access to dorsal-horn cell types has put particular neurons inside that box. Separate work in rats showed a second way to lose inhibition that does not require any neuron to die. You will be able to say which population each manipulation implicated, read an ablation efficiency off cell counts, and design a test that separates cell death from a change in the sign of inhibition."
 hook: "Light touch can start to hurt when a spinal gate fails. A gate can fail because the gatekeeper dies, or because the gatekeeper is still there and its signal has changed sign. In adult male rat lamina I, nerve injury was shown to do the second."
 
@@ -20,10 +18,30 @@ explainer:
   src: "/explainers/spinal-pain-circuits/explainer.mp4"
   captions: "/explainers/spinal-pain-circuits/explainer.vtt"
   poster: "/explainers/spinal-pain-circuits/poster.jpg"
-  title: "Gatekeeper gone, or sign flipped"
-  durationSec: 171.9
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Who Opens the Touch Gate?"
+  durationSec: 214.2
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In mice, inhibitory dorsal-horn neurons can keep touch input from recruiting mechanical-pain relays."
+    - "Removing somatostatin-lineage relays reduces mechanical nocifensive behaviour in the assays tested."
+    - "Ablation removes cells, while silencing can remove transmitter output from surviving cells."
+    - "Behaviour identifies a failed gate; circuit measurements help locate the failure."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/spinal-pain-circuits/chapter-2.mp4"
+    captions: "/explainers/spinal-pain-circuits/chapter-2.vtt"
+    poster: "/explainers/spinal-pain-circuits/chapter-2-poster.jpg"
+    title: "When Inhibition Changes Sign"
+    durationSec: 213.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "In adult male rats, nerve injury lowered KCC2 and shifted lamina I anion reversal."
+      - "A synapse can remain present while its postsynaptic effect changes."
+      - "A depolarizing anionic response is not automatically excitatory because it can still shunt current."
+      - "Cell counts, evoked output and gramicidin recordings test different failure points."
 
 scientists:
   - name: "Ronald Melzack"
@@ -335,102 +353,152 @@ draft: false
 
 import AnionDrivingForceGate from '../../../components/AnionDrivingForceGate.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Light touch can hurt when the spinal cord loses the inhibition that normally keeps innocuous input away from pain pathways. That is allodynia. The dorsal horn holds the circuit: excitatory relays that carry mechanical input toward nociceptive output, inhibitory neurons that hold them back, and projection neurons that send the result to the brain.** In 1965, Melzack and Wall published a circuit diagram of a spinal gate for pain, with no molecular identity for its cells. Nobody could then pick out those cell types in a living animal. This lesson asks which cell types carry mechanical pain, which hold it back, and what each manipulation actually proves.
+The first film established the circuit. The text begins where it stopped: what each intervention can actually prove.
 
-[Touch and pain](/lessons/touch-and-pain/) covers that proposal as a hypothesis, along with the spinothalamic crossing and central sensitization, and [dorsal horn touch](/lessons/dorsal-horn-touch/) covers the recipient zone where low-threshold afferents end.
+**Allodynia** is pain caused by a stimulus that is normally innocuous, such as light touch. In animal experiments, the readout is described more cautiously as mechanical hypersensitivity or **allodynia-like behaviour**. **Nocifensive behaviour** is a defensive response to a noxious stimulus. **Disinhibition** means that inhibitory control has weakened.
 
-## The idea: a gate has two ways to fail
+In 1965, Melzack and Wall proposed that cutaneous input is modulated in the spinal cord before pain perception and response. Their diagram had no molecular identities for its cells. Modern experiments can target particular dorsal-horn populations, but the result remains bounded by the tool.
 
-Two terms first, both used here as the primary literature uses them. **Allodynia** means pain elicited by normally innocuous stimulation, such as light touch. **Disinhibition** means a loss of inhibition, and in this lesson it will turn out to cover two physically different events.
+> **The guiding idea.** Within the preparations tested, a spinal gate can fail because inhibitory output is absent or because its postsynaptic effect changes; behaviour alone cannot distinguish those mechanisms.
+>
+> *Scope:* interpreting the matched behavioural, anatomical and electrophysiological endpoints in the dorsal-horn preparations tested here.
 
-The obvious failure is structural: the inhibitory neuron is gone or silent, so excitation runs unopposed. The second is a change of sign. An inhibitory synapse does not have a fixed effect. It opens a channel permeable to chloride and bicarbonate, and the current that flows depends on the driving force, the difference between membrane potential and the anion reversal potential. Shift the reversal potential positive and the same synapse, with the same receptor and the same transmitter, now depolarizes. Depolarizing is not the same as excitatory: the open channel still shunts other current, so whether inhibition fails depends on how far the reversal potential moves relative to spike threshold and on where the synapse sits. That is why the experiments below had to show a rise in excitability, not only a depolarizing current. [Synaptic integration](/lessons/synaptic-integration/) builds that argument from driving force; here it does real work, because nerve injury makes exactly that shift happen.
+[Touch and pain](/lessons/touch-and-pain/) develops the original proposal, the spinothalamic crossing and central sensitization. [Dorsal horn touch](/lessons/dorsal-horn-touch/) covers where low-threshold afferents end.
 
-Keep the two apart as you read. A cell count can show whether the neuron is gone, but it cannot tell you whether a surviving neuron is silent, and it says nothing about the change of sign.
+## Build one circuit, then test the tool
 
-<AnionDrivingForceGate />
+Duan and colleagues (Cell, 2014) used intersectional mouse genetics to remove one genetically captured population at a time. Ablating the mostly excitatory somatostatin lineage impaired acute and injury-associated mechanical nocifensive behaviour. Reporter counts four weeks after diphtheria toxin confirmed depletion.
 
-## Excitatory relays: somatostatin, transient VGLUT3, calretinin
+The slice experiment placed inhibition onto that relay. In dorsal-root-attached lumbar slices from young mice, inhibitory dynorphin-lineage neurons restricted recruitment of superficial somatostatin neurons by large myelinated A-beta afferents. At the lamina II–III border, removing those inhibitory neurons raised A-beta-evoked spiking from 5 to 40 percent of recorded neurons.
 
-Duan and colleagues (Cell, 2014) used intersectional mouse genetics to remove one genetically captured dorsal-horn population at a time. Ablating the mostly excitatory somatostatin lineage impaired acute and injury-associated mechanical nocifensive behaviour, with ablation confirmed by reporter counts four weeks after diphtheria toxin. In dorsal-root-attached lumbar slices from young mice, dynorphin-lineage inhibitory neurons gated the recruitment of superficial somatostatin neurons by large myelinated afferents: with those inhibitory neurons removed, A-beta input drove firing in many more cells: at the II-III border, A-beta-evoked spiking rose from 5 to 40 percent of recorded neurons.
+Read the lineage label carefully. A Cre lineage is a history of expression. The authors found detectable dynorphin messenger RNA in about three-quarters of labelled cells and cautioned that expression was probably transient in a minority. Killing every captured cell tests the population's contribution, not the peptide's action or only current dynorphin-expressing cells.
 
-Read the lineage label carefully. The authors cautioned that their dynorphin-Cre lineage included a minority of neurons whose dynorphin expression was likely transient; they found detectable dynorphin messenger RNA in about three-quarters of labelled cells. A Cre line marks cells that expressed the driver at some time, so part of the adult population may not be expressing the marker when you test it, and the peptide's own action is not isolated by killing the cell that once made it.
+Reversible tools strengthen a different inference. Christensen and colleagues (Cell Reports, 2016) found that optogenetic activation of spinal somatostatin neurons elicited nocifensive behaviour in freely moving mice. Chemogenetic inhibition raised mechanical withdrawal thresholds and lengthened thermal withdrawal latency in naive mice. The channelrhodopsin-expressing neurons followed light trains in slices, a fidelity check that makes the driven spike train interpretable.
 
-Reversible tools changed the force of these results. Christensen and colleagues (Cell Reports, 2016) showed that optogenetic activation of spinal somatostatin neurons elicited nocifensive behaviour in freely moving mice, and that chemogenetic inhibition of the same neurons raised mechanical withdrawal thresholds and also lengthened thermal withdrawal latency in naive mice. They checked in slices that the channelrhodopsin-expressing neurons followed light trains, which is the fidelity check that makes a driven spike train interpretable.
+### Worked problem: how complete was the ablation?
 
-A second excitatory route came from Peirs and colleagues (Neuron, 2015). Deleting VGLUT3 from dorsal-horn neurons raised mechanical withdrawal thresholds in mice, in an acute assay as well as after carrageenan and nerve injury, and dorsal-horn VGLUT3 immunoreactivity appeared around postnatal day 5, peaked around days 10 to 12 and was much reduced by about day 20. Those are two different claims: one about a developmental requirement for the transporter, one about when the protein is present. Chemogenetic activation of the transient-VGLUT3 lineage produced allodynia-like behaviour, as did activation of adult lamina II calretinin neurons. The second is the cleaner demonstration of sufficiency in an adult circuit, because the first used a vector injected at postnatal day 10 and tested behaviour three weeks later.
+Duan and colleagues counted labelled somatostatin-lineage neurons per sampled lumbar hemisection four weeks after toxin treatment: 105 ± 4 in controls and 17 ± 2 after ablation. These are means ± SEM from 15 to 17 hemisections and three mice per group.
 
-The same group later reported (Neuron, 2021) that lamina II inner calretinin neurons contributed to inflammatory mechanical allodynia, PKC-gamma neurons to neuropathic allodynia, and deeper laminae III to IV CCK neurons to both, in male and female mice. That matters for how you hold the whole picture: there is no single invariant allodynia chain, and which population you need depends on which injury you made.
+**Predict.** What depletion do the two means give, and what is the independent biological unit?
 
-## Two ways to lose inhibition: silence the interneuron, or move the chloride
+<details>
+<summary>Check your prediction</summary>
 
-On the inhibitory side, Petitjean and colleagues (Cell Reports, 2015) worked in male mice. Ablating spinal parvalbumin neurons produced mechanical allodynia associated with disinhibition of PKC-gamma interneurons, and chemogenetic activation of those parvalbumin neurons alleviated nerve-injury-associated mechanical hypersensitivity. How these cells gate touch was revised later. Boyle and colleagues (Cell Reports, 2019) reported that parvalbumin interneurons act largely by presynaptic inhibition of myelinated low-threshold afferent terminals, and by inhibiting lamina II excitatory interneurons that feed lamina I. Activation filtered mechanical input without changing thermal sensitivity in the assays tested.
+Depletion = 100 × (105 − 17) / 105 = 100 × 88 / 105, which is about 84 percent. The paper reports 82 percent ablation; extra decimal places would claim more than the rounded means support.
 
-Foster and colleagues (Neuron, 2015) took a broader glycinergic population in male GlyT2-Cre mice. Local ablation, or silencing with tetanus toxin light chain, caused mechanical, heat and cold hypersensitivity together, and chemogenetic activation ameliorated neuropathic hyperalgesia after chronic constriction injury.
+The independent biological unit is the mouse, three per group, with hemisections nested within each animal. The section-level standard errors cannot supply animal-level uncertainty without the per-mouse values. Seventeen cells per hemisection remain, roughly one-sixth of the control mean. This is a percentage of labelled cells removed, not a percentage of pain removed.
 
-Put the two side by side and a tempting generalization dies. The parvalbumin manipulation moved mechanical sensitivity alone in the assays tested; the glycinergic manipulation moved three modalities together. Spinal inhibition is not one gate with one key.
+</details>
 
-Note also what tetanus toxin light chain is. It prevents vesicular transmitter release, so the neuron survives and stops signalling. That separates loss of output from loss of the cell, but it is persistent, not a rapid reversible interruption of firing, and the distinction matters when a result is read as "this cell is needed right now".
+## More than one excitatory route
 
-Now the other kind of failure. Petitjean and colleagues found no significant loss of parvalbumin interneurons after spared nerve injury, using a permanent reporter at 3, 5 and 8 weeks after injury. The gatekeepers were present. They reported that the mean number of parvalbumin terminal contacts on PKC-gamma cell bodies fell after injury, though they noted it is not known whether that detachment is enough to explain the allodynia. Boyle and colleagues did not find that loss of contacts and reported reduced parvalbumin cell excitability instead. So a gate can open while its gatekeepers survive intact but signal too weakly, and a third mechanism can open it without changing cell number or contacts at all.
+Peirs and colleagues (Neuron, 2015) identified another route. Deleting VGLUT3 from dorsal-horn neurons raised mechanical withdrawal thresholds in mice, in an acute assay and after carrageenan or nerve injury. Dorsal-horn VGLUT3 immunoreactivity appeared around postnatal day 5, peaked around days 10 to 12 and was much reduced by about day 20.
 
-## Microglia, BDNF and the anion gradient
+Keep those claims separate: one concerns a developmental requirement for the transporter; the other describes when the protein was present. Chemogenetic activation of the transient-VGLUT3 lineage produced allodynia-like behaviour, as did activation of adult lamina II calretinin neurons. The adult calretinin experiment is the cleaner adult sufficiency test because the VGLUT3-lineage vector was injected at postnatal day 10 and behaviour tested three weeks later.
 
-Coull and colleagues (Nature, 2003) worked in adult male Sprague-Dawley rats with a sciatic nerve cuff. Peripheral nerve injury reduced dorsal-horn expression of KCC2, a potassium-chloride exporter in the spinal neurons studied, which is the transporter that keeps intracellular chloride low. In lamina I neurons recorded in acute parasagittal slices from adult rats, the injury-associated anion-gradient shift made normally inhibitory anionic synaptic currents excitatory. Then the sufficiency test: spinal KCC2 blockade or knockdown reduced nociceptive thresholds in otherwise intact rats.
+The same group later reported (Neuron, 2021) that lamina II inner calretinin neurons contributed to inflammatory mechanical allodynia, PKC-gamma neurons to neuropathic allodynia, and deeper laminae III to IV CCK neurons to both, in male and female mice. There is no invariant allodynia chain; the population required depends on the injury.
 
-> driving force for an inhibitory synapse = membrane potential minus anion reversal potential
+## Inhibitory populations are not interchangeable
 
-If the reversal potential moves positive of the membrane potential, that quantity changes sign, and so does the current.
+Petitjean and colleagues (Cell Reports, 2015) worked in male mice. Ablating spinal parvalbumin neurons produced mechanical allodynia associated with disinhibition of PKC-gamma interneurons. Activating parvalbumin neurons alleviated nerve-injury-associated mechanical hypersensitivity.
 
-The 2005 paper, also in Nature, found a source for the signal. ATP-stimulated microglia, cultured from rats, released BDNF. Delivered intrathecally into adult male rats, those cells caused a depolarizing shift in the anion reversal potential of lamina I neurons, measured in acute slices after the transfer. Pretreating the microglia with BDNF-directed interfering RNA inhibited their effects on withdrawal thresholds and on the neuronal anion potential. And blocking BDNF-TrkB signalling reversed nerve-injury-associated allodynia and the anion-potential shift in injured rats, which ties the glial signal to the real injury rather than only to the transfer experiment. The receptor side of that pathway is the subject of [Trk and p75](/lessons/trk-and-p75/), and microglial signalling more generally of [microglia and complement pruning](/lessons/microglia-complement-pruning/).
+Boyle and colleagues (Cell Reports, 2019) refined the circuit. Parvalbumin interneurons act largely through presynaptic inhibition of myelinated low-threshold afferent terminals and inhibition of lamina II excitatory interneurons feeding lamina I. Activation filtered mechanical input without changing thermal sensitivity in the assays tested.
 
-Two limits travel with this mechanism. It was established in rats, male, adult. And Sorge and colleagues (Nature Neuroscience, 2015) reported that microglia were not required for mechanical hypersensitivity in immunocompetent female mice in the models tested, implicating adaptive immune cells, likely T lymphocytes, instead. Whether the microglial contribution really differs by sex is still debated, since other studies find that blocking microglial signalling relieves nerve-injury pain in both sexes. Either way, a mechanism can be real in one preparation and not obligatory across sexes or species.
+Foster and colleagues (Neuron, 2015) targeted a broader glycinergic population in male GlyT2-Cre mice. Local ablation caused mechanical, heat and cold hypersensitivity. So did tetanus-toxin-light-chain silencing, which blocks vesicular transmitter release while leaving the neuron alive. The block is persistent, not a rapid reversible interruption of firing. Chemogenetic activation ameliorated neuropathic hyperalgesia after chronic constriction injury.
+
+**Predict.** Tetanus toxin light chain leaves the targeted neuron alive, but its block is persistent. Can this experiment show that the neuron's output is required at the precise moment of testing?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. It shows that loss of transmitter output across the persistent intervention changes the behaviour. It is not a rapid, reversible interruption, so it cannot isolate the precise moment when the output is needed.
+
+</details>
+
+The population comparison answers a different question. Parvalbumin activation changed mechanical but not thermal sensitivity in the assays tested. Manipulating the broader glycinergic population moved mechanical, heat and cold sensitivity together. The populations differ in the modalities they control, so there is no all-purpose inhibitory gate.
+
+Now change the question from necessity to mechanism. Permanent reporter counts of parvalbumin interneurons did not fall significantly at 3, 5 or 8 weeks after spared nerve injury. Petitjean and colleagues reported fewer parvalbumin terminal contacts on PKC-gamma cell bodies, while noting that the contribution of detachment to allodynia was unknown. Boyle and colleagues did not find contact loss and instead reported reduced parvalbumin-cell excitability. Surviving cells can signal too weakly.
+
+Stable gatekeepers force the next question: can the target change what their signal does?
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## The causal tests the second film did not show
+
+The records behind the moving gradient came from acute parasagittal lamina I slices. Coull and colleagues (Nature, 2003) used adult male Sprague-Dawley rats with a sciatic nerve cuff. Peripheral nerve injury reduced dorsal-horn expression of KCC2, the potassium-chloride exporter that keeps intracellular chloride low in these neurons, and the shifted anion gradient made normally inhibitory anionic synaptic currents excitatory. They measured increased excitability rather than inferring it from a depolarizing current alone. [Synaptic integration](/lessons/synaptic-integration/) develops why an open conductance can also shunt current.
+
+The next step was sufficiency.
+
+**Predict.** If lowering KCC2 is sufficient, what should spinal KCC2 blockade or knockdown do in otherwise intact rats?
+
+<details>
+<summary>Check your prediction</summary>
+
+It should lower nociceptive thresholds without requiring the nerve injury. That is what the experiments found, making the chloride change sufficient in this preparation rather than merely correlated with injury.
+
+</details>
+
+The 2005 Nature paper then tested the upstream chain pictured in the chapter. Intrathecal transfer of ATP-stimulated rat microglia into uninjured adult male rats reproduced the depolarizing anion-reversal shift and behavioural change. Pretreating the cells with BDNF-directed interfering RNA inhibited both effects. Blocking BDNF-TrkB signalling reversed nerve-injury-associated allodynia and the anion-potential shift in injured rats, tying the pathway to injury rather than only transfer. [Trk and p75](/lessons/trk-and-p75/) covers the receptor; [microglia and complement pruning](/lessons/microglia-complement-pruning/) covers microglial signalling.
+
+Two limits travel with this mechanism: it was established in adult male rats. Sorge and colleagues (Nature Neuroscience, 2015) found that microglia were not required for mechanical hypersensitivity in immunocompetent female mice in the models tested and implicated adaptive immune cells, likely T lymphocytes. Whether the contribution differs by sex remains debated because other studies find that blocking microglial signalling relieves nerve-injury pain in both sexes. A mechanism can be real in one preparation without being obligatory across species or sexes.
 
 <LessonFigure src="/figures/spinal-pain-circuits/microglia-bdnf-anion-shift.webp" width={1200} height={800} alt="AI-generated illustration: a microglial cell sends one gold BDNF arrow to a TrkB block on a lamina I neuron, whose KCC2 block is drawn faint, while an inhibitory ending on the neuron is marked as now depolarizing. An inset labelled Female mice shows the microglia crossed out and a question-marked lymphocyte." caption="After nerve injury in adult male rats, dorsal-horn KCC2 fell, the anion gradient shifted and inhibitory synaptic currents in lamina I neurons became excitatory; ATP-stimulated microglia released BDNF, and blocking BDNF-TrkB signalling reversed the shift and the allodynia. In female mice, microglia were not required in the models tested, and adaptive immune cells, likely T lymphocytes, were implicated instead." />
 
-The worked problem on how complete the somatostatin-lineage ablation was (Duan and colleagues) is under Going deeper.
+<AnionDrivingForceGate />
 
-## The output neurons and where they go
+## The output neurons and the denominator trap
 
-Whatever the dorsal horn computes leaves through projection neurons, and there are not many. Cameron and colleagues (Pain, 2015) estimated that projection neurons account for about 5 percent of mouse lamina I neurons in lumbar segment L4, in adult animals of either sex, from fixed lumbar tissue after retrograde tracing. About 90 percent of the traced lamina I spinoparabrachial neurons in that sample expressed NK1r, the substance-P receptor encoded by the Tacr1 gene.
+Projection neurons carry the dorsal horn's result onward, and they are uncommon. Cameron and colleagues (Pain, 2015) estimated that they make up about 5 percent of mouse lamina I neurons in lumbar segment L4, using fixed tissue from adults of either sex after retrograde tracing. About 90 percent of traced lamina I spinoparabrachial neurons expressed NK1r, the substance-P receptor encoded by Tacr1.
 
-That 90 percent is read wrongly more often than not. It is the fraction of traced projection neurons that carry the receptor. It is not the fraction of receptor-positive cells that project: Sheahan and colleagues (Journal of Neuroscience, 2020) found that most genetically targeted superficial Tacr1-CreER dorsal-horn neurons were interneurons. Different denominators, compatible numbers, opposite impressions.
+**Predict.** Does that 90 percent mean that most NK1r-positive lamina I cells project to the parabrachial nucleus?
 
-Roome and colleagues (Cell Reports, 2020) added a developmental handle. Mouse spinal neurons with embryonic Phox2a expression included anterolateral-system projection neurons in adulthood, and intersectional tracing showed that Phox2a-lineage neurons innervated both parabrachial and thalamic targets, in adults of both sexes aged 6 to 19 weeks. The authors also detected Phox2a neuronal molecular identity in human fetal spinal cords, gestational weeks 7.3 to 8.4, by immunohistochemistry: a molecular correspondence in fixed tissue, not a measurement of adult human physiology. Developmental Phox2a loss reduced supraspinal nocifensive responses while leaving measured spinal nociceptive reflexes unchanged, which is what you would expect if the ascending limb were thinned while local reflex circuitry stayed intact. Being developmental, that deletion cannot measure an acute adult function.
+<details>
+<summary>Check your prediction</summary>
 
-Do not turn the two targets into two labelled channels for sensation and affect. The tracing establishes that the lineage reaches both; it does not establish mutually exclusive roles. Lee and colleagues (Nature Communications, 2025) identified Calcrl-positive spinal projection neurons carrying cool-specific signals to the lateral parabrachial nucleus in mice, which is a reminder that the parabrachial route is not a pain-only wire. Where the gating goes next is the subject of [chronic pain](/lessons/chronic-pain/), and the same circuitry handles [itch](/lessons/itch/) with partly separate populations.
+No. It is the fraction of traced projection neurons that express NK1r, not the fraction of NK1r-positive cells that project. Sheahan and colleagues (Journal of Neuroscience, 2020) found that most genetically targeted superficial Tacr1-CreER dorsal-horn neurons were interneurons. The denominators differ, so the results are compatible.
 
-### Design problem
+</details>
 
-After nerve injury, parvalbumin interneuron counts did not fall significantly, yet ablating those neurons produced mechanical allodynia and activating them relieved injury-associated hypersensitivity. Design experiments that distinguish "the inhibitory neurons died" from "they are still there and their output no longer inhibits".
+Roome and colleagues (Cell Reports, 2020) supplied a developmental handle. Mouse neurons with embryonic Phox2a expression included adult anterolateral-system projection neurons. In adults of both sexes aged 6 to 19 weeks, intersectional tracing showed Phox2a-lineage neurons reaching parabrachial and thalamic targets. Human fetal spinal cords at gestational weeks 7.3 to 8.4 also showed Phox2a neuronal molecular identity by immunohistochemistry: a fixed-tissue correspondence, not adult human physiology.
+
+**Predict.** Developmental Phox2a loss reduces supraspinal nocifensive responses while measured spinal nociceptive reflexes remain. Does that establish an acute adult function?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The pattern fits a thinned ascending limb with local reflex circuitry left intact, but the deletion acts during development. It cannot measure what an acute interruption of Phox2a-lineage neurons would do in an adult.
+
+</details>
+
+Do not turn the two projection targets into mutually exclusive sensation and affect channels. The tracing shows that the lineage reaches both. It does not assign exclusive roles. Lee and colleagues (Nature Communications, 2025) found Calcrl-positive spinal projection neurons carrying cool-specific signals to the lateral parabrachial nucleus in mice, reminding us that the parabrachial route is not pain-only. [Chronic pain](/lessons/chronic-pain/) follows the output; [itch](/lessons/itch/) uses partly separate populations in the same circuitry.
+
+### Design problem: where did inhibition fail?
+
+Remember the short version: behaviour shows failure; matched endpoints locate it. The second film supplied the three diagnostic patterns. Now design a test robust enough to distinguish them after nerve injury.
 
 <details>
 <summary>One way to do it</summary>
 
-Separate three endpoints and measure each on its own.
+*Survival.* Mark the inhibitory population permanently before injury and count labelled cells later. A permanent reporter matters because injury-driven loss of marker expression could mimic cell death.
 
-*Survival.* Mark the population with a permanent reporter before injury, then count labelled cells at several times afterwards. A permanent mark is essential: if the marker gene itself is downregulated by injury, an antibody count will mimic cell death.
+*Output.* Activate the parvalbumin population optogenetically and record evoked inhibitory postsynaptic currents in PKC-gamma interneurons or a lamina I projection neuron. Behaviour and this recording alone cannot separate a dead cell from a surviving cell that lost its synapses; the survival count can.
 
-*Ongoing output.* Record the target neuron, not the gatekeeper. Measure inhibitory postsynaptic currents in PKC-gamma interneurons or in a lamina I projection neuron, evoked by activating the parvalbumin population optogenetically, in injured and uninjured cords. A cell that survives but has lost its synapses looks identical to a dead cell in the behaviour and in this recording; only the survival count tells them apart.
+*Postsynaptic effect.* Measure anion reversal in the target with a gramicidin-perforated patch, which preserves intracellular chloride. A conventional whole-cell pipette replaces the cell's chloride and erases the quantity at issue.
 
-*Sign.* Measure the anion reversal potential in the target neuron with a gramicidin-perforated patch, which leaves the cell's own chloride intact. A conventional whole-cell pipette replaces intracellular chloride with the pipette solution and erases the quantity you are trying to measure. A chloride shift changes the sign of inhibition with no change in cell number and no change in presynaptic release.
+Use acute, reversible silencing in adults rather than lineage ablation to test present function. Measure behaviour during perturbation and include a motor-control task, because impaired paw placement can resemble hypersensitivity.
 
-Then the manipulation. Use acute, reversible silencing of the parvalbumin population in adult animals rather than lineage ablation, which removes the cells permanently and takes in every cell that ever expressed the driver, however briefly, and so cannot separate adult function from developmental consequence. Measure behaviour during the perturbation, not after it, with a motor control task: a mouse that cannot place its paw normally will score as hypersensitive. If a chemogenetic ligand is used, include receptor-free animals given the same ligand, because clozapine-N-oxide is converted to clozapine, which occupies these receptors in rodent experiments. And if light-driven silencing is used, note that chloride-pumping silencers can leave an after-effect on the reversal potential, reported in rat hippocampal slices and absent with a proton pump, which is precisely the variable at issue here.
-
-The predictions separate cleanly. Death predicts fewer reporter-labelled cells and fewer evoked inhibitory events with an unchanged reversal potential. Lost output predicts stable counts, fewer evoked events, unchanged reversal potential. A sign change predicts stable counts, evoked events still present (their current at a fixed holding potential will change with the driving force), and a depolarized reversal potential in the target.
+Collect all three endpoints in matched preparations because mechanisms can coexist. Current amplitude at one holding potential will also change when driving force changes, so do not mistake amplitude alone for lost release.
 
 </details>
 
 ## Going deeper
 
-### Stimulation and dosing parameters
+### Stimulation, dosing and control details
 
-In slices, the somatostatin neurons expressing channelrhodopsin followed light trains at 1 to 10 Hz with 10 ms pulses (spike probability fell at the higher frequencies). Petitjean and colleagues worked in male mice aged 8 to 14 weeks. Foster and colleagues used GlyT2-Cre mice 7 to 8 weeks old at lumbar injection, with clozapine-N-oxide at 1 mg/kg intraperitoneally.
+Somatostatin neurons expressing channelrhodopsin followed light trains at 1 to 10 Hz with 10 ms pulses in slices, although spike probability fell at higher frequencies. Petitjean and colleagues used male mice aged 8 to 14 weeks. Foster and colleagues used GlyT2-Cre mice aged 7 to 8 weeks at lumbar injection and clozapine-N-oxide at 1 mg/kg intraperitoneally.
 
-### Worked problem: how complete was the ablation?
+For chemogenetics, include receptor-free animals given the same ligand. Clozapine-N-oxide is converted to clozapine, which occupies these receptors with higher affinity in rodent experiments. Saline in receptor-expressing animals does not test those off-target drug effects.
 
-Duan and colleagues counted reporter-labelled somatostatin-lineage neurons per sampled lumbar hemisection four weeks after toxin treatment: 105 ± 4 in controls and 17 ± 2 in ablated mice (mean ± SEM, 15 to 17 hemisections from three mice per group).
-
-Depletion from the means = 100 × (105 − 17) / 105 = 100 × 88 / 105, which is about 84 percent. The paper reports 82 percent ablation of this population, and two decimal places would claim more than rounded means allow.
-
-Three things follow. First, the independent biological unit is three mice per group, with hemisections nested inside each animal, so the published standard errors across hemisections do not give the animal-level uncertainty of this ratio; a defensible interval needs the per-mouse values. Second, 17 cells per hemisection remain, and a surviving sixth of a population can matter. Third, and most important, this is a cell count. It is not a percentage of pain removed, and no arithmetic on histology will make it one.
+Light-driven silencing has its own threat here. Chloride-pumping silencers can leave an after-effect on reversal potential, reported in rat hippocampal slices and absent with a proton pump. That side effect changes the very endpoint this design aims to measure.
