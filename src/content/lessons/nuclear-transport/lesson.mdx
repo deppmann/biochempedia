@@ -5,12 +5,14 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 2: Membranes and compartments"
 order: 408
 summary: >-
-  In an ordinary eukaryotic cell, soluble nuclear proteins are synthesized on cytosolic ribosomes,
-  yet the nucleus keeps its own set and sends RNA the other way. This lesson builds the nuclear envelope and its pores, then explains
-  how short signals, receptors and a gradient of the small GTPase Ran make transport selective and
-  directional. Afterwards you can read a nuclear-exchange time course and interpret the classic
-  injection, gold-tracing, signal-transfer and leptomycin B experiments.
-hook: "Why does a protein that shuttles in and out of the nucleus pile up inside when one drug is added?"
+  The nuclear pore is a selective passage with no direction of its own; in Ran-dependent transport,
+  short signals, their receptors and a gradient of the small GTPase Ran decide which way each protein goes.
+  Soluble nuclear proteins are synthesized on cytosolic ribosomes, yet the nucleus keeps its own set and
+  sends RNA the other way. This lesson builds the nuclear envelope and its pores, measures how the pore
+  leaks, and shows how moving, mutating and blocking tested the model. Afterwards you can read a
+  nuclear-exchange time course and interpret the classic injection, gold-tracing, signal-transfer and
+  leptomycin B experiments.
+hook: "If one pore carries traffic both ways, what decides which way each protein goes?"
 
 estMinutes: 24
 objectives:
@@ -24,7 +26,7 @@ explainer:
   captions: "/explainers/nuclear-transport/explainer.vtt"
   poster: "/explainers/nuclear-transport/poster.jpg"
   title: "One Pore, Two Directions"
-  durationSec: 227.4
+  durationSec: 227.8
   narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
   takeaways:
@@ -32,6 +34,22 @@ explainer:
     - "In Ran-dependent protein transport, nuclear RanGTP tells importins to unload and exportins to load."
     - "Importins carry NLS cargo inward, while CRM1 carries many NES cargoes outward."
     - "In Ran-dependent transport, GTP hydrolysis maintains the gradient; it does not push cargo through the pore."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/nuclear-transport/chapter-2.mp4"
+    captions: "/explainers/nuclear-transport/chapter-2.vtt"
+    poster: "/explainers/nuclear-transport/chapter-2-poster.jpg"
+    title: "Move It, Mutate It, Block It"
+    durationSec: 237.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "In frog oocytes, bare nucleoplasmin cores injected into the cytoplasm stayed out, while a larger pentamer with one tail went in."
+      - "Nucleoplasmin-coated gold entered through pores; inert-coated gold was largely kept out, so the coat decided entry."
+      - "The SV40 large-T signal made two cytoplasmic proteins nuclear, and one lysine change abolished that accumulation."
+      - "Extra CRM1, leptomycin B and an NES–RanGTP binding test converged on CRM1 as an export receptor."
+      - "Moving, mutating and blocking are complementary tests; each result supports only a limited claim."
 
 scientists:
   - name: "Ronald Laskey"
@@ -387,10 +405,11 @@ draft: false
 
 import PoreLeakTimer from '../../../components/PoreLeakTimer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **A protein sits mostly in the cytoplasm. Add one export-blocking drug, and within an hour it piles up in the nucleus.** The simplest explanation is that it has been crossing the border all along. In an ordinary eukaryotic cell, soluble nuclear proteins are synthesized on cytosolic ribosomes, while messenger RNA and ribosomal subunits made inside must leave. How can one border sort traffic moving both ways?
 
-The film gave a first picture of Ran-dependent soluble-protein traffic. The page now maps the border, measures its leak, tests signals and classic experiments, then returns to the drug puzzle.
+The first film gave a first picture of Ran-dependent soluble-protein traffic; it leaves out the border itself, how much it leaks, and the evidence. The page maps the border and measures its leak, the second film follows the experiments, and the page ends on the drug puzzle.
 
 ## The envelope, lamina and pore
 
@@ -413,7 +432,7 @@ Under the inner membrane lies the **lamina**, a lamin meshwork that gives the nu
 
 ## A soft barrier, measured
 
-The film's picture was the simple case; here is the fuller one: passive passage slows continuously rather than stopping at one size. Textbooks once proposed a sharp 40 kDa limit. In 2016 Timney and colleagues bleached cytoplasmic fluorescence from different-sized reporters in live budding yeast and followed the excess nuclear signal relaxing, or returning, toward equilibrium. Model that excess as one exponential:
+The first film used the simplest case; here is the fuller picture: passive passage slows continuously rather than stopping at one size. Textbooks once proposed a sharp 40 kDa limit. In 2016 Timney and colleagues bleached cytoplasmic fluorescence from different-sized reporters in live budding yeast and followed the excess nuclear signal relaxing, or returning, toward equilibrium. Model that excess as one exponential:
 
 > **x(t) / x(0) = exp(-t / τ)**
 
@@ -434,9 +453,13 @@ The half-time is t½ = τ × ln 2. It is 15 × 0.693 = 10.4 s for GFP and 413 ×
 
 These values describe relaxation of excess signal in a yeast nucleus, not the time one molecule spends in one pore. The pore's physical fine print comes in Going deeper.
 
+A leak this slow means a large protein that must reach the nucleus quickly needs a label and a receptor. The second film picks up here: how experiments found those labels and their readers, and what each one proved.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Signals: what an experiment can prove
 
-The film named two cargo labels; experiments are needed to show what a candidate label actually does.
+The second film traced how the labels were found; here is what they are.
 
 A **classical nuclear localization signal** (NLS) is a basic amino-acid sequence recognized by importin α. It can have one basic cluster, such as SV40 large T antigen's Pro-Lys-Lys-Lys-Arg-Lys-Val, or two clusters separated by a spacer, as in nucleoplasmin. Unlike many ER signal sequences in [protein sorting](/lessons/protein-sorting/), it is ordinarily not cut off. Its effect depends on protein context.
 
@@ -444,7 +467,7 @@ In the classical pathway, importin α binds the NLS, importin β binds importin 
 
 ### Entry is not retention
 
-In 1982 Dingwall, Sharnick and Laskey clipped the tails from pentameric nucleoplasmin while leaving its core. Tail-less cores injected into *Xenopus* oocyte cytoplasm stayed out; a larger one-tail pentamer entered. Tail-less cores injected into the nucleus stayed there.
+In 1982 Dingwall, Sharnick and Laskey clipped the tails from pentameric nucleoplasmin while leaving its core. Tail-less cores injected into *Xenopus* oocyte cytoplasm stayed out; a larger one-tail pentamer entered. Tail-less cores injected into the nucleus stayed there. The second film leaves the inference from that third injection to you.
 
 **Predict.** Why is the nuclear injection essential? What conclusion would be unsafe without it?
 
@@ -455,7 +478,7 @@ It shows that the tail is needed for entry, not simply for retention. Without th
 
 </details>
 
-<LessonFigure src="/figures/nuclear-transport/nucleoplasmin-entry-vs-retention.webp" width={1200} height={585} alt="AI-generated illustration: three oocyte-like cells show a needle injecting nucleoplasmin; a core with no tails injected into the cytoplasm stays out of the nucleus, a core with one tail injected into the cytoplasm enters, and a core with no tails injected into the nucleus stays inside." caption="Cores without tails stay in the cytoplasm when injected there, a pentamer with one tail enters, and cores injected into the nucleus stay there. So the tail carries the information for entry, and the core is enough for staying." />
+<LessonFigure src="/figures/nuclear-transport/nucleoplasmin-entry-vs-retention.webp" width={1200} height={585} alt="AI-generated illustration: three oocyte-like cells show a needle injecting nucleoplasmin; a core with no tails injected into the cytoplasm stays out of the nucleus, a core with one tail injected into the cytoplasm enters, and a core with no tails injected into the nucleus stays inside." caption="The tail carries the information for entry, and the core is enough for staying: cores without tails stay in the cytoplasm when injected there, a pentamer with one tail enters, and cores injected into the nucleus stay there." />
 
 ### Route and signal
 
@@ -474,7 +497,7 @@ The sequence is sufficient for nuclear accumulation in those reporters, and that
 
 ## Crossing is not direction
 
-The next experiments separate passage through the film's pore from the directional accumulation seen across many transport rounds.
+The second film showed that blocking Ran stops traffic; it did not separate passage through the pore from directional accumulation over many transport rounds. The next experiment makes that separation.
 
 Ran is a small GTPase that works like the switches in [GTPase switches](/lessons/gtpase-switches/): on with GTP and off with GDP. In an in vitro experiment, transportin, another import receptor, carried cargo across pores without Ran or nucleotide. Nuclear RanGTP, but not its hydrolysis, was needed to release cargo and return the receptor; hydrolysis appeared necessary to restore import competence for further rounds. Receptor-assisted crossing is best described as **facilitated diffusion**: a receptor speeds diffusive passage through the pore rather than delivering a power stroke. Repeated directional accumulation still requires energy to maintain and reset the Ran system.
 
@@ -488,7 +511,7 @@ This rule is scoped to Ran-dependent transport. Most messenger RNA leaves throug
 
 ## Predict and design: the drug puzzle
 
-The film's loading-and-unloading rule now becomes a way to interpret a perturbation without claiming more than the result shows.
+Both films now meet in one perturbation: the loading-and-unloading rule, and the habit of claiming only what a result shows.
 
 Leptomycin B inhibits CRM1-dependent export. Protein Z is cytoplasmic at steady state in cultured cells, but within an hour of adding the drug it is nuclear.
 
@@ -511,7 +534,7 @@ Test the model in five ways:
 
 ## Going deeper
 
-The film's picture was the simple case; these details give the fuller machinery and pore structure.
+These details give the receptor-recycling machinery and the pore's structure.
 
 ### The receptor-recycling machinery
 

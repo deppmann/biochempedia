@@ -1,411 +1,619 @@
-"""Sensory neuron atlas: how many kinds of sensory neuron?  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-Every dot map is a labelled sketch: dots stand for neurons and clusters are placed by hand.
-None of it is data.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = neurofilament-rich classes (NF)
-  GREEN  = non-peptidergic classes (NP)
-  YELLOW = peptidergic classes (PEP)
-  ORANGE = the TH class
-  RED    = injury state (the Atf3 group)
-  PURPLE = anchors: the independent measures that tie a cluster to a job
-  TEAL   = "in this sketch" tag, resolution, questions and cautions
-  TEXT   = neurons not yet assigned a class (plain dots)
-  GREY   = frames, tree lines, de-emphasised structure
-  GOLD   = title rule only
-"""
+"""From Cluster to Cell Type (sensory-neuron-atlas, chapter 1).
+COLOR MAP: BLUE neuron/type, TEAL RNA profile, GOLD genetic label, GREEN physiology, RED injury state, GREY uncertainty.
+Everything is schematic: dot positions are hand-placed; the calcium trace is computed (spikes convolved with an exponential)."""
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
-PURPLE = "#B58CD9"
-NF, NP, PEP, TH = BLUE, GREEN, YELLOW, ORANGE
-DOT = 0.075
+CY = [2.35, 0.2, -1.95]            # cluster centre y
+CX = -2.2                        # cluster centre x
+GC = np.array([0.0, -0.3, 0.0])  # ganglion centre
+N = 45
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def bchip(text, color=BLUE, size=24, **kw):
-    """chip with an opaque backing so lines drawn behind it do not show through."""
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
+def _disc(rng, c, s):
+    while True:
+        p = rng.normal(0, s / 2.0, 2)
+        if np.hypot(*p) < s:
+            return np.array([c[0] + p[0], c[1] + p[1], 0.0])
 
 
-def cluster_pts(center, n, spread, rng):
-    """n points in a soft disc around center (deterministic)."""
-    pts = []
-    while len(pts) < n:
-        p = rng.normal(0, spread / 2.0, 2)
-        if np.hypot(*p) < spread:
-            pts.append(np.array([center[0] + p[0], center[1] + p[1], 0.0]))
-    return pts
+def gang_pos():
+    rng = np.random.RandomState(7)
+    out = []
+    while len(out) < N:
+        x, y = rng.uniform(-4.6, 4.6), rng.uniform(-2.6, 2.6)
+        if (x / 4.6) ** 2 + (y / 2.6) ** 2 < 0.88:
+            out.append(np.array([x, y - 0.3, 0.0]))
+    return out
 
 
-def dots(pts, color=TEXT, r=DOT, op=0.95):
-    return VGroup(*[Dot(p, radius=r, color=color, fill_opacity=op) for p in pts])
+def cluster_pos(center=None, spread=0.8, ys=None):
+    rng = np.random.RandomState(11)
+    ys = ys or CY
+    return [_disc(rng, [CX, ys[i % 3]], spread) for i in range(N)]
 
 
-def sketch_tag(x=4.2, y=-3.5):
-    return T("in this sketch: not real data", 22, TEAL).move_to([x, y, 0])
+def split_pos():
+    rng = np.random.RandomState(13)
+    out = []
+    for i in range(N):
+        sgn = 1 if (i // 3) % 2 == 0 else -1
+        out.append(_disc(rng, [CX, CY[i % 3] + 0.58 * sgn], 0.45))
+    return out
 
 
-def arr(a, b, color=GREY, w=4):
-    return Arrow(a, b, buff=0.08, color=color, stroke_width=w, tip_length=0.2,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def big_pos():
+    """cluster 1 enlarged, the others stay."""
+    base = cluster_pos()
+    rng = np.random.RandomState(17)
+    return [(_disc(rng, [CX, 1.4], 1.0) if i % 3 == 0 else base[i]) for i in range(N)]
 
 
-def frame_rect(w, h, cx=0.0, cy=0.0, color=GREY):
-    return RoundedRectangle(corner_radius=0.2, width=w, height=h, stroke_color=color, stroke_width=2.5,
-                            fill_opacity=0).move_to([cx, cy, 0])
+IDX1 = [i for i in range(N) if i % 3 == 0]
+IDX_OTHER = [i for i in range(N) if i % 3 != 0]
 
 
-class S00Title(TitleCard):
-    LESSON = "The sensory neuron atlas"
-    TITLE = "How Many Kinds of Sensory Neuron?"
+class DotField:
+    """45 neuron dots. pos = lerp(src, dst, p) + slow wobble; colour = lerp(col0, col1, c); faded by masks."""
+
+    def __init__(self, scene, base, fo=0.8, amp=0.18, so=0.9):
+        self.s = scene
+        self.fo, self.amp, self.so = fo, amp, so
+        self.src = [np.array(b, dtype=float) for b in base]
+        self.dst = [np.array(b, dtype=float) for b in base]
+        self.col0 = [ManimColor(BLUE)] * N
+        self.col1 = [ManimColor(BLUE)] * N
+        self.p, self.c = ValueTracker(1), ValueTracker(1)
+        self.fades = []
+        rng = np.random.RandomState(3)
+        self.dots = VGroup()
+        for i in range(N):
+            d = Circle(radius=0.19, stroke_width=4, stroke_color=BLUE).set_fill(BLUE, fo)
+            d.i = i
+            d.w = rng.uniform(0.5, 1.1, 2)
+            d.ph = rng.uniform(0, 6.28, 2)
+            d.add_updater(self._upd)
+            d.move_to(self.src[i])
+            self.dots.add(d)
+
+    def _col(self, i):
+        return interpolate_color(self.col0[i], self.col1[i], self.c.get_value())
+
+    def _pos(self, i):
+        a = self.p.get_value()
+        return self.src[i] * (1 - a) + self.dst[i] * a
+
+    def _upd(self, d):
+        t = self.s.renderer.time
+        i = d.i
+        off = self.amp * np.array([np.sin(d.w[0] * t + d.ph[0]), np.cos(d.w[1] * t + d.ph[1]), 0])
+        d.move_to(self._pos(i) + off)
+        k = 1.0
+        for tr, S in self.fades:
+            if i in S:
+                k *= 1 - 0.9 * tr.get_value()
+        d.set_fill(self._col(i), opacity=self.fo * k)
+        d.set_stroke(BLUE, 4, opacity=self.so * k)
+
+    def fade(self, idx):
+        tr = ValueTracker(0)
+        self.fades.append((tr, set(idx)))
+        return tr
+
+    def prep(self, dst=None, cols=None):
+        cur = [self._pos(i) for i in range(N)]
+        curc = [self._col(i) for i in range(N)]
+        self.src = cur
+        self.dst = [np.array(x, dtype=float) if x is not None else cur[i] for i, x in enumerate(dst)] if dst else list(cur)
+        self.col0 = curc
+        self.col1 = [ManimColor(x) if x is not None else curc[i] for i, x in enumerate(cols)] if cols else list(curc)
+        self.p.set_value(0)
+        self.c.set_value(0)
+        return [self.p.animate.set_value(1), self.c.animate.set_value(1)]
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Count(SpokenScene):
-    """three dot maps with 11, 17 and 18 clusters; a question over the three counts."""
+def sch():
+    return T("schematic", 28, TEXT).move_to([-5.5, 3.45, 0])
 
-    def panel(self, cx, n_clusters, seed, number, caption):
-        rng = np.random.default_rng(seed)
-        w, h = 3.9, 4.3
-        fr = frame_rect(w, h, cx, 0.35)
-        cols = 4
-        rows = int(np.ceil(n_clusters / cols))
-        cells = [(i % cols, i // cols) for i in range(n_clusters)]
-        pts = []
-        for (c, r) in cells:
-            x = cx - w / 2 + 0.55 + c * (w - 1.1) / (cols - 1) + rng.uniform(-0.1, 0.1)
-            y = 0.35 + h / 2 - 0.55 - r * (h - 1.1) / (rows - 1) + rng.uniform(-0.1, 0.1)
-            pts += cluster_pts((x, y), 5, 0.2, rng)
-        d = dots(pts)
-        num = M(str(number), 64, TEXT, weight=BOLD).move_to([cx, -2.35, 0])
-        cap = T(caption, 24, GREY).move_to([cx, -3.1, 0])
-        return fr, d, num, cap
 
+def ganglion():
+    e = Ellipse(width=10.4, height=6.0, stroke_color=GREY, stroke_width=5, fill_color=BLUE, fill_opacity=0.2)
+    return e.move_to(GC)
+
+
+def tree_lines(dim_others=False):
+    g = VGroup()
+    trunk = Line([-6.0, CY[1], 0], [-4.8, CY[1], 0])
+    vert = Line([-4.8, CY[0], 0], [-4.8, CY[2], 0])
+    hs = [Line([-4.8, y, 0], [-3.4, y, 0]) for y in CY]
+    for m in [trunk, vert, *hs]:
+        m.set_stroke(TEXT, 12, opacity=0.95)
+    g.add(trunk, vert, *hs)
+    g.trunk, g.vert, g.h = trunk, vert, hs
+    return g
+
+
+def split_lines():
+    ls = VGroup()
+    for y in CY:
+        for sgn in (1, -1):
+            ls.add(Line([-3.4, y, 0], [-3.1, y + 0.58 * sgn, 0]).set_stroke(TEXT, 6, opacity=0.9))
+    return ls
+
+
+def make_dial(c, r, tr):
+    c = np.array([c[0], c[1], 0.0])
+    ring = Circle(r, stroke_color=TEAL, stroke_width=5, fill_color=TEAL, fill_opacity=0.22).move_to(c)
+    ang = lambda v: np.radians(210 - 240 * v)
+    dr = lambda a: np.array([np.cos(a), np.sin(a), 0])
+    ticks = VGroup(*[Line(c + 0.8 * r * dr(ang(v)), c + 0.95 * r * dr(ang(v))).set_stroke(TEAL, 3) for v in np.linspace(0, 1, 9)])
+    needle = Line(c, c + 0.75 * r * dr(ang(tr.get_value()))).set_stroke(TEXT, 6)
+    needle.add_updater(lambda m: m.put_start_and_end_on(c, c + 0.75 * r * dr(ang(tr.get_value()))))
+    hub = Dot(c, radius=0.1, color=TEXT)
+    g = VGroup(ring, ticks, needle, hub)
+    g.ring = ring
+    return g
+
+
+def sock(label, pos, w=5.6, h=1.0, color=TEXT):
+    box = DashedVMobject(RoundedRectangle(corner_radius=0.15, width=w, height=h, stroke_color=color, stroke_width=3), num_dashes=40)
+    t = T(label, 36, color)
+    g = VGroup(box, t).move_to([pos[0], pos[1], 0])
+    return g
+
+
+def pulse_stroke(m, base=5, amp=2, w=2.0):
+    m.add_updater(lambda x: x.set_stroke(width=base + amp * np.sin(w * x._sc.renderer.time)))
+
+
+def bars(n=6, seed=0, h=0.5):
+    rng = np.random.RandomState(seed)
+    return VGroup(*[Line([0.1 * k, 0, 0], [0.1 * k, rng.uniform(0.25, 1) * h, 0]).set_stroke(TEAL, 4) for k in range(n)])
+
+
+class WorldScene(SpokenScene):
+    """Adds the tree world (dots in 3 clusters, tree lines) at the carried positions."""
+
+    def tree_world(self, pos=None, lines=True):
+        self.F = DotField(self, pos or cluster_pos())
+        self.tree = tree_lines()
+        self.add(self.tree if lines else VGroup(), self.F.dots, sch())
+        return self.F, self.tree
+
+
+# ------------------------------------------------------------------------------------------------
+class S00Hook(SpokenScene):
     def construct(self):
-        P = [self.panel(-4.4, 11, 1, 11, "one mouse data set"),
-             self.panel(0.0, 17, 2, 17, "larger, 3 years later"),
-             self.panel(4.4, 18, 3, 18, "31 data sets, six species")]
-        tag = sketch_tag(0.0, -3.7)
-        self.at("One mouse")
-        self.play(FadeIn(tag), FadeIn(P[0][0]), LaggedStart(*[GrowFromCenter(x) for x in P[0][1]], lag_ratio=0.01),
-                  run_time=1.2)
-        self.at("kinds")
-        self.play(FadeIn(P[0][2], scale=0.8), FadeIn(P[0][3]), run_time=0.6)
-        self.at("A larger one")
-        self.play(FadeIn(P[1][0]), LaggedStart(*[GrowFromCenter(x) for x in P[1][1]], lag_ratio=0.01), run_time=1.0)
-        self.play(FadeIn(P[1][2], scale=0.8), FadeIn(P[1][3]), run_time=0.5)
-        self.at("settled on")
-        self.play(FadeIn(P[2][0]), LaggedStart(*[GrowFromCenter(x) for x in P[2][1]], lag_ratio=0.01), run_time=1.0)
-        self.play(FadeIn(P[2][2], scale=0.8), FadeIn(P[2][3]), run_time=0.5)
-        self.at("Which number is right")
-        q = T("Which number is right?", 36, TEAL, weight=BOLD).move_to([0, 3.4, 0])
-        self.play(FadeIn(q, shift=DOWN * 0.15), run_time=0.5)
-        self.at("none is final")
-        self.play(Indicate(q, color=TEAL, scale_factor=1.05), run_time=0.7)
+        F = DotField(self, gang_pos(), amp=0.28)
+        ell = ganglion()
+        self.add(ell, F.dots)
+        self.play(FadeIn(ell), run_time=0.8)
+        self.add(sch())
+        cs = []
+        xs = [-2.6, 0.2, 3.0]
+        for k, (txt, ph) in enumerate([("11", "11"), ("17", "17"), ("18", "18")]):
+            c = M(txt, 80, BLUE, weight=BOLD).move_to([xs[k], 3.3, 0])
+            cs.append(c)
+            self.at(ph, lead=0.1)
+            self.play(FadeIn(c, shift=DOWN * 0.6), run_time=0.7)
+        q = T("?", 90, GREY, weight=BOLD).move_to([5.7, 3.3, 0])
+        self.at("Which count")
+        self.play(FadeIn(q, scale=0.4), run_time=0.8)
+        self.at("trust")
+        self.play(Indicate(q, scale_factor=1.25, color=TEXT), run_time=1.2)
+        self.at("Watch the same")
+        self.play(*[c.animate.shift(RIGHT * 0.5) for c in cs], run_time=1.4, rate_func=there_and_back)
+        self.play(*[c.animate.shift(RIGHT * 0.5) for c in cs], run_time=1.4, rate_func=there_and_back)
+        self.play(Indicate(q, scale_factor=1.2), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Cluster(SpokenScene):
-    """622 neurons sorted by an unsupervised method into eleven classes: 5 NF, 3 NP, 2 PEP, 1 TH."""
+class S01Title(TitleCard):
+    LESSON = "Sensory Neurons by Their Genes: the Atlas Era"
+    TITLE = "From Cluster to Cell Type"
 
     def construct(self):
-        rng = np.random.default_rng(7)
-        mapfr = frame_rect(12.2, 5.5, 0, 0.05)
-        head = T("Usoskin et al., 2015: mouse dorsal root ganglion neurons", 26, TEXT).move_to([0, 3.5, 0])
-        tag = sketch_tag(3.9, -3.5)
-        # layout of the 11 class centres
-        row1 = [("NF1", NF, -4.7, 1.0), ("NF2", NF, -2.9, 1.0), ("NF3", NF, -1.1, 1.0), ("NF4", NF, 0.7, 1.0),
-                ("NF5", NF, 2.5, 1.0), ("TH", TH, 4.6, 1.0)]
-        row2 = [("NP1", NP, -4.7, -0.9), ("NP2", NP, -2.9, -0.9), ("NP3", NP, -1.1, -0.9),
-                ("PEP1", PEP, 1.6, -0.9), ("PEP2", PEP, 3.4, -0.9)]
-        spec = row1 + row2
-        targets, groups = [], []
-        for (nm, col, x, y) in spec:
-            pts = cluster_pts((x, y), 9, 0.42, rng)
-            targets.append(pts)
-        # start: the same 99 dots scattered over the map
-        scat = [np.array([rng.uniform(-5.6, 5.6), rng.uniform(-2.2, 2.4), 0.0]) for _ in range(99)]
-        D = dots(scat)
-        n = T("622 neurons", 28, TEXT).move_to([-4.6, -3.5, 0])
+        F = DotField(self, gang_pos(), fo=0.07, so=0.12, amp=0.28)
+        ell = ganglion().set_stroke(opacity=0.1).set_fill(opacity=0.0)
+        self.add(ell, F.dots)
+        super().construct()
 
-        self.play(FadeIn(head), FadeIn(mapfr), FadeIn(tag), run_time=0.6)
-        self.at("cell bodies")
-        self.play(FadeIn(D, lag_ratio=0.01), run_time=1.5)
-        self.at("single neurons")
-        self.play(FadeIn(n), run_time=0.5)
-        self.at("grouped them")
-        anims = []
-        k = 0
-        for pts in targets:
-            for p in pts:
-                anims.append(D[k].animate.move_to(p))
-                k += 1
-        self.play(LaggedStart(*anims, lag_ratio=0.008), run_time=2.6)
-        self.at("classes came out")
-        cnt = M("11 classes", 30, TEXT, weight=BOLD).move_to([-4.6, -3.5, 0])
-        self.play(ReplacementTransform(n, cnt), run_time=0.6)
-        # labels under each cluster (ids from the lesson)
-        labs = {}
-        for (nm, col, x, y) in spec:
-            labs[nm] = T(nm, 22, col).move_to([x, y - 0.75, 0])
-        # NF
-        self.at("Five were")
-        k0 = 0
-        grp_nf = VGroup(*[D[i] for i in range(0, 45)])
-        bk = Line([-5.2, 2.0, 0], [3.0, 2.0, 0], color=NF, stroke_width=3)
-        bt = T("neurofilament-rich (5)", 24, NF).move_to([-1.1, 2.4, 0])
-        self.play(grp_nf.animate.set_color(NF), FadeIn(bk), FadeIn(bt),
-                  *[FadeIn(labs[f"NF{i}"]) for i in range(1, 6)], run_time=0.8)
-        self.at("three were")
-        grp_np = VGroup(*[D[i] for i in range(54, 81)])
-        bk2 = Line([-5.2, -1.95, 0], [-0.6, -1.95, 0], color=NP, stroke_width=3)
-        bt2 = T("non-peptidergic (3)", 24, NP).move_to([-2.9, -2.35, 0])
-        self.play(grp_np.animate.set_color(NP), FadeIn(bk2), FadeIn(bt2),
-                  *[FadeIn(labs[f"NP{i}"]) for i in range(1, 4)], run_time=0.8)
-        self.at("two were")
-        grp_pep = VGroup(*[D[i] for i in range(81, 99)])
-        bk3 = Line([1.0, -1.95, 0], [4.0, -1.95, 0], color=PEP, stroke_width=3)
-        bt3 = T("peptidergic (2)", 24, PEP).move_to([2.5, -2.35, 0])
-        self.play(grp_pep.animate.set_color(PEP), FadeIn(bk3), FadeIn(bt3),
-                  FadeIn(labs["PEP1"]), FadeIn(labs["PEP2"]), run_time=0.8)
-        self.at("tyrosine hydroxylase")
-        grp_th = VGroup(*[D[i] for i in range(45, 54)])
-        bt4 = T("tyrosine\nhydroxylase", 22, TH, line_spacing=0.8).move_to([4.6, 2.25, 0])
-        self.play(grp_th.animate.set_color(TH), FadeIn(bt4), FadeIn(labs["TH"]), run_time=0.8)
+
+class S02Measurement(SpokenScene):
+    def construct(self):
+        F = DotField(self, gang_pos(), amp=0.15)
+        ell = ganglion()
+        self.add(ell, F.dots, sch())
+        order = sorted(range(N), key=lambda i: F.src[i][0])
+        pick = [order[8], order[22], order[36]]
+        rings = VGroup(*[Circle(0.32, stroke_color=TEXT, stroke_width=4) for _ in pick])
+        for r, i in zip(rings, pick):
+            r.add_updater(lambda m, i=i: m.move_to(F.dots[i].get_center()))
+        lab = T("one neuron", 34, TEXT)
+        lab.add_updater(lambda m: m.move_to([F.dots[pick[1]].get_center()[0], 3.2, 0]))
+        self.play(FadeIn(rings), FadeIn(lab), run_time=1.0)
+        self.at("Its measured RNA")
+        self.play(FadeOut(lab), run_time=0.5)
+        bc = VGroup()
+        for k, i in enumerate(pick):
+            b = bars(7, k, 0.8)
+            b.add_updater(lambda m, i=i: m.move_to(F.dots[i].get_center() + RIGHT * 0.9))
+            bc.add(b)
+        self.play(LaggedStart(*[Create(b) for b in bc], lag_ratio=0.3), run_time=1.6)
+        self.at("teal barcode")
+        self.play(Indicate(bc, color=TEAL, scale_factor=1.3), run_time=1.2)
+        self.at("clustering method")
+        tree = tree_lines()
+        self.play(FadeOut(bc), FadeOut(rings), FadeOut(ell), run_time=0.6)
+        anims = F.prep(cluster_pos())
+        self.play(*anims, LaggedStart(*[Create(m) for m in tree], lag_ratio=0.2), run_time=2.8)
+        self.at("similar barcodes suggest")
+        rings2 = VGroup(*[Circle(1.05, stroke_color=TEAL, stroke_width=5).move_to([CX, y, 0]) for y in CY])
+        self.at("molecular programs")
+        self.play(LaggedStart(*[Create(r) for r in rings2], lag_ratio=0.3), run_time=1.8)
+        qs = VGroup(*[T("?", 64, GREY, weight=BOLD).move_to([-0.55, y, 0]) for y in CY])
+        self.at("reveal a job")
+        self.play(FadeIn(qs, lag_ratio=0.3), run_time=1.4)
+        tag = T("this sample", 60, TEXT).move_to([3.4, 0.2, 0])
+        self.at("map of this sample")
+        self.play(FadeOut(qs), FadeIn(tag, shift=LEFT * 0.4), run_time=1.0)
+        self.play(Indicate(tag, scale_factor=1.15), run_time=1.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Resolution(SpokenScene):
-    """one tree read at two resolutions: 3 broad classes, then 8 + 6 + 3 = 17 types."""
+def predict_objects(scene):
+    tr = ValueTracker(0.08)
+    dial = make_dial([1.5, 0.3], 1.8, tr)
+    dlab = T("resolution", 40, TEAL).move_to([1.5, -2.0, 0])
+    return tr, dial, dlab
 
+
+class S03Predict(SpokenScene):
     def construct(self):
-        ybr = {"pep": 2.3, "np": 0.0, "nf": -2.3}
-        col = {"pep": PEP, "np": NP, "nf": NF}
-        name = {"pep": "peptidergic", "np": "non-peptidergic", "nf": "neurofilament"}
-        count = {"pep": 8, "np": 6, "nf": 3}
-        root = bchip("sensory neurons", GREY, size=26).move_to([-5.0, 0, 0])
-        mids, edges = {}, []
-        for k in ("pep", "np", "nf"):
-            m = bchip(name[k], col[k], size=28).move_to([-1.5, ybr[k], 0])
-            mids[k] = m
-            edges.append(VMobject().set_points_as_corners(
-                [root.get_right() + RIGHT * 0.05, [-3.4, 0, 0], [-3.4, ybr[k], 0], m.get_left() + LEFT * 0.05]
-            ).set_stroke(GREY, 3))
-        # tips
-        tips, tipedges = {}, []
-        for k in ("pep", "np", "nf"):
-            n = count[k]
-            per = 4 if k == "pep" else 3
-            pts = []
-            for i in range(n):
-                r, c = divmod(i, per)
-                pts.append([1.1 + c * 0.85, ybr[k] + (0.4 if r == 0 else -0.4) * (1 if n > 3 else 0), 0])
-            tips[k] = VGroup(*[Dot(p, radius=0.22, color=col[k], fill_opacity=0.95) for p in pts])
-            for p in pts:
-                tipedges.append(Line(mids[k].get_right() + RIGHT * 0.05, [p[0] - 0.25, p[1], 0], stroke_width=1.8,
-                                     color=GREY, stroke_opacity=0.55))
-        cnum = M("3", 110, TEXT, weight=BOLD).move_to([5.3, 0.5, 0])
-        clab = T("broad classes", 26, GREY).move_to([5.3, -0.7, 0])
-        tag = sketch_tag(4.3, -3.6)
-        hb = T("broad classes", 26, TEAL).move_to([-1.5, 3.5, 0])
-        hf = T("finer types", 26, TEAL).move_to([2.4, 3.5, 0])
-
-        self.at("Think of a map")
-        self.play(FadeIn(root), FadeIn(tag), run_time=0.6)
-        self.play(*[Create(e) for e in edges], *[FadeIn(mids[k], shift=RIGHT * 0.2) for k in mids], run_time=0.9)
-        self.play(FadeIn(cnum), FadeIn(clab), run_time=0.5)
-        self.at("country level")
-        self.play(FadeIn(hb, shift=DOWN * 0.1), run_time=0.5)
-        self.at("county level")
-        self.play(FadeIn(hf, shift=DOWN * 0.1), run_time=0.5)
-        self.at("differ in resolution")
-        self.play(Indicate(hb, color=TEXT, scale_factor=1.1), Indicate(hf, color=TEXT, scale_factor=1.1), run_time=0.9)
-        self.at("Xycel")
-        zl = T("Zeisel et al., 2018", 24, GREY).move_to([5.3, -1.6, 0])
-        self.play(FadeIn(zl), run_time=0.5)
-        self.at("eight peptidergic")
-        self.play(*[Create(tipedges[i]) for i in range(8)], FadeIn(tips["pep"], lag_ratio=0.1), run_time=0.9)
-        self.at("six")
-        self.play(*[Create(tipedges[i]) for i in range(8, 14)], FadeIn(tips["np"], lag_ratio=0.1), run_time=0.8)
-        self.at("three neurofilament")
-        self.play(*[Create(tipedges[i]) for i in range(14, 17)], FadeIn(tips["nf"], lag_ratio=0.1), run_time=0.7)
-        self.at("That makes")
-        c2 = M("17", 110, TEXT, weight=BOLD).move_to([5.3, 0.5, 0])
-        l2 = T("types", 26, GREY).move_to([5.3, -0.7, 0])
-        self.play(ReplacementTransform(cnum, c2), ReplacementTransform(clab, l2), run_time=0.7)
-        self.at("finer clustering setting")
-        self.play(Indicate(VGroup(*tips.values()), color=TEXT, scale_factor=1.12), run_time=1.0)
+        F = DotField(self, cluster_pos())
+        tree = tree_lines()
+        self.add(tree, F.dots, sch())
+        cnt = T("45 neurons", 44, BLUE).move_to([1.5, 3.15, 0])
+        self.at("every neuron")
+        self.play(FadeIn(cnt, shift=DOWN * 0.3), run_time=0.8)
+        tr, dial, dlab = predict_objects(self)
+        self.at("Turn the clustering")
+        self.play(FadeIn(dial, scale=0.8), FadeIn(dlab), run_time=1.2)
+        chips = []
+        for k, (txt, ph) in enumerate([("gain neurons", "gain neurons"), ("lose neurons", "lose neurons"), ("split branches", "split existing branches")]):
+            c = chip(txt, TEXT, size=30).move_to([5.2, 1.7 - 1.4 * k, 0])
+            if k == 0:
+                self.at("Will the tree")
+            else:
+                self.at(ph)
+            self.play(FadeIn(c, shift=LEFT * 0.3), run_time=0.6)
+            chips.append(c)
+        self.play(Indicate(dial.ring, color=TEAL, scale_factor=1.05), run_time=1.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Merge(SpokenScene):
-    """31 data sets merge into one 18-subtype reference; one group is red, the Atf3 group."""
-
+class S04Pause(NarratedScene):
     def construct(self):
-        rng = np.random.default_rng(11)
-        mcx, mcy, mw, mh = 2.2, 0.0, 8.0, 5.4
-        mapfr = frame_rect(mw, mh, mcx, mcy)
-        head = T("one reference: 18 DRG subtypes", 26, TEXT).move_to([mcx, 3.5, 0])
-        tag = sketch_tag(mcx + 0.0, -3.5)
-        # 31 data sets as small squares
-        sq = VGroup(*[Square(side_length=0.26, stroke_color=GREY, stroke_width=2, fill_color=GREY, fill_opacity=0.35)
-                      for _ in range(31)])
-        sq.arrange_in_grid(rows=4, cols=8, buff=0.07)
-        sq.move_to([-4.3, 2.55, 0])
-        cap = T("31 data sets,\nsix mammalian species", 24, GREY, line_spacing=0.9).next_to(sq, DOWN, buff=0.25)
-        # 18 clusters
-        cells = [(i % 6, i // 6) for i in range(18)]
-        pts, cent = [], []
-        for (c, r) in cells:
-            x = mcx - mw / 2 + 0.75 + c * (mw - 1.5) / 5 + rng.uniform(-0.08, 0.08)
-            y = mcy + mh / 2 - 0.8 - r * (mh - 1.6) / 2 + rng.uniform(-0.08, 0.08)
-            cent.append((x, y))
-            pts.append(cluster_pts((x, y), 7, 0.3, rng))
-        atf = 8  # which cluster is the Atf3 group
-        D = [dots(p, r=0.09) for p in pts]
-        allD = VGroup(*D)
-        chips = [bchip("preparation", TEAL, 24), bchip("sequencing depth", TEAL, 24), bchip("analysis", TEAL, 24)]
-        for i, c in enumerate(chips):
-            c.move_to([-4.3, -0.55 - i * 0.85, 0])
-        chead = T("change the count", 24, TEAL).move_to([-4.3, 0.35, 0])
-
-        self.at("merged")
-        self.play(FadeIn(sq, lag_ratio=0.03), FadeIn(cap), FadeIn(mapfr), FadeIn(head), FadeIn(tag), run_time=1.2)
-        self.at("one reference")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.5) for d in D], lag_ratio=0.08), run_time=2.0)
-        self.at("It holds")
-        self.play(Indicate(head, color=TEXT, scale_factor=1.06), run_time=0.7)
-        self.at("preparation")
-        self.play(FadeIn(chead), FadeIn(chips[0]), run_time=0.5)
-        self.at("sequencing depth")
-        self.play(FadeIn(chips[1]), run_time=0.4)
-        self.at("analysis")
-        self.play(FadeIn(chips[2]), run_time=0.4)
-        self.at("how many subtypes")
-        self.play(Indicate(head, color=TEXT, scale_factor=1.06), run_time=0.7)
-        self.at("One group is")
-        x, y = cent[atf]
-        self.play(D[atf].animate.set_color(RED), run_time=0.7)
-        self.at("transcription factors")
-        ring = Circle(radius=0.55, color=RED, stroke_width=3).move_to([x, y, 0])
-        self.play(Create(ring), run_time=0.5)
-        self.at("AF -3")
-        lab = bchip("Atf3 group", RED, 24).move_to([x, y - 1.05, 0])
-        self.play(FadeIn(lab, shift=UP * 0.1), run_time=0.5)
-        self.at("types with states")
-        q = T("type or state?", 26, TEAL).move_to([x, y + 1.05, 0])
-        qb = Rectangle(width=q.width + 0.2, height=q.height + 0.12, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(q)
-        self.play(FadeIn(qb), FadeIn(q, shift=DOWN * 0.1), run_time=0.6)
+        F = DotField(self, cluster_pos())
+        tree = tree_lines()
+        tr, dial, dlab = predict_objects(self)
+        cnt = T("45 neurons", 44, BLUE).move_to([1.5, 3.15, 0])
+        chips = VGroup(*[chip(t, TEXT, size=30).move_to([5.2, 1.7 - 1.4 * k, 0]) for k, t in enumerate(["gain neurons", "lose neurons", "split branches"])])
+        self.add(tree, F.dots, sch(), cnt, dial, dlab, chips)
+        tr.add_updater(lambda m: m.set_value(0.1 + 0.025 * np.sin(1.8 * self.renderer.time)))
+        dial.ring.add_updater(lambda m: m.set_stroke(width=5 + 2.5 * np.sin(2.2 * self.renderer.time)))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Injury(SpokenScene):
-    """after nerve injury, type dots lose colour and gather in a red state zone; identity returns."""
-
+class S05Resolution(SpokenScene):
     def construct(self):
-        rng = np.random.default_rng(5)
-        zL = frame_rect(3.5, 4.6, -4.55, 0.2, GREY)
-        zR = frame_rect(3.5, 4.6, 4.55, 0.2, RED)
-        lL = T("subtype identity", 24, GREY).move_to([-4.55, 2.85, 0])
-        lR = T("Atf3-rich state", 24, RED).move_to([4.55, 2.85, 0])
-        head = T("in mice, after nerve injury", 26, TEXT).move_to([-2.4, 3.6, 0])
-        types = [("subtype 1", NF, 1.45), ("subtype 2", NP, 0.2), ("subtype 3", PEP, -1.05)]
-        home, away, D, labs = [], [], [], []
-        for (nm, col, y) in types:
-            hp = cluster_pts((-4.55, y), 7, 0.5, rng)
-            ap = cluster_pts((4.55, y), 7, 0.5, rng)
-            home.append(hp)
-            away.append(ap)
-            D.append(dots(hp, col, r=0.1))
-            labs.append(T(nm, 22, col).move_to([-4.55, y - 0.68, 0]))
-        tag = sketch_tag(4.2, 3.6)
-        # timeline
-        tl = Line([-5.8, -2.85, 0], [5.8, -2.85, 0], color=GREY, stroke_width=3)
-        tl_a = T("injury", 24, TEXT).move_to([-5.0, -3.35, 0])
-        tl_b = T("axons regrow to their targets", 24, TEXT).move_to([3.7, -3.35, 0])
-        mark = Dot([-5.8, -2.85, 0], radius=0.11, color=RED)
-        out_arr = arr([-2.5, 0.6, 0], [2.5, 0.6, 0], RED)
-        back_arr = arr([2.5, -0.6, 0], [-2.5, -0.6, 0], GREEN)
-        warn = bchip("timing alone is not proof", TEAL, 24).move_to([0, -1.6, 0])
-
-        self.at("Can a state")
-        self.play(FadeIn(zL), FadeIn(lL), run_time=0.5)
-        self.play(*[FadeIn(d, lag_ratio=0.1) for d in D], *[FadeIn(l) for l in labs], FadeIn(tag), run_time=0.9)
-        self.at("cut or crushed")
-        self.play(FadeIn(zR), FadeIn(lR), FadeIn(head), run_time=0.6)
-        self.play(FadeIn(tl), FadeIn(tl_a), FadeIn(mark), run_time=0.5)
-        self.at("single nuclei")
-        sn = bchip("single nuclei sequenced", GREY, 24).move_to([0, 1.7, 0])
-        self.play(FadeIn(sn, shift=DOWN * 0.1), run_time=0.5)
-        self.at("lost much of")
-        self.play(FadeOut(sn), run_time=0.3)
-        self.play(Create(out_arr),
-                  *[d[j].animate.move_to(away[i][j]).set_color(GREY) for i, d in enumerate(D) for j in range(len(d))],
-                  run_time=2.0)
-        self.at("time course")
-        gap = max(2.0, self.t_of("identity") - self.t_of("time course") - 0.3)
-        self.play(FadeIn(tl_b), mark.animate.move_to([5.8, -2.85, 0]).set_color(GREEN), run_time=gap, rate_func=linear)
-        self.at("identity")
-        self.play(Create(back_arr),
-                  *[d[j].animate.move_to(home[i][j]).set_color(types[i][1]) for i, d in enumerate(D) for j in range(len(d))],
-                  run_time=2.4)
-        self.at("Timing alone")
-        self.play(FadeIn(warn, scale=0.9), run_time=0.5)
+        F = DotField(self, cluster_pos())
+        tree = tree_lines()
+        tr, dial, dlab = predict_objects(self)
+        cnt = T("45 neurons", 44, BLUE).move_to([1.5, 3.15, 0])
+        self.add(tree, F.dots, sch(), cnt, dial, dlab)
+        sl = split_lines()
+        anims = F.prep(split_pos())
+        self.play(*anims, tr.animate.set_value(0.95), LaggedStart(*[Create(m) for m in sl], lag_ratio=0.1), run_time=2.4)
+        self.at("No new neuron")
+        self.play(Indicate(cnt, color=TEXT, scale_factor=1.2), run_time=1.4)
+        self.at("In real atlases")
+        tags = []
+        specs = [("11: 622 mouse neurons", "11"), ("17: larger mouse census", "17"), ("18: cross-species", "18")]
+        self.play(FadeOut(dial), FadeOut(dlab), cnt.animate.set_opacity(0.0), run_time=1.2)
+        for k, (txt, ph) in enumerate(specs):
+            c = chip(txt, BLUE, size=38).move_to([3.3, 2.0 - 1.4 * k, 0])
+            self.at(ph, lead=0.5)
+            self.play(FadeIn(c, shift=LEFT * 0.4), run_time=0.8)
+            tags.append(c)
+        note = T("different data and methods", 36, TEXT).move_to([3.3, -1.9, 0])
+        self.at("Those counts also differ")
+        self.play(FadeIn(note, shift=UP * 0.2), run_time=1.0)
+        self.play(Indicate(note, scale_factor=1.1), run_time=1.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """a cluster becomes a type: recurs across data sets, has an independent anchor; read with state and resolution."""
+def tile(label, y, icon, move_icon=True):
+    box = RoundedRectangle(corner_radius=0.18, width=5.8, height=1.6, stroke_color=TEXT, stroke_width=3, fill_color=TEAL, fill_opacity=0.28)
+    t = T(label, 28, TEXT)
+    g = VGroup(box, t)
+    g.move_to([3.6, y, 0])
+    if move_icon:
+        icon.move_to(g.get_left() + RIGHT * 0.9)
+    t.move_to(g.get_center() + RIGHT * 0.8)
+    return VGroup(box, t, icon)
 
+
+class S06OtherControls(SpokenScene):
     def construct(self):
-        rng = np.random.default_rng(3)
-        cx, cy = -4.1, 0.2
-        zone = Circle(radius=1.75, color=GREY, stroke_width=3).move_to([cx, cy, 0])
-        D = dots(cluster_pts((cx, cy), 18, 1.2, rng), r=0.1)
-        lab = T("a cluster", 28, TEXT).move_to([cx, cy - 2.3, 0])
-        tag = sketch_tag(-4.1, 3.6)
-        rec = bchip("recurs across data sets", TEXT, 28).move_to([-4.1, 2.85, 0])
-        anchors = [bchip(t, PURPLE, 28) for t in ("an ending", "a physiology", "a target", "behaviour after manipulation")]
-        A = VGroup(*anchors).arrange(DOWN, buff=0.4, aligned_edge=LEFT).move_to([2.3, 0.3, 0])
-        ahead = T("an independent anchor", 28, PURPLE).next_to(A, UP, buff=0.3)
-        links = [Line([cx + 1.8, cy, 0], a.get_left() + LEFT * 0.05, color=PURPLE, stroke_width=2, stroke_opacity=0.7)
-                 for a in anchors]
-        st = bchip("state", RED, 28).move_to([0.4, -3.1, 0])
-        rs = bchip("resolution", TEAL, 28).move_to([3.2, -3.1, 0])
-        ds = bchip("data set", GREY, 28).move_to([-2.2, -3.1, 0])
-
-        self.at("So what is a type")
-        self.play(Create(zone), FadeIn(D, lag_ratio=0.05), FadeIn(lab), FadeIn(tag), run_time=1.0)
-        self.at("recurs across")
-        self.play(FadeIn(rec, shift=DOWN * 0.1), run_time=0.6)
-        self.at("independent anchor")
-        self.play(FadeIn(ahead), run_time=0.4)
-        self.at("such as an ending")
-        self.play(*[Create(l) for l in links], run_time=0.5)
-        self.play(LaggedStart(*[FadeIn(a, shift=LEFT * 0.2) for a in anchors], lag_ratio=0.25), run_time=1.6)
-        self.at("with its state")
-        self.play(FadeIn(st, shift=UP * 0.15), run_time=0.5)
-        self.at("and its resolution")
-        self.play(FadeIn(rs, shift=UP * 0.15), run_time=0.5)
-        self.at("Read each count")
-        self.play(FadeIn(ds, shift=UP * 0.15), run_time=0.5)
-        self.play(Indicate(VGroup(ds, st, rs), color=TEXT, scale_factor=1.08), run_time=0.8)
+        F = DotField(self, cluster_pos())
+        tree = tree_lines()
+        self.add(tree, F.dots, sch())
+        # tile 1: resolution
+        tr = ValueTracker(0.5)
+        d1 = make_dial([1.55, 2.3], 0.55, tr)
+        tr.add_updater(lambda m: m.set_value(0.5 + 0.35 * np.sin(1.3 * self.renderer.time)))
+        t1 = tile("resolution", 2.3, d1, move_icon=False)
+        self.play(FadeIn(t1, shift=LEFT * 0.4), run_time=1.2)
+        # tile 2: whole cell / nucleus filter
+        bb = bars(6, 5, 0.9)
+        t2 = tile("whole cell / nucleus", 0.4, bb)
+        self.at("Whole cells")
+        self.play(FadeIn(t2, shift=LEFT * 0.4), run_time=1.2)
+        fade3 = F.fade([i for i in range(N) if i % 3 == 2])
+        self.at("hide a branch")
+        self.play(bb[1].animate.set_opacity(0.1), bb[4].animate.set_opacity(0.1), fade3.animate.set_value(1), tree.h[2].animate.set_opacity(0.2), run_time=2.0)
+        rare = [i for i in range(N) if i % 3 == 1][:4]
+        fade_r = F.fade(rare)
+        self.at("rare cells")
+        self.play(fade_r.animate.set_value(1), run_time=1.6)
+        self.at("Injury can pull")
+        mag = VGroup(Arc(radius=0.35, start_angle=PI, angle=PI, stroke_color=RED, stroke_width=9).rotate(PI),
+                     Line([-0.35, 0, 0], [-0.35, 0.4, 0]).set_stroke(RED, 9), Line([0.35, 0, 0], [0.35, 0.4, 0]).set_stroke(RED, 9))
+        mag.arc = None
+        t3 = tile("injury magnet", -1.7, mag)
+        isl = Circle(0.75, stroke_color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.08).move_to([-0.3, 0.2, 0])
+        rng = np.random.RandomState(21)
+        sel = [i for i in range(N) if i % 3 == 0][:3] + [i for i in range(N) if i % 3 == 1][4:7] + [i for i in range(N) if i % 3 == 2][:3]
+        dst = [None] * N
+        cols = [None] * N
+        for i in sel:
+            dst[i] = _disc(rng, [-0.3, 0.2], 0.45)
+            cols[i] = RED
+        self.play(fade3.animate.set_value(0), fade_r.animate.set_value(0), tree.h[2].animate.set_opacity(0.8), FadeIn(t3, shift=LEFT * 0.4), FadeIn(isl), run_time=1.0)
+        self.at("pull several")
+        anims = F.prep(dst, cols)
+        self.play(*anims, run_time=2.8)
+        lab = T("injury state", 28, RED).move_to([-0.6, -1.0, 0])
+        self.at("transcriptional state")
+        self.play(FadeIn(lab), run_time=1.0)
+        self.at("Neither change")
+        self.play(Indicate(VGroup(t2, t3), scale_factor=1.04, color=TEXT), run_time=1.6)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Read each count with its data set, resolution and state."
+def selected_world(scene, pos, enlarged=True):
+    F = DotField(scene, pos)
+    tree = tree_lines()
+    tree.set_stroke(opacity=0.25)
+    tree.h[0].set_stroke(opacity=0.9)
+    tree.trunk.set_stroke(opacity=0.9)
+    F.fade(IDX_OTHER).set_value(0.85)
+    return F, tree
+
+
+class S07Rule(SpokenScene):
+    def construct(self):
+        F = DotField(self, cluster_pos())
+        tree = tree_lines()
+        self.add(tree, F.dots, sch())
+        fo = F.fade(IDX_OTHER)
+        anims = F.prep(big_pos())
+        self.play(*anims, fo.animate.set_value(0.85), *[m.animate.set_stroke(opacity=0.25) for m in [tree.vert, tree.h[1], tree.h[2]]], run_time=2.6)
+        lab = T("candidate type", 38, TEXT).move_to([CX, 3.45, 0])
+        self.at("candidate type")
+        self.play(FadeIn(lab, shift=DOWN * 0.2), run_time=0.8)
+        s1 = sock("recurs", [3.5, 2.3], h=1.3)
+        s2 = sock("independent anchor", [3.5, 0.7], h=1.3)
+        self.at("recurs")
+        self.play(Create(s1), run_time=1.2)
+        self.at("independent measurement")
+        self.play(Create(s2), run_time=1.2)
+        self.play(Indicate(s2, scale_factor=1.05, color=TEXT), run_time=1.2)
+        names = ["resolution", "preparation", "state"]
+        ctl = VGroup()
+        for k, nm in enumerate(names):
+            cx = -4.3 + 4.3 * k
+            lb = T(nm, 30, TEXT).move_to([cx, -3.05, 0])
+            tk = Line([cx - 1.3, -3.55, 0], [cx + 1.3, -3.55, 0]).set_stroke(GREY, 4)
+            kn = Dot(radius=0.16, color=TEAL)
+            kn.add_updater(lambda m, cx=cx, k=k: m.move_to([cx + 1.1 * np.sin(0.9 * self.renderer.time + 2.1 * k), -3.55, 0]))
+            ctl.add(lb, tk, kn)
+        self.at("Its count and boundary")
+        self.play(FadeIn(ctl), run_time=1.2)
+        self.finish()
+
+
+class S08Access(SpokenScene):
+    def construct(self):
+        F = DotField(self, big_pos())
+        tree = tree_lines()
+        for m in [tree.vert, tree.h[1], tree.h[2]]:
+            m.set_stroke(opacity=0.25)
+        F.fade(IDX_OTHER).set_value(0.85)
+        self.add(tree, F.dots, sch())
+        sw = RoundedRectangle(corner_radius=0.2, width=3.4, height=1.4, stroke_color=GOLD, stroke_width=5, fill_color=GOLD, fill_opacity=0.3).move_to([4.6, 2.4, 0])
+        swl = T("reporter", 34, GOLD).move_to(sw)
+        self.at("A marker from the teal")
+        badge = chip("marker", TEAL, size=30).move_to([CX + 1.7, 1.5, 0])
+        self.play(FadeIn(badge, scale=0.6), FadeIn(VGroup(sw, swl)), run_time=1.0)
+        self.play(badge.animate.move_to([1.3, 2.4, 0]), run_time=2.0)
+        self.at("gold label")
+        anims = F.prep(None, [GOLD if i % 3 == 0 else None for i in range(N)])
+        self.play(*anims, Indicate(sw, color=GOLD, scale_factor=1.08), run_time=2.0)
+        self.at("If one marker")
+        self.play(FadeOut(badge), FadeOut(VGroup(sw, swl)), run_time=0.8)
+        ca = Circle(1.5, stroke_color=TEAL, stroke_width=5, fill_color=TEAL, fill_opacity=0.08).move_to([2.3, 0.2, 0])
+        cb = Circle(1.5, stroke_color=TEAL, stroke_width=5, fill_color=TEAL, fill_opacity=0.08).move_to([4.5, 0.2, 0])
+        la = T("marker A", 30, TEAL).move_to([1.9, 2.25, 0])
+        lb = T("marker B", 30, TEAL).move_to([4.9, 2.25, 0])
+        self.play(Create(ca), Create(cb), FadeIn(la), FadeIn(lb), run_time=1.8)
+        self.at("requiring two")
+        self.play(ca.animate.move_to([2.8, 0.2, 0]), cb.animate.move_to([4.0, 0.2, 0]), run_time=1.6)
+        inter = Intersection(ca, cb, fill_color=GOLD, fill_opacity=0.7, stroke_width=0)
+        self.at("narrows the label")
+        self.play(FadeIn(inter), run_time=0.8)
+        keep = IDX1[: len(IDX1) // 2]
+        anims = F.prep(None, [GOLD if i in keep else BLUE for i in range(N)])
+        self.play(*anims, run_time=1.6)
+        li = T("intersection", 32, GOLD).move_to([3.4, -1.9, 0])
+        self.play(FadeIn(li, shift=UP * 0.2), run_time=0.8)
+        self.finish()
+
+
+class S09Function(SpokenScene):
+    def construct(self):
+        F = DotField(self, big_pos())
+        keep = IDX1[: len(IDX1) // 2]
+        F.col0 = F.col1 = [ManimColor(GOLD if i in keep else BLUE) for i in range(N)]
+        tree = tree_lines()
+        tree.set_stroke(opacity=0.2)
+        fo = F.fade(IDX_OTHER)
+        fo.set_value(0.95)
+        skin = VGroup(Rectangle(width=13.2, height=0.6, stroke_width=0, fill_color=GREY, fill_opacity=0.4).move_to([0, -1.5, 0]),
+                      Rectangle(width=13.2, height=1.9, stroke_width=0, fill_color=GREY, fill_opacity=0.17).move_to([0, -2.75, 0]))
+        slab = T("skin", 34, TEXT).move_to([5.8, -3.2, 0])
+        self.add(tree, skin, slab, F.dots, sch())
+        self.at("follow those labeled")
+        ends = [-3.4, -1.7, 0.0, 1.9]
+        starts = [F.dots[keep[j]] for j in range(4)]
+        axons = VGroup()
+        for s, x in zip(starts, ends):
+            ax = Line(s.get_center(), [x, -2.05, 0]).set_stroke(GOLD, 4)
+            ax.add_updater(lambda m, s=s, x=x: m.put_start_and_end_on(s.get_center(), [x, -2.05, 0]))
+            axons.add(ax)
+        tips = VGroup(*[Dot([x, -2.05, 0], radius=0.1, color=GOLD) for x in ends])
+        self.play(LaggedStart(*[Create(a) for a in axons], lag_ratio=0.2), run_time=2.4)
+        self.play(FadeIn(tips), run_time=0.6)
+        self.at("stimulate the skin")
+        probe = VGroup(Rectangle(width=0.22, height=0.9, stroke_width=0, fill_color=TEXT, fill_opacity=1).move_to([0, 0.45, 0]),
+                       Circle(0.2, stroke_width=0, fill_color=TEXT, fill_opacity=1).move_to([0, 0, 0]))
+        probe.add_updater(lambda m: m.move_to([1.9, -0.45 - 0.3 * (0.5 + 0.5 * np.sin(1.7 * self.renderer.time)), 0]))
+        self.play(FadeIn(probe), run_time=0.8)
+        self.at("imaging the ganglion")
+        halos = VGroup()
+        gdots = [keep[0], keep[2], keep[3]]
+        anims = F.prep(None, [GREEN if i in gdots else (GOLD if i in keep else BLUE) for i in range(N)])
+        for i in gdots:
+            h = Circle(0.38, stroke_color=GREEN, stroke_width=5)
+            h.add_updater(lambda m, i=i: (m.move_to(F.dots[i].get_center()), m.set_stroke(opacity=0.35 + 0.65 * (0.5 + 0.5 * np.sin(1.7 * self.renderer.time)))))
+            halos.add(h)
+        self.play(*anims, FadeIn(halos), run_time=1.4)
+        # response ranges (schematic)
+        def row(y, name, bands):
+            lab = T(name, 34, TEXT).move_to([2.1, y, 0])
+            trk = Line([3.6, y, 0], [6.6, y, 0]).set_stroke(GREY, 5)
+            bs = VGroup(*[Rectangle(width=w, height=0.5, stroke_width=0, fill_color=GREEN, fill_opacity=op).move_to([x, y, 0]) for x, w, op in bands])
+            return VGroup(lab, trk), bs
+        r1, b1 = row(2.7, "force", [(4.2, 1.2, 0.85), (5.8, 1.4, 0.45)])
+        r2, b2 = row(1.4, "temperature", [(4.7, 1.2, 0.85), (6.0, 1.0, 0.45)])
+        self.at("labeled subtypes")
+        self.play(FadeIn(r1), FadeIn(r2), run_time=1.0)
+        self.at("different tested ranges")
+        self.play(LaggedStart(GrowFromEdge(b1[0], LEFT), GrowFromEdge(b1[1], LEFT), GrowFromEdge(b2[0], LEFT), GrowFromEdge(b2[1], LEFT), lag_ratio=0.3), run_time=2.6)
+        st = T("schematic ranges", 32, TEXT).move_to([4.2, 0.5, 0])
+        self.play(FadeIn(st), run_time=0.6)
+        self.at("A distinct ending")
+        self.play(Indicate(axons, color=GOLD, scale_factor=1.0), run_time=1.6)
+        self.at("independent of the clustering")
+        self.play(Indicate(VGroup(b1, b2), color=GREEN, scale_factor=1.08), run_time=1.8)
+        self.at("It strengthens")
+        self.play(Indicate(VGroup(b1[0], b2[0], b1[1], b2[1]), scale_factor=1.12, color=GREEN), run_time=1.8)
+        self.finish()
+
+
+class S10Limits(SpokenScene):
+    def construct(self):
+        F = DotField(self, big_pos())
+        keep = IDX1[: len(IDX1) // 2]
+        F.col0 = F.col1 = [ManimColor(GOLD if i in keep else BLUE) for i in range(N)]
+        tree = tree_lines()
+        tree.set_stroke(opacity=0.2)
+        fo = F.fade(IDX_OTHER)
+        fo.set_value(0.95)
+        self.add(tree, F.dots, sch())
+        rep = RoundedRectangle(corner_radius=0.2, width=5.4, height=1.5, stroke_color=GOLD, stroke_width=5).move_to([3.5, 2.35, 0])
+        rl = T("reporter", 32, GOLD).move_to(rep)
+        self.at("A driver records")
+        self.play(FadeIn(VGroup(rep, rl)), run_time=1.0)
+        pl = Rectangle(width=2.65, height=1.5, stroke_width=0, fill_color=GOLD, fill_opacity=0.55).move_to([rep.get_left()[0] + 1.325, 2.35, 0])
+        pr = Rectangle(width=2.65, height=1.5, stroke_width=0, fill_color=GOLD, fill_opacity=0.55).move_to([rep.get_right()[0] - 1.325, 2.35, 0])
+        pl.shift(LEFT * 1.9).set_opacity(0.0)
+        pr.shift(RIGHT * 1.9).set_opacity(0.0)
+        wl = T("time window", 30, TEXT).move_to([3.5, 1.3, 0])
+        self.at("sometimes during")
+        self.play(pl.animate.shift(RIGHT * 1.9).set_opacity(0.55), pr.animate.shift(LEFT * 1.9).set_opacity(0.55), FadeIn(wl), run_time=1.4)
+        self.at("chosen time window")
+        self.play(pl.animate.shift(LEFT * 1.0), pr.animate.shift(RIGHT * 1.0), run_time=1.4)
+        self.at("Calcium signals")
+        x0 = -4.4
+        times = [0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 4.0, 4.2, 4.4, 6.6, 6.8, 7.0, 7.2, 7.4, 7.6]
+        sp = VGroup(*[Line([x0 + t, 0.1, 0], [x0 + t, 1.1, 0]).set_stroke(GREEN, 7) for t in times])
+        axis1 = Line([x0, 0.1, 0], [x0 + 10, 0.1, 0]).set_stroke(GREY, 3)
+        tl = T("spikes", 32, TEXT).move_to([-5.7, 0.9, 0])
+        self.play(FadeOut(VGroup(rep, rl, pl, pr, wl)), Create(axis1), LaggedStart(*[Create(s) for s in sp], lag_ratio=0.05), FadeIn(tl), run_time=1.1)
+
+        def cal(t):
+            f = sum(np.exp(-(t - ti) / 1.3) for ti in times if t >= ti)
+            return np.array([x0 + t, -2.2 + 1.5 * np.tanh(f / 2.0), 0])
+        trace = ParametricFunction(cal, t_range=[0, 10, 0.05], color=GREEN, stroke_width=9)
+        self.at("do not count")
+        axis2 = Line([x0, -2.2, 0], [x0 + 10, -2.2, 0]).set_stroke(GREY, 3)
+        cl = T("calcium", 32, TEXT).move_to([-5.75, -1.3, 0])
+        self.play(FadeIn(axis2), FadeIn(cl), TransformFromCopy(sp, trace), run_time=2.2)
+        cur = Line([x0, -2.4, 0], [x0, 1.3, 0]).set_stroke(TEXT, 3, opacity=0.6)
+        t0 = self.renderer.time
+        cur.add_updater(lambda m: m.move_to([x0 + ((self.renderer.time - t0) * 0.9) % 10.0, -0.55, 0]))
+        self.add(cur)
+        self.at("The result supports")
+        chips = []
+        for nm, ph, x in [("preparation", "preparation", -4.2), ("stimuli", "stimuli", 0.0), ("sampled cells", "cells actually", 4.2)]:
+            c = chip(nm, TEXT, size=34).move_to([x, -3.1, 0])
+            self.at(ph, lead=0.1)
+            self.play(FadeIn(c, shift=UP * 0.3), run_time=0.8)
+            chips.append(c)
+        frame = DashedVMobject(RoundedRectangle(corner_radius=0.3, width=13.4, height=6.8, stroke_color=TEXT, stroke_width=4), num_dashes=80).move_to([0, -0.25, 0])
+        self.at("actually tested")
+        self.play(Create(frame), run_time=1.6)
+        self.finish()
+
+
+class S11Return(SpokenScene):
+    def construct(self):
+        F = DotField(self, cluster_pos())
+        tree = tree_lines()
+        self.add(tree, F.dots, sch())
+        cs = VGroup(*[M(t, 80, BLUE, weight=BOLD).move_to([3.6, y, 0]) for t, y in [("11", 2.4), ("17", 0.4), ("18", -1.6)]])
+        self.play(FadeIn(cs, lag_ratio=0.3), run_time=1.4)
+        self.at("Ask what produced")
+        tags = VGroup(*[chip(f"{t}: its method", TEXT, size=38).move_to([3.6, y, 0]) for t, y in [("11", 2.4), ("17", 0.4), ("18", -1.6)]])
+        self.play(*[ReplacementTransform(c, t) for c, t in zip(cs, tags)], run_time=2.0)
+        self.at("then ask whether")
+        socks = VGroup()
+        for y in CY:
+            for dx in (-0.8, -0.2):
+                socks.add(DashedVMobject(Circle(0.24, stroke_color=TEXT, stroke_width=3), num_dashes=14).move_to([dx - 0.1, y, 0]))
+        self.play(Create(socks), run_time=1.6)
+        self.at("reaches the same")
+        tick = VMobject().set_points_as_corners([[-0.95, CY[0], 0], [-0.82, CY[0] - 0.13, 0], [-0.62, CY[0] + 0.15, 0]]).set_stroke(TEXT, 6)
+        g = Dot([-0.3, CY[0], 0], radius=0.24, color=GREEN)
+        self.play(Create(tick), FadeIn(g, scale=0.4), run_time=1.6)
+        self.at("That turns a cluster")
+        ring = Circle(1.2, stroke_color=BLUE, stroke_width=6).move_to([CX, CY[0], 0])
+        self.play(Create(ring), run_time=1.4)
+        self.play(Indicate(ring, scale_factor=1.1, color=BLUE), run_time=1.4)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "A cluster needs an independent anchor before it earns type."

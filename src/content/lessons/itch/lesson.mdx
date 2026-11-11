@@ -4,8 +4,6 @@ slug: "itch"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 3: Temperature, pain and itch"
 order: 813
-underReview:
-  - "This lesson has not yet had the teaching update the rest of the course received: a step-by-step rewrite with chaptered films. The content here is the earlier, fact-checked version."
 summary: "Itch is a sense of its own: identifiable sensory neurons detect itch-producing stimuli, histamine is only one of several triggers, a peptide relay in the dorsal horn carries the signal on, and the pathway overlaps with pain without being weak pain. This lesson follows the mouse evidence from receptor classes on sensory neurons, through that relay and a partly separate route for touch-evoked itch, to immune molecules that act directly on sensory neurons. You will be able to read a potency comparison between species, say what an ablation or a rescue experiment does and does not show, and design the experiment that would test where spinal GRP comes from."
 hook: "A mouse missing one cluster of Mrgpr genes scratches normally to histamine but much less to chloroquine. Which parts of the itch pathway are shared with pain, and which are not?"
 
@@ -20,10 +18,32 @@ explainer:
   src: "/explainers/itch/explainer.mp4"
   captions: "/explainers/itch/explainer.vtt"
   poster: "/explainers/itch/poster.jpg"
-  title: "Itch Has Its Own Relay, With Limits"
-  durationSec: 151.5
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Which Line Carries the Itch?"
+  durationSec: 200.9
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Deleting a receptor route and ablating its whole neuron population answer different questions."
+    - "MrgprA3-marked neurons receive several itch-producing inputs in the mouse assays shown."
+    - "Restricted rescue shows what those neurons can drive when they alone respond."
+    - "The behavioural assays distinguish scratching from wiping, not a reported sensation."
+    - "Each perturbation supports only the link and assay it tests."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/itch/chapter-2.mp4"
+    captions: "/explainers/itch/chapter-2.vtt"
+    poster: "/explainers/itch/chapter-2-poster.jpg"
+    title: "Order the Relay, Find the Brake"
+    durationSec: 194.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Downstream rescue and bypass experiments can order functions in a mouse spinal relay."
+      - "The supported order is sensory Nppb, NPRA cells, GRP and GRPR."
+      - "Functional order does not prove direct synapses or one source of GRP."
+      - "Removing spinal inhibitory populations can raise scratching without strengthening sensory input."
+      - "Chemical and mechanical scratching can use partly different gates."
 
 scientists:
   - name: "Xinzhong Dong"
@@ -203,32 +223,48 @@ draft: false
 
 import PotencyShiftReader from '../../../components/PotencyShiftReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A mouse that lacks one cluster of Mrgpr genes scratches normally when histamine goes into its skin, but scratches much less when chloroquine does.** If itch were only a histamine response, that result could not exist, and it is hard to square with itch being nothing more than weak pain. The answer the mouse evidence supports is that itch is a sense of its own: identifiable sensory neurons detect itch-producing stimuli, histamine is only one of several triggers, a peptide relay in the spinal cord carries the signal on, and inhibitory interneurons and scratching itself act as brakes. Itch shares some neurons and channels with pain, and it is not simply weak pain. This lesson asks how far that evidence goes, and where it stops.
+The first film separated a receptor route from the sensory population carrying it; now keep those causal verbs separate. **Itch** is the unpleasant sensation associated with a desire to scratch. A **pruriceptor** is a primary sensory neuron that detects itch-producing stimuli. The term is functional: a molecular marker is useful only insofar as an experiment shows what the marked cells do.
 
-## One sensation, two kinds of trigger
+> **Guiding idea.** In the mouse experiments covered here, trigger, recruited sensory population, spinal route and inhibitory state together determine scratching; each perturbation supports only the link it actually tests.
+>
+> *Scope:* this rule interprets the chemical- and mechanical-itch assays in this lesson. It does not make scratching a report of sensation, make any marker itch-only under every manipulation or establish the same cell classes in people.
 
-Itch is an unpleasant sensation associated with a desire to scratch. The definition is the classical one, carried forward in current reviews (LaMotte and colleagues, Nature Reviews Neuroscience, 2014). A pruriceptor is a primary sensory neuron that detects itch-producing stimuli. That is a functional category, and the mouse C-fibre subsets below are its main examples. In people and monkeys, microneurography finds at least two pruriceptive classes: mechanically insensitive C fibres that respond to histamine, and mechanosensitive polymodal afferents that respond to cowhage spicules, a non-histaminergic pruritogen. Psychophysics gives the two a similar itch magnitude and time course, each with weaker pricking or burning (LaMotte and colleagues, Nature Reviews Neuroscience, 2014). [Touch and pain](/lessons/touch-and-pain/) left itch out, and [spinal pain circuits](/lessons/spinal-pain-circuits/) covers the pain gate, so this lesson borrows the dorsal-horn vocabulary and starts from the skin.
+The answer these experiments support is that itch is a sense of its own, not simply weak pain. Identifiable sensory populations detect itch-producing stimuli, histamine is only one trigger, spinal relays carry the signal, and inhibition and scratching itself can brake it. The systems still share neurons and channels with pain.
 
-Two kinds of trigger matter. A chemical pruritogen, such as histamine, chloroquine or a cytokine, acts on receptors or channels at a free nerve ending. A mechanical trigger, such as a light touch, can evoke scratching in dry or inflamed skin. Touch-evoked itch is called alloknesis, and the two triggers turn out to use partly different spinal circuits. Whether they share GRPR neurons depends on the model, as the section on mechanical itch shows.
+## Start at the skin: one sensation, several inputs
 
-Not all chemical itch is histaminergic, and the routes differ. Histamine comes mostly from skin mast cells and acts on histamine receptors; H1 antagonists block most histamine itch in people. Downstream of the receptor, in mouse studies, histamine itch involves PLC-beta-3 and TRPV1 (Imamachi and colleagues, PNAS, 2009), the pathway you know from [G protein signalling](/lessons/gpcrs-and-g-proteins/) and [PLC, IP3 and DAG](/lessons/plc-ip3-dag-pkc/). Chloroquine and BAM8-22 scratching, in contrast, is markedly reduced in Trpa1-deficient mice (Wilson and colleagues, Nature Neuroscience, 2011), and deleting Trpv1 does not remove chloroquine calcium responses in cultured mouse neurons. A neuron that carries TRPV1 need not use it for every stimulus.
+A **chemical pruritogen**, such as histamine, chloroquine or a cytokine, acts on receptors or channels at a free nerve ending. A light mechanical trigger can evoke scratching in dry or inflamed skin; touch-evoked itch is **alloknesis**. Chemical and mechanical itch use partly different spinal circuits, although they are not assigned to mutually exclusive peripheral cell types.
 
-## Labelled lines by ablation and by rescue (2009 to 2013)
+Primates also have more than one pruriceptive class, although that split is not the chemical-versus-mechanical one. Microneurography in people and monkeys finds mechanically insensitive C fibres that respond to histamine and mechanosensitive polymodal afferents that respond to cowhage spicules, a nonhistaminergic pruritogen. Psychophysics gives the two inputs a similar itch magnitude and time course, each with weaker pricking or burning (LaMotte and colleagues, Nature Reviews Neuroscience, 2014). [Touch and pain](/lessons/touch-and-pain/) left itch out, and [spinal pain circuits](/lessons/spinal-pain-circuits/) supplies the dorsal-horn vocabulary used here.
 
-A [labelled line](/lessons/sensory-coding/) is a pathway whose activity means one thing regardless of how it is activated. Itch tests that idea directly. Liu and colleagues (Cell, 2009) first showed in transfected HEK293 cells that chloroquine activates mouse MrgprA3 and human MRGPRX1. They then deleted a cluster of Mrgpr genes in mice. Chloroquine scratching fell and histamine scratching did not.
+Histamine comes mostly from skin mast cells and acts on histamine receptors; H1 antagonists block most histamine itch in people. Not all chemical itch is histaminergic, and the routes differ downstream of the receptor. In mice, histamine itch involves PLC-beta-3 and TRPV1 (Imamachi and colleagues, PNAS, 2009), while chloroquine and BAM8-22 scratching is markedly reduced in Trpa1-deficient mice (Wilson and colleagues, Nature Neuroscience, 2011). That is the signalling introduced in the first film, and it connects to [G protein signalling](/lessons/gpcrs-and-g-proteins/) and [PLC, IP3 and DAG](/lessons/plc-ip3-dag-pkc/). One important refinement is that deleting Trpv1 does not remove chloroquine calcium responses from cultured mouse neurons. Carrying a channel does not mean using it for every input.
 
-Han and colleagues (Nature Neuroscience, February 2013 issue, online 2012) used two tools. The first was removal of MrgprA3-positive neurons after development. This lowered scratching to pruritogens, histamine included, and left the pain assays tested unchanged. That matters for the frame: the split is at the level of the receptor, not the neuron. MrgprA3-positive neurons themselves respond to histamine and are needed for normal histamine scratching, so the cluster deletion spares histamine because histamine acts through its own receptors on those same cells. Their behavioural readout was the cheek assay: a pruritogen injected into the cheek evokes scratching with a hindpaw, while an algogen (a pain-causing substance) evokes wiping with a forelimb. The second tool was a rescue. They put functional TRPV1 back only in MrgprA3 neurons on a Trpv1-null background, and capsaicin, which normally evokes wiping, now evoked itch-related behaviour.
+## How far the labelled-line claim can go
+
+A strict [labelled line](/lessons/sensory-coding/) is a pathway whose activity means one thing regardless of how it is activated. The first film tested that proposal rather than assuming it. Its inferences are bounded: ablation tests necessity in the assays used, while restricted rescue tests what a population can drive under one isolated input. The two kinds of result also split at different levels: deleting the Mrgpr cluster removes one receptor route, whereas ablation removes every input through those neurons, which themselves respond to histamine and are needed for normal histamine scratching.
+
+Those inferences are narrower than “itch-only neuron.” A later mouse study used fast ionotropic stimulation through light-gated channels or P2X3 and predominantly evoked nocifensive, or pain-related defensive, behaviour. Gq-linked stimulation of the same MrgprA3 population evoked itch behaviour (Sharif and colleagues, Neuron, 2020). MrgprA3 and human MRGPRX1 are also different genes; the shared chloroquine response does not establish a human MrgprA3 lineage.
+
+The figures preserve the two experimental readouts. In the rescue, functional TRPV1 existed only in MrgprA3-positive neurons on a Trpv1-null background. In the cheek assay, scratching with a hindpaw and wiping with a forelimb are scored separately.
 
 <LessonFigure src="/figures/itch/trpv1-rescue-in-mrgpra3-neurons.webp" width={1200} height={799} alt="AI-generated illustration: two schematic panels of sensory neurons under a skin line. In the Trpv1-null panel, the neurons do not respond to a capsaicin drop. In the rescue panel only the MrgprA3 neuron carries a TRPV1 channel block; capsaicin reaches both neurons, but only that neuron can respond. The neurons and skin are simplified." caption="In mice on a Trpv1-null background, restoring functional TRPV1 only in MrgprA3-positive neurons made cheek-injected capsaicin evoke itch-related scratching. Capsaicin normally evokes wiping. The rescue shows what these neurons can drive when they alone can respond to capsaicin, not what every stimulus to them must produce. Neurons are drawn schematically." />
 
 <LessonFigure src="/figures/itch/cheek-assay-itch-vs-pain.webp" width={1200} height={802} alt="AI-generated illustration: two side-by-side drawings of a mouse in the cheek assay. In the pruritogen panel the mouse scratches its cheek with a hind paw. In the algogen panel it wipes its cheek with a front paw. A gold droplet-shaped mark on the cheek in both panels marks the site of the intradermal injection, not a topical drop." caption="In the cheek assay, a pruritogen injected into the cheek skin (the gold mark is the injection site) evokes scratching with a hindpaw, while an algogen, a pain-causing substance, evokes wiping with a forelimb." />
 
-Keep the scope. Ablation shows necessity in these assays; the rescue shows what these neurons can drive when they alone respond to capsaicin. A later mouse study reported that fast ionotropic stimulation of MrgprA3 neurons, through light-gated channels or P2X3, predominantly evoked nocifensive (pain-related defensive) behaviour, while Gq-linked stimulation evoked itch behaviour (Sharif and colleagues, Neuron, 2020), so these neurons are not itch-only under every manipulation. And MrgprA3 and MRGPRX1 are different genes: nothing here shows that people carry a MrgprA3 lineage.
+### Worked problem: potency is not identity
 
-### Worked problem: potency across species
+Liu and colleagues measured chloroquine responses in transfected HEK293 calcium assays. The functional EC50 was 27.55 ± 2.03 µM at mouse MrgprA3 and 297.68 ± 2.10 µM at human MRGPRX1 (mean ± SEM).
 
-Liu and colleagues measured chloroquine in transfected HEK293 calcium assays: the functional EC50 was 27.55 ± 2.03 µM at mouse MrgprA3 and 297.68 ± 2.10 µM at human MRGPRX1 (mean ± SEM).
+**Predict.** The human EC50 is 10.8 times the mouse value. At 30 µM, will the simple model below therefore predict exactly 10.8 times less response at the human receptor?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The response is nonlinear and bounded by its maximum, so an EC50 ratio is not a response ratio at every concentration.
+
+</details>
 
 (a) Ratio of central estimates: 297.68 / 27.55 = 10.81. Chloroquine is about eleven times less potent at the human receptor in this assay.
 
@@ -236,69 +272,125 @@ Liu and colleagues measured chloroquine in transfected HEK293 calcium assays: th
 
 > **R(C) = C / (EC50 + C)**
 
-At C = 30 µM, mouse: 30 / (27.55 + 30) = 30 / 57.55 = 0.521. Human receptor: 30 / (297.68 + 30) = 30 / 327.68 = 0.0916.
+At C = 30 µM, mouse: 30 / (27.55 + 30) = 30 / 57.55 = 0.521. Human receptor: 30 / (297.68 + 30) = 30 / 327.68 = 0.0916. The response ratio is about 5.69, not 10.81.
 
-The same concentration gives about half of the maximal response at the mouse receptor and under a tenth at the human one. What this does not show: the assumed slope and matched maxima are ours, not fitted values, and EC50 is functional potency in a transfected cell. It is not binding affinity, neuronal firing, perceived itch, or evidence that mouse and human neurons match.
+The same concentration gives about half of the maximal response at the mouse receptor and under a tenth at the human one. The assumed slope and matched maxima are ours, not fitted values. EC50 here is functional potency in a transfected cell, not binding affinity, neuronal firing, perceived itch or evidence that mouse and human neurons match.
 
 <PotencyShiftReader />
 
-## A peptide relay in the cord, and the argument about where GRP comes from
+The receptor experiments stop at the peripheral neuron. The next question is how the spinal cord orders that input and controls its output.
 
-Sun and Chen (Nature, 2007) reported that Grpr-mutant mice scratched less to pruritogens while responding normally in the pain assays they reported. Sun and colleagues (Science, 2009) then ablated GRPR-expressing spinal neurons, and scratching to the tested pruritogens fell markedly while the measured pain behaviours did not.
+<LessonFilm film={frontmatter.films[0]} />
 
-Mishra and Hoon (Science, 2013) placed another step upstream. Nppb is made by a subset of TRPV1-positive primary sensory neurons, not by dorsal-horn cells, so this step is the afferent's own peptide. Nppb-null mice lost almost all responses to the tested itch agents. Intrathecal Nppb, injected into the fluid around the cord, evoked scratching in wild-type and Nppb-null mice, so the downstream machinery was intact. And GRP still evoked scratching after about 70 percent of the spinal cells expressing the Nppb receptor, NPRA, were removed. The order that fits is afferent Nppb, then NPRA-expressing cells, then GRP and GRPR. This is one route and not the only one: transcriptomic work places Nppb in the Nppb- and Sst-marked afferent class rather than the MrgprA3 class, so MrgprA3 afferents probably reach GRP neurons by another transmitter. The study did not show direct synaptic contacts, a unique source of GRP, or the same circuit in humans.
+## What the ordered relay does not settle
 
-Inhibition matters as much as relay. Ross and colleagues (Neuron, 2010) found that Bhlhb5, a transcription factor expressed transiently in the developing dorsal spinal cord, is needed for a subset of inhibitory interneurons. Mutant mice, tested mainly at four weeks of age, scratched excessively, which the authors linked to loss of those cells. Disinhibition is therefore a mechanism for itch, though the finding is developmental and not an acute manipulation. Later work named the transmitter: these Bhlhb5-dependent inhibitory interneurons are activated by counter-itch stimuli such as pain and menthol and release the kappa-opioid peptide dynorphin onto GRPR-expressing and downstream itch neurons (reviewed by Dong and Dong, Neuron, 2018). That is one reason counter-stimuli quiet itch, and why kappa-opioid agonists reduce itch while mu agonists can provoke it.
+The second film built one functional order — afferent Nppb, then NPRA-expressing spinal cells, then GRP and GRPR (Mishra and Hoon, Science, 2013) — and what it did not show is as important. The later steps have independent support: Grpr-mutant mice scratched less to the pruritogens tested while responding normally in the pain assays reported (Sun and Chen, Nature, 2007), and ablating GRPR-expressing spinal neurons markedly reduced scratching to the tested pruritogens while the measured pain behaviours did not change (Sun and colleagues, Science, 2009). In the Mishra and Hoon model, Nppb is supplied by a subset of TRPV1-positive primary sensory neurons rather than dorsal-horn cells. The experiments did not demonstrate direct synaptic contacts, identify a unique source of GRP or establish the same circuit in humans. Transcriptomic work places Nppb mainly in the Nppb- and Sst-marked afferent class rather than the MrgprA3 class, so MrgprA3 afferents probably reach GRP neurons by another transmitter. This is one route, not the route from every pruriceptor.
 
-The contested step is where the GRP comes from. Solorzano and colleagues (Journal of Neuroscience, 2015) found abundant Grp expression in mouse spinal cord but not in uninjured DRG neurons with their assays, and reported that titration against Grp-null tissue showed a commonly used GRP antiserum to be selective for GRP only at high dilutions. Barry and colleagues (Nature Communications, 2020) deleted Grp in sensory neurons and found reduced nonhistaminergic scratching with histamine scratching spared, yet an intersectional ablation of spinal Grp neurons did not reduce itch in their tests. Albisetti and colleagues (Journal of Neuroscience, 2019) reported the opposite for a spinally restricted ablation of GRP neurons, which reduced itch-related behaviour. Gutierrez-Mecinas and colleagues (Neuroscience, 2023) used null-validated pro-GRP antibody mapping and found the highest co-expression in the axons of NPFF-expressing cells, over 50 percent, with 10 to 20 percent in cells expressing substance P or NKB and under 10 percent in other excitatory classes, which points to NPFF cells as the leading candidate. In slices from 3- to 5-week-old mice, repeated burst firing of spinal GRP neurons progressively excited GRPR neurons (Pagani and colleagues, Neuron, 2019). These results do not settle on one source.
+The inhibitory result also needs its developmental scope. Bhlhb5 is expressed transiently in the developing dorsal spinal cord and is needed for a subset of inhibitory interneurons. Mutant mice, tested mainly at four weeks, scratched excessively, which Ross and colleagues (Neuron, 2010) linked to loss of those cells. Disinhibition can therefore produce itch-related output, but this was not an acute manipulation. Later work found that these interneurons respond to counter-itch stimuli such as pain and menthol and release the kappa-opioid peptide dynorphin; pharmacological evidence places its antipruritic action at GRPR-expressing neurons or farther downstream (reviewed by Dong and Dong, Neuron, 2018). This can help explain why counter-stimuli and kappa-opioid agonists reduce itch, whereas mu agonists can provoke it.
 
-## Mechanical itch is a separate problem
+### The disputed source of GRP
 
-Bourane and colleagues (Science, 2015) used an intersection of NPY::Cre and Lbx1 to ablate or silence interneurons of the dorsal spinal cord and medulla. Mechanical itch rose, without a matching rise in tested chemical itch or pain sensitivity, and it persisted after GRPR-cell ablation, so in this paradigm it did not depend on that relay. The lineage is not the same as adult NPY expression, because many reporter-positive cells no longer express NPY at later ages. Later work looked at the cells downstream of the gate. Ablating or silencing Y1-receptor-marked spinal excitatory neurons reduced mechanical itch (Acton and colleagues, Cell Reports, 2019), and Calcrl and Lbx1 spinoparabrachial neurons, which project to the parabrachial nucleus, were required for normal mechanical-itch scratching (Ren and colleagues, Neuron, 2023). The GRPR relay's role is disputed: Chen and colleagues (Nature Communications, 2020) found that Tac2-Cre interneurons receive A-beta input and contact GRPR neurons, and that ablating GRPR neurons abolished mechanical itch.
+The proposed position of GRP does not reveal where it originates. Solorzano and colleagues (Journal of Neuroscience, 2015) found abundant Grp expression in mouse spinal cord but not uninjured DRG neurons with their assays. Titration against Grp-null tissue also showed that a commonly used GRP antiserum was selective for GRP only at high dilutions.
 
-Peripherally, in these experiments Merkel cells did not generate touch-evoked itch; they restrained it. A later study found that in chronic dry skin, Merkel-cell Piezo2 signalling can instead promote spontaneous itch (Feng and colleagues, Science Translational Medicine, 2022), so the restraint is specific to the touch-evoked endpoint. In mice with Piezo2 deleted in skin epithelium (a K14-Cre line, not specific to Merkel cells), and in a smaller group with a tamoxifen-inducible Merkel-cell line (Atoh1-CreERT), touch-evoked scratching increased, and chemogenetic activation of Merkel cells reduced alloknesis in the dry-skin model (Feng and colleagues, Science, 2018). Aged mice scratched to light von Frey forces that did not evoke scratching in young mice. See [Merkel cells](/lessons/merkel-cells/) for the cell itself. The study did not show a direct Merkel-to-NPY synapse.
+Barry and colleagues (Nature Communications, 2020) deleted Grp in sensory neurons and found reduced nonhistaminergic scratching with histamine scratching spared. In the same study, intersectional ablation of spinal Grp neurons did not reduce itch in the tests used. Albisetti and colleagues (Journal of Neuroscience, 2019) reported the opposite after a spinally restricted ablation of GRP neurons: itch-related behaviour fell.
 
-A pruriceptor can also transduce touch. Deleting Piezo1 in peripheral neurons reduced mechanically evoked scratching, Piezo1 transcript appeared in most Nppb-positive DRG neurons, and after combined Piezo1 and Piezo2 knockdown nearly all cultured SST-marked neurons lacked mechanically activated responses (Hill and colleagues, Nature, 2022). This blurs a strict split of chemical pruriceptors from touch afferents. The channels are covered in [mechanotransduction channels](/lessons/mechanotransduction-channels/) and the cell classes in the [sensory neuron atlas](/lessons/sensory-neuron-atlas/).
+Other approaches add candidates rather than settle the source. Null-validated pro-GRP antibody mapping found the highest co-expression in axons of NPFF-expressing cells, over 50 percent; 10 to 20 percent appeared in cells expressing substance P or NKB, and under 10 percent in other excitatory classes (Gutierrez-Mecinas and colleagues, Neuroscience, 2023). In slices from 3- to 5-week-old mice, repeated burst firing of spinal GRP neurons progressively excited GRPR neurons (Pagani and colleagues, Neuron, 2019).
+
+**Predict.** Suppose sensory and spinal sources both release GRP and partly compensate for one another. Which comparison is most likely to expose that redundancy?
+
+<details>
+<summary>Check your prediction</summary>
+
+Compare each source-specific deletion with the combined deletion, then add source-specific rescues. Either single deletion could have a modest effect even when both sources contribute.
+
+</details>
+
+## Mechanical itch: a partly separate route
+
+**Reminder:** scratching depends on the route and its gate, not on a marker alone.
+
+Bourane and colleagues (Science, 2015) used an intersection of NPY::Cre and Lbx1 to target interneurons in dorsal spinal cord and medulla. Ablating or silencing those cells raised mechanical itch without a matching rise in the tested chemical itch or pain sensitivity, and the raised scratching persisted after GRPR-cell ablation, so in that paradigm it did not depend on the chemical relay. The second film placed this population at a mechanical gate; the first extension is that the label records lineage, not necessarily adult expression.
+
+**Predict.** At postnatal day 30, only 35 percent of reporter-positive cells still expressed NPY. Does an NPY::Cre reporter identify current NPY expression or developmental history?
+
+<details>
+<summary>Check your prediction</summary>
+
+Developmental history. Cre permanently marks cells that passed through the expression state, including cells no longer expressing NPY at the time of testing.
+
+</details>
+
+Later work looked downstream of this gate. Ablating or silencing Y1-receptor-marked spinal excitatory neurons reduced mechanical itch (Acton and colleagues, Cell Reports, 2019). Calcrl- and Lbx1-marked spinoparabrachial neurons, which project to the parabrachial nucleus, were required for normal mechanical-itch scratching (Ren and colleagues, Neuron, 2023). The role of GRPR remains model-dependent: Chen and colleagues (Nature Communications, 2020) found that Tac2-Cre interneurons receive A-beta input and contact GRPR neurons, and that GRPR-neuron ablation abolished mechanical itch.
+
+The peripheral brake is also state-dependent. In mice with Piezo2 deleted across skin epithelium by K14-Cre, and in a smaller group using tamoxifen-inducible Atoh1-CreERT to target Merkel cells, touch-evoked scratching increased. Chemogenetic activation of Merkel cells reduced alloknesis in a dry-skin model (Feng and colleagues, Science, 2018).
+
+**Predict.** Do those two directions of effect make Merkel-cell Piezo2 signalling a generator or a brake for touch-evoked scratching in these experiments?
+
+<details>
+<summary>Check your prediction</summary>
+
+A brake: loss raised touch-evoked scratching, whereas activation lowered alloknesis. The experiments did not show a direct Merkel-to-NPY synapse.
+
+</details>
+
+Keep the endpoint narrow. A later study found that Merkel-cell Piezo2 signalling can promote spontaneous itch in chronic dry skin (Feng and colleagues, Science Translational Medicine, 2022). The earlier restraint applies to touch-evoked scratching, not every itch behaviour. Aged mice also scratched to light von Frey forces that did not evoke scratching in young mice. See [Merkel cells](/lessons/merkel-cells/) for the cell itself.
+
+Nor is the peripheral split absolute. Deleting Piezo1 in peripheral neurons reduced mechanically evoked scratching. Piezo1 transcript appeared in most Nppb-positive DRG neurons, and after combined Piezo1 and Piezo2 knockdown nearly all cultured SST-marked neurons lacked mechanically activated responses (Hill and colleagues, Nature, 2022). A pruriceptor can therefore transduce touch. See [mechanotransduction channels](/lessons/mechanotransduction-channels/) and the [sensory neuron atlas](/lessons/sensory-neuron-atlas/) for the channels and cell classes.
 
 Scratching itself is part of the circuit. In extracellular recordings from lumbar spinothalamic neurons of a primate in vivo, scratching suppressed histamine-evoked activity but not baseline or capsaicin-evoked activity (Davidson and colleagues, Nature Neuroscience, 2009). That is a firing measurement, not a reported sensation.
 
-## Immune molecules talking to neurons
+## Immune molecules can trigger or change gain
 
-In mouse DRG cultures, epithelial TSLP acted directly on TRPA1-positive sensory neurons, which responded with calcium (Wilson and colleagues, Cell, 2013). IL-31RA sits largely in TRPV1-positive neurons in human donor and mouse DRG sections, and IL-31-evoked scratching was reduced in both Trpv1-deficient and Trpa1-deficient mice (Cevikbas and colleagues, 2014).
+Epithelial TSLP acted directly on TRPA1-positive sensory neurons in mouse DRG cultures, where the neurons responded with calcium (Wilson and colleagues, Cell, 2013). IL-31RA lies largely in TRPV1-positive neurons in human donor and mouse DRG sections. IL-31-evoked scratching was reduced in both Trpv1-deficient and Trpa1-deficient mice (Cevikbas and colleagues, 2014).
 
-IL-4 evoked calcium responses in cultured DRG neurons from mice and from a human donor, and IL-13 did so in mouse neurons (Oetjen and colleagues, Cell, 2017). Yet high-dose IL-4 or IL-13 alone did not evoke acute scratching under the tested conditions. IL-4 sensitized cultured neurons to pruritogens that were subthreshold alone, and deleting Il4ra or Jak1 (see [JAK-STAT](/lessons/jak-stat/)) in sensory neurons reduced scratching in mouse chronic-itch models. A cytokine that activates an itch neuron therefore need not cause acute itch; it can sensitize.
+IL-4 evoked calcium responses in cultured DRG neurons from mice and from a human donor; IL-13 did so in mouse neurons (Oetjen and colleagues, Cell, 2017).
 
-Two antibody drugs act on these routes: nemolizumab blocks IL-31 receptor alpha, and dupilumab blocks IL-4R-alpha, the subunit shared by IL-4 and IL-13 signalling. Clinical chronic itch is defined as itch lasting longer than six weeks, and these studies do not partition a drug's effects between neurons and immune cells. For pain that persists, see [chronic pain](/lessons/chronic-pain/).
+**Predict.** Does a calcium response in culture require either cytokine to produce acute scratching after skin injection?
 
-### Design problem
+<details>
+<summary>Check your prediction</summary>
 
-Design the experiment that decides where the spinal GRP acting on GRPR comes from, given the disagreements above.
+No. Cellular responsiveness, acute behavioural output and sensitization are different claims.
+
+</details>
+
+High-dose IL-4 or IL-13 alone did not evoke acute scratching under the tested conditions. IL-4 instead sensitized cultured neurons to pruritogens that were subthreshold alone. Deleting Il4ra or Jak1 in sensory neurons reduced scratching in mouse chronic-itch models; see [JAK-STAT](/lessons/jak-stat/). A cytokine can therefore change gain without acting as an acute trigger.
+
+Two antibody drugs act on these routes: nemolizumab blocks IL-31 receptor alpha, and dupilumab blocks IL-4R-alpha, the subunit shared by IL-4 and IL-13 signalling. Clinical chronic itch means itch lasting longer than six weeks. These studies do not partition a drug's effects between neurons and immune cells. For persistent pain, see [chronic pain](/lessons/chronic-pain/).
+
+### Design problem: where does spinal GRP come from?
+
+Design an experiment that decides which source supplies the GRP acting on GRPR, given the disagreements above.
 
 <details>
 <summary>One way to do it</summary>
 
-Start by listing, for each published result, the targeting strategy and the reporter coverage behind it: which Cre line, which intersection, what fraction of GRP-expressing cells it reaches, and the age tested. Then run the comparisons in one laboratory, one mouse background and one age. Delete Grp in sensory neurons in one group and in spinal neurons in another, and score the same itch assays, including histamine and nonhistaminergic pruritogens.
+First list the targeting strategy, reporter coverage and age behind every published result: the Cre line, any intersection and the fraction of GRP-expressing cells reached. Then compare sensory-neuron and spinal-neuron Grp deletions in one laboratory, one mouse background and one age. Score the same assays, including histamine and nonhistaminergic pruritogens.
 
-Do not infer release from transcript. In each group measure Grp transcript, GRP peptide, and release, and test every antibody in Grp-null tissue so that specificity is known. Finally, record from GRPR neurons in spinal slices while stimulating each candidate source, sensory afferents or spinal GRP neurons, to see which one excites them. If both sources contribute, either single deletion may reduce itch, but redundancy can hide a real contribution, so test the combined deletion and source-specific rescue as well. Behavioural effect sizes may not track each source's peptide contribution, so the release and slice measurements weigh most heavily.
+Do not infer release from transcript. In each group measure Grp transcript, GRP peptide and release, and validate every antibody in Grp-null tissue. Record from GRPR neurons in spinal slices while stimulating each candidate source, sensory afferents or spinal GRP neurons. Block GRPR as a control for the recorded response.
+
+If both sources contribute, redundancy can hide either one. Add the combined deletion and source-specific rescues. Behavioural effect sizes need not track each source's peptide contribution, so weigh release and slice measurements most heavily.
 
 </details>
 
 ## Going deeper
 
-### Ages and treatment schedules in the labelled-line experiments
+### Ages, treatment schedules and rescue scope
 
-Liu and colleagues deleted the Mrgpr cluster in male mice aged 2 to 3 months. Han and colleagues used male mice of the same age range. In their ablation, toxin treatment began at five weeks of age, and behaviour was tested three weeks later.
+Liu and colleagues (Cell, 2009) deleted the Mrgpr cluster in male mice aged 2 to 3 months. Han and colleagues (Nature Neuroscience, February 2013 issue, online 2012) used male mice of the same age range. In their ablation, toxin treatment began at five weeks, and behaviour was tested three weeks later.
+
+Liu and colleagues first showed in transfected HEK293 cells that chloroquine activates mouse MrgprA3 and human MRGPRX1. Han and colleagues removed MrgprA3-positive neurons after development; scratching to several pruritogens, including histamine, fell while the pain assays tested were unchanged. Their restricted TRPV1 rescue then made cheek-injected capsaicin evoke itch-related behaviour. These dates and schedules matter because ablation and rescue support conclusions only for the driver, age and assays used.
+
+In the spinal-rescue experiment, intrathecal Nppb, injected into the fluid around the cord, evoked scratching in both wild-type and Nppb-null mice. The result shows that the downstream machinery in the null animals could still respond; it does not by itself show direct synapses. GRP also still evoked scratching after about 70 percent of the spinal cells expressing NPRA, the Nppb receptor, were removed, which is what places GRP and GRPR after those cells.
 
 ### Mechanical itch: ages, forces and counts
 
-A caveat on the Bourane and colleagues NPY::Cre and Lbx1 lineage: at postnatal day 30 only 35% of reporter-positive cells still expressed NPY, so the lineage is not the same as adult NPY expression.
+In the Merkel-cell work of Feng and colleagues (Science, 2018), mice older than 24 months scratched to von Frey forces of 0.02 to 0.16 gram-force that did not evoke scratching in 2-month-old mice.
 
-In the Merkel-cell work of Feng and colleagues (Science, 2018), aged mice over 24 months scratched to von Frey forces of 0.02 to 0.16 gram-force that did not evoke scratching in 2-month-old mice.
+Deleting Piezo1 in peripheral neurons of 2- to 6-month-old mice reduced mechanically evoked scratching. Piezo1 transcript appeared in 92 percent of Nppb-positive DRG neurons. After combined Piezo1 and Piezo2 knockdown, 32 of 33 cultured SST-marked neurons lacked mechanically activated responses (Hill and colleagues, Nature, 2022).
 
-Deleting Piezo1 in peripheral neurons (2- to 6-month-old mice) reduced mechanically evoked scratching. Piezo1 transcript appeared in 92% of Nppb-positive DRG neurons, and after combined Piezo1 and Piezo2 knockdown 32 of 33 cultured SST-marked neurons lacked mechanically activated responses (Hill and colleagues, Nature, 2022).
-
-Davidson and colleagues recorded extracellularly from lumbar spinothalamic neurons of a primate in vivo (the species is not specified here). For eight histamine-responsive cells, firing in the first 10 seconds after scratching was 62 ± 8% of the pre-scratch level (mean ± SEM).
+Davidson and colleagues recorded extracellularly from lumbar spinothalamic neurons of a primate in vivo; the species is not specified here. For eight histamine-responsive cells, firing during the first 10 seconds after scratching was 62 ± 8 percent of the pre-scratch level (mean ± SEM).
 
 ### Culture and animal details in the immune experiments
 
-Wilson and colleagues (Cell, 2013) used mouse DRG cultures from P18 to P30 animals, and 4.1 ± 0.6% of cultured neurons responded to TSLP with calcium. Oetjen and colleagues (Cell, 2017) used cultured DRG neurons from 8- to 12-week-old mice.
+Wilson and colleagues (Cell, 2013) used mouse DRG cultures from P18 to P30 animals; 4.1 ± 0.6 percent of cultured neurons responded to TSLP with calcium. Oetjen and colleagues (Cell, 2017) used cultured DRG neurons from 8- to 12-week-old mice.

@@ -12,7 +12,7 @@ estMinutes: 22
 objectives:
   - "Interpret the tumor-transplant experiment: what it shows about a diffusible, target-derived factor and about competition among neurons for a limited supply, which decides how many survive."
   - "Explain why 'growth factor' is a misleading name for NGF, which keeps neurons alive without making them divide."
-  - "Lay out the classic route by which NGF was discovered: a phenotype, a bioassay, a rich source, purification, then the receptor."
+  - "Lay out the classic route by which NGF was discovered: a phenotype, a bioassay, a rich source, purification, then the receptor, and follow a factor through purification with units, specific activity and yield."
   - "Explain why the receptor question came next and what the first answer revealed: the EGF receptor is itself a tyrosine kinase."
 
 explainer:
@@ -88,8 +88,9 @@ techniques:
   - name: "Fractionation tracked by specific activity"
     blurb: >-
       A crude extract is split into fractions, and each is tested in the bioassay. Dividing activity by
-      the protein in the fraction gives specific activity, which should rise at every step if the
-      factor is being purified.
+      the protein in the fraction gives specific activity. If assay conditions and activity per factor
+      molecule stay constant, specific activity should rise as contaminants are removed. Total units,
+      compared with the units you started with (the yield), show how much of the activity each step kept.
   - name: "Antiserum neutralization"
     blurb: >-
       Antibodies raised against the purified factor are used to remove it. If a response vanishes
@@ -137,19 +138,21 @@ practiceQuestions:
       saying the membrane blocks every substance contradicts the result, because the ganglia
       responded.
 
-  - stem: "Which observation from the graft experiments bears on the inference that an embryo makes more neurons than it normally keeps?"
+  - stem: "In a purification table, the crude extract holds 333 halo units in 1,003 mg of protein. After the first step the fraction holds 900 halo units in 302 mg. What is the best reading of a yield above 100%?"
     choices:
-      - "Ganglia grew several times larger than control ganglia once extra signal reached them."
-      - "Nerve fibers entered the tumor fragment that had been placed inside the embryo's body wall."
-      - "Ganglia swelled even when the tumor was kept apart from all of the embryo's own tissues."
-      - "Nerve fibers grew toward a tumor fragment placed beside a ganglion in a culture dish."
+      - "The step removed something that hid part of the factor's activity in the crude extract, so the fold purification overstates how much the factor was enriched."
+      - "The step made new factor, so the fraction is purer than its specific activity suggests."
+      - "The step lost none of the factor, so the fold purification equals the enrichment of the factor."
+      - "The assay must have failed, because no real step can raise the total units in a sample."
     answer: 0
     rationale: >-
-      The key is the only graft observation that bears on neuron number, but it is weak evidence on its own, because a ganglion can also grow through more cell division or bigger cells. The direct evidence for overproduction came from counts of dying neurons in normal embryos. Fibers entering the tumor show
-      that the tumor receives fibers, but say nothing about how many neurons exist. Swelling without
-      contact shows the signal is diffusible, which is a different inference. Fibers growing toward
-      the tumor in a dish show that the tumor releases a diffusible influence on fiber growth, but again not that there were extra cells to
-      save.
+      The key is right because units measure activity, not molecules. If the crude extract held an
+      inhibitor, part of the factor was invisible at the start, and removing the inhibitor revealed it.
+      Specific activity then rises faster than the factor is really enriched. The choice saying the step
+      made new factor fails because fractionation separates molecules and does not synthesize them. The
+      choice saying nothing was lost confuses a yield above 100% with perfect recovery, and the hidden
+      activity means fold purification no longer equals enrichment. The choice blaming the assay throws
+      away a real and common result: removing an inhibitor can raise total units.
 
   - stem: "Cell membranes that carry many EGF receptors are treated with EGF in a cell-free preparation, and phosphate moves onto protein much faster. The receptor is then purified from these membranes. One major protein comes out that both binds EGF and carries the kinase activity. What does this show about the receptor?"
     choices:
@@ -351,61 +354,144 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In the early 1950s, a scrap of mouse tumor sat near, but not touching, a chick nerve ganglion in a dish, and within a day the ganglion had thrown out a dense halo of fibers. The tumor was releasing something. How do you find a molecule you cannot see, and how do you know when you have caught it?**
 
-The tumor was releasing a diffusible factor, and the first result of this lesson is what that factor does: sympathetic neurons depend on a supply of it from their targets, and how many survive depends on how much is supplied. That factor is nerve growth factor (NGF). This lesson follows three scientists and one method. The method is the bioassay: a test on living tissue that tells you how much of an unknown substance a sample holds. It found NGF and then epidermal growth factor (EGF), and it set the classic route by which the first growth factors were found: a puzzling effect in an animal, a test that reproduces it in a dish, a rich source of material, purification, and last, the receptor. The receptor for EGF proved to be an enzyme, which is why this lesson belongs in a signaling course.
+This lesson follows three scientists and one method. The method is the **bioassay**: a test on living tissue that tells you how much of an unknown substance a sample holds. It found nerve growth factor (NGF) and then epidermal growth factor (EGF). It also set the classic route by which the first growth factors were found: a puzzling effect in an animal, a test that reproduces it in a dish, a rich source of material, purification, and last, the receptor. The receptor for EGF proved to be an enzyme, which is why this lesson belongs in a signaling course.
 
 <LessonFigure src="/figures/finding-a-signal/path-to-a-molecule.webp" width={1200} height={407} alt="AI-generated illustration: a left-to-right strip of five steps: a chick embryo with a tumor graft and a swollen ganglion, a culture dish with a halo of fibers, a mouse salivary gland as the rich source, three tubes showing purification, and a gold molecule docked on a receptor in a membrane." caption="The classic route illustrated by NGF: an effect in a chick embryo, a ganglion bioassay, a rich source in mouse salivary gland, purification, and last the receptor. EGF did not follow every step shown." />
 
-## What does this tell us? A tumor that reaches nerves without touching them
+> **The one idea to carry through this lesson. Follow the activity before the molecule.** A signal is first defined by the assay that detects it. Turn the response into units (by diluting until it disappears), divide by protein to get specific activity (units per milligram), and, while assay conditions and activity per factor molecule stay comparable, keep the fractions that make specific activity rise. When further separations remove protein but the specific activity reproducibly no longer rises, the preparation may be near purity, or contaminants may still co-purify with the factor. Look for the activity to track with one protein band, then test its identity with a specific antiserum and a nonimmune-serum control. And it is only the factor *that assay can see*.
+
+## A tumor that reaches nerves without touching them
 
 The story starts with Viktor Hamburger, an embryologist who spent most of his career at Washington University in St. Louis. In 1934 he showed that if you cut the limb bud off a chick embryo, far fewer of the nerve cells that would have supplied that limb are left. He first read this as a failure of nerve cells to multiply and mature; later work, including his own with Levi-Montalcini in 1949, showed that they die. Something in the tissue at the far end of a nerve fiber was deciding whether the nerve cell lived. Nobody knew what.
 
 In 1947 Hamburger invited Rita Levi-Montalcini to join him. Waiting for her was an observation by his former student Elmer Bueker. A fragment of a mouse tumor called Sarcoma 180, grafted into a three-day-old chick embryo, was invaded by the embryo's own nerve fibers. Levi-Montalcini and Hamburger repeated it and pushed it further. The ganglia that served the graft swelled. The sympathetic ganglia (clusters of nerve cells outside the brain and spinal cord that control glands, blood vessels and internal organs) grew to about six times the size of the same ganglia in control embryos, and organs were crowded with extra fibers, a condition called hyperinnervation.
 
-What does this tell us? First rule out the simplest explanation, contact. The tumor sat inside the embryo, pressed against its tissues, and Bueker had read his own result as the tumor offering a favorable field for fibers to grow into. So they moved the tumor out. The chorioallantoic membrane is a thin, blood-vessel-rich sheet that lines the inside of the eggshell. It is plumbed into the embryo's circulation and touches none of its internal tissue. They grafted the tumor there. The ganglia deep inside the embryo swelled just as before. Only blood connected the two tissues, so the tumor had to be putting something soluble into it.
+What does this tell us? First rule out the simplest explanation, contact. The tumor sat inside the embryo, pressed against its tissues, and Bueker had read his own result as the tumor offering a favorable field for fibers to grow into. So they moved the tumor out. The chorioallantoic membrane is a thin, blood-vessel-rich sheet that lines the inside of the eggshell. It is plumbed into the embryo's circulation and touches none of its internal tissue. They grafted the tumor there.
 
-Three inferences follow:
+**Predict.** The tumor now sits on the membrane, connected to the embryo only by blood. If the tumor acts by contact, what should the ganglia deep inside the embryo do? What if it releases something soluble?
 
-1. **Neurons may be overproduced.** A ganglion can grow because more neurons survive, because more are made, or because each cell and its fibers get bigger, so the swelling alone cannot prove a reserve of neurons. The direct evidence came from a 1949 study in which Hamburger and Levi-Montalcini counted dying neurons in the ganglia of normal chick embryos. Many nerve cells die as a normal part of development, so an extra supply of factor could rescue some of them.
-2. **A target-derived factor exists.** The tumor releases a diffusible substance that acts on these neurons, and this suggests that normal targets such as Hamburger's limb bud do the same. On that view the tumor is simply a very generous target. Showing that normal targets really supply the factor took later work.
-3. **Competition is implied.** If a target's supply is limited, neurons must compete for it. Picture musical chairs, with the supply of factor as the chairs. A neuron that gets no chair dies, and the tumor added chairs.
+<details>
+<summary>Check your prediction</summary>
+
+By contact, the deep ganglia should stay normal, because nothing touches them. If something soluble acts, they should swell anyway. They swelled just as before. Only blood connected the two tissues, so the tumor had to be putting something soluble into it.
+
+</details>
+
+Two inferences follow.
+
+1. **A target-derived factor exists.** The tumor releases a diffusible substance that acts on these neurons, and this suggests that normal targets such as Hamburger's limb bud do the same. On that view the tumor is simply a very generous target. Showing that normal targets really supply the factor took later work.
+2. **Competition is implied.** If a target's supply is limited, neurons must compete for it. Picture musical chairs, with the supply of factor as the chairs. A neuron that gets no chair dies, and the tumor added chairs.
+
+One question the graft cannot answer: are there spare neurons to rescue? That answer came from counting dying cells, not from the graft (see Going deeper and [naturally occurring cell death](/lessons/naturally-occurring-death/)).
 
 The graft showed that a molecule must exist. It could not say what the molecule was.
 
-## How would you go about identifying the factor?
+## Turning a halo into a number
 
 <LessonFilm film={frontmatter.films[1]} />
 
-You cannot purify what you cannot detect, and a tumor in an embryo is a slow, messy detector. In the early 1950s Levi-Montalcini took the problem to the tissue-culture laboratory of Hertha Meyer in Rio de Janeiro. There she grew chick ganglia in a hanging-drop culture, with the ganglion in a clot of blood plasma, and a tumor fragment placed near them but not touching. Within 24 hours each ganglion had put out a dense halo of fibers, thickest toward the tumor. The whole experiment now fit in a dish, with no embryo.
+You cannot purify what you cannot detect, and a tumor in an embryo is a slow, messy detector. Hamburger's department had no tissue-culture facility, so in the early 1950s Levi-Montalcini took the problem to the laboratory of Hertha Meyer in Rio de Janeiro, carrying two tumor-bearing mice in her handbag. There she grew chick ganglia in a hanging-drop culture, with the ganglion in a clot of blood plasma, and a tumor fragment placed near them but not touching. Within 24 hours each ganglion had put out a dense halo of fibers, thickest toward the tumor. The whole experiment now fit in a dish, with no embryo.
 
-That halo is a bioassay. It uses a living response as the measuring device, which means it works before you know what the molecule is. It can also be made quantitative. Dilute a sample step by step, and the highest dilution that still gives a halo tells you how much factor the sample holds. Divide by the milligrams of protein in the sample and you have the specific activity, the activity per milligram of protein. Every purification step is then judged by one question: did the activity per milligram go up?
+That halo is the bioassay. Its virtue is that it works before you know what the molecule is. To purify with it you need a number, and the number comes from dilution.
 
-The assay needed a biochemist. Hamburger and Levi-Montalcini went around the university looking for one willing to take on the problem, and in 1953 Stanley Cohen joined the department. When Cohen described his results at the journal club run by Arthur Kornberg, Kornberg suggested that a virus might be responsible. Some tumors are caused by viruses, and one riding in the extract could be causing the growth. Kornberg also suggested a control: treat the extract with an enzyme that destroys nucleic acid, and if fibers still sprout, exposed nucleic acid is probably not needed. Snake venom is a source of such an enzyme.
+Dilute a sample in twofold steps, 1:250, 1:500, 1:1,000, 1:2,000 and so on. Put a drop of each dilution beside its own ganglion, and find the most dilute drop that still gives a halo; that dilution is the **titer**. (The film calls it the highest dilution.) Define one **unit** of activity as the amount that just gives a halo in one milliliter. A sample that still gives a halo at 1:2,000, but not beyond, holds 2,000 units per mL: each milliliter could be spread through 2,000 mL and still just work. Nobody knows yet what a unit is made of, but every sample is now measured in the same currency.
 
-The control refused to behave. The treated extract still worked, and venom by itself, with no tumor in the dish, worked far better than the tumor ever had. Venom is a modified salivary secretion, which led Cohen to test the salivary gland of a male mouse. It was just as potent. The mouse submaxillary gland became the main source of NGF. A control can turn out to be the richest source you have, so look at what each control does, beyond whether it passed.
+Units per milliliter are not enough, because a sample can look strong just by being concentrated. So divide by protein. **Specific activity** is units per milligram of protein: how much of the active thing there is in each milligram of everything. If assay conditions and activity per factor molecule stay constant, removing proteins that are not the factor makes the specific activity rise.
 
-## Next experiment: a crude extract with two factors in it
+**Predict.** You start with 50 mL of crude extract at 1,000 units/mL and 20 mg protein/mL. After one step you have 5 mL of a fraction at 4,000 units/mL and 0.8 mg/mL. By how much did the step purify the factor, and how much of the factor did you keep?
 
-<LessonFilm film={frontmatter.films[0]} />
+<details>
+<summary>Check your prediction</summary>
 
-If NGF controls sympathetic neurons, removing it should remove them. Cohen raised an antiserum against purified NGF, and Levi-Montalcini showed in 1960 that injecting it into newborn animals destroyed most of their sympathetic ganglia. Put the two results side by side. Add extra target-derived factor and ganglia swell. Take the factor away and ganglia are lost. In short, targets help decide, through how much factor they supply, how many sympathetic neurons survive. Other peripheral neurons depend on related factors. Adding the factor shows it is enough to expand a ganglion. Removing it shows it is needed.
+Specific activity went from 1,000 ÷ 20 = 50 units/mg to 4,000 ÷ 0.8 = 5,000 units/mg, a 100-fold purification. Total units went from 1,000 × 50 = 50,000 to 4,000 × 5 = 20,000, so you kept 40%. That fraction is the **yield**. It is a good step: each milligram is 100 times richer, and you kept enough to go on.
+
+</details>
+
+So every step is judged by three signs.
+
+1. **Did the activity per milligram go up?** This is the question in the film.
+2. **How many of the units did you keep?** A step that raises specific activity tenfold but keeps 2% of the units often leaves too little to carry forward.
+3. **Has the rise stopped?** If activity per factor molecule stays constant, a reproducible plateau means your current separation methods no longer resolve contaminants from the factor. That is consistent with purity, not proof of it.
+
+Two limits travel with the method. A titer read from twofold dilutions cannot reliably tell a 1.5-fold rise from none, so trust steps that change specific activity many-fold. And units count only what the halo sees. A second protein that is active in another assay but does not affect the halo earns no halo units, so the fractions that hold it can look worthless and be discarded while the specific activity climbs. Keep that in mind; it is why the next discovery came from an animal and not from the dish.
+
+## A control that became the source
+
+The assay needed a biochemist. Hamburger and Levi-Montalcini went around the university looking for one willing to take on the problem, and in 1953 Stanley Cohen joined the department. When Cohen described his results at the journal club run by Arthur Kornberg, Kornberg suggested that a virus might be responsible. Some tumors are caused by viruses, and one riding in the extract could be causing the growth.
+
+Kornberg proposed a test: treat the extract with an enzyme that destroys nucleic acid. If fibers still sprout, exposed nucleic acid is probably not needed. Snake venom is a source of such an enzyme. The test needed a control, venom alone with no tumor extract, to show that venom did nothing by itself.
+
+It did not do nothing. The treated extract still worked, and venom by itself, with no tumor in the dish, worked far better than the tumor ever had. Venom is a modified salivary secretion, which led Cohen to test the salivary gland of a male mouse. It was just as potent. The mouse submaxillary gland became the main source of NGF. A control can turn out to be the richest source you have, so look at what each control does, beyond whether it passed.
+
+## Take the factor away
+
+If NGF controls sympathetic neurons, removing it should remove them. Cohen raised an antiserum against purified NGF, and Levi-Montalcini tested it in newborn animals in 1960.
+
+**Predict.** The antiserum binds NGF and neutralizes it. Injected into newborn animals, what should it do to their sympathetic ganglia?
+
+<details>
+<summary>Check your prediction</summary>
+
+It destroyed most of their sympathetic ganglia: the neurons that depended on the factor were lost.
+
+</details>
+
+Put the two results side by side. Adding target-derived factor swells ganglia, so it is enough to expand one; taking it away loses them, so it is needed. In short, targets help decide, through how much factor they supply, how many sympathetic neurons survive. Other peripheral neurons depend on related factors. Note what carried this conclusion. The halo measured outgrowth; survival dependence came from removing the factor in animals and, later, from counting dissociated neurons with and without NGF.
 
 <LessonFigure src="/figures/finding-a-signal/targets-decide-survival.webp" width={1200} height={800} alt="AI-generated illustration: three panels of the same four neurons reaching toward a target that releases a gold factor. With a normal target only some neurons are supplied and the others fade; with a larger tumor target more are supplied; with antiserum holding the factor most neurons fade. Neuron numbers are schematic." caption="Targets help decide how many sympathetic neurons survive, like musical chairs. Tumor-derived activity swelled chick ganglia; anti-NGF antiserum destroyed most sympathetic ganglia in newborn animals. Neuron numbers and survival fractions here are schematic, and swelling alone does not show how many neurons were rescued." />
 
-Then came a stranger result. Cohen injected newborn mice daily with crude male mouse salivary gland extract. As expected, their sympathetic ganglia were enlarged. But the mice also opened their eyelids about 7 days after birth instead of 12 to 14, and their teeth came through early. Purified NGF given alone did neither of these things. The crude extract must have carried a second protein with its own activity. It acts on skin, so it was named epidermal growth factor.
+That makes "growth factor" a misleading name. The mature neurons NGF acts on have stopped dividing, and NGF does not restart them. It keeps them alive and drives their fibers to grow. A better definition of a growth factor is a secreted protein that tells a target cell to grow, divide, stay alive, or mature into a specialized cell. Whether NGF is the limiting factor in a normal animal is tested in [the neurotrophic hypothesis](/lessons/neurotrophic-hypothesis/).
 
-The lesson sits in the method. The halo assay counted nerve fibers and was blind to EGF. A whole newborn mouse can respond to things the dish cannot see. When you start from a mixture, the assay you choose decides which molecule you find.
+## Two factors in one extract
 
-## What a growth factor does, and why the receptor came next
+<LessonFilm film={frontmatter.films[0]} />
+
+*Two corrections to the film. The halo was scored by its density on a scale, not by counting fibers. And a whole mouse responds to more of an extract than the dish does, not to everything in it.*
+
+Cohen injected newborn mice daily with crude male mouse salivary gland extract. As expected, their sympathetic ganglia were enlarged. But the mice also opened their eyelids about 7 days after birth instead of 12 to 14, and their teeth came through early. Purified NGF given alone did neither of these things. The crude extract must have carried a second protein with its own activity. It thickens the epidermis, the outer layer of skin, so it was named epidermal growth factor; that made it a candidate burn therapy, and unlike NGF it does make cells divide. It also affects survival and differentiation, and its pathway is among the most commonly mutated or overactive in cancer.
+
+Lay the readouts side by side, with newborn mice for the in vivo columns and a ganglion in a dish for the halo. The first three rows are reported results, simplified.
+
+| Preparation | Halo in dish | Sympathetic ganglia in vivo | Eyelids open early |
+|---|---|---|---|
+| Crude male salivary gland extract | yes | enlarged | yes (about day 7) |
+| Purified NGF | yes | enlarged | **no** |
+| Anti-NGF antiserum alone | not tested | most destroyed | not reported |
+| Crude extract plus anti-NGF (thought experiment) | ? | ? | ? |
+
+**Predict.** Fill in the last row. It is a thought experiment, not a reported result: what would you expect if NGF and the eyelid factor are separate molecules?
+
+<details>
+<summary>Check your prediction</summary>
+
+No halo in the dish, because the antiserum removes NGF. In the animal the ganglia are not enlarged, and if the antiserum also neutralizes the mouse's own NGF, most are destroyed, as in the row above. The eyelids still open early, because an antiserum raised against pure NGF leaves the second factor untouched. Two factors with separable activities.
+
+</details>
+
+The halo assay was blind to EGF; a whole newborn mouse saw it. When you start from a mixture, the assay you choose decides which molecule you find.
+
+## The receptor is an enzyme
 
 <LessonFilm film={frontmatter.films[2]} />
 
-"Growth factor" is a misleading name. The mature neurons NGF acts on have stopped dividing, and NGF does not restart them. It keeps them alive and drives their fibers to grow. EGF thickens the epidermis, the outer layer of skin, which made it a candidate burn therapy, and it does make cells divide. It also affects survival and differentiation, and its pathway is among the most commonly mutated or overactive in cancer. A better definition is a secreted protein that tells a target cell to grow, divide, stay alive, or mature into a specialized cell.
+*Two corrections to the film. It calls the scientist who found the tyrosine "Hirota Ushiro"; his name is Hiroshi Ushiro. And it says tyrosine was not known as a site for a regulatory phosphate; it had in fact just been recognized, through the Rous sarcoma virus kinase.*
 
-A message does nothing until something on the target cell hears it. NGF binds two receptors, TrkA and a second receptor called p75, and EGF binds the EGF receptor, EGFR. Cohen approached the receptor as a biochemist. A growth factor, he reasoned, should control some chemical reaction that you could show in a cell-free system, as Sutherland had when glucagon added to membranes produced cyclic AMP. At the end of the 1970s his laboratory at Vanderbilt University used membranes from A-431 cells, a human tumor cell line with many EGF receptors. The preparation held no living cells. When EGF was added, phosphate moved onto protein much faster, work in which Graham Carpenter did much of the biochemistry. Hiroshi Ushiro then found that the phosphate was landing on tyrosine, an unusual target that is easy to miss.
+A message does nothing until something on the target cell hears it. NGF binds two receptors, TrkA and a second receptor called p75, and EGF binds the EGF receptor, EGFR. Cohen approached the receptor as a biochemist. A growth factor, he reasoned, should control some chemical reaction that you could show in a cell-free system, as Sutherland had when glucagon added to membranes produced cyclic AMP. At the end of the 1970s his laboratory at Vanderbilt University used membranes from A-431 cells, a human tumor cell line with many EGF receptors. The preparation held no living cells. When EGF was added, phosphate moved onto protein much faster, work in which Graham Carpenter did much of the biochemistry. Ushiro then found that the phosphate was landing on tyrosine, an unusual target that is easy to miss.
 
-The receptor had been pictured as an antenna, with the hormone docking outside and the business happening further in. Purifying the receptor from these membranes pulled out one major protein that both bound EGF and carried the kinase activity. The receptor's gene sequence, read in 1984, confirmed that it is one protein chain that crosses the membrane once. EGF binds the part outside the cell, and the part inside is an enzyme that puts phosphate on tyrosine, which makes EGFR a receptor tyrosine kinase. TrkA, NGF's high-affinity receptor, is also a receptor tyrosine kinase, though it was identified only in 1991. How that enzyme switches on is the subject of a later lesson, and so is how a signal picked up at a nerve ending reaches the cell body.
+The receptor had been pictured as an antenna, with the hormone docking outside and the business happening further in. On that picture, the kinase would be some other protein in the membrane.
 
-Many growth factors, NGF among them, are dimers, while each of their receptors is a single chain that crosses the membrane once. How might a ligand switch such a receptor on?
+**Predict.** You purify the EGF-binding protein from these membranes. If the antenna picture is right, how many proteins should you need to get both EGF binding and the kinase activity? What would one protein mean?
+
+<details>
+<summary>Check your prediction</summary>
+
+At least two polypeptides: an EGF-binding receptor and a separate kinase, although a stable complex could co-purify. Instead, affinity purification yielded one major 170-kDa protein that bound EGF, retained kinase activity and was itself phosphorylated. Together with the receptor's later sequence, this showed that the receptor is both kinase and substrate (autophosphorylation); later work showed that the receptor chains in a pair add phosphate to one another.
+
+</details>
+
+The receptor's gene sequence, read in 1984, confirmed that it is one protein chain that crosses the membrane once. EGF binds the part outside the cell, and the part inside is an enzyme that puts phosphate on tyrosine, which makes EGFR a receptor tyrosine kinase. TrkA, NGF's high-affinity receptor, is also a receptor tyrosine kinase, though it was identified only in 1991; p75 had been cloned in 1986. How that enzyme switches on is the subject of [a later lesson](/lessons/receptor-tyrosine-kinases/), and so is how a signal picked up at a nerve ending reaches the cell body.
+
+A question to carry there. NGF is a dimer and could bridge two TrkA chains, each a single chain that crosses the membrane once. EGF is a single chain of 53 residues. Look at 1IVO on this page: each EGF touches one receptor, yet two receptors meet. How might a one-chain ligand bring two receptors together? The later lesson answers it.
 
 ### Design problem
 
@@ -414,23 +500,40 @@ You have a crude extract that makes nerve fibers grow from a ganglion in a dish.
 <details>
 <summary>One way to do it</summary>
 
-**The assay.** Put one embryonic ganglion in each hanging drop. Add a measured amount of a fraction at several dilutions. After 24 hours, score the halo on a fixed scale, with the scorer blind to which fraction is which. Activity is the highest dilution that still gives a halo. Divide by protein to get specific activity, and track total activity as well, because total activity tells you whether you are losing the factor.
+**The assay.** Put one embryonic ganglion in each hanging drop. Add a measured amount of a fraction at several dilutions. After 24 hours, score the halo on a fixed scale, with the scorer blind to which fraction is which. Read the titer, divide by protein for specific activity, and track total units to see whether you are losing the factor.
 
 **Three controls.**
 
 1. A baseline. Run a buffer-only drop and a fraction from a tissue that should lack the factor in the same batch. They show how much outgrowth a ganglion produces on its own.
-2. A destruction control. Treat the active fraction with a protease, and separately with a nuclease. If the protease kills the halo and the nuclease does not, the activity depends on protein and not on exposed nucleic acid. A virus's protein coat can shield its genome, so it is purification to a single active protein that finally rules a virus out. This is Kornberg's control, done properly.
+2. A destruction control. Treat the active fraction with a protease, and separately with a nuclease, then remove or inactivate each enzyme before the assay. Run matched enzyme-only controls through the same procedure so toxicity or activity in the enzyme preparation is not mistaken for an effect on the factor. If only the protease-treated fraction loses the halo, the activity depends on protein and not on exposed nucleic acid. A nuclease alone cannot rule out a virus, because a virus's protein coat can shield its genome. Purifying a noninfectious protein to homogeneity and showing that it reproduces the activity establishes that an intact virus is not required. This is Kornberg's test, done properly.
 3. A neutralization control. Raise an antiserum against the purified material and add it to the original crude extract. If the crude extract loses its activity, the protein you purified was doing the work there. A fraction can make halos without being what makes them in the crude extract.
 
 </details>
 
+## Back to the opening question
+
+How do you find a molecule you cannot see? Follow its activity until it co-fractionates with one protein through multiple separations, the specific activity reaches a reproducible plateau, and a specific antiserum removes the crude extract's activity. And you catch only what your assay sees: the animal, not the dish, found EGF.
+
+### Where the idea stops
+
+- **Blindness and resolution.** Units count only what the assay sees, and a twofold titer cannot resolve small changes (see the two limits above).
+- **Activity per molecule can change.** If a step removes an inhibitor, the yield can go above 100% and the fold purification overstates how much the factor was enriched. If a step partly inactivates the factor, specific activity can fall even though the prep is purer. Specific activity measures activity per milligram, not purity directly.
+- **The plateau is evidence, not proof.** It says only that your separations have nothing left to remove. Linking the purified protein to the crude activity still needs neutralization (control 3 of the design problem).
+
 ## Going deeper
 
-### Getting the assay into a dish
+### Are neurons overproduced?
 
-Hamburger's department at Washington University had no tissue-culture facility, so in the early 1950s Levi-Montalcini traveled to Rio de Janeiro, carrying two mice bearing the tumors in her handbag.
+A ganglion can grow because more neurons survive, because more are made, or because each cell and its fibers get bigger, so the swelling after a tumor graft cannot by itself prove a reserve of neurons. The direct evidence came from a 1949 study in which Hamburger and Levi-Montalcini counted dying neurons in the ganglia of normal chick embryos. Many nerve cells die as a normal part of development, so an extra supply of factor could rescue some of them.
+
+### When the yield goes above 100%
+
+Take a toy gland extract: 1 mg of halo factor in 1,003 mg of protein, plus an inhibitor that hides two thirds of the factor's activity. The crude extract reads 333 units. A first step removes the inhibitor and leaves 302 mg of total protein, including 0.9 mg of factor. It reads 900 units, a yield of 270%. Carried to pure factor, which reads about 1,000 units per mg once the inhibitor is gone, the apparent purification reaches about 3,000-fold (1,000 ÷ 0.33), yet the factor could be enriched at most about 1,003-fold, since it was 1 mg in 1,003 mg. The overstatement is exactly the threefold masking in the crude extract. When activity per molecule changes, fold purification is not fold enrichment.
 
 ### Why phosphotyrosine was easy to miss
 
-Hiroshi Ushiro found that the phosphate was landing on tyrosine, after the first analysis had mistaken it for threonine. Tyrosine had only just been recognized as a site for a regulatory phosphate, through the Rous sarcoma virus kinase, and phosphotyrosine is less than 1% of the phosphate on proteins in a normal cell. It was easy to miss, because the standard method of the time could not separate it from phosphothreonine.
+The first analysis mistook the phosphate for threonine, because the standard method of the time could not separate phosphotyrosine from phosphothreonine. Phosphotyrosine is also less than 1% of the phosphate on proteins in a normal cell.
 
+### Not every receptor of this family is one chain at the cell surface
+
+The insulin and IGF-1 receptors are receptor tyrosine kinases too, but unlike EGFR and TrkA they are not single chains: each is built from two alpha-beta halves held together by disulfide bonds, a dimer before any ligand binds.

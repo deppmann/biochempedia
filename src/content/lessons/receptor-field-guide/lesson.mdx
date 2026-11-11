@@ -7,17 +7,18 @@ order: 104
 summary: >-
   How does a cell learn that a molecule it cannot let in is sitting outside? This lesson maps the
   main receptor architectures (ligand-gated channels, seven-pass G-protein-coupled receptors,
-  single-pass receptors that are or recruit enzymes, and nuclear receptors) and shows why their
-  speeds run from milliseconds to hours. Afterwards you can match an architecture to a signalling
-  job and defend the choice.
+  single-pass receptors that are or recruit enzymes, and nuclear receptors) and shows why one ligand
+  can excite one cell and inhibit another, and why responses run from milliseconds to hours.
+  Afterwards you can match an architecture to a signalling job and defend the choice.
 hook: "Acetylcholine starts a muscle twitch and slows a heart. Same molecule: what decides what it means?"
 
-estMinutes: 22
+estMinutes: 26
 objectives:
   - "Name the main receptor architectures and say what each does when its ligand binds."
   - "Match each architecture to its typical speed, from milliseconds to hours, and explain the difference."
   - "State the three main ways information crosses a membrane without the ligand entering."
   - "Explain how one ligand can act through an ionotropic and a metabotropic receptor, using acetylcholine."
+  - "Predict whether a receptor excites or inhibits a cell from the ions its effector passes and their gradients in that cell, and how soon and how long it acts from the steps in its route."
 
 explainer:
   src: "/explainers/receptor-field-guide/explainer.mp4"
@@ -151,7 +152,7 @@ practiceQuestions:
       - "It has seven membrane-spanning helices, which open faster than other designs."
     answer: 0
     rationale: >-
-      The key is right because a receptor that is itself the pore has nothing to wait for between
+      The key is right because a receptor that is itself the pore has no relay step to wait for between
       binding and current. The cytosol-facing site is wrong: acetylcholine is charged and cannot
       cross the membrane, so every surface receptor binds it from outside. Tighter binding is wrong
       because affinity changes how often the receptor is occupied, not how many relay steps follow
@@ -221,6 +222,22 @@ practiceQuestions:
       cannot reach a receptor inside the cell. The any-design choice is wrong because designs differ
       in how much each occupied receptor can multiply the signal.
 
+  - stem: "GABA opens the same chloride channel in two neurons. Both rest at −60 mV and fire at a threshold of −50 mV. In neuron A, an adult neuron, the chloride equilibrium potential is −70 mV. In neuron B, an immature neuron with more chloride inside, it is −40 mV. What does opening the channel do?"
+    choices:
+      - "It inhibits both, because chloride is a negative ion and its current always inhibits."
+      - "It excites both, because opening any channel lets ions in and depolarizes the cell."
+      - "It inhibits A and can excite B, because the current pulls each cell toward −70 mV in A and −40 mV in B."
+      - "Its effect depends only on how tightly each neuron's receptor binds GABA."
+    answer: 2
+    rationale: >-
+      The key is right: an open channel pulls the voltage toward its reversal potential. In A that
+      is −70 mV, below rest, so the cell moves away from threshold. In B it is −40 mV, above the
+      −50 mV threshold, so the same channel pushes the cell toward firing. The always-inhibits choice
+      is wrong because the sign depends on the gradient in that cell, not on the ion's charge alone.
+      The always-excites choice is wrong because in A chloride enters and makes the inside more
+      negative. The binding-strength choice is wrong because affinity sets how much GABA is needed,
+      not which way the current moves the voltage.
+
 mcatQuestions:
   - stem: "In heart atrial cells, a G protein is estimated to release its bound GDP about 0.44 times per minute without a receptor. Suppose an agonist-bound receptor raises that rate 100-fold. Treat release as a random process with a constant rate, so the mean wait is one divided by the rate. What are the mean waits for one G protein to release GDP, without and with the receptor?"
     choices:
@@ -236,7 +253,8 @@ mcatQuestions:
       choice is wrong because it keeps the number 2.3 but changes the unit from minutes to seconds; a 100-fold shortening of 2.3 minutes gives about 1.4 seconds.
       The 14-second choice is wrong because it divides by 10 instead of 100. The 100-fold value is
       only a stand-in, but the point holds: an unaided G protein waits minutes, which is far too
-      slow for a message that must act quickly.
+      slow for a message that must act quickly. A whole cell's current starts sooner than the mean
+      wait for one G protein, because it begins once a small fraction of the G proteins are on.
   - stem: "A researcher delivers a 10 ms pulse of acetylcholine to two cells and records current. In cell 1, current starts within 1 ms and stops within a few milliseconds of the pulse ending. In cell 2, current starts about 80 ms after the pulse begins and continues for about a second after the pulse ends. When a GTP analogue that cannot be hydrolysed is introduced into cell 2, the current lasts for minutes. The same analogue has no effect on cell 1. Which conclusion best fits these results?"
     choices:
       - "Cell 2's receptor is a ligand-gated channel that closes slowly, and the GTP analogue holds it open by binding the pore."
@@ -286,7 +304,7 @@ explainLevels:
       a fraction of a second or more. A third kind has two halves that the molecule pulls together,
       which starts chemical changes lasting minutes. A few molecules, like estrogen, dissolve in
       fat and enter the cell, where their receptor turns genes on over hours. Speed depends on how
-      many steps lie between the message and the response.
+      many steps lie between the message and the response, and how slow each one is.
   - level: "college"
     label: "College"
     text: >-
@@ -297,7 +315,7 @@ explainLevels:
       heterotrimeric G proteins, adding a nucleotide exchange and an effector step, so responses
       take tens of milliseconds to seconds. Single-pass receptors (receptor tyrosine kinases,
       receptor serine/threonine kinases, cytokine receptors, death receptors) are activated by
-      ligand-induced pairing or rearrangement of chains, which brings kinase domains together or
+      ligand-induced pairing, clustering or rearrangement of chains, which brings kinase domains together or
       recruits kinases and adaptors, with responses over seconds to minutes and, through gene
       expression, hours. Nuclear receptors bind lipophilic ligands inside the cell, bind DNA and
       recruit coregulators. A relay step costs time but allows amplification and regulation. One
@@ -351,75 +369,193 @@ draft: false
 ---
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Acetylcholine makes a skeletal muscle fibre twitch and slows a heart. It is the same molecule in both cells, so what is different?** The difference is the receptor, the membrane protein that binds a signalling molecule (the ligand) and passes the news on. Receptors come in a small number of designs, and the design does much to set how fast the cell answers and how long the answer lasts. This lesson is a field guide to those designs.
+**Acetylcholine makes a skeletal muscle fibre twitch and slows a heart. It is the same molecule in both cells, so what is different?**
+
+The difference is the receptor, the protein that binds a signalling molecule (the ligand) and passes the news on. Receptors come in a few designs, and the design does much to set what the cell does, how fast it answers and how long the answer lasts.
+
+## Three questions and one idea
+
+Three questions run through the lesson: how information crosses a membrane the ligand cannot cross, why one ligand excites one cell and inhibits another, and why responses take from under a millisecond to hours.
+
+> **The one idea to carry through this lesson. Wiring sets what; steps set when.** What a receptor is wired to (a pore, a G protein, a kinase, a gene) decides the **effector**, the protein that makes the output, and so what the signal does: which ion moves, which enzyme runs. How long the steps between binding and that output take, above all the slowest, sets when it starts; more steps usually mean more waiting, but one slow step can outweigh several fast ones. The steps that keep running after the ligand leaves set how long it lasts. Each step costs time, and a step that is an enzyme also multiplies the signal. Acetylcholine wired to a cation pore excites muscle within a millisecond; wired through a G protein to a potassium channel, it starts opening that channel tens of milliseconds later and slows the heart within a beat or two.
 
 ## The membrane problem: three ways across, and one way around
 
-Most ligands are water-soluble: neurotransmitters, peptide hormones, growth factors. The plasma membrane is a double sheet of fat, so they stay outside. The cell still has to find out they are there. A receptor can change what happens inside without letting the ligand through, and it has three main ways to do it:
+Most ligands, such as neurotransmitters, peptide hormones and growth factors, are water-soluble, so the double sheet of fat that is the plasma membrane keeps them outside. A receptor has to change what happens inside without letting the ligand through. There are three main ways, plus one family whose ligand comes inside: four architectures.
 
 1. **Open a pore.** The receptor is an ion channel. The ligand binds, the pore opens, and ions flow.
-2. **Change the shape of a seven-pass protein.** One chain crosses the membrane seven times. Binding on the outside rearranges the bundle, and the new shape switches on a partner protein on the inside.
-3. **Bring single-pass chains together.** Each chain crosses the membrane once. The ligand pulls two chains into contact, or changes how the chains of an existing pair sit, and the enzyme parts inside meet.
+2. **Switch on a G protein.** One chain crosses the membrane seven times. Binding on the outside rearranges the bundle, and the new shape makes the receptor an **exchange factor**: it pries GDP out of a G protein, and because the cell holds far more GTP than GDP, the empty site fills with GTP. A **G protein** is a switch protein, off while it holds GDP and on while it holds GTP.
+3. **Bring single-pass chains together.** Each chain crosses the membrane once. The ligand pulls two or more chains into contact, or changes how the chains of an existing pair sit, so the enzyme parts inside meet or are recruited.
 
-A few receptors use other routes. Notch, for example, is cut by enzymes when its ligand binds, and the freed inner piece travels to the nucleus. Some ligands avoid the problem. Steroid hormones such as estradiol dissolve in fat and slip through the membrane, so their receptors wait inside the cell. That makes four architectures.
+The fourth way goes around the problem. Steroid hormones such as estradiol dissolve in fat and slip through the membrane, so their receptors wait inside the cell. A few receptors use still other routes.
 
 <LessonFigure src="/figures/receptor-field-guide/four-receptor-architectures.webp" width={1200} height={636} alt="AI-generated illustration: four columns across a cell membrane. A ligand opens a pore and ions enter; a ligand on a seven-pass receptor switches on a G protein inside; a ligand brings two single-pass chains together so their inner enzyme parts meet, a pairing that can also arise by rearrangement of an existing pair; a fat-soluble hormone crosses the membrane and binds a receptor that grips DNA." caption="Four common receptor architectures. Ligand-gated channels open a pore; seven-pass receptors change shape and activate a G protein; many single-pass receptors bring chains together or rearrange an existing pair. In the classical nuclear-receptor route, a fat-soluble hormone crosses the membrane and binds an intracellular receptor that acts on DNA. Other receptor mechanisms also exist." />
 
 ## The map: four architectures
 
-| Architecture | Where the ligand binds | What binding does | Examples | Time to response |
+| Architecture | Where the ligand binds | What binding does | Examples | First output, and how soon |
 |---|---|---|---|---|
-| Ligand-gated ion channel | Outside, on a multi-subunit pore | Opens the pore | Nicotinic acetylcholine receptor | About a millisecond or less for the fastest; around 10 ms for NMDA receptors |
-| Seven-pass (G-protein-coupled) | Outside, in or near the helix bundle | Changes the bundle's shape, which switches on a G protein | Muscarinic acetylcholine receptor, beta-2 adrenergic receptor | Tens of milliseconds to seconds |
-| Single-pass, enzyme or enzyme-recruiting | Outside, on the outer domain | Brings chains together, or rearranges a pair, so kinase domains, or the kinases and adaptors they carry or recruit, act | EGF receptor, TGF-beta receptors, cytokine receptors, Fas | Seconds to minutes for the first steps; tens of minutes to hours for changes in gene expression |
-| Nuclear | Inside the cell | Hormone crosses the membrane; receptor holds DNA and recruits gene-reading machinery | Estrogen receptor | Tens of minutes to hours |
+| Ligand-gated ion channel | Outside, on a multi-subunit pore | Opens the pore | Nicotinic acetylcholine receptor; AMPA and NMDA glutamate receptors | Current begins in about a millisecond or less for the fastest; NMDA receptor current rises over about 10 ms |
+| Seven-pass (G-protein-coupled) | Outside, in or near the helix bundle | Changes the bundle's shape, so the receptor switches on a G protein | Muscarinic acetylcholine receptor, beta-2 adrenergic receptor, metabotropic glutamate receptors (mGluRs) | An effector current or second messenger: tens of milliseconds to seconds |
+| Single-pass, enzyme or enzyme-recruiting | Outside, on the outer domain | Brings two or more chains together, or rearranges a pair, so kinase domains, or the kinases and adaptors they carry or recruit, act | EGF receptor, TGF-beta receptors, cytokine receptors, Fas | Receptor or associated kinases activated and partners recruited: seconds to minutes; changes in gene expression: tens of minutes to hours |
+| Nuclear | Inside the cell | Changes the receptor's shape, so at its DNA sites it recruits coactivators, proteins that help switch a gene on | Estrogen receptor | New RNA within minutes; new protein: tens of minutes to hours |
 
-**Ligand-gated channels.** The muscle acetylcholine receptor, the nicotinic type, is five subunits arranged around a central pore. Acetylcholine binds on the outer part of the protein, the pore opens, and sodium flows into the muscle cell. The ions are the signal.
-**Seven-pass receptors.** These are the G-protein-coupled receptors, or GPCRs. The human genome has about 800 of them, and roughly half detect smells. Binding changes the shape of the helix bundle, and the inner face then acts on a G protein, a switch protein that is off while it holds GDP and on while it holds GTP. Robert Lefkowitz and Brian Kobilka shared the 2012 Nobel Prize in Chemistry for working out how these receptors are built and how they work, and a later lesson is theirs.
+**Ligand-gated channels.** The muscle acetylcholine receptor, the nicotinic type, is five subunits arranged around a central pore. The ions that move are the signal.
 
-**Single-pass receptors.** About 1,300 human proteins cross the membrane once, and many of them are receptors. The part outside the cell is the ectodomain. Receptor tyrosine kinases carry a kinase, an enzyme that attaches phosphate to other proteins, in the part inside the cell, and humans have 58 of them. Receptor serine/threonine kinases, such as the TGF-beta receptors, do the same on a different amino acid. Cytokine receptors have no kinase of their own. Instead a JAK kinase stays bound to the inner part of each chain, and the ligand brings two of these kinases together. Death receptors, such as Fas, recruit adaptor proteins that switch on enzymes that take the cell apart.
+**Seven-pass receptors.** These are the G-protein-coupled receptors, or GPCRs ([GPCRs and trimeric G proteins](/lessons/gpcrs-and-g-proteins/)). The effector the G protein reaches may be a channel, or an enzyme that makes a **second messenger**, a small molecule such as cAMP that carries the signal on inside the cell.
 
-All of these share one puzzle. Many growth factors are dimeric, built from two halves, and many of their receptors were long thought to sit in the membrane as single chains. How might ligands activate receptors? A dimeric ligand such as NGF can hold two receptor chains at once. A single-chain ligand such as EGF binds one receptor and changes the shape of its ectodomain, exposing a surface that grips a second receptor. Either way, two kinase domains end up side by side. In many receptor tyrosine kinases they then phosphorylate each other. In the EGF receptor, one kinase domain first switches on its partner by contact, much as a cyclin switches on its kinase, and the receptor tails are phosphorylated after that. The insulin receptor starts out as a pair, and insulin changes how its two halves sit against each other, which has the same effect.
+**Single-pass receptors.** The part outside the cell is the ectodomain. Receptor tyrosine kinases carry a kinase, an enzyme that attaches phosphate to other proteins, in the part inside the cell. Receptor serine/threonine kinases, such as the TGF-beta receptors, add phosphate to serine and threonine instead, and one receptor type phosphorylates the other. Cytokine receptors have no kinase of their own: a JAK kinase stays bound to the inner part of each chain, and the ligand brings two of these kinases together. Death receptors, such as Fas, recruit adaptor proteins that switch on enzymes that take the cell apart. For the kinase-linked receptors the core move fits in one sentence: the ligand brings kinase domains together, or rearranges a pair that already exists, and one switches on the other or each switches on its partner ([receptor tyrosine kinases](/lessons/receptor-tyrosine-kinases/)).
 
-**Nuclear receptors.** A typical nuclear receptor is one chain with two working parts: a pocket that closes around the hormone and a region that grips a specific stretch of DNA. Once the hormone is bound, the receptor holds that DNA and recruits the machinery that reads the gene. There is no second messenger and no kinase cascade, because the protein that received the signal acts directly on the gene that answers. Humans have 48 nuclear receptors, and their ligands include estradiol, thyroid hormone and retinoic acid.
+**Nuclear receptors.** A typical nuclear receptor is one chain with two working parts: a pocket that closes around the hormone and a region that grips a specific stretch of DNA. There is no second messenger and no kinase cascade, because the protein that received the signal acts directly on the gene that answers. Their ligands include estradiol, thyroid hormone and retinoic acid. Once estradiol is bound, the estrogen receptor holds its DNA and recruits the machinery that reads the gene; thyroid hormone and retinoic acid receptors work differently (see Going deeper).
 
-## How the map was drawn: sequences first
+## One ligand, two receptors: acetylcholine
 
-Until the 1980s a receptor was known by what it bound and what it did. A few had been purified, but the sequence of a whole receptor was still out of reach for most. In 1982 Shosaku Numa's group in Kyoto changed that. The electric organ of the ray *Torpedo* is a battery built from modified muscle cells and is packed with acetylcholine receptor. From that organ's messenger RNA they read the sequence of one receptor subunit, the first complete sequence for a neurotransmitter receptor. Two years later, from the electric eel, they read a voltage-gated sodium channel. Receptors and channels could now be compared with each other.
+An **ionotropic** receptor is itself an ion channel; a **metabotropic** receptor acts through a G protein and other steps inside the cell. Acetylcholine uses both, and so does glutamate, the brain's main excitatory transmitter (see the table).
 
-The next sequences showed families. In 1982 Ora Rosen's laboratory showed that insulin switches on a tyrosine kinase that travels with the insulin receptor and attaches phosphate to tyrosines on the receptor itself. Axel Ullrich's group cloned the EGF receptor in 1984, and in 1985 his group and William Rutter's each reported the insulin receptor. The EGF receptor resembled erbB, a viral cancer gene, and the insulin receptor's enzyme part belonged to the same tyrosine kinase family.
-
-Elwood Jensen's route started with a rat. By 1958 he had seen that the uterus and vagina keep radioactive estradiol, unchanged, while other tissues clear it, so something in those tissues seemed to be catching the hormone. David Toft and Jack Gorski extracted that protein in 1966. In March 1986 two laboratories, Pierre Chambon's in Strasbourg and Geoffrey Greene's in Chicago, reported its sequence within weeks of each other. Both noticed that part of it resembled v-erbA, a viral gene derived from a thyroid hormone receptor. The estrogen receptor had relatives.
-
-## One ligand, two receptors: acetylcholine and glutamate
-
-Sometimes a ligand can bind two distinct receptor classes: ionotropic versus metabotropic. An ionotropic receptor is itself an ion channel. A metabotropic receptor acts through a G protein and other steps inside the cell.
-
-Acetylcholine uses both. At the muscle end-plate it binds the nicotinic receptor, which is a channel. Colquhoun and Sakmann recorded the current through single receptors at the frog end-plate, and each receptor opened in a burst with brief closures. Binding opens the pore directly, and nothing has to be made first. In a heart atrial cell, acetylcholine binds the muscarinic receptor, a GPCR. The receptor switches on a G protein, and the G protein opens a potassium channel.
-The G protein route has a cost. Before a G protein can bind GTP, it must release the GDP it holds. Breitwieser and Szabo estimated, from recordings in heart atrial cells, that unaided the G protein does this only about 0.44 times per minute, a wait of a little over two minutes. A receptor with acetylcholine bound makes the release much faster, and half the maximum current is reached at about 160 nM acetylcholine.
+**The wiring.** At the muscle end-plate, where the motor nerve meets the fibre, acetylcholine binds the nicotinic receptor. Binding opens the receptor's own pore, and nothing has to be made first. In the heart, acetylcholine binds the muscarinic receptor (the M2 type), a GPCR, which switches on a G protein. The activated G protein rearranges or dissociates, making its βγ pair available to bind a potassium channel called GIRK (G-protein-gated, inwardly rectifying K⁺ channel) and open it. The single-cell recordings come mostly from atrial muscle cells; the same route in pacemaker cells slows the heart rate.
 
 <LessonFigure src="/figures/receptor-field-guide/acetylcholine-two-receptors.webp" width={1200} height={800} alt="AI-generated illustration: two membrane patches compare acetylcholine signalling. At a muscle end-plate, acetylcholine binds a nicotinic receptor that is itself a channel, and sodium ions enter without a relay protein. In a heart atrial cell, acetylcholine binds a seven-pass muscarinic receptor that activates a G protein, which opens a separate potassium channel. Binding and gating are coupled steps." caption="One ligand, two receptors. At the muscle end-plate acetylcholine binds a receptor that is itself a channel, so binding opens the pore directly. In a heart atrial cell it binds a G-protein-coupled receptor, which switches on a G protein that opens a potassium channel." />
 
-Glutamate, the main excitatory transmitter of the brain, does the same thing. The AMPA and NMDA receptors are channels, and the metabotropic glutamate receptors, the mGluRs, are seven-pass.
+**Predict.** The nicotinic pore lets sodium and potassium through about equally. The muscarinic route opens a channel selective for potassium. An open channel pulls the membrane voltage toward its **reversal potential**, the voltage at which the net current through it is zero. Muscle rests near −90 mV; between beats, a pacemaker cell climbs from about −60 mV toward a threshold near −40 mV; the potassium equilibrium potential is close to −90 mV. Which way does each route move the voltage, relative to **threshold**, the voltage at which the cell fires?
 
-## Speed follows architecture
+<details>
+<summary>Check your prediction</summary>
 
-A response cannot arrive before its slowest step. The delay is the sum of the steps between the ligand and the effect.
+In opposite directions. The nicotinic channel's current reverses near 0 mV: sodium flows in and potassium flows out, with a little calcium in. From −90 mV the net current is inward, carried mostly by sodium, and the fibre depolarizes toward a reversal potential well above threshold. The potassium channel's current reverses at the potassium equilibrium potential, below the pacemaker cell's voltage. Potassium flows out, the membrane is pulled down, and the cell takes longer to climb to threshold, so the next beat comes later. (This G protein, Gi, also lowers cAMP, which adds to the slowing.)
 
-> **time to response = time to bind + time for each relay step + time for the last step**
+</details>
 
-A channel has no relay step, so its delay is binding plus the opening of the pore: about a millisecond or less for fast channels such as the muscle nicotinic receptor and the AMPA receptor, and around 10 ms for the NMDA receptor. A route with a nucleotide exchange and an enzyme in the middle cannot respond in less than a millisecond, and the G protein route above usually takes tens of milliseconds or more. A single-pass kinase receptor adds pairing, phosphorylation and the recruitment of partners, so the first steps take seconds to minutes and changes in gene expression take tens of minutes to hours. A nuclear receptor skips the relay, but the cell still has to make new RNA and protein, which takes tens of minutes to hours.
+So the sign comes from the wiring, which ions the effector passes, read against their gradients in that cell: a current that reverses above threshold excites, and one that reverses below the cell's voltage inhibits. The same ion can do either. A GABA-gated chloride channel inhibits most adult neurons but depolarizes immature ones, which hold more chloride inside. Now the timing.
 
-The time buys two things. The first is amplification. With a protein in the middle, one occupied receptor can switch on many molecules of the next protein, so a short contact outside the cell becomes a large signal inside. The second is control, because the cell can regulate the middle step. A channel that opens when a ligand binds offers less of both: one receptor opens one pore, which passes thousands of ions but makes no copies of an enzyme or messenger, and there is no middle step to adjust. A fast channel such as the muscle nicotinic receptor also stops soon after the transmitter leaves, which is why the gap between nerve and muscle must be cleared quickly. Not every channel is this brief: an NMDA receptor holds on to glutamate and keeps reopening for hundreds of milliseconds. The G protein route lasts until the G protein shuts itself off, a step other proteins can speed up, and until any messengers it made are destroyed.
+**Predict.** Give each cell a brief pulse of acetylcholine. Which current starts sooner, and which outlasts the pulse?
+
+<details>
+<summary>Check your prediction</summary>
+
+The end-plate current starts sooner and ends sooner:
+
+| | End-plate current (nicotinic) | Atrial current (muscarinic, through GIRK) |
+|---|---|---|
+| Direction | Inward, drawn downward | Outward, drawn upward |
+| Onset after acetylcholine arrives | Well under a millisecond | A delay of tens of milliseconds |
+| Rise | Well under a millisecond | Over hundreds of milliseconds |
+| After acetylcholine leaves | Decays in about a millisecond | Decays over seconds |
+
+</details>
+
+Timing alone suggests a G protein in the heart, but it does not prove one. The proof uses a **non-hydrolysable GTP analogue**, a GTP look-alike that a G protein can bind but cannot split, so a G protein that takes it up stays on.
+
+**Predict.** Put the analogue inside both cells, give acetylcholine, then wash the acetylcholine away. What happens to each current?
+
+<details>
+<summary>Check your prediction</summary>
+
+The atrial current persists for minutes after the acetylcholine is gone: G proteins switched on with the analogue cannot switch off. The end-plate current is unchanged: its pore has no nucleotide site and no G protein in its path. A tool that acts on a middle step changes only the route that has it.
+
+</details>
+
+## Add up the waits
+
+The film at the top says the receptor type sets the speed; it does so by setting the fewest steps a route can take. Each step has to finish before the next can start, so each one adds a wait.
+
+> **time to the output ≈ the sum of the waits at every step, from binding to effector**
+
+Each wait is an average for one molecule; a whole cell can answer sooner, as the worked problem shows.
+
+**The channel: two steps.** Acetylcholine must bind both sites, and the pore must open. In a cleft holding a few tenths of a millimolar acetylcholine, binding takes some tens of microseconds, and the muscle receptor opens within a few tens of microseconds after that. The total is well under a millisecond. Rates like these come from Colquhoun and Sakmann's recordings of single receptors at the frog end-plate, where each receptor opened in a burst with brief closures.
+
+**The muscarinic route: four steps.** Binding, exchange, G-protein rearrangement or dissociation, and βγ opening GIRK. No second messenger is made, which makes this one of the fastest G-protein routes, yet with a nucleotide exchange in the middle it cannot respond in under a millisecond. The exchange is the slow step. Breitwieser and Szabo estimated, from recordings in heart atrial cells, that unaided a G protein releases GDP only about 0.44 times per minute: a mean wait of 1/0.44 ≈ 2.3 minutes, about 136 seconds. A receptor with acetylcholine bound makes release much faster.
+
+**Worked problem.** Suppose the agonist-bound receptor speeds GDP release 1,000-fold (an illustrative round number).
+
+1. New rate: 0.44 × 1,000 = 440 per minute, about 7.3 per second.
+2. Mean wait for one G protein: 1/7.3 ≈ 0.14 s, about 140 ms.
+3. But a cell has many G proteins, and the current starts once some are on. With a constant rate k, the fraction switched on by time t is 1 − e^(−kt). Setting that to 10% gives t = −ln(0.9)/k ≈ 0.105/7.3 s ≈ 0.014 s. A tenth of the G proteins are on within about 14 ms. (This treats current as rising with the fraction of G proteins on; in reality each GIRK channel needs several βγ pairs, which delays the current a little more.)
+
+So the mean wait sets the pace, and the first small fraction sets the onset. Of the steps behind the atrial current's real onset, tens of milliseconds or more, the exchange step is the slowest and a main contributor to that delay. At the 100-fold of the MCAT practice item, a tenth of the G proteins take about 140 ms, which is why the real acceleration must be large.
+
+**Predict.** The NMDA receptor is a channel with no relay step, yet its current rises over about 10 ms, far slower than the muscle channel. Does that break the rule?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The NMDA receptor's own gating is slow, and a slow step counts whichever protein it happens in. The waits at each step, slow gating included, set the clock.
+
+</details>
+
+**The slow routes.** A single-pass kinase receptor adds pairing or rearrangement, phosphorylation and recruitment, hence seconds to minutes. A nuclear receptor skips every relay step, but its output is new RNA and then new protein.
+
+### What the steps buy
+
+The extra time buys three things.
+
+- **Gain.** A catalytic step multiplies the signal: one occupied receptor can switch on many G proteins, and one active adenylyl cyclase can make many messenger molecules. A directly gated channel has no catalytic relay: one receptor opens one pore, although that pore can pass thousands of ions.
+- **A control point.** The cell can turn the signal up or down at every middle step. A directly gated channel has no middle relay point, though the cell can still tune the receptor itself, for example by phosphorylation or desensitization.
+- **Duration.** A response lasts until its slowest off step finishes. The nicotinic response lasts only as long as the transmitter stays, and acetylcholinesterase keeps that stay short. Not every channel is this brief: an NMDA receptor holds on to glutamate and keeps reopening for hundreds of milliseconds. A G-protein route lasts until the G protein hydrolyses its GTP, which on its own takes seconds to tens of seconds, and any messengers it made are destroyed. RGS proteins (regulators of G-protein signalling) speed the hydrolysis, so they help set how fast the atrial current, and with it the heart rate, recovers when the vagus nerve goes quiet ([turning the signal off](/lessons/turning-signals-off/)).
+
+The film at the top names two of these buys, amplification and control. Its closing "neither" means neither a catalytic relay nor a middle relay point; directly gated channels still provide ion-flux gain and can be regulated at the channel itself.
+
+**Predict.** A drug blocks RGS proteins in atrial cells. Which changes more: how soon the acetylcholine current starts, or how long it lasts after acetylcholine is removed?
+
+<details>
+<summary>Check your prediction</summary>
+
+How long it lasts. RGS proteins act on the off step, GTP hydrolysis, so blocking them leaves G proteins on longer and slows recovery. Onset depends mainly on the on steps, binding and exchange, so it changes less, although in heart cells RGS proteins also speed the rise somewhat, so blocking them can slow onset a little too.
+
+</details>
 
 ### Design problem
 
-Two jobs. First, make sure a heart cell's next beat is not late; state the response deadline you assume. Second, commit a stem cell to a new identity. Choose a receptor architecture for each and justify it by speed, duration and reversibility.
+Three jobs. For each, choose a receptor architecture and name the sign, onset and offset of the response it gives.
+
+1. Relay every motor-nerve impulse to a muscle fibre, at up to about 50 impulses a second, one muscle action potential per impulse.
+2. Slow the heart's pacemaker within a beat or two, by an amount that can be tuned, and let it recover over seconds.
+3. Commit a stem cell to a new identity that outlasts the signal.
 
 <details>
 <summary>One way to do it</summary>
 
-**The heart cell: a ligand-gated channel.** (This is a design exercise: the heart's own acetylcholine receptor, described above, is a G-protein-coupled receptor.) Assume a deadline of about a millisecond, a small part of the time between beats, so the measurement that matters is the delay between ligand and response. A route with a nucleotide exchange and an enzyme in the middle cannot respond in under a millisecond, and a receptor that is itself the channel opens as soon as it binds. The route is also easy to reverse: current flows while the transmitter is bound and stops when it leaves, so the next message can be told apart from the last. The price is no enzymatic amplification and no middle step to regulate, so the transmitter must be released in quantity and cleared fast. If the deadline were a fraction of a second rather than a millisecond, a G-protein-coupled receptor such as the atrial muscarinic receptor could work, and it would give you a step to regulate.
+**Job 1: a ligand-gated cation channel, the nicotinic receptor.** Sign: excitatory, because its current reverses near 0 mV, well above threshold. Onset: well under a millisecond. Offset: about a millisecond after acetylcholine leaves. At 50 impulses a second the impulses are 20 ms apart, so each response is over before the next arrives. With no enzymatic gain, the nerve must release acetylcholine in quantity, and the gap must be cleared fast.
 
-**The stem cell: a nuclear receptor.** Here speed does not matter. A new identity means a new set of genes switched on, and hours are fine. Duration and reversibility are what matter: a brief pulse of ions leaves a lasting trace only if it sets off other signals, whereas a receptor that sits on the genes starts a program that the new regulatory proteins it makes can keep going after the hormone is gone. A fat-soluble signal such as retinoic acid reaches the receptor directly. A single-pass kinase receptor would also work and is common in fate decisions, but it adds relay steps between ligand and gene.
+**Job 2: the M2 receptor, a G protein and GIRK.** Sign: inhibitory, because outward potassium current pulls the cell toward the potassium equilibrium potential. Onset: tens of milliseconds, well inside a beat of about a second. Offset: seconds, set by GTP hydrolysis, which RGS proteins tune. The middle step is the dial: how many G proteins are on sets how much the rate slows.
+
+**Job 3: a nuclear receptor, such as the retinoic acid receptor.** Hours are fine; duration matters. A brief pulse of ions leaves a lasting trace only if it sets off other signals, whereas a receptor on the genes starts a program that the new regulatory proteins it makes can keep going after the hormone is gone. A fat-soluble signal such as retinoic acid reaches its receptor directly. A single-pass kinase receptor feeding a gene program would also work and is common in fate decisions, but it adds relay steps between ligand and gene.
+
 </details>
+
+### Back to the opening question
+
+The two cells wire the same binding event to different outputs. In muscle it opens a cation pore: fast, brief, excitatory. In the heart a G protein opens a potassium channel: tens of milliseconds later, lasting seconds, inhibitory. The molecule does not dictate a single response; the receptor and the cell's downstream wiring supply it.
+
+### Where the idea stops
+
+- **Each step costs time, unless gain makes up for it.** Adding a step usually delays the start, yet gain can buy some speed back. In an ideal unsaturated two-stage enzyme cascade driven by a step input, before depletion or shutoff matters, early output is proportional to gain × time². The time to reach a fixed threshold therefore falls as one over the square root of the gain: 100 times more gain crosses it 10 times sooner. Rod phototransduction is a high-gain GPCR cascade whose dim-flash response in mammalian rods peaks within about 100 to 200 ms.
+- **Binding time depends on concentration,** and potency, how much ligand a route needs, is a separate question from speed. In atrial cells the acetylcholine current is half-maximal near 160 nM, the number the film quotes; that is a potency, not a speed ([binding and dose-response](/lessons/binding-and-dose-response/)).
+- **The rule stops at the first output in one cell.** It does not cover desensitization, crosstalk between branches, or what the cell does with the output.
+- **Steroids are not only slow.** Estradiol also has reported rapid actions at the cell surface, which the classical nuclear route does not explain.
+
+## Going deeper
+
+### How the map was drawn: sequences first
+
+Until the 1980s a receptor was known by what it bound and did; a few had been purified, but most sequences were out of reach. In 1982 Shosaku Numa's group in Kyoto read the sequence of one acetylcholine receptor subunit from the messenger RNA of the electric organ of the ray *Torpedo*, a battery of modified muscle cells packed with receptor. It was the first complete sequence for a neurotransmitter receptor. Two years later they read a voltage-gated sodium channel from the electric eel, and receptors and channels could be compared.
+
+The next sequences showed families. In 1982 Ora Rosen's laboratory showed that insulin switches on a tyrosine kinase that travels with its receptor and phosphorylates tyrosines on the receptor itself. Axel Ullrich's group cloned the EGF receptor in 1984, and in 1985 his group and William Rutter's each reported the insulin receptor. The EGF receptor resembled erbB, a viral cancer gene, and the insulin receptor's enzyme part belonged to the same tyrosine kinase family.
+
+By 1958 Elwood Jensen had seen that a rat's uterus and vagina keep radioactive estradiol, unchanged, while other tissues clear it, so something there seemed to catch the hormone. David Toft and Jack Gorski extracted that protein in 1966. In March 1986 Pierre Chambon's laboratory in Strasbourg and Geoffrey Greene's in Chicago reported its sequence within weeks of each other. Both noticed that part of it resembled v-erbA, a viral gene later shown to be derived from a thyroid hormone receptor. The estrogen receptor had relatives.
+
+### Counting receptors
+
+The human genome has about 800 GPCRs, and roughly half detect smells. Robert Lefkowitz and Brian Kobilka shared the 2012 Nobel Prize in Chemistry for working out how these receptors are built and how they work, and a later lesson is theirs. About 1,300 human proteins are estimated to cross the membrane once, many of them receptors; estimates vary with the prediction method and the definition. Humans have 58 receptor tyrosine kinases and 48 nuclear receptors.
+
+### How a ligand brings kinase domains together
+
+Families differ in how the ligand puts two inner kinase parts side by side. Many growth factors are dimeric, built from two halves, and many of their receptors were long thought to sit in the membrane as single chains. A dimeric ligand such as NGF can hold two receptor chains at once. A single-chain ligand such as EGF binds one receptor and changes the shape of its ectodomain, exposing a surface that grips a second receptor. Either way, two kinase domains end up side by side, and in many receptor tyrosine kinases they then phosphorylate each other. In the EGF receptor, one kinase domain first switches on its partner by contact, much as a cyclin switches on its kinase, and the receptor tails are phosphorylated after that. The insulin receptor starts out as a pair, and insulin changes how its two halves sit against each other, which has the same effect. How much receptor tyrosine kinase activation comes from ligand-induced pairing and how much from a shape change within a pair that already exists is still open, and the answer may differ between family members.
+
+Other families differ in the details. Several cytokine receptors, such as the EPO and growth-hormone receptors, were long described as pre-formed pairs that the ligand reorients; single-molecule work suggests that at normal receptor levels they may instead be single chains that the ligand brings together, and the question is still debated. Death receptors such as Fas and the TNF receptor are engaged by trimeric ligands and work as trimers and larger clusters. In the TGF-beta receptors, the ligand assembles type II and type I receptors, and the type II kinase, active on its own, phosphorylates the type I receptor, not each on each ([TGF-β and Smads](/lessons/tgf-beta-and-smads/)).
+
+### Other routes across, and nuclear receptors before the hormone
+
+Some receptors use none of the three moves across the membrane. Notch is cut by enzymes when its ligand binds, and the freed inner piece travels to the nucleus itself, so the receptor becomes its own messenger ([Notch](/lessons/notch-signaling/)).
+
+Nuclear receptors do not all wait for the hormone in the same place. The glucocorticoid receptor waits in the cytoplasm, held by chaperones, until hormone binds. Thyroid hormone and retinoic acid receptors sit on DNA even without their ligand, bound to corepressors, and the hormone swaps those for coactivators. Thyroid hormone also needs transporters, such as MCT8, to cross the membrane. [Nuclear receptors](/lessons/nuclear-receptors/) covers the family.

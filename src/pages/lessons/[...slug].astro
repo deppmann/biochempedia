@@ -31,6 +31,8 @@ import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../dat
 import { SETS as MCAT_SETS } from '../../lib/mcat';
 import { metaDescription } from '../../lib/meta';
 import { lessonMinutes } from '../../lib/reading-time';
+import { skimOf } from '../../lib/skim';
+import { rewrittenFor } from '../../lib/rewritten';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -77,6 +79,13 @@ const DECKS = import.meta.glob<{ default: Deck }>('../../data/flashcards/*.json'
 const deck = Object.values(DECKS).map((m) => m.default).find((d) => d.slug === entry.data.slug && d.cards?.length);
 const lessonFigures = [...(entry.body ?? '').matchAll(/<(?:LessonFigure|ScaffoldFigure)\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
 const course = courseOf(lesson.course);
+// Skim version (2026-11-11): /lessons/<slug>/skim/ shows the headings, figures with their take-home
+// captions and the guiding idea. Linked beside Listen when there is something to skim: a figure or
+// film take-homes. A plain link, so it shows on phones and with JavaScript off (Listen does not).
+const skim = skimOf(entry.body ?? '', headings);
+const hasSkim = skim.figureCount > 0 || [lesson.explainer, ...lesson.films].some((f) => f?.takeaways?.length);
+// "Rewritten on …" under the title, from src/data/recently-rewritten.json (scripts/rewritten-shelf.mjs).
+const rewritten = rewrittenFor(lesson.slug);
 // Method films from the shared library that this lesson teaches or relies on.
 const methods = methodsFor(entry.data.slug);
 const isHighSchool = course.tier === 'highschool';
@@ -167,6 +176,9 @@ const lessonLd = {
         <h1>{lesson.title}</h1>
         {!lesson.draft && <LessonShare slug={lesson.slug} activity={course.tier === 'families'} />}
       </div>
+      {rewritten && (
+        <p class="rewritten-note">Rewritten on <time datetime={rewritten.date}>{rewritten.label}</time>: {rewritten.note}. Your notes and highlights stay, but the text around them may have moved.</p>
+      )}
       {lesson.underReview.length > 0 && (
         <div class="under-review" role="note">
           {/* The notes are in the open (2026-11-09): a reader sees what is being checked without a tap. */}
@@ -181,7 +193,15 @@ const lessonLd = {
       {/* "Continue at…": filled in by the script at the foot of the page from this device's storage,
           when the reader left this lesson part-way. Hidden, and simply absent, without JavaScript. */}
       <p class="resume" data-resume={lesson.slug} hidden><a data-resume-link href="#top">Continue at: <span data-resume-title></span> →</a></p>
-      <ListenPlayer slug={lesson.slug} />
+      <div class="read-row">
+        <ListenPlayer slug={lesson.slug} />
+        {hasSkim && (
+          <a class="skim-link" href={`/lessons/${lesson.slug}/skim/`}>
+            <span aria-hidden="true">≡</span> Skim
+            <span class="skim-link-note">{skim.figureCount > 0 ? `${skim.figureCount} ${skim.figureCount === 1 ? 'figure' : 'figures'} and take-homes` : 'the take-homes'}</span>
+          </a>
+        )}
+      </div>
     </header>
 
     {(lesson.objectives.length > 0 || showSections) && (
@@ -854,6 +874,20 @@ const lessonLd = {
     }
     .summary { max-width: 60ch; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
     .resume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); }
+    /* "Rewritten on" (2026-11-11): a quiet line under the title, not a banner. */
+    .rewritten-note { margin: 0 0 var(--ddp-space-3); max-width: 60ch; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .rewritten-note time { font-weight: 600; color: var(--ddp-color-ink-soft); }
+    /* Listen and Skim side by side; Listen's own margin moves to the row. */
+    .read-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-3); margin: var(--ddp-space-4) 0 0; }
+    .read-row :global(.bp-listen-launch) { margin: 0; }
+    .skim-link {
+      display: inline-flex; align-items: center; gap: 0.45em; min-height: 40px; box-sizing: border-box;
+      font: 600 var(--ddp-text-sm)/1 var(--ddp-font-sans); color: var(--ddp-color-primary);
+      background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: 999px;
+      padding: 0.55em 1.1em; text-decoration: none;
+    }
+    .skim-link:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+    .skim-link-note { font-weight: 400; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
     .resume[hidden] { display: none; }
     .resume a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1em; border: 1.5px solid var(--ddp-color-accent); border-radius: 999px; color: var(--ddp-color-accent); font-weight: 600; text-decoration: none; }
     .resume a:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }

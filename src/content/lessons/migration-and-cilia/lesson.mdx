@@ -5,12 +5,13 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 3: Traffic and movement"
 order: 416
 summary: >-
-  How does a cell built of polymers and motors move itself, or move fluid past itself? This lesson
-  follows a crawling cell through protrusion, adhesion, contraction and release, uses the clutch
+  In a crawling cell and in a beating cilium, polymers and motors make internal motion, and
+  constraints such as adhesion and the links between doublets help shape what visible movement it
+  becomes. This lesson follows a crawling cell through protrusion, adhesion, contraction and release, uses the clutch
   idea to compute how fast a leading edge advances, and then shows how dynein sliding inside a
   cilium becomes a bend. You will be able to predict the cellular phenotype of a broken migration
   or ciliary part.
-hook: "Four men had sperm that could not swim. Three could not clear mucus from their lungs either. One missing part, the dynein arms, explained both."
+hook: "Four men had sperm that could not swim, and three could not clear mucus from their lungs. How could one missing part explain both?"
 
 estMinutes: 24
 objectives:
@@ -33,6 +34,22 @@ explainer:
     - "In motile axonemes, dynein motors slide neighbouring doublets."
     - "In motile axonemes, links that resist sliding, with base anchoring, turn sliding into bending."
     - "In these two systems, constraints and motor control shape the visible output of internal motion."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/migration-and-cilia/chapter-2.mp4"
+    captions: "/explainers/migration-and-cilia/chapter-2.vtt"
+    poster: "/explainers/migration-and-cilia/chapter-2-poster.jpg"
+    title: "Reading a Broken Machine"
+    durationSec: 174.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "After brief trypsin treatment, sperm axonemes given ATP slid apart instead of beating."
+      - "Afzelius's four patients had immotile sperm; three had no detectable mucociliary transport."
+      - "Sperm tails and airway cilia share a basic axoneme, though some dynein parts differ."
+      - "One mutation can stop cilia in one tissue and only disturb the beat in another."
+      - "Neutrophils without a working β2-family integrin largely fail to leave the blood."
 
 scientists:
   - name: "Ian Gibbons"
@@ -350,14 +367,17 @@ draft: false
 
 import LamellipodiumClutch from '../../../components/LamellipodiumClutch.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-The film showed the simple cases: integrin coupling can reduce rearward actin flow, and resisted dynein-driven sliding can bend an axoneme. This page tests the edge-speed balance, adds whole-cell crawling, then uses the axoneme idea to interpret an experiment and predict defects.
+The first film built both machines in their simplest form. It left out the numbers, the rest of a crawling cell, and what happens when a part breaks; this page adds them in that order.
 
-The film's picture was the simple case; here is the fuller rule. In these two systems, polymers and motors create internal relative motion, while mechanical constraints and control of which motors are active shape its visible output. The rule does not cover every kind of cell movement; review the underlying [cytoskeletal polymers](/lessons/cytoskeleton-dynamics/) and [molecular motors](/lessons/molecular-motors/).
+> **The one idea to carry through this lesson.** In these two systems, polymers and motors create internal relative motion, while mechanical constraints and control of which motors are active shape its visible output. The first film used the simplest case of each; the sections below give the fuller picture. The rule does not cover every kind of cell movement.
+
+For background, review the underlying [cytoskeletal polymers](/lessons/cytoskeleton-dynamics/) and [molecular motors](/lessons/molecular-motors/).
 
 ## A crawling edge: measure the hidden motion
 
-Start with the film's crawling half, now as a measured velocity balance. Polymerization speed is measured relative to the actin network; retrograde-flow and edge speeds are measured relative to the substrate. Keeping those reference frames separate gives:
+Put numbers on the balance, with polymerization measured against the actin network and retrograde flow and the edge against the substrate:
 
 > **edge speed = polymerization speed − retrograde-flow speed**
 
@@ -374,7 +394,7 @@ Take forward as positive. Edge speed = 40 + (−25) = 15 nm/s. In 120 s the edge
 
 Only the flow value comes from the experiment behind this example. In PtK1 cells—a rat-kangaroo epithelial line—on flexible, fibronectin-coated gels, Gardel and colleagues measured distal actin flow at about 25 nm/s. The 40 nm/s polymerization rate is an illustrative assumption, and the calculation holds both rates constant.
 
-Clusters of integrins and linker proteins form **focal adhesions**, substrate anchors that [the adhesion lesson](/lessons/adhesion-and-ecm/) develops. In the film's analogy, polymerization is the engine and adhesion is the clutch.
+Clusters of integrins and linker proteins form **focal adhesions**, substrate anchors that [the adhesion lesson](/lessons/adhesion-and-ecm/) develops. In the first film's analogy, polymerization is the engine and adhesion is the clutch.
 
 **Predict.** Keep polymerization at 40 nm/s, but let stronger clutch engagement reduce rearward flow from 25 to 10 nm/s. By what factor does the edge's 120-second advance change?
 
@@ -389,7 +409,7 @@ Edge speed becomes 40 − 10 = 30 nm/s. The edge advances 3,600 nm, or 3.6 µm, 
 
 ## From edge advance to whole-cell crawling
 
-The film stopped at edge advance; a whole crawling cell also has to move its body and release its rear.
+The first film stopped at edge advance; a whole crawling cell also has to move its body and release its rear.
 
 The actin-rich lamellipodium is a sheet of cytoplasm a fraction of a micrometre thick. At its front, actin subunits add at **barbed ends**, the fast-growing filament ends, and push the membrane. The **Arp2/3 complex**, a seven-protein assembly, starts a branch from an existing filament. Rac, a small signalling switch, helps activate Arp2/3 there; [integrins and Rho GTPases](/lessons/integrins-and-rho-gtpases/) develops that control. Behind the front, non-muscle myosin II—a two-headed relative of muscle myosin—forms small filaments and contracts actin. In fish keratocytes, evidence supported contraction where the lamellipodium meets the cell body as a driver of body movement.
 
@@ -410,15 +430,19 @@ Rear release. In CHO cells on matrix-coated glass, rear retraction often tore in
 
 </details>
 
+That cell failed because one part worked too well. The second film picks up here: what protease treatment or a missing part reveals, first in a dish and then in the body.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## The axoneme: what the model predicts
 
-The film's second machine now becomes an experimental tool: change the resistance and ask what dynein was doing all along.
+The dish test in the second film disrupted the axoneme's resistance; here is the fuller machine it acted on.
 
-The film's two-doublet picture was the simple case; here is the fuller one. In the classic 9+2 layout, nine outer doublets, each a complete A-tubule fused to an incomplete B-tubule, surround a central pair of single microtubules. The ring grows from a **basal body**, which anchors the axoneme in the cell. Outer and inner rows of dynein arms sit on each A-tubule; their motor heads grip the B-tubule of the next doublet and walk toward its minus end, at the base, so each doublet pushes its neighbour toward the tip. Protein assemblies called **radial spokes** reach toward the central-pair complex and help regulate dynein. Between neighbouring doublets, the **nexin-dynein regulatory complex** links the pair, resists sliding and helps regulate the motors.
+In the classic 9+2 layout, nine outer doublets, each a complete A-tubule fused to an incomplete B-tubule, surround a central pair of single microtubules. The ring grows from a **basal body**, which anchors the axoneme in the cell. Dynein arms sit in outer and inner rows on each A-tubule; their motor heads grip the neighbouring B-tubule and walk toward its minus end, at the base, so each doublet pushes its neighbour toward the tip. Protein assemblies called **radial spokes** reach toward the central-pair complex and help regulate dynein. Between neighbouring doublets, the **nexin-dynein regulatory complex** links the pair, resists sliding and helps regulate the motors.
 
 To feel how resisted shear can make curvature, hold two card strips side by side, joined at one end and tied loosely along their length. Push one strip lengthwise: because the pair cannot freely slide apart, it curves. In the axoneme, interdoublet resistance and base anchoring similarly turn dynein-driven shear into bending, while regulated motor activity helps determine where the bend forms. This is a model, not a full waveform.
 
-Summers and Gibbons tested whether dynein changes doublets' relative positions or shortens microtubules. They briefly applied trypsin, a protein-cutting enzyme, to sea-urchin sperm axonemes, cutting structures that normally limit sliding, then added 0.1 mM ATP. Under dark-field microscopy, groups of doublets slid out of the bundle. Removing the resistance exposed ATP-driven sliding as disintegration rather than bending.
+Summers and Gibbons tested whether dynein changes doublets' relative positions or shortens microtubules. They briefly treated sea-urchin sperm axonemes with trypsin, a protein-cutting enzyme that disrupted structures normally resisting sliding, then added 0.1 mM ATP. Under dark-field microscopy, groups of doublets slid out of the bundle. Disrupting the resistance exposed ATP-driven sliding as disintegration rather than bending.
 
 ### Design problem
 
@@ -441,9 +465,7 @@ Even a single bend needs dyneins on one side to be more active than those on the
 
 ## From a broken part to a cellular phenotype
 
-The film linked a structure to its output; now use that link to predict what a broken part does in a cell or tissue.
-
-In 1976 Björn Afzelius described four men whose sperm could not swim. Three also could not move mucus normally through their airways, and electron microscopy showed that their cilia lacked dynein arms. One missing part disrupted motion in two organs because sperm tails and airway cilia share the same basic internal machine, though some of their dynein parts differ. Airway cilia that do not beat severely impair this **mucociliary transport**; sperm missing dynein arms do not swim. Nodal cilia that do not rotate cannot drive the leftward flow over the mouse node.
+Constraints and motors shape the output, so a broken part changes it. In 1976 Björn Afzelius described four men whose sperm could not swim. Three also had frequent bronchitis and sinusitis and no detectable mucociliary transport, and electron microscopy indicated that their cilia lacked dynein arms. One missing part disrupted motion in two organs because sperm tails and airway cilia share the same basic axoneme, though some of their dynein parts differ. **Mucociliary transport** is the sweep of mucus out of the airways, and airway cilia that do not beat severely impair it. The **node** is a small pit on the early mouse embryo, and nodal cilia that do not rotate cannot drive the leftward flow over it.
 
 **Predict.** Mice lack the kinesin motor KIF3B and therefore have no cilia on the embryonic node. What happens to left-right organ placement?
 
@@ -456,11 +478,11 @@ It becomes randomized because the node cannot make its normal leftward flow. Som
 
 One mutation need not have one effect everywhere. In mice lacking Cfap53, nodal cilia were completely immotile, whereas tracheal and brain-ventricle cilia still beat, abnormally. The instrument matters too: conventional electron microscopy of nasal cilia from patients with DNAH11 mutations looked normal in one study, but electron tomography found reduced outer-arm volume near the base.
 
-Migration defects follow the same logic. Neutrophils without a functional integrin of the β2 family grip the vessel wall poorly and largely fail to leave the blood, so infections are poorly controlled, as in leukocyte adhesion deficiency type I.
+Migration defects follow the same logic. In leukocyte adhesion deficiency type I, neutrophils without functional β2-family integrins grip the vessel wall poorly and largely fail to leave the blood, so infections are poorly controlled.
 
 ## Going deeper
 
-Going deeper adds exceptions and methods beyond the film's simple picture.
+Going deeper adds exceptions and methods.
 
 ### Other ways to migrate
 

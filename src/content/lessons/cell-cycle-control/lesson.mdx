@@ -20,8 +20,8 @@ explainer:
   captions: "/explainers/cell-cycle-control/explainer.vtt"
   poster: "/explainers/cell-cycle-control/poster.jpg"
   title: "One Rise, One Fall"
-  durationSec: 314.6
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  durationSec: 314.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
   takeaways:
     - "In the sea-urchin egg record, cyclin is made steadily and destroyed at every division, making a sawtooth; a CDK is inactive alone and needs a bound cyclin to switch on."
@@ -29,6 +29,22 @@ explainer:
     - "CDK activity rises and falls once per cycle; the rise carries the cell into mitosis."
     - "The APC/C destroys securin and cyclin B, so the sisters separate and activity falls; a destroyed protein must be made again, so the fall runs one way."
     - "Origins are licensed only when activity is low and fire only when it is high, so the genome is copied once per cycle."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/cell-cycle-control/chapter-2.mp4"
+    captions: "/explainers/cell-cycle-control/chapter-2.vtt"
+    poster: "/explainers/cell-cycle-control/chapter-2-poster.jpg"
+    title: "A Snapshot of the Cycle"
+    durationSec: 257.7
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Because the genome is copied once per cycle, a diploid cell holds 2C of DNA in G1 and 4C in G2 and mitosis, with S-phase cells in between."
+      - "Cells stained with propidium iodide and read one at a time in a flow cytometer give a histogram: a 2C peak, a 4C peak and S smeared between."
+      - "DNA content alone cannot tell G0 from G1, or mitosis from G2."
+      - "A short EdU pulse marks cells in S; histone H3 phosphorylation begins in late G2, spreads over condensing mitotic chromosomes and fades during anaphase."
+      - "No single stain marks G0 cleanly."
 
 scientists:
   - name: "Leland Hartwell"
@@ -370,14 +386,15 @@ draft: false
 import CycleFractionsToDurations from '../../../components/CycleFractionsToDurations.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **In the summer of 1982, at Woods Hole, Tim Hunt's group found a protein in dividing sea-urchin eggs that built up through each cell cycle and vanished at every division.**
 
-The film above poses the puzzle: why would a cell destroy its engine's partner, a cyclin, every time it divides? The answer is how a cell makes its cycle run forwards only, and copy its genome exactly once. The text below follows the film's own names (the cyclin sawtooth, the brake, the rise and fall) and adds the evidence, the other cyclin-CDK pairs and the cases the film skips.
+The first film, above, asks why a cell destroys its engine's partner, a cyclin, every time it divides; the answer is how a cell makes its cycle run forwards only, and copy its genome exactly once. The text keeps the film's names (the cyclin sawtooth, the brake, the rise and fall) and adds what it leaves out: the evidence, the other cyclin-CDK pairs and the harder cases.
 
 ## The record: a sawtooth and a snap
 
-The film draws two schematic traces on one time axis, for a cycle with strong brake control, such as the first cycle of a frog embryo or the frog egg extracts met below. The exact waveform depends on organism and stage; later rapid frog cleavage cycles show smoother kinase oscillations.
+The first film draws the simplest case: two schematic traces on one time axis, for a cycle with strong brake control, such as the first cycle of a frog embryo or the frog egg extracts met below. The exact waveform depends on organism and stage; later rapid frog cleavage cycles show smoother kinase oscillations.
 
 - **Cyclin.** A sawtooth: it climbs steadily and drops sharply at each division, because it is destroyed.
 - **Kinase activity.** The activity of the mitotic kinase that cyclin switches on (first measured as an activity called MPF, maturation-promoting factor) does not follow the ramp: it stays low, snaps up just before mitosis, and crashes with cyclin.
@@ -428,11 +445,11 @@ Now the second puzzle: if cyclin B climbs steadily and switches CDK1 on, why doe
 
 The names to hold on to are the brake, Wee1, and its release, Cdc25; the rest is detail.
 
-**The inhibitory phosphate is a brake.** Wee1 keeps phosphorylating new CDK1-cyclin B complexes through G2, as the film shows, so inactive complexes pile up. The phosphatase Cdc25 takes them off (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)).
+**The inhibitory phosphate is a brake.** Wee1 keeps phosphorylating new CDK1-cyclin B complexes through G2, as the first film shows, so inactive complexes pile up. The phosphatase Cdc25 takes them off (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)).
 
 **Inhibitor proteins are a second brake.** In mammals, p21 and p27 bind CDK2 and CDK1 complexes and block them without any chemistry; the structure of p27 lying across cyclin A-CDK2 is in the 3D viewer on this page. (With cyclin D-CDK4/6 they act differently; Going deeper.) One important way to remove an inhibitor is to destroy it. Around G1/S, cyclin E-CDK2 phosphorylates p27, the SCF ubiquitin ligase tags it for the proteasome (Sic1 is the yeast counterpart), and with its brake gone cyclin E-CDK2 switches fully on.
 
-**The release is a switch.** Once a little CDK1 escapes its brake, it phosphorylates Cdc25, making it more active, and Wee1, making it less active. These two positive loops are the snap in the film: each active complex frees more. A switch built this way also has memory: once mitosis starts, a small dip in cyclin will not reverse it ([signaling circuits](/lessons/signaling-circuits/)).
+**The release is a switch.** Once a little CDK1 escapes its brake, it phosphorylates Cdc25, making it more active, and Wee1, making it less active. These two positive loops are the snap in the first film: each active complex frees more. A switch built this way also has memory: once mitosis starts, a small dip in cyclin will not reverse it ([signaling circuits](/lessons/signaling-circuits/)).
 
 **Predict.** A fission-yeast cell is engineered to make much more Cdc25 than normal. When does it divide, and at what size?
 
@@ -466,13 +483,13 @@ They lose the main burst of p21, so the lasting G1 stop fails and many enter S p
 
 ## The fall: destruction makes it one way
 
-Falling activity carries the cell out of mitosis. The G1 and G2 brakes and checkpoints act on the rise, and the spindle checkpoint holds back the fall. Each is a pause: a phosphate can be removed, an inhibitor let go, a checkpoint silenced. The way down is different, and it answers the third puzzle; the film shows it as one enzyme tagging two proteins. Two ubiquitin ligases tag regulators for destruction by the proteasome ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)): the SCF, met above, and the APC/C, which acts from mitosis through G1. Once kinetochore checkpoint signaling has been silenced, the APC/C with Cdc20 tags securin and cyclin B. Losing securin frees separase, the enzyme that cuts cohesin, the protein ring holding sister chromatids together, so the sisters separate (in vertebrates, losing cyclin B also lifts CDK1's own block on separase). Losing cyclin B drops CDK1 activity, phosphatases strip the mitotic phosphates, and the cell leaves mitosis. Then the APC/C with Cdh1 keeps mitotic cyclins low through G1, so activity starts the next cycle from the bottom.
+Falling activity carries the cell out of mitosis. The G1 and G2 brakes and checkpoints act on the rise, and the spindle checkpoint holds back the fall. Each is a pause: a phosphate can be removed, an inhibitor let go, a checkpoint silenced. The way down is different, and it answers the third puzzle; the first film shows it as one enzyme tagging two proteins. Two ubiquitin ligases tag regulators for destruction by the proteasome ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)): the SCF, met above, and the APC/C, which acts from mitosis through G1. Once kinetochore checkpoint signaling has been silenced, the APC/C with Cdc20 tags securin and cyclin B. Losing securin frees separase, the enzyme that cuts cohesin, the protein ring holding sister chromatids together, so the sisters separate (in vertebrates, losing cyclin B also lifts CDK1's own block on separase). Losing cyclin B drops CDK1 activity, phosphatases strip the mitotic phosphates, and the cell leaves mitosis. Then the APC/C with Cdh1 keeps mitotic cyclins low through G1, so activity starts the next cycle from the bottom.
 
 <LessonFigure src="/figures/cell-cycle-control/apcc-two-targets.webp" width={1200} height={676} alt="AI-generated illustration: three steps. First, a metaphase cell with every chromosome attached to the spindle. Second, the APC/C with Cdc20 adding ubiquitin chains to two targets, securin bound to separase and cyclin B bound to CDK1. Third, freed separase cuts the cohesin ring so sister chromatids separate, and cyclin B is broken down in the proteasome, leaving CDK1 inactive." caption="Once the spindle checkpoint is silenced, the APC/C with Cdc20 tags two targets: securin, so separase cuts cohesin and the sisters separate, and cyclin B, so CDK1 activity falls and the cell leaves mitosis. A destroyed protein has to be made again, which helps make the step run one way." />
 
-As the film says, a destroyed protein has to be made again. Destruction, together with feedback switches, is a main reason the cycle's big transitions run one way (at G1/S the Rb-E2F switch adds its own memory). Destroying a brake drives the cycle forward; destroying cyclin resets it.
+As the first film says, a destroyed protein has to be made again. Destruction, together with feedback switches, is a main reason the cycle's big transitions run one way (at G1/S the Rb-E2F switch adds its own memory). Destroying a brake drives the cycle forward; destroying cyclin resets it.
 
-The film's frog egg extract test shows that a cyclin that cannot be destroyed holds the extract in mitosis. A second test asks whether low activity alone would do.
+The first film's frog egg extract test shows that a cyclin that cannot be destroyed holds the extract in mitosis. A second test asks whether low activity alone would do.
 
 **Predict.** Vertebrate cells in mitosis are blocked from destroying cyclin B. A drug that inhibits CDK1 is added briefly, and they start to leave mitosis. Then the drug is washed out. What happens?
 
@@ -485,7 +502,7 @@ They go back toward mitosis. Cyclin B was never destroyed, so once the drug was 
 
 ## Copy once: low activity licenses, high activity fires
 
-Before an origin of replication can fire, it must be **licensed**: loaded with the helicase that will later unwind the DNA there. Licensing needs low CDK activity; firing a licensed origin needs S-phase CDK activity, together with a second kinase, DDK. High CDK activity from S phase to mitosis also blocks relicensing in yeast, and contributes in animal cells, which add further locks, such as the protein geminin and destruction of the licensing protein Cdt1 (the details belong to [DNA replication](/lessons/dna-replication/)). So, as the film shows, an origin can fire at most once per cycle; many licensed origins never fire and are copied by forks from their neighbours. In an ordinary cycle the way back to low activity, and to new licences, is through mitosis, where cyclin is destroyed. The prediction below shows another way.
+Before an origin of replication can fire, it must be **licensed**: loaded with the helicase that will later unwind the DNA there. Licensing needs low CDK activity; firing a licensed origin needs S-phase CDK activity, together with a second kinase, DDK. High CDK activity from S phase to mitosis also blocks relicensing in yeast, and contributes in animal cells, which add further locks, such as the protein geminin and destruction of the licensing protein Cdt1 (the details belong to [DNA replication](/lessons/dna-replication/)). So, as the first film shows, an origin can fire at most once per cycle; many licensed origins never fire and are copied by forks from their neighbours. In an ordinary cycle the way back to low activity, and to new licences, is through mitosis, where cyclin is destroyed. The prediction below shows another way.
 
 <LessonFigure src="/figures/cell-cycle-control/licensing-low-vs-high.webp" width={1200} height={800} alt="AI-generated illustration: two panels. Left, under low CDK activity in G1, helicase rings are loaded onto replication origins along a DNA strand. Right, under high CDK activity from S to M, two origins have fired and opened replication bubbles, a third licensed origin is passed over by a neighbouring fork, and no new helicase can be loaded." caption="Licensing needs low CDK activity and firing needs high activity, so an origin can fire at most once per cycle; new licences wait until activity falls again, normally at the exit from mitosis." />
 
@@ -494,7 +511,7 @@ Before an origin of replication can fire, it must be **licensed**: loaded with t
 <details>
 <summary>Check your prediction</summary>
 
-They copy it again, as the film shows: repeated S phases without dividing. Cells that overproduce the CDK inhibitor Rum1 do the same (Hayles and colleagues, 1994; Moreno and Nurse, 1994). Some normal cells use this on purpose: endocycles are the natural version.
+They copy it again, as the first film shows: repeated S phases without dividing. Cells that overproduce the CDK inhibitor Rum1 do the same (Hayles and colleagues, 1994; Moreno and Nurse, 1994). Some normal cells use this on purpose: endocycles are the natural version.
 
 </details>
 
@@ -509,7 +526,7 @@ Using cell fusion, design experiments to ask whether S-phase cytoplasm can drive
 <details>
 <summary>One way to do it</summary>
 
-Synchronise cultured mammalian cells in G1, S and G2 and confirm each population by DNA content (2C or 4C, explained under Measuring the states below), using a mitotic marker such as phosphorylated histone H3 to show that the 4C cells are in G2 and not M. Pre-label one partner before fusing, for example with a nuclear dye or a long label in the S cells, so that every nucleus in a fused cell can be identified.
+Synchronise cultured mammalian cells in G1, S and G2 and confirm each population by DNA content (2C or 4C, where 1C is the DNA of one haploid genome; see Measuring the states below), using a mitotic marker such as phosphorylated histone H3 to show that the 4C cells are in G2 and not M. Pre-label one partner before fusing, for example with a nuclear dye or a long label in the S cells, so that every nucleus in a fused cell can be identified.
 
 Fuse S with G1, and S with G2. Give a short pulse of a DNA precursor (radioactive thymidine or EdU) and score each nucleus separately. Expected result, as in Rao and Johnson's 1970 work: G1 nuclei start replicating early, G2 nuclei do not.
 
@@ -529,11 +546,15 @@ One idea from the yeast work is still how mutants are read. In 1970 Leland Hartw
 
 Their key idea was to separate two times. Picture a car that must fill up at one station on every lap. If the station closes just after the car has filled up, it finishes this lap and stalls on the next; if it closes just before, the car stalls later on this lap, well past the station. The station is the **execution point**: the last time in the cycle the gene's function is needed. Where the car stalls is the **termination point**, or arrest point: where cells collect when the function fails. Shift a growing culture to the restrictive temperature and follow single cells: the fraction that finishes this cycle tells you where the execution point lies.
 
+Reading a population needs one more tool: telling, in one frozen moment, which phase each cell is in. The first film connected the activity cycle to one round of replication, so DNA amount constrains the phase without identifying it exactly. The second film picks up here: how a frozen dish of cells is classified with added markers.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Measuring the states
 
 The first measurement is DNA content. One C is the DNA of one haploid genome, so a diploid cell has 2C in G1 and 4C in G2 and M. Doubling the DNA does not double the ploidy: a G2 cell is still diploid, with each chromosome made of two sister chromatids. To read DNA content, fix the cells and stain them with propidium iodide, a dye that fluoresces when bound to nucleic acid, plus RNase, because the dye also binds RNA. A flow cytometer measures each cell's fluorescence one at a time and builds a histogram: a 2C peak, a 4C peak, and S-phase cells smeared between.
 
-The histogram has two blind spots. G0 cells sit in the 2C peak with G1, and mitotic cells sit in the 4C peak with G2. Two more stains help. EdU, a thymidine analogue, is built into DNA made during a short pulse and is then detected by click chemistry with a fluorescent tag, so it marks cells in S and separates them from the edges of the 2C and 4C peaks, where early and late S cells blur into G1 and G2. An antibody to histone H3 phosphorylated on serine 10 marks condensing mitotic chromosomes. It is close to a mitotic marker but not exact: the mark begins in late G2 and is removed from anaphase on. G0 is harder, and no single stain marks it cleanly (see Going deeper).
+The histogram has two blind spots. G0 cells sit in the 2C peak with G1, and mitotic cells sit in the 4C peak with G2. Two more stains help. EdU, a thymidine analogue, is built into DNA made during a short pulse and is then detected by click chemistry with a fluorescent tag, so it marks cells in S and separates them from the edges of the 2C and 4C peaks, where early and late S cells blur into G1 and G2. An antibody to histone H3 phosphorylated on serine 10 marks condensing mitotic chromosomes. It is close to a mitotic marker but not exact: the mark begins in late G2, spreads across chromosomes as they condense and fades during anaphase. G0 is harder, and no single stain marks it cleanly (see Going deeper).
 
 <LessonFigure src="/figures/cell-cycle-control/which-stain-sees-which-state.webp" width={1200} height={456} alt="AI-generated illustration: five round cells in a row labelled G0, G1, S, G2 and M. A bracket under G0 and G1 reads 'both 2C' and a bracket under G2 and M reads 'both 4C'. A callout 'EdU marks S' points to gold glow on the DNA strands of the S cell, and a callout 'Phospho-H3 marks M' points to the gold-outlined X-shaped chromosomes of the M cell." caption="DNA content alone cannot separate G0 from G1 or mitosis from G2. A short EdU pulse marks cells in S, and phosphorylated histone H3 marks condensed mitotic chromosomes." />
 

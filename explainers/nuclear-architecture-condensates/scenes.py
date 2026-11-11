@@ -115,8 +115,8 @@ def dna_under_sites(c=RIGHT_C):
 
 
 def dial(value=.30):
-    centre = np.array([0, 2.65, 0])
-    arc = Arc(radius=.72, start_angle=PI, angle=-PI, color=GREY, stroke_width=5).move_to(centre)
+    centre = np.array([0, 2.30, 0])
+    arc = Arc(radius=.72, start_angle=PI, angle=-PI, color=GREY, stroke_width=5, arc_center=centre)
     ticks = VGroup(*[Line(centre + [(.62) * np.cos(PI-a), (.62) * np.sin(PI-a), 0],
                               centre + [(.76) * np.cos(PI-a), (.76) * np.sin(PI-a), 0],
                               color=GREY, stroke_width=3) for a in np.linspace(0, PI, 7)])
@@ -124,7 +124,7 @@ def dial(value=.30):
     needle = Line(centre, centre + [.58*np.cos(angle), .58*np.sin(angle), 0],
                   color=TEXT, stroke_width=5)
     hub = Dot(centre, radius=.08, color=TEXT)
-    label = T("total protein", 28).next_to(arc, UP, buff=.12)
+    label = T("total protein", 28).next_to(arc, UP, buff=.22)
     return VGroup(arc, ticks, needle, hub, label)
 
 
@@ -160,7 +160,7 @@ class S00Hook(SpokenScene, TitleCard):
 
     def construct(self):
         outlines, dots, gs, _, schematic = base_world(labels=False)
-        seen = T("what the microscope sees", 30).move_to([0, 3.2, 0])
+        seen = T("what the microscope sees", 30).move_to([0, 3.5, 0])
         q = T("?", 62, weight=BOLD).move_to([0, .15, 0])
         self.play(Create(outlines), FadeIn(dots), FadeIn(gs), FadeIn(seen),
                   FadeIn(q), FadeIn(schematic), run_time=.9)
@@ -182,11 +182,11 @@ class S00Hook(SpokenScene, TitleCard):
 
 class S01Title(NarratedScene):
     def construct(self):
-        outlines, dots, gs, labs, schematic = base_world()
-        title = T("Bigger or Brighter?", 52, font=TITLE_FONT)
+        outlines, dots, gs, labs, schematic = base_world(labels=False)
+        title = T("Bigger or Brighter?", 52, font=TITLE_FONT).move_to([0, 2.7, 0])
         shade = Rectangle(width=10.8, height=1.25, stroke_width=0,
                           fill_color=BG, fill_opacity=.82).move_to([0, 2.7, 0])
-        self.add(outlines, dots, gs, labs, schematic)
+        self.add(outlines, dots, gs, schematic)
         self.play(FadeIn(shade), Write(title), run_time=.7)
         self.play(gs.animate.set_opacity(.72), rate_func=there_and_back, run_time=.9)
         self.finish()
@@ -319,7 +319,7 @@ class S06Droplets(SpokenScene):
         self.play(FadeOut(q), FadeIn(labs), FadeIn(d),
                   gauges[1].animate.set_opacity(.35), gs[1].animate.set_opacity(.35), run_time=.5)
         self.at("needle holds still")
-        sat = T("saturation", 28, YELLOW).next_to(gauges[0][0], UP, buff=.10)
+        sat = T("saturation", 26, YELLOW).move_to([-.1,-2.48,0])
         tick = Line(DOWN*.28,UP*.28,color=YELLOW,stroke_width=6).move_to(gauges[0][2])
         self.play(FadeIn(tick), FadeIn(sat), run_time=.5)
         self.at("salt water")
@@ -340,14 +340,14 @@ class S06Droplets(SpokenScene):
         self.at("At equilibrium")
         self.play(FadeOut(VGroup(beaker,water,grains,pile,blab)),FadeIn(world),run_time=.55)
         self.at("saturation concentration")
-        fullsat=T("saturation concentration",28,YELLOW).move_to([-3.35,-1.92,0])
+        fullsat=VGroup(T("saturation",26,YELLOW),T("concentration",26,YELLOW)).arrange(DOWN,buff=.06).move_to([-.1,-2.48,0])
         self.play(Transform(sat,fullsat),run_time=.5)
         self.at("The extra builds")
         old=droplet_set(); new=droplet_set(radii=(.50,.47,.48,.46,.49))
         self.play(FadeOut(gs[0]),FadeIn(old),Transform(old,new),
                   Transform(d[2],dial(.60)[2]),run_time=1.8)
         self.at("denser phase")
-        dense=T("dense phase",30,TEAL).move_to([0,.15,0])
+        dense=T("dense\nphase",28,TEAL).move_to([0,.15,0])
         self.play(FadeIn(dense),run_time=.4)
         self.at("take up more room")
         self.play(FadeOut(dense),old.animate.scale(1.04),rate_func=there_and_back,run_time=.8)
@@ -370,22 +370,22 @@ class S07Sites(SpokenScene):
         high=gauge(3.35,.72)
         self.play(Transform(gauges[1],high),Transform(d[2],dial(.60)[2]),run_time=1.25)
         self.at("parking spaces")
-        lot=RoundedRectangle(width=2.35,height=1.35,corner_radius=.12,stroke_color=GREY,
-                             fill_color=BG,fill_opacity=.94).move_to([5.1,1.55,0])
-        spaces=VGroup(*[Rectangle(width=.42,height=.48,stroke_color=ORANGE,stroke_width=2)
-                        for _ in range(8)]).arrange_in_grid(2,4,buff=.1).move_to(lot)
-        cars=VGroup(*[RoundedRectangle(width=.27,height=.18,corner_radius=.06,
+        lot=RoundedRectangle(width=1.6,height=1.2,corner_radius=.12,stroke_color=GREY,
+                             fill_color=BG,fill_opacity=.94).move_to([0,.2,0])
+        spaces=VGroup(*[Rectangle(width=.30,height=.44,stroke_color=ORANGE,stroke_width=2)
+                        for _ in range(8)]).arrange_in_grid(2,4,buff=.05).move_to(lot)
+        cars=VGroup(*[RoundedRectangle(width=.20,height=.14,corner_radius=.05,
                                        stroke_width=0,fill_color=BLUE,fill_opacity=.9).move_to(spaces[i]) for i in range(3)])
-        plab=T("parking spaces",28).next_to(lot,UP,.10)
+        plab=T("parking\nspaces",26).next_to(lot,UP,.12)
         self.play(FadeOut(labs[1]),FadeIn(lot),Create(spaces),FadeIn(cars),FadeIn(plab),run_time=.8)
         self.at("plenty still free")
         self.play(cars.animate.shift(RIGHT*.05),rate_func=there_and_back,run_time=.7)
         self.at("Some protein is parked")
-        morecars=VGroup(*[RoundedRectangle(width=.27,height=.18,corner_radius=.06,
+        morecars=VGroup(*[RoundedRectangle(width=.20,height=.14,corner_radius=.05,
                                            stroke_width=0,fill_color=BLUE,fill_opacity=.9).move_to(spaces[i]) for i in range(3,6)])
         self.play(FadeIn(morecars,shift=LEFT*.25),run_time=.7)
         self.at("outside rises")
-        road=Arrow([4.0,.55,0],[6.15,.55,0],buff=0,color=BLUE,stroke_width=4)
+        road=Arrow([0,-.5,0],[0,-1.6,0],buff=0,color=BLUE,stroke_width=4)
         car=RoundedRectangle(width=.3,height=.19,corner_radius=.06,stroke_width=0,fill_color=BLUE,fill_opacity=.9).move_to(road.get_start())
         self.play(GrowArrow(road),car.animate.move_to(road.get_end()),run_time=1.0)
         self.at("spots fill in")
@@ -414,7 +414,7 @@ class S08Hold(NarratedScene):
 
 def small_world():
     scale=.62; shift=1.35
-    lc=LEFT_C*scale+UP*shift; rc=RIGHT_C*scale+UP*shift; r=NUC_R*scale
+    lc=np.array([-2.4,shift,0.0]); rc=np.array([2.4,shift,0.0]); r=NUC_R*scale
     outlines=VGroup(nucleus(lc,r),nucleus(rc,r))
     dots=VGroup(protein_field(lc,36,11,r),protein_field(rc,36,17,r))
     drops=droplet_set(lc,(.45,.42,.44,.41,.43),scale)
@@ -438,7 +438,7 @@ def graph_axes(cx):
 class S09KeepTurning(SpokenScene):
     def construct(self):
         lc,rc,outlines,dots,drops,sites,labs=small_world()
-        lo,lw,lh,lax=graph_axes(-3.35); ro,rw,rh,rax=graph_axes(3.35)
+        lo,lw,lh,lax=graph_axes(-3.6); ro,rw,rh,rax=graph_axes(3.6)
         self.add(outlines,dots,drops,sites,labs)
         self.play(FadeIn(lax),FadeIn(rax),run_time=.8)
         self.at("Keep turning")
@@ -493,7 +493,7 @@ class S09KeepTurning(SpokenScene):
 class S10Rule(SpokenScene):
     def construct(self):
         lc,rc,outlines,dots,drops,sites,labs=small_world()
-        lo,lw,lh,lax=graph_axes(-3.35); ro,rw,rh,rax=graph_axes(3.35)
+        lo,lw,lh,lax=graph_axes(-3.6); ro,rw,rh,rax=graph_axes(3.6)
         lcurve=VMobject(stroke_color=TEAL,stroke_width=6).set_points_as_corners([lo,lo+[lw*.1,lh*.1,0],lo+[lw,lh*.1,0]])
         totals=np.linspace(0,10,60); outs=[]
         for total in totals:
@@ -509,7 +509,7 @@ class S10Rule(SpokenScene):
             y = max(float(x.real) for x in roots if abs(x.imag)<1e-8 and x.real>=0)
             return Line(ro+[rw*f,0,0],ro+[rw*f,rh*y/10,0],color=ORANGE,stroke_width=7)
         self.at("here is the test")
-        q_text=T("Where\ndoes\nthe extra\ngo?",28,weight=BOLD,line_spacing=.72)
+        q_text=T("Where\ndoes\nthe\nextra\ngo?",28,weight=BOLD,line_spacing=.72)
         q_back=RoundedRectangle(width=q_text.width+.28,height=q_text.height+.28,
                                 corner_radius=.08,stroke_width=0,
                                 fill_color=BG,fill_opacity=1)
@@ -568,5 +568,5 @@ class S11Scope(SpokenScene):
 
 
 class S12End(EndCard):
-    LINE = "Where extra protein goes is a clue to how a spot formed."
+    LINE = "Add protein and watch: droplets grow bigger, sites glow brighter."
 

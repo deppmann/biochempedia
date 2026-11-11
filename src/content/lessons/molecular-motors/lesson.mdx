@@ -35,6 +35,22 @@ explainer:
   narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
 
+films:
+  - id: "chapter-2"
+    src: "/explainers/molecular-motors/chapter-2.mp4"
+    captions: "/explainers/molecular-motors/chapter-2.vtt"
+    poster: "/explainers/molecular-motors/chapter-2-poster.jpg"
+    title: "Turning Motion Into a Measurement"
+    durationSec: 211.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "In a gliding assay, fixed motors drive a loose filament opposite to their walking direction."
+      - "Marking the filament ends lets its leading end reveal motor direction."
+      - "A bead carried by one motor can reveal discrete steps in its position record."
+      - "In an optical trap, calibrated bead displacement reports force."
+      - "Motor numbers should be compared only under matched ATP and loading conditions."
+
 scientists:
   - name: "Jean Hanson"
     dates: "1919–1973"
@@ -377,21 +393,20 @@ draft: false
 
 import KinesinTrapReader from '../../../components/KinesinTrapReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A protein made in the cell body of a motor neuron may have to reach a synapse up to a metre away. If it diffused there, the trip would take centuries.**
+The first film followed the walk itself; what it leaves open is how motor families, measurements and teams fit together.
 
-Diffusion time grows with the square of the distance, t ≈ x²/2D. Even a small protein like GFP (D ≈ 25 µm²/s in cytoplasm) would need about 600 years for one metre, and larger cargo diffuses more slowly still. So cells load cargo onto **motor proteins**, enzymes that turn ATP hydrolysis into steps along actin filaments or microtubules. A kinesin that never let go, walking at 800 nm/s (the worked problem's speed), would cover the metre in about two weeks. The same machines pull chromosomes apart and contract muscle.
-
-Here is the puzzle. A single kinesin molecule, carried on a bead on a microtubule in a dish, moves in jumps of 8 nanometres. At low load it spends one ATP per jump, and it takes about 100 jumps, under a micrometre, before it lets go. How does cargo cross a metre on a motor that falls off so soon?
+> **The one idea to carry through this lesson.** A motor is a set of feet on a polar track, and each foot runs one ATP-driven cycle: **grip the track, swing while gripping, let go, re-cock.** Three things follow. (1) The direction of the swing sets which way the motor goes; its reach, together with the spacing of binding sites on the track, sets the step size. (2) If one foot is *always* gripping, one molecule can walk alone (kinesin-1, myosin V). If its feet spend most of the cycle off the track, it has to work in a crowd (muscle myosin II). (3) One step's work cannot exceed the energy of one ATP, so **force × step is at most about 80–100 pN·nm** (piconewton-nanometres, a unit of work).
 
 ## Tracks with a direction, and three families of walkers
+
+The first film used the simplest case; here is the fuller picture.
 
 A motor needs a track, and the cell has two: actin filaments and microtubules, the polymers built in [the lesson on cytoskeletal dynamics](/lessons/cytoskeleton-dynamics/). Both are **polar**: their two ends differ, because every subunit in the filament faces the same way.
 
 - An **actin filament** has a **barbed end**, also called the plus end, and a **pointed end**, the minus end. The names come from how the filament looks when it is decorated with myosin heads, which tilt like arrowheads.
-- A **microtubule** has a **plus end**, which grows faster and in most animal cells points out toward the cell edge, and a **minus end**, which usually sits near the centrosome at the cell's centre. In an axon, nearly every microtubule has its plus end pointing away from the cell body.
-
-Think of a track as a street whose house numbers rise in one direction. The street has a direction, but it does not decide which way a walker goes: two walkers can head opposite ways down it, and that is exactly what happens on a microtubule.
+- A **microtubule** has a **plus end**, which grows faster and in most animal cells points out toward the cell edge, and a **minus end**, which usually sits near the centrosome, the cell's main microtubule-organizing centre. In an axon, nearly every microtubule has its plus end pointing away from the cell body.
 
 | Family | Track | Usual direction | An exception you will meet | A job |
 |---|---|---|---|---|
@@ -401,15 +416,11 @@ Think of a track as a street whose house numbers rise in one direction. The stre
 
 In a nerve cell, kinesin-1 carries new cargo out to the axon tip, and dynein brings signals from the tip back to the cell body ([the retrograde signal](/lessons/retrograde-signal/), [long-distance signaling in neurons](/lessons/long-distance-signaling-in-neurons/)).
 
-Direction belongs to the motor, and ncd breaks even the family pattern; a later section shows where direction comes from.
-
-> **The one idea to carry through this lesson.** A motor is a set of feet on a polar track, and each foot runs one ATP-driven cycle: **grip the track, swing while gripping, let go, re-cock.** Three things follow. (1) The direction of the swing sets which way the motor goes; its reach, together with the spacing of binding sites on the track, sets the step size. (2) If one foot is *always* gripping, one molecule can walk alone (kinesin-1, myosin V). If its feet spend most of the cycle off the track, it has to work in a crowd (muscle myosin II). (3) One step's work cannot exceed the energy of one ATP, so **force × step is at most about 80–100 pN·nm**.
-
-What the rule covers: single motors in vitro, at low load unless a load is stated, and point (3) assumes one ATP per step, shown for kinesin at low load. It says each foot lets go once per cycle, not what causes the release (ATP binding in myosin; in kinesin, a later step after the ATP is split). Dynein fits only loosely, and direction is still measured motor by motor.
+Direction belongs to the motor, and ncd breaks even the family pattern; a later section tests where direction comes from. The rule applies to single motors **in vitro**, outside the cell, at low load unless a load is stated, and its energy limit assumes one ATP per step, as shown for kinesin at low load. It says each foot lets go once per cycle, not what causes the release (ATP binding in myosin; in kinesin, a later step after the ATP is split). Dynein fits only loosely, and direction is still measured motor by motor.
 
 ## One cycle, seen in one myosin head
 
-The cycle is clearest in one head of muscle myosin II, reaching from a thick filament to a thin filament of actin. Behind the head is a stiff neck, the **lever arm**, which is the part that swings.
+The four verbs hide chemical details. In muscle myosin II, one head reaches from a thick filament to a thin actin filament; its stiff neck is the swinging **lever arm**.
 
 1. **Grip.** Start with a cocked head that has just split an ATP and still carries the ADP and phosphate. It binds actin.
 2. **Swing.** The lever arm swings as phosphate leaves. This is the **power stroke**, and it pulls the thin filament toward the middle of the sarcomere, the repeating unit of muscle. ADP then leaves, and the head stays tightly bound.
@@ -431,9 +442,9 @@ Stuck to actin. ATP binding is the step that lets go, so with no ATP the heads f
 
 ## Walking alone versus working in a crowd
 
-Now give a motor two feet. Kinesin-1 has two identical heads joined by a long coiled-coil stalk, whose tail and light chains hold the cargo. Each head binds one αβ-tubulin dimer, and these binding sites sit 8 nm apart along a protofilament. The film above shows the walk, **hand over hand**: the front head, still gripping, swings its neck linker forward and tips the free head past it. The cargo, at the motor's "hips" in the film's walking picture, moves **8 nm** per step; the stepping head moves about **16 nm** (a dye on one head, tracked in a 2004 imaging study, moved about 17).
+Kinesin-1's two identical heads join through a long coiled-coil stalk, a rope-like protein shaft whose tail and small partner proteins called light chains hold cargo. Each head binds one αβ-tubulin dimer, a paired tubulin building block, along a protofilament, one lengthwise row of the microtubule; binding sites sit 8 nm apart. The first film showed the walk, **hand over hand**: the front head, still gripping, swings its neck linker forward and tips the free head past it. The cargo, at the motor's "hips" in the film's walking picture, moves **8 nm** per step; the stepping head moves about **16 nm** (a dye on one head, tracked in a 2004 imaging study, moved about 17).
 
-Because **one head is nearly always holding on**, a single kinesin can take about 100 steps in a row without falling off: it is **processive**. ("Each head waits for the other" simplifies a coordination called gating; see Going deeper, "Why the two heads must take turns".) Myosin V walks the same way along actin, with a much longer stride of about 36 nm.
+Because **one head is nearly always holding on**, a single kinesin can take about 100 steps in a row, under a micrometre in all, without falling off: it is **processive**. Its turn-taking is a coordination called gating (see Going deeper, "Why the two heads must take turns"). Unlike myosin, kinesin releases a head later in its cycle, after ATP is split. Myosin V also walks hand over hand along actin, with a much longer stride of about 36 nm.
 
 **Predict.** Muscle myosin II also has two heads. Could one myosin II molecule carry a vesicle along actin?
 
@@ -444,13 +455,15 @@ No. Each head spends most of its cycle off actin, and the two heads largely act 
 
 </details>
 
-Back to the opening puzzle. Cargo in a cell often carries more than one motor, so while one kinesin has let go another can still be bound, and a motor that lets go can rebind. How much each contributes in cells is still being worked out.
+Back to the first film's metre-long axon. Cargo in a cell often carries more than one motor, so while one kinesin has let go another can still be bound, and a motor that lets go can rebind. How much each contributes in cells is still being worked out.
+
+The second film picks up here: it turns the invisible walk into measurements of direction, steps and force.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## How we know: gliding assays and optical traps
 
-Most numbers so far came from experiments on purified proteins, chiefly the two below.
-
-The **gliding assay** turns the experiment upside down. Stick motors by their tails to a coverslip, add fluorescent filaments and ATP, and watch with a fluorescence microscope ([microscopy lesson](/lessons/microscopy-and-images/)). Movement needs ATP.
+Most numbers so far came from experiments on purified proteins, chiefly the two in the second film. The **gliding assay** turns the experiment upside down: stick motors by their tails to a coverslip, add fluorescent filaments and ATP, and watch with a fluorescence microscope ([microscopy lesson](/lessons/microscopy-and-images/)). Movement needs ATP, a control the film did not show. The page now adds a polarity test, the trap numbers and the energy calculation.
 
 **Predict.** Kinesin-1 walks toward the plus end. Fix many kinesins by their tails to glass and add a microtubule with ATP. Which end of the microtubule leads? (Think of walking on a loose rug: your feet push backward on it, so if you could not move, the rug would slide the opposite way to your walking.)
 
@@ -467,9 +480,7 @@ Gliding usually measures many motors at once. To see one, use an **optical trap*
 
 > force = trap stiffness × the bead's distance from the trap centre, or F = κx (Going deeper, "The sign in the spring law")
 
-The stiffness κ says how many piconewtons of pull the trap adds for each nanometre the bead is displaced.
-
-Coat beads so sparsely that most carry at most one motor, set one on a track, and record its position. Kinesin beads advance in 8-nm steps, and in a fixed trap kinesin kept moving against loads up to 5 to 6 pN. With the load held constant by feedback instead, the stall force depended on ATP; compare numbers only at the same ATP level and loading method (Going deeper, "How the load is applied").
+The stiffness κ says how many piconewtons of pull the trap adds for each nanometre the bead is displaced. Coat beads so sparsely that most carry at most one motor, set one on a track, and record its position. Kinesin beads advance in 8-nm steps, and in a fixed trap kinesin kept moving against loads up to 5 to 6 pN. With load held constant by feedback, stall force depended on ATP; compare numbers only at the same ATP level and loading method (Going deeper, "How the load is applied").
 
 <LessonFigure src="/figures/molecular-motors/kinesin-trap-and-step.webp" width={1200} height={800} alt="AI-generated illustration: a laser trap holds a silica bead pulled by one kinesin walking toward the plus end of a microtubule; an inset shows the two heads stepping hand over hand, the cargo advancing 8 nm while each head moves about 16 nm." caption="An optical trap holds a bead carried by one kinesin. Hand over hand, each head passes its partner, so a head travels about 16 nm while the cargo advances 8 nm, with one ATP per step at low load." />
 
@@ -502,7 +513,7 @@ Keep one rule from this section: each number belongs to the preparation and load
 
 ## What sets direction and step: the swing
 
-The rule says the swing sets direction and, together with the track, the step. Three motors test it.
+**Short reminder:** the swing helps set direction and, with track spacing, step size. Three motors test that rule.
 
 **Step size follows the lever.** Myosin V's lever arm is held straight by light chains. In a 2002 study, engineered myosin V with six light chains per lever stepped 36 nm, and a version with four stepped 24 nm: 6 nm per light chain both times. Over the range tested, shorten the lever and the stride shortens; the data do not show that ever-longer levers give ever-longer steps.
 
@@ -510,9 +521,9 @@ The rule says the swing sets direction and, together with the track, the step. T
 
 **Direction follows the lever in myosin VI.** An insert just before myosin VI's lever arm redirects the lever, so the stroke points backward compared with other myosins and the motor moves toward the pointed end.
 
-So the family gives you the track, and the design of the swing gives the direction. Subfamily often predicts direction (ncd was the first of the kinesin-14s, a group of minus-end kinesins), but sequence alone does not predict it reliably enough to skip the experiment. A few yeast kinesin-5 motors even switch direction with conditions, and why some motors reverse in the cell is not fully resolved.
+So the family gives you the track, and the design of the swing gives the direction. These results also show why direction is measured rather than assumed from family. Subfamily often predicts direction (ncd was the first of the kinesin-14s, a group of minus-end kinesins), but sequence alone does not predict it reliably enough to skip the experiment. A few yeast kinesin-5 motors even switch direction with conditions, and why some motors reverse in the cell is not fully resolved.
 
-Dynein fits the rule only loosely. Its motor is a ring of six AAA+ domains (a family of ATPase domains), with a long stalk that reaches the microtubule. Its lever is a linker lying across the ring, which swings as ATP is used. The misfit is the step. Imaged without load at low ATP, human dynein-dynactin with an adaptor took forward steps anywhere from 8 to 32 nm and often stepped backward or sideways. In a 2026 optical-trap study, dynein-dynactin-BICD2 under load mostly took 8-nm steps, although earlier work had found variable steps at all the loads it tested.
+Dynein fits the rule only loosely. Its motor is a ring of six AAA+ domains, ATP-using enzyme modules, with a long stalk that reaches the microtubule. Its lever is a linker lying across the ring, which swings as ATP is used. The misfit is the step. Imaged without load at low ATP, human dynein-dynactin with an adaptor took forward steps anywhere from 8 to 32 nm and often stepped backward or sideways. In a 2026 optical-trap study, dynein-dynactin-BICD2 under load mostly took 8-nm steps, although earlier work had found variable steps at all the loads it tested.
 
 ## Crowds I: muscle, where filaments slide and do not shrink
 
@@ -541,7 +552,7 @@ In living muscle, calcium decides when heads may bind, through troponin and trop
 
 ## Crowds II: dynein teams
 
-Dynein needs partners, and its partners help set how many dyneins pull together. In reconstitution experiments, purified human dynein becomes a fast, processive motor when it binds a second large complex, dynactin, together with an activating adaptor, a protein that also binds cargo (BICD2, BICDR1 and HOOK3 are examples). So the adaptor switches dynein on. It also biases how many dyneins ride together: a second dynein added pull, while speed depended on which adaptor was bound (Going deeper, "How many dyneins, and what they add"). More motors can give more pull and longer runs, but they need not mean faster cargo. Teams can also pull against each other, and many cargoes carry both kinesin and dynein; how such a cargo settles on a direction is still being worked out.
+Dynein needs partners, and its partners help set how many dyneins pull together. In **reconstitution**, rebuilding a system from purified parts, human dynein becomes fast and processive when it binds **dynactin**, a large protein complex, and an **activating adaptor**, a cargo-binding protein (BICD2, BICDR1 and HOOK3 are examples). So the adaptor switches dynein on. It also biases how many dyneins ride together: a second dynein added pull, while speed depended on which adaptor was bound (Going deeper, "How many dyneins, and what they add"). More motors can give more pull and longer runs, but they need not mean faster cargo. Teams can also pull against each other, and many cargoes carry both kinesin and dynein; how such a cargo settles on a direction is still being worked out.
 
 ### Design problem
 
@@ -561,6 +572,10 @@ Controls: no ATP should stop movement, and so should the non-hydrolysable analog
 </details>
 
 ## Going deeper
+
+### The numbers behind the axon picture
+
+Motor proteins are enzymes that turn ATP hydrolysis into steps along actin filaments or microtubules. A protein made in the cell body of a motor neuron may have to reach a synapse up to a metre away. Diffusion time grows with the square of distance, t ≈ x²/2D. Even a small protein like GFP (D ≈ 25 µm²/s in cytoplasm) would need about 600 years to diffuse one metre, and larger cargo diffuses more slowly still. A kinesin that never let go, walking at 800 nm/s (the worked problem's speed), would cover that metre in about two weeks. The same machines pull chromosomes apart and contract muscle.
 
 ### Who found kinesin
 

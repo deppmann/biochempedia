@@ -1,0 +1,691 @@
+{
+ "slug": "binding-and-dose-response",
+ "title": "Binding: Affinity, Occupancy and Dose–Response",
+ "generated": {
+  "date": "2026-11-06",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "1b044993548b",
+ "sectionHashes": {
+  "A drug acts at a site it has to occupy": "7fde44a46fd7",
+  "Occupancy follows mass action": "500abcdc5e2e",
+  "Measuring occupancy directly": "8dc8c1b11fbf",
+  "Response is not occupancy": "4b3f1b3f5448",
+  "The gap between the curves: receptor reserve": "dee51f66ebba",
+  "Design problem": "185ac846fd6b",
+  "Blocking the receptor: the shape of the shift names the blocker": "08d9f38671e8",
+  "Schild's test: is it really competition?": "3f0dc6722863",
+  "Blockers that more agonist cannot overcome": "f48b5e3eee75",
+  "Potency orders as fingerprints": "b25fd2c7f4ae",
+  "Back to the opening question": "2ea2e24bfb3c",
+  "Where the idea stops": "81c2a0aecf7f"
+ },
+ "cards": [
+  {
+   "id": "binding-and-dose-response-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is the difference between an agonist and an antagonist at a receptor?",
+   "back": "An agonist binds the receptor and switches it on. An antagonist binds the same receptor, does nothing there, and keeps the agonist out.",
+   "quote": "An agonist binds a receptor and switches it on.",
+   "section": "A drug acts at a site it has to occupy"
+  },
+  {
+   "id": "binding-and-dose-response-c02",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Some receptors are partly active with nothing bound, and blockers that turn that background activity down are called {{c1::inverse agonists}}.",
+   "back": "",
+   "quote": "Some receptors are partly active with nothing bound, and some blockers, called inverse agonists, turn that background activity down.",
+   "section": "A drug acts at a site it has to occupy"
+  },
+  {
+   "id": "binding-and-dose-response-c03",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Nicotine made skeletal muscle contract and curare prevented it, even after the nerve to the muscle had been cut and had degenerated. What does that show?",
+   "back": "The drugs act on the muscle itself, not on the nerve. Langley called the site they act on the receptive substance.",
+   "quote": "and both still worked after the nerve to the muscle had been cut and had degenerated",
+   "section": "A drug acts at a site it has to occupy"
+  },
+  {
+   "id": "binding-and-dose-response-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the equilibrium, single-receptor model, for one agonist acting on one unchanged receptor population in one tissue, what does the response depend on?",
+   "back": "It is treated as a monotonic function of the fraction of receptors that agonist occupies. Binding sets that fraction (Kd is the only drug number in it); the agonist's efficacy and the tissue's amplifier turn it into a response that rises and saturates.",
+   "quote": "For one agonist acting on one unchanged receptor population in one tissue, the response is treated as a monotonic function of the fraction of receptors that agonist occupies.",
+   "section": "A drug acts at a site it has to occupy"
+  },
+  {
+   "id": "binding-and-dose-response-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "At equilibrium, fractional occupancy of a receptor = {{c1::[L] / (Kd + [L])}}, where [L] is the free ligand concentration.",
+   "back": "",
+   "quote": "occupancy = 1 / (Kd/[L] + 1) = [L] / (Kd + [L])",
+   "section": "Occupancy follows mass action"
+  },
+  {
+   "id": "binding-and-dose-response-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The dissociation constant for L + R ⇌ LR is Kd = {{c1::k_off / k_on}}, which also equals [L][R]/[LR].",
+   "back": "",
+   "quote": "The ratio of the rate constants is the dissociation constant, Kd = k off /k on , which also equals [L][R]/[LR].",
+   "section": "Occupancy follows mass action"
+  },
+  {
+   "id": "binding-and-dose-response-c07",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does Kd mean as a concentration, and what does a small Kd tell you?",
+   "back": "Kd is the free ligand concentration that half-fills the receptors. A small Kd means a tight grip: high affinity.",
+   "quote": "So Kd, the free ligand concentration that half-fills the receptors, measures affinity: a small Kd means a tight grip.",
+   "section": "Occupancy follows mass action"
+  },
+  {
+   "id": "binding-and-dose-response-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A ligand binds its receptor with Kd = 4 nM. What free concentrations give 10% and 90% occupancy, and how many fold apart are they?",
+   "back": "90% needs [L] = 9 × Kd = 36 nM; 10% needs [L] = Kd/9 ≈ 0.44 nM. They are 81-fold apart, nearly two powers of ten.",
+   "why": "From occupancy = [L]/(Kd + [L]): 9/(1 + 9) = 0.9 and (1/9)/(1 + 1/9) = 0.1.",
+   "quote": "At 9 × Kd, it is 9/(1 + 9) = 90%.",
+   "section": "Occupancy follows mass action"
+  },
+  {
+   "id": "binding-and-dose-response-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why are binding and dose–response curves drawn with concentration on a logarithmic axis?",
+   "back": "Going from 10% to 90% occupancy takes an 81-fold rise in ligand. On a linear axis the low-dose end is crushed against the origin; on a log axis the hyperbola becomes a symmetric S-shaped curve centred on Kd.",
+   "quote": "On a log axis the hyperbola becomes a symmetric S-shaped curve with Kd at its midpoint.",
+   "section": "Occupancy follows mass action"
+  },
+  {
+   "id": "binding-and-dose-response-c10",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The occupancy curve has the same hyperbolic form as the Michaelis–Menten equation. Why, and how do Kd and Km differ?",
+   "back": "Both describe a fixed number of sites being filled. Km combines several rate constants, while Kd is a pure binding constant.",
+   "quote": "One caution: Km combines several rate constants, while Kd is a pure binding constant.",
+   "section": "Occupancy follows mass action"
+  },
+  {
+   "id": "binding-and-dose-response-c11",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A radioligand binding curve rises from 10% to 90% of its maximum over only a 9-fold range of free ligand. What does that tell you about the binding sites?",
+   "back": "The sites are not acting independently: the binding is cooperative.",
+   "why": "Independent sites following [L]/(Kd + [L]) need an 81-fold rise to go from 10% to 90%.",
+   "quote": "A binding curve that climbs from 10% to 90% in much less than 81-fold means the sites are not acting independently.",
+   "section": "Occupancy follows mass action"
+  },
+  {
+   "id": "binding-and-dose-response-c12",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A tissue's dose–response curve rises from 10% to 90% of maximum over a 9-fold range of agonist. A student concludes the receptor binds the agonist cooperatively. Evaluate the claim and say what measurement would test it.",
+   "back": "Not justified. Steps after the receptor can steepen a response curve. Measure the binding curve itself (specific radioligand binding): a rise from 10% to 90% over much less than an 81-fold range of ligand points to cooperativity.",
+   "why": "Rests on the rule that the 81-fold test applies to binding curves, not response curves.",
+   "quote": "steps after the receptor can steepen a response curve, so a steep one says nothing about receptor cooperativity by itself",
+   "section": "Occupancy follows mass action"
+  },
+  {
+   "id": "binding-and-dose-response-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a radioligand assay on greasy brain tissue, why must binding be saturable before you call it receptor binding?",
+   "back": "A finite set of sites fills up along the occupancy curve and levels off. Sticking to grease keeps rising with concentration.",
+   "quote": "A finite set of sites fills up along the occupancy curve, while sticking to grease keeps rising with concentration.",
+   "section": "Measuring occupancy directly"
+  },
+  {
+   "id": "binding-and-dose-response-c14",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do you separate specific from nonspecific binding of a radioligand?",
+   "back": "Measure total binding, then measure again with a large excess of unlabelled drug, which keeps the label off the specific sites. Total minus nonspecific is specific binding, the curve that saturates.",
+   "quote": "Total minus nonspecific is specific binding, the curve that saturates.",
+   "section": "Measuring occupancy directly"
+  },
+  {
+   "id": "binding-and-dose-response-c15",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Levorphanol, an active opiate, displaced radioactive naloxone from brain membranes; dextrorphan, its mirror image with almost no opiate action, was far weaker. What does this show?",
+   "back": "The binding is stereospecific, so the label sits in a shaped pocket (a receptor), not in nonspecific grease.",
+   "quote": "Grease cannot tell a molecule from its mirror image.",
+   "section": "Measuring occupancy directly"
+  },
+  {
+   "id": "binding-and-dose-response-c16",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A saturation binding curve gives a Kd and the total count of sites, called {{c1::Bmax}}.",
+   "back": "",
+   "quote": "The saturation curve hands you the numbers in the occupancy equation, measured on the site itself: a Kd, and the total count of sites, called Bmax.",
+   "section": "Measuring occupancy directly"
+  },
+  {
+   "id": "binding-and-dose-response-c17",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "At 6 nM radioligand, total binding is 900 fmol/mg protein and binding in excess unlabelled drug is 300 fmol/mg. Bmax for the specific sites is 800 fmol/mg. Estimate Kd.",
+   "back": "Specific binding = 900 − 300 = 600 fmol/mg, so occupancy = 600/800 = 0.75. [L]/(Kd + [L]) = 0.75 gives [L] = 3 × Kd, so Kd = 2 nM.",
+   "quote": "To see the saturable part, measure total binding, then measure it again with a large excess of unlabelled drug",
+   "section": "Measuring occupancy directly"
+  },
+  {
+   "id": "binding-and-dose-response-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is EC50, and what property of a drug does it measure?",
+   "back": "The concentration that gives half of the drug's maximum response. It measures potency: the lower the EC50, the less drug you need.",
+   "quote": "EC50 is the concentration that gives half of the drug's maximum response; it measures potency: the lower the EC50, the less drug you need.",
+   "section": "Response is not occupancy"
+  },
+  {
+   "id": "binding-and-dose-response-c19",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "On a dose–response curve, {{c1::Emax}} is the largest response the drug can produce, however much you add.",
+   "back": "",
+   "quote": "Emax is the largest response the drug can produce, however much you add.",
+   "section": "Response is not occupancy"
+  },
+  {
+   "id": "binding-and-dose-response-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can one agonist have a different EC50 in two tissues that carry the same receptor?",
+   "back": "EC50 mixes four quantities: the drug's affinity (Kd) and efficacy, and the tissue's receptor number and amplifier. The last two differ between tissues.",
+   "quote": "EC50 mixes all four, which is why one agonist's potency can differ between tissues.",
+   "section": "Response is not occupancy"
+  },
+  {
+   "id": "binding-and-dose-response-c21",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What distinguishes a partial agonist from a full agonist?",
+   "back": "A full agonist can drive the tissue to its maximum. A partial agonist levels off below it even when it occupies every receptor.",
+   "quote": "A partial agonist levels off below it even when it occupies every receptor",
+   "section": "Response is not occupancy"
+  },
+  {
+   "id": "binding-and-dose-response-c22",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In one tissue, drug A has EC50 = 5 nM and reaches 100% of the tissue maximum; drug B, at the same receptor, has EC50 = 0.5 nM and tops out at 50%. Compare potency and efficacy.",
+   "back": "B is 10-fold more potent (lower EC50). A has the greater efficacy (higher maximum); B is a partial agonist here.",
+   "why": "Potency is read from EC50; efficacy from Emax, below the tissue's ceiling.",
+   "quote": "a drug with an EC50 of 1 nM that tops out at 40% is as potent, and less efficacious",
+   "section": "Response is not occupancy"
+  },
+  {
+   "id": "binding-and-dose-response-c23",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A tissue is contracting maximally to a saturating dose of a full agonist. You add rising concentrations of a partial agonist (maximum 30% alone) at the same receptor. What happens to the contraction, and why?",
+   "back": "It falls toward 30%. Each receptor the partial agonist takes is lost to the full agonist and signals weakly, so the partial agonist acts as an antagonist.",
+   "quote": "Each receptor the weak key takes is one the strong key has lost, so the partial agonist behaves as an antagonist",
+   "section": "Response is not occupancy"
+  },
+  {
+   "id": "binding-and-dose-response-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How can a tissue reach its full response before all of its receptors are occupied?",
+   "back": "Amplification after the receptor: once enough receptors are occupied to saturate the slowest downstream step, more occupied receptors change nothing measurable.",
+   "quote": "The reason is amplification after the receptor.",
+   "section": "The gap between the curves: receptor reserve"
+  },
+  {
+   "id": "binding-and-dose-response-c25",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Receptors a tissue does not need for a full response are spare receptors, together called the {{c1::receptor reserve}}.",
+   "back": "They are ordinary receptors; the tissue simply has more copies than the pathway can use at once.",
+   "quote": "The receptors not needed are spare receptors, together the receptor reserve.",
+   "section": "The gap between the curves: receptor reserve"
+  },
+  {
+   "id": "binding-and-dose-response-c26",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An agonist binds its receptor with Kd = 50 nM (radioligand assay). In intact cells its EC50 is 2 nM. What fraction of receptors is occupied at half-maximal response?",
+   "back": "Occupancy = 2 / (50 + 2) ≈ 3.8%. Half the maximum response needs fewer than 4% of receptors occupied.",
+   "quote": "Call p the fraction of receptors occupied when the response is half its maximum.",
+   "section": "The gap between the curves: receptor reserve"
+  },
+  {
+   "id": "binding-and-dose-response-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Does an EC50 well below the Kd prove that a tissue has a receptor reserve?",
+   "back": "No. A saturating amplifier puts any agonist's EC50 below its Kd, even a partial agonist with no spare receptors. A reserve is present when the tissue reaches its full maximum with less than full occupancy; an EC50 below Kd for an agonist that reaches that ceiling is evidence for it, and receptor inactivation tests it.",
+   "quote": "A reserve is present when the tissue reaches its full maximum with less than full receptor occupancy; an EC50 below Kd for an agonist that reaches that ceiling is evidence for it, and the receptor-inactivation experiment below tests it.",
+   "section": "The gap between the curves: receptor reserve"
+  },
+  {
+   "id": "binding-and-dose-response-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After a treatment, an agonist's EC50 in a tissue doubles, but its Kd measured by radioligand binding is unchanged. What could have changed?",
+   "back": "Either the number of receptors or something after binding (the amplifier); not the drug's affinity.",
+   "why": "EC50 mixes Kd, efficacy, receptor number and the amplifier; Kd is binding alone.",
+   "quote": "If a treatment changes a drug's EC50 and leaves its Kd alone, either the number of receptors or something after binding has changed",
+   "section": "The gap between the curves: receptor reserve"
+  },
+  {
+   "id": "binding-and-dose-response-c29",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A drug gives a full response when only about 5% of its receptors are occupied. Design an experiment to prove a receptor reserve, and state the result that proves it.",
+   "back": "Destroy increasing fractions of receptors with an irreversible (covalent) antagonist, wash, run full agonist curves, and count surviving receptors with a radioligand. Proof: the curve shifts right first, and the maximum falls only later.",
+   "why": "With no reserve, the maximum would fall with the first receptors lost.",
+   "quote": "A rightward shift first and a lower maximum afterwards is the proof.",
+   "section": "Design problem"
+  },
+  {
+   "id": "binding-and-dose-response-c30",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a sharp-ceiling model, a tissue's pathway saturates once 5% of the original receptors are occupied. Predict the maximum response after an irreversible antagonist removes 80%, and then 97%, of the receptors.",
+   "back": "80% removed: 5% of the original is 25% of the survivors, so full maximum, curve shifted right. 97% removed: only 3% remain, so the maximum falls to 3/5 = 60%.",
+   "quote": "Even with every survivor occupied, the tissue is short of the number it needs.",
+   "section": "Design problem"
+  },
+  {
+   "id": "binding-and-dose-response-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a receptor-inactivation experiment with an irreversible antagonist, why test a second agonist that acts through a different receptor?",
+   "back": "If it keeps its full maximum, the blocker left the downstream pathway undamaged, so the fall in maximum reflects lost receptors.",
+   "quote": "As a control, a second agonist acting through a different receptor should keep its full maximum",
+   "section": "Design problem"
+  },
+  {
+   "id": "binding-and-dose-response-c32",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does a competitive antagonist change an agonist's dose–response curve on a log axis?",
+   "back": "The whole curve slides right, parallel to itself, with the same maximum.",
+   "quote": "on a log axis the whole curve slides right, parallel to itself.",
+   "section": "Blocking the receptor: the shape of the shift names the blocker"
+  },
+  {
+   "id": "binding-and-dose-response-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a competitive antagonist leave the agonist's maximum response unchanged?",
+   "back": "It binds reversibly at the agonist's own site, and a receptor holds one or the other. Enough agonist wins the receptors back.",
+   "quote": "Add enough agonist and it wins the hooks back, so the maximum is unchanged.",
+   "section": "Blocking the receptor: the shape of the shift names the blocker"
+  },
+  {
+   "id": "binding-and-dose-response-c34",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For a competitive antagonist B at equilibrium, dose ratio = {{c1::1 + [B]/KB}}.",
+   "back": "Dose ratio: agonist concentration for a given response with antagonist, divided by that without it.",
+   "quote": "leaving A × (1 + [B]/KB) = A′",
+   "section": "Blocking the receptor: the shape of the shift names the blocker"
+  },
+  {
+   "id": "binding-and-dose-response-c35",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why can two curves for the same agonist, with and without a competitive antagonist, give the antagonist's KB in a tissue whose receptor number and downstream steps are unknown?",
+   "back": "Equal responses on the monotonic, submaximal part of a curve mean equal occupancy by that agonist, so the amplifier cancels and only binding is left (in the equilibrium, single-receptor model).",
+   "quote": "Equal responses on the monotonic, submaximal part of a curve mean equal occupancy",
+   "section": "Blocking the receptor: the shape of the shift names the blocker"
+  },
+  {
+   "id": "binding-and-dose-response-c36",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An agonist's EC50 is 4 nM. With 45 nM of a competitive antagonist it is 40 nM, same maximum. Find KB, and predict the EC50 with 495 nM antagonist.",
+   "back": "Dose ratio 10, so [B]/KB = 9 and KB = 5 nM. At 495 nM, dose ratio = 1 + 99 = 100, so EC50 = 400 nM.",
+   "quote": "Then 1000 nM of antagonist should give a dose ratio of 101, an EC50 of 1010 nM.",
+   "section": "Blocking the receptor: the shape of the shift names the blocker"
+  },
+  {
+   "id": "binding-and-dose-response-c37",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A competitive antagonist is applied at ten times its KB to two tissues with very different receptor reserves, each tested with a different agonist acting at the same receptor. Predict each curve's shift, and why this makes antagonists useful for classifying receptors.",
+   "back": "Both curves shift right 11-fold (1 + 10), whatever the agonist or tissue. The shift depends only on the antagonist's KB at that receptor, so KB values fingerprint receptor types.",
+   "why": "Rests on dose ratio = 1 + [B]/KB and on equal response meaning equal occupancy, under the lesson's equilibrium assumptions.",
+   "quote": "That is why antagonist affinities became the fingerprints that told one receptor type from another",
+   "section": "Blocking the receptor: the shape of the shift names the blocker"
+  },
+  {
+   "id": "binding-and-dose-response-c38",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A Schild plot for an antagonist is a straight line of slope 1, and its pA2 is 8.0. What is KB, and what dose ratio will 100 nM of the antagonist give?",
+   "back": "With slope 1, pA2 = −log KB, so KB = 10^−8 M = 10 nM. Dose ratio = 1 + 100/10 = 11.",
+   "quote": "At that point [B] = KB, so pA2 equals −log KB, but only when the slope is 1",
+   "section": "Schild's test: is it really competition?"
+  },
+  {
+   "id": "binding-and-dose-response-c39",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A Schild plot of log(dose ratio − 1) against log [B] gives a straight line of slope 0.6. What does that tell you?",
+   "back": "An assumption of simple competition failed: for example the antagonist had not reached equilibrium, the tissue removed the agonist, the antagonist acted allosterically, or more than one receptor contributed. The KB reading is unsafe.",
+   "quote": "A slope other than 1 means an assumption failed",
+   "section": "Schild's test: is it really competition?"
+  },
+  {
+   "id": "binding-and-dose-response-c40",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is the difference between a surmountable and an insurmountable antagonist?",
+   "back": "More agonist overcomes a surmountable (competitive) antagonist. More agonist cannot overcome an insurmountable one; its signature is a lower maximum, though an irreversible blocker with a receptor reserve can shift the curve right first, and an insurmountable allosteric blocker's effect varies.",
+   "quote": "a competitive antagonist, which more agonist does overcome, is surmountable",
+   "section": "Blockers that more agonist cannot overcome"
+  },
+  {
+   "id": "binding-and-dose-response-c41",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A drug blocks a step in the contraction machinery of a smooth muscle, downstream of the receptor. How does it change an agonist's dose–response curve?",
+   "back": "The maximum falls, and more agonist cannot restore it. Any shift depends on the step blocked.",
+   "quote": "Lower maximum; any shift depends on the step blocked",
+   "section": "Blockers that more agonist cannot overcome"
+  },
+  {
+   "id": "binding-and-dose-response-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How does an irreversible antagonist change an agonist's dose–response curve, with and without a receptor reserve?",
+   "back": "With a reserve: shift right first, then the maximum falls at higher blocker doses. With none: the maximum falls from the start.",
+   "quote": "With a reserve, shift right first, then the maximum falls; with none, the maximum falls from the start",
+   "section": "Blockers that more agonist cannot overcome"
+  },
+  {
+   "id": "binding-and-dose-response-c43",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An unknown blocker lowers the maximum of agonist X's curve on gut muscle, and more X does not help. How could you tell a receptor blocker from one acting after the receptor on the contraction itself?",
+   "back": "Test agonist Y, which contracts the muscle through a different receptor. If Y keeps its full maximum, the block is at X's receptor; if Y's maximum also falls, the blocker acts downstream.",
+   "why": "Rests on the control logic of the receptor-inactivation design and on post-receptor blockers lowering the maximum.",
+   "quote": "A non-competitive antagonist binds somewhere else on the receptor, or acts after it, and stops the receptor from responding.",
+   "section": "Blockers that more agonist cannot overcome"
+  },
+  {
+   "id": "binding-and-dose-response-c44",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A full agonist's dose–response curve is run in the constant presence of a partial agonist at the same receptor. How does the curve differ from control?",
+   "back": "Response is raised at low full-agonist doses (the partial agonist's own effect); above the partial agonist's ceiling, competition shifts the curve right, but enough full agonist still reaches the full maximum.",
+   "quote": "Response raised at low full-agonist doses by the partial agonist's own effect; above the partial agonist's ceiling, competition shifts the curve right, but enough full agonist still reaches the full maximum",
+   "section": "Blockers that more agonist cannot overcome"
+  },
+  {
+   "id": "binding-and-dose-response-c45",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Three agonists rank A > B > C in potency on tissue 1 and C > B > A on tissue 2. What does that suggest about the receptors, and why?",
+   "back": "At least two receptor types. One kind of binding pocket should give much the same potency order in every tissue.",
+   "why": "This reasoning sorted adrenaline's receptors into alpha and beta.",
+   "quote": "One kind of pocket should give much the same order everywhere, he reasoned.",
+   "section": "Potency orders as fingerprints"
+  },
+  {
+   "id": "binding-and-dose-response-c46",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a simple single-receptor preparation at equilibrium, naloxone, a competitive opioid antagonist, is present at 20 times its KB. By what factor must the morphine concentration rise to produce any given effect of that receptor?",
+   "back": "Dose ratio = 1 + [naloxone]/KB = 1 + 20 = 21, so morphine must rise 21-fold. Naloxone never touches morphine; it changes how many receptors morphine occupies. Clinical reversal is time-dependent and is not predicted by this equilibrium ratio alone.",
+   "quote": "In a simple single-receptor preparation at equilibrium, naloxone takes receptors without switching them on and moves morphine's concentration-response curve right by a dose ratio of 1 + [naloxone]/KB.",
+   "section": "Back to the opening question"
+  },
+  {
+   "id": "binding-and-dose-response-c47",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Buprenorphine is a partial agonist at the opiate receptor. Predict its effect when given alone in a tissue with a large receptor reserve, and when given at a high dose on top of a full agonist.",
+   "back": "Alone, with a large reserve, it can reach or approach the tissue maximum. On top of a full agonist it takes receptors from it and acts partly as a blocker, pulling the response toward its own ceiling.",
+   "why": "Rests on two rules: a partial agonist's maximum depends on the tissue's receptor number, and it competes with a full agonist.",
+   "quote": "Buprenorphine, a partial agonist at the same receptor, has a maximum set by its efficacy and by each tissue's receptor reserve",
+   "section": "Back to the opening question"
+  },
+  {
+   "id": "binding-and-dose-response-c48",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can't equal responses to two different agonists in one tissue be read as equal occupancy?",
+   "back": "Efficacy is part of the amplifier's input, so two agonists at equal response are not at equal occupancy. The rule compares one agonist with itself.",
+   "quote": "two agonists at equal response are not at equal occupancy",
+   "section": "Where the idea stops"
+  },
+  {
+   "id": "binding-and-dose-response-c49",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Two tissues carry the same receptor. A full agonist has Kd = 100 nM; its EC50 is 100 nM in tissue A and 2 nM in tissue B, with a full maximum in both. Predict what an irreversible antagonist removing half the receptors does in each.",
+   "back": "Tissue A (response tracks occupancy, no reserve): the maximum falls. Tissue B (EC50 far below Kd with a full maximum, evidence of a reserve): in the sharp-ceiling picture the curve shifts right with the maximum intact (a smoother amplifier lets the maximum sag a little).",
+   "why": "Rests on the reserve test (EC50 below Kd with a full maximum is evidence, tested by inactivation) and the irreversible-blocker rule.",
+   "quote": "With no reserve, the maximum would start to fall with the first receptors lost.",
+   "section": "Design problem"
+  }
+ ]
+}
