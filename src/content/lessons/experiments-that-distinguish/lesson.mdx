@@ -29,6 +29,22 @@ explainer:
     - "In these cancer-cell assays, removing MELK barely moved the drug's growth curve, so its effect there mostly runs through other targets."
     - "RNAi can silence other messages too, so rescue with an RNAi-resistant copy is strong evidence the intended protein caused the effect."
 
+films:
+  - id: "chapter-2"
+    src: "/explainers/experiments-that-distinguish/chapter-2.mp4"
+    captions: "/explainers/experiments-that-distinguish/chapter-2.vtt"
+    poster: "/explainers/experiments-that-distinguish/chapter-2-poster.jpg"
+    title: "Two Jobs, One Protein"
+    durationSec: 188.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A rescue with a resistant copy strongly supports that the defect came from losing the protein, not which of its jobs mattered."
+      - "Royle and colleagues found in 2005 that silencing clathrin in human cells made mitosis take longer."
+      - "Full-length resistant clathrin rescued mitosis, as both models predict, so that rescue cannot choose between them."
+      - "A failed rescue means little until the construct is shown to be made at about the normal level, folded and correctly placed."
+      - "A separation-of-function mutant keeps one job and loses the other, so the two models can predict different results."
+
 scientists:
   - name: "Christian de Duve"
     contribution: >-
@@ -376,12 +392,13 @@ draft: false
 
 import FractionationTableReader from '../../../components/FractionationTableReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **In 1955 a group in Louvain proposed a new organelle, the lysosome, from numbers in a table of centrifuge fractions, before anyone could say what it looked like.**
 
-They broke rat liver, spun it into five fractions, and measured enzymes in every one. Acid phosphatase did not quite travel with the mitochondria: it peaked in a lighter fraction. The film showed the logic; the text adds the arithmetic, the controls and the cases the film skips.
+They broke rat liver, spun it into five fractions, and measured enzymes in every one. Acid phosphatase did not quite travel with the mitochondria: it peaked in a lighter fraction. Chapter 1 of the film showed the logic; the text adds the arithmetic, the controls and the cases it skips.
 
-> **The film's rule, with one addition.** The predictions must also differ by more than the result's own noise. So before you read a result, write down what each model predicts. If the predictions are the same, the result cannot choose between the models, however clean the data.
+> **Chapter 1's rule, with one addition.** The predictions must also differ by more than the result's own noise. So before you read a result, write down what each model predicts. If the predictions are the same, the result cannot choose between the models, however clean the data.
 
 Each method below is best at one kind of question and is easily pushed to answer one it cannot. The rule says whether a test *can* decide, not that your two models are the only ones; the strongest designs make them predict opposite results.
 
@@ -405,7 +422,7 @@ Both numbers are percentages, so the ratio has no units; it is not the specific 
 
 ### Worked problem: lysosome or mitochondrion?
 
-Here is a made-up rat-liver data set; the film's tracks were computed from it. Each row gives the percent of the homogenate's total found in each fraction, and every row adds to 100. Model 1: the unknown enzyme X is lysosomal. Model 2: X is mitochondrial.
+Here is a made-up rat-liver data set; chapter 1's tracks were computed from it. Each row gives the percent of the homogenate's total found in each fraction, and every row adds to 100. Model 1: the unknown enzyme X is lysosomal. Model 2: X is mitochondrial.
 
 | | N | M | L | P | S |
 |---|---|---|---|---|---|
@@ -442,11 +459,11 @@ Enrichment alone cannot say: you also need each organelle's share of the homogen
 
 A fractionation table is a snapshot; to learn the order of compartments, label one batch of protein and follow it. This is a **pulse-chase**: give cells radioactive amino acid for a short time (the pulse), then flood them with the unlabelled amino acid (the chase), so only proteins made during the pulse are labelled.
 
-The film's order came from this experiment. In 1967 James Jamieson and George Palade did it with slices of guinea pig pancreas, whose acinar cells make large amounts of digestive enzymes for export. After a three-minute pulse of carbon-14 leucine, label was in the rough microsomes, the ribosome-studded ER fragments. Smooth microsomes, which these experiments identified as peripheral elements of the Golgi complex, held it next, and later it reached the zymogen-granule fraction, the storage granules that release enzyme from the cell (times in Going deeper).
+Chapter 1's order came from this experiment. In 1967 James Jamieson and George Palade did it with slices of guinea pig pancreas, whose acinar cells make large amounts of digestive enzymes for export. After a three-minute pulse of carbon-14 leucine, label was in the rough microsomes, the ribosome-studded ER fragments. Smooth microsomes, which these experiments identified as peripheral elements of the Golgi complex, held it next, and later it reached the zymogen-granule fraction, the storage granules that release enzyme from the cell (times in Going deeper).
 
 <LessonFigure src="/figures/experiments-that-distinguish/pulse-chase-order.webp" width={1200} height={672} alt="AI-generated illustration: three frames of a pancreatic cell; labelled protein is first in rough ER during the pulse, then in Golgi vesicles during the chase, then in zymogen granules." caption="A short pulse tags one batch of protein; after the chase begins, where that batch sits tells you the order of compartments, though the order alone does not show how it moves between them." />
 
-As the film's twins showed, that order fits carriers moving cargo between fixed Golgi compartments and also Golgi compartments that themselves mature, cis to trans, so the order alone cannot choose (the *shape* of the time course can, in principle; Going deeper). Other models do disagree.
+As chapter 1 showed, the order alone cannot choose between carriers and Golgi compartments that themselves mature, cis to trans; the *shape* of the time course can, in principle (Going deeper). Other models do disagree.
 
 **Predict.** Is a batch of new protein pushed along by the protein made after it? Model 1: yes, like a queue. Model 2: no, it moves on its own. If you block protein synthesis during the chase, what does each model predict?
 
@@ -465,7 +482,7 @@ Being in the right place at the right time fits a protein that does the job and 
 
 A direct small-molecule inhibitor can block a protein within minutes, often faster than RNAi or gene editing, though phenotype timing varies. RNA interference uses a short RNA, delivered as an siRNA or made inside the cell as an shRNA, to guide destruction of a matching mRNA over a few days. CRISPR uses the nuclease Cas9 and a guide RNA to cut the gene; the cell's error-prone repair of the cut usually breaks it, but some edits keep the reading frame or leave partial protein, so loss of the protein must be checked. (Tools: [CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/), [recombinant DNA](/lessons/recombinant-dna-and-pcr/), [drugs against a part](/lessons/drugs-against-a-part/).) Each can mislead, and each has a control that makes the models disagree again.
 
-**A drug can hit more than its target.** The film's drug is OTS167, developed as an inhibitor of the kinase MELK; Ann Lin, Jason Sheltzer and colleagues ran its test in 2017. In their MELK-null breast cancer clones, made by CRISPR, in Cal51 populations the mean GI50, the concentration that halves growth, was 10 nM with control guides and 11 nM with MELK guides. Whether these cells need MELK at all depends on the assay and is still debated (see the anecdote "A drug that did not need its target"). This **genotype-by-drug** comparison is a chemical-genetic test of target dependence, not a rescue: if the drug effect persists without the target, the target is not required for it; resistance supports the target if the cells are viable and controls hold. A functional drug-resistant target allele is the rescue-like test.
+**A drug can hit more than its target.** Chapter 1's drug is OTS167, developed as an inhibitor of the kinase MELK; Ann Lin, Jason Sheltzer and colleagues ran its test in 2017. In their MELK-null breast cancer clones, made by CRISPR, in Cal51 populations the mean GI50, the concentration that halves growth, was 10 nM with control guides and 11 nM with MELK guides. Whether these cells need MELK at all depends on the assay and is still debated (see the anecdote "A drug that did not need its target"). This **genotype-by-drug** comparison is a chemical-genetic test of target dependence, not a rescue: if the drug effect persists without the target, the target is not required for it; resistance supports the target if the cells are viable and controls hold. A functional drug-resistant target allele is the rescue-like test.
 
 **Predict.** Suppose you give cells a version of MELK that OTS167 cannot bind. What does each model predict?
 
@@ -489,9 +506,13 @@ Change the codons in the shRNA's target site to synonymous ones, codons for the 
 
 **A knockout can be quietly compensated.** In selected zebrafish and mouse models, decay of a mutant mRNA switched on related genes (Going deeper), so a mild knockout phenotype does not prove the gene unimportant.
 
+Chapter 2 of the film picks up here: a rescue that works is strong evidence that the defect came from losing the protein, but not which of its jobs mattered.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ### Two jobs, one protein: separation of function
 
-Rescue says the defect came from losing the protein, not which of its jobs mattered. Stephen Royle, Nicholas Bright and Leon Lagnado found in 2005 that depleting clathrin heavy chain in HEK293 cells prolonged mitosis. Clathrin also coats endocytic vesicles, so it might act in mitosis itself (Model 1) or through [endocytosis](/lessons/endocytosis/) (Model 2). Full-length shRNA-resistant clathrin rescued mitosis, as both predict; the N-terminal fragment, the front part of the protein alone, did not.
+The chapter's experiment, in detail: in 2005 Stephen Royle, Nicholas Bright and Leon Lagnado depleted clathrin heavy chain in HEK293 cells, and the front part that failed to rescue was the N-terminal fragment. Since clathrin also coats endocytic vesicles, it might act in mitosis itself (Model 1) or through [endocytosis](/lessons/endocytosis/) (Model 2).
 
 **Predict.** What does each model predict for a resistant clathrin construct that cannot support endocytosis?
 
@@ -502,7 +523,7 @@ Model 1: it can still rescue mitosis. Model 2: it cannot, because the route that
 
 </details>
 
-The sharpest test of whether two jobs are separate is a **separation-of-function mutant** like this, which keeps one activity and loses another; like any rescue construct, it needs the checks above.
+A **separation-of-function mutant** like this is the sharpest test of whether two jobs are separate.
 
 <LessonFigure src="/figures/experiments-that-distinguish/silent-mutation-rescue.webp" width={1200} height={787} alt="AI-generated illustration: two cells; in the depleted cell an shRNA pairs with clathrin mRNA and little protein is made, in the rescued cell an extra mRNA with silent mutations escapes the shRNA and makes the same clathrin protein; an inset compares the two mRNAs." caption="Silent mutations change the mRNA but not the protein, so the shRNA cannot pair with it. If the rescue construct restores normal mitosis, the defect most likely came from losing clathrin." />
 

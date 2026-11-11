@@ -638,15 +638,3 @@ class S13Return(SpokenScene):
 class S14End(EndCard):
     LINE = "Apoptosis keeps the membrane intact early, often until the cell is eaten."
 
-    def construct(self):
-        line = VGroup(
-            T("Apoptosis keeps the membrane intact early,", 40, TEXT, font=TITLE_FONT),
-            T("often until the cell is eaten.", 40, TEXT, font=TITLE_FONT),
-        ).arrange(DOWN, buff=0.24).move_to([0, 0.35, 0])
-        # A wider ellipse leaves visible clearance around both ends of the sentence.
-        ring = Circle(radius=2.30, color=BLUE, stroke_width=7).stretch(2.60, 0).move_to([0, 0.35, 0])
-        site = T("biochemistrypedia.com", 28, GREY).move_to([0, -2.75, 0])
-        self.play(FadeIn(line, shift=UP * 0.12), run_time=0.65)
-        self.play(Create(ring), run_time=1.55)
-        self.play(FadeIn(site), run_time=0.4)
-        self.finish()

@@ -605,20 +605,3 @@ class S16Close(SpokenScene):
 class S17End(EndCard):
     LINE = "The receptor runs a loop; its LDL makes a one-way trip."
 
-    def construct(self):
-        world_base(self, acid=True, dim=.28, ambient=False)
-        hexm = hex_mascot(1.25).move_to([0,1.15,0])
-        line = VGroup(T("The receptor runs a",40,TEXT,font=TITLE_FONT),
-                      T("loop;",40,TEAL,font=TITLE_FONT),
-                      T("its LDL makes a",40,TEXT,font=TITLE_FONT),
-                      T("one-way trip.",40,LDL,font=TITLE_FONT)).arrange(RIGHT,buff=.16)
-        fit(line,max_w=11.7)
-        line.move_to([0,-.15,0])
-        sub=T("biochemistrypedia.com",22,TEAL).move_to([0,-1.0,0])
-        self.play(FadeIn(hexm,shift=UP*.15),FadeIn(line,shift=UP*.1),run_time=self.beat(.3))
-        self.play(FadeIn(sub),run_time=self.beat(.15))
-        shoulder=hexm.arm.get_start()
-        for _ in range(2):
-            self.play(Rotate(hexm.arm,angle=-.55,about_point=shoulder),rate_func=there_and_back,
-                      run_time=self.beat(.14))
-        self.finish()

@@ -478,10 +478,4 @@ class S14Return(SpokenScene):
 
 class S15End(EndCard):
     LINE = "Microtubules place the RhoA band; the furrow follows."
-    def construct(self):
-        rig=CellRig(cy=-1.85,daughters=1); rig.parts.set_opacity(.25); add_rig(self,rig)
-        line=label(self.LINE,40).move_to([0,1.55,0]); sub=label("biochemistrypedia.com",28,TEAL).move_to([0,.72,0])
-        self.play(FadeIn(line,shift=UP*.12),FadeIn(sub),run_time=1.0)
-        bridge=Line([-.38,-1.85,0],[.38,-1.85,0],color=GREY,stroke_width=12).set_opacity(.5)
-        self.play(Indicate(bridge,color=GREY),run_time=.8)
-        self.finish()
+
