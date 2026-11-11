@@ -1,491 +1,561 @@
-"""Membrane transport: voltage can reverse an ion's flow  (Biochemistrypedia explainer)
+"""Two Pushes, One Hill — membrane transport explainer.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
+COLOR MAP
+  ORANGE  potassium, concentration, and outward concentration push
+  TEAL    membrane voltage and inward electrical push
+  GREEN   equilibrium / zero net flow
+  BLUE    transport proteins
+  YELLOW  glucose / coupled uphill cargo
+  GREY    membrane and secondary structure
 
-COLOR MAP (one color per concept, whole video)
-  YELLOW = the ion (K+, Cl-) and its net flux
-  BLUE   = channel protein (pillars in the membrane)
-  GREY   = membrane, outlines, labels
-  ORANGE = concentration (the concentration push, the mM labels)
-  TEAL   = membrane voltage Vm (the voltage push, the Vm mark)
-  GREEN  = equilibrium potential (E_K, E_X), balance, zero net flux
-  PURPLE = the difference Vm - E (the driving force)
-  PINK   = carrier (only in the rate comparison)
+The energy ramps use the lesson values: concentration = +8.59 kJ/mol for
+outside -> inside K+, and electrical energy = 0.096485 * Vm kJ/mol.
 """
+import math
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-PURPLE = "#B58CD9"
 ORANGE = "#F29E4C"
-PINK = "#E58FB5"
-
-RX = 5.0   # x of the voltage ruler
-
-
-def vy(v):
-    """y on screen of a membrane voltage v (mV): 0 mV at the top of the ruler, -120 mV at the bottom."""
-    return 2.9 + v * (5.8 / 120.0)
+POTASSIUM = ORANGE
+SODIUM = "#B9C1CC"
+RX = 5.45
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def arr(a, b, color=GREY, w=6, tip=0.26):
-    return Arrow(a, b, buff=0.0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=14)
+def arr(a, b, color=TEXT, width=8, tip=0.25):
+    return Arrow(a, b, buff=0, color=color, stroke_width=width, tip_length=tip)
 
 
-def ion(label="K⁺", r=0.28, size=22, color=YELLOW):
-    c = Circle(radius=r, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.95)
-    return VGroup(c, T(label, size, BG, weight=BOLD).move_to(c))
+def fluid_background():
+    """The same outside/inside landscape behind close-ups and energy diagrams."""
+    outside = Rectangle(width=13.2, height=3.8, stroke_width=0,
+                        fill_color=BLUE, fill_opacity=0.13).move_to([0, 2.0, 0])
+    inside = Rectangle(width=13.2, height=3.8, stroke_width=0,
+                       fill_color=GOLD, fill_opacity=0.12).move_to([0, -2.0, 0])
+    return VGroup(outside, inside).set_z_index(-5)
 
 
-def wall(x0, x1, y, xs, s=1.0, t=0.4, plugs=True):
-    """A membrane bar with a channel (two blue pillars) at each x in xs. Gap half-width 0.55*s."""
-    g = 0.55 * s
-    edges = [x0] + [v for x in xs for v in (x - g, x + g)] + [x1]
-    segs = VGroup()
-    for i in range(0, len(edges), 2):
-        a, b = edges[i], edges[i + 1]
-        segs.add(RoundedRectangle(corner_radius=0.08, width=b - a, height=t, stroke_color=GREY, stroke_width=3,
-                                  fill_color=GREY, fill_opacity=0.35).move_to([(a + b) / 2, y, 0]))
-    pillars = VGroup()
-    for x in xs:
-        for sd in (-1, 1):
-            pillars.add(RoundedRectangle(corner_radius=0.07, width=0.2 * s, height=t + 0.35 * s, stroke_color=BLUE,
-                                         stroke_width=3, fill_color=BLUE, fill_opacity=0.55).move_to([x + sd * 0.45 * s, y, 0]))
-    plug = VGroup()
-    if plugs:
-        for x in xs:
-            plug.add(Rectangle(width=2 * 0.35 * s, height=t, stroke_width=0, fill_color=GREY, fill_opacity=0.8).move_to([x, y, 0]))
-    out = VGroup(segs, pillars, plug)
-    out.segs, out.pillars, out.plug = segs, pillars, plug
-    return out
+def ion(label="K+", color=POTASSIUM, r=0.19, size=18):
+    disk = Circle(radius=r, color=color, stroke_width=2.5,
+                  fill_color=color, fill_opacity=0.95)
+    txt = T(label, size=size, color=BG, weight=BOLD).move_to(disk)
+    return VGroup(disk, txt)
 
 
-def ruler():
-    line = Line([RX, 2.9, 0], [RX, -2.9, 0], color=GREY, stroke_width=4)
-    ticks = VGroup(*[Line([RX - 0.12, vy(v), 0], [RX + 0.12, vy(v), 0], color=GREY, stroke_width=3)
-                     for v in (0, -20, -40, -60, -80, -100, -120)])
-    top = T("0 mV", 22, GREY).move_to([RX, 3.3, 0])
-    bot = T("−120", 22, GREY).move_to([RX, -3.3, 0])
-    return VGroup(line, ticks, top, bot)
+def drifting_ions(points, label="K+", color=POTASSIUM, r=0.17):
+    """Deterministic, gentle ambient motion; stable placement from scene to scene."""
+    group = VGroup()
+    for i, point in enumerate(points):
+        m = ion(label, color, r=r, size=15).move_to(point)
+        m.phase = 0.61 * i
+        m.anchor = np.array(point, dtype=float)
+
+        def drift(dot, dt, i=i):
+            dot.phase += dt
+            dot.move_to(dot.anchor + np.array([
+                0.045 * math.sin(1.3 * dot.phase + i),
+                0.035 * math.cos(1.0 * dot.phase + 0.7 * i), 0]))
+        m.add_updater(drift)
+        group.add(m)
+    return group
 
 
-def marker(v, color, name, side):
-    ln = Line([RX - 0.3, vy(v), 0], [RX + 0.3, vy(v), 0], color=color, stroke_width=8)
-    lab = T(name, 24, color, weight=BOLD)
-    if side == "L":
-        lab.next_to(ln, LEFT, buff=0.12)
-    else:
-        lab.next_to(ln, RIGHT, buff=0.12)
-    return VGroup(ln, lab)
+OUT_POINTS = [(-5.2, 2.25, 0), (-2.8, 2.65, 0), (2.7, 2.35, 0), (4.0, 2.75, 0)]
+IN_POINTS = [(-5.45, -1.65, 0), (-4.55, -2.6, 0), (-3.45, -1.95, 0),
+             (-2.4, -2.8, 0), (-1.35, -1.65, 0), (-0.2, -2.55, 0),
+             (0.9, -1.75, 0), (2.0, -2.8, 0), (3.1, -1.75, 0),
+             (4.25, -2.55, 0), (5.2, -1.75, 0)]
 
 
-def mv(m, old, new):
-    return m.animate.shift(UP * (vy(new) - vy(old)))
+def membrane_world(channel_x=0, labels=True, ruler_on=True, open_gate=True):
+    """The carried world: fields, membrane, channel, ions, and optional Vm ruler."""
+    outside = Rectangle(width=13.2, height=3.15, stroke_width=0,
+                        fill_color=BLUE, fill_opacity=0.07).move_to([0, 2.25, 0])
+    inside = Rectangle(width=13.2, height=3.2, stroke_width=0,
+                       fill_color=GOLD, fill_opacity=0.07).move_to([0, -2.2, 0])
+    gap = 0.72
+    left = RoundedRectangle(corner_radius=0.1, width=6.6 + channel_x - gap,
+                            height=0.78, color=GREY, stroke_width=2.5,
+                            fill_color=GREY, fill_opacity=0.42).move_to([(-6.6 + channel_x-gap)/2, 0, 0])
+    right = RoundedRectangle(corner_radius=0.1, width=6.6 - channel_x - gap,
+                             height=0.78, color=GREY, stroke_width=2.5,
+                             fill_color=GREY, fill_opacity=0.42).move_to([(6.6 + channel_x+gap)/2, 0, 0])
+    gates = VGroup(*[
+        RoundedRectangle(corner_radius=0.14, width=0.34, height=1.24,
+                         color=BLUE, stroke_width=3, fill_color=BLUE,
+                         fill_opacity=0.7).move_to([channel_x + s * 0.52, 0, 0])
+        for s in (-1, 1)])
+    plug = RoundedRectangle(corner_radius=0.08, width=0.7, height=0.6,
+                            stroke_width=0, fill_color=GREY,
+                            fill_opacity=0.9).move_to([channel_x, 0, 0])
+    if open_gate:
+        plug.set_opacity(0)
+    outs = drifting_ions(OUT_POINTS)
+    ins = drifting_ions(IN_POINTS)
+    parts = VGroup(outside, inside, left, right, gates, plug, outs, ins)
+    parts.outside, parts.inside = outside, inside
+    parts.membrane = VGroup(left, right)
+    parts.gates, parts.plug, parts.outs, parts.ins = gates, plug, outs, ins
+    if labels:
+        lo = T("OUTSIDE   5 mM K+", 30, ORANGE, weight=BOLD).move_to([-4.55, 3.25, 0])
+        li = T("INSIDE   140 mM K+", 30, ORANGE, weight=BOLD).move_to([-4.35, -3.25, 0])
+        parts.add(lo, li)
+        parts.labels = VGroup(lo, li)
+    if ruler_on:
+        parts.add(voltage_ruler())
+    return parts
 
 
-def place(m, x, y, edge=LEFT):
-    return m.move_to([x, y, 0], aligned_edge=edge)
+def vy(v, top=2.75, bottom=-2.75):
+    return top + (v / -120.0) * (bottom - top)
 
 
-def gap_bar(a, b):
-    return Line([RX, vy(a), 0], [RX, vy(b), 0], color=PURPLE, stroke_width=12)
+def voltage_ruler(x=RX, big=False):
+    top, bot = (3.0, -3.0) if big else (2.75, -2.75)
+    line = Line([x, top, 0], [x, bot, 0], color=GREY, stroke_width=4)
+    ticks = VGroup()
+    for v in (0, -20, -40, -60, -80, -100, -120):
+        yy = top + (v / -120) * (bot - top)
+        ticks.add(Line([x - 0.14, yy, 0], [x + 0.14, yy, 0], color=GREY, stroke_width=3))
+    vm = T("Vm", 28, TEAL, weight=BOLD).next_to(line, UP, buff=0.14)
+    z = M("0", 24, GREY).next_to(line.get_top(), LEFT, buff=0.18)
+    n = M("-120 mV", 24, GREY).next_to(line.get_bottom(), LEFT, buff=0.18)
+    return VGroup(line, ticks, vm, z, n)
 
 
-class S00Title(TitleCard):
-    LESSON = "Transport across membranes"
-    TITLE = "Voltage can reverse an ion's flow"
+def pointer(v, x=RX, text=None, side=RIGHT, color=TEAL):
+    y = vy(v)
+    tri = Triangle(color=color, fill_color=color, fill_opacity=1, stroke_width=0).scale(0.13).rotate(-PI/2)
+    tri.move_to([x - 0.3, y, 0])
+    label = M(text or f"{v:g}", 25, color).next_to(tri, side, buff=0.18)
+    return VGroup(tri, label)
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Reversal(SpokenScene):
+def equilibrium_mark(x=RX):
+    y = vy(-89.1)
+    line = Line([x - 0.27, y, 0], [x + 0.27, y, 0], color=GREEN, stroke_width=8)
+    label = M("E_K = -89.1 mV", 28, GREEN).move_to([3.62, y + 0.34, 0])
+    return VGroup(line, label)
+
+
+def ramp(delta, center=(-2.3, 0.2, 0), width=4.0, color=TEXT, label=None):
+    """Energy-to-enter ramp. delta is computed kJ/mol, with + meaning uphill."""
+    cx, cy, _ = center
+    dy = np.clip(delta / 8.59 * 2.0, -2.25, 2.25)
+    line = Line([cx - width/2, cy - dy/2, 0], [cx + width/2, cy + dy/2, 0],
+                color=color, stroke_width=8)
+    left = T("OUT", 24, GREY).next_to(line.get_start(), DOWN, buff=0.15)
+    right = T("IN", 24, GREY).next_to(line.get_end(), DOWN, buff=0.15)
+    g = VGroup(line, left, right)
+    if label:
+        lab = T(label, 28, color, weight=BOLD).next_to(line, UP, buff=0.22)
+        g.add(lab)
+    g.line = line
+    return g
+
+
+def ball_on(line, at=0.5, color=POTASSIUM):
+    return ion("K+", color, r=0.22, size=17).move_to(line.point_from_proportion(at) + UP * 0.26)
+
+
+def flow(scene, world, direction="out", run_time=1.1, count=3):
+    source = world.ins if direction == "out" else world.outs
+    chosen = list(source[:count])
+    for m in chosen:
+        m.clear_updaters()
+    mid_y, end_y = (0.0, 2.2) if direction == "out" else (0.0, -2.2)
+    scene.play(*[m.animate.move_to([(-0.2 + 0.2*i), mid_y, 0]) for i, m in enumerate(chosen)],
+               run_time=run_time * 0.45)
+    scene.play(*[m.animate.move_to([(-0.45 + 0.45*i), end_y + 0.18*(i%2), 0]) for i, m in enumerate(chosen)],
+               run_time=run_time * 0.55)
+
+
+class S00Hook(SpokenScene):
     def construct(self):
-        xs = [-4.2, -1.2]
-        w = wall(-6.3, 2.9, 0.0, xs)
-        self.add(w)
-        self.at("Which way does potassium flow")
-        q = T("?", 72, YELLOW, weight=BOLD).move_to([-2.7, 1.0, 0])
-        q2 = T("?", 72, YELLOW, weight=BOLD).move_to([-2.7, -1.0, 0])
-        self.play(FadeIn(q, scale=0.6), FadeIn(q2, scale=0.6), run_time=0.5)
-        self.play(Indicate(q, color=YELLOW), Indicate(q2, color=YELLOW), run_time=1.0)
-
-        inside_pos = [(-5.5, -1.1), (-4.2, -1.2), (-2.7, -1.0), (-1.2, -1.2), (0.3, -1.0), (1.7, -1.3),
-                      (-3.4, -2.1), (-0.2, -2.2), (-5.2, -2.0), (1.5, -2.2)]
-        ins = [ion().move_to([x, y, 0]) for x, y in inside_pos]
-        A, B = ins[1], ins[3]
-        outs = [ion().move_to([x, y, 0]) for x, y in [(-3.2, 1.3), (-0.2, 1.5), (-5.4, 1.5), (1.6, 1.3)]]
-        C, D = outs[0], outs[1]
-        lab_in = place(T("inside   140 mM", 26, ORANGE), -6.3, -3.05)
-        lab_out = place(T("outside   5 mM", 26, ORANGE), -6.3, 3.05)
-
-        self.at("potassium inside")
-        self.play(FadeOut(q), FadeOut(q2), LaggedStart(*[FadeIn(i, scale=0.7) for i in ins], lag_ratio=0.06),
-                  FadeIn(lab_in), run_time=1.0)
-        self.at("outside")
-        self.play(LaggedStart(*[FadeIn(o, scale=0.7) for o in outs], lag_ratio=0.1), FadeIn(lab_out), run_time=0.7)
-
-        rl = ruler()
-        vm = marker(-70, TEAL, "Vm", "L")
-        vm_read = place(M("Vm = −70 mV", 30, TEAL), 0.0, 3.05)
-        self.at("hold it at minus")
-        self.play(FadeIn(rl), FadeIn(vm), FadeIn(vm_read), run_time=0.8)
-
-        self.at("Open the channels")
-        self.play(FadeOut(w.plug), *[Indicate(p, color=BLUE, scale_factor=1.15) for p in w.pillars], run_time=0.8)
-
-        net = T("net K⁺ flux: out", 24, YELLOW).move_to([1.5, -3.05, 0])
-        self.at("potassium leaves")
-        self.play(A.animate.move_to([-4.2, 0.0, 0]), B.animate.move_to([-1.2, 0.0, 0]), run_time=0.5)
-        self.play(A.animate.move_to([-4.2, 1.5, 0]), B.animate.move_to([-1.2, 1.5, 0]), FadeIn(net), run_time=0.6)
-
-        # --- second case: reset every result, then the new case ---
-        net2 = T("net K⁺ flux: in", 24, YELLOW).move_to([1.5, -3.05, 0])
-        vm_read2 = place(M("Vm = −100 mV", 30, TEAL), 0.0, 3.05)
-        self.at("hold it at minus", nth=1)
-        self.play(A.animate.move_to([inside_pos[1][0], inside_pos[1][1], 0]),
-                  B.animate.move_to([inside_pos[3][0], inside_pos[3][1], 0]),
-                  FadeOut(net), mv(vm, -70, -100), ReplacementTransform(vm_read, vm_read2), run_time=0.9)
+        w = membrane_world(open_gate=False)
+        q = T("?", 78, TEXT, weight=BOLD).move_to([0, 1.05, 0])
+        badge = chip("28x", ORANGE, 34).move_to([-3.9, -1.25, 0])
+        p = pointer(-70, text="-70", side=LEFT)
+        self.play(FadeIn(w), FadeIn(q, scale=0.7), FadeIn(badge, scale=0.8), run_time=1.1)
+        self.at("against a 28")
+        self.play(Indicate(badge, color=ORANGE, scale_factor=1.12), run_time=0.8)
+        self.at("Take a cell")
+        self.play(Indicate(w.labels, color=ORANGE, scale_factor=1.03), run_time=1.0)
+        self.at("minus 70")
+        self.play(FadeIn(p), FadeOut(w.plug), w.gates.animate.set_fill(BLUE, opacity=0.95),
+                  FadeOut(q), run_time=0.9)
+        self.at("Potassium leaves")
+        flow(self, w, "out", 1.25, 3)
+        self.at("minus 100")
+        p2 = pointer(-100, text="-100", side=LEFT)
+        self.play(ReplacementTransform(p, p2), run_time=0.7)
         self.at("potassium comes in")
-        self.play(C.animate.move_to([-4.2, 0.9, 0]), D.animate.move_to([-1.2, 0.9, 0]), run_time=0.4)
-        self.play(C.animate.move_to([-4.2, -0.2, 0]), D.animate.move_to([-1.2, -0.2, 0]), run_time=0.4)
-        self.play(C.animate.move_to([-3.45, -0.7, 0]), D.animate.move_to([-0.4, -0.7, 0]), FadeIn(net2), run_time=0.5)
-        fold = chip("28-fold", ORANGE, size=24).move_to([-1.9, 2.0, 0])
-        self.at("concentration difference")
-        self.play(FadeIn(fold, scale=0.8), run_time=0.5)
-        self.at("Only the voltage")
-        self.play(Indicate(vm_read2, color=TEAL, scale_factor=1.12), Indicate(vm, color=TEAL), run_time=0.9)
+        flow(self, w, "in", 1.25, 3)
+        self.play(Indicate(badge, color=ORANGE, scale_factor=1.16), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S01Title(TitleCard):
+    LESSON = "Transport Across Membranes"
+    TITLE = "Two Pushes, One Hill"
+
+
 class S02Pushes(SpokenScene):
     def construct(self):
-        w = wall(-6.3, 6.3, 0.0, [0.0], s=1.6, t=0.5, plugs=False)
-        lab_out = place(T("outside", 24, GREY), -6.3, 3.05)
-        lab_in = place(T("inside", 24, GREY), -6.3, -3.05)
-        k = ion(r=0.4, size=28)
-        self.at("An ion feels")
-        self.play(FadeIn(w), FadeIn(lab_out), FadeIn(lab_in), FadeIn(k, scale=0.7), run_time=0.8)
+        w = membrane_world(ruler_on=False)
+        self.play(FadeIn(w), run_time=0.8)
+        self.at("first is concentration")
+        crowd = SurroundingRectangle(w.ins, color=ORANGE, buff=0.16, corner_radius=0.2)
+        self.play(Create(crowd), run_time=0.45)
+        ca = arr([0, -0.8, 0], [0, 1.75, 0], ORANGE, 11, 0.32)
+        self.play(GrowArrow(ca), run_time=0.7)
+        self.at("where it is crowded")
+        cl = T("concentration push", 30, ORANGE, weight=BOLD).move_to([-2.0, 1.25, 0])
+        self.play(FadeIn(cl), Indicate(w.ins, color=ORANGE), run_time=0.9)
+        self.at("second is voltage")
+        plus = VGroup(*[T("+", 28, TEAL).move_to([x, 0.75, 0]) for x in (-3.6, -2.3, -1.0, 1.0, 2.3, 3.6)])
+        minus = VGroup(*[T("-", 32, TEAL).move_to([x, -0.75, 0]) for x in (-3.6, -2.3, -1.0, 1.0, 2.3, 3.6)])
+        self.play(FadeOut(crowd), LaggedStart(*[FadeIn(s) for s in VGroup(plus, minus)], lag_ratio=0.06), run_time=0.9)
+        va = arr([0.55, 0.8, 0], [0.55, -1.8, 0], TEAL, 11, 0.32)
+        self.play(GrowArrow(va), run_time=0.6)
+        self.at("inside minus the outside")
+        vl = T("voltage push", 30, TEAL, weight=BOLD).move_to([2.0, -1.15, 0])
+        self.play(FadeIn(vl), run_time=0.5)
+        self.at("pulls positive ions in")
+        movers = list(w.outs[:2])
+        for m in movers: m.clear_updaters()
+        self.play(*[m.animate.shift(DOWN * 1.3 + RIGHT * (0.2*i)) for i, m in enumerate(movers)], run_time=1.2)
+        self.finish()
 
-        o_arr = arr([0, 0.5, 0], [0, 2.0, 0], ORANGE, w=10)
-        o_lab = T("concentration difference", 26, ORANGE)
-        o_lab.move_to([-0.45 - o_lab.width / 2, 1.3, 0])
-        self.at("concentration difference")
-        self.play(GrowArrow(o_arr), FadeIn(o_lab), run_time=0.7)
 
-        t_arr = arr([0, -0.5, 0], [0, -1.2, 0], TEAL, w=10)
-        t_lab = place(T("voltage", 26, TEAL), 0.45, -1.3)
-        self.at("membrane potential")
-        self.play(GrowArrow(t_arr), FadeIn(t_lab), run_time=0.6)
+class S03Hill(SpokenScene):
+    def construct(self):
+        bg = fluid_background()
+        title = T("energy to enter  •  schematic", 28, GREY).to_edge(UP, buff=0.38)
+        orange = ramp(8.59, center=(-2.25, 0.2, 0), color=ORANGE, label="concentration slope")
+        teal = ramp(-6.75, center=(2.25, 0.2, 0), color=TEAL, label="voltage slope")
+        final_center = orange.line.get_center()
+        final_ball_pos = orange.line.point_from_proportion(0.25) + UP*0.26
+        orange.line.rotate(-0.32, about_point=final_center)
+        b1 = ball_on(orange.line, 0.05)
+        # The energy subject is already visible while the opening sentence lands.
+        # A slow roll keeps that spoken lead-in from becoming a static empty panel.
+        self.add(bg, title, orange.line, b1)
+        self.play(Rotate(orange.line, 0.32, about_point=final_center),
+                  b1.animate.move_to(final_ball_pos),
+                  run_time=4.7, rate_func=linear)
+        self.at("hill with two slopes")
+        self.play(FadeIn(orange[1:]), run_time=0.9)
+        self.at("entering uphill")
+        self.play(Indicate(orange.line, color=ORANGE, scale_factor=1.08),
+                  b1.animate.move_to(orange.line.point_from_proportion(0.02)+UP*0.26), run_time=0.9)
+        self.at("voltage slope")
+        self.play(Create(teal.line), FadeIn(teal[1:]), run_time=0.9)
+        self.at("makes it downhill")
+        b2 = ball_on(teal.line, 0.2)
+        self.play(FadeIn(b2), b2.animate.move_to(teal.line.point_from_proportion(0.78)+UP*0.26), run_time=0.9)
+        self.at("the total")
+        total = ramp(8.59-6.75, center=(0, -0.25, 0), width=5.3, color=TEXT, label="total at -70 mV")
+        ball = ball_on(total.line, 0.65)
+        self.play(FadeOut(VGroup(orange, teal, b1, b2)), FadeIn(total), FadeIn(ball), run_time=0.8)
+        self.at("runs downhill")
+        self.play(ball.animate.move_to(total.line.point_from_proportion(0.06)+UP*0.26), run_time=1.2)
+        self.finish()
 
-        vm_txt = M("Vm = inside − outside", 28, TEAL).move_to([0, -3.15, 0])
-        self.at("the inside minus")
-        self.play(FadeIn(vm_txt), run_time=0.5)
 
-        t_long = arr([0, -0.5, 0], [0, -2.6, 0], TEAL, w=10)
-        self.at("pulls cations in")
-        self.play(Transform(t_arr, t_long), run_time=0.8)
-
-        t_bal = arr([0, -0.5, 0], [0, -2.0, 0], TEAL, w=10)
-        self.at("balances")
-        self.play(Transform(t_arr, t_bal), run_time=0.8)
-
-        eq = chip("equilibrium potential", GREEN, size=28).move_to([0, 2.7, 0])
+class S04Balance(SpokenScene):
+    def construct(self):
+        bg = fluid_background()
+        title = T("energy to enter K+  •  computed", 28, GREY).to_edge(UP, buff=0.35)
+        rl = voltage_ruler()
+        voltage = ValueTracker(-70)
+        total_line = always_redraw(lambda: ramp(8.59 + 0.096485*voltage.get_value(),
+                                                  center=(-2.15, 0.25, 0), width=4.5,
+                                                  color=TEXT, label="total")[0])
+        orange = ramp(8.59, center=(-2.15, 0.25, 0), width=4.5, color=ORANGE)
+        teal_line = always_redraw(lambda: ramp(0.096485*voltage.get_value(),
+                                               center=(-2.15, 0.25, 0), width=4.5,
+                                               color=TEAL)[0])
+        voltage_wedge = always_redraw(lambda: Polygon(
+            [-4.4, 0.25, 0], [0.1, 0.25, 0],
+            [0.1, 0.25 + np.clip((0.096485*voltage.get_value()) / 8.59 * 2.0, -2.25, 2.25)/2, 0],
+            [-4.4, 0.25 - np.clip((0.096485*voltage.get_value()) / 8.59 * 2.0, -2.25, 2.25)/2, 0],
+            stroke_width=0, fill_color=TEAL, fill_opacity=0.12).set_z_index(-1))
+        ptr = always_redraw(lambda: pointer(voltage.get_value(), text=f"{voltage.get_value():.1f}", side=LEFT))
+        ball = ion("K+", POTASSIUM, 0.22, 17).move_to([-2.15, 0.55, 0])
+        # Start on the complete, full-opacity panel: the narration begins immediately,
+        # so fading this dense diagram up left an almost empty spoken frame.
+        self.add(bg, title, rl, orange, voltage_wedge, teal_line, total_line, ptr, ball)
+        # Show the two slopes approaching balance before naming the cancellation.
+        self.play(voltage.animate.set_value(-84), run_time=2.4, rate_func=linear)
+        self.at("slopes cancel")
+        self.play(voltage.animate.set_value(-89.1), ball.animate.move_to([-2.15, 0.52, 0]), run_time=0.8)
+        self.remove(ptr)
+        ek = equilibrium_mark()
+        self.play(FadeIn(ek, shift=LEFT*0.2), run_time=0.5)
         self.at("equilibrium potential")
-        self.play(FadeIn(eq, shift=DOWN * 0.15), run_time=0.5)
-
-        k3 = ion(r=0.4, size=28).move_to([1.4, 1.5, 0])
-        self.at("Ions still cross")
-        self.play(FadeOut(o_arr), FadeOut(t_arr), FadeOut(o_lab), FadeOut(t_lab), run_time=0.3)
-        self.play(k.animate.move_to([0, 1.0, 0]), run_time=0.3)
-        self.play(k.animate.move_to([-1.4, 1.5, 0]), FadeIn(k3), run_time=0.3)
-        self.play(k3.animate.move_to([0, -0.9, 0]), run_time=0.3)
-        self.play(k3.animate.move_to([1.4, -1.5, 0]), run_time=0.3)
-        net0 = M("net flux = 0", 28, GREEN).move_to([0, -2.5, 0])
-        self.at("equal numbers")
-        self.play(FadeIn(net0), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Nernst(SpokenScene):
-    def construct(self):
-        parts = ["E_X =", "(", "RT", "/", "zF", ")", "× ln(", "[X]out / [X]in", ")"]
-        mobs = [M(s, 40, TEXT) for s in parts]
-        eq = VGroup(*mobs).arrange(RIGHT, buff=0.3)
-        fit(eq, max_w=12.2)
-        eq.move_to([0, 0.6, 0])
-        self.at("equation gives")
-        self.play(Write(eq), run_time=1.6)
-
-        zl = T("charge", 28, YELLOW).next_to(mobs[4], UP, buff=0.7)
-        zl_line = Line(zl.get_bottom() + DOWN * 0.05, mobs[4].get_top() + UP * 0.08, color=YELLOW, stroke_width=3)
-        self.at("the charge")
-        self.play(FadeIn(zl), Create(zl_line), run_time=0.5)
-        tl = T("temperature", 28, GREY).next_to(mobs[2], DOWN, buff=0.7)
-        tl_line = Line(tl.get_top() + UP * 0.05, mobs[2].get_bottom() + DOWN * 0.08, color=GREY, stroke_width=3)
-        self.at("the temperature")
-        self.play(FadeIn(tl), Create(tl_line), run_time=0.5)
-        rl_ = T("ratio of outside to\ninside concentration", 28, ORANGE).next_to(mobs[7], DOWN, buff=0.7)
-        rl_line = Line(rl_.get_top() + UP * 0.05, mobs[7].get_bottom() + DOWN * 0.08, color=ORANGE, stroke_width=3)
-        self.at("ratio of outside")
-        self.play(FadeIn(rl_), Create(rl_line), run_time=0.6)
-
-        # make room: shrink the equation to the top left, bring in the potassium numbers
-        eq_small = eq.copy().scale(0.8)
-        eq_small.move_to([-6.3 + eq_small.width / 2, 3.05, 0])
-        ZERO = -3.0
-        sc = 4.2 / 140.0
-        bar_in = Rectangle(width=0.8, height=140 * sc, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE,
-                           fill_opacity=0.35).move_to([3.8, ZERO + 140 * sc / 2, 0])
-        bar_out = Rectangle(width=0.8, height=5 * sc, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE,
-                            fill_opacity=0.35).move_to([2.6, ZERO + 5 * sc / 2, 0])
-        lb_in = M("140 mM", 22, ORANGE).move_to([3.8, ZERO + 140 * sc + 0.3, 0])
-        lb_out = M("5 mM", 22, ORANGE).move_to([2.6, ZERO + 5 * sc + 0.3, 0])
-        lb_in2 = T("inside", 22, GREY).move_to([3.8, ZERO - 0.3, 0])
-        lb_out2 = T("outside", 22, GREY).move_to([2.6, ZERO - 0.3, 0])
-        self.at("teaching values")
-        self.play(FadeOut(VGroup(zl, zl_line, tl, tl_line, rl_, rl_line)), Transform(eq, eq_small), run_time=0.9)
-        self.play(GrowFromEdge(bar_in, DOWN), GrowFromEdge(bar_out, DOWN),
-                  FadeIn(VGroup(lb_in, lb_out, lb_in2, lb_out2)), run_time=0.9)
-
-        zt = place(T("K⁺:  z = +1,  37 °C", 26, GREY), -6.3, 2.1)
-        rowC = place(M("E_K = 26.73 mV × ln( 5 / 140 )", 28, TEXT), -6.3, 1.0)
+        self.play(Indicate(ek, color=GREEN), run_time=0.9)
         self.at("For potassium")
-        self.play(FadeIn(zt), run_time=0.4)
-        self.play(Indicate(bar_out, color=ORANGE), Indicate(bar_in, color=ORANGE), run_time=1.0)
-        self.play(Write(rowC), run_time=1.2)
-
-        rowD = place(M("ln( 5 / 140 ) = −3.332", 28, TEXT), -6.3, -0.2)
-        self.at("natural log")
-        self.play(Write(rowD), run_time=1.0)
-
-        rowE = place(M("E_K = 26.73 × (−3.332) = −89.1 mV", 28, GREEN), -6.3, -1.6)
-        rl = ruler()
-        ek = marker(-89.1, GREEN, "E_K", "R")
-        self.at("Multiply by")
-        self.play(Write(rowE), FadeIn(rl), run_time=1.3)
-        self.at("potassium is")
-        self.play(FadeIn(ek, shift=LEFT * 0.4), Indicate(rowE, color=GREEN, scale_factor=1.04), run_time=0.9)
+        k_values = chip("K+ teaching values", ORANGE, 32).move_to([2.0, -2.25, 0])
+        self.play(FadeIn(k_values, shift=LEFT*0.5), run_time=0.8)
+        self.at("teaching values")
+        conc_chip = chip("+8.59 kJ/mol", ORANGE, 30).move_to([-3.7, -2.15, 0])
+        volt_chip = chip("-8.59 kJ/mol", TEAL, 30).move_to([1.35, -2.15, 0])
+        self.play(ReplacementTransform(k_values, VGroup(conc_chip, volt_chip)), run_time=0.9)
+        self.play(Indicate(conc_chip, color=ORANGE),
+                  Indicate(volt_chip, color=TEAL), run_time=1.1)
+        self.at("Nernst equation")
+        balance_band = Rectangle(width=9.1, height=0.38, stroke_width=0,
+                                 fill_color=GREEN, fill_opacity=0.14).move_to([0.75, vy(-89.1), 0])
+        self.play(GrowFromEdge(balance_band, RIGHT), run_time=1.2)
+        calc = VGroup(M("concentration  +8.59", 27, ORANGE),
+                      M("voltage        -8.59", 27, TEAL),
+                      M("total            0", 29, GREEN)).arrange(DOWN, aligned_edge=LEFT, buff=0.18).move_to([-2.2, -2.1, 0])
+        self.play(LaggedStart(*[FadeIn(row, shift=UP*0.1) for row in calc], lag_ratio=0.32),
+                  FadeOut(balance_band), FadeOut(VGroup(conc_chip, volt_chip)), run_time=2.2)
+        self.at("ions still cross")
+        cross_band = RoundedRectangle(corner_radius=0.1, width=3.2, height=0.58, color=GREY,
+                                      stroke_width=2.5, fill_color=GREY, fill_opacity=0.42).move_to([2.25, 0.0, 0])
+        cross_gate = VGroup(*[RoundedRectangle(corner_radius=0.08, width=0.25, height=0.94,
+                                              color=BLUE, fill_color=BLUE, fill_opacity=0.8).move_to([2.25+s*0.4, 0, 0])
+                              for s in (-1, 1)])
+        up = VGroup(*[ion("K+", POTASSIUM, 0.23, 16).move_to([1.75+0.85*i, -1.2, 0]) for i in range(2)])
+        down = VGroup(*[ion("K+", POTASSIUM, 0.23, 16).move_to([1.75+0.85*i, 1.2, 0]) for i in range(2)])
+        self.play(FadeIn(cross_band), FadeIn(cross_gate), FadeIn(up), FadeIn(down), run_time=0.5)
+        self.play(*[m.animate.shift(UP*2.4) for m in up],
+                  *[m.animate.shift(DOWN*2.4) for m in down], run_time=1.4)
+        self.at("equal numbers")
+        counts = VGroup(M("12 out  •  12 in", 30, GREEN),
+                        T("net 0", 30, GREEN, weight=BOLD)).arrange(DOWN, buff=0.16).move_to([2.3, 2.25, 0])
+        self.play(FadeIn(counts), run_time=0.6)
+        self.play(*[m.animate.shift(DOWN*2.4) for m in up],
+                  *[m.animate.shift(UP*2.4) for m in down], run_time=1.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-WX1 = 1.9      # right end of the big single-channel diagram
-CHX = -2.2     # its channel
+def question_layout():
+    w = membrane_world(labels=False, open_gate=True)
+    w.ruler_on = True
+    card = T("Which way at each voltage?", 40, TEXT, weight=BOLD).to_edge(UP, buff=0.28)
+    ek = equilibrium_mark()
+    p70 = pointer(-70, text="-70   ?", side=LEFT)
+    p100 = pointer(-100, text="-100   ?", side=LEFT)
+    return VGroup(w, card, ek, p70, p100)
 
 
-class S04Compare(SpokenScene):
+class S05Predict(SpokenScene):
     def construct(self):
-        YW = 1.2
-        w = wall(-6.3, WX1, YW, [CHX], s=1.5, t=0.5)
-        w.remove(w.plug)
-        lab_out = place(T("outside   5 mM", 24, ORANGE), -6.3, 3.1)
-        lab_in = place(T("inside   140 mM", 24, ORANGE), -6.3, -0.35)
-        rl = ruler()
-        ek = marker(-89.1, GREEN, "E_K", "R")
-        ek_txt = place(M("E_K = −89.1 mV", 26, GREEN), -2.6, -1.4)
-        self.play(FadeIn(w), FadeIn(lab_out), FadeIn(lab_in), FadeIn(rl), FadeIn(ek), FadeIn(ek_txt), run_time=0.8)
-
-        vm = marker(-70, TEAL, "Vm", "L")
-        r1 = place(M("Vm = −70 mV", 26, TEAL), -6.3, -1.4)
-        self.play(Indicate(ek, color=GREEN), run_time=1.0)
-        self.at("At minus 70")
-        self.play(FadeIn(vm, shift=RIGHT * 0.3), FadeIn(r1), run_time=0.7)
-
-        gap = gap_bar(-70, -89.1)
-        r2 = place(M("Vm − E_K = +19.1 mV", 28, PURPLE), -6.3, -2.2)
-        self.at("the difference is")
-        self.play(Create(gap), FadeIn(r2), run_time=0.7)
-
-        r3 = place(T("K⁺ in: uphill,  +1.84 kJ/mol", 26, TEXT), -6.3, -3.0)
-        self.at("uphill")
-        self.play(FadeIn(r3), run_time=0.5)
-
-        k = ion(r=0.4, size=28).move_to([CHX, 0.3, 0])
-        arrow = arr([CHX, 0.55, 0], [CHX, 1.75, 0], YELLOW, w=9)
-        net = place(T("net K⁺ flux: out", 26, YELLOW), CHX + 0.8, 2.4)
-        self.at("net flow is outward")
-        self.play(FadeIn(k), run_time=0.2)
-        self.play(k.animate.move_to([CHX, 2.3, 0]), run_time=0.8)
-        self.play(GrowArrow(arrow), FadeIn(net), run_time=0.4)
-
-        # reset every result, then the second case
-        r1b = place(M("Vm = −100 mV", 26, TEAL), -6.3, -1.4)
-        gap2 = gap_bar(-100, -89.1)
-        self.at("At minus 100")
-        self.play(FadeOut(k), FadeOut(arrow), FadeOut(net), FadeOut(r2), FadeOut(r3), FadeOut(gap),
-                  mv(vm, -70, -100), ReplacementTransform(r1, r1b), run_time=0.9)
-
-        r2b = place(M("Vm − E_K = −10.9 mV", 28, PURPLE), -6.3, -2.2)
-        self.at("the difference is", nth=1)
-        self.play(Create(gap2), FadeIn(r2b), run_time=0.7)
-
-        r3b = place(T("K⁺ in: downhill,  −1.06 kJ/mol", 26, TEXT), -6.3, -3.0)
-        self.at("downhill")
-        self.play(FadeIn(r3b), run_time=0.5)
-
-        k2 = ion(r=0.4, size=28).move_to([CHX, 2.3, 0])
-        arrow2 = arr([CHX, 1.75, 0], [CHX, 0.65, 0], YELLOW, w=9)
-        net2 = place(T("net K⁺ flux: in", 26, YELLOW), CHX + 0.8, 2.4)
-        self.at("net flow is inward")
-        self.play(FadeIn(k2), run_time=0.2)
-        self.play(k2.animate.move_to([CHX, 0.3, 0]), run_time=0.8)
-        self.play(GrowArrow(arrow2), FadeIn(net2), run_time=0.4)
-        self.at("outweighs")
-        self.play(Indicate(r2b, color=PURPLE, scale_factor=1.05), Indicate(vm, color=TEAL), run_time=0.8)
+        q = question_layout()
+        self.play(FadeIn(q[0]), run_time=0.7)
+        self.at("green mark")
+        self.play(FadeIn(q[2]), Indicate(q[2], color=GREEN), run_time=0.8)
+        self.at("minus 70")
+        self.play(FadeIn(q[1]), FadeIn(q[3]), run_time=0.7)
+        self.at("minus 100")
+        self.play(FadeIn(q[4]), run_time=0.6)
+        self.at("Decide before")
+        self.play(Indicate(q[3], color=TEAL), Indicate(q[4], color=TEAL), run_time=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Current(SpokenScene):
+class S06Think(Scene):
     def construct(self):
-        # carried over from the end of the last scene
-        YW = 1.2
-        w = wall(-6.3, WX1, YW, [CHX], s=1.5, t=0.5)
-        w.remove(w.plug)
-        lab_out = place(T("outside   5 mM", 24, ORANGE), -6.3, 3.1)
-        lab_in = place(T("inside   140 mM", 24, ORANGE), -6.3, -0.35)
-        k = ion(r=0.4, size=28).move_to([CHX, 0.3, 0])
-        arrow = arr([CHX, 1.75, 0], [CHX, 0.65, 0], YELLOW, w=9)
-        net = place(T("net K⁺ flux: in", 26, YELLOW), CHX + 0.8, 2.4)
-        rl = ruler()
-        ek = marker(-89.1, GREEN, "E_K", "R")
-        vm = marker(-100, TEAL, "Vm", "L")
-        gap0 = gap_bar(-100, -89.1)
-        diagram = VGroup(w, lab_out, lab_in, k, arrow, net)
-        self.add(diagram, rl, ek, vm, gap0)
-        self.at("The same difference")
-        self.play(Indicate(gap0, color=PURPLE, scale_factor=1.3), run_time=0.8)
-
-        # trace panel
-        x0, x1, yb, yo = -5.4, 2.3, 0.6, 2.2
-        axes = VGroup(Line([x0, yb, 0], [x1, yb, 0], color=GREY, stroke_width=2),
-                      Line([x0, yb - 0.3, 0], [x0, yo + 0.4, 0], color=GREY, stroke_width=3))
-        zero = T("0", 24, GREY).move_to([x0 - 0.3, yb, 0])
-        head = place(T("current through one K⁺ channel", 26, GREY), -6.3, 3.05)
-        self.at("one channel")
-        self.play(FadeOut(diagram), FadeIn(axes), FadeIn(zero), FadeIn(head), run_time=0.8)
-
-        r1 = place(M("γ = 20 pS", 30, TEXT), -6.3, -0.4)
-        self.at("conductance")
-        self.play(FadeIn(r1), run_time=0.5)
-
-        gap = gap_bar(-40, -89.1)
-        gl = M("49.1 mV", 24, PURPLE).move_to([RX - 1.2, (vy(-40) + vy(-89.1)) / 2, 0])
-        self.at("sits at minus")
-        self.play(mv(vm, -100, -40), FadeOut(gap0), run_time=0.7)
-        self.at("The difference is")
-        self.play(Create(gap), FadeIn(gl), run_time=0.7)
-
-        r2 = place(M("i = γ × (Vm − E_K)", 30, TEXT), -6.3, -1.3)
-        r3 = place(M("= 20 pS × 49.1 mV = 0.98 pA", 30, YELLOW), -6.3, -2.2)
-        self.at("so the current is")
-        self.play(Write(r2), run_time=0.8)
-        self.play(Write(r3), run_time=0.8)
-
-        # the trace: closed 0 pA, open 0.98 pA, outward = up
-        opens = [(0.06, 0.20), (0.27, 0.32), (0.40, 0.63), (0.70, 0.74), (0.82, 0.95)]
-        pts = [[x0, yb, 0]]
-        for a, b in opens:
-            xa, xb = x0 + a * (x1 - x0), x0 + b * (x1 - x0)
-            pts += [[xa, yb, 0], [xa, yo, 0], [xb, yo, 0], [xb, yb, 0]]
-        pts.append([x1, yb, 0])
-        tr = VMobject(color=YELLOW, stroke_width=5).set_points_as_corners(pts)
-        lvl = place(M("0.98 pA", 24, YELLOW), x1 + 0.2, yo)
-        self.at("picoamps outward")
-        self.play(Create(tr, rate_func=linear), FadeIn(lvl), run_time=2.4)
-
-        r4 = place(T("about 6.1 million ions per second", 34, YELLOW, weight=BOLD), -6.3, -3.1)
-        self.at("ions per second")
-        self.play(FadeIn(r4, shift=UP * 0.15), run_time=0.6)
-
-        # rate comparison on a log axis
-        ax0, ax1 = -5.4, 5.4
-        per = (ax1 - ax0) / 7.0
-        X = lambda e: ax0 + e * per
-        base = Line([ax0, -2.3, 0], [ax1, -2.3, 0], color=GREY, stroke_width=3)
-        tks = VGroup()
-        for e, s in ((0, "1"), (2, "100"), (4, "10,000"), (6, "1,000,000")):
-            tks.add(Line([X(e), -2.3, 0], [X(e), -2.45, 0], color=GREY, stroke_width=3))
-            tks.add(M(s, 22, GREY).move_to([X(e), -2.8, 0]))
-        axt = T("per second (log scale)", 22, GREY).move_to([0, -3.3, 0])
-        chb = Rectangle(width=X(np.log10(6.1e6)) - ax0, height=0.6, stroke_color=BLUE, stroke_width=3,
-                        fill_color=BLUE, fill_opacity=0.5).move_to([(ax0 + X(np.log10(6.1e6))) / 2, 1.2, 0])
-        chl = place(T("one channel: ions", 26, BLUE), ax0, 1.85)
-        title = T("about 6.1 million ions per second", 29, YELLOW, weight=BOLD).move_to([0, 3.0, 0])
-        self.at("A carrier cycling")
-        self.play(*[FadeOut(m) for m in (rl, ek, vm, gap, gl, axes, zero, head, r1, r2, r3, tr, lvl, r4)], run_time=0.5)
-        self.play(FadeIn(title), Create(base), FadeIn(tks), FadeIn(axt), GrowFromEdge(chb, LEFT), FadeIn(chl), run_time=0.7)
-        cab = Rectangle(width=X(np.log10(3000)) - X(2), height=0.6, stroke_color=PINK, stroke_width=3,
-                        fill_color=PINK, fill_opacity=0.5).move_to([(X(2) + X(np.log10(3000))) / 2, -0.7, 0])
-        cal = place(T("a carrier: cycles, a range of hundreds to a few thousand", 26, PINK), ax0, -0.05)
-        self.at("hundreds or a few thousand")
-        self.play(FadeIn(cab, scale=0.9), FadeIn(cal), run_time=0.8)
-        self.at("could not carry that")
-        self.play(Indicate(cab, color=PINK, scale_factor=1.05), run_time=0.8)
-        self.finish()
+        q = question_layout()
+        self.add(q)
+        self.play(Indicate(q[3], color=TEAL), Indicate(q[4], color=TEAL), run_time=1.3)
+        self.wait(1.4)
+        self.play(Indicate(q[3], color=TEAL), Indicate(q[4], color=TEAL), run_time=1.3)
+        self.wait(0.5)
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S07Compare(SpokenScene):
     def construct(self):
-        YW = 1.0
-        w = wall(-6.3, WX1, YW, [CHX], s=1.5, t=0.5)
-        w.remove(w.plug)
-        lab_out = place(T("[X] outside", 24, ORANGE), -6.3, 3.1)
-        lab_in = place(T("[X] inside", 24, ORANGE), -6.3, -0.55)
-        rl = ruler()
-        self.at("Here is the rule")
-        self.play(FadeIn(w), FadeIn(rl), run_time=0.7)
-
-        ex = marker(-89.1, GREEN, "E_X", "R")
-        self.at("Find the equilibrium potential")
-        self.play(FadeIn(ex, shift=LEFT * 0.4), FadeIn(lab_out), FadeIn(lab_in), run_time=0.8)
-
-        chipc = chip("cation  K⁺:  z = +1", YELLOW, size=26).move_to([-3.2, -1.8, 0])
-        self.at("sign of the charge")
-        self.play(FadeIn(chipc, shift=UP * 0.15), run_time=0.6)
-
-        vm = marker(-70, TEAL, "Vm", "L")
-        k = ion(r=0.4, size=28).move_to([CHX, 0.1, 0])
-        arrow = arr([CHX, 0.35, 0], [CHX, 1.55, 0], YELLOW, w=9)
-        net = place(T("net flow: out", 26, YELLOW), CHX + 0.8, 2.2)
-        self.at("less negative than")
-        self.play(FadeIn(vm, shift=RIGHT * 0.3), FadeIn(k), run_time=0.5)
-        self.play(k.animate.move_to([CHX, 2.1, 0]), run_time=0.8)
-        self.play(GrowArrow(arrow), FadeIn(net), run_time=0.4)
-
-        arrow_in = arr([CHX, 1.55, 0], [CHX, 0.45, 0], YELLOW, w=9)
-        net_in = place(T("net flow: in", 26, YELLOW), CHX + 0.8, 2.2)
-        k_in = ion(r=0.4, size=28).move_to([CHX, 2.1, 0])
-        self.at("more negative voltage")
-        self.play(FadeOut(k), FadeOut(arrow), FadeOut(net), mv(vm, -70, -100), run_time=0.7)
-        self.play(FadeIn(k_in), run_time=0.2)
-        self.play(k_in.animate.move_to([CHX, 0.1, 0]), run_time=0.8)
-        self.play(GrowArrow(arrow_in), FadeIn(net_in), run_time=0.4)
-
-        chipa = chip("anion  Cl⁻:  z = −1", YELLOW, size=26).move_to([-3.2, -1.8, 0])
-        cl = ion("Cl⁻", r=0.42, size=26).move_to([CHX, 0.1, 0])
-        arrow_out = arr([CHX, 0.35, 0], [CHX, 1.55, 0], YELLOW, w=9)
-        net_out = place(T("net flow: out", 26, YELLOW), CHX + 0.8, 2.2)
-        self.at("For an anion")
-        self.play(mv(ex, -89.1, -60), FadeOut(lab_out), FadeOut(lab_in), ReplacementTransform(chipc, chipa), FadeOut(k_in), FadeOut(arrow_in), FadeOut(net_in), run_time=0.7)
-        self.at("the rule flips")
-        self.play(FadeIn(cl), run_time=0.3)
-        self.play(cl.animate.move_to([CHX, 2.1, 0]), run_time=0.8)
-        self.play(GrowArrow(arrow_out), FadeIn(net_out), run_time=0.4)
-
-        gapb = gap_bar(-100, -60)
-        cmp_t = M("compare  Vm  with  E_X", 28, TEXT).move_to([-3.0, -3.0, 0])
-        self.at("Compare the membrane voltage")
-        self.play(Create(gapb), FadeOut(chipa), FadeIn(cmp_t), run_time=0.8)
-        self.at("passive flow goes")
-        self.play(Indicate(arrow_out, color=YELLOW), Indicate(cl), run_time=0.8)
+        w = membrane_world(labels=False, ruler_on=False)
+        rl = voltage_ruler()
+        ek = equilibrium_mark()
+        p70 = pointer(-70, text="-70", side=LEFT)
+        self.add(w, rl, ek)
+        self.at("Minus 70")
+        self.play(FadeIn(p70), run_time=0.55)
+        r70 = ramp(8.59-6.75, center=(-2.15, 1.05, 0), width=3.4, color=TEXT, label="uphill to enter")
+        b = ball_on(r70.line, 0.65)
+        self.at("shallower than")
+        r70[-1].move_to([-2.15, 3.3, 0]).set_opacity(1)
+        self.play(FadeIn(r70), FadeIn(b), run_time=0.7)
+        self.at("potassium leaves")
+        self.play(b.animate.move_to(r70.line.point_from_proportion(0.05)+UP*0.26), run_time=0.75)
+        flow(self, w, "out", 1.0, 2)
+        outlab = T("K+ OUT", 34, ORANGE, weight=BOLD).move_to([-2.2, -1.05, 0])
+        self.play(FadeIn(outlab), run_time=0.35)
+        self.at("Minus 100")
+        p100 = pointer(-100, text="-100", side=LEFT)
+        self.play(FadeOut(VGroup(r70, b, outlab)), ReplacementTransform(p70, p100), run_time=0.65)
+        r100 = ramp(8.59-9.65, center=(-2.15, 1.05, 0), width=3.4, color=TEXT, label="downhill to enter")
+        r100[-1].move_to([-2.15, 3.3, 0]).set_opacity(1)
+        b2 = ball_on(r100.line, 0.1)
+        self.play(FadeIn(r100), FadeIn(b2), run_time=0.55)
+        self.at("potassium comes in")
+        self.play(b2.animate.move_to(r100.line.point_from_proportion(0.92)+UP*0.26), run_time=0.7)
+        flow(self, w, "in", 1.0, 2)
+        inlab = T("K+ IN", 34, TEAL, weight=BOLD).move_to([-2.2, -1.05, 0])
+        self.play(FadeIn(inlab), run_time=0.35)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Compare the membrane voltage with the equilibrium potential."
+class S08Rule(SpokenScene):
+    def construct(self):
+        channel = membrane_world(channel_x=-3.6, labels=False, ruler_on=False)
+        bar_x = 1.5
+        bar = Line([bar_x, 2.65, 0], [bar_x, -2.65, 0], color=GREY, stroke_width=8)
+        mark = Line([bar_x-0.45, 0, 0], [bar_x+0.45, 0, 0], color=GREEN, stroke_width=10)
+        ex = T("E_X  (this ion)", 29, GREEN, weight=BOLD).next_to(mark, RIGHT, buff=0.2)
+        self.play(FadeIn(channel), run_time=0.6)
+        self.at("equilibrium potential")
+        self.play(Create(bar), GrowFromCenter(mark), FadeIn(ex), run_time=0.8)
+        pluschip = chip("X+", ORANGE, 34).move_to([-4.4, 3.2, 0])
+        self.at("positive ion")
+        self.play(FadeIn(pluschip), run_time=0.4)
+        self.at("above the mark")
+        top = Rectangle(width=2.0, height=2.55, stroke_width=0, fill_color=ORANGE, fill_opacity=0.13).move_to([bar_x, 1.3, 0])
+        ao = arr([bar_x, 0.35, 0], [bar_x, 2.05, 0], ORANGE, 10, 0.3)
+        lo = T("net out", 30, ORANGE, weight=BOLD).next_to(ao, LEFT, buff=0.25)
+        self.play(FadeIn(top), GrowArrow(ao), FadeIn(lo), run_time=0.9)
+        self.at("Below the mark")
+        bottom = Rectangle(width=2.0, height=2.55, stroke_width=0, fill_color=TEAL, fill_opacity=0.13).move_to([bar_x, -1.3, 0])
+        ai = arr([bar_x, -0.35, 0], [bar_x, -2.05, 0], TEAL, 10, 0.3)
+        li = T("net in", 30, TEAL, weight=BOLD).next_to(ai, LEFT, buff=0.25)
+        self.play(FadeIn(bottom), GrowArrow(ai), FadeIn(li), run_time=0.9)
+        self.at("negative ion")
+        minus = chip("X-", BLUE, 34).move_to(pluschip)
+        ao_flip = arr([bar_x, 2.05, 0], [bar_x, 0.35, 0], ORANGE, 10, 0.3)
+        ai_flip = arr([bar_x, -2.05, 0], [bar_x, -0.35, 0], TEAL, 10, 0.3)
+        self.play(ReplacementTransform(pluschip, minus), FadeOut(VGroup(ao, ai, lo, li)),
+                  FadeIn(VGroup(ao_flip, ai_flip)), run_time=1.0)
+        flip = T("anion: directions flip", 30, BLUE, weight=BOLD).move_to([3.15, -3.15, 0])
+        self.play(FadeIn(flip), run_time=0.45)
+        self.finish()
+
+
+def mini_world(x, voltage, direction):
+    band = RoundedRectangle(corner_radius=0.1, width=5.7, height=0.62, color=GREY,
+                            stroke_width=2.5, fill_color=GREY, fill_opacity=0.4).move_to([x, 0, 0])
+    hole = Rectangle(width=1.05, height=0.8, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([x, 0, 0])
+    gate = VGroup(*[RoundedRectangle(corner_radius=0.1, width=0.28, height=1.05, color=BLUE,
+                                    fill_color=BLUE, fill_opacity=0.75).move_to([x+s*0.43, 0, 0]) for s in (-1,1)])
+    dots = drifting_ions([(x+dx, y, 0) for dx,y in [(-1.8,-1.7),(-0.8,-2.3),(0.9,-1.6),(1.8,-2.3),(-1.4,1.8),(1.3,2.2)]], r=0.17)
+    lab = M(f"{voltage} mV", 30, TEAL).move_to([x, 3.0, 0])
+    arrow = arr([x, -0.65 if direction=='out' else 0.65, 0], [x, 1.35 if direction=='out' else -1.35, 0], ORANGE if direction=='out' else TEAL, 10, 0.3)
+    return VGroup(band, hole, gate, dots, lab, arrow)
+
+
+class S09Path(SpokenScene):
+    def construct(self):
+        bg = fluid_background()
+        left = mini_world(-3.25, -70, "out")
+        right = mini_world(3.25, -100, "in")
+        self.play(FadeIn(bg), FadeIn(left), FadeIn(right), run_time=0.9)
+        self.at("same thing")
+        self.play(Indicate(left[2], color=BLUE), Indicate(right[2], color=BLUE), run_time=1.0)
+        self.at("opened a path")
+        self.play(GrowArrow(left[-1]), GrowArrow(right[-1]), run_time=0.8)
+        # The identical open paths keep carrying K+ in opposite directions.
+        ldot, rdot = left[3][0], right[3][-1]
+        ldot.clear_updaters(); rdot.clear_updaters()
+        self.play(ldot.animate.move_to([-3.25, 1.45, 0]),
+                  rdot.animate.move_to([3.25, -1.45, 0]), run_time=1.4)
+        self.at("which ion")
+        na = ion("Na+", SODIUM, 0.24, 16).move_to([-3.25, 1.2, 0])
+        self.play(FadeIn(na), na.animate.move_to([-3.8, 1.65, 0]), run_time=0.7, rate_func=there_and_back)
+        self.at("slopes chose")
+        r1 = ramp(1.84, center=(-3.25, 1.2, 0), width=2.1, color=TEXT)
+        r2 = ramp(-1.06, center=(3.25, 1.2, 0), width=2.1, color=TEXT)
+        self.play(FadeOut(na), FadeIn(r1), FadeIn(r2), run_time=0.8)
+        self.at("never decide")
+        self.play(Indicate(left[2], color=BLUE), Indicate(right[2], color=BLUE), run_time=1.0)
+        self.finish()
+
+
+def transporter(x, name, color=BLUE):
+    block = RoundedRectangle(corner_radius=0.18, width=2.25, height=1.28, color=color,
+                             stroke_width=3, fill_color=color, fill_opacity=0.22).move_to([x, 0, 0])
+    label = T(name, 27, color, weight=BOLD).move_to(block)
+    return VGroup(block, label)
+
+
+class S10Couple(SpokenScene):
+    def construct(self):
+        bg = fluid_background()
+        sides = VGroup(T("OUTSIDE", 28, GREY).move_to([-5.55, 3.25, 0]),
+                       T("INSIDE", 28, GREY).move_to([-5.65, -3.25, 0]))
+        band = RoundedRectangle(corner_radius=0.12, width=13.0, height=0.85, color=GREY,
+                                stroke_width=3, fill_color=GREY, fill_opacity=0.38)
+        pump = transporter(-3.4, "Na+/K+ pump")
+        sglt = transporter(3.4, "SGLT1")
+        self.play(FadeIn(bg), FadeIn(sides), FadeIn(band), run_time=0.5)
+        uphill = arr([0, -2.15, 0], [0, 2.15, 0], YELLOW, 9, 0.3)
+        uphill_q = T("uphill?", 32, YELLOW, weight=BOLD).move_to([1.25, 2.25, 0])
+        self.play(GrowArrow(uphill), FadeIn(uphill_q), run_time=1.8)
+        self.at("couples that trip")
+        self.play(FadeOut(VGroup(uphill, uphill_q)), FadeIn(pump), FadeIn(sglt), run_time=0.8)
+        self.play(Indicate(pump, color=BLUE), run_time=1.35)
+        self.play(Indicate(sglt, color=BLUE), run_time=1.35)
+        self.at("splits ATP")
+        atp = chip("ATP", GREEN, 30).move_to([-5.2, -1.4, 0])
+        split = chip("ATP split", GREEN, 28).move_to([-5.2, 2.6, 0])
+        self.play(FadeIn(atp), atp.animate.move_to([-4.2, -0.8, 0]), run_time=0.65)
+        self.play(ReplacementTransform(atp, split), run_time=0.55)
+        self.at("three sodium out")
+        nas = VGroup(*[ion("Na+", SODIUM, 0.22, 15).move_to([-4.15+0.72*i, -1.75, 0]) for i in range(3)])
+        self.play(FadeIn(nas), run_time=0.3)
+        self.play(*[m.animate.shift(UP*3.25) for m in nas], run_time=0.9)
+        self.at("two potassium in")
+        ks = VGroup(*[ion("K+", POTASSIUM, 0.22, 15).move_to([-3.75+0.72*i, 1.75, 0]) for i in range(2)])
+        self.play(FadeIn(ks), *[m.animate.shift(DOWN*3.25) for m in ks], run_time=0.95)
+        self.at("two sodium run downhill")
+        self.play(FadeOut(VGroup(split, nas, ks)), run_time=0.35)
+        nas2 = VGroup(*[ion("Na+", SODIUM, 0.24, 16).move_to([3.05+0.75*i, 2.2, 0]) for i in range(2)])
+        tealr = ramp(-4.8, center=(3.4, 1.75, 0), width=2.5, color=TEAL)
+        self.play(FadeIn(tealr), FadeIn(nas2), run_time=0.45)
+        self.play(*[m.animate.shift(DOWN*4.25) for m in nas2], run_time=1.0)
+        self.at("glucose to climb")
+        glucose = chip("glucose", YELLOW, 27).move_to([4.65, -2.15, 0])
+        yellowr = ramp(2.2, center=(4.55, -1.35, 0), width=2.1, color=YELLOW)
+        self.play(FadeIn(yellowr), FadeIn(glucose), run_time=0.4)
+        self.play(glucose.animate.move_to([3.75, 1.35, 0]), run_time=1.05)
+        self.finish()
+
+
+class S11Return(SpokenScene):
+    def construct(self):
+        bg = fluid_background()
+        sides = VGroup(T("OUTSIDE", 28, GREY).move_to([-5.55, 3.25, 0]),
+                       T("INSIDE", 28, GREY).move_to([-5.65, -3.25, 0]))
+        band = RoundedRectangle(corner_radius=0.12, width=13.0, height=0.72, color=GREY,
+                                stroke_width=3, fill_color=GREY, fill_opacity=0.38)
+        channel = transporter(-4.1, "K+ channel")
+        pump = transporter(0, "Na+/K+ pump")
+        sglt = transporter(4.1, "SGLT1")
+        transports = VGroup(channel, pump, sglt)
+        self.play(FadeIn(bg), FadeIn(sides), FadeIn(band), FadeIn(transports), run_time=0.8)
+        self.at("same hill")
+        ramps = VGroup(ramp(-1.06, center=(-4.1, 2.05, 0), width=2.4, color=TEXT),
+                       ramp(-2.3, center=(0, 2.05, 0), width=2.4, color=TEXT),
+                       ramp(-1.7, center=(4.1, 2.05, 0), width=2.4, color=TEXT))
+        schematic = T("total energy  •  schematic", 28, GREY).to_edge(UP, buff=0.28)
+        self.play(FadeIn(schematic), LaggedStart(*[FadeIn(r) for r in ramps], lag_ratio=0.18), run_time=1.1)
+        ambient_balls = VGroup(*[ball_on(r.line, 0.08) for r in ramps])
+        self.play(LaggedStart(*[FadeIn(b) for b in ambient_balls], lag_ratio=0.15), run_time=0.6)
+        self.play(*[b.animate.move_to(r.line.point_from_proportion(0.45)+UP*0.24)
+                    for b,r in zip(ambient_balls, ramps)], run_time=1.2)
+        self.at("only opens the way")
+        self.play(Indicate(channel, color=BLUE), run_time=0.8)
+        self.at("slopes of everything")
+        balls = ambient_balls
+        self.play(*[b.animate.move_to(r.line.point_from_proportion(0.62)+UP*0.24)
+                    for b,r in zip(balls, ramps)], run_time=0.7)
+        self.at("total must run downhill")
+        self.play(*[b.animate.move_to(r.line.point_from_proportion(0.92)+UP*0.24) for b,r in zip(balls, ramps)], run_time=1.35)
+        self.finish()
+
+
+class S12End(EndCard):
+    LINE = "The total must run downhill."

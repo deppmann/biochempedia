@@ -24,10 +24,16 @@ explainer:
   src: "/explainers/membrane-transport/explainer.mp4"
   captions: "/explainers/membrane-transport/explainer.vtt"
   poster: "/explainers/membrane-transport/poster.jpg"
-  title: "Voltage Can Reverse an Ion's Flow"
-  durationSec: 180.6
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "Two Pushes, One Hill"
+  durationSec: 198.0
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "An ion feels two pushes: its concentration difference and the membrane voltage."
+    - "Net flow goes whichever way the two pushes together run downhill."
+    - "At its equilibrium potential the pushes cancel, and ions cross equally both ways."
+    - "For a positive ion, a voltage above that potential sends net flow out; below it, in."
+    - "Channels and passive carriers choose which solute and how fast, never which way; climbing needs a steeper downhill partner."
 
 scientists:
   - name: "Jens Skou"
@@ -377,9 +383,9 @@ import SingleChannelRecord from '../../../components/SingleChannelRecord.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
 
-**Hold a cell at −70 millivolts with 140 mM potassium inside and 5 mM outside, open potassium channels, and potassium leaves. Hold it at −100 millivolts and potassium comes in, against a 28-fold concentration difference.**
+**The film above holds a cell at −70 and then −100 millivolts, and potassium reverses direction although its concentrations never change.**
 
-"Hold" means a voltage clamp: an amplifier fixes the membrane voltage at a value you choose, whatever current flows. The concentrations did not change between the two cases; only the voltage did. Why the voltage can win is the first thing this lesson teaches you to calculate. The second is how to tell which kind of protein carries a solute across, from a recording of one channel and a count of labelled molecules.
+"Hold" means a voltage clamp: an amplifier fixes the membrane voltage at a value you choose, whatever current flows. Why the voltage can win is the first thing this lesson teaches you to calculate. The second is how to tell which kind of protein carries a solute across, from a recording of one channel and a count of labelled molecules.
 
 ## The wall and the one rule
 
@@ -387,15 +393,13 @@ A lipid bilayer has an oily core about as thick as two lipid tails. Gases such a
 
 So ions and sugars cross the bilayer in useful amounts only through proteins, and the proteins are specific: a potassium channel passes potassium and almost no sodium, and the glucose carrier GLUT1 passes glucose and not fructose. A cell decides what crosses by choosing which proteins to build, where to put them and when to open them. The sidedness of those proteins in the membrane, covered in [membrane organization and topology](/lessons/membrane-organization-topology/), fixes which face of each protein looks into the cell. For a pump that orientation sets which way it pushes; for a channel or a passive carrier, the gradients decide.
 
-> **The one idea to carry through this lesson.** Any solute, charged or not, flows on its own only downhill in its own electrochemical energy. That energy has two parts, a concentration push and a voltage push. Channels and passive carriers only open a path: they decide *which* solute crosses and *how fast*, never *which way*. To move something uphill, a protein has to couple it to something else running further downhill: ATP splitting (a pump), another downhill process such as light or electron flow in some pumps, or another ion's gradient (a symporter or antiporter, such as the sodium-glucose carrier SGLT1). The coupled total must still be downhill.
+> **The one idea to carry through this lesson** is the film's hill. Any solute, charged or not, flows on its own only downhill in its own electrochemical energy, the sum of a concentration push and a voltage push. Channels and passive carriers decide *which* solute crosses and *how fast*, never *which way*. Uphill transport is coupled to something running further downhill: ATP splitting (a pump), light or electron flow in some pumps, or another ion's gradient (a symporter or antiporter, such as SGLT1). The coupled total must still be downhill.
 
 The rule sets the direction of *net* flow at a given moment, treating concentrations as if they were activities (effective concentrations). It does not set the rate, which is the protein's business, or where a cell permeable to several ions will rest (that is [the resting membrane](/lessons/resting-membrane-passive/)). Water follows it too: aquaporins open the path, and water's own energy difference, set mainly by the solutes on each side (and by pressure, in walled cells), decides the direction.
 
 ## Two pushes, one number
 
-The film at the top of the page works this section's potassium example.
-
-Picture moving one mole of a solute from outside to inside as a walk over a hill made of two slopes. The **concentration push**: from high concentration to low is downhill. The **voltage push**: membrane potential, Vm, is the inside minus the outside, so a negative Vm makes the inside downhill for cations and uphill for anions. The sum is one number:
+The film above draws the two pushes as two slopes of one hill. Here they are as numbers, for moving one mole of a solute from outside to inside. The **concentration push** runs downhill from high concentration to low. The **voltage push** depends on Vm, inside minus outside: a negative Vm makes entering downhill for cations and uphill for anions. The sum is one number:
 
 <EquationCard
   purpose="Which way any solute will flow on its own: negative means in, positive means out."
@@ -536,7 +540,7 @@ A **uniporter** is a carrier that moves one solute, as GLUT1 moves glucose into 
 
 Carriers that move two or more solutes can do the same with no ATP. A **symporter** moves them the same way. An **antiporter** (or exchanger) moves them opposite ways, as the Na+/Ca2+ exchanger brings sodium in and sends calcium out. Spending one solute's gradient to move another is **secondary active transport**.
 
-SGLT1 in intestinal cells is a symporter that brings glucose in with sodium. Sodium's steep downhill run inward pays for glucose to go uphill. You will see SGLT1 again in [digestion](/lessons/digestion/), and the same logic with protons instead of sodium in [the proton-motive force](/lessons/proton-motive-force/).
+SGLT1 in intestinal cells, the symporter at the end of the film, brings glucose in with sodium. You will see SGLT1 again in [digestion](/lessons/digestion/), and the same logic with protons instead of sodium in [the proton-motive force](/lessons/proton-motive-force/).
 
 <LessonFigure src="/figures/membrane-transport/pump-pays-for-symporter.webp" width={1200} height={800} alt="AI-generated illustration: a cell membrane with the Na+/K+-ATPase on the left moving three Na+ out and two K+ in using one ATP, and on the right the transporter SGLT1 carrying two Na+ and one glucose into the cell down the sodium gradient." caption="The Na+/K+-ATPase spends ATP to keep sodium high outside. SGLT1 then lets sodium run downhill into the cell, and that downhill run pays for glucose to go uphill; the pump never touches the glucose." />
 
