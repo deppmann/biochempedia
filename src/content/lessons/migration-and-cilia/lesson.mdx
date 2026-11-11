@@ -23,10 +23,16 @@ explainer:
   src: "/explainers/migration-and-cilia/explainer.mp4"
   captions: "/explainers/migration-and-cilia/explainer.vtt"
   poster: "/explainers/migration-and-cilia/poster.jpg"
-  title: "Sliding Becomes Bending"
-  durationSec: 168.6
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "How Internal Motion Becomes Movement"
+  durationSec: 241.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "At a lamellipodial edge, polymerization adds forward speed and rearward flow subtracts it."
+    - "Integrin coupling can reduce backward slip in this simple crawling model."
+    - "In motile axonemes, dynein motors slide neighbouring doublets."
+    - "In motile axonemes, links that resist sliding, with base anchoring, turn sliding into bending."
+    - "In these two systems, constraints and motor control shape the visible output of internal motion."
 
 scientists:
   - name: "Ian Gibbons"
@@ -345,92 +351,131 @@ draft: false
 import LamellipodiumClutch from '../../../components/LamellipodiumClutch.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A cell turns chemical energy into movement in two main ways. A crawling cell pushes, grips, pulls and lets go, using actin, adhesion receptors and myosin II. A cilium bends because dynein motors slide microtubules past each other inside a structure that resists the sliding.** The second is tied closely to human health. In 1976 Björn Afzelius described four men whose sperm did not swim. Three of them also could not clear mucus from their airways, and under the electron microscope their cilia lacked the small projections called dynein arms. One missing part, two failures in two organs. That only makes sense if a sperm tail and an airway cilium share a machine, and they do. Both ways of moving build on the polymers of [Cytoskeletal Polymers and Dynamics](/lessons/cytoskeleton-dynamics/) and the motors of [Molecular Motors and Cargo](/lessons/molecular-motors/).
+The film showed the simple cases: integrin coupling can reduce rearward actin flow, and resisted dynein-driven sliding can bend an axoneme. This page tests the edge-speed balance, adds whole-cell crawling, then uses the axoneme idea to interpret an experiment and predict defects.
 
-## How a cell crawls: protrude, grip, pull, release
+The film's picture was the simple case; here is the fuller rule. In these two systems, polymers and motors create internal relative motion, while mechanical constraints and control of which motors are active shape its visible output. The rule does not cover every kind of cell movement; review the underlying [cytoskeletal polymers](/lessons/cytoskeleton-dynamics/) and [molecular motors](/lessons/molecular-motors/).
 
-Picture a fibroblast or a fish skin cell (a keratocyte) gliding over a dish. Its front is a lamellipodium, a sheet of cytoplasm a fraction of a micrometre thick, packed with actin filaments. The cycle has four steps.
+## A crawling edge: measure the hidden motion
 
-**Protrude.** Actin filaments push the membrane forward by adding subunits at their barbed ends, the fast-growing ends. In extracted fish keratocytes, decorating filaments with myosin fragments showed that barbed ends predominantly face forward. The network is branched, with the Arp2/3 complex at the Y-shaped branch points. The Arp2/3 complex is a seven-protein assembly that starts a new filament off the side of an old one. Which signals switch Arp2/3 on at the front, through Rac and its partners, belongs to [the signaling lesson on integrins and Rho GTPases](/lessons/integrins-and-rho-gtpases/).
+Start with the film's crawling half, now as a measured velocity balance. Polymerization speed is measured relative to the actin network; retrograde-flow and edge speeds are measured relative to the substrate. Keeping those reference frames separate gives:
 
-**Grip.** Integrins are transmembrane receptors that bind the extracellular matrix outside and, through linker proteins, actin inside. Clusters of them with their linkers form focal adhesions, the cell's anchor points on the substrate (more in [Adhesion and the Extracellular Matrix](/lessons/adhesion-and-ecm/)).
+> **edge speed = polymerization speed − retrograde-flow speed**
 
-**Pull.** Non-muscle myosin II, a two-headed relative of the motor of muscle, assembles into small filaments that contract the actin network behind the front. In fish keratocytes the evidence supported a model in which actomyosin contraction where the lamellipodium meets the cell body moves the body forward.
+This one-dimensional relation predicts the leading edge, not automatically the cell body.
 
-**Release.** The rear must let go. In CHO cells on matrix-coated glass, rear retraction often tore integrins out of the cell, leaving them on the substrate, and at intermediate and high adhesiveness the rate of rear retraction appeared to limit migration speed. Filaments that come apart a short way behind the leading edge supply monomers for new growth at the front.
-
-<LessonFigure src="/figures/migration-and-cilia/crawling-cell-four-steps.webp" width={1200} height={757} alt="AI-generated illustration: side view of a crawling cell moving right, with a flat lamellipodium of branched actin at the front, integrin adhesions on the substrate, myosin II behind, and torn integrins left at the rear; an inset shows an Arp2/3 complex at a Y-shaped branch." caption="The four steps of crawling laid out along one cell: actin pushes the front, integrins grip, myosin II pulls, and the rear lets go, often leaving integrins behind. The inset shows the branched network, with Arp2/3 at each Y." />
-
-Not every cell crawls this way. Some push out blebs, round bulges of membrane driven by pressure from contraction of the cortex, the actin layer under the membrane. And leukocytes squeezed in confined spaces have been shown to move without transmembrane force coupling at all, using actin flow that follows the texture of their surroundings (Reversat and colleagues, 2020). Neurons in the developing brain and neural crest cells in the embryo use versions of these modes, with features of their own; see [the growth cone](/lessons/growth-cone/), [neural crest](/lessons/neural-crest/), [radial migration](/lessons/radial-migration/) and [tangential migration](/lessons/tangential-migration/).
-
-## Retrograde flow and the clutch
-
-Watch fluorescent actin speckles in a lamellipodium and you see the network moving backward, away from the edge, even as the edge moves forward. This is retrograde flow. Two forces drive it: the membrane pushes back on the growing filaments, and myosin II pulls the network rearward.
-
-Think of a car's clutch. With the clutch engaged, the engine turns the wheels. With it slipping, the engine races and the car barely moves. Polymerization is the engine. Adhesions are the clutch: where actin is linked to integrins gripping the substrate, the network cannot slide back as freely, so more of the polymerization becomes forward motion.
-
-> **edge speed (relative to substrate) = polymerization speed (relative to the network) - retrograde flow speed**
-
-### A worked problem
-
-This is a one-dimensional model, and only the flow value is measured. In PtK1 cells (a rat-kangaroo epithelial line) on compliant fibronectin-coated gels, Gardel and colleagues measured distal lamellipodial actin flowing rearward at about 25 nm/s. Suppose, as an illustrative assumption, that filaments at the edge extend at 40 nm/s relative to the network, and that both rates stay constant.
-
-1. **Edge speed.** With forward positive, edge speed = 40 + (-25) = 15 nm/s.
-2. **Distance in 120 s.** 15 nm/s x 120 s = 1,800 nm = 1.8 µm. Check: polymerization alone gives 40 x 120 = 4,800 nm, flow takes back 25 x 120 = 3,000 nm, and 4,800 - 3,000 = 1,800 nm.
-3. **Engage the clutch.** Suppose a change raises adhesion engagement so rearward flow falls to 10 nm/s, with polymerization unchanged. Edge speed = 40 - 10 = 30 nm/s, and in 120 s the edge advances 30 x 120 = 3,600 nm = 3.6 µm. Cutting the flow by more than half doubled the advance.
-4. **What the model leaves out.** Edge advance is not movement of the cell body. Traction is not a simple function of flow either: in the PtK1 cells, traction stress and actin speed were related biphasically: the relationship changed near 8 to 10 nm/s. And adhesion cannot rise without cost, since in the CHO cells strong adhesion slowed migration because the rear could not detach.
-
-So faster flow does not always mean more traction, and stronger adhesion does not always mean faster migration. The clutch is a starting model, not the whole story.
-
-<LamellipodiumClutch />
-
-## The axoneme: sliding turned into bending
-
-A motile cilium is built on an axoneme, a cylinder of microtubules. In the classic 9+2 pattern, nine outer doublets surround a central pair of single microtubules. Each doublet is a complete A-tubule with an incomplete B-tubule fused to it. The axoneme grows from a basal body, which anchors it in the cell.
-
-Along each A-tubule sit two rows of axonemal dynein, the outer and inner arms. Their motor heads act on the B-tubule of the next doublet and walk toward its minus end, at the base. So each doublet pushes its neighbour toward the tip. Radial spokes reach from the doublets toward the central-pair complex. Between neighbouring doublets runs the nexin-dynein regulatory complex, which links them.
-
-Why does sliding make a bend? Hold two strips of card side by side, glued together at one end and tied loosely along their length. Push one strip toward the far end and the pair cannot slide apart, so it curves. In the axoneme the base is anchored and the links resist, so shear between doublets becomes a bend. Summers and Gibbons tested this by removing the resistance. They briefly digested sea-urchin sperm axonemes with trypsin, added ATP and watched by dark-field microscopy: the doublets slid apart. Dynein does not shorten microtubules; it slides them.
-
-To get a wave, the arms on one side must be more active than those on the other, and the sides must take turns. How the switch is signalled is still open.
-
-Not every cilium is 9+2 or motile. Primary cilia are single, non-motile 9+0 cilia found on many vertebrate cell types; they lack dynein arms and serve as signalling antennae (see [hedgehog at the primary cilium](/lessons/hedgehog-and-cilium/)). Cilia of the mouse embryonic node are mostly 9+0. Those in the centre of the node move, rotating rather than waving; those at its edge are thought to be non-motile and to sense the flow.
-
-## When cilia fail
-
-Each part of the axoneme predicts a phenotype. Airway cilia that do not beat cannot carry mucus up out of the lungs, as in Afzelius's patients. Sperm whose dynein arms are missing do not swim. Nodal cilia that do not rotate cannot drive the leftward flow over the mouse node. In mice lacking the motor KIF3B the node had no cilia and organ placement was randomized, and some people with immotile cilia have mirror-image organs. In people, inherited disorders of motile cilia like these are called primary ciliary dyskinesia. Here we stay with mechanism.
-
-One mutation need not give one phenotype. In mice lacking Cfap53, nodal cilia were completely immotile, while tracheal and brain-ventricle cilia still beat, abnormally. The instrument matters too: in one study, conventional electron microscopy of nasal cilia from patients with DNAH11 mutations looked normal, but electron tomography found a deficit of outer-arm volume near the base.
-
-Migration defects follow the same logic. Neutrophils that cannot make a functional integrin of the β2 family grip the vessel wall poorly and largely fail to leave the blood, so infections are poorly controlled, as in leukocyte adhesion deficiency type I.
-
-### Design problem
-
-A Chlamydomonas mutant, or a patient's sperm, has paralysed flagella. Design a test of whether the dynein motors themselves work.
+**Predict.** Filaments extend at 40 nm/s relative to the network while the network flows rearward at 25 nm/s. How fast does the edge advance, and how far in 120 s?
 
 <details>
-<summary>One way to do it</summary>
+<summary>Check your prediction</summary>
 
-Isolate axonemes, so the membrane and the cell's own ATP supply are out of the picture. Digest briefly with trypsin to cut the links that turn sliding into bending, then add ATP (Summers and Gibbons used 0.1 mM with sea-urchin sperm axonemes) and watch by dark-field microscopy.
-
-If doublets slide apart, at least some motors work; sliding can survive the loss of one row of arms, so check that both rows are present. If they are, the defect probably lies in regulating them or in converting sliding to bending: the radial spokes, the central pair or the nexin-dynein regulatory complex. If doublets do not slide, suspect missing or inactive dynein arms.
-
-Confirm by electron microscopy, and by electron tomography if conventional images look normal, as they did in some DNAH11 cases.
-
-Controls: wild-type axonemes treated the same way (sliding expected), mutant and wild-type axonemes without ATP (no sliding expected), and axonemes given ATP without trypsin (wild-type should bend or beat rather than fall apart).
+Take forward as positive. Edge speed = 40 + (−25) = 15 nm/s. In 120 s the edge advances 15 × 120 = 1,800 nm = 1.8 µm. Check the same result from the two contributions: polymerization adds 4,800 nm and flow subtracts 3,000 nm.
 
 </details>
 
+Only the flow value comes from the experiment behind this example. In PtK1 cells—a rat-kangaroo epithelial line—on flexible, fibronectin-coated gels, Gardel and colleagues measured distal actin flow at about 25 nm/s. The 40 nm/s polymerization rate is an illustrative assumption, and the calculation holds both rates constant.
+
+Clusters of integrins and linker proteins form **focal adhesions**, substrate anchors that [the adhesion lesson](/lessons/adhesion-and-ecm/) develops. In the film's analogy, polymerization is the engine and adhesion is the clutch.
+
+**Predict.** Keep polymerization at 40 nm/s, but let stronger clutch engagement reduce rearward flow from 25 to 10 nm/s. By what factor does the edge's 120-second advance change?
+
+<details>
+<summary>Check your prediction</summary>
+
+Edge speed becomes 40 − 10 = 30 nm/s. The edge advances 3,600 nm, or 3.6 µm, in 120 s. Here, cutting flow from 25 to 10 nm/s doubles edge advance, from 1.8 to 3.6 µm.
+
+</details>
+
+<LamellipodiumClutch />
+
+## From edge advance to whole-cell crawling
+
+The film stopped at edge advance; a whole crawling cell also has to move its body and release its rear.
+
+The actin-rich lamellipodium is a sheet of cytoplasm a fraction of a micrometre thick. At its front, actin subunits add at **barbed ends**, the fast-growing filament ends, and push the membrane. The **Arp2/3 complex**, a seven-protein assembly, starts a branch from an existing filament. Rac, a small signalling switch, helps activate Arp2/3 there; [integrins and Rho GTPases](/lessons/integrins-and-rho-gtpases/) develops that control. Behind the front, non-muscle myosin II—a two-headed relative of muscle myosin—forms small filaments and contracts actin. In fish keratocytes, evidence supported contraction where the lamellipodium meets the cell body as a driver of body movement.
+
+The membrane pushing back on growing filaments and myosin II pulling the network rearward both contribute to retrograde flow.
+
+Together, protrusion, grip, contraction and release form the crawling cycle. These four processes run at the same time in a smoothly gliding keratocyte; in cells such as fibroblasts they are more cyclic. At the rear, adhesions must release. Separately, filaments that come apart a short way behind the leading edge return monomers for growth at the front.
+
+<LessonFigure src="/figures/migration-and-cilia/crawling-cell-four-steps.webp" width={1200} height={757} alt="AI-generated illustration: side view of a crawling cell moving right, with a flat lamellipodium of branched actin at the front, integrin adhesions on the substrate, myosin II behind, and torn integrins left at the rear; an inset shows an Arp2/3 complex at a Y-shaped branch." caption="A crawling cell coordinates four concurrent processes: actin pushes the front, integrins grip, myosin II contracts the network, and the rear releases. The inset shows Arp2/3 at a branch." />
+
+The clutch remains a starting model. In the PtK1 cells, traction stress—the force per area exerted on the substrate—and local actin speed had a two-part relationship that changed near 8 to 10 nm/s, so faster flow does not always mean more traction. Stronger adhesion can also slow migration by resisting rear release.
+
+**Predict.** CHO cells engineered to express integrins locked in a high-affinity state grip fibronectin strongly but migrate slowly. Which crawling process is most likely limiting?
+
+<details>
+<summary>Check your prediction</summary>
+
+Rear release. In CHO cells on matrix-coated glass, rear retraction often tore integrins from the cell and left them behind. At intermediate and high adhesiveness, rear retraction appeared to limit migration speed. Strong coupling at the front cannot help if the back cannot let go.
+
+</details>
+
+## The axoneme: what the model predicts
+
+The film's second machine now becomes an experimental tool: change the resistance and ask what dynein was doing all along.
+
+The film's two-doublet picture was the simple case; here is the fuller one. In the classic 9+2 layout, nine outer doublets, each a complete A-tubule fused to an incomplete B-tubule, surround a central pair of single microtubules. The ring grows from a **basal body**, which anchors the axoneme in the cell. Outer and inner rows of dynein arms sit on each A-tubule; their motor heads grip the B-tubule of the next doublet and walk toward its minus end, at the base, so each doublet pushes its neighbour toward the tip. Protein assemblies called **radial spokes** reach toward the central-pair complex and help regulate dynein. Between neighbouring doublets, the **nexin-dynein regulatory complex** links the pair, resists sliding and helps regulate the motors.
+
+To feel how resisted shear can make curvature, hold two card strips side by side, joined at one end and tied loosely along their length. Push one strip lengthwise: because the pair cannot freely slide apart, it curves. In the axoneme, interdoublet resistance and base anchoring similarly turn dynein-driven shear into bending, while regulated motor activity helps determine where the bend forms. This is a model, not a full waveform.
+
+Summers and Gibbons tested whether dynein changes doublets' relative positions or shortens microtubules. They briefly applied trypsin, a protein-cutting enzyme, to sea-urchin sperm axonemes, cutting structures that normally limit sliding, then added 0.1 mM ATP. Under dark-field microscopy, groups of doublets slid out of the bundle. Removing the resistance exposed ATP-driven sliding as disintegration rather than bending.
+
+### Design problem
+
+A *Chlamydomonas* mutant, or a patient's sperm, has paralysed flagella. Design a test of whether its dynein motors themselves work. Isolate the axonemes first, taking the membrane and the cell's own ATP supply out of the experiment.
+
+**Predict.** After brief trypsin treatment and ATP, the mutant doublets slide apart like wild type. What has the result ruled in, and what has it not ruled out?
+
+<details>
+<summary>One way to reason through it</summary>
+
+Sliding apart shows that at least some dynein arms can bind the neighbouring B-tubule, use ATP and generate motion. It does not show that both arm rows are intact; sliding can survive loss of one row. If both rows are present, a paralysed but sliding axoneme probably has a defect in motor regulation or in converting sliding into bending, such as in the radial spokes, central pair or nexin-dynein regulatory complex.
+
+If doublets do not slide apart, suspect missing or inactive dynein arms. Confirm structures by electron microscopy, using three-dimensional electron tomography if conventional images look normal, as they did in some DNAH11 cases.
+
+Controls are wild-type axonemes treated the same way, mutant and wild-type axonemes without ATP, and axonemes given ATP without trypsin. Sliding apart is expected only with ATP after the resistance has been cut. Intact wild-type axonemes given ATP should still slide internally but bend or beat rather than fall apart.
+
+</details>
+
+Even a single bend needs dyneins on one side to be more active than those on the other; to make a wave, the sides must take turns.
+
+## From a broken part to a cellular phenotype
+
+The film linked a structure to its output; now use that link to predict what a broken part does in a cell or tissue.
+
+In 1976 Björn Afzelius described four men whose sperm could not swim. Three also could not move mucus normally through their airways, and electron microscopy showed that their cilia lacked dynein arms. One missing part disrupted motion in two organs because sperm tails and airway cilia share the same basic internal machine, though some of their dynein parts differ. Airway cilia that do not beat severely impair this **mucociliary transport**; sperm missing dynein arms do not swim. Nodal cilia that do not rotate cannot drive the leftward flow over the mouse node.
+
+**Predict.** Mice lack the kinesin motor KIF3B and therefore have no cilia on the embryonic node. What happens to left-right organ placement?
+
+<details>
+<summary>Check your prediction</summary>
+
+It becomes randomized because the node cannot make its normal leftward flow. Some people with immotile but present cilia have mirror-image organs; inherited disorders of motile cilia like theirs are called **primary ciliary dyskinesia**. KIF3B loss is different: it removes cilia altogether.
+
+</details>
+
+One mutation need not have one effect everywhere. In mice lacking Cfap53, nodal cilia were completely immotile, whereas tracheal and brain-ventricle cilia still beat, abnormally. The instrument matters too: conventional electron microscopy of nasal cilia from patients with DNAH11 mutations looked normal in one study, but electron tomography found reduced outer-arm volume near the base.
+
+Migration defects follow the same logic. Neutrophils without a functional integrin of the β2 family grip the vessel wall poorly and largely fail to leave the blood, so infections are poorly controlled, as in leukocyte adhesion deficiency type I.
+
 ## Going deeper
 
-### Branch measurements in the lamellipodium
+Going deeper adds exceptions and methods beyond the film's simple picture.
 
-Svitkina and Borisy imaged extracted lamellipodia of Xenopus keratocytes and fibroblasts by electron microscopy and found extensive branching, with the Arp2/3 complex at the Y-shaped branch points. In keratocytes thinned with cytochalasin D, the branches met their mother filaments at 67 ± 12 degrees.
+### Other ways to migrate
 
-### How the nexin link was identified, and the repeat length
+Not every cell uses lamellipodial clutch-based crawling. Some form **blebs**, rounded membrane bulges driven by pressure from contraction of the actin cortex under the membrane. Confined leukocytes can move without transmembrane force coupling, using actin flow that follows the texture of their surroundings (Reversat and colleagues, 2020). Developing neurons and neural crest cells use versions with their own features; see [the growth cone](/lessons/growth-cone/), [neural crest](/lessons/neural-crest/), [radial migration](/lessons/radial-migration/) and [tangential migration](/lessons/tangential-migration/).
 
-Cryo-electron tomography of Chlamydomonas axonemes identified the nexin link as the dynein regulatory complex, hence the name nexin-dynein regulatory complex. In Chlamydomonas the whole set of arms, spokes and links repeats every 96 nm along the doublet.
+### What the leading-edge images showed
 
-### A proposal for how the two sides take turns
+In extracted fish keratocytes, myosin-fragment decoration showed that barbed ends predominantly face forward. Svitkina and Borisy imaged extracted lamellipodia of *Xenopus* keratocytes and fibroblasts by electron microscopy and found extensive branching, with Arp2/3 at Y-shaped branch points. In keratocytes thinned with cytochalasin D, branches met their mother filaments at 67 ± 12 degrees.
 
-Cryo-electron tomography of rapidly frozen beating sea-urchin sperm flagella found most dyneins in an active conformation, with asymmetric states across bends. The authors suggested this favours a model in which the sides switch by inhibiting one set of motors. This is a proposal; how the switch is signalled is still open.
+### Cilia that bend the simple categories
+
+Not every cilium is 9+2 or motile. **Primary cilia** are single, non-motile 9+0 sensory organelles on many vertebrate cell types; they lack dynein arms and act as signalling antennae (see [hedgehog at the primary cilium](/lessons/hedgehog-and-cilium/)). Cilia of the mouse embryonic node are mostly 9+0. Those near its centre move by rotating rather than waving; those at its edge are thought to be non-motile and to sense the flow.
+
+### Repeats and the switching proposal
+
+Cryo-electron tomography of *Chlamydomonas* axonemes identified the nexin link as the dynein regulatory complex, which supplied the combined name used above. In *Chlamydomonas*, the set of arms, spokes and links repeats every 96 nm along a doublet.
+
+Cryo-electron tomography of rapidly frozen, beating sea-urchin sperm flagella found asymmetric dynein states across bends, with most dyneins in an active conformation. The authors suggested that the sides switch by selectively inhibiting one set of motors. This is a proposal; the switching signal remains open.
