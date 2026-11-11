@@ -12,12 +12,13 @@ summary: >-
   the choice.
 hook: "Cut every nerve to a loop of gut, drip acid on it, and the pancreas still answers. Who told it?"
 
-estMinutes: 22
+estMinutes: 26
 objectives:
   - "Define signal transduction and first messenger."
   - "Classify a signal as contact, autocrine, paracrine, synaptic or endocrine, and predict its speed, range and dilution."
-  - "Sort first messengers by chemistry and predict which can cross a membrane."
-  - "Explain how a signal is ended by clearance, using acetylcholinesterase and an SSRI as examples."
+  - "Use reach ≈ √(D × τ) for a messenger that diffuses with roughly first-order clearance, and relate lifetime to gradient range and decay time."
+  - "Sort first messengers by the properties that decide crossing, and predict which can cross a membrane."
+  - "Explain how clearance ends a signal and sets its lifetime, using acetylcholinesterase and an SSRI as examples."
 
 explainer:
   src: "/explainers/signals-and-distance/explainer.mp4"
@@ -154,8 +155,8 @@ practiceQuestions:
       blood, and the idea that nerves inside the gut wall carried the message fails. The steady-rate
       idea fails because secretion began after the acid and rose after the injection. The idea that a
       circulating signal acts on every organ it reaches confuses exposure with response: the extract
-      reached the whole animal, and the pancreas answered with secretion because the cells that carry
-      the receptor decide who responds.
+      reached the whole animal, but a cell answers only if it carries a receptor for the signal, and
+      the experiment recorded the pancreas answering with secretion.
   - stem: "Cell A carries a protein anchored in its plasma membrane, and cell B, touching A, responds. When a porous filter that lets molecules pass but keeps cells apart is placed between them, B stops responding. An antibody that blocks the outer face of a receptor on B also stops the response. Which mode of signaling best fits?"
     choices:
       - "Juxtacrine signaling, in which a ligand anchored on A binds a receptor on B"
@@ -218,7 +219,7 @@ practiceQuestions:
       main route that is slowed.
 
 mcatQuestions:
-  - stem: "A small signaling molecule has a diffusion coefficient D = 1 × 10^-5 cm²/s in tissue. The average time to diffuse a distance x is t = x²/(2D). A target cell must respond within ten minutes of the signal being released. One possible source is a cell 20 µm (0.002 cm) away. Another is a gland 2 cm away. Which statement follows from the calculation?"
+  - stem: "A small signaling molecule has a diffusion coefficient D = 1 × 10^-5 cm²/s in tissue. A one-dimensional characteristic diffusion time over distance x is t = x²/(2D). A target cell must respond within ten minutes of the signal being released. One possible source is a cell 20 µm (0.002 cm) away. Another is a gland 2 cm away. Which statement follows from the calculation?"
     choices:
       - "Diffusion delivers the signal in about 0.2 s from the near source but would take about two days from the gland, so the gland needs the circulation to carry its signal."
       - "Diffusion takes about two days from the gland, so the gland should release a molecule that diffuses faster rather than use another route."
@@ -293,8 +294,8 @@ explainLevels:
       intracellular change. The mode of signaling is set by distance. Juxtacrine and gap-junction
       signaling need contact, autocrine signaling acts back on the secreting cell, paracrine signals
       reach nearby cells, synaptic signals cross a cleft tens of nanometers wide, and endocrine
-      signals travel in the blood. Because diffusion time scales as x²/2D, distances of a millimeter
-      or more need bulk flow, and very fast signals need a very small gap. Specificity comes from
+      signals travel in the blood. Because diffusion time scales as x²/2D, distances beyond a few hundred
+      micrometers need bulk flow when the response must come within a minute, and very fast signals need a very small gap. Specificity comes mainly from
       receptor expression, not from the signal: epinephrine drives glycogen breakdown in liver, fat
       breakdown in adipocytes and a stronger beat in heart. Small uncharged or fat-soluble messengers
       such as steroids and NO cross the membrane and mostly bind intracellular receptors, though steroids also act at some surface receptors, while charged or
@@ -364,46 +365,183 @@ corpusTags:
 draft: false
 ---
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
 
-**In January 1902, two London physiologists cut every nerve running to a loop of a dog's small intestine and dripped weak acid onto its lining. The pancreas, in a different part of the abdomen, began to secrete anyway. With no wire between the two organs, what carried the message?**
+**In January 1902, two London physiologists cut every nerve running to a loop of a dog's small intestine and dripped weak acid onto its lining, as stomach acid would reach it after a meal. The pancreas, a separate organ in a different part of the abdomen, began to secrete its digestive juice anyway. With no wire between the two organs, what carried the message?**
 
-The answer was a chemical. That answer shapes this whole course, because every cell is sealed inside a membrane and learns about the world only from what reaches its surface. This lesson asks two things first: how far does a signal travel, and what does that distance cost?
+The answer was a chemical. That answer shapes this whole course, because every cell is sealed inside a membrane and learns about the world only from what reaches its surface. How a message gets there is a transport problem, and this lesson asks what distance costs.
 
-## The problem: a cell cannot see past its own surface
+## A message with no wire
 
-Two terms first. **Signal transduction** is the process by which a cell converts a signal from outside into a change inside, in its behavior or in the genes it reads. A **first messenger** is the signal itself, the molecule or physical stimulus that arrives from outside before the cell has done anything with it. (The overview lesson `signal-transduction` follows one signal's relay inside the cell. This lesson stays outside.)
+The leading view in 1902, held by Ivan Pavlov among others, was that the gut instructed the pancreas by nerve. Nerves are fast and measurable, and nerve reflexes were the accepted explanation for how the gut controlled digestion. William Bayliss and Ernest Starling tested it by taking the nerves out, on 16 January 1902 at University College London. After the acid test, the same afternoon, they cut off a further piece of intestine, rubbed its lining with sand in weak acid, filtered the liquid and injected it into a vein.
 
-Back to the dog. The leading view in 1902, held by Ivan Pavlov among others, was that the gut instructed the pancreas by nerve. Nerves are fast and measurable, and nerve reflexes were the accepted explanation for how the gut controlled digestion. To get past that view, someone had to take the nerves out and still watch the pancreas answer. William Bayliss and Ernest Starling did that on 16 January 1902 at University College London. The same afternoon they cut off a further piece of intestine, rubbed its lining with sand in weak acid, filtered the liquid and injected it into a vein. The pancreas secreted even more.
+**Predict.** For each test, what does a nerve-only theory predict, and what does a theory of a blood-borne chemical predict?
 
-Cutting the nerves left one road from gut to pancreas, and that road was the blood. Something in the gut lining, later named secretin, was released by acid and carried to the pancreas. The injection made the point harder to escape. The extract went everywhere the blood goes, so every organ was exposed to it, yet the pancreas answered with a flood of juice while most organs showed no such response. A signal does not choose its audience. The receiver does.
+<details>
+<summary>Check your prediction</summary>
 
-Otto Loewi showed the same logic across a much shorter gap. In 1921 he stimulated the vagus nerve of a beating frog heart, which slowed it, then took the salt solution that had been in contact with that heart and transferred it to a second heart. The second heart slowed too, though no nerve to it had fired. He called the unknown substance *Vagusstoff*, vagus substance. A nerve cell had given an order by releasing a chemical that drifted to its target. The chemical was later identified as acetylcholine.
+| Test | Nerve-only theory predicts | Blood-borne-chemical theory predicts | Result |
+| --- | --- | --- | --- |
+| Acid on the gut lining, every nerve to the loop cut | No secretion, unless a local reflex runs through nerves in the gut wall that the cut missed | Secretion | The pancreas secreted |
+| Extract of the gut lining injected into a vein | No secretion, because the injection bypasses every gut nerve | Secretion | The pancreas secreted even more |
 
-## The idea: five distances, each with its own bargain
+Others at the time argued for that local reflex, but only the chemical theory fits both results.
 
-Every signal sits somewhere on a ruler of distance. The five positions below differ in speed, in reach and in how the message avoids the wrong cell. Real tissues show lots of mixing and matching of signaling types, so treat these as a vocabulary.
+</details>
 
-**Contact.** Two cells touch, and nothing is released into the space around them. In juxtacrine signaling, a ligand (a molecule that binds a receptor) is anchored in one cell's membrane and binds a receptor on the cell pressed against it. The message reaches only cells touching the sender, and the contact is the address. In a gap junction, protein channels link the interiors of two cells, and ions and small molecules pass straight through.
+Something in the gut lining, later named secretin, was released by acid and carried to the pancreas in the blood.
+
+Two terms name what the dog showed. **Signal transduction** is the process by which a cell converts a signal from outside into a change inside, in its behavior or in the genes it reads. A **first messenger** is the signal itself, the molecule or physical stimulus that arrives from outside before the cell has done anything with it. Secretin is a first messenger. (The overview lesson [signal transduction](/lessons/signal-transduction/) follows one signal's relay inside the cell. This lesson stays outside.)
+
+The experiment leaves a puzzle. The extract went everywhere the blood goes, so why doesn't every organ respond? The section on receptors answers that.
+
+Otto Loewi showed the same logic across a much shorter gap. In 1921 he stimulated the vagus nerve of a beating frog heart, which slowed it, then took the salt solution that had been in contact with that heart and transferred it to a second heart. The second heart slowed too, though no nerve to it had fired. He called the unknown substance *Vagusstoff*, vagus substance. A nerve cell had given an order by releasing a chemical that drifted to its target, not by passing a current. The chemical was later identified as acetylcholine.
+
+## Three questions and one idea
+
+Three questions run through the lesson. How does a message get from sender to receiver? How long does it last? Who answers it? The first two share one answer, which needs two terms. A released molecule that wanders through fluid **diffuses**, and how fast it wanders is its **diffusion coefficient**, D. Sooner or later every messenger is destroyed or captured, and the average time one molecule survives is its **lifetime**, τ (tau).
+
+> **The one idea to carry through this lesson. Lifetime buys reach and costs tempo.** For a messenger that diffuses through roughly uniform tissue and is removed by first-order clearance, the steady gradient has a decay length of about √(D × τ). After release stops, its concentration falls on the timescale τ; building the gradient out to its decay length also takes on the order of τ. Shortening the lifetime reduces reach and speeds decay. Lengthening it increases reach but slows decay, and the trade is a poor one: the decay time grows in step with lifetime, while reach grows only as its square root. When a job needs more reach than diffusion can give in the time allowed, the body carries the messenger in flowing blood, which is bulk flow.
+
+Which part applies where: the rule can describe autocrine, paracrine and synaptic signals when extracellular transport is mainly diffusion and removal is approximately first-order. Blood flow carries endocrine signals, so √(D × τ) does not set their range, although clearance still helps set how quickly their concentration falls after secretion stops. Contact modes lie outside this extracellular diffusion-clearance rule.
+
+## Diffusion punishes distance
+
+Why ride the blood, when molecules drift on their own? Because diffusion is a random walk, and the typical time to wander a distance grows with the square of that distance.
+
+<EquationCard
+  purpose="A one-dimensional characteristic time for diffusion over a given distance."
+  eq="t ≈ x² / 2D"
+  say="The characteristic time is the distance squared, divided by twice the diffusion coefficient."
+  symbols={[
+    ["t", "t", "the typical time to wander the distance", "s"],
+    ["x", "x", "the distance", "cm"],
+    ["D", "D", "the diffusion coefficient, about 10^-5 cm²/s for a small molecule in water", "cm²/s"],
+  ]}
+  toolkit={["powers", "units"]}
+  check="Double the distance and the time goes up four times, not two. Units: cm² divided by cm²/s leaves seconds."
+>
+  <Fragment slot="example">
+    <p>A small molecule, D = 10^-5 cm²/s, wandering 1 mm (0.1 cm).</p>
+    <p>x² = 0.01 cm², and 2D = 2 × 10^-5 cm²/s.</p>
+    <p>t = 0.01 / (2 × 10^-5) = 500 s, about eight minutes.</p>
+  </Fragment>
+</EquationCard>
+
+**Predict.** A small molecule wanders 1 mm in about eight minutes. How long does it take to wander 1 cm, ten times farther?
+
+<details>
+<summary>Check your prediction</summary>
+
+About fourteen hours, not eighty minutes: ten times the distance costs 10² = 100 times the time. At the other end, the same molecule crosses a 20 nm synaptic gap in a fraction of a microsecond.
+
+</details>
+
+Now run the law the other way and ask how far a small molecule gets in one minute: x = √(2 × 10^-5 × 60) cm, about 0.035 cm, or 350 µm. Past a few hundred micrometers, diffusion cannot deliver a message that has to act within a minute. That is why hormones ride the blood, which circulates around the body in about a minute, and why fast local signals need the gap to be tiny. The film at the top of the page walks through the same three distances.
+
+## Five modes, five answers to the same physics
+
+Each mode of signaling answers that law differently: how to cross a distance in the time the job allows, and how to keep the message from the wrong cell.
+
+| Mode | Distance | How the message gets there | Typical arrival | What keeps it private |
+| --- | --- | --- | --- | --- |
+| Contact | Touching cells | No extracellular trip: an anchored ligand binds across the contact, or ions and small molecules pass through a shared channel | No long transport delay; response kinetics still vary | The contact is the address |
+| Autocrine | The sender itself | Released and bound at its own surface | Fast | Nothing inherently; nearby receptor-bearing cells may also respond |
+| Paracrine | Neighbors a short way off | Diffusion through the fluid between cells | About a second or less for a small molecule a few cells away; minutes to hours for a protein that sticks or travels farther | A short life and capture along the way |
+| Synaptic | A gap tens of nanometers wide | Diffusion across the gap | About a microsecond or less to cross | The tiny gap and fast clearance |
+| Endocrine | The whole body | Bulk flow in the blood | Around the body in about a minute | Not the route; mainly which cells carry the receptor |
+
+**Contact.** Two cells touch, and nothing is released into the space around them. In juxtacrine signaling, a ligand (a molecule that binds a receptor) is anchored in one cell's membrane and binds a receptor on the cell pressed against it. In a gap junction, protein channels link the interiors of two cells, and ions and small molecules pass straight through. Strictly, what passes through is shared between interiors and never meets a surface receptor, so it is an awkward fit for a first messenger.
 
 **Autocrine.** The cell releases a signal that binds receptors on its own surface, which lets a cell reinforce its own decision.
 
-**Paracrine.** The signal is released into the fluid between cells and acts on neighbors a short way off. Histamine released during inflammation is the standard example. The reach is short because the signal is diluted as it spreads and is destroyed or captured along the way.
+**Paracrine.** The signal is released into the fluid between cells and acts on neighbors a short way off. Histamine released during inflammation is the standard example. The signal is diluted as it spreads and destroyed or captured along the way.
 
-**Synaptic.** A neuron releases a neurotransmitter into a gap only tens of nanometers wide, and the receiving cell sits right across it. This is a paracrine signal with the geometry built for speed and privacy: the distance is so small that the message arrives almost at once, and most of it acts on the cell across the gap, though some can spill out to receptors nearby. Some transmitters, serotonin among them, are often released away from a tight synapse and drift farther.
+**Synaptic.** A neuron releases a neurotransmitter into a gap only tens of nanometers wide, and the receiving cell sits right across it. This is a paracrine signal with the geometry built for speed and privacy: the distance is so small that the message arrives almost at once, and most of it acts on the cell across the gap, though some can spill out to receptors nearby. Some transmitters, serotonin among them, are often released away from a tight synapse and drift farther, a pattern called volume transmission.
 
-**Endocrine.** A gland releases a hormone, a signal carried in the blood, and every cell the blood reaches is exposed to it. Insulin and estradiol work this way.
+**Endocrine.** A cell, often but not always in a gland, releases a hormone, a signal carried in the blood, and every cell the blood reaches is exposed to it. Insulin and estradiol work this way. So does secretin, which comes from cells in the gut lining, not from a gland. (The film's line that a gland releases its hormone describes the common case, not the rule.)
 
 <LessonFigure src="/figures/signals-and-distance/five-distances.webp" width={1200} height={676} alt="AI-generated illustration: five small scenes in a row above an arrow labelled farther reach. Contact: a ligand anchored on one cell binds a receptor on the cell pressed against it. Autocrine: a cell releases signal that curves back to receptors on its own surface. Paracrine: signal released from a cell spreads a short way to two neighbouring cells, fading as it goes. Synaptic: an axon terminal releases transmitter across a narrow gap to receptors on a receiving cell. Endocrine: a gland cell releases hormone into a blood vessel that carries it past six target cells lining both sides, each with a receptor holding hormone." caption="Five ways a signal reaches its target: by contact, back onto the sender (autocrine), to neighbours a short way off (paracrine), across a synaptic gap tens of nanometers wide, or through the blood (endocrine), which exposes every cell the blood reaches. Real tissues mix and match them, so treat them as a vocabulary." />
 
-Why so many modes? Because diffusion punishes distance. The typical time for a molecule to wander a distance x is:
+## Lifetime buys reach and costs tempo
 
-> **t ≈ x² / 2D**
+Now the one idea, with numbers. A diffusing signal has no sharp edge; it fades. Molecules wander from the sender and are destroyed by enzymes, taken up by cells or stuck to the extracellular matrix. In its lifetime τ, a molecule wanders about √(D × τ), the distance over which the signal fades:
 
-Here D is the diffusion coefficient, about 10^-5 cm²/s for a small molecule in water. Time grows with the square of the distance. A small molecule crosses a 20 nm synaptic gap in a fraction of a microsecond, a millimeter in about eight minutes, and a centimeter in about fourteen hours. Past a few hundred micrometers, diffusion cannot deliver a message that has to act within a minute. That is why hormones ride the blood, which circulates around the body in about a minute, and why fast local signals need the gap to be tiny.
+<EquationCard
+  purpose="The decay length of a steady one-dimensional gradient with uniform first-order clearance."
+  eq="reach ≈ √(D × τ)"
+  say="The reach is the square root of the diffusion coefficient times the lifetime."
+  symbols={[
+    ["reach", "reach", "the one-dimensional decay length over which steady concentration falls by a factor of e (about 2.7), to roughly a third of its level at the source", "cm"],
+    ["D", "D", "the diffusion coefficient: how fast the molecule wanders", "cm²/s"],
+    ["τ", "tau", "the average lifetime of one molecule before it is destroyed or captured", "s"],
+  ]}
+  toolkit={["powers", "units"]}
+  check="This has the same square-root scaling as diffusion, but it comes from balancing diffusion with first-order removal. Units: cm²/s times s is cm², and its square root is cm."
+>
+  <Fragment slot="example">
+    <p>A secreted protein in water, D = 10^-6 cm²/s, that survives τ = 100 s.</p>
+    <p>D × τ = 10^-4 cm², and √(10^-4 cm²) = 10^-2 cm = 100 µm, about five to ten cell diameters.</p>
+  </Fragment>
+</EquationCard>
 
-## What counts as a signal: six kinds of first messenger
+**Predict.** A growth factor reaches about 100 µm from the cell that makes it. A mutation lets each molecule survive nine times longer. How far does it reach now? And how long does the wider gradient take to build?
 
-First messengers range from a push on the membrane to a whole protein. The list runs roughly from small to large:
+<details>
+<summary>Check your prediction</summary>
+
+Three times farther, about 300 µm, because reach grows with the square root of lifetime: √9 = 3. And about nine times longer to build, because build time scales with the lifetime itself. Near the source the gradient fills in within a fraction of one lifetime, and farther out it takes longer still, so nine times the lifetime means nine times the wait. Three times the reach costs nine times the time.
+
+</details>
+
+Tissue is not water. Binding to matrix and to receptors slows a protein's spread, because a molecule that is stuck part of the time covers less ground. Measured values in tissue are lower, from about 10^-9 to 5 × 10^-7 cm²/s, so the water value of 10^-6 is an upper bound. Holding lifetime fixed, here is what a thousandfold lower D does:
+
+| Lifetime | Reach with D = 10^-6 cm²/s (water) | Reach with D = 10^-9 cm²/s (sticky tissue) |
+| --- | --- | --- |
+| 4 seconds | about 20 µm, one or two cells | under 1 µm |
+| 100 seconds | about 100 µm, five to ten cells | about 3 µm |
+| 3 hours | about 1 mm | about 30 µm |
+
+At the slow end every reach is about thirty times smaller (√1000 ≈ 32), as much as a thousandfold drop in lifetime would cause. In real tissue the two seldom change alone: binding that slows a protein's spread often also protects it and lengthens its effective lifetime. Either way, a paracrine signal stays local because its neighborhood destroys it, captures it or slows its spread.
+
+**The synapse pushes the same tradeoff to an extreme.** Acetylcholinesterase removes acetylcholine within about a millisecond. Substituting a small-molecule D and that effective lifetime gives √(D × τ) = √(10^-5 × 10^-3) cm, about 1 µm. This is only an order-of-magnitude scale, not a literal boundary: the cleft is thin, the enzyme is not distributed uniformly, and its kinetics can saturate. Rapid clearance still helps make the signal brief and limit spillover.
+
+**The blood changes the bargain.** Circulation, not molecular diffusion, sets an endocrine signal's range. Clearance helps set the fall after secretion stops, but it does not by itself set how quickly secretion can rise or a target can respond. Epinephrine and insulin each fall to half their level in the blood within minutes, epinephrine in roughly two to three minutes, so ten minutes after the adrenal gland stops releasing it, about a tenth or less remains. The message fades unless the gland keeps sending it, while onset also depends on delivery, secretion and receptor-response kinetics.
+
+Dilution has its own cost. Once mixed through the circulation, a hormone is distributed through about five liters of blood (about three of plasma), although its effective distribution volume depends on the hormone. Many endocrine receptors therefore bind low concentrations, and many surface-receptor pathways amplify what they detect through second messengers, the subject of later lessons.
+
+**When a cell answers its own call.** Disrupting paracrine control is one route to cancer. A growth signal can be constrained in part by its short reach and short life. A cell that makes a growth factor *and* carries its receptor has created an autocrine loop, which can reduce its dependence on growth signals from neighboring cells and contribute to inappropriate proliferation. A landmark case came in 1983, when the cancer-causing gene of simian sarcoma virus, *v-sis*, turned out to encode a form of the B chain of platelet-derived growth factor (PDGF), a factor that blood platelets release at wounds to make nearby cells divide. Cells transformed by the virus make the factor and are driven by it through their own PDGF receptors.
+
+## Ending the message: clearance sets τ
+
+A signal that cannot end is a switch stuck on. One way cells end signals is by clearing the messenger, and each route of clearance is a way of setting τ. Enzymes destroy the molecule. Transporters pump it back into the cell that released it or into neighboring glia. Or blood flow carries it off, and from a small space such as a synaptic gap, diffusion out of the gap does the same job. A cell can also stop listening by turning down its receptors, which later lessons take up.
+
+Acetylcholine shows the fastest case. Acetylcholinesterase sits in the gap between nerve and muscle, and its millisecond speed is the point: if the transmitter lingered, the next message could not be told apart from the last, so the gap has to be wiped clean after every impulse. That same speed made acetylcholine almost impossible to catch, until Dale and Feldberg blocked the enzyme and used a living muscle as the detector.
+
+**Predict.** Eserine blocks acetylcholinesterase. Using the one idea, what happens to acetylcholine's lifetime at the synapse, and what does the synapse gain and lose?
+
+<details>
+<summary>Check your prediction</summary>
+
+The lifetime goes up, so each release has a longer effect. That is the gain, and Loewi showed it in 1926, when eserine prolonged the vagus substance's effect. The cost is tempo: the gap is no longer wiped clean after each impulse, so the next message is harder to tell from the last. Reach grows too, but only as the square root of the lifetime.
+
+</details>
+
+Many transmitters are cleared another way. Serotonin is pumped back into the sending neuron by a transporter protein. A selective serotonin reuptake inhibitor (SSRI), such as fluoxetine, blocks that transporter, so serotonin lingers longer in the gap and the fluid around it and keeps its receptors occupied longer. That block is where the drug's action begins, within hours. Its benefit in depression takes weeks to appear and is thought to come from slower changes in the brain that follow, so it is not simply a matter of topping up a missing chemical. Blocking acetylcholinesterase prolongs acetylcholine with the same result, by a different route, which is why some Alzheimer's drugs and nerve agents both act on this enzyme.
+
+<LessonFigure src="/figures/signals-and-distance/clearance-two-routes.webp" width={1200} height={756} alt="AI-generated illustration: two synapses side by side. Left, titled Destroyed in the gap: vesicles in the sending terminal release acetylcholine, and a labeled acetylcholinesterase enzyme in the gap cuts acetylcholine into fragments before it reaches the receptors on the receiving cell. Right, titled Pumped back, then blocked: a labeled transporter in the sending terminal would pull transmitter back in, but an SSRI sits on it and blocks the pump, so transmitter stays in the gap near the receptors." caption="Two clearance routes end transmitter signals: acetylcholinesterase breaks down acetylcholine outside the cell, while a transporter takes serotonin back into the sending neuron. An SSRI inhibits that transporter, so serotonin lingers longer in the gap and surrounding fluid. The drawing is schematic, and this early drug action does not by itself explain the delayed benefit in depression." />
+
+## Who answers: the receptor
+
+Back to the dog's puzzle: why doesn't every organ the extract reached respond? The 1902 experiment recorded the pancreas and was not designed to survey other organs. The answer comes from tissues watched side by side.
+
+**The receptor, not the signal, sets who responds.** Epinephrine, a hormone from the adrenal gland, drives glycogen breakdown in liver cells, fat breakdown in fat cells and a stronger beat in the heart, and a cell without the receptor ignores it. Acetylcholine slows the heart and contracts skeletal muscle, because the two cell types carry different receptors for the same molecule.
+
+This answers the lesson's third question, and it is the film's closing rule: far messages ride the blood, and the receptor decides who answers.
+
+## Can the messenger cross? Where the receptor sits
+
+Whether a messenger can cross predicts where its receptor sits. First messengers range from a push on the membrane to a whole protein, listed here roughly from small to large:
 
 - **Physical stimuli**: mechanical force, sound, temperature and light.
 - **Ions and small molecules**: Ca2+, Na+, Cl-, O2, CO2, CO and NO.
@@ -412,37 +550,22 @@ First messengers range from a push on the membrane to a whole protein. The list 
 - **Secreted proteins**: interleukins, growth factors, death factors and chemokines.
 - **Extracellular matrix**: collagen, elastin, fibronectin and laminin.
 
-The first question to ask about any of them is whether it can cross the membrane, because the answer largely decides where its receptor sits. The lipid core of the bilayer admits small molecules that are uncharged and not very polar, and fat-soluble ones. O2, CO2 and NO slip through, and so does estradiol, a steroid built from four fused carbon rings with almost no charged groups. These can be sensed inside the cell, and estradiol meets its main receptor there, though it also acts on some receptors at the surface.
+The categories overlap. A hormone is defined by how it travels, in the blood, not by what it is made of, so estradiol, uncharged and fat-soluble, behaves more like O2 and NO than like the peptide ghrelin. That is why the useful sort is by crossing, not by category.
 
-Everything else needs a protein in the membrane: a surface receptor, or a channel or transporter that lets it in. Ions are charged and cannot pass. Neither can glucose (small and uncharged, but covered in polar hydroxyl groups), a peptide, a protein or a matrix fiber. Acetylcholine and epinephrine are small, but the nitrogen of acetylcholine carries a permanent positive charge, and the amine of epinephrine is positively charged at body pH. How surface receptors are built is the subject of lesson 4.
+**Predict.** Glucose is small and uncharged. Estradiol is larger, four fused carbon rings. Which one crosses the lipid core of the membrane on its own?
+
+<details>
+<summary>Check your prediction</summary>
+
+Estradiol, which has almost no charged groups. Glucose is covered in polar hydroxyl groups, so it needs a transporter. Charge and polarity decide, not size alone.
+
+</details>
+
+The lipid core of the bilayer admits small molecules that are uncharged and not very polar, and fat-soluble ones. O2, CO2 and NO slip through, and so does estradiol. These can be sensed inside the cell, and estradiol meets its main receptor there, though it also acts on some receptors at the surface.
+
+Many other messengers need a protein in the membrane: a surface receptor, or a channel or transporter that lets them in. Ions are charged and cannot pass on their own. Neither can glucose, a peptide, a protein or a matrix fiber. Acetylcholine and epinephrine are small, but the nitrogen of acetylcholine carries a permanent positive charge, and the amine of epinephrine is positively charged at body pH. Carbon monoxide and some other small, uncharged or fat-soluble messengers can cross without such a protein. How surface receptors are built is the subject of [lesson 4](/lessons/receptor-field-guide/).
 
 <LessonFigure src="/figures/signals-and-distance/cross-or-not.webp" width={1200} height={800} alt="AI-generated illustration: a plasma membrane with the outside above. On the left, O₂, CO₂, NO and estradiol pass straight through the bilayer, and estradiol binds a receptor inside the cell. On the right, Na⁺ and glucose are turned back by the bilayer; Na⁺ enters through a channel, glucose through a transporter, and a peptide hormone binds a receptor on the outer surface." caption="Whether a messenger can cross the membrane largely decides where its receptor sits. Small molecules that are uncharged and not very polar, such as O₂, CO₂ and NO, and fat-soluble ones such as estradiol, slip through and can be sensed inside. Ions, glucose with its polar hydroxyl groups, and peptides need a surface receptor, a channel or a transporter."/>
-
-## Why have a system that affects all systems at a distance?
-
-Put the question to the endocrine system directly: isn't it dangerous to release a molecule that touches every tissue? It would be, if the signal decided who responds. It does not.
-
-**The receptor, not the signal, sets who responds.** The extract in the dog reached every organ, yet the pancreas was the organ that poured out juice. The same holds inside one body. Epinephrine, a hormone from the adrenal gland, drives glycogen breakdown in liver cells, fat breakdown in fat cells and a stronger beat in the heart, and a cell without the receptor ignores it. Acetylcholine slows the heart and contracts skeletal muscle, because the two cell types carry different receptors for the same molecule. A signal is a word. What happens depends on who can read it.
-
-**Dilution and half-life set how long and how far.** A hormone released into about five liters of blood is diluted at once, and it does not last: epinephrine and insulin each fall to half their level in the blood within minutes. The message fades unless the gland keeps sending it. Short-range signals work the same way on a smaller scale. A signal destroyed after a lifetime τ travels about:
-
-> **reach ≈ √(D × τ)**
-
-A secreted protein diffuses in water with D near 10^-6 cm²/s, and measured values in tissue are lower, from about 10^-9 to 5 × 10^-7 cm²/s, so take 10^-6 as an upper bound. With it, a lifetime of 100 seconds gives a reach of about 100 µm, a few cell diameters. A lifetime of three hours stretches the reach to about a millimeter. A paracrine signal stays local because its neighborhood destroys it, captures it or slows its spread.
-
-That points to a failure mode. Disrupting paracrine control is one route to cancer. A growth signal made safe by its short reach and short life becomes dangerous when a cell begins to answer its own call, making a growth factor and carrying the receptor for it.
-
-## Stopping the message: clearance
-
-A signal that cannot end is a switch stuck on. One way cells end signals is by clearing the messenger: enzymes destroy the molecule, transporters pump it back into the cell that released it, or blood flow and diffusion carry it off.
-
-Acetylcholine shows the fastest case. Acetylcholinesterase, an enzyme in the gap between nerve and muscle, destroys acetylcholine within about a millisecond of release. The speed is the point. If the transmitter lingered, the next message could not be told apart from the last, so the gap has to be wiped clean after every impulse.
-
-That same speed made acetylcholine almost impossible to catch. By the time fluid from around a stimulated nerve reached a test tube, the enzyme had destroyed the transmitter, and what was left was far below anything a chemical test of the 1930s could detect. Loewi had shown in 1926 that eserine, a drug that blocks the enzyme, protects the transmitter, and eserine also makes a strip of leech muscle respond to far smaller amounts. In 1934 Henry Dale and Wilhelm Feldberg combined the two. The height of the leech muscle's slow contraction, read against contractions from known amounts, became the measurement. Fluid collected from a stomach while its vagus nerve was stimulated made the muscle contract. A nerve had been caught releasing the chemical.
-
-Many transmitters are cleared another way. Serotonin is pumped back into the sending neuron by a transporter protein. A selective serotonin reuptake inhibitor (SSRI), such as fluoxetine, blocks that transporter, so serotonin lingers longer in the gap and the fluid around it and keeps its receptors occupied longer. That block is where the drug's action begins, within hours. Its benefit in depression takes weeks to appear and is thought to come from slower changes in the brain that follow, so it is not simply a matter of topping up a missing chemical. Blocking acetylcholinesterase prolongs acetylcholine in the same way, which is why some Alzheimer's drugs and nerve agents both act on this enzyme.
-
-<LessonFigure src="/figures/signals-and-distance/clearance-two-routes.webp" width={1200} height={756} alt="AI-generated illustration: two synapses side by side. Left, titled Destroyed in the gap: vesicles in the sending terminal release acetylcholine, and a labeled acetylcholinesterase enzyme in the gap cuts acetylcholine into fragments before it reaches the receptors on the receiving cell. Right, titled Pumped back, then blocked: a labeled transporter in the sending terminal would pull transmitter back in, but an SSRI sits on it and blocks the pump, so transmitter stays in the gap near the receptors." caption="Two clearance routes end transmitter signals: acetylcholinesterase breaks down acetylcholine outside the cell, while a transporter takes serotonin back into the sending neuron. An SSRI inhibits that transporter, so serotonin lingers longer in the gap and surrounding fluid. The drawing is schematic, and this early drug action does not by itself explain the delayed benefit in depression." />
 
 ### Design problem
 
@@ -451,8 +574,22 @@ You must tell every liver cell in the body to release glucose within a minute, a
 <details>
 <summary>One way to do it</summary>
 
-**The liver job: endocrine.** Use a hormone released into the blood. The blood reaches every liver cell within about a minute, and no diffusing signal covers an organ-sized distance that fast, because diffusion would need hours to cover even a centimeter. Adrenaline fits. It ends within minutes by dilution and breakdown, and its receptor starts a relay inside each liver cell that amplifies it, so a dilute hormone is enough. The price is that every other cell with that receptor answers too, including fat cells and the heart.
+**The liver job: endocrine.** Use a hormone released into the blood. The blood reaches every liver cell within about a minute, while diffusion would need hours to cover even a centimeter. Adrenaline fits. It ends within minutes by dilution and breakdown, and its receptor starts a relay inside each liver cell that amplifies it, so a dilute hormone is enough. The price is that every other cell with that receptor answers too, including fat cells and the heart.
 
-**The next-door job: juxtacrine or paracrine.** If only a touching cell must divide, use a ligand anchored in the membrane, so the contact is the address. If a small neighborhood may divide, use a paracrine factor that is destroyed quickly, so that √(D × τ) is about a cell diameter or two. An endocrine signal would be the wrong choice here. A command to divide delivered through the blood reaches every cell that carries the receptor, which is the opposite of what the job requires.
+**The next-door job: juxtacrine or paracrine.** If only a touching cell must divide, use a ligand anchored in the membrane, so the contact is the address. If a small neighborhood may divide, use a paracrine factor that is destroyed quickly, so that √(D × τ) is about a cell diameter or two. An endocrine signal would be wrong here: through the blood, a command to divide reaches every cell that carries the receptor.
 
 </details>
+
+## Going deeper
+
+### Catching acetylcholine with a leech muscle
+
+By the time fluid from around a stimulated nerve reached a test tube, the enzyme had destroyed the acetylcholine, and what was left was far below anything a chemical test of the 1930s could detect. Eserine, which protects the transmitter, also makes a strip of leech muscle respond to far smaller amounts, and in 1934 Henry Dale and Wilhelm Feldberg combined the two. The height of the leech muscle's slow contraction, read against contractions from known amounts, became the measurement. Fluid collected from a stomach while its vagus nerve was stimulated made the muscle contract. A nerve had been caught releasing the chemical.
+
+### Diffusion in three dimensions
+
+The lesson and the film use the one-dimensional estimate, t ≈ x²/2D. In three dimensions a molecule reaches a given distance about three times sooner, t ≈ x²/6D. Around a point source the steady signal falls as e^(−r/λ)/r rather than e^(−x/λ), but the decay length λ = √(D × τ) is the same. Neither change alters a conclusion: time still grows with the square of distance, and reach with the square root of lifetime.
+
+### Where the reach rule bends
+
+The rule assumes roughly first-order removal (a fixed fraction of the molecules removed per unit time) in roughly uniform tissue. Uptake by receptors that saturate, binding to matrix (which lowers the effective D), cytonemes (thin cell projections that carry signals between cells) and transport through cells (transcytosis) all change the numbers.
