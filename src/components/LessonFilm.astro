@@ -9,7 +9,7 @@
  */
 import FilmTranscript from './FilmTranscript.astro';
 interface Props {
-  film: { src: string; captions: string; poster: string; title: string; durationSec: number; id?: string; predatesCorrection?: string };
+  film: { src: string; captions: string; poster: string; title: string; durationSec: number; id?: string; predatesCorrection?: string; takeaways?: string[] };
 }
 const { film } = Astro.props;
 const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durationSec % 60)).padStart(2, '0')}`;
@@ -28,6 +28,12 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
 </figure>
 {/* The captions as readable text, closed until asked for (and searchable). */}
 <FilmTranscript captions={film.captions} title={film.title} id={film.id ?? film.src.split('/').slice(-2, -1)[0] + '-' + film.src.split('/').pop()!.replace(/\.mp4$/, '')} />
+{film.takeaways && film.takeaways.length > 0 && (
+  <div class="lf-takeaways" aria-label="Key points from the film">
+    <p class="lf-takeaways-h">From the film</p>
+    <ul>{film.takeaways.map((t) => <li>{t}</li>)}</ul>
+  </div>
+)}
 
 <style>
   .lf { margin: var(--ddp-space-5) 0; max-width: 880px; }
@@ -35,5 +41,9 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
   .lf figcaption { margin-top: var(--ddp-space-2); font-family: var(--ddp-font-serif); font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
   .lf-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin-right: 0.4rem; }
   .lf-predates { margin: var(--ddp-space-2) 0 0; max-width: 72ch; padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 4px; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .lf-takeaways { margin: var(--ddp-space-2) 0 var(--ddp-space-5); max-width: 72ch; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); border-radius: 4px; }
+  .lf-takeaways-h { margin: 0 0 var(--ddp-space-1); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .lf-takeaways ul { margin: 0; padding-left: 1.2rem; line-height: 1.55; }
+  .lf-takeaways li + li { margin-top: 0.25rem; }
   .lf-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 </style>

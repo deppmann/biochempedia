@@ -240,6 +240,9 @@ const explainer = z.object({
    *  the old thing. One reader-facing sentence naming what changed; it shows as a small note
    *  under the film on the lesson page and on its /watch/ page. Remove it when the film is redone. */
   predatesCorrection: z.string().min(1).optional(),
+  /** The film's take-home points (2026-11-10), shown as bullets under the film and always visible,
+   *  so the lesson text need not re-tell what the film shows. Short, one idea each, 3 to 5. */
+  takeaways: z.array(z.string().min(1)).max(6).optional(),
 });
 
 export const lessonSchema = z.object({
