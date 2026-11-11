@@ -4,8 +4,6 @@ slug: "touch-in-autism-models"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 2: Touch"
 order: 809
-underReview:
-  - "This lesson has not yet had the teaching update the rest of the course received: a step-by-step rewrite with chaptered films. The content here is the earlier, fact-checked version."
 summary: >-
   Sensory features are part of the diagnostic criteria for autism, and in mouse models carrying
   mutations in autism-associated genes a tactile phenotype can begin in the peripheral sensory
@@ -25,10 +23,30 @@ explainer:
   src: "/explainers/touch-in-autism-models/explainer.mp4"
   captions: "/explainers/touch-in-autism-models/explainer.vtt"
   poster: "/explainers/touch-in-autism-models/poster.jpg"
-  title: "Where the touch change begins"
-  durationSec: 169.4
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Delete Here, Learn Where"
+  durationSec: 194.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "In these mouse experiments, a fixed air puff measured movement, not perception."
+    - "Gene loss in the Advillin-targeted population was sufficient for selected mouse outcomes."
+    - "Restoring Mecp2 mainly in that population rescued selected outcomes but left others unchanged."
+    - "A restricted manipulation can locate one contribution without explaining the whole phenotype."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/touch-in-autism-models/chapter-2.mp4"
+    captions: "/explainers/touch-in-autism-models/chapter-2.vtt"
+    poster: "/explainers/touch-in-autism-models/chapter-2-poster.jpg"
+    title: "One Touch Behaviour, Several Routes"
+    durationSec: 203.1
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "The same tactile endpoint can arise from different defects in these mouse models."
+      - "Mecp2 and Gabrb3 models support a reduced presynaptic GABA-A inhibition account."
+      - "The Shank3 model instead showed reduced Ih and greater sensory-neuron excitability."
+      - "Locus, mechanism and developmental timing must be tested separately."
 
 scientists:
   - name: "Lauren L. Orefice"
@@ -219,8 +237,8 @@ mcatQuestions:
       target in those neurons. A brain-entry route is hard to reconcile with the loss of effect after deleting
       a receptor in the periphery, and the drug was not detected in brain or cerebrospinal fluid in
       the biodistribution assay. Changing skin mechanics would not be undone by a receptor deletion in
-      the neuron. The deletion abolished rather than enabled the response, so the last reading
-      reverses the control.
+      the neuron. The claim that deletion enables the drug response reverses the control: deletion
+      abolished the response.
   - stem: "In a made-up mouse experiment, a gene is deleted only in peripheral sensory neurons and the mice show stronger air-puff responses. In a second group the gene is restored only in those neurons on an otherwise null background. Air-puff responses return toward control levels, but motor and memory deficits persist. Which conclusion is best supported?"
     choices:
       - "Part of the tactile phenotype has a peripheral origin, but this does not account for the whole phenotype"
@@ -240,8 +258,8 @@ mcatQuestions:
       Two models were abnormal at P4 and two were not, and the dorsal-horn deletion result puts the
       Nlgn2 locus in the cord, so the models differ in both schedule and site. Across the models
       neonatal over-reactivity was associated with adult anxiety-like and social differences, and an
-      association measured across genotypes does not establish that one causes the other. The locus
-      assignment in the third reading is reversed: Nlgn2 was localised to dorsal-horn neurons.
+      association measured across genotypes does not establish that one causes the other. The claim
+      that Nlgn2 acts in sensory neurons reverses the locus result: Nlgn2 was localised to dorsal-horn neurons.
       Later-onset over-reactivity was not associated with adult anxiety-like or social deficits in that
       study, but 'entirely unchanged' claims more than an
       association in a small set of models.
@@ -345,62 +363,151 @@ draft: false
 
 import ThresholdOverlapReader from '../../../components/ThresholdOverlapReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Deleting a gene from peripheral sensory neurons, while sparing the brain and spinal cord, was enough to change how a mouse reacted to a gentle puff of air, and to shift its scores in anxiety-like and social assays.** The brain in those animals carried the gene throughout. Across the models tested, tactile over-reactivity that was already present in newborn pups was associated with these adult behavioural differences, and over-reactivity that emerged later was not; this is an association across mouse models, taken up under Timing. The deletion experiment is the reason this lesson exists, and most of the work of reading it is keeping straight what it does and does not claim.
+With the restricted-manipulation logic from the first film in hand, the next task is to stop three unlike readouts from sliding into one another.
 
-[Touch and pain](/lessons/touch-and-pain/) gave you the afferent classes and the dorsal horn; [dorsal horn touch](/lessons/dorsal-horn-touch/) gave you presynaptic inhibition of afferent terminals and the interneurons that deliver it. The genetics of Rett syndrome, fragile X and the autism-associated synapse genes belong to [synapse disorders](/lessons/synapse-disorders/). Start where those three meet: a tactile phenotype in mouse models whose cause sits in a neuron outside the brain.
+> **The one idea.** Within these mouse models, the same-looking tactile over-reactivity can arise from different defects along the early touch pathway; locate each claim by the cells manipulated, the mechanism measured and the developmental window tested.
+>
+> *Scope:* this rule applies to the mouse lines and assays here. It does not identify one mechanism for autism, turn a mouse movement into a reported percept or establish a human developmental window.
 
-## What "over-reactive to touch" means in people, and what it does not
+[Touch and pain](/lessons/touch-and-pain/) introduced the afferent classes, and [dorsal horn touch](/lessons/dorsal-horn-touch/) introduced presynaptic control of their terminals. The genetics of Rett syndrome, fragile X and autism-associated synapse genes belong to [synapse disorders](/lessons/synapse-disorders/). Here the problem is experimental: what can each manipulation actually locate?
 
-Sensory features are in the diagnostic criteria. Criterion B4 of the DSM-5 covers hyperreactivity, hyporeactivity and unusual interest in sensory aspects of the environment, and it is one of four restricted and repetitive behaviour criteria of which at least two must be met. Two things follow. Sensory difference runs in both directions, and a sensory feature is not required for a diagnosis. Not every autistic person is over-reactive to touch.
+## First separate the readouts
 
-The laboratory version of the question is narrower still. Puts and colleagues (2014) tested 32 autistic and 67 typically developing children aged 8 to 12 with vibration delivered to the fingers, and measured static detection thresholds, a dynamic ramp task, and amplitude and frequency discrimination. The autistic cohort needed a stimulus about 38.5 per cent larger to detect it (mean threshold 9.13 µm against 6.59 µm). A higher threshold is poorer detection, so whatever everyday over-reactivity is, it is not a lower detection threshold in this task. Other studies point the other way: lower thresholds at 200 Hz but not 30 Hz in adults with Asperger syndrome (Blakemore and colleagues, 2006), and heightened forearm vibration and thermal pain sensitivity with normal light-touch thresholds (Cascio and colleagues, 2008). Threshold results in autism vary with frequency, body site and age, so treat this as one result among inconsistent ones. Baseline amplitude discrimination was also worse in that cohort, while frequency discrimination showed no significant diagnosis effect. The standard deviations are large next to the difference: the distributions overlap heavily, and a group mean cannot fix any one child's threshold or say how a touch feels to that child.
+Sensory features are part of the diagnostic criteria for autism. Criterion B4 of the DSM-5 covers hyperreactivity, hyporeactivity and unusual interest in sensory aspects of the environment. It is one of four restricted and repetitive behaviour criteria, of which at least two must be met. Sensory difference therefore runs in both directions, and no one sensory feature is required for a diagnosis. Not every autistic person is over-reactive to touch.
+
+Three measurements that sound similar ask different questions:
+
+| Readout | What is held fixed? | What is measured? | What it cannot report by itself |
+|---|---|---|---|
+| Detection threshold | A response rule | The smallest stimulus a person reports detecting | Everyday comfort or distress |
+| Mouse air-puff reactivity | One puff: 0.9 psi for 50 ms on back hairy skin | Size of a startle-like movement | Detection threshold or experience |
+| Daily-life sensory report | Neither laboratory stimulus nor response | A person's response in context | A single receptor or circuit locus |
+
+Puts and colleagues (2014) tested 32 autistic and 67 typically developing children aged 8 to 12. In the static finger-vibration task, the autistic cohort's mean detection threshold was 9.13 micrometres, against 6.59 micrometres. That is a 2.54-micrometre difference, or 38.5 per cent relative to 6.59.
+
+**Predict.** Does the higher mean threshold show better or poorer detection in this task?
+
+<details>
+<summary>Check your prediction</summary>
+
+Poorer detection. The stimulus had to become larger before it was reported. That result neither contradicts nor measures everyday over-reactivity: the quantities differ.
+
+</details>
+
+The group distributions overlap heavily, so the means do not set any one child's threshold or say how a touch feels. Use the interactive to see why the difference between means and the fraction beyond a chosen threshold are not the same quantity.
 
 <ThresholdOverlapReader />
 
-Hold that beside the mouse readout you are about to meet. The mouse measure is the size of a startle-like movement to a fixed stimulus, a 0.9 psi puff lasting 50 ms on back hairy skin. That is reactivity at one stimulus level, not a threshold, and not a report of what the animal perceives. Human psychophysics and mouse reactivity are two different quantities, and the lesson keeps them apart.
+## Locate a contribution with conditional genetics
 
-## A peripheral locus: conditional deletion and selective restoration
+Orefice and colleagues (2016, *Cell*, Ginty laboratory) began with four mouse lines carrying mutations in genes associated with autism in people: Mecp2-null, Mecp2R306C, Shank3B heterozygous and Fmr1-null. At 6 to 8 weeks, all four reacted more strongly than controls to the fixed air puff.
 
-Orefice and colleagues (2016, Cell, Ginty laboratory) began with four mouse lines carrying mutations in genes associated with autism in people: Mecp2-null, Mecp2R306C, Shank3B heterozygous and Fmr1-null. All four reacted more strongly than controls to the air puff, tested from 6 to 8 weeks of age.
+A primary somatosensory neuron reaches from skin into the central nervous system: its cell body lies in a dorsal-root or trigeminal ganglion, and its central terminal lies inside the spinal cord or brainstem. Advillin-Cre supplies Cre recombinase to the whole population of dorsal-root and trigeminal neurons that have expressed Advillin at any time, plus sympathetic ganglion neurons, not to one mechanoreceptor subtype. Crossing it to a floxed allele removes the gene from the targeted neuron, including its central terminal, while resident brain and spinal-cord cells retain their copies.
 
-Then came the restriction. Advillin-Cre supplies Cre recombinase to primary somatosensory neurons, so crossing it to a floxed allele removes that gene from those cells and leaves the brain's copy intact. (A Cre driver labels the cells that expressed it at some time, which here is the whole population of dorsal root and trigeminal neurons, plus sympathetic ganglion neurons, not one subtype.) Deleting Mecp2 or Gabrb3 this way was sufficient for the tactile phenotype: stronger air-puff responses, altered tactile prepulse inhibition, and impaired texture discrimination in a textured novel-object task. It was also sufficient for anxiety-like and social-interaction differences in the assays tested.
+The two directions of the experiment support different inferences:
 
-<LessonFigure src="/figures/touch-in-autism-models/advillin-cre-gene-removed-outside-brain.webp" width={1200} height={797} alt="AI-generated illustration: two panels, each with a sensory neuron above a brain neuron. In the control both carry a gold gene square; in the Advillin-Cre deletion the sensory neuron's gene square is missing while the brain neuron keeps its copy." caption="In mice, crossing Advillin-Cre to a floxed Mecp2 or Gabrb3 allele deletes the targeted gene in dorsal root, trigeminal and sympathetic ganglion neurons while sparing the brain. The diagram shows a representative somatosensory neuron and brain neuron. Deleting either gene in this Advillin-targeted peripheral population was sufficient for the tactile phenotype in Orefice and colleagues' experiments." />
+| Manipulation | Genetic background | Outcomes in the assays tested | Inference |
+|---|---|---|---|
+| Delete Mecp2 or Gabrb3 in the Advillin-targeted population | Gene retained in resident CNS cells | Stronger air-puff responses, altered tactile prepulse inhibition, impaired texture discrimination in a textured novel-object task, and selected anxiety-like and social-interaction differences | Gene loss in this population is sufficient to produce those changes under this manipulation |
+| Restore Mecp2 mainly in the Advillin-targeted population | Otherwise Mecp2-null | Tactile sensitivity and selected anxiety-like and social measures moved toward control; lethality, memory and motor deficits did not | This population can rescue part, not all, of the phenotype |
 
-Two controls make that result readable rather than merely striking. First, timing. An inducible Advillin-CreERT2 version let the same deletion begin at P28 instead of during development. The tactile deficits still appeared. The anxiety-like phenotype did not. The paper's word for that condition is "adult deletion", but the induction age is P28, and that is the number to keep. Second, direction. Restoring Mecp2 only in the Advillin-targeted neurons (mostly sensory, with the sympathetic coverage noted above), on an otherwise null background, rescued tactile sensitivity and selected anxiety-like and social measures. Lethality, memory deficits and motor deficits were not rescued. A peripheral contribution to part of the phenotype, then, and an explicit failure to account for the rest.
+Here **sufficient** means that the restricted manipulation can produce the outcome. It does not mean that the targeted population is the only route to it.
 
-What is wrong in the mutant terminals? GABRB3-containing GABA-A receptors localise to the presynaptic compartments of Aβ- and Aδ-LTMR central terminals in mouse dorsal horn, that is, to the endings of peripheral neurons inside the spinal cord. (An LTMR is a low-threshold mechanoreceptor afferent.) In sensory-neuron Mecp2 mutants, GABRB3 puncta associated with vGlut1-positive terminals were reduced by about 70 per cent. That figure counts immunolabelled puncta in fixed tissue; it is not a measured conductance. Two physiological results point the same way: in P14 to P19 slices, dorsal-root-evoked quantal EPSC frequency onto postsynaptic dorsal column neurons went up, and in isolated cords, evoked dorsal root potentials were greatly diminished after sensory-neuron deletion of Mecp2 or Gabrb3. Dorsal root potentials are the back-propagating signature of primary afferent depolarisation. The authors attributed the touch phenotype to deficient GABA-A-mediated presynaptic inhibition.
+<LessonFigure src="/figures/touch-in-autism-models/advillin-cre-gene-removed-outside-brain.webp" width={1200} height={797} alt="AI-generated illustration: two panels, each with a sensory neuron above a brain neuron. In the control both carry a gold gene square; in the Advillin-Cre deletion the sensory neuron's gene square is missing while the brain neuron keeps its copy." caption="In mice, crossing Advillin-Cre to a floxed Mecp2 or Gabrb3 allele deletes the target in dorsal-root, trigeminal and sympathetic ganglion neurons. The diagram shows a representative somatosensory neuron and brain neuron. The sensory neuron's central terminal is also part of that targeted cell; resident brain and spinal-cord cells retain the gene." />
 
-<LessonFigure src="/figures/touch-in-autism-models/presynaptic-gabaa-terminal.webp" width={1200} height={741} alt="AI-generated illustration: two schematic views of mouse dorsal-horn tissue, comparing control with sensory-neuron Mecp2 deletion. Similar fields of vGlut1-positive LTMR central-terminal profiles have gold GABRB3 immunolabelled puncta associated with them; fewer puncta remain in the mutant field. The puncta are marker clusters rather than individual receptor molecules, and the drawing does not depict conductance or transmitter release." caption="In mouse sensory-neuron Mecp2 conditional mutants, immunolabelled GABRB3 puncta associated with vGlut1-positive LTMR central terminals in the dorsal horn were reduced by about 70 per cent. This is a fixed-tissue marker measurement, not a measurement of conductance or release. Together with separate physiological results, it supported the authors' interpretation of deficient GABA-A-mediated presynaptic inhibition; that mechanism should not be read as settled physiology for all sensory afferents." />
+Timing supplies another control. An inducible Advillin-CreERT2 version began deletion at P28 rather than during development.
 
-Mind the sign. GABA acting on an afferent terminal depolarises it, because those terminals hold chloride high ([synaptic integration](/lessons/synaptic-integration/) sets out why the sign follows the gradient, not the transmitter). The 2016 study interprets that depolarisation as reducing action-potential-evoked release. Depolarising is not the same as exciting. Later work in proprioceptive afferents places axonal GABA-A receptors mainly near nodes and branch points, where they aid spike propagation, and assigns presynaptic inhibition of release to GABA-B (Hari and colleagues, 2022), so read the presynaptic-inhibition account here as the authors' interpretation rather than settled physiology.
+**Predict.** If the tactile and anxiety-like outcomes have the same developmental requirement, what should P28-induced deletion do to both?
 
-## Not one mechanism: a second model and a drug that stays outside
+<details>
+<summary>Check your prediction</summary>
 
-The 2019 follow-up (Orefice and colleagues, Cell) broke the single story. Large-diameter dorsal root ganglion neurons cultured one to two days from 6- to 8-week-old Shank3 mutants had reduced Ih, the hyperpolarisation-activated current, and increased excitability. No altered GABRB3 expression was detected at Shank3 LTMR central terminals. Same behavioural phenotype, different cellular defect.
+They should change together. Instead, the tactile deficits still appeared while the anxiety-like phenotype did not. The paper calls this “adult deletion,” but P28 is the induction age to keep. The two outcomes therefore have different timing requirements in this experiment.
 
-The same paper asked whether a drug acting only outside the brain could change the behaviour. Isoguvacine is a GABA-A agonist. After injection in male mice at ten times the behavioural dose (dose and detection limits under Going deeper), it was detected in blood and liver but not in brain or cerebrospinal fluid. Low acute doses reduced tactile over-reactivity in five genetic models and one maternal-immune-activation model, without the sedation reported for the brain-penetrating comparator midazolam in those assays.
+</details>
 
-The control that makes this a mechanism claim rather than a drug effect is genetic. In anaesthetised mice, isoguvacine reduced stimulus-evoked Aβ-LTMR firing recorded from the L4 ganglion. In mice with homozygous sensory-neuron Gabrb3 deletion, it did not. Remove the receptor subunit from the neurons and the drug stops working on them.
+## Build the terminal mechanism as an evidence ladder
 
-<LessonFigure src="/figures/touch-in-autism-models/isoguvacine-needs-the-receptor.webp" width={1200} height={717} alt="AI-generated illustration: two cell-level diagrams of a sensory neuron. In the first, gold GABA-A receptor blocks sit in the membrane and a gold isoguvacine token docks on one, with reduced firing. In the second the receptor blocks are absent, the token cannot dock, and firing is not reduced." caption="In anaesthetised mice, isoguvacine reduced stimulus-evoked Aβ-LTMR firing recorded from the L4 ganglion, but not in mice with sensory-neuron Gabrb3 deletion. Removing the receptor subunit from the neurons removes the drug's effect on them." />
+The deletion locates a contribution; it does not yet say what changed inside the neuron. The authors tested a candidate control point at the neuron's central ending. A **low-threshold mechanoreceptor**, or LTMR, is an afferent that responds to innocuous mechanical stimulation.
 
-Chronic dosing drew the limits again. Litters from Mecp2R306C or Shank3B heterozygous dams received 2 mg/kg daily from P1 to P42, with testing from P42; each litter held mutant and control pups and the whole litter got the same treatment. Body condition, some brain abnormalities, anxiety-like behaviours and some social impairments improved. Texture discrimination and memory deficits persisted, as did Mecp2 motor impairment and Shank3 overgrooming. This is a selective effect on some mouse endpoints. Isoguvacine remains an experimental compound: a 2025 review reports no documented human administration, and a registry search found no registered studies, though that cannot exclude other registries or unregistered work. The 2019 authors present peripheral GABA-A intervention as a strategy that would require testing in patients, and they disclose pending patents on peripherally restricted GABA-A drugs for that use.
+First came anatomy. GABRB3-containing GABA-A receptors localise to presynaptic compartments of A-beta- and A-delta-LTMR terminals in mouse dorsal horn. In sensory-neuron Mecp2 mutants, GABRB3 puncta associated with vGlut1-positive terminals fell by about 70 per cent. A punctum is an immunolabelled cluster in fixed tissue. The count supports loss of receptor marker near terminals; it is not a conductance measurement and does not say that every terminal lost every receptor.
 
-## Timing: early afferent receptors, later spinal inhibition
+**Predict.** Does about 70 per cent fewer receptor-associated puncta establish about 70 per cent lower GABA-A conductance?
 
-Tasnim and colleagues (2024, Nature Neuroscience, Ginty corresponding author, Orefice a coauthor) asked when each model's phenotype starts. Across the models tested, neonatal over-reactivity was associated with adult anxiety-like and social differences, while over-reactivity that emerged later in life was not; the authors treat that dissociation as their central result. Association across genotypes is not a demonstrated causal sequence, and these mouse studies do not establish corresponding human developmental windows. Why timing should matter at all is the subject of [sensitive periods in behaviour](/lessons/sensitive-periods-behavior/) and [critical period control](/lessons/critical-period-control/).
+<details>
+<summary>Check your prediction</summary>
 
-Gabrb3 and Mecp2 loss-of-function pups were already more reactive to an air puff at P4, measured as maximal body displacement within 500 ms. Nlgn2 and Rorb mutants were not, despite tactile abnormalities as adults. Sampling two ages does not pin the onset day; it does separate early-onset from later-onset models.
+No. Puncta are counted marker clusters in fixed tissue; conductance is an electrical measurement. The imaging result does not provide a conversion between them.
 
-The machinery matches that split. GABRB3 immunoreactivity was detectable near VGLUT1-positive sensory terminals at P0 to P1, and Gabrb3 deletion virtually abolished GABA-evoked depolarisations in medium- and large-diameter dorsal root ganglion neurons at both P4 and P18 to P30 (recorded with a high-chloride internal solution, which sets the driving force the experimenter wanted to see). Deep dorsal-horn miniature inhibitory currents, by contrast, were smaller and rarer at P4 than at P19 to P21, and feedforward inhibition in the LTMR-recipient zone was predominantly glycinergic by P19. Nlgn2 sits in that later system: Lbx1-Cre deletion from dorsal-horn neurons was sufficient for adult tactile alterations, and P19 to P21 Cdx2-Cre mutants (deleted in all cells below cervical level 2) had reduced dorsal-horn mIPSC frequency and amplitude.
+</details>
+
+Separate physiology then tested release. In P14-to-P19 slices, dorsal-root stimulation evoked more asynchronous quantal EPSCs in postsynaptic dorsal column neurons after sensory-neuron deletion of Mecp2 or Gabrb3. Frequency rose without a corresponding amplitude change, supporting a presynaptic change.
+
+The second physiological readout tested the GABA-A pathway. Because these afferents hold chloride high, GABA-A receptor activation depolarises them ([synaptic integration](/lessons/synaptic-integration/) explains why the gradient sets the sign). That depolarisation can travel backward into a dorsal root as a **dorsal root potential**, a readout of primary afferent depolarisation. Evoked dorsal root potentials were greatly diminished in isolated cords after sensory-neuron deletion of Mecp2 or Gabrb3.
+
+Put the observations together: less receptor-associated marker, more afferent-evoked quantal release and less GABA-A-dependent primary afferent depolarisation. The authors attributed the touch phenotype to deficient GABA-A-mediated presynaptic inhibition.
+
+<LessonFigure src="/figures/touch-in-autism-models/presynaptic-gabaa-terminal.webp" width={1200} height={741} alt="AI-generated illustration: two schematic views of mouse dorsal-horn tissue, comparing control with sensory-neuron Mecp2 deletion. Similar fields of vGlut1-positive LTMR central-terminal profiles have gold GABRB3 immunolabelled puncta associated with them; fewer puncta remain in the mutant field. The puncta are marker clusters rather than individual receptor molecules, and the drawing does not depict conductance or transmitter release." caption="In mouse sensory-neuron Mecp2 conditional mutants, immunolabelled GABRB3 puncta associated with vGlut1-positive LTMR central terminals fell by about 70 per cent. That is a fixed-tissue puncta measurement. Separate synaptic and dorsal-root-potential recordings support the authors' presynaptic-inhibition account, which should not be read as settled physiology for all sensory afferents; the image itself does not measure conductance or release." />
+
+Now refine that useful first model. Depolarising is not identical to exciting. The 2016 study interprets GABA-A depolarisation as reducing action-potential-evoked release. Later work in proprioceptive afferents instead places axonal GABA-A receptors mainly near nodes and branch points, where they aid spike propagation, and assigns inhibition of release to GABA-B receptors (Hari and colleagues, 2022). Keep the presynaptic-inhibition account attached to these LTMR experiments rather than treating it as settled physiology for every sensory afferent.
+
+The 2019 follow-up supplied a counterexample. Large-diameter dorsal-root-ganglion neurons cultured for one to two days from 6- to 8-week-old Shank3 mutants had reduced Ih, the hyperpolarisation-activated current, and greater excitability. No altered GABRB3 expression was detected at Shank3 LTMR central terminals. Two peripheral routes already reach one endpoint; the second film adds the developmental and spinal map.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## What the route map did not show: the causal control
+
+Orefice and colleagues also asked whether activating peripheral GABA-A receptors could change the measured response. Isoguvacine is a GABA-A agonist. At the assayed high dose and sampling conditions, it was detected in blood and liver but not in brain or cerebrospinal fluid. That is non-detection at stated limits, not proof that no molecule can ever cross. Low acute doses reduced tactile over-reactivity in five genetic models and one maternal-immune-activation model, without the sedation reported for the brain-penetrating comparator midazolam in those assays.
+
+The decisive control was genetic. In anaesthetised mice, subcutaneous isoguvacine reduced stimulus-evoked A-beta-LTMR firing recorded from the L4 ganglion.
+
+**Predict.** What should happen to this drug effect after homozygous Gabrb3 deletion in sensory neurons?
+
+<details>
+<summary>Check your prediction</summary>
+
+It should disappear if the drug acts through GABA-A receptors in those neurons. It did: isoguvacine no longer changed touch-evoked spiking. A receptor deletion in the neuron removed the drug's effect on that neuron.
+
+</details>
+
+<LessonFigure src="/figures/touch-in-autism-models/isoguvacine-needs-the-receptor.webp" width={1200} height={717} alt="AI-generated illustration: two cell-level diagrams of a sensory neuron. In the first, gold GABA-A receptor blocks sit in the membrane and a gold isoguvacine token docks on one, with reduced firing. In the second the receptor blocks are absent, the token cannot dock, and firing is not reduced." caption="Isoguvacine reduced stimulus-evoked A-beta-LTMR firing in anaesthetised mice, but not after sensory-neuron Gabrb3 deletion. The loss of drug effect locates the required receptor subunit in those neurons." />
+
+Chronic dosing drew a second boundary. Litters from Mecp2R306C or Shank3B heterozygous dams received 2 mg/kg daily from P1 to P42, with testing from P42. Each litter contained mutant and control pups, and the whole litter received the same treatment. Body condition, some brain abnormalities, anxiety-like behaviours and some social impairments improved. Texture discrimination and memory deficits persisted, as did Mecp2 motor impairment and Shank3 overgrooming. These are selective effects on mouse endpoints, not a general rescue.
+
+## Timing requires two different designs
+
+The P28 experiment intervened on when gene loss began. Tasnim and colleagues (2024, *Nature Neuroscience*, Ginty corresponding author, Orefice a coauthor) asked a different question: which models already show the tactile phenotype at P4?
+
+Gabrb3 and Mecp2 loss-of-function pups were more reactive to an air puff at P4, measured as maximal body displacement within 500 milliseconds. Nlgn2 and Rorb mutants were not, although both showed tactile abnormalities as adults.
+
+Nlgn2 sits in a later spinal system. Deleting it from dorsal-horn neurons with Lbx1-Cre was sufficient for adult tactile alterations.
+
+**Predict.** If Nlgn2 loss weakens dorsal-horn synaptic inhibition, what should miniature inhibitory currents show at P19 to P21?
+
+<details>
+<summary>Check your prediction</summary>
+
+Their frequency and amplitude should fall. In P19-to-P21 Cdx2-Cre Nlgn2 mutants, deleted in all cells below cervical level 2, both measures were reduced in the dorsal horn.
+
+</details>
+
+Sampling two ages does not identify the onset day, although it does separate early-onset from later-onset models. Across the models tested, neonatal over-reactivity was associated with adult anxiety-like and social differences, while later-emerging over-reactivity was not, and the authors treat that dissociation as their central result. That is an association across genotypes, not proof that the early tactile state causes the later behaviours. These mouse results do not establish corresponding human windows.
+
+Candidate control sites are compatible with the timing split. GABRB3 immunoreactivity was detectable near VGLUT1-positive sensory terminals at P0 to P1. Gabrb3 deletion virtually abolished GABA-evoked depolarisations in medium- and large-diameter dorsal-root-ganglion neurons at P4 and P18 to P30. Deep dorsal-horn miniature inhibitory currents were smaller and rarer at P4 than at P19 to P21, and feedforward inhibition in the LTMR-recipient zone was predominantly glycinergic by P19. These observations do not by themselves prove why each model starts when it does.
+
+Why timing can matter is developed in [sensitive periods in behaviour](/lessons/sensitive-periods-behavior/) and [critical period control](/lessons/critical-period-control/).
 
 ## What this does and does not mean for people
 
-The mouse work establishes that in these models part of a tactile phenotype, and some behavioural measures that go with it, can begin in neurons outside the brain. It does not make autism a peripheral condition. The genetic manipulations are sufficiency tests in one species, the behaviours are operational assays rather than experiences, and the rescue experiments left major features untouched. In people, the measurable differences are task-specific, go in both directions, and vary between individuals far more than any group mean conveys. No peripheral GABA-A therapy for tactile over-reactivity in autism has been approved.
+The short reminder is: **test locus, mechanism and timing separately.** In these models, part of a tactile phenotype and selected accompanying behavioural measures can begin outside the brain. That does not make autism a peripheral condition. The manipulations are mouse sufficiency tests, the behaviours are operational assays rather than experiences, and the rescue experiments left major features unchanged.
 
-Human peripheral data are not entirely absent. In skin biopsies from 32 autistic men, intraepidermal nerve fibre density was lower than in controls, 5.53 against 11.13 fibres per mm, and about half met a criterion for skin denervation (Chien and colleagues, 2020). Those are small fibres, not the Ab- and Ad-LTMRs the mouse work turns on. What would settle the next question is a human measurement with the specificity of the mouse genetics behind it. [Chronic pain](/lessons/chronic-pain/) and [spinal pain circuits](/lessons/spinal-pain-circuits/) face the same gap from the other side.
+Human measurable differences are task-specific, run in both directions and vary between people more than a group mean conveys. Human peripheral data are not absent, but they do not bridge the mechanism. In skin biopsies from 32 autistic men, intraepidermal nerve-fibre density was lower than in controls, 5.53 against 11.13 fibres per millimetre, and about half met a criterion for skin denervation (Chien and colleagues, 2020). Those are small fibres, not the A-beta- and A-delta-LTMRs central to the mouse work.
+
+No peripheral GABA-A therapy for tactile over-reactivity in autism has been approved. Isoguvacine remains experimental: a 2025 review reported no documented human administration, and a registry search found no registered studies, though that cannot exclude other registries or unregistered work. The 2019 authors described peripheral GABA-A intervention as a strategy requiring tests in patients and disclosed pending patents on peripherally restricted GABA-A drugs for that use.
+
+What would move the field is a human measurement with some of the cellular specificity supplied by the mouse genetics. [Chronic pain](/lessons/chronic-pain/) and [spinal pain circuits](/lessons/spinal-pain-circuits/) face the same gap from the other side.
 
 ### Design problem
 
@@ -409,30 +516,40 @@ Test whether early tactile over-reactivity causes later anxiety-like behaviour i
 <details>
 <summary>One way to do it</summary>
 
-Use a tamoxifen-inducible sensory-neuron driver to delete Gabrb3 in defined windows (before P4, from P28, and in adulthood), and in a parallel arm restore it in the same windows on a mutant background. Include tamoxifen-treated Cre-negative and untreated Cre-positive littermates, because inducible drivers can recombine without ligand, to an extent that varies with driver, tissue and age ([tools for development](/lessons/tools-for-development/) covers the controls Cre-based manipulations need).
+Use a tamoxifen-inducible sensory-neuron driver to delete Gabrb3 in defined windows: before P4, from P28 and in adulthood. In a parallel arm, restore it in the same windows on a mutant background. Include tamoxifen-treated Cre-negative and untreated Cre-positive littermates, because inducible drivers can recombine without ligand to an extent that varies with driver, tissue and age. [Tools for development](/lessons/tools-for-development/) covers the required Cre controls.
 
-Measure air-puff reactivity at P4 and the anxiety-like and social assays later in the same animals, so each animal supplies both ends of the association. Add the dorsal-horn Nlgn2 deletion as a later-locus contrast: if the adult outcome follows the early tactile state rather than the gene, that arm should separate them.
+Measure air-puff reactivity at P4 and the later anxiety-like and social assays in the same animals. Each animal then supplies both ends of the association. Add dorsal-horn Nlgn2 deletion as a later-locus contrast: if the adult outcome follows the early tactile state rather than the gene, that arm should separate them.
 
-Define the unit of assignment for this design: genotype and induction window are assigned per animal, so analyse per animal with litter as a clustering factor, and keep litter as the treatment unit only where whole litters are dosed, as in the chronic isoguvacine experiments. Report cells and animals separately wherever a physiological measure enters. State in the discussion that mouse studies of this kind do not establish human counterparts of these windows.
+Genotype and induction window are assigned per animal, so analyse per animal with litter as a clustering factor. Keep litter as the treatment unit only where whole litters are dosed, as in the chronic isoguvacine experiments. Report cells and animals separately wherever physiology enters. State that this mouse design does not establish a human counterpart of either window.
 
 </details>
 
 ## Going deeper
 
-### The Puts cohort in detail
+### Human psychophysics beyond the mean
 
-Vibration was delivered to the second and third digits of the left hand. The dynamic ramp task used 25 Hz rising at 2 µm per second. Table 1 of the paper gives a mean static detection threshold of 6.59 ± 2.81 µm in the typically developing cohort and 9.13 ± 4.81 µm in the autistic cohort (mean ± SD, human children, in vivo psychophysics).
+Puts and colleagues delivered vibration to the second and third digits of the left hand. The dynamic ramp used 25 hertz rising at 2 micrometres per second. They also measured amplitude and frequency discrimination. Baseline amplitude discrimination was worse in the autistic cohort, while frequency discrimination showed no significant diagnosis effect.
 
-> difference = 9.13 µm − 6.59 µm = 2.54 µm
-> ratio = 9.13 / 6.59 = 1.385
-> relative increase = (2.54 / 6.59) × 100 = 38.5 per cent
+The static thresholds were 6.59 plus or minus 2.81 micrometres in the typically developing cohort and 9.13 plus or minus 4.81 micrometres in the autistic cohort, reported as mean plus or minus standard deviation. The standard deviations are large beside the 2.54-micrometre difference.
 
-The standard deviations were 2.81 and 4.81 µm, against a 2.54 µm difference in means.
+> difference = 9.13 micrometres minus 6.59 micrometres = 2.54 micrometres
+>
+> ratio = 9.13 divided by 6.59 = 1.385
+>
+> relative increase = 2.54 divided by 6.59 times 100 = 38.5 per cent
+
+Other studies point in other directions: lower thresholds at 200 hertz but not 30 hertz in adults with Asperger syndrome (Blakemore and colleagues, 2006), and heightened forearm vibration and thermal-pain sensitivity with normal light-touch thresholds (Cascio and colleagues, 2008). Threshold findings vary with frequency, body site and age, so the Puts result is one result among inconsistent ones.
+
+### Recording details behind the timing map
+
+The GABA-evoked depolarisations at P4 and P18 to P30 were recorded with a high-chloride internal solution, which sets the driving force the experimenter wanted to see. In the P19-to-P21 dorsal-horn miniature-current comparison, seven cells per genotype came from two mice per genotype. Cells from one mouse share genotype, litter, preparation and day, so seven cells are not seven independent animals.
 
 ### Isoguvacine pharmacology and dosing
 
-The EC50 of isoguvacine was 19.7 µM at recombinant human α1β3γ2 and 18.7 µM at α2β3γ2 receptors expressed in HEK293T cells, an in vitro receptor measurement and not a tissue exposure target. After 20 mg/kg intraperitoneally in male mice aged 8 to 12 weeks, LC-MS detected the compound in blood and liver but not in brain or cerebrospinal fluid, with detection limits of 640 pM in fluids and 16 nM in tissue. The acute behavioural dose was 2 mg/kg. A ClinicalTrials.gov search for isoguvacine on 27 October 2026 returned no registered studies.
+The half-maximal effective concentrations of isoguvacine were 19.7 micromolar at recombinant human alpha-one beta-three gamma-two receptors and 18.7 micromolar at alpha-two beta-three gamma-two receptors expressed in HEK293T cells. These are in-vitro receptor measurements, not tissue exposure targets.
+
+After 20 mg/kg intraperitoneally in male mice aged 8 to 12 weeks, liquid chromatography–mass spectrometry detected isoguvacine in blood and liver but not brain or cerebrospinal fluid. Detection limits were 640 picomolar in fluids and 16 nanomolar in tissue. The acute behavioural dose was 2 mg/kg. A ClinicalTrials.gov search for isoguvacine on 27 October 2026 returned no registered studies.
 
 ### The embryo preparation
 
-In E18.5 exteriorised embryos, optogenetic activation of forepaw Ret-positive Aβ-LTMRs evoked greater movement in Gabrb3 heterozygotes than in controls (11 control and 9 heterozygous embryos). That is evoked movement in an embryo preparation, not a prenatal test of anything.
+In E18.5 exteriorised embryos, optogenetic activation of forepaw Ret-positive A-beta-LTMRs evoked greater movement in Gabrb3 heterozygotes than in controls: 11 control and 9 heterozygous embryos. That is evoked movement in an embryo preparation, not a prenatal test of anything else.

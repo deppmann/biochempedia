@@ -23,10 +23,30 @@ explainer:
   src: "/explainers/tools-for-development/explainer.mp4"
   captions: "/explainers/tools-for-development/explainer.vtt"
   poster: "/explainers/tools-for-development/poster.jpg"
-  title: "Marking a Cell and Its Descendants"
-  durationSec: 154.9
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "What Can a Label Prove?"
+  durationSec: 201.0
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A method can reveal only what its mark records."
+    - "Transport reveals a projection, not every synapse."
+    - "DNA synthesis approximately dates a cohort."
+    - "An inherited DNA change can reveal ancestry."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/tools-for-development/chapter-2.mp4"
+    captions: "/explainers/tools-for-development/chapter-2.vtt"
+    poster: "/explainers/tools-for-development/chapter-2-poster.jpg"
+    title: "Build a Conditional Test"
+    durationSec: 190.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Cre changes a floxed allele only where recombination occurs."
+      - "An inducible driver adds control over timing."
+      - "Read each locus separately before interpreting a cross."
+      - "Reporter light does not prove target-gene deletion."
 
 scientists:
   - name: "Nicole Le Douarin"
@@ -102,7 +122,7 @@ techniques:
     blurb: >-
       Flank part of a gene with loxP sites and supply Cre recombinase from a cell-type-specific
       promoter. Cre deletes the flanked segment in cells that make Cre, as completely and as exclusively as that driver turns out to be. Fusing Cre to a
-      modified estrogen receptor makes the deletion wait for tamoxifen.
+      modified estrogen receptor concentrates recombination after tamoxifen, although ligand-independent activity must be tested.
 
 structures:
   - label: "Green fluorescent protein — the marker that needs no other jellyfish part"
@@ -125,8 +145,8 @@ structures:
     id: "3UG9"
     note: "C1C2 chimera of channelrhodopsin-1 and channelrhodopsin-2, X-ray crystal structure (Kato et al., Nature, 2012)"
     caption: >-
-      Seven helices, like a rhodopsin, but with a water-filled path running through the bundle.
-      Retinal is buried in the middle; absorbing a photon changes its shape and the path opens.
+      Seven helices, like a rhodopsin, surround a gated cation-conduction pathway.
+      Retinal is buried in the middle; absorbing a photon isomerizes it and triggers the gates to open.
   - label: "Capsaicin — the drug half of a TRPV1 actuator"
     source: "pubchem"
     id: "1548943"
@@ -221,7 +241,7 @@ mcatQuestions:
       later deep position of heavily labeled cells can be read as the endpoint of a journey from
       there. It does not show the tracer failed to reach other cells; cells incorporate it while they
       synthesize DNA, which is a different statement. It cannot show the cells had stopped
-      dividing, since weakly labeled nuclei indicate that some kept cycling. Maternal clearance is not what
+      dividing; weakly labeled nuclei are consistent with continued cycling, although uptake and detection also vary. Maternal clearance is not what
       the one-hour brain reports.
   - stem: "In an invented example modeled on single-cell cultures of quail neural crest, migratory cells were plated one per well on growth-arrested feeder cells. Of 1,743 cells seeded, 190 colonies were detected; 17 were excluded for lacking the marker panel, leaving 173 analyzed clones. Of those 173, 76 contained at least one neuronal marker, and every one of those 76 also contained non-neuronal cells. What fraction of analyzed clones were mixed neuronal-plus-non-neuronal, and what does that support?"
     choices:
@@ -268,8 +288,8 @@ explainLevels:
       show what a cell is. Tracers that travel along axons show what it connects to. A chemical
       that is built into DNA while it is being synthesized acts as a rough timestamp for a cell's last division. A
       permanent genetic mark, switched on in one cell, labels all of its descendants. And in mice,
-      a recombinase enzyme can delete a chosen gene in one cell type only, at a time you choose
-      with a drug, so you can ask what that gene does there without killing the embryo.
+      a recombinase enzyme can delete a chosen gene mainly in a selected cell population, with a
+      drug adding control over timing, so you can ask what that gene does there without killing the embryo.
   - level: "college"
     label: "College"
     text: >-
@@ -342,48 +362,109 @@ draft: false
 
 import CreLoxMouseBuilder from '../../../components/CreLoxMouseBuilder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A neuron carries no label saying when it was born, which cell it descends from, or which genes it needs.** Every claim in this course rests on a method that supplies one of those labels. So before the biology, the toolkit, sorted by the question each tool can answer.
+**A neuron carries no label saying when it was born, which cell it descends from, or which genes it needs.** Developmental neuroscientists make those hidden histories readable, then ask only what the mark can justify.
 
-Four questions come up again and again. What is this cell? Where does it send its axon? When did it stop dividing? And what does it need a given gene for? A method that answers one of them answers the others badly or not at all, which is why most of the mistakes in this field are mismatches between a tool and a claim.
+> **The guiding idea.** Within the methods here, the event a tool records or changes sets the strongest claim it can support: protein binding reports detection of a molecular target, transport reports a projection, DNA synthesis approximately dates a cohort, inherited DNA change reports ancestry, deletion tests necessity, and imposed activity tests sufficiency.
+>
+> *Scope:* this rule chooses and interprets the methods in this lesson. “Strongest claim” means the direct claim under the tested conditions, not a complete account of the biology.
+
+| Question | Event carrying the information | Strongest direct claim |
+|---|---|---|
+| What is the cell? | A stain or antibody binds its target | The target was detected there |
+| Where does it project? | A tracer is transported along an axon | Labelled cells project to, or labelled terminals arise from, the injected region at population scale |
+| When did it stop dividing? | Label enters DNA during synthesis, then dilutes with division | Heavy residual label approximately dates the last S phase |
+| Whose descendant is it? | A durable mark passes to daughter cells | Marked cells descend from the marked founder or population |
+| What does a gene or activity do? | An intervention removes or imposes it | The outcome tests necessity or sufficiency under those conditions |
 
 ## What is this cell, and where does it connect?
 
-Three staining strategies, three uses. A Nissl stain binds the RNA-rich cytoplasm around a nucleus, so it shows cell bodies across a section, along with glial nuclei and some proximal dendrite: good for counting cells and finding the boundaries of layers. A Golgi stain fills a small, unpredictable fraction of cells completely, including their dendrites, so you see the whole shape of a few neurons against a clear background. Immunostaining uses an antibody against one chosen protein, so it reports a molecular identity. The cost is specificity in the other direction: an antibody raised against a mouse protein may not recognize the chick version, and a monoclonal antibody that sees one site can fail when that site is masked. The logic of antibodies as detection reagents is covered in [detecting a signal](/lessons/detecting-a-signal/).
+Three staining strategies, three uses. A Nissl stain binds the RNA-rich cytoplasm around a nucleus, so it shows cell bodies across a section, along with glial nuclei and some proximal dendrite: good for counting cells and finding the boundaries of layers. A Golgi stain fills a small, unpredictable fraction of cells completely, including their dendrites, so you see the whole shape of a few neurons against a clear background. Immunostaining uses an antibody against one chosen protein, so it reports whether that molecular target was detected. The cost is specificity in the other direction: an antibody raised against a mouse protein may not recognize the chick version, and a monoclonal antibody that sees one site can fail when that site is masked. The logic of antibodies as detection reagents is covered in [detecting a signal](/lessons/detecting-a-signal/).
 
-Connections need a different trick, and the trick is the neuron's own transport machinery. Inject an anterograde tracer such as biotinylated dextran amine into a region and neurons there take it up and carry it toward their terminals, so it reports where those cells project. Cholera toxin B subunit travels in both directions and is used mainly retrogradely, so the direction has to be established for each tracer. Inject Fluorogold into a target region instead, and terminals take it up and carry it back to the cell bodies, which lights up the neurons whose terminals take up enough tracer there: a retrograde tracer. Either way, what a dye injection gives you is a population's wiring, not one cell's synapses. Genetically targeted viruses go further: a rabies virus restricted to one synaptic step labels the cells directly presynaptic to a defined starter population, or even to a single starter cell.
+Connections use the neuron's transport machinery. Inject an anterograde tracer such as biotinylated dextran amine into a region; neurons there carry it toward their terminals, reporting where those cells project. Cholera toxin B subunit travels both ways and is used mainly retrogradely, so direction must be established for each tracer. Inject Fluorogold into a target instead, and terminals carry it back to cell bodies. That labels neurons whose terminals take up enough tracer there. Either dye injection gives population wiring, not one cell's synapses. Genetically targeted viruses go further: a rabies virus restricted to one synaptic step labels cells directly presynaptic to a defined starter population, or even one starter cell.
+
+**Predict.** An antibody gives no signal in a chick section, although it detects the mouse version of the protein. Does the negative result prove that chick cells lack the protein?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The antibody may not recognize the chick version, or its single recognized site may be masked. A negative detection result is not automatically evidence that the target is absent.
+
+</details>
 
 <LessonFigure src="/figures/tools-for-development/fluorogold-retrograde.webp" width={1200} height={804} alt="AI-generated illustration: a dye injected into a target region is taken up by axon terminals and carried back along three axons to light up their cell bodies, while a neighbouring neuron that projects elsewhere stays unlabeled." caption="Fluorogold injected into a target region is taken up by axon terminals and transported back to cell bodies, labeling neurons whose terminals take up enough tracer there. Not every projecting neuron is necessarily labeled. This dye injection maps population projections, not individual synapses." />
 
 ## When was this cell born?
 
-How do you label newborn neurons? The answer uses DNA replication as a clock. Tritiated thymidine, and later the thymidine analog BrdU, are incorporated wherever DNA is being synthesized, which in a dividing cell means S phase. Give a pulse, wait, and look for label.
+Tritiated thymidine, and later the thymidine analog BrdU, use DNA replication as a clock. They are incorporated wherever DNA is being synthesized, which in a dividing cell means S phase. Give a pulse, wait through a **chase**, and look for label.
 
-The reading needs care. Each further division splits the label between two daughters, so a nucleus that is still heavily labeled after a long chase (the wait after the pulse) divided only a few more times. A cell's "birthday" from such an experiment means its last S phase, inferred from heavy residual label, and weak label is consistent with descendants of cells that kept cycling, though uptake and detection also vary. The timestamp is approximate, and it says nothing about what the cell became.
+**Predict.** A BrdU-positive nucleus appears in injured tissue whose cells are thought to be non-dividing. Must that cell have passed through S phase?
 
-Giving a thymidine analog to people only to study the brain is not done. The classic exception, Eriksson and colleagues in 1998, used postmortem tissue from patients who had already been treated with BrdU as part of cancer care. For humans generally there is a retrospective method: atmospheric nuclear weapons testing raised atmospheric carbon-14 sharply before the 1963 test ban treaty and it has fallen since, so the carbon-14 content of a cell's genomic DNA reflects the year its DNA was last made. Spalding and colleagues described this approach in 2005, matching the carbon-14 in genomic DNA to the atmospheric record. Here the method is the point; what it has found about turnover in particular human brain regions is contested and belongs to the lesson on adult neurogenesis.
+<details>
+<summary>Check your prediction</summary>
+
+No. Thymidine analogues can also enter DNA during repair. In a dividing cell the main interpretation is S phase, but BrdU alone does not distinguish repair from replication in injured tissue. Cell-cycle evidence and the experimental context are needed.
+
+</details>
+
+After a pulse in proliferating tissue, each further division usually dilutes label among descendants. Heavy residual label supports few additional divisions; weak label is consistent with continued cycling, although uptake and detection also vary. The inferred “birthday” is therefore an approximate last S phase, not an exact timestamp or a readout of cell identity.
+
+The main model has now done its work. The human cases and their limits are in Going deeper.
 
 ## Whose descendant is this cell?
 
-A birth date is one cohort of cells. A lineage is one family. Three classical ways to follow one, then the modern additions: multicolor reporters and genetic barcodes that separate one founder's family from its neighbours, and reconstruction from somatic mutations, which is the main route to lineage in the human brain.
+A birth date marks a cohort; a lineage is a family. Classical methods lead to modern multicolour reporters and genetic barcodes that separate one founder's family from its neighbours. Reconstructing somatic mutations is the main route to lineage in the human brain.
 
 Grafting with a nuclear marker is the classic approach. Quail nuclei carry a distinctive condensed-chromatin pattern, so quail cells grafted into a chick embryo stay recognizable in sections after they migrate and differentiate. Le Douarin built an experimental program on that difference, following grafted populations into ganglia, gut and head mesenchyme.
 
 Retroviral labeling works inside one animal. A retrovirus integrates its genome into the DNA of a dividing cell, so every descendant of that cell inherits the insert and the marker gene it carries. Keep the dose low enough that labeled clones do not overlap, and a cluster of marked cells is one progenitor's family. That assumption is a sampling argument, not an observation, and it is where this method can fail.
 
-The genetic version is the one you will use. A Cre-dependent reporter is commonly a fluorescent protein gene with a transcriptional stop signal flanked by loxP sites in front of it; other designs leave the gene inverted until Cre flips it. When Cre recombinase appears in a cell, it deletes the stop, and the recombined allele passes to that cell's descendants, which stay labeled as long as the reporter's promoter is active. The marking is permanent and heritable through division. But a cell-type Cre recombines in many founders at once, so what you read out is a fate map of a population, not one founder's family. Following a single family needs sparse or low-dose induction, multicolor reporters, or barcodes that differ between founders. Reporters and actuators themselves are taught in [hacking the cell](/lessons/hacking-the-cell/); here the point is the recombination.
+The genetic version is the one you will use. A Cre-dependent reporter commonly places a loxP-flanked transcriptional stop before a fluorescent protein gene; other designs leave the gene inverted until Cre flips it. When Cre recombinase deletes the stop, the recombined allele passes to descendants. They stay labelled as long as the reporter's promoter is active. The DNA marking is permanent and heritable through division.
+
+**Predict.** Quail-derived cells later appear in a chick peripheral ganglion. Does the marker show that the host contributed no ganglion cells?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The marker shows that the marked cells descend from the graft. Unmarked host cells may also contribute, and the graft does not by itself reveal which signals were required or the potential of any single founder. Reporters and actuators themselves are taught in [hacking the cell](/lessons/hacking-the-cell/); here the point is recombination.
+
+</details>
+
+A cell-type Cre that recombines many founders with one colour gives a population fate map, not separate clones. Following one family requires sparse or low-dose induction, multicolour reporters, or founder-specific barcodes.
+
+The same logic can now change a gene rather than merely preserve a history.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+The second film began with a floxed allele; what it did not show is how that engineered allele reaches a mouse or what a real driver name can hide.
 
 ## How to make a mouse
 
-To ask what a gene does, change it. In the classical route you work in mouse embryonic stem cells, cells from an early embryo that can still contribute to any tissue. Supply DNA matching the target gene on both sides of your intended change, and in rare cells homologous recombination swaps your version into the gene's own place. Capecchi's laboratory, together with Smithies's and Evans's, established this. Because the events are rare, you select twice: a positive marker inside the construct keeps cells that took the DNA up, and a negative marker outside the matching arms, classically a thymidine kinase gene that makes ganciclovir lethal, kills most cells that inserted the construct at a random site and kept that marker, so survivors still have to be genotyped. Destroying the gene is a knockout; writing a new sequence in, such as a fluorescent reporter, is a knock-in. The selected cells go into an early embryo, the pup is a chimera, and if those cells made its gametes the allele is heritable. CRISPR has shortened this path: a guide RNA brings the Cas9 nuclease to a matching sequence in a fertilized egg, so many alleles can now be built without stem cells or chimeras.
+To ask what a gene does, change it. In the classical route, mouse embryonic stem cells from an early embryo can still contribute to any tissue of the body, including the germ line. Supply DNA matching the target gene on both sides of an intended change. In rare cells, homologous recombination swaps the new version into the gene's own place.
+
+Because targeting is rare, select twice. A positive marker inside the construct retains cells that took up DNA. A negative marker outside the matching arms, classically a thymidine kinase gene that makes ganciclovir lethal, kills most cells that inserted the whole construct randomly and kept that marker. Survivors still require genotyping. Destroying a gene is a **knockout**; writing in a sequence such as a fluorescent reporter is a **knock-in**. Selected cells enter an early embryo. The pup is a chimera, and the allele is heritable if those cells made its gametes.
 
 <LessonFigure src="/figures/tools-for-development/two-selections-gene-targeting.webp" width={1200} height={886} alt="AI-generated illustration: a continuous gene-targeting DNA construct has two homology arms flanking a positive marker, with a thymidine kinase gene connected beyond the right arm. Below, a correctly targeted mouse embryonic stem cell lacks the thymidine kinase gene and survives both selections; a representative random integrant retains it and is killed by ganciclovir. Random integrants can escape selection, so surviving clones require genotyping." caption="Positive selection retains mouse embryonic stem cells expressing the positive marker. Correct homologous replacement places that marker at the target locus while excluding the thymidine kinase gene, which lies outside the homology arms on the targeting construct. Ganciclovir kills most random integrants that retain functional thymidine kinase. Some random integrants escape negative selection, so surviving clones must still be genotyped." />
 
-A straight knockout has two limits. If the gene is needed early, the embryo dies before the question you care about. And a whole-body deletion cannot tell you which tissue mattered. Cre and lox solve both. Flank the important part of the gene with loxP sites, a 34-base-pair sequence; that allele is "floxed" and is designed to work normally, which a Cre-free control has to confirm. Then supply Cre from a promoter active in one cell type, and the gene is deleted largely in those cells. How exclusive and how complete that deletion is has to be measured for each driver. For timing, fuse Cre to a modified estrogen receptor (CreER) so it stays out of the nucleus until the animal is given tamoxifen, or use a tetracycline-controlled system driven by doxycycline. How do you get expression in two different neuron types? Add a second recombinase with its own sites, Flp, and run two independent switches; requiring both in the same cell is how intersectional specificity is achieved.
+A straight knockout can kill an embryo before the question matters, and whole-body deletion cannot identify the tissue that mattered. The loxP sites introduced in the film are each 34 base pairs long. A doxycycline-driven tetracycline-controlled system provides an alternative to CreER for timing.
 
-Read the notation and you can read the cross. A superscript gives what is written into a locus and a slash separates the two alleles: p75NTR-/- is a homozygous knockout; DR6+/- is a heterozygote; p75NTR-/-;TNFR1-/- is a double knockout; AvilCre/+ is one copy of a Cre allele controlled by Advillin, long used as a sensory-neuron gene, though advillin and Avil-Cre recombination are also found in sympathetic, parasympathetic and enteric neurons; TrkAfl/- carries one floxed TrkA allele and one null (nonfunctional) allele. So AvilCre/+;TrkAfl/- deletes TrkA wherever Avil-Cre is active, which includes sensory neurons and some autonomic ones, and keeps only the floxed copy available to lose, while the matched control is a Cre-negative TrkAfl/- littermate, which carries the same two alleles and no Cre; AvilCre/+;TrkAfl/+ is a further control for Cre activity itself.
+Keep the reminder short: **the changed event limits the claim**. A superscript names what is written at a locus; a slash separates its alleles. Thus p75NTR-/- is a homozygous knockout, DR6+/- a heterozygote, and p75NTR-/-;TNFR1-/- a double knockout.
 
-One trap. A reporter cross tells you where Cre acted. It does not tell you where the floxed gene was lost. The two lox-flanked targets recombine independently, drivers can be leaky (recombining where or when they should not) or mosaic (recombining in only some target cells), and protein made before the cut persists.
+Now go beyond the chapter's notation. In **AvilCre/+;TrkAfl/-**, Advillin controls the Cre allele. This driver has long been used for sensory neurons, but advillin and Avil-Cre recombination also occur in sympathetic, parasympathetic and enteric neurons. The floxed TrkA copy is the only potentially functional copy available to lose. The genotype therefore deletes TrkA wherever this Avil-Cre is active, including sensory and some autonomic neurons.
+
+**Predict.** The full CreER, floxed-gene and reporter genotype receives vehicle instead of tamoxifen. Which failure does that control test?
+
+<details>
+<summary>Check your prediction</summary>
+
+It tests ligand-independent CreER activity: recombination when the inducing drug was withheld. A Cre-negative TrkAfl/- littermate instead preserves the floxed and null alleles without Cre. AvilCre/+;TrkAfl/+ retains a wild-type TrkA copy and is a further control for Cre activity itself.
+
+</details>
+
+The schematic cannot tell how often a real driver is leaky, recombining where or when it should not, or mosaic, recombining in only some target cells. Nor can reporter light quantify residual target protein. Measure the driver's range and the target's loss in the tissue, ages and animals used.
+
+Intersectional targeting adds a second recombinase, Flp, with its own sites and runs two independent switches. Requiring both switches in the same cell increases specificity.
 
 <CreLoxMouseBuilder />
 
@@ -394,16 +475,37 @@ Gene X is needed for the embryo to survive, so a straight knockout dies before b
 <details>
 <summary>One way to do it</summary>
 
-Alleles: a sensory-neuron CreER driver (an Advillin-CreER line, whose recombination has to be mapped in autonomic ganglia too, because advillin is not sensory-specific after birth), X floxed over floxed, and a Cre-dependent fluorescent reporter. Give tamoxifen after birth, so X survives the embryonic period and is then deleted on your schedule, and the reporter marks the cells in which Cre was active.
+Alleles: a sensory-neuron CreER driver, such as an Advillin-CreER line; X floxed over floxed; and a Cre-dependent fluorescent reporter. Map recombination in autonomic ganglia too, because advillin is not sensory-specific after birth. Give tamoxifen after birth to preserve X through embryonic development and trigger deletion later; the vehicle control tests whether ligand-independent recombination undermines that timing. The reporter marks cells in which Cre was active.
 
-Three controls. First, CreER with no floxed allele, given tamoxifen: tests whether Cre plus tamoxifen harms neurons by itself. Second, floxed over floxed with no CreER, given tamoxifen: tests whether the floxed allele is itself hypomorphic, that is, partly defective even without Cre. Third, the full experimental genotype given vehicle instead of tamoxifen: tests ligand-independent CreER activity. Then measure, in the same animals, how much X protein is actually gone in reporter-positive cells, because the size of your phenotype depends on it.
+Three controls: CreER with no floxed allele, given tamoxifen, tests whether Cre plus tamoxifen harms neurons by itself. Floxed over floxed with no CreER, given tamoxifen, tests whether the floxed allele is hypomorphic, or partly defective without Cre. The full experimental genotype given vehicle tests ligand-independent CreER activity. In the same animals, measure how much X protein is actually gone in reporter-positive cells, because phenotype size depends on it.
 
 </details>
 
 ## Necessary, sufficient, reporter, actuator
 
-Two pairs of words will carry you through most papers in this course.
+Two pairs of words now finish the experimental logic.
 
-The first pair is about inference. "Sufficient" means you added the thing and the outcome followed: overexpress protein A and structure B expands. "Necessary" means you removed it and the outcome failed: knock out A and B disappears. Each can hold without the other. Sufficiency without necessity has more than one reading: the gain-of-function may have put the protein at levels or in places it never normally reaches, or a redundant relative may cover the loss; necessity without sufficiency means A is one requirement among several.
+The first pair is about inference. **Sufficient** means you added the thing and the outcome followed. **Necessary** means you removed it and the outcome failed. Each can hold without the other.
 
-The second pair is about tools. A reporter reads out a state: a fluorescent protein marking where a cell is, a tagged protein showing where it sits inside a cell, a calcium sensor brightening when calcium rises. An actuator imposes a state: channelrhodopsin, a cation channel that blue light opens, to drive firing; halorhodopsin, which moves chloride under yellow light, to suppress it. Light-gated channels are introduced in [ion channels as receptors](/lessons/ion-channels-as-receptors/). Chemical actuators work the same way. Put TRPV1, a capsaicin-gated channel, into chosen neurons of a mouse whose own TRPV1 is knocked out, and capsaicin activates those neurons and not the rest. An activity reporter on its own tells you that activity goes with something, not that it caused it. Only an actuator can ask whether the activity is enough.
+**Predict.** Overexpressing protein A makes structure B expand, but knocking out A leaves B unchanged. Is A necessary, sufficient under the tested conditions, both, or neither?
+
+<details>
+<summary>Check your prediction</summary>
+
+A is sufficient under those conditions but not necessary for this outcome. The gain-of-function may place A at levels or locations it never normally reaches, or a redundant relative may cover its loss. The reverse pattern—necessity without sufficiency—would mean A is one requirement among several.
+
+</details>
+
+A **reporter** reads out a state: a fluorescent protein marks where a cell is, a tagged protein shows where it sits, and a calcium sensor brightens when calcium rises. An **actuator** imposes a state. Blue light opens channelrhodopsin, a cation channel, to drive firing; yellow light drives halorhodopsin to move chloride and suppress activity. Light-gated channels are introduced in [ion channels as receptors](/lessons/ion-channels-as-receptors/).
+
+Chemical actuators use the same logic. Put TRPV1, a capsaicin-gated channel, into chosen neurons of a mouse whose own TRPV1 is knocked out; capsaicin then activates those neurons and not the rest. An activity reporter alone shows that activity goes with an outcome, not that it caused it. An actuator can ask whether that activity is enough.
+
+## Going deeper
+
+### Human birth-dating
+
+Giving a thymidine analog to people only to study the brain is not done. The classic exception, Eriksson and colleagues in 1998, used postmortem tissue from patients already treated with BrdU during cancer care. For humans generally, atmospheric nuclear weapons testing raised carbon-14 sharply before the 1963 test ban treaty, after which it fell. A cell's genomic-DNA carbon-14 therefore reflects the year its DNA was last made. Spalding and colleagues described matching genomic-DNA carbon-14 to the atmospheric record in 2005. The method is the point here; findings about turnover in particular human brain regions are contested and belong to adult neurogenesis.
+
+### From classical targeting to newer routes
+
+Capecchi's laboratory, together with Smithies's and Evans's, established classical gene targeting. CRISPR shortened that path: a guide RNA brings Cas9 nuclease to a matching sequence in a fertilized egg, so many alleles can now be built without stem cells or chimeras.
