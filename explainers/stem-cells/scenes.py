@@ -192,8 +192,8 @@ class S02Title(TitleCard):
         world, cells, flow = crypt_world()
         self.add(world)
         title = T("How a Stem-Cell Pool Persists\nWhile Its Clones Come and Go",
-                  38, font=TITLE_FONT, weight=BOLD, line_spacing=0.92)
-        title.move_to([1.55, 2.35, 0])
+                  28, font=TITLE_FONT, weight=BOLD, line_spacing=0.92)
+        title.move_to([3.7, 2.35, 0])
         panel = BackgroundRectangle(title, color=BG, fill_opacity=0.88, buff=0.22)
         # Keep every sampled title frame readable; Write() exposes partial glyphs.
         self.play(FadeIn(panel), FadeIn(title), run_time=0.45)
@@ -237,7 +237,7 @@ class S04Pool(SpokenScene):
         jobs = T("TWO JOBS", 32, TEXT, weight=BOLD).move_to([3.55, 2.72, 0])
         self.play(FadeIn(jobs), run_time=0.45)
         self.at("First")
-        output = T("1  make specialized descendants", 30, TEXT, weight=BOLD).move_to([3.55, 1.45, 0])
+        output = T("1  make specialized descendants", 26, TEXT, weight=BOLD).move_to([3.65, 1.45, 0])
         up = Arrow([0.35, -0.7, 0], [0.35, 2.15, 0], color=GREY, stroke_width=8, tip_length=0.28)
         self.play(GrowArrow(up), FadeIn(output), flow.animate.set_opacity(1), run_time=0.85)
         self.at("Second")
@@ -269,7 +269,7 @@ class S04PermanentMark(SpokenScene):
         self.play(FadeIn(proof), FadeIn(alone), run_time=0.65)
         self.at("Scientists give")
         target = cells[2]
-        tag = chip("Lgr5 now", BLUE, 28).move_to([3.55, 1.15, 0])
+        tag = chip("Lgr5 now", BLUE, 28).move_to([3.55, 0.75, 0])
         pulse = Ellipse(width=0.7, height=5.7, color=YELLOW, stroke_width=0,
                         fill_color=YELLOW, fill_opacity=0.34).move_to([-4.7, -0.2, 0])
         self.play(FadeIn(tag), FadeIn(pulse), run_time=0.35)
@@ -287,6 +287,7 @@ class S04PermanentMark(SpokenScene):
         self.at("mark follows ancestry")
         brace = Brace(family, RIGHT, color=GREEN)
         ancestry = T("ancestry", 32, GREEN, weight=BOLD).next_to(brace, RIGHT, buff=0.18)
+        ancestry.move_to([0.45 + ancestry.width / 2, ancestry.get_y(), 0])
         self.play(FadeOut(VGroup(proof, alone)), GrowFromCenter(brace), FadeIn(ancestry), run_time=0.7)
         self.finish()
 
@@ -391,8 +392,8 @@ class S08InferenceLimit(SpokenScene):
         self.play(flow.animate.set_color(GREEN).set_opacity(0.75), run_time=0.7)
         self.at("not a marker alone")
         card = chip("marker alone", TEXT, 30).move_to([3.9, -1.35, 0])
-        x = VGroup(Line(card.get_corner(UL), card.get_corner(DR), color=RED, stroke_width=7),
-                   Line(card.get_corner(DL), card.get_corner(UR), color=RED, stroke_width=7))
+        x = VGroup(Line(card.get_corner(UL), card.get_corner(DR), color=RED, stroke_width=4, stroke_opacity=.6),
+                   Line(card.get_corner(DL), card.get_corner(UR), color=RED, stroke_width=4, stroke_opacity=.6))
         self.play(FadeIn(card), Create(x), run_time=0.7)
         self.at("supplies the evidence")
         evidence = T("descendants over time", 31, GREEN, weight=BOLD).move_to([3.9, -2.55, 0])
@@ -496,7 +497,7 @@ class S10Winner(SpokenScene):
         self.at("different winners")
         self.play(LaggedStart(*[Indicate(s[1], scale_factor=1.05) for s in strips], lag_ratio=.15), run_time=.9)
         self.at("takeover by one")
-        result = T("one-clone takeover", 32, YELLOW, weight=BOLD).move_to([3.65, -2.85, 0])
+        result = T("one-clone takeover", 32, YELLOW, weight=BOLD).move_to([3.65, -2.55, 0])
         self.play(FadeOut(strips), FadeIn(result), run_time=.65)
         self.at("not survival")
         lost = T("most starting clones vanish", 30, RED, weight=BOLD).move_to([3.65, -1.45, 0])
@@ -519,14 +520,14 @@ class S11PopulationBalance(SpokenScene):
                         outcome_strip([TEAL]*5, -1.05))
         self.play(Transform(strips, finals), run_time=1.0)
         self.at("Balance belongs")
-        balance = T("balance = population property", 31, TEAL, weight=BOLD).move_to([3.7, 2.55, 0])
+        balance = T("balance = population property", 31, TEAL, weight=BOLD).move_to([3.4, 2.55, 0])
         self.play(FadeIn(balance), run_time=.6)
         self.at("not every division")
         division = chip("every division", TEXT, 28).move_to([3.7, -2.15, 0])
-        slash = Line(division.get_corner(UL), division.get_corner(DR), color=RED, stroke_width=7)
+        slash = Line(division.get_corner(UL), division.get_corner(DR), color=RED, stroke_width=4, stroke_opacity=.6)
         self.play(FadeIn(division), Create(slash), run_time=.65)
         self.at("No cell is appointed")
-        crown = T("no appointed winner", 30, GOLD, weight=BOLD).move_to([3.7, -2.95, 0])
+        crown = T("no appointed winner", 30, GOLD, weight=BOLD).move_to([3.7, -2.65, 0])
         self.play(FadeOut(VGroup(division, slash)), FadeIn(crown), run_time=.6)
         self.at("neutral drift")
         neutral = chip("neutral drift", GOLD, 34).move_to([3.7, .05, 0])
@@ -577,16 +578,3 @@ class S12Takeaway(SpokenScene):
 
 class S13End(EndCard):
     LINE = "A stable stem-cell pool persists while most of its clones vanish."
-
-    def construct(self):
-        world, cells, flow = crypt_world(colors=[YELLOW]*5, bracket=True, show_simple=False)
-        self.add(world)
-        line = T("A stable stem-cell pool persists\nwhile most of its clones vanish.",
-                 42, TEXT, font=TITLE_FONT, weight=BOLD, line_spacing=.9).move_to([2.2, .55, 0])
-        panel = BackgroundRectangle(line, color=BG, fill_opacity=.88, buff=.3)
-        sub = T("biochemistrypedia.com", 28, TEAL, weight=BOLD).move_to([3.3, -1.25, 0])
-        self.play(FadeIn(panel), FadeIn(line, shift=UP*.12), FadeIn(sub), run_time=.75)
-        # A breathing bracket plus the continuing stream keeps the final world alive.
-        bracket = world[-1]
-        self.play(bracket.animate.set_opacity(.55), rate_func=there_and_back, run_time=.8)
-        self.finish()

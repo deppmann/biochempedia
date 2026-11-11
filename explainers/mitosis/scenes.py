@@ -82,8 +82,8 @@ class Panel(VGroup):
         scene_number=int(os.environ.get('KX_SCENE_ID','s00').split('_')[0][1:])
         self.name=label('APC' if scene_number>=11 else 'anaphase brake',4.6,3.3,PURPLE,28,3.7)
         self.lamp=chip('GO' if go else 'WAIT',GREEN if go else RED,30).move_to([4.65,2.48,0])
-        self.counter=label(f'attached: {92-count} of 92' if human else f'empty kinetochores: {count}',4.35,1.91,TEXT,28,4.6)
-        back=RoundedRectangle(width=4.75,height=1.9,corner_radius=.16,stroke_width=0,fill_color=BG,fill_opacity=.96).move_to([4.3,2.65,0])
+        self.counter=label(f'attached: {92-count} of 92' if human else f'empty kinetochores: {count}',4.35,1.72,TEXT,28,4.6)
+        back=RoundedRectangle(width=4.75,height=2.1,corner_radius=.16,stroke_width=0,fill_color=BG,fill_opacity=.96).move_to([4.3,2.55,0])
         self.add(back,self.clamp,self.name,self.lamp,self.counter)
         self.set_z_index(15)
         self.lamp._t=0
@@ -93,7 +93,7 @@ class Panel(VGroup):
         self.lamp.add_updater(pulse)
 
     def change(self, scene, count, human=False, go=False):
-        dest=label(f'attached: {92-count} of 92' if human else f'empty kinetochores: {count}',4.35,1.91,TEXT,28,4.6)
+        dest=label(f'attached: {92-count} of 92' if human else f'empty kinetochores: {count}',4.35,1.72,TEXT,28,4.6)
         lamp=chip('GO' if go else 'WAIT',GREEN if go else RED,30).move_to([4.65,2.48,0])
         scene.play(Transform(self.counter,dest),Transform(self.lamp,lamp),run_time=.45)
         if go:
@@ -545,10 +545,10 @@ class S16Answer(SpokenScene):
 
 
 def enzymes(scene,p):
-    sep=chip('separase',GREEN,30).move_to([2.8,-1.8,0])
+    sep=chip('separase',GREEN,30).move_to([2.8,-1.9,0])
     sep[0].set_opacity(.4)
-    sec=chip('securin',GOLD,30).move_to([2.8,-1.12,0])
-    inactive=label('inactive',2.8,-2.5,RED,28,3)
+    sec=chip('securin',GOLD,30).move_to([2.8,-1.05,0])
+    inactive=label('inactive',2.8,-2.65,RED,28,3)
     scene.add(sep,sec,inactive)
     return sep,sec,inactive
 
@@ -562,7 +562,7 @@ class S17Cut(SpokenScene):
         w.panel.change(self,0,human=True,go=True)
         self.at('comes off')
         apc=chip('APC',PURPLE,30).move_to([3.0,2.2,0]);self.add(apc)
-        self.play(apc.animate.move_to([1.8,-.4,0]),run_time=.7)
+        self.play(apc.animate.move_to([1.8,-.15,0]),run_time=.7)
         self.at('it tags securin')
         tags=VGroup(*[Square(side_length=.15,color=PURPLE,fill_color=PURPLE,fill_opacity=1).move_to(apc) for _ in range(3)])
         self.add(tags)
@@ -694,7 +694,7 @@ class S21Blind(SpokenScene):
         self.play(Indicate(p.kR,color=ORANGE,scale_factor=1.3),run_time=.6)
         self.play(Transform(h,label('merotelic',-1.8,3.12,RED,36,8.5)),run_time=.4)
         self.at('it is attached')
-        self.play(Transform(w.panel.counter,label('empty kinetochores: 0',4.35,1.91,TEXT,28,4.6)),run_time=.4)
+        self.play(Transform(w.panel.counter,label('empty kinetochores: 0',4.35,1.72,TEXT,28,4.6)),run_time=.4)
         self.at('the pair is partly under tension')
         self.add(tension(p));self.add(label('partial tension · schematic',0,-3.4,BLUE,30,11))
         c=cloud(p);self.add(c)
@@ -781,12 +781,3 @@ class S24Return(SpokenScene):
 
 class S25End(EndCard):
     LINE='Keep taut grips, remake slack ones, cut when none is empty.'
-    def construct(self):
-        line=fit(T('Keep taut grips, remake slack ones,\ncut when none is empty.',40,TEXT,font=TITLE_FONT),max_w=12.5)
-        # The final cell replaces an unrelated mascot: the idea remains in its world.
-        w=World(self,count=0,go=True)
-        for p in w.pairs:
-            p.rings.set_opacity(0);p.L.shift(LEFT*2);p.R.shift(RIGHT*2)
-        self.remove(w.panel)
-        line.move_to([0,2.9,0]);self.add(line)
-        self.wait(max(.1,self.narration_s-.07))

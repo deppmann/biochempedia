@@ -18,8 +18,8 @@ PURPLE = "#B58CD9"
 CELL_C = np.array([-2.45, -0.15, 0.0])
 CELL_R = 2.25
 GAUGE_C = np.array([4.55, -0.20, 0.0])
-PAIR_CENTERS = (np.array([-4.15, -0.45, 0.0]), np.array([1.35, -0.45, 0.0]))
-PAIR_GAUGES = (np.array([-1.75, -0.45, 0.0]), np.array([4.55, -0.45, 0.0]))
+PAIR_CENTERS = (np.array([-4.75, -0.45, 0.0]), np.array([1.1, -0.45, 0.0]))
+PAIR_GAUGES = (np.array([-2.4, -0.45, 0.0]), np.array([4.55, -0.45, 0.0]))
 
 
 def tag(text, color=GREY, pos=(5.05, 3.35, 0), size=22):
@@ -84,7 +84,7 @@ def readout(text, center=CELL_C, color=TEXT, size=28):
     return M(text, size, color).move_to([center[0], -3.25, 0])
 
 
-def lock_icon(pos=(1.1, -.2, 0), open_lock=False):
+def lock_icon(pos=(.3, -.2, 0), open_lock=False):
     p = np.array(pos, float)
     box = RoundedRectangle(corner_radius=.08, width=.55, height=.46, color=RED,
                            fill_color=RED, fill_opacity=.25).move_to(p + [0, -.16, 0])
@@ -216,7 +216,7 @@ class S04Commit(SpokenScene):
     def construct(self):
         body = cell_body(CELL_C, 1.75); reds = fixed_dots(CELL_C, 1.75); gen = genome(CELL_C)
         gg = gauge(GAUGE_C, .82, RED, "Whi5 ÷ volume", start=True)
-        arrow = divide_arrow(); lock = lock_icon(); model = tag("computed, invented numbers", YELLOW)
+        arrow = divide_arrow(); lock = lock_icon(); model = tag("computed, invented numbers", YELLOW, (4.5, 3.35, 0))
         ro = M("30 fL   3.3 per fL", 27, TEXT).move_to([-1.55, -3.25, 0])
         self.add(body, reds, gen, gg, arrow, lock, model, ro)
         self.at("cell grows")
@@ -236,7 +236,7 @@ class S05Predict(SpokenScene):
         pair = pair_world(question=False)
         self.at("two newborns")
         self.play(FadeIn(pair, lag_ratio=.08), run_time=1.0)
-        same = T("same dose", 30, RED).move_to([-1.1, -3.35, 0])
+        same = T("same dose", 30, RED).move_to([-1.8, -3.35, 0])
         self.at("same red dose")
         self.play(FadeIn(same), run_time=.5)
         self.at("Which must grow more")
@@ -270,14 +270,14 @@ class S07Reveal(SpokenScene):
         self.at("must grow more")
         left_done = VGroup(cell_body(PAIR_CENTERS[0], 1.84), fixed_dots(PAIR_CENTERS[0], 1.84),
                            gauge(PAIR_GAUGES[0], .4, RED, start=True, narrow=True),
-                           M("50 fL  +30 fL", 28, TEXT).move_to([-4.15, -2.75, 0]))
+                           M("50 fL  +30 fL", 28, TEXT).move_to([-4.75, -2.75, 0]))
         right_done = VGroup(cell_body(PAIR_CENTERS[1], 1.84), fixed_dots(PAIR_CENTERS[1], 1.84),
                             gauge(PAIR_GAUGES[1], .4, RED, start=True, narrow=True),
-                            M("50 fL  +10 fL", 28, TEXT).move_to([1.35, -2.75, 0]))
+                            M("50 fL  +10 fL", 28, TEXT).move_to([1.1, -2.75, 0]))
         self.play(Transform(pair[1], right_done), run_time=.8)
         self.play(Transform(pair[0], left_done), run_time=1.5)
         self.at("same dose")
-        bracket = Line([-4.15, -3.18, 0], [1.35, -3.18, 0], color=RED, stroke_width=4)
+        bracket = Line([-4.75, -3.18, 0], [1.1, -3.18, 0], color=RED, stroke_width=4)
         sl = T("same dose at birth", 28, RED).next_to(bracket, DOWN, buff=.08)
         self.play(Create(bracket), FadeIn(sl), run_time=.55)
         self.at("simple model")
@@ -295,7 +295,7 @@ class S08Hold(NarratedScene):
     def construct(self):
         p = pair_world(question=False, radii=(1.84, 1.84), levels=(.4, .4)); self.add(p)
         buds = VGroup(*[Circle(.12, color=GREEN, stroke_width=5, fill_color=ORANGE, fill_opacity=.13)
-                        .move_to(c) for c in [(-2.27, -.25, 0), (3.23, -.25, 0)]])
+                        .move_to(c) for c in [(-2.87, -.25, 0), (2.98, -.25, 0)]])
         self.play(GrowFromCenter(buds), Indicate(VGroup(p[0][2], p[1][2]), color=GREEN), run_time=1.5)
         self.finish()
 
@@ -334,7 +334,7 @@ class S10KeepPace(SpokenScene):
         self.at("make them roughly")
         body.clear_updaters()
         larger = content_dots(CELL_C, 1.75 * 2 ** (1 / 3), ORANGE, 32)
-        orange_g = gauge([5.25, -.2, 0], .68, ORANGE, "RNA/protein ÷ volume", narrow=True)
+        orange_g = gauge([5.25, -.2, 0], .68, ORANGE, "RNA/protein\n÷ volume", narrow=True)
         self.play(FadeIn(orange_g), Transform(body, cell_body(CELL_C, 1.75 * 2 ** (1 / 3))),
                   Transform(orange, larger), run_time=2.0)
         self.at("in step with their volume")
@@ -385,7 +385,7 @@ class S12Genome(SpokenScene):
         gl = T("genome: one copy, held", 32, PURPLE).move_to([2.5, 3.05, 0])
         self.play(FadeIn(gl), gen.animate.set_stroke(width=6), run_time=.65)
         self.at("grow without dividing")
-        cross = VGroup(divide_arrow([1.1, .1, 0]), Cross(divide_arrow([1.1, .1, 0]), stroke_color=RED, stroke_width=6))
+        da = divide_arrow([1.1, .1, 0]); cross = VGroup(da, Cross(da[0], stroke_color=RED, stroke_width=6))
         held = T("held: no division", 28, RED).move_to([1.25, -1.3, 0])
         self.play(FadeIn(cross), FadeIn(held), run_time=.65)
         self.at("kept one copy")
@@ -394,7 +394,7 @@ class S12Genome(SpokenScene):
         body.clear_updaters()
         big_r = 1.45 * (600 / 65) ** (1 / 3)
         spread = content_dots(CELL_C, big_r, ORANGE, 18)
-        ro = M("about 65 → 600 fL", 28, TEXT).move_to([0, -3.35, 0])
+        ro = M("about 65 → 600 fL", 28, TEXT).move_to([4.55, -2.8, 0])
         self.play(Transform(body, cell_body(CELL_C, big_r)), Transform(orange, spread), FadeIn(ro),
                   FadeOut(cross), FadeOut(held), run_time=2.3)
         self.finish()
@@ -421,7 +421,7 @@ class S13Diluted(SpokenScene):
         self.play(LaggedStart(*[GrowArrow(a) for a in strands], lag_ratio=.25), run_time=1.1)
         self.at("one genome copy")
         ring = Circle(.65, color=PURPLE, stroke_width=4).move_to(gen)
-        limit = T("a limit?", 30, PURPLE).next_to(ring, UP, buff=.12)
+        limit = T("a limit?", 30, PURPLE).next_to(ring, UP, buff=.22).set_stroke("#0E1117", width=8, background=True)
         self.play(Create(ring), FadeIn(limit), run_time=.65)
         self.at("a limit")
         self.play(Indicate(ring, color=PURPLE, scale_factor=1.12), run_time=.55)
@@ -570,4 +570,4 @@ class S18Return(SpokenScene):
 
 
 class S19End(EndCard):
-    LINE = "Growth dilutes what does not keep pace: a proposed ruler, two costs."
+    LINE = "A growing cell dilutes whatever does not keep pace with its volume."

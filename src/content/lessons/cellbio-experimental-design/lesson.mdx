@@ -5,12 +5,13 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 5: Cells in tissues"
 order: 426
 summary: >-
-  How do you design a cell biology experiment whose answer you can trust? This lesson builds one
+  A cell biology experiment earns trust only when its prediction, endpoint, independent unit and
+  controls are fixed before the data arrive. This lesson builds one
   around a real question, whether stretching an epithelium makes its cells divide, and shows how
   to start from two competing models, count N correctly, measure division rather than a proxy for
   it, and choose controls that rule out the dull explanations. Afterwards you can critique a
   proposed experiment and redesign it with a numerical prediction written down before the data.
-hook: "A thousand cells in one dish are not a thousand experiments. How many are they?"
+hook: "Stretched cells glow green. What would it take to show that stretch made them divide?"
 
 estMinutes: 24
 objectives:
@@ -32,6 +33,21 @@ explainer:
     - "For division claims, track cells to division instead of counting green cells."
     - "When treatment is applied to a whole dish, the dish is the experimental unit."
     - "A SuperPlot keeps cell variation visible while comparing independent runs."
+films:
+  - id: "chapter-2"
+    src: "/explainers/cellbio-experimental-design/chapter-2.mp4"
+    captions: "/explainers/cellbio-experimental-design/chapter-2.vtt"
+    poster: "/explainers/cellbio-experimental-design/chapter-2-poster.jpg"
+    title: "Ruling Out the Dull Explanations"
+    durationSec: 210.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A good control matches the treatment in every step except the one being tested."
+      - "Unstretched devices are assembled, mounted and imaged identically, with matched medium and vehicle."
+      - "A pathway readout such as TOPdGFP asks whether Wnt medium engaged beta-catenin-dependent transcription."
+      - "Scorers fix thresholds before analysis and score blind; strain is measured, and devices are not merged."
+      - "A blank damage marker means something only if a positive control shows the assay detects damage."
 
 scientists:
   - name: "Stanley Lazic"
@@ -368,14 +384,13 @@ draft: false
 
 import ReplicateSuperPlot from '../../../components/ReplicateSuperPlot.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-The film's opening dish was one experiment per condition, not 600: every cell shared its dish, so the reported p-value—a measure of incompatibility with a specified no-effect model—used the wrong units. The running case below uses MDCK cells—Madin-Darby canine kidney cells grown as an epithelial sheet—to ask whether stretch makes cells proliferate. All findings below are from those cultured cells.
-
-The film gave the three-lock map. The rest of the page tests where two models disagree, then asks whether the endpoint, independent runs and controls support the claim; the final design brings those decisions back together.
+The first film showed that 600 cells sharing one dish do not make 600 experiments. A p-value—a measure of incompatibility with a specified no-effect model—computed from those cells as if they were independent uses the wrong units. What the chapter leaves out are the numbers behind each lock. The running case uses MDCK cells—Madin-Darby canine kidney cells grown as an epithelial sheet—to ask whether stretch makes cells proliferate. All findings below are from those cultured cells.
 
 ## Make the models disagree
 
-The film's Model A said stretch alone is sufficient for division; Model B said stretch starts the cycle but a Wnt signal is needed to finish. Now turn that disagreement into a numerical test. **Quiescent** cells are not actively cycling.
+The first film's Model A said stretch alone is sufficient for division; Model B said stretch starts the cycle but a Wnt signal is needed to finish. Now turn that disagreement into a numerical test. **Quiescent** cells are not actively cycling.
 
 Wnt proteins are secreted signals. Here, Wnt3A stabilizes beta-catenin, which switches on target genes; the [lesson on Wnt signaling](/lessons/wnt-signaling/) covers the pathway. Because the models agree at S-phase entry and disagree at division, completion is the primary endpoint.
 
@@ -392,9 +407,9 @@ It fails Model B's prediction. If Wnt3A alone matches stretch plus Wnt3A, stretc
 
 ## Read the endpoint before interpreting it
 
-The film's Fucci picture was the simple case; here is the fuller one. **Fucci** means fluorescent ubiquitination-based cell-cycle indicator. In these MDCK cells, red mKO2-Cdt1 marks G0 and G1, while green mAG-Geminin marks cells from S phase, when DNA is copied, until mitosis (see [cell-cycle control](/lessons/cell-cycle-control/)). The green signal can switch on a little before or after DNA replication starts: a green cell has roughly entered S, while only the path to an observed division directly shows completion here.
+The first film's Fucci picture was the simple case; here is the fuller one. **Fucci** means fluorescent ubiquitination-based cell-cycle indicator. In these MDCK cells, red mKO2-Cdt1 marks G0 and G1, while green mAG-Geminin marks cells from S phase, when DNA is copied, until mitosis (see [cell-cycle control](/lessons/cell-cycle-control/)). The green signal can switch on a little before or after DNA replication starts: a green cell has roughly entered S, while only the path to an observed division directly shows completion here.
 
-<LessonFigure src="/figures/cellbio-experimental-design/fucci-entry-vs-completion.webp" width={1200} height={640} alt="AI-generated illustration: a left-to-right strip of one epithelial cell followed over time, first with a red nucleus, then a green nucleus, then rounding up to divide, then two pale daughter cells, with a gold arrow beneath marking the path a tracked cell follows and a small inset contrasting a single snapshot with tracking." caption="A tracked Fucci record keeps one cell's identity attached to its color changes and eventual outcome." />
+<LessonFigure src="/figures/cellbio-experimental-design/fucci-entry-vs-completion.webp" width={1200} height={640} alt="AI-generated illustration: a left-to-right strip of one epithelial cell followed over time, first with a red nucleus, then a green nucleus, then rounding up to divide, then two pale daughter cells, with a gold arrow beneath marking the path a tracked cell follows and a small inset contrasting a single snapshot with tracking." caption="Only tracking one cell from red through green to two daughters shows completion; a green snapshot shows entry into S." />
 
 Benham-Pyle and colleagues found in 2016 that about 10% of cells in unstretched, quiescent MDCK-II monolayers were Geminin-positive. Strain alone increased cells in S and G2—the interval before mitosis—without increasing cells tracked from G1 through S to division. Wnt3A alone did not move quiescent cells into S phase in this preparation. Strain plus Wnt3A raised mitotic entry above either input alone. Thus more green meant more cells in S and G2, not more divisions within the 24 hours watched.
 
@@ -424,7 +439,7 @@ Count nuclei, as [microscopy and images](/lessons/microscopy-and-images/) descri
 
 ## Read repeatability at the independent-unit level
 
-The film collapsed hundreds of cell dots into the dish that received treatment. Formally, the **experimental unit** is the thing independently assigned to a condition: a dish, stretch device or mouse. The **observational unit** is what is measured: a cell or field. N is the number of experimental units (Lazic and colleagues, 2018). Treating cells that share a dish as independent replicates is **pseudoreplication**.
+Formally, the **experimental unit** is the thing independently assigned to a condition: a dish, stretch device or mouse. The **observational unit** is what is measured: a cell or field. N is the number of experimental units (Lazic and colleagues, 2018). Treating cells that share a dish as independent replicates is **pseudoreplication**.
 
 Repeating the whole procedure on separate days supplies information that extra cells from one dish cannot. Lazic and colleagues call choosing days rather than wells a scientific judgement because it asks whether an effect survives a fresh run. They also distinguish the **biological unit**, the entity the conclusion concerns; with one cell line, the conclusion is about that line.
 
@@ -453,17 +468,17 @@ Use the **SuperPlot** below (Lord and colleagues, 2020) to switch between pooled
 
 <ReplicateSuperPlot />
 
+The three locks are necessary, not sufficient: controls test whether a dull alternative could produce the result.
+
+Even a correct N leaves one question open: what else, besides stretch, differed between the dishes?
+
+The second film picks up here: it asks what a control must match to rule out the dull explanations.
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Controls that rule out the boring explanations
 
-The film's three locks are necessary, not sufficient: controls test whether a dull alternative could produce the result.
-
-- **Handling:** assemble, mount and image unstretched devices identically, or “stretch” includes every handling difference.
-- **Medium:** match how the medium was prepared; a pathway readout then tests whether the intended signal was engaged.
-- **Drug:** match the vehicle—the drug's solvent without drug—at the same concentration. A concentration copied from a paper is a condition, not a measure of potency.
-- **Observer:** fix positivity thresholds before analysis, score blind to condition and keep thresholds the same across conditions, as the 2016 authors did.
-- **Stretch:** measure the strain cells actually feel and analyze only the strained region. Do not merge devices that impose different strains.
-
-A pathway readout asks whether the intended signal was engaged. TOPdGFP is a destabilized GFP driven by beta-catenin-responsive sites; it reports beta-catenin-dependent transcription ([hacking the cell](/lessons/hacking-the-cell/) covers reporters).
+The second film matched handling, medium, vehicle and scoring one at a time, measured strain, and checked the pathway with TOPdGFP. In practice, assemble, mount and image unstretched devices identically; prepare parental L-cell medium the same way as Wnt3A-conditioned medium; give a drug control the same concentration of vehicle; fix positivity thresholds before analysis, keep them unchanged across conditions and score blind; and analyze only the measured strained region without merging devices that impose different strains. TOPdGFP is a destabilized GFP driven by beta-catenin-responsive sites, so it reports beta-catenin-dependent transcription ([hacking the cell](/lessons/hacking-the-cell/) covers reporters). A drug concentration copied from a paper is a condition, not a measure of potency. What a single inhibitor cannot settle is whether its intended target did the work.
 
 **Predict.** One inhibitor produces the expected phenotype. What addition best tests whether inhibiting its intended target caused that phenotype?
 
@@ -506,7 +521,7 @@ A student claims "stretch makes epithelial cells proliferate" from more green Fu
 
 ## Going deeper
 
-The film and the first pass used the simple case. These details show where reporter timing, arithmetic, pathway tools and biological context limit that picture.
+These details show where reporter timing, arithmetic, pathway tools and biological context limit the main design.
 
 ### Reporter limits and biological scope
 

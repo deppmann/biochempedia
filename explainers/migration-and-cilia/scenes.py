@@ -153,7 +153,7 @@ def long_pair(origin=(1.1, -1.0, 0), length=5.0, offset=0.62, slide=0.0,
 
 
 def split_bench(clutch=True, links=True):
-    divider = Line([0, -3.0, 0], [0, 2.85, 0], color=GREY, stroke_width=2).set_opacity(.55)
+    divider = Line([0, -2.35, 0], [0, 2.85, 0], color=GREY, stroke_width=2).set_opacity(.55)
     left = crawler(clutch=clutch)
     right = long_pair(origin=(.7, -1.0, 0), length=5.3, links=links, curved=.10 if links else 0)
     return VGroup(divider, left, right)
@@ -165,7 +165,7 @@ class S00Hook(WorkbenchScene, TitleCard):
 
     def construct(self):
         bench = split_bench(clutch=False, links=False)
-        schem = small_label(point=(0, -3.02, 0))
+        schem = small_label(point=(0, -2.8, 0))
         q1 = T("?", 64, TEXT).move_to([-1.0, 1.25, 0])
         q2 = T("?", 64, TEXT).move_to([5.9, 1.25, 0])
         back = arrow([-2.2, 2.1, 0], [-4.7, 2.1, 0], TEAL)
@@ -179,7 +179,7 @@ class S00Hook(WorkbenchScene, TitleCard):
         self.at("microtubules slide lengthwise")
         self.play(GrowArrow(slide), Create(bend), FadeIn(q2), run_time=1.4)
         self.at("Both puzzles start")
-        title = T(self.TITLE, 38, font=TITLE_FONT).move_to([0, 3.2, 0])
+        title = T(self.TITLE, 34, font=TITLE_FONT).move_to([0, 3.55, 0])
         self.play(FadeOut(q1), FadeOut(q2), FadeIn(title), run_time=1.0)
         self.finish()
 
@@ -187,18 +187,18 @@ class S00Hook(WorkbenchScene, TitleCard):
 class S01OneWorld(WorkbenchScene):
     def construct(self):
         bench = split_bench(clutch=True, links=True)
-        title = T("How Internal Motion Becomes Movement", 40, font=TITLE_FONT).move_to([0, 3.2, 0])
+        title = T("How Internal Motion Becomes Movement", 36, font=TITLE_FONT).move_to([0, 3.55, 0])
         labels = VGroup(T("crawling edge", 30, TEAL).move_to([-3.45, 2.55, 0]),
                         T("motile axoneme", 30, BLUE).move_to([3.45, 2.55, 0]))
         self.play(FadeIn(bench), FadeIn(title), run_time=.8)
         add_drift(self, -5.5, -1.4, -.05)
         self.at("both machines")
-        self.play(FadeIn(labels), title.animate.scale(.72).move_to([0, 3.35, 0]), run_time=.8)
+        self.play(FadeIn(labels), title.animate.scale(.8).move_to([0, 3.55, 0]), run_time=.8)
         motors = VGroup(arrow([-4.8, 1.9, 0], [-2.6, 1.9, 0], YELLOW),
                         arrow([1.1, 1.8, 0], [3.2, 1.8, 0], YELLOW))
         self.at("polymers and motors")
         self.play(LaggedStart(*[GrowArrow(a) for a in motors], lag_ratio=.35), run_time=1.3)
-        constraint = chip("constraint", ORANGE, 28).move_to([0, -2.85, 0])
+        constraint = chip("constraint", ORANGE, 28).move_to([0, -2.75, 0])
         self.at("changes one constraint")
         self.play(FadeIn(constraint, shift=UP*.15), Indicate(bench[2][2:], color=ORANGE), run_time=1.2)
         self.at("what it leaves out")
@@ -209,7 +209,7 @@ class S01OneWorld(WorkbenchScene):
 class S02Polymerization(WorkbenchScene):
     def construct(self):
         c = crawler(center=(-.45, -.15, 0), scale=1.25)
-        dim_ax = ring_axoneme((6.25, -.1, 0), .85).set_opacity(.18)
+        dim_ax = ring_axoneme((5.2, -.1, 0), .7).set_opacity(.18)
         self.play(FadeIn(c), FadeIn(dim_ax), run_time=.8)
         specks = add_drift(self, -3.4, 1.8, -.25, speed=-.15, count=9)
         lam = T("lamellipodium", 34, TEAL).move_to([-.45, 2.75, 0])
@@ -219,7 +219,7 @@ class S02Polymerization(WorkbenchScene):
                           .move_to([2.05+.28*i, .45+.25*i, 0]) for i in range(3)])
         self.at("Actin subunits extend")
         self.play(LaggedStart(*[FadeIn(b, shift=LEFT*.2) for b in blocks], lag_ratio=.25),
-                  c[5].animate.shift(RIGHT*.4), run_time=2.0)
+                  c[5].animate.shift(RIGHT*.3), run_time=2.0)
         ruler = T("substrate", 30, GREY).move_to([-.45, -2.45, 0])
         self.at("substrate is the surface")
         self.play(FadeIn(ruler), Indicate(c[0], color=GREY), run_time=1.0)
@@ -238,22 +238,22 @@ class S03Balance(WorkbenchScene):
         self.at("speckles reveal")
         self.play(FadeIn(ruler), Indicate(specks, color=TEAL), run_time=1.0)
         retro = arrow([-.2, -.25, 0], [-2.7, -.25, 0], TEAL)
-        retro_l = T("retrograde flow", 30, TEAL).move_to([1.7, -.25, 0])
+        retro_l = T("retrograde flow", 30, TEAL).move_to([2.7, -.25, 0])
         self.at("retrograde flow")
         self.play(GrowArrow(retro), FadeIn(retro_l), run_time=1.0)
         base_y = -2.25
-        poly = Rectangle(width=4.3, height=.42, color=YELLOW, fill_color=YELLOW, fill_opacity=.55).move_to([-.7, base_y, 0])
-        minus = T("−", 48, TEXT).move_to([1.85, base_y, 0])
-        flow = Rectangle(width=2.2, height=.42, color=TEAL, fill_color=TEAL, fill_opacity=.55).move_to([3.35, base_y, 0])
+        poly = Rectangle(width=4.3, height=.42, color=YELLOW, fill_color=YELLOW, fill_opacity=.55).move_to([-1.7, base_y, 0])
+        minus = T("−", 48, TEXT).move_to([.85, base_y, 0])
+        flow = Rectangle(width=2.2, height=.42, color=TEAL, fill_color=TEAL, fill_opacity=.55).move_to([2.35, base_y, 0])
         self.at("polymerization adds")
         self.play(GrowFromEdge(poly, LEFT), run_time=1.1)
         self.at("retrograde flow subtracts")
         self.play(FadeIn(minus), GrowFromEdge(flow, RIGHT), run_time=1.1)
-        eq = T("=", 44, TEXT).move_to([4.85, base_y, 0])
-        edge = Rectangle(width=1.35, height=.42, color=GREEN, fill_color=GREEN, fill_opacity=.65).move_to([5.85, base_y, 0])
-        cap = VGroup(T("polymerization", 28, YELLOW).move_to([-.7, -2.78, 0]),
-                     T("flow", 28, TEAL).move_to([3.35, -2.78, 0]),
-                     T("edge speed", 28, GREEN).move_to([5.55, -2.78, 0]))
+        eq = T("=", 44, TEXT).move_to([3.85, base_y, 0])
+        edge = Rectangle(width=1.35, height=.42, color=GREEN, fill_color=GREEN, fill_opacity=.65).move_to([4.85, base_y, 0])
+        cap = VGroup(T("polymerization", 28, YELLOW).move_to([-1.7, -2.78, 0]),
+                     T("flow", 28, TEAL).move_to([2.35, -2.78, 0]),
+                     T("edge speed", 28, GREEN).move_to([4.85, -2.78, 0]))
         self.play(FadeIn(eq), GrowFromEdge(edge, LEFT), FadeIn(cap), run_time=1.0)
         net = T("network frame", 28, TEAL).move_to([-1.3, 2.45, 0])
         self.at("Growth is measured")
@@ -311,7 +311,7 @@ class S05Axoneme(WorkbenchScene):
             m.rotate(.025*np.cos(1.15*self.renderer.time)*dt,
                      about_point=np.array([-5.3, -2.4, 0]))
         shaft.add_updater(gentle_beat)
-        cil = T("motile cilium", 34, TEXT).move_to([-4.3, 2.8, 0])
+        cil = T("motile cilium", 34, TEXT).move_to([-1.7, 2.8, 0])
         self.at("hair -like projection")
         self.play(FadeIn(cil), shaft.animate.set_color(BLUE), run_time=1.0)
         ring = ring_axoneme((1.85, .15, 0), 1.7)
@@ -323,14 +323,14 @@ class S05Axoneme(WorkbenchScene):
         nine = M("9 + 2", 42, TEXT).move_to([5.25, 2.0, 0])
         self.at("nine doublets")
         self.play(FadeIn(ring[2]), FadeIn(nine), run_time=1.0)
-        zoom = doublet_cross(.72, 0).move_to([4.8, -.85, 0])
-        al = T("A: complete", 28, BLUE).move_to([4.75, -2.05, 0])
-        bl = T("B: incomplete", 28, PURPLE).move_to([4.75, -2.58, 0])
+        zoom = doublet_cross(.6, 0).move_to([5.1, -.85, 0])
+        al = T("A: complete", 28, BLUE).move_to([5.0, -2.05, 0])
+        bl = T("B: incomplete", 28, PURPLE).move_to([5.0, -2.58, 0])
         self.at("Each doublet")
         self.play(FadeIn(zoom, scale=.5), FadeIn(al), run_time=1.0)
         self.at("incomplete B tubule")
         self.play(FadeIn(bl), Indicate(zoom[0], color=PURPLE), run_time=.9)
-        self.add(small_label(point=(0, -3.02, 0)))
+        self.add(small_label(point=(0, -2.8, 0)))
         self.finish()
 
 
@@ -370,7 +370,7 @@ class S07Bending(WorkbenchScene):
         slide = ValueTracker(0.0)
         linked = always_redraw(lambda: long_pair(origin=(-5.6, -1.25, 0), length=10.2,
                                                   slide=slide.get_value(), curved=k.get_value(), links=True))
-        self.add(linked, small_label("simple schematic", (0, -3.02, 0)))
+        self.add(linked, small_label("simple schematic", (0, -2.8, 0)))
         self.at("two neighboring doublets")
         title = T("two neighboring doublets", 32, TEXT).move_to([0, 2.8, 0])
         self.play(FadeIn(title), run_time=.7)
@@ -428,7 +428,7 @@ class S08MotorControl(WorkbenchScene):
 
 def prediction_frame():
     bench = split_bench(clutch=True, links=True)
-    q = T("What happens to edge advance and to the doublets?", 36, font=TITLE_FONT).move_to([0, 3.25, 0])
+    q = T("What happens to edge advance and to the doublets?", 34, font=TITLE_FONT).move_to([0, 3.55, 0])
     unlock = VGroup(*[T("×", 40, RED).move_to([-4.3+i*1.1, -1.15, 0]) for i in range(3)])
     cuts = VGroup(*[T("×", 40, RED).move_to([1.6+i*1.15, -.9+.12*i, 0]) for i in range(4)])
     return VGroup(bench, q, unlock, cuts)
@@ -475,9 +475,9 @@ class S10Pause(Scene):
 
 class S11Reveal(WorkbenchScene):
     def construct(self):
-        divider = Line([0, -3, 0], [0, 3, 0], color=GREY, stroke_width=2)
+        divider = Line([0, -2.35, 0], [0, 2.85, 0], color=GREY, stroke_width=2)
         left = crawler(clutch=False, released=True)
-        right = long_pair(origin=(.7, -1, 0), length=5.1, links=False, anchor=True)
+        right = long_pair(origin=(.7, -1, 0), length=5.3, links=False, anchor=True)
         self.add(divider, left, right)
         specks = add_drift(self, -5.5, -1.4, -.05, speed=-1.1, count=13)
         self.at("more act")
@@ -490,11 +490,11 @@ class S11Reveal(WorkbenchScene):
         self.at("links cut")
         self.play(FadeIn(VGroup(*[T("×", 40, RED).move_to([1.7+i, -.55, 0]) for i in range(4)])), run_time=.7)
         self.at("doublets slide apart")
-        self.play(GrowArrow(slide), right[1].animate.shift(RIGHT*.8), run_time=1.5)
+        self.play(GrowArrow(slide), right[1].animate.shift(RIGHT*.3), run_time=1.5)
         still = T("motors still work", 30, YELLOW).move_to([3.4, 2.75, 0])
         self.at("motors still work")
         self.play(FadeIn(still), Indicate(slide, color=YELLOW), run_time=.9)
-        changed = chip("changed constraint → different output", ORANGE, 30).move_to([0, -2.92, 0])
+        changed = chip("changed constraint → different output", ORANGE, 30).move_to([0, -2.6, 0])
         self.at("changed constraint")
         self.play(FadeIn(changed, shift=UP*.15), run_time=1.0)
         self.finish()
@@ -506,7 +506,7 @@ class S12Scope(WorkbenchScene):
         right = long_pair(origin=(2.2, -1.15, 0), length=3.7, curved=.14, links=True)
         self.play(FadeIn(left), FadeIn(right), run_time=.8)
         add_drift(self, -6.0, -3.2, -.25, speed=-.13, count=6)
-        head = T("shared logic ≠ every detail", 36, font=TITLE_FONT).move_to([0, 3.0, 0])
+        head = T("shared logic ≠ every detail", 34, font=TITLE_FONT).move_to([0, 2.7, 0])
         self.at("share a logic")
         self.play(FadeIn(head), run_time=.8)
         internal = chip("internal motion", YELLOW, 30).move_to([-4.2, 1.75, 0])

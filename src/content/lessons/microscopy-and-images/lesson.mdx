@@ -34,6 +34,21 @@ explainer:
     - "For two ideal points, the Rayleigh distance marks a clear dip, not the first appearance of two peaks."
     - "Software zoom cannot add detail the optics and camera never captured."
 
+films:
+  - id: "chapter-2"
+    src: "/explainers/microscopy-and-images/chapter-2.mp4"
+    captions: "/explainers/microscopy-and-images/chapter-2.vtt"
+    poster: "/explainers/microscopy-and-images/chapter-2-poster.jpg"
+    title: "What an Overlap Can Claim"
+    durationSec: 221.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A controlled, in-focus colour overlap supports proximity at roughly one resolution volume."
+      - "In the green-light exercise, that volume is about 230 nm across and 800 nm deep, containing tens of thousands of proteins at typical cellular density."
+      - "Overlap means something only if the label, the channels and the record each pass their controls."
+      - "Colour overlap supports proximity, not binding; binding needs other experiments."
+
 scientists:
   - name: "Ernst Abbe"
     contribution: >-
@@ -379,14 +394,15 @@ draft: false
 
 import ResolutionSamplingExplorer from '../../../components/ResolutionSamplingExplorer.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-The film showed why two 150 nm sources become one recorded peak; now put numbers on that picture. The rest of the page tests camera sampling, methods that change the measurement, and the film's closing question about what an image can support; each follows what enters the record.
+The first film showed why two 150 nm sources become one recorded peak; now put numbers on that picture. The rest of the page tests camera sampling, methods that change the measurement, and what an image can support; each follows what enters the record.
 
 ## Put numbers on the blur
 
-The calculation makes the film's visual rule testable. Here λ is the label's fluorescence **emission wavelength**, and **numerical aperture** (NA) describes the cone of light the objective collects. **Resolution** is the smallest separation at which two point objects can be distinguished under a stated criterion. The Rayleigh criterion calls them resolved when one Airy pattern's centre falls on the other's first dark ring.
+Here λ is the label's fluorescence **emission wavelength**, and **numerical aperture** (NA) describes the cone of light the objective collects. **Resolution** is the smallest separation at which two point objects can be distinguished under a stated criterion. The Rayleigh criterion calls them resolved when one Airy pattern's centre falls on the other's first dark ring.
 
-Use the ideal widefield setup behind the film's 227 nm figure: GFP-like emission at λ = 520 nm, an oil objective with NA 1.40, and 100 nm of specimen per camera pixel. These are exercise values, not a measured **point-spread function** (the instrument's response to a point); aberrations and thick samples can do worse.
+Use the ideal widefield setup behind the first film's 227 nm figure: GFP-like emission at λ = 520 nm, an oil objective with NA 1.40, and 100 nm of specimen per camera pixel. These are exercise values, not a measured **point-spread function** (the instrument's response to a point); aberrations and thick samples can do worse.
 
 **Step 1, lateral resolution.**
 
@@ -407,7 +423,7 @@ The 100 nm camera gives 226.6 / 100 = 2.27 pixels across d, so it just meets the
 
 **Step 3, change the objective.** With the same 520 nm emission but NA 1.00, d = 317.2 nm. Losing 0.4 in NA costs about 90 nm of lateral resolution in this model.
 
-**Step 4, look along the optical axis (the depth direction).** The film's picture was the simple lateral case; here is the fuller three-dimensional one. With immersion index n = 1.515, the approximate axial estimate is
+**Step 4, look along the optical axis (the depth direction).** The first film used the simple lateral case; here is the fuller three-dimensional one. With immersion index n = 1.515, the approximate axial estimate is
 
 > dz ≈ 2λn/NA² = 2 × 520 × 1.515 / 1.40² = 804 nm
 
@@ -417,7 +433,7 @@ That is about 3.5 times the lateral value. A point's three-dimensional blur is t
 
 ## Change the measurement, not the zoom
 
-The film's result separates changes to the measurement from display enlargement. **Reminder:** in the scoped widefield model, λ and NA set the Rayleigh distance. Once the camera samples finely enough, further magnification and software zoom only enlarge the record: magnification without resolution is empty magnification.
+**Reminder:** in the scoped widefield model, λ and NA set the Rayleigh distance. Once the camera samples finely enough, further magnification and software zoom only enlarge the record: magnification without resolution is empty magnification. To do better, change the measurement.
 
 ### Remove out-of-focus haze
 
@@ -436,7 +452,7 @@ Below one Airy unit—a pinhole as wide as the Airy pattern's central disc—a s
 
 **Electron microscopes** focus an electron beam with magnetic lenses. Transmission EM (TEM) sends it through a thin specimen. Conventionally, cells are fixed, dehydrated, plastic-embedded, cut into 50 to 100 nm sections and stained with heavy metals. TEM can show membranes and organelles, but its image is a two-dimensional projection of dead, prepared tissue; fixation can create artifacts. Scanning EM (SEM) rasters a coated surface to show its shape.
 
-<LessonFigure src="/figures/microscopy-and-images/tem-section-preparation.webp" width={1200} height={523} alt="AI-generated illustration: a four-step strip showing a cell being fixed, dehydrated and embedded in a plastic block, cut with a knife into a very thin section, and stained on a grid with an electron beam passing through it, with a dashed folded membrane pocket marked as a possible artifact." caption="For conventional thin-section transmission EM, cells are chemically fixed, dehydrated, embedded in plastic, cut into sections about 50 to 100 nm thick and stained with heavy metals. The image is a two-dimensional projection of dead tissue, so a structure that fixation could have made must be checked with a second method." />
+<LessonFigure src="/figures/microscopy-and-images/tem-section-preparation.webp" width={1200} height={523} alt="AI-generated illustration: a four-step strip showing a cell being fixed, dehydrated and embedded in a plastic block, cut with a knife into a very thin section, and stained on a grid with an electron beam passing through it, with a dashed folded membrane pocket marked as a possible artifact." caption="A thin-section electron micrograph is a two-dimensional projection of dead, prepared tissue, so a structure that fixation could have made must be checked with a second method. For conventional transmission EM, cells are chemically fixed, dehydrated, embedded in plastic, cut into sections about 50 to 100 nm thick and stained with heavy metals." />
 
 In **cryo-EM**, rapid freezing traps water as glass-like vitreous ice rather than crystals. Most near-atomic cryo-EM structures come from averaging many images of purified particles. Thinned frozen cells show molecules in place, usually at lower resolution. Averaging many copies of an abundant complex such as the ribosome has produced near-atomic structures inside human cells, but not an atom-by-atom whole cell.
 
@@ -448,7 +464,7 @@ Super-resolution changes what reaches the record without making diffraction disa
 - **SIM** uses striped illumination to shift finer detail into the range the objective can pass, then computes an image.
 - **PALM and STORM** switch on sparse fluorophores so nearby molecules do not glow together, estimate each isolated blur's centre, and combine positions from thousands of cycles.
 
-<LessonFigure src="/figures/microscopy-and-images/sted-ring-beam.webp" width={1200} height={798} alt="AI-generated illustration: a top-down field of dye molecules with a large excitation spot, a ring-shaped depletion beam laid over its outer part, and a small bright gold centre where molecules are still free to glow; an inset compares the larger excitation-only spot with the smaller spot recorded with the ring beam." caption="STED adds a ring-shaped beam that forces excited dye molecules back to the dark state by stimulated emission, leaving only a small centre fluorescent. Diffraction still sets the size of the beams; the trick is controlling which molecules glow." />
+<LessonFigure src="/figures/microscopy-and-images/sted-ring-beam.webp" width={1200} height={798} alt="AI-generated illustration: a top-down field of dye molecules with a large excitation spot, a ring-shaped depletion beam laid over its outer part, and a small bright gold centre where molecules are still free to glow; an inset compares the larger excitation-only spot with the smaller spot recorded with the ring beam." caption="STED beats the blur by controlling which molecules glow, not by shrinking the beams: diffraction still sets their size. A ring-shaped beam forces excited dye molecules back to the dark state by stimulated emission, leaving only a small centre fluorescent." />
 
 **Predict.** One isolated molecule makes a broad blur, but its centre is estimated to 10 nm. Does that mean two molecules 50 nm apart are resolved when they glow together?
 
@@ -459,13 +475,19 @@ No. The 10 nm value is **localization precision**, the uncertainty in one isolat
 
 </details>
 
+Each of these methods still ends in a record that someone must interpret.
+
+The second film picks up here: what can two overlapping colours in that record claim?
+
+<LessonFilm film={frontmatter.films[0]} />
+
 ## Read the image as a claim
 
-The film ended by asking what was labelled and recorded; now follow that evidence chain from label to inference.
+The second film named the controls for each link from label to claim; here are the cases it did not work through.
 
 ### 1. Is the signal the claimed target?
 
-An antibody can bind the wrong protein (see [protein purification](/lessons/protein-purification-techniques/)). A strong specificity control is signal loss after target knockout or knockdown; a secondary-only sample checks the fluorescent secondary. A genetic tag such as GFP avoids antibodies but can alter protein location ([hacking the cell](/lessons/hacking-the-cell/) and [detecting a signal](/lessons/detecting-a-signal/)).
+An antibody can bind the wrong protein (see [protein purification](/lessons/protein-purification-techniques/)). Signal loss after target knockout supports specificity; with knockdown, the signal should fall with independently verified target reduction. A secondary-only sample checks nonspecific signal from the fluorescent secondary. A genetic tag such as GFP avoids antibodies but can alter protein location ([hacking the cell](/lessons/hacking-the-cell/) and [detecting a signal](/lessons/detecting-a-signal/)).
 
 **Predict.** An antibody still gives the same mitochondrial pattern after its target gene is deleted, although a blot detects no target. The secondary-only sample is dark. What failed?
 
@@ -478,11 +500,11 @@ The primary antibody is detecting something other than the target at mitochondri
 
 ### 2. Are the channels separate?
 
-Use single-label samples to measure **bleed-through**, light from one dye leaking into another channel. Multicolour beads test whether channels are aligned, or registered.
+Single-label samples measure **bleed-through** (one dye's light leaking into another channel), and multicolour beads test whether the channels are aligned, or **registered**.
 
 ### 3. Are intensities comparable?
 
-Acquire every condition identically and keep relevant pixels below the detector maximum. Background subtraction removes average background, not its photon noise.
+The second film gave the rules: identical acquisition, pixels below the detector maximum, and background subtraction that leaves photon noise. The hard case is saturation.
 
 **Predict.** Treated cells contain many pixels at the detector maximum. Can their mean fluorescence be compared quantitatively with unsaturated control cells?
 
@@ -495,7 +517,7 @@ No. A saturated pixel has stopped increasing with the light that reaches it, so 
 
 ### 4. What does overlap support?
 
-Two colours in one pixel are, at best, within one resolution volume; widefield haze can add signal from farther away. Here that volume is about 230 nm laterally by 800 nm axially, enough for tens of thousands of proteins as an order-of-magnitude estimate. Colocalization supports proximity, not binding.
+After the label, channel and acquisition controls pass, an in-focus two-colour overlap can support proximity at roughly one resolution volume; widefield haze can create apparent overlap from farther away. For the first film's green-light exercise, that volume is about 230 nm laterally by 800 nm axially. A red channel usually has a longer emission wavelength and a larger blur, so a real two-colour analysis needs the measured resolution of each channel. Treating the green-light volume as an ellipsoid gives roughly 0.02 µm³, which contains tens of thousands of protein molecules at typical cellular protein density. Colocalization supports proximity, not binding. The design problem asks what it would take to claim more.
 
 ### Design problem
 
@@ -514,7 +536,7 @@ Passing those tests places the proteins only within one resolution volume (about
 
 ## Going deeper
 
-The film's picture was the simple ideal case; here is the fuller account of its optical assumptions, sampling convention and experimental exceptions.
+The optical assumptions, sampling convention and experimental exceptions behind the main line.
 
 ### Where NA and the Airy pattern come from
 
