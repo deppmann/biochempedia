@@ -1,500 +1,652 @@
-"""Cell death and clearance: ask every dying cell two questions  (Biochemistrypedia explainer)
+"""Sealed or Torn — cell death and clearance.
 
-COLOR MAP (one color per concept, whole video)
-  YELLOW = phosphatidylserine (the lipid heads)
-  BLUE   = annexin V (the lipid question and its readout)
-  ORANGE = propidium iodide and the stained DNA (the membrane question and its readout)
-  GREEN  = apoptotic cell / the clearest apoptotic signal
-  RED    = leak, secondary necrosis, the double-positive puzzle
-  GREY   = membranes, outlines, labels, the necrosis-from-the-start cell
+COLOR MAP (fixed throughout)
+  BLUE   plasma membrane
+  TEAL   caspases
+  YELLOW phosphatidylserine / eat-me signal
+  GREEN  phagocyte
+  RED    leaked contents, alarms, inflammation
+  GREY   nuclei, outlines, other cells
 """
-import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
 
-# ---- stage geometry for the membrane scenes (s02 to s04) ----
-MX0, MX1 = -6.2, 2.2
-LIP_X = np.linspace(-5.4, 1.4, 8)
-BLOB_X = [LIP_X[0], LIP_X[2], LIP_X[4]]
-HOLES = [-0.057, 0.914]
-HOLE_W = 0.46
-PI_X = [LIP_X[1], LIP_X[3], -0.057, 0.914]
-OUT_Y, IN_Y = 0.19, -0.19     # leaflet bar centres
-BAR_H = 0.34
-DNA_C = np.array([-2.0, -2.0, 0])
+CELL_C = np.array([-2.35, -0.15, 0.0])
+CELL_R = 2.18
 
 
-def bar_piece(x0, x1, y):
-    return RoundedRectangle(corner_radius=0.06, width=x1 - x0, height=BAR_H, stroke_color=GREY, stroke_width=3,
-                            fill_color=GREY, fill_opacity=0.4).move_to([(x0 + x1) / 2, y, 0])
+def breathe(ring, color=BLUE, base=0.17, swing=0.035):
+    """A slow, continuous readout of an intact living boundary."""
+    ring._breath_t = 0.0
+    ring._breath_scale = 1.0
+
+    def update(m, dt):
+        m._breath_t += dt
+        m.set_fill(color, opacity=base + swing * np.sin(1.35 * m._breath_t))
+        target_scale = 1.0 + 0.012 * np.sin(1.35 * m._breath_t)
+        m.scale(target_scale / m._breath_scale)
+        m._breath_scale = target_scale
+
+    ring.add_updater(update)
+    return ring
 
 
-def bars_full():
-    return VGroup(bar_piece(MX0, MX1, OUT_Y), bar_piece(MX0, MX1, IN_Y))
+def membrane_cell(center=CELL_C, radius=CELL_R, nucleus=True, fill=0.17):
+    ring = Circle(radius=radius, color=BLUE, stroke_width=9,
+                  fill_color=BLUE, fill_opacity=fill).move_to(center)
+    breathe(ring, BLUE, fill)
+    parts = [ring]
+    if nucleus:
+        nuc = Circle(radius=radius * 0.34, color=GREY, stroke_width=4,
+                     fill_color=GREY, fill_opacity=0.22).move_to(center + 0.12 * UR)
+        parts.append(nuc)
+    return VGroup(*parts)
 
 
-def bars_holed():
-    edges = [MX0]
-    for h in HOLES:
-        edges += [h - HOLE_W / 2, h + HOLE_W / 2]
-    edges.append(MX1)
-    g = VGroup()
-    for y in (OUT_Y, IN_Y):
-        for i in range(0, len(edges), 2):
-            g.add(bar_piece(edges[i], edges[i + 1], y))
+def scissors(scale=1.0):
+    """A labelled-cartoon action mark, not a molecular structure."""
+    a = Line(0.28 * DL, 0.38 * UR, color=TEAL, stroke_width=5)
+    b = Line(0.28 * UL, 0.38 * DR, color=TEAL, stroke_width=5)
+    h1 = Circle(radius=0.12, color=TEAL, stroke_width=4).move_to(0.39 * DL)
+    h2 = Circle(radius=0.12, color=TEAL, stroke_width=4).move_to(0.39 * UL)
+    return VGroup(a, b, h1, h2).scale(scale)
+
+
+def caspase_group(center=CELL_C):
+    return VGroup(
+        scissors(0.72).move_to(center + [-0.46, 0.34, 0]),
+        scissors(0.64).move_to(center + [0.50, -0.26, 0]),
+    )
+
+
+def surface_heads(center=CELL_C, radius=CELL_R, n=10):
+    return VGroup(*[
+        Dot(center + (radius + 0.06) * np.array([np.cos(a), np.sin(a), 0]),
+            radius=0.075, color=YELLOW)
+        for a in np.linspace(0, TAU, n, endpoint=False)
+    ])
+
+
+def blebs(center=CELL_C, radius=CELL_R):
+    return VGroup(
+        Circle(radius=0.31, color=BLUE, stroke_width=6,
+               fill_color=BLUE, fill_opacity=0.04).move_to(center + [radius + 0.23, 0.42, 0]),
+        Circle(radius=0.23, color=BLUE, stroke_width=6,
+               fill_color=BLUE, fill_opacity=0.04).move_to(center + [-0.52, radius + 0.13, 0]),
+    )
+
+
+def apoptotic_world(with_heads=False, with_blebs=True):
+    cell = membrane_cell()
+    # Four nucleus fragments are rebuilt in the same place in every continuation.
+    cell.remove(cell[1])
+    frags = VGroup(*[
+        Circle(radius=0.18, color=GREY, stroke_width=3,
+               fill_color=GREY, fill_opacity=0.38).move_to(CELL_C + d)
+        for d in ([-0.35, 0.26, 0], [0.22, 0.32, 0], [-0.18, -0.27, 0], [0.34, -0.22, 0])
+    ])
+    g = VGroup(cell[0], frags, caspase_group())
+    if with_blebs:
+        g.add(blebs())
+    if with_heads:
+        g.add(surface_heads())
     return g
 
 
-def lipid_head(x, y):
-    return Circle(radius=0.22, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.9).move_to([x, y, 0])
+def phagocyte(center=(4.7, -0.2, 0), radius=1.78):
+    edge = Circle(radius=radius, color=GREEN, stroke_width=8,
+                  fill_color=GREEN, fill_opacity=0.18).move_to(center)
+    breathe(edge, GREEN, 0.18, 0.025)
+    nuc = Circle(radius=0.42, color=GREEN, stroke_width=3,
+                 fill_color=GREEN, fill_opacity=0.20).move_to(np.array(center) + [0.35, 0.28, 0])
+    return VGroup(edge, nuc)
 
 
-def annexin_blob(x, y):
-    return RoundedRectangle(corner_radius=0.2, width=0.66, height=0.56, stroke_color=BLUE, stroke_width=3,
-                            fill_color=BLUE, fill_opacity=0.45).move_to([x, y, 0])
+def find_cloud():
+    return VGroup(*[
+        Dot([x, y, 0], radius=0.055 + 0.012 * (i % 2), color=TEXT).set_opacity(0.85 - 0.05 * i)
+        for i, (x, y) in enumerate([
+            (-0.72, 0.25), (-0.22, 0.45), (0.25, 0.18), (0.75, 0.48),
+            (1.18, 0.10), (1.62, 0.34), (2.02, 0.02), (2.42, 0.28),
+        ])
+    ])
 
 
-def pi_dot(x, y):
-    return Circle(radius=0.17, stroke_color=ORANGE, stroke_width=2.5, fill_color=ORANGE, fill_opacity=0.95).move_to([x, y, 0])
+def worm_outline(x=0, scale=1.0):
+    """A simple tapered C. elegans outline in side view."""
+    pts = [
+        [-0.95, -2.25], [-1.18, -1.45], [-1.02, -0.45], [-1.15, 0.55],
+        [-0.88, 1.48], [-0.28, 2.23], [0.28, 2.30], [0.92, 1.53],
+        [1.12, 0.56], [1.00, -0.42], [1.13, -1.35], [0.92, -2.18],
+    ]
+    path = VMobject(color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.14)
+    path.set_points_smoothly([np.array([x + scale * a, scale * b, 0]) for a, b in pts] +
+                             [np.array([x + scale * pts[0][0], scale * pts[0][1], 0])])
+    breathe(path, GREY, 0.14, 0.025)
+    return path
 
 
-def dna_blob(lit=False):
-    c = ORANGE if lit else GREY
-    box = RoundedRectangle(corner_radius=0.5, width=3.0, height=1.05, stroke_color=c, stroke_width=3.5,
-                           fill_color=c, fill_opacity=0.35 if lit else 0.1).move_to(DNA_C)
-    lab = T("DNA", 26, c if lit else GREY).move_to(box)
-    return VGroup(box, lab)
+def worm_cells(x=0, scale=1.0, color=GREY):
+    # Exactly 131 repeated positions: an 11 x 12 field plus the central cell.
+    pos = []
+    for j in range(12):
+        yy = -1.80 + j * 0.33
+        width = 0.66 + 0.22 * (1 - abs(yy) / 2.0)
+        for i in range(11):
+            xx = -width + (2 * width * i / 10)
+            pos.append((xx, yy))
+    pos = pos[:130] + [(0, 0)]
+    return VGroup(*[
+        Dot([x + scale * xx, scale * yy, 0], radius=0.025 * scale + 0.008, color=color)
+        for xx, yy in pos
+    ])
 
 
-def readout(name, sign, color):
-    on = sign == "+"
-    c = color if on else GREY
-    label = T(f"{name}  {'+' if on else '−'}", 28, c, weight=BOLD if on else NORMAL)
-    box = RoundedRectangle(corner_radius=0.14, width=3.0, height=0.8, stroke_color=c, stroke_width=3,
-                           fill_color=c, fill_opacity=0.2 if on else 0.05)
-    return VGroup(box, label.move_to(box))
+def clock(center=(4.75, -2.15, 0), radius=0.53):
+    face = Circle(radius=radius, color=TEXT, stroke_width=3).move_to(center)
+    hand = Line(center, np.array(center) + radius * 0.72 * UP, color=TEXT, stroke_width=4)
+    return VGroup(face, hand)
 
 
-def legend_row(mark, text, color):
-    return VGroup(mark, T(text, 22, color)).arrange(RIGHT, buff=0.22)
+def dish_world(question=True):
+    dish = Circle(radius=3.18, color=GREY, stroke_width=5,
+                  fill_color=GREY, fill_opacity=0.18).move_to([-0.65, -0.28, 0])
+    cell = apoptotic_world(with_heads=True).scale(0.84).move_to([-1.20, -0.25, 0])
+    clk = clock()
+    lab = T("time (schematic)", 28, TEXT).next_to(clk, DOWN, buff=0.14)
+    items = [dish, cell, clk, lab]
+    if question:
+        items.append(T("What happens to the ring?", 38, TEXT, weight=BOLD).move_to([0, 3.25, 0]))
+    return VGroup(*items)
 
 
-def stage_labels():
-    a = T("outside the cell", 24, GREY).move_to([-4.2, 3.1, 0])
-    b = T("inside the cell", 24, GREY).move_to([-4.6, -3.1, 0])
-    return VGroup(a, b)
+def broken_ring(center, radius, color=BLUE, width=8):
+    return VGroup(
+        Arc(radius=radius, start_angle=0.48, angle=2.44, color=color,
+            stroke_width=width).move_arc_center_to(center),
+        Arc(radius=radius, start_angle=3.35, angle=2.55, color=color,
+            stroke_width=width).move_arc_center_to(center),
+    )
 
 
-def panel_items(readA="−", readB="−"):
-    ra = readout("annexin V", readA, BLUE).move_to([4.5, -0.9, 0])
-    rb = readout("PI", readB, ORANGE).move_to([4.5, -2.0, 0])
-    return ra, rb
+class S00Hook(SpokenScene, TitleCard):
+    LESSON = "Cell death"
+    TITLE = "Sealed or Torn"
 
-
-def legend():
-    r1 = legend_row(lipid_head(0, 0).scale(0.9), "phosphatidylserine", YELLOW)
-    r2 = legend_row(annexin_blob(0, 0).scale(0.8), "annexin V", BLUE)
-    r3 = legend_row(pi_dot(0, 0), "propidium iodide", ORANGE)
-    g = VGroup(r1, r2, r3).arrange(DOWN, aligned_edge=LEFT, buff=0.4)
-    g.move_to([4.5, 2.0, 0])
-    return g, r1, r2, r3
-
-
-def membrane_stage(lipids_out=False, holed=False, lit=False, blobs_bound=False):
-    """Rebuild the membrane stage in the same place for each scene."""
-    bars = bars_holed() if holed else bars_full()
-    ly = 0.58 if lipids_out else -0.58
-    lips = VGroup(*[lipid_head(x, ly) for x in LIP_X])
-    blobs = VGroup(*[annexin_blob(x, 1.08 if blobs_bound else 2.0) for x in BLOB_X])
-    dots = VGroup(*[pi_dot(x, 2.5) for x in PI_X])
-    dna = dna_blob(lit)
-    return bars, lips, blobs, dots, dna
-
-
-# ---- plot helpers (s05, s06) ----
-PC = np.array([-1.5, 0.3, 0])
-QW, QH = 3.6, 2.9
-COUNTS = {"BL": "5,800", "BR": "2,900", "TR": "1,000", "TL": "300"}
-
-
-def qcentre(k):
-    dx = -1 if k in ("BL", "TL") else 1
-    dy = -1 if k in ("BL", "BR") else 1
-    return PC + np.array([dx * QW / 2, dy * QH / 2, 0])
-
-
-def quad_box(k):
-    tint = {"BL": GREY, "BR": GREEN, "TR": RED, "TL": ORANGE}[k]
-    return Rectangle(width=QW, height=QH, stroke_color=GREY, stroke_width=3, fill_color=tint,
-                     fill_opacity=0.10).move_to(qcentre(k))
-
-
-def plot_frame():
-    boxes = {k: quad_box(k) for k in COUNTS}
-    g = VGroup(*boxes.values())
-    xl = T("annexin V  −", 24, BLUE).move_to(PC + np.array([-QW / 2, -QH - 0.4, 0]))
-    xr = T("annexin V  +", 24, BLUE).move_to(PC + np.array([QW / 2, -QH - 0.4, 0]))
-    yt = T("PI  +", 24, ORANGE).move_to(PC + np.array([-QW - 0.7, QH / 2, 0]))
-    yb = T("PI  −", 24, ORANGE).move_to(PC + np.array([-QW - 0.7, -QH / 2, 0]))
-    return boxes, VGroup(g, xl, xr, yt, yb)
-
-
-def count_mob(k, opacity=1.0):
-    c = qcentre(k)
-    m = M(COUNTS[k], 42, TEXT).move_to(c + np.array([0.3, -0.35, 0]))
-    return m.set_opacity(opacity)
-
-
-def cell_dot(color, text=None, size=0.26):
-    d = Circle(radius=size, stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.55)
-    if text:
-        return VGroup(d, T(text, 24, TEXT, weight=BOLD).move_to(d))
-    return d
-
-
-def dot_legend(color, text, y, mark_text=None):
-    mark = cell_dot(color, mark_text, size=0.22)
-    lab = T(text, 22, color)
-    g = VGroup(mark, lab).arrange(RIGHT, buff=0.2)
-    g.move_to([4.5, y, 0])
-    g.set_x(2.95 + g.width / 2)
-    return g
-
-
-def dot_pos(k, dx=0.0, dy=0.0):
-    return qcentre(k) + np.array([-1.15 + dx, 0.85 + dy, 0])
-
-
-# ---- cell-level schematics: outlines, labelled chips, never molecular structures ----
-def cell_at(x=0, y=0, r=1.1, color=GREY):
-    membrane = Circle(radius=r, stroke_color=color, stroke_width=4,
-                      fill_color=color, fill_opacity=0.08)
-    nucleus = Circle(radius=r * 0.32, stroke_color=color, stroke_width=3,
-                     fill_color=color, fill_opacity=0.25).shift(UR * r * 0.15)
-    return VGroup(membrane, nucleus).move_to([x, y, 0])
-
-
-def heading(text, color=TEXT):
-    return T(text, 34, color, font=TITLE_FONT).move_to([0, 3.0, 0])
-
-
-def arrow_between(a, b, color=GREY):
-    return Arrow(a.get_right(), b.get_left(), buff=0.18, color=color,
-                 stroke_width=4, tip_length=0.2)
-
-
-def lineage(x):
-    # A representative branch, not a count of the worm's whole lineage.
-    root = cell_dot(GREY).move_to([x, 1.2, 0])
-    live = cell_dot(GREY).move_to([x-0.8, -0.2, 0])
-    doomed = cell_dot(GREEN).move_to([x+0.8, -0.2, 0])
-    branches = VGroup(Line(root.get_bottom(), live.get_top(), color=GREY),
-                      Line(root.get_bottom(), doomed.get_top(), color=GREY))
-    return VGroup(root, branches, live, doomed)
-
-
-class S00Title(TitleCard):
-    LESSON = "Cell death and clearance"
-    TITLE = "Cell Death Is a Genetic Program"
-
-
-class S01Ask(SpokenScene):
     def construct(self):
-        c = cell_at(-2.8, 0, 1.8)
-        q = T("?", 90, TEXT).move_to([2.5, 0, 0])
-        self.at("Why would a body")
-        self.play(FadeIn(c), FadeIn(q), run_time=0.5)
-        title = heading("A normal genetic program")
-        self.at("Death is a normal")
-        self.play(FadeIn(title), c.animate.scale(0.65).set_color(GREEN),
-                  FadeOut(q), run_time=0.8)
-        cas = chip("caspases", GREEN, 28).move_to([2.8, 1.1, 0])
-        protein = RoundedRectangle(width=2.6, height=0.5, color=GREY).move_to([2.8, -0.4, 0])
-        pl = T("protein", 24, GREY).move_to([2.8, -1.3, 0])
-        self.at("Apoptosis uses")
-        self.play(FadeIn(cas), FadeIn(protein), FadeIn(pl), run_time=0.5)
-        halves = VGroup(*[RoundedRectangle(width=1.15, height=0.5, color=GREY).move_to([x, -0.4, 0]) for x in (2.0, 3.6)])
-        self.at("proteins that cut")
-        self.play(ReplacementTransform(protein, halves), cas.animate.shift(DOWN*0.35), run_time=0.7)
-        self.at("Cell loss balances")
-        self.play(FadeOut(VGroup(c, cas, halves, pl)), run_time=0.3)
-        division = VGroup(cell_at(-4.5, 0, 0.7), cell_at(-2.7, 0, 0.7))
-        removal = cell_at(3.4, 0, 0.8, GREEN)
-        balance = T("balances", 28, TEXT)
-        labs = VGroup(T("cell division", 26, GREY).move_to([-3.6, -1.4, 0]),
-                      T("cell loss", 26, GREEN).move_to([3.4, -1.4, 0]))
-        self.play(FadeIn(division, scale=0.6), FadeIn(removal), FadeIn(balance), FadeIn(labs), run_time=0.6)
-        self.play(removal.animate.scale(0.35).set_opacity(0.2), run_time=0.5)
-        self.at("In the hermaphrodite worm")
-        self.play(FadeOut(VGroup(division, removal, balance, labs, title)), run_time=0.35)
-        title = heading("Hermaphrodite worm: fixed cell fates")
-        worm = Ellipse(width=6.8, height=3.3, color=GREY, stroke_width=4).move_to([0, 0.5, 0])
-        tree = lineage(0)
-        self.play(FadeIn(title), Create(worm), FadeIn(tree), run_time=0.7)
-        count = T("131 cells die on schedule", 30, GREEN).move_to([0, -2.3, 0])
-        self.at("131 cells die")
-        self.play(FadeIn(count), tree[3].animate.scale(0.3).set_opacity(0.2), run_time=0.7)
-        self.at("The same cells die")
-        self.play(worm.animate.shift(LEFT*3.4).scale(0.7), tree.animate.shift(LEFT*3.4), run_time=0.4)
-        other = lineage(3.4)
-        other[3].scale(0.3).set_opacity(0.2)
-        worm2 = Ellipse(width=4.76, height=2.31, color=GREY, stroke_width=4).move_to([3.4, 0.5, 0])
-        self.play(FadeIn(worm2), FadeIn(other), run_time=0.6)
-        self.at("In healthy tissue")
-        self.play(FadeOut(VGroup(title, worm, tree, worm2, other, count)), run_time=0.4)
-        dead = cell_at(-1.5, 0, 0.55, GREEN)
-        eater = cell_at(2.6, 0, 1.7)
-        label = heading("Prompt clearance in healthy tissue")
-        self.play(FadeIn(dead), FadeIn(eater), FadeIn(label), run_time=0.5)
-        self.at("dead cells are cleared")
-        self.play(eater.animate.move_to([0, 0, 0]), dead.animate.move_to([-0.4, 0, 0]), run_time=0.7)
-        self.play(FadeOut(dead, scale=0.2), run_time=0.4)
+        xs = (-4.35, 0, 4.35)
+        worms = VGroup(*[worm_outline(x, 0.78) for x in xs])
+        cells = [worm_cells(x, 0.78) for x in xs]
+        all_cells = VGroup(*cells)
+        label = T("C. elegans hermaphrodites", 34, TEXT, weight=BOLD).move_to([0, 3.28, 0])
+        self.play(Create(worms), FadeIn(all_cells), run_time=1.0)
+        self.play(FadeIn(label), worms.animate.shift(UP * 0.04), run_time=0.8)
+
+        self.at("the same")
+        blue = VGroup(*[
+            Circle(radius=0.055, color=BLUE, stroke_width=2).move_to(d)
+            for group in cells for d in group
+        ])
+        self.play(FadeIn(blue), run_time=0.45)
+        count = ValueTracker(0)
+        counter = always_redraw(
+            lambda: T(f"{int(count.get_value())} of 1,090 cells", 30, TEXT).move_to([5.05, 3.25, 0])
+        )
+        self.play(FadeOut(label), FadeIn(counter), run_time=0.3)
+        gone = [VGroup(cells[0][i], cells[1][i], cells[2][i],
+                       blue[i], blue[131 + i], blue[262 + i]) for i in range(131)]
+        self.play(AnimationGroup(*[FadeOut(g, scale=0.5) for g in gone], lag_ratio=0.015),
+                  count.animate.set_value(131),
+                  run_time=2.5)
+        new_counter = T("131 of 1,090 cells", 30, TEXT).move_to(counter)
+        self.remove(counter)
+        self.add(new_counter)
+        self.play(worms.animate.shift(DOWN * 0.04), run_time=0.45)
+
+        self.at("without leaving a mess")
+        question = T("Die without a mess?", 44, TEXT, weight=BOLD).move_to([0, 3.18, 0])
+        self.play(FadeIn(question, shift=DOWN * 0.12), run_time=0.55)
+        self.play(worms.animate.shift(UP * 0.05), run_time=1.0, rate_func=there_and_back)
+
+        self.at("rarely see a corpse")
+        close = membrane_cell(center=ORIGIN, radius=2.55)
+        self.play(FadeOut(VGroup(worms, new_counter, question)), FadeIn(close, scale=0.15), run_time=1.1)
+        self.play(close[0].animate.scale(1.025), run_time=0.7, rate_func=there_and_back)
         self.finish()
 
 
-class S02Healthy(SpokenScene):
+class S01Title(NarratedScene):
     def construct(self):
-        h = heading("Repeated pattern → genetic test")
-        wt = cell_at(-3.1, 0, 1.1, GREEN)
-        mutant = cell_at(3.1, 0, 1.1, GREEN)
-        wl = T("wild type", 28, GREY).move_to([-3.1, 1.9, 0])
-        ml = T("same identified cell", 26, GREY).move_to([3.1, 1.9, 0])
-        self.at("But a repeated pattern")
-        self.play(FadeIn(h), FadeIn(wt), FadeIn(mutant), FadeIn(wl), FadeIn(ml), run_time=0.6)
-        self.at("The test is")
-        new = T("ced-3 or ced-4 mutant", 26, GREY).move_to(ml)
-        self.play(ReplacementTransform(ml, new), run_time=0.6)
-        self.at("Without SED 3")
-        self.play(wt.animate.scale(0.25).set_opacity(0.2), run_time=0.6)
-        self.at("die survive")
-        outcomes = VGroup(T("dies", 28, GREEN).move_to([-3.1,-2,0]),
-                          T("survives",28,GREEN).move_to([3.1,-2,0]))
-        self.play(FadeIn(outcomes), Indicate(mutant, color=GREEN), run_time=0.5)
-        self.at("Some even differentiate")
-        processes = VGroup(Line([2.0,0,0],[1.1,0.4,0],color=GREEN),
-                           Line([4.2,0,0],[5.1,-0.4,0],color=GREEN))
-        self.play(Create(processes), ReplacementTransform(outcomes[1], T("survives + differentiates",24,GREEN).move_to([3.1,-2,0])), run_time=0.6)
-        self.at("The death itself")
-        self.play(Indicate(mutant, color=GREEN), run_time=0.5)
-        self.at("turned out to be")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.3)
-        ced3 = chip("CED-3: caspase", GREEN, 30).move_to([-3.1, 1.2, 0])
-        self.play(FadeIn(ced3), run_time=0.5)
-        self.at("protects cells")
-        ced9 = chip("CED-9: protects cells", GREY, 30).move_to([3.0, 1.2, 0])
-        self.play(FadeIn(ced9), run_time=0.5)
-        self.at("Worm genetics")
-        bridge = T("worm genetics → human death machinery", 30, TEXT).move_to([0,-1,0])
-        self.play(FadeIn(bridge, shift=UP*0.2), run_time=0.7)
-        self.at("In apoptosis")
-        self.play(FadeOut(VGroup(ced3,ced9,bridge)),run_time=0.35)
-        c = cell_at(0,0,2.0,GREEN)
-        h = heading("Apoptosis")
-        self.play(FadeIn(c),FadeIn(h),run_time=0.4)
-        self.at("cells shrink")
-        self.play(c.animate.scale(0.7),run_time=0.6)
-        self.at("their nuclei fragment")
-        frags = VGroup(*[Circle(radius=0.19,color=GREEN,fill_opacity=0.5).move_to([x,y,0]) for x,y in [(-0.4,0.2),(0.2,0.3),(0,-0.3)]])
-        self.play(ReplacementTransform(c[1],frags),run_time=0.6)
-        self.at("their membranes stay")
-        note = T("membrane intact until late",28,GREY).move_to([0,-2.4,0])
-        self.play(Indicate(c[0],color=GREY),FadeIn(note),run_time=0.6)
+        cell = membrane_cell(center=[0, -0.35, 0], radius=2.55)
+        title = T("Sealed or Torn", 56, TEXT, font=TITLE_FONT).move_to([0, 2.95, 0])
+        self.add(cell)
+        self.play(FadeIn(title, shift=DOWN * 0.12), cell[0].animate.scale(1.025),
+                  run_time=0.7)
+        self.play(cell[0].animate.scale(1 / 1.025), run_time=0.65)
+        self.wait(0.65)
+
+
+class S02Apart(SpokenScene):
+    def construct(self):
+        big = membrane_cell(center=[-1.15, -0.15, 0], radius=3.05)
+        self.play(FadeIn(big, scale=0.7), run_time=0.8)
+        self.at("own enzymes")
+        shears = VGroup(scissors(1.0).move_to([-2.0, 0.65, 0]),
+                        scissors(0.9).move_to([-0.25, -0.45, 0])).set_opacity(0.28)
+        rods = VGroup(*[
+            RoundedRectangle(width=1.0, height=0.22, corner_radius=0.08,
+                             color=GREY, fill_color=GREY, fill_opacity=0.25).move_to(p)
+            for p in ([-1.2, 1.15, 0], [-1.75, -0.65, 0], [-0.25, 0.45, 0])
+        ])
+        self.play(FadeIn(shears), FadeIn(rods), run_time=0.7)
+        self.at("switch on")
+        self.play(shears.animate.set_opacity(1), run_time=0.45)
+        caslab = T("caspases", 32, TEAL, weight=BOLD).move_to([3.55, 1.65, 0])
+        self.play(FadeIn(caslab), shears[0].animate.rotate(0.35), run_time=0.55)
+        self.at("cut other proteins")
+        pieces = VGroup(*[
+            RoundedRectangle(width=0.42, height=0.22, corner_radius=0.06,
+                             color=GREY, fill_color=GREY, fill_opacity=0.30).move_to(p)
+            for p in ([-1.45, 1.15, 0], [-0.92, 1.15, 0], [-1.95, -0.65, 0],
+                      [-1.45, -0.65, 0], [-0.48, 0.45, 0], [0.02, 0.45, 0])
+        ])
+        self.play(ReplacementTransform(rods, pieces), shears.animate.rotate(-0.25), run_time=0.65)
+
+        self.at("cell shrinks")
+        final_ring = membrane_cell()[0]
+        self.play(ReplacementTransform(big[0], final_ring), FadeOut(pieces),
+                  shears.animate.scale(0.72).move_to(CELL_C), run_time=0.85)
+        self.at("chromatin packs down")
+        packed = VGroup(*[
+            Arc(radius=0.46, start_angle=a, angle=0.85, color=GREY, stroke_width=11).move_arc_center_to(CELL_C)
+            for a in (0.15, 1.75, 3.35, 4.9)
+        ])
+        self.play(ReplacementTransform(big[1], packed), run_time=0.65)
+        self.at("nucleus breaks into pieces")
+        fragments = apoptotic_world()[1]
+        self.play(ReplacementTransform(packed, fragments), run_time=0.7)
+        self.at("surface bubbles")
+        bs = blebs()
+        self.play(FadeIn(bs, scale=0.15), run_time=0.75)
+        self.play(bs.animate.shift(0.06 * UR), run_time=0.45, rate_func=there_and_back)
+        self.at("watch the membrane")
+        self.play(Indicate(final_ring, color=BLUE, scale_factor=1.04),
+                  *[Indicate(b, color=BLUE, scale_factor=1.06) for b in bs], run_time=0.9)
         self.finish()
 
 
-class S03Flip(SpokenScene):
+class S03Sealed(SpokenScene):
     def construct(self):
-        c = cell_at(0,0,1.5)
-        h = heading("Necrotic appearance")
-        self.at("Necrotic looks")
-        self.play(FadeIn(c),FadeIn(h),run_time=0.5)
-        self.at("Swelling and rupture")
-        self.play(c.animate.scale(1.25),run_time=0.6)
-        broken = Arc(radius=1.875,start_angle=0.3,angle=TAU-0.7,color=RED,stroke_width=5)
-        self.play(ReplacementTransform(c[0],broken),run_time=0.5)
-        self.at("Necroptosis needs")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.3)
-        titles = VGroup(*[T(t,27,GREY).move_to([x,2.2,0]) for t,x in zip(["Necroptosis","Pyroptosis","Ferroptosis"],[-4.4,0,4.4])])
-        a = chip("RIPK3",GREY,26).move_to([-4.4,0.9,0])
-        b = chip("MLKL",GREY,26).move_to([-4.4,-1.1,0])
-        ar = Arrow(a.get_bottom(),b.get_top(),buff=0.15,color=GREY)
-        self.play(FadeIn(titles[0]),FadeIn(a),GrowArrow(ar),FadeIn(b),run_time=0.7)
-        self.at("uses gastrum")
-        pore = VGroup(Line([-1.6,0,0],[-0.4,0,0],color=GREY,stroke_width=9),
-                      Line([0.4,0,0],[1.6,0,0],color=GREY,stroke_width=9))
-        porelab = T("gasdermin pores",24,GREY).move_to([0,-1.1,0])
-        self.play(FadeIn(titles[1]),Create(pore),FadeIn(porelab),run_time=0.6)
-        self.at("Ferroptosis depends")
-        iron = chip("iron",GREY,26).move_to([4.4,0.9,0])
-        lipid = T("severe lipid\nperoxidation",24,GREY).move_to([4.4,-1.1,0])
-        ar2 = Arrow(iron.get_bottom(),lipid.get_top(),buff=0.15,color=GREY)
-        self.play(FadeIn(titles[2]),FadeIn(iron),GrowArrow(ar2),FadeIn(lipid),run_time=0.7)
-        self.at("These are distinct")
-        note = T("Separate regulated routes",30,TEXT).move_to([0,-2.8,0])
-        self.play(FadeIn(note),run_time=0.5)
-        self.at("Appearance names")
-        self.play(ReplacementTransform(note,T("Appearance names an endpoint",30,TEXT).move_to(note)),run_time=0.5)
-        self.at("To identify the cause")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.3)
-        h=heading("Test the machinery")
-        machine=chip("machinery",GREY,30).move_to([-3.3,0.6,0])
-        read=chip("death readout",GREY,30).move_to([3.3,0.6,0])
-        ar=arrow_between(machine,read)
-        self.play(FadeIn(h),FadeIn(machine),GrowArrow(ar),FadeIn(read),run_time=0.6)
-        self.at("perturb the machinery")
-        cross=Cross(machine,stroke_color=RED,stroke_width=5)
-        self.play(Create(cross),run_time=0.45)
-        self.at("see whether the death")
-        self.play(FadeIn(T("Does death change?",32,TEXT).move_to([0,-1.6,0])),run_time=0.6)
+        world = apoptotic_world()
+        self.add(world)
+        check = T("✓", 34, BLUE, weight=BOLD).move_to(CELL_C + CELL_R * RIGHT)
+        path = Circle(radius=CELL_R, color=BLUE).move_to(CELL_C)
+        self.play(FadeIn(check), MoveAlongPath(check, path),
+                  world[2].animate.rotate(0.35), run_time=2.2, rate_func=linear)
+        self.at("taking itself apart")
+        self.play(world[2].animate.rotate(-0.7), run_time=0.8, rate_func=there_and_back)
+        self.at("every piece stays wrapped")
+        self.play(MoveAlongPath(check, Circle(radius=0.31).move_to(world[3][0])), run_time=1.0)
+        self.play(MoveAlongPath(check, Circle(radius=0.23).move_to(world[3][1])), run_time=0.8)
+        self.at("closed membrane")
+        self.play(Indicate(VGroup(world[0], world[3]), color=BLUE, scale_factor=1.025), run_time=0.8)
+        self.at("called apoptosis")
+        lab = T("apoptosis", 42, TEXT, weight=BOLD).move_to([-2.35, 2.82, 0])
+        self.play(FadeOut(check), FadeIn(lab, shift=DOWN * 0.12), run_time=0.65)
+        self.play(world[2].animate.rotate(0.35), run_time=0.7, rate_func=there_and_back)
         self.finish()
 
 
-class S04Leak(SpokenScene):
+class S04Findme(SpokenScene):
     def construct(self):
-        c=cell_at(-3.0,0,1.2,GREEN)
-        ph=cell_at(3.4,0,1.8)
-        ph[1].shift(RIGHT*0.6 + UP*0.35)
-        h=heading("Clearance")
-        pl=T("phagocyte",26,GREY).move_to([3.4,-2.4,0])
-        self.at("Now follow the cleanup")
-        self.play(FadeIn(c),FadeIn(h),run_time=0.5)
-        self.at("A dying cell calls")
-        self.play(FadeIn(ph),FadeIn(pl),run_time=0.5)
-        channel=chip("PANX1",GREY,22).move_to([-1.8,0,0])
-        cas=T("caspases open PANX1",25,GREEN).move_to([-3,2,0])
-        nts=VGroup(*[Dot([-1.3,y,0],radius=0.09,color=GREY) for y in [-0.4,0,0.4]])
-        self.at("Caspases open channels")
-        self.play(FadeIn(channel),FadeIn(cas),run_time=0.5)
-        self.at("that release nucleotides")
-        signal=T("nucleotides: find me",24,GREY).move_to([0,-2.9,0])
-        self.play(FadeIn(nts),FadeIn(signal),run_time=0.25)
-        self.play(nts.animate.shift(RIGHT*2.4),ph.animate.shift(LEFT*0.5),run_time=0.6)
-        lips=VGroup(*[lipid_head(-3+0.95*np.cos(a),0.95*np.sin(a)) for a in [PI/2,PI,3*PI/2]])
-        self.at("The cell also exposes")
-        self.play(FadeOut(VGroup(channel,cas,nts,signal)),FadeIn(lips),run_time=0.4)
-        ps=T("phosphatidylserine (PS)",26,YELLOW).move_to([-2.6,2.1,0])
-        self.play(FadeIn(ps),*[l.animate.move_to([-3+1.35*np.cos(a),1.35*np.sin(a),0]) for l,a in zip(lips,[PI/2,PI,3*PI/2])],run_time=0.7)
-        self.at("That is an eat")
-        eat=T("eat me",28,YELLOW).move_to([-3,-2.1,0])
-        self.play(FadeIn(eat),run_time=0.5)
-        self.at("A phagocyte recognizes")
-        self.play(ph.animate.move_to([-0.5,0,0]),FadeOut(pl),run_time=0.6)
-        self.at("engulfs it")
-        self.play(FadeOut(VGroup(ps,eat,lips)),c.animate.scale(0.5).move_to([-0.8,0,0]),ph.animate.move_to([0,0,0]),run_time=0.65)
-        phagosome=Circle(radius=0.8,color=GREY).move_to([-0.8,0,0])
-        pglabel=T("phagosome",22,GREY).move_to([-0.8,-1.25,0])
-        lys=Circle(radius=0.35,color=GREY,fill_color=GREY,fill_opacity=0.3).move_to([2.8,-0.6,0])
-        lyslabel=T("lysosome",22,GREY).move_to([3.0,-1.4,0])
-        self.play(Create(phagosome),FadeIn(pglabel),run_time=0.3)
-        self.at("and digests it")
-        self.play(FadeIn(lys),FadeIn(lyslabel),run_time=0.25)
-        self.at("in lysosomes")
-        self.play(lys.animate.move_to([-0.1,-0.3,0]),FadeOut(VGroup(pglabel,lyslabel)),run_time=0.5)
-        self.play(FadeOut(VGroup(c,phagosome,lys),scale=0.2),run_time=0.4)
-        self.at("In culture")
-        self.play(FadeOut(VGroup(h,ph)),run_time=0.3)
-        h=heading("Culture: no phagocyte")
-        c=cell_at(0,0,1.5,GREEN)
-        self.play(FadeIn(h),FadeIn(c),run_time=0.5)
-        self.at("generally become leaky")
-        broken=Arc(radius=1.5,start_angle=0.3,angle=TAU-0.7,color=RED,stroke_width=4)
-        leaking=VGroup(*[Dot([1.6,y,0],color=RED,radius=0.09) for y in [-0.2,0,0.2]])
-        self.play(ReplacementTransform(c[0],broken),FadeIn(leaking),run_time=0.4)
-        self.play(leaking.animate.shift(RIGHT*1.4),run_time=0.4)
+        world = apoptotic_world()
+        apop = T("apoptosis", 42, TEXT, weight=BOLD).move_to([-2.35, 2.82, 0])
+        self.add(world, apop)
+        self.at("send two signals")
+        badge = T("1", 30, TEXT, weight=BOLD)
+        badge.add_background_rectangle(color=BLUE, opacity=0.8, buff=0.15)
+        badge.move_to([-0.40, 1.45, 0])
+        self.play(FadeIn(badge), run_time=0.45)
+        self.at("channel in its membrane opens")
+        channel = VGroup(
+            Line([-0.52, -0.05, 0], [-0.16, -0.05, 0], color=BLUE, stroke_width=8),
+            Line([-0.52, 0.27, 0], [-0.16, 0.27, 0], color=BLUE, stroke_width=8),
+        )
+        self.play(Create(channel), run_time=0.65)
+        self.at("small molecules puff out")
+        cloud = find_cloud()
+        self.play(AnimationGroup(*[FadeIn(d, shift=0.35 * RIGHT) for d in cloud], lag_ratio=0.13),
+                  run_time=1.25)
+        self.at("find me signal")
+        find = T("find-me", 32, TEXT, weight=BOLD).move_to([1.20, 1.12, 0])
+        self.play(FadeIn(find), cloud.animate.shift(0.10 * RIGHT), run_time=0.55)
+        self.at("call a phagocyte")
+        eater = phagocyte(center=[7.0, -0.15, 0])
+        plab = T("phagocyte", 32, GREEN, weight=BOLD).move_to([4.45, -2.35, 0])
+        self.play(FadeOut(badge), eater.animate.move_to([4.45, -0.15, 0]), FadeIn(plab),
+                  cloud.animate.shift(0.18 * RIGHT), run_time=1.45)
+        self.play(eater.animate.shift(0.18 * LEFT), run_time=0.6)
+        self.finish()
+
+
+class S05Eatme(SpokenScene):
+    def construct(self):
+        outer = Line([-5.4, 0.48, 0], [3.0, 0.48, 0], color=BLUE, stroke_width=6)
+        inner = Line([-5.4, -0.48, 0], [3.0, -0.48, 0], color=BLUE, stroke_width=6)
+        faces = VGroup(T("outside", 30, TEXT).move_to([-4.55, 1.40, 0]),
+                       T("inside", 30, TEXT).move_to([-4.70, -1.40, 0]))
+        proteins = VGroup(*[
+            RoundedRectangle(width=0.62, height=1.28, corner_radius=0.10,
+                             color=GREY, fill_color=GREY, fill_opacity=0.32).move_to([x, 0, 0])
+            for x in (0.10, 1.45)
+        ])
+        heads = VGroup(*[
+            Dot([x, y, 0], radius=0.12, color=YELLOW)
+            for x, y in zip(np.linspace(-4.6, 2.5, 11), [-0.78] * 9 + [0.80, 0.80])
+        ])
+        self.play(Create(VGroup(outer, inner)), FadeIn(faces), run_time=0.8)
+        self.at("lipid called phosphatidylserine")
+        self.play(AnimationGroup(*[FadeIn(h, scale=0.4) for h in heads], lag_ratio=0.08), run_time=1.0)
+        ps = T("phosphatidylserine", 34, YELLOW, weight=BOLD).move_to([-0.9, 2.75, 0])
+        self.play(FadeIn(ps), run_time=0.5)
+        self.at("mostly on the membrane's inner face")
+        self.play(Indicate(VGroup(*heads[:9]), color=YELLOW), run_time=0.65)
+        self.at("cut the membrane proteins")
+        self.play(FadeIn(proteins), run_time=0.35)
+        shears = VGroup(scissors(0.8).move_to(proteins[0]), scissors(0.8).move_to(proteins[1]))
+        self.play(FadeIn(shears), proteins.animate.set_opacity(0.35), run_time=0.65)
+        cuts = VGroup(*[
+            VGroup(Line([-0.32, 0, 0], [-0.05, 0, 0], color=GREY, stroke_width=8),
+                   Line([0.05, 0, 0], [0.32, 0, 0], color=GREY, stroke_width=8)).move_to(p)
+            for p in proteins
+        ])
+        self.play(ReplacementTransform(proteins, cuts), shears.animate.rotate(0.45), run_time=0.7)
+        # The lipids continue to shimmer while the cut proteins change state.
+        self.play(heads.animate.shift(0.09 * UP), shears.animate.rotate(-0.28),
+                  run_time=1.05, rate_func=there_and_back)
+        self.at("appears on the outer face")
+        self.play(*[heads[i].animate.move_to([heads[i].get_x(), 0.80, 0]) for i in range(9)],
+                  run_time=1.25)
+        self.play(Indicate(heads, color=YELLOW), run_time=0.55)
+        self.at("eat me flag")
+        full = apoptotic_world(with_heads=True)
+        eater = phagocyte(center=[4.45, -0.15, 0])
+        # Keep the label above the cell: at the old right-edge position it sat behind a bleb
+        # and the membrane crossed the text during its fade-in.
+        eat = T("eat-me", 34, YELLOW, weight=BOLD).move_to([-2.35, 2.82, 0])
+        self.play(FadeOut(VGroup(outer, inner, faces, ps, cuts, shears, heads)),
+                  FadeIn(full, scale=1.3), FadeIn(eater), run_time=0.85)
+        self.play(FadeIn(eat), eater.animate.shift(0.22 * LEFT), run_time=0.65)
+        self.finish()
+
+
+class S06Rule(SpokenScene):
+    def construct(self):
+        world = apoptotic_world(with_heads=True)
+        cloud = find_cloud()
+        eater = phagocyte(center=[4.05, -0.15, 0])
+        self.add(world, cloud, eater)
+        idea = T("Holds while taken apart", 42, TEXT, weight=BOLD).move_to([0, 3.18, 0])
+        self.play(Write(idea), eater.animate.shift(0.10 * LEFT), run_time=1.0)
+        self.at("membrane holds")
+        self.play(Indicate(world[0], color=BLUE, scale_factor=1.035), run_time=0.8)
+        self.at("takes itself apart")
+        self.play(world[2].animate.rotate(0.55), run_time=0.75, rate_func=there_and_back)
+        self.at("buys time")
+        timer = Arc(radius=1.78, start_angle=PI / 2, angle=0.01, color=TEXT,
+                    stroke_width=5).move_arc_center_to(CELL_C)
+        full_timer = Arc(radius=1.78, start_angle=PI / 2, angle=-TAU + 0.08,
+                         color=TEXT, stroke_width=5).move_arc_center_to(CELL_C)
+        self.play(Transform(timer, full_timer), eater.animate.shift(0.20 * LEFT), run_time=1.15)
+        self.at("before anything leaks")
+        self.play(FadeOut(timer), eater.animate.shift(0.26 * LEFT), run_time=0.8)
+        self.play(world[2].animate.rotate(-0.4), run_time=0.6, rate_func=there_and_back)
+        self.finish()
+
+
+class S07Eaten(SpokenScene):
+    def construct(self):
+        world = apoptotic_world(with_heads=True)
+        eater = phagocyte(center=[3.65, -0.15, 0])
+        self.add(world, eater)
+        self.at("recognizes the flag")
+        self.play(eater.animate.shift(2.30 * LEFT), Indicate(world[-1], color=YELLOW), run_time=1.0)
+        self.at("wraps around the whole cell")
+        wrap = Circle(radius=2.58, color=GREEN, stroke_width=11,
+                      fill_color=GREEN, fill_opacity=0.19).move_to(CELL_C)
+        breathe(wrap, GREEN, 0.19, 0.025)
+        self.play(ReplacementTransform(eater[0], wrap), FadeOut(eater[1]), run_time=1.15)
+        self.at("swallows it")
+        swallowed = VGroup(world, wrap)
+        self.play(swallowed.animate.scale(0.76), run_time=0.8)
+        self.at("lysosome digests it")
+        lyso_sphere = Circle(radius=0.43, color=GREY, fill_color=GREY, fill_opacity=0.25).move_to([2.35, 1.42, 0])
+        lyso_label = T("lysosome", 28, TEXT).next_to(lyso_sphere, DOWN, buff=0.16)
+        self.play(FadeIn(lyso_sphere), FadeIn(lyso_label), run_time=0.55)
+        # The name has finished its job before the organelle merges; do not leave faint text
+        # trapped under the shrinking cell.
+        self.play(lyso_sphere.animate.move_to(swallowed), FadeOut(lyso_label),
+                  swallowed.animate.scale(0.35).set_opacity(0.12), run_time=1.0)
+        self.at("Nothing spills")
+        clean_cell = VGroup(
+            Circle(radius=1.95, color=GREEN, stroke_width=9,
+                   fill_color=GREEN, fill_opacity=0.18),
+            Circle(radius=0.46, color=BLUE, stroke_width=5,
+                   fill_color=BLUE, fill_opacity=0.12),
+        ).move_to([0, 0.42, 0])
+        clean = T("nothing spills", 36, TEXT, weight=BOLD).move_to([0, -2.35, 0])
+        self.play(FadeOut(VGroup(lyso_sphere, swallowed)), FadeIn(clean_cell), FadeIn(clean), run_time=0.65)
+        self.at("rarely see a corpse")
+        worm = worm_outline(0, 1.35)
+        dots = worm_cells(0, 1.35)
+        marked = Circle(radius=0.14, color=BLUE, stroke_width=4).move_to(dots[-1])
+        self.play(FadeOut(VGroup(clean_cell, clean)), Create(worm), FadeIn(dots), FadeIn(marked), run_time=0.9)
+        self.play(FadeOut(VGroup(dots[-1], marked), scale=0.2), worm.animate.shift(0.05 * UP),
+                  run_time=0.75, rate_func=smooth)
+        self.finish()
+
+
+class S08Ask(SpokenScene):
+    def construct(self):
+        world = dish_world(question=False)
+        self.play(Create(world[0]), FadeIn(world[1]), run_time=0.9)
+        self.at("no phagocyte will come")
+        self.play(FadeIn(world[2]), FadeIn(world[3]), run_time=0.55)
+        self.at("Time passes")
+        self.play(Rotate(world[2][1], angle=-1.7, about_point=world[2][0].get_center()),
+                  world[1][2].animate.rotate(0.45), run_time=1.2, rate_func=linear)
+        self.at("What happens to its membrane")
+        q = T("What happens to the ring?", 38, TEXT, weight=BOLD).move_to([0, 3.25, 0])
+        self.play(FadeIn(q, shift=DOWN * 0.12), Indicate(world[1][0], color=BLUE), run_time=0.8)
+        self.play(world[1][0].animate.scale(1.025), run_time=0.55, rate_func=there_and_back)
+        self.finish()
+
+
+class S09Pause(Scene):
+    def construct(self):
+        world = dish_world(question=True)
+        self.add(world)
+        self.play(Rotate(world[2][1], angle=-TAU * 0.65, about_point=world[2][0].get_center()),
+                  world[1][0].animate.scale(1.025), world[1][-1].animate.set_opacity(0.72),
+                  run_time=2.25, rate_func=linear)
+        self.play(Rotate(world[2][1], angle=-TAU * 0.65, about_point=world[2][0].get_center()),
+                  world[1][0].animate.scale(1 / 1.025), world[1][-1].animate.set_opacity(1),
+                  run_time=2.25, rate_func=linear)
+
+
+class S10Leak(SpokenScene):
+    def construct(self):
+        world = dish_world(question=True)
+        self.add(world)
+        self.play(FadeOut(world[-1]), run_time=0.35)
+        self.at("Often it fails")
+        c = world[1][0].get_center()
+        r = 0.84 * CELL_R
+        broken = broken_ring(c, r, width=7)
+        self.play(ReplacementTransform(world[1][0], broken), run_time=0.75)
+        # Once failed, the two membrane edges keep opening and relaxing slightly.
+        breathe(broken, BLUE, 0.0, 0.0)
+        breathe(world[0], GREY, 0.18, 0.025)
+        self.at("now leaks")
+        seep = VGroup(*[
+            Dot(c + d, radius=rr, color=RED).set_opacity(op)
+            for d, rr, op in [([1.05, 0.42, 0], .11, .9), ([1.42, .58, 0], .13, .8),
+                              ([1.78, .35, 0], .15, .7), ([-1.08, -.48, 0], .10, .9),
+                              ([-1.48, -.72, 0], .14, .7), ([-1.88, -.92, 0], .18, .55)]
+        ])
+        self.play(AnimationGroup(*[FadeIn(d, shift=0.25 * RIGHT) for d in seep], lag_ratio=0.15),
+                  run_time=1.2)
+        self.at("contents spill")
+        self.play(seep.animate.scale(1.18), Rotate(world[2][1], angle=-1.3,
+                  about_point=world[2][0].get_center()), run_time=0.75)
         self.at("secondary necrosis")
-        self.play(FadeIn(T("secondary necrosis",30,RED).move_to([0,-2.6,0])),run_time=0.5)
+        # Keep the label inside the dish with clear air above its lower boundary.
+        lab = T("secondary necrosis", 34, RED, weight=BOLD).move_to([-0.65, -2.65, 0])
+        self.play(FadeIn(lab), run_time=0.6)
+        self.at("In a tissue")
+        inset = RoundedRectangle(width=3.15, height=2.20, corner_radius=0.15,
+                                 color=GREY, stroke_width=3, fill_color=BG, fill_opacity=0.92).move_to([4.75, 1.75, 0])
+        mini_blue = Circle(radius=0.45, color=BLUE, stroke_width=5).move_to([4.48, 1.78, 0])
+        mini_green = Circle(radius=0.78, color=GREEN, stroke_width=6,
+                            fill_color=GREEN, fill_opacity=0.12).move_to([5.12, 1.78, 0])
+        tissue = T("tissue", 28, TEXT).next_to(inset, DOWN, buff=0.10)
+        dish = T("dish", 28, TEXT).move_to([-1.1, 2.45, 0])
+        self.play(FadeIn(inset), FadeIn(mini_blue), FadeIn(mini_green), FadeIn(tissue), FadeIn(dish), run_time=0.8)
+        self.play(mini_green.animate.move_to(mini_blue).scale(1.05), mini_blue.animate.scale(0.65), run_time=0.9)
         self.finish()
 
 
-class S05Plot(SpokenScene):
+class S11Torn(SpokenScene):
     def construct(self):
-        bars,lips,blobs,dots,dna=membrane_stage(lipids_out=True)
-        # Reuse the film's yellow PS, blue annexin and orange dye schematics.
-        lips=VGroup(lips[0],lips[2],lips[4])
-        dots=VGroup(dots[2],dots[3])
-        lab=stage_labels()
-        self.at("How do we measure")
-        self.play(FadeIn(bars),FadeIn(lips),FadeIn(lab),run_time=0.5)
-        self.at("binds phosphatidylserine")
-        al=T("annexin V",28,BLUE).move_to([4.3,2,0])
-        ps=T("accessible PS",26,YELLOW).move_to([4.3,0.8,0])
-        self.play(FadeIn(blobs),FadeIn(al),FadeIn(ps),run_time=0.4)
-        self.at("reachable from outside")
-        self.play(*[b.animate.move_to([b.get_x(),1.08,0]) for b in blobs],run_time=0.6)
-        self.at("Propidium iodide")
-        pil=T("propidium iodide",26,ORANGE).move_to([4.3,-0.6,0])
-        self.play(FadeIn(dots),FadeIn(dna),FadeIn(pil),run_time=0.5)
-        self.at("Its entry means")
-        self.play(ReplacementTransform(bars,bars_holed()),run_time=0.3)
-        self.play(*[d.animate.move_to([d.get_x(),-0.8,0]) for d in dots],run_time=0.7)
-        self.play(*[d.animate.move_to(DNA_C+np.array([dx,0,0])) for d,dx in zip(dots,[-1,1])],ReplacementTransform(dna,dna_blob(True)),run_time=0.5)
-        self.at("Neither marker tells")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.3)
-        boxes,frame=plot_frame()
-        self.play(FadeIn(frame),run_time=0.5)
-        puzzle=T("One box, two histories",26,RED).move_to([4.5,2.7,0])
-        self.play(FadeIn(puzzle),run_time=0.4)
-        self.at("Cells positive for both")
-        self.play(boxes["TR"].animate.set_fill(RED,0.25),run_time=0.4)
-        late=cell_dot(GREEN).move_to([3.1,0.8,0])
-        ll=T("late apoptotic",24,GREEN).move_to([4.5,1.5,0])
-        self.at("late apoptotic")
-        self.play(FadeIn(late),FadeIn(ll),run_time=0.25)
-        self.play(late.animate.move_to(dot_pos("TR")),run_time=0.5)
-        nec=cell_dot(GREY).move_to([3.1,-1.1,0])
-        nl=T("necrotic from\nthe start",24,GREY).move_to([4.5,-0.4,0])
-        self.at("or necrotic")
-        self.play(FadeIn(nec),FadeIn(nl),run_time=0.25)
-        self.play(nec.animate.move_to(dot_pos("TR",dy=-0.65)),run_time=0.5)
+        center = np.array([1.25, -0.15, 0])
+        cell = membrane_cell(center=center, radius=1.48)
+        organelles = VGroup(*[
+            Circle(radius=0.16, color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.18).move_to(center + d)
+            for d in ([-0.65, 0.55, 0], [0.62, 0.48, 0], [-0.55, -0.57, 0], [0.62, -0.55, 0])
+        ])
+        self.play(FadeIn(cell), FadeIn(organelles), run_time=0.8)
+        self.at("This one swells")
+        self.play(VGroup(cell, organelles).animate.scale(1.38), run_time=1.05)
+        self.at("membrane tears early")
+        r = 1.48 * 1.38
+        broken = broken_ring(center, r, width=9)
+        self.play(ReplacementTransform(cell[0], broken), run_time=0.75)
+        self.at("contents spill at once")
+        spill = VGroup(*[
+            Dot(center + d, radius=rr, color=RED)
+            for d, rr in [([2.0, .75, 0], .13), ([2.5, .4, 0], .18), ([2.75, -.2, 0], .14),
+                          ([-2.0, -.7, 0], .15), ([-2.55, -1.0, 0], .18), ([2.25, -1.1, 0], .12)]
+        ])
+        self.play(AnimationGroup(*[FadeIn(d, shift=0.5 * normalize(d.get_center() - center)) for d in spill],
+                                 lag_ratio=0.12), run_time=1.0)
+        self.at("alarm signals")
+        alarms = VGroup(*[Dot(center + d, radius=0.23, color=RED) for d in ([2.7, 1.25, 0], [3.1, .75, 0])])
+        al = T("alarm signals", 30, RED, weight=BOLD).move_to([4.35, 2.55, 0])
+        self.play(FadeIn(alarms), FadeIn(al), run_time=0.65)
+        self.at("immune system")
+        immune = VGroup(*[
+            Circle(radius=0.48, color=GREY, stroke_width=5,
+                   fill_color=GREY, fill_opacity=0.10).move_to(p)
+            for p in ([-6.6, 1.95, 0], [-6.5, -2.05, 0])
+        ])
+        self.play(immune[0].animate.move_to([-3.5, 1.45, 0]),
+                  immune[1].animate.move_to([-3.4, -1.45, 0]), run_time=1.2)
+        self.at("cause inflammation")
+        glow = Circle(radius=2.75, color=RED, stroke_width=5,
+                      fill_color=RED, fill_opacity=0.18).move_to(center)
+        infl = T("inflammation", 30, RED, weight=BOLD).move_to([-3.55, 0, 0])
+        self.play(FadeIn(glow), FadeIn(infl), run_time=0.65)
+        self.at("called necrosis")
+        label = T("necrosis", 42, TEXT, weight=BOLD).move_to([1.25, 3.10, 0])
+        self.play(FadeIn(label), glow.animate.scale(1.05), run_time=0.7)
         self.finish()
 
 
-class S06Time(SpokenScene):
+class S12Programs(SpokenScene):
     def construct(self):
-        boxes,frame=plot_frame()
-        self.add(frame)
-        tm=T("follow time →",28,TEXT).move_to([4.4,2.6,0])
-        d=cell_dot(GREEN).move_to(dot_pos("BL"))
-        self.at("So combine markers")
-        self.play(FadeIn(tm),FadeIn(d),run_time=0.5)
-        p0,p1,p2=dot_pos("BL"),dot_pos("BR"),dot_pos("TR")
-        self.at("expose the lipid")
-        t1=Line(p0,p1,color=GREEN,stroke_width=4)
-        self.play(Create(t1),d.animate.move_to(p1),boxes["BR"].animate.set_fill(GREEN,0.2),run_time=0.7)
-        al=T("apoptosis",27,GREEN).move_to([4.5,1.4,0])
-        self.play(FadeIn(al),run_time=0.3)
-        self.at("they leak")
-        t2=Line(p1,p2,color=GREEN,stroke_width=4)
-        self.play(Create(t2),d.animate.move_to(p2),run_time=0.7)
-        self.at("can do that too")
-        n=cell_dot(GREY).move_to(p0+DOWN*0.4)
-        nl=T("necroptosis\ncan do this too",24,GREY).move_to([4.5,-0.1,0])
-        path=VMobject(color=GREY,stroke_width=4).set_points_as_corners([p0+DOWN*0.4,p1+DOWN*0.4,p2+RIGHT*0.85])
-        self.play(FadeIn(n),FadeIn(nl),run_time=0.3)
-        self.play(Create(path),MoveAlongPath(n,path),run_time=0.7)
-        self.at("A time course helps")
-        note=T("informative",27,TEXT).move_to([4.5,-1.6,0])
-        self.play(FadeIn(note),run_time=0.4)
-        self.at("cannot settle the mechanism")
-        self.play(ReplacementTransform(note,T("insufficient alone",25,RED).move_to(note)),run_time=0.5)
-        self.at("One marker reports")
-        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.35)
-        rule=heading("One marker reports one event")
-        self.play(FadeIn(rule),run_time=0.5)
-        spine=VGroup(chip("genetic program",GREY,26),chip("distinct machinery",GREY,26),chip("recognition + clearance",GREY,26)).arrange(RIGHT,buff=0.5).move_to([0,0.7,0])
-        self.at("Genetic control")
-        self.play(FadeIn(spine[0]),run_time=0.5)
-        self.at("distinct machinery")
-        self.play(FadeIn(spine[1]),run_time=0.5)
-        self.at("and clearance")
-        self.play(FadeIn(spine[2]),run_time=0.5)
-        measures=VGroup(readout("annexin V","+",BLUE),readout("PI","+",ORANGE)).arrange(RIGHT,buff=0.5).move_to([0,-1.5,0])
-        ml=T("complementary measurements",25,TEXT).move_to([0,-2.6,0])
-        self.at("behind the signal")
-        self.play(FadeIn(measures),FadeIn(ml),run_time=0.5)
+        left_c = np.array([-3.35, 0.50, 0])
+        right_c = np.array([3.35, 0.50, 0])
+        intact = membrane_cell(left_c, 1.45)
+        heads = surface_heads(left_c, 1.45, 8)
+        eater = phagocyte(center=[-5.5, 0.5, 0], radius=0.85)
+        torn_body = Circle(radius=1.75, stroke_opacity=0, fill_color=GREY,
+                           fill_opacity=0.17).move_to(right_c)
+        torn = broken_ring(right_c, 1.75, width=8)
+        spill = VGroup(*[Dot(right_c + d, radius=.12, color=RED) for d in ([1.6,.4,0],[1.9,0,0],[1.5,-.65,0])])
+        labs = VGroup(T("apoptosis", 34, TEXT, weight=BOLD).move_to([-3.35, 2.70, 0]),
+                      T("necrosis", 34, TEXT, weight=BOLD).move_to([3.35, 2.70, 0]))
+        self.play(FadeIn(VGroup(intact, heads, eater, torn_body, torn, spill, labs)), run_time=0.85)
+        self.at("genetic programs too")
+        genes = VGroup(*[chip("gene", TEXT, 28).move_to([2.05 + i * 1.30, -1.18, 0]) for i in range(3)])
+        self.play(AnimationGroup(*[FadeIn(g, shift=UP * 0.15) for g in genes], lag_ratio=0.2), run_time=0.75)
+        self.play(FadeOut(genes), spill.animate.shift(0.08 * RIGHT), run_time=0.55)
+        self.at("difference is timing")
+        line = Arrow([-5.5, -2.35, 0], [5.5, -2.35, 0], buff=0, color=TEXT,
+                     stroke_width=4, tip_length=0.22)
+        early = T("early", 30, TEXT).next_to(line.get_start(), UP, buff=0.15)
+        schematic = T("time (schematic)", 28, TEXT).next_to(line, DOWN, buff=0.15)
+        self.play(GrowArrow(line), FadeIn(early), FadeIn(schematic), run_time=0.85)
+        self.at("membrane intact early")
+        blue_tick = VGroup(Circle(radius=.24, color=BLUE, stroke_width=5), T("✓", 28, BLUE)).move_to([-3.35, -2.35, 0])
+        self.play(FadeIn(blue_tick), Indicate(intact[0], color=BLUE), run_time=0.7)
+        self.at("open it early")
+        red_tick = VGroup(VGroup(Line(.22 * UL, .22 * DR, color=RED, stroke_width=5),
+                                 Line(.22 * UR, .22 * DL, color=RED, stroke_width=5))).move_to([3.35, -2.35, 0])
+        self.play(FadeIn(red_tick), Indicate(torn, color=RED), run_time=0.75)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Cell death is a genetic program, with distinct machinery and fast clearance."
+class S13Return(SpokenScene):
+    def construct(self):
+        # Start on the same comparison, then pull back into the hook's three-worm world.
+        left = membrane_cell([-3.35, 0.4, 0], 1.2)
+        right_body = Circle(radius=1.5, stroke_opacity=0, fill_color=GREY,
+                            fill_opacity=0.17).move_to([3.35, 0.4, 0])
+        right = broken_ring([3.35, 0.4, 0], 1.5, width=8)
+        spill = VGroup(*[Dot(np.array([3.35, .4, 0]) + d, radius=.12, color=RED)
+                         for d in ([1.6,.5,0],[1.9,0,0],[1.5,-.6,0])])
+        self.add(left, right_body, right, spill)
+        self.at("back to the worm")
+        xs = (-4.35, 0, 4.35)
+        worms = VGroup(*[worm_outline(x, 0.78) for x in xs])
+        dots = VGroup(*[worm_cells(x, 0.78) for x in xs])
+        counter = T("131 of 1,090 cells", 30, TEXT).move_to([4.95, 3.25, 0])
+        self.play(FadeOut(VGroup(left, right_body, right, spill)), FadeIn(worms, scale=1.2), FadeIn(dots),
+                  FadeIn(counter), run_time=1.0)
+        self.at("usually eaten by neighboring cells")
+        doomed = Circle(radius=.16, color=BLUE, stroke_width=4).move_to([0, 0, 0])
+        neighbor = Circle(radius=.34, color=GREY, stroke_width=5,
+                          fill_color=GREEN, fill_opacity=.12).move_to([0.55, 0.05, 0])
+        self.play(FadeIn(doomed), FadeIn(neighbor), run_time=0.45)
+        self.play(neighbor.animate.move_to(doomed).scale(1.35), doomed.animate.scale(.5), run_time=0.85)
+        self.at("before they spill")
+        self.play(FadeOut(doomed), neighbor.animate.set_stroke(GREEN), worms.animate.shift(0.04 * UP),
+                  run_time=0.65)
+        self.at("membrane that holds")
+        self.play(Indicate(neighbor, color=BLUE), run_time=0.65)
+        self.at("quieter death")
+        sealed = VGroup(Circle(radius=.42, color=BLUE, stroke_width=5),
+                        Circle(radius=.62, color=GREEN, stroke_width=5)).move_to([-2.5, -2.75, 0])
+        torn = broken_ring([2.35, -2.75, 0], .48, width=5)
+        red = VGroup(*[Dot([2.95 + .25*i, -2.75 + .12*(-1)**i, 0], radius=.07, color=RED) for i in range(3)])
+        labels = VGroup(T("sealed and eaten", 28, TEXT).move_to([-2.5, -3.45, 0]),
+                        T("torn and spilled", 28, TEXT).move_to([2.55, -3.45, 0]))
+        self.play(FadeIn(VGroup(sealed, torn, red, labels)), run_time=0.8)
+        self.finish()
+
+
+class S14End(EndCard):
+    LINE = "Apoptosis keeps the membrane intact early, often until the cell is eaten."
+
+    def construct(self):
+        line = VGroup(
+            T("Apoptosis keeps the membrane intact early,", 40, TEXT, font=TITLE_FONT),
+            T("often until the cell is eaten.", 40, TEXT, font=TITLE_FONT),
+        ).arrange(DOWN, buff=0.24).move_to([0, 0.35, 0])
+        # A wider ellipse leaves visible clearance around both ends of the sentence.
+        ring = Circle(radius=2.30, color=BLUE, stroke_width=7).stretch(2.60, 0).move_to([0, 0.35, 0])
+        site = T("biochemistrypedia.com", 28, GREY).move_to([0, -2.75, 0])
+        self.play(FadeIn(line, shift=UP * 0.12), run_time=0.65)
+        self.play(Create(ring), run_time=1.55)
+        self.play(FadeIn(site), run_time=0.4)
+        self.finish()
