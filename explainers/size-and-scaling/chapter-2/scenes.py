@@ -879,4 +879,4 @@ class S16Rule(SpokenScene):
 
 
 class S17End(EndCard):
-    LINE = "Bigger animals usually burn more in total, but less per kilogram."
+    LINE = "Adult mammals and birds: bigger burns more in total, less per kilogram."

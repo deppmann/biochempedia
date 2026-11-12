@@ -815,4 +815,4 @@ class S14Next(SpokenScene):
 
 
 class S15End(EndCard):
-    LINE = "An experiment shows how a trait works, not why it evolved."
+    LINE = "Fewer pores can save more water than they cost in carbon."

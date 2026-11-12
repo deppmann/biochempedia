@@ -906,4 +906,4 @@ class S15Close(SpokenScene):
 
 # ------------------------------------------------------------------ s16
 class S16End(EndCard):
-    LINE = "Fungi digest outside, then absorb, and fuse cells before nuclei."
+    LINE = "Fungi digest outside, absorb, and fuse cells before nuclei."
