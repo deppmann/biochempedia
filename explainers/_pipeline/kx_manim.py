@@ -36,6 +36,38 @@ class NarratedScene(Scene):
         # not `self.duration`: Manim's Scene uses that name internally
         self.narration_s = float(os.environ.get("KX_DURATION", "5.0"))
 
+    # Layout check (layout_check.py): samples what is on screen after every play/wait and every 0.5 s
+    # during animations, and writes issues for render.py's layout_report.json. Report only; never fails.
+    # KX_LAYOUT=0 turns it off.
+    def _lc(self):
+        if not hasattr(self, "_lc_obj"):
+            self._lc_obj = None
+            if os.environ.get("KX_LAYOUT", "1") != "0":
+                try:
+                    from layout_check import Checker
+                    self._lc_obj = Checker(self)
+                except Exception:
+                    pass
+        return self._lc_obj
+
+    def play(self, *args, **kwargs):
+        super().play(*args, **kwargs)
+        lc = self._lc()
+        if lc:
+            lc.sample()
+
+    def update_to_time(self, t):
+        super().update_to_time(t)
+        lc = self._lc()
+        if lc:
+            lc.tick()
+
+    def tear_down(self):
+        super().tear_down()
+        lc = self._lc()
+        if lc:
+            lc.flush()
+
     def beat(self, fraction):
         """Seconds equal to `fraction` of the narration length (for run_time or wait)."""
         return max(0.05, fraction * self.narration_s)
