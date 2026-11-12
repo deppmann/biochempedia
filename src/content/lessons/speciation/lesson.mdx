@@ -4,7 +4,7 @@ slug: "speciation"
 course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 2: Genomes, development and diversification"
 order: 507
-summary: "A new species forms when barriers that reduce gene flow evolve between populations that once interbred. This lesson sorts those barriers into ones that act before and after the zygote and shows how several partial barriers add up. It then shows how barriers often arise as a by-product of adapting to different habitats or pollinators, which is ecological speciation, keeps the geography of speciation apart from its mechanism, adds polyploidy as a one-step route, and ends with how biologists recognize species, using monkeyflowers, sticklebacks, crater-lake cichlids, snapping shrimps and Heliconius butterflies."
+summary: "A new species forms when barriers that reduce gene flow evolve between populations that once interbred, and several partial barriers, whose leaks multiply, can together block nearly all of it. This lesson shows how each barrier is measured and how barriers acting in sequence combine, sorts them into ones that act before and after the zygote, and shows how they often arise as a by-product of adapting to different habitats or pollinators, which is ecological speciation. It keeps the geography of speciation apart from its mechanism, adds polyploidy as a one-step route, and ends with how biologists recognize species."
 hook: "Two monkeyflowers can be crossed by hand, yet they almost never exchange genes in the wild. What barriers hold them apart, and how did adapting to different places and pollinators build those barriers?"
 
 estMinutes: 24
@@ -20,10 +20,32 @@ explainer:
   src: "/explainers/speciation/explainer.mp4"
   captions: "/explainers/speciation/explainer.vtt"
   poster: "/explainers/speciation/poster.jpg"
-  title: "How Barriers Between Species Grow"
-  durationSec: 177.9
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Leaks That Multiply"
+  durationSec: 193.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A reproductive barrier is anything that reduces gene flow between populations."
+    - "When barriers act one after another and independently, each one blocks only the gene flow left by earlier barriers."
+    - "The fractions that get through multiply, so several partial barriers can block nearly all gene flow."
+    - "Barriers before the zygote are prezygotic; barriers after it, such as hybrids that fail to survive or are sterile, are postzygotic."
+    - "In the monkeyflowers, most of the isolation comes before any hybrid forms."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/speciation/chapter-2.mp4"
+    captions: "/explainers/speciation/chapter-2.vtt"
+    poster: "/explainers/speciation/chapter-2-poster.jpg"
+    title: "Isolation Follows Ecology"
+    durationSec: 204.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Divergent selection favours different traits in different habitats."
+      - "Selection acts on individuals and builds no barrier on purpose; isolation that arises as a side effect of adaptation is called ecological speciation."
+      - "In stickleback mating trials, fish of the same form from different lakes showed no strong isolation, while fish of different forms were strongly isolated."
+      - "When isolation repeats with the environment, lake after lake, drift alone is unlikely and divergent selection is the likely cause."
+      - "In the monkeyflowers, adaptation to elevation and to pollinators is itself the barrier."
 
 scientists:
   - name: "Kevin de Queiroz"
@@ -218,9 +240,9 @@ mcatQuestions:
     rationale: >-
       Fish of the same form from separate lakes mate freely and fish of different forms do not,
       so isolation follows the environment the fish are adapted to, the pattern ecological
-      speciation predicts when isolation is a by-product of divergent selection. Drift in
-      separate lakes would not make isolation repeat with ecology in every lake; if anything it
-      predicts isolation that follows lake of origin, the opposite of the data. A single origin followed by spread is contradicted by the genetic
+      speciation predicts when isolation is a by-product of divergent selection. Drift alone
+      does not predict isolation that repeatedly tracks ecology; the repeated environment-correlated
+      pattern makes drift alone unlikely and supports divergent selection. A single origin followed by spread is contradicted by the genetic
       evidence that each lake's pair arose independently. The trials measured spawning, a
       prezygotic step, and say nothing about whether hybrids are sterile.
   - stem: "In a hypothetical study, a plant population with four chromosome sets (tetraploid) is found growing among the two-set (diploid) plants it came from. Genetic markers show that the tetraploids arose from the diploids within the last few generations. In made-up crossing data, tetraploid x tetraploid and diploid x diploid crosses each set seed normally, while tetraploid x diploid crosses set seed that rarely germinates, and the few offspring that survive are almost fully sterile. Which conclusion is best supported?"
@@ -264,7 +286,7 @@ explainLevels:
       different foods or habitats. Barriers that stop mating, such as breeding at different times
       or attracting different pollinators, act before an egg is fertilized. Barriers that act
       after, such as hybrids that die or cannot reproduce, also count. Usually several barriers
-      work together, and scientists can measure each one and add up their combined effect.
+      work together, and scientists can measure each one and combine their effects, which multiply rather than add.
   - level: "college"
     label: "College"
     text: >-
@@ -343,87 +365,138 @@ draft: false
 
 import IsolationBarrierLedger from '../../../components/IsolationBarrierLedger.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Two monkeyflowers of western North America can be crossed by hand to give hybrid seed. One is pink and visited mostly by bumblebees; the other is red and visited mostly by hummingbirds. Yet in the wild almost no genes pass between them. They are two species because barriers that reduce gene flow have evolved between them, and those barriers grew mostly out of adapting to different places and different pollinators.**
+**Two monkeyflowers of western North America, one pink and visited mostly by bumblebees, the other red and visited mostly by hummingbirds, can be crossed by hand to give hybrid seed. Yet in the wild almost no genes pass between them. They count as two species because barriers that reduce gene flow have evolved between them, and those barriers grew mostly out of adapting to different places and different pollinators.**
 
-That is the main idea of this lesson. In sexually reproducing organisms, **speciation** is the evolution of reproductive barriers that reduce gene flow between populations that once interbred. A population cut off this way becomes a line of descent that evolves separately from others, which, on one influential view covered at the end of this lesson, is what a species is. The barriers need not be complete. Often they are a side effect of **divergent selection**: two populations adapt to different habitats or pollinators, and mating between them falls as a result. The lesson follows that line. First, what the barriers are and how they add up. Then how adaptation builds them, where speciation happens, a faster route through polyploidy, and how biologists recognize the result.
+> **The one idea.** **Gene flow**, the movement of genes between populations through mating, is whatever leaks through a series of barriers, so the fractions that get through multiply. Several partial barriers can therefore block far more gene flow than any one of them, and they often grow as side effects of adapting to different places and partners.
+>
+> *Scope:* sexually reproducing organisms, and barriers that act one after another and independently. The rule measures how much gene flow is blocked. It does not say where the populations were while they diverged, and it does not define a species: lineages can stay distinct despite some gene flow (see the criteria section), and polyploidy can raise a strong barrier in one step.
 
-## Speciation is the evolution of barriers to gene flow
+In sexually reproducing organisms, **speciation** is the evolution of reproductive barriers that reduce gene flow between populations that once interbred.
 
-A **reproductive barrier** is anything that reduces gene flow between populations. Barriers are sorted by when they act relative to the **zygote**, the fertilized egg.
+## Measuring barriers, and why their leaks multiply
 
-**Prezygotic** barriers act before a zygote forms:
-- *Ecogeographic*: the populations live in different places or habitats and rarely meet.
-- *Temporal*: they breed at different times of day or year.
-- *Behavioral*: courtship, song, scent or mate preference differ. For plants, pollinator preference plays this role.
-- *Mechanical*: reproductive structures do not fit.
-- *Gametic*: egg and sperm, or pollen and stigma, are incompatible, so fertilization fails.
+The first film showed leaks multiplying. Left out: where each gate's number comes from, and which gate gets the credit.
 
-**Postzygotic** barriers act after a hybrid zygote forms. In **hybrid inviability** hybrids fail to develop or survive. In **hybrid sterility** they survive but have reduced fertility or none. Sterility often traces to genes that changed separately in each lineage and work badly together in a hybrid. It can also trace to chromosomes that pair poorly at meiosis, covered in [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) and [chromosome changes](/lessons/chromosome-changes/).
+A **reproductive barrier** is anything that reduces gene flow between populations. Its strength, **RI** (reproductive isolation), is the share of the gene flow reaching that barrier that it stops, measured against a control. For example, if range maps show two species growing together only 40% as often as they would if spread at random, the habitat barrier's RI is 1 − 0.40 = 0.60. Each barrier has its own control: range maps for habitat, pollinator watches in a mixed stand for pollinators, and, for later barriers, crosses between species scored against crosses within a species.
 
-Each barrier is measured with its own method, against its own control. Ecogeographic isolation comes from range maps and the overlap between them. Pollinator isolation comes from watching pollinators in a mixed stand. Gametic and postzygotic barriers come from controlled crosses, scored against crosses within a species. A barrier strength (RI) is therefore a fraction with a definite denominator, not a general impression.
+The film's 99.87% is the estimate of Ramsey, Bradshaw and Schemske (2003), combining barriers across the life cycle: range overlap, pollinator isolation, **pollen precedence** (a plant's own pollen fertilizing ahead of the other species') and several parts of hybrid fitness, from germination to fertility. It is the mean of their estimates for the two directions of gene flow, not a sign that the genomes never mix (Going deeper).
 
-In the monkeyflowers, Ramsey, Bradshaw and Schemske measured barriers at several stages in 2003: where each species grows, which pollinators visit it, how well the other species' pollen sets seed, and how fertile the hybrids are. Each barrier was partial. Together they were estimated to block nearly all gene flow, and most of the isolation arose before any hybrid formed. One pair of species can be held apart by several barriers at once.
+The ledger uses illustrative numbers in the style of that study. Three barriers act in this order, each independently: habitat RI = 0.60, pollinators RI = 0.90, hybrid fertility RI = 0.50.
 
-Barriers act in sequence. A pollinator barrier can only act on plants that grow close enough to share pollinators, and hybrid fertility only matters for hybrid seed that was formed. So each barrier works on the gene flow left over by the ones before it, and the fractions that get through multiply. If each barrier's strength (RI) is the fraction of the remaining gene flow it blocks, and the barriers act in sequence and independently:
+| Barrier, in order | RI | Gene flow reaching it | Blocked here (its credit) | Gene flow left |
+|---|---|---|---|---|
+| Habitat | 0.60 | 1.00 | 0.60 | 0.40 |
+| Pollinators | 0.90 | 0.40 | 0.36 | 0.04 |
+| Hybrid fertility | 0.50 | 0.04 | 0.02 | 0.02 |
 
-> **total isolation = 1 - (1 - RI1) x (1 - RI2) x (1 - RI3)**
+The credits add up to the total isolation: 0.60 + 0.36 + 0.02 = **0.98**. As a formula, the one idea reads:
 
-Do not add the raw strengths. Their sum can be greater than 1, which is meaningless as a fraction of gene flow. A worked example, and an interactive ledger that shows how the order of barriers changes the credit each one gets, are in Going deeper.
+> **total isolation = 1 − (1 − RI1) × (1 − RI2) × (1 − RI3)**, here 1 − 0.40 × 0.10 × 0.50 = 0.98
 
-A species does not need sterile hybrids. In a 2019 study, Heliconius elevatus and H. pardalinus butleri, butterflies that live together in the Amazon, rarely mated in captivity but produced fertile hybrids. They are held apart by mate choice and ecology instead. Sterile hybrids are one kind of barrier, not a requirement for being a species.
+Credits can be added because each is already weighted by the gene flow left for it; raw strengths cannot, since they sum to 2.00, more than all the gene flow there is. Habitat gets more credit (0.60) than pollinators (0.36), although pollinators have the larger RI (0.90), because habitat acts first and leaves pollinators only 0.40 to block.
 
-<LessonFigure src="/figures/speciation/heliconius-fertile-and-sterile-hybrids.webp" width={1200} height={800} alt="AI-generated illustration: two side-by-side panels with pairs of butterflies. On the left, two butterflies that live together are joined by a dashed arrow meaning they rarely mate, and their hybrid has a cluster of eggs, so it is fertile. On the right, two forms of one species are joined by a solid arrow, and their hybrid female has a crossed-out cluster of eggs, so it is sterile." caption="Heliconius elevatus and H. pardalinus butleri fly together in the Amazon and rarely mated in captivity, but their hybrids were fertile. Two separate forms of H. pardalinus mated, yet their female F1 hybrids were sterile. Sterile hybrids are one kind of barrier, not a requirement for being a species." />
+**Predict.** Swap the first two barriers, so pollinators act before habitat. Does total isolation change? Which barrier now gets the most credit?
+
+<details>
+<summary>Check your prediction</summary>
+
+The total stays 0.98, because multiplication does not care about order. The credit moves: pollinators now stop 0.90, habitat only 0.60 × 0.10 = 0.06, and hybrid fertility still 0.02. A barrier's credit depends on its position as well as its strength, so "which barrier matters most" has an answer only for a stated order. In real pairs the life cycle sets that order.
+
+</details>
+
+<IsolationBarrierLedger />
+
+## Kinds of barrier: before and after the zygote
+
+The first film drew a line at the **zygote**, the fertilized egg: **prezygotic** barriers act before it, **postzygotic** barriers after a hybrid zygote forms. Common textbook categories include these seven:
+
+| Barrier | Acts | What happens |
+|---|---|---|
+| Ecogeographic (habitat) | Prezygotic | The populations live in different places or habitats and rarely meet |
+| Temporal | Prezygotic | They breed at different times of day or year |
+| Behavioral | Prezygotic | Courtship, song, scent or mate preference differ; in plants, pollinator preference plays this role |
+| Mechanical | Prezygotic | Reproductive structures do not fit |
+| Gametic | Prezygotic | Egg and sperm, or pollen and stigma, are incompatible, so fertilization fails |
+| Hybrid inviability | Postzygotic | Hybrids fail to develop or survive |
+| Hybrid sterility | Postzygotic | Hybrids survive but have reduced fertility or none |
+
+Sterility often traces to genes that changed separately in each lineage and work badly together in a hybrid. It can also trace to chromosomes that pair poorly at meiosis, covered in [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) and [chromosome changes](/lessons/chromosome-changes/).
+
+In the monkeyflowers the strongest early gates were habitat and pollinators. Were those gates built to keep the species apart, or did they come free with adaptation? The second film tests the idea with fish.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## How barriers evolve: divergent selection
 
-Barriers are not built for a purpose. Selection acts on individuals, and isolation often appears as a side effect of other changes. A well-supported way this happens is **ecological speciation**: isolation evolves as a by-product of adaptation to different environments by divergent selection, selection favoring different traits in different places (see [selection in ecological context](/lessons/selection-in-ecological-context/)). In plants, adaptation to different pollinators and habitats commonly drives the evolution of prezygotic barriers.
+The second film showed benthic-limnetic stickleback isolation following ecology lake after lake, the mark of **divergent selection**, selection that favours different traits in different places.
 
-The monkeyflowers show how. Mimulus cardinalis grows mainly at lower elevations and M. lewisii mainly higher up, and transplant experiments showed that each is adapted to the elevations where it normally grows. Their flowers suit different pollinators. M. lewisii has wide pink flowers and a small nectar reward, visited mainly by bumblebees. M. cardinalis has red flowers with a narrow tube and a large nectar reward, visited mainly by hummingbirds. Those adaptations are themselves the barriers. Plants adapted to different elevations rarely meet, and a pollinator that favors one flower carries little pollen to the other. Ramsey and colleagues concluded that ecological factors, the products of adaptive divergence, were the main barriers between this pair.
+For the monkeyflowers, transplant experiments showed that each species is adapted to the elevations where it normally grows, and Ramsey and colleagues concluded that ecological factors, the products of adaptive divergence (adaptation pulling the two apart), were the main barriers between this pair. More broadly, in plants adaptation to different pollinators and habitats commonly drives the evolution of prezygotic barriers ([selection in ecological context](/lessons/selection-in-ecological-context/)).
 
-The clearest test of the idea uses evolution that repeated itself. Several small lakes in British Columbia each hold two forms of threespine stickleback, a bottom-feeding benthic form and an open-water limnetic form, and each lake's pair is thought to have arisen independently. If isolation is a by-product of adapting to a habitat, fish of the same form from different lakes should mate readily, and fish of different forms should not, whatever lake they came from. In more than 750 laboratory mating trials with fish from three lakes, Rundle, Schluter and colleagues found that pattern: benthic-limnetic pairs were strongly isolated, while same-form pairs from different lakes were not. Isolation followed ecology, not ancestry. When isolation repeats with the environment, lake after lake, divergent selection, not chance, is the likely cause.
+The stickleback trials did not identify which traits drove the mate preferences, and they point to divergent selection as the likely cause of the isolation but not to where the forms first diverged, the next section's question.
 
-The main case where selection favors isolation itself is **reinforcement**: where two forms meet and their hybrids do poorly, individuals that avoid mating with the other form leave more offspring, so prezygotic isolation grows stronger. Rosser and colleagues read the strong mate choice of the Amazon Heliconius pair as consistent with reinforcement.
+Selection can also favour isolation itself. In **reinforcement**, two forms meet and their hybrids do poorly, so individuals that avoid mating with the other form leave more offspring, and prezygotic isolation grows stronger.
 
-Other mechanisms include **mutation-order speciation**, in which separate populations under similar selection fix different advantageous mutations, and drift in small populations ([drift and gene flow](/lessons/drift-gene-flow-explanations/)), which has weaker evidence behind it. Polyploidy, a faster route, has its own section below.
+Two Heliconius butterflies that fly together in the Amazon are held apart by mate choice and ecology, not hybrid sterility (figure), and Rosser and colleagues (2019) read that strong mate choice as consistent with reinforcement.
+
+<LessonFigure src="/figures/speciation/heliconius-fertile-and-sterile-hybrids.webp" width={1200} height={800} alt="AI-generated illustration: two side-by-side panels with pairs of butterflies. On the left, two butterflies that live together are joined by a dashed arrow meaning they rarely mate, and their hybrid has a cluster of eggs, so it is fertile. On the right, two forms of one species are joined by a solid arrow, and their hybrid female has a crossed-out cluster of eggs, so it is sterile." caption="Heliconius elevatus and H. pardalinus butleri fly together in the Amazon and rarely mated in captivity, but their hybrids were fertile. Two separate forms of H. pardalinus mated, yet their female first-generation (F1) hybrids were sterile. Sterile hybrids are one kind of barrier, not a requirement for being a species." />
+
+Two other mechanisms build barriers without divergent selection between habitats. In **mutation-order speciation**, separate populations under similar selection fix different advantageous mutations, and those mutations work badly together when the populations meet, so hybrids suffer. **Drift**, chance change in gene frequencies in small populations ([drift and gene flow](/lessons/drift-gene-flow-explanations/)), has weaker evidence behind it as a cause of speciation.
 
 ## Geography and mechanism are separate questions
 
-Two questions are easy to merge and should be kept apart. The first is **geography**: where were the populations while they diverged? The second is **mechanism**: what process built the barriers?
+**Geography** asks where the populations were while they diverged; **mechanism** asks what process built the barriers.
 
-On geography, **allopatric** speciation happens in populations that are physically separated. Separation can come by **vicariance**, when a barrier such as a new sea or mountain range divides one population, or by **dispersal**, when a few individuals found a new population somewhere else. **Sympatric** speciation happens without a geographic barrier, within one area. Between the two lie **parapatric** cases, in which neighboring populations diverge along a boundary while still exchanging some genes.
+**Allopatric** speciation happens in populations that are physically separated. Separation can come by **vicariance**, when a barrier such as a new sea or mountain range divides one population, or by **dispersal**, when a few individuals found a new population somewhere else. **Sympatric** speciation happens without a geographic barrier, within one area. (Cases in between are in Going deeper.)
 
-<LessonFigure src="/figures/speciation/three-geographies.webp" width={1200} height={800} alt="AI-generated illustration: three map-style schematics of populations shown as dots. In the first, a band such as a sea or mountain range divides one population into two parts; in the second, a few dots cross water to found a new population on an island; in the third, two kinds of dots share one area with no barrier." caption="Allopatric speciation needs the populations apart, either because a barrier such as a new sea or mountain range divides one population (vicariance) or because a few individuals found a new population elsewhere (dispersal). Sympatric speciation happens within one area. All three answer where, not how the barriers arose." />
+<LessonFigure src="/figures/speciation/three-geographies.webp" width={1200} height={800} alt="AI-generated illustration: three map-style schematics of populations shown as dots. In the first, a band such as a sea or mountain range divides one population into two parts; in the second, a few dots cross water to found a new population on an island; in the third, two kinds of dots share one area with no barrier." caption="Allopatric speciation needs the populations apart, by vicariance (a new barrier divides one population) or dispersal (a few individuals found a new one elsewhere); sympatric speciation happens within one area. All three answer where, not how the barriers arose." />
 
-The Isthmus of Panama is a classic vicariance event. As it closed, it divided marine animals into Caribbean and Pacific halves. Even so, one event did not split every pair at one moment. Nancy Knowlton and colleagues studied Alpheus snapping-shrimp pairs split by the isthmus and found that the pairs were probably isolated at different times, some well before the final closure, although ancestral variation explains much of the spread in their genetic distances.
+The Isthmus of Panama is a classic vicariance event, yet it did not split every pair at one moment: Nancy Knowlton and colleagues found that Alpheus snapping-shrimp pairs divided by it were probably isolated at different times, some well before the final closure (Going deeper).
 
-Ecological speciation is a mechanism, not a third geographic mode. It can act in allopatry or in sympatry. The stickleback trials show that isolation followed ecology, but they do not tell you where the forms first diverged.
+**Ecological speciation**, isolation as a by-product of adaptation, is a mechanism, not a third geographic mode: it can act in allopatry or in sympatry.
 
-Present-day coexistence does not tell you either. Two species living together today could have diverged there, or diverged elsewhere and met later, called **secondary contact**. Telling the two histories apart takes genetic data from possible source populations and a comparison of explicit models. For crater-lake cichlids in Nicaragua, Kautt, Machado-Schiaffino and Meyer (2016) did this with genome-wide data. Their analyses supported divergence beginning in sympatry, with admixture from source populations into both lakes shortly before diversification.
+**Predict.** Two cichlid species live together today in one small crater lake in Nicaragua. Does that show they diverged there?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. They could have diverged in the lake, or diverged elsewhere and met later, called **secondary contact**; both histories end with the species living together. Telling them apart takes genetic data from possible source populations and a comparison of explicit models.
+
+</details>
+
+Kautt, Machado-Schiaffino and Meyer (2016) made that comparison for Nicaraguan crater-lake cichlids with genome-wide data, and it supported divergence beginning in sympatry, with **admixture**, genes entering from another population by interbreeding, from source populations into both lakes shortly before diversification.
 
 <LessonFigure src="/figures/speciation/cichlid-two-histories.webp" width={1200} height={800} alt="AI-generated illustration: two side-by-side schematics of a round crater lake with a nearby larger lake and river. On the left one fish arrives and splits into two kinds inside the crater lake; on the right two kinds of fish arrive separately and meet there. A small inset compares two simple trees, one where the two lake fish are each other's closest relatives and one where each groups with a different outside population." caption="Two cichlid species in one crater lake could have diverged there or arrived separately and met later (secondary contact), so living together proves neither. Comparing who is related to whom, with source populations sampled, helps tell the histories apart; in Nicaraguan crater lakes the analyses supported divergence beginning in sympatry, with some admixture from outside." />
 
 ## Polyploidy: isolation in one step
 
-Polyploidy is a gain of extra whole chromosome sets, covered in the chromosome changes lesson linked above. It is a different route to a new species, and an important one. Polyploid speciation, in which the entire genome is duplicated, is particularly frequent in plants. It most often happens together with hybridization: a hybrid between two species duplicates its genome, a route called **allopolyploidy**. The duplication gives the new lineage partial reproductive isolation from its parent species at once, in a single generation, with no long period of divergent selection. Wheat, one of the world's major crops, is a polyploid that arose through polyploid speciation. The route is not limited to plants: the clawed frogs (Xenopus and Silurana) include species with different numbers of chromosome sets.
+**Polyploidy** is a gain of extra whole chromosome sets ([chromosome changes](/lessons/chromosome-changes/)). Polyploid speciation, in which the entire genome is duplicated, is an important route to a new species, particularly frequent in plants. It most often happens together with hybridization: a hybrid between two species duplicates its genome, a route called **allopolyploidy**. The duplication gives the new lineage partial reproductive isolation from its parent species in a single generation, with no long period of divergent selection. The reason is chromosome number: a cross back to a parent gives offspring with unmatched chromosome sets, which pair poorly at meiosis, so those offspring are often sterile.
 
-Hybridization without genome duplication can also give rise to a new species, called homoploid hybrid speciation, but how often that happens remains unclear.
+Wheat, a major crop, is a polyploid that arose through polyploid speciation. The route is not limited to plants: the clawed frogs (Xenopus and Silurana) include species with different numbers of chromosome sets. Hybridization without genome duplication can also give rise to a new species, called homoploid hybrid speciation, but how often that happens remains unclear.
 
 ## What counts as a species: criteria as evidence
 
-Barriers explain how lineages separate. Recognizing that two lineages have separated is a different job, and the right tool depends on the organisms and the evidence you have.
+Barriers explain how lineages separate. Recognizing that they have separated is a different job, and the tool depends on the organisms and evidence.
 
-A **lineage** is a line of ancestors and descendants traced through time. A **metapopulation** is a set of local populations linked by occasional migration. On one influential view, the main species concepts agree that a species is a metapopulation lineage that evolves separately from others. The disagreements come when you try to recognize one.
+A **lineage** is a line of ancestors and descendants traced through time. A **metapopulation** is a set of local populations linked by occasional migration. A metapopulation lineage, then, is a series of connected populations, ancestors to descendants, that evolves as one unit through time. On one influential view, the main species concepts agree that a species is such a lineage, evolving separately from others; they disagree about how to recognize one.
 
-The **biological species criterion**, associated with Ernst Mayr, asks whether populations are reproductively isolated: do they interbreed in nature and leave fertile offspring? It suits living, sexual organisms that meet. It fails for asexual organisms, which do not interbreed at all, and for fossils, which cannot be tested.
+The **biological species criterion**, associated with Ernst Mayr, treats species as groups of actually or potentially interbreeding natural populations that are reproductively isolated from other such groups. Occasional fertile hybrids do not by themselves erase that isolation if the populations stay distinct, as in the Heliconius pair. The **ecological criterion** separates species by their **niche**, the set of conditions and resources a population uses. The **phylogenetic criterion** comes in two versions. One asks that a species be **diagnosable** by fixed character differences. The other asks that it be **monophyletic**: a group made up of an ancestor and all its descendants, read from a tree as in [reading phylogenetic trees](/lessons/reading-phylogenetic-trees/). **Morphological** criteria use differences in form.
 
-The **ecological criterion** separates species by their **niche**, the set of conditions and resources a population uses. The **phylogenetic criterion** comes in two versions. One asks that a species be **diagnosable** by fixed character differences. The other asks that it be **monophyletic**: a group made up of an ancestor and all its descendants, read from a tree as in [reading phylogenetic trees](/lessons/reading-phylogenetic-trees/). **Morphological** criteria use differences in form, which is what paleontologists and museum taxonomists work with.
+**Predict.** You have only fossils of two kinds of animal, or only an asexual microbe. Which criterion cannot be used in either case?
 
-Think of the criteria as different instruments pointed at the same object. A thermometer, an infrared camera and a hand on the forehead each detect a fever, and none of them is the fever. Kevin de Queiroz argued in 2007 that the species criteria work this way. Each detects a property, such as intrinsic isolation, a distinct niche, fixed differences or monophyly, that a lineage acquires as it separates. The properties arise at different times, so for young species the criteria disagree. In his unified concept they are lines of evidence, and the more of them agree, the stronger the case that two lineages are evolving separately.
+<details>
+<summary>Check your prediction</summary>
+
+The biological criterion. It suits living, sexual organisms that meet. It fails for asexual organisms, which do not interbreed at all, and for fossils, which cannot be tested. Differences in form are what paleontologists and museum taxonomists work with.
+
+</details>
+
+Think of the criteria as instruments pointed at one object. A thermometer, an infrared camera and a hand on the forehead each detect a fever, and none of them is the fever. Kevin de Queiroz argued in 2007 that species criteria work this way: each detects a property, such as intrinsic isolation, a distinct niche, fixed differences or monophyly, that a lineage acquires as it separates. The properties arise at different times, so for young species the criteria disagree. In his unified concept they are lines of evidence, and the more agree, the stronger the case for separate evolution.
 
 ### Design problem
 
-Two cichlid species live together in one small crater lake. Design a study to decide whether they diverged in the lake (sympatric speciation) or diverged elsewhere and arrived separately (secondary contact).
+Design a study to decide whether two cichlid species in one small crater lake diverged there (sympatric speciation) or elsewhere, arriving separately (secondary contact).
 
 <details>
 <summary>One way to do it</summary>
@@ -432,7 +505,7 @@ Two cichlid species live together in one small crater lake. Design a study to de
 2. *Genotype genome-wide.* Use thousands of markers so that ancestry can be traced across the genome, not from one gene.
 3. *Ask who is related to whom.* If the two lake species are each other's closest relatives, a single colonization with divergence in the lake is plausible. If each groups with a different outside population, separate arrivals are more likely.
 4. *Compare explicit models.* Simulate divergence with gene flow from the start against isolation followed by contact, and compare how well each fits the data.
-5. *Test for admixture.* Alleles can enter from outside even when divergence happens in the lake, as Kautt and colleagues found, and a test that finds no admixture does not prove there was none.
+5. *Test for admixture.* Alleles can enter from outside even when divergence happens in the lake, as Kautt and colleagues found.
 6. *Use geology.* The age of the crater sets an upper bound on how long divergence in the lake could have taken.
 
 State the conclusion as support for one model over another, not as proof, and name the histories you could not test.
@@ -443,31 +516,23 @@ State the conclusion as support for one model over another, not as proof, and na
 
 ### The monkeyflower numbers
 
-In the real monkeyflower study, ecogeographic isolation was estimated at 58.7% from herbarium records, 97.6% of pollinator foraging bouts in a mixed population stayed on one species, and greenhouse crosses gave nearly 50% fewer seeds than conspecific controls. Combined, the measured barriers were estimated to prevent an average of 99.87% of gene flow for that pair. Those numbers belong to those two species; they are not a ranking of barriers across all plants.
+M. lewisii has wide pink flowers with a small nectar reward and is visited mainly by bumblebees; M. cardinalis has red, narrow-tubed flowers with a large nectar reward and is visited mainly by hummingbirds. In the study, ecogeographic isolation was estimated at 58.7% from herbarium records, 97.6% of pollinator foraging bouts in a mixed population stayed on one species, and greenhouse crosses gave nearly 50% fewer seeds than crosses with pollen from the same species. These numbers, and the 99.87% total, belong to those two species; they are not a ranking of barriers across all plants. The pollinator figure counts foraging bouts, and visits are not always the same as pollen moved.
 
-### A worked ledger: why order moves the credit
+### An isolation index is not genome-wide separation
 
-Ramsey, Bradshaw and Schemske combined their monkeyflower barriers this way, using the formula in the first section.
+The 99.87% leaves about 0.13% of potential gene flow unblocked. Treated, only as a toy model, as a steady migration rate each generation, gene flow that size could make neutral regions of the genome nearly alike in large populations. Species with strong isolation can stay distinct because selection keeps the barrier genes and adapted traits apart; Heliconius elevatus, for example, has persisted as a hybrid lineage despite ongoing gene flow with one parent species. An isolation index is not itself a migration rate, and populations need not be at equilibrium, so this is an illustration, not a claim about the monkeyflowers.
 
-**Worked problem.** These numbers are illustrative, in the style of that study. Three barriers act in this order between two plant species. Each RI is the fraction of the *remaining* gene flow that barrier blocks. Assume the barriers act in sequence and independently.
+### Comparing barrier strengths across studies
 
-- Ecogeographic, RI1 = 0.60
-- Pollinator, RI2 = 0.90
-- Hybrid fertility, RI3 = 0.50
+Ramsey, Bradshaw and Schemske used the sequential method of the ledger above. Sobel and Chen (2014) proposed a unified linear index of barrier strength because earlier indices used different null expectations and denominators, and barrier strengths can be compared only when indices share both.
 
-1. *First barrier.* Its absolute contribution is AC1 = 0.60. Gene flow left: 1 - 0.60 = 0.40.
-2. *Second barrier.* It acts on the 0.40 left: AC2 = 0.90 x 0.40 = 0.36. Total so far: 0.60 + 0.36 = 0.96.
-3. *Third barrier.* It acts on the 0.04 left: AC3 = 0.50 x 0.04 = 0.02. Total isolation: 0.96 + 0.02 = **0.98**.
-4. *Check.* Remaining gene flow is the product of what each barrier lets through: 0.40 x 0.10 x 0.50 = 0.02, which equals 1 - 0.98.
-5. *Order matters for credit.* Swap the first two barriers and the pollinator barrier gets AC = 0.90, the ecogeographic barrier 0.60 x 0.10 = 0.06, and hybrid fertility again 0.02. The total is still 0.98, but the credit moves. Here the early, weaker barrier gets more credit than the later, stronger one, because the later one has less gene flow left to block, so credit depends on position as well as strength.
+### Between allopatry and sympatry
 
-Here the raw strengths sum to 2.00, which is why they cannot simply be added. The multiplication also rests on the assumptions above, and Sobel and Chen (2014) proposed a unified linear index of barrier strength because earlier indices used different null expectations and denominators.
-
-<IsolationBarrierLedger />
+Between the two geographic modes lie **parapatric** cases, in which neighbouring populations diverge along a boundary while still exchanging some genes.
 
 ### Panama and the snapping shrimps
 
-The Isthmus of Panama finished closing about 2.8 million years ago by the usual estimate, although some studies argue for a much earlier closure. Biologists used the many species pairs split by it to calibrate molecular clocks, on the assumption that every pair split when the land closed. Knowlton and colleagues tested that assumption in seven pairs of Alpheus snapping shrimps, comparing biochemical divergence with how readily shrimps from opposite oceans would pair in the laboratory. The comparison indicated that isolation was staggered rather than simultaneous. A 2009 follow-up by Hurt, Anker and Knowlton used several nuclear genes and found that ancestral variation, present before the split, explained much of the spread in mitochondrial distances, and that two pairs had probably diverged well before the final closure.
+The Isthmus of Panama finished closing about 2.8 million years ago by the usual estimate, although some studies argue for a much earlier closure. Biologists used species pairs split by it to calibrate molecular clocks, assuming every pair split when the land closed. Knowlton and colleagues tested that in seven pairs of Alpheus snapping shrimps, comparing biochemical divergence with how readily shrimps from opposite oceans would pair in the laboratory; isolation was staggered rather than simultaneous. A 2009 follow-up by Hurt, Anker and Knowlton used several nuclear genes and found that ancestral variation, present before the split, explained much of the spread in mitochondrial distances, and that two pairs had probably diverged well before the final closure.
 
 ### Methods behind the cichlid answer
 
