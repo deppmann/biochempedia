@@ -1,474 +1,786 @@
-"""Diffusion and osmosis: water moves toward more dissolved particles  (grade 7 Life Science explainer)
+"""Random Moves, One-Way Drift (diffusion-and-osmosis, film 1)
 
-COLOR MAP (one color per concept, whole film)
-  BLUE   = water (drops, water particles, the water in a glass or bowl)
-  YELLOW = a dissolved substance that diffuses (food-colouring dye, oxygen)
-  ORANGE = dissolved salt (the particles the model membrane holds back)
-  GREEN  = living tissue and cells (cucumber, lettuce, cell outlines)
-  TEAL   = vocabulary words and terms as they are defined
-  GREY   = membranes, glass, outlines, neutral labels
-  TEXT   = questions and the take-home line
-Every dot is a labelled schematic particle. Nothing is a molecule; nothing is to scale.
+COLOUR MAP (both films): membrane = WHITE dashed line; dye = PURPLE dots; water = BLUE dots;
+salt = GREY squares; oxygen = GREEN dots; carbon dioxide = RED dots; tallies = WHITE arrows.
+Every tank and cell is a cartoon labelled 'schematic'. One world through the film: a tank split by a line
+at x = 0, with dots that random-walk (sine wobble) and hop across the line in timed routes.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
+PUR = "#B07CF0"
+PINK = "#F08DAF"
+CY, TW, TH = 0.25, 12.4, 5.0          # the big tank: centre y, width, height
+P3 = lambda x, y: np.array([x, y, 0.0])
 
 
-def vocab(text, size=36):
-    return chip(text, TEAL, size=size)
+# ---------------------------------------------------------------------------------------------
+# The world: dots with a home slot on each side, a gentle wobble, and timed hops across the line
+# ---------------------------------------------------------------------------------------------
+class World:
+    def __init__(self, scene, specs, cx=0.0, cy=CY, w=TW, h=TH, amp=0.26, seed=11, flash=True, s=1.0):
+        self.s, self.cx, self.cy, self.w, self.h, self.flash = s, cx, cy, w, h, flash
+        n = len(specs)
+        rng = np.random.default_rng(seed)
+        self.slots = {"L": self._slots(rng, n, -1), "R": self._slots(rng, n, 1)}
+        self.sides = [sp["side"] for sp in specs]
+        self.colors = [sp.get("color", PUR) for sp in specs]
+        self.dots = VGroup()
+        for sp in specs:
+            r = sp.get("r", 0.19) * s
+            m = Square(side_length=2 * r * 0.9) if sp.get("shape") == "square" else Dot(radius=r)
+            m.set_fill(sp.get("color", PUR), opacity=1).set_stroke(width=0)
+            self.dots.add(m)
+        self.anchor = [self.slots[sd][i].copy() for i, sd in enumerate(self.sides)]
+        self.last = [a.copy() for a in self.anchor]
+        self.q = [[] for _ in range(n)]
+        self.free = [0.0] * n
+        self.plan = list(self.sides)
+        self.sgn = [-1 if sd == "L" else 1 for sd in self.sides]
+        self.white = [False] * n
+        self.ph = rng.uniform(0, 6.28, (n, 4))
+        self.fr = rng.uniform(1.4, 3.4, (n, 4))
+        self.amp = amp * s
+        self.cross = {"lr": 0, "rl": 0}
+        self.speed = 1.0
+        self.t = scene.elapsed()
+        for i, d in enumerate(self.dots):
+            d.move_to(self.anchor[i])
+        self.dots.add_updater(self._tick)
+
+    def _slots(self, rng, n, sgn):
+        s, cx, cy, w, h = self.s, self.cx, self.cy, self.w, self.h
+        if sgn < 0:
+            x0, x1 = cx - w / 2 + 0.45 * s, cx - 0.95 * s
+        else:
+            x0, x1 = cx + 0.95 * s, cx + w / 2 - 0.45 * s
+        y0, y1 = cy - h / 2 + 0.42 * s, cy + h / 2 - 0.42 * s
+        pts = []
+        dmin = 0.62 * s
+        while len(pts) < n:
+            for _ in range(400):
+                p = P3(rng.uniform(x0, x1), rng.uniform(y0, y1))
+                if all(np.linalg.norm(p - q) > dmin for q in pts):
+                    pts.append(p)
+                    break
+            else:
+                dmin *= 0.9
+        return pts
+
+    # -- scheduling -------------------------------------------------------------------------
+    def route(self, i, pts, start=None):
+        """Queue waypoints [(x, y, seconds), ...] for dot i."""
+        t = max(self.t if start is None else start, self.free[i])
+        p0 = self.last[i]
+        for (x, y, dur) in pts:
+            p1 = P3(x, y)
+            self.q[i].append([t, t + dur, p0, p1])
+            t += dur
+            p0 = p1
+        self.free[i] = t
+        self.last[i] = p0
+
+    def hop(self, i, to, t_cross):
+        """Dot i hops to side 'L' or 'R'; it reaches the line, crosses, and settles; it crosses at t_cross."""
+        s = self.s
+        sg = -1 if self.plan[i] == "L" else 1
+        start = max(t_cross - 1.25, self.free[i], self.t)
+        src = self.last[i]
+        dst = self.slots[to][i]
+        ym = 0.5 * (src[1] + dst[1])
+        nx = 0.38 * s
+        self.route(i, [(self.cx + sg * nx, ym, 0.9), (self.cx - sg * nx, ym, 0.7), (dst[0], dst[1], 1.0)], start)
+        self.plan[i] = to
+
+    def bounce(self, i, t_touch):
+        s = self.s
+        src = self.last[i]
+        sg = -1 if src[0] < self.cx else 1
+        start = max(t_touch - 0.9, self.free[i], self.t)
+        self.route(i, [(self.cx + sg * 0.42 * s, src[1], 0.9), (src[0], src[1], 1.1)], start)
+
+    def pop(self, side):
+        return sum(1 for x in self.sides if x == side)
+
+    # -- the tick ---------------------------------------------------------------------------
+    def _tick(self, grp, dt):
+        self.t += dt * self.speed
+        t = self.t
+        for i, d in enumerate(self.dots):
+            q = self.q[i]
+            while q and t >= q[0][1]:
+                done = q.pop(0)
+                self.anchor[i] = done[3].copy()
+                self._side(i, done[3][0])
+            if q and t >= q[0][0]:
+                t0, t1, p0, p1 = q[0]
+                u = (t - t0) / (t1 - t0)
+                u = u * u * (3 - 2 * u)
+                a = p0 + (p1 - p0) * u
+                self._side(i, a[0])
+            else:
+                a = self.anchor[i]
+            ph, fr = self.ph[i], self.fr[i]
+            ox = self.amp * 0.6 * (np.sin(fr[0] * t + ph[0]) - np.sin(ph[0]) + 0.6 * (np.sin(fr[1] * t + ph[1]) - np.sin(ph[1])))
+            oy = self.amp * 0.6 * (np.sin(fr[2] * t + ph[2]) - np.sin(ph[2]) + 0.6 * (np.sin(fr[3] * t + ph[3]) - np.sin(ph[3])))
+            d.move_to([a[0] + ox, a[1] + oy, 0])
+            if self.flash:
+                near = bool(q) and t >= q[0][0] and abs(a[0] + ox - self.cx) < 0.5 * self.s
+                if near != self.white[i]:
+                    self.white[i] = near
+                    d.set_fill(WHITE if near else self.colors[i])
+
+    def _side(self, i, x):
+        sg = -1 if x < self.cx else 1
+        if sg != self.sgn[i]:
+            self.sgn[i] = sg
+            self.sides[i] = "L" if sg < 0 else "R"
+            self.cross["lr" if sg > 0 else "rl"] += 1
 
 
-def arr(a, b, color=GREY, w=6):
-    return Arrow(a, b, buff=0.05, color=color, stroke_width=w, tip_length=0.28,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=14)
+# ---------------------------------------------------------------------------------------------
+# Readouts that follow the world
+# ---------------------------------------------------------------------------------------------
+class LiveText(VGroup):
+    def __init__(self, fn, pos, size=34, color=TEXT, op=1.0):
+        super().__init__()
+        self.fn, self.pos, self.size, self.color = fn, pos, size, color
+        self.op = ValueTracker(op)
+        self._v = self.fn()
+        self._o = None
+        self.add(T(self._v, size=self.size, color=self.color).move_to(self.pos))
+        self.add_updater(self._upd)
+
+    def _upd(self, m):
+        v = self.fn()
+        o = self.op.get_value()
+        if v != self._v:
+            self._v = v
+            self._o = None
+            self.submobjects[0].become(T(v, size=self.size, color=self.color).move_to(self.pos))
+        if o != self._o:
+            self._o = o
+            self.submobjects[0].set_opacity(o)
 
 
-def P(x, y):
-    return np.array([x, y, 0.0])
+def counters(w, xl=-4.6, xr=4.6, y=3.42, size=34, op=1.0):
+    return VGroup(LiveText(lambda: f"left: {w.pop('L')}", P3(xl, y), size, TEXT, op),
+                  LiveText(lambda: f"right: {w.pop('R')}", P3(xr, y), size, TEXT, op))
 
 
-def dots(pts, color, r=0.1):
-    return VGroup(*[Dot(P(*p) if len(p) == 2 else p, radius=r, color=color) for p in pts])
+class Tally(VGroup):
+    """White arrows with counters: '-> N' (left to right) and '<- N' (right to left)."""
+    def __init__(self, w, x=0.0, y=3.42, gap=1.45, size=34, op=0.0):
+        super().__init__()
+        self.w = w
+        self.op = ValueTracker(op)
+        ar = lambda a, b: Arrow(P3(a, y), P3(b, y), buff=0, color=WHITE, stroke_width=7, tip_length=0.28,
+                                max_tip_length_to_length_ratio=0.5)
+        self.a1, self.a2 = ar(x - gap - 0.55, x - gap + 0.35), ar(x + gap + 0.35, x + gap - 0.55)
+        self.n1 = LiveText(lambda: f"{w.cross['lr']}", P3(x - gap + 0.8, y), size, WHITE, op)
+        self.n2 = LiveText(lambda: f"{w.cross['rl']}", P3(x - gap + 1.6, y), size, WHITE, op)
+        self.add(self.a1, self.n1, self.a2, self.n2)
+        self.add_updater(self._upd)
+
+    def _upd(self, m):
+        o = self.op.get_value()
+        self.a1.set_opacity(o)
+        self.a2.set_opacity(o)
+        self.n1.op.set_value(o)
+        self.n2.op.set_value(o)
 
 
-def grid_pts(rng, x0, x1, y0, y1, nx, ny, jit=0.35):
-    out = []
-    for i in range(nx):
-        for j in range(ny):
-            x = x0 + (i + 0.5) * (x1 - x0) / nx + rng.uniform(-jit, jit) * (x1 - x0) / nx
-            y = y0 + (j + 0.5) * (y1 - y0) / ny + rng.uniform(-jit, jit) * (y1 - y0) / ny
-            out.append((x, y))
-    return out
+class Bars(VGroup):
+    """Purple shading under each half: darker where the dots are more crowded (follows the world)."""
+    def __init__(self, w, y=-2.5, color=PUR, op=1.0):
+        super().__init__()
+        self.w, self.color = w, color
+        self.op = ValueTracker(op)
+        hw = w.w / 2 - 0.05
+        self.l = Rectangle(width=hw, height=0.32, stroke_width=0).move_to(P3(w.cx - hw / 2 - 0.05, y))
+        self.r = Rectangle(width=hw, height=0.32, stroke_width=0).move_to(P3(w.cx + hw / 2 + 0.05, y))
+        self.dl = w.pop("L") / 14
+        self.dr = w.pop("R") / 14
+        self.add(self.l, self.r)
+        self.add_updater(self._upd)
+
+    def _upd(self, m, dt=0):
+        k = min(1.0, 0.04)
+        self.dl += (self.w.pop("L") / 14 - self.dl) * k
+        self.dr += (self.w.pop("R") / 14 - self.dr) * k
+        o = self.op.get_value()
+        self.l.set_fill(self.color, opacity=o * (0.06 + 0.9 * self.dl))
+        self.r.set_fill(self.color, opacity=o * (0.06 + 0.9 * self.dr))
 
 
-def drift(mobs, targets, rt, amp=0.22, seed=1):
-    """Move each dot to its target along a wobbly path (random movement with a net direction)."""
-    rng = np.random.default_rng(seed)
-    starts = [m.get_center().copy() for m in mobs]
-    tg = [np.array(t if len(t) == 3 else (t[0], t[1], 0.0), float) for t in targets]
-    ph = rng.uniform(0, 6.28, (len(mobs), 4))
-    fr = rng.uniform(5, 11, (len(mobs), 2))
-
-    def f(_m, a):
-        p = a * a * (3 - 2 * a)
-        env = np.sin(np.pi * a)
-        for i, m in enumerate(mobs):
-            w = np.array([np.cos(fr[i, 0] * a + ph[i, 0]) * amp * env, np.sin(fr[i, 1] * a + ph[i, 1]) * amp * env, 0])
-            m.move_to(starts[i] + (tg[i] - starts[i]) * p + w)
-    return UpdateFromAlphaFunc(VGroup(*mobs), f, run_time=rt, rate_func=linear)
-
-
-def jiggle(mobs, rt, amp=0.08, seed=2, cycles=None):
-    """Small random shaking in place; every dot is back where it started at the end."""
-    rng = np.random.default_rng(seed)
-    cycles = cycles or max(1.0, rt * 0.9)
-    base = [m.get_center().copy() for m in mobs]
-    ph = rng.uniform(0, 6.28, (len(mobs), 2))
-    fr = rng.uniform(0.8, 1.6, (len(mobs), 2))
-
-    def f(_m, a):
-        env = min(1.0, a * 6, (1 - a) * 6)
-        for i, m in enumerate(mobs):
-            m.move_to(base[i] + amp * env * np.array([np.sin(2 * np.pi * cycles * fr[i, 0] * a + ph[i, 0]),
-                                                      np.cos(2 * np.pi * cycles * fr[i, 1] * a + ph[i, 1]), 0]))
-    return UpdateFromAlphaFunc(VGroup(*mobs), f, run_time=rt, rate_func=linear)
-
-
-class SS(SpokenScene):
-    def room(self, phrase, lead=0.2):
-        return self.t_of(phrase) - lead - self.elapsed()
-
-    def at_idle(self, phrase, mobs, amp=0.07, seed=0):
-        """Keep the particles moving until the narrator reaches `phrase`, then sync to it."""
-        rt = self.room(phrase)
-        if rt > 0.5 and mobs:
-            self.play(jiggle(list(mobs), rt, amp, seed=seed), run_time=rt)
-        self.at(phrase)
-
-
-def glass(cx, cy, w, h):
-    water = Rectangle(width=w, height=h, stroke_width=0, fill_color=BLUE, fill_opacity=0.16).move_to([cx, cy, 0])
-    l, r, b = cx - w / 2, cx + w / 2, cy - h / 2
-    outline = VMobject(color=GREY, stroke_width=6)
-    outline.set_points_as_corners([P(l, cy + h / 2 + 0.25), P(l, b), P(r, b), P(r, cy + h / 2 + 0.25)])
+# ---------------------------------------------------------------------------------------------
+# Static pieces
+# ---------------------------------------------------------------------------------------------
+def tank_base(cx=0.0, cy=CY, w=TW, h=TH):
+    water = Rectangle(width=w, height=h, stroke_width=0, fill_color=BLUE, fill_opacity=0.14).move_to(P3(cx, cy))
+    outline = Rectangle(width=w, height=h, stroke_color=GREY, stroke_width=5, fill_opacity=0).move_to(P3(cx, cy))
     return VGroup(water, outline)
 
 
-def tank(cx, cy, w, h):
-    water = Rectangle(width=w, height=h, stroke_width=0, fill_color=BLUE, fill_opacity=0.16).move_to([cx, cy, 0])
-    outline = Rectangle(width=w, height=h, stroke_color=GREY, stroke_width=6, fill_opacity=0).move_to([cx, cy, 0])
-    return water, outline
+def open_line(cx=0.0, cy=CY, h=TH):
+    return DashedLine(P3(cx, cy - h / 2), P3(cx, cy + h / 2), dash_length=0.1, dashed_ratio=0.4, color=GREY, stroke_width=4)
 
 
-def memb(x, y0, y1):
-    return DashedLine(P(x, y0), P(x, y1), dash_length=0.22, dashed_ratio=0.62, color=GREY, stroke_width=8)
+def membrane(cx=0.0, cy=CY, h=TH):
+    return DashedLine(P3(cx, cy - h / 2), P3(cx, cy + h / 2), dash_length=0.24, dashed_ratio=0.62, color=WHITE, stroke_width=8)
 
 
+def cell_fill(cx=0.0, cy=CY, w=TW, h=TH):
+    return RoundedRectangle(corner_radius=0.35, width=w / 2 - 0.12, height=h - 0.14, stroke_color=PINK, stroke_width=3,
+                            fill_color=PINK, fill_opacity=0.2).move_to(P3(cx + w / 4 + 0.03, cy))
+
+
+def schem(x=6.15, y=-3.72):
+    return T("schematic", size=22, color=GREY).move_to(P3(x, y))
+
+
+def caption(text, y=-3.05, size=30, color=TEXT):
+    return T(text, size=size, color=color).move_to(P3(0, y))
+
+
+S_12_2 = ["L"] * 12 + ["R"] * 2
+LEFT_AFTER_6 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 12}
+LEFT_S9 = {0, 1, 2, 3, 4, 5, 12}
+
+
+def specs_from_left(left, color=PUR, n=14):
+    return [{"side": "L" if i in left else "R", "color": color} for i in range(n)]
+
+
+def specs_12_2(color=PUR):
+    return [{"side": s, "color": color} for s in S_12_2]
+
+
+def dim_anim(base, line, sch):
+    return [base[0].animate.set_fill(opacity=0.05), base[1].animate.set_stroke(opacity=0.4),
+            line.animate.set_stroke(opacity=0.4), sch.animate.set_opacity(0.4)]
+
+
+class SS(SpokenScene):
+    def idle(self, until=None):
+        """Hold (dots keep moving) until scene time `until`."""
+        rest = (until if until is not None else self.narration_s) - self.elapsed()
+        if rest > 0.02:
+            self.wait(rest)
+
+
+# ---------------------------------------------------------------------------------------------
 class S00Title(TitleCard):
-    LESSON = "Diffusion and osmosis"
-    TITLE = "Water moves toward more dissolved salt"
+    LESSON = "Diffusion and Osmosis"
+    TITLE = "Random Moves, One-Way Drift"
 
 
 # ---------------------------------------------------------------------------------------------
-class S01Puzzle(SS):
-    """cucumber slice + salt -> beads of water; limp lettuce in water -> crisp; the question."""
+class S01Hook(SS):
+    """A drop of dye blooms in a glass, the film runs backwards, and does not gather back."""
 
     def construct(self):
-        lx, rx = -3.5, 3.2
-        slab = RoundedRectangle(corner_radius=0.14, width=5.0, height=1.3, stroke_color=GREEN, stroke_width=6,
-                                fill_color=GREEN, fill_opacity=0.22).move_to(P(lx, -1.0))
-        slab_l = T("cucumber slices", 32, GREEN).move_to(P(lx, -2.1))
-        salt_l = T("salt", 32, ORANGE).move_to(P(lx, 2.5))
-        salt = dots([(lx - 2.0 + 0.5 * i, 1.7 + 0.3 * (i % 3)) for i in range(9)], ORANGE, 0.11)
-        self.at("Sprinkle salt")
-        self.play(FadeIn(slab), FadeIn(slab_l), FadeIn(salt), FadeIn(salt_l), run_time=0.6)
-        self.play(*[d.animate.move_to(P(d.get_x(), -0.3)) for d in salt], run_time=1.0, rate_func=rush_into)
+        gx, W, H, wy = -0.8, 5.4, 5.2, -0.1
+        F, n = 420, 56
+        rng = np.random.default_rng(3)
+        traj = np.zeros((F, n, 2))
+        p = np.stack([rng.normal(0, 0.1, n), (H / 2 - 0.45) + rng.normal(0, 0.1, n)], 1)
+        for f in range(F):
+            p = p + rng.normal(0, 0.15, (n, 2))
+            p[:, 0] = np.where(p[:, 0] > W / 2 - 0.1, W - 0.2 - p[:, 0], p[:, 0])
+            p[:, 0] = np.where(p[:, 0] < -W / 2 + 0.1, -W + 0.2 - p[:, 0], p[:, 0])
+            p[:, 1] = np.where(p[:, 1] > H / 2 - 0.1, H - 0.2 - p[:, 1], p[:, 1])
+            p[:, 1] = np.where(p[:, 1] < -H / 2 + 0.1, -H + 0.2 - p[:, 1], p[:, 1])
+            traj[f] = p
+        origin = np.array([gx, wy])
+        water = Rectangle(width=W, height=H, stroke_width=0, fill_color=BLUE, fill_opacity=0.12).move_to(P3(gx, wy))
+        tint = Rectangle(width=W, height=H, stroke_width=0, fill_color=PUR, fill_opacity=0.0).move_to(P3(gx, wy))
+        glass = VMobject(color=GREY, stroke_width=7)
+        glass.set_points_as_corners([P3(gx - W / 2, wy + H / 2 + 0.4), P3(gx - W / 2, wy - H / 2), P3(gx + W / 2, wy - H / 2), P3(gx + W / 2, wy + H / 2 + 0.4)])
+        dots = VGroup(*[Dot(radius=0.085, color=PUR).set_stroke(width=0) for _ in range(n)])
+        dots.set_opacity(0)
+        ctl = {"f": 0.0, "rate": 0.0}
 
-        beads = dots([(lx - 1.9 + 0.95 * i, 0.0) for i in range(5)], BLUE, 0.22)
-        beads_l = T("drops of water", 32, BLUE).move_to(P(lx, 0.95))
-        self.at_idle("drops of water", list(salt), 0.04, 1)
-        self.play(FadeOut(salt_l), LaggedStart(*[GrowFromCenter(b) for b in beads], lag_ratio=0.25), FadeIn(beads_l), run_time=1.4)
+        def upd(g, dt):
+            ctl["f"] = float(np.clip(ctl["f"] + ctl["rate"] * 15 * dt, 0, F - 1))
+            f = int(ctl["f"])
+            for i, d in enumerate(g):
+                d.move_to(P3(*(traj[f, i] + origin)))
+            tint.set_fill(PUR, opacity=min(0.3, f / 130 * 0.3))
+        dots.add_updater(upd)
+        ring = Circle(radius=0.2, color=WHITE, stroke_width=5)
+        trail = VMobject(color=WHITE, stroke_width=4)
+        show = ValueTracker(0.0)
 
-        bowl = VMobject(color=GREY, stroke_width=7)
-        bowl.set_points_as_corners([P(rx - 2.6, -0.2), P(rx - 1.9, -2.4), P(rx + 1.9, -2.4), P(rx + 2.6, -0.2)])
-        water = Polygon(P(rx - 2.48, -0.6), P(rx - 1.9, -2.38), P(rx + 1.9, -2.38), P(rx + 2.48, -0.6),
-                        stroke_width=0, fill_color=BLUE, fill_opacity=0.28)
-        limp_pts = [P(rx, -2.2), P(rx, -0.5), P(rx - 0.2, 0.5), P(rx - 0.9, 0.95), P(rx - 1.7, 0.8)]
-        crisp_pts = [P(rx, -2.2), P(rx, -0.5), P(rx, 0.6), P(rx, 1.3), P(rx, 1.95)]
-        leaf = VMobject(color=GREEN, stroke_width=16).set_points_smoothly(limp_pts)
-        leaf_l = T("limp lettuce", 32, GREEN).move_to(P(rx + 1.6, 1.5))
-        bowl_l = T("plain cold water", 32, BLUE).move_to(P(rx, -2.95))
-        self.at_idle("limp lettuce", list(salt) + list(beads), 0.04, 2)
-        self.play(FadeIn(bowl), FadeIn(water), Create(leaf), FadeIn(leaf_l), FadeIn(bowl_l), run_time=1.0)
-        leaf_new = VMobject(color=GREEN, stroke_width=16).set_points_smoothly(crisp_pts)
-        crisp_l = T("crisp lettuce", 32, GREEN).move_to(P(rx + 1.75, 1.5))
-        self.at_idle("turn crisp", list(salt) + list(beads), 0.04, 3)
-        self.play(Transform(leaf, leaf_new), ReplacementTransform(leaf_l, crisp_l), run_time=1.6)
-
-        q1 = T("Nobody pushes the water.", 36).move_to(P(0, 3.2))
-        self.at("Nobody pushes the water")
-        self.play(FadeIn(q1), run_time=0.5)
-        q2 = T("The cells do not pump it.", 36).move_to(P(0, 3.2))
-        self.at_idle("the cells do not pump", list(salt) + list(beads), 0.04, 4)
-        self.play(ReplacementTransform(q1, q2), run_time=0.4)
-        q3 = T("How does water move? Which way?", 40, YELLOW, weight=BOLD).move_to(P(0, 3.2))
-        m1 = T("?", 80, YELLOW, weight=BOLD).move_to(P(lx, 2.2))
-        m2 = T("?", 80, YELLOW, weight=BOLD).move_to(P(rx + 0.9, 2.3))
-        self.at_idle("how does it move", list(salt) + list(beads), 0.04, 5)
-        self.play(ReplacementTransform(q2, q3), FadeIn(m1), FadeIn(m2), run_time=0.6)
+        def tr(m, dt):
+            o = show.get_value()
+            f = int(ctl["f"])
+            pts = [P3(*(traj[k, 0] + origin)) for k in range(max(0, f - 70), f + 2)]
+            trail.set_points_as_corners(pts)
+            trail.set_stroke(opacity=0.9 * o)
+            ring.move_to(pts[-1])
+            ring.set_stroke(opacity=o)
+        trail.add_updater(tr)
+        drop = Dot(radius=0.24, color=PUR).move_to(P3(gx, 3.5))
+        self.add(water, tint, glass, dots, drop)
+        self.play(drop.animate.move_to(P3(gx, wy + H / 2 - 0.45)), run_time=0.8, rate_func=rate_functions.ease_in_quad)
+        self.remove(drop)
+        dots.set_opacity(1)
+        ctl["rate"] = 1.0
+        self.add(trail, ring)
+        self.at("None of them", lead=0.5)
+        self.play(show.animate.set_value(1), run_time=0.5)
+        self.at("So why")
+        self.play(show.animate.set_value(0), run_time=0.5)
+        self.at("almost never", lead=0.3)
+        ctl["rate"] = -4.5
+        x = VGroup(Line(P3(gx - 1.7, wy + 1.7), P3(gx + 1.7, wy - 1.7)), Line(P3(gx - 1.7, wy - 1.7), P3(gx + 1.7, wy + 1.7)))
+        x.set_stroke(RED, 14)
+        self.at("gather back", lead=0.0)
+        self.play(Create(x[0]), Create(x[1]), run_time=0.5)
+        q = chip("why only\none way?", TEAL, size=36)
+        q.move_to(P3(4.95, 0.2))
+        self.at("into a drop", lead=0.0)
+        self.play(FadeIn(q, shift=LEFT * 0.2), run_time=0.5)
+        self.idle()
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------
-GL = dict(cx=0.0, cy=-0.45, w=11.6, h=4.9)
-GX0, GX1 = GL["cx"] - GL["w"] / 2 + 0.4, GL["cx"] + GL["w"] / 2 - 0.4
-GY0, GY1 = GL["cy"] - GL["h"] / 2 + 0.35, GL["cy"] + GL["h"] / 2 - 0.3
-
-
-def even_targets(seed=11):
-    return grid_pts(np.random.default_rng(seed), GX0, GX1, GY0, GY1, 9, 5, jit=0.3)
-
-
-class S02Spread(SS):
-    """a drop of dye lands, forms a crowded spot, then spreads."""
-
+class S02Tank(SS):
     def construct(self):
-        g = glass(**GL)
-        g_l = T("a glass of still water", 28, GREY).move_to(P(0, GL["cy"] - GL["h"] / 2 - 0.45))
-        self.at("Drop food")
-        self.play(FadeIn(g), FadeIn(g_l), run_time=0.7)
-        cx, cy = -4.3, 1.0
-        drop = Dot(P(cx, 3.1), radius=0.24, color=YELLOW)
-        rng = np.random.default_rng(5)
+        base = tank_base()
+        sch = schem()
+        self.play(GrowFromPoint(base[1], point=P3(-0.8, 0)), FadeIn(base[0]), run_time=1.4)
+        w = World(self, specs_12_2())
+        w.dots.set_opacity(0)
+        self.add(w.dots)
+        self.play(w.dots.animate.set_opacity(1), FadeIn(sch), run_time=0.8)
+        self.at("split down the middle", lead=0.1)
+        line = open_line()
+        self.play(Create(line), run_time=1.3)
+        cl = LiveText(lambda: f"left: {w.pop('L')}", P3(-4.6, 3.3), 34, TEXT, 0.0)
+        cr = LiveText(lambda: f"right: {w.pop('R')}", P3(4.6, 3.3), 34, TEXT, 0.0)
+        self.add(cl, cr)
+        self.at("start on the left", lead=0.5)
+        self.play(cl.op.animate.set_value(1), run_time=0.6)
+        self.at("Only a few", lead=0.0)
+        self.play(cr.op.animate.set_value(1), run_time=0.6)
+        self.idle()
+        self.finish()
+
+
+# ---------------------------------------------------------------------------------------------
+class World0(SS):
+    """Base for scenes that start from the 12:2 tank with the open line."""
+    def stage(self, op=1.0, line=True):
+        self.base = tank_base()
+        self.line = open_line()
+        self.w = World(self, specs_12_2())
+        self.hud = counters(self.w, op=op)
+        self.sch = schem()
+        self.add(self.base, self.line, self.w.dots, self.hud, self.sch)
+        return self.w
+
+
+class S03Hops(World0):
+    def construct(self):
+        w = self.stage()
+        # one dot leaves a path behind it: "its own path"
         pts = []
-        while len(pts) < 45:
-            p = rng.uniform(-1, 1, 2)
-            if np.hypot(*p) < 1:
-                pts.append((cx + p[0] * 0.8, cy + p[1] * 0.65))
-        cluster = dots(pts, YELLOW, 0.09)
-        self.play(FadeIn(drop), run_time=0.2)
-        self.play(drop.animate.move_to(P(cx, cy)), run_time=0.7, rate_func=rush_into)
-        self.play(ReplacementTransform(drop, cluster), run_time=0.5)
-        cl = list(cluster)
+        trail = VMobject(color=WHITE, stroke_width=4)
+        ring = Circle(radius=0.22, color=WHITE, stroke_width=4)
+        d2 = w.dots[2]
+        on = ValueTracker(0.0)
 
-        spot = T("one spot", 30, YELLOW).move_to(P(cx, 2.55))
-        self.at_idle("one spot", cl, 0.05)
-        self.play(FadeIn(spot), run_time=0.4)
-
-        conc = vocab("concentration", 36).move_to(P(0, 3.25))
-        self.at_idle("Concentration is", cl, 0.05, 1)
-        self.play(FadeIn(conc, shift=DOWN * 0.15), FadeOut(spot), run_time=0.5)
-        note = T("how much of a substance is in a given space", 30, TEXT).move_to(P(0, 2.55))
-        self.at_idle("how much of a substance", cl, 0.05, 2)
-        self.play(FadeIn(note), run_time=0.6)
-
-        high = T("high concentration", 28, YELLOW).move_to(P(cx + 0.6, cy - 1.25))
-        box_h = DashedVMobject(Rectangle(width=2.4, height=1.9, stroke_color=YELLOW, stroke_width=3).move_to(P(cx, cy)), num_dashes=40)
-        self.at_idle("Where the drop landed", cl, 0.05, 3)
-        self.play(Create(box_h), FadeIn(high), run_time=0.7)
-        low = T("low concentration", 28, YELLOW).move_to(P(4.0, cy - 1.25))
-        box_l = DashedVMobject(Rectangle(width=2.4, height=1.9, stroke_color=YELLOW, stroke_width=3).move_to(P(4.0, cy)), num_dashes=40)
-        self.at_idle("Far away", cl, 0.06, 4)
-        self.play(Create(box_l), FadeIn(low), run_time=0.7)
-
-        self.at_idle("always moving", cl, 0.06, 5)
-        rt = max(1.0, self.room("More leave the crowded spot") - 0.2)
-        self.play(jiggle(cl, rt, amp=0.12, seed=6), run_time=rt)
-        self.at("More leave the crowded spot")
-        self.play(FadeOut(box_h), FadeOut(box_l), FadeOut(high), FadeOut(low), FadeOut(note), run_time=0.4)
-        rt = max(3.0, self.narration_s - self.elapsed() - 0.5)
-        self.play(drift(cl, even_targets(), rt, amp=0.3, seed=3), run_time=rt)
+        def tr(m, dt):
+            pts.append(d2.get_center().copy())
+            del pts[:-90]
+            if len(pts) > 1:
+                trail.set_points_as_corners(pts)
+            o = on.get_value()
+            trail.set_stroke(opacity=0.9 * o)
+            ring.move_to(d2.get_center())
+            ring.set_stroke(opacity=o)
+        trail.add_updater(tr)
+        self.add(trail, ring)
+        # hops, timed to the sentences
+        w.hop(4, "R", self.t_of("hop across") + 0.1)
+        w.hop(12, "L", self.t_of("either way") + 0.2)
+        w.hop(12, "R", self.t_of("where the crowd") + 1.9)
+        w.hop(4, "L", self.t_of("nothing pushes") + 0.6)
+        self.at("jiggles", lead=0.0)
+        self.play(on.animate.set_value(1), run_time=0.5)
+        self.at("Any dot", lead=0.2)
+        self.play(on.animate.set_value(0), run_time=0.5)
+        cap = caption("any dot at the line can hop, either way")
+        self.play(FadeIn(cap), run_time=0.6)
+        self.idle()
         self.finish()
 
 
-class S03Diffusion(SS):
-    """same glass: crowded left to spread; once even, the dots still move, two equal arrows."""
+class S04Predict(World0):
+    @staticmethod
+    def card(tr):
+        box = RoundedRectangle(corner_radius=0.3, width=11.2, height=3.9, stroke_color=TEAL, stroke_width=4,
+                               fill_color=BG, fill_opacity=0.8).move_to(P3(0, 0.3))
+        q = VGroup(T("Over many seconds, which way", size=36), T("will MORE dots cross on average?", size=36)).arrange(DOWN, buff=0.15).move_to(P3(0, 1.2))
+        btn = lambda txt, right: RoundedRectangle(corner_radius=0.2, width=3.5, height=1.0, stroke_color=TEAL, stroke_width=3,
+                                                  fill_color=TEAL, fill_opacity=0.15)
+        def button(label, rightward):
+            rect = btn(label, rightward)
+            arr = Arrow(LEFT * 0.35, RIGHT * 0.35, buff=0, color=WHITE, stroke_width=6, tip_length=0.25) if rightward else Arrow(RIGHT * 0.35, LEFT * 0.35, buff=0, color=WHITE, stroke_width=6, tip_length=0.25)
+            lab = T(label, size=28)
+            g = VGroup(arr, lab).arrange(RIGHT, buff=0.25).move_to(rect)
+            return VGroup(rect, g)
+        b1 = button("left to right", True).move_to(P3(-3.55, -0.75))
+        b2 = button("right to left", False).move_to(P3(3.55, -0.75))
+        ring_bg = Circle(radius=0.55, color=GREY, stroke_width=4).move_to(P3(0, -0.75))
+        arc = always_redraw(lambda: Arc(radius=0.55, start_angle=PI / 2, angle=2 * PI * max(tr.get_value(), 0.001), color=YELLOW, stroke_width=8).move_to(P3(0, -0.75)))
+        num = LiveText(lambda: str(int(np.ceil(tr.get_value() * 5 - 1e-6))) if tr.get_value() > 0 else "0", P3(0, -0.75), 34, TEXT)
+        return box, q, b1, b2, ring_bg, arc, num
 
     def construct(self):
-        g = glass(**GL)
-        rng = np.random.default_rng(7)
-        left_pts = grid_pts(rng, GX0, -1.4, GY0, GY1, 8, 5, jit=0.3)
-        right_pts = grid_pts(rng, 4.2, GX1, GY0, GY1, 1, 5, jit=0.3)
-        ds = dots(left_pts + right_pts, YELLOW, 0.09)
-        dl = list(ds)
-        self.play(FadeIn(g), FadeIn(ds), run_time=0.6)
-        term = vocab("diffusion", 38).move_to(P(0, 3.3))
-        self.at("is the movement")
-        self.play(FadeIn(term, shift=DOWN * 0.15), run_time=0.5)
-        more = T("more concentrated", 30, YELLOW).move_to(P(-3.6, 2.6))
-        self.at_idle("more concentrated", dl, 0.05)
-        self.play(FadeIn(more), run_time=0.5)
-        less = T("less concentrated", 30, YELLOW).move_to(P(3.9, 2.6))
-        flow = arr(P(-1.5, 2.55), P(1.5, 2.55), YELLOW)
-        self.at_idle("less concentrated", dl, 0.05, 1)
-        self.play(GrowArrow(flow), FadeIn(less), run_time=0.6)
-        rt = max(1.0, self.room("the dye is even") - 0.1)
-        self.play(drift(dl, even_targets(21), rt, amp=0.25, seed=4), run_time=rt)
+        w = self.stage()
+        tr = ValueTracker(1.0)
+        box, q, b1, b2, ring_bg, arc, num = self.card(tr)
+        self.play(*dim_anim(self.base, self.line, self.sch), w.dots.animate.set_opacity(0.55),
+                  self.hud[0].op.animate.set_value(0.3), self.hud[1].op.animate.set_value(0.3), run_time=0.7)
+        self.add(box)
+        self.play(FadeIn(box), run_time=0.4)
+        self.at("which way", lead=0.5)
+        self.play(Write(q), run_time=1.6)
+        self.at("From left to right", lead=0.3)
+        self.play(FadeIn(b1, shift=UP * 0.15), run_time=0.5)
+        self.at("or from right", lead=0.3)
+        self.play(FadeIn(b2, shift=UP * 0.15), run_time=0.5)
+        self.at("Pause and decide", lead=0.3)
+        self.add(num)
+        self.add(arc)
+        self.play(FadeIn(ring_bg), run_time=0.5)
+        self.idle()
+        self.finish()
 
-        self.at("the dye is even")
-        self.play(FadeOut(more), FadeOut(less), FadeOut(flow), FadeOut(term), run_time=0.5)
-        rt = max(1.0, self.room("Just as many move"))
-        self.play(jiggle(dl, rt, amp=0.14, seed=5), run_time=rt)
-        a1 = arr(P(-0.3, 2.65), P(-2.4, 2.65), YELLOW)
-        a2 = arr(P(0.3, 2.65), P(2.4, 2.65), YELLOW)
-        eq = T("same number each way", 32, TEXT).move_to(P(0, 3.3))
-        self.at("Just as many move")
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(eq), run_time=0.7)
-        rt = max(1.0, self.room("stops changing"))
-        self.play(jiggle(dl, rt, amp=0.14, seed=9), run_time=rt)
-        stop = T("the colour stops changing", 34, TEXT).move_to(P(0, 3.3))
-        self.at("stops changing")
-        self.play(ReplacementTransform(eq, stop), run_time=0.5)
+
+class S05Pause(World0):
+    def construct(self):
+        w = self.stage(op=0.3)
+        self.base[0].set_fill(opacity=0.05)
+        self.base[1].set_stroke(opacity=0.4)
+        self.line.set_stroke(opacity=0.4)
+        self.sch.set_opacity(0.4)
+        w.dots.set_opacity(0.55)
+        tr = ValueTracker(1.0)
+        box, q, b1, b2, ring_bg, arc, num = S04Predict.card(tr)
+        self.add(box, q, b1, b2, ring_bg, arc, num)
+        self.play(tr.animate.set_value(0.0), run_time=4.8, rate_func=linear)
+        self.finish()
+
+
+class S06Reveal(World0):
+    def construct(self):
+        w = self.stage()
+        tal = Tally(w, x=0.0)
+        self.add(tal)
+        for i, ph in ((9, "from left to right"), (10, "No dot chose"), (11, "more dots on")):
+            pass
+        w.hop(9, "R", self.t_of("left to right") + 0.2)
+        w.hop(10, "R", self.t_of("chose that") + 0.3)
+        w.hop(11, "R", self.t_of("to make the hop") + 0.2)
+        w.hop(12, "L", self.t_of("hop back") + 0.4)
+        cap = caption("on average")
+        self.at("On average", lead=0.0)
+        self.play(tal.op.animate.set_value(1), FadeIn(cap), run_time=0.8)
+        self.at("There are simply", lead=0.2)
+        hl = Rectangle(width=6.1, height=TH - 0.1, stroke_color=TEAL, stroke_width=5, fill_color=TEAL, fill_opacity=0.08).move_to(P3(-3.1, CY))
+        self.play(FadeIn(hl), run_time=0.6)
+        self.at("hop back", lead=1.0)
+        self.play(FadeOut(hl), run_time=0.6)
+        self.idle()
+        self.finish()
+
+
+class S07Concentration(SS):
+    def construct(self):
+        base = tank_base()
+        line = open_line()
+        w = World(self, specs_from_left(LEFT_AFTER_6))
+        sch = schem()
+        bars = Bars(w, op=0.0)
+        self.add(base, line, w.dots, sch, bars)
+        hl = Rectangle(width=6.1, height=TH - 0.1, stroke_color=TEAL, stroke_width=5, fill_color=TEAL, fill_opacity=0.08).move_to(P3(-3.1, CY))
+        self.at("crowded", lead=0.0)
+        self.play(FadeIn(hl), run_time=0.6)
+        self.at("has a name", lead=0.0)
+        self.play(FadeOut(hl), run_time=0.6)
+        term = chip("concentration", TEAL, size=40).move_to(P3(0, 3.28))
+        self.at("Concentration", lead=0.2)
+        self.play(Write(term), run_time=1.2)
+        self.at("how much of a substance", lead=0.2)
+        d = caption("how much of a substance is in a given space", y=-3.5, size=28)
+        self.play(Write(d), run_time=2.4)
+        self.at("At the start", lead=0.2)
+        self.play(bars.op.animate.set_value(1), run_time=0.8)
+        self.at("more concentrated", lead=0.2)
+        a = T("more concentrated", size=30, color=PUR).move_to(P3(-3.1, -3.0))
+        self.play(FadeIn(a), run_time=0.5)
+        b = T("less concentrated", size=30, color=PUR).move_to(P3(3.1, -3.0))
+        self.wait(self.room(1.3))
+        self.play(FadeIn(b), run_time=0.5)
+        self.idle()
+        self.finish()
+
+    def room(self, a):
+        return a
+
+
+class S08Diffusion(SS):
+    def construct(self):
+        base = tank_base()
+        line = open_line()
+        w = World(self, specs_from_left(LEFT_AFTER_6))
+        hud = counters(w)
+        sch = schem()
+        bars = Bars(w)
+        self.add(base, line, w.dots, sch, hud, bars)
+        # a neutral pair swap keeps the tallies of the hops visible without changing the counts
+        w.hop(0, "R", 1.3)
+        w.hop(13, "L", 1.3)
+        w.hop(8, "R", self.t_of("crowd thins") + 0.0)
+        w.hop(7, "R", self.t_of("grows on") + 0.2)
+        w.hop(6, "R", self.t_of("grows on") + 1.7)
+        w.hop(0, "L", 8.2)
+        w.hop(13, "R", 8.2)
+        arrow = Arrow(P3(-5.2, -3.0), P3(5.2, -3.0), buff=0, color=PUR, stroke_width=16, tip_length=0.5,
+                      max_tip_length_to_length_ratio=0.2, max_stroke_width_to_length_ratio=30)
+        arrow.set_opacity(0)
+        self.add(arrow)
+        keep = {"on": False}
+        arrow.add_updater(lambda m: m.set_opacity(0.35 + 0.65 * abs(w.pop("L") - w.pop("R")) / 14 * 1.0) if keep["on"] else None)
+        self.at("This drift", lead=0.2)
+        keep["on"] = True
+        self.play(GrowArrow(arrow), run_time=1.4)
+        a = T("more concentrated", size=30, color=PUR).move_to(P3(-3.4, -3.52))
+        b = T("less concentrated", size=30, color=PUR).move_to(P3(3.4, -3.52))
+        self.at("more concentrated", lead=0.2)
+        self.play(FadeIn(a), run_time=0.5)
+        self.at("less concentrated", lead=0.2)
+        self.play(FadeIn(b), run_time=0.5)
+        self.at("called diffusion", lead=0.2)
+        dv = chip("diffusion", TEAL, size=34).move_to(P3(0, -3.52))
+        self.play(Write(dv), run_time=0.9)
+        self.idle()
+        self.finish()
+
+
+class S09Even(SS):
+    def construct(self):
+        base = tank_base()
+        line = open_line()
+        w = World(self, specs_from_left(LEFT_S9))
+        hud = counters(w)
+        tal = Tally(w, x=0.0, op=0.0)
+        sch = schem()
+        bars = Bars(w)
+        self.add(base, line, w.dots, sch, hud, bars, tal)
+        # window A: -> 2, <- 3 (7:7 -> 8:6); window B: -> 3, <- 2 (8:6 -> 7:7)
+        tA = self.t_of("Dots still cross")
+        w.hop(0, "R", tA + 0.6)
+        w.hop(6, "L", tA + 0.9)
+        w.hop(7, "L", tA + 1.7)
+        w.hop(1, "R", tA + 2.0)
+        w.hop(8, "L", tA + 2.4)
+        tB = self.t_of("just as many") + 1.2
+        w.hop(2, "R", tB)
+        w.hop(0, "L", tB + 0.2)
+        w.hop(3, "R", tB + 0.9)
+        w.hop(1, "L", tB + 1.2)
+        w.hop(4, "R", tB + 2.0)
+        cap = caption("still moving, no change overall")
+        self.at("Dots still cross", lead=0.3)
+        self.play(tal.op.animate.set_value(1), run_time=0.6)
+        self.at("just as many", lead=0.0)
+        # reset the window tallies between the two windows
+        self.wait(max(0.01, tB - 0.7 - self.elapsed()))
+        w.cross["lr"] = 0
+        w.cross["rl"] = 0
+        self.at("The color stops", lead=0.3)
+        self.play(FadeIn(cap), run_time=0.6)
+        self.idle()
         self.finish()
 
 
 # ---------------------------------------------------------------------------------------------
-TOP, BOT = 1.5, -2.0
-
-
-class S04Membrane(SS):
-    """dashed model membrane between blood and cell: water and oxygen cross, salt is held back, oxygen goes down its difference."""
-
+class S10Membrane(SS):
     def construct(self):
-        rng = np.random.default_rng(31)
-        wl = dots(grid_pts(rng, -5.6, -0.5, BOT + 0.3, TOP - 0.3, 4, 3), BLUE, 0.1)
-        wr = dots(grid_pts(rng, 0.5, 5.6, BOT + 0.3, TOP - 0.3, 4, 3), BLUE, 0.1)
-        sl = dots([(-4.9, -1.5), (-2.9, 0.6), (-1.3, -0.4), (-3.6, 1.2)], ORANGE, 0.13)
-        sr = dots([(1.3, 1.1), (3.0, -1.5), (4.8, 0.3), (2.2, 0.0)], ORANGE, 0.13)
-        ol = dots(grid_pts(np.random.default_rng(2), -5.6, -0.6, BOT + 0.4, TOP - 0.4, 4, 3, 0.4), YELLOW, 0.11)
-        orr = dots([(2.0, -1.0), (4.3, 1.0)], YELLOW, 0.11)
-        allp = list(wl) + list(wr) + list(sl) + list(sr) + list(ol) + list(orr)
-        m = memb(0, BOT - 0.25, TOP + 0.3)
-        outl = Rectangle(width=12.0, height=TOP - BOT + 0.6, stroke_color=GREY, stroke_width=3, stroke_opacity=0.5).move_to(P(0, (TOP + BOT) / 2))
-        blood = T("blood", 30, GREY).move_to(P(-3.0, 2.25))
-        incell = T("inside a cell", 30, GREY).move_to(P(3.0, 2.25))
-        mem_chip = vocab("cell membrane", 34).move_to(P(0, 3.15))
-        self.at("The cell membrane")
-        self.play(FadeIn(outl), Create(m), FadeIn(mem_chip), FadeIn(blood), FadeIn(incell), FadeIn(wl), FadeIn(wr),
-                  FadeIn(sl), FadeIn(sr), FadeIn(ol), FadeIn(orr), run_time=1.2)
-        thin = T("the thin layer around every cell", 28, TEXT).move_to(P(0, -3.0))
-        self.at_idle("thin layer", allp, 0.07)
-        self.play(FadeIn(thin), run_time=0.5)
-
-        sp = vocab("selectively permeable", 32).move_to(P(0, 3.15))
-        self.at_idle("selectively permeable", allp, 0.07, 1)
-        self.play(ReplacementTransform(mem_chip, sp), FadeOut(thin), run_time=0.6)
-
-        # water crosses both ways
-        w_a, w_b = list(wl)[5], list(wl)[9]
-        w_c = list(wr)[2]
-        self.at_idle("lets some things through", allp, 0.07, 2)
-        self.play(w_a.animate.move_to(P(1.5, w_a.get_y())), w_b.animate.move_to(P(2.2, w_b.get_y() - 0.2)),
-                  w_c.animate.move_to(P(-1.5, w_c.get_y())), run_time=1.6)
-        # salt held back
-        s1, s2 = list(sl)[2], list(sr)[3]
-        x1, x2 = s1.get_x(), s2.get_x()
-        self.at_idle("holds back others", allp, 0.07, 3)
-        self.play(s1.animate.move_to(P(-0.35, s1.get_y())), s2.animate.move_to(P(0.35, s2.get_y())), run_time=0.7)
-        self.play(s1.animate.move_to(P(x1 - 0.5, s1.get_y() + 0.3)), s2.animate.move_to(P(x2 + 0.5, s2.get_y() - 0.3)), run_time=0.6)
-
-        # who crosses
-        easy = VGroup(T("crosses easily: ", 28, GREY), T("water", 28, BLUE), T(", ", 28, GREY), T("oxygen", 28, YELLOW), T(", ", 28, GREY),
-                      T("carbon dioxide", 28, YELLOW)).arrange(RIGHT, buff=0.1, aligned_edge=DOWN).move_to(P(0, -2.95))
-        self.at_idle("Water, oxygen and carbon dioxide", allp, 0.07, 4)
-        self.play(FadeIn(easy), run_time=0.7)
-        hard = VGroup(T("crosses much less easily: ", 28, GREY), T("salt", 28, ORANGE), T(", ", 28, GREY), T("sugar", 28, ORANGE)).arrange(RIGHT, buff=0.1, aligned_edge=DOWN).move_to(P(0, -3.45))
-        self.at_idle("Many dissolved particles", allp, 0.07, 5)
-        self.play(FadeIn(hard), run_time=0.7)
-
-        # oxygen: down its difference
-        dim_all = [wl, wr, sl, sr]
-        more_o = T("more oxygen", 30, YELLOW).move_to(P(-3.0, 2.25))
-        less_o = T("less oxygen", 30, YELLOW).move_to(P(3.0, 2.25))
-        self.at_idle("Oxygen is more", allp, 0.07, 6)
-        self.play(*[g.animate.set_opacity(0.2) for g in dim_all], FadeOut(easy), FadeOut(hard), FadeOut(blood), FadeOut(incell),
-                  FadeOut(sp), run_time=0.35)
-        self.play(FadeIn(more_o), FadeIn(less_o), run_time=0.35)
-        mv = list(ol)[:5]
-        tg = [P(1.2 + 0.9 * i, mv[i].get_y()) for i in range(5)]
-        arrow = arr(P(-1.4, 2.7), P(1.4, 2.7), YELLOW)
-        rest = [d for d in list(ol)[5:]] + list(orr)
-        self.at_idle("inside a cell", rest, 0.07, 7)
-        self.play(GrowArrow(arrow), drift(mv, tg, 3.0, amp=0.15, seed=6), run_time=3.0)
+        base = tank_base()
+        line = open_line()
+        w = World(self, specs_from_left(LEFT_S9))
+        sch = schem()
+        self.add(base, line, w.dots, sch)
+        self.at("swap", lead=0.2)
+        mem = membrane()
+        self.play(Transform(line, mem), run_time=1.1)
+        cell = cell_fill()
+        self.at("cell membrane", lead=0.3)
+        lab = T("cell membrane", size=30, color=WHITE).move_to(P3(0, 3.42))
+        self.play(FadeIn(cell), FadeIn(lab), run_time=1.2)
+        # purple dots give way to the oxygen picture: crowded blood, few in the cell
+        g = World(self, specs_12_2(GREEN))
+        g.dots.set_opacity(0)
+        self.add(g.dots)
+        self.at("On one side", lead=0.0)
+        self.play(w.dots.animate.set_opacity(0), g.dots.animate.set_opacity(1), run_time=1.2)
+        self.remove(w.dots)
+        self.at("the blood", lead=0.3)
+        blood = T("blood", size=34, color=WHITE).move_to(P3(-3.1, 3.42))
+        self.play(FadeIn(blood), run_time=0.5)
+        self.at("crowded with oxygen", lead=0.2)
+        ox = T("oxygen", size=30, color=GREEN).move_to(P3(-3.1, -3.05))
+        self.play(FadeIn(ox), run_time=0.5)
+        self.at("muscle cell", lead=0.3)
+        mc = T("muscle cell", size=34, color=PINK).move_to(P3(3.1, 3.42))
+        self.play(FadeIn(mc), run_time=0.5)
+        self.idle()
         self.finish()
 
 
-class S05Osmosis(SS):
-    """plain water | salty water. Net water crossing to the salty side; level rises."""
+class Cellular(SS):
+    def stage(self, specs, color=GREEN, op=1.0):
+        self.base = tank_base()
+        self.mem = membrane()
+        self.cell = cell_fill()
+        self.sch = schem()
+        self.blood = T("blood", size=34, color=WHITE).move_to(P3(-5.3, 3.42))
+        self.mc = T("muscle cell", size=34, color=PINK).move_to(P3(5.0, 3.42))
+        self.w = World(self, specs)
+        self.add(self.base, self.cell, self.mem, self.w.dots, self.sch, self.blood, self.mc)
+        return self.w
 
+
+class S11Oxygen(Cellular):
     def construct(self):
-        w, h = 11.4, 4.2
-        cy = -0.55
-        hs = h - 0.6
-        wat_l = Rectangle(width=w / 2, height=hs, stroke_width=0, fill_color=BLUE, fill_opacity=0.16)
-        wat_l.move_to(P(-w / 4, cy - 0.3))
-        wat_r = wat_l.copy().move_to(P(w / 4, cy - 0.3))
-        out = Rectangle(width=w, height=h + 0.3, stroke_color=GREY, stroke_width=6).move_to(P(0, cy))
-        m = memb(0, cy - h / 2 - 0.15, cy + h / 2 + 0.15)
-        rng = np.random.default_rng(41)
-        L_pts = grid_pts(rng, -5.4, -0.5, cy - 1.7, cy + 0.6, 5, 4)
-        R_pts = grid_pts(rng, 0.5, 5.4, cy - 1.7, cy + 0.6, 5, 4)
-        keep = [p for i, p in enumerate(R_pts) if i % 5 not in (1, 3)]
-        wl = dots(L_pts, BLUE, 0.11)
-        wr = dots(keep, BLUE, 0.11)
-        salt = dots([(1.2, cy - 1.3), (2.0, cy + 0.3), (3.1, cy - 0.7), (4.2, cy + 0.4), (5.0, cy - 1.3), (2.5, cy - 1.6),
-                     (3.8, cy - 0.1), (1.8, cy - 0.5)], ORANGE, 0.15)
-        tl = T("plain water", 32, BLUE).move_to(P(-2.85, cy + h / 2 + 0.55))
-        tr = T("salty water", 32, ORANGE).move_to(P(2.85, cy + h / 2 + 0.55))
-        osm = vocab("osmosis", 42).move_to(P(0, 3.25))
-        mdl = T("model, not to scale", 24, GREY).move_to(P(4.7, 3.3))
-        self.add(mdl)
-        self.at("is the diffusion")
-        self.play(FadeIn(out), FadeIn(wat_l), FadeIn(wat_r), Create(m), FadeIn(wl), FadeIn(wr), FadeIn(osm, shift=DOWN * 0.15), run_time=1.0)
-        wl_l, wr_l = list(wl), list(wr)
-        allw = wl_l + wr_l
-        self.at_idle("of water across", allw, 0.07)
-        self.play(wl_l[7].animate.move_to(P(1.2, wl_l[7].get_y())), wr_l[3].animate.move_to(P(-1.2, wr_l[3].get_y())), run_time=1.2)
-
-        self.at_idle("Dissolve salt in water", allw, 0.07, 1)
-        self.play(FadeIn(tl), FadeIn(tr), LaggedStart(*[FadeIn(d, shift=DOWN * 0.4) for d in salt], lag_ratio=0.12), run_time=1.6)
-        lessc = T("water: less concentrated", 28, BLUE).move_to(P(2.85, cy - h / 2 - 0.5))
-        morec = T("water: more concentrated", 28, BLUE).move_to(P(-2.85, cy - h / 2 - 0.5))
-        allp = allw + list(salt)
-        self.at_idle("less concentrated", allp, 0.07, 2)
-        self.play(FadeIn(lessc), FadeIn(morec), run_time=0.6)
-
-        flow = arr(P(-1.6, 2.7), P(1.6, 2.7), BLUE, 9)
-        flow_l = T("toward more dissolved salt", 30, BLUE).move_to(P(0, 3.25))
-        movers = [wl_l[2], wl_l[6]]
-        tg = [P(1.3 + 1.0 * i, movers[i].get_y() + (0.2 if i % 2 else -0.2)) for i in range(2)]
-        self.at_idle("Water moves toward the side", allp, 0.07, 3)
-        self.play(FadeOut(osm), run_time=0.3)
-        self.play(GrowArrow(flow), FadeIn(flow_l), drift(movers, tg, 2.8, amp=0.12, seed=8), run_time=2.8)
-
-        sdot = list(salt)[5]
-        s_y = sdot.get_y()
-        movers2 = [wl_l[3]]
-        rest = [d for d in allp if d is not sdot and d not in movers and d not in movers2]
-        self.at_idle("cannot follow", rest, 0.07, 4)
-        self.play(sdot.animate.move_to(P(0.3, s_y)), run_time=0.7)
-        self.play(sdot.animate.move_to(P(1.1, s_y + 0.2)), run_time=0.5)
-        self.at_idle("keeps moving that way", rest, 0.07, 5)
-        tg2 = [P(3.6, movers2[0].get_y())]
-        new_r = Rectangle(width=w / 2, height=hs + 0.4, stroke_width=0, fill_color=BLUE, fill_opacity=0.16)
-        new_r.move_to(wat_r.get_bottom() + UP * (hs + 0.4) / 2)
-        new_l = Rectangle(width=w / 2, height=hs - 0.4, stroke_width=0, fill_color=BLUE, fill_opacity=0.16)
-        new_l.move_to(wat_l.get_bottom() + UP * (hs - 0.4) / 2)
-        self.play(drift(movers2, tg2, 2.0, amp=0.12, seed=9), Transform(wat_r, new_r), Transform(wat_l, new_l), run_time=2.0)
-
-        note = T("our model membrane: holds back all the salt", 28, ORANGE).move_to(P(0, -3.2))
-        self.at_idle("Our model membrane holds back", allp, 0.07, 6)
-        self.play(FadeIn(note), FadeOut(morec), FadeOut(lessc), run_time=0.6)
-        real = T("most real membranes: some salt crosses, much more slowly", 28, GREY).move_to(P(0, -3.2))
-        self.at_idle("Real ones let some through", allp, 0.07, 7)
-        self.play(ReplacementTransform(note, real), run_time=0.6)
+        w = self.stage(specs_12_2(GREEN))
+        tal = Tally(w, x=0.0)
+        self.add(tal)
+        leg = T("oxygen", size=32, color=GREEN).move_to(P3(0, -3.05))
+        self.add(leg)
+        w.hop(9, "R", self.t_of("carry more") + 0.4)
+        w.hop(10, "R", self.t_of("into the cell") + 0.1)
+        w.hop(11, "R", self.t_of("than out") + 0.2)
+        w.hop(13, "L", self.t_of("out of it") + 0.2)
+        self.at("same random hops", lead=0.3)
+        self.play(tal.op.animate.set_value(1), run_time=0.6)
+        self.at("Carbon dioxide", lead=0.3)
+        # carbon dioxide: crowded inside the cell
+        self.play(w.dots.animate.set_opacity(0), tal.op.animate.set_value(0), run_time=0.8)
+        self.remove(w.dots, tal)
+        w2 = World(self, [{"side": "L" if i < 3 else "R", "color": RED} for i in range(14)], seed=5)
+        w2.dots.set_opacity(0)
+        tal2 = Tally(w2, x=0.0)
+        self.add(w2.dots, tal2)
+        leg2 = T("carbon dioxide", size=32, color=RED).move_to(P3(0, -3.05))
+        self.play(w2.dots.animate.set_opacity(1), tal2.op.animate.set_value(1), Transform(leg, leg2), run_time=0.9)
+        w2.hop(5, "L", self.t_of("drifts out") + 0.2)
+        w2.hop(6, "L", self.t_of("drifts out") + 0.9)
+        w2.hop(7, "L", self.t_of("the other way") + 0.3)
+        w2.hop(1, "R", self.t_of("the other way") + 0.9)
+        self.idle()
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SS):
-    """two cells: cucumber cell loses water to the salty outside, lettuce cell gains water from plain water."""
-
+class S12Passive(Cellular):
     def construct(self):
-        cyp = 0.0
-        pl = Rectangle(width=5.9, height=4.5, stroke_color=GREY, stroke_width=3, fill_color=BLUE, fill_opacity=0.1).move_to(P(-3.3, cyp))
-        pr = Rectangle(width=5.9, height=4.5, stroke_color=GREY, stroke_width=3, fill_color=BLUE, fill_opacity=0.1).move_to(P(3.3, cyp))
-        cl = RoundedRectangle(corner_radius=0.3, width=3.4, height=2.2, stroke_color=GREEN, stroke_width=7, fill_color=GREEN, fill_opacity=0.1).move_to(P(-3.3, cyp))
-        cr = cl.copy().move_to(P(3.3, cyp))
-        t_l = T("cucumber cell", 30, GREEN).move_to(P(-3.3, cyp + 2.78))
-        t_r = T("lettuce cell", 30, GREEN).move_to(P(3.3, cyp + 2.78))
-        ol = T("salty water outside", 28, ORANGE).move_to(P(-3.3, cyp - 2.7))
-        orr = T("plain water outside", 28, BLUE).move_to(P(3.3, cyp - 2.7))
-        in_l = dots([(-4.2, cyp + 0.4), (-3.4, cyp - 0.4), (-2.5, cyp + 0.3), (-3.3, cyp + 0.0), (-4.1, cyp - 0.4), (-2.6, cyp - 0.5)], BLUE, 0.11)
-        out_salt_l = dots([(-5.6, cyp + 1.5), (-1.1, cyp + 1.5), (-5.6, cyp - 1.5), (-1.1, cyp - 1.5), (-3.3, cyp + 1.65), (-3.3, cyp - 1.6),
-                           (-5.7, cyp + 0.2), (-0.9, cyp + 0.1)], ORANGE, 0.14)
-        out_w_l = dots([(-5.3, cyp + 0.9), (-1.5, cyp - 0.8), (-5.2, cyp - 0.8)], BLUE, 0.11)
-        in_r = dots([(2.6, cyp + 0.4), (3.3, cyp - 0.4), (4.1, cyp + 0.3)], BLUE, 0.11)
-        in_salt_r = dots([(2.9, cyp + 0.0), (3.6, cyp + 0.4), (3.3, cyp - 0.7), (4.2, cyp - 0.4), (2.5, cyp - 0.5), (3.8, cyp - 0.05)], ORANGE, 0.14)
-        out_w_r = dots([(1.2, cyp + 1.5), (5.4, cyp + 1.5), (1.2, cyp - 1.5), (5.4, cyp - 1.5), (3.3, cyp + 1.65), (3.3, cyp - 1.6),
-                        (1.3, cyp + 0.3), (5.4, cyp + 0.2), (2.2, cyp + 1.6), (4.4, cyp - 1.6)], BLUE, 0.11)
-        in_salt_l = dots([(-3.9, cyp + 0.0), (-2.7, cyp - 0.1), (-3.3, cyp + 0.6)], ORANGE, 0.14)
-        idle1 = list(in_salt_l) + list(in_salt_r) + list(out_w_l) + list(out_w_r) + list(in_r)
-
-        self.at("cucumber makes sense")
-        self.play(FadeIn(pl), FadeIn(pr), FadeIn(cl), FadeIn(cr), FadeIn(t_l), FadeIn(t_r), FadeIn(in_l), FadeIn(in_r), FadeIn(in_salt_r), FadeIn(in_salt_l),
-                  FadeIn(out_w_l), FadeIn(out_w_r), run_time=1.0)
-        self.at("Salt outside")
-        self.play(FadeIn(out_salt_l), FadeIn(ol), run_time=0.8)
-        lessw = T("water outside: less concentrated", 26, BLUE).move_to(P(-3.3, cyp - 3.2))
-        self.at_idle("less concentrated", idle1 + list(in_l), 0.06)
-        self.play(FadeIn(lessw), run_time=0.5)
-        mv = [in_l[0], in_l[2], in_l[4], in_l[5]]
-        tgt = [P(-5.1, cyp + 0.35), P(-1.9, cyp + 1.0), P(-5.2, cyp - 1.0), P(-2.0, cyp - 1.15)]
-        a_out = arr(P(-4.6, cyp + 1.85), P(-5.6, cyp + 1.85), BLUE, 7)
-        a_out2 = arr(P(-2.0, cyp + 1.85), P(-1.0, cyp + 1.85), BLUE, 7)
-        self.at_idle("so water leaves", idle1 + list(in_l), 0.06, 1)
-        self.play(FadeIn(a_out), FadeIn(a_out2), drift(mv, tgt, 2.6, amp=0.1, seed=12), run_time=2.6)
-
-        morep = T("more dissolved particles inside", 26, ORANGE).move_to(P(3.3, cyp - 3.2))
-        rest = idle1 + [in_l[1], in_l[3]]
-        self.at_idle("In lettuce", rest, 0.06, 2)
-        self.play(FadeIn(orr), FadeIn(morep), FadeOut(lessw), run_time=0.7)
-        mv2 = [out_w_r[0], out_w_r[3], out_w_r[6], out_w_r[7]]
-        tgt2 = [P(2.9, cyp + 0.8), P(4.0, cyp - 0.85), P(2.6, cyp - 0.2), P(4.2, cyp + 0.2)]
-        a_in = arr(P(1.6, cyp + 1.85), P(2.6, cyp + 1.85), BLUE, 7)
-        a_in2 = arr(P(5.0, cyp + 1.85), P(4.0, cyp + 1.85), BLUE, 7)
-        rest2 = [d for d in idle1 if d not in mv2] + [in_l[1], in_l[3]]
-        self.at_idle("so water moves in", rest2, 0.06, 3)
-        self.play(FadeIn(a_in), FadeIn(a_in2), drift(mv2, tgt2, 2.6, amp=0.1, seed=13), run_time=2.6)
-
-        noe = T("the cells spend no energy", 32, TEXT).move_to(P(0, 3.25))
-        self.at_idle("Neither time", rest2 + mv2, 0.06, 4)
-        self.play(FadeOut(t_l), FadeOut(t_r), FadeOut(morep), FadeIn(noe), run_time=0.6)
-        pas = vocab("passive transport", 36).move_to(P(0, 3.25))
-        self.at_idle("passive transport", rest2 + mv2, 0.06, 5)
-        self.play(ReplacementTransform(noe, pas), run_time=0.6)
-        self.at_idle("toward more dissolved particles", rest2 + mv2 + list(out_salt_l), 0.06, 6)
-        self.play(Indicate(out_salt_l, color=ORANGE, scale_factor=1.15), Indicate(in_salt_r, color=ORANGE, scale_factor=1.25), run_time=1.5)
+        w = self.stage(specs_from_left(set(range(10)), GREEN))
+        w.hop(9, "R", 2.6)
+        w.hop(8, "R", 5.2)
+        w.hop(11, "L", 7.0)
+        body = RoundedRectangle(corner_radius=0.1, width=1.5, height=0.8, stroke_color=WHITE, stroke_width=5)
+        tip = Rectangle(width=0.14, height=0.36, fill_color=WHITE, fill_opacity=1, stroke_width=0).next_to(body, RIGHT, buff=0)
+        cells = VGroup(*[Rectangle(width=0.28, height=0.56, fill_color=GREEN, fill_opacity=1, stroke_width=0) for _ in range(4)]).arrange(RIGHT, buff=0.08).move_to(body)
+        batt = VGroup(body, tip, cells)
+        lab = T("no energy spent", size=32, color=GREEN)
+        row = VGroup(batt, lab).arrange(RIGHT, buff=0.35).move_to(P3(0, 3.42))
+        self.remove(self.blood, self.mc)
+        self.at("The cell spent", lead=0.3)
+        self.play(FadeIn(batt), run_time=0.7)
+        self.at("no energy", lead=0.2)
+        self.play(FadeIn(lab), run_time=0.6)
+        self.at("needs no energy", lead=0.3)
+        d = caption("needs no energy from the cell", y=-3.62, size=28)
+        self.play(FadeIn(d), run_time=0.7)
+        self.at("passive transport", lead=0.3)
+        term = chip("passive transport", TEAL, size=30).move_to(P3(0, -2.85))
+        self.play(Write(term), run_time=1.1)
+        self.idle()
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Water moves toward more dissolved particles, and the cell spends no energy."
+class S13Rule(SS):
+    def construct(self):
+        cyy, hh, ww = 0.55, 3.8, 6.0
+        cxl, cxr = -3.4, 3.4
+        specL = specs_from_left(LEFT_AFTER_6, PUR)
+        specR = specs_from_left(LEFT_AFTER_6, GREEN)
+        wl = World(self, specL, cx=cxl, cy=cyy, w=ww, h=hh, amp=0.26, seed=21, s=0.85)
+        wr = World(self, specR, cx=cxr, cy=cyy, w=ww, h=hh, amp=0.26, seed=22, s=0.85)
+        tl = tank_base(cxl, cyy, ww, hh)
+        tr_ = tank_base(cxr, cyy, ww, hh)
+        ll = open_line(cxl, cyy, hh)
+        cr = cell_fill(cxr, cyy, ww, hh)
+        mr = membrane(cxr, cyy, hh)
+        sch = schem(5.6, -3.5)
+        tal_l = Tally(wl, x=cxl, y=3.0, gap=1.2, size=32)
+        tal_r = Tally(wr, x=cxr, y=3.0, gap=1.2, size=32)
+        self.add(tl, tr_, ll, cr, mr, wl.dots, wr.dots, sch, tal_l, tal_r)
+        self.remove(tl, tr_, ll, cr, mr, sch)
+        wl.dots.set_opacity(0)
+        wr.dots.set_opacity(0)
+        self.play(FadeIn(tl), FadeIn(tr_), FadeIn(ll), FadeIn(cr), FadeIn(mr), FadeIn(sch),
+                  wl.dots.animate.set_opacity(1), wr.dots.animate.set_opacity(1), run_time=1.0)
+        base_t = self.t_of("on average") + 0.6
+        for wk in (wl, wr):
+            wk.hop(7, "R", base_t)
+            wk.hop(8, "R", base_t + 0.8)
+            wk.hop(6, "R", base_t + 1.6)
+            wk.hop(13, "L", base_t + 2.3)
+        self.at("on average", lead=0.3)
+        self.play(tal_l.op.animate.set_value(1), tal_r.op.animate.set_value(1), run_time=0.6)
+        self.at("That makes", lead=0.2)
+        arr = Arrow(P3(-5.4, -2.0), P3(5.4, -2.0), buff=0, color=PUR, stroke_width=16, tip_length=0.5,
+                    max_tip_length_to_length_ratio=0.2, max_stroke_width_to_length_ratio=30)
+        self.play(GrowArrow(arr), run_time=1.3)
+        lab = T("more crowded → less crowded", size=36).move_to(P3(0, -2.85))
+        self.at("one -way drift", lead=0.1) if False else self.at("drift", lead=0.3)
+        self.play(FadeIn(lab), run_time=0.8)
+        self.idle()
+        self.finish()
+
+
+class S14Tease(SS):
+    def construct(self):
+        base = tank_base()
+        mem = membrane()
+        specs = [{"side": "R", "color": GREY, "shape": "square", "r": 0.15} for _ in range(8)]
+        specs += [{"side": "L", "color": BLUE, "r": 0.11} for _ in range(5)] + [{"side": "R", "color": BLUE, "r": 0.11} for _ in range(4)]
+        w = World(self, specs, flash=False, seed=31)
+        sch = schem()
+        w.dots[8:].set_opacity(0)
+        self.add(base, mem, w.dots, sch)
+        w.bounce(0, 3.6)
+        w.bounce(1, 8.0)
+        salt = T("salt", size=34, color=GREY).move_to(P3(3.1, 3.42))
+        self.at("crowded particle", lead=0.2)
+        self.play(FadeIn(salt), run_time=0.5)
+        qm = T("?", size=90, color=TEXT).move_to(P3(0, 3.1))
+        self.at("will not let", lead=0.2)
+        self.play(FadeIn(qm, scale=1.4), run_time=0.6)
+        self.at("what if water", lead=0.3)
+        wl = T("water", size=34, color=BLUE).move_to(P3(-3.1, 3.42))
+        self.play(w.dots[8:].animate.set_opacity(1), FadeIn(wl), run_time=0.9)
+        self.idle()
+        self.finish()
+
+
+class S15End(EndCard):
+    LINE = "Random moves make a one-way drift, no push needed."
