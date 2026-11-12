@@ -5,18 +5,19 @@ course: "organismal-biology"
 courseChapter: "Organismal Biology · Unit 4: Water, salts and wastes"
 order: 716
 summary: >-
-  An adult human kidney pair filters about 180 litres of plasma a day and returns almost all of it.
-  This lesson follows blood and filtrate through one mammalian nephron, reads the frog micropuncture
+  What leaves in urine is what the kidney filtered, minus what its tubules took back, plus what
+  they added; an adult human filters about 180 litres of plasma a day and takes back about 99% of
+  the water, so the take-back largely sets how much water leaves. This lesson follows blood and filtrate through one mammalian nephron, reads the frog micropuncture
   experiment that showed the first step is a filter, explains how the loop of Henle and antidiuretic
   hormone make urine more concentrated than blood, and compares kidneys across mammals, birds,
   amphibians and fish. Afterwards you can calculate a clearance and a filtered load and say what
   each number tells you about a substance.
-hook: "Your kidneys filter about 180 litres a day and you make about one or two litres of urine. Where does the rest go?"
+hook: "Your kidneys filter about 180 litres of plasma a day. Why filter so much only to take almost all of it back?"
 
-estMinutes: 24
+estMinutes: 27
 objectives:
   - "Trace blood (afferent arteriole, glomerulus, efferent arteriole, peritubular capillaries and vasa recta) and filtrate (Bowman's capsule to collecting duct) through a mammalian nephron, and say what is filtered, reabsorbed and secreted in each segment."
-  - "Explain how the thick ascending limb builds a medullary osmotic gradient by moving salt without water, how water leaves the descending limb and the collecting duct passively, and how antidiuretic hormone and the vasa recta shape the result."
+  - "Explain how the thick ascending limb builds the outer medulla's osmotic gradient by moving salt without water, how water leaves the descending limb and the collecting duct passively, and how antidiuretic hormone and the vasa recta shape the result."
   - "Describe control of the mammalian kidney by antidiuretic hormone, the renin-angiotensin-aldosterone system and atrial natriuretic peptide, and calculate a clearance (C = U x V / P) and a filtered load."
   - "Compare urine-concentrating ability in humans, desert rodents, birds, amphibians and aglomerular marine fish, and relate it to loop length and medullary thickness."
 
@@ -25,9 +26,29 @@ explainer:
   captions: "/explainers/kidney/explainer.vtt"
   poster: "/explainers/kidney/poster.jpg"
   title: "Filter Far More, Take Most Back"
-  durationSec: 159.3
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  durationSec: 196.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "What leaves in urine is what the kidney filtered, minus what its tubules took back, plus what they added."
+    - "An adult human filters about 180 litres of plasma a day and passes one or two litres of urine, so about 99% of the filtered water comes back."
+    - "The filtrate carries water and small solutes such as salt, glucose and urea, but no blood cells and very little protein."
+    - "Because so much is filtered, a small change in take-back makes a large change in urine; in a healthy kidney hormones make the fine adjustments in the last stretches of the tube, mainly the collecting duct."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/kidney/chapter-2.mp4"
+    captions: "/explainers/kidney/chapter-2.vtt"
+    poster: "/explainers/kidney/chapter-2-poster.jpg"
+    title: "Making Urine More Concentrated Than Blood"
+    durationSec: 213.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "No pump in the kidney moves water: it moves solute, mostly salt, and water follows by osmosis."
+      - "In the outer medulla, the thick ascending limb moves salt out but holds its water, so the tissue there becomes saltier than blood."
+      - "Because fluid flows down one limb and up the other, a modest difference at each level adds up along the loop; rat kidney slices show osmolality rising from cortex to papilla, and how the inner medulla keeps rising is still debated."
+      - "With ADH, the collecting duct inserts water channels and water leaves into the concentrated medulla, so urine becomes concentrated; without ADH, dilute urine flows out."
 
 scientists:
   - name: "Alfred Newton Richards and Joseph T. Wearn"
@@ -250,7 +271,7 @@ mcatQuestions:
       - "Papillary osmolality rises, and urine becomes more concentrated than before"
     answer: 0
     rationale: >-
-      The thick ascending limb's salt transport, without water, is what builds the medullary
+      The thick ascending limb's salt transport, without water, is what builds much of the medullary
       gradient; block it and the medulla becomes less concentrated, so even with ADH present the
       collecting duct has a weaker gradient to lose water into, and urine osmolality falls toward
       that of plasma. A rise in papillary osmolality reverses the effect of removing the salt
@@ -357,102 +378,184 @@ draft: false
 
 import ClearanceVsGfr from '../../../components/ClearanceVsGfr.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**An adult human's kidneys filter about 180 litres of plasma a day, about four times the volume of water in the whole body. Most people pass one or two litres of urine. Where does the rest go?**
+The first film's 180 litres a day is about four times the volume of water in the whole body. This lesson builds on [osmoregulation](/lessons/osmoregulation/).
 
-Back into the blood. The kidney filters far more than it lets go, then takes most of it back. This lesson follows that fluid through one mammalian nephron, then compares kidneys across animals. It builds on [osmoregulation](/lessons/osmoregulation/).
+> **The one idea.** What leaves in urine is what the kidney filtered, minus what its tubules took back, plus what they added:
+> **excreted = filtered − reabsorbed + secreted.**
+> Because the kidney filters far more than it lets go, the take-back, not the filter, largely sets how much water you lose.
+>
+> *Scope:* a mammalian kidney, one substance, over a set time. If tubule cells make a substance and release it into the tubule, as with ammonium, count that as secreted; if the kidney makes or uses up a substance any other way, that needs its own term. No pump moves water across the tubule wall: water taken back moves passively, mainly by osmosis down gradients that solute transport creates, mostly with salt and, deep in the kidney, also with urea. Filtration is different: at the glomerulus, Starling forces push water through the filter in bulk ([blood and vessels](/lessons/blood-and-vessels/)).
 
-## One nephron, three verbs: filter, reabsorb, secrete
+## Where each term happens
 
-A **nephron** is the kidney's working unit: a filter attached to a long tube. An adult human kidney holds roughly a million. **Filtration** pushes fluid out of the blood into the tube. **Reabsorption** moves substances from the tube back into the blood. **Secretion** moves substances from the blood into the tube.
+An adult human kidney holds roughly a million **nephrons**, each a filter (the **glomerulus**, a knot of capillaries in the cup of **Bowman's capsule**) attached to a long tube. Blood enters and leaves the glomerulus by the **afferent** and **efferent arterioles** (afferent in, efferent out), then runs through the **peritubular capillaries** around the tube and, for nephrons that reach deep into the kidney, through long hairpin vessels, the **vasa recta**. The filtrate then flows through four stretches, the last shared by many nephrons. In mammals:
 
-Follow the blood first. The **afferent arteriole** carries blood into the **glomerulus**, a knot of capillaries. The **efferent arteriole** carries it out (afferent in, efferent out). The blood then runs through the **peritubular capillaries** wrapped around the tube, and, for nephrons that reach deep into the kidney, through long hairpin vessels called the **vasa recta**.
+| Stretch | Takes back (reabsorbed) | Adds (secreted) |
+|---|---|---|
+| **Proximal tubule** | About 60 to 70% of filtered sodium, with water following so the fluid stays at nearly plasma's concentration; almost all filtered glucose and amino acids | Hydrogen ions, ammonium, some drugs |
+| **Loop of Henle** (descending, then ascending limb) | Water from the descending limb, salt from the ascending limb; together they build much of the medulla's gradient (the second film) | |
+| **Distal tubule** | More salt | |
+| **Collecting duct** | Sodium (**principal cells**); water, when antidiuretic hormone is present | Potassium (principal cells); acid or bicarbonate (**intercalated cells**, part of acid-base balance, [gas exchange](/lessons/gas-exchange/)) |
 
-At the glomerulus, blood pressure pushes plasma through a barrier into **Bowman's capsule**, the cup around the capillaries. The pressures involved are the Starling forces from [blood and vessels](/lessons/blood-and-vessels/). The fluid that passes is the **filtrate**: water and small solutes such as sodium, glucose, amino acids and urea, but not blood cells and very little plasma protein. Think of a sieve that keeps the beans and passes the broth.
+The late distal tubule and the collecting duct set the final water and salt content of urine under hormonal control. How epithelial cells move ions is in [epithelia](/lessons/epithelia/) and [membrane transport](/lessons/membrane-transport/).
 
-The filtrate then flows, in order, through the **proximal tubule**, the **loop of Henle** (a descending limb, then an ascending limb), the **distal tubule** and the **collecting duct**, which many nephrons share. In mammals:
+## Micropuncture: is the first step really a filter?
 
-- The **proximal tubule** reabsorbs about 60 to 70% of filtered sodium, with water following so the tubular fluid stays at nearly the same concentration, and normally takes back almost all the filtered glucose and amino acids. It secretes hydrogen ions, ammonium and some drugs.
-- The **loop of Henle** and **distal tubule** reabsorb more salt, and the loop builds much of the gradient described below.
-- The **collecting duct** sets the final water and salt content of urine under hormonal control. Its **principal cells** reabsorb sodium and secrete potassium; its **intercalated cells** secrete acid or bicarbonate, part of acid-base balance ([gas exchange](/lessons/gas-exchange/)).
+The first film took the filter for granted, but it was long disputed. A rival camp held that the glomerulus supplies mostly water and tubule cells secrete the solutes of urine.
 
-How epithelial cells move ions is in [epithelia](/lessons/epithelia/) and [membrane transport](/lessons/membrane-transport/).
+**Predict.** If the rival camp were right, what should fluid in Bowman's capsule lack? And how could you show, in the same animal, that the tubule takes something back?
 
-### Worked problem: clearance and filtered load
+<details>
+<summary>Check your prediction</summary>
 
-**Clearance** is the volume of plasma per minute that the kidneys would have to clear completely of a substance to account for its rate in urine. At steady state:
+It should lack plasma solutes such as sugar. To show reabsorption, compare it with bladder urine: a solute in the capsule but not the bladder was taken back.
 
-> **C = U x V / P**, where U is urine concentration, V is urine flow and P is plasma concentration
+</details>
 
-These numbers are illustrative, for an adult human at steady state. **Inulin**, a plant sugar polymer, is freely filtered and neither reabsorbed nor secreted, so its clearance equals the **glomerular filtration rate (GFR)**, the plasma volume filtered per minute.
-
-1. *Urine flow.* 120 mL of urine in 60 min gives V = 2.0 mL per min.
-2. *Clearance.* U = 30 mg per mL and P = 0.50 mg per mL. C = 30 x 2.0 / 0.50 = 120 mL per min. Check the units: (mg per mL x mL per min) / (mg per mL) = mL per min. Clearance is a plasma volume. Over a day: 120 x 1,440 = 172,800 mL, about 173 L.
-3. *Filtered load.* Glucose is freely filtered. With plasma glucose at an illustrative 5.0 mmol per L, filtered load = GFR x P = 0.120 L per min x 5.0 mmol per L = 0.60 mmol per min, or 864 mmol per day (about 156 g). With no glucose in the urine, all of it was reabsorbed.
-4. *Reading other clearances.* A substance with a clearance of 300 mL per min leaves faster than filtration alone could carry it, so the tubule must secrete it. For a freely filtered substance, a clearance of 1 mL per min means it is mostly reabsorbed. **Creatinine**, a muscle waste, is used to estimate GFR, but a little is secreted, so creatinine clearance tends to overestimate GFR.
-
-<ClearanceVsGfr />
-
-## Micropuncture: reading the fluid inside a frog nephron
-
-Physiologists long argued over how urine forms. If the glomerulus filters, capsular fluid should resemble plasma without its protein. If instead the glomerulus supplies mostly water and tubule cells secrete the solutes of urine, capsular fluid should lack plasma solutes such as sugar.
-
-In 1924 Joseph Wearn and Alfred Newton Richards, at the University of Pennsylvania, sampled the fluid itself. They exposed a frog kidney under a microscope and guided a fine glass pipette into Bowman's capsule to draw off a tiny sample. This is **micropuncture**. The capsular fluid held no protein their tests could find, yet it contained sugar and chloride. The frog's bladder urine contained no sugar.
+In 1924 Joseph Wearn and Alfred Newton Richards, at the University of Pennsylvania, used **micropuncture**: under a microscope, they drew a tiny sample from Bowman's capsule of a frog kidney with a fine glass pipette. It held sugar and chloride but no protein their tests could find; the frog's bladder urine held no sugar.
 
 <LessonFigure src="/figures/kidney/frog-micropuncture-setup.webp" width={1200} height={797} alt="AI-generated illustration: a frog kidney under a microscope with a fine glass pipette entering the cup of Bowman's capsule to draw off a drop of fluid. Two small insets compare the capsular fluid, which has sugar and chloride but no protein found, with the frog's bladder urine, which has no sugar." caption="Wearn and Richards (1924) guided a fine pipette into Bowman's capsule of a frog kidney. The fluid held no protein their tests could find but did contain sugar and chloride, while the frog's bladder urine held no sugar: a protein-free filtrate, then reabsorption of glucose." />
 
-That ruled in a protein-free filtrate at the glomerulus, followed by reabsorption of glucose somewhere along the tubule, in the frog. It did not say where, it gave no mammalian rates, and frog nephrons lack a loop of Henle. Later micropuncture in rats and other mammals placed glucose reabsorption mainly in the proximal tubule.
+That fitted a filter followed by reabsorption, in the frog. It did not say where along the tubule or give mammalian rates, and frog nephrons lack a loop of Henle. Later micropuncture in rats and other mammals placed glucose reabsorption mainly in the proximal tubule.
 
-## Making urine saltier than blood: the loop and the collecting duct
+## Clearance: reading the ledger from outside
 
-**Osmolality** counts dissolved particles per kilogram of water (mOsm per kg). Adult human plasma is about 290 mOsm per kg; a water-deprived adult human can make urine near 1,200. That takes tissue saltier than plasma, and a controlled way for water to leave the tubule into it.
+Can blood and urine alone, with no pipette, read the ledger? Urine concentration U times urine flow V is the excretion rate, the ledger's "excreted" term. Divide by plasma concentration P and you get the volume of plasma that would hold that much each minute: the **clearance**. No plasma is really wiped clean.
 
-The region is the **medulla**, the inner part of the kidney. In 1951 Wirz, Hargitay and Kuhn measured the freezing point of rat kidney slices and found osmolality rising steadily from the outer **cortex** to the tip of the **papilla**, where urine drains out.
+<EquationCard
+  purpose="How much plasma per minute would carry what a substance's urine output shows: the ledger read from outside."
+  eq="C = U × V / P"
+  say="Clearance equals urine concentration times urine flow, divided by plasma concentration."
+  symbols={[
+    ["C", "C", "clearance, a volume of plasma per minute", "mL per min"],
+    ["U", "U", "concentration in urine", "mg per mL"],
+    ["V", "V", "urine flow", "mL per min"],
+    ["P", "P", "concentration in plasma", "mg per mL"],
+  ]}
+  toolkit={["ratios", "units"]}
+  check="U × V alone is mg per min, the excretion rate. Dividing by mg per mL leaves mL per min: a volume, not an amount."
+/>
 
-The loop of Henle builds much of that gradient. Picture two lanes of traffic running in opposite directions down and back up a hairpin road.
+**Inulin**, a plant sugar polymer, is freely filtered and neither reabsorbed nor secreted, so excreted equals filtered and its clearance equals the **glomerular filtration rate (GFR)**, the plasma volume filtered per minute.
 
-- The **thick ascending limb** takes sodium chloride up from the tubule fluid, mainly through a cotransporter called NKCC2, and passes it out into the surrounding tissue, with the sodium-potassium pump supplying the energy. It is nearly impermeable to water. Salt leaves; water stays. The tissue outside gets saltier and the fluid inside gets more dilute.
-- The **thin descending limb** is permeable to water and much less to salt, at least in the rabbit. Kokko's 1970 isolated rabbit tubules showed this. As the descending fluid passes through the salty tissue, water leaves it passively, by osmosis, and the fluid concentrates on its way to the bend.
+### Worked problem: clearance and filtered load
 
-Because the two limbs carry fluid in opposite directions (**countercurrent flow**), and fluid concentrated on the way down is handed around the bend to the salt-removing ascending limb, a modest salt difference at each level adds up along the loop into a large difference through the outer medulla. This is the **countercurrent multiplier**. The thick ascending limb does not reach the inner medulla, and how osmolality keeps rising there toward the papilla is still under study. No pump moves water anywhere in it: only salt is transported, and water follows by osmosis. Not every descending segment is water-permeable, either: in rats some inner-medullary descending segments lack the water channel aquaporin-1.
+Illustrative numbers, for an adult human at steady state.
 
-The vasa recta run in hairpins too. Blood going down gains salt and loses water; blood coming up does the reverse. This **countercurrent exchange** removes reabsorbed water while limiting washout of the gradient.
+1. *Clearance.* 120 mL of urine in 60 min gives V = 2.0 mL per min. With inulin at U = 30 mg per mL and P = 0.50 mg per mL, C = 30 x 2.0 / 0.50 = 120 mL per min. Over a day: 120 x 1,440 = 172,800 mL, about 173 L.
+2. *Filtered load.* Glucose is freely filtered. With plasma glucose at an illustrative 5.0 mmol per L, filtered load = GFR x P = 0.120 L per min x 5.0 mmol per L = 0.60 mmol per min, or 864 mmol per day (about 156 g). With no glucose in the urine, all of it was reabsorbed.
+3. *Reading other clearances.* For a freely filtered substance, a clearance above GFR means net secretion: at 300 mL per min the substance leaves faster than filtration alone could carry it. One of 1 mL per min means it is mostly reabsorbed. **Creatinine**, a muscle waste, is used to estimate GFR, but a little is secreted, so creatinine clearance tends to overestimate GFR.
 
-The **collecting duct** uses the gradient. It runs from cortex to papilla through ever saltier tissue. When **antidiuretic hormone (ADH)**, also called vasopressin, is present, its cells insert stored water channels, aquaporin-2, into the membrane facing the urine. Water leaves by osmosis and urine becomes concentrated. Without ADH most of the duct stays nearly water-tight and dilute urine flows out. In the deepest medulla, urea also leaves the collecting duct through urea transporters, by facilitated diffusion rather than an active pump, and adds to the gradient there.
+<ClearanceVsGfr />
 
-## Hormones that set water and salt
+## Making urine more concentrated than blood
 
-**ADH** is made in the hypothalamus and released from the posterior pituitary ([endocrine system](/lessons/endocrine-system/); [hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/)). Plasma osmolality rising or blood volume falling increases its release. In collecting-duct cells it acts through V2 receptors and cAMP ([G proteins](/lessons/gpcrs-and-g-proteins/), [cAMP and PKA](/lessons/camp-and-pka/)). In perfused rat collecting ducts, Nielsen and colleagues (1995) showed that the hormone moves stored channels into the membrane and that the channels leave again when the hormone is removed.
+The last litres of water are the hardest to take back: they must come out of fluid that, with antidiuretic hormone (ADH) present, ends up more concentrated than blood. The second film shows how.
 
-The **renin-angiotensin-aldosterone system** responds to low blood pressure and low salt. **Renin** is an enzyme released by **juxtaglomerular cells** in the wall of the afferent arteriole when renal perfusion pressure falls, when less salt reaches the nearby **macula densa** of the distal tubule, or when sympathetic nerves stimulate beta-adrenergic receptors. Renin cuts **angiotensinogen**, a plasma protein made by the liver, into angiotensin I, and angiotensin-converting enzyme turns that into **angiotensin II**. Angiotensin II raises sodium reabsorption in the tubule and stimulates the adrenal cortex to release **aldosterone**, a steroid that raises sodium reabsorption through ENaC channels in principal cells and, coupled to it, potassium secretion ([nuclear receptors](/lessons/nuclear-receptors/)).
+<LessonFilm film={frontmatter.films[0]} />
 
-**Atrial natriuretic peptide (ANP)** comes from heart muscle cells in the atria when they are stretched, as after a rise in blood volume. It pushes the other way: more sodium and water in urine. It raises GFR and suppresses the release of renin and aldosterone. In anesthetized rats it inhibited sodium reabsorption in the inner-medullary collecting duct, and in perfused rat ducts it reduced ADH-stimulated water permeability. It works through cGMP ([cGMP signaling](/lessons/senses-and-cgmp/)).
+In numbers: adult human plasma is about 290 mOsm per kg (**osmolality**, dissolved particles per kilogram of water); a water-deprived adult can make urine near 1,200. The second film's medulla has two zones: the **outer medulla**, where thick ascending limbs run, and the **inner medulla** below it, down to the papilla, which only thin limbs, collecting ducts and vessels reach.
 
-## Kidneys compared: loops, deserts and fish without glomeruli
+### Why a modest difference adds up
 
-**Loops of Henle occur only in mammals and birds**, and only these vertebrates make urine more concentrated than their plasma. Amphibians and most fish have no loop, and their urine is at most about as concentrated as their plasma.
+The second film's multiplier works in the outer medulla.
 
-Among mammals, loop length and medullary depth vary. Across many species, Beuchat (1990) found that relative medullary thickness tracks maximum urine concentration. The kangaroo rat *Dipodomys merriami*, a seed-eater of North American deserts, has long loops and a thick inner medulla and makes urine several times more concentrated than an adult human can ([osmoregulation](/lessons/osmoregulation/) tells how it balances water).
+**Predict.** In an idealized outer-medullary loop, keep salt transport at each level, flow, wall leakiness and blood washout the same, and make the loop twice as long. Could the deepest tissue end up more concentrated?
+
+<details>
+<summary>Check your prediction</summary>
+
+Yes, in this idealized model: a longer countercurrent path gives the difference more steps to add up. That is a direction, not a number, and real long loops also reach the inner medulla, whose mechanism is unresolved. Hence the comparison below of loop length and medullary thickness.
+
+</details>
+
+### Testing each limb on its own
+
+The second film's descending limb comes from Kokko (1970), who held single thin descending limbs from rabbit kidneys between glass pipettes and perfused them, setting both lumen and bath (the **isolated perfused tubule** method). Sodium permeability was low, and no active salt transport could be detected. The thick ascending limb takes up sodium chloride mainly through a cotransporter called NKCC2, with the sodium-potassium pump supplying the energy. Not every descending segment is water-permeable in every species (Going deeper).
+
+### Keeping the gradient
+
+The vasa recta run in hairpins too: blood going down gains salt and loses water, and blood coming up does the reverse. So blood leaves carrying reabsorbed water but little of the salt: this **countercurrent exchange** limits washout of the gradient.
+
+### The inner medulla, and urine without ADH
+
+The thick ascending limb does not reach the inner medulla, yet osmolality keeps rising there toward the papilla, by means still under study (Going deeper). Urea is part of it: there, urea leaves the collecting duct through urea transporters, by facilitated diffusion rather than an active pump, and adds to the gradient there.
+
+Without ADH, urine is *dilute*, not merely plasma-strength: the thick ascending limb has already removed salt without water, and a collecting duct mostly closed to water keeps it that way.
+
+## Hormones tune the reabsorbed term
+
+| Hormone | Released when | Ledger term it changes | Urine |
+|---|---|---|---|
+| **ADH** | Plasma osmolality rises or blood volume falls | Water reabsorbed rises (collecting duct) | Less, more concentrated |
+| **Angiotensin II and aldosterone** | Blood pressure or salt is low | Sodium reabsorbed rises | Less sodium |
+| **ANP** | The atria are stretched | Filtered rises; sodium and water reabsorbed fall | More sodium and water |
+
+**ADH** is made in the hypothalamus and released from the posterior pituitary ([endocrine system](/lessons/endocrine-system/); [hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/)). In collecting-duct cells it acts through V2 receptors and cAMP ([G proteins](/lessons/gpcrs-and-g-proteins/), [cAMP and PKA](/lessons/camp-and-pka/)). Its water channels are aquaporin-2 (Nielsen and colleagues, 1995, in perfused rat ducts).
+
+The **renin-angiotensin-aldosterone system** answers falling pressure or salt by holding on to sodium, through a chain:
+
+1. **Renin**, an enzyme, is released by **juxtaglomerular cells** in the wall of the afferent arteriole when renal perfusion pressure falls, when less salt reaches the **macula densa** (cells at the end of the thick ascending limb, where it touches its own glomerulus's arterioles), or when sympathetic nerves stimulate beta-adrenergic receptors.
+2. Renin cuts **angiotensinogen**, a plasma protein made by the liver, into angiotensin I; angiotensin-converting enzyme turns that into **angiotensin II**.
+3. Angiotensin II raises sodium reabsorption in the tubule and stimulates the adrenal cortex to release **aldosterone**, a steroid that raises sodium reabsorption through ENaC channels in principal cells and, coupled to it, potassium secretion ([nuclear receptors](/lessons/nuclear-receptors/)).
+
+**Atrial natriuretic peptide (ANP)**, from heart muscle cells of the stretched atria (as after a rise in blood volume), pushes the other way. It raises GFR and suppresses the release of renin and aldosterone. In anesthetized rats it inhibited sodium reabsorption in the inner-medullary collecting duct, and in perfused rat ducts it reduced ADH-stimulated water permeability. It works through cGMP ([cGMP signaling](/lessons/senses-and-cgmp/)).
+
+## Kidneys compared: the ledger in other animals
+
+Among vertebrates, **loops of Henle occur only in mammals and birds**, and only these make urine more concentrated than their plasma. Amphibians and most fish have no loop, and their urine is at most about as concentrated as their plasma.
+
+Across many mammal species, Beuchat (1990) found that relative medullary thickness tracks maximum urine concentration. The kangaroo rat *Dipodomys merriami*, a seed-eater of North American deserts, has long loops and a thick inner medulla and makes urine several times more concentrated than an adult human can ([osmoregulation](/lessons/osmoregulation/) tells how it balances water).
+
+**Predict.** To excrete an illustrative 600 mOsm of solute, how much water does urine at plasma's level (about 300 mOsm per kg) take? At the human maximum, near 1,200? At four times that?
+
+<details>
+<summary>Check your prediction</summary>
+
+About 2.0, 0.5 and 0.13 L: load divided by the concentration the kidney can reach.
+
+</details>
 
 Birds have a mix of loopless and looped nephrons and concentrate urine only modestly, to a small multiple of plasma osmolality; much of their nitrogen leaves as uric acid, which takes little water.
 
-Some marine teleosts, including the goosefish *Lophius* and the toadfish *Opsanus*, have kidneys with **no glomeruli** at all. They form urine by secretion instead of filtration: tubule cells move ions such as magnesium and sulfate into the tubule, and water follows. Plants move water with no filter at all ([plant transport](/lessons/plant-transport/)).
+Some marine teleosts, including the goosefish *Lophius* and the toadfish *Opsanus*, have kidneys with **no glomeruli**. On the ledger, filtered is zero: everything in their urine reached the tubule by secretion. Tubule cells move ions such as magnesium and sulfate into the tubule, and water follows. Plants move water with no filter at all ([plant transport](/lessons/plant-transport/)).
 
-<LessonFigure src="/figures/kidney/kidneys-compared-three-animals.webp" width={1200} height={800} alt="AI-generated illustration: three columns comparing kidneys. A kangaroo rat has a nephron with a long loop of Henle; a bird has one nephron with a short loop and one with none; a goosefish has a tube-only nephron with no glomerulus where ions move into the tube." caption="Loops of Henle occur only in mammals and birds: the kangaroo rat has long loops, birds a mix of looped and loopless nephrons. Some marine teleosts such as the goosefish have no glomeruli and form urine by secretion, with water following." />
+<LessonFigure src="/figures/kidney/kidneys-compared-three-animals.webp" width={1200} height={800} alt="AI-generated illustration: three columns comparing kidneys. A kangaroo rat has a nephron with a long loop of Henle; a bird has one nephron with a short loop and one with none; a goosefish has a tube-only nephron with no glomerulus where ions move into the tube." caption="Loops of Henle occur only in mammals and birds, and a thicker medulla goes with more concentrated urine: the kangaroo rat has long loops, birds a mix of looped and loopless nephrons. Some marine teleosts such as the goosefish have no glomeruli and form urine by secretion, with water following." />
 
-### Design problem
+### Design problem (optional, harder)
 
-Urea comes from protein breakdown ([protein turnover](/lessons/protein-turnover-amino-acid-catabolism/)). Fenton and colleagues (2004) made mice lacking the collecting-duct urea transporters UT-A1 and UT-A3. Predict how maximal urine osmolality compares between knockout and normal mice on a 20% protein diet and on a 4% protein diet, after water restriction. Then interpret their results: knockouts concentrated less on 20% protein, the gap almost vanished on 4%, and inner-medullary sodium and chloride did not differ significantly between genotypes.
+Urea comes from protein breakdown ([protein turnover](/lessons/protein-turnover-amino-acid-catabolism/)). Fenton and colleagues (2004) made mice lacking UT-A1 and UT-A3, the urea transporters of the collecting duct. Predict how maximal urine osmolality compares between knockout and normal mice on a 20% protein diet and on a 4% protein diet, after water restriction. Then predict inner-medullary sodium chloride under the passive model, which says urea leaving the collecting duct helps draw salt out of the thin ascending limb.
 
 <details>
 <summary>One way to do it</summary>
 
-Predict first. If urea leaving the inner-medullary collecting duct adds to the gradient, knockouts should concentrate less, and the gap should be large on high protein and small on low protein, which supplies little urea in either genotype.
+If urea leaving the inner-medullary collecting duct adds to the gradient, knockouts should concentrate less, most on high protein, since low protein supplies little urea in either genotype. In fact knockouts concentrated less on 20% protein, the gap almost vanished on 4%, and inner-medullary sodium and chloride did not differ significantly between genotypes.
 
-The results fit, and they have two readings. Knockouts had much less urea in the inner medulla, so urea transport helps urea build up there. Fenton and colleagues stressed a second role: urea that cannot leave the collecting duct holds water in the urine, an osmotic diuresis. Low protein removes most of that urea, which is why the gap almost vanished.
+Two readings fit the deficit. Knockouts had much less urea in the inner medulla, so urea transport helps urea build up there. And, as Fenton and colleagues stressed, urea that cannot leave the collecting duct holds water in the urine, an osmotic diuresis.
 
-The salt result tests a specific model. The passive model of the inner medulla predicts that urea delivered from the collecting duct helps draw salt out of the thin ascending limb, so knockouts should have less inner-medullary NaCl. They did not, which argues against that dependency.
-
-Keep the limits. These are mice, and one knockout does not settle how the inner medulla concentrates; that question is still open.
+The passive model predicts less inner-medullary NaCl in knockouts; they did not have less, which argues against that dependency. Keep the limits: these are mice, and one knockout does not settle how the inner medulla concentrates; that question is still open.
 
 </details>
+
+The ledger once more: in a filtering kidney the take-back largely sets urine volume, while all three terms together set how much of each solute leaves.
+
+## Going deeper
+
+### The take-back keeps pace with filtration
+
+The first film's "about the same share" has a name, **glomerulotubular balance**. Its doubling of urine was ledger arithmetic, not what a healthy kidney lets happen.
+
+### The descending limb across species
+
+Kokko's water-permeable descending limb is the rabbit's; in rats, some inner-medullary descending segments lack the water channel aquaporin-1.
+
+### Which particles draw water
+
+"More concentrated" is shorthand: what draws water across a wall is the particles that cannot cross that wall freely (effective osmolality). While water flows, the tissue need be only slightly more concentrated than the urine.
+
+### The inner medulla, an open question
+
+There the thin ascending limb has no active NaCl transport. The passive model of Kokko and Rector and of Stephenson relies on urea from the collecting duct, which the Fenton knockouts challenge; other proposed mechanisms remain under study.
