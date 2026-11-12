@@ -5,13 +5,15 @@ course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 5: Ecosystem processes"
 order: 521
 summary: >-
-  How much energy does an ecosystem capture, and why does so little of it reach the animals at
-  the top? This lesson defines gross, net primary and net ecosystem production as rates, shows how
-  each is estimated with bottles, harvests and flux towers, and follows energy through consumers
-  as an annual budget. Afterwards you can compute consumption, assimilation, net production and
-  trophic transfer efficiencies from rates in matched units, keep detritus in the budget, and say
-  why the "10% rule" is a rough benchmark rather than a law.
-hook: "Plants often respire about half of what they fix. Where does the other half go?"
+  Energy fixed by plants leaves every feeding step by one of three doors, passed up as
+  production, dropped into detritus or lost as heat, so production shrinks by a product of
+  fractions at each level. This lesson defines gross, net primary and net ecosystem production as
+  rates, shows how each is estimated with bottles, harvests and flux towers, and follows energy
+  through consumers and into detritus as an annual budget. Afterwards you can compute
+  consumption, assimilation, net production and trophic transfer efficiencies from rates in
+  matched units, keep detritus in the budget, and say why the "10% rule" is a rough benchmark
+  rather than a law.
+hook: "In a made-up budget, plants on one square metre fix 12,000 kilojoules a year and the top predators make 40. Where did the rest go?"
 
 estMinutes: 24
 objectives:
@@ -24,10 +26,31 @@ explainer:
   src: "/explainers/energy-flow/explainer.mp4"
   captions: "/explainers/energy-flow/explainer.vtt"
   poster: "/explainers/energy-flow/poster.jpg"
-  title: "Where All the Energy Goes"
-  durationSec: 163.4
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Three Doors"
+  durationSec: 184.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Production is a rate, energy fixed or formed per square metre per year; biomass is a stock."
+    - "Net primary production is gross primary production minus what the producers themselves respire."
+    - "At every feeding step energy leaves by one of three doors: passed up as consumer production, dropped into detritus (uneaten, or as feces), or lost as heat."
+    - "Transfer efficiency is consumption times assimilation times net production efficiency; in the made-up budget the first link passed on 6%."
+    - "Because the fractions multiply, production shrinks fast up a food chain, as long as consumers eat no more than the production below them."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/energy-flow/chapter-2.mp4"
+    captions: "/explainers/energy-flow/chapter-2.vtt"
+    poster: "/explainers/energy-flow/chapter-2-poster.jpg"
+    title: "Where the Marsh Grass Goes"
+    durationSec: 187.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "In Teal's Georgia salt marsh, insects and other animals grazing living cordgrass took only a small part of its production."
+      - "Most grass production went to detritus rather than to grazers: it died, broke into fragments and fed bacteria and detritus-feeding animals, which are themselves eaten."
+      - "Energy in detritus can feed decomposers, detritus feeders and their predators, but it never returns to the producers: respiration releases it as heat, and only matter cycles."
+      - "Teal's figure of about 45% of net production available to leave with the tides was a remainder, not a measured export."
 
 scientists:
   - name: "Raymond Lindeman"
@@ -239,8 +262,8 @@ explainLevels:
     text: >-
       Plants catch sunlight and use it to build themselves. They often burn about half of it just to
       stay alive. Animals that eat plants get only a little of what is left, and they burn most of
-      that too. So there is less and less for each animal up the line, which is why there are
-      few lions and lots of grass.
+      that too. So there is less and less for each animal up the line, which is why a lot of grass
+      makes only a little lion meat.
   - level: "highschool"
     label: "High school"
     text: >-
@@ -331,16 +354,21 @@ draft: false
 import EnergyBudgetLadder from '../../../components/EnergyBudgetLadder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Plants often respire roughly half of the energy they fix. Of the half they keep, only a small share becomes herbivore, and a smaller share of that becomes predator. Where does the rest go, and how would you measure it?**
+The first film opened the three doors on one feeding step and found 6% passed up to the herbivores. It left out how anyone measures these flows, what happens one step higher, and where the dead matter goes.
 
-This lesson treats an ecosystem as a set of accounts. Energy comes in as sunlight fixed by photosynthesis, moves between accounts when something is eaten or dies, and leaves as heat. The mechanisms of photosynthesis and respiration belong to Biochemistry: the [light reactions](/lessons/light-reactions/) make ATP and NADPH, the [Calvin cycle](/lessons/calvin-cycle/) uses them to fix CO2, and [oxidative phosphorylation](/lessons/oxidative-phosphorylation/) recovers energy from food through a [proton-motive force](/lessons/proton-motive-force/). For the shared vocabulary of energy and free energy, see [basic concepts of metabolism](/lessons/metabolism-basic-concepts/). Here you keep the totals.
+> **The one idea.** At every feeding step, energy leaves by one of three doors: **passed up** as consumer production, dropped into **detritus** (uneaten, or as feces), or lost as **heat**. The share passed up is a product of three fractions, consumption × assimilation × net production efficiency, so production shrinks fast up a food chain.
+>
+> *Scope:* a simplified budget of rates over one period (usually a year), in one currency per area. It assumes production not eaten during the period enters detritus (in real budgets some stays as living biomass, is eaten along another food-web link, or is exported). Small losses such as excreted wastes are lumped with detritus or neglected. Production shrinks as long as consumers eat no more than the production below them (Going deeper). Energy never returns to the producers: it is stored for a while or leaves as heat. Only matter cycles.
+
+The machinery belongs to Biochemistry: the [light reactions](/lessons/light-reactions/) make ATP and NADPH, the [Calvin cycle](/lessons/calvin-cycle/) uses them to fix CO2, and [oxidative phosphorylation](/lessons/oxidative-phosphorylation/) recovers energy from food through a [proton-motive force](/lessons/proton-motive-force/) (vocabulary in [basic concepts of metabolism](/lessons/metabolism-basic-concepts/)). Here you keep the totals.
 
 ## Production is a rate: GPP, NPP and NEP
 
-**Production** is the rate at which new organic matter, or the energy in it, is formed per unit area or volume per unit time, for example kJ m^-2 yr^-1 (read it as kilojoules per square metre per year) or g C m^-2 yr^-1 (grams of carbon per square metre per year). It is a flow. **Biomass** (standing crop) is a stock: how much is there at one moment, in g m^-2 with no time unit. Think of a bank account. Biomass is the balance; production is the deposits per year. A small balance can sit on a large income if the money is spent quickly, which is exactly what fast-dividing phytoplankton do.
+**Production** is the rate at which new organic matter, or its energy, is formed per unit area or volume per unit time, such as kJ m^-2 yr^-1 (kilojoules per square metre per year) or g C m^-2 yr^-1 (grams of carbon). **Biomass** (standing crop) is a stock: how much is there at one moment, in g m^-2 with no time unit. A small stock can sit on a large production if it turns over quickly, as fast-dividing phytoplankton do.
 
-Three production terms recur. The first two answer one question: of what plants fix, how much is left for everything else?
+Real plants often respire roughly half of the energy they fix.
 
 <EquationCard
   purpose="How much of what the producers fix is left over for everything else to eat or store."
@@ -349,76 +377,87 @@ Three production terms recur. The first two answer one question: of what plants 
   symbols={[
     ["NPP", "N P P, net primary production", "what is left after the producers’ own respiration: the energy available to everything else", "kJ m^-2 yr^-1"],
     ["GPP", "G P P, gross primary production", "the total rate of photosynthetic fixation by the producers, the first trophic level (a step in feeding defined by what an organism eats)", "kJ m^-2 yr^-1"],
-    ["Ra", "R sub a, autotrophic respiration", "what the producers themselves respire", "kJ m^-2 yr^-1"],
+    ["Ra", "R sub a, autotrophic respiration", "what the producers (autotrophs, organisms that make their own food) themselves respire", "kJ m^-2 yr^-1"],
   ]}
   toolkit={["units"]}
-  check="If producers respired nothing, NPP would equal GPP. If they respired everything they fixed, NPP would be zero and nothing would be left for herbivores or decomposers. A common slip is to call GPP “what is left after plants respire”; that is NPP."
+  check="If producers respired nothing, NPP would equal GPP. If they respired everything, NPP would be zero. A common slip is to call GPP “what is left after plants respire”; that is NPP."
 >
   <Fragment slot="example">
-    <p>In the worked budget below, GPP is 12,000 and Ra is 6,000 kJ m^-2 yr^-1.</p>
-    <p>NPP = 12,000 − 6,000 = 6,000 kJ m^-2 yr^-1: the plants keep half of what they fix.</p>
+    <p>In the first film's budget, NPP = 12,000 − 6,000 = 6,000 kJ m^-2 yr^-1: the plants keep half of what they fix.</p>
   </Fragment>
 </EquationCard>
 
-The third term asks what the whole ecosystem keeps. **Net ecosystem production** (NEP) subtracts the respiration of the whole ecosystem, Reco, which adds the respiration of animals, fungi and bacteria to Ra:
+**Net ecosystem production** (NEP) subtracts **Reco**, the respiration of the whole ecosystem: Ra plus the respiration of animals, fungi and bacteria.
 
 > **NEP = GPP − Reco**
 
-NEP is the energy or carbon the ecosystem stores over the period, if none is imported or exported by other routes.
-
-Tower studies usually report **net ecosystem exchange** (NEE) instead. With release to the atmosphere counted as positive, NEE = Reco - GPP, so an ecosystem that takes up carbon has a negative NEE. Check the sign convention before you read any flux graph.
+NEP is what is fixed and not respired. If no organic matter is carried in or out (by water or harvest, say), it is what the ecosystem stores, and **GPP = Reco + NEP**: everything fixed is either respired or stored. In an open system some fixed carbon is exported, and imported organic matter also changes the stock.
 
 ## Measuring it: bottles, harvests and towers
 
-No method observes GPP directly at ecosystem scale. Each method measures something nearby and infers the rest.
+No method observes GPP directly at ecosystem scale; each measures one door, or the net, and infers the rest.
 
-**Light and dark bottles.** Fill paired bottles with lake or sea water, seal them, keep one dark, and incubate both. Write I for the initial oxygen, L for the final oxygen in the light bottle, D for the final oxygen in the dark bottle, and t for the incubation time. Each bottle answers one question:
+**Light and dark bottles.** Seal paired bottles of lake or sea water, keep one dark, and incubate both. Write O_start for the oxygen at the start, L for the final oxygen in the light bottle, D for the final oxygen in the dark bottle, and t for the incubation time. The light bottle gains oxygen from photosynthesis and loses it to respiration, so its change is **net community production = (L − O_start) / t**.
 
-- The light bottle gains oxygen from photosynthesis and loses it to respiration, so its change is **net community production = (L − I) / t**.
-- The dark bottle only respires, so its loss is **respiration = (I − D) / t**.
-- Photosynthesis is the light bottle's net gain plus what respiration took away. Add the two lines and I cancels:
+**Predict.** The light bottle already gives you a net. What does the dark bottle tell you that the light one cannot?
+
+<details>
+<summary>Check your prediction</summary>
+
+The heat door on its own, for the whole community in the bottle. The dark bottle only respires, so its loss is **respiration = (O_start − D) / t**. Photosynthesis is the light bottle's net gain plus what respiration took away, so add the two lines.
+
+</details>
 
 <EquationCard
   purpose="Gross photosynthesis in a bottle of water, from two oxygen readings."
   eq="GPP = (L − D) / t"
   say="Gross primary production is the light-bottle oxygen minus the dark-bottle oxygen, divided by the time."
   symbols={[
-    ["GPP", "G P P", "gross primary production, here as oxygen produced per litre per unit time", "mg O2 L^-1 h^-1"],
+    ["GPP", "G P P", "gross primary production, here as gross oxygen production by all the bottle’s photosynthesizers, per litre per unit time", "mg O2 L^-1 h^-1"],
     ["L", "L", "final oxygen in the light bottle", "mg O2 per L"],
     ["D", "D", "final oxygen in the dark bottle", "mg O2 per L"],
     ["t", "t", "incubation time", "h"],
   ]}
   toolkit={["units"]}
-  check="If nothing photosynthesized, the two bottles would end the same, L = D, and GPP would be zero. GPP always equals net community production plus respiration, which gives a second way to check your arithmetic."
+  check="If nothing photosynthesized, the two bottles would end the same, L = D, and GPP would be zero. GPP should also equal net community production plus respiration."
 >
   <Fragment slot="example">
     <p>Round invented values: oxygen starts at 10 mg/L, and after 2 hours the light bottle reads 11 and the dark bottle 9.</p>
     <p>Net community production = (11 − 10) / 2 = 0.5. Respiration = (10 − 9) / 2 = 0.5. GPP = (11 − 9) / 2 = 1.0 mg O2 L^-1 h^-1, which is 0.5 + 0.5.</p>
   </Fragment>
   <Fragment slot="derivation">
-    <p>(L − I) / t + (I − D) / t = (L − I + I − D) / t = (L − D) / t. The starting value I appears once with a minus and once with a plus, so it drops out.</p>
+    <p>(L − O_start) / t + (O_start − D) / t = (L − O_start + O_start − D) / t = (L − D) / t. The starting value O_start appears once with a minus and once with a plus, so it drops out.</p>
   </Fragment>
 </EquationCard>
 
-The calculation assumes respiration runs at the same rate in light and dark and that no gas escapes. The bottle also holds bacteria and zooplankton, so the light bottle's net change is net **community** production, not phytoplankton NPP. Results stay in oxygen units until a stated conversion to carbon is justified.
+This assumes equal respiration in light and dark and no gas escape. The bottle also holds bacteria and zooplankton, so its net is **community** production, not phytoplankton NPP, in oxygen units until a stated conversion to carbon is justified.
 
 <LessonFigure src="/figures/energy-flow/light-dark-bottle-pair.webp" width={1200} height={800} alt="AI-generated illustration: two identical sealed bottles of water side by side, one clear with sunlight falling on it and one wrapped in dark cover, with a close-up of a sealed stopper and a start-and-end pair showing oxygen measured before and after incubation." caption="Paired bottles of the same water are sealed and incubated, one in the light and one kept dark, with dissolved oxygen measured at the start and end. The light bottle's change is net community production, because the bottle also holds bacteria and zooplankton." />
 
-**Harvests and component sums.** In grassland, clip and weigh the plants at the peak of the season, which gives a rough and usually low estimate of aboveground NPP. In forest, add the separately measured parts. Ji Young An and colleagues summed woody growth, litterfall and fine-root growth in nine stands in the Gwangneung Experimental Forest, Korea, and fine roots made up 18 to 44% of the estimated NPP in those stands. Leave out the roots and the total is badly short. Where NPP is high in the first place depends largely on temperature and water, the subject of [climate and biomes](/lessons/climate-and-biomes/).
+**Harvests and component sums.** In grassland, clipping and weighing the plants at the season's peak gives a rough, usually low estimate of aboveground NPP. In forest, add the separately measured parts: Ji Young An and colleagues summed woody growth, litterfall and fine-root growth in nine stands in the Gwangneung Experimental Forest, Korea, where fine roots made up 18 to 44% of the estimated NPP. Where NPP is high in the first place depends largely on temperature and water, the subject of [climate and biomes](/lessons/climate-and-biomes/).
 
 <LessonFigure src="/figures/energy-flow/forest-npp-components.webp" width={1200} height={800} alt="AI-generated illustration: cutaway of a forest plot showing three separate measurements, a tape around a trunk for woody growth, open traps catching leaves for litterfall, and a gold-outlined soil core with fine roots growing in, with close-ups of a trap and the core." caption="Forest NPP is estimated by adding separately measured parts: woody growth, litterfall and fine-root growth from ingrowth cores. Any part left out is missing from the total, and in nine Korean stands fine roots made up 18 to 44% of the estimated NPP." />
 
-**Eddy-covariance towers.** Fast sensors above the canopy record how vertical gusts of wind carry CO2 up and down, which gives the net exchange, NEE. GPP and Reco are then separated by a partitioning model. A common approach fits respiration to night-time data, when there is no photosynthesis, and extrapolates it into the day; a 2020 study applied a neural-network method to 36 FLUXNET2015 sites. At one Scots pine forest in Finland, over 2013 to 2017, daily GPP estimates from two methods based on carbonyl sulfide, a gas leaves take up along with CO2, averaged 7% and 23% above the CO2-based estimate. Treat GPP as an estimate with a method attached.
+**Eddy-covariance towers.** Fast sensors above the canopy record how vertical gusts carry CO2 up and down. When rising gusts carry less CO2 than sinking ones, the forest is taking carbon in. Averaged over a year, this gives **net ecosystem exchange** (NEE), the net flow of CO2 from the ecosystem to the air. The tower sees only this net; a **partitioning model** splits it into GPP and Reco, commonly by fitting respiration to night-time data (no photosynthesis) and extrapolating it into the day. Methods disagree at the same site (Going deeper), so GPP is an estimate with a method attached.
+
+**Predict.** A forest stores carbon this year, and its tower counts release to the air as positive. Will its NEE be positive or negative?
+
+<details>
+<summary>Check your prediction</summary>
+
+Negative. With release counted as positive, NEE = Reco − GPP, the mirror image of NEP, so an ecosystem that takes up carbon has a negative NEE. Check the sign convention before you read any flux graph.
+
+</details>
 
 <LessonFigure src="/figures/energy-flow/eddy-covariance-tower.webp" width={1200} height={800} alt="AI-generated illustration: a lattice instrument tower rising above a forest canopy, with wavy arrows showing CO2 carried up and down in gusts past its sensors. A solid two-headed arrow above the canopy is labeled measured net exchange (NEE), and dashed arrows from a partitioning model are labeled estimated GPP and Reco. Night and day insets show measured night-time respiration rising from the forest, then a dashed respiration arrow extended into the day beside a downward photosynthesis (GPP) arrow." caption="A tower above the canopy measures the net exchange, NEE; GPP and Reco are then separated from it by a partitioning model, often by fitting night-time respiration and extrapolating it into the day. GPP is an estimate with a method attached." />
 
 ## Following energy through a consumer
 
-Feeding links, which [predation](/lessons/predation/) and [mutualism, parasitism and coevolution](/lessons/mutualism-parasitism-coevolution/) describe, are the pipes energy moves through. An animal's budget has the same logic as a plant's. Of what it **ingests** (I), part leaves as feces (**egestion**). The rest is **assimilated** (A). Of that, part is respired (R) and lost as heat, and the remainder is **production** (P), new tissue and offspring.
+Feeding links ([predation](/lessons/predation/), [mutualism, parasitism and coevolution](/lessons/mutualism-parasitism-coevolution/)) are the pipes. In symbols, the first film's doors for one consumer are what it **ingests**, I; its feces, **egestion**; what it **assimilates**, A; its respiration, R; and its **production**, P.
 
-> **A = I - egestion   P = A - R**
+> **A = I − egestion   P = A − R**
 
-Three efficiencies follow, one for each loss: how much of the production below gets eaten, how much of what is eaten is assimilated, and how much of that becomes new production. Their product is the **trophic transfer efficiency** (TTE): production at one level divided by production at the level below, in matched units and time.
+The first film's three valves are three ratios: **consumption efficiency**, I / P below (P below is the production of the level eaten); **assimilation efficiency**, A / I; and **net production efficiency**, P / A. Their product is the **trophic transfer efficiency** (TTE): production at one level over production at the level below, in matched units and time.
 
 <EquationCard
   purpose="What fraction of one feeding level’s production becomes production at the next level up."
@@ -432,39 +471,57 @@ Three efficiencies follow, one for each loss: how much of the production below g
     ["P", "P", "this level’s production, new tissue and offspring. P / A is the net production efficiency.", "kJ m^-2 yr^-1"],
   ]}
   toolkit={["ratios"]}
-  check="Each factor is a fraction between 0 and 1, so their product is no larger than any one of them. If one step were perfect (a factor of 1), the transfer would depend only on the other two. The units cancel, so TTE has none."
+  check="Assimilation and net production efficiency always lie between 0 and 1. Consumption efficiency does too as long as consumers eat no more than the production below them, and then the product is no larger than any one factor. The units cancel, so TTE has none."
 >
   <Fragment slot="example">
-    <p>The herbivores in the worked problem below eat 30% of plant production, assimilate 40% of what they eat and turn 50% of that into production.</p>
-    <p>TTE = 0.30 × 0.40 × 0.50 = 0.06, a 6% transfer.</p>
+    <p>The first film's herbivores: TTE = 0.30 × 0.40 × 0.50 = 0.06, a 6% transfer.</p>
   </Fragment>
   <Fragment slot="derivation">
     <p>Multiply the three fractions: I on top of the second cancels I on the bottom of the first, and A on top of the third cancels A on the bottom of the second. What remains is P / P below.</p>
   </Fragment>
 </EquationCard>
 
-**Worked problem.** Here is a made-up closed budget for one square metre over one year. Every number is in kJ m^-2 yr^-1, there are no imports or exports, decomposers show no net growth, and producer production that is not grazed, like herbivore production that is not eaten, enters detritus. GPP is 12,000 and Ra is 6,000. Herbivores ingest 1,800, egest 1,080 and respire 360. Predators ingest 200, egest 100 and respire 60. Decomposers respire 3,240.
+Door sizes differ between animals: assimilation efficiency tends to be higher for carnivores, because animal tissue is easier to digest than plant cell walls. Net production efficiency tends to be low in birds and mammals, which respire most of what they assimilate, much of it to keep warm, and higher in many invertebrates and fish.
 
-1. *Producers.* NPP = 12,000 - 6,000 = 6,000.
-2. *Herbivores.* A = 1,800 - 1,080 = 720. P = 720 - 360 = 360. Consumption efficiency = 1,800 / 6,000 = 30%. Assimilation efficiency = 720 / 1,800 = 40%. Net production efficiency = 360 / 720 = 50%.
-3. *First transfer.* TTE = 360 / 6,000 = 6%. Check: 0.30 x 0.40 x 0.50 = 0.06. The ingestion and assimilation terms cancel, and so do the units.
-4. *Predators.* A = 200 - 100 = 100. P = 100 - 60 = 40. TTE = 40 / 360 = 11.1%. Check with the three efficiencies: 200 / 360 = 0.556, 100 / 200 = 0.50 and 40 / 100 = 0.40, and 0.556 x 0.50 x 0.40 = 0.111.
-5. *Detritus.* Inputs are ungrazed plant production 6,000 - 1,800 = 4,200, herbivore feces 1,080, herbivore production that predators did not eat 360 - 200 = 160, and predator feces 100: total 5,540. Decomposers respire 3,240, leaving 2,300 as detritus.
-6. *Whole system.* Total respiration = 6,000 + 360 + 60 + 3,240 = 9,660. NEP = 12,000 - 9,660 = 2,340, which is the 2,300 of detritus plus the 40 of predator production. Check: 9,660 + 2,300 + 40 = 12,000.
+**Worked problem.** Carry the first film's made-up budget (one square metre, one year, kJ m^-2 yr^-1) up to the predators and into the dead matter, with no imports, exports or net decomposer growth. Production that is not eaten enters detritus; predator production, with no one above it, is kept as new predator biomass. From the first film: NPP 6,000, and herbivores ingest 1,800, egest 1,080 and produce 360. Predators ingest 200, egest 100 and respire 60. Decomposers respire 3,240.
 
-Notice two things. The first transfer here is 6% and the second 11%, so no single number describes both links. And the decomposers respired more than every animal combined: in this budget most NPP never passed through an animal at all.
+**Predict.** The predators keep the same three doors. Will their link pass on 6% too?
 
-Notice also what is not an efficiency. **Gross growth efficiency**, P/I, is a property of one consumer, not a transfer between levels. A ratio of biomasses is not an efficiency either, because stocks carry no time unit.
+<details>
+<summary>Check your prediction</summary>
+
+No, about 11%.
+
+1. *Predators.* A = 200 − 100 = 100. P = 100 − 60 = 40. TTE = 40 / 360 = 11.1%. Check with the three efficiencies: 200 / 360 = 0.556, 100 / 200 = 0.50 and 40 / 100 = 0.40, and 0.556 × 0.50 × 0.40 = 0.111.
+2. *Detritus.* Inputs are ungrazed plant production 6,000 − 1,800 = 4,200, herbivore feces 1,080, herbivore production that predators did not eat 360 − 200 = 160, and predator feces 100: total 5,540. Decomposers respire 3,240, leaving 2,300 as detritus. Detritus not yet decomposed piles up, so this year's books count it as stored.
+3. *Whole system.* Total respiration = 6,000 + 360 + 60 + 3,240 = 9,660. NEP = 12,000 − 9,660 = 2,340, which is the 2,300 of detritus plus the 40 of predator production. Check: 9,660 + 2,300 + 40 = 12,000.
+
+</details>
+
+No single number describes both links. Decomposers (bacteria, fungi and detritus feeders) respired 3,240, against 420 for the herbivores and predators combined: in this budget most NPP never passed through a grazer. Neither a ratio of biomasses (stocks carry no time unit) nor gross growth efficiency, P / I, is a transfer efficiency (Going deeper).
 
 <EnergyBudgetLadder />
 
-## Transfer efficiency, detritus and the 10% rule
+That decomposer lead came from invented numbers. The second film tests it in a real salt marsh.
 
-Each step loses most of what it receives, to feces and to heat. Assimilation efficiency tends to be higher for carnivores than for herbivores, because animal tissue is easier to digest than plant cell walls. Net production efficiency tends to be low in birds and mammals, which respire most of their assimilated energy, much of it in the high metabolism that keeps them warm, and higher in many invertebrates and fish.
+<LessonFilm film={frontmatter.films[0]} />
 
-Multiplying the three efficiencies shows how fast production shrinks up a food chain, one likely reason chains are short. If every step passed on 10%, a top predator at the fourth trophic level would receive 0.1% of NPP: three transfers, 0.1 x 0.1 x 0.1 = 0.001. In an analysis of 48 published aquatic food-web models, Daniel Pauly and Villy Christensen derived in 1995 a mean transfer efficiency of about 10%, which they used to estimate the primary production needed to sustain world fisheries. That is the classic support for the **10% rule**, and it comes from aquatic models: a rough benchmark, not a law, and not Lindeman's law. A 2026 synthesis of 2,052 estimates from 122 studies found a lower average energy transfer efficiency, about 6%, highest in marine systems and lowest on land. Real links can be far lower or higher, and food quality matters as well as quantity: producers short of nitrogen or phosphorus may limit transfer to herbivores even when carbon is plentiful. Energy is also not the only proposed limit on chain length. A 2000 study of 25 northern temperate lakes (Post, Pace and Hairston, Nature) found that food-chain length increased with lake size but not with productivity.
+## Detritus, transfer efficiency and the 10% rule
 
-Detritus is the other half of the story. Dead plants, feces and carcasses feed bacteria, fungi and detritus-feeding animals, which are themselves eaten. In John Teal's Georgia salt marsh most grass production went this way rather than to grazers. Energy does not come back from this route. Each organism's respiration releases it as heat, and only matter, the carbon and nutrients, cycles back to producers, which is the subject of [nutrient cycling](/lessons/nutrient-cycling/).
+Two things the second film left out. Later reviews found little quantitative evidence that Teal's tidal remainder was actually exported; how much marsh production supports food webs in the estuary beyond became a question for later work. And how far the detrital route it showed, rather than the grazing chain, supports higher trophic levels in a given system is still open. The matter that returns to producers is the subject of [nutrient cycling](/lessons/nutrient-cycling/).
+
+How big is the passed-up share in real food webs? From 48 published aquatic food-web models, Daniel Pauly and Villy Christensen derived in 1995 a mean transfer efficiency of about 10%, the classic support for the **10% rule**: a rough benchmark from aquatic models, not a law (Going deeper). A 2026 synthesis of 2,052 estimates from 122 studies found a lower average energy transfer efficiency, about 6% (by coincidence, the made-up first link's value), highest in marine systems and lowest on land. Real links can be far lower or higher.
+
+**Predict.** At 10% per step, a top predator at the fourth trophic level (counting producers as level 1) receives 0.1% of NPP: three transfers, 0.1 × 0.1 × 0.1 = 0.001. What does it receive at 6% per step?
+
+<details>
+<summary>Check your prediction</summary>
+
+0.06 × 0.06 × 0.06 = 0.000216, about 0.022% of NPP, roughly a fifth of what the 10% rule gives. Small changes in efficiency matter once multiplied.
+
+</details>
+
+That fast shrinking is one likely reason food chains are short, though not the only proposed limit (Going deeper).
 
 ### Design problem
 
@@ -475,8 +532,34 @@ Students incubate light and dark bottles of lake water for 6 hours. Initial diss
 
 Net community production = (9.2 - 8.0) / 6 = 0.20 mg O2 L^-1 h^-1. Respiration = (8.0 - 7.4) / 6 = 0.10 mg O2 L^-1 h^-1. GPP = (9.2 - 7.4) / 6 = 0.30 mg O2 L^-1 h^-1, which equals 0.20 + 0.10, a useful check.
 
-What the numbers rest on: respiration is assumed equal in light and dark, though respiration in the light can differ, and the bottle is assumed sealed. The dark-bottle loss includes bacteria and zooplankton, so this is community respiration and the light-bottle gain is community production, not phytoplankton NPP. The figures are oxygen per litre per hour at one depth on one day. Converting them to carbon needs stated quotients: a photosynthetic quotient (moles of O2 released per mole of CO2 fixed) for production and a respiratory quotient for respiration, and converting to an annual areal rate needs measurements through the water column and the seasons.
+What the numbers rest on: respiration is assumed equal in light and dark (in the light it can differ) and the bottle sealed. Bacteria and zooplankton are in the bottle, so these are community respiration and community production, not phytoplankton NPP. The figures are oxygen per litre per hour at one depth on one day. Converting them to carbon needs stated quotients: a photosynthetic quotient (moles of O2 released per mole of CO2 fixed) for production and a respiratory quotient (moles of CO2 released per mole of O2 used) for respiration, and an annual areal rate needs measurements through the water column and the seasons.
 
-To improve it, run replicate bottles at several depths, repeat the incubations through the year, keep incubations short enough that oxygen does not build up unrealistically, and report each result with its spread.
+To improve it, run replicates at several depths through the year, keep incubations short enough that oxygen does not build up unrealistically, and report each result with its spread.
 
 </details>
+
+## Going deeper
+
+### Splitting a tower's net flux
+
+Besides night-time extrapolation there are light-response fits and neural networks trained on environmental drivers; a 2020 study applied a neural-network method to 36 FLUXNET2015 sites, and agreement among methods is not independent validation. At one Scots pine forest at Hyytiälä, Finland, over 2013 to 2017, daily GPP estimates from two methods based on carbonyl sulfide, a gas leaves take up along with CO2, averaged 7% and 23% above the CO2-based estimate.
+
+### When a fraction exceeds 1
+
+Assimilation and net production efficiency cannot exceed 1, because each is a share of what the consumer took in. Consumption efficiency can: when consumers eat down a standing prey stock, they ingest more than the production below them. The product still holds by algebra, but consumption efficiency is then no longer a share of the prey's production, and a single link's transfer can look larger over that period.
+
+### Gross growth efficiency
+
+**Gross growth efficiency**, P / I, is production over ingestion: a property of one consumer, not a transfer between levels.
+
+### Where the 10% figure came from
+
+Pauly and Christensen used their mean to estimate the primary production needed to sustain world fisheries. It is also not Lindeman's law: Lindeman compared successive levels of his lake as ratios, but defined them on a different basis.
+
+### Food quality
+
+Producers short of nitrogen or phosphorus may limit transfer to herbivores even when carbon is plentiful, so energy is not the only currency that matters.
+
+### Chain length and ecosystem size
+
+A 2000 study of 25 northern temperate lakes (Post, Pace and Hairston, Nature) found that food-chain length increased with lake size but not with productivity.

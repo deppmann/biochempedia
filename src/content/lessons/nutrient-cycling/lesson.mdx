@@ -4,8 +4,8 @@ slug: "nutrient-cycling"
 course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 5: Ecosystem processes"
 order: 522
-summary: "How do living things keep reusing a limited supply of carbon, nitrogen and phosphorus, and where does an atom go after it enters a forest? This lesson treats each element as pools joined by fluxes, so that a budget (change in stock equals inputs minus outputs) and a residence time can be computed for a stated boundary. It traces the carbon, nitrogen and phosphorus cycles, including the microbes that run most of the nitrogen transformations, uses the Hubbard Brook watersheds and the Experimental Lakes Area to show how budgets and whole-ecosystem experiments reveal control and limitation, and explains why budgets often fail to close."
-hook: "Cut a forest and keep it from growing back, and its stream starts carrying away far more nitrogen than before. Why?"
+summary: "An ecosystem's store of an element changes only through what crosses its boundary, while a loop of recycling inside, often much larger, cancels in the sum. This lesson builds that rule as a budget (change in stock equals inputs minus outputs, for a stated boundary and interval) with residence time as stock divided by flux. It traces the carbon, nitrogen and phosphorus cycles, including the microbes that run most of the nitrogen transformations, uses the Hubbard Brook watersheds and the Experimental Lakes Area to show how budgets and whole-ecosystem experiments reveal control and limitation, and explains why budgets often fail to close."
+hook: "Cut a forest, leave the logs where they fall and keep it from growing back. Nobody adds fertiliser, yet its stream starts carrying far more nitrogen. Where does that nitrogen come from?"
 
 estMinutes: 24
 objectives:
@@ -18,10 +18,32 @@ explainer:
   src: "/explainers/nutrient-cycling/explainer.mp4"
   captions: "/explainers/nutrient-cycling/explainer.vtt"
   poster: "/explainers/nutrient-cycling/poster.jpg"
-  title: "Nitrogen Leaves When Trees Go"
-  durationSec: 175.8
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "The Loop Inside the Line"
+  durationSec: 182.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "An element's store inside a boundary changes only by what crosses it: change in stock = inputs - outputs, for a stated boundary and interval."
+    - "Inside a forest, decomposers and plants pass nitrogen round a loop that is often several times larger than all the inputs."
+    - "That loop never crosses the boundary, so it cancels in the budget, yet here it is the largest flux."
+    - "Cut the trees and stop regrowth, and decomposers keep releasing nitrogen that no plant takes up; much of it leaves in the stream as nitrate."
+    - "At Hubbard Brook the stream from the cut watershed carried far more nitrate and calcium than the uncut one: the broken loop had crossed the boundary."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/nutrient-cycling/chapter-2.mp4"
+    captions: "/explainers/nutrient-cycling/chapter-2.vtt"
+    poster: "/explainers/nutrient-cycling/chapter-2-poster.jpg"
+    title: "Two Halves of One Lake"
+    durationSec: 193.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "In Lake 226 both basins received nitrogen and carbon, but only the basin that also received phosphorus became highly eutrophic."
+      - "In Lake 227, nitrogen fertiliser stopped in 1990 while phosphorus continued, and the lake stayed highly eutrophic."
+      - "Nitrogen-fixing cyanobacteria took nitrogen from the air and made up the nitrogen that was no longer added."
+      - "No microbe can fix phosphorus from the air, so in these lakes phosphorus supply set how much algae the lake could hold."
+      - "These are two Ontario lakes; other lakes and many estuaries can respond to nitrogen."
 
 scientists:
   - name: "Gene E. Likens and F. Herbert Bormann"
@@ -318,102 +340,129 @@ draft: false
 
 import WatershedNitrogenBudget from '../../../components/WatershedNitrogenBudget.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Nutrient cycling is how living things keep reusing a limited supply of elements such as carbon, nitrogen and phosphorus, with microbes running most of the nitrogen transformations.** A cut forest shows what happens when the recycling is broken. The forest on one small watershed at Hubbard Brook, New Hampshire, was cut, and herbicide kept regrowth down. The stream draining it soon carried far more nitrate than the stream of an uncut watershed nearby. The nitrogen had been there all along, cycling between soil and trees; removing the trees changed where it went. To see that, you keep accounts for an element the way a bank keeps accounts for money.
+**Nutrient cycling** is the reuse of a limited supply of elements such as carbon, nitrogen and phosphorus. The first film kept one forest's nitrogen accounts.
 
-## Pools and fluxes: a budget is bookkeeping with a boundary
+> **The one idea.** A store of an element changes only by what crosses its boundary: change in stock = inputs − outputs. Inside, decomposers release the element and plants take it up again. That loop can be several times larger than all the inputs, yet it cancels in the sum. The store grows while inputs exceed outputs and shrinks while outputs exceed inputs. Break the loop, and part of its large flow can cross the line: stores change only across the boundary, and a broken loop can cross it.
 
-A **pool** (or stock) is the amount of an element held in one compartment at one time: nitrogen in soil organic matter, carbon in wood, phosphorus in lake sediment. For an ecosystem it is given as mass per area, such as kg N per hectare. A **flux** is a transfer between pools, or across the edge of the system, given as mass per area per time, such as kg N ha^-1 yr^-1. A pool is a bank balance; a flux is a deposit or a withdrawal.
+## Pools, fluxes and residence time
 
-Before adding anything, draw the **boundary** (what counts as inside) and choose the **interval** (a year, a growing season). Then one rule holds:
+A **pool** (or stock) is the amount of an element in one compartment at one time, in mass per area (kg N per hectare). A **flux** is a transfer between pools, or across the **boundary** (the line that decides what counts as inside), in mass per area per time: kg N ha⁻¹ yr⁻¹, where the −1 exponent reads as "per".
 
-> **change in stock = inputs - outputs   (for a stated boundary and interval)**
+> **change in stock = inputs − outputs   (for a stated boundary and interval)**
 
 > **residence time = stock / flux through the pool**
 
-Residence time is the average time an atom spends in a pool when inflow and outflow balance. This is the mass balance from [energy flow](/lessons/energy-flow/), except that energy leaves as heat while atoms are reused.
+**Residence time** is the average time an atom spends in a pool when inflow and outflow balance. This is the mass balance from [energy flow](/lessons/energy-flow/), except that energy leaves as heat while atoms are reused.
 
-**Worked problem.** Take an invented forested watershed; the numbers are illustrative. All fluxes are in kg N ha^-1 yr^-1, and the boundary runs from the canopy down to bedrock. Assume rates hold steady through the year and that water, with the nitrogen dissolved in it, leaves only by the stream.
+**Worked problem.** Use the first film's invented watershed (one stream; boundary from canopy to bedrock; fluxes in kg N ha⁻¹ yr⁻¹; steady rates; water and its dissolved nitrogen leave only by the stream). Its net gain of **+9 kg N ha⁻¹ yr⁻¹** (inputs 14; outputs 3 by the stream and 2 by denitrification) is stored in wood and soil.
 
-Inputs: atmospheric deposition 8, biological fixation 6. Outputs: stream export of dissolved N 3, gas loss by denitrification 2.
+1. *How long does an atom stay?* The soil organic N pool is 4,500 kg N per hectare, and gross mineralisation (decomposers releasing organic N as ammonium) is 90 kg N ha⁻¹ yr⁻¹. Residence time = 4,500 / 90 = **50 years**, the average wait before decomposers release an atom. That assumes the pool is near balance: the +9 is a whole-watershed gain, and the budget does not say how much of it reaches the soil, so 50 years is an estimate. That loop is about six times the watershed's inputs (90 / 14 = 6.4).
+2. *Disturbance.* Cut the forest and suppress regrowth. Suppose stream export rises to 40 while the other terms stay fixed (an assumption; gas losses could rise too). Outputs = 40 + 2 = 42, and change = 14 − 42 = **−28 kg N ha⁻¹ yr⁻¹**, a net loss.
 
-1. *Net change.* Inputs = 8 + 6 = 14. Outputs = 3 + 2 = 5. Change in stored N = 14 - 5 = **+9 kg N ha^-1 yr^-1**. The watershed is accumulating nitrogen, in wood and soil.
-2. *Internal cycling.* The soil organic N pool is 4,500 kg N per hectare, and gross mineralisation (decomposers releasing organic N as ammonium) is 90 kg N ha^-1 yr^-1. Residence time = 4,500 / 90 = **50 years**. That internal flux is about six times the external inputs (90 / 14 = 6.4), yet it never appeared in step 1. Summed over the whole watershed, nitrogen leaving the soil organic pool enters other pools inside it, such as soil ammonium and then plants: an output of one pool is an input of another, and the two cancel. Cancelling is an accounting result, not evidence that internal turnover is small; here it is the largest flux.
-3. *Disturbance.* Now cut the forest and suppress regrowth. Plant uptake stops, mineralisation continues, and with ammonium left unused, nitrification speeds up. Nitrate, a mobile anion that soil holds weakly, washes out, and cations such as calcium leave with it. More water drains through as well, because nothing is transpiring. Suppose stream export rises to 40 while the other terms stay fixed. Outputs = 40 + 2 = 42, and change = 14 - 42 = **-28 kg N ha^-1 yr^-1**, a net loss.
+**Predict.** Mineralisation keeps running at about 90. If all the extra stream nitrogen came from that loop, roughly what share of the loop is now leaking out?
 
-The invented rise in step 3 shows the direction of the real Hubbard Brook result, not its size. Gene Likens, F. Herbert Bormann and colleagues reported it in Ecological Monographs in 1970: from the cut, herbicide-treated watershed, stream losses of nitrate and of cations such as calcium rose well above those of an uncut reference watershed. Their **small-watershed approach** relied on watertight bedrock that lets little water seep deep, so a weir on the stream measured nearly everything leaving in liquid water.
+<details>
+<summary>Check your prediction</summary>
+
+About two fifths: export rose by 40 − 3 = 37, and 37 / 90 = 0.41. That rests on the assumption; a bulk budget cannot tell which atoms left.
+
+</details>
+
+The invented rise shows the direction of the real Hubbard Brook result (Likens, Bormann and colleagues, Ecological Monographs, 1970), not its size. Their **small-watershed approach** used valleys on watertight bedrock that lets little water seep deep, so a **weir** (a low dam with a notch that gauges stream flow) measured nearly everything leaving in liquid water. The felled trees stayed on site and herbicide kept regrowth down, so plant uptake fell sharply with no nutrients carried off in wood; an uncut watershed was the reference. Cutting and herbicide also changed drainage, soil temperature and moisture, and microbial activity, so the result is their combined effect, not uptake loss alone. Nitrate is a negative ion and drainage water stays electrically neutral, so positive ions (cations) such as calcium leave with it; and with few leaves, little water returns to the air by **transpiration** (evaporation from leaves), so more drains through.
 
 <LessonFigure src="/figures/nutrient-cycling/small-watershed-apparatus.webp" width={1200} height={800} alt="AI-generated illustration: cross-section of a small forested valley with a rain and snow gauge in the open, solid bedrock beneath, and a single stream leaving past a weir. An inset zooms on the weir, a low wall with a notch the stream flows through." caption="A small watershed on watertight bedrock: gauges measure the rain and snow coming in, and a weir on the stream measures nearly everything leaving in water." />
 
 <WatershedNitrogenBudget />
 
+*Scope.* A budget covers one element, one boundary and one interval, stated before any adding; where the line goes decides which transfers are inputs and outputs. The rule is accounting: it shows *that* a store changed and through which boundary flux, not *which* process controls the system. That needs a causal test, most directly, at this scale, a whole-ecosystem experiment like this one.
+
 ## The carbon cycle: fast exchanges laid over slow stores
 
-The large non-rock pools of carbon are the ocean, the atmosphere, living plants, soil and fossil fuels. Two biological fluxes dominate the fast cycle. Photosynthesis by plants and phytoplankton moves CO2 into organic matter ([the Calvin cycle](/lessons/calvin-cycle/) has the chemistry). Respiration by plants themselves, by animals and by decomposers returns it as CO2; on land, plants respire about as much as decomposers do ([oxidative phosphorylation](/lessons/oxidative-phosphorylation/) has the mechanism). In the Northern Hemisphere you can see them out of phase: atmospheric CO2 falls each summer, when photosynthesis outpaces respiration, and rises each winter.
+The large pools of carbon outside carbonate rock are the ocean, the atmosphere, living plants, soil and fossil fuels. Two biological fluxes dominate the fast exchange between them. Photosynthesis by plants and phytoplankton moves CO2 into organic matter ([the Calvin cycle](/lessons/calvin-cycle/) has the chemistry). Respiration by plants, animals and decomposers returns it as CO2; on land, plants respire roughly as much as decomposers do ([oxidative phosphorylation](/lessons/oxidative-phosphorylation/) has the mechanism). In the Northern Hemisphere the two run out of phase: atmospheric CO2 falls each summer, when photosynthesis outpaces respiration, and rises each winter.
 
-The ocean exchanges CO2 with the atmosphere across its surface. Dissolved CO2 forms bicarbonate and carbonate, so the ocean holds far more carbon than the air. Fossil carbon is organic matter buried over millions of years. Left alone it is a pool with almost no outflow; burning it opens a large flux from a slow pool into the fast ones.
+The ocean exchanges CO2 with the air across its surface; dissolved CO2 forms bicarbonate and carbonate, so the ocean holds far more carbon than the air. Fossil carbon is organic matter buried over millions of years.
 
-Soil carbon shows why budgets need long records. In a soil-warming experiment in a mid-latitude hardwood forest, Melillo and colleagues reported in 2017 that over 26 years of heating, the warmed soils went through phases of carbon loss alternating with phases of no detectable loss. A short record would have misled.
+**Predict.** Draw the boundary around the fast cycle (air, ocean, plants, soil). Is burning fossil fuel an internal transfer or a boundary flux?
+
+<details>
+<summary>Check your prediction</summary>
+
+A boundary flux. Left alone, fossil carbon is a pool with almost no outflow; burning it opens a large flux from a slow pool into the fast ones. Photosynthesis and respiration, however large, stay inside the line.
+
+</details>
 
 ## The nitrogen cycle: microbes run most of the transformations
 
-The atmosphere is about 78 percent N2, but its triple bond puts it out of reach of most organisms. Most of its steps are redox reactions carried out by microbes; ammonification does not change nitrogen's oxidation state, and leaching is transport in water:
+The atmosphere is about 78 percent N2, but its triple bond puts it out of reach of most organisms. Most of the microbial transformations are **redox** reactions: they move electrons (oxidation removes them, reduction adds them). Nitrogen's oxidation state runs from −3 in ammonium through 0 in N2 to +5 in nitrate. Five classic steps:
 
 - **Fixation** reduces N2 to ammonia, using the enzyme nitrogenase. Some bacteria and archaea do it, free-living or in symbioses such as rhizobia in legume root nodules. Lightning and fertiliser manufacture also fix nitrogen.
-- **Ammonification** releases ammonium from organic nitrogen as decomposers break down dead matter (amino-acid nitrogen is covered in [protein turnover and amino acid catabolism](/lessons/protein-turnover-amino-acid-catabolism/)).
+- **Ammonification** releases ammonium from organic nitrogen as decomposers break down dead matter, with no change in oxidation state (amino-acid nitrogen is covered in [protein turnover and amino acid catabolism](/lessons/protein-turnover-amino-acid-catabolism/)).
 - **Nitrification** oxidises ammonia through nitrite to nitrate and requires oxygen. The textbook version uses two groups: ammonia oxidisers (bacteria, and archaea such as the marine isolate Könneke and colleagues reported in 2005) and nitrite oxidisers.
 - **Denitrification** reduces nitrate or nitrite, in low-oxygen soils and sediments, to gases that can include NO, N2O and N2.
-- **Leaching** carries nitrate in drainage water to streams and rivers.
+- **Leaching** carries nitrate in drainage water to streams and rivers; it is transport in water, not a reaction.
 
-Two discoveries have changed that list. One is **anammox** (anaerobic ammonium oxidation), which joins ammonium and nitrite into N2 without oxygen:
+Which steps cross the boundary depends on where the line is drawn. For the watershed line, fixation is an input; denitrification and the nitrate leaving at the stream outlet are outputs; ammonification, nitrification, plant uptake and litter fall stay inside as the loop.
 
-> **NH4+ + NO2- -> N2 + 2 H2O**
+Two discoveries have added to that list. One is **anammox** (anaerobic ammonium oxidation), which joins ammonium and nitrite into N2 without oxygen, another gas output:
 
-Bacteria called anammox bacteria carry out this reaction in the water column of the Black Sea just below the oxic zone, so denitrification is not the only biological route from fixed nitrogen back to N2.
+> **NH4+ + NO2− → N2 + 2 H2O**
 
-The other discovery is **comammox**: Nitrospira that perform complete ammonia oxidation to nitrate within one organism, one of which has been grown in pure culture. Nitrification names two chemical steps; how many organisms perform them is a separate question.
+First described in wastewater bioreactors, anammox was found by Kuypers and colleagues in the Black Sea, just below the layer of water that still has oxygen, and has been measured in marine sediments: in some oxygen-poor waters and sediments, denitrification is not the only biological route back to N2. The other is **comammox**: Nitrospira bacteria that carry out complete ammonia oxidation to nitrate within one organism, so the two chemical steps of nitrification need not belong to two organisms.
 
-Fixation has a new case too: UCYN-A, a nitrogen-fixing cyanobacterium inside one marine alga, has been interpreted as an early-stage nitrogen-fixing organelle.
+## Phosphorus: the element no microbe can fix
 
-## Phosphorus and limitation: the Experimental Lakes Area
+Phosphorus has no major gas, so no organism can pull it from the air as nitrogen fixers pull N2. It enters ecosystems mainly as phosphate-bearing rock weathers, and much of it ends in marine sediments; over geological time, uplift of those sediments is the main route back to land (seabirds and fish that migrate from the sea up rivers return a smaller amount). In soil, phosphate binds to mineral surfaces and comes off again (**sorption** and **desorption**), microbes store some in their biomass and free phosphate from dead matter with enzymes called phosphatases, and plants take up the dissolved form, orthophosphate. Every nucleotide carries it ([nucleotide metabolism](/lessons/nucleotide-metabolism/)). Dust and smoke do carry some through the air on particles (Going deeper).
 
-Phosphorus has no major gas phase. It enters ecosystems mostly by weathering of phosphate-bearing rock, and much of it ends in marine sediments. Over geological time, uplift of those sediments is the main route back to land; seabirds and fish that migrate from the sea up rivers carry a smaller amount back. In soil, phosphate binds to mineral surfaces (sorption) and is released again (desorption), microbes store some in their biomass and use phosphatases to free phosphate from organic matter, and plants take up soluble orthophosphate. Every nucleotide carries it ([nucleotide metabolism](/lessons/nucleotide-metabolism/)). No gas phase does not mean it never moves through the air: One 2019 aerosol study reported that African aerosols, including smoke from biomass burning as well as desert dust, carry phosphorus to the Amazon and tropical Atlantic.
+In budget terms, with the boundary drawn around a lake's water and its sediments, its phosphorus and nitrogen both rise only when inputs exceed outputs, and phosphorus released from sediment is an internal transfer (around the water alone, it would be an input). But nitrogen has an input phosphorus lacks: fixation from the air. A nutrient is **limiting** when adding it on its own increases production, and a lake rich in nutrients and dense with algae is **eutrophic**. Which input sets a lake's algae? David Schindler tested it on whole lakes.
 
-A nutrient is **limiting** when adding it on its own increases production. When production rises only if two nutrients are added together, they **co-limit** it, a common result in nitrogen and phosphorus addition studies. The direct test is to add it to a whole ecosystem. A PNAS profile records that David Schindler was invited in 1968 to head an experimental-lakes project in northwestern Ontario, where small lakes were set aside for whole-lake experiments. Lake 226 was divided into two basins. Both received nitrate and sucrose (a carbon source), and one also received phosphorus. In his 1974 Science paper, only the phosphorus basin became highly **eutrophic** (rich in nutrients and dense with algae); the other stayed as before.
+<LessonFilm film={frontmatter.films[0]} />
 
-<LessonFigure src="/figures/nutrient-cycling/lake-226-divided.webp" width={1200} height={800} alt="AI-generated illustration: a small lake divided by a barrier into two basins. Both receive nitrate and sucrose arrows; the right basin also receives a gold phosphorus arrow and is dense with green algae, while the left basin is clear. Two insets compare clear and algae-thick water." caption="Lake 226 was divided into two basins. Both received nitrate and sucrose, and one also received phosphorus; only the phosphorus basin became highly eutrophic." />
+## What the second film left out
 
-From 1990 to 2005 Lake 227 received phosphorus fertiliser but no nitrogen fertiliser. Schindler and colleagues, analysing 37 years of the lake's record in 2008, reported that the lake stayed highly eutrophic: nitrogen fixation sustained phytoplankton biomass in proportion to the phosphorus supply.
+Lake 227 was fertilised from 1969, and Schindler and colleagues' 2008 analysis covers 37 years, the last 16 (1990 to 2005) with phosphorus alone.
 
-<LessonFigure src="/figures/nutrient-cycling/lake-227-fixers.webp" width={1200} height={676} alt="AI-generated illustration: three numbered panels of a green lake. Phosphorus keeps entering; nitrogen fertiliser is withheld; chains of nitrogen-fixing cyanobacteria in the water take nitrogen from the air, and the lake stays green." caption="In Lake 227, phosphorus continued and nitrogen fertiliser stopped, yet the lake stayed highly eutrophic, because nitrogen-fixing cyanobacteria made up the nitrogen. This is one lake." />
+<LessonFigure src="/figures/nutrient-cycling/lake-226-divided.webp" width={1200} height={800} alt="AI-generated illustration: a small lake divided by a barrier into two basins. Both receive nitrate and sucrose arrows; the right basin also receives a gold phosphorus arrow and is dense with green algae, while the left basin is clear. Two insets compare clear and algae-thick water." caption="Lake 226: with nitrate and sucrose in both basins, only the basin that also received phosphorus became highly eutrophic." />
 
-Phosphorus limitation on land is not only tropical. A 2020 synthesis of field phosphorus-addition experiments found significant phosphorus limitation in many natural ecosystems and croplands, including outside the tropics.
+<LessonFigure src="/figures/nutrient-cycling/lake-227-fixers.webp" width={1200} height={676} alt="AI-generated illustration: three numbered panels of a green lake. Phosphorus keeps entering; nitrogen fertiliser is withheld; chains of nitrogen-fixing cyanobacteria in the water take nitrogen from the air, and the lake stays green." caption="Lake 227, one lake: nitrogen-fixing cyanobacteria made up the nitrogen, so the lake stayed highly eutrophic on phosphorus alone." />
+
+Two nutrients **co-limit** production when it rises only if both are added together, a common result in nitrogen and phosphorus addition studies. On land, a 2020 synthesis of field phosphorus-addition experiments found significant phosphorus limitation in many natural ecosystems and croplands, including outside the tropics (numbers in Going deeper).
 
 ## What a budget can and cannot show
 
-A budget that balances is not proof that each term is right. **Worked check.** Global Carbon Budget 2024 estimated, for 2023, emissions E = 11.1 ± 0.9 GtC yr^-1, atmospheric accumulation A = 5.9 ± 0.2, ocean sink O = 2.9 ± 0.4 and land sink L = 2.3 ± 1.0 (± one standard deviation). The residual is:
+Every result above rests on the one rule: a store changes only by what crosses its boundary. So a budget is only as good as its measured fluxes.
 
-> **B = E - A - O - L = 11.1 - 5.9 - 2.9 - 2.3 = 0.0 GtC yr^-1**
+**Worked check.** Global Carbon Budget 2024 estimated, for 2023, emissions E = 11.1 ± 0.9 GtC yr⁻¹ (gigatonnes of carbon per year), atmospheric accumulation A = 5.9 ± 0.2, ocean sink O = 2.9 ± 0.4 and land sink L = 2.3 ± 1.0 (± one standard deviation, a measure of uncertainty). The residual is:
 
-Check: 5.9 + 2.9 + 2.3 = 11.1. The zero comes from rounding; the unrounded source figure is about -0.02. The land sink is uncertain by nearly half its value, so errors in two terms could cancel and still give zero.
+> **B = E − A − O − L = 11.1 − 5.9 − 2.9 − 2.3 = 0.0 GtC yr⁻¹**
+
+**Predict.** The residual is zero. Does that show every term was measured well?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. The zero comes from rounding (the unrounded source figure is about −0.02), and the land sink alone is uncertain by ±1.0, nearly half its value and far more than the residual. Errors in two terms could cancel and still give zero.
+
+</details>
 
 Budgets often fail to close. Four common reasons:
 
 - **Unmeasured fluxes.** N2 lost by denitrification is hard to detect against an atmosphere that is mostly N2. Rock can be an input: weathering of nitrogen-rich mica schist supplied nitrogen at forest sites in the Klamath Mountains.
-- **Sampling frequency.** Li and colleagues (2019), subsampling a daily watershed record, found that the uncertainty of estimated nutrient export depended on how often samples were taken.
-- **Tracer bias.** Adding 15N2 as a gas bubble, which does not fully equilibrate with water, can underestimate nitrogen fixation (Mohr and colleagues, 2010).
+- **Sampling frequency and record length.** Li and colleagues (2019), subsampling a daily watershed record, found that the uncertainty of estimated nutrient export depended on how often samples were taken. In a mid-latitude hardwood forest, Melillo and colleagues (2017) found that over 26 years of soil warming, phases of carbon loss alternated with phases of no detectable loss. A short record would have misled.
+- **Tracer bias.** Adding 15N2 (N2 made with the heavy isotope 15N, so it can be traced) as a gas bubble, which does not fully equilibrate with water, can underestimate nitrogen fixation (Mohr and colleagues, 2010).
 - **Compensating errors**, as in the carbon check above.
 
 ### Design problem
 
-A lake manager wants to know whether to control nitrogen or phosphorus to reduce algal blooms. Design the test, and say what it can and cannot show.
+A lake manager has a different lake with summer algal blooms and wants to know whether to control nitrogen or phosphorus. Using the two designs from the second film, plan the test, and say what it can and cannot show.
 
 <details>
 <summary>One way to do it</summary>
 
-Manipulate whole ecosystems, because short bottle experiments can point to the wrong nutrient: they are too brief to show slow whole-lake responses such as a rise in nitrogen fixation, release of nutrients from sediments, or changes in grazing. Collect years of pre-treatment data on the treated lake and an untreated reference lake. Then either divide a lake, as in Lake 226 (carbon and nitrogen to both basins, phosphorus to one), or fertilise whole lakes with different nutrient combinations. Measure chlorophyll, dissolved and total nitrogen and phosphorus, phytoplankton species, and nitrogen fixation (by 15N2 dissolved in water beforehand rather than added as a bubble).
+Manipulate the whole lake: bottle experiments miss slow responses such as rising nitrogen fixation, nutrient release from sediments or changes in grazing. Collect years of pre-treatment data on it and on an untreated reference lake, then divide it, as in Lake 226. Measure chlorophyll (the green pigment, a proxy for the amount of algae), dissolved and total nitrogen and phosphorus, phytoplankton species, and nitrogen fixation (with 15N2 dissolved in water beforehand, not added as a bubble).
 
-If the phosphorus-treated side blooms and the other does not, phosphorus limits algae in that lake once nitrogen and carbon are plentiful. To test nitrogen control, cut nitrogen while phosphorus continues, as in Lake 227 from 1990: that lake stayed eutrophic because nitrogen-fixing cyanobacteria made up the nitrogen. So in lakes like these, controlling nitrogen alone may fail.
+Read the results as the films did. If fixation rises after nitrogen is cut, as in Lake 227, controlling nitrogen alone may fail in that lake.
 
 Limits: one lake is not a replicate, so repeat across lakes; and the result applies to small Ontario lakes and may differ in estuaries and other lakes.
 
@@ -425,9 +474,13 @@ Limits: one lake is not a replicate, so repeat across lakes; and the result appl
 
 The Hubbard Brook watershed was cut between 18 November and 31 December 1965, and herbicide kept regrowth down for the next three growing seasons.
 
-In 2003 Marcel Kuypers and colleagues showed that anammox bacteria in the Black Sea water column just below the oxic zone carry out the anammox reaction (ammonium plus nitrite to N2). In 2015 two groups, van Kessel and colleagues and Daims and colleagues, each reported in Nature enriched Nitrospira that perform complete ammonia oxidation to nitrate within one organism. In 2017 Kits and colleagues isolated one of them, Nitrospira inopinata, in pure culture and showed that it oxidised ammonia to nitrate stoichiometrically.
+Kuypers and colleagues published the Black Sea anammox result in 2003. In 2015 two groups, van Kessel and colleagues and Daims and colleagues, each reported in Nature enriched Nitrospira that perform complete ammonia oxidation to nitrate within one organism. In 2017 Kits and colleagues isolated one of them, Nitrospira inopinata, in pure culture and showed that it oxidised ammonia to nitrate stoichiometrically.
 
-In 2024 Coale and colleagues interpreted UCYN-A, a nitrogen-fixing cyanobacterium inside one marine alga, Braarudosphaera bigelowii, as an early-stage nitrogen-fixing organelle.
+The Lake 226 result appeared in Science in 1974. A PNAS profile records that Schindler was invited in 1968 to head the experimental-lakes project.
+
+### A new case of fixation
+
+UCYN-A is a nitrogen-fixing cyanobacterium that lives inside one marine alga, Braarudosphaera bigelowii. In 2024 Coale and colleagues interpreted it as an early-stage nitrogen-fixing organelle; the result is for that alga and its partner.
 
 ### Phosphorus: aerosol source and terrestrial limitation figures
 
@@ -435,6 +488,10 @@ Barkley and colleagues (2019), sampling aerosols at Cayenne, French Guiana, and 
 
 Hou and colleagues' 2020 synthesis found significant phosphorus limitation in 46.2 percent of 652 field phosphorus-addition experiments in natural ecosystems and croplands, including outside the tropics. In the 436 experiments in natural terrestrial ecosystems, phosphorus addition raised aboveground plant production by a mean of 34.9 percent.
 
+### How loose is a zero?
+
+If the four carbon-budget uncertainties were independent, the residual's standard uncertainty would be about ±1.4 GtC yr⁻¹ (the square root of 0.9² + 0.2² + 0.4² + 1.0²), far larger than the unrounded residual of about −0.02.
+
 ### Measurement-error case details
 
-Morford and colleagues estimated 1.6 to 10.7 kg N ha^-1 yr^-1 from weathering at three Klamath Mountains forest sites on nitrogen-rich mica schist. Mohr and colleagues (2010) found that adding 15N2 as a gas bubble, which does not fully equilibrate with water, underestimated fixation by 60 percent in a 12-hour incubation of Crocosphaera watsonii cultures.
+Morford and colleagues estimated 1.6 to 10.7 kg N ha⁻¹ yr⁻¹ from weathering at three Klamath Mountains forest sites on nitrogen-rich mica schist. Mohr and colleagues (2010) found that the bubble method underestimated fixation by 60 percent in a 12-hour incubation of Crocosphaera watsonii cultures.

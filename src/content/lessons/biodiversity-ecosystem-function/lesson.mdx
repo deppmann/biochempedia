@@ -5,9 +5,18 @@ slug: "biodiversity-ecosystem-function"
 course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 5: Ecosystem processes"
 order: 523
-summary: "Grassland plots sown with more plant species generally grow more biomass, and their total production varies proportionally less from year to year. This lesson follows the experiments that assigned richness at random (Cedar Creek in Minnesota, BIODEPTH across eight European sites), explains the gain with complementarity and selection effects through the Loreau-Hector partition, and separates temporal stability from resistance and resilience. Afterwards you can compute net, complementarity and selection effects from monoculture and mixture yields, compute stability as mean over standard deviation, and design a study that tells a diversity effect from a soil effect."
+summary: >-
+  A grassland plot's production is the sum of its species, and in experiments that assigned
+  richness at random, more species generally raised that sum and steadied it from year to year; how much steadier
+  depends on the species' sizes and swings and on how far they rise and fall together. This lesson follows the experiments that
+  assigned richness (Cedar Creek in Minnesota, BIODEPTH across eight European sites), splits the
+  extra yield into complementarity and selection with the Loreau-Hector partition, and separates
+  temporal stability from resistance and resilience. Afterwards you can compute net,
+  complementarity and selection effects from monoculture and mixture yields, compute stability as
+  mean over standard deviation, and design a study that tells a diversity effect from a soil
+  effect.
 
-hook: "In grassland experiments that assigned the number of plant species at random, plots with more species produced more biomass, and their total production varied proportionally less from year to year. Why?"
+hook: "Grassland plots sown with sixteen species generally out-grew plots with one, yet the species inside them were, on average, less steady from year to year. How can the total be steadier than its parts?"
 
 estMinutes: 24
 objectives:
@@ -20,11 +29,32 @@ explainer:
   src: "/explainers/biodiversity-ecosystem-function/explainer.mp4"
   captions: "/explainers/biodiversity-ecosystem-function/explainer.vtt"
   poster: "/explainers/biodiversity-ecosystem-function/poster.jpg"
-  title: "More Species, More Biomass"
-  durationSec: 181.7
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "A Field Is a Sum"
+  durationSec: 189.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A plot's total production is the sum of what each of its species produces."
+    - "A mixture yields extra when it beats the yield expected from its monocultures; with an even sowing that benchmark is the average monoculture, not the best."
+    - "Extra yield can come from species doing better together on average (complementarity) or from high-yielding species gaining the most relative to their yield alone (selection); a richer draw is more likely to include such species, and both can act at once."
+    - "With four equal species swinging independently, their swings partly cancel and the total is twice as steady as one species."
+    - "If all the species rose and fell together, nothing would cancel; assigning richness at random keeps soil or water from systematically lining up with richness."
 
+films:
+  - id: "chapter-2"
+    src: "/explainers/biodiversity-ecosystem-function/chapter-2.mp4"
+    captions: "/explainers/biodiversity-ecosystem-function/chapter-2.vtt"
+    poster: "/explainers/biodiversity-ecosystem-function/chapter-2-poster.jpg"
+    title: "Ten Years at Cedar Creek"
+    durationSec: 194.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "At Cedar Creek, 168 plots were sown in 1994 with 1, 2, 4, 8 or 16 species drawn at random from a pool of 18, with the same seed mass in every plot."
+      - "Because richness and composition were assigned at random, soil differences and the experimenter's choices are not expected to explain the consistent rise in biomass with richness."
+      - "Partitioned year by year over 1996 to 2005, the extra yield shifted from selection toward complementarity, and by the end selection was strongly negative."
+      - "In richer plots species varied proportionally more from year to year on average, yet the plot's total varied proportionally less."
+      - "The analysis found no evidence of a covariance effect; statistical averaging and a higher mean explained the steadier total."
 scientists:
   - name: "David Tilman"
     contribution: >-
@@ -44,7 +74,7 @@ scientists:
       In 2006, Tilman, Peter Reich and Johannes Knops reported ten years of annual aboveground
       production from this experiment in Nature. Plots with more species varied proportionally less from year to
       year, although the individual species within them varied proportionally more, and the analysis found no
-      evidence of a covariance effect: the greater stability came from statistical averaging and higher total biomass, not from species rising and falling in opposite directions. The design made it possible to ask what richness does by assigning it,
+      evidence of a covariance effect: the greater stability came from statistical averaging and higher total biomass, not from opposite swings that grew stronger with richness. The design made it possible to ask what richness does by assigning it,
       instead of inferring it from a survey.
   - name: "Andy Hector"
     contribution: >-
@@ -266,8 +296,8 @@ explainLevels:
       to 16 species chosen at random and weighed the plants every year. Plots with more species
       tended to produce more biomass and to vary proportionally less from year to year. Two explanations were debated, and both can act at once.
       Complementarity means the species use resources differently or help one another, so together
-      they use more. Selection means a random mix of many species is more likely to include a very
-      productive one that takes over. A mathematical partition measures both, and stability turns
+      they use more. Selection means the species that grow best alone gain the most in the mix and
+      take over; a random mix of many species is more likely to include one. A mathematical partition measures both, and stability turns
       out to have several kinds: steadiness across years, resisting a drought, and recovering
       after it.
   - level: "college"
@@ -337,32 +367,51 @@ corpusTags:
   - "overyielding"
 draft: false
 ---
-
 import OveryieldingPartition from '../../../components/OveryieldingPartition.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 import EquationCard from '../../../components/EquationCard.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Across grassland experiments in which researchers assigned the number of plant species at random, plots with more species generally grew more aboveground biomass, and their total production varied proportionally less from year to year.** At Cedar Creek, Minnesota, the richer plots had the steadier total even though the individual species inside them varied proportionally more. So when species are lost, what an ecosystem does can change. This lesson asks how we know, and why: first two explanations for the extra yield (complementarity and selection), then the several meanings of stability, then the Cedar Creek and BIODEPTH experiments that assigned richness and the field evidence.
+**In grassland experiments that assigned the number of plant species at random, richer plots generally grew more aboveground biomass, and their totals varied proportionally less from year to year.**
 
-## The question: does losing species change what an ecosystem does?
+> **The one idea.** A plot's production is the sum of what its species produce. A mixture yields extra when that sum beats the yield expected from its monocultures, and the sum can steady from year to year because species' swings partly cancel, unless the species rise and fall together.
+>
+> *Scope:* aboveground plant biomass in communities assembled at random, within the richness tested (1 to 16 species at Cedar Creek) and the years measured. Expected yield is each species' monoculture yield times its share of the seed; with an even sowing, that is the average monoculture, not the best. Out-of-step swings help but do not by themselves make a total steadier: that also depends on the species' sizes and swings, and on whether one species dominates. "Steadier" means steady across years, not resisting one drought or recovering afterwards.
 
-An **ecosystem function** is a rate or stock of a process: how much plant biomass a field produces in a year (its primary productivity, the subject of [energy flow](/lessons/energy-flow/)), how much nitrogen it holds, how fast litter decays. **Species richness** is the number of species present, the simplest diversity measure from [diversity and succession](/lessons/diversity-and-succession/).
+## The question: does richness change what an ecosystem does?
 
-The obvious way to ask whether richness matters is to survey real grasslands and plot biomass against species number. Surveys often find a positive relationship, though its strength and even its direction vary from study to study. Either way, a survey cannot tell you why. A wetter or more fertile patch could support both more species and more biomass, so richness and biomass would rise together without one causing the other. That third variable is a **confounder**.
+An **ecosystem function** is a rate or stock of a process: a field's yearly plant production (primary productivity, from [energy flow](/lessons/energy-flow/)), the nitrogen it holds, how fast litter decays. **Species richness** is the number of species present, the simplest diversity measure from [diversity and succession](/lessons/diversity-and-succession/).
 
-So ecologists built communities instead of finding them.
+Surveys of real grasslands often find more biomass where there are more species, though the strength and even the direction of that relationship vary between studies. Moisture or fertility could raise both richness and biomass (the first film's wet patch); such a third variable is a **confounder**. So ecologists built communities instead of finding them.
 
-## Complementarity versus selection: splitting the extra yield (worked problem)
+## Building communities at random: Cedar Creek and BIODEPTH
 
-A mixture can outyield the average of its monocultures for two quite different reasons, and both can act at once. Think of a relay team. It can win because each runner covers the leg they are good at (**complementarity**), or because a random team of four is more likely to include one superb runner who carries the race (**selection**; a positive selection effect is what the sampling-effect hypothesis predicts). In plants, complementarity covers resource partitioning, the niche differences you met in [competition](/lessons/competition/), and positive interactions such as legumes adding nitrogen. Selection covers dominance by species with particular traits, though the term itself tracks which species gain relative yield, so a species can dominate a mixture while selection is negative, as in the worked problem below.
+At Cedar Creek, Minnesota, Tilman and colleagues sowed plots in spring 1994 with 1, 2, 4, 8 or 16 perennial grassland and savanna species chosen at random from a pool of 18, with the same seed mass in every plot (10 g per square metre in 1994 and 5 g in 1995) so rich plots did not simply get more seed. Each year they measured **aboveground biomass**, the dry mass of plant material above the soil per square metre.
 
-Loreau and Hector's 2001 partition measures both. It needs one number per species first:
+<LessonFigure src="/figures/biodiversity-ecosystem-function/clip-dry-weigh.webp" width={1200} height={676} alt="AI-generated illustration: three steps left to right: a narrow strip of grassland being clipped at ground level with shears, the cut plants drying on a tray in an oven, and the dried plants on a laboratory balance." caption="Each year's biomass came from clipping the aboveground vegetation in sampling strips, drying it and weighing it." />
 
-- The **relative yield**, RY, is the species' yield in mixture, Y, divided by its monoculture yield, M. It says how well the species did in mixture compared with growing alone.
-- The expected relative yield is usually its sown proportion: a species sown at half the seed is expected to reach half its monoculture yield.
-- The change, ΔRY ("delta R Y"), is observed minus expected. Positive means the species did better in mixture than expected.
+<LessonFigure src="/figures/biodiversity-ecosystem-function/cedar-creek-plot-design.webp" width={1200} height={800} alt="AI-generated illustration: a schematic top-down field of equal square plots in five columns holding one, two, four, eight and sixteen plant tufts, with a key tray of eighteen plant types and an arrow marking the random draw; one plot is outlined and marked nine by nine metres." caption="Assigning richness at random, with equal seed in every plot, means a consistent difference between richness levels is not expected to come from soil or from species the experimenter picked. Simplified; the real experiment had 168 plots." />
 
-The **net effect**, observed mixture yield minus expected, then splits into two parts:
+Random draws do not remove species identity: a richer draw is still more likely to include a very productive species, such as a legume. If such high-yielding species also gain the most relative yield in mixture, the next section's partition records a positive **selection effect**.
+
+BIODEPTH repeated the logic at eight European sites with local species, and Hector and colleagues (1999) found that, across sites, communities assembled with fewer plant species had lower average aboveground biomass.
+
+**Predict.** Going from 16 species to 8 halves the species number; so does going from 2 to 1. Which step cost more biomass?
+
+<details>
+<summary>Check your prediction</summary>
+
+On average across sites, about the same. The decline was **log-linear**: plotted against the logarithm of species number, biomass falls along a straight line, so each halving of species number lowered biomass by a similar step (see [log scales](/math-toolkit/#log-scales)).
+
+</details>
+
+Composition still mattered: at a fixed species number, communities with fewer functional groups (such as grasses, legumes and other herbs) were less productive.
+
+## Splitting the extra yield (worked problem)
+
+Picture a shared garden. A group can out-harvest its members working alone because they grow different crops, deep-rooted and shallow (**complementarity**), or because a random group is more likely to include the gardener who is best alone, and that gardener gains the most from the group (**selection**). In plants, complementarity covers resource partitioning (the niche differences from [competition](/lessons/competition/)) and help between species, such as legumes adding nitrogen. A positive selection effect is what the older sampling-effect hypothesis predicted.
+
+Loreau and Hector (2001) measured both from one number per species, its **relative yield** (RY): its yield in mixture, Y, divided by its yield alone in monoculture, M. In the first film's mixture, A makes 300 g per square metre against 400 alone, so RY_A = 0.75. Expected RY is its sown proportion (the first film's dashed bar), here 0.5. **ΔRY** ("delta R Y") is observed RY minus expected: A's is 0.25, better than its monoculture predicts. The **net effect**, observed mixture yield minus expected, then splits exactly:
 
 > **net effect = complementarity + selection**
 
@@ -377,11 +426,10 @@ The **net effect**, observed mixture yield minus expected, then splits into two 
     ["M", "M", "each species’ yield in monoculture", "g per square metre"],
   ]}
   toolkit={["ratios"]}
-  check="If every species did exactly as expected, every ΔRY is 0 and complementarity is 0. If species do better on average in mixture, it is positive."
+  check="If every species did exactly as expected, every ΔRY is 0 and so is complementarity; it is positive when species do better on average in mixture."
 >
   <Fragment slot="example">
-    <p>An invented variant of the worked problem below: two species with monocultures of 400 and 100 g per square metre, and each with ΔRY = 0.25.</p>
-    <p>Mean ΔRY = 0.25 and mean M = (400 + 100) / 2 = 250. Complementarity = 2 × 0.25 × 250 = 125 g per square metre. (The worked problem below changes B’s result, so its numbers differ.)</p>
+    <p>If A and B (monocultures 400 and 100) each had ΔRY = 0.25: complementarity = 2 × 0.25 × 250 = 125 g per square metre.</p>
   </Fragment>
 </EquationCard>
 
@@ -392,37 +440,53 @@ The **net effect**, observed mixture yield minus expected, then splits into two 
   say="Selection is the number of species times the covariance between monoculture yield and change in relative yield."
   symbols={[
     ["N", "N", "the number of species in the mixture", ""],
-    ["cov", "covariance", "for each species, multiply (M minus mean M) by (ΔRY minus mean ΔRY), then average the products, dividing by N (the population covariance)", ""],
+    ["cov", "covariance", "do the big species gain most? For each species, multiply (M minus mean M) by (ΔRY minus mean ΔRY), then average the products, dividing by N (the population covariance). With N − 1 the two terms no longer add up to the net effect.", ""],
     ["M", "M", "each species’ monoculture yield", "g per square metre"],
     ["ΔRY", "delta R Y", "each species’ change in relative yield", ""],
   ]}
   check="If every species gains the same ΔRY, nothing varies with M and selection is 0. It is positive when the species with big monocultures gain most, negative when the small ones gain most."
 >
   <Fragment slot="example">
-    <p>In the invented variant above, both ΔRY values are 0.25, so every deviation from mean ΔRY is 0 and selection = 0. The whole net effect, 125 g per square metre, is complementarity.</p>
+    <p>With equal gains (both ΔRY = 0.25), no ΔRY deviates from the mean, so selection = 0 and all 125 is complementarity.</p>
   </Fragment>
 </EquationCard>
 
-**Worked problem.** In this constructed data set, two species are sown in equal proportions. Monoculture yields are M_A = 400 and M_B = 100 g of dry biomass per square metre. In the mixture, Y_A = 300 and Y_B = 100 g per square metre. Assume the yields are measured on plots of the same area in the same year.
+**Worked problem** (the first film's numbers, constructed; plots of the same area, same year). Alone, A yields M_A = 400 and B yields M_B = 100 g of dry biomass per square metre. In the mixture, Y_A = 300 and Y_B = 100.
 
-1. *Net effect.* Expected mixture yield is the mean monoculture yield, (400 + 100)/2 = 250 g per square metre. Observed mixture yield is 300 + 100 = 400. Net effect = 400 - 250 = **+150 g per square metre**.
-2. *Complementarity and selection.* Working through the relative yields (shown under Going deeper) gives complementarity **+187.5 g per square metre** and selection **-37.5 g per square metre**.
-3. *Check.* 187.5 - 37.5 = 150, the net effect.
-4. *Against the best monoculture.* The mixture yields 400, exactly what species A yields alone. There is **no transgressive overyielding**: the mixture beats the average monoculture but not the best.
+1. *Net effect.* With an even sowing the expected yield is the average monoculture, 250, so net effect = 400 − 250 = **+150 g per square metre**.
+2. *Relative yields.* ΔRY_A = 0.25 (above). RY_B = 100/100 = 1.00, so ΔRY_B = 0.50. Mean ΔRY = 0.375; mean M = 250.
+3. *Complementarity* = 2 × 0.375 × 250 = **+187.5 g per square metre**.
+4. *Selection.* Deviations from the means: A has M − 250 = +150 and ΔRY − 0.375 = −0.125; B has −150 and +0.125. Both products are −18.75, and their mean (divide by 2) is −18.75. Selection = 2 × −18.75 = **−37.5 g per square metre**.
+5. *Check.* 187.5 − 37.5 = 150, the net effect.
 
-Read the signs. Both species did better than expected, so complementarity is positive. But the gain was larger for the low-yielding species B, so selection is negative.
+Both species did better than expected, so complementarity is positive; the low-yielding B gained more, so selection is negative. Mean ΔRY above zero does not guarantee extra yield: had A made 120 and B 100, complementarity would be +75 but selection −105, and the mixture's 220 would miss the expected 250.
+
+**Predict.** Species A makes 300 of the mixture's 400 g. Does a negative selection effect mean A failed to dominate?
+
+<details>
+<summary>Check your prediction</summary>
+
+No. A dominates the biomass, but selection asks whether the relative-yield gains went to the species big in monoculture. They went to B, so selection is negative though A is the largest species present.
+
+</details>
+
+Beating the best monoculture, not just the average, is **transgressive overyielding**; the first film's mixture only matches A alone, so it shows none.
 
 <OveryieldingPartition />
 
-In BIODEPTH, the complementarity effect was positive overall, while the selection effect averaged zero and ranged from negative to positive among sites. At Cedar Creek, Fargione and colleagues found that over 1996 to 2005 the balance shifted from sampling toward complementarity, with selection strongly negative by the end.
+Applied to BIODEPTH, the complementarity effect was positive overall, while the selection effect averaged zero and ranged from negative to positive among sites.
 
-A positive complementarity term does not prove resource partitioning. The partition is algebra on yields; it does not identify which biological process produced them, and it needs species-level yields in both mixtures and monocultures.
+A positive complementarity term does not prove resource partitioning: the partition is exact algebra on yields, and legume nitrogen or reduced pathogen pressure could produce it too. It needs species-level yields in both mixtures and monocultures.
 
-## Stability: resistance, resilience and averaging
+At Cedar Creek the same plots were harvested every year for a decade, so the split could be calculated year by year. Did it stay put as the plots aged, and how steady was each plot's total?
 
-"Stable" has several meanings, and they need not agree.
+<LessonFilm film={frontmatter.films[0]} />
 
-- **Temporal stability** is the mean of total community biomass across years divided by its standard deviation (μ/σ, said "mu over sigma"; see the card below).
+## Stability: how to score it, and when cancelling fails
+
+Scoring the second film's steadier totals starts with a warning: "stable" has several meanings, and they need not agree:
+
+- **Temporal stability** is the mean of total community biomass across years, μ ("mu"), divided by its standard deviation, σ ("sigma").
 - **Resistance** is how little a function changes during a disturbance such as a drought.
 - **Resilience** is how fully or quickly it returns afterwards.
 
@@ -435,36 +499,44 @@ A positive complementarity term does not prove resource partitioning. The partit
     ["σ", "sigma", "the standard deviation of that total across years: how much it typically swings", "g per square metre"],
   ]}
   toolkit={["ratios"]}
-  check="The units cancel, so stability has none. A total that never changes has σ = 0 and is perfectly stable. With the same swings, a larger mean gives a larger μ/σ, which is why overyielding alone can raise stability."
+  check="The units cancel, so stability has none. A constant positive total has σ = 0; the ratio is then undefined, and is read as unbounded, perfect stability. A larger mean raises μ/σ as long as the standard deviation grows less than in proportion, which is why overyielding alone can raise stability."
 >
   <Fragment slot="example">
-    <p>From the made-up numbers under Going deeper: one species with a mean of 50 g per square metre and a standard deviation of 25 has μ/σ = 50/25 = 2.</p>
+    <p>The first film's single species: a mean of 50 g per square metre and a standard deviation of 25, so μ/σ = 50/25 = 2.</p>
   </Fragment>
 </EquationCard>
 
-Why might richness raise temporal stability? Think of an investment portfolio. If species fluctuate independently, their ups and downs partly cancel in the total; this is **statistical averaging**. If species fluctuate in opposite directions, one rising as another falls (negative covariances), the cancelling is stronger; that is **compensatory dynamics**.
+The first film's total of four independent species swung only twice as much because standard deviations do not add; **variances** (squared standard deviations) do, when the species are uncorrelated. Four variances of 25² sum to 2,500, whose square root is 50, so μ/σ = 200/50 = 4. Stability grows with the square root of species number (16 species give 8), with no species any steadier.
 
-Tilman, Reich and Knops reported that at Cedar Creek over a decade, greater richness increased the temporal stability of annual aboveground production even though individual species were less stable, and they found no evidence of a covariance effect. They attributed the gain to statistical averaging and to overyielding: over 2001 to 2005, 16-species plots averaged 180 percent more biomass than monocultures, and a larger mean raises μ/σ. Later analyses differ in how strongly they support the averaging explanation and in how long a record is needed to infer the mechanism (see Going deeper).
+Real species often move partly together; their **correlation** runs from +1 (lockstep) through 0 (no linear relation) to −1 (one rises exactly as the other falls). In general, the variance of a total is the sum of the species' variances plus twice the **covariance** of every pair, where a pair's covariance is their correlation times their two standard deviations.
 
-Resistance and resilience separate. Across 46 grassland diversity experiments, Isbell and colleagues (2015) found that productivity in communities of one or two species changed by about 50 percent during wet or dry climate events, against about 25 percent at 16 to 32 species. By one year after each event, they detected no dependence of recovery on diversity. And in 690 aquatic ciliate microcosms, Pennekamp and colleagues (2018) found that richness raised temporal stability but lowered resistance to warming. Diversity does not raise every kind of stability.
+**Predict.** Give the four species a correlation of 0.5 with each other: they tend to move together, but not perfectly. Is μ/σ closer to 4, closer to 2, or exactly halfway?
 
-## Building communities: Cedar Creek and BIODEPTH
+<details>
+<summary>Check your prediction</summary>
 
-At Cedar Creek, Tilman and colleagues seeded plots in spring 1994, each sown with 1, 2, 4, 8 or 16 perennial grassland and savanna species chosen at random from a pool of 18, with the same seed mass in every plot so rich plots did not simply get more seed. Aboveground biomass was measured each year by clipping, drying and weighing.
+Closer to 2: about 2.5. Each pair's covariance is 0.5 × 25 × 25 = 312.5, and four species make six pairs, so the variance is 4 × 625 + 2 × 6 × 312.5 = 6,250. Its square root is about 79, and μ/σ = 200/79 ≈ 2.5. Partial synchrony removes most of the averaging gain: the one idea's "unless the species rise and fall together" is a matter of degree.
 
-<LessonFigure src="/figures/biodiversity-ecosystem-function/clip-dry-weigh.webp" width={1200} height={676} alt="AI-generated illustration: three steps left to right: a narrow strip of grassland being clipped at ground level with shears, the cut plants drying on a tray in an oven, and the dried plants on a laboratory balance." caption="Each year's biomass came from clipping the aboveground vegetation in sampling strips, drying it and weighing it." />
+</details>
 
-<LessonFigure src="/figures/biodiversity-ecosystem-function/cedar-creek-plot-design.webp" width={1200} height={800} alt="AI-generated illustration: a schematic top-down field of equal square plots in five columns holding one, two, four, eight and sixteen plant tufts, with a key tray of eighteen plant types and an arrow marking the random draw; one plot is outlined and marked nine by nine metres." caption="A simplified view of the Cedar Creek design: equal plots sown with 1, 2, 4, 8 or 16 species drawn at random from a pool of 18, with the same seed mass in every plot. The real experiment had 168 plots." />
+Negative correlations cancel more: one species rising as another falls is **compensatory dynamics**. If richer plots had more of it, part of their extra steadiness would be a **covariance effect**. At Cedar Creek, Tilman, Reich and Knops found no evidence of a covariance effect. They credited statistical averaging and overyielding: over 2001 to 2005, the 16-species plots averaged 180 percent more biomass than monocultures, and a higher mean raises μ/σ (see the card's check). Later analyses differ in how strongly they support averaging and in how long a record is needed to infer the mechanism (see Going deeper).
 
-Random composition is the key move. If you hand-picked the species for each richness level, any richness effect might be the effect of the species you picked. Drawing many random compositions at each level means a consistent difference between levels is not the result of the species you picked. It can still come partly through identity: a richer random draw is more likely to include a very productive species, such as a legume. That is the selection effect, which the Loreau-Hector partition in the complementarity section above measures.
+**Predict.** Suppose diverse plots lose a smaller share of their production in a drought. Will they also recover more fully a year later?
 
-BIODEPTH repeated the logic at eight European grassland sites, each using local species. Hector and colleagues reported in 1999 that, across sites, losing plant species gave an overall log-linear decline in average aboveground biomass: each halving of species number lowered biomass by a similar step (see [log scales](/math-toolkit/#log-scales)). Composition still mattered: at a fixed species number, communities with fewer functional groups (such as grasses, legumes and other herbs) were less productive.
+<details>
+<summary>Check your prediction</summary>
 
-The approach has since been taken to trees. In the BEF-China experiment, a planted subtropical forest, Huang and colleagues reported in 2018 that 16-species mixtures had accumulated more than twice the carbon of the average monoculture after eight years, and an amount similar to two commercial monocultures. The benchmark matters, as the worked problem above shows.
+Not detectably. Across 46 grassland diversity experiments, Isbell and colleagues (2015) found that during wet or dry climate events, productivity in communities of one or two species changed by about 50 percent, against about 25 percent at 16 to 32 species. That is greater resistance. Yet by one year after each event, they detected no dependence of recovery on diversity.
 
-## Field evidence and confounding
+</details>
 
-Experiments assign richness; real landscapes do not. Duffy and colleagues (2017) synthesized 67 field studies of wild systems, 133 estimates in all, and found positive biodiversity-biomass associations after statistically adjusting for environmental covariates. That brings the question out of small plots, but adjustment is not random assignment: an unmeasured variable could still drive both. These results carry forward into [global change](/lessons/global-change/) and [conservation](/lessons/conservation/).
+Stability measures can even move in opposite directions: in 690 aquatic ciliate microcosms, Pennekamp and colleagues (2018) found that richness raised temporal stability but lowered resistance to warming.
+
+## Beyond the plots
+
+In the BEF-China experiment, a planted subtropical forest, Huang and colleagues reported in 2018 that 16-species mixtures had accumulated more than twice the carbon of the average monoculture after eight years, and an amount similar to two commercial monocultures. The benchmark matters.
+
+Real landscapes do not assign richness. Duffy and colleagues (2017) synthesized 67 field studies of wild systems, 133 estimates in all, and found positive biodiversity-biomass associations after statistically adjusting for environmental covariates. Adjustment is not random assignment: an unmeasured variable could still drive both. These results carry forward into [global change](/lessons/global-change/) and [conservation](/lessons/conservation/).
 
 ### Design problem
 
@@ -473,13 +545,13 @@ An observational survey finds that grassland plots with more plant species have 
 <details>
 <summary>One way to do it</summary>
 
-Start with the confounder: soil fertility or moisture could raise both richness and biomass. Break the link by assigning richness yourself.
+Soil fertility or moisture could raise both; break the link by assigning richness yourself.
 
 1. Divide a uniform field into blocks by soil and slope. Within each block, randomly assign plots to 1, 2, 4 or 8 species.
 2. At each richness level, draw several independent random compositions from a fixed local pool, and include a monoculture of every species so the partition can be computed.
-3. Keep plot area and total seed mass constant across treatments, and weed every plot the same way to hold its assigned composition.
-4. Measure soil nitrogen, moisture and light in every plot before sowing, and check they do not differ by treatment.
-5. Cross richness with a randomly assigned nitrogen or drought treatment, so you can see whether the richness effect holds within each environment.
+3. Keep plot area and seed mass constant, and weed every plot alike to hold its assigned composition.
+4. Measure soil nitrogen, moisture and light before sowing, and check they do not differ by treatment.
+5. Cross richness with a randomly assigned nitrogen or drought treatment, to see whether the effect holds in each environment.
 6. Treat the plot as the unit, harvest species separately each year for several years, and analyse assigned richness, with block as a factor.
 7. Report net, complementarity and selection effects alongside raw yields, compare mixtures with the best monoculture as well as the average, and predefine the stability measures (μ/σ over a fixed window, resistance and recovery for any event).
 
@@ -487,18 +559,14 @@ Start with the confounder: soil fertility or moisture could raise both richness 
 
 ## Going deeper
 
-### The full Loreau-Hector calculation
+### Uncorrelated is not the same as independent
 
-2. *Relative yields.* RY_A = 300/400 = 0.75; RY_B = 100/100 = 1.00. Each was sown at half, so expected RY is 0.5. ΔRY_A = 0.25 and ΔRY_B = 0.50, mean 0.375. Mean M = 250.
-3. *Complementarity.* 2 x 0.375 x 250 = **+187.5 g per square metre**.
-4. *Selection.* Deviations from the means: species A has M - 250 = +150 and ΔRY - 0.375 = -0.125; species B has -150 and +0.125. The products are -18.75 and -18.75, and their mean (divide by 2) is -18.75. Selection = 2 x -18.75 = **-37.5 g per square metre**.
+Variances add whenever species' swings are uncorrelated. Independent species are always uncorrelated, but uncorrelated species need not be independent.
 
-### Statistical averaging with made-up numbers, and the mechanism debate
-
-To see averaging in made-up numbers, suppose each species has a mean of 50 g per square metre and a standard deviation of 25, and fluctuations are independent. One species gives μ/σ = 50/25 = 2. Four species give a mean of 4 x 50 = 200. For independent fluctuations the variances add, not the standard deviations: 4 x 25^2 = 2,500, and the square root of 2,500 is 50. So μ/σ = 200/50 = 4. Under these assumptions, stability rises with the square root of species number (the square root of 4 is 2, and 2 x 2 = 4), with no species becoming any steadier.
+### The mechanism debate
 
 Zhao and colleagues (2022) found statistical averaging was the principal mediator in their North American grassland analysis. Luo and colleagues (2025) showed that synchrony patterns can reverse with the length of the time series, so the inferred mechanism depends on how long you watch.
 
-### Cedar Creek plot details
+### Assembled is not the same as lost
 
-At Cedar Creek, Tilman and colleagues seeded 168 plots, each 9 by 9 metres, in spring 1994. Every plot received the same seed mass, 10 g per square metre in 1994 and 5 g in 1995.
+These experiments compared communities assembled with fewer species; they did not remove species. Real extinctions are not random draws from a pool, so random assembly does not mimic the order in which species are lost in nature. Species loss can still change what an ecosystem does; the experiments show what richness can do in the communities they built.
