@@ -1,6 +1,9 @@
 """Shared look for the Biochemistrypedia explainer videos (all 10 lessons use this).
 
     from bp_style import *          # NarratedScene, colors, fonts, helpers, and all of manim
+    from bp_parts import *          # the same, plus scene components (Plot, Readout, Ledger, PredictPause...)
+
+Every render also runs the layout check (layout_check.py) and writes layout_report.json.
 
 Rules every scene follows:
 - 3b1b look: dark background, things transform into each other, build piece by piece,
@@ -164,6 +167,7 @@ class TitleCard(NarratedScene):
 
     def construct(self):
         brand = T("BIOCHEMISTRYPEDIA", size=20, color=TEAL, weight=BOLD).set_opacity(0.9)
+        brand.layout_ok = True   # the small brand line is deliberate (layout check)
         lesson = T(self.LESSON.upper(), size=22, color=GREY)
         title = T(self.TITLE, size=54, font=TITLE_FONT)
         fit(title, max_w=11.5)

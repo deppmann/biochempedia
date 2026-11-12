@@ -11,6 +11,8 @@ KX_DURATION is set per scene from DIR/durations.json; PYTHONPATH includes this d
 scenes.py can `from kx_manim import NarratedScene`. Each scene video is padded (last frame held)
 to the audio length, never the reverse. KX_SCRIPT / KX_SCENE_ID name the script and the scene (xm.XMScene uses them to time sentences).
 Quality m = 720p30. Output: H.264 + AAC, yuv420p, +faststart.
+Every render also runs the layout check (layout_check.py) and writes layout_report.json beside the
+output, with a one-line summary at the end. It only reports; KX_LAYOUT=0 turns it off.
 """
 import argparse
 import json
@@ -80,10 +82,13 @@ def main():
         os.environ["KX_ASPECT"] = "vertical"
     work = out.parent / f".render-{out.stem}"
     work.mkdir(parents=True, exist_ok=True)
-    parts = []
+    parts, offsets, t0 = [], {}, 0.0
+    layout_jl = work / "layout.jsonl"
+    layout_jl.unlink(missing_ok=True)
     for n, i in enumerate(ids, 1):
         print(f"[{n}/{len(ids)}] {i} -> {cls[i]} ({durs[i]:.1f}s narration)", flush=True)
         env = {**os.environ, "KX_DURATION": str(durs[i]), "KX_SCRIPT": str(Path(a.script).resolve()), "KX_SCENE_ID": i, "KX_AUDIO": str(audio),
+               "KX_LAYOUT_OUT": str(layout_jl),
                "PYTHONPATH": os.pathsep.join(filter(None, [str(HERE), str(scenes_py.parent), os.environ.get("PYTHONPATH")]))}
         run([str(MANIM), flag, "--progress_bar", "none", "-v", "WARNING", "--media_dir", str(work / "media"),
              *extra, str(scenes_py), cls[i]], env=env)
@@ -100,6 +105,7 @@ def main():
              "-map", "[v]", "-map", "[a]", "-t", f"{total:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "18",
              "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2", str(seg)])
         parts.append(seg)
+        offsets[i], t0 = t0, t0 + total
 
     listing = work / "concat.txt"
     listing.write_text("".join(f"file '{p}'\n" for p in parts))
@@ -107,6 +113,12 @@ def main():
     run([FFMPEG, "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(listing),
          "-c", "copy", "-movflags", "+faststart", str(out)])
     print(f"done: {duration(out):.1f}s -> {out}")
+    try:
+        from layout_check import merge, summary
+        rep_path = out.parent / "layout_report.json"
+        print(summary(merge(layout_jl, rep_path, offsets), rep_path))
+    except Exception as e:   # the layout check never fails a render
+        print(f"layout check skipped: {e!r}")
 
 
 if __name__ == "__main__":
