@@ -1,0 +1,657 @@
+{
+ "slug": "extending-mendel",
+ "title": "Extending Mendel: Dominance, Multiple Alleles and Gene Interaction",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "2e6dd4eec95a",
+ "sectionHashes": {
+  "(opening)": "e9a6b8bf3f1d",
+  "What you measure decides the word": "cd5c5efb2c23",
+  "ABO: three alleles, two sugars and codominance": "ef862fcd4895",
+  "Why one copy is usually enough, and when it is not": "e29d303b9127",
+  "Alleles that kill: the 2:1 ratio": "fcb9b842ba7f",
+  "Two genes, one trait: epistasis": "a382e7f4cdff",
+  "Where the rule ends: penetrance and expressivity": "9752a133fe8c",
+  "Design problem": "689b9cc83cd7",
+  "Why halving an enzyme often barely shows": "00cefafc1772",
+  "Two white parents, one purple child: the model and a trap": "3ecdae60a9d5"
+ },
+ "cards": [
+  {
+   "id": "extending-mendel-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Segregation is the separation of a parent's two alleles into different {{c1::gametes}} at meiosis, so each child gets one allele from each parent.",
+   "back": "",
+   "quote": "Segregation is the separation of a parent's two alleles into different gametes at meiosis, so each child gets one allele from each parent."
+  },
+  {
+   "id": "extending-mendel-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the extended Mendelian picture, what does \"inheritance deals the boxes; the gene products write the labels\" mean?",
+   "back": "A fair deal of alleles makes equally likely Punnett boxes (4 for Aa x Aa, 16 for AaBb x AaBb). What the gene products do decides which boxes share a phenotype label.",
+   "why": "Every ratio in the lesson is the same boxes with new labels: shared (dominance, epistasis), separate (incomplete dominance, codominance) or dropped (a lethal).",
+   "quote": "Inheritance deals the boxes; the gene products write the labels."
+  },
+  {
+   "id": "extending-mendel-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Which processes change the Punnett boxes themselves rather than their labels, and what does incomplete penetrance do instead?",
+   "back": "Linkage, sex linkage and segregation distortion change the boxes. Incomplete penetrance gives a box a probability instead of a label.",
+   "quote": "Linkage, sex linkage and segregation distortion change the boxes themselves, and incomplete penetrance gives a box a probability instead of a label."
+  },
+  {
+   "id": "extending-mendel-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In {{c1::incomplete dominance}}, the heterozygote's phenotype lies between the two homozygotes', so the phenotype ratio equals the genotype ratio.",
+   "back": "Example: snapdragons, red x white gives pink F1.",
+   "quote": "the heterozygote's phenotype lies between the two homozygotes', so the phenotype ratio equals the genotype ratio",
+   "section": "What you measure decides the word"
+  },
+  {
+   "id": "extending-mendel-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In {{c1::codominance}}, the products of both alleles are detected in the heterozygote.",
+   "back": "Example: MN blood group, where MN people carry both M and N antigens.",
+   "quote": "In codominance, the products of both alleles are detected in the heterozygote.",
+   "section": "What you measure decides the word"
+  },
+  {
+   "id": "extending-mendel-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In snapdragons, red x white gives all-pink F1 plants. A pink plant is crossed with a white plant and gives 80 offspring. How many of each colour do you expect?",
+   "back": "Pink is the heterozygote, white a homozygote. Heterozygote x homozygote gives 1/2 heterozygous and 1/2 homozygous: 40 pink and 40 white, no red.",
+   "why": "Incomplete dominance: each genotype has its own colour, so the phenotype ratio equals the genotype ratio.",
+   "quote": "Red crossed with white gives pink F1 flowers, and selfing the pink plants brings back 1 red : 2 pink : 1 white.",
+   "section": "What you measure decides the word"
+  },
+  {
+   "id": "extending-mendel-c07",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "For the MN blood group, an MN person has children with an N person (NN). What blood groups do you expect among the children, and in what proportions?",
+   "back": "1/2 MN and 1/2 N. Each child gets N from the NN parent and M or N, equally often, from the MN parent.",
+   "why": "M and N are codominant, so each genotype has its own label, as in an MN by MN cross giving 1:2:1.",
+   "quote": "an MN by MN cross gives 1 M : 2 MN : 1 N",
+   "section": "What you measure decides the word"
+  },
+  {
+   "id": "extending-mendel-c08",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A sickle-cell heterozygote makes both normal and sickle haemoglobin but usually has no sickle cell disease. Why can the allele be called both codominant and close to recessive?",
+   "back": "On a gel, both haemoglobins show as bands: codominant. For anaemia, the heterozygote usually has no disease: close to recessive. Dominance describes the heterozygote's phenotype for the trait scored.",
+   "quote": "Dominance describes the heterozygote's phenotype for the trait you score, not the strength of an allele.",
+   "section": "What you measure decides the word"
+  },
+  {
+   "id": "extending-mendel-c09",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A gene can have more than two alleles in a population, a set called {{c1::multiple alleles}}, though each diploid person carries only two.",
+   "back": "The ABO blood groups are the classic case.",
+   "quote": "A gene can have more than two alleles in a population, a set called multiple alleles, though each diploid person carries only two.",
+   "section": "ABO: three alleles, two sugars and codominance"
+  },
+  {
+   "id": "extending-mendel-c10",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the usual ABO model, what do the I^A, I^B and i alleles encode?",
+   "back": "I^A: a glycosyltransferase that adds N-acetylgalactosamine to the H antigen (A antigen). I^B: a nearly identical enzyme that adds galactose (B antigen). i: no working enzyme, so H is unchanged.",
+   "quote": "I^A encodes a glycosyltransferase, an enzyme that adds a sugar",
+   "section": "ABO: three alleles, two sugars and codominance"
+  },
+  {
+   "id": "extending-mendel-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why are I^A and I^B codominant with each other but each dominant to i?",
+   "back": "An I^A I^B person makes both enzymes, so both antigens are detected (type AB). With i, one working enzyme is enough to decorate the cells, so i adds nothing visible.",
+   "quote": "Each is dominant to i, because one working enzyme is enough to decorate the cells.",
+   "section": "ABO: three alleles, two sugars and codominance"
+  },
+  {
+   "id": "extending-mendel-c12",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "When the ABO alleles were cloned in 1990, what molecular differences explained the A, B and O groups?",
+   "back": "The A and B alleles differed at four amino acids. The O allele studied lacked a single base, which shifts the reading frame so no working enzyme is made.",
+   "quote": "the O allele they studied lacks a single base, which shifts the reading frame",
+   "section": "ABO: three alleles, two sugars and codominance"
+  },
+  {
+   "id": "extending-mendel-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why are most loss-of-function alleles of enzymes recessive?",
+   "back": "A heterozygote often makes about half the enzyme, and half is usually plenty. An enzyme in a many-step pathway rarely sets the output alone, so halving it slows the pathway only a little.",
+   "quote": "An enzyme in a pathway of many steps is rarely the only thing setting the output, so halving it slows the pathway only a little.",
+   "section": "Why one copy is usually enough, and when it is not"
+  },
+  {
+   "id": "extending-mendel-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the toy model where pathway flux is proportional to 1 / (1/e1 + 1/e2 + ...), a pathway has four equal enzymes. One enzyme's activity is halved. What fraction of the normal flux remains?",
+   "back": "Normal sum = 4/e. Halving one enzyme makes its term 2/e, so the sum is 5/e. Flux = (1/5)/(1/4) = 4/5, or 80%.",
+   "why": "Same rule as ten equal steps giving 10/11, about 91%: the more steps share control, the less halving one matters.",
+   "quote": "With ten equal enzymes the sum is 10/e; halving one makes it 11/e, which leaves 10/11, about 91%, of the flux.",
+   "section": "Why halving an enzyme often barely shows"
+  },
+  {
+   "id": "extending-mendel-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can a loss-of-function allele produce a pink heterozygote rather than a recessive one?",
+   "back": "If the trait tracks the amount of one product, as a pigment can, half the product gives a paler colour.",
+   "quote": "If the trait tracks the amount of one product, as a pigment can, half the product gives a paler colour",
+   "section": "Why one copy is usually enough, and when it is not"
+  },
+  {
+   "id": "extending-mendel-c16",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What is haploinsufficiency, and which kinds of proteins often show it?",
+   "back": "A loss of function that is dominant because half the product is not enough. Often receptors, signals or structural parts whose output follows their dose.",
+   "why": "Example: a fly with one working copy of Notch has notched wing tips.",
+   "quote": "Some proteins, often receptors, signals or structural parts whose output follows their dose, must be present in close to their full amount.",
+   "section": "Why one copy is usually enough, and when it is not"
+  },
+  {
+   "id": "extending-mendel-c17",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What is a dominant-negative allele, and where is it easiest to see?",
+   "back": "An allele whose mutant product spoils the normal product. Easiest to see in proteins that work as complexes of identical subunits, where one mutant subunit can spoil a whole complex.",
+   "quote": "Dominant negative: the mutant product spoils the normal one. Many proteins work as complexes of several identical subunits.",
+   "section": "Why one copy is usually enough, and when it is not"
+  },
+  {
+   "id": "extending-mendel-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "For a channel built from four identical subunits that assemble at random, why can a dominant-negative allele be dominant when a null allele of the same gene is not?",
+   "back": "A null heterozygote keeps about half the normal number of channels, all normal. With a spoiling subunit, only channels of four normal subunits work: (1/2)^4 = 1/16, about 6%.",
+   "quote": "The dominant negative does worse than a null allele of the same gene, so it can be dominant when the null is not.",
+   "section": "Why one copy is usually enough, and when it is not"
+  },
+  {
+   "id": "extending-mendel-c19",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A protein works as a dimer of two identical subunits that assemble at random. A heterozygote makes equal amounts of normal and mutant subunits, and any mutant subunit spoils the dimer it joins. What fraction of dimers work?",
+   "back": "Both picks must be normal: (1/2) x (1/2) = 1/4, or 25% of dimers intact.",
+   "why": "Simplest model: (1/2)^n of complexes of n subunits are intact.",
+   "quote": "1/4 for a dimer, 1/16 for a tetramer and about 1.6% for a hexamer",
+   "section": "Why halving an enzyme often barely shows"
+  },
+  {
+   "id": "extending-mendel-c20",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does a gain-of-function allele do, and why is it usually dominant?",
+   "back": "Its product does too much of its normal job, a new job, or its job in the wrong place. One copy is enough to add that activity.",
+   "quote": "One copy is enough to add that activity, so gain-of-function alleles are usually dominant.",
+   "section": "Why one copy is usually enough, and when it is not"
+  },
+  {
+   "id": "extending-mendel-c21",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In mice, the yellow allele A^y is dominant for coat colour. What happens to A^y/A^y animals?",
+   "back": "They die as embryos, before implantation. A^y is recessive for survival.",
+   "quote": "It is recessive for survival: A^y/A^y embryos die before implantation",
+   "section": "Alleles that kill: the 2:1 ratio"
+  },
+  {
+   "id": "extending-mendel-c22",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the model of Michaud and colleagues, how can the mouse A^y allele be dominant for coat colour but recessive for survival?",
+   "back": "One deletion acts on two genes. It switches agouti on where it is normally silent (gain of function, one copy enough). It also disturbs a neighbouring gene the early embryo needs, which kills only when both copies are disturbed.",
+   "quote": "In the model of Michaud and colleagues, one deletion acts on two genes.",
+   "section": "Alleles that kill: the 2:1 ratio"
+  },
+  {
+   "id": "extending-mendel-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why does a cross of two heterozygotes for a recessive lethal allele with a dominant visible effect give a 2:1 phenotype ratio instead of 3:1?",
+   "back": "Conceptions are still 1:2:1. The homozygous lethal quarter dies and drops out, leaving 2 heterozygotes (mutant phenotype) for every 1 normal homozygote.",
+   "quote": "the 2:1 is a ratio among survivors, and the 1:2:1 still holds at conception.",
+   "section": "Alleles that kill: the 2:1 ratio"
+  },
+  {
+   "id": "extending-mendel-c24",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Yellow mice (A^y/a) are crossed with each other, and 90 live pups are born. How many yellow and how many black pups do you expect?",
+   "back": "A^y/A^y dies, so survivors are 2/3 A^y/a (yellow) and 1/3 a/a (black): 60 yellow and 30 black.",
+   "quote": "In 12 live pups, expect 8 yellow and 4 black.",
+   "section": "Alleles that kill: the 2:1 ratio"
+  },
+  {
+   "id": "extending-mendel-c25",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "With equal numbers of conceptions, a breeder compares yellow (A^y/a) x yellow matings with yellow x black (a/a) matings. Which litters are smaller, and by how much?",
+   "back": "Yellow x yellow litters, by about one quarter. Yellow x black gives 1/2 A^y/a and 1/2 a/a with no deaths; in yellow x yellow the A^y/A^y quarter dies.",
+   "quote": "In yellow by yellow matings the A^y/A^y quarter dies, so three quarters of conceptions become live pups.",
+   "section": "Alleles that kill: the 2:1 ratio"
+  },
+  {
+   "id": "extending-mendel-c26",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A breeder wants a true-breeding yellow mouse line and tests yellow mice from yellow x yellow matings by crossing each to a black (a/a) mouse. Predict the results and what they show.",
+   "back": "Every yellow mouse gives about 1 yellow : 1 black, so none is A^y/A^y. A homozygote would give all yellow pups, but A^y/A^y embryos die, so a true-breeding yellow line cannot be made.",
+   "why": "Rests on A^y being a recessive lethal: every live yellow mouse is a heterozygote.",
+   "quote": "two copies of the yellow allele kill the embryo, so every live yellow mouse is a heterozygote."
+  },
+  {
+   "id": "extending-mendel-c27",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Epistasis}} is any case where the genotype at one gene hides the effect of another gene on the same trait.",
+   "back": "",
+   "quote": "epistasis is any case where the genotype at one gene hides the effect of another gene on the same trait.",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In Labrador retrievers, a BbEe x BbEe cross gives 9 black : 3 chocolate : 4 yellow. Why is this called recessive epistasis, and which boxes share the yellow label?",
+   "back": "ee masks the B locus only when e is homozygous. The four ee boxes (B_ee and bbee, 3 + 1) all share the yellow label.",
+   "quote": "Because e masks the B locus only when homozygous, this is recessive epistasis.",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c29",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In Labrador retrievers (B black over b chocolate; ee yellow whatever the B genotype; loci unlinked), a BbEe dog is crossed with a bbEe dog. What fractions of pups are black, chocolate and yellow?",
+   "back": "P(B_) = 1/2, P(bb) = 1/2; P(E_) = 3/4, P(ee) = 1/4. Black B_E_ = 3/8, chocolate bbE_ = 3/8, yellow ee = 1/4. Ratio 3:3:2.",
+   "quote": "An ee dog makes only yellow pheomelanin in its coat, so its coat is yellow whatever its B genotype.",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c30",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "From a BbEe x BbEe Labrador cross (unlinked loci, ee yellow), what fraction of the black pups are BBEE?",
+   "back": "Black = B_E_ = 9/16. BBEE = 1/4 x 1/4 = 1/16. P(BBEE given black) = (1/16)/(9/16) = 1/9.",
+   "quote": "Of the 4 yellow sixteenths, 1 is bbee, so P(bbee given yellow) = 1/4.",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In a two-step pigment pathway where step 1 needs a dominant A and step 2 a dominant B, why does selfing AaBb give 9 coloured : 7 white?",
+   "back": "Only A_B_ (9/16) has both steps working. A_bb (3), aaB_ (3) and aabb (1) each lack a step, so those 7 boxes share the white label.",
+   "quote": "Selfing AaBb with independent assortment gives 9 A_B_ coloured, and 3 A_bb + 3 aaB_ + 1 aabb = 7 white: a 9:7 ratio.",
+   "section": "Two white parents, one purple child: the model and a trap"
+  },
+  {
+   "id": "extending-mendel-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In an F2 from double heterozygotes, how do dominant epistasis and recessive epistasis differ in which boxes merge, and what ratios result?",
+   "back": "Dominant epistasis: the 12 boxes with the masking dominant allele share a label, giving 12:3:1. Recessive epistasis: the 4 boxes homozygous recessive at the hiding gene merge, giving 9:3:4.",
+   "quote": "a dominant allele at one gene masks the other (dominant epistasis)",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c33",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Selfing a plant heterozygous at two unlinked genes gives 15 plants of one seed-capsule shape for every 1 of another. Which genotype makes the rare class, and how do the genes act?",
+   "back": "Only aabb (1/16) makes the rare shape. A dominant allele at either gene is enough for the common shape (duplicate genes), so the other 15 boxes share one label.",
+   "quote": "a dominant allele at either gene is enough (duplicate genes)",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "An F2 from double heterozygotes falls into sixteenths but shows fewer than four phenotype classes. What does that suggest?",
+   "back": "Two unlinked genes acting on one trait, with some of the 9:3:3:1 classes sharing a label.",
+   "quote": "a ratio in sixteenths with fewer than four classes is a clue that two unlinked genes act on one trait.",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c35",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Two true-breeding white flower lines give purple F1 plants. The F2 has 92 purple and 68 white plants. Which two-gene ratio fits, and what are the expected counts?",
+   "back": "160/16 = 10 per sixteenth. 9:7 predicts 90 purple and 70 white, close to 92:68. Both dominant alleles are needed (complementary genes).",
+   "quote": "the 7 boxes missing a dominant allele at either gene",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c36",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A person has the ABO genotype I^A I^B but is hh at the H gene (the Bombay phenotype). What does routine A and B typing report, and why?",
+   "back": "Type O. The A and B transferases need the H antigen to work on, and hh people make none, so neither enzyme has anything to modify.",
+   "why": "Recessive epistasis: every hh box carries one label, as every ee box did in the dogs.",
+   "quote": "Neither transferase has anything to modify, so the cells look like type O whatever the ABO genotype.",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c37",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A woman with the Bombay phenotype (hh, I^B I^B) types as O. Her partner is an ordinary type O man (HH, ii). What blood type do you predict for their children?",
+   "back": "Type B. Every child is Hh I^B i: one H allele lets the cells make H antigen, and the B transferase converts it to B antigen.",
+   "why": "Rests on hh hiding ABO (recessive epistasis) and on one working enzyme being enough to decorate the cells.",
+   "quote": "rare hh people make no H antigen (the Bombay phenotype)",
+   "section": "Two genes, one trait: epistasis"
+  },
+  {
+   "id": "extending-mendel-c38",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In mice, cc animals are albino whatever their other coat-colour genes (recessive epistasis), and A^y/A^y embryos die. Two yellow mice, both A^y/a Cc, are mated many times. Predict the live-pup phenotype ratio.",
+   "back": "2 yellow : 1 black : 1 albino. Survivors are 2/3 A^y/a and 1/3 a/a; independently 3/4 C_ and 1/4 cc. Yellow = 2/3 x 3/4 = 1/2, black = 1/3 x 3/4 = 1/4, albino = 1/4.",
+   "why": "Combines the lethal (one class dropped) with recessive epistasis (cc boxes share one label).",
+   "quote": "Every ratio in this lesson is those same boxes with new labels."
+  },
+  {
+   "id": "extending-mendel-c39",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Define penetrance.",
+   "back": "The fraction of carriers of a genotype who show the trait. Measured in a group; for one carrier it is a probability.",
+   "quote": "Penetrance is the fraction of carriers of a genotype who show the trait.",
+   "section": "Where the rule ends: penetrance and expressivity"
+  },
+  {
+   "id": "extending-mendel-c40",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Expressivity}} is how strongly the trait shows in those who have it.",
+   "back": "Variable expressivity: the same genotype gives mild disease in one carrier and severe disease in another.",
+   "quote": "Expressivity is how strongly the trait shows in those who have it; with variable expressivity, the same genotype gives mild disease in one carrier and severe disease in another.",
+   "section": "Where the rule ends: penetrance and expressivity"
+  },
+  {
+   "id": "extending-mendel-c41",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a study, 48 of 80 carriers of a dominant allele show the trait. What is the penetrance? A heterozygous carrier has a child with a non-carrier. What is the probability that the child is affected?",
+   "back": "Penetrance = 48/80 = 60%. P(child carries the allele) = 1/2, so P(affected) = 1/2 x 0.6 = 0.3.",
+   "quote": "It is measured in a group; for one carrier it is a probability, not a verdict.",
+   "section": "Where the rule ends: penetrance and expressivity"
+  },
+  {
+   "id": "extending-mendel-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What three things keep genotype from fully fixing phenotype?",
+   "back": "Other genes, chance in development (genetically identical animals raised side by side can differ), and environment.",
+   "quote": "Chance in development: genetically identical animals raised side by side can differ, because development involves random molecular events.",
+   "section": "Where the rule ends: penetrance and expressivity"
+  },
+  {
+   "id": "extending-mendel-c43",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does phenylketonuria (PKU) show that environment shapes the phenotype of a single-gene disorder?",
+   "back": "On an ordinary diet, phenylalanine accumulates and causes severe intellectual disability. A low-phenylalanine diet from early infancy largely prevents it. Same genotype, different outcome.",
+   "quote": "in children kept on a low-phenylalanine diet from early infancy, that outcome is largely prevented.",
+   "section": "Where the rule ends: penetrance and expressivity"
+  },
+  {
+   "id": "extending-mendel-c44",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "White Leghorn chickens (IICC, I a dominant inhibitor of colour) are crossed with White Wyandottes (iicc, cc colourless). The F1 is white and the F2 is about 13 white : 3 coloured. Explain the F2.",
+   "back": "F1 is IiCc, white because it carries I. Coloured needs ii (1/4) and C_ (3/4): 3/16. The other 13/16 (9 I_C_ + 3 I_cc + 1 iicc) share the white label.",
+   "quote": "A bird is coloured only if it has no inhibitor (ii, probability 1/4) and at least one C (C_, probability 3/4)",
+   "section": "Design problem"
+  },
+  {
+   "id": "extending-mendel-c45",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In chickens, I is a dominant inhibitor of colour and cc is colourless. An IiCc F1 is testcrossed to an iicc bird. What ratio of coloured to white chicks do you expect?",
+   "back": "The F1 makes IC, Ic, iC and ic equally often. Only iC gives a coloured chick (iiCc): 1 coloured : 3 white.",
+   "quote": "only iC gives a coloured chick: expect 1 coloured : 3 white.",
+   "section": "Design problem"
+  },
+  {
+   "id": "extending-mendel-c46",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the Leghorn x Wyandotte chicken model (I inhibits colour, cc colourless), coloured F2 birds are each crossed with Wyandottes (iicc). What results support the two-gene model?",
+   "back": "Coloured F2 birds are iiCC (1/3) or iiCc (2/3). About one in three should give only coloured chicks and two in three half coloured.",
+   "quote": "under the model about one in three gives only coloured chicks (iiCC) and two in three give half coloured (iiCc)",
+   "section": "Design problem"
+  },
+  {
+   "id": "extending-mendel-c47",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Two true-breeding white lines give a coloured F1. Backcrossing the F1 to each parent gives 1 coloured : 1 white. Why does that not prove two genes, and what cross would decide?",
+   "back": "Interallelic complementation in one gene (w1w2 coloured) also gives 1:1 in the backcross. The F2 decides: 9:7 for two genes against 1:1 for one.",
+   "quote": "The F2 tells them apart: 9:7 for two genes against 1:1 for one.",
+   "section": "Two white parents, one purple child: the model and a trap"
+  }
+ ]
+}

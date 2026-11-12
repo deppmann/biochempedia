@@ -30,14 +30,14 @@ def badge(n, p):
 
 
 def question_card(title="How does the surface know where to cut?", options=None):
-    title_m = label(title, 31)
+    title_m = label(title, 31 if not options else 26)
     rows = [title_m]
     if options:
-        rows.append(VGroup(*[chip(x, color=GREY, size=28) for x in options]).arrange(RIGHT, buff=0.25))
+        rows.append(VGroup(*[chip(x, color=GREY, size=24) for x in options]).arrange(DOWN, buff=0.18))
     body = VGroup(*rows).arrange(DOWN, buff=0.15)
     box = RoundedRectangle(corner_radius=0.18, width=body.width + 0.5, height=body.height + 0.34,
                            color=TEXT, stroke_width=2, fill_color=BG, fill_opacity=0.93)
-    return VGroup(box, body.move_to(box)).move_to([0, 3.18, 0])
+    return VGroup(box, body.move_to(box)).move_to([0, 3.18, 0] if not options else [5.0, -0.35, 0])
 
 
 def concept_key():
@@ -203,7 +203,7 @@ class S00Hook(SpokenScene, TitleCard):
         self.play(Create(mid),run_time=.7); self.play(FadeOut(mid),run_time=.35)
         self.at("How does its surface")
         q=question_card()
-        self.play(FadeIn(q,shift=DOWN*.12),run_time=.55)
+        self.play(FadeIn(q,shift=DOWN*.12),FadeOut(name),run_time=.55)
         self.finish()
 
 
@@ -268,7 +268,6 @@ class S04Switch(SpokenScene):
             option[0].set_opacity(.22)
             option[1].set_opacity(.22)
             option[2].set_opacity(0)
-        self.add(opts)
         panel=RoundedRectangle(width=5.2,height=3.7,corner_radius=.2,color=GREY,fill_color=BG,fill_opacity=.96).move_to([3.2,.35,0])
         rho=chip("RhoA",GREY,32).move_to([2.55,.45,0]); gdp=chip("GDP",GREY,28).move_to([4.45,.45,0]); off=label("OFF",28,GREY).move_to([3.5,-.45,0])
         self.play(FadeIn(panel),FadeIn(rho,shift=UP*.15),FadeIn(gdp),FadeIn(off),run_time=1.6)
@@ -458,7 +457,7 @@ class S14Return(SpokenScene):
     def construct(self):
         rig=CellRig(daughters=1); add_rig(self,rig)
         rig.breathe.add_updater(lambda m,dt:m.increment_value(dt*.32))
-        bridge=label("bridge",30,GREY).move_to([0,1.55,0]); bp=arrow([0,1.22,0],[0,.12,0],GREY)
+        bridge=label("bridge",30,GREY).move_to([0,2.45,0]); bp=arrow([0,2.12,0],[0,.12,0],GREY)
         self.play(FadeIn(bridge),GrowArrow(bp),run_time=1.5)
         self.at("separate job")
         self.play(Indicate(rig.parts[0],color=GREY),run_time=1.0)
@@ -478,10 +477,4 @@ class S14Return(SpokenScene):
 
 class S15End(EndCard):
     LINE = "Microtubules place the RhoA band; the furrow follows."
-    def construct(self):
-        rig=CellRig(cy=-1.85,daughters=1); rig.parts.set_opacity(.25); add_rig(self,rig)
-        line=label(self.LINE,40).move_to([0,1.55,0]); sub=label("biochemistrypedia.com",28,TEAL).move_to([0,.72,0])
-        self.play(FadeIn(line,shift=UP*.12),FadeIn(sub),run_time=1.0)
-        bridge=Line([-.38,-1.85,0],[.38,-1.85,0],color=GREY,stroke_width=12).set_opacity(.5)
-        self.play(Indicate(bridge,color=GREY),run_time=.8)
-        self.finish()
+

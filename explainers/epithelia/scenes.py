@@ -100,7 +100,7 @@ def gauges(gut_level=0.85, blood_level=0.48, dashed=True):
     line_y = -0.75 + 2.30 * blood_level
     line = DashedLine([4.30, line_y, 0], [6.30, line_y, 0], dash_length=0.10,
                       color=GOLD_GLUCOSE, stroke_width=3).set_opacity(0.65)
-    tag = T("schematic", 28, TEXT).move_to([5.30, -1.88, 0])
+    tag = T("schematic", 28, TEXT).move_to([5.30, -2.40, 0])
     return VGroup(gg, bg, line if dashed else VGroup(), tag)
 
 
@@ -109,10 +109,10 @@ def world(gut_level=0.85, blood_level=0.48, proteins=False, open_seal=False,
     cells = VGroup(*[cell_shape(x, i == 1) for i, x in enumerate(CELL_X)])
     mems = VGroup(*[m for x in CELL_X for m in membranes(x)])
     seals = VGroup(*[seal(x, open_seal) for x in GAPS])
-    gut_band = Rectangle(width=9.70, height=1.10, stroke_width=0, fill_color=BLUE, fill_opacity=0.05).move_to([-1.05, GUT_Y, 0])
+    gut_band = Rectangle(width=9.70, height=0.80, stroke_width=0, fill_color=BLUE, fill_opacity=0.05).move_to([-1.05, GUT_Y, 0])
     blood_band = Rectangle(width=9.70, height=1.10, stroke_width=0, fill_color=BLUE, fill_opacity=0.08).move_to([-1.05, BLOOD_Y, 0])
     labs = VGroup(T("gut", 30, TEXT).move_to([-5.65, GUT_Y, 0]),
-                  T("blood", 30, TEXT).move_to([-5.45, BLOOD_Y, 0])) if labels else VGroup()
+                  T("blood", 30, TEXT).move_to([-5.60, BLOOD_Y, 0])) if labels else VGroup()
     flow = VGroup(*[Dot([x, BLOOD_Y + 0.15 * ((i % 5) - 2), 0], radius=0.08, color=TEXT).set_opacity(0.52)
                     for i, x in enumerate(np.linspace(-4.9, 3.6, 50))])
 
@@ -120,7 +120,7 @@ def world(gut_level=0.85, blood_level=0.48, proteins=False, open_seal=False,
         for d in mob:
             d.shift(RIGHT * 0.90 * dt)
             if d.get_x() > 3.75:
-                d.shift(LEFT * 8.75)
+                d.shift(LEFT * 8.60)
     flow.add_updater(stream)
     dots = VGroup()
     if particles:
@@ -161,7 +161,7 @@ class S00Hook(SpokenScene, TitleCard):
         self.at("even when the gut")
         low = gauges(0.38, 0.48)
         self.play(Transform(w[9], low), run_time=1.15)
-        q = T("Uphill?", 48, TEXT, weight=BOLD).move_to([-1.1, 3.25, 0])
+        q = T("Uphill?", 44, TEXT, weight=BOLD).move_to([-1.1, 3.50, 0])
         q_panel = RoundedRectangle(width=q.width + .45, height=q.height + .18, corner_radius=.10,
                                    stroke_width=0, fill_color=BG, fill_opacity=.94).move_to(q)
         self.play(FadeIn(q_panel), FadeIn(q, shift=DOWN * 0.10), run_time=0.45)
@@ -175,7 +175,7 @@ class S01Title(TitleCard):
     def construct(self):
         w = world(gut_level=0.38, particles=True)
         self.add(w)
-        title = T(self.TITLE, 48, TEXT, font=TITLE_FONT).move_to([-1.1, 3.15, 0])
+        title = T(self.TITLE, 48, TEXT, font=TITLE_FONT).move_to([-1.1, 3.48, 0])
         title_panel = RoundedRectangle(width=title.width + .55, height=title.height + .18, corner_radius=.10,
                                        stroke_width=0, fill_color=BG, fill_opacity=.94).move_to(title)
         self.play(FadeIn(title_panel), FadeIn(title), Transform(w[9], gauges(0.85, 0.48)), run_time=0.75)
@@ -254,7 +254,7 @@ class S04Fare(SpokenScene):
         self.play(FadeIn(minus), run_time=0.5)
         self.at("sodium falls inward")
         downhill = Arrow([-2.45, 2.25, 0], [-1.55, 0.45, 0], color=BLUE, stroke_width=9, buff=0.05)
-        dl = T("sodium: downhill", 28, BLUE).move_to([-3.95, 0.60, 0])
+        dl = T("sodium:\ndownhill", 28, BLUE, line_spacing=.85).move_to([-4.45, 0.60, 0])
         pair = VGroup(sodium(-2.2, 2.35), sodium(-1.9, 2.35))
         self.add(pair)
         self.play(GrowArrow(downhill), FadeIn(dl), pair.animate.move_to([-1.55, 0.15, 0]), run_time=1.35)
@@ -282,10 +282,10 @@ class S05Exit(SpokenScene):
         self.at("free exit door")
         door = exit_door(x + .30)
         self.play(GrowFromCenter(door), run_time=.75)
-        label = T("GLUT2", 30, GOLD_GLUCOSE).move_to([0.65, -1.32, 0])
+        label = T("GLUT2", 30, GOLD_GLUCOSE).move_to([1.05, -1.32, 0])
         self.play(FadeIn(label), run_time=.45)
         self.at("passive carrier")
-        passive = T("free exit", 28, TEXT).move_to([0.70, -0.75, 0])
+        passive = T("free exit", 28, TEXT).move_to([1.05, -0.75, 0])
         self.play(FadeIn(passive), door[1].animate.rotate(-0.35, about_point=door[1].get_start()), run_time=.75)
         self.at("spends no energy")
         no_atp = T("no ATP", 30, TEXT).move_to([-3.95, -0.25, 0])
@@ -296,7 +296,7 @@ class S05Exit(SpokenScene):
         flow_arrow = Arrow([-.55, BLOOD_Y, 0], [2.4, BLOOD_Y, 0], color=GOLD_GLUCOSE, buff=0, stroke_width=6)
         self.play(GrowArrow(flow_arrow), run_time=.65)
         self.at("standard account")
-        std = T("GLUT2 • standard account", 28, GOLD_GLUCOSE).move_to([1.55, -.78, 0])
+        std = T("GLUT2\nstandard\naccount", 28, GOLD_GLUCOSE, line_spacing=.85).move_to([1.70, -.65, 0])
         self.play(FadeOut(VGroup(label, passive, no_atp)), FadeIn(std), run_time=.8)
         self.finish()
 
@@ -313,7 +313,7 @@ class S06Pump(SpokenScene):
         self.play(LaggedStart(*[d.animate.shift(DOWN*.18) for d in blue], lag_ratio=.08), run_time=.8)
         self.at("The sodium pump")
         p = pump(x-.48)
-        pl = T("sodium pump", 28, RED).move_to([-3.75, -1.15, 0])
+        pl = T("sodium pump", 28, RED).move_to([-4.45, -1.15, 0])
         self.play(GrowFromCenter(p), FadeIn(pl), run_time=.8)
         self.at("spends a TP")
         atp = chip("ATP", RED, size=28).move_to([x-.48, -.95, 0])
@@ -342,7 +342,7 @@ class S07Uphill(SpokenScene):
         self.at("keeps falling below")
         self.play(Transform(w[9], gauges(.23,.48)), Rotate(hand, 2*PI, about_point=clock.get_center()), run_time=1.2, rate_func=linear)
         self.at("moving uphill")
-        arrow = Arrow([6.45,-.20,0],[6.45,.55,0],color=GOLD_GLUCOSE,stroke_width=8,buff=0)
+        arrow = Arrow([3.90,-.20,0],[3.90,.55,0],color=GOLD_GLUCOSE,stroke_width=8,buff=0)
         lab = T("uphill", 28, GOLD_GLUCOSE).rotate(PI/2).next_to(arrow, LEFT, buff=.10)
         self.play(GrowArrow(arrow), FadeIn(lab), run_time=.7)
         self.finish()
@@ -364,7 +364,7 @@ class S09Direction(SpokenScene):
     def construct(self):
         w = world(gut_level=.20, proteins=True)
         self.add(w)
-        title = T("Where carriers sit sets the direction", 34, TEXT).move_to([-1.0,3.25,0])
+        title = T("Where carriers sit sets the direction", 34, TEXT).move_to([-1.0,3.50,0])
         title_panel = RoundedRectangle(width=title.width + .5, height=title.height + .16, corner_radius=.10,
                                        stroke_width=0, fill_color=BG, fill_opacity=.94).move_to(title)
         self.play(FadeIn(title_panel), FadeIn(title), run_time=.65)
@@ -380,7 +380,7 @@ class S09Direction(SpokenScene):
         self.play(Indicate(w[8][1][1], color=GOLD_GLUCOSE, scale_factor=1.25), run_time=.8)
         self.at("from gut to blood")
         ar = Arrow([CELL_X[1],1.15,0],[CELL_X[1],-1.15,0],color=GOLD_GLUCOSE,stroke_width=12,buff=0)
-        lab = T("gut to blood",32,GOLD_GLUCOSE).next_to(ar,RIGHT,buff=.18)
+        lab = T("gut to\nblood",28,GOLD_GLUCOSE,line_spacing=.85).next_to(ar,LEFT,buff=.15)
         self.play(GrowArrow(ar),FadeIn(lab),run_time=1.0)
         bob(self,soft,1.0)
         self.finish()
@@ -394,7 +394,7 @@ class S10Predict(SpokenScene):
         focus = SurroundingRectangle(w[4][1],color=GREEN,buff=.20,stroke_width=4)
         self.play(Create(focus),run_time=.75)
         self.at("joined near the top")
-        lab=T("seal",30,GREEN).move_to([.65,1.20,0])
+        lab=T("seal",30,GREEN).move_to([.78,1.20,0])
         self.play(FadeIn(lab),Indicate(w[4][1],color=GREEN),run_time=.8)
         self.at("thought experiment")
         tag=chip("thought experiment",TEXT,size=28).move_to([1.75,2.35,0])
@@ -407,7 +407,7 @@ class S10Predict(SpokenScene):
         self.add(g)
         self.play(g.animate.move_to([GAPS[1],.85,0]),run_time=.75)
         self.at("Would the gut")
-        q=T("Open the seal: does the gut still take up glucose?",34,TEXT).move_to([-1.0,3.30,0])
+        q=T("Open the seal: does the gut still take up glucose?",34,TEXT).move_to([-1.0,3.50,0])
         fit(q,max_w=9.9)
         self.play(FadeOut(tag), FadeIn(q,shift=DOWN*.10),run_time=.6)
         bob(self,g,1.0)
@@ -417,7 +417,7 @@ class S10Predict(SpokenScene):
 class S11Pause(Scene):
     def construct(self):
         w=world(gut_level=.82,particles=False,open_seal=True)
-        q=T("Open the seal: does the gut still take up glucose?",34,TEXT).move_to([-1.0,3.30,0])
+        q=T("Open the seal: does the gut still take up glucose?",34,TEXT).move_to([-1.0,3.50,0])
         fit(q,max_w=9.9)
         dots=VGroup(glucose(-.15,2.3,.13),glucose(.22,2.6,.13),glucose(-.05,-2.65,.13))
         self.add(w,q,dots)
@@ -430,7 +430,7 @@ class S11Pause(Scene):
 class S12Early(SpokenScene):
     def construct(self):
         w=world(gut_level=.82,particles=False,open_seal=True)
-        q=T("Open the seal: does the gut still take up glucose?",34,TEXT).move_to([-1.0,3.30,0])
+        q=T("Open the seal: does the gut still take up glucose?",34,TEXT).move_to([-1.0,3.50,0])
         fit(q,max_w=9.9)
         self.add(w,q)
         self.play(FadeOut(q),run_time=.5)
@@ -443,7 +443,7 @@ class S12Early(SpokenScene):
         self.add(dots)
         self.play(LaggedStart(*[d.animate.shift(DOWN*4.8) for d in dots],lag_ratio=.18),run_time=1.5,rate_func=linear)
         self.at("Early in a meal")
-        early=T("early: gut > blood",30,GOLD_GLUCOSE).move_to([-2.9,3.28,0])
+        early=T("early: gut > blood",30,GOLD_GLUCOSE).move_to([-2.9,3.50,0])
         self.play(FadeIn(early),Transform(w[9],gauges(.68,.48)),run_time=.85)
         self.at("open seal adds")
         through=glucose(CELL_X[1],GUT_Y)
@@ -459,7 +459,7 @@ class S13Late(SpokenScene):
     def construct(self):
         w=world(gut_level=.42,particles=False,open_seal=True,proteins=True)
         self.add(w)
-        late=T("late: gut < blood",30,GOLD_GLUCOSE).move_to([-2.9,3.28,0])
+        late=T("late: gut < blood",30,GOLD_GLUCOSE).move_to([-2.9,3.50,0])
         self.play(FadeIn(late),Transform(w[9],gauges(.36,.48)),run_time=.9)
         self.at("leak runs backwards")
         leak=Arrow([GAPS[1],-1.15,0],[GAPS[1],1.05,0],color=GOLD_GLUCOSE,stroke_width=8,buff=0)
@@ -496,7 +496,7 @@ class S14Net(SpokenScene):
         self.add(d)
         self.play(d.animate.move_to([CELL_X[1],-2.4,0]),run_time=1.05)
         self.at("minus what leaks back")
-        cap=T("net = carried through − leaked back",34,TEXT).move_to([-1.0,2.78,0])
+        cap=T("net = carried through − leaked back",34,TEXT).move_to([-1.0,3.50,0])
         cap_panel=RoundedRectangle(width=cap.width+.45,height=cap.height+.16,corner_radius=.10,
                                    stroke_width=0,fill_color=BG,fill_opacity=.92).move_to(cap)
         self.play(FadeIn(cap_panel),FadeIn(cap,shift=UP*.1),run_time=.7)
@@ -508,7 +508,7 @@ class S15Idea(SpokenScene):
     def construct(self):
         w=world(gut_level=.18,particles=False,proteins=True)
         self.add(w)
-        idea=T("ONE IDEA",30,TEXT,weight=BOLD).move_to([-1.2,3.25,0])
+        idea=T("ONE IDEA",30,TEXT,weight=BOLD).move_to([-1.2,3.50,0])
         self.play(FadeIn(idea),run_time=.55)
         self.at("usual gut gradients")
         self.play(Transform(w[9],gauges(.28,.48)),run_time=.8)
@@ -519,7 +519,7 @@ class S15Idea(SpokenScene):
         self.play(LaggedStart(*[Indicate(m,color=GOLD_GLUCOSE,scale_factor=1.15) for m in bases],lag_ratio=.10),run_time=.9)
         self.at("flow from gut to blood")
         ar=Arrow([CELL_X[1],1.15,0],[CELL_X[1],-1.15,0],color=GOLD_GLUCOSE,stroke_width=11,buff=0)
-        lab=T("gut to blood",30,GOLD_GLUCOSE).next_to(ar,LEFT,buff=.15)
+        lab=T("gut to\nblood",28,GOLD_GLUCOSE,line_spacing=.85).next_to(ar,RIGHT,buff=.12).shift(DOWN*.75)
         self.play(GrowArrow(ar),FadeIn(lab),run_time=.9)
         self.at("The seal does not")
         self.play(LaggedStart(*[Indicate(s,color=GREEN,scale_factor=1.25) for s in w[4]],lag_ratio=.2),run_time=.85)
@@ -529,7 +529,7 @@ class S15Idea(SpokenScene):
         self.play(jig.animate.shift(UP*.18),run_time=.35)
         self.play(jig.animate.shift(DOWN*.18),run_time=.35)
         two=DoubleArrow([GAPS[1],-.30,0],[GAPS[1],.40,0],color=GREEN,stroke_width=6,buff=0)
-        can=T("what can pass",28,GREEN).move_to([2.05,.72,0])
+        can=T("what can pass",28,GREEN).move_to([1.55,.72,0])
         self.play(GrowFromCenter(two),FadeIn(can),run_time=.8)
         self.at("what can leak back")
         self.play(Indicate(two,color=GREEN),jig.animate.shift(UP*.12),run_time=.8)
@@ -557,30 +557,14 @@ class S16Handoff(SpokenScene):
         self.at("how it is measured")
         self.play(VGroup(left,right,s,blocks).animate.shift(UP*.45),run_time=.8)
         self.at("text below")
-        line=T("The real seal: in the text below",36,TEXT).move_to([0,3.12,0]).set_z_index(20)
+        line=T("The real seal: in the text below",36,TEXT).move_to([0,3.50,0]).set_z_index(20)
         line_panel=RoundedRectangle(width=line.width+.55,height=line.height+.22,corner_radius=.10,
                                     stroke_width=0,fill_color=BG,fill_opacity=.94).move_to(line).set_z_index(19)
-        self.play(FadeIn(line_panel),FadeIn(line,shift=DOWN*.1),run_time=.65)
+        self.play(FadeIn(line_panel),FadeIn(line,shift=DOWN*.1),VGroup(left,right,s,blocks).animate.set_opacity(.35),run_time=.65)
         self.play(blocks.animate.shift(DOWN*.15),run_time=.55)
         self.finish()
 
 
 class S17End(EndCard):
-    LINE = "Usual gut gradients: carrier placement biases glucose flow toward blood."
-
-    def construct(self):
-        w = world(gut_level=.16, particles=False, proteins=True)
-        w.set_opacity(.24)
-        self.add(w)
-        line = T("Usual gut gradients:\ncarrier placement biases glucose flow toward blood.", 40, TEXT,
-                 font=TITLE_FONT, line_spacing=.85)
-        fit(line, max_w=11.3)
-        panel = RoundedRectangle(width=line.width + .8, height=line.height + .65, corner_radius=.16,
-                                 stroke_width=0, fill_color=BG, fill_opacity=.82).move_to(line)
-        self.play(FadeIn(panel), FadeIn(line, shift=UP*.10), run_time=.75)
-        drift = VGroup(*[glucose(x, y, .09) for x, y in [(-4.2,2.7),(-2.8,2.9),(-1.2,2.65),(.3,2.85),(1.9,2.65)]])
-        drift.set_opacity(.55)
-        self.add(drift)
-        self.play(drift.animate.shift(DOWN*.35), run_time=1.6, rate_func=linear)
-        self.finish()
+    LINE = "Carrier placement biases glucose toward blood; the seal decides what leaks back."
 
