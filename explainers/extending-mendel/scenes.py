@@ -593,4 +593,4 @@ class S16Scope(W):
 
 
 class S17End(EndCard):
-    LINE = "Inheritance deals the boxes; gene products write the labels."
+    LINE = "Inheritance deals the boxes; the gene products write the labels."
