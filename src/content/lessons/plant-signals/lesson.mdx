@@ -4,12 +4,12 @@ slug: "plant-signals"
 course: "organismal-biology"
 courseChapter: "Organismal Biology · Unit 6: How plants work"
 order: 725
-summary: "A plant has no nervous system and no endocrine glands, yet its shoot bends toward light, its root turns down, and it flowers in the right season. The key is the hormone auxin: light or gravity moves auxin to one flank of a shoot or root, and the flank with a different auxin level grows at a different rate, so the organ bends. This lesson follows the coleoptile experiments of the Darwins, Boysen-Jensen and Went to that idea, names the main plant hormones with one effect and one organism each, explains phytochrome and how leaves sense day and night length, and introduces the defence signals jasmonate and salicylic acid. Afterwards you can explain why a shoot bends toward light and a root turns down, and interpret a red and far-red light experiment."
+summary: "A shoot or root bends because its two flanks grow at different rates. Light or gravity sends more of the hormone auxin to one flank, and over the range these seedlings use, that flank grows faster in a shoot and slower in a root. A plant has no nervous system and no endocrine glands, yet this lets its shoot bend toward light and its root turn down. This lesson follows the coleoptile experiments of the Darwins, Boysen-Jensen and Went to that idea, names the main plant hormones with one effect and one organism each, explains phytochrome and how leaves sense day and night length, and introduces the defence signals jasmonate and salicylic acid. Afterwards you can explain why a shoot bends toward light and a root turns down, and interpret a red and far-red light experiment."
 hook: "Light an oat seedling from one side and it bends toward the lamp. The tip senses the light, yet the bend forms lower down. What told it?"
 
 estMinutes: 24
 objectives:
-  - "Explain phototropism and gravitropism: light or gravity moves auxin sideways (the Cholodny-Went idea, with PIN auxin carriers), the flank with more auxin elongates faster in a shoot and slower in a root, and the experiments of the Darwins, Boysen-Jensen and Went showed that a signal passes down from the tip."
+  - "Explain phototropism and gravitropism: light or gravity moves auxin sideways (the Cholodny-Went idea, with PIN auxin carriers), and over the range involved the flank with more auxin elongates faster in a shoot and slower in a root; and the experiments of the Darwins, Boysen-Jensen and Went showed that a signal passes down from the tip."
   - "Name auxin, cytokinins, gibberellins, abscisic acid, ethylene, brassinosteroids and jasmonates, plus salicylic acid, with one main effect each and the organism it was shown in, and contrast abscisic acid, which maintains seed dormancy, with gibberellins, which promote germination."
   - "Describe phytochrome as a red and far-red switch, and explain that day and night length are sensed in leaves and, in Arabidopsis, signalled to the shoot apex by FT protein."
   - "Describe jasmonate and salicylic acid as defence signals in the tested plants, without treating either as a rule for all attackers."
@@ -18,10 +18,30 @@ explainer:
   src: "/explainers/plant-signals/explainer.mp4"
   captions: "/explainers/plant-signals/explainer.vtt"
   poster: "/explainers/plant-signals/poster.jpg"
-  title: "Plant Signals Steer Growth"
-  durationSec: 180.1
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Which Side Grows Faster?"
+  durationSec: 190.4
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A shoot bends because its two flanks grow at different rates: the shaded flank lengthens more than the lit flank."
+    - "The Darwins showed that light is sensed near the tip; Boysen-Jensen concluded that a substance from the tip passes down the shaded side; Went collected it in agar."
+    - "Split grass coleoptile tips gave the same total recovered auxin activity in light and in the dark, but more came from the shaded half: the unchanged total supports auxin moving to the shaded side rather than being destroyed."
+    - "Growth is not proportional to auxin: over a wide range it rises to a peak, and past the peak more auxin slows growth."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/plant-signals/chapter-2.mp4"
+    captions: "/explainers/plant-signals/chapter-2.vtt"
+    poster: "/explainers/plant-signals/chapter-2-poster.jpg"
+    title: "Same Auxin, Opposite Bends"
+    durationSec: 179.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Dense starch-filled plastids settle to the lower side of root-cap cells and act as one gravity sensor."
+      - "In Arabidopsis root-cap cells, PIN3 carriers move to the new lower face and send auxin toward the lower side."
+      - "Roots respond to much lower auxin levels than shoots. Over the range involved, more auxin on the lower flank slows a root there and speeds a shoot, so the root curves down and the shoot up."
+      - "The dose curves give the sign of each bend, not its cause: each tissue turns auxin into growth in its own way, and why roots are so sensitive is not fully explained."
 
 scientists:
   - name: "Charles Darwin, with Francis Darwin"
@@ -275,7 +295,7 @@ explainLevels:
       and gravity relocates PIN3 in root columella cells, where sedimenting starch statoliths are
       one gravity sensor. Phytochrome interconverts between red-absorbing Pr and far-red-absorbing
       Pfr, with Pfr active in the simple model. In cocklebur, flowering depends mainly on the
-      length of the dark period, perceived in leaves; in the long-day plant Arabidopsis, clock-timed
+      length of the dark period, perceived in leaves; in the facultative long-day plant Arabidopsis, clock-timed
       CONSTANS protein is stabilized by evening light, activates FT in leaf phloem, and FT protein travels
       to the apex.
   - level: "grad"
@@ -339,64 +359,98 @@ draft: false
 
 import CurvatureBioassayReader from '../../../components/CurvatureBioassayReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Light an oat seedling from one side and its shoot bends toward the lamp. The light is sensed mainly at the tip, but the part that bends is lower down. What carries the message between them?**
+The first film answers the hook; the text adds the controls, the steering and the limits.
 
-The answer is a chemical signal, the hormone auxin. On the Cholodny-Went account, when light comes from one side, auxin moves toward the shaded flank, the shaded flank elongates faster, and the shoot bends toward the light. Gravity moves auxin to the lower side, which speeds growth in a shoot and slows it in a root, so the shoot curves up and the root down. Either way, the plant steers by moving auxin, and each flank grows at a rate set by its auxin level. This lesson follows the experiments that tracked down that signal, names the main plant hormones, and shows how plants use hormones and light-sensing pigments to bend, flower and defend themselves.
+> **The one idea.** A shoot or root bends because its two **flanks**, its opposite sides, grow at different rates. Light or gravity sends more of the hormone **auxin** to one flank. Over the range of auxin these seedlings use, the auxin-rich flank grows faster in a shoot and slower in a root.
+>
+> *Scope:* tropisms of young seedlings in the species tested (oat and other grasses, and Arabidopsis). The evidence that light moves auxin rather than destroying it comes from grass coleoptile tips and supports, rather than proves, that reading; for some broad-leaved seedling stems it is still argued over. Growth is not proportional to auxin: past a peak, more auxin slows growth.
 
-## Plant hormones, many effects
+## Bending toward light: what the controls ruled out
 
-A **hormone** is a chemical made in small amounts that changes what cells do, in the cell that made it or in cells elsewhere in the body. Vertebrates make most of theirs in glands and carry them in blood ([the endocrine system](/lessons/endocrine-system/)). Plants have no endocrine glands: many kinds of plant cell make hormones, and the response is often a change in growth. The main ones, each with one effect and the organism it was shown in:
+A **hormone** is a chemical made in small amounts that changes what cells do, in the cell that made it or elsewhere in the body. Vertebrates make most of theirs in glands and carry them in blood ([the endocrine system](/lessons/endocrine-system/)); in plants, many kinds of cell make hormones, and the response is often a change in growth. A **tropism** is growth toward or away from a one-sided stimulus, and **phototropism** is one in response to light. The classic experiments used grass **coleoptiles**, the sheath that covers the first leaf of a grass seedling as it pushes up through the soil.
 
-- **Auxin** (the main natural form is indole-3-acetic acid, IAA) speeds elongation of shoot cells, drives tropisms, and helps maintain **apical dominance**, the suppression of side buds by the growing shoot tip. It does this together with cytokinins and **strigolactones**, a further hormone class that holds side buds back. In Arabidopsis thaliana it promotes growth on the shaded side of the **hypocotyl**, the seedling stem below the seed leaves.
+Each of the film's results is only as strong as its control:
+
+- **The Darwins.** An opaque cap might stop bending just by covering the tip. Transparent glass tubes also covered the tips, yet bending continued, and the lower part was lit throughout. Only with both controls does the cap place sensing at the tip.
+- **Boysen-Jensen.** Tips cut off and set back in place still produced bending below the cut, so the influence crossed a wound. Mica (a mineral sheet that dissolved chemicals cannot cross) on the lit side controls for the shaded-side mica: both cuts wounded, but only the shaded-side barrier blocked bending.
+- **Went.** Darkness ruled out one-sided light, and cutting off the coleoptile's own tip ruled out that tip. Plain **agar** (a seaweed gel) caused no curve, ruling out the gel.
+
+Went's angle could be measured, making a **bioassay**: a measurement of a chemical through the response of living tissue. Within a calibrated range (the concentrations a standard line covers), more curvature means more auxin activity. Went measured activity, not the chemical; indole-3-acetic acid (IAA), the main natural auxin, was identified later by others.
+
+<LessonFigure src="/figures/plant-signals/coleoptile-experiments-strip.webp" width={1200} height={800} alt="AI-generated illustration: three panels of seedling experiments. Canary-grass seedlings lit from one side: a bare tip bends, an opaque-capped tip stays straight, a glass-tube tip bends. Oat coleoptiles with mica on the lit side bend and with mica on the shaded side stay straight. In the dark, an agar block set on one side of a decapitated coleoptile makes it curve away, while plain agar does not." caption="Light is sensed at the tip, and Boysen-Jensen concluded that a substance from the tip moves down the shaded side. Each test had its control: a glass tube beside the opaque cap, lit-side mica beside shaded-side mica, plain agar beside agar that had held tips." />
+
+## Moved or destroyed?
+
+The film's split tips (Briggs and colleagues, 1957) hide one design detail: the barrier ran up from the base but stopped short of the top, so each half drained into its own agar block while auxin could still cross above.
+
+**Predict.** Push the barrier all the way through the tip, so the halves cannot exchange anything, and light it from one side. What happens to the difference between the two blocks?
+
+<details>
+<summary>Check your prediction</summary>
+
+It disappears. Auxin has to cross the top of the tip to reach the shaded side, which is what "moved" means.
+
+</details>
+
+Sideways movement of auxin toward the shaded flank is the **Cholodny-Went hypothesis**, named for the two botanists who proposed it.
+
+How is auxin steered? It leaves a cell through carriers called **PIN** proteins, and many sit mainly on one face, so their placement sets auxin's direction. In *Arabidopsis thaliana*, a small weed that is the standard lab plant, light from one side changes where the carrier **PIN3** sits on the cell membrane in the **hypocotyl**, the seedling stem below the seed leaves, helping steer auxin toward the shaded side. The light is detected by a blue-light receptor, **phototropin** (first studied as NPH1).
+
+## Up and down: gravitropism in roots and shoots
+
+**Gravitropism** is a growth response to gravity. Laid on its side, a seedling's shoot turns up and its root turns down, though both gather auxin below. The second film works out how, using the growth peak from the first film.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+The film stayed in the root cap, where PIN3 moves quickly to the new lower face (Friml and colleagues, 2002). Shoots have statoliths too, in the **endodermis**, a starch sheath around the stem's central tissue, and are thought to sense by weight too, though the evidence comes from roots: when Caspar and Pickard (1989) inverted wild-type Arabidopsis seedlings, the plastids in the root-cap columella sank toward the new lower side. Vertebrates use the same physics: in the inner ear, dense crystals shift with gravity and bend sensory hair cells ([sensory coding](/lessons/sensory-coding/)).
+
+**Predict.** Starchless Arabidopsis mutants have no dense statoliths. Grown in light and laid on their side, do their roots still turn down?
+
+<details>
+<summary>Check your prediction</summary>
+
+Largely, yes: starchless mutants grown in light kept substantial root gravitropism. Statoliths are one gravity sensor, not the only one, and the other route is not settled.
+
+</details>
+
+The film's curves are schematic. Real root and shoot flanks have not been placed on one shared auxin axis, and the two organs need not gain the same amount. For light and gravity alike, the auxin-rich flank grows faster in a shoot and slower in a root.
+
+<LessonFigure src="/figures/plant-signals/gravitropism-root-vs-shoot.webp" width={1200} height={752} alt="AI-generated illustration: a root and a shoot laid on their sides, each with a gold band of extra auxin along the lower edge. The root curves downward and the shoot curves upward. An inset shows a root-cap cell with dense starch grains settled at its bottom." caption="Gravity sends extra auxin to the lower side. A root's lower flank then grows slower, so it curves down; a shoot's grows faster, so it curves up. Settled starch in root-cap cells is one gravity sensor." />
+
+## The other hormones
+
+**Predict.** Cut the growing tip off a shoot. What happens to the side buds below it?
+
+<details>
+<summary>Check your prediction</summary>
+
+In a shoot with strong apical dominance, they usually start to grow. Losing the tip's auxin is part of the release, with cytokinins and strigolactones (below).
+
+</details>
+
+The main plant hormones, each with one effect and the organism it was shown in:
+
+- **Auxin** speeds elongation of shoot cells (in Arabidopsis, on the shaded side of the hypocotyl), drives tropisms, and helps maintain **apical dominance**, the suppression of side buds by the growing shoot tip. It does this together with cytokinins and **strigolactones**, a further hormone class that holds side buds back.
 - **Cytokinins** promote cell division and slow leaf ageing. In transgenic tobacco that made extra cytokinin in ageing leaves, leaf **senescence**, the programmed yellowing and death of a leaf, was delayed.
-- **Gibberellins** promote stem elongation and seed germination, the opposite of abscisic acid's role in keeping seeds dormant. In isolated aleurone layers of barley, gibberellic acid increased synthesis of a starch-digesting enzyme (details in Going deeper).
+- **Gibberellins** promote stem elongation and seed germination, the opposite of abscisic acid's role in keeping seeds dormant. In the grain's outer living layer, isolated from barley, gibberellic acid increased synthesis of a starch-digesting enzyme (Going deeper).
 - **Abscisic acid (ABA)** induces stomatal closure in Arabidopsis ([plant transport](/lessons/plant-transport/) has the guard cells) and maintains **dormancy**, a state of arrested growth in seeds and buds.
 - **Ethylene**, a gas, promotes fruit ripening. Tomatoes engineered to make little ethylene failed to ripen normally, and supplied ethylene restored ripening.
 - **Brassinosteroids**, steroid hormones, promote cell elongation. Supplied brassinosteroids could make up for the short, poorly elongated cells of several Arabidopsis mutants.
 - **Jasmonates** signal defence against plant-eating animals, and **salicylic acid** against some pathogens (end of the lesson).
 
-Inside cells, auxin binds a receptor that triggers destruction of repressor proteins ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/); receptor logic is in [the receptor field guide](/lessons/receptor-field-guide/)). Hold on to one point: the same hormone can act differently in different organs. Auxin speeds elongation in shoots and slows it in roots.
-
-## Bending toward light: the Darwins, Boysen-Jensen and Went
-
-A **tropism** is growth toward or away from a one-sided stimulus. **Phototropism** is directional growth in response to light. The classic experiments used grass **coleoptiles**, the sheath that covers the first leaf of a grass seedling as it pushes up through the soil.
-
-Charles Darwin, with his son Francis credited for assistance, described the first set in The Power of Movement in Plants (1880). They lit seedlings of canary grass, Phalaris canariensis, from one side. Opaque caps over the tips greatly reduced bending, even though the lower part, where the curve forms, was still lit. Transparent glass tubes over the tips did not stop bending. Light is sensed mainly near the tip, and something passes down to where bending happens.
-
-Peter Boysen-Jensen, working with oat (Avena sativa) coleoptiles in reports from 1910 to 1913, cut off tips and set them back in place. The coleoptile still bent below the cut when its tip was lit from one side, so the influence crossed a wound. He then slipped mica, a mineral sheet that dissolved chemicals cannot cross, into a cut on one side below the tip. Mica on the lit side left bending intact. Mica on the shaded side blocked it. He concluded that the signal runs down the shaded side, though others disputed this at the time, and later barrier experiments were needed to settle it.
-
-Frits Went, working on oat coleoptiles at Utrecht and publishing in 1928, took the signal out of the plant. He stood cut tips of dark-grown coleoptiles on small blocks of agar, removed the tips, and set a block on one side of a decapitated coleoptile in the dark. If the tip acted only through living tissue, the block should do nothing. The coleoptile curved away from the block, and plain agar caused no curve. A substance from the tips had entered the agar and sped elongation beneath it. The angle could be measured, making a **bioassay**: a measurement of a chemical through the response of living tissue. Went measured growth activity, not the chemical; IAA was identified later by others.
-
-<LessonFigure src="/figures/plant-signals/coleoptile-experiments-strip.webp" width={1200} height={800} alt="AI-generated illustration: three panels of seedling experiments. Canary-grass seedlings lit from one side: a bare tip bends, an opaque-capped tip stays straight, a glass-tube tip bends. Oat coleoptiles with mica on the lit side bend and with mica on the shaded side stay straight. In the dark, an agar block set on one side of a decapitated coleoptile makes it curve away, while plain agar does not." caption="The Darwins found that an opaque cap on the tip greatly reduced bending while a glass tube did not. Boysen-Jensen found that mica on the shaded side blocked bending but mica on the lit side did not. Went showed that agar that had held tips made a decapitated coleoptile curve away from the block, while plain agar did not." />
-
-Why does the shaded side get more? The **Cholodny-Went hypothesis** says that light from one side moves auxin sideways toward the shaded flank, which then elongates faster, so the shoot bends toward the light. In Arabidopsis hypocotyls, light changes the position in the cell membrane of **PIN3**, a carrier that exports auxin from cells. Many PIN carriers sit mainly on one face of a cell, so repositioning them steers auxin. The light itself is detected by a blue-light receptor first studied as NPH1, now called phototropin.
-
-In split-tip experiments with agar blocks (Briggs and colleagues, 1957), the total auxin collected was the same in light and in the dark, but in light a larger share came from the shaded half. Light moved auxin; it did not destroy it. A worked bioassay with illustrative numbers is in Going deeper.
-
-## Up and down: gravitropism in roots and shoots
-
-**Gravitropism** is a growth response to gravity. Lay a seedling on its side, and the shoot curves up while the root curves down.
-
-Sensing starts with weight. In the central cells of the root cap, the **columella**, and in a starch sheath in shoots, plastids packed with dense starch act as **statoliths**: when Caspar and Pickard (1989) inverted wild-type Arabidopsis seedlings, these plastids sank toward the new lower side. Vertebrates use the same physics: in the inner ear, dense crystals shift with gravity and bend sensory hair cells ([sensory coding](/lessons/sensory-coding/)). Statoliths are not the only sensor: starchless Arabidopsis mutants grown in light kept substantial root gravitropism.
-
-In Arabidopsis root columella cells, PIN3 relocated quickly to the new lower face after the root was turned (Friml and colleagues, 2002), redirecting auxin toward the lower side.
-
-The two organs respond in opposite ways to the same lower-side auxin. In the root, auxin inhibits elongation of epidermal cells on the lower side, the upper side grows faster, and the root curves down. In the shoot, extra auxin speeds elongation on the lower side, and the shoot curves up. The plant is not reaching for anything: each flank's growth rate follows its auxin level, and the curve is the difference.
-
-<LessonFigure src="/figures/plant-signals/gravitropism-root-vs-shoot.webp" width={1200} height={752} alt="AI-generated illustration: a root and a shoot laid on their sides, each with a gold band of extra auxin along the lower edge. The root curves downward and the shoot curves upward. An inset shows a root-cap cell with dense starch grains settled at its bottom." caption="With auxin on the lower side, a root curves down because the lower side grows slower, and a shoot curves up because the lower side grows faster. Dense starch-filled plastids in root-cap cells sink toward the lower side and act as one gravity sensor." />
-
 ## Light as information: phytochrome, night length and a travelling signal
 
-**Phytochrome** is a pigment protein that switches between two forms. The **Pr** form absorbs red light and converts to **Pfr**; Pfr absorbs far-red light and converts back to Pr. In an assay of Arabidopsis phytochrome B, 660 nm light drove Pr to Pfr and 740 nm the reverse. In the simple model, Pfr is the active form. Pfr can also revert to Pr slowly in darkness. The lettuce-seed experiment that revealed this switch is the design problem.
+**Phytochrome** is a pigment protein that switches between two forms. The **Pr** form absorbs red light and converts to **Pfr**; Pfr absorbs far-red light and converts back to Pr. In an assay of Arabidopsis phytochrome B, 660 nm light drove Pr to Pfr and 740 nm the reverse (neither gives a pure form; Going deeper). In the simple model, Pfr is the active form. Pfr can also revert to Pr slowly in darkness. The lettuce-seed experiment that revealed this switch is the design problem.
 
-**Photoperiodism** is a response to the relative lengths of day and night. A **short-day plant** flowers when nights are longer than a critical length; a **long-day plant** flowers when nights are shorter. Karl Hamner and James Bonner (1938) varied light and dark periods separately in cocklebur, Xanthium, a short-day plant. They reported that flowering depended mainly on the length of the dark period, and that the leaves perceived the inductive treatment. A brief flash of red light in the middle of a long night can stop a short-day plant from flowering, and phytochrome detects that flash. Phytochrome is not the timer itself: the plant's sensitivity to such a flash rises and falls with its daily clock. Flowers form at the shoot apex, so a signal must travel there from the leaf.
+**Photoperiodism** is a response to the relative lengths of day and night. A **short-day plant** flowers when nights are longer than a critical length; a **long-day plant** flowers when nights are shorter. Karl Hamner and James Bonner (1938) varied light and dark periods separately in cocklebur, Xanthium, a short-day plant. They reported that flowering depended mainly on the length of the dark period, and that the leaves perceived the inductive treatment. A brief flash of red light in the middle of a long night can stop a short-day plant from flowering. In the model taught here, phytochrome detects that flash but does not time the night: a daily clock does, and the plant's sensitivity to such a flash rises and falls with that clock. Flowers form at the shoot apex, so a signal must travel there from the leaf.
 
-In Arabidopsis, a long-day plant, part of the signal is known. The daily clock makes the RNA for the protein CONSTANS rise late in the day. The protein is stabilized by light in the evening and degraded in the morning or in darkness, so it builds up only when days are long enough for that late rise to happen in light. CONSTANS then promotes transcription of the gene FT in the leaf phloem. Corbesier and colleagues (2007) showed that FT protein made in phloem moves to the shoot apex, including across grafts. The daily clock behind this is in [sleep and rhythms](/lessons/sleep-and-rhythms/), and flowering itself in [plant reproduction](/lessons/plant-reproduction/). Do not assume the CONSTANS mechanism applies to cocklebur: it was worked out in Arabidopsis.
+In Arabidopsis, a facultative long-day plant (long days speed its flowering, but it still flowers in short days), part of the signal is known. The daily clock makes the RNA for the protein CONSTANS rise late in the day. The protein is stabilized by light in the evening and degraded in the morning or in darkness, so it builds up only when days are long enough for that late rise to happen in light. CONSTANS then promotes transcription of the gene FT in the leaf phloem. Corbesier and colleagues (2007) showed that FT protein made in phloem moves to the shoot apex, including across grafts. For the clock see [sleep and rhythms](/lessons/sleep-and-rhythms/); for flowering, [plant reproduction](/lessons/plant-reproduction/). Do not assume it applies to cocklebur.
 
 ## Signals of attack
 
-Unlike vertebrates, plants have no circulating immune cells; each cell defends itself, and hormones spread the alarm. In Arabidopsis, a triple mutant with almost no jasmonate was attacked by larvae of the fungus gnat Bradysia impatiens, and applied methyl jasmonate substantially protected it. In tomato, caterpillars or moths that merely brushed and broke leaf hairs switched on jasmonate-regulated defence genes before any chewing.
+Unlike vertebrates, plants have no circulating immune cells; each cell defends itself, and hormones spread the alarm. In Arabidopsis, a triple mutant with almost no jasmonate was attacked by larvae of the fungus gnat Bradysia impatiens, and applied methyl jasmonate substantially protected it. In tomato, insects that merely broke leaf hairs switched on jasmonate-regulated defence genes before any chewing.
 
 Salicylic acid works in **systemic acquired resistance**, in which an infection in one part of a plant leaves uninfected parts more resistant to later attack. In tobacco infected with tobacco mosaic virus, salicylic acid was necessary for this response in the transgenic plants tested. Grafting experiments in tobacco showed that it is needed in the distant, protected leaves but is not itself the signal that travels there.
 
@@ -411,30 +465,42 @@ Lettuce seeds soaked in the dark get brief flashes of light, return to the dark,
 
 Look at the last flash. Sequences ending in red give 88 to 90% germination; sequences ending in far-red give 15 to 18%, close to the dark control. Total light does not decide it: four flashes ending in far-red germinate less than one red flash.
 
-The simplest explanation is one pigment that switches reversibly between two forms. Red light converts it to a form that promotes germination, and far-red light converts it back to the inactive form. This is the logic of Borthwick, Hendricks and colleagues' 1952 Grand Rapids lettuce experiments.
+The simplest explanation is one pigment that switches reversibly: red light converts it to a form that promotes germination, and far-red converts it back. This is the logic of Borthwick, Hendricks and colleagues' 1952 Grand Rapids lettuce experiments.
 
-The dark seeds, equal doses and a single batch make the reading safer: differences are then likely to come from the order of flashes rather than the seeds, though replicate groups would show how reliable they are.
+The dark control, equal doses and a single batch point the differences at the order of flashes rather than the seeds; replicate groups would show how reliable they are.
 
-The data do not identify the pigment chemically, and do not show that other seeds respond the same way; many need no light to germinate.
+The data neither identify the pigment chemically nor show that other seeds respond alike; many need no light to germinate.
 
 </details>
 
 ## Going deeper
 
+### The early experiments in more detail
+
+The title page of The Power of Movement in Plants credits Darwin's son Francis for assistance. Boysen-Jensen's conclusion was disputed at the time: van der Wolk argued the influence could pass through any living cells, not only down the shaded side. Later barrier experiments were needed to settle it.
+
 ### Worked problem: reading a curvature bioassay
 
-These numbers are illustrative. Assume all agar blocks are the same size and collect for the same time, no auxin is lost, and curvature is proportional to auxin concentration in this range.
+These numbers are illustrative. Assume all agar blocks are the same size and collect for the same time, no auxin is lost during collection, and curvature is proportional to auxin concentration in this range.
 
 > **auxin concentration (mg per L) = curvature (degrees) / 200 degrees per mg per L**
 
 1. *Calibrate.* Standard blocks with 0.02, 0.04 and 0.08 mg per L of auxin give 4, 8 and 16 degrees. In each, curvature divided by concentration is 200 degrees per mg per L.
-2. *Split tips.* Tips lit from one side stand on two blocks, separated by a thin barrier that reaches only partway up each tip, so the top stays joined and each side drains into its own block. A barrier through the whole tip stops auxin moving sideways and removes the difference. The lit-half block gives 6 degrees: 6 / 200 = 0.03 mg per L. The shaded-half block gives 12 degrees: 12 / 200 = 0.06 mg per L.
-3. *Shares.* Total = 0.03 + 0.06 = 0.09 mg per L. Shaded share = 0.06 / 0.09 = 67%; lit share = 33%. The ratio is 2 to 1.
-4. *Dark control.* A block from whole tips kept in the dark gives 18 degrees: 18 / 200 = 0.09 mg per L, the same total.
+2. *Split tips.* Tips lit from one side stand on two blocks, split partway up by a thin barrier as in Briggs's design. The lit-half block gives 6 degrees: 6 / 200 = 0.03 mg per L. The shaded-half block gives 12 degrees: 12 / 200 = 0.06 mg per L.
+3. *Shares.* With block volume V litres, amounts are concentration times V: total = 0.03V + 0.06V = 0.09V mg. Shaded share = 0.06V / 0.09V = 67%; lit share = 33%. The ratio is 2 to 1.
+4. *Dark control.* A block of the same size from whole tips kept in the dark gives 18 degrees: 18 / 200 = 0.09 mg per L, so 0.09V mg, the same total amount.
 
 <CurvatureBioassayReader />
 
-Light did not destroy auxin on the lit side, or the total would have fallen. It moved auxin to the shaded side, as the Cholodny-Went idea predicts. Real split-tip experiments exist; these numbers are not theirs.
+The total did not fall, so the result supports moving auxin to the shaded side rather than destroying it on the lit side, as the Cholodny-Went idea predicts. That reading assumes the blocks caught all the auxin and light did not also change how much the tip made. Real split-tip experiments exist; these numbers are not theirs, and a 2 to 1 split of auxin does not mean a 2 to 1 split of growth.
+
+### Inside the cell and inside the root
+
+Inside cells, auxin binds a receptor that triggers destruction of repressor proteins ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/); [the receptor field guide](/lessons/receptor-field-guide/)). The second film's curves are the classic textbook picture, drawn against auxin on a log scale, with the root's peak at far lower auxin; where a real flank sits on its curve has not been measured.
+
+### Why neither colour gives a pure form
+
+The absorption spectra of Pr and Pfr overlap, so red light leaves a mixture that is mostly Pfr and far-red light leaves a small fraction of Pfr; neither treatment produces a pure form. The design-problem values are illustrative and have no replicate variation, so do not read anything into the small gap between the far-red-last groups and the dark control.
 
 ### Gibberellin in barley aleurone
 

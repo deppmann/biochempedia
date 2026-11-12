@@ -1,0 +1,550 @@
+{
+ "slug": "island-biogeography",
+ "title": "Island Biogeography",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "f8df4343b6e6",
+ "sectionHashes": {
+  "(opening)": "1a6b295685cb",
+  "Two rates and a crossing": "98ead9f13643",
+  "Working the numbers": "f542dcb1a38c",
+  "Testing it: emptying islands in the Florida Keys": "21d7594eff35",
+  "Same number, different species": "a0b32b4af8c7",
+  "Fragments, area and connectivity on land": "b636c802eab0",
+  "Design problem": "54c8996b656c",
+  "Speciation and the book": "afdf3889588f",
+  "The defaunation method": "6c8c9419c35d",
+  "How rough the measured rates were": "5da8c8cb5c26",
+  "Running a species-area curve backwards": "08884c6dd47e"
+ },
+ "cards": [
+  {
+   "id": "island-biogeography-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the MacArthur-Wilson model, what sets the rate at which an island's species count changes?",
+   "back": "The rate new species arrive (immigration) minus the rate resident species are lost (extinction).",
+   "quote": "An island's species count changes at the rate new species arrive minus the rate resident species are lost."
+  },
+  {
+   "id": "island-biogeography-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the MacArthur-Wilson model, why does immigration of new species fall and extinction rise as an island fills?",
+   "back": "Fewer pool species are still absent, so fewer arrivals are new; more residents means more species that can be lost. The count settles where the two rates are equal.",
+   "why": "In the worked model extinction is proportional to S, as when each resident has the same independent chance of loss.",
+   "quote": "Arrivals of new species slow as the island fills and losses speed up, so the count settles near where the two rates are equal"
+  },
+  {
+   "id": "island-biogeography-c03",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What does the MacArthur-Wilson island model predict, and what does it not predict?",
+   "back": "It predicts how many species an island holds and how fast they turn over, not which species are present.",
+   "quote": "It is a model of rates: it predicts how many species and how fast they turn over, not which ones."
+  },
+  {
+   "id": "island-biogeography-c04",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Is the MacArthur-Wilson equilibrium stable, and what is the turnover rate there?",
+   "back": "Stable: nudge richness away and it returns. Turnover equals the immigration rate at equilibrium, which equals the extinction rate there, I(S*) = E(S*).",
+   "quote": "It is stable (nudge richness away and it returns), and the turnover is I(S) = E(S*).",
+   "section": "Two rates and a crossing"
+  },
+  {
+   "id": "island-biogeography-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the MacArthur-Wilson model, an island's species count wobbles around its equilibrium because arrivals and losses are {{c1::chance events}}.",
+   "back": "",
+   "quote": "The count wobbles around S because arrivals and losses are chance events.",
+   "section": "Two rates and a crossing"
+  },
+  {
+   "id": "island-biogeography-c06",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Two islands are identical in size and distance, but one draws on a smaller mainland species pool. What happens to its equilibrium species number, and why?",
+   "back": "It is lower. With a smaller pool, immigration of new species reaches zero at a lower richness, so the immigration curve crosses the extinction curve sooner.",
+   "quote": "A smaller pool, which the film skipped, also lowers S, since immigration reaches zero sooner.",
+   "section": "Two rates and a crossing"
+  },
+  {
+   "id": "island-biogeography-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A model island draws on a pool of 100 species. Immigration is I(S) = 10(1 - S/100) species per day and extinction is E(S) = 0.1S species per day. Find the equilibrium species number and the turnover there.",
+   "back": "dS/dt = 10 - 0.1S - 0.1S = 10 - 0.2S = 0, so S* = 50 species. At 50, I = 10 x 0.5 = 5 and E = 0.1 x 50 = 5 species per day: about 5 species replaced each day.",
+   "quote": "dS/dt = 10 - 0.1S - 0.1S = 10 - 0.2S. Setting this to zero gives S* = 50 species.",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c09",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "An island sits at its MacArthur-Wilson equilibrium, with net change in richness zero. Has its species list stopped changing?",
+   "back": "No. Arrivals and losses continue at equal rates, so species keep being replaced while the count holds steady (in the worked model, about 5 per day, or 10 events counting gains and losses separately).",
+   "quote": "Net change is zero, yet about 5 species are replaced each day (10 events per day if you count gains and losses separately).",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c10",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A model island starts empty and fills as S(t) = 50(1 - e^(-0.2t)), t in days. How long until it reaches 90% of its equilibrium, 45 species?",
+   "back": "Set e^(-0.2t) = 0.1, so t = ln 10 / 0.2 = 11.5 days.",
+   "quote": "Richness reaches 90% of S, 45 species, when e^(-0.2t) = 0.1, so t = ln 10 / 0.2 = 11.5 days.",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In the worked island model with I(S) = 10(1 - S/100) and E(S) = 0.1S per day, why does the gap to equilibrium close at a rate constant of 0.2 per day rather than 0.1?",
+   "back": "Both curves pull richness back: 0.1 per day from slowing arrivals plus 0.1 per day from faster losses.",
+   "quote": "The 0.2 per day in step 1 is a continuous rate constant (0.1 from slowing arrivals plus 0.1 from faster losses)",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c12",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the island model with I(S) = 10(1 - S/100) per day, a smaller island doubles the extinction coefficient from 0.1 to 0.2. What happens to equilibrium richness and to turnover, and why?",
+   "back": "Richness falls from 50 to about 33, but turnover rises from 5 to about 6.7 species per day: fewer residents, each lost more often.",
+   "quote": "That lowers S to about 33, but about 6.7 species are then replaced each day, against 5: fewer residents, each lost more often.",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c13",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A nearer island has immigration I(S) = 15(1 - S/100) species per day and extinction E(S) = 0.1S species per day. Find its equilibrium richness and turnover.",
+   "back": "15 - 0.15S - 0.1S = 0, so S* = 60 species; turnover = 0.1 x 60 = 6 species per day. Nearness raises both richness and turnover.",
+   "quote": "Nearness, by contrast, raises both S and turnover.",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c14",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the worked island model (pool 100, E = 0.1S per day), a farther island has I(0) = 5 and a smaller island has E = 0.2S. Both settle near 33 species. How could a census of turnover tell them apart?",
+   "back": "The farther island turns over about 3.3 species per day; the smaller one about 6.7. Distance lowers richness and turnover together; small area lowers richness but raises turnover.",
+   "why": "Turnover = E(S*): 0.1 x 33.3 = 3.3 versus 0.2 x 33.3 = 6.7.",
+   "quote": "Immigration is I(S) = 10(1 - S/100) species per day and extinction is E(S) = 0.1S species per day",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c15",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why might real immigration and extinction curves for an island not be straight lines, as in the simple MacArthur-Wilson model?",
+   "back": "Real species differ in their extinction chances and change one another's chances, so the pattern from straight-line curves is the model's, not a measured one.",
+   "quote": "real species differ in extinction chances and change one another's chances, so real curves need not be straight.",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why test island biogeography by emptying islands on purpose rather than by studying islands that are refilling naturally, such as Krakatau?",
+   "back": "Naturally refilling islands are rare and cannot be replicated or controlled.",
+   "quote": "The rare real islands that are refilling, such as Krakatau, cannot be replicated or controlled",
+   "section": "Working the numbers"
+  },
+  {
+   "id": "island-biogeography-c18",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In the Simberloff-Wilson mangrove defaunation experiment, how did the authors infer most arthropod arrivals reached the islands?",
+   "back": "Through the air, by flight or carried on the wind.",
+   "quote": "The authors inferred that most arrivals came through the air, by flight or carried on the wind.",
+   "section": "Testing it: emptying islands in the Florida Keys"
+  },
+  {
+   "id": "island-biogeography-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "On the defaunated mangrove islands, why can't every loss of an early colonist be read as one species excluding another?",
+   "back": "The authors considered physical causes important in the extinctions of early colonists.",
+   "quote": "They also considered physical causes important in the extinctions of early colonists, so not every loss can be read as one species excluding another.",
+   "section": "Testing it: emptying islands in the Florida Keys"
+  },
+  {
+   "id": "island-biogeography-c20",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Large islands also differ in habitat. How did Simberloff's 1976 mangrove study separate the effect of area itself, and what did it find?",
+   "back": "He censused eight mangrove islands, cut away sections to reduce their area, and censused again. Richness tracked area independently of habitat diversity in that system.",
+   "why": "The sample was too small to test whether smaller islands also turn over faster.",
+   "quote": "Richness tracked island area independently of habitat diversity in that system",
+   "section": "Testing it: emptying islands in the Florida Keys"
+  },
+  {
+   "id": "island-biogeography-c21",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A 1970 follow-up of defaunated mangrove islands found species numbers had changed little from the year before, while immigrations and extinctions continued at high rates. What does this support?",
+   "back": "A dynamic equilibrium: richness held steady while species kept arriving and being lost, as the MacArthur-Wilson model predicts.",
+   "quote": "a second report in 1970 followed four islands to the end of the second year",
+   "section": "The defaunation method"
+  },
+  {
+   "id": "island-biogeography-c22",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "How were the red mangrove islands in the Simberloff-Wilson experiment emptied of arthropods?",
+   "back": "Each island was tented and fumigated with methyl bromide.",
+   "quote": "each was tented and fumigated with methyl bromide",
+   "section": "The defaunation method"
+  },
+  {
+   "id": "island-biogeography-c23",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "On one defaunated mangrove island (E7), fumigation killed 85% of the mangrove tree. Why does this matter when reading that island's recolonisation?",
+   "back": "The treatment itself changed the habitat, so a difference in its recovery could be confounded with colonisation and extinction dynamics.",
+   "why": "A treatment with its own side effects confounds the comparison with untreated islands.",
+   "quote": "Treatment had its own side effects: on island E7, fumigation killed 85% of the mangrove tree.",
+   "section": "The defaunation method"
+  },
+  {
+   "id": "island-biogeography-c24",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Measured immigration and extinction rates on the defaunated mangrove islands mostly fell between 0.05 and 0.50 species per day, below the about 0.1 to 1.0 from a simple noninteractive model. What did the authors suggest?",
+   "back": "That many arrivals and losses between censuses went unrecorded.",
+   "quote": "The authors suggested many events between censuses went unrecorded.",
+   "section": "How rough the measured rates were"
+  },
+  {
+   "id": "island-biogeography-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Two censuses of an island are a year apart. Why does dividing the observed species changes by the days between them not give a turnover rate?",
+   "back": "Other arrivals and losses between censuses are not counted, so the estimate is too low.",
+   "quote": "dividing the mites' changes by 364 days does not give a turnover rate, because other arrivals and losses between censuses are not counted.",
+   "section": "Same number, different species"
+  },
+  {
+   "id": "island-biogeography-c26",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How is the Jaccard similarity between two species lists calculated?",
+   "back": "Species on both lists divided by species on at least one list.",
+   "quote": "on both lists with chance 1/4, on neither with chance 1/4, so on at least one with chance 3/4, and 1/4 ÷ 3/4 = 1/3.",
+   "section": "Same number, different species"
+  },
+  {
+   "id": "island-biogeography-c27",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A pond holds 12 insect species before a drought and 12 a year later; 6 species are on both lists. What is the Jaccard similarity, and has the community returned to its former state?",
+   "back": "Union = 12 + 12 - 6 = 18, so J = 6/18 = 0.33. Richness recovered, but two thirds of the combined list changed, so the community has not returned to its former state.",
+   "quote": "Report both richness and composition (for example Jaccard similarity to a reference patch).",
+   "section": "Design problem"
+  },
+  {
+   "id": "island-biogeography-c28",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a chance model of an island where every species arrives and is lost independently at equal rates, the island is censused at equilibrium and again much later. Does the Jaccard similarity fall toward zero?",
+   "back": "No. It levels off near 1/3. Each species is present half the time, so later presence at two censuses is like two independent coin flips: on both 1/4, on at least one 3/4.",
+   "why": "1/4 ÷ 3/4 = 1/3. In this model a steady count sharing a third of its list is expected.",
+   "quote": "It stops at a third because, long after, each species' presence at the two censuses is like two independent coin flips",
+   "section": "Same number, different species"
+  },
+  {
+   "id": "island-biogeography-c29",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "In a chance model of an island at about 50 species, why does richness wobble only modestly (standard deviation about 5) rather than swinging widely?",
+   "back": "Species come and go independently of one another; species that came and went together would make the count swing far more.",
+   "quote": "species that came and went together would make the count swing far more",
+   "section": "Same number, different species"
+  },
+  {
+   "id": "island-biogeography-c30",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a chance island model with independent species, each species is present 75% of the time rather than half. What long-run Jaccard similarity between two widely spaced censuses does the coin-flip reasoning give?",
+   "back": "On both lists 0.75^2 = 0.5625; on at least one 1 - 0.25^2 = 0.9375; J = 0.5625 / 0.9375 = 0.6.",
+   "why": "Same rule as the 1/3 result: independent presence at the two censuses; species present more than half the time give a higher value.",
+   "quote": "species present more or less than half the time give other values",
+   "section": "Same number, different species"
+  },
+  {
+   "id": "island-biogeography-c31",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the species-area relationship S = cA^z, what do the constants c and z set?",
+   "back": "c sets the overall level of richness; z sets how fast richness rises with area. z varies among taxa and island sets.",
+   "quote": "the fitted constants c and z set the overall level and how fast richness rises with area",
+   "section": "Fragments, area and connectivity on land"
+  },
+  {
+   "id": "island-biogeography-c32",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Richness follows S = cA^z with z = 0.25 (illustrative). A habitat of 810 km^2 holding 90 species is cut to 10 km^2. About how many species does the relationship predict in the long run?",
+   "back": "Area falls 81-fold; (1/81)^0.25 = 1/3, so richness falls toward 90 x 1/3 = 30 species, after relaxation and only as a rough projection.",
+   "quote": "Richness is multiplied by (10/100)^0.25 = 0.56, so it falls toward about 50 x 0.56 = 28 species.",
+   "section": "Fragments, area and connectivity on land"
+  },
+  {
+   "id": "island-biogeography-c33",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "After a habitat is cut, the slow loss of species that the smaller area can no longer hold is called {{c1::relaxation}}.",
+   "back": "It is a long-run loss, not a loss on the day of the cut.",
+   "quote": "the long-run value after relaxation, the slow loss of species that a smaller area can no longer hold, not a loss on the day of the cut.",
+   "section": "Fragments, area and connectivity on land"
+  },
+  {
+   "id": "island-biogeography-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why is a forest remnant in farmland only partly like an oceanic island?",
+   "back": "The surrounding land, the matrix, is not open sea: some species live in it, some cross it readily and some cannot cross it at all.",
+   "quote": "Fragments are not true islands: the surrounding land, the matrix, is not open sea.",
+   "section": "Fragments, area and connectivity on land"
+  },
+  {
+   "id": "island-biogeography-c35",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A metapopulation is a set of local populations linked by {{c1::dispersal}}, each subject to local extinction and recolonisation.",
+   "back": "",
+   "quote": "a set of local populations linked by dispersal, each subject to local extinction and recolonisation.",
+   "section": "Fragments, area and connectivity on land"
+  },
+  {
+   "id": "island-biogeography-c36",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Grassland patches isolated by mowing for seven years had plant colonisation 30% lower than controls, yet only marginally fewer species. Using the equilibrium model and relaxation, interpret this and predict the longer term.",
+   "back": "Lower colonisation lowers the immigration curve, so equilibrium richness should be lower, but perhaps counts lag behind rates, as in relaxation. Rates gave the earlier signal; richness may fall further if the lag is relaxation.",
+   "why": "Rests on the equilibrium rule (S* where immigration equals extinction) and on counts lagging rates; the lesson offers the lag only as a possible explanation.",
+   "quote": "Rates can be a more sensitive signal than counts.",
+   "section": "Fragments, area and connectivity on land"
+  },
+  {
+   "id": "island-biogeography-c37",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In a longleaf pine savanna experiment, corridor-connected patches had annual colonisation about 5% higher and extinction about 2% lower than unconnected ones. Why would a five-year study have underestimated the effect of connection?",
+   "back": "Small differences in yearly rates accumulate slowly: after almost two decades connected patches held nearly 14% more species and were still gaining.",
+   "quote": "After almost two decades, connected patches held nearly 14% more species and were still gaining",
+   "section": "Fragments, area and connectivity on land"
+  },
+  {
+   "id": "island-biogeography-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does island biogeography alone not settle the choice between one large reserve and several small ones of the same total area?",
+   "back": "One large reserve may hold more area-sensitive species, while several small ones may sample more habitat types and spread the risk of a local disaster.",
+   "quote": "one large reserve may hold more area-sensitive species, while several small ones may sample more habitat types and spread the risk of a local disaster.",
+   "section": "Design problem"
+  },
+  {
+   "id": "island-biogeography-c39",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Design a field study to test whether connecting habitat patches by corridors itself changes which species the patches hold. Name the key design features.",
+   "back": "Replicate equal-area patches in the same habitat and matrix, randomly assigned to connected or unconnected; give controls area- and edge-matched strips; census species identity repeatedly for many years; estimate colonisation and extinction separately; report richness and composition.",
+   "quote": "Replicate equal-area patches in the same kind of habitat and matrix, and assign them at random to connected or unconnected treatments.",
+   "section": "Design problem"
+  },
+  {
+   "id": "island-biogeography-c40",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A study finds that patches linked by corridors gain more species than unconnected patches of the original size. Why can't connection alone be credited, and what control fixes this?",
+   "back": "A corridor also adds habitat area and edge. Give unconnected patches dead-end strips matching the corridor's area and edge-to-area ratio, so any difference can be attributed to connection.",
+   "quote": "Give some unconnected patches dead-end side strips matching the corridor's area and edge-to-area ratio, and others the same extra area as a plain block, so a difference can be attributed to connection.",
+   "section": "Design problem"
+  },
+  {
+   "id": "island-biogeography-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Where does speciation on the island matter in the MacArthur-Wilson theory, and how does it change the equilibrium condition?",
+   "back": "On large, remote islands, not small mangrove ones. Where appreciable, its rate adds to immigration, and the count settles where immigration plus speciation equals extinction.",
+   "quote": "Where it is appreciable, its rate adds to immigration, and the count settles where immigration plus speciation equals extinction.",
+   "section": "Speciation and the book"
+  },
+  {
+   "id": "island-biogeography-c43",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A very large, very remote island receives few immigrants. A model using immigration and extinction alone predicts low richness, but the island holds more species than that. What might the model have left out, and how does it shift the equilibrium?",
+   "back": "Speciation on the island. On large, remote islands its rate adds to immigration, raising the total input curve, so richness settles higher, where immigration plus speciation equals extinction.",
+   "why": "Combines the distance effect (low immigration) with the speciation term; adds no new facts.",
+   "quote": "MacArthur and Wilson also counted speciation on the island as a further source of species, which matters on large, remote islands, not small mangrove ones.",
+   "section": "Speciation and the book"
+  },
+  {
+   "id": "island-biogeography-c44",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why should projections of species loss from running a species-area curve backwards on a shrinking habitat be treated as rough?",
+   "back": "Whether the method overestimates extinctions after habitat loss is debated, and some species survive in the surrounding land.",
+   "quote": "Whether that overestimates extinctions after habitat loss is debated.",
+   "section": "Running a species-area curve backwards"
+  }
+ ]
+}
