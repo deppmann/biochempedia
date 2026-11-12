@@ -4,11 +4,12 @@ slug: "circulation-and-heart"
 course: "organismal-biology"
 courseChapter: "Organismal Biology · Unit 3: Supply and exchange"
 order: 710
-summary: "How does a pump move blood around a body, and why do a grasshopper, a trout, a frog, a python, a crocodile and a human do it differently? A pump works by making a pressure difference, so this lesson compares open and closed circulation and single and double circuits, traces blood valve by valve through the mammalian heart, and shows how the heartbeat starts and how its output changes with rate and filling. It also retells Harvey's 1628 argument that blood circulates. Afterwards you can calculate stroke volume, cardiac output and ejection fraction, and say what a pressure recording tells you about a heart with one ventricle."
+summary: "Both sides of the heart pump the same flow, yet the left side makes far more pressure, because at a given flow the pressure a circuit costs depends on its resistance. That one idea explains why the left ventricle out-pressures the right, why a teleost fish supplies its body at lower pressure than its ventricle makes, and how frogs, pythons, crocodiles, birds and mammals arrange their circuits. The lesson also compares open and closed circulation, traces blood valve by valve through the mammalian heart, redoes the arithmetic behind Harvey's 1628 argument that blood circulates, and shows how the heartbeat starts and how rate, filling and contractility change its output. Afterwards you can calculate stroke volume, cardiac output and ejection fraction, and say what a pressure recording tells you about a heart with one ventricle."
 hook: "An adult human holds about 5 litres of blood, yet at rest each side of the heart pumps about that much every minute. Where does it all go?"
 
 estMinutes: 24
 objectives:
+  - "Use pressure drop = flow × resistance to explain why, at equal flow, the left ventricle makes more pressure than the right, and why a teleost fish supplies its body at lower pressure than its ventricle makes."
   - "Compare open circulation (insects, most molluscs) with closed circulation (earthworms, cephalopods, vertebrates), and single circulation (teleost fish) with double circulation (amphibians, reptiles, birds, mammals), naming the group for each heart plan."
   - "Trace blood through the mammalian heart valve by valve, and describe the four phases of the cardiac cycle with the pressures that open and close each valve in an adult human at rest."
   - "Explain how the sinoatrial node sets the heart rate, why the atrioventricular node delays conduction, and how autonomic nerves and filling (the Frank-Starling relation) change cardiac output."
@@ -18,10 +19,32 @@ explainer:
   src: "/explainers/circulation-and-heart/explainer.mp4"
   captions: "/explainers/circulation-and-heart/explainer.vtt"
   poster: "/explainers/circulation-and-heart/poster.jpg"
-  title: "A Pump Is a Pressure Difference"
-  durationSec: 163.4
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "One Flow, Two Pressures"
+  durationSec: 186.5
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "At rest, both sides of a mammal's heart pump about the same flow, because blood goes round the two circuits in turn."
+    - "Averaged over many beats, pressure drop = flow × resistance: at a given flow, the harder a circuit is to push through, the bigger the drop."
+    - "The body's circuit resists far more than the lungs', so the left ventricle must make much higher pressure than the right."
+    - "In a teleost fish, one ventricle pushes blood through the gills and then the body, so the body gets the lower pressure that is left."
+    - "At the same flow, the harder circuit costs more pressure."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/circulation-and-heart/chapter-2.mp4"
+    captions: "/explainers/circulation-and-heart/chapter-2.vtt"
+    poster: "/explainers/circulation-and-heart/chapter-2-poster.jpg"
+    title: "Harvey's Arithmetic"
+    durationSec: 169.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Harvey's ligatures, bands tied on the arm, showed that blood enters a limb by arteries and leaves by veins."
+      - "Even a deliberately small guess per beat, times the beats in half an hour, is more blood than the whole body contains."
+      - "So the same blood must go round: it circulates rather than being made and used up."
+      - "Cardiac output is heart rate times stroke volume, the blood one ventricle ejects per beat."
+      - "The SA node and autonomic nerves set the rate; filling, contraction strength and the pressure the ventricle pushes against change the stroke volume."
 
 scientists:
   - name: "William Harvey"
@@ -38,7 +61,7 @@ scientists:
       animals, and by his own account the slow hearts of cold-blooded animals helped him follow
       the order in which the chambers contracted. He then made small guesses, on purpose, for how
       much blood leaves the heart at each beat and multiplied by the number of beats in half an
-      hour. Even that low product was more blood than the veins could hold at once, far more than food
+      hour. Even that low product was more blood than the whole body contains, far more than food
       could replace. Ligatures on the human arm showed the direction of flow, and the valves of
       the veins, described by his teacher Fabricius, let blood pass only toward the heart. His
       book, published in Frankfurt in 1628, made the circulation a conclusion from measurement.
@@ -184,6 +207,20 @@ practiceQuestions:
       pressure. The gill arches are not pumps in a teleost. A closed loop does not keep pressure
       constant; pressure falls wherever blood meets resistance. The atrium fills the ventricle; it
       does not pump blood to the body, and picking it reverses the order of the chambers.
+  - stem: "In an illustrative resting adult human, each ventricle pumps about 5 L per min. The mean pressure drop is about 6 mmHg across the lung circuit and about 90 mmHg across the body circuit. About how many times the lung circuit's resistance is the body circuit's?"
+    choices:
+      - "About 15 times"
+      - "About 5 times"
+      - "About the same, because the two flows are equal"
+      - "About 18 times"
+    answer: 0
+    rationale: >-
+      Resistance is mean pressure drop divided by flow: 90 / 5 = 18 for the body and 6 / 5 = 1.2
+      for the lungs (mmHg per L per min), and 18 / 1.2 = 15. Because the flows are equal, the
+      ratio is simply 90 / 6. About 5 times divides the peak ventricular pressures (120 / 25),
+      not the mean drops. Equal flows do not mean equal resistance; equal flow through a harder
+      circuit takes a bigger drop. About 18 times is the body's resistance on its own, before it
+      is compared with the lungs' 1.2.
 
 mcatQuestions:
   - stem: "A band is placed around a volunteer's upper arm. Inflated above arterial pressure, it abolishes the pulse at the wrist and the forearm veins stay flat. Inflated to a lower pressure, the wrist pulse returns and the forearm veins swell below the band. Which conclusion do these results best support?"
@@ -318,42 +355,29 @@ draft: false
 
 import HarveyCardiacOutput from '../../../components/HarveyCardiacOutput.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**An adult human holds about 5 litres of blood. At rest, each side of the heart pumps roughly that much every minute, and over 7,000 litres in a day.** The same few litres go round again and again, and a pump does it by making a pressure difference. This lesson asks how the heart makes that difference, how its output is set by heart rate and stroke volume, why animals build the pump differently, and how Harvey worked out that blood circulates at all.
+An adult human holds about 5 litres of blood, yet at rest each side of the heart pumps roughly that much every minute. The first film showed the left side paying far more pressure for that same flow. What follows adds the pressures, the valves, and animals that solve it another way.
+
+> **The one idea.** At a given flow, the pressure a circuit costs depends on how hard it is to push through, its **resistance**, just as water needs more push through a narrow pipe than a wide one: **pressure drop = flow × resistance**.
+>
+> *Scope:* beat-averaged pressures in a steady state. The rule is bookkeeping, not a claim about control: in a living body the heart and vessels set the flow together, and changing a resistance can change the flow. Within one beat, each valve follows the pressures on either side of it at that moment.
 
 ## Bulk flow, open and closed
 
-You saw in [size, scale and surface](/lessons/size-and-scaling/) that diffusion is quick over micrometres and far too slow over centimetres. A large animal relies on **bulk flow**: a pump drives a whole fluid along, and diffusion does only the last short step. A **circulatory system** is that pump, the fluid and the spaces it flows through. Fluid flows from higher pressure to lower, so a pump works by making a pressure difference.
+Diffusion is quick over micrometres but far too slow over centimetres ([size, scale and surface](/lessons/size-and-scaling/)), so a large animal relies on **bulk flow**: a pump drives the whole fluid, and diffusion does only the last short step. A **circulatory system** is that pump, the fluid and the spaces it flows through.
 
-There are two broad plans. In an **open circulatory system**, the fluid, called **hemolymph** because it is blood and tissue fluid in one, leaves the vessels and flows through the **hemocoel**, a set of body spaces that bathe the organs directly. In a **closed circulatory system**, blood stays inside vessels, and exchange happens across the thin walls of **capillaries**, the smallest vessels.
+In an **open circulatory system**, the fluid, called **hemolymph** because it is blood and tissue fluid in one, leaves the vessels and flows through the **hemocoel**, a set of body spaces that bathe the organs directly. In a **closed circulatory system**, blood stays inside vessels, and exchange happens across the thin walls of **capillaries**, the smallest vessels.
 
-Insects such as grasshoppers and Drosophila have open systems. A tubular heart along the back pumps hemolymph forward into the hemocoel; it drifts back over the organs and re-enters the heart through small valved openings, the ostia. Insect hemolymph carries little oxygen, because air reaches the tissues mostly through a network of air tubes, the tracheae (see [gas exchange](/lessons/gas-exchange/)). Most molluscs, such as snails and clams, are also open.
+Insects such as grasshoppers and Drosophila are open: a tubular heart along the back pumps hemolymph forward, and it drifts back over the organs into the heart through small valved openings, the ostia. It carries little oxygen, because air reaches the tissues mostly through air tubes, the tracheae ([gas exchange](/lessons/gas-exchange/)). Most molluscs, such as snails and clams, are also open.
 
 Open and closed do not split invertebrates from vertebrates. Earthworms are closed, with muscular vessels that pump. Squid and octopuses, which are molluscs, are closed too, with two **branchial hearts** that push blood through the gills and a systemic heart that sends it to the body. All vertebrates are closed. (See [animal body plans](/lessons/animal-body-plans/).)
 
 <LessonFigure src="/figures/circulation-and-heart/open-vs-closed-circulation.webp" width={1200} height={465} alt="AI-generated illustration: two panels. On the left, a grasshopper with a tubular heart along its back and a shaded body space in which gold fluid bathes simple organ blocks. On the right, an earthworm whose gold blood runs only inside vessels, ending in fine capillaries beside organ blocks." caption="In an open system, hemolymph leaves the vessels and bathes the organs directly in the hemocoel; in a closed system, such as an earthworm's, blood stays in vessels and exchange happens across capillary walls." />
 
-## One circuit or two: fish, frog, python, crocodile, bird, mammal
-
-In **single circulation**, blood passes through the heart once per loop. In **double circulation**, it passes through twice: once on a **pulmonary circuit** to the gas-exchange organ and back, and once on a **systemic circuit** to the rest of the body and back.
-
-**Teleost fish** (most bony fish, such as trout) have single circulation. Blood fills one **atrium** (a receiving chamber), which fills one **ventricle** (a pumping chamber). The ventricle drives blood through the gill capillaries, where it picks up oxygen, and the same push carries it on to the body. Narrow gill capillaries resist flow, so pressure falls across them, and the body is supplied at a lower pressure than the ventricle makes.
-
-**Frogs** have two atria and one ventricle. The right atrium receives blood from the body, including oxygen-rich blood returning from the skin, and the left atrium receives blood from the lungs. The ventricle feeds a **pulmocutaneous circuit** (lungs and skin, since frog skin exchanges gas too) and a systemic circuit. The two streams are thought to stay partly separate in the ventricle, though some mixing occurs.
-
-**Birds and mammals** have four chambers and fully separate circuits. Each group reached this independently; birds keep the right arch of the aorta, mammals the left. Reading that history needs a tree; see [reading phylogenetic trees](/lessons/reading-phylogenetic-trees/).
-
-**Pythons** have one ventricle, partly divided by a muscular ridge that lets the ventricle run at two different pressures during contraction. This is unusual outside crocodilians. You will work their numbers in the design problem.
-
-**Crocodilians** have four chambers, but the right ventricle opens into both the pulmonary artery and a left aorta, joined to the right aorta by a small opening, the **foramen of Panizza**. When resistance in the lungs rises, blood from the right ventricle can leave by the left aorta and bypass the lungs, a **shunt**.
-
-None of these hearts is a step toward the mammal's. A frog heart that can send blood to the skin, or a crocodile heart that can bypass the lungs, works well in its own animal.
-
-<LessonFigure src="/figures/circulation-and-heart/single-vs-double-circulation.webp" width={1200} height={781} alt="AI-generated illustration: two flat loop diagrams. On the left, a single loop passes from an atrium to a ventricle, then through gill capillaries to the body and back. On the right, a figure-eight shares one heart block, with a pulmonary circuit through the lungs and a systemic circuit through the body." caption="In single circulation, as in a teleost fish, blood passes through the heart once per loop; in double circulation it passes through twice, once on a pulmonary circuit and once on a systemic circuit." />
-
 ## Through the mammalian heart, valve by valve
 
-An **artery** carries blood away from the heart and a **vein** carries it toward the heart, whatever its oxygen content. "Right" and "left" mean the animal's right and left. In a mammal after birth, the route is:
+An **atrium** is a receiving chamber and a **ventricle** a pumping chamber. An **artery** carries blood away from the heart and a **vein** carries it toward the heart, whatever its oxygen content. "Right" and "left" mean the animal's own right and left. In a mammal after birth, the route is:
 
 1. The superior and inferior **venae cavae** bring oxygen-poor blood from the body to the right atrium.
 2. It passes the **tricuspid valve** into the right ventricle.
@@ -362,56 +386,124 @@ An **artery** carries blood away from the heart and a **vein** carries it toward
 5. It passes the **mitral valve** into the left ventricle.
 6. The left ventricle pushes it through the **aortic valve** into the aorta, and on to the body.
 
-So the pulmonary artery carries oxygen-poor blood and the pulmonary veins oxygen-rich blood. Each valve opens when pressure behind it exceeds pressure ahead, and closes when that reverses.
+So the pulmonary artery carries oxygen-poor blood and the pulmonary veins oxygen-rich blood. Each valve is a one-way door: it opens when pressure behind it exceeds pressure ahead, and closes when that reverses.
 
-**Systole** is the contraction phase of a chamber and **diastole** its relaxation phase. For the adult human left ventricle at rest, one beat runs through four phases:
+**Systole** is a chamber's contraction phase and **diastole** its relaxation phase. For the adult human left ventricle at rest, one beat has four phases (pressures in **mmHg**, millimetres of mercury):
 
-- **Filling.** Ventricular pressure is below atrial pressure, so the mitral valve is open and blood flows in; the atrium's own contraction adds the last part.
-- **Isovolumic contraction.** The ventricle contracts. Its pressure rises above atrial pressure and the mitral valve closes, but it is still below aortic pressure, so the aortic valve stays shut. With both closed, the volume cannot change.
-- **Ejection.** Ventricular pressure passes aortic pressure (about 80 mmHg), the aortic valve opens, and blood leaves. Both peak near 120 mmHg.
-- **Isovolumic relaxation.** The ventricle relaxes, its pressure falls below the aorta's, and the aortic valve closes. Both valves are shut until ventricular pressure drops below atrial pressure and the mitral valve opens again.
+- **Filling** (diastole). Atrium above ventricle, so the mitral valve is open and blood flows in; the atrium's own contraction adds the last part.
+- **Isovolumic contraction** (systole; same volume). Ventricle above atrium, so the mitral valve shuts; still below the aorta, so the aortic valve stays shut.
+- **Ejection** (systole). Ventricle passes aortic pressure (about 80 mmHg), the aortic valve opens, and blood leaves; both peak near 120 mmHg.
+- **Isovolumic relaxation** (diastole). Ventricle falls below the aorta, so the aortic valve shuts; both stay shut until ventricular pressure drops below atrial pressure and the mitral valve opens again.
 
-So in "120 over 80 mmHg", the 80 is the aorta's lowest pressure, not the ventricle's, which falls to a few mmHg as it fills. The right ventricle runs the same cycle against the low resistance of the lungs and peaks near 25 mmHg. It ejects the same volume at a fifth of the pressure.
+So in "120 over 80 mmHg", the 80 is the aorta's lowest pressure, not the ventricle's, which falls to a few mmHg as it fills. The right ventricle runs the same cycle against the lungs' low resistance: its pulmonary valve opens once its pressure passes pulmonary-artery pressure, and it peaks near 25 mmHg, about a fifth of the left's.
 
-## Harvey's argument by numbers
+**Predict.** Same flow, peaks of 120 and 25 mmHg. Is the body's circuit about five times as hard to push through as the lungs'?
 
-Before 1628 the standard account, from Galen, held that blood was made continually from food in the liver and used up by the tissues. In De Motu Cordis, William Harvey tested it. He tied ligatures on the human arm: a tight one stopped the pulse below it, while a looser one still let the arteries drive blood in but stopped its return, so the veins below swelled. Blood enters a limb by arteries and leaves by veins. Pressing along a vein showed that its valves pass blood only toward the heart. Then he calculated: even with small guesses per beat, the heart passes more blood in half an hour than the veins hold at once, more than food could replace.
+<details>
+<summary>Check your prediction</summary>
 
-That ruled in circulation and ruled out continual manufacture, but did not show how arteries connect to veins: Marcello Malpighi saw capillaries in the frog lung in 1661.
+No, harder still. Resistance is the mean (beat-averaged) pressure drop divided by flow, not a ratio of peaks: about 90 / 5 = 18 for the body against 6 / 5 = 1.2 for the lungs (table), about 15 times as much.
 
-**Worked problem.** Redo Harvey's calculation with illustrative numbers for an adult human at rest. Assume a steady state, a heart rate of 75 beats per min, an end-diastolic volume (EDV, the ventricle's volume when full) of 120 mL and an end-systolic volume (ESV, the volume left after ejection) of 50 mL.
+</details>
+
+| Resting adult human, illustrative | Lung (pulmonary) circuit | Body (systemic) circuit |
+|---|---|---|
+| Flow, one ventricle's output | about 5 L per min | about 5 L per min |
+| Mean pressure going in | about 14 mmHg (pulmonary artery) | about 93 mmHg (arteries) |
+| Mean pressure coming out | about 8 mmHg (left atrium) | about 3 mmHg (right atrium) |
+| Mean drop, flow × resistance | about 6 mmHg | about 90 mmHg |
+| Peak ventricular pressure | about 25 mmHg | about 120 mmHg |
+
+## One circuit or two
+
+In **single circulation**, blood passes through the heart once per loop; in **double circulation**, twice: once on a **pulmonary circuit** to the gas-exchange organ and back, and once on a **systemic circuit** to the rest of the body and back.
+
+**Teleost fish** (most bony fish, such as trout) have single circulation, the arrangement the first film priced, with one atrium filling the one ventricle.
+
+**Birds and mammals** have four chambers that keep the circuits fully separate, each with its own pump.
+
+**Frogs** have two atria and one ventricle. The right atrium receives body blood, including oxygen-rich blood from the skin; the left receives lung blood. The ventricle feeds a **pulmocutaneous circuit** (lungs and skin, since frog skin exchanges gas too) and a systemic circuit; the two streams are thought to stay partly separate in it, with some mixing.
+
+**Pythons** have one ventricle, partly divided by a muscular ridge that lets it run at two different pressures during contraction. You will work the numbers in the design problem.
+
+**Crocodilians** have four chambers, but the right ventricle opens into both the pulmonary artery and a left aorta. A small opening, the **foramen of Panizza**, joins the left aorta to the right aorta, which the left ventricle fills at body pressure. So the left aorta usually holds more pressure than the right ventricle makes, keeping the left aortic valve shut.
+
+**Predict.** If resistance to flow into the lungs rises, where can right-ventricle blood go?
+
+<details>
+<summary>Check your prediction</summary>
+
+Right ventricular pressure climbs until it passes left-aortic pressure; the left aortic valve then opens and part of the output leaves by the left aorta, bypassing the lungs: a **shunt**.
+
+</details>
+
+None of these hearts is a step toward the mammal's: a frog heart that sends blood to the skin, or a crocodile heart that bypasses the lungs, works well in its own animal.
+
+<LessonFigure src="/figures/circulation-and-heart/single-vs-double-circulation.webp" width={1200} height={781} alt="AI-generated illustration: two flat loop diagrams. On the left, a single loop passes from an atrium to a ventricle, then through gill capillaries to the body and back. On the right, a figure-eight shares one heart block, with a pulmonary circuit through the lungs and a systemic circuit through the body." caption="In single circulation, as in a teleost fish, blood passes through the heart once per loop, so the gills and the body share one push. In double circulation it passes through twice; where the two pumps are fully separate, as in birds and mammals, the lungs and the body each get their own pressure." />
+
+How much blood do these pumps move, and how did anyone first show it is the same blood going round? The second film follows Harvey's arithmetic.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## Harvey's numbers, redone
+
+Beyond the second film's ligatures, Harvey pressed along a vein to show that its valves pass blood only toward the heart. His argument did not show how arteries connect to veins: Marcello Malpighi saw capillaries in the frog lung in 1661.
+
+**Worked problem.** Redo Harvey's calculation for an illustrative adult human at rest in a steady state, with a heart rate of 75 beats per min, an end-diastolic volume (EDV, the ventricle's volume when full) of 120 mL and an end-systolic volume (ESV, the volume left after ejection) of 50 mL. **Ejection fraction** is the share of the full volume each beat ejects.
 
 > **stroke volume = EDV - ESV**   and   **cardiac output = heart rate x stroke volume**   and   **ejection fraction = stroke volume / EDV**
 
 1. *Stroke volume.* 120 mL - 50 mL = 70 mL per beat.
-2. *Cardiac output.* 75 beats per min x 70 mL per beat = 5,250 mL per min, or 5.25 L per min. This is the output of one ventricle. The left and right ventricles pump in series, so over time their outputs are equal and are not added.
+2. *Cardiac output.* 75 beats per min x 70 mL per beat = 5,250 mL per min, or 5.25 L per min, for one ventricle; the two pump in series, so their outputs are not added.
 3. *Ejection fraction.* 70 / 120 = 0.583, or 58.3 percent.
-4. *Harvey's comparison.* Assume 5.0 L of blood in the body. A volume equal to all of it passes through one side of the heart in 5.0 / 5.25 = 0.95 min, about 57 seconds. That is an average turnover time; some blood takes short routes and some longer ones. In half an hour that side pumps 5.25 x 30 = 157.5 L, more than 30 times the body's blood. In a day, 5.25 x 1,440 = 7,560 L.
-
-Harvey's conclusion survives even if you halve every number.
+4. *Harvey's comparison.* Assume 5.0 L of blood in the body. A volume equal to all of it passes through one side of the heart in 5.0 / 5.25 = 0.95 min, about 57 seconds. That is an average turnover time; some blood takes short routes and some longer ones. In half an hour that side pumps 5.25 x 30 = 157.5 L, more than 30 times the body's blood; in a day, 5.25 x 1,440 = 7,560 L. The second film's halved stroke volume still gives about 79 L in half an hour (35 x 75 x 30 mL), nearly 16 times the body's blood.
 
 <HarveyCardiacOutput />
 
-## Pacemaker, conduction and cardiac output
+## The rate dial: pacemaker and conduction
 
-In a healthy mammalian heart, each beat starts in the **sinoatrial (SA) node**, a patch of specialized muscle in the wall of the right atrium near the entry of the superior vena cava. Its cells drift slowly upward in voltage until they reach the threshold for an impulse, fire, and start again. That drift, the **prepotential**, sets the heart rate. Two mechanisms are thought to drive the drift: currents across the cell membrane, and rhythmic release of calcium inside the cells. How much each contributes is still debated. How impulses are made is in [the action potential](/lessons/action-potential/).
+The second film named the rate dial of a healthy mammalian heart, the **sinoatrial (SA) node**, near the entry of the superior vena cava, but not how it keeps time. Its cells drift slowly upward in voltage to the threshold for an impulse, fire, and start again; that drift, the **prepotential**, sets the heart rate. Two mechanisms are thought to drive the drift: currents across the cell membrane, and rhythmic release of calcium inside the cells. How much each contributes is still debated ([the action potential](/lessons/action-potential/) covers how impulses are made).
 
-Excitation spreads across both atria, then reaches the **atrioventricular (AV) node**, where conduction slows. The delay lets the atria finish contracting before the ventricles start. Excitation then runs down the bundle of His, its right and left branches, and the Purkinje fibres, which spread excitation through the ventricle walls.
+Excitation spreads across both atria, then reaches the **atrioventricular (AV) node**, where conduction slows.
 
-**Heart rate** is changed mainly by autonomic nerves: sympathetic nerves speed it, and the vagus nerve, which is parasympathetic, slows it. The control circuits, including the baroreflex, are in [the hypothalamus and autonomic system](/lessons/hypothalamus-autonomic/), Otto Loewi's frog hearts in [transmitter systems](/lessons/transmitter-systems/), and how adrenaline speeds the pacemaker inside the cell in [cAMP and PKA](/lessons/camp-and-pka/).
+**Predict.** Why would a heart slow its own signal here?
 
-**Stroke volume** is changed by filling and by contractility. **Preload** is how much the ventricle is filled and stretched before it contracts. By the **Frank-Starling relation**, more filling gives a larger stroke volume over the normal range. Sympathetic stimulation raises **contractility**, the strength of contraction at a given filling, and so shifts that relation upward. How vessels set the pressure the heart pumps against is in [blood and vessels](/lessons/blood-and-vessels/).
+<details>
+<summary>Check your prediction</summary>
+
+The delay lets the atria finish contracting before the ventricles start. Without it the two would contract almost together, and the atria's push, the last part of filling, would come too late.
+
+</details>
+
+Excitation then runs down the bundle of His, its right and left branches, and the Purkinje fibres in the ventricle walls.
+
+Besides the second film's nerves (sympathetic speeds the SA node, the parasympathetic vagus slows it), circulating adrenaline raises the rate. The control circuits, including the baroreflex, are in [the hypothalamus and autonomic system](/lessons/hypothalamus-autonomic/), Otto Loewi's frog hearts in [transmitter systems](/lessons/transmitter-systems/), and how adrenaline speeds the pacemaker inside the cell in [cAMP and PKA](/lessons/camp-and-pka/).
+
+## The stroke volume dial: filling, contractility and load
+
+The second film named three inputs to stroke volume, but not which way filling turns the dial.
+
+**Predict.** In Starling's dog heart-lung preparation, the heart is cut off from its nerves and a reservoir sets how much blood returns to the right atrium. Raise the reservoir. What does output do?
+
+<details>
+<summary>Check your prediction</summary>
+
+It rises to match. Patterson, Piper and Starling reported in 1914 that when more blood returned, the heart filled further and its output rose; Otto Frank had found in frog hearts in 1895 that, over a range, more filling gave a stronger contraction. With nerves removed, the change came from the heart itself.
+
+</details>
+
+**Preload** is how much the ventricle is filled and stretched before it contracts. By the **Frank-Starling relation**, over the normal range stroke volume rises along a curve as end-diastolic volume rises. Sympathetic stimulation raises **contractility**, the strength of contraction at a given filling, and so lifts the whole curve. The third input, **afterload**, is the pressure the ventricle ejects against; vessel resistance helps set it ([blood and vessels](/lessons/blood-and-vessels/)).
 
 ### Design problem
 
-Wang and colleagues (2003) reported mean arterial pressures of 75.7 cm H2O in the systemic circulation and 11.6 cm H2O in the pulmonary artery of conscious Python molurus. A python has one ventricle. Does one ventricle mean one pressure? Convert the values to mmHg (1 mmHg = 1.36 cm H2O), say what they imply about how the ventricle works, and design a measurement that would test your answer.
+Wang and colleagues (2003) reported mean arterial pressures of 75.7 cm H2O in the systemic circulation and 11.6 cm H2O in the pulmonary artery of conscious Python molurus. Does one ventricle mean one pressure? Convert the values to mmHg (1 mmHg = 1.36 cm H2O), say what they imply about how the ventricle works, and design a measurement that would test your answer.
 
 <details>
 <summary>One way to do it</summary>
 
 Convert: 75.7 / 1.36 = 55.7 mmHg, and 11.6 / 1.36 = 8.5 mmHg. The systemic value is about 6.5 times the pulmonary one (75.7 / 11.6 = 6.5, the same ratio in either unit).
 
-One open chamber would push the same peak pressure into both outflows while their valves are open. A gap in mean pressure alone could also come from how the two sets of arteries drain between beats, but Wang's systolic peaks were far apart too, so the values point to a ventricle that behaves as two regions during contraction. Wang and colleagues' simultaneous recordings inside the ventricle of anesthetized snakes showed that the pressure difference starts there, at the muscular ridge, and Jensen and colleagues (2010), imaging python hearts by ultrasound and angioscopy, saw the ridge press against a structure called the bulbuslamelle during systole and divide the ventricle by function.
+One open chamber would push the same peak pressure into both outflows while their valves are open. A gap in mean pressure alone could come from how the two sets of arteries drain between beats, but Wang's systolic peaks were far apart too, so the ventricle behaves as two regions during contraction. Wang and colleagues' simultaneous recordings inside the ventricle of anesthetized snakes placed the difference at the muscular ridge, and Jensen and colleagues (2010), imaging python hearts by ultrasound and angioscopy, saw the ridge press against a structure called the bulbuslamelle during systole and divide the ventricle by function.
 
 To test it, record pressure in both regions at once through the beat: separate systolic peaks support functional division. Compare a frog. Separate pressures do not rule out some mixing of blood, so measure that separately.
 
@@ -421,11 +513,17 @@ To test it, record pressure in both regions at once through the beat: separate s
 
 ### Python pressures
 
-Wang and colleagues (2003) recorded arterial pressures in conscious Python molurus and pressures inside the ventricle of anesthetized ones, and found that the ridge separates the ventricle into regions with different pressures during contraction. This is unusual. Outside crocodilians, such pressure separation is known mainly in pythons and monitor lizards; in other snakes studied, such as vipers and garter snakes, it does not occur.
+Among reptiles with an undivided ventricle, pressure separation like the python's is known mainly in pythons and monitor lizards; in other snakes studied, such as vipers and garter snakes, it does not occur.
 
-### How the crocodile shunt works
+### The crocodile shunt can be driven
 
-Through the foramen, the left aorta usually holds a higher pressure than the right ventricle makes, so the left aortic valve stays shut. When resistance in the lungs rises, right ventricular pressure can climb above it; the valve opens, and blood from the right ventricle leaves by the left aorta.
+Resistance to flow into the lungs can rise actively. Connective-tissue nodules in the right ventricle's pulmonary outflow tract, the cog-tooth valve, move under active control and restrict flow to the lungs, raising right ventricular pressure toward the shunt threshold (Axelsson and colleagues, Journal of Experimental Biology, 1996; Franklin and Axelsson, Nature, 2000).
+
+### Fish chambers and the bird-mammal split
+
+Blood reaching a teleost heart first collects in a sinus venosus before the atrium, and the ventricle ejects into the bulbus arteriosus, an elastic outflow rich in smooth muscle rather than heart muscle. Its low stiffness damps pressure swings before the delicate gill capillaries (Andersen and Østbye, Genes, 2025; Matsuki and colleagues, Proceedings of the National Academy of Sciences USA, 2026).
+
+Birds and mammals reached four chambers independently; birds keep the right arch of the aorta, mammals the left (see [reading phylogenetic trees](/lessons/reading-phylogenetic-trees/)).
 
 ### Pacemaker and conduction detail
 
