@@ -538,4 +538,4 @@ class S11Close(SpokenScene):
 
 
 class S12End(EndCard):
-    LINE = "An agent in an environment sorts variants; inheritance carries the sorting forward."
+    LINE = "An agent sorts variants by fitness;\ninheritance carries the sorting forward."

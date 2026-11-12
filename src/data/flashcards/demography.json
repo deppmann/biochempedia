@@ -1,0 +1,603 @@
+{
+ "slug": "demography",
+ "title": "Demography and Survivorship",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "a52c327ee07e",
+ "sectionHashes": {
+  "(opening)": "24260fc3a5b0",
+  "The worked cohort, column by column": "fce48ef4121e",
+  "Generation time and a yearly rate": "f0f02018b8a5",
+  "Survivorship curves and age structure": "411588f6d3e8",
+  "Where the numbers come from, and what they miss": "8eba452cdd0f",
+  "Design problem": "9320c65fdd18",
+  "The exact yearly rate": "8b98722842d0",
+  "Static tables when a population grows": "5331a21d2c13"
+ },
+ "cards": [
+  {
+   "id": "demography-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "The net reproductive rate, R0, is the sum over ages of {{c1::l_x m_x}}: the chance a newborn female is alive at age x times the average daughters per live female at that age.",
+   "back": "R0 = sum of l_x m_x, counted per generation, not per year.",
+   "quote": "Whether a population can replace itself depends on the net reproductive rate, R0"
+  },
+  {
+   "id": "demography-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a closed population with fixed rates, what does R0 above 1 or below 1 mean for successive generations?",
+   "back": "Above 1, each generation is larger than the last; below 1, each is smaller. R0 = 1 means exact replacement.",
+   "quote": "Above 1, each generation is larger than the last; below 1, smaller."
+  },
+  {
+   "id": "demography-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is a population projection from R0 a prediction rather than an observation?",
+   "back": "It assumes a closed population with rates that stay fixed, but real vital rates change with density, weather and year.",
+   "quote": "It is a prediction from assumptions, not an observation: real vital rates change with density, weather and year."
+  },
+  {
+   "id": "demography-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a cohort life table, survivorship is l_x = {{c1::n_x / n_0}}, the fraction of the original cohort alive at exact age x.",
+   "back": "",
+   "quote": "is the number alive at exact age x, l_x = n_x / n_0",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c05",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In a life table, m_x is the expected (average) number of {{c1::daughters per live female}} at age x.",
+   "back": "Tables of this kind usually count females only.",
+   "quote": "the average number of daughters per live female at that age"
+  },
+  {
+   "id": "demography-c06",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In a life table, d_x is {{c1::the number that die between age x and age x + 1}}, calculated as n_x minus n_(x+1).",
+   "back": "Summed over all ages, d_x accounts for every member of the cohort.",
+   "quote": "how many die between age x and age x + 1?",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c07",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why is the age-specific death probability q_x calculated as d_x / n_x rather than d_x / n_0?",
+   "back": "Only the animals alive at the start of the interval are at risk of dying in it. Dividing by the original cohort gives d_x/n_0, not q_x.",
+   "quote": "Only the 40 alive at age 2 were at risk.",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c08",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A closed cohort of 250 newborn females has n_1 = 150, n_2 = 60 and n_3 = 15. Find l_2, d_1 and q_1.",
+   "back": "l_2 = 60/250 = 0.24. d_1 = n_1 − n_2 = 150 − 60 = 90. q_1 = d_1/n_1 = 90/150 = 0.60.",
+   "quote": "d_x = n_x − n_(x+1), here 20, 40, 30, 10.",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c09",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In a life table, what does the symbol q stand for, and what is it easily confused with?",
+   "back": "q_x is a death probability for an age interval. It is not the allele frequency q of population genetics.",
+   "quote": "This q is a death probability, not the allele frequency q of population genetics.",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c10",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "The probability of surviving an age interval is p_x = {{c1::1 − q_x}}.",
+   "back": "",
+   "quote": "Whatever does not die survives: p_x = 1 − q_x",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why is survivorship l_x a product of the interval survival probabilities p_x before age x?",
+   "back": "Reaching age x means surviving every earlier interval in turn, each conditional on the one before, so the product rule of probability applies (l_3 = p_0 × p_1 × p_2).",
+   "quote": "That is the product rule from probability and crosses, each stage conditional on the one before",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c12",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A cohort has interval survival probabilities p_0 = 0.9, p_1 = 0.6 and p_2 = 0.5. What is l_3?",
+   "back": "l_3 = p_0 × p_1 × p_2 = 0.9 × 0.6 × 0.5 = 0.27.",
+   "quote": "Reaching age 3 means surviving year 0, then year 1, then year 2, so l_x is a product of the p_x before it",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c13",
+   "type": "calc",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A worked cohort has l_x m_x = 0, 0.8, 0.8 and 0.1 at ages 0 to 3 years. What is R0?",
+   "back": "R0 = 0 + 0.8 + 0.8 + 0.1 = 1.7 daughters per newborn female.",
+   "quote": "From the table: 0 + 0.8 + 0.8 + 0.1 = 1.7 daughters per newborn female.",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "An invented closed cohort of female voles has l_x = 1.0, 0.6, 0.25 and m_x = 0, 1, 2 daughters per female at exact ages 0, 1 and 2 months; none survive past 2 months. Find R0 and say whether the population grows with fixed rates.",
+   "back": "R0 = 1.0 × 0 + 0.6 × 1 + 0.25 × 2 = 1.1 daughters per newborn female. Above 1, so it grows each generation.",
+   "quote": "at each age, the chance a newborn female is alive (l_x) times the average number of daughters per live female at that age (m_x), added over her life"
+  },
+  {
+   "id": "demography-c15",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "The cohort generation time, T, is {{c1::the mean age of mothers when their daughters are born}}.",
+   "back": "T = sum of x l_x m_x / R0.",
+   "quote": "The cohort generation time, T, is the mean age of mothers when their daughters are born.",
+   "section": "Generation time and a yearly rate"
+  },
+  {
+   "id": "demography-c16",
+   "type": "calc",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "A cohort has x l_x m_x = 0.8, 1.6 and 0.3 at ages 1, 2 and 3 years, and R0 = 1.7. What is the generation time T?",
+   "back": "T = (0.8 + 1.6 + 0.3) / 1.7 = 2.7 / 1.7 = 1.59 years.",
+   "quote": "T = 2.7 / 1.7 = 1.59 years.",
+   "section": "Generation time and a yearly rate"
+  },
+  {
+   "id": "demography-c17",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A cohort produces equal numbers of daughters at ages 1 and 2 years. Females now also start producing some daughters at age 3. Does the generation time T rise, fall or stay at 1.5 years?",
+   "back": "It rises above 1.5 years. T is a weighted mean age of mothers at birth, so births at an older age pull the mean up.",
+   "quote": "Ages 1 and 2 alone would average 1.5; the few daughters born at age 3 pull the mean up.",
+   "section": "Generation time and a yearly rate"
+  },
+  {
+   "id": "demography-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does the shortcut r ≈ ln(R0)/T turn a per-generation multiplier into a yearly rate?",
+   "back": "ln(R0) is the continuous growth rate per generation; dividing by the generation time T gives a rate per year.",
+   "quote": "ln(1.7) is the growth rate per generation, and dividing by T gives a rate per year.",
+   "section": "Generation time and a yearly rate"
+  },
+  {
+   "id": "demography-c19",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why is r ≈ ln(R0)/T only an approximation of the intrinsic rate of increase?",
+   "back": "It treats T as the length of every generation, but births are spread over several ages.",
+   "why": "The exact r solves the Euler-Lotka equation.",
+   "quote": "Births spread over several ages make this an approximation.",
+   "section": "Generation time and a yearly rate"
+  },
+  {
+   "id": "demography-c20",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "The yearly multiplier is {{c1::lambda = e^r}}; with r = 0.334 per year, it is about 1.40, roughly 40% more each year.",
+   "back": "",
+   "quote": "The yearly multiplier is lambda = e^r = e^(0.334), about 1.40: roughly 40% more each year.",
+   "section": "Generation time and a yearly rate"
+  },
+  {
+   "id": "demography-c21",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A vole cohort has R0 = 1.1 and generation time T = 1.45 months. Estimate r with the shortcut, and the monthly multiplier lambda.",
+   "back": "r ≈ ln(1.1)/1.45 = 0.0953/1.45 ≈ 0.066 per month. lambda = e^0.066 ≈ 1.07, about 7% more each month.",
+   "quote": "A common shortcut treats T as the length of every generation",
+   "section": "Generation time and a yearly rate"
+  },
+  {
+   "id": "demography-c22",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Two populations both have R0 = 1.7. One has T = 1.59 years, the other twice that. Predict the sign and relative size of r for each.",
+   "back": "Both r are positive because R0 is above 1. With the shortcut, r is about 0.334 per year for the first and about half that, 0.167, for the second.",
+   "why": "R0 sets the sign of r; T only changes how fast growth happens.",
+   "quote": "R0 above 1 gives a positive r and R0 below 1 a negative one; T only changes how fast.",
+   "section": "Generation time and a yearly rate"
+  },
+  {
+   "id": "demography-c23",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why does a Type II survivorship curve plot as a straight line on a logarithmic axis?",
+   "back": "Type II is a constant probability of death per interval, so l_x = (1 − q)^x and log l_x = x × log(1 − q): the same step down each year.",
+   "why": "It is a constant probability, not a constant number of deaths.",
+   "quote": "log l_x = x × log(1 − q), a straight line falling by the same step each year",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c24",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A cohort of 640 shows Type II survivorship with a yearly death probability of 0.5. How many die during the third year of life (ages 2 to 3)?",
+   "back": "80. Survivors fall 640, 320, 160, so half of the 160 alive at age 2 die. Deaths shrink as the cohort shrinks.",
+   "quote": "In symbols, a constant q gives l_x = (1 − q)^x",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c25",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A cohort's death probabilities rise with age: q_x = 0.20, 0.50, 0.75, 1.00. Which survivorship type does it sit nearest?",
+   "back": "Type I. Rising death probability with age means survival is relatively good early and losses concentrate late.",
+   "quote": "the worked cohort, with q_x rising, sits nearer Type I",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c26",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In an invented population, 20% of newborns die within days of birth and the rest all live to exactly 60. What is life expectancy at birth, and does anyone die at that age?",
+   "back": "0.2 × about 0 + 0.8 × 60 = about 48 years. No one dies at 48; heavy infant mortality drags the mean down.",
+   "quote": "Life expectancy at birth is the mean length of life over all newborns, so heavy infant mortality drags it far down.",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "How does an age-structure diagram (age pyramid) differ from a survivorship curve?",
+   "back": "A pyramid shows the proportion of the population in each age class now, which depends on past births as well as survival. A survivorship curve follows survival with age.",
+   "quote": "it shows the proportion of a population in each age class now, which depends on past births as well as survival",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "An age pyramid has a broad base. A student concludes the species has Type III survivorship. Evaluate.",
+   "back": "Not supported. A broad base may reflect a growing population with good juvenile survival, since each year's newborns outnumber the last.",
+   "quote": "A pyramid with a broad base is not a Type III curve; it may be a growing population with good juvenile survival.",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c29",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "With fixed rates and no migration, a population converges toward a {{c1::stable age distribution}}: the shares in each age class stop changing while the total grows or shrinks.",
+   "back": "The shares depend on both survival and the growth rate.",
+   "quote": "a population converges toward a stable age distribution: the shares in each age class stop changing while the total grows or shrinks",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c30",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A population with many young people drops its fertility to replacement today. Why does it keep growing for decades?",
+   "back": "The number of women of reproductive age is still rising as the large young cohorts grow up. This is demographic momentum.",
+   "quote": "It can keep growing for decades, because the number of women of reproductive age is still rising as the large young cohorts grow up.",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c32",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does the replacement figure of about 2.1 children per woman not apply everywhere?",
+   "back": "It holds only where few children die before adulthood. Where child mortality is high, more births per woman are needed to replace each generation.",
+   "quote": "The often quoted replacement figure of about 2.1 children per woman applies only where few children die before adulthood.",
+   "section": "Survivorship curves and age structure"
+  },
+  {
+   "id": "demography-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What are the strength and the main drawback of cohort follow-up for building a life table?",
+   "back": "It gives l_x and m_x directly, but slowly: for a long-lived species, one cohort can outlive a research career.",
+   "quote": "It gives l_x and m_x directly, but slowly",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c34",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "A static life table treats animals of different ages, born in different years, as one cohort. What population condition makes that simplest to justify?",
+   "back": "A stationary population: about the same number born each year and the same age-specific death rates for many years. Every age must also be sampled fairly.",
+   "quote": "The simplest case where that is fair is a stationary population",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c35",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A static life table is built from carcasses found in the field. Predict the likely bias in estimated juvenile survival, and why.",
+   "back": "Juvenile survival is overestimated: young remains are fragile and easily missed, so early deaths are undercounted.",
+   "quote": "Young remains are fragile and easily missed, so a carcass table can undercount early deaths",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How can mark-recapture data separate detection probability from survival?",
+   "back": "An animal seen after a gap was alive and missed. Across many animals, sightings and gaps let a model estimate detection separately from survival.",
+   "why": "After the last sighting, the model usually cannot tell death, permanent departure or a miss apart.",
+   "quote": "An animal seen after a gap was alive and missed",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c37",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "An animal still alive when a study ends is {{c1::right-censored}}: counted at risk while seen, never as a death.",
+   "back": "",
+   "quote": "An animal still alive when the study ends, or lost to an accident in a study of natural deaths, is right-censored",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c38",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a survival study, sick and weak animals are more likely to be lost from observation and are recorded as censored. Predict the effect on estimated survival.",
+   "back": "Survival is biased upward. Censoring is fair only if it is unrelated to the risk of dying; here the censored animals were the ones most likely to die.",
+   "quote": "animals lost because they were sick or weak bias survival upward",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Name two data problems that blur life-table estimates without necessarily biasing them, and what each hides.",
+   "back": "Few old individuals: small samples hide gradual changes in mortality, so old ages are least certain. Pooled years: average rates hide good and bad years.",
+   "quote": "Small samples at old ages hide gradual changes in mortality",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c40",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Apparent survival is true survival multiplied by {{c1::site fidelity}}, the chance a surviving animal stays in the study area.",
+   "back": "So permanent emigration pulls apparent survival below true survival.",
+   "quote": "apparent survival is true survival multiplied by site fidelity",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c41",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Of banded adult birds, 54% are seen at the colony the next year. Detection is 0.9 and site fidelity 0.75 (invented values). Estimate true annual survival and mortality.",
+   "back": "True survival ≈ 0.54 / (0.9 × 0.75) = 0.54 / 0.675 = 0.80, so annual mortality is about 20%, not 46%.",
+   "why": "The return rate is lowered by missed birds and emigrants as well as deaths.",
+   "quote": "If detection is 0.9 and fidelity 0.8, an apparent return of 0.60 would point to true survival near 0.6/(0.9 x 0.8), about 0.83",
+   "section": "Design problem"
+  },
+  {
+   "id": "demography-c42",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Only 60 of 100 banded adult birds are seen at their colony the next year. Design a study that separates death from the other reasons a bird goes unseen.",
+   "back": "Search repeatedly over seasons and years and fit a Cormack-Jolly-Seber model (detection); search neighbouring colonies or track birds (emigration); double-mark some birds (band loss); record unseen birds as unknown fates, not dead.",
+   "quote": "lowered by three things besides death: birds alive at the colony but not seen, birds alive that moved elsewhere for good, and birds that lost their bands",
+   "section": "Design problem"
+  },
+  {
+   "id": "demography-c43",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A Cormack-Jolly-Seber model on banded gulls estimates apparent survival of 0.70. Later searches of neighbouring colonies find banded birds long missing from the home colony. What does this show?",
+   "back": "Some 'lost' birds had emigrated, not died, so true survival exceeds the apparent 0.70. Apparent survival includes site fidelity.",
+   "quote": "a survivor that left looks like a death",
+   "section": "Where the numbers come from, and what they miss"
+  },
+  {
+   "id": "demography-c44",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "With fixed rates, the exact intrinsic rate r solves the {{c1::Euler-Lotka}} equation.",
+   "back": "For the worked table, exact r = 0.347 per year versus 0.334 from the shortcut.",
+   "quote": "With fixed rates, the exact r solves the Euler-Lotka equation",
+   "section": "The exact yearly rate"
+  },
+  {
+   "id": "demography-c45",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "The shortcut r ≈ ln(R0)/T is approximate. Is the conclusion 'R0 above 1 means growth' also approximate?",
+   "back": "No. Scaling every m_x moves lambda across 1 exactly where R0 crosses 1, so the sign rule is exact; only the size of r is approximate.",
+   "quote": "so the sign rule in the one idea holds exactly; only the size of r is approximate",
+   "section": "The exact yearly rate"
+  },
+  {
+   "id": "demography-c46",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In a cohort with R0 = 1.7, first-year survival is permanently halved while all later p_x and all m_x stay the same. Predict R0 and the population's fate.",
+   "back": "Every later l_x halves, so every l_x m_x halves and R0 = 0.85. Below 1, the population declines.",
+   "why": "l_x is a product of earlier p_x, and R0 is the sum of l_x m_x.",
+   "quote": "Reaching age 3 means surviving year 0, then year 1, then year 2, so l_x is a product of the p_x before it",
+   "section": "The worked cohort, column by column"
+  },
+  {
+   "id": "demography-c47",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A static life table is built by counting living animals at each age in a growing population and reading the counts as one cohort's survivors, with no correction. Predict the bias in survival at older ages.",
+   "back": "Older age classes look smaller than a cohort would, because they were born when the population was smaller, so survival to older ages is understated.",
+   "why": "Static tables assume stationarity; growth must be corrected for.",
+   "quote": "its older age classes were born when the population was smaller",
+   "section": "Static tables when a population grows"
+  }
+ ]
+}

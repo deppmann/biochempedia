@@ -5,24 +5,46 @@ course: "organismal-biology"
 courseChapter: "Organismal Biology · Unit 2: Control and constancy"
 order: 706
 summary: >-
-  In a room heated close to the boiling point of water, a man’s body temperature barely moved, while an egg in the same room cooked. A body holds its inside steady by negative feedback: sensors, a control centre and effectors such as sweat glands oppose any change, and that is built from tissues working together in organs. This lesson draws the homeostatic loop from regulated variable to effector, separates negative from positive feedback, finds all four animal tissue types in one stomach wall, and compares animals that regulate a variable with animals that let it follow the environment. Afterwards you can label a feedback loop, say whether an animal is a regulator or a conformer for a stated variable and range, and calculate what regulation costs from a measured ratio.
-hook: "In a room heated close to the boiling point of water, the thermometer under a man’s tongue barely moved. What was holding it there?"
+  For a variable that exchanges passively with its surroundings, such as core temperature, a body holds it steady by pushing back against that leak, and the stronger the push-back compared with the leak, the less the inside follows the outside. In a room heated close to the boiling point of water, a man’s body temperature barely moved, while eggs set in the same room on another visit cooked. This lesson builds the homeostatic loop from regulated variable to effector, finds all four animal tissue types in that loop and in one stomach wall, separates negative from positive feedback, and reads regulators and conformers from separate osmolality and temperature plots. Afterwards you can label a feedback loop, say whether an animal is a regulator or a conformer for a stated variable and range, and calculate what regulation costs from a measured ratio.
+hook: "In a room heated to about 93 degrees C, close to the boiling point of water, the thermometer under a man’s tongue barely moved. What was holding it there?"
 
 estMinutes: 24
 objectives:
-  - "Draw a homeostatic loop that names the regulated variable first, then the set point, sensor, integrator and effector, and explain why negative feedback opposes a deviation in either direction while positive feedback amplifies a change until something ends it."
+  - "Draw a homeostatic loop that names the regulated variable first, then the set point, sensor, integrator and effector, and explain why negative feedback opposes a deviation in either direction while positive feedback amplifies a change and, in the labour model, runs until something outside the loop ends it."
   - "Name the four animal tissue types (epithelial, connective, muscle and nervous) with one job each, and show how they combine into an organ such as the stomach wall and organs into an organ system."
-  - "Distinguish a regulator from a conformer for one named variable over a stated range, using body temperature in a human and a lake fish and blood osmolality in a mussel and a shore crab."
+  - "Distinguish a regulator from a conformer for one named variable over a stated range, from how much of an outside change reaches the inside, using body temperature in a human and a lake fish and blood osmolality in a mussel and a shore crab."
   - "Calculate the extra energy a mouse spends at a cooler housing temperature from a measured ratio, and explain why a percentage increase and the reverse percentage decrease differ."
 
 explainer:
   src: "/explainers/tissues-and-homeostasis/explainer.mp4"
   captions: "/explainers/tissues-and-homeostasis/explainer.vtt"
   poster: "/explainers/tissues-and-homeostasis/poster.jpg"
-  title: "Name the Variable, Then the Loop"
-  durationSec: 150.7
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Leak and Push-Back"
+  durationSec: 203.1
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "An egg in hot air keeps warming toward the air's temperature; in Blagden's brief trials his body pushed back, and his temperature barely moved."
+    - "A homeostatic loop has five parts: regulated variable, set point, sensor, integrator and effector."
+    - "Leak pulls the variable toward the outside; push-back from the effectors pulls it toward the set point."
+    - "The stronger the push-back compared with the leak, the less the inside follows the outside; in the simple model, equal strengths split a change in half."
+    - "Negative feedback means the push-back points back toward the set point, whether the variable is too high or too low."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/tissues-and-homeostasis/chapter-2.mp4"
+    captions: "/explainers/tissues-and-homeostasis/chapter-2.vtt"
+    poster: "/explainers/tissues-and-homeostasis/chapter-2-poster.jpg"
+    title: "Two Animals on One Plot"
+    durationSec: 197.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A line's slope is the share of an outside change that reaches the inside: near 1 for a conformer, near 0 for a regulator."
+      - "Over the salinities it tolerates, the blue mussel's blood comes close to the water around it."
+      - "The shore crab conforms near full-strength seawater but holds its blood well above water diluted to roughly half strength."
+      - "Over a tolerable range of air temperatures, an adult human regulates core temperature; a typical lake fish's body temperature largely follows the water."
+      - "Regulator and conformer describe one variable over one range, never a whole animal."
 
 scientists:
   - name: "Claude Bernard"
@@ -97,8 +119,8 @@ scientists:
       organ, a small region of the brain that sits outside the usual blood-brain barrier, by fiber
       photometry, which reads a bulk fluorescent signal of activity from a group of identified
       cells. To separate the gut from the mouth, they infused fluid through a tube directly into
-      the stomach. Water in the stomach silenced the neurons in hydrated mice with a mean latency of about 105
-      seconds, and the response was complete before they could detect any change in blood
+      the stomach. Water in the stomach silenced the neurons with a mean latency of about 105
+      seconds in hydrated mice (107 seconds in water-deprived mice), and the response was complete before they could detect any change in blood
       osmolarity. Hypertonic saline in the stomach activated the same neurons. Cutting the vagus
       nerves below the diaphragm weakened the suppression of drinking by stomach water. The work
       gave a measured example of a fast, predictive signal that acts on top of slower negative
@@ -336,99 +358,139 @@ draft: false
 
 import HomeostaticLoopStepper from '../../../components/HomeostaticLoopStepper.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In a room heated to about 200 degrees F, close to the boiling point of water, a thermometer under Charles Blagden's tongue read 98 degrees, about one degree above his usual. Ten weeks later, in the same room, which by evening passed 260 degrees F, eggs roasted hard and a steak cooked.**
+**In a room heated to about 200 degrees F (about 93 degrees C), close to the boiling point of water, a thermometer under Charles Blagden's tongue read 98 degrees F, about one degree above his usual. Ten weeks later the same room passed 260 degrees F (above 126 degrees C) by evening, and eggs set there earlier that day roasted hard; a steak cooked.**
 
-An egg in hot air heats until it matches the air. A living person did not, because his body was working against the heat. Sensors detected a rise in temperature, the brain compared it with a set point, and sweating and skin blood flow carried heat away. This is homeostasis, the holding of an internal variable within a range compatible with staying alive, and the commonest way it works is negative feedback: a response that opposes the change. This lesson draws that loop first in outline, starting with what a body is made of, because the sensors, control centre and effectors are tissues working together in organs.
+The first film split a 10-degree outside change in half. Here is its rule, with its limits.
+
+> **The one idea.** A **regulated variable**, the quantity a body holds, such as core temperature, sits between two pulls. **Leak**, passive exchange with the surroundings, drags it toward the outside value. **Push-back** from the **effectors**, the muscles, glands and organs that change the variable, drags it toward the **set point**, the value it is held around. Each pull is a fixed **strength** times a gap: leak strength times the gap to the outside, push-back strength times the gap from the set point. Once the variable settles, the two pulls are equal, whatever the strengths; the effectors cancel exactly what leaks. The strengths decide where that balance falls, so the inside follows only a fraction of any outside change:
+>
+> **inside shift = outside shift × leak strength ÷ (leak strength + push-back strength)**
+>
+> The stronger the push-back compared with the leak, the less the inside follows the outside. A fraction near 0 makes the animal a **regulator** for that variable, holding it fairly steady; near 1, a **conformer**, letting it follow the outside within limits it can survive.
+>
+> *Scope:* a simple model, so its numbers are a sketch. It fits a variable that exchanges passively with the outside, over one range of outside conditions, after settling, with the set point fixed and the effectors below their limit. Other disturbances, such as glucose absorbed from a meal or used by cells, need other terms. Each limit returns below: sweat that cannot evaporate, fever, and a signal that acts before any change.
 
 It builds on [what an organism has to do](/lessons/organism-problems/), [size and scaling](/lessons/size-and-scaling/) and [animal body plans](/lessons/animal-body-plans/).
 
-## Four tissues build one stomach wall
+## The loop, part by part
 
-A **tissue** is a group of similar cells, with the material around them, that together do one kind of job. Most animals are built from four types.
+**Homeostasis**, Walter Cannon's word, is the holding of a body variable within a range compatible with staying alive. Cannon built on Claude Bernard's idea that an animal's cells live in an *internal environment* of blood and tissue fluid that changes much less than the world outside.
 
-- **Epithelial tissue** is a sheet of closely joined cells that covers the body's surfaces and lines its cavities and tubes. It decides what crosses from one side to the other. How epithelial cells hold together and move material is in [epithelia](/lessons/epithelia/).
-- **Connective tissue** is living cells spread through a nonliving **extracellular matrix**, a mesh of protein fibres and other material the cells secrete. Bone, tendon, fat and blood are all connective tissues. The matrix itself is covered in [adhesion and the extracellular matrix](/lessons/adhesion-and-ecm/).
-- **Muscle tissue** is made of cells that contract and so produce movement or force.
-- **Nervous tissue** is **neurons**, cells that receive and send electrical signals, plus **glial cells**, which support them.
+In the first film's loop, the integrator is a region of the [hypothalamus](/lessons/hypothalamus-autonomic/), and the set point is a reference around which the normal range fluctuates, near, not exactly, 37 degrees C for core temperature ([below](#is-normal-exactly-37-degrees-c)).
 
-An **organ** is a structure built from several tissues that work together. A stained section through a stomach wall shows all four. Epithelium lines the inside, where food sits. Beneath it, connective tissue carries blood vessels and holds the layers together. Outside that, layers of smooth muscle churn and squeeze the contents. Networks of nerve cells run between the muscle layers and help control the churning.
+A house thermostat is the usual analogy, but its furnace can only heat. The body can use different effectors for each direction, such as sweating and shivering, and turn one effector both ways: skin vessels widen in heat and narrow in cold. Behaviour, such as seeking shade or putting on a coat, is an effector too.
 
-<LessonFigure src="/figures/tissues-and-homeostasis/stomach-wall-four-tissues.webp" width={1200} height={793} alt="AI-generated illustration: a flat diagram of a stomach wall as four stacked layers, from the inside outward a sheet of epithelial cells, connective tissue with two blood vessels, and layers of smooth muscle with a web of nerve cells between them. An inset shows the stomach as one block among the esophagus, intestines, liver and pancreas in the digestive system." caption="In a teaching section of a stomach wall, epithelium lines the inside, connective tissue with blood vessels lies beneath it, layers of smooth muscle churn the contents, and networks of nerve cells run between the muscle layers. The stomach is one organ of the digestive system." />
+**Predict.** Blagden's air was hotter than his skin, and heat flows only from hot to cold. Which of the film's warm-side effectors, widened skin vessels or sweat, could still carry heat out of him, and what would a steamy room do to it?
 
-An **organ system** is a set of organs that share a larger job. The stomach is one organ of the digestive system, along with the esophagus, intestines, liver and pancreas.
+<details>
+<summary>Check your prediction</summary>
 
-Not every animal is built this way. Sponges have specialized cells but no true tissues of this kind, as you saw in [animal body plans](/lessons/animal-body-plans/). Plants solve the same problem with a different kit. A flowering plant's body is built from dermal, vascular and ground tissues, met in [plant body and growth](/lessons/plant-body-and-growth/).
+Sweat. Widened vessels bring heat to the skin, but hotter air cannot take it; evaporation of sweat is the only route left. In humid air sweat evaporates slowly, push-back reaches its limit, and the inside begins to follow the outside.
 
-## The loop: variable, set point, sensor, integrator, effector
+</details>
 
-**Homeostasis** is the holding of a body variable within a range compatible with staying alive. The word comes from Walter Cannon, building on Claude Bernard's idea that the cells of an animal live in an *internal environment* of blood and tissue fluid that changes much less than the world outside.
+A wet object also stays below the air while it evaporates, one more reason the brief trials show push-back but not its strength ([details below](#blagdens-hot-rooms-in-detail)).
 
-The standard model of a homeostatic loop has five parts. Name them in this order.
+<LessonFigure src="/figures/tissues-and-homeostasis/blagden-hot-room.webp" width={1200} height={800} alt="AI-generated illustration: a plain old room with an iron stove and wavy heat lines. On a table sit eggs, one cracked open and hard-cooked, and a cooked steak. Beside it a man in 18th-century dress sits calmly with a glass thermometer under his tongue. An inset contrasts an egg, which warms, with a seated person, who does not." caption="An egg in hot air keeps warming toward the air's temperature; in Blagden's brief trials a living body pushed back, and its temperature barely moved." />
 
-1. The **regulated variable**: the quantity being held, such as core body temperature or the salt concentration of blood.
-2. The **set point**: the reference value around which the normal range fluctuates.
-3. The **sensor**: a structure that measures the variable.
-4. The **integrator**, or control centre: compares the sensed value with the set point and sends out a command.
-5. The **effector**: a muscle, gland or other organ that changes the variable.
+## Four tissues build the loop and the stomach wall
 
-A house thermostat is the analogy: room temperature is the variable, the dial the set point, the thermometer the sensor, the circuit the integrator and the furnace the effector.
+A **tissue** is a group of similar cells, with the material around them, that together do one kind of job. Most animals are built from four types, and the skin's temperature loop uses all four.
 
-In an adult human the variable is core temperature. Temperature-sensitive nerve cells in the skin and in the brain are the sensors. A temperature-regulating region of the brain, in the hypothalamus, is the integrator; how it is wired is covered in [the hypothalamus and the autonomic system](/lessons/hypothalamus-autonomic/). When temperature rises, the effectors include blood vessels in the skin, which widen and carry more heat to the surface, and sweat glands, whose sweat removes heat as it evaporates. When it falls, skin vessels narrow to keep heat in, and skeletal muscles shiver and release heat as they use ATP. Behaviour, such as seeking shade or putting on a coat, is an effector too.
+- **Epithelial tissue** is a sheet of closely joined cells that covers the body's surfaces and lines its cavities and tubes. It controls what crosses it. Sweat glands are epithelium that secretes. More in [epithelia](/lessons/epithelia/).
+- **Connective tissue** is living cells spread through a nonliving **extracellular matrix**, a mesh of protein fibres and other material the cells secrete. Bone, tendon, fat, blood and the skin's deep, vessel-carrying layer are connective tissues. More in [adhesion and the extracellular matrix](/lessons/adhesion-and-ecm/).
+- **Muscle tissue** is made of cells that contract and so produce movement or force. Smooth muscle narrows the skin's small arteries to keep heat in.
+- **Nervous tissue** is **neurons**, cells that receive and send electrical signals, plus **glial cells**, which support them. Temperature-sensitive nerve endings in the skin, and nerve cells in the brain, are the loop's sensors; the hypothalamic integrator is nervous tissue too.
 
-Blagden's report from 1775 shows the loop at work in people. In a stove-heated chamber with air at 200 degrees F or more, eggs roasted hard and a steak cooked, but the thermometer under his tongue stayed near 98 degrees, about a degree above normal for him.
+An **organ** is a structure built from several tissues that work together. A stained section through a stomach wall shows all four, layered as in the figure; the connective tissue also holds the layers together, and the muscle squeezes the contents as well as churning them.
 
-<LessonFigure src="/figures/tissues-and-homeostasis/blagden-hot-room.webp" width={1200} height={800} alt="AI-generated illustration: a plain old room with an iron stove and wavy heat lines. On a table sit eggs, one cracked open and hard-cooked, and a cooked steak. Beside it a man in 18th-century dress sits calmly with a glass thermometer under his tongue. An inset contrasts an egg, which warms, with a seated person, who does not." caption="In rooms heated far above the boiling point of water, Blagden's party watched eggs roast hard and a steak cook while a thermometer under the tongue stayed near its usual reading. An egg follows the air; a living body, it seemed, did not." />
+<LessonFigure src="/figures/tissues-and-homeostasis/stomach-wall-four-tissues.webp" width={1200} height={793} alt="AI-generated illustration: a flat diagram of a stomach wall as four stacked layers, from the inside outward a sheet of epithelial cells, connective tissue with two blood vessels, and layers of smooth muscle with a web of nerve cells between them. An inset shows the stomach as one block among the esophagus, intestines, liver and pancreas in the digestive system." caption="An organ is several tissues working together: in the stomach wall, epithelium lines the inside, connective tissue carries the blood vessels, smooth muscle churns, and a network of nerve cells between the muscle layers helps control it." />
 
-Blagden credited evaporation of sweat with part of the cooling, but he suspected an extra power of the living body did most of it. Physiology no longer needs that extra power. We now know the brain holds temperature by adjusting sweating and skin blood flow, and that when the air is hotter than the skin, evaporation of sweat is the only route left to lose heat. In humid air, where sweat evaporates slowly, that route weakens. These were brief trials; see [the duration and details below](#blagdens-hot-rooms-in-detail).
+An **organ system** is a set of organs that share a larger job: the stomach belongs to the digestive system, with the esophagus, intestines, liver and pancreas.
 
-Plants run loops too. As a leaf's water status falls, its stomata, the pores in its surface, close, which slows water loss.
+Sponges have specialized cells but no true tissues of this kind ([animal body plans](/lessons/animal-body-plans/)). A flowering plant is built from dermal, vascular and ground tissues ([plant body and growth](/lessons/plant-body-and-growth/)), and plants run loops too: as a leaf's water status falls, its stomata, the pores in its surface, close, which slows water loss.
 
 ## Negative and positive feedback, and set points that move
 
-In **negative feedback**, the response opposes the deviation. "Negative" does not mean "makes the variable smaller". If temperature rises, sweating brings it down; if it falls, shivering brings it up. Both are negative feedback, because each response pushes the variable back toward the set point.
+The film's push-back toward the set point, from either side, is **negative feedback**, the commonest way homeostasis works. "Negative" names the direction of the push, not of the change: shivering raises temperature and is still negative feedback.
 
-In **positive feedback**, the response amplifies the change, and the loop runs until something outside it ends it. The textbook model is human childbirth: stretch of the cervix promotes release of the hormone oxytocin, which strengthens contractions of the uterus, which stretches the cervix further, until the baby is born. Treat that as a model of human labour. Mice that lack oxytocin entirely gave birth without obvious problems, though they could not let down milk, so the loop as drawn does not carry over to every mammal. Feedback as circuitry, with gains and delays, is in [signaling circuits](/lessons/signaling-circuits/).
+In **positive feedback**, the response pushes the variable further from where it started. The textbook model is human childbirth: stretch of the cervix promotes release of the hormone oxytocin, which strengthens contractions of the uterus, which stretches the cervix further, until something outside the loop, the birth of the baby, ends it.
 
-Homeostasis defends a range, not a single number, and the set point itself can move. In a fever the set point for core temperature rises, so a person at normal temperature feels cold and shivers. Body temperature also follows a daily rhythm. So the value of normal depends on where and when you measure.
+**Predict.** Flip the push to point away from the set point: inside shift = outside shift × leak strength ÷ (leak strength − push strength). What if the push is half as strong as the leak? Twice as strong?
+
+<details>
+<summary>Check your prediction</summary>
+
+Half: 1 ÷ (1 − 0.5) = 2, so the shift doubles but still settles. Twice: there is no stable balance, and any change keeps growing. Positive feedback runs away only when the push is stronger than the leak. The model cannot say how strong the labour loop is.
+
+</details>
+
+Treat the labour loop as a model of human labour: mice that lack oxytocin entirely gave birth without obvious problems, though they could not let down milk, so the loop as drawn does not carry over to every mammal. Feedback as circuitry, with gains (how strongly a loop responds) and delays, is in [signaling circuits](/lessons/signaling-circuits/).
+
+Homeostasis defends a range, and the set point can move. In a fever the set point for core temperature rises, so a person at normal temperature feels cold and shivers. Body temperature also follows a daily rhythm, so normal depends on where and when you measure.
 
 <HomeostaticLoopStepper />
 
-Some responses come before the variable changes. In **feedforward** control, a signal that predicts a disturbance triggers the response early. You will meet one in the design problem at the end.
+In **feedforward** control, a signal that predicts a disturbance triggers the response before the variable changes; the design problem at the end tests one.
+
+The main example so far, human core temperature, has strong push-back. Is that the rule? The second film reads the dial off four animals, for two variables.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## Regulators and conformers, and the price of constancy
 
-A **regulator** holds an internal variable fairly steady across a range of outside conditions. A **conformer** lets that variable follow the environment, within limits it can survive. Both labels describe one variable over one range, never a whole animal.
+The second film left out two temperature words often mixed up with regulator and conformer. An **endotherm** warms its body mainly with heat from its own metabolism; mammals and birds are endotherms, with partial endothermy in some fish and insects. An **ectotherm** gets its body heat mainly from its surroundings.
 
-**Temperature.** An **endotherm** warms its body mainly with heat from its own metabolism; mammals and birds are endotherms, with partial endothermy in some fish and insects. An **ectotherm** gets its body heat mainly from its surroundings. An adult human regulates core temperature by sweating and shivering. A typical teleost fish in a lake is an ectotherm whose body temperature largely follows the water. That is a different solution, not a lesser one.
+**Predict.** A desert lizard gets most of its body heat from the sun rather than from its own metabolism. Is it therefore a conformer?
 
-**Blood salt.** **Osmolality** is the concentration of dissolved particles in a fluid. An **osmoconformer** lets its blood osmolality follow the water's; an **osmoregulator** holds it fairly steady as the water's changes. The blue mussel, *Mytilus edulis*, conforms: over the salinities it tolerates, its blood comes close to the water around it. The shore crab, *Carcinus maenas*, is close to seawater in full-strength seawater, but in water diluted to roughly half strength it holds its blood well above the water. So it conforms at one end of its range and regulates at the other. How either animal does it is in [osmoregulation](/lessons/osmoregulation/).
+<details>
+<summary>Check your prediction</summary>
 
-Regulation is not free. In a 2022 study, John and colleagues measured energy expenditure by indirect calorimetry in single-housed male C57BL/6J mice and found it about 30% higher at 22 degrees C than at 30 degrees C. A mouse is small and loses heat fast through its large surface for its size, so at 22 degrees C it spends more to stay warm.
+Not necessarily. Endotherm and ectotherm say where the heat comes from; regulator and conformer say how far the body follows the outside. A lizard that shuttles between sun and shade is an ectotherm that regulates, with behaviour as its effector; a typical lake fish is an ectotherm that largely conforms, a different solution, not a lesser one.
 
-**Worked problem.** The 30% is measured; the baseline here is invented for arithmetic. Assume a mouse of this kind spends 24 kJ per day at 30 degrees C, and treat the ratio as exactly 1.30. Assume steady state and the same mouse in both conditions.
+</details>
 
-1. *Expenditure at 22 degrees C.* 24 kJ per day x 1.30 = 31.2 kJ per day.
-2. *Extra daily cost.* 31.2 - 24 = 7.2 kJ per day. Over 30 days: 7.2 x 30 = 216 kJ.
-3. *The reverse move.* Moving the mouse from 22 to 30 degrees C cuts expenditure by 7.2 / 31.2 = 0.231, or 23.1%, not 30%. The base is now the larger value.
-4. *Check.* 31.2 x (1 - 0.231) = 31.2 x 0.769 = 24.0 kJ per day.
+For blood salt, where the variable is **osmolality**, the concentration of dissolved particles in a fluid, the terms are **osmoregulator** and **osmoconformer**; how the mussel and crab manage it is in [osmoregulation](/lessons/osmoregulation/).
+
+Regulation is not free. By the one idea, the inside stays near the set point only when push-back is much stronger than leak, and the effectors cancel what leaks; in a cool room, that means making as much heat as leaks out. A mouse, small and losing heat fast through its large surface for its size, makes a sharp test.
+
+**Predict.** Two mice sit in rooms at 30 degrees C and 22 degrees C. Both hold their core near 37 degrees C. In which room do their effectors work harder, and why should the extra work grow as the room gets colder?
+
+<details>
+<summary>Check your prediction</summary>
+
+At 22 degrees C. A colder room means a bigger gap between body and air, so heat leaks out faster, and extra heat production must make it up.
+
+</details>
+
+In a 2022 study, John and colleagues measured energy expenditure by indirect calorimetry (from oxygen used and carbon dioxide produced) in single-housed male C57BL/6J mice, and found it about 30% higher at 22 degrees C than at 30 degrees C.
+
+**Worked problem.** The 30% is measured; the baseline is invented for arithmetic. Assume a mouse of this kind spends 24 kJ per day at 30 degrees C, at steady state, the same mouse in both conditions, and treat the ratio as exactly 1.30. A percentage change uses the starting value as its base:
 
 > **percentage change = 100 x (new - old) / old**
 
-Keep the scope: one strain, one sex, two temperatures. See [the study limits below](#the-mouse-energy-study-scope-and-mouse-thermoneutral-points) for the calibration caveat and thermoneutral points. Heat balance comes next, in [thermoregulation](/lessons/thermoregulation/); the signals that run these loops are in [nervous control](/lessons/nervous-control/) and [the endocrine system](/lessons/endocrine-system/).
+1. *Expenditure at 22 degrees C.* 24 kJ per day x 1.30 = 31.2 kJ per day.
+2. *Extra daily cost.* 31.2 - 24 = 7.2 kJ per day. Over 30 days: 7.2 x 30 = 216 kJ.
+3. *The reverse move.* Moving the mouse from 22 to 30 degrees C cuts expenditure by 7.2 / 31.2 = 0.231, or 23.1%, not 30%, because the base is now the larger value.
+4. *Check.* 31.2 x (1 - 0.231) = 31.2 x 0.769 = 24.0 kJ per day.
+
+Scope: one study, one strain, one sex, two temperatures, and 30 degrees C is not zero cost ([thermoneutral points and a calibration caveat below](#the-mouse-energy-study-scope-and-mouse-thermoneutral-points)). Heat balance comes next, in [thermoregulation](/lessons/thermoregulation/); the signals that run these loops are in [nervous control](/lessons/nervous-control/) and [the endocrine system](/lessons/endocrine-system/).
 
 ### Design problem
 
-A thirsty mouse that drinks stops long before the water is absorbed and dilutes its blood. Zimmerman and colleagues (2019) found that in mice, water infused straight into the stomach silenced thirst-promoting neurons in the subfornical organ, a small brain region, with a mean latency of about 105 seconds in hydrated mice (107 seconds in water-deprived mice), before any detectable change in blood osmolality, and that cutting the vagus nerves below the diaphragm weakened the suppression of drinking. Design an experiment that tests whether drinking stops only after the blood is corrected, or whether a signal from the gut acts first.
+A thirsty mouse stops drinking long before the water is absorbed and dilutes its blood. You can infuse fluid through a stomach tube, bypassing the mouth, and record thirst-promoting neurons in the subfornical organ, a small brain region. Design an experiment that tests whether drinking stops only after the blood is corrected, or whether a signal from the gut acts first.
 
 <details>
 <summary>One way to do it</summary>
 
-Use thirsty mice with a stomach tube, so fluid bypasses the mouth, and record the thirst neurons throughout.
+1. *Separate volume from dilution.* Give one group water and another an equal volume of concentrated (hypertonic) salt solution. If stretch alone stopped thirst, both would silence the neurons; if the gut senses dilution, only water should.
+2. *Put neurons and blood on one time base.* Sample blood osmolality at short intervals while recording. Neural activity falling before blood changes means a feedforward signal on top of negative feedback from the blood.
+3. *Test the route.* Compare vagotomy, cutting the vagus nerves below the diaphragm, with a sham operation, in which the nerves are exposed but not cut. If the effect weakens only after vagotomy, the vagus carries part of the signal.
 
-1. *Separate volume from dilution.* Give one group water and another an equal volume of concentrated (hypertonic) salt solution. If stomach stretch alone stopped thirst, both would silence the neurons. If the gut senses dilution, only water should. Zimmerman and colleagues reported that hypertonic saline in the stomach activated these neurons instead.
-2. *Put neurons and blood on one time base.* Sample blood osmolality at short intervals while recording, and ask which changes first. Neural activity falling before blood changes means a feedforward signal on top of negative feedback from the blood.
-3. *Test the route.* Compare vagotomy with a sham operation, in which the nerves are exposed but not cut. If the effect weakens only after vagotomy, the vagus carries part of the signal.
+Zimmerman and colleagues (2019) found that water in the stomach silenced the neurons with a mean latency of about 105 seconds in hydrated mice (107 seconds in water-deprived mice), before any detectable change in blood osmolality; hypertonic saline in the stomach activated them instead; and vagotomy weakened the suppression of drinking.
+
 Limits: this is mice only, "no detectable change" depends on how sensitive the blood assay is, and the 2019 study did not find the gut sensor. Later work in mice (Ichiki and colleagues, 2022) traced the signal to vagal nerve fibres serving the hepatic portal area, where absorbed water passes toward the liver, driven partly by the gut hormone vasoactive intestinal peptide; which cells first detect the dilution is still open.
 
 </details>
@@ -437,7 +499,9 @@ Limits: this is mice only, "no detectable change" depends on how sensitive the b
 
 ### Blagden's hot rooms in detail
 
-George Fordyce procured a suite of rooms for heating experiments. On 23 January 1775 Blagden went into a stove-heated chamber with Joseph Banks, Daniel Solander and Captain Phipps. The air stood near 200 degrees F for the party and above 211 when Banks went in. On 3 April 1775 the party returned to the same room, which by evening passed 260 degrees. Earlier that day, eggs set in the room roasted hard in about twenty minutes and a steak was overdone in thirty-three, while Blagden's body thermometer came back to nearly the same point each time he checked. Blagden cited Fordyce's trials in steamy rooms, where sweat could not evaporate, as support for an extra power of the living body. On 23 January his pulse rose while the thermometer under his tongue read 98 degrees. The 1775 trials lasted minutes, not hours.
+George Fordyce procured a suite of rooms for heating experiments. On 23 January 1775 Blagden entered a stove-heated chamber with Joseph Banks, Daniel Solander and Captain Phipps; his pulse rose while the thermometer under his tongue read 98 degrees. On 3 April, in the room that passed 260 degrees by evening, eggs set there earlier roasted hard in about twenty minutes and a steak was overdone in thirty-three, while Blagden's body thermometer came back to nearly the same point each time he checked.
+
+Blagden credited sweat evaporation with part of the cooling but suspected an extra power of the living body did most, citing Fordyce's trials in steamy rooms, where sweat could not evaporate. Physiology no longer needs that extra power: the brain holds temperature by adjusting sweating and skin blood flow.
 
 ### Is normal exactly 37 degrees C?
 

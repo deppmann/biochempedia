@@ -1,34 +1,42 @@
-"""Population growth: growth falls as numbers rise  (Biochemistrypedia explainer)
+"""Population growth: Watch the Per-Capita Rate (film 1 of 2).
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the population, N (bars, the logistic population curve's start)
-  YELLOW = per capita growth rate, r (and what new individuals add)
-  ORANGE = the exponential model
-  GREEN  = the logistic model
-  TEAL   = total growth, dN/dt
-  GOLD   = K, the carrying capacity and equilibrium
-  RED    = a wrong expectation / the time-lag sketch that overshoots
-  GREY   = axes, structure, de-emphasised
+COLOUR MAP (same in both films)
+  WHITE  = N, population size
+  TEAL   = per-capita rate (and its line)
+  GOLD   = K, the carrying capacity
+  ORANGE = total growth dN/dt (and each day's gain)
+  GREEN / RED = births / deaths (schematic, s02 and s09 only)
+One world: rule on top, rate panel (left), N-vs-time panel (right), growth hump (lower left).
+All curves are computed from r = 0.2 per day, K = 1000, N0 = 100.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
 ORANGE = "#F29E4C"
 R, K, N0 = 0.2, 1000.0, 100.0
+T_J = float(np.log(12.0) / R)          # day when exp growth reaches N = 1200 (12.43)
 
 
-def logi(t, n0=N0):
-    return K / (1 + (K / n0 - 1) * np.exp(-R * t))
+def Nlog(t):
+    return K / (1 + (K / N0 - 1) * np.exp(-R * t))
 
 
-def expo(t):
+def Nexp(t):
     return N0 * np.exp(R * t)
+
+
+def tof(N):
+    return -np.log((K / N - 1) / (K / N0 - 1)) / R
+
+
+def rate(N, s=1.0):
+    return R * (1 - s * N / K)
 
 
 class Plot:
     """Hand-built axes (no LaTeX). box = (x0, x1, y0, y1) in scene units; xr, yr = data ranges."""
 
-    def __init__(self, box, xr, yr, xticks, yticks, xlabel, ylabel, ysize=22):
+    def __init__(self, box, xr, yr, xticks, yticks, xlabel, ylabel):
         self.x0, self.x1, self.y0, self.y1 = box
         self.xr, self.yr = xr, yr
         self.parts = VGroup()
@@ -42,396 +50,765 @@ class Plot:
             p = self.pt(xr[0], v)
             self.parts.add(Line(p, p + LEFT * 0.1, color=GREY, stroke_width=3))
             self.parts.add(T(lab, 22, GREY).next_to(p, LEFT, buff=0.14))
-        self.xl = T(xlabel, 24, GREY).next_to(Line([self.x0, self.y0, 0], [self.x1, self.y0, 0]), DOWN, buff=0.55)
-        self.yl = T(ylabel, 24, GREY)
-        self.yl.move_to([self.x0, self.y1 + 0.35, 0])
-        self.yl.shift(RIGHT * (self.yl.width / 2 - 0.3))
-        self.parts.add(self.xl, self.yl)
+        xl = T(xlabel, 24, GREY).move_to([(self.x0 + self.x1) / 2, self.y0 - 0.62, 0])
+        yl = T(ylabel, 24, GREY).move_to([self.x0, self.y1 + 0.35, 0])
+        yl.shift(RIGHT * (yl.width / 2 - 0.3))
+        self.parts.add(xl, yl)
 
     def pt(self, x, y):
         fx = (x - self.xr[0]) / (self.xr[1] - self.xr[0])
         fy = (y - self.yr[0]) / (self.yr[1] - self.yr[0])
         return np.array([self.x0 + fx * (self.x1 - self.x0), self.y0 + fy * (self.y1 - self.y0), 0.0])
 
-    def curve(self, fn, x_from, x_to, color, n=160, ymax=None, w=6):
-        xs = np.linspace(x_from, x_to, n)
-        pts = []
-        for x in xs:
-            y = fn(x)
-            if ymax is not None and y > ymax:
-                y = ymax
-            pts.append(self.pt(x, y))
+
+LB = (-5.4, -0.9, 0.6, 2.6)
+RB = (2.0, 6.5, -2.75, 1.2)
+HB = (-5.4, -0.9, -2.75, -1.1)
+
+
+def left_plot():
+    return Plot(LB, (0, 1200), (-0.05, 0.25), [(0, "0"), (500, "500"), (1000, "1000")],
+                [(0, "0"), (0.1, "0.1"), (0.2, "0.2")], "N", "per-capita rate (per day)")
+
+
+def right_plot(xmax=20):
+    return Plot(RB, (0, xmax), (0, 1200), [(v, str(v)) for v in range(0, xmax + 1, 10)],
+                [(0, "0"), (500, "500"), (1000, "1000")], "time (days)", "N")
+
+
+def hump_plot():
+    return Plot(HB, (0, 1000), (0, 70), [(0, "0"), (500, "500"), (1000, "1000")],
+                [(0, "0"), (25, "25"), (50, "50")], "N", "growth (individuals / day)")
+
+
+def zero_line(P):
+    return DashedLine(P.pt(0, 0), P.pt(1200, 0), color=GREY, stroke_width=2, dash_length=0.12).set_opacity(0.6)
+
+
+def rate_line(P, s):
+    return Line(P.pt(0, R), P.pt(1200, R * (1 - s * 1.2)), color=TEAL, stroke_width=6)
+
+
+def rate_line_live(P, st):
+    return always_redraw(lambda: Line(P.pt(0, R), P.pt(1200, R * (1 - st.get_value() * 1.2)), color=TEAL, stroke_width=6))
+
+
+def static_curve(P, fn, x0, x1, color=WHITE, w=6, op=1.0, n=120):
+    xs = np.linspace(x0, x1, n)
+    m = VMobject(stroke_color=color, stroke_width=w, stroke_opacity=op, fill_opacity=0)
+    m.set_points_as_corners([P.pt(x, fn(x)) for x in xs])
+    return m
+
+
+def grow_curve(P, fn, tt, color=WHITE, w=6):
+    def mk():
+        t = tt.get_value()
         m = VMobject(stroke_color=color, stroke_width=w, fill_opacity=0)
-        m.set_points_as_corners(pts)
+        if t < 0.05:
+            return m
+        xs = np.linspace(0, t, max(3, int(t * 10) + 1))
+        m.set_points_as_corners([P.pt(x, fn(x)) for x in xs])
         return m
+    return always_redraw(mk)
 
 
-def tag_sketch(pos=(-4.5, -3.2, 0)):
-    return T("in this sketch", 24, GREY).move_to(list(pos))
+def rule(size=30):
+    k = size / 30.0
+    g = VGroup(T("growth", size, ORANGE, weight=BOLD), T("=", size), T("per-capita rate", size, TEAL, weight=BOLD),
+               T("×", size), T("N", size, WHITE, weight=BOLD)).arrange(RIGHT, buff=0.25 * k)
+    return g
 
 
-class Timed(SpokenScene):
-    def gap(self, phrase, lead=0.25, lo=0.4, nth=0):
-        """seconds from now until just before the narrator says `phrase` (never below lo)."""
+def rule_top():
+    return rule(30).move_to([0, 3.5, 0])
+
+
+def readout(nf, rf):
+    """Three rows tied to the same tracker as the dot: N (white), rate (teal), growth (orange)."""
+    box = RoundedRectangle(corner_radius=0.14, width=5.2, height=1.9, stroke_color=GREY, stroke_width=2.5).move_to([-3.15, -1.85, 0])
+
+    def mk():
+        n = nf()
+        r = rf(n)
+        rows = VGroup(M(f"N      = {n:5.0f}", 28, WHITE), M(f"rate   = {r:+5.2f} /day", 28, TEAL),
+                      M(f"growth = {r * n:+5.0f} /day", 28, ORANGE)).arrange(DOWN, aligned_edge=LEFT, buff=0.16)
+        rows.move_to(box.get_center())
+        rows.align_to(box.get_left() + RIGHT * 0.3, LEFT)
+        return rows
+    return VGroup(box, always_redraw(mk))
+
+
+def animal(r=0.14, ears=True):
+    g = VGroup(Dot(radius=r, color=WHITE))
+    if ears:
+        g.add(Dot(radius=r * 0.5, color=WHITE).shift(np.array([-r * 0.75, r * 0.85, 0])),
+              Dot(radius=r * 0.5, color=WHITE).shift(np.array([r * 0.75, r * 0.85, 0])))
+    return g
+
+
+def bob(m, amp=0.04, speed=2.0, seed=0):
+    rng = np.random.RandomState(seed)
+    m.base = m.get_center().copy()
+    m.ph = rng.uniform(0, 6.28)
+    m.tt = 0.0
+
+    def f(mm, dt):
+        mm.tt += dt
+        mm.move_to(mm.base + np.array([0, amp * np.sin(speed * mm.tt + mm.ph), 0]))
+    m.add_updater(f)
+    return m
+
+
+def crowd(cols, rows, dx, dy, center, seed=1, ears=True, r=0.14, jitter=0.06):
+    rng = np.random.RandomState(seed)
+    g = VGroup()
+    for i in range(rows):
+        for j in range(cols):
+            p = np.array([center[0] + (j - (cols - 1) / 2) * dx + rng.uniform(-jitter, jitter),
+                          center[1] + (i - (rows - 1) / 2) * dy + rng.uniform(-jitter, jitter), 0])
+            g.add(bob(animal(r, ears).move_to(p), seed=len(g) + seed * 100))
+    return g
+
+
+def pulse(m, base=6, amp=2.5, speed=5.0):
+    m.pt_ = 0.0
+
+    def f(mm, dt):
+        mm.pt_ += dt
+        mm.set_stroke(width=base + amp * np.sin(speed * mm.pt_))
+    m.add_updater(f)
+    return m
+
+
+class Base(SpokenScene):
+    def setup(self):
+        super().setup()
+        rng = np.random.RandomState(abs(hash(os.environ.get("KX_SCENE_ID", "x"))) % 1000)
+        W, H = 14.0, 7.8
+        motes = VGroup()
+        for _ in range(45):
+            d = Dot(radius=rng.uniform(0.04, 0.09), color=rng.choice([TEAL, GREY, TEXT])).set_opacity(rng.uniform(0.25, 0.5))
+            d.move_to([rng.uniform(-W / 2, W / 2), rng.uniform(-H / 2, H / 2), 0])
+            d.v = (rng.uniform(-0.3, 0.3), rng.uniform(0.2, 0.5))
+
+            def drift(m, dt):
+                m.shift([m.v[0] * dt, m.v[1] * dt, 0])
+                if m.get_y() > H / 2:
+                    m.shift(DOWN * H)
+                if abs(m.get_x()) > W / 2:
+                    m.shift(LEFT * W * (1 if m.get_x() > 0 else -1))
+            d.add_updater(drift)
+            motes.add(d)
+        motes.set_z_index(-10)
+        self.add(motes)
+
+    def until(self, phrase, lead=0.25, lo=0.3, nth=0):
         return max(lo, self.t_of(phrase, nth) - lead - self.elapsed())
+
+    def left_dot(self, P, nf, rf):
+        return always_redraw(lambda: Dot(P.pt(nf(), rf(nf())), radius=0.12, color=WHITE, stroke_color=TEAL, stroke_width=3))
 
 
 class S00Title(TitleCard):
-    LESSON = "Population growth and regulation"
-    TITLE = "Growth falls as numbers rise"
+    LESSON = "Population Growth and Regulation"
+    TITLE = "Watch the Per-Capita Rate"
 
 
 # ---------------------------------------------------------------------------------------------
-class S01Compound(Timed):
-    """100 -> expected 300 (crossed) vs 739; the part above 300 is what new individuals add."""
-
+class S01Question(Base):
     def construct(self):
-        base = -2.55
-        sc = 4.5 / 739.0
-        head = chip("invented population  ·  r = 0.2 per day", YELLOW, size=26).to_edge(UP, buff=0.35)
-        axis = Line([-6.0, base, 0], [6.0, base, 0], color=GREY, stroke_width=3)
-        bw = 1.9
-        xs = [-3.9, 0.0, 3.9]
-
-        def bar(x, v, color, op=0.55):
-            return Rectangle(width=bw, height=max(v * sc, 0.01), stroke_color=color, stroke_width=3,
-                             fill_color=color, fill_opacity=op).move_to([x, base + v * sc / 2, 0])
-
-        self.at("invented population")
-        self.play(FadeIn(head, shift=DOWN * 0.1), Create(axis), run_time=0.7)
-        b0 = bar(xs[0], 100, BLUE)
-        l0 = T("day 0", 26, GREY).move_to([xs[0], base - 0.4, 0])
-        v0 = M("100", 30, BLUE).next_to(b0, UP, buff=0.12)
-        unit = T("individuals", 24, BLUE).next_to(v0, UP, buff=0.05)
-        self.at("individuals with a per")
-        self.play(GrowFromEdge(b0, DOWN), FadeIn(l0), run_time=0.6)
-        self.play(FadeIn(v0), FadeIn(unit), run_time=0.3)
-
-        # ten days pass
-        arrow10 = Arrow([xs[0] + 1.1, 0.6, 0], [xs[1] - 1.1, 0.6, 0], color=GREY, buff=0.05, stroke_width=5)
-        t10 = T("10 days", 28, GREY).next_to(arrow10, UP, buff=0.15)
-        self.at("After")
-        self.play(GrowArrow(arrow10), FadeIn(t10), run_time=0.8)
-
-        # the guess: three hundred
-        gb = Rectangle(width=bw, height=300 * sc, stroke_color=GREY, stroke_width=3, fill_opacity=0).move_to([xs[1], base + 300 * sc / 2, 0])
-        gb = DashedVMobject(gb, num_dashes=40)
-        gl = T("day 10", 26, GREY).move_to([xs[1], base - 0.4, 0])
-        gt = M("300?", 30, GREY).next_to(gb, UP, buff=0.12)
-        gsub = T("you might expect", 24, GREY).move_to([xs[1], base - 0.85, 0])
-        self.at("might expect")
-        self.play(Create(gb), FadeIn(gl), FadeIn(gt), FadeIn(gsub), run_time=0.9)
-
-        # the real bar
-        rl = T("day 10", 26, GREY).move_to([xs[2], base - 0.4, 0])
-        rsub = T("if nothing stops it", 24, ORANGE).move_to([xs[2], base - 0.85, 0])
-        lower = bar(xs[2], 300, BLUE)
-        extra = Rectangle(width=bw, height=439 * sc, stroke_color=ORANGE, stroke_width=3,
-                          fill_color=ORANGE, fill_opacity=0.55).move_to([xs[2], base + 300 * sc + 439 * sc / 2, 0])
-        self.at("nothing stops it")
-        self.play(FadeIn(rl), FadeIn(rsub), run_time=0.3)
-        self.play(GrowFromEdge(lower, DOWN), run_time=0.9)
-        # cross out the guess when the real bar passes it
-        cross = VGroup(Line(gb.get_corner(UL), gb.get_corner(DR), color=RED, stroke_width=6),
-                       Line(gb.get_corner(UR), gb.get_corner(DL), color=RED, stroke_width=6))
-        self.play(GrowFromEdge(extra, DOWN), Create(cross), run_time=1.0)
-        v2 = M("739", 34, ORANGE).next_to(extra, UP, buff=0.12)
-        self.play(FadeIn(v2), run_time=0.4)
-
-        self.at("Growth compounds")
-        self.play(Indicate(extra, color=ORANGE, scale_factor=1.04), run_time=0.9)
-        lab = T("more than\nstraight-line growth (300)", 24, ORANGE, line_spacing=0.9)
-        lab.move_to([0.8, 1.3, 0])
-        arrow = Arrow(lab.get_right() + RIGHT * 0.05, [xs[2] - bw / 2 - 0.05, 1.2, 0], color=ORANGE, buff=0.1, stroke_width=5)
-        self.at("starts adding")
-        self.play(FadeIn(lab), GrowArrow(arrow), run_time=0.7)
+        ic = crowd(10, 10, 0.5, 0.5, (-3.3, -0.2))
+        self.play(LaggedStart(*[FadeIn(a, scale=0.4) for a in ic], lag_ratio=0.015), run_time=2.0)
+        tag = VGroup(T("N = 100", 36, WHITE, weight=BOLD), T("growth rate now:", 28, TEAL), T("about 20 per day", 28, TEAL)).arrange(DOWN, aligned_edge=LEFT, buff=0.15)
+        box = SurroundingRectangle(tag, color=TEAL, buff=0.25, corner_radius=0.14, stroke_width=3)
+        tagg = VGroup(box, tag).move_to([3.4, 1.8, 0])
+        self.at("rate it is growing")
+        self.play(FadeIn(tagg, shift=LEFT * 0.2), run_time=0.9)
+        body = RoundedRectangle(corner_radius=0.15, width=3.0, height=2.4, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.12)
+        band = Rectangle(width=3.0, height=0.5, stroke_width=0, fill_color=TEAL, fill_opacity=0.6).align_to(body, UP).align_to(body, LEFT)
+        day = T("today", 40, WHITE).move_to(body.get_center() + DOWN * 0.2)
+        cal = VGroup(body, band, day).move_to([3.4, -1.5, 0])
+        self.at("right now")
+        self.play(FadeIn(cal, shift=UP * 0.2), run_time=0.8)
+        q = T("?", 80, GOLD, weight=BOLD).move_to([3.4, 0.45, 0])
+        q.base = q.get_center().copy()
+        q.tt = 0.0
+        q.add_updater(lambda m, dt: (setattr(m, "tt", m.tt + dt), m.move_to(m.base + UP * 0.12 * np.sin(3 * m.tt)))[0])
+        self.at("tomorrow's")
+        tom = T("tomorrow?", 38, WHITE).move_to(day)
+        self.play(FadeIn(q), Transform(day, tom), run_time=0.8)
+        self.at("or faster")
+        self.play(Indicate(q, scale_factor=1.3, color=GOLD), run_time=0.9)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Double(Timed):
-    """dN/dt = rN: exponential curve and equal doubling intervals."""
-
+class S02Percapita(Base):
     def construct(self):
-        pl = Plot((-5.3, 5.5, -2.3, 2.1), (0, 10), (0, 800), [(0, "0"), (5, "5"), (10, "10")],
-                  [(0, "0"), (400, "400"), (800, "800")], "time (days)", "N (individuals)")
-        self.add(pl.parts)
-        sk = tag_sketch()
-        n_chip = chip("N = number of individuals", BLUE, size=26)
-        r_chip = chip("r = 0.2 per day", YELLOW, size=26)
-        eq = chip("dN/dt = rN", ORANGE, size=28)
-        top = VGroup(n_chip, r_chip).arrange(RIGHT, buff=0.5).move_to([0.7, 3.0, 0])
-        self.at("number of individuals")
-        self.play(FadeIn(n_chip, shift=DOWN * 0.1), Indicate(pl.yl, color=BLUE), run_time=0.7)
-        self.at("per capita rate")
-        self.play(FadeIn(r_chip, shift=DOWN * 0.1), run_time=0.6)
-        eq.move_to(top.get_center())
-        self.at("Growth each day")
-        self.play(FadeOut(top), run_time=0.3)
-        self.play(FadeIn(eq, scale=0.9), FadeIn(sk), run_time=0.5)
-        cur = pl.curve(expo, 0, 10, ORANGE)
-        self.play(Create(cur), run_time=self.gap("constant doubling time", lo=1.0) - 0.4, rate_func=linear)
-        end = Dot(pl.pt(10, expo(10)), color=ORANGE, radius=0.1)
-        self.play(FadeIn(end), run_time=0.2)
-
-        # doubling marks: equal time steps
-        td = np.log(2) / R
-        self.at("constant doubling time")
-        marks = VGroup()
-        for i in range(0, 3):
-            t = td * i
-            p = pl.pt(t, expo(t))
-            marks.add(DashedLine(pl.pt(t, 0), p, color=GREY, stroke_width=3))
-            marks.add(Dot(p, color=ORANGE, radius=0.11))
-        self.play(LaggedStart(*[FadeIn(m) for m in marks], lag_ratio=0.15), run_time=1.5)
-        br = VGroup()
-        for i in range(2):
-            a, b = pl.pt(td * i, 0), pl.pt(td * (i + 1), 0)
-            y = pl.y0 - 0.0
-            seg = Line(a + UP * 0.35, b + UP * 0.35, color=TEAL, stroke_width=5)
-            br.add(seg, Line(seg.get_start() + DOWN * 0.1, seg.get_start() + UP * 0.1, color=TEAL, stroke_width=5),
-                   Line(seg.get_end() + DOWN * 0.1, seg.get_end() + UP * 0.1, color=TEAL, stroke_width=5))
+        ic = crowd(10, 10, 0.5, 0.5, (-3.3, -0.2))
+        self.add(ic)
+        keep = ic[55]
+        others = VGroup(*[a for i, a in enumerate(ic) if i != 55])
+        keep.clear_updaters()
+        self.play(FadeOut(others), keep.animate.scale(3.6).move_to([-3.6, 0.2, 0]), run_time=1.4)
+        eyes = VGroup(Dot(radius=0.07, color=BG).move_to(keep[0].get_center() + np.array([-0.17, 0.08, 0])),
+                      Dot(radius=0.07, color=BG).move_to(keep[0].get_center() + np.array([0.17, 0.08, 0])))
+        self.play(FadeIn(eyes), run_time=0.4)
+        self.at("it may give birth")
+        baby = animal(0.1).move_to([-1.2, 1.5, 0])
+        a1 = Arrow([-2.9, 0.6, 0], [-1.7, 1.35, 0], color=GREEN, buff=0, stroke_width=6)
+        l1 = T("+ births", 34, GREEN).next_to(baby, RIGHT, buff=0.3)
+        self.play(GrowArrow(a1), FadeIn(baby, scale=0.2), FadeIn(l1), run_time=1.0)
+        self.at("and it may die")
+        ghost = animal(0.1).move_to([-1.2, -1.1, 0]).set_opacity(0.4)
+        a2 = Arrow([-2.9, -0.2, 0], [-1.7, -0.95, 0], color=RED, buff=0, stroke_width=6)
+        l2 = T("- deaths", 34, RED).next_to(ghost, RIGHT, buff=0.3)
+        self.play(GrowArrow(a2), FadeIn(ghost, scale=0.2), FadeIn(l2), run_time=1.0)
+        self.at("Births minus deaths")
+        self.play(FadeOut(a1), FadeOut(a2), FadeOut(baby), FadeOut(ghost),
+                  l1.animate.move_to([3.2, 0.9, 0]), l2.animate.move_to([3.2, -0.3, 0]), run_time=1.4)
+        self.at("per individual")
+        br = SurroundingRectangle(VGroup(l1, l2), color=GREY, buff=0.25, corner_radius=0.12, stroke_width=2.5)
         self.play(Create(br), run_time=0.8)
-        self.at("Here it is about")
-        lab = T("doubling time  ln 2 / r  =  3.47 days", 26, TEAL).move_to([-1.9, 1.35, 0])
-        bg = Rectangle(width=lab.width + 0.3, height=lab.height + 0.2, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(lab)
-        self.play(FadeIn(bg), FadeIn(lab), run_time=0.7)
-        self.at("whether the population holds")
-        sub = T("at 100 or at 100,000", 26, TEAL).next_to(lab, DOWN, buff=0.25)
-        sbg = Rectangle(width=sub.width + 0.3, height=sub.height + 0.2, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(sub)
-        self.play(FadeIn(sbg), FadeIn(sub), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Brake(Timed):
-    """per capita rate: flat at r, then a straight line falling to zero at K."""
-
-    def construct(self):
-        pl = Plot((-5.0, 5.4, -2.2, 1.9), (0, 1000), (0, 0.2), [(0, "0"), (500, "500"), (1000, "1,000")],
-                  [(0, "0"), (0.1, "0.1"), (0.2, "0.2")], "N (individuals)", "per capita rate (per day)")
-        sk = tag_sketch()
-        self.add(pl.parts)
-        flat = pl.curve(lambda n: 0.2, 0, 1000, YELLOW, n=2)
-        flat_lbl = T("exponential: r stays 0.2", 26, ORANGE).move_to([1.5, pl.pt(0, 0.2)[1] + 0.45, 0])
-        self.at("Real populations meet")
-        self.play(Create(flat), FadeIn(flat_lbl), FadeIn(sk), run_time=1.2)
-        # crowd of dots: more individuals as N rises
-        dot = Dot(pl.pt(30, 0.2), color=BLUE, radius=0.14)
-        falling = pl.curve(lambda n: R * (1 - n / K), 0, 1000, YELLOW, n=2)
-        self.at("less food")
-        self.play(FadeIn(dot), run_time=0.3)
-        self.play(FadeOut(flat_lbl), run_time=0.3)
-        self.at("births fall")
-        eqn = chip("(1/N) dN/dt = r (1 − N/K)", YELLOW, size=28).move_to([1.2, 2.95, 0])
-        self.play(Transform(flat, falling), FadeIn(eqn, shift=DOWN * 0.1), run_time=self.gap("straight line", lead=0.6, lo=1.6))
-        self.at("straight line")
-        self.play(dot.animate.move_to(pl.pt(500, 0.1)), run_time=self.gap("near zero", lo=0.8), rate_func=smooth)
-        self.at("near zero")
-        self.play(dot.animate.move_to(pl.pt(30, R * (1 - 0.03))), run_time=0.7)
-        rl = M("r", 30, YELLOW).move_to(pl.pt(30, 0.2) + RIGHT * 0.5 + DOWN * 0.4)
-        self.play(FadeIn(rl), run_time=0.3)
-        self.at("zero at")
-        self.play(dot.animate.move_to(pl.pt(1000, 0)), run_time=self.gap("carrying capacity", lo=1.0), rate_func=smooth)
-        kmark = DashedLine(pl.pt(1000, 0), pl.pt(1000, 0.2), color=GOLD, stroke_width=4)
-        self.at("carrying capacity")
-        klab = chip("K = carrying capacity", GOLD, size=26)
-        klab.move_to([2.5, 0.9, 0])
-        self.play(Create(kmark), FadeIn(klab), run_time=0.8)
-        ksub = T("1,000 in the invented example", 24, GOLD).next_to(klab, DOWN, buff=0.2)
-        self.play(FadeIn(ksub), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Peak(Timed):
-    """total growth = per capita rate x N, peaks at K/2 (50 per day)."""
-
-    def construct(self):
-        L = Plot((-5.5, -0.9, -1.75, 1.75), (0, 1000), (0, 0.2), [(0, "0"), (500, "500"), (1000, "1,000")],
-                 [(0, "0"), (0.2, "0.2")], "N", "per capita rate")
-        Rp = Plot((1.4, 6.1, -1.75, 1.75), (0, 1000), (0, 55), [(0, "0"), (500, "500"), (1000, "1,000")],
-                  [(0, "0"), (50, "50")], "N", "total growth (individuals per day)")
-        self.add(L.parts)
-        self.add(L.curve(lambda n: R * (1 - n / K), 0, 1000, YELLOW, n=2))
-        sk = tag_sketch([-4.0, 2.95, 0])
-        tg = chip("total growth = rate × N", TEAL, size=28).move_to([2.2, 2.95, 0])
-        self.add(Rp.parts)
-        nt = ValueTracker(0)
-
-        def lp():
-            n = nt.get_value()
-            return L.pt(n, R * (1 - n / K))
-
-        def rp():
-            n = nt.get_value()
-            return Rp.pt(n, R * n * (1 - n / K))
-
-        ldot = always_redraw(lambda: Dot(lp(), color=BLUE, radius=0.12))
-        rdot = always_redraw(lambda: Dot(rp(), color=TEAL, radius=0.12))
-        link = always_redraw(lambda: DashedLine(lp(), rp(), color=GREY, stroke_width=2))
-        trace = always_redraw(lambda: self._trace(Rp, nt.get_value()))
-        self.at("Total growth")
-        self.play(FadeIn(tg, shift=DOWN * 0.1), FadeIn(sk), FadeIn(ldot), FadeIn(rdot), FadeIn(link), run_time=0.8)
-        self.add(trace)
         self.at("per capita rate")
-        self.play(Indicate(L.parts[1], color=YELLOW), run_time=0.8)
-        self.at("times big N")
-        self.play(Indicate(tg, color=TEAL), run_time=0.8)
-        self.at("At low")
-        few = T("few individuals to multiply", 26, TEAL).move_to([3.5, -3.2, 0])
-        self.play(nt.animate.set_value(90), FadeIn(few), run_time=self.gap("Near", lo=0.8), rate_func=smooth)
-        self.at("Near")
-        self.play(FadeOut(few), run_time=0.2)
-        self.play(nt.animate.set_value(950), run_time=self.gap("adds almost nothing", lo=0.8), rate_func=linear)
-        low = T("each adds almost nothing", 26, TEAL).move_to([3.5, -3.2, 0])
-        self.at("adds almost nothing")
-        self.play(FadeIn(low), run_time=0.5)
-        self.at("greatest in the middle")
-        self.play(FadeOut(low), nt.animate.set_value(500), run_time=min(1.6, self.gap("individuals per day", lo=0.6)), rate_func=smooth)
-        pk = chip("K / 2", GOLD, size=26).move_to([5.3, 1.2, 0])
-        pkd = DashedLine(Rp.pt(500, 0), Rp.pt(500, 50), color=GOLD, stroke_width=3)
-        self.play(Create(pkd), FadeIn(pk), run_time=0.6)
-        self.at("individuals per day")
-        lab = chip("50 individuals per day", TEAL, size=26).move_to([3.5, -3.2, 0])
-        self.play(FadeIn(lab, shift=UP * 0.1), Indicate(rdot, color=TEAL, scale_factor=1.8), run_time=0.9)
+        badge = VGroup(T("per-capita rate", 36, TEAL, weight=BOLD), T("= births - deaths,", 28), T("per individual", 28)).arrange(DOWN, buff=0.15)
+        bb = SurroundingRectangle(badge, color=TEAL, buff=0.28, corner_radius=0.14, stroke_width=3.5)
+        badge = VGroup(bb, badge).move_to([3.4, 0.3, 0])
+        self.play(ReplacementTransform(VGroup(l1, l2, br), badge), run_time=1.2)
+        self.play(Indicate(badge, color=TEAL, scale_factor=1.06), run_time=0.9)
         self.finish()
 
-    @staticmethod
-    def _trace(P, nmax):
-        nmax = max(nmax, 1.0)
-        xs = np.linspace(0, nmax, 90)
-        m = VMobject(stroke_color=TEAL, stroke_width=6, fill_opacity=0)
-        m.set_points_as_corners([P.pt(x, R * x * (1 - x / K)) for x in xs])
+
+class S03Rule(Base):
+    def construct(self):
+        badge = VGroup(T("per-capita rate", 36, TEAL, weight=BOLD), T("= births - deaths,", 28), T("per individual", 28)).arrange(DOWN, buff=0.15)
+        bb = SurroundingRectangle(badge, color=TEAL, buff=0.28, corner_radius=0.14, stroke_width=3.5)
+        badge = VGroup(bb, badge).move_to([3.4, 0.3, 0])
+        big = rule(44).move_to([0, 0.9, 0])
+        self.add(badge)
+        self.play(ReplacementTransform(badge, big[2]), run_time=1.4)
+        self.at("by the population")
+        self.play(FadeIn(big[3], shift=LEFT * 0.2), run_time=0.7)
+        self.at("population size")
+        self.play(FadeIn(big[4], shift=LEFT * 0.2), run_time=0.7)
+        self.at("n", lead=0.1)
+        self.play(Indicate(big[4], scale_factor=1.4, color=WHITE), run_time=0.9)
+        # the closed population
+        self.at("in a closed")
+        sub = T("closed population: no one moves in or out", 28, TEXT).move_to([0, 0.05, 0])
+        ctr = np.array([0, -1.95, 0])
+        ring = Circle(radius=1.1, color=GREY, stroke_width=4).move_to(ctr)
+        dots = VGroup()
+        rng = np.random.RandomState(4)
+        for i in range(14):
+            d = Dot(radius=0.09, color=WHITE).move_to(ctr + np.array([rng.uniform(-.7, .7), rng.uniform(-.7, .7), 0]))
+            d.v = np.array([rng.uniform(-.5, .5), rng.uniform(-.5, .5), 0])
+
+            def wander(m, dt, ctr=ctr):
+                m.shift(m.v * dt)
+                c = m.get_center() - ctr
+                dd = np.linalg.norm(c)
+                if dd > 0.95:
+                    u = c / dd
+                    m.v = m.v - 2 * np.dot(m.v, u) * u
+                    m.shift(-u * (dd - 0.95))
+            d.add_updater(wander)
+            dots.add(d)
+        self.play(FadeIn(sub), Create(ring), FadeIn(dots), run_time=1.2)
+        self.at("with no one moving")
+        def arrow_x(x0, x1):
+            ar = Arrow([x0, ctr[1], 0], [x1, ctr[1], 0], color=GREY, buff=0, stroke_width=6)
+            mid = (x0 + x1) / 2
+            cr = VGroup(Line([mid - .25, ctr[1] - .25, 0], [mid + .25, ctr[1] + .25, 0]), Line([mid - .25, ctr[1] + .25, 0], [mid + .25, ctr[1] - .25, 0])).set_stroke(RED, 7)
+            return VGroup(ar, cr)
+        ax1, ax2 = arrow_x(-3.6, -1.4), arrow_x(3.6, 1.4)
+        self.play(FadeIn(ax1, shift=RIGHT * 0.2), FadeIn(ax2, shift=LEFT * 0.2), run_time=1.0)
+        self.at("that product")
+        self.play(FadeIn(big[1]), FadeIn(big[0], shift=RIGHT * 0.2), run_time=0.9)
+        self.at("growth", nth=0, lead=0.1)
+        self.play(Indicate(big[0], color=ORANGE, scale_factor=1.25), run_time=0.9)
+        self.at("This one rule")
+        top = rule(30).move_to([0, 3.5, 0])
+        self.play(FadeOut(VGroup(sub, ring, dots, ax1, ax2)), Transform(big, top), run_time=1.8)
+        self.finish()
+
+
+class S04Flat(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP = left_plot()
+        RP = right_plot(20)
+        self.play(FadeIn(LP.parts), run_time=1.4)
+        nn = ValueTracker(0)
+        line = rate_line(LP, 0)
+        self.at("First")
+        z = zero_line(LP)
+        ro = readout(lambda: nn.get_value(), lambda n: R)
+        dot = self.left_dot(LP, lambda: nn.get_value(), lambda n: R)
+        self.add(ro, dot)
+        self.play(Create(line, run_time=3.0, rate_func=linear), nn.animate(run_time=3.0, rate_func=linear).set_value(1200),
+                  FadeIn(RP.parts, run_time=1.4), FadeIn(z))
+        lab = T("r = 0.2 per day", 30, TEAL).move_to(LP.pt(0, 0.145)).align_to(LP.pt(60, 0), LEFT)
+        self.play(FadeIn(lab), run_time=0.7)
+        self.play(nn.animate(run_time=2.2, rate_func=there_and_back).set_value(300))
+        self.finish()
+
+
+def strip_static():
+    base = Line([2.0, 2.0, 0], [6.5, 2.0, 0], color=GREY, stroke_width=3)
+    lab = VGroup(T("gain per day", 24, ORANGE), T("(computed)", 22, GREY)).arrange(DOWN, buff=0.05).move_to([5.7, 2.5, 0])
+    return VGroup(base, lab)
+
+
+def strip_bars(tt):
+    def mk():
+        t = tt.get_value()
+        g = VGroup()
+        for d in range(int(t)):
+            gain = Nexp(d + 1) - Nexp(d)
+            h = max(gain / 350 * 0.95, 0.02)
+            xc = 2.0 + 4.5 * (d + 0.5) / 20
+            g.add(Rectangle(width=0.17, height=h, stroke_width=0, fill_color=ORANGE, fill_opacity=0.8).move_to([xc, 2.0 + h / 2, 0]))
+        return g
+    return always_redraw(mk)
+
+
+def strip_tags(tt):
+    def mk():
+        t = tt.get_value()
+        g = VGroup()
+        for d in range(min(3, int(t))):
+            gain = Nexp(d + 1) - Nexp(d)
+            g.add(T(f"+{gain:.0f}", 24, ORANGE).move_to([2.35 + d * 0.6, 2.5, 0]))
+        return g
+    return always_redraw(mk)
+
+
+class S05Compound(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP, RP = left_plot(), right_plot(20)
+        tt = ValueTracker(0)
+        nf = lambda: Nexp(tt.get_value())
+        self.add(LP.parts, zero_line(LP), rate_line(LP, 0), RP.parts, strip_static())
+        self.add(readout(nf, lambda n: R), self.left_dot(LP, nf, lambda n: R))
+        curve = grow_curve(RP, Nexp, tt)
+        tipd = always_redraw(lambda: Dot(RP.pt(tt.get_value(), Nexp(tt.get_value())), radius=0.1, color=WHITE))
+        self.add(curve, tipd, strip_bars(tt), strip_tags(tt))
+        self.play(tt.animate(run_time=9.2, rate_func=linear).set_value(10))
+        self.finish()
+
+
+class S06Jcurve(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP, RP = left_plot(), right_plot(20)
+        tt = ValueTracker(10)
+        nf = lambda: Nexp(tt.get_value())
+        self.add(LP.parts, zero_line(LP), rate_line(LP, 0), RP.parts, strip_static())
+        self.add(readout(nf, lambda n: R), self.left_dot(LP, nf, lambda n: R))
+        curve = grow_curve(RP, Nexp, tt)
+        tipd = always_redraw(lambda: Dot(RP.pt(tt.get_value(), Nexp(tt.get_value())), radius=0.1, color=WHITE))
+        self.add(curve, tipd, strip_bars(tt))
+        p10 = RP.pt(10, Nexp(10))
+        self.at("By day 10")
+        vline = DashedLine(RP.pt(10, 0), p10, color=GREY, stroke_width=3)
+        lab739 = VGroup(T("739", 34, WHITE, weight=BOLD), T("(computed)", 22, GREY)).arrange(DOWN, buff=0.03).next_to(p10, RIGHT, buff=0.25)
+        self.play(Create(vline), FadeIn(lab739), Indicate(tipd, scale_factor=2.2, color=WHITE), run_time=1.3)
+        self.at("steady adding")
+        p300 = RP.pt(10, 300)
+        hl = DashedLine(RP.pt(0, 300), p300, color=GREY, stroke_width=3)
+        m300 = Dot(p300, radius=0.09, color=GREY)
+        l300 = VGroup(T("300 if it added", 24, GREY), T("20 a day", 24, GREY)).arrange(DOWN, aligned_edge=LEFT, buff=0.05).next_to(p300, RIGHT, buff=0.25)
+        self.play(Create(hl), FadeIn(m300), FadeIn(l300), run_time=1.3)
+        self.at("This compounding")
+        self.play(tt.animate(run_time=1.3, rate_func=linear).set_value(T_J))
+        self.at("exponential growth", lead=0.4)
+        jl = VGroup(T("J-curve:", 30, WHITE, weight=BOLD), T("exponential", 30, WHITE, weight=BOLD)).arrange(DOWN, buff=0.05).move_to([5.3, -1.7, 0])
+        self.play(FadeOut(VGroup(vline, lab739, hl, m300, l300)), FadeIn(jl, shift=DOWN * 0.15), run_time=0.8)
+        self.finish()
+
+
+def gold_right(P, xmax):
+    ln = DashedLine(P.pt(0, K), P.pt(xmax, K), color=GOLD, stroke_width=4)
+    return ln
+
+
+def k_left(P):
+    ln = DashedLine(P.pt(K, 0), P.pt(K, -0.05), color=GOLD, stroke_width=5)
+    return ln
+
+
+class S07Crowding(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP, RP = left_plot(), right_plot(20)
+        self.add(LP.parts, zero_line(LP), rate_line(LP, 0), RP.parts, static_curve(RP, Nexp, 0, T_J))
+        self.add(VGroup(T("J-curve:", 30, WHITE, weight=BOLD), T("exponential", 30, WHITE, weight=BOLD)).arrange(DOWN, buff=0.05).move_to([5.3, -1.7, 0]))
+        # crowd box x -5.6..-0.8, y -2.4..-0.5
+        rng = np.random.RandomState(7)
+        pos = [np.array([rng.uniform(-5.4, -1.0), rng.uniform(-2.3, -0.6), 0]) for _ in range(110)]
+        pop = VGroup(*[bob(animal(0.1, False).move_to(p), seed=i) for i, p in enumerate(pos)])
+        food = VGroup(*[Square(0.14, stroke_width=0, fill_color=GREEN, fill_opacity=0.9).move_to([rng.uniform(-5.4, -1.0), rng.uniform(-2.3, -0.6), 0]) for _ in range(24)])
+        self.play(FadeIn(food), FadeIn(pop[:12]), run_time=0.8)
+        self.at("As numbers rise")
+        self.play(LaggedStart(*[FadeIn(p, scale=0.3) for p in pop[12:]], lag_ratio=0.03), run_time=2.2)
+        self.at("less food")
+        c1 = chip("food", GREEN, 26)
+        c2 = chip("space", GREY, 26)
+        c3 = chip("shelter", TEAL, 26)
+        row = VGroup(c1, c2, c3).arrange(RIGHT, buff=0.3).move_to([-3.2, -3.1, 0])
+        self.play(FadeIn(c1), food[:16].animate.set_opacity(0.15), run_time=1.0)
+        self.at("space")
+        self.play(FadeIn(c2), run_time=0.7)
+        self.at("shelter")
+        self.play(FadeIn(c3), food[16:].animate.set_opacity(0.15), run_time=0.8)
+        self.at("Births fall")
+        arr = Arrow(LP.pt(1000, R) + DOWN * 0.15, LP.pt(1000, R) + DOWN * 0.95, color=TEAL, buff=0, stroke_width=7)
+        arr.base = arr.get_center().copy()
+        arr.tt = 0.0
+        arr.add_updater(lambda m, dt: (setattr(m, "tt", m.tt + dt), m.move_to(m.base + DOWN * 0.12 * np.sin(4 * m.tt)))[0])
+        self.play(FadeIn(arr), run_time=0.6)
+        self.finish()
+
+
+class S08Tilt(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP, RP = left_plot(), right_plot(20)
+        self.add(LP.parts, zero_line(LP), RP.parts, static_curve(RP, Nexp, 0, T_J))
+        self.add(VGroup(T("J-curve:", 30, WHITE, weight=BOLD), T("exponential", 30, WHITE, weight=BOLD)).arrange(DOWN, buff=0.05).move_to([5.3, -1.7, 0]))
+        st = ValueTracker(0)
+        nn = ValueTracker(600)
+        self.add(rate_line_live(LP, st))
+        rf = lambda n: R * (1 - st.get_value() * n / K)
+        ro = readout(lambda: nn.get_value(), rf)
+        dot = self.left_dot(LP, lambda: nn.get_value(), rf)
+        self.add(ro, dot)
+        self.at("tilt the line")
+        self.play(st.animate(run_time=2.4).set_value(1.0))
+        self.at("Let the per")
+        self.play(nn.animate(run_time=3.4, rate_func=linear).set_value(1200))
+        self.at("The logistic model")
+        lab = VGroup(T("assumed", 28, TEAL, weight=BOLD), T("straight line", 28, TEAL, weight=BOLD)).arrange(DOWN, buff=0.04).move_to(LP.pt(960, 0.185))
+        self.play(FadeIn(lab, shift=DOWN * 0.1), run_time=0.8)
+        self.play(nn.animate(run_time=3.0, rate_func=linear).set_value(100))
+        self.finish()
+
+
+class S09K(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP, RP = left_plot(), right_plot(20)
+        self.add(LP.parts, zero_line(LP), rate_line(LP, 1), RP.parts, static_curve(RP, Nexp, 0, T_J))
+        self.add(VGroup(T("J-curve:", 30, WHITE, weight=BOLD), T("exponential", 30, WHITE, weight=BOLD)).arrange(DOWN, buff=0.05).move_to([5.3, -1.7, 0]))
+        nn = ValueTracker(0)
+        rf = lambda n: rate(n)
+        dot = self.left_dot(LP, lambda: nn.get_value(), rf)
+        self.add(dot)
+        self.play(nn.animate(run_time=1.4, rate_func=linear).set_value(1000))
+        self.at("a size called")
+        kl = k_left(LP)
+        kt = T("K = 1,000", 30, GOLD, weight=BOLD).move_to(LP.pt(1000, 0.14))
+        kr = gold_right(RP, 20)
+        kr_t = T("K", 30, GOLD, weight=BOLD).move_to(RP.pt(17.5, 780))
+        self.play(Create(kl), FadeIn(kt), run_time=0.9)
+        self.at("carrying capacity", lead=0.3)
+        self.play(Create(kr), FadeIn(kr_t), run_time=1.0)
+        self.at("There")
+        # births vs deaths bars (schematic): births fixed, deaths grow with N
+        base_y = -2.6
+        births = Rectangle(width=0.9, height=1.6, stroke_width=0, fill_color=GREEN, fill_opacity=0.8).move_to([-4.3, base_y + 0.8, 0])
+        deaths_h = lambda: max(1.6 * nn.get_value() / K, 0.02)
+        deaths = always_redraw(lambda: Rectangle(width=0.9, height=deaths_h(), stroke_width=0, fill_color=RED, fill_opacity=0.8).move_to([-2.7, base_y + deaths_h() / 2, 0]))
+        lb = T("births", 26, GREEN).move_to([-4.3, -3.0, 0])
+        ld = T("deaths", 26, RED).move_to([-2.7, -3.0, 0])
+        sch = T("per individual (schematic)", 24, GREY).move_to([-3.5, -0.65, 0])
+        eq = T("=", 48, WHITE, weight=BOLD).move_to([-3.5, base_y + 0.9, 0])
+        self.play(FadeIn(births), FadeIn(deaths), FadeIn(lb), FadeIn(ld), FadeIn(sch), run_time=0.9)
+        self.play(FadeIn(eq, scale=1.4), run_time=0.6)
+        self.play(nn.animate(run_time=1.6).set_value(600), FadeOut(eq))
+        self.play(nn.animate(run_time=1.6).set_value(1000))
+        self.play(FadeIn(eq, scale=1.4), run_time=0.5)
+        self.finish()
+
+
+def left_tilt_world(scene, with_k=True):
+    LP = left_plot()
+    scene.add(LP.parts, zero_line(LP), rate_line(LP, 1))
+    if with_k:
+        scene.add(k_left(LP), T("K = 1,000", 30, GOLD, weight=BOLD).move_to(LP.pt(1000, 0.14)))
+    return LP
+
+
+def right30_world(scene, s_curve=True, j_op=0.3):
+    RP = right_plot(30)
+    scene.add(RP.parts, gold_right(RP, 30), T("K", 30, GOLD, weight=BOLD).move_to(RP.pt(27.5, 780)),
+              static_curve(RP, Nexp, 0, T_J, color=WHITE, w=3, op=j_op))
+    if s_curve:
+        scene.add(static_curve(RP, Nlog, 0, 30, n=200))
+    return RP
+
+
+class S10Scurve(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP = left_tilt_world(self)
+        RP0 = right_plot(20)
+        old = VGroup(RP0.parts, static_curve(RP0, Nexp, 0, T_J), gold_right(RP0, 20), T("K", 30, GOLD, weight=BOLD).move_to(RP0.pt(17.5, 780)),
+                     VGroup(T("J-curve:", 30, WHITE, weight=BOLD), T("exponential", 30, WHITE, weight=BOLD)).arrange(DOWN, buff=0.05).move_to([5.3, -1.7, 0]))
+        self.add(old)
+        RP = right_plot(30)
+        new = VGroup(RP.parts, gold_right(RP, 30), T("K", 30, GOLD, weight=BOLD).move_to(RP.pt(27.5, 780)),
+                     static_curve(RP, Nexp, 0, T_J, color=WHITE, w=3, op=0.3))
+        self.wait(0.4)
+        self.play(FadeOut(old), FadeIn(new), run_time=1.4)
+        tt = ValueTracker(0)
+        nf = lambda: Nlog(tt.get_value())
+        ro = readout(nf, lambda n: rate(n))
+        dot = self.left_dot(LP, nf, lambda n: rate(n))
+        self.add(ro, dot)
+        curve = grow_curve(RP, Nlog, tt)
+        tipd = always_redraw(lambda: Dot(RP.pt(tt.get_value(), Nlog(tt.get_value())), radius=0.1, color=WHITE))
+        self.add(curve, tipd)
+        self.at("The curve rises")
+        self.play(tt.animate(run_time=5.4, rate_func=linear).set_value(30))
+        self.at("That is the")
+        sl = VGroup(T("S-curve:", 30, WHITE, weight=BOLD), T("logistic", 30, WHITE, weight=BOLD)).arrange(DOWN, buff=0.05).move_to([5.3, -1.7, 0])
+        self.play(FadeIn(sl, shift=DOWN * 0.15), run_time=0.8)
+        self.finish()
+
+
+class S11Predict(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP = left_tilt_world(self)
+        RP = right30_world(self)
+        s = static_curve(RP, Nlog, 0, 30, w=6, n=200)
+        self.add(pulse(s, 6, 3, 4.0))
+        self.at("at what size")
+        chips = [chip("when N is small", WHITE, 26), chip("halfway to K", WHITE, 26), chip("right at K", WHITE, 26)]
+        grp = VGroup(*chips).arrange(DOWN, buff=0.15).move_to([-3.1, -1.85, 0])
+        self.play(FadeIn(chips[0], shift=RIGHT * 0.2), run_time=0.7)
+        self.at("most individuals")
+        self.play(FadeIn(chips[1], shift=RIGHT * 0.2), run_time=0.7)
+        self.at("per day")
+        self.play(FadeIn(chips[2], shift=RIGHT * 0.2), run_time=0.7)
+        self.finish()
+
+
+class S12Pause(NarratedScene):
+    def construct(self):
+        self.add(rule_top())
+        LP = left_tilt_world(self)
+        RP = right30_world(self)
+        s = static_curve(RP, Nlog, 0, 30, w=6, n=200)
+        self.add(s)
+        chips = [chip("when N is small", WHITE, 26), chip("halfway to K", WHITE, 26), chip("right at K", WHITE, 26)]
+        self.add(VGroup(*chips).arrange(DOWN, buff=0.15).move_to([-3.1, -1.85, 0]))
+        cap = T("Predict: where is it adding the most per day?", 26, TEXT).move_to([-6.6, -3.5, 0]).align_to([-6.6, 0, 0], LEFT)
+        self.add(cap)
+        pr = ValueTracker(1.0)
+        c0 = np.array([0.15, -1.75, 0])
+        ring_bg = Circle(radius=0.6, color=GREY, stroke_width=4).move_to(c0).set_opacity(0.5)
+        ring = always_redraw(lambda: Arc(radius=0.6, start_angle=PI / 2, angle=max(pr.get_value(), 0.001) * TAU, color=GOLD, stroke_width=8, arc_center=c0))
+        self.add(ring_bg, ring)
+        self.play(pr.animate(run_time=4.8, rate_func=linear).set_value(0.0))
+        self.finish()
+
+
+class S13Reveal(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP = left_tilt_world(self)
+        RP = right30_world(self)
+        self.add(static_curve(RP, Nlog, 0, 30, w=6, n=200))
+        nn = ValueTracker(500)
+        rf = lambda n: rate(n)
+        dotL = self.left_dot(LP, lambda: nn.get_value(), rf)
+        dotR = always_redraw(lambda: Dot(RP.pt(tof(nn.get_value()), nn.get_value()), radius=0.12, color=WHITE, stroke_color=ORANGE, stroke_width=3))
+        half = chip("halfway to K", GOLD, 26).move_to([-2.9, -3.15, 0])
+        # icon cluster and "each adds" bar, both tied to N
+        def cluster():
+            n = nn.get_value()
+            cnt = max(1, int(n / 20))
+            g = VGroup()
+            for i in range(cnt):
+                r_, c_ = divmod(i, 10)
+                g.add(animal(0.07, False).move_to([-4.2 + c_ * 0.3, -1.05 - r_ * 0.3, 0]))
+            return g
+        def bar():
+            h = max(1.6 * rate(nn.get_value()) / 0.2, 0.03)
+            return Rectangle(width=0.7, height=h, stroke_width=0, fill_color=TEAL, fill_opacity=0.85).move_to([-5.3, -2.7 + h / 2, 0])
+        barlab = T("each adds", 24, TEAL).move_to([-5.4, -3.2, 0])
+        def fm():
+            n = nn.get_value()
+            if n < 300:
+                return T("few", 30, WHITE, weight=BOLD).move_to([-2.9, -0.6, 0])
+            if n > 700:
+                return T("many", 30, WHITE, weight=BOLD).move_to([-2.9, -0.6, 0])
+            return VGroup()
+        self.add(dotL, dotR)
+        self.play(FadeIn(half, shift=UP * 0.2), run_time=0.8)
+        self.play(Indicate(half, color=GOLD, scale_factor=1.12), run_time=0.8)
+        self.at("When the population is small")
+        self.play(nn.animate(run_time=1.4).set_value(100))
+        self.add(always_redraw(cluster), always_redraw(bar), always_redraw(fm), barlab)
+        self.at("each individual adds")
+        self.play(Indicate(barlab, color=TEAL), run_time=0.9)
+        self.at("Near K")
+        self.play(nn.animate(run_time=2.6, rate_func=linear).set_value(900))
+        self.at("each adding little")
+        self.play(Indicate(barlab, color=TEAL), run_time=0.8)
+        self.finish()
+
+
+
+
+def hump_fn(n):
+    return R * n * (1 - n / K)
+
+
+def hump_live(HP, nn):
+    def mk():
+        m = VMobject(stroke_color=ORANGE, stroke_width=7, fill_opacity=0)
+        n = nn.get_value()
+        if n > 3:
+            xs = np.linspace(0, n, max(3, int(n / 10) + 2))
+            m.set_points_as_corners([HP.pt(x, hump_fn(x)) for x in xs])
         return m
+    return always_redraw(mk)
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Part(Timed):
-    """both models from 100: day-10 and day-20 values."""
-
+class S14Hump(Base):
     def construct(self):
-        ymax = 1100.0
-        pl = Plot((-5.3, 5.3, -2.3, 2.0), (0, 20), (0, ymax), [(0, "0"), (10, "10"), (20, "20")],
-                  [(0, "0"), (500, "500"), (1000, "1,000")], "time (days)", "N (individuals)")
-        sk = tag_sketch()
-        self.add(pl.parts)
-        kline = DashedLine(pl.pt(0, K), pl.pt(20, K), color=GOLD, stroke_width=3)
-        klab = T("K", 26, GOLD).next_to(pl.pt(20, K), RIGHT, buff=0.12)
-        self.add(kline, klab)
-        start = Dot(pl.pt(0, N0), color=BLUE, radius=0.12)
-        s_lbl = T("100", 24, BLUE).next_to(start, RIGHT, buff=0.12).shift(DOWN * 0.15)
-        self.at("run both models")
-        self.play(FadeIn(start), FadeIn(s_lbl), FadeIn(sk), run_time=0.7)
-
-        d10 = DashedLine(pl.pt(10, 0), pl.pt(10, ymax), color=GREY, stroke_width=2)
-        self.at("At day")
-        d10l = T("day 10", 24, GREY).next_to(pl.pt(10, ymax), UP, buff=0.12)
-        self.play(Create(d10), FadeIn(d10l), run_time=0.7)
-        self.at("exponential model gives")
-        ex = pl.curve(expo, 0, 10, ORANGE)
-        self.play(Create(ex), run_time=self.gap("logistic model gives", lo=1.0), rate_func=linear)
-        e10 = Dot(pl.pt(10, expo(10)), color=ORANGE, radius=0.12)
-        e10l = M("739", 28, ORANGE).next_to(e10, LEFT, buff=0.2)
-        self.play(FadeIn(e10), FadeIn(e10l), run_time=0.4)
-        self.at("logistic model gives")
-        lg = pl.curve(logi, 0, 10, GREEN)
-        self.play(Create(lg), run_time=self.gap("agree at first", lo=1.0), rate_func=linear)
-        g10 = Dot(pl.pt(10, logi(10)), color=GREEN, radius=0.12)
-        g10l = M("451", 28, GREEN).next_to(g10, RIGHT, buff=0.2)
-        self.play(FadeIn(g10), FadeIn(g10l), run_time=0.4)
-
-        self.at("agree at first")
-        early = Ellipse(width=1.6, height=0.7, color=TEAL, stroke_width=4).move_to(pl.pt(1.9, 150))
-        agree = T("agree", 26, TEAL).next_to(early, UP, buff=0.2).shift(RIGHT * 0.3)
-        self.play(FadeOut(s_lbl), Create(early), FadeIn(agree), run_time=0.7)
-        self.at("then part")
-        part = T("part", 26, TEAL).move_to(pl.pt(8.0, 520) + RIGHT * 0.05)
-        self.play(FadeOut(early), FadeOut(agree), FadeIn(part), run_time=0.7)
-
-        self.at("By day")
-        self.play(FadeOut(part), run_time=0.3)
-        y_exit = (ymax / expo(1)) if False else None
-        t_exit = np.log(ymax / N0) / R
-        ex2 = pl.curve(expo, 10, t_exit, ORANGE, ymax=ymax)
-        lg2 = pl.curve(logi, 10, 20, GREEN)
-        self.play(Create(ex2), Create(lg2), run_time=self.gap("exponential model predicts", lo=1.0, lead=-0.4), rate_func=linear)
-        up = Arrow(pl.pt(t_exit, ymax) + DOWN * 0.1, pl.pt(t_exit, ymax) + UP * 0.55, color=ORANGE, buff=0, stroke_width=6)
-        e20 = chip("exponential: 5,460 at day 20", ORANGE, size=26).move_to([2.7, 2.95, 0])
-        self.at("exponential model predicts")
-        self.play(GrowArrow(up), FadeIn(e20), run_time=0.8)
-        g20 = Dot(pl.pt(20, logi(20)), color=GREEN, radius=0.12)
-        g20l = chip("logistic: about 858", GREEN, size=26).move_to([3.5, -0.6, 0])
-        self.at("logistic about")
-        self.play(FadeIn(g20), FadeIn(g20l), run_time=0.7)
-        self.at("illustrative")
-        ill = T("illustrative numbers, not measured for any species", 24, GREY).move_to([1.6, -3.4, 0])
-        self.play(FadeIn(ill), run_time=0.6)
+        self.add(rule_top())
+        LP = left_tilt_world(self)
+        RP = right30_world(self)
+        self.add(static_curve(RP, Nlog, 0, 30, w=6, n=200))
+        HP = hump_plot()
+        self.play(FadeIn(HP.parts), run_time=1.0)
+        nn = ValueTracker(0)
+        dotL = self.left_dot(LP, lambda: nn.get_value(), lambda n: rate(n))
+        hump = hump_live(HP, nn)
+        tip = always_redraw(lambda: Dot(HP.pt(nn.get_value(), hump_fn(nn.get_value())), radius=0.11, color=ORANGE))
+        self.add(dotL, hump, tip)
+        self.play(nn.animate(run_time=4.4, rate_func=linear).set_value(1000))
+        self.at("highest at half")
+        pk = HP.pt(500, 50)
+        pkl = VGroup(T("peak =", 26, ORANGE, weight=BOLD), T("50 per day", 26, ORANGE, weight=BOLD)).arrange(DOWN, buff=0.05).move_to(pk + DOWN * 0.6)
+        self.play(FadeIn(pkl), Indicate(tip, scale_factor=1.8), run_time=1.0)
+        self.at("steepest", lead=2.0)
+        ps = RP.pt(tof(500), 500)
+        wp = RP.pt(0, 750) + LEFT * 0.7
+        link = VGroup(DashedLine(pk + RIGHT * 0.1, wp, color=ORANGE, stroke_width=3.5, dash_length=0.1), DashedLine(wp, ps, color=ORANGE, stroke_width=3.5, dash_length=0.1))
+        mk = Dot(ps, radius=0.13, color=ORANGE)
+        kl = T("K/2 = 500", 26, ORANGE, weight=BOLD).next_to(ps, DOWN + RIGHT, buff=0.15)
+        self.play(Create(link), FadeIn(mk), run_time=1.5)
+        self.play(FadeIn(kl), Indicate(mk, scale_factor=1.8, color=ORANGE), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def delayed_logistic(tau=10.0, tmax=60.0, dt=0.02, n_start=100.0):
-    n = int(tmax / dt)
-    d = int(tau / dt)
-    N = np.zeros(n + 1)
-    N[: d + 1] = n_start
-    for i in range(d, n):
-        N[i + 1] = N[i] + dt * R * N[i] * (1 - N[i - d] / K)
-    return np.arange(n + 1) * dt, N
+def hump_static(HP, op=1.0):
+    return static_curve(HP, hump_fn, 0, 1000, color=ORANGE, w=7, op=op)
 
 
-class S06Equilibrium(Timed):
-    """K as an equilibrium: approached from above and below; a time lag overshoots."""
+def k_hump(HP):
+    return DashedLine(HP.pt(1000, 0), HP.pt(1000, 60), color=GOLD, stroke_width=4)
 
+
+class S15Stop(Base):
     def construct(self):
-        ymax = 1500.0
-        tmax = 40.0
-        pl = Plot((-5.3, 5.5, -2.3, 2.0), (0, tmax), (0, ymax), [], [(0, "0"), (1000, "K")], "time", "N")
-        sk = tag_sketch()
-        self.add(pl.parts)
-        kline = DashedLine(pl.pt(0, K), pl.pt(tmax, K), color=GOLD, stroke_width=4)
-        self.at("equilibrium")
-        self.play(Create(kline), FadeIn(sk), run_time=0.9)
-        eq = chip("K: an equilibrium", GOLD, size=28).move_to([0.8, 2.95, 0])
-        self.play(FadeIn(eq, shift=DOWN * 0.1), run_time=0.5)
-        self.at("not a ceiling")
-        self.play(Indicate(kline, color=GOLD), run_time=0.8)
-
-        self.at("starts above")
-        n_hi = 1400.0
-        hi = pl.curve(lambda t: logi(t, n_hi), 0, tmax, RED if False else BLUE, n=200)
-        self.play(Create(hi), run_time=self.gap("starts below", lo=1.0, lead=0.8), rate_func=linear)
-        hi_l = T("starts above K: declines", 26, BLUE).move_to(pl.pt(22, 1330))
-        self.play(FadeIn(hi_l), run_time=0.4)
-        self.at("starts below")
-        lo = pl.curve(lambda t: logi(t, N0), 0, tmax, GREEN, n=200)
-        self.play(Create(lo), run_time=self.gap("never overshoots", lo=1.0, lead=0.8), rate_func=linear)
-        lo_l = T("starts below K: rises", 26, GREEN).move_to(pl.pt(24, 380))
-        self.play(FadeIn(lo_l), run_time=0.4)
-        self.at("never overshoots")
-        self.play(Indicate(lo, color=GREEN), run_time=0.9)
-
-        # reset to the lagged sketch
-        self.at("Real populations")
-        self.play(FadeOut(hi), FadeOut(hi_l), FadeOut(lo), FadeOut(lo_l), run_time=0.6)
-        tau = 5.0
-        ts, Ns = delayed_logistic(tau=tau, tmax=tmax + tau)
-        keep = ts >= tau
-        ts, Ns = ts[keep] - tau, Ns[keep]
-        idx = np.arange(0, len(ts), 8)
-        tl = VMobject(stroke_color=RED, stroke_width=6, fill_opacity=0)
-        tl.set_points_as_corners([pl.pt(ts[i], min(Ns[i], ymax)) for i in idx])
-        lag_l = chip("with a time lag", RED, size=26).move_to([2.8, -1.5, 0])
-        self.play(Create(tl), run_time=self.gap("produce overshoot", lo=1.0, lead=0.8), rate_func=linear)
-        self.play(FadeIn(lag_l), run_time=0.4)
-        self.at("produce overshoot")
-        self.play(Indicate(tl, color=RED, scale_factor=1.02), run_time=0.9)
-        self.at("Keep the rule")
-        rule = chip("per capita rate falls as N rises", YELLOW, size=28).move_to([2.3, -1.5, 0])
-        self.play(FadeOut(lag_l), FadeIn(rule, shift=UP * 0.1), run_time=0.7)
+        self.add(rule_top())
+        LP = left_tilt_world(self)
+        RP = right30_world(self)
+        self.add(static_curve(RP, Nlog, 0, 30, w=6, n=200))
+        HP = hump_plot()
+        self.add(HP.parts, hump_static(HP))
+        nn = ValueTracker(500)
+        dotL = self.left_dot(LP, lambda: nn.get_value(), lambda n: rate(n))
+        tip = always_redraw(lambda: Dot(HP.pt(nn.get_value(), hump_fn(nn.get_value())), radius=0.11, color=ORANGE))
+        pkl = VGroup(T("peak =", 26, ORANGE, weight=BOLD), T("50 per day", 26, ORANGE, weight=BOLD)).arrange(DOWN, buff=0.05).move_to(HP.pt(500, 50) + DOWN * 0.6)
+        self.add(dotL, tip, pkl)
+        self.play(FadeOut(pkl), run_time=0.4)
+        self.play(nn.animate(run_time=2.8, rate_func=linear).set_value(1000))
+        kh = k_hump(HP)
+        self.play(Create(kh), run_time=0.6)
+        zl, zh = LP.pt(1000, 0), HP.pt(1000, 0)
+        self.play(Flash(zl, color=TEAL, line_length=0.3, flash_radius=0.3), Flash(zh, color=ORANGE, line_length=0.3, flash_radius=0.3), run_time=1.0)
+        self.at("per capita rate")
+        r1 = Circle(radius=0.28, color=TEAL, stroke_width=5).move_to(zl)
+        self.play(Create(r1), run_time=0.6)
+        while self.elapsed() < self.narration_s - 2.8:
+            self.play(nn.animate(run_time=1.3).set_value(550))
+            self.play(nn.animate(run_time=1.3).set_value(1000))
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Per capita growth falls as N rises; K is an equilibrium."
+class S16Summary(Base):
+    def construct(self):
+        self.add(rule_top())
+        st = ValueTracker(1.0)
+        LP = left_plot()
+        self.add(LP.parts, zero_line(LP), rate_line_live(LP, st), k_left(LP), T("K = 1,000", 30, GOLD, weight=BOLD).move_to(LP.pt(1000, 0.14)))
+        RP = right_plot(30)
+        self.add(RP.parts, gold_right(RP, 30), T("K", 30, GOLD, weight=BOLD).move_to(RP.pt(27.5, 780)))
+        J = static_curve(RP, Nexp, 0, T_J, w=6)
+        S = static_curve(RP, Nlog, 0, 30, w=6, n=200)
+        HP = hump_plot()
+        H = hump_static(HP)
+        self.add(HP.parts, k_hump(HP), J, S, H)
+        J.add_updater(lambda m: m.set_stroke(opacity=0.2 + 0.8 * (1 - st.get_value())))
+        S.add_updater(lambda m: m.set_stroke(opacity=0.2 + 0.8 * st.get_value()))
+        H.add_updater(lambda m: m.set_stroke(opacity=0.2 + 0.8 * st.get_value()))
+        la = T("compounds", 30, WHITE, weight=BOLD).move_to([5.45, -1.9, 0])
+        lb = T("stops at K", 30, GOLD, weight=BOLD).move_to([5.45, -1.9, 0])
+        la.add_updater(lambda m: m.set_opacity(float(np.clip((0.5 - st.get_value()) * 4, 0, 1))))
+        lb.add_updater(lambda m: m.set_opacity(float(np.clip((st.get_value() - 0.5) * 5, 0, 1))))
+        self.add(la, lb)
+        self.wait(0.3)
+        self.at("one teal line")
+        self.play(Indicate(LP.parts[0], color=TEAL, scale_factor=1.0), run_time=0.1)
+        self.at("Hold it flat")
+        self.play(st.animate(run_time=2.2).set_value(0.0))
+        self.at("Let it fall")
+        self.play(st.animate(run_time=2.4).set_value(1.0))
+        while self.elapsed() < self.narration_s - 2.2:
+            self.play(st.animate(run_time=1.0).set_value(0.7))
+            self.play(st.animate(run_time=1.0).set_value(1.0))
+        self.finish()
+
+
+class S17Assumption(Base):
+    def construct(self):
+        self.add(rule_top())
+        LP = left_tilt_world(self)
+        RP = right30_world(self)
+        self.add(static_curve(RP, Nlog, 0, 30, w=6, n=200))
+        HP = hump_plot()
+        hg = VGroup(HP.parts, hump_static(HP), k_hump(HP))
+        self.add(hg)
+        tl = Line(LP.pt(0, R), LP.pt(1200, R * (1 - 1.2)), color=TEAL, stroke_width=6)
+        pulse(tl, 6, 2.5, 3.0)
+        self.add(tl)
+        self.at("assumption")
+        t = T("assumption", 28, GOLD, weight=BOLD)
+        st = VGroup(SurroundingRectangle(t, color=GOLD, buff=0.2, corner_radius=0.08, stroke_width=4), t).move_to([0.1, 2.75, 0])
+        self.play(FadeIn(st, scale=1.6), run_time=0.5)
+        self.at("Whether")
+        self.play(FadeOut(hg), run_time=0.9)
+        self.at("tested in the field")
+        nb = VGroup(RoundedRectangle(corner_radius=0.1, width=1.5, height=2.0, stroke_color=TEXT, stroke_width=3, fill_color=GREY, fill_opacity=0.18))
+        for i in range(5):
+            nb.add(Line([-0.45, 0.65 - i * 0.28, 0], [0.45, 0.65 - i * 0.28, 0], color=GREY, stroke_width=3))
+        nb.move_to([-4.6, -1.8, 0])
+        q = T("?", 80, GOLD, weight=BOLD).move_to([-2.6, -1.2, 0])
+        q.base = q.get_center().copy()
+        q.tt = 0.0
+        q.add_updater(lambda m, dt: (setattr(m, "tt", m.tt + dt), m.move_to(m.base + UP * 0.12 * np.sin(3 * m.tt)))[0])
+        mi = T("measure it", 36, WHITE, weight=BOLD).move_to([-2.0, -2.55, 0])
+        self.play(FadeIn(nb, shift=UP * 0.2), FadeIn(q), FadeIn(mi), run_time=1.0)
+        self.finish()
+
+
+class S18End(EndCard):
+    LINE = "Growth stops where the per-capita rate falls to zero: at K."

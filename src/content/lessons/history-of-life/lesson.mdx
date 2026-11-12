@@ -5,8 +5,8 @@ course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 2: Genomes, development and diversification"
 order: 508
 summary: >-
-  Over more than three billion years, life turned a microbial world into one with oxygen in the air, many-celled eukaryotes, animals and plants on land, and mass extinctions and the radiations that followed them repeatedly reshaped that history. The lesson then shows how those dates are measured and what kind of date each one is.
-hook: "Life was microbial for billions of years; then oxygen, many-celled eukaryotes and land plants remade the planet, and mass extinctions repeatedly cleared the way for new radiations."
+  The number of kinds of living things changes by births minus deaths of lineages: speciation adds them and extinction removes them. Over more than three billion years, life turned a microbial world into one with oxygen in the air, many-celled eukaryotes, animals and plants on land; mass extinctions removed most species in geologically short intervals, and survivors diversified into the space left behind. The lesson then shows how those dates are measured, what kind of date each one is, and why a tree of living species alone cannot separate speciation from extinction.
+hook: "Species have been dying out for as long as there has been life. So how did a planet of microbes end up with so many kinds of living things?"
 
 estMinutes: 24
 objectives:
@@ -14,16 +14,38 @@ objectives:
   - "Explain how convergent evidence (iridium at widely separated sites, the Chicxulub crater, a worldwide ejecta layer and dating that ties impact to extinction) identifies an impact as the trigger of the end-Cretaceous extinction, and interpret the dating of the end-Permian extinction at Meishan within the section it was measured in."
   - "Interpret laboratory radiations of Pseudomonas fluorescens as a test of ecological opportunity, and say what the timing of the placental mammal radiation after the end-Cretaceous extinction can and cannot show."
   - "Calculate a radiometric age from a daughter-to-parent ratio and a half-life, state the assumptions, bracket a fossil bed between two dated ash layers, and explain why each fossil date is a minimum age while the GOE date brackets an environmental change."
-  - "Explain what diversification rates fossils and trees of living species can and cannot give, including why extant timetrees alone cannot separate speciation from extinction histories."
+  - "Explain net diversification as speciation minus extinction (r = λ − μ), and what diversification rates fossils and trees of living species can and cannot give, including why extant timetrees alone cannot separate speciation from extinction histories."
 
 explainer:
   src: "/explainers/history-of-life/explainer.mp4"
   captions: "/explainers/history-of-life/explainer.vtt"
   poster: "/explainers/history-of-life/poster.jpg"
-  title: "How Life Remade the Planet"
-  durationSec: 200.6
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Births Minus Deaths"
+  durationSec: 210.3
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "The number of lineages changes by births minus deaths, speciation minus extinction (r = λ − μ); a slowly changing count alone cannot show whether the two rates are high or low."
+    - "For most of its history life was microbial; many-celled eukaryotes, animals and land plants came later. Each fossil date means by this time, at the latest, while the oxygen date is bracketed from both sides."
+    - "By a widely used benchmark, a mass extinction loses more than three-quarters of species in a geologically short interval; the Big Five are the standard list, though how sharply each stands out is debated."
+    - "Iridium at distant sites, a crater of the right age and dating that ties impact to extinction point to an impact as the trigger of the end-Cretaceous extinction."
+    - "In still broth one genotype of Pseudomonas fluorescens diversified into new heritable types; in shaken broth it did not."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/history-of-life/chapter-2.mp4"
+    captions: "/explainers/history-of-life/chapter-2.vtt"
+    poster: "/explainers/history-of-life/chapter-2-poster.jpg"
+    title: "Floors and Brackets"
+    durationSec: 186.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Fossils are rarely dated directly; often minerals in nearby rocks are, such as zircon carried into volcanic ash."
+      - "Each atom decays at random, so in each half-life about half the remaining parent atoms decay; in a closed mineral that started with no daughter, the parent left tells how many half-lives have passed."
+      - "Dated layers below and above a fossil bed, in undisturbed rock, give a bracket, not a single date."
+      - "The oldest fossil of a group is a minimum age: the group existed by then and may be older."
+      - "The clock must fit the age: carbon-14 has a half-life of about 5,730 years, and after about 50,000 years too little remains to measure, so dinosaur bones are not carbon-dated."
 
 scientists:
   - name: "Walter Alvarez"
@@ -350,84 +372,130 @@ draft: false
 
 import DecayClockBracket from '../../../components/DecayClockBracket.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**For most of its history, life on Earth was microbial, and over more than three billion years it remade the planet.** Traces read as microbial life appear in rocks 3.48 billion years old. Oxygen began to build up in the air by about 2.4 billion years ago, in the Great Oxidation Event. Eukaryotes, cells with a nucleus, evolved by 1.9 to 1.4 billion years ago, and a many-celled red alga is in the record by just over a billion years ago. Animals are present by about 558 million years ago and plants on land by about 470 million years ago. Along the way, mass extinctions removed most species in geologically short intervals, and survivors diversified into the space left behind. Transitions, extinctions and radiations are the main line of this lesson. How the dates are measured, and what kind of date each one is, comes after.
+The first film built one rule, births minus deaths of lineages. It left out the numbers, and they pose a puzzle.
 
-**Macroevolution** is evolution above the species level: the origin, diversification and extinction of species and larger groups. It is built from the processes in [speciation](/lessons/speciation/) and [molecular evolution](/lessons/molecular-evolution/), and in this lesson it plays out over hundreds of millions of years. Below, Ma means millions of years ago and Ga billions of years ago.
+Suppose new lineages branch off at 0.20 per lineage per million years (the speciation rate, λ, lambda) and end at 0.19 (the extinction rate, μ, mu). These are illustrative values, not measurements for any real group. A lineage then lasts about 5 million years on average (1/μ), yet the expected count grows by only 0.01 per lineage per million years. At that pace the expected count doubles in about 69 million years (ln 2 / 0.01; ln 2 is about 0.69). Turnover is fast; net change is slow. Refilling a loss of three-quarters of species means growing fourfold, about 139 million years (ln 4 / 0.01) on that average path; any one real clade is subject to chance and can follow a very different path or die out. Recovering faster needs a larger net rate: more speciation, less extinction, or both.
 
-## Major transitions: how life changed the planet
+> **The one idea.** In a simple birth-death model, the number of lineages changes in only two ways: speciation adds a lineage, at rate λ, and extinction removes one, at rate μ. The net rate is r = λ − μ: births minus deaths of lineages. A slowly changing count can hide two high rates that nearly cancel, or two low ones; the count alone cannot tell which. A **mass extinction** is a short interval when species are lost far faster than new ones arise. An **adaptive radiation** is the rapid diversification of one lineage into types adapted to different ecological niches (a **niche** is the set of conditions and resources a type uses).
+>
+> *Scope:* this is a bookkeeping rule, not a measured history. λ and μ are averages per lineage, and for most of life's microbial past neither rate can be recovered. The rule does not explain why oxygen built up: the Great Oxidation Event is a change in the environment, not a rate. And a drop in diversity can come from speciation stalling as well as from extinction rising.
 
-Each entry gives what appeared, roughly when, and why it mattered.
+**Macroevolution** is evolution above the species level: the origin, diversification and extinction of species and larger groups, built from the processes in [speciation](/lessons/speciation/) and [molecular evolution](/lessons/molecular-evolution/). Below, Ma means millions of years ago and Ga billions of years ago.
+
+## Major transitions: new lineages, and a new atmosphere
 
 - **Microbial life, by about 3.48 Ga.** Rocks in the Dresser Formation of the Pilbara, Western Australia, preserve layered mounds and microbial fabrics that Djokic and colleagues (2017) read as traces of life in hot springs on land. Reviews place a microbial biosphere on Earth by at least 3.4 billion years ago, and disputably earlier (Javaux, 2019).
-- **Oxygen in the air, onset about 2,460 to 2,426 Ma.** The Great Oxidation Event (GOE) is the first significant buildup of oxygen in the atmosphere. It is not the origin of oxygenic photosynthesis, which the [light reactions](/lessons/light-reactions/) lesson explains; it marks when oxygen accumulated. The change reshaped surface environments: aerobic metabolisms expanded, an ozone layer formed that would have shielded organisms in shallow surface environments from ultraviolet light, and organisms had to contend with the harmful effects of free oxygen (Crockford and colleagues, 2026). Gumsley and colleagues (2017) bracketed the onset with dated volcanic rocks in southern Africa and inferred that oxygen rose and fell rather than climbing once; the exact timing is still debated.
-- **Eukaryotes and many-celled algae, by about 1.05 Ga.** Eukaryotes evolved by 1.9 to 1.4 billion years ago. The red alga *Bangiomorpha pubescens*, from Baffin Island, Canada, dated to about 1.05 billion years, is the earliest known example of forms of multicellularity and of eukaryotic photosynthesis that still exist today (Gibson and colleagues, 2018). Its chloroplast began as an engulfed cyanobacterium (see [organelles as environments](/lessons/organelles-as-environments/)).
-- **Animals, by about 558 Ma.** Bobrovskiy and colleagues (2018) extracted cholesteroid molecules, the steroid family that dominates animal sterols, from organically preserved *Dickinsonia* from the White Sea region, Russia. The result supported an animal affinity for *Dickinsonia* and its close relatives, though not for every Ediacaran fossil.
-- **Plants on land, by about 473 to 471 Ma.** Rubinstein and colleagues (2010) recovered cryptospores, spores attributed to early land plants, from Middle Ordovician rocks in Argentina. Edwards and colleagues (2014) reviewed fossils that preserve such spores and found their source plants simple and millimetres high, though the affinities of cryptospores remain contentious; these plants belong to a pool of diversity from which bryophytes and vascular plants emerged.
+- **Oxygen in the air, onset about 2,460 to 2,426 Ma.** The Great Oxidation Event (GOE) is the first significant buildup of oxygen in the atmosphere: when oxygen accumulated, not when oxygenic photosynthesis began, which the [light reactions](/lessons/light-reactions/) lesson explains. Aerobic metabolisms expanded, an ozone layer formed that would have shielded organisms in shallow surface environments from ultraviolet light, and organisms had to contend with the harmful effects of free oxygen.
+- **Eukaryotes (cells with a nucleus) by 1.9 to 1.4 Ga; a many-celled alga by about 1.05 Ga.** The red alga *Bangiomorpha pubescens*, from Baffin Island, Canada, is the earliest known example of forms of multicellularity and of eukaryotic photosynthesis that still exist today (Gibson and colleagues, 2018). Its chloroplast began as an engulfed cyanobacterium (see [organelles as environments](/lessons/organelles-as-environments/)).
+- **Animals, by about 558 Ma.** Animal sterols, fat-like membrane molecules, are dominated by cholesterol and its relatives (cholesteroids). Bobrovskiy and colleagues (2018) extracted the chemical remains of such molecules from organically preserved *Dickinsonia* from the White Sea region, Russia. The result supported an animal affinity for *Dickinsonia* and its close relatives, though not for every fossil of the Ediacara biota, which spans about 571 to 541 Ma.
+- **Plants on land, by about 473 to 471 Ma.** Rubinstein and colleagues (2010) recovered cryptospores, spores attributed to early land plants, from Middle Ordovician rocks in Argentina. Edwards and colleagues (2014) reviewed fossils that preserve such spores and found their source plants simple and millimetres high, though the affinities of cryptospores remain contentious.
 
-**What kind of date each is.** The fossil entries are **minimum ages**. Read each as "by this time, at the latest": the lineage existed by then, and may be older, because older traces could have been destroyed, never formed or not yet found. Holland (2016) stressed that preservation is uneven in space and time, so a gap in the record is not a gap in life. The GOE entry is a different kind of date: it brackets an environmental change from both sides. How these ages are measured comes later in the lesson.
+**What kind of date each is.** The fossil entries are **minimum ages**: older traces could have been destroyed, never formed or not yet found. Holland (2016) stressed that preservation is uneven in space and time, so a gap in the record is not a gap in life. The GOE entry instead brackets an environmental change from both sides, using dated volcanic rocks; its exact timing is still debated (Going deeper).
 
-## Mass extinctions and the evidence for their causes
+## Mass extinctions: when losses far outrun new species
 
-Transitions added new kinds of life. Mass extinctions took most of it away at once and changed the makeup of communities and biomes worldwide. A widely used benchmark (Barnosky and colleagues, 2011) defines a **mass extinction** as the loss of more than three-quarters of species in a geologically short interval, which has happened five times in about the past 540 million years. These five are called the "Big Five": the end of the Ordovician, the Devonian, the Late Permian, the Late Triassic and the end of the Cretaceous. How well the five stand out from background extinction is a matter of dispute, taken up under Going deeper. David Raup and J. John Sepkoski first picked them out in 1982 from a compilation of fossil marine families.
+Mass extinctions reshaped communities and biomes worldwide. A widely used benchmark (Barnosky and colleagues, 2011) sets the bar at the loss of more than three-quarters of species in a geologically short interval. That has happened five times in about the past 540 million years, the "Big Five": the end of the Ordovician, the Devonian, the Late Permian, the Late Triassic and the end of the Cretaceous. The debate is not over whether these intervals saw heavy losses but over how sharply each stands out from background extinction, and which intervals should count (Going deeper).
 
-**End-Cretaceous, about 66 Ma: an impact triggered it.** Several independent lines of evidence point to one cause. Luis Alvarez, Walter Alvarez, Frank Asaro and Helen Michel (1980) found iridium, scarce in Earth's crust but more abundant in many meteorites, strongly enriched in deep-sea limestones at the Cretaceous-Tertiary boundary at three widely separated sites, in Italy, Denmark and New Zealand. They proposed, as a hypothesis, that an asteroid struck Earth and that dust darkened the sky and suppressed photosynthesis. That made a testable prediction: a crater of the right age should exist. A buried impact crater, Chicxulub, was found on Mexico's Yucatán Peninsula, and argon-argon dating by Renne and colleagues (2013) placed the impact and the extinction within 32,000 years of each other. That figure is synchrony, not how long the dying took. Schulte and colleagues (2010) then drew the evidence together: a single ejecta-rich layer linked to Chicxulub is spread worldwide at the boundary, it matches the onset of the extinctions in time, and the fossil patterns fit modelled darkness and cooling. The extinction also fell within the time of large volcanic eruptions in India, the Deccan flood basalts, and Schulte and colleagues weighed both causes. They concluded that the Chicxulub impact triggered the mass extinction.
+**End-Cretaceous, about 66 Ma.** The first film traced the evidence from iridium to the Chicxulub crater, with the Deccan eruptions in India as the rival cause. Argon-argon dating by Renne and colleagues (2013) placed the impact and the extinction within 32,000 years of each other.
 
-<LessonFigure src="/figures/history-of-life/end-cretaceous-evidence-chain.webp" width={1200} height={676} alt="AI-generated illustration: a three-step strip. First, three limestone columns at distant sites, each with a gold iridium band at the same level. Second, a dashed hypothesis panel with an asteroid and a dust cloud dimming a plant. Third, a buried crater beside two dated layers joined by a gold bracket showing impact and extinction close in time." caption="Alvarez and colleagues found iridium enriched at the Cretaceous-Tertiary boundary at three widely separated sites and proposed, as a hypothesis, that an asteroid impact darkened the sky. A buried crater and argon-argon dating then placed the impact and the extinction close together in time, which shows synchrony, not how long the dying took." />
+**Predict.** Does that figure mean the dying took about 32,000 years?
 
-**End-Permian, about 252 Ma: the largest loss in the marine record.** Stanley (2016) estimated that about 81% of marine species were lost in the terminal Permian crisis, a figure inferred from data on higher taxa. Burgess, Bowring and Shen (2014) dated zircons from volcanic ash beds at Meishan, China, and estimated that the extinction there lasted 60 ± 48 thousand years. That is one section, so it constrains timing there, not the kill mechanism or worldwide synchrony. What it gives is a clock that any proposed cause has to fit.
+<details>
+<summary>Check your prediction</summary>
 
-One bias blurs every extinction. Because the record is incomplete, a species' last fossil usually lies below where it actually vanished, smearing a sudden extinction backwards. This is the **Signor-Lipps effect**.
+No. The figure says the impact and the extinction happened at about the same time. It does not say how long the dying took; that needs dates within one rock section, as at Meishan below.
+
+</details>
+
+The weighing turned on Schulte and colleagues (2010): a single ejecta-rich layer (debris thrown out by the impact) linked to Chicxulub is spread worldwide at the boundary, it matches the onset of the extinctions in time, and the fossil patterns fit modelled darkness and cooling. They weighed both causes and concluded that the Chicxulub impact triggered the mass extinction.
+
+<LessonFigure src="/figures/history-of-life/end-cretaceous-evidence-chain.webp" width={1200} height={676} alt="AI-generated illustration: a three-step strip. First, three limestone columns at distant sites, each with a gold iridium band at the same level. Second, a dashed hypothesis panel with an asteroid and a dust cloud dimming a plant. Third, a buried crater beside two dated layers joined by a gold bracket showing impact and extinction close in time." caption="Three independent links carry the impact verdict. The dating shows that impact and extinction happened at about the same time, not how long the dying took." />
+
+**End-Permian, about 252 Ma: the largest loss in the marine record.** Stanley (2016) estimated that about 81% of marine species were lost in the terminal Permian crisis, a figure inferred from data on higher taxa. Burgess, Bowring and Shen (2014) dated zircons from volcanic ash beds at Meishan, China, and estimated that the extinction there lasted 60 ± 48 thousand years: tens of thousands of years, brief on a geological scale. That is one section: it constrains timing there, not the kill mechanism or worldwide synchrony, and gives a clock any proposed cause must fit.
+
+**Predict.** Suppose a group of species vanished in an instant. Most individuals leave no fossil. Would each species' last *fossil* lie at the extinction level, or below it?
+
+<details>
+<summary>Check your prediction</summary>
+
+Below it. Because the record is incomplete, a species' last fossil usually lies below where it actually vanished, so a sudden extinction is smeared backwards and looks gradual. This is the **Signor-Lipps effect**.
+
+</details>
 
 ## Radiations: ecological opportunity in a flask and in the record
 
-An **adaptive radiation** is the rapid diversification of one lineage into types adapted to different ecological niches. A **niche**, here, is the set of conditions and resources a type uses. A leading candidate cause is ecological opportunity: niches that no one is using. An extinction that removes the incumbents is one way to create it.
+A leading candidate cause of adaptive radiation is **ecological opportunity**: niches that no one is using. An extinction that removes the incumbents is one way to create it.
 
-In the rock record, placental mammal orders diversified mainly after the end-Cretaceous losses, although mammals were already diverse before it, and most molecular clocks place many splits among placental orders in the Cretaceous. That sequence is consistent with release from competitors but does not test it; a coincident change in climate is one alternative. The fossil record cannot be rerun. Bacteria can.
+Two facts temper the first film's mammals. Mammals were already diverse before the end-Cretaceous losses, and most molecular clocks (divergence dates estimated from DNA differences among living species, calibrated with fossils; more below) place many splits among placental orders in the Cretaceous. So the rise of placental mammal orders mainly after the extinction is consistent with release from competitors (survivors freed from groups that had used the same resources) but does not test it; a coincident change in climate is one alternative.
 
-Paul Rainey and Michael Travisano (1998) grew *Pseudomonas fluorescens* from a single genotype in microcosms of broth. Left unshaken, where conditions differ from the surface down, new heritable types arose beside the ancestral smooth type, including a "wrinkly spreader" that forms a mat at the surface. Shaken to keep the broth uniform, they did not diversify. Spatial structure supplied ecological opportunity, and competition among the niche specialists kept them all present.
+Why did the new types of *Pseudomonas fluorescens* last? In Rainey and Travisano's (1998) unshaken microcosms, spatial structure supplied the ecological opportunity, and competition among the niche specialists kept them all present.
 
-<LessonFigure src="/figures/history-of-life/unshaken-vs-shaken-microcosm.webp" width={1200} height={800} alt="AI-generated illustration: two matching broth containers started from one bacterial genotype. In the unshaken one the broth changes from the surface down, a gold mat lies at the surface, and several different cell types sit at different depths. In the shaken one the broth is uniform and holds only the smooth ancestral type." caption="Rainey and Travisano grew Pseudomonas fluorescens from a single genotype. Left unshaken, where conditions differ from the surface down, new heritable types arose beside the ancestral smooth type, including a wrinkly spreader that forms a mat at the surface; shaken to keep the broth uniform, the bacteria did not diversify. Schematic, not to scale; these are morphs, not new species." />
+<LessonFigure src="/figures/history-of-life/unshaken-vs-shaken-microcosm.webp" width={1200} height={800} alt="AI-generated illustration: two matching broth containers started from one bacterial genotype. In the unshaken one the broth changes from the surface down, a gold mat lies at the surface, and several different cell types sit at different depths. In the shaken one the broth is uniform and holds only the smooth ancestral type." caption="Shaking removes the zones, not the mutations: in uniform broth the new types had no different zone to hold. Schematic, not to scale." />
 
-Keep the scope: these are heritable morphs of an asexual bacterium, not new species, and nothing here says every fossil radiation had the same cause. The flask shows the logic: unoccupied niches plus heritable variation gave repeatable diversification.
+These are heritable morphs of an asexual bacterium, not new species. The flask tests the logic; it does not say every fossil radiation had the same cause.
+
+Every claim so far has leaned on a date. The second film shows where such dates come from, and why a fossil date and an ash date are different kinds of answer.
+
+<LessonFilm film={frontmatter.films[0]} />
 
 ## How the dates are measured
 
-Every date above has the same shape: a measured age, a method, an uncertainty, and a direction in which the truth could lie.
+**Radiometric dating** compares the parent isotope left in a mineral with the daughter isotope built up from it; the **half-life** is fixed for each isotope. For any date, ask four things: the measured age, the method, its uncertainty, and whether it is a point, a bracket or a minimum age.
 
-Fossils are rarely dated directly; minerals in the rocks around them are. **Radiometric dating** compares how much of a radioactive parent isotope remains in a mineral with how much of its daughter has built up. The **half-life** is the time for half of the parent atoms in a sample to decay. It is constant for each isotope, so the mineral works like an hourglass: the sand in the bottom bulb tells you the time since it was turned over.
+**Predict.** A zircon that has stayed closed since it formed, and started with no lead, has a daughter-to-parent ratio D/P = 3. How many half-lives have passed?
 
-Zircon, common in volcanic ash, takes up uranium as it crystallizes but almost no lead, so nearly all its lead comes from later decay.
+<details>
+<summary>Check your prediction</summary>
 
-**Worked problem.** A hypothetical zircon from an ash bed has stayed closed since it crystallized: no parent or daughter has entered or left, and it started with no radiogenic lead. Treat uranium-235 decaying to lead-207 as one parent and one daughter, with the rounded teaching half-life of 704 million years that the US Geological Survey uses. You measure a daughter-to-parent ratio D/P = 3.
+Two, not three: the parent left is one part in four, which is two halvings. The worked problem shows why.
+
+</details>
+
+**Worked problem.** A hypothetical zircon from an ash bed has stayed closed since it crystallized: no parent or daughter has entered or left, and, because zircon takes up almost no lead when it forms, it started with no radiogenic lead. Treat uranium-235 decaying to lead-207 as one parent and one daughter, with the rounded teaching half-life of 704 million years that the US Geological Survey uses. You measure a daughter-to-parent ratio D/P = 3.
 
 1. *Recover the starting parent.* Every daughter atom was once a parent atom, so P0 = P + D = P + 3P = 4P. The fraction of parent left is P/P0 = 0.25.
 2. *Count half-lives.* After n half-lives the fraction left is (1/2)^n. Since 0.25 = (1/2)^2, n = 2.
 3. *Convert to years.* Age = 2 x 704 million years = 1,408 million years, or 1.408 billion years.
 4. *Check.* After one half-life 50% of the parent remains; after two, 25%. Then 75% is daughter, and 75 / 25 = 3, the measured ratio.
-5. *Date the fossils.* The ash lies above a fossil bed, and a second ash below the bed is dated to 1,450 million years. The fossils are younger than 1,450 and older than 1,408 million years. The answer is a bracket, not a point.
+5. *Date the fossils.* This ash lies above a fossil bed, and a second ash below the bed is dated to 1,450 million years. In undisturbed, right-way-up layers the lower one is older, so the fossils are younger than 1,450 and older than 1,408 million years.
 
 <DecayClockBracket />
 
 > **fraction of parent left = P / (P + D) = (1/2)^n,   age = n x half-life**
 
-Real geochronology uses precisely measured decay constants with stated uncertainties, both uranium chains and corrections for initial lead; this exercise is a model, only as good as its assumptions. The clock must also match the age. Carbon-14 has a half-life of about 5,730 years, so after roughly 50,000 years too little remains to measure. Dinosaur bones are not carbon-dated.
+Real geochronology uses precisely measured decay constants with stated uncertainties, both uranium chains and corrections for initial lead; this exercise is a simplified model. Ash beds are not the only route: where none lie near a fossil, its rocks have to be dated by other methods.
 
 Molecular clocks convert sequence differences among living species into divergence times, with fossils calibrating particular nodes (see [reading phylogenetic trees](/lessons/reading-phylogenetic-trees/)). Parham and colleagues (2012) argued that each calibration needs an explicit justification of the fossil's place on the tree and the age of its rock, because a misplaced or misdated fossil carries its error into the dates.
 
 ## What rates the record can and cannot give
 
-A clade's **net diversification rate** is speciation minus extinction:
+A **clade**, an ancestor and all its descendants, has a **net diversification rate** r = λ − μ, in events per lineage per million years, and a count of lineages alone cannot split it into its two parts. So biologists look at *when* lineages split. A **time tree** of living species dates each split from DNA, calibrated with fossils. Lineages that died out leave no tips, so they are missing from it.
 
-> **r = λ − μ   (each in events per lineage per million years)**
+**Predict.** Suppose λ and μ never changed in a clade's history, and extinction was high. On a time tree of its living species, do new lineages appear at a steady pace, or faster toward the present?
 
-where λ is the speciation rate and μ the extinction rate. A time tree of living species records when surviving lineages split. Lineages that went extinct leave no tips, and recent lineages have had less time to die out, so a tree of survivors shows a "pull of the present": the number of lineages climbs steeply near today even when rates were constant, as long as extinction is not negligible.
+<details>
+<summary>Check your prediction</summary>
 
-So, unless the rates are constrained in advance, a tree of survivors alone cannot tell rising speciation apart from steady speciation with high extinction. That information has to come from outside the tree.
+Faster toward the present. Old lineages have had a long time to die out without living descendants, so most old branches are missing; young ones have not, so almost all are still there. The count climbs steeply near today though the rates never changed: the **pull of the present**. Under a constant-rate birth-death model with every living species sampled, the illustrative rates from the start of the lesson (λ = 0.20, μ = 0.19) give (formula in Going deeper):
 
-<LessonFigure src="/figures/history-of-life/extant-tree-vs-full-history.webp" width={1200} height={800} alt="AI-generated illustration: a branching time tree running left to right toward Today, with six surviving lineages in navy and four extinct lineages ending in crosses. Insets show the tree of living species only, with extinct branches missing, and the same tree with fossil dots marking the extinct branches." caption="A time tree of living species records only surviving lineages; lineages that went extinct leave no tips. Fossils supply outside information, and a model that includes preservation can estimate extinction directly. Schematic, not real data." />
+| Time before today | Rate at which lineages split on the tree of living species (per lineage per million years) |
+|---|---|
+| 100 million years | 0.015 |
+| 20 million years | 0.045 |
+| 5 million years | 0.10 |
+| Today | 0.20, the full speciation rate |
 
-Fossils supply that outside information. Silvestro and colleagues (2014) built a method, PyRate, that estimates speciation and extinction from fossil occurrences while modelling preservation and sampling explicitly.
+With no extinction there is no pull: lineages appear at the speciation rate all the way back.
+
+</details>
+
+Now turn it around. A tree that climbs steeply toward the present could mean steady rates with high extinction, or speciation that rose recently with no extinction; suitably matched versions of the two fit a tree of living species exactly equally well. Unless you assume something about the rates from outside the tree (for example, that extinction was zero), the tree of survivors cannot tell them apart, and under a general model adding living species does not help (Louca and Pennell, 2020; Going deeper).
+
+<LessonFigure src="/figures/history-of-life/extant-tree-vs-full-history.webp" width={1200} height={800} alt="AI-generated illustration: a branching time tree running left to right toward Today, with six surviving lineages in navy and four extinct lineages ending in crosses. Insets show the tree of living species only, with extinct branches missing, and the same tree with fossil dots marking the extinct branches." caption="A time tree of living species is missing every lineage that died out, so without constraints justified from outside the tree it cannot separate speciation from extinction histories. In deep time, fossils are the main direct record of the missing branches. Schematic, not real data." />
+
+The missing information is the extinct side branches. In deep time fossils are the principal direct evidence for them, but an incomplete one, so fossil-based rate estimates must model preservation and sampling. Silvestro and colleagues (2014) built a method, PyRate, that estimates speciation and extinction from dated fossil occurrences while modelling how likely each lineage was to be preserved and found.
 
 ### Design problem
 
@@ -436,11 +504,11 @@ Placental mammal orders diversified mainly after the end-Cretaceous extinction. 
 <details>
 <summary>One way to do it</summary>
 
-**Alternatives.** A change in climate at about the same time could have opened niches without any release from competitors. The radiation may also have begun earlier than the fossils show: most molecular clocks place many splits among placental orders in the Cretaceous, and the oldest fossil of each order is only a minimum age. Unlike the flask, this event cannot be rerun with a control.
+**Alternatives.** A change in climate at about the same time could have opened niches without any release from competitors. The radiation may also have begun earlier than the fossils show: recall the Cretaceous splits in most molecular clocks, and the oldest fossil of each order is only a minimum age. Unlike the flask, this event cannot be rerun with a control.
 
 **Data that would decide.**
 
-1. *Date the pattern.* Fit dated fossil occurrences from before and after the boundary with a model that estimates speciation, extinction and preservation together, such as PyRate (Silvestro and colleagues, 2014). Release from competitors predicts a rise in speciation that starts at the extinction horizon, not before it. A tree of living mammals alone cannot settle this, because it cannot separate speciation from extinction.
+1. *Date the pattern.* Fit dated fossil occurrences from before and after the boundary with PyRate or a similar model that estimates speciation, extinction and preservation together. Release from competitors predicts a rise in speciation that starts at the extinction horizon, not before it. A tree of living mammals alone cannot settle this.
 2. *Check the niches.* If the new mammal types took on the ecological roles of groups that died out, that supports release from competitors. If the timing of diversification tracks an independently dated climate shift instead, that supports the alternative.
 3. *Check the clocks.* Use fossil calibrations with an explicit justification of each fossil's place on the tree and the age of its rock (Parham and colleagues, 2012), and state the uncertainty of each divergence date.
 4. *State the fossil biases.* Preservation is uneven, so a gap before the boundary is not proof of absence, and the Signor-Lipps effect makes extinctions look more gradual than they were.
@@ -449,35 +517,35 @@ Placental mammal orders diversified mainly after the end-Cretaceous extinction. 
 
 ## Going deeper
 
-The numbers, methods and disputes behind the main line.
-
 ### The timeline in detail
 
 Djokic and colleagues (2017) reported stromatolites, microbial palisade fabric and geyserite, a mineral deposit of hot springs, in the Dresser Formation rocks. Older claims need care: Allwood and colleagues (2018) reinterpreted supposed stromatolites in 3.7-billion-year-old rocks at Isua, Greenland, as more plausibly deformation structures.
 
-Gumsley and colleagues (2017) bracketed the onset of the GOE using sequences of rock layers in southern Africa anchored by dated volcanic rocks. Their bracket is about 100 million years earlier than previous estimates.
+The consequences of the Great Oxidation Event in the main text follow Crockford and colleagues (2026). Gumsley and colleagues (2017) bracketed the onset of the GOE using sequences of rock layers in southern Africa anchored by dated volcanic rocks. Their bracket is about 100 million years earlier than previous estimates, and they inferred that oxygen rose and fell rather than climbing once.
 
 Gibson and colleagues (2018) used rhenium-osmium dates of sedimentary rocks above and below *Bangiomorpha pubescens* in the Bylot Supergroup of Baffin Island to revise its age to 1.047 billion years (plus 0.013, minus 0.017). Using that age as a calibration, their molecular clocks put the origin of the primary plastid, the chloroplast that began as an engulfed cyanobacterium, at about 1.25 Ga. That figure is a model estimate conditional on the calibration, not an observed event and not a fossil floor.
 
-The 558 Ma age for the *Dickinsonia* fossils comes from earlier dating that Bobrovskiy and colleagues cite; the Ediacara biota as a whole spans about 571 to 541 Ma.
+The 558 Ma age for the *Dickinsonia* fossils comes from earlier dating that Bobrovskiy and colleagues cite.
+
+The early land plants that shed cryptospores belong to a pool of diversity from which bryophytes and vascular plants emerged (Edwards and colleagues, 2014).
 
 ### The Big Five in the original data
 
-Raup and Sepkoski's 1982 analysis of fossil marine families found four extinction events statistically distinct from the background rate: the end of the Ordovician, the Late Permian, the Late Triassic and the end of the Cretaceous. They also named a fifth event, in the Devonian, that stood out from the background but was not statistically significant in those data. Marshall (2023), looking back forty years later, notes that later analyses found the Big Five not statistically distinct from background rates and that there is no general agreement on which intervals count as mass extinctions; the name has stayed in standard use.
+David Raup and J. John Sepkoski first analysed the pattern in 1982, from a compilation of fossil marine families. They found four extinction events statistically distinct from the background rate: the end of the Ordovician, the Late Permian, the Late Triassic and the end of the Cretaceous. They also named a fifth event, in the Devonian, that stood out from the background but was not statistically significant in those data. Marshall (2023), looking back forty years later, notes that later analyses found the Big Five not statistically distinct from background rates and that there is no general agreement on which intervals count as mass extinctions; the name has stayed in standard use.
 
 ### Extinction numbers
 
-Alvarez and colleagues found iridium enriched about 30-fold in Italy, 160-fold in Denmark and 20-fold in New Zealand.
+Chicxulub lies on Mexico's Yucatán Peninsula. The iridium enrichments at the three sites behind the impact hypothesis are given in Walter Alvarez's profile.
 
 At Meishan, Burgess, Bowring and Shen dated zircons from five volcanic ash beds and placed the extinction between 251.941 ± 0.037 and 251.880 ± 0.031 Ma. Check their duration yourself: 251.941 − 251.880 = 0.061 million years, about 61,000 years, in line with the 60 ± 48 thousand years they estimated.
-
-A figure of 96% "of all life" circulates for the end-Permian. It describes marine species, not all life, and Stanley (2016), inferring species losses from data on higher taxa, estimated about 81% and argued that larger figures merged separate Permian crises.
 
 ### More on the flask
 
 Kassen, Llewellyn and Rainey (2004) then varied productivity and disturbance in the same system, and diversity peaked at intermediate levels of both.
 
 ### Why a tree of living species cannot settle rates
+
+The table in the main text comes from λ·P(s), where P(s) = (λ − μ) / (λ − μ·e^(−(λ − μ)s)) is the chance that a lineage alive s million years ago has a living descendant, assuming constant rates and every living species sampled. A no-extinction model whose speciation rate rises toward today as λ·P(s) draws the same curve: the matched pair in the main text.
 
 Louca and Pennell (2020) showed that, under a general birth-death model in which both rates may change through time, infinitely many histories are equally likely to have produced the same tree of living species, and that adding living species does not fix this even with unlimited data. The result concerns that general model: a constrained hypothesis can still be tested, but the constraint must be justified from outside the tree. PyRate lets the speciation and extinction rates vary independently through time; applied to fossil rhinoceroses, it inferred repeated shifts in both rates.
 
@@ -488,11 +556,11 @@ The living species of a clade form a time tree in which the number of lineages r
 <details>
 <summary>One way to do it</summary>
 
-**Alternative.** Constant speciation with high extinction gives the same shape, because old lineages have had longer to be removed. Under a general birth-death model infinitely many histories, including ones with no speed-up, fit an extant tree equally well (Louca and Pennell, 2020). The tree alone cannot decide.
+**Alternative.** Constant speciation with high extinction gives the same shape, the pull of the present, and under a general birth-death model infinitely many histories, including ones with no speed-up, fit an extant tree equally well (Louca and Pennell, 2020).
 
 **Data that would decide.**
 
-1. *Add fossils.* Fit dated fossil occurrences with a model that estimates speciation, extinction and preservation together, such as PyRate (Silvestro and colleagues, 2014). Many extinct lineages and high extinction favour turnover; low extinction with recently rising speciation supports the student.
+1. *Add fossils.* Fit dated fossil occurrences with PyRate (Silvestro and colleagues, 2014) or a similar model. Many extinct lineages and high extinction favour turnover; low extinction with recently rising speciation supports the student.
 2. *Or justify a constraint.* Without fossils, test a specific model, such as a speed-up timed to an independently dated event, and say the conclusion depends on that constraint.
 3. *State the fossil biases.* Preservation varies with rock type, environment and age, so let it vary through time in the model. First appearances are minimum ages, and the Signor-Lipps effect blurs last appearances.
 
