@@ -4,8 +4,18 @@ slug: "predation"
 course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 4: Interactions and communities"
 order: 517
-summary: "A predator can reshape a whole community, including species it never eats. Keep one species of sea star off a patch of shore and the number of species holding space on the rock falls from 15 to 8, as the mussels it eats take over the rock. This lesson reads three field studies, Paine's sea-star removals at Mukkaw Bay, the sea otters of the Aleutians, and spiders with glued mouthparts in Connecticut, and builds the Lotka-Volterra predator-prey model, working its rates and isoclines with numbers. Afterwards you can define a keystone species and a trophic cascade, say whether an effect is carried by killing or by fear, find a predator-prey equilibrium, say what the model leaves out, and judge how far one shore or one park can be generalized."
-hook: "Keep one species of sea star off a patch of shore and the number of species holding space on the rock falls from 15 to 8. Why?"
+summary: >-
+  Every kill is entered in two ledgers, a death for the prey and food that, on average, predators
+  turn into births, so each population's per capita growth rate is set by the other's numbers, and a predator can
+  affect species it rarely or never eats, and can even help some species it also eats. This lesson builds the
+  Lotka-Volterra predator-prey model and works its rates and isoclines with numbers, then reads
+  three field studies: Paine's sea-star removals at Mukkaw Bay, where the number of species
+  holding space on the rock fell from 15 to 8, the sea otters of the Aleutians, and spiders with
+  glued mouthparts in Connecticut. Afterwards you can define a keystone species and a trophic
+  cascade, say whether an effect is carried by killing or by fear, find a predator-prey
+  equilibrium, say what the model leaves out, and judge how far one shore or one park can be
+  generalized.
+hook: "If predators eat prey, why do predator numbers keep climbing after the prey have started to fall?"
 
 estMinutes: 24
 objectives:
@@ -18,11 +28,31 @@ explainer:
   src: "/explainers/predation/explainer.mp4"
   captions: "/explainers/predation/explainer.vtt"
   poster: "/explainers/predation/poster.jpg"
-  title: "A Predator That Protects Its Prey's Rivals"
-  durationSec: 148.0
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Two Ledgers, One Kill"
+  durationSec: 178.7
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Each kill is a death for the prey and food that, on average, predators turn into births, so each population's per capita growth rate is set by the other's numbers."
+    - "Prey increase while predators are fewer than P* = r/a; predators increase while prey are more than N* = m/(ea)."
+    - "Predators keep rising after prey have peaked, so predator peaks come after prey peaks, though the model builds in no delay."
+    - "In the classical Lotka-Volterra model each start with both populations present and away from the equilibrium keeps its own closed loop, so the start sets the size of the cycle."
 
+films:
+  - id: "chapter-2"
+    src: "/explainers/predation/chapter-2.mp4"
+    captions: "/explainers/predation/chapter-2.vtt"
+    poster: "/explainers/predation/chapter-2-poster.jpg"
+    title: "Fifteen to Eight"
+    durationSec: 186.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Paine kept the sea star Pisaster ochraceus off one patch of shore at Mukkaw Bay, Washington, beside an untouched control."
+      - "Without Pisaster, mussels, the strongest competitors for space on the rock, spread, and the species holding space on the rock fell from 15 to 8."
+      - "Pisaster's effects ran through the mussels it ate to the species they compete with: it kept space open, including for some species it also ate."
+      - "A keystone species has an effect on its community that is large relative to its abundance."
+      - "This was one removal patch and one control: a strong local result, not yet a general law."
 scientists:
   - name: "Robert T. Paine"
     contribution: >-
@@ -165,10 +195,11 @@ practiceQuestions:
       - "The oscillations always damp out, settling at the equilibrium point"
     answer: 0
     rationale: >-
-      The classical model has a family of closed orbits around the equilibrium; each starting
-      point stays on its own orbit, so the amplitude is set by where it starts and a disturbance
-      moves the system to a different orbit. A single attracting cycle of fixed amplitude, a limit
-      cycle, appears only in modified models, for example with a predator that gets full. Damping
+      The classical model has a family of closed orbits around the equilibrium; each start with
+      both populations present and away from the equilibrium keeps its own orbit, so the amplitude is set by where it
+      starts and a disturbance moves the system to a different orbit. A single attracting cycle of
+      fixed amplitude, a limit cycle, needs a modified model with prey self-limitation and a
+      predator that gets full, and appears only for some parameter values. Damping
       to the equilibrium also needs a change, such as prey self-limitation. Predators peak after
       prey, because predator births depend on prey that have already become abundant.
   - stem: "In Paine's removal patch at Mukkaw Bay, why did the number of species on the rock fall from 15 to 8?"
@@ -333,105 +364,148 @@ draft: false
 
 import PredatorPreyOrbit from '../../../components/PredatorPreyOrbit.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Predators can shape whole communities, including species they never eat. In the early 1960s Robert Paine began keeping the sea star *Pisaster ochraceus* out of one patch of rocky shore at Mukkaw Bay, Washington. By his 1966 report, the patch held 8 species on the rock instead of 15.** The sea star eats mussels, the strongest competitors for rock. Without it, mussels spread and crowd out weaker competitors, so a predator that eats some species keeps room open for others.
+The first film followed kills into two **ledgers**, each population's running account of births and deaths, and found the lag in that bookkeeping. This text starts from the equations it left out.
 
-This lesson reads that experiment and two more, sea otters and kelp, and spiders with glued mouthparts, and asks how far each one reaches. It also builds a model of how a predator and its prey change each other's numbers, and works it with numbers.
+> **The one idea.** Every kill is entered in two ledgers: a death in the prey's, and food that, on average, the predators turn into births. So each population's **per capita** (per individual) growth rate is set by the other's numbers: r - aP for each prey, eaN - m for each predator. And a predator can affect species it rarely or never eats, even helping some it also eats, by changing the numbers or behaviour of the species in between.
+>
+> *Scope:* the two rates belong to the classical Lotka-Volterra model below, and a population's total change is its per capita rate times its own numbers. The reach to other species comes from field experiments, and its size and even its sign depend on the community.
 
-## The idea: eating couples two populations
+## Two ledgers, written as equations
 
-In [population growth](/lessons/population-growth/) each population changed by its own births and deaths. Predation ties two populations together. A **predator** is a consumer that kills and eats other organisms, its **prey**. Every prey eaten is a death in one population and food for the other, which predators turn partly into births. So the prey's growth rate depends on how many predators there are, and the predators' growth rate depends on how many prey there are.
-
-This coupling makes both populations overshoot. Predator numbers keep rising as long as there are enough prey for each predator to replace itself, so predators are still increasing after prey have started to fall. Predators therefore peak after prey, even though the classical model contains no built-in time delay.
-
-Predators also act on species they never touch. A **trophic level** is a feeding position in a food chain: plants, herbivores, carnivores. A predator's effect can pass down through several levels, or shift competition among its prey.
-
-## The Lotka-Volterra cycle and what it leaves out
-
-Alfred Lotka, in his 1925 book *Elements of Physical Biology*, and Vito Volterra, in a 1926 paper in *Nature*, reached the same pair of equations independently. With N prey and P predators:
+In [population growth](/lessons/population-growth/) each population changed by its own births and deaths. A **predator** is a consumer that kills and eats other organisms, its **prey**. Alfred Lotka (1925, in his book *Elements of Physical Biology*) and Vito Volterra (1926, in *Nature*) independently wrote the two ledgers as equations. With N prey and P predators:
 
 > **dN/dt = rN - aNP      dP/dt = eaNP - mP**
 
-Here r is the prey's per capita growth rate without predators (per day), a is the attack rate (the fraction of prey each predator catches per day), e is new predators made per prey eaten, and m is the predators' per capita death rate (per day).
+Here r is the prey's per capita growth rate without predators (per day). The **attack rate** a is the risk of being caught that one predator adds to each prey (units: per predator per day), so aP is each prey's death rate from predation and aNP is the number of prey eaten per day. The conversion e is the average number of new predators made per prey eaten, and m is the predators' per capita death rate (per day). The ledgers are linked by rates, not kill by kill: aNP prey deaths per day feed eaNP predator births per day. Divided by N and by P, the equations give the one idea's per capita rates.
 
-The assumptions are strong. Without predators the prey grow exponentially, with no carrying capacity. Without prey the predators decline exponentially. Each predator's intake rises in proportion to prey numbers with no **handling time** (the time spent catching and eating each prey), so a predator never gets full. Populations are well mixed, with no age structure, no space and constant parameters.
+The assumptions are strong. Without predators the prey grow exponentially, with no carrying capacity. Without prey the predators decline exponentially. Each predator's intake rises in proportion to prey numbers with no **handling time** (the time spent catching and eating each prey), so a predator never gets full. Populations are well mixed (every predator equally likely to meet every prey), with no age structure, no space and constant parameters.
 
-An **isocline** is the set of numbers at which one population stops changing. Prey stop changing when births equal losses, rN = aNP, which happens when P = r/a. Predators stop changing when eaN = m, which happens when N = m/(ea). Where the two lines cross is the equilibrium:
+The first film's two threshold lines are **isoclines**: the sets of numbers at which one population stops changing. Set each per capita rate to zero: r - aP = 0 gives P = r/a, and eaN - m = 0 gives N = m/(ea). Where the two lines cross is the equilibrium:
 
 > **N* = m/(ea)      P* = r/a**
 
-Notice the swap: the prey equilibrium is set by the predator's parameters, and the predator equilibrium by the prey's. A faster-breeding prey raises the number of predators.
+**Predict.** The prey start breeding twice as fast (r doubles) and nothing else changes. At the new balance point, which population is larger than before: the prey, the predators, or both?
+
+<details>
+<summary>Check your prediction</summary>
+
+Only the predators. N* = m/(ea) contains no r, so the prey equilibrium does not move; P* = r/a doubles. With the worked numbers below, (500, 100) becomes (500, 200). Each equilibrium is set by the *other* population's parameters: faster prey breeding feeds more predators, and the extra predators eat the extra prey.
+
+</details>
 
 **Worked problem.** These numbers are made up for illustration: r = 1 per day, a = 0.01 per predator per day, e = 0.1 predators per prey eaten, m = 0.5 per day. Today there are N = 400 prey and P = 50 predators.
 
 1. *Prey rate.* Prey births are rN = 1 x 400 = 400 prey per day. Prey eaten are aNP = 0.01 x 400 x 50 = 200 prey per day. So dN/dt = 400 - 200 = +200 prey per day.
 2. *Predator rate.* Predator production is eaNP = 0.1 x 200 = 20 predators per day. Predator deaths are mP = 0.5 x 50 = 25 predators per day. So dP/dt = 20 - 25 = -5 predators per day.
 3. *Equilibrium.* N* = 0.5 / (0.1 x 0.01) = 0.5 / 0.001 = 500 prey. P* = 1 / 0.01 = 100 predators. Check: at (500, 100), prey births are 500 and prey eaten are 0.01 x 500 x 100 = 500, so dN/dt = 0; predator production is 0.1 x 500 = 50 and deaths are 0.5 x 100 = 50, so dP/dt = 0.
-4. *Read the state.* Prey are below N* = 500, so each predator eats too little to replace itself and predators fall. Predators are below P* = 100, so prey births outrun losses and prey rise. Predators will keep falling until prey pass 500; the predator low comes after the prey have started climbing.
-
-That last step is the lag: prey peak first, and predators peak later.
+4. *Read the state.* Prey are below 500 and predators below 100: the bottom-left zone, where prey rise and predators fall. The simulation below starts here, at (400, 50); run it and note which curve turns first.
 
 <PredatorPreyOrbit />
 
-The classical cycles have an odd property: they are **neutral**. Each starting point sits on its own closed orbit, so the amplitude is set by where the system starts, and a disturbance pushes it onto a different orbit. There is no single cycle that the system returns to. Add prey self-limitation, as in the logistic model, and the neutral cycles disappear. If the prey's carrying capacity is high enough for predators to persist, the populations settle at the equilibrium, often through damped oscillations. If it is too low, predators die out. Add a handling time as well, so predators get full, and the model can instead settle onto one cycle whose size does not depend on the start.
+## What the classical cycle leaves out
 
-Real data rarely fit the classical model. The famous hare and lynx cycle comes from fur-trade records, which reflect trapping effort as well as animal numbers. In the 1950s Carl Huffaker could keep predatory and plant-eating mites coexisting on oranges only when he made the arena patchy, a story taken up in [movement and spatial populations](/lessons/spatial-populations/). And rapid evolution of prey defenses can reshape cycles, as Takehito Yoshida and colleagues found with rotifers and algae, the subject of [mutualism, parasitism and coevolution](/lessons/mutualism-parasitism-coevolution/).
+With both populations present and away from the equilibrium, the loops are **neutrally stable**, like a marble on one of many nested, frictionless tracks: a nudge moves it to another track, and it circles that one instead, with no single cycle pulling it back.
 
-## Paine's shore and the keystone
+Averaged over any full loop, the numbers equal N* and P*. Over one loop each population ends where it began, so its per capita rate averages zero, which requires the average of P to be r/a (and of N, m/(ea)). On the loop through (400, 50) that gives 500 prey and 100 predators, to within rounding.
 
-At Mukkaw Bay, Pisaster ate mussels, barnacles, chitons, limpets and snails. Paine kept it out of a patch of shore, with an adjacent control, and surveyed both along line transects. In the removal patch the number of species holding space on the rock fell from 15 to 8 in the 1966 paper. The control did not lose species in the same way.
+Hence Volterra's fishing argument: harvest both populations at the same per capita rate h, and the averages become (m + h)/(ea) prey and (r - h)/a predators, prey up and predators down, as long as h stays below r so that predators persist.
 
-The mechanism was competition for space, a resource on a rocky shore as limiting as light in a forest (see [competition](/lessons/competition/)). Mussels are strong competitors for rock. With Pisaster eating them, space kept opening for weaker competitors. Without it, mussels took over the rock and crowded out the other species. Pisaster raised the richness of species on the rock by freeing space, not by eating species that harmed the rest. That count has a limit: Paine counted the species holding space on the rock, and a mussel bed is itself a habitat, so counting the species living among the mussels can reverse the result. The answer depends on what you count.
+**Predict.** Give the worked-problem prey a carrying capacity, K = 400, so that without predators they settle at 400. Can the predators persist?
 
-A **keystone species** has an effect on its community that is disproportionately large relative to its abundance. **Keystone predation** is the process seen here: a consumer that preferentially eats a strong competitor indirectly benefits the weaker ones. Because the definition is about effect relative to abundance, the most common or dominant species is not a keystone by default.
+<details>
+<summary>Check your prediction</summary>
+
+No. Each predator replaces itself only when prey exceed N* = 500. Even at 400 prey, a rare predator's per capita rate is eaN - m = 0.001 x 400 - 0.5 = -0.1 per day, so predators decline to extinction and the prey settle at 400.
+
+</details>
+
+Two changes to the assumptions matter most:
+
+| Change to the model | What happens to the cycles |
+|---|---|
+| Prey self-limitation (logistic growth with carrying capacity K) | The neutral cycles disappear. If K is above N*, the populations settle at the equilibrium, often through damped oscillations, and the prey line tilts to P = (r/a)(1 - N/K), so the predator equilibrium falls below r/a: with the worked numbers and K = 2000, 100 x (1 - 500/2000) = 75 predators at 500 prey. If K is below N*, predators die out. |
+| Handling time as well, so predators get full | For some parameter values the model settles onto one cycle whose size does not depend on the start (a limit cycle); for others it settles at an equilibrium, or the predators die out. |
+
+Real records rarely fit the classical model either (Going deeper).
+
+So far each kill has touched only two ledgers. But prey also compete with other species, so a predator can reach species it never eats. The second film follows that link on a rocky shore.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## What one shore can and cannot show
+
+The film's count of 15 to 8 covered only species holding space on the rock. A mussel bed is itself a habitat: count the species living among the mussels and the result can reverse (Going deeper).
+
+The keystone label compares effect with abundance, so the most common species is not a keystone by default: at Mukkaw Bay the mussels were the **dominant competitor** (the winner of the contest for space), and Pisaster was the keystone.
+
+The chiton's two arrows are the general case. A predator's net effect on a species combines its direct effects (killing it, or changing how it behaves) with effects passed through other species, and the two can pull in opposite directions. Larger limpets left the patch as well as the chitons, so there the indirect help won. A weaker species gains only if release from the dominant competitor outweighs what the predator costs it directly, and heavier predation can reverse that balance. So a keystone predator *can* raise **richness** (the number of species), not always does. Why space on a rock is a **limiting resource** (one whose supply caps the populations that use it) is the subject of [competition](/lessons/competition/).
 
 ## Cascades through killing and through fear
 
-A **trophic cascade** is an indirect predator effect that extends through several trophic levels: predator to herbivore to plant.
+A **trophic level** is a feeding position in a food chain: plants, herbivores, carnivores. A **trophic cascade** is an indirect predator effect that extends through several trophic levels: predator to herbivore to plant.
 
-The sea otter case comes from a comparison. James Estes and John Palmisano compared two groups of islands in the western Aleutians, Alaska. Their main sites were Amchitka Island, where a dense otter population had recovered after fur hunting, and Shemya Island, where otters had not come back. In their 1974 paper, Amchitka had many otters, few sea urchins and dense kelp, and Shemya had no otters, many urchins and little kelp. No one removed otters. The contrast fits a cascade but leaves room for other differences between the islands. Later evidence came from a change over time: when sea otters declined across western Alaska in the 1990s, probably because killer whales ate more of them, urchins increased and kelp beds were lost.
+In a 1974 paper, James Estes and John Palmisano compared islands in the western Aleutians, Alaska: Amchitka, where a dense otter population had recovered after fur hunting, and Shemya, where otters had not come back (figure). Otters eat urchins, and urchins graze kelp, so the urchin and kelp pattern fits a two-link cascade, but no one removed otters. Later evidence came from a change over time: when sea otters declined across western Alaska in the 1990s, probably because killer whales ate more of them, urchins increased and kelp beds were lost.
 
-<LessonFigure src="/figures/predation/otter-island-contrast.webp" width={1200} height={800} alt="AI-generated illustration: two side-by-side shallow-sea cross-sections near small islands. On the left, three sea otters float above a few urchins and a dense kelp bed; on the right there are no otters, the seafloor is covered with urchins and only a little kelp remains. A question mark sits on the line between them, and an inset shows a sea urchin." caption="Estes and Palmisano compared Amchitka Island in the western Aleutians, where otters had recovered, with Shemya Island, where they had not: with many otters there were few urchins and dense kelp, and without otters many urchins and little kelp. No one removed otters, so the contrast fits a cascade but leaves room for other differences among the islands." />
+<LessonFigure src="/figures/predation/otter-island-contrast.webp" width={1200} height={800} alt="AI-generated illustration: two side-by-side shallow-sea cross-sections near small islands. On the left, three sea otters float above a few urchins and a dense kelp bed; on the right there are no otters, the seafloor is covered with urchins and only a little kelp remains. A question mark sits on the line between them, and an inset shows a sea urchin." caption="Amchitka, with many otters, had few urchins and dense kelp; Shemya, without otters, had many urchins and little kelp. No one removed otters, so the contrast fits a cascade but leaves room for other differences between the islands." />
 
-A cascade can also run through behavior. In enclosures in a Connecticut old field, Andrew Beckerman, Maria Uriarte and Oswald Schmitz (1997) kept grasshoppers with no spiders, with hunting spiders, or with spiders whose mouthparts were glued so they could not kill. Grasshopper densities did not differ significantly among treatments. Yet with either kind of spider, grasses were damaged less and herbs more, because grasshoppers changed how long they fed and what they ate; the authors noted they may also have moved into the herbs for shelter. The authors traced the plant effect to the risk of being eaten rather than to deaths, and not every plant benefited.
+A **density-mediated** cascade works by killing herbivores, so fewer are left to eat plants. A **trait-mediated** cascade works by changing what surviving herbivores do, through the risk of being eaten: fear. In enclosures in a Connecticut old field, Andrew Beckerman, Maria Uriarte and Oswald Schmitz (1997) pulled them apart. They kept grasshoppers with no spiders, with hunting spiders, or with spiders whose mouthparts were glued so they could not kill.
 
-<LessonFigure src="/figures/predation/spider-enclosure-design.webp" width={1200} height={800} alt="AI-generated illustration: three identical mesh field enclosures, each with three grasshoppers on grass and herbs: no spider, a hunting spider, and a spider with glued mouthparts. Grass is notched where there is no spider; herbs are holed where there are spiders. Two insets compare a spider's normal jaws and fangs with jaws sealed by glue." caption="Beckerman, Uriarte and Schmitz kept grasshoppers with no spiders, hunting spiders, or spiders whose feeding mouthparts were glued, so they could lie in wait and be sensed but could not kill. Grasshopper densities did not differ significantly, yet with either kind of spider grasses were damaged less and herbs more." />
+**Predict.** Spiders that cannot kill: will the plants in their enclosures look like those with no spiders, or like those with hunting spiders?
 
-Landscape-scale cascades are harder to pin down. Wolves were reintroduced to Yellowstone National Park in the mid-1990s, and willow recovery has often been credited to them. Kristin Marshall, Thompson Hobbs and David Cooper (2013) crossed fences that excluded browsers such as elk with simulated beaver dams. Reducing browsing alone did not restore the willow communities to their recovery criterion (details under Going deeper). Wolves were never an experimental treatment. A 2024 extension of the ten-year experiment to about two decades, and published disagreement over how willow recovery should be measured, leave the park-wide question open.
+<details>
+<summary>Check your prediction</summary>
+
+Like those with hunting spiders (figure below), because grasshoppers changed how long they fed and what they ate; the authors noted they may also have moved into the herbs for shelter. The authors traced the plant effect to risk rather than deaths, and not every plant benefited.
+
+</details>
+
+<LessonFigure src="/figures/predation/spider-enclosure-design.webp" width={1200} height={800} alt="AI-generated illustration: three identical mesh field enclosures, each with three grasshoppers on grass and herbs: no spider, a hunting spider, and a spider with glued mouthparts. Grass is notched where there is no spider; herbs are holed where there are spiders. Two insets compare a spider's normal jaws and fangs with jaws sealed by glue." caption="Spiders with glued mouthparts could be sensed but could not kill, yet with either kind of spider grasses were damaged less and herbs more, while grasshopper densities did not differ significantly: a cascade carried by risk, not deaths." />
+
+Landscape-scale cascades are harder to pin down. Wolves were reintroduced to Yellowstone National Park in the mid-1990s, and willow recovery has often been credited to them. In an experiment by Kristin Marshall, Thompson Hobbs and David Cooper (2013), reducing browsing alone did not bring the willows to the 2-metre height they used as their recovery criterion (design under Going deeper). Wolves were never an experimental treatment. A 2024 extension of the ten-year experiment to about two decades, and published disagreement over how willow recovery should be measured, leave the park-wide question open.
 
 ## How far one system generalizes
 
-Paine's 1966 paper had one removal patch and one control: a strong local experiment and a weak basis for a law. Paine extended the removals himself. By 1974 he reported that after Pisaster was removed, mussels moved down the shore at both Mukkaw Bay and Tatoosh Island, with no change at control sites. A 2025 review by Anthony Gillis and colleagues found 25 publications that explicitly manipulated predators to test keystone predation, of which 10 reported consistent support. Their search relied on the term itself, so it could miss studies that used other words, and a vote count is not an estimate of how often keystone predation occurs.
+Paine extended the removals himself: by 1974 he reported that after Pisaster was removed, mussels moved down the shore at both Mukkaw Bay and Tatoosh Island, with no change at control sites. A 2025 review by Anthony Gillis and colleagues found 25 publications that explicitly manipulated predators to test keystone predation: 10 reported consistent support, 7 found the effect context-dependent and 8 found none. Their search relied on the term itself, so it could miss studies that used other words, and a vote count is not an estimate of how often keystone predation occurs. So a keystone result on one shore is a hypothesis for the next shore, not a given.
 
-Sea-star wasting disease killed Pisaster along much of the Pacific coast from 2013. Monica Moritsch and Peter Raimondi (2018) found that sea-star counts at monitoring sites could recover while biomass, a proxy for predation potential, stayed below 40% of its pre-outbreak level in 2015 to 2017 at most sites outside North Central California, because recovering populations were made of small stars. Near Monterey, Joshua Smith and colleagues (2025) reported that mussels grew larger and spread lower on the shore after Pisaster collapsed, and they inferred that eating more mussels contributed in part to a local rise in sea otters.
+Sea-star wasting disease, which killed Pisaster along much of the Pacific coast from 2013, has since run a coast-scale removal (Going deeper).
 
 ### Design problem
 
-Paine's 1966 paper had one removal patch and an adjacent control. Design a study that tests whether keystone predation by Pisaster generalizes across the coast. Say what you would measure, how you would replicate, and what result would count against generality.
+Design a study that tests whether keystone predation by Pisaster generalizes across the coast. Say what you would measure, how you would replicate, and what result would count against generality.
 
 <details>
 <summary>One way to do it</summary>
 
-Choose many sites that differ in wave exposure and mussel recruitment, since both could change how fast mussels take space. At each site assign several plots to removal or control at random. Survey every plot before removal and each year for several years after (a before-after-control-impact design), so a change can be separated from what was already happening.
+Choose many sites that differ in wave exposure and mussel recruitment, since both could change how fast mussels take space. At each site assign several plots to removal or control at random. Survey every plot before removal and yearly for several years after (a before-after-control-impact design), to separate a change from what was already happening.
 
 Fix the list of taxa you count before you start, so richness means the same thing everywhere. Measure mussel cover in every plot: if removal lowers richness, mussel cover should rise first, which tests the mechanism.
 
-Use the sea-star wasting die-off from 2013 as a natural experiment, comparing shores that lost most of their Pisaster with shores that lost fewer, while noting that the die-off was not randomly assigned.
+Use the sea-star wasting die-off from 2013 as a natural experiment, comparing shores that lost most of their Pisaster with shores that lost fewer; the die-off was not randomly assigned.
 
-Expect context dependence. If richness falls where mussel recruitment is high and changes little where it is low, keystone predation is real but conditional, which fits the Gillis review, where of 25 manipulations 10 gave consistent support, 7 were context-dependent and 8 gave none.
+Expect context dependence. If richness falls where mussel recruitment is high and changes little where it is low, keystone predation is real but conditional, which fits the split in the Gillis review above.
 
 </details>
 
 ## Going deeper
 
+### Real data rarely fit the classical model
+
+The famous hare and lynx cycle comes from fur-trade records, which reflect trapping effort as well as animal numbers. In the 1950s Carl Huffaker could keep predatory and plant-eating mites coexisting on oranges only when he made the arena patchy, a story taken up in [movement and spatial populations](/lessons/spatial-populations/). And rapid evolution of prey defenses can reshape cycles, as Takehito Yoshida and colleagues found with rotifers and algae, the subject of [mutualism, parasitism and coevolution](/lessons/mutualism-parasitism-coevolution/).
+
 ### The period of the cycle
 
-Near the equilibrium the cycle takes about 2 pi / square root of (rm) = 6.283 / square root of 0.5 = 6.283 / 0.707 = 8.89 days. This is a small-amplitude approximation, not the period of the larger orbit that passes through (400, 50).
+Near the equilibrium the cycle takes about 2 pi / square root of (rm) = 6.283 / square root of 0.5 = 6.283 / 0.707 = 8.89 days. This is a small-amplitude approximation. The larger orbit that passes through (400, 50) takes about 9.3 days, computed by solving the equations numerically.
 
-### How the shore filled in, and when the word keystone appeared
+### How the patch filled, and when the word keystone appeared
 
-Without Pisaster, acorn barnacles settled first and took most of the open rock within months. Then small mussels and gooseneck barnacles crowded the barnacles out. Algae lost their space, and chitons and larger limpets left for lack of space and food. Kevin Lafferty and Thomas Suchanek pointed out in 2016 that mussel beds shelter over 300 associated species. Counting those, removing Pisaster raises community-wide richness. The memorial to Paine in PNAS dates the keystone term to a short note he published in 1969, three years after the paper and six after the removal began. Keep the three dates apart: removal began in the early 1960s, the paper is from 1966, and the term is from 1969.
+In the film's sequence, the acorn barnacles took most of the open rock within months. Kevin Lafferty and Thomas Suchanek pointed out in 2016 that mussel beds shelter over 300 associated species. Counting those, they argued, removing Pisaster would raise community-wide richness. The memorial to Paine in PNAS dates the keystone term to a short note he published in 1969. Keep the three dates apart: removal began in the early 1960s, the paper is from 1966, and the term is from 1969.
 
 ### The Yellowstone experiment in detail
 
-Kristin Marshall, Thompson Hobbs and David Cooper (2013) ran a ten-year factorial experiment at four small-stream sites on the northern range, crossing fences that excluded browsers such as elk with simulated beaver dams, which raised July water tables by 33 cm on average. Reducing browsing alone did not restore the willow communities to their 2-metre recovery criterion.
+Marshall, Hobbs and Cooper ran a ten-year factorial experiment at four small-stream sites on the northern range, crossing fences that excluded browsers such as elk with simulated beaver dams, which raised July water tables by 33 cm on average.
+
+### What the wasting die-off showed
+
+Monica Moritsch and Peter Raimondi (2018) found that sea-star counts at monitoring sites could recover while biomass, a proxy for predation potential, stayed below 40% of its pre-outbreak level in 2015 to 2017 at most sites outside North Central California, because recovering populations were made of small stars. Near Monterey, Joshua Smith and colleagues (2025) reported that mussels grew larger and spread lower on the shore after Pisaster collapsed, and they inferred that eating more mussels contributed in part to a local rise in sea otters.
