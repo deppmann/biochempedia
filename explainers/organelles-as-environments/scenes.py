@@ -60,20 +60,20 @@ def ladder(include_markers=False, compact=False):
         y = ph_y(p)
         ticks.add(Line([x - .13, y, 0], [x + .13, y, 0], color=GREY, stroke_width=3))
         labels.add(M(str(p), 28, GREY).move_to([x - .48, y, 0]))
-    cy = DashedLine([x - .75, ph_y(CYTO_PH), 0], [x + 1.65, ph_y(CYTO_PH), 0], color=TEXT, stroke_width=4)
-    cyt = T("cytosol 7.2", 28, TEXT).move_to([x - .65, ph_y(CYTO_PH) + .32, 0])
+    cy = DashedLine([x - .75, ph_y(CYTO_PH), 0], [x + 4.0, ph_y(CYTO_PH), 0], color=TEXT, stroke_width=4)
+    cyt = T("cytosol 7.2", 28, TEXT).move_to([x + 3.3, ph_y(CYTO_PH) + .34, 0])
     g = VGroup(axis, title, ticks, labels, cy, cyt)
     if include_markers:
         specs = [(4.7, "lysosome", PROTON), (5.5, "late endosome", PROTON),
                  (6.6, "Golgi", PROTON), (7.23, "nucleus", TEXT),
                  (7.9, "stroma", GREEN), (8.0, "matrix", BLUE)]
         compact_y = {"lysosome": -1.88, "late endosome": -1.02, "Golgi": -.12,
-                     "nucleus": .72, "stroma": 1.72, "matrix": 2.35}
+                     "nucleus": .72, "stroma": 2.05, "matrix": 2.6}
         for p, name, color in specs:
             d = Dot([x + .22, ph_y(p), 0], radius=.095, color=color)
             lab = T(name, 28, color).next_to(d, RIGHT, buff=.18)
             if compact:
-                lab.move_to([x + 1.70, compact_y[name], 0])
+                lab.move_to([x + 1.80, compact_y[name], 0])
             g.add(VGroup(d, lab))
     return g
 
@@ -91,11 +91,11 @@ def cell_world(full=True):
                      fill_opacity=.035).move_to([3.45, -.55, 0])
     mito = RoundedRectangle(width=2.0, height=.92, corner_radius=.45, color=BLUE,
                             stroke_width=4, fill_color=BLUE, fill_opacity=.06).rotate(-.16).move_to([4.55, -2.05, 0])
-    labels = VGroup(T("lysosome", 28, PROTON).next_to(lyso, UP, .12),
-                    T("Golgi", 28, PROTON).next_to(golgi, UP, .12),
+    labels = VGroup(T("lysosome", 28, PROTON).next_to(lyso, DOWN, .12),
+                    T("Golgi", 28, PROTON).next_to(golgi, RIGHT, .3),
                     T("ER", 28, TEAL).next_to(er, LEFT, .12),
                     T("nucleus", 28, TEXT).move_to(nucleus),
-                    T("mitochondrion", 28, BLUE).next_to(mito, DOWN, .12))
+                    T("mitochondrion", 28, BLUE).move_to([4.95, -3.3, 0]))
     dots = VGroup(*[proton([x, y, 0], .045, .5) for x, y in
                     [(.2, 2.1), (2.5, 2.5), (4.8, 1.7), (5.1, -.2), (.25, -2.0), (2.2, -2.5)]])
     return VGroup(cell, lyso, golgi, er, nucleus, mito, labels, dots)
@@ -106,7 +106,7 @@ def marker(p, label, color=PROTON, side=RIGHT):
     t = T(label, 28, color).next_to(d, side, buff=.18)
     # Near-neutral labels live below the cytosol reference, never on top of it.
     if 6.55 <= p <= 7.35:
-        t.move_to([LADDER_X + 1.18, ph_y(p) - .43, 0])
+        t.move_to([LADDER_X + .5 + t.width / 2, ph_y(p) - .43, 0])
     return VGroup(d, t)
 
 
@@ -132,7 +132,7 @@ def tap_hole(x=1.15, tap_on=True, pump="V-ATPase (tap)"):
     hole = Circle(radius=.16, color=GREY, fill_color=BG, fill_opacity=1,
                   stroke_width=5).move_to([x + 2.1, -1.55, 0])
     # The label sits below-left; all outflow arrows begin to the hole's right.
-    hl = T("leak (hole)", 28, GREY).move_to([x + 1.0, -2.05, 0])
+    hl = T("leak (hole)", 28, GREY).move_to([x + .75, -2.05, 0])
     return VGroup(tap, tl, hole, hl)
 
 
@@ -158,7 +158,7 @@ class S00Hook(FilmScene):
         sparse = VGroup(proton([4.25, -2.0, 0], .055), proton([4.72, -2.08, 0], .055))
         self.play(Indicate(world[5], color=BLUE), FadeIn(mm), FadeIn(sparse), run_time=.8)
         self.at("Why does each settle")
-        q = T("Why does each settle at its own number?", 34, TEXT, weight=BOLD).to_edge(UP, buff=.18)
+        q = T("Why does each settle at its own number?", 34, TEXT, weight=BOLD).to_edge(UP, buff=.34)
         self.play(FadeIn(q, shift=DOWN*.15), lm.animate.shift(UP*.04), mm.animate.shift(DOWN*.04), run_time=.7)
         self.play(lm.animate.shift(DOWN*.04), mm.animate.shift(UP*.04), run_time=.8)
         self.finish()
@@ -194,8 +194,8 @@ class S02Ladder(FilmScene):
         self.at("matrix")
         alkaline = Rectangle(width=1.6, height=2.75-ph_y(7.2), stroke_width=0, fill_color=BLUE,
                              fill_opacity=.08).move_to([LADDER_X+.3, (2.75+ph_y(7.2))/2, 0])
-        tags = VGroup(T("acid", 28, PROTON).move_to([-6.15, -.55, 0]),
-                      T("alkaline", 28, BLUE).move_to([-6.0, 2.4, 0]),
+        tags = VGroup(T("acid", 28, PROTON).move_to([-6.4, -.55, 0]),
+                      T("alkaline", 28, BLUE).move_to([-6.1, 2.62, 0]),
                       T("typical values, different systems", 28, GREY).move_to([-4.0, -3.35, 0]))
         self.play(FadeOut(note), FadeIn(alkaline), FadeIn(tags), Indicate(marks[1], color=BLUE), run_time=1.0)
         self.finish()
@@ -275,10 +275,10 @@ class S06Settle(FilmScene):
         for t in np.linspace(0,4,40): pts.append([3.9+t*.55,-3.0+1.0*(1-np.exp(-t)),0])
         curve.set_points_smoothly(pts)
         axes=VGroup(Line([3.75,-3.05,0],[6.3,-3.05,0],color=GREY),Line([3.75,-3.05,0],[3.75,-1.75,0],color=GREY))
-        qtag=T("qualitative toy model",28,GREY).move_to([4.95,-3.35,0])
+        qtag=T("qualitative toy model",28,GREY).move_to([4.4,-3.35,0])
         self.play(Create(axes), Create(curve), FadeIn(qtag), run_time=1.6)
         self.at("no sensor")
-        nosensor=T("no sensor needed",30,GREEN,weight=BOLD).move_to([4.75,1.1,0])
+        nosensor=T("no sensor\nneeded",30,GREEN,weight=BOLD,line_spacing=.85).move_to([5.1,1.1,0])
         self.play(ReplacementTransform(eq,nosensor), c[2].animate.shift(UP*.05), run_time=.8)
         self.play(c[2].animate.shift(DOWN*.05), run_time=.8)
         self.finish()
@@ -289,7 +289,7 @@ class S07Rule(FilmScene):
         l=ladder(); c=container(.65); th=tap_hole(); m=marker(5.5,"lysosome",PROTON)
         self.add(l,c,th,m)
         self.at("The level sits")
-        rule=T("level = where pumping in meets leaking out",31,TEXT,weight=BOLD).to_edge(UP,.18)
+        rule=T("level = where pumping in meets leaking out",31,TEXT,weight=BOLD).to_edge(UP,.34)
         self.play(FadeIn(rule), run_time=.8)
         self.at("stronger pump")
         strong=Line([-.3,2.25,0],[-.3,.1,0],color=GOLD,stroke_width=13)
@@ -308,8 +308,8 @@ def predict_frame():
     l=ladder(); c=container(.65); th=tap_hole(tap_on=False); m=marker(5.5,"lysosome",PROTON)
     clamp=chip("bafilomycin",RED,28).move_to([-2.15,2.62,0])
     cross=VGroup(Line([-.62,1.88,0],[.02,2.52,0],color=RED,stroke_width=8),Line([-.62,2.52,0],[.02,1.88,0],color=RED,stroke_width=8))
-    q=T("Tap off: which way does the marker go?",32,TEXT,weight=BOLD).to_edge(UP,.15)
-    arrows=VGroup(arrow([-4.4,ph_y(5.5),0],[-4.4,ph_y(6.25),0],TEXT),arrow([-3.9,ph_y(5.5),0],[-3.9,ph_y(4.75),0],TEXT))
+    q=T("Tap off: which way does the marker go?",32,TEXT,weight=BOLD).to_edge(UP,.34)
+    arrows=VGroup(arrow([-2.9,ph_y(5.5),0],[-2.9,ph_y(6.25),0],TEXT),arrow([-2.5,ph_y(5.5),0],[-2.5,ph_y(4.75),0],TEXT))
     return VGroup(l,c,th,m,clamp,cross,q,arrows)
 
 
@@ -326,8 +326,8 @@ class S08Predict(FilmScene):
         self.at("Watch")
         self.play(Indicate(m,color=TEXT),c[2].animate.shift(UP*.05),run_time=.8)
         self.at("Which way")
-        q=T("Tap off: which way does the marker go?",32,TEXT,weight=BOLD).to_edge(UP,.15)
-        arrs=VGroup(arrow([-4.4,ph_y(5.5),0],[-4.4,ph_y(6.25),0],TEXT),arrow([-3.9,ph_y(5.5),0],[-3.9,ph_y(4.75),0],TEXT))
+        q=T("Tap off: which way does the marker go?",32,TEXT,weight=BOLD).to_edge(UP,.34)
+        arrs=VGroup(arrow([-2.9,ph_y(5.5),0],[-2.9,ph_y(6.25),0],TEXT),arrow([-2.5,ph_y(5.5),0],[-2.5,ph_y(4.75),0],TEXT))
         self.play(FadeIn(q),GrowArrow(arrs[0]),GrowArrow(arrs[1]),run_time=1.0)
         self.play(c[2].animate.shift(DOWN*.05),m.animate.scale(1.12),run_time=.8)
         self.finish()
@@ -344,7 +344,7 @@ class S09Pause(Scene):
 
 class S10Reveal(FilmScene):
     def construct(self):
-        l=ladder(); c=container(.65); th=tap_hole(False); m=marker(5.5,"lysosome",PROTON)
+        l=ladder(); c=container(.65); th=tap_hole(tap_on=False); m=marker(5.5,"lysosome",PROTON)
         self.add(l,c,th,m)
         self.at("Up toward")
         low=container(.28); up=marker(6.7,"less acid",PROTON)
@@ -359,9 +359,9 @@ class S10Reveal(FilmScene):
         clamp=T("tap off",28,RED).move_to([4.9,2.20,0])
         self.play(FadeOut(out),FadeIn(gol),FadeIn(gl),FadeIn(clamp),run_time=1.0)
         self.at("actively kept")
-        kept=T("acidity is actively kept",31,GREEN,weight=BOLD).to_edge(UP,.2)
+        kept=T("acidity is actively kept",31,GREEN,weight=BOLD).to_edge(UP,.34)
         base=container(.65); basem=marker(5.5,"lysosome",PROTON)
-        self.play(FadeIn(kept),Transform(c,base),Transform(m,basem),th[0:2].animate.set_opacity(1),run_time=1.4)
+        self.play(FadeIn(kept),Transform(c,base),Transform(m,basem),th[0].animate.set_color(GOLD),th[1].animate.set_color(GOLD),run_time=1.4)
         self.finish()
 
 
@@ -370,7 +370,7 @@ class S11Golgi(FilmScene):
         l=ladder(); self.add(l)
         a=container(.72,"lysosome",PROTON,x=.2).scale(.72).shift(DOWN*.2)
         b=container(.48,"Golgi",PROTON,x=4.2).scale(.72).shift(DOWN*.2)
-        pumps=VGroup(T("pump",28,GOLD).move_to([-.6,2.0,0]),T("pump",28,GOLD).move_to([3.4,2.0,0]))
+        pumps=VGroup(T("pump",28,GOLD).move_to([-.6,2.6,0]),T("pump",28,GOLD).move_to([3.4,2.6,0]))
         holes=VGroup(T("leak",28,GREY).move_to([.2,-2.55,0]),T("leak",28,GREY).move_to([4.2,-2.55,0]))
         ms=VGroup(marker(4.7,"lysosome",PROTON),marker(6.6,"Golgi",PROTON))
         self.play(FadeIn(a),FadeIn(b),FadeIn(pumps),FadeIn(holes),LaggedStart(*[FadeIn(x) for x in ms]),run_time=1.2)
@@ -387,8 +387,8 @@ class S11Golgi(FilmScene):
         q=T("?",60,TEXT,weight=BOLD).move_to([2.2,.15,0])
         self.play(FadeIn(q,scale=1.4),run_time=.7)
         self.at("still being worked out")
-        note=T("which differs? still studied",28,TEXT).to_edge(UP,.2)
-        tag=T("icons are not quantitative",28,GREY).to_edge(DOWN,.2)
+        note=T("which differs? still studied",28,TEXT).to_edge(UP,.34)
+        tag=T("icons are not quantitative",28,GREY).to_edge(DOWN,.34)
         self.play(ReplacementTransform(q,note),FadeIn(tag),a[2].animate.shift(UP*.04),b[2].animate.shift(UP*.04),run_time=.9)
         self.finish()
 
@@ -438,7 +438,7 @@ class S13Calcium(FilmScene):
         s=stream([-.3,1.7,0],[-.3,-.1,0],CALCIUM,7)
         self.play(LaggedStart(*[FadeIn(d,shift=DOWN*.25) for d in s],lag_ratio=.1),Transform(c,high),Transform(g,calcium_gauge(.88,.12)),run_time=2.0)
         self.at("thousands of times")
-        lab=T("thousands of times higher",29,CALCIUM,weight=BOLD).move_to([-3.75,.3,0])
+        lab=T("thousands of\ntimes higher",29,CALCIUM,weight=BOLD,line_spacing=.85).move_to([-3.35,.3,0])
         self.play(FadeIn(lab),Indicate(g[2],color=CALCIUM),run_time=.9)
         self.at("leaks and release channels")
         out=arrow([3.50,-1.55,0],[5.35,-1.55,0],GREY,7); tag=T("schematic",28,GREY).move_to([5.65,-3.25,0])
@@ -452,7 +452,7 @@ class S14Thaps(FilmScene):
         g=calcium_gauge(.88,.12); c=container(.82,"ER",CALCIUM); c[1].set_color(CALCIUM); th=tap_hole(pump="SERCA (tap)")
         self.add(g,c,th)
         self.at("plant compound")
-        block=chip("thapsigargin",RED,28).move_to([-2.15,2.62,0]); self.play(FadeIn(block),run_time=.7)
+        block=chip("thapsigargin",RED,28).move_to([-2.5,2.62,0]); self.play(FadeIn(block),run_time=.7)
         self.at("blocks SERCA")
         x=VGroup(Line([-.8,1.6,0],[0,2.4,0],color=RED,stroke_width=8),Line([-.8,2.4,0],[0,1.6,0],color=RED,stroke_width=8))
         self.play(FadeIn(x),th[0:2].animate.set_opacity(.3),run_time=.8)
@@ -479,10 +479,10 @@ class S15Flip(FilmScene):
     def construct(self):
         l=ladder(); mito=mito_container(); self.play(FadeIn(l),FadeIn(mito),run_time=.8)
         self.at("other way")
-        mini=T("lysosome: pump in   •   mitochondrion: pump out",28,TEXT,weight=BOLD).to_edge(UP,.18)
+        mini=T("lysosome: pump in   •   mitochondrion: pump out",28,TEXT,weight=BOLD).to_edge(UP,.34)
         self.play(FadeIn(mini),run_time=.9)
         self.at("respiratory chain")
-        pumps=T("respiratory chain (taps)",28,GOLD).move_to([1.25,2.35,0]); resp=T("while respiring",28,GREY).next_to(pumps,DOWN,.12)
+        pumps=T("respiratory chain (taps)",28,GOLD).move_to([1.25,2.95,0]); resp=T("while respiring",28,GREY).next_to(pumps,DOWN,.12)
         self.play(FadeIn(pumps),FadeIn(resp),run_time=.8)
         self.at("push protons out")
         paths=[Line([x,.6,0],[x,2.0,0]) for x in (.0,.8,1.6,2.4)]
@@ -498,38 +498,39 @@ class S16Why(FilmScene):
     def construct(self):
         mito=mito_container(); self.add(mito)
         self.at("other way")
-        q=T("Why outward?",36,TEXT,weight=BOLD).to_edge(UP,.25); self.play(FadeIn(q),run_time=.7)
+        q=T("Why outward?",36,TEXT,weight=BOLD).to_edge(UP,.34); self.play(FadeIn(q),run_time=.7)
         self.at("matrix was")
         bact=RoundedRectangle(width=5.0,height=2.55,corner_radius=1.2,color=BLUE,stroke_width=6,fill_color=BLUE,fill_opacity=.05).move_to([1.25,-.15,0])
         bl=T("free-living bacterium, long ago",28,BLUE).next_to(bact,DOWN,.25); cy=T("cytoplasm",30,TEXT).move_to(bact)
         self.play(FadeOut(mito[0]),Transform(mito[1],bact),ReplacementTransform(mito[2],cy),FadeIn(bl),run_time=1.5)
         self.at("during respiration")
-        pumps=T("electron-transport chain",28,GOLD).next_to(bact,UP,.2); self.play(FadeIn(pumps),run_time=.7)
+        pumps=T("electron-transport chain",28,GOLD).move_to([1.25,1.95,0]); self.play(FadeIn(pumps),run_time=.7)
         self.at("pumped protons outward")
-        paths=[Line([x,.4,0],[x,2.25,0]) for x in (0,.8,1.6,2.4)]
+        paths=[Line([x,.4,0],[x,1.55,0]) for x in (0,.8,1.6,2.4)]
         dots=VGroup(*[proton(p.get_start()) for p in paths]); self.add(dots)
-        host=Ellipse(width=7.6,height=5.6,color=GREY,stroke_width=4).move_to([1.25,-.1,0])
+        host=Ellipse(width=9.0,height=6.6,color=GREY,stroke_width=4).move_to([1.25,-.1,0])
         self.play(*[MoveAlongPath(d,p) for d,p in zip(dots,paths)],Create(host),run_time=1.5,rate_func=linear)
-        matrix=T("matrix",30,BLUE).move_to(bact); tag=T("cartoon",28,GREY).to_edge(DOWN,.2)
+        matrix=T("matrix",30,BLUE).move_to(bact); tag=T("cartoon",28,GREY).to_edge(DOWN,.34)
         self.play(ReplacementTransform(cy,matrix),FadeIn(tag),FadeOut(bl),run_time=.8)
         self.finish()
 
 
 class S17Chloro(FilmScene):
     def construct(self):
-        l=ladder(); mito=mito_container().scale(.55).move_to([2.6,1.55,0]); self.add(l,mito)
+        l=ladder(); mito=mito_container().scale(.55).move_to([2.6,1.55,0]); mito[2].scale(1/.55); self.add(l,mito)
         self.at("Chloroplasts")
         chl=RoundedRectangle(width=4.8,height=2.3,corner_radius=.8,color=GREEN,stroke_width=6,fill_color=GREEN,fill_opacity=.04).move_to([2.6,-1.65,0])
         stacks=VGroup(*[VGroup(*[Line([x-.35,y,0],[x+.35,y,0],color=GREEN,stroke_width=5) for y in (-1.95,-1.65,-1.35)]) for x in (1.5,2.6,3.7)])
         self.play(FadeIn(chl),FadeIn(stacks),run_time=1.0)
         self.at("stroma")
-        st=T("stroma",30,GREEN,weight=BOLD).move_to(chl); self.play(FadeIn(st),run_time=.7)
+        st=T("stroma",30,GREEN,weight=BOLD).move_to([2.6,-2.45,0]); self.play(FadeIn(st),run_time=.7)
         self.at("in light")
         lamp=VGroup(Circle(.28,color=YELLOW,fill_color=YELLOW,fill_opacity=.7),*[Line(.42*np.array([np.cos(a),np.sin(a),0]),.7*np.array([np.cos(a),np.sin(a),0]),color=YELLOW,stroke_width=4) for a in np.linspace(0,2*np.pi,8,endpoint=False)]).move_to([5.65,-.65,0])
         self.play(FadeIn(lamp,scale=.7),run_time=.7)
+        sm=marker(7.9,"stroma, in light",GREEN)
         paths=[Line([x,-1.65,0],[x,-1.3,0]) for x in (1.5,2.6,3.7)]
         ds=VGroup(*[proton(p.get_start()) for p in paths]); self.add(ds)
-        self.play(*[MoveAlongPath(d,p) for d,p in zip(ds,paths)],FadeIn(marker(7.9,"stroma, in light",GREEN)),run_time=1.2)
+        self.play(*[MoveAlongPath(d,p) for d,p in zip(ds,paths)],FadeIn(sm),run_time=1.2)
         self.at("Every proton pump")
         panels=VGroup()
         for x, title, color, direction in ((-4.15,"lysosome",PROTON,DOWN),
@@ -542,9 +543,9 @@ class S17Chloro(FilmScene):
             y1,y2=(1.55,-1.35) if direction is DOWN else (-1.35,1.55)
             flow=arrow([x+1.15,y1,0],[x+1.15,y2,0],GOLD,8)
             panels.add(VGroup(bucket,heading,source,flow))
-        source_rule=T("Every pump pushes out of a cytoplasm",32,TEXT,weight=BOLD).to_edge(UP,.12)
+        source_rule=T("Every pump pushes out of a cytoplasm",32,TEXT,weight=BOLD).to_edge(UP,.34)
         self.play(FadeOut(l),FadeOut(mito),FadeOut(chl),FadeOut(stacks),FadeOut(st),
-                  FadeOut(lamp),FadeOut(ds),FadeIn(panels),FadeIn(source_rule),run_time=1.2)
+                  FadeOut(lamp),FadeOut(ds),FadeOut(sm),FadeIn(panels),FadeIn(source_rule),run_time=1.2)
         self.finish()
 
 
@@ -558,11 +559,11 @@ class S18Return(FilmScene):
         ctap=Dot([.75,-2.25,0],radius=.13,color=GOLD)
         self.play(FadeIn(taps),FadeIn(chl),FadeIn(ctap),run_time=1.0)
         self.at("Acid lumens need")
-        v=T("V-ATPase",28,GOLD).move_to([5.25,2.65,0]); self.play(FadeIn(v),Indicate(taps[0:3],color=GOLD),run_time=.9)
+        v=T("V-ATPase",28,GOLD).move_to([5.6,3.15,0]); self.play(FadeIn(v),Indicate(taps[0:3],color=GOLD),run_time=.9)
         self.at("respiration or light")
-        rl=T("respiration   •   light",28,GOLD).move_to([3.1,-3.25,0]); self.play(FadeIn(rl),Indicate(taps[3],color=GOLD),Indicate(ctap,color=GOLD),run_time=.9)
+        rl=T("respiration   •   light",28,GOLD).move_to([2.0,3.4,0]); self.play(FadeIn(rl),Indicate(taps[3],color=GOLD),Indicate(ctap,color=GOLD),run_time=.9)
         self.at("Stop that input")
-        off=T("input off",30,RED,weight=BOLD).to_edge(UP,.18)
+        off=T("input off",30,RED,weight=BOLD).to_edge(UP,.34).set_x(-3.0)
         self.play(FadeOut(v),FadeOut(rl),FadeIn(off),taps.animate.set_opacity(.15),ctap.animate.set_opacity(.15),run_time=.9)
         self.at("gradients run down")
         moved=ladder(False)
@@ -571,26 +572,13 @@ class S18Return(FilmScene):
         drift[2][1].move_to([-4.05,.52,0])
         drift[3][1].move_to([-4.00,1.62,0])
         drift[4][1].move_to([-4.00,2.28,0])
-        down=T("gradients run down",31,RED,weight=BOLD).move_to([3.1,2.55,0])
+        down=T("gradients run down",31,RED,weight=BOLD).move_to([2.6,3.5,0])
         self.play(FadeOut(l),FadeOut(off),FadeIn(moved),FadeIn(drift),FadeIn(down),run_time=1.8)
-        q=T("Why does each settle at its own number?",28,TEXT).set_opacity(.45).move_to([2.4,-3.35,0])
-        self.play(FadeIn(q),world[0].animate.scale(1.01),run_time=.8)
-        self.play(FadeOut(q),world[0].animate.scale(1/1.01),run_time=.8)
+        self.play(world[0].animate.scale(1.01),run_time=.8)
+        self.play(world[0].animate.scale(1/1.01),run_time=.8)
         self.finish()
 
 
 class S19End(EndCard):
-    LINE = "The gradients shown here need ongoing energy-dependent transport."
+    LINE = "Each compartment's chemistry sits where pumping in meets leaking out."
 
-    def construct(self):
-        bg = VGroup(ladder(True, True), cell_world()).set_opacity(.18)
-        taps = VGroup(*[Dot(p, radius=.12, color=GOLD) for p in
-                        ([1.1,1.45,0],[3.0,1.35,0],[3.55,1.35,0],[4.2,-2.05,0])]).set_opacity(.2)
-        line = VGroup(T("The gradients shown here need", 40, TEXT, font=TITLE_FONT),
-                      T("ongoing energy-dependent transport.", 40, TEXT, font=TITLE_FONT)).arrange(DOWN, buff=.18)
-        panel = RoundedRectangle(width=10.6, height=2.0, corner_radius=.25, stroke_width=0,
-                                 fill_color=BG, fill_opacity=.92).move_to(line)
-        self.add(bg, taps)
-        self.play(taps.animate.set_opacity(1), FadeIn(panel), FadeIn(line, shift=UP*.12), run_time=1.2)
-        self.play(*[Indicate(m, color=GOLD, scale_factor=1.25) for m in taps], run_time=1.0)
-        self.finish()

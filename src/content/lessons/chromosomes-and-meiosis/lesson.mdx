@@ -5,17 +5,18 @@ course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 1: Inheritance"
 order: 302
 summary: >-
-  Mendel's two laws describe what gametes carry. This lesson shows where those laws happen in the
-  cell: segregation is the separation of homologous chromosomes at anaphase I (or of sister chromatids at anaphase II, for a locus beyond a crossover), and independent
-  assortment is the random orientation of different chromosome pairs at metaphase I. Afterwards
+  Mendel's two laws happen in meiosis: segregation is the separation of homologous chromosomes at
+  anaphase I (or at anaphase II, when one crossover falls between the locus and its centromere), and
+  independent assortment is the random orientation of different chromosome pairs at metaphase I.
+  This lesson traces both through the cell. Afterwards
   you can count chromosomes, chromatids and DNA content at every stage of meiosis, place crossing
   over correctly, and weigh the cytological evidence for the chromosome theory of inheritance.
-hook: "A fruit fly cell has eight chromosomes and its sperm have four. Which four is settled at one step of one division."
+hook: "A fruit fly cell has eight chromosomes and its sperm have four. Which four does a sperm get, and what decides it?"
 
 estMinutes: 24
 objectives:
   - "Trace one pair of homologous chromosomes, and the alleles on them, through S phase, meiosis I and meiosis II, counting chromosomes, chromatids and C value at each stage."
-  - "Map segregation onto the separation of homologs at anaphase I (or at anaphase II beyond a crossover), and independent assortment onto the random orientation of different bivalents at metaphase I."
+  - "Map segregation onto the separation of homologs at anaphase I (or at anaphase II when one crossover falls between the locus and its centromere), and independent assortment onto the random orientation of different bivalents at metaphase I."
   - "Explain the chromosome theory of inheritance as Sutton and Boveri set it out, and the cytological evidence that confirmed it."
   - "Contrast mitosis and meiosis in pairing, ploidy and outcome, and place crossing over between non-sister chromatids in prophase I."
 
@@ -23,10 +24,32 @@ explainer:
   src: "/explainers/chromosomes-and-meiosis/explainer.mp4"
   captions: "/explainers/chromosomes-and-meiosis/explainer.vtt"
   poster: "/explainers/chromosomes-and-meiosis/poster.jpg"
-  title: "Mendel's Laws Are Chromosome Movements"
-  durationSec: 175.3
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  title: "One of Each Pair, by Coin Toss"
+  durationSec: 220.8
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "Homologs are the two members of a chromosome pair, one from each parent; sister chromatids are the two copies made in S phase."
+    - "Count centromeres to count chromosomes: a copied chromosome is still one chromosome."
+    - "Meiosis I deals one homolog of each pair to each cell and meiosis II splits sisters, so each gamete gets one allele of each gene: the law of segregation."
+    - "Each pair faces the spindle by its own coin toss, so genes on different chromosomes assort independently."
+    - "Independent assortment is a count over many meioses; ignoring crossovers, one meiosis gives only two kinds of gamete."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/chromosomes-and-meiosis/chapter-2.mp4"
+    captions: "/explainers/chromosomes-and-meiosis/chapter-2.vtt"
+    poster: "/explainers/chromosomes-and-meiosis/chapter-2-poster.jpg"
+    title: "What Holds the Pair, and What Lets Go"
+    durationSec: 197.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "Cohesin rings hold sister chromatids together from S phase until they are cut."
+      - "Crossing over exchanges segments between non-sister chromatids in prophase I; a chiasma marks where it happened."
+      - "In most organisms studied, a crossover plus the cohesin on the arms beyond it ties two homologs together until anaphase I."
+      - "In yeast and mammals as studied, arm cohesin is cut at anaphase I, while shugoshin protects cohesin at the centromeres until anaphase II."
+      - "When these links fail, gametes can end up with too many or too few chromosomes."
 
 scientists:
   - name: "Walter Sutton"
@@ -208,7 +231,7 @@ practiceQuestions:
     rationale: >-
       One metaphase I orientation puts A with B and a with b, or A with b and a with B; meiosis II
       then splits identical sisters, so one meiosis gives two kinds of sperm, two of each. One of
-      each kind is what you get across many meioses, not from one. Four identical sperm are impossible:
+      each kind is what you get across many meioses, not from one meiosis without crossovers. Four identical sperm are impossible:
       the cell carries both A and a, and anaphase I sends them to different cells. Aa or Bb in a sperm would mean the
       homologs failed to separate, the opposite of what meiosis I does.
 
@@ -285,9 +308,10 @@ explainLevels:
       and the orientation of one bivalent is independent of the others. Anaphase I separates
       homologs, giving two haploid 2C cells whose chromosomes still have two chromatids. With no S
       phase in between, meiosis II separates sisters, giving 1C products. Segregation of alleles
-      maps onto the separation of homologs, or onto anaphase II for a locus with a crossover between
-      it and the centromere, and independent assortment maps onto independent orientation of
-      bivalents, which holds only for loci on different chromosomes or far apart on one.
+      maps onto the separation of homologs, or onto anaphase II when one crossover falls between
+      the locus and the centromere, and independent assortment maps onto independent orientation of
+      bivalents for loci on different chromosomes; loci far apart on one chromosome give similar
+      ratios through crossing over.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -347,57 +371,85 @@ draft: false
 
 import MeiosisAlleleTracker from '../../../components/MeiosisAlleleTracker.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A fruit fly cell holds eight chromosomes. Its eggs and sperm hold four, one from each of four pairs, and which member of each pair goes in is, crossing over aside, settled at a single step of a single division.**
+**A fruit fly cell holds eight chromosomes. Its eggs and sperm hold four, one from each of four pairs. Which four, crossing over aside, is settled at one moment of one division.**
 
-In [the previous lesson](/lessons/mendels-peas/) you met Mendel's two laws: the two alleles of a gene separate into different gametes, and alleles of different genes enter gametes independently. Mendel inferred both from counts of peas. He never saw what did the separating. This lesson finds it. The answer is a cell division called meiosis, and once you can count the chromosomes in it, both laws read off the cell like a diagram.
+In [the previous lesson](/lessons/mendels-peas/) you met Mendel's two laws: the two alleles of a gene separate into different gametes, and alleles of different genes enter gametes independently. Mendel inferred both from counts of peas but never saw what did the separating. The first film, at the top of this page, showed it: **meiosis**, the cell division that makes eggs and sperm, dealing out chromosomes that come in pairs, one member of each pair, a **homolog**, from each parent. What the film left out: the counts exams ask for, the egg's lopsided division, what crossing over changes, and how the idea was proved.
+
+> **The one idea.** In a normal meiosis, meiosis I deals one homolog of every pair to each daughter cell, and each pair is dealt by its own fair coin toss. Meiosis II then splits sisters, the two copies made of each chromosome before meiosis began. The deal gives the law of segregation: each gamete gets one allele of each gene, so an Aa cell gives two A and two a. The coin tosses give independent assortment, which shows only over many meioses.
+>
+> *Scope:* a cell with two sets of chromosomes, and genes on different chromosomes. An ordinary crossover can change when A and a part, not the two-and-two count; you will predict it below. It applies wherever the rule recurs. Exceptions: gene conversion, which can give three A and one a, and meiotic drive (both in Going deeper), errors that leave gametes with too many or too few chromosomes, and genes close together on one chromosome, which tend to travel together ([linkage and mapping](/lessons/linkage-and-mapping/)).
 
 ## Count before you divide: homologs, sisters and ploidy
 
-Chromosomes live in the nucleus, the membrane-bound compartment that holds a eukaryotic cell's DNA ([cell compartments](/lessons/intro-biochemistry-cell-biology/) has more). Four terms do most of the work:
+The first film counted centromeres; here are the terms behind that count, plus one it left out, DNA content. Chromosomes live in the nucleus, the membrane-bound compartment that holds a eukaryotic cell's DNA ([cell compartments](/lessons/intro-biochemistry-cell-biology/) has more).
 
-- **Homologous chromosomes (homologs)** are the two members of a pair, one inherited from each parent. They carry the same genes at the same loci, but can carry different alleles.
-- **Sister chromatids** are the two identical copies of one chromosome made in S phase, still joined at the centromere.
-- **Ploidy** is the number of chromosome sets in a cell. A **diploid** (2n) cell has two sets; a **haploid** (n) cell has one.
-- The **C value** is the DNA content of one unreplicated haploid set. A diploid cell is 2C before S phase and 4C after it.
+Think of a pair of shoes. The left and right shoes are homologs: same job, built separately, one from each parent. Now photocopy each shoe and staple the copy to it. Each stapled bundle is one chromosome made of two sister chromatids, joined at the **centromere**. The rule that saves most students on exams: **count centromeres, not arms.** A replicated chromosome is still one chromosome.
 
-Think of a pair of shoes. The left and right shoes are homologs: same job, built separately, one from each parent. Now photocopy each shoe and staple the copy to it. Each stapled bundle is one chromosome made of two sister chromatids. The rule that saves most students on exams: **count centromeres, not arms.** A replicated chromosome is still one chromosome.
+The four terms:
+
+- **Homologous chromosomes (homologs)** are the left and right shoe: the two members of a pair, one inherited from each parent. They carry the same genes at the same loci (a locus is a gene's place on the chromosome), but can carry different alleles.
+- **Sister chromatids** are a shoe and its stapled copy: the two identical copies of one chromosome made in S phase, the stage before division when DNA is copied, still joined at the centromere.
+- **Ploidy** is the number of complete chromosome sets in a cell. Count centromeres to get the chromosome number, then compare it with one set: a fly cell with 8 chromosomes holds two sets of 4 and is **diploid** (2n); a cell with 4, one set, is **haploid** (n).
+- The **C value** counts DNA instead of centromeres. One unreplicated haploid set, one shoe of each pair with nothing stapled on, is 1C. A diploid cell is 2C in G1, the growth stage before S phase, and 4C after S phase.
+
+Ploidy counts sets of chromosomes; C counts DNA. They can disagree: after S phase a fly cell holds 16 chromatids and 4C of DNA, and is still diploid.
 
 ## Meiosis I separates homologs; meiosis II separates sisters
 
-Meiosis is one round of DNA replication followed by two divisions. In prophase I, homologs pair along their length, a process called **synapsis**; a pair of synapsed homologs is a **bivalent**, with four chromatids. At metaphase I each bivalent sits on the spindle with its two homologs facing opposite poles. Anaphase I pulls the homologs apart. There is no S phase before meiosis II, which then pulls the sisters apart, as a mitosis would.
+Meiosis is one round of DNA replication followed by two divisions.
 
-Mitosis is different at the first step. Homologs do not synapse. Each chromosome lines up on its own, its sisters separate, and the two daughter cells keep both sets and match the parent. Meiosis halves the sets and, as you will see, shuffles them.
+**Before meiosis: S phase.** Every chromosome is copied into two sister chromatids. The chromosome number does not change; chromatids and DNA double.
 
-**Worked problem.** *Drosophila melanogaster* has 2n = 8, so n = 4. Assume normal divisions and track chromosomes, chromatids and C value. The same pattern holds for any diploid, with its own n and 2n, but males of this species are a special case: their homologs pair without a synaptonemal complex and without crossing over, so the synapsis described above is the general pattern rather than what a male fly does.
+**Meiosis I: homologs pair, then part.** In **prophase I**, early in the first division, each chromosome finds its homolog and the two line up side by side along their length. That pairing is **synapsis**, and a synapsed pair is a **bivalent**: two homologs, four chromatids (exams also call it a **tetrad**). While paired, homologs can exchange segments between **non-sister chromatids** (chromatids of different homologs), which is **crossing over**; it has its own section after the second film. At **metaphase I** the bivalents sit across the middle of the cell on the **spindle**, the array of protein fibres that pulls chromosomes to the poles, with the two homologs facing opposite poles. At **anaphase I** the homologs are pulled apart, and each daughter cell receives one member of every pair.
+
+**Meiosis II: sisters part.** No DNA is copied in between. Each cell lines its chromosomes up again, and **anaphase II** pulls the sister chromatids apart, much as a mitosis would.
+
+Mitosis differs at the very first step: homologs do not synapse or form bivalents. Each chromosome lines up alone and its sisters part, so both daughter cells keep the parent's two sets. Meiosis halves the sets and shuffles them.
+
+**Worked problem.** *Drosophila melanogaster* has 2n = 8, so n = 4. Assume normal divisions and follow one cell. The same pattern holds for any diploid.
 
 | Stage | Chromosomes | Chromatids | Bivalents | C value |
 |---|---:|---:|---:|---:|
 | G1, before S | 8 | 8 | 0 | 2C |
-| Prophase I (pachytene), after S | 8 | 16 | 4 | 4C |
-| Each cell after meiosis I | 4 | 8 | 0 | 2C |
-| Each cell after meiosis II | 4 | 4 | 0 | 1C |
+| Prophase I, homologs paired | 8 | 16 | 4 | 4C |
 
 **Step 1.** S phase doubles chromatids and DNA but not chromosomes: 8 chromosomes, 8 × 2 = 16 chromatids, 4C.
 **Step 2.** Eight chromosomes in pairs make 8/2 = 4 bivalents.
-**Step 3.** Anaphase I sends one homolog of each pair to each pole: 4 chromosomes per cell, each still two chromatids, so 8 chromatids and 2C. The cell is now **haploid**, one set, even though its DNA content equals that of a G1 diploid cell.
-**Step 4.** Anaphase II splits the sisters: 4 chromosomes, 4 chromatids, 1C.
 
-The common error is to say meiosis I separates sisters. It does not. If you find yourself calling a cell after meiosis I diploid, recount the centromeres.
+**Predict.** Anaphase I sends one homolog of each pair to each pole. Fill in the next two rows, for one cell after meiosis I and after meiosis II: chromosomes, chromatids, C value. Is the cell after meiosis I haploid or diploid, and does its DNA content match any cell you have already met?
 
-What holds sisters together, and lets them part in two stages? A ring-shaped protein complex, cohesin, which links the sisters from S phase. In yeast and mammals as studied, cohesin on the chromosome arms is cut at anaphase I, while cohesin around the centromeres is protected by a protein called shugoshin until anaphase II.
+<details>
+<summary>Check your prediction</summary>
 
-In sperm production, one meiosis gives four haploid cells and all four become sperm. In egg production in humans and other animals, the divisions are unequal: one large egg and small polar bodies that do not become gametes. The first polar body often does not divide, and in mammals the egg finishes meiosis II only after a sperm enters.
+| Stage | Chromosomes | Chromatids | Bivalents | C value |
+|---|---:|---:|---:|---:|
+| Each cell after meiosis I | 4 | 8 | 0 | 2C |
+| Each cell after meiosis II | 4 | 4 | 0 | 1C |
 
-<LessonFigure src="/figures/chromosomes-and-meiosis/sperm-and-egg-products.webp" width={1200} height={832} alt="AI-generated illustration: two flow diagrams of one meiosis. In sperm production four equal cells result and all become gametes; in egg production the divisions are unequal, giving one large egg and small polar bodies that do not become gametes." caption="In sperm production one meiosis gives four sperm; in egg production in humans and other animals the divisions are unequal, giving one large egg and small polar bodies." />
+Four centromeres, one from each pair: the cell is **haploid**, one set. Each chromosome still has two chromatids, so its DNA content is 2C, the same as a diploid cell in G1. Ploidy and C disagree again. Anaphase II then splits the sisters: 4 chromosomes, 4 chromatids, 1C.
+
+</details>
+
+The commonest exam error is to say that meiosis I separates sisters. If you call a cell after meiosis I diploid, count its centromeres again.
+
+(Male fruit flies pair their homologs in an unusual way; see Going deeper.)
 
 ## Where Mendel's laws live in the cell
 
-Take a fly heterozygous Aa at one locus. A sits on one homolog, a on the other. After S phase one homolog carries A and A on its sisters, the other a and a. Anaphase I separates the homologs, so A and a go to different cells; anaphase II separates identical sisters. Two of the four products carry A and two carry a. That is the law of segregation, seen as chromosome movement.
+Take a fly heterozygous Aa at one locus. A sits on one homolog, a on the other. After S phase one homolog carries A and A on its sisters, the other a and a. Anaphase I separates the homologs, so A and a go to different cells; anaphase II separates identical sisters. Two of the four products carry A and two carry a. That is the law of segregation, seen as chromosome movement. Crossing over can change when A and a part (a Predict after the second film), but each final product still gets one allele.
 
-There is a refinement. If a crossover falls between the locus and its centromere, each homolog leaves meiosis I carrying one A chromatid and one a chromatid, and A and a part at anaphase II instead. Either way, each final product gets exactly one allele.
+**Predict.** Suppose a cell skipped meiosis I and ran only meiosis II. What would the products of an Aa cell carry?
 
-Independent assortment comes from metaphase I. Each bivalent can face the spindle two ways, and how one pair faces does not affect how another does.
+<details>
+<summary>Check your prediction</summary>
+
+Anaphase II pulls sisters apart, so each product would get one chromatid of every chromosome, from both homologs: one A chromatid and one a chromatid. Each product would be Aa, with two sets, like its parent. That is a mitosis-like division, not a reduction. Segregation needs meiosis I, the step that deals homologs apart.
+
+</details>
+
+Independent assortment comes from metaphase I. Each bivalent can face the spindle two ways, like a coin toss, independently of the other pairs.
 
 **Worked problem, continued.** Ignoring crossing over, the fly's 4 bivalents give
 
@@ -407,33 +459,81 @@ For humans, 2n = 46 and n = 23:
 
 > **2^23 = 8,388,608, about 8.4 million**
 
-That is a count of combinations across many meioses, and it ignores crossing over, so it understates real variety. Now put alleles on it. A fly is Aa Bb, with the two loci on different chromosomes, and no crossing over. In any one meiosis the bivalents take one orientation, so the four products are either 2 AB + 2 ab or 2 Ab + 2 aB: only **two kinds** of gamete. The two orientations are equally likely, so across many meioses each of AB, Ab, aB and ab makes up 1/4 of the gametes. Mendel's four equal classes are a property of the population of gametes, not of any single cell.
+That counts combinations across many meioses; because it ignores crossing over, it understates real variety.
+
+Now put alleles on it. A fly is Aa Bb, with the two loci on different chromosomes, and no crossing over. In any one meiosis the bivalents take one orientation, so the four products are either 2 AB + 2 ab or 2 Ab + 2 aB: only **two kinds** of gamete. The two orientations are equally likely, so across many meioses each of AB, Ab, aB and ab makes up 1/4 of the gametes. Mendel's four equal classes belong to the gametes of many meioses. For loci on different chromosomes that holds with or without crossing over; what a crossover between a locus and its centromere does to one meiosis comes after the second film.
 
 <MeiosisAlleleTracker />
 
-The law holds only for loci that assort independently: those on different chromosomes, or far apart on one. Loci close together on the same chromosome tend to travel together, the subject of [linkage and mapping](/lessons/linkage-and-mapping/).
+Independent assortment holds only for loci on different chromosomes, or far apart on one, where frequent crossing over gives similar ratios. Loci close together on one chromosome tend to travel together: [linkage and mapping](/lessons/linkage-and-mapping/).
 
-## Crossing over and the synaptonemal complex
+## Four sperm, one egg
 
-Synapsis is held in place by the **synaptonemal complex**, a protein structure that zips homologs together along their length. Prophase I is long and divided into substages by what the chromosomes look like. Homologs pair in zygotene and are fully synapsed in pachytene. **Crossing over**, the exchange of segments between non-sister chromatids, is completed in pachytene, when there are four chromatids per bivalent. In diplotene the complex comes apart, homologs pull slightly away from each other, and they stay joined at **chiasmata**, the visible sites of earlier crossovers. Crossing over is a prophase I event. By metaphase I it is over, and it is not part of a normal mitosis.
+In sperm production, one meiosis gives four haploid cells and all four become sperm. In egg production in humans and other animals, the divisions are unequal: one large egg and small polar bodies that do not become gametes. The first polar body often does not divide, and in mammals the egg finishes meiosis II only after a sperm enters.
 
-Chiasmata matter for segregation as well as variety. In most organisms studied, a crossover plus the cohesion beyond it is what holds two homologs together until anaphase I, so the spindle can pull them to opposite poles. The molecular steps, which begin with deliberate breaks in DNA, are taught in [DNA repair and recombination](/lessons/dna-repair-and-recombination/).
+<LessonFigure src="/figures/chromosomes-and-meiosis/sperm-and-egg-products.webp" width={1200} height={832} alt="AI-generated illustration: two flow diagrams of one meiosis. In sperm production four equal cells result and all become gametes; in egg production the divisions are unequal, giving one large egg and small polar bodies that do not become gametes." caption="One meiosis makes four sperm but only one egg: the egg keeps nearly all the cytoplasm, and the polar bodies carry off the spare chromosome sets." />
 
-Crossover numbers vary even within a species. In single-sperm sequencing of 31,228 gametes from 20 men, the average number of crossovers per sperm ranged from 22.2 to 28.1 between donors. And the complex itself is less rigid than the zipper image suggests: in living *C. elegans*, its components behave like a liquid crystal, ordered yet able to flow. In maize, Harriet Creighton and Barbara McClintock tied the exchange of visibly marked chromosome segments to genetic crossing over in 1931; you will use that link to build maps.
+**Predict.** A woman is Aa. One of her eggs carries A. Assuming no crossover between the locus and its centromere, what did the first polar body receive?
+
+<details>
+<summary>Check your prediction</summary>
+
+The a homolog, as two a chromatids. Anaphase I kept the A homolog, with its two A sisters, in the egg and sent the a homolog into the first polar body. The egg's second, unequal division then put one of its two A chromatids out into another small polar body.
+
+</details>
+
+That wait raises a problem. In a mammalian egg the sisters must stay joined from the end of meiosis I until anaphase II, and before that the homologs had to stay joined until anaphase I. Something holds each pair, then lets go in the right order. For sisters it is a ring-shaped protein complex, **cohesin**, which links them from S phase. In yeast and mammals as studied, cohesin on the chromosome arms is cut at anaphase I, while cohesin around the centromeres is protected by a protein called **shugoshin** until anaphase II. What holds the homologs, and why cutting the arms is enough to let them go, is the second film.
+
+## Crossing over: what holds the pair, and what it does to alleles
+
+<LessonFilm film={frontmatter.films[0]} />
+
+The second film showed what a crossover does to the link between homologs, but not what it does to alleles.
+
+**Predict.** Go back to the Aa Bb genotype, with A and B on different chromosomes, now in a female fly (male flies do not cross over). This time one crossover falls between A and its centromere, and none near B. At which division do A and a part? How many kinds of gamete can this one meiosis give?
+
+<details>
+<summary>Check your prediction</summary>
+
+**Anaphase II.**
+
+1. The crossover swaps the segment carrying the A locus between one chromatid of each homolog.
+2. So each homolog leaves meiosis I carrying one A chromatid and one a chromatid. Its sisters are no longer identical at A.
+3. A and a part at anaphase II instead. Each final product still gets one allele, and two of the four carry A.
+
+**Four kinds, one of each.**
+
+1. Whichever way the bivalents faced, B goes to one cell and b to the other at anaphase I.
+2. Each of those cells then splits A from a at anaphase II.
+3. So one meiosis gives AB, aB, Ab and ab. The pooled count over many meioses is still 1:1:1:1.
+
+</details>
+
+> **The one idea, again.** A crossover does not change the deal: each gamete still gets one allele, and an ordinary crossover leaves two A and two a. It can change when A and a part, and then one meiosis can give one of each of the four kinds. That the four kinds are equally common is a statement about many meioses.
+
+The second film ran the long prophase I as one scene; cytologists divide it into substages by how the chromosomes look:
+
+- **Leptotene:** the replicated chromosomes begin to condense into thin threads.
+- **Zygotene:** homologs pair.
+- **Pachytene:** homologs are fully synapsed, held by the **synaptonemal complex**, a protein structure that zips them together along their length. Crossing over is completed here, when there are four chromatids per bivalent.
+- **Diplotene:** the complex comes apart, homologs pull slightly away from each other, and they stay joined at **chiasmata** (singular chiasma), the visible sites of earlier crossovers.
+- **Diakinesis:** chromosomes condense further, still joined at chiasmata, as the cell moves toward metaphase I.
+
+By metaphase I crossing over is over, and it is not part of a normal mitosis.
+
+Two caveats on the second film. Its link, a crossover plus the cohesion beyond it holding homologs together until anaphase I so the spindle can pull them to opposite poles, holds in most organisms studied but not all (male fruit flies manage without; see Going deeper). And the molecular steps of the exchange, which begin with a deliberate break in the DNA of one chromatid, repaired by copying from a chromatid of the homolog, are taught in [DNA repair and recombination](/lessons/dna-repair-and-recombination/). The 1931 maize experiment that tied a visible exchange to genetic crossing over is in Going deeper.
 
 ## Sutton, Boveri and the proof
 
-By 1902 cytologists knew that chromosomes pair and are halved in number before gametes form. Walter Sutton, a graduate student with E. B. Wilson at Columbia, worked on the grasshopper *Brachystola magna*, whose chromosomes differ in size. He saw that they came in matched pairs, and in 1903 argued that maternal and paternal members pair and then separate, each pair orienting independently. That predicts both of Mendel's laws. He also wrote that in his material he could not tell maternal from paternal members, so the idea remained a hypothesis.
+By 1902 cytologists knew that chromosomes pair and are halved in number before gametes form. Walter Sutton, a graduate student with E. B. Wilson at Columbia, worked on the grasshopper *Brachystola magna*, whose chromosomes differ in size. He saw that they came in matched pairs, and in 1903 argued that maternal and paternal members pair and then separate, each pair orienting independently. That predicts both of Mendel's laws. He wrote that in his material he could not tell maternal from paternal members, so the idea remained a hypothesis.
 
 Theodor Boveri came at it from sea urchins. In eggs fertilized by two sperm, chromosomes were distributed unevenly among three or four poles, and as a rule the resulting cells developed differently and abnormally. He concluded that development needs a particular combination of chromosomes, not merely a number, so different chromosomes carry different things. Neither man proved the theory alone. Sutton and Boveri are generally credited together, and the joined name came later.
 
 The test of Sutton's weak point came from Eleanor Carothers in 1913. In grasshopper males with one heteromorphic pair, meaning one member visibly larger, and an unpaired X, she could see which homolog the X travelled with. It went with each about equally often. The strongest proof came in 1916, when Calvin Bridges showed in *Drosophila* that rare flies with exceptional X-linked inheritance had the exceptional chromosome sets his explanation predicted, a story for [sex linkage](/lessons/sex-linkage-and-beyond/) and [chromosome changes](/lessons/chromosome-changes/).
 
-Even the human count needed work. The accepted diploid number was 48 until Joe Hin Tjio and Albert Levan reported 46 in 1956.
-
 ### Design problem
 
-You repeat Carothers' kind of study. In a grasshopper, one homolog pair is heteromorphic, and the X is unpaired in males. You score 300 first meiotic divisions: the X went to the pole with the larger homolog in 154 and with the smaller in 146. These are the counts Carothers reported in 1913. Does this support independent assortment, and what would dependence look like?
+You repeat Carothers' kind of study in grasshopper males with a heteromorphic pair and an unpaired X. You score 300 first meiotic divisions: the X went to the pole with the larger homolog in 154 and with the smaller in 146. These are the counts Carothers reported in 1913. Does this support independent assortment, and what would dependence look like?
 
 <details>
 <summary>One way to do it</summary>
@@ -444,10 +544,40 @@ You repeat Carothers' kind of study. In a grasshopper, one homolog pair is heter
 
 > **χ² = (154 − 150)^2/150 + (146 − 150)^2/150 = 16/150 + 16/150 = 32/150 = 0.21**
 
-With two classes there is 1 degree of freedom, and the critical value at P = 0.05 is 3.84. Since 0.21 is far below it, the counts are consistent with random, independent orientation.
+With two classes there is 1 degree of freedom, and the critical value at P = 0.05 is 3.84. 0.21 is far below it, so the counts are consistent with random, independent orientation.
 
-**What dependence would look like.** A large excess in one direction, for example 220 to 80 (χ² = 65.3), that recurs in other males and other preparations. A single small deviation is what sampling noise would produce, though it cannot rule out a small real bias.
+**What dependence would look like.** A large excess in one direction, for example 220 to 80 (χ² = 65.3), that recurs in other males and preparations. A single small deviation is what sampling noise would produce, though it cannot rule out a small real bias.
 
-**What this tests.** It tests chromosomes directly, by sight, not alleles. It shows that two non-homologous chromosomes behave as independent assortment predicts, which is what Mendel's second law needs if genes sit on chromosomes. It does not by itself show that any gene is on these chromosomes.
+**What this tests.** Chromosomes, by sight, not alleles: two non-homologous chromosomes behave as independent assortment predicts, which Mendel's second law needs if genes sit on chromosomes. It does not by itself show that any gene is on these chromosomes.
 
 </details>
+
+## Going deeper
+
+### Male fruit flies pair without a zipper
+
+The worked-problem fly is a fair general model, but males of *Drosophila melanogaster* are a special case: their homologs pair without a synaptonemal complex and without crossing over.
+
+### When a crossover does not move the split
+
+One crossover between a locus and its centromere moves the A/a split to anaphase II. Two crossovers in that interval can go either way. A two-strand double, two exchanges between the same two chromatids, swaps the segment back. A four-strand double, in which every chromatid takes part once, swaps both chromatids of each homolog. Either way the sisters match again, and A and a part at anaphase I. A three-strand double leaves the sisters different, so A and a still part at anaphase II.
+
+### When the count is not two and two
+
+The two-and-two count is the normal outcome, not an exceptionless law. The break repair that makes crossovers can also copy a short stretch of one homolog onto a chromatid of the other, with or without a crossover; this is gene conversion. At a locus inside such a stretch, one meiosis can give three A and one a.
+
+### Crossover numbers, and a zipper that flows
+
+Crossover numbers vary even within a species. In single-sperm sequencing of 31,228 gametes from 20 men, the average number of crossovers per sperm ranged from 22.2 to 28.1 between donors. And the synaptonemal complex is less rigid than the zipper image suggests: in living *C. elegans*, its components behave like a liquid crystal, ordered yet able to flow.
+
+### Crossing over seen in maize
+
+In maize, Harriet Creighton and Barbara McClintock tied the exchange of visibly marked chromosome segments to genetic crossing over in 1931; you will use that link to build maps in [linkage and mapping](/lessons/linkage-and-mapping/).
+
+### Not always a fair coin
+
+Fair segregation is itself a model with exceptions: in hybrid mouse oocytes, spindle asymmetry lets stronger centromeres orient preferentially toward the egg side of the first division.
+
+### Forty-six, not forty-eight
+
+Even the human count needed work. The accepted diploid number was 48 until Joe Hin Tjio and Albert Levan reported 46 in 1956.

@@ -64,6 +64,13 @@ def bottom_bar(text="", color=GREY):
     return VGroup(box, label(text, 0, -3.18, color, 30, weight=BOLD))
 
 
+def low_bar(text="", color=GREY):
+    g = bottom_bar(text, color)
+    g[0].stretch_to_fit_height(0.5).move_to([0, -3.47, 0])
+    g[1].move_to([0, -3.47, 0])
+    return g
+
+
 def tube(x, y, color=GREY, w=0.72, h=2.15):
     body = RoundedRectangle(width=w, height=h, corner_radius=0.25,
                             stroke_color=color, stroke_width=3,
@@ -391,7 +398,7 @@ class S07WhereDifferent(ActiveScene):
         self.play(ReplacementTransform(bars.copy(),tealbars),ReplacementTransform(bars,orangebars),run_time=1.0)
         self.active_readout = VGroup(tealbars, orangebars)
         self.add(self.active_readout)
-        bar=bottom_bar("DIFFERENT",GOLD)
+        bar=low_bar("DIFFERENT",GOLD)
         self.play(FadeIn(bar),run_time=.5)
         self.at("lesson's made")
         tag=chip("made-up teaching data",GREY,28).move_to([3.85,3.15,0])
@@ -554,7 +561,7 @@ class S13CauseReveal(ActiveScene):
         tick=label("✓",3.15,2.55,GOLD,44,weight=BOLD)
         self.play(FadeIn(tick),Indicate(orange,color=GOLD),run_time=.8)
         self.at("other targets")
-        bar=bottom_bar("DIFFERENT",GOLD); cite=label("Lin and colleagues, 2017",4.3,3.25,GREY,28)
+        bar=low_bar("DIFFERENT",GOLD); cite=label("Lin and colleagues, 2017",4.3,3.25,GREY,28)
         self.play(FadeIn(bar),FadeIn(cite),run_time=.7)
         self.finish()
 
@@ -599,14 +606,14 @@ class S15Return(SpokenScene):
         p2=p1.copy().set_color(GREY).move_to([0,-.25,0]); p3=p1.copy().move_to([4.05,-.25,0])
         self.at("where does it live")
         bars=VGroup(*[Rectangle(width=.28,height=h,stroke_width=0,fill_color=PURPLE,fill_opacity=.75).move_to([-5.05+i*.5,-.55+h/2,0]) for i,h in enumerate([.3,.7,1.35,.45,.35])])
-        self.play(FadeIn(p1),LaggedStart(*[GrowFromEdge(b,DOWN) for b in bars],lag_ratio=.1),run_time=.75)
+        self.play(FadeIn(p1),world.animate.set_opacity(.3),LaggedStart(*[GrowFromEdge(b,DOWN) for b in bars],lag_ratio=.1),run_time=.75)
         self.at("what order")
         steps=VGroup(*[RoundedRectangle(width=.58,height=.34,corner_radius=.1,color=GOLD,fill_opacity=.25).move_to([-0.85+i*.85,-.25,0]) for i in range(3)])
         self.play(FadeIn(p2),LaggedStart(*[FadeIn(s) for s in steps],lag_ratio=.2),run_time=.75)
         self.at("cause the defect")
         miniL=dose_axes(4.05,-.25,2.7,1.45); c1=dose_curve(*miniL[1:],color=GREY,dashed=True); c2=dose_curve(*miniL[1:],shift=.55,color=TEAL)
         self.play(FadeIn(p3),Create(miniL[0][:2]),Create(c1),Create(c2),run_time=.85)
-        status=VGroup(label("DIFFERENT",-4.05,-1.88,GOLD,28,weight=BOLD),label("SAME",0,-1.88,GREY,28,weight=BOLD),label("DIFFERENT",4.05,-1.88,GOLD,28,weight=BOLD))
+        status=VGroup(label("DIFFERENT",-4.05,-2.55,GOLD,28,weight=BOLD),label("SAME",0,-2.55,GREY,28,weight=BOLD),label("DIFFERENT",4.05,-2.55,GOLD,28,weight=BOLD))
         self.play(FadeIn(status),run_time=.55)
         self.at("what each model predicts")
         heading=label("Predict both models first",0,3.28,TEXT,36,weight=BOLD)
