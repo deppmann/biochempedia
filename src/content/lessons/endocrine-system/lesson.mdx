@@ -5,13 +5,14 @@ course: "organismal-biology"
 courseChapter: "Organismal Biology · Unit 2: Control and constancy"
 order: 708
 summary: >-
-  How does a chemical released in one place change cells far away, and how does the body keep that
-  signal in check? This lesson defines a hormone, contrasts peptide and steroid hormones, follows
+  A hormone's level in the blood is a balance between what its gland secretes and what the body
+  clears; negative feedback adjusts the secretion, and the half-life sets how fast the level can
+  follow. This lesson defines a hormone, contrasts peptide and steroid hormones, follows
   the hypothalamus-pituitary chain with its negative feedback, and works blood glucose and the
   cortisol stress axis as loops, then compares hormones that drive moulting in an insect and
   metamorphosis in a frog. Afterwards you can predict what removing or adding a hormone does to the
   rest of its loop, and calculate how fast a hormone level falls once secretion stops.
-hook: "A rooster's testis, moved to his belly and cut off from its original nerves, still kept him crowing. What was it sending?"
+hook: "A young cockerel's testis, moved to his belly and cut off from its original nerves, still made him grow into a crowing rooster. What was it sending?"
 
 estMinutes: 24
 objectives:
@@ -24,10 +25,32 @@ explainer:
   src: "/explainers/endocrine-system/explainer.mp4"
   captions: "/explainers/endocrine-system/explainer.vtt"
   poster: "/explainers/endocrine-system/poster.jpg"
-  title: "A Hormone Chain, Held in Check"
-  durationSec: 144.2
-  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+  title: "Tap, Drain and a Sensor"
+  durationSec: 199.6
+  narration: "written from this lesson's text and read by an AI narrator voice (Kokoro, af_heart)"
   aiGenerated: true
+  takeaways:
+    - "A hormone is a chemical released by one group of cells into the blood, which carries it to distant cells that have a receptor for it."
+    - "A hormone's level in the blood is a balance between what the gland secretes and what the body clears."
+    - "In the human stress axis, CRH releases ACTH, ACTH releases cortisol, and cortisol turns CRH and ACTH down."
+    - "Remove the adrenal glands and ACTH rises, because cortisol no longer feeds back."
+    - "Negative feedback adjusts the secretion; it does not hold the level at one fixed value. Cortisol rises and falls over the day and comes in pulses roughly every 60 to 90 minutes."
+
+films:
+  - id: "chapter-2"
+    src: "/explainers/endocrine-system/chapter-2.mp4"
+    captions: "/explainers/endocrine-system/chapter-2.vtt"
+    poster: "/explainers/endocrine-system/chapter-2-poster.jpg"
+    title: "How Fast a Level Follows"
+    durationSec: 198.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+    takeaways:
+      - "A hormone's half-life is the time for its level in the blood to fall by half once secretion stops."
+      - "When secretion steps up and stays up, the level covers half the distance to its new steady value in one half-life."
+      - "With brief pulses, a level tracks them when its half-life is much shorter than the gap between them; when the half-life is as long as the gap, it smooths them."
+      - "Over many pulses the drain removes what the tap adds, so a longer half-life gives a higher average level and smaller swings relative to it."
+      - "These curves come from a simple model with invented numbers; real secretion varies and often comes in pulses."
 
 scientists:
   - name: "Arnold Adolph Berthold"
@@ -266,8 +289,12 @@ explainLevels:
     text: >-
       With secretion stopped, a hormone cleared by first-order kinetics falls as C(t) = C0 x
       2^(-t / t-half), or C0 x e^(-kt) with k = ln 2 / t-half. The half-life sets how quickly plasma
-      level can follow a change in secretion: a hormone with a half-life of minutes tracks secretory
-      pulses, one with a half-life of an hour or more smooths them. Carrier binding lengthens
+      level can follow a change in secretion. In a linear one-compartment model, the level follows
+      secretion most closely when its half-life is short relative to both the duration of each pulse
+      and the interval between pulses, and smooths the pattern when the half-life is comparable to or
+      longer than those timescales. With pulsed secretion at periodic steady state, the average level
+      equals average secretion divided by (k times the effective distribution volume), so the
+      half-life sets the mean as well as the swings. Carrier binding lengthens
       half-life and buffers the free fraction, which on the free-hormone view is the fraction
       available to cells. Comparative endocrinology adds that the same logic of gland, carrier,
       receptor and feedback runs on different molecules: ecdysteroids and juvenile hormone in
@@ -312,38 +339,146 @@ draft: false
 
 import HormoneHalfLifeDecay from '../../../components/HormoneHalfLifeDecay.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**In 1848 a Göttingen physician castrated young cockerels and put a testis back into the belly of some of them, cut off from its original nerves. Those birds still grew combs and crowed. How can an organ change the whole body without its own nerves?**
+**In experiments published in 1849, a Göttingen physician put a testis back into the belly of castrated young cockerels, cut off from its original nerves. The birds still grew combs and crowed. How can an organ change the whole body without its own nerves?**
 
-It sends chemicals through the blood. A hormone is a chemical message that the blood carries to distant cells, and only cells with the right receptor respond to it. The body keeps each message in check with negative feedback: the hormone's effect reduces the drive to release more of it. This lesson asks what counts as a hormone, why some act in seconds and others over hours, how glands in the head control glands elsewhere, how insulin and glucagon hold blood glucose steady, and how insects and frogs use the same logic.
+The first film, above, answers with a tap pouring into a tank of blood and a drain emptying it; the drain stands for clearance, every way the body removes or breaks down the hormone.
+
+> **The one idea.** A hormone's level in the blood is a balance between secretion in and clearance out. Negative feedback adjusts the secretion; the half-life sets how fast the level can follow.
+>
+> *Scope:* this is a simple model for reasoning about loops, not a description of any one patient. Its assumptions (one well-mixed compartment, first-order clearance, brief pulses) are stated where the numbers start, in the half-life section, and every rule about half-life in this lesson holds inside them.
 
 ## What makes a hormone
 
-A **hormone** is a chemical released by one group of cells into the blood, which carries it to distant **target cells** that have **receptors** for it. A receptor is a protein that binds the hormone and changes what the cell does. Think of a radio broadcast: it reaches every house, and only houses with a set tuned to that station hear it. Glands that release hormones into the blood are **endocrine** glands, and together they make up the endocrine system.
+The first film defined a **hormone**; the cells it reaches are **target cells**, and their **receptors** are proteins that bind the hormone and change what the cell does. Like a radio broadcast, it reaches every house but only tuned sets hear it. Glands that release hormones into the blood are **endocrine** glands, and together they make up the endocrine system. Unlike the point-to-point signals of [nervous control](/lessons/nervous-control/), hormones usually act more slowly and reach the whole body.
 
-Berthold's experiment is the classic test of that idea. Arnold Berthold castrated young cockerels. Birds left without testes grew up like capons, with small combs and wattles, and little crowing or fighting. In other birds he put a testis back into the abdominal cavity, either the bird's own or one from another bird. If the testis acted through nerves, a transplanted testis with no nerve connections should have done nothing. Instead, those birds grew combs and behaved like roosters, and later accounts of his examination say the graft had gained a new blood supply and was no longer connected to its original nerves. That rules in a blood-borne product of the testis, in this bird. It does not identify the substance, which we now know includes testosterone, and it rests on very few animals.
+The first film left out how thin the evidence was. Berthold used very few birds and did not identify the substance, which we now know includes testosterone, and the graft's new blood supply and lost nerve connection come from later accounts of his examination. The result rules in a blood-borne product of the testis, in this bird, and no more. What outlived it is the design: remove a gland, then restore the gland or its product and see the loss reversed.
 
-How a receptor passes its signal into the cell is the subject of [nuclear receptors](/lessons/nuclear-receptors/) and [G-protein-coupled receptors](/lessons/gpcrs-and-g-proteins/), and the story of secretin, a gut hormone found by Bayliss and Starling in a dog, is in [signals and distance](/lessons/signals-and-distance/). Unlike the fast, point-to-point signals of [nervous control](/lessons/nervous-control/), hormones usually act more slowly, and the blood carries them throughout the body.
+Next steps: how a receptor signals inside the cell is in [nuclear receptors](/lessons/nuclear-receptors/) and [G-protein-coupled receptors](/lessons/gpcrs-and-g-proteins/); secretin, a gut hormone found by Bayliss and Starling in a dog, is in [signals and distance](/lessons/signals-and-distance/).
 
 ## Peptides and steroids: two chemistries, two speeds
 
-Most hormones fall into two chemical groups. **Peptide hormones**, such as insulin, glucagon and ACTH, are chains of amino acids. They dissolve in plasma, so most circulate free, and because they cannot cross the fatty cell membrane, they mostly bind receptors on the cell surface. Their effects usually start within seconds to minutes. **Steroid hormones**, such as cortisol, aldosterone, testosterone and estrogens, are made from cholesterol. They dissolve poorly in water, so most of the circulating hormone, about 90 percent or more for cortisol and testosterone in humans, rides on carrier proteins. Because they are fat-soluble, they cross membranes, and their classical receptors sit inside the cell, where the bound receptor changes which genes are transcribed. Transcription can begin to change within minutes, but effects that depend on new proteins usually take much longer, often hours.
+Most hormones fall into two chemical groups. **Peptide hormones**, such as insulin, glucagon and ACTH, are chains of amino acids. They dissolve in plasma (the liquid part of blood), so most circulate free, and because they cannot cross the fatty cell membrane, they mostly bind receptors on the cell surface. Their effects usually start within seconds to minutes. **Steroid hormones**, such as cortisol, aldosterone, testosterone and estrogens, are made from cholesterol. They dissolve poorly in water, so most of the circulating hormone, about 90 percent or more for cortisol and testosterone in humans, rides on carrier proteins. Because they are fat-soluble, they cross membranes, and their classical receptors sit inside the cell, where the bound receptor changes which genes are transcribed. Transcription can begin to change within minutes, but effects that depend on new proteins usually take much longer, often hours.
+
+Carrier binding also slows the drain: it is one reason steroids such as cortisol have long half-lives. On the usual free-hormone view, the small free fraction is what reaches cells and feeds back.
 
 <LessonFigure src="/figures/endocrine-system/peptide-vs-steroid.webp" width={1200} height={800} alt="AI-generated illustration: Two target cells side by side. On the left, small peptide hormone blocks float free in plasma and bind a receptor on the cell surface. On the right, steroid hormones ride on carrier proteins, one free steroid crosses the membrane and binds a receptor inside the cell that acts on genes in the nucleus." caption="A typical peptide hormone circulates free and binds a surface receptor, acting within seconds to minutes; a typical steroid rides on carrier proteins, crosses the membrane, and its receptor inside the cell changes transcription, with effects that usually build over hours." />
 
-Two warnings keep this from becoming a false rule. Not every peptide works the same way: glucagon's receptor is a G-protein-coupled receptor, but insulin's receptor is itself an enzyme, a tyrosine kinase (see [receptor tyrosine kinases](/lessons/receptor-tyrosine-kinases/)). And not every steroid action is slow: some steroid actions begin within minutes and appear to start at the cell membrane (see Going deeper). A third group, the **amine hormones** made from single amino acids, splits between the two: epinephrine acts like a peptide, while thyroid hormone, like a steroid, enters cells and binds an intracellular receptor.
+Not every peptide works the same way: glucagon's receptor is a G-protein-coupled receptor, but insulin's receptor is itself an enzyme, a tyrosine kinase (see [receptor tyrosine kinases](/lessons/receptor-tyrosine-kinases/)). And not every steroid action is slow: some begin within minutes and appear to start at the cell membrane (see Going deeper). A third group, the **amine hormones** made from single amino acids, splits between the two. Epinephrine dissolves in plasma and binds surface receptors, like a peptide. Thyroid hormone travels mostly on carrier proteins, enters cells with the help of transporters and binds a receptor inside, like a steroid.
 
 ## Hypothalamus and pituitary: a chain with feedback
 
-In mammals the **hypothalamus**, at the base of the brain, controls the **pituitary gland** beneath it, and the pituitary controls several other glands.
+In mammals the **hypothalamus**, at the base of the brain, controls the **pituitary gland** beneath it, and the pituitary controls several other glands. The first film drew one chain; here are the others.
 
-The **anterior pituitary** is a gland in its own right. Hypothalamic neurons release **releasing hormones** into capillaries, and **portal vessels**, veins that run from one capillary bed to a second one, carry that blood directly to the anterior pituitary. The hormones arrive concentrated, without passing through the rest of the body. CRH (corticotropin-releasing hormone) triggers release of ACTH (adrenocorticotropic hormone), TRH triggers TSH (thyroid-stimulating hormone), and GnRH triggers LH and FSH (luteinizing and follicle-stimulating hormones). The anterior pituitary also makes growth hormone and prolactin. Prolactin is the exception to the releasing-hormone pattern: dopamine from the hypothalamus, carried in the same portal vessels, mainly holds its release down. How the portal link was demonstrated is told in [hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/).
+The **anterior pituitary** is a gland in its own right. Hypothalamic neurons release **releasing hormones** into capillaries, and **portal vessels**, short veins that carry blood from one capillary bed straight to a second one instead of back to the heart, take that blood directly to the anterior pituitary. The hormones arrive concentrated, without passing through the rest of the body. Each releasing hormone has a pituitary partner:
+
+- CRH (corticotropin-releasing hormone) triggers ACTH (adrenocorticotropic hormone), which drives the adrenal cortex.
+- TRH triggers TSH (thyroid-stimulating hormone), which drives the thyroid.
+- GnRH triggers LH and FSH (luteinizing and follicle-stimulating hormones), which drive the gonads.
+
+The anterior pituitary also makes growth hormone and prolactin. Prolactin is the exception: dopamine from the hypothalamus, carried in the same portal vessels, mainly holds its release down. How the portal link was shown is in [hypothalamus and autonomic control](/lessons/hypothalamus-autonomic/).
 
 The **posterior pituitary** does not make the hormones it releases. ADH (antidiuretic hormone) and oxytocin are made by neurons whose cell bodies sit in the hypothalamus, and those axons end in the posterior pituitary, which stores and releases the hormones into the blood. ADH increases water reabsorption in the [kidney](/lessons/kidney/); oxytocin contracts the uterus during birth.
 
 <LessonFigure src="/figures/endocrine-system/pituitary-two-routes.webp" width={1200} height={811} alt="AI-generated illustration: A block diagram of the hypothalamus above the pituitary gland. On the left, releasing hormones enter a capillary tuft and a portal vessel carries them to a second tuft in the anterior pituitary. On the right, axons from hypothalamic cells run down into the posterior pituitary, which stores and releases ADH and oxytocin into the blood." caption="Two routes from hypothalamus to pituitary: releasing hormones travel in portal vessels to the anterior pituitary, while ADH and oxytocin are made in the hypothalamus and released from the axon endings in the posterior pituitary." />
 
-The main glands, from human physiology:
+Each chain is held in check the way the first film's stress axis was, by **negative feedback**: the final hormone turns down the glands above it. In the human thyroid chain, thyroid hormone (T4, and the more active T3) lowers TRH and TSH release, acting at both the hypothalamus and the pituitary.
+
+**Predict.** A person with a healthy thyroid takes thyroid hormone tablets every day. What happens to TSH, and to the person's own thyroid secretion?
+
+<details>
+<summary>Check your prediction</summary>
+
+The tablets add a second tap. As the level rises, feedback lowers TRH and TSH, and with less TSH the person's own thyroid secretes less. Feedback can turn down only the secretion it reaches; it cannot turn off the tablets.
+
+</details>
+
+Not every loop is negative: before ovulation, rising estradiol triggers a surge of LH, a positive feedback that amplifies a change.
+
+## Glucose and cortisol as loops
+
+**Blood glucose.** In a healthy adult human after a meal, glucose rises. Beta cells in the pancreatic islets respond by releasing insulin. Insulin increases glucose uptake by skeletal muscle and fat, and it reduces the liver's glucose output by slowing glycogen breakdown and new glucose synthesis. Glucose falls, and so does the stimulus for insulin. Between meals, alpha cells release glucagon, which makes the liver break down glycogen and release glucose. The chemistry of the liver's response belongs to [integration of metabolism](/lessons/integration-of-metabolism/) and [gluconeogenesis](/lessons/gluconeogenesis/).
+
+**The stress axis.** What the first film left out is where cortisol meets the glucose loop. Cortisol raises the liver's glucose production, though the evidence is from high-dose infusions in human volunteers, not an ordinary stressful day (see Going deeper). For the brain's side of stress, see [emotion and stress](/lessons/emotion-and-stress/).
+
+Can cortisol's blood level follow an adrenal that releases it in pulses? The second film times the drain.
+
+<LessonFilm film={frontmatter.films[0]} />
+
+## How fast a level follows: half-life
+
+**Worked problem.** These are the numbers behind the second film's falling curve. This is a model, not an intact axis. Take an adult human with plasma cortisol of 400 nmol per L at time zero, and suppose secretion stops completely. Assume constant blood volume and first-order elimination (a constant fraction lost per minute), with a **half-life** (t-half, the time for the plasma concentration to fall by half once secretion stops) of 75 minutes, chosen within the textbook range of about 60 to 90 minutes.
+
+*What the numbers stand for.* The level is total plasma cortisol (free plus carrier-bound) in one well-mixed compartment, and the half-life is an effective one that folds carrier binding and tissue uptake into a single drain; real free and bound cortisol behave in more complicated ways. The concentration C(t) at t minutes, starting from C0, is
+
+> **C(t) = C0 x 2^(-t / t-half)**
+
+1. *After 150 minutes.* t / t-half = 150 / 75 = 2 half-lives, so C = 400 x 1/4 = 100 nmol per L.
+2. *When does it reach 50 nmol per L?* 400 to 200 to 100 to 50 is three halvings, so 3 x 75 = 225 minutes.
+3. *Compare a peptide.* Suppose, for illustration, a peptide hormone with a half-life of 5 minutes also starts at 400 nmol per L. In 30 minutes, which is 6 half-lives, it falls to 400 x 2^-6 = 400 / 64 = 6.25 nmol per L. Cortisol in the same 30 minutes falls only to 400 x 2^-0.4 (30 / 75 = 0.4 half-lives), about 303 nmol per L.
+
+These numbers are invented, as the second film warned of its curves.
+
+Stopping secretion is the special case. With the tap on, the higher the level, the more drains out:
+
+> **change in level per minute = secretion per minute ÷ V − k × level**
+>
+> V is the volume the hormone spreads through. k = ln 2 / t-half (ln 2 is about 0.69); for cortisol that is close to 1 percent cleared each minute. The level holds steady when the two terms match: steady level = secretion ÷ (k × V).
+
+<HormoneHalfLifeDecay />
+
+Change the drain itself, and feedback enters.
+
+**Predict.** In the model, suppose something halves the rate at which cortisol is cleared (k halves), while the loop stays intact. Does the cortisol level double?
+
+<details>
+<summary>Check your prediction</summary>
+
+With secretion held fixed it would: by the steady-level equation, halving k doubles the level. But the rising cortisol feeds back and lowers CRH and ACTH, so the adrenal secretes less, and the new level is less than double. How much less depends on how strong the feedback is. Feedback works on the tap, so it can partly cancel a change at the drain.
+
+</details>
+
+## Hormones across animals: moulting insects, metamorphosing frogs
+
+Other animals run the same logic on different molecules, so name the animal each time.
+
+The bug Rhodnius prolixus takes one large blood meal per larval stage and moults some days later. Vincent Wigglesworth found that larvae decapitated soon after the meal did not moult, while those decapitated later did, so a signal from the head was needed for a limited time. Joined by a glass tube so that their blood mixed (**parabiosis**), an early- and a later-decapitated larva both moulted: a moult-promoting signal travelled in the blood. It is Berthold's remove-and-restore logic in another animal.
+
+<LessonFigure src="/figures/endocrine-system/rhodnius-parabiosis.webp" width={1200} height={885} alt="AI-generated illustration: Four headless blood-fed Rhodnius prolixus larvae. Above, one decapitated soon after the meal stays intact and one decapitated later splits its old skin to moult. Below, an early-decapitated and a later-decapitated larva are joined by a glass tube so their blood mixes, and both moult." caption="A moult-promoting signal travels in the blood: a Rhodnius prolixus larva decapitated too early does not moult alone, but moults when its blood mixes with that of a larva decapitated later." />
+
+We now know the chain behind it:
+
+- Neurosecretory cells in the brain release prothoracicotropic hormone (PTTH).
+- PTTH makes the prothoracic glands secrete **ecdysteroids**, steroid hormones of arthropods that drive the moult.
+- A second hormone, **juvenile hormone** from a small gland behind the brain called the corpus allatum, keeps each moult a larval one; only when it falls does the bug moult into an adult.
+
+The shared blood could have carried either the brain hormone or the ecdysteroid it had already triggered in the partner. A brain hormone driving a gland that makes a steroid parallels CRH and ACTH driving cortisol in mammals, though the insect chain has one tier fewer.
+
+In frogs, tadpoles become froglets by **metamorphosis**, a body remodelling in which limbs grow and the tail is resorbed, driven by thyroid hormone. In an early report usually credited to J. F. Gudernatsch (1912), tadpoles fed mammalian thyroid tissue metamorphosed early. The reverse test also holds: blocking a tadpole's own thyroid hormone synthesis prevents metamorphosis, and the animal grows into a giant tadpole. As in mammals, the brain and pituitary drive the thyroid, and corticosteroids, the frog's stress hormones, work together with thyroid hormone during metamorphosis. Mammals use thyroid hormone to set metabolic rate, among other roles; the response depends on the tissue, the life stage and the animal.
+
+Plants have hormones too, such as auxin, but no blood; they move signals through tissues and vascular tissue, covered in [plant hormones and responses](/lessons/plant-signals/).
+
+### Design problem
+
+An adult human loses all the insulin-making beta cells of the pancreas. Predict what happens to blood glucose after a meal, and name the two actions of insulin that explain it. Then design a test that would show the change comes from missing insulin.
+
+<details>
+<summary>One way to do it</summary>
+
+Start with the loop: insulin increases glucose uptake by skeletal muscle and fat and slows the liver's glycogen breakdown and new glucose synthesis. With neither action, glucose rises higher after a meal and falls more slowly.
+
+Next, put the hormone back. If insulin is the missing step, giving insulin should bring the post-meal rise down: Berthold's design again.
+
+Then rule out the other side of the loop: glucagon, released between meals to make the liver release glucose, opposes insulin and does not take over its job after a meal.
+
+Conclusion: without insulin the loop cannot bring glucose back down. This is a prediction from the loop, not a measured result, and a real patient's course depends on many other factors.
+
+</details>
+
+## Reference: the main glands
+
+In human physiology:
 
 | Gland | Hormone | Main effect |
 |---|---|---|
@@ -356,73 +491,22 @@ The main glands, from human physiology:
 | Gonads | Testosterone, estrogens, progesterone | Sex characteristics, reproductive cycles |
 | Pineal | Melatonin | Daily rhythms |
 
-Most of these axes are held in check by **negative feedback**: a response that opposes the change that caused it. Positive feedback also occurs: before ovulation, rising estradiol triggers a surge of LH. Thyroid hormone, for example, lowers TRH and TSH release, so a rise in thyroid hormone reduces the drive that produced it. Feedback acts at both the hypothalamus and the pituitary.
-
-## Glucose and cortisol as loops
-
-**Blood glucose.** In a healthy adult human after a meal, glucose rises. Beta cells in the pancreatic islets respond by releasing insulin. Insulin increases glucose uptake by skeletal muscle and fat, and it reduces the liver's glucose output by slowing glycogen breakdown and new glucose synthesis. Glucose falls, and so does the stimulus for insulin. Between meals, alpha cells release glucagon, which makes the liver break down glycogen and release glucose. The liver is a target of both hormones. The chemistry of the liver's response belongs to [integration of metabolism](/lessons/integration-of-metabolism/) and [gluconeogenesis](/lessons/gluconeogenesis/).
-
-**The stress axis.** CRH from the hypothalamus releases ACTH from the anterior pituitary, and ACTH makes the adrenal cortex produce cortisol. Cortisol also raises glucose production, which is why it belongs in a glucose lesson. The evidence is from high-dose infusions in human volunteers, not an ordinary stressful day (details in Going deeper). Rising cortisol then lowers CRH and ACTH. For the brain's side of stress, see [emotion and stress](/lessons/emotion-and-stress/).
-
-Negative feedback does not hold a hormone at one fixed value. In humans, cortisol rises and falls over the day and comes in pulses roughly every 60 to 90 minutes.
-
-How fast a level can follow its gland depends on the hormone's **half-life**, the time for its plasma concentration to fall by half. **Worked problem.** This is a model, not an intact axis. Take an adult human with plasma cortisol of 400 nmol per L at time zero, and suppose secretion stops completely. Assume constant blood volume, no further secretion, and first-order elimination (a constant fraction lost per minute), with a half-life of 75 minutes, chosen within the textbook range of about 60 to 90 minutes.
-
-> **C(t) = C0 x 2^(-t / t-half)**
-
-1. *After 150 minutes.* t / t-half = 150 / 75 = 2 half-lives, so C = 400 x 1/4 = 100 nmol per L.
-2. *When does it reach 50 nmol per L?* 400 to 200 to 100 to 50 is three halvings, so 3 x 75 = 225 minutes. It falls below 50 nmol per L after that.
-3. *Compare a peptide.* Suppose, for illustration, a peptide hormone with a half-life of 5 minutes also starts at 400 nmol per L. In 30 minutes, which is 6 half-lives, it falls to 400 x 2^-6 = 400 / 64 = 6.25 nmol per L. Cortisol in the same 30 minutes falls only to 400 x 2^-0.4, about 303 nmol per L.
-
-A short half-life lets the plasma level track secretion within minutes; a long one smooths out pulses. These numbers are invented, and real hormones are not secreted at one steady rate or switched off outright; secretion varies over time and often comes in pulses.
-
-<HormoneHalfLifeDecay />
-
-## Hormones across animals: moulting insects, metamorphosing frogs
-
-Other animals run the same logic on different molecules, so name the animal each time.
-
-The bug Rhodnius prolixus takes one large blood meal per larval stage and moults some days later. Vincent Wigglesworth cut the heads off larvae at different times after feeding. Larvae decapitated soon after the meal did not moult, while those decapitated later did, so a signal from the head was needed for a limited time. When he joined an early-decapitated larva to a later one with a glass tube so that their blood mixed (**parabiosis**), both moulted: a moult-promoting signal travelled in the blood. We now know the chain behind it. Neurosecretory cells in the brain release prothoracicotropic hormone (PTTH), which makes the prothoracic glands secrete **ecdysteroids**, steroid hormones of arthropods that drive the moult. The shared blood could have carried either the brain hormone or the ecdysteroid it had already triggered in the partner. A brain hormone driving a gland that makes a steroid is the same pattern as a mammalian hypothalamus-pituitary axis. A second hormone, **juvenile hormone** from a small gland behind the brain called the corpus allatum, keeps each moult a larval one; only when it falls does the bug moult into an adult.
-
-<LessonFigure src="/figures/endocrine-system/rhodnius-parabiosis.webp" width={1200} height={885} alt="AI-generated illustration: Four headless blood-fed Rhodnius prolixus larvae. Above, one decapitated soon after the meal stays intact and one decapitated later splits its old skin to moult. Below, an early-decapitated and a later-decapitated larva are joined by a glass tube so their blood mixes, and both moult." caption="Wigglesworth's decapitation and parabiosis experiment on Rhodnius prolixus: a larva headless too early does not moult alone, but moults when its blood mixes with that of a larva decapitated later." />
-
-In frogs, tadpoles turn into froglets by **metamorphosis**, a body remodelling in which limbs grow and the tail is resorbed, and that change is driven by thyroid hormone. In an early report usually credited to J. F. Gudernatsch (1912), tadpoles fed mammalian thyroid tissue metamorphosed early. The reverse test also holds: blocking a tadpole's own thyroid hormone synthesis prevents metamorphosis, and the animal grows into a giant tadpole. As in mammals, the brain and pituitary drive the thyroid, and corticosteroids, the frog's stress hormones, work together with thyroid hormone during metamorphosis. Mammals use thyroid hormone to set metabolic rate; the response depends on the tissue and the animal.
-
-Plants have hormones too, such as auxin, but no blood; they move signals through tissues and vascular tissue, covered in [plant hormones and responses](/lessons/plant-signals/).
-
-### Design problem
-
-An adult human loses all the insulin-making beta cells of the pancreas. Predict what happens to blood glucose after a meal, and name the two actions of insulin that explain it. Then design a test that would show the change comes from missing insulin.
-
-<details>
-<summary>One way to do it</summary>
-
-Start with the loop. After a meal glucose rises. Normally insulin then increases glucose uptake by skeletal muscle and fat, and it slows the liver's glycogen breakdown and new glucose synthesis. With no insulin, neither action happens, so glucose rises higher and falls more slowly.
-
-Next, put the hormone back. If insulin is the missing step, giving insulin should bring the post-meal rise down. This is the logic of Berthold's graft: take the source away, see the loss, then restore the signal and see the loss reversed.
-
-Then separate it from the other side of the loop. Glucagon is released between meals and makes the liver release glucose. It opposes insulin and does not take over its job after a meal.
-
-Conclusion: without insulin the feedback that brings glucose back down is broken, and glucose stays high. This is a prediction from the loop, not a measured result, and a real patient's course depends on many other factors.
-
-</details>
-
 ## Going deeper
 
 ### Rapid steroid action in hypothalamic slices
 
-In slices of hypothalamus from young male rats, the synthetic glucocorticoid dexamethasone reduced excitatory synaptic input to recorded neurons within 3 to 5 minutes (Di, Malcher-Lopes, Halmos and Tasker, 2003). Is this the classical genomic action, in which the steroid enters the cell, binds an intracellular receptor and changes transcription? Design the tests, and say what each result would mean.
+In slices of hypothalamus from young male rats, the synthetic glucocorticoid dexamethasone reduced excitatory synaptic input to recorded neurons within 3 to 5 minutes (Di, Malcher-Lopes, Halmos and Tasker, 2003). Is this the classical genomic action, through an intracellular receptor that changes transcription? Design the tests, and say what each result would mean.
 
 <details>
 <summary>One way to do it</summary>
 
-Start with timing. Effects that need new transcription and protein synthesis usually take longer than 3 to 5 minutes to appear, so the onset alone makes a genomic action unlikely.
+Start with timing. Effects that need new transcription and protein synthesis usually take longer than 3 to 5 minutes, so the onset alone makes a genomic action unlikely.
 
-Next, keep the steroid outside the cell. Dexamethasone chemically linked to albumin, a large protein, cannot cross the membrane. This is a permanent conjugate, not the loose carrier binding described earlier. In this study the conjugate still reduced synaptic input. Add albumin alone as a control.
+Next, keep the steroid outside the cell. Dexamethasone chemically linked to albumin, a large protein, cannot cross the membrane (a permanent conjugate, not loose carrier binding). In this study the conjugate still reduced synaptic input. Add albumin alone as a control.
 
-Then put the steroid only inside. Delivered into the recorded neuron through the recording pipette, dexamethasone did not reproduce the effect. Together these point to a site reached from outside the membrane.
+Then put the steroid only inside. Delivered into the neuron through the recording pipette, dexamethasone did not reproduce the effect. Together these point to a site reached from outside the membrane.
 
-A transcription blocker is a further test: if the rapid effect does not need new transcription, blocking transcription should leave it intact. This tests transcription, not where the receptor sits. That is a prediction you would test, not a result from this paper as given here.
+A transcription blocker is a further test: if the rapid effect does not need new transcription, blocking transcription should leave it intact. This tests transcription, not where the receptor sits, and it is a prediction, not a result from this paper as given here.
 
 Finally, look for what carries the signal. Blockers of the CB1 cannabinoid receptor (AM251 and AM281) abolished the effect, so it depended on endocannabinoid signalling in this preparation.
 
@@ -430,10 +514,6 @@ Conclusion: a rapid, membrane-initiated steroid action in rat hypothalamic slice
 
 </details>
 
-### Cortisol timing and one small study
-
-In a study of 15 healthy men whose own cortisol was blocked and replaced with the same daily dose on different schedules, the schedule changed how their brains responded to emotional stimuli. In this one small study, the timing itself carried information.
-
 ### Experiments behind the glucose and stress loops
 
-In mice, deleting the insulin receptor only in liver cells stopped insulin from suppressing the liver's glucose output normally. Cortisol raises glucose production: in normal human volunteers given high doses of hydrocortisone while their insulin, glucagon and growth hormone were held in fasting ranges, glucose production rose through new glucose synthesis. The glucose result comes from a high-dose infusion, not an ordinary stressful day.
+In mice, deleting the insulin receptor only in liver cells stopped insulin from suppressing the liver's glucose output normally. Cortisol raises glucose production: in normal human volunteers given high doses of hydrocortisone while their insulin, glucagon and growth hormone were held in fasting ranges, glucose production rose through new glucose synthesis.
