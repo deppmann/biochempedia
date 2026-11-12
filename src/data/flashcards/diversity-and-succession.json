@@ -1,0 +1,604 @@
+{
+ "slug": "diversity-and-succession",
+ "title": "Diversity, Disturbance and Succession",
+ "generated": {
+  "date": "2026-11-11",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "1848fa062e15",
+ "sectionHashes": {
+  "(opening)": "6a82949b9943",
+  "Counting a community: richness, evenness and effective species": "2e4d496ca8fd",
+  "Succession: three ways one community replaces another": "2d18c654e6bb",
+  "Disturbance: Sousa's boulders and the debate over the hump": "9efe3619f60c",
+  "Frequency and intensity together": "3816c5125968",
+  "Description, mechanism and scale": "ea2220ba76b5",
+  "Design problem": "5f1f247972f8",
+  "Rankings that swap between orders": "b5a101ec6678",
+  "A nutrient experiment on young glacier soils": "a78f60d08720"
+ },
+ "cards": [
+  {
+   "id": "diversity-and-succession-c01",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In community ecology, what is an effective number of species?",
+   "back": "The number of equally common species that would give the same value of a diversity index.",
+   "quote": "Any of the diversity indices here can be turned into an effective number of species: how many equally common species would give the same value."
+  },
+  {
+   "id": "diversity-and-succession-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Richness, Shannon and Simpson indices use only counts. What does that imply about how succession or disturbance can change them?",
+   "back": "They can change these indices only by changing which species are present or how evenly individuals are shared among them.",
+   "why": "The indices never see species names, so a full turnover of identities with the same counts leaves them unchanged. A similarity index that compares species lists does see identity.",
+   "quote": "These indices use only counts, never names, so succession and disturbance can change them only by changing which species are present"
+  },
+  {
+   "id": "diversity-and-succession-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Above order 0, when does an effective number of species equal the richness, and what happens to it as a few species dominate?",
+   "back": "It equals richness only when every species is equally common; it falls as a few species take over.",
+   "quote": "Above order 0 it equals the richness only when every species is equally common, and it falls as a few species take over."
+  },
+  {
+   "id": "diversity-and-succession-c04",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Species richness, S, is {{c1::the number of species present}}.",
+   "back": "",
+   "quote": "Richness, S, is the number of species present.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c05",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What is Simpson concentration (lambda), and how is it calculated from relative abundances p_i?",
+   "back": "The probability that two individuals drawn at random (with replacement) belong to the same species; lambda = sum of p_i^2.",
+   "quote": "Simpson concentration, lambda, is the probability that two individuals drawn at random (with replacement) belong to the same species.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c06",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What does Shannon entropy H measure in a community, and what is its value when only one species is present?",
+   "back": "The uncertainty about which species the next individual picked belongs to. It is zero for one species and larger as species are many and evenly spread.",
+   "quote": "measures the uncertainty about which species the next individual you pick belongs to: zero if there is one species",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c07",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Shannon entropy with the natural log: H = {{c1::-sum of (p_i x ln p_i)}}",
+   "back": "With the natural logarithm its unit is the nat.",
+   "quote": "H = -sum of (p_i x ln p_i) lambda = sum of p_i^2",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c08",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Give the effective number of species (Hill number) at orders 0, 1 and 2.",
+   "back": "Order 0 = S (richness); order 1 = exp H; order 2 = 1/lambda.",
+   "quote": "effective species: order 0 = S order 1 = exp H order 2 = 1/lambda",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c09",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A fully counted plot of 100 individuals holds four species at 40, 40, 10 and 10. Calculate Shannon entropy H (natural log) and its effective number of species.",
+   "back": "0.4 x ln 0.4 = -0.3665 and 0.1 x ln 0.1 = -0.2303. H = 2(0.3665) + 2(0.2303) = 1.194 nats. exp H = 3.30 effective species.",
+   "quote": "In B, 0.4 x ln 0.4 = -0.3665 and 0.1 x ln 0.1 = -0.2303, so H_B = 2(0.3665) + 2(0.2303) = 0.733 + 0.461 = 1.194 nats.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c10",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "For the same plot (40, 40, 10, 10 of 100), calculate lambda, 1/lambda and Simpson's evenness E = (1/lambda)/S.",
+   "back": "lambda = 2(0.16) + 2(0.01) = 0.34. 1/lambda = 2.94 effective species. E = 2.94/4 = 0.735.",
+   "quote": "Simpson's evenness E = (1/lambda)/S is 1.00 for A and 2.94/4 = 0.735 for B.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c11",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why must a reported \"Simpson index\" name its convention?",
+   "back": "The term can mean lambda, 1 - lambda (Gini-Simpson) or 1/lambda. Reported as lambda, a value of 0.34 looks more diverse than 0.25, though a larger lambda means less diversity.",
+   "quote": "Reported as \"Simpson index\", A = 0.25 and B = 0.34 make B look more diverse, though a larger lambda means less diversity.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c12",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Ten equally common species give a Gini-Simpson index of 0.90 and twenty give 0.95. Why does this argue for converting to effective numbers?",
+   "back": "The community doubled but the index barely moved; the effective numbers read 10 and 20, scaling with the community.",
+   "quote": "Ten equally common species give a Gini-Simpson index of 0.90; twenty give 0.95.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "As the order q of a Hill number rises from 0, how are rare species weighted?",
+   "back": "Rare species count for less as q rises, and at q = 2 for much less.",
+   "quote": "as it rises from 0, rare species count for less, and at q = 2 for much less.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c14",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A fully counted quadrat holds 50, 30 and 20 individuals of three species. Give its effective number of species at order 1 and at order 2.",
+   "back": "p = 0.5, 0.3, 0.2. H = 1.030 nats, so exp H = 2.80. lambda = 0.25 + 0.09 + 0.04 = 0.38, so 1/lambda = 2.63. Both are below S = 3 because the community is uneven.",
+   "quote": "exp H undoes the logarithm and turns nats into species: 4.00 for A, 3.30 for B.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c15",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Plot C holds 60, 10, 10, 10 and 10 individuals of five species; plot D holds 30, 30, 20 and 20 of four. Which plot is more diverse, and why?",
+   "back": "It depends on the order. C wins on richness (5 against 4); D wins at order 1 (3.92 against 3.41) and order 2 (3.85 against 2.50).",
+   "why": "Once abundance counts, C's dominant species outweighs its extra rare ones. Always name the order.",
+   "quote": "once abundance counts, C's dominant species outweighs its extra rare ones",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c16",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "A fully counted plot holds four species at 70, 10, 10 and 10 of 100. Calculate 1/lambda and Simpson's evenness, and compare with four species at 25 each.",
+   "back": "lambda = 0.49 + 3(0.01) = 0.52; 1/lambda = 1.92 effective species; E = 1.92/4 = 0.48. Four species at 25 each give 1/lambda = 4.00 and E = 1.00.",
+   "quote": "1/lambda turns a matching probability into species: 4.00 for A, 2.94 for B.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why must observed richness be standardized before two samples are compared, and what does rarefaction do?",
+   "back": "Observed richness rises with sampling effort, since more individuals give more chances to find a rare species. Rarefaction recalculates each sample at a common number of individuals.",
+   "quote": "Observed richness also rises with sampling effort, since more individuals means more chances to find a rare species.",
+   "section": "Counting a community: richness, evenness and effective species"
+  },
+  {
+   "id": "diversity-and-succession-c18",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Two communities have counts of 52, 18, 18, 12 and of 38, 33, 28, 1. Which is more diverse at order 1 and which at order 2?",
+   "back": "Order 1: the first (3.36 against 3.11 effective species). Order 2: the second (3.01 against 2.86). The ranking swaps between orders.",
+   "why": "Order 2 weights rare species much less, so the second community's single rare individual barely counts while its three even species do; the first is dominated by one species.",
+   "quote": "At order 1 the first wins (3.36 effective species against 3.11); at order 2 the second does (3.01 against 2.86).",
+   "section": "Rankings that swap between orders"
+  },
+  {
+   "id": "diversity-and-succession-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Define succession and disturbance.",
+   "back": "Succession: the change in species composition at a site over time after a disturbance. Disturbance: an event that kills or removes organisms and frees space or resources.",
+   "quote": "Succession is the change in species composition at a site over time after a disturbance, an event that kills or removes organisms and frees space or resources.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c20",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What distinguishes primary from secondary succession?",
+   "back": "Primary succession starts with no previous community (new lava, rock bared by a glacier). Secondary follows a disturbance that leaves soil, seeds or roots behind (an abandoned pasture, a burned forest).",
+   "quote": "Secondary succession follows a disturbance that leaves soil, seeds or roots behind: an abandoned pasture, a burned forest.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c21",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Rock is bared by a retreating glacier, and a fire burns a forest but leaves its soil, seeds and roots. Classify the succession on each site.",
+   "back": "Bared rock: primary, because it starts with no previous community. Burned forest: secondary, because soil, seeds or roots are left behind.",
+   "quote": "Primary succession starts with no previous community: new lava, rock bared by a retreating glacier, a new seawall.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c22",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "State the facilitation model of succession (Connell and Slatyer).",
+   "back": "Early species change the site (adding soil, shade or nitrogen), and later species can establish only after that change.",
+   "quote": "Facilitation: early species change the site (adding soil, shade or nitrogen), and later species can establish only after that change.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c23",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "State the tolerance model of succession.",
+   "back": "Early species neither help nor much hinder later ones; later species persist because they can grow at lower resource levels.",
+   "quote": "Tolerance: early species neither help nor much hinder later ones; later species persist because they can grow at lower resource levels.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c24",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "State the inhibition model of succession.",
+   "back": "Whoever arrives first holds the space and keeps later colonists out until it is damaged or dies.",
+   "quote": "Inhibition: whoever arrives first holds the space and keeps later colonists out until it is damaged or dies.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Why can watching a successional sequence not distinguish facilitation, tolerance and inhibition, and what can?",
+   "back": "All three produce early species followed by later ones. Removing the early occupants can tell them apart.",
+   "quote": "All three produce early species followed by later ones, so watching the sequence cannot tell them apart.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c26",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Early colonists are cleared from plots as they settle, and later-successional species establish later than in untouched plots. Which model of succession does this support?",
+   "back": "Facilitation. Later species need the site changes early species make, so removing them delays establishment.",
+   "why": "Under tolerance removal changes little; under inhibition later species establish sooner.",
+   "quote": "Clear the early colonists from a plot as they settle.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why does a removal experiment usually test particular species rather than one succession model for a whole site?",
+   "back": "Results are often mixed: early colonists can help some later species and hinder others, and tolerance is hard to tell from inhibition in the field.",
+   "quote": "Real results are often mixed: early colonists can help some later species and hinder others, and tolerance is hard to tell from inhibition in the field",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c28",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Does succession have a goal or one fixed endpoint?",
+   "back": "No goal, and it does not necessarily run to one fixed endpoint: early species alter conditions and later species do better or worse as a result. Where it goes depends on which species arrive, in what order, and how often the site is disturbed again.",
+   "quote": "Nothing in these models has a goal: early species alter conditions, and later species do better or worse as a result.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c29",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "What is a chronosequence in succession studies?",
+   "back": "A set of sites of different ages read as one trajectory: a space-for-time substitution.",
+   "quote": "Many succession studies use a chronosequence, a set of sites of different ages read as one trajectory (a space-for-time substitution).",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c30",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Pooled Neotropical secondary forests had a predicted tree richness at 20 years of 80% of old growth, but compositional similarity only 34% of that among old-growth plots. A manager says the forests have recovered. Evaluate.",
+   "back": "Not supported. Richness can look recovered while the species are still different, and both numbers are model estimates from sites of different ages, not one forest followed for 20 years.",
+   "why": "Count-based measures miss identity; a chronosequence substitutes space for time.",
+   "quote": "the count can look recovered while the species are still different.",
+   "section": "Succession: three ways one community replaces another"
+  },
+  {
+   "id": "diversity-and-succession-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What does the intermediate disturbance hypothesis predict, and what is its reasoning at each extreme?",
+   "back": "Diversity of competing species peaks at intermediate disturbance frequency or intensity. Too little, and the best competitors exclude the rest; too much, and only fast colonizers survive.",
+   "quote": "too little disturbance, and the best competitors exclude the rest; too much, and only fast colonizers survive.",
+   "section": "Disturbance: Sousa's boulders and the debate over the hump"
+  },
+  {
+   "id": "diversity-and-succession-c32",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "On a boulder shore, diversity is highest on intermediate boulders. Is that a mechanism? What manipulation would test whether overturning causes it?",
+   "back": "It is a described pattern, not a tested mechanism. Hold boulders still and see whether their communities change; Sousa fixed small rocks to anchored beams and left matched loose rocks nearby.",
+   "quote": "Mechanism needs a manipulation or a tested alternative: hold boulders still and see whether communities change.",
+   "section": "Description, mechanism and scale"
+  },
+  {
+   "id": "diversity-and-succession-c33",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a boulder-stabilization test, why add a set of boulders that are drilled but not bolted, and what result argues against handling damage?",
+   "back": "It is a handling control: it separates damage from the procedure from the effect of stopping overturning. If drilled-only boulders resemble untouched ones, handling is unlikely to explain the change on bolted boulders.",
+   "why": "Same handling-control logic as cutting fire breaks without burning.",
+   "quote": "Add a handling control: fire breaks cut the same way but no burn.",
+   "section": "Design problem"
+  },
+  {
+   "id": "diversity-and-succession-c34",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "Besides frequency, what is the intensity of a disturbance?",
+   "back": "The share of organisms each event kills.",
+   "quote": "A disturbance also has an intensity: the share of organisms each event kills.",
+   "section": "Frequency and intensity together"
+  },
+  {
+   "id": "diversity-and-succession-c35",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In laboratory microcosms, Pseudomonas fluorescens quickly evolves several {{c1::morphotypes}} (heritable colony forms), so the community is variants of one strain.",
+   "back": "Not separate species.",
+   "quote": "It quickly evolves several morphotypes (heritable colony forms), so the community is variants of one strain, not separate species.",
+   "section": "Frequency and intensity together"
+  },
+  {
+   "id": "diversity-and-succession-c36",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In Hall's Pseudomonas microcosms, disturbance frequency was varied at 10%, 99.9% and 99.999% mortality per event. Describe diversity against frequency at each intensity.",
+   "back": "10%: no effect of frequency. 99.9%: greatest at intermediate and high frequencies. 99.999%: a clear peak at an intermediate frequency.",
+   "quote": "At 10% mortality, frequency made no difference to diversity.",
+   "section": "Frequency and intensity together"
+  },
+  {
+   "id": "diversity-and-succession-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Disturbance frequency and intensity interact. What does that mean for a study that varies only one of them?",
+   "back": "It gives an incomplete answer: the result holds only at the level of the factor it kept fixed.",
+   "quote": "Frequency and intensity interact, so a study that varies only one of them gives an incomplete answer",
+   "section": "Frequency and intensity together"
+  },
+  {
+   "id": "diversity-and-succession-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Did Hall's microcosm experiment show why diversity changed with disturbance?",
+   "back": "No. It measured outcomes, not mechanisms. Diversity might move through the types that regrow fastest, or through rare types lost by chance when few cells survive; neither was tested.",
+   "quote": "The experiment measured outcomes, not mechanisms",
+   "section": "Frequency and intensity together"
+  },
+  {
+   "id": "diversity-and-succession-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "What is the current status of the intermediate disturbance hypothesis, and how should a humped curve be treated?",
+   "back": "Neither confirmed nor refuted (Fox argued for abandoning it; Huston defended its linked predictions). Treat a hump as a prediction to test in a named system, at a stated frequency and intensity, not a law.",
+   "quote": "Treat a humped curve as a prediction to test in a named system, at a stated frequency and intensity, not as a law.",
+   "section": "Frequency and intensity together"
+  },
+  {
+   "id": "diversity-and-succession-c40",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "A study varies disturbance frequency at one very high intensity, finds a diversity peak at intermediate frequency, and concludes that intermediate disturbance always maximizes diversity. Evaluate.",
+   "back": "Overreach. The hump holds only at the intensity kept fixed; in the Pseudomonas microcosms frequency had no effect at low intensity. Report the system, frequency and intensity.",
+   "why": "Frequency and intensity interact, so a one-factor study answers only at the fixed level of the other.",
+   "quote": "it holds at the level of the factor it kept fixed.",
+   "section": "Frequency and intensity together"
+  },
+  {
+   "id": "diversity-and-succession-c41",
+   "type": "experiment",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "What did Gibbons and colleagues' lake-water bacterial experiment add to the disturbance-diversity question?",
+   "back": "Time: a diversity peak appeared only briefly, while community states mixed.",
+   "quote": "in a lake-water bacterial community, a diversity peak appeared only briefly, while community states mixed",
+   "section": "Frequency and intensity together"
+  },
+  {
+   "id": "diversity-and-succession-c42",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Which three questions should be kept apart when interpreting a diversity result?",
+   "back": "Description (the pattern), mechanism (needs a manipulation or tested alternative), and scale (within a plot, among plots, or a region's pooled list).",
+   "quote": "Scale says where the comparison sits: within one boulder or plot, among plots, or the pooled species list of a region.",
+   "section": "Description, mechanism and scale"
+  },
+  {
+   "id": "diversity-and-succession-c43",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Diversity is humped against disturbance when plots are compared, yet within each plot no hump appears. Is this a contradiction?",
+   "back": "No. A hump among plots can coexist with no hump within them, so a report must state the level, the plot size and the sampling effort.",
+   "quote": "A hump among plots can coexist with no hump within them, so state the level, the plot size and the sampling effort.",
+   "section": "Description, mechanism and scale"
+  },
+  {
+   "id": "diversity-and-succession-c44",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In a pine savanna, wet hollows burn less often than dry ridges and hold fewer plant species. How can a design separate fire frequency from soil moisture?",
+   "back": "Within each moisture class, randomly assign matched plots to burn intervals (often, rarely, never), crossing fire with moisture. Add a handling control, record actual fires, census with equal effort, and compare changes in diversity.",
+   "quote": "within each moisture class randomly assign them to burn intervals (often, rarely, never), so fire frequency is crossed with moisture.",
+   "section": "Design problem"
+  },
+  {
+   "id": "diversity-and-succession-c45",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the crossed savanna design, hollows and ridges burned at the same interval still differ in diversity. What does that mean?",
+   "back": "Fire frequency does not fully explain the pattern: moisture or something tied to it matters too. The crossed design also shows whether moisture changes the response to fire.",
+   "quote": "if a gap remains, moisture or something tied to it matters too",
+   "section": "Design problem"
+  },
+  {
+   "id": "diversity-and-succession-c46",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Young glacier-forefield soils were randomly given nitrogen, phosphorus, both, or nothing. After one year, bacteria given both most resembled those of soils exposed about 85 years. What does this show, and what not?",
+   "back": "Adding N and P together shifted bacterial composition toward that of older soils in one forefield. It does not show recovery of a whole ecosystem.",
+   "quote": "That is a shift in bacterial composition in one forefield, not recovery of a whole ecosystem.",
+   "section": "A nutrient experiment on young glacier soils"
+  }
+ ]
+}

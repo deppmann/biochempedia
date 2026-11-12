@@ -1,440 +1,724 @@
-"""Plant reproduction: one tube, two sperm, two fusions  (Biochemistrypedia explainer)
+"""Whose Cells Are in a Seed?  (plant-reproduction, Biochemistrypedia explainer)
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = paternal: pollen, pollen tube, sperm, the paternal set of chromosomes, the Y allele
-  ORANGE = maternal: egg, polar nuclei, central cell, integuments and seed coat, maternal sets, the y allele
-  GREEN  = zygote and embryo
-  YELLOW = endosperm (and the yellow kernel it colours)
-  GREY   = structure and de-emphasized things: stigma, style, ovary, ovule outline, synergids, signals
-  TEXT   = plain labels and sums
+COLOR MAP (whole film)
+  MAGENTA blocks = maternal chromosome sets      TEAL blocks = paternal sets
+  GREEN = embryo      CREAM = endosperm      BROWN = seed coat (integuments)
+  ORANGE = fruit wall (ovary wall)           PALE YELLOW = pollen grain and tube
+  GREY = structure, signals     TEXT = plain labels
+All drawings are flat schematic cartoons; sets are blocks, never molecules.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
-ORANGE = "#F29E4C"
-PAT, MAT, EMB, END = BLUE, ORANGE, GREEN, YELLOW
+MAG = "#E040C8"
+PAT = TEAL
+EMBC = GREEN
+ENDC = "#E9D9A0"
+COATC = "#A9744A"
+FRUITC = "#F29E4C"
+POLC = "#F7EC9A"
+OX, OY = -2.4, -0.35      # centre of the ovule, the same in every ovule scene
+KX, KY = -2.4, -0.1       # centre of the kernel, the same in every kernel scene
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def P3(x, y):
+def P(x, y):
     return np.array([x, y, 0.0])
 
 
-def tube_line(pts, w=14, color=PAT, op=0.55):
-    m = VMobject(stroke_color=color, stroke_width=w, stroke_opacity=op)
-    m.set_points_as_corners([P3(*p) for p in pts])
-    return m
+def blk(color, w=0.9, h=0.36):
+    return RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=color, stroke_width=2,
+                            fill_color=color, fill_opacity=0.9)
 
 
-def sperm(pos, r=0.32, label=None):
-    c = Circle(radius=r, stroke_color=PAT, stroke_width=3, fill_color=PAT, fill_opacity=0.55).move_to(pos)
-    if label:
-        return VGroup(c, M(label, 24, TEXT).move_to(c))
-    return VGroup(c)
-
-
-def lab(text, color=TEXT, size=24, **kw):
-    return T(text, size, color, **kw)
-
-
-def eqrow(parts, size=40):
-    """parts: list of (text, color); returns a horizontal group."""
-    g = VGroup(*[M(t, size, c) for t, c in parts]).arrange(RIGHT, buff=0.22)
+def stack(cols, w=0.9, h=0.36, gap=0.07, empty=0):
+    g = VGroup(*[blk(c, w, h) for c in cols])
+    for _ in range(empty):
+        s = DashedVMobject(RoundedRectangle(corner_radius=0.08, width=w, height=h, stroke_color=PAT, stroke_width=2.5), num_dashes=16)
+        g.add(s)
+    g.arrange(UP, buff=gap)
     return g
 
 
-class Ovule:
-    """The enlarged ovule, drawn as boxes and discs. Built once, relative to centre C."""
-    HW, HH, GAP = 2.4, 3.3, 0.55
-    SYN_L, SYN_R = (-1.1, 1.65), (1.1, 1.65)
-    EGG, CC = (0, 1.5), (0, -1.0)
-    NUC = [(-0.75, -1.0), (0.75, -1.0)]
-    SP1, SP2 = (-1.3, 0.85), (-0.75, 0.45)
-
-    def __init__(self, C):
-        self.C = np.array(C, float)
-        c = self.C
-        hw, hh, g = self.HW, self.HH, self.GAP
-        self.integ = VMobject(stroke_color=GREY, stroke_width=5)
-        self.integ.set_points_as_corners([c + P3(*p) for p in
-                                          [(-g, hh), (-hw, hh), (-hw, -hh), (hw, -hh), (hw, hh), (g, hh)]])
-        self.sac = RoundedRectangle(corner_radius=0.4, width=3.6, height=5.2, stroke_color=GREY,
-                                    stroke_width=2, fill_opacity=0).move_to(c + P3(0, -0.1))
-        self.egg = Circle(radius=0.55, stroke_color=MAT, stroke_width=3, fill_color=MAT, fill_opacity=0.3).move_to(c + P3(*self.EGG))
-        self.synL = Ellipse(width=0.7, height=1.0, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to(c + P3(*self.SYN_L))
-        self.synR = Ellipse(width=0.7, height=1.0, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to(c + P3(*self.SYN_R))
-        self.cc = Ellipse(width=3.2, height=2.4, stroke_color=MAT, stroke_width=3, fill_color=MAT, fill_opacity=0.10).move_to(c + P3(*self.CC))
-        self.nuc = [Circle(radius=0.32, stroke_color=MAT, stroke_width=3, fill_color=MAT, fill_opacity=0.45).move_to(c + P3(*p)) for p in self.NUC]
-        self.tube_pts = [(c[0] + 0.0, c[1] + 3.45), (c[0] + 0.0, c[1] + 2.9), (c[0] - 1.1, c[1] + 2.25)]
-        self.base = VGroup(self.integ, self.sac, self.egg, self.synL, self.synR, self.cc, *self.nuc)
-
-    def at(self, rel):
-        return self.C + P3(*rel)
-
-    def group(self):
-        return VGroup(self.base)
+def legend():
+    a = VGroup(blk(MAG, 0.5, 0.26), T("mother", 26, MAG)).arrange(RIGHT, buff=0.15)
+    b = VGroup(blk(PAT, 0.5, 0.26), T("father", 26, PAT)).arrange(RIGHT, buff=0.15)
+    g = VGroup(a, b).arrange(DOWN, buff=0.15, aligned_edge=LEFT)
+    g.to_corner(UR, buff=0.3)
+    return g
 
 
+def rings(center, color=GREY, r0=0.15, r1=1.0, n=3, period=2.6, sw=3, op=0.8):
+    g = VGroup(*[Circle(radius=1, stroke_color=color, stroke_width=sw) for _ in range(n)])
+    g.t = 0.0
+
+    def up(m, dt):
+        m.t += dt
+        for i, c in enumerate(m):
+            p = ((m.t / period) + i / n) % 1
+            r = r0 + (r1 - r0) * p
+            c.set_width(2 * r).move_to(center)
+            c.set_stroke(opacity=op * (1 - p))
+    g.add_updater(up)
+    up(g, 0)
+    return g
+
+
+def motes(center, rx, ry, n=6, color=PAT, seed=1, size=0.05, op=0.55):
+    rng = np.random.default_rng(seed)
+    g = VGroup(*[Dot(radius=size, color=color).set_opacity(op) for _ in range(n)])
+    ph = rng.uniform(0, 6.3, (n, 4))
+    sp = rng.uniform(0.5, 1.1, (n, 2))
+    g.t = 0.0
+
+    def up(m, dt):
+        m.t += dt
+        for i, d in enumerate(m):
+            d.move_to(center + P(rx * np.sin(sp[i, 0] * m.t + ph[i, 0]), ry * np.sin(sp[i, 1] * m.t + ph[i, 1])))
+    g.add_updater(up)
+    up(g, 0)
+    return g
+
+
+def bob(m, amp=0.06, per=2.2, ph=0.0):
+    base = m.get_center().copy()
+    st = [ph]
+
+    def up(mm, dt):
+        st[0] += dt
+        mm.move_to(base + P(amp * np.sin(6.283 * st[0] / per), amp * np.cos(6.283 * st[0] / (per * 1.3)) ))
+    m.add_updater(up)
+    return m
+
+
+def sperm(pos, r=0.3):
+    body = Circle(radius=r, stroke_color=PAT, stroke_width=3, fill_color=PAT, fill_opacity=0.4).move_to(pos)
+    tag = blk(PAT, r * 1.1, r * 0.45).move_to(body)
+    tail = VMobject(stroke_color=PAT, stroke_width=3.5)
+    tail.t = 0.0
+
+    def up(m, dt):
+        m.t += dt
+        c = body.get_center() + LEFT * r
+        pts = [c + P(-0.9 * r * 5 * s, 0.22 * r * 3 * np.sin(5 * s * 3 - 4 * m.t) * s) for s in np.linspace(0, 0.2, 8)]
+        m.set_points_smoothly(pts)
+    tail.add_updater(up)
+    up(tail, 0)
+    return VGroup(tail, body, tag)
+
+
+def lab(text, color=TEXT, size=30, **kw):
+    return T(text, size, color, **kw)
+
+
+def leader(a, b, color=GREY):
+    return Line(a, b, color=color, stroke_width=2).set_opacity(0.8)
+
+
+def pooled(t):
+    return t
+
+
+class W(SpokenScene):
+    def cue(self, phrase, *anims, rt=0.8, nth=0, lead=0.2):
+        self.at(phrase, lead=lead, nth=nth)
+        if anims:
+            self.play(*anims, run_time=rt)
+
+    def fill(self, phrase, *anims, nth=0, lead=0.2):
+        rt = self.t_of(phrase, nth) - lead - self.elapsed()
+        if anims:
+            self.play(*anims, run_time=max(rt, 0.3))
+        elif rt > 0.02:
+            self.wait(rt)
+
+
+# ---------------------------------------------------------------------------------------------
+# shared drawings
+# ---------------------------------------------------------------------------------------------
+def kernel(c=P(KX, KY), w=4.6, h=6.0):
+    fw = RoundedRectangle(corner_radius=1.9, width=w, height=h, stroke_width=0, fill_color=FRUITC, fill_opacity=1)
+    co = RoundedRectangle(corner_radius=1.75, width=w - 0.3, height=h - 0.3, stroke_width=0, fill_color=COATC, fill_opacity=1)
+    en = RoundedRectangle(corner_radius=1.6, width=w - 0.6, height=h - 0.6, stroke_width=0, fill_color=ENDC, fill_opacity=0.95)
+    g = VGroup(fw, co, en).move_to(c)
+    em = Ellipse(width=1.3, height=1.9, stroke_width=0, fill_color=EMBC, fill_opacity=1).rotate(-0.25).move_to(c + P(0.7, 0.9))
+    g.add(em)
+    g.fw, g.co, g.en, g.em = fw, co, en, em
+    return g
+
+
+def ovule_shell(thick=1.0):
+    a, b, gap = 2.7, 3.2, 0.3
+    f = lambda aa, bb: (lambda t: P(OX + aa * np.cos(t), OY + bb * np.sin(t)))
+    outer = ParametricFunction(f(a, b), t_range=[PI / 2 + gap, PI / 2 + TAU - gap], stroke_color=COATC, stroke_width=9 * thick)
+    inner = ParametricFunction(f(a - 0.3, b - 0.3), t_range=[PI / 2 + gap, PI / 2 + TAU - gap], stroke_color=COATC, stroke_width=6 * thick)
+    sac = Ellipse(width=4.0, height=5.4, stroke_color=TEXT, stroke_width=2.5, fill_color=TEXT, fill_opacity=0.06).move_to(P(OX, OY))
+    sac.set_stroke(opacity=0.55)
+    g = VGroup(outer, inner, sac)
+    g.outer, g.inner, g.sac = outer, inner, sac
+    return g
+
+
+EGG = P(OX, 1.35)
+SYNL, SYNR = P(OX - 1.05, 1.35), P(OX + 1.05, 1.35)
+CCC = P(OX, -0.9)
+POL = [P(OX - 0.75, -0.9), P(OX + 0.75, -0.9)]
+
+
+def cells(egg_block=True, cc_blocks=True, glow_syn=False):
+    egg = Circle(radius=0.62, stroke_color=MAG, stroke_width=3, fill_color=MAG, fill_opacity=0.18).move_to(EGG)
+    syn = VGroup(*[Ellipse(width=0.75, height=1.0, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to(p) for p in (SYNL, SYNR)])
+    cc = Ellipse(width=3.2, height=2.4, stroke_color=MAG, stroke_width=3, fill_color=MAG, fill_opacity=0.1).move_to(CCC)
+    g = VGroup(egg, syn, cc)
+    g.egg, g.syn, g.cc = egg, syn, cc
+    g.egg_lab = lab("egg", TEXT, 26).move_to(EGG + P(0, 0.24))
+    g.egg_blk = blk(MAG, 0.7, 0.28).move_to(EGG + P(0, -0.2))
+    g.cc_lab = lab("central cell", TEXT, 28).move_to(CCC + P(0.27, 0.5))
+    g.cc_b = VGroup(blk(MAG, 0.85, 0.36).move_to(CCC + P(-0.95, -0.25)), blk(MAG, 0.85, 0.36).move_to(CCC + P(0.95, -0.25)))
+    g.eq = T("=", 36, TEXT).move_to(CCC + P(0, -0.25))
+    return g
+
+
+def embryo_cartoon(c, s=1.0):
+    e = Ellipse(width=1.3 * s, height=1.8 * s, stroke_color=EMBC, stroke_width=3, fill_color=EMBC, fill_opacity=0.85).move_to(c)
+    leaf = Ellipse(width=0.45 * s, height=0.8 * s, stroke_width=0, fill_color="#B8E6A0", fill_opacity=0.9).move_to(c + P(0.1 * s, 0.35 * s)).rotate(-0.5)
+    return VGroup(e, leaf)
+
+
+def pollen_grain(c, r=2.4, labels=False):
+    """Grain with its cells: big tube cell (the grain), one sperm pair, each carrying one teal block."""
+    g = Circle(radius=r, stroke_color=POLC, stroke_width=5, fill_color=POLC, fill_opacity=0.18).move_to(c)
+    s1 = Circle(radius=0.62 * r / 2.4 * 1.0, stroke_color=PAT, stroke_width=3, fill_color=PAT, fill_opacity=0.25).move_to(c + P(-0.7 * r / 2.4, 0.9 * r / 2.4))
+    s2 = s1.copy().move_to(c + P(0.7 * r / 2.4, 0.9 * r / 2.4))
+    k = r / 2.4
+    b0 = blk(PAT, 0.9 * k, 0.36 * k).move_to(c + P(0, -1.0 * k))
+    b1 = blk(PAT, 0.6 * k, 0.26 * k).move_to(s1)
+    b2 = blk(PAT, 0.6 * k, 0.26 * k).move_to(s2)
+    return VGroup(g, s1, s2, b0, b1, b2)
+
+
+def timeline_stack_rows():
+    pass
+
+
+# ---------------------------------------------------------------------------------------------
 class S00Title(TitleCard):
-    LESSON = "Flowers, seeds and fruit"
-    TITLE = "One tube, two sperm, two fusions"
+    LESSON = "Double Fertilization: How a Flower Makes a Seed"
+    TITLE = "Whose Cells Are in a Seed?"
 
 
 # ---------------------------------------------------------------------------------------------
-class S01Haze(SpokenScene):
-    """tassel -> pollen drifts to a silk -> one grain: tube cell + two sperm -> tube grows -> two '?' boxes."""
-
+class S01Hook(W):
     def construct(self):
-        tassel = VGroup(RoundedRectangle(corner_radius=0.15, width=3.4, height=0.9, stroke_color=PAT, stroke_width=3,
-                                         fill_color=PAT, fill_opacity=0.12),
-                        lab("tassel: male flowers", PAT)).move_to(P3(-3.8, 2.8))
-        tassel[1].move_to(tassel[0])
-        ear_b = RoundedRectangle(corner_radius=0.2, width=1.6, height=2.0, stroke_color=MAT, stroke_width=3,
-                                 fill_color=MAT, fill_opacity=0.12).move_to(P3(3.8, -1.5))
-        ear_l = lab("ear: female flowers", MAT).move_to(P3(3.8, -3.0))
-        silk = Line(P3(3.8, -0.5), P3(3.8, 1.9), color=MAT, stroke_width=7)
-        silk_l = lab("silk", MAT).next_to(silk, RIGHT, buff=0.2)
-        self.play(FadeIn(tassel), run_time=0.4)
-        self.at("ripe maize tassel")
-        self.play(FadeIn(ear_b), FadeIn(ear_l), Create(silk), FadeIn(silk_l), run_time=1.0)
-        # pollen haze drifting from the tassel to the silk tip
-        rng = np.random.default_rng(3)
-        dots = VGroup(*[Circle(radius=0.11, stroke_width=0, fill_color=PAT, fill_opacity=0.9).move_to(
-            P3(-3.8 + rng.uniform(-1.4, 1.4), 2.3 + rng.uniform(-0.2, 0.2))) for _ in range(16)])
-        self.at("yellow haze")
-        self.play(FadeIn(dots), run_time=0.4)
-        anims = []
-        for i, d in enumerate(dots):
-            tgt = P3(3.8 + rng.uniform(-0.45, 0.45), 1.9 + rng.uniform(0.0, 0.5))
-            anims.append(d.animate.move_to(tgt))
-        self.play(LaggedStart(*anims, lag_ratio=0.08), run_time=self.beat(0.16))
-        # one grain, enlarged
-        grain = Circle(radius=1.55, stroke_color=PAT, stroke_width=5, fill_color=PAT, fill_opacity=0.10).move_to(P3(-3.0, 0.5))
-        s1 = sperm(P3(-3.6, 0.5), 0.34)
-        s2 = sperm(P3(-2.4, 0.5), 0.34)
-        g_lab = lab("pollen grain: three cells", TEXT, 26).move_to(P3(-3.0, 2.55))
-        self.at("tiny plant")
-        self.play(FadeOut(VGroup(tassel, ear_b, ear_l, silk, silk_l, dots)), FadeIn(grain, scale=0.6), run_time=0.8)
-        tc = lab("tube cell", PAT, 24).move_to(P3(-3.0, -0.55))
-        sp_l = lab("sperm", PAT, 24).move_to(P3(-3.0, 1.35))
-        self.play(FadeIn(s1), FadeIn(s2), FadeIn(g_lab), FadeIn(tc), FadeIn(sp_l), run_time=0.8)
-        # tube grows
-        tube = tube_line([(-1.45, 0.5), (1.9, 0.5)], w=26)
+        c = P(KX, KY)
+        solid = RoundedRectangle(corner_radius=1.9, width=4.6, height=6.0, stroke_width=0, fill_color=FRUITC, fill_opacity=1).move_to(c)
+        self.play(FadeIn(solid, scale=0.9), run_time=0.7)
+        crack = VMobject(stroke_color=TEXT, stroke_width=5)
+        crack.set_points_as_corners([c + P(x, y) for x, y in [(0.1, 3.0), (-0.3, 1.8), (0.3, 0.6), (-0.2, -0.6), (0.25, -1.8), (0, -3.0)]])
+        self.play(Create(crack), run_time=0.8)
+        K = kernel(c)
+        self.play(ReplacementTransform(solid, K), FadeOut(crack), K.animate.scale(1.0), run_time=1.2)
+        # regions light up in turn
+        rows = [("baby plant", EMBC, 1.7, c + P(0.9, 1.0), "baby plant", K.em),
+                ("its food", ENDC, -0.1, c + P(0.4, -0.7), "food", K.en),
+                ("a wrapper", FRUITC, -1.9, c + P(2.28, -1.5), "wrapper", K.fw)]
+        qs = []
+        for ph, col, y, tgt, name, part in rows:
+            self.at(ph, lead=0.4)
+            l = lab(name, col, 34).move_to(P(2.6 + (0.0), y), aligned_edge=LEFT)
+            l.move_to(P(1.4, y), aligned_edge=LEFT)
+            ln = leader(P(1.3, y), tgt)
+            q = lab("?", TEXT, 46, weight=BOLD).next_to(l, RIGHT, buff=0.3)
+            self.play(Indicate(part, color=WHITE, scale_factor=1.06), FadeIn(l, shift=LEFT * 0.2), Create(ln), run_time=0.9)
+            self.play(FadeIn(q, scale=1.6), run_time=0.4)
+            qs.append(q)
+            bob(q, 0.05)
+            self.add(q)
+        self.cue("which parts", *[Indicate(q, color=PAT, scale_factor=1.4) for q in qs], rt=1.2)
+        fa = lab("father?", PAT, 60, weight=BOLD).move_to(P(4.2, -3.1))
+        self.cue("the father", Write(fa), rt=0.9)
+        self.fill("father", *[q.animate.set_color(PAT) for q in qs])
+        self.finish()
+
+
+class S02Sets(W):
+    def construct(self):
+        egg = Circle(radius=1.5, stroke_color=MAG, stroke_width=5, fill_color=MAG, fill_opacity=0.15).move_to(P(-3.6, 0.7))
+        body = Ellipse(width=2.2, height=1.7, stroke_color=PAT, stroke_width=5, fill_color=PAT, fill_opacity=0.2).move_to(P(3.2, 1.3))
+        tail = VMobject(stroke_color=PAT, stroke_width=6)
+        tail.t = 0.0
+
+        def up(m, dt):
+            m.t += dt
+            s0 = body.get_bottom() + DOWN * 0.0
+            pts = [s0 + P(0.35 * np.sin(3 * s - 3 * m.t) * s * 1.2, -2.0 * s) for s in np.linspace(0, 1, 14)]
+            m.set_points_smoothly(pts)
+        tail.add_updater(up)
+        up(tail, 0)
+        self.play(FadeIn(egg, scale=0.8), FadeIn(body, scale=0.8), FadeIn(tail), run_time=1.2)
+        self.add(tail)
+        tray_l = VMobject(stroke_color=MAG, stroke_width=5)
+        tray_l.set_points_as_corners([P(-4.8, -1.6), P(-4.8, -2.4), P(-2.4, -2.4), P(-2.4, -1.6)])
+        tray_r = VMobject(stroke_color=PAT, stroke_width=5)
+        tray_r.set_points_as_corners([P(2.0, -1.6), P(2.0, -2.4), P(4.4, -2.4), P(4.4, -1.6)])
+        self.fill("one set", FadeIn(tray_l), FadeIn(tray_r))
+        bm = blk(MAG, 1.1, 0.45).move_to(egg)
+        self.cue("one set", FadeIn(bm, scale=1.5), rt=0.6)
+        self.play(bm.animate.move_to(P(-3.6, -2.05)), run_time=1.2)
+        tl = lab("one maternal set", MAG, 30).move_to(P(-3.6, -3.1))
+        self.play(FadeIn(tl), run_time=0.5)
+        bp = blk(PAT, 1.1, 0.45).move_to(body)
+        self.cue("or one sperm", FadeIn(bp, scale=1.5), rt=0.6)
+        self.play(bp.animate.move_to(P(3.2, -2.05)), run_time=1.3)
+        tr = lab("one paternal set", PAT, 30).move_to(P(3.2, -3.1))
+        self.play(FadeIn(tr), run_time=0.5)
+        lg = legend()
+        self.cue("mother sets", FadeIn(lg[0], shift=LEFT * 0.2), Indicate(bm, color=MAG), rt=1.0)
+        self.cue("the fathers", FadeIn(lg[1], shift=LEFT * 0.2), Indicate(bp, color=PAT), rt=1.0)
+        self.finish()
+
+
+class S03Pollen(W):
+    def construct(self):
+        lg = legend()
+        self.add(lg)
+        # tassel -> one anther -> one grain
+        stem = Line(P(-0.8, -3.0), P(-0.8, 2.6), color=GREY, stroke_width=8)
+        br = VGroup(*[Line(P(-0.8, 2.4 - 0.5 * i), P(-0.8 + d * 2.6, 3.0 - 0.9 * i), color=GREY, stroke_width=5) for i, d in enumerate([1, -1, 1, -1, 1])])
+        an = VGroup(*[Ellipse(width=0.45, height=0.25, stroke_color=POLC, stroke_width=2, fill_color=POLC, fill_opacity=0.8).move_to(b.get_end()) for b in br])
+        tassel = VGroup(stem, br, an)
+        self.play(FadeIn(tassel), run_time=0.6)
+        dust = motes(P(0.6, 1.4), 3.0, 1.6, n=10, color=POLC, seed=3, size=0.07, op=0.8)
+        self.add(dust)
+        self.play(tassel.animate.shift(RIGHT * 0.3), run_time=max(0.5, 1.1 - self.elapsed()))
+        grain_big = pollen_grain(P(-0.8, -0.1), 2.5)
+        tube_ring = grain_big[0]
+        dot = Dot(P(-0.8 + 2.6, 3.0 - 0.9 * 1 - 0.0), color=POLC)
+        self.play(FadeOut(tassel), FadeOut(dust), FadeIn(tube_ring, scale=0.2), run_time=1.2)
+        gl = lab("pollen grain", POLC, 34).move_to(P(-0.8, 3.35))
+        self.cue("a pollen grain", FadeIn(gl), rt=0.5)
+        inner = motes(P(-0.8, -0.1), 1.8, 1.8, n=9, color=POLC, seed=5, size=0.06, op=0.7)
+        self.add(inner)
+        self.cue("not a sperm", Indicate(tube_ring, color=POLC, scale_factor=1.03), rt=1.0)
+        gl2 = lab("male gametophyte: 2 or 3 cells", TEXT, 32).move_to(P(-1.6, 3.35))
+        self.cue("tiny separate", ReplacementTransform(gl, gl2), rt=0.8)
+        self.cue("two or three", FadeIn(grain_big[1]), FadeIn(grain_big[3]), rt=0.9)
+        tc = lab("tube cell", POLC, 28).move_to(P(-0.8, -0.2))
+        self.play(FadeIn(tc), run_time=0.4)
+        self.at("and it makes")
+        s1, s2 = grain_big[1], grain_big[2]
+        s2.move_to(s1)
+        b1, b2 = grain_big[4], grain_big[5]
+        b1.move_to(s1); b2.move_to(s1)
+        self.add(s2, b1, b2)
+        self.play(s1.animate.shift(LEFT * 0.7), s2.animate.shift(RIGHT * 0.7), b1.animate.shift(LEFT * 0.7), b2.animate.shift(RIGHT * 0.7), grain_big[3].animate.shift(DOWN * 0.0), run_time=1.2)
+        sl = lab("two sperm", PAT, 30).move_to(P(-5.3, 0.8))
+        self.fill("sperm", FadeIn(sl))
+        self.finish()
+
+
+class S04Tube(W):
+    def construct(self):
+        lg = legend()
+        self.add(lg)
+        grain = pollen_grain(P(-0.8, -0.1), 2.5)
+        # the s03 grain, carried
+        grain[1].shift(P(-0.7, 0)); grain[2].shift(P(0.7, 0)); grain[4].move_to(grain[1]); grain[5].move_to(grain[2])
+        inner = motes(P(-0.8, -0.1), 1.8, 1.8, n=9, color=POLC, seed=5, size=0.06, op=0.7)
+        self.add(grain, inner)
+        self.cue("one set", *[Indicate(b, color=WHITE, scale_factor=1.25) for b in (grain[3], grain[4], grain[5])], rt=1.5)
+        self.fill("the grain lands", Indicate(grain[0], color=POLC, scale_factor=1.02))
+        silk_pts = [P(-4.6, 2.6), P(-2.2, 2.2), P(-0.6, 0.5), P(1.2, -1.2), P(3.0, -1.6), P(3.8, -2.2)]
+        silk = VMobject(stroke_color=GREY, stroke_width=26, stroke_opacity=0.5)
+        silk.set_points_smoothly(silk_pts)
+        hairs = VGroup(*[Line(P(-4.6, 2.6), P(-4.6 + 0.55 * np.cos(a), 2.6 + 0.55 * np.sin(a)), color=GREY, stroke_width=4) for a in np.linspace(1.4, 3.6, 7)])
+        ov = Ellipse(width=1.8, height=1.3, stroke_color=COATC, stroke_width=6, fill_color=COATC, fill_opacity=0.25).move_to(P(3.9, -2.5))
+        self.play(FadeOut(grain[3:]), FadeOut(inner), run_time=0.3)
+        tiny = Circle(radius=0.28, stroke_color=POLC, stroke_width=4, fill_color=POLC, fill_opacity=0.6).move_to(P(-4.6, 3.0))
+        self.play(ReplacementTransform(VGroup(grain[0], grain[1], grain[2]), tiny), Create(silk), FadeIn(hairs), FadeIn(ov), run_time=1.6)
+        st = lab("stigma", TEXT, 32).move_to(P(-3.3, 3.45))
+        self.cue("sticky tip", FadeIn(st), Indicate(hairs, color=WHITE), rt=1.0)
+        ol = lab("ovule", TEXT, 30).move_to(P(3.9, -3.4))
+        tube = silk.copy().set_stroke(POLC, 12, 1)
+        self.remove(tiny)
+        a = ValueTracker(0.0)
+        tubev = always_redraw(lambda: tube.copy().pointwise_become_partial(tube, 0, max(a.get_value(), 0.001)).set_stroke(POLC, 12, 1))
+        sp = [sperm(P(0, 0), 0.2), sperm(P(0, 0), 0.2)]
+
+        def place(i, d):
+            def f(m):
+                al = max(a.get_value() - d, 0.0)
+                m.move_to(tube.point_from_proportion(al))
+            return f
+        for i, s in enumerate(sp):
+            s.add_updater(place(i, 0.06 + 0.07 * i))
         self.at("grows a tube")
-        self.play(Create(tube), run_time=1.0)
-        t_l = lab("pollen tube", PAT, 26).move_to(P3(0.2, 1.2))
-        self.play(FadeIn(t_l), run_time=0.4)
-        self.at("two sperm")
-        self.play(s1.animate.move_to(P3(0.6, 0.5)), s2.animate.move_to(P3(1.5, 0.5)), FadeOut(sp_l), run_time=1.0)
-        # puzzle: two arrows, two question boxes
-        q1 = chip("?", GREY, 40).move_to(P3(4.8, 2.0))
-        q2 = chip("?", GREY, 40).move_to(P3(4.8, -1.0))
-        a1 = Arrow(s2[0].get_right() + RIGHT * 0.35, q1.get_left(), buff=0.1, color=PAT, stroke_width=5)
-        a2 = Arrow(s2[0].get_right() + RIGHT * 0.35, q2.get_left(), buff=0.1, color=PAT, stroke_width=5)
-        self.at("Both sperm")
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(q1), FadeIn(q2), run_time=0.8)
-        why = T("Why two?", 52, TEXT, font=TITLE_FONT).move_to(P3(0.6, -2.4))
-        self.at("Why two")
-        self.play(Write(why), run_time=0.8)
+        self.add(tubev, *sp)
+        sl = lab("two sperm", PAT, 30).move_to(P(1.0, -3.0))
+        t0 = self.elapsed()
+        tot = self.t_of("inside") + 0.9 - t0
+        self.play(AnimationGroup(a.animate.set_value(0.97).set_rate_func(linear),
+                                 Succession(Wait(max(self.t_of("an ovule") - 0.2 - t0, 0.01)), FadeIn(ol, run_time=0.5)),
+                                 Succession(Wait(max(self.t_of("the two sperm") - 0.2 - t0, 0.01)), FadeIn(sl, run_time=0.5))),
+                  run_time=tot)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Route(SpokenScene):
-    """stigma -> style -> ovary with a tube; the ovule enlarges; the tube bursts into a synergid."""
-
+class S05Sac(W):
     def construct(self):
-        X = -0.8
-        stigma = Rectangle(width=1.6, height=0.45, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.3).move_to(P3(X, 2.75))
-        style = Rectangle(width=0.6, height=3.5, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.12).move_to(P3(X, 0.75))
-        ovary = RoundedRectangle(corner_radius=0.2, width=3.6, height=2.4, stroke_color=GREY, stroke_width=3,
-                                 fill_color=GREY, fill_opacity=0.12).move_to(P3(X, -2.2))
-        ovule_s = RoundedRectangle(corner_radius=0.2, width=1.0, height=1.2, stroke_color=GREY, stroke_width=4,
-                                   fill_color=GREY, fill_opacity=0.3).move_to(P3(X, -1.9))
-        l_stigma = lab("stigma", GREY).next_to(stigma, LEFT, buff=0.25)
-        l_style = lab("style", GREY).next_to(style, LEFT, buff=0.25)
-        l_ovary = lab("ovary", GREY).move_to(P3(X, -3.05))
-        l_ovule = lab("ovule", GREY).move_to(P3(X + 1.0, -2.25))
-        col = VGroup(stigma, style, ovary, l_stigma, l_style, l_ovary, l_ovule)
-        self.play(FadeIn(col), FadeIn(ovule_s), run_time=0.8)
+        lg = legend()
+        self.add(lg)
+        small = Ellipse(width=1.8, height=1.3, stroke_color=COATC, stroke_width=6, fill_color=COATC, fill_opacity=0.25).move_to(P(3.9, -2.5))
+        self.add(small)
+        ov = ovule_shell()
+        self.play(ReplacementTransform(small, VGroup(ov)), run_time=1.4)
+        l1 = lab("embryo sac", TEXT, 34).move_to(P(3.2, 1.6))
+        self.cue("the embryo", FadeIn(l1), Create(leader(P(2.0, 1.6), P(OX + 1.9, 1.0))), rt=0.8)
+        b = blk(MAG, 1.5, 0.6).move_to(P(3.6, 0.1))
+        bl = lab("one maternal set", MAG, 30).move_to(P(3.6, -0.7))
+        self.cue("one spore", FadeIn(b, scale=1.4), FadeIn(bl), rt=0.8)
+        nuc = VGroup(*[Circle(radius=0.22, stroke_color=MAG, stroke_width=3, fill_color=MAG, fill_opacity=0.8).move_to(p)
+                       for p in [EGG, SYNL, SYNR, POL[0], POL[1]]])
+        copies = [b.copy() for _ in range(5)]
+        self.add(*copies)
+        self.cue("its nuclei", *[ReplacementTransform(c, n) for c, n in zip(copies, nuc)], rt=0.9)
+        for i, n in enumerate(nuc):
+            bob(n, 0.05, 2.0 + 0.3 * i, ph=i)
+        l2 = VGroup(lab("all copies of", MAG, 30), lab("one maternal set", MAG, 30)).arrange(DOWN, buff=0.1).move_to(P(3.6, -1.9))
+        self.cue("all copies", FadeOut(bl), FadeIn(l2), rt=0.8)
+        self.fill("set", Indicate(nuc, color=WHITE, scale_factor=1.3))
+        self.finish()
 
-        grain = Circle(radius=0.22, stroke_color=PAT, stroke_width=3, fill_color=PAT, fill_opacity=0.9).move_to(P3(X, 4.2))
-        self.at("transfer of pollen")
-        self.play(grain.animate.move_to(P3(X, 3.2)), run_time=0.8)
-        c_poll = chip("pollination", TEXT, 26).move_to(P3(3.6, 3.0))
-        a_poll = Arrow(c_poll.get_left(), P3(X + 0.9, 3.0), buff=0.1, color=TEXT, stroke_width=4)
-        self.play(FadeIn(c_poll), GrowArrow(a_poll), run_time=0.6)
-        self.at("Fertilization")
-        c_fert = chip("fertilization", TEXT, 26).move_to(P3(3.6, -1.5))
-        a_fert = Arrow(c_fert.get_left(), P3(X + 0.55, -1.5), buff=0.1, color=TEXT, stroke_width=4)
-        self.play(FadeIn(c_fert), GrowArrow(a_fert), run_time=0.6)
-        self.at("separate events")
-        self.play(Indicate(c_poll, color=TEXT, scale_factor=1.08), Indicate(c_fert, color=TEXT, scale_factor=1.08), run_time=0.8)
 
-        # tube down the style
-        tube = tube_line([(X, 3.1), (X, -1.3)], w=14)
-        self.at("pollen tube down")
-        self.play(FadeOut(VGroup(c_poll, a_poll, c_fert, a_fert)), Create(tube), run_time=1.6)
-        sp1 = sperm(P3(X, 2.6), 0.13)
-        sp2 = sperm(P3(X, 2.2), 0.13)
-        self.at("no flagella")
-        self.play(FadeIn(sp1), FadeIn(sp2), run_time=0.4)
-        self.at("ride inside")
-        self.play(sp1.animate.move_to(P3(X, -0.6)), sp2.animate.move_to(P3(X, -0.2)), run_time=1.6)
+class S06Cells(W):
+    def construct(self):
+        lg = legend()
+        ov = ovule_shell()
+        nuc = VGroup(*[Circle(radius=0.22, stroke_color=MAG, stroke_width=3, fill_color=MAG, fill_opacity=0.8).move_to(p)
+                       for p in [EGG, SYNL, SYNR, POL[0], POL[1]]])
+        self.add(lg, ov, nuc)
+        for i, n in enumerate(nuc):
+            bob(n, 0.05, 2.0 + 0.3 * i, ph=i)
+        C = cells()
+        self.cue("three kinds", FadeIn(C.egg), FadeIn(C.syn), FadeIn(C.cc), rt=1.5)
+        self.cue("the egg holds", FadeIn(C.egg_lab), rt=0.5)
+        self.play(FadeOut(nuc[0]), FadeIn(C.egg_blk, scale=1.5), Indicate(C.egg, color=WHITE, scale_factor=1.15), run_time=1.0)
+        self.cue("the large central", FadeIn(C.cc_lab), Indicate(C.cc, color=WHITE, scale_factor=1.04), rt=1.0)
+        self.cue("two identical", FadeOut(nuc[3]), FadeOut(nuc[4]), FadeIn(C.cc_b[0], scale=1.4), FadeIn(C.cc_b[1], scale=1.4), rt=0.5)
+        self.cue("identical", FadeIn(C.eq, scale=1.5), rt=0.6)
+        self.cue("that same set", Indicate(C.cc_b, color=WHITE, scale_factor=1.15), rt=1.2)
+        sl = lab("synergids", TEXT, 30).move_to(P(OX, 3.4))
+        lns = VGroup(leader(P(OX - 0.4, 3.2), SYNL + P(0, 0.55)), leader(P(OX + 0.4, 3.2), SYNR + P(0, 0.55)))
+        self.cue("two synergids", FadeIn(sl), Create(lns), C.syn.animate.set_fill(GREY, 0.6), rt=1.0)
+        self.play(C.syn.animate.set_fill(GREY, 0.25), run_time=1.0)
+        self.finish()
 
-        # enlarge the ovule
-        ov = Ovule(P3(0.0, -0.1))
-        self.at("Near the ovule")
-        self.play(FadeOut(VGroup(col, grain, tube, sp1, sp2)), ReplacementTransform(ovule_s, ov.integ),
-                  FadeIn(ov.sac), FadeIn(ov.egg), FadeIn(ov.synL), FadeIn(ov.synR), FadeIn(ov.cc),
-                  *[FadeIn(n) for n in ov.nuc], run_time=1.4)
-        l_syn = lab("synergids", GREY).move_to(ov.at((3.8, 1.65)))
-        ln_syn = Line(l_syn.get_left() + LEFT * 0.05, ov.synR.get_right() + RIGHT * 0.05, color=GREY, stroke_width=2)
-        def leader(txt, pos, tgt, lines=None):
-            t = lab(txt, GREY, 22).move_to(ov.at(pos))
-            edge = t.get_right() + RIGHT * 0.05 if pos[0] < 0 else t.get_left() + LEFT * 0.05
-            return VGroup(t, Line(edge, ov.at(tgt), color=GREY, stroke_width=2))
-        extra = VGroup(
-            leader("micropyle", (-3.3, 3.2), (-0.5, 3.2)),
-            leader("integuments", (-3.5, 0.4), (-2.4, 0.4)),
-            leader("egg", (3.2, 0.75), (0.42, 1.1)))
-        cc_t = VGroup(lab("central cell", GREY, 22), lab("(two polar nuclei)", GREY, 22)).arrange(DOWN, buff=0.08).move_to(ov.at((4.1, -1.0)))
-        cc_ln = Line(cc_t.get_left() + LEFT * 0.05, ov.at((1.6, -1.0)), color=GREY, stroke_width=2)
-        self.play(FadeIn(l_syn), Create(ln_syn), FadeIn(extra), FadeIn(cc_t), Create(cc_ln), run_time=0.8)
-        # chemical signals
-        sx, sy = ov.SYN_L[0], 2.2
-        sig = VGroup(*[Arrow(ov.at((sx + ddx, sy)), ov.at((sx + ddx + dx, sy + dy)), buff=0, color=GREY,
-                             stroke_width=3, tip_length=0.14) for ddx, dx, dy in [(-0.2, -0.25, 0.4), (0.0, 0.05, 0.45), (0.2, 0.3, 0.4)]])
-        l_sig = lab("chemical signals", GREY).move_to(ov.at((3.9, 2.7)))
-        ln_sig = Line(l_sig.get_left() + LEFT * 0.05, ov.at((sx + 0.6, 2.65)), color=GREY, stroke_width=2)
-        self.at("chemical signals")
-        self.play(FadeIn(sig), FadeIn(l_sig), Create(ln_sig), run_time=0.5)
-        tube2 = tube_line(ov.tube_pts, w=16)
-        self.play(Create(tube2), run_time=1.2)
+
+def ovule_state(fertilized=False, tube=False, sperms=False):
+    lg = legend()
+    ov = ovule_shell()
+    C = cells()
+    g = VGroup(lg, ov, C.egg, C.syn, C.cc, C.egg_lab, C.egg_blk, C.cc_lab, C.cc_b, C.eq)
+    return g, C, ov, lg
+
+
+class S07Arrive(W):
+    def construct(self):
+        g, C, ov, lg = ovule_state()
+        self.add(g)
+        r1 = rings(SYNL + P(0, 0.4), GREY, 0.1, 0.9, 3, 2.2)
+        r2 = rings(SYNR + P(0, 0.4), GREY, 0.1, 0.9, 3, 2.2)
+        self.add(r1, r2)
+        tube = VMobject(stroke_color=POLC, stroke_width=14)
+        tube.set_points_smoothly([P(1.6, 3.5), P(-0.6, 3.5), P(OX - 0.0, 3.2), P(OX - 0.1, 2.6), P(SYNL[0] + 0.1, 2.0)])
+        a = ValueTracker(0.001)
+        tv = always_redraw(lambda: tube.copy().pointwise_become_partial(tube, 0, max(a.get_value(), 0.001)).set_stroke(POLC, 14, 1))
+        self.add(tv)
+        self.play(a.animate.set_value(0.45), run_time=max(self.t_of("the tube bursts") - 0.2 - self.elapsed(), 0.5), rate_func=linear)
         self.at("bursts into")
-        tip = Circle(radius=0.3, stroke_color=PAT, stroke_width=4, fill_opacity=0).move_to(P3(*ov.tube_pts[-1]))
-        self.play(FadeOut(sig), FadeOut(l_sig), FadeOut(ln_sig), Flash(tip, color=PAT, line_length=0.3, flash_radius=0.35), run_time=0.6)
-        s1 = sperm(ov.at((-1.15, 2.0)), 0.18)
-        s2 = sperm(ov.at((-0.95, 2.0)), 0.18)
-        self.at("releases both sperm")
-        self.play(s1.animate.move_to(ov.at(ov.SP1)).scale(0.32 / 0.18), s2.animate.move_to(ov.at(ov.SP2)).scale(0.32 / 0.18),
-                  FadeOut(tube2), run_time=1.4)
+        self.play(a.animate.set_value(1.0), run_time=1.0, rate_func=linear)
+        self.play(Flash(SYNL + P(0, 0.9), color=PAT, line_length=0.3, flash_radius=0.4), FadeOut(r1), FadeOut(r2), run_time=0.7)
+        s1 = sperm(SYNL + P(0, 0.6), 0.2)
+        s2 = sperm(SYNL + P(0.1, 0.5), 0.2)
+        self.cue("releases", FadeIn(s1), FadeIn(s2), rt=0.4)
+        self.play(s1.animate.move_to(EGG + P(-0.95, -0.3)).scale(1.4), s2.animate.move_to(P(OX - 1.2, -0.1)).scale(1.4), run_time=1.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def ovule_state(C, sperm_pos=True, tens=True, cc20=True):
-    """rebuild the ovule at C with the sperm in place. returns (ov, sperms list, labels dict)."""
-    ov = Ovule(C)
-    sp1 = sperm(ov.at(ov.SP1), 0.32)
-    sp2 = sperm(ov.at(ov.SP2), 0.32)
-    return ov, sp1, sp2
-
-
-class S03Count(SpokenScene):
+class S08Embryo(W):
     def construct(self):
-        ov = Ovule(P3(0.0, -0.1))
-        sp1 = sperm(ov.at(ov.SP1), 0.32)
-        sp2 = sperm(ov.at(ov.SP2), 0.32)
-        # same picture as the end of the last scene, then slid left to make room
-        grp = VGroup(ov.base, sp1, sp2)
-        self.add(grp)
-        self.wait(0.8)
-        self.play(grp.animate.shift(LEFT * 2.0), run_time=1.0)
-        ov.C = ov.C + LEFT * 2.0
-        top = chip("maize body cells: 2n = 20", TEXT, 28).move_to(P3(3.2, 3.0))
-        self.at("body cells")
-        self.play(FadeIn(top), run_time=0.6)
-        n_egg = M("10", 26, MAT).move_to(ov.egg)
-        r_egg = lab("egg: 10", MAT, 30).move_to(P3(3.2, 1.55))
-        self.at("egg carries")
-        self.play(FadeIn(n_egg), FadeIn(r_egg), Indicate(ov.egg, color=MAT, scale_factor=1.25), run_time=0.8)
-        n_s1 = M("10", 24, TEXT).move_to(sp1)
-        n_s2 = M("10", 24, TEXT).move_to(sp2)
-        r_sp = lab("each sperm: 10", PAT, 30).move_to(P3(3.2, 0.45))
-        self.at("each sperm")
-        self.play(FadeIn(n_s1), FadeIn(n_s2), FadeIn(r_sp), Indicate(sp1, color=PAT), Indicate(sp2, color=PAT), run_time=0.8)
-        cc_l = lab("central cell", MAT, 24).move_to(ov.at((0, -0.15)))
-        self.at("central cell")
-        self.play(Indicate(ov.cc, color=MAT, scale_factor=1.05), FadeIn(cc_l), run_time=0.7)
-        n_n = [M("10", 24, TEXT).move_to(n) for n in ov.nuc]
-        r_cc = lab("central cell: 10 + 10 = 20", MAT, 28).move_to(P3(3.2, -1.1))
-        self.at("two polar nuclei")
-        self.play(*[FadeIn(x) for x in n_n], FadeIn(r_cc), *[Indicate(n, color=MAT) for n in ov.nuc], run_time=0.9)
-        n_cc = M("20", 28, MAT).move_to(ov.at((0, -1.8)))
-        self.at("makes")
-        self.play(FadeIn(n_cc), Indicate(r_cc, color=MAT), run_time=0.7)
+        g, C, ov, lg = ovule_state()
+        self.add(g)
+        s1 = sperm(EGG + P(-0.95, -0.3), 0.28)
+        s2 = sperm(P(OX - 1.2, -0.1), 0.28)
+        self.add(s1, s2)
+        self.play(s1.animate.move_to(EGG + P(-0.2, 0.0)), run_time=1.3)
+        self.play(FadeOut(s1), C.egg.animate.set_stroke(EMBC, 4).set_fill(EMBC, 0.25), run_time=0.5)
+        tb = blk(PAT, 0.7, 0.28).move_to(EGG + P(0.0, -0.58))
+        zy = lab("zygote", EMBC, 32).move_to(P(OX + 3.8, 1.3))
+        self.cue("the zygote", FadeIn(zy), FadeIn(tb, scale=1.4), FadeOut(C.egg_lab), C.egg_blk.animate.shift(UP * 0.25), rt=0.9)
+        emb = embryo_cartoon(P(1.7, 1.4), 1.0)
+        self.cue("grows into", ReplacementTransform(C.egg.copy(), emb), rt=0.8)
+        el = lab("embryo", EMBC, 30).move_to(P(1.7, -0.2))
+        self.cue("the embryo", FadeIn(el), FadeOut(zy), rt=0.5)
+        st = stack([MAG, PAT]).move_to(P(1.7, -1.0))
+        self.cue("magenta block", FadeIn(st[0], shift=UP * 0.2), rt=0.6)
+        self.cue("and one teal", FadeIn(st[1], shift=DOWN * 0.2), rt=0.6)
+        self.play(FadeIn(M("1 + 1", 36, TEXT).move_to(P(1.7, -2.1))), run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Two(SpokenScene):
+def right_panel_embryo():
+    emb = embryo_cartoon(P(1.7, 1.4), 1.0)
+    el = lab("embryo", EMBC, 30).move_to(P(1.7, -0.2))
+    st = stack([MAG, PAT]).move_to(P(1.7, -1.0))
+    nm = M("1 + 1", 36, TEXT).move_to(P(1.7, -2.1))
+    return VGroup(emb, el, st, nm)
+
+
+class S09Predict(W):
     def construct(self):
-        ov = Ovule(P3(-2.0, -0.1))
-        sp1 = sperm(ov.at(ov.SP1), 0.32, "10")
-        sp2 = sperm(ov.at(ov.SP2), 0.32, "10")
-        n_egg = M("10", 26, MAT).move_to(ov.egg)
-        n_n = [M("10", 24, TEXT).move_to(n) for n in ov.nuc]
-        cc_l = lab("central cell", MAT, 24).move_to(ov.at((0, -0.15)))
-        n_cc = M("20", 28, MAT).move_to(ov.at((0, -1.8)))
-        self.add(ov.base, sp1, sp2, n_egg, cc_l, n_cc, *n_n)
-        # sperm 1 -> egg
-        self.at("One sperm fuses")
-        self.play(sp1.animate.move_to(ov.at((-0.15, 1.5))), FadeOut(n_egg), run_time=1.0)
-        e1 = eqrow([("10", MAT), ("+", TEXT), ("10", PAT), ("=", TEXT), ("20", EMB)], 42).move_to(P3(3.2, 1.9))
-        self.at("makes twenty")
-        zyg = Circle(radius=0.6, stroke_color=EMB, stroke_width=4, fill_color=EMB, fill_opacity=0.4).move_to(ov.egg)
-        z_n = M("20", 26, TEXT).move_to(ov.egg)
-        self.play(FadeIn(e1), ReplacementTransform(VGroup(ov.egg, sp1), VGroup(zyg, z_n)), run_time=0.9)
-        z_l = lab("zygote, then embryo", EMB, 28).move_to(P3(3.2, 1.0))
-        self.at("zygote grows")
-        self.play(FadeIn(z_l), Indicate(zyg, color=EMB), run_time=0.7)
-        # sperm 2 -> central cell
-        self.at("other sperm")
-        self.play(sp2.animate.move_to(ov.at((0, -1.0))), run_time=1.1)
-        e2 = eqrow([("20", MAT), ("+", TEXT), ("10", PAT), ("=", TEXT), ("30", END)], 42).move_to(P3(3.2, -0.8))
-        self.at("plus ten makes", nth=1)
-        new_cc = Ellipse(width=3.2, height=2.4, stroke_color=END, stroke_width=4, fill_color=END, fill_opacity=0.22).move_to(ov.cc)
-        n30 = M("30", 28, END).move_to(ov.at((0, -1.8)))
-        self.play(FadeIn(e2), Transform(ov.cc, new_cc), ReplacementTransform(n_cc, n30), run_time=0.9)
-        e_l = lab("first cell of the endosperm", END, 28).move_to(P3(3.2, -1.7))
-        e_l2 = lab("a tissue that stores food", END, 26).move_to(P3(3.2, -2.3))
-        self.at("first cell")
-        self.play(FadeIn(e_l), run_time=0.6)
-        self.at("stores food")
-        self.play(FadeIn(e_l2), run_time=0.5)
+        g, C, ov, lg = ovule_state()
+        C.egg.set_stroke(EMBC, 4).set_fill(EMBC, 0.25)
+        self.add(g, right_panel_embryo())
+        s2 = sperm(P(OX - 1.5, 0.0), 0.28)
+        self.add(s2)
+        self.play(s2.animate.move_to(P(OX - 1.55, -0.35)), run_time=1.5)
+        self.cue("holds two", Indicate(C.cc_b, color=WHITE, scale_factor=1.15), rt=1.2)
+        q = VGroup(lab("How many blocks?", TEXT, 32), lab("How many teal?", PAT, 32)).arrange(DOWN, buff=0.4).move_to(P(4.9, 0.3))
+        self.cue("how many blocks", Write(q[0]), rt=1.2)
+        self.cue("are the fathers", Write(q[1]), rt=1.2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def setblock(color, w=0.98, h=0.85):
-    r = RoundedRectangle(corner_radius=0.12, width=w, height=h, stroke_color=color, stroke_width=3,
-                         fill_color=color, fill_opacity=0.35)
-    return VGroup(r, M("10", 28, TEXT).move_to(r))
-
-
-class S05Sets(SpokenScene):
+class S10Pause(NarratedScene):
     def construct(self):
-        ov = Ovule(P3(-2.0, -0.1))
-        sp2 = sperm(ov.at((0, -1.0)), 0.32, "10")
-        zyg = Circle(radius=0.6, stroke_color=EMB, stroke_width=4, fill_color=EMB, fill_opacity=0.4).move_to(ov.egg)
-        z_n = M("20", 26, TEXT).move_to(ov.egg)
-        ov.cc.become(Ellipse(width=3.2, height=2.4, stroke_color=END, stroke_width=4, fill_color=END, fill_opacity=0.22).move_to(ov.cc))
-        n_n = [M("10", 24, TEXT).move_to(n) for n in ov.nuc]
-        n30 = M("30", 28, END).move_to(ov.at((0, -1.8)))
-        base = VGroup(ov.integ, ov.sac, ov.synL, ov.synR, ov.cc, *ov.nuc)
-        self.add(base, zyg, z_n, sp2, *n_n, n30)
-
-        # legend
-        lg1 = VGroup(Square(0.3, stroke_width=0, fill_color=MAT, fill_opacity=0.7), lab("maternal set", MAT, 24)).arrange(RIGHT, buff=0.15)
-        lg2 = VGroup(Square(0.3, stroke_width=0, fill_color=PAT, fill_opacity=0.7), lab("paternal set", PAT, 24)).arrange(RIGHT, buff=0.15)
-        legend = VGroup(lg1, lg2).arrange(RIGHT, buff=0.6).move_to(P3(3.4, 3.1))
-
-        X0 = 2.85
-
-        def row(y, name, color, blocks):
-            nm = lab(name, color, 26)
-            nm.move_to(P3(0.6, y), aligned_edge=LEFT)
-            bs = VGroup(*[setblock(c) for c in blocks]).arrange(RIGHT, buff=0.1)
-            cont = RoundedRectangle(corner_radius=0.15, width=bs.width + 0.3, height=bs.height + 0.3, stroke_color=color,
-                                    stroke_width=3, fill_opacity=0).move_to(bs)
-            g = VGroup(cont, bs)
-            g.move_to(P3(X0, y), aligned_edge=LEFT)
-            return nm, bs, cont
-
-        nm_e, bs_e, ct_e = row(1.75, "embryo", EMB, [MAT, PAT])
-        nm_n, bs_n, ct_n = row(0.1, "endosperm", END, [MAT, MAT, PAT])
-        self.at("count the sets")
-        self.play(FadeIn(legend), run_time=0.6)
-        self.at("The embryo has")
-        self.play(FadeIn(nm_e), Create(ct_e), Indicate(zyg, color=EMB), run_time=0.6)
-        self.at("one maternal set")
-        self.play(FadeIn(bs_e[0], shift=DOWN * 0.15), run_time=0.5)
-        self.at("one paternal set")
-        self.play(FadeIn(bs_e[1], shift=DOWN * 0.15), run_time=0.5)
-        self.at("The endosperm has")
-        self.play(FadeIn(nm_n), Create(ct_n), Indicate(ov.cc, color=END, scale_factor=1.05), run_time=0.6)
-        self.at("two maternal sets")
-        self.play(FadeIn(bs_n[0], shift=DOWN * 0.15), FadeIn(bs_n[1], shift=DOWN * 0.15), run_time=0.7)
-        self.at("one paternal set", nth=1)
-        self.play(FadeIn(bs_n[2], shift=DOWN * 0.15), run_time=0.5)
-        # seed coat
-        nm_c = lab("seed coat", MAT, 26).move_to(P3(0.6, -1.6), aligned_edge=LEFT)
-        ch_c = chip("maternal tissue: 20", MAT, 24).move_to(P3(X0, -1.6), aligned_edge=LEFT)
-        l_int = lab("integuments", MAT, 22).move_to(P3(-5.6, -2.9))
-        self.at("seed coat grows")
-        self.play(FadeIn(nm_c), run_time=0.4)
-        self.at("integuments")
-        self.play(ov.integ.animate.set_color(MAT), FadeIn(l_int), run_time=0.7)
-        self.at("own tissue")
-        self.play(FadeIn(ch_c), run_time=0.6)
+        g, C, ov, lg = ovule_state()
+        C.egg.set_stroke(EMBC, 4).set_fill(EMBC, 0.25)
+        s2 = sperm(P(OX - 1.55, -0.35), 0.28)
+        q = VGroup(lab("How many blocks?", TEXT, 32), lab("How many teal?", PAT, 32)).arrange(DOWN, buff=0.4).move_to(P(4.9, 0.3))
+        self.add(g, right_panel_embryo(), s2, q)
+        ring = Circle(radius=0.55, stroke_color=GREY, stroke_width=8).move_to(P(5.9, -3.1))
+        arc = Arc(radius=0.55, start_angle=PI / 2, angle=-TAU, stroke_color=GOLD, stroke_width=8).move_to(P(5.9, -3.1))
+        self.add(ring)
+        self.play(Create(arc), run_time=self.narration_s - 0.2, rate_func=linear)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def allele(sym, color, w=1.2, h=0.95):
-    r = RoundedRectangle(corner_radius=0.12, width=w, height=h, stroke_color=color, stroke_width=3,
-                         fill_color=color, fill_opacity=0.35)
-    return VGroup(r, M(sym, 40, TEXT, weight=BOLD).move_to(r))
-
-
-class S06Xenia(SpokenScene):
+class S11Reveal(W):
     def construct(self):
-        p_m = chip("seed parent: white, y y", MAT, 28).move_to(P3(-3.2, 3.0))
-        p_p = chip("pollen parent: yellow, Y Y", PAT, 28).move_to(P3(3.2, 3.0))
-        cross = M("x", 36, TEXT).move_to(P3(0, 3.0))
-        self.at("Cross a maize plant")
-        self.play(FadeIn(p_m, shift=RIGHT * 0.2), FadeIn(cross), FadeIn(p_p, shift=LEFT * 0.2), run_time=1.0)
-
-        def mkrow(y, name, color, syms):
-            nm = lab(name, color, 30).move_to(P3(-5.7, y), aligned_edge=LEFT)
-            bs = VGroup(*[allele(s, c) for s, c in syms]).arrange(RIGHT, buff=0.12)
-            cont = RoundedRectangle(corner_radius=0.15, width=bs.width + 0.3, height=bs.height + 0.3, stroke_color=color,
-                                    stroke_width=3, fill_opacity=0).move_to(bs)
-            VGroup(cont, bs).move_to(P3(-3.0, y), aligned_edge=LEFT)
-            return nm, bs, cont
-
-        nm_e, bs_e, ct_e = mkrow(1.2, "embryo", EMB, [("y", MAT), ("Y", PAT)])
-        nm_n, bs_n, ct_n = mkrow(-0.5, "endosperm", END, [("y", MAT), ("y", MAT), ("Y", PAT)])
-        self.at("The embryo has")
-        self.play(FadeIn(nm_e), Create(ct_e), run_time=0.5)
-        self.at("one white allele")
-        self.play(FadeIn(bs_e[0], shift=DOWN * 0.15), run_time=0.5)
-        self.at("and one yellow")
-        self.play(FadeIn(bs_e[1], shift=DOWN * 0.15), run_time=0.5)
-        self.at("the endosperm has")
-        self.play(FadeIn(nm_n), Create(ct_n), run_time=0.5)
-        self.at("two white alleles", nth=1)
-        self.play(FadeIn(bs_n[0], shift=DOWN * 0.15), FadeIn(bs_n[1], shift=DOWN * 0.15), run_time=0.7)
-        self.at("and one yellow", nth=1)
-        self.play(FadeIn(bs_n[2], shift=DOWN * 0.15), run_time=0.5)
-        # kernel
-        arrow = Arrow(P3(1.2, -0.5), P3(2.6, -0.5), buff=0.05, color=END, stroke_width=5)
-        kern = RoundedRectangle(corner_radius=0.3, width=1.5, height=1.5, stroke_color=END, stroke_width=4,
-                                fill_color=END, fill_opacity=0.75).move_to(P3(3.6, -0.5))
-        k_l = lab("yellow kernel", END, 28).next_to(kern, DOWN, buff=0.25)
-        self.at("fully dominant")
-        self.play(GrowArrow(arrow), FadeIn(kern, scale=0.8), FadeIn(k_l), run_time=0.9)
-        note = VGroup(lab("simplified: one gene, Y fully dominant;", GREY, 22),
-                      lab("real maize deepens with each Y copy", GREY, 22)).arrange(DOWN, buff=0.06).move_to(P3(-1.6, -1.7))
-        self.at("dominant")
-        self.play(FadeIn(note), run_time=0.5)
-        x_l = chip("xenia", TEXT, 30).move_to(P3(3.6, 1.5))
-        self.at("called xenia")
-        self.play(FadeIn(x_l, shift=DOWN * 0.15), run_time=0.6)
-        # rule
-        r1 = VGroup(lab("endosperm =", END, 28), lab("2 maternal", MAT, 28), lab("+", TEXT, 28), lab("1 paternal", PAT, 28)).arrange(RIGHT, buff=0.2)
-        r2 = VGroup(lab("embryo =", EMB, 28), lab("1 maternal", MAT, 28), lab("+", TEXT, 28), lab("1 paternal", PAT, 28)).arrange(RIGHT, buff=0.2)
-        rule = VGroup(r1, r2).arrange(DOWN, buff=0.2, aligned_edge=LEFT).move_to(P3(0, -2.85))
-        box = SurroundingRectangle(rule, color=GOLD, buff=0.2, stroke_width=3, corner_radius=0.15)
-        self.at("Keep the rule")
-        self.play(FadeIn(rule, shift=UP * 0.15), Create(box), run_time=0.9)
+        g, C, ov, lg = ovule_state()
+        C.egg.set_stroke(EMBC, 4).set_fill(EMBC, 0.25)
+        s2 = sperm(P(OX - 1.55, -0.35), 0.28)
+        self.add(g, right_panel_embryo(), s2)
+        self.play(s2.animate.move_to(CCC + P(-1.45, 0.0)), run_time=0.5)
+        t = blk(PAT, 0.85, 0.36).move_to(CCC + P(0.0, 0.0))
+        self.play(FadeOut(s2), FadeIn(t, scale=1.5), FadeOut(C.eq), C.cc_b[0].animate.shift(P(-0.1, -0.35)), C.cc_b[1].animate.shift(P(0.1, -0.35)), t.animate.move_to(CCC + P(0.0, -0.1 + 0.0)), run_time=0.6)
+        self.cue("only one of them", Indicate(t, color=WHITE, scale_factor=1.3), rt=1.0)
+        self.cue("the endosperm", C.cc.animate.set_stroke(ENDC, 4).set_fill(ENDC, 0.55), rt=1.2)
+        # endosperm block on the right, beside the embryo
+        en = Circle(radius=0.85, stroke_color=ENDC, stroke_width=4, fill_color=ENDC, fill_opacity=0.8).move_to(P(4.9, 1.4))
+        el = lab("endosperm", ENDC, 30).move_to(P(4.9, -0.1))
+        self.cue("the food", FadeIn(en, scale=0.3), rt=1.0)
+        self.play(FadeIn(el), run_time=0.4)
+        st = stack([MAG, MAG, PAT]).move_to(P(4.9, -1.15))
+        nm = M("2 + 1", 36, TEXT).move_to(P(4.9, -2.3))
+        self.cue("two maternal", FadeIn(st[0]), FadeIn(st[1]), rt=0.7)
+        self.cue("one paternal", FadeIn(st[2]), FadeIn(nm), rt=0.7)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Endosperm: two maternal sets plus one paternal set."
+class S12Double(W):
+    def construct(self):
+        lg = legend()
+        self.add(lg)
+        ttl = lab("double fertilization", GOLD, 44, font=TITLE_FONT).move_to(P(-2.0, 3.3))
+        # left half
+        sp1 = sperm(P(-5.4, 1.4), 0.3)
+        egg = Circle(radius=0.7, stroke_color=MAG, stroke_width=4, fill_color=MAG, fill_opacity=0.2).move_to(P(-3.7, 1.4))
+        eb = blk(MAG, 0.7, 0.28).move_to(egg)
+        plus = lab("+", TEXT, 40).move_to(P(-4.6, 1.4))
+        ar = Arrow(P(-2.8, 1.4), P(-1.8, 1.4), color=TEXT, buff=0, stroke_width=6)
+        emb = embryo_cartoon(P(-0.9, 1.4), 1.0)
+        st = stack([MAG, PAT]).move_to(P(-3.0, -1.0))
+        nm = VGroup(lab("embryo", EMBC, 32), M("1 + 1", 36, TEXT)).arrange(DOWN, buff=0.15).move_to(P(-3.0, -2.5))
+        self.play(FadeIn(sp1), FadeIn(egg), FadeIn(eb), FadeIn(plus), run_time=0.9)
+        self.play(GrowArrow(ar), FadeIn(emb, scale=0.4), run_time=1.0)
+        self.play(FadeIn(st), FadeIn(nm), run_time=0.8)
+        # right half
+        sp2 = sperm(P(0.7, 1.4), 0.3)
+        cc = Ellipse(width=2.0, height=1.4, stroke_color=MAG, stroke_width=4, fill_color=MAG, fill_opacity=0.2).move_to(P(2.8, 1.4))
+        cb = VGroup(blk(MAG, 0.7, 0.28).move_to(P(2.45, 1.4)), blk(MAG, 0.7, 0.28).move_to(P(3.15, 1.4)))
+        plus2 = lab("+", TEXT, 40).move_to(P(1.3, 1.4))
+        ar2 = Arrow(P(4.0, 1.4), P(4.9, 1.4), color=TEXT, buff=0, stroke_width=6)
+        en = Circle(radius=0.75, stroke_color=ENDC, stroke_width=4, fill_color=ENDC, fill_opacity=0.8).move_to(P(5.8, 1.4))
+        st2 = stack([MAG, MAG, PAT]).move_to(P(4.9, -1.15))
+        nm2 = VGroup(lab("endosperm", ENDC, 32), M("2 + 1", 36, TEXT)).arrange(DOWN, buff=0.15).move_to(P(4.9, -2.7))
+        self.cue("the other starts", FadeIn(sp2), FadeIn(cc), FadeIn(cb), FadeIn(plus2), rt=0.9)
+        self.play(GrowArrow(ar2), FadeIn(en, scale=0.4), run_time=1.0)
+        self.play(FadeIn(st2), FadeIn(nm2), run_time=0.8)
+        self.cue("double fertilization", Write(ttl), rt=1.2)
+        fn = lab("most flowering plants", GREY, 28).move_to(P(0, -3.5))
+        self.play(FadeIn(fn), run_time=0.6)
+        self.finish()
+
+
+def ovule_fert():
+    ov = ovule_shell()
+    cc = Ellipse(width=3.2, height=2.4, stroke_color=ENDC, stroke_width=3, fill_color=ENDC, fill_opacity=0.55).move_to(CCC)
+    emb = embryo_cartoon(EGG, 0.75)
+    g = VGroup(ov, cc, emb)
+    g.ov = ov
+    return g
+
+
+class S13Coat(W):
+    def construct(self):
+        lg = legend()
+        g = ovule_fert()
+        self.add(lg, g)
+        self.cue("layers of", Indicate(g.ov.outer, color=WHITE, scale_factor=1.02), Indicate(g.ov.inner, color=WHITE, scale_factor=1.02), rt=1.5)
+        self.fill("surround", g.ov.outer.animate.set_stroke(width=14))
+        sl = lab("seed coat", COATC, 34).move_to(P(3.9, 2.0))
+        self.cue("seed coat", g.ov.outer.animate.set_stroke(COATC, 20), g.ov.inner.animate.set_stroke(COATC, 14), FadeIn(sl), Create(leader(P(2.8, 2.0), P(OX + 2.6, 1.2))), rt=0.9)
+        st = stack([MAG, MAG], empty=1).move_to(P(3.9, 0.1))
+        nm = VGroup(lab("seed coat: 2 + 0", COATC, 32), lab("the mother's tissue", MAG, 28)).arrange(DOWN, buff=0.15).move_to(P(3.9, -1.7))
+        self.cue("with no teal", FadeIn(st), FadeIn(nm), Indicate(st[2], color=PAT, scale_factor=1.2), rt=1.2)
+        self.finish()
+
+
+class S14Fruit(W):
+    def construct(self):
+        lg = legend()
+        g = ovule_fert()
+        g.ov.outer.set_stroke(COATC, 20)
+        g.ov.inner.set_stroke(COATC, 14)
+        self.add(lg, g)
+        wall = Ellipse(width=6.6, height=7.0, stroke_color=FRUITC, stroke_width=6, fill_color=FRUITC, fill_opacity=0.15).move_to(P(OX, OY))
+        small = g.copy()
+        self.cue("the ovary wall", FadeIn(wall), g.animate.scale(0.5, about_point=P(OX, OY)), rt=1.8)
+        wl = lab("fruit wall", FRUITC, 34).move_to(P(3.3, 2.0))
+        self.cue("fruit wall", wall.animate.set_stroke(FRUITC, 16), FadeIn(wl), Create(leader(P(2.3, 2.0), P(OX + 3.0, 1.5))), rt=1.0)
+        st = stack([MAG, MAG], empty=1).move_to(P(3.9, 0.0))
+        nm = VGroup(lab("fruit wall: 2 + 0", FRUITC, 32), lab("the mother's tissue", MAG, 28)).arrange(DOWN, buff=0.15).move_to(P(3.9, -1.8))
+        self.cue("the mother's tissue", FadeIn(st), FadeIn(nm), rt=1.0)
+        K = kernel()
+        kl = lab("fruit wall (pericarp)", FRUITC, 30).move_to(P(3.9, 2.0))
+        self.cue("in maize", FadeOut(VGroup(wall, g, wl, st, nm)), FadeIn(K, scale=0.9), rt=1.2)
+        kl.move_to(P(4.1, -0.2))
+        self.cue("thin outer", FadeIn(kl), Create(leader(P(1.4, -0.2), P(KX + 2.3, -0.2))), Indicate(K.fw, color=WHITE, scale_factor=1.02), rt=1.2)
+        self.finish()
+
+
+def ledger_group():
+    K = kernel()
+    K.em.move_to(P(KX + 0.7, KY + 1.0))
+    rows = []
+    specs = [([MAG, PAT], "embryo", EMBC, "1 + 1", 1.9, 0),
+             ([MAG, MAG, PAT], "endosperm", ENDC, "2 + 1", 0.1, 0),
+             ([MAG, MAG], "coat and fruit wall", FRUITC, "2 + 0", -1.9, 1)]
+    tgts = [K.em.get_center() + P(0.3, 0.0), P(KX + 0.5, KY - 0.8), P(KX + 2.28, KY - 1.0)]
+    for (cols, name, col, num, y, em), tg in zip(specs, tgts):
+        s = stack(cols, 0.8, 0.32, 0.06, empty=em).move_to(P(2.5, y))
+        t1 = lab(name, col, 28)
+        t2 = M(num, 32, TEXT)
+        t = VGroup(t1, t2).arrange(DOWN, buff=0.1, aligned_edge=LEFT).next_to(s, RIGHT, buff=0.35)
+        ln = leader(tg, s.get_left() + LEFT * 0.1)
+        rows.append(VGroup(ln, s, t))
+    return K, rows
+
+
+class S15Ledger(W):
+    def construct(self):
+        lg = legend()
+        K, rows = ledger_group()
+        self.add(lg, K)
+        self.play(Indicate(K.em, color=WHITE), Indicate(K.en, color=WHITE, scale_factor=1.02), Indicate(K.fw, color=WHITE, scale_factor=1.02), run_time=2.0)
+        self.cue("embryo", FadeIn(rows[0], shift=LEFT * 0.2), Indicate(K.em, color=WHITE, scale_factor=1.15), rt=1.2)
+        self.cue("endosperm", FadeIn(rows[1], shift=LEFT * 0.2), Indicate(K.en, color=WHITE, scale_factor=1.02), rt=1.2)
+        self.cue("coat and", FadeIn(rows[2], shift=LEFT * 0.2), Indicate(K.fw, color=WHITE, scale_factor=1.02), rt=1.2)
+        self.finish()
+
+
+class S18Scope(W):
+    def construct(self):
+        lg = legend()
+        K = kernel(P(-4.0, -0.4), 3.2, 4.2)
+        K.em.move_to(P(-4.0 + 0.5, -0.4 + 0.7)).scale(0.7)
+        st = stack([MAG, MAG, PAT]).move_to(P(-1.2, -0.4))
+        nm = VGroup(lab("endosperm", ENDC, 30), M("2 + 1", 36, TEXT)).arrange(DOWN, buff=0.15).move_to(P(-1.2, -1.9))
+        ml = lab("most flowering plants", TEXT, 36).move_to(P(-2.6, 3.0))
+        self.add(lg)
+        self.play(FadeIn(K), run_time=0.8)
+        self.cue("holds for", FadeIn(ml), rt=0.6)
+        self.cue("most flowering", FadeIn(st), FadeIn(nm), rt=0.8)
+        self.fill("water lilies", Indicate(st, color=WHITE, scale_factor=1.1))
+        water = Line(P(2.4, -0.2), P(6.6, -0.2), color=BLUE, stroke_width=5)
+        pad = Ellipse(width=3.6, height=0.7, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.5).move_to(P(4.5, -0.1))
+        petals = VGroup(*[Ellipse(width=0.8, height=2.1, stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.5).move_to(P(4.5, 0.2 + 1.0)).rotate(a, about_point=P(4.5, 0.2)) for a in (-0.9, -0.45, 0, 0.45, 0.9)])
+        lily = VGroup(water, pad, petals)
+        st2 = stack([MAG, PAT]).move_to(P(4.5, -1.7))
+        nm2 = VGroup(lab("water lilies", TEXT, 30), M("1 + 1", 36, TEXT)).arrange(RIGHT, buff=0.3).move_to(P(4.5, -2.9))
+        self.cue("water lilies", FadeIn(lily, shift=UP * 0.3), rt=1.0)
+        self.cue("change the numbers", FadeIn(st2), FadeIn(nm2), rt=0.9)
+        self.finish()
+
+
+class S16Caution(W):
+    def construct(self):
+        lg = legend()
+        self.add(lg)
+        y1, y2 = 1.2, -1.8
+        ax1 = Line(P(-5.0, y1), P(5.4, y1), color=GREY, stroke_width=3)
+        ax2 = Line(P(-5.0, y2), P(5.4, y2), color=GREY, stroke_width=3)
+        stg = lambda y: VGroup(*[Line(P(-5.0, y + 0.0), P(-5.0 + 0.4 * np.cos(a), y + 0.4 * np.sin(a)), color=GREY, stroke_width=3) for a in np.linspace(1.0, 2.2, 4)])
+        self.play(Create(ax1), Create(ax2), run_time=0.8)
+        g1 = Circle(radius=0.3, stroke_color=POLC, stroke_width=4, fill_color=POLC, fill_opacity=0.6).move_to(P(-5.0, y1 + 1.8))
+        self.play(g1.animate.move_to(P(-5.0, y1 + 0.3)), run_time=1.2)
+        p1 = lab("pollination", POLC, 34).move_to(P(-3.4, y1 + 0.6))
+        self.cue("pollination", FadeIn(p1), rt=0.6)
+        tube = Line(P(-5.0, y1), P(5.0, y1), color=POLC, stroke_width=10)
+        ov = Ellipse(width=0.9, height=0.7, stroke_color=COATC, stroke_width=4, fill_color=COATC, fill_opacity=0.3).move_to(P(5.4, y1))
+        self.cue("fertilization comes", FadeIn(ov), rt=0.5)
+        f1 = lab("fertilization", ENDC, 34).move_to(P(4.4, y1 + 0.85))
+        self.play(Create(tube), run_time=max(self.t_of("inside") - self.elapsed() - 0.2, 1.0), rate_func=linear)
+        self.play(FadeIn(f1), Flash(ov, color=PAT, flash_radius=0.6), run_time=0.7)
+        g2 = Circle(radius=0.3, stroke_color=POLC, stroke_width=4, fill_color=POLC, fill_opacity=0.6).move_to(P(-5.0, y2 + 1.8))
+        stub0 = Line(P(-5.0, y2), P(-3.0, y2), color=POLC, stroke_width=10)
+        self.cue("and only if", g2.animate.move_to(P(-5.0, y2 + 0.3)), Create(stub0), rt=0.8)
+        x = VGroup(Line(P(-3.0, y2 + 0.3), P(-2.4, y2 - 0.3)), Line(P(-3.0, y2 - 0.3), P(-2.4, y2 + 0.3))).set_stroke(RED, 8)
+        nl = lab("pollinated, never fertilized", RED, 32).move_to(P(-1.0, y2 - 0.8))
+        self.cue("arrives", Create(x), FadeIn(nl), rt=0.8)
+        self.finish()
+
+
+class S17Rule(W):
+    def construct(self):
+        lg = legend()
+        K = kernel(P(2.5, -0.1))
+        K.em.move_to(P(2.5 + 0.7, -0.1 + 1.0))
+        grain = Circle(radius=0.7, stroke_color=POLC, stroke_width=5, fill_color=POLC, fill_opacity=0.25).move_to(P(-5.3, 0.4))
+        gb = blk(PAT, 0.8, 0.32).move_to(grain)
+        self.add(lg, K, grain, gb)
+        tgt1, tgt2 = K.em.get_center() + P(-0.2, 0), P(2.2, -0.9)
+        a1 = Arrow(P(-4.5, 0.6), tgt1, color=PAT, buff=0.05, stroke_width=7)
+        a2 = Arrow(P(-4.5, 0.2), tgt2, color=PAT, buff=0.05, stroke_width=7)
+        c1, c2 = gb.copy(), gb.copy()
+        self.cue("the father sends", GrowArrow(a1), rt=0.5)
+        self.add(c1)
+        self.cue("one set", c1.animate.move_to(tgt1 + P(0.0, 0.0)), rt=0.6)
+        self.cue("twice", GrowArrow(a2), rt=0.5)
+        self.add(c2)
+        self.play(c2.animate.move_to(tgt2), run_time=0.8)
+        self.cue("his sets", Indicate(K.em, color=WHITE, scale_factor=1.08), Indicate(K.en, color=WHITE, scale_factor=1.02), rt=0.9)
+        fl = lab("father: embryo and endosperm only", PAT, 30).move_to(P(-2.4, 3.4))
+        self.cue("only the embryo", FadeIn(fl), rt=0.8)
+        mg = K.fw.copy().set_fill(opacity=0).set_stroke(MAG, 10)
+        mg2 = K.co.copy().set_fill(opacity=0).set_stroke(MAG, 6)
+        self.cue("the seed coat", Create(mg), Create(mg2), rt=1.2)
+        ml = lab("coat and fruit wall: mother", MAG, 30).move_to(P(-2.4, -3.4))
+        self.cue("the mothers own", FadeIn(ml), Indicate(VGroup(mg, mg2), color=MAG), rt=1.0)
+        self.finish()
+
+
+class S19End(EndCard):
+    LINE = "The father reaches embryo and endosperm; coat and fruit wall stay maternal."

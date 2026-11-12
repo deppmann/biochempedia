@@ -1,0 +1,634 @@
+{
+ "slug": "innate-immunity",
+ "title": "'Innate Immunity: Recognize and Respond'",
+ "generated": {
+  "date": "2026-11-12",
+  "pipeline": "extract → Opus draft → Sonnet accuracy gate → Sonnet fixes",
+  "models": {
+   "draft": "claude-opus-5-5",
+   "gate": "claude-sonnet-5-5",
+   "fix": "claude-sonnet-5-5"
+  }
+ },
+ "lessonHash": "cf2b1ccbc901",
+ "sectionHashes": {
+  "(opening)": "dc8bb9a015a5",
+  "Near the threshold": "3d7c71a64779",
+  "Fewer get in: barriers": "26bb88fed135",
+  "Starting the clock: sensing and inflammation": "00137a53a315",
+  "Eating the invader: phagocytes": "6aa63e97720a",
+  "Complement: mark, alarm, puncture": "b23636f875c6",
+  "Viruses: interferons and natural killer cells": "7eed63ddc095",
+  "Three organisms, one problem: fly, plant, mouse": "42f6fe972185",
+  "What innate immunity lacks, and how it can change": "b4c95a943637",
+  "Design problem": "513684b973be",
+  "What the race model leaves out": "a49a61efa72b",
+  "Memory-like innate responses": "cc9c2dde380e"
+ },
+ "cards": [
+  {
+   "id": "innate-immunity-c01",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "{{c1::Innate}} defenses are inherited and ready before an organism meets a particular microbe.",
+   "back": "Adaptive immunity, by contrast, builds new antibodies and T cells against each microbe, which takes days the first time.",
+   "quote": "Innate defenses are inherited and ready before an organism meets a particular microbe."
+  },
+  {
+   "id": "innate-immunity-c02",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Why is it misleading to call innate defenses \"nonspecific\"?",
+   "back": "Their receptors recognize particular classes of microbial molecules, such as bacterial lipopolysaccharide. They are specific to classes, not to one microbe.",
+   "quote": "They are not \"nonspecific\": their receptors recognize particular classes of microbial molecules."
+  },
+  {
+   "id": "innate-immunity-c03",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the race-against-doubling model of a bacterial wound, why must defenses remove more than half the bacteria every doubling time?",
+   "back": "Each doubling time multiplies the count by 2 × (1 − k): 2 for the doubling, (1 − k) for the survivors. The count shrinks only when that factor is below 1, which needs k above one-half.",
+   "quote": "Once removal starts, the count shrinks only when that factor is below 1, so defenses must remove more than half every doubling time."
+  },
+  {
+   "id": "innate-immunity-c04",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the race-against-doubling model of a bacterial wound, what three jobs do innate defenses do, and which defense does each?",
+   "back": "Fewer get in (barriers); the clock starts early (ready-made receptors sense at once); more are removed per doubling (inflammation brings eating cells, which complement speeds).",
+   "quote": "fewer get in (barriers), the clock starts early (ready-made receptors sense at once), or more are removed per doubling"
+  },
+  {
+   "id": "innate-immunity-c05",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the wound model, 100 bacteria enter, the doubling time is 20 minutes, and defenses remove a fraction k = 0.40 each doubling time. About how many bacteria are expected after 4 hours?",
+   "back": "4 hours = 12 doubling times; factor = 2 × (1 − 0.40) = 1.2. N = 100 × 1.2^12 ≈ 892 bacteria.",
+   "why": "N after n doubling times = N0 × [2 × (1 − k)]^n.",
+   "quote": "N after n doubling times = N0 × [2 × (1 − k)]^n",
+   "section": "Near the threshold"
+  },
+  {
+   "id": "innate-immunity-c06",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "In the wound model (100 bacteria, 20-minute doubling time), recruited defenses reach k = 0.6. About how many bacteria are expected after 4 hours?",
+   "back": "Factor = 2 × (1 − 0.6) = 0.8; 12 doubling times. N = 100 × 0.8^12 ≈ 6.9 bacteria, so the count is shrinking.",
+   "quote": "Here is the middle, with the same 100 bacteria, a 20-minute doubling time, four hours (12 doubling times).",
+   "section": "Near the threshold"
+  },
+  {
+   "id": "innate-immunity-c07",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In the wound model (100 bacteria, 4 hours, 20-minute doubling time), k rises from 0.45 to 0.55. What happens to the expected count, and what does that imply about a single missing defense protein?",
+   "back": "It drops from about 314 to about 28: the factor crosses 1 (1.1 to 0.9). Near the threshold a small loss, such as one missing complement protein, can decide the outcome.",
+   "quote": "Near the threshold a small loss, such as one missing complement protein, can decide the outcome.",
+   "section": "Near the threshold"
+  },
+  {
+   "id": "innate-immunity-c08",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In the wound model, defenses manage only k = 0.4, but a barrier lets in 100 times fewer bacteria. Does the barrier clear the infection or only buy time?",
+   "back": "It only buys time: the factor is still 1.2, so the count climbs from 1 back to 100 in about 25 doubling times (about 8.4 hours), perhaps long enough for recruitment to raise k above one-half.",
+   "quote": "In the model it buys time: the factor is still 1.2",
+   "section": "Near the threshold"
+  },
+  {
+   "id": "innate-immunity-c09",
+   "type": "calc",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "In the wound model (20-minute doubling time), a barrier cuts entry 100-fold. How long does the count take to climb back 100-fold with no killing, and with k = 0.45?",
+   "back": "No killing: 2^n = 100 gives n ≈ 6.6 doubling times, about 2.2 hours. k = 0.45: 1.1^n = 100 gives n ≈ 48, about 16 hours. Below threshold, a barrier buys more time the closer killing is to break-even.",
+   "quote": "With no killing that takes 6.6 doubling times (2^6.6 is about 100), 2.2 hours",
+   "section": "Near the threshold"
+  },
+  {
+   "id": "innate-immunity-c10",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "The wound model tracks expected (average) counts. Why might a barrier that lets in very few bacteria do better than the model predicts, even when k is below one-half?",
+   "back": "At low numbers, a lone bacterium can die out by chance, so a barrier also raises the odds of clearance, which an average-count model does not show.",
+   "quote": "one bacterium can also die out by chance, so at low numbers a barrier also raises the odds of clearance.",
+   "section": "Near the threshold"
+  },
+  {
+   "id": "innate-immunity-c11",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How do mucus and cilia protect mammalian airways?",
+   "back": "Mucus, a sticky gel, traps inhaled particles and microbes; beating cilia on the lining cells carry it up and out.",
+   "quote": "a sheet of mucus, a sticky gel, traps inhaled particles and microbes, and beating cilia, hair-like projections on the lining cells, carry it up and out.",
+   "section": "Fewer get in: barriers"
+  },
+  {
+   "id": "innate-immunity-c12",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Antimicrobial peptides, short proteins released by lining cells, many positively charged, act by {{c1::damaging microbial membranes}}.",
+   "back": "Some are released all the time and more when lining cells sense microbes.",
+   "quote": "release antimicrobial peptides, short proteins, many positively charged, that damage microbial membranes",
+   "section": "Fewer get in: barriers"
+  },
+  {
+   "id": "innate-immunity-c13",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "How do the resident microbes of human skin and gut help keep pathogens out?",
+   "back": "These mostly harmless microbes take up space and nutrients that a newcomer would need.",
+   "quote": "The mostly harmless resident microbes of skin and gut take up space and nutrients that a newcomer would need.",
+   "section": "Fewer get in: barriers"
+  },
+  {
+   "id": "innate-immunity-c14",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What do pattern-recognition receptors on resident cells such as macrophages bind?",
+   "back": "Molecules typical of microbes, and molecules released by damaged host cells.",
+   "quote": "carry pattern-recognition receptors, which bind molecules typical of microbes and molecules released by damaged host cells",
+   "section": "Starting the clock: sensing and inflammation"
+  },
+  {
+   "id": "innate-immunity-c15",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "TLR4 is a Toll-like receptor for bacterial {{c1::lipopolysaccharide}}.",
+   "back": "Toll-like receptors are named after the fly protein Toll.",
+   "quote": "is a Toll-like receptor (named after the fly protein Toll, met below) for bacterial lipopolysaccharide",
+   "section": "Starting the clock: sensing and inflammation"
+  },
+  {
+   "id": "innate-immunity-c16",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In mammals, how does a pattern-recognition receptor such as TLR4 binding its ligand lead to inflammation?",
+   "back": "The bound receptor activates NF-κB, a protein that turns on inflammatory genes in the nucleus; those genes start inflammation.",
+   "quote": "The bound receptor activates NF-κB, a protein that turns on inflammatory genes in the nucleus",
+   "section": "Starting the clock: sensing and inflammation"
+  },
+  {
+   "id": "innate-immunity-c17",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does histamine from mast cells let fluid and plasma proteins such as complement reach infected tissue?",
+   "back": "Histamine widens small vessels and briefly loosens the junctions of their lining, so fluid and plasma proteins leak into the tissue.",
+   "quote": "release mediators such as histamine, which widen small vessels and briefly loosen their lining's junctions",
+   "section": "Starting the clock: sensing and inflammation"
+  },
+  {
+   "id": "innate-immunity-c18",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "During inflammation, what does TNF-α from activated macrophages do to the vessel lining, and why does it matter?",
+   "back": "It makes the lining display adhesion molecules that passing white cells can grab, so they can stick and leave the blood.",
+   "quote": "TNF-α, a signal protein made by activated macrophages, makes the lining display adhesion molecules that passing white cells can grab.",
+   "section": "Starting the clock: sensing and inflammation"
+  },
+  {
+   "id": "innate-immunity-c19",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "In mammalian inflammation, which white cells arrive first, how do they leave the vessel, and which cells follow?",
+   "back": "Neutrophils arrive first in large numbers: they roll, stick, crawl and squeeze through. Monocytes follow and mature into macrophages that clear microbes, debris and spent neutrophils.",
+   "quote": "roll along the vessel wall, stick, crawl and squeeze through",
+   "section": "Starting the clock: sensing and inflammation"
+  },
+  {
+   "id": "innate-immunity-c20",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A bacterial wound is near the threshold, with recruited defenses at about k = 0.55. A drug blocks TNF-α. Predict the effect on neutrophils and on the race against doubling.",
+   "back": "Fewer adhesion molecules, so fewer neutrophils exit the vessels; fewer eating cells lowers k, and if k falls below one-half the count grows instead of shrinking.",
+   "why": "Rests on two stated rules: TNF-α makes the lining display adhesion molecules, and inflammation raises k by bringing eating cells.",
+   "quote": "or more are removed per doubling (inflammation brings eating cells, which complement speeds)"
+  },
+  {
+   "id": "innate-immunity-c21",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "An engulfed microbe sits in a phagosome, which fuses with lysosomes to form a {{c1::phagolysosome}}, where the microbe is usually killed.",
+   "back": "Some pathogens survive there.",
+   "quote": "which fuses with lysosomes, sacs of digestive enzymes, to form a phagolysosome, where the microbe is usually killed",
+   "section": "Eating the invader: phagocytes"
+  },
+  {
+   "id": "innate-immunity-c22",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course"
+   ],
+   "front": "Metchnikoff saw body-cavity cells of infected water fleas (Daphnia) engulf and destroy yeast spores. Why does this not yet show the flea needs those cells, and what experiment would?",
+   "back": "Watching engulfment is correlation. Disable the cells (loss of function) and measure survival: if the flea needs them, disabled fleas should die more often.",
+   "quote": "Showing that the flea needs those cells takes disabling them and measuring survival, the loss-of-function logic of the design problem below.",
+   "section": "Eating the invader: phagocytes"
+  },
+  {
+   "id": "innate-immunity-c23",
+   "type": "cloze",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Complement is a set of proteins, most made in the {{c1::liver}}, that circulate inactive in blood plasma.",
+   "back": "It is Bordet's heat-sensitive factor.",
+   "quote": "Complement, Bordet's heat-sensitive factor, is a set of proteins, most made in the liver, that circulate inactive in blood plasma.",
+   "section": "Complement: mark, alarm, puncture"
+  },
+  {
+   "id": "innate-immunity-c24",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "The three complement activation routes converge on what single step?",
+   "back": "Cutting the protein C3 in two (into C3b and C3a).",
+   "quote": "all converge on one protein, C3, by cutting it in two",
+   "section": "Complement: mark, alarm, puncture"
+  },
+  {
+   "id": "innate-immunity-c25",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does complement C3b help phagocytes, and what is this job called?",
+   "back": "C3b and its trimmed form iC3b stick to the microbe, and phagocytes carry receptors for both, so coated microbes are eaten faster. This is opsonization.",
+   "quote": "The large piece, C3b, and its trimmed form iC3b stick to the microbe, and phagocytes carry receptors for both.",
+   "section": "Complement: mark, alarm, puncture"
+  },
+  {
+   "id": "innate-immunity-c26",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "What do the small complement fragments C3a and C5a do?",
+   "back": "Both promote inflammation (the alarm job); C5a also draws neutrophils to the site.",
+   "quote": "Both promote inflammation, and C5a also draws neutrophils to the site.",
+   "section": "Complement: mark, alarm, puncture"
+  },
+  {
+   "id": "innate-immunity-c27",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Which bacteria does the membrane attack complex (C5b to C9) kill best, and which mostly resist it?",
+   "back": "Bacteria with an outer membrane over a thin wall, Neisseria especially. Bacteria with a thick wall and no outer membrane mostly resist it.",
+   "why": "The ring kills by punching a hole in a membrane.",
+   "quote": "Bacteria with an outer membrane over a thin wall are its targets, Neisseria especially",
+   "section": "Complement: mark, alarm, puncture"
+  },
+  {
+   "id": "innate-immunity-c28",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "A person makes normal C3 and C5 but lacks C6, C7 or C8. Which complement jobs still work, and which infections should trouble this person most?",
+   "back": "Marking and alarm still work; puncture fails. Repeated Neisseria infections are expected.",
+   "why": "C3b, C3a and C5a are made before the late proteins act, and Neisseria is the microbe the C5b-9 ring kills best.",
+   "quote": "Marking and alarm still work, because C3b, C3a and C5a are made before the late proteins act.",
+   "section": "Complement: mark, alarm, puncture"
+  },
+  {
+   "id": "innate-immunity-c29",
+   "type": "predict",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Predict which complement jobs fail in a person who makes no C3 at all, and how a bacterial wound race against doubling would be affected.",
+   "back": "Marking (C3b) and C3a fail for certain, since both are pieces of C3. C5 jobs are expected to be impaired only if cutting C5 needs C3 steps, which the lesson does not state. With fewer microbes coated, k falls, and infections near the threshold could tip toward growth.",
+   "why": "All routes converge on cutting C3, and opsonization raises k.",
+   "quote": "For C3's two pieces, remember: C3b binds, C3a alarms.",
+   "section": "Complement: mark, alarm, puncture"
+  },
+  {
+   "id": "innate-immunity-c30",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Immune serum kills a bacterium; heated to 56 °C it does not; fresh non-immune serum, which cannot kill alone, restores killing to the heated serum. What does each serum supply?",
+   "back": "Heated immune serum supplies an immune factor; fresh normal serum supplies a heat-sensitive factor present in all serum (complement). Killing needs both.",
+   "quote": "Complement, Bordet's heat-sensitive factor, is a set of proteins",
+   "section": "Complement: mark, alarm, puncture"
+  },
+  {
+   "id": "innate-immunity-c31",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "Why do viruses need different innate defenses from bacteria, and how do interferons help?",
+   "back": "A virus multiplies inside a cell, out of easy reach of phagocytes and complement. Interferons from virus-infected cells (and some immune cells) put nearby cells into an antiviral state, so each infected cell infects fewer new ones.",
+   "quote": "Interferons are signals released by virus-infected cells, and by some immune cells, that put nearby cells into an antiviral state",
+   "section": "Viruses: interferons and natural killer cells"
+  },
+  {
+   "id": "innate-immunity-c32",
+   "type": "qa",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the race-against-doubling framing, why do interferons not fit neatly into the job \"more are removed per doubling\"?",
+   "back": "Interferons slow spread rather than remove microbes: each infected cell infects fewer new ones. They lower growth rather than raise k, which is why the three jobs are not a complete list.",
+   "quote": "some defenses slow growth or spread instead of removing microbes, as interferons do against viruses."
+  },
+  {
+   "id": "innate-immunity-c33",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "How does a natural killer (NK) cell decide to kill a body cell, and what role does MHC class I play?",
+   "back": "NK cells weigh activating against inhibitory signals. MHC class I, displayed by most body cells, is inhibitory, so a cell that loses it releases a brake.",
+   "quote": "MHC class I, a surface protein most body cells display, is an inhibitory one, so a cell that loses it releases a brake.",
+   "section": "Viruses: interferons and natural killer cells"
+  },
+  {
+   "id": "innate-immunity-c34",
+   "type": "predict",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "A virus makes infected cells lower their MHC class I. Predict how natural killer cells respond and how they kill.",
+   "back": "The infected cells lose an inhibitory signal, so NK cells are more likely to attack; they release granules of perforin and granzymes, which can trigger the target's self-destruction.",
+   "quote": "NK cells then release granules of perforin and granzymes, which can trigger the target's self-destruction.",
+   "section": "Viruses: interferons and natural killer cells"
+  },
+  {
+   "id": "innate-immunity-c35",
+   "type": "qa",
+   "level": 1,
+   "goals": [
+    "course"
+   ],
+   "front": "In Drosophila, which antimicrobial peptides are switched on mainly through the Toll pathway and the Imd pathway?",
+   "back": "Drosomycin mainly through Toll; diptericin mainly through Imd.",
+   "quote": "infection switches on genes for antimicrobial peptides such as drosomycin (mainly through the Toll pathway) and diptericin (mainly through the Imd pathway)",
+   "section": "Three organisms, one problem: fly, plant, mouse"
+  },
+  {
+   "id": "innate-immunity-c36",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "In Arabidopsis, what starts pattern-triggered immunity (PTI) versus effector-triggered immunity (ETI)?",
+   "back": "Surface pattern receptors start PTI. NLR receptors, mostly inside the cell, detect pathogen effectors and start ETI. Against Pseudomonas syringae the two cooperate.",
+   "quote": "Surface pattern receptors start pattern-triggered immunity (PTI).",
+   "section": "Three organisms, one problem: fly, plant, mouse"
+  },
+  {
+   "id": "innate-immunity-c37",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "Why can it help a plant to kill its own cells at an infection site?",
+   "back": "The hypersensitive response, death of plant cells at the infection site, can limit the pathogen's spread.",
+   "quote": "A strong response often includes the hypersensitive response, death of plant cells at the infection site, which can limit the pathogen's spread.",
+   "section": "Three organisms, one problem: fly, plant, mouse"
+  },
+  {
+   "id": "innate-immunity-c38",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course",
+    "mcat"
+   ],
+   "front": "What does innate immunity lack compared with B and T cells?",
+   "back": "Receptors built anew in each lymphocyte, so it does not make receptor-based memory. What it has instead is a head start.",
+   "quote": "Innate immunity lacks receptors built anew in each lymphocyte, so it does not make the receptor-based memory of B and T cells.",
+   "section": "What innate immunity lacks, and how it can change"
+  },
+  {
+   "id": "innate-immunity-c39",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "lesson",
+    "course"
+   ],
+   "front": "Human blood cells respond more strongly to an unrelated fungus 90 days after BCG vaccination (trained immunity). Name two limits on calling this memory or protection.",
+   "back": "It is not specific to one microbe, and a stronger response in a dish is not protection from infection.",
+   "quote": "This trained immunity is not specific to one microbe, and a stronger response in a dish is not protection from infection.",
+   "section": "What innate immunity lacks, and how it can change"
+  },
+  {
+   "id": "innate-immunity-c40",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Design a test of the claim that mice need TLR4 to sense lipopolysaccharide (LPS) and start inflammation. Give the core comparison and what to measure.",
+   "back": "Give Tlr4-lacking and normal mice the same dose of purified LPS, plus a salt-solution control. Measure resident-cell inflammatory signals and neutrophil arrival, not only survival. If TLR4 is needed, mutants show little of either after LPS and match normal mice after the control.",
+   "quote": "Start with a loss-of-function comparison: give mice lacking a working Tlr4 gene and normal mice the same dose of purified lipopolysaccharide",
+   "section": "Design problem"
+  },
+  {
+   "id": "innate-immunity-c41",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Tlr4-mutant mice barely respond to lipopolysaccharide. What result would show the defect is specific to sensing lipopolysaccharide rather than a general failure of inflammation?",
+   "back": "The mutants respond normally to a microbial molecule sensed by another receptor.",
+   "why": "Two independent Tlr4 mutations in different strains also help, since one strain could differ in other genes too.",
+   "quote": "Rule out a general defect: if mutants respond normally to a microbial molecule sensed by another receptor, the defect is specific to sensing lipopolysaccharide.",
+   "section": "Design problem"
+  },
+  {
+   "id": "innate-immunity-c42",
+   "type": "qa",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "Tlr4-knockout mice show no inflammation after lipopolysaccharide. A student concludes TLR4 binds lipopolysaccharide. Is that justified?",
+   "back": "No. A loss-of-function test shows TLR4 is needed, not how it recognizes the molecule; showing binding takes a different experiment.",
+   "quote": "a loss-of-function test shows that TLR4 is needed, not how it recognizes the molecule",
+   "section": "Design problem"
+  },
+  {
+   "id": "innate-immunity-c43",
+   "type": "calc",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "In the race model, killing at k = 0.6 starts one doubling time late, so the pile is twice as big. About how many doubling times of killing does it take to undo that lost doubling?",
+   "back": "Factor = 2 × (1 − 0.6) = 0.8. Solve 0.8^n = 1/2: n = ln 2 / ln 1.25 ≈ 3.1, so about three. At k = 0.75 (factor 0.5) it takes one.",
+   "why": "Delay does not change whether k above one-half wins, but costs more when killing is weak.",
+   "quote": "at k = 0.6, a factor of 0.8, it takes about three.",
+   "section": "What the race model leaves out"
+  },
+  {
+   "id": "innate-immunity-c44",
+   "type": "qa",
+   "level": 2,
+   "goals": [
+    "course"
+   ],
+   "front": "How does the memory-like response of some mouse NK cells to cytomegalovirus differ from trained immunity?",
+   "back": "After one infection, a subset that recognizes a viral protein expands and responds more strongly next time; unlike trained immunity, it is specific to one virus.",
+   "quote": "Unlike trained immunity, this special case is specific to one virus.",
+   "section": "Memory-like innate responses"
+  },
+  {
+   "id": "innate-immunity-c45",
+   "type": "experiment",
+   "level": 4,
+   "goals": [
+    "course"
+   ],
+   "front": "Testing whether innate cells \"remember\" after BCG vaccination: why stimulate with an unrelated fungus rather than BCG, and why test purified monocytes?",
+   "back": "A stronger response to BCG itself could be ordinary adaptive memory. Mixed blood cells contain T cells, so purified monocytes rule out cross-reactive T cells.",
+   "quote": "Use a heterologous (unrelated) stimulus such as the fungus Candida albicans, since a stronger response to BCG itself could be ordinary adaptive memory.",
+   "section": "Memory-like innate responses"
+  },
+  {
+   "id": "innate-immunity-c46",
+   "type": "experiment",
+   "level": 3,
+   "goals": [
+    "course",
+    "mcat"
+   ],
+   "front": "After vaccination, blood samples release more inflammatory signal when stimulated. What alternative to \"each cell responds more strongly\" must be ruled out, and how?",
+   "back": "More monocytes would release more signal with no cell changing. Count each cell population in the same samples.",
+   "quote": "Separate numbers from behaviour: count each cell population in the same samples, since more monocytes would release more signal with no cell changing.",
+   "section": "Memory-like innate responses"
+  }
+ ]
+}
